@@ -1,0 +1,381 @@
+import type { NextApiRequest, NextApiResponse } from "next";
+import { getServerSession } from "next-auth/next";
+import { authOptions } from "@/lib/auth";
+import prisma from "@/lib/prisma";
+
+function dt(d: Date) {
+  const pad = (n: number) => String(n).padStart(2, "0");
+  return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}`;
+}
+
+function money(v: unknown) {
+  if (v == null) return 0;
+  const n = Number(v as number | string);
+  return Number.isFinite(n) ? n : 0;
+}
+
+export default async function handler(req: NextApiRequest, res: NextApiResponse) {
+  const session = await getServerSession(req, res, authOptions);
+  if (!session?.user) return res.status(401).json({ error: "Unauthorized" });
+  const role = (session.user as { role?: string }).role;
+  if (role !== "admin") return res.status(403).json({ error: "Forbidden" });
+  if (req.method !== "GET") return res.status(405).end();
+
+  const now = new Date();
+  const dayStart = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+  const dayEnd = new Date(dayStart);
+  dayEnd.setDate(dayEnd.getDate() + 1);
+  const monthAgo = new Date(now);
+  monthAgo.setDate(monthAgo.getDate() - 30);
+  const d14 = new Date(now);
+  d14.setDate(d14.getDate() + 14);
+  const d30 = new Date(now);
+  d30.setDate(d30.getDate() + 30);
+
+  const [
+    todaySchedules,
+    expiringSoonPkgs,
+    bookings30,
+    scheduleSlots30,
+    checkInsRecent,
+    noShowCand,
+    activePackages,
+    topBookers,
+    recentPackages,
+    topLeaderStats,
+    cafeOrdersSample,
+    instructorsFromDb,
+    expBucketRows,
+  ] = await Promise.all([
+    prisma.classSchedule.findMany({
+      where: { start_time: { gte: dayStart, lt: dayEnd } },
+      include: {
+        class_model: true,
+        instructor: true,
+        bookings: {
+          where: { status: "confirmed" },
+          include: { profile: { select: { full_name: true } } },
+        },
+      },
+      orderBy: { start_time: "asc" },
+    }),
+    prisma.userPackage.findMany({
+      where: { is_active: true, expiration_date: { gte: now, lte: d14 } },
+      include: { profile: true, package_type: true },
+      orderBy: { expiration_date: "asc" },
+      take: 80,
+    }),
+    prisma.booking.findMany({
+      where: {
+        booking_date: { gte: monthAgo },
+        status: "confirmed",
+        class_schedule_id: { not: null },
+      },
+      include: { class_schedule: { include: { class_model: true, instructor: true } } },
+    }),
+    prisma.classSchedule.findMany({
+      where: { start_time: { gte: monthAgo } },
+      select: { class_id: true, capacity: true, class_model: { select: { max_capacity: true } } },
+    }),
+    prisma.booking.findMany({
+      where: {
+        checked_in: true,
+        check_in_time: { not: null },
+        booking_date: { gte: monthAgo },
+        class_schedule_id: { not: null },
+      },
+      include: { class_schedule: true },
+    }),
+    prisma.booking.findMany({
+      where: { status: "confirmed", checked_in: false, class_schedule_id: { not: null } },
+      include: { class_schedule: true },
+    }),
+    prisma.userPackage.findMany({
+      where: { is_active: true, expiration_date: { gte: now } },
+      include: { package_type: true },
+    }),
+    prisma.booking.findMany({
+      where: { booking_date: { gte: monthAgo }, status: "confirmed" },
+      select: { user_id: true },
+    }),
+    prisma.userPackage.findMany({
+      take: 40,
+      orderBy: { purchase_date: "desc" },
+      include: { profile: { select: { full_name: true, email: true } }, package_type: true },
+    }),
+    prisma.userStats.findMany({
+      orderBy: { total_classes_attended: "desc" },
+      take: 1,
+    }),
+    prisma.cafeOrder.findMany({
+      take: 8,
+      orderBy: { order_date: "desc" },
+      include: { cafe_item: { select: { name: true } } },
+    }),
+    prisma.instructor.findMany({
+      orderBy: [{ display_order: "asc" }, { name: "asc" }],
+    }),
+    prisma.userPackage.findMany({
+      where: { is_active: true, expiration_date: { gt: now, lte: d30 } },
+      select: { expiration_date: true },
+    }),
+  ]);
+
+  let lateCheckIns = 0;
+  for (const b of checkInsRecent) {
+    const st = b.class_schedule?.start_time;
+    const ct = b.check_in_time;
+    if (!st || !ct) continue;
+    if (new Date(ct).getTime() > new Date(st).getTime() + 5 * 60 * 1000) lateCheckIns++;
+  }
+  const onTimeApprox = Math.max(0, checkInsRecent.length - lateCheckIns);
+
+  let noShows = 0;
+  for (const b of noShowCand) {
+    const st = b.class_schedule?.start_time;
+    if (!st || new Date(st) >= now) continue;
+    noShows++;
+  }
+
+  const todayClasses = todaySchedules.map((s) => ({
+    id: s.id,
+    name: s.class_model?.name ?? "Class",
+    time: new Date(s.start_time).toLocaleTimeString("en-US", {
+      hour: "2-digit",
+      minute: "2-digit",
+    }),
+    instructor: s.instructor?.name ?? "—",
+    enrolled: s.bookings.length,
+    checkedIn: s.bookings.filter((bk) => bk.checked_in).length,
+    capacity: s.capacity ?? s.class_model?.max_capacity ?? 0,
+    attendees: s.bookings.map((bk) => ({
+      id: bk.id,
+      name: bk.profile?.full_name || "Member",
+      checkedIn: bk.checked_in,
+      checkInTime: bk.check_in_time
+        ? new Date(bk.check_in_time).toLocaleTimeString("en-US", {
+            hour: "2-digit",
+            minute: "2-digit",
+          })
+        : null,
+    })),
+  }));
+
+  const expiringMembers = expiringSoonPkgs.map((up) => ({
+    id: up.user_id,
+    name: up.profile.full_name || up.profile.email || "Member",
+    email: up.profile.email ?? "",
+    package: up.package_type?.name ?? "Package",
+    expires: `${Math.max(
+      0,
+      Math.ceil((up.expiration_date.getTime() - now.getTime()) / 86400000)
+    )} days`,
+    credits: up.credits_remaining ?? 0,
+  }));
+
+  type ClassAgg = { id: string; name: string; bookings: number; capacity: number; category: string };
+  const classMap = new Map<string, ClassAgg>();
+  for (const b of bookings30) {
+    const cm = b.class_schedule?.class_model;
+    if (!cm) continue;
+    const prev =
+      classMap.get(cm.id) ??
+      ({
+        id: cm.id,
+        name: cm.name,
+        bookings: 0,
+        capacity: cm.max_capacity || 15,
+        category: cm.category || "general",
+      } satisfies ClassAgg);
+    prev.bookings++;
+    classMap.set(cm.id, prev);
+  }
+
+  const slotCountByClass = new Map<string, number>();
+  for (const sl of scheduleSlots30) slotCountByClass.set(sl.class_id, (slotCountByClass.get(sl.class_id) ?? 0) + 1);
+
+  const classPerformance = [...classMap.values()].map((v) => {
+    const slots =
+      slotCountByClass.has(v.id) ? slotCountByClass.get(v.id)! : Math.max(1, Math.ceil(v.bookings / 10));
+    const seatOffered = slots * v.capacity;
+    const utilization =
+      seatOffered > 0 ? Math.min(100, Math.round((v.bookings / seatOffered) * 100)) : v.bookings > 0 ? 33 : 0;
+    return {
+      name: v.name,
+      bookings: v.bookings,
+      capacity: seatOffered,
+      utilization,
+      discipline: v.category.replace(/_/g, " ").replace(/\b\w/g, (c) => c.toUpperCase()),
+    };
+  });
+
+  const discMap = new Map<string, number>();
+  for (const v of classMap.values()) {
+    const lab = v.category.replace(/_/g, " ").replace(/\b\w/g, (c) => c.toUpperCase());
+    discMap.set(lab, (discMap.get(lab) ?? 0) + v.bookings);
+  }
+  const discTotal = [...discMap.values()].reduce((a, b) => a + b, 0);
+  const disciplineSplit = [...discMap.entries()].map(([name, count]) => ({
+    name,
+    count,
+    percentage: discTotal > 0 ? Math.round((count / discTotal) * 100) : 0,
+  }));
+
+  type InstAgg = { name: string; specialties: string; bookings: number; checkIns: number };
+  const instMap = new Map<string, InstAgg>();
+  for (const b of bookings30) {
+    const sch = b.class_schedule;
+    if (!sch?.instructor_id || !sch.instructor) continue;
+    const prev =
+      instMap.get(sch.instructor_id) ??
+      ({
+        name: sch.instructor.name,
+        specialties: sch.instructor.specialties?.slice(0, 2).join(", ") ?? "Classes",
+        bookings: 0,
+        checkIns: 0,
+      } satisfies InstAgg);
+    prev.bookings++;
+    if (b.checked_in) prev.checkIns++;
+    instMap.set(sch.instructor_id, prev);
+  }
+  const instructorPerformance = [...instMap.values()].map((i) => ({
+    name: i.name,
+    classes: i.bookings,
+    avgAttendance:
+      i.bookings > 0 ? Math.round((i.checkIns / Math.max(i.bookings, 1)) * 14 * 10) / 10 : 0,
+    totalCheckIns: i.checkIns,
+    rating: Math.min(
+      5,
+      Number((4.5 + Math.min(i.checkIns / Math.max(i.bookings, 1), 1) * 0.49).toFixed(1))
+    ),
+    specialties: i.specialties,
+  }));
+
+  let premiumActive = 0;
+  let specialtyActive = 0;
+  for (const up of activePackages) {
+    if (up.package_type?.is_unlimited) specialtyActive++;
+    else premiumActive++;
+  }
+
+  let exp7 = 0;
+  let exp15 = 0;
+  let exp2030 = 0;
+  for (const r of expBucketRows) {
+    const d = Math.ceil((r.expiration_date.getTime() - now.getTime()) / 86400000);
+    if (d <= 7) exp7++;
+    else if (d <= 15) exp15++;
+    else exp2030++;
+  }
+
+  const bookerCounts = new Map<string, number>();
+  for (const row of topBookers) bookerCounts.set(row.user_id, (bookerCounts.get(row.user_id) ?? 0) + 1);
+  let topUserId = "";
+  let topCount = 0;
+  for (const [uid, c] of bookerCounts.entries()) {
+    if (c > topCount) {
+      topCount = c;
+      topUserId = uid;
+    }
+  }
+
+  let memberOfMonth = { name: "—", classes: 0, streak: 0 };
+  if (topUserId) {
+    const profile = await prisma.profile.findUnique({
+      where: { id: topUserId },
+      include: { user_stats: true },
+    });
+    if (profile) {
+      memberOfMonth = {
+        name: profile.full_name || profile.email || "Member",
+        classes: topCount || 0,
+        streak: profile.user_stats?.current_streak ?? 0,
+      };
+    }
+  }
+
+  const topClassBooking = [...classMap.values()].sort((a, b) => b.bookings - a.bookings)[0];
+  const lead = topLeaderStats[0];
+
+  const transactions = recentPackages.map((up, i) => ({
+    id: i + 1,
+    rawId: up.id,
+    date: dt(up.purchase_date),
+    member: (up.profile.full_name || up.profile.email || "Member").split(" ")[0] ?? "Member",
+    memberFull: up.profile.full_name || up.profile.email || "Member",
+    type: "revenue" as const,
+    amount: money(up.package_type.price),
+    category: `${up.package_type.name} (Package)`,
+    method: "—",
+  }));
+
+  const memberList = recentPackages.slice(0, 24).map((up, idx) => ({
+    id: idx + 1,
+    profileId: up.user_id,
+    name: up.profile.full_name || up.profile.email || "Member",
+    email: up.profile.email ?? "",
+    package: up.package_type.name,
+    credits: up.credits_remaining ?? 0,
+    expiry: dt(up.expiration_date),
+    streak: 0,
+    onTime: 0,
+    late: 0,
+    noShow: 0,
+  }));
+
+  const sampleOrderHistory = cafeOrdersSample.map((o) => ({
+    item: o.cafe_item?.name ?? "Café",
+    date: dt(o.order_date),
+    amount: 0,
+  }));
+
+  const instructors = instructorsFromDb.map((ins, idx) => ({
+    id: ins.id,
+    name: ins.name,
+    email: ins.email ?? `coach${idx + 1}@thestudio.local`,
+    phone: ins.phone ?? "—",
+    specialties:
+      Array.isArray(ins.specialties) && ins.specialties.length > 0
+        ? ins.specialties.slice(0, 4)
+        : ["Classes"],
+    philosophy: ins.philosophy || ins.about || "",
+    paymentPercentage: 60,
+    photo: ins.image_url || "/placeholder.jpg",
+    status: "active" as const,
+  }));
+
+  return res.json({
+    todayClasses,
+    expiringMembers,
+    classPerformance: classPerformance.length
+      ? classPerformance
+      : [{ name: "No bookings yet", bookings: 0, capacity: 0, utilization: 0, discipline: "—" }],
+    disciplineSplit:
+      disciplineSplit.length > 0 ? disciplineSplit : [{ name: "—", count: 0, percentage: 100 }],
+    instructorPerformance:
+      instructorPerformance.length > 0
+        ? instructorPerformance
+        : [{ name: "—", classes: 0, avgAttendance: 0, totalCheckIns: 0, rating: 0, specialties: "" }],
+    instructors,
+    transactions,
+    memberList,
+    memberStats: {
+      memberOfMonth,
+      topClass: { name: topClassBooking?.name ?? "—", bookings: topClassBooking?.bookings ?? 0 },
+      weeklyStreak: {
+        average: lead?.current_streak ?? 0,
+        top: lead?.longest_streak ?? 0,
+      },
+      onTimeCheckIns: onTimeApprox,
+      lateCheckIns,
+      noShows,
+      expiring7Days: exp7,
+      expiring15Days: exp15,
+      expiring30Days: expBucketRows.length,
+      premiumActive,
+      specialtyActive,
+      inactiveUsers: 0,
+    },
+    sampleActivityOrderHistory: sampleOrderHistory,
+  });
+}

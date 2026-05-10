@@ -1,0 +1,36 @@
+import type { NextApiRequest, NextApiResponse } from "next";
+import { getServerSession } from "next-auth/next";
+import { authOptions } from "@/lib/auth";
+import { ensureAdmin } from "@/lib/requireAdmin";
+import prisma from "@/lib/prisma";
+
+export default async function handler(req: NextApiRequest, res: NextApiResponse) {
+  const session = await getServerSession(req, res, authOptions);
+  if (!ensureAdmin(session, res)) return;
+
+  if (req.method === "GET") {
+    const templates = await prisma.crmTemplate.findMany({
+      orderBy: { created_at: "desc" },
+    });
+    return res.json(templates);
+  }
+
+  if (req.method === "POST") {
+    const template = await prisma.crmTemplate.create({ data: req.body });
+    return res.status(201).json(template);
+  }
+
+  if (req.method === "PUT") {
+    const { id, ...data } = req.body;
+    const template = await prisma.crmTemplate.update({ where: { id }, data });
+    return res.json(template);
+  }
+
+  if (req.method === "DELETE") {
+    const { id } = req.query;
+    await prisma.crmTemplate.delete({ where: { id: String(id) } });
+    return res.status(204).end();
+  }
+
+  res.status(405).end();
+}

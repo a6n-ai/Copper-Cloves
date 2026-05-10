@@ -1,0 +1,19 @@
+# Local PostgreSQL for development. Start with: npm run docker:db:up
+# If Prisma fails with "Authentication failed" while the container is healthy, use 127.0.0.1
+# in DATABASE_URL (not localhost) on Windows—see .env.example.
+services:
+  postgres:
+    image: postgres:16-alpine
+    restart: unless-stopped
+    # Use 5433 on the host so this does not collide with a local PostgreSQL install on 5432.
+    ports:
+      - "5433:5432"
+    environment:
+      POSTGRES_USER: copper
+      POSTGRES_PASSWORD: copper_dev
+      POSTGRES_DB: copperandcloves
+    volumes:
+      - copper_pg_data:/var/lib/postgresql/data
+
+volumes:
+  copper_pg_data:
