@@ -1,7 +1,4 @@
-import { Button } from "@/components/ui/button";
-import { ArrowRight } from "lucide-react";
 import { useState, useEffect } from "react";
-
 export function Hero() {
   const [moveIndex, setMoveIndex] = useState(0);
   const [refuelIndex, setRefuelIndex] = useState(0);
@@ -27,11 +24,11 @@ export function Hero() {
 
   return (
     <>
-      {/* Hero Video Section */}
+      {/* Hero: three columns on lg+, stacked on smaller screens */}
       <section className="relative h-screen w-full overflow-hidden">
-        <div className="flex flex-col lg:grid lg:grid-cols-3 h-full">
-          {/* Column 1: Move */}
-          <div className="relative h-full overflow-hidden group">
+        <div className="flex h-full min-h-0 flex-col lg:grid lg:grid-cols-3 lg:h-full">
+          {/* Panel 1: Move */}
+          <div className="relative flex-1 min-h-0 overflow-hidden lg:flex-none lg:h-full group">
             {moveMedia.map((media, index) => (
               <div
                 key={media}
@@ -55,8 +52,8 @@ export function Hero() {
             </div>
           </div>
 
-          {/* Column 2: Refuel */}
-          <div className="relative h-full overflow-hidden group">
+          {/* Panel 2: Refuel — vertical rules only here (flanks middle image) */}
+          <div className="relative flex-1 min-h-0 overflow-hidden lg:flex-none lg:h-full lg:border-x lg:border-black group">
             {refuelMedia.map((media, index) => (
               <div
                 key={media}
@@ -88,8 +85,8 @@ export function Hero() {
             </div>
           </div>
 
-          {/* Column 3: Connect */}
-          <div className="relative h-full overflow-hidden group">
+          {/* Panel 3: Connect */}
+          <div className="relative flex-1 min-h-0 overflow-hidden lg:flex-none lg:h-full group">
             <video
               src="/Connect-1.mp4"
               autoPlay
@@ -105,16 +102,18 @@ export function Hero() {
           </div>
         </div>
 
-        {/* Central Text Overlay - Desktop Only */}
-        <div className="hidden lg:flex absolute inset-0 flex-col items-center justify-center z-20 px-6">
-          <div className="backdrop-blur-sm bg-black/10 rounded-2xl p-8 max-w-3xl text-center">
-            <h1 className="font-anchor-black text-5xl lg:text-6xl text-white drop-shadow-2xl mb-4 leading-tight">
-              We're more than a studio,<br />
-              We're your home away from home
+        {/* Headline — light glass; copy forced to ~6 lines */}
+        <div className="pointer-events-none absolute inset-0 z-20 hidden lg:flex flex-col items-center justify-center px-4 sm:px-6">
+          <div className="pointer-events-auto w-full max-w-xl rounded-[2rem] border border-white/10 bg-black/[0.01] p-8 text-center shadow-none backdrop-blur-sm sm:max-w-2xl sm:p-10 xl:rounded-[2.5rem] xl:p-11 2xl:p-12">
+            <h1 className="font-anchor-black mb-3 text-5xl text-white drop-shadow-2xl lg:text-6xl leading-tight">
+              {"We're more than a studio,"}
+              <br />
+              {"We're your home away from home"}
             </h1>
-            <p className="font-body text-xl lg:text-2xl text-white/95 drop-shadow-lg leading-relaxed">
-              <span className="font-script text-3xl">move</span> your body, <span className="font-script text-3xl">refuel</span> with a coffee and a smoothie bowl,<br />
-              work from our cafe and find your <span className="font-script text-3xl">community</span>
+            <p className="font-display mx-auto mt-4 max-w-none text-base font-normal leading-snug text-white xl:text-lg xl:leading-relaxed 2xl:text-xl [text-shadow:0_1px_2px_rgba(0,0,0,0.8),0_0_20px_rgba(0,0,0,0.35)]">
+              <span className="italic">move</span> your body, <span className="italic">refuel</span> with a coffee and a smoothie bowl,
+              <br />
+              work from our cafe and find your <span className="italic">community</span>
             </p>
           </div>
         </div>
@@ -179,31 +178,19 @@ export function Hero() {
         `}</style>
       </section>
 
-      {/* Hero Content */}
-      <div className="relative z-10 max-w-7xl mx-auto px-6 lg:px-8 pt-32 pb-24">
-        <div className="text-center">
-          {/* Logo */}
-          <div className="mb-8 flex justify-center">
-            <img 
-              src="/logo2.png" 
-              alt="The Studio Logo" 
-              className="h-24 md:h-32 w-auto"
-              style={{ filter: 'brightness(0)' }}
-            />
-          </div>
-        </div>
-      </div>
-
-      {/* Text Section Below Hero - Mobile/Tablet Only */}
-      <section className="lg:hidden bg-white py-12 px-6">
+      {/* Headline — mobile / tablet only (under hero stack) */}
+      <section className="bg-white py-8 sm:py-10 lg:hidden px-6">
         <div className="max-w-3xl mx-auto text-center">
-          <h1 className="font-anchor-black text-3xl sm:text-4xl md:text-5xl text-charcoal mb-6 leading-tight">
+          <h1 className="font-anchor-black text-3xl sm:text-4xl md:text-5xl lg:text-5xl xl:text-6xl text-charcoal mb-6 leading-tight">
             We're more than a studio,<br />
             We're your home away from home
           </h1>
-          <p className="font-body text-lg sm:text-xl md:text-2xl text-charcoal/80 leading-relaxed">
-            <span className="font-script text-2xl sm:text-3xl text-charcoal">move</span> your body, <span className="font-script text-2xl sm:text-3xl text-charcoal">refuel</span> with a coffee and a smoothie bowl,<br className="hidden sm:block" />
-            work from our cafe and find your <span className="font-script text-2xl sm:text-3xl text-charcoal">community</span>
+          <p className="font-body text-lg sm:text-xl md:text-2xl text-charcoal/80 leading-relaxed max-w-2xl mx-auto">
+            <span className="font-script text-2xl sm:text-3xl text-charcoal">move</span> your body,{" "}
+            <span className="font-script text-2xl sm:text-3xl text-charcoal">refuel</span> with a coffee and a smoothie bowl,
+            <br className="hidden sm:block" />
+            work from our cafe and find your{" "}
+            <span className="font-script text-2xl sm:text-3xl text-charcoal">community</span>
           </p>
         </div>
       </section>

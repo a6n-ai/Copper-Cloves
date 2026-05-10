@@ -20,7 +20,7 @@ export default function Home() {
         image="/og-image.png"
       />
       <div className="min-h-screen bg-cream">
-        <Navigation />
+        <Navigation variant="overlay" />
         <Hero />
         <Experience />
         <ClassCatalog />
