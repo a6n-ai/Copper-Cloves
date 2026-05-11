@@ -37,6 +37,14 @@ function prismaMeta(e: unknown): { code: string; message: string } {
 }
 
 function userFacingDbMessage(code: string, message: string): string {
+  const lower = message.toLowerCase();
+  if (lower.includes("permission denied")) {
+    return "Database access error (permission denied). Confirm the database user can read/write the profiles table and prisma db push has been applied on production.";
+  }
+  if (lower.includes("relation") && lower.includes("profiles") && lower.includes("does not exist")) {
+    return "The profiles table is missing. Run prisma db push (or deploy migrations) on the production database.";
+  }
+
   if (message.includes("Missing database URL") || message.includes("STUDIO_DATABASE_URL")) {
     return "The server cannot reach its database. If you run the studio, add STUDIO_DATABASE_URL (or DATABASE_URL) in your hosting environment (e.g. AWS Amplify → Environment variables).";
   }
@@ -137,17 +145,18 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     if (friendly) {
       return res.status(503).json({
         error: friendly,
-        ...(process.env.NODE_ENV === "development" ? { detail: message, code: code || undefined } : {}),
+        ...(code && /^P[0-9]+$/.test(code) ? { code } : {}),
+        ...(process.env.NODE_ENV === "development" ? { detail: message } : {}),
       });
     }
 
     return res.status(500).json({
       error:
         "Something went wrong while creating your account. Please try again later or contact the studio.",
+      ...(code && /^P[0-9]+$/.test(code) ? { code } : {}),
       ...(process.env.NODE_ENV === "development"
         ? {
             detail: message,
-            code: code || undefined,
             hint: "Use STUDIO_DATABASE_URL in .env.local (and on Amplify) if DATABASE_URL is wrong on Windows.",
           }
         : {}),

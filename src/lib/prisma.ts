@@ -1,6 +1,24 @@
+import fs from "node:fs";
+import path from "node:path";
+import { loadEnvConfig } from "@next/env";
 import { Pool } from "pg";
 import { PrismaClient } from "../generated/prisma/client";
 import { PrismaPg } from "@prisma/adapter-pg";
+
+/**
+ * Load .env.production from the process cwd (normal Node) and from `.next/` when present.
+ * Amplify Hosting deploys the `.next` folder only; we copy `.env.production` into `.next` during
+ * build so SSR handlers can read DB/NextAuth vars at runtime (see amplify.yml).
+ */
+function loadServerEnv() {
+  loadEnvConfig(process.cwd());
+  const nextDir = path.join(process.cwd(), ".next");
+  if (fs.existsSync(path.join(nextDir, ".env.production"))) {
+    loadEnvConfig(nextDir);
+  }
+}
+
+loadServerEnv();
 
 const globalForPrisma = globalThis as unknown as {
   prisma?: PrismaClient;
