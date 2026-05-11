@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import { useRouter } from "next/router";
+import Image from "next/image";
 import { PortalNavigation } from "@/components/PortalNavigation";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -735,9 +736,12 @@ export default function Dashboard() {
                           }}
                           className="w-full flex items-center gap-3 p-3 rounded-lg hover:bg-cream/50 transition-colors text-left"
                         >
-                          <img
+                          <Image
                             src={imageUrl}
                             alt={className}
+                            width={64}
+                            height={64}
+                            unoptimized
                             className="w-16 h-16 rounded-lg object-cover"
                           />
                           <div className="flex-1">
@@ -972,7 +976,7 @@ export default function Dashboard() {
                           <div className="flex items-center gap-3 min-w-0">
                             <div className="w-12 h-12 rounded-lg overflow-hidden bg-gradient-to-br from-sage/20 via-cream/50 to-terracotta/20 flex-shrink-0">
                               {thumb ? (
-                                <img src={thumb} alt="" className="w-full h-full object-cover" />
+                                <Image src={thumb} alt="" width={48} height={48} unoptimized className="w-full h-full object-cover" />
                               ) : null}
                             </div>
                             <div className="min-w-0">
@@ -1056,9 +1060,12 @@ export default function Dashboard() {
 
                 return (
                   <>
-                    <img
+                    <Image
                       src={imageUrl}
                       alt={className}
+                      width={640}
+                      height={384}
+                      unoptimized
                       className="w-full h-48 object-cover rounded-lg mb-4"
                     />
                     <h4 className="font-display text-xl text-charcoal mb-2">

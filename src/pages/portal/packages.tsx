@@ -18,6 +18,23 @@ interface Package {
   badge?: string;
 }
 
+interface PurchasePackageType {
+  name?: string;
+  is_unlimited?: boolean;
+  class_count?: number;
+  duration_months?: number;
+  price?: number;
+}
+
+interface PurchaseRecord {
+  id: string;
+  status: string;
+  created_at: string;
+  expires_at: string;
+  remaining_credits: number;
+  package_types?: PurchasePackageType;
+}
+
 const premiumPackages: Package[] = [
   {
     name: "1 Day Class Pass",
@@ -129,33 +146,18 @@ const premiumPackages: Package[] = [
   },
 ];
 
-const aerialPackage: Package = {
-  name: "Aerial Yoga",
-  price: "₹5,500",
-  classes: 4,
-  validity: "30 days",
-  benefits: [
-    "4 Aerial Yoga sessions",
-    "Hammock orientation",
-    "Valid for 1 month",
-    "Specialty experience"
-  ],
-  badge: "Specialty",
-};
-
 export default function PackagesPage() {
   const router = useRouter();
   const { status } = useSession();
   const { selected } = router.query;
   const [selectedCategory, setSelectedCategory] = useState<"studio" | "class">("studio");
-  const [showPaymentDialog, setShowPaymentDialog] = useState(false);
-  const [selectedPackage, setSelectedPackage] = useState<any>(null);
+  const [selectedPackage, setSelectedPackage] = useState<Package | null>(null);
   const scrollContainerRef = useRef<HTMLDivElement>(null);
   const [showCheckout, setShowCheckout] = useState(false);
   const [isProcessing, setIsProcessing] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState(false);
-  const [purchaseHistory, setPurchaseHistory] = useState<any[]>([]);
+  const [purchaseHistory, setPurchaseHistory] = useState<PurchaseRecord[]>([]);
   const [loadingHistory, setLoadingHistory] = useState(true);
   
   const [formData, setFormData] = useState({
@@ -174,7 +176,7 @@ export default function PackagesPage() {
       const pkg = premiumPackages.find(p => p.name === selected);
       if (pkg) setSelectedCategory(pkg.classes === "Unlimited" ? "studio" : "class");
     }
-  }, [status, selected]);
+  }, [router, selected, status]);
 
   async function loadProfileAndHistory() {
     try {
@@ -195,7 +197,7 @@ export default function PackagesPage() {
     }
   }
 
-  const generateInvoicePDF = async (purchase: any) => {
+  const generateInvoicePDF = async (purchase: PurchaseRecord) => {
     const packageType = purchase.package_types;
     
     // Create invoice HTML

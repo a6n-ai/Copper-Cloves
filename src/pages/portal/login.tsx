@@ -28,18 +28,13 @@ export default function Login() {
   const [isLoading, setIsLoading] = useState(false);
   const [emailNotConfirmed, setEmailNotConfirmed] = useState<string | null>(null);
   const [showSuccess, setShowSuccess] = useState(false);
-  const [mounted, setMounted] = useState(false);
-
-  useEffect(() => {
-    setMounted(true);
-  }, []);
 
   useEffect(() => {
     if (router.query.signup === "success") {
       setShowSuccess(true);
       router.replace("/portal/login", undefined, { shallow: true });
     }
-  }, [router.query]);
+  }, [router]);
 
   const { register, handleSubmit, formState: { errors } } = useForm<LoginFormValues>({
     resolver: zodResolver(loginSchema),
@@ -104,11 +99,13 @@ export default function Login() {
           <CardHeader className="space-y-6 pb-8">
             {/* Logo Only - No Text */}
             <div className="flex justify-center">
-              <img 
-                src="/logo2.png" 
-                alt="The Studio Logo" 
+              <Image
+                src="/logo2.png"
+                alt="The Studio Logo"
+                width={220}
+                height={80}
                 className="h-20 w-auto"
-                style={{ filter: 'brightness(0)' }}
+                style={{ filter: "brightness(0)" }}
               />
             </div>
             

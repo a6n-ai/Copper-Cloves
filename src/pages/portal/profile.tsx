@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { useRouter } from "next/router";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -23,7 +23,7 @@ type ProfileFormValues = z.infer<typeof profileSchema>;
 
 export default function Profile() {
   const router = useRouter();
-  const { data: session, status } = useSession();
+  const { status } = useSession();
   const { toast } = useToast();
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
@@ -33,17 +33,7 @@ export default function Profile() {
     resolver: zodResolver(profileSchema),
   });
 
-  useEffect(() => {
-    if (status === "unauthenticated") {
-      router.push("/portal/login");
-      return;
-    }
-    if (status === "authenticated") {
-      loadProfile();
-    }
-  }, [status]);
-
-  async function loadProfile() {
+  const loadProfile = useCallback(async () => {
     try {
       const res = await fetch("/api/user/profile");
       if (!res.ok) throw new Error("Failed to load profile");
@@ -58,7 +48,17 @@ export default function Profile() {
     } finally {
       setLoading(false);
     }
-  }
+  }, [reset]);
+
+  useEffect(() => {
+    if (status === "unauthenticated") {
+      router.push("/portal/login");
+      return;
+    }
+    if (status === "authenticated") {
+      loadProfile();
+    }
+  }, [loadProfile, router, status]);
 
   async function onSubmit(data: ProfileFormValues) {
     setSaving(true);

@@ -75,9 +75,10 @@ export const authService = {
     return { error: null };
   },
 
-  onAuthStateChange(_callback: (event: string, session: unknown) => void) {
+  onAuthStateChange(callback: (event: string, session: unknown) => void) {
     // NextAuth does not have a real-time auth state listener.
     // Sessions are checked via getSession() or useSession().
+    void callback;
     return { data: { subscription: { unsubscribe: () => {} } } };
   },
 };

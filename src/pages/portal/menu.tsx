@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import { useRouter } from "next/router";
+import Image from "next/image";
 import { PortalNavigation } from "@/components/PortalNavigation";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -57,7 +58,7 @@ export default function MenuPage() {
   const [availableClasses, setAvailableClasses] = useState<ClassSchedule[]>([]);
   const [guestCount, setGuestCount] = useState(0);
   const [guestNames, setGuestNames] = useState<string[]>([]);
-  const [paymentMethod, setPaymentMethod] = useState<"online">("online");
+  const paymentMethod: "online" = "online";
   const [isProcessing, setIsProcessing] = useState(false);
   const [orderSuccess, setOrderSuccess] = useState(false);
   const [orderError, setOrderError] = useState<string | null>(null);
@@ -79,7 +80,7 @@ export default function MenuPage() {
       fetchMenuItems();
       fetchUpcomingClasses();
     }
-  }, [status]);
+  }, [router, status]);
 
   const fetchMenuItems = async () => {
     try {
@@ -276,9 +277,12 @@ export default function MenuPage() {
               filteredItems.map(item => (
               <Card key={item.id} className="border-0 bg-white/80 backdrop-blur-xl shadow-lg overflow-hidden group">
                 <div className="aspect-video w-full overflow-hidden">
-                  <img 
-                    src={item.image_url || "/public/food/A7401864.jpg"} 
+                  <Image
+                    src={item.image_url || "/food/A7401864.jpg"}
                     alt={item.name}
+                    width={1200}
+                    height={675}
+                    unoptimized
                     className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500"
                   />
                 </div>
@@ -345,9 +349,12 @@ export default function MenuPage() {
             <div className="p-6 space-y-4">
               {cart.map(item => (
                 <div key={item.id} className="flex items-center gap-4 p-4 rounded-xl bg-cream/30 border border-sage/10">
-                  <img 
-                    src={item.image_url || "/public/food/A7401864.jpg"} 
+                  <Image
+                    src={item.image_url || "/food/A7401864.jpg"}
                     alt={item.name}
+                    width={80}
+                    height={80}
+                    unoptimized
                     className="w-20 h-20 object-cover rounded-lg"
                   />
                   <div className="flex-1">

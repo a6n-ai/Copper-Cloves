@@ -1,12 +1,13 @@
 import { useState } from "react";
 import { useRouter } from "next/router";
 import Link from "next/link";
+import Image from "next/image";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Alert, AlertDescription } from "@/components/ui/alert";
-import { Loader2, ArrowLeft, CheckCircle2 } from "lucide-react";
+import { Loader2, CheckCircle2 } from "lucide-react";
 import { SEO } from "@/components/SEO";
 import { signUp } from "@/services/authService";
 
@@ -68,9 +69,9 @@ export default function SignupPage() {
         router.push("/portal/login?signup=success");
       }, 2000);
       
-    } catch (err: any) {
+    } catch (err: unknown) {
       console.error("Signup error:", err);
-      setError(err.message || "Failed to create account. Please try again.");
+      setError(err instanceof Error ? err.message : "Failed to create account. Please try again.");
       setLoading(false);
     }
   }
@@ -138,11 +139,13 @@ export default function SignupPage() {
           <CardHeader className="space-y-6 pb-8">
             {/* Logo Only - No Text */}
             <div className="flex justify-center">
-              <img 
-                src="/logo2.png" 
-                alt="The Studio Logo" 
+              <Image
+                src="/logo2.png"
+                alt="The Studio Logo"
+                width={220}
+                height={80}
                 className="h-20 w-auto"
-                style={{ filter: 'brightness(0)' }}
+                style={{ filter: "brightness(0)" }}
               />
             </div>
             

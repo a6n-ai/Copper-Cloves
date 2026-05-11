@@ -53,6 +53,13 @@ function categoryIcon(cat: string): LucideIcon {
   return Sparkles;
 }
 
+function toSortBy(value: string): "featured" | "price-low" | "price-high" {
+  if (value === "price-low" || value === "price-high" || value === "featured") {
+    return value;
+  }
+  return "featured";
+}
+
 export default function Shop() {
   const [products, setProducts] = useState<RetailProduct[]>([]);
   const [catalogLoading, setCatalogLoading] = useState(true);
@@ -197,7 +204,7 @@ export default function Shop() {
             <div className="flex items-center gap-3">
               <select
                 value={sortBy}
-                onChange={(e) => setSortBy(e.target.value as any)}
+                onChange={(e) => setSortBy(toSortBy(e.target.value))}
                 className="px-4 py-2 rounded-full bg-white/60 border border-sage/10 font-body text-sm text-charcoal focus:outline-none focus:ring-2 focus:ring-sage/30"
               >
                 <option value="featured">Featured</option>
