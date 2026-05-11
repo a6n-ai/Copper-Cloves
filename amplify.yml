@@ -4,6 +4,7 @@ frontend:
     preBuild:
       commands:
         - nvm use 22
+        - rm -rf node_modules
         - npm ci --no-audit --no-fund
     build:
       commands:
