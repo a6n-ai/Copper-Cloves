@@ -28,6 +28,7 @@ yarn-error.log*
 # local env files
 .env*.local
 .env
+.env.production
 .env.development
 
 # Logs and local uploads (use object storage / .env.example in production)

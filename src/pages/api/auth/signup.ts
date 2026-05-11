@@ -1,19 +1,43 @@
 import type { NextApiRequest, NextApiResponse } from "next";
 import bcrypt from "bcryptjs";
+import { Prisma } from "@/generated/prisma/client";
 import prisma from "@/lib/prisma";
 
-function prismaErrorCode(e: unknown): string {
-  if (typeof e === "object" && e !== null && "code" in e && typeof (e as { code: unknown }).code === "string") {
-    return (e as { code: string }).code;
+function walkErrorChain(e: unknown): unknown[] {
+  const list: unknown[] = [];
+  let cur: unknown = e;
+  const seen = new Set<unknown>();
+  while (cur != null && !seen.has(cur)) {
+    seen.add(cur);
+    list.push(cur);
+    if (cur instanceof Error && cur.cause != null) cur = cur.cause;
+    else break;
   }
-  return "";
+  return list;
 }
 
-function userFacingDbMessage(e: unknown): string {
+function prismaMeta(e: unknown): { code: string; message: string } {
+  for (const item of walkErrorChain(e)) {
+    if (item instanceof Prisma.PrismaClientKnownRequestError) {
+      return { code: item.code, message: item.message };
+    }
+    if (item instanceof Prisma.PrismaClientInitializationError) {
+      const init = item as Error & { errorCode?: string };
+      return { code: init.errorCode ?? "", message: item.message };
+    }
+    if (item instanceof Prisma.PrismaClientValidationError) {
+      return { code: "VALIDATION", message: item.message };
+    }
+  }
   const msg = e instanceof Error ? e.message : String(e);
-  const code = prismaErrorCode(e);
+  if (typeof e === "object" && e !== null && "code" in e && typeof (e as { code: unknown }).code === "string") {
+    return { code: (e as { code: string }).code, message: msg };
+  }
+  return { code: "", message: msg };
+}
 
-  if (msg.includes("Missing database URL") || msg.includes("STUDIO_DATABASE_URL")) {
+function userFacingDbMessage(code: string, message: string): string {
+  if (message.includes("Missing database URL") || message.includes("STUDIO_DATABASE_URL")) {
     return "The server cannot reach its database. If you run the studio, add STUDIO_DATABASE_URL (or DATABASE_URL) in your hosting environment (e.g. AWS Amplify → Environment variables).";
   }
 
@@ -25,11 +49,22 @@ function userFacingDbMessage(e: unknown): string {
     return "Database login failed. Check the username and password in your connection string.";
   }
 
+  if (code === "P2021") {
+    return "A required database table is missing. Run prisma db push (or deploy migrations) on the production database.";
+  }
+  if (code === "P2022") {
+    return "The database schema is out of date (a column is missing). Run prisma db push (or deploy migrations) on the production database.";
+  }
+  if (code === "VALIDATION") {
+    return "Invalid signup data. Check all fields and try again.";
+  }
+
   if (
-    msg.includes("ECONNREFUSED") ||
-    msg.includes("ETIMEDOUT") ||
-    msg.includes("timeout") ||
-    msg.includes("Can't reach database")
+    message.includes("ECONNREFUSED") ||
+    message.includes("ETIMEDOUT") ||
+    message.includes("timeout") ||
+    message.includes("Can't reach database") ||
+    (message.includes("connection") && message.includes("refused"))
   ) {
     return "Cannot connect to the database (network or firewall). For cloud hosting + RDS, ensure public accessibility or a VPC link and security group rules allow access.";
   }
@@ -83,20 +118,26 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
     return res.status(201).json({ message: "Account created successfully." });
   } catch (e: unknown) {
-    const msg = e instanceof Error ? e.message : "Sign up failed";
-    const code = prismaErrorCode(e);
+    const { code, message } = prismaMeta(e);
 
-    console.error("[signup]", msg, code || "");
+    console.error("[signup]", message, code || "");
 
     if (code === "P2002") {
       return res.status(409).json({ error: "An account with this email already exists." });
     }
 
-    const friendly = userFacingDbMessage(e);
+    const msgLower = message.toLowerCase();
+    if (msgLower.includes("72 bytes") || msgLower.includes("data must be utf-8")) {
+      return res.status(400).json({
+        error: "Password is too long for our system. Use a shorter password (max 72 characters).",
+      });
+    }
+
+    const friendly = userFacingDbMessage(code, message);
     if (friendly) {
       return res.status(503).json({
         error: friendly,
-        ...(process.env.NODE_ENV === "development" ? { detail: msg, code: code || undefined } : {}),
+        ...(process.env.NODE_ENV === "development" ? { detail: message, code: code || undefined } : {}),
       });
     }
 
@@ -105,7 +146,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         "Something went wrong while creating your account. Please try again later or contact the studio.",
       ...(process.env.NODE_ENV === "development"
         ? {
-            detail: msg,
+            detail: message,
             code: code || undefined,
             hint: "Use STUDIO_DATABASE_URL in .env.local (and on Amplify) if DATABASE_URL is wrong on Windows.",
           }

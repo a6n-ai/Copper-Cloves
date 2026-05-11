@@ -24,8 +24,7 @@ frontend:
       commands:
         - |
           echo "Preparing .env.production for Next.js SSR (DB + NextAuth)"
-          rm -f .env.production
-          env | grep -E '^(STUDIO_DATABASE_URL|DATABASE_URL|NEXTAUTH_SECRET|NEXTAUTH_URL)=' >> .env.production
+          node scripts/write-ssr-env.mjs
           npm run build
   artifacts:
     baseDirectory: .next

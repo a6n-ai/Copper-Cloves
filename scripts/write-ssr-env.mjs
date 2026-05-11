@@ -1,0 +1,26 @@
+/**
+ * Writes .env.production for Amplify SSR so Next.js API routes load DB + NextAuth vars.
+ * Values are JSON-stringified per line so special characters (#, $, spaces) in secrets/URLs
+ * are not mangled by dotenv (unlike raw `env | grep >> .env.production`).
+ */
+import fs from "node:fs";
+
+const KEYS = ["STUDIO_DATABASE_URL", "DATABASE_URL", "NEXTAUTH_SECRET", "NEXTAUTH_URL"];
+
+const hasDb =
+  Boolean(process.env.STUDIO_DATABASE_URL?.trim()) || Boolean(process.env.DATABASE_URL?.trim());
+if (!hasDb) {
+  console.error("ERROR: Set STUDIO_DATABASE_URL or DATABASE_URL in Amplify environment variables.");
+  process.exit(1);
+}
+
+let out = "";
+for (const k of KEYS) {
+  const v = process.env[k];
+  if (v != null && String(v).length > 0) {
+    out += `${k}=${JSON.stringify(String(v))}\n`;
+  }
+}
+
+fs.writeFileSync(".env.production", out);
+console.log("Wrote .env.production for SSR (values not printed).");
