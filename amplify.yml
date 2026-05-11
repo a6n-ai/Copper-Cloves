@@ -8,7 +8,7 @@ frontend:
         - npm ci --no-audit --no-fund
         - test -n "$STUDIO_DATABASE_URL" -o -n "$DATABASE_URL" || (echo "Missing STUDIO_DATABASE_URL or DATABASE_URL in Amplify environment variables" && exit 1)
         - >
-          node -e "const { Client } = require('pg'); const url = process.env.STUDIO_DATABASE_URL || process.env.DATABASE_URL; const ssl = /sslmode=require|neon\.tech|supabase\.co|rds\.amazonaws\.com/i.test(url || '') ? { rejectUnauthorized: false } : undefined; const c = new Client({ connectionString: url, ssl }); c.connect().then(() => c.end()).then(() => console.log('Database connectivity check passed')).catch((e) => { console.error('Database connectivity check failed', e.message); process.exit(1); });"
+          node -e "const { Client } = require('pg'); const url = process.env.STUDIO_DATABASE_URL || process.env.DATABASE_URL; const c = new Client({ connectionString: url }); c.connect().then(() => c.end()).then(() => console.log('Database connectivity check passed')).catch((e) => { console.error('Database connectivity check failed', e.message); process.exit(1); });"
     build:
       commands:
         - npm run build
