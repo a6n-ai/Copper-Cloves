@@ -23,13 +23,34 @@ function databaseUrl(): string {
   return url;
 }
 
+function shouldEnableSsl(connectionString: string): boolean {
+  try {
+    const parsed = new URL(connectionString);
+    const sslMode = parsed.searchParams.get("sslmode")?.toLowerCase();
+    if (sslMode === "require" || sslMode === "verify-ca" || sslMode === "verify-full") {
+      return true;
+    }
+
+    const host = parsed.hostname.toLowerCase();
+    return (
+      host.includes("rds.amazonaws.com") ||
+      host.includes("neon.tech") ||
+      host.includes("supabase.co")
+    );
+  } catch {
+    return false;
+  }
+}
+
 function createPrismaClient() {
   const connectionString = databaseUrl();
+  const useSsl = shouldEnableSsl(connectionString);
   const pool =
     globalForPrisma.pgPool ??
     new Pool({
       connectionString,
       max: 10,
+      ...(useSsl ? { ssl: { rejectUnauthorized: false } } : {}),
     });
   if (process.env.NODE_ENV !== "production") globalForPrisma.pgPool = pool;
 
