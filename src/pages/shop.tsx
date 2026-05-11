@@ -21,6 +21,8 @@ import {
 import { useCart } from "@/contexts/CartContext";
 import Image from "next/image";
 import Link from "next/link";
+import { useSession } from "next-auth/react";
+import { Input } from "@/components/ui/input";
 
 interface RetailProduct {
   id: string;
@@ -61,6 +63,7 @@ function toSortBy(value: string): "featured" | "price-low" | "price-high" {
 }
 
 export default function Shop() {
+  const { data: session } = useSession();
   const [products, setProducts] = useState<RetailProduct[]>([]);
   const [catalogLoading, setCatalogLoading] = useState(true);
   const [selectedCategory, setSelectedCategory] = useState<string>("all");
@@ -69,6 +72,15 @@ export default function Shop() {
   const [checkoutStep, setCheckoutStep] = useState<"cart" | "details" | "payment" | "success">("cart");
   const [searchQuery, setSearchQuery] = useState("");
   const cart = useCart();
+  const [customerName, setCustomerName] = useState("");
+  const [customerEmail, setCustomerEmail] = useState("");
+  const [customerPhone, setCustomerPhone] = useState("");
+  const [shippingAddress, setShippingAddress] = useState("");
+  const [couponCode, setCouponCode] = useState("");
+  const [couponDiscount, setCouponDiscount] = useState<number | null>(null);
+  const [couponError, setCouponError] = useState<string | null>(null);
+  const [checkoutLoading, setCheckoutLoading] = useState(false);
+  const [checkoutError, setCheckoutError] = useState<string | null>(null);
 
   useEffect(() => {
     let cancelled = false;
@@ -89,6 +101,13 @@ export default function Shop() {
       cancelled = true;
     };
   }, []);
+
+  useEffect(() => {
+    const e = (session?.user as { email?: string } | undefined)?.email?.trim();
+    if (e) {
+      setCustomerEmail((prev) => (prev.trim() ? prev : e));
+    }
+  }, [session]);
 
   const categoryTabs = useMemo(() => {
     const uniq = [...new Set(products.map((p) => p.category))].sort();
@@ -121,6 +140,82 @@ export default function Shop() {
         return 0;
       });
   }, [products, selectedCategory, searchQuery, sortBy]);
+
+  const deliveryFee = 50;
+  const shopOrderTotal =
+    Math.max(0, Math.round((cart.subtotal - (couponDiscount ?? 0) + deliveryFee) * 100) / 100);
+
+  async function validateShopCoupon() {
+    setCouponError(null);
+    const email =
+      customerEmail.trim() ||
+      (session?.user as { email?: string } | undefined)?.email?.trim() ||
+      "";
+    const r = await fetch("/api/coupons/validate", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        code: couponCode,
+        context: "ecommerce",
+        subtotal: cart.subtotal,
+        email: email || undefined,
+      }),
+    });
+    const d = r.ok ? await r.json() : { valid: false, error: "Could not validate" };
+    if (!d.valid) {
+      setCouponDiscount(null);
+      setCouponError(typeof d.error === "string" ? d.error : "Invalid coupon");
+      return;
+    }
+    setCouponDiscount(Number(d.discountInr) || 0);
+  }
+
+  async function completeRetailOrder() {
+    setCheckoutError(null);
+    if (!customerName.trim() || !customerEmail.trim() || !shippingAddress.trim()) {
+      setCheckoutError("Please complete delivery details.");
+      return;
+    }
+    setCheckoutLoading(true);
+    try {
+      const res = await fetch("/api/retail/checkout", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          items: cart.items.map((i) => ({ productId: i.id, quantity: i.quantity })),
+          customer_name: customerName,
+          customer_email: customerEmail,
+          shipping_address: [shippingAddress, customerPhone ? `Phone: ${customerPhone}` : ""]
+            .filter(Boolean)
+            .join("\n"),
+          payment_method: "online",
+          coupon_code: couponCode.trim() || undefined,
+        }),
+      });
+      const body = await res.json().catch(() => ({}));
+      if (!res.ok) {
+        setCheckoutError(typeof body?.error === "string" ? body.error : "Order failed");
+        return;
+      }
+      setCheckoutStep("success");
+      setTimeout(() => {
+        cart.clearCart();
+        setShowCart(false);
+        setCheckoutStep("cart");
+        setCustomerName("");
+        setCustomerEmail("");
+        setCustomerPhone("");
+        setShippingAddress("");
+        setCouponCode("");
+        setCouponDiscount(null);
+        setCouponError(null);
+      }, 3000);
+    } catch {
+      setCheckoutError("Could not place order");
+    } finally {
+      setCheckoutLoading(false);
+    }
+  }
 
   return (
     <>
@@ -450,6 +545,8 @@ export default function Shop() {
                       type="text"
                       className="w-full px-4 py-3 rounded-xl border border-sage/20 focus:border-sage focus:outline-none font-body"
                       placeholder="Enter your name"
+                      value={customerName}
+                      onChange={(e) => setCustomerName(e.target.value)}
                     />
                   </div>
                   
@@ -459,6 +556,8 @@ export default function Shop() {
                       type="email"
                       className="w-full px-4 py-3 rounded-xl border border-sage/20 focus:border-sage focus:outline-none font-body"
                       placeholder="your@email.com"
+                      value={customerEmail}
+                      onChange={(e) => setCustomerEmail(e.target.value)}
                     />
                   </div>
                   
@@ -468,6 +567,8 @@ export default function Shop() {
                       type="tel"
                       className="w-full px-4 py-3 rounded-xl border border-sage/20 focus:border-sage focus:outline-none font-body"
                       placeholder="Phone number"
+                      value={customerPhone}
+                      onChange={(e) => setCustomerPhone(e.target.value)}
                     />
                   </div>
                   
@@ -477,6 +578,8 @@ export default function Shop() {
                       className="w-full px-4 py-3 rounded-xl border border-sage/20 focus:border-sage focus:outline-none font-body resize-none"
                       rows={3}
                       placeholder="Delivery address"
+                      value={shippingAddress}
+                      onChange={(e) => setShippingAddress(e.target.value)}
                     />
                   </div>
                 </div>
@@ -520,33 +623,64 @@ export default function Shop() {
                   </div>
                 </div>
                 
+                <div className="p-4 rounded-xl bg-cream/50 mb-4 space-y-3">
+                  <label className="font-body text-sm text-charcoal/70 block">Promo code</label>
+                  <div className="flex gap-2 flex-col sm:flex-row">
+                    <Input
+                      className="font-mono uppercase border-sage/20"
+                      placeholder="Code"
+                      value={couponCode}
+                      onChange={(e) => {
+                        setCouponCode(e.target.value.toUpperCase());
+                        setCouponDiscount(null);
+                        setCouponError(null);
+                      }}
+                    />
+                    <Button
+                      type="button"
+                      variant="outline"
+                      className="border-sage/30 shrink-0"
+                      onClick={() => void validateShopCoupon()}
+                    >
+                      Apply
+                    </Button>
+                  </div>
+                  {couponError && (
+                    <p className="text-sm text-red-600 font-body">{couponError}</p>
+                  )}
+                </div>
+
                 <div className="p-4 rounded-xl bg-cream/50 mb-6">
                   <div className="flex justify-between font-body text-sm mb-2">
                     <span className="text-charcoal/70">Subtotal</span>
                     <span className="text-charcoal">₹{cart.subtotal}</span>
                   </div>
+                  {couponDiscount != null && couponDiscount > 0 && (
+                    <div className="flex justify-between font-body text-sm mb-2 text-sage">
+                      <span>Discount</span>
+                      <span>−₹{couponDiscount}</span>
+                    </div>
+                  )}
                   <div className="flex justify-between font-body text-sm mb-2">
                     <span className="text-charcoal/70">Delivery</span>
-                    <span className="text-charcoal">₹50</span>
+                    <span className="text-charcoal">₹{deliveryFee}</span>
                   </div>
                   <div className="pt-2 border-t border-sage/20 flex justify-between">
                     <span className="font-display text-lg text-charcoal">Total</span>
-                    <span className="font-display text-2xl text-sage">₹{cart.subtotal + 50}</span>
+                    <span className="font-display text-2xl text-sage">₹{shopOrderTotal}</span>
                   </div>
                 </div>
-                
+
+                {checkoutError && (
+                  <p className="text-sm text-red-600 font-body mb-4">{checkoutError}</p>
+                )}
+
                 <Button
-                  onClick={() => {
-                    setCheckoutStep("success");
-                    setTimeout(() => {
-                      cart.clearCart();
-                      setShowCart(false);
-                      setCheckoutStep("cart");
-                    }, 3000);
-                  }}
+                  onClick={() => void completeRetailOrder()}
+                  disabled={checkoutLoading}
                   className="w-full bg-sage hover:bg-sage/90 text-white rounded-full py-6 text-base font-body"
                 >
-                  Complete Order
+                  {checkoutLoading ? "Processing…" : "Complete Order"}
                   <Check className="ml-2" size={18} />
                 </Button>
               </div>

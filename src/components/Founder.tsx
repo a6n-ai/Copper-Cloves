@@ -26,13 +26,13 @@ export function Founder() {
   ];
 
   return (
-    <section className="relative py-24 md:py-32 px-6 lg:px-8 overflow-hidden">
+    <section className="relative py-16 md:py-20 px-6 lg:px-8 overflow-hidden">
       {/* Subtle Background */}
       <div className="absolute inset-0 bg-gradient-to-br from-cream via-white to-sage/5 -z-10" />
       
       <div className="max-w-7xl mx-auto">
         {/* Section Badge */}
-        <div className="text-center mb-16">
+        <div className="text-center mb-10 md:mb-12">
           <div className="inline-flex items-center gap-2 px-5 py-2 rounded-full bg-sage/10 border border-sage/20 mb-6">
             <span className="font-body text-xs text-charcoal font-semibold tracking-widest uppercase">
               Our Story
@@ -81,17 +81,17 @@ export function Founder() {
               </p>
             </div>
 
-            {/* Minimalist Founder CTA - Text Link */}
+            {/* Founder CTA — bordered pill, sage on hover */}
             <div className="pt-8">
-              <Link 
+              <Link
                 href="/founder"
-                className="group inline-flex items-center gap-2 font-body text-sm text-charcoal uppercase tracking-widest transition-all duration-300"
+                className="group inline-flex items-center gap-3 rounded-xl border-2 border-charcoal/15 bg-white/80 px-6 py-4 font-body text-sm text-charcoal uppercase tracking-widest transition-all duration-300 hover:border-sage hover:bg-sage hover:text-white hover:shadow-lg"
               >
-                <span className="relative">
-                  Meet the Founder
-                  <span className="absolute bottom-0 left-0 w-0 h-0.5 bg-sage transition-all duration-300 group-hover:w-full" />
-                </span>
-                <ArrowRight className="text-sage transition-transform duration-300 group-hover:translate-x-1" size={16} />
+                <span>Meet the Founder</span>
+                <ArrowRight
+                  className="text-sage transition-transform duration-300 group-hover:translate-x-1 group-hover:text-white"
+                  size={18}
+                />
               </Link>
             </div>
           </div>

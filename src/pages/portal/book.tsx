@@ -294,7 +294,7 @@ export default function BookClass() {
       if (userPackage.type === "class_pass" && !useCredits) {
         // Calculate pending amount
         const totalPeople = 1 + friendsFamily.length;
-        const classPrice = 950; // Price per class
+        const classPrice = 945; // Price per class
         const creditsToUse = Math.min(userPackage.classesRemaining || 0, totalPeople);
         const shortfall = totalPeople - creditsToUse;
         setPendingAmount(shortfall * classPrice);
@@ -322,7 +322,7 @@ export default function BookClass() {
 
   function calculateTotals() {
     const totalPeople = 1 + friendsFamily.length;
-    const classPrice = 950;
+    const classPrice = 945;
     
     // Class cost
     let classTotal = 0;
@@ -966,11 +966,11 @@ export default function BookClass() {
                                 if (classesAvailable < 1) {
                                   return (
                                     <span className="text-terracotta">
-                                      ⚠️ No classes remaining. Pay ₹{(1 + friendsFamily.length) * 950} for all attendees.
+                                      ⚠️ No classes remaining. Pay ₹{(1 + friendsFamily.length) * 945} for all attendees.
                                     </span>
                                   );
                                 } else if (friendsFamily.length > 0) {
-                                  return `1 class deducted for you. Pay ₹${friendsFamily.length * 950} for ${friendsFamily.length} guest${friendsFamily.length > 1 ? 's' : ''}.`;
+                                  return `1 class deducted for you. Pay ₹${friendsFamily.length * 945} for ${friendsFamily.length} guest${friendsFamily.length > 1 ? 's' : ''}.`;
                                 } else {
                                   return "1 class will be deducted for your spot.";
                                 }
@@ -999,7 +999,7 @@ export default function BookClass() {
                               Pay for This Class
                             </p>
                             <p className="font-body text-sm text-charcoal/60">
-                              Save your classes. Pay ₹{(1 + friendsFamily.length) * 950} at checkout.
+                              Save your classes. Pay ₹{(1 + friendsFamily.length) * 945} at checkout.
                             </p>
                           </div>
                         </div>
@@ -1018,7 +1018,7 @@ export default function BookClass() {
                             No Active Package
                           </p>
                           <p className="font-body text-sm text-charcoal/60">
-                            Please purchase a package to book classes. Pay ₹{(1 + friendsFamily.length) * 950} now or buy a package first.
+                            Please purchase a package to book classes. Pay ₹{(1 + friendsFamily.length) * 945} now or buy a package first.
                           </p>
                         </div>
                       </div>
@@ -1040,10 +1040,10 @@ export default function BookClass() {
                     {friendsFamily.length > 0 && (
                       <div className="pt-3 border-t border-sage/10">
                         <p className="font-body text-sm text-charcoal/70 mb-2">
-                          <strong>Additional Guests:</strong> {friendsFamily.length} × ₹950 = ₹{friendsFamily.length * 950}
+                          <strong>Additional Guests:</strong> {friendsFamily.length} × ₹945 = ₹{friendsFamily.length * 945}
                         </p>
                         <p className="font-body text-xs text-charcoal/60 italic">
-                          Friends and family will be charged at the class rate (₹950 per person).
+                          Friends and family will be charged at the class rate (₹945 per person).
                         </p>
                       </div>
                     )}
@@ -1185,10 +1185,10 @@ export default function BookClass() {
                     <div className="flex justify-between font-body text-sm">
                       <span className="text-charcoal/70">
                         {userPackage.type === "class_pass" && useCredits
-                          ? `Guest Fees (${friendsFamily.length} × ₹950)`
+                          ? `Guest Fees (${friendsFamily.length} × ₹945)`
                           : userPackage.type === "studio_pass"
-                          ? `Additional Guests (${friendsFamily.length} × ₹950)`
-                          : `Class Fee (${1 + friendsFamily.length} × ₹950)`
+                          ? `Additional Guests (${friendsFamily.length} × ₹945)`
+                          : `Class Fee (${1 + friendsFamily.length} × ₹945)`
                         }
                       </span>
                       <span className="text-charcoal">₹{totals.classTotal}</span>

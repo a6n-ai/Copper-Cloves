@@ -174,7 +174,7 @@ export function Footer() {
             </div>
             
             {/* Embedded Map */}
-            <div className="rounded-xl overflow-hidden shadow-2xl h-[300px] md:h-[350px]">
+            <div className="rounded-xl overflow-hidden shadow-2xl h-[200px] sm:h-[220px] md:h-[240px] max-w-lg mx-auto md:max-w-none md:mx-0 md:ml-auto">
               <iframe
                 src="https://maps.google.com/maps?ll=12.963915,77.638424&z=15&t=m&hl=en&gl=IN&mapclient=embed&output=embed&cid=8196377345979611458"
                 width="100%"

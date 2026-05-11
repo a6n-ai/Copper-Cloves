@@ -28,10 +28,12 @@ export type AggregateCafeOrder = {
 
 export type CafeOrderAvgAggregateOutputType = {
   quantity: number | null
+  discount_inr: runtime.Decimal | null
 }
 
 export type CafeOrderSumAggregateOutputType = {
   quantity: number | null
+  discount_inr: runtime.Decimal | null
 }
 
 export type CafeOrderMinAggregateOutputType = {
@@ -44,6 +46,9 @@ export type CafeOrderMinAggregateOutputType = {
   status: string | null
   order_date: Date | null
   created_at: Date | null
+  coupon_id: string | null
+  discount_inr: runtime.Decimal | null
+  batch_id: string | null
 }
 
 export type CafeOrderMaxAggregateOutputType = {
@@ -56,6 +61,9 @@ export type CafeOrderMaxAggregateOutputType = {
   status: string | null
   order_date: Date | null
   created_at: Date | null
+  coupon_id: string | null
+  discount_inr: runtime.Decimal | null
+  batch_id: string | null
 }
 
 export type CafeOrderCountAggregateOutputType = {
@@ -68,16 +76,21 @@ export type CafeOrderCountAggregateOutputType = {
   status: number
   order_date: number
   created_at: number
+  coupon_id: number
+  discount_inr: number
+  batch_id: number
   _all: number
 }
 
 
 export type CafeOrderAvgAggregateInputType = {
   quantity?: true
+  discount_inr?: true
 }
 
 export type CafeOrderSumAggregateInputType = {
   quantity?: true
+  discount_inr?: true
 }
 
 export type CafeOrderMinAggregateInputType = {
@@ -90,6 +103,9 @@ export type CafeOrderMinAggregateInputType = {
   status?: true
   order_date?: true
   created_at?: true
+  coupon_id?: true
+  discount_inr?: true
+  batch_id?: true
 }
 
 export type CafeOrderMaxAggregateInputType = {
@@ -102,6 +118,9 @@ export type CafeOrderMaxAggregateInputType = {
   status?: true
   order_date?: true
   created_at?: true
+  coupon_id?: true
+  discount_inr?: true
+  batch_id?: true
 }
 
 export type CafeOrderCountAggregateInputType = {
@@ -114,6 +133,9 @@ export type CafeOrderCountAggregateInputType = {
   status?: true
   order_date?: true
   created_at?: true
+  coupon_id?: true
+  discount_inr?: true
+  batch_id?: true
   _all?: true
 }
 
@@ -213,6 +235,9 @@ export type CafeOrderGroupByOutputType = {
   status: string
   order_date: Date
   created_at: Date
+  coupon_id: string | null
+  discount_inr: runtime.Decimal
+  batch_id: string | null
   _count: CafeOrderCountAggregateOutputType | null
   _avg: CafeOrderAvgAggregateOutputType | null
   _sum: CafeOrderSumAggregateOutputType | null
@@ -248,9 +273,13 @@ export type CafeOrderWhereInput = {
   status?: Prisma.StringFilter<"CafeOrder"> | string
   order_date?: Prisma.DateTimeFilter<"CafeOrder"> | Date | string
   created_at?: Prisma.DateTimeFilter<"CafeOrder"> | Date | string
+  coupon_id?: Prisma.StringNullableFilter<"CafeOrder"> | string | null
+  discount_inr?: Prisma.DecimalFilter<"CafeOrder"> | runtime.Decimal | runtime.DecimalJsLike | number | string
+  batch_id?: Prisma.StringNullableFilter<"CafeOrder"> | string | null
   profile?: Prisma.XOR<Prisma.ProfileScalarRelationFilter, Prisma.ProfileWhereInput>
   cafe_item?: Prisma.XOR<Prisma.CafeItemScalarRelationFilter, Prisma.CafeItemWhereInput>
   booking?: Prisma.XOR<Prisma.BookingNullableScalarRelationFilter, Prisma.BookingWhereInput> | null
+  coupon?: Prisma.XOR<Prisma.CouponNullableScalarRelationFilter, Prisma.CouponWhereInput> | null
 }
 
 export type CafeOrderOrderByWithRelationInput = {
@@ -263,9 +292,13 @@ export type CafeOrderOrderByWithRelationInput = {
   status?: Prisma.SortOrder
   order_date?: Prisma.SortOrder
   created_at?: Prisma.SortOrder
+  coupon_id?: Prisma.SortOrderInput | Prisma.SortOrder
+  discount_inr?: Prisma.SortOrder
+  batch_id?: Prisma.SortOrderInput | Prisma.SortOrder
   profile?: Prisma.ProfileOrderByWithRelationInput
   cafe_item?: Prisma.CafeItemOrderByWithRelationInput
   booking?: Prisma.BookingOrderByWithRelationInput
+  coupon?: Prisma.CouponOrderByWithRelationInput
 }
 
 export type CafeOrderWhereUniqueInput = Prisma.AtLeast<{
@@ -281,9 +314,13 @@ export type CafeOrderWhereUniqueInput = Prisma.AtLeast<{
   status?: Prisma.StringFilter<"CafeOrder"> | string
   order_date?: Prisma.DateTimeFilter<"CafeOrder"> | Date | string
   created_at?: Prisma.DateTimeFilter<"CafeOrder"> | Date | string
+  coupon_id?: Prisma.StringNullableFilter<"CafeOrder"> | string | null
+  discount_inr?: Prisma.DecimalFilter<"CafeOrder"> | runtime.Decimal | runtime.DecimalJsLike | number | string
+  batch_id?: Prisma.StringNullableFilter<"CafeOrder"> | string | null
   profile?: Prisma.XOR<Prisma.ProfileScalarRelationFilter, Prisma.ProfileWhereInput>
   cafe_item?: Prisma.XOR<Prisma.CafeItemScalarRelationFilter, Prisma.CafeItemWhereInput>
   booking?: Prisma.XOR<Prisma.BookingNullableScalarRelationFilter, Prisma.BookingWhereInput> | null
+  coupon?: Prisma.XOR<Prisma.CouponNullableScalarRelationFilter, Prisma.CouponWhereInput> | null
 }, "id">
 
 export type CafeOrderOrderByWithAggregationInput = {
@@ -296,6 +333,9 @@ export type CafeOrderOrderByWithAggregationInput = {
   status?: Prisma.SortOrder
   order_date?: Prisma.SortOrder
   created_at?: Prisma.SortOrder
+  coupon_id?: Prisma.SortOrderInput | Prisma.SortOrder
+  discount_inr?: Prisma.SortOrder
+  batch_id?: Prisma.SortOrderInput | Prisma.SortOrder
   _count?: Prisma.CafeOrderCountOrderByAggregateInput
   _avg?: Prisma.CafeOrderAvgOrderByAggregateInput
   _max?: Prisma.CafeOrderMaxOrderByAggregateInput
@@ -316,6 +356,9 @@ export type CafeOrderScalarWhereWithAggregatesInput = {
   status?: Prisma.StringWithAggregatesFilter<"CafeOrder"> | string
   order_date?: Prisma.DateTimeWithAggregatesFilter<"CafeOrder"> | Date | string
   created_at?: Prisma.DateTimeWithAggregatesFilter<"CafeOrder"> | Date | string
+  coupon_id?: Prisma.StringNullableWithAggregatesFilter<"CafeOrder"> | string | null
+  discount_inr?: Prisma.DecimalWithAggregatesFilter<"CafeOrder"> | runtime.Decimal | runtime.DecimalJsLike | number | string
+  batch_id?: Prisma.StringNullableWithAggregatesFilter<"CafeOrder"> | string | null
 }
 
 export type CafeOrderCreateInput = {
@@ -325,9 +368,12 @@ export type CafeOrderCreateInput = {
   status?: string
   order_date?: Date | string
   created_at?: Date | string
+  discount_inr?: runtime.Decimal | runtime.DecimalJsLike | number | string
+  batch_id?: string | null
   profile: Prisma.ProfileCreateNestedOneWithoutCafe_ordersInput
   cafe_item: Prisma.CafeItemCreateNestedOneWithoutCafe_ordersInput
   booking?: Prisma.BookingCreateNestedOneWithoutCafe_ordersInput
+  coupon?: Prisma.CouponCreateNestedOneWithoutCafe_ordersInput
 }
 
 export type CafeOrderUncheckedCreateInput = {
@@ -340,6 +386,9 @@ export type CafeOrderUncheckedCreateInput = {
   status?: string
   order_date?: Date | string
   created_at?: Date | string
+  coupon_id?: string | null
+  discount_inr?: runtime.Decimal | runtime.DecimalJsLike | number | string
+  batch_id?: string | null
 }
 
 export type CafeOrderUpdateInput = {
@@ -349,9 +398,12 @@ export type CafeOrderUpdateInput = {
   status?: Prisma.StringFieldUpdateOperationsInput | string
   order_date?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   created_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  discount_inr?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
+  batch_id?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   profile?: Prisma.ProfileUpdateOneRequiredWithoutCafe_ordersNestedInput
   cafe_item?: Prisma.CafeItemUpdateOneRequiredWithoutCafe_ordersNestedInput
   booking?: Prisma.BookingUpdateOneWithoutCafe_ordersNestedInput
+  coupon?: Prisma.CouponUpdateOneWithoutCafe_ordersNestedInput
 }
 
 export type CafeOrderUncheckedUpdateInput = {
@@ -364,6 +416,9 @@ export type CafeOrderUncheckedUpdateInput = {
   status?: Prisma.StringFieldUpdateOperationsInput | string
   order_date?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   created_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  coupon_id?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  discount_inr?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
+  batch_id?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
 }
 
 export type CafeOrderCreateManyInput = {
@@ -376,6 +431,9 @@ export type CafeOrderCreateManyInput = {
   status?: string
   order_date?: Date | string
   created_at?: Date | string
+  coupon_id?: string | null
+  discount_inr?: runtime.Decimal | runtime.DecimalJsLike | number | string
+  batch_id?: string | null
 }
 
 export type CafeOrderUpdateManyMutationInput = {
@@ -385,6 +443,8 @@ export type CafeOrderUpdateManyMutationInput = {
   status?: Prisma.StringFieldUpdateOperationsInput | string
   order_date?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   created_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  discount_inr?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
+  batch_id?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
 }
 
 export type CafeOrderUncheckedUpdateManyInput = {
@@ -397,6 +457,9 @@ export type CafeOrderUncheckedUpdateManyInput = {
   status?: Prisma.StringFieldUpdateOperationsInput | string
   order_date?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   created_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  coupon_id?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  discount_inr?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
+  batch_id?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
 }
 
 export type CafeOrderListRelationFilter = {
@@ -419,10 +482,14 @@ export type CafeOrderCountOrderByAggregateInput = {
   status?: Prisma.SortOrder
   order_date?: Prisma.SortOrder
   created_at?: Prisma.SortOrder
+  coupon_id?: Prisma.SortOrder
+  discount_inr?: Prisma.SortOrder
+  batch_id?: Prisma.SortOrder
 }
 
 export type CafeOrderAvgOrderByAggregateInput = {
   quantity?: Prisma.SortOrder
+  discount_inr?: Prisma.SortOrder
 }
 
 export type CafeOrderMaxOrderByAggregateInput = {
@@ -435,6 +502,9 @@ export type CafeOrderMaxOrderByAggregateInput = {
   status?: Prisma.SortOrder
   order_date?: Prisma.SortOrder
   created_at?: Prisma.SortOrder
+  coupon_id?: Prisma.SortOrder
+  discount_inr?: Prisma.SortOrder
+  batch_id?: Prisma.SortOrder
 }
 
 export type CafeOrderMinOrderByAggregateInput = {
@@ -447,10 +517,14 @@ export type CafeOrderMinOrderByAggregateInput = {
   status?: Prisma.SortOrder
   order_date?: Prisma.SortOrder
   created_at?: Prisma.SortOrder
+  coupon_id?: Prisma.SortOrder
+  discount_inr?: Prisma.SortOrder
+  batch_id?: Prisma.SortOrder
 }
 
 export type CafeOrderSumOrderByAggregateInput = {
   quantity?: Prisma.SortOrder
+  discount_inr?: Prisma.SortOrder
 }
 
 export type CafeOrderCreateNestedManyWithoutProfileInput = {
@@ -492,6 +566,48 @@ export type CafeOrderUncheckedUpdateManyWithoutProfileNestedInput = {
   connect?: Prisma.CafeOrderWhereUniqueInput | Prisma.CafeOrderWhereUniqueInput[]
   update?: Prisma.CafeOrderUpdateWithWhereUniqueWithoutProfileInput | Prisma.CafeOrderUpdateWithWhereUniqueWithoutProfileInput[]
   updateMany?: Prisma.CafeOrderUpdateManyWithWhereWithoutProfileInput | Prisma.CafeOrderUpdateManyWithWhereWithoutProfileInput[]
+  deleteMany?: Prisma.CafeOrderScalarWhereInput | Prisma.CafeOrderScalarWhereInput[]
+}
+
+export type CafeOrderCreateNestedManyWithoutCouponInput = {
+  create?: Prisma.XOR<Prisma.CafeOrderCreateWithoutCouponInput, Prisma.CafeOrderUncheckedCreateWithoutCouponInput> | Prisma.CafeOrderCreateWithoutCouponInput[] | Prisma.CafeOrderUncheckedCreateWithoutCouponInput[]
+  connectOrCreate?: Prisma.CafeOrderCreateOrConnectWithoutCouponInput | Prisma.CafeOrderCreateOrConnectWithoutCouponInput[]
+  createMany?: Prisma.CafeOrderCreateManyCouponInputEnvelope
+  connect?: Prisma.CafeOrderWhereUniqueInput | Prisma.CafeOrderWhereUniqueInput[]
+}
+
+export type CafeOrderUncheckedCreateNestedManyWithoutCouponInput = {
+  create?: Prisma.XOR<Prisma.CafeOrderCreateWithoutCouponInput, Prisma.CafeOrderUncheckedCreateWithoutCouponInput> | Prisma.CafeOrderCreateWithoutCouponInput[] | Prisma.CafeOrderUncheckedCreateWithoutCouponInput[]
+  connectOrCreate?: Prisma.CafeOrderCreateOrConnectWithoutCouponInput | Prisma.CafeOrderCreateOrConnectWithoutCouponInput[]
+  createMany?: Prisma.CafeOrderCreateManyCouponInputEnvelope
+  connect?: Prisma.CafeOrderWhereUniqueInput | Prisma.CafeOrderWhereUniqueInput[]
+}
+
+export type CafeOrderUpdateManyWithoutCouponNestedInput = {
+  create?: Prisma.XOR<Prisma.CafeOrderCreateWithoutCouponInput, Prisma.CafeOrderUncheckedCreateWithoutCouponInput> | Prisma.CafeOrderCreateWithoutCouponInput[] | Prisma.CafeOrderUncheckedCreateWithoutCouponInput[]
+  connectOrCreate?: Prisma.CafeOrderCreateOrConnectWithoutCouponInput | Prisma.CafeOrderCreateOrConnectWithoutCouponInput[]
+  upsert?: Prisma.CafeOrderUpsertWithWhereUniqueWithoutCouponInput | Prisma.CafeOrderUpsertWithWhereUniqueWithoutCouponInput[]
+  createMany?: Prisma.CafeOrderCreateManyCouponInputEnvelope
+  set?: Prisma.CafeOrderWhereUniqueInput | Prisma.CafeOrderWhereUniqueInput[]
+  disconnect?: Prisma.CafeOrderWhereUniqueInput | Prisma.CafeOrderWhereUniqueInput[]
+  delete?: Prisma.CafeOrderWhereUniqueInput | Prisma.CafeOrderWhereUniqueInput[]
+  connect?: Prisma.CafeOrderWhereUniqueInput | Prisma.CafeOrderWhereUniqueInput[]
+  update?: Prisma.CafeOrderUpdateWithWhereUniqueWithoutCouponInput | Prisma.CafeOrderUpdateWithWhereUniqueWithoutCouponInput[]
+  updateMany?: Prisma.CafeOrderUpdateManyWithWhereWithoutCouponInput | Prisma.CafeOrderUpdateManyWithWhereWithoutCouponInput[]
+  deleteMany?: Prisma.CafeOrderScalarWhereInput | Prisma.CafeOrderScalarWhereInput[]
+}
+
+export type CafeOrderUncheckedUpdateManyWithoutCouponNestedInput = {
+  create?: Prisma.XOR<Prisma.CafeOrderCreateWithoutCouponInput, Prisma.CafeOrderUncheckedCreateWithoutCouponInput> | Prisma.CafeOrderCreateWithoutCouponInput[] | Prisma.CafeOrderUncheckedCreateWithoutCouponInput[]
+  connectOrCreate?: Prisma.CafeOrderCreateOrConnectWithoutCouponInput | Prisma.CafeOrderCreateOrConnectWithoutCouponInput[]
+  upsert?: Prisma.CafeOrderUpsertWithWhereUniqueWithoutCouponInput | Prisma.CafeOrderUpsertWithWhereUniqueWithoutCouponInput[]
+  createMany?: Prisma.CafeOrderCreateManyCouponInputEnvelope
+  set?: Prisma.CafeOrderWhereUniqueInput | Prisma.CafeOrderWhereUniqueInput[]
+  disconnect?: Prisma.CafeOrderWhereUniqueInput | Prisma.CafeOrderWhereUniqueInput[]
+  delete?: Prisma.CafeOrderWhereUniqueInput | Prisma.CafeOrderWhereUniqueInput[]
+  connect?: Prisma.CafeOrderWhereUniqueInput | Prisma.CafeOrderWhereUniqueInput[]
+  update?: Prisma.CafeOrderUpdateWithWhereUniqueWithoutCouponInput | Prisma.CafeOrderUpdateWithWhereUniqueWithoutCouponInput[]
+  updateMany?: Prisma.CafeOrderUpdateManyWithWhereWithoutCouponInput | Prisma.CafeOrderUpdateManyWithWhereWithoutCouponInput[]
   deleteMany?: Prisma.CafeOrderScalarWhereInput | Prisma.CafeOrderScalarWhereInput[]
 }
 
@@ -586,8 +702,11 @@ export type CafeOrderCreateWithoutProfileInput = {
   status?: string
   order_date?: Date | string
   created_at?: Date | string
+  discount_inr?: runtime.Decimal | runtime.DecimalJsLike | number | string
+  batch_id?: string | null
   cafe_item: Prisma.CafeItemCreateNestedOneWithoutCafe_ordersInput
   booking?: Prisma.BookingCreateNestedOneWithoutCafe_ordersInput
+  coupon?: Prisma.CouponCreateNestedOneWithoutCafe_ordersInput
 }
 
 export type CafeOrderUncheckedCreateWithoutProfileInput = {
@@ -599,6 +718,9 @@ export type CafeOrderUncheckedCreateWithoutProfileInput = {
   status?: string
   order_date?: Date | string
   created_at?: Date | string
+  coupon_id?: string | null
+  discount_inr?: runtime.Decimal | runtime.DecimalJsLike | number | string
+  batch_id?: string | null
 }
 
 export type CafeOrderCreateOrConnectWithoutProfileInput = {
@@ -640,6 +762,63 @@ export type CafeOrderScalarWhereInput = {
   status?: Prisma.StringFilter<"CafeOrder"> | string
   order_date?: Prisma.DateTimeFilter<"CafeOrder"> | Date | string
   created_at?: Prisma.DateTimeFilter<"CafeOrder"> | Date | string
+  coupon_id?: Prisma.StringNullableFilter<"CafeOrder"> | string | null
+  discount_inr?: Prisma.DecimalFilter<"CafeOrder"> | runtime.Decimal | runtime.DecimalJsLike | number | string
+  batch_id?: Prisma.StringNullableFilter<"CafeOrder"> | string | null
+}
+
+export type CafeOrderCreateWithoutCouponInput = {
+  id?: string
+  quantity?: number
+  payment_method: string
+  status?: string
+  order_date?: Date | string
+  created_at?: Date | string
+  discount_inr?: runtime.Decimal | runtime.DecimalJsLike | number | string
+  batch_id?: string | null
+  profile: Prisma.ProfileCreateNestedOneWithoutCafe_ordersInput
+  cafe_item: Prisma.CafeItemCreateNestedOneWithoutCafe_ordersInput
+  booking?: Prisma.BookingCreateNestedOneWithoutCafe_ordersInput
+}
+
+export type CafeOrderUncheckedCreateWithoutCouponInput = {
+  id?: string
+  user_id: string
+  cafe_item_id: string
+  booking_id?: string | null
+  quantity?: number
+  payment_method: string
+  status?: string
+  order_date?: Date | string
+  created_at?: Date | string
+  discount_inr?: runtime.Decimal | runtime.DecimalJsLike | number | string
+  batch_id?: string | null
+}
+
+export type CafeOrderCreateOrConnectWithoutCouponInput = {
+  where: Prisma.CafeOrderWhereUniqueInput
+  create: Prisma.XOR<Prisma.CafeOrderCreateWithoutCouponInput, Prisma.CafeOrderUncheckedCreateWithoutCouponInput>
+}
+
+export type CafeOrderCreateManyCouponInputEnvelope = {
+  data: Prisma.CafeOrderCreateManyCouponInput | Prisma.CafeOrderCreateManyCouponInput[]
+  skipDuplicates?: boolean
+}
+
+export type CafeOrderUpsertWithWhereUniqueWithoutCouponInput = {
+  where: Prisma.CafeOrderWhereUniqueInput
+  update: Prisma.XOR<Prisma.CafeOrderUpdateWithoutCouponInput, Prisma.CafeOrderUncheckedUpdateWithoutCouponInput>
+  create: Prisma.XOR<Prisma.CafeOrderCreateWithoutCouponInput, Prisma.CafeOrderUncheckedCreateWithoutCouponInput>
+}
+
+export type CafeOrderUpdateWithWhereUniqueWithoutCouponInput = {
+  where: Prisma.CafeOrderWhereUniqueInput
+  data: Prisma.XOR<Prisma.CafeOrderUpdateWithoutCouponInput, Prisma.CafeOrderUncheckedUpdateWithoutCouponInput>
+}
+
+export type CafeOrderUpdateManyWithWhereWithoutCouponInput = {
+  where: Prisma.CafeOrderScalarWhereInput
+  data: Prisma.XOR<Prisma.CafeOrderUpdateManyMutationInput, Prisma.CafeOrderUncheckedUpdateManyWithoutCouponInput>
 }
 
 export type CafeOrderCreateWithoutBookingInput = {
@@ -649,8 +828,11 @@ export type CafeOrderCreateWithoutBookingInput = {
   status?: string
   order_date?: Date | string
   created_at?: Date | string
+  discount_inr?: runtime.Decimal | runtime.DecimalJsLike | number | string
+  batch_id?: string | null
   profile: Prisma.ProfileCreateNestedOneWithoutCafe_ordersInput
   cafe_item: Prisma.CafeItemCreateNestedOneWithoutCafe_ordersInput
+  coupon?: Prisma.CouponCreateNestedOneWithoutCafe_ordersInput
 }
 
 export type CafeOrderUncheckedCreateWithoutBookingInput = {
@@ -662,6 +844,9 @@ export type CafeOrderUncheckedCreateWithoutBookingInput = {
   status?: string
   order_date?: Date | string
   created_at?: Date | string
+  coupon_id?: string | null
+  discount_inr?: runtime.Decimal | runtime.DecimalJsLike | number | string
+  batch_id?: string | null
 }
 
 export type CafeOrderCreateOrConnectWithoutBookingInput = {
@@ -697,8 +882,11 @@ export type CafeOrderCreateWithoutCafe_itemInput = {
   status?: string
   order_date?: Date | string
   created_at?: Date | string
+  discount_inr?: runtime.Decimal | runtime.DecimalJsLike | number | string
+  batch_id?: string | null
   profile: Prisma.ProfileCreateNestedOneWithoutCafe_ordersInput
   booking?: Prisma.BookingCreateNestedOneWithoutCafe_ordersInput
+  coupon?: Prisma.CouponCreateNestedOneWithoutCafe_ordersInput
 }
 
 export type CafeOrderUncheckedCreateWithoutCafe_itemInput = {
@@ -710,6 +898,9 @@ export type CafeOrderUncheckedCreateWithoutCafe_itemInput = {
   status?: string
   order_date?: Date | string
   created_at?: Date | string
+  coupon_id?: string | null
+  discount_inr?: runtime.Decimal | runtime.DecimalJsLike | number | string
+  batch_id?: string | null
 }
 
 export type CafeOrderCreateOrConnectWithoutCafe_itemInput = {
@@ -747,6 +938,9 @@ export type CafeOrderCreateManyProfileInput = {
   status?: string
   order_date?: Date | string
   created_at?: Date | string
+  coupon_id?: string | null
+  discount_inr?: runtime.Decimal | runtime.DecimalJsLike | number | string
+  batch_id?: string | null
 }
 
 export type CafeOrderUpdateWithoutProfileInput = {
@@ -756,8 +950,11 @@ export type CafeOrderUpdateWithoutProfileInput = {
   status?: Prisma.StringFieldUpdateOperationsInput | string
   order_date?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   created_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  discount_inr?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
+  batch_id?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   cafe_item?: Prisma.CafeItemUpdateOneRequiredWithoutCafe_ordersNestedInput
   booking?: Prisma.BookingUpdateOneWithoutCafe_ordersNestedInput
+  coupon?: Prisma.CouponUpdateOneWithoutCafe_ordersNestedInput
 }
 
 export type CafeOrderUncheckedUpdateWithoutProfileInput = {
@@ -769,6 +966,9 @@ export type CafeOrderUncheckedUpdateWithoutProfileInput = {
   status?: Prisma.StringFieldUpdateOperationsInput | string
   order_date?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   created_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  coupon_id?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  discount_inr?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
+  batch_id?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
 }
 
 export type CafeOrderUncheckedUpdateManyWithoutProfileInput = {
@@ -780,6 +980,65 @@ export type CafeOrderUncheckedUpdateManyWithoutProfileInput = {
   status?: Prisma.StringFieldUpdateOperationsInput | string
   order_date?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   created_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  coupon_id?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  discount_inr?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
+  batch_id?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+}
+
+export type CafeOrderCreateManyCouponInput = {
+  id?: string
+  user_id: string
+  cafe_item_id: string
+  booking_id?: string | null
+  quantity?: number
+  payment_method: string
+  status?: string
+  order_date?: Date | string
+  created_at?: Date | string
+  discount_inr?: runtime.Decimal | runtime.DecimalJsLike | number | string
+  batch_id?: string | null
+}
+
+export type CafeOrderUpdateWithoutCouponInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  quantity?: Prisma.IntFieldUpdateOperationsInput | number
+  payment_method?: Prisma.StringFieldUpdateOperationsInput | string
+  status?: Prisma.StringFieldUpdateOperationsInput | string
+  order_date?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  created_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  discount_inr?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
+  batch_id?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  profile?: Prisma.ProfileUpdateOneRequiredWithoutCafe_ordersNestedInput
+  cafe_item?: Prisma.CafeItemUpdateOneRequiredWithoutCafe_ordersNestedInput
+  booking?: Prisma.BookingUpdateOneWithoutCafe_ordersNestedInput
+}
+
+export type CafeOrderUncheckedUpdateWithoutCouponInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  user_id?: Prisma.StringFieldUpdateOperationsInput | string
+  cafe_item_id?: Prisma.StringFieldUpdateOperationsInput | string
+  booking_id?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  quantity?: Prisma.IntFieldUpdateOperationsInput | number
+  payment_method?: Prisma.StringFieldUpdateOperationsInput | string
+  status?: Prisma.StringFieldUpdateOperationsInput | string
+  order_date?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  created_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  discount_inr?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
+  batch_id?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+}
+
+export type CafeOrderUncheckedUpdateManyWithoutCouponInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  user_id?: Prisma.StringFieldUpdateOperationsInput | string
+  cafe_item_id?: Prisma.StringFieldUpdateOperationsInput | string
+  booking_id?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  quantity?: Prisma.IntFieldUpdateOperationsInput | number
+  payment_method?: Prisma.StringFieldUpdateOperationsInput | string
+  status?: Prisma.StringFieldUpdateOperationsInput | string
+  order_date?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  created_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  discount_inr?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
+  batch_id?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
 }
 
 export type CafeOrderCreateManyBookingInput = {
@@ -791,6 +1050,9 @@ export type CafeOrderCreateManyBookingInput = {
   status?: string
   order_date?: Date | string
   created_at?: Date | string
+  coupon_id?: string | null
+  discount_inr?: runtime.Decimal | runtime.DecimalJsLike | number | string
+  batch_id?: string | null
 }
 
 export type CafeOrderUpdateWithoutBookingInput = {
@@ -800,8 +1062,11 @@ export type CafeOrderUpdateWithoutBookingInput = {
   status?: Prisma.StringFieldUpdateOperationsInput | string
   order_date?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   created_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  discount_inr?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
+  batch_id?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   profile?: Prisma.ProfileUpdateOneRequiredWithoutCafe_ordersNestedInput
   cafe_item?: Prisma.CafeItemUpdateOneRequiredWithoutCafe_ordersNestedInput
+  coupon?: Prisma.CouponUpdateOneWithoutCafe_ordersNestedInput
 }
 
 export type CafeOrderUncheckedUpdateWithoutBookingInput = {
@@ -813,6 +1078,9 @@ export type CafeOrderUncheckedUpdateWithoutBookingInput = {
   status?: Prisma.StringFieldUpdateOperationsInput | string
   order_date?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   created_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  coupon_id?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  discount_inr?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
+  batch_id?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
 }
 
 export type CafeOrderUncheckedUpdateManyWithoutBookingInput = {
@@ -824,6 +1092,9 @@ export type CafeOrderUncheckedUpdateManyWithoutBookingInput = {
   status?: Prisma.StringFieldUpdateOperationsInput | string
   order_date?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   created_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  coupon_id?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  discount_inr?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
+  batch_id?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
 }
 
 export type CafeOrderCreateManyCafe_itemInput = {
@@ -835,6 +1106,9 @@ export type CafeOrderCreateManyCafe_itemInput = {
   status?: string
   order_date?: Date | string
   created_at?: Date | string
+  coupon_id?: string | null
+  discount_inr?: runtime.Decimal | runtime.DecimalJsLike | number | string
+  batch_id?: string | null
 }
 
 export type CafeOrderUpdateWithoutCafe_itemInput = {
@@ -844,8 +1118,11 @@ export type CafeOrderUpdateWithoutCafe_itemInput = {
   status?: Prisma.StringFieldUpdateOperationsInput | string
   order_date?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   created_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  discount_inr?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
+  batch_id?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   profile?: Prisma.ProfileUpdateOneRequiredWithoutCafe_ordersNestedInput
   booking?: Prisma.BookingUpdateOneWithoutCafe_ordersNestedInput
+  coupon?: Prisma.CouponUpdateOneWithoutCafe_ordersNestedInput
 }
 
 export type CafeOrderUncheckedUpdateWithoutCafe_itemInput = {
@@ -857,6 +1134,9 @@ export type CafeOrderUncheckedUpdateWithoutCafe_itemInput = {
   status?: Prisma.StringFieldUpdateOperationsInput | string
   order_date?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   created_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  coupon_id?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  discount_inr?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
+  batch_id?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
 }
 
 export type CafeOrderUncheckedUpdateManyWithoutCafe_itemInput = {
@@ -868,6 +1148,9 @@ export type CafeOrderUncheckedUpdateManyWithoutCafe_itemInput = {
   status?: Prisma.StringFieldUpdateOperationsInput | string
   order_date?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   created_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  coupon_id?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  discount_inr?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
+  batch_id?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
 }
 
 
@@ -882,9 +1165,13 @@ export type CafeOrderSelect<ExtArgs extends runtime.Types.Extensions.InternalArg
   status?: boolean
   order_date?: boolean
   created_at?: boolean
+  coupon_id?: boolean
+  discount_inr?: boolean
+  batch_id?: boolean
   profile?: boolean | Prisma.ProfileDefaultArgs<ExtArgs>
   cafe_item?: boolean | Prisma.CafeItemDefaultArgs<ExtArgs>
   booking?: boolean | Prisma.CafeOrder$bookingArgs<ExtArgs>
+  coupon?: boolean | Prisma.CafeOrder$couponArgs<ExtArgs>
 }, ExtArgs["result"]["cafeOrder"]>
 
 export type CafeOrderSelectCreateManyAndReturn<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetSelect<{
@@ -897,9 +1184,13 @@ export type CafeOrderSelectCreateManyAndReturn<ExtArgs extends runtime.Types.Ext
   status?: boolean
   order_date?: boolean
   created_at?: boolean
+  coupon_id?: boolean
+  discount_inr?: boolean
+  batch_id?: boolean
   profile?: boolean | Prisma.ProfileDefaultArgs<ExtArgs>
   cafe_item?: boolean | Prisma.CafeItemDefaultArgs<ExtArgs>
   booking?: boolean | Prisma.CafeOrder$bookingArgs<ExtArgs>
+  coupon?: boolean | Prisma.CafeOrder$couponArgs<ExtArgs>
 }, ExtArgs["result"]["cafeOrder"]>
 
 export type CafeOrderSelectUpdateManyAndReturn<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetSelect<{
@@ -912,9 +1203,13 @@ export type CafeOrderSelectUpdateManyAndReturn<ExtArgs extends runtime.Types.Ext
   status?: boolean
   order_date?: boolean
   created_at?: boolean
+  coupon_id?: boolean
+  discount_inr?: boolean
+  batch_id?: boolean
   profile?: boolean | Prisma.ProfileDefaultArgs<ExtArgs>
   cafe_item?: boolean | Prisma.CafeItemDefaultArgs<ExtArgs>
   booking?: boolean | Prisma.CafeOrder$bookingArgs<ExtArgs>
+  coupon?: boolean | Prisma.CafeOrder$couponArgs<ExtArgs>
 }, ExtArgs["result"]["cafeOrder"]>
 
 export type CafeOrderSelectScalar = {
@@ -927,23 +1222,29 @@ export type CafeOrderSelectScalar = {
   status?: boolean
   order_date?: boolean
   created_at?: boolean
+  coupon_id?: boolean
+  discount_inr?: boolean
+  batch_id?: boolean
 }
 
-export type CafeOrderOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "user_id" | "cafe_item_id" | "booking_id" | "quantity" | "payment_method" | "status" | "order_date" | "created_at", ExtArgs["result"]["cafeOrder"]>
+export type CafeOrderOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "user_id" | "cafe_item_id" | "booking_id" | "quantity" | "payment_method" | "status" | "order_date" | "created_at" | "coupon_id" | "discount_inr" | "batch_id", ExtArgs["result"]["cafeOrder"]>
 export type CafeOrderInclude<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   profile?: boolean | Prisma.ProfileDefaultArgs<ExtArgs>
   cafe_item?: boolean | Prisma.CafeItemDefaultArgs<ExtArgs>
   booking?: boolean | Prisma.CafeOrder$bookingArgs<ExtArgs>
+  coupon?: boolean | Prisma.CafeOrder$couponArgs<ExtArgs>
 }
 export type CafeOrderIncludeCreateManyAndReturn<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   profile?: boolean | Prisma.ProfileDefaultArgs<ExtArgs>
   cafe_item?: boolean | Prisma.CafeItemDefaultArgs<ExtArgs>
   booking?: boolean | Prisma.CafeOrder$bookingArgs<ExtArgs>
+  coupon?: boolean | Prisma.CafeOrder$couponArgs<ExtArgs>
 }
 export type CafeOrderIncludeUpdateManyAndReturn<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   profile?: boolean | Prisma.ProfileDefaultArgs<ExtArgs>
   cafe_item?: boolean | Prisma.CafeItemDefaultArgs<ExtArgs>
   booking?: boolean | Prisma.CafeOrder$bookingArgs<ExtArgs>
+  coupon?: boolean | Prisma.CafeOrder$couponArgs<ExtArgs>
 }
 
 export type $CafeOrderPayload<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
@@ -952,6 +1253,7 @@ export type $CafeOrderPayload<ExtArgs extends runtime.Types.Extensions.InternalA
     profile: Prisma.$ProfilePayload<ExtArgs>
     cafe_item: Prisma.$CafeItemPayload<ExtArgs>
     booking: Prisma.$BookingPayload<ExtArgs> | null
+    coupon: Prisma.$CouponPayload<ExtArgs> | null
   }
   scalars: runtime.Types.Extensions.GetPayloadResult<{
     id: string
@@ -963,6 +1265,9 @@ export type $CafeOrderPayload<ExtArgs extends runtime.Types.Extensions.InternalA
     status: string
     order_date: Date
     created_at: Date
+    coupon_id: string | null
+    discount_inr: runtime.Decimal
+    batch_id: string | null
   }, ExtArgs["result"]["cafeOrder"]>
   composites: {}
 }
@@ -1360,6 +1665,7 @@ export interface Prisma__CafeOrderClient<T, Null = never, ExtArgs extends runtim
   profile<T extends Prisma.ProfileDefaultArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.ProfileDefaultArgs<ExtArgs>>): Prisma.Prisma__ProfileClient<runtime.Types.Result.GetResult<Prisma.$ProfilePayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | Null, Null, ExtArgs, GlobalOmitOptions>
   cafe_item<T extends Prisma.CafeItemDefaultArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.CafeItemDefaultArgs<ExtArgs>>): Prisma.Prisma__CafeItemClient<runtime.Types.Result.GetResult<Prisma.$CafeItemPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | Null, Null, ExtArgs, GlobalOmitOptions>
   booking<T extends Prisma.CafeOrder$bookingArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.CafeOrder$bookingArgs<ExtArgs>>): Prisma.Prisma__BookingClient<runtime.Types.Result.GetResult<Prisma.$BookingPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | null, null, ExtArgs, GlobalOmitOptions>
+  coupon<T extends Prisma.CafeOrder$couponArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.CafeOrder$couponArgs<ExtArgs>>): Prisma.Prisma__CouponClient<runtime.Types.Result.GetResult<Prisma.$CouponPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | null, null, ExtArgs, GlobalOmitOptions>
   /**
    * Attaches callbacks for the resolution and/or rejection of the Promise.
    * @param onfulfilled The callback to execute when the Promise is resolved.
@@ -1398,6 +1704,9 @@ export interface CafeOrderFieldRefs {
   readonly status: Prisma.FieldRef<"CafeOrder", 'String'>
   readonly order_date: Prisma.FieldRef<"CafeOrder", 'DateTime'>
   readonly created_at: Prisma.FieldRef<"CafeOrder", 'DateTime'>
+  readonly coupon_id: Prisma.FieldRef<"CafeOrder", 'String'>
+  readonly discount_inr: Prisma.FieldRef<"CafeOrder", 'Decimal'>
+  readonly batch_id: Prisma.FieldRef<"CafeOrder", 'String'>
 }
     
 
@@ -1815,6 +2124,25 @@ export type CafeOrder$bookingArgs<ExtArgs extends runtime.Types.Extensions.Inter
    */
   include?: Prisma.BookingInclude<ExtArgs> | null
   where?: Prisma.BookingWhereInput
+}
+
+/**
+ * CafeOrder.coupon
+ */
+export type CafeOrder$couponArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  /**
+   * Select specific fields to fetch from the Coupon
+   */
+  select?: Prisma.CouponSelect<ExtArgs> | null
+  /**
+   * Omit specific fields from the Coupon
+   */
+  omit?: Prisma.CouponOmit<ExtArgs> | null
+  /**
+   * Choose, which related nodes to fetch as well
+   */
+  include?: Prisma.CouponInclude<ExtArgs> | null
+  where?: Prisma.CouponWhereInput
 }
 
 /**

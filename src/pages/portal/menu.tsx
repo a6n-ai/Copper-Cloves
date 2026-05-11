@@ -62,6 +62,9 @@ export default function MenuPage() {
   const [isProcessing, setIsProcessing] = useState(false);
   const [orderSuccess, setOrderSuccess] = useState(false);
   const [orderError, setOrderError] = useState<string | null>(null);
+  const [couponCode, setCouponCode] = useState("");
+  const [couponError, setCouponError] = useState<string | null>(null);
+  const [couponDiscount, setCouponDiscount] = useState<number | null>(null);
 
   const categories = [
     { id: "all", label: "All Items" },
@@ -145,14 +148,44 @@ export default function MenuPage() {
     );
   };
 
-  const getTotalPrice = () => {
-    return cart.reduce((sum, item) => sum + (item.price * item.quantity), 0);
+  const getSubtotal = () =>
+    cart.reduce((sum, item) => sum + item.price * item.quantity, 0);
+
+  const getFinalTotal = () => {
+    const sub = getSubtotal();
+    const off = couponDiscount && couponDiscount > 0 ? couponDiscount : 0;
+    return Math.max(0, Math.round((sub - off) * 100) / 100);
   };
 
   const handleCheckout = () => {
     if (cart.length === 0) return;
+    setCouponError(null);
+    setCouponDiscount(null);
+    setCouponCode("");
     setShowCheckout(true);
   };
+
+  async function validateMenuCoupon() {
+    setCouponError(null);
+    const subtotal = getSubtotal();
+    if (subtotal <= 0) return;
+    const r = await fetch("/api/coupons/validate", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        code: couponCode,
+        context: "food",
+        subtotal,
+      }),
+    });
+    const d = r.ok ? await r.json() : { valid: false, error: "Could not validate" };
+    if (!d.valid) {
+      setCouponDiscount(null);
+      setCouponError(typeof d.error === "string" ? d.error : "Invalid coupon");
+      return;
+    }
+    setCouponDiscount(Number(d.discountInr) || 0);
+  }
 
   const handleGuestCountChange = (count: number) => {
     const newCount = Math.max(0, Math.min(5, count));
@@ -165,35 +198,24 @@ export default function MenuPage() {
     setOrderError(null);
     setIsProcessing(true);
     try {
-      const responses = await Promise.all(
-        cart.map(item =>
-          fetch("/api/cafe/orders", {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({
-              cafe_item_id: item.id,
-              quantity: item.quantity,
-              payment_method: paymentMethod,
-              ...(addToClass && selectedClass ? { class_schedule_id: selectedClass } : {}),
-            }),
-          })
-        )
-      );
-
-      const errors: string[] = [];
-      for (const r of responses) {
-        if (r.ok) continue;
-        let msg = `${r.status} ${r.statusText}`;
-        try {
-          const body = await r.json();
-          if (body?.error) msg = String(body.error);
-        } catch {
-          /* ignore */
-        }
-        errors.push(msg);
-      }
-      if (errors.length > 0) {
-        setOrderError(errors[0]);
+      const items = cart.map((item) => ({
+        cafe_item_id: item.id,
+        quantity: item.quantity,
+      }));
+      const res = await fetch("/api/cafe/checkout", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          items,
+          coupon_code: couponCode.trim() || undefined,
+          payment_method: paymentMethod,
+          add_to_class: addToClass,
+          class_schedule_id: addToClass && selectedClass ? selectedClass : undefined,
+        }),
+      });
+      if (!res.ok) {
+        const body = await res.json().catch(() => ({}));
+        setOrderError(typeof body?.error === "string" ? body.error : "Order failed");
         return;
       }
 
@@ -202,6 +224,8 @@ export default function MenuPage() {
         setCart([]);
         setShowCheckout(false);
         setOrderSuccess(false);
+        setCouponCode("");
+        setCouponDiscount(null);
         router.push("/portal/dashboard");
       }, 2000);
     } catch (err) {
@@ -456,6 +480,28 @@ export default function MenuPage() {
                 )}
               </div>
 
+              <div className="p-6 rounded-xl bg-white/80 border border-sage/20 space-y-3">
+                <h3 className="font-display text-lg text-charcoal">Coupon</h3>
+                <div className="flex gap-2 flex-col sm:flex-row sm:items-end">
+                  <div className="flex-1">
+                    <Input
+                      placeholder="Promo code"
+                      value={couponCode}
+                      onChange={(e) => {
+                        setCouponCode(e.target.value.toUpperCase());
+                        setCouponDiscount(null);
+                        setCouponError(null);
+                      }}
+                      className="font-mono uppercase"
+                    />
+                  </div>
+                  <Button type="button" variant="outline" className="border-sage/30" onClick={() => void validateMenuCoupon()}>
+                    Apply
+                  </Button>
+                </div>
+                {couponError && <p className="text-sm text-red-600 font-body">{couponError}</p>}
+              </div>
+
               {/* Payment Method */}
               <div className="p-6 rounded-xl bg-white/80 border border-sage/20">
                 <h3 className="font-display text-lg text-charcoal mb-4">Payment Method</h3>
@@ -483,10 +529,20 @@ export default function MenuPage() {
               </div>
 
               {/* Total */}
-              <div className="p-6 rounded-xl bg-sage/10 border border-sage/20">
-                <div className="flex justify-between items-center">
+              <div className="p-6 rounded-xl bg-sage/10 border border-sage/20 space-y-2">
+                <div className="flex justify-between items-center font-body text-charcoal/80">
+                  <span>Subtotal</span>
+                  <span>₹{getSubtotal()}</span>
+                </div>
+                {couponDiscount != null && couponDiscount > 0 && (
+                  <div className="flex justify-between items-center font-body text-sage">
+                    <span>Discount</span>
+                    <span>−₹{couponDiscount}</span>
+                  </div>
+                )}
+                <div className="flex justify-between items-center pt-2 border-t border-sage/20">
                   <span className="font-body text-lg text-charcoal">Total</span>
-                  <span className="font-display text-4xl text-sage">₹{getTotalPrice()}</span>
+                  <span className="font-display text-4xl text-sage">₹{getFinalTotal()}</span>
                 </div>
               </div>
 

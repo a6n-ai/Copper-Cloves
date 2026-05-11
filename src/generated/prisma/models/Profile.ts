@@ -276,6 +276,7 @@ export type ProfileWhereInput = {
   activity_sessions?: Prisma.UserActivitySessionListRelationFilter
   activity_events?: Prisma.UserActivityEventListRelationFilter
   retail_orders?: Prisma.RetailOrderListRelationFilter
+  coupon_redemptions?: Prisma.CouponRedemptionListRelationFilter
 }
 
 export type ProfileOrderByWithRelationInput = {
@@ -302,6 +303,7 @@ export type ProfileOrderByWithRelationInput = {
   activity_sessions?: Prisma.UserActivitySessionOrderByRelationAggregateInput
   activity_events?: Prisma.UserActivityEventOrderByRelationAggregateInput
   retail_orders?: Prisma.RetailOrderOrderByRelationAggregateInput
+  coupon_redemptions?: Prisma.CouponRedemptionOrderByRelationAggregateInput
 }
 
 export type ProfileWhereUniqueInput = Prisma.AtLeast<{
@@ -331,6 +333,7 @@ export type ProfileWhereUniqueInput = Prisma.AtLeast<{
   activity_sessions?: Prisma.UserActivitySessionListRelationFilter
   activity_events?: Prisma.UserActivityEventListRelationFilter
   retail_orders?: Prisma.RetailOrderListRelationFilter
+  coupon_redemptions?: Prisma.CouponRedemptionListRelationFilter
 }, "id" | "email">
 
 export type ProfileOrderByWithAggregationInput = {
@@ -393,6 +396,7 @@ export type ProfileCreateInput = {
   activity_sessions?: Prisma.UserActivitySessionCreateNestedManyWithoutProfileInput
   activity_events?: Prisma.UserActivityEventCreateNestedManyWithoutProfileInput
   retail_orders?: Prisma.RetailOrderCreateNestedManyWithoutProfileInput
+  coupon_redemptions?: Prisma.CouponRedemptionCreateNestedManyWithoutProfileInput
 }
 
 export type ProfileUncheckedCreateInput = {
@@ -419,6 +423,7 @@ export type ProfileUncheckedCreateInput = {
   activity_sessions?: Prisma.UserActivitySessionUncheckedCreateNestedManyWithoutProfileInput
   activity_events?: Prisma.UserActivityEventUncheckedCreateNestedManyWithoutProfileInput
   retail_orders?: Prisma.RetailOrderUncheckedCreateNestedManyWithoutProfileInput
+  coupon_redemptions?: Prisma.CouponRedemptionUncheckedCreateNestedManyWithoutProfileInput
 }
 
 export type ProfileUpdateInput = {
@@ -445,6 +450,7 @@ export type ProfileUpdateInput = {
   activity_sessions?: Prisma.UserActivitySessionUpdateManyWithoutProfileNestedInput
   activity_events?: Prisma.UserActivityEventUpdateManyWithoutProfileNestedInput
   retail_orders?: Prisma.RetailOrderUpdateManyWithoutProfileNestedInput
+  coupon_redemptions?: Prisma.CouponRedemptionUpdateManyWithoutProfileNestedInput
 }
 
 export type ProfileUncheckedUpdateInput = {
@@ -471,6 +477,7 @@ export type ProfileUncheckedUpdateInput = {
   activity_sessions?: Prisma.UserActivitySessionUncheckedUpdateManyWithoutProfileNestedInput
   activity_events?: Prisma.UserActivityEventUncheckedUpdateManyWithoutProfileNestedInput
   retail_orders?: Prisma.RetailOrderUncheckedUpdateManyWithoutProfileNestedInput
+  coupon_redemptions?: Prisma.CouponRedemptionUncheckedUpdateManyWithoutProfileNestedInput
 }
 
 export type ProfileCreateManyInput = {
@@ -593,6 +600,22 @@ export type IntFieldUpdateOperationsInput = {
 
 export type DateTimeFieldUpdateOperationsInput = {
   set?: Date | string
+}
+
+export type ProfileCreateNestedOneWithoutCoupon_redemptionsInput = {
+  create?: Prisma.XOR<Prisma.ProfileCreateWithoutCoupon_redemptionsInput, Prisma.ProfileUncheckedCreateWithoutCoupon_redemptionsInput>
+  connectOrCreate?: Prisma.ProfileCreateOrConnectWithoutCoupon_redemptionsInput
+  connect?: Prisma.ProfileWhereUniqueInput
+}
+
+export type ProfileUpdateOneWithoutCoupon_redemptionsNestedInput = {
+  create?: Prisma.XOR<Prisma.ProfileCreateWithoutCoupon_redemptionsInput, Prisma.ProfileUncheckedCreateWithoutCoupon_redemptionsInput>
+  connectOrCreate?: Prisma.ProfileCreateOrConnectWithoutCoupon_redemptionsInput
+  upsert?: Prisma.ProfileUpsertWithoutCoupon_redemptionsInput
+  disconnect?: Prisma.ProfileWhereInput | boolean
+  delete?: Prisma.ProfileWhereInput | boolean
+  connect?: Prisma.ProfileWhereUniqueInput
+  update?: Prisma.XOR<Prisma.XOR<Prisma.ProfileUpdateToOneWithWhereWithoutCoupon_redemptionsInput, Prisma.ProfileUpdateWithoutCoupon_redemptionsInput>, Prisma.ProfileUncheckedUpdateWithoutCoupon_redemptionsInput>
 }
 
 export type ProfileCreateNestedOneWithoutRetail_ordersInput = {
@@ -771,6 +794,126 @@ export type ProfileUpdateOneWithoutActivity_eventsNestedInput = {
   update?: Prisma.XOR<Prisma.XOR<Prisma.ProfileUpdateToOneWithWhereWithoutActivity_eventsInput, Prisma.ProfileUpdateWithoutActivity_eventsInput>, Prisma.ProfileUncheckedUpdateWithoutActivity_eventsInput>
 }
 
+export type ProfileCreateWithoutCoupon_redemptionsInput = {
+  id?: string
+  email: string
+  full_name?: string | null
+  phone?: string | null
+  avatar_url?: string | null
+  movement_streak?: number
+  pass_type?: string | null
+  hashedPassword?: string | null
+  role?: string
+  created_at?: Date | string
+  updated_at?: Date | string
+  bookings?: Prisma.BookingCreateNestedManyWithoutProfileInput
+  cafe_orders?: Prisma.CafeOrderCreateNestedManyWithoutProfileInput
+  meal_subscriptions?: Prisma.MealSubscriptionCreateNestedManyWithoutProfileInput
+  user_badges?: Prisma.UserBadgeCreateNestedManyWithoutProfileInput
+  user_packages?: Prisma.UserPackageCreateNestedManyWithoutProfileInput
+  user_stats?: Prisma.UserStatsCreateNestedOneWithoutProfileInput
+  user_streaks?: Prisma.UserStreakCreateNestedOneWithoutProfileInput
+  waivers?: Prisma.WaiverCreateNestedManyWithoutProfileInput
+  crm_messages?: Prisma.CrmMessageCreateNestedManyWithoutProfileInput
+  activity_sessions?: Prisma.UserActivitySessionCreateNestedManyWithoutProfileInput
+  activity_events?: Prisma.UserActivityEventCreateNestedManyWithoutProfileInput
+  retail_orders?: Prisma.RetailOrderCreateNestedManyWithoutProfileInput
+}
+
+export type ProfileUncheckedCreateWithoutCoupon_redemptionsInput = {
+  id?: string
+  email: string
+  full_name?: string | null
+  phone?: string | null
+  avatar_url?: string | null
+  movement_streak?: number
+  pass_type?: string | null
+  hashedPassword?: string | null
+  role?: string
+  created_at?: Date | string
+  updated_at?: Date | string
+  bookings?: Prisma.BookingUncheckedCreateNestedManyWithoutProfileInput
+  cafe_orders?: Prisma.CafeOrderUncheckedCreateNestedManyWithoutProfileInput
+  meal_subscriptions?: Prisma.MealSubscriptionUncheckedCreateNestedManyWithoutProfileInput
+  user_badges?: Prisma.UserBadgeUncheckedCreateNestedManyWithoutProfileInput
+  user_packages?: Prisma.UserPackageUncheckedCreateNestedManyWithoutProfileInput
+  user_stats?: Prisma.UserStatsUncheckedCreateNestedOneWithoutProfileInput
+  user_streaks?: Prisma.UserStreakUncheckedCreateNestedOneWithoutProfileInput
+  waivers?: Prisma.WaiverUncheckedCreateNestedManyWithoutProfileInput
+  crm_messages?: Prisma.CrmMessageUncheckedCreateNestedManyWithoutProfileInput
+  activity_sessions?: Prisma.UserActivitySessionUncheckedCreateNestedManyWithoutProfileInput
+  activity_events?: Prisma.UserActivityEventUncheckedCreateNestedManyWithoutProfileInput
+  retail_orders?: Prisma.RetailOrderUncheckedCreateNestedManyWithoutProfileInput
+}
+
+export type ProfileCreateOrConnectWithoutCoupon_redemptionsInput = {
+  where: Prisma.ProfileWhereUniqueInput
+  create: Prisma.XOR<Prisma.ProfileCreateWithoutCoupon_redemptionsInput, Prisma.ProfileUncheckedCreateWithoutCoupon_redemptionsInput>
+}
+
+export type ProfileUpsertWithoutCoupon_redemptionsInput = {
+  update: Prisma.XOR<Prisma.ProfileUpdateWithoutCoupon_redemptionsInput, Prisma.ProfileUncheckedUpdateWithoutCoupon_redemptionsInput>
+  create: Prisma.XOR<Prisma.ProfileCreateWithoutCoupon_redemptionsInput, Prisma.ProfileUncheckedCreateWithoutCoupon_redemptionsInput>
+  where?: Prisma.ProfileWhereInput
+}
+
+export type ProfileUpdateToOneWithWhereWithoutCoupon_redemptionsInput = {
+  where?: Prisma.ProfileWhereInput
+  data: Prisma.XOR<Prisma.ProfileUpdateWithoutCoupon_redemptionsInput, Prisma.ProfileUncheckedUpdateWithoutCoupon_redemptionsInput>
+}
+
+export type ProfileUpdateWithoutCoupon_redemptionsInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  email?: Prisma.StringFieldUpdateOperationsInput | string
+  full_name?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  phone?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  avatar_url?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  movement_streak?: Prisma.IntFieldUpdateOperationsInput | number
+  pass_type?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  hashedPassword?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  role?: Prisma.StringFieldUpdateOperationsInput | string
+  created_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updated_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  bookings?: Prisma.BookingUpdateManyWithoutProfileNestedInput
+  cafe_orders?: Prisma.CafeOrderUpdateManyWithoutProfileNestedInput
+  meal_subscriptions?: Prisma.MealSubscriptionUpdateManyWithoutProfileNestedInput
+  user_badges?: Prisma.UserBadgeUpdateManyWithoutProfileNestedInput
+  user_packages?: Prisma.UserPackageUpdateManyWithoutProfileNestedInput
+  user_stats?: Prisma.UserStatsUpdateOneWithoutProfileNestedInput
+  user_streaks?: Prisma.UserStreakUpdateOneWithoutProfileNestedInput
+  waivers?: Prisma.WaiverUpdateManyWithoutProfileNestedInput
+  crm_messages?: Prisma.CrmMessageUpdateManyWithoutProfileNestedInput
+  activity_sessions?: Prisma.UserActivitySessionUpdateManyWithoutProfileNestedInput
+  activity_events?: Prisma.UserActivityEventUpdateManyWithoutProfileNestedInput
+  retail_orders?: Prisma.RetailOrderUpdateManyWithoutProfileNestedInput
+}
+
+export type ProfileUncheckedUpdateWithoutCoupon_redemptionsInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  email?: Prisma.StringFieldUpdateOperationsInput | string
+  full_name?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  phone?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  avatar_url?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  movement_streak?: Prisma.IntFieldUpdateOperationsInput | number
+  pass_type?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  hashedPassword?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  role?: Prisma.StringFieldUpdateOperationsInput | string
+  created_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updated_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  bookings?: Prisma.BookingUncheckedUpdateManyWithoutProfileNestedInput
+  cafe_orders?: Prisma.CafeOrderUncheckedUpdateManyWithoutProfileNestedInput
+  meal_subscriptions?: Prisma.MealSubscriptionUncheckedUpdateManyWithoutProfileNestedInput
+  user_badges?: Prisma.UserBadgeUncheckedUpdateManyWithoutProfileNestedInput
+  user_packages?: Prisma.UserPackageUncheckedUpdateManyWithoutProfileNestedInput
+  user_stats?: Prisma.UserStatsUncheckedUpdateOneWithoutProfileNestedInput
+  user_streaks?: Prisma.UserStreakUncheckedUpdateOneWithoutProfileNestedInput
+  waivers?: Prisma.WaiverUncheckedUpdateManyWithoutProfileNestedInput
+  crm_messages?: Prisma.CrmMessageUncheckedUpdateManyWithoutProfileNestedInput
+  activity_sessions?: Prisma.UserActivitySessionUncheckedUpdateManyWithoutProfileNestedInput
+  activity_events?: Prisma.UserActivityEventUncheckedUpdateManyWithoutProfileNestedInput
+  retail_orders?: Prisma.RetailOrderUncheckedUpdateManyWithoutProfileNestedInput
+}
+
 export type ProfileCreateWithoutRetail_ordersInput = {
   id?: string
   email: string
@@ -794,6 +937,7 @@ export type ProfileCreateWithoutRetail_ordersInput = {
   crm_messages?: Prisma.CrmMessageCreateNestedManyWithoutProfileInput
   activity_sessions?: Prisma.UserActivitySessionCreateNestedManyWithoutProfileInput
   activity_events?: Prisma.UserActivityEventCreateNestedManyWithoutProfileInput
+  coupon_redemptions?: Prisma.CouponRedemptionCreateNestedManyWithoutProfileInput
 }
 
 export type ProfileUncheckedCreateWithoutRetail_ordersInput = {
@@ -819,6 +963,7 @@ export type ProfileUncheckedCreateWithoutRetail_ordersInput = {
   crm_messages?: Prisma.CrmMessageUncheckedCreateNestedManyWithoutProfileInput
   activity_sessions?: Prisma.UserActivitySessionUncheckedCreateNestedManyWithoutProfileInput
   activity_events?: Prisma.UserActivityEventUncheckedCreateNestedManyWithoutProfileInput
+  coupon_redemptions?: Prisma.CouponRedemptionUncheckedCreateNestedManyWithoutProfileInput
 }
 
 export type ProfileCreateOrConnectWithoutRetail_ordersInput = {
@@ -860,6 +1005,7 @@ export type ProfileUpdateWithoutRetail_ordersInput = {
   crm_messages?: Prisma.CrmMessageUpdateManyWithoutProfileNestedInput
   activity_sessions?: Prisma.UserActivitySessionUpdateManyWithoutProfileNestedInput
   activity_events?: Prisma.UserActivityEventUpdateManyWithoutProfileNestedInput
+  coupon_redemptions?: Prisma.CouponRedemptionUpdateManyWithoutProfileNestedInput
 }
 
 export type ProfileUncheckedUpdateWithoutRetail_ordersInput = {
@@ -885,6 +1031,7 @@ export type ProfileUncheckedUpdateWithoutRetail_ordersInput = {
   crm_messages?: Prisma.CrmMessageUncheckedUpdateManyWithoutProfileNestedInput
   activity_sessions?: Prisma.UserActivitySessionUncheckedUpdateManyWithoutProfileNestedInput
   activity_events?: Prisma.UserActivityEventUncheckedUpdateManyWithoutProfileNestedInput
+  coupon_redemptions?: Prisma.CouponRedemptionUncheckedUpdateManyWithoutProfileNestedInput
 }
 
 export type ProfileCreateWithoutUser_packagesInput = {
@@ -910,6 +1057,7 @@ export type ProfileCreateWithoutUser_packagesInput = {
   activity_sessions?: Prisma.UserActivitySessionCreateNestedManyWithoutProfileInput
   activity_events?: Prisma.UserActivityEventCreateNestedManyWithoutProfileInput
   retail_orders?: Prisma.RetailOrderCreateNestedManyWithoutProfileInput
+  coupon_redemptions?: Prisma.CouponRedemptionCreateNestedManyWithoutProfileInput
 }
 
 export type ProfileUncheckedCreateWithoutUser_packagesInput = {
@@ -935,6 +1083,7 @@ export type ProfileUncheckedCreateWithoutUser_packagesInput = {
   activity_sessions?: Prisma.UserActivitySessionUncheckedCreateNestedManyWithoutProfileInput
   activity_events?: Prisma.UserActivityEventUncheckedCreateNestedManyWithoutProfileInput
   retail_orders?: Prisma.RetailOrderUncheckedCreateNestedManyWithoutProfileInput
+  coupon_redemptions?: Prisma.CouponRedemptionUncheckedCreateNestedManyWithoutProfileInput
 }
 
 export type ProfileCreateOrConnectWithoutUser_packagesInput = {
@@ -976,6 +1125,7 @@ export type ProfileUpdateWithoutUser_packagesInput = {
   activity_sessions?: Prisma.UserActivitySessionUpdateManyWithoutProfileNestedInput
   activity_events?: Prisma.UserActivityEventUpdateManyWithoutProfileNestedInput
   retail_orders?: Prisma.RetailOrderUpdateManyWithoutProfileNestedInput
+  coupon_redemptions?: Prisma.CouponRedemptionUpdateManyWithoutProfileNestedInput
 }
 
 export type ProfileUncheckedUpdateWithoutUser_packagesInput = {
@@ -1001,6 +1151,7 @@ export type ProfileUncheckedUpdateWithoutUser_packagesInput = {
   activity_sessions?: Prisma.UserActivitySessionUncheckedUpdateManyWithoutProfileNestedInput
   activity_events?: Prisma.UserActivityEventUncheckedUpdateManyWithoutProfileNestedInput
   retail_orders?: Prisma.RetailOrderUncheckedUpdateManyWithoutProfileNestedInput
+  coupon_redemptions?: Prisma.CouponRedemptionUncheckedUpdateManyWithoutProfileNestedInput
 }
 
 export type ProfileCreateWithoutBookingsInput = {
@@ -1026,6 +1177,7 @@ export type ProfileCreateWithoutBookingsInput = {
   activity_sessions?: Prisma.UserActivitySessionCreateNestedManyWithoutProfileInput
   activity_events?: Prisma.UserActivityEventCreateNestedManyWithoutProfileInput
   retail_orders?: Prisma.RetailOrderCreateNestedManyWithoutProfileInput
+  coupon_redemptions?: Prisma.CouponRedemptionCreateNestedManyWithoutProfileInput
 }
 
 export type ProfileUncheckedCreateWithoutBookingsInput = {
@@ -1051,6 +1203,7 @@ export type ProfileUncheckedCreateWithoutBookingsInput = {
   activity_sessions?: Prisma.UserActivitySessionUncheckedCreateNestedManyWithoutProfileInput
   activity_events?: Prisma.UserActivityEventUncheckedCreateNestedManyWithoutProfileInput
   retail_orders?: Prisma.RetailOrderUncheckedCreateNestedManyWithoutProfileInput
+  coupon_redemptions?: Prisma.CouponRedemptionUncheckedCreateNestedManyWithoutProfileInput
 }
 
 export type ProfileCreateOrConnectWithoutBookingsInput = {
@@ -1092,6 +1245,7 @@ export type ProfileUpdateWithoutBookingsInput = {
   activity_sessions?: Prisma.UserActivitySessionUpdateManyWithoutProfileNestedInput
   activity_events?: Prisma.UserActivityEventUpdateManyWithoutProfileNestedInput
   retail_orders?: Prisma.RetailOrderUpdateManyWithoutProfileNestedInput
+  coupon_redemptions?: Prisma.CouponRedemptionUpdateManyWithoutProfileNestedInput
 }
 
 export type ProfileUncheckedUpdateWithoutBookingsInput = {
@@ -1117,6 +1271,7 @@ export type ProfileUncheckedUpdateWithoutBookingsInput = {
   activity_sessions?: Prisma.UserActivitySessionUncheckedUpdateManyWithoutProfileNestedInput
   activity_events?: Prisma.UserActivityEventUncheckedUpdateManyWithoutProfileNestedInput
   retail_orders?: Prisma.RetailOrderUncheckedUpdateManyWithoutProfileNestedInput
+  coupon_redemptions?: Prisma.CouponRedemptionUncheckedUpdateManyWithoutProfileNestedInput
 }
 
 export type ProfileCreateWithoutCafe_ordersInput = {
@@ -1142,6 +1297,7 @@ export type ProfileCreateWithoutCafe_ordersInput = {
   activity_sessions?: Prisma.UserActivitySessionCreateNestedManyWithoutProfileInput
   activity_events?: Prisma.UserActivityEventCreateNestedManyWithoutProfileInput
   retail_orders?: Prisma.RetailOrderCreateNestedManyWithoutProfileInput
+  coupon_redemptions?: Prisma.CouponRedemptionCreateNestedManyWithoutProfileInput
 }
 
 export type ProfileUncheckedCreateWithoutCafe_ordersInput = {
@@ -1167,6 +1323,7 @@ export type ProfileUncheckedCreateWithoutCafe_ordersInput = {
   activity_sessions?: Prisma.UserActivitySessionUncheckedCreateNestedManyWithoutProfileInput
   activity_events?: Prisma.UserActivityEventUncheckedCreateNestedManyWithoutProfileInput
   retail_orders?: Prisma.RetailOrderUncheckedCreateNestedManyWithoutProfileInput
+  coupon_redemptions?: Prisma.CouponRedemptionUncheckedCreateNestedManyWithoutProfileInput
 }
 
 export type ProfileCreateOrConnectWithoutCafe_ordersInput = {
@@ -1208,6 +1365,7 @@ export type ProfileUpdateWithoutCafe_ordersInput = {
   activity_sessions?: Prisma.UserActivitySessionUpdateManyWithoutProfileNestedInput
   activity_events?: Prisma.UserActivityEventUpdateManyWithoutProfileNestedInput
   retail_orders?: Prisma.RetailOrderUpdateManyWithoutProfileNestedInput
+  coupon_redemptions?: Prisma.CouponRedemptionUpdateManyWithoutProfileNestedInput
 }
 
 export type ProfileUncheckedUpdateWithoutCafe_ordersInput = {
@@ -1233,6 +1391,7 @@ export type ProfileUncheckedUpdateWithoutCafe_ordersInput = {
   activity_sessions?: Prisma.UserActivitySessionUncheckedUpdateManyWithoutProfileNestedInput
   activity_events?: Prisma.UserActivityEventUncheckedUpdateManyWithoutProfileNestedInput
   retail_orders?: Prisma.RetailOrderUncheckedUpdateManyWithoutProfileNestedInput
+  coupon_redemptions?: Prisma.CouponRedemptionUncheckedUpdateManyWithoutProfileNestedInput
 }
 
 export type ProfileCreateWithoutMeal_subscriptionsInput = {
@@ -1258,6 +1417,7 @@ export type ProfileCreateWithoutMeal_subscriptionsInput = {
   activity_sessions?: Prisma.UserActivitySessionCreateNestedManyWithoutProfileInput
   activity_events?: Prisma.UserActivityEventCreateNestedManyWithoutProfileInput
   retail_orders?: Prisma.RetailOrderCreateNestedManyWithoutProfileInput
+  coupon_redemptions?: Prisma.CouponRedemptionCreateNestedManyWithoutProfileInput
 }
 
 export type ProfileUncheckedCreateWithoutMeal_subscriptionsInput = {
@@ -1283,6 +1443,7 @@ export type ProfileUncheckedCreateWithoutMeal_subscriptionsInput = {
   activity_sessions?: Prisma.UserActivitySessionUncheckedCreateNestedManyWithoutProfileInput
   activity_events?: Prisma.UserActivityEventUncheckedCreateNestedManyWithoutProfileInput
   retail_orders?: Prisma.RetailOrderUncheckedCreateNestedManyWithoutProfileInput
+  coupon_redemptions?: Prisma.CouponRedemptionUncheckedCreateNestedManyWithoutProfileInput
 }
 
 export type ProfileCreateOrConnectWithoutMeal_subscriptionsInput = {
@@ -1324,6 +1485,7 @@ export type ProfileUpdateWithoutMeal_subscriptionsInput = {
   activity_sessions?: Prisma.UserActivitySessionUpdateManyWithoutProfileNestedInput
   activity_events?: Prisma.UserActivityEventUpdateManyWithoutProfileNestedInput
   retail_orders?: Prisma.RetailOrderUpdateManyWithoutProfileNestedInput
+  coupon_redemptions?: Prisma.CouponRedemptionUpdateManyWithoutProfileNestedInput
 }
 
 export type ProfileUncheckedUpdateWithoutMeal_subscriptionsInput = {
@@ -1349,6 +1511,7 @@ export type ProfileUncheckedUpdateWithoutMeal_subscriptionsInput = {
   activity_sessions?: Prisma.UserActivitySessionUncheckedUpdateManyWithoutProfileNestedInput
   activity_events?: Prisma.UserActivityEventUncheckedUpdateManyWithoutProfileNestedInput
   retail_orders?: Prisma.RetailOrderUncheckedUpdateManyWithoutProfileNestedInput
+  coupon_redemptions?: Prisma.CouponRedemptionUncheckedUpdateManyWithoutProfileNestedInput
 }
 
 export type ProfileCreateWithoutUser_statsInput = {
@@ -1374,6 +1537,7 @@ export type ProfileCreateWithoutUser_statsInput = {
   activity_sessions?: Prisma.UserActivitySessionCreateNestedManyWithoutProfileInput
   activity_events?: Prisma.UserActivityEventCreateNestedManyWithoutProfileInput
   retail_orders?: Prisma.RetailOrderCreateNestedManyWithoutProfileInput
+  coupon_redemptions?: Prisma.CouponRedemptionCreateNestedManyWithoutProfileInput
 }
 
 export type ProfileUncheckedCreateWithoutUser_statsInput = {
@@ -1399,6 +1563,7 @@ export type ProfileUncheckedCreateWithoutUser_statsInput = {
   activity_sessions?: Prisma.UserActivitySessionUncheckedCreateNestedManyWithoutProfileInput
   activity_events?: Prisma.UserActivityEventUncheckedCreateNestedManyWithoutProfileInput
   retail_orders?: Prisma.RetailOrderUncheckedCreateNestedManyWithoutProfileInput
+  coupon_redemptions?: Prisma.CouponRedemptionUncheckedCreateNestedManyWithoutProfileInput
 }
 
 export type ProfileCreateOrConnectWithoutUser_statsInput = {
@@ -1440,6 +1605,7 @@ export type ProfileUpdateWithoutUser_statsInput = {
   activity_sessions?: Prisma.UserActivitySessionUpdateManyWithoutProfileNestedInput
   activity_events?: Prisma.UserActivityEventUpdateManyWithoutProfileNestedInput
   retail_orders?: Prisma.RetailOrderUpdateManyWithoutProfileNestedInput
+  coupon_redemptions?: Prisma.CouponRedemptionUpdateManyWithoutProfileNestedInput
 }
 
 export type ProfileUncheckedUpdateWithoutUser_statsInput = {
@@ -1465,6 +1631,7 @@ export type ProfileUncheckedUpdateWithoutUser_statsInput = {
   activity_sessions?: Prisma.UserActivitySessionUncheckedUpdateManyWithoutProfileNestedInput
   activity_events?: Prisma.UserActivityEventUncheckedUpdateManyWithoutProfileNestedInput
   retail_orders?: Prisma.RetailOrderUncheckedUpdateManyWithoutProfileNestedInput
+  coupon_redemptions?: Prisma.CouponRedemptionUncheckedUpdateManyWithoutProfileNestedInput
 }
 
 export type ProfileCreateWithoutUser_streaksInput = {
@@ -1490,6 +1657,7 @@ export type ProfileCreateWithoutUser_streaksInput = {
   activity_sessions?: Prisma.UserActivitySessionCreateNestedManyWithoutProfileInput
   activity_events?: Prisma.UserActivityEventCreateNestedManyWithoutProfileInput
   retail_orders?: Prisma.RetailOrderCreateNestedManyWithoutProfileInput
+  coupon_redemptions?: Prisma.CouponRedemptionCreateNestedManyWithoutProfileInput
 }
 
 export type ProfileUncheckedCreateWithoutUser_streaksInput = {
@@ -1515,6 +1683,7 @@ export type ProfileUncheckedCreateWithoutUser_streaksInput = {
   activity_sessions?: Prisma.UserActivitySessionUncheckedCreateNestedManyWithoutProfileInput
   activity_events?: Prisma.UserActivityEventUncheckedCreateNestedManyWithoutProfileInput
   retail_orders?: Prisma.RetailOrderUncheckedCreateNestedManyWithoutProfileInput
+  coupon_redemptions?: Prisma.CouponRedemptionUncheckedCreateNestedManyWithoutProfileInput
 }
 
 export type ProfileCreateOrConnectWithoutUser_streaksInput = {
@@ -1556,6 +1725,7 @@ export type ProfileUpdateWithoutUser_streaksInput = {
   activity_sessions?: Prisma.UserActivitySessionUpdateManyWithoutProfileNestedInput
   activity_events?: Prisma.UserActivityEventUpdateManyWithoutProfileNestedInput
   retail_orders?: Prisma.RetailOrderUpdateManyWithoutProfileNestedInput
+  coupon_redemptions?: Prisma.CouponRedemptionUpdateManyWithoutProfileNestedInput
 }
 
 export type ProfileUncheckedUpdateWithoutUser_streaksInput = {
@@ -1581,6 +1751,7 @@ export type ProfileUncheckedUpdateWithoutUser_streaksInput = {
   activity_sessions?: Prisma.UserActivitySessionUncheckedUpdateManyWithoutProfileNestedInput
   activity_events?: Prisma.UserActivityEventUncheckedUpdateManyWithoutProfileNestedInput
   retail_orders?: Prisma.RetailOrderUncheckedUpdateManyWithoutProfileNestedInput
+  coupon_redemptions?: Prisma.CouponRedemptionUncheckedUpdateManyWithoutProfileNestedInput
 }
 
 export type ProfileCreateWithoutUser_badgesInput = {
@@ -1606,6 +1777,7 @@ export type ProfileCreateWithoutUser_badgesInput = {
   activity_sessions?: Prisma.UserActivitySessionCreateNestedManyWithoutProfileInput
   activity_events?: Prisma.UserActivityEventCreateNestedManyWithoutProfileInput
   retail_orders?: Prisma.RetailOrderCreateNestedManyWithoutProfileInput
+  coupon_redemptions?: Prisma.CouponRedemptionCreateNestedManyWithoutProfileInput
 }
 
 export type ProfileUncheckedCreateWithoutUser_badgesInput = {
@@ -1631,6 +1803,7 @@ export type ProfileUncheckedCreateWithoutUser_badgesInput = {
   activity_sessions?: Prisma.UserActivitySessionUncheckedCreateNestedManyWithoutProfileInput
   activity_events?: Prisma.UserActivityEventUncheckedCreateNestedManyWithoutProfileInput
   retail_orders?: Prisma.RetailOrderUncheckedCreateNestedManyWithoutProfileInput
+  coupon_redemptions?: Prisma.CouponRedemptionUncheckedCreateNestedManyWithoutProfileInput
 }
 
 export type ProfileCreateOrConnectWithoutUser_badgesInput = {
@@ -1672,6 +1845,7 @@ export type ProfileUpdateWithoutUser_badgesInput = {
   activity_sessions?: Prisma.UserActivitySessionUpdateManyWithoutProfileNestedInput
   activity_events?: Prisma.UserActivityEventUpdateManyWithoutProfileNestedInput
   retail_orders?: Prisma.RetailOrderUpdateManyWithoutProfileNestedInput
+  coupon_redemptions?: Prisma.CouponRedemptionUpdateManyWithoutProfileNestedInput
 }
 
 export type ProfileUncheckedUpdateWithoutUser_badgesInput = {
@@ -1697,6 +1871,7 @@ export type ProfileUncheckedUpdateWithoutUser_badgesInput = {
   activity_sessions?: Prisma.UserActivitySessionUncheckedUpdateManyWithoutProfileNestedInput
   activity_events?: Prisma.UserActivityEventUncheckedUpdateManyWithoutProfileNestedInput
   retail_orders?: Prisma.RetailOrderUncheckedUpdateManyWithoutProfileNestedInput
+  coupon_redemptions?: Prisma.CouponRedemptionUncheckedUpdateManyWithoutProfileNestedInput
 }
 
 export type ProfileCreateWithoutWaiversInput = {
@@ -1722,6 +1897,7 @@ export type ProfileCreateWithoutWaiversInput = {
   activity_sessions?: Prisma.UserActivitySessionCreateNestedManyWithoutProfileInput
   activity_events?: Prisma.UserActivityEventCreateNestedManyWithoutProfileInput
   retail_orders?: Prisma.RetailOrderCreateNestedManyWithoutProfileInput
+  coupon_redemptions?: Prisma.CouponRedemptionCreateNestedManyWithoutProfileInput
 }
 
 export type ProfileUncheckedCreateWithoutWaiversInput = {
@@ -1747,6 +1923,7 @@ export type ProfileUncheckedCreateWithoutWaiversInput = {
   activity_sessions?: Prisma.UserActivitySessionUncheckedCreateNestedManyWithoutProfileInput
   activity_events?: Prisma.UserActivityEventUncheckedCreateNestedManyWithoutProfileInput
   retail_orders?: Prisma.RetailOrderUncheckedCreateNestedManyWithoutProfileInput
+  coupon_redemptions?: Prisma.CouponRedemptionUncheckedCreateNestedManyWithoutProfileInput
 }
 
 export type ProfileCreateOrConnectWithoutWaiversInput = {
@@ -1788,6 +1965,7 @@ export type ProfileUpdateWithoutWaiversInput = {
   activity_sessions?: Prisma.UserActivitySessionUpdateManyWithoutProfileNestedInput
   activity_events?: Prisma.UserActivityEventUpdateManyWithoutProfileNestedInput
   retail_orders?: Prisma.RetailOrderUpdateManyWithoutProfileNestedInput
+  coupon_redemptions?: Prisma.CouponRedemptionUpdateManyWithoutProfileNestedInput
 }
 
 export type ProfileUncheckedUpdateWithoutWaiversInput = {
@@ -1813,6 +1991,7 @@ export type ProfileUncheckedUpdateWithoutWaiversInput = {
   activity_sessions?: Prisma.UserActivitySessionUncheckedUpdateManyWithoutProfileNestedInput
   activity_events?: Prisma.UserActivityEventUncheckedUpdateManyWithoutProfileNestedInput
   retail_orders?: Prisma.RetailOrderUncheckedUpdateManyWithoutProfileNestedInput
+  coupon_redemptions?: Prisma.CouponRedemptionUncheckedUpdateManyWithoutProfileNestedInput
 }
 
 export type ProfileCreateWithoutCrm_messagesInput = {
@@ -1838,6 +2017,7 @@ export type ProfileCreateWithoutCrm_messagesInput = {
   activity_sessions?: Prisma.UserActivitySessionCreateNestedManyWithoutProfileInput
   activity_events?: Prisma.UserActivityEventCreateNestedManyWithoutProfileInput
   retail_orders?: Prisma.RetailOrderCreateNestedManyWithoutProfileInput
+  coupon_redemptions?: Prisma.CouponRedemptionCreateNestedManyWithoutProfileInput
 }
 
 export type ProfileUncheckedCreateWithoutCrm_messagesInput = {
@@ -1863,6 +2043,7 @@ export type ProfileUncheckedCreateWithoutCrm_messagesInput = {
   activity_sessions?: Prisma.UserActivitySessionUncheckedCreateNestedManyWithoutProfileInput
   activity_events?: Prisma.UserActivityEventUncheckedCreateNestedManyWithoutProfileInput
   retail_orders?: Prisma.RetailOrderUncheckedCreateNestedManyWithoutProfileInput
+  coupon_redemptions?: Prisma.CouponRedemptionUncheckedCreateNestedManyWithoutProfileInput
 }
 
 export type ProfileCreateOrConnectWithoutCrm_messagesInput = {
@@ -1904,6 +2085,7 @@ export type ProfileUpdateWithoutCrm_messagesInput = {
   activity_sessions?: Prisma.UserActivitySessionUpdateManyWithoutProfileNestedInput
   activity_events?: Prisma.UserActivityEventUpdateManyWithoutProfileNestedInput
   retail_orders?: Prisma.RetailOrderUpdateManyWithoutProfileNestedInput
+  coupon_redemptions?: Prisma.CouponRedemptionUpdateManyWithoutProfileNestedInput
 }
 
 export type ProfileUncheckedUpdateWithoutCrm_messagesInput = {
@@ -1929,6 +2111,7 @@ export type ProfileUncheckedUpdateWithoutCrm_messagesInput = {
   activity_sessions?: Prisma.UserActivitySessionUncheckedUpdateManyWithoutProfileNestedInput
   activity_events?: Prisma.UserActivityEventUncheckedUpdateManyWithoutProfileNestedInput
   retail_orders?: Prisma.RetailOrderUncheckedUpdateManyWithoutProfileNestedInput
+  coupon_redemptions?: Prisma.CouponRedemptionUncheckedUpdateManyWithoutProfileNestedInput
 }
 
 export type ProfileCreateWithoutActivity_sessionsInput = {
@@ -1954,6 +2137,7 @@ export type ProfileCreateWithoutActivity_sessionsInput = {
   crm_messages?: Prisma.CrmMessageCreateNestedManyWithoutProfileInput
   activity_events?: Prisma.UserActivityEventCreateNestedManyWithoutProfileInput
   retail_orders?: Prisma.RetailOrderCreateNestedManyWithoutProfileInput
+  coupon_redemptions?: Prisma.CouponRedemptionCreateNestedManyWithoutProfileInput
 }
 
 export type ProfileUncheckedCreateWithoutActivity_sessionsInput = {
@@ -1979,6 +2163,7 @@ export type ProfileUncheckedCreateWithoutActivity_sessionsInput = {
   crm_messages?: Prisma.CrmMessageUncheckedCreateNestedManyWithoutProfileInput
   activity_events?: Prisma.UserActivityEventUncheckedCreateNestedManyWithoutProfileInput
   retail_orders?: Prisma.RetailOrderUncheckedCreateNestedManyWithoutProfileInput
+  coupon_redemptions?: Prisma.CouponRedemptionUncheckedCreateNestedManyWithoutProfileInput
 }
 
 export type ProfileCreateOrConnectWithoutActivity_sessionsInput = {
@@ -2020,6 +2205,7 @@ export type ProfileUpdateWithoutActivity_sessionsInput = {
   crm_messages?: Prisma.CrmMessageUpdateManyWithoutProfileNestedInput
   activity_events?: Prisma.UserActivityEventUpdateManyWithoutProfileNestedInput
   retail_orders?: Prisma.RetailOrderUpdateManyWithoutProfileNestedInput
+  coupon_redemptions?: Prisma.CouponRedemptionUpdateManyWithoutProfileNestedInput
 }
 
 export type ProfileUncheckedUpdateWithoutActivity_sessionsInput = {
@@ -2045,6 +2231,7 @@ export type ProfileUncheckedUpdateWithoutActivity_sessionsInput = {
   crm_messages?: Prisma.CrmMessageUncheckedUpdateManyWithoutProfileNestedInput
   activity_events?: Prisma.UserActivityEventUncheckedUpdateManyWithoutProfileNestedInput
   retail_orders?: Prisma.RetailOrderUncheckedUpdateManyWithoutProfileNestedInput
+  coupon_redemptions?: Prisma.CouponRedemptionUncheckedUpdateManyWithoutProfileNestedInput
 }
 
 export type ProfileCreateWithoutActivity_eventsInput = {
@@ -2070,6 +2257,7 @@ export type ProfileCreateWithoutActivity_eventsInput = {
   crm_messages?: Prisma.CrmMessageCreateNestedManyWithoutProfileInput
   activity_sessions?: Prisma.UserActivitySessionCreateNestedManyWithoutProfileInput
   retail_orders?: Prisma.RetailOrderCreateNestedManyWithoutProfileInput
+  coupon_redemptions?: Prisma.CouponRedemptionCreateNestedManyWithoutProfileInput
 }
 
 export type ProfileUncheckedCreateWithoutActivity_eventsInput = {
@@ -2095,6 +2283,7 @@ export type ProfileUncheckedCreateWithoutActivity_eventsInput = {
   crm_messages?: Prisma.CrmMessageUncheckedCreateNestedManyWithoutProfileInput
   activity_sessions?: Prisma.UserActivitySessionUncheckedCreateNestedManyWithoutProfileInput
   retail_orders?: Prisma.RetailOrderUncheckedCreateNestedManyWithoutProfileInput
+  coupon_redemptions?: Prisma.CouponRedemptionUncheckedCreateNestedManyWithoutProfileInput
 }
 
 export type ProfileCreateOrConnectWithoutActivity_eventsInput = {
@@ -2136,6 +2325,7 @@ export type ProfileUpdateWithoutActivity_eventsInput = {
   crm_messages?: Prisma.CrmMessageUpdateManyWithoutProfileNestedInput
   activity_sessions?: Prisma.UserActivitySessionUpdateManyWithoutProfileNestedInput
   retail_orders?: Prisma.RetailOrderUpdateManyWithoutProfileNestedInput
+  coupon_redemptions?: Prisma.CouponRedemptionUpdateManyWithoutProfileNestedInput
 }
 
 export type ProfileUncheckedUpdateWithoutActivity_eventsInput = {
@@ -2161,6 +2351,7 @@ export type ProfileUncheckedUpdateWithoutActivity_eventsInput = {
   crm_messages?: Prisma.CrmMessageUncheckedUpdateManyWithoutProfileNestedInput
   activity_sessions?: Prisma.UserActivitySessionUncheckedUpdateManyWithoutProfileNestedInput
   retail_orders?: Prisma.RetailOrderUncheckedUpdateManyWithoutProfileNestedInput
+  coupon_redemptions?: Prisma.CouponRedemptionUncheckedUpdateManyWithoutProfileNestedInput
 }
 
 
@@ -2179,6 +2370,7 @@ export type ProfileCountOutputType = {
   activity_sessions: number
   activity_events: number
   retail_orders: number
+  coupon_redemptions: number
 }
 
 export type ProfileCountOutputTypeSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
@@ -2192,6 +2384,7 @@ export type ProfileCountOutputTypeSelect<ExtArgs extends runtime.Types.Extension
   activity_sessions?: boolean | ProfileCountOutputTypeCountActivity_sessionsArgs
   activity_events?: boolean | ProfileCountOutputTypeCountActivity_eventsArgs
   retail_orders?: boolean | ProfileCountOutputTypeCountRetail_ordersArgs
+  coupon_redemptions?: boolean | ProfileCountOutputTypeCountCoupon_redemptionsArgs
 }
 
 /**
@@ -2274,6 +2467,13 @@ export type ProfileCountOutputTypeCountRetail_ordersArgs<ExtArgs extends runtime
   where?: Prisma.RetailOrderWhereInput
 }
 
+/**
+ * ProfileCountOutputType without action
+ */
+export type ProfileCountOutputTypeCountCoupon_redemptionsArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  where?: Prisma.CouponRedemptionWhereInput
+}
+
 
 export type ProfileSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetSelect<{
   id?: boolean
@@ -2299,6 +2499,7 @@ export type ProfileSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs 
   activity_sessions?: boolean | Prisma.Profile$activity_sessionsArgs<ExtArgs>
   activity_events?: boolean | Prisma.Profile$activity_eventsArgs<ExtArgs>
   retail_orders?: boolean | Prisma.Profile$retail_ordersArgs<ExtArgs>
+  coupon_redemptions?: boolean | Prisma.Profile$coupon_redemptionsArgs<ExtArgs>
   _count?: boolean | Prisma.ProfileCountOutputTypeDefaultArgs<ExtArgs>
 }, ExtArgs["result"]["profile"]>
 
@@ -2358,6 +2559,7 @@ export type ProfileInclude<ExtArgs extends runtime.Types.Extensions.InternalArgs
   activity_sessions?: boolean | Prisma.Profile$activity_sessionsArgs<ExtArgs>
   activity_events?: boolean | Prisma.Profile$activity_eventsArgs<ExtArgs>
   retail_orders?: boolean | Prisma.Profile$retail_ordersArgs<ExtArgs>
+  coupon_redemptions?: boolean | Prisma.Profile$coupon_redemptionsArgs<ExtArgs>
   _count?: boolean | Prisma.ProfileCountOutputTypeDefaultArgs<ExtArgs>
 }
 export type ProfileIncludeCreateManyAndReturn<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {}
@@ -2378,6 +2580,7 @@ export type $ProfilePayload<ExtArgs extends runtime.Types.Extensions.InternalArg
     activity_sessions: Prisma.$UserActivitySessionPayload<ExtArgs>[]
     activity_events: Prisma.$UserActivityEventPayload<ExtArgs>[]
     retail_orders: Prisma.$RetailOrderPayload<ExtArgs>[]
+    coupon_redemptions: Prisma.$CouponRedemptionPayload<ExtArgs>[]
   }
   scalars: runtime.Types.Extensions.GetPayloadResult<{
     id: string
@@ -2797,6 +3000,7 @@ export interface Prisma__ProfileClient<T, Null = never, ExtArgs extends runtime.
   activity_sessions<T extends Prisma.Profile$activity_sessionsArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.Profile$activity_sessionsArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$UserActivitySessionPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
   activity_events<T extends Prisma.Profile$activity_eventsArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.Profile$activity_eventsArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$UserActivityEventPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
   retail_orders<T extends Prisma.Profile$retail_ordersArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.Profile$retail_ordersArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$RetailOrderPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
+  coupon_redemptions<T extends Prisma.Profile$coupon_redemptionsArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.Profile$coupon_redemptionsArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$CouponRedemptionPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
   /**
    * Attaches callbacks for the resolution and/or rejection of the Promise.
    * @param onfulfilled The callback to execute when the Promise is resolved.
@@ -3505,6 +3709,30 @@ export type Profile$retail_ordersArgs<ExtArgs extends runtime.Types.Extensions.I
   take?: number
   skip?: number
   distinct?: Prisma.RetailOrderScalarFieldEnum | Prisma.RetailOrderScalarFieldEnum[]
+}
+
+/**
+ * Profile.coupon_redemptions
+ */
+export type Profile$coupon_redemptionsArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  /**
+   * Select specific fields to fetch from the CouponRedemption
+   */
+  select?: Prisma.CouponRedemptionSelect<ExtArgs> | null
+  /**
+   * Omit specific fields from the CouponRedemption
+   */
+  omit?: Prisma.CouponRedemptionOmit<ExtArgs> | null
+  /**
+   * Choose, which related nodes to fetch as well
+   */
+  include?: Prisma.CouponRedemptionInclude<ExtArgs> | null
+  where?: Prisma.CouponRedemptionWhereInput
+  orderBy?: Prisma.CouponRedemptionOrderByWithRelationInput | Prisma.CouponRedemptionOrderByWithRelationInput[]
+  cursor?: Prisma.CouponRedemptionWhereUniqueInput
+  take?: number
+  skip?: number
+  distinct?: Prisma.CouponRedemptionScalarFieldEnum | Prisma.CouponRedemptionScalarFieldEnum[]
 }
 
 /**

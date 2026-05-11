@@ -38,7 +38,7 @@ interface PurchaseRecord {
 const premiumPackages: Package[] = [
   {
     name: "1 Day Class Pass",
-    price: "₹950",
+    price: "₹945",
     classes: 1,
     validity: "1 day",
     benefits: [
@@ -166,6 +166,9 @@ export default function PackagesPage() {
     phone: "",
     paymentMethod: "online" as const
   });
+  const [couponCode, setCouponCode] = useState("");
+  const [couponError, setCouponError] = useState<string | null>(null);
+  const [couponDiscount, setCouponDiscount] = useState<number | null>(null);
 
   useEffect(() => {
     if (status === "unauthenticated") { router.push("/portal/login"); return; }
@@ -329,7 +332,34 @@ export default function PackagesPage() {
     setSelectedPackage(null);
     setError(null);
     setSuccess(false);
+    setCouponCode("");
+    setCouponError(null);
+    setCouponDiscount(null);
   };
+
+  const packageSubtotalInr = (pkg: typeof selectedPackage) => {
+    if (!pkg?.price) return 0;
+    return parseInt(String(pkg.price).replace(/[^0-9]/g, ""), 10) || 0;
+  };
+
+  async function validatePackageCoupon(pkg: NonNullable<typeof selectedPackage>) {
+    setCouponError(null);
+    const subtotal = packageSubtotalInr(pkg);
+    if (subtotal <= 0) return;
+    const ctx = pkg.classes === "Unlimited" ? "studio_pass" : "class_pass";
+    const r = await fetch("/api/coupons/validate", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ code: couponCode, context: ctx, subtotal }),
+    });
+    const d = r.ok ? await r.json() : { valid: false, error: "Could not validate" };
+    if (!d.valid) {
+      setCouponDiscount(null);
+      setCouponError(typeof d.error === "string" ? d.error : "Invalid coupon");
+      return;
+    }
+    setCouponDiscount(Number(d.discountInr) || 0);
+  }
 
   const handlePurchase = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -377,6 +407,7 @@ export default function PackagesPage() {
         body: JSON.stringify({
           package_type_id: packageType.id,
           pass_type: selectedPackage.classes === "Unlimited" ? "studio_pass" : "class_pass",
+          coupon_code: couponCode.trim() || undefined,
         }),
       });
       if (!purchaseRes.ok) throw new Error("Purchase failed");
@@ -714,7 +745,42 @@ export default function PackagesPage() {
                   <div>
                     <p className="font-body text-sm text-charcoal/60 mb-1">Total Amount</p>
                     <p className="font-display text-2xl text-sage">{selectedPackage.price}</p>
+                    {couponDiscount != null && couponDiscount > 0 && (
+                      <p className="font-body text-sm text-sage mt-1">
+                        After coupon: ₹
+                        {Math.max(
+                          0,
+                          packageSubtotalInr(selectedPackage) - couponDiscount
+                        ).toLocaleString("en-IN")}
+                      </p>
+                    )}
                   </div>
+                </div>
+                <div className="mt-4 space-y-2">
+                  <Label className="font-body text-charcoal">Promo code (optional)</Label>
+                  <div className="flex gap-2 flex-col sm:flex-row">
+                    <Input
+                      className="border-sage/20 font-mono uppercase"
+                      placeholder="Code"
+                      value={couponCode}
+                      onChange={(e) => {
+                        setCouponCode(e.target.value.toUpperCase());
+                        setCouponDiscount(null);
+                        setCouponError(null);
+                      }}
+                    />
+                    <Button
+                      type="button"
+                      variant="outline"
+                      className="border-sage/30 shrink-0"
+                      onClick={() => selectedPackage && void validatePackageCoupon(selectedPackage)}
+                    >
+                      Apply
+                    </Button>
+                  </div>
+                  {couponError && (
+                    <p className="text-sm text-red-600 font-body">{couponError}</p>
+                  )}
                 </div>
               </div>
 

@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect } from "react";
 import Image from "next/image";
 import Link from "next/link";
 import { SEO } from "@/components/SEO";
@@ -24,17 +24,6 @@ import {
 
 export default function CafePage() {
   const [scrollY, setScrollY] = useState(0);
-  const [cursorPosition, setCursorPosition] = useState({ x: 0, y: 0 });
-  const [revealedImages, setRevealedImages] = useState<Array<{
-    id: number;
-    x: number;
-    y: number;
-    image: string;
-    size: { width: number; height: number };
-    timestamp: number;
-  }>>([]);
-  const [imageCounter, setImageCounter] = useState(0);
-  const [isMobile, setIsMobile] = useState(false);
 
   // Event image carousel state
   const [analogImageIndex, setAnalogImageIndex] = useState(0);
@@ -85,16 +74,6 @@ export default function CafePage() {
     "/food/BAG09574.jpg"
   ];
 
-  // Detect mobile
-  useEffect(() => {
-    const checkMobile = () => {
-      setIsMobile(window.innerWidth < 1024);
-    };
-    checkMobile();
-    window.addEventListener("resize", checkMobile);
-    return () => window.removeEventListener("resize", checkMobile);
-  }, []);
-
   // Scroll effect for background color transition
   useEffect(() => {
     const handleScroll = () => {
@@ -103,30 +82,6 @@ export default function CafePage() {
 
     window.addEventListener("scroll", handleScroll, { passive: true });
     return () => window.removeEventListener("scroll", handleScroll);
-  }, []);
-
-  // Cursor tracking for kinetic gallery
-  useEffect(() => {
-    if (isMobile) return;
-
-    const handleMouseMove = (e: MouseEvent) => {
-      setCursorPosition({ x: e.clientX, y: e.clientY });
-    };
-
-    window.addEventListener("mousemove", handleMouseMove);
-    return () => window.removeEventListener("mousemove", handleMouseMove);
-  }, [isMobile]);
-
-  // Cleanup old revealed images
-  useEffect(() => {
-    const cleanup = setInterval(() => {
-      const now = Date.now();
-      setRevealedImages((prev) => 
-        prev.filter((img) => now - img.timestamp < 2500) // Remove after 2.5s
-      );
-    }, 100);
-
-    return () => clearInterval(cleanup);
   }, []);
 
   // Analog Club image carousel
@@ -146,48 +101,6 @@ export default function CafePage() {
 
     return () => clearInterval(interval);
   }, [heroMedia.length]);
-
-  // Random image size generator
-  const getRandomSize = () => {
-    const sizes = [
-      { width: 300, height: 400 }, // Portrait
-      { width: 400, height: 300 }, // Landscape
-      { width: 350, height: 350 }, // Square
-      { width: 320, height: 450 }, // Tall
-      { width: 450, height: 320 }, // Wide
-    ];
-    return sizes[Math.floor(Math.random() * sizes.length)];
-  };
-
-  // Handle cursor hover in gallery
-  const handleGalleryHover = (e: React.MouseEvent<HTMLDivElement>) => {
-    if (isMobile) return;
-
-    const rect = e.currentTarget.getBoundingClientRect();
-    const x = e.clientX - rect.left;
-    const y = e.clientY - rect.top;
-
-    // Throttle image creation (every 400ms for smoother experience)
-    const now = Date.now();
-    const lastImage = revealedImages[revealedImages.length - 1];
-    if (lastImage && now - lastImage.timestamp < 400) return;
-
-    const randomImage = galleryImages[Math.floor(Math.random() * galleryImages.length)];
-    const size = getRandomSize();
-
-    setRevealedImages((prev) => [
-      ...prev,
-      {
-        id: imageCounter,
-        x,
-        y,
-        image: randomImage,
-        size,
-        timestamp: now
-      }
-    ]);
-    setImageCounter((prev) => prev + 1);
-  };
 
   // Calculate background color transition (white to beige)
   const getBackgroundColor = () => {
@@ -407,7 +320,7 @@ export default function CafePage() {
                   variant="outline"
                   className="border-2 border-white/40 hover:bg-white/10 text-white backdrop-blur-sm px-10 py-6 text-base rounded-full transition-all duration-300"
                 >
-                  Subscribe to Ritual
+                  Subscribe to Meal Subscription
                 </Button>
               </Link>
               <a
@@ -664,7 +577,7 @@ export default function CafePage() {
                       <span className="italic text-charcoal/60">The</span> Daily Ritual
                     </h3>
                     <p className="font-body text-lg text-charcoal/80 leading-relaxed mb-6">
-                      Struggling to eat clean? Guarantee yourself one chef-prepared, plant-based meal 
+                      Struggling to eat clean? Guarantee yourself chef-prepared, plant-based meals
                       every day with our Studio Meal Subscription. Make wellness effortless.
                     </p>
                     
@@ -704,134 +617,39 @@ export default function CafePage() {
         </div>
       </section>
 
-      {/* ===== KINETIC NOURISH GALLERY ===== */}
-      <section 
-        className="relative w-full min-h-[80vh] bg-white overflow-hidden"
-        onMouseMove={handleGalleryHover}
-        style={{ cursor: 'none' }}
-      >
-        {/* Custom Cursor Trail for Desktop */}
-        {!isMobile && (
-          <div
-            className="pointer-events-none fixed z-30 transition-all duration-100 ease-out"
-            style={{
-              left: `${cursorPosition.x}px`,
-              top: `${cursorPosition.y}px`,
-              transform: 'translate(-50%, -50%)'
-            }}
-          >
-            <div className="w-8 h-8 rounded-full border-2 border-sage/40 bg-sage/10 backdrop-blur-sm animate-pulse" />
-          </div>
-        )}
-
-        {/* Blurred Background Images (Desktop Only) */}
-        {!isMobile && (
-          <div className="absolute inset-0 grid grid-cols-6 gap-3 p-6 opacity-50">
-            {galleryImages.map((image, index) => (
-              <div
-                key={`blur-${index}`}
-                className="relative aspect-square rounded-lg overflow-hidden transition-transform duration-700 hover:scale-110"
-              >
-                <Image
-                  src={image}
-                  alt=""
-                  fill
-                  sizes="16vw"
-                  className="object-cover blur-sm"
-                  quality={70}
-                />
-              </div>
-            ))}
-          </div>
-        )}
-
-        {/* Watermark Text */}
-        <div className="absolute inset-0 flex items-center justify-center pointer-events-none z-10">
-          <h2 className="font-display text-8xl md:text-9xl text-charcoal select-none tracking-wider italic opacity-80">
+      {/* ===== NOURISH GALLERY — horizontal marquee on all viewports (same as mobile) ===== */}
+      <section className="relative w-full min-h-[50vh] md:min-h-[60vh] bg-white overflow-hidden">
+        {/* Watermark — behind scrolling strip */}
+        <div className="absolute inset-0 flex items-center justify-center pointer-events-none z-[1]">
+          <h2 className="font-display text-7xl sm:text-8xl md:text-9xl text-charcoal select-none tracking-wider italic opacity-[0.12] md:opacity-80">
             GATHER
           </h2>
         </div>
 
-        {/* Desktop: Cursor-Triggered Image Reveals */}
-        {!isMobile && revealedImages.map((item) => {
-          const age = Date.now() - item.timestamp;
-          const isFadingOut = age > 2000;
-          const isNew = age < 100;
-
-          // Calculate smooth animation values
-          const scale = isFadingOut ? 0.85 : (isNew ? 0.8 : 1);
-          const opacity = isFadingOut ? 0 : (isNew ? 0 : 1);
-          const translateY = isFadingOut ? 30 : (isNew ? -20 : 0);
-          const rotate = isFadingOut ? 8 : (isNew ? -5 : 0);
-
-          return (
-            <div
-              key={item.id}
-              className="absolute pointer-events-none z-20"
-              style={{
-                left: `${item.x}px`,
-                top: `${item.y}px`,
-                width: `${item.size.width}px`,
-                height: `${item.size.height}px`,
-                transform: `translate(-50%, -50%) scale(${scale}) translateY(${translateY}px) rotate(${rotate}deg)`,
-                opacity: opacity,
-                transition: isNew
-                  ? 'all 0.6s cubic-bezier(0.34, 1.56, 0.64, 1)' // Spring ease-in (bounce)
-                  : isFadingOut
-                  ? 'all 1.2s cubic-bezier(0.16, 1, 0.3, 1)' // Smooth ease-out
-                  : 'all 0.8s cubic-bezier(0.16, 1, 0.3, 1)' // Natural ease
-              }}
-            >
-              <div className="relative w-full h-full rounded-xl overflow-hidden shadow-2xl">
+        <div className="relative z-10 py-16 md:py-24 overflow-x-auto overflow-y-hidden scrollbar-hide">
+          <div className="flex gap-6 md:gap-8 px-6 md:px-10 w-max max-w-none animate-scroll-smooth">
+            {[...galleryImages, ...galleryImages].map((image, index) => (
+              <div
+                key={`${image}-${index}`}
+                className="relative flex-shrink-0 w-[260px] h-[320px] sm:w-[280px] sm:h-[350px] md:w-[300px] md:h-[380px] rounded-2xl md:rounded-3xl overflow-hidden shadow-2xl transition-transform duration-500 hover:scale-[1.02] hover:shadow-sage/25"
+                style={{
+                  animation: `float-gentle ${3 + (index % 3)}s ease-in-out infinite`,
+                  animationDelay: `${index * 0.15}s`,
+                }}
+              >
                 <Image
-                  src={item.image}
-                  alt="Nourishment"
+                  src={image}
+                  alt={`Nourishment ${index + 1}`}
                   fill
-                  sizes="400px"
-                  className="object-cover"
-                  quality={90}
-                />
-                {/* Subtle Hover Glow Effect */}
-                <div 
-                  className="absolute inset-0 opacity-0 hover:opacity-20 transition-opacity duration-300"
-                  style={{
-                    background: 'radial-gradient(circle at center, rgba(143, 151, 121, 0.4), transparent 70%)'
-                  }}
+                  sizes="(max-width: 768px) 280px, 300px"
+                  className="object-cover transition-transform duration-700"
+                  quality={85}
                 />
               </div>
-            </div>
-          );
-        })}
-
-        {/* Mobile/Tablet: Horizontal Scrolling Row */}
-        {isMobile && (
-          <div className="relative z-10 py-24 overflow-x-auto overflow-y-hidden scrollbar-hide">
-            <div className="flex gap-6 px-6 animate-scroll-smooth">
-              {/* Duplicate images for seamless infinite scroll */}
-              {[...galleryImages, ...galleryImages].map((image, index) => (
-                <div
-                  key={`${image}-${index}`}
-                  className="relative flex-shrink-0 w-[280px] h-[350px] rounded-xl overflow-hidden shadow-2xl transform transition-all duration-500 hover:scale-105 hover:shadow-sage/30"
-                  style={{
-                    animation: `float-gentle ${3 + (index % 3)}s ease-in-out infinite`,
-                    animationDelay: `${index * 0.2}s`
-                  }}
-                >
-                  <Image
-                    src={image}
-                    alt={`Nourishment ${index + 1}`}
-                    fill
-                    sizes="280px"
-                    className="object-cover transition-transform duration-700"
-                    quality={85}
-                  />
-                </div>
-              ))}
-            </div>
+            ))}
           </div>
-        )}
+        </div>
 
-        {/* Smooth Animations */}
         <style jsx>{`
           @keyframes scroll-smooth {
             0% {
@@ -852,7 +670,7 @@ export default function CafePage() {
           }
 
           .animate-scroll-smooth {
-            animation: scroll-smooth 25s linear infinite;
+            animation: scroll-smooth 55s linear infinite;
           }
 
           .animate-scroll-smooth:hover,
@@ -860,19 +678,13 @@ export default function CafePage() {
             animation-play-state: paused;
           }
 
-          /* Hide scrollbar but keep functionality */
           .scrollbar-hide::-webkit-scrollbar {
             display: none;
           }
-          
+
           .scrollbar-hide {
             -ms-overflow-style: none;
             scrollbar-width: none;
-          }
-
-          /* Custom cursor area */
-          section[style*="cursor: none"] * {
-            cursor: none !important;
           }
         `}</style>
       </section>

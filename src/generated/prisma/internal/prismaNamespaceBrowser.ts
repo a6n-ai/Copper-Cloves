@@ -52,6 +52,8 @@ export const AnyNull = runtime.AnyNull
 
 export const ModelName = {
   Profile: 'Profile',
+  Coupon: 'Coupon',
+  CouponRedemption: 'CouponRedemption',
   RetailProduct: 'RetailProduct',
   RetailOrder: 'RetailOrder',
   Instructor: 'Instructor',
@@ -64,6 +66,7 @@ export const ModelName = {
   CafeItem: 'CafeItem',
   CafeOrder: 'CafeOrder',
   MealSubscription: 'MealSubscription',
+  MealSubscriptionInquiry: 'MealSubscriptionInquiry',
   UserStats: 'UserStats',
   UserStreak: 'UserStreak',
   UserBadge: 'UserBadge',
@@ -108,6 +111,38 @@ export const ProfileScalarFieldEnum = {
 export type ProfileScalarFieldEnum = (typeof ProfileScalarFieldEnum)[keyof typeof ProfileScalarFieldEnum]
 
 
+export const CouponScalarFieldEnum = {
+  id: 'id',
+  code: 'code',
+  applies_to: 'applies_to',
+  discount_type: 'discount_type',
+  discount_value: 'discount_value',
+  is_active: 'is_active',
+  max_redemptions: 'max_redemptions',
+  redemption_count: 'redemption_count',
+  max_uses_per_user: 'max_uses_per_user',
+  starts_at: 'starts_at',
+  ends_at: 'ends_at',
+  created_at: 'created_at',
+  updated_at: 'updated_at'
+} as const
+
+export type CouponScalarFieldEnum = (typeof CouponScalarFieldEnum)[keyof typeof CouponScalarFieldEnum]
+
+
+export const CouponRedemptionScalarFieldEnum = {
+  id: 'id',
+  coupon_id: 'coupon_id',
+  user_id: 'user_id',
+  guest_email: 'guest_email',
+  context: 'context',
+  discount_amount: 'discount_amount',
+  created_at: 'created_at'
+} as const
+
+export type CouponRedemptionScalarFieldEnum = (typeof CouponRedemptionScalarFieldEnum)[keyof typeof CouponRedemptionScalarFieldEnum]
+
+
 export const RetailProductScalarFieldEnum = {
   id: 'id',
   name: 'name',
@@ -138,7 +173,9 @@ export const RetailOrderScalarFieldEnum = {
   shipping_address: 'shipping_address',
   order_date: 'order_date',
   created_at: 'created_at',
-  updated_at: 'updated_at'
+  updated_at: 'updated_at',
+  coupon_id: 'coupon_id',
+  discount_inr: 'discount_inr'
 } as const
 
 export type RetailOrderScalarFieldEnum = (typeof RetailOrderScalarFieldEnum)[keyof typeof RetailOrderScalarFieldEnum]
@@ -250,6 +287,8 @@ export const UserPackageScalarFieldEnum = {
   pause_start_date: 'pause_start_date',
   pause_end_date: 'pause_end_date',
   pass_type: 'pass_type',
+  coupon_id: 'coupon_id',
+  purchase_discount_inr: 'purchase_discount_inr',
   created_at: 'created_at'
 } as const
 
@@ -297,7 +336,10 @@ export const CafeOrderScalarFieldEnum = {
   payment_method: 'payment_method',
   status: 'status',
   order_date: 'order_date',
-  created_at: 'created_at'
+  created_at: 'created_at',
+  coupon_id: 'coupon_id',
+  discount_inr: 'discount_inr',
+  batch_id: 'batch_id'
 } as const
 
 export type CafeOrderScalarFieldEnum = (typeof CafeOrderScalarFieldEnum)[keyof typeof CafeOrderScalarFieldEnum]
@@ -316,6 +358,21 @@ export const MealSubscriptionScalarFieldEnum = {
 } as const
 
 export type MealSubscriptionScalarFieldEnum = (typeof MealSubscriptionScalarFieldEnum)[keyof typeof MealSubscriptionScalarFieldEnum]
+
+
+export const MealSubscriptionInquiryScalarFieldEnum = {
+  id: 'id',
+  full_name: 'full_name',
+  email: 'email',
+  phone: 'phone',
+  message: 'message',
+  status: 'status',
+  source: 'source',
+  created_at: 'created_at',
+  updated_at: 'updated_at'
+} as const
+
+export type MealSubscriptionInquiryScalarFieldEnum = (typeof MealSubscriptionInquiryScalarFieldEnum)[keyof typeof MealSubscriptionInquiryScalarFieldEnum]
 
 
 export const UserStatsScalarFieldEnum = {

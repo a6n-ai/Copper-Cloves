@@ -20,7 +20,7 @@ interface Package {
 const premiumPackages: Package[] = [
   {
     name: "1 Day Class Pass",
-    price: "₹950",
+    price: "₹945",
     classes: 1,
     validity: "1 day",
     benefits: [
@@ -188,7 +188,7 @@ export function Pricing() {
     : studioPassPackages;
 
   return (
-    <section id="pricing" className="py-24 bg-cream relative overflow-hidden">
+    <section id="pricing" className="py-16 md:py-20 bg-cream relative overflow-hidden">
       <div className="absolute inset-0 opacity-30">
         <div className="absolute top-20 left-10 w-72 h-72 bg-sage/20 rounded-full blur-3xl" />
         <div className="absolute bottom-20 right-10 w-96 h-96 bg-terracotta/20 rounded-full blur-3xl" />

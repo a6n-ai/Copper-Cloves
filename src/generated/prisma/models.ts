@@ -9,6 +9,8 @@
  * 🟢 You can import this file directly.
  */
 export type * from './models/Profile'
+export type * from './models/Coupon'
+export type * from './models/CouponRedemption'
 export type * from './models/RetailProduct'
 export type * from './models/RetailOrder'
 export type * from './models/Instructor'
@@ -21,6 +23,7 @@ export type * from './models/Booking'
 export type * from './models/CafeItem'
 export type * from './models/CafeOrder'
 export type * from './models/MealSubscription'
+export type * from './models/MealSubscriptionInquiry'
 export type * from './models/UserStats'
 export type * from './models/UserStreak'
 export type * from './models/UserBadge'

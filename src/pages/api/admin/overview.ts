@@ -35,7 +35,6 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     usersWithoutWaiver,
     schedulesToday,
     upcomingSchedules,
-    recentEvents,
   ] = await Promise.all([
     prisma.profile.count({ where: { role: "user" } }),
     prisma.profile.count({ where: { role: "user", created_at: { gte: monthStart } } }),
@@ -70,11 +69,6 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       orderBy: { start_time: "asc" },
       take: 8,
     }),
-    prisma.userActivityEvent.findMany({
-      orderBy: { created_at: "desc" },
-      take: 10,
-      include: { profile: { select: { full_name: true, email: true } } },
-    }),
   ]);
 
   let monthRevenue = 0;
@@ -101,24 +95,6 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     };
   });
 
-  function relTime(d: Date) {
-    const diff = Date.now() - d.getTime();
-    const m = Math.floor(diff / 60000);
-    if (m < 1) return "just now";
-    if (m < 60) return `${m} min ago`;
-    const h = Math.floor(m / 60);
-    if (h < 24) return `${h} hr ago`;
-    return `${Math.floor(h / 24)} days ago`;
-  }
-
-  const recentActivity = recentEvents.map((e, i) => ({
-    id: i + 1,
-    type: e.event_category || "general",
-    user: e.profile?.full_name || e.profile?.email || "Visitor",
-    action: `${e.event_name}${e.path ? ` — ${e.path}` : ""}`,
-    time: relTime(e.created_at),
-  }));
-
   return res.json({
     overviewStats: {
       totalMembers,
@@ -133,6 +109,5 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       newMembersThisMonth,
     },
     upcomingClasses,
-    recentActivity,
   });
 }

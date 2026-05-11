@@ -45,7 +45,9 @@ import {
   Upload,
   Save,
   Ban,
-  Eye
+  Eye,
+  Tag,
+  ChefHat,
 } from "lucide-react";
 import { SEO } from "@/components/SEO";
 import { Input } from "@/components/ui/input";
@@ -60,7 +62,9 @@ import {
   DialogTrigger 
 } from "@/components/ui/dialog";
 import { Label } from "@/components/ui/label";
+import { Switch } from "@/components/ui/switch";
 import { useSession } from "next-auth/react";
+import { COUPON_CONTEXTS } from "@/lib/couponHelpers";
 
 export default function AdminDashboard() {
   const router = useRouter();
@@ -90,6 +94,50 @@ export default function AdminDashboard() {
   const [transactionType, setTransactionType] = useState("all"); // all, revenue, expense
   const [transactionSearch, setTransactionSearch] = useState("");
 
+  const [coupons, setCoupons] = useState<
+    {
+      id: string;
+      code: string;
+      applies_to: string;
+      discount_type: string;
+      discount_value: unknown;
+      is_active: boolean;
+      max_redemptions: number | null;
+      redemption_count: number;
+      max_uses_per_user: number | null;
+      starts_at: Date | string | null;
+      ends_at: Date | string | null;
+    }[]
+  >([]);
+  const [couponsLoading, setCouponsLoading] = useState(false);
+  const [couponSaving, setCouponSaving] = useState(false);
+  const [editingCouponId, setEditingCouponId] = useState<string | null>(null);
+  const [couponDraft, setCouponDraft] = useState({
+    code: "",
+    applies_to: "food",
+    discount_type: "percent",
+    discount_value: "10",
+    is_active: true,
+    max_redemptions: "",
+    max_uses_per_user: "1",
+    starts_at: "",
+    ends_at: "",
+  });
+
+  const [mealInquiries, setMealInquiries] = useState<
+    {
+      id: string;
+      full_name: string;
+      email: string;
+      phone: string;
+      message: string | null;
+      status: string;
+      source: string;
+      created_at: string;
+    }[]
+  >([]);
+  const [mealInquiriesLoading, setMealInquiriesLoading] = useState(false);
+
   const [overviewStats, setOverviewStats] = useState({
     totalMembers: 0,
     activeToday: 0,
@@ -104,9 +152,6 @@ export default function AdminDashboard() {
   });
   const [upcomingClasses, setUpcomingClasses] = useState<
     { id: number; scheduleId?: string; name: string; time: string; instructor: string; spots: string; status: string }[]
-  >([]);
-  const [recentActivity, setRecentActivity] = useState<
-    { id: number; type: string; user: string; action: string; time: string }[]
   >([]);
   const [financeStats, setFinanceStats] = useState({
     totalRevenue: 0,
@@ -197,7 +242,6 @@ export default function AdminDashboard() {
       setOverviewStats(d.overviewStats);
       setOverviewMeta(d.meta ?? { classesTodayCount: 0, newMembersThisMonth: 0 });
       setUpcomingClasses(Array.isArray(d.upcomingClasses) ? d.upcomingClasses : []);
-      setRecentActivity(Array.isArray(d.recentActivity) ? d.recentActivity : []);
       const mr = Number(d.overviewStats?.monthRevenue ?? 0);
       setFinanceStats((prev) => ({
         ...prev,
@@ -254,6 +298,56 @@ export default function AdminDashboard() {
     };
   }, [status, session]);
 
+  useEffect(() => {
+    if (status !== "authenticated") return;
+    const role = (session?.user as { role?: string })?.role;
+    if (role !== "admin" || activeTab !== "pricing") return;
+    let cancelled = false;
+    setCouponsLoading(true);
+    void (async () => {
+      try {
+        const r = await fetch("/api/admin/coupons");
+        if (cancelled) return;
+        if (!r.ok) {
+          setCoupons([]);
+          return;
+        }
+        const d = await r.json();
+        if (!cancelled) setCoupons(Array.isArray(d) ? d : []);
+      } finally {
+        if (!cancelled) setCouponsLoading(false);
+      }
+    })();
+    return () => {
+      cancelled = true;
+    };
+  }, [status, session, activeTab]);
+
+  useEffect(() => {
+    if (status !== "authenticated") return;
+    const role = (session?.user as { role?: string })?.role;
+    if (role !== "admin" || activeTab !== "meal-waitlist") return;
+    let cancelled = false;
+    setMealInquiriesLoading(true);
+    void (async () => {
+      try {
+        const r = await fetch("/api/admin/meal-subscription-inquiries");
+        if (cancelled) return;
+        if (!r.ok) {
+          setMealInquiries([]);
+          return;
+        }
+        const d = await r.json();
+        if (!cancelled) setMealInquiries(Array.isArray(d) ? d : []);
+      } finally {
+        if (!cancelled) setMealInquiriesLoading(false);
+      }
+    })();
+    return () => {
+      cancelled = true;
+    };
+  }, [status, session, activeTab]);
+
   if (loading) {
     return (
       <div className="min-h-screen bg-gradient-to-br from-cream via-cream to-sage/10 flex items-center justify-center">
@@ -285,6 +379,110 @@ export default function AdminDashboard() {
     alert(`"The Ritual Renewal" template queued for ${count} members via WhatsApp/Email!`);
     setSelectedMembers(new Set());
   };
+
+  async function saveCouponFromDraft() {
+    setCouponSaving(true);
+    try {
+      const body = {
+        code: couponDraft.code,
+        applies_to: couponDraft.applies_to,
+        discount_type: couponDraft.discount_type,
+        discount_value: Number(couponDraft.discount_value),
+        is_active: couponDraft.is_active,
+        max_redemptions: couponDraft.max_redemptions.trim() === "" ? null : couponDraft.max_redemptions,
+        max_uses_per_user: couponDraft.max_uses_per_user.trim() === "" ? null : couponDraft.max_uses_per_user,
+        starts_at: couponDraft.starts_at.trim() === "" ? null : couponDraft.starts_at,
+        ends_at: couponDraft.ends_at.trim() === "" ? null : couponDraft.ends_at,
+      };
+      const res = editingCouponId
+        ? await fetch("/api/admin/coupons", {
+            method: "PATCH",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ id: editingCouponId, ...body }),
+          })
+        : await fetch("/api/admin/coupons", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify(body),
+          });
+      if (!res.ok) {
+        const err = await res.json().catch(() => ({}));
+        alert(typeof err?.error === "string" ? err.error : "Could not save coupon");
+        return;
+      }
+      setEditingCouponId(null);
+      setCouponDraft({
+        code: "",
+        applies_to: "food",
+        discount_type: "percent",
+        discount_value: "10",
+        is_active: true,
+        max_redemptions: "",
+        max_uses_per_user: "1",
+        starts_at: "",
+        ends_at: "",
+      });
+      const listRes = await fetch("/api/admin/coupons");
+      if (listRes.ok) {
+        const d = await listRes.json();
+        setCoupons(Array.isArray(d) ? d : []);
+      }
+    } finally {
+      setCouponSaving(false);
+    }
+  }
+
+  async function deleteCouponById(id: string) {
+    if (!confirm("Delete this coupon?")) return;
+    const res = await fetch(`/api/admin/coupons?id=${encodeURIComponent(id)}`, { method: "DELETE" });
+    if (!res.ok) {
+      alert("Could not delete coupon");
+      return;
+    }
+    setCoupons((prev) => prev.filter((c) => c.id !== id));
+    if (editingCouponId === id) {
+      setEditingCouponId(null);
+      setCouponDraft({
+        code: "",
+        applies_to: "food",
+        discount_type: "percent",
+        discount_value: "10",
+        is_active: true,
+        max_redemptions: "",
+        max_uses_per_user: "1",
+        starts_at: "",
+        ends_at: "",
+      });
+    }
+  }
+
+  function startEditCoupon(c: (typeof coupons)[0]) {
+    setEditingCouponId(c.id);
+    setCouponDraft({
+      code: c.code,
+      applies_to: c.applies_to,
+      discount_type: c.discount_type,
+      discount_value: String(c.discount_value),
+      is_active: c.is_active,
+      max_redemptions: c.max_redemptions == null ? "" : String(c.max_redemptions),
+      max_uses_per_user: c.max_uses_per_user == null ? "" : String(c.max_uses_per_user),
+      starts_at: c.starts_at ? new Date(c.starts_at).toISOString().slice(0, 16) : "",
+      ends_at: c.ends_at ? new Date(c.ends_at).toISOString().slice(0, 16) : "",
+    });
+  }
+
+  async function updateMealInquiryStatus(id: string, status: string) {
+    const res = await fetch("/api/admin/meal-subscription-inquiries", {
+      method: "PATCH",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ id, status }),
+    });
+    if (!res.ok) return;
+    const updated = await res.json();
+    setMealInquiries((prev) =>
+      prev.map((r) => (r.id === id ? { ...r, status: String(updated.status ?? status) } : r))
+    );
+  }
 
   const handleViewProfile = (member: Record<string, unknown>) => {
     const uid = String(member.profileId ?? member.id ?? "");
@@ -483,6 +681,14 @@ export default function AdminDashboard() {
                   <DollarSign className="h-4 w-4 mr-2" />
                   Finance
                 </TabsTrigger>
+                <TabsTrigger value="pricing" className="data-[state=active]:bg-sage data-[state=active]:text-white font-body">
+                  <Tag className="h-4 w-4 mr-2" />
+                  Pricing
+                </TabsTrigger>
+                <TabsTrigger value="meal-waitlist" className="data-[state=active]:bg-sage data-[state=active]:text-white font-body">
+                  <ChefHat className="h-4 w-4 mr-2" />
+                  Meal waitlist
+                </TabsTrigger>
                 <TabsTrigger value="members" className="data-[state=active]:bg-sage data-[state=active]:text-white font-body">
                   <Users className="h-4 w-4 mr-2" />
                   Members
@@ -644,9 +850,8 @@ export default function AdminDashboard() {
                   </Card>
                 </div>
 
-                <div className="grid lg:grid-cols-2 gap-6">
-                  {/* Upcoming Classes */}
-                  <Card className="border-sage/20 bg-white/95 backdrop-blur-xl">
+                {/* Upcoming Classes */}
+                <Card className="border-sage/20 bg-white/95 backdrop-blur-xl">
                     <CardHeader>
                       <CardTitle className="font-display text-2xl text-charcoal">
                         Today's Schedule
@@ -688,49 +893,6 @@ export default function AdminDashboard() {
                       </div>
                     </CardContent>
                   </Card>
-
-                  {/* Recent Activity */}
-                  <Card className="border-sage/20 bg-white/95 backdrop-blur-xl">
-                    <CardHeader>
-                      <CardTitle className="font-display text-2xl text-charcoal">
-                        Recent Activity
-                      </CardTitle>
-                      <CardDescription className="font-body text-charcoal/60">
-                        Latest actions across the platform
-                      </CardDescription>
-                    </CardHeader>
-                    <CardContent>
-                      <div className="space-y-3">
-                        {recentActivity.map((activity) => (
-                          <div 
-                            key={activity.id}
-                            className="flex items-start gap-3 p-4 rounded-xl border border-charcoal/10 hover:bg-cream/30 transition-all duration-600"
-                          >
-                            <div className={`p-2 rounded-lg ${
-                              activity.type === "booking" ? "bg-sage/10" :
-                              activity.type === "credit" ? "bg-terracotta/10" :
-                              activity.type === "cafe" ? "bg-amber-500/10" :
-                              "bg-charcoal/10"
-                            }`}>
-                              {activity.type === "booking" && <Calendar className="h-4 w-4 text-sage" />}
-                              {activity.type === "credit" && <CreditCard className="h-4 w-4 text-terracotta" />}
-                              {activity.type === "cafe" && <Coffee className="h-4 w-4 text-amber-600" />}
-                              {activity.type === "waiver" && <CheckCircle2 className="h-4 w-4 text-charcoal" />}
-                            </div>
-                            <div className="flex-1 min-w-0">
-                              <div className="font-body text-sm text-charcoal mb-0.5">
-                                <span className="font-medium">{activity.user}</span> {activity.action}
-                              </div>
-                              <div className="font-body text-xs text-charcoal/50">
-                                {activity.time}
-                              </div>
-                            </div>
-                          </div>
-                        ))}
-                      </div>
-                    </CardContent>
-                  </Card>
-                </div>
 
                 {/* Expiring Members Alert */}
                 <Card className="border-amber-500/20 bg-gradient-to-br from-amber-50 to-white backdrop-blur-xl">
@@ -1295,6 +1457,332 @@ export default function AdminDashboard() {
                     </CardContent>
                   </Card>
                 </div>
+              </TabsContent>
+
+              {/* PRICING & COUPONS */}
+              <TabsContent value="pricing" className="space-y-6">
+                <Card className="border-sage/20 bg-white/95 backdrop-blur-xl">
+                  <CardHeader>
+                    <CardTitle className="font-display text-2xl text-charcoal">Coupons & discounts</CardTitle>
+                    <CardDescription className="font-body text-charcoal/60">
+                      Create codes for Food (café), Ecommerce (boutique), Class pass, or Studio pass. Members enter a code at checkout.
+                    </CardDescription>
+                  </CardHeader>
+                  <CardContent className="space-y-6">
+                    <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 p-4 rounded-xl border border-sage/15 bg-cream/20">
+                      <div className="space-y-3">
+                        <div>
+                          <Label className="font-body text-charcoal">Coupon code</Label>
+                          <Input
+                            value={couponDraft.code}
+                            onChange={(e) => setCouponDraft({ ...couponDraft, code: e.target.value })}
+                            placeholder="E.g. SUMMER20"
+                            className="border-sage/20 mt-1 font-mono uppercase"
+                          />
+                        </div>
+                        <div>
+                          <Label className="font-body text-charcoal">Applies to</Label>
+                          <Select
+                            value={couponDraft.applies_to}
+                            onValueChange={(v) => setCouponDraft({ ...couponDraft, applies_to: v })}
+                          >
+                            <SelectTrigger className="border-sage/20 mt-1">
+                              <SelectValue />
+                            </SelectTrigger>
+                            <SelectContent>
+                              {COUPON_CONTEXTS.map((c) => (
+                                <SelectItem key={c.value} value={c.value}>
+                                  {c.label}
+                                </SelectItem>
+                              ))}
+                            </SelectContent>
+                          </Select>
+                        </div>
+                        <div className="grid grid-cols-2 gap-3">
+                          <div>
+                            <Label className="font-body text-charcoal">Discount type</Label>
+                            <Select
+                              value={couponDraft.discount_type}
+                              onValueChange={(v) =>
+                                setCouponDraft({ ...couponDraft, discount_type: v })
+                              }
+                            >
+                              <SelectTrigger className="border-sage/20 mt-1">
+                                <SelectValue />
+                              </SelectTrigger>
+                              <SelectContent>
+                                <SelectItem value="percent">Percent %</SelectItem>
+                                <SelectItem value="fixed">Fixed ₹</SelectItem>
+                              </SelectContent>
+                            </Select>
+                          </div>
+                          <div>
+                            <Label className="font-body text-charcoal">
+                              {couponDraft.discount_type === "percent" ? "Percent off" : "Amount (₹)"}
+                            </Label>
+                            <Input
+                              type="number"
+                              min={0}
+                              step={couponDraft.discount_type === "percent" ? 1 : 1}
+                              value={couponDraft.discount_value}
+                              onChange={(e) =>
+                                setCouponDraft({ ...couponDraft, discount_value: e.target.value })
+                              }
+                              className="border-sage/20 mt-1"
+                            />
+                          </div>
+                        </div>
+                        <div className="grid grid-cols-2 gap-3">
+                          <div>
+                            <Label className="font-body text-charcoal">Max uses (total)</Label>
+                            <Input
+                              placeholder="Unlimited"
+                              value={couponDraft.max_redemptions}
+                              onChange={(e) =>
+                                setCouponDraft({ ...couponDraft, max_redemptions: e.target.value })
+                              }
+                              className="border-sage/20 mt-1"
+                            />
+                          </div>
+                          <div>
+                            <Label className="font-body text-charcoal">Max / user</Label>
+                            <Input
+                              placeholder="Unlimited"
+                              value={couponDraft.max_uses_per_user}
+                              onChange={(e) =>
+                                setCouponDraft({ ...couponDraft, max_uses_per_user: e.target.value })
+                              }
+                              className="border-sage/20 mt-1"
+                            />
+                          </div>
+                        </div>
+                        <div className="grid grid-cols-2 gap-3">
+                          <div>
+                            <Label className="font-body text-charcoal">Starts (optional)</Label>
+                            <Input
+                              type="datetime-local"
+                              value={couponDraft.starts_at}
+                              onChange={(e) =>
+                                setCouponDraft({ ...couponDraft, starts_at: e.target.value })
+                              }
+                              className="border-sage/20 mt-1"
+                            />
+                          </div>
+                          <div>
+                            <Label className="font-body text-charcoal">Ends (optional)</Label>
+                            <Input
+                              type="datetime-local"
+                              value={couponDraft.ends_at}
+                              onChange={(e) =>
+                                setCouponDraft({ ...couponDraft, ends_at: e.target.value })
+                              }
+                              className="border-sage/20 mt-1"
+                            />
+                          </div>
+                        </div>
+                        <div className="flex items-center gap-3 pt-2">
+                          <Switch
+                            id="coupon-active"
+                            checked={couponDraft.is_active}
+                            onCheckedChange={(v) => setCouponDraft({ ...couponDraft, is_active: v })}
+                          />
+                          <Label htmlFor="coupon-active" className="font-body text-charcoal cursor-pointer">
+                            Active
+                          </Label>
+                        </div>
+                        <div className="flex flex-wrap gap-2 pt-2">
+                          <Button
+                            type="button"
+                            onClick={() => void saveCouponFromDraft()}
+                            disabled={couponSaving}
+                            className="bg-sage hover:bg-sage/90 text-white font-body"
+                          >
+                            {couponSaving ? "Saving..." : editingCouponId ? "Update coupon" : "Create coupon"}
+                          </Button>
+                          {editingCouponId && (
+                            <Button
+                              type="button"
+                              variant="outline"
+                              className="border-sage/30 font-body"
+                              onClick={() => {
+                                setEditingCouponId(null);
+                                setCouponDraft({
+                                  code: "",
+                                  applies_to: "food",
+                                  discount_type: "percent",
+                                  discount_value: "10",
+                                  is_active: true,
+                                  max_redemptions: "",
+                                  max_uses_per_user: "1",
+                                  starts_at: "",
+                                  ends_at: "",
+                                });
+                              }}
+                            >
+                              Cancel edit
+                            </Button>
+                          )}
+                        </div>
+                      </div>
+                      <div className="rounded-xl bg-white/80 border border-sage/10 p-4">
+                        <p className="font-body text-sm text-charcoal/70 leading-relaxed">
+                          Fixed amount never exceeds cart or package subtotal. Percent is capped at 100%.
+                          Café and boutique prices are taken from the database at checkout so codes cannot be abused with
+                          fake totals. Package coupons match studio vs class pass automatically.
+                        </p>
+                      </div>
+                    </div>
+
+                    <div className="border border-sage/15 rounded-xl overflow-hidden">
+                      {couponsLoading ? (
+                        <p className="p-6 font-body text-charcoal/60">Loading coupons…</p>
+                      ) : coupons.length === 0 ? (
+                        <p className="p-6 font-body text-charcoal/60">No coupons yet. Create one on the left.</p>
+                      ) : (
+                        <div className="overflow-x-auto">
+                          <table className="w-full text-sm font-body">
+                            <thead className="bg-cream/50 border-b border-sage/15">
+                              <tr>
+                                <th className="text-left p-3 font-medium text-charcoal/70">Code</th>
+                                <th className="text-left p-3 font-medium text-charcoal/70">Scope</th>
+                                <th className="text-left p-3 font-medium text-charcoal/70">Discount</th>
+                                <th className="text-left p-3 font-medium text-charcoal/70">Uses</th>
+                                <th className="text-left p-3 font-medium text-charcoal/70">Status</th>
+                                <th className="text-right p-3 font-medium text-charcoal/70">Actions</th>
+                              </tr>
+                            </thead>
+                            <tbody>
+                              {coupons.map((c) => (
+                                <tr key={c.id} className="border-b border-sage/10 last:border-0">
+                                  <td className="p-3 font-mono font-semibold text-charcoal">{c.code}</td>
+                                  <td className="p-3 text-charcoal/80">
+                                    {COUPON_CONTEXTS.find((x) => x.value === c.applies_to)?.label ?? c.applies_to}
+                                  </td>
+                                  <td className="p-3 text-charcoal">
+                                    {c.discount_type === "percent"
+                                      ? `${c.discount_value}%`
+                                      : `₹${c.discount_value}`}
+                                  </td>
+                                  <td className="p-3 text-charcoal/80">
+                                    {c.redemption_count}
+                                    {c.max_redemptions != null ? ` / ${c.max_redemptions}` : ""}
+                                  </td>
+                                  <td className="p-3">
+                                    <Badge
+                                      className={
+                                        c.is_active ? "bg-sage text-white" : "bg-charcoal/20 text-charcoal"
+                                      }
+                                    >
+                                      {c.is_active ? "Active" : "Off"}
+                                    </Badge>
+                                  </td>
+                                  <td className="p-3 text-right space-x-2">
+                                    <Button
+                                      type="button"
+                                      size="sm"
+                                      variant="outline"
+                                      className="border-sage/30"
+                                      onClick={() => startEditCoupon(c)}
+                                    >
+                                      Edit
+                                    </Button>
+                                    <Button
+                                      type="button"
+                                      size="sm"
+                                      variant="outline"
+                                      className="border-red-200 text-red-700 hover:bg-red-50"
+                                      onClick={() => void deleteCouponById(c.id)}
+                                    >
+                                      Delete
+                                    </Button>
+                                  </td>
+                                </tr>
+                              ))}
+                            </tbody>
+                          </table>
+                        </div>
+                      )}
+                    </div>
+                  </CardContent>
+                </Card>
+              </TabsContent>
+
+              {/* MEAL SUBSCRIPTION WAITLIST */}
+              <TabsContent value="meal-waitlist" className="space-y-6">
+                <Card className="border-sage/20 bg-white/95 backdrop-blur-xl">
+                  <CardHeader>
+                    <CardTitle className="font-display text-2xl text-charcoal">Meal subscription waitlist</CardTitle>
+                    <CardDescription className="font-body text-charcoal/60">
+                      Submissions from the “Join the Waitlist” form on the meal subscription page. Newest first.
+                    </CardDescription>
+                  </CardHeader>
+                  <CardContent>
+                    {mealInquiriesLoading ? (
+                      <p className="font-body text-charcoal/60 py-8">Loading…</p>
+                    ) : mealInquiries.length === 0 ? (
+                      <p className="font-body text-charcoal/60 py-8">No enquiries yet.</p>
+                    ) : (
+                      <div className="overflow-x-auto border border-sage/15 rounded-xl">
+                        <table className="w-full text-sm font-body">
+                          <thead className="bg-cream/50 border-b border-sage/15">
+                            <tr>
+                              <th className="text-left p-3 font-medium text-charcoal/70">Date</th>
+                              <th className="text-left p-3 font-medium text-charcoal/70">Name</th>
+                              <th className="text-left p-3 font-medium text-charcoal/70">Email</th>
+                              <th className="text-left p-3 font-medium text-charcoal/70">Phone</th>
+                              <th className="text-left p-3 font-medium text-charcoal/70 min-w-[200px]">Message</th>
+                              <th className="text-left p-3 font-medium text-charcoal/70">Status</th>
+                            </tr>
+                          </thead>
+                          <tbody>
+                            {mealInquiries.map((row) => (
+                              <tr key={row.id} className="border-b border-sage/10 last:border-0 align-top">
+                                <td className="p-3 text-charcoal/80 whitespace-nowrap">
+                                  {new Date(row.created_at).toLocaleString("en-IN", {
+                                    dateStyle: "medium",
+                                    timeStyle: "short",
+                                  })}
+                                </td>
+                                <td className="p-3 font-medium text-charcoal">{row.full_name}</td>
+                                <td className="p-3">
+                                  <a
+                                    href={`mailto:${row.email}`}
+                                    className="text-sage hover:underline break-all"
+                                  >
+                                    {row.email}
+                                  </a>
+                                </td>
+                                <td className="p-3 whitespace-nowrap">
+                                  <a href={`tel:${row.phone}`} className="text-charcoal hover:text-sage">
+                                    {row.phone}
+                                  </a>
+                                </td>
+                                <td className="p-3 text-charcoal/80 max-w-md whitespace-pre-wrap">
+                                  {row.message?.trim() ? row.message : "—"}
+                                </td>
+                                <td className="p-3">
+                                  <Select
+                                    value={row.status}
+                                    onValueChange={(v) => void updateMealInquiryStatus(row.id, v)}
+                                  >
+                                    <SelectTrigger className="w-[140px] border-sage/20 h-9 text-xs">
+                                      <SelectValue />
+                                    </SelectTrigger>
+                                    <SelectContent>
+                                      <SelectItem value="new">New</SelectItem>
+                                      <SelectItem value="contacted">Contacted</SelectItem>
+                                      <SelectItem value="closed">Closed</SelectItem>
+                                    </SelectContent>
+                                  </Select>
+                                </td>
+                              </tr>
+                            ))}
+                          </tbody>
+                        </table>
+                      </div>
+                    )}
+                  </CardContent>
+                </Card>
               </TabsContent>
 
               {/* MEMBERS TAB */}

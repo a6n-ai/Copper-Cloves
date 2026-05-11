@@ -136,7 +136,7 @@ export function Instructors() {
   const parallaxOffset = scrollY * 0.3;
 
   return (
-    <section id="instructors" className="py-32 bg-gradient-to-b from-cream via-white to-cream relative overflow-hidden">
+    <section id="instructors" className="py-16 md:py-20 bg-gradient-to-b from-cream via-white to-cream relative overflow-hidden">
       {/* Parallax Background Texture - Enhanced */}
       <div 
         className="absolute inset-0 opacity-[0.04] transition-transform duration-100 ease-out"

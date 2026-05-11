@@ -50,21 +50,33 @@ export default function MealSubscriptionPage() {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsSubmitting(true);
-
-    setTimeout(() => {
-      setIsSubmitting(false);
+    try {
+      const res = await fetch("/api/meal-subscription-inquiries", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          fullName: formData.fullName,
+          email: formData.email,
+          phone: formData.phone,
+          message: formData.message,
+        }),
+      });
+      const data = res.ok ? await res.json().catch(() => ({})) : null;
+      if (!res.ok) {
+        const msg =
+          typeof (data as { error?: string } | null)?.error === "string"
+            ? (data as { error: string }).error
+            : "Something went wrong. Please try again.";
+        alert(msg);
+        return;
+      }
       setIsSuccess(true);
-
-      setTimeout(() => {
-        setIsSuccess(false);
-        setFormData({
-          fullName: "",
-          email: "",
-          phone: "",
-          message: ""
-        });
-      }, 3000);
-    }, 1500);
+      setFormData({ fullName: "", email: "", phone: "", message: "" });
+    } catch {
+      alert("Network error. Please try again.");
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {

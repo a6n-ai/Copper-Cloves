@@ -1,3 +1,14 @@
+# AWS Amplify Hosting: Next.js SSR/API routes do not receive Console environment variables at runtime
+# unless they are written into a file Next.js loads in production. See:
+# https://docs.aws.amazon.com/amplify/latest/userguide/ssr-environment-variables.html
+#
+# In Amplify Console → Environment variables, define at least:
+#   STUDIO_DATABASE_URL  (recommended) or DATABASE_URL — Postgres connection string for production
+#   NEXTAUTH_SECRET      — random secret for credentials auth
+#   NEXTAUTH_URL         — e.g. https://main.xxxxx.amplifyapp.com
+#
+# Do not commit secrets; this file only runs during Amplify build.
+
 version: 1
 frontend:
   phases:
@@ -11,7 +22,11 @@ frontend:
           node -e "const { Client } = require('pg'); const url = process.env.STUDIO_DATABASE_URL || process.env.DATABASE_URL; const useSsl = /sslmode=require|sslmode=verify-ca|sslmode=verify-full|rds\.amazonaws\.com|neon\.tech|supabase\.co/i.test(url || ''); const c = new Client({ connectionString: url, ...(useSsl ? { ssl: { rejectUnauthorized: false } } : {}) }); c.connect().then(() => c.end()).then(() => console.log('Database connectivity check passed')).catch((e) => { console.error('Database connectivity check failed', e.message); process.exit(1); });"
     build:
       commands:
-        - npm run build
+        - |
+          echo "Preparing .env.production for Next.js SSR (DB + NextAuth)"
+          rm -f .env.production
+          env | grep -E '^(STUDIO_DATABASE_URL|DATABASE_URL|NEXTAUTH_SECRET|NEXTAUTH_URL)=' >> .env.production
+          npm run build
   artifacts:
     baseDirectory: .next
     files:

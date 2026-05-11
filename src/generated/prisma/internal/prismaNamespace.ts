@@ -385,6 +385,8 @@ type FieldRefInputType<Model, FieldType> = Model extends never ? never : FieldRe
 
 export const ModelName = {
   Profile: 'Profile',
+  Coupon: 'Coupon',
+  CouponRedemption: 'CouponRedemption',
   RetailProduct: 'RetailProduct',
   RetailOrder: 'RetailOrder',
   Instructor: 'Instructor',
@@ -397,6 +399,7 @@ export const ModelName = {
   CafeItem: 'CafeItem',
   CafeOrder: 'CafeOrder',
   MealSubscription: 'MealSubscription',
+  MealSubscriptionInquiry: 'MealSubscriptionInquiry',
   UserStats: 'UserStats',
   UserStreak: 'UserStreak',
   UserBadge: 'UserBadge',
@@ -421,7 +424,7 @@ export type TypeMap<ExtArgs extends runtime.Types.Extensions.InternalArgs = runt
     omit: GlobalOmitOptions
   }
   meta: {
-    modelProps: "profile" | "retailProduct" | "retailOrder" | "instructor" | "classModel" | "classSchedule" | "packageType" | "package" | "userPackage" | "booking" | "cafeItem" | "cafeOrder" | "mealSubscription" | "userStats" | "userStreak" | "userBadge" | "waiver" | "crmTemplate" | "crmMessage" | "crmTrigger" | "userActivitySession" | "userActivityEvent"
+    modelProps: "profile" | "coupon" | "couponRedemption" | "retailProduct" | "retailOrder" | "instructor" | "classModel" | "classSchedule" | "packageType" | "package" | "userPackage" | "booking" | "cafeItem" | "cafeOrder" | "mealSubscription" | "mealSubscriptionInquiry" | "userStats" | "userStreak" | "userBadge" | "waiver" | "crmTemplate" | "crmMessage" | "crmTrigger" | "userActivitySession" | "userActivityEvent"
     txIsolationLevel: TransactionIsolationLevel
   }
   model: {
@@ -496,6 +499,154 @@ export type TypeMap<ExtArgs extends runtime.Types.Extensions.InternalArgs = runt
         count: {
           args: Prisma.ProfileCountArgs<ExtArgs>
           result: runtime.Types.Utils.Optional<Prisma.ProfileCountAggregateOutputType> | number
+        }
+      }
+    }
+    Coupon: {
+      payload: Prisma.$CouponPayload<ExtArgs>
+      fields: Prisma.CouponFieldRefs
+      operations: {
+        findUnique: {
+          args: Prisma.CouponFindUniqueArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$CouponPayload> | null
+        }
+        findUniqueOrThrow: {
+          args: Prisma.CouponFindUniqueOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$CouponPayload>
+        }
+        findFirst: {
+          args: Prisma.CouponFindFirstArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$CouponPayload> | null
+        }
+        findFirstOrThrow: {
+          args: Prisma.CouponFindFirstOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$CouponPayload>
+        }
+        findMany: {
+          args: Prisma.CouponFindManyArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$CouponPayload>[]
+        }
+        create: {
+          args: Prisma.CouponCreateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$CouponPayload>
+        }
+        createMany: {
+          args: Prisma.CouponCreateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        createManyAndReturn: {
+          args: Prisma.CouponCreateManyAndReturnArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$CouponPayload>[]
+        }
+        delete: {
+          args: Prisma.CouponDeleteArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$CouponPayload>
+        }
+        update: {
+          args: Prisma.CouponUpdateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$CouponPayload>
+        }
+        deleteMany: {
+          args: Prisma.CouponDeleteManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateMany: {
+          args: Prisma.CouponUpdateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateManyAndReturn: {
+          args: Prisma.CouponUpdateManyAndReturnArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$CouponPayload>[]
+        }
+        upsert: {
+          args: Prisma.CouponUpsertArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$CouponPayload>
+        }
+        aggregate: {
+          args: Prisma.CouponAggregateArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.AggregateCoupon>
+        }
+        groupBy: {
+          args: Prisma.CouponGroupByArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.CouponGroupByOutputType>[]
+        }
+        count: {
+          args: Prisma.CouponCountArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.CouponCountAggregateOutputType> | number
+        }
+      }
+    }
+    CouponRedemption: {
+      payload: Prisma.$CouponRedemptionPayload<ExtArgs>
+      fields: Prisma.CouponRedemptionFieldRefs
+      operations: {
+        findUnique: {
+          args: Prisma.CouponRedemptionFindUniqueArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$CouponRedemptionPayload> | null
+        }
+        findUniqueOrThrow: {
+          args: Prisma.CouponRedemptionFindUniqueOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$CouponRedemptionPayload>
+        }
+        findFirst: {
+          args: Prisma.CouponRedemptionFindFirstArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$CouponRedemptionPayload> | null
+        }
+        findFirstOrThrow: {
+          args: Prisma.CouponRedemptionFindFirstOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$CouponRedemptionPayload>
+        }
+        findMany: {
+          args: Prisma.CouponRedemptionFindManyArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$CouponRedemptionPayload>[]
+        }
+        create: {
+          args: Prisma.CouponRedemptionCreateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$CouponRedemptionPayload>
+        }
+        createMany: {
+          args: Prisma.CouponRedemptionCreateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        createManyAndReturn: {
+          args: Prisma.CouponRedemptionCreateManyAndReturnArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$CouponRedemptionPayload>[]
+        }
+        delete: {
+          args: Prisma.CouponRedemptionDeleteArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$CouponRedemptionPayload>
+        }
+        update: {
+          args: Prisma.CouponRedemptionUpdateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$CouponRedemptionPayload>
+        }
+        deleteMany: {
+          args: Prisma.CouponRedemptionDeleteManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateMany: {
+          args: Prisma.CouponRedemptionUpdateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateManyAndReturn: {
+          args: Prisma.CouponRedemptionUpdateManyAndReturnArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$CouponRedemptionPayload>[]
+        }
+        upsert: {
+          args: Prisma.CouponRedemptionUpsertArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$CouponRedemptionPayload>
+        }
+        aggregate: {
+          args: Prisma.CouponRedemptionAggregateArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.AggregateCouponRedemption>
+        }
+        groupBy: {
+          args: Prisma.CouponRedemptionGroupByArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.CouponRedemptionGroupByOutputType>[]
+        }
+        count: {
+          args: Prisma.CouponRedemptionCountArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.CouponRedemptionCountAggregateOutputType> | number
         }
       }
     }
@@ -1387,6 +1538,80 @@ export type TypeMap<ExtArgs extends runtime.Types.Extensions.InternalArgs = runt
         }
       }
     }
+    MealSubscriptionInquiry: {
+      payload: Prisma.$MealSubscriptionInquiryPayload<ExtArgs>
+      fields: Prisma.MealSubscriptionInquiryFieldRefs
+      operations: {
+        findUnique: {
+          args: Prisma.MealSubscriptionInquiryFindUniqueArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$MealSubscriptionInquiryPayload> | null
+        }
+        findUniqueOrThrow: {
+          args: Prisma.MealSubscriptionInquiryFindUniqueOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$MealSubscriptionInquiryPayload>
+        }
+        findFirst: {
+          args: Prisma.MealSubscriptionInquiryFindFirstArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$MealSubscriptionInquiryPayload> | null
+        }
+        findFirstOrThrow: {
+          args: Prisma.MealSubscriptionInquiryFindFirstOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$MealSubscriptionInquiryPayload>
+        }
+        findMany: {
+          args: Prisma.MealSubscriptionInquiryFindManyArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$MealSubscriptionInquiryPayload>[]
+        }
+        create: {
+          args: Prisma.MealSubscriptionInquiryCreateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$MealSubscriptionInquiryPayload>
+        }
+        createMany: {
+          args: Prisma.MealSubscriptionInquiryCreateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        createManyAndReturn: {
+          args: Prisma.MealSubscriptionInquiryCreateManyAndReturnArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$MealSubscriptionInquiryPayload>[]
+        }
+        delete: {
+          args: Prisma.MealSubscriptionInquiryDeleteArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$MealSubscriptionInquiryPayload>
+        }
+        update: {
+          args: Prisma.MealSubscriptionInquiryUpdateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$MealSubscriptionInquiryPayload>
+        }
+        deleteMany: {
+          args: Prisma.MealSubscriptionInquiryDeleteManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateMany: {
+          args: Prisma.MealSubscriptionInquiryUpdateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateManyAndReturn: {
+          args: Prisma.MealSubscriptionInquiryUpdateManyAndReturnArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$MealSubscriptionInquiryPayload>[]
+        }
+        upsert: {
+          args: Prisma.MealSubscriptionInquiryUpsertArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$MealSubscriptionInquiryPayload>
+        }
+        aggregate: {
+          args: Prisma.MealSubscriptionInquiryAggregateArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.AggregateMealSubscriptionInquiry>
+        }
+        groupBy: {
+          args: Prisma.MealSubscriptionInquiryGroupByArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.MealSubscriptionInquiryGroupByOutputType>[]
+        }
+        count: {
+          args: Prisma.MealSubscriptionInquiryCountArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.MealSubscriptionInquiryCountAggregateOutputType> | number
+        }
+      }
+    }
     UserStats: {
       payload: Prisma.$UserStatsPayload<ExtArgs>
       fields: Prisma.UserStatsFieldRefs
@@ -2109,6 +2334,38 @@ export const ProfileScalarFieldEnum = {
 export type ProfileScalarFieldEnum = (typeof ProfileScalarFieldEnum)[keyof typeof ProfileScalarFieldEnum]
 
 
+export const CouponScalarFieldEnum = {
+  id: 'id',
+  code: 'code',
+  applies_to: 'applies_to',
+  discount_type: 'discount_type',
+  discount_value: 'discount_value',
+  is_active: 'is_active',
+  max_redemptions: 'max_redemptions',
+  redemption_count: 'redemption_count',
+  max_uses_per_user: 'max_uses_per_user',
+  starts_at: 'starts_at',
+  ends_at: 'ends_at',
+  created_at: 'created_at',
+  updated_at: 'updated_at'
+} as const
+
+export type CouponScalarFieldEnum = (typeof CouponScalarFieldEnum)[keyof typeof CouponScalarFieldEnum]
+
+
+export const CouponRedemptionScalarFieldEnum = {
+  id: 'id',
+  coupon_id: 'coupon_id',
+  user_id: 'user_id',
+  guest_email: 'guest_email',
+  context: 'context',
+  discount_amount: 'discount_amount',
+  created_at: 'created_at'
+} as const
+
+export type CouponRedemptionScalarFieldEnum = (typeof CouponRedemptionScalarFieldEnum)[keyof typeof CouponRedemptionScalarFieldEnum]
+
+
 export const RetailProductScalarFieldEnum = {
   id: 'id',
   name: 'name',
@@ -2139,7 +2396,9 @@ export const RetailOrderScalarFieldEnum = {
   shipping_address: 'shipping_address',
   order_date: 'order_date',
   created_at: 'created_at',
-  updated_at: 'updated_at'
+  updated_at: 'updated_at',
+  coupon_id: 'coupon_id',
+  discount_inr: 'discount_inr'
 } as const
 
 export type RetailOrderScalarFieldEnum = (typeof RetailOrderScalarFieldEnum)[keyof typeof RetailOrderScalarFieldEnum]
@@ -2251,6 +2510,8 @@ export const UserPackageScalarFieldEnum = {
   pause_start_date: 'pause_start_date',
   pause_end_date: 'pause_end_date',
   pass_type: 'pass_type',
+  coupon_id: 'coupon_id',
+  purchase_discount_inr: 'purchase_discount_inr',
   created_at: 'created_at'
 } as const
 
@@ -2298,7 +2559,10 @@ export const CafeOrderScalarFieldEnum = {
   payment_method: 'payment_method',
   status: 'status',
   order_date: 'order_date',
-  created_at: 'created_at'
+  created_at: 'created_at',
+  coupon_id: 'coupon_id',
+  discount_inr: 'discount_inr',
+  batch_id: 'batch_id'
 } as const
 
 export type CafeOrderScalarFieldEnum = (typeof CafeOrderScalarFieldEnum)[keyof typeof CafeOrderScalarFieldEnum]
@@ -2317,6 +2581,21 @@ export const MealSubscriptionScalarFieldEnum = {
 } as const
 
 export type MealSubscriptionScalarFieldEnum = (typeof MealSubscriptionScalarFieldEnum)[keyof typeof MealSubscriptionScalarFieldEnum]
+
+
+export const MealSubscriptionInquiryScalarFieldEnum = {
+  id: 'id',
+  full_name: 'full_name',
+  email: 'email',
+  phone: 'phone',
+  message: 'message',
+  status: 'status',
+  source: 'source',
+  created_at: 'created_at',
+  updated_at: 'updated_at'
+} as const
+
+export type MealSubscriptionInquiryScalarFieldEnum = (typeof MealSubscriptionInquiryScalarFieldEnum)[keyof typeof MealSubscriptionInquiryScalarFieldEnum]
 
 
 export const UserStatsScalarFieldEnum = {
@@ -2713,6 +2992,8 @@ export type PrismaClientOptions = ({
 }
 export type GlobalOmitConfig = {
   profile?: Prisma.ProfileOmit
+  coupon?: Prisma.CouponOmit
+  couponRedemption?: Prisma.CouponRedemptionOmit
   retailProduct?: Prisma.RetailProductOmit
   retailOrder?: Prisma.RetailOrderOmit
   instructor?: Prisma.InstructorOmit
@@ -2725,6 +3006,7 @@ export type GlobalOmitConfig = {
   cafeItem?: Prisma.CafeItemOmit
   cafeOrder?: Prisma.CafeOrderOmit
   mealSubscription?: Prisma.MealSubscriptionOmit
+  mealSubscriptionInquiry?: Prisma.MealSubscriptionInquiryOmit
   userStats?: Prisma.UserStatsOmit
   userStreak?: Prisma.UserStreakOmit
   userBadge?: Prisma.UserBadgeOmit

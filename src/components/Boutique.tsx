@@ -50,7 +50,7 @@ export function Boutique() {
   };
 
   return (
-    <section className="relative py-24 bg-cream overflow-hidden">
+    <section className="relative py-16 md:py-20 bg-cream overflow-hidden">
       <div className="absolute top-20 left-10 w-64 h-64 bg-sage/5 rounded-full blur-3xl" />
       <div className="absolute bottom-20 right-10 w-64 h-64 bg-terracotta/5 rounded-full blur-3xl" />
 

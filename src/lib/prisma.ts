@@ -20,7 +20,15 @@ function databaseUrl(): string {
       "Missing database URL: set STUDIO_DATABASE_URL (recommended) or DATABASE_URL in .env.local"
     );
   }
-  return url;
+  return normalizePostgresUrl(url);
+}
+
+/** AWS RDS and many cloud Postgres hosts require TLS from app runners (Amplify, Vercel, etc.). */
+function normalizePostgresUrl(url: string): string {
+  const isRds = url.includes("rds.amazonaws.com") || url.includes("rds.amazonaws.com.cn");
+  if (!isRds) return url;
+  if (/[?&]sslmode=/i.test(url) || /[?&]ssl=true/i.test(url)) return url;
+  return `${url}${url.includes("?") ? "&" : "?"}sslmode=require`;
 }
 
 function shouldEnableSsl(connectionString: string): boolean {
@@ -45,31 +53,25 @@ function shouldEnableSsl(connectionString: string): boolean {
 function createPrismaClient() {
   const connectionString = databaseUrl();
   const useSsl = shouldEnableSsl(connectionString);
-  const pool =
-    globalForPrisma.pgPool ??
-    new Pool({
+
+  if (!globalForPrisma.pgPool) {
+    globalForPrisma.pgPool = new Pool({
       connectionString,
       max: 10,
+      connectionTimeoutMillis: 15_000,
       ...(useSsl ? { ssl: { rejectUnauthorized: false } } : {}),
     });
-  if (process.env.NODE_ENV !== "production") globalForPrisma.pgPool = pool;
+  }
 
-  const adapter = new PrismaPg(pool);
+  const adapter = new PrismaPg(globalForPrisma.pgPool);
   return new PrismaClient({ adapter });
 }
 
 function getPrismaClient(): PrismaClient {
-  if (globalForPrisma.prisma) {
-    return globalForPrisma.prisma;
+  if (!globalForPrisma.prisma) {
+    globalForPrisma.prisma = createPrismaClient();
   }
-
-  const client = createPrismaClient();
-
-  if (process.env.NODE_ENV !== "production") {
-    globalForPrisma.prisma = client;
-  }
-
-  return client;
+  return globalForPrisma.prisma;
 }
 
 export const prisma = new Proxy({} as PrismaClient, {

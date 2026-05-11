@@ -3,6 +3,9 @@ import { getServerSession } from "next-auth/next";
 import { authOptions } from "@/lib/auth";
 import prisma from "@/lib/prisma";
 import { notifyPackagePurchase } from "@/lib/notifications/notifyPackagePurchase";
+import type { CouponContext } from "@/lib/couponHelpers";
+import { incrementCouponAndRecordRedemption, validateAndComputeCoupon } from "@/lib/couponHelpers";
+import type { Coupon } from "@/generated/prisma/client";
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
   const session = await getServerSession(req, res, authOptions);
@@ -24,45 +27,97 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   }
 
   if (req.method === "POST") {
-    const { package_type_id, pass_type } = req.body;
+    const { package_type_id, pass_type, coupon_code } = req.body as {
+      package_type_id?: string;
+      pass_type?: string;
+      coupon_code?: string;
+    };
 
-    const packageType = await prisma.packageType.findUnique({
-      where: { id: package_type_id },
-    });
-    if (!packageType) return res.status(404).json({ error: "Package type not found" });
+    if (!package_type_id || typeof package_type_id !== "string") {
+      return res.status(400).json({ error: "package_type_id required" });
+    }
 
-    const expirationDate = new Date();
-    expirationDate.setMonth(
-      expirationDate.getMonth() + (packageType.duration_months ?? 1)
-    );
+    const pass = pass_type === "studio_pass" ? "studio_pass" : "class_pass";
+    const couponContext: CouponContext = pass === "studio_pass" ? "studio_pass" : "class_pass";
 
-    const userPackage = await prisma.userPackage.create({
-      data: {
-        user_id: userId,
-        package_type_id,
-        credits_remaining: packageType.is_unlimited ? null : (packageType.class_count ?? null),
-        credits_total: packageType.is_unlimited ? null : (packageType.class_count ?? null),
-        classes_remaining: packageType.class_count ?? null,
-        expiration_date: expirationDate,
-        is_active: true,
-        pass_type: pass_type ?? "class_pass",
-      },
-      include: { package_type: true },
-    });
+    try {
+      const userPackage = await prisma.$transaction(async (tx) => {
+        const packageType = await tx.packageType.findUnique({
+          where: { id: package_type_id },
+        });
+        if (!packageType) throw new Error("NOT_FOUND");
 
-    // Update profile pass_type
-    await prisma.profile.update({
-      where: { id: userId },
-      data: { pass_type: pass_type ?? "class_pass" },
-    });
+        const subtotal = Number(packageType.price);
+        if (!Number.isFinite(subtotal) || subtotal <= 0) {
+          throw new Error("BAD_PRICE");
+        }
 
-    void notifyPackagePurchase({
-      userId,
-      packageType,
-      expirationDate: userPackage.expiration_date,
-    }).catch((err) => console.error("[user-packages] notifyPackagePurchase:", err));
+        let coupon: Coupon | null = null;
+        let discountInr = 0;
+        if (coupon_code && String(coupon_code).trim()) {
+          const v = await validateAndComputeCoupon(tx, String(coupon_code), couponContext, subtotal, {
+            userId,
+            guestEmail: null,
+          });
+          if ("error" in v) throw new Error(`COUPON:${v.error}`);
+          coupon = v.coupon;
+          discountInr = v.discountInr;
+        }
 
-    return res.status(201).json(userPackage);
+        const expirationDate = new Date();
+        expirationDate.setMonth(expirationDate.getMonth() + (packageType.duration_months ?? 1));
+
+        const created = await tx.userPackage.create({
+          data: {
+            user_id: userId,
+            package_type_id: package_type_id!,
+            credits_remaining: packageType.is_unlimited ? null : (packageType.class_count ?? null),
+            credits_total: packageType.is_unlimited ? null : (packageType.class_count ?? null),
+            classes_remaining: packageType.class_count ?? null,
+            expiration_date: expirationDate,
+            is_active: true,
+            pass_type: pass,
+            coupon_id: coupon?.id ?? null,
+            purchase_discount_inr: discountInr > 0 ? discountInr : null,
+          },
+          include: { package_type: true },
+        });
+
+        await tx.profile.update({
+          where: { id: userId },
+          data: { pass_type: pass },
+        });
+
+        if (coupon && discountInr > 0) {
+          await incrementCouponAndRecordRedemption(tx, coupon, discountInr, couponContext, {
+            userId,
+            guestEmail: null,
+          });
+        }
+
+        return created;
+      });
+
+      void notifyPackagePurchase({
+        userId,
+        packageType: userPackage.package_type,
+        expirationDate: userPackage.expiration_date,
+      }).catch((err) => console.error("[user-packages] notifyPackagePurchase:", err));
+
+      return res.status(201).json(userPackage);
+    } catch (e) {
+      const msg = e instanceof Error ? e.message : String(e);
+      if (msg === "NOT_FOUND") return res.status(404).json({ error: "Package type not found" });
+      if (msg === "BAD_PRICE") return res.status(400).json({ error: "Invalid package price" });
+      if (msg.startsWith("COUPON:")) {
+        return res.status(400).json({ error: msg.replace(/^COUPON:/, "") });
+      }
+      if (msg === "COUPON_EXHAUSTED") {
+        return res.status(409).json({ error: "Coupon is no longer available" });
+      }
+      console.error("[user-packages] POST", e);
+      return res.status(500).json({ error: "Could not complete purchase" });
+    }
   }
 
   if (req.method === "PATCH") {

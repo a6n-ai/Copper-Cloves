@@ -32,8 +32,51 @@ model Profile {
   activity_sessions UserActivitySession[]
   activity_events   UserActivityEvent[]
   retail_orders     RetailOrder[]
+  coupon_redemptions CouponRedemption[]
 
   @@map("profiles")
+}
+
+/// Promotional codes: food (café), ecommerce (boutique), class_pass, or studio_pass.
+model Coupon {
+  id                String    @id @default(uuid())
+  code              String    @unique
+  applies_to        String
+  discount_type     String
+  discount_value    Decimal   @db.Decimal(10, 2)
+  is_active         Boolean   @default(true)
+  max_redemptions   Int?
+  redemption_count  Int       @default(0)
+  max_uses_per_user Int?
+  starts_at         DateTime?
+  ends_at           DateTime?
+  created_at        DateTime  @default(now())
+  updated_at        DateTime  @updatedAt
+
+  redemptions   CouponRedemption[]
+  cafe_orders   CafeOrder[]
+  retail_orders RetailOrder[]
+  user_packages UserPackage[]
+
+  @@map("coupons")
+}
+
+model CouponRedemption {
+  id              String   @id @default(uuid())
+  coupon_id       String
+  user_id         String?
+  guest_email     String?
+  context         String
+  discount_amount Decimal  @db.Decimal(10, 2)
+  created_at      DateTime @default(now())
+
+  coupon  Coupon   @relation(fields: [coupon_id], references: [id], onDelete: Cascade)
+  profile Profile? @relation(fields: [user_id], references: [id], onDelete: SetNull)
+
+  @@index([coupon_id])
+  @@index([user_id])
+  @@index([guest_email])
+  @@map("coupon_redemptions")
 }
 
 model RetailProduct {
@@ -66,8 +109,11 @@ model RetailOrder {
   order_date       DateTime @default(now())
   created_at       DateTime @default(now())
   updated_at       DateTime @updatedAt
+  coupon_id        String?
+  discount_inr     Decimal  @default(0) @db.Decimal(10, 2)
 
   profile Profile? @relation(fields: [user_id], references: [id], onDelete: SetNull)
+  coupon  Coupon?  @relation(fields: [coupon_id], references: [id], onDelete: SetNull)
 
   @@map("retail_orders")
 }
@@ -187,11 +233,14 @@ model UserPackage {
   pause_start_date  DateTime?
   pause_end_date    DateTime?
   pass_type         String?
+  coupon_id         String?
+  purchase_discount_inr Decimal? @db.Decimal(10, 2)
   created_at        DateTime  @default(now())
 
   profile      Profile     @relation(fields: [user_id], references: [id], onDelete: Cascade)
   package_type PackageType @relation(fields: [package_type_id], references: [id], onDelete: Restrict)
   package      Package?    @relation(fields: [package_id], references: [id], onDelete: SetNull)
+  coupon       Coupon?     @relation(fields: [coupon_id], references: [id], onDelete: SetNull)
   bookings     Booking[]
 
   @@map("user_packages")
@@ -244,11 +293,16 @@ model CafeOrder {
   status         String   @default("pending")
   order_date     DateTime @default(now())
   created_at     DateTime @default(now())
+  coupon_id      String?
+  discount_inr   Decimal  @default(0) @db.Decimal(10, 2)
+  batch_id       String?
 
   profile   Profile   @relation(fields: [user_id], references: [id], onDelete: Cascade)
   cafe_item CafeItem  @relation(fields: [cafe_item_id], references: [id], onDelete: Restrict)
   booking   Booking?  @relation(fields: [booking_id], references: [id], onDelete: SetNull)
+  coupon    Coupon?   @relation(fields: [coupon_id], references: [id], onDelete: SetNull)
 
+  @@index([batch_id])
   @@map("cafe_orders")
 }
 
@@ -266,6 +320,24 @@ model MealSubscription {
   profile Profile @relation(fields: [user_id], references: [id], onDelete: Cascade)
 
   @@map("meal_subscriptions")
+}
+
+/// Public waitlist / contact form submissions from the meal subscription page.
+model MealSubscriptionInquiry {
+  id         String   @id @default(uuid())
+  full_name  String
+  email      String
+  phone      String
+  message    String?
+  status     String   @default("new")
+  source     String   @default("meal_subscription_waitlist")
+  created_at DateTime @default(now())
+  updated_at DateTime @updatedAt
+
+  @@index([email])
+  @@index([created_at])
+  @@index([status])
+  @@map("meal_subscription_inquiries")
 }
 
 model UserStats {

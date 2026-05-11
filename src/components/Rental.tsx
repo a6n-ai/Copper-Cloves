@@ -5,7 +5,7 @@ import Image from "next/image";
 
 export function Rental() {
   return (
-    <section className="relative py-24 px-6 lg:px-8 overflow-hidden bg-cream">
+    <section className="relative py-16 px-6 lg:px-8 overflow-hidden bg-cream">
       {/* Background Pattern */}
       <div className="absolute inset-0 opacity-5">
         <div className="absolute inset-0" style={{
@@ -16,8 +16,8 @@ export function Rental() {
 
       <div className="relative z-10 max-w-7xl mx-auto">
         {/* Section Header */}
-        <div className="text-center mb-16">
-          <h2 className="font-display text-5xl md:text-6xl text-charcoal mb-4">
+        <div className="text-center mb-10 md:mb-12">
+          <h2 className="font-display text-5xl md:text-6xl lg:text-7xl text-charcoal mb-4">
             <span className="italic text-sage">Host</span> Your Event
           </h2>
           <p className="font-body text-xl text-charcoal/80 max-w-3xl mx-auto leading-relaxed">

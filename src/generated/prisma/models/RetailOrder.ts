@@ -28,10 +28,12 @@ export type AggregateRetailOrder = {
 
 export type RetailOrderAvgAggregateOutputType = {
   total: runtime.Decimal | null
+  discount_inr: runtime.Decimal | null
 }
 
 export type RetailOrderSumAggregateOutputType = {
   total: runtime.Decimal | null
+  discount_inr: runtime.Decimal | null
 }
 
 export type RetailOrderMinAggregateOutputType = {
@@ -46,6 +48,8 @@ export type RetailOrderMinAggregateOutputType = {
   order_date: Date | null
   created_at: Date | null
   updated_at: Date | null
+  coupon_id: string | null
+  discount_inr: runtime.Decimal | null
 }
 
 export type RetailOrderMaxAggregateOutputType = {
@@ -60,6 +64,8 @@ export type RetailOrderMaxAggregateOutputType = {
   order_date: Date | null
   created_at: Date | null
   updated_at: Date | null
+  coupon_id: string | null
+  discount_inr: runtime.Decimal | null
 }
 
 export type RetailOrderCountAggregateOutputType = {
@@ -75,16 +81,20 @@ export type RetailOrderCountAggregateOutputType = {
   order_date: number
   created_at: number
   updated_at: number
+  coupon_id: number
+  discount_inr: number
   _all: number
 }
 
 
 export type RetailOrderAvgAggregateInputType = {
   total?: true
+  discount_inr?: true
 }
 
 export type RetailOrderSumAggregateInputType = {
   total?: true
+  discount_inr?: true
 }
 
 export type RetailOrderMinAggregateInputType = {
@@ -99,6 +109,8 @@ export type RetailOrderMinAggregateInputType = {
   order_date?: true
   created_at?: true
   updated_at?: true
+  coupon_id?: true
+  discount_inr?: true
 }
 
 export type RetailOrderMaxAggregateInputType = {
@@ -113,6 +125,8 @@ export type RetailOrderMaxAggregateInputType = {
   order_date?: true
   created_at?: true
   updated_at?: true
+  coupon_id?: true
+  discount_inr?: true
 }
 
 export type RetailOrderCountAggregateInputType = {
@@ -128,6 +142,8 @@ export type RetailOrderCountAggregateInputType = {
   order_date?: true
   created_at?: true
   updated_at?: true
+  coupon_id?: true
+  discount_inr?: true
   _all?: true
 }
 
@@ -230,6 +246,8 @@ export type RetailOrderGroupByOutputType = {
   order_date: Date
   created_at: Date
   updated_at: Date
+  coupon_id: string | null
+  discount_inr: runtime.Decimal
   _count: RetailOrderCountAggregateOutputType | null
   _avg: RetailOrderAvgAggregateOutputType | null
   _sum: RetailOrderSumAggregateOutputType | null
@@ -268,7 +286,10 @@ export type RetailOrderWhereInput = {
   order_date?: Prisma.DateTimeFilter<"RetailOrder"> | Date | string
   created_at?: Prisma.DateTimeFilter<"RetailOrder"> | Date | string
   updated_at?: Prisma.DateTimeFilter<"RetailOrder"> | Date | string
+  coupon_id?: Prisma.StringNullableFilter<"RetailOrder"> | string | null
+  discount_inr?: Prisma.DecimalFilter<"RetailOrder"> | runtime.Decimal | runtime.DecimalJsLike | number | string
   profile?: Prisma.XOR<Prisma.ProfileNullableScalarRelationFilter, Prisma.ProfileWhereInput> | null
+  coupon?: Prisma.XOR<Prisma.CouponNullableScalarRelationFilter, Prisma.CouponWhereInput> | null
 }
 
 export type RetailOrderOrderByWithRelationInput = {
@@ -284,7 +305,10 @@ export type RetailOrderOrderByWithRelationInput = {
   order_date?: Prisma.SortOrder
   created_at?: Prisma.SortOrder
   updated_at?: Prisma.SortOrder
+  coupon_id?: Prisma.SortOrderInput | Prisma.SortOrder
+  discount_inr?: Prisma.SortOrder
   profile?: Prisma.ProfileOrderByWithRelationInput
+  coupon?: Prisma.CouponOrderByWithRelationInput
 }
 
 export type RetailOrderWhereUniqueInput = Prisma.AtLeast<{
@@ -303,7 +327,10 @@ export type RetailOrderWhereUniqueInput = Prisma.AtLeast<{
   order_date?: Prisma.DateTimeFilter<"RetailOrder"> | Date | string
   created_at?: Prisma.DateTimeFilter<"RetailOrder"> | Date | string
   updated_at?: Prisma.DateTimeFilter<"RetailOrder"> | Date | string
+  coupon_id?: Prisma.StringNullableFilter<"RetailOrder"> | string | null
+  discount_inr?: Prisma.DecimalFilter<"RetailOrder"> | runtime.Decimal | runtime.DecimalJsLike | number | string
   profile?: Prisma.XOR<Prisma.ProfileNullableScalarRelationFilter, Prisma.ProfileWhereInput> | null
+  coupon?: Prisma.XOR<Prisma.CouponNullableScalarRelationFilter, Prisma.CouponWhereInput> | null
 }, "id">
 
 export type RetailOrderOrderByWithAggregationInput = {
@@ -319,6 +346,8 @@ export type RetailOrderOrderByWithAggregationInput = {
   order_date?: Prisma.SortOrder
   created_at?: Prisma.SortOrder
   updated_at?: Prisma.SortOrder
+  coupon_id?: Prisma.SortOrderInput | Prisma.SortOrder
+  discount_inr?: Prisma.SortOrder
   _count?: Prisma.RetailOrderCountOrderByAggregateInput
   _avg?: Prisma.RetailOrderAvgOrderByAggregateInput
   _max?: Prisma.RetailOrderMaxOrderByAggregateInput
@@ -342,6 +371,8 @@ export type RetailOrderScalarWhereWithAggregatesInput = {
   order_date?: Prisma.DateTimeWithAggregatesFilter<"RetailOrder"> | Date | string
   created_at?: Prisma.DateTimeWithAggregatesFilter<"RetailOrder"> | Date | string
   updated_at?: Prisma.DateTimeWithAggregatesFilter<"RetailOrder"> | Date | string
+  coupon_id?: Prisma.StringNullableWithAggregatesFilter<"RetailOrder"> | string | null
+  discount_inr?: Prisma.DecimalWithAggregatesFilter<"RetailOrder"> | runtime.Decimal | runtime.DecimalJsLike | number | string
 }
 
 export type RetailOrderCreateInput = {
@@ -356,7 +387,9 @@ export type RetailOrderCreateInput = {
   order_date?: Date | string
   created_at?: Date | string
   updated_at?: Date | string
+  discount_inr?: runtime.Decimal | runtime.DecimalJsLike | number | string
   profile?: Prisma.ProfileCreateNestedOneWithoutRetail_ordersInput
+  coupon?: Prisma.CouponCreateNestedOneWithoutRetail_ordersInput
 }
 
 export type RetailOrderUncheckedCreateInput = {
@@ -372,6 +405,8 @@ export type RetailOrderUncheckedCreateInput = {
   order_date?: Date | string
   created_at?: Date | string
   updated_at?: Date | string
+  coupon_id?: string | null
+  discount_inr?: runtime.Decimal | runtime.DecimalJsLike | number | string
 }
 
 export type RetailOrderUpdateInput = {
@@ -386,7 +421,9 @@ export type RetailOrderUpdateInput = {
   order_date?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   created_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updated_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  discount_inr?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
   profile?: Prisma.ProfileUpdateOneWithoutRetail_ordersNestedInput
+  coupon?: Prisma.CouponUpdateOneWithoutRetail_ordersNestedInput
 }
 
 export type RetailOrderUncheckedUpdateInput = {
@@ -402,6 +439,8 @@ export type RetailOrderUncheckedUpdateInput = {
   order_date?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   created_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updated_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  coupon_id?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  discount_inr?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
 }
 
 export type RetailOrderCreateManyInput = {
@@ -417,6 +456,8 @@ export type RetailOrderCreateManyInput = {
   order_date?: Date | string
   created_at?: Date | string
   updated_at?: Date | string
+  coupon_id?: string | null
+  discount_inr?: runtime.Decimal | runtime.DecimalJsLike | number | string
 }
 
 export type RetailOrderUpdateManyMutationInput = {
@@ -431,6 +472,7 @@ export type RetailOrderUpdateManyMutationInput = {
   order_date?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   created_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updated_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  discount_inr?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
 }
 
 export type RetailOrderUncheckedUpdateManyInput = {
@@ -446,6 +488,8 @@ export type RetailOrderUncheckedUpdateManyInput = {
   order_date?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   created_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updated_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  coupon_id?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  discount_inr?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
 }
 
 export type RetailOrderListRelationFilter = {
@@ -471,10 +515,13 @@ export type RetailOrderCountOrderByAggregateInput = {
   order_date?: Prisma.SortOrder
   created_at?: Prisma.SortOrder
   updated_at?: Prisma.SortOrder
+  coupon_id?: Prisma.SortOrder
+  discount_inr?: Prisma.SortOrder
 }
 
 export type RetailOrderAvgOrderByAggregateInput = {
   total?: Prisma.SortOrder
+  discount_inr?: Prisma.SortOrder
 }
 
 export type RetailOrderMaxOrderByAggregateInput = {
@@ -489,6 +536,8 @@ export type RetailOrderMaxOrderByAggregateInput = {
   order_date?: Prisma.SortOrder
   created_at?: Prisma.SortOrder
   updated_at?: Prisma.SortOrder
+  coupon_id?: Prisma.SortOrder
+  discount_inr?: Prisma.SortOrder
 }
 
 export type RetailOrderMinOrderByAggregateInput = {
@@ -503,10 +552,13 @@ export type RetailOrderMinOrderByAggregateInput = {
   order_date?: Prisma.SortOrder
   created_at?: Prisma.SortOrder
   updated_at?: Prisma.SortOrder
+  coupon_id?: Prisma.SortOrder
+  discount_inr?: Prisma.SortOrder
 }
 
 export type RetailOrderSumOrderByAggregateInput = {
   total?: Prisma.SortOrder
+  discount_inr?: Prisma.SortOrder
 }
 
 export type RetailOrderCreateNestedManyWithoutProfileInput = {
@@ -551,6 +603,48 @@ export type RetailOrderUncheckedUpdateManyWithoutProfileNestedInput = {
   deleteMany?: Prisma.RetailOrderScalarWhereInput | Prisma.RetailOrderScalarWhereInput[]
 }
 
+export type RetailOrderCreateNestedManyWithoutCouponInput = {
+  create?: Prisma.XOR<Prisma.RetailOrderCreateWithoutCouponInput, Prisma.RetailOrderUncheckedCreateWithoutCouponInput> | Prisma.RetailOrderCreateWithoutCouponInput[] | Prisma.RetailOrderUncheckedCreateWithoutCouponInput[]
+  connectOrCreate?: Prisma.RetailOrderCreateOrConnectWithoutCouponInput | Prisma.RetailOrderCreateOrConnectWithoutCouponInput[]
+  createMany?: Prisma.RetailOrderCreateManyCouponInputEnvelope
+  connect?: Prisma.RetailOrderWhereUniqueInput | Prisma.RetailOrderWhereUniqueInput[]
+}
+
+export type RetailOrderUncheckedCreateNestedManyWithoutCouponInput = {
+  create?: Prisma.XOR<Prisma.RetailOrderCreateWithoutCouponInput, Prisma.RetailOrderUncheckedCreateWithoutCouponInput> | Prisma.RetailOrderCreateWithoutCouponInput[] | Prisma.RetailOrderUncheckedCreateWithoutCouponInput[]
+  connectOrCreate?: Prisma.RetailOrderCreateOrConnectWithoutCouponInput | Prisma.RetailOrderCreateOrConnectWithoutCouponInput[]
+  createMany?: Prisma.RetailOrderCreateManyCouponInputEnvelope
+  connect?: Prisma.RetailOrderWhereUniqueInput | Prisma.RetailOrderWhereUniqueInput[]
+}
+
+export type RetailOrderUpdateManyWithoutCouponNestedInput = {
+  create?: Prisma.XOR<Prisma.RetailOrderCreateWithoutCouponInput, Prisma.RetailOrderUncheckedCreateWithoutCouponInput> | Prisma.RetailOrderCreateWithoutCouponInput[] | Prisma.RetailOrderUncheckedCreateWithoutCouponInput[]
+  connectOrCreate?: Prisma.RetailOrderCreateOrConnectWithoutCouponInput | Prisma.RetailOrderCreateOrConnectWithoutCouponInput[]
+  upsert?: Prisma.RetailOrderUpsertWithWhereUniqueWithoutCouponInput | Prisma.RetailOrderUpsertWithWhereUniqueWithoutCouponInput[]
+  createMany?: Prisma.RetailOrderCreateManyCouponInputEnvelope
+  set?: Prisma.RetailOrderWhereUniqueInput | Prisma.RetailOrderWhereUniqueInput[]
+  disconnect?: Prisma.RetailOrderWhereUniqueInput | Prisma.RetailOrderWhereUniqueInput[]
+  delete?: Prisma.RetailOrderWhereUniqueInput | Prisma.RetailOrderWhereUniqueInput[]
+  connect?: Prisma.RetailOrderWhereUniqueInput | Prisma.RetailOrderWhereUniqueInput[]
+  update?: Prisma.RetailOrderUpdateWithWhereUniqueWithoutCouponInput | Prisma.RetailOrderUpdateWithWhereUniqueWithoutCouponInput[]
+  updateMany?: Prisma.RetailOrderUpdateManyWithWhereWithoutCouponInput | Prisma.RetailOrderUpdateManyWithWhereWithoutCouponInput[]
+  deleteMany?: Prisma.RetailOrderScalarWhereInput | Prisma.RetailOrderScalarWhereInput[]
+}
+
+export type RetailOrderUncheckedUpdateManyWithoutCouponNestedInput = {
+  create?: Prisma.XOR<Prisma.RetailOrderCreateWithoutCouponInput, Prisma.RetailOrderUncheckedCreateWithoutCouponInput> | Prisma.RetailOrderCreateWithoutCouponInput[] | Prisma.RetailOrderUncheckedCreateWithoutCouponInput[]
+  connectOrCreate?: Prisma.RetailOrderCreateOrConnectWithoutCouponInput | Prisma.RetailOrderCreateOrConnectWithoutCouponInput[]
+  upsert?: Prisma.RetailOrderUpsertWithWhereUniqueWithoutCouponInput | Prisma.RetailOrderUpsertWithWhereUniqueWithoutCouponInput[]
+  createMany?: Prisma.RetailOrderCreateManyCouponInputEnvelope
+  set?: Prisma.RetailOrderWhereUniqueInput | Prisma.RetailOrderWhereUniqueInput[]
+  disconnect?: Prisma.RetailOrderWhereUniqueInput | Prisma.RetailOrderWhereUniqueInput[]
+  delete?: Prisma.RetailOrderWhereUniqueInput | Prisma.RetailOrderWhereUniqueInput[]
+  connect?: Prisma.RetailOrderWhereUniqueInput | Prisma.RetailOrderWhereUniqueInput[]
+  update?: Prisma.RetailOrderUpdateWithWhereUniqueWithoutCouponInput | Prisma.RetailOrderUpdateWithWhereUniqueWithoutCouponInput[]
+  updateMany?: Prisma.RetailOrderUpdateManyWithWhereWithoutCouponInput | Prisma.RetailOrderUpdateManyWithWhereWithoutCouponInput[]
+  deleteMany?: Prisma.RetailOrderScalarWhereInput | Prisma.RetailOrderScalarWhereInput[]
+}
+
 export type RetailOrderCreateWithoutProfileInput = {
   id?: string
   customer_name: string
@@ -563,6 +657,8 @@ export type RetailOrderCreateWithoutProfileInput = {
   order_date?: Date | string
   created_at?: Date | string
   updated_at?: Date | string
+  discount_inr?: runtime.Decimal | runtime.DecimalJsLike | number | string
+  coupon?: Prisma.CouponCreateNestedOneWithoutRetail_ordersInput
 }
 
 export type RetailOrderUncheckedCreateWithoutProfileInput = {
@@ -577,6 +673,8 @@ export type RetailOrderUncheckedCreateWithoutProfileInput = {
   order_date?: Date | string
   created_at?: Date | string
   updated_at?: Date | string
+  coupon_id?: string | null
+  discount_inr?: runtime.Decimal | runtime.DecimalJsLike | number | string
 }
 
 export type RetailOrderCreateOrConnectWithoutProfileInput = {
@@ -621,6 +719,66 @@ export type RetailOrderScalarWhereInput = {
   order_date?: Prisma.DateTimeFilter<"RetailOrder"> | Date | string
   created_at?: Prisma.DateTimeFilter<"RetailOrder"> | Date | string
   updated_at?: Prisma.DateTimeFilter<"RetailOrder"> | Date | string
+  coupon_id?: Prisma.StringNullableFilter<"RetailOrder"> | string | null
+  discount_inr?: Prisma.DecimalFilter<"RetailOrder"> | runtime.Decimal | runtime.DecimalJsLike | number | string
+}
+
+export type RetailOrderCreateWithoutCouponInput = {
+  id?: string
+  customer_name: string
+  customer_email: string
+  items: Prisma.JsonNullValueInput | runtime.InputJsonValue
+  total: runtime.Decimal | runtime.DecimalJsLike | number | string
+  status?: string
+  payment_method?: string
+  shipping_address?: string | null
+  order_date?: Date | string
+  created_at?: Date | string
+  updated_at?: Date | string
+  discount_inr?: runtime.Decimal | runtime.DecimalJsLike | number | string
+  profile?: Prisma.ProfileCreateNestedOneWithoutRetail_ordersInput
+}
+
+export type RetailOrderUncheckedCreateWithoutCouponInput = {
+  id?: string
+  user_id?: string | null
+  customer_name: string
+  customer_email: string
+  items: Prisma.JsonNullValueInput | runtime.InputJsonValue
+  total: runtime.Decimal | runtime.DecimalJsLike | number | string
+  status?: string
+  payment_method?: string
+  shipping_address?: string | null
+  order_date?: Date | string
+  created_at?: Date | string
+  updated_at?: Date | string
+  discount_inr?: runtime.Decimal | runtime.DecimalJsLike | number | string
+}
+
+export type RetailOrderCreateOrConnectWithoutCouponInput = {
+  where: Prisma.RetailOrderWhereUniqueInput
+  create: Prisma.XOR<Prisma.RetailOrderCreateWithoutCouponInput, Prisma.RetailOrderUncheckedCreateWithoutCouponInput>
+}
+
+export type RetailOrderCreateManyCouponInputEnvelope = {
+  data: Prisma.RetailOrderCreateManyCouponInput | Prisma.RetailOrderCreateManyCouponInput[]
+  skipDuplicates?: boolean
+}
+
+export type RetailOrderUpsertWithWhereUniqueWithoutCouponInput = {
+  where: Prisma.RetailOrderWhereUniqueInput
+  update: Prisma.XOR<Prisma.RetailOrderUpdateWithoutCouponInput, Prisma.RetailOrderUncheckedUpdateWithoutCouponInput>
+  create: Prisma.XOR<Prisma.RetailOrderCreateWithoutCouponInput, Prisma.RetailOrderUncheckedCreateWithoutCouponInput>
+}
+
+export type RetailOrderUpdateWithWhereUniqueWithoutCouponInput = {
+  where: Prisma.RetailOrderWhereUniqueInput
+  data: Prisma.XOR<Prisma.RetailOrderUpdateWithoutCouponInput, Prisma.RetailOrderUncheckedUpdateWithoutCouponInput>
+}
+
+export type RetailOrderUpdateManyWithWhereWithoutCouponInput = {
+  where: Prisma.RetailOrderScalarWhereInput
+  data: Prisma.XOR<Prisma.RetailOrderUpdateManyMutationInput, Prisma.RetailOrderUncheckedUpdateManyWithoutCouponInput>
 }
 
 export type RetailOrderCreateManyProfileInput = {
@@ -635,6 +793,8 @@ export type RetailOrderCreateManyProfileInput = {
   order_date?: Date | string
   created_at?: Date | string
   updated_at?: Date | string
+  coupon_id?: string | null
+  discount_inr?: runtime.Decimal | runtime.DecimalJsLike | number | string
 }
 
 export type RetailOrderUpdateWithoutProfileInput = {
@@ -649,6 +809,8 @@ export type RetailOrderUpdateWithoutProfileInput = {
   order_date?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   created_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updated_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  discount_inr?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
+  coupon?: Prisma.CouponUpdateOneWithoutRetail_ordersNestedInput
 }
 
 export type RetailOrderUncheckedUpdateWithoutProfileInput = {
@@ -663,6 +825,8 @@ export type RetailOrderUncheckedUpdateWithoutProfileInput = {
   order_date?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   created_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updated_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  coupon_id?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  discount_inr?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
 }
 
 export type RetailOrderUncheckedUpdateManyWithoutProfileInput = {
@@ -677,6 +841,72 @@ export type RetailOrderUncheckedUpdateManyWithoutProfileInput = {
   order_date?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   created_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updated_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  coupon_id?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  discount_inr?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
+}
+
+export type RetailOrderCreateManyCouponInput = {
+  id?: string
+  user_id?: string | null
+  customer_name: string
+  customer_email: string
+  items: Prisma.JsonNullValueInput | runtime.InputJsonValue
+  total: runtime.Decimal | runtime.DecimalJsLike | number | string
+  status?: string
+  payment_method?: string
+  shipping_address?: string | null
+  order_date?: Date | string
+  created_at?: Date | string
+  updated_at?: Date | string
+  discount_inr?: runtime.Decimal | runtime.DecimalJsLike | number | string
+}
+
+export type RetailOrderUpdateWithoutCouponInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  customer_name?: Prisma.StringFieldUpdateOperationsInput | string
+  customer_email?: Prisma.StringFieldUpdateOperationsInput | string
+  items?: Prisma.JsonNullValueInput | runtime.InputJsonValue
+  total?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
+  status?: Prisma.StringFieldUpdateOperationsInput | string
+  payment_method?: Prisma.StringFieldUpdateOperationsInput | string
+  shipping_address?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  order_date?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  created_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updated_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  discount_inr?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
+  profile?: Prisma.ProfileUpdateOneWithoutRetail_ordersNestedInput
+}
+
+export type RetailOrderUncheckedUpdateWithoutCouponInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  user_id?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  customer_name?: Prisma.StringFieldUpdateOperationsInput | string
+  customer_email?: Prisma.StringFieldUpdateOperationsInput | string
+  items?: Prisma.JsonNullValueInput | runtime.InputJsonValue
+  total?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
+  status?: Prisma.StringFieldUpdateOperationsInput | string
+  payment_method?: Prisma.StringFieldUpdateOperationsInput | string
+  shipping_address?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  order_date?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  created_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updated_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  discount_inr?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
+}
+
+export type RetailOrderUncheckedUpdateManyWithoutCouponInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  user_id?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  customer_name?: Prisma.StringFieldUpdateOperationsInput | string
+  customer_email?: Prisma.StringFieldUpdateOperationsInput | string
+  items?: Prisma.JsonNullValueInput | runtime.InputJsonValue
+  total?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
+  status?: Prisma.StringFieldUpdateOperationsInput | string
+  payment_method?: Prisma.StringFieldUpdateOperationsInput | string
+  shipping_address?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  order_date?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  created_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updated_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  discount_inr?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
 }
 
 
@@ -694,7 +924,10 @@ export type RetailOrderSelect<ExtArgs extends runtime.Types.Extensions.InternalA
   order_date?: boolean
   created_at?: boolean
   updated_at?: boolean
+  coupon_id?: boolean
+  discount_inr?: boolean
   profile?: boolean | Prisma.RetailOrder$profileArgs<ExtArgs>
+  coupon?: boolean | Prisma.RetailOrder$couponArgs<ExtArgs>
 }, ExtArgs["result"]["retailOrder"]>
 
 export type RetailOrderSelectCreateManyAndReturn<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetSelect<{
@@ -710,7 +943,10 @@ export type RetailOrderSelectCreateManyAndReturn<ExtArgs extends runtime.Types.E
   order_date?: boolean
   created_at?: boolean
   updated_at?: boolean
+  coupon_id?: boolean
+  discount_inr?: boolean
   profile?: boolean | Prisma.RetailOrder$profileArgs<ExtArgs>
+  coupon?: boolean | Prisma.RetailOrder$couponArgs<ExtArgs>
 }, ExtArgs["result"]["retailOrder"]>
 
 export type RetailOrderSelectUpdateManyAndReturn<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetSelect<{
@@ -726,7 +962,10 @@ export type RetailOrderSelectUpdateManyAndReturn<ExtArgs extends runtime.Types.E
   order_date?: boolean
   created_at?: boolean
   updated_at?: boolean
+  coupon_id?: boolean
+  discount_inr?: boolean
   profile?: boolean | Prisma.RetailOrder$profileArgs<ExtArgs>
+  coupon?: boolean | Prisma.RetailOrder$couponArgs<ExtArgs>
 }, ExtArgs["result"]["retailOrder"]>
 
 export type RetailOrderSelectScalar = {
@@ -742,23 +981,29 @@ export type RetailOrderSelectScalar = {
   order_date?: boolean
   created_at?: boolean
   updated_at?: boolean
+  coupon_id?: boolean
+  discount_inr?: boolean
 }
 
-export type RetailOrderOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "user_id" | "customer_name" | "customer_email" | "items" | "total" | "status" | "payment_method" | "shipping_address" | "order_date" | "created_at" | "updated_at", ExtArgs["result"]["retailOrder"]>
+export type RetailOrderOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "user_id" | "customer_name" | "customer_email" | "items" | "total" | "status" | "payment_method" | "shipping_address" | "order_date" | "created_at" | "updated_at" | "coupon_id" | "discount_inr", ExtArgs["result"]["retailOrder"]>
 export type RetailOrderInclude<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   profile?: boolean | Prisma.RetailOrder$profileArgs<ExtArgs>
+  coupon?: boolean | Prisma.RetailOrder$couponArgs<ExtArgs>
 }
 export type RetailOrderIncludeCreateManyAndReturn<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   profile?: boolean | Prisma.RetailOrder$profileArgs<ExtArgs>
+  coupon?: boolean | Prisma.RetailOrder$couponArgs<ExtArgs>
 }
 export type RetailOrderIncludeUpdateManyAndReturn<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   profile?: boolean | Prisma.RetailOrder$profileArgs<ExtArgs>
+  coupon?: boolean | Prisma.RetailOrder$couponArgs<ExtArgs>
 }
 
 export type $RetailOrderPayload<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   name: "RetailOrder"
   objects: {
     profile: Prisma.$ProfilePayload<ExtArgs> | null
+    coupon: Prisma.$CouponPayload<ExtArgs> | null
   }
   scalars: runtime.Types.Extensions.GetPayloadResult<{
     id: string
@@ -773,6 +1018,8 @@ export type $RetailOrderPayload<ExtArgs extends runtime.Types.Extensions.Interna
     order_date: Date
     created_at: Date
     updated_at: Date
+    coupon_id: string | null
+    discount_inr: runtime.Decimal
   }, ExtArgs["result"]["retailOrder"]>
   composites: {}
 }
@@ -1168,6 +1415,7 @@ readonly fields: RetailOrderFieldRefs;
 export interface Prisma__RetailOrderClient<T, Null = never, ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs, GlobalOmitOptions = {}> extends Prisma.PrismaPromise<T> {
   readonly [Symbol.toStringTag]: "PrismaPromise"
   profile<T extends Prisma.RetailOrder$profileArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.RetailOrder$profileArgs<ExtArgs>>): Prisma.Prisma__ProfileClient<runtime.Types.Result.GetResult<Prisma.$ProfilePayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | null, null, ExtArgs, GlobalOmitOptions>
+  coupon<T extends Prisma.RetailOrder$couponArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.RetailOrder$couponArgs<ExtArgs>>): Prisma.Prisma__CouponClient<runtime.Types.Result.GetResult<Prisma.$CouponPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | null, null, ExtArgs, GlobalOmitOptions>
   /**
    * Attaches callbacks for the resolution and/or rejection of the Promise.
    * @param onfulfilled The callback to execute when the Promise is resolved.
@@ -1209,6 +1457,8 @@ export interface RetailOrderFieldRefs {
   readonly order_date: Prisma.FieldRef<"RetailOrder", 'DateTime'>
   readonly created_at: Prisma.FieldRef<"RetailOrder", 'DateTime'>
   readonly updated_at: Prisma.FieldRef<"RetailOrder", 'DateTime'>
+  readonly coupon_id: Prisma.FieldRef<"RetailOrder", 'String'>
+  readonly discount_inr: Prisma.FieldRef<"RetailOrder", 'Decimal'>
 }
     
 
@@ -1626,6 +1876,25 @@ export type RetailOrder$profileArgs<ExtArgs extends runtime.Types.Extensions.Int
    */
   include?: Prisma.ProfileInclude<ExtArgs> | null
   where?: Prisma.ProfileWhereInput
+}
+
+/**
+ * RetailOrder.coupon
+ */
+export type RetailOrder$couponArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  /**
+   * Select specific fields to fetch from the Coupon
+   */
+  select?: Prisma.CouponSelect<ExtArgs> | null
+  /**
+   * Omit specific fields from the Coupon
+   */
+  omit?: Prisma.CouponOmit<ExtArgs> | null
+  /**
+   * Choose, which related nodes to fetch as well
+   */
+  include?: Prisma.CouponInclude<ExtArgs> | null
+  where?: Prisma.CouponWhereInput
 }
 
 /**

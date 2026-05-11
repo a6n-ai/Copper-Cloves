@@ -23,6 +23,16 @@ export * from './enums';
  */
 export type Profile = Prisma.ProfileModel
 /**
+ * Model Coupon
+ * Promotional codes: food (café), ecommerce (boutique), class_pass, or studio_pass.
+ */
+export type Coupon = Prisma.CouponModel
+/**
+ * Model CouponRedemption
+ * 
+ */
+export type CouponRedemption = Prisma.CouponRedemptionModel
+/**
  * Model RetailProduct
  * 
  */
@@ -82,6 +92,11 @@ export type CafeOrder = Prisma.CafeOrderModel
  * 
  */
 export type MealSubscription = Prisma.MealSubscriptionModel
+/**
+ * Model MealSubscriptionInquiry
+ * Public waitlist / contact form submissions from the meal subscription page.
+ */
+export type MealSubscriptionInquiry = Prisma.MealSubscriptionInquiryModel
 /**
  * Model UserStats
  * 
