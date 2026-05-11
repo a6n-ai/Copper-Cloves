@@ -1,6 +1,6 @@
 import { config } from "dotenv";
 import { resolve } from "node:path";
-import { defineConfig, env } from "prisma/config";
+import { defineConfig } from "prisma/config";
 
 /* Load .env then .env.local so `npx prisma` picks up docker credentials from files. */
 const root = process.cwd();
@@ -20,12 +20,16 @@ if (studioUrl) {
   process.env.DATABASE_URL = preservedDatabaseUrl;
 }
 
+const databaseUrl =
+  process.env.DATABASE_URL?.trim() ||
+  "postgresql://prisma:prisma@127.0.0.1:5432/prisma?schema=public";
+
 export default defineConfig({
   schema: "prisma/schema.prisma",
   migrations: {
     path: "prisma/migrations",
   },
   datasource: {
-    url: env("DATABASE_URL"),
+    url: databaseUrl,
   },
 });

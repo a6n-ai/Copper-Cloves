@@ -7,7 +7,6 @@ frontend:
         - npm ci --no-audit --no-fund
     build:
       commands:
-        - npx prisma db push --accept-data-loss
         - npm run build
   artifacts:
     baseDirectory: .next
