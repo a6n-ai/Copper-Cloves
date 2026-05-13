@@ -11,6 +11,7 @@ import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Shield, AlertCircle, CheckCircle2 } from "lucide-react";
 import { SEO } from "@/components/SEO";
+import { normalizeLoginEmail } from "@/lib/loginEmail";
 
 const adminLoginSchema = z.object({
   username: z.string().min(3, "Username must be at least 3 characters"),
@@ -38,7 +39,7 @@ export default function AdminLogin() {
       setLoading(true);
       setError("");
       const result = await signIn("credentials", {
-        email: data.username.trim(),
+        email: normalizeLoginEmail(data.username),
         password: data.password,
         redirect: false,
       });

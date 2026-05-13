@@ -1,5 +1,6 @@
 import { signIn, signOut, getSession } from "next-auth/react";
 import { errorMessageFromResponse } from "@/lib/parse-fetch-json";
+import { normalizeLoginEmail } from "@/lib/loginEmail";
 
 export interface AuthUser {
   id: string;
@@ -34,7 +35,7 @@ export const authService = {
     password: string
   ): Promise<{ user: AuthUser | null; error: AuthError | null }> {
     const result = await signIn("credentials", {
-      email,
+      email: normalizeLoginEmail(email),
       password,
       redirect: false,
     });

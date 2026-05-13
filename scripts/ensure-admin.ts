@@ -5,6 +5,7 @@
 import { config } from "dotenv";
 import { resolve } from "node:path";
 import bcrypt from "bcryptjs";
+import { normalizeLoginEmail } from "../src/lib/loginEmail";
 
 config({ path: resolve(process.cwd(), ".env") });
 config({ path: resolve(process.cwd(), ".env.local"), override: true });
@@ -15,7 +16,7 @@ const DEFAULT_ADMIN_PASSWORD = "StudioAdmin!2026";
 async function main() {
   const prisma = (await import("../src/lib/prisma")).default;
 
-  const email = (process.env.ADMIN_EMAIL || DEFAULT_ADMIN_EMAIL).trim().toLowerCase();
+  const email = normalizeLoginEmail(process.env.ADMIN_EMAIL || DEFAULT_ADMIN_EMAIL);
   const password = process.env.ADMIN_PASSWORD || DEFAULT_ADMIN_PASSWORD;
   const hash = await bcrypt.hash(password, 12);
 

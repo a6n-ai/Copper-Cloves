@@ -2,6 +2,7 @@ import type { NextApiRequest, NextApiResponse } from "next";
 import { timingSafeEqual } from "node:crypto";
 import bcrypt from "bcryptjs";
 import prisma from "@/lib/prisma";
+import { normalizeLoginEmail } from "@/lib/loginEmail";
 
 /**
  * One-time (or rare) admin creation on live hosts without local psql.
@@ -47,7 +48,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     return res.status(401).json({ error: "Unauthorized" });
   }
 
-  const email = (process.env.ADMIN_EMAIL || "").trim().toLowerCase();
+  const email = normalizeLoginEmail(process.env.ADMIN_EMAIL || "");
   const password = process.env.ADMIN_PASSWORD || "";
 
   if (!email || !password) {
