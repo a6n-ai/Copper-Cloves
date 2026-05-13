@@ -1,4 +1,5 @@
 import { Client } from "pg";
+import fs from "fs";
 
 function resolveDatabaseUrl(env = process.env) {
   const studioUrl = env.STUDIO_DATABASE_URL?.trim();
@@ -69,11 +70,26 @@ function stripPgSslUrlOptions(connectionString) {
 async function main() {
   const connectionString = resolveDatabaseUrl();
   const useSsl = shouldEnablePgSsl(connectionString);
-  // For build check, disable SSL to avoid certificate issues
-  const sslConfig = false; // Force no SSL
+  let sslConfig = false;
+  
+  if (useSsl) {
+    const caPath = process.env.RDS_CA_PATH;
+    if (caPath && fs.existsSync(caPath)) {
+      try {
+        const ca = fs.readFileSync(caPath, 'utf-8');
+        sslConfig = { ca: ca, rejectUnauthorized: true };
+      } catch (err) {
+        console.warn('Failed to read CA certificate, falling back to rejectUnauthorized: false');
+        sslConfig = { rejectUnauthorized: false };
+      }
+    } else {
+      sslConfig = { rejectUnauthorized: false };
+    }
+  }
+  
   const client = new Client({
     connectionString: stripPgSslUrlOptions(connectionString),
-    ssl: sslConfig,
+    ...(sslConfig ? { ssl: sslConfig } : {}),
   });
 
   await client.connect();

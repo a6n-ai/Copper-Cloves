@@ -18,7 +18,8 @@ frontend:
         - rm -rf node_modules
         - npm ci --no-audit --no-fund
         - test -n "$STUDIO_DATABASE_URL" -o -n "$DATABASE_URL" || (echo "Missing STUDIO_DATABASE_URL or DATABASE_URL in Amplify environment variables" && exit 1)
-        - node scripts/check-db-connection.mjs
+        - curl -o /tmp/rds-ca.pem https://truststore.pki.rds.amazonaws.com/global/global-bundle.pem
+        - RDS_CA_PATH=/tmp/rds-ca.pem node scripts/check-db-connection.mjs
     build:
       commands:
         - |
