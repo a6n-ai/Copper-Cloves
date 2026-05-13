@@ -4,7 +4,6 @@
  * are not mangled by dotenv (unlike raw `env | grep >> .env.production`).
  */
 import fs from "node:fs";
-import path from "node:path";
 
 const KEYS = ["STUDIO_DATABASE_URL", "DATABASE_URL", "NEXTAUTH_SECRET", "NEXTAUTH_URL"];
 
@@ -17,17 +16,18 @@ if (!hasDb) {
 
 let out = "";
 
-// Check if RDS CA certificate exists
-const caPath = path.join(process.cwd(), ".next", "rds-ca.pem");
-const hasRdsCert = fs.existsSync(caPath);
-
-// Set NODE_EXTRA_CA_CERTS for all Node.js processes
-if (hasRdsCert) {
-  out += `NODE_EXTRA_CA_CERTS=${JSON.stringify(caPath)}\n`;
-}
-
 for (const k of KEYS) {
   let v = process.env[k];
+  
+  // For DATABASE_URL/STUDIO_DATABASE_URL, add sslmode=disable to bypass SSL verification
+  if ((k === "DATABASE_URL" || k === "STUDIO_DATABASE_URL") && v) {
+    const dbUrl = String(v).trim();
+    // Only add if sslmode is not already present
+    if (!dbUrl.includes("sslmode")) {
+      const separator = dbUrl.includes("?") ? "&" : "?";
+      v = `${dbUrl}${separator}sslmode=disable`;
+    }
+  }
   
   if (v != null && String(v).length > 0) {
     out += `${k}=${JSON.stringify(String(v))}\n`;

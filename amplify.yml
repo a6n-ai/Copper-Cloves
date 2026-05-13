@@ -18,8 +18,7 @@ frontend:
         - rm -rf node_modules
         - npm ci --no-audit --no-fund
         - test -n "$STUDIO_DATABASE_URL" -o -n "$DATABASE_URL" || (echo "Missing STUDIO_DATABASE_URL or DATABASE_URL in Amplify environment variables" && exit 1)
-        - curl -o /tmp/rds-ca.pem https://truststore.pki.rds.amazonaws.com/global/global-bundle.pem
-        - RDS_CA_PATH=/tmp/rds-ca.pem node scripts/check-db-connection.mjs
+        - node scripts/check-db-connection.mjs
     build:
       commands:
         - |
@@ -28,8 +27,6 @@ frontend:
           npm run build
           # Amplify artifact is only `.next/`; copy env into it so runtime loadEnvConfig + pg see DB URL.
           if [ -f .env.production ]; then cp .env.production .next/.env.production; fi
-          # Copy RDS CA certificate into .next for runtime use
-          if [ -f /tmp/rds-ca.pem ]; then cp /tmp/rds-ca.pem .next/rds-ca.pem; fi
   artifacts:
     baseDirectory: .next
     files:
