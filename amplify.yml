@@ -11,6 +11,8 @@
 #   ADMIN_SETUP_SECRET   — long random string; remove after use
 #   ADMIN_EMAIL, ADMIN_PASSWORD — admin login; remove ADMIN_PASSWORD after use
 #
+# Email (CRM + notifications): either Gmail SMTP or Resend (see .env EMAIL_* / RESEND_*)
+#
 # Do not commit secrets; this file only runs during Amplify build.
 
 version: 1

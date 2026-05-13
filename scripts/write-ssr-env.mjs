@@ -14,6 +14,18 @@ const KEYS = [
   "ADMIN_SETUP_SECRET",
   "ADMIN_EMAIL",
   "ADMIN_PASSWORD",
+  // Email: Gmail SMTP (EMAIL_USER + EMAIL_PASS app password) preferred when set; else Resend.
+  "EMAIL_USER",
+  "EMAIL_PASS",
+  "EMAIL_FROM",
+  "RESEND_API_KEY",
+  // WhatsApp / other notifications (optional)
+  "WHATSAPP_ACCESS_TOKEN",
+  "WHATSAPP_PHONE_NUMBER_ID",
+  "WHATSAPP_PACKAGE_TEMPLATE_NAME",
+  "WHATSAPP_TEMPLATE_LANGUAGE",
+  "WHATSAPP_TEMPLATE_BODY_VARIABLES",
+  "WHATSAPP_DEFAULT_COUNTRY_CODE",
 ];
 
 const hasDb =

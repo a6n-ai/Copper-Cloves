@@ -1,6 +1,6 @@
 import prisma from "@/lib/prisma";
 import { normalizePhoneDigitsForWhatsApp } from "@/lib/phone/normalizeForWhatsApp";
-import { sendHtmlEmailViaResend } from "@/lib/notifications/resendEmail";
+import { sendHtmlEmail } from "@/lib/notifications/sendEmail";
 import { sendWhatsAppTemplateMessage } from "@/lib/notifications/whatsappCloud";
 
 function moneyInr(amount: unknown): string {
@@ -63,7 +63,7 @@ export async function notifyPackagePurchase(args: {
     <p>See you in the studio.</p>
   `;
 
-  const emailResult = await sendHtmlEmailViaResend({
+  const emailResult = await sendHtmlEmail({
     to: profile.email,
     subject: `Purchase confirmed — ${args.packageType.name}`,
     html: emailHtml,

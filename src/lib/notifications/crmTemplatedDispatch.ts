@@ -1,5 +1,5 @@
 import prisma from "@/lib/prisma";
-import { sendHtmlEmailViaResend } from "@/lib/notifications/resendEmail";
+import { sendHtmlEmail } from "@/lib/notifications/sendEmail";
 
 /**
  * Replace `{{Variable_Name}}` placeholders (CRM Template Architect style).
@@ -31,7 +31,7 @@ export function crmBodyToEmailHtml(body: string): string {
   return `<p style="margin:0 0 12px;">${escaped}</p>`;
 }
 
-function mapSendResult(result: Awaited<ReturnType<typeof sendHtmlEmailViaResend>>): {
+function mapSendResult(result: Awaited<ReturnType<typeof sendHtmlEmail>>): {
   status: string;
   err: string | null;
 } {
@@ -92,7 +92,7 @@ export async function dispatchCrmEmailTriggers(options: {
     const bodyInterpolated = interpolateCrmTemplate(bodyRaw, merged);
     const html = crmBodyToEmailHtml(bodyInterpolated);
 
-    const result = await sendHtmlEmailViaResend({
+    const result = await sendHtmlEmail({
       to: profile.email,
       subject,
       html,
