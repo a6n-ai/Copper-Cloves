@@ -18,8 +18,7 @@ frontend:
         - rm -rf node_modules
         - npm ci --no-audit --no-fund
         - test -n "$STUDIO_DATABASE_URL" -o -n "$DATABASE_URL" || (echo "Missing STUDIO_DATABASE_URL or DATABASE_URL in Amplify environment variables" && exit 1)
-        - >
-          node -e "const { Client } = require('pg'); const url = process.env.STUDIO_DATABASE_URL || process.env.DATABASE_URL; const useSsl = /sslmode=require|sslmode=verify-ca|sslmode=verify-full|rds\.amazonaws\.com|neon\.tech|supabase\.co/i.test(url || ''); const c = new Client({ connectionString: url, ...(useSsl ? { ssl: { rejectUnauthorized: false } } : {}) }); c.connect().then(() => c.end()).then(() => console.log('Database connectivity check passed')).catch((e) => { console.error('Database connectivity check failed', e.message); process.exit(1); });"
+        - node scripts/check-db-connection.mjs
     build:
       commands:
         - |
