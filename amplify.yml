@@ -28,6 +28,8 @@ frontend:
           npm run build
           # Amplify artifact is only `.next/`; copy env into it so runtime loadEnvConfig + pg see DB URL.
           if [ -f .env.production ]; then cp .env.production .next/.env.production; fi
+          # Copy RDS CA certificate into .next for runtime use
+          if [ -f /tmp/rds-ca.pem ]; then cp /tmp/rds-ca.pem .next/rds-ca.pem; fi
   artifacts:
     baseDirectory: .next
     files:
