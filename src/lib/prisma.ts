@@ -43,19 +43,65 @@ function databaseUrl(): string {
 
 /** AWS RDS and many cloud Postgres hosts require TLS from app runners (Amplify, Vercel, etc.). */
 function normalizePostgresUrl(url: string): string {
-  const isRds = url.includes("rds.amazonaws.com") || url.includes("rds.amazonaws.com.cn");
-  if (!isRds) return url;
-  if (/[?&]sslmode=/i.test(url) || /[?&]ssl=true/i.test(url)) return url;
-  return `${url}${url.includes("?") ? "&" : "?"}sslmode=require`;
+  const trimmed = url.trim();
+  const isRds =
+    trimmed.includes("rds.amazonaws.com") || trimmed.includes("rds.amazonaws.com.cn");
+  let next = trimmed;
+  if (isRds) {
+    if (!/[?&]sslmode=/i.test(next) && !/[?&]ssl=true/i.test(next)) {
+      next = `${next}${next.includes("?") ? "&" : "?"}sslmode=require`;
+    }
+  }
+  return withLibpqSslCompatQuery(next);
+}
+
+/**
+ * pg-connection-string (used by `pg`) currently maps `sslmode=require|prefer|verify-ca` to full cert
+ * verification (like verify-full). That breaks many managed Postgres chains (P1011: self-signed
+ * certificate). libpq-compatible parsing restores standard semantics; see Node warning on deploy.
+ */
+const LIBPQ_ALIAS_SSLMODES = new Set(["require", "prefer", "verify-ca"]);
+
+function isLocalPostgresHost(connectionString: string): boolean {
+  try {
+    const host = new URL(connectionString).hostname.toLowerCase();
+    return host === "localhost" || host === "127.0.0.1" || host === "::1";
+  } catch {
+    return false;
+  }
+}
+
+function withLibpqSslCompatQuery(url: string): string {
+  if (isLocalPostgresHost(url)) return url;
+  try {
+    const parsed = new URL(url);
+    const mode = parsed.searchParams.get("sslmode")?.toLowerCase();
+    if (mode && LIBPQ_ALIAS_SSLMODES.has(mode) && !parsed.searchParams.has("uselibpqcompat")) {
+      parsed.searchParams.set("uselibpqcompat", "true");
+    }
+    return parsed.toString();
+  } catch {
+    return url;
+  }
 }
 
 function shouldEnableSsl(connectionString: string): boolean {
+  if (isLocalPostgresHost(connectionString)) return false;
   try {
     const parsed = new URL(connectionString);
     const sslMode = parsed.searchParams.get("sslmode")?.toLowerCase();
-    if (sslMode === "require" || sslMode === "verify-ca" || sslMode === "verify-full") {
+    if (sslMode === "disable") return false;
+    if (
+      sslMode === "require" ||
+      sslMode === "verify-ca" ||
+      sslMode === "verify-full" ||
+      sslMode === "prefer" ||
+      sslMode === "allow"
+    ) {
       return true;
     }
+
+    if (parsed.searchParams.get("ssl") === "true") return true;
 
     const host = parsed.hostname.toLowerCase();
     return (
@@ -68,13 +114,33 @@ function shouldEnableSsl(connectionString: string): boolean {
   }
 }
 
+/**
+ * `pg-connection-string` maps several `sslmode` values to full cert verification. Passing the same
+ * flags in the URL while also setting `Pool.ssl` can still yield P1011 on managed Postgres. When we
+ * negotiate TLS via `ssl: { rejectUnauthorized: false }`, drop ssl-related query params from the
+ * URL so the driver does not insist on verifying the chain.
+ */
+function poolConnectionString(fullUrl: string, useSsl: boolean): string {
+  if (!useSsl || isLocalPostgresHost(fullUrl)) return fullUrl;
+  try {
+    const parsed = new URL(fullUrl);
+    parsed.searchParams.delete("sslmode");
+    parsed.searchParams.delete("uselibpqcompat");
+    parsed.searchParams.delete("ssl");
+    return parsed.toString();
+  } catch {
+    return fullUrl;
+  }
+}
+
 function createPrismaClient() {
   const connectionString = databaseUrl();
   const useSsl = shouldEnableSsl(connectionString);
+  const poolUrl = poolConnectionString(connectionString, useSsl);
 
   if (!globalForPrisma.pgPool) {
     globalForPrisma.pgPool = new Pool({
-      connectionString,
+      connectionString: poolUrl,
       max: 10,
       connectionTimeoutMillis: 15_000,
       ...(useSsl ? { ssl: { rejectUnauthorized: false } } : {}),
