@@ -16,27 +16,55 @@ export const authOptions: NextAuthOptions = {
         password: { label: "Password", type: "password" },
       },
       async authorize(credentials) {
-        if (!credentials?.email || !credentials?.password) return null;
+        if (!credentials?.email || !credentials?.password) {
+          console.warn("[next-auth] credentials sign-in rejected: missing email or password");
+          return null;
+        }
 
         const email = normalizeLoginEmail(credentials.email);
-        const profile = await prisma.profile.findUnique({
-          where: { email },
-        });
 
-        if (!profile || !profile.hashedPassword) return null;
+        try {
+          const profile = await prisma.profile.findUnique({
+            where: { email },
+          });
 
-        const isValid = await bcrypt.compare(
-          credentials.password,
-          profile.hashedPassword
-        );
-        if (!isValid) return null;
+          if (!profile) {
+            console.warn(
+              "[next-auth] CredentialsSignin: no profile row (run bootstrap-admin or ensure-admin for this email)",
+              { email }
+            );
+            return null;
+          }
 
-        return {
-          id: profile.id,
-          email: profile.email,
-          name: profile.full_name,
-          role: profile.role,
-        };
+          if (!profile.hashedPassword) {
+            console.warn("[next-auth] CredentialsSignin: profile has no hashedPassword", {
+              email,
+            });
+            return null;
+          }
+
+          const isValid = await bcrypt.compare(
+            credentials.password,
+            profile.hashedPassword
+          );
+          if (!isValid) {
+            console.warn(
+              "[next-auth] CredentialsSignin: password does not match stored hash",
+              { email }
+            );
+            return null;
+          }
+
+          return {
+            id: profile.id,
+            email: profile.email,
+            name: profile.full_name,
+            role: profile.role,
+          };
+        } catch (e) {
+          console.error("[next-auth] authorize error (DB or unexpected)", e);
+          return null;
+        }
       },
     }),
   ],
