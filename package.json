@@ -8,7 +8,7 @@
     "build": "prisma generate && next build",
     "start": "next start",
     "lint": "next lint",
-    "postinstall": "prisma generate",
+    "postinstall": "if [ -z \"$DATABASE_URL\" ] && [ -z \"$STUDIO_DATABASE_URL\" ]; then echo 'Skipping prisma generate during CI/build (no DATABASE_URL set yet)'; else prisma generate; fi",
     "db:generate": "prisma generate",
     "db:push": "prisma db push",
     "db:studio": "prisma studio",
