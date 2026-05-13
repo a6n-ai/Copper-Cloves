@@ -17,18 +17,9 @@ if (!hasDb) {
 let out = "";
 
 for (const k of KEYS) {
-  let v = process.env[k];
-  
-  // For DATABASE_URL/STUDIO_DATABASE_URL, add sslmode=disable to bypass SSL verification
-  if ((k === "DATABASE_URL" || k === "STUDIO_DATABASE_URL") && v) {
-    const dbUrl = String(v).trim();
-    // Only add if sslmode is not already present
-    if (!dbUrl.includes("sslmode")) {
-      const separator = dbUrl.includes("?") ? "&" : "?";
-      v = `${dbUrl}${separator}sslmode=disable`;
-    }
-  }
-  
+  const v = process.env[k];
+  // DB URLs are passed through unchanged; `src/lib/prisma.ts` normalizes TLS for RDS at runtime.
+
   if (v != null && String(v).length > 0) {
     out += `${k}=${JSON.stringify(String(v))}\n`;
   }

@@ -22,66 +22,92 @@ function resolveDatabaseUrl(env = process.env) {
   return parsed.toString();
 }
 
-function shouldEnablePgSsl(connectionString) {
+function isLocalPostgresHost(connectionString) {
   try {
-    const parsed = new URL(connectionString);
-    const sslMode = parsed.searchParams.get("sslmode")?.toLowerCase();
-    const ssl = parsed.searchParams.get("ssl")?.toLowerCase();
-
-    if (sslMode === "disable" || ssl === "false" || ssl === "0") {
-      return false;
-    }
-
-    if (
-      sslMode === "require" ||
-      sslMode === "verify-ca" ||
-      sslMode === "verify-full" ||
-      ssl === "true" ||
-      ssl === "1"
-    ) {
-      return true;
-    }
-
-    const host = parsed.hostname.toLowerCase();
-    return [
-      "rds.amazonaws.com",
-      "neon.tech",
-      "supabase.co",
-      "railway.app",
-      "render.com",
-      "aivencloud.com",
-      "tembo.io",
-    ].some((suffix) => host === suffix || host.endsWith(`.${suffix}`));
+    const host = new URL(connectionString).hostname.toLowerCase();
+    return host === "localhost" || host === "127.0.0.1" || host === "::1";
   } catch {
     return false;
   }
 }
 
-function stripPgSslUrlOptions(connectionString) {
-  const parsed = new URL(connectionString.trim());
-  for (const key of ["sslmode", "ssl", "sslcert", "sslkey", "sslrootcert", "sslpassword"]) {
-    parsed.searchParams.delete(key);
+/** Match `src/lib/prisma.ts` — RDS / managed hosts need TLS; locals stay plain. */
+function normalizePostgresUrl(url) {
+  const trimmed = url.trim();
+  const isRds =
+    trimmed.includes("rds.amazonaws.com") || trimmed.includes("rds.amazonaws.com.cn");
+  let next = trimmed;
+  if (isRds) {
+    if (!/[?&]sslmode=/i.test(next) && !/[?&]ssl=true/i.test(next)) {
+      next = `${next}${next.includes("?") ? "&" : "?"}sslmode=require`;
+    }
   }
+  if (isLocalPostgresHost(next)) return next;
+  try {
+    const parsed = new URL(next);
+    const mode = parsed.searchParams.get("sslmode")?.toLowerCase();
+    const libpqAliases = new Set(["require", "prefer", "verify-ca"]);
+    if (mode && libpqAliases.has(mode) && !parsed.searchParams.has("uselibpqcompat")) {
+      parsed.searchParams.set("uselibpqcompat", "true");
+    }
+    return parsed.toString();
+  } catch {
+    return next;
+  }
+}
 
-  return parsed.toString();
+function shouldEnableSsl(connectionString) {
+  if (isLocalPostgresHost(connectionString)) return false;
+  try {
+    const parsed = new URL(connectionString);
+    const sslMode = parsed.searchParams.get("sslmode")?.toLowerCase();
+    if (sslMode === "disable") return false;
+    if (
+      sslMode === "require" ||
+      sslMode === "verify-ca" ||
+      sslMode === "verify-full" ||
+      sslMode === "prefer" ||
+      sslMode === "allow"
+    ) {
+      return true;
+    }
+    if (parsed.searchParams.get("ssl") === "true") return true;
+
+    const host = parsed.hostname.toLowerCase();
+    return (
+      host.includes("rds.amazonaws.com") ||
+      host.includes("neon.tech") ||
+      host.includes("supabase.co")
+    );
+  } catch {
+    return false;
+  }
+}
+
+/** Drop URL ssl flags so `pg` does not force verify-full; TLS via `ssl` option (same as prisma pool). */
+function poolConnectionString(fullUrl, useSsl) {
+  if (!useSsl || isLocalPostgresHost(fullUrl)) return fullUrl;
+  try {
+    const parsed = new URL(fullUrl);
+    parsed.searchParams.delete("sslmode");
+    parsed.searchParams.delete("uselibpqcompat");
+    parsed.searchParams.delete("ssl");
+    return parsed.toString();
+  } catch {
+    return fullUrl;
+  }
 }
 
 async function main() {
-  let connectionString = resolveDatabaseUrl();
-  
-  // Add sslmode=disable to bypass SSL verification for build check
-  // (Runtime will also add this via write-ssr-env.mjs)
-  if (!connectionString.includes("sslmode")) {
-    const separator = connectionString.includes("?") ? "&" : "?";
-    connectionString = `${connectionString}${separator}sslmode=disable`;
-  }
-  
-  // Remove SSL parameters from connection string
-  connectionString = stripPgSslUrlOptions(connectionString);
-  
+  const raw = resolveDatabaseUrl();
+  const connectionString = normalizePostgresUrl(raw);
+  const useSsl = shouldEnableSsl(connectionString);
+  const connectUrl = poolConnectionString(connectionString, useSsl);
+
   const client = new Client({
-    connectionString: connectionString,
-    ssl: false,
+    connectionString: connectUrl,
+    connectionTimeoutMillis: 15_000,
+    ...(useSsl ? { ssl: { rejectUnauthorized: false } } : {}),
   });
 
   await client.connect();
