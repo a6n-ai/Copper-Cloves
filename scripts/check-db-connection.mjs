@@ -67,12 +67,20 @@ function stripPgSslUrlOptions(connectionString) {
 }
 
 async function main() {
-  const connectionString = resolveDatabaseUrl();
+  let connectionString = resolveDatabaseUrl();
   
-  // For build-time check, disable SSL to avoid certificate issues
-  // Runtime will use sslmode from the connection string
+  // Add sslmode=disable to bypass SSL verification for build check
+  // (Runtime will also add this via write-ssr-env.mjs)
+  if (!connectionString.includes("sslmode")) {
+    const separator = connectionString.includes("?") ? "&" : "?";
+    connectionString = `${connectionString}${separator}sslmode=disable`;
+  }
+  
+  // Remove SSL parameters from connection string
+  connectionString = stripPgSslUrlOptions(connectionString);
+  
   const client = new Client({
-    connectionString: stripPgSslUrlOptions(connectionString),
+    connectionString: connectionString,
     ssl: false,
   });
 
