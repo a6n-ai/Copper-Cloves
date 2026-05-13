@@ -198,7 +198,7 @@ export function Footer() {
               © {currentYear} The Studio by Copper + Cloves. All rights reserved.
             </p>
             <div className="flex items-center gap-6">
-              <Link href="/privacy" className="font-body text-white/60 hover:text-white text-sm transition-colors duration-300">
+              <Link href="/policy" className="font-body text-white/60 hover:text-white text-sm transition-colors duration-300">
                 Privacy Policy
               </Link>
               <Link href="/terms" className="font-body text-white/60 hover:text-white text-sm transition-colors duration-300">
