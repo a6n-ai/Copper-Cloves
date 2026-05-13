@@ -1,6 +1,7 @@
 import { useRef, useState, useEffect } from "react";
 import { ChevronLeft, ChevronRight, X, Award, Calendar, Heart, Share2, Facebook, Twitter, Linkedin, MessageCircle } from "lucide-react";
 import Link from "next/link";
+import { supportsResponsivePicture } from "@/lib/imageDelivery";
 
 interface Instructor {
   id?: string;
@@ -18,6 +19,88 @@ interface Instructor {
   social_twitter?: string;
   social_linkedin?: string;
   social_whatsapp?: string;
+}
+
+function instructorObjectPositionClass(name: string): string {
+  return name === "Shruti" || name === "Siddhartha" ? "object-right-top" : "object-top";
+}
+
+function InstructorCarouselPhoto({
+  src,
+  name,
+  index,
+  onLoad,
+  onError,
+}: {
+  src: string;
+  name: string;
+  index: number;
+  onLoad: () => void;
+  onError: () => void;
+}) {
+  const pos = instructorObjectPositionClass(name);
+  const imgClass = `w-full h-full object-cover transition-all duration-700 ${pos}`;
+
+  if (supportsResponsivePicture(src)) {
+    return (
+      <picture>
+        <source
+          srcSet={`${src}?format=webp&width=320 320w, ${src}?format=webp&width=640 640w, ${src}?format=webp&width=1200 1200w`}
+          sizes="(max-width: 640px) 320px, (max-width: 1200px) 640px, 1200px"
+          type="image/webp"
+        />
+        <source
+          srcSet={`${src}?width=320 320w, ${src}?width=640 640w, ${src}?width=1200 1200w`}
+          sizes="(max-width: 640px) 320px, (max-width: 1200px) 640px, 1200px"
+        />
+        <img
+          src={src}
+          alt={name}
+          loading={index < 4 ? "eager" : "lazy"}
+          onLoad={onLoad}
+          onError={onError}
+          className={imgClass}
+          style={{ willChange: "transform, opacity" }}
+        />
+      </picture>
+    );
+  }
+
+  return (
+    <img
+      src={src}
+      alt={name}
+      loading={index < 4 ? "eager" : "lazy"}
+      onLoad={onLoad}
+      onError={onError}
+      className={imgClass}
+      style={{ willChange: "transform, opacity" }}
+    />
+  );
+}
+
+function InstructorModalPhoto({ src, name }: { src: string; name: string }) {
+  const pos = instructorObjectPositionClass(name);
+  const imgClass = `w-full h-full object-cover ${pos}`;
+
+  if (supportsResponsivePicture(src)) {
+    return (
+      <picture>
+        <source
+          srcSet={`${src}?format=webp&width=320 320w, ${src}?format=webp&width=640 640w, ${src}?format=webp&width=1200 1200w`}
+          sizes="(max-width: 640px) 320px, (max-width: 1200px) 640px, 1200px"
+          type="image/webp"
+        />
+        <source
+          srcSet={`${src}?width=320 320w, ${src}?width=640 640w, ${src}?width=1200 1200w`}
+          sizes="(max-width: 640px) 320px, (max-width: 1200px) 640px, 1200px"
+        />
+        <img src={src} alt={name} className={imgClass} />
+      </picture>
+    );
+  }
+
+  return <img src={src} alt={name} className={imgClass} />;
 }
 
 export function Instructors() {
@@ -248,32 +331,13 @@ export function Instructors() {
                         )}
                         
                         {/* Instructor Photo */}
-                        <picture>
-                          <source
-                            srcSet={`${instructor.image}?format=webp&width=320 320w, ${instructor.image}?format=webp&width=640 640w, ${instructor.image}?format=webp&width=1200 1200w`}
-                            sizes="(max-width: 640px) 320px, (max-width: 1200px) 640px, 1200px"
-                            type="image/webp"
-                          />
-                          <source
-                            srcSet={`${instructor.image}?width=320 320w, ${instructor.image}?width=640 640w, ${instructor.image}?width=1200 1200w`}
-                            sizes="(max-width: 640px) 320px, (max-width: 1200px) 640px, 1200px"
-                          />
-                          <img
-                            src={instructor.image}
-                            alt={instructor.name}
-                            loading={index < 4 ? "eager" : "lazy"}
-                            onLoad={() => handleImageLoad(index)}
-                            onError={() => handleImageError(index)}
-                            className={`w-full h-full object-cover transition-all duration-700 ${
-                              instructor.name === "Shruti" || instructor.name === "Siddhartha"
-                                ? "object-right-top"
-                                : "object-top"
-                            }`}
-                            style={{
-                              willChange: "transform, opacity"
-                            }}
-                          />
-                        </picture>
+                        <InstructorCarouselPhoto
+                          src={instructor.image}
+                          name={instructor.name}
+                          index={index}
+                          onLoad={() => handleImageLoad(index)}
+                          onError={() => handleImageError(index)}
+                        />
                         
                         {/* Hover Overlay */}
                         <div 
@@ -373,26 +437,7 @@ export function Instructors() {
 
               <div className="absolute inset-0 flex items-end justify-center pb-6">
                 <div className="w-32 h-32 rounded-full overflow-hidden border-4 border-white shadow-2xl">
-                  <picture>
-                    <source
-                      srcSet={`${selectedInstructor.image}?format=webp&width=320 320w, ${selectedInstructor.image}?format=webp&width=640 640w, ${selectedInstructor.image}?format=webp&width=1200 1200w`}
-                      sizes="(max-width: 640px) 320px, (max-width: 1200px) 640px, 1200px"
-                      type="image/webp"
-                    />
-                    <source
-                      srcSet={`${selectedInstructor.image}?width=320 320w, ${selectedInstructor.image}?width=640 640w, ${selectedInstructor.image}?width=1200 1200w`}
-                      sizes="(max-width: 640px) 320px, (max-width: 1200px) 640px, 1200px"
-                    />
-                    <img
-                      src={selectedInstructor.image}
-                      alt={selectedInstructor.name}
-                      className={`w-full h-full object-cover ${
-                        selectedInstructor.name === "Shruti" || selectedInstructor.name === "Siddhartha"
-                          ? "object-right-top"
-                          : "object-top"
-                      }`}
-                    />
-                  </picture>
+                  <InstructorModalPhoto src={selectedInstructor.image} name={selectedInstructor.name} />
                 </div>
               </div>
             </div>

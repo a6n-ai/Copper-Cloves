@@ -41,6 +41,7 @@ import {
   Trash2
 } from "lucide-react";
 import { SEO } from "@/components/SEO";
+import { InstructorAvatar } from "@/components/InstructorAvatar";
 import { useSession } from "next-auth/react";
 import type React from "react";
 import { ControlAnalyticsPanel } from "@/components/admin/ControlAnalyticsPanel";
@@ -1031,17 +1032,11 @@ export default function ControlPanel() {
                         <CardContent className="p-6">
                           <div className="flex gap-4">
                             <div className="h-24 w-24 rounded-lg overflow-hidden bg-sage/10 flex-shrink-0">
-                              {instructor.image_url ? (
-                                <img 
-                                  src={instructor.image_url} 
-                                  alt={instructor.name}
-                                  className="w-full h-full object-cover"
-                                />
-                              ) : (
-                                <div className="w-full h-full flex items-center justify-center">
-                                  <Users className="h-12 w-12 text-sage" />
-                                </div>
-                              )}
+                              <InstructorAvatar
+                                src={instructor.image_url}
+                                name={instructor.name}
+                                className="h-full w-full"
+                              />
                             </div>
                             <div className="flex-1">
                               <div className="flex items-start justify-between mb-2">
