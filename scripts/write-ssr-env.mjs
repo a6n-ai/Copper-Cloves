@@ -10,6 +10,8 @@ const KEYS = [
   "DATABASE_URL",
   "NEXTAUTH_SECRET",
   "NEXTAUTH_URL",
+  // Optional: public site URL for links in CRM templates if NEXTAUTH_URL is wrong for some routes
+  "NEXT_PUBLIC_SITE_URL",
   // Optional: POST /api/setup/bootstrap-admin once, then remove from Amplify.
   "ADMIN_SETUP_SECRET",
   "ADMIN_EMAIL",
@@ -26,6 +28,7 @@ const KEYS = [
   "WHATSAPP_TEMPLATE_LANGUAGE",
   "WHATSAPP_TEMPLATE_BODY_VARIABLES",
   "WHATSAPP_DEFAULT_COUNTRY_CODE",
+  "WHATSAPP_API_VERSION",
 ];
 
 const hasDb =
