@@ -7,6 +7,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { useSession } from "next-auth/react";
+import { CrmTriggerType } from "@/lib/crmTriggerTypes";
 import { 
   Plus, 
   Edit, 
@@ -359,28 +360,37 @@ export default function CRMPage() {
   };
 
   const templateTypes = [
+    { id: "class_booking", label: "Class booking" },
     { id: "expiry", label: "Membership Expiry" },
     { id: "badge", label: "Badge Achievement" },
     { id: "birthday", label: "Birthday Greeting" },
-    { id: "custom", label: "Custom Message" }
+    { id: "custom", label: "Custom Message" },
   ];
 
   const triggerTypes = [
+    { id: CrmTriggerType.ClassBookingConfirmed, label: "Class booked (member confirmed)" },
+    { id: CrmTriggerType.ClassBookingCancelled, label: "Class booking cancelled" },
     { id: "expiry_7_days", label: "7 Days Before Expiry" },
     { id: "expiry_24_hours", label: "24 Hours Before Expiry" },
     { id: "badge_earned", label: "Badge Earned" },
     { id: "birthday", label: "Birthday" },
-    { id: "custom", label: "Custom Trigger" }
+    { id: "custom", label: "Custom (manual / future automation)" },
   ];
 
   const commonVariables = [
     "Member_Name",
+    "Class_Name",
+    "Class_Time",
+    "Class_Date",
+    "Instructor_Name",
+    "Portal_Link",
+    "Studio_Link",
     "Expiry_Date",
     "Renewal_Link",
     "Badge_Name",
     "Class_Count",
     "Last_Class_Attended",
-    "Credits_Remaining"
+    "Credits_Remaining",
   ];
 
   if (loading) {

@@ -1,8 +1,9 @@
 import type { NextApiRequest, NextApiResponse } from "next";
 import { getServerSession } from "next-auth/next";
 import { authOptions } from "@/lib/auth";
+import { CrmTriggerType } from "@/lib/crmTriggerTypes";
 import prisma from "@/lib/prisma";
-
+import { buildBookingCrmVariables, dispatchCrmEmailTriggers } from "@/lib/notifications/crmTemplatedDispatch";
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
   const session = await getServerSession(req, res, authOptions);
   if (!session?.user) return res.status(401).json({ error: "Unauthorized" });
@@ -61,6 +62,15 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       }
     }
 
+    void buildBookingCrmVariables(booking.id)
+      .then((variables) =>
+        dispatchCrmEmailTriggers({
+          triggerType: CrmTriggerType.ClassBookingConfirmed,
+          userId,
+          variables,
+        })
+      )
+      .catch((e) => console.error("CRM class_booking_confirmed:", e));
     return res.status(201).json(booking);
   }
 
@@ -79,6 +89,18 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       where: { id, user_id: userId },
       data,
     });
+
+    if (status === "cancelled") {
+      void buildBookingCrmVariables(booking.id)
+        .then((variables) =>
+          dispatchCrmEmailTriggers({
+            triggerType: CrmTriggerType.ClassBookingCancelled,
+            userId,
+            variables,
+          })
+        )
+        .catch((e) => console.error("CRM class_booking_cancelled:", e));    }
+
     return res.json(booking);
   }
 
