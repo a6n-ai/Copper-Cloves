@@ -7,6 +7,10 @@
 #   NEXTAUTH_SECRET      — random secret for credentials auth
 #   NEXTAUTH_URL         — e.g. https://main.xxxxx.amplifyapp.com
 #
+# Optional one-time admin bootstrap (POST /api/setup/bootstrap-admin with header x-admin-setup-secret):
+#   ADMIN_SETUP_SECRET   — long random string; remove after use
+#   ADMIN_EMAIL, ADMIN_PASSWORD — admin login; remove ADMIN_PASSWORD after use
+#
 # Do not commit secrets; this file only runs during Amplify build.
 
 version: 1

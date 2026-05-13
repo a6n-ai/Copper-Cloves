@@ -5,7 +5,16 @@
  */
 import fs from "node:fs";
 
-const KEYS = ["STUDIO_DATABASE_URL", "DATABASE_URL", "NEXTAUTH_SECRET", "NEXTAUTH_URL"];
+const KEYS = [
+  "STUDIO_DATABASE_URL",
+  "DATABASE_URL",
+  "NEXTAUTH_SECRET",
+  "NEXTAUTH_URL",
+  // Optional: POST /api/setup/bootstrap-admin once, then remove from Amplify.
+  "ADMIN_SETUP_SECRET",
+  "ADMIN_EMAIL",
+  "ADMIN_PASSWORD",
+];
 
 const hasDb =
   Boolean(process.env.STUDIO_DATABASE_URL?.trim()) || Boolean(process.env.DATABASE_URL?.trim());
