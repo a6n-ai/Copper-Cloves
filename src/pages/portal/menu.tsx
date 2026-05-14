@@ -112,7 +112,7 @@ export default function MenuPage() {
         month: String(today.getMonth() + 1),
         year: String(today.getFullYear()),
       });
-      const res = await fetch(`/api/class-schedules?${params}`);
+      const res = await fetch(`/api/class-schedules?${params}`, { credentials: "omit" });
       const data = res.ok ? await res.json() : [];
       setAvailableClasses(data);
     } catch (err) {

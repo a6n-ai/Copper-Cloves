@@ -160,7 +160,7 @@ export default function BookClass() {
         fromMs: String(weekStart.getTime()),
         toMs: String(weekEnd.getTime()),
       });
-      const res = await fetch(`/api/class-schedules?${params}`);
+      const res = await fetch(`/api/class-schedules?${params}`, { credentials: "omit" });
       const raw = res.ok ? await res.json() : [];
 
       const nowMs = Date.now();

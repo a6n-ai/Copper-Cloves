@@ -218,7 +218,7 @@ export default function ClassesPage() {
         fromMs: String(weekStart.getTime()),
         toMs: String(weekEnd.getTime()),
       });
-      const res = await fetch(`/api/class-schedules?${params}`);
+      const res = await fetch(`/api/class-schedules?${params}`, { credentials: "omit" });
       const allData = res.ok ? await res.json() : [];
       const data = allData.filter((item: { start_time: string; status?: string }) => {
         const t = new Date(item.start_time);

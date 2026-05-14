@@ -223,8 +223,8 @@ export default function AdminSchedule() {
   const loadDbData = async (): Promise<string | null> => {
     try {
       const [classesRes, instructorsRes] = await Promise.all([
-        fetch("/api/classes", { credentials: "include" }),
-        fetch("/api/admin/instructors", { credentials: "include" }),
+        fetch("/api/classes", { credentials: "omit" }),
+        fetch("/api/admin/instructors", { credentials: "omit" }),
       ]);
       if (!classesRes.ok) {
         const body = await classesRes.json().catch(() => ({}));
@@ -266,7 +266,9 @@ export default function AdminSchedule() {
         fromMs: String(rangeStart.getTime()),
         toMs: String(rangeEnd.getTime()),
       });
-      const res = await fetch(`/api/class-schedules?${params}`, { credentials: "include" });
+      // Public GET — do not send cookies. Large __Secure-next-auth.session-token headers can exceed
+      // CloudFront/API limits and produce 413 Content Too Large on Amplify.
+      const res = await fetch(`/api/class-schedules?${params}`, { credentials: "omit" });
       if (!res.ok) {
         const body = await res.json().catch(() => ({}));
         const msg =
