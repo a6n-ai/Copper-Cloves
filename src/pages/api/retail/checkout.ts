@@ -1,8 +1,8 @@
 import type { NextApiRequest, NextApiResponse } from "next";
 import prisma from "@/lib/prisma";
 import type { Coupon } from "@/generated/prisma/client";
-import {
 import { getStudioServerSession } from "@/lib/getStudioServerSession";
+import {
   incrementCouponAndRecordRedemption,
   validateAndComputeCoupon,
 } from "@/lib/couponHelpers";

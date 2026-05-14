@@ -2,8 +2,8 @@ import type { NextApiRequest, NextApiResponse } from "next";
 import { CrmTriggerType } from "@/lib/crmTriggerTypes";
 import prisma from "@/lib/prisma";
 import { buildBookingCrmVariables, dispatchCrmEmailTriggers } from "@/lib/notifications/crmTemplatedDispatch";
-import {
 import { getStudioServerSession } from "@/lib/getStudioServerSession";
+import {
   canCheckInNow,
   checkInOutcomeFromTimes,
 } from "@/lib/bookingAttendance";

@@ -2,8 +2,8 @@ import type { NextApiRequest, NextApiResponse } from "next";
 import { randomUUID } from "node:crypto";
 import prisma from "@/lib/prisma";
 import type { Coupon } from "@/generated/prisma/client";
-import {
 import { getStudioServerSession } from "@/lib/getStudioServerSession";
+import {
   incrementCouponAndRecordRedemption,
   validateAndComputeCoupon,
 } from "@/lib/couponHelpers";

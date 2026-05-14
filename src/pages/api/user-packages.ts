@@ -2,8 +2,8 @@ import type { NextApiRequest, NextApiResponse } from "next";
 import prisma from "@/lib/prisma";
 import { notifyPackagePurchase } from "@/lib/notifications/notifyPackagePurchase";
 import type { CouponContext } from "@/lib/couponHelpers";
-import {
 import { getStudioServerSession } from "@/lib/getStudioServerSession";
+import {
   incrementCouponAndRecordRedemption,
   toFiniteNumber,
   validateAndComputeCoupon,
