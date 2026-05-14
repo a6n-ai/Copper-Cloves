@@ -20,6 +20,7 @@ import {
 } from "lucide-react";
 import { SEO } from "@/components/SEO";
 import { useSession } from "next-auth/react";
+import { Alert, AlertDescription } from "@/components/ui/alert";
 import {
   Dialog,
   DialogContent,
@@ -120,6 +121,7 @@ export default function AdminSchedule() {
   const [selectedWeek, setSelectedWeek] = useState<string>("");
   const [dbClasses, setDbClasses] = useState<any[]>([]);
   const [dbInstructors, setDbInstructors] = useState<any[]>([]);
+  const [loadError, setLoadError] = useState<string | null>(null);
 
   const classOptions: ClassSelectOption[] = useMemo(() => {
     if (dbClasses.length > 0) {
@@ -174,9 +176,14 @@ export default function AdminSchedule() {
     let cancelled = false;
     (async () => {
       try {
-        await loadDbData();
-        await loadSchedule();
-        if (!cancelled) setLoading(false);
+        setLoadError(null);
+        const catErr = await loadDbData();
+        const schedErr = await loadSchedule();
+        const combined = [catErr, schedErr].filter(Boolean).join(" ");
+        if (!cancelled) {
+          setLoadError(combined || null);
+          setLoading(false);
+        }
       } catch {
         if (!cancelled) router.push("/admin/login");
       }
@@ -213,20 +220,44 @@ export default function AdminSchedule() {
     return `${formatDate(weekStart)}-${formatDate(weekEnd)}`;
   };
 
-  const loadDbData = async () => {
+  const loadDbData = async (): Promise<string | null> => {
     try {
       const [classesRes, instructorsRes] = await Promise.all([
-        fetch("/api/classes"),
-        fetch("/api/admin/instructors"),
+        fetch("/api/classes", { credentials: "include" }),
+        fetch("/api/admin/instructors", { credentials: "include" }),
       ]);
-      setDbClasses(classesRes.ok ? await classesRes.json() : []);
-      setDbInstructors(instructorsRes.ok ? await instructorsRes.json() : []);
+      if (!classesRes.ok) {
+        const body = await classesRes.json().catch(() => ({}));
+        const msg =
+          typeof (body as { error?: string }).error === "string"
+            ? (body as { error: string }).error
+            : `Class catalog request failed (HTTP ${classesRes.status}).`;
+        setDbClasses([]);
+        setDbInstructors([]);
+        return msg;
+      }
+      if (!instructorsRes.ok) {
+        const body = await instructorsRes.json().catch(() => ({}));
+        const msg =
+          typeof (body as { error?: string }).error === "string"
+            ? (body as { error: string }).error
+            : `Instructors request failed (HTTP ${instructorsRes.status}).`;
+        setDbClasses(await classesRes.json());
+        setDbInstructors([]);
+        return msg;
+      }
+      setDbClasses(await classesRes.json());
+      setDbInstructors(await instructorsRes.json());
+      return null;
     } catch (err) {
       console.error("Error loading database data:", err);
+      setDbClasses([]);
+      setDbInstructors([]);
+      return "Could not load class catalog or instructors (network error).";
     }
   };
 
-  const loadSchedule = async () => {
+  const loadSchedule = async (): Promise<string | null> => {
     try {
       const year = scheduleViewYear;
       const rangeStart = new Date(year, selectedMonth, 1, 0, 0, 0, 0);
@@ -235,12 +266,25 @@ export default function AdminSchedule() {
         fromMs: String(rangeStart.getTime()),
         toMs: String(rangeEnd.getTime()),
       });
-      const res = await fetch(`/api/class-schedules?${params}`);
-      const data = res.ok ? await res.json() : [];
+      const res = await fetch(`/api/class-schedules?${params}`, { credentials: "include" });
+      if (!res.ok) {
+        const body = await res.json().catch(() => ({}));
+        const msg =
+          typeof (body as { error?: string }).error === "string"
+            ? (body as { error: string }).error
+            : `Schedule could not be loaded (HTTP ${res.status}). Is the database schema in sync?`;
+        setSchedule([]);
+        return msg;
+      }
+      const data = (await res.json()) as Array<{
+        id: string;
+        start_time: string;
+        class_id: string;
+        instructor_id?: string;
+        current_bookings?: number;
+      }>;
 
-      const formattedSchedule: ScheduledClass[] = data.map((item: {
-        id: string; start_time: string; class_id: string; instructor_id?: string; current_bookings?: number;
-      }) => {
+      const formattedSchedule: ScheduledClass[] = data.map((item) => {
         const startTime = new Date(item.start_time);
         const dayName = WEEKDAYS[startTime.getDay() === 0 ? 6 : startTime.getDay() - 1];
         return {
@@ -254,9 +298,11 @@ export default function AdminSchedule() {
         };
       });
       setSchedule(formattedSchedule);
+      return null;
     } catch (err) {
       console.error("Error loading schedule:", err);
       setSchedule([]);
+      return "Could not load schedule (network error).";
     }
   };
 
@@ -416,6 +462,7 @@ export default function AdminSchedule() {
         const updateRes = await fetch("/api/class-schedules", {
           method: "PUT",
           headers: { "Content-Type": "application/json" },
+          credentials: "include",
           body: JSON.stringify({
             id: editingClass.id,
             class_id: selectedClass,
@@ -426,7 +473,14 @@ export default function AdminSchedule() {
             capacity: selectedClassData.max_capacity,
           }),
         });
-        if (!updateRes.ok) throw new Error("Update failed");
+        if (!updateRes.ok) {
+          const body = await updateRes.json().catch(() => ({}));
+          const msg =
+            typeof (body as { error?: string }).error === "string"
+              ? (body as { error: string }).error
+              : `Update failed (HTTP ${updateRes.status})`;
+          throw new Error(msg);
+        }
         setSuccessMessage("Class updated successfully!");
       } else {
         console.log('🔵 Creating new class schedule(s)');
@@ -504,9 +558,17 @@ export default function AdminSchedule() {
           const res = await fetch("/api/class-schedules", {
             method: "POST",
             headers: { "Content-Type": "application/json" },
+            credentials: "include",
             body: JSON.stringify(schedule),
           });
-          if (!res.ok) throw new Error("Insert failed");
+          if (!res.ok) {
+            const body = await res.json().catch(() => ({}));
+            const msg =
+              typeof (body as { error?: string }).error === "string"
+                ? (body as { error: string }).error
+                : `Insert failed (HTTP ${res.status})`;
+            throw new Error(msg);
+          }
         }
         setSuccessMessage(isRecurring 
           ? `${schedulesToCreate.length} recurring classes scheduled for ${MONTHS[selectedMonth]}!`
@@ -515,7 +577,8 @@ export default function AdminSchedule() {
       }
       
       setDialogOpen(false);
-      await loadSchedule();
+      const schedErr = await loadSchedule();
+      if (schedErr) setLoadError(schedErr);
       setTimeout(() => setSuccessMessage(""), 3000);
     } catch (err: any) {
       console.error("❌ Error saving class:", err);
@@ -525,10 +588,21 @@ export default function AdminSchedule() {
 
   const handleDeleteClass = async (id: string) => {
     try {
-      const res = await fetch(`/api/class-schedules?id=${id}`, { method: "DELETE" });
-      if (!res.ok) throw new Error("Delete failed");
+      const res = await fetch(`/api/class-schedules?id=${id}`, {
+        method: "DELETE",
+        credentials: "include",
+      });
+      if (!res.ok) {
+        const body = await res.json().catch(() => ({}));
+        const msg =
+          typeof (body as { error?: string }).error === "string"
+            ? (body as { error: string }).error
+            : `Delete failed (HTTP ${res.status})`;
+        throw new Error(msg);
+      }
       setSuccessMessage("Class removed from schedule");
-      await loadSchedule();
+      const schedErr = await loadSchedule();
+      if (schedErr) setLoadError(schedErr);
       setTimeout(() => setSuccessMessage(""), 3000);
     } catch (err) {
       console.error("Error deleting class:", err);
@@ -650,6 +724,13 @@ export default function AdminSchedule() {
                 </div>
               </CardContent>
             </Card>
+
+            {loadError && (
+              <Alert variant="default" className="border-amber-300 bg-amber-50 text-amber-950">
+                <AlertCircle className="h-4 w-4 text-amber-700" />
+                <AlertDescription className="font-body text-amber-900">{loadError}</AlertDescription>
+              </Alert>
+            )}
 
             {/* Success Message */}
             {successMessage && (
