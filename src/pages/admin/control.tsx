@@ -173,25 +173,112 @@ export default function ControlPanel() {
   const fetchUsers = async () => {
     setLoadingUsers(true);
     try {
-      const res = await fetch("/api/admin/members");
-      const profiles = res.ok ? await res.json() : [];
-      const processedUsers = profiles.map((profile: {
-        full_name?: string; email?: string; pass_type?: string;
-        user_packages?: Array<{ is_active: boolean; created_at: string; package_type?: { is_unlimited: boolean; name: string }; credits_remaining?: number }>;
-      }) => {
-        const activePackages = profile.user_packages?.filter(pkg => pkg.is_active) || [];
-        activePackages.sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime());
-        const mostRecentPackage = activePackages[0];
-        return {
-          ...profile,
-          name: profile.full_name || profile.email || "Member",
-          pass_type: profile.pass_type || mostRecentPackage?.package_type?.name || null,
-          classes_remaining: mostRecentPackage?.package_type?.is_unlimited ? "Unlimited" : mostRecentPackage?.credits_remaining || 0,
-        };
-      });
+      const res = await fetch("/api/admin/members", { credentials: "same-origin" });
+      if (!res.ok) {
+        console.error("Fetch users failed:", res.status);
+        setUsers([]);
+        return;
+      }
+      const raw: unknown = await res.json();
+      const profiles = Array.isArray(raw) ? raw : [];
+      const now = new Date();
+
+      const processedUsers = profiles.map(
+        (profile: {
+          id: string;
+          full_name?: string | null;
+          email?: string;
+          phone?: string | null;
+          pass_type?: string | null;
+          user_packages?: Array<{
+            id: string;
+            is_active: boolean;
+            is_paused?: boolean;
+            pass_type?: string | null;
+            credits_remaining?: number | null;
+            expiration_date: string;
+            purchase_date?: string;
+            created_at?: string;
+            package_type?: { is_unlimited?: boolean; name?: string; type?: string };
+          }>;
+        }) => {
+          const pkgs = profile.user_packages ?? [];
+          const byRecency = (
+            a: (typeof pkgs)[0],
+            b: (typeof pkgs)[0]
+          ) =>
+            new Date(b.purchase_date ?? b.created_at ?? 0).getTime() -
+            new Date(a.purchase_date ?? a.created_at ?? 0).getTime();
+
+          const activePkgs = pkgs.filter(
+            (p) =>
+              p.is_active &&
+              new Date(p.expiration_date).getTime() > now.getTime()
+          );
+          activePkgs.sort(byRecency);
+          const sortedAll = [...pkgs].sort(byRecency);
+          const mostRecentPackage = activePkgs[0] ?? sortedAll[0];
+
+          const passRaw = (
+            mostRecentPackage?.pass_type ||
+            profile.pass_type ||
+            ""
+          ).toLowerCase();
+          const pt = mostRecentPackage?.package_type;
+          const ptType = (pt?.type ?? "").toLowerCase();
+          const isUnlimited = Boolean(pt?.is_unlimited);
+
+          let passType: "none" | "class_pass" | "studio_pass" = "none";
+          if (mostRecentPackage) {
+            if (
+              passRaw === "studio_pass" ||
+              isUnlimited ||
+              ptType.includes("studio")
+            ) {
+              passType = "studio_pass";
+            } else {
+              passType = "class_pass";
+            }
+          }
+
+          const exp = mostRecentPackage?.expiration_date
+            ? new Date(mostRecentPackage.expiration_date)
+            : null;
+          const daysRemaining =
+            exp && !Number.isNaN(exp.getTime())
+              ? Math.max(
+                  0,
+                  Math.ceil((exp.getTime() - now.getTime()) / 86400000)
+                )
+              : 0;
+
+          const creditsVal = mostRecentPackage?.credits_remaining ?? 0;
+          const classesRemaining =
+            passType === "studio_pass" || isUnlimited ? "Unlimited" : creditsVal;
+
+          return {
+            ...profile,
+            name: profile.full_name || profile.email || "Member",
+            pass_type:
+              profile.pass_type ||
+              mostRecentPackage?.package_type?.name ||
+              null,
+            passType,
+            classesRemaining,
+            daysRemaining,
+            expiry:
+              exp && !Number.isNaN(exp.getTime())
+                ? exp.toISOString()
+                : "N/A",
+            isPaused: Boolean(mostRecentPackage?.is_paused),
+            phone: profile.phone ?? "—",
+          };
+        }
+      );
       setUsers(processedUsers);
     } catch (error) {
       console.error("Fetch users error:", error);
+      setUsers([]);
     } finally {
       setLoadingUsers(false);
     }

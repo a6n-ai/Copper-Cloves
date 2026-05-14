@@ -9,11 +9,14 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   const role = (session.user as { role?: string }).role;
   if (role !== "admin") return res.status(403).json({ error: "Forbidden" });
 
+  /** All portal/customer accounts (exclude admin login rows from member lists). */
+  const nonAdminWhere = { NOT: { role: "admin" as const } };
+
   if (req.method === "GET") {
     const id = typeof req.query.id === "string" ? req.query.id.trim() : "";
     if (id) {
       const profile = await prisma.profile.findFirst({
-        where: { id, role: "user" },
+        where: { id, ...nonAdminWhere },
         include: {
           user_stats: true,
           user_badges: { orderBy: { earned_at: "desc" }, take: 20 },
@@ -32,7 +35,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     }
 
     const members = await prisma.profile.findMany({
-      where: { role: "user" },
+      where: nonAdminWhere,
       include: {
         user_packages: {
           include: { package_type: true },
@@ -53,7 +56,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     }
 
     const profile = await prisma.profile.findFirst({
-      where: { id: profile_id, role: "user" },
+      where: { id: profile_id, ...nonAdminWhere },
     });
     if (!profile) return res.status(404).json({ error: "Member not found" });
 
