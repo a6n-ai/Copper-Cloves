@@ -265,10 +265,14 @@ export default function AdminSchedule() {
       const params = new URLSearchParams({
         fromMs: String(rangeStart.getTime()),
         toMs: String(rangeEnd.getTime()),
+        expand: "0",
       });
       // Public GET — do not send cookies. Large __Secure-next-auth.session-token headers can exceed
       // CloudFront/API limits and produce 413 Content Too Large on Amplify.
-      const res = await fetch(`/api/class-schedules?${params}`, { credentials: "omit" });
+      const res = await fetch(`/api/class-schedules?${params}`, {
+        credentials: "omit",
+        cache: "no-store",
+      });
       if (!res.ok) {
         const body = await res.json().catch(() => ({}));
         const fromApi =
@@ -277,7 +281,7 @@ export default function AdminSchedule() {
             : null;
         const fallback =
           res.status === 413
-            ? `Schedule could not be loaded (HTTP 413). This is usually an oversized request (often too many or large cookies). Try signing out, clearing site data for this domain, or an incognito window—not a database sync issue.`
+            ? `Schedule could not be loaded (HTTP 413). Usually the request is too large for CloudFront (often a huge Cookie header). In DevTools → Network, open the failing "class-schedules" request and check Request Headers: if Cookie is present, clear site data for this domain or use Incognito. If Cookie is empty, redeploy so the API supports expand=0 (smaller JSON).`
             : res.status === 503
               ? `Schedule could not be loaded (HTTP 503). The server may be unable to reach the database or the schema may be out of sync (run Prisma db push on production, or redeploy so Amplify preBuild can sync).`
               : `Schedule could not be loaded (HTTP ${res.status}).`;

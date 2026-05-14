@@ -18,7 +18,13 @@ function prismaUserMessage(e: unknown): string {
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
   if (req.method === "GET") {
     try {
-      const { month, year, fromMs, toMs } = req.query;
+      const { month, year, fromMs, toMs, expand, minimal } = req.query;
+      /** Admin calendar only needs scalar rows; nested class_model + instructor can make responses very large. */
+      const slim =
+        expand === "0" ||
+        expand === "false" ||
+        minimal === "1" ||
+        minimal === "true";
       let where: { start_time?: { gte: Date; lte: Date } } = {};
       const a = typeof fromMs === "string" ? Number(fromMs) : NaN;
       const b = typeof toMs === "string" ? Number(toMs) : NaN;
@@ -29,14 +35,19 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         const end = new Date(Number(year), Number(month), 0, 23, 59, 59, 999);
         where = { start_time: { gte: start, lte: end } };
       }
-      const schedules = await prisma.classSchedule.findMany({
-        where,
-        include: {
-          class_model: true,
-          instructor: true,
-        },
-        orderBy: { start_time: "asc" },
-      });
+      const schedules = slim
+        ? await prisma.classSchedule.findMany({
+            where,
+            orderBy: { start_time: "asc" },
+          })
+        : await prisma.classSchedule.findMany({
+            where,
+            include: {
+              class_model: true,
+              instructor: true,
+            },
+            orderBy: { start_time: "asc" },
+          });
       res.setHeader("Cache-Control", "private, no-store, max-age=0, must-revalidate");
       return res.json(schedules);
     } catch (e) {
