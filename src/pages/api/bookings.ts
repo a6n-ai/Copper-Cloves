@@ -1,17 +1,16 @@
 import type { NextApiRequest, NextApiResponse } from "next";
-import { getServerSession } from "next-auth/next";
-import { authOptions } from "@/lib/auth";
 import { CrmTriggerType } from "@/lib/crmTriggerTypes";
 import prisma from "@/lib/prisma";
 import { buildBookingCrmVariables, dispatchCrmEmailTriggers } from "@/lib/notifications/crmTemplatedDispatch";
 import {
+import { getStudioServerSession } from "@/lib/getStudioServerSession";
   canCheckInNow,
   checkInOutcomeFromTimes,
 } from "@/lib/bookingAttendance";
 import { reconcileNoShowsGlobally } from "@/lib/bookingReconcile";
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
-  const session = await getServerSession(req, res, authOptions);
+  const session = await getStudioServerSession(req, res);
   if (!session?.user) return res.status(401).json({ error: "Unauthorized" });
 
   const userId = (session.user as { id: string }).id;

@@ -1,12 +1,11 @@
 import type { NextApiRequest, NextApiResponse } from "next";
-import { getServerSession } from "next-auth/next";
-import { authOptions } from "@/lib/auth";
 import { presignAvatarUpload, isS3Configured } from "@/lib/s3";
+import { getStudioServerSession } from "@/lib/getStudioServerSession";
 
 const ALLOWED = new Set(["image/jpeg", "image/png", "image/webp"]);
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
-  const session = await getServerSession(req, res, authOptions);
+  const session = await getStudioServerSession(req, res);
   if (!session?.user) return res.status(401).json({ error: "Unauthorized" });
 
   if (req.method !== "POST") return res.status(405).end();

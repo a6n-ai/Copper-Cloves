@@ -2,6 +2,7 @@ import type { NextApiRequest, NextApiResponse } from "next";
 import bcrypt from "bcryptjs";
 import { Prisma } from "@/generated/prisma/client";
 import prisma from "@/lib/prisma";
+import { normalizeLoginEmail } from "@/lib/loginEmail";
 
 function walkErrorChain(e: unknown): unknown[] {
   const list: unknown[] = [];
@@ -96,7 +97,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     if (!raw || typeof raw !== "object") {
       return res.status(400).json({ error: "Invalid request body." });
     }
-    const email = typeof raw.email === "string" ? raw.email.trim().toLowerCase() : "";
+    const email = typeof raw.email === "string" ? normalizeLoginEmail(raw.email) : "";
     const password = typeof raw.password === "string" ? raw.password : "";
     const full_name =
       typeof raw.full_name === "string" ? raw.full_name.trim() : undefined;
@@ -121,6 +122,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         phone: typeof phone === "string" ? phone : null,
         hashedPassword,
         role: "user",
+        user_stats: { create: {} },
       },
     });
 

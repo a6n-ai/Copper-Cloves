@@ -4,6 +4,7 @@
 #
 # In Amplify Console → Environment variables, define at least:
 #   STUDIO_DATABASE_URL  (recommended) or DATABASE_URL — Postgres connection string for production
+#   RDS security group must allow inbound Postgres from Amplify Hosting build (so preBuild can run prisma db push).
 #   NEXTAUTH_SECRET      — random secret for credentials auth
 #   NEXTAUTH_URL         — e.g. https://main.xxxxx.amplifyapp.com
 #
@@ -26,6 +27,12 @@ frontend:
         - test -n "$STUDIO_DATABASE_URL" -o -n "$DATABASE_URL" || (echo "Missing STUDIO_DATABASE_URL or DATABASE_URL in Amplify environment variables" && exit 1)
         - npx prisma generate
         - node scripts/check-db-connection.mjs
+        - |
+          if [ -z "$SKIP_PRISMA_DB_PUSH" ]; then
+            node scripts/ci-db-push.mjs
+          else
+            echo "Skipping Prisma db push (SKIP_PRISMA_DB_PUSH is set)"
+          fi
     build:
       commands:
         - |

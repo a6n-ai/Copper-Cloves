@@ -1,9 +1,8 @@
 import type { NextApiRequest, NextApiResponse } from "next";
-import { getServerSession } from "next-auth/next";
-import { authOptions } from "@/lib/auth";
 import prisma from "@/lib/prisma";
 import { Prisma } from "@/generated/prisma/client";
 import { COUPON_CONTEXTS, normalizeCouponCode, type CouponContext } from "@/lib/couponHelpers";
+import { getStudioServerSession } from "@/lib/getStudioServerSession";
 
 function isAdmin(session: unknown) {
   const role = (session as { user?: { role?: string } } | null | undefined)?.user?.role;
@@ -16,7 +15,7 @@ function parseContext(v: unknown): CouponContext | null {
 }
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
-  const session = await getServerSession(req, res, authOptions);
+  const session = await getStudioServerSession(req, res);
   if (!session?.user || !isAdmin(session)) {
     return res.status(403).json({ error: "Forbidden" });
   }

@@ -21,5 +21,24 @@ export function ensureNextAuthUrlFromRequest(req: NextApiRequest): void {
 
   if (!current || PLACEHOLDER_HOST_IN_URL.test(current)) {
     process.env.NEXTAUTH_URL = derived;
+    return;
+  }
+
+  /*
+   * Amplify preview branches use a different hostname than `main.*.amplifyapp.com`, but env often
+   * only sets NEXTAUTH_URL for production. Misaligned URLs break server-side `getServerSession` in
+   * API routes even when the browser session looks fine.
+   */
+  try {
+    const requestHost = host.split(":")[0].toLowerCase();
+    const configuredHost = new URL(current).hostname.toLowerCase();
+    if (
+      requestHost.endsWith(".amplifyapp.com") &&
+      configuredHost !== requestHost
+    ) {
+      process.env.NEXTAUTH_URL = derived;
+    }
+  } catch {
+    process.env.NEXTAUTH_URL = derived;
   }
 }

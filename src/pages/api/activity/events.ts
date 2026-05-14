@@ -1,9 +1,8 @@
 import type { NextApiRequest, NextApiResponse } from "next";
-import { getServerSession } from "next-auth/next";
 import type { IncomingMessage } from "http";
-import { authOptions } from "@/lib/auth";
 import prisma from "@/lib/prisma";
 import type { Prisma } from "../../../generated/prisma/client";
+import { getStudioServerSession } from "@/lib/getStudioServerSession";
 
 function getClientIp(req: IncomingMessage): string | null {
   const xf = req.headers["x-forwarded-for"];
@@ -32,7 +31,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     return res.status(405).end();
   }
 
-  const session = await getServerSession(req, res, authOptions);
+  const session = await getStudioServerSession(req, res);
   const profileId = session?.user ? (session.user as { id: string }).id : null;
   const role = session?.user ? ((session.user as { role?: string }).role ?? "user") : "guest";
 

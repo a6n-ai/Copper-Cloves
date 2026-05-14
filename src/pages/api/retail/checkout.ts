@@ -1,9 +1,8 @@
 import type { NextApiRequest, NextApiResponse } from "next";
-import { getServerSession } from "next-auth/next";
-import { authOptions } from "@/lib/auth";
 import prisma from "@/lib/prisma";
 import type { Coupon } from "@/generated/prisma/client";
 import {
+import { getStudioServerSession } from "@/lib/getStudioServerSession";
   incrementCouponAndRecordRedemption,
   validateAndComputeCoupon,
 } from "@/lib/couponHelpers";
@@ -21,7 +20,7 @@ function num(v: unknown) {
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
   if (req.method !== "POST") return res.status(405).end();
 
-  const session = await getServerSession(req, res, authOptions);
+  const session = await getStudioServerSession(req, res);
   const userId = session?.user ? (session.user as { id: string }).id : null;
 
   const body = req.body ?? {};

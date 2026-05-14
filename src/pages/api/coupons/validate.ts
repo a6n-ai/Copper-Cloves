@@ -1,8 +1,7 @@
 import type { NextApiRequest, NextApiResponse } from "next";
-import { getServerSession } from "next-auth/next";
-import { authOptions } from "@/lib/auth";
 import prisma from "@/lib/prisma";
 import {
+import { getStudioServerSession } from "@/lib/getStudioServerSession";
   COUPON_CONTEXTS,
   validateAndComputeCoupon,
   type CouponContext,
@@ -23,7 +22,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     return res.status(400).json({ valid: false, error: "Invalid context" });
   }
 
-  const session = await getServerSession(req, res, authOptions);
+  const session = await getStudioServerSession(req, res);
   const userId = session?.user ? (session.user as { id: string }).id : null;
 
   if ((context === "food" || context === "class_pass" || context === "studio_pass") && !userId) {

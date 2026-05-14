@@ -11,10 +11,21 @@ import { PrismaPg } from "@prisma/adapter-pg";
  * build so SSR handlers can read DB/NextAuth vars at runtime (see amplify.yml).
  */
 function loadServerEnv() {
-  loadEnvConfig(process.cwd());
-  const nextDir = path.join(process.cwd(), ".next");
+  const cwd = process.cwd();
+  loadEnvConfig(cwd);
+  const nextDir = path.join(cwd, ".next");
   if (fs.existsSync(path.join(nextDir, ".env.production"))) {
     loadEnvConfig(nextDir);
+  }
+  // Some hosts run with cwd inside `.next` (artifact root) or one level off — still load copied SSR env.
+  if (!process.env.STUDIO_DATABASE_URL?.trim() && !process.env.DATABASE_URL?.trim()) {
+    for (const dir of [cwd, path.join(cwd, ".next"), path.dirname(cwd)]) {
+      const envProd = path.join(dir, ".env.production");
+      if (fs.existsSync(envProd)) {
+        loadEnvConfig(dir);
+        break;
+      }
+    }
   }
 }
 

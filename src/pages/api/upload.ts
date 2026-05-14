@@ -1,11 +1,10 @@
 import type { NextApiRequest, NextApiResponse } from "next";
-import { getServerSession } from "next-auth/next";
-import { authOptions } from "@/lib/auth";
 import { ensureAdmin } from "@/lib/requireAdmin";
 import formidable from "formidable";
 import fs from "fs";
 import os from "os";
 import path from "path";
+import { getStudioServerSession } from "@/lib/getStudioServerSession";
 
 export const config = {
   api: { bodyParser: false },
@@ -50,7 +49,7 @@ const MAX_DATA_URL_IMAGE_BYTES = 4 * 1024 * 1024;
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
   if (req.method !== "POST") return res.status(405).end();
 
-  const session = await getServerSession(req, res, authOptions);
+  const session = await getStudioServerSession(req, res);
   if (!ensureAdmin(session, res)) return;
 
   const serverless = isServerlessUploadRuntime();

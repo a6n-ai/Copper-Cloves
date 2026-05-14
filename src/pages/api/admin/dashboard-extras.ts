@@ -1,9 +1,8 @@
 import type { NextApiRequest, NextApiResponse } from "next";
-import { getServerSession } from "next-auth/next";
-import { authOptions } from "@/lib/auth";
 import prisma from "@/lib/prisma";
 import { reconcileNoShowsGlobally } from "@/lib/bookingReconcile";
 import { isStudioAdminProfileRole } from "@/lib/isStudioAdminProfile";
+import { getStudioServerSession } from "@/lib/getStudioServerSession";
 
 function dt(d: Date) {
   const pad = (n: number) => String(n).padStart(2, "0");
@@ -17,7 +16,7 @@ function money(v: unknown) {
 }
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
-  const session = await getServerSession(req, res, authOptions);
+  const session = await getStudioServerSession(req, res);
   if (!session?.user) return res.status(401).json({ error: "Unauthorized" });
   const role = (session.user as { role?: string }).role;
   if (role !== "admin") return res.status(403).json({ error: "Forbidden" });
