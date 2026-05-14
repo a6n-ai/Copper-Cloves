@@ -49,7 +49,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         if (!Number.isNaN(t)) return t;
       }
       return new Date(b.booking_date).getTime();
-    };;
+    };
 
     bookings.sort((a, b) => startMs(a) - startMs(b));
 
@@ -64,47 +64,167 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       class_time?: string | null;
     };
 
-    let resolvedClassTime = class_time ?? null;
-    if (class_schedule_id && !resolvedClassTime) {
-      const sch = await prisma.classSchedule.findUnique({
-        where: { id: class_schedule_id },
-        select: { start_time: true },
-      });
-      if (sch) resolvedClassTime = sch.start_time.toISOString();
+    const scheduleId =
+      typeof class_schedule_id === "string" && class_schedule_id.trim()
+        ? class_schedule_id.trim()
+        : null;
+
+    if (!scheduleId) {
+      return res.status(400).json({ error: "class_schedule_id is required" });
     }
 
-    const booking = await prisma.booking.create({
-      data: {
-        user_id: userId,
-        class_schedule_id: class_schedule_id ?? null,
-        user_package_id: user_package_id ?? null,
-        class_name: class_name ?? null,
-        class_time: resolvedClassTime,
-        status: "confirmed",
-      },
-    });
+    const packageId =
+      user_package_id != null && String(user_package_id).trim()
+        ? String(user_package_id).trim()
+        : null;
 
-    // Decrement credits if a package is used
-    if (user_package_id) {
-      const pkg = await prisma.userPackage.findUnique({ where: { id: user_package_id } });
-      if (pkg && pkg.credits_remaining !== null) {
-        await prisma.userPackage.update({
-          where: { id: user_package_id },
-          data: { credits_remaining: { decrement: 1 } },
+    try {
+      const booking = await prisma.$transaction(async (tx) => {
+        const schedule = await tx.classSchedule.findUnique({
+          where: { id: scheduleId },
+          include: { class_model: { select: { max_capacity: true, name: true } } },
         });
-      }
-    }
 
-    void buildBookingCrmVariables(booking.id)
-      .then((variables) =>
-        dispatchCrmEmailTriggers({
-          triggerType: CrmTriggerType.ClassBookingConfirmed,
-          userId,
-          variables,
-        })
-      )
-      .catch((e) => console.error("CRM class_booking_confirmed:", e));
-    return res.status(201).json(booking);
+        if (!schedule) {
+          throw new Error("SCHEDULE_NOT_FOUND");
+        }
+        if (schedule.status === "cancelled") {
+          throw new Error("CLASS_CANCELLED");
+        }
+
+        const duplicate = await tx.booking.findFirst({
+          where: {
+            user_id: userId,
+            class_schedule_id: scheduleId,
+            status: { in: ["confirmed", "pending"] },
+          },
+        });
+        if (duplicate) {
+          throw new Error("ALREADY_BOOKED");
+        }
+
+        const cap =
+          schedule.capacity ??
+          schedule.class_model?.max_capacity ??
+          0;
+        const activeBooked = await tx.booking.count({
+          where: {
+            class_schedule_id: scheduleId,
+            status: { in: ["confirmed", "pending"] },
+          },
+        });
+        if (cap > 0 && activeBooked >= cap) {
+          throw new Error("CLASS_FULL");
+        }
+
+        let resolvedClassTime = class_time ?? null;
+        if (!resolvedClassTime) {
+          resolvedClassTime = schedule.start_time.toISOString();
+        }
+
+        const resolvedClassName =
+          class_name?.trim() || schedule.class_model?.name || null;
+
+        if (packageId) {
+          const pkg = await tx.userPackage.findFirst({
+            where: { id: packageId, user_id: userId },
+            include: { package_type: true },
+          });
+          if (!pkg) {
+            throw new Error("PACKAGE_NOT_ALLOWED");
+          }
+          if (!pkg.is_active) {
+            throw new Error("PACKAGE_INACTIVE");
+          }
+          if (pkg.expiration_date <= new Date()) {
+            throw new Error("PACKAGE_EXPIRED");
+          }
+          if (pkg.package_type?.is_unlimited) {
+            throw new Error("PACKAGE_WRONG_TYPE");
+          }
+        }
+
+        const created = await tx.booking.create({
+          data: {
+            user_id: userId,
+            class_schedule_id: scheduleId,
+            user_package_id: packageId,
+            class_name: resolvedClassName,
+            class_time: resolvedClassTime,
+            status: "confirmed",
+          },
+        });
+
+        if (packageId) {
+          const upd = await tx.userPackage.updateMany({
+            where: {
+              id: packageId,
+              user_id: userId,
+              credits_remaining: { gte: 1 },
+            },
+            data: { credits_remaining: { decrement: 1 } },
+          });
+          if (upd.count !== 1) {
+            throw new Error("NO_CREDITS");
+          }
+        }
+
+        const newBooked = activeBooked + 1;
+        if (cap > 0) {
+          await tx.classSchedule.update({
+            where: { id: scheduleId },
+            data: {
+              current_bookings: newBooked,
+              available_spots: Math.max(0, cap - newBooked),
+            },
+          });
+        }
+
+        return created;
+      });
+
+      void buildBookingCrmVariables(booking.id)
+        .then((variables) =>
+          dispatchCrmEmailTriggers({
+            triggerType: CrmTriggerType.ClassBookingConfirmed,
+            userId,
+            variables,
+          })
+        )
+        .catch((e) => console.error("CRM class_booking_confirmed:", e));
+      return res.status(201).json(booking);
+    } catch (e) {
+      const msg = e instanceof Error ? e.message : String(e);
+      if (msg === "SCHEDULE_NOT_FOUND") {
+        return res.status(404).json({ error: "This class is no longer on the schedule" });
+      }
+      if (msg === "CLASS_CANCELLED") {
+        return res.status(400).json({ error: "This class has been cancelled" });
+      }
+      if (msg === "ALREADY_BOOKED") {
+        return res.status(409).json({ error: "You already have a booking for this class" });
+      }
+      if (msg === "CLASS_FULL") {
+        return res.status(409).json({ error: "This class is full" });
+      }
+      if (msg === "PACKAGE_NOT_ALLOWED") {
+        return res.status(403).json({ error: "That package is not linked to your account" });
+      }
+      if (msg === "PACKAGE_INACTIVE") {
+        return res.status(400).json({ error: "That package is not active" });
+      }
+      if (msg === "PACKAGE_EXPIRED") {
+        return res.status(400).json({ error: "That package has expired" });
+      }
+      if (msg === "PACKAGE_WRONG_TYPE") {
+        return res.status(400).json({ error: "Use class credits, not an unlimited pass row, for this booking" });
+      }
+      if (msg === "NO_CREDITS") {
+        return res.status(400).json({ error: "No class credits left on that package" });
+      }
+      console.error("[bookings] POST", e);
+      return res.status(500).json({ error: "Could not complete booking" });
+    }
   }
 
   if (req.method === "PATCH") {
@@ -123,6 +243,9 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       include: { class_schedule: { select: { start_time: true } } },
     });
     if (!existing) return res.status(404).json({ error: "Booking not found" });
+
+    const wasActiveSeat =
+      ["confirmed", "pending"].includes(existing.status) && Boolean(existing.class_schedule_id);
 
     const data: Record<string, unknown> = {};
     if (status) data.status = status;
@@ -147,9 +270,40 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       data.check_in_outcome = checkInOutcomeFromTimes(classStart, now);
     }
 
-    const booking = await prisma.booking.update({
-      where: { id },
-      data,
+    const booking = await prisma.$transaction(async (tx) => {
+      const updated = await tx.booking.update({
+        where: { id },
+        data,
+      });
+
+      if (status === "cancelled" && wasActiveSeat && existing.class_schedule_id) {
+        const schedId = existing.class_schedule_id;
+        const schedule = await tx.classSchedule.findUnique({
+          where: { id: schedId },
+          include: { class_model: { select: { max_capacity: true } } },
+        });
+        if (schedule) {
+          const cap =
+            schedule.capacity ?? schedule.class_model?.max_capacity ?? 0;
+          if (cap > 0) {
+            const activeBooked = await tx.booking.count({
+              where: {
+                class_schedule_id: schedId,
+                status: { in: ["confirmed", "pending"] },
+              },
+            });
+            await tx.classSchedule.update({
+              where: { id: schedId },
+              data: {
+                current_bookings: activeBooked,
+                available_spots: Math.max(0, cap - activeBooked),
+              },
+            });
+          }
+        }
+      }
+
+      return updated;
     });
 
     if (status === "cancelled") {
@@ -161,7 +315,8 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
             variables,
           })
         )
-        .catch((e) => console.error("CRM class_booking_cancelled:", e));    }
+        .catch((e) => console.error("CRM class_booking_cancelled:", e));
+    }
 
     return res.json(booking);
   }

@@ -4,7 +4,11 @@ import { authOptions } from "@/lib/auth";
 import prisma from "@/lib/prisma";
 import { notifyPackagePurchase } from "@/lib/notifications/notifyPackagePurchase";
 import type { CouponContext } from "@/lib/couponHelpers";
-import { incrementCouponAndRecordRedemption, validateAndComputeCoupon } from "@/lib/couponHelpers";
+import {
+  incrementCouponAndRecordRedemption,
+  toFiniteNumber,
+  validateAndComputeCoupon,
+} from "@/lib/couponHelpers";
 import type { Coupon } from "@/generated/prisma/client";
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
@@ -47,7 +51,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         });
         if (!packageType) throw new Error("NOT_FOUND");
 
-        const subtotal = Number(packageType.price);
+        const subtotal = toFiniteNumber(packageType.price);
         if (!Number.isFinite(subtotal) || subtotal <= 0) {
           throw new Error("BAD_PRICE");
         }

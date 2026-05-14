@@ -414,7 +414,16 @@ export default function BookClass() {
           user_package_id: userPackage.type === "class_pass" && useCredits ? packageToUse?.id : null,
         }),
       });
-      if (!bookingRes.ok) throw new Error("Failed to save class booking. Please contact support.");
+      if (!bookingRes.ok) {
+        let msg = "Failed to save class booking. Please contact support.";
+        try {
+          const errBody = await bookingRes.json();
+          if (typeof errBody?.error === "string") msg = errBody.error;
+        } catch {
+          /* ignore */
+        }
+        throw new Error(msg);
+      }
       const bookingData = await bookingRes.json();
       const bookingId = bookingData.id;
 

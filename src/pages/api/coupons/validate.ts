@@ -4,8 +4,9 @@ import { authOptions } from "@/lib/auth";
 import prisma from "@/lib/prisma";
 import {
   COUPON_CONTEXTS,
-  type CouponContext,
   validateAndComputeCoupon,
+  type CouponContext,
+  toFiniteNumber,
 } from "@/lib/couponHelpers";
 
 function parseContext(v: unknown): CouponContext | null {
@@ -29,7 +30,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     return res.status(401).json({ valid: false, error: "Sign in to use this coupon" });
   }
 
-  const subtotal = Number(body.subtotal);
+  const subtotal = toFiniteNumber(body.subtotal);
   if (!Number.isFinite(subtotal) || subtotal <= 0) {
     return res.status(400).json({ valid: false, error: "Invalid subtotal" });
   }

@@ -23,6 +23,38 @@ export function normalizeCouponCode(code: unknown): string {
   return code.trim().toUpperCase();
 }
 
+/** Coerce Prisma Decimal, string, or number to a finite number (avoids NaN from `Number(Decimal)` in some runtimes). */
+export function toFiniteNumber(value: unknown): number {
+  if (typeof value === "number") return Number.isFinite(value) ? value : NaN;
+  if (value == null) return NaN;
+  if (typeof value === "string") {
+    const n = Number(value.trim());
+    return Number.isFinite(n) ? n : NaN;
+  }
+  if (typeof value === "object") {
+    const withToNumber = value as { toNumber?: () => number };
+    if (typeof withToNumber.toNumber === "function") {
+      try {
+        const n = withToNumber.toNumber();
+        return Number.isFinite(n) ? n : NaN;
+      } catch {
+        /* fall through */
+      }
+    }
+    const s = String(value);
+    const n = Number(s);
+    return Number.isFinite(n) ? n : NaN;
+  }
+  return NaN;
+}
+
+export function normalizeDiscountType(raw: string): "percent" | "fixed" | null {
+  const t = String(raw ?? "").trim().toLowerCase();
+  if (t === "percent" || t === "percentage" || t === "pct") return "percent";
+  if (t === "fixed" || t === "amount" || t === "flat") return "fixed";
+  return null;
+}
+
 export function computeDiscountInr(
   subtotalInr: number,
   discountType: string,
@@ -30,14 +62,16 @@ export function computeDiscountInr(
 ): number {
   const sub = Math.max(0, subtotalInr);
   if (sub <= 0) return 0;
-  const val = typeof discountValue === "number" ? discountValue : Number(discountValue);
+  const normalizedType = normalizeDiscountType(discountType);
+  if (!normalizedType) return 0;
+  const val = toFiniteNumber(discountValue);
   if (!Number.isFinite(val)) return 0;
-  if (discountType === "percent") {
+  if (normalizedType === "percent") {
     const p = Math.min(100, Math.max(0, val));
     const off = (sub * p) / 100;
     return Math.min(sub, Math.round(off * 100) / 100);
   }
-  if (discountType === "fixed") {
+  if (normalizedType === "fixed") {
     return Math.min(sub, Math.max(0, Math.round(val * 100) / 100));
   }
   return 0;
@@ -74,7 +108,9 @@ export async function validateAndComputeCoupon(
     return { error: "This coupon has reached its usage limit" };
   }
 
-  const discountInr = computeDiscountInr(subtotalInr, coupon.discount_type, coupon.discount_value);
+  const dtype = normalizeDiscountType(coupon.discount_type);
+  if (!dtype) return { error: "This coupon has an invalid discount type" };
+  const discountInr = computeDiscountInr(subtotalInr, dtype, coupon.discount_value);
   if (discountInr <= 0) return { error: "This coupon does not reduce this order" };
 
   if (coupon.max_uses_per_user != null) {
