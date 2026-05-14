@@ -57,6 +57,21 @@ export function resolveDatabaseUrl(env: DatabaseEnv = process.env): string {
   return normalizeDatabaseUrl(selectedUrl);
 }
 
+/**
+ * Strip ssl-related query params for raw `pg` Client when TLS is negotiated via the `ssl` option.
+ */
+export function stripPgSslUrlOptions(connectionString: string): string {
+  try {
+    const parsed = new URL(connectionString);
+    parsed.searchParams.delete("sslmode");
+    parsed.searchParams.delete("uselibpqcompat");
+    parsed.searchParams.delete("ssl");
+    return parsed.toString();
+  } catch {
+    return connectionString;
+  }
+}
+
 export function shouldEnablePgSsl(connectionString: string): boolean {
   try {
     const parsed = new URL(connectionString);

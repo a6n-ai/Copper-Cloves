@@ -167,7 +167,7 @@ export function Instructors() {
   const scroll = (direction: "left" | "right") => {
     if (scrollContainerRef.current && !isScrolling) {
       setIsScrolling(true);
-      const scrollAmount = 420;
+      const scrollAmount = 320;
       const currentScroll = scrollContainerRef.current.scrollLeft;
       const targetScroll = currentScroll + (direction === "right" ? scrollAmount : -scrollAmount);
       
@@ -297,7 +297,7 @@ export function Instructors() {
               {/* Scrollable Carousel */}
               <div
                 ref={scrollContainerRef}
-                className="flex gap-8 overflow-x-auto scrollbar-hide scroll-smooth pb-8 snap-x snap-mandatory"
+                className="flex gap-6 overflow-x-auto scrollbar-hide scroll-smooth pb-8 snap-x snap-mandatory"
                 style={{ 
                   scrollbarWidth: "none", 
                   msOverflowStyle: "none",
@@ -307,7 +307,7 @@ export function Instructors() {
                 {instructors.map((instructor, index) => (
                   <div
                     key={instructor.name}
-                    className="flex-shrink-0 w-[340px] group/card snap-center cursor-pointer"
+                    className="flex-shrink-0 w-[260px] group/card snap-center cursor-pointer"
                     onMouseEnter={() => setHoveredIndex(index)}
                     onMouseLeave={() => setHoveredIndex(null)}
                     onClick={() => openModal(instructor)}
@@ -322,7 +322,7 @@ export function Instructors() {
                         transform: hoveredIndex === index ? "translateY(-8px) scale(1.05)" : "translateY(0) scale(1)"
                       }}
                     >
-                      <div className="relative h-[360px] overflow-hidden bg-gradient-to-b from-sage/5 to-cream/30">
+                      <div className="relative h-[230px] overflow-hidden bg-gradient-to-b from-sage/5 to-cream/30">
                         <div className="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-transparent via-terracotta/30 to-transparent z-10" />
                         
                         {/* Skeleton Loading State */}
@@ -351,8 +351,8 @@ export function Instructors() {
                         <div className="absolute top-4 right-4 w-8 h-8 border-t-2 border-r-2 border-terracotta/20 rounded-tr-lg" />
                       </div>
 
-                      <div className="p-8 bg-gradient-to-b from-white to-cream/30">
-                        <h3 className="font-display font-normal text-3xl lg:text-4xl text-charcoal mb-3 tracking-tight leading-tight">
+                      <div className="p-5 bg-gradient-to-b from-white to-cream/30">
+                        <h3 className="font-display font-normal text-2xl text-charcoal mb-2 tracking-tight leading-tight">
                           {instructor.name}
                         </h3>
 

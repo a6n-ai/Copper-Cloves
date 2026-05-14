@@ -38,7 +38,6 @@ import {
   Trash2,
   Search,
   X,
-  Check,
   Mail,
   Phone,
   MapPin,
@@ -48,6 +47,7 @@ import {
   Eye,
   Tag,
   ChefHat,
+  Building2,
 } from "lucide-react";
 import { SEO } from "@/components/SEO";
 import { Input } from "@/components/ui/input";
@@ -138,6 +138,23 @@ export default function AdminDashboard() {
   >([]);
   const [mealInquiriesLoading, setMealInquiriesLoading] = useState(false);
 
+  const [rentalInquiries, setRentalInquiries] = useState<
+    {
+      id: string;
+      name: string;
+      email: string;
+      phone: string;
+      event_type: string | null;
+      event_date: string | null;
+      guest_count: string | null;
+      duration: string | null;
+      message: string | null;
+      status: string;
+      created_at: string;
+    }[]
+  >([]);
+  const [rentalInquiriesLoading, setRentalInquiriesLoading] = useState(false);
+
   const [overviewStats, setOverviewStats] = useState({
     totalMembers: 0,
     activeToday: 0,
@@ -151,8 +168,10 @@ export default function AdminDashboard() {
     newMembersThisMonth: 0,
   });
   const [upcomingClasses, setUpcomingClasses] = useState<
-    { id: number; scheduleId?: string; name: string; time: string; instructor: string; spots: string; status: string }[]
+    { id: string | number; scheduleId?: string; name: string; time: string; instructor: string; spots: string; status: string }[]
   >([]);
+  /** Today's rosters with check-in details (from dashboard-extras). */
+  const [todayClassesDetail, setTodayClassesDetail] = useState<any[]>([]);
   const [financeStats, setFinanceStats] = useState({
     totalRevenue: 0,
     totalExpenses: 0,
@@ -168,6 +187,9 @@ export default function AdminDashboard() {
     weeklyStreak: { average: 0, top: 0 },
     onTimeCheckIns: 0,
     lateCheckIns: 0,
+    checkInSample: 0,
+    onTimeCheckInPct: 0,
+    lateCheckInPct: 0,
     noShows: 0,
     expiring7Days: 0,
     expiring15Days: 0,
@@ -277,6 +299,7 @@ export default function AdminDashboard() {
         if (Array.isArray(d.memberList)) setMemberList(d.memberList);
         if (Array.isArray(d.expiringMembers)) setExpiringMembers(d.expiringMembers);
         if (Array.isArray(d.instructors)) setDashboardInstructors(d.instructors);
+        if (Array.isArray(d.todayClasses)) setTodayClassesDetail(d.todayClasses);
       }
       if (cancelled || !payRes.ok) return;
       const pay = await payRes.json();
@@ -341,6 +364,31 @@ export default function AdminDashboard() {
         if (!cancelled) setMealInquiries(Array.isArray(d) ? d : []);
       } finally {
         if (!cancelled) setMealInquiriesLoading(false);
+      }
+    })();
+    return () => {
+      cancelled = true;
+    };
+  }, [status, session, activeTab]);
+
+  useEffect(() => {
+    if (status !== "authenticated") return;
+    const role = (session?.user as { role?: string })?.role;
+    if (role !== "admin" || activeTab !== "rental-inquiries") return;
+    let cancelled = false;
+    setRentalInquiriesLoading(true);
+    void (async () => {
+      try {
+        const r = await fetch("/api/admin/rental-inquiries");
+        if (cancelled) return;
+        if (!r.ok) {
+          setRentalInquiries([]);
+          return;
+        }
+        const d = await r.json();
+        if (!cancelled) setRentalInquiries(Array.isArray(d) ? d : []);
+      } finally {
+        if (!cancelled) setRentalInquiriesLoading(false);
       }
     })();
     return () => {
@@ -672,7 +720,7 @@ export default function AdminDashboard() {
 
             {/* Tabs */}
             <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">
-              <TabsList className="bg-white/80 backdrop-blur-xl border border-sage/20 p-1">
+              <TabsList className="bg-white/80 backdrop-blur-xl border border-sage/20 p-1 flex flex-wrap gap-1 h-auto justify-start">
                 <TabsTrigger value="overview" className="data-[state=active]:bg-sage data-[state=active]:text-white font-body">
                   <BarChart3 className="h-4 w-4 mr-2" />
                   Overview
@@ -688,6 +736,10 @@ export default function AdminDashboard() {
                 <TabsTrigger value="meal-waitlist" className="data-[state=active]:bg-sage data-[state=active]:text-white font-body">
                   <ChefHat className="h-4 w-4 mr-2" />
                   Meal waitlist
+                </TabsTrigger>
+                <TabsTrigger value="rental-inquiries" className="data-[state=active]:bg-sage data-[state=active]:text-white font-body">
+                  <Building2 className="h-4 w-4 mr-2" />
+                  Rentals
                 </TabsTrigger>
                 <TabsTrigger value="members" className="data-[state=active]:bg-sage data-[state=active]:text-white font-body">
                   <Users className="h-4 w-4 mr-2" />
@@ -854,24 +906,44 @@ export default function AdminDashboard() {
                 <Card className="border-sage/20 bg-white/95 backdrop-blur-xl">
                     <CardHeader>
                       <CardTitle className="font-display text-2xl text-charcoal">
-                        Today's Schedule
+                        Today&apos;s schedule
                       </CardTitle>
                       <CardDescription className="font-body text-charcoal/60">
-                        Next 4 classes starting soon
+                        {todayClassesDetail.length > 0
+                          ? "Tap a class to see who checked in. Check-in opens for members 15 minutes before start."
+                          : "Upcoming classes — full roster appears after extras load."}
                       </CardDescription>
                     </CardHeader>
                     <CardContent>
                       <div className="space-y-3">
-                        {upcomingClasses.map((cls) => (
-                          <div 
-                            key={cls.id}
-                            className="flex items-center justify-between p-4 rounded-xl border border-charcoal/10 hover:border-sage/30 hover:bg-sage/5 transition-all duration-600"
+                        {(todayClassesDetail.length > 0 ? todayClassesDetail.slice(0, 8) : upcomingClasses.slice(0, 8)).map(
+                          (cls: any) => {
+                            const hasRoster = Boolean(cls.attendees);
+                            const checked = cls.checkedIn ?? 0;
+                            const enrolled = cls.enrolled ?? 0;
+                            const spotLabel = cls.spots as string | undefined;
+                            return (
+                          <button
+                            type="button"
+                            key={String(cls.id)}
+                            disabled={!hasRoster}
+                            onClick={() => {
+                              if (hasRoster) {
+                                setSelectedClass(cls);
+                                setShowClassDetailsDialog(true);
+                              }
+                            }}
+                            className={`w-full flex items-center justify-between p-4 rounded-xl border border-charcoal/10 transition-all duration-600 text-left ${
+                              hasRoster
+                                ? "hover:border-sage/30 hover:bg-sage/5 cursor-pointer"
+                                : "opacity-90 cursor-default"
+                            }`}
                           >
                             <div className="flex-1">
                               <div className="font-body font-medium text-charcoal mb-1">
                                 {cls.name}
                               </div>
-                              <div className="flex items-center gap-3 text-sm text-charcoal/60">
+                              <div className="flex flex-wrap items-center gap-3 text-sm text-charcoal/60">
                                 <div className="flex items-center gap-1">
                                   <Clock className="h-3.5 w-3.5" />
                                   {cls.time}
@@ -880,16 +952,38 @@ export default function AdminDashboard() {
                                   <Users className="h-3.5 w-3.5" />
                                   {cls.instructor}
                                 </div>
+                                {hasRoster && (
+                                  <span className="text-sage font-medium">
+                                    {checked}/{enrolled} checked in
+                                  </span>
+                                )}
                               </div>
                             </div>
-                            <Badge 
-                              variant={cls.status === "full" ? "destructive" : "outline"}
-                              className={cls.status === "full" ? "" : "border-sage/20 text-sage bg-sage/5"}
-                            >
-                              {cls.spots}
-                            </Badge>
-                          </div>
-                        ))}
+                            <div className="flex flex-col items-end gap-1">
+                              {hasRoster ? (
+                                <Badge
+                                  variant="outline"
+                                  className="border-sage/20 text-sage bg-sage/5"
+                                >
+                                  Roster
+                                </Badge>
+                              ) : (
+                                <Badge
+                                  variant={cls.status === "full" ? "destructive" : "outline"}
+                                  className={
+                                    cls.status === "full"
+                                      ? ""
+                                      : "border-sage/20 text-sage bg-sage/5"
+                                  }
+                                >
+                                  {spotLabel ?? ""}
+                                </Badge>
+                              )}
+                            </div>
+                          </button>
+                            );
+                          }
+                        )}
                       </div>
                     </CardContent>
                   </Card>
@@ -1785,6 +1879,78 @@ export default function AdminDashboard() {
                 </Card>
               </TabsContent>
 
+              <TabsContent value="rental-inquiries" className="space-y-6">
+                <Card className="border-sage/20 bg-white/95 backdrop-blur-xl">
+                  <CardHeader>
+                    <CardTitle className="font-display text-2xl text-charcoal">Space rental inquiries</CardTitle>
+                    <CardDescription className="font-body text-charcoal/60">
+                      Submissions from the public rental page. Newest first.
+                    </CardDescription>
+                  </CardHeader>
+                  <CardContent>
+                    {rentalInquiriesLoading ? (
+                      <p className="font-body text-charcoal/60 py-8">Loading…</p>
+                    ) : rentalInquiries.length === 0 ? (
+                      <p className="font-body text-charcoal/60 py-8">No inquiries yet.</p>
+                    ) : (
+                      <div className="overflow-x-auto border border-sage/15 rounded-xl">
+                        <table className="w-full text-sm font-body">
+                          <thead className="bg-cream/50 border-b border-sage/15">
+                            <tr>
+                              <th className="text-left p-3 font-medium text-charcoal/70">Date</th>
+                              <th className="text-left p-3 font-medium text-charcoal/70">Name</th>
+                              <th className="text-left p-3 font-medium text-charcoal/70">Email</th>
+                              <th className="text-left p-3 font-medium text-charcoal/70">Phone</th>
+                              <th className="text-left p-3 font-medium text-charcoal/70">Event</th>
+                              <th className="text-left p-3 font-medium text-charcoal/70">Date / guests</th>
+                              <th className="text-left p-3 font-medium text-charcoal/70 min-w-[180px]">Notes</th>
+                              <th className="text-left p-3 font-medium text-charcoal/70">Status</th>
+                            </tr>
+                          </thead>
+                          <tbody>
+                            {rentalInquiries.map((row) => (
+                              <tr key={row.id} className="border-b border-sage/10 last:border-0 align-top">
+                                <td className="p-3 text-charcoal/80 whitespace-nowrap">
+                                  {new Date(row.created_at).toLocaleString("en-IN", {
+                                    dateStyle: "medium",
+                                    timeStyle: "short",
+                                  })}
+                                </td>
+                                <td className="p-3 font-medium text-charcoal">{row.name}</td>
+                                <td className="p-3">
+                                  <a href={`mailto:${row.email}`} className="text-sage hover:underline break-all">
+                                    {row.email}
+                                  </a>
+                                </td>
+                                <td className="p-3 whitespace-nowrap">
+                                  <a href={`tel:${row.phone}`} className="text-charcoal hover:text-sage">
+                                    {row.phone}
+                                  </a>
+                                </td>
+                                <td className="p-3 text-charcoal/80 max-w-[140px]">
+                                  {row.event_type?.trim() ? row.event_type : "—"}
+                                </td>
+                                <td className="p-3 text-charcoal/80 whitespace-nowrap">
+                                  <div>{row.event_date?.trim() ? row.event_date : "—"}</div>
+                                  <div className="text-charcoal/50 text-xs">
+                                    {row.guest_count?.trim() ? `${row.guest_count} guests` : ""}
+                                    {row.duration?.trim() ? ` · ${row.duration}` : ""}
+                                  </div>
+                                </td>
+                                <td className="p-3 text-charcoal/80 max-w-md whitespace-pre-wrap">
+                                  {row.message?.trim() ? row.message : "—"}
+                                </td>
+                                <td className="p-3 capitalize text-charcoal/80">{row.status}</td>
+                              </tr>
+                            ))}
+                          </tbody>
+                        </table>
+                      </div>
+                    )}
+                  </CardContent>
+                </Card>
+              </TabsContent>
+
               {/* MEMBERS TAB */}
               <TabsContent value="members" className="space-y-6">
                 {/* Member Stats */}
@@ -1804,7 +1970,9 @@ export default function AdminDashboard() {
                       </div>
                       <div className="flex items-center gap-2 text-sm">
                         <Badge variant="outline" className="border-sage/20 text-sage bg-sage/5">
-                          95% punctual
+                          {memberStats.checkInSample > 0
+                            ? `${memberStats.onTimeCheckInPct}% of ${memberStats.checkInSample} check-ins`
+                            : "No recent check-ins"}
                         </Badge>
                       </div>
                     </CardContent>
@@ -1825,7 +1993,9 @@ export default function AdminDashboard() {
                       </div>
                       <div className="flex items-center gap-2 text-sm">
                         <Badge variant="outline" className="border-amber-500/20 text-amber-600 bg-amber-50">
-                          4.8% late rate
+                          {memberStats.checkInSample > 0
+                            ? `${memberStats.lateCheckInPct}% late (after start)`
+                            : "No recent check-ins"}
                         </Badge>
                       </div>
                     </CardContent>
@@ -3056,40 +3226,67 @@ export default function AdminDashboard() {
               <div>
                 <div className="font-body font-medium text-charcoal mb-3">Enrolled Members:</div>
                 <div className="space-y-2 max-h-96 overflow-y-auto">
-                  {selectedClass.attendees.map((attendee: any) => (
+                  {(selectedClass.attendees ?? []).map((attendee: any) => {
+                    const initials = (attendee.name || "M")
+                      .split(" ")
+                      .filter(Boolean)
+                      .map((n: string) => n[0])
+                      .join("")
+                      .slice(0, 3);
+                    const outcome = attendee.checkInOutcome as string | null | undefined;
+                    const outcomeLabel =
+                      attendee.checkedIn && outcome === "on_time"
+                        ? "On time"
+                        : attendee.checkedIn && outcome === "late"
+                          ? "Late"
+                          : attendee.checkedIn
+                            ? "Checked in"
+                            : outcome === "no_show"
+                              ? "No-show"
+                              : "Not checked in";
+                    return (
                     <div key={attendee.id} className="flex items-center justify-between p-3 rounded-lg border border-sage/20 bg-white">
-                      <div className="flex items-center gap-3">
-                        <div className="h-10 w-10 rounded-full bg-sage/10 flex items-center justify-center">
+                      <div className="flex items-center gap-3 min-w-0">
+                        <div className="h-10 w-10 shrink-0 rounded-full bg-sage/10 flex items-center justify-center">
                           <span className="font-body text-sm text-sage">
-                            {attendee.name.split(" ").map((n: string) => n[0]).join("")}
+                            {initials || "—"}
                           </span>
                         </div>
-                        <div>
-                          <div className="font-body font-medium text-charcoal">
+                        <div className="min-w-0">
+                          <div className="font-body font-medium text-charcoal truncate">
                             {attendee.name}
                           </div>
-                          {attendee.checkedIn && (
+                          {attendee.email ? (
+                            <div className="font-body text-xs text-charcoal/50 truncate">
+                              {attendee.email}
+                            </div>
+                          ) : null}
+                          {attendee.checkedIn && attendee.checkInTime ? (
                             <div className="font-body text-xs text-charcoal/60">
                               Checked in at {attendee.checkInTime}
                             </div>
-                          )}
+                          ) : null}
                         </div>
                       </div>
-                      <div className="flex items-center gap-2">
+                      <div className="flex flex-col items-end gap-1 shrink-0 ml-2">
                         {attendee.checkedIn ? (
                           <Badge className="bg-sage text-white">
                             <CheckCircle2 className="h-3 w-3 mr-1" />
-                            Checked In
+                            {outcomeLabel}
+                          </Badge>
+                        ) : outcome === "no_show" ? (
+                          <Badge variant="outline" className="border-charcoal/25 text-charcoal/70">
+                            No-show
                           </Badge>
                         ) : (
-                          <Button size="sm" className="bg-sage hover:bg-sage/90 text-white font-body">
-                            <Check className="h-3.5 w-3.5 mr-1" />
-                            Manual Check-in
-                          </Button>
+                          <Badge variant="outline" className="border-charcoal/20 text-charcoal/60">
+                            Not checked in
+                          </Badge>
                         )}
                       </div>
                     </div>
-                  ))}
+                    );
+                  })}
                 </div>
               </div>
             </div>

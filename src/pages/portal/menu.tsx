@@ -58,7 +58,7 @@ export default function MenuPage() {
   const [availableClasses, setAvailableClasses] = useState<ClassSchedule[]>([]);
   const [guestCount, setGuestCount] = useState(0);
   const [guestNames, setGuestNames] = useState<string[]>([]);
-  const paymentMethod: "online" = "online";
+  const paymentMethod = "online" as const;
   const [isProcessing, setIsProcessing] = useState(false);
   const [orderSuccess, setOrderSuccess] = useState(false);
   const [orderError, setOrderError] = useState<string | null>(null);

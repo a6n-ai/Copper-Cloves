@@ -26,15 +26,29 @@ export default function RentalPage() {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsSubmitting(true);
+    setIsSuccess(false);
 
-    // Simulate API call
-    await new Promise(resolve => setTimeout(resolve, 1500));
-
-    setIsSubmitting(false);
-    setIsSuccess(true);
-
-    // Reset form after 3 seconds
-    setTimeout(() => {
+    try {
+      const res = await fetch("/api/rental-inquiries", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          name: formData.name,
+          email: formData.email,
+          phone: formData.phone,
+          eventType: formData.eventType,
+          eventDate: formData.eventDate,
+          guestCount: formData.guestCount,
+          duration: formData.duration,
+          message: formData.message,
+        }),
+      });
+      const data = await res.json().catch(() => ({}));
+      if (!res.ok) {
+        alert(typeof data.error === "string" ? data.error : "Could not send your request. Try again.");
+        return;
+      }
+      setIsSuccess(true);
       setFormData({
         name: "",
         email: "",
@@ -43,10 +57,13 @@ export default function RentalPage() {
         eventDate: "",
         guestCount: "",
         duration: "",
-        message: ""
+        message: "",
       });
-      setIsSuccess(false);
-    }, 3000);
+    } catch {
+      alert("Network error. Please try again.");
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {

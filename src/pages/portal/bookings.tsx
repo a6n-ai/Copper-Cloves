@@ -15,12 +15,20 @@ import {
 } from "@/components/ui/dialog";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 
+import { canCheckInNow, checkInWindowBounds } from "@/lib/bookingAttendance";
+
 interface Booking {
   id: string;
   class_name: string;
   class_time: string;
   status: string;
   created_at: string;
+  checked_in: boolean;
+  check_in_outcome: string | null;
+  class_schedule?: {
+    start_time: string;
+    instructor?: { name?: string | null };
+  } | null;
 }
 
 export default function MyBookingsPage() {
@@ -53,11 +61,15 @@ export default function MyBookingsPage() {
     }
   }
 
+  function effectiveClassTime(booking: Booking): string {
+    if (booking.class_schedule?.start_time) return booking.class_schedule.start_time;
+    return booking.class_time;
+  }
+
   function handleCancelClick(booking: Booking) {
     setSelectedBooking(booking);
-    
-    // Calculate if cancellation is within 6 hours
-    const classTime = new Date(booking.class_time);
+
+    const classTime = new Date(effectiveClassTime(booking));
     const now = new Date();
     const hoursDiff = (classTime.getTime() - now.getTime()) / (1000 * 60 * 60);
     
@@ -105,9 +117,9 @@ export default function MyBookingsPage() {
     });
   }
 
-  function getTimeUntilClass(classTime: string) {
+  function getTimeUntilClass(classTimeIso: string) {
     const now = new Date();
-    const classDate = new Date(classTime);
+    const classDate = new Date(classTimeIso);
     const hoursDiff = (classDate.getTime() - now.getTime()) / (1000 * 60 * 60);
     
     if (hoursDiff < 0) return "Past";
@@ -115,6 +127,24 @@ export default function MyBookingsPage() {
     if (hoursDiff < 24) return `${Math.floor(hoursDiff)} hours`;
     const days = Math.floor(hoursDiff / 24);
     return `${days} day${days > 1 ? 's' : ''}`;
+  }
+
+  async function handleCheckIn(booking: Booking) {
+    try {
+      const res = await fetch("/api/bookings", {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ id: booking.id, checked_in: true }),
+      });
+      const data = await res.json().catch(() => ({}));
+      if (!res.ok) {
+        alert(typeof data?.error === "string" ? data.error : "Check-in failed");
+        return;
+      }
+      await fetchBookings();
+    } catch {
+      alert("Check-in failed");
+    }
   }
 
   if (isLoading) {
@@ -167,9 +197,28 @@ export default function MyBookingsPage() {
         ) : (
           <div className="space-y-4">
             {bookings.map((booking) => {
-              const timeUntil = getTimeUntilClass(booking.class_time);
+              const startIso = effectiveClassTime(booking);
+              const timeUntil = getTimeUntilClass(startIso);
               const isPast = timeUntil === "Past";
-              
+              const startDate = new Date(startIso);
+              const now = new Date();
+              const { open: checkInOpen, close: checkInClose } = checkInWindowBounds(startDate);
+              const beforeCheckInWindow =
+                !isPast &&
+                !booking.checked_in &&
+                booking.status !== "cancelled" &&
+                now.getTime() < checkInOpen;
+              const afterCheckInWindow =
+                !isPast &&
+                !booking.checked_in &&
+                booking.status !== "cancelled" &&
+                now.getTime() > checkInClose;
+              const canCheck =
+                !isPast &&
+                !booking.checked_in &&
+                booking.status !== "cancelled" &&
+                canCheckInNow(startDate);
+
               return (
                 <div
                   key={booking.id}
@@ -189,22 +238,34 @@ export default function MyBookingsPage() {
                         }`}>
                           {booking.status === "confirmed" ? "Confirmed" : "Pending"}
                         </span>
-                        {isPast && (
-                          <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-body bg-charcoal/10 text-charcoal/60">
-                            Completed
+                        {booking.checked_in && (
+                          <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-body bg-sage/10 text-sage">
+                            Checked in
+                            {booking.check_in_outcome === "on_time" ? " · On time" : ""}
+                            {booking.check_in_outcome === "late" ? " · Late" : ""}
+                          </span>
+                        )}
+                        {booking.check_in_outcome === "no_show" && (
+                          <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-body bg-charcoal/10 text-charcoal/70">
+                            No-show
                           </span>
                         )}
                       </div>
                       <div className="flex items-center gap-2 text-charcoal/60">
                         <Clock size={16} />
-                        <span className="font-body text-sm">{formatTime(booking.class_time)}</span>
+                        <span className="font-body text-sm">{formatTime(startIso)}</span>
+                      </div>
+                      <div className="text-sm text-charcoal/50 font-body mt-1">
+                        {formatDate(startIso)}
                       </div>
                     </div>
 
                     {/* Middle: Instructor (placeholder) */}
                     <div className="hidden md:block">
                       <p className="font-body text-sm text-charcoal/60">Instructor</p>
-                      <p className="font-body text-charcoal">-</p>
+                      <p className="font-body text-charcoal">
+                        {booking.class_schedule?.instructor?.name || "—"}
+                      </p>
                     </div>
 
                     {/* Middle-Right: Time Until */}
@@ -217,7 +278,27 @@ export default function MyBookingsPage() {
 
                     {/* Right: Action Button */}
                     {!isPast && (
-                      <div className="flex-shrink-0">
+                      <div className="flex-shrink-0 flex flex-col gap-2 items-end max-w-xs text-right">
+                        {beforeCheckInWindow && (
+                          <p className="font-body text-xs text-charcoal/55">
+                            Check-in opens at {formatTime(new Date(checkInOpen).toISOString())} (15 minutes
+                            before class).
+                          </p>
+                        )}
+                        {afterCheckInWindow && (
+                          <p className="font-body text-xs text-charcoal/55">
+                            Check-in closed for this class.
+                          </p>
+                        )}
+                        {canCheck && (
+                          <Button
+                            onClick={() => void handleCheckIn(booking)}
+                            size="sm"
+                            className="bg-sage hover:bg-sage/90 text-white h-10 px-6"
+                          >
+                            Check in
+                          </Button>
+                        )}
                         <Button
                           onClick={() => handleCancelClick(booking)}
                           size="sm"
@@ -276,7 +357,7 @@ export default function MyBookingsPage() {
               <div className="flex justify-between">
                 <span className="font-body text-sm text-charcoal/60">Date & Time</span>
                 <span className="font-body text-charcoal">
-                  {formatDate(selectedBooking.class_time)} at {formatTime(selectedBooking.class_time)}
+                  {formatDate(effectiveClassTime(selectedBooking))} at {formatTime(effectiveClassTime(selectedBooking))}
                 </span>
               </div>
               <div className="flex justify-between">

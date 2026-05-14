@@ -115,6 +115,7 @@ export default function AdminSchedule() {
   const [successMessage, setSuccessMessage] = useState("");
   
   // New state for month/week selection
+  const [scheduleViewYear, setScheduleViewYear] = useState(() => new Date().getFullYear());
   const [selectedMonth, setSelectedMonth] = useState(new Date().getMonth());
   const [selectedWeek, setSelectedWeek] = useState<string>("");
   const [dbClasses, setDbClasses] = useState<any[]>([]);
@@ -184,10 +185,10 @@ export default function AdminSchedule() {
     return () => {
       cancelled = true;
     };
-  }, [status, session, router, selectedMonth]);
+  }, [status, session, router, selectedMonth, scheduleViewYear]);
 
   const getWeekDateRange = (weekNumber: number, month: number) => {
-    const year = new Date().getFullYear();
+    const year = scheduleViewYear;
     const startOfMonth = new Date(year, month, 1);
     
     // Find first Monday of the month
@@ -227,8 +228,13 @@ export default function AdminSchedule() {
 
   const loadSchedule = async () => {
     try {
-      const year = new Date().getFullYear();
-      const params = new URLSearchParams({ month: String(selectedMonth + 1), year: String(year) });
+      const year = scheduleViewYear;
+      const rangeStart = new Date(year, selectedMonth, 1, 0, 0, 0, 0);
+      const rangeEnd = new Date(year, selectedMonth + 1, 0, 23, 59, 59, 999);
+      const params = new URLSearchParams({
+        fromMs: String(rangeStart.getTime()),
+        toMs: String(rangeEnd.getTime()),
+      });
       const res = await fetch(`/api/class-schedules?${params}`);
       const data = res.ok ? await res.json() : [];
 
@@ -290,7 +296,7 @@ export default function AdminSchedule() {
     });
 
     try {
-      const year = new Date().getFullYear();
+      const year = scheduleViewYear;
       const selectedClassData = classOptions.find(c => String(c.id) === String(selectedClass));
 
       console.log('🔵 Selected class data:', selectedClassData);
@@ -596,28 +602,51 @@ export default function AdminSchedule() {
             {/* Month Selector */}
             <Card className="border-sage/20 bg-white/95 backdrop-blur-xl">
               <CardContent className="p-6">
-                <div className="flex items-center justify-between">
+                <div className="flex flex-col lg:flex-row lg:items-end lg:justify-between gap-6">
                   <div>
-                    <Label className="font-body text-charcoal/80 mb-2 block">Select Month</Label>
+                    <Label className="font-body text-charcoal/80 mb-2 block">Calendar</Label>
                     <p className="font-body text-sm text-charcoal/60">
-                      Schedule and view classes for a specific month
+                      Choose year and month — the grid below loads every class in that range.
                     </p>
                   </div>
-                  <Select 
-                    value={selectedMonth.toString()} 
-                    onValueChange={(val) => setSelectedMonth(parseInt(val))}
-                  >
-                    <SelectTrigger className="w-64 h-12 border-charcoal/20 focus:border-sage font-body">
-                      <SelectValue />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {MONTHS.map((month, index) => (
-                        <SelectItem key={index} value={index.toString()}>
-                          {month} {new Date().getFullYear()}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
+                  <div className="flex flex-col sm:flex-row sm:items-end gap-3 sm:gap-4">
+                    <div>
+                      <Label className="font-body text-charcoal/80 mb-2 block">Year</Label>
+                      <Select
+                        value={scheduleViewYear.toString()}
+                        onValueChange={(val) => setScheduleViewYear(parseInt(val, 10))}
+                      >
+                        <SelectTrigger className="w-32 h-12 border-charcoal/20 focus:border-sage font-body">
+                          <SelectValue />
+                        </SelectTrigger>
+                        <SelectContent>
+                          {Array.from({ length: 5 }, (_, i) => new Date().getFullYear() - 1 + i).map((y) => (
+                            <SelectItem key={y} value={String(y)}>
+                              {y}
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                    </div>
+                    <div>
+                      <Label className="font-body text-charcoal/80 mb-2 block">Month</Label>
+                      <Select 
+                        value={selectedMonth.toString()} 
+                        onValueChange={(val) => setSelectedMonth(parseInt(val))}
+                      >
+                        <SelectTrigger className="w-64 h-12 border-charcoal/20 focus:border-sage font-body">
+                          <SelectValue />
+                        </SelectTrigger>
+                        <SelectContent>
+                          {MONTHS.map((month, index) => (
+                            <SelectItem key={index} value={index.toString()}>
+                              {month} {scheduleViewYear}
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                    </div>
+                  </div>
                 </div>
               </CardContent>
             </Card>

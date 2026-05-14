@@ -4,7 +4,7 @@ import { authOptions } from "@/lib/auth";
 import prisma from "@/lib/prisma";
 
 const CHECKIN_RATE_INR = 150;
-const DEFAULT_SHARE_PERCENT = 60;
+const DEFAULT_STUDIO_CUT_PERCENT = 40;
 
 /** Check-ins per instructor in the rolling window (from confirmed bookings where member checked in). */
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
@@ -28,7 +28,17 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     select: {
       id: true,
       class_schedule: {
-        select: { instructor_id: true, instructor: { select: { id: true, name: true, specialties: true } } },
+        select: {
+          instructor_id: true,
+          instructor: {
+            select: {
+              id: true,
+              name: true,
+              specialties: true,
+              studio_payout_cut_percent: true,
+            },
+          },
+        },
       },
     },
   });
@@ -45,8 +55,16 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   }
 
   const instructors = [...tally.entries()].map(([id, v], idx) => {
+    const instructorRow = rows.find((b) => b.class_schedule?.instructor_id === id)?.class_schedule
+      ?.instructor;
+    const studioCutRaw = instructorRow?.studio_payout_cut_percent;
+    const studioCut = studioCutRaw != null ? Number(studioCutRaw) : DEFAULT_STUDIO_CUT_PERCENT;
+    const instructorPct = Math.max(
+      0,
+      Math.min(100, 100 - (Number.isFinite(studioCut) ? studioCut : DEFAULT_STUDIO_CUT_PERCENT))
+    );
     const gross = v.count * CHECKIN_RATE_INR;
-    const total = Math.round((gross * DEFAULT_SHARE_PERCENT) / 100);
+    const total = Math.round((gross * instructorPct) / 100);
     return {
       id: idx + 1,
       instructorId: id,
@@ -55,7 +73,8 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       checkIns: v.count,
       rate: CHECKIN_RATE_INR,
       total,
-      percentage: DEFAULT_SHARE_PERCENT,
+      percentage: instructorPct,
+      studioCutPercent: Number.isFinite(studioCut) ? studioCut : DEFAULT_STUDIO_CUT_PERCENT,
       status: "pending" as const,
     };
   });

@@ -67,6 +67,7 @@ export const ModelName = {
   CafeOrder: 'CafeOrder',
   MealSubscription: 'MealSubscription',
   MealSubscriptionInquiry: 'MealSubscriptionInquiry',
+  RentalInquiry: 'RentalInquiry',
   UserStats: 'UserStats',
   UserStreak: 'UserStreak',
   UserBadge: 'UserBadge',
@@ -187,6 +188,7 @@ export const InstructorScalarFieldEnum = {
   title: 'title',
   email: 'email',
   phone: 'phone',
+  studio_payout_cut_percent: 'studio_payout_cut_percent',
   image_url: 'image_url',
   about: 'about',
   philosophy: 'philosophy',
@@ -307,6 +309,7 @@ export const BookingScalarFieldEnum = {
   class_time: 'class_time',
   checked_in: 'checked_in',
   check_in_time: 'check_in_time',
+  check_in_outcome: 'check_in_outcome',
   created_at: 'created_at'
 } as const
 
@@ -373,6 +376,24 @@ export const MealSubscriptionInquiryScalarFieldEnum = {
 } as const
 
 export type MealSubscriptionInquiryScalarFieldEnum = (typeof MealSubscriptionInquiryScalarFieldEnum)[keyof typeof MealSubscriptionInquiryScalarFieldEnum]
+
+
+export const RentalInquiryScalarFieldEnum = {
+  id: 'id',
+  name: 'name',
+  email: 'email',
+  phone: 'phone',
+  event_type: 'event_type',
+  event_date: 'event_date',
+  guest_count: 'guest_count',
+  duration: 'duration',
+  message: 'message',
+  status: 'status',
+  created_at: 'created_at',
+  updated_at: 'updated_at'
+} as const
+
+export type RentalInquiryScalarFieldEnum = (typeof RentalInquiryScalarFieldEnum)[keyof typeof RentalInquiryScalarFieldEnum]
 
 
 export const UserStatsScalarFieldEnum = {

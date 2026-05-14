@@ -161,8 +161,8 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     const name = p.package_type?.name ?? "Packages";
     packageTotals.set(name, (packageTotals.get(name) ?? 0) + money(p.package_type.price));
   }
-  let totalPkgRevAll = [...packageTotals.values()].reduce((a, b) => a + b, 0);
-  let revenueSources = [...packageTotals.entries()]
+  const totalPkgRevAll = [...packageTotals.values()].reduce((a, b) => a + b, 0);
+  const revenueSources = [...packageTotals.entries()]
     .sort((a, b) => b[1] - a[1])
     .map(([name, amt]) => ({
       name,
@@ -181,7 +181,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   });
   const ngPrev = newMembersMonthly[newMembersMonthly.length - 2]?.count ?? 0;
   const ngCurr = newMembersMonthly[newMembersMonthly.length - 1]?.count ?? 0;
-  let memberGrowthPct: number | null =
+  const memberGrowthPct: number | null =
     ngPrev > 0 ? Math.round(((ngCurr - ngPrev) / ngPrev) * 100) : ngCurr > 0 ? 100 : 0;
 
   const passCounts = new Map<string, number>();

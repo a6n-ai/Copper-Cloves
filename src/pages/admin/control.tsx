@@ -78,6 +78,18 @@ export default function ControlPanel() {
   const [instructors, setInstructors] = useState<any[]>([]);
   const [loadingInstructors, setLoadingInstructors] = useState(true);
   const [uploadingImage, setUploadingImage] = useState(false);
+  const [newUserForm, setNewUserForm] = useState({
+    full_name: "",
+    email: "",
+    phone: "",
+    password: "",
+    pass_type: "studio_pass" as "studio_pass" | "class_pass",
+    package_type_id: "",
+    class_or_days_count: "",
+    expiry_date: "",
+  });
+  const [packageTypesList, setPackageTypesList] = useState<{ id: string; name: string }[]>([]);
+  const [creatingUser, setCreatingUser] = useState(false);
   const [imagePreview, setImagePreview] = useState<string>("");
   const [classImagePreview, setClassImagePreview] = useState<string>("");
 
@@ -117,6 +129,19 @@ export default function ControlPanel() {
       setLoading(false);
     }
   }, [status, session, router]);
+
+  useEffect(() => {
+    if (!showAddUserDialog) return;
+    void fetch("/api/packages", { credentials: "same-origin" })
+      .then((r) => r.json())
+      .then((d) => {
+        if (Array.isArray(d)) {
+          setPackageTypesList(
+            d.map((x: { id: string; name: string }) => ({ id: String(x.id), name: String(x.name) }))
+          );
+        }
+      });
+  }, [showAddUserDialog]);
 
   async function fetchPayoutData() {
     try {
@@ -189,9 +214,17 @@ export default function ControlPanel() {
       setUploadingImage(true);
       const fd = new FormData();
       fd.append("file", file);
-      const res = await fetch("/api/upload", { method: "POST", body: fd });
-      if (!res.ok) throw new Error("Upload failed");
-      const data = await res.json();
+      const res = await fetch("/api/upload", { method: "POST", body: fd, credentials: "same-origin" });
+      const data = await res.json().catch(() => ({}));
+      if (!res.ok) {
+        const msg = typeof data.error === "string" ? data.error : `Upload failed (HTTP ${res.status}).`;
+        alert(msg);
+        return null;
+      }
+      if (typeof data.url !== "string" || !data.url) {
+        alert("Upload response was invalid.");
+        return null;
+      }
       return data.url;
     } catch (error) {
       console.error("Error uploading image:", error);
@@ -204,6 +237,53 @@ export default function ControlPanel() {
 
   const handleImageUpload = uploadImage;
   const handleClassImageUpload = uploadImage;
+
+  async function handleAdminCreateUser() {
+    if (!newUserForm.email.trim() || !newUserForm.password) {
+      alert("Email and password are required.");
+      return;
+    }
+    setCreatingUser(true);
+    try {
+      const res = await fetch("/api/admin/users", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        credentials: "same-origin",
+        body: JSON.stringify({
+          full_name: newUserForm.full_name.trim(),
+          email: newUserForm.email.trim(),
+          phone: newUserForm.phone.trim() || null,
+          password: newUserForm.password,
+          pass_type: newUserForm.pass_type,
+          package_type_id: newUserForm.package_type_id.trim() || null,
+          class_or_days_count: newUserForm.class_or_days_count.trim()
+            ? Number(newUserForm.class_or_days_count)
+            : undefined,
+          expiry_date: newUserForm.expiry_date.trim() || null,
+        }),
+      });
+      const data = await res.json().catch(() => ({}));
+      if (!res.ok) {
+        alert(typeof data.error === "string" ? data.error : "Could not create user");
+        return;
+      }
+      alert("User created successfully.");
+      setShowAddUserDialog(false);
+      setNewUserForm({
+        full_name: "",
+        email: "",
+        phone: "",
+        password: "",
+        pass_type: "studio_pass",
+        package_type_id: "",
+        class_or_days_count: "",
+        expiry_date: "",
+      });
+      fetchUsers();
+    } finally {
+      setCreatingUser(false);
+    }
+  }
 
   async function handleCreateClass(e: React.FormEvent) {
     e.preventDefault();
@@ -223,12 +303,8 @@ export default function ControlPanel() {
       if (uploadedUrl) {
         imageUrl = uploadedUrl;
       } else {
-        alert("Image upload failed. Please try again.");
         return;
       }
-    } else {
-      alert("Please select a class image.");
-      return;
     }
     
     try {
@@ -362,6 +438,11 @@ export default function ControlPanel() {
           email: formData.get("instructor-email") as string,
           phone: formData.get("instructor-phone") as string,
           years_of_experience: String(parseInt(formData.get("years-experience") as string)),
+          studio_payout_cut_percent:
+            formData.get("studio-payout-cut") != null &&
+            String(formData.get("studio-payout-cut")).trim() !== ""
+              ? Number(formData.get("studio-payout-cut"))
+              : null,
           specialties: specialties,
           philosophy: formData.get("philosophy") as string,
           about: formData.get("about") as string,
@@ -422,6 +503,11 @@ export default function ControlPanel() {
           email: formData.get("edit-instructor-email") as string,
           phone: formData.get("edit-instructor-phone") as string,
           years_of_experience: String(parseInt(formData.get("edit-years-experience") as string)),
+          studio_payout_cut_percent:
+            formData.get("edit-studio-payout-cut") != null &&
+            String(formData.get("edit-studio-payout-cut")).trim() !== ""
+              ? Number(formData.get("edit-studio-payout-cut"))
+              : null,
           specialties: specialties,
           philosophy: formData.get("edit-philosophy") as string,
           about: formData.get("edit-about") as string,
@@ -1161,25 +1247,56 @@ export default function ControlPanel() {
           <DialogHeader>
             <DialogTitle className="font-display text-2xl text-charcoal">Add New User</DialogTitle>
             <DialogDescription className="font-body text-charcoal/60">
-              Create a new member account with package and credits
+              Create a new member account with password and package (class count or studio days).
             </DialogDescription>
           </DialogHeader>
           <div className="grid grid-cols-2 gap-4 py-4">
             <div className="space-y-2">
-              <Label htmlFor="name" className="font-body text-charcoal">Full Name</Label>
-              <Input id="name" placeholder="John Doe" className="border-sage/20 focus:ring-sage placeholder:text-charcoal/40" />
+              <Label className="font-body text-charcoal">Full Name</Label>
+              <Input
+                value={newUserForm.full_name}
+                onChange={(e) => setNewUserForm((s) => ({ ...s, full_name: e.target.value }))}
+                placeholder="John Doe"
+                className="border-sage/20 focus:ring-sage placeholder:text-charcoal/40"
+              />
             </div>
             <div className="space-y-2">
-              <Label htmlFor="email" className="font-body text-charcoal">Email</Label>
-              <Input id="email" type="email" placeholder="john@email.com" className="border-sage/20 focus:ring-sage placeholder:text-charcoal/40" />
+              <Label className="font-body text-charcoal">Email</Label>
+              <Input
+                type="email"
+                value={newUserForm.email}
+                onChange={(e) => setNewUserForm((s) => ({ ...s, email: e.target.value }))}
+                placeholder="john@email.com"
+                className="border-sage/20 focus:ring-sage placeholder:text-charcoal/40"
+              />
             </div>
             <div className="space-y-2">
-              <Label htmlFor="phone" className="font-body text-charcoal">Phone Number</Label>
-              <Input id="phone" placeholder="+91 98765 43210" className="border-sage/20 focus:ring-sage placeholder:text-charcoal/40" />
+              <Label className="font-body text-charcoal">Password</Label>
+              <Input
+                type="password"
+                value={newUserForm.password}
+                onChange={(e) => setNewUserForm((s) => ({ ...s, password: e.target.value }))}
+                placeholder="Min. 8 characters"
+                className="border-sage/20 focus:ring-sage placeholder:text-charcoal/40"
+              />
             </div>
             <div className="space-y-2">
-              <Label htmlFor="pass-type" className="font-body text-charcoal">Pass Type</Label>
-              <Select defaultValue="studio_pass">
+              <Label className="font-body text-charcoal">Phone Number</Label>
+              <Input
+                value={newUserForm.phone}
+                onChange={(e) => setNewUserForm((s) => ({ ...s, phone: e.target.value }))}
+                placeholder="+00 00000 00000"
+                className="border-sage/20 focus:ring-sage placeholder:text-charcoal/40"
+              />
+            </div>
+            <div className="space-y-2">
+              <Label className="font-body text-charcoal">Pass Type</Label>
+              <Select
+                value={newUserForm.pass_type}
+                onValueChange={(v) =>
+                  setNewUserForm((s) => ({ ...s, pass_type: v as "studio_pass" | "class_pass" }))
+                }
+              >
                 <SelectTrigger className="border-sage/20">
                   <SelectValue />
                 </SelectTrigger>
@@ -1190,31 +1307,64 @@ export default function ControlPanel() {
               </Select>
             </div>
             <div className="space-y-2">
-              <Label htmlFor="classes-or-duration" className="font-body text-charcoal">Classes / Duration</Label>
-              <Input 
-                id="classes-or-duration" 
-                type="number" 
-                placeholder="12 classes or 30 days" 
-                className="border-sage/20 focus:ring-sage placeholder:text-charcoal/40" 
-              />
-              <p className="text-xs text-charcoal/50">For Class Pass: number of classes. For Studio Pass: number of days</p>
+              <Label className="font-body text-charcoal">Package template</Label>
+              <Select
+                value={newUserForm.package_type_id || "__auto__"}
+                onValueChange={(v) =>
+                  setNewUserForm((s) => ({ ...s, package_type_id: v === "__auto__" ? "" : v }))
+                }
+              >
+                <SelectTrigger className="border-sage/20">
+                  <SelectValue placeholder="Auto-pick from pass type" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="__auto__">Auto (match pass type)</SelectItem>
+                  {packageTypesList.map((pt) => (
+                    <SelectItem key={pt.id} value={pt.id}>
+                      {pt.name}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
             </div>
             <div className="space-y-2">
-              <Label htmlFor="expiry" className="font-body text-charcoal">Expiry Date</Label>
-              <Input id="expiry" type="date" className="border-sage/20 focus:ring-sage placeholder:text-charcoal/40" />
+              <Label className="font-body text-charcoal">Classes / Days</Label>
+              <Input
+                type="number"
+                min={1}
+                value={newUserForm.class_or_days_count}
+                onChange={(e) =>
+                  setNewUserForm((s) => ({ ...s, class_or_days_count: e.target.value }))
+                }
+                placeholder={newUserForm.pass_type === "class_pass" ? "e.g. 12" : "e.g. 30"}
+                className="border-sage/20 focus:ring-sage placeholder:text-charcoal/40"
+              />
+              <p className="text-xs text-charcoal/50">
+                Class pass: number of credits. Studio pass: duration in days (if no expiry date).
+              </p>
             </div>
-            <div className="col-span-2 space-y-2">
-              <Label htmlFor="address" className="font-body text-charcoal">Address (Optional)</Label>
-              <Textarea id="address" placeholder="Enter full address..." className="border-sage/20 focus:ring-sage placeholder:text-charcoal/40" />
+            <div className="space-y-2">
+              <Label className="font-body text-charcoal">Expiry date (optional)</Label>
+              <Input
+                type="date"
+                value={newUserForm.expiry_date}
+                onChange={(e) => setNewUserForm((s) => ({ ...s, expiry_date: e.target.value }))}
+                className="border-sage/20 focus:ring-sage placeholder:text-charcoal/40"
+              />
             </div>
+
           </div>
           <DialogFooter>
             <Button variant="outline" onClick={() => setShowAddUserDialog(false)} className="border-sage/20 font-body">
               Cancel
             </Button>
-            <Button className="bg-sage hover:bg-sage/90 text-white font-body">
+            <Button
+              className="bg-sage hover:bg-sage/90 text-white font-body"
+              disabled={creatingUser}
+              onClick={() => void handleAdminCreateUser()}
+            >
               <Save className="h-4 w-4 mr-2" />
-              Create User
+              {creatingUser ? "Creating…" : "Create User"}
             </Button>
           </DialogFooter>
         </DialogContent>
@@ -1404,12 +1554,13 @@ export default function ControlPanel() {
                 <Input id="display-order" name="display-order" type="number" placeholder="0" className="border-sage/20 focus:ring-sage placeholder:text-charcoal/40" />
               </div>
               <div className="col-span-2 space-y-2">
-                <Label htmlFor="class-image" className="font-body text-charcoal">Class Image *</Label>
+                <Label htmlFor="class-image" className="font-body text-charcoal">Class image</Label>
+                <p className="text-xs text-charcoal/50 font-body">JPEG, PNG, or WebP. Leave empty to use the default placeholder (large files use data URLs — up to ~12MB).</p>
                 <Input 
                   id="class-image"
                   name="class-image"
                   type="file"
-                  accept="image/*"
+                  accept="image/jpeg,image/jpg,image/png,image/webp,.jpg,.jpeg,.png,.webp"
                   className="border-sage/20 focus:ring-sage"
                   onChange={(e) => {
                     const file = e.target.files?.[0];
@@ -1535,7 +1686,7 @@ export default function ControlPanel() {
                       id="edit-class-image"
                       name="edit-class-image"
                       type="file"
-                      accept="image/*"
+                      accept="image/jpeg,image/jpg,image/png,image/webp,.jpg,.jpeg,.png,.webp"
                       className="border-sage/20 focus:ring-sage"
                       onChange={(e) => {
                         const file = e.target.files?.[0];
@@ -1692,7 +1843,7 @@ export default function ControlPanel() {
                   id="instructor-image" 
                   name="instructor-image" 
                   type="file" 
-                  accept="image/*"
+                  accept="image/jpeg,image/jpg,image/png,image/webp,.jpg,.jpeg,.png,.webp"
                   className="border-sage/20 focus:ring-sage"
                   onChange={(e) => {
                     const file = e.target.files?.[0];
@@ -1739,6 +1890,21 @@ export default function ControlPanel() {
               <div className="space-y-2">
                 <Label htmlFor="years-experience" className="font-body text-charcoal">Years of Experience *</Label>
                 <Input id="years-experience" name="years-experience" type="number" min="0" placeholder="10" className="border-sage/20 focus:ring-sage placeholder:text-charcoal/40" required />
+              </div>
+
+              <div className="space-y-2 col-span-2">
+                <Label htmlFor="studio-payout-cut" className="font-body text-charcoal">Studio revenue cut (%)</Label>
+                <Input
+                  id="studio-payout-cut"
+                  name="studio-payout-cut"
+                  type="number"
+                  min="0"
+                  max="100"
+                  step="0.5"
+                  placeholder="40 — studio share; instructor gets the rest"
+                  className="border-sage/20 focus:ring-sage placeholder:text-charcoal/40"
+                />
+                <p className="text-xs text-charcoal/50">Not shown on the public site. Used for payout estimates.</p>
               </div>
 
               {/* Expertise */}
@@ -1846,7 +2012,7 @@ export default function ControlPanel() {
                     id="edit-instructor-image" 
                     name="edit-instructor-image" 
                     type="file" 
-                    accept="image/*"
+                    accept="image/jpeg,image/jpg,image/png,image/webp,.jpg,.jpeg,.png,.webp"
                     className="border-sage/20 focus:ring-sage"
                     onChange={(e) => {
                       const file = e.target.files?.[0];
@@ -1895,6 +2061,26 @@ export default function ControlPanel() {
                 <div className="space-y-2">
                   <Label htmlFor="edit-years-experience" className="font-body text-charcoal">Years of Experience *</Label>
                   <Input id="edit-years-experience" name="edit-years-experience" type="number" min="0" defaultValue={selectedInstructorData.years_of_experience} className="border-sage/20 focus:ring-sage" required />
+                </div>
+
+                <div className="space-y-2">
+                  <Label htmlFor="edit-studio-payout-cut" className="font-body text-charcoal">Studio revenue cut (%)</Label>
+                  <Input
+                    id="edit-studio-payout-cut"
+                    name="edit-studio-payout-cut"
+                    type="number"
+                    min="0"
+                    max="100"
+                    step="0.01"
+                    defaultValue={
+                      selectedInstructorData.studio_payout_cut_percent != null
+                        ? String(selectedInstructorData.studio_payout_cut_percent)
+                        : ""
+                    }
+                    placeholder="e.g. 40"
+                    className="border-sage/20 focus:ring-sage"
+                  />
+                  <p className="text-xs text-charcoal/50 font-body">Internal only — studio share before instructor payout.</p>
                 </div>
 
                 {/* Expertise */}

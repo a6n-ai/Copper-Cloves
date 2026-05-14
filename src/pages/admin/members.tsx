@@ -18,7 +18,6 @@ import {
   Calendar,
   Mail,
   Phone,
-  Flame,
   Trophy
 } from "lucide-react";
 import { SEO } from "@/components/SEO";
@@ -49,10 +48,13 @@ interface Member {
   credits: number;
   unlimited: boolean;
   expiryDate: string;
-  streak: number;
   totalClasses: number;
   lastVisit: string;
   status: "active" | "expiring" | "expired";
+  /** Studio pass vs class pass vs no current pass */
+  passCategory: "studio_pass" | "class_pass" | "none";
+  /** Active = holding a package; inactive = lapsed 14+ days; grace = between */
+  accountFilter: "active" | "inactive" | "grace";
 }
 
 function formatRelativeDay(date: Date | string | null | undefined): string {
@@ -82,6 +84,8 @@ export default function AdminMembers() {
   const router = useRouter();
   const [loading, setLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState("");
+  const [packageFilter, setPackageFilter] = useState<"all" | "studio" | "class" | "none">("all");
+  const [accountStatusFilter, setAccountStatusFilter] = useState<"all" | "active" | "inactive">("all");
   const [members, setMembers] = useState<Member[]>([]);
   const [filteredMembers, setFilteredMembers] = useState<Member[]>([]);
   const [selectedMember, setSelectedMember] = useState<Member | null>(null);
@@ -110,13 +114,21 @@ export default function AdminMembers() {
   }, [status, session, router]);
 
   useEffect(() => {
-    const filtered = members.filter(member =>
-      member.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      member.email.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      member.phone.includes(searchQuery)
-    );
+    const filtered = members.filter((member) => {
+      const q =
+        member.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        member.email.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        member.phone.includes(searchQuery);
+      if (!q) return false;
+      if (packageFilter === "studio" && member.passCategory !== "studio_pass") return false;
+      if (packageFilter === "class" && member.passCategory !== "class_pass") return false;
+      if (packageFilter === "none" && member.passCategory !== "none") return false;
+      if (accountStatusFilter === "active" && member.accountFilter !== "active") return false;
+      if (accountStatusFilter === "inactive" && member.accountFilter !== "inactive") return false;
+      return true;
+    });
     setFilteredMembers(filtered);
-  }, [searchQuery, members]);
+  }, [searchQuery, members, packageFilter, accountStatusFilter]);
 
   const loadMembers = async () => {
     try {
@@ -131,44 +143,66 @@ export default function AdminMembers() {
         user_packages: Array<{
           id: string;
           is_active: boolean;
+          pass_type: string | null;
           credits_remaining: number | null;
           expiration_date: string;
-          package_type: { name: string; is_unlimited: boolean };
+          package_type: { name: string; is_unlimited: boolean; type: string };
         }>;
         user_stats: {
-          current_streak?: number;
           total_classes_attended?: number;
           last_class_date?: string | null;
         } | null;
       }> = await res.json();
 
+      const now = new Date();
+      const fourteenAgo = new Date(now);
+      fourteenAgo.setDate(fourteenAgo.getDate() - 14);
+
       const mapped: Member[] = profiles.map((p) => {
-        const pkg = p.user_packages?.[0];
-        const pt = pkg?.package_type;
-        const unlimited = Boolean(pt?.is_unlimited || p.pass_type === "studio_pass");
-        const credits = unlimited
-          ? pkg?.credits_remaining ?? 0
-          : pkg?.credits_remaining ?? 0;
-        const expiryRaw = pkg?.expiration_date
-          ? new Date(pkg.expiration_date)
-          : new Date();
+        const pkgs = p.user_packages ?? [];
+        const activePkg = pkgs.find((up) => up.is_active && new Date(up.expiration_date) > now);
+        const lastPkg = pkgs[0];
+        const pkg = activePkg ?? lastPkg;
+        const expiryRaw = pkg?.expiration_date ? new Date(pkg.expiration_date) : new Date();
         const expiryDate = expiryRaw.toISOString().slice(0, 10);
+
+        const holdingPackage = Boolean(activePkg);
+        const lastExp = lastPkg ? new Date(lastPkg.expiration_date) : null;
+        let accountFilter: Member["accountFilter"] = "grace";
+        if (holdingPackage) accountFilter = "active";
+        else if (!lastExp || lastExp.getTime() < fourteenAgo.getTime()) accountFilter = "inactive";
+
+        let passCategory: Member["passCategory"] = "none";
+        if (pkg) {
+          const pass = (pkg.pass_type || p.pass_type || "").toLowerCase();
+          const pt = pkg.package_type;
+          const t = (pt?.type || "").toLowerCase();
+          if (pass === "studio_pass" || pt?.is_unlimited || t.includes("studio")) {
+            passCategory = "studio_pass";
+          } else {
+            passCategory = "class_pass";
+          }
+        }
+
+        const unlimited = Boolean(pkg?.package_type?.is_unlimited || passCategory === "studio_pass");
+        const credits = pkg?.credits_remaining ?? 0;
         const stats = p.user_stats;
 
         return {
           id: p.id,
-          userPackageId: pkg?.id ?? null,
+          userPackageId: activePkg?.id ?? lastPkg?.id ?? null,
           name: p.full_name || p.email || "Member",
           email: p.email,
           phone: p.phone || "—",
-          package: pt?.name ?? "No active package",
+          package: activePkg?.package_type?.name ?? lastPkg?.package_type?.name ?? "No active package",
           credits,
           unlimited,
           expiryDate,
-          streak: stats?.current_streak ?? 0,
           totalClasses: stats?.total_classes_attended ?? 0,
           lastVisit: formatRelativeDay(stats?.last_class_date ?? null),
           status: deriveMemberStatus(expiryRaw, credits, unlimited),
+          passCategory,
+          accountFilter,
         };
       });
 
@@ -293,12 +327,9 @@ export default function AdminMembers() {
 
   const stats = {
     totalMembers: members.length,
-    activeMembers: members.filter((m) => m.status === "active").length,
+    activeMembers: members.filter((m) => m.accountFilter === "active").length,
     expiringMembers: members.filter((m) => m.status === "expiring").length,
-    avgStreak:
-      members.length === 0
-        ? 0
-        : Math.round(members.reduce((sum, m) => sum + m.streak, 0) / members.length),
+    inactiveLong: members.filter((m) => m.accountFilter === "inactive").length,
   };
 
   if (loading) {
@@ -400,15 +431,16 @@ export default function AdminMembers() {
                 <CardHeader className="pb-3">
                   <div className="flex items-center justify-between">
                     <CardTitle className="font-body text-sm text-charcoal/60 font-medium">
-                      Avg Streak
+                      Inactive (14d+)
                     </CardTitle>
-                    <Flame className="h-5 w-5 text-terracotta" />
+                    <AlertTriangle className="h-5 w-5 text-charcoal/50" />
                   </div>
                 </CardHeader>
                 <CardContent>
                   <div className="font-display text-4xl text-charcoal">
-                    {stats.avgStreak}
+                    {stats.inactiveLong}
                   </div>
+                  <p className="text-xs text-charcoal/50 font-body mt-1">No package for over 14 days</p>
                 </CardContent>
               </Card>
             </div>
@@ -416,14 +448,40 @@ export default function AdminMembers() {
             {/* Search Bar */}
             <Card className="border-sage/20 bg-white/95 backdrop-blur-xl">
               <CardContent className="p-6">
-                <div className="relative">
-                  <Search className="absolute left-4 top-1/2 -translate-y-1/2 h-5 w-5 text-charcoal/40" />
-                  <Input
-                    value={searchQuery}
-                    onChange={(e) => setSearchQuery(e.target.value)}
-                    placeholder="Search by name, email, or phone..."
-                    className="h-14 pl-12 border-charcoal/20 focus:border-sage font-body text-lg"
-                  />
+                <div className="flex flex-col md:flex-row gap-4">
+                  <div className="relative flex-1">
+                    <Search className="absolute left-4 top-1/2 -translate-y-1/2 h-5 w-5 text-charcoal/40" />
+                    <Input
+                      value={searchQuery}
+                      onChange={(e) => setSearchQuery(e.target.value)}
+                      placeholder="Search by name, email, or phone..."
+                      className="h-14 pl-12 border-charcoal/20 focus:border-sage font-body text-lg"
+                    />
+                  </div>
+                  <Select value={packageFilter} onValueChange={(v) => setPackageFilter(v as typeof packageFilter)}>
+                    <SelectTrigger className="h-14 w-full md:w-[200px] border-charcoal/20">
+                      <SelectValue placeholder="Package" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="all">All packages</SelectItem>
+                      <SelectItem value="studio">Studio pass</SelectItem>
+                      <SelectItem value="class">Class pass</SelectItem>
+                      <SelectItem value="none">No pass</SelectItem>
+                    </SelectContent>
+                  </Select>
+                  <Select
+                    value={accountStatusFilter}
+                    onValueChange={(v) => setAccountStatusFilter(v as typeof accountStatusFilter)}
+                  >
+                    <SelectTrigger className="h-14 w-full md:w-[200px] border-charcoal/20">
+                      <SelectValue placeholder="Status" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="all">All statuses</SelectItem>
+                      <SelectItem value="active">Active</SelectItem>
+                      <SelectItem value="inactive">Inactive</SelectItem>
+                    </SelectContent>
+                  </Select>
                 </div>
               </CardContent>
             </Card>
@@ -492,23 +550,39 @@ export default function AdminMembers() {
                           </div>
                         </div>
 
-                        {/* Stats */}
+                        {/* Pass & activity */}
                         <div>
                           <div className="font-body text-sm text-charcoal/60 mb-2">
-                            Performance
+                            Pass & activity
                           </div>
-                          <div className="space-y-2">
-                            <div className="flex items-center gap-2 text-sm">
-                              <Flame className="h-3.5 w-3.5 text-terracotta" />
-                              <span className="font-body text-charcoal">{member.streak} day streak</span>
+                          <div className="space-y-2 text-sm font-body">
+                            <div>
+                              <span className="text-charcoal/50">Pass: </span>
+                              <span className="text-charcoal font-medium">
+                                {member.passCategory === "studio_pass"
+                                  ? "Studio pass"
+                                  : member.passCategory === "class_pass"
+                                    ? "Class pass"
+                                    : "No pass"}
+                              </span>
                             </div>
-                            <div className="flex items-center gap-2 text-sm">
+                            <div>
+                              <span className="text-charcoal/50">Account: </span>
+                              <span className="text-charcoal font-medium">
+                                {member.accountFilter === "active"
+                                  ? "Active"
+                                  : member.accountFilter === "inactive"
+                                    ? "Inactive"
+                                    : "Lapsed (<14 d)"}
+                              </span>
+                            </div>
+                            <div className="flex items-center gap-2">
                               <Trophy className="h-3.5 w-3.5 text-sage" />
-                              <span className="font-body text-charcoal">{member.totalClasses} classes</span>
+                              <span className="text-charcoal">{member.totalClasses} classes attended</span>
                             </div>
-                            <div className="flex items-center gap-2 text-sm">
-                              <Calendar className="h-3.5 w-3.5 text-charcoal/40" />
-                              <span className="font-body text-charcoal/60">Last: {member.lastVisit}</span>
+                            <div className="flex items-center gap-2 text-charcoal/60">
+                              <Calendar className="h-3.5 w-3.5" />
+                              <span>Last visit: {member.lastVisit}</span>
                             </div>
                           </div>
                         </div>

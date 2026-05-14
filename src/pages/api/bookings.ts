@@ -4,6 +4,12 @@ import { authOptions } from "@/lib/auth";
 import { CrmTriggerType } from "@/lib/crmTriggerTypes";
 import prisma from "@/lib/prisma";
 import { buildBookingCrmVariables, dispatchCrmEmailTriggers } from "@/lib/notifications/crmTemplatedDispatch";
+import {
+  canCheckInNow,
+  checkInOutcomeFromTimes,
+} from "@/lib/bookingAttendance";
+import { reconcileNoShowsGlobally } from "@/lib/bookingReconcile";
+
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
   const session = await getServerSession(req, res, authOptions);
   if (!session?.user) return res.status(401).json({ error: "Unauthorized" });
@@ -12,6 +18,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
   if (req.method === "GET") {
     const { status, limit, days } = req.query;
+    await reconcileNoShowsGlobally(prisma);
     const where: Record<string, unknown> = { user_id: userId };
     if (status) {
       where.status = String(status) === "active"
@@ -31,14 +38,40 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         },
         user_package: { include: { package_type: true } },
       },
-      orderBy: { booking_date: "desc" },
       ...(limit ? { take: Number(limit) } : {}),
     });
+
+    const startMs = (b: (typeof bookings)[0]) => {
+      const fromSched = b.class_schedule?.start_time?.getTime();
+      if (fromSched != null && !Number.isNaN(fromSched)) return fromSched;
+      if (b.class_time) {
+        const t = new Date(b.class_time).getTime();
+        if (!Number.isNaN(t)) return t;
+      }
+      return new Date(b.booking_date).getTime();
+    };;
+
+    bookings.sort((a, b) => startMs(a) - startMs(b));
+
     return res.json(bookings);
   }
 
   if (req.method === "POST") {
-    const { class_schedule_id, user_package_id, class_name, class_time } = req.body;
+    const { class_schedule_id, user_package_id, class_name, class_time } = req.body as {
+      class_schedule_id?: string;
+      user_package_id?: string | null;
+      class_name?: string | null;
+      class_time?: string | null;
+    };
+
+    let resolvedClassTime = class_time ?? null;
+    if (class_schedule_id && !resolvedClassTime) {
+      const sch = await prisma.classSchedule.findUnique({
+        where: { id: class_schedule_id },
+        select: { start_time: true },
+      });
+      if (sch) resolvedClassTime = sch.start_time.toISOString();
+    }
 
     const booking = await prisma.booking.create({
       data: {
@@ -46,7 +79,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         class_schedule_id: class_schedule_id ?? null,
         user_package_id: user_package_id ?? null,
         class_name: class_name ?? null,
-        class_time: class_time ?? null,
+        class_time: resolvedClassTime,
         status: "confirmed",
       },
     });
@@ -75,18 +108,47 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   }
 
   if (req.method === "PATCH") {
-    const { id, status, checked_in } = req.body;
+    const { id, status, checked_in } = req.body as {
+      id?: string;
+      status?: string;
+      checked_in?: boolean;
+    };
+
+    if (!id || typeof id !== "string") {
+      return res.status(400).json({ error: "Booking id required" });
+    }
+
+    const existing = await prisma.booking.findFirst({
+      where: { id, user_id: userId },
+      include: { class_schedule: { select: { start_time: true } } },
+    });
+    if (!existing) return res.status(404).json({ error: "Booking not found" });
 
     const data: Record<string, unknown> = {};
     if (status) data.status = status;
     if (status === "cancelled") data.cancellation_date = new Date();
-    if (checked_in !== undefined) {
-      data.checked_in = checked_in;
-      if (checked_in) data.check_in_time = new Date();
+
+    if (checked_in === true) {
+      if (existing.checked_in) {
+        return res.status(400).json({ error: "Already checked in" });
+      }
+      const classStart = existing.class_schedule?.start_time;
+      if (!classStart) {
+        return res.status(400).json({ error: "This booking is not linked to a scheduled class" });
+      }
+      const now = new Date();
+      if (!canCheckInNow(classStart, now)) {
+        return res.status(400).json({
+          error: "Check-in is only available from 15 minutes before until 10 minutes after class start.",
+        });
+      }
+      data.checked_in = true;
+      data.check_in_time = now;
+      data.check_in_outcome = checkInOutcomeFromTimes(classStart, now);
     }
 
     const booking = await prisma.booking.update({
-      where: { id, user_id: userId },
+      where: { id },
       data,
     });
 

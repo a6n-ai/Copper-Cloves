@@ -54,6 +54,7 @@ export default function MealSubscriptionPage() {
       const res = await fetch("/api/meal-subscription-inquiries", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
+        credentials: "same-origin",
         body: JSON.stringify({
           fullName: formData.fullName,
           email: formData.email,

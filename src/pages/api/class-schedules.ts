@@ -5,11 +5,15 @@ import prisma from "@/lib/prisma";
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
   if (req.method === "GET") {
-    const { month, year } = req.query;
-    let where = {};
-    if (month && year) {
+    const { month, year, fromMs, toMs } = req.query;
+    let where: { start_time?: { gte: Date; lte: Date } } = {};
+    const a = typeof fromMs === "string" ? Number(fromMs) : NaN;
+    const b = typeof toMs === "string" ? Number(toMs) : NaN;
+    if (!Number.isNaN(a) && !Number.isNaN(b)) {
+      where = { start_time: { gte: new Date(a), lte: new Date(b) } };
+    } else if (month && year) {
       const start = new Date(Number(year), Number(month) - 1, 1);
-      const end = new Date(Number(year), Number(month), 0, 23, 59, 59);
+      const end = new Date(Number(year), Number(month), 0, 23, 59, 59, 999);
       where = { start_time: { gte: start, lte: end } };
     }
     const schedules = await prisma.classSchedule.findMany({

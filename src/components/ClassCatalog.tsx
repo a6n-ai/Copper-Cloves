@@ -13,6 +13,14 @@ interface ClassData {
   image_url?: string;
 }
 
+/** Shown only when the database has no class types yet (landing still feels alive). */
+const STATIC_CATALOG_FALLBACK: ClassData[] = [
+  { name: "Muay Thai Circuit Training", duration: "55 min", image: "/muaythaicircuittraining.jpg", benefit: "Power, speed, and conditioning" },
+  { name: "Aerial Yoga", duration: "55 min", image: "/aerialyoga.jpg", benefit: "Decompress and build core strength" },
+  { name: "WARRIOR Strength", duration: "55 min", image: "/warriorstrength.jpg", benefit: "Strength and cardio to music" },
+  { name: "Mat Pilates", duration: "55 min", image: "/matpilates.jpg", benefit: "Core-focused classical Pilates" },
+];
+
 export function ClassCatalog() {
   const router = useRouter();
   const scrollContainerRef = useRef<HTMLDivElement>(null);
@@ -39,10 +47,10 @@ export function ClassCatalog() {
         image: cls.image_url || "/placeholder.jpg",
         image_url: cls.image_url,
       }));
-      setClasses(transformedClasses);
+      setClasses(transformedClasses.length > 0 ? transformedClasses : STATIC_CATALOG_FALLBACK);
     } catch (error) {
       console.error("Error fetching classes:", error);
-      setClasses([]);
+      setClasses(STATIC_CATALOG_FALLBACK);
     } finally {
       setLoading(false);
     }

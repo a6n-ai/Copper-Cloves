@@ -6,7 +6,6 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { 
   X, 
   Clock, 
@@ -24,6 +23,10 @@ import {
   AlertCircle
 } from "lucide-react";
 import { useSession } from "next-auth/react";
+import {
+  startOfMondayWeekLocal,
+  endOfSundayWeekLocal,
+} from "@/lib/calendarWeek";
 
 // Discount mapping based on unlimited tier (simplified - using package name)
 const UNLIMITED_DISCOUNTS: Record<string, number> = {
@@ -63,6 +66,8 @@ export interface Class {
   intensity: string;
   spots: number;
   image: string;
+  /** ISO datetime for this scheduled instance (for booking + sorting). */
+  startTimeIso: string;
 }
 
 export default function BookClass() {
@@ -113,9 +118,8 @@ export default function BookClass() {
   const [filterIntensity, setFilterIntensity] = useState<string>("all");
   const classesPerPage = 6;
 
-  // Week and Month filters for class list
-  const [selectedMonth, setSelectedMonth] = useState<number>(new Date().getMonth());
-  const [selectedWeek, setSelectedWeek] = useState<number>(1);
+  /** ISO week (Mon–Sun) containing “today”, always used for booking (avoids wrong week near year boundaries). */
+  const [weekSummary, setWeekSummary] = useState("");
 
   // Classes from database
   const [allClasses, setAllClasses] = useState<Class[]>([]);
@@ -138,35 +142,38 @@ export default function BookClass() {
     if (status === "authenticated") {
       setIsAuthenticated(true);
       checkAuthAndLoadData();
-    }
-  }, [status]);
-
-  // Refetch classes when filters change
-  useEffect(() => {
-    if (isAuthenticated) {
       fetchClasses();
     }
-  }, [selectedMonth, selectedWeek, isAuthenticated]);
+  }, [status]);
 
   async function fetchClasses() {
     try {
       setLoadingClasses(true);
-      const year = new Date().getFullYear();
-      const weekStartDate = new Date(year, selectedMonth, 1 + (selectedWeek - 1) * 7);
-      const weekEndDate = new Date(year, selectedMonth, selectedWeek * 7);
-      if (weekEndDate.getMonth() !== selectedMonth) weekEndDate.setDate(0);
+      const now = new Date();
+      const weekStart = startOfMondayWeekLocal(now);
+      const weekEnd = endOfSundayWeekLocal(weekStart);
+      setWeekSummary(
+        `${weekStart.toLocaleDateString("en-US", { weekday: "short", month: "short", day: "numeric" })} – ${weekEnd.toLocaleDateString("en-US", { weekday: "short", month: "short", day: "numeric", year: "numeric" })}`
+      );
 
       const params = new URLSearchParams({
-        month: String(selectedMonth + 1),
-        year: String(year),
+        fromMs: String(weekStart.getTime()),
+        toMs: String(weekEnd.getTime()),
       });
       const res = await fetch(`/api/class-schedules?${params}`);
-      const data = res.ok ? await res.json() : [];
+      const raw = res.ok ? await res.json() : [];
 
-      const transformedClasses: Class[] = data
-        .filter((s: { start_time: string }) => {
-          const t = new Date(s.start_time);
-          return t >= weekStartDate && t <= weekEndDate;
+      const nowMs = Date.now();
+
+      const transformedClasses: Class[] = raw
+        .filter((s: { start_time: string; status?: string }) => {
+          const t = new Date(s.start_time).getTime();
+          return (
+            t >= weekStart.getTime() &&
+            t <= weekEnd.getTime() &&
+            s.status !== "cancelled" &&
+            t > nowMs
+          );
         })
         .map((schedule: {
           id: string;
@@ -182,7 +189,15 @@ export default function BookClass() {
           intensity: schedule.class_model?.category?.toLowerCase() || "moderate",
           spots: schedule.class_model?.max_capacity || 10,
           image: schedule.class_model?.image_url || "/placeholder.jpg",
-        }));
+          startTimeIso:
+            typeof schedule.start_time === "string"
+              ? schedule.start_time
+              : new Date(schedule.start_time).toISOString(),
+        }))
+        .sort(
+          (a, b) =>
+            new Date(a.startTimeIso).getTime() - new Date(b.startTimeIso).getTime()
+        );
 
       setAllClasses(transformedClasses);
     } catch (error) {
@@ -387,25 +402,13 @@ export default function BookClass() {
         if ((packageToUse.credits_remaining ?? 0) < 1) throw new Error("You don't have any classes remaining.");
       }
 
-      let classTimeISO = null;
-      if (selectedClass?.time) {
-        const timeParts = selectedClass.time.match(/(\d+):(\d+)\s*(AM|PM)/i);
-        if (timeParts) {
-          let hours = parseInt(timeParts[1]);
-          const minutes = parseInt(timeParts[2]);
-          const period = timeParts[3].toUpperCase();
-          if (period === "PM" && hours !== 12) hours += 12;
-          if (period === "AM" && hours === 12) hours = 0;
-          const classDateTime = new Date(new Date().getFullYear(), selectedMonth, 1 + (selectedWeek - 1) * 7);
-          classDateTime.setHours(hours, minutes, 0, 0);
-          classTimeISO = classDateTime.toISOString();
-        }
-      }
+      const classTimeISO = selectedClass?.startTimeIso ?? null;
 
       const bookingRes = await fetch("/api/bookings", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
+          class_schedule_id: selectedClass?.id ?? null,
           class_name: selectedClass?.name,
           class_time: classTimeISO,
           user_package_id: userPackage.type === "class_pass" && useCredits ? packageToUse?.id : null,
@@ -489,61 +492,11 @@ export default function BookClass() {
           <div className="mb-8 md:mb-12">
             <h1 className="font-display text-4xl md:text-5xl text-charcoal mb-3">Book Your Next Session</h1>
             <p className="font-body text-sage text-base md:text-lg">
-              Showing {startIndex + 1}-{Math.min(startIndex + classesPerPage, filteredClasses.length)} of {filteredClasses.length} classes
+              Showing {startIndex + 1}-{Math.min(startIndex + classesPerPage, filteredClasses.length)} of {filteredClasses.length} upcoming classes
             </p>
-          </div>
-
-          {/* Month and Week Filters */}
-          <div className="max-w-6xl mx-auto mb-8">
-            <div className="bg-white/80 backdrop-blur-sm rounded-2xl p-4 border border-sage/10">
-              <div className="flex flex-wrap items-center gap-4">
-                <label className="font-body text-sm text-charcoal/60 uppercase tracking-wide">
-                  Filter by:
-                </label>
-                
-                {/* Month Dropdown */}
-                <Select value={selectedMonth.toString()} onValueChange={(val) => setSelectedMonth(parseInt(val))}>
-                  <SelectTrigger className="w-[180px] border-sage/20 bg-white font-body text-charcoal rounded-xl focus:ring-sage">
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"].map((month, index) => (
-                      <SelectItem key={index} value={index.toString()}>
-                        {month} {new Date().getFullYear()}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-
-                {/* Week Dropdown with Dates */}
-                <Select value={selectedWeek.toString()} onValueChange={(val) => setSelectedWeek(parseInt(val))}>
-                  <SelectTrigger className="w-[280px] border-sage/20 bg-white font-body text-charcoal rounded-xl focus:ring-sage">
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {[1, 2, 3, 4].map((week) => {
-                      const year = new Date().getFullYear();
-                      const firstDay = new Date(year, selectedMonth, 1 + (week - 1) * 7);
-                      const lastDay = new Date(year, selectedMonth, week * 7);
-                      
-                      // Ensure lastDay doesn't overflow into next month
-                      if (lastDay.getMonth() !== selectedMonth) {
-                        lastDay.setDate(0); // Last day of previous month
-                      }
-                      
-                      const startDate = firstDay.getDate();
-                      const endDate = lastDay.getDate();
-                      
-                      return (
-                        <SelectItem key={week} value={week.toString()}>
-                          Week {week}: {firstDay.toLocaleDateString('en-US', { month: 'short' })} {startDate}-{endDate}
-                        </SelectItem>
-                      );
-                    })}
-                  </SelectContent>
-                </Select>
-              </div>
-            </div>
+            <p className="font-body text-charcoal/70 text-sm mt-2">
+              {weekSummary ? `This week: ${weekSummary}. Past days and sessions that already started are hidden.` : "Loading schedule…"}
+            </p>
           </div>
 
           {/* Filter Tabs */}

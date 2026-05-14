@@ -3,6 +3,15 @@ import { getServerSession } from "next-auth/next";
 import { authOptions } from "@/lib/auth";
 import prisma from "@/lib/prisma";
 
+/** Class images may be data URLs (serverless upload) — default 1MB body limit breaks saves. */
+export const config = {
+  api: {
+    bodyParser: {
+      sizeLimit: "12mb",
+    },
+  },
+};
+
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
   if (req.method === "GET") {
     const classes = await prisma.classModel.findMany({

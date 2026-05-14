@@ -98,6 +98,11 @@ export type MealSubscription = Prisma.MealSubscriptionModel
  */
 export type MealSubscriptionInquiry = Prisma.MealSubscriptionInquiryModel
 /**
+ * Model RentalInquiry
+ * Space rental inquiry submissions from /rental
+ */
+export type RentalInquiry = Prisma.RentalInquiryModel
+/**
  * Model UserStats
  * 
  */

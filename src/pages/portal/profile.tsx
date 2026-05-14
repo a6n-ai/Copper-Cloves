@@ -11,7 +11,7 @@ import { Label } from "@/components/ui/label";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { useSession } from "next-auth/react";
 import { useToast } from "@/hooks/use-toast";
-import { User, Save, CheckCircle2, Mail, Phone, ArrowLeft } from "lucide-react";
+import { User, Save, CheckCircle2, Mail, Phone, ArrowLeft, Camera, Lock } from "lucide-react";
 
 const profileSchema = z.object({
   fullName: z.string().min(2, "Name must be at least 2 characters"),
@@ -28,6 +28,13 @@ export default function Profile() {
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [showSuccess, setShowSuccess] = useState(false);
+  const [avatarUrl, setAvatarUrl] = useState<string | null>(null);
+  const [avatarUploading, setAvatarUploading] = useState(false);
+
+  const [currentPassword, setCurrentPassword] = useState("");
+  const [newPassword, setNewPassword] = useState("");
+  const [confirmPassword, setConfirmPassword] = useState("");
+  const [passwordSaving, setPasswordSaving] = useState(false);
 
   const { register, handleSubmit, formState: { errors }, reset } = useForm<ProfileFormValues>({
     resolver: zodResolver(profileSchema),
@@ -43,6 +50,7 @@ export default function Profile() {
         email: profile.email || "",
         phone: profile.phone || "",
       });
+      setAvatarUrl(typeof profile.avatar_url === "string" && profile.avatar_url ? profile.avatar_url : null);
     } catch (error) {
       console.error("Error loading profile:", error);
     } finally {
@@ -80,6 +88,115 @@ export default function Profile() {
     }
   }
 
+  async function onAvatarSelected(e: React.ChangeEvent<HTMLInputElement>) {
+    const file = e.target.files?.[0];
+    e.target.value = "";
+    if (!file) return;
+    const contentType = file.type;
+    if (!["image/jpeg", "image/png", "image/webp"].includes(contentType)) {
+      toast({
+        title: "Invalid file",
+        description: "Please choose a JPEG, PNG, or WebP image.",
+        variant: "destructive",
+      });
+      return;
+    }
+    setAvatarUploading(true);
+    try {
+      const presignRes = await fetch("/api/user/avatar-presign", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ contentType }),
+      });
+      const presignJson = await presignRes.json().catch(() => ({}));
+      if (presignRes.status === 503) {
+        toast({
+          title: "Upload not available",
+          description:
+            typeof presignJson.error === "string"
+              ? presignJson.error
+              : "S3 is not configured for this environment.",
+          variant: "destructive",
+        });
+        return;
+      }
+      if (!presignRes.ok) {
+        toast({
+          title: "Could not start upload",
+          description: typeof presignJson.error === "string" ? presignJson.error : "Try again later.",
+          variant: "destructive",
+        });
+        return;
+      }
+      const { uploadUrl, publicUrl } = presignJson as { uploadUrl?: string; publicUrl?: string };
+      if (!uploadUrl || !publicUrl) {
+        toast({ title: "Upload error", description: "Invalid response from server.", variant: "destructive" });
+        return;
+      }
+      const putRes = await fetch(uploadUrl, {
+        method: "PUT",
+        body: file,
+        headers: { "Content-Type": contentType },
+      });
+      if (!putRes.ok) {
+        toast({ title: "Upload failed", description: "Could not upload file to storage.", variant: "destructive" });
+        return;
+      }
+      const patchRes = await fetch("/api/user/profile", {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ avatar_url: publicUrl }),
+      });
+      if (!patchRes.ok) {
+        toast({ title: "Could not save photo", description: "Upload succeeded but profile was not updated.", variant: "destructive" });
+        return;
+      }
+      setAvatarUrl(publicUrl);
+      toast({ title: "Photo updated", description: "Your profile picture has been saved." });
+    } catch {
+      toast({ title: "Upload failed", description: "Something went wrong.", variant: "destructive" });
+    } finally {
+      setAvatarUploading(false);
+    }
+  }
+
+  async function onChangePassword(e: React.FormEvent) {
+    e.preventDefault();
+    if (newPassword.length < 8) {
+      toast({ title: "Password too short", description: "Use at least 8 characters.", variant: "destructive" });
+      return;
+    }
+    if (newPassword !== confirmPassword) {
+      toast({ title: "Mismatch", description: "New password and confirmation do not match.", variant: "destructive" });
+      return;
+    }
+    setPasswordSaving(true);
+    try {
+      const res = await fetch("/api/user/change-password", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ currentPassword, newPassword }),
+      });
+      const data = await res.json().catch(() => ({}));
+      if (!res.ok) {
+        toast({
+          title: "Could not change password",
+          description: typeof data.error === "string" ? data.error : "Try again.",
+          variant: "destructive",
+        });
+        return;
+      }
+      setCurrentPassword("");
+      setNewPassword("");
+      setConfirmPassword("");
+      toast({ title: "Password updated", description: "You can sign in with your new password next time." });
+    } catch {
+      toast({ title: "Network error", description: "Please try again.", variant: "destructive" });
+    } finally {
+      setPasswordSaving(false);
+    }
+  }
+
   if (loading) {
     return (
       <div className="min-h-screen bg-cream flex items-center justify-center">
@@ -94,17 +211,16 @@ export default function Profile() {
   return (
     <div className="min-h-screen bg-cream">
       <PortalNavigation />
-      
+
       <main className="pt-24 px-4 sm:px-6 lg:px-8 pb-12 min-h-screen">
         <div className="max-w-2xl mx-auto">
-          {/* Page Header */}
           <div className="mb-8 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
             <div>
               <h1 className="font-display text-4xl md:text-5xl text-charcoal mb-3">Your Profile</h1>
               <p className="font-body text-sage text-base md:text-lg">Manage your personal information and preferences</p>
             </div>
-            <Button 
-              variant="outline" 
+            <Button
+              variant="outline"
               onClick={() => router.push("/portal/dashboard")}
               className="border-sage text-sage hover:bg-sage hover:text-white transition-all duration-600 w-full sm:w-auto font-body hover:scale-105 active:scale-95"
             >
@@ -112,8 +228,7 @@ export default function Profile() {
               Back to Dashboard
             </Button>
           </div>
-          
-          {/* Success Alert */}
+
           {showSuccess && (
             <Alert className="mb-6 border-sage/30 bg-sage/5 animate-in slide-in-from-top duration-600">
               <CheckCircle2 className="h-5 w-5 text-sage" />
@@ -123,7 +238,6 @@ export default function Profile() {
             </Alert>
           )}
 
-          {/* Profile Card */}
           <Card className="border-sage/20 bg-white/90 backdrop-blur-sm shadow-lg hover:shadow-2xl transition-all duration-600">
             <CardHeader className="p-6 md:p-8 border-b border-sage/10 bg-gradient-to-r from-cream/50 to-white">
               <CardTitle className="font-display text-2xl md:text-3xl text-charcoal flex items-center">
@@ -136,19 +250,50 @@ export default function Profile() {
                 Keep your information up to date for the best experience
               </CardDescription>
             </CardHeader>
-            
+
             <CardContent className="p-6 md:p-8">
               <form onSubmit={handleSubmit(onSubmit)} className="space-y-8">
-                {/* Full Name */}
+                <div className="flex flex-col sm:flex-row gap-6 items-center pb-6 border-b border-sage/10">
+                  <div className="relative w-28 h-28 rounded-full overflow-hidden bg-sage/10 border border-sage/20 flex-shrink-0">
+                    {avatarUrl ? (
+                      // eslint-disable-next-line @next/next/no-img-element
+                      <img src={avatarUrl} alt="" className="w-full h-full object-cover" />
+                    ) : (
+                      <div className="w-full h-full flex items-center justify-center text-sage">
+                        <User size={40} />
+                      </div>
+                    )}
+                  </div>
+                  <div className="flex-1 space-y-2 w-full">
+                    <Label className="text-charcoal font-body flex items-center gap-2">
+                      <Camera size={16} className="text-sage" />
+                      Profile photo
+                    </Label>
+                    <Input
+                      type="file"
+                      accept="image/jpeg,image/png,image/jpg,image/webp"
+                      disabled={avatarUploading}
+                      onChange={(ev) => void onAvatarSelected(ev)}
+                      className="border-sage/20 font-body cursor-pointer"
+                    />
+                    <p className="text-xs text-charcoal/50 font-body">
+                      Uses your studio S3 bucket when configured (AWS env vars). JPEG, PNG, or WebP.
+                    </p>
+                    {avatarUploading && (
+                      <p className="text-sm text-sage font-body">Uploading…</p>
+                    )}
+                  </div>
+                </div>
+
                 <div className="space-y-3">
                   <Label htmlFor="fullName" className="text-charcoal font-body text-base flex items-center gap-2">
                     <User size={16} className="text-sage" />
                     Full Name
                   </Label>
-                  <Input 
-                    id="fullName" 
-                    className="border-sage/20 focus:border-sage focus:ring-sage transition-all duration-600 bg-white h-12 font-body text-base" 
-                    {...register("fullName")} 
+                  <Input
+                    id="fullName"
+                    className="border-sage/20 focus:border-sage focus:ring-sage transition-all duration-600 bg-white h-12 font-body text-base"
+                    {...register("fullName")}
                   />
                   {errors.fullName && (
                     <p className="text-sm text-terracotta font-body animate-in slide-in-from-left duration-300 flex items-center gap-2">
@@ -156,18 +301,17 @@ export default function Profile() {
                     </p>
                   )}
                 </div>
-                
-                {/* Email Address */}
+
                 <div className="space-y-3">
                   <Label htmlFor="email" className="text-charcoal font-body text-base flex items-center gap-2">
                     <Mail size={16} className="text-sage" />
                     Email Address
                   </Label>
-                  <Input 
-                    id="email" 
-                    {...register("email")} 
-                    disabled 
-                    className="bg-cream/50 border-sage/20 text-charcoal/70 cursor-not-allowed h-12 font-body text-base" 
+                  <Input
+                    id="email"
+                    {...register("email")}
+                    disabled
+                    className="bg-cream/50 border-sage/20 text-charcoal/70 cursor-not-allowed h-12 font-body text-base"
                   />
                   <p className="text-xs text-charcoal/50 font-body flex items-center gap-1">
                     <span className="text-sage">•</span>
@@ -175,17 +319,16 @@ export default function Profile() {
                   </p>
                 </div>
 
-                {/* Phone Number */}
                 <div className="space-y-3">
                   <Label htmlFor="phone" className="text-charcoal font-body text-base flex items-center gap-2">
                     <Phone size={16} className="text-sage" />
                     Phone Number
                   </Label>
-                  <Input 
-                    id="phone" 
+                  <Input
+                    id="phone"
                     className="border-sage/20 focus:border-sage focus:ring-sage transition-all duration-600 bg-white h-12 font-body text-base"
                     placeholder="+91 98765 43210"
-                    {...register("phone")} 
+                    {...register("phone")}
                   />
                   {errors.phone && (
                     <p className="text-sm text-terracotta font-body animate-in slide-in-from-left duration-300">
@@ -193,11 +336,10 @@ export default function Profile() {
                     </p>
                   )}
                 </div>
-                
-                {/* Submit Button */}
+
                 <div className="pt-6 border-t border-sage/10">
-                  <Button 
-                    type="submit" 
+                  <Button
+                    type="submit"
                     disabled={saving}
                     className="bg-sage hover:bg-sage/90 text-white w-full font-body h-14 text-base transition-all duration-600 hover:scale-[1.02] active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed"
                   >
@@ -218,37 +360,60 @@ export default function Profile() {
             </CardContent>
           </Card>
 
-          {/* Account Settings Card */}
           <Card className="border-sage/20 bg-white/90 backdrop-blur-sm shadow-lg hover:shadow-2xl transition-all duration-600 mt-6">
             <CardHeader className="p-6 md:p-8 border-b border-sage/10">
-              <CardTitle className="font-display text-xl md:text-2xl text-charcoal">
-                Account Settings
+              <CardTitle className="font-display text-xl md:text-2xl text-charcoal flex items-center gap-2">
+                <Lock className="text-sage" size={22} />
+                Password
               </CardTitle>
               <CardDescription className="font-body text-charcoal/70">
-                Manage your account preferences and privacy
+                Update the password you use to sign in to the member portal
               </CardDescription>
             </CardHeader>
             <CardContent className="p-6 md:p-8">
-              <div className="space-y-4">
-                <Button 
-                  variant="outline"
-                  className="w-full justify-start border-sage/20 hover:border-sage hover:bg-sage/5 transition-all duration-600 font-body h-12"
-                >
-                  Change Password
+              <form onSubmit={onChangePassword} className="space-y-4">
+                <div className="space-y-2">
+                  <Label htmlFor="currentPassword" className="font-body text-charcoal">Current password</Label>
+                  <Input
+                    id="currentPassword"
+                    type="password"
+                    autoComplete="current-password"
+                    value={currentPassword}
+                    onChange={(e) => setCurrentPassword(e.target.value)}
+                    className="border-sage/20 h-12"
+                    required
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="newPassword" className="font-body text-charcoal">New password</Label>
+                  <Input
+                    id="newPassword"
+                    type="password"
+                    autoComplete="new-password"
+                    value={newPassword}
+                    onChange={(e) => setNewPassword(e.target.value)}
+                    className="border-sage/20 h-12"
+                    required
+                    minLength={8}
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="confirmPassword" className="font-body text-charcoal">Confirm new password</Label>
+                  <Input
+                    id="confirmPassword"
+                    type="password"
+                    autoComplete="new-password"
+                    value={confirmPassword}
+                    onChange={(e) => setConfirmPassword(e.target.value)}
+                    className="border-sage/20 h-12"
+                    required
+                    minLength={8}
+                  />
+                </div>
+                <Button type="submit" disabled={passwordSaving} className="bg-sage hover:bg-sage/90 text-white w-full h-12 font-body">
+                  {passwordSaving ? "Updating…" : "Update password"}
                 </Button>
-                <Button 
-                  variant="outline"
-                  className="w-full justify-start border-sage/20 hover:border-sage hover:bg-sage/5 transition-all duration-600 font-body h-12"
-                >
-                  Notification Preferences
-                </Button>
-                <Button 
-                  variant="outline"
-                  className="w-full justify-start border-terracotta/30 text-terracotta hover:border-terracotta hover:bg-terracotta/5 transition-all duration-600 font-body h-12"
-                >
-                  Delete Account
-                </Button>
-              </div>
+              </form>
             </CardContent>
           </Card>
         </div>

@@ -400,6 +400,7 @@ export const ModelName = {
   CafeOrder: 'CafeOrder',
   MealSubscription: 'MealSubscription',
   MealSubscriptionInquiry: 'MealSubscriptionInquiry',
+  RentalInquiry: 'RentalInquiry',
   UserStats: 'UserStats',
   UserStreak: 'UserStreak',
   UserBadge: 'UserBadge',
@@ -424,7 +425,7 @@ export type TypeMap<ExtArgs extends runtime.Types.Extensions.InternalArgs = runt
     omit: GlobalOmitOptions
   }
   meta: {
-    modelProps: "profile" | "coupon" | "couponRedemption" | "retailProduct" | "retailOrder" | "instructor" | "classModel" | "classSchedule" | "packageType" | "package" | "userPackage" | "booking" | "cafeItem" | "cafeOrder" | "mealSubscription" | "mealSubscriptionInquiry" | "userStats" | "userStreak" | "userBadge" | "waiver" | "crmTemplate" | "crmMessage" | "crmTrigger" | "userActivitySession" | "userActivityEvent"
+    modelProps: "profile" | "coupon" | "couponRedemption" | "retailProduct" | "retailOrder" | "instructor" | "classModel" | "classSchedule" | "packageType" | "package" | "userPackage" | "booking" | "cafeItem" | "cafeOrder" | "mealSubscription" | "mealSubscriptionInquiry" | "rentalInquiry" | "userStats" | "userStreak" | "userBadge" | "waiver" | "crmTemplate" | "crmMessage" | "crmTrigger" | "userActivitySession" | "userActivityEvent"
     txIsolationLevel: TransactionIsolationLevel
   }
   model: {
@@ -1612,6 +1613,80 @@ export type TypeMap<ExtArgs extends runtime.Types.Extensions.InternalArgs = runt
         }
       }
     }
+    RentalInquiry: {
+      payload: Prisma.$RentalInquiryPayload<ExtArgs>
+      fields: Prisma.RentalInquiryFieldRefs
+      operations: {
+        findUnique: {
+          args: Prisma.RentalInquiryFindUniqueArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$RentalInquiryPayload> | null
+        }
+        findUniqueOrThrow: {
+          args: Prisma.RentalInquiryFindUniqueOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$RentalInquiryPayload>
+        }
+        findFirst: {
+          args: Prisma.RentalInquiryFindFirstArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$RentalInquiryPayload> | null
+        }
+        findFirstOrThrow: {
+          args: Prisma.RentalInquiryFindFirstOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$RentalInquiryPayload>
+        }
+        findMany: {
+          args: Prisma.RentalInquiryFindManyArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$RentalInquiryPayload>[]
+        }
+        create: {
+          args: Prisma.RentalInquiryCreateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$RentalInquiryPayload>
+        }
+        createMany: {
+          args: Prisma.RentalInquiryCreateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        createManyAndReturn: {
+          args: Prisma.RentalInquiryCreateManyAndReturnArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$RentalInquiryPayload>[]
+        }
+        delete: {
+          args: Prisma.RentalInquiryDeleteArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$RentalInquiryPayload>
+        }
+        update: {
+          args: Prisma.RentalInquiryUpdateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$RentalInquiryPayload>
+        }
+        deleteMany: {
+          args: Prisma.RentalInquiryDeleteManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateMany: {
+          args: Prisma.RentalInquiryUpdateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateManyAndReturn: {
+          args: Prisma.RentalInquiryUpdateManyAndReturnArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$RentalInquiryPayload>[]
+        }
+        upsert: {
+          args: Prisma.RentalInquiryUpsertArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$RentalInquiryPayload>
+        }
+        aggregate: {
+          args: Prisma.RentalInquiryAggregateArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.AggregateRentalInquiry>
+        }
+        groupBy: {
+          args: Prisma.RentalInquiryGroupByArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.RentalInquiryGroupByOutputType>[]
+        }
+        count: {
+          args: Prisma.RentalInquiryCountArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.RentalInquiryCountAggregateOutputType> | number
+        }
+      }
+    }
     UserStats: {
       payload: Prisma.$UserStatsPayload<ExtArgs>
       fields: Prisma.UserStatsFieldRefs
@@ -2410,6 +2485,7 @@ export const InstructorScalarFieldEnum = {
   title: 'title',
   email: 'email',
   phone: 'phone',
+  studio_payout_cut_percent: 'studio_payout_cut_percent',
   image_url: 'image_url',
   about: 'about',
   philosophy: 'philosophy',
@@ -2530,6 +2606,7 @@ export const BookingScalarFieldEnum = {
   class_time: 'class_time',
   checked_in: 'checked_in',
   check_in_time: 'check_in_time',
+  check_in_outcome: 'check_in_outcome',
   created_at: 'created_at'
 } as const
 
@@ -2596,6 +2673,24 @@ export const MealSubscriptionInquiryScalarFieldEnum = {
 } as const
 
 export type MealSubscriptionInquiryScalarFieldEnum = (typeof MealSubscriptionInquiryScalarFieldEnum)[keyof typeof MealSubscriptionInquiryScalarFieldEnum]
+
+
+export const RentalInquiryScalarFieldEnum = {
+  id: 'id',
+  name: 'name',
+  email: 'email',
+  phone: 'phone',
+  event_type: 'event_type',
+  event_date: 'event_date',
+  guest_count: 'guest_count',
+  duration: 'duration',
+  message: 'message',
+  status: 'status',
+  created_at: 'created_at',
+  updated_at: 'updated_at'
+} as const
+
+export type RentalInquiryScalarFieldEnum = (typeof RentalInquiryScalarFieldEnum)[keyof typeof RentalInquiryScalarFieldEnum]
 
 
 export const UserStatsScalarFieldEnum = {
@@ -3007,6 +3102,7 @@ export type GlobalOmitConfig = {
   cafeOrder?: Prisma.CafeOrderOmit
   mealSubscription?: Prisma.MealSubscriptionOmit
   mealSubscriptionInquiry?: Prisma.MealSubscriptionInquiryOmit
+  rentalInquiry?: Prisma.RentalInquiryOmit
   userStats?: Prisma.UserStatsOmit
   userStreak?: Prisma.UserStreakOmit
   userBadge?: Prisma.UserBadgeOmit

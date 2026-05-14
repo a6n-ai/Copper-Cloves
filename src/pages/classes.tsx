@@ -10,6 +10,11 @@ import { Clock, CheckCircle, Calendar, Users, Sparkles, ChevronLeft, ChevronRigh
 import { useRouter } from "next/router";
 import { useEffect, useState } from "react";
 import { useSession } from "next-auth/react";
+import {
+  mondayBasedWeekBoundsInMonth,
+  isSameLocalCalendarDay,
+  defaultPortalWeekSelection,
+} from "@/lib/calendarWeek";
 
 interface ClassDetail {
   name: string;
@@ -177,14 +182,14 @@ const classDetails: ClassDetail[] = [
 
 export default function ClassesPage() {
   const router = useRouter();
+  const initialCalendar = defaultPortalWeekSelection();
   const [activeTab, setActiveTab] = useState("classes");
   const [selectedFilter, setSelectedFilter] = useState("all");
   const [classes, setClasses] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
-  const [selectedWeek, setSelectedWeek] = useState(1); // 0 = current week, 1 = next week, etc.
-  const [selectedMonth, setSelectedMonth] = useState(new Date().getMonth());
-  const [selectedClassWeek, setSelectedClassWeek] = useState(1);
-  const [selectedClassMonth, setSelectedClassMonth] = useState(new Date().getMonth());
+  const [viewYear, setViewYear] = useState(initialCalendar.year);
+  const [selectedWeek, setSelectedWeek] = useState(initialCalendar.week);
+  const [selectedMonth, setSelectedMonth] = useState(initialCalendar.monthIndex);
   const [scheduleData, setScheduleData] = useState<DaySchedule[]>([]);
   const [scheduleLoading, setScheduleLoading] = useState(false);
 
@@ -193,44 +198,25 @@ export default function ClassesPage() {
     fetchScheduleData();
   }, []);
 
-  // Refetch classes when filters change
-  useEffect(() => {
-    fetchClasses();
-  }, [selectedClassMonth, selectedClassWeek]);
-
   useEffect(() => {
     if (activeTab === "schedule") {
       fetchScheduleData();
     }
-  }, [activeTab, selectedWeek, selectedMonth]);
+  }, [activeTab, selectedWeek, selectedMonth, viewYear]);
 
   async function fetchScheduleData() {
     try {
       setScheduleLoading(true);
-      
-      // Calculate date range based on selected week and month
-      const year = new Date().getFullYear();
-      const startOfMonth = new Date(year, selectedMonth, 1);
-      
-      // Find first Monday of the month
-      const firstMonday = new Date(startOfMonth);
-      while (firstMonday.getDay() !== 1) {
-        firstMonday.setDate(firstMonday.getDate() + 1);
-      }
-      
-      // Calculate week start (Monday of selected week)
-      const weekStart = new Date(firstMonday);
-      weekStart.setDate(weekStart.getDate() + ((selectedWeek - 1) * 7));
-      
-      // Calculate week end (Sunday)
-      const weekEnd = new Date(weekStart);
-      weekEnd.setDate(weekEnd.getDate() + 6);
-      weekEnd.setHours(23, 59, 59, 999);
 
-      const now = new Date();
+      const { weekStart, weekEnd } = mondayBasedWeekBoundsInMonth(
+        viewYear,
+        selectedMonth,
+        selectedWeek
+      );
+
       const params = new URLSearchParams({
-        month: String(now.getMonth() + 1),
-        year: String(now.getFullYear()),
+        fromMs: String(weekStart.getTime()),
+        toMs: String(weekEnd.getTime()),
       });
       const res = await fetch(`/api/class-schedules?${params}`);
       const allData = res.ok ? await res.json() : [];
@@ -256,7 +242,7 @@ export default function ClassesPage() {
         const dayClasses = (data || [])
           .filter((item: any) => {
             const itemDate = new Date(item.start_time);
-            return itemDate.getDate() === currentDay.getDate();
+            return isSameLocalCalendarDay(itemDate, currentDay);
           })
           .map((item: { start_time: string; end_time: string; class_model?: { name?: string; instructor_id?: string }; instructor?: { id: string; name: string } }) => {
             const startTime = new Date(item.start_time);
@@ -287,42 +273,31 @@ export default function ClassesPage() {
   async function fetchClasses() {
     try {
       setLoading(true);
-      
-      // Calculate date range for selected week
-      const year = new Date().getFullYear();
-      const weekStartDate = new Date(year, selectedClassMonth, 1 + (selectedClassWeek - 1) * 7);
-      const weekEndDate = new Date(year, selectedClassMonth, selectedClassWeek * 7);
-      
-      if (weekEndDate.getMonth() !== selectedClassMonth) {
-        weekEndDate.setDate(0);
-      }
 
-      const params = new URLSearchParams({
-        month: String(selectedClassMonth + 1),
-        year: String(year),
-      });
-      const res = await fetch(`/api/class-schedules?${params}`);
-      const allSchedules = res.ok ? await res.json() : [];
-      const data = allSchedules.filter((s: { start_time: string }) => {
-        const t = new Date(s.start_time);
-        return t >= weekStartDate && t <= weekEndDate;
-      });
+      const res = await fetch("/api/classes");
+      const data = res.ok ? await res.json() : [];
 
-      const transformedClasses = data.map((schedule: {
-        id: string; start_time: string; class_model?: { name?: string; description?: string; duration?: number; category?: string; max_capacity?: number; image_url?: string; benefits?: string[] };
-        instructor?: { name?: string };
+      const transformedClasses = (Array.isArray(data) ? data : []).map((cls: {
+        id: string;
+        name: string;
+        description?: string | null;
+        duration: number;
+        category: string;
+        max_capacity?: number;
+        image_url?: string | null;
+        benefits?: string[];
+        instructor?: { name?: string } | null;
       }) => ({
-        id: schedule.id,
-        name: schedule.class_model?.name || "Unknown Class",
-        description: schedule.class_model?.description || "",
-        duration: schedule.class_model?.duration || 60,
-        intensity: schedule.class_model?.category?.toLowerCase() || "moderate",
-        category: schedule.class_model?.category || "General",
-        image_url: schedule.class_model?.image_url || "/placeholder.jpg",
-        benefits: schedule.class_model?.benefits || [],
-        instructor: schedule.instructor?.name || "Instructor",
-        startTime: new Date(schedule.start_time),
-        max_capacity: schedule.class_model?.max_capacity || 15,
+        id: cls.id,
+        name: cls.name || "Class",
+        description: cls.description || "",
+        duration: cls.duration || 60,
+        intensity: (cls.category || "general").toLowerCase(),
+        category: cls.category || "General",
+        image_url: cls.image_url || "/placeholder.jpg",
+        benefits: cls.benefits || [],
+        instructor: cls.instructor?.name || "Instructor",
+        max_capacity: cls.max_capacity ?? 15,
       }));
 
       setClasses(transformedClasses);
@@ -413,58 +388,6 @@ export default function ClassesPage() {
 
             {/* Classes Tab Content */}
             <TabsContent value="classes" className="mt-8">
-              {/* Month and Week Filters */}
-              <div className="max-w-6xl mx-auto mb-8">
-                <div className="bg-white/80 backdrop-blur-sm rounded-2xl p-4 border border-sage/10">
-                  <div className="flex flex-wrap items-center gap-4">
-                    <label className="font-body text-sm text-charcoal/60 uppercase tracking-wide">
-                      Filter by:
-                    </label>
-                    
-                    {/* Month Dropdown */}
-                    <Select value={selectedClassMonth.toString()} onValueChange={(val) => setSelectedClassMonth(parseInt(val))}>
-                      <SelectTrigger className="w-[180px] border-sage/20 bg-white font-body text-charcoal rounded-xl focus:ring-sage">
-                        <SelectValue />
-                      </SelectTrigger>
-                      <SelectContent>
-                        {["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"].map((month, index) => (
-                          <SelectItem key={index} value={index.toString()}>
-                            {month} {new Date().getFullYear()}
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
-
-                    {/* Week Dropdown with Dates */}
-                    <Select value={selectedClassWeek.toString()} onValueChange={(val) => setSelectedClassWeek(parseInt(val))}>
-                      <SelectTrigger className="w-[280px] border-sage/20 bg-white font-body text-charcoal rounded-xl focus:ring-sage">
-                        <SelectValue />
-                      </SelectTrigger>
-                      <SelectContent>
-                        {[1, 2, 3, 4].map((week) => {
-                          const year = new Date().getFullYear();
-                          const firstDay = new Date(year, selectedClassMonth, 1 + (week - 1) * 7);
-                          const lastDay = new Date(year, selectedClassMonth, week * 7);
-                          
-                          if (lastDay.getMonth() !== selectedClassMonth) {
-                            lastDay.setDate(0);
-                          }
-                          
-                          const startDate = firstDay.getDate();
-                          const endDate = lastDay.getDate();
-                          
-                          return (
-                            <SelectItem key={week} value={week.toString()}>
-                              Week {week}: {firstDay.toLocaleDateString('en-US', { month: 'short' })} {startDate}-{endDate}
-                            </SelectItem>
-                          );
-                        })}
-                      </SelectContent>
-                    </Select>
-                  </div>
-                </div>
-              </div>
-
               {loading ? (
                 <div className="flex items-center justify-center py-12">
                   <div className="h-12 w-12 border-4 border-sage/20 border-t-sage rounded-full animate-spin" />
@@ -569,7 +492,13 @@ export default function ClassesPage() {
                     <div className="flex items-center gap-2">
                       <Select 
                         value={selectedMonth.toString()} 
-                        onValueChange={(val) => setSelectedMonth(parseInt(val))}
+                        onValueChange={(val) => {
+                          const next = parseInt(val, 10);
+                          setSelectedMonth((prev) => {
+                            if (prev === 11 && next === 0) setViewYear((y) => y + 1);
+                            return next;
+                          });
+                        }}
                       >
                         <SelectTrigger className="w-[180px] border-sage/20 bg-white font-body text-charcoal rounded-xl focus:ring-sage">
                           <SelectValue />
@@ -577,7 +506,7 @@ export default function ClassesPage() {
                         <SelectContent>
                           {["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"].map((month, index) => (
                             <SelectItem key={index} value={index.toString()}>
-                              {month} {new Date().getFullYear()}
+                              {month} {viewYear}
                             </SelectItem>
                           ))}
                         </SelectContent>
@@ -591,21 +520,15 @@ export default function ClassesPage() {
                           <SelectValue />
                         </SelectTrigger>
                         <SelectContent>
-                          {[1, 2, 3, 4].map((week) => {
-                            const year = new Date().getFullYear();
-                            const firstDay = new Date(year, selectedMonth, 1 + (week - 1) * 7);
-                            const lastDay = new Date(year, selectedMonth, week * 7);
-                            
-                            if (lastDay.getMonth() !== selectedMonth) {
-                              lastDay.setDate(0);
-                            }
-                            
-                            const startDate = firstDay.getDate();
-                            const endDate = lastDay.getDate();
-                            
+                          {[1, 2, 3, 4, 5].map((week) => {
+                            const { weekStart, weekEnd } = mondayBasedWeekBoundsInMonth(
+                              viewYear,
+                              selectedMonth,
+                              week
+                            );
                             return (
                               <SelectItem key={week} value={week.toString()}>
-                                Week {week}: {firstDay.toLocaleDateString('en-US', { month: 'short' })} {startDate}-{endDate}
+                                Week {week}: {weekStart.toLocaleDateString("en-US", { month: "short", day: "numeric" })} – {weekEnd.toLocaleDateString("en-US", { month: "short", day: "numeric" })}
                               </SelectItem>
                             );
                           })}
@@ -616,8 +539,8 @@ export default function ClassesPage() {
                     <Button
                       variant="outline"
                       size="sm"
-                      onClick={() => setSelectedWeek(Math.min(4, selectedWeek + 1))}
-                      disabled={selectedWeek === 4}
+                      onClick={() => setSelectedWeek(Math.min(5, selectedWeek + 1))}
+                      disabled={selectedWeek === 5}
                       className="border-sage/20 text-sage hover:bg-sage/5 disabled:opacity-30"
                     >
                       <ChevronRight className="h-4 w-4" />

@@ -36,6 +36,7 @@ export type BookingMinAggregateOutputType = {
   class_time: string | null
   checked_in: boolean | null
   check_in_time: Date | null
+  check_in_outcome: string | null
   created_at: Date | null
 }
 
@@ -51,6 +52,7 @@ export type BookingMaxAggregateOutputType = {
   class_time: string | null
   checked_in: boolean | null
   check_in_time: Date | null
+  check_in_outcome: string | null
   created_at: Date | null
 }
 
@@ -66,6 +68,7 @@ export type BookingCountAggregateOutputType = {
   class_time: number
   checked_in: number
   check_in_time: number
+  check_in_outcome: number
   created_at: number
   _all: number
 }
@@ -83,6 +86,7 @@ export type BookingMinAggregateInputType = {
   class_time?: true
   checked_in?: true
   check_in_time?: true
+  check_in_outcome?: true
   created_at?: true
 }
 
@@ -98,6 +102,7 @@ export type BookingMaxAggregateInputType = {
   class_time?: true
   checked_in?: true
   check_in_time?: true
+  check_in_outcome?: true
   created_at?: true
 }
 
@@ -113,6 +118,7 @@ export type BookingCountAggregateInputType = {
   class_time?: true
   checked_in?: true
   check_in_time?: true
+  check_in_outcome?: true
   created_at?: true
   _all?: true
 }
@@ -201,6 +207,7 @@ export type BookingGroupByOutputType = {
   class_time: string | null
   checked_in: boolean
   check_in_time: Date | null
+  check_in_outcome: string | null
   created_at: Date
   _count: BookingCountAggregateOutputType | null
   _min: BookingMinAggregateOutputType | null
@@ -237,6 +244,7 @@ export type BookingWhereInput = {
   class_time?: Prisma.StringNullableFilter<"Booking"> | string | null
   checked_in?: Prisma.BoolFilter<"Booking"> | boolean
   check_in_time?: Prisma.DateTimeNullableFilter<"Booking"> | Date | string | null
+  check_in_outcome?: Prisma.StringNullableFilter<"Booking"> | string | null
   created_at?: Prisma.DateTimeFilter<"Booking"> | Date | string
   profile?: Prisma.XOR<Prisma.ProfileScalarRelationFilter, Prisma.ProfileWhereInput>
   class_schedule?: Prisma.XOR<Prisma.ClassScheduleNullableScalarRelationFilter, Prisma.ClassScheduleWhereInput> | null
@@ -256,6 +264,7 @@ export type BookingOrderByWithRelationInput = {
   class_time?: Prisma.SortOrderInput | Prisma.SortOrder
   checked_in?: Prisma.SortOrder
   check_in_time?: Prisma.SortOrderInput | Prisma.SortOrder
+  check_in_outcome?: Prisma.SortOrderInput | Prisma.SortOrder
   created_at?: Prisma.SortOrder
   profile?: Prisma.ProfileOrderByWithRelationInput
   class_schedule?: Prisma.ClassScheduleOrderByWithRelationInput
@@ -278,6 +287,7 @@ export type BookingWhereUniqueInput = Prisma.AtLeast<{
   class_time?: Prisma.StringNullableFilter<"Booking"> | string | null
   checked_in?: Prisma.BoolFilter<"Booking"> | boolean
   check_in_time?: Prisma.DateTimeNullableFilter<"Booking"> | Date | string | null
+  check_in_outcome?: Prisma.StringNullableFilter<"Booking"> | string | null
   created_at?: Prisma.DateTimeFilter<"Booking"> | Date | string
   profile?: Prisma.XOR<Prisma.ProfileScalarRelationFilter, Prisma.ProfileWhereInput>
   class_schedule?: Prisma.XOR<Prisma.ClassScheduleNullableScalarRelationFilter, Prisma.ClassScheduleWhereInput> | null
@@ -297,6 +307,7 @@ export type BookingOrderByWithAggregationInput = {
   class_time?: Prisma.SortOrderInput | Prisma.SortOrder
   checked_in?: Prisma.SortOrder
   check_in_time?: Prisma.SortOrderInput | Prisma.SortOrder
+  check_in_outcome?: Prisma.SortOrderInput | Prisma.SortOrder
   created_at?: Prisma.SortOrder
   _count?: Prisma.BookingCountOrderByAggregateInput
   _max?: Prisma.BookingMaxOrderByAggregateInput
@@ -318,6 +329,7 @@ export type BookingScalarWhereWithAggregatesInput = {
   class_time?: Prisma.StringNullableWithAggregatesFilter<"Booking"> | string | null
   checked_in?: Prisma.BoolWithAggregatesFilter<"Booking"> | boolean
   check_in_time?: Prisma.DateTimeNullableWithAggregatesFilter<"Booking"> | Date | string | null
+  check_in_outcome?: Prisma.StringNullableWithAggregatesFilter<"Booking"> | string | null
   created_at?: Prisma.DateTimeWithAggregatesFilter<"Booking"> | Date | string
 }
 
@@ -330,6 +342,7 @@ export type BookingCreateInput = {
   class_time?: string | null
   checked_in?: boolean
   check_in_time?: Date | string | null
+  check_in_outcome?: string | null
   created_at?: Date | string
   profile: Prisma.ProfileCreateNestedOneWithoutBookingsInput
   class_schedule?: Prisma.ClassScheduleCreateNestedOneWithoutBookingsInput
@@ -349,6 +362,7 @@ export type BookingUncheckedCreateInput = {
   class_time?: string | null
   checked_in?: boolean
   check_in_time?: Date | string | null
+  check_in_outcome?: string | null
   created_at?: Date | string
   cafe_orders?: Prisma.CafeOrderUncheckedCreateNestedManyWithoutBookingInput
 }
@@ -362,6 +376,7 @@ export type BookingUpdateInput = {
   class_time?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   checked_in?: Prisma.BoolFieldUpdateOperationsInput | boolean
   check_in_time?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  check_in_outcome?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   created_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   profile?: Prisma.ProfileUpdateOneRequiredWithoutBookingsNestedInput
   class_schedule?: Prisma.ClassScheduleUpdateOneWithoutBookingsNestedInput
@@ -381,6 +396,7 @@ export type BookingUncheckedUpdateInput = {
   class_time?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   checked_in?: Prisma.BoolFieldUpdateOperationsInput | boolean
   check_in_time?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  check_in_outcome?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   created_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   cafe_orders?: Prisma.CafeOrderUncheckedUpdateManyWithoutBookingNestedInput
 }
@@ -397,6 +413,7 @@ export type BookingCreateManyInput = {
   class_time?: string | null
   checked_in?: boolean
   check_in_time?: Date | string | null
+  check_in_outcome?: string | null
   created_at?: Date | string
 }
 
@@ -409,6 +426,7 @@ export type BookingUpdateManyMutationInput = {
   class_time?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   checked_in?: Prisma.BoolFieldUpdateOperationsInput | boolean
   check_in_time?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  check_in_outcome?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   created_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
 }
 
@@ -424,6 +442,7 @@ export type BookingUncheckedUpdateManyInput = {
   class_time?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   checked_in?: Prisma.BoolFieldUpdateOperationsInput | boolean
   check_in_time?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  check_in_outcome?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   created_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
 }
 
@@ -449,6 +468,7 @@ export type BookingCountOrderByAggregateInput = {
   class_time?: Prisma.SortOrder
   checked_in?: Prisma.SortOrder
   check_in_time?: Prisma.SortOrder
+  check_in_outcome?: Prisma.SortOrder
   created_at?: Prisma.SortOrder
 }
 
@@ -464,6 +484,7 @@ export type BookingMaxOrderByAggregateInput = {
   class_time?: Prisma.SortOrder
   checked_in?: Prisma.SortOrder
   check_in_time?: Prisma.SortOrder
+  check_in_outcome?: Prisma.SortOrder
   created_at?: Prisma.SortOrder
 }
 
@@ -479,6 +500,7 @@ export type BookingMinOrderByAggregateInput = {
   class_time?: Prisma.SortOrder
   checked_in?: Prisma.SortOrder
   check_in_time?: Prisma.SortOrder
+  check_in_outcome?: Prisma.SortOrder
   created_at?: Prisma.SortOrder
 }
 
@@ -638,6 +660,7 @@ export type BookingCreateWithoutProfileInput = {
   class_time?: string | null
   checked_in?: boolean
   check_in_time?: Date | string | null
+  check_in_outcome?: string | null
   created_at?: Date | string
   class_schedule?: Prisma.ClassScheduleCreateNestedOneWithoutBookingsInput
   user_package?: Prisma.UserPackageCreateNestedOneWithoutBookingsInput
@@ -655,6 +678,7 @@ export type BookingUncheckedCreateWithoutProfileInput = {
   class_time?: string | null
   checked_in?: boolean
   check_in_time?: Date | string | null
+  check_in_outcome?: string | null
   created_at?: Date | string
   cafe_orders?: Prisma.CafeOrderUncheckedCreateNestedManyWithoutBookingInput
 }
@@ -700,6 +724,7 @@ export type BookingScalarWhereInput = {
   class_time?: Prisma.StringNullableFilter<"Booking"> | string | null
   checked_in?: Prisma.BoolFilter<"Booking"> | boolean
   check_in_time?: Prisma.DateTimeNullableFilter<"Booking"> | Date | string | null
+  check_in_outcome?: Prisma.StringNullableFilter<"Booking"> | string | null
   created_at?: Prisma.DateTimeFilter<"Booking"> | Date | string
 }
 
@@ -712,6 +737,7 @@ export type BookingCreateWithoutClass_scheduleInput = {
   class_time?: string | null
   checked_in?: boolean
   check_in_time?: Date | string | null
+  check_in_outcome?: string | null
   created_at?: Date | string
   profile: Prisma.ProfileCreateNestedOneWithoutBookingsInput
   user_package?: Prisma.UserPackageCreateNestedOneWithoutBookingsInput
@@ -729,6 +755,7 @@ export type BookingUncheckedCreateWithoutClass_scheduleInput = {
   class_time?: string | null
   checked_in?: boolean
   check_in_time?: Date | string | null
+  check_in_outcome?: string | null
   created_at?: Date | string
   cafe_orders?: Prisma.CafeOrderUncheckedCreateNestedManyWithoutBookingInput
 }
@@ -768,6 +795,7 @@ export type BookingCreateWithoutUser_packageInput = {
   class_time?: string | null
   checked_in?: boolean
   check_in_time?: Date | string | null
+  check_in_outcome?: string | null
   created_at?: Date | string
   profile: Prisma.ProfileCreateNestedOneWithoutBookingsInput
   class_schedule?: Prisma.ClassScheduleCreateNestedOneWithoutBookingsInput
@@ -785,6 +813,7 @@ export type BookingUncheckedCreateWithoutUser_packageInput = {
   class_time?: string | null
   checked_in?: boolean
   check_in_time?: Date | string | null
+  check_in_outcome?: string | null
   created_at?: Date | string
   cafe_orders?: Prisma.CafeOrderUncheckedCreateNestedManyWithoutBookingInput
 }
@@ -824,6 +853,7 @@ export type BookingCreateWithoutCafe_ordersInput = {
   class_time?: string | null
   checked_in?: boolean
   check_in_time?: Date | string | null
+  check_in_outcome?: string | null
   created_at?: Date | string
   profile: Prisma.ProfileCreateNestedOneWithoutBookingsInput
   class_schedule?: Prisma.ClassScheduleCreateNestedOneWithoutBookingsInput
@@ -842,6 +872,7 @@ export type BookingUncheckedCreateWithoutCafe_ordersInput = {
   class_time?: string | null
   checked_in?: boolean
   check_in_time?: Date | string | null
+  check_in_outcome?: string | null
   created_at?: Date | string
 }
 
@@ -870,6 +901,7 @@ export type BookingUpdateWithoutCafe_ordersInput = {
   class_time?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   checked_in?: Prisma.BoolFieldUpdateOperationsInput | boolean
   check_in_time?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  check_in_outcome?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   created_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   profile?: Prisma.ProfileUpdateOneRequiredWithoutBookingsNestedInput
   class_schedule?: Prisma.ClassScheduleUpdateOneWithoutBookingsNestedInput
@@ -888,6 +920,7 @@ export type BookingUncheckedUpdateWithoutCafe_ordersInput = {
   class_time?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   checked_in?: Prisma.BoolFieldUpdateOperationsInput | boolean
   check_in_time?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  check_in_outcome?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   created_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
 }
 
@@ -902,6 +935,7 @@ export type BookingCreateManyProfileInput = {
   class_time?: string | null
   checked_in?: boolean
   check_in_time?: Date | string | null
+  check_in_outcome?: string | null
   created_at?: Date | string
 }
 
@@ -914,6 +948,7 @@ export type BookingUpdateWithoutProfileInput = {
   class_time?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   checked_in?: Prisma.BoolFieldUpdateOperationsInput | boolean
   check_in_time?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  check_in_outcome?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   created_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   class_schedule?: Prisma.ClassScheduleUpdateOneWithoutBookingsNestedInput
   user_package?: Prisma.UserPackageUpdateOneWithoutBookingsNestedInput
@@ -931,6 +966,7 @@ export type BookingUncheckedUpdateWithoutProfileInput = {
   class_time?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   checked_in?: Prisma.BoolFieldUpdateOperationsInput | boolean
   check_in_time?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  check_in_outcome?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   created_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   cafe_orders?: Prisma.CafeOrderUncheckedUpdateManyWithoutBookingNestedInput
 }
@@ -946,6 +982,7 @@ export type BookingUncheckedUpdateManyWithoutProfileInput = {
   class_time?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   checked_in?: Prisma.BoolFieldUpdateOperationsInput | boolean
   check_in_time?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  check_in_outcome?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   created_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
 }
 
@@ -960,6 +997,7 @@ export type BookingCreateManyClass_scheduleInput = {
   class_time?: string | null
   checked_in?: boolean
   check_in_time?: Date | string | null
+  check_in_outcome?: string | null
   created_at?: Date | string
 }
 
@@ -972,6 +1010,7 @@ export type BookingUpdateWithoutClass_scheduleInput = {
   class_time?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   checked_in?: Prisma.BoolFieldUpdateOperationsInput | boolean
   check_in_time?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  check_in_outcome?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   created_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   profile?: Prisma.ProfileUpdateOneRequiredWithoutBookingsNestedInput
   user_package?: Prisma.UserPackageUpdateOneWithoutBookingsNestedInput
@@ -989,6 +1028,7 @@ export type BookingUncheckedUpdateWithoutClass_scheduleInput = {
   class_time?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   checked_in?: Prisma.BoolFieldUpdateOperationsInput | boolean
   check_in_time?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  check_in_outcome?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   created_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   cafe_orders?: Prisma.CafeOrderUncheckedUpdateManyWithoutBookingNestedInput
 }
@@ -1004,6 +1044,7 @@ export type BookingUncheckedUpdateManyWithoutClass_scheduleInput = {
   class_time?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   checked_in?: Prisma.BoolFieldUpdateOperationsInput | boolean
   check_in_time?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  check_in_outcome?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   created_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
 }
 
@@ -1018,6 +1059,7 @@ export type BookingCreateManyUser_packageInput = {
   class_time?: string | null
   checked_in?: boolean
   check_in_time?: Date | string | null
+  check_in_outcome?: string | null
   created_at?: Date | string
 }
 
@@ -1030,6 +1072,7 @@ export type BookingUpdateWithoutUser_packageInput = {
   class_time?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   checked_in?: Prisma.BoolFieldUpdateOperationsInput | boolean
   check_in_time?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  check_in_outcome?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   created_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   profile?: Prisma.ProfileUpdateOneRequiredWithoutBookingsNestedInput
   class_schedule?: Prisma.ClassScheduleUpdateOneWithoutBookingsNestedInput
@@ -1047,6 +1090,7 @@ export type BookingUncheckedUpdateWithoutUser_packageInput = {
   class_time?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   checked_in?: Prisma.BoolFieldUpdateOperationsInput | boolean
   check_in_time?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  check_in_outcome?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   created_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   cafe_orders?: Prisma.CafeOrderUncheckedUpdateManyWithoutBookingNestedInput
 }
@@ -1062,6 +1106,7 @@ export type BookingUncheckedUpdateManyWithoutUser_packageInput = {
   class_time?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   checked_in?: Prisma.BoolFieldUpdateOperationsInput | boolean
   check_in_time?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  check_in_outcome?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   created_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
 }
 
@@ -1108,6 +1153,7 @@ export type BookingSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs 
   class_time?: boolean
   checked_in?: boolean
   check_in_time?: boolean
+  check_in_outcome?: boolean
   created_at?: boolean
   profile?: boolean | Prisma.ProfileDefaultArgs<ExtArgs>
   class_schedule?: boolean | Prisma.Booking$class_scheduleArgs<ExtArgs>
@@ -1128,6 +1174,7 @@ export type BookingSelectCreateManyAndReturn<ExtArgs extends runtime.Types.Exten
   class_time?: boolean
   checked_in?: boolean
   check_in_time?: boolean
+  check_in_outcome?: boolean
   created_at?: boolean
   profile?: boolean | Prisma.ProfileDefaultArgs<ExtArgs>
   class_schedule?: boolean | Prisma.Booking$class_scheduleArgs<ExtArgs>
@@ -1146,6 +1193,7 @@ export type BookingSelectUpdateManyAndReturn<ExtArgs extends runtime.Types.Exten
   class_time?: boolean
   checked_in?: boolean
   check_in_time?: boolean
+  check_in_outcome?: boolean
   created_at?: boolean
   profile?: boolean | Prisma.ProfileDefaultArgs<ExtArgs>
   class_schedule?: boolean | Prisma.Booking$class_scheduleArgs<ExtArgs>
@@ -1164,10 +1212,11 @@ export type BookingSelectScalar = {
   class_time?: boolean
   checked_in?: boolean
   check_in_time?: boolean
+  check_in_outcome?: boolean
   created_at?: boolean
 }
 
-export type BookingOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "user_id" | "class_schedule_id" | "user_package_id" | "status" | "booking_date" | "cancellation_date" | "class_name" | "class_time" | "checked_in" | "check_in_time" | "created_at", ExtArgs["result"]["booking"]>
+export type BookingOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "user_id" | "class_schedule_id" | "user_package_id" | "status" | "booking_date" | "cancellation_date" | "class_name" | "class_time" | "checked_in" | "check_in_time" | "check_in_outcome" | "created_at", ExtArgs["result"]["booking"]>
 export type BookingInclude<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   profile?: boolean | Prisma.ProfileDefaultArgs<ExtArgs>
   class_schedule?: boolean | Prisma.Booking$class_scheduleArgs<ExtArgs>
@@ -1206,6 +1255,10 @@ export type $BookingPayload<ExtArgs extends runtime.Types.Extensions.InternalArg
     class_time: string | null
     checked_in: boolean
     check_in_time: Date | null
+    /**
+     * Set when check-in closes: on_time (by start), late (after start, within window), no_show (never checked in by window end).
+     */
+    check_in_outcome: string | null
     created_at: Date
   }, ExtArgs["result"]["booking"]>
   composites: {}
@@ -1645,6 +1698,7 @@ export interface BookingFieldRefs {
   readonly class_time: Prisma.FieldRef<"Booking", 'String'>
   readonly checked_in: Prisma.FieldRef<"Booking", 'Boolean'>
   readonly check_in_time: Prisma.FieldRef<"Booking", 'DateTime'>
+  readonly check_in_outcome: Prisma.FieldRef<"Booking", 'String'>
   readonly created_at: Prisma.FieldRef<"Booking", 'DateTime'>
 }
     

@@ -76,7 +76,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     monthRevenue += toMoney(row.package_type.price);
   }
 
-  const upcomingClasses = upcomingSchedules.map((s, idx) => {
+  const upcomingClasses = upcomingSchedules.map((s) => {
     const cap = s.capacity ?? s.class_model?.max_capacity ?? 0;
     const spotsLeft = s.available_spots;
     const full = spotsLeft <= 0;
@@ -85,7 +85,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       minute: "2-digit",
     });
     return {
-      id: idx + 1,
+      id: s.id,
       scheduleId: s.id,
       name: s.class_model?.name ?? "Class",
       time: timeLabel,

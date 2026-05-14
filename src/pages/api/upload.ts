@@ -16,7 +16,36 @@ function isServerlessUploadRuntime(): boolean {
   return Boolean(process.env.AWS_LAMBDA_FUNCTION_NAME || process.env.AWS_EXECUTION_ENV);
 }
 
-const MAX_DATA_URL_IMAGE_BYTES = 600 * 1024;
+function inferImageMimeFromName(name: string | null | undefined): string | null {
+  if (!name) return null;
+  const lower = name.toLowerCase();
+  if (lower.endsWith(".png")) return "image/png";
+  if (lower.endsWith(".webp")) return "image/webp";
+  if (lower.endsWith(".jpg") || lower.endsWith(".jpeg")) return "image/jpeg";
+  return null;
+}
+
+function resolveImageMime(
+  file: {
+    mimetype?: string | null;
+    originalFilename?: string | null;
+    filepath?: string;
+    newFilename?: string | null;
+  },
+): string {
+  const fromMime = (file.mimetype || "").trim().toLowerCase();
+  if (fromMime.startsWith("image/") && fromMime !== "image/jpg") return fromMime;
+  if (fromMime === "image/jpg") return "image/jpeg";
+  const fromName =
+    inferImageMimeFromName(file.originalFilename ?? undefined) ??
+    inferImageMimeFromName(file.filepath ? path.basename(file.filepath) : undefined) ??
+    inferImageMimeFromName(file.newFilename ?? undefined);
+  if (fromName) return fromName;
+  return "image/jpeg";
+}
+
+/** Hosted/serverless: embed as data URL; allow typical phone photos (PNG/JPEG) without silent failures. */
+const MAX_DATA_URL_IMAGE_BYTES = 4 * 1024 * 1024;
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
   if (req.method !== "POST") return res.status(405).end();
@@ -51,12 +80,12 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         }
         if (buf.length > MAX_DATA_URL_IMAGE_BYTES) {
           return res.status(413).json({
-            error: `Image too large for hosted upload (max ${MAX_DATA_URL_IMAGE_BYTES / 1024}KB). Use a smaller or compressed image.`,
+            error: `Image too large for hosted upload (max ${MAX_DATA_URL_IMAGE_BYTES / (1024 * 1024)}MB). Use a smaller or compressed image, or configure S3.`,
           });
         }
-        const mime = file.mimetype || "image/jpeg";
+        const mime = resolveImageMime(file);
         if (!mime.startsWith("image/")) {
-          return res.status(400).json({ error: "File must be an image" });
+          return res.status(400).json({ error: "File must be an image (JPEG, PNG, or WebP)." });
         }
         const b64 = buf.toString("base64");
         return res.json({ url: `data:${mime};base64,${b64}` });

@@ -35,9 +35,9 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       where: { role: "user" },
       include: {
         user_packages: {
-          where: { is_active: true },
           include: { package_type: true },
           orderBy: { purchase_date: "desc" },
+          take: 8,
         },
         user_stats: true,
       },

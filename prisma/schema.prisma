@@ -124,6 +124,8 @@ model Instructor {
   title              String?
   email              String?
   phone              String?
+  /// Percent of class check-in revenue retained by the studio (0–100). Instructor share = 100 − this. Not public.
+  studio_payout_cut_percent Decimal? @db.Decimal(5, 2)
   image_url          String?
   about              String?
   philosophy         String?
@@ -258,6 +260,8 @@ model Booking {
   class_time        String?
   checked_in        Boolean   @default(false)
   check_in_time     DateTime?
+  /// Set when check-in closes: on_time (by start), late (after start, within window), no_show (never checked in by window end).
+  check_in_outcome  String?
   created_at        DateTime  @default(now())
 
   profile        Profile        @relation(fields: [user_id], references: [id], onDelete: Cascade)
@@ -338,6 +342,26 @@ model MealSubscriptionInquiry {
   @@index([created_at])
   @@index([status])
   @@map("meal_subscription_inquiries")
+}
+
+/// Space rental inquiry submissions from /rental
+model RentalInquiry {
+  id          String   @id @default(uuid())
+  name        String
+  email       String
+  phone       String
+  event_type  String?
+  event_date  String?
+  guest_count String?
+  duration    String?
+  message     String?
+  status      String   @default("new")
+  created_at  DateTime @default(now())
+  updated_at  DateTime @updatedAt
+
+  @@index([email])
+  @@index([created_at])
+  @@map("rental_inquiries")
 }
 
 model UserStats {

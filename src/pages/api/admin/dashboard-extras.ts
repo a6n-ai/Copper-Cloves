@@ -2,6 +2,7 @@ import type { NextApiRequest, NextApiResponse } from "next";
 import { getServerSession } from "next-auth/next";
 import { authOptions } from "@/lib/auth";
 import prisma from "@/lib/prisma";
+import { reconcileNoShowsGlobally } from "@/lib/bookingReconcile";
 
 function dt(d: Date) {
   const pad = (n: number) => String(n).padStart(2, "0");
@@ -21,6 +22,8 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   if (role !== "admin") return res.status(403).json({ error: "Forbidden" });
   if (req.method !== "GET") return res.status(405).end();
 
+  await reconcileNoShowsGlobally(prisma);
+
   const now = new Date();
   const dayStart = new Date(now.getFullYear(), now.getMonth(), now.getDate());
   const dayEnd = new Date(dayStart);
@@ -38,7 +41,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     bookings30,
     scheduleSlots30,
     checkInsRecent,
-    noShowCand,
+    noShowsCount,
     activePackages,
     topBookers,
     recentPackages,
@@ -54,7 +57,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         instructor: true,
         bookings: {
           where: { status: "confirmed" },
-          include: { profile: { select: { full_name: true } } },
+          include: { profile: { select: { full_name: true, email: true } } },
         },
       },
       orderBy: { start_time: "asc" },
@@ -86,9 +89,11 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       },
       include: { class_schedule: true },
     }),
-    prisma.booking.findMany({
-      where: { status: "confirmed", checked_in: false, class_schedule_id: { not: null } },
-      include: { class_schedule: true },
+    prisma.booking.count({
+      where: {
+        check_in_outcome: "no_show",
+        booking_date: { gte: monthAgo },
+      },
     }),
     prisma.userPackage.findMany({
       where: { is_active: true, expiration_date: { gte: now } },
@@ -126,16 +131,15 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     const st = b.class_schedule?.start_time;
     const ct = b.check_in_time;
     if (!st || !ct) continue;
-    if (new Date(ct).getTime() > new Date(st).getTime() + 5 * 60 * 1000) lateCheckIns++;
+    if (new Date(ct).getTime() > new Date(st).getTime()) lateCheckIns++;
   }
   const onTimeApprox = Math.max(0, checkInsRecent.length - lateCheckIns);
 
-  let noShows = 0;
-  for (const b of noShowCand) {
-    const st = b.class_schedule?.start_time;
-    if (!st || new Date(st) >= now) continue;
-    noShows++;
-  }
+  const noShows = noShowsCount;
+
+  const checkInSample = checkInsRecent.length;
+  const onTimeCheckInPct = checkInSample > 0 ? Math.round((onTimeApprox / checkInSample) * 100) : 0;
+  const lateCheckInPct = checkInSample > 0 ? Math.round((lateCheckIns / checkInSample) * 100) : 0;
 
   const todayClasses = todaySchedules.map((s) => ({
     id: s.id,
@@ -150,8 +154,11 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     capacity: s.capacity ?? s.class_model?.max_capacity ?? 0,
     attendees: s.bookings.map((bk) => ({
       id: bk.id,
+      userId: bk.user_id,
       name: bk.profile?.full_name || "Member",
+      email: bk.profile?.email ?? "",
       checkedIn: bk.checked_in,
+      checkInOutcome: bk.check_in_outcome,
       checkInTime: bk.check_in_time
         ? new Date(bk.check_in_time).toLocaleTimeString("en-US", {
             hour: "2-digit",
@@ -254,8 +261,39 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   let premiumActive = 0;
   let specialtyActive = 0;
   for (const up of activePackages) {
-    if (up.package_type?.is_unlimited) specialtyActive++;
-    else premiumActive++;
+    const t = (up.package_type?.type || "").toLowerCase();
+    const pass = (up.pass_type || "").toLowerCase();
+    if (t.includes("studio") || pass === "studio_pass" || up.package_type?.is_unlimited) {
+      specialtyActive++;
+    } else premiumActive++;
+  }
+
+  const fourteenAgo = new Date(now);
+  fourteenAgo.setDate(fourteenAgo.getDate() - 14);
+  const activePkgUserIds = new Set(
+    (
+      await prisma.userPackage.findMany({
+        where: { is_active: true, expiration_date: { gte: now } },
+        select: { user_id: true },
+      })
+    ).map((r) => r.user_id)
+  );
+  const lastExpRows = await prisma.userPackage.groupBy({
+    by: ["user_id"],
+    _max: { expiration_date: true },
+  });
+  const lastMap = new Map(
+    lastExpRows.map((r) => [r.user_id, r._max.expiration_date] as const)
+  );
+  const allMembers = await prisma.profile.findMany({
+    where: { role: "user" },
+    select: { id: true },
+  });
+  let inactiveUsers = 0;
+  for (const m of allMembers) {
+    if (activePkgUserIds.has(m.id)) continue;
+    const le = lastMap.get(m.id);
+    if (!le || le.getTime() < fourteenAgo.getTime()) inactiveUsers++;
   }
 
   let exp7 = 0;
@@ -368,13 +406,15 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       },
       onTimeCheckIns: onTimeApprox,
       lateCheckIns,
+      checkInSample,
+      onTimeCheckInPct,
+      lateCheckInPct,
       noShows,
       expiring7Days: exp7,
       expiring15Days: exp15,
       expiring30Days: expBucketRows.length,
-      premiumActive,
       specialtyActive,
-      inactiveUsers: 0,
+      inactiveUsers,
     },
     sampleActivityOrderHistory: sampleOrderHistory,
   });
