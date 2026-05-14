@@ -173,7 +173,6 @@ export default function Dashboard() {
   const [dailyIntention, setDailyIntention] = useState("Deep breathing and presence");
   const [isEditingIntention, setIsEditingIntention] = useState(false);
   const [showOrderHistory, setShowOrderHistory] = useState(false);
-  const [showBooking, setShowBooking] = useState(false);
   const [showCheckIn, setShowCheckIn] = useState(false);
   const [selectedBookingForCheckIn, setSelectedBookingForCheckIn] = useState<any>(null);
   const [currentUserId, setCurrentUserId] = useState<string>("");
@@ -674,7 +673,8 @@ export default function Dashboard() {
 
                 <div className="space-y-2">
                   <Button
-                    onClick={() => setShowBooking(true)}
+                    type="button"
+                    onClick={() => void router.push("/portal/book")}
                     className="w-full bg-sage hover:bg-sage/90 text-white font-body justify-start"
                   >
                     <Calendar className="w-4 h-4 mr-2" />
@@ -712,19 +712,18 @@ export default function Dashboard() {
                 ) : (
                   <div className="space-y-3">
                     {upcomingBookings.slice(0, 3).map((booking) => {
-                      // Determine if this is a scheduled class or mock class
-                      const isScheduled = !!booking.class_schedules;
-                      const className = isScheduled 
-                        ? booking.class_schedules?.classes?.name 
+                      const isScheduled = !!booking.class_schedule;
+                      const className = isScheduled
+                        ? booking.class_schedule?.class_model?.name
                         : booking.class_name || "Class";
-                      const instructor = isScheduled 
-                        ? booking.class_schedules?.classes?.instructor 
+                      const instructor = isScheduled
+                        ? booking.class_schedule?.instructor?.name
                         : "Instructor TBD";
-                      const imageUrl = isScheduled 
-                        ? booking.class_schedules?.classes?.image_url 
+                      const imageUrl = isScheduled
+                        ? booking.class_schedule?.class_model?.image_url || "/placeholder.jpg"
                         : "/placeholder.jpg";
-                      const startTime = isScheduled 
-                        ? booking.class_schedules?.start_time 
+                      const startTime = isScheduled
+                        ? booking.class_schedule?.start_time
                         : booking.class_time;
 
                       return (
@@ -1044,18 +1043,19 @@ export default function Dashboard() {
 
             <div className="mb-6">
               {(() => {
-                const isScheduled = !!selectedBookingForCheckIn.class_schedules;
-                const className = isScheduled 
-                  ? selectedBookingForCheckIn.class_schedules?.classes?.name 
+                const isScheduled = !!selectedBookingForCheckIn.class_schedule;
+                const className = isScheduled
+                  ? selectedBookingForCheckIn.class_schedule?.class_model?.name
                   : selectedBookingForCheckIn.class_name || "Class";
-                const instructor = isScheduled 
-                  ? selectedBookingForCheckIn.class_schedules?.classes?.instructor 
+                const instructor = isScheduled
+                  ? selectedBookingForCheckIn.class_schedule?.instructor?.name
                   : "Instructor TBD";
-                const imageUrl = isScheduled 
-                  ? selectedBookingForCheckIn.class_schedules?.classes?.image_url 
+                const imageUrl = isScheduled
+                  ? selectedBookingForCheckIn.class_schedule?.class_model?.image_url ||
+                    "/placeholder.jpg"
                   : "/placeholder.jpg";
-                const startTime = isScheduled 
-                  ? selectedBookingForCheckIn.class_schedules?.start_time 
+                const startTime = isScheduled
+                  ? selectedBookingForCheckIn.class_schedule?.start_time
                   : selectedBookingForCheckIn.class_time;
 
                 return (
@@ -1106,9 +1106,9 @@ export default function Dashboard() {
                 </p>
               </div>
             ) : (() => {
-              const isScheduled = !!selectedBookingForCheckIn.class_schedules;
-              const startTime = isScheduled 
-                ? selectedBookingForCheckIn.class_schedules?.start_time 
+              const isScheduled = !!selectedBookingForCheckIn.class_schedule;
+              const startTime = isScheduled
+                ? selectedBookingForCheckIn.class_schedule?.start_time
                 : selectedBookingForCheckIn.class_time;
               
               return startTime && canCheckIn(startTime) ? (
