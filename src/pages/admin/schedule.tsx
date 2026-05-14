@@ -525,7 +525,12 @@ export default function AdminSchedule() {
         } else {
           console.log('🔵 Creating single class for week:', selectedWeek);
           // Single occurrence
-          const weekNumber = parseInt(selectedWeek.split(" ")[1]);
+          const weekMatch = selectedWeek.match(/week\s+(\d+)/i);
+          const weekNumber = weekMatch ? parseInt(weekMatch[1], 10) : NaN;
+          if (!Number.isFinite(weekNumber) || weekNumber < 1 || weekNumber > 5) {
+            alert("Please select a valid week (Week 1–Week 5).");
+            return;
+          }
           const startOfMonth = new Date(year, selectedMonth, 1);
           
           // Find the nth occurrence of this day in the month
@@ -537,6 +542,13 @@ export default function AdminSchedule() {
           // Move to the selected week
           currentDate.setDate(currentDate.getDate() + (weekNumber - 1) * 7);
           
+          if (currentDate.getMonth() !== selectedMonth) {
+            alert(
+              `${selectedWeek} for ${selectedDay} does not exist in ${MONTHS[selectedMonth]} ${year} (that date falls in the next month). Choose Week 1–4, use Recurring, or pick another month.`
+            );
+            return;
+          }
+
           const startTime = new Date(currentDate);
           startTime.setHours(hour, minute, 0, 0);
           const endTime = new Date(startTime);

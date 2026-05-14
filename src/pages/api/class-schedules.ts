@@ -37,6 +37,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         },
         orderBy: { start_time: "asc" },
       });
+      res.setHeader("Cache-Control", "private, no-store, max-age=0, must-revalidate");
       return res.json(schedules);
     } catch (e) {
       console.error("[class-schedules GET]", e);
@@ -52,14 +53,57 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
   try {
     if (req.method === "POST") {
-      const data = req.body;
+      const body = req.body ?? {};
+      const startRaw = body.start_time;
+      const endRaw = body.end_time;
+      if (!startRaw || !endRaw || !body.class_id) {
+        return res.status(400).json({ error: "class_id, start_time, and end_time are required." });
+      }
+      const data = {
+        class_id: String(body.class_id),
+        instructor_id: body.instructor_id != null && body.instructor_id !== "" ? String(body.instructor_id) : null,
+        start_time: new Date(startRaw as string),
+        end_time: new Date(endRaw as string),
+        available_spots: Number(body.available_spots),
+        capacity: body.capacity != null && body.capacity !== "" ? Number(body.capacity) : null,
+        status: typeof body.status === "string" ? body.status : "available",
+        current_bookings: Number(body.current_bookings ?? 0),
+      };
+      if (!Number.isFinite(data.available_spots) || data.available_spots < 0) {
+        return res.status(400).json({ error: "Invalid available_spots." });
+      }
+      if (Number.isNaN(data.start_time.getTime()) || Number.isNaN(data.end_time.getTime())) {
+        return res.status(400).json({ error: "Invalid start_time or end_time." });
+      }
       const schedule = await prisma.classSchedule.create({ data });
       return res.status(201).json(schedule);
     }
 
     if (req.method === "PUT") {
-      const { id, ...data } = req.body;
-      const schedule = await prisma.classSchedule.update({ where: { id }, data });
+      const { id, ...rest } = req.body ?? {};
+      if (!id) return res.status(400).json({ error: "id required" });
+      const data: Record<string, unknown> = {};
+      if (rest.class_id != null) data.class_id = String(rest.class_id);
+      if (rest.instructor_id !== undefined) {
+        data.instructor_id =
+          rest.instructor_id != null && rest.instructor_id !== "" ? String(rest.instructor_id) : null;
+      }
+      if (rest.start_time != null) data.start_time = new Date(String(rest.start_time));
+      if (rest.end_time != null) data.end_time = new Date(String(rest.end_time));
+      if (rest.available_spots != null) data.available_spots = Number(rest.available_spots);
+      if (rest.capacity !== undefined) {
+        data.capacity =
+          rest.capacity != null && rest.capacity !== "" ? Number(rest.capacity) : null;
+      }
+      if (rest.status != null) data.status = String(rest.status);
+      if (rest.current_bookings != null) data.current_bookings = Number(rest.current_bookings);
+      if (Object.keys(data).length === 0) {
+        return res.status(400).json({ error: "No valid fields to update." });
+      }
+      const schedule = await prisma.classSchedule.update({
+        where: { id: String(id) },
+        data: data as Prisma.ClassScheduleUpdateInput,
+      });
       return res.json(schedule);
     }
 

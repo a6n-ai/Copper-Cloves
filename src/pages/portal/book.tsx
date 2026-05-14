@@ -68,6 +68,8 @@ export interface Class {
   image: string;
   /** ISO datetime for this scheduled instance (for booking + sorting). */
   startTimeIso: string;
+  /** False when start time is in the past (still listed for the weekly grid). */
+  isBookable?: boolean;
 }
 
 export default function BookClass() {
@@ -171,8 +173,7 @@ export default function BookClass() {
           return (
             t >= weekStart.getTime() &&
             t <= weekEnd.getTime() &&
-            s.status !== "cancelled" &&
-            t > nowMs
+            s.status !== "cancelled"
           );
         })
         .map((schedule: {
@@ -193,6 +194,7 @@ export default function BookClass() {
             typeof schedule.start_time === "string"
               ? schedule.start_time
               : new Date(schedule.start_time).toISOString(),
+          isBookable: new Date(schedule.start_time).getTime() > nowMs,
         }))
         .sort(
           (a, b) =>
@@ -610,10 +612,11 @@ export default function BookClass() {
                         </span>
                       </div>
                       <Button 
-                        onClick={() => handleSelectClass(cls)} 
-                        className="bg-sage hover:bg-sage/90 text-white font-body w-full transition-all duration-600 hover:scale-105 active:scale-95"
+                        onClick={() => cls.isBookable !== false && handleSelectClass(cls)} 
+                        disabled={cls.isBookable === false}
+                        className="bg-sage hover:bg-sage/90 text-white font-body w-full transition-all duration-600 hover:scale-105 active:scale-95 disabled:opacity-50 disabled:hover:scale-100"
                       >
-                        Reserve Your Spot
+                        {cls.isBookable === false ? "Session started" : "Reserve Your Spot"}
                       </Button>
                     </div>
                   </div>
