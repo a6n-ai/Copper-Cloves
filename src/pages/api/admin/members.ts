@@ -2,6 +2,29 @@ import type { NextApiRequest, NextApiResponse } from "next";
 import { getServerSession } from "next-auth/next";
 import { authOptions } from "@/lib/auth";
 import prisma from "@/lib/prisma";
+import { isStudioAdminProfileRole } from "@/lib/isStudioAdminProfile";
+
+const memberInclude = {
+  user_packages: {
+    include: { package_type: true },
+    orderBy: { purchase_date: "desc" as const },
+    take: 8,
+  },
+  user_stats: true,
+} as const;
+
+const memberDetailInclude = {
+  user_stats: true,
+  user_badges: { orderBy: { earned_at: "desc" as const }, take: 20 },
+  bookings: {
+    where: { status: "confirmed" as const },
+    orderBy: { booking_date: "desc" as const },
+    take: 60,
+    include: {
+      class_schedule: { include: { class_model: true } },
+    },
+  },
+} as const;
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
   const session = await getServerSession(req, res, authOptions);
@@ -9,43 +32,24 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   const role = (session.user as { role?: string }).role;
   if (role !== "admin") return res.status(403).json({ error: "Forbidden" });
 
-  /** All portal/customer accounts (exclude admin login rows from member lists). */
-  const nonAdminWhere = { NOT: { role: "admin" as const } };
-
   if (req.method === "GET") {
     const id = typeof req.query.id === "string" ? req.query.id.trim() : "";
     if (id) {
       const profile = await prisma.profile.findFirst({
-        where: { id, ...nonAdminWhere },
-        include: {
-          user_stats: true,
-          user_badges: { orderBy: { earned_at: "desc" }, take: 20 },
-          bookings: {
-            where: { status: "confirmed" },
-            orderBy: { booking_date: "desc" },
-            take: 60,
-            include: {
-              class_schedule: { include: { class_model: true } },
-            },
-          },
-        },
+        where: { id },
+        include: memberDetailInclude,
       });
-      if (!profile) return res.status(404).json({ error: "Member not found" });
+      if (!profile || isStudioAdminProfileRole(profile.role)) {
+        return res.status(404).json({ error: "Member not found" });
+      }
       return res.json(profile);
     }
 
-    const members = await prisma.profile.findMany({
-      where: nonAdminWhere,
-      include: {
-        user_packages: {
-          include: { package_type: true },
-          orderBy: { purchase_date: "desc" },
-          take: 8,
-        },
-        user_stats: true,
-      },
+    const rows = await prisma.profile.findMany({
+      include: memberInclude,
       orderBy: { created_at: "desc" },
     });
+    const members = rows.filter((p) => !isStudioAdminProfileRole(p.role));
     return res.json(members);
   }
 
@@ -56,9 +60,11 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     }
 
     const profile = await prisma.profile.findFirst({
-      where: { id: profile_id, ...nonAdminWhere },
+      where: { id: profile_id },
     });
-    if (!profile) return res.status(404).json({ error: "Member not found" });
+    if (!profile || isStudioAdminProfileRole(profile.role)) {
+      return res.status(404).json({ error: "Member not found" });
+    }
 
     let pkgId: string | undefined = typeof user_package_id === "string" ? user_package_id : undefined;
     if (!pkgId) {

@@ -3,6 +3,7 @@ import { getServerSession } from "next-auth/next";
 import { authOptions } from "@/lib/auth";
 import prisma from "@/lib/prisma";
 import { reconcileNoShowsGlobally } from "@/lib/bookingReconcile";
+import { isStudioAdminProfileRole } from "@/lib/isStudioAdminProfile";
 
 function dt(d: Date) {
   const pad = (n: number) => String(n).padStart(2, "0");
@@ -286,11 +287,11 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     lastExpRows.map((r) => [r.user_id, r._max.expiration_date] as const)
   );
   const allMembers = await prisma.profile.findMany({
-    where: { role: "user" },
-    select: { id: true },
+    select: { id: true, role: true },
   });
+  const memberRows = allMembers.filter((p) => !isStudioAdminProfileRole(p.role));
   let inactiveUsers = 0;
-  for (const m of allMembers) {
+  for (const m of memberRows) {
     if (activePkgUserIds.has(m.id)) continue;
     const le = lastMap.get(m.id);
     if (!le || le.getTime() < fourteenAgo.getTime()) inactiveUsers++;

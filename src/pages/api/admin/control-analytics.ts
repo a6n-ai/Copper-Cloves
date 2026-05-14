@@ -2,6 +2,7 @@ import type { NextApiRequest, NextApiResponse } from "next";
 import { getServerSession } from "next-auth/next";
 import { authOptions } from "@/lib/auth";
 import prisma from "@/lib/prisma";
+import { isStudioAdminProfileRole } from "@/lib/isStudioAdminProfile";
 
 const CHECKIN_RATE_INR = 150;
 const COACH_SHARE_PERCENT = 60;
@@ -48,8 +49,9 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   const [
     userPackagesRange,
     checkInsRange,
-    allMembersCount,
-    membersCreatedRange,
+    totalProfiles,
+    adminProfilesCount,
+    profilesCreatedInRange,
     activePkgsNow,
     checkInsDistinct30,
     streakLeaders,
@@ -71,10 +73,13 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       },
       select: { booking_date: true },
     }),
-    prisma.profile.count({ where: { role: "user" } }),
+    prisma.profile.count(),
+    prisma.profile.count({
+      where: { role: { equals: "admin", mode: "insensitive" } },
+    }),
     prisma.profile.findMany({
-      where: { role: "user", created_at: { gte: rangeStart } },
-      select: { created_at: true },
+      where: { created_at: { gte: rangeStart } },
+      select: { created_at: true, role: true },
     }),
     prisma.userPackage.findMany({
       where: { is_active: true, expiration_date: { gt: now } },
@@ -131,6 +136,11 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       select: { class_id: true, capacity: true, class_model: { select: { max_capacity: true } } },
     }),
   ]);
+
+  const allMembersCount = Math.max(0, totalProfiles - adminProfilesCount);
+  const membersCreatedRange = profilesCreatedInRange.filter(
+    (p) => !isStudioAdminProfileRole(p.role)
+  );
 
   const monthlyRevenue = windows.map(({ start, end, label }) => {
     let r = 0;

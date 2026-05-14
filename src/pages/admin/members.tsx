@@ -93,6 +93,7 @@ export default function AdminMembers() {
   const [creditAmount, setCreditAmount] = useState("");
   const [newExpiryDate, setNewExpiryDate] = useState("");
   const [successMessage, setSuccessMessage] = useState("");
+  const [loadError, setLoadError] = useState<string | null>(null);
 
   const { data: session, status } = useSession();
 
@@ -114,12 +115,15 @@ export default function AdminMembers() {
   }, [status, session, router]);
 
   useEffect(() => {
+    const qRaw = searchQuery.trim();
+    const q = qRaw.toLowerCase();
     const filtered = members.filter((member) => {
-      const q =
-        member.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        member.email.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        member.phone.includes(searchQuery);
-      if (!q) return false;
+      const matchesSearch =
+        q === "" ||
+        member.name.toLowerCase().includes(q) ||
+        (member.email ?? "").toLowerCase().includes(q) ||
+        (member.phone ?? "").toLowerCase().includes(qRaw);
+      if (!matchesSearch) return false;
       if (packageFilter === "studio" && member.passCategory !== "studio_pass") return false;
       if (packageFilter === "class" && member.passCategory !== "class_pass") return false;
       if (packageFilter === "none" && member.passCategory !== "none") return false;
@@ -131,10 +135,26 @@ export default function AdminMembers() {
   }, [searchQuery, members, packageFilter, accountStatusFilter]);
 
   const loadMembers = async () => {
+    setLoadError(null);
     try {
-      const res = await fetch("/api/admin/members");
-      if (!res.ok) throw new Error("load failed");
-      const profiles: Array<{
+      const res = await fetch("/api/admin/members", { credentials: "include" });
+      if (!res.ok) {
+        const errBody = await res.json().catch(() => ({}));
+        const msg =
+          typeof (errBody as { error?: string }).error === "string"
+            ? (errBody as { error: string }).error
+            : `HTTP ${res.status}`;
+        setLoadError(`Could not load members: ${msg}`);
+        setMembers([]);
+        return;
+      }
+      const raw: unknown = await res.json();
+      if (!Array.isArray(raw)) {
+        setLoadError("Members list response was invalid.");
+        setMembers([]);
+        return;
+      }
+      const profiles = raw as Array<{
         id: string;
         full_name: string | null;
         email: string;
@@ -152,7 +172,7 @@ export default function AdminMembers() {
           total_classes_attended?: number;
           last_class_date?: string | null;
         } | null;
-      }> = await res.json();
+      }>;
 
       const now = new Date();
       const fourteenAgo = new Date(now);
@@ -208,6 +228,7 @@ export default function AdminMembers() {
 
       setMembers(mapped);
     } catch {
+      setLoadError("Could not load members. Check your connection and try again.");
       setMembers([]);
     }
   };
@@ -223,6 +244,7 @@ export default function AdminMembers() {
     const res = await fetch("/api/admin/members", {
       method: "PATCH",
       headers: { "Content-Type": "application/json" },
+      credentials: "include",
       body: JSON.stringify(body),
     });
     if (!res.ok) {
@@ -364,6 +386,17 @@ export default function AdminMembers() {
                 </p>
               </div>
             </div>
+
+            {loadError && (
+              <Card className="border-terracotta/30 bg-terracotta/5 backdrop-blur-xl">
+                <CardContent className="p-4">
+                  <div className="flex items-center gap-3 text-terracotta">
+                    <AlertTriangle className="h-5 w-5 flex-shrink-0" />
+                    <p className="font-body text-charcoal">{loadError}</p>
+                  </div>
+                </CardContent>
+              </Card>
+            )}
 
             {/* Success Message */}
             {successMessage && (

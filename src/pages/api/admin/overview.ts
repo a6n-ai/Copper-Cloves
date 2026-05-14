@@ -2,6 +2,7 @@ import type { NextApiRequest, NextApiResponse } from "next";
 import { getServerSession } from "next-auth/next";
 import { authOptions } from "@/lib/auth";
 import prisma from "@/lib/prisma";
+import { isStudioAdminProfileRole } from "@/lib/isStudioAdminProfile";
 
 function toMoney(v: unknown) {
   if (v == null) return 0;
@@ -26,18 +27,29 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   weekEnd.setDate(weekEnd.getDate() + 7);
 
   const [
-    totalMembers,
-    newMembersThisMonth,
+    totalProfiles,
+    adminProfiles,
+    newProfilesThisMonth,
+    newAdminProfilesThisMonth,
     checkInsToday,
     expiringWeek,
     packageRows,
     cafeOrdersMonth,
-    usersWithoutWaiver,
+    profilesMissingWaiver,
     schedulesToday,
     upcomingSchedules,
   ] = await Promise.all([
-    prisma.profile.count({ where: { role: "user" } }),
-    prisma.profile.count({ where: { role: "user", created_at: { gte: monthStart } } }),
+    prisma.profile.count(),
+    prisma.profile.count({
+      where: { role: { equals: "admin", mode: "insensitive" } },
+    }),
+    prisma.profile.count({ where: { created_at: { gte: monthStart } } }),
+    prisma.profile.count({
+      where: {
+        created_at: { gte: monthStart },
+        role: { equals: "admin", mode: "insensitive" },
+      },
+    }),
     prisma.booking.count({
       where: { checked_in: true, check_in_time: { gte: dayStart, lt: dayEnd } },
     }),
@@ -54,11 +66,9 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     prisma.cafeOrder.count({
       where: { order_date: { gte: monthStart, lt: nextMonth } },
     }),
-    prisma.profile.count({
-      where: {
-        role: "user",
-        waivers: { none: {} },
-      },
+    prisma.profile.findMany({
+      where: { waivers: { none: {} } },
+      select: { role: true },
     }),
     prisma.classSchedule.count({
       where: { start_time: { gte: dayStart, lt: dayEnd } },
@@ -70,6 +80,12 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       take: 8,
     }),
   ]);
+
+  const totalMembers = Math.max(0, totalProfiles - adminProfiles);
+  const newMembersThisMonth = Math.max(0, newProfilesThisMonth - newAdminProfilesThisMonth);
+  const usersWithoutWaiver = profilesMissingWaiver.filter(
+    (p) => !isStudioAdminProfileRole(p.role)
+  ).length;
 
   let monthRevenue = 0;
   for (const row of packageRows) {
