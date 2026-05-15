@@ -33,7 +33,6 @@ export default function Profile() {
 
   const [currentPassword, setCurrentPassword] = useState("");
   const [newPassword, setNewPassword] = useState("");
-  const [confirmPassword, setConfirmPassword] = useState("");
   const [passwordSaving, setPasswordSaving] = useState(false);
 
   const { register, handleSubmit, formState: { errors }, reset } = useForm<ProfileFormValues>({
@@ -67,6 +66,12 @@ export default function Profile() {
       loadProfile();
     }
   }, [loadProfile, router, status]);
+
+  useEffect(() => {
+    if (loading || router.asPath !== "/portal/profile#reset-password") return;
+    const el = document.getElementById("reset-password");
+    el?.scrollIntoView({ behavior: "smooth", block: "start" });
+  }, [loading, router.asPath]);
 
   async function onSubmit(data: ProfileFormValues) {
     setSaving(true);
@@ -162,12 +167,20 @@ export default function Profile() {
 
   async function onChangePassword(e: React.FormEvent) {
     e.preventDefault();
+    if (!currentPassword) {
+      toast({ title: "Current password required", description: "Enter your current password.", variant: "destructive" });
+      return;
+    }
     if (newPassword.length < 8) {
       toast({ title: "Password too short", description: "Use at least 8 characters.", variant: "destructive" });
       return;
     }
-    if (newPassword !== confirmPassword) {
-      toast({ title: "Mismatch", description: "New password and confirmation do not match.", variant: "destructive" });
+    if (currentPassword === newPassword) {
+      toast({
+        title: "Choose a different password",
+        description: "Your new password must be different from your current password.",
+        variant: "destructive",
+      });
       return;
     }
     setPasswordSaving(true);
@@ -188,7 +201,6 @@ export default function Profile() {
       }
       setCurrentPassword("");
       setNewPassword("");
-      setConfirmPassword("");
       toast({ title: "Password updated", description: "You can sign in with your new password next time." });
     } catch {
       toast({ title: "Network error", description: "Please try again.", variant: "destructive" });
@@ -360,14 +372,17 @@ export default function Profile() {
             </CardContent>
           </Card>
 
-          <Card className="border-sage/20 bg-white/90 backdrop-blur-sm shadow-lg hover:shadow-2xl transition-all duration-600 mt-6">
+          <Card
+            id="reset-password"
+            className="border-sage/20 bg-white/90 backdrop-blur-sm shadow-lg hover:shadow-2xl transition-all duration-600 mt-6 scroll-mt-28"
+          >
             <CardHeader className="p-6 md:p-8 border-b border-sage/10">
               <CardTitle className="font-display text-xl md:text-2xl text-charcoal flex items-center gap-2">
                 <Lock className="text-sage" size={22} />
-                Password
+                Reset password
               </CardTitle>
               <CardDescription className="font-body text-charcoal/70">
-                Update the password you use to sign in to the member portal
+                Enter your current password, then choose a new one (at least 8 characters).
               </CardDescription>
             </CardHeader>
             <CardContent className="p-6 md:p-8">
@@ -397,21 +412,8 @@ export default function Profile() {
                     minLength={8}
                   />
                 </div>
-                <div className="space-y-2">
-                  <Label htmlFor="confirmPassword" className="font-body text-charcoal">Confirm new password</Label>
-                  <Input
-                    id="confirmPassword"
-                    type="password"
-                    autoComplete="new-password"
-                    value={confirmPassword}
-                    onChange={(e) => setConfirmPassword(e.target.value)}
-                    className="border-sage/20 h-12"
-                    required
-                    minLength={8}
-                  />
-                </div>
                 <Button type="submit" disabled={passwordSaving} className="bg-sage hover:bg-sage/90 text-white w-full h-12 font-body">
-                  {passwordSaving ? "Updating…" : "Update password"}
+                  {passwordSaving ? "Updating…" : "Reset password"}
                 </Button>
               </form>
             </CardContent>

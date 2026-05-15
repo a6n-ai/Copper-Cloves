@@ -25,6 +25,7 @@ import {
   X,
   Zap,
   History,
+  Lock,
   CalendarDays,
   ChevronRight
 } from "lucide-react";
@@ -695,6 +696,14 @@ export default function Dashboard() {
                   >
                     <History className="w-4 h-4 mr-2" />
                     Order History
+                  </Button>
+                  <Button
+                    type="button"
+                    onClick={() => void router.push("/portal/profile#reset-password")}
+                    className="w-full bg-white hover:bg-cream text-charcoal border border-sage/20 font-body justify-start"
+                  >
+                    <Lock className="w-4 h-4 mr-2" />
+                    Reset password
                   </Button>
                 </div>
               </div>
