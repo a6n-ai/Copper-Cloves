@@ -7,6 +7,7 @@
 #   RDS security group must allow inbound Postgres from Amplify Hosting build (so preBuild can run prisma db push).
 #   NEXTAUTH_SECRET      — random secret for credentials auth
 #   NEXTAUTH_URL         — e.g. https://main.xxxxx.amplifyapp.com
+#   RAZORPAY_KEY_ID, RAZORPAY_KEY_SECRET, NEXT_PUBLIC_RAZORPAY_KEY_ID — optional; payments (test keys: rzp_test_...)
 #
 # Optional one-time admin bootstrap (POST /api/setup/bootstrap-admin with header x-admin-setup-secret):
 #   ADMIN_SETUP_SECRET   — long random string; remove after use

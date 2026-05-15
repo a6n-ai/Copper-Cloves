@@ -29,6 +29,10 @@ const KEYS = [
   "WHATSAPP_TEMPLATE_BODY_VARIABLES",
   "WHATSAPP_DEFAULT_COUNTRY_CODE",
   "WHATSAPP_API_VERSION",
+  // Razorpay (optional — add in Amplify for payments)
+  "RAZORPAY_KEY_ID",
+  "RAZORPAY_KEY_SECRET",
+  "NEXT_PUBLIC_RAZORPAY_KEY_ID",
 ];
 
 const hasDb =
