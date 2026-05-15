@@ -2,6 +2,7 @@ import { useRef, useState, useEffect } from "react";
 import { ChevronLeft, ChevronRight, X, Award, Calendar, Heart, Share2, Facebook, Twitter, Linkedin, MessageCircle } from "lucide-react";
 import Link from "next/link";
 import { supportsResponsivePicture } from "@/lib/imageDelivery";
+import { dedupeInstructorRows } from "@/lib/instructorIdentity";
 
 interface Instructor {
   id?: string;
@@ -123,7 +124,10 @@ export function Instructors() {
       setLoading(true);
       const res = await fetch("/api/admin/instructors");
       const data = res.ok ? await res.json() : [];
-      const transformedInstructors: Instructor[] = data.map((instructor: {
+      const unique = dedupeInstructorRows(
+        data as { id: string; name: string; display_order?: number | null; about?: string | null; image_url?: string | null; specialties?: string[] }[],
+      );
+      const transformedInstructors: Instructor[] = unique.map((instructor: {
         id?: string; name: string; title?: string; years_of_experience?: number; about?: string;
         image_url?: string; specialties?: string[]; certifications?: string[];
         philosophy?: string; social_facebook?: string; social_twitter?: string;
@@ -306,7 +310,7 @@ export function Instructors() {
               >
                 {instructors.map((instructor, index) => (
                   <div
-                    key={instructor.name}
+                    key={instructor.id ?? `${instructor.name}-${index}`}
                     className="flex-shrink-0 w-[260px] group/card snap-center cursor-pointer"
                     onMouseEnter={() => setHoveredIndex(index)}
                     onMouseLeave={() => setHoveredIndex(null)}

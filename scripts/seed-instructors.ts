@@ -1,8 +1,11 @@
 /**
- * Ensures all studio instructors exist with profile content and photos (idempotent upsert by name).
+ * Ensures all studio instructors exist with profile content and photos.
+ * Merges duplicates (e.g. "Usha" + "Usha Rao") so each person appears once.
  */
 import { config } from "dotenv";
 import { resolve } from "node:path";
+import type { PrismaClient } from "../src/generated/prisma/client";
+import { normalizeInstructorKey } from "../src/lib/instructorIdentity";
 
 config({ path: resolve(process.cwd(), ".env") });
 config({ path: resolve(process.cwd(), ".env.local"), override: true });
@@ -95,6 +98,74 @@ const INSTRUCTORS = [
   },
 ] as const;
 
+async function reassignInstructorRefs(
+  prisma: PrismaClient,
+  fromId: string,
+  toId: string,
+) {
+  await prisma.classModel.updateMany({
+    where: { instructor_id: fromId },
+    data: { instructor_id: toId },
+  });
+  await prisma.classSchedule.updateMany({
+    where: { instructor_id: fromId },
+    data: { instructor_id: toId },
+  });
+}
+
+async function removeDuplicateInstructor(
+  prisma: PrismaClient,
+  fromId: string,
+  toId: string,
+) {
+  if (fromId === toId) return;
+  await reassignInstructorRefs(prisma, fromId, toId);
+  await prisma.instructor.delete({ where: { id: fromId } });
+  console.log(`Removed duplicate instructor ${fromId} (merged into ${toId})`);
+}
+
+async function findNameMatches(prisma: PrismaClient, canonicalName: string) {
+  const key = normalizeInstructorKey(canonicalName);
+  return prisma.instructor.findMany({
+    where: {
+      OR: [
+        { name: { equals: canonicalName, mode: "insensitive" } },
+        { name: { startsWith: key, mode: "insensitive" } },
+      ],
+    },
+    orderBy: { created_at: "asc" },
+  });
+}
+
+async function dedupeAllInstructors(prisma: PrismaClient) {
+  const all = await prisma.instructor.findMany({ orderBy: { created_at: "asc" } });
+  const groups = new Map<string, typeof all>();
+
+  for (const row of all) {
+    const key = normalizeInstructorKey(row.name);
+    if (!key) continue;
+    const group = groups.get(key) ?? [];
+    group.push(row);
+    groups.set(key, group);
+  }
+
+  for (const [key, group] of groups) {
+    if (group.length <= 1) continue;
+
+    const seedRow = INSTRUCTORS.find((i) => normalizeInstructorKey(i.name) === key);
+    const keeper =
+      (seedRow && group.find((g) => g.name === seedRow.name)) ??
+      group.find((g) => g.name.length >= Math.max(...group.map((x) => x.name.length))) ??
+      group[0];
+
+    for (const dup of group) {
+      if (dup.id !== keeper.id) {
+        await removeDuplicateInstructor(prisma, dup.id, keeper.id);
+      }
+    }
+  }
+}
+
 async function main() {
   const prisma = (await import("../src/lib/prisma")).default;
 
@@ -104,13 +175,21 @@ async function main() {
     )._max.display_order ?? -1;
 
   for (const data of INSTRUCTORS) {
-    const existing = await prisma.instructor.findFirst({
-      where: { name: data.name },
-    });
+    const matches = await findNameMatches(prisma, data.name);
+    const keeper =
+      matches.find((m) => m.name === data.name) ?? matches[0] ?? null;
 
-    if (existing) {
-      await prisma.instructor.update({ where: { id: existing.id }, data });
-      console.log(`Updated instructor: ${data.name} (${existing.id})`);
+    if (keeper) {
+      await prisma.instructor.update({
+        where: { id: keeper.id },
+        data: { ...data, display_order: keeper.display_order ?? displayOrder },
+      });
+      for (const dup of matches) {
+        if (dup.id !== keeper.id) {
+          await removeDuplicateInstructor(prisma, dup.id, keeper.id);
+        }
+      }
+      console.log(`Updated instructor: ${data.name} (${keeper.id})`);
     } else {
       displayOrder += 1;
       const instructor = await prisma.instructor.create({
@@ -120,6 +199,7 @@ async function main() {
     }
   }
 
+  await dedupeAllInstructors(prisma);
   await prisma.$disconnect();
 }
 

@@ -1,5 +1,6 @@
 import type { NextApiRequest, NextApiResponse } from "next";
 import prisma from "@/lib/prisma";
+import { dedupeInstructorRows } from "@/lib/instructorIdentity";
 import { getStudioServerSession } from "@/lib/getStudioServerSession";
 
 export const config = {
@@ -15,7 +16,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     const instructors = await prisma.instructor.findMany({
       orderBy: { display_order: "asc" },
     });
-    return res.json(instructors);
+    return res.json(dedupeInstructorRows(instructors));
   }
 
   const session = await getStudioServerSession(req, res);
