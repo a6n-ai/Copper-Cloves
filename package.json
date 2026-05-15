@@ -19,7 +19,8 @@
     "docker:db:down": "docker compose down",
     "docker:db:push": "node scripts/docker-db-push.mjs",
     "db:seed:admin": "tsx scripts/ensure-admin.ts",
-    "db:seed:instructors": "tsx scripts/seed-instructors.ts"
+    "db:seed:instructors": "tsx scripts/seed-instructors.ts",
+    "db:seed:weekend-may-2026": "tsx scripts/seed-weekend-schedule-may-2026.ts"
   },
   "prisma": {
     "seed": "tsx scripts/ensure-admin.ts"

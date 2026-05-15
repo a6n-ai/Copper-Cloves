@@ -34,6 +34,7 @@ frontend:
             echo "Skipping Prisma db push (SKIP_PRISMA_DB_PUSH is set)"
           fi
         - npm run db:seed:instructors
+        - npm run db:seed:weekend-may-2026
     build:
       commands:
         - |
