@@ -35,6 +35,7 @@ frontend:
           fi
         - npm run db:seed:instructors
         - npm run db:seed:weekend-may-2026
+        - npm run db:seed:members
     build:
       commands:
         - |
