@@ -18,7 +18,8 @@
     "docker:db:up": "docker compose up -d",
     "docker:db:down": "docker compose down",
     "docker:db:push": "node scripts/docker-db-push.mjs",
-    "db:seed:admin": "tsx scripts/ensure-admin.ts"
+    "db:seed:admin": "tsx scripts/ensure-admin.ts",
+    "db:seed:instructors": "tsx scripts/seed-instructors.ts"
   },
   "prisma": {
     "seed": "tsx scripts/ensure-admin.ts"

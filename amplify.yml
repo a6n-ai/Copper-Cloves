@@ -33,6 +33,7 @@ frontend:
           else
             echo "Skipping Prisma db push (SKIP_PRISMA_DB_PUSH is set)"
           fi
+        - npm run db:seed:instructors
     build:
       commands:
         - |
