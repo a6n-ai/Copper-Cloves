@@ -1,11 +1,12 @@
 #!/usr/bin/env node
 /**
  * Amplify / CI: sync Postgres with prisma/schema.prisma (non-interactive `prisma db push`).
- * Sets DATABASE_URL + STUDIO_DATABASE_URL to the same normalized URL so prisma.config.ts
- * and the Prisma CLI see a single source (RDS sslmode, uselibpqcompat, etc.).
+ * - Clears duplicate razorpay_orders.booking_id / user_package_id before @unique constraints.
+ * - Uses --accept-data-loss so Prisma does not block on non-interactive constraint warnings.
  */
 import { spawnSync } from "node:child_process";
 import process from "node:process";
+import pg from "pg";
 
 function resolveDatabaseUrl(env = process.env) {
   const studioUrl = env.STUDIO_DATABASE_URL?.trim();
@@ -63,9 +64,55 @@ function normalizePostgresUrl(url) {
   }
 }
 
-function main() {
-  const raw = resolveDatabaseUrl();
-  const forPrisma = normalizePostgresUrl(raw);
+/** Keep one row per non-null booking_id / user_package_id so @unique can be applied. */
+async function clearDuplicateRazorpayOrderLinks(connectionString) {
+  const client = new pg.Client({ connectionString });
+  await client.connect();
+  try {
+    const tableCheck = await client.query(
+      `SELECT 1 FROM information_schema.tables WHERE table_schema = 'public' AND table_name = 'razorpay_orders'`,
+    );
+    if (tableCheck.rowCount === 0) {
+      console.log("ci-db-push: razorpay_orders not found yet — skipping duplicate cleanup");
+      return;
+    }
+
+    for (const column of ["user_package_id", "booking_id"]) {
+      const result = await client.query(
+        `
+        WITH ranked AS (
+          SELECT id,
+                 ROW_NUMBER() OVER (
+                   PARTITION BY ${column}
+                   ORDER BY created_at DESC NULLS LAST, id DESC
+                 ) AS rn
+          FROM razorpay_orders
+          WHERE ${column} IS NOT NULL
+        )
+        UPDATE razorpay_orders AS o
+        SET ${column} = NULL
+        FROM ranked AS r
+        WHERE o.id = r.id AND r.rn > 1
+        `,
+      );
+      const cleared = result.rowCount ?? 0;
+      if (cleared > 0) {
+        console.log(`ci-db-push: cleared ${cleared} duplicate razorpay_orders.${column} link(s)`);
+      }
+    }
+  } catch (e) {
+    const code = e && typeof e === "object" && "code" in e ? String(e.code) : "";
+    if (code === "42P01") return;
+    throw e;
+  } finally {
+    await client.end();
+  }
+}
+
+async function main() {
+  const forPrisma = normalizePostgresUrl(resolveDatabaseUrl());
+
+  await clearDuplicateRazorpayOrderLinks(forPrisma);
 
   const env = {
     ...process.env,
@@ -76,7 +123,7 @@ function main() {
   const isWin = process.platform === "win32";
   const npxCmd = isWin ? "npx.cmd" : "npx";
 
-  const r = spawnSync(npxCmd, ["prisma", "db", "push"], {
+  const r = spawnSync(npxCmd, ["prisma", "db", "push", "--accept-data-loss"], {
     env,
     stdio: "inherit",
     cwd: process.cwd(),
@@ -90,10 +137,8 @@ function main() {
   console.log("Prisma db push completed — database schema matches prisma/schema.prisma");
 }
 
-try {
-  main();
-} catch (e) {
+main().catch((e) => {
   const msg = e instanceof Error ? e.message : String(e);
   console.error("ci-db-push failed:", msg);
   process.exit(1);
-}
+});
