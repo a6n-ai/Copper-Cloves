@@ -43,6 +43,9 @@ frontend:
           echo "Preparing .env.production for Next.js SSR (DB + NextAuth)"
           node scripts/write-ssr-env.mjs
           npm run build
+          # Next.js webpack cache (.next/cache) is not needed at runtime but is uploaded as part of
+          # amplify.yml artifacts.baseDirectory=.next — it can exceed Amplify's deploy size cap (~220MB).
+          rm -rf .next/cache
           # Amplify artifact is only `.next/`; copy env into it so runtime loadEnvConfig + pg see DB URL.
           if [ -f .env.production ]; then cp .env.production .next/.env.production; fi
   artifacts:
