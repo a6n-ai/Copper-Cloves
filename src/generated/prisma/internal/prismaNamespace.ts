@@ -396,6 +396,8 @@ export const ModelName = {
   Package: 'Package',
   UserPackage: 'UserPackage',
   Booking: 'Booking',
+  RazorpayOrder: 'RazorpayOrder',
+  RazorpayPayment: 'RazorpayPayment',
   CafeItem: 'CafeItem',
   CafeOrder: 'CafeOrder',
   MealSubscription: 'MealSubscription',
@@ -425,7 +427,7 @@ export type TypeMap<ExtArgs extends runtime.Types.Extensions.InternalArgs = runt
     omit: GlobalOmitOptions
   }
   meta: {
-    modelProps: "profile" | "coupon" | "couponRedemption" | "retailProduct" | "retailOrder" | "instructor" | "classModel" | "classSchedule" | "packageType" | "package" | "userPackage" | "booking" | "cafeItem" | "cafeOrder" | "mealSubscription" | "mealSubscriptionInquiry" | "rentalInquiry" | "userStats" | "userStreak" | "userBadge" | "waiver" | "crmTemplate" | "crmMessage" | "crmTrigger" | "userActivitySession" | "userActivityEvent"
+    modelProps: "profile" | "coupon" | "couponRedemption" | "retailProduct" | "retailOrder" | "instructor" | "classModel" | "classSchedule" | "packageType" | "package" | "userPackage" | "booking" | "razorpayOrder" | "razorpayPayment" | "cafeItem" | "cafeOrder" | "mealSubscription" | "mealSubscriptionInquiry" | "rentalInquiry" | "userStats" | "userStreak" | "userBadge" | "waiver" | "crmTemplate" | "crmMessage" | "crmTrigger" | "userActivitySession" | "userActivityEvent"
     txIsolationLevel: TransactionIsolationLevel
   }
   model: {
@@ -1314,6 +1316,154 @@ export type TypeMap<ExtArgs extends runtime.Types.Extensions.InternalArgs = runt
         count: {
           args: Prisma.BookingCountArgs<ExtArgs>
           result: runtime.Types.Utils.Optional<Prisma.BookingCountAggregateOutputType> | number
+        }
+      }
+    }
+    RazorpayOrder: {
+      payload: Prisma.$RazorpayOrderPayload<ExtArgs>
+      fields: Prisma.RazorpayOrderFieldRefs
+      operations: {
+        findUnique: {
+          args: Prisma.RazorpayOrderFindUniqueArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$RazorpayOrderPayload> | null
+        }
+        findUniqueOrThrow: {
+          args: Prisma.RazorpayOrderFindUniqueOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$RazorpayOrderPayload>
+        }
+        findFirst: {
+          args: Prisma.RazorpayOrderFindFirstArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$RazorpayOrderPayload> | null
+        }
+        findFirstOrThrow: {
+          args: Prisma.RazorpayOrderFindFirstOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$RazorpayOrderPayload>
+        }
+        findMany: {
+          args: Prisma.RazorpayOrderFindManyArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$RazorpayOrderPayload>[]
+        }
+        create: {
+          args: Prisma.RazorpayOrderCreateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$RazorpayOrderPayload>
+        }
+        createMany: {
+          args: Prisma.RazorpayOrderCreateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        createManyAndReturn: {
+          args: Prisma.RazorpayOrderCreateManyAndReturnArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$RazorpayOrderPayload>[]
+        }
+        delete: {
+          args: Prisma.RazorpayOrderDeleteArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$RazorpayOrderPayload>
+        }
+        update: {
+          args: Prisma.RazorpayOrderUpdateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$RazorpayOrderPayload>
+        }
+        deleteMany: {
+          args: Prisma.RazorpayOrderDeleteManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateMany: {
+          args: Prisma.RazorpayOrderUpdateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateManyAndReturn: {
+          args: Prisma.RazorpayOrderUpdateManyAndReturnArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$RazorpayOrderPayload>[]
+        }
+        upsert: {
+          args: Prisma.RazorpayOrderUpsertArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$RazorpayOrderPayload>
+        }
+        aggregate: {
+          args: Prisma.RazorpayOrderAggregateArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.AggregateRazorpayOrder>
+        }
+        groupBy: {
+          args: Prisma.RazorpayOrderGroupByArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.RazorpayOrderGroupByOutputType>[]
+        }
+        count: {
+          args: Prisma.RazorpayOrderCountArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.RazorpayOrderCountAggregateOutputType> | number
+        }
+      }
+    }
+    RazorpayPayment: {
+      payload: Prisma.$RazorpayPaymentPayload<ExtArgs>
+      fields: Prisma.RazorpayPaymentFieldRefs
+      operations: {
+        findUnique: {
+          args: Prisma.RazorpayPaymentFindUniqueArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$RazorpayPaymentPayload> | null
+        }
+        findUniqueOrThrow: {
+          args: Prisma.RazorpayPaymentFindUniqueOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$RazorpayPaymentPayload>
+        }
+        findFirst: {
+          args: Prisma.RazorpayPaymentFindFirstArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$RazorpayPaymentPayload> | null
+        }
+        findFirstOrThrow: {
+          args: Prisma.RazorpayPaymentFindFirstOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$RazorpayPaymentPayload>
+        }
+        findMany: {
+          args: Prisma.RazorpayPaymentFindManyArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$RazorpayPaymentPayload>[]
+        }
+        create: {
+          args: Prisma.RazorpayPaymentCreateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$RazorpayPaymentPayload>
+        }
+        createMany: {
+          args: Prisma.RazorpayPaymentCreateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        createManyAndReturn: {
+          args: Prisma.RazorpayPaymentCreateManyAndReturnArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$RazorpayPaymentPayload>[]
+        }
+        delete: {
+          args: Prisma.RazorpayPaymentDeleteArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$RazorpayPaymentPayload>
+        }
+        update: {
+          args: Prisma.RazorpayPaymentUpdateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$RazorpayPaymentPayload>
+        }
+        deleteMany: {
+          args: Prisma.RazorpayPaymentDeleteManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateMany: {
+          args: Prisma.RazorpayPaymentUpdateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateManyAndReturn: {
+          args: Prisma.RazorpayPaymentUpdateManyAndReturnArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$RazorpayPaymentPayload>[]
+        }
+        upsert: {
+          args: Prisma.RazorpayPaymentUpsertArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$RazorpayPaymentPayload>
+        }
+        aggregate: {
+          args: Prisma.RazorpayPaymentAggregateArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.AggregateRazorpayPayment>
+        }
+        groupBy: {
+          args: Prisma.RazorpayPaymentGroupByArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.RazorpayPaymentGroupByOutputType>[]
+        }
+        count: {
+          args: Prisma.RazorpayPaymentCountArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.RazorpayPaymentCountAggregateOutputType> | number
         }
       }
     }
@@ -2613,6 +2763,43 @@ export const BookingScalarFieldEnum = {
 export type BookingScalarFieldEnum = (typeof BookingScalarFieldEnum)[keyof typeof BookingScalarFieldEnum]
 
 
+export const RazorpayOrderScalarFieldEnum = {
+  id: 'id',
+  user_id: 'user_id',
+  booking_id: 'booking_id',
+  razorpay_order_id: 'razorpay_order_id',
+  amount_paise: 'amount_paise',
+  currency: 'currency',
+  receipt: 'receipt',
+  status: 'status',
+  notes: 'notes',
+  created_at: 'created_at',
+  updated_at: 'updated_at'
+} as const
+
+export type RazorpayOrderScalarFieldEnum = (typeof RazorpayOrderScalarFieldEnum)[keyof typeof RazorpayOrderScalarFieldEnum]
+
+
+export const RazorpayPaymentScalarFieldEnum = {
+  id: 'id',
+  razorpay_payment_id: 'razorpay_payment_id',
+  razorpay_order_id: 'razorpay_order_id',
+  user_id: 'user_id',
+  booking_id: 'booking_id',
+  amount_paise: 'amount_paise',
+  currency: 'currency',
+  status: 'status',
+  method: 'method',
+  signature_verified: 'signature_verified',
+  verified_at: 'verified_at',
+  failure_reason: 'failure_reason',
+  created_at: 'created_at',
+  updated_at: 'updated_at'
+} as const
+
+export type RazorpayPaymentScalarFieldEnum = (typeof RazorpayPaymentScalarFieldEnum)[keyof typeof RazorpayPaymentScalarFieldEnum]
+
+
 export const CafeItemScalarFieldEnum = {
   id: 'id',
   name: 'name',
@@ -3098,6 +3285,8 @@ export type GlobalOmitConfig = {
   package?: Prisma.PackageOmit
   userPackage?: Prisma.UserPackageOmit
   booking?: Prisma.BookingOmit
+  razorpayOrder?: Prisma.RazorpayOrderOmit
+  razorpayPayment?: Prisma.RazorpayPaymentOmit
   cafeItem?: Prisma.CafeItemOmit
   cafeOrder?: Prisma.CafeOrderOmit
   mealSubscription?: Prisma.MealSubscriptionOmit

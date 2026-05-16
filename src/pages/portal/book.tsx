@@ -2,6 +2,16 @@ import { useEffect, useState } from "react";
 import { useRouter } from "next/router";
 import { PortalNavigation } from "@/components/PortalNavigation";
 import { Card, CardContent } from "@/components/ui/card";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
@@ -27,6 +37,7 @@ import {
   startOfMondayWeekLocal,
   endOfSundayWeekLocal,
 } from "@/lib/calendarWeek";
+import { payWithRazorpayOrder } from "@/lib/razorpayCheckout";
 
 // Discount mapping based on unlimited tier (simplified - using package name)
 const UNLIMITED_DISCOUNTS: Record<string, number> = {
@@ -77,6 +88,12 @@ export default function BookClass() {
   const { status } = useSession();
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
+  /** True while confirming booking / running Razorpay (does not replace entire page). */
+  const [isSubmittingBooking, setIsSubmittingBooking] = useState(false);
+  /** Razorpay dismissed or failed — offer retry without a runtime error overlay. */
+  const [paymentRecovery, setPaymentRecovery] = useState<
+    null | { variant: "cancelled" | "failed"; detail?: string }
+  >(null);
   const [selectedDate, setSelectedDate] = useState(new Date());
   const [selectedClass, setSelectedClass] = useState<Class | null>(null);
 
@@ -386,34 +403,126 @@ export default function BookClass() {
 
   async function handleConfirmBooking() {
     const { finalTotal } = calculateTotals();
-    
-    try {
-      setIsLoading(true);
 
-      // Get active package to determine user_package_id
-      const packagesRes = await fetch("/api/user-packages?active=true");
+    try {
+      setIsSubmittingBooking(true);
+
+      const packagesRes = await fetch("/api/user-packages?active=true", { credentials: "include" });
       const packages = packagesRes.ok ? await packagesRes.json() : [];
       const now = new Date();
-      const packageToUse = packages.find(
-        (p: { expiration_date: string; is_active: boolean }) =>
-          p.is_active && new Date(p.expiration_date) > now
-      ) || null;
+      const packageToUse =
+        packages.find(
+          (p: { expiration_date: string; is_active: boolean }) =>
+            p.is_active && new Date(p.expiration_date) > now,
+        ) || null;
 
       if (userPackage.type === "class_pass" && useCredits) {
         if (!packageToUse) throw new Error("No active package found. Please purchase a package first.");
         if ((packageToUse.credits_remaining ?? 0) < 1) throw new Error("You don't have any classes remaining.");
       }
 
+      let paidViaRazorpay = false;
+      let razorpayOrderIdForBooking: string | null = null;
+      const oweOnline = paymentMethod === "online" && finalTotal > 0;
+
+      if (oweOnline) {
+        const amountInr = Math.max(1, Math.round(finalTotal));
+        const createRes = await fetch("/api/payments/razorpay/create-order", {
+          method: "POST",
+          credentials: "include",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ amount_inr: amountInr }),
+        });
+        if (!createRes.ok) {
+          let msg = "Could not start Razorpay checkout.";
+          try {
+            const errBody = await createRes.json();
+            if (typeof errBody?.error === "string") msg = errBody.error;
+          } catch {
+            /* ignore */
+          }
+          throw new Error(msg);
+        }
+
+        const orderPayload = (await createRes.json()) as {
+          order_id?: string;
+          amount?: number | string;
+          currency?: string;
+          key_id?: string;
+        };
+
+        if (
+          !orderPayload.order_id ||
+          orderPayload.key_id == null ||
+          String(orderPayload.key_id).trim() === "" ||
+          orderPayload.amount == null
+        ) {
+          throw new Error("Invalid payment setup from server.");
+        }
+
+        const amountPaise = Number(orderPayload.amount);
+        if (!Number.isFinite(amountPaise)) {
+          throw new Error("Invalid order amount from Razorpay.");
+        }
+
+        const checkoutResult = await payWithRazorpayOrder({
+          keyId: String(orderPayload.key_id).trim(),
+          amountPaise,
+          currency: orderPayload.currency ?? "INR",
+          orderId: orderPayload.order_id,
+          name: "Copper Cloves",
+          description: selectedClass?.name ? `Class — ${selectedClass.name}` : "Studio booking",
+          prefill: { email: userEmail || undefined, name: userName || undefined },
+        });
+
+        if (checkoutResult.kind === "cancelled") {
+          setPaymentRecovery({ variant: "cancelled" });
+          return;
+        }
+        if (checkoutResult.kind === "failed") {
+          setPaymentRecovery({ variant: "failed", detail: checkoutResult.message });
+          return;
+        }
+
+        const successPayload = checkoutResult.payload;
+
+        const verifyRes = await fetch("/api/payments/razorpay/verify-payment", {
+          method: "POST",
+          credentials: "include",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            razorpay_order_id: successPayload.razorpay_order_id,
+            razorpay_payment_id: successPayload.razorpay_payment_id,
+            razorpay_signature: successPayload.razorpay_signature,
+          }),
+        });
+        if (!verifyRes.ok) {
+          let msg =
+            "Payment could not be verified. If money was debited, contact support with your bank reference.";
+          try {
+            const errBody = await verifyRes.json();
+            if (typeof errBody?.error === "string") msg = errBody.error;
+          } catch {
+            /* ignore */
+          }
+          throw new Error(msg);
+        }
+        paidViaRazorpay = true;
+        razorpayOrderIdForBooking = successPayload.razorpay_order_id;
+      }
+
       const classTimeISO = selectedClass?.startTimeIso ?? null;
 
       const bookingRes = await fetch("/api/bookings", {
         method: "POST",
+        credentials: "include",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           class_schedule_id: selectedClass?.id ?? null,
           class_name: selectedClass?.name,
           class_time: classTimeISO,
           user_package_id: userPackage.type === "class_pass" && useCredits ? packageToUse?.id : null,
+          razorpay_order_id: razorpayOrderIdForBooking,
         }),
       });
       if (!bookingRes.ok) {
@@ -429,16 +538,18 @@ export default function BookClass() {
       const bookingData = await bookingRes.json();
       const bookingId = bookingData.id;
 
-      const orderedFoodItems = foodItems.filter(item => item.quantity > 0);
+      const cafePaymentMethod = paidViaRazorpay ? "razorpay" : "pay_at_studio";
+      const orderedFoodItems = foodItems.filter((item) => item.quantity > 0);
       for (const item of orderedFoodItems) {
         const foodRes = await fetch("/api/cafe/orders", {
           method: "POST",
+          credentials: "include",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({
             cafe_item_id: item.id,
             booking_id: bookingId,
             quantity: item.quantity,
-            payment_method: "pay_at_studio",
+            payment_method: cafePaymentMethod,
           }),
         });
         if (!foodRes.ok) {
@@ -452,22 +563,23 @@ export default function BookClass() {
           throw new Error(msg);
         }
       }
-      
-      console.log("=== BOOKING FLOW COMPLETE ===");
-      
-      if (paymentMethod === "online" && finalTotal > 0) {
-        alert(`Processing online payment of ₹${finalTotal.toFixed(0)}...\n\nBooking confirmed!`);
+
+      if (oweOnline) {
+        alert(`Payment successful.\n\nBooking confirmed for ₹${finalTotal.toFixed(0)}.`);
+      } else if (finalTotal > 0) {
+        alert(`Booking confirmed!\n\nPay ₹${finalTotal.toFixed(0)} at the studio.`);
       } else {
-        alert(`Booking confirmed!\n\n${finalTotal > 0 ? `Pay ₹${finalTotal.toFixed(0)} at the studio.` : "No payment required."}`);
+        alert("Booking confirmed!\n\nNo payment required.");
       }
-      
+
       setShowBookingPanel(false);
       router.push("/portal/dashboard");
-    } catch (err: any) {
-      console.error("❌ BOOKING ERROR:", err);
-      alert(err.message || "Failed to complete booking. Please try again.");
+    } catch (err: unknown) {
+      console.error("BOOKING ERROR:", err);
+      const message = err instanceof Error ? err.message : "Failed to complete booking. Please try again.";
+      alert(message);
     } finally {
-      setIsLoading(false);
+      setIsSubmittingBooking(false);
     }
   }
 
@@ -1211,30 +1323,95 @@ export default function BookClass() {
                   )}
                 </div>
 
-                {/* Payment Method Selection - Online Only */}
-                <Card className="border-sage/20 bg-white/95 backdrop-blur-xl">
-                  <CardContent className="p-6">
-                    <h3 className="font-display text-xl text-charcoal mb-4">Payment Method</h3>
-                    <div className="space-y-3">
-                      <Card className="border-sage/20 bg-white cursor-pointer hover:border-sage/40 transition-all">
-                        <CardContent className="p-4">
-                          <div className="flex items-center gap-4">
-                            <div className="h-5 w-5 rounded-full border-2 border-sage bg-sage flex items-center justify-center">
-                              <div className="h-2.5 w-2.5 rounded-full bg-white" />
+                {/* Payment method when balance is due */}
+                {totals.finalTotal > 0 ? (
+                  <Card className="border-sage/20 bg-white/95 backdrop-blur-xl">
+                    <CardContent className="p-6">
+                      <h3 className="font-display text-xl text-charcoal mb-4">Payment method</h3>
+                      <div className="grid gap-3 sm:grid-cols-2">
+                        <Card
+                          role="button"
+                          tabIndex={0}
+                          onClick={() => setPaymentMethod("online")}
+                          onKeyDown={(e) => {
+                            if (e.key === "Enter" || e.key === " ") {
+                              e.preventDefault();
+                              setPaymentMethod("online");
+                            }
+                          }}
+                          className={`border bg-white cursor-pointer transition-all outline-none focus-visible:ring-2 focus-visible:ring-sage/40 ${
+                            paymentMethod === "online"
+                              ? "border-sage ring-2 ring-sage/25 shadow-sm"
+                              : "border-sage/20 hover:border-sage/40"
+                          }`}
+                        >
+                          <CardContent className="p-4">
+                            <div className="flex items-center gap-4">
+                              <div
+                                className={`h-5 w-5 rounded-full border-2 flex items-center justify-center shrink-0 ${
+                                  paymentMethod === "online"
+                                    ? "border-sage bg-sage"
+                                    : "border-charcoal/25 bg-white"
+                                }`}
+                              >
+                                {paymentMethod === "online" ? (
+                                  <div className="h-2.5 w-2.5 rounded-full bg-white" />
+                                ) : null}
+                              </div>
+                              <div className="flex-1 min-w-0">
+                                <p className="font-body font-semibold text-charcoal mb-1">Pay online</p>
+                                <p className="font-body text-sm text-charcoal/60">
+                                  Razorpay — card, UPI, netbanking
+                                </p>
+                              </div>
+                              <CreditCard className="h-5 w-5 text-sage shrink-0" />
                             </div>
-                            <div className="flex-1">
-                              <p className="font-body font-semibold text-charcoal mb-1">Pay Online</p>
-                              <p className="font-body text-sm text-charcoal/60">
-                                Secure payment via Razorpay
-                              </p>
+                          </CardContent>
+                        </Card>
+
+                        <Card
+                          role="button"
+                          tabIndex={0}
+                          onClick={() => setPaymentMethod("studio")}
+                          onKeyDown={(e) => {
+                            if (e.key === "Enter" || e.key === " ") {
+                              e.preventDefault();
+                              setPaymentMethod("studio");
+                            }
+                          }}
+                          className={`border bg-white cursor-pointer transition-all outline-none focus-visible:ring-2 focus-visible:ring-sage/40 ${
+                            paymentMethod === "studio"
+                              ? "border-sage ring-2 ring-sage/25 shadow-sm"
+                              : "border-sage/20 hover:border-sage/40"
+                          }`}
+                        >
+                          <CardContent className="p-4">
+                            <div className="flex items-center gap-4">
+                              <div
+                                className={`h-5 w-5 rounded-full border-2 flex items-center justify-center shrink-0 ${
+                                  paymentMethod === "studio"
+                                    ? "border-sage bg-sage"
+                                    : "border-charcoal/25 bg-white"
+                                }`}
+                              >
+                                {paymentMethod === "studio" ? (
+                                  <div className="h-2.5 w-2.5 rounded-full bg-white" />
+                                ) : null}
+                              </div>
+                              <div className="flex-1 min-w-0">
+                                <p className="font-body font-semibold text-charcoal mb-1">Pay at studio</p>
+                                <p className="font-body text-sm text-charcoal/60">
+                                  Reserve now and pay at the desk
+                                </p>
+                              </div>
+                              <Store className="h-5 w-5 text-sage shrink-0" />
                             </div>
-                            <CreditCard className="h-5 w-5 text-sage" />
-                          </div>
-                        </CardContent>
-                      </Card>
-                    </div>
-                  </CardContent>
-                </Card>
+                          </CardContent>
+                        </Card>
+                      </div>
+                    </CardContent>
+                  </Card>
+                ) : null}
 
                 {totals.finalTotal === 0 && (
                   <div className="p-5 rounded-xl bg-sage/5 border border-sage/20">
@@ -1260,6 +1437,7 @@ export default function BookClass() {
                 <Button
                   onClick={handleBackStep}
                   variant="outline"
+                  disabled={isSubmittingBooking}
                   className="border-sage/30 text-charcoal hover:bg-sage/5"
                 >
                   <ChevronLeft size={18} className="mr-2" />
@@ -1270,6 +1448,7 @@ export default function BookClass() {
               {bookingStep < 4 ? (
                 <Button
                   onClick={handleNextStep}
+                  disabled={isSubmittingBooking}
                   className="flex-1 bg-sage hover:bg-sage/90 text-white transition-all duration-600 hover:scale-105 active:scale-95 text-base py-6"
                 >
                   Continue
@@ -1278,12 +1457,14 @@ export default function BookClass() {
               ) : (
                 <Button
                   onClick={handleConfirmBooking}
-                  className="flex-1 bg-sage hover:bg-sage/90 text-white transition-all duration-600 hover:scale-105 active:scale-95 text-base py-6"
+                  disabled={isSubmittingBooking}
+                  className="flex-1 bg-sage hover:bg-sage/90 text-white transition-all duration-600 hover:scale-105 active:scale-95 text-base py-6 disabled:opacity-60 disabled:hover:scale-100"
                 >
-                  {totals.finalTotal > 0 
-                    ? `Confirm & ${paymentMethod === "online" ? "Pay" : "Book"} ₹${totals.finalTotal.toFixed(0)}`
-                    : "Confirm Booking"
-                  }
+                  {isSubmittingBooking
+                    ? "Working…"
+                    : totals.finalTotal > 0
+                      ? `Confirm & ${paymentMethod === "online" ? "Pay" : "Book"} ₹${totals.finalTotal.toFixed(0)}`
+                      : "Confirm Booking"}
                 </Button>
               )}
             </div>
@@ -1291,6 +1472,7 @@ export default function BookClass() {
             <Button 
               variant="ghost" 
               onClick={() => setShowBookingPanel(false)} 
+              disabled={isSubmittingBooking}
               className="w-full text-charcoal/50 hover:text-charcoal font-body text-sm transition-all duration-600 hover:bg-sage/5 mt-2"
             >
               Cancel
@@ -1306,6 +1488,48 @@ export default function BookClass() {
           onClick={() => setShowBookingPanel(false)}
         />
       )}
+
+      <AlertDialog
+        open={paymentRecovery !== null}
+        onOpenChange={(open) => {
+          if (!open) setPaymentRecovery(null);
+        }}
+      >
+        <AlertDialogContent className="border-sage/20 bg-white font-body">
+          <AlertDialogHeader>
+            <AlertDialogTitle className="font-display text-charcoal">
+              {paymentRecovery?.variant === "failed" ? "Payment didn’t go through" : "Payment cancelled"}
+            </AlertDialogTitle>
+            <AlertDialogDescription className="text-charcoal/70 space-y-2">
+              {paymentRecovery?.variant === "cancelled" ? (
+                <span>You closed checkout before completing payment. Your booking hasn&apos;t been placed yet.</span>
+              ) : (
+                <span>{paymentRecovery?.detail ?? "Something went wrong with this payment attempt."}</span>
+              )}
+              <span className="block pt-1">
+                You can try paying again — we&apos;ll open Razorpay checkout with a fresh order.
+              </span>
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel
+              className="border-sage/30 text-charcoal"
+              onClick={() => setPaymentRecovery(null)}
+            >
+              Close
+            </AlertDialogCancel>
+            <AlertDialogAction
+              className="bg-sage hover:bg-sage/90 text-white"
+              onClick={() => {
+                setPaymentRecovery(null);
+                void handleConfirmBooking();
+              }}
+            >
+              Retry payment
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
 
       <style jsx>{`
         .scrollbar-hide::-webkit-scrollbar {

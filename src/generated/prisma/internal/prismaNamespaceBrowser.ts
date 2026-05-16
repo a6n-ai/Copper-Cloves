@@ -63,6 +63,8 @@ export const ModelName = {
   Package: 'Package',
   UserPackage: 'UserPackage',
   Booking: 'Booking',
+  RazorpayOrder: 'RazorpayOrder',
+  RazorpayPayment: 'RazorpayPayment',
   CafeItem: 'CafeItem',
   CafeOrder: 'CafeOrder',
   MealSubscription: 'MealSubscription',
@@ -314,6 +316,43 @@ export const BookingScalarFieldEnum = {
 } as const
 
 export type BookingScalarFieldEnum = (typeof BookingScalarFieldEnum)[keyof typeof BookingScalarFieldEnum]
+
+
+export const RazorpayOrderScalarFieldEnum = {
+  id: 'id',
+  user_id: 'user_id',
+  booking_id: 'booking_id',
+  razorpay_order_id: 'razorpay_order_id',
+  amount_paise: 'amount_paise',
+  currency: 'currency',
+  receipt: 'receipt',
+  status: 'status',
+  notes: 'notes',
+  created_at: 'created_at',
+  updated_at: 'updated_at'
+} as const
+
+export type RazorpayOrderScalarFieldEnum = (typeof RazorpayOrderScalarFieldEnum)[keyof typeof RazorpayOrderScalarFieldEnum]
+
+
+export const RazorpayPaymentScalarFieldEnum = {
+  id: 'id',
+  razorpay_payment_id: 'razorpay_payment_id',
+  razorpay_order_id: 'razorpay_order_id',
+  user_id: 'user_id',
+  booking_id: 'booking_id',
+  amount_paise: 'amount_paise',
+  currency: 'currency',
+  status: 'status',
+  method: 'method',
+  signature_verified: 'signature_verified',
+  verified_at: 'verified_at',
+  failure_reason: 'failure_reason',
+  created_at: 'created_at',
+  updated_at: 'updated_at'
+} as const
+
+export type RazorpayPaymentScalarFieldEnum = (typeof RazorpayPaymentScalarFieldEnum)[keyof typeof RazorpayPaymentScalarFieldEnum]
 
 
 export const CafeItemScalarFieldEnum = {

@@ -78,6 +78,16 @@ export type UserPackage = Prisma.UserPackageModel
  */
 export type Booking = Prisma.BookingModel
 /**
+ * Model RazorpayOrder
+ * Razorpay Orders API (`order_*`). Amounts in paise (smallest currency unit) per Razorpay docs / MCP.
+ */
+export type RazorpayOrder = Prisma.RazorpayOrderModel
+/**
+ * Model RazorpayPayment
+ * Razorpay Payment (`pay_*`). Persist after Checkout signature verification; reconcile via webhooks.
+ */
+export type RazorpayPayment = Prisma.RazorpayPaymentModel
+/**
  * Model CafeItem
  * 
  */

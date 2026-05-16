@@ -1,6 +1,11 @@
 import type { NextApiRequest, NextApiResponse } from "next";
 import crypto from "node:crypto";
 import { getStudioServerSession } from "@/lib/getStudioServerSession";
+import {
+  ensureRazorpayOrderRowForUser,
+  persistVerifiedRazorpayPayment,
+} from "@/lib/razorpayPersistence";
+import { getRazorpay, razorpayConfigured } from "@/lib/razorpayServer";
 
 /**
  * POST { razorpay_order_id, razorpay_payment_id, razorpay_signature }
@@ -12,9 +17,14 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   const session = await getStudioServerSession(req, res);
   if (!session?.user) return res.status(401).json({ error: "Unauthorized" });
 
+  const userId = (session.user as { id: string }).id;
+
   const secret = process.env.RAZORPAY_KEY_SECRET?.trim();
   if (!secret) {
     return res.status(503).json({ error: "RAZORPAY_KEY_SECRET is not configured." });
+  }
+  if (!razorpayConfigured()) {
+    return res.status(503).json({ error: "Razorpay is not fully configured." });
   }
 
   const body = req.body as {
@@ -49,6 +59,45 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   }
   if (!ok) {
     return res.status(400).json({ error: "Invalid signature." });
+  }
+
+  try {
+    const razorpay = getRazorpay();
+    await ensureRazorpayOrderRowForUser({ userId, razorpayOrderId: orderId, razorpay });
+
+    const payment = (await razorpay.payments.fetch(paymentId)) as {
+      order_id?: string | null;
+      status?: string | null;
+      amount?: number | string | null;
+      currency?: string | null;
+      method?: string | null;
+    };
+
+    const paymentOrderId = payment.order_id != null ? String(payment.order_id).trim() : "";
+    if (!paymentOrderId || paymentOrderId !== orderId) {
+      return res.status(400).json({ error: "Payment does not belong to this order." });
+    }
+
+    const status = payment.status != null ? String(payment.status).toLowerCase() : "";
+    if (!["captured", "authorized"].includes(status)) {
+      return res.status(400).json({
+        error: `Payment is not complete (status: ${payment.status ?? "unknown"}).`,
+      });
+    }
+
+    await persistVerifiedRazorpayPayment({
+      userId,
+      razorpayOrderId: orderId,
+      razorpayPaymentId: paymentId,
+      payment,
+    });
+  } catch (e) {
+    const msg = e instanceof Error ? e.message : String(e);
+    if (msg === "ORDER_USER_MISMATCH") {
+      return res.status(403).json({ error: "Order does not belong to this account." });
+    }
+    console.error("[razorpay/verify-payment]", e);
+    return res.status(502).json({ error: "Could not confirm payment with Razorpay." });
   }
 
   return res.json({ ok: true, razorpay_order_id: orderId, razorpay_payment_id: paymentId });

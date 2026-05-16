@@ -903,7 +903,7 @@
 
 **Features:**
 - ✅ PostgreSQL via Prisma Client
-- ✅ Type-safe queries and migrations (`prisma migrate` / `db push`)
+- ✅ Type-safe queries; schema sync with `prisma db push` (`npm run db:push`)
 - ✅ Admin-only routes guarded with session `role === "admin"` (see `src/lib/requireAdmin.ts`)
 - ✅ Local file uploads for admin assets: `public/uploads` via `POST /api/upload`
 

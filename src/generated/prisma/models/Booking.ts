@@ -250,6 +250,8 @@ export type BookingWhereInput = {
   class_schedule?: Prisma.XOR<Prisma.ClassScheduleNullableScalarRelationFilter, Prisma.ClassScheduleWhereInput> | null
   user_package?: Prisma.XOR<Prisma.UserPackageNullableScalarRelationFilter, Prisma.UserPackageWhereInput> | null
   cafe_orders?: Prisma.CafeOrderListRelationFilter
+  razorpay_order?: Prisma.XOR<Prisma.RazorpayOrderNullableScalarRelationFilter, Prisma.RazorpayOrderWhereInput> | null
+  razorpay_payments?: Prisma.RazorpayPaymentListRelationFilter
 }
 
 export type BookingOrderByWithRelationInput = {
@@ -270,6 +272,8 @@ export type BookingOrderByWithRelationInput = {
   class_schedule?: Prisma.ClassScheduleOrderByWithRelationInput
   user_package?: Prisma.UserPackageOrderByWithRelationInput
   cafe_orders?: Prisma.CafeOrderOrderByRelationAggregateInput
+  razorpay_order?: Prisma.RazorpayOrderOrderByWithRelationInput
+  razorpay_payments?: Prisma.RazorpayPaymentOrderByRelationAggregateInput
 }
 
 export type BookingWhereUniqueInput = Prisma.AtLeast<{
@@ -293,6 +297,8 @@ export type BookingWhereUniqueInput = Prisma.AtLeast<{
   class_schedule?: Prisma.XOR<Prisma.ClassScheduleNullableScalarRelationFilter, Prisma.ClassScheduleWhereInput> | null
   user_package?: Prisma.XOR<Prisma.UserPackageNullableScalarRelationFilter, Prisma.UserPackageWhereInput> | null
   cafe_orders?: Prisma.CafeOrderListRelationFilter
+  razorpay_order?: Prisma.XOR<Prisma.RazorpayOrderNullableScalarRelationFilter, Prisma.RazorpayOrderWhereInput> | null
+  razorpay_payments?: Prisma.RazorpayPaymentListRelationFilter
 }, "id">
 
 export type BookingOrderByWithAggregationInput = {
@@ -348,6 +354,8 @@ export type BookingCreateInput = {
   class_schedule?: Prisma.ClassScheduleCreateNestedOneWithoutBookingsInput
   user_package?: Prisma.UserPackageCreateNestedOneWithoutBookingsInput
   cafe_orders?: Prisma.CafeOrderCreateNestedManyWithoutBookingInput
+  razorpay_order?: Prisma.RazorpayOrderCreateNestedOneWithoutBookingInput
+  razorpay_payments?: Prisma.RazorpayPaymentCreateNestedManyWithoutBookingInput
 }
 
 export type BookingUncheckedCreateInput = {
@@ -365,6 +373,8 @@ export type BookingUncheckedCreateInput = {
   check_in_outcome?: string | null
   created_at?: Date | string
   cafe_orders?: Prisma.CafeOrderUncheckedCreateNestedManyWithoutBookingInput
+  razorpay_order?: Prisma.RazorpayOrderUncheckedCreateNestedOneWithoutBookingInput
+  razorpay_payments?: Prisma.RazorpayPaymentUncheckedCreateNestedManyWithoutBookingInput
 }
 
 export type BookingUpdateInput = {
@@ -382,6 +392,8 @@ export type BookingUpdateInput = {
   class_schedule?: Prisma.ClassScheduleUpdateOneWithoutBookingsNestedInput
   user_package?: Prisma.UserPackageUpdateOneWithoutBookingsNestedInput
   cafe_orders?: Prisma.CafeOrderUpdateManyWithoutBookingNestedInput
+  razorpay_order?: Prisma.RazorpayOrderUpdateOneWithoutBookingNestedInput
+  razorpay_payments?: Prisma.RazorpayPaymentUpdateManyWithoutBookingNestedInput
 }
 
 export type BookingUncheckedUpdateInput = {
@@ -399,6 +411,8 @@ export type BookingUncheckedUpdateInput = {
   check_in_outcome?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   created_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   cafe_orders?: Prisma.CafeOrderUncheckedUpdateManyWithoutBookingNestedInput
+  razorpay_order?: Prisma.RazorpayOrderUncheckedUpdateOneWithoutBookingNestedInput
+  razorpay_payments?: Prisma.RazorpayPaymentUncheckedUpdateManyWithoutBookingNestedInput
 }
 
 export type BookingCreateManyInput = {
@@ -635,6 +649,38 @@ export type BookingUncheckedUpdateManyWithoutUser_packageNestedInput = {
   deleteMany?: Prisma.BookingScalarWhereInput | Prisma.BookingScalarWhereInput[]
 }
 
+export type BookingCreateNestedOneWithoutRazorpay_orderInput = {
+  create?: Prisma.XOR<Prisma.BookingCreateWithoutRazorpay_orderInput, Prisma.BookingUncheckedCreateWithoutRazorpay_orderInput>
+  connectOrCreate?: Prisma.BookingCreateOrConnectWithoutRazorpay_orderInput
+  connect?: Prisma.BookingWhereUniqueInput
+}
+
+export type BookingUpdateOneWithoutRazorpay_orderNestedInput = {
+  create?: Prisma.XOR<Prisma.BookingCreateWithoutRazorpay_orderInput, Prisma.BookingUncheckedCreateWithoutRazorpay_orderInput>
+  connectOrCreate?: Prisma.BookingCreateOrConnectWithoutRazorpay_orderInput
+  upsert?: Prisma.BookingUpsertWithoutRazorpay_orderInput
+  disconnect?: Prisma.BookingWhereInput | boolean
+  delete?: Prisma.BookingWhereInput | boolean
+  connect?: Prisma.BookingWhereUniqueInput
+  update?: Prisma.XOR<Prisma.XOR<Prisma.BookingUpdateToOneWithWhereWithoutRazorpay_orderInput, Prisma.BookingUpdateWithoutRazorpay_orderInput>, Prisma.BookingUncheckedUpdateWithoutRazorpay_orderInput>
+}
+
+export type BookingCreateNestedOneWithoutRazorpay_paymentsInput = {
+  create?: Prisma.XOR<Prisma.BookingCreateWithoutRazorpay_paymentsInput, Prisma.BookingUncheckedCreateWithoutRazorpay_paymentsInput>
+  connectOrCreate?: Prisma.BookingCreateOrConnectWithoutRazorpay_paymentsInput
+  connect?: Prisma.BookingWhereUniqueInput
+}
+
+export type BookingUpdateOneWithoutRazorpay_paymentsNestedInput = {
+  create?: Prisma.XOR<Prisma.BookingCreateWithoutRazorpay_paymentsInput, Prisma.BookingUncheckedCreateWithoutRazorpay_paymentsInput>
+  connectOrCreate?: Prisma.BookingCreateOrConnectWithoutRazorpay_paymentsInput
+  upsert?: Prisma.BookingUpsertWithoutRazorpay_paymentsInput
+  disconnect?: Prisma.BookingWhereInput | boolean
+  delete?: Prisma.BookingWhereInput | boolean
+  connect?: Prisma.BookingWhereUniqueInput
+  update?: Prisma.XOR<Prisma.XOR<Prisma.BookingUpdateToOneWithWhereWithoutRazorpay_paymentsInput, Prisma.BookingUpdateWithoutRazorpay_paymentsInput>, Prisma.BookingUncheckedUpdateWithoutRazorpay_paymentsInput>
+}
+
 export type BookingCreateNestedOneWithoutCafe_ordersInput = {
   create?: Prisma.XOR<Prisma.BookingCreateWithoutCafe_ordersInput, Prisma.BookingUncheckedCreateWithoutCafe_ordersInput>
   connectOrCreate?: Prisma.BookingCreateOrConnectWithoutCafe_ordersInput
@@ -665,6 +711,8 @@ export type BookingCreateWithoutProfileInput = {
   class_schedule?: Prisma.ClassScheduleCreateNestedOneWithoutBookingsInput
   user_package?: Prisma.UserPackageCreateNestedOneWithoutBookingsInput
   cafe_orders?: Prisma.CafeOrderCreateNestedManyWithoutBookingInput
+  razorpay_order?: Prisma.RazorpayOrderCreateNestedOneWithoutBookingInput
+  razorpay_payments?: Prisma.RazorpayPaymentCreateNestedManyWithoutBookingInput
 }
 
 export type BookingUncheckedCreateWithoutProfileInput = {
@@ -681,6 +729,8 @@ export type BookingUncheckedCreateWithoutProfileInput = {
   check_in_outcome?: string | null
   created_at?: Date | string
   cafe_orders?: Prisma.CafeOrderUncheckedCreateNestedManyWithoutBookingInput
+  razorpay_order?: Prisma.RazorpayOrderUncheckedCreateNestedOneWithoutBookingInput
+  razorpay_payments?: Prisma.RazorpayPaymentUncheckedCreateNestedManyWithoutBookingInput
 }
 
 export type BookingCreateOrConnectWithoutProfileInput = {
@@ -742,6 +792,8 @@ export type BookingCreateWithoutClass_scheduleInput = {
   profile: Prisma.ProfileCreateNestedOneWithoutBookingsInput
   user_package?: Prisma.UserPackageCreateNestedOneWithoutBookingsInput
   cafe_orders?: Prisma.CafeOrderCreateNestedManyWithoutBookingInput
+  razorpay_order?: Prisma.RazorpayOrderCreateNestedOneWithoutBookingInput
+  razorpay_payments?: Prisma.RazorpayPaymentCreateNestedManyWithoutBookingInput
 }
 
 export type BookingUncheckedCreateWithoutClass_scheduleInput = {
@@ -758,6 +810,8 @@ export type BookingUncheckedCreateWithoutClass_scheduleInput = {
   check_in_outcome?: string | null
   created_at?: Date | string
   cafe_orders?: Prisma.CafeOrderUncheckedCreateNestedManyWithoutBookingInput
+  razorpay_order?: Prisma.RazorpayOrderUncheckedCreateNestedOneWithoutBookingInput
+  razorpay_payments?: Prisma.RazorpayPaymentUncheckedCreateNestedManyWithoutBookingInput
 }
 
 export type BookingCreateOrConnectWithoutClass_scheduleInput = {
@@ -800,6 +854,8 @@ export type BookingCreateWithoutUser_packageInput = {
   profile: Prisma.ProfileCreateNestedOneWithoutBookingsInput
   class_schedule?: Prisma.ClassScheduleCreateNestedOneWithoutBookingsInput
   cafe_orders?: Prisma.CafeOrderCreateNestedManyWithoutBookingInput
+  razorpay_order?: Prisma.RazorpayOrderCreateNestedOneWithoutBookingInput
+  razorpay_payments?: Prisma.RazorpayPaymentCreateNestedManyWithoutBookingInput
 }
 
 export type BookingUncheckedCreateWithoutUser_packageInput = {
@@ -816,6 +872,8 @@ export type BookingUncheckedCreateWithoutUser_packageInput = {
   check_in_outcome?: string | null
   created_at?: Date | string
   cafe_orders?: Prisma.CafeOrderUncheckedCreateNestedManyWithoutBookingInput
+  razorpay_order?: Prisma.RazorpayOrderUncheckedCreateNestedOneWithoutBookingInput
+  razorpay_payments?: Prisma.RazorpayPaymentUncheckedCreateNestedManyWithoutBookingInput
 }
 
 export type BookingCreateOrConnectWithoutUser_packageInput = {
@@ -844,6 +902,182 @@ export type BookingUpdateManyWithWhereWithoutUser_packageInput = {
   data: Prisma.XOR<Prisma.BookingUpdateManyMutationInput, Prisma.BookingUncheckedUpdateManyWithoutUser_packageInput>
 }
 
+export type BookingCreateWithoutRazorpay_orderInput = {
+  id?: string
+  status?: string
+  booking_date?: Date | string
+  cancellation_date?: Date | string | null
+  class_name?: string | null
+  class_time?: string | null
+  checked_in?: boolean
+  check_in_time?: Date | string | null
+  check_in_outcome?: string | null
+  created_at?: Date | string
+  profile: Prisma.ProfileCreateNestedOneWithoutBookingsInput
+  class_schedule?: Prisma.ClassScheduleCreateNestedOneWithoutBookingsInput
+  user_package?: Prisma.UserPackageCreateNestedOneWithoutBookingsInput
+  cafe_orders?: Prisma.CafeOrderCreateNestedManyWithoutBookingInput
+  razorpay_payments?: Prisma.RazorpayPaymentCreateNestedManyWithoutBookingInput
+}
+
+export type BookingUncheckedCreateWithoutRazorpay_orderInput = {
+  id?: string
+  user_id: string
+  class_schedule_id?: string | null
+  user_package_id?: string | null
+  status?: string
+  booking_date?: Date | string
+  cancellation_date?: Date | string | null
+  class_name?: string | null
+  class_time?: string | null
+  checked_in?: boolean
+  check_in_time?: Date | string | null
+  check_in_outcome?: string | null
+  created_at?: Date | string
+  cafe_orders?: Prisma.CafeOrderUncheckedCreateNestedManyWithoutBookingInput
+  razorpay_payments?: Prisma.RazorpayPaymentUncheckedCreateNestedManyWithoutBookingInput
+}
+
+export type BookingCreateOrConnectWithoutRazorpay_orderInput = {
+  where: Prisma.BookingWhereUniqueInput
+  create: Prisma.XOR<Prisma.BookingCreateWithoutRazorpay_orderInput, Prisma.BookingUncheckedCreateWithoutRazorpay_orderInput>
+}
+
+export type BookingUpsertWithoutRazorpay_orderInput = {
+  update: Prisma.XOR<Prisma.BookingUpdateWithoutRazorpay_orderInput, Prisma.BookingUncheckedUpdateWithoutRazorpay_orderInput>
+  create: Prisma.XOR<Prisma.BookingCreateWithoutRazorpay_orderInput, Prisma.BookingUncheckedCreateWithoutRazorpay_orderInput>
+  where?: Prisma.BookingWhereInput
+}
+
+export type BookingUpdateToOneWithWhereWithoutRazorpay_orderInput = {
+  where?: Prisma.BookingWhereInput
+  data: Prisma.XOR<Prisma.BookingUpdateWithoutRazorpay_orderInput, Prisma.BookingUncheckedUpdateWithoutRazorpay_orderInput>
+}
+
+export type BookingUpdateWithoutRazorpay_orderInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  status?: Prisma.StringFieldUpdateOperationsInput | string
+  booking_date?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  cancellation_date?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  class_name?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  class_time?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  checked_in?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  check_in_time?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  check_in_outcome?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  created_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  profile?: Prisma.ProfileUpdateOneRequiredWithoutBookingsNestedInput
+  class_schedule?: Prisma.ClassScheduleUpdateOneWithoutBookingsNestedInput
+  user_package?: Prisma.UserPackageUpdateOneWithoutBookingsNestedInput
+  cafe_orders?: Prisma.CafeOrderUpdateManyWithoutBookingNestedInput
+  razorpay_payments?: Prisma.RazorpayPaymentUpdateManyWithoutBookingNestedInput
+}
+
+export type BookingUncheckedUpdateWithoutRazorpay_orderInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  user_id?: Prisma.StringFieldUpdateOperationsInput | string
+  class_schedule_id?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  user_package_id?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  status?: Prisma.StringFieldUpdateOperationsInput | string
+  booking_date?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  cancellation_date?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  class_name?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  class_time?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  checked_in?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  check_in_time?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  check_in_outcome?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  created_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  cafe_orders?: Prisma.CafeOrderUncheckedUpdateManyWithoutBookingNestedInput
+  razorpay_payments?: Prisma.RazorpayPaymentUncheckedUpdateManyWithoutBookingNestedInput
+}
+
+export type BookingCreateWithoutRazorpay_paymentsInput = {
+  id?: string
+  status?: string
+  booking_date?: Date | string
+  cancellation_date?: Date | string | null
+  class_name?: string | null
+  class_time?: string | null
+  checked_in?: boolean
+  check_in_time?: Date | string | null
+  check_in_outcome?: string | null
+  created_at?: Date | string
+  profile: Prisma.ProfileCreateNestedOneWithoutBookingsInput
+  class_schedule?: Prisma.ClassScheduleCreateNestedOneWithoutBookingsInput
+  user_package?: Prisma.UserPackageCreateNestedOneWithoutBookingsInput
+  cafe_orders?: Prisma.CafeOrderCreateNestedManyWithoutBookingInput
+  razorpay_order?: Prisma.RazorpayOrderCreateNestedOneWithoutBookingInput
+}
+
+export type BookingUncheckedCreateWithoutRazorpay_paymentsInput = {
+  id?: string
+  user_id: string
+  class_schedule_id?: string | null
+  user_package_id?: string | null
+  status?: string
+  booking_date?: Date | string
+  cancellation_date?: Date | string | null
+  class_name?: string | null
+  class_time?: string | null
+  checked_in?: boolean
+  check_in_time?: Date | string | null
+  check_in_outcome?: string | null
+  created_at?: Date | string
+  cafe_orders?: Prisma.CafeOrderUncheckedCreateNestedManyWithoutBookingInput
+  razorpay_order?: Prisma.RazorpayOrderUncheckedCreateNestedOneWithoutBookingInput
+}
+
+export type BookingCreateOrConnectWithoutRazorpay_paymentsInput = {
+  where: Prisma.BookingWhereUniqueInput
+  create: Prisma.XOR<Prisma.BookingCreateWithoutRazorpay_paymentsInput, Prisma.BookingUncheckedCreateWithoutRazorpay_paymentsInput>
+}
+
+export type BookingUpsertWithoutRazorpay_paymentsInput = {
+  update: Prisma.XOR<Prisma.BookingUpdateWithoutRazorpay_paymentsInput, Prisma.BookingUncheckedUpdateWithoutRazorpay_paymentsInput>
+  create: Prisma.XOR<Prisma.BookingCreateWithoutRazorpay_paymentsInput, Prisma.BookingUncheckedCreateWithoutRazorpay_paymentsInput>
+  where?: Prisma.BookingWhereInput
+}
+
+export type BookingUpdateToOneWithWhereWithoutRazorpay_paymentsInput = {
+  where?: Prisma.BookingWhereInput
+  data: Prisma.XOR<Prisma.BookingUpdateWithoutRazorpay_paymentsInput, Prisma.BookingUncheckedUpdateWithoutRazorpay_paymentsInput>
+}
+
+export type BookingUpdateWithoutRazorpay_paymentsInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  status?: Prisma.StringFieldUpdateOperationsInput | string
+  booking_date?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  cancellation_date?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  class_name?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  class_time?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  checked_in?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  check_in_time?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  check_in_outcome?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  created_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  profile?: Prisma.ProfileUpdateOneRequiredWithoutBookingsNestedInput
+  class_schedule?: Prisma.ClassScheduleUpdateOneWithoutBookingsNestedInput
+  user_package?: Prisma.UserPackageUpdateOneWithoutBookingsNestedInput
+  cafe_orders?: Prisma.CafeOrderUpdateManyWithoutBookingNestedInput
+  razorpay_order?: Prisma.RazorpayOrderUpdateOneWithoutBookingNestedInput
+}
+
+export type BookingUncheckedUpdateWithoutRazorpay_paymentsInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  user_id?: Prisma.StringFieldUpdateOperationsInput | string
+  class_schedule_id?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  user_package_id?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  status?: Prisma.StringFieldUpdateOperationsInput | string
+  booking_date?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  cancellation_date?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  class_name?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  class_time?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  checked_in?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  check_in_time?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  check_in_outcome?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  created_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  cafe_orders?: Prisma.CafeOrderUncheckedUpdateManyWithoutBookingNestedInput
+  razorpay_order?: Prisma.RazorpayOrderUncheckedUpdateOneWithoutBookingNestedInput
+}
+
 export type BookingCreateWithoutCafe_ordersInput = {
   id?: string
   status?: string
@@ -858,6 +1092,8 @@ export type BookingCreateWithoutCafe_ordersInput = {
   profile: Prisma.ProfileCreateNestedOneWithoutBookingsInput
   class_schedule?: Prisma.ClassScheduleCreateNestedOneWithoutBookingsInput
   user_package?: Prisma.UserPackageCreateNestedOneWithoutBookingsInput
+  razorpay_order?: Prisma.RazorpayOrderCreateNestedOneWithoutBookingInput
+  razorpay_payments?: Prisma.RazorpayPaymentCreateNestedManyWithoutBookingInput
 }
 
 export type BookingUncheckedCreateWithoutCafe_ordersInput = {
@@ -874,6 +1110,8 @@ export type BookingUncheckedCreateWithoutCafe_ordersInput = {
   check_in_time?: Date | string | null
   check_in_outcome?: string | null
   created_at?: Date | string
+  razorpay_order?: Prisma.RazorpayOrderUncheckedCreateNestedOneWithoutBookingInput
+  razorpay_payments?: Prisma.RazorpayPaymentUncheckedCreateNestedManyWithoutBookingInput
 }
 
 export type BookingCreateOrConnectWithoutCafe_ordersInput = {
@@ -906,6 +1144,8 @@ export type BookingUpdateWithoutCafe_ordersInput = {
   profile?: Prisma.ProfileUpdateOneRequiredWithoutBookingsNestedInput
   class_schedule?: Prisma.ClassScheduleUpdateOneWithoutBookingsNestedInput
   user_package?: Prisma.UserPackageUpdateOneWithoutBookingsNestedInput
+  razorpay_order?: Prisma.RazorpayOrderUpdateOneWithoutBookingNestedInput
+  razorpay_payments?: Prisma.RazorpayPaymentUpdateManyWithoutBookingNestedInput
 }
 
 export type BookingUncheckedUpdateWithoutCafe_ordersInput = {
@@ -922,6 +1162,8 @@ export type BookingUncheckedUpdateWithoutCafe_ordersInput = {
   check_in_time?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   check_in_outcome?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   created_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  razorpay_order?: Prisma.RazorpayOrderUncheckedUpdateOneWithoutBookingNestedInput
+  razorpay_payments?: Prisma.RazorpayPaymentUncheckedUpdateManyWithoutBookingNestedInput
 }
 
 export type BookingCreateManyProfileInput = {
@@ -953,6 +1195,8 @@ export type BookingUpdateWithoutProfileInput = {
   class_schedule?: Prisma.ClassScheduleUpdateOneWithoutBookingsNestedInput
   user_package?: Prisma.UserPackageUpdateOneWithoutBookingsNestedInput
   cafe_orders?: Prisma.CafeOrderUpdateManyWithoutBookingNestedInput
+  razorpay_order?: Prisma.RazorpayOrderUpdateOneWithoutBookingNestedInput
+  razorpay_payments?: Prisma.RazorpayPaymentUpdateManyWithoutBookingNestedInput
 }
 
 export type BookingUncheckedUpdateWithoutProfileInput = {
@@ -969,6 +1213,8 @@ export type BookingUncheckedUpdateWithoutProfileInput = {
   check_in_outcome?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   created_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   cafe_orders?: Prisma.CafeOrderUncheckedUpdateManyWithoutBookingNestedInput
+  razorpay_order?: Prisma.RazorpayOrderUncheckedUpdateOneWithoutBookingNestedInput
+  razorpay_payments?: Prisma.RazorpayPaymentUncheckedUpdateManyWithoutBookingNestedInput
 }
 
 export type BookingUncheckedUpdateManyWithoutProfileInput = {
@@ -1015,6 +1261,8 @@ export type BookingUpdateWithoutClass_scheduleInput = {
   profile?: Prisma.ProfileUpdateOneRequiredWithoutBookingsNestedInput
   user_package?: Prisma.UserPackageUpdateOneWithoutBookingsNestedInput
   cafe_orders?: Prisma.CafeOrderUpdateManyWithoutBookingNestedInput
+  razorpay_order?: Prisma.RazorpayOrderUpdateOneWithoutBookingNestedInput
+  razorpay_payments?: Prisma.RazorpayPaymentUpdateManyWithoutBookingNestedInput
 }
 
 export type BookingUncheckedUpdateWithoutClass_scheduleInput = {
@@ -1031,6 +1279,8 @@ export type BookingUncheckedUpdateWithoutClass_scheduleInput = {
   check_in_outcome?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   created_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   cafe_orders?: Prisma.CafeOrderUncheckedUpdateManyWithoutBookingNestedInput
+  razorpay_order?: Prisma.RazorpayOrderUncheckedUpdateOneWithoutBookingNestedInput
+  razorpay_payments?: Prisma.RazorpayPaymentUncheckedUpdateManyWithoutBookingNestedInput
 }
 
 export type BookingUncheckedUpdateManyWithoutClass_scheduleInput = {
@@ -1077,6 +1327,8 @@ export type BookingUpdateWithoutUser_packageInput = {
   profile?: Prisma.ProfileUpdateOneRequiredWithoutBookingsNestedInput
   class_schedule?: Prisma.ClassScheduleUpdateOneWithoutBookingsNestedInput
   cafe_orders?: Prisma.CafeOrderUpdateManyWithoutBookingNestedInput
+  razorpay_order?: Prisma.RazorpayOrderUpdateOneWithoutBookingNestedInput
+  razorpay_payments?: Prisma.RazorpayPaymentUpdateManyWithoutBookingNestedInput
 }
 
 export type BookingUncheckedUpdateWithoutUser_packageInput = {
@@ -1093,6 +1345,8 @@ export type BookingUncheckedUpdateWithoutUser_packageInput = {
   check_in_outcome?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   created_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   cafe_orders?: Prisma.CafeOrderUncheckedUpdateManyWithoutBookingNestedInput
+  razorpay_order?: Prisma.RazorpayOrderUncheckedUpdateOneWithoutBookingNestedInput
+  razorpay_payments?: Prisma.RazorpayPaymentUncheckedUpdateManyWithoutBookingNestedInput
 }
 
 export type BookingUncheckedUpdateManyWithoutUser_packageInput = {
@@ -1117,10 +1371,12 @@ export type BookingUncheckedUpdateManyWithoutUser_packageInput = {
 
 export type BookingCountOutputType = {
   cafe_orders: number
+  razorpay_payments: number
 }
 
 export type BookingCountOutputTypeSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   cafe_orders?: boolean | BookingCountOutputTypeCountCafe_ordersArgs
+  razorpay_payments?: boolean | BookingCountOutputTypeCountRazorpay_paymentsArgs
 }
 
 /**
@@ -1138,6 +1394,13 @@ export type BookingCountOutputTypeDefaultArgs<ExtArgs extends runtime.Types.Exte
  */
 export type BookingCountOutputTypeCountCafe_ordersArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   where?: Prisma.CafeOrderWhereInput
+}
+
+/**
+ * BookingCountOutputType without action
+ */
+export type BookingCountOutputTypeCountRazorpay_paymentsArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  where?: Prisma.RazorpayPaymentWhereInput
 }
 
 
@@ -1159,6 +1422,8 @@ export type BookingSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs 
   class_schedule?: boolean | Prisma.Booking$class_scheduleArgs<ExtArgs>
   user_package?: boolean | Prisma.Booking$user_packageArgs<ExtArgs>
   cafe_orders?: boolean | Prisma.Booking$cafe_ordersArgs<ExtArgs>
+  razorpay_order?: boolean | Prisma.Booking$razorpay_orderArgs<ExtArgs>
+  razorpay_payments?: boolean | Prisma.Booking$razorpay_paymentsArgs<ExtArgs>
   _count?: boolean | Prisma.BookingCountOutputTypeDefaultArgs<ExtArgs>
 }, ExtArgs["result"]["booking"]>
 
@@ -1222,6 +1487,8 @@ export type BookingInclude<ExtArgs extends runtime.Types.Extensions.InternalArgs
   class_schedule?: boolean | Prisma.Booking$class_scheduleArgs<ExtArgs>
   user_package?: boolean | Prisma.Booking$user_packageArgs<ExtArgs>
   cafe_orders?: boolean | Prisma.Booking$cafe_ordersArgs<ExtArgs>
+  razorpay_order?: boolean | Prisma.Booking$razorpay_orderArgs<ExtArgs>
+  razorpay_payments?: boolean | Prisma.Booking$razorpay_paymentsArgs<ExtArgs>
   _count?: boolean | Prisma.BookingCountOutputTypeDefaultArgs<ExtArgs>
 }
 export type BookingIncludeCreateManyAndReturn<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
@@ -1242,6 +1509,8 @@ export type $BookingPayload<ExtArgs extends runtime.Types.Extensions.InternalArg
     class_schedule: Prisma.$ClassSchedulePayload<ExtArgs> | null
     user_package: Prisma.$UserPackagePayload<ExtArgs> | null
     cafe_orders: Prisma.$CafeOrderPayload<ExtArgs>[]
+    razorpay_order: Prisma.$RazorpayOrderPayload<ExtArgs> | null
+    razorpay_payments: Prisma.$RazorpayPaymentPayload<ExtArgs>[]
   }
   scalars: runtime.Types.Extensions.GetPayloadResult<{
     id: string
@@ -1658,6 +1927,8 @@ export interface Prisma__BookingClient<T, Null = never, ExtArgs extends runtime.
   class_schedule<T extends Prisma.Booking$class_scheduleArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.Booking$class_scheduleArgs<ExtArgs>>): Prisma.Prisma__ClassScheduleClient<runtime.Types.Result.GetResult<Prisma.$ClassSchedulePayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | null, null, ExtArgs, GlobalOmitOptions>
   user_package<T extends Prisma.Booking$user_packageArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.Booking$user_packageArgs<ExtArgs>>): Prisma.Prisma__UserPackageClient<runtime.Types.Result.GetResult<Prisma.$UserPackagePayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | null, null, ExtArgs, GlobalOmitOptions>
   cafe_orders<T extends Prisma.Booking$cafe_ordersArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.Booking$cafe_ordersArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$CafeOrderPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
+  razorpay_order<T extends Prisma.Booking$razorpay_orderArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.Booking$razorpay_orderArgs<ExtArgs>>): Prisma.Prisma__RazorpayOrderClient<runtime.Types.Result.GetResult<Prisma.$RazorpayOrderPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | null, null, ExtArgs, GlobalOmitOptions>
+  razorpay_payments<T extends Prisma.Booking$razorpay_paymentsArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.Booking$razorpay_paymentsArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$RazorpayPaymentPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
   /**
    * Attaches callbacks for the resolution and/or rejection of the Promise.
    * @param onfulfilled The callback to execute when the Promise is resolved.
@@ -2160,6 +2431,49 @@ export type Booking$cafe_ordersArgs<ExtArgs extends runtime.Types.Extensions.Int
   take?: number
   skip?: number
   distinct?: Prisma.CafeOrderScalarFieldEnum | Prisma.CafeOrderScalarFieldEnum[]
+}
+
+/**
+ * Booking.razorpay_order
+ */
+export type Booking$razorpay_orderArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  /**
+   * Select specific fields to fetch from the RazorpayOrder
+   */
+  select?: Prisma.RazorpayOrderSelect<ExtArgs> | null
+  /**
+   * Omit specific fields from the RazorpayOrder
+   */
+  omit?: Prisma.RazorpayOrderOmit<ExtArgs> | null
+  /**
+   * Choose, which related nodes to fetch as well
+   */
+  include?: Prisma.RazorpayOrderInclude<ExtArgs> | null
+  where?: Prisma.RazorpayOrderWhereInput
+}
+
+/**
+ * Booking.razorpay_payments
+ */
+export type Booking$razorpay_paymentsArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  /**
+   * Select specific fields to fetch from the RazorpayPayment
+   */
+  select?: Prisma.RazorpayPaymentSelect<ExtArgs> | null
+  /**
+   * Omit specific fields from the RazorpayPayment
+   */
+  omit?: Prisma.RazorpayPaymentOmit<ExtArgs> | null
+  /**
+   * Choose, which related nodes to fetch as well
+   */
+  include?: Prisma.RazorpayPaymentInclude<ExtArgs> | null
+  where?: Prisma.RazorpayPaymentWhereInput
+  orderBy?: Prisma.RazorpayPaymentOrderByWithRelationInput | Prisma.RazorpayPaymentOrderByWithRelationInput[]
+  cursor?: Prisma.RazorpayPaymentWhereUniqueInput
+  take?: number
+  skip?: number
+  distinct?: Prisma.RazorpayPaymentScalarFieldEnum | Prisma.RazorpayPaymentScalarFieldEnum[]
 }
 
 /**

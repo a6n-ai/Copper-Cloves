@@ -8,6 +8,7 @@ import {
   checkInOutcomeFromTimes,
 } from "@/lib/bookingAttendance";
 import { reconcileNoShowsGlobally } from "@/lib/bookingReconcile";
+import { linkRazorpayOrderToBookingTx } from "@/lib/razorpayPersistence";
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
   const session = await getStudioServerSession(req, res);
@@ -56,12 +57,19 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   }
 
   if (req.method === "POST") {
-    const { class_schedule_id, user_package_id, class_name, class_time } = req.body as {
-      class_schedule_id?: string;
-      user_package_id?: string | null;
-      class_name?: string | null;
-      class_time?: string | null;
-    };
+    const { class_schedule_id, user_package_id, class_name, class_time, razorpay_order_id } =
+      req.body as {
+        class_schedule_id?: string;
+        user_package_id?: string | null;
+        class_name?: string | null;
+        class_time?: string | null;
+        razorpay_order_id?: string | null;
+      };
+
+    const rpOrderId =
+      razorpay_order_id != null && String(razorpay_order_id).trim()
+        ? String(razorpay_order_id).trim()
+        : null;
 
     const scheduleId =
       typeof class_schedule_id === "string" && class_schedule_id.trim()
@@ -154,6 +162,14 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
           },
         });
 
+        if (rpOrderId) {
+          await linkRazorpayOrderToBookingTx(tx, {
+            userId,
+            razorpayOrderId: rpOrderId,
+            bookingId: created.id,
+          });
+        }
+
         if (packageId) {
           const upd = await tx.userPackage.updateMany({
             where: {
@@ -220,6 +236,12 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       }
       if (msg === "NO_CREDITS") {
         return res.status(400).json({ error: "No class credits left on that package" });
+      }
+      if (msg === "RAZORPAY_BOOKING_LINK_INVALID") {
+        return res.status(400).json({
+          error:
+            "Online payment could not be linked to this booking. Try confirming again or contact support.",
+        });
       }
       console.error("[bookings] POST", e);
       return res.status(500).json({ error: "Could not complete booking" });
