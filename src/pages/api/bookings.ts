@@ -9,6 +9,12 @@ import {
 } from "@/lib/bookingAttendance";
 import { reconcileNoShowsGlobally } from "@/lib/bookingReconcile";
 import { linkRazorpayOrderToBookingTx } from "@/lib/razorpayPersistence";
+import {
+  expectedBookingCheckoutPaise,
+  parseFinanceSnapshot,
+  parseGuestAttendees,
+  snapshotTotalsConsistent,
+} from "@/lib/financeBookingCheckout";
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
   const session = await getStudioServerSession(req, res);
@@ -57,14 +63,25 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   }
 
   if (req.method === "POST") {
-    const { class_schedule_id, user_package_id, class_name, class_time, razorpay_order_id } =
-      req.body as {
-        class_schedule_id?: string;
-        user_package_id?: string | null;
-        class_name?: string | null;
-        class_time?: string | null;
-        razorpay_order_id?: string | null;
-      };
+    const {
+      class_schedule_id,
+      user_package_id,
+      class_name,
+      class_time,
+      razorpay_order_id,
+      extra_guest_count: rawGuestCount,
+      guest_attendees: rawGuests,
+      finance_snapshot: rawFinance,
+    } = req.body as {
+      class_schedule_id?: string;
+      user_package_id?: string | null;
+      class_name?: string | null;
+      class_time?: string | null;
+      razorpay_order_id?: string | null;
+      extra_guest_count?: unknown;
+      guest_attendees?: unknown;
+      finance_snapshot?: unknown;
+    };
 
     const rpOrderId =
       razorpay_order_id != null && String(razorpay_order_id).trim()
@@ -85,7 +102,49 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         ? String(user_package_id).trim()
         : null;
 
+    const guestList = parseGuestAttendees(rawGuests);
+    if (guestList === null) {
+      return res.status(400).json({ error: "Invalid guest_attendees payload" });
+    }
+
+    let extraGuests = Number(rawGuestCount);
+    if (!Number.isInteger(extraGuests) || extraGuests < 0 || extraGuests > 20) {
+      extraGuests = guestList.length;
+    }
+    if (guestList.length !== extraGuests) {
+      return res.status(400).json({
+        error: "guest_attendees length must match extra_guest_count (friends/family only).",
+      });
+    }
+
+    const financeSnap = rawFinance !== undefined ? parseFinanceSnapshot(rawFinance) : null;
+    if (rawFinance !== undefined && rawFinance !== null && !financeSnap) {
+      return res.status(400).json({ error: "Invalid finance_snapshot" });
+    }
+
     try {
+      if (rpOrderId) {
+        if (!financeSnap || !snapshotTotalsConsistent(financeSnap)) {
+          return res.status(400).json({ error: "Valid finance totals are required for online payment." });
+        }
+        const expectedPaise = expectedBookingCheckoutPaise(financeSnap.totalInr);
+        const ord = await prisma.razorpayOrder.findFirst({
+          where: { razorpay_order_id: rpOrderId, user_id: userId },
+        });
+        if (!ord) {
+          return res.status(400).json({ error: "Payment order not found" });
+        }
+        if (ord.status !== "paid") {
+          return res.status(400).json({ error: "Payment is not confirmed yet" });
+        }
+        if (ord.booking_id != null || ord.user_package_id != null) {
+          return res.status(400).json({ error: "This payment was already used" });
+        }
+        if (ord.amount_paise !== expectedPaise) {
+          return res.status(400).json({ error: "Paid amount does not match checkout totals" });
+        }
+      }
+
       const booking = await prisma.$transaction(async (tx) => {
         const schedule = await tx.classSchedule.findUnique({
           where: { id: scheduleId },
@@ -114,13 +173,20 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
           schedule.capacity ??
           schedule.class_model?.max_capacity ??
           0;
-        const activeBooked = await tx.booking.count({
+        const occupancyRows = await tx.booking.findMany({
           where: {
             class_schedule_id: scheduleId,
             status: { in: ["confirmed", "pending"] },
           },
+          select: { extra_guest_count: true },
         });
-        if (cap > 0 && activeBooked >= cap) {
+        const seatsTaken = occupancyRows.reduce(
+          (sum, row) => sum + 1 + Math.max(0, row.extra_guest_count ?? 0),
+          0,
+        );
+
+        const spotsToConsume = 1 + extraGuests;
+        if (cap > 0 && seatsTaken + spotsToConsume > cap) {
           throw new Error("CLASS_FULL");
         }
 
@@ -159,6 +225,9 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
             class_name: resolvedClassName,
             class_time: resolvedClassTime,
             status: "confirmed",
+            extra_guest_count: extraGuests,
+            guest_attendees: guestList.length > 0 ? guestList : undefined,
+            finance_snapshot: financeSnap ?? undefined,
           },
         });
 
@@ -184,13 +253,13 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
           }
         }
 
-        const newBooked = activeBooked + 1;
+        const newOccupiedSeats = seatsTaken + spotsToConsume;
         if (cap > 0) {
           await tx.classSchedule.update({
             where: { id: scheduleId },
             data: {
-              current_bookings: newBooked,
-              available_spots: Math.max(0, cap - newBooked),
+              current_bookings: newOccupiedSeats,
+              available_spots: Math.max(0, cap - newOccupiedSeats),
             },
           });
         }
@@ -304,23 +373,28 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
           include: { class_model: { select: { max_capacity: true } } },
         });
         if (schedule) {
-          const cap =
-            schedule.capacity ?? schedule.class_model?.max_capacity ?? 0;
-          if (cap > 0) {
-            const activeBooked = await tx.booking.count({
-              where: {
-                class_schedule_id: schedId,
-                status: { in: ["confirmed", "pending"] },
-              },
-            });
-            await tx.classSchedule.update({
-              where: { id: schedId },
-              data: {
-                current_bookings: activeBooked,
-                available_spots: Math.max(0, cap - activeBooked),
-              },
-            });
-          }
+            const cap =
+              schedule.capacity ?? schedule.class_model?.max_capacity ?? 0;
+            if (cap > 0) {
+              const remaining = await tx.booking.findMany({
+                where: {
+                  class_schedule_id: schedId,
+                  status: { in: ["confirmed", "pending"] },
+                },
+                select: { extra_guest_count: true },
+              });
+              const occupiedSeats = remaining.reduce(
+                (sum, row) => sum + 1 + Math.max(0, row.extra_guest_count ?? 0),
+                0,
+              );
+              await tx.classSchedule.update({
+                where: { id: schedId },
+                data: {
+                  current_bookings: occupiedSeats,
+                  available_spots: Math.max(0, cap - occupiedSeats),
+                },
+              });
+            }
         }
       }
 

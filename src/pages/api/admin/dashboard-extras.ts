@@ -3,6 +3,11 @@ import prisma from "@/lib/prisma";
 import { reconcileNoShowsGlobally } from "@/lib/bookingReconcile";
 import { isStudioAdminProfileRole } from "@/lib/isStudioAdminProfile";
 import { getStudioServerSession } from "@/lib/getStudioServerSession";
+import {
+  financeDemoTransactionsForUi,
+  isFinanceDemoEnabled,
+} from "@/lib/adminFinanceDemoTransactions";
+import { parseFinanceSnapshot } from "@/lib/financeBookingCheckout";
 
 function dt(d: Date) {
   const pad = (n: number) => String(n).padStart(2, "0");
@@ -15,6 +20,21 @@ function money(v: unknown) {
   return Number.isFinite(n) ? n : 0;
 }
 
+function guestListFromJson(raw: unknown): { name?: string; email?: string; phone?: string }[] {
+  if (!Array.isArray(raw)) return [];
+  const out: { name?: string; email?: string; phone?: string }[] = [];
+  for (const row of raw) {
+    if (!row || typeof row !== "object") continue;
+    const g = row as Record<string, unknown>;
+    out.push({
+      name: typeof g.name === "string" ? g.name : undefined,
+      email: typeof g.email === "string" ? g.email : undefined,
+      phone: typeof g.phone === "string" ? g.phone : undefined,
+    });
+  }
+  return out;
+}
+
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
   const session = await getStudioServerSession(req, res);
   if (!session?.user) return res.status(401).json({ error: "Unauthorized" });
@@ -22,7 +42,15 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   if (role !== "admin") return res.status(403).json({ error: "Forbidden" });
   if (req.method !== "GET") return res.status(405).end();
 
-  await reconcileNoShowsGlobally(prisma);
+  const includeFinanceDemo =
+    isFinanceDemoEnabled() && req.query.finance_demo !== "0";
+  const financeDemoRows = includeFinanceDemo ? financeDemoTransactionsForUi() : [];
+
+  try {
+    await reconcileNoShowsGlobally(prisma);
+  } catch (reconcileErr) {
+    console.error("[dashboard-extras] reconcileNoShowsGlobally", reconcileErr);
+  }
 
   const now = new Date();
   const dayStart = new Date(now.getFullYear(), now.getMonth(), now.getDate());
@@ -35,8 +63,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   const d30 = new Date(now);
   d30.setDate(d30.getDate() + 30);
 
-  const [
-    todaySchedules,
+  let todaySchedules,
     expiringSoonPkgs,
     bookings30,
     scheduleSlots30,
@@ -49,7 +76,25 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     cafeOrdersSample,
     instructorsFromDb,
     expBucketRows,
-  ] = await Promise.all([
+    financeBookingCandidates;
+
+  try {
+    [
+      todaySchedules,
+      expiringSoonPkgs,
+      bookings30,
+      scheduleSlots30,
+      checkInsRecent,
+      noShowsCount,
+      activePackages,
+      topBookers,
+      recentPackages,
+      topLeaderStats,
+      cafeOrdersSample,
+      instructorsFromDb,
+      expBucketRows,
+      financeBookingCandidates,
+    ] = await Promise.all([
     prisma.classSchedule.findMany({
       where: { start_time: { gte: dayStart, lt: dayEnd } },
       include: {
@@ -106,7 +151,15 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     prisma.userPackage.findMany({
       take: 40,
       orderBy: { purchase_date: "desc" },
-      include: { profile: { select: { full_name: true, email: true } }, package_type: true },
+      include: {
+        profile: { select: { full_name: true, email: true, phone: true } },
+        package_type: true,
+        razorpay_order: {
+          include: {
+            payments: { select: { razorpay_payment_id: true, amount_paise: true } },
+          },
+        },
+      },
     }),
     prisma.userStats.findMany({
       orderBy: { total_classes_attended: "desc" },
@@ -124,7 +177,61 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       where: { is_active: true, expiration_date: { gt: now, lte: d30 } },
       select: { expiration_date: true },
     }),
-  ]);
+    prisma.booking.findMany({
+      where: {
+        booking_date: { gte: monthAgo },
+        status: { in: ["confirmed", "pending"] },
+      },
+      take: 200,
+      orderBy: { booking_date: "desc" },
+      include: {
+        profile: { select: { full_name: true, email: true, phone: true } },
+        class_schedule: { include: { class_model: { select: { name: true } } } },
+        razorpay_order: { select: { razorpay_order_id: true, amount_paise: true } },
+        razorpay_payments: { select: { razorpay_payment_id: true, amount_paise: true } },
+        cafe_orders: {
+          include: {
+            cafe_item: { select: { name: true, price: true } },
+          },
+        },
+      },
+    }),
+    ]);
+  } catch (dbErr) {
+    console.error("[dashboard-extras] database load failed", dbErr);
+    return res.status(200).json({
+      transactions: includeFinanceDemo ? financeDemoRows : [],
+      todayClasses: [],
+      expiringMembers: [],
+      classPerformance: [
+        { name: "No bookings yet", bookings: 0, capacity: 0, utilization: 0, discipline: "—" },
+      ],
+      disciplineSplit: [{ name: "—", count: 0, percentage: 100 }],
+      instructorPerformance: [
+        { name: "—", classes: 0, avgAttendance: 0, totalCheckIns: 0, rating: 0, specialties: "" },
+      ],
+      instructors: [],
+      memberList: [],
+      memberStats: {
+        memberOfMonth: { name: "—", classes: 0, streak: 0 },
+        topClass: { name: "—", bookings: 0 },
+        weeklyStreak: { average: 0, top: 0 },
+        onTimeCheckIns: 0,
+        lateCheckIns: 0,
+        checkInSample: 0,
+        onTimeCheckInPct: 0,
+        lateCheckInPct: 0,
+        noShows: 0,
+        expiring7Days: 0,
+        expiring15Days: 0,
+        expiring30Days: 0,
+        specialtyActive: 0,
+        inactiveUsers: 0,
+      },
+      sampleActivityOrderHistory: [],
+      _partial: true,
+    });
+  }
 
   let lateCheckIns = 0;
   for (const b of checkInsRecent) {
@@ -335,17 +442,186 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   const topClassBooking = [...classMap.values()].sort((a, b) => b.bookings - a.bookings)[0];
   const lead = topLeaderStats[0];
 
-  const transactions = recentPackages.map((up, i) => ({
-    id: i + 1,
-    rawId: up.id,
-    date: dt(up.purchase_date),
-    member: (up.profile.full_name || up.profile.email || "Member").split(" ")[0] ?? "Member",
-    memberFull: up.profile.full_name || up.profile.email || "Member",
-    type: "revenue" as const,
-    amount: money(up.package_type.price),
-    category: `${up.package_type.name} (Package)`,
-    method: "—",
-  }));
+  const financeBookings = financeBookingCandidates.filter(
+    (b) => parseFinanceSnapshot(b.finance_snapshot) !== null,
+  );
+
+  const packageTransactions = recentPackages.map((up) => {
+    const gross = money(up.package_type.price);
+    const disc = money(up.purchase_discount_inr);
+    const net = Math.max(0, gross - disc);
+    const rz = up.razorpay_order;
+    const payIds = rz?.payments?.map((p) => p.razorpay_payment_id).filter(Boolean) ?? [];
+    const fullName = up.profile.full_name || up.profile.email || "Member";
+
+    const financeDetail = {
+      finance1: true as const,
+      source: "package" as const,
+      memberName: fullName,
+      memberEmail: up.profile.email ?? "—",
+      memberPhone: up.profile.phone ?? "—",
+      purchasedAtISO: up.purchase_date.toISOString(),
+      transactionKinds: ["Package purchase"] as string[],
+      razorpayOrderId: rz?.razorpay_order_id ?? null,
+      razorpayPaymentIds: payIds,
+      breakdown: {
+        packageListInr: gross,
+        couponDiscountInr: disc > 0 ? disc : undefined,
+        classOrStudioPassInr: net,
+        cafeNetInr: 0,
+        taxInr: 0,
+        totalInr:
+          rz?.amount_paise != null ? Math.round(Number(rz.amount_paise)) / 100 : net,
+      },
+      attendeeLines: [
+        {
+          role: "Member",
+          name: fullName,
+          email: up.profile.email ?? "—",
+          phone: up.profile.phone ?? "—",
+          notes: `${up.package_type.name} (${up.package_type.type ?? up.pass_type ?? "package"})`,
+        },
+      ],
+      cafeLines: [] as { name: string; quantity: number }[],
+      paymentMethodSummary: rz ? "online" : "—",
+      classSummary: `${up.package_type.name} (Studio pass / package)`,
+      groupHeadcount: 1,
+    };
+
+    return {
+      id: `pkg-${up.id}`,
+      rawId: up.id,
+      sortKey: up.purchase_date.toISOString(),
+      memberPlusLabel: "",
+      foodOrderedLabel: "—",
+      finance1Tag: true,
+      date: dt(up.purchase_date),
+      member: fullName.split(" ")[0] ?? fullName.slice(0, 14),
+      memberFull: fullName,
+      type: "revenue" as const,
+      amount: net,
+      category: `${up.package_type.name} (Package)`,
+      method: rz ? "Razorpay" : "—",
+      financeDetail,
+    };
+  });
+
+  const bookingFinanceTransactions = financeBookings.map((b) => {
+    const snap = parseFinanceSnapshot(b.finance_snapshot)!;
+    const profile = b.profile;
+    const fullName = profile.full_name || profile.email || "Member";
+    const guests = Math.max(0, b.extra_guest_count ?? 0);
+
+    const foodNet = Math.max(0, snap.foodFeeInr - snap.foodDiscountInr);
+    const cafeOrdered =
+      foodNet > 0.009 || (Array.isArray(b.cafe_orders) && b.cafe_orders.length > 0);
+    const memberPlusLabel = guests > 0 ? `+${guests}` : "";
+    const foodOrderedLabel = cafeOrdered ? "Food ordered" : "No food";
+
+    const passLine = snap.noActivePackageCheckout
+      ? `1 Day Class Pass ×${snap.dayPassEquivalentCount}`
+      : `Day-pass equivalent ×${snap.dayPassEquivalentCount}`;
+
+    const classTitle = b.class_schedule?.class_model?.name ?? "Class";
+    const category = `${classTitle} (${passLine})`;
+
+    const payIds =
+      b.razorpay_payments?.map((p) => p.razorpay_payment_id).filter(Boolean) ?? [];
+
+    const guestRows = guestListFromJson(b.guest_attendees);
+    const attendeeLines: {
+      role: string;
+      name: string;
+      email?: string;
+      phone?: string;
+      notes?: string;
+    }[] = [
+      {
+        role: "Member (booking holder)",
+        name: fullName,
+        email: profile.email ?? undefined,
+        phone: profile.phone ?? undefined,
+        notes:
+          snap.paymentMethod === "online"
+            ? "Paid online (Razorpay) — class + café on one checkout where applicable."
+            : "Pay at studio",
+      },
+    ];
+    for (let i = 0; i < guests; i++) {
+      const g = guestRows[i] ?? {};
+      attendeeLines.push({
+        role: `Guest ${i + 1}`,
+        name: g.name?.trim() || "(name not provided)",
+        email: g.email?.trim(),
+        phone: g.phone?.trim(),
+        notes: `${passLine} (same roster row)`,
+      });
+    }
+
+    const transactionKinds: string[] = [
+      ...(snap.noActivePackageCheckout ? ["1 Day Class Pass (checkout)"] : ["Class checkout"]),
+      ...(cafeOrdered ? ["Café purchase"] : []),
+    ];
+
+    const cafeLines = (b.cafe_orders ?? []).map((co) => ({
+      name: co.cafe_item?.name ?? "Café item",
+      quantity: co.quantity ?? 1,
+    }));
+
+    const financeDetail = {
+      finance1: true as const,
+      source: "booking" as const,
+      memberName: fullName,
+      memberEmail: profile.email ?? "—",
+      memberPhone: profile.phone ?? "—",
+      bookedAtISO: b.booking_date.toISOString(),
+      transactionKinds,
+      razorpayOrderId: b.razorpay_order?.razorpay_order_id ?? null,
+      razorpayPaymentIds: payIds,
+      breakdown: {
+        packageListInr: undefined as number | undefined,
+        classOrStudioPassInr: snap.classFeeInr,
+        cafeNetInr: foodNet,
+        taxInr: snap.taxInr,
+        totalInr: snap.totalInr,
+      },
+      attendeeLines,
+      cafeLines,
+      paymentMethodSummary: snap.paymentMethod,
+      classSummary: `${classTitle} — ${passLine}`,
+      groupHeadcount: 1 + guests,
+    };
+
+    return {
+      id: `booking-${b.id}`,
+      rawId: b.id,
+      sortKey: b.booking_date.toISOString(),
+      memberPlusLabel,
+      foodOrderedLabel,
+      finance1Tag: true,
+      date: dt(b.booking_date),
+      member: fullName.split(" ")[0] ?? fullName.slice(0, 14),
+      memberFull: fullName,
+      type: "revenue" as const,
+      amount: snap.totalInr,
+      category,
+      method:
+        snap.paymentMethod === "online" && payIds.length > 0
+          ? "Razorpay"
+          : snap.paymentMethod === "online"
+            ? "Online"
+            : "Pay at studio",
+      financeDetail,
+    };
+  });
+
+  const liveTransactions = [...packageTransactions, ...bookingFinanceTransactions].sort((a, b) =>
+    a.sortKey < b.sortKey ? 1 : a.sortKey > b.sortKey ? -1 : 0,
+  );
+
+  const transactions = includeFinanceDemo
+    ? [...financeDemoRows, ...liveTransactions]
+    : liveTransactions;
 
   const memberList = recentPackages.slice(0, 24).map((up, idx) => ({
     id: idx + 1,

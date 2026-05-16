@@ -24,6 +24,24 @@ export function ensureNextAuthUrlFromRequest(req: NextApiRequest): void {
     return;
   }
 
+  /* Local dev: `.env.local` often has port 3000 while Next picks 3001 when 3000 is busy. */
+  if (process.env.NODE_ENV === "development") {
+    try {
+      const configured = new URL(current);
+      const request = new URL(derived);
+      const local =
+        configured.hostname === "localhost" ||
+        configured.hostname === "127.0.0.1";
+      if (local && request.hostname === configured.hostname && configured.origin !== request.origin) {
+        process.env.NEXTAUTH_URL = derived;
+        return;
+      }
+    } catch {
+      process.env.NEXTAUTH_URL = derived;
+      return;
+    }
+  }
+
   /*
    * Amplify preview branches use a different hostname than `main.*.amplifyapp.com`, but env often
    * only sets NEXTAUTH_URL for production. Misaligned URLs break server-side `getServerSession` in

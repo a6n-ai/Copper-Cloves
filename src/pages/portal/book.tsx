@@ -37,6 +37,15 @@ import {
   startOfMondayWeekLocal,
   endOfSundayWeekLocal,
 } from "@/lib/calendarWeek";
+import { expectedBookingCheckoutPaise } from "@/lib/financeBookingCheckout";
+import { razorpayPaymentErrorHelp } from "@/lib/razorpayClientHints";
+import { completePendingBookingCheckout } from "@/lib/completeRazorpayCheckout";
+import {
+  buildRazorpayReturnUrl,
+  clearPendingRazorpayCheckout,
+  loadPendingRazorpayCheckout,
+  savePendingRazorpayCheckout,
+} from "@/lib/pendingRazorpayCheckout";
 import { payWithRazorpayOrder } from "@/lib/razorpayCheckout";
 
 // Discount mapping based on unlimited tier (simplified - using package name)
@@ -62,10 +71,18 @@ interface FriendFamily {
 interface FoodItem {
   id: string;
   name: string;
-  items: string[];
+  category: string;
+  description: string;
   image: string;
   price: number;
   quantity: number;
+}
+
+function formatCafeCategory(category: string): string {
+  return category
+    .trim()
+    .replace(/_/g, " ")
+    .replace(/\b\w/g, (c) => c.toUpperCase());
 }
 
 export interface Class {
@@ -128,6 +145,8 @@ export default function BookClass() {
   
   // Food ordering
   const [foodItems, setFoodItems] = useState<FoodItem[]>([]);
+  const [loadingFoodItems, setLoadingFoodItems] = useState(false);
+  const [foodItemsLoadError, setFoodItemsLoadError] = useState<string | null>(null);
   
   // Checkout
   const [paymentMethod, setPaymentMethod] = useState<"online" | "studio">("online");
@@ -269,21 +288,38 @@ export default function BookClass() {
   }
 
   async function fetchCafeItems() {
+    setLoadingFoodItems(true);
+    setFoodItemsLoadError(null);
     try {
-      const res = await fetch("/api/cafe/items?available=true&name=combo");
-      const data = res.ok ? await res.json() : [];
-      if (data.length > 0) {
-        setFoodItems(data.map((item: { id: string; name: string; description?: string; image_url?: string; price: number }) => ({
-          id: item.id,
-          name: item.name,
-          items: item.description?.split(", ") || [],
-          image: item.image_url || "",
-          price: item.price,
-          quantity: 0,
-        })));
-      }
+      const res = await fetch("/api/cafe/items?available=true");
+      const raw = res.ok ? await res.json() : [];
+      const list = Array.isArray(raw) ? raw : [];
+      setFoodItems(
+        list.map(
+          (item: {
+            id: string;
+            name: string;
+            category?: string;
+            description?: string | null;
+            image_url?: string | null;
+            price: number | string;
+          }) => ({
+            id: item.id,
+            name: item.name,
+            category: item.category ?? "other",
+            description: item.description?.trim() ?? "",
+            image: item.image_url?.trim() || "/placeholder.jpg",
+            price: Number(item.price),
+            quantity: 0,
+          }),
+        ),
+      );
     } catch (err) {
       console.error("Error loading cafe items:", err);
+      setFoodItems([]);
+      setFoodItemsLoadError("Could not load the café menu. You can continue without add-ons.");
+    } finally {
+      setLoadingFoodItems(false);
     }
   }
 
@@ -402,8 +438,6 @@ export default function BookClass() {
   }
 
   async function handleConfirmBooking() {
-    const { finalTotal } = calculateTotals();
-
     try {
       setIsSubmittingBooking(true);
 
@@ -421,17 +455,63 @@ export default function BookClass() {
         if ((packageToUse.credits_remaining ?? 0) < 1) throw new Error("You don't have any classes remaining.");
       }
 
+      const owedTotals = calculateTotals();
+      const { classTotal, foodTotal, discount, tax, finalTotal } = owedTotals;
+      const totalPeople = 1 + friendsFamily.length;
+      let dayPassEquivalentCount = totalPeople;
+      if (userPackage.type === null) dayPassEquivalentCount = totalPeople;
+      else if (userPackage.type === "studio_pass") dayPassEquivalentCount = friendsFamily.length;
+      else if (userPackage.type === "class_pass") {
+        dayPassEquivalentCount = useCredits ? friendsFamily.length : totalPeople;
+      }
+
+      const guestAttendeesPayload = friendsFamily.map((p) => ({
+        name: p.name || "",
+        email: p.email || "",
+        phone: p.phone || "",
+      }));
+
+      const financeSnapshotPayload = {
+        version: 1 as const,
+        classFeeInr: classTotal,
+        foodFeeInr: foodTotal,
+        foodDiscountInr: discount,
+        taxInr: tax,
+        totalInr: finalTotal,
+        dayPassEquivalentCount,
+        noActivePackageCheckout: userPackage.type === null,
+        paymentMethod:
+          paymentMethod === "online" ? ("online" as const) : ("studio" as const),
+      };
+
       let paidViaRazorpay = false;
       let razorpayOrderIdForBooking: string | null = null;
       const oweOnline = paymentMethod === "online" && finalTotal > 0;
 
       if (oweOnline) {
-        const amountInr = Math.max(1, Math.round(finalTotal));
+        const amountPaiseExpected = expectedBookingCheckoutPaise(finalTotal);
         const createRes = await fetch("/api/payments/razorpay/create-order", {
           method: "POST",
           credentials: "include",
           headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ amount_inr: amountInr }),
+          body: JSON.stringify({
+            purpose: "booking",
+            pending_checkout: {
+              class_schedule_id: selectedClass?.id ?? "",
+              class_name: selectedClass?.name ?? null,
+              class_time: selectedClass?.startTimeIso ?? null,
+              user_package_id:
+                userPackage.type === "class_pass" && useCredits
+                  ? packageToUse?.id ?? null
+                  : null,
+              extra_guest_count: friendsFamily.length,
+              guest_attendees: guestAttendeesPayload,
+              finance_snapshot: financeSnapshotPayload,
+              cafe_items: foodItems
+                .filter((item) => item.quantity > 0)
+                .map((item) => ({ id: item.id, quantity: item.quantity })),
+            },
+          }),
         });
         if (!createRes.ok) {
           let msg = "Could not start Razorpay checkout.";
@@ -449,6 +529,7 @@ export default function BookClass() {
           amount?: number | string;
           currency?: string;
           key_id?: string;
+          razorpay_mode?: "test" | "live" | "unknown";
         };
 
         if (
@@ -465,6 +546,26 @@ export default function BookClass() {
           throw new Error("Invalid order amount from Razorpay.");
         }
 
+        const classTimeISO = selectedClass?.startTimeIso ?? null;
+        const userPackageIdForBooking =
+          userPackage.type === "class_pass" && useCredits ? packageToUse?.id ?? null : null;
+
+        savePendingRazorpayCheckout({
+          purpose: "booking",
+          razorpayOrderId: orderPayload.order_id,
+          class_schedule_id: selectedClass?.id ?? "",
+          class_name: selectedClass?.name ?? null,
+          class_time: classTimeISO,
+          user_package_id: userPackageIdForBooking,
+          extra_guest_count: friendsFamily.length,
+          guest_attendees: guestAttendeesPayload,
+          finance_snapshot: financeSnapshotPayload,
+          cafe_items: foodItems
+            .filter((item) => item.quantity > 0)
+            .map((item) => ({ id: item.id, quantity: item.quantity })),
+          savedAt: Date.now(),
+        });
+
         const checkoutResult = await payWithRazorpayOrder({
           keyId: String(orderPayload.key_id).trim(),
           amountPaise,
@@ -473,42 +574,38 @@ export default function BookClass() {
           name: "Copper Cloves",
           description: selectedClass?.name ? `Class — ${selectedClass.name}` : "Studio booking",
           prefill: { email: userEmail || undefined, name: userName || undefined },
+          callbackUrl: buildRazorpayReturnUrl("booking"),
+          redirect: false,
         });
-
         if (checkoutResult.kind === "cancelled") {
+          clearPendingRazorpayCheckout();
           setPaymentRecovery({ variant: "cancelled" });
           return;
         }
         if (checkoutResult.kind === "failed") {
-          setPaymentRecovery({ variant: "failed", detail: checkoutResult.message });
+          clearPendingRazorpayCheckout();
+          setPaymentRecovery({
+            variant: "failed",
+            detail: razorpayPaymentErrorHelp(
+              checkoutResult.message,
+              String(orderPayload.key_id).trim(),
+              orderPayload.razorpay_mode,
+            ),
+          });
           return;
         }
 
-        const successPayload = checkoutResult.payload;
-
-        const verifyRes = await fetch("/api/payments/razorpay/verify-payment", {
-          method: "POST",
-          credentials: "include",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({
-            razorpay_order_id: successPayload.razorpay_order_id,
-            razorpay_payment_id: successPayload.razorpay_payment_id,
-            razorpay_signature: successPayload.razorpay_signature,
-          }),
-        });
-        if (!verifyRes.ok) {
-          let msg =
-            "Payment could not be verified. If money was debited, contact support with your bank reference.";
-          try {
-            const errBody = await verifyRes.json();
-            if (typeof errBody?.error === "string") msg = errBody.error;
-          } catch {
-            /* ignore */
-          }
-          throw new Error(msg);
+        const pending = loadPendingRazorpayCheckout();
+        if (!pending || pending.purpose !== "booking") {
+          throw new Error("Checkout session lost. Please try again.");
         }
+        await completePendingBookingCheckout(pending, checkoutResult.payload);
+        clearPendingRazorpayCheckout();
         paidViaRazorpay = true;
-        razorpayOrderIdForBooking = successPayload.razorpay_order_id;
+        alert(`Payment successful.\n\nBooking confirmed for ₹${finalTotal.toFixed(0)}.`);
+        setShowBookingPanel(false);
+        router.push("/portal/dashboard");
+        return;
       }
 
       const classTimeISO = selectedClass?.startTimeIso ?? null;
@@ -523,6 +620,9 @@ export default function BookClass() {
           class_time: classTimeISO,
           user_package_id: userPackage.type === "class_pass" && useCredits ? packageToUse?.id : null,
           razorpay_order_id: razorpayOrderIdForBooking,
+          extra_guest_count: friendsFamily.length,
+          guest_attendees: guestAttendeesPayload,
+          finance_snapshot: financeSnapshotPayload,
         }),
       });
       if (!bookingRes.ok) {
@@ -564,9 +664,7 @@ export default function BookClass() {
         }
       }
 
-      if (oweOnline) {
-        alert(`Payment successful.\n\nBooking confirmed for ₹${finalTotal.toFixed(0)}.`);
-      } else if (finalTotal > 0) {
+      if (finalTotal > 0) {
         alert(`Booking confirmed!\n\nPay ₹${finalTotal.toFixed(0)} at the studio.`);
       } else {
         alert("Booking confirmed!\n\nNo payment required.");
@@ -1152,6 +1250,21 @@ export default function BookClass() {
                 </div>
 
                 <div className="space-y-4">
+                  {loadingFoodItems ? (
+                    <p className="font-body text-sm text-charcoal/60 text-center py-8">
+                      Loading café menu…
+                    </p>
+                  ) : null}
+                  {!loadingFoodItems && foodItemsLoadError ? (
+                    <p className="font-body text-sm text-amber-800 bg-amber-50 border border-amber-200 rounded-lg p-3">
+                      {foodItemsLoadError}
+                    </p>
+                  ) : null}
+                  {!loadingFoodItems && !foodItemsLoadError && foodItems.length === 0 ? (
+                    <p className="font-body text-sm text-charcoal/60 text-center py-8">
+                      No café items are available right now. Mark items as available in Admin → Café → Menu.
+                    </p>
+                  ) : null}
                   {foodItems.map((item) => (
                     <div 
                       key={item.id}
@@ -1161,13 +1274,18 @@ export default function BookClass() {
                         <img 
                           src={item.image}
                           alt={item.name}
-                          className="w-24 h-24 rounded-lg object-cover"
+                          className="w-24 h-24 rounded-lg object-cover bg-sage/10"
                         />
                         <div className="flex-1">
-                          <h4 className="font-display text-lg text-charcoal mb-1">{item.name}</h4>
-                          <p className="font-body text-xs text-charcoal/60 mb-2">
-                            {item.items.join(" • ")}
-                          </p>
+                          <div className="flex flex-wrap items-center gap-2 mb-1">
+                            <h4 className="font-display text-lg text-charcoal">{item.name}</h4>
+                            <Badge variant="outline" className="border-sage/30 text-charcoal/70 text-[10px]">
+                              {formatCafeCategory(item.category)}
+                            </Badge>
+                          </div>
+                          {item.description ? (
+                            <p className="font-body text-xs text-charcoal/60 mb-2">{item.description}</p>
+                          ) : null}
                           <div className="flex items-center justify-between">
                             <p className="font-body text-sage font-semibold">₹{item.price}</p>
                             <div className="flex items-center gap-3">
@@ -1504,7 +1622,9 @@ export default function BookClass() {
               {paymentRecovery?.variant === "cancelled" ? (
                 <span>You closed checkout before completing payment. Your booking hasn&apos;t been placed yet.</span>
               ) : (
-                <span>{paymentRecovery?.detail ?? "Something went wrong with this payment attempt."}</span>
+                <span className="whitespace-pre-line block">
+                  {paymentRecovery?.detail ?? "Something went wrong with this payment attempt."}
+                </span>
               )}
               <span className="block pt-1">
                 You can try paying again — we&apos;ll open Razorpay checkout with a fresh order.

@@ -16,6 +16,8 @@ export async function persistRazorpayOrderOnCreate(params: {
   receipt: string;
   notes?: Record<string, unknown> | null;
 }): Promise<void> {
+  const notesJson =
+    params.notes != null ? (params.notes as Prisma.InputJsonValue) : undefined;
   await prisma.razorpayOrder.upsert({
     where: { razorpay_order_id: params.razorpayOrderId },
     create: {
@@ -25,12 +27,13 @@ export async function persistRazorpayOrderOnCreate(params: {
       currency: params.currency,
       receipt: params.receipt,
       status: "created",
-      notes: params.notes ?? undefined,
+      notes: notesJson,
     },
     update: {
       amount_paise: params.amountPaise,
       currency: params.currency,
       receipt: params.receipt,
+      ...(notesJson != null ? { notes: notesJson } : {}),
     },
   });
 }
@@ -152,6 +155,7 @@ export async function linkRazorpayOrderToBookingTx(
       razorpay_order_id: params.razorpayOrderId,
       user_id: params.userId,
       booking_id: null,
+      user_package_id: null,
     },
   });
 
@@ -176,6 +180,44 @@ export async function linkRazorpayOrderToBookingTx(
   await tx.razorpayPayment.updateMany({
     where: { razorpay_order_id: params.razorpayOrderId, user_id: params.userId },
     data: { booking_id: params.bookingId },
+  });
+}
+
+/** Attach Razorpay order + verified payments to a package purchase (`user_packages`) inside an existing transaction. */
+export async function linkRazorpayOrderToUserPackageTx(
+  tx: DbTx,
+  params: { userId: string; razorpayOrderId: string; userPackageId: string },
+): Promise<void> {
+  const order = await tx.razorpayOrder.findFirst({
+    where: {
+      razorpay_order_id: params.razorpayOrderId,
+      user_id: params.userId,
+      user_package_id: null,
+      booking_id: null,
+    },
+  });
+
+  const verified = await tx.razorpayPayment.findFirst({
+    where: {
+      razorpay_order_id: params.razorpayOrderId,
+      user_id: params.userId,
+      signature_verified: true,
+      status: { in: ["captured", "authorized"] },
+    },
+  });
+
+  if (!order || !verified) {
+    throw new Error("RAZORPAY_PACKAGE_LINK_INVALID");
+  }
+
+  await tx.razorpayOrder.update({
+    where: { razorpay_order_id: params.razorpayOrderId },
+    data: { user_package_id: params.userPackageId },
+  });
+
+  await tx.razorpayPayment.updateMany({
+    where: { razorpay_order_id: params.razorpayOrderId, user_id: params.userId },
+    data: { user_package_id: params.userPackageId },
   });
 }
 
@@ -240,6 +282,7 @@ export async function reconcileRazorpayPaymentFromWebhook(body: {
       razorpay_order_id: ordId,
       user_id: orderRow.user_id,
       booking_id: orderRow.booking_id,
+      user_package_id: orderRow.user_package_id,
       amount_paise: amountPaise,
       currency,
       status: statusNorm,
@@ -253,19 +296,37 @@ export async function reconcileRazorpayPaymentFromWebhook(body: {
       status: statusNorm,
       method: method ?? undefined,
       booking_id: orderRow.booking_id,
+      user_package_id: orderRow.user_package_id,
       failure_reason: failed ? failureReason : null,
     },
   });
 
   if (["captured", "authorized"].includes(statusNorm)) {
+    await prisma.razorpayPayment.updateMany({
+      where: { razorpay_payment_id: payId },
+      data: { signature_verified: true, verified_at: new Date() },
+    });
     await prisma.razorpayOrder.updateMany({
       where: { razorpay_order_id: ordId },
       data: { status: "paid" },
     });
+    await tryFulfillCheckoutAfterWebhook(ordId);
   } else if (failed) {
     await prisma.razorpayOrder.updateMany({
-      where: { razorpay_order_id: ordId, booking_id: null },
+      where: { razorpay_order_id: ordId, booking_id: null, user_package_id: null },
       data: { status: "failed" },
     });
+  }
+}
+
+async function tryFulfillCheckoutAfterWebhook(razorpayOrderId: string): Promise<void> {
+  const { fulfillCheckoutFromPaidOrder } = await import("@/lib/razorpayServerCheckout");
+  try {
+    const outcome = await fulfillCheckoutFromPaidOrder(razorpayOrderId);
+    if (outcome === "booking" || outcome === "package") {
+      console.info("[razorpay/webhook] fulfilled checkout", { razorpayOrderId, outcome });
+    }
+  } catch (e) {
+    console.error("[razorpay/webhook] fulfill checkout", razorpayOrderId, e);
   }
 }

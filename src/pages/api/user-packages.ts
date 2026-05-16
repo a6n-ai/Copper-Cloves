@@ -9,6 +9,7 @@ import {
   validateAndComputeCoupon,
 } from "@/lib/couponHelpers";
 import type { Coupon } from "@/generated/prisma/client";
+import { linkRazorpayOrderToUserPackageTx } from "@/lib/razorpayPersistence";
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
   const session = await getStudioServerSession(req, res);
@@ -30,10 +31,11 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   }
 
   if (req.method === "POST") {
-    const { package_type_id, pass_type, coupon_code } = req.body as {
+    const { package_type_id, pass_type, coupon_code, razorpay_order_id } = req.body as {
       package_type_id?: string;
       pass_type?: string;
       coupon_code?: string;
+      razorpay_order_id?: string | null;
     };
 
     if (!package_type_id || typeof package_type_id !== "string") {
@@ -42,6 +44,19 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
     const pass = pass_type === "studio_pass" ? "studio_pass" : "class_pass";
     const couponContext: CouponContext = pass === "studio_pass" ? "studio_pass" : "class_pass";
+
+    const rpOrderRaw =
+      razorpay_order_id != null && String(razorpay_order_id).trim()
+        ? String(razorpay_order_id).trim()
+        : null;
+
+    /** Matches /api/payments/razorpay/create-order `purpose: "package"` rounding. */
+    function expectedCheckoutPaise(subtotalInr: number, discountInr: number): number {
+      const payableInr = Math.max(0, subtotalInr - discountInr);
+      if (payableInr <= 0) return 0;
+      const amountInr = Math.min(Math.max(Math.round(payableInr), 1), 100_000);
+      return Math.round(amountInr * 100);
+    }
 
     try {
       const userPackage = await prisma.$transaction(async (tx) => {
@@ -65,6 +80,30 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
           if ("error" in v) throw new Error(`COUPON:${v.error}`);
           coupon = v.coupon;
           discountInr = v.discountInr;
+        }
+
+        const expectedPaise = expectedCheckoutPaise(subtotal, discountInr);
+
+        let razorpayOrderIdForLink: string | null = rpOrderRaw;
+
+        if (expectedPaise > 0) {
+          if (!razorpayOrderIdForLink) {
+            throw new Error("PAYMENT_REQUIRED");
+          }
+          const rpOrder = await tx.razorpayOrder.findFirst({
+            where: {
+              razorpay_order_id: razorpayOrderIdForLink,
+              user_id: userId,
+            },
+          });
+          if (!rpOrder) throw new Error("RAZORPAY_ORDER_NOT_FOUND");
+          if (rpOrder.amount_paise !== expectedPaise) throw new Error("AMOUNT_MISMATCH");
+          if (rpOrder.booking_id != null || rpOrder.user_package_id != null) {
+            throw new Error("RAZORPAY_ORDER_USED");
+          }
+          if (rpOrder.status !== "paid") throw new Error("PAYMENT_NOT_CONFIRMED");
+        } else {
+          razorpayOrderIdForLink = null;
         }
 
         const expirationDate = new Date();
@@ -98,6 +137,14 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
           });
         }
 
+        if (expectedPaise > 0 && razorpayOrderIdForLink) {
+          await linkRazorpayOrderToUserPackageTx(tx, {
+            userId,
+            razorpayOrderId: razorpayOrderIdForLink,
+            userPackageId: created.id,
+          });
+        }
+
         return created;
       });
 
@@ -112,11 +159,32 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       const msg = e instanceof Error ? e.message : String(e);
       if (msg === "NOT_FOUND") return res.status(404).json({ error: "Package type not found" });
       if (msg === "BAD_PRICE") return res.status(400).json({ error: "Invalid package price" });
+      if (msg === "PAYMENT_REQUIRED") {
+        return res.status(400).json({ error: "Online payment is required for this purchase." });
+      }
+      if (msg === "RAZORPAY_ORDER_NOT_FOUND") {
+        return res.status(400).json({ error: "Payment order not found. Start checkout again." });
+      }
+      if (msg === "AMOUNT_MISMATCH") {
+        return res.status(400).json({ error: "Payment amount does not match this package. Try again." });
+      }
+      if (msg === "RAZORPAY_ORDER_USED") {
+        return res.status(400).json({ error: "This payment was already used for another purchase." });
+      }
+      if (msg === "PAYMENT_NOT_CONFIRMED") {
+        return res.status(400).json({ error: "Payment is not confirmed yet. Try again in a moment." });
+      }
       if (msg.startsWith("COUPON:")) {
         return res.status(400).json({ error: msg.replace(/^COUPON:/, "") });
       }
       if (msg === "COUPON_EXHAUSTED") {
         return res.status(409).json({ error: "Coupon is no longer available" });
+      }
+      if (msg === "RAZORPAY_PACKAGE_LINK_INVALID") {
+        return res.status(400).json({
+          error:
+            "Online payment could not be linked to this purchase. Contact support if you were charged.",
+        });
       }
       console.error("[user-packages] POST", e);
       return res.status(500).json({ error: "Could not complete purchase" });

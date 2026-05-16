@@ -11,7 +11,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
     const items = await prisma.cafeItem.findMany({
       where,
-      orderBy: { category: "asc" },
+      orderBy: [{ category: "asc" }, { name: "asc" }],
     });
     return res.json(items);
   }

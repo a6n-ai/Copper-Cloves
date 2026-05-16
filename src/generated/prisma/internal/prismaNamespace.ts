@@ -2751,13 +2751,16 @@ export const BookingScalarFieldEnum = {
   user_package_id: 'user_package_id',
   status: 'status',
   booking_date: 'booking_date',
+  created_at: 'created_at',
   cancellation_date: 'cancellation_date',
   class_name: 'class_name',
   class_time: 'class_time',
   checked_in: 'checked_in',
   check_in_time: 'check_in_time',
   check_in_outcome: 'check_in_outcome',
-  created_at: 'created_at'
+  extra_guest_count: 'extra_guest_count',
+  guest_attendees: 'guest_attendees',
+  finance_snapshot: 'finance_snapshot'
 } as const
 
 export type BookingScalarFieldEnum = (typeof BookingScalarFieldEnum)[keyof typeof BookingScalarFieldEnum]
@@ -2767,6 +2770,7 @@ export const RazorpayOrderScalarFieldEnum = {
   id: 'id',
   user_id: 'user_id',
   booking_id: 'booking_id',
+  user_package_id: 'user_package_id',
   razorpay_order_id: 'razorpay_order_id',
   amount_paise: 'amount_paise',
   currency: 'currency',
@@ -2786,6 +2790,7 @@ export const RazorpayPaymentScalarFieldEnum = {
   razorpay_order_id: 'razorpay_order_id',
   user_id: 'user_id',
   booking_id: 'booking_id',
+  user_package_id: 'user_package_id',
   amount_paise: 'amount_paise',
   currency: 'currency',
   status: 'status',

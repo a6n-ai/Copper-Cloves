@@ -7,6 +7,25 @@ import { PortalNavigation } from "@/components/PortalNavigation";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
+import { completePendingPackageCheckout } from "@/lib/completeRazorpayCheckout";
+import {
+  buildRazorpayReturnUrl,
+  clearPendingRazorpayCheckout,
+  loadPendingRazorpayCheckout,
+  savePendingRazorpayCheckout,
+} from "@/lib/pendingRazorpayCheckout";
+import { razorpayPaymentErrorHelp } from "@/lib/razorpayClientHints";
+import { payWithRazorpayOrder } from "@/lib/razorpayCheckout";
 
 interface Package {
   name: string;
@@ -169,6 +188,11 @@ export default function PackagesPage() {
   const [couponCode, setCouponCode] = useState("");
   const [couponError, setCouponError] = useState<string | null>(null);
   const [couponDiscount, setCouponDiscount] = useState<number | null>(null);
+  const [paymentRecovery, setPaymentRecovery] = useState<
+    | { variant: "cancelled" }
+    | { variant: "failed"; detail: string }
+    | null
+  >(null);
 
   useEffect(() => {
     if (status === "unauthenticated") { router.push("/portal/login"); return; }
@@ -335,6 +359,7 @@ export default function PackagesPage() {
     setCouponCode("");
     setCouponError(null);
     setCouponDiscount(null);
+    setPaymentRecovery(null);
   };
 
   const packageSubtotalInr = (pkg: typeof selectedPackage) => {
@@ -368,10 +393,13 @@ export default function PackagesPage() {
       setError("Please fill in all required fields");
       return;
     }
-    if (!selectedPackage) { setError("Invalid purchase request"); return; }
+    if (!selectedPackage) {
+      setError("Invalid purchase request");
+      return;
+    }
     setIsProcessing(true);
+    let razorpayOrderIdForPackage: string | null = null;
     try {
-      // Find or create package type
       const allPkgsRes = await fetch("/api/packages");
       const allPkgs = allPkgsRes.ok ? await allPkgsRes.json() : [];
       let packageType = allPkgs.find((p: { name: string }) => p.name === selectedPackage.name);
@@ -380,8 +408,8 @@ export default function PackagesPage() {
         const durationMonths = selectedPackage.validity.includes("days")
           ? Math.round(parseInt(selectedPackage.validity) / 30)
           : selectedPackage.validity.includes("Month")
-          ? parseInt(selectedPackage.validity)
-          : null;
+            ? parseInt(selectedPackage.validity)
+            : null;
         const createRes = await fetch("/api/packages", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
@@ -401,16 +429,125 @@ export default function PackagesPage() {
 
       if (!packageType) throw new Error("Could not find or create package type");
 
+      const subtotal = packageSubtotalInr(selectedPackage);
+      const discount = couponDiscount ?? 0;
+      const payableInr = Math.max(0, subtotal - discount);
+
+      if (payableInr > 0) {
+        const createRes = await fetch("/api/payments/razorpay/create-order", {
+          method: "POST",
+          credentials: "include",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            purpose: "package",
+            package_type_id: packageType.id,
+            pass_type: selectedPackage.classes === "Unlimited" ? "studio_pass" : "class_pass",
+            coupon_code: couponCode.trim() || undefined,
+          }),
+        });
+        if (!createRes.ok) {
+          let msg = "Could not start Razorpay checkout.";
+          try {
+            const errBody = await createRes.json();
+            if (typeof errBody?.error === "string") msg = errBody.error;
+          } catch {
+            /* ignore */
+          }
+          throw new Error(msg);
+        }
+
+        const orderPayload = (await createRes.json()) as {
+          order_id?: string;
+          amount?: number | string;
+          currency?: string;
+          key_id?: string;
+          razorpay_mode?: "test" | "live" | "unknown";
+        };
+
+        if (
+          !orderPayload.order_id ||
+          orderPayload.key_id == null ||
+          String(orderPayload.key_id).trim() === "" ||
+          orderPayload.amount == null
+        ) {
+          throw new Error("Invalid payment setup from server.");
+        }
+
+        const amountPaise = Number(orderPayload.amount);
+        if (!Number.isFinite(amountPaise)) {
+          throw new Error("Invalid order amount from Razorpay.");
+        }
+
+        savePendingRazorpayCheckout({
+          purpose: "package",
+          razorpayOrderId: orderPayload.order_id,
+          package_type_id: packageType.id,
+          pass_type: selectedPackage.classes === "Unlimited" ? "studio_pass" : "class_pass",
+          coupon_code: couponCode.trim() || undefined,
+          savedAt: Date.now(),
+        });
+
+        const checkoutResult = await payWithRazorpayOrder({
+          keyId: String(orderPayload.key_id).trim(),
+          amountPaise,
+          currency: orderPayload.currency ?? "INR",
+          orderId: orderPayload.order_id,
+          name: "Copper Cloves",
+          description: selectedPackage.name ? `Package — ${selectedPackage.name}` : "Studio package",
+          prefill: { email: formData.email || undefined, name: formData.fullName || undefined },
+          callbackUrl: buildRazorpayReturnUrl("package"),
+          redirect: false,
+        });
+        if (checkoutResult.kind === "cancelled") {
+          clearPendingRazorpayCheckout();
+          setPaymentRecovery({ variant: "cancelled" });
+          return;
+        }
+        if (checkoutResult.kind === "failed") {
+          clearPendingRazorpayCheckout();
+          setPaymentRecovery({
+            variant: "failed",
+            detail: razorpayPaymentErrorHelp(
+              checkoutResult.message,
+              String(orderPayload.key_id).trim(),
+              orderPayload.razorpay_mode,
+            ),
+          });
+          return;
+        }
+
+        const pending = loadPendingRazorpayCheckout();
+        if (!pending || pending.purpose !== "package") {
+          throw new Error("Checkout session lost. Please try again.");
+        }
+        await completePendingPackageCheckout(pending, checkoutResult.payload);
+        clearPendingRazorpayCheckout();
+        setShowPurchaseDialog(false);
+        router.push("/portal/dashboard");
+        return;
+      }
+
       const purchaseRes = await fetch("/api/user-packages", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
+        credentials: "include",
         body: JSON.stringify({
           package_type_id: packageType.id,
           pass_type: selectedPackage.classes === "Unlimited" ? "studio_pass" : "class_pass",
           coupon_code: couponCode.trim() || undefined,
+          razorpay_order_id: payableInr > 0 ? razorpayOrderIdForPackage : null,
         }),
       });
-      if (!purchaseRes.ok) throw new Error("Purchase failed");
+      if (!purchaseRes.ok) {
+        let msg = "Purchase failed";
+        try {
+          const errBody = await purchaseRes.json();
+          if (typeof errBody?.error === "string") msg = errBody.error;
+        } catch {
+          /* ignore */
+        }
+        throw new Error(msg);
+      }
 
       setSuccess(true);
       setTimeout(() => router.push("/portal/dashboard"), 2000);
@@ -906,6 +1043,41 @@ export default function PackagesPage() {
           )}
         </div>
       )}
+
+      <AlertDialog
+        open={paymentRecovery !== null}
+        onOpenChange={(open) => {
+          if (!open) setPaymentRecovery(null);
+        }}
+      >
+        <AlertDialogContent className="border-sage/20">
+          <AlertDialogHeader>
+            <AlertDialogTitle>
+              {paymentRecovery?.variant === "failed" ? "Payment didn’t go through" : "Payment cancelled"}
+            </AlertDialogTitle>
+            <AlertDialogDescription>
+              {paymentRecovery?.variant === "cancelled" ? (
+                <span>You closed the checkout. You can try again when you’re ready.</span>
+              ) : (
+                <span className="whitespace-pre-line block">
+                  {paymentRecovery?.detail ?? "Something went wrong with this payment attempt."}
+                </span>
+              )}
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel onClick={() => setPaymentRecovery(null)}>Close</AlertDialogCancel>
+            <AlertDialogAction
+              className="bg-sage hover:bg-sage/90"
+              onClick={() => {
+                setPaymentRecovery(null);
+              }}
+            >
+              Try again
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
 
       <style jsx>{`
         .scrollbar-hide::-webkit-scrollbar {

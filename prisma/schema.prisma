@@ -248,6 +248,8 @@ model UserPackage {
   package      Package?    @relation(fields: [package_id], references: [id], onDelete: SetNull)
   coupon       Coupon?     @relation(fields: [coupon_id], references: [id], onDelete: SetNull)
   bookings     Booking[]
+  razorpay_order   RazorpayOrder?
+  razorpay_payments RazorpayPayment[]
 
   @@map("user_packages")
 }
@@ -259,14 +261,20 @@ model Booking {
   user_package_id   String?
   status            String    @default("confirmed")
   booking_date      DateTime  @default(now())
+  created_at        DateTime  @default(now())
   cancellation_date DateTime?
   class_name        String?
   class_time        String?
   checked_in        Boolean   @default(false)
   check_in_time     DateTime?
-  /// Set when check-in closes: on_time (by start), late (after start, within window), no_show (never checked in by window end).
+  /// `on_time` | `late` | `no_show` (set by portal check-in or reconcileNoShowsGlobally).
   check_in_outcome  String?
-  created_at        DateTime  @default(now())
+  /// Portal flow may attach friends/family to one roster row (`extra_guest_count` seats).
+  extra_guest_count   Int       @default(0)
+  /// [{ name, email, phone }] for Finance-1 detail dialog.
+  guest_attendees       Json?
+  /// Finance-1: class vs café vs tax totals at checkout (see portal book flow).
+  finance_snapshot      Json?
 
   profile        Profile        @relation(fields: [user_id], references: [id], onDelete: Cascade)
   class_schedule ClassSchedule? @relation(fields: [class_schedule_id], references: [id], onDelete: Cascade)
@@ -284,6 +292,8 @@ model RazorpayOrder {
   user_id           String
   /// Set after class booking row exists — one checkout order links to one booking for portal flow.
   booking_id        String?  @unique
+  /// Set after user_packages row exists — package purchase checkout on /portal/packages.
+  user_package_id   String?  @unique
   razorpay_order_id String   @unique
   amount_paise      Int
   currency          String   @default("INR")
@@ -295,9 +305,10 @@ model RazorpayOrder {
   created_at DateTime @default(now())
   updated_at DateTime @updatedAt
 
-  profile  Profile           @relation(fields: [user_id], references: [id], onDelete: Cascade)
-  booking  Booking?          @relation(fields: [booking_id], references: [id], onDelete: SetNull)
-  payments RazorpayPayment[]
+  profile      Profile           @relation(fields: [user_id], references: [id], onDelete: Cascade)
+  booking      Booking?          @relation(fields: [booking_id], references: [id], onDelete: SetNull)
+  user_package UserPackage?      @relation(fields: [user_package_id], references: [id], onDelete: SetNull)
+  payments     RazorpayPayment[]
 
   @@index([user_id])
   @@map("razorpay_orders")
@@ -310,6 +321,7 @@ model RazorpayPayment {
   razorpay_order_id    String
   user_id              String
   booking_id           String?
+  user_package_id      String?
   amount_paise         Int?
   currency             String?   @default("INR")
   status               String
@@ -321,13 +333,15 @@ model RazorpayPayment {
   created_at DateTime @default(now())
   updated_at DateTime @updatedAt
 
-  order   RazorpayOrder @relation(fields: [razorpay_order_id], references: [razorpay_order_id], onDelete: Cascade)
-  profile Profile       @relation(fields: [user_id], references: [id], onDelete: Cascade)
-  booking Booking?      @relation(fields: [booking_id], references: [id], onDelete: SetNull)
+  order        RazorpayOrder @relation(fields: [razorpay_order_id], references: [razorpay_order_id], onDelete: Cascade)
+  profile      Profile       @relation(fields: [user_id], references: [id], onDelete: Cascade)
+  booking      Booking?      @relation(fields: [booking_id], references: [id], onDelete: SetNull)
+  user_package UserPackage?  @relation(fields: [user_package_id], references: [id], onDelete: SetNull)
 
   @@index([user_id])
   @@index([razorpay_order_id])
   @@index([booking_id])
+  @@index([user_package_id])
   @@map("razorpay_payments")
 }
 

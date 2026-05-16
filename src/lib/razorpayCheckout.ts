@@ -1,5 +1,7 @@
 /** Browser-only helpers for Razorpay Hosted Checkout (script loader + modal). */
 
+import { razorpayKeyMode } from "@/lib/razorpayClientHints";
+
 export type RazorpaySuccessPayload = {
   razorpay_payment_id: string;
   razorpay_order_id: string;
@@ -9,6 +11,8 @@ export type RazorpaySuccessPayload = {
 /** Resolved outcome — avoids throwing on user dismiss / gateway failure (no Next.js error overlay). */
 export type RazorpayOrderPayResult =
   | { kind: "success"; payload: RazorpaySuccessPayload }
+  /** Browser navigated away to complete payment; finish on `callback_url` return page. */
+  | { kind: "redirect" }
   | { kind: "cancelled" }
   | { kind: "failed"; message: string };
 
@@ -93,6 +97,12 @@ export async function payWithRazorpayOrder(options: {
   prefill?: RazorpayPrefill;
   /** Razorpay theme accent (hex, without relying on CSS variables). */
   themeColorHex?: string;
+  /** Merchant return URL when Razorpay redirects (required for test pg_router / some methods). */
+  callbackUrl?: string;
+  /**
+   * `false` = modal + `handler` (default). `true` = redirect back to `callbackUrl` with payment query params.
+   */
+  redirect?: boolean;
 }): Promise<RazorpayOrderPayResult> {
   await loadRazorpayCheckoutScript();
   const Rzp = window.Razorpay;
@@ -100,20 +110,23 @@ export async function payWithRazorpayOrder(options: {
     throw new Error("Razorpay Checkout did not initialize.");
   }
 
-  const amountStr = String(Math.round(Number(options.amountPaise)));
+  const useRedirect = options.redirect === true;
+  const callbackUrl = options.callbackUrl?.trim() || undefined;
+  const isTestKey = razorpayKeyMode(options.keyId) === "test";
 
   return new Promise((resolve, reject) => {
     let settled = false;
 
+    // With `order_id`, amount is taken from the Order — omit `amount` to avoid mismatch errors.
     const checkoutOptions: Record<string, unknown> = {
       key: options.keyId,
-      amount: amountStr,
       currency: options.currency,
       order_id: options.orderId,
       name: options.name,
       description: options.description,
       prefill: options.prefill ?? {},
       theme: { color: options.themeColorHex ?? "#8F9779" },
+      redirect: useRedirect,
       handler(response: RazorpaySuccessPayload) {
         settled = true;
         resolve({ kind: "success", payload: response });
@@ -122,11 +135,23 @@ export async function payWithRazorpayOrder(options: {
         ondismiss() {
           if (!settled) {
             settled = true;
-            resolve({ kind: "cancelled" });
+            resolve({ kind: useRedirect ? "redirect" : "cancelled" });
           }
         },
       },
     };
+
+    if (callbackUrl) {
+      checkoutOptions.callback_url = callbackUrl;
+    }
+
+    if (isTestKey) {
+      checkoutOptions.config = {
+        display: {
+          preferences: { show_default_blocks: true },
+        },
+      };
+    }
 
     const rzp = new Rzp(checkoutOptions);
 
