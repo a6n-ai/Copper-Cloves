@@ -17,11 +17,16 @@ function isServerlessUploadRuntime(): boolean {
 
 function inferImageMimeFromName(name: string | null | undefined): string | null {
   if (!name) return null;
-  const lower = name.toLowerCase();
-  if (lower.endsWith(".png")) return "image/png";
-  if (lower.endsWith(".webp")) return "image/webp";
-  if (lower.endsWith(".jpg") || lower.endsWith(".jpeg")) return "image/jpeg";
-  return null;
+  const ext = name.toLowerCase().split(".").pop() ?? "";
+  const map: Record<string, string> = {
+    jpg: "image/jpeg", jpeg: "image/jpeg",
+    png: "image/png", webp: "image/webp",
+    gif: "image/gif", avif: "image/avif",
+    heic: "image/heic", heif: "image/heif",
+    bmp: "image/bmp", tiff: "image/tiff", tif: "image/tiff",
+    svg: "image/svg+xml",
+  };
+  return map[ext] ?? null;
 }
 
 function resolveImageMime(

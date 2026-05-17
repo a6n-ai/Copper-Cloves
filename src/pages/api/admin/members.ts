@@ -53,7 +53,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   }
 
   if (req.method === "PATCH") {
-    const { profile_id, user_package_id, credits_delta, expiration_date, pass_type } = req.body ?? {};
+    const { profile_id, user_package_id, credits_delta, expiration_date, pass_type, start_date } = req.body ?? {};
     if (!profile_id || typeof profile_id !== "string") {
       return res.status(400).json({ error: "profile_id required" });
     }
@@ -101,6 +101,15 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       await prisma.profile.update({
         where: { id: profile_id },
         data: { pass_type },
+      });
+    }
+
+    if (start_date && typeof start_date === "string") {
+      const d = new Date(start_date);
+      if (Number.isNaN(d.getTime())) return res.status(400).json({ error: "Invalid start_date" });
+      await prisma.profile.update({
+        where: { id: profile_id },
+        data: { start_date: d },
       });
     }
 

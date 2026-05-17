@@ -1,5 +1,6 @@
 import { Toaster } from "@/components/ui/toaster";
 import "@/styles/globals.css";
+import "react-easy-crop/react-easy-crop.css";
 import type { AppProps } from "next/app";
 import Head from "next/head";
 import { useRouter } from "next/router";

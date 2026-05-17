@@ -83,12 +83,15 @@ export default function ControlPanel() {
     email: "",
     phone: "",
     password: "",
-    pass_type: "studio_pass" as "studio_pass" | "class_pass",
-    package_type_id: "",
-    class_or_days_count: "",
-    expiry_date: "",
+    pass_type: "class_pass" as "studio_pass" | "class_pass",
+    class_or_days_count: "4",
+    start_date: new Date().toISOString().slice(0, 10),
   });
-  const [packageTypesList, setPackageTypesList] = useState<{ id: string; name: string }[]>([]);
+  const [editPassType, setEditPassType] = useState<"class_pass" | "studio_pass">("class_pass");
+  const [editClassCredits, setEditClassCredits] = useState<string>("");
+  const [editDays, setEditDays] = useState<string>("");
+  const [editStartDate, setEditStartDate] = useState<string>("");
+  const [editEndDate, setEditEndDate] = useState<string>("");
   const [creatingUser, setCreatingUser] = useState(false);
   const [imagePreview, setImagePreview] = useState<string>("");
   const [classImagePreview, setClassImagePreview] = useState<string>("");
@@ -130,20 +133,7 @@ export default function ControlPanel() {
     }
   }, [status, session, router]);
 
-  useEffect(() => {
-    if (!showAddUserDialog) return;
-    void fetch("/api/packages", { credentials: "same-origin" })
-      .then((r) => r.json())
-      .then((d) => {
-        if (Array.isArray(d)) {
-          setPackageTypesList(
-            d.map((x: { id: string; name: string }) => ({ id: String(x.id), name: String(x.name) }))
-          );
-        }
-      });
-  }, [showAddUserDialog]);
-
-  async function fetchPayoutData() {
+async function fetchPayoutData() {
     try {
       const res = await fetch("/api/admin/instructor-payouts");
       if (!res.ok) {
@@ -342,11 +332,10 @@ export default function ControlPanel() {
           phone: newUserForm.phone.trim() || null,
           password: newUserForm.password,
           pass_type: newUserForm.pass_type,
-          package_type_id: newUserForm.package_type_id.trim() || null,
-          class_or_days_count: newUserForm.class_or_days_count.trim()
+          class_or_days_count: newUserForm.class_or_days_count
             ? Number(newUserForm.class_or_days_count)
             : undefined,
-          expiry_date: newUserForm.expiry_date.trim() || null,
+          start_date: newUserForm.start_date || null,
         }),
       });
       const data = await res.json().catch(() => ({}));
@@ -361,14 +350,77 @@ export default function ControlPanel() {
         email: "",
         phone: "",
         password: "",
-        pass_type: "studio_pass",
-        package_type_id: "",
-        class_or_days_count: "",
-        expiry_date: "",
+        pass_type: "class_pass",
+        class_or_days_count: "4",
+        start_date: new Date().toISOString().slice(0, 10),
       });
       fetchUsers();
     } finally {
       setCreatingUser(false);
+    }
+  }
+
+  async function handleEditUserSave() {
+    if (!selectedUser) return;
+    try {
+      const patchBase = { profile_id: selectedUser.id };
+
+      if (editPassType === "class_pass" && editClassCredits) {
+        const current = typeof selectedUser.classesRemaining === "number" ? selectedUser.classesRemaining : 0;
+        await fetch("/api/admin/members", {
+          method: "PATCH",
+          headers: { "Content-Type": "application/json" },
+          credentials: "same-origin",
+          body: JSON.stringify({
+            ...patchBase,
+            credits_delta: Number(editClassCredits) - current,
+            pass_type: "class_pass",
+            ...(editEndDate ? { expiration_date: editEndDate } : {}),
+          }),
+        });
+      } else if (editPassType === "studio_pass" && (editDays || editEndDate)) {
+        let expiryStr = editEndDate;
+        if (!expiryStr && editDays) {
+          const expiry = new Date();
+          expiry.setDate(expiry.getDate() + Number(editDays));
+          expiryStr = expiry.toISOString().slice(0, 10);
+        }
+        await fetch("/api/admin/members", {
+          method: "PATCH",
+          headers: { "Content-Type": "application/json" },
+          credentials: "same-origin",
+          body: JSON.stringify({ ...patchBase, expiration_date: expiryStr, pass_type: "studio_pass" }),
+        });
+      }
+
+      if (editStartDate) {
+        await fetch("/api/admin/members", {
+          method: "PATCH",
+          headers: { "Content-Type": "application/json" },
+          credentials: "same-origin",
+          body: JSON.stringify({ ...patchBase, start_date: editStartDate }),
+        });
+      }
+
+      setShowEditUserDialog(false);
+      fetchUsers();
+    } catch (e) {
+      alert(e instanceof Error ? e.message : "Could not save changes");
+    }
+  }
+
+  async function handleDeleteUser(userId: string, userName: string) {
+    if (!confirm(`Delete "${userName}" permanently? This cannot be undone.`)) return;
+    try {
+      const res = await fetch(`/api/admin/users?id=${encodeURIComponent(userId)}`, {
+        method: "DELETE",
+        credentials: "same-origin",
+      });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error ?? "Delete failed");
+      fetchUsers();
+    } catch (e) {
+      alert(e instanceof Error ? e.message : "Could not delete user");
     }
   }
 
@@ -816,10 +868,20 @@ export default function ControlPanel() {
                               {user.passType !== "none" && (
                                 <div className="text-center">
                                   <div className="font-body text-sm text-charcoal/60 mb-1">
-                                    Expires
+                                    Start Date
                                   </div>
                                   <div className="font-body font-medium text-charcoal">
-                                    {user.expiry !== "N/A" ? new Date(user.expiry).toLocaleDateString('en-IN', { day: '2-digit', month: 'short' }) : "N/A"}
+                                    {user.start_date ? new Date(user.start_date).toLocaleDateString('en-IN', { day: '2-digit', month: 'short', year: 'numeric' }) : "—"}
+                                  </div>
+                                </div>
+                              )}
+                              {user.passType !== "none" && (
+                                <div className="text-center">
+                                  <div className="font-body text-sm text-charcoal/60 mb-1">
+                                    End Date
+                                  </div>
+                                  <div className="font-body font-medium text-charcoal">
+                                    {user.expiry !== "N/A" ? new Date(user.expiry).toLocaleDateString('en-IN', { day: '2-digit', month: 'short', year: 'numeric' }) : "N/A"}
                                   </div>
                                 </div>
                               )}
@@ -830,6 +892,12 @@ export default function ControlPanel() {
                                   className="border-sage/20 text-sage hover:bg-sage/5 font-body"
                                   onClick={() => {
                                     setSelectedUser(user);
+                                    const pt = user.passType === "studio_pass" ? "studio_pass" : "class_pass";
+                                    setEditPassType(pt);
+                                    setEditClassCredits(pt === "class_pass" && typeof user.classesRemaining === "number" ? String(user.classesRemaining) : "");
+                                    setEditDays("");
+                                    setEditStartDate(user.start_date ? new Date(user.start_date).toISOString().slice(0, 10) : "");
+                                    setEditEndDate(user.expiry && user.expiry !== "N/A" ? new Date(user.expiry).toISOString().slice(0, 10) : "");
                                     setShowEditUserDialog(true);
                                   }}
                                 >
@@ -845,13 +913,14 @@ export default function ControlPanel() {
                                     {user.isPaused ? 'Resume' : 'Pause'}
                                   </Button>
                                 )}
-                                <Button 
-                                  variant="outline" 
+                                <Button
+                                  variant="outline"
                                   size="sm"
                                   className="border-red-500/20 text-red-600 hover:bg-red-50 font-body"
+                                  onClick={() => handleDeleteUser(user.id, user.name || user.full_name || user.email)}
                                 >
                                   <Ban className="h-3.5 w-3.5 mr-1" />
-                                  Deactivate
+                                  Delete
                                 </Button>
                               </div>
                             </div>
@@ -1380,9 +1449,10 @@ export default function ControlPanel() {
               <Label className="font-body text-charcoal">Pass Type</Label>
               <Select
                 value={newUserForm.pass_type}
-                onValueChange={(v) =>
-                  setNewUserForm((s) => ({ ...s, pass_type: v as "studio_pass" | "class_pass" }))
-                }
+                onValueChange={(v) => {
+                  const pt = v as "studio_pass" | "class_pass";
+                  setNewUserForm((s) => ({ ...s, pass_type: pt, class_or_days_count: pt === "class_pass" ? "4" : "30" }));
+                }}
               >
                 <SelectTrigger className="border-sage/20">
                   <SelectValue />
@@ -1394,48 +1464,37 @@ export default function ControlPanel() {
               </Select>
             </div>
             <div className="space-y-2">
-              <Label className="font-body text-charcoal">Package template</Label>
+              <Label className="font-body text-charcoal">
+                {newUserForm.pass_type === "class_pass" ? "Classes Remaining" : "Days Remaining"}
+              </Label>
               <Select
-                value={newUserForm.package_type_id || "__auto__"}
-                onValueChange={(v) =>
-                  setNewUserForm((s) => ({ ...s, package_type_id: v === "__auto__" ? "" : v }))
-                }
+                value={newUserForm.class_or_days_count}
+                onValueChange={(v) => setNewUserForm((s) => ({ ...s, class_or_days_count: v }))}
               >
                 <SelectTrigger className="border-sage/20">
-                  <SelectValue placeholder="Auto-pick from pass type" />
+                  <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="__auto__">Auto (match pass type)</SelectItem>
-                  {packageTypesList.map((pt) => (
-                    <SelectItem key={pt.id} value={pt.id}>
-                      {pt.name}
-                    </SelectItem>
-                  ))}
+                  {newUserForm.pass_type === "class_pass"
+                    ? [1, 4, 8, 12].map((n) => (
+                        <SelectItem key={n} value={String(n)}>
+                          {n} {n === 1 ? "Class" : "Classes"}
+                        </SelectItem>
+                      ))
+                    : [30, 90, 180, 365].map((d) => (
+                        <SelectItem key={d} value={String(d)}>
+                          {d} Days
+                        </SelectItem>
+                      ))}
                 </SelectContent>
               </Select>
             </div>
             <div className="space-y-2">
-              <Label className="font-body text-charcoal">Classes / Days</Label>
-              <Input
-                type="number"
-                min={1}
-                value={newUserForm.class_or_days_count}
-                onChange={(e) =>
-                  setNewUserForm((s) => ({ ...s, class_or_days_count: e.target.value }))
-                }
-                placeholder={newUserForm.pass_type === "class_pass" ? "e.g. 12" : "e.g. 30"}
-                className="border-sage/20 focus:ring-sage placeholder:text-charcoal/40"
-              />
-              <p className="text-xs text-charcoal/50">
-                Class pass: number of credits. Studio pass: duration in days (if no expiry date).
-              </p>
-            </div>
-            <div className="space-y-2">
-              <Label className="font-body text-charcoal">Expiry date (optional)</Label>
+              <Label className="font-body text-charcoal">Start Date</Label>
               <Input
                 type="date"
-                value={newUserForm.expiry_date}
-                onChange={(e) => setNewUserForm((s) => ({ ...s, expiry_date: e.target.value }))}
+                value={newUserForm.start_date}
+                onChange={(e) => setNewUserForm((s) => ({ ...s, start_date: e.target.value }))}
                 className="border-sage/20 focus:ring-sage placeholder:text-charcoal/40"
               />
             </div>
@@ -1469,20 +1528,24 @@ export default function ControlPanel() {
           {selectedUser && (
             <div className="grid grid-cols-2 gap-4 py-4">
               <div className="space-y-2">
-                <Label htmlFor="edit-name" className="font-body text-charcoal">Full Name</Label>
-                <Input id="edit-name" defaultValue={selectedUser.name} className="border-sage/20 focus:ring-sage placeholder:text-charcoal/40" />
+                <Label className="font-body text-charcoal">Full Name</Label>
+                <Input defaultValue={selectedUser.name} disabled className="border-sage/20 bg-sage/5 text-charcoal/60" />
               </div>
               <div className="space-y-2">
-                <Label htmlFor="edit-email" className="font-body text-charcoal">Email</Label>
-                <Input id="edit-email" type="email" defaultValue={selectedUser.email} className="border-sage/20 focus:ring-sage placeholder:text-charcoal/40" />
+                <Label className="font-body text-charcoal">Email</Label>
+                <Input defaultValue={selectedUser.email} disabled className="border-sage/20 bg-sage/5 text-charcoal/60" />
               </div>
               <div className="space-y-2">
-                <Label htmlFor="edit-phone" className="font-body text-charcoal">Phone Number</Label>
-                <Input id="edit-phone" defaultValue={selectedUser.phone} className="border-sage/20 focus:ring-sage placeholder:text-charcoal/40" />
-              </div>
-              <div className="space-y-2">
-                <Label htmlFor="edit-pass-type" className="font-body text-charcoal">Pass Type</Label>
-                <Select defaultValue={selectedUser.passType}>
+                <Label className="font-body text-charcoal">Pass Type</Label>
+                <Select
+                  value={editPassType}
+                  onValueChange={(v) => {
+                    const pt = v as "class_pass" | "studio_pass";
+                    setEditPassType(pt);
+                    setEditClassCredits("");
+                    setEditDays("");
+                  }}
+                >
                   <SelectTrigger className="border-sage/20">
                     <SelectValue />
                   </SelectTrigger>
@@ -1492,68 +1555,64 @@ export default function ControlPanel() {
                   </SelectContent>
                 </Select>
               </div>
-              {selectedUser.passType === "class_pass" ? (
+              {editPassType === "class_pass" ? (
                 <div className="space-y-2">
-                  <Label htmlFor="edit-classes" className="font-body text-charcoal">Classes Remaining</Label>
-                  <div className="flex gap-2">
-                    <Input 
-                      id="edit-classes" 
-                      type="number" 
-                      defaultValue={selectedUser.classesRemaining} 
-                      className="border-sage/20 focus:ring-sage placeholder:text-charcoal/40" 
-                    />
-                    <Button variant="outline" size="sm" className="border-sage/20 text-sage hover:bg-sage/5">
-                      <Plus className="h-4 w-4" />
-                    </Button>
-                  </div>
+                  <Label className="font-body text-charcoal">Classes Remaining</Label>
+                  <Select value={editClassCredits} onValueChange={setEditClassCredits}>
+                    <SelectTrigger className="border-sage/20">
+                      <SelectValue placeholder="Select classes" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {[1, 4, 8, 12].map((n) => (
+                        <SelectItem key={n} value={String(n)}>
+                          {n} {n === 1 ? "Class" : "Classes"}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
                 </div>
               ) : (
                 <div className="space-y-2">
-                  <Label htmlFor="edit-days" className="font-body text-charcoal">Days Remaining</Label>
-                  <Input 
-                    id="edit-days" 
-                    type="number" 
-                    defaultValue={selectedUser.daysRemaining} 
-                    className="border-sage/20 focus:ring-sage placeholder:text-charcoal/40" 
-                    disabled
-                  />
-                  <p className="text-xs text-charcoal/50">Calculated from expiry date</p>
+                  <Label className="font-body text-charcoal">Days Remaining (from today)</Label>
+                  <Select value={editDays} onValueChange={setEditDays}>
+                    <SelectTrigger className="border-sage/20">
+                      <SelectValue placeholder="Select days" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {[30, 90, 180, 365].map((d) => (
+                        <SelectItem key={d} value={String(d)}>
+                          {d} Days
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
                 </div>
               )}
               <div className="space-y-2">
-                <Label htmlFor="edit-expiry" className="font-body text-charcoal">Expiry Date</Label>
-                <Input 
-                  id="edit-expiry" 
-                  type="date" 
-                  defaultValue={selectedUser.expiry} 
-                  className="border-sage/20 focus:ring-sage placeholder:text-charcoal/40" 
+                <Label className="font-body text-charcoal">Start Date</Label>
+                <Input
+                  type="date"
+                  value={editStartDate}
+                  onChange={(e) => setEditStartDate(e.target.value)}
+                  className="border-sage/20 focus:ring-sage"
                 />
               </div>
-              {selectedUser.passType === "studio_pass" && (
-                <div className="col-span-2 space-y-2">
-                  <div className="flex items-center justify-between p-4 bg-amber-50 rounded-lg border border-amber-200">
-                    <div>
-                      <div className="font-body font-medium text-charcoal mb-1">Pass Status</div>
-                      <div className="font-body text-sm text-charcoal/60">
-                        {selectedUser.isPaused ? 'Currently paused - membership frozen' : 'Active - unlimited access'}
-                      </div>
-                    </div>
-                    <Button 
-                      variant="outline" 
-                      className={`${selectedUser.isPaused ? 'border-sage/20 text-sage hover:bg-sage/5' : 'border-amber-500/20 text-amber-600 hover:bg-amber-50'}`}
-                    >
-                      {selectedUser.isPaused ? 'Resume Pass' : 'Pause Pass'}
-                    </Button>
-                  </div>
-                </div>
-              )}
+              <div className="space-y-2">
+                <Label className="font-body text-charcoal">End Date</Label>
+                <Input
+                  type="date"
+                  value={editEndDate}
+                  onChange={(e) => setEditEndDate(e.target.value)}
+                  className="border-sage/20 focus:ring-sage"
+                />
+              </div>
             </div>
           )}
           <DialogFooter>
             <Button variant="outline" onClick={() => setShowEditUserDialog(false)} className="border-sage/20 font-body">
               Cancel
             </Button>
-            <Button className="bg-sage hover:bg-sage/90 text-white font-body">
+            <Button className="bg-sage hover:bg-sage/90 text-white font-body" onClick={() => void handleEditUserSave()}>
               <Save className="h-4 w-4 mr-2" />
               Save Changes
             </Button>

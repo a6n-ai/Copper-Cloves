@@ -15,7 +15,7 @@ import { PhoneInput, type PhoneValue } from "@/components/ui/phone-input";
 import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { FormAlert } from "@/components/ui/form-alert";
-import { Loader2, CheckCircle2 } from "lucide-react";
+import { Loader2, CheckCircle2, ChevronDown } from "lucide-react";
 import { SEO } from "@/components/SEO";
 import { signUp } from "@/services/authService";
 
@@ -29,9 +29,9 @@ const signupSchema = z
       .refine((v) => !v || isValidPhoneNumber(v), "Please enter a valid phone number"),
     password: z.string().min(6, "Password must be at least 6 characters"),
     confirmPassword: z.string().min(1, "Please confirm your password"),
-    acceptTerms: z.boolean().refine((v) => v, "You must accept the Terms of Service"),
-    acceptPrivacy: z.boolean().refine((v) => v, "You must accept the Privacy Policy"),
-    acceptWaiver: z.boolean().refine((v) => v, "You must accept the Liability Waiver"),
+    acceptAll: z
+      .boolean()
+      .refine((v) => v, "Please accept our Terms, Privacy Policy, and Liability Waiver to continue"),
   })
   .refine((d) => d.password === d.confirmPassword, {
     message: "Passwords do not match",
@@ -44,6 +44,7 @@ export default function SignupPage() {
   const router = useRouter();
   const [apiError, setApiError] = useState<string | null>(null);
   const [success, setSuccess] = useState(false);
+  const [waiverExpanded, setWaiverExpanded] = useState(false);
 
   const {
     register,
@@ -55,9 +56,7 @@ export default function SignupPage() {
     resolver: zodResolver(signupSchema),
     mode: "onTouched",
     defaultValues: {
-      acceptTerms: false,
-      acceptPrivacy: false,
-      acceptWaiver: false,
+      acceptAll: false,
     },
   });
 
@@ -273,84 +272,70 @@ export default function SignupPage() {
                   )}
                 </div>
 
-                {/* Consent checkboxes */}
-                <div className="space-y-3 pt-2 border-t border-sage/10">
-                  <p className="text-xs text-charcoal/50 font-body">Please read and accept the following before creating your account</p>
+                {/* Combined consent */}
+                <div className="pt-2 border-t border-sage/10 space-y-3">
+                  {/* Waiver inline summary (expandable) */}
+                  <div className="rounded-xl border border-sage/20 overflow-hidden">
+                    <button
+                      type="button"
+                      onClick={() => setWaiverExpanded(v => !v)}
+                      className="w-full flex items-center justify-between px-4 py-3 bg-sage/5 hover:bg-sage/10 transition-colors text-left"
+                    >
+                      <span className="font-body text-sm font-medium text-charcoal/80">
+                        Liability Waiver — key points
+                      </span>
+                      <ChevronDown
+                        size={16}
+                        className={`text-sage transition-transform duration-200 ${waiverExpanded ? "rotate-180" : ""}`}
+                      />
+                    </button>
+                    {waiverExpanded && (
+                      <div className="px-4 py-3 bg-white text-xs font-body text-charcoal/70 space-y-1.5 leading-relaxed">
+                        <p>• Physical activity carries inherent risk of injury. You participate voluntarily.</p>
+                        <p>• You confirm you are medically fit to participate in studio classes.</p>
+                        <p>• The Studio by Copper + Cloves is not liable for injury, illness, or loss of personal property.</p>
+                        <p>• In an emergency you consent to first-aid treatment and medical care.</p>
+                        <p>• You may be photographed or filmed for studio use; opt out at reception.</p>
+                      </div>
+                    )}
+                  </div>
 
+                  {/* Single checkbox */}
                   <div className="space-y-1">
                     <div className="flex items-start gap-3">
                       <Controller
-                        name="acceptTerms"
+                        name="acceptAll"
                         control={control}
                         render={({ field }) => (
                           <Checkbox
-                            id="acceptTerms"
+                            id="acceptAll"
                             checked={field.value}
                             onCheckedChange={field.onChange}
-                            className="mt-0.5"
+                            className="mt-0.5 data-[state=checked]:bg-sage data-[state=checked]:border-sage"
                           />
                         )}
                       />
-                      <label htmlFor="acceptTerms" className="text-sm font-body text-charcoal/80 cursor-pointer leading-snug">
-                        I have read and agree to the{" "}
+                      <label htmlFor="acceptAll" className="text-sm font-body text-charcoal/80 cursor-pointer leading-snug">
+                        I agree to the{" "}
                         <a href="https://thestudiobycopperandcloves.in/terms" target="_blank" rel="noopener noreferrer" className="text-sage underline underline-offset-2 hover:text-sage/80">
                           Terms of Service
                         </a>
-                      </label>
-                    </div>
-                    {errors.acceptTerms && (
-                      <p className="text-xs text-red-600 font-body ml-7">{errors.acceptTerms.message}</p>
-                    )}
-                  </div>
-
-                  <div className="space-y-1">
-                    <div className="flex items-start gap-3">
-                      <Controller
-                        name="acceptPrivacy"
-                        control={control}
-                        render={({ field }) => (
-                          <Checkbox
-                            id="acceptPrivacy"
-                            checked={field.value}
-                            onCheckedChange={field.onChange}
-                            className="mt-0.5"
-                          />
-                        )}
-                      />
-                      <label htmlFor="acceptPrivacy" className="text-sm font-body text-charcoal/80 cursor-pointer leading-snug">
-                        I have read and agree to the{" "}
+                        {", "}
                         <a href="https://thestudiobycopperandcloves.in/policy" target="_blank" rel="noopener noreferrer" className="text-sage underline underline-offset-2 hover:text-sage/80">
                           Privacy Policy
                         </a>
+                        {", and "}
+                        <button
+                          type="button"
+                          onClick={() => setWaiverExpanded(true)}
+                          className="text-sage underline underline-offset-2 hover:text-sage/80"
+                        >
+                          Liability Waiver
+                        </button>
                       </label>
                     </div>
-                    {errors.acceptPrivacy && (
-                      <p className="text-xs text-red-600 font-body ml-7">{errors.acceptPrivacy.message}</p>
-                    )}
-                  </div>
-
-                  <div className="space-y-1">
-                    <div className="flex items-start gap-3">
-                      <Controller
-                        name="acceptWaiver"
-                        control={control}
-                        render={({ field }) => (
-                          <Checkbox
-                            id="acceptWaiver"
-                            checked={field.value}
-                            onCheckedChange={field.onChange}
-                            className="mt-0.5"
-                          />
-                        )}
-                      />
-                      <label htmlFor="acceptWaiver" className="text-sm font-body text-charcoal/80 cursor-pointer leading-snug">
-                        I have read and accept the{" "}
-                        <span className="text-sage/60 italic text-xs">(PDF available soon)</span>{" "}
-                        Liability Waiver
-                      </label>
-                    </div>
-                    {errors.acceptWaiver && (
-                      <p className="text-xs text-red-600 font-body ml-7">{errors.acceptWaiver.message}</p>
+                    {errors.acceptAll && (
+                      <p className="text-xs text-red-600 font-body ml-7">{errors.acceptAll.message}</p>
                     )}
                   </div>
                 </div>

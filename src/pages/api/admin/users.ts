@@ -10,6 +10,16 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   const role = (session.user as { role?: string }).role;
   if (role !== "admin") return res.status(403).json({ error: "Forbidden" });
 
+  if (req.method === "DELETE") {
+    const id = typeof req.query.id === "string" ? req.query.id.trim() : "";
+    if (!id) return res.status(400).json({ error: "User id is required." });
+    const target = await prisma.profile.findUnique({ where: { id }, select: { role: true } });
+    if (!target) return res.status(404).json({ error: "User not found." });
+    if (target.role === "admin") return res.status(403).json({ error: "Cannot delete admin accounts." });
+    await prisma.profile.delete({ where: { id } });
+    return res.status(200).json({ ok: true });
+  }
+
   if (req.method !== "POST") return res.status(405).end();
 
   const body = req.body ?? {};
@@ -27,6 +37,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       : null;
   const class_or_days_count = Number(body.class_or_days_count ?? body.amount ?? NaN);
   const expiry_raw = typeof body.expiry_date === "string" ? body.expiry_date.trim() : "";
+  const start_date_raw = typeof body.start_date === "string" ? body.start_date.trim() : "";
 
   if (!email || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
     return res.status(400).json({ error: "Valid email is required." });
@@ -53,6 +64,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
           hashedPassword,
           role: "user",
           pass_type,
+          start_date: start_date_raw ? new Date(start_date_raw) : undefined,
         },
       });
 

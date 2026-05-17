@@ -25,6 +25,7 @@ model Profile {
   onboarding_completed Boolean  @default(false)
   questionnaire        Json?
   terms_accepted_at    DateTime?
+  start_date           DateTime?
   created_at           DateTime @default(now())
   updated_at           DateTime @updatedAt
 
@@ -372,7 +373,7 @@ model CafeItem {
 model CafeOrder {
   id             String   @id @default(uuid())
   user_id        String
-  cafe_item_id   String
+  cafe_item_id   String?
   booking_id     String?
   quantity       Int      @default(1)
   payment_method String
@@ -384,7 +385,7 @@ model CafeOrder {
   batch_id       String?
 
   profile   Profile   @relation(fields: [user_id], references: [id], onDelete: Cascade)
-  cafe_item CafeItem  @relation(fields: [cafe_item_id], references: [id], onDelete: Restrict)
+  cafe_item CafeItem? @relation(fields: [cafe_item_id], references: [id], onDelete: SetNull)
   booking   Booking?  @relation(fields: [booking_id], references: [id], onDelete: SetNull)
   coupon    Coupon?   @relation(fields: [coupon_id], references: [id], onDelete: SetNull)
 

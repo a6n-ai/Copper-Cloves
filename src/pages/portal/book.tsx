@@ -1467,7 +1467,7 @@ export default function BookClass() {
                       </span>
                     )}
                     {userPackage.isUnlimited && UNLIMITED_DISCOUNTS[userPackage.name] && (
-                      <span className="block text-sage mt-1">
+                      <span className="block text-sage mt-1 font-bold">
                         ✓ Your {userPackage.name} includes {((UNLIMITED_DISCOUNTS[userPackage.name] || 0) * 100).toFixed(0)}% off on café items
                       </span>
                     )}

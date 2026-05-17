@@ -35,7 +35,7 @@ export async function sendHtmlEmailViaGmailSmtp(options: {
 
   try {
     await transporter.sendMail({
-      from: `"Copper & Cloves" <${from}>`,
+      from,
       to: options.to.trim(),
       subject: options.subject,
       html: options.html,

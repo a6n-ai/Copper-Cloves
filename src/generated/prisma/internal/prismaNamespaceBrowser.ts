@@ -116,6 +116,7 @@ export const ProfileScalarFieldEnum = {
   onboarding_completed: 'onboarding_completed',
   questionnaire: 'questionnaire',
   terms_accepted_at: 'terms_accepted_at',
+  start_date: 'start_date',
   created_at: 'created_at',
   updated_at: 'updated_at'
 } as const

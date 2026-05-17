@@ -49,6 +49,7 @@ export type ProfileMinAggregateOutputType = {
   gender: string | null
   onboarding_completed: boolean | null
   terms_accepted_at: Date | null
+  start_date: Date | null
   created_at: Date | null
   updated_at: Date | null
 }
@@ -68,6 +69,7 @@ export type ProfileMaxAggregateOutputType = {
   gender: string | null
   onboarding_completed: boolean | null
   terms_accepted_at: Date | null
+  start_date: Date | null
   created_at: Date | null
   updated_at: Date | null
 }
@@ -88,6 +90,7 @@ export type ProfileCountAggregateOutputType = {
   onboarding_completed: number
   questionnaire: number
   terms_accepted_at: number
+  start_date: number
   created_at: number
   updated_at: number
   _all: number
@@ -117,6 +120,7 @@ export type ProfileMinAggregateInputType = {
   gender?: true
   onboarding_completed?: true
   terms_accepted_at?: true
+  start_date?: true
   created_at?: true
   updated_at?: true
 }
@@ -136,6 +140,7 @@ export type ProfileMaxAggregateInputType = {
   gender?: true
   onboarding_completed?: true
   terms_accepted_at?: true
+  start_date?: true
   created_at?: true
   updated_at?: true
 }
@@ -156,6 +161,7 @@ export type ProfileCountAggregateInputType = {
   onboarding_completed?: true
   questionnaire?: true
   terms_accepted_at?: true
+  start_date?: true
   created_at?: true
   updated_at?: true
   _all?: true
@@ -263,6 +269,7 @@ export type ProfileGroupByOutputType = {
   onboarding_completed: boolean
   questionnaire: runtime.JsonValue | null
   terms_accepted_at: Date | null
+  start_date: Date | null
   created_at: Date
   updated_at: Date
   _count: ProfileCountAggregateOutputType | null
@@ -306,6 +313,7 @@ export type ProfileWhereInput = {
   onboarding_completed?: Prisma.BoolFilter<"Profile"> | boolean
   questionnaire?: Prisma.JsonNullableFilter<"Profile">
   terms_accepted_at?: Prisma.DateTimeNullableFilter<"Profile"> | Date | string | null
+  start_date?: Prisma.DateTimeNullableFilter<"Profile"> | Date | string | null
   created_at?: Prisma.DateTimeFilter<"Profile"> | Date | string
   updated_at?: Prisma.DateTimeFilter<"Profile"> | Date | string
   bookings?: Prisma.BookingListRelationFilter
@@ -342,6 +350,7 @@ export type ProfileOrderByWithRelationInput = {
   onboarding_completed?: Prisma.SortOrder
   questionnaire?: Prisma.SortOrderInput | Prisma.SortOrder
   terms_accepted_at?: Prisma.SortOrderInput | Prisma.SortOrder
+  start_date?: Prisma.SortOrderInput | Prisma.SortOrder
   created_at?: Prisma.SortOrder
   updated_at?: Prisma.SortOrder
   bookings?: Prisma.BookingOrderByRelationAggregateInput
@@ -381,6 +390,7 @@ export type ProfileWhereUniqueInput = Prisma.AtLeast<{
   onboarding_completed?: Prisma.BoolFilter<"Profile"> | boolean
   questionnaire?: Prisma.JsonNullableFilter<"Profile">
   terms_accepted_at?: Prisma.DateTimeNullableFilter<"Profile"> | Date | string | null
+  start_date?: Prisma.DateTimeNullableFilter<"Profile"> | Date | string | null
   created_at?: Prisma.DateTimeFilter<"Profile"> | Date | string
   updated_at?: Prisma.DateTimeFilter<"Profile"> | Date | string
   bookings?: Prisma.BookingListRelationFilter
@@ -417,6 +427,7 @@ export type ProfileOrderByWithAggregationInput = {
   onboarding_completed?: Prisma.SortOrder
   questionnaire?: Prisma.SortOrderInput | Prisma.SortOrder
   terms_accepted_at?: Prisma.SortOrderInput | Prisma.SortOrder
+  start_date?: Prisma.SortOrderInput | Prisma.SortOrder
   created_at?: Prisma.SortOrder
   updated_at?: Prisma.SortOrder
   _count?: Prisma.ProfileCountOrderByAggregateInput
@@ -445,6 +456,7 @@ export type ProfileScalarWhereWithAggregatesInput = {
   onboarding_completed?: Prisma.BoolWithAggregatesFilter<"Profile"> | boolean
   questionnaire?: Prisma.JsonNullableWithAggregatesFilter<"Profile">
   terms_accepted_at?: Prisma.DateTimeNullableWithAggregatesFilter<"Profile"> | Date | string | null
+  start_date?: Prisma.DateTimeNullableWithAggregatesFilter<"Profile"> | Date | string | null
   created_at?: Prisma.DateTimeWithAggregatesFilter<"Profile"> | Date | string
   updated_at?: Prisma.DateTimeWithAggregatesFilter<"Profile"> | Date | string
 }
@@ -465,6 +477,7 @@ export type ProfileCreateInput = {
   onboarding_completed?: boolean
   questionnaire?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   terms_accepted_at?: Date | string | null
+  start_date?: Date | string | null
   created_at?: Date | string
   updated_at?: Date | string
   bookings?: Prisma.BookingCreateNestedManyWithoutProfileInput
@@ -501,6 +514,7 @@ export type ProfileUncheckedCreateInput = {
   onboarding_completed?: boolean
   questionnaire?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   terms_accepted_at?: Date | string | null
+  start_date?: Date | string | null
   created_at?: Date | string
   updated_at?: Date | string
   bookings?: Prisma.BookingUncheckedCreateNestedManyWithoutProfileInput
@@ -537,6 +551,7 @@ export type ProfileUpdateInput = {
   onboarding_completed?: Prisma.BoolFieldUpdateOperationsInput | boolean
   questionnaire?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   terms_accepted_at?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  start_date?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   created_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updated_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   bookings?: Prisma.BookingUpdateManyWithoutProfileNestedInput
@@ -573,6 +588,7 @@ export type ProfileUncheckedUpdateInput = {
   onboarding_completed?: Prisma.BoolFieldUpdateOperationsInput | boolean
   questionnaire?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   terms_accepted_at?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  start_date?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   created_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updated_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   bookings?: Prisma.BookingUncheckedUpdateManyWithoutProfileNestedInput
@@ -609,6 +625,7 @@ export type ProfileCreateManyInput = {
   onboarding_completed?: boolean
   questionnaire?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   terms_accepted_at?: Date | string | null
+  start_date?: Date | string | null
   created_at?: Date | string
   updated_at?: Date | string
 }
@@ -629,6 +646,7 @@ export type ProfileUpdateManyMutationInput = {
   onboarding_completed?: Prisma.BoolFieldUpdateOperationsInput | boolean
   questionnaire?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   terms_accepted_at?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  start_date?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   created_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updated_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
 }
@@ -649,6 +667,7 @@ export type ProfileUncheckedUpdateManyInput = {
   onboarding_completed?: Prisma.BoolFieldUpdateOperationsInput | boolean
   questionnaire?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   terms_accepted_at?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  start_date?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   created_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updated_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
 }
@@ -669,6 +688,7 @@ export type ProfileCountOrderByAggregateInput = {
   onboarding_completed?: Prisma.SortOrder
   questionnaire?: Prisma.SortOrder
   terms_accepted_at?: Prisma.SortOrder
+  start_date?: Prisma.SortOrder
   created_at?: Prisma.SortOrder
   updated_at?: Prisma.SortOrder
 }
@@ -692,6 +712,7 @@ export type ProfileMaxOrderByAggregateInput = {
   gender?: Prisma.SortOrder
   onboarding_completed?: Prisma.SortOrder
   terms_accepted_at?: Prisma.SortOrder
+  start_date?: Prisma.SortOrder
   created_at?: Prisma.SortOrder
   updated_at?: Prisma.SortOrder
 }
@@ -711,6 +732,7 @@ export type ProfileMinOrderByAggregateInput = {
   gender?: Prisma.SortOrder
   onboarding_completed?: Prisma.SortOrder
   terms_accepted_at?: Prisma.SortOrder
+  start_date?: Prisma.SortOrder
   created_at?: Prisma.SortOrder
   updated_at?: Prisma.SortOrder
 }
@@ -1007,6 +1029,7 @@ export type ProfileCreateWithoutCoupon_redemptionsInput = {
   onboarding_completed?: boolean
   questionnaire?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   terms_accepted_at?: Date | string | null
+  start_date?: Date | string | null
   created_at?: Date | string
   updated_at?: Date | string
   bookings?: Prisma.BookingCreateNestedManyWithoutProfileInput
@@ -1042,6 +1065,7 @@ export type ProfileUncheckedCreateWithoutCoupon_redemptionsInput = {
   onboarding_completed?: boolean
   questionnaire?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   terms_accepted_at?: Date | string | null
+  start_date?: Date | string | null
   created_at?: Date | string
   updated_at?: Date | string
   bookings?: Prisma.BookingUncheckedCreateNestedManyWithoutProfileInput
@@ -1093,6 +1117,7 @@ export type ProfileUpdateWithoutCoupon_redemptionsInput = {
   onboarding_completed?: Prisma.BoolFieldUpdateOperationsInput | boolean
   questionnaire?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   terms_accepted_at?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  start_date?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   created_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updated_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   bookings?: Prisma.BookingUpdateManyWithoutProfileNestedInput
@@ -1128,6 +1153,7 @@ export type ProfileUncheckedUpdateWithoutCoupon_redemptionsInput = {
   onboarding_completed?: Prisma.BoolFieldUpdateOperationsInput | boolean
   questionnaire?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   terms_accepted_at?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  start_date?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   created_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updated_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   bookings?: Prisma.BookingUncheckedUpdateManyWithoutProfileNestedInput
@@ -1163,6 +1189,7 @@ export type ProfileCreateWithoutRetail_ordersInput = {
   onboarding_completed?: boolean
   questionnaire?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   terms_accepted_at?: Date | string | null
+  start_date?: Date | string | null
   created_at?: Date | string
   updated_at?: Date | string
   bookings?: Prisma.BookingCreateNestedManyWithoutProfileInput
@@ -1198,6 +1225,7 @@ export type ProfileUncheckedCreateWithoutRetail_ordersInput = {
   onboarding_completed?: boolean
   questionnaire?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   terms_accepted_at?: Date | string | null
+  start_date?: Date | string | null
   created_at?: Date | string
   updated_at?: Date | string
   bookings?: Prisma.BookingUncheckedCreateNestedManyWithoutProfileInput
@@ -1249,6 +1277,7 @@ export type ProfileUpdateWithoutRetail_ordersInput = {
   onboarding_completed?: Prisma.BoolFieldUpdateOperationsInput | boolean
   questionnaire?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   terms_accepted_at?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  start_date?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   created_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updated_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   bookings?: Prisma.BookingUpdateManyWithoutProfileNestedInput
@@ -1284,6 +1313,7 @@ export type ProfileUncheckedUpdateWithoutRetail_ordersInput = {
   onboarding_completed?: Prisma.BoolFieldUpdateOperationsInput | boolean
   questionnaire?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   terms_accepted_at?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  start_date?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   created_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updated_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   bookings?: Prisma.BookingUncheckedUpdateManyWithoutProfileNestedInput
@@ -1319,6 +1349,7 @@ export type ProfileCreateWithoutUser_packagesInput = {
   onboarding_completed?: boolean
   questionnaire?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   terms_accepted_at?: Date | string | null
+  start_date?: Date | string | null
   created_at?: Date | string
   updated_at?: Date | string
   bookings?: Prisma.BookingCreateNestedManyWithoutProfileInput
@@ -1354,6 +1385,7 @@ export type ProfileUncheckedCreateWithoutUser_packagesInput = {
   onboarding_completed?: boolean
   questionnaire?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   terms_accepted_at?: Date | string | null
+  start_date?: Date | string | null
   created_at?: Date | string
   updated_at?: Date | string
   bookings?: Prisma.BookingUncheckedCreateNestedManyWithoutProfileInput
@@ -1405,6 +1437,7 @@ export type ProfileUpdateWithoutUser_packagesInput = {
   onboarding_completed?: Prisma.BoolFieldUpdateOperationsInput | boolean
   questionnaire?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   terms_accepted_at?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  start_date?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   created_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updated_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   bookings?: Prisma.BookingUpdateManyWithoutProfileNestedInput
@@ -1440,6 +1473,7 @@ export type ProfileUncheckedUpdateWithoutUser_packagesInput = {
   onboarding_completed?: Prisma.BoolFieldUpdateOperationsInput | boolean
   questionnaire?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   terms_accepted_at?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  start_date?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   created_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updated_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   bookings?: Prisma.BookingUncheckedUpdateManyWithoutProfileNestedInput
@@ -1475,6 +1509,7 @@ export type ProfileCreateWithoutBookingsInput = {
   onboarding_completed?: boolean
   questionnaire?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   terms_accepted_at?: Date | string | null
+  start_date?: Date | string | null
   created_at?: Date | string
   updated_at?: Date | string
   cafe_orders?: Prisma.CafeOrderCreateNestedManyWithoutProfileInput
@@ -1510,6 +1545,7 @@ export type ProfileUncheckedCreateWithoutBookingsInput = {
   onboarding_completed?: boolean
   questionnaire?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   terms_accepted_at?: Date | string | null
+  start_date?: Date | string | null
   created_at?: Date | string
   updated_at?: Date | string
   cafe_orders?: Prisma.CafeOrderUncheckedCreateNestedManyWithoutProfileInput
@@ -1561,6 +1597,7 @@ export type ProfileUpdateWithoutBookingsInput = {
   onboarding_completed?: Prisma.BoolFieldUpdateOperationsInput | boolean
   questionnaire?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   terms_accepted_at?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  start_date?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   created_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updated_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   cafe_orders?: Prisma.CafeOrderUpdateManyWithoutProfileNestedInput
@@ -1596,6 +1633,7 @@ export type ProfileUncheckedUpdateWithoutBookingsInput = {
   onboarding_completed?: Prisma.BoolFieldUpdateOperationsInput | boolean
   questionnaire?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   terms_accepted_at?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  start_date?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   created_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updated_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   cafe_orders?: Prisma.CafeOrderUncheckedUpdateManyWithoutProfileNestedInput
@@ -1631,6 +1669,7 @@ export type ProfileCreateWithoutRazorpay_ordersInput = {
   onboarding_completed?: boolean
   questionnaire?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   terms_accepted_at?: Date | string | null
+  start_date?: Date | string | null
   created_at?: Date | string
   updated_at?: Date | string
   bookings?: Prisma.BookingCreateNestedManyWithoutProfileInput
@@ -1666,6 +1705,7 @@ export type ProfileUncheckedCreateWithoutRazorpay_ordersInput = {
   onboarding_completed?: boolean
   questionnaire?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   terms_accepted_at?: Date | string | null
+  start_date?: Date | string | null
   created_at?: Date | string
   updated_at?: Date | string
   bookings?: Prisma.BookingUncheckedCreateNestedManyWithoutProfileInput
@@ -1717,6 +1757,7 @@ export type ProfileUpdateWithoutRazorpay_ordersInput = {
   onboarding_completed?: Prisma.BoolFieldUpdateOperationsInput | boolean
   questionnaire?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   terms_accepted_at?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  start_date?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   created_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updated_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   bookings?: Prisma.BookingUpdateManyWithoutProfileNestedInput
@@ -1752,6 +1793,7 @@ export type ProfileUncheckedUpdateWithoutRazorpay_ordersInput = {
   onboarding_completed?: Prisma.BoolFieldUpdateOperationsInput | boolean
   questionnaire?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   terms_accepted_at?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  start_date?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   created_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updated_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   bookings?: Prisma.BookingUncheckedUpdateManyWithoutProfileNestedInput
@@ -1787,6 +1829,7 @@ export type ProfileCreateWithoutRazorpay_paymentsInput = {
   onboarding_completed?: boolean
   questionnaire?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   terms_accepted_at?: Date | string | null
+  start_date?: Date | string | null
   created_at?: Date | string
   updated_at?: Date | string
   bookings?: Prisma.BookingCreateNestedManyWithoutProfileInput
@@ -1822,6 +1865,7 @@ export type ProfileUncheckedCreateWithoutRazorpay_paymentsInput = {
   onboarding_completed?: boolean
   questionnaire?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   terms_accepted_at?: Date | string | null
+  start_date?: Date | string | null
   created_at?: Date | string
   updated_at?: Date | string
   bookings?: Prisma.BookingUncheckedCreateNestedManyWithoutProfileInput
@@ -1873,6 +1917,7 @@ export type ProfileUpdateWithoutRazorpay_paymentsInput = {
   onboarding_completed?: Prisma.BoolFieldUpdateOperationsInput | boolean
   questionnaire?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   terms_accepted_at?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  start_date?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   created_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updated_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   bookings?: Prisma.BookingUpdateManyWithoutProfileNestedInput
@@ -1908,6 +1953,7 @@ export type ProfileUncheckedUpdateWithoutRazorpay_paymentsInput = {
   onboarding_completed?: Prisma.BoolFieldUpdateOperationsInput | boolean
   questionnaire?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   terms_accepted_at?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  start_date?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   created_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updated_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   bookings?: Prisma.BookingUncheckedUpdateManyWithoutProfileNestedInput
@@ -1943,6 +1989,7 @@ export type ProfileCreateWithoutCafe_ordersInput = {
   onboarding_completed?: boolean
   questionnaire?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   terms_accepted_at?: Date | string | null
+  start_date?: Date | string | null
   created_at?: Date | string
   updated_at?: Date | string
   bookings?: Prisma.BookingCreateNestedManyWithoutProfileInput
@@ -1978,6 +2025,7 @@ export type ProfileUncheckedCreateWithoutCafe_ordersInput = {
   onboarding_completed?: boolean
   questionnaire?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   terms_accepted_at?: Date | string | null
+  start_date?: Date | string | null
   created_at?: Date | string
   updated_at?: Date | string
   bookings?: Prisma.BookingUncheckedCreateNestedManyWithoutProfileInput
@@ -2029,6 +2077,7 @@ export type ProfileUpdateWithoutCafe_ordersInput = {
   onboarding_completed?: Prisma.BoolFieldUpdateOperationsInput | boolean
   questionnaire?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   terms_accepted_at?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  start_date?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   created_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updated_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   bookings?: Prisma.BookingUpdateManyWithoutProfileNestedInput
@@ -2064,6 +2113,7 @@ export type ProfileUncheckedUpdateWithoutCafe_ordersInput = {
   onboarding_completed?: Prisma.BoolFieldUpdateOperationsInput | boolean
   questionnaire?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   terms_accepted_at?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  start_date?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   created_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updated_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   bookings?: Prisma.BookingUncheckedUpdateManyWithoutProfileNestedInput
@@ -2099,6 +2149,7 @@ export type ProfileCreateWithoutMeal_subscriptionsInput = {
   onboarding_completed?: boolean
   questionnaire?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   terms_accepted_at?: Date | string | null
+  start_date?: Date | string | null
   created_at?: Date | string
   updated_at?: Date | string
   bookings?: Prisma.BookingCreateNestedManyWithoutProfileInput
@@ -2134,6 +2185,7 @@ export type ProfileUncheckedCreateWithoutMeal_subscriptionsInput = {
   onboarding_completed?: boolean
   questionnaire?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   terms_accepted_at?: Date | string | null
+  start_date?: Date | string | null
   created_at?: Date | string
   updated_at?: Date | string
   bookings?: Prisma.BookingUncheckedCreateNestedManyWithoutProfileInput
@@ -2185,6 +2237,7 @@ export type ProfileUpdateWithoutMeal_subscriptionsInput = {
   onboarding_completed?: Prisma.BoolFieldUpdateOperationsInput | boolean
   questionnaire?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   terms_accepted_at?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  start_date?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   created_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updated_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   bookings?: Prisma.BookingUpdateManyWithoutProfileNestedInput
@@ -2220,6 +2273,7 @@ export type ProfileUncheckedUpdateWithoutMeal_subscriptionsInput = {
   onboarding_completed?: Prisma.BoolFieldUpdateOperationsInput | boolean
   questionnaire?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   terms_accepted_at?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  start_date?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   created_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updated_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   bookings?: Prisma.BookingUncheckedUpdateManyWithoutProfileNestedInput
@@ -2255,6 +2309,7 @@ export type ProfileCreateWithoutUser_statsInput = {
   onboarding_completed?: boolean
   questionnaire?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   terms_accepted_at?: Date | string | null
+  start_date?: Date | string | null
   created_at?: Date | string
   updated_at?: Date | string
   bookings?: Prisma.BookingCreateNestedManyWithoutProfileInput
@@ -2290,6 +2345,7 @@ export type ProfileUncheckedCreateWithoutUser_statsInput = {
   onboarding_completed?: boolean
   questionnaire?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   terms_accepted_at?: Date | string | null
+  start_date?: Date | string | null
   created_at?: Date | string
   updated_at?: Date | string
   bookings?: Prisma.BookingUncheckedCreateNestedManyWithoutProfileInput
@@ -2341,6 +2397,7 @@ export type ProfileUpdateWithoutUser_statsInput = {
   onboarding_completed?: Prisma.BoolFieldUpdateOperationsInput | boolean
   questionnaire?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   terms_accepted_at?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  start_date?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   created_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updated_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   bookings?: Prisma.BookingUpdateManyWithoutProfileNestedInput
@@ -2376,6 +2433,7 @@ export type ProfileUncheckedUpdateWithoutUser_statsInput = {
   onboarding_completed?: Prisma.BoolFieldUpdateOperationsInput | boolean
   questionnaire?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   terms_accepted_at?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  start_date?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   created_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updated_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   bookings?: Prisma.BookingUncheckedUpdateManyWithoutProfileNestedInput
@@ -2411,6 +2469,7 @@ export type ProfileCreateWithoutUser_streaksInput = {
   onboarding_completed?: boolean
   questionnaire?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   terms_accepted_at?: Date | string | null
+  start_date?: Date | string | null
   created_at?: Date | string
   updated_at?: Date | string
   bookings?: Prisma.BookingCreateNestedManyWithoutProfileInput
@@ -2446,6 +2505,7 @@ export type ProfileUncheckedCreateWithoutUser_streaksInput = {
   onboarding_completed?: boolean
   questionnaire?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   terms_accepted_at?: Date | string | null
+  start_date?: Date | string | null
   created_at?: Date | string
   updated_at?: Date | string
   bookings?: Prisma.BookingUncheckedCreateNestedManyWithoutProfileInput
@@ -2497,6 +2557,7 @@ export type ProfileUpdateWithoutUser_streaksInput = {
   onboarding_completed?: Prisma.BoolFieldUpdateOperationsInput | boolean
   questionnaire?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   terms_accepted_at?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  start_date?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   created_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updated_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   bookings?: Prisma.BookingUpdateManyWithoutProfileNestedInput
@@ -2532,6 +2593,7 @@ export type ProfileUncheckedUpdateWithoutUser_streaksInput = {
   onboarding_completed?: Prisma.BoolFieldUpdateOperationsInput | boolean
   questionnaire?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   terms_accepted_at?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  start_date?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   created_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updated_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   bookings?: Prisma.BookingUncheckedUpdateManyWithoutProfileNestedInput
@@ -2567,6 +2629,7 @@ export type ProfileCreateWithoutUser_badgesInput = {
   onboarding_completed?: boolean
   questionnaire?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   terms_accepted_at?: Date | string | null
+  start_date?: Date | string | null
   created_at?: Date | string
   updated_at?: Date | string
   bookings?: Prisma.BookingCreateNestedManyWithoutProfileInput
@@ -2602,6 +2665,7 @@ export type ProfileUncheckedCreateWithoutUser_badgesInput = {
   onboarding_completed?: boolean
   questionnaire?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   terms_accepted_at?: Date | string | null
+  start_date?: Date | string | null
   created_at?: Date | string
   updated_at?: Date | string
   bookings?: Prisma.BookingUncheckedCreateNestedManyWithoutProfileInput
@@ -2653,6 +2717,7 @@ export type ProfileUpdateWithoutUser_badgesInput = {
   onboarding_completed?: Prisma.BoolFieldUpdateOperationsInput | boolean
   questionnaire?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   terms_accepted_at?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  start_date?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   created_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updated_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   bookings?: Prisma.BookingUpdateManyWithoutProfileNestedInput
@@ -2688,6 +2753,7 @@ export type ProfileUncheckedUpdateWithoutUser_badgesInput = {
   onboarding_completed?: Prisma.BoolFieldUpdateOperationsInput | boolean
   questionnaire?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   terms_accepted_at?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  start_date?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   created_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updated_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   bookings?: Prisma.BookingUncheckedUpdateManyWithoutProfileNestedInput
@@ -2723,6 +2789,7 @@ export type ProfileCreateWithoutWaiversInput = {
   onboarding_completed?: boolean
   questionnaire?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   terms_accepted_at?: Date | string | null
+  start_date?: Date | string | null
   created_at?: Date | string
   updated_at?: Date | string
   bookings?: Prisma.BookingCreateNestedManyWithoutProfileInput
@@ -2758,6 +2825,7 @@ export type ProfileUncheckedCreateWithoutWaiversInput = {
   onboarding_completed?: boolean
   questionnaire?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   terms_accepted_at?: Date | string | null
+  start_date?: Date | string | null
   created_at?: Date | string
   updated_at?: Date | string
   bookings?: Prisma.BookingUncheckedCreateNestedManyWithoutProfileInput
@@ -2809,6 +2877,7 @@ export type ProfileUpdateWithoutWaiversInput = {
   onboarding_completed?: Prisma.BoolFieldUpdateOperationsInput | boolean
   questionnaire?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   terms_accepted_at?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  start_date?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   created_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updated_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   bookings?: Prisma.BookingUpdateManyWithoutProfileNestedInput
@@ -2844,6 +2913,7 @@ export type ProfileUncheckedUpdateWithoutWaiversInput = {
   onboarding_completed?: Prisma.BoolFieldUpdateOperationsInput | boolean
   questionnaire?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   terms_accepted_at?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  start_date?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   created_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updated_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   bookings?: Prisma.BookingUncheckedUpdateManyWithoutProfileNestedInput
@@ -2879,6 +2949,7 @@ export type ProfileCreateWithoutCrm_messagesInput = {
   onboarding_completed?: boolean
   questionnaire?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   terms_accepted_at?: Date | string | null
+  start_date?: Date | string | null
   created_at?: Date | string
   updated_at?: Date | string
   bookings?: Prisma.BookingCreateNestedManyWithoutProfileInput
@@ -2914,6 +2985,7 @@ export type ProfileUncheckedCreateWithoutCrm_messagesInput = {
   onboarding_completed?: boolean
   questionnaire?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   terms_accepted_at?: Date | string | null
+  start_date?: Date | string | null
   created_at?: Date | string
   updated_at?: Date | string
   bookings?: Prisma.BookingUncheckedCreateNestedManyWithoutProfileInput
@@ -2965,6 +3037,7 @@ export type ProfileUpdateWithoutCrm_messagesInput = {
   onboarding_completed?: Prisma.BoolFieldUpdateOperationsInput | boolean
   questionnaire?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   terms_accepted_at?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  start_date?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   created_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updated_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   bookings?: Prisma.BookingUpdateManyWithoutProfileNestedInput
@@ -3000,6 +3073,7 @@ export type ProfileUncheckedUpdateWithoutCrm_messagesInput = {
   onboarding_completed?: Prisma.BoolFieldUpdateOperationsInput | boolean
   questionnaire?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   terms_accepted_at?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  start_date?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   created_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updated_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   bookings?: Prisma.BookingUncheckedUpdateManyWithoutProfileNestedInput
@@ -3035,6 +3109,7 @@ export type ProfileCreateWithoutActivity_sessionsInput = {
   onboarding_completed?: boolean
   questionnaire?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   terms_accepted_at?: Date | string | null
+  start_date?: Date | string | null
   created_at?: Date | string
   updated_at?: Date | string
   bookings?: Prisma.BookingCreateNestedManyWithoutProfileInput
@@ -3070,6 +3145,7 @@ export type ProfileUncheckedCreateWithoutActivity_sessionsInput = {
   onboarding_completed?: boolean
   questionnaire?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   terms_accepted_at?: Date | string | null
+  start_date?: Date | string | null
   created_at?: Date | string
   updated_at?: Date | string
   bookings?: Prisma.BookingUncheckedCreateNestedManyWithoutProfileInput
@@ -3121,6 +3197,7 @@ export type ProfileUpdateWithoutActivity_sessionsInput = {
   onboarding_completed?: Prisma.BoolFieldUpdateOperationsInput | boolean
   questionnaire?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   terms_accepted_at?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  start_date?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   created_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updated_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   bookings?: Prisma.BookingUpdateManyWithoutProfileNestedInput
@@ -3156,6 +3233,7 @@ export type ProfileUncheckedUpdateWithoutActivity_sessionsInput = {
   onboarding_completed?: Prisma.BoolFieldUpdateOperationsInput | boolean
   questionnaire?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   terms_accepted_at?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  start_date?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   created_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updated_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   bookings?: Prisma.BookingUncheckedUpdateManyWithoutProfileNestedInput
@@ -3191,6 +3269,7 @@ export type ProfileCreateWithoutActivity_eventsInput = {
   onboarding_completed?: boolean
   questionnaire?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   terms_accepted_at?: Date | string | null
+  start_date?: Date | string | null
   created_at?: Date | string
   updated_at?: Date | string
   bookings?: Prisma.BookingCreateNestedManyWithoutProfileInput
@@ -3226,6 +3305,7 @@ export type ProfileUncheckedCreateWithoutActivity_eventsInput = {
   onboarding_completed?: boolean
   questionnaire?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   terms_accepted_at?: Date | string | null
+  start_date?: Date | string | null
   created_at?: Date | string
   updated_at?: Date | string
   bookings?: Prisma.BookingUncheckedCreateNestedManyWithoutProfileInput
@@ -3277,6 +3357,7 @@ export type ProfileUpdateWithoutActivity_eventsInput = {
   onboarding_completed?: Prisma.BoolFieldUpdateOperationsInput | boolean
   questionnaire?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   terms_accepted_at?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  start_date?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   created_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updated_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   bookings?: Prisma.BookingUpdateManyWithoutProfileNestedInput
@@ -3312,6 +3393,7 @@ export type ProfileUncheckedUpdateWithoutActivity_eventsInput = {
   onboarding_completed?: Prisma.BoolFieldUpdateOperationsInput | boolean
   questionnaire?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   terms_accepted_at?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  start_date?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   created_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updated_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   bookings?: Prisma.BookingUncheckedUpdateManyWithoutProfileNestedInput
@@ -3347,6 +3429,7 @@ export type ProfileCreateWithoutMember_ticketsInput = {
   onboarding_completed?: boolean
   questionnaire?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   terms_accepted_at?: Date | string | null
+  start_date?: Date | string | null
   created_at?: Date | string
   updated_at?: Date | string
   bookings?: Prisma.BookingCreateNestedManyWithoutProfileInput
@@ -3382,6 +3465,7 @@ export type ProfileUncheckedCreateWithoutMember_ticketsInput = {
   onboarding_completed?: boolean
   questionnaire?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   terms_accepted_at?: Date | string | null
+  start_date?: Date | string | null
   created_at?: Date | string
   updated_at?: Date | string
   bookings?: Prisma.BookingUncheckedCreateNestedManyWithoutProfileInput
@@ -3433,6 +3517,7 @@ export type ProfileUpdateWithoutMember_ticketsInput = {
   onboarding_completed?: Prisma.BoolFieldUpdateOperationsInput | boolean
   questionnaire?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   terms_accepted_at?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  start_date?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   created_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updated_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   bookings?: Prisma.BookingUpdateManyWithoutProfileNestedInput
@@ -3468,6 +3553,7 @@ export type ProfileUncheckedUpdateWithoutMember_ticketsInput = {
   onboarding_completed?: Prisma.BoolFieldUpdateOperationsInput | boolean
   questionnaire?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   terms_accepted_at?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  start_date?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   created_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updated_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   bookings?: Prisma.BookingUncheckedUpdateManyWithoutProfileNestedInput
@@ -3651,6 +3737,7 @@ export type ProfileSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs 
   onboarding_completed?: boolean
   questionnaire?: boolean
   terms_accepted_at?: boolean
+  start_date?: boolean
   created_at?: boolean
   updated_at?: boolean
   bookings?: boolean | Prisma.Profile$bookingsArgs<ExtArgs>
@@ -3688,6 +3775,7 @@ export type ProfileSelectCreateManyAndReturn<ExtArgs extends runtime.Types.Exten
   onboarding_completed?: boolean
   questionnaire?: boolean
   terms_accepted_at?: boolean
+  start_date?: boolean
   created_at?: boolean
   updated_at?: boolean
 }, ExtArgs["result"]["profile"]>
@@ -3708,6 +3796,7 @@ export type ProfileSelectUpdateManyAndReturn<ExtArgs extends runtime.Types.Exten
   onboarding_completed?: boolean
   questionnaire?: boolean
   terms_accepted_at?: boolean
+  start_date?: boolean
   created_at?: boolean
   updated_at?: boolean
 }, ExtArgs["result"]["profile"]>
@@ -3728,11 +3817,12 @@ export type ProfileSelectScalar = {
   onboarding_completed?: boolean
   questionnaire?: boolean
   terms_accepted_at?: boolean
+  start_date?: boolean
   created_at?: boolean
   updated_at?: boolean
 }
 
-export type ProfileOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "email" | "full_name" | "phone" | "whatsapp_phone" | "avatar_url" | "movement_streak" | "pass_type" | "hashedPassword" | "role" | "dob" | "gender" | "onboarding_completed" | "questionnaire" | "terms_accepted_at" | "created_at" | "updated_at", ExtArgs["result"]["profile"]>
+export type ProfileOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "email" | "full_name" | "phone" | "whatsapp_phone" | "avatar_url" | "movement_streak" | "pass_type" | "hashedPassword" | "role" | "dob" | "gender" | "onboarding_completed" | "questionnaire" | "terms_accepted_at" | "start_date" | "created_at" | "updated_at", ExtArgs["result"]["profile"]>
 export type ProfileInclude<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   bookings?: boolean | Prisma.Profile$bookingsArgs<ExtArgs>
   cafe_orders?: boolean | Prisma.Profile$cafe_ordersArgs<ExtArgs>
@@ -3791,6 +3881,7 @@ export type $ProfilePayload<ExtArgs extends runtime.Types.Extensions.InternalArg
     onboarding_completed: boolean
     questionnaire: runtime.JsonValue | null
     terms_accepted_at: Date | null
+    start_date: Date | null
     created_at: Date
     updated_at: Date
   }, ExtArgs["result"]["profile"]>
@@ -4247,6 +4338,7 @@ export interface ProfileFieldRefs {
   readonly onboarding_completed: Prisma.FieldRef<"Profile", 'Boolean'>
   readonly questionnaire: Prisma.FieldRef<"Profile", 'Json'>
   readonly terms_accepted_at: Prisma.FieldRef<"Profile", 'DateTime'>
+  readonly start_date: Prisma.FieldRef<"Profile", 'DateTime'>
   readonly created_at: Prisma.FieldRef<"Profile", 'DateTime'>
   readonly updated_at: Prisma.FieldRef<"Profile", 'DateTime'>
 }

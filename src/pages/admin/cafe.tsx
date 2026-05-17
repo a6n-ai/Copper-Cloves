@@ -1,4 +1,6 @@
-import { useEffect, useState, useRef } from "react";
+import { useEffect, useState, useRef, useCallback } from "react";
+import Cropper from "react-easy-crop";
+import type { Area } from "react-easy-crop";
 import { useRouter } from "next/router";
 import { AdminNavigation } from "@/components/AdminNavigation";
 import { Button } from "@/components/ui/button";
@@ -46,6 +48,11 @@ export default function AdminCafe() {
   const [isSaving, setIsSaving] = useState(false);
   const [uploadingImage, setUploadingImage] = useState(false);
   const [imageUploadError, setImageUploadError] = useState<string | null>(null);
+  const [cropSrc, setCropSrc] = useState<string | null>(null);
+  const [cropFile, setCropFile] = useState<File | null>(null);
+  const [crop, setCrop] = useState({ x: 0, y: 0 });
+  const [zoom, setZoom] = useState(1);
+  const [croppedAreaPixels, setCroppedAreaPixels] = useState<Area | null>(null);
   const menuPhotoInputRef = useRef<HTMLInputElement>(null);
 
   // Category management state
@@ -373,19 +380,66 @@ export default function AdminCafe() {
     setShowForm(true);
   };
 
-  const handleMenuImageFile = async (e: React.ChangeEvent<HTMLInputElement>) => {
+  async function getCroppedFile(src: string, pixelCrop: Area, originalFile: File): Promise<File> {
+    return new Promise((resolve, reject) => {
+      const img = new Image();
+      img.onload = () => {
+        const canvas = document.createElement("canvas");
+        canvas.width = pixelCrop.width;
+        canvas.height = pixelCrop.height;
+        const ctx = canvas.getContext("2d");
+        if (!ctx) { reject(new Error("Canvas not supported")); return; }
+        ctx.drawImage(img, pixelCrop.x, pixelCrop.y, pixelCrop.width, pixelCrop.height, 0, 0, pixelCrop.width, pixelCrop.height);
+        const MAX_BYTES = 10 * 1024 * 1024;
+        const qualities = [0.92, 0.85, 0.75, 0.65, 0.5, 0.4];
+        const tryNext = (i: number) => {
+          const q = qualities[i] ?? 0.4;
+          canvas.toBlob((blob) => {
+            if (!blob) { reject(new Error("Compression failed")); return; }
+            if (blob.size <= MAX_BYTES || i >= qualities.length - 1) {
+              resolve(new File([blob], originalFile.name.replace(/\.[^.]+$/, ".jpg"), { type: "image/jpeg" }));
+            } else {
+              tryNext(i + 1);
+            }
+          }, "image/jpeg", q);
+        };
+        tryNext(0);
+      };
+      img.onerror = () => reject(new Error("Could not read image"));
+      img.src = src;
+    });
+  }
+
+  const handleMenuImageFile = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     e.target.value = "";
     setImageUploadError(null);
     if (!file) return;
     if (!file.type.startsWith("image/")) {
-      setImageUploadError("Please choose an image file (JPEG, PNG, WebP, or GIF).");
+      setImageUploadError("Please choose an image file.");
       return;
     }
+    const objectUrl = URL.createObjectURL(file);
+    setCropSrc(objectUrl);
+    setCropFile(file);
+    setCrop({ x: 0, y: 0 });
+    setZoom(1);
+    setCroppedAreaPixels(null);
+  };
+
+  const onCropComplete = useCallback((_: Area, areaPixels: Area) => {
+    setCroppedAreaPixels(areaPixels);
+  }, []);
+
+  const handleCropConfirm = async () => {
+    if (!cropSrc || !cropFile || !croppedAreaPixels) return;
     setUploadingImage(true);
+    setCropSrc(null);
     try {
+      const croppedFile = await getCroppedFile(cropSrc, croppedAreaPixels, cropFile);
+      URL.revokeObjectURL(cropSrc);
       const fd = new FormData();
-      fd.append("file", file);
+      fd.append("file", croppedFile);
       const res = await fetch("/api/upload", { method: "POST", body: fd });
       const data = await res.json().catch(() => ({}));
       if (!res.ok) throw new Error(typeof data?.error === "string" ? data.error : "Upload failed");
@@ -396,16 +450,29 @@ export default function AdminCafe() {
       setImageUploadError(err instanceof Error ? err.message : "Upload failed");
     } finally {
       setUploadingImage(false);
+      setCropFile(null);
     }
+  };
+
+  const handleCropCancel = () => {
+    if (cropSrc) URL.revokeObjectURL(cropSrc);
+    setCropSrc(null);
+    setCropFile(null);
   };
 
   const handleDelete = async (id: string) => {
     if (!confirm("Are you sure you want to delete this menu item?")) return;
     try {
-      await fetch(`/api/cafe/items?id=${id}`, { method: "DELETE" });
+      const res = await fetch(`/api/cafe/items?id=${id}`, { method: "DELETE" });
+      if (!res.ok) {
+        const data = await res.json().catch(() => ({}));
+        alert(data.error ?? "Failed to delete item");
+        return;
+      }
       fetchMenuItems();
     } catch (err) {
       console.error("Error deleting item:", err);
+      alert("Failed to delete item");
     }
   };
 
@@ -1204,7 +1271,7 @@ export default function AdminCafe() {
                   <input
                     ref={menuPhotoInputRef}
                     type="file"
-                    accept="image/jpeg,image/png,image/webp,image/gif"
+                    accept="image/*"
                     className="sr-only"
                     id="cafe-menu-photo"
                     onChange={handleMenuImageFile}
@@ -1379,6 +1446,54 @@ export default function AdminCafe() {
           </div>
         )}
       </div>
+
+      {/* Image Crop Modal */}
+      {cropSrc && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/70">
+          <div className="bg-white rounded-2xl shadow-2xl w-full max-w-lg mx-4 overflow-hidden">
+            <div className="flex items-center justify-between px-6 py-4 border-b border-sage/20">
+              <h3 className="font-display text-lg text-charcoal">Adjust image</h3>
+              <button onClick={handleCropCancel} className="text-charcoal/50 hover:text-charcoal">
+                <X size={20} />
+              </button>
+            </div>
+            <div className="relative bg-black" style={{ height: 360 }}>
+              <Cropper
+                image={cropSrc}
+                crop={crop}
+                zoom={zoom}
+                aspect={1}
+                onCropChange={setCrop}
+                onZoomChange={setZoom}
+                onCropComplete={onCropComplete}
+              />
+            </div>
+            <div className="px-6 py-4 space-y-3">
+              <div className="flex items-center gap-3">
+                <span className="font-body text-sm text-charcoal/60 w-12">Zoom</span>
+                <input
+                  type="range"
+                  min={1}
+                  max={3}
+                  step={0.01}
+                  value={zoom}
+                  onChange={(e) => setZoom(Number(e.target.value))}
+                  className="flex-1 accent-sage"
+                />
+              </div>
+              <p className="font-body text-xs text-charcoal/40">Drag to reposition · pinch or use slider to zoom</p>
+              <div className="flex gap-3 justify-end pt-1">
+                <Button variant="outline" className="font-body border-sage/20" onClick={handleCropCancel}>
+                  Cancel
+                </Button>
+                <Button className="font-body bg-sage hover:bg-sage/90 text-white" onClick={handleCropConfirm}>
+                  Use this image
+                </Button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
     </>
   );
 }

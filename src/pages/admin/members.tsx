@@ -6,19 +6,17 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { 
-  Users, 
-  Search, 
-  Plus, 
-  Minus, 
-  Edit2, 
+import {
+  Users,
+  Edit2,
   CheckCircle2,
   AlertTriangle,
   CreditCard,
   Calendar,
   Mail,
   Phone,
-  Trophy
+  Trophy,
+  Search,
 } from "lucide-react";
 import { SEO } from "@/components/SEO";
 import { useSession } from "next-auth/react";
@@ -55,6 +53,7 @@ interface Member {
   passCategory: "studio_pass" | "class_pass" | "none";
   /** Active = holding a package; inactive = lapsed 14+ days; grace = between */
   accountFilter: "active" | "inactive" | "grace";
+  startDate: string | null;
 }
 
 function formatRelativeDay(date: Date | string | null | undefined): string {
@@ -90,8 +89,10 @@ export default function AdminMembers() {
   const [filteredMembers, setFilteredMembers] = useState<Member[]>([]);
   const [selectedMember, setSelectedMember] = useState<Member | null>(null);
   const [dialogOpen, setDialogOpen] = useState(false);
-  const [creditAmount, setCreditAmount] = useState("");
-  const [newExpiryDate, setNewExpiryDate] = useState("");
+  const [dialogPassType, setDialogPassType] = useState<"class_pass" | "studio_pass">("class_pass");
+  const [selectedCredits, setSelectedCredits] = useState<number | null>(null);
+  const [selectedDays, setSelectedDays] = useState<number | null>(null);
+  const [newStartDate, setNewStartDate] = useState("");
   const [successMessage, setSuccessMessage] = useState("");
   const [loadError, setLoadError] = useState<string | null>(null);
 
@@ -160,6 +161,7 @@ export default function AdminMembers() {
         email: string;
         phone: string | null;
         pass_type: string | null;
+        start_date: string | null;
         user_packages: Array<{
           id: string;
           is_active: boolean;
@@ -223,6 +225,7 @@ export default function AdminMembers() {
           status: deriveMemberStatus(expiryRaw, credits, unlimited),
           passCategory,
           accountFilter,
+          startDate: p.start_date ? new Date(p.start_date).toISOString().slice(0, 10) : null,
         };
       });
 
@@ -235,8 +238,11 @@ export default function AdminMembers() {
 
   const handleManageCredits = (member: Member) => {
     setSelectedMember(member);
-    setCreditAmount("");
-    setNewExpiryDate(member.expiryDate);
+    const pt = member.passCategory === "studio_pass" ? "studio_pass" : "class_pass";
+    setDialogPassType(pt);
+    setSelectedCredits(null);
+    setSelectedDays(null);
+    setNewStartDate(member.startDate ?? "");
     setDialogOpen(true);
   };
 
@@ -253,70 +259,58 @@ export default function AdminMembers() {
     }
   };
 
-  const handleAddCredits = async () => {
-    if (!selectedMember || !creditAmount) return;
-    const amount = parseInt(creditAmount, 10);
-    if (Number.isNaN(amount) || amount <= 0) return;
+  const handleApplyPassConfig = async () => {
+    if (!selectedMember) return;
     try {
-      if (!selectedMember.userPackageId) {
-        alert("Member has no active package to attach credits to.");
+      const patches: Record<string, unknown>[] = [];
+
+      if (dialogPassType === "class_pass" && selectedCredits !== null) {
+        if (!selectedMember.userPackageId) {
+          alert("Member has no active package to set credits on.");
+          return;
+        }
+        const delta = selectedCredits - selectedMember.credits;
+        patches.push({
+          profile_id: selectedMember.id,
+          user_package_id: selectedMember.userPackageId,
+          credits_delta: delta,
+          pass_type: "class_pass",
+        });
+      } else if (dialogPassType === "studio_pass" && selectedDays !== null) {
+        const expiry = new Date();
+        expiry.setDate(expiry.getDate() + selectedDays);
+        const expiryStr = expiry.toISOString().slice(0, 10);
+        patches.push({
+          profile_id: selectedMember.id,
+          user_package_id: selectedMember.userPackageId ?? undefined,
+          expiration_date: expiryStr,
+          pass_type: "studio_pass",
+        });
+      } else {
+        alert("Select a value before applying.");
         return;
       }
-      await patchMember({
-        profile_id: selectedMember.id,
-        user_package_id: selectedMember.userPackageId,
-        credits_delta: amount,
-      });
+
+      for (const p of patches) await patchMember(p);
       await loadMembers();
-      setSuccessMessage(`Added ${amount} credits to ${selectedMember.name}`);
+      setSuccessMessage(`Updated ${selectedMember.name}`);
       setDialogOpen(false);
       setTimeout(() => setSuccessMessage(""), 3000);
     } catch (e) {
-      alert(e instanceof Error ? e.message : "Could not update credits");
+      alert(e instanceof Error ? e.message : "Could not update member");
     }
   };
 
-  const handleDeductCredits = async () => {
-    if (!selectedMember || !creditAmount) return;
-    const amount = parseInt(creditAmount, 10);
-    if (Number.isNaN(amount) || amount <= 0) return;
+  const handleUpdateStartDate = async () => {
+    if (!selectedMember || !newStartDate) return;
     try {
-      if (!selectedMember.userPackageId) {
-        alert("Member has no active package.");
-        return;
-      }
-      await patchMember({
-        profile_id: selectedMember.id,
-        user_package_id: selectedMember.userPackageId,
-        credits_delta: -amount,
-      });
+      await patchMember({ profile_id: selectedMember.id, start_date: newStartDate });
       await loadMembers();
-      setSuccessMessage(`Deducted ${amount} credits from ${selectedMember.name}`);
+      setSuccessMessage(`Updated start date for ${selectedMember.name}`);
       setDialogOpen(false);
       setTimeout(() => setSuccessMessage(""), 3000);
     } catch (e) {
-      alert(e instanceof Error ? e.message : "Could not update credits");
-    }
-  };
-
-  const handleUpdateExpiry = async () => {
-    if (!selectedMember || !newExpiryDate) return;
-    try {
-      if (!selectedMember.userPackageId) {
-        alert("Member has no active package.");
-        return;
-      }
-      await patchMember({
-        profile_id: selectedMember.id,
-        user_package_id: selectedMember.userPackageId,
-        expiration_date: newExpiryDate,
-      });
-      await loadMembers();
-      setSuccessMessage(`Updated expiry date for ${selectedMember.name}`);
-      setDialogOpen(false);
-      setTimeout(() => setSuccessMessage(""), 3000);
-    } catch (e) {
-      alert(e instanceof Error ? e.message : "Could not update expiry");
+      alert(e instanceof Error ? e.message : "Could not update start date");
     }
   };
 
@@ -617,6 +611,12 @@ export default function AdminMembers() {
                               <Calendar className="h-3.5 w-3.5" />
                               <span>Last visit: {member.lastVisit}</span>
                             </div>
+                            {member.startDate && (
+                              <div className="flex items-center gap-2 text-charcoal/60">
+                                <Calendar className="h-3.5 w-3.5 text-sage/60" />
+                                <span>Started: {new Date(member.startDate).toLocaleDateString("en-IN", { day: "numeric", month: "short", year: "numeric" })}</span>
+                              </div>
+                            )}
                           </div>
                         </div>
 
@@ -659,84 +659,121 @@ export default function AdminMembers() {
         </main>
       </div>
 
-      {/* Manage Credits Dialog */}
+      {/* Manage Member Dialog */}
       <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
-        <DialogContent className="sm:max-w-[500px] bg-white border-sage/20">
+        <DialogContent className="sm:max-w-[480px] bg-white border-sage/20">
           <DialogHeader>
             <DialogTitle className="font-display text-2xl text-charcoal">
               Manage {selectedMember?.name}
             </DialogTitle>
             <DialogDescription className="font-body text-charcoal/60">
-              Update credits and subscription details
+              Update pass type, credits, and membership details
             </DialogDescription>
           </DialogHeader>
-          
+
           <div className="space-y-6 py-4">
-            {/* Current Credits Display */}
-            <div className="p-4 rounded-xl bg-sage/5 border border-sage/20">
-              <div className="font-body text-sm text-charcoal/60 mb-1">
-                Current Credits
-              </div>
-              <div className="font-display text-3xl text-charcoal">
-                {selectedMember?.credits}
-              </div>
-            </div>
 
-            {/* Credit Amount Input */}
+            {/* Pass Type toggle */}
             <div>
-              <Label className="font-body text-charcoal/80 mb-2">
-                Credit Amount
-              </Label>
-              <Input
-                type="number"
-                value={creditAmount}
-                onChange={(e) => setCreditAmount(e.target.value)}
-                placeholder="Enter amount"
-                className="h-12 border-charcoal/20 focus:border-sage font-body"
-              />
+              <Label className="font-body text-charcoal/80 mb-3 block">Pass Type</Label>
+              <div className="flex gap-2">
+                {(["class_pass", "studio_pass"] as const).map((pt) => (
+                  <button
+                    key={pt}
+                    type="button"
+                    onClick={() => { setDialogPassType(pt); setSelectedCredits(null); setSelectedDays(null); }}
+                    className={`flex-1 py-2.5 rounded-full text-sm font-body font-medium border transition-colors ${
+                      dialogPassType === pt
+                        ? "bg-sage text-white border-sage"
+                        : "bg-white text-charcoal/70 border-charcoal/20 hover:border-sage/40"
+                    }`}
+                  >
+                    {pt === "class_pass" ? "Class Pass" : "Studio Pass"}
+                  </button>
+                ))}
+              </div>
             </div>
 
-            {/* Credit Action Buttons */}
-            <div className="flex gap-3">
-              <Button
-                onClick={handleAddCredits}
-                disabled={!creditAmount}
-                className="flex-1 bg-sage hover:bg-sage/90 text-white font-body"
-              >
-                <Plus className="h-4 w-4 mr-2" />
-                Add Credits
-              </Button>
-              <Button
-                onClick={handleDeductCredits}
-                disabled={!creditAmount}
-                variant="outline"
-                className="flex-1 border-terracotta/20 text-terracotta hover:bg-terracotta/10 font-body"
-              >
-                <Minus className="h-4 w-4 mr-2" />
-                Deduct Credits
-              </Button>
-            </div>
+            {/* Class pass — classes remaining */}
+            {dialogPassType === "class_pass" && (
+              <div>
+                <Label className="font-body text-charcoal/80 mb-3 block">
+                  Classes Remaining
+                  {selectedMember && (
+                    <span className="ml-2 text-charcoal/40 font-normal">
+                      (currently {selectedMember.credits})
+                    </span>
+                  )}
+                </Label>
+                <div className="grid grid-cols-4 gap-2">
+                  {[1, 4, 8, 12].map((n) => (
+                    <button
+                      key={n}
+                      type="button"
+                      onClick={() => setSelectedCredits(n)}
+                      className={`py-3 rounded-xl text-lg font-display border transition-colors ${
+                        selectedCredits === n
+                          ? "bg-sage text-white border-sage"
+                          : "bg-sage/5 text-charcoal border-sage/20 hover:bg-sage/10"
+                      }`}
+                    >
+                      {n}
+                    </button>
+                  ))}
+                </div>
+              </div>
+            )}
 
-            {/* Expiry Date */}
-            <div>
-              <Label className="font-body text-charcoal/80 mb-2">
-                Subscription Expiry
-              </Label>
-              <Input
-                type="date"
-                value={newExpiryDate}
-                onChange={(e) => setNewExpiryDate(e.target.value)}
-                className="h-12 border-charcoal/20 focus:border-sage font-body"
-              />
-            </div>
+            {/* Studio pass — days remaining */}
+            {dialogPassType === "studio_pass" && (
+              <div>
+                <Label className="font-body text-charcoal/80 mb-3 block">
+                  Days Remaining (from today)
+                </Label>
+                <div className="grid grid-cols-4 gap-2">
+                  {[30, 90, 180, 365].map((d) => (
+                    <button
+                      key={d}
+                      type="button"
+                      onClick={() => setSelectedDays(d)}
+                      className={`py-3 rounded-xl text-sm font-display border transition-colors ${
+                        selectedDays === d
+                          ? "bg-sage text-white border-sage"
+                          : "bg-sage/5 text-charcoal border-sage/20 hover:bg-sage/10"
+                      }`}
+                    >
+                      {d}d
+                    </button>
+                  ))}
+                </div>
+              </div>
+            )}
 
             <Button
-              onClick={handleUpdateExpiry}
-              variant="outline"
-              className="w-full border-sage/20 text-sage hover:bg-sage/10 font-body"
+              onClick={handleApplyPassConfig}
+              className="w-full bg-sage hover:bg-sage/90 text-white font-body h-11"
             >
-              Update Expiry Date
+              Apply
             </Button>
+
+            <div className="border-t border-sage/10 pt-4">
+              <Label className="font-body text-charcoal/80 mb-2 block">Member Start Date</Label>
+              <div className="flex gap-2">
+                <Input
+                  type="date"
+                  value={newStartDate}
+                  onChange={(e) => setNewStartDate(e.target.value)}
+                  className="h-11 border-charcoal/20 focus:border-sage font-body flex-1"
+                />
+                <Button
+                  onClick={handleUpdateStartDate}
+                  variant="outline"
+                  className="h-11 border-sage/20 text-sage hover:bg-sage/10 font-body px-4"
+                >
+                  Save
+                </Button>
+              </div>
+            </div>
           </div>
 
           <DialogFooter>
