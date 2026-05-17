@@ -58,7 +58,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
   if (!result.ok) {
     const reason = "error" in result ? result.error : ("reason" in result ? result.reason : "unknown");
-    console.error("[forgot-password] email send failed:", reason);
+    console.error("[forgot-password] email send failed:", reason, "| EMAIL_USER set:", Boolean(process.env.EMAIL_USER), "| EMAIL_PASS set:", Boolean(process.env.EMAIL_PASS));
     return res.status(500).json({ error: "Could not send reset email. Please try again later." });
   }
 

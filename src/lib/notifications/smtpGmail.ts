@@ -29,7 +29,9 @@ export async function sendHtmlEmailViaGmailSmtp(options: {
   const from = process.env.EMAIL_FROM?.trim() || user;
 
   const transporter = nodemailer.createTransport({
-    service: "gmail",
+    host: "smtp.gmail.com",
+    port: 465,
+    secure: true, // SSL — works on AWS Lambda (port 587/STARTTLS is often blocked)
     auth: { user, pass },
   });
 
