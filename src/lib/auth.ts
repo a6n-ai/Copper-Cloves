@@ -60,6 +60,7 @@ export const authOptions: NextAuthOptions = {
             email: profile.email,
             name: profile.full_name,
             role: profile.role,
+            onboarding_completed: profile.onboarding_completed,
           };
         } catch (e) {
           console.error("[next-auth] authorize error (DB or unexpected)", e);
@@ -69,10 +70,14 @@ export const authOptions: NextAuthOptions = {
     }),
   ],
   callbacks: {
-    async jwt({ token, user }) {
+    async jwt({ token, user, trigger, session }) {
       if (user) {
         token.id = user.id;
         token.role = (user as { role?: string }).role ?? "user";
+        token.onboarding_completed = (user as { onboarding_completed?: boolean }).onboarding_completed ?? false;
+      }
+      if (trigger === "update" && session?.onboarding_completed !== undefined) {
+        token.onboarding_completed = session.onboarding_completed;
       }
       return token;
     },
@@ -80,6 +85,7 @@ export const authOptions: NextAuthOptions = {
       if (session.user) {
         (session.user as { id?: string }).id = token.id as string;
         (session.user as { role?: string }).role = token.role as string;
+        (session.user as { onboarding_completed?: boolean }).onboarding_completed = token.onboarding_completed as boolean;
       }
       return session;
     },

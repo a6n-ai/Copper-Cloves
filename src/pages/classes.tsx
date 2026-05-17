@@ -8,13 +8,47 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Clock, CheckCircle, Calendar, Users, Sparkles, ChevronLeft, ChevronRight } from "lucide-react";
 import { useRouter } from "next/router";
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { useSession } from "next-auth/react";
 import {
   mondayBasedWeekBoundsInMonth,
   isSameLocalCalendarDay,
   defaultPortalWeekSelection,
 } from "@/lib/calendarWeek";
+
+/** Dedupe in-flight fetches (e.g. React Strict Mode) without AbortController — avoids "(canceled)" in DevTools. */
+let classesListPromise: Promise<unknown[]> | null = null;
+
+function fetchClassesList(): Promise<unknown[]> {
+  if (!classesListPromise) {
+    classesListPromise = fetch("/api/classes")
+      .then((res) => (res.ok ? res.json() : []))
+      .finally(() => {
+        classesListPromise = null;
+      });
+  }
+  return classesListPromise;
+}
+
+const scheduleListPromises = new Map<string, Promise<unknown[]>>();
+
+function fetchScheduleList(fromMs: number, toMs: number): Promise<unknown[]> {
+  const key = `${fromMs}-${toMs}`;
+  let promise = scheduleListPromises.get(key);
+  if (!promise) {
+    const params = new URLSearchParams({
+      fromMs: String(fromMs),
+      toMs: String(toMs),
+    });
+    promise = fetch(`/api/class-schedules?${params}`, { credentials: "omit" })
+      .then((res) => (res.ok ? res.json() : []))
+      .finally(() => {
+        scheduleListPromises.delete(key);
+      });
+    scheduleListPromises.set(key, promise);
+  }
+  return promise;
+}
 
 interface ClassDetail {
   name: string;
@@ -193,18 +227,7 @@ export default function ClassesPage() {
   const [scheduleData, setScheduleData] = useState<DaySchedule[]>([]);
   const [scheduleLoading, setScheduleLoading] = useState(false);
 
-  useEffect(() => {
-    fetchClasses();
-    fetchScheduleData();
-  }, []);
-
-  useEffect(() => {
-    if (activeTab === "schedule") {
-      fetchScheduleData();
-    }
-  }, [activeTab, selectedWeek, selectedMonth, viewYear]);
-
-  async function fetchScheduleData() {
+  const fetchScheduleData = useCallback(async (isStale?: () => boolean) => {
     try {
       setScheduleLoading(true);
 
@@ -214,12 +237,8 @@ export default function ClassesPage() {
         selectedWeek
       );
 
-      const params = new URLSearchParams({
-        fromMs: String(weekStart.getTime()),
-        toMs: String(weekEnd.getTime()),
-      });
-      const res = await fetch(`/api/class-schedules?${params}`, { credentials: "omit" });
-      const allData = res.ok ? await res.json() : [];
+      const allData = await fetchScheduleList(weekStart.getTime(), weekEnd.getTime());
+      if (isStale?.()) return;
       const data = allData.filter((item: { start_time: string; status?: string }) => {
         const t = new Date(item.start_time);
         return t >= weekStart && t <= weekEnd && item.status !== "cancelled";
@@ -261,21 +280,22 @@ export default function ClassesPage() {
         });
       }
 
+      if (isStale?.()) return;
       setScheduleData(daySchedules);
     } catch (err) {
       console.error("Error fetching schedule:", err);
-      setScheduleData([]);
+      if (!isStale?.()) setScheduleData([]);
     } finally {
-      setScheduleLoading(false);
+      if (!isStale?.()) setScheduleLoading(false);
     }
-  }
+  }, [viewYear, selectedMonth, selectedWeek]);
 
-  async function fetchClasses() {
+  const fetchClasses = useCallback(async (isStale?: () => boolean) => {
     try {
       setLoading(true);
 
-      const res = await fetch("/api/classes");
-      const data = res.ok ? await res.json() : [];
+      const data = await fetchClassesList();
+      if (isStale?.()) return;
 
       const transformedClasses = (Array.isArray(data) ? data : []).map((cls: {
         id: string;
@@ -300,14 +320,34 @@ export default function ClassesPage() {
         max_capacity: cls.max_capacity ?? 15,
       }));
 
+      if (isStale?.()) return;
       setClasses(transformedClasses);
     } catch (error) {
       console.error("Error fetching classes:", error);
-      setClasses([]);
+      if (!isStale?.()) setClasses([]);
     } finally {
-      setLoading(false);
+      if (!isStale?.()) setLoading(false);
     }
-  }
+  }, []);
+
+  useEffect(() => {
+    let stale = false;
+    const isStale = () => stale;
+    void fetchClasses(isStale);
+    return () => {
+      stale = true;
+    };
+  }, [fetchClasses]);
+
+  useEffect(() => {
+    if (activeTab !== "schedule") return;
+    let stale = false;
+    const isStale = () => stale;
+    void fetchScheduleData(isStale);
+    return () => {
+      stale = true;
+    };
+  }, [activeTab, fetchScheduleData]);
 
   const { data: authSession } = useSession();
 

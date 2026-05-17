@@ -9,6 +9,7 @@ export type FinanceSnapshotV1 = {
   classFeeInr: number;
   foodFeeInr: number;
   foodDiscountInr: number;
+  couponDiscountInr: number;
   taxInr: number;
   totalInr: number;
   dayPassEquivalentCount: number;
@@ -28,6 +29,7 @@ export function parseFinanceSnapshot(raw: unknown): FinanceSnapshotV1 | null {
   const classFeeInr = finiteNum(o.classFeeInr);
   const foodFeeInr = finiteNum(o.foodFeeInr);
   const foodDiscountInr = finiteNum(o.foodDiscountInr);
+  const couponDiscountInr = finiteNum(o.couponDiscountInr) ?? 0;
   const taxInr = finiteNum(o.taxInr);
   const totalInr = finiteNum(o.totalInr);
   const dayPassEquivalentCount = Number(o.dayPassEquivalentCount);
@@ -49,6 +51,7 @@ export function parseFinanceSnapshot(raw: unknown): FinanceSnapshotV1 | null {
     classFeeInr,
     foodFeeInr,
     foodDiscountInr,
+    couponDiscountInr,
     taxInr,
     totalInr,
     dayPassEquivalentCount,
@@ -70,8 +73,10 @@ export function expectedBookingCheckoutPaise(totalInr: number): number {
 export function snapshotTotalsConsistent(snap: FinanceSnapshotV1): boolean {
   const foodNet = snap.foodFeeInr - snap.foodDiscountInr;
   const sub = snap.classFeeInr + Math.max(0, foodNet);
-  const taxRounded = Math.round(sub * BOOKING_CHECKOUT_TAX_RATE * 100) / 100;
-  const totalRounded = Math.round((sub + taxRounded) * 100) / 100;
+  // Prices are tax-inclusive. Total = sub minus coupon discount.
+  const totalRounded = Math.round(Math.max(0, sub - snap.couponDiscountInr) * 100) / 100;
+  // Tax is extracted from the inclusive total.
+  const taxRounded = Math.round((totalRounded * BOOKING_CHECKOUT_TAX_RATE / (1 + BOOKING_CHECKOUT_TAX_RATE)) * 100) / 100;
   return (
     Math.abs(snap.taxInr - taxRounded) <= 0.06 && Math.abs(snap.totalInr - totalRounded) <= 0.15
   );

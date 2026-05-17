@@ -197,6 +197,10 @@ export default function AdminDashboard() {
   const [selectedUser, setSelectedUser] = useState<any>(null);
   const [selectedClass, setSelectedClass] = useState<any>(null);
   const [selectedInstructorData, setSelectedInstructorData] = useState<any>(null);
+  const [newInstructorForm, setNewInstructorForm] = useState({
+    name: "", email: "", phone: "", studio_payout_cut_percent: "", specialties: "", philosophy: "",
+  });
+  const [savingInstructor, setSavingInstructor] = useState(false);
 
   // Transaction filter states
   const [transactionFilter, setTransactionFilter] = useState("all"); // all, credit, debit
@@ -721,6 +725,36 @@ export default function AdminDashboard() {
     setMealInquiries((prev) =>
       prev.map((r) => (r.id === id ? { ...r, status: String(updated.status ?? status) } : r))
     );
+  }
+
+  async function handleCreateInstructor() {
+    setSavingInstructor(true);
+    try {
+      const body: Record<string, unknown> = {};
+      if (newInstructorForm.name.trim()) body.name = newInstructorForm.name.trim();
+      else body.name = "New Instructor";
+      if (newInstructorForm.email.trim()) body.email = newInstructorForm.email.trim();
+      if (newInstructorForm.phone.trim()) body.phone = newInstructorForm.phone.trim();
+      if (newInstructorForm.studio_payout_cut_percent.trim())
+        body.studio_payout_cut_percent = parseFloat(newInstructorForm.studio_payout_cut_percent);
+      if (newInstructorForm.specialties.trim())
+        body.specialties = newInstructorForm.specialties.split(",").map((s) => s.trim()).filter(Boolean);
+      if (newInstructorForm.philosophy.trim()) body.philosophy = newInstructorForm.philosophy.trim();
+      const res = await fetch("/api/admin/instructors", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(body),
+      });
+      if (!res.ok) throw new Error("Failed to create instructor");
+      setShowAddInstructorDialog(false);
+      setNewInstructorForm({ name: "", email: "", phone: "", studio_payout_cut_percent: "", specialties: "", philosophy: "" });
+      const updated = await fetch("/api/admin/instructors");
+      if (updated.ok) setDashboardInstructors(await updated.json());
+    } catch {
+      alert("Failed to save instructor.");
+    } finally {
+      setSavingInstructor(false);
+    }
   }
 
   const handleViewProfile = (member: Record<string, unknown>) => {
@@ -3811,51 +3845,43 @@ export default function AdminDashboard() {
           <div className="grid grid-cols-2 gap-4 py-4">
             <div className="space-y-2">
               <Label htmlFor="instructor-name" className="font-body text-charcoal">Full Name</Label>
-              <Input id="instructor-name" placeholder="Instructor name" className="border-sage/20 focus:ring-sage placeholder:text-charcoal/40" />
+              <Input id="instructor-name" placeholder="Instructor name" value={newInstructorForm.name} onChange={e => setNewInstructorForm(f => ({ ...f, name: e.target.value }))} className="border-sage/20 focus:ring-sage placeholder:text-charcoal/40" />
             </div>
             <div className="space-y-2">
               <Label htmlFor="instructor-email" className="font-body text-charcoal">Email</Label>
-              <Input id="instructor-email" type="email" placeholder="instructor@email.com" className="border-sage/20 focus:ring-sage placeholder:text-charcoal/40" />
+              <Input id="instructor-email" type="email" placeholder="instructor@email.com" value={newInstructorForm.email} onChange={e => setNewInstructorForm(f => ({ ...f, email: e.target.value }))} className="border-sage/20 focus:ring-sage placeholder:text-charcoal/40" />
             </div>
             <div className="space-y-2">
               <Label htmlFor="instructor-phone" className="font-body text-charcoal">Phone Number</Label>
-              <Input id="instructor-phone" placeholder="+91 98765 43210" className="border-sage/20 focus:ring-sage placeholder:text-charcoal/40" />
+              <Input id="instructor-phone" placeholder="+91 98765 43210" value={newInstructorForm.phone} onChange={e => setNewInstructorForm(f => ({ ...f, phone: e.target.value }))} className="border-sage/20 focus:ring-sage placeholder:text-charcoal/40" />
             </div>
             <div className="space-y-2">
               <Label htmlFor="payment-percentage" className="font-body text-charcoal">Payment Share (%)</Label>
-              <Input id="payment-percentage" type="number" placeholder="60" className="border-sage/20 focus:ring-sage placeholder:text-charcoal/40" />
+              <Input id="payment-percentage" type="number" placeholder="60" value={newInstructorForm.studio_payout_cut_percent} onChange={e => setNewInstructorForm(f => ({ ...f, studio_payout_cut_percent: e.target.value }))} className="border-sage/20 focus:ring-sage placeholder:text-charcoal/40" />
             </div>
             <div className="col-span-2 space-y-2">
               <Label htmlFor="specialties" className="font-body text-charcoal">Specialties (comma-separated)</Label>
-              <Input id="specialties" placeholder="Muay Thai, Warrior Strength" className="border-sage/20 focus:ring-sage placeholder:text-charcoal/40" />
+              <Input id="specialties" placeholder="Muay Thai, Warrior Strength" value={newInstructorForm.specialties} onChange={e => setNewInstructorForm(f => ({ ...f, specialties: e.target.value }))} className="border-sage/20 focus:ring-sage placeholder:text-charcoal/40" />
             </div>
             <div className="col-span-2 space-y-2">
               <Label htmlFor="philosophy" className="font-body text-charcoal">Philosophy/Bio</Label>
-              <Textarea 
-                id="philosophy" 
+              <Textarea
+                id="philosophy"
                 placeholder="Instructor's teaching philosophy and approach..."
+                value={newInstructorForm.philosophy}
+                onChange={e => setNewInstructorForm(f => ({ ...f, philosophy: e.target.value }))}
                 className="border-sage/20 focus:ring-sage"
                 rows={3}
               />
-            </div>
-            <div className="col-span-2 space-y-2">
-              <Label htmlFor="photo-upload" className="font-body text-charcoal">Profile Photo</Label>
-              <div className="flex items-center gap-3">
-                <Input id="photo-upload" type="file" accept="image/*" className="border-sage/20 focus:ring-sage" />
-                <Button variant="outline" className="border-sage/20 text-sage hover:bg-sage/5">
-                  <Upload className="h-4 w-4 mr-2" />
-                  Upload
-                </Button>
-              </div>
             </div>
           </div>
           <DialogFooter>
             <Button variant="outline" onClick={() => setShowAddInstructorDialog(false)} className="border-sage/20 font-body">
               Cancel
             </Button>
-            <Button className="bg-sage hover:bg-sage/90 text-white font-body">
+            <Button onClick={handleCreateInstructor} disabled={savingInstructor} className="bg-sage hover:bg-sage/90 text-white font-body">
               <Save className="h-4 w-4 mr-2" />
-              Create Instructor
+              {savingInstructor ? "Saving…" : "Create Instructor"}
             </Button>
           </DialogFooter>
         </DialogContent>

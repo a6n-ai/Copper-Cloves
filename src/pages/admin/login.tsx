@@ -6,12 +6,14 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { PasswordInput } from "@/components/ui/password-input";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
-import { Alert, AlertDescription } from "@/components/ui/alert";
-import { Shield, AlertCircle, CheckCircle2 } from "lucide-react";
+import Link from "next/link";
+import { Shield, CheckCircle2, LogIn } from "lucide-react";
 import { SEO } from "@/components/SEO";
 import { normalizeLoginEmail } from "@/lib/loginEmail";
+import { FormAlert } from "@/components/ui/form-alert";
 
 const adminLoginSchema = z.object({
   username: z.string().min(3, "Username must be at least 3 characters"),
@@ -28,6 +30,7 @@ export default function AdminLogin() {
 
   const form = useForm<AdminLoginForm>({
     resolver: zodResolver(adminLoginSchema),
+    mode: "onTouched",
     defaultValues: {
       username: "",
       password: "",
@@ -97,14 +100,7 @@ export default function AdminLogin() {
           </CardHeader>
 
           <CardContent className="p-8">
-            {error && (
-              <Alert variant="destructive" className="mb-6 border-red-500/20 bg-red-50 animate-in slide-in-from-left duration-600">
-                <AlertCircle className="h-5 w-5" />
-                <AlertDescription className="font-body">
-                  {error}
-                </AlertDescription>
-              </Alert>
-            )}
+            <FormAlert message={error} variant="error" className="mb-6" />
 
             <Form {...form}>
               <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
@@ -120,8 +116,9 @@ export default function AdminLogin() {
                         <Input
                           {...field}
                           type="text"
-                          placeholder="Admin"
-                          className="h-12 border-charcoal/20 focus:border-sage font-body transition-all duration-600"
+                          autoComplete="username"
+                          placeholder="Enter username"
+                          className="h-12 border-charcoal/20 focus:border-sage font-body placeholder:text-charcoal/40 transition-all duration-600"
                         />
                       </FormControl>
                       <FormMessage className="font-body text-sm" />
@@ -138,11 +135,11 @@ export default function AdminLogin() {
                         Password
                       </FormLabel>
                       <FormControl>
-                        <Input
+                        <PasswordInput
                           {...field}
-                          type="password"
-                          placeholder="Enter admin password"
-                          className="h-12 border-charcoal/20 focus:border-sage font-body transition-all duration-600"
+                          autoComplete="current-password"
+                          placeholder="••••••••"
+                          className="h-12 border-charcoal/20 focus:border-sage font-body placeholder:text-charcoal/40 transition-all duration-600"
                         />
                       </FormControl>
                       <FormMessage className="font-body text-sm" />
@@ -167,9 +164,36 @@ export default function AdminLogin() {
               </form>
             </Form>
 
-            <div className="mt-8 pt-6 border-t border-charcoal/10">
-              <p className="text-center text-sm font-body text-charcoal/50">
-                Authorized personnel only
+            <div className="relative my-8">
+              <div className="absolute inset-0 flex items-center">
+                <div className="w-full border-t border-charcoal/10" />
+              </div>
+              <div className="relative flex justify-center text-sm">
+                <span className="px-4 bg-white/95 font-body text-charcoal/50">or</span>
+              </div>
+            </div>
+
+            <Button
+              asChild
+              variant="outline"
+              className="w-full h-12 border-charcoal/20 text-charcoal hover:bg-sage/10 hover:border-sage/40 font-body transition-all duration-600"
+            >
+              <Link href="/portal/login">
+                <LogIn size={18} className="mr-2" />
+                Regular Login
+              </Link>
+            </Button>
+
+            <div className="mt-8 pt-6 border-t border-charcoal/10 space-y-2">
+              <p className="text-center text-sm font-body text-charcoal/70 leading-relaxed">
+                This page is for studio administrators and staff only.
+              </p>
+              <p className="text-center text-xs font-body text-charcoal/50 leading-relaxed">
+                Members should use{" "}
+                <Link href="/portal/login" className="text-sage hover:underline">
+                  Regular Login
+                </Link>
+                . If you need admin access, contact your studio manager.
               </p>
             </div>
           </CardContent>

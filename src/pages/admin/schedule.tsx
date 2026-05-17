@@ -6,17 +6,19 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { 
-  Calendar as CalendarIcon, 
-  Plus, 
-  Edit2, 
-  Trash2, 
-  Copy, 
+import {
+  Calendar as CalendarIcon,
+  Plus,
+  Edit2,
+  Trash2,
+  Copy,
   Users,
   Clock,
   Repeat,
   CheckCircle2,
-  AlertCircle
+  AlertCircle,
+  ChevronLeft,
+  ChevronRight
 } from "lucide-react";
 import { SEO } from "@/components/SEO";
 import { useSession } from "next-auth/react";
@@ -46,10 +48,11 @@ const MONTHS = [
 
 const WEEKS_OF_MONTH = ["Week 1", "Week 2", "Week 3", "Week 4", "Week 5"];
 
-const TIME_SLOTS = [
-  "06:00 AM", "06:30 AM", "07:00 AM", "07:30 AM", "08:00 AM", "08:30 AM", "09:00 AM",
-  "09:30 AM", "10:00 AM", "10:30 AM", "05:00 PM", "05:30 PM", "06:00 PM", "06:30 PM", "07:00 PM"
-];
+function parseTimeStr(t: string): { h: string; m: string; p: "AM" | "PM" } | null {
+  const match = t.match(/(\d+):(\d+)\s*(AM|PM)/i);
+  if (!match) return null;
+  return { h: match[1].padStart(2, "0"), m: match[2].padStart(2, "0"), p: match[3].toUpperCase() as "AM" | "PM" };
+}
 
 const CLASSES = [
   { id: 1, name: "Muay Thai Circuit Training", capacity: 12, duration: 60 },
@@ -80,11 +83,16 @@ const INSTRUCTORS = [
 interface ScheduledClass {
   id: string;
   day: string;
+  /** ISO date string e.g. "2026-05-17" for the actual calendar date */
+  dateIso: string;
+  /** Full ISO datetime from DB — used to preserve date when editing */
+  startTimeIso: string;
   time: string;
   classId: string;
   instructorId: string;
   recurring: boolean;
   booked: number;
+  instructorCheckInTime?: string | null;
 }
 
 type ClassSelectOption = {
@@ -108,8 +116,14 @@ export default function AdminSchedule() {
   const [dialogOpen, setDialogOpen] = useState(false);
   const [editingClass, setEditingClass] = useState<ScheduledClass | null>(null);
   const [selectedDay, setSelectedDay] = useState("");
-  const [selectedTime, setSelectedTime] = useState("");
-  const [selectedEndTime, setSelectedEndTime] = useState("");
+  const [selectedHour, setSelectedHour] = useState("07");
+  const [selectedMinute, setSelectedMinute] = useState("00");
+  const [selectedPeriod, setSelectedPeriod] = useState<"AM" | "PM">("AM");
+  const [selectedEndHour, setSelectedEndHour] = useState("");
+  const [selectedEndMinute, setSelectedEndMinute] = useState("");
+  const [selectedEndPeriod, setSelectedEndPeriod] = useState<"AM" | "PM">("AM");
+  const [selectedFilterDay, setSelectedFilterDay] = useState<string | null>(null);
+  const [adminWeekOffset, setAdminWeekOffset] = useState(0);
   const [selectedClass, setSelectedClass] = useState("");
   const [selectedInstructor, setSelectedInstructor] = useState("");
   const [isRecurring, setIsRecurring] = useState(false);
@@ -158,6 +172,25 @@ export default function AdminSchedule() {
   const usingPlaceholderCatalog =
     classOptions.some(c => c._isPlaceholder) || instructorOptions.some(i => i._isPlaceholder);
 
+  /** Monday of the currently-viewed admin week (local time). */
+  const adminWeekMonday = useMemo(() => {
+    const today = new Date();
+    const day = today.getDay(); // 0=Sun
+    const diffToMonday = day === 0 ? -6 : 1 - day;
+    const mon = new Date(today.getFullYear(), today.getMonth(), today.getDate() + diffToMonday + adminWeekOffset * 7);
+    mon.setHours(0, 0, 0, 0);
+    return mon;
+  }, [adminWeekOffset]);
+
+  /** All 7 days of the admin week, Mon→Sun. */
+  const adminWeekDates = useMemo(() =>
+    Array.from({ length: 7 }, (_, i) => {
+      const d = new Date(adminWeekMonday);
+      d.setDate(d.getDate() + i);
+      return d;
+    }),
+  [adminWeekMonday]);
+
   const { data: session, status } = useSession();
 
   useEffect(() => {
@@ -193,6 +226,18 @@ export default function AdminSchedule() {
       cancelled = true;
     };
   }, [status, session, router, selectedMonth, scheduleViewYear]);
+
+  // When week navigation moves into a different month, sync the month/year so data is re-fetched.
+  useEffect(() => {
+    const m = adminWeekMonday.getMonth();
+    const y = adminWeekMonday.getFullYear();
+    if (m !== selectedMonth || y !== scheduleViewYear) {
+      setSelectedMonth(m);
+      setScheduleViewYear(y);
+    }
+    setSelectedFilterDay(null);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [adminWeekMonday]);
 
   const getWeekDateRange = (weekNumber: number, month: number) => {
     const year = scheduleViewYear;
@@ -295,19 +340,26 @@ export default function AdminSchedule() {
         class_id: string;
         instructor_id?: string;
         current_bookings?: number;
+        instructor_check_in_time?: string | null;
       }>;
 
       const formattedSchedule: ScheduledClass[] = data.map((item) => {
         const startTime = new Date(item.start_time);
         const dayName = WEEKDAYS[startTime.getDay() === 0 ? 6 : startTime.getDay() - 1];
+        const y = startTime.getFullYear();
+        const mo = String(startTime.getMonth() + 1).padStart(2, "0");
+        const d = String(startTime.getDate()).padStart(2, "0");
         return {
           id: item.id.toString(),
           day: dayName,
+          dateIso: `${y}-${mo}-${d}`,
+          startTimeIso: item.start_time,
           time: startTime.toLocaleTimeString("en-US", { hour: "2-digit", minute: "2-digit" }),
           classId: item.class_id.toString(),
           instructorId: item.instructor_id?.toString() || "",
           recurring: false,
           booked: item.current_bookings || 0,
+          instructorCheckInTime: item.instructor_check_in_time ?? null,
         };
       });
       setSchedule(formattedSchedule);
@@ -322,8 +374,12 @@ export default function AdminSchedule() {
   const handleAddClass = () => {
     setEditingClass(null);
     setSelectedDay("");
-    setSelectedTime("");
-    setSelectedEndTime("");
+    setSelectedHour("07");
+    setSelectedMinute("00");
+    setSelectedPeriod("AM");
+    setSelectedEndHour("");
+    setSelectedEndMinute("");
+    setSelectedEndPeriod("AM");
     setSelectedClass("");
     setSelectedInstructor("");
     setIsRecurring(false);
@@ -334,8 +390,13 @@ export default function AdminSchedule() {
   const handleEditClass = (scheduledClass: ScheduledClass) => {
     setEditingClass(scheduledClass);
     setSelectedDay(scheduledClass.day);
-    setSelectedTime(scheduledClass.time);
-    setSelectedEndTime(""); // Will be calculated from database
+    const parsed = parseTimeStr(scheduledClass.time);
+    setSelectedHour(parsed?.h ?? "07");
+    setSelectedMinute(parsed?.m ?? "00");
+    setSelectedPeriod(parsed?.p ?? "AM");
+    setSelectedEndHour("");
+    setSelectedEndMinute("");
+    setSelectedEndPeriod("AM");
     setSelectedClass(scheduledClass.classId.toString());
     setSelectedInstructor(scheduledClass.instructorId.toString());
     setIsRecurring(scheduledClass.recurring);
@@ -343,6 +404,13 @@ export default function AdminSchedule() {
   };
 
   const handleSaveClass = async () => {
+    const selectedTime = selectedHour && selectedMinute
+      ? `${selectedHour.padStart(2, "0")}:${selectedMinute.padStart(2, "0")} ${selectedPeriod}`
+      : "";
+    const selectedEndTime = selectedEndHour && selectedEndMinute
+      ? `${selectedEndHour.padStart(2, "0")}:${selectedEndMinute.padStart(2, "0")} ${selectedEndPeriod}`
+      : "";
+
     console.log('🔵 handleSaveClass called');
     console.log('🔵 Form values:', {
       selectedDay,
@@ -396,7 +464,7 @@ export default function AdminSchedule() {
       }
 
       if (!selectedTime) {
-        alert("Please select a time");
+        alert("Please enter a start time");
         return;
       }
 
@@ -451,14 +519,18 @@ export default function AdminSchedule() {
 
       if (editingClass) {
         console.log('🔵 Editing existing class:', editingClass.id);
-        // Update existing class in database
-        const startDate = new Date(year, selectedMonth, 1);
-        startDate.setHours(hour, minute, 0, 0);
-        
-        // Find the actual date for this day of week
-        while (startDate.getDay() !== (dayIndex + 1) % 7) {
-          startDate.setDate(startDate.getDate() + 1);
-        }
+        // Preserve the original calendar date — only update the time.
+        // Re-deriving the date from weekday + month would pick the wrong week (always week 1).
+        const originalDate = new Date(editingClass.startTimeIso);
+        const startDate = new Date(
+          originalDate.getFullYear(),
+          originalDate.getMonth(),
+          originalDate.getDate(),
+          hour,
+          minute,
+          0,
+          0
+        );
 
         const endDate = new Date(startDate);
         endDate.setHours(endHour, endMinute, 0, 0);
@@ -769,18 +841,129 @@ export default function AdminSchedule() {
               </Card>
             )}
 
-            {/* Weekly Schedule Grid */}
+            {/* Week Navigation */}
+            <Card className="border-sage/20 bg-white/95 backdrop-blur-xl">
+              <CardContent className="p-4">
+                {/* Arrow row */}
+                <div className="flex items-center justify-between mb-3">
+                  <button
+                    onClick={() => setAdminWeekOffset(o => o - 1)}
+                    className="p-2 rounded-full hover:bg-sage/10 text-sage transition-colors"
+                    aria-label="Previous week"
+                  >
+                    <ChevronLeft size={20} />
+                  </button>
+                  <div className="text-center">
+                    <span className="font-body text-sm font-medium text-charcoal/80">
+                      {adminWeekDates[0].toLocaleDateString("en-US", { month: "short", day: "numeric" })}
+                      {" – "}
+                      {adminWeekDates[6].toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" })}
+                    </span>
+                    {adminWeekOffset === 0 && (
+                      <span className="ml-2 text-xs text-sage bg-sage/10 px-2 py-0.5 rounded-full font-body">This Week</span>
+                    )}
+                    {adminWeekOffset === 1 && (
+                      <span className="ml-2 text-xs text-sage bg-sage/10 px-2 py-0.5 rounded-full font-body">Next Week</span>
+                    )}
+                    {adminWeekOffset < 0 && (
+                      <span className="ml-2 text-xs text-terracotta/80 bg-terracotta/10 px-2 py-0.5 rounded-full font-body">Past</span>
+                    )}
+                    {adminWeekOffset > 1 && (
+                      <span className="ml-2 text-xs text-sage bg-sage/10 px-2 py-0.5 rounded-full font-body">Upcoming</span>
+                    )}
+                  </div>
+                  <button
+                    onClick={() => setAdminWeekOffset(o => o + 1)}
+                    className="p-2 rounded-full hover:bg-sage/10 text-sage transition-colors"
+                    aria-label="Next week"
+                  >
+                    <ChevronRight size={20} />
+                  </button>
+                </div>
+                {/* Day buttons Mon–Sun */}
+                <div className="grid grid-cols-7 gap-1">
+                  {adminWeekDates.map((d, i) => {
+                    const todayStr = new Date().toDateString();
+                    const isToday = d.toDateString() === todayStr;
+                    const iso = `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,"0")}-${String(d.getDate()).padStart(2,"0")}`;
+                    const isActive = selectedFilterDay === iso;
+                    return (
+                      <button
+                        key={i}
+                        onClick={() => setSelectedFilterDay(isActive ? null : iso)}
+                        className={`flex flex-col items-center py-2 px-1 rounded-xl transition-all ${
+                          isActive
+                            ? "bg-sage text-white"
+                            : isToday
+                              ? "bg-sage/15 text-sage border border-sage/30"
+                              : "hover:bg-sage/10 text-charcoal/70"
+                        }`}
+                      >
+                        <span className="text-[10px] font-body uppercase tracking-wide leading-none mb-1">
+                          {WEEKDAYS[i].slice(0, 3)}
+                        </span>
+                        <span className={`text-base font-display leading-none ${
+                          isActive ? "text-white" : isToday ? "text-sage" : "text-charcoal"
+                        }`}>
+                          {d.getDate()}
+                        </span>
+                      </button>
+                    );
+                  })}
+                </div>
+              </CardContent>
+            </Card>
+
+            {/* Weekly Schedule Grid — grouped by actual date */}
+            {(() => {
+              // Filter to current admin week (Mon–Sun) then optionally to a specific day
+              const weekStartIso = `${adminWeekDates[0].getFullYear()}-${String(adminWeekDates[0].getMonth()+1).padStart(2,"0")}-${String(adminWeekDates[0].getDate()).padStart(2,"0")}`;
+              const weekEndIso = `${adminWeekDates[6].getFullYear()}-${String(adminWeekDates[6].getMonth()+1).padStart(2,"0")}-${String(adminWeekDates[6].getDate()).padStart(2,"0")}`;
+              const inWeek = schedule.filter(c => c.dateIso >= weekStartIso && c.dateIso <= weekEndIso);
+              const visible = selectedFilterDay
+                ? inWeek.filter(c => c.dateIso === selectedFilterDay)
+                : inWeek;
+              const uniqueDates = Array.from(new Set(visible.map(c => c.dateIso))).sort();
+
+              if (uniqueDates.length === 0) {
+                return (
+                  <div className="text-center py-16">
+                    <CalendarIcon className="h-16 w-16 text-charcoal/20 mx-auto mb-4" />
+                    <p className="font-display text-xl text-charcoal/40">No classes scheduled for this period</p>
+                    <p className="font-body text-sm text-charcoal/30 mt-1">
+                      {selectedFilterDay
+                        ? `Nothing on ${new Date(selectedFilterDay + "T00:00:00").toLocaleDateString("en-US", { weekday: "long", month: "long", day: "numeric" })}`
+                        : `Try a different month or schedule a class`}
+                    </p>
+                  </div>
+                );
+              }
+
+              return (
             <div className="grid gap-6">
-              {WEEKDAYS.map(day => {
-                const dayClasses = schedule.filter(c => c.day === day);
+              {uniqueDates.map(dateIso => {
+                const dayClasses = visible.filter(c => c.dateIso === dateIso);
+                const dateObj = new Date(dateIso + "T00:00:00");
+                const day = WEEKDAYS[dateObj.getDay() === 0 ? 6 : dateObj.getDay() - 1];
+                const todayIso = (() => {
+                  const t = new Date();
+                  return `${t.getFullYear()}-${String(t.getMonth()+1).padStart(2,"0")}-${String(t.getDate()).padStart(2,"0")}`;
+                })();
+                const isToday = dateIso === todayIso;
                 
                 return (
-                  <Card key={day} className="border-sage/20 bg-white/95 backdrop-blur-xl">
+                  <Card key={dateIso} className={`border-sage/20 bg-white/95 backdrop-blur-xl ${isToday ? "ring-2 ring-sage/30" : ""}`}>
                     <CardHeader className="bg-gradient-to-r from-cream/50 to-white pb-4">
                       <div className="flex items-center justify-between">
-                        <CardTitle className="font-display text-2xl text-charcoal">
-                          {day}
-                        </CardTitle>
+                        <div>
+                          <CardTitle className="font-display text-2xl text-charcoal">
+                            {day}
+                            {isToday && <span className="ml-2 text-sm font-body font-medium text-sage bg-sage/10 px-2 py-0.5 rounded-full">Today</span>}
+                          </CardTitle>
+                          <p className="font-body text-sm text-charcoal/50 mt-0.5">
+                            {dateObj.toLocaleDateString("en-US", { month: "long", day: "numeric", year: "numeric" })}
+                          </p>
+                        </div>
                         <Badge variant="outline" className="border-sage/20 text-sage bg-sage/5 font-body">
                           {dayClasses.length} {dayClasses.length === 1 ? 'class' : 'classes'}
                         </Badge>
@@ -805,7 +988,7 @@ export default function AdminSchedule() {
                                 key={scheduledClass.id}
                                 className="flex items-center gap-4 p-4 rounded-xl border border-charcoal/10 hover:border-sage/30 hover:bg-sage/5 transition-all duration-600"
                               >
-                                <div className="flex-1 grid sm:grid-cols-3 gap-4">
+                                <div className="flex-1 grid sm:grid-cols-4 gap-4">
                                   <div>
                                     <div className="font-body font-medium text-charcoal mb-1">
                                       {className}
@@ -821,7 +1004,7 @@ export default function AdminSchedule() {
                                       )}
                                     </div>
                                   </div>
-                                  
+
                                   <div>
                                     <div className="font-body text-sm text-charcoal/60 mb-1">
                                       Instructor
@@ -830,7 +1013,7 @@ export default function AdminSchedule() {
                                       {instructor}
                                     </div>
                                   </div>
-                                  
+
                                   <div>
                                     <div className="font-body text-sm text-charcoal/60 mb-1">
                                       Capacity
@@ -840,19 +1023,38 @@ export default function AdminSchedule() {
                                       <span className="font-body font-medium text-charcoal">
                                         {scheduledClass.booked}/{capacity}
                                       </span>
-                                      <Badge 
+                                      <Badge
                                         variant={occupancy >= 90 ? "destructive" : occupancy >= 70 ? "outline" : "outline"}
                                         className={
-                                          occupancy >= 90 
-                                            ? "" 
-                                            : occupancy >= 70 
-                                              ? "border-amber-500/20 text-amber-600 bg-amber-50" 
+                                          occupancy >= 90
+                                            ? ""
+                                            : occupancy >= 70
+                                              ? "border-amber-500/20 text-amber-600 bg-amber-50"
                                               : "border-sage/20 text-sage bg-sage/5"
                                         }
                                       >
                                         {Math.round(occupancy)}%
                                       </Badge>
                                     </div>
+                                  </div>
+
+                                  <div>
+                                    <div className="font-body text-sm text-charcoal/60 mb-1">
+                                      Instructor Check-In
+                                    </div>
+                                    {scheduledClass.instructorCheckInTime ? (
+                                      <div className="flex items-center gap-1.5">
+                                        <CheckCircle2 className="h-4 w-4 text-sage shrink-0" />
+                                        <span className="font-body text-sm font-medium text-sage">
+                                          {new Date(scheduledClass.instructorCheckInTime).toLocaleTimeString("en-US", { hour: "2-digit", minute: "2-digit" })}
+                                        </span>
+                                      </div>
+                                    ) : (
+                                      <div className="flex items-center gap-1.5 text-charcoal/40">
+                                        <Clock className="h-4 w-4 shrink-0" />
+                                        <span className="font-body text-sm">Not checked in</span>
+                                      </div>
+                                    )}
                                   </div>
                                 </div>
                                 
@@ -892,6 +1094,8 @@ export default function AdminSchedule() {
                 );
               })}
             </div>
+              );
+            })()}
 
           </div>
         </main>
@@ -931,33 +1135,79 @@ export default function AdminSchedule() {
             </div>
 
             <div>
-              <Label className="font-body text-charcoal/80 mb-2">Time</Label>
-              <Select value={selectedTime} onValueChange={setSelectedTime}>
-                <SelectTrigger className="h-12 border-charcoal/20 focus:border-sage font-body">
-                  <SelectValue placeholder="Select time" />
-                </SelectTrigger>
-                <SelectContent>
-                  {TIME_SLOTS.map(time => (
-                    <SelectItem key={time} value={time}>{time}</SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
+              <Label className="font-body text-charcoal/80 mb-2">Start Time</Label>
+              <div className="flex items-center gap-2">
+                <Input
+                  className="w-16 h-12 text-center font-body text-lg border-charcoal/20 focus:border-sage"
+                  placeholder="07"
+                  maxLength={2}
+                  value={selectedHour}
+                  onChange={e => setSelectedHour(e.target.value.replace(/\D/g, "").slice(0, 2))}
+                />
+                <span className="text-xl font-semibold text-charcoal/50">:</span>
+                <Input
+                  className="w-16 h-12 text-center font-body text-lg border-charcoal/20 focus:border-sage"
+                  placeholder="00"
+                  maxLength={2}
+                  value={selectedMinute}
+                  onChange={e => setSelectedMinute(e.target.value.replace(/\D/g, "").slice(0, 2))}
+                />
+                <div className="flex rounded-lg overflow-hidden border border-charcoal/20">
+                  <button
+                    type="button"
+                    onClick={() => setSelectedPeriod("AM")}
+                    className={`px-4 h-12 font-body text-sm font-medium transition-colors ${
+                      selectedPeriod === "AM" ? "bg-sage text-white" : "bg-white text-charcoal/70 hover:bg-sage/10"
+                    }`}
+                  >AM</button>
+                  <button
+                    type="button"
+                    onClick={() => setSelectedPeriod("PM")}
+                    className={`px-4 h-12 font-body text-sm font-medium transition-colors border-l border-charcoal/20 ${
+                      selectedPeriod === "PM" ? "bg-sage text-white" : "bg-white text-charcoal/70 hover:bg-sage/10"
+                    }`}
+                  >PM</button>
+                </div>
+              </div>
             </div>
 
             <div>
-              <Label className="font-body text-charcoal/80 mb-2">End Time (Optional)</Label>
-              <Select value={selectedEndTime} onValueChange={setSelectedEndTime}>
-                <SelectTrigger className="h-12 border-charcoal/20 focus:border-sage font-body">
-                  <SelectValue placeholder="Auto-calculate from class duration" />
-                </SelectTrigger>
-                <SelectContent>
-                  {TIME_SLOTS.map(time => (
-                    <SelectItem key={time} value={time}>{time}</SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
+              <Label className="font-body text-charcoal/80 mb-2">End Time <span className="text-charcoal/40 font-normal">(Optional)</span></Label>
+              <div className="flex items-center gap-2">
+                <Input
+                  className="w-16 h-12 text-center font-body text-lg border-charcoal/20 focus:border-sage"
+                  placeholder="08"
+                  maxLength={2}
+                  value={selectedEndHour}
+                  onChange={e => setSelectedEndHour(e.target.value.replace(/\D/g, "").slice(0, 2))}
+                />
+                <span className="text-xl font-semibold text-charcoal/50">:</span>
+                <Input
+                  className="w-16 h-12 text-center font-body text-lg border-charcoal/20 focus:border-sage"
+                  placeholder="00"
+                  maxLength={2}
+                  value={selectedEndMinute}
+                  onChange={e => setSelectedEndMinute(e.target.value.replace(/\D/g, "").slice(0, 2))}
+                />
+                <div className="flex rounded-lg overflow-hidden border border-charcoal/20">
+                  <button
+                    type="button"
+                    onClick={() => setSelectedEndPeriod("AM")}
+                    className={`px-4 h-12 font-body text-sm font-medium transition-colors ${
+                      selectedEndPeriod === "AM" ? "bg-sage text-white" : "bg-white text-charcoal/70 hover:bg-sage/10"
+                    }`}
+                  >AM</button>
+                  <button
+                    type="button"
+                    onClick={() => setSelectedEndPeriod("PM")}
+                    className={`px-4 h-12 font-body text-sm font-medium transition-colors border-l border-charcoal/20 ${
+                      selectedEndPeriod === "PM" ? "bg-sage text-white" : "bg-white text-charcoal/70 hover:bg-sage/10"
+                    }`}
+                  >PM</button>
+                </div>
+              </div>
               <p className="font-body text-xs text-charcoal/50 mt-1">
-                Leave empty to use class duration (
+                Leave empty to auto-calculate from class duration (
                 {selectedClass
                   ? classOptions.find(c => String(c.id) === String(selectedClass))?.duration ?? "—"
                   : "—"}{" "}
@@ -1049,7 +1299,7 @@ export default function AdminSchedule() {
             </Button>
             <Button
               onClick={handleSaveClass}
-              disabled={!selectedDay || !selectedTime || !selectedClass || !selectedInstructor}
+              disabled={!selectedDay || !selectedHour || !selectedMinute || !selectedClass || !selectedInstructor}
               className="bg-sage hover:bg-sage/90 text-white font-body"
             >
               {editingClass ? "Update Class" : "Schedule Class"}

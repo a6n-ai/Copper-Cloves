@@ -72,13 +72,16 @@ export const ModelName = {
   RentalInquiry: 'RentalInquiry',
   UserStats: 'UserStats',
   UserStreak: 'UserStreak',
+  BadgeTemplate: 'BadgeTemplate',
   UserBadge: 'UserBadge',
   Waiver: 'Waiver',
   CrmTemplate: 'CrmTemplate',
   CrmMessage: 'CrmMessage',
   CrmTrigger: 'CrmTrigger',
   UserActivitySession: 'UserActivitySession',
-  UserActivityEvent: 'UserActivityEvent'
+  UserActivityEvent: 'UserActivityEvent',
+  MemberTicket: 'MemberTicket',
+  PasswordResetToken: 'PasswordResetToken'
 } as const
 
 export type ModelName = (typeof ModelName)[keyof typeof ModelName]
@@ -102,11 +105,17 @@ export const ProfileScalarFieldEnum = {
   email: 'email',
   full_name: 'full_name',
   phone: 'phone',
+  whatsapp_phone: 'whatsapp_phone',
   avatar_url: 'avatar_url',
   movement_streak: 'movement_streak',
   pass_type: 'pass_type',
   hashedPassword: 'hashedPassword',
   role: 'role',
+  dob: 'dob',
+  gender: 'gender',
+  onboarding_completed: 'onboarding_completed',
+  questionnaire: 'questionnaire',
+  terms_accepted_at: 'terms_accepted_at',
   created_at: 'created_at',
   updated_at: 'updated_at'
 } as const
@@ -202,6 +211,7 @@ export const InstructorScalarFieldEnum = {
   social_twitter: 'social_twitter',
   social_linkedin: 'social_linkedin',
   social_whatsapp: 'social_whatsapp',
+  hashed_password: 'hashed_password',
   created_at: 'created_at'
 } as const
 
@@ -237,6 +247,7 @@ export const ClassScheduleScalarFieldEnum = {
   available_spots: 'available_spots',
   current_bookings: 'current_bookings',
   status: 'status',
+  instructor_check_in_time: 'instructor_check_in_time',
   created_at: 'created_at'
 } as const
 
@@ -467,6 +478,23 @@ export const UserStreakScalarFieldEnum = {
 export type UserStreakScalarFieldEnum = (typeof UserStreakScalarFieldEnum)[keyof typeof UserStreakScalarFieldEnum]
 
 
+export const BadgeTemplateScalarFieldEnum = {
+  id: 'id',
+  name: 'name',
+  description: 'description',
+  badge_type: 'badge_type',
+  icon: 'icon',
+  color: 'color',
+  threshold_classes: 'threshold_classes',
+  is_active: 'is_active',
+  sort_order: 'sort_order',
+  created_at: 'created_at',
+  updated_at: 'updated_at'
+} as const
+
+export type BadgeTemplateScalarFieldEnum = (typeof BadgeTemplateScalarFieldEnum)[keyof typeof BadgeTemplateScalarFieldEnum]
+
+
 export const UserBadgeScalarFieldEnum = {
   id: 'id',
   user_id: 'user_id',
@@ -474,7 +502,12 @@ export const UserBadgeScalarFieldEnum = {
   badge_description: 'badge_description',
   milestone_value: 'milestone_value',
   total_classes: 'total_classes',
-  earned_at: 'earned_at'
+  earned_at: 'earned_at',
+  badge_template_id: 'badge_template_id',
+  badge_type: 'badge_type',
+  icon: 'icon',
+  color: 'color',
+  allocated_by: 'allocated_by'
 } as const
 
 export type UserBadgeScalarFieldEnum = (typeof UserBadgeScalarFieldEnum)[keyof typeof UserBadgeScalarFieldEnum]
@@ -579,19 +612,39 @@ export const UserActivityEventScalarFieldEnum = {
 export type UserActivityEventScalarFieldEnum = (typeof UserActivityEventScalarFieldEnum)[keyof typeof UserActivityEventScalarFieldEnum]
 
 
+export const MemberTicketScalarFieldEnum = {
+  id: 'id',
+  user_id: 'user_id',
+  type: 'type',
+  reason: 'reason',
+  attachment_url: 'attachment_url',
+  status: 'status',
+  admin_note: 'admin_note',
+  created_at: 'created_at',
+  updated_at: 'updated_at'
+} as const
+
+export type MemberTicketScalarFieldEnum = (typeof MemberTicketScalarFieldEnum)[keyof typeof MemberTicketScalarFieldEnum]
+
+
+export const PasswordResetTokenScalarFieldEnum = {
+  id: 'id',
+  email: 'email',
+  token: 'token',
+  expires_at: 'expires_at',
+  used: 'used',
+  created_at: 'created_at'
+} as const
+
+export type PasswordResetTokenScalarFieldEnum = (typeof PasswordResetTokenScalarFieldEnum)[keyof typeof PasswordResetTokenScalarFieldEnum]
+
+
 export const SortOrder = {
   asc: 'asc',
   desc: 'desc'
 } as const
 
 export type SortOrder = (typeof SortOrder)[keyof typeof SortOrder]
-
-
-export const JsonNullValueInput = {
-  JsonNull: JsonNull
-} as const
-
-export type JsonNullValueInput = (typeof JsonNullValueInput)[keyof typeof JsonNullValueInput]
 
 
 export const NullableJsonNullValueInput = {
@@ -602,20 +655,19 @@ export const NullableJsonNullValueInput = {
 export type NullableJsonNullValueInput = (typeof NullableJsonNullValueInput)[keyof typeof NullableJsonNullValueInput]
 
 
+export const JsonNullValueInput = {
+  JsonNull: JsonNull
+} as const
+
+export type JsonNullValueInput = (typeof JsonNullValueInput)[keyof typeof JsonNullValueInput]
+
+
 export const QueryMode = {
   default: 'default',
   insensitive: 'insensitive'
 } as const
 
 export type QueryMode = (typeof QueryMode)[keyof typeof QueryMode]
-
-
-export const NullsOrder = {
-  first: 'first',
-  last: 'last'
-} as const
-
-export type NullsOrder = (typeof NullsOrder)[keyof typeof NullsOrder]
 
 
 export const JsonNullValueFilter = {
@@ -625,4 +677,12 @@ export const JsonNullValueFilter = {
 } as const
 
 export type JsonNullValueFilter = (typeof JsonNullValueFilter)[keyof typeof JsonNullValueFilter]
+
+
+export const NullsOrder = {
+  first: 'first',
+  last: 'last'
+} as const
+
+export type NullsOrder = (typeof NullsOrder)[keyof typeof NullsOrder]
 

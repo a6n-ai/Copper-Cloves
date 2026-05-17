@@ -147,6 +147,11 @@ export type UserStats = Prisma.UserStatsModel
  */
 export type UserStreak = Prisma.UserStreakModel
 /**
+ * Model BadgeTemplate
+ * 
+ */
+export type BadgeTemplate = Prisma.BadgeTemplateModel
+/**
  * Model UserBadge
  * 
  */
@@ -181,3 +186,13 @@ export type UserActivitySession = Prisma.UserActivitySessionModel
  * Individual user actions / page views / API-backed actions (immutable log).
  */
 export type UserActivityEvent = Prisma.UserActivityEventModel
+/**
+ * Model MemberTicket
+ * 
+ */
+export type MemberTicket = Prisma.MemberTicketModel
+/**
+ * Model PasswordResetToken
+ * 
+ */
+export type PasswordResetToken = Prisma.PasswordResetTokenModel

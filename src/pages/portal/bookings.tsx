@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import { useToast } from "@/hooks/use-toast";
 import { useRouter } from "next/router";
 import { useSession } from "next-auth/react";
 import { PortalNavigation } from "@/components/PortalNavigation";
@@ -33,6 +34,7 @@ interface Booking {
 
 export default function MyBookingsPage() {
   const router = useRouter();
+  const { toast } = useToast();
   const { status } = useSession();
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
@@ -92,7 +94,7 @@ export default function MyBookingsPage() {
       setSelectedBooking(null);
     } catch (error) {
       console.error("Error canceling booking:", error);
-      alert("Failed to cancel booking. Please try again.");
+      toast({ title: "Could not cancel", description: "Failed to cancel booking. Please try again.", variant: "error" });
     } finally {
       setCanceling(false);
     }
@@ -138,12 +140,12 @@ export default function MyBookingsPage() {
       });
       const data = await res.json().catch(() => ({}));
       if (!res.ok) {
-        alert(typeof data?.error === "string" ? data.error : "Check-in failed");
+        toast({ title: "Check-in failed", description: typeof data?.error === "string" ? data.error : "Could not check in. Please try again.", variant: "error" });
         return;
       }
       await fetchBookings();
     } catch {
-      alert("Check-in failed");
+      toast({ title: "Check-in failed", description: "Could not check in. Please try again.", variant: "error" });
     }
   }
 

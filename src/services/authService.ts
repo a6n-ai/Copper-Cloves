@@ -41,7 +41,11 @@ export const authService = {
     });
 
     if (result?.error) {
-      return { user: null, error: { message: result.error } };
+      const message =
+        result.error === "CredentialsSignin"
+          ? "Invalid email or password. Please try again."
+          : result.error;
+      return { user: null, error: { message } };
     }
 
     const session = await getSession();

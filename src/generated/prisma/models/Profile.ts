@@ -39,11 +39,16 @@ export type ProfileMinAggregateOutputType = {
   email: string | null
   full_name: string | null
   phone: string | null
+  whatsapp_phone: string | null
   avatar_url: string | null
   movement_streak: number | null
   pass_type: string | null
   hashedPassword: string | null
   role: string | null
+  dob: Date | null
+  gender: string | null
+  onboarding_completed: boolean | null
+  terms_accepted_at: Date | null
   created_at: Date | null
   updated_at: Date | null
 }
@@ -53,11 +58,16 @@ export type ProfileMaxAggregateOutputType = {
   email: string | null
   full_name: string | null
   phone: string | null
+  whatsapp_phone: string | null
   avatar_url: string | null
   movement_streak: number | null
   pass_type: string | null
   hashedPassword: string | null
   role: string | null
+  dob: Date | null
+  gender: string | null
+  onboarding_completed: boolean | null
+  terms_accepted_at: Date | null
   created_at: Date | null
   updated_at: Date | null
 }
@@ -67,11 +77,17 @@ export type ProfileCountAggregateOutputType = {
   email: number
   full_name: number
   phone: number
+  whatsapp_phone: number
   avatar_url: number
   movement_streak: number
   pass_type: number
   hashedPassword: number
   role: number
+  dob: number
+  gender: number
+  onboarding_completed: number
+  questionnaire: number
+  terms_accepted_at: number
   created_at: number
   updated_at: number
   _all: number
@@ -91,11 +107,16 @@ export type ProfileMinAggregateInputType = {
   email?: true
   full_name?: true
   phone?: true
+  whatsapp_phone?: true
   avatar_url?: true
   movement_streak?: true
   pass_type?: true
   hashedPassword?: true
   role?: true
+  dob?: true
+  gender?: true
+  onboarding_completed?: true
+  terms_accepted_at?: true
   created_at?: true
   updated_at?: true
 }
@@ -105,11 +126,16 @@ export type ProfileMaxAggregateInputType = {
   email?: true
   full_name?: true
   phone?: true
+  whatsapp_phone?: true
   avatar_url?: true
   movement_streak?: true
   pass_type?: true
   hashedPassword?: true
   role?: true
+  dob?: true
+  gender?: true
+  onboarding_completed?: true
+  terms_accepted_at?: true
   created_at?: true
   updated_at?: true
 }
@@ -119,11 +145,17 @@ export type ProfileCountAggregateInputType = {
   email?: true
   full_name?: true
   phone?: true
+  whatsapp_phone?: true
   avatar_url?: true
   movement_streak?: true
   pass_type?: true
   hashedPassword?: true
   role?: true
+  dob?: true
+  gender?: true
+  onboarding_completed?: true
+  questionnaire?: true
+  terms_accepted_at?: true
   created_at?: true
   updated_at?: true
   _all?: true
@@ -220,11 +252,17 @@ export type ProfileGroupByOutputType = {
   email: string
   full_name: string | null
   phone: string | null
+  whatsapp_phone: string | null
   avatar_url: string | null
   movement_streak: number
   pass_type: string | null
   hashedPassword: string | null
   role: string
+  dob: Date | null
+  gender: string | null
+  onboarding_completed: boolean
+  questionnaire: runtime.JsonValue | null
+  terms_accepted_at: Date | null
   created_at: Date
   updated_at: Date
   _count: ProfileCountAggregateOutputType | null
@@ -257,11 +295,17 @@ export type ProfileWhereInput = {
   email?: Prisma.StringFilter<"Profile"> | string
   full_name?: Prisma.StringNullableFilter<"Profile"> | string | null
   phone?: Prisma.StringNullableFilter<"Profile"> | string | null
+  whatsapp_phone?: Prisma.StringNullableFilter<"Profile"> | string | null
   avatar_url?: Prisma.StringNullableFilter<"Profile"> | string | null
   movement_streak?: Prisma.IntFilter<"Profile"> | number
   pass_type?: Prisma.StringNullableFilter<"Profile"> | string | null
   hashedPassword?: Prisma.StringNullableFilter<"Profile"> | string | null
   role?: Prisma.StringFilter<"Profile"> | string
+  dob?: Prisma.DateTimeNullableFilter<"Profile"> | Date | string | null
+  gender?: Prisma.StringNullableFilter<"Profile"> | string | null
+  onboarding_completed?: Prisma.BoolFilter<"Profile"> | boolean
+  questionnaire?: Prisma.JsonNullableFilter<"Profile">
+  terms_accepted_at?: Prisma.DateTimeNullableFilter<"Profile"> | Date | string | null
   created_at?: Prisma.DateTimeFilter<"Profile"> | Date | string
   updated_at?: Prisma.DateTimeFilter<"Profile"> | Date | string
   bookings?: Prisma.BookingListRelationFilter
@@ -279,6 +323,7 @@ export type ProfileWhereInput = {
   coupon_redemptions?: Prisma.CouponRedemptionListRelationFilter
   razorpay_orders?: Prisma.RazorpayOrderListRelationFilter
   razorpay_payments?: Prisma.RazorpayPaymentListRelationFilter
+  member_tickets?: Prisma.MemberTicketListRelationFilter
 }
 
 export type ProfileOrderByWithRelationInput = {
@@ -286,11 +331,17 @@ export type ProfileOrderByWithRelationInput = {
   email?: Prisma.SortOrder
   full_name?: Prisma.SortOrderInput | Prisma.SortOrder
   phone?: Prisma.SortOrderInput | Prisma.SortOrder
+  whatsapp_phone?: Prisma.SortOrderInput | Prisma.SortOrder
   avatar_url?: Prisma.SortOrderInput | Prisma.SortOrder
   movement_streak?: Prisma.SortOrder
   pass_type?: Prisma.SortOrderInput | Prisma.SortOrder
   hashedPassword?: Prisma.SortOrderInput | Prisma.SortOrder
   role?: Prisma.SortOrder
+  dob?: Prisma.SortOrderInput | Prisma.SortOrder
+  gender?: Prisma.SortOrderInput | Prisma.SortOrder
+  onboarding_completed?: Prisma.SortOrder
+  questionnaire?: Prisma.SortOrderInput | Prisma.SortOrder
+  terms_accepted_at?: Prisma.SortOrderInput | Prisma.SortOrder
   created_at?: Prisma.SortOrder
   updated_at?: Prisma.SortOrder
   bookings?: Prisma.BookingOrderByRelationAggregateInput
@@ -308,6 +359,7 @@ export type ProfileOrderByWithRelationInput = {
   coupon_redemptions?: Prisma.CouponRedemptionOrderByRelationAggregateInput
   razorpay_orders?: Prisma.RazorpayOrderOrderByRelationAggregateInput
   razorpay_payments?: Prisma.RazorpayPaymentOrderByRelationAggregateInput
+  member_tickets?: Prisma.MemberTicketOrderByRelationAggregateInput
 }
 
 export type ProfileWhereUniqueInput = Prisma.AtLeast<{
@@ -318,11 +370,17 @@ export type ProfileWhereUniqueInput = Prisma.AtLeast<{
   NOT?: Prisma.ProfileWhereInput | Prisma.ProfileWhereInput[]
   full_name?: Prisma.StringNullableFilter<"Profile"> | string | null
   phone?: Prisma.StringNullableFilter<"Profile"> | string | null
+  whatsapp_phone?: Prisma.StringNullableFilter<"Profile"> | string | null
   avatar_url?: Prisma.StringNullableFilter<"Profile"> | string | null
   movement_streak?: Prisma.IntFilter<"Profile"> | number
   pass_type?: Prisma.StringNullableFilter<"Profile"> | string | null
   hashedPassword?: Prisma.StringNullableFilter<"Profile"> | string | null
   role?: Prisma.StringFilter<"Profile"> | string
+  dob?: Prisma.DateTimeNullableFilter<"Profile"> | Date | string | null
+  gender?: Prisma.StringNullableFilter<"Profile"> | string | null
+  onboarding_completed?: Prisma.BoolFilter<"Profile"> | boolean
+  questionnaire?: Prisma.JsonNullableFilter<"Profile">
+  terms_accepted_at?: Prisma.DateTimeNullableFilter<"Profile"> | Date | string | null
   created_at?: Prisma.DateTimeFilter<"Profile"> | Date | string
   updated_at?: Prisma.DateTimeFilter<"Profile"> | Date | string
   bookings?: Prisma.BookingListRelationFilter
@@ -340,6 +398,7 @@ export type ProfileWhereUniqueInput = Prisma.AtLeast<{
   coupon_redemptions?: Prisma.CouponRedemptionListRelationFilter
   razorpay_orders?: Prisma.RazorpayOrderListRelationFilter
   razorpay_payments?: Prisma.RazorpayPaymentListRelationFilter
+  member_tickets?: Prisma.MemberTicketListRelationFilter
 }, "id" | "email">
 
 export type ProfileOrderByWithAggregationInput = {
@@ -347,11 +406,17 @@ export type ProfileOrderByWithAggregationInput = {
   email?: Prisma.SortOrder
   full_name?: Prisma.SortOrderInput | Prisma.SortOrder
   phone?: Prisma.SortOrderInput | Prisma.SortOrder
+  whatsapp_phone?: Prisma.SortOrderInput | Prisma.SortOrder
   avatar_url?: Prisma.SortOrderInput | Prisma.SortOrder
   movement_streak?: Prisma.SortOrder
   pass_type?: Prisma.SortOrderInput | Prisma.SortOrder
   hashedPassword?: Prisma.SortOrderInput | Prisma.SortOrder
   role?: Prisma.SortOrder
+  dob?: Prisma.SortOrderInput | Prisma.SortOrder
+  gender?: Prisma.SortOrderInput | Prisma.SortOrder
+  onboarding_completed?: Prisma.SortOrder
+  questionnaire?: Prisma.SortOrderInput | Prisma.SortOrder
+  terms_accepted_at?: Prisma.SortOrderInput | Prisma.SortOrder
   created_at?: Prisma.SortOrder
   updated_at?: Prisma.SortOrder
   _count?: Prisma.ProfileCountOrderByAggregateInput
@@ -369,11 +434,17 @@ export type ProfileScalarWhereWithAggregatesInput = {
   email?: Prisma.StringWithAggregatesFilter<"Profile"> | string
   full_name?: Prisma.StringNullableWithAggregatesFilter<"Profile"> | string | null
   phone?: Prisma.StringNullableWithAggregatesFilter<"Profile"> | string | null
+  whatsapp_phone?: Prisma.StringNullableWithAggregatesFilter<"Profile"> | string | null
   avatar_url?: Prisma.StringNullableWithAggregatesFilter<"Profile"> | string | null
   movement_streak?: Prisma.IntWithAggregatesFilter<"Profile"> | number
   pass_type?: Prisma.StringNullableWithAggregatesFilter<"Profile"> | string | null
   hashedPassword?: Prisma.StringNullableWithAggregatesFilter<"Profile"> | string | null
   role?: Prisma.StringWithAggregatesFilter<"Profile"> | string
+  dob?: Prisma.DateTimeNullableWithAggregatesFilter<"Profile"> | Date | string | null
+  gender?: Prisma.StringNullableWithAggregatesFilter<"Profile"> | string | null
+  onboarding_completed?: Prisma.BoolWithAggregatesFilter<"Profile"> | boolean
+  questionnaire?: Prisma.JsonNullableWithAggregatesFilter<"Profile">
+  terms_accepted_at?: Prisma.DateTimeNullableWithAggregatesFilter<"Profile"> | Date | string | null
   created_at?: Prisma.DateTimeWithAggregatesFilter<"Profile"> | Date | string
   updated_at?: Prisma.DateTimeWithAggregatesFilter<"Profile"> | Date | string
 }
@@ -383,11 +454,17 @@ export type ProfileCreateInput = {
   email: string
   full_name?: string | null
   phone?: string | null
+  whatsapp_phone?: string | null
   avatar_url?: string | null
   movement_streak?: number
   pass_type?: string | null
   hashedPassword?: string | null
   role?: string
+  dob?: Date | string | null
+  gender?: string | null
+  onboarding_completed?: boolean
+  questionnaire?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  terms_accepted_at?: Date | string | null
   created_at?: Date | string
   updated_at?: Date | string
   bookings?: Prisma.BookingCreateNestedManyWithoutProfileInput
@@ -405,6 +482,7 @@ export type ProfileCreateInput = {
   coupon_redemptions?: Prisma.CouponRedemptionCreateNestedManyWithoutProfileInput
   razorpay_orders?: Prisma.RazorpayOrderCreateNestedManyWithoutProfileInput
   razorpay_payments?: Prisma.RazorpayPaymentCreateNestedManyWithoutProfileInput
+  member_tickets?: Prisma.MemberTicketCreateNestedManyWithoutProfileInput
 }
 
 export type ProfileUncheckedCreateInput = {
@@ -412,11 +490,17 @@ export type ProfileUncheckedCreateInput = {
   email: string
   full_name?: string | null
   phone?: string | null
+  whatsapp_phone?: string | null
   avatar_url?: string | null
   movement_streak?: number
   pass_type?: string | null
   hashedPassword?: string | null
   role?: string
+  dob?: Date | string | null
+  gender?: string | null
+  onboarding_completed?: boolean
+  questionnaire?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  terms_accepted_at?: Date | string | null
   created_at?: Date | string
   updated_at?: Date | string
   bookings?: Prisma.BookingUncheckedCreateNestedManyWithoutProfileInput
@@ -434,6 +518,7 @@ export type ProfileUncheckedCreateInput = {
   coupon_redemptions?: Prisma.CouponRedemptionUncheckedCreateNestedManyWithoutProfileInput
   razorpay_orders?: Prisma.RazorpayOrderUncheckedCreateNestedManyWithoutProfileInput
   razorpay_payments?: Prisma.RazorpayPaymentUncheckedCreateNestedManyWithoutProfileInput
+  member_tickets?: Prisma.MemberTicketUncheckedCreateNestedManyWithoutProfileInput
 }
 
 export type ProfileUpdateInput = {
@@ -441,11 +526,17 @@ export type ProfileUpdateInput = {
   email?: Prisma.StringFieldUpdateOperationsInput | string
   full_name?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   phone?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  whatsapp_phone?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   avatar_url?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   movement_streak?: Prisma.IntFieldUpdateOperationsInput | number
   pass_type?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   hashedPassword?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   role?: Prisma.StringFieldUpdateOperationsInput | string
+  dob?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  gender?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  onboarding_completed?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  questionnaire?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  terms_accepted_at?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   created_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updated_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   bookings?: Prisma.BookingUpdateManyWithoutProfileNestedInput
@@ -463,6 +554,7 @@ export type ProfileUpdateInput = {
   coupon_redemptions?: Prisma.CouponRedemptionUpdateManyWithoutProfileNestedInput
   razorpay_orders?: Prisma.RazorpayOrderUpdateManyWithoutProfileNestedInput
   razorpay_payments?: Prisma.RazorpayPaymentUpdateManyWithoutProfileNestedInput
+  member_tickets?: Prisma.MemberTicketUpdateManyWithoutProfileNestedInput
 }
 
 export type ProfileUncheckedUpdateInput = {
@@ -470,11 +562,17 @@ export type ProfileUncheckedUpdateInput = {
   email?: Prisma.StringFieldUpdateOperationsInput | string
   full_name?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   phone?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  whatsapp_phone?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   avatar_url?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   movement_streak?: Prisma.IntFieldUpdateOperationsInput | number
   pass_type?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   hashedPassword?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   role?: Prisma.StringFieldUpdateOperationsInput | string
+  dob?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  gender?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  onboarding_completed?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  questionnaire?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  terms_accepted_at?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   created_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updated_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   bookings?: Prisma.BookingUncheckedUpdateManyWithoutProfileNestedInput
@@ -492,6 +590,7 @@ export type ProfileUncheckedUpdateInput = {
   coupon_redemptions?: Prisma.CouponRedemptionUncheckedUpdateManyWithoutProfileNestedInput
   razorpay_orders?: Prisma.RazorpayOrderUncheckedUpdateManyWithoutProfileNestedInput
   razorpay_payments?: Prisma.RazorpayPaymentUncheckedUpdateManyWithoutProfileNestedInput
+  member_tickets?: Prisma.MemberTicketUncheckedUpdateManyWithoutProfileNestedInput
 }
 
 export type ProfileCreateManyInput = {
@@ -499,11 +598,17 @@ export type ProfileCreateManyInput = {
   email: string
   full_name?: string | null
   phone?: string | null
+  whatsapp_phone?: string | null
   avatar_url?: string | null
   movement_streak?: number
   pass_type?: string | null
   hashedPassword?: string | null
   role?: string
+  dob?: Date | string | null
+  gender?: string | null
+  onboarding_completed?: boolean
+  questionnaire?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  terms_accepted_at?: Date | string | null
   created_at?: Date | string
   updated_at?: Date | string
 }
@@ -513,11 +618,17 @@ export type ProfileUpdateManyMutationInput = {
   email?: Prisma.StringFieldUpdateOperationsInput | string
   full_name?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   phone?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  whatsapp_phone?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   avatar_url?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   movement_streak?: Prisma.IntFieldUpdateOperationsInput | number
   pass_type?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   hashedPassword?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   role?: Prisma.StringFieldUpdateOperationsInput | string
+  dob?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  gender?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  onboarding_completed?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  questionnaire?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  terms_accepted_at?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   created_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updated_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
 }
@@ -527,11 +638,17 @@ export type ProfileUncheckedUpdateManyInput = {
   email?: Prisma.StringFieldUpdateOperationsInput | string
   full_name?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   phone?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  whatsapp_phone?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   avatar_url?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   movement_streak?: Prisma.IntFieldUpdateOperationsInput | number
   pass_type?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   hashedPassword?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   role?: Prisma.StringFieldUpdateOperationsInput | string
+  dob?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  gender?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  onboarding_completed?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  questionnaire?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  terms_accepted_at?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   created_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updated_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
 }
@@ -541,11 +658,17 @@ export type ProfileCountOrderByAggregateInput = {
   email?: Prisma.SortOrder
   full_name?: Prisma.SortOrder
   phone?: Prisma.SortOrder
+  whatsapp_phone?: Prisma.SortOrder
   avatar_url?: Prisma.SortOrder
   movement_streak?: Prisma.SortOrder
   pass_type?: Prisma.SortOrder
   hashedPassword?: Prisma.SortOrder
   role?: Prisma.SortOrder
+  dob?: Prisma.SortOrder
+  gender?: Prisma.SortOrder
+  onboarding_completed?: Prisma.SortOrder
+  questionnaire?: Prisma.SortOrder
+  terms_accepted_at?: Prisma.SortOrder
   created_at?: Prisma.SortOrder
   updated_at?: Prisma.SortOrder
 }
@@ -559,11 +682,16 @@ export type ProfileMaxOrderByAggregateInput = {
   email?: Prisma.SortOrder
   full_name?: Prisma.SortOrder
   phone?: Prisma.SortOrder
+  whatsapp_phone?: Prisma.SortOrder
   avatar_url?: Prisma.SortOrder
   movement_streak?: Prisma.SortOrder
   pass_type?: Prisma.SortOrder
   hashedPassword?: Prisma.SortOrder
   role?: Prisma.SortOrder
+  dob?: Prisma.SortOrder
+  gender?: Prisma.SortOrder
+  onboarding_completed?: Prisma.SortOrder
+  terms_accepted_at?: Prisma.SortOrder
   created_at?: Prisma.SortOrder
   updated_at?: Prisma.SortOrder
 }
@@ -573,11 +701,16 @@ export type ProfileMinOrderByAggregateInput = {
   email?: Prisma.SortOrder
   full_name?: Prisma.SortOrder
   phone?: Prisma.SortOrder
+  whatsapp_phone?: Prisma.SortOrder
   avatar_url?: Prisma.SortOrder
   movement_streak?: Prisma.SortOrder
   pass_type?: Prisma.SortOrder
   hashedPassword?: Prisma.SortOrder
   role?: Prisma.SortOrder
+  dob?: Prisma.SortOrder
+  gender?: Prisma.SortOrder
+  onboarding_completed?: Prisma.SortOrder
+  terms_accepted_at?: Prisma.SortOrder
   created_at?: Prisma.SortOrder
   updated_at?: Prisma.SortOrder
 }
@@ -610,6 +743,14 @@ export type IntFieldUpdateOperationsInput = {
   decrement?: number
   multiply?: number
   divide?: number
+}
+
+export type NullableDateTimeFieldUpdateOperationsInput = {
+  set?: Date | string | null
+}
+
+export type BoolFieldUpdateOperationsInput = {
+  set?: boolean
 }
 
 export type DateTimeFieldUpdateOperationsInput = {
@@ -836,16 +977,36 @@ export type ProfileUpdateOneWithoutActivity_eventsNestedInput = {
   update?: Prisma.XOR<Prisma.XOR<Prisma.ProfileUpdateToOneWithWhereWithoutActivity_eventsInput, Prisma.ProfileUpdateWithoutActivity_eventsInput>, Prisma.ProfileUncheckedUpdateWithoutActivity_eventsInput>
 }
 
+export type ProfileCreateNestedOneWithoutMember_ticketsInput = {
+  create?: Prisma.XOR<Prisma.ProfileCreateWithoutMember_ticketsInput, Prisma.ProfileUncheckedCreateWithoutMember_ticketsInput>
+  connectOrCreate?: Prisma.ProfileCreateOrConnectWithoutMember_ticketsInput
+  connect?: Prisma.ProfileWhereUniqueInput
+}
+
+export type ProfileUpdateOneRequiredWithoutMember_ticketsNestedInput = {
+  create?: Prisma.XOR<Prisma.ProfileCreateWithoutMember_ticketsInput, Prisma.ProfileUncheckedCreateWithoutMember_ticketsInput>
+  connectOrCreate?: Prisma.ProfileCreateOrConnectWithoutMember_ticketsInput
+  upsert?: Prisma.ProfileUpsertWithoutMember_ticketsInput
+  connect?: Prisma.ProfileWhereUniqueInput
+  update?: Prisma.XOR<Prisma.XOR<Prisma.ProfileUpdateToOneWithWhereWithoutMember_ticketsInput, Prisma.ProfileUpdateWithoutMember_ticketsInput>, Prisma.ProfileUncheckedUpdateWithoutMember_ticketsInput>
+}
+
 export type ProfileCreateWithoutCoupon_redemptionsInput = {
   id?: string
   email: string
   full_name?: string | null
   phone?: string | null
+  whatsapp_phone?: string | null
   avatar_url?: string | null
   movement_streak?: number
   pass_type?: string | null
   hashedPassword?: string | null
   role?: string
+  dob?: Date | string | null
+  gender?: string | null
+  onboarding_completed?: boolean
+  questionnaire?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  terms_accepted_at?: Date | string | null
   created_at?: Date | string
   updated_at?: Date | string
   bookings?: Prisma.BookingCreateNestedManyWithoutProfileInput
@@ -862,6 +1023,7 @@ export type ProfileCreateWithoutCoupon_redemptionsInput = {
   retail_orders?: Prisma.RetailOrderCreateNestedManyWithoutProfileInput
   razorpay_orders?: Prisma.RazorpayOrderCreateNestedManyWithoutProfileInput
   razorpay_payments?: Prisma.RazorpayPaymentCreateNestedManyWithoutProfileInput
+  member_tickets?: Prisma.MemberTicketCreateNestedManyWithoutProfileInput
 }
 
 export type ProfileUncheckedCreateWithoutCoupon_redemptionsInput = {
@@ -869,11 +1031,17 @@ export type ProfileUncheckedCreateWithoutCoupon_redemptionsInput = {
   email: string
   full_name?: string | null
   phone?: string | null
+  whatsapp_phone?: string | null
   avatar_url?: string | null
   movement_streak?: number
   pass_type?: string | null
   hashedPassword?: string | null
   role?: string
+  dob?: Date | string | null
+  gender?: string | null
+  onboarding_completed?: boolean
+  questionnaire?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  terms_accepted_at?: Date | string | null
   created_at?: Date | string
   updated_at?: Date | string
   bookings?: Prisma.BookingUncheckedCreateNestedManyWithoutProfileInput
@@ -890,6 +1058,7 @@ export type ProfileUncheckedCreateWithoutCoupon_redemptionsInput = {
   retail_orders?: Prisma.RetailOrderUncheckedCreateNestedManyWithoutProfileInput
   razorpay_orders?: Prisma.RazorpayOrderUncheckedCreateNestedManyWithoutProfileInput
   razorpay_payments?: Prisma.RazorpayPaymentUncheckedCreateNestedManyWithoutProfileInput
+  member_tickets?: Prisma.MemberTicketUncheckedCreateNestedManyWithoutProfileInput
 }
 
 export type ProfileCreateOrConnectWithoutCoupon_redemptionsInput = {
@@ -913,11 +1082,17 @@ export type ProfileUpdateWithoutCoupon_redemptionsInput = {
   email?: Prisma.StringFieldUpdateOperationsInput | string
   full_name?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   phone?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  whatsapp_phone?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   avatar_url?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   movement_streak?: Prisma.IntFieldUpdateOperationsInput | number
   pass_type?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   hashedPassword?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   role?: Prisma.StringFieldUpdateOperationsInput | string
+  dob?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  gender?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  onboarding_completed?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  questionnaire?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  terms_accepted_at?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   created_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updated_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   bookings?: Prisma.BookingUpdateManyWithoutProfileNestedInput
@@ -934,6 +1109,7 @@ export type ProfileUpdateWithoutCoupon_redemptionsInput = {
   retail_orders?: Prisma.RetailOrderUpdateManyWithoutProfileNestedInput
   razorpay_orders?: Prisma.RazorpayOrderUpdateManyWithoutProfileNestedInput
   razorpay_payments?: Prisma.RazorpayPaymentUpdateManyWithoutProfileNestedInput
+  member_tickets?: Prisma.MemberTicketUpdateManyWithoutProfileNestedInput
 }
 
 export type ProfileUncheckedUpdateWithoutCoupon_redemptionsInput = {
@@ -941,11 +1117,17 @@ export type ProfileUncheckedUpdateWithoutCoupon_redemptionsInput = {
   email?: Prisma.StringFieldUpdateOperationsInput | string
   full_name?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   phone?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  whatsapp_phone?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   avatar_url?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   movement_streak?: Prisma.IntFieldUpdateOperationsInput | number
   pass_type?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   hashedPassword?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   role?: Prisma.StringFieldUpdateOperationsInput | string
+  dob?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  gender?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  onboarding_completed?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  questionnaire?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  terms_accepted_at?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   created_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updated_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   bookings?: Prisma.BookingUncheckedUpdateManyWithoutProfileNestedInput
@@ -962,6 +1144,7 @@ export type ProfileUncheckedUpdateWithoutCoupon_redemptionsInput = {
   retail_orders?: Prisma.RetailOrderUncheckedUpdateManyWithoutProfileNestedInput
   razorpay_orders?: Prisma.RazorpayOrderUncheckedUpdateManyWithoutProfileNestedInput
   razorpay_payments?: Prisma.RazorpayPaymentUncheckedUpdateManyWithoutProfileNestedInput
+  member_tickets?: Prisma.MemberTicketUncheckedUpdateManyWithoutProfileNestedInput
 }
 
 export type ProfileCreateWithoutRetail_ordersInput = {
@@ -969,11 +1152,17 @@ export type ProfileCreateWithoutRetail_ordersInput = {
   email: string
   full_name?: string | null
   phone?: string | null
+  whatsapp_phone?: string | null
   avatar_url?: string | null
   movement_streak?: number
   pass_type?: string | null
   hashedPassword?: string | null
   role?: string
+  dob?: Date | string | null
+  gender?: string | null
+  onboarding_completed?: boolean
+  questionnaire?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  terms_accepted_at?: Date | string | null
   created_at?: Date | string
   updated_at?: Date | string
   bookings?: Prisma.BookingCreateNestedManyWithoutProfileInput
@@ -990,6 +1179,7 @@ export type ProfileCreateWithoutRetail_ordersInput = {
   coupon_redemptions?: Prisma.CouponRedemptionCreateNestedManyWithoutProfileInput
   razorpay_orders?: Prisma.RazorpayOrderCreateNestedManyWithoutProfileInput
   razorpay_payments?: Prisma.RazorpayPaymentCreateNestedManyWithoutProfileInput
+  member_tickets?: Prisma.MemberTicketCreateNestedManyWithoutProfileInput
 }
 
 export type ProfileUncheckedCreateWithoutRetail_ordersInput = {
@@ -997,11 +1187,17 @@ export type ProfileUncheckedCreateWithoutRetail_ordersInput = {
   email: string
   full_name?: string | null
   phone?: string | null
+  whatsapp_phone?: string | null
   avatar_url?: string | null
   movement_streak?: number
   pass_type?: string | null
   hashedPassword?: string | null
   role?: string
+  dob?: Date | string | null
+  gender?: string | null
+  onboarding_completed?: boolean
+  questionnaire?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  terms_accepted_at?: Date | string | null
   created_at?: Date | string
   updated_at?: Date | string
   bookings?: Prisma.BookingUncheckedCreateNestedManyWithoutProfileInput
@@ -1018,6 +1214,7 @@ export type ProfileUncheckedCreateWithoutRetail_ordersInput = {
   coupon_redemptions?: Prisma.CouponRedemptionUncheckedCreateNestedManyWithoutProfileInput
   razorpay_orders?: Prisma.RazorpayOrderUncheckedCreateNestedManyWithoutProfileInput
   razorpay_payments?: Prisma.RazorpayPaymentUncheckedCreateNestedManyWithoutProfileInput
+  member_tickets?: Prisma.MemberTicketUncheckedCreateNestedManyWithoutProfileInput
 }
 
 export type ProfileCreateOrConnectWithoutRetail_ordersInput = {
@@ -1041,11 +1238,17 @@ export type ProfileUpdateWithoutRetail_ordersInput = {
   email?: Prisma.StringFieldUpdateOperationsInput | string
   full_name?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   phone?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  whatsapp_phone?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   avatar_url?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   movement_streak?: Prisma.IntFieldUpdateOperationsInput | number
   pass_type?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   hashedPassword?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   role?: Prisma.StringFieldUpdateOperationsInput | string
+  dob?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  gender?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  onboarding_completed?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  questionnaire?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  terms_accepted_at?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   created_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updated_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   bookings?: Prisma.BookingUpdateManyWithoutProfileNestedInput
@@ -1062,6 +1265,7 @@ export type ProfileUpdateWithoutRetail_ordersInput = {
   coupon_redemptions?: Prisma.CouponRedemptionUpdateManyWithoutProfileNestedInput
   razorpay_orders?: Prisma.RazorpayOrderUpdateManyWithoutProfileNestedInput
   razorpay_payments?: Prisma.RazorpayPaymentUpdateManyWithoutProfileNestedInput
+  member_tickets?: Prisma.MemberTicketUpdateManyWithoutProfileNestedInput
 }
 
 export type ProfileUncheckedUpdateWithoutRetail_ordersInput = {
@@ -1069,11 +1273,17 @@ export type ProfileUncheckedUpdateWithoutRetail_ordersInput = {
   email?: Prisma.StringFieldUpdateOperationsInput | string
   full_name?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   phone?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  whatsapp_phone?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   avatar_url?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   movement_streak?: Prisma.IntFieldUpdateOperationsInput | number
   pass_type?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   hashedPassword?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   role?: Prisma.StringFieldUpdateOperationsInput | string
+  dob?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  gender?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  onboarding_completed?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  questionnaire?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  terms_accepted_at?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   created_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updated_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   bookings?: Prisma.BookingUncheckedUpdateManyWithoutProfileNestedInput
@@ -1090,6 +1300,7 @@ export type ProfileUncheckedUpdateWithoutRetail_ordersInput = {
   coupon_redemptions?: Prisma.CouponRedemptionUncheckedUpdateManyWithoutProfileNestedInput
   razorpay_orders?: Prisma.RazorpayOrderUncheckedUpdateManyWithoutProfileNestedInput
   razorpay_payments?: Prisma.RazorpayPaymentUncheckedUpdateManyWithoutProfileNestedInput
+  member_tickets?: Prisma.MemberTicketUncheckedUpdateManyWithoutProfileNestedInput
 }
 
 export type ProfileCreateWithoutUser_packagesInput = {
@@ -1097,11 +1308,17 @@ export type ProfileCreateWithoutUser_packagesInput = {
   email: string
   full_name?: string | null
   phone?: string | null
+  whatsapp_phone?: string | null
   avatar_url?: string | null
   movement_streak?: number
   pass_type?: string | null
   hashedPassword?: string | null
   role?: string
+  dob?: Date | string | null
+  gender?: string | null
+  onboarding_completed?: boolean
+  questionnaire?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  terms_accepted_at?: Date | string | null
   created_at?: Date | string
   updated_at?: Date | string
   bookings?: Prisma.BookingCreateNestedManyWithoutProfileInput
@@ -1118,6 +1335,7 @@ export type ProfileCreateWithoutUser_packagesInput = {
   coupon_redemptions?: Prisma.CouponRedemptionCreateNestedManyWithoutProfileInput
   razorpay_orders?: Prisma.RazorpayOrderCreateNestedManyWithoutProfileInput
   razorpay_payments?: Prisma.RazorpayPaymentCreateNestedManyWithoutProfileInput
+  member_tickets?: Prisma.MemberTicketCreateNestedManyWithoutProfileInput
 }
 
 export type ProfileUncheckedCreateWithoutUser_packagesInput = {
@@ -1125,11 +1343,17 @@ export type ProfileUncheckedCreateWithoutUser_packagesInput = {
   email: string
   full_name?: string | null
   phone?: string | null
+  whatsapp_phone?: string | null
   avatar_url?: string | null
   movement_streak?: number
   pass_type?: string | null
   hashedPassword?: string | null
   role?: string
+  dob?: Date | string | null
+  gender?: string | null
+  onboarding_completed?: boolean
+  questionnaire?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  terms_accepted_at?: Date | string | null
   created_at?: Date | string
   updated_at?: Date | string
   bookings?: Prisma.BookingUncheckedCreateNestedManyWithoutProfileInput
@@ -1146,6 +1370,7 @@ export type ProfileUncheckedCreateWithoutUser_packagesInput = {
   coupon_redemptions?: Prisma.CouponRedemptionUncheckedCreateNestedManyWithoutProfileInput
   razorpay_orders?: Prisma.RazorpayOrderUncheckedCreateNestedManyWithoutProfileInput
   razorpay_payments?: Prisma.RazorpayPaymentUncheckedCreateNestedManyWithoutProfileInput
+  member_tickets?: Prisma.MemberTicketUncheckedCreateNestedManyWithoutProfileInput
 }
 
 export type ProfileCreateOrConnectWithoutUser_packagesInput = {
@@ -1169,11 +1394,17 @@ export type ProfileUpdateWithoutUser_packagesInput = {
   email?: Prisma.StringFieldUpdateOperationsInput | string
   full_name?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   phone?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  whatsapp_phone?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   avatar_url?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   movement_streak?: Prisma.IntFieldUpdateOperationsInput | number
   pass_type?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   hashedPassword?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   role?: Prisma.StringFieldUpdateOperationsInput | string
+  dob?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  gender?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  onboarding_completed?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  questionnaire?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  terms_accepted_at?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   created_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updated_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   bookings?: Prisma.BookingUpdateManyWithoutProfileNestedInput
@@ -1190,6 +1421,7 @@ export type ProfileUpdateWithoutUser_packagesInput = {
   coupon_redemptions?: Prisma.CouponRedemptionUpdateManyWithoutProfileNestedInput
   razorpay_orders?: Prisma.RazorpayOrderUpdateManyWithoutProfileNestedInput
   razorpay_payments?: Prisma.RazorpayPaymentUpdateManyWithoutProfileNestedInput
+  member_tickets?: Prisma.MemberTicketUpdateManyWithoutProfileNestedInput
 }
 
 export type ProfileUncheckedUpdateWithoutUser_packagesInput = {
@@ -1197,11 +1429,17 @@ export type ProfileUncheckedUpdateWithoutUser_packagesInput = {
   email?: Prisma.StringFieldUpdateOperationsInput | string
   full_name?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   phone?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  whatsapp_phone?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   avatar_url?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   movement_streak?: Prisma.IntFieldUpdateOperationsInput | number
   pass_type?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   hashedPassword?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   role?: Prisma.StringFieldUpdateOperationsInput | string
+  dob?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  gender?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  onboarding_completed?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  questionnaire?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  terms_accepted_at?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   created_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updated_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   bookings?: Prisma.BookingUncheckedUpdateManyWithoutProfileNestedInput
@@ -1218,6 +1456,7 @@ export type ProfileUncheckedUpdateWithoutUser_packagesInput = {
   coupon_redemptions?: Prisma.CouponRedemptionUncheckedUpdateManyWithoutProfileNestedInput
   razorpay_orders?: Prisma.RazorpayOrderUncheckedUpdateManyWithoutProfileNestedInput
   razorpay_payments?: Prisma.RazorpayPaymentUncheckedUpdateManyWithoutProfileNestedInput
+  member_tickets?: Prisma.MemberTicketUncheckedUpdateManyWithoutProfileNestedInput
 }
 
 export type ProfileCreateWithoutBookingsInput = {
@@ -1225,11 +1464,17 @@ export type ProfileCreateWithoutBookingsInput = {
   email: string
   full_name?: string | null
   phone?: string | null
+  whatsapp_phone?: string | null
   avatar_url?: string | null
   movement_streak?: number
   pass_type?: string | null
   hashedPassword?: string | null
   role?: string
+  dob?: Date | string | null
+  gender?: string | null
+  onboarding_completed?: boolean
+  questionnaire?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  terms_accepted_at?: Date | string | null
   created_at?: Date | string
   updated_at?: Date | string
   cafe_orders?: Prisma.CafeOrderCreateNestedManyWithoutProfileInput
@@ -1246,6 +1491,7 @@ export type ProfileCreateWithoutBookingsInput = {
   coupon_redemptions?: Prisma.CouponRedemptionCreateNestedManyWithoutProfileInput
   razorpay_orders?: Prisma.RazorpayOrderCreateNestedManyWithoutProfileInput
   razorpay_payments?: Prisma.RazorpayPaymentCreateNestedManyWithoutProfileInput
+  member_tickets?: Prisma.MemberTicketCreateNestedManyWithoutProfileInput
 }
 
 export type ProfileUncheckedCreateWithoutBookingsInput = {
@@ -1253,11 +1499,17 @@ export type ProfileUncheckedCreateWithoutBookingsInput = {
   email: string
   full_name?: string | null
   phone?: string | null
+  whatsapp_phone?: string | null
   avatar_url?: string | null
   movement_streak?: number
   pass_type?: string | null
   hashedPassword?: string | null
   role?: string
+  dob?: Date | string | null
+  gender?: string | null
+  onboarding_completed?: boolean
+  questionnaire?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  terms_accepted_at?: Date | string | null
   created_at?: Date | string
   updated_at?: Date | string
   cafe_orders?: Prisma.CafeOrderUncheckedCreateNestedManyWithoutProfileInput
@@ -1274,6 +1526,7 @@ export type ProfileUncheckedCreateWithoutBookingsInput = {
   coupon_redemptions?: Prisma.CouponRedemptionUncheckedCreateNestedManyWithoutProfileInput
   razorpay_orders?: Prisma.RazorpayOrderUncheckedCreateNestedManyWithoutProfileInput
   razorpay_payments?: Prisma.RazorpayPaymentUncheckedCreateNestedManyWithoutProfileInput
+  member_tickets?: Prisma.MemberTicketUncheckedCreateNestedManyWithoutProfileInput
 }
 
 export type ProfileCreateOrConnectWithoutBookingsInput = {
@@ -1297,11 +1550,17 @@ export type ProfileUpdateWithoutBookingsInput = {
   email?: Prisma.StringFieldUpdateOperationsInput | string
   full_name?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   phone?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  whatsapp_phone?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   avatar_url?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   movement_streak?: Prisma.IntFieldUpdateOperationsInput | number
   pass_type?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   hashedPassword?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   role?: Prisma.StringFieldUpdateOperationsInput | string
+  dob?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  gender?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  onboarding_completed?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  questionnaire?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  terms_accepted_at?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   created_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updated_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   cafe_orders?: Prisma.CafeOrderUpdateManyWithoutProfileNestedInput
@@ -1318,6 +1577,7 @@ export type ProfileUpdateWithoutBookingsInput = {
   coupon_redemptions?: Prisma.CouponRedemptionUpdateManyWithoutProfileNestedInput
   razorpay_orders?: Prisma.RazorpayOrderUpdateManyWithoutProfileNestedInput
   razorpay_payments?: Prisma.RazorpayPaymentUpdateManyWithoutProfileNestedInput
+  member_tickets?: Prisma.MemberTicketUpdateManyWithoutProfileNestedInput
 }
 
 export type ProfileUncheckedUpdateWithoutBookingsInput = {
@@ -1325,11 +1585,17 @@ export type ProfileUncheckedUpdateWithoutBookingsInput = {
   email?: Prisma.StringFieldUpdateOperationsInput | string
   full_name?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   phone?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  whatsapp_phone?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   avatar_url?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   movement_streak?: Prisma.IntFieldUpdateOperationsInput | number
   pass_type?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   hashedPassword?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   role?: Prisma.StringFieldUpdateOperationsInput | string
+  dob?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  gender?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  onboarding_completed?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  questionnaire?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  terms_accepted_at?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   created_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updated_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   cafe_orders?: Prisma.CafeOrderUncheckedUpdateManyWithoutProfileNestedInput
@@ -1346,6 +1612,7 @@ export type ProfileUncheckedUpdateWithoutBookingsInput = {
   coupon_redemptions?: Prisma.CouponRedemptionUncheckedUpdateManyWithoutProfileNestedInput
   razorpay_orders?: Prisma.RazorpayOrderUncheckedUpdateManyWithoutProfileNestedInput
   razorpay_payments?: Prisma.RazorpayPaymentUncheckedUpdateManyWithoutProfileNestedInput
+  member_tickets?: Prisma.MemberTicketUncheckedUpdateManyWithoutProfileNestedInput
 }
 
 export type ProfileCreateWithoutRazorpay_ordersInput = {
@@ -1353,11 +1620,17 @@ export type ProfileCreateWithoutRazorpay_ordersInput = {
   email: string
   full_name?: string | null
   phone?: string | null
+  whatsapp_phone?: string | null
   avatar_url?: string | null
   movement_streak?: number
   pass_type?: string | null
   hashedPassword?: string | null
   role?: string
+  dob?: Date | string | null
+  gender?: string | null
+  onboarding_completed?: boolean
+  questionnaire?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  terms_accepted_at?: Date | string | null
   created_at?: Date | string
   updated_at?: Date | string
   bookings?: Prisma.BookingCreateNestedManyWithoutProfileInput
@@ -1374,6 +1647,7 @@ export type ProfileCreateWithoutRazorpay_ordersInput = {
   retail_orders?: Prisma.RetailOrderCreateNestedManyWithoutProfileInput
   coupon_redemptions?: Prisma.CouponRedemptionCreateNestedManyWithoutProfileInput
   razorpay_payments?: Prisma.RazorpayPaymentCreateNestedManyWithoutProfileInput
+  member_tickets?: Prisma.MemberTicketCreateNestedManyWithoutProfileInput
 }
 
 export type ProfileUncheckedCreateWithoutRazorpay_ordersInput = {
@@ -1381,11 +1655,17 @@ export type ProfileUncheckedCreateWithoutRazorpay_ordersInput = {
   email: string
   full_name?: string | null
   phone?: string | null
+  whatsapp_phone?: string | null
   avatar_url?: string | null
   movement_streak?: number
   pass_type?: string | null
   hashedPassword?: string | null
   role?: string
+  dob?: Date | string | null
+  gender?: string | null
+  onboarding_completed?: boolean
+  questionnaire?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  terms_accepted_at?: Date | string | null
   created_at?: Date | string
   updated_at?: Date | string
   bookings?: Prisma.BookingUncheckedCreateNestedManyWithoutProfileInput
@@ -1402,6 +1682,7 @@ export type ProfileUncheckedCreateWithoutRazorpay_ordersInput = {
   retail_orders?: Prisma.RetailOrderUncheckedCreateNestedManyWithoutProfileInput
   coupon_redemptions?: Prisma.CouponRedemptionUncheckedCreateNestedManyWithoutProfileInput
   razorpay_payments?: Prisma.RazorpayPaymentUncheckedCreateNestedManyWithoutProfileInput
+  member_tickets?: Prisma.MemberTicketUncheckedCreateNestedManyWithoutProfileInput
 }
 
 export type ProfileCreateOrConnectWithoutRazorpay_ordersInput = {
@@ -1425,11 +1706,17 @@ export type ProfileUpdateWithoutRazorpay_ordersInput = {
   email?: Prisma.StringFieldUpdateOperationsInput | string
   full_name?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   phone?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  whatsapp_phone?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   avatar_url?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   movement_streak?: Prisma.IntFieldUpdateOperationsInput | number
   pass_type?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   hashedPassword?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   role?: Prisma.StringFieldUpdateOperationsInput | string
+  dob?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  gender?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  onboarding_completed?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  questionnaire?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  terms_accepted_at?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   created_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updated_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   bookings?: Prisma.BookingUpdateManyWithoutProfileNestedInput
@@ -1446,6 +1733,7 @@ export type ProfileUpdateWithoutRazorpay_ordersInput = {
   retail_orders?: Prisma.RetailOrderUpdateManyWithoutProfileNestedInput
   coupon_redemptions?: Prisma.CouponRedemptionUpdateManyWithoutProfileNestedInput
   razorpay_payments?: Prisma.RazorpayPaymentUpdateManyWithoutProfileNestedInput
+  member_tickets?: Prisma.MemberTicketUpdateManyWithoutProfileNestedInput
 }
 
 export type ProfileUncheckedUpdateWithoutRazorpay_ordersInput = {
@@ -1453,11 +1741,17 @@ export type ProfileUncheckedUpdateWithoutRazorpay_ordersInput = {
   email?: Prisma.StringFieldUpdateOperationsInput | string
   full_name?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   phone?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  whatsapp_phone?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   avatar_url?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   movement_streak?: Prisma.IntFieldUpdateOperationsInput | number
   pass_type?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   hashedPassword?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   role?: Prisma.StringFieldUpdateOperationsInput | string
+  dob?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  gender?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  onboarding_completed?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  questionnaire?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  terms_accepted_at?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   created_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updated_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   bookings?: Prisma.BookingUncheckedUpdateManyWithoutProfileNestedInput
@@ -1474,6 +1768,7 @@ export type ProfileUncheckedUpdateWithoutRazorpay_ordersInput = {
   retail_orders?: Prisma.RetailOrderUncheckedUpdateManyWithoutProfileNestedInput
   coupon_redemptions?: Prisma.CouponRedemptionUncheckedUpdateManyWithoutProfileNestedInput
   razorpay_payments?: Prisma.RazorpayPaymentUncheckedUpdateManyWithoutProfileNestedInput
+  member_tickets?: Prisma.MemberTicketUncheckedUpdateManyWithoutProfileNestedInput
 }
 
 export type ProfileCreateWithoutRazorpay_paymentsInput = {
@@ -1481,11 +1776,17 @@ export type ProfileCreateWithoutRazorpay_paymentsInput = {
   email: string
   full_name?: string | null
   phone?: string | null
+  whatsapp_phone?: string | null
   avatar_url?: string | null
   movement_streak?: number
   pass_type?: string | null
   hashedPassword?: string | null
   role?: string
+  dob?: Date | string | null
+  gender?: string | null
+  onboarding_completed?: boolean
+  questionnaire?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  terms_accepted_at?: Date | string | null
   created_at?: Date | string
   updated_at?: Date | string
   bookings?: Prisma.BookingCreateNestedManyWithoutProfileInput
@@ -1502,6 +1803,7 @@ export type ProfileCreateWithoutRazorpay_paymentsInput = {
   retail_orders?: Prisma.RetailOrderCreateNestedManyWithoutProfileInput
   coupon_redemptions?: Prisma.CouponRedemptionCreateNestedManyWithoutProfileInput
   razorpay_orders?: Prisma.RazorpayOrderCreateNestedManyWithoutProfileInput
+  member_tickets?: Prisma.MemberTicketCreateNestedManyWithoutProfileInput
 }
 
 export type ProfileUncheckedCreateWithoutRazorpay_paymentsInput = {
@@ -1509,11 +1811,17 @@ export type ProfileUncheckedCreateWithoutRazorpay_paymentsInput = {
   email: string
   full_name?: string | null
   phone?: string | null
+  whatsapp_phone?: string | null
   avatar_url?: string | null
   movement_streak?: number
   pass_type?: string | null
   hashedPassword?: string | null
   role?: string
+  dob?: Date | string | null
+  gender?: string | null
+  onboarding_completed?: boolean
+  questionnaire?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  terms_accepted_at?: Date | string | null
   created_at?: Date | string
   updated_at?: Date | string
   bookings?: Prisma.BookingUncheckedCreateNestedManyWithoutProfileInput
@@ -1530,6 +1838,7 @@ export type ProfileUncheckedCreateWithoutRazorpay_paymentsInput = {
   retail_orders?: Prisma.RetailOrderUncheckedCreateNestedManyWithoutProfileInput
   coupon_redemptions?: Prisma.CouponRedemptionUncheckedCreateNestedManyWithoutProfileInput
   razorpay_orders?: Prisma.RazorpayOrderUncheckedCreateNestedManyWithoutProfileInput
+  member_tickets?: Prisma.MemberTicketUncheckedCreateNestedManyWithoutProfileInput
 }
 
 export type ProfileCreateOrConnectWithoutRazorpay_paymentsInput = {
@@ -1553,11 +1862,17 @@ export type ProfileUpdateWithoutRazorpay_paymentsInput = {
   email?: Prisma.StringFieldUpdateOperationsInput | string
   full_name?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   phone?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  whatsapp_phone?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   avatar_url?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   movement_streak?: Prisma.IntFieldUpdateOperationsInput | number
   pass_type?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   hashedPassword?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   role?: Prisma.StringFieldUpdateOperationsInput | string
+  dob?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  gender?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  onboarding_completed?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  questionnaire?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  terms_accepted_at?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   created_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updated_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   bookings?: Prisma.BookingUpdateManyWithoutProfileNestedInput
@@ -1574,6 +1889,7 @@ export type ProfileUpdateWithoutRazorpay_paymentsInput = {
   retail_orders?: Prisma.RetailOrderUpdateManyWithoutProfileNestedInput
   coupon_redemptions?: Prisma.CouponRedemptionUpdateManyWithoutProfileNestedInput
   razorpay_orders?: Prisma.RazorpayOrderUpdateManyWithoutProfileNestedInput
+  member_tickets?: Prisma.MemberTicketUpdateManyWithoutProfileNestedInput
 }
 
 export type ProfileUncheckedUpdateWithoutRazorpay_paymentsInput = {
@@ -1581,11 +1897,17 @@ export type ProfileUncheckedUpdateWithoutRazorpay_paymentsInput = {
   email?: Prisma.StringFieldUpdateOperationsInput | string
   full_name?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   phone?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  whatsapp_phone?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   avatar_url?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   movement_streak?: Prisma.IntFieldUpdateOperationsInput | number
   pass_type?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   hashedPassword?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   role?: Prisma.StringFieldUpdateOperationsInput | string
+  dob?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  gender?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  onboarding_completed?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  questionnaire?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  terms_accepted_at?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   created_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updated_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   bookings?: Prisma.BookingUncheckedUpdateManyWithoutProfileNestedInput
@@ -1602,6 +1924,7 @@ export type ProfileUncheckedUpdateWithoutRazorpay_paymentsInput = {
   retail_orders?: Prisma.RetailOrderUncheckedUpdateManyWithoutProfileNestedInput
   coupon_redemptions?: Prisma.CouponRedemptionUncheckedUpdateManyWithoutProfileNestedInput
   razorpay_orders?: Prisma.RazorpayOrderUncheckedUpdateManyWithoutProfileNestedInput
+  member_tickets?: Prisma.MemberTicketUncheckedUpdateManyWithoutProfileNestedInput
 }
 
 export type ProfileCreateWithoutCafe_ordersInput = {
@@ -1609,11 +1932,17 @@ export type ProfileCreateWithoutCafe_ordersInput = {
   email: string
   full_name?: string | null
   phone?: string | null
+  whatsapp_phone?: string | null
   avatar_url?: string | null
   movement_streak?: number
   pass_type?: string | null
   hashedPassword?: string | null
   role?: string
+  dob?: Date | string | null
+  gender?: string | null
+  onboarding_completed?: boolean
+  questionnaire?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  terms_accepted_at?: Date | string | null
   created_at?: Date | string
   updated_at?: Date | string
   bookings?: Prisma.BookingCreateNestedManyWithoutProfileInput
@@ -1630,6 +1959,7 @@ export type ProfileCreateWithoutCafe_ordersInput = {
   coupon_redemptions?: Prisma.CouponRedemptionCreateNestedManyWithoutProfileInput
   razorpay_orders?: Prisma.RazorpayOrderCreateNestedManyWithoutProfileInput
   razorpay_payments?: Prisma.RazorpayPaymentCreateNestedManyWithoutProfileInput
+  member_tickets?: Prisma.MemberTicketCreateNestedManyWithoutProfileInput
 }
 
 export type ProfileUncheckedCreateWithoutCafe_ordersInput = {
@@ -1637,11 +1967,17 @@ export type ProfileUncheckedCreateWithoutCafe_ordersInput = {
   email: string
   full_name?: string | null
   phone?: string | null
+  whatsapp_phone?: string | null
   avatar_url?: string | null
   movement_streak?: number
   pass_type?: string | null
   hashedPassword?: string | null
   role?: string
+  dob?: Date | string | null
+  gender?: string | null
+  onboarding_completed?: boolean
+  questionnaire?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  terms_accepted_at?: Date | string | null
   created_at?: Date | string
   updated_at?: Date | string
   bookings?: Prisma.BookingUncheckedCreateNestedManyWithoutProfileInput
@@ -1658,6 +1994,7 @@ export type ProfileUncheckedCreateWithoutCafe_ordersInput = {
   coupon_redemptions?: Prisma.CouponRedemptionUncheckedCreateNestedManyWithoutProfileInput
   razorpay_orders?: Prisma.RazorpayOrderUncheckedCreateNestedManyWithoutProfileInput
   razorpay_payments?: Prisma.RazorpayPaymentUncheckedCreateNestedManyWithoutProfileInput
+  member_tickets?: Prisma.MemberTicketUncheckedCreateNestedManyWithoutProfileInput
 }
 
 export type ProfileCreateOrConnectWithoutCafe_ordersInput = {
@@ -1681,11 +2018,17 @@ export type ProfileUpdateWithoutCafe_ordersInput = {
   email?: Prisma.StringFieldUpdateOperationsInput | string
   full_name?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   phone?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  whatsapp_phone?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   avatar_url?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   movement_streak?: Prisma.IntFieldUpdateOperationsInput | number
   pass_type?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   hashedPassword?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   role?: Prisma.StringFieldUpdateOperationsInput | string
+  dob?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  gender?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  onboarding_completed?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  questionnaire?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  terms_accepted_at?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   created_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updated_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   bookings?: Prisma.BookingUpdateManyWithoutProfileNestedInput
@@ -1702,6 +2045,7 @@ export type ProfileUpdateWithoutCafe_ordersInput = {
   coupon_redemptions?: Prisma.CouponRedemptionUpdateManyWithoutProfileNestedInput
   razorpay_orders?: Prisma.RazorpayOrderUpdateManyWithoutProfileNestedInput
   razorpay_payments?: Prisma.RazorpayPaymentUpdateManyWithoutProfileNestedInput
+  member_tickets?: Prisma.MemberTicketUpdateManyWithoutProfileNestedInput
 }
 
 export type ProfileUncheckedUpdateWithoutCafe_ordersInput = {
@@ -1709,11 +2053,17 @@ export type ProfileUncheckedUpdateWithoutCafe_ordersInput = {
   email?: Prisma.StringFieldUpdateOperationsInput | string
   full_name?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   phone?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  whatsapp_phone?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   avatar_url?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   movement_streak?: Prisma.IntFieldUpdateOperationsInput | number
   pass_type?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   hashedPassword?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   role?: Prisma.StringFieldUpdateOperationsInput | string
+  dob?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  gender?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  onboarding_completed?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  questionnaire?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  terms_accepted_at?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   created_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updated_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   bookings?: Prisma.BookingUncheckedUpdateManyWithoutProfileNestedInput
@@ -1730,6 +2080,7 @@ export type ProfileUncheckedUpdateWithoutCafe_ordersInput = {
   coupon_redemptions?: Prisma.CouponRedemptionUncheckedUpdateManyWithoutProfileNestedInput
   razorpay_orders?: Prisma.RazorpayOrderUncheckedUpdateManyWithoutProfileNestedInput
   razorpay_payments?: Prisma.RazorpayPaymentUncheckedUpdateManyWithoutProfileNestedInput
+  member_tickets?: Prisma.MemberTicketUncheckedUpdateManyWithoutProfileNestedInput
 }
 
 export type ProfileCreateWithoutMeal_subscriptionsInput = {
@@ -1737,11 +2088,17 @@ export type ProfileCreateWithoutMeal_subscriptionsInput = {
   email: string
   full_name?: string | null
   phone?: string | null
+  whatsapp_phone?: string | null
   avatar_url?: string | null
   movement_streak?: number
   pass_type?: string | null
   hashedPassword?: string | null
   role?: string
+  dob?: Date | string | null
+  gender?: string | null
+  onboarding_completed?: boolean
+  questionnaire?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  terms_accepted_at?: Date | string | null
   created_at?: Date | string
   updated_at?: Date | string
   bookings?: Prisma.BookingCreateNestedManyWithoutProfileInput
@@ -1758,6 +2115,7 @@ export type ProfileCreateWithoutMeal_subscriptionsInput = {
   coupon_redemptions?: Prisma.CouponRedemptionCreateNestedManyWithoutProfileInput
   razorpay_orders?: Prisma.RazorpayOrderCreateNestedManyWithoutProfileInput
   razorpay_payments?: Prisma.RazorpayPaymentCreateNestedManyWithoutProfileInput
+  member_tickets?: Prisma.MemberTicketCreateNestedManyWithoutProfileInput
 }
 
 export type ProfileUncheckedCreateWithoutMeal_subscriptionsInput = {
@@ -1765,11 +2123,17 @@ export type ProfileUncheckedCreateWithoutMeal_subscriptionsInput = {
   email: string
   full_name?: string | null
   phone?: string | null
+  whatsapp_phone?: string | null
   avatar_url?: string | null
   movement_streak?: number
   pass_type?: string | null
   hashedPassword?: string | null
   role?: string
+  dob?: Date | string | null
+  gender?: string | null
+  onboarding_completed?: boolean
+  questionnaire?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  terms_accepted_at?: Date | string | null
   created_at?: Date | string
   updated_at?: Date | string
   bookings?: Prisma.BookingUncheckedCreateNestedManyWithoutProfileInput
@@ -1786,6 +2150,7 @@ export type ProfileUncheckedCreateWithoutMeal_subscriptionsInput = {
   coupon_redemptions?: Prisma.CouponRedemptionUncheckedCreateNestedManyWithoutProfileInput
   razorpay_orders?: Prisma.RazorpayOrderUncheckedCreateNestedManyWithoutProfileInput
   razorpay_payments?: Prisma.RazorpayPaymentUncheckedCreateNestedManyWithoutProfileInput
+  member_tickets?: Prisma.MemberTicketUncheckedCreateNestedManyWithoutProfileInput
 }
 
 export type ProfileCreateOrConnectWithoutMeal_subscriptionsInput = {
@@ -1809,11 +2174,17 @@ export type ProfileUpdateWithoutMeal_subscriptionsInput = {
   email?: Prisma.StringFieldUpdateOperationsInput | string
   full_name?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   phone?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  whatsapp_phone?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   avatar_url?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   movement_streak?: Prisma.IntFieldUpdateOperationsInput | number
   pass_type?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   hashedPassword?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   role?: Prisma.StringFieldUpdateOperationsInput | string
+  dob?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  gender?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  onboarding_completed?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  questionnaire?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  terms_accepted_at?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   created_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updated_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   bookings?: Prisma.BookingUpdateManyWithoutProfileNestedInput
@@ -1830,6 +2201,7 @@ export type ProfileUpdateWithoutMeal_subscriptionsInput = {
   coupon_redemptions?: Prisma.CouponRedemptionUpdateManyWithoutProfileNestedInput
   razorpay_orders?: Prisma.RazorpayOrderUpdateManyWithoutProfileNestedInput
   razorpay_payments?: Prisma.RazorpayPaymentUpdateManyWithoutProfileNestedInput
+  member_tickets?: Prisma.MemberTicketUpdateManyWithoutProfileNestedInput
 }
 
 export type ProfileUncheckedUpdateWithoutMeal_subscriptionsInput = {
@@ -1837,11 +2209,17 @@ export type ProfileUncheckedUpdateWithoutMeal_subscriptionsInput = {
   email?: Prisma.StringFieldUpdateOperationsInput | string
   full_name?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   phone?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  whatsapp_phone?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   avatar_url?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   movement_streak?: Prisma.IntFieldUpdateOperationsInput | number
   pass_type?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   hashedPassword?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   role?: Prisma.StringFieldUpdateOperationsInput | string
+  dob?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  gender?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  onboarding_completed?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  questionnaire?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  terms_accepted_at?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   created_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updated_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   bookings?: Prisma.BookingUncheckedUpdateManyWithoutProfileNestedInput
@@ -1858,6 +2236,7 @@ export type ProfileUncheckedUpdateWithoutMeal_subscriptionsInput = {
   coupon_redemptions?: Prisma.CouponRedemptionUncheckedUpdateManyWithoutProfileNestedInput
   razorpay_orders?: Prisma.RazorpayOrderUncheckedUpdateManyWithoutProfileNestedInput
   razorpay_payments?: Prisma.RazorpayPaymentUncheckedUpdateManyWithoutProfileNestedInput
+  member_tickets?: Prisma.MemberTicketUncheckedUpdateManyWithoutProfileNestedInput
 }
 
 export type ProfileCreateWithoutUser_statsInput = {
@@ -1865,11 +2244,17 @@ export type ProfileCreateWithoutUser_statsInput = {
   email: string
   full_name?: string | null
   phone?: string | null
+  whatsapp_phone?: string | null
   avatar_url?: string | null
   movement_streak?: number
   pass_type?: string | null
   hashedPassword?: string | null
   role?: string
+  dob?: Date | string | null
+  gender?: string | null
+  onboarding_completed?: boolean
+  questionnaire?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  terms_accepted_at?: Date | string | null
   created_at?: Date | string
   updated_at?: Date | string
   bookings?: Prisma.BookingCreateNestedManyWithoutProfileInput
@@ -1886,6 +2271,7 @@ export type ProfileCreateWithoutUser_statsInput = {
   coupon_redemptions?: Prisma.CouponRedemptionCreateNestedManyWithoutProfileInput
   razorpay_orders?: Prisma.RazorpayOrderCreateNestedManyWithoutProfileInput
   razorpay_payments?: Prisma.RazorpayPaymentCreateNestedManyWithoutProfileInput
+  member_tickets?: Prisma.MemberTicketCreateNestedManyWithoutProfileInput
 }
 
 export type ProfileUncheckedCreateWithoutUser_statsInput = {
@@ -1893,11 +2279,17 @@ export type ProfileUncheckedCreateWithoutUser_statsInput = {
   email: string
   full_name?: string | null
   phone?: string | null
+  whatsapp_phone?: string | null
   avatar_url?: string | null
   movement_streak?: number
   pass_type?: string | null
   hashedPassword?: string | null
   role?: string
+  dob?: Date | string | null
+  gender?: string | null
+  onboarding_completed?: boolean
+  questionnaire?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  terms_accepted_at?: Date | string | null
   created_at?: Date | string
   updated_at?: Date | string
   bookings?: Prisma.BookingUncheckedCreateNestedManyWithoutProfileInput
@@ -1914,6 +2306,7 @@ export type ProfileUncheckedCreateWithoutUser_statsInput = {
   coupon_redemptions?: Prisma.CouponRedemptionUncheckedCreateNestedManyWithoutProfileInput
   razorpay_orders?: Prisma.RazorpayOrderUncheckedCreateNestedManyWithoutProfileInput
   razorpay_payments?: Prisma.RazorpayPaymentUncheckedCreateNestedManyWithoutProfileInput
+  member_tickets?: Prisma.MemberTicketUncheckedCreateNestedManyWithoutProfileInput
 }
 
 export type ProfileCreateOrConnectWithoutUser_statsInput = {
@@ -1937,11 +2330,17 @@ export type ProfileUpdateWithoutUser_statsInput = {
   email?: Prisma.StringFieldUpdateOperationsInput | string
   full_name?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   phone?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  whatsapp_phone?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   avatar_url?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   movement_streak?: Prisma.IntFieldUpdateOperationsInput | number
   pass_type?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   hashedPassword?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   role?: Prisma.StringFieldUpdateOperationsInput | string
+  dob?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  gender?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  onboarding_completed?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  questionnaire?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  terms_accepted_at?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   created_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updated_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   bookings?: Prisma.BookingUpdateManyWithoutProfileNestedInput
@@ -1958,6 +2357,7 @@ export type ProfileUpdateWithoutUser_statsInput = {
   coupon_redemptions?: Prisma.CouponRedemptionUpdateManyWithoutProfileNestedInput
   razorpay_orders?: Prisma.RazorpayOrderUpdateManyWithoutProfileNestedInput
   razorpay_payments?: Prisma.RazorpayPaymentUpdateManyWithoutProfileNestedInput
+  member_tickets?: Prisma.MemberTicketUpdateManyWithoutProfileNestedInput
 }
 
 export type ProfileUncheckedUpdateWithoutUser_statsInput = {
@@ -1965,11 +2365,17 @@ export type ProfileUncheckedUpdateWithoutUser_statsInput = {
   email?: Prisma.StringFieldUpdateOperationsInput | string
   full_name?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   phone?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  whatsapp_phone?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   avatar_url?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   movement_streak?: Prisma.IntFieldUpdateOperationsInput | number
   pass_type?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   hashedPassword?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   role?: Prisma.StringFieldUpdateOperationsInput | string
+  dob?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  gender?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  onboarding_completed?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  questionnaire?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  terms_accepted_at?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   created_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updated_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   bookings?: Prisma.BookingUncheckedUpdateManyWithoutProfileNestedInput
@@ -1986,6 +2392,7 @@ export type ProfileUncheckedUpdateWithoutUser_statsInput = {
   coupon_redemptions?: Prisma.CouponRedemptionUncheckedUpdateManyWithoutProfileNestedInput
   razorpay_orders?: Prisma.RazorpayOrderUncheckedUpdateManyWithoutProfileNestedInput
   razorpay_payments?: Prisma.RazorpayPaymentUncheckedUpdateManyWithoutProfileNestedInput
+  member_tickets?: Prisma.MemberTicketUncheckedUpdateManyWithoutProfileNestedInput
 }
 
 export type ProfileCreateWithoutUser_streaksInput = {
@@ -1993,11 +2400,17 @@ export type ProfileCreateWithoutUser_streaksInput = {
   email: string
   full_name?: string | null
   phone?: string | null
+  whatsapp_phone?: string | null
   avatar_url?: string | null
   movement_streak?: number
   pass_type?: string | null
   hashedPassword?: string | null
   role?: string
+  dob?: Date | string | null
+  gender?: string | null
+  onboarding_completed?: boolean
+  questionnaire?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  terms_accepted_at?: Date | string | null
   created_at?: Date | string
   updated_at?: Date | string
   bookings?: Prisma.BookingCreateNestedManyWithoutProfileInput
@@ -2014,6 +2427,7 @@ export type ProfileCreateWithoutUser_streaksInput = {
   coupon_redemptions?: Prisma.CouponRedemptionCreateNestedManyWithoutProfileInput
   razorpay_orders?: Prisma.RazorpayOrderCreateNestedManyWithoutProfileInput
   razorpay_payments?: Prisma.RazorpayPaymentCreateNestedManyWithoutProfileInput
+  member_tickets?: Prisma.MemberTicketCreateNestedManyWithoutProfileInput
 }
 
 export type ProfileUncheckedCreateWithoutUser_streaksInput = {
@@ -2021,11 +2435,17 @@ export type ProfileUncheckedCreateWithoutUser_streaksInput = {
   email: string
   full_name?: string | null
   phone?: string | null
+  whatsapp_phone?: string | null
   avatar_url?: string | null
   movement_streak?: number
   pass_type?: string | null
   hashedPassword?: string | null
   role?: string
+  dob?: Date | string | null
+  gender?: string | null
+  onboarding_completed?: boolean
+  questionnaire?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  terms_accepted_at?: Date | string | null
   created_at?: Date | string
   updated_at?: Date | string
   bookings?: Prisma.BookingUncheckedCreateNestedManyWithoutProfileInput
@@ -2042,6 +2462,7 @@ export type ProfileUncheckedCreateWithoutUser_streaksInput = {
   coupon_redemptions?: Prisma.CouponRedemptionUncheckedCreateNestedManyWithoutProfileInput
   razorpay_orders?: Prisma.RazorpayOrderUncheckedCreateNestedManyWithoutProfileInput
   razorpay_payments?: Prisma.RazorpayPaymentUncheckedCreateNestedManyWithoutProfileInput
+  member_tickets?: Prisma.MemberTicketUncheckedCreateNestedManyWithoutProfileInput
 }
 
 export type ProfileCreateOrConnectWithoutUser_streaksInput = {
@@ -2065,11 +2486,17 @@ export type ProfileUpdateWithoutUser_streaksInput = {
   email?: Prisma.StringFieldUpdateOperationsInput | string
   full_name?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   phone?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  whatsapp_phone?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   avatar_url?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   movement_streak?: Prisma.IntFieldUpdateOperationsInput | number
   pass_type?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   hashedPassword?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   role?: Prisma.StringFieldUpdateOperationsInput | string
+  dob?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  gender?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  onboarding_completed?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  questionnaire?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  terms_accepted_at?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   created_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updated_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   bookings?: Prisma.BookingUpdateManyWithoutProfileNestedInput
@@ -2086,6 +2513,7 @@ export type ProfileUpdateWithoutUser_streaksInput = {
   coupon_redemptions?: Prisma.CouponRedemptionUpdateManyWithoutProfileNestedInput
   razorpay_orders?: Prisma.RazorpayOrderUpdateManyWithoutProfileNestedInput
   razorpay_payments?: Prisma.RazorpayPaymentUpdateManyWithoutProfileNestedInput
+  member_tickets?: Prisma.MemberTicketUpdateManyWithoutProfileNestedInput
 }
 
 export type ProfileUncheckedUpdateWithoutUser_streaksInput = {
@@ -2093,11 +2521,17 @@ export type ProfileUncheckedUpdateWithoutUser_streaksInput = {
   email?: Prisma.StringFieldUpdateOperationsInput | string
   full_name?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   phone?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  whatsapp_phone?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   avatar_url?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   movement_streak?: Prisma.IntFieldUpdateOperationsInput | number
   pass_type?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   hashedPassword?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   role?: Prisma.StringFieldUpdateOperationsInput | string
+  dob?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  gender?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  onboarding_completed?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  questionnaire?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  terms_accepted_at?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   created_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updated_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   bookings?: Prisma.BookingUncheckedUpdateManyWithoutProfileNestedInput
@@ -2114,6 +2548,7 @@ export type ProfileUncheckedUpdateWithoutUser_streaksInput = {
   coupon_redemptions?: Prisma.CouponRedemptionUncheckedUpdateManyWithoutProfileNestedInput
   razorpay_orders?: Prisma.RazorpayOrderUncheckedUpdateManyWithoutProfileNestedInput
   razorpay_payments?: Prisma.RazorpayPaymentUncheckedUpdateManyWithoutProfileNestedInput
+  member_tickets?: Prisma.MemberTicketUncheckedUpdateManyWithoutProfileNestedInput
 }
 
 export type ProfileCreateWithoutUser_badgesInput = {
@@ -2121,11 +2556,17 @@ export type ProfileCreateWithoutUser_badgesInput = {
   email: string
   full_name?: string | null
   phone?: string | null
+  whatsapp_phone?: string | null
   avatar_url?: string | null
   movement_streak?: number
   pass_type?: string | null
   hashedPassword?: string | null
   role?: string
+  dob?: Date | string | null
+  gender?: string | null
+  onboarding_completed?: boolean
+  questionnaire?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  terms_accepted_at?: Date | string | null
   created_at?: Date | string
   updated_at?: Date | string
   bookings?: Prisma.BookingCreateNestedManyWithoutProfileInput
@@ -2142,6 +2583,7 @@ export type ProfileCreateWithoutUser_badgesInput = {
   coupon_redemptions?: Prisma.CouponRedemptionCreateNestedManyWithoutProfileInput
   razorpay_orders?: Prisma.RazorpayOrderCreateNestedManyWithoutProfileInput
   razorpay_payments?: Prisma.RazorpayPaymentCreateNestedManyWithoutProfileInput
+  member_tickets?: Prisma.MemberTicketCreateNestedManyWithoutProfileInput
 }
 
 export type ProfileUncheckedCreateWithoutUser_badgesInput = {
@@ -2149,11 +2591,17 @@ export type ProfileUncheckedCreateWithoutUser_badgesInput = {
   email: string
   full_name?: string | null
   phone?: string | null
+  whatsapp_phone?: string | null
   avatar_url?: string | null
   movement_streak?: number
   pass_type?: string | null
   hashedPassword?: string | null
   role?: string
+  dob?: Date | string | null
+  gender?: string | null
+  onboarding_completed?: boolean
+  questionnaire?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  terms_accepted_at?: Date | string | null
   created_at?: Date | string
   updated_at?: Date | string
   bookings?: Prisma.BookingUncheckedCreateNestedManyWithoutProfileInput
@@ -2170,6 +2618,7 @@ export type ProfileUncheckedCreateWithoutUser_badgesInput = {
   coupon_redemptions?: Prisma.CouponRedemptionUncheckedCreateNestedManyWithoutProfileInput
   razorpay_orders?: Prisma.RazorpayOrderUncheckedCreateNestedManyWithoutProfileInput
   razorpay_payments?: Prisma.RazorpayPaymentUncheckedCreateNestedManyWithoutProfileInput
+  member_tickets?: Prisma.MemberTicketUncheckedCreateNestedManyWithoutProfileInput
 }
 
 export type ProfileCreateOrConnectWithoutUser_badgesInput = {
@@ -2193,11 +2642,17 @@ export type ProfileUpdateWithoutUser_badgesInput = {
   email?: Prisma.StringFieldUpdateOperationsInput | string
   full_name?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   phone?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  whatsapp_phone?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   avatar_url?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   movement_streak?: Prisma.IntFieldUpdateOperationsInput | number
   pass_type?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   hashedPassword?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   role?: Prisma.StringFieldUpdateOperationsInput | string
+  dob?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  gender?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  onboarding_completed?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  questionnaire?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  terms_accepted_at?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   created_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updated_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   bookings?: Prisma.BookingUpdateManyWithoutProfileNestedInput
@@ -2214,6 +2669,7 @@ export type ProfileUpdateWithoutUser_badgesInput = {
   coupon_redemptions?: Prisma.CouponRedemptionUpdateManyWithoutProfileNestedInput
   razorpay_orders?: Prisma.RazorpayOrderUpdateManyWithoutProfileNestedInput
   razorpay_payments?: Prisma.RazorpayPaymentUpdateManyWithoutProfileNestedInput
+  member_tickets?: Prisma.MemberTicketUpdateManyWithoutProfileNestedInput
 }
 
 export type ProfileUncheckedUpdateWithoutUser_badgesInput = {
@@ -2221,11 +2677,17 @@ export type ProfileUncheckedUpdateWithoutUser_badgesInput = {
   email?: Prisma.StringFieldUpdateOperationsInput | string
   full_name?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   phone?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  whatsapp_phone?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   avatar_url?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   movement_streak?: Prisma.IntFieldUpdateOperationsInput | number
   pass_type?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   hashedPassword?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   role?: Prisma.StringFieldUpdateOperationsInput | string
+  dob?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  gender?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  onboarding_completed?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  questionnaire?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  terms_accepted_at?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   created_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updated_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   bookings?: Prisma.BookingUncheckedUpdateManyWithoutProfileNestedInput
@@ -2242,6 +2704,7 @@ export type ProfileUncheckedUpdateWithoutUser_badgesInput = {
   coupon_redemptions?: Prisma.CouponRedemptionUncheckedUpdateManyWithoutProfileNestedInput
   razorpay_orders?: Prisma.RazorpayOrderUncheckedUpdateManyWithoutProfileNestedInput
   razorpay_payments?: Prisma.RazorpayPaymentUncheckedUpdateManyWithoutProfileNestedInput
+  member_tickets?: Prisma.MemberTicketUncheckedUpdateManyWithoutProfileNestedInput
 }
 
 export type ProfileCreateWithoutWaiversInput = {
@@ -2249,11 +2712,17 @@ export type ProfileCreateWithoutWaiversInput = {
   email: string
   full_name?: string | null
   phone?: string | null
+  whatsapp_phone?: string | null
   avatar_url?: string | null
   movement_streak?: number
   pass_type?: string | null
   hashedPassword?: string | null
   role?: string
+  dob?: Date | string | null
+  gender?: string | null
+  onboarding_completed?: boolean
+  questionnaire?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  terms_accepted_at?: Date | string | null
   created_at?: Date | string
   updated_at?: Date | string
   bookings?: Prisma.BookingCreateNestedManyWithoutProfileInput
@@ -2270,6 +2739,7 @@ export type ProfileCreateWithoutWaiversInput = {
   coupon_redemptions?: Prisma.CouponRedemptionCreateNestedManyWithoutProfileInput
   razorpay_orders?: Prisma.RazorpayOrderCreateNestedManyWithoutProfileInput
   razorpay_payments?: Prisma.RazorpayPaymentCreateNestedManyWithoutProfileInput
+  member_tickets?: Prisma.MemberTicketCreateNestedManyWithoutProfileInput
 }
 
 export type ProfileUncheckedCreateWithoutWaiversInput = {
@@ -2277,11 +2747,17 @@ export type ProfileUncheckedCreateWithoutWaiversInput = {
   email: string
   full_name?: string | null
   phone?: string | null
+  whatsapp_phone?: string | null
   avatar_url?: string | null
   movement_streak?: number
   pass_type?: string | null
   hashedPassword?: string | null
   role?: string
+  dob?: Date | string | null
+  gender?: string | null
+  onboarding_completed?: boolean
+  questionnaire?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  terms_accepted_at?: Date | string | null
   created_at?: Date | string
   updated_at?: Date | string
   bookings?: Prisma.BookingUncheckedCreateNestedManyWithoutProfileInput
@@ -2298,6 +2774,7 @@ export type ProfileUncheckedCreateWithoutWaiversInput = {
   coupon_redemptions?: Prisma.CouponRedemptionUncheckedCreateNestedManyWithoutProfileInput
   razorpay_orders?: Prisma.RazorpayOrderUncheckedCreateNestedManyWithoutProfileInput
   razorpay_payments?: Prisma.RazorpayPaymentUncheckedCreateNestedManyWithoutProfileInput
+  member_tickets?: Prisma.MemberTicketUncheckedCreateNestedManyWithoutProfileInput
 }
 
 export type ProfileCreateOrConnectWithoutWaiversInput = {
@@ -2321,11 +2798,17 @@ export type ProfileUpdateWithoutWaiversInput = {
   email?: Prisma.StringFieldUpdateOperationsInput | string
   full_name?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   phone?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  whatsapp_phone?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   avatar_url?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   movement_streak?: Prisma.IntFieldUpdateOperationsInput | number
   pass_type?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   hashedPassword?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   role?: Prisma.StringFieldUpdateOperationsInput | string
+  dob?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  gender?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  onboarding_completed?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  questionnaire?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  terms_accepted_at?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   created_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updated_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   bookings?: Prisma.BookingUpdateManyWithoutProfileNestedInput
@@ -2342,6 +2825,7 @@ export type ProfileUpdateWithoutWaiversInput = {
   coupon_redemptions?: Prisma.CouponRedemptionUpdateManyWithoutProfileNestedInput
   razorpay_orders?: Prisma.RazorpayOrderUpdateManyWithoutProfileNestedInput
   razorpay_payments?: Prisma.RazorpayPaymentUpdateManyWithoutProfileNestedInput
+  member_tickets?: Prisma.MemberTicketUpdateManyWithoutProfileNestedInput
 }
 
 export type ProfileUncheckedUpdateWithoutWaiversInput = {
@@ -2349,11 +2833,17 @@ export type ProfileUncheckedUpdateWithoutWaiversInput = {
   email?: Prisma.StringFieldUpdateOperationsInput | string
   full_name?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   phone?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  whatsapp_phone?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   avatar_url?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   movement_streak?: Prisma.IntFieldUpdateOperationsInput | number
   pass_type?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   hashedPassword?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   role?: Prisma.StringFieldUpdateOperationsInput | string
+  dob?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  gender?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  onboarding_completed?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  questionnaire?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  terms_accepted_at?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   created_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updated_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   bookings?: Prisma.BookingUncheckedUpdateManyWithoutProfileNestedInput
@@ -2370,6 +2860,7 @@ export type ProfileUncheckedUpdateWithoutWaiversInput = {
   coupon_redemptions?: Prisma.CouponRedemptionUncheckedUpdateManyWithoutProfileNestedInput
   razorpay_orders?: Prisma.RazorpayOrderUncheckedUpdateManyWithoutProfileNestedInput
   razorpay_payments?: Prisma.RazorpayPaymentUncheckedUpdateManyWithoutProfileNestedInput
+  member_tickets?: Prisma.MemberTicketUncheckedUpdateManyWithoutProfileNestedInput
 }
 
 export type ProfileCreateWithoutCrm_messagesInput = {
@@ -2377,11 +2868,17 @@ export type ProfileCreateWithoutCrm_messagesInput = {
   email: string
   full_name?: string | null
   phone?: string | null
+  whatsapp_phone?: string | null
   avatar_url?: string | null
   movement_streak?: number
   pass_type?: string | null
   hashedPassword?: string | null
   role?: string
+  dob?: Date | string | null
+  gender?: string | null
+  onboarding_completed?: boolean
+  questionnaire?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  terms_accepted_at?: Date | string | null
   created_at?: Date | string
   updated_at?: Date | string
   bookings?: Prisma.BookingCreateNestedManyWithoutProfileInput
@@ -2398,6 +2895,7 @@ export type ProfileCreateWithoutCrm_messagesInput = {
   coupon_redemptions?: Prisma.CouponRedemptionCreateNestedManyWithoutProfileInput
   razorpay_orders?: Prisma.RazorpayOrderCreateNestedManyWithoutProfileInput
   razorpay_payments?: Prisma.RazorpayPaymentCreateNestedManyWithoutProfileInput
+  member_tickets?: Prisma.MemberTicketCreateNestedManyWithoutProfileInput
 }
 
 export type ProfileUncheckedCreateWithoutCrm_messagesInput = {
@@ -2405,11 +2903,17 @@ export type ProfileUncheckedCreateWithoutCrm_messagesInput = {
   email: string
   full_name?: string | null
   phone?: string | null
+  whatsapp_phone?: string | null
   avatar_url?: string | null
   movement_streak?: number
   pass_type?: string | null
   hashedPassword?: string | null
   role?: string
+  dob?: Date | string | null
+  gender?: string | null
+  onboarding_completed?: boolean
+  questionnaire?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  terms_accepted_at?: Date | string | null
   created_at?: Date | string
   updated_at?: Date | string
   bookings?: Prisma.BookingUncheckedCreateNestedManyWithoutProfileInput
@@ -2426,6 +2930,7 @@ export type ProfileUncheckedCreateWithoutCrm_messagesInput = {
   coupon_redemptions?: Prisma.CouponRedemptionUncheckedCreateNestedManyWithoutProfileInput
   razorpay_orders?: Prisma.RazorpayOrderUncheckedCreateNestedManyWithoutProfileInput
   razorpay_payments?: Prisma.RazorpayPaymentUncheckedCreateNestedManyWithoutProfileInput
+  member_tickets?: Prisma.MemberTicketUncheckedCreateNestedManyWithoutProfileInput
 }
 
 export type ProfileCreateOrConnectWithoutCrm_messagesInput = {
@@ -2449,11 +2954,17 @@ export type ProfileUpdateWithoutCrm_messagesInput = {
   email?: Prisma.StringFieldUpdateOperationsInput | string
   full_name?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   phone?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  whatsapp_phone?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   avatar_url?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   movement_streak?: Prisma.IntFieldUpdateOperationsInput | number
   pass_type?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   hashedPassword?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   role?: Prisma.StringFieldUpdateOperationsInput | string
+  dob?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  gender?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  onboarding_completed?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  questionnaire?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  terms_accepted_at?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   created_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updated_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   bookings?: Prisma.BookingUpdateManyWithoutProfileNestedInput
@@ -2470,6 +2981,7 @@ export type ProfileUpdateWithoutCrm_messagesInput = {
   coupon_redemptions?: Prisma.CouponRedemptionUpdateManyWithoutProfileNestedInput
   razorpay_orders?: Prisma.RazorpayOrderUpdateManyWithoutProfileNestedInput
   razorpay_payments?: Prisma.RazorpayPaymentUpdateManyWithoutProfileNestedInput
+  member_tickets?: Prisma.MemberTicketUpdateManyWithoutProfileNestedInput
 }
 
 export type ProfileUncheckedUpdateWithoutCrm_messagesInput = {
@@ -2477,11 +2989,17 @@ export type ProfileUncheckedUpdateWithoutCrm_messagesInput = {
   email?: Prisma.StringFieldUpdateOperationsInput | string
   full_name?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   phone?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  whatsapp_phone?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   avatar_url?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   movement_streak?: Prisma.IntFieldUpdateOperationsInput | number
   pass_type?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   hashedPassword?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   role?: Prisma.StringFieldUpdateOperationsInput | string
+  dob?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  gender?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  onboarding_completed?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  questionnaire?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  terms_accepted_at?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   created_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updated_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   bookings?: Prisma.BookingUncheckedUpdateManyWithoutProfileNestedInput
@@ -2498,6 +3016,7 @@ export type ProfileUncheckedUpdateWithoutCrm_messagesInput = {
   coupon_redemptions?: Prisma.CouponRedemptionUncheckedUpdateManyWithoutProfileNestedInput
   razorpay_orders?: Prisma.RazorpayOrderUncheckedUpdateManyWithoutProfileNestedInput
   razorpay_payments?: Prisma.RazorpayPaymentUncheckedUpdateManyWithoutProfileNestedInput
+  member_tickets?: Prisma.MemberTicketUncheckedUpdateManyWithoutProfileNestedInput
 }
 
 export type ProfileCreateWithoutActivity_sessionsInput = {
@@ -2505,11 +3024,17 @@ export type ProfileCreateWithoutActivity_sessionsInput = {
   email: string
   full_name?: string | null
   phone?: string | null
+  whatsapp_phone?: string | null
   avatar_url?: string | null
   movement_streak?: number
   pass_type?: string | null
   hashedPassword?: string | null
   role?: string
+  dob?: Date | string | null
+  gender?: string | null
+  onboarding_completed?: boolean
+  questionnaire?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  terms_accepted_at?: Date | string | null
   created_at?: Date | string
   updated_at?: Date | string
   bookings?: Prisma.BookingCreateNestedManyWithoutProfileInput
@@ -2526,6 +3051,7 @@ export type ProfileCreateWithoutActivity_sessionsInput = {
   coupon_redemptions?: Prisma.CouponRedemptionCreateNestedManyWithoutProfileInput
   razorpay_orders?: Prisma.RazorpayOrderCreateNestedManyWithoutProfileInput
   razorpay_payments?: Prisma.RazorpayPaymentCreateNestedManyWithoutProfileInput
+  member_tickets?: Prisma.MemberTicketCreateNestedManyWithoutProfileInput
 }
 
 export type ProfileUncheckedCreateWithoutActivity_sessionsInput = {
@@ -2533,11 +3059,17 @@ export type ProfileUncheckedCreateWithoutActivity_sessionsInput = {
   email: string
   full_name?: string | null
   phone?: string | null
+  whatsapp_phone?: string | null
   avatar_url?: string | null
   movement_streak?: number
   pass_type?: string | null
   hashedPassword?: string | null
   role?: string
+  dob?: Date | string | null
+  gender?: string | null
+  onboarding_completed?: boolean
+  questionnaire?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  terms_accepted_at?: Date | string | null
   created_at?: Date | string
   updated_at?: Date | string
   bookings?: Prisma.BookingUncheckedCreateNestedManyWithoutProfileInput
@@ -2554,6 +3086,7 @@ export type ProfileUncheckedCreateWithoutActivity_sessionsInput = {
   coupon_redemptions?: Prisma.CouponRedemptionUncheckedCreateNestedManyWithoutProfileInput
   razorpay_orders?: Prisma.RazorpayOrderUncheckedCreateNestedManyWithoutProfileInput
   razorpay_payments?: Prisma.RazorpayPaymentUncheckedCreateNestedManyWithoutProfileInput
+  member_tickets?: Prisma.MemberTicketUncheckedCreateNestedManyWithoutProfileInput
 }
 
 export type ProfileCreateOrConnectWithoutActivity_sessionsInput = {
@@ -2577,11 +3110,17 @@ export type ProfileUpdateWithoutActivity_sessionsInput = {
   email?: Prisma.StringFieldUpdateOperationsInput | string
   full_name?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   phone?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  whatsapp_phone?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   avatar_url?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   movement_streak?: Prisma.IntFieldUpdateOperationsInput | number
   pass_type?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   hashedPassword?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   role?: Prisma.StringFieldUpdateOperationsInput | string
+  dob?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  gender?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  onboarding_completed?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  questionnaire?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  terms_accepted_at?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   created_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updated_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   bookings?: Prisma.BookingUpdateManyWithoutProfileNestedInput
@@ -2598,6 +3137,7 @@ export type ProfileUpdateWithoutActivity_sessionsInput = {
   coupon_redemptions?: Prisma.CouponRedemptionUpdateManyWithoutProfileNestedInput
   razorpay_orders?: Prisma.RazorpayOrderUpdateManyWithoutProfileNestedInput
   razorpay_payments?: Prisma.RazorpayPaymentUpdateManyWithoutProfileNestedInput
+  member_tickets?: Prisma.MemberTicketUpdateManyWithoutProfileNestedInput
 }
 
 export type ProfileUncheckedUpdateWithoutActivity_sessionsInput = {
@@ -2605,11 +3145,17 @@ export type ProfileUncheckedUpdateWithoutActivity_sessionsInput = {
   email?: Prisma.StringFieldUpdateOperationsInput | string
   full_name?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   phone?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  whatsapp_phone?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   avatar_url?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   movement_streak?: Prisma.IntFieldUpdateOperationsInput | number
   pass_type?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   hashedPassword?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   role?: Prisma.StringFieldUpdateOperationsInput | string
+  dob?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  gender?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  onboarding_completed?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  questionnaire?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  terms_accepted_at?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   created_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updated_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   bookings?: Prisma.BookingUncheckedUpdateManyWithoutProfileNestedInput
@@ -2626,6 +3172,7 @@ export type ProfileUncheckedUpdateWithoutActivity_sessionsInput = {
   coupon_redemptions?: Prisma.CouponRedemptionUncheckedUpdateManyWithoutProfileNestedInput
   razorpay_orders?: Prisma.RazorpayOrderUncheckedUpdateManyWithoutProfileNestedInput
   razorpay_payments?: Prisma.RazorpayPaymentUncheckedUpdateManyWithoutProfileNestedInput
+  member_tickets?: Prisma.MemberTicketUncheckedUpdateManyWithoutProfileNestedInput
 }
 
 export type ProfileCreateWithoutActivity_eventsInput = {
@@ -2633,11 +3180,17 @@ export type ProfileCreateWithoutActivity_eventsInput = {
   email: string
   full_name?: string | null
   phone?: string | null
+  whatsapp_phone?: string | null
   avatar_url?: string | null
   movement_streak?: number
   pass_type?: string | null
   hashedPassword?: string | null
   role?: string
+  dob?: Date | string | null
+  gender?: string | null
+  onboarding_completed?: boolean
+  questionnaire?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  terms_accepted_at?: Date | string | null
   created_at?: Date | string
   updated_at?: Date | string
   bookings?: Prisma.BookingCreateNestedManyWithoutProfileInput
@@ -2654,6 +3207,7 @@ export type ProfileCreateWithoutActivity_eventsInput = {
   coupon_redemptions?: Prisma.CouponRedemptionCreateNestedManyWithoutProfileInput
   razorpay_orders?: Prisma.RazorpayOrderCreateNestedManyWithoutProfileInput
   razorpay_payments?: Prisma.RazorpayPaymentCreateNestedManyWithoutProfileInput
+  member_tickets?: Prisma.MemberTicketCreateNestedManyWithoutProfileInput
 }
 
 export type ProfileUncheckedCreateWithoutActivity_eventsInput = {
@@ -2661,11 +3215,17 @@ export type ProfileUncheckedCreateWithoutActivity_eventsInput = {
   email: string
   full_name?: string | null
   phone?: string | null
+  whatsapp_phone?: string | null
   avatar_url?: string | null
   movement_streak?: number
   pass_type?: string | null
   hashedPassword?: string | null
   role?: string
+  dob?: Date | string | null
+  gender?: string | null
+  onboarding_completed?: boolean
+  questionnaire?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  terms_accepted_at?: Date | string | null
   created_at?: Date | string
   updated_at?: Date | string
   bookings?: Prisma.BookingUncheckedCreateNestedManyWithoutProfileInput
@@ -2682,6 +3242,7 @@ export type ProfileUncheckedCreateWithoutActivity_eventsInput = {
   coupon_redemptions?: Prisma.CouponRedemptionUncheckedCreateNestedManyWithoutProfileInput
   razorpay_orders?: Prisma.RazorpayOrderUncheckedCreateNestedManyWithoutProfileInput
   razorpay_payments?: Prisma.RazorpayPaymentUncheckedCreateNestedManyWithoutProfileInput
+  member_tickets?: Prisma.MemberTicketUncheckedCreateNestedManyWithoutProfileInput
 }
 
 export type ProfileCreateOrConnectWithoutActivity_eventsInput = {
@@ -2705,11 +3266,17 @@ export type ProfileUpdateWithoutActivity_eventsInput = {
   email?: Prisma.StringFieldUpdateOperationsInput | string
   full_name?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   phone?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  whatsapp_phone?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   avatar_url?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   movement_streak?: Prisma.IntFieldUpdateOperationsInput | number
   pass_type?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   hashedPassword?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   role?: Prisma.StringFieldUpdateOperationsInput | string
+  dob?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  gender?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  onboarding_completed?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  questionnaire?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  terms_accepted_at?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   created_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updated_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   bookings?: Prisma.BookingUpdateManyWithoutProfileNestedInput
@@ -2726,6 +3293,7 @@ export type ProfileUpdateWithoutActivity_eventsInput = {
   coupon_redemptions?: Prisma.CouponRedemptionUpdateManyWithoutProfileNestedInput
   razorpay_orders?: Prisma.RazorpayOrderUpdateManyWithoutProfileNestedInput
   razorpay_payments?: Prisma.RazorpayPaymentUpdateManyWithoutProfileNestedInput
+  member_tickets?: Prisma.MemberTicketUpdateManyWithoutProfileNestedInput
 }
 
 export type ProfileUncheckedUpdateWithoutActivity_eventsInput = {
@@ -2733,11 +3301,17 @@ export type ProfileUncheckedUpdateWithoutActivity_eventsInput = {
   email?: Prisma.StringFieldUpdateOperationsInput | string
   full_name?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   phone?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  whatsapp_phone?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   avatar_url?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   movement_streak?: Prisma.IntFieldUpdateOperationsInput | number
   pass_type?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   hashedPassword?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   role?: Prisma.StringFieldUpdateOperationsInput | string
+  dob?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  gender?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  onboarding_completed?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  questionnaire?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  terms_accepted_at?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   created_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updated_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   bookings?: Prisma.BookingUncheckedUpdateManyWithoutProfileNestedInput
@@ -2750,6 +3324,163 @@ export type ProfileUncheckedUpdateWithoutActivity_eventsInput = {
   waivers?: Prisma.WaiverUncheckedUpdateManyWithoutProfileNestedInput
   crm_messages?: Prisma.CrmMessageUncheckedUpdateManyWithoutProfileNestedInput
   activity_sessions?: Prisma.UserActivitySessionUncheckedUpdateManyWithoutProfileNestedInput
+  retail_orders?: Prisma.RetailOrderUncheckedUpdateManyWithoutProfileNestedInput
+  coupon_redemptions?: Prisma.CouponRedemptionUncheckedUpdateManyWithoutProfileNestedInput
+  razorpay_orders?: Prisma.RazorpayOrderUncheckedUpdateManyWithoutProfileNestedInput
+  razorpay_payments?: Prisma.RazorpayPaymentUncheckedUpdateManyWithoutProfileNestedInput
+  member_tickets?: Prisma.MemberTicketUncheckedUpdateManyWithoutProfileNestedInput
+}
+
+export type ProfileCreateWithoutMember_ticketsInput = {
+  id?: string
+  email: string
+  full_name?: string | null
+  phone?: string | null
+  whatsapp_phone?: string | null
+  avatar_url?: string | null
+  movement_streak?: number
+  pass_type?: string | null
+  hashedPassword?: string | null
+  role?: string
+  dob?: Date | string | null
+  gender?: string | null
+  onboarding_completed?: boolean
+  questionnaire?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  terms_accepted_at?: Date | string | null
+  created_at?: Date | string
+  updated_at?: Date | string
+  bookings?: Prisma.BookingCreateNestedManyWithoutProfileInput
+  cafe_orders?: Prisma.CafeOrderCreateNestedManyWithoutProfileInput
+  meal_subscriptions?: Prisma.MealSubscriptionCreateNestedManyWithoutProfileInput
+  user_badges?: Prisma.UserBadgeCreateNestedManyWithoutProfileInput
+  user_packages?: Prisma.UserPackageCreateNestedManyWithoutProfileInput
+  user_stats?: Prisma.UserStatsCreateNestedOneWithoutProfileInput
+  user_streaks?: Prisma.UserStreakCreateNestedOneWithoutProfileInput
+  waivers?: Prisma.WaiverCreateNestedManyWithoutProfileInput
+  crm_messages?: Prisma.CrmMessageCreateNestedManyWithoutProfileInput
+  activity_sessions?: Prisma.UserActivitySessionCreateNestedManyWithoutProfileInput
+  activity_events?: Prisma.UserActivityEventCreateNestedManyWithoutProfileInput
+  retail_orders?: Prisma.RetailOrderCreateNestedManyWithoutProfileInput
+  coupon_redemptions?: Prisma.CouponRedemptionCreateNestedManyWithoutProfileInput
+  razorpay_orders?: Prisma.RazorpayOrderCreateNestedManyWithoutProfileInput
+  razorpay_payments?: Prisma.RazorpayPaymentCreateNestedManyWithoutProfileInput
+}
+
+export type ProfileUncheckedCreateWithoutMember_ticketsInput = {
+  id?: string
+  email: string
+  full_name?: string | null
+  phone?: string | null
+  whatsapp_phone?: string | null
+  avatar_url?: string | null
+  movement_streak?: number
+  pass_type?: string | null
+  hashedPassword?: string | null
+  role?: string
+  dob?: Date | string | null
+  gender?: string | null
+  onboarding_completed?: boolean
+  questionnaire?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  terms_accepted_at?: Date | string | null
+  created_at?: Date | string
+  updated_at?: Date | string
+  bookings?: Prisma.BookingUncheckedCreateNestedManyWithoutProfileInput
+  cafe_orders?: Prisma.CafeOrderUncheckedCreateNestedManyWithoutProfileInput
+  meal_subscriptions?: Prisma.MealSubscriptionUncheckedCreateNestedManyWithoutProfileInput
+  user_badges?: Prisma.UserBadgeUncheckedCreateNestedManyWithoutProfileInput
+  user_packages?: Prisma.UserPackageUncheckedCreateNestedManyWithoutProfileInput
+  user_stats?: Prisma.UserStatsUncheckedCreateNestedOneWithoutProfileInput
+  user_streaks?: Prisma.UserStreakUncheckedCreateNestedOneWithoutProfileInput
+  waivers?: Prisma.WaiverUncheckedCreateNestedManyWithoutProfileInput
+  crm_messages?: Prisma.CrmMessageUncheckedCreateNestedManyWithoutProfileInput
+  activity_sessions?: Prisma.UserActivitySessionUncheckedCreateNestedManyWithoutProfileInput
+  activity_events?: Prisma.UserActivityEventUncheckedCreateNestedManyWithoutProfileInput
+  retail_orders?: Prisma.RetailOrderUncheckedCreateNestedManyWithoutProfileInput
+  coupon_redemptions?: Prisma.CouponRedemptionUncheckedCreateNestedManyWithoutProfileInput
+  razorpay_orders?: Prisma.RazorpayOrderUncheckedCreateNestedManyWithoutProfileInput
+  razorpay_payments?: Prisma.RazorpayPaymentUncheckedCreateNestedManyWithoutProfileInput
+}
+
+export type ProfileCreateOrConnectWithoutMember_ticketsInput = {
+  where: Prisma.ProfileWhereUniqueInput
+  create: Prisma.XOR<Prisma.ProfileCreateWithoutMember_ticketsInput, Prisma.ProfileUncheckedCreateWithoutMember_ticketsInput>
+}
+
+export type ProfileUpsertWithoutMember_ticketsInput = {
+  update: Prisma.XOR<Prisma.ProfileUpdateWithoutMember_ticketsInput, Prisma.ProfileUncheckedUpdateWithoutMember_ticketsInput>
+  create: Prisma.XOR<Prisma.ProfileCreateWithoutMember_ticketsInput, Prisma.ProfileUncheckedCreateWithoutMember_ticketsInput>
+  where?: Prisma.ProfileWhereInput
+}
+
+export type ProfileUpdateToOneWithWhereWithoutMember_ticketsInput = {
+  where?: Prisma.ProfileWhereInput
+  data: Prisma.XOR<Prisma.ProfileUpdateWithoutMember_ticketsInput, Prisma.ProfileUncheckedUpdateWithoutMember_ticketsInput>
+}
+
+export type ProfileUpdateWithoutMember_ticketsInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  email?: Prisma.StringFieldUpdateOperationsInput | string
+  full_name?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  phone?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  whatsapp_phone?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  avatar_url?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  movement_streak?: Prisma.IntFieldUpdateOperationsInput | number
+  pass_type?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  hashedPassword?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  role?: Prisma.StringFieldUpdateOperationsInput | string
+  dob?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  gender?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  onboarding_completed?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  questionnaire?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  terms_accepted_at?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  created_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updated_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  bookings?: Prisma.BookingUpdateManyWithoutProfileNestedInput
+  cafe_orders?: Prisma.CafeOrderUpdateManyWithoutProfileNestedInput
+  meal_subscriptions?: Prisma.MealSubscriptionUpdateManyWithoutProfileNestedInput
+  user_badges?: Prisma.UserBadgeUpdateManyWithoutProfileNestedInput
+  user_packages?: Prisma.UserPackageUpdateManyWithoutProfileNestedInput
+  user_stats?: Prisma.UserStatsUpdateOneWithoutProfileNestedInput
+  user_streaks?: Prisma.UserStreakUpdateOneWithoutProfileNestedInput
+  waivers?: Prisma.WaiverUpdateManyWithoutProfileNestedInput
+  crm_messages?: Prisma.CrmMessageUpdateManyWithoutProfileNestedInput
+  activity_sessions?: Prisma.UserActivitySessionUpdateManyWithoutProfileNestedInput
+  activity_events?: Prisma.UserActivityEventUpdateManyWithoutProfileNestedInput
+  retail_orders?: Prisma.RetailOrderUpdateManyWithoutProfileNestedInput
+  coupon_redemptions?: Prisma.CouponRedemptionUpdateManyWithoutProfileNestedInput
+  razorpay_orders?: Prisma.RazorpayOrderUpdateManyWithoutProfileNestedInput
+  razorpay_payments?: Prisma.RazorpayPaymentUpdateManyWithoutProfileNestedInput
+}
+
+export type ProfileUncheckedUpdateWithoutMember_ticketsInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  email?: Prisma.StringFieldUpdateOperationsInput | string
+  full_name?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  phone?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  whatsapp_phone?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  avatar_url?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  movement_streak?: Prisma.IntFieldUpdateOperationsInput | number
+  pass_type?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  hashedPassword?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  role?: Prisma.StringFieldUpdateOperationsInput | string
+  dob?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  gender?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  onboarding_completed?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  questionnaire?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  terms_accepted_at?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  created_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updated_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  bookings?: Prisma.BookingUncheckedUpdateManyWithoutProfileNestedInput
+  cafe_orders?: Prisma.CafeOrderUncheckedUpdateManyWithoutProfileNestedInput
+  meal_subscriptions?: Prisma.MealSubscriptionUncheckedUpdateManyWithoutProfileNestedInput
+  user_badges?: Prisma.UserBadgeUncheckedUpdateManyWithoutProfileNestedInput
+  user_packages?: Prisma.UserPackageUncheckedUpdateManyWithoutProfileNestedInput
+  user_stats?: Prisma.UserStatsUncheckedUpdateOneWithoutProfileNestedInput
+  user_streaks?: Prisma.UserStreakUncheckedUpdateOneWithoutProfileNestedInput
+  waivers?: Prisma.WaiverUncheckedUpdateManyWithoutProfileNestedInput
+  crm_messages?: Prisma.CrmMessageUncheckedUpdateManyWithoutProfileNestedInput
+  activity_sessions?: Prisma.UserActivitySessionUncheckedUpdateManyWithoutProfileNestedInput
+  activity_events?: Prisma.UserActivityEventUncheckedUpdateManyWithoutProfileNestedInput
   retail_orders?: Prisma.RetailOrderUncheckedUpdateManyWithoutProfileNestedInput
   coupon_redemptions?: Prisma.CouponRedemptionUncheckedUpdateManyWithoutProfileNestedInput
   razorpay_orders?: Prisma.RazorpayOrderUncheckedUpdateManyWithoutProfileNestedInput
@@ -2775,6 +3506,7 @@ export type ProfileCountOutputType = {
   coupon_redemptions: number
   razorpay_orders: number
   razorpay_payments: number
+  member_tickets: number
 }
 
 export type ProfileCountOutputTypeSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
@@ -2791,6 +3523,7 @@ export type ProfileCountOutputTypeSelect<ExtArgs extends runtime.Types.Extension
   coupon_redemptions?: boolean | ProfileCountOutputTypeCountCoupon_redemptionsArgs
   razorpay_orders?: boolean | ProfileCountOutputTypeCountRazorpay_ordersArgs
   razorpay_payments?: boolean | ProfileCountOutputTypeCountRazorpay_paymentsArgs
+  member_tickets?: boolean | ProfileCountOutputTypeCountMember_ticketsArgs
 }
 
 /**
@@ -2894,17 +3627,30 @@ export type ProfileCountOutputTypeCountRazorpay_paymentsArgs<ExtArgs extends run
   where?: Prisma.RazorpayPaymentWhereInput
 }
 
+/**
+ * ProfileCountOutputType without action
+ */
+export type ProfileCountOutputTypeCountMember_ticketsArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  where?: Prisma.MemberTicketWhereInput
+}
+
 
 export type ProfileSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetSelect<{
   id?: boolean
   email?: boolean
   full_name?: boolean
   phone?: boolean
+  whatsapp_phone?: boolean
   avatar_url?: boolean
   movement_streak?: boolean
   pass_type?: boolean
   hashedPassword?: boolean
   role?: boolean
+  dob?: boolean
+  gender?: boolean
+  onboarding_completed?: boolean
+  questionnaire?: boolean
+  terms_accepted_at?: boolean
   created_at?: boolean
   updated_at?: boolean
   bookings?: boolean | Prisma.Profile$bookingsArgs<ExtArgs>
@@ -2922,6 +3668,7 @@ export type ProfileSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs 
   coupon_redemptions?: boolean | Prisma.Profile$coupon_redemptionsArgs<ExtArgs>
   razorpay_orders?: boolean | Prisma.Profile$razorpay_ordersArgs<ExtArgs>
   razorpay_payments?: boolean | Prisma.Profile$razorpay_paymentsArgs<ExtArgs>
+  member_tickets?: boolean | Prisma.Profile$member_ticketsArgs<ExtArgs>
   _count?: boolean | Prisma.ProfileCountOutputTypeDefaultArgs<ExtArgs>
 }, ExtArgs["result"]["profile"]>
 
@@ -2930,11 +3677,17 @@ export type ProfileSelectCreateManyAndReturn<ExtArgs extends runtime.Types.Exten
   email?: boolean
   full_name?: boolean
   phone?: boolean
+  whatsapp_phone?: boolean
   avatar_url?: boolean
   movement_streak?: boolean
   pass_type?: boolean
   hashedPassword?: boolean
   role?: boolean
+  dob?: boolean
+  gender?: boolean
+  onboarding_completed?: boolean
+  questionnaire?: boolean
+  terms_accepted_at?: boolean
   created_at?: boolean
   updated_at?: boolean
 }, ExtArgs["result"]["profile"]>
@@ -2944,11 +3697,17 @@ export type ProfileSelectUpdateManyAndReturn<ExtArgs extends runtime.Types.Exten
   email?: boolean
   full_name?: boolean
   phone?: boolean
+  whatsapp_phone?: boolean
   avatar_url?: boolean
   movement_streak?: boolean
   pass_type?: boolean
   hashedPassword?: boolean
   role?: boolean
+  dob?: boolean
+  gender?: boolean
+  onboarding_completed?: boolean
+  questionnaire?: boolean
+  terms_accepted_at?: boolean
   created_at?: boolean
   updated_at?: boolean
 }, ExtArgs["result"]["profile"]>
@@ -2958,16 +3717,22 @@ export type ProfileSelectScalar = {
   email?: boolean
   full_name?: boolean
   phone?: boolean
+  whatsapp_phone?: boolean
   avatar_url?: boolean
   movement_streak?: boolean
   pass_type?: boolean
   hashedPassword?: boolean
   role?: boolean
+  dob?: boolean
+  gender?: boolean
+  onboarding_completed?: boolean
+  questionnaire?: boolean
+  terms_accepted_at?: boolean
   created_at?: boolean
   updated_at?: boolean
 }
 
-export type ProfileOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "email" | "full_name" | "phone" | "avatar_url" | "movement_streak" | "pass_type" | "hashedPassword" | "role" | "created_at" | "updated_at", ExtArgs["result"]["profile"]>
+export type ProfileOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "email" | "full_name" | "phone" | "whatsapp_phone" | "avatar_url" | "movement_streak" | "pass_type" | "hashedPassword" | "role" | "dob" | "gender" | "onboarding_completed" | "questionnaire" | "terms_accepted_at" | "created_at" | "updated_at", ExtArgs["result"]["profile"]>
 export type ProfileInclude<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   bookings?: boolean | Prisma.Profile$bookingsArgs<ExtArgs>
   cafe_orders?: boolean | Prisma.Profile$cafe_ordersArgs<ExtArgs>
@@ -2984,6 +3749,7 @@ export type ProfileInclude<ExtArgs extends runtime.Types.Extensions.InternalArgs
   coupon_redemptions?: boolean | Prisma.Profile$coupon_redemptionsArgs<ExtArgs>
   razorpay_orders?: boolean | Prisma.Profile$razorpay_ordersArgs<ExtArgs>
   razorpay_payments?: boolean | Prisma.Profile$razorpay_paymentsArgs<ExtArgs>
+  member_tickets?: boolean | Prisma.Profile$member_ticketsArgs<ExtArgs>
   _count?: boolean | Prisma.ProfileCountOutputTypeDefaultArgs<ExtArgs>
 }
 export type ProfileIncludeCreateManyAndReturn<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {}
@@ -3007,17 +3773,24 @@ export type $ProfilePayload<ExtArgs extends runtime.Types.Extensions.InternalArg
     coupon_redemptions: Prisma.$CouponRedemptionPayload<ExtArgs>[]
     razorpay_orders: Prisma.$RazorpayOrderPayload<ExtArgs>[]
     razorpay_payments: Prisma.$RazorpayPaymentPayload<ExtArgs>[]
+    member_tickets: Prisma.$MemberTicketPayload<ExtArgs>[]
   }
   scalars: runtime.Types.Extensions.GetPayloadResult<{
     id: string
     email: string
     full_name: string | null
     phone: string | null
+    whatsapp_phone: string | null
     avatar_url: string | null
     movement_streak: number
     pass_type: string | null
     hashedPassword: string | null
     role: string
+    dob: Date | null
+    gender: string | null
+    onboarding_completed: boolean
+    questionnaire: runtime.JsonValue | null
+    terms_accepted_at: Date | null
     created_at: Date
     updated_at: Date
   }, ExtArgs["result"]["profile"]>
@@ -3429,6 +4202,7 @@ export interface Prisma__ProfileClient<T, Null = never, ExtArgs extends runtime.
   coupon_redemptions<T extends Prisma.Profile$coupon_redemptionsArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.Profile$coupon_redemptionsArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$CouponRedemptionPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
   razorpay_orders<T extends Prisma.Profile$razorpay_ordersArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.Profile$razorpay_ordersArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$RazorpayOrderPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
   razorpay_payments<T extends Prisma.Profile$razorpay_paymentsArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.Profile$razorpay_paymentsArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$RazorpayPaymentPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
+  member_tickets<T extends Prisma.Profile$member_ticketsArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.Profile$member_ticketsArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$MemberTicketPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
   /**
    * Attaches callbacks for the resolution and/or rejection of the Promise.
    * @param onfulfilled The callback to execute when the Promise is resolved.
@@ -3462,11 +4236,17 @@ export interface ProfileFieldRefs {
   readonly email: Prisma.FieldRef<"Profile", 'String'>
   readonly full_name: Prisma.FieldRef<"Profile", 'String'>
   readonly phone: Prisma.FieldRef<"Profile", 'String'>
+  readonly whatsapp_phone: Prisma.FieldRef<"Profile", 'String'>
   readonly avatar_url: Prisma.FieldRef<"Profile", 'String'>
   readonly movement_streak: Prisma.FieldRef<"Profile", 'Int'>
   readonly pass_type: Prisma.FieldRef<"Profile", 'String'>
   readonly hashedPassword: Prisma.FieldRef<"Profile", 'String'>
   readonly role: Prisma.FieldRef<"Profile", 'String'>
+  readonly dob: Prisma.FieldRef<"Profile", 'DateTime'>
+  readonly gender: Prisma.FieldRef<"Profile", 'String'>
+  readonly onboarding_completed: Prisma.FieldRef<"Profile", 'Boolean'>
+  readonly questionnaire: Prisma.FieldRef<"Profile", 'Json'>
+  readonly terms_accepted_at: Prisma.FieldRef<"Profile", 'DateTime'>
   readonly created_at: Prisma.FieldRef<"Profile", 'DateTime'>
   readonly updated_at: Prisma.FieldRef<"Profile", 'DateTime'>
 }
@@ -4209,6 +4989,30 @@ export type Profile$razorpay_paymentsArgs<ExtArgs extends runtime.Types.Extensio
   take?: number
   skip?: number
   distinct?: Prisma.RazorpayPaymentScalarFieldEnum | Prisma.RazorpayPaymentScalarFieldEnum[]
+}
+
+/**
+ * Profile.member_tickets
+ */
+export type Profile$member_ticketsArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  /**
+   * Select specific fields to fetch from the MemberTicket
+   */
+  select?: Prisma.MemberTicketSelect<ExtArgs> | null
+  /**
+   * Omit specific fields from the MemberTicket
+   */
+  omit?: Prisma.MemberTicketOmit<ExtArgs> | null
+  /**
+   * Choose, which related nodes to fetch as well
+   */
+  include?: Prisma.MemberTicketInclude<ExtArgs> | null
+  where?: Prisma.MemberTicketWhereInput
+  orderBy?: Prisma.MemberTicketOrderByWithRelationInput | Prisma.MemberTicketOrderByWithRelationInput[]
+  cursor?: Prisma.MemberTicketWhereUniqueInput
+  take?: number
+  skip?: number
+  distinct?: Prisma.MemberTicketScalarFieldEnum | Prisma.MemberTicketScalarFieldEnum[]
 }
 
 /**

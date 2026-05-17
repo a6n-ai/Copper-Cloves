@@ -14,13 +14,19 @@ model Profile {
   email          String   @unique
   full_name      String?
   phone          String?
+  whatsapp_phone String?
   avatar_url     String?
-  movement_streak Int     @default(0)
-  pass_type      String?
-  hashedPassword String?
-  role           String   @default("user")
-  created_at     DateTime @default(now())
-  updated_at     DateTime @updatedAt
+  movement_streak      Int      @default(0)
+  pass_type            String?
+  hashedPassword       String?
+  role                 String   @default("user")
+  dob                  DateTime?
+  gender               String?
+  onboarding_completed Boolean  @default(false)
+  questionnaire        Json?
+  terms_accepted_at    DateTime?
+  created_at           DateTime @default(now())
+  updated_at           DateTime @updatedAt
 
   bookings          Booking[]
   cafe_orders       CafeOrder[]
@@ -37,6 +43,7 @@ model Profile {
   coupon_redemptions CouponRedemption[]
   razorpay_orders   RazorpayOrder[]
   razorpay_payments RazorpayPayment[]
+  member_tickets    MemberTicket[]
 
   @@map("profiles")
 }
@@ -141,7 +148,8 @@ model Instructor {
   social_twitter     String?
   social_linkedin    String?
   social_whatsapp    String?
-  created_at         DateTime @default(now())
+  hashed_password          String?
+  created_at               DateTime @default(now())
 
   classes         ClassModel[]
   class_schedules ClassSchedule[]
@@ -179,8 +187,9 @@ model ClassSchedule {
   capacity         Int?
   available_spots  Int
   current_bookings Int      @default(0)
-  status           String   @default("available")
-  created_at       DateTime @default(now())
+  status                    String    @default("available")
+  instructor_check_in_time  DateTime?
+  created_at                DateTime  @default(now())
 
   class_model ClassModel?    @relation(fields: [class_id], references: [id], onDelete: Cascade)
   instructor  Instructor? @relation(fields: [instructor_id], references: [id], onDelete: SetNull)
@@ -466,6 +475,24 @@ model UserStreak {
   @@map("user_streaks")
 }
 
+model BadgeTemplate {
+  id                String      @id @default(cuid())
+  name              String
+  description       String?
+  badge_type        String      // "path_to_mastery" | "custom"
+  icon              String      @default("🏆")
+  color             String      @default("#7C9070")
+  threshold_classes Int?        // path_to_mastery only: auto-award at this count
+  is_active         Boolean     @default(true)
+  sort_order        Int         @default(0)
+  created_at        DateTime    @default(now())
+  updated_at        DateTime    @updatedAt
+
+  user_badges       UserBadge[]
+
+  @@map("badge_templates")
+}
+
 model UserBadge {
   id                String   @id @default(uuid())
   user_id           String
@@ -474,8 +501,14 @@ model UserBadge {
   milestone_value   Int?
   total_classes     Int?
   earned_at         DateTime @default(now())
+  badge_template_id String?
+  badge_type        String   @default("path_to_mastery")  // "path_to_mastery" | "custom"
+  icon              String?  @default("🏆")
+  color             String?  @default("#7C9070")
+  allocated_by      String?  // admin user id for custom badges
 
-  profile Profile @relation(fields: [user_id], references: [id], onDelete: Cascade)
+  profile        Profile        @relation(fields: [user_id], references: [id], onDelete: Cascade)
+  badge_template BadgeTemplate? @relation(fields: [badge_template_id], references: [id], onDelete: SetNull)
 
   @@map("user_badges")
 }
@@ -598,4 +631,34 @@ model UserActivityEvent {
   @@index([created_at])
   @@index([session_id])
   @@map("user_activity_events")
+}
+
+model MemberTicket {
+  id             String   @id @default(uuid())
+  user_id        String
+  type           String   @default("pause_subscription")
+  reason         String
+  attachment_url String?
+  status         String   @default("open")
+  admin_note     String?
+  created_at     DateTime @default(now())
+  updated_at     DateTime @updatedAt
+
+  profile Profile @relation(fields: [user_id], references: [id], onDelete: Cascade)
+
+  @@index([user_id])
+  @@index([status])
+  @@map("member_tickets")
+}
+
+model PasswordResetToken {
+  id         String   @id @default(cuid())
+  email      String
+  token      String   @unique
+  expires_at DateTime
+  used       Boolean  @default(false)
+  created_at DateTime @default(now())
+
+  @@index([email])
+  @@map("password_reset_tokens")
 }

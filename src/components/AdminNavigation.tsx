@@ -1,18 +1,20 @@
 import { useState } from "react";
 import { useRouter } from "next/router";
+import { signOut } from "next-auth/react";
 import Link from "next/link";
-import { 
-  LayoutDashboard, 
-  Calendar, 
-  Users, 
-  CreditCard, 
+import {
+  LayoutDashboard,
+  Calendar,
+  Users,
+  CreditCard,
   Coffee,
   Settings,
   LogOut,
   Menu,
   X,
   ChevronRight,
-  Package
+  Package,
+  Award
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
@@ -35,6 +37,7 @@ export function AdminNavigation({
     { href: "/admin/schedule", label: "Schedule", icon: Calendar, description: "Manage classes" },
     { href: "/admin/members", label: "Members", icon: Users, description: "User management" },
     { href: "/admin/credits", label: "Credits", icon: CreditCard, description: "Track credits" },
+    { href: "/admin/badges", label: "Badges", icon: Award, description: "Manage badge system" },
     { href: "/admin/cafe", label: "Café Menu", icon: Coffee, description: "Manage menu" },
     { href: "/admin/products", label: "Products", icon: Package, description: "Shop items" },
     { href: "/admin/control", label: "Settings", icon: Settings, description: "System config" },
@@ -43,7 +46,9 @@ export function AdminNavigation({
   const isActive = (path: string) => router.pathname === path;
 
   const handleSignOut = async () => {
-    router.push("/admin/login");
+    setIsOpen(false);
+    await signOut({ redirect: false });
+    await router.replace("/admin/login");
   };
 
   const getInitials = (name: string) => {

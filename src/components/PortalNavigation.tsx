@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { useRouter } from "next/router";
+import { signOut } from "next-auth/react";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
@@ -44,8 +45,9 @@ export function PortalNavigation({
   const isActive = (path: string) => router.pathname === path;
 
   const handleSignOut = async () => {
-    // TODO: Implement sign out
-    router.push("/portal/login");
+    setIsOpen(false);
+    await signOut({ redirect: false });
+    await router.replace("/portal/login");
   };
 
   const getInitials = (name: string) => {

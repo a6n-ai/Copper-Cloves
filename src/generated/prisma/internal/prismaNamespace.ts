@@ -405,13 +405,16 @@ export const ModelName = {
   RentalInquiry: 'RentalInquiry',
   UserStats: 'UserStats',
   UserStreak: 'UserStreak',
+  BadgeTemplate: 'BadgeTemplate',
   UserBadge: 'UserBadge',
   Waiver: 'Waiver',
   CrmTemplate: 'CrmTemplate',
   CrmMessage: 'CrmMessage',
   CrmTrigger: 'CrmTrigger',
   UserActivitySession: 'UserActivitySession',
-  UserActivityEvent: 'UserActivityEvent'
+  UserActivityEvent: 'UserActivityEvent',
+  MemberTicket: 'MemberTicket',
+  PasswordResetToken: 'PasswordResetToken'
 } as const
 
 export type ModelName = (typeof ModelName)[keyof typeof ModelName]
@@ -427,7 +430,7 @@ export type TypeMap<ExtArgs extends runtime.Types.Extensions.InternalArgs = runt
     omit: GlobalOmitOptions
   }
   meta: {
-    modelProps: "profile" | "coupon" | "couponRedemption" | "retailProduct" | "retailOrder" | "instructor" | "classModel" | "classSchedule" | "packageType" | "package" | "userPackage" | "booking" | "razorpayOrder" | "razorpayPayment" | "cafeItem" | "cafeOrder" | "mealSubscription" | "mealSubscriptionInquiry" | "rentalInquiry" | "userStats" | "userStreak" | "userBadge" | "waiver" | "crmTemplate" | "crmMessage" | "crmTrigger" | "userActivitySession" | "userActivityEvent"
+    modelProps: "profile" | "coupon" | "couponRedemption" | "retailProduct" | "retailOrder" | "instructor" | "classModel" | "classSchedule" | "packageType" | "package" | "userPackage" | "booking" | "razorpayOrder" | "razorpayPayment" | "cafeItem" | "cafeOrder" | "mealSubscription" | "mealSubscriptionInquiry" | "rentalInquiry" | "userStats" | "userStreak" | "badgeTemplate" | "userBadge" | "waiver" | "crmTemplate" | "crmMessage" | "crmTrigger" | "userActivitySession" | "userActivityEvent" | "memberTicket" | "passwordResetToken"
     txIsolationLevel: TransactionIsolationLevel
   }
   model: {
@@ -1985,6 +1988,80 @@ export type TypeMap<ExtArgs extends runtime.Types.Extensions.InternalArgs = runt
         }
       }
     }
+    BadgeTemplate: {
+      payload: Prisma.$BadgeTemplatePayload<ExtArgs>
+      fields: Prisma.BadgeTemplateFieldRefs
+      operations: {
+        findUnique: {
+          args: Prisma.BadgeTemplateFindUniqueArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$BadgeTemplatePayload> | null
+        }
+        findUniqueOrThrow: {
+          args: Prisma.BadgeTemplateFindUniqueOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$BadgeTemplatePayload>
+        }
+        findFirst: {
+          args: Prisma.BadgeTemplateFindFirstArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$BadgeTemplatePayload> | null
+        }
+        findFirstOrThrow: {
+          args: Prisma.BadgeTemplateFindFirstOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$BadgeTemplatePayload>
+        }
+        findMany: {
+          args: Prisma.BadgeTemplateFindManyArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$BadgeTemplatePayload>[]
+        }
+        create: {
+          args: Prisma.BadgeTemplateCreateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$BadgeTemplatePayload>
+        }
+        createMany: {
+          args: Prisma.BadgeTemplateCreateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        createManyAndReturn: {
+          args: Prisma.BadgeTemplateCreateManyAndReturnArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$BadgeTemplatePayload>[]
+        }
+        delete: {
+          args: Prisma.BadgeTemplateDeleteArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$BadgeTemplatePayload>
+        }
+        update: {
+          args: Prisma.BadgeTemplateUpdateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$BadgeTemplatePayload>
+        }
+        deleteMany: {
+          args: Prisma.BadgeTemplateDeleteManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateMany: {
+          args: Prisma.BadgeTemplateUpdateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateManyAndReturn: {
+          args: Prisma.BadgeTemplateUpdateManyAndReturnArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$BadgeTemplatePayload>[]
+        }
+        upsert: {
+          args: Prisma.BadgeTemplateUpsertArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$BadgeTemplatePayload>
+        }
+        aggregate: {
+          args: Prisma.BadgeTemplateAggregateArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.AggregateBadgeTemplate>
+        }
+        groupBy: {
+          args: Prisma.BadgeTemplateGroupByArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.BadgeTemplateGroupByOutputType>[]
+        }
+        count: {
+          args: Prisma.BadgeTemplateCountArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.BadgeTemplateCountAggregateOutputType> | number
+        }
+      }
+    }
     UserBadge: {
       payload: Prisma.$UserBadgePayload<ExtArgs>
       fields: Prisma.UserBadgeFieldRefs
@@ -2503,6 +2580,154 @@ export type TypeMap<ExtArgs extends runtime.Types.Extensions.InternalArgs = runt
         }
       }
     }
+    MemberTicket: {
+      payload: Prisma.$MemberTicketPayload<ExtArgs>
+      fields: Prisma.MemberTicketFieldRefs
+      operations: {
+        findUnique: {
+          args: Prisma.MemberTicketFindUniqueArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$MemberTicketPayload> | null
+        }
+        findUniqueOrThrow: {
+          args: Prisma.MemberTicketFindUniqueOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$MemberTicketPayload>
+        }
+        findFirst: {
+          args: Prisma.MemberTicketFindFirstArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$MemberTicketPayload> | null
+        }
+        findFirstOrThrow: {
+          args: Prisma.MemberTicketFindFirstOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$MemberTicketPayload>
+        }
+        findMany: {
+          args: Prisma.MemberTicketFindManyArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$MemberTicketPayload>[]
+        }
+        create: {
+          args: Prisma.MemberTicketCreateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$MemberTicketPayload>
+        }
+        createMany: {
+          args: Prisma.MemberTicketCreateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        createManyAndReturn: {
+          args: Prisma.MemberTicketCreateManyAndReturnArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$MemberTicketPayload>[]
+        }
+        delete: {
+          args: Prisma.MemberTicketDeleteArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$MemberTicketPayload>
+        }
+        update: {
+          args: Prisma.MemberTicketUpdateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$MemberTicketPayload>
+        }
+        deleteMany: {
+          args: Prisma.MemberTicketDeleteManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateMany: {
+          args: Prisma.MemberTicketUpdateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateManyAndReturn: {
+          args: Prisma.MemberTicketUpdateManyAndReturnArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$MemberTicketPayload>[]
+        }
+        upsert: {
+          args: Prisma.MemberTicketUpsertArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$MemberTicketPayload>
+        }
+        aggregate: {
+          args: Prisma.MemberTicketAggregateArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.AggregateMemberTicket>
+        }
+        groupBy: {
+          args: Prisma.MemberTicketGroupByArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.MemberTicketGroupByOutputType>[]
+        }
+        count: {
+          args: Prisma.MemberTicketCountArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.MemberTicketCountAggregateOutputType> | number
+        }
+      }
+    }
+    PasswordResetToken: {
+      payload: Prisma.$PasswordResetTokenPayload<ExtArgs>
+      fields: Prisma.PasswordResetTokenFieldRefs
+      operations: {
+        findUnique: {
+          args: Prisma.PasswordResetTokenFindUniqueArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$PasswordResetTokenPayload> | null
+        }
+        findUniqueOrThrow: {
+          args: Prisma.PasswordResetTokenFindUniqueOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$PasswordResetTokenPayload>
+        }
+        findFirst: {
+          args: Prisma.PasswordResetTokenFindFirstArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$PasswordResetTokenPayload> | null
+        }
+        findFirstOrThrow: {
+          args: Prisma.PasswordResetTokenFindFirstOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$PasswordResetTokenPayload>
+        }
+        findMany: {
+          args: Prisma.PasswordResetTokenFindManyArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$PasswordResetTokenPayload>[]
+        }
+        create: {
+          args: Prisma.PasswordResetTokenCreateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$PasswordResetTokenPayload>
+        }
+        createMany: {
+          args: Prisma.PasswordResetTokenCreateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        createManyAndReturn: {
+          args: Prisma.PasswordResetTokenCreateManyAndReturnArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$PasswordResetTokenPayload>[]
+        }
+        delete: {
+          args: Prisma.PasswordResetTokenDeleteArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$PasswordResetTokenPayload>
+        }
+        update: {
+          args: Prisma.PasswordResetTokenUpdateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$PasswordResetTokenPayload>
+        }
+        deleteMany: {
+          args: Prisma.PasswordResetTokenDeleteManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateMany: {
+          args: Prisma.PasswordResetTokenUpdateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateManyAndReturn: {
+          args: Prisma.PasswordResetTokenUpdateManyAndReturnArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$PasswordResetTokenPayload>[]
+        }
+        upsert: {
+          args: Prisma.PasswordResetTokenUpsertArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$PasswordResetTokenPayload>
+        }
+        aggregate: {
+          args: Prisma.PasswordResetTokenAggregateArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.AggregatePasswordResetToken>
+        }
+        groupBy: {
+          args: Prisma.PasswordResetTokenGroupByArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.PasswordResetTokenGroupByOutputType>[]
+        }
+        count: {
+          args: Prisma.PasswordResetTokenCountArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.PasswordResetTokenCountAggregateOutputType> | number
+        }
+      }
+    }
   }
 } & {
   other: {
@@ -2547,11 +2772,17 @@ export const ProfileScalarFieldEnum = {
   email: 'email',
   full_name: 'full_name',
   phone: 'phone',
+  whatsapp_phone: 'whatsapp_phone',
   avatar_url: 'avatar_url',
   movement_streak: 'movement_streak',
   pass_type: 'pass_type',
   hashedPassword: 'hashedPassword',
   role: 'role',
+  dob: 'dob',
+  gender: 'gender',
+  onboarding_completed: 'onboarding_completed',
+  questionnaire: 'questionnaire',
+  terms_accepted_at: 'terms_accepted_at',
   created_at: 'created_at',
   updated_at: 'updated_at'
 } as const
@@ -2647,6 +2878,7 @@ export const InstructorScalarFieldEnum = {
   social_twitter: 'social_twitter',
   social_linkedin: 'social_linkedin',
   social_whatsapp: 'social_whatsapp',
+  hashed_password: 'hashed_password',
   created_at: 'created_at'
 } as const
 
@@ -2682,6 +2914,7 @@ export const ClassScheduleScalarFieldEnum = {
   available_spots: 'available_spots',
   current_bookings: 'current_bookings',
   status: 'status',
+  instructor_check_in_time: 'instructor_check_in_time',
   created_at: 'created_at'
 } as const
 
@@ -2912,6 +3145,23 @@ export const UserStreakScalarFieldEnum = {
 export type UserStreakScalarFieldEnum = (typeof UserStreakScalarFieldEnum)[keyof typeof UserStreakScalarFieldEnum]
 
 
+export const BadgeTemplateScalarFieldEnum = {
+  id: 'id',
+  name: 'name',
+  description: 'description',
+  badge_type: 'badge_type',
+  icon: 'icon',
+  color: 'color',
+  threshold_classes: 'threshold_classes',
+  is_active: 'is_active',
+  sort_order: 'sort_order',
+  created_at: 'created_at',
+  updated_at: 'updated_at'
+} as const
+
+export type BadgeTemplateScalarFieldEnum = (typeof BadgeTemplateScalarFieldEnum)[keyof typeof BadgeTemplateScalarFieldEnum]
+
+
 export const UserBadgeScalarFieldEnum = {
   id: 'id',
   user_id: 'user_id',
@@ -2919,7 +3169,12 @@ export const UserBadgeScalarFieldEnum = {
   badge_description: 'badge_description',
   milestone_value: 'milestone_value',
   total_classes: 'total_classes',
-  earned_at: 'earned_at'
+  earned_at: 'earned_at',
+  badge_template_id: 'badge_template_id',
+  badge_type: 'badge_type',
+  icon: 'icon',
+  color: 'color',
+  allocated_by: 'allocated_by'
 } as const
 
 export type UserBadgeScalarFieldEnum = (typeof UserBadgeScalarFieldEnum)[keyof typeof UserBadgeScalarFieldEnum]
@@ -3024,19 +3279,39 @@ export const UserActivityEventScalarFieldEnum = {
 export type UserActivityEventScalarFieldEnum = (typeof UserActivityEventScalarFieldEnum)[keyof typeof UserActivityEventScalarFieldEnum]
 
 
+export const MemberTicketScalarFieldEnum = {
+  id: 'id',
+  user_id: 'user_id',
+  type: 'type',
+  reason: 'reason',
+  attachment_url: 'attachment_url',
+  status: 'status',
+  admin_note: 'admin_note',
+  created_at: 'created_at',
+  updated_at: 'updated_at'
+} as const
+
+export type MemberTicketScalarFieldEnum = (typeof MemberTicketScalarFieldEnum)[keyof typeof MemberTicketScalarFieldEnum]
+
+
+export const PasswordResetTokenScalarFieldEnum = {
+  id: 'id',
+  email: 'email',
+  token: 'token',
+  expires_at: 'expires_at',
+  used: 'used',
+  created_at: 'created_at'
+} as const
+
+export type PasswordResetTokenScalarFieldEnum = (typeof PasswordResetTokenScalarFieldEnum)[keyof typeof PasswordResetTokenScalarFieldEnum]
+
+
 export const SortOrder = {
   asc: 'asc',
   desc: 'desc'
 } as const
 
 export type SortOrder = (typeof SortOrder)[keyof typeof SortOrder]
-
-
-export const JsonNullValueInput = {
-  JsonNull: JsonNull
-} as const
-
-export type JsonNullValueInput = (typeof JsonNullValueInput)[keyof typeof JsonNullValueInput]
 
 
 export const NullableJsonNullValueInput = {
@@ -3047,20 +3322,19 @@ export const NullableJsonNullValueInput = {
 export type NullableJsonNullValueInput = (typeof NullableJsonNullValueInput)[keyof typeof NullableJsonNullValueInput]
 
 
+export const JsonNullValueInput = {
+  JsonNull: JsonNull
+} as const
+
+export type JsonNullValueInput = (typeof JsonNullValueInput)[keyof typeof JsonNullValueInput]
+
+
 export const QueryMode = {
   default: 'default',
   insensitive: 'insensitive'
 } as const
 
 export type QueryMode = (typeof QueryMode)[keyof typeof QueryMode]
-
-
-export const NullsOrder = {
-  first: 'first',
-  last: 'last'
-} as const
-
-export type NullsOrder = (typeof NullsOrder)[keyof typeof NullsOrder]
 
 
 export const JsonNullValueFilter = {
@@ -3070,6 +3344,14 @@ export const JsonNullValueFilter = {
 } as const
 
 export type JsonNullValueFilter = (typeof JsonNullValueFilter)[keyof typeof JsonNullValueFilter]
+
+
+export const NullsOrder = {
+  first: 'first',
+  last: 'last'
+} as const
+
+export type NullsOrder = (typeof NullsOrder)[keyof typeof NullsOrder]
 
 
 
@@ -3121,20 +3403,6 @@ export type ListDateTimeFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaM
 
 
 /**
- * Reference to a field of type 'Decimal'
- */
-export type DecimalFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'Decimal'>
-    
-
-
-/**
- * Reference to a field of type 'Decimal[]'
- */
-export type ListDecimalFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'Decimal[]'>
-    
-
-
-/**
  * Reference to a field of type 'Boolean'
  */
 export type BooleanFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'Boolean'>
@@ -3152,6 +3420,20 @@ export type JsonFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'J
  * Reference to a field of type 'QueryMode'
  */
 export type EnumQueryModeFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'QueryMode'>
+    
+
+
+/**
+ * Reference to a field of type 'Decimal'
+ */
+export type DecimalFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'Decimal'>
+    
+
+
+/**
+ * Reference to a field of type 'Decimal[]'
+ */
+export type ListDecimalFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'Decimal[]'>
     
 
 
@@ -3299,6 +3581,7 @@ export type GlobalOmitConfig = {
   rentalInquiry?: Prisma.RentalInquiryOmit
   userStats?: Prisma.UserStatsOmit
   userStreak?: Prisma.UserStreakOmit
+  badgeTemplate?: Prisma.BadgeTemplateOmit
   userBadge?: Prisma.UserBadgeOmit
   waiver?: Prisma.WaiverOmit
   crmTemplate?: Prisma.CrmTemplateOmit
@@ -3306,6 +3589,8 @@ export type GlobalOmitConfig = {
   crmTrigger?: Prisma.CrmTriggerOmit
   userActivitySession?: Prisma.UserActivitySessionOmit
   userActivityEvent?: Prisma.UserActivityEventOmit
+  memberTicket?: Prisma.MemberTicketOmit
+  passwordResetToken?: Prisma.PasswordResetTokenOmit
 }
 
 /* Types for Logging */

@@ -1,4 +1,5 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, useMemo } from "react";
+import { useToast } from "@/hooks/use-toast";
 import { useRouter } from "next/router";
 import { PortalNavigation } from "@/components/PortalNavigation";
 import { Card, CardContent } from "@/components/ui/card";
@@ -29,17 +30,17 @@ import {
   Minus,
   UserPlus,
   CreditCard,
-  Store,
   AlertCircle
 } from "lucide-react";
 import { useSession } from "next-auth/react";
 import {
   startOfMondayWeekLocal,
   endOfSundayWeekLocal,
+  isSameLocalCalendarDay,
 } from "@/lib/calendarWeek";
 import { expectedBookingCheckoutPaise } from "@/lib/financeBookingCheckout";
 import { razorpayPaymentErrorHelp } from "@/lib/razorpayClientHints";
-import { completePendingBookingCheckout } from "@/lib/completeRazorpayCheckout";
+import { completePendingBookingCheckout, completePendingPackageCheckout } from "@/lib/completeRazorpayCheckout";
 import {
   buildRazorpayReturnUrl,
   clearPendingRazorpayCheckout,
@@ -102,6 +103,7 @@ export interface Class {
 
 export default function BookClass() {
   const router = useRouter();
+  const { toast } = useToast();
   const { status } = useSession();
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
@@ -149,29 +151,60 @@ export default function BookClass() {
   const [foodItemsLoadError, setFoodItemsLoadError] = useState<string | null>(null);
   
   // Checkout
-  const [paymentMethod, setPaymentMethod] = useState<"online" | "studio">("online");
+  // Featured Studio Pass (no-package upsell)
+  const [featuredPackage, setFeaturedPackage] = useState<{ id: string; name: string; price: number; duration_months: number | null } | null>(null);
+  const [addingPass, setAddingPass] = useState(false);
+
+  // Coupon code
+  const [couponCode, setCouponCode] = useState("");
+  const [appliedCoupon, setAppliedCoupon] = useState<{ code: string; discountInr: number } | null>(null);
+  const [couponLoading, setCouponLoading] = useState(false);
+  const [couponError, setCouponError] = useState<string | null>(null);
   
-  // Pagination
+  // Pagination & filters
   const [currentPage, setCurrentPage] = useState(1);
-  const [filterIntensity, setFilterIntensity] = useState<string>("all");
+  const [filterClassName, setFilterClassName] = useState<string>("all");
+  const [weekOffset, setWeekOffset] = useState(0);
+  const [selectedDayIndex, setSelectedDayIndex] = useState<number | null>(null);
   const classesPerPage = 6;
 
-  /** ISO week (Mon–Sun) containing “today”, always used for booking (avoids wrong week near year boundaries). */
   const [weekSummary, setWeekSummary] = useState("");
 
   // Classes from database
   const [allClasses, setAllClasses] = useState<Class[]>([]);
   const [loadingClasses, setLoadingClasses] = useState(true);
 
-  const filteredClasses = filterIntensity === "all" 
-    ? allClasses 
-    : allClasses.filter(cls => cls.intensity === filterIntensity);
+  const weekMonday = useMemo(() => {
+    const base = startOfMondayWeekLocal(new Date());
+    const d = new Date(base);
+    d.setDate(d.getDate() + weekOffset * 7);
+    d.setHours(0, 0, 0, 0);
+    return d;
+  }, [weekOffset]);
+
+  const weekDays = useMemo(() =>
+    Array.from({ length: 7 }, (_, i) => {
+      const d = new Date(weekMonday);
+      d.setDate(d.getDate() + i);
+      return d;
+    }),
+  [weekMonday]);
+
+  const uniqueClassNames = useMemo(() => {
+    const names = new Set(allClasses.map(c => c.name));
+    return Array.from(names).sort();
+  }, [allClasses]);
+
+  const filteredClasses = allClasses.filter(cls => {
+    const nameMatch = filterClassName === "all" || cls.name === filterClassName;
+    const dayMatch = selectedDayIndex === null || isSameLocalCalendarDay(new Date(cls.startTimeIso), weekDays[selectedDayIndex]);
+    return nameMatch && dayMatch;
+  });
 
   const totalPages = Math.ceil(filteredClasses.length / classesPerPage);
   const startIndex = (currentPage - 1) * classesPerPage;
   const paginatedClasses = filteredClasses.slice(startIndex, startIndex + classesPerPage);
 
-  // Check authentication on mount
   useEffect(() => {
     if (status === "unauthenticated") {
       router.push("/portal/login?redirect=/portal/book");
@@ -180,15 +213,25 @@ export default function BookClass() {
     if (status === "authenticated") {
       setIsAuthenticated(true);
       checkAuthAndLoadData();
-      fetchClasses();
     }
   }, [status]);
 
-  async function fetchClasses() {
+  useEffect(() => {
+    if (status === "authenticated") {
+      setSelectedDayIndex(null);
+      setFilterClassName("all");
+      fetchClasses(weekOffset);
+    }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [status, weekOffset]);
+
+  async function fetchClasses(offset = 0) {
     try {
       setLoadingClasses(true);
-      const now = new Date();
-      const weekStart = startOfMondayWeekLocal(now);
+      const base = startOfMondayWeekLocal(new Date());
+      const weekStart = new Date(base);
+      weekStart.setDate(weekStart.getDate() + offset * 7);
+      weekStart.setHours(0, 0, 0, 0);
       const weekEnd = endOfSundayWeekLocal(weekStart);
       setWeekSummary(
         `${weekStart.toLocaleDateString("en-US", { weekday: "short", month: "short", day: "numeric" })} – ${weekEnd.toLocaleDateString("en-US", { weekday: "short", month: "short", day: "numeric", year: "numeric" })}`
@@ -248,13 +291,26 @@ export default function BookClass() {
 
   async function checkAuthAndLoadData() {
     try {
-      const [profileRes, packagesRes] = await Promise.all([
+      const [profileRes, packagesRes, allPkgRes] = await Promise.all([
         fetch("/api/user/profile"),
         fetch("/api/user-packages?active=true"),
+        fetch("/api/packages"),
       ]);
 
       const profile = profileRes.ok ? await profileRes.json() : null;
       const packages = packagesRes.ok ? await packagesRes.json() : [];
+      const allPkgTypes = allPkgRes.ok ? await allPkgRes.json() : [];
+      // Pick highest-priced unlimited 3-month pass as the featured upsell
+      const studioPass3m = Array.isArray(allPkgTypes)
+        ? (allPkgTypes
+            .filter((p: { is_unlimited: boolean; duration_months: number | null }) => p.is_unlimited && p.duration_months === 3)
+            .sort((a: { price: number | string }, b: { price: number | string }) => Number(b.price) - Number(a.price))[0]
+          || allPkgTypes.find((p: { is_unlimited: boolean }) => p.is_unlimited)
+          || null)
+        : null;
+      if (studioPass3m) {
+        setFeaturedPackage({ id: studioPass3m.id, name: studioPass3m.name, price: Number(studioPass3m.price), duration_months: studioPass3m.duration_months ?? null });
+      }
 
       if (profile) {
         setUserName(profile.full_name || "Member");
@@ -325,7 +381,7 @@ export default function BookClass() {
 
   useEffect(() => {
     setCurrentPage(1);
-  }, [filterIntensity]);
+  }, [filterClassName, selectedDayIndex]);
 
   // Handlers
   function handleSelectClass(cls: any) {
@@ -337,8 +393,10 @@ export default function BookClass() {
     setFoodItems(prev => prev.map(item => ({ ...item, quantity: 0 })));
     setUseCredits(true);
     setPendingAmount(0);
-    setPaymentMethod("online");
-    
+    setAppliedCoupon(null);
+    setCouponCode("");
+    setCouponError(null);
+
     // Fetch cafe items for Step 3
     fetchCafeItems();
   }
@@ -431,10 +489,116 @@ export default function BookClass() {
     
     const subtotal = classTotal + foodTotal;
     const totalAfterDiscount = subtotal - discount;
-    const tax = totalAfterDiscount * TAX_RATE;
-    const finalTotal = totalAfterDiscount + tax;
-    
-    return { classTotal, foodTotal, discount, subtotal, tax, finalTotal };
+    const couponDiscount = appliedCoupon?.discountInr ?? 0;
+    const finalTotal = Math.max(0, totalAfterDiscount - couponDiscount);
+    // Prices are tax-inclusive; extract GST for display only
+    const taxIncluded = Math.round((finalTotal * TAX_RATE / (1 + TAX_RATE)) * 100) / 100;
+
+    return { classTotal, foodTotal, discount, couponDiscount, subtotal, taxIncluded, finalTotal };
+  }
+
+  async function processGuests(classScheduleId: string) {
+    if (friendsFamily.length === 0) return;
+    try {
+      await fetch("/api/bookings/process-guests", {
+        method: "POST",
+        credentials: "include",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          classScheduleId,
+          guests: friendsFamily.map((g) => ({
+            name: g.name,
+            email: g.email,
+            phone: g.phone,
+          })),
+        }),
+      });
+    } catch (err) {
+      console.error("[processGuests]", err);
+    }
+  }
+
+  async function handleAddPass() {
+    if (!featuredPackage) return;
+    setAddingPass(true);
+    try {
+      const amountPaise = featuredPackage.price * 100;
+      const createRes = await fetch("/api/payments/razorpay/create-order", {
+        method: "POST",
+        credentials: "include",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          purpose: "package",
+          package_type_id: featuredPackage.id,
+          pass_type: "studio_pass",
+        }),
+      });
+      if (!createRes.ok) {
+        let msg = "Could not start checkout.";
+        try { const e = await createRes.json(); if (e?.error) msg = e.error; } catch { /* ignore */ }
+        throw new Error(msg);
+      }
+      const orderPayload = await createRes.json() as { order_id?: string; amount?: number | string; currency?: string; key_id?: string; razorpay_mode?: "test" | "live" | "unknown" };
+      if (!orderPayload.order_id || orderPayload.key_id == null || orderPayload.amount == null) {
+        throw new Error("Invalid payment setup from server.");
+      }
+      const amountPaiseServer = Number(orderPayload.amount);
+
+      savePendingRazorpayCheckout({
+        purpose: "package",
+        razorpayOrderId: orderPayload.order_id,
+        package_type_id: featuredPackage.id,
+        pass_type: "studio_pass",
+        savedAt: Date.now(),
+      });
+
+      const checkoutResult = await payWithRazorpayOrder({
+        keyId: String(orderPayload.key_id).trim(),
+        amountPaise: amountPaiseServer,
+        currency: orderPayload.currency ?? "INR",
+        orderId: orderPayload.order_id,
+        name: "Copper Cloves",
+        description: featuredPackage.name,
+        prefill: { email: userEmail || undefined, name: userName || undefined },
+        callbackUrl: buildRazorpayReturnUrl("package"),
+        redirect: false,
+      });
+
+      if (checkoutResult.kind === "cancelled") {
+        clearPendingRazorpayCheckout();
+        toast({ title: "Cancelled", description: "Pass purchase cancelled.", variant: "error" });
+        return;
+      }
+      if (checkoutResult.kind === "failed") {
+        clearPendingRazorpayCheckout();
+        toast({ title: "Payment failed", description: razorpayPaymentErrorHelp(checkoutResult.message, String(orderPayload.key_id).trim(), orderPayload.razorpay_mode), variant: "error" });
+        return;
+      }
+
+      const pending = loadPendingRazorpayCheckout();
+      if (!pending || pending.purpose !== "package") throw new Error("Checkout session lost.");
+      if (checkoutResult.kind !== "success") throw new Error("Unexpected checkout state.");
+      await completePendingPackageCheckout(pending, checkoutResult.payload);
+      clearPendingRazorpayCheckout();
+
+      // Refresh user package state so Step 2 shows the new pass
+      const pkgRes = await fetch("/api/user-packages?active=true", { credentials: "include" });
+      const pkgs = pkgRes.ok ? await pkgRes.json() : [];
+      const now = new Date();
+      const active = Array.isArray(pkgs) ? pkgs.find((p: { expiration_date: string; is_active: boolean }) => p.is_active && new Date(p.expiration_date) > now) : null;
+      if (active) {
+        const pt = active.package_type;
+        setUserPackage({ type: "studio_pass", name: pt?.name ?? featuredPackage.name, classesRemaining: null, isUnlimited: true });
+      }
+
+      toast({ title: "Pass activated!", description: "Your Studio Pass is now active. Class is covered.", variant: "success" });
+      setBookingStep(3);
+    } catch (err) {
+      const msg = err instanceof Error ? err.message : "Pass purchase failed.";
+      toast({ title: "Error", description: msg, variant: "error" });
+    } finally {
+      setAddingPass(false);
+    }
   }
 
   async function handleConfirmBooking() {
@@ -456,7 +620,7 @@ export default function BookClass() {
       }
 
       const owedTotals = calculateTotals();
-      const { classTotal, foodTotal, discount, tax, finalTotal } = owedTotals;
+      const { classTotal, foodTotal, discount, taxIncluded, finalTotal } = owedTotals;
       const totalPeople = 1 + friendsFamily.length;
       let dayPassEquivalentCount = totalPeople;
       if (userPackage.type === null) dayPassEquivalentCount = totalPeople;
@@ -476,17 +640,17 @@ export default function BookClass() {
         classFeeInr: classTotal,
         foodFeeInr: foodTotal,
         foodDiscountInr: discount,
-        taxInr: tax,
+        couponDiscountInr: owedTotals.couponDiscount,
+        taxInr: taxIncluded,
         totalInr: finalTotal,
         dayPassEquivalentCount,
         noActivePackageCheckout: userPackage.type === null,
-        paymentMethod:
-          paymentMethod === "online" ? ("online" as const) : ("studio" as const),
+        paymentMethod: "online" as const,
       };
 
       let paidViaRazorpay = false;
       let razorpayOrderIdForBooking: string | null = null;
-      const oweOnline = paymentMethod === "online" && finalTotal > 0;
+      const oweOnline = finalTotal > 0;
 
       if (oweOnline) {
         const amountPaiseExpected = expectedBookingCheckoutPaise(finalTotal);
@@ -599,10 +763,12 @@ export default function BookClass() {
         if (!pending || pending.purpose !== "booking") {
           throw new Error("Checkout session lost. Please try again.");
         }
+        if (checkoutResult.kind !== "success") throw new Error("Unexpected checkout state.");
         await completePendingBookingCheckout(pending, checkoutResult.payload);
         clearPendingRazorpayCheckout();
         paidViaRazorpay = true;
-        alert(`Payment successful.\n\nBooking confirmed for ₹${finalTotal.toFixed(0)}.`);
+        void processGuests(selectedClass?.id ?? "");
+        toast({ title: "Payment successful", description: `Booking confirmed for ₹${finalTotal.toFixed(0)}.`, variant: "success" });
         setShowBookingPanel(false);
         router.push("/portal/dashboard");
         return;
@@ -664,10 +830,12 @@ export default function BookClass() {
         }
       }
 
+      void processGuests(selectedClass?.id ?? "");
+
       if (finalTotal > 0) {
-        alert(`Booking confirmed!\n\nPay ₹${finalTotal.toFixed(0)} at the studio.`);
+        toast({ title: "Booking confirmed", description: `Payment of ₹${finalTotal.toFixed(0)} processed.`, variant: "success" });
       } else {
-        alert("Booking confirmed!\n\nNo payment required.");
+        toast({ title: "Booking confirmed", description: "No payment required.", variant: "success" });
       }
 
       setShowBookingPanel(false);
@@ -675,7 +843,7 @@ export default function BookClass() {
     } catch (err: unknown) {
       console.error("BOOKING ERROR:", err);
       const message = err instanceof Error ? err.message : "Failed to complete booking. Please try again.";
-      alert(message);
+      toast({ title: "Booking failed", description: message, variant: "error" });
     } finally {
       setIsSubmittingBooking(false);
     }
@@ -712,60 +880,98 @@ export default function BookClass() {
           {/* Page Header */}
           <div className="mb-8 md:mb-12">
             <h1 className="font-display text-4xl md:text-5xl text-charcoal mb-3">Book Your Next Session</h1>
-            <p className="font-body text-sage text-base md:text-lg">
-              Showing {startIndex + 1}-{Math.min(startIndex + classesPerPage, filteredClasses.length)} of {filteredClasses.length} upcoming classes
-            </p>
-            <p className="font-body text-charcoal/70 text-sm mt-2">
-              {weekSummary ? `This week: ${weekSummary}. Past days and sessions that already started are hidden.` : "Loading schedule…"}
+            <p className="font-body text-charcoal/60 text-base">
+              {filteredClasses.length > 0
+                ? `${filteredClasses.length} class${filteredClasses.length !== 1 ? "es" : ""} found`
+                : "No classes match your filters"}
             </p>
           </div>
 
-          {/* Filter Tabs */}
-          <div className="flex gap-3 mb-8 overflow-x-auto pb-2 scrollbar-hide">
-            <Button 
-              onClick={() => setFilterIntensity("all")}
-              variant={filterIntensity === "all" ? "default" : "outline"}
-              className={`${
-                filterIntensity === "all" 
-                  ? "bg-sage text-white hover:bg-sage/90" 
+          {/* Week Navigation */}
+          <div className="mb-6 bg-white/80 backdrop-blur-sm rounded-2xl border border-sage/20 p-4">
+            <div className="flex items-center justify-between mb-3">
+              <button
+                onClick={() => setWeekOffset(o => o - 1)}
+                className="p-2 rounded-full hover:bg-sage/10 text-sage transition-colors"
+                aria-label="Previous week"
+              >
+                <ChevronLeft size={20} />
+              </button>
+              <span className="font-body text-sm text-charcoal/70 font-medium flex items-center gap-2">
+                {weekSummary || "Loading…"}
+                {weekOffset === 0 && <span className="text-xs text-sage bg-sage/10 px-2 py-0.5 rounded-full">This Week</span>}
+                {weekOffset === 1 && <span className="text-xs text-sage bg-sage/10 px-2 py-0.5 rounded-full">Next Week</span>}
+                {weekOffset < 0 && <span className="text-xs text-terracotta/80 bg-terracotta/10 px-2 py-0.5 rounded-full">Past</span>}
+                {weekOffset > 1 && <span className="text-xs text-sage bg-sage/10 px-2 py-0.5 rounded-full">Upcoming</span>}
+              </span>
+              <button
+                onClick={() => setWeekOffset(o => o + 1)}
+                className="p-2 rounded-full hover:bg-sage/10 text-sage transition-colors"
+                aria-label="Next week"
+              >
+                <ChevronRight size={20} />
+              </button>
+            </div>
+            <div className="grid grid-cols-7 gap-1">
+              {weekDays.map((day, i) => {
+                const today = new Date();
+                const isToday = isSameLocalCalendarDay(day, today);
+                const isPast = !isToday && day < new Date(today.getFullYear(), today.getMonth(), today.getDate());
+                const isSelected = selectedDayIndex === i;
+                const dayNames = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"];
+                return (
+                  <button
+                    key={i}
+                    onClick={() => setSelectedDayIndex(isSelected ? null : i)}
+                    className={`flex flex-col items-center py-2 px-1 rounded-xl transition-all ${
+                      isSelected
+                        ? "bg-sage text-white"
+                        : isPast
+                        ? "opacity-40 cursor-default"
+                        : isToday
+                        ? "bg-sage/15 text-sage border border-sage/30"
+                        : "hover:bg-sage/10 text-charcoal/70"
+                    }`}
+                  >
+                    <span className="text-[10px] font-body uppercase tracking-wide leading-none mb-1">
+                      {dayNames[i]}
+                    </span>
+                    <span className={`text-base font-display leading-none ${
+                      isSelected ? "text-white" : isPast ? "text-charcoal/40" : isToday ? "text-sage" : "text-charcoal"
+                    }`}>
+                      {day.getDate()}
+                    </span>
+                  </button>
+                );
+              })}
+            </div>
+          </div>
+
+          {/* Class Filter */}
+          <div className="flex gap-2 mb-8 overflow-x-auto pb-2 scrollbar-hide">
+            <button
+              onClick={() => setFilterClassName("all")}
+              className={`shrink-0 px-4 py-2 rounded-full text-sm font-body transition-all border ${
+                filterClassName === "all"
+                  ? "bg-sage text-white border-sage"
                   : "border-sage/30 text-charcoal hover:border-sage hover:bg-sage/5"
-              } transition-all duration-600 font-body`}
+              }`}
             >
               All Classes
-            </Button>
-            <Button 
-              onClick={() => setFilterIntensity("high")}
-              variant={filterIntensity === "high" ? "default" : "outline"}
-              className={`${
-                filterIntensity === "high" 
-                  ? "bg-sage text-white hover:bg-sage/90" 
-                  : "border-sage/30 text-charcoal hover:border-sage hover:bg-sage/5"
-              } transition-all duration-600 font-body`}
-            >
-              High Intensity
-            </Button>
-            <Button 
-              onClick={() => setFilterIntensity("moderate")}
-              variant={filterIntensity === "moderate" ? "default" : "outline"}
-              className={`${
-                filterIntensity === "moderate" 
-                  ? "bg-sage text-white hover:bg-sage/90" 
-                  : "border-sage/30 text-charcoal hover:border-sage hover:bg-sage/5"
-              } transition-all duration-600 font-body`}
-            >
-              Moderate
-            </Button>
-            <Button 
-              onClick={() => setFilterIntensity("gentle")}
-              variant={filterIntensity === "gentle" ? "default" : "outline"}
-              className={`${
-                filterIntensity === "gentle" 
-                  ? "bg-sage text-white hover:bg-sage/90" 
-                  : "border-sage/30 text-charcoal hover:border-sage hover:bg-sage/5"
-              } transition-all duration-600 font-body`}
-            >
-              Gentle
-            </Button>
+            </button>
+            {uniqueClassNames.map(name => (
+              <button
+                key={name}
+                onClick={() => setFilterClassName(filterClassName === name ? "all" : name)}
+                className={`shrink-0 px-4 py-2 rounded-full text-sm font-body transition-all border ${
+                  filterClassName === name
+                    ? "bg-sage text-white border-sage"
+                    : "border-sage/30 text-charcoal hover:border-sage hover:bg-sage/5"
+                }`}
+              >
+                {name}
+              </button>
+            ))}
           </div>
 
           {/* Class Cards Grid */}
@@ -883,8 +1089,8 @@ export default function BookClass() {
                 <Calendar className="w-16 h-16 text-sage/40 mb-4" />
                 <h3 className="font-display text-2xl text-charcoal mb-2">No Classes Available</h3>
                 <p className="font-body text-charcoal/60 mb-6">Try adjusting your filters or check back soon.</p>
-                <Button 
-                  onClick={() => setFilterIntensity("all")}
+                <Button
+                  onClick={() => { setFilterClassName("all"); setSelectedDayIndex(null); }}
                   variant="outline"
                   className="border-sage text-sage hover:bg-sage hover:text-white transition-all duration-600"
                 >
@@ -1182,20 +1388,39 @@ export default function BookClass() {
                     </>
                   )}
 
-                  {userPackage.type === null && (
-                    <div className="p-5 rounded-xl border-2 border-terracotta/30 bg-terracotta/5">
-                      <div className="flex items-start gap-3">
-                        <div className="w-5 h-5 rounded-full border-2 border-terracotta bg-terracotta/20 mt-0.5 flex items-center justify-center">
-                          <X className="text-terracotta" size={14} />
+                  {userPackage.type === null && featuredPackage && (
+                    <div className="p-5 rounded-xl border-2 border-sage/40 bg-sage/5">
+                      <div className="flex items-start gap-3 mb-3">
+                        <div className="w-5 h-5 rounded-full border-2 border-sage bg-sage/20 mt-0.5 flex items-center justify-center flex-shrink-0">
+                          <span className="text-sage text-[10px] font-bold">★</span>
                         </div>
                         <div className="flex-1">
-                          <p className="font-body text-charcoal font-medium mb-1">
-                            No Active Package
+                          <p className="font-body text-charcoal font-medium mb-0.5">
+                            {featuredPackage.name}
                           </p>
-                          <p className="font-body text-sm text-charcoal/60">
-                            Please purchase a package to book classes. Pay ₹{(1 + friendsFamily.length) * 945} now or buy a package first.
+                          <p className="font-body text-xs text-charcoal/60 mb-2">
+                            Unlimited classes · ₹{featuredPackage.price.toLocaleString("en-IN")}
+                            {featuredPackage.duration_months ? ` · Valid ${featuredPackage.duration_months} months` : ""}
+                          </p>
+                          <p className="font-body text-xs text-charcoal/50">
+                            No active package — you&apos;re paying ₹{(1 + friendsFamily.length) * 945} per class. Pass pays off after {Math.ceil(featuredPackage.price / 945)} visits.
                           </p>
                         </div>
+                      </div>
+                      <div className="flex items-center gap-3 pt-2 border-t border-sage/20">
+                        <button
+                          onClick={handleAddPass}
+                          disabled={addingPass}
+                          className="flex-1 text-center font-body text-xs font-medium bg-sage text-white rounded-lg py-2 px-3 hover:bg-sage/90 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                        >
+                          {addingPass ? "Processing…" : "Add this Pass →"}
+                        </button>
+                        <a
+                          href="/portal/packages"
+                          className="font-body text-xs text-sage hover:text-sage/80 underline underline-offset-2 transition-colors whitespace-nowrap"
+                        >
+                          Explore all Packages
+                        </a>
                       </div>
                     </div>
                   )}
@@ -1372,6 +1597,70 @@ export default function BookClass() {
                   )}
                 </div>
 
+                {/* Coupon Code */}
+                {totals.finalTotal > 0 && (
+                  <div className="p-5 rounded-xl bg-white border border-sage/10">
+                    <p className="font-body text-sm font-medium text-charcoal mb-3">Have a coupon code?</p>
+                    {appliedCoupon ? (
+                      <div className="flex items-center justify-between">
+                        <span className="font-body text-sm text-sage font-medium">
+                          ✓ {appliedCoupon.code} — -₹{appliedCoupon.discountInr.toFixed(0)} off
+                        </span>
+                        <button
+                          onClick={() => { setAppliedCoupon(null); setCouponCode(""); setCouponError(null); }}
+                          className="font-body text-xs text-charcoal/50 hover:text-terracotta underline underline-offset-2 transition-colors"
+                        >
+                          Remove
+                        </button>
+                      </div>
+                    ) : (
+                      <div className="flex gap-2">
+                        <input
+                          type="text"
+                          value={couponCode}
+                          onChange={(e) => { setCouponCode(e.target.value.toUpperCase()); setCouponError(null); }}
+                          placeholder="Enter code"
+                          className="flex-1 font-body text-sm px-3 py-2 rounded-lg border border-sage/30 focus:outline-none focus:ring-1 focus:ring-sage bg-white text-charcoal placeholder:text-charcoal/30 uppercase"
+                        />
+                        <button
+                          disabled={!couponCode.trim() || couponLoading}
+                          onClick={async () => {
+                            setCouponLoading(true);
+                            setCouponError(null);
+                            try {
+                              const ctx = totals.classTotal > 0
+                                ? (userPackage.type === "studio_pass" ? "studio_pass" : "class_pass")
+                                : "food";
+                              const r = await fetch("/api/coupons/validate", {
+                                method: "POST",
+                                credentials: "include",
+                                headers: { "Content-Type": "application/json" },
+                                body: JSON.stringify({ code: couponCode.trim(), context: ctx, subtotal: totals.finalTotal }),
+                              });
+                              const d = await r.json();
+                              if (d.valid) {
+                                setAppliedCoupon({ code: d.code, discountInr: d.discountInr });
+                              } else {
+                                setCouponError(d.error ?? "Invalid coupon");
+                              }
+                            } catch {
+                              setCouponError("Could not apply coupon. Try again.");
+                            } finally {
+                              setCouponLoading(false);
+                            }
+                          }}
+                          className="font-body text-sm px-4 py-2 rounded-lg bg-sage text-white hover:bg-sage/90 disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
+                        >
+                          {couponLoading ? "…" : "Apply"}
+                        </button>
+                      </div>
+                    )}
+                    {couponError && (
+                      <p className="font-body text-xs text-terracotta mt-2">{couponError}</p>
+                    )}
+                  </div>
+                )}
+
                 {/* Payment Breakdown */}
                 <div className="p-6 rounded-xl bg-white border border-sage/10 space-y-3">
                   <h4 className="font-display text-lg text-charcoal mb-3">Payment Breakdown</h4>
@@ -1400,27 +1689,33 @@ export default function BookClass() {
                   {totals.discount > 0 && (
                     <div className="flex justify-between font-body text-sm">
                       <span className="text-sage">
-                        Discount (
-                        {userPackage.type === "class_pass" 
-                          ? "5% on food" 
+                        Package discount (
+                        {userPackage.type === "class_pass"
+                          ? "5% on food"
                           : `${((UNLIMITED_DISCOUNTS[userPackage.name] || 0) * 100).toFixed(0)}% on food`
                         })
                       </span>
                       <span className="text-sage">-₹{totals.discount.toFixed(0)}</span>
                     </div>
                   )}
-                  
-                  {totals.tax > 0 && (
-                    <div className="flex justify-between font-body text-sm pt-2 border-t border-sage/10">
-                      <span className="text-charcoal/70">Tax ({(TAX_RATE * 100).toFixed(0)}%)</span>
-                      <span className="text-charcoal">₹{totals.tax.toFixed(0)}</span>
+
+                  {totals.couponDiscount > 0 && (
+                    <div className="flex justify-between font-body text-sm">
+                      <span className="text-sage">Coupon ({appliedCoupon?.code})</span>
+                      <span className="text-sage">-₹{totals.couponDiscount.toFixed(0)}</span>
                     </div>
                   )}
-                  
+
                   <div className="pt-3 border-t border-sage/10 flex justify-between font-display text-xl">
                     <span className="text-charcoal">Total</span>
                     <span className="text-sage">₹{totals.finalTotal.toFixed(0)}</span>
                   </div>
+
+                  {totals.taxIncluded > 0 && (
+                    <p className="font-body text-xs text-charcoal/40 text-right">
+                      Incl. 5% GST: ₹{totals.taxIncluded.toFixed(0)}
+                    </p>
+                  )}
 
                   {userPackage.type === "class_pass" && useCredits && (
                     <p className="font-body text-xs text-charcoal/60 italic pt-2">
@@ -1441,95 +1736,22 @@ export default function BookClass() {
                   )}
                 </div>
 
-                {/* Payment method when balance is due */}
-                {totals.finalTotal > 0 ? (
-                  <Card className="border-sage/20 bg-white/95 backdrop-blur-xl">
-                    <CardContent className="p-6">
-                      <h3 className="font-display text-xl text-charcoal mb-4">Payment method</h3>
-                      <div className="grid gap-3 sm:grid-cols-2">
-                        <Card
-                          role="button"
-                          tabIndex={0}
-                          onClick={() => setPaymentMethod("online")}
-                          onKeyDown={(e) => {
-                            if (e.key === "Enter" || e.key === " ") {
-                              e.preventDefault();
-                              setPaymentMethod("online");
-                            }
-                          }}
-                          className={`border bg-white cursor-pointer transition-all outline-none focus-visible:ring-2 focus-visible:ring-sage/40 ${
-                            paymentMethod === "online"
-                              ? "border-sage ring-2 ring-sage/25 shadow-sm"
-                              : "border-sage/20 hover:border-sage/40"
-                          }`}
-                        >
-                          <CardContent className="p-4">
-                            <div className="flex items-center gap-4">
-                              <div
-                                className={`h-5 w-5 rounded-full border-2 flex items-center justify-center shrink-0 ${
-                                  paymentMethod === "online"
-                                    ? "border-sage bg-sage"
-                                    : "border-charcoal/25 bg-white"
-                                }`}
-                              >
-                                {paymentMethod === "online" ? (
-                                  <div className="h-2.5 w-2.5 rounded-full bg-white" />
-                                ) : null}
-                              </div>
-                              <div className="flex-1 min-w-0">
-                                <p className="font-body font-semibold text-charcoal mb-1">Pay online</p>
-                                <p className="font-body text-sm text-charcoal/60">
-                                  Razorpay — card, UPI, netbanking
-                                </p>
-                              </div>
-                              <CreditCard className="h-5 w-5 text-sage shrink-0" />
-                            </div>
-                          </CardContent>
-                        </Card>
-
-                        <Card
-                          role="button"
-                          tabIndex={0}
-                          onClick={() => setPaymentMethod("studio")}
-                          onKeyDown={(e) => {
-                            if (e.key === "Enter" || e.key === " ") {
-                              e.preventDefault();
-                              setPaymentMethod("studio");
-                            }
-                          }}
-                          className={`border bg-white cursor-pointer transition-all outline-none focus-visible:ring-2 focus-visible:ring-sage/40 ${
-                            paymentMethod === "studio"
-                              ? "border-sage ring-2 ring-sage/25 shadow-sm"
-                              : "border-sage/20 hover:border-sage/40"
-                          }`}
-                        >
-                          <CardContent className="p-4">
-                            <div className="flex items-center gap-4">
-                              <div
-                                className={`h-5 w-5 rounded-full border-2 flex items-center justify-center shrink-0 ${
-                                  paymentMethod === "studio"
-                                    ? "border-sage bg-sage"
-                                    : "border-charcoal/25 bg-white"
-                                }`}
-                              >
-                                {paymentMethod === "studio" ? (
-                                  <div className="h-2.5 w-2.5 rounded-full bg-white" />
-                                ) : null}
-                              </div>
-                              <div className="flex-1 min-w-0">
-                                <p className="font-body font-semibold text-charcoal mb-1">Pay at studio</p>
-                                <p className="font-body text-sm text-charcoal/60">
-                                  Reserve now and pay at the desk
-                                </p>
-                              </div>
-                              <Store className="h-5 w-5 text-sage shrink-0" />
-                            </div>
-                          </CardContent>
-                        </Card>
+                {/* Payment method — online only */}
+                {totals.finalTotal > 0 && (
+                  <Card className="border-sage/20 bg-white/95">
+                    <CardContent className="p-5">
+                      <div className="flex items-center gap-4">
+                        <div className="h-10 w-10 rounded-full bg-sage/10 flex items-center justify-center shrink-0">
+                          <CreditCard className="h-5 w-5 text-sage" />
+                        </div>
+                        <div className="flex-1 min-w-0">
+                          <p className="font-body font-semibold text-charcoal">Pay online via Razorpay</p>
+                          <p className="font-body text-sm text-charcoal/60">Card, UPI, netbanking — secure checkout</p>
+                        </div>
                       </div>
                     </CardContent>
                   </Card>
-                ) : null}
+                )}
 
                 {totals.finalTotal === 0 && (
                   <div className="p-5 rounded-xl bg-sage/5 border border-sage/20">
@@ -1581,7 +1803,7 @@ export default function BookClass() {
                   {isSubmittingBooking
                     ? "Working…"
                     : totals.finalTotal > 0
-                      ? `Confirm & ${paymentMethod === "online" ? "Pay" : "Book"} ₹${totals.finalTotal.toFixed(0)}`
+                      ? `Confirm & Pay ₹${totals.finalTotal.toFixed(0)}`
                       : "Confirm Booking"}
                 </Button>
               )}

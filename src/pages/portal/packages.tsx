@@ -1,6 +1,7 @@
 import { useEffect, useState, useRef } from "react";
 import { useRouter } from "next/router";
 import { ChevronLeft, ChevronRight, Check, X, CreditCard, Loader2, AlertCircle, ArrowLeft, Download } from "lucide-react";
+import { FormAlert } from "@/components/ui/form-alert";
 import Link from "next/link";
 import { useSession } from "next-auth/react";
 import { PortalNavigation } from "@/components/PortalNavigation";
@@ -998,12 +999,7 @@ export default function PackagesPage() {
                 </div>
 
                 {/* Error Message */}
-                {error && (
-                  <div className="p-4 rounded-xl bg-red-50 border border-red-200 flex items-start gap-3">
-                    <AlertCircle className="text-red-600 flex-shrink-0 mt-0.5" size={20} />
-                    <p className="font-body text-sm text-red-600">{error}</p>
-                  </div>
-                )}
+                <FormAlert message={error} variant="error" />
 
                 {/* Submit Buttons */}
                 <div className="flex gap-3 pt-4 border-t border-sage/10">
@@ -1050,7 +1046,7 @@ export default function PackagesPage() {
           if (!open) setPaymentRecovery(null);
         }}
       >
-        <AlertDialogContent className="border-sage/20">
+        <AlertDialogContent className="border-sage/20 bg-white text-charcoal">
           <AlertDialogHeader>
             <AlertDialogTitle>
               {paymentRecovery?.variant === "failed" ? "Payment didn’t go through" : "Payment cancelled"}

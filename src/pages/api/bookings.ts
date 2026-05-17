@@ -7,6 +7,7 @@ import {
   canCheckInNow,
   checkInOutcomeFromTimes,
 } from "@/lib/bookingAttendance";
+import { calculateStreakUpdate } from "@/lib/streakUtils";
 import { reconcileNoShowsGlobally } from "@/lib/bookingReconcile";
 import { linkRazorpayOrderToBookingTx } from "@/lib/razorpayPersistence";
 import {
@@ -411,6 +412,111 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
           })
         )
         .catch((e) => console.error("CRM class_booking_cancelled:", e));
+    }
+
+    if (checked_in === true && booking.checked_in) {
+      void (async () => {
+        try {
+          const checkInAt = booking.check_in_time ?? new Date();
+          const existing = await prisma.userStats.findUnique({ where: { user_id: userId } });
+          const state = {
+            current_streak: existing?.current_streak ?? 0,
+            longest_streak: existing?.longest_streak ?? 0,
+            last_class_date: existing?.last_class_date ?? null,
+          };
+          const streakUpdate = calculateStreakUpdate(state, checkInAt);
+
+          await prisma.userStats.upsert({
+            where: { user_id: userId },
+            update: {
+              total_classes_attended: { increment: 1 },
+              ...(streakUpdate ?? {}),
+            },
+            create: {
+              user_id: userId,
+              total_classes_attended: 1,
+              current_streak: streakUpdate?.current_streak ?? 1,
+              longest_streak: streakUpdate?.longest_streak ?? 1,
+              last_class_date: streakUpdate?.last_class_date ?? checkInAt,
+            },
+          });
+
+          // Keep UserStreak in sync
+          const streakRow = await prisma.userStreak.findUnique({ where: { user_id: userId } });
+          const streakState = {
+            current_streak: streakRow?.current_streak ?? 0,
+            longest_streak: streakRow?.longest_streak ?? 0,
+            last_class_date: streakRow?.last_class_date ?? streakRow?.last_attendance_date ?? null,
+          };
+          const streakUpdate2 = calculateStreakUpdate(streakState, checkInAt);
+          await prisma.userStreak.upsert({
+            where: { user_id: userId },
+            update: {
+              ...(streakUpdate2
+                ? {
+                    current_streak: streakUpdate2.current_streak,
+                    longest_streak: streakUpdate2.longest_streak,
+                    last_class_date: streakUpdate2.last_class_date,
+                    last_attendance_date: streakUpdate2.last_class_date,
+                  }
+                : {}),
+            },
+            create: {
+              user_id: userId,
+              current_streak: streakUpdate2?.current_streak ?? 1,
+              longest_streak: streakUpdate2?.longest_streak ?? 1,
+              last_class_date: streakUpdate2?.last_class_date ?? checkInAt,
+              last_attendance_date: streakUpdate2?.last_class_date ?? checkInAt,
+            },
+          });
+        } catch (e) {
+          console.error("[check-in streak update]", e);
+        }
+      })();
+
+      // Auto-award PTM badges
+      void (async () => {
+        try {
+          const stats = await prisma.userStats.findUnique({ where: { user_id: userId } });
+          const totalClasses = stats?.total_classes_attended ?? 0;
+          const ptmTemplates = await prisma.badgeTemplate.findMany({
+            where: { badge_type: "path_to_mastery", is_active: true },
+          });
+          for (const template of ptmTemplates) {
+            if (
+              template.threshold_classes !== null &&
+              totalClasses >= template.threshold_classes
+            ) {
+              const alreadyEarned = await prisma.userBadge.findFirst({
+                where: {
+                  user_id: userId,
+                  OR: [
+                    { badge_template_id: template.id },
+                    { badge_name: template.name, badge_type: "path_to_mastery" },
+                  ],
+                },
+              });
+              if (!alreadyEarned) {
+                await prisma.userBadge.create({
+                  data: {
+                    user_id: userId,
+                    badge_template_id: template.id,
+                    badge_name: template.name,
+                    badge_description: template.description ?? null,
+                    badge_type: "path_to_mastery",
+                    icon: template.icon,
+                    color: template.color,
+                    milestone_value: template.threshold_classes,
+                    total_classes: totalClasses,
+                  },
+                });
+              }
+            }
+          }
+        } catch (e) {
+          console.error("[check-in badge auto-award]", e);
+        }
+      })();
     }
 
     return res.json(booking);

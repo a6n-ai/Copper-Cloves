@@ -7,10 +7,10 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import { useSession } from "next-auth/react";
-import { 
-  Calendar, 
-  Plus, 
-  CheckCircle, 
+import {
+  Calendar,
+  Plus,
+  CheckCircle,
   Sparkles,
   Leaf,
   Shield,
@@ -27,7 +27,11 @@ import {
   History,
   Lock,
   CalendarDays,
-  ChevronRight
+  ChevronRight,
+  Flame,
+  Clock,
+  AlertCircle,
+  TrendingUp,
 } from "lucide-react";
 
 // Milestone tier definitions
@@ -202,6 +206,12 @@ export default function Dashboard() {
     text: string;
     tone: "neutral" | "up" | "down";
   }>({ text: "—", tone: "neutral" });
+  const [currentStreak, setCurrentStreak] = useState(0);
+  const [longestStreak, setLongestStreak] = useState(0);
+  const [attendanceCounts, setAttendanceCounts] = useState({ on_time: 0, late: 0, no_show: 0 });
+  const [userBadges, setUserBadges] = useState<any[]>([]);
+  const [ptmDbTemplates, setPtmDbTemplates] = useState<any[] | null>(null);
+  const [ptmLoading, setPtmLoading] = useState(true);
 
   /** Always length 30 for chart; zeros until hydrated from API check-ins */
   const vitalityData =
@@ -211,13 +221,32 @@ export default function Dashboard() {
   const maxVitality = Math.max(...vitalityData, 1);
   const totalMinutes = vitSeriesReady ? Math.round(vitalityData.reduce((sum, val) => sum + val, 0)) : 0;
   const avgPerDay = vitSeriesReady ? Math.round(totalMinutes / 30) : 0;
+  // Use DB templates if loaded, otherwise fall back to hardcoded MILESTONES
+  const activeMilestones = ptmDbTemplates && ptmDbTemplates.length > 0
+    ? ptmDbTemplates
+        .filter((t: any) => t.threshold_classes !== null)
+        .sort((a: any, b: any) => (a.threshold_classes ?? 0) - (b.threshold_classes ?? 0))
+        .map((t: any) => ({
+          id: t.id,
+          name: t.name,
+          classes: t.threshold_classes as number,
+          icon: Leaf, // fallback icon for DB templates (emoji shown separately)
+          description: t.description ?? "",
+          color: "text-sage",
+          bgColor: "bg-sage/10",
+          borderColor: "border-sage/20",
+          dbIcon: t.icon,
+          dbColor: t.color,
+        }))
+    : MILESTONES;
+
   const getCurrentMilestone = () => {
-    const earned = [...MILESTONES].reverse().find(m => userClassesCompleted >= m.classes);
-    return earned || MILESTONES[0];
+    const earned = [...activeMilestones].reverse().find(m => userClassesCompleted >= m.classes);
+    return earned || activeMilestones[0];
   };
 
   const currentMilestone = getCurrentMilestone();
-  const nextMilestone = MILESTONES.find(m => m.classes > userClassesCompleted);
+  const nextMilestone = activeMilestones.find(m => m.classes > userClassesCompleted);
 
   useEffect(() => {
     if (status === "unauthenticated") {
@@ -232,6 +261,21 @@ export default function Dashboard() {
   }, [status, session, router]);
 
   async function fetchUserData(_userId: string) {
+    // Fetch PTM templates in parallel (public data, non-blocking)
+    fetch("/api/admin/badges")
+      .then((r) => (r.ok ? r.json() : null))
+      .then((d) => {
+        if (d?.path_to_mastery) setPtmDbTemplates(d.path_to_mastery);
+      })
+      .catch(() => {})
+      .finally(() => setPtmLoading(false));
+
+    // Fetch user badges
+    fetch("/api/user/badges")
+      .then((r) => (r.ok ? r.json() : []))
+      .then((b) => setUserBadges(Array.isArray(b) ? b : []))
+      .catch(() => setUserBadges([]));
+
     try {
       const [profileRes, statsRes, packagesRes, bookingsRes, cafeOrdersRes, historyBookingsRes] =
         await Promise.all([
@@ -260,12 +304,14 @@ export default function Dashboard() {
       setCafeOrdersHistory(cafeSorted);
 
       if (profile) {
-        setUserName(profile.full_name || "Member");
+        setUserName((profile.full_name || "Member").split(" ")[0]);
         setUserEmail(profile.email || "");
       }
 
       if (stats) {
         setUserClassesCompleted(stats.total_classes_attended || 0);
+        setCurrentStreak(stats.current_streak || 0);
+        setLongestStreak(stats.longest_streak || 0);
       }
 
       const now = new Date();
@@ -318,6 +364,16 @@ export default function Dashboard() {
       } else {
         setLastCafeOrder(null);
       }
+
+      // Attendance outcome counts from all bookings
+      const counts = { on_time: 0, late: 0, no_show: 0 };
+      for (const b of historyBookings) {
+        const outcome = (b as { check_in_outcome?: string }).check_in_outcome;
+        if (outcome === "on_time") counts.on_time++;
+        else if (outcome === "late") counts.late++;
+        else if (outcome === "no_show") counts.no_show++;
+      }
+      setAttendanceCounts(counts);
 
       // Movement Vitality: real check-in minutes from class durations (never random mock data)
       const { dailyActivity: vitalityDaily, vsText, vsTone } =
@@ -389,13 +445,18 @@ export default function Dashboard() {
                   Welcome Home, {userName || "Member"}
                 </h1>
                 <p className="font-body text-sm text-charcoal/60">
-                  {userClassesCompleted} classes completed • {
-                    packageDetails 
-                      ? packageDetails.isUnlimited 
-                        ? packageDetails.name 
-                        : `${packageDetails.classCount || 0} classes remaining`
-                      : "No active package"
-                  }
+                  {userClassesCompleted} classes completed
+                  {currentStreak > 0 && (
+                    <span className="inline-flex items-center gap-1 ml-2 text-orange-500">
+                      <Flame size={13} /> {currentStreak}-day streak
+                    </span>
+                  )}
+                  {" • "}
+                  {packageDetails
+                    ? packageDetails.isUnlimited
+                      ? packageDetails.name
+                      : `${packageDetails.classCount || 0} classes remaining`
+                    : "No active package"}
                 </p>
               </div>
 
@@ -439,6 +500,56 @@ export default function Dashboard() {
               </div>
             </div>
 
+            {/* Streak & Attendance Strip */}
+            <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 mb-6">
+              {/* Current Streak */}
+              <div className="bg-white/80 backdrop-blur-sm rounded-2xl border border-sage/20 p-4 flex items-center gap-3">
+                <div className="w-10 h-10 rounded-full bg-orange-50 border border-orange-200 flex items-center justify-center shrink-0">
+                  <Flame className="text-orange-500" size={20} />
+                </div>
+                <div>
+                  <p className="font-display text-2xl text-charcoal leading-none">{currentStreak}</p>
+                  <p className="font-body text-xs text-charcoal/50 mt-0.5">Day streak</p>
+                  {longestStreak > 0 && (
+                    <p className="font-body text-[10px] text-charcoal/40">Best: {longestStreak}</p>
+                  )}
+                </div>
+              </div>
+
+              {/* On Time */}
+              <div className="bg-white/80 backdrop-blur-sm rounded-2xl border border-sage/20 p-4 flex items-center gap-3">
+                <div className="w-10 h-10 rounded-full bg-sage/10 border border-sage/30 flex items-center justify-center shrink-0">
+                  <CheckCircle className="text-sage" size={20} />
+                </div>
+                <div>
+                  <p className="font-display text-2xl text-charcoal leading-none">{attendanceCounts.on_time}</p>
+                  <p className="font-body text-xs text-charcoal/50 mt-0.5">On time</p>
+                </div>
+              </div>
+
+              {/* Late */}
+              <div className="bg-white/80 backdrop-blur-sm rounded-2xl border border-sage/20 p-4 flex items-center gap-3">
+                <div className="w-10 h-10 rounded-full bg-amber-50 border border-amber-200 flex items-center justify-center shrink-0">
+                  <Clock className="text-amber-500" size={20} />
+                </div>
+                <div>
+                  <p className="font-display text-2xl text-charcoal leading-none">{attendanceCounts.late}</p>
+                  <p className="font-body text-xs text-charcoal/50 mt-0.5">Late</p>
+                </div>
+              </div>
+
+              {/* No Show */}
+              <div className="bg-white/80 backdrop-blur-sm rounded-2xl border border-sage/20 p-4 flex items-center gap-3">
+                <div className="w-10 h-10 rounded-full bg-red-50 border border-red-200 flex items-center justify-center shrink-0">
+                  <AlertCircle className="text-red-400" size={20} />
+                </div>
+                <div>
+                  <p className="font-display text-2xl text-charcoal leading-none">{attendanceCounts.no_show}</p>
+                  <p className="font-body text-xs text-charcoal/50 mt-0.5">No-shows</p>
+                </div>
+              </div>
+            </div>
+
             {/* Path to Mastery - Horizontal Milestone Track */}
             <Card className="border-0 bg-white/80 backdrop-blur-xl shadow-lg">
               <CardContent className="p-8">
@@ -453,41 +564,49 @@ export default function Dashboard() {
                 </div>
 
                 {/* Horizontal Milestone Track */}
+                {ptmLoading ? (
+                  <div className="h-40 flex items-center justify-center">
+                    <div className="text-sage/60 font-body text-sm animate-pulse">Loading milestones…</div>
+                  </div>
+                ) : (
                 <div className="relative">
                   {/* Progress Bar Background */}
                   <div className="absolute top-12 left-0 right-0 h-1 bg-charcoal/10 rounded-full" />
-                  
+
                   {/* Progress Bar Fill */}
-                  <div 
+                  <div
                     className="absolute top-12 left-0 h-1 bg-gradient-to-r from-sage to-terracotta rounded-full transition-all duration-1000"
-                    style={{ 
-                      width: `${(userClassesCompleted / 150) * 100}%` 
+                    style={{
+                      width: `${Math.min(100, (userClassesCompleted / (activeMilestones[activeMilestones.length - 1]?.classes || 150)) * 100)}%`
                     }}
                   />
 
                   {/* Milestone Badges */}
                   <div className="relative flex justify-between">
-                    {MILESTONES.map((milestone, index) => {
+                    {activeMilestones.map((milestone) => {
                       const Icon = milestone.icon;
+                      const dbIcon = (milestone as any).dbIcon as string | undefined;
+                      const dbColor = (milestone as any).dbColor as string | undefined;
                       const isEarned = userClassesCompleted >= milestone.classes;
                       const isCurrent = currentMilestone.id === milestone.id;
                       const isNext = nextMilestone?.id === milestone.id;
-                      
+
                       return (
                         <div
                           key={milestone.id}
                           className="flex flex-col items-center relative"
-                          style={{ width: `${100 / MILESTONES.length}%` }}
+                          style={{ width: `${100 / activeMilestones.length}%` }}
                         >
                           {/* Badge Circle */}
                           <div
                             className={`relative w-24 h-24 rounded-full border-4 flex items-center justify-center transition-all duration-500 ${
-                              isEarned 
+                              isEarned
                                 ? `${milestone.bgColor} ${milestone.borderColor} shadow-lg`
                                 : isNext
                                 ? "bg-charcoal/5 border-charcoal/20 opacity-60"
                                 : "bg-charcoal/5 border-charcoal/10 opacity-30"
                             }`}
+                            style={isEarned && dbColor ? { backgroundColor: dbColor + "22", borderColor: dbColor + "55" } : undefined}
                           >
                             {isCurrent && (
                               <div className="absolute -top-2 -right-2">
@@ -496,20 +615,24 @@ export default function Dashboard() {
                                 </div>
                               </div>
                             )}
-                            
-                            <Icon 
-                              className={isEarned ? milestone.color : "text-charcoal/30"} 
-                              size={40} 
-                            />
+
+                            {dbIcon ? (
+                              <span className={`text-4xl ${isEarned ? "" : "opacity-30"}`}>{dbIcon}</span>
+                            ) : (
+                              <Icon
+                                className={isEarned ? milestone.color : "text-charcoal/30"}
+                                size={40}
+                              />
+                            )}
                           </div>
-                          
+
                           {/* Badge Info */}
                           <div className="mt-4 text-center">
                             <h4 className={`font-display text-base mb-1 ${isEarned ? "text-charcoal" : "text-charcoal/40"}`}>
                               {milestone.name}
                             </h4>
-                            <Badge 
-                              variant="outline" 
+                            <Badge
+                              variant="outline"
                               className={`text-xs ${isEarned ? milestone.borderColor : "border-charcoal/20"}`}
                             >
                               {milestone.classes} classes
@@ -520,6 +643,7 @@ export default function Dashboard() {
                     })}
                   </div>
                 </div>
+                )}
 
                 {/* Progress Summary */}
                 <div className="mt-8 pt-6 border-t border-charcoal/10 text-center">
@@ -536,6 +660,71 @@ export default function Dashboard() {
               </CardContent>
             </Card>
           </div>
+
+          {/* Achievements */}
+          {userBadges.length > 0 && (
+            <div className="mb-8">
+              <div className="flex items-center gap-3 mb-4">
+                <div className="w-10 h-10 rounded-full bg-terracotta/10 flex items-center justify-center">
+                  <Award className="text-terracotta" size={20} />
+                </div>
+                <h2 className="font-display text-2xl text-charcoal">Achievements</h2>
+              </div>
+
+              <div className="flex gap-4 overflow-x-auto pb-2">
+                {userBadges.map((badge) => {
+                  const isCustom = badge.badge_type === "custom";
+                  const badgeColor = badge.color ?? "#7C9070";
+                  if (isCustom) {
+                    return (
+                      <div
+                        key={badge.id}
+                        className="flex-shrink-0 w-44 rounded-2xl p-4 border shadow-md text-center transition-transform hover:scale-105"
+                        style={{
+                          background: `linear-gradient(135deg, ${badgeColor}18, ${badgeColor}08)`,
+                          borderColor: badgeColor + "44",
+                          boxShadow: `0 0 16px ${badgeColor}22`,
+                        }}
+                      >
+                        <div className="text-4xl mb-2">{badge.icon ?? "🏆"}</div>
+                        <p className="font-display text-sm text-charcoal leading-tight">
+                          {badge.badge_name}
+                        </p>
+                        {badge.badge_description && (
+                          <p className="font-body text-xs text-charcoal/50 mt-1 leading-tight">
+                            {badge.badge_description}
+                          </p>
+                        )}
+                        <p className="font-body text-xs mt-2" style={{ color: badgeColor }}>
+                          Special Award
+                        </p>
+                      </div>
+                    );
+                  }
+                  // PTM badge as a compact chip
+                  return (
+                    <div
+                      key={badge.id}
+                      className="flex-shrink-0 flex items-center gap-2 px-4 py-2.5 rounded-full border bg-white/80 shadow-sm transition-transform hover:scale-105"
+                      style={{ borderColor: (badge.color ?? "#7C9070") + "55" }}
+                    >
+                      <span className="text-xl">{badge.icon ?? "🏆"}</span>
+                      <div>
+                        <p className="font-body text-sm font-medium text-charcoal leading-tight">
+                          {badge.badge_name}
+                        </p>
+                        {badge.milestone_value && (
+                          <p className="font-body text-xs text-charcoal/40">
+                            {badge.milestone_value} classes
+                          </p>
+                        )}
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            </div>
+          )}
 
           {/* MIDDLE ROW: Movement Vitality (2/3) + Sidebar (1/3) */}
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 mb-8">
