@@ -10,7 +10,15 @@ export const config = {
   api: { bodyParser: false },
 };
 
-/** Amplify / Lambda: no durable disk for `public/uploads`; embed small images as data URLs in the DB. */
+function isS3Configured(): boolean {
+  return Boolean(
+    process.env.AWS_S3_BUCKET &&
+    process.env.AWS_ACCESS_KEY_ID &&
+    process.env.AWS_SECRET_ACCESS_KEY &&
+    process.env.AWS_REGION,
+  );
+}
+
 function isServerlessUploadRuntime(): boolean {
   return Boolean(process.env.AWS_LAMBDA_FUNCTION_NAME || process.env.AWS_EXECUTION_ENV);
 }
@@ -29,14 +37,12 @@ function inferImageMimeFromName(name: string | null | undefined): string | null 
   return map[ext] ?? null;
 }
 
-function resolveImageMime(
-  file: {
-    mimetype?: string | null;
-    originalFilename?: string | null;
-    filepath?: string;
-    newFilename?: string | null;
-  },
-): string {
+function resolveImageMime(file: {
+  mimetype?: string | null;
+  originalFilename?: string | null;
+  filepath?: string;
+  newFilename?: string | null;
+}): string {
   const fromMime = (file.mimetype || "").trim().toLowerCase();
   if (fromMime.startsWith("image/") && fromMime !== "image/jpg") return fromMime;
   if (fromMime === "image/jpg") return "image/jpeg";
@@ -48,8 +54,32 @@ function resolveImageMime(
   return "image/jpeg";
 }
 
-/** Hosted/serverless: embed as data URL; allow typical phone photos (PNG/JPEG) without silent failures. */
 const MAX_DATA_URL_IMAGE_BYTES = 4 * 1024 * 1024;
+
+async function uploadToS3(buf: Buffer, mime: string, originalName: string): Promise<string> {
+  const { S3Client, PutObjectCommand } = await import("@aws-sdk/client-s3");
+  const bucket = process.env.AWS_S3_BUCKET!;
+  const region = process.env.AWS_REGION!;
+  const ext = mime === "image/jpeg" ? "jpg" : (mime.split("/")[1] ?? "jpg");
+  const key = `uploads/${Date.now()}-${Math.random().toString(36).slice(2)}.${ext}`;
+  const client = new S3Client({
+    region,
+    credentials: {
+      accessKeyId: process.env.AWS_ACCESS_KEY_ID!,
+      secretAccessKey: process.env.AWS_SECRET_ACCESS_KEY!,
+    },
+  });
+  await client.send(new PutObjectCommand({
+    Bucket: bucket,
+    Key: key,
+    Body: buf,
+    ContentType: mime,
+  }));
+  const publicUrl = process.env.AWS_S3_PUBLIC_URL
+    ? `${process.env.AWS_S3_PUBLIC_URL.replace(/\/$/, "")}/${key}`
+    : `https://${bucket}.s3.${region}.amazonaws.com/${key}`;
+  return publicUrl;
+}
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
   if (req.method !== "POST") return res.status(405).end();
@@ -58,50 +88,62 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   if (!ensureAdmin(session, res)) return;
 
   const serverless = isServerlessUploadRuntime();
-  const uploadDir = serverless ? os.tmpdir() : path.join(process.cwd(), "public", "uploads");
-  if (!serverless && !fs.existsSync(uploadDir)) fs.mkdirSync(uploadDir, { recursive: true });
+  const s3 = isS3Configured();
+  const uploadDir = os.tmpdir();
 
   const form = formidable({
     uploadDir,
     keepExtensions: true,
-    maxFileSize: serverless ? MAX_DATA_URL_IMAGE_BYTES : 10 * 1024 * 1024,
+    maxFileSize: 10 * 1024 * 1024,
   });
 
-  form.parse(req, (err, _fields, files) => {
+  form.parse(req, async (err, _fields, files) => {
     if (err) return res.status(500).json({ error: "Upload failed" });
 
     const fileArray = Array.isArray(files.file) ? files.file : [files.file];
     const file = fileArray[0];
     if (!file) return res.status(400).json({ error: "No file provided" });
 
-    if (serverless) {
-      try {
-        const buf = fs.readFileSync(file.filepath);
-        try {
-          fs.unlinkSync(file.filepath);
-        } catch {
-          /* temp file cleanup */
-        }
-        if (buf.length > MAX_DATA_URL_IMAGE_BYTES) {
-          return res.status(413).json({
-            error: `Image too large for hosted upload (max ${MAX_DATA_URL_IMAGE_BYTES / (1024 * 1024)}MB). Use a smaller or compressed image, or configure S3.`,
-          });
-        }
-        const mime = resolveImageMime(file);
-        if (!mime.startsWith("image/")) {
-          return res.status(400).json({ error: "File must be an image (JPEG, PNG, or WebP)." });
-        }
-        const b64 = buf.toString("base64");
-        return res.json({ url: `data:${mime};base64,${b64}` });
-      } catch (e) {
-        console.error("upload (serverless) failed", e);
-        return res.status(500).json({ error: "Upload failed" });
-      }
+    const mime = resolveImageMime(file);
+    if (!mime.startsWith("image/")) {
+      return res.status(400).json({ error: "File must be an image." });
     }
 
-    const filename = path.basename(file.filepath);
-    const publicUrl = `/uploads/${filename}`;
+    try {
+      const buf = fs.readFileSync(file.filepath);
+      try { fs.unlinkSync(file.filepath); } catch { /* ignore */ }
 
-    return res.json({ url: publicUrl });
+      // S3 — preferred when configured (works on all environments)
+      if (s3) {
+        try {
+          const url = await uploadToS3(buf, mime, file.originalFilename ?? "image");
+          return res.json({ url });
+        } catch (e) {
+          console.error("S3 upload failed", e);
+          return res.status(500).json({ error: "S3 upload failed. Check AWS credentials and bucket policy." });
+        }
+      }
+
+      // Serverless fallback — data URL (no S3 configured)
+      if (serverless) {
+        if (buf.length > MAX_DATA_URL_IMAGE_BYTES) {
+          return res.status(413).json({
+            error: `Image too large (max ${MAX_DATA_URL_IMAGE_BYTES / (1024 * 1024)}MB). Configure S3 for larger uploads.`,
+          });
+        }
+        return res.json({ url: `data:${mime};base64,${buf.toString("base64")}` });
+      }
+
+      // Local dev — save to public/uploads/
+      const localDir = path.join(process.cwd(), "public", "uploads");
+      if (!fs.existsSync(localDir)) fs.mkdirSync(localDir, { recursive: true });
+      const ext = mime === "image/jpeg" ? "jpg" : (mime.split("/")[1] ?? "jpg");
+      const filename = `${Date.now()}-${Math.random().toString(36).slice(2)}.${ext}`;
+      fs.writeFileSync(path.join(localDir, filename), buf);
+      return res.json({ url: `/uploads/${filename}` });
+    } catch (e) {
+      console.error("upload failed", e);
+      return res.status(500).json({ error: "Upload failed" });
+    }
   });
 }
