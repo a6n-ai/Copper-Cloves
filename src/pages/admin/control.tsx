@@ -670,6 +670,22 @@ async function fetchPayoutData() {
     }
   }
 
+  async function handleToggleInstructorActive(instructorId: string, currentActive: boolean) {
+    try {
+      const res = await fetch(`/api/admin/instructors?id=${instructorId}`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        credentials: "same-origin",
+        body: JSON.stringify({ is_active: !currentActive }),
+      });
+      if (!res.ok) throw new Error("Toggle failed");
+      fetchInstructors();
+    } catch (err) {
+      console.error("Error:", err);
+      alert("Failed to update instructor status.");
+    }
+  }
+
   async function handleDeleteInstructor(instructorId: string, instructorName: string) {
     const confirmed = confirm(`Are you sure you want to delete "${instructorName}"? This action cannot be undone.`);
     
@@ -1296,13 +1312,21 @@ async function fetchPayoutData() {
                                       {instructor.years_of_experience} years experience
                                     </div>
                                   )}
-                                  <Badge className="bg-sage text-white">
-                                    active
+                                  <Badge className={instructor.is_active !== false ? "bg-sage text-white" : "bg-charcoal/20 text-charcoal/60"}>
+                                    {instructor.is_active !== false ? "active" : "inactive"}
                                   </Badge>
                                 </div>
                                 <div className="flex gap-2">
-                                  <Button 
-                                    variant="outline" 
+                                  <Button
+                                    variant="outline"
+                                    size="sm"
+                                    className={instructor.is_active !== false ? "border-charcoal/20 text-charcoal/60 hover:bg-charcoal/5" : "border-sage/20 text-sage hover:bg-sage/5"}
+                                    onClick={() => handleToggleInstructorActive(instructor.id, instructor.is_active !== false)}
+                                  >
+                                    {instructor.is_active !== false ? "Set Inactive" : "Set Active"}
+                                  </Button>
+                                  <Button
+                                    variant="outline"
                                     size="sm"
                                     className="border-sage/20 text-sage hover:bg-sage/5"
                                     onClick={() => {
@@ -1313,8 +1337,8 @@ async function fetchPayoutData() {
                                     <Edit className="h-3.5 w-3.5 mr-1" />
                                     Edit
                                   </Button>
-                                  <Button 
-                                    variant="outline" 
+                                  <Button
+                                    variant="outline"
                                     size="sm"
                                     className="border-red-200 text-red-600 hover:bg-red-50"
                                     onClick={() => handleDeleteInstructor(instructor.id, instructor.name)}

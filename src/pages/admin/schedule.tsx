@@ -157,10 +157,12 @@ export default function AdminSchedule() {
 
   const instructorOptions: InstructorSelectOption[] = useMemo(() => {
     if (dbInstructors.length > 0) {
-      return dbInstructors.map((i: { id: string; name: string }) => ({
-        id: String(i.id),
-        name: i.name,
-      }));
+      return dbInstructors
+        .filter((i: { id: string; name: string; is_active?: boolean }) => i.is_active !== false)
+        .map((i: { id: string; name: string }) => ({
+          id: String(i.id),
+          name: i.name,
+        }));
     }
     return INSTRUCTORS.map(i => ({
       id: `demo-instructor-${i.id}`,

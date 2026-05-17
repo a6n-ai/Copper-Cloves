@@ -13,7 +13,10 @@ export const config = {
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
   if (req.method === "GET") {
+    const session = await getStudioServerSession(req, res);
+    const isAdmin = (session?.user as { role?: string })?.role === "admin";
     const instructors = await prisma.instructor.findMany({
+      where: isAdmin ? undefined : { is_active: true },
       orderBy: { display_order: "asc" },
     });
     return res.json(dedupeInstructorRows(instructors));
@@ -32,6 +35,17 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   if (req.method === "PUT") {
     const { id, ...data } = req.body;
     const instructor = await prisma.instructor.update({ where: { id }, data });
+    return res.json(instructor);
+  }
+
+  if (req.method === "PATCH") {
+    const { id } = req.query;
+    const { is_active } = req.body as { is_active: boolean };
+    if (!id) return res.status(400).json({ error: "id required" });
+    const instructor = await prisma.instructor.update({
+      where: { id: String(id) },
+      data: { is_active },
+    });
     return res.json(instructor);
   }
 

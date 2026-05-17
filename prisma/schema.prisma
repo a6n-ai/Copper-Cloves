@@ -150,6 +150,7 @@ model Instructor {
   social_linkedin    String?
   social_whatsapp    String?
   hashed_password          String?
+  is_active                Boolean  @default(true)
   created_at               DateTime @default(now())
 
   classes         ClassModel[]
