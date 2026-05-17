@@ -12,10 +12,10 @@ export const config = {
 
 function isS3Configured(): boolean {
   return Boolean(
-    process.env.AWS_S3_BUCKET &&
-    process.env.AWS_ACCESS_KEY_ID &&
-    process.env.AWS_SECRET_ACCESS_KEY &&
-    process.env.AWS_REGION,
+    process.env.S3_BUCKET &&
+    process.env.S3_ACCESS_KEY_ID &&
+    process.env.S3_SECRET_ACCESS_KEY &&
+    process.env.S3_REGION,
   );
 }
 
@@ -58,15 +58,15 @@ const MAX_DATA_URL_IMAGE_BYTES = 4 * 1024 * 1024;
 
 async function uploadToS3(buf: Buffer, mime: string, originalName: string): Promise<string> {
   const { S3Client, PutObjectCommand } = await import("@aws-sdk/client-s3");
-  const bucket = process.env.AWS_S3_BUCKET!;
-  const region = process.env.AWS_REGION!;
+  const bucket = process.env.S3_BUCKET!;
+  const region = process.env.S3_REGION!;
   const ext = mime === "image/jpeg" ? "jpg" : (mime.split("/")[1] ?? "jpg");
   const key = `uploads/${Date.now()}-${Math.random().toString(36).slice(2)}.${ext}`;
   const client = new S3Client({
     region,
     credentials: {
-      accessKeyId: process.env.AWS_ACCESS_KEY_ID!,
-      secretAccessKey: process.env.AWS_SECRET_ACCESS_KEY!,
+      accessKeyId: process.env.S3_ACCESS_KEY_ID!,
+      secretAccessKey: process.env.S3_SECRET_ACCESS_KEY!,
     },
   });
   await client.send(new PutObjectCommand({
@@ -75,8 +75,8 @@ async function uploadToS3(buf: Buffer, mime: string, originalName: string): Prom
     Body: buf,
     ContentType: mime,
   }));
-  const publicUrl = process.env.AWS_S3_PUBLIC_URL
-    ? `${process.env.AWS_S3_PUBLIC_URL.replace(/\/$/, "")}/${key}`
+  const publicUrl = process.env.S3_PUBLIC_URL
+    ? `${process.env.S3_PUBLIC_URL.replace(/\/$/, "")}/${key}`
     : `https://${bucket}.s3.${region}.amazonaws.com/${key}`;
   return publicUrl;
 }

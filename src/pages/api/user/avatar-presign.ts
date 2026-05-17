@@ -13,7 +13,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   if (!isS3Configured()) {
     return res.status(503).json({
       error:
-        "Photo upload is not configured. Set AWS_S3_BUCKET, AWS_ACCESS_KEY_ID, AWS_SECRET_ACCESS_KEY, and AWS_REGION (optional: AWS_S3_PUBLIC_URL for CloudFront).",
+        "Photo upload is not configured. Set S3_BUCKET, S3_ACCESS_KEY_ID, S3_SECRET_ACCESS_KEY, and S3_REGION (optional: S3_PUBLIC_URL for CloudFront).",
     });
   }
 

@@ -34,6 +34,12 @@ const KEYS = [
   "RAZORPAY_KEY_SECRET",
   "NEXT_PUBLIC_RAZORPAY_KEY_ID",
   "RAZORPAY_WEBHOOK_SECRET",
+  // S3 (avatar + menu image uploads) — use S3_ prefix, AWS_ is reserved by Amplify
+  "S3_BUCKET",
+  "S3_REGION",
+  "S3_ACCESS_KEY_ID",
+  "S3_SECRET_ACCESS_KEY",
+  "S3_PUBLIC_URL",
 ];
 
 const hasDb =
