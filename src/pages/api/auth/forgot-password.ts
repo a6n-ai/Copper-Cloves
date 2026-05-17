@@ -33,7 +33,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   const baseUrl = process.env.NEXTAUTH_URL ?? `https://${req.headers.host}`;
   const resetUrl = `${baseUrl}/portal/reset-password?token=${token}`;
 
-  await sendHtmlEmail({
+  const result = await sendHtmlEmail({
     to: normalised,
     subject: "Reset your password — The Studio",
     html: `
@@ -55,6 +55,12 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       </div>
     `,
   });
+
+  if (!result.ok) {
+    const reason = "error" in result ? result.error : ("reason" in result ? result.reason : "unknown");
+    console.error("[forgot-password] email send failed:", reason);
+    return res.status(500).json({ error: "Could not send reset email. Please try again later." });
+  }
 
   return res.status(200).json({ ok: true });
 }
