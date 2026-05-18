@@ -45,6 +45,7 @@ import { InstructorAvatar } from "@/components/InstructorAvatar";
 import { useSession } from "next-auth/react";
 import type React from "react";
 import { ControlAnalyticsPanel } from "@/components/admin/ControlAnalyticsPanel";
+import { Pagination, usePagination } from "@/components/Pagination";
 
 export default function ControlPanel() {
   const router = useRouter();
@@ -77,6 +78,8 @@ export default function ControlPanel() {
   // Instructors state
   const [instructors, setInstructors] = useState<any[]>([]);
   const [loadingInstructors, setLoadingInstructors] = useState(true);
+
+
   const [uploadingImage, setUploadingImage] = useState(false);
   const [newUserForm, setNewUserForm] = useState({
     full_name: "",
@@ -704,6 +707,11 @@ async function fetchPayoutData() {
     }
   }
 
+  const usersPg = usePagination(users);
+  const classesPg = usePagination(classes);
+  const payoutsPg = usePagination(instructorPayouts);
+  const instructorsPg = usePagination(instructors);
+
   if (loading) {
     return (
       <div className="min-h-screen bg-gradient-to-br from-cream via-cream to-sage/10 flex items-center justify-center">
@@ -824,7 +832,7 @@ async function fetchPayoutData() {
                   </Card>
                 ) : (
                   <div className="space-y-3">
-                    {users.map((user) => (
+                    {usersPg.pageItems.map((user) => (
                       <Card key={user.id} className="border-sage/20 bg-white/95 backdrop-blur-xl hover:shadow-xl transition-all duration-600">
                         <CardContent className="p-6">
                           <div className="flex items-center justify-between">
@@ -944,6 +952,7 @@ async function fetchPayoutData() {
                         </CardContent>
                       </Card>
                     ))}
+                    <Pagination page={usersPg.page} total={usersPg.total} onChange={usersPg.setPage} />
                   </div>
                 )}
               </TabsContent>
@@ -972,7 +981,7 @@ async function fetchPayoutData() {
                   </div>
                 ) : (
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    {classes.map((cls) => (
+                    {classesPg.pageItems.map((cls) => (
                       <Card key={cls.id} className="border-sage/20 bg-white/95 backdrop-blur-xl hover:shadow-xl transition-all duration-600">
                         <CardContent className="p-6">
                           <div className="flex gap-4">
@@ -1064,6 +1073,7 @@ async function fetchPayoutData() {
                     ))}
                   </div>
                 )}
+                <Pagination page={classesPg.page} total={classesPg.total} onChange={classesPg.setPage} />
               </TabsContent>
 
               {/* PAYOUT MANAGEMENT TAB */}
@@ -1158,7 +1168,7 @@ async function fetchPayoutData() {
 
                 {/* Instructor Payout Cards */}
                 <div className="space-y-3">
-                  {instructorPayouts.map((instructor) => (
+                  {payoutsPg.pageItems.map((instructor) => (
                     <Card key={instructor.instructorId} className="border-sage/20 bg-white/95 backdrop-blur-xl hover:shadow-xl transition-all duration-600">
                       <CardContent className="p-6">
                         <div className="flex items-center justify-between">
@@ -1226,6 +1236,7 @@ async function fetchPayoutData() {
                       </CardContent>
                     </Card>
                   ))}
+                  <Pagination page={payoutsPg.page} total={payoutsPg.total} onChange={payoutsPg.setPage} />
                 </div>
 
                 {/* Bulk Actions */}
@@ -1285,7 +1296,7 @@ async function fetchPayoutData() {
                   </Card>
                 ) : (
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                    {instructors.map((instructor) => (
+                    {instructorsPg.pageItems.map((instructor) => (
                       <Card key={instructor.id} className="border-sage/20 bg-white/95 backdrop-blur-xl hover:shadow-xl transition-all duration-600">
                         <CardContent className="p-6">
                           <div className="flex gap-4">
@@ -1408,6 +1419,7 @@ async function fetchPayoutData() {
                     ))}
                   </div>
                 )}
+                <Pagination page={instructorsPg.page} total={instructorsPg.total} onChange={instructorsPg.setPage} />
               </TabsContent>
 
               {/* ANALYTICS TAB */}
