@@ -1,10 +1,10 @@
 import { useEffect, useState } from "react";
 import { useRouter } from "next/router";
-import { AdminNavigation } from "@/components/AdminNavigation";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
+import { AdminPageHeader } from "@/components/admin/AdminPageHeader";
 import { Badge } from "@/components/ui/badge";
 import { useSession } from "next-auth/react";
 import { CrmTriggerType } from "@/lib/crmTriggerTypes";
@@ -403,19 +403,19 @@ export default function CRMPage() {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-cream via-white to-cream">
-      <AdminNavigation />
       
-      <main className="md:pl-64 min-h-screen pt-20">
+      <main className="min-h-screen">
         <div className="max-w-7xl mx-auto p-6 lg:p-8 space-y-8">
-          {/* Header */}
-          <div className="mb-8">
-            <h1 className="font-display text-4xl text-charcoal mb-2">CRM Studio</h1>
-            <p className="font-body text-charcoal/70">
-              {activeTab === "hub" && "Track all member communications"}
-              {activeTab === "templates" && "Design premium message templates"}
-              {activeTab === "triggers" && "Automate member engagement"}
-            </p>
-          </div>
+            <AdminPageHeader
+              title="CRM Studio"
+              subtitle={
+                activeTab === "hub"
+                  ? "Track all member communications"
+                  : activeTab === "templates"
+                  ? "Design premium message templates"
+                  : "Automate member engagement"
+              }
+            />
 
           {/* Tab Navigation */}
           <div className="flex gap-3 mb-8 border-b border-sage/10">

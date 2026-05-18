@@ -39,13 +39,16 @@ src/
 - No OpenAPI/Swagger — not Spring app.
 - Admin-only routes import `requireAdmin`, check before any data op.
 
-## Payments (Razorpay)
+## Payments
 
 - Amounts always in **paise** (`Int`). Never store rupees.
-- `razorpayConfigured()` check before constructing client — many routes skip gracefully if keys unset.
-- `persistRazorpayOrderOnCreate` → `persistVerifiedRazorpayPayment` → `linkRazorpayOrderToBookingTx` / `linkRazorpayOrderToUserPackageTx` = canonical fulfillment chain.
-- Webhook (`/api/payments/razorpay/webhook`) idempotent — calls `upsert` everywhere.
+- `Payment` model is the unified ledger across ALL methods (online + offline). Always write here when recording a payment.
+- `RazorpayPayment` is gateway-native only (no user/booking/package columns). Join via `Payment.razorpay_payment_id` (unique FK).
+- For Razorpay: `razorpayConfigured()` guard → `persistRazorpayOrderOnCreate` → `persistVerifiedRazorpayPayment` (dual-writes Payment row) → `linkRazorpayOrderToBookingTx` / `linkRazorpayOrderToUserPackageTx` (updates Payment.booking_id / user_package_id).
+- For offline (cash, Pine Lab, direct UPI): POST `/api/admin/payments` with `method` enum + optional `proof_url`. Records `recorded_by` admin id.
+- Webhook (`/api/payments/razorpay/webhook`) idempotent — calls `upsert` everywhere; mirrors to Payment.
 - Webhook URL (HTTPS) must be configured in Razorpay Dashboard; subscribe to `payment.authorized`, `payment.captured`, `payment.failed`.
+- New payment method = add value to `PaymentMethod` enum in `prisma/schema.prisma` → `db:push`. No new table.
 
 ## Notifications
 
@@ -55,9 +58,9 @@ src/
 
 ## S3 / uploads
 
-- Avatar uploads only use S3. Gate with `isS3Configured()` before presigning.
-- Presign via `presignAvatarUpload()` (60s expiry). Client PUT directly to S3.
-- `AWS_S3_PUBLIC_URL` overrides default bucket CDN URL construction.
+- `/api/upload` (admin-only) — generic image upload used by member avatar AND payment proof. Gates with `isS3Configured()` (env prefix `S3_*`, not `AWS_*`).
+- `S3_PUBLIC_URL` overrides default bucket CDN URL construction.
+- Local dev fallback: writes to `public/uploads/` if S3 not configured.
 
 ## Environment variables
 

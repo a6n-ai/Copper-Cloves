@@ -2,11 +2,11 @@ import { useEffect, useState, useRef, useCallback } from "react";
 import Cropper from "react-easy-crop";
 import type { Area } from "react-easy-crop";
 import { useRouter } from "next/router";
-import { AdminNavigation } from "@/components/AdminNavigation";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { AdminPageHeader } from "@/components/admin/AdminPageHeader";
 import { Badge } from "@/components/ui/badge";
 import { useSession } from "next-auth/react";
 import { SEO } from "@/components/SEO";
@@ -603,37 +603,36 @@ export default function AdminCafe() {
       `}</style>
       
       <div className="min-h-screen bg-gradient-to-br from-cream via-cream to-sage/10">
-        <AdminNavigation />
         
-        <main className="md:pl-64 min-h-screen pt-20">
+        <main className="min-h-screen">
           <div className="max-w-7xl mx-auto p-6 lg:p-8 space-y-8">
-            
-            {/* Header */}
-            <div className="mb-8 flex items-center justify-between">
-              <div>
-                <h1 className="font-display text-4xl text-charcoal mb-2">Café Management</h1>
-                <p className="font-body text-charcoal/70">
-                  {activeTab === "menu" && "Add, edit, and manage café menu items"}
-                  {activeTab === "categories" && "Manage food categories"}
-                  {activeTab === "orders" && "Track and manage incoming food orders"}
-                </p>
-              </div>
-              {activeTab !== "orders" && (
-                <Button
-                  onClick={() => {
-                    if (activeTab === "menu") {
-                      openAddMenuForm();
-                    } else {
-                      setShowCategoryForm(true);
-                    }
-                  }}
-                  className="bg-sage hover:bg-sage/90 text-white font-body"
-                >
-                  <Plus size={20} className="mr-2" />
-                  {activeTab === "menu" ? "Add Menu Item" : "Add Category"}
-                </Button>
-              )}
-            </div>
+            <AdminPageHeader
+              title="Café Management"
+              subtitle={
+                activeTab === "menu"
+                  ? "Add, edit, and manage café menu items"
+                  : activeTab === "categories"
+                  ? "Manage food categories"
+                  : "Track and manage incoming food orders"
+              }
+              actions={
+                activeTab !== "orders" ? (
+                  <Button
+                    onClick={() => {
+                      if (activeTab === "menu") {
+                        openAddMenuForm();
+                      } else {
+                        setShowCategoryForm(true);
+                      }
+                    }}
+                    className="bg-sage hover:bg-sage/90 text-white font-body"
+                  >
+                    <Plus size={20} className="mr-2" />
+                    {activeTab === "menu" ? "Add Menu Item" : "Add Category"}
+                  </Button>
+                ) : null
+              }
+            />
 
             {/* Tab Navigation */}
             <div className="flex gap-3 mb-8 border-b border-sage/10">

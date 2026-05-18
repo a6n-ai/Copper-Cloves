@@ -45,6 +45,13 @@ function dayBoundsToday() {
   return { now, dayStart, dayEnd };
 }
 
+function dayBoundsFor(date: Date) {
+  const dayStart = new Date(date.getFullYear(), date.getMonth(), date.getDate());
+  const dayEnd = new Date(dayStart);
+  dayEnd.setDate(dayEnd.getDate() + 1);
+  return { dayStart, dayEnd };
+}
+
 function monthAgo() {
   const d = new Date();
   d.setDate(d.getDate() - 30);
@@ -53,8 +60,8 @@ function monthAgo() {
 
 type Db = PrismaClient | typeof prisma;
 
-export async function getTodayClasses(db: Db = prisma) {
-  const { dayStart, dayEnd } = dayBoundsToday();
+export async function getTodayClasses(db: Db = prisma, forDate?: Date) {
+  const { dayStart, dayEnd } = forDate ? dayBoundsFor(forDate) : dayBoundsToday();
   const todaySchedules = await db.classSchedule.findMany({
     where: { start_time: { gte: dayStart, lt: dayEnd } },
     select: {
@@ -62,7 +69,7 @@ export async function getTodayClasses(db: Db = prisma) {
       start_time: true,
       capacity: true,
       class_model: { select: { name: true, max_capacity: true } },
-      instructor: { select: { name: true } },
+      instructor: { select: { name: true, image_url: true } },
       bookings: {
         where: { status: "confirmed" },
         select: {
@@ -71,7 +78,7 @@ export async function getTodayClasses(db: Db = prisma) {
           checked_in: true,
           check_in_outcome: true,
           check_in_time: true,
-          profile: { select: { full_name: true, email: true } },
+          profile: { select: { full_name: true, email: true, avatar_url: true } },
         },
       },
     },
@@ -83,6 +90,7 @@ export async function getTodayClasses(db: Db = prisma) {
     name: s.class_model?.name ?? "Class",
     time: new Date(s.start_time).toLocaleTimeString("en-US", { hour: "2-digit", minute: "2-digit" }),
     instructor: s.instructor?.name ?? "—",
+    instructorAvatarUrl: s.instructor?.image_url ?? null,
     enrolled: s.bookings.length,
     checkedIn: s.bookings.filter((bk) => bk.checked_in).length,
     capacity: s.capacity ?? s.class_model?.max_capacity ?? 0,
@@ -91,6 +99,7 @@ export async function getTodayClasses(db: Db = prisma) {
       userId: bk.user_id,
       name: bk.profile?.full_name || "Member",
       email: bk.profile?.email ?? "",
+      avatarUrl: bk.profile?.avatar_url ?? null,
       checkedIn: bk.checked_in,
       checkInOutcome: bk.check_in_outcome,
       checkInTime: bk.check_in_time
@@ -216,13 +225,13 @@ export async function getInstructorPerformance(db: Db = prisma) {
       class_schedule: {
         select: {
           instructor_id: true,
-          instructor: { select: { name: true, specialties: true } },
+          instructor: { select: { name: true, specialties: true, image_url: true } },
         },
       },
     },
   });
 
-  type InstAgg = { name: string; specialties: string; bookings: number; checkIns: number };
+  type InstAgg = { name: string; specialties: string; photo: string | null; bookings: number; checkIns: number };
   const instMap = new Map<string, InstAgg>();
   for (const b of bookings30) {
     const sch = b.class_schedule;
@@ -232,6 +241,7 @@ export async function getInstructorPerformance(db: Db = prisma) {
       ({
         name: sch.instructor.name,
         specialties: sch.instructor.specialties?.slice(0, 2).join(", ") ?? "Classes",
+        photo: sch.instructor.image_url ?? null,
         bookings: 0,
         checkIns: 0,
       } satisfies InstAgg);
@@ -247,10 +257,11 @@ export async function getInstructorPerformance(db: Db = prisma) {
     totalCheckIns: i.checkIns,
     rating: Math.min(5, Number((4.5 + Math.min(i.checkIns / Math.max(i.bookings, 1), 1) * 0.49).toFixed(1))),
     specialties: i.specialties,
+    photo: i.photo,
   }));
   return rows.length > 0
     ? rows
-    : [{ name: "—", classes: 0, avgAttendance: 0, totalCheckIns: 0, rating: 0, specialties: "" }];
+    : [{ name: "—", classes: 0, avgAttendance: 0, totalCheckIns: 0, rating: 0, specialties: "", photo: null }];
 }
 
 export async function getInstructorsSummary(db: Db = prisma) {
@@ -429,7 +440,7 @@ export async function getMemberList(db: Db = prisma) {
       user_id: true,
       credits_remaining: true,
       expiration_date: true,
-      profile: { select: { full_name: true, email: true, phone: true } },
+      profile: { select: { full_name: true, email: true, phone: true, avatar_url: true } },
       package_type: { select: { name: true } },
     },
   });
@@ -438,6 +449,7 @@ export async function getMemberList(db: Db = prisma) {
     profileId: up.user_id,
     name: up.profile.full_name || up.profile.email || "Member",
     email: up.profile.email ?? "",
+    avatarUrl: up.profile.avatar_url ?? null,
     package: up.package_type.name,
     credits: up.credits_remaining ?? 0,
     expiry: dt(up.expiration_date),

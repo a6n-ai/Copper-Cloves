@@ -1,7 +1,7 @@
 ﻿import { useState, useEffect } from "react";
 import { useRouter } from "next/router";
-import { AdminNavigation } from "@/components/AdminNavigation";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { AdminPageHeader } from "@/components/admin/AdminPageHeader";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -734,22 +734,13 @@ async function fetchPayoutData() {
         <div className="fixed top-20 right-20 w-72 h-72 bg-sage/10 rounded-full blur-3xl pointer-events-none" />
         <div className="fixed bottom-20 left-20 w-96 h-96 bg-cream/50 rounded-full blur-3xl pointer-events-none" />
         
-        <AdminNavigation />
         
-        <main className="md:pl-64 min-h-screen pt-20">
+        <main className="min-h-screen">
           <div className="max-w-7xl mx-auto p-6 lg:p-8 space-y-8">
-            
-            {/* Header */}
-            <div className="flex items-center justify-between">
-              <div>
-                <h1 className="font-display text-4xl md:text-5xl text-charcoal mb-2">
-                  Control Panel
-                </h1>
-                <p className="font-body text-charcoal/60 text-lg">
-                  Manage users, classes, payouts, and instructors.
-                </p>
-              </div>
-            </div>
+            <AdminPageHeader
+              title="Control Panel"
+              subtitle="Manage users, classes, payouts, and instructors."
+            />
 
             {/* Tabs */}
             <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">

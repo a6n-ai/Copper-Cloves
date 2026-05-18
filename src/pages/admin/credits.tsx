@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 import { useRouter } from "next/router";
-import { AdminNavigation } from "@/components/AdminNavigation";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { AdminPageHeader } from "@/components/admin/AdminPageHeader";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
@@ -148,26 +148,19 @@ export default function AdminCredits() {
       />
       
       <div className="min-h-screen bg-gradient-to-br from-cream via-cream to-sage/10">
-        <AdminNavigation />
         
-        <main className="md:pl-64 min-h-screen pt-20">
+        <main className="min-h-screen">
           <div className="max-w-7xl mx-auto p-6 lg:p-8 space-y-8">
-            
-            {/* Header */}
-            <div className="flex items-center justify-between">
-              <div>
-                <h1 className="font-display text-4xl md:text-5xl text-charcoal mb-2">
-                  Credit Tracking
-                </h1>
-                <p className="font-body text-charcoal/60 text-lg">
-                  Monitor all credit transactions and package purchases
-                </p>
-              </div>
-              <Button onClick={() => router.push("/admin/members")} className="bg-sage hover:bg-sage/90 text-white font-body">
-                <User className="h-5 w-5 mr-2" />
-                Manage Members
-              </Button>
-            </div>
+            <AdminPageHeader
+              title="Credit Tracking"
+              subtitle="Monitor all credit transactions and package purchases"
+              actions={
+                <Button onClick={() => router.push("/admin/members")} className="bg-sage hover:bg-sage/90 text-white font-body">
+                  <User className="h-5 w-5 mr-2" />
+                  Manage Members
+                </Button>
+              }
+            />
 
             {/* Success Message */}
             {successMessage && (

@@ -54,3 +54,24 @@ Two models, similar roles: `PackageType` (older, purchase flows) and `Package` (
 ## 7. `STUDIO_DATABASE_URL` workaround for Windows
 
 `src/lib/database-url.ts` reads `STUDIO_DATABASE_URL` before `DATABASE_URL` to avoid Windows host override. Non-obvious — new DB connection utilities must use same pattern or connections fail on Windows.
+
+## 8. `reconcileNoShowsGlobally` is now off the request path — needs external scheduler
+
+Moved out of `/api/admin/dashboard/member-stats` for latency. If `/api/cron/reconcile-no-shows` isn't scheduled (Amplify cron / external), `no_show` counts and `check_in_outcome` rows go stale; admin reports show 0 no-shows even when bookings are past-due.
+
+- **File:** `src/pages/api/cron/reconcile-no-shows.ts`
+- **Fix:** Add Amplify scheduled trigger (e.g. every 15 min) hitting endpoint with `x-cron-secret: $CRON_SECRET`.
+
+## 9. Admin pass-config + payment recording is two API calls
+
+`Manage Member` step-2 submit calls `POST /api/admin/payments` then `PATCH /api/admin/members` sequentially. If second fails (e.g. PackageType missing), the payment row persists with no associated pass update — admin sees error but partial state survives.
+
+- **File:** `src/pages/admin/members.tsx` `handleRecordPayment`
+- **Fix:** Merge into a single transactional endpoint, or add compensating delete on failure.
+
+## 10. `Payment.amount_paise` not reconciled against linked `RazorpayPayment.amount_paise`
+
+No constraint or guard ensures the unified `Payment` row's amount matches the gateway-side `RazorpayPayment.amount_paise` when both exist. Drift possible if mirror-write logic in `persistVerifiedRazorpayPayment` diverges.
+
+- **File:** `src/lib/razorpayPersistence.ts`
+- **Risk:** Finance reports could double-count or under-count if joins assume amounts agree.

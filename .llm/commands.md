@@ -41,8 +41,9 @@ Schema: `prisma/schema.prisma`. Client output: `src/generated/prisma/`.
 ```bash
 npm run db:seed:admin             # ensure admin user exists
 npm run db:seed:instructors       # seed instructor roster
-npm run db:seed:weekend-may-2026  # seed May 2026 weekend class schedules
+npm run db:seed:weekend-may-2026  # seed May 2026 weekend class schedules (manual; removed from amplify auto-deploy)
 npm run db:seed:members           # seed 6 studio members with packages + login
+npx tsx scripts/backfill-payments.ts   # one-time mirror of razorpay_payments → payments (idempotent)
 ```
 
 ## Required env vars (see `.env.example`)
@@ -60,5 +61,7 @@ npm run db:seed:members           # seed 6 studio members with packages + login
 | `RESEND_API_KEY` | Resend (Option B fallback) |
 | `EMAIL_FROM` | From address for outbound email |
 | `WHATSAPP_ACCESS_TOKEN` / `WHATSAPP_PHONE_NUMBER_ID` | WhatsApp Cloud API |
-| `AWS_S3_BUCKET` / `AWS_ACCESS_KEY_ID` / `AWS_SECRET_ACCESS_KEY` | S3 avatar uploads |
+| `S3_BUCKET` / `S3_ACCESS_KEY_ID` / `S3_SECRET_ACCESS_KEY` / `S3_REGION` | S3 uploads (renamed from `AWS_*` to avoid Amplify reserved namespace) |
+| `S3_PUBLIC_URL` | Optional override for public bucket URL |
 | `ADMIN_SETUP_SECRET` | One-time bootstrap via POST `/api/setup/bootstrap-admin` |
+| `CRON_SECRET` | Shared secret for `/api/cron/*` endpoints (header `x-cron-secret`) |

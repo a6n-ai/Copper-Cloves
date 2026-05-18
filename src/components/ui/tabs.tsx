@@ -2,35 +2,8 @@ import * as React from "react"
 import * as TabsPrimitive from "@radix-ui/react-tabs"
 
 import { cn } from "@/lib/utils"
-import { logUserSelection } from "@/lib/activity-client"
 
-type ActivityExtras = {
-  disableActivityTracking?: boolean
-  activityLabel?: string
-}
-
-function Tabs({
-  disableActivityTracking,
-  activityLabel,
-  onValueChange,
-  ...props
-}: React.ComponentPropsWithoutRef<typeof TabsPrimitive.Root> & ActivityExtras) {
-  return (
-    <TabsPrimitive.Root
-      {...props}
-      onValueChange={(value) => {
-        if (!disableActivityTracking && value != null && value !== "") {
-          logUserSelection({
-            control: "radix_tabs",
-            label: activityLabel,
-            value,
-          })
-        }
-        onValueChange?.(value)
-      }}
-    />
-  )
-}
+const Tabs = TabsPrimitive.Root
 
 const TabsList = React.forwardRef<
   React.ElementRef<typeof TabsPrimitive.List>,
@@ -39,7 +12,7 @@ const TabsList = React.forwardRef<
   <TabsPrimitive.List
     ref={ref}
     className={cn(
-      "inline-flex h-9 items-center justify-center rounded-md bg-muted p-1 text-muted-foreground",
+      "inline-flex h-9 items-center justify-center rounded-lg bg-muted p-1 text-muted-foreground",
       className
     )}
     {...props}

@@ -2,7 +2,7 @@ import { useState, useEffect, useMemo, useCallback } from "react";
 import { useRouter } from "next/router";
 import { useSession } from "next-auth/react";
 import { SEO } from "@/components/SEO";
-import { AdminNavigation } from "@/components/AdminNavigation";
+import { AdminPageHeader } from "@/components/admin/AdminPageHeader";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
@@ -411,17 +411,13 @@ export default function AdminProducts() {
       <SEO title="Boutique Management - Admin" />
       
       <div className="flex min-h-screen bg-gradient-to-br from-cream via-white to-sage/5">
-        <AdminNavigation />
         
-        <main className="md:pl-64 min-h-screen pt-20">
+        <main className="min-h-screen">
           <div className="max-w-7xl mx-auto p-6 lg:p-8 space-y-8">
-            {/* Header */}
-            <div className="bg-white/80 backdrop-blur-xl border-b border-sage/10 sticky top-0 z-30 px-6 lg:px-8 py-6 mt-16 md:mt-0">
-              <div className="flex items-center justify-between">
-                <div>
-                  <h1 className="font-display text-4xl text-charcoal mb-2">Boutique Management</h1>
-                  <p className="font-body text-charcoal/60">Manage products and track orders</p>
-                </div>
+            <AdminPageHeader
+              title="Boutique Management"
+              subtitle="Manage products and track orders"
+              actions={
                 <Button
                   onClick={() => setShowProductForm(true)}
                   className="bg-sage hover:bg-sage/90 text-white"
@@ -429,8 +425,8 @@ export default function AdminProducts() {
                   <Plus size={20} className="mr-2" />
                   Add Product
                 </Button>
-              </div>
-            </div>
+              }
+            />
 
             <div className="p-6 lg:p-8">
               {/* Stats Grid */}

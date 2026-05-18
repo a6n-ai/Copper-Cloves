@@ -102,7 +102,8 @@
 | Gmail SMTP | `EMAIL_USER`, `EMAIL_PASS`, `EMAIL_FROM` | Transactional email |
 | Resend | `RESEND_API_KEY`, `EMAIL_FROM` | Email fallback |
 | WhatsApp Cloud API | `WHATSAPP_ACCESS_TOKEN`, `WHATSAPP_PHONE_NUMBER_ID`, `WHATSAPP_PACKAGE_TEMPLATE_NAME` | Template notifications |
-| AWS S3 | `AWS_S3_BUCKET`, `AWS_ACCESS_KEY_ID`, `AWS_SECRET_ACCESS_KEY`, `AWS_REGION` | Avatar storage |
+| AWS S3 | `S3_BUCKET`, `S3_ACCESS_KEY_ID`, `S3_SECRET_ACCESS_KEY`, `S3_REGION`, `S3_PUBLIC_URL` (optional) | Avatar + proof-of-payment storage. Renamed from `AWS_*` to avoid Amplify reserved namespace. |
+| Cron | `CRON_SECRET` | Header `x-cron-secret` for `/api/cron/*` (currently: `reconcile-no-shows`) |
 
 ## Deployment targets
 

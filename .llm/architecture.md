@@ -38,7 +38,7 @@ Auth gated via `getStudioServerSession` → redirect to `/portal/login`.
 | `/portal/payment/razorpay-return` | Post-checkout landing |
 
 ### Admin (`/admin/*`)
-Auth gated + `requireAdmin` check (`role === "admin"`).
+Auth gated + `requireAdmin` check (`role === "admin"`). `/admin` (no path) server-side redirects to `/admin/dashboard`.
 
 | Page | Purpose |
 |---|---|
@@ -85,7 +85,17 @@ Auth gated + `requireAdmin` check (`role === "admin"`).
 | `/api/admin/members-search` | Typeahead member search (name/email) |
 | `/api/admin/backfill-stats` | Recompute streak/attendance stats for all users |
 | `/api/admin/member-tickets` | View/update member pause-subscription tickets |
+| `/api/admin/payments` | Record offline payment (cash, Pine Lab, direct UPI, etc.) with optional proof URL; lists by user_id |
+| `/api/admin/dashboard/today-classes` | Today's class rosters with check-ins |
+| `/api/admin/dashboard/expiring-members` | Members whose package expires in ≤14 days |
+| `/api/admin/dashboard/class-performance` | Per-class booking volume + discipline split |
+| `/api/admin/dashboard/instructor-performance` | Per-instructor classes, check-ins, rating |
+| `/api/admin/dashboard/instructors-summary` | Instructor roster card data |
+| `/api/admin/dashboard/member-stats` | Member-of-month, top class, no-show + late check-in counts, inactive users |
+| `/api/admin/dashboard/member-list` | Recent package purchasers (24 most recent) |
+| `/api/admin/dashboard/transactions` | Finance ledger (packages + booking checkouts) |
 | `/api/admin/*` | Other admin-only data endpoints |
+| `/api/cron/reconcile-no-shows` | Header `x-cron-secret: $CRON_SECRET` (or admin session). Marks past-due bookings `no_show`. Schedule externally — no longer on request path. |
 | `/api/meal-subscriptions` | Meal subscription management |
 | `/api/meal-subscription-inquiries` | Waitlist form submissions |
 | `/api/rental-inquiries` | Space rental contact form |
@@ -104,8 +114,9 @@ Auth gated + `requireAdmin` check (`role === "admin"`).
 | `Package` | Purchasable pass definition (credits, validity) |
 | `PackageType` | Legacy pass type (older purchase flows) |
 | `UserPackage` | Member's active pass; tracks `credits_remaining` / `classes_remaining` |
-| `RazorpayOrder` | One Razorpay `order_*` per checkout; amounts in paise |
-| `RazorpayPayment` | One `pay_*` per payment attempt; HMAC-verified flag |
+| `RazorpayOrder` | One Razorpay `order_*` per checkout; amounts in paise. Owns booking_id / user_package_id linkage. |
+| `RazorpayPayment` | Gateway-native `pay_*` row only (amount, status, method, HMAC-verified flag). Ownership stripped — joins to `Payment` via `razorpay_payment_id`. |
+| `Payment` | Unified payment ledger across all methods. Enum `PaymentMethod`: `razorpay_online` \| `razorpay_completed` \| `pine_lab_card` \| `pine_lab_upi` \| `direct_upi` \| `cash`. Owns `user_id`, `booking_id`, `user_package_id`, optional `proof_url`, `recorded_by` (admin), and FK to `RazorpayPayment` for online flows. |
 | `CafeItem` / `CafeOrder` | Studio café menu + per-booking or standalone orders |
 | `RetailProduct` / `RetailOrder` | Boutique product catalog + purchase orders |
 | `MealSubscription` | Monthly meal plan; `meals_remaining` decrements per order |
@@ -143,6 +154,12 @@ Auth gated + `requireAdmin` check (`role === "admin"`).
 1. Client calls `POST /api/payments/razorpay/create-order` → returns `razorpay_order_id`
 2. `persistRazorpayOrderOnCreate` writes `RazorpayOrder` row (status `created`)
 3. Razorpay Checkout opens in browser (web standard or redirect via `callback-redirect`)
-4. Success → client calls `POST /api/payments/razorpay/verify-payment` → HMAC verify → `persistVerifiedRazorpayPayment`
-5. `POST /api/payments/razorpay/finish-checkout` links order to booking/package
-6. Webhook at `/api/payments/razorpay/webhook` reconciles out-of-order events; can trigger `fulfillCheckoutFromPaidOrder` as backup
+4. Success → client calls `POST /api/payments/razorpay/verify-payment` → HMAC verify → `persistVerifiedRazorpayPayment` (dual-writes `razorpay_payments` + `payments` row keyed on `razorpay_payment_id`)
+5. `POST /api/payments/razorpay/finish-checkout` links order to booking/package (and updates `payments.booking_id` / `user_package_id`)
+6. Webhook at `/api/payments/razorpay/webhook` reconciles out-of-order events; same dual-write; can trigger `fulfillCheckoutFromPaidOrder` as backup
+
+## Offline payment flow (admin walk-ins)
+
+1. Admin opens member's Manage dialog → Step 1 (pass config) → Step 2 (payment).
+2. POST `/api/admin/payments` writes a `Payment` row with chosen `method`, amount in paise, optional `proof_url` (uploaded via `/api/upload`), `recorded_by` = admin id.
+3. UI then calls `PATCH /api/admin/members` to apply pass config; endpoint auto-creates `UserPackage` if member has none.

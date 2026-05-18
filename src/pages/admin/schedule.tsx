@@ -1,7 +1,11 @@
 import { useState, useEffect, useMemo } from "react";
 import { useRouter } from "next/router";
-import { AdminNavigation } from "@/components/AdminNavigation";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { AdminPageHeader } from "@/components/admin/AdminPageHeader";
+import { Calendar } from "@/components/ui/calendar";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { DayScheduleList } from "@/components/admin/DayScheduleList";
+import { MetricCard } from "@/components/admin/MetricCard";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
@@ -122,8 +126,7 @@ export default function AdminSchedule() {
   const [selectedEndHour, setSelectedEndHour] = useState("");
   const [selectedEndMinute, setSelectedEndMinute] = useState("");
   const [selectedEndPeriod, setSelectedEndPeriod] = useState<"AM" | "PM">("AM");
-  const [selectedFilterDay, setSelectedFilterDay] = useState<string | null>(null);
-  const [adminWeekOffset, setAdminWeekOffset] = useState(0);
+  const [selectedDate, setSelectedDate] = useState<Date>(() => new Date());
   const [selectedClass, setSelectedClass] = useState("");
   const [selectedInstructor, setSelectedInstructor] = useState("");
   const [isRecurring, setIsRecurring] = useState(false);
@@ -174,24 +177,50 @@ export default function AdminSchedule() {
   const usingPlaceholderCatalog =
     classOptions.some(c => c._isPlaceholder) || instructorOptions.some(i => i._isPlaceholder);
 
-  /** Monday of the currently-viewed admin week (local time). */
-  const adminWeekMonday = useMemo(() => {
-    const today = new Date();
-    const day = today.getDay(); // 0=Sun
-    const diffToMonday = day === 0 ? -6 : 1 - day;
-    const mon = new Date(today.getFullYear(), today.getMonth(), today.getDate() + diffToMonday + adminWeekOffset * 7);
-    mon.setHours(0, 0, 0, 0);
-    return mon;
-  }, [adminWeekOffset]);
+  /** yyyy-mm-dd for the currently selected calendar date. */
+  const selectedDateIso = useMemo(() => {
+    const d = selectedDate;
+    return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`;
+  }, [selectedDate]);
 
-  /** All 7 days of the admin week, Mon→Sun. */
-  const adminWeekDates = useMemo(() =>
-    Array.from({ length: 7 }, (_, i) => {
-      const d = new Date(adminWeekMonday);
-      d.setDate(d.getDate() + i);
-      return d;
-    }),
-  [adminWeekMonday]);
+  /** Distinct ISO dates that have at least one class in the loaded month — for calendar markers. */
+  const datesWithClasses = useMemo(
+    () =>
+      Array.from(new Set(schedule.map((c) => c.dateIso))).map((iso) => {
+        const [y, m, d] = iso.split("-").map(Number);
+        return new Date(y, m - 1, d);
+      }),
+    [schedule],
+  );
+
+  /** KPI stats derived from currently-loaded month schedule. */
+  const stats = useMemo(() => {
+    const total = schedule.length;
+    let bookedSum = 0;
+    let capSum = 0;
+    const byDay: Record<string, number> = {};
+    const capMap = new Map<string, number>(
+      dbClasses.map((c: { id: string | number; max_capacity?: number }) => [String(c.id), c.max_capacity ?? 0]),
+    );
+    for (const c of schedule) {
+      bookedSum += c.booked;
+      capSum += capMap.get(String(c.classId)) ?? 0;
+      byDay[c.dateIso] = (byDay[c.dateIso] ?? 0) + 1;
+    }
+    const avgOccupancy = capSum > 0 ? Math.round((bookedSum / capSum) * 100) : 0;
+    const busiestEntry = Object.entries(byDay).sort((a, b) => b[1] - a[1])[0];
+    const busiestLabel = busiestEntry
+      ? new Date(busiestEntry[0] + "T00:00:00").toLocaleDateString("en-US", { weekday: "short", month: "short", day: "numeric" })
+      : "—";
+    const busiestCount = busiestEntry?.[1] ?? 0;
+    const todayIso = (() => {
+      const t = new Date();
+      return `${t.getFullYear()}-${String(t.getMonth() + 1).padStart(2, "0")}-${String(t.getDate()).padStart(2, "0")}`;
+    })();
+    const todayCount = schedule.filter((c) => c.dateIso === todayIso).length;
+    return { total, avgOccupancy, busiestLabel, busiestCount, todayCount };
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [schedule, dbClasses]);
 
   const { data: session, status } = useSession();
 
@@ -229,17 +258,16 @@ export default function AdminSchedule() {
     };
   }, [status, session, router, selectedMonth, scheduleViewYear]);
 
-  // When week navigation moves into a different month, sync the month/year so data is re-fetched.
+  // Sync month/year fetch range when calendar moves to a different month.
   useEffect(() => {
-    const m = adminWeekMonday.getMonth();
-    const y = adminWeekMonday.getFullYear();
+    const m = selectedDate.getMonth();
+    const y = selectedDate.getFullYear();
     if (m !== selectedMonth || y !== scheduleViewYear) {
       setSelectedMonth(m);
       setScheduleViewYear(y);
     }
-    setSelectedFilterDay(null);
   // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [adminWeekMonday]);
+  }, [selectedDate]);
 
   const getWeekDateRange = (weekNumber: number, month: number) => {
     const year = scheduleViewYear;
@@ -735,6 +763,11 @@ export default function AdminSchedule() {
     return instructor?.name || "";
   };
 
+  const getInstructorAvatar = (instructorId: number | string): string | null => {
+    const instructor = dbInstructors.find(i => String(i.id) === String(instructorId));
+    return instructor?.image_url ?? null;
+  };
+
   if (loading) {
     return (
       <div className="min-h-screen bg-gradient-to-br from-cream via-cream to-sage/10 flex items-center justify-center">
@@ -751,78 +784,13 @@ export default function AdminSchedule() {
       />
       
       <div className="min-h-screen bg-gradient-to-br from-cream via-cream to-sage/10">
-        <AdminNavigation />
         
-        <main className="md:pl-64 min-h-screen pt-20">
+        <main className="min-h-screen">
           <div className="max-w-7xl mx-auto p-6 lg:p-8 space-y-8">
-            
-            {/* Header */}
-            <div className="flex items-center justify-between">
-              <div>
-                <h1 className="font-display text-4xl md:text-5xl text-charcoal mb-2">
-                  Class Schedule
-                </h1>
-                <p className="font-body text-charcoal/60 text-lg">
-                  Manage class times, instructors, and recurring schedules
-                </p>
-              </div>
-              <Button onClick={handleAddClass} className="bg-sage hover:bg-sage/90 text-white font-body">
-                <Plus className="h-5 w-5 mr-2" />
-                Schedule Class
-              </Button>
-            </div>
-
-            {/* Month Selector */}
-            <Card className="border-sage/20 bg-white/95 backdrop-blur-xl">
-              <CardContent className="p-6">
-                <div className="flex flex-col lg:flex-row lg:items-end lg:justify-between gap-6">
-                  <div>
-                    <Label className="font-body text-charcoal/80 mb-2 block">Calendar</Label>
-                    <p className="font-body text-sm text-charcoal/60">
-                      Choose year and month — the grid below loads every class in that range.
-                    </p>
-                  </div>
-                  <div className="flex flex-col sm:flex-row sm:items-end gap-3 sm:gap-4">
-                    <div>
-                      <Label className="font-body text-charcoal/80 mb-2 block">Year</Label>
-                      <Select
-                        value={scheduleViewYear.toString()}
-                        onValueChange={(val) => setScheduleViewYear(parseInt(val, 10))}
-                      >
-                        <SelectTrigger className="w-32 h-12 border-charcoal/20 focus:border-sage font-body">
-                          <SelectValue />
-                        </SelectTrigger>
-                        <SelectContent>
-                          {Array.from({ length: 5 }, (_, i) => new Date().getFullYear() - 1 + i).map((y) => (
-                            <SelectItem key={y} value={String(y)}>
-                              {y}
-                            </SelectItem>
-                          ))}
-                        </SelectContent>
-                      </Select>
-                    </div>
-                    <div>
-                      <Label className="font-body text-charcoal/80 mb-2 block">Month</Label>
-                      <Select 
-                        value={selectedMonth.toString()} 
-                        onValueChange={(val) => setSelectedMonth(parseInt(val))}
-                      >
-                        <SelectTrigger className="w-64 h-12 border-charcoal/20 focus:border-sage font-body">
-                          <SelectValue />
-                        </SelectTrigger>
-                        <SelectContent>
-                          {MONTHS.map((month, index) => (
-                            <SelectItem key={index} value={index.toString()}>
-                              {month} {scheduleViewYear}
-                            </SelectItem>
-                          ))}
-                        </SelectContent>
-                      </Select>
-                    </div>
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
+            <AdminPageHeader
+              title="Class Schedule"
+              subtitle="Pick a date to see the day's classes, instructors, and check-ins."
+            />
 
             {loadError && (
               <Alert variant="default" className="border-amber-300 bg-amber-50 text-amber-950">
@@ -830,274 +798,175 @@ export default function AdminSchedule() {
                 <AlertDescription className="font-body text-amber-900">{loadError}</AlertDescription>
               </Alert>
             )}
-
-            {/* Success Message */}
             {successMessage && (
-              <Card className="border-sage/20 bg-sage/10 backdrop-blur-xl">
-                <CardContent className="p-4">
-                  <div className="flex items-center gap-3 text-sage">
-                    <CheckCircle2 className="h-5 w-5" />
-                    <p className="font-body">{successMessage}</p>
-                  </div>
-                </CardContent>
-              </Card>
+              <Alert className="border-sage/30 bg-sage/10 text-sage">
+                <CheckCircle2 className="h-4 w-4" />
+                <AlertDescription className="font-body text-sage">{successMessage}</AlertDescription>
+              </Alert>
             )}
 
-            {/* Week Navigation */}
-            <Card className="border-sage/20 bg-white/95 backdrop-blur-xl">
-              <CardContent className="p-4">
-                {/* Arrow row */}
-                <div className="flex items-center justify-between mb-3">
-                  <button
-                    onClick={() => setAdminWeekOffset(o => o - 1)}
-                    className="p-2 rounded-full hover:bg-sage/10 text-sage transition-colors"
-                    aria-label="Previous week"
-                  >
-                    <ChevronLeft size={20} />
-                  </button>
-                  <div className="text-center">
-                    <span className="font-body text-sm font-medium text-charcoal/80">
-                      {adminWeekDates[0].toLocaleDateString("en-US", { month: "short", day: "numeric" })}
-                      {" – "}
-                      {adminWeekDates[6].toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" })}
-                    </span>
-                    {adminWeekOffset === 0 && (
-                      <span className="ml-2 text-xs text-sage bg-sage/10 px-2 py-0.5 rounded-full font-body">This Week</span>
-                    )}
-                    {adminWeekOffset === 1 && (
-                      <span className="ml-2 text-xs text-sage bg-sage/10 px-2 py-0.5 rounded-full font-body">Next Week</span>
-                    )}
-                    {adminWeekOffset < 0 && (
-                      <span className="ml-2 text-xs text-terracotta/80 bg-terracotta/10 px-2 py-0.5 rounded-full font-body">Past</span>
-                    )}
-                    {adminWeekOffset > 1 && (
-                      <span className="ml-2 text-xs text-sage bg-sage/10 px-2 py-0.5 rounded-full font-body">Upcoming</span>
-                    )}
-                  </div>
-                  <button
-                    onClick={() => setAdminWeekOffset(o => o + 1)}
-                    className="p-2 rounded-full hover:bg-sage/10 text-sage transition-colors"
-                    aria-label="Next week"
-                  >
-                    <ChevronRight size={20} />
-                  </button>
-                </div>
-                {/* Day buttons Mon–Sun */}
-                <div className="grid grid-cols-7 gap-1">
-                  {adminWeekDates.map((d, i) => {
-                    const todayStr = new Date().toDateString();
-                    const isToday = d.toDateString() === todayStr;
-                    const iso = `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,"0")}-${String(d.getDate()).padStart(2,"0")}`;
-                    const isActive = selectedFilterDay === iso;
-                    return (
-                      <button
-                        key={i}
-                        onClick={() => setSelectedFilterDay(isActive ? null : iso)}
-                        className={`flex flex-col items-center py-2 px-1 rounded-xl transition-all ${
-                          isActive
-                            ? "bg-sage text-white"
-                            : isToday
-                              ? "bg-sage/15 text-sage border border-sage/30"
-                              : "hover:bg-sage/10 text-charcoal/70"
-                        }`}
-                      >
-                        <span className="text-[10px] font-body uppercase tracking-wide leading-none mb-1">
-                          {WEEKDAYS[i].slice(0, 3)}
-                        </span>
-                        <span className={`text-base font-display leading-none ${
-                          isActive ? "text-white" : isToday ? "text-sage" : "text-charcoal"
-                        }`}>
-                          {d.getDate()}
-                        </span>
-                      </button>
-                    );
-                  })}
-                </div>
-              </CardContent>
-            </Card>
-
-            {/* Weekly Schedule Grid — grouped by actual date */}
-            {(() => {
-              // Filter to current admin week (Mon–Sun) then optionally to a specific day
-              const weekStartIso = `${adminWeekDates[0].getFullYear()}-${String(adminWeekDates[0].getMonth()+1).padStart(2,"0")}-${String(adminWeekDates[0].getDate()).padStart(2,"0")}`;
-              const weekEndIso = `${adminWeekDates[6].getFullYear()}-${String(adminWeekDates[6].getMonth()+1).padStart(2,"0")}-${String(adminWeekDates[6].getDate()).padStart(2,"0")}`;
-              const inWeek = schedule.filter(c => c.dateIso >= weekStartIso && c.dateIso <= weekEndIso);
-              const visible = selectedFilterDay
-                ? inWeek.filter(c => c.dateIso === selectedFilterDay)
-                : inWeek;
-              const uniqueDates = Array.from(new Set(visible.map(c => c.dateIso))).sort();
-
-              if (uniqueDates.length === 0) {
-                return (
-                  <div className="text-center py-16">
-                    <CalendarIcon className="h-16 w-16 text-charcoal/20 mx-auto mb-4" />
-                    <p className="font-display text-xl text-charcoal/40">No classes scheduled for this period</p>
-                    <p className="font-body text-sm text-charcoal/30 mt-1">
-                      {selectedFilterDay
-                        ? `Nothing on ${new Date(selectedFilterDay + "T00:00:00").toLocaleDateString("en-US", { weekday: "long", month: "long", day: "numeric" })}`
-                        : `Try a different month or schedule a class`}
-                    </p>
-                  </div>
-                );
-              }
-
-              return (
-            <div className="grid gap-6">
-              {uniqueDates.map(dateIso => {
-                const dayClasses = visible.filter(c => c.dateIso === dateIso);
-                const dateObj = new Date(dateIso + "T00:00:00");
-                const day = WEEKDAYS[dateObj.getDay() === 0 ? 6 : dateObj.getDay() - 1];
-                const todayIso = (() => {
-                  const t = new Date();
-                  return `${t.getFullYear()}-${String(t.getMonth()+1).padStart(2,"0")}-${String(t.getDate()).padStart(2,"0")}`;
-                })();
-                const isToday = dateIso === todayIso;
-                
-                return (
-                  <Card key={dateIso} className={`border-sage/20 bg-white/95 backdrop-blur-xl ${isToday ? "ring-2 ring-sage/30" : ""}`}>
-                    <CardHeader className="bg-gradient-to-r from-cream/50 to-white pb-4">
-                      <div className="flex items-center justify-between">
-                        <div>
-                          <CardTitle className="font-display text-2xl text-charcoal">
-                            {day}
-                            {isToday && <span className="ml-2 text-sm font-body font-medium text-sage bg-sage/10 px-2 py-0.5 rounded-full">Today</span>}
-                          </CardTitle>
-                          <p className="font-body text-sm text-charcoal/50 mt-0.5">
-                            {dateObj.toLocaleDateString("en-US", { month: "long", day: "numeric", year: "numeric" })}
-                          </p>
-                        </div>
-                        <Badge variant="outline" className="border-sage/20 text-sage bg-sage/5 font-body">
-                          {dayClasses.length} {dayClasses.length === 1 ? 'class' : 'classes'}
-                        </Badge>
-                      </div>
-                    </CardHeader>
-                    <CardContent className="p-6">
-                      {dayClasses.length === 0 ? (
-                        <div className="text-center py-8">
-                          <CalendarIcon className="h-12 w-12 text-charcoal/20 mx-auto mb-3" />
-                          <p className="font-body text-charcoal/40">No classes scheduled</p>
-                        </div>
-                      ) : (
-                        <div className="space-y-3">
-                          {dayClasses.sort((a, b) => a.time.localeCompare(b.time)).map(scheduledClass => {
-                            const className = getClassName(scheduledClass.classId);
-                            const capacity = getClassCapacity(scheduledClass.classId);
-                            const instructor = getInstructorName(scheduledClass.instructorId);
-                            const occupancy = (scheduledClass.booked / capacity) * 100;
-                            
-                            return (
-                              <div 
-                                key={scheduledClass.id}
-                                className="flex items-center gap-4 p-4 rounded-xl border border-charcoal/10 hover:border-sage/30 hover:bg-sage/5 transition-all duration-600"
-                              >
-                                <div className="flex-1 grid sm:grid-cols-4 gap-4">
-                                  <div>
-                                    <div className="font-body font-medium text-charcoal mb-1">
-                                      {className}
-                                    </div>
-                                    <div className="flex items-center gap-2 text-sm text-charcoal/60">
-                                      <Clock className="h-3.5 w-3.5" />
-                                      {scheduledClass.time}
-                                      {scheduledClass.recurring && (
-                                        <Badge variant="outline" className="ml-2 border-sage/20 text-sage bg-sage/5 text-xs">
-                                          <Repeat className="h-2.5 w-2.5 mr-1" />
-                                          Weekly
-                                        </Badge>
-                                      )}
-                                    </div>
-                                  </div>
-
-                                  <div>
-                                    <div className="font-body text-sm text-charcoal/60 mb-1">
-                                      Instructor
-                                    </div>
-                                    <div className="font-body font-medium text-charcoal">
-                                      {instructor}
-                                    </div>
-                                  </div>
-
-                                  <div>
-                                    <div className="font-body text-sm text-charcoal/60 mb-1">
-                                      Capacity
-                                    </div>
-                                    <div className="flex items-center gap-2">
-                                      <Users className="h-4 w-4 text-charcoal/40" />
-                                      <span className="font-body font-medium text-charcoal">
-                                        {scheduledClass.booked}/{capacity}
-                                      </span>
-                                      <Badge
-                                        variant={occupancy >= 90 ? "destructive" : occupancy >= 70 ? "outline" : "outline"}
-                                        className={
-                                          occupancy >= 90
-                                            ? ""
-                                            : occupancy >= 70
-                                              ? "border-amber-500/20 text-amber-600 bg-amber-50"
-                                              : "border-sage/20 text-sage bg-sage/5"
-                                        }
-                                      >
-                                        {Math.round(occupancy)}%
-                                      </Badge>
-                                    </div>
-                                  </div>
-
-                                  <div>
-                                    <div className="font-body text-sm text-charcoal/60 mb-1">
-                                      Instructor Check-In
-                                    </div>
-                                    {scheduledClass.instructorCheckInTime ? (
-                                      <div className="flex items-center gap-1.5">
-                                        <CheckCircle2 className="h-4 w-4 text-sage shrink-0" />
-                                        <span className="font-body text-sm font-medium text-sage">
-                                          {new Date(scheduledClass.instructorCheckInTime).toLocaleTimeString("en-US", { hour: "2-digit", minute: "2-digit" })}
-                                        </span>
-                                      </div>
-                                    ) : (
-                                      <div className="flex items-center gap-1.5 text-charcoal/40">
-                                        <Clock className="h-4 w-4 shrink-0" />
-                                        <span className="font-body text-sm">Not checked in</span>
-                                      </div>
-                                    )}
-                                  </div>
-                                </div>
-                                
-                                <div className="flex gap-2">
-                                  <Button
-                                    variant="outline"
-                                    size="sm"
-                                    onClick={() => handleEditClass(scheduledClass)}
-                                    className="border-sage/20 text-sage hover:bg-sage/10 font-body"
-                                  >
-                                    <Edit2 className="h-3.5 w-3.5" />
-                                  </Button>
-                                  <Button
-                                    variant="outline"
-                                    size="sm"
-                                    onClick={() => handleDuplicateClass(scheduledClass)}
-                                    className="border-charcoal/20 text-charcoal hover:bg-charcoal/5 font-body"
-                                  >
-                                    <Copy className="h-3.5 w-3.5" />
-                                  </Button>
-                                  <Button
-                                    variant="outline"
-                                    size="sm"
-                                    onClick={() => handleDeleteClass(scheduledClass.id)}
-                                    className="border-red-500/20 text-red-600 hover:bg-red-50 font-body"
-                                  >
-                                    <Trash2 className="h-3.5 w-3.5" />
-                                  </Button>
-                                </div>
-                              </div>
-                            );
-                          })}
-                        </div>
-                      )}
-                    </CardContent>
-                  </Card>
-                );
-              })}
+            {/* KPI strip */}
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+              <MetricCard label="Classes this month" value={stats.total} icon={CalendarIcon} tone="sage" />
+              <MetricCard label="Avg occupancy" value={stats.avgOccupancy} suffix="%" icon={Users} tone="sage" />
+              <MetricCard label="Today" value={stats.todayCount} icon={Clock} tone="terracotta" hint="classes scheduled" />
+              <MetricCard label="Busiest day" value={stats.busiestLabel} icon={Repeat} tone="amber" hint={`${stats.busiestCount} classes`} />
             </div>
-              );
-            })()}
+
+            {/* 2-column: calendar + day list */}
+            <div className="grid lg:grid-cols-[280px_1fr] gap-6 items-stretch">
+              <Card className="border-sage/20 bg-white/95 flex flex-col">
+                <CardHeader className="pb-2">
+                  <CardTitle className="font-display text-lg text-charcoal">Calendar</CardTitle>
+                  <CardDescription className="font-body text-xs text-charcoal/60">
+                    <span className="inline-block w-1.5 h-1.5 rounded-full bg-sage mr-1.5 align-middle" />
+                    Dots mark days with scheduled classes
+                  </CardDescription>
+                </CardHeader>
+                <CardContent className="p-3 flex-1 flex justify-center items-start">
+                  <Calendar
+                    mode="single"
+                    selected={selectedDate}
+                    onSelect={(d) => d && setSelectedDate(d)}
+                    showOutsideDays
+                    modifiers={{ hasClass: datesWithClasses }}
+                    modifiersClassNames={{
+                      hasClass: "relative after:content-[''] after:absolute after:bottom-1 after:left-1/2 after:-translate-x-1/2 after:h-1 after:w-1 after:rounded-full after:bg-sage",
+                    }}
+                    classNames={{
+                      months: "w-full",
+                      month: "w-full space-y-4",
+                      table: "w-full border-collapse",
+                      head_row: "flex w-full",
+                      head_cell: "text-muted-foreground rounded-md flex-1 font-normal text-[0.8rem] text-center",
+                      row: "flex w-full mt-2",
+                      cell: "relative p-0 text-center text-sm flex-1 focus-within:relative focus-within:z-20 [&:has([aria-selected])]:bg-accent [&:has([aria-selected])]:rounded-md",
+                      day: "h-9 w-full p-0 font-normal aria-selected:opacity-100 hover:bg-sage/10 rounded-md transition-colors",
+                      day_selected: "bg-sage text-white hover:bg-sage hover:text-white focus:bg-sage focus:text-white",
+                      day_today: "bg-sage/10 text-sage font-medium",
+                    }}
+                    className="w-full p-0"
+                  />
+                </CardContent>
+              </Card>
+
+              <Card className="border-sage/20 bg-white/95">
+                <CardHeader className="pb-3">
+                  <div className="flex flex-wrap items-center justify-between gap-3">
+                    <div>
+                      <CardTitle className="font-display text-2xl text-charcoal">
+                        {selectedDate.toLocaleDateString("en-US", { weekday: "long", month: "long", day: "numeric" })}
+                      </CardTitle>
+                      <CardDescription className="font-body text-charcoal/60">
+                        {(() => {
+                          const t = new Date();
+                          const todayIso = `${t.getFullYear()}-${String(t.getMonth() + 1).padStart(2, "0")}-${String(t.getDate()).padStart(2, "0")}`;
+                          return selectedDateIso === todayIso ? "Today" : selectedDate.toLocaleDateString("en-US", { year: "numeric" });
+                        })()}
+                      </CardDescription>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        className="border-sage/20 text-sage hover:bg-sage/5 h-9 w-9 p-0"
+                        onClick={() => {
+                          const d = new Date(selectedDate);
+                          d.setDate(d.getDate() - 1);
+                          setSelectedDate(d);
+                        }}
+                        aria-label="Previous day"
+                      >
+                        <ChevronLeft className="h-4 w-4" />
+                      </Button>
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        className="border-sage/20 text-sage hover:bg-sage/5 h-9 font-body"
+                        onClick={() => setSelectedDate(new Date())}
+                      >
+                        Today
+                      </Button>
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        className="border-sage/20 text-sage hover:bg-sage/5 h-9 w-9 p-0"
+                        onClick={() => {
+                          const d = new Date(selectedDate);
+                          d.setDate(d.getDate() + 1);
+                          setSelectedDate(d);
+                        }}
+                        aria-label="Next day"
+                      >
+                        <ChevronRight className="h-4 w-4" />
+                      </Button>
+                      <Button
+                        onClick={handleAddClass}
+                        size="sm"
+                        className="bg-sage hover:bg-sage/90 text-white font-body h-9"
+                      >
+                        <Plus className="h-4 w-4 mr-1" />
+                        Schedule Class
+                      </Button>
+                    </div>
+                  </div>
+                </CardHeader>
+                <CardContent className="p-4">
+                  <DayScheduleList
+                    variant="expanded"
+                    emptyText="No classes on this day. Click Schedule Class to add one."
+                    onSelect={(row: any) => handleEditClass(row._raw)}
+                    items={schedule
+                      .filter((c) => c.dateIso === selectedDateIso)
+                      .map((sc) => ({
+                        id: sc.id,
+                        name: getClassName(sc.classId),
+                        time: sc.time,
+                        instructor: getInstructorName(sc.instructorId),
+                        instructorAvatarUrl: getInstructorAvatar(sc.instructorId),
+                        enrolled: sc.booked,
+                        capacity: getClassCapacity(sc.classId),
+                        recurring: sc.recurring,
+                        instructorCheckedInAt: sc.instructorCheckInTime
+                          ? new Date(sc.instructorCheckInTime).toLocaleTimeString("en-US", { hour: "2-digit", minute: "2-digit" })
+                          : null,
+                        _raw: sc,
+                      } as any))}
+                    actions={(row: any) => {
+                      const sc = row._raw;
+                      return (
+                        <>
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            onClick={() => handleEditClass(sc)}
+                            className="border-sage/20 text-sage hover:bg-sage/10 font-body h-8 w-8 p-0"
+                          >
+                            <Edit2 className="h-3.5 w-3.5" />
+                          </Button>
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            onClick={() => handleDuplicateClass(sc)}
+                            className="border-charcoal/20 text-charcoal hover:bg-charcoal/5 font-body h-8 w-8 p-0"
+                          >
+                            <Copy className="h-3.5 w-3.5" />
+                          </Button>
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            onClick={() => handleDeleteClass(sc.id)}
+                            className="border-red-500/20 text-red-600 hover:bg-red-50 font-body h-8 w-8 p-0"
+                          >
+                            <Trash2 className="h-3.5 w-3.5" />
+                          </Button>
+                        </>
+                      );
+                    }}
+                  />
+                </CardContent>
+              </Card>
+            </div>
 
           </div>
         </main>
@@ -1115,13 +984,60 @@ export default function AdminSchedule() {
             </DialogDescription>
           </DialogHeader>
           
-          <div className="space-y-4 py-4">
+          <div className="py-4">
             {usingPlaceholderCatalog ? (
-              <div className="rounded-lg border border-amber-200 bg-amber-50 px-4 py-3 font-body text-sm text-amber-950">
+              <div className="rounded-lg border border-amber-200 bg-amber-50 px-4 py-3 font-body text-sm text-amber-950 mb-4">
                 <strong className="font-medium">Sample list:</strong> there are no class types or instructors in the database yet, so the menus below show built-in examples. Add real classes and instructors in Admin → Settings, then you can schedule live sessions.
               </div>
             ) : null}
 
+            <Tabs defaultValue="basics" className="w-full">
+              <TabsList className="grid w-full grid-cols-2 bg-cream/50">
+                <TabsTrigger value="basics" className="font-body data-[state=active]:bg-sage data-[state=active]:text-white">
+                  Basics
+                </TabsTrigger>
+                <TabsTrigger value="schedule" className="font-body data-[state=active]:bg-sage data-[state=active]:text-white">
+                  When &amp; Repeat
+                </TabsTrigger>
+              </TabsList>
+
+              <TabsContent value="basics" className="space-y-4 mt-4">
+            <div>
+              <Label className="font-body text-charcoal/80 mb-2">Class Type</Label>
+              <Select value={selectedClass} onValueChange={setSelectedClass}>
+                <SelectTrigger className="h-12 border-charcoal/20 focus:border-sage font-body">
+                  <SelectValue placeholder="Select class" />
+                </SelectTrigger>
+                <SelectContent className="max-h-[300px] overflow-y-auto">
+                  {classOptions.map(cls => (
+                    <SelectItem key={cls.id} value={cls.id}>
+                      {cls.name} (Max: {cls.max_capacity})
+                      {cls._isPlaceholder ? " — sample" : ""}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+
+            <div>
+              <Label className="font-body text-charcoal/80 mb-2">Instructor</Label>
+              <Select value={selectedInstructor} onValueChange={setSelectedInstructor}>
+                <SelectTrigger className="h-12 border-charcoal/20 focus:border-sage font-body">
+                  <SelectValue placeholder="Select instructor" />
+                </SelectTrigger>
+                <SelectContent className="max-h-[300px] overflow-y-auto">
+                  {instructorOptions.map(instructor => (
+                    <SelectItem key={instructor.id} value={instructor.id}>
+                      {instructor.name}
+                      {instructor._isPlaceholder ? " — sample" : ""}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+              </TabsContent>
+
+              <TabsContent value="schedule" className="space-y-4 mt-4">
             <div>
               <Label className="font-body text-charcoal/80 mb-2">Day of Week</Label>
               <Select value={selectedDay} onValueChange={setSelectedDay}>
@@ -1217,40 +1133,6 @@ export default function AdminSchedule() {
               </p>
             </div>
 
-            <div>
-              <Label className="font-body text-charcoal/80 mb-2">Class Type</Label>
-              <Select value={selectedClass} onValueChange={setSelectedClass}>
-                <SelectTrigger className="h-12 border-charcoal/20 focus:border-sage font-body">
-                  <SelectValue placeholder="Select class" />
-                </SelectTrigger>
-                <SelectContent className="max-h-[300px] overflow-y-auto">
-                  {classOptions.map(cls => (
-                    <SelectItem key={cls.id} value={cls.id}>
-                      {cls.name} (Max: {cls.max_capacity})
-                      {cls._isPlaceholder ? " — sample" : ""}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
-
-            <div>
-              <Label className="font-body text-charcoal/80 mb-2">Instructor</Label>
-              <Select value={selectedInstructor} onValueChange={setSelectedInstructor}>
-                <SelectTrigger className="h-12 border-charcoal/20 focus:border-sage font-body">
-                  <SelectValue placeholder="Select instructor" />
-                </SelectTrigger>
-                <SelectContent className="max-h-[300px] overflow-y-auto">
-                  {instructorOptions.map(instructor => (
-                    <SelectItem key={instructor.id} value={instructor.id}>
-                      {instructor.name}
-                      {instructor._isPlaceholder ? " — sample" : ""}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
-
             {!isRecurring && (
               <div>
                 <Label className="font-body text-charcoal/80 mb-2">Week of Month</Label>
@@ -1289,6 +1171,8 @@ export default function AdminSchedule() {
                 </p>
               </div>
             </div>
+              </TabsContent>
+            </Tabs>
           </div>
 
           <DialogFooter>

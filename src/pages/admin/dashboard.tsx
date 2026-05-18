@@ -1,6 +1,29 @@
-import { useState, useEffect, useMemo, useRef } from "react";
+import { Fragment, useState, useEffect, useMemo, useRef } from "react";
 import { useRouter } from "next/router";
-import { AdminNavigation } from "@/components/AdminNavigation";
+import { ListAvatar } from "@/components/admin/ListAvatar";
+import { DayScheduleList } from "@/components/admin/DayScheduleList";
+import { MetricCard } from "@/components/admin/MetricCard";
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
+import {
+  ChartContainer,
+  ChartLegend,
+  ChartLegendContent,
+  ChartTooltip,
+  ChartTooltipContent,
+} from "@/components/ui/chart";
+import {
+  Bar,
+  BarChart,
+  CartesianGrid,
+  Cell,
+  ComposedChart,
+  Label as RechartsLabel,
+  Line,
+  Pie,
+  PieChart as RechartsPieChart,
+  XAxis,
+  YAxis,
+} from "recharts";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -33,6 +56,7 @@ import {
   Trophy,
   Star,
   ChevronRight,
+  ChevronLeft,
   Plus,
   Edit,
   Trash2,
@@ -274,6 +298,10 @@ export default function AdminDashboard() {
   >([]);
   const [rentalInquiriesLoading, setRentalInquiriesLoading] = useState(false);
 
+  const [overviewLoaded, setOverviewLoaded] = useState(false);
+  const [financeTrend, setFinanceTrend] = useState<Array<{ month: string; monthIso: string; revenue: number; expenses: number; profit: number }>>([]);
+  const [peakHours, setPeakHours] = useState<{ slots: string[]; days: string[]; grid: number[][]; max: number }>({ slots: [], days: [], grid: [], max: 0 });
+  const [classesLoaded, setClassesLoaded] = useState(false);
   const [overviewStats, setOverviewStats] = useState({
     totalMembers: 0,
     activeToday: 0,
@@ -289,8 +317,13 @@ export default function AdminDashboard() {
   const [upcomingClasses, setUpcomingClasses] = useState<
     { id: string | number; scheduleId?: string; name: string; time: string; instructor: string; spots: string; status: string }[]
   >([]);
-  /** Today's rosters with check-in details (from /api/admin/dashboard/today-classes). */
+  /** Day rosters with check-in details (from /api/admin/dashboard/today-classes). */
   const [todayClassesDetail, setTodayClassesDetail] = useState<any[]>([]);
+  /** ISO yyyy-mm-dd date for the schedule card; defaults to today. */
+  const [scheduleDate, setScheduleDate] = useState<string>(() => {
+    const d = new Date();
+    return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`;
+  });
   const [financeStats, setFinanceStats] = useState({
     totalRevenue: 0,
     totalExpenses: 0,
@@ -325,6 +358,7 @@ export default function AdminDashboard() {
       totalCheckIns: number;
       rating: number;
       specialties: string;
+      photo?: string | null;
     }[]
   >([]);
   const [classPerformance, setClassPerformance] = useState<
@@ -449,6 +483,7 @@ export default function AdminDashboard() {
         memberPayments: mr,
         profit: mr - prev.coachPayments,
       }));
+      setOverviewLoaded(true);
     })();
     return () => {
       cancelled = true;
@@ -486,7 +521,7 @@ export default function AdminDashboard() {
     let cancelled = false;
 
     void loadSection("today-classes", async () => {
-      const r = await fetch("/api/admin/dashboard/today-classes");
+      const r = await fetch(`/api/admin/dashboard/today-classes?date=${encodeURIComponent(scheduleDate)}`);
       if (!r.ok || cancelled) return;
       const d = await r.json();
       if (!cancelled && Array.isArray(d.todayClasses)) setTodayClassesDetail(d.todayClasses);
@@ -517,7 +552,7 @@ export default function AdminDashboard() {
     });
 
     return () => { cancelled = true; };
-  }, [status, session, activeTab]);
+  }, [status, session, activeTab, scheduleDate]);
 
   /** Members tab. */
   useEffect(() => {
@@ -593,6 +628,16 @@ export default function AdminDashboard() {
       if (!cancelled) {
         if (Array.isArray(d.classPerformance)) setClassPerformance(d.classPerformance);
         if (Array.isArray(d.disciplineSplit)) setDisciplineSplit(d.disciplineSplit);
+        setClassesLoaded(true);
+      }
+    });
+
+    void loadSection("peak-hours", async () => {
+      const r = await fetch("/api/admin/dashboard/peak-hours");
+      if (!r.ok || cancelled) return;
+      const d = await r.json();
+      if (!cancelled && Array.isArray(d.grid)) {
+        setPeakHours({ slots: d.slots ?? [], days: d.days ?? [], grid: d.grid, max: Number(d.max ?? 0) });
       }
     });
 
@@ -611,6 +656,13 @@ export default function AdminDashboard() {
       if (!r.ok || cancelled) return;
       const d = await r.json();
       if (!cancelled && Array.isArray(d.transactions)) setTransactions(d.transactions);
+    });
+
+    void loadSection("finance-trend", async () => {
+      const r = await fetch("/api/admin/dashboard/finance-trend");
+      if (!r.ok || cancelled) return;
+      const d = await r.json();
+      if (!cancelled && Array.isArray(d.trend)) setFinanceTrend(d.trend);
     });
 
     return () => { cancelled = true; };
@@ -1065,303 +1117,204 @@ export default function AdminDashboard() {
         <div className="fixed top-20 right-20 w-72 h-72 bg-sage/10 rounded-full blur-3xl pointer-events-none" />
         <div className="fixed bottom-20 left-20 w-96 h-96 bg-cream/50 rounded-full blur-3xl pointer-events-none" />
         
-        <AdminNavigation />
         
-        <main className="md:pl-64 min-h-screen pt-20">
+        <main className="min-h-screen">
           <div className="max-w-7xl mx-auto p-6 lg:p-8 space-y-8">
-            
-            {/* Header */}
-            <div className="flex items-center justify-between">
+            <div className="flex items-center justify-between flex-wrap gap-3">
               <div>
-                <h1 className="font-display text-4xl md:text-5xl text-charcoal mb-2">
-                  Dashboard
-                </h1>
-                <p className="font-body text-charcoal/60 text-lg">
-                  Welcome back, Admin. Here's what's happening today.
-                </p>
+                <h1 className="font-display text-3xl md:text-4xl text-charcoal leading-tight">Dashboard</h1>
+                <p className="font-body text-charcoal/60">Welcome back, Admin. Here&apos;s what&apos;s happening today.</p>
               </div>
-              <div className="flex items-center gap-3">
-                <Select value={dateRange} onValueChange={setDateRange}>
-                  <SelectTrigger className="w-36 border-sage/20 font-body">
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="week">This Week</SelectItem>
-                    <SelectItem value="month">This Month</SelectItem>
-                    <SelectItem value="quarter">This Quarter</SelectItem>
-                    <SelectItem value="year">This Year</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
+              <Select value={dateRange} onValueChange={setDateRange}>
+                <SelectTrigger className="w-36 border-sage/20 font-body">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="week">This Week</SelectItem>
+                  <SelectItem value="month">This Month</SelectItem>
+                  <SelectItem value="quarter">This Quarter</SelectItem>
+                  <SelectItem value="year">This Year</SelectItem>
+                </SelectContent>
+              </Select>
             </div>
 
             {/* Tabs */}
             <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">
-              <TabsList className="bg-white/80 backdrop-blur-xl border border-sage/20 p-1 flex flex-wrap gap-1 h-auto justify-start">
-                <TabsTrigger value="overview" className="data-[state=active]:bg-sage data-[state=active]:text-white font-body">
-                  <BarChart3 className="h-4 w-4 mr-2" />
-                  Overview
-                </TabsTrigger>
-                <TabsTrigger value="finance" className="data-[state=active]:bg-sage data-[state=active]:text-white font-body">
-                  <DollarSign className="h-4 w-4 mr-2" />
-                  Finance
-                </TabsTrigger>
-                <TabsTrigger value="pricing" className="data-[state=active]:bg-sage data-[state=active]:text-white font-body">
-                  <Tag className="h-4 w-4 mr-2" />
-                  Pricing
-                </TabsTrigger>
-                <TabsTrigger value="meal-waitlist" className="data-[state=active]:bg-sage data-[state=active]:text-white font-body">
-                  <ChefHat className="h-4 w-4 mr-2" />
-                  Meal waitlist
-                </TabsTrigger>
-                <TabsTrigger value="rental-inquiries" className="data-[state=active]:bg-sage data-[state=active]:text-white font-body">
-                  <Building2 className="h-4 w-4 mr-2" />
-                  Rentals
-                </TabsTrigger>
-                <TabsTrigger value="members" className="data-[state=active]:bg-sage data-[state=active]:text-white font-body">
-                  <Users className="h-4 w-4 mr-2" />
-                  Members
-                </TabsTrigger>
-                <TabsTrigger value="instructors" className="data-[state=active]:bg-sage data-[state=active]:text-white font-body">
-                  <Award className="h-4 w-4 mr-2" />
-                  Instructors
-                </TabsTrigger>
-                <TabsTrigger value="classes" className="data-[state=active]:bg-sage data-[state=active]:text-white font-body">
-                  <Target className="h-4 w-4 mr-2" />
-                  Classes
-                </TabsTrigger>
+              <TabsList className="bg-cream/50 border border-sage/15 p-1 flex flex-wrap gap-1 h-auto justify-start w-full sm:w-auto">
+                {[
+                  { v: "overview", l: "Overview", I: BarChart3 },
+                  { v: "finance", l: "Finance", I: DollarSign },
+                  { v: "pricing", l: "Pricing", I: Tag },
+                  { v: "meal-waitlist", l: "Meal waitlist", I: ChefHat },
+                  { v: "rental-inquiries", l: "Rentals", I: Building2 },
+                  { v: "members", l: "Members", I: Users },
+                  { v: "instructors", l: "Instructors", I: Award },
+                  { v: "classes", l: "Classes", I: Target },
+                ].map((t) => (
+                  <TabsTrigger
+                    key={t.v}
+                    value={t.v}
+                    className="font-body gap-2 px-3 text-charcoal/60 data-[state=active]:bg-sage data-[state=active]:text-white data-[state=active]:shadow-sm"
+                  >
+                    <t.I className="h-4 w-4" />
+                    {t.l}
+                  </TabsTrigger>
+                ))}
               </TabsList>
 
               {/* OVERVIEW TAB */}
               <TabsContent value="overview" className="space-y-6">
                 {/* Key Stats */}
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                  <Card className="border-sage/20 bg-white/95 backdrop-blur-xl hover:shadow-2xl transition-all duration-600">
-                    <CardHeader className="pb-3">
-                      <div className="flex items-center justify-between">
-                        <CardTitle className="font-body text-sm text-charcoal/60 font-medium">
-                          Total Members
-                        </CardTitle>
-                        <Users className="h-5 w-5 text-sage" />
-                      </div>
-                    </CardHeader>
-                    <CardContent>
-                      <div className="font-display text-4xl text-charcoal mb-2">
-                        {overviewStats.totalMembers}
-                      </div>
-                      <div className="flex items-center gap-2 text-sm">
-                        <Badge variant="outline" className="border-sage/20 text-sage bg-sage/5">
-                          <TrendingUp className="h-3 w-3 mr-1" />
-                          +{overviewMeta.newMembersThisMonth} this month
-                        </Badge>
-                      </div>
-                    </CardContent>
-                  </Card>
-
-                  <Card className="border-sage/20 bg-white/95 backdrop-blur-xl hover:shadow-2xl transition-all duration-600">
-                    <CardHeader className="pb-3">
-                      <div className="flex items-center justify-between">
-                        <CardTitle className="font-body text-sm text-charcoal/60 font-medium">
-                          Active Today
-                        </CardTitle>
-                        <Flame className="h-5 w-5 text-terracotta" />
-                      </div>
-                    </CardHeader>
-                    <CardContent>
-                      <div className="font-display text-4xl text-charcoal mb-2">
-                        {overviewStats.activeToday}
-                      </div>
-                      <div className="flex items-center gap-2 text-sm">
-                        <Badge variant="outline" className="border-terracotta/20 text-terracotta bg-terracotta/5">
-                          <CheckCircle2 className="h-3 w-3 mr-1" />
-                          {overviewMeta.classesTodayCount} classes today
-                        </Badge>
-                      </div>
-                    </CardContent>
-                  </Card>
-
-                  <Card className="border-sage/20 bg-white/95 backdrop-blur-xl hover:shadow-2xl transition-all duration-600">
-                    <CardHeader className="pb-3">
-                      <div className="flex items-center justify-between">
-                        <CardTitle className="font-body text-sm text-charcoal/60 font-medium">
-                          Expiring This Week
-                        </CardTitle>
-                        <AlertTriangle className="h-5 w-5 text-amber-500" />
-                      </div>
-                    </CardHeader>
-                    <CardContent>
-                      <div className="font-display text-4xl text-charcoal mb-2">
-                        {overviewStats.expiringWeek}
-                      </div>
-                      <div className="flex items-center gap-2 text-sm">
-                        <Button 
-                          variant="outline" 
-                          size="sm" 
-                          className="border-amber-500/20 text-amber-600 hover:bg-amber-50 h-7 text-xs font-body"
-                        >
-                          Send Reminders
-                        </Button>
-                      </div>
-                    </CardContent>
-                  </Card>
-
-                  <Card className="border-sage/20 bg-white/95 backdrop-blur-xl hover:shadow-2xl transition-all duration-600">
-                    <CardHeader className="pb-3">
-                      <div className="flex items-center justify-between">
-                        <CardTitle className="font-body text-sm text-charcoal/60 font-medium">
-                          Month Revenue
-                        </CardTitle>
-                        <CreditCard className="h-5 w-5 text-sage" />
-                      </div>
-                    </CardHeader>
-                    <CardContent>
-                      <div className="font-display text-4xl text-charcoal mb-2">
-                        ₹{Math.round(overviewStats.monthRevenue).toLocaleString("en-IN")}
-                      </div>
-                      <div className="flex items-center gap-2 text-sm">
-                        <Badge variant="outline" className="border-sage/20 text-sage bg-sage/5">
-                          <TrendingUp className="h-3 w-3 mr-1" />
-                          +23% vs last month
-                        </Badge>
-                      </div>
-                    </CardContent>
-                  </Card>
-
-                  <Card className="border-sage/20 bg-white/95 backdrop-blur-xl hover:shadow-2xl transition-all duration-600">
-                    <CardHeader className="pb-3">
-                      <div className="flex items-center justify-between">
-                        <CardTitle className="font-body text-sm text-charcoal/60 font-medium">
-                          Café Orders
-                        </CardTitle>
-                        <Coffee className="h-5 w-5 text-sage" />
-                      </div>
-                    </CardHeader>
-                    <CardContent>
-                      <div className="font-display text-4xl text-charcoal mb-2">
-                        {overviewStats.cafeOrders}
-                      </div>
-                      <div className="flex items-center gap-2 text-sm">
-                        <Button 
-                          variant="outline" 
-                          size="sm" 
-                          className="border-sage/20 text-sage hover:bg-sage/5 h-7 text-xs font-body"
-                          onClick={() => router.push("/admin/cafe")}
-                        >
-                          View Queue
-                        </Button>
-                      </div>
-                    </CardContent>
-                  </Card>
-
-                  <Card className="border-sage/20 bg-white/95 backdrop-blur-xl hover:shadow-2xl transition-all duration-600">
-                    <CardHeader className="pb-3">
-                      <div className="flex items-center justify-between">
-                        <CardTitle className="font-body text-sm text-charcoal/60 font-medium">
-                          Pending Waivers
-                        </CardTitle>
-                        <AlertTriangle className="h-5 w-5 text-amber-500" />
-                      </div>
-                    </CardHeader>
-                    <CardContent>
-                      <div className="font-display text-4xl text-charcoal mb-2">
-                        {overviewStats.pendingWaivers}
-                      </div>
-                      <div className="flex items-center gap-2 text-sm">
-                        <Button 
-                          variant="outline" 
-                          size="sm" 
-                          className="border-amber-500/20 text-amber-600 hover:bg-amber-50 h-7 text-xs font-body"
-                        >
-                          Review Forms
-                        </Button>
-                      </div>
-                    </CardContent>
-                  </Card>
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                  <MetricCard
+                    label="Total Members"
+                    value={overviewStats.totalMembers}
+                    icon={Users}
+                    tone="sage"
+                    loading={!overviewLoaded}
+                    hint={`+${overviewMeta.newMembersThisMonth} this month`}
+                  />
+                  <MetricCard
+                    label="Active Today"
+                    value={overviewStats.activeToday}
+                    icon={Flame}
+                    tone="terracotta"
+                    loading={!overviewLoaded}
+                    hint={`${overviewMeta.classesTodayCount} classes today`}
+                  />
+                  <MetricCard
+                    label="Expiring This Week"
+                    value={overviewStats.expiringWeek}
+                    icon={AlertTriangle}
+                    tone="amber"
+                    loading={!overviewLoaded}
+                  />
+                  <MetricCard
+                    label="Month Revenue"
+                    value={Math.round(overviewStats.monthRevenue)}
+                    prefix="₹"
+                    icon={CreditCard}
+                    tone="sage"
+                    loading={!overviewLoaded}
+                    hint="+23% vs last month"
+                  />
+                  <MetricCard
+                    label="Café Orders"
+                    value={overviewStats.cafeOrders}
+                    icon={Coffee}
+                    tone="sage"
+                    loading={!overviewLoaded}
+                    footer={
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        className="border-sage/20 text-sage hover:bg-sage/5 h-7 text-xs font-body"
+                        onClick={() => router.push("/admin/cafe")}
+                      >
+                        View Queue
+                      </Button>
+                    }
+                  />
+                  <MetricCard
+                    label="Pending Waivers"
+                    value={overviewStats.pendingWaivers}
+                    icon={AlertTriangle}
+                    tone="amber"
+                    loading={!overviewLoaded}
+                  />
                 </div>
 
                 {/* Upcoming Classes */}
                 <Card className="border-sage/20 bg-white/95 backdrop-blur-xl">
                     <CardHeader>
-                      <CardTitle className="font-display text-2xl text-charcoal">
-                        Today&apos;s schedule
-                      </CardTitle>
-                      <CardDescription className="font-body text-charcoal/60">
-                        {todayClassesDetail.length > 0
-                          ? "Tap a class to see who checked in. Check-in opens for members 15 minutes before start."
-                          : "Upcoming classes — full roster appears after extras load."}
-                      </CardDescription>
+                      <div className="flex flex-wrap items-start justify-between gap-3">
+                        <div>
+                          <CardTitle className="font-display text-2xl text-charcoal">
+                            {(() => {
+                              const today = new Date();
+                              const todayIso = `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, "0")}-${String(today.getDate()).padStart(2, "0")}`;
+                              if (scheduleDate === todayIso) return "Today's schedule";
+                              const [y, m, d] = scheduleDate.split("-").map(Number);
+                              const dt = new Date(y, m - 1, d);
+                              return dt.toLocaleDateString("en-US", { weekday: "long", month: "short", day: "numeric" });
+                            })()}
+                          </CardTitle>
+                          <CardDescription className="font-body text-charcoal/60">
+                            {todayClassesDetail.length > 0
+                              ? "Tap a class to see who checked in. Check-in opens for members 15 minutes before start."
+                              : "No classes scheduled for this day."}
+                          </CardDescription>
+                        </div>
+                        <div className="flex items-center gap-2">
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            className="border-sage/20 text-sage hover:bg-sage/5 h-9 px-2"
+                            onClick={() => {
+                              const [y, m, d] = scheduleDate.split("-").map(Number);
+                              const dt = new Date(y, m - 1, d - 1);
+                              setScheduleDate(`${dt.getFullYear()}-${String(dt.getMonth() + 1).padStart(2, "0")}-${String(dt.getDate()).padStart(2, "0")}`);
+                            }}
+                            aria-label="Previous day"
+                          >
+                            <ChevronLeft className="h-4 w-4" />
+                          </Button>
+                          <Input
+                            type="date"
+                            value={scheduleDate}
+                            onChange={(e) => setScheduleDate(e.target.value)}
+                            className="h-9 w-40 border-sage/20 font-body"
+                          />
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            className="border-sage/20 text-sage hover:bg-sage/5 h-9 px-2"
+                            onClick={() => {
+                              const [y, m, d] = scheduleDate.split("-").map(Number);
+                              const dt = new Date(y, m - 1, d + 1);
+                              setScheduleDate(`${dt.getFullYear()}-${String(dt.getMonth() + 1).padStart(2, "0")}-${String(dt.getDate()).padStart(2, "0")}`);
+                            }}
+                            aria-label="Next day"
+                          >
+                            <ChevronRight className="h-4 w-4" />
+                          </Button>
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            className="border-sage/20 text-sage hover:bg-sage/5 h-9 font-body"
+                            onClick={() => {
+                              const t = new Date();
+                              setScheduleDate(`${t.getFullYear()}-${String(t.getMonth() + 1).padStart(2, "0")}-${String(t.getDate()).padStart(2, "0")}`);
+                            }}
+                          >
+                            Today
+                          </Button>
+                        </div>
+                      </div>
                     </CardHeader>
                     <CardContent>
-                      <div className="space-y-3">
-                        {(todayClassesDetail.length > 0 ? todayClassesDetail.slice(0, 8) : upcomingClasses.slice(0, 8)).map(
-                          (cls: any) => {
-                            const hasRoster = Boolean(cls.attendees);
-                            const checked = cls.checkedIn ?? 0;
-                            const enrolled = cls.enrolled ?? 0;
-                            const spotLabel = cls.spots as string | undefined;
-                            return (
-                          <button
-                            type="button"
-                            key={String(cls.id)}
-                            disabled={!hasRoster}
-                            onClick={() => {
-                              if (hasRoster) {
-                                setSelectedClass(cls);
-                                setShowClassDetailsDialog(true);
-                              }
-                            }}
-                            className={`w-full flex items-center justify-between p-4 rounded-xl border border-charcoal/10 transition-all duration-600 text-left ${
-                              hasRoster
-                                ? "hover:border-sage/30 hover:bg-sage/5 cursor-pointer"
-                                : "opacity-90 cursor-default"
-                            }`}
-                          >
-                            <div className="flex-1">
-                              <div className="font-body font-medium text-charcoal mb-1">
-                                {cls.name}
-                              </div>
-                              <div className="flex flex-wrap items-center gap-3 text-sm text-charcoal/60">
-                                <div className="flex items-center gap-1">
-                                  <Clock className="h-3.5 w-3.5" />
-                                  {cls.time}
-                                </div>
-                                <div className="flex items-center gap-1">
-                                  <Users className="h-3.5 w-3.5" />
-                                  {cls.instructor}
-                                </div>
-                                {hasRoster && (
-                                  <span className="text-sage font-medium">
-                                    {checked}/{enrolled} checked in
-                                  </span>
-                                )}
-                              </div>
-                            </div>
-                            <div className="flex flex-col items-end gap-1">
-                              {hasRoster ? (
-                                <Badge
-                                  variant="outline"
-                                  className="border-sage/20 text-sage bg-sage/5"
-                                >
-                                  Roster
-                                </Badge>
-                              ) : (
-                                <Badge
-                                  variant={cls.status === "full" ? "destructive" : "outline"}
-                                  className={
-                                    cls.status === "full"
-                                      ? ""
-                                      : "border-sage/20 text-sage bg-sage/5"
-                                  }
-                                >
-                                  {spotLabel ?? ""}
-                                </Badge>
-                              )}
-                            </div>
-                          </button>
-                            );
-                          }
-                        )}
-                      </div>
+                      <DayScheduleList
+                        items={(todayClassesDetail.length > 0
+                          ? todayClassesDetail
+                          : upcomingClasses
+                        )
+                          .slice(0, 8)
+                          .map((cls: any) => ({
+                            id: cls.id,
+                            name: cls.name,
+                            time: cls.time,
+                            instructor: cls.instructor ?? "—",
+                            instructorAvatarUrl: cls.instructorAvatarUrl ?? null,
+                            enrolled: cls.enrolled ?? 0,
+                            capacity: cls.capacity ?? (cls.enrolled ?? 0),
+                            recurring: cls.recurring,
+                            _raw: cls,
+                          } as any))}
+                        onSelect={(row: any) => {
+                          setSelectedClass(row._raw);
+                          setShowClassDetailsDialog(true);
+                        }}
+                      />
                     </CardContent>
                   </Card>
 
@@ -1489,72 +1442,38 @@ export default function AdminDashboard() {
               {/* FINANCE TAB */}
               <TabsContent value="finance" className="space-y-6">
                 {/* Finance Stats */}
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                  <Card className="border-sage/20 bg-white/95 backdrop-blur-xl hover:shadow-2xl transition-all duration-600">
-                    <CardHeader className="pb-3">
-                      <div className="flex items-center justify-between">
-                        <CardTitle className="font-body text-sm text-charcoal/60 font-medium">
-                          Total Revenue
-                        </CardTitle>
-                        <TrendingUp className="h-5 w-5 text-sage" />
-                      </div>
-                    </CardHeader>
-                    <CardContent>
-                      <div className="font-display text-4xl text-charcoal mb-2">
-                        ₹{(financeStats.totalRevenue / 100000).toFixed(1)}L
-                      </div>
-                      <div className="flex items-center gap-2 text-sm">
-                        <Badge variant="outline" className="border-sage/20 text-sage bg-sage/5">
-                          <TrendingUp className="h-3 w-3 mr-1" />
-                          +{financeStats.growthRate}% growth
-                        </Badge>
-                      </div>
-                    </CardContent>
-                  </Card>
-
-                  <Card className="border-sage/20 bg-white/95 backdrop-blur-xl hover:shadow-2xl transition-all duration-600">
-                    <CardHeader className="pb-3">
-                      <div className="flex items-center justify-between">
-                        <CardTitle className="font-body text-sm text-charcoal/60 font-medium">
-                          Total Expenses
-                        </CardTitle>
-                        <TrendingDown className="h-5 w-5 text-red-500" />
-                      </div>
-                    </CardHeader>
-                    <CardContent>
-                      <div className="font-display text-4xl text-charcoal mb-2">
-                        ₹{(financeStats.totalExpenses / 100000).toFixed(1)}L
-                      </div>
-                      <div className="flex items-center gap-2 text-sm">
-                        <span className="font-body text-xs text-charcoal/50">
-                          Coach: ₹{(financeStats.coachPayments / 1000).toFixed(0)}k | Studio: ₹{(financeStats.studioExpenses / 1000).toFixed(0)}k
-                        </span>
-                      </div>
-                    </CardContent>
-                  </Card>
-
-                  <Card className="border-sage/20 bg-gradient-to-br from-sage/5 to-white backdrop-blur-xl hover:shadow-2xl transition-all duration-600">
-                    <CardHeader className="pb-3">
-                      <div className="flex items-center justify-between">
-                        <CardTitle className="font-body text-sm text-charcoal/60 font-medium">
-                          Net Profit
-                        </CardTitle>
-                        <DollarSign className="h-5 w-5 text-sage" />
-                      </div>
-                    </CardHeader>
-                    <CardContent>
-                      <div className="font-display text-4xl text-sage mb-2">
-                        ₹{(financeStats.profit / 100000).toFixed(1)}L
-                      </div>
-                      <div className="flex items-center gap-2 text-sm">
-                        <Badge variant="outline" className="border-sage/20 text-sage bg-sage/5">
-                          {financeStats.totalRevenue > 0
-                            ? `${((financeStats.profit / financeStats.totalRevenue) * 100).toFixed(0)}% margin`
-                            : "—"}
-                        </Badge>
-                      </div>
-                    </CardContent>
-                  </Card>
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                  <MetricCard
+                    label="Total Revenue"
+                    value={Math.round(financeStats.totalRevenue)}
+                    prefix="₹"
+                    icon={TrendingUp}
+                    tone="sage"
+                    loading={!overviewLoaded}
+                    hint={`+${financeStats.growthRate}% growth`}
+                  />
+                  <MetricCard
+                    label="Total Expenses"
+                    value={Math.round(financeStats.totalExpenses)}
+                    prefix="₹"
+                    icon={TrendingDown}
+                    tone="terracotta"
+                    loading={!overviewLoaded}
+                    hint={`Coach ₹${Math.round(financeStats.coachPayments).toLocaleString("en-IN")} · Studio ₹${Math.round(financeStats.studioExpenses).toLocaleString("en-IN")}`}
+                  />
+                  <MetricCard
+                    label="Net Profit"
+                    value={Math.round(financeStats.profit)}
+                    prefix="₹"
+                    icon={DollarSign}
+                    tone="sage"
+                    loading={!overviewLoaded}
+                    hint={
+                      financeStats.totalRevenue > 0
+                        ? `${((financeStats.profit / financeStats.totalRevenue) * 100).toFixed(0)}% margin`
+                        : "—"
+                    }
+                  />
                 </div>
 
                 {/* Report Generation */}
@@ -1703,99 +1622,82 @@ export default function AdminDashboard() {
                         (+N guests, food labels, detail dialog). Real payments appear without that badge.
                       </p>
                     ) : null}
-                    <div className="space-y-3">
-                      {financeTxnPg.pageItems.map((txn) => {
-                        const openFinance = txn.finance1Tag === true && txn.financeDetail != null;
-                        const displayMember = txn.memberFull ?? txn.member ?? txn.instructor ?? "Studio";
-                        const plus = txn.memberPlusLabel?.trim() ? ` ${txn.memberPlusLabel.trim()}` : "";
-
-                        const inner = (
-                          <>
-                            <div className="flex items-center gap-4 flex-1">
-                              <div
-                                className={`p-3 rounded-lg ${
-                                  txn.type === "revenue" ? "bg-sage/10" : "bg-red-50"
-                                }`}
+                    <div className="rounded-xl border border-sage/15 bg-white overflow-hidden">
+                      <Table>
+                        <TableHeader>
+                          <TableRow className="bg-sage/5 hover:bg-sage/5 border-sage/10">
+                            <TableHead className="font-body text-xs uppercase tracking-wide text-charcoal/60 px-5 py-3 w-[40px]" />
+                            <TableHead className="font-body text-xs uppercase tracking-wide text-charcoal/60 px-5 py-3">Category</TableHead>
+                            <TableHead className="font-body text-xs uppercase tracking-wide text-charcoal/60 px-5 py-3">Member</TableHead>
+                            <TableHead className="font-body text-xs uppercase tracking-wide text-charcoal/60 px-5 py-3 w-[120px]">Date</TableHead>
+                            <TableHead className="font-body text-xs uppercase tracking-wide text-charcoal/60 px-5 py-3 w-[120px]">Method</TableHead>
+                            <TableHead className="font-body text-xs uppercase tracking-wide text-charcoal/60 px-5 py-3 w-[140px] text-right">Amount</TableHead>
+                          </TableRow>
+                        </TableHeader>
+                        <TableBody>
+                          {financeTxnPg.pageItems.map((txn) => {
+                            const openFinance = txn.finance1Tag === true && txn.financeDetail != null;
+                            const displayMember = txn.memberFull ?? txn.member ?? txn.instructor ?? "Studio";
+                            const plus = txn.memberPlusLabel?.trim() ? ` ${txn.memberPlusLabel.trim()}` : "";
+                            return (
+                              <TableRow
+                                key={txn.id}
+                                className={`border-sage/10 ${openFinance ? "cursor-pointer hover:bg-sage/5" : ""}`}
+                                onClick={openFinance
+                                  ? () => {
+                                      if (txn.financeDetail) setSelectedFinanceDetail(txn.financeDetail);
+                                      setFinanceDetailOpen(true);
+                                    }
+                                  : undefined}
                               >
-                                {txn.type === "revenue" ? (
-                                  <TrendingUp className="h-5 w-5 text-sage" />
-                                ) : (
-                                  <TrendingDown className="h-5 w-5 text-red-500" />
-                                )}
-                              </div>
-                              <div className="flex-1">
-                                <div className="font-body font-medium text-charcoal mb-0.5 flex flex-wrap items-center gap-2">
-                                  <span>{txn.category}</span>
-                                  {txn.isFinanceDemo ? (
-                                    <Badge
-                                      variant="outline"
-                                      className="border-amber-300 bg-amber-50 text-amber-900 text-[10px] uppercase tracking-wide"
-                                    >
-                                      Sample
-                                    </Badge>
-                                  ) : null}
-                                </div>
-                                <div className="font-body text-sm text-charcoal/60 flex flex-wrap items-center gap-x-1.5 gap-y-0.5">
-                                  <span>
-                                    <span className="font-medium text-charcoal/80">{displayMember}</span>
-                                    {plus ? (
-                                      <span className="text-sage font-medium">{plus}</span>
-                                    ) : null}
+                                <TableCell className="px-5 py-3">
+                                  <div className={`p-2 rounded-lg w-fit ${txn.type === "revenue" ? "bg-sage/10" : "bg-red-50"}`}>
+                                    {txn.type === "revenue" ? (
+                                      <TrendingUp className="h-4 w-4 text-sage" />
+                                    ) : (
+                                      <TrendingDown className="h-4 w-4 text-red-500" />
+                                    )}
+                                  </div>
+                                </TableCell>
+                                <TableCell className="px-5 py-3">
+                                  <div className="flex items-center gap-2 flex-wrap">
+                                    <span className="font-body font-medium text-charcoal">{txn.category}</span>
+                                    {txn.isFinanceDemo && (
+                                      <Badge variant="outline" className="border-amber-300 bg-amber-50 text-amber-900 text-[10px] uppercase tracking-wide font-body">
+                                        Sample
+                                      </Badge>
+                                    )}
+                                  </div>
+                                  {txn.foodOrderedLabel && txn.foodOrderedLabel !== "—" && (
+                                    <div className="font-body text-xs text-charcoal/50 mt-0.5 truncate" title={txn.foodOrderedLabel}>
+                                      {txn.foodOrderedLabel}
+                                    </div>
+                                  )}
+                                </TableCell>
+                                <TableCell className="px-5 py-3">
+                                  <div className="font-body text-sm text-charcoal truncate">
+                                    {displayMember}
+                                    {plus && <span className="text-sage font-medium">{plus}</span>}
+                                  </div>
+                                </TableCell>
+                                <TableCell className="px-5 py-3 font-body text-sm text-charcoal/60 whitespace-nowrap">
+                                  {txn.date}
+                                </TableCell>
+                                <TableCell className="px-5 py-3">
+                                  <Badge variant="outline" className="border-charcoal/15 text-charcoal/60 font-body whitespace-nowrap">
+                                    {txn.method}
+                                  </Badge>
+                                </TableCell>
+                                <TableCell className="px-5 py-3 text-right">
+                                  <span className={`font-display text-base tabular-nums ${txn.type === "revenue" ? "text-sage" : "text-red-500"}`}>
+                                    {formatTxnAmountRupee(txn.amount, txn.type)}
                                   </span>
-                                  <span className="text-charcoal/40">•</span>
-                                  <span>{txn.date}</span>
-                                  {txn.foodOrderedLabel && txn.foodOrderedLabel !== "—" ? (
-                                    <>
-                                      <span className="text-charcoal/40">•</span>
-                                      <span>{txn.foodOrderedLabel}</span>
-                                    </>
-                                  ) : null}
-                                  {openFinance ? (
-                                    <>
-                                      <span className="text-charcoal/40">•</span>
-                                      <span className="text-charcoal/50 italic">Details on click</span>
-                                    </>
-                                  ) : null}
-                                </div>
-                              </div>
-                            </div>
-                            <div className="text-right">
-                              <div
-                                className={`font-display text-2xl mb-1 ${
-                                  txn.type === "revenue" ? "text-sage" : "text-red-500"
-                                }`}
-                              >
-                                {formatTxnAmountRupee(txn.amount, txn.type)}
-                              </div>
-                              <Badge variant="outline" className="border-charcoal/10 text-charcoal/60">
-                                {txn.method}
-                              </Badge>
-                            </div>
-                          </>
-                        );
-
-                        const rowClass =
-                          "flex w-full items-center justify-between p-4 rounded-xl border border-charcoal/10 hover:border-sage/30 hover:bg-sage/5 transition-all duration-600";
-
-                        return openFinance ? (
-                          <button
-                            key={txn.id}
-                            type="button"
-                            className={`${rowClass} cursor-pointer text-left`}
-                            onClick={() => {
-                              if (txn.financeDetail)
-                                setSelectedFinanceDetail(txn.financeDetail);
-                              setFinanceDetailOpen(true);
-                            }}
-                          >
-                            {inner}
-                          </button>
-                        ) : (
-                          <div key={txn.id} className={rowClass}>
-                            {inner}
-                          </div>
-                        );
-                      })}
+                                </TableCell>
+                              </TableRow>
+                            );
+                          })}
+                        </TableBody>
+                      </Table>
                     </div>
                     <Pagination page={financeTxnPg.page} total={financeTxnPg.total} onChange={financeTxnPg.setPage} />
 
@@ -2095,60 +1997,58 @@ export default function AdminDashboard() {
                   <Card className="border-sage/20 bg-white/95 backdrop-blur-xl lg:col-span-2">
                     <CardHeader>
                       <CardTitle className="font-display text-xl text-charcoal">
-                        Monthly Profit/Loss Comparison
+                        Monthly P&amp;L
                       </CardTitle>
                       <CardDescription className="font-body text-charcoal/60">
                         Revenue vs expenses over the past 6 months
                       </CardDescription>
                     </CardHeader>
                     <CardContent>
-                      <div className="space-y-6">
-                        {[
-                          { month: "October", revenue: 245, expenses: 185, profit: 60 },
-                          { month: "September", revenue: 230, expenses: 178, profit: 52 },
-                          { month: "August", revenue: 218, expenses: 172, profit: 46 },
-                          { month: "July", revenue: 205, expenses: 165, profit: 40 },
-                          { month: "June", revenue: 192, expenses: 158, profit: 34 },
-                          { month: "May", revenue: 180, expenses: 155, profit: 25 }
-                        ].reverse().map((data, idx) => (
-                          <div key={idx} className="space-y-2">
-                            <div className="flex items-center justify-between">
-                              <div className="flex items-center gap-4 text-xs font-body">
-                                <div className="flex items-center gap-1">
-                                  <div className="w-3 h-3 rounded-full bg-sage" />
-                                  <span className="text-charcoal/60">Revenue: ₹{data.revenue}k</span>
-                                </div>
-                                <div className="flex items-center gap-1">
-                                  <div className="w-3 h-3 rounded-full bg-red-400" />
-                                  <span className="text-charcoal/60">Expenses: ₹{data.expenses}k</span>
-                                </div>
-                                <div className="flex items-center gap-1">
-                                  <TrendingUp className="w-3 h-3 text-sage" />
-                                  <span className="font-medium text-sage">+₹{data.profit}k</span>
-                                </div>
-                              </div>
-                            </div>
-                            <div className="flex gap-2 h-8">
-                              <div 
-                                className="bg-gradient-to-r from-sage to-sage/60 rounded-lg hover:shadow-lg transition-all duration-300 cursor-pointer relative group"
-                                style={{ width: `${(data.revenue / 300) * 100}%` }}
-                              >
-                                <span className="text-xs font-body text-white opacity-0 group-hover:opacity-100 transition-opacity">
-                                  ₹{data.revenue}k
-                                </span>
-                              </div>
-                              <div 
-                                className="bg-gradient-to-r from-red-400 to-red-300 rounded-lg hover:shadow-lg transition-all duration-300 cursor-pointer relative group"
-                                style={{ width: `${(data.expenses / 300) * 100}%` }}
-                              >
-                                <span className="text-xs font-body text-white opacity-0 group-hover:opacity-100 transition-opacity">
-                                  ₹{data.expenses}k
-                                </span>
-                              </div>
-                            </div>
-                          </div>
-                        ))}
-                      </div>
+                      {financeTrend.length === 0 ? (
+                        <div className="h-[280px] flex items-center justify-center font-body text-sm text-charcoal/40">
+                          No data yet.
+                        </div>
+                      ) : (
+                        <ChartContainer
+                          config={{
+                            revenue: { label: "Revenue", color: "#8F9779" },
+                            expenses: { label: "Expenses", color: "#C17856" },
+                            profit: { label: "Profit", color: "#6B8E73" },
+                          }}
+                          className="h-[300px] w-full"
+                        >
+                          <ComposedChart data={financeTrend} margin={{ top: 8, right: 12, left: 0, bottom: 0 }}>
+                            <CartesianGrid vertical={false} strokeDasharray="3 3" stroke="#E5E5E0" />
+                            <XAxis dataKey="month" tickLine={false} axisLine={false} tick={{ fontSize: 12, fill: "#6B6B6B" }} />
+                            <YAxis
+                              tickLine={false}
+                              axisLine={false}
+                              tick={{ fontSize: 12, fill: "#6B6B6B" }}
+                              tickFormatter={(v: number) => `₹${(v / 1000).toFixed(0)}k`}
+                              width={48}
+                            />
+                            <ChartTooltip
+                              cursor={{ fill: "rgba(143,151,121,0.05)" }}
+                              content={
+                                <ChartTooltipContent
+                                  formatter={(v) => `₹${Number(v).toLocaleString("en-IN")}`}
+                                />
+                              }
+                            />
+                            <ChartLegend content={<ChartLegendContent />} />
+                            <Bar dataKey="revenue" fill="var(--color-revenue)" radius={[6, 6, 0, 0]} maxBarSize={36} />
+                            <Bar dataKey="expenses" fill="var(--color-expenses)" radius={[6, 6, 0, 0]} maxBarSize={36} />
+                            <Line
+                              type="monotone"
+                              dataKey="profit"
+                              stroke="var(--color-profit)"
+                              strokeWidth={2.5}
+                              dot={{ r: 4, fill: "var(--color-profit)" }}
+                              activeDot={{ r: 6 }}
+                            />
+                          </ComposedChart>
+                        </ChartContainer>
+                      )}
                     </CardContent>
                   </Card>
                 </div>
@@ -2156,6 +2056,25 @@ export default function AdminDashboard() {
 
               {/* PRICING & COUPONS */}
               <TabsContent value="pricing" className="space-y-6">
+                {(() => {
+                  const totalCoupons = coupons.length;
+                  const activeCoupons = coupons.filter((c) => c.is_active).length;
+                  const totalRedemptions = coupons.reduce((s, c) => s + (c.redemption_count ?? 0), 0);
+                  const scopeTally: Record<string, number> = {};
+                  for (const c of coupons) scopeTally[c.applies_to] = (scopeTally[c.applies_to] ?? 0) + 1;
+                  const topScope = Object.entries(scopeTally).sort((a, b) => b[1] - a[1])[0];
+                  const topLabel = topScope
+                    ? COUPON_CONTEXTS.find((x) => x.value === topScope[0])?.label ?? topScope[0]
+                    : "—";
+                  return (
+                    <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                      <MetricCard label="Total Coupons" value={totalCoupons} icon={Tag} tone="sage" loading={couponsLoading} />
+                      <MetricCard label="Active" value={activeCoupons} icon={CheckCircle2} tone="sage" loading={couponsLoading} hint="Live for checkout" />
+                      <MetricCard label="Redemptions" value={totalRedemptions} icon={TrendingUp} tone="terracotta" loading={couponsLoading} />
+                      <MetricCard label="Top scope" value={topLabel} icon={BarChart3} tone="charcoal" loading={couponsLoading} hint={topScope ? `${topScope[1]} coupons` : ""} />
+                    </div>
+                  );
+                })()}
                 <Card className="border-sage/20 bg-white/95 backdrop-blur-xl">
                   <CardHeader>
                     <CardTitle className="font-display text-2xl text-charcoal">Coupons & discounts</CardTitle>
@@ -2328,73 +2247,59 @@ export default function AdminDashboard() {
                       </div>
                     </div>
 
-                    <div className="border border-sage/15 rounded-xl overflow-hidden">
+                    <div className="space-y-3">
                       {couponsLoading ? (
                         <p className="p-6 font-body text-charcoal/60">Loading coupons…</p>
                       ) : coupons.length === 0 ? (
-                        <p className="p-6 font-body text-charcoal/60">No coupons yet. Create one on the left.</p>
+                        <div className="text-center py-10 border border-dashed border-sage/20 rounded-xl bg-cream/20">
+                          <p className="font-body text-sm text-charcoal/50">No coupons yet. Create one on the left.</p>
+                        </div>
                       ) : (
-                        <div className="overflow-x-auto">
-                          <table className="w-full text-sm font-body">
-                            <thead className="bg-cream/50 border-b border-sage/15">
-                              <tr>
-                                <th className="text-left p-3 font-medium text-charcoal/70">Code</th>
-                                <th className="text-left p-3 font-medium text-charcoal/70">Scope</th>
-                                <th className="text-left p-3 font-medium text-charcoal/70">Discount</th>
-                                <th className="text-left p-3 font-medium text-charcoal/70">Uses</th>
-                                <th className="text-left p-3 font-medium text-charcoal/70">Status</th>
-                                <th className="text-right p-3 font-medium text-charcoal/70">Actions</th>
-                              </tr>
-                            </thead>
-                            <tbody>
+                        <div className="rounded-xl border border-sage/15 bg-white overflow-hidden">
+                          <Table>
+                            <TableHeader>
+                              <TableRow className="bg-sage/5 hover:bg-sage/5 border-sage/10">
+                                <TableHead className="font-body text-xs uppercase tracking-wide text-charcoal/60 px-5 py-3">Code</TableHead>
+                                <TableHead className="font-body text-xs uppercase tracking-wide text-charcoal/60 px-5 py-3">Scope</TableHead>
+                                <TableHead className="font-body text-xs uppercase tracking-wide text-charcoal/60 px-5 py-3">Discount</TableHead>
+                                <TableHead className="font-body text-xs uppercase tracking-wide text-charcoal/60 px-5 py-3">Uses</TableHead>
+                                <TableHead className="font-body text-xs uppercase tracking-wide text-charcoal/60 px-5 py-3">Status</TableHead>
+                                <TableHead className="font-body text-xs uppercase tracking-wide text-charcoal/60 px-5 py-3 w-[180px]">Actions</TableHead>
+                              </TableRow>
+                            </TableHeader>
+                            <TableBody>
                               {couponsPg.pageItems.map((c) => (
-                                <tr key={c.id} className="border-b border-sage/10 last:border-0">
-                                  <td className="p-3 font-mono font-semibold text-charcoal">{c.code}</td>
-                                  <td className="p-3 text-charcoal/80">
+                                <TableRow key={c.id} className="border-sage/10">
+                                  <TableCell className="px-5 py-3 font-mono font-semibold text-charcoal">{c.code}</TableCell>
+                                  <TableCell className="px-5 py-3 font-body text-sm text-charcoal/80">
                                     {COUPON_CONTEXTS.find((x) => x.value === c.applies_to)?.label ?? c.applies_to}
-                                  </td>
-                                  <td className="p-3 text-charcoal">
-                                    {c.discount_type === "percent"
-                                      ? `${c.discount_value}%`
-                                      : `₹${c.discount_value}`}
-                                  </td>
-                                  <td className="p-3 text-charcoal/80">
+                                  </TableCell>
+                                  <TableCell className="px-5 py-3 font-body text-sm text-charcoal">
+                                    {c.discount_type === "percent" ? `${c.discount_value}%` : `₹${c.discount_value}`}
+                                  </TableCell>
+                                  <TableCell className="px-5 py-3 font-body text-sm text-charcoal/80 tabular-nums">
                                     {c.redemption_count}
                                     {c.max_redemptions != null ? ` / ${c.max_redemptions}` : ""}
-                                  </td>
-                                  <td className="p-3">
-                                    <Badge
-                                      className={
-                                        c.is_active ? "bg-sage text-white" : "bg-charcoal/20 text-charcoal"
-                                      }
-                                    >
+                                  </TableCell>
+                                  <TableCell className="px-5 py-3">
+                                    <Badge className={c.is_active ? "bg-sage text-white font-body" : "bg-charcoal/15 text-charcoal/70 font-body"}>
                                       {c.is_active ? "Active" : "Off"}
                                     </Badge>
-                                  </td>
-                                  <td className="p-3 text-right space-x-2">
-                                    <Button
-                                      type="button"
-                                      size="sm"
-                                      variant="outline"
-                                      className="border-sage/30"
-                                      onClick={() => startEditCoupon(c)}
-                                    >
-                                      Edit
-                                    </Button>
-                                    <Button
-                                      type="button"
-                                      size="sm"
-                                      variant="outline"
-                                      className="border-red-200 text-red-700 hover:bg-red-50"
-                                      onClick={() => void deleteCouponById(c.id)}
-                                    >
-                                      Delete
-                                    </Button>
-                                  </td>
-                                </tr>
+                                  </TableCell>
+                                  <TableCell className="px-5 py-3">
+                                    <div className="flex items-center gap-1.5">
+                                      <Button type="button" size="sm" variant="outline" className="border-sage/20 text-sage hover:bg-sage/10 font-body h-8" onClick={() => startEditCoupon(c)}>
+                                        Edit
+                                      </Button>
+                                      <Button type="button" size="sm" variant="outline" className="border-red-200 text-red-600 hover:bg-red-50 font-body h-8" onClick={() => void deleteCouponById(c.id)}>
+                                        Delete
+                                      </Button>
+                                    </div>
+                                  </TableCell>
+                                </TableRow>
                               ))}
-                            </tbody>
-                          </table>
+                            </TableBody>
+                          </Table>
                         </div>
                       )}
                       <Pagination page={couponsPg.page} total={couponsPg.total} onChange={couponsPg.setPage} />
@@ -2405,62 +2310,62 @@ export default function AdminDashboard() {
 
               {/* MEAL SUBSCRIPTION WAITLIST */}
               <TabsContent value="meal-waitlist" className="space-y-6">
+                {(() => {
+                  const total = mealInquiries.length;
+                  const byStatus = (s: string) => mealInquiries.filter((r) => r.status === s).length;
+                  return (
+                    <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                      <MetricCard label="Total Inquiries" value={total} icon={ChefHat} tone="sage" loading={mealInquiriesLoading} />
+                      <MetricCard label="New" value={byStatus("new")} icon={AlertTriangle} tone="amber" loading={mealInquiriesLoading} hint="Awaiting outreach" />
+                      <MetricCard label="Contacted" value={byStatus("contacted")} icon={CheckCircle2} tone="terracotta" loading={mealInquiriesLoading} />
+                      <MetricCard label="Closed" value={byStatus("closed")} icon={CheckCircle2} tone="charcoal" loading={mealInquiriesLoading} />
+                    </div>
+                  );
+                })()}
                 <Card className="border-sage/20 bg-white/95 backdrop-blur-xl">
                   <CardHeader>
                     <CardTitle className="font-display text-2xl text-charcoal">Meal subscription waitlist</CardTitle>
                     <CardDescription className="font-body text-charcoal/60">
-                      Submissions from the “Join the Waitlist” form on the meal subscription page. Newest first.
+                      Submissions from the &ldquo;Join the Waitlist&rdquo; form on the meal subscription page. Newest first.
                     </CardDescription>
                   </CardHeader>
                   <CardContent>
                     {mealInquiriesLoading ? (
                       <p className="font-body text-charcoal/60 py-8">Loading…</p>
                     ) : mealInquiries.length === 0 ? (
-                      <p className="font-body text-charcoal/60 py-8">No enquiries yet.</p>
+                      <div className="text-center py-10 border border-dashed border-sage/20 rounded-xl bg-cream/20">
+                        <p className="font-body text-sm text-charcoal/50">No enquiries yet.</p>
+                      </div>
                     ) : (
-                      <div className="overflow-x-auto border border-sage/15 rounded-xl">
-                        <table className="w-full text-sm font-body">
-                          <thead className="bg-cream/50 border-b border-sage/15">
-                            <tr>
-                              <th className="text-left p-3 font-medium text-charcoal/70">Date</th>
-                              <th className="text-left p-3 font-medium text-charcoal/70">Name</th>
-                              <th className="text-left p-3 font-medium text-charcoal/70">Email</th>
-                              <th className="text-left p-3 font-medium text-charcoal/70">Phone</th>
-                              <th className="text-left p-3 font-medium text-charcoal/70 min-w-[200px]">Message</th>
-                              <th className="text-left p-3 font-medium text-charcoal/70">Status</th>
-                            </tr>
-                          </thead>
-                          <tbody>
+                      <div className="rounded-xl border border-sage/15 bg-white overflow-hidden">
+                        <Table>
+                          <TableHeader>
+                            <TableRow className="bg-sage/5 hover:bg-sage/5 border-sage/10">
+                              <TableHead className="font-body text-xs uppercase tracking-wide text-charcoal/60 px-5 py-3 w-[160px]">Date</TableHead>
+                              <TableHead className="font-body text-xs uppercase tracking-wide text-charcoal/60 px-5 py-3">Name</TableHead>
+                              <TableHead className="font-body text-xs uppercase tracking-wide text-charcoal/60 px-5 py-3">Contact</TableHead>
+                              <TableHead className="font-body text-xs uppercase tracking-wide text-charcoal/60 px-5 py-3 min-w-[200px]">Message</TableHead>
+                              <TableHead className="font-body text-xs uppercase tracking-wide text-charcoal/60 px-5 py-3 w-[160px]">Status</TableHead>
+                            </TableRow>
+                          </TableHeader>
+                          <TableBody>
                             {mealInquiriesPg.pageItems.map((row) => (
-                              <tr key={row.id} className="border-b border-sage/10 last:border-0 align-top">
-                                <td className="p-3 text-charcoal/80 whitespace-nowrap">
-                                  {new Date(row.created_at).toLocaleString("en-IN", {
-                                    dateStyle: "medium",
-                                    timeStyle: "short",
-                                  })}
-                                </td>
-                                <td className="p-3 font-medium text-charcoal">{row.full_name}</td>
-                                <td className="p-3">
-                                  <a
-                                    href={`mailto:${row.email}`}
-                                    className="text-sage hover:underline break-all"
-                                  >
-                                    {row.email}
-                                  </a>
-                                </td>
-                                <td className="p-3 whitespace-nowrap">
-                                  <a href={`tel:${row.phone}`} className="text-charcoal hover:text-sage">
-                                    {row.phone}
-                                  </a>
-                                </td>
-                                <td className="p-3 text-charcoal/80 max-w-md whitespace-pre-wrap">
+                              <TableRow key={row.id} className="border-sage/10 align-top">
+                                <TableCell className="px-5 py-3 font-body text-sm text-charcoal/70 whitespace-nowrap">
+                                  {new Date(row.created_at).toLocaleString("en-IN", { dateStyle: "medium", timeStyle: "short" })}
+                                </TableCell>
+                                <TableCell className="px-5 py-3 font-body font-medium text-charcoal">{row.full_name}</TableCell>
+                                <TableCell className="px-5 py-3">
+                                  <div className="space-y-0.5">
+                                    <a href={`mailto:${row.email}`} className="block font-body text-sm text-sage hover:underline break-all">{row.email}</a>
+                                    <a href={`tel:${row.phone}`} className="block font-body text-xs text-charcoal/60 hover:text-sage whitespace-nowrap">{row.phone}</a>
+                                  </div>
+                                </TableCell>
+                                <TableCell className="px-5 py-3 font-body text-sm text-charcoal/70 max-w-md whitespace-pre-wrap">
                                   {row.message?.trim() ? row.message : "—"}
-                                </td>
-                                <td className="p-3">
-                                  <Select
-                                    value={row.status}
-                                    onValueChange={(v) => void updateMealInquiryStatus(row.id, v)}
-                                  >
+                                </TableCell>
+                                <TableCell className="px-5 py-3">
+                                  <Select value={row.status} onValueChange={(v) => void updateMealInquiryStatus(row.id, v)}>
                                     <SelectTrigger className="w-[140px] border-sage/20 h-9 text-xs">
                                       <SelectValue />
                                     </SelectTrigger>
@@ -2470,11 +2375,11 @@ export default function AdminDashboard() {
                                       <SelectItem value="closed">Closed</SelectItem>
                                     </SelectContent>
                                   </Select>
-                                </td>
-                              </tr>
+                                </TableCell>
+                              </TableRow>
                             ))}
-                          </tbody>
-                        </table>
+                          </TableBody>
+                        </Table>
                       </div>
                     )}
                     <Pagination page={mealInquiriesPg.page} total={mealInquiriesPg.total} onChange={mealInquiriesPg.setPage} />
@@ -2483,6 +2388,19 @@ export default function AdminDashboard() {
               </TabsContent>
 
               <TabsContent value="rental-inquiries" className="space-y-6">
+                {(() => {
+                  const total = rentalInquiries.length;
+                  const byStatus = (s: string) => rentalInquiries.filter((r) => r.status === s).length;
+                  const totalGuests = rentalInquiries.reduce((sum, r) => sum + (Number(r.guest_count) || 0), 0);
+                  return (
+                    <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                      <MetricCard label="Total Inquiries" value={total} icon={Building2} tone="sage" loading={rentalInquiriesLoading} />
+                      <MetricCard label="New" value={byStatus("new")} icon={AlertTriangle} tone="amber" loading={rentalInquiriesLoading} hint="Awaiting reply" />
+                      <MetricCard label="In Review" value={byStatus("in_review")} icon={Clock} tone="terracotta" loading={rentalInquiriesLoading} />
+                      <MetricCard label="Total Guests Asked" value={totalGuests} icon={Users} tone="charcoal" loading={rentalInquiriesLoading} />
+                    </div>
+                  );
+                })()}
                 <Card className="border-sage/20 bg-white/95 backdrop-blur-xl">
                   <CardHeader>
                     <CardTitle className="font-display text-2xl text-charcoal">Space rental inquiries</CardTitle>
@@ -2494,60 +2412,55 @@ export default function AdminDashboard() {
                     {rentalInquiriesLoading ? (
                       <p className="font-body text-charcoal/60 py-8">Loading…</p>
                     ) : rentalInquiries.length === 0 ? (
-                      <p className="font-body text-charcoal/60 py-8">No inquiries yet.</p>
+                      <div className="text-center py-10 border border-dashed border-sage/20 rounded-xl bg-cream/20">
+                        <p className="font-body text-sm text-charcoal/50">No inquiries yet.</p>
+                      </div>
                     ) : (
-                      <div className="overflow-x-auto border border-sage/15 rounded-xl">
-                        <table className="w-full text-sm font-body">
-                          <thead className="bg-cream/50 border-b border-sage/15">
-                            <tr>
-                              <th className="text-left p-3 font-medium text-charcoal/70">Date</th>
-                              <th className="text-left p-3 font-medium text-charcoal/70">Name</th>
-                              <th className="text-left p-3 font-medium text-charcoal/70">Email</th>
-                              <th className="text-left p-3 font-medium text-charcoal/70">Phone</th>
-                              <th className="text-left p-3 font-medium text-charcoal/70">Event</th>
-                              <th className="text-left p-3 font-medium text-charcoal/70">Date / guests</th>
-                              <th className="text-left p-3 font-medium text-charcoal/70 min-w-[180px]">Notes</th>
-                              <th className="text-left p-3 font-medium text-charcoal/70">Status</th>
-                            </tr>
-                          </thead>
-                          <tbody>
+                      <div className="rounded-xl border border-sage/15 bg-white overflow-hidden">
+                        <Table>
+                          <TableHeader>
+                            <TableRow className="bg-sage/5 hover:bg-sage/5 border-sage/10">
+                              <TableHead className="font-body text-xs uppercase tracking-wide text-charcoal/60 px-5 py-3 w-[160px]">Date</TableHead>
+                              <TableHead className="font-body text-xs uppercase tracking-wide text-charcoal/60 px-5 py-3">Name</TableHead>
+                              <TableHead className="font-body text-xs uppercase tracking-wide text-charcoal/60 px-5 py-3">Contact</TableHead>
+                              <TableHead className="font-body text-xs uppercase tracking-wide text-charcoal/60 px-5 py-3">Event</TableHead>
+                              <TableHead className="font-body text-xs uppercase tracking-wide text-charcoal/60 px-5 py-3 min-w-[180px]">Notes</TableHead>
+                              <TableHead className="font-body text-xs uppercase tracking-wide text-charcoal/60 px-5 py-3 w-[120px]">Status</TableHead>
+                            </TableRow>
+                          </TableHeader>
+                          <TableBody>
                             {rentalInquiriesPg.pageItems.map((row) => (
-                              <tr key={row.id} className="border-b border-sage/10 last:border-0 align-top">
-                                <td className="p-3 text-charcoal/80 whitespace-nowrap">
-                                  {new Date(row.created_at).toLocaleString("en-IN", {
-                                    dateStyle: "medium",
-                                    timeStyle: "short",
-                                  })}
-                                </td>
-                                <td className="p-3 font-medium text-charcoal">{row.name}</td>
-                                <td className="p-3">
-                                  <a href={`mailto:${row.email}`} className="text-sage hover:underline break-all">
-                                    {row.email}
-                                  </a>
-                                </td>
-                                <td className="p-3 whitespace-nowrap">
-                                  <a href={`tel:${row.phone}`} className="text-charcoal hover:text-sage">
-                                    {row.phone}
-                                  </a>
-                                </td>
-                                <td className="p-3 text-charcoal/80 max-w-[140px]">
-                                  {row.event_type?.trim() ? row.event_type : "—"}
-                                </td>
-                                <td className="p-3 text-charcoal/80 whitespace-nowrap">
-                                  <div>{row.event_date?.trim() ? row.event_date : "—"}</div>
-                                  <div className="text-charcoal/50 text-xs">
-                                    {row.guest_count?.trim() ? `${row.guest_count} guests` : ""}
+                              <TableRow key={row.id} className="border-sage/10 align-top">
+                                <TableCell className="px-5 py-3 font-body text-sm text-charcoal/70 whitespace-nowrap">
+                                  {new Date(row.created_at).toLocaleString("en-IN", { dateStyle: "medium", timeStyle: "short" })}
+                                </TableCell>
+                                <TableCell className="px-5 py-3 font-body font-medium text-charcoal">{row.name}</TableCell>
+                                <TableCell className="px-5 py-3">
+                                  <div className="space-y-0.5">
+                                    <a href={`mailto:${row.email}`} className="block font-body text-sm text-sage hover:underline break-all">{row.email}</a>
+                                    <a href={`tel:${row.phone}`} className="block font-body text-xs text-charcoal/60 hover:text-sage whitespace-nowrap">{row.phone}</a>
+                                  </div>
+                                </TableCell>
+                                <TableCell className="px-5 py-3">
+                                  <div className="font-body text-sm text-charcoal">{row.event_type?.trim() ? row.event_type : "—"}</div>
+                                  <div className="font-body text-xs text-charcoal/50 mt-0.5">
+                                    {row.event_date?.trim() ? row.event_date : ""}
+                                    {row.guest_count?.trim() ? ` · ${row.guest_count} guests` : ""}
                                     {row.duration?.trim() ? ` · ${row.duration}` : ""}
                                   </div>
-                                </td>
-                                <td className="p-3 text-charcoal/80 max-w-md whitespace-pre-wrap">
+                                </TableCell>
+                                <TableCell className="px-5 py-3 font-body text-sm text-charcoal/70 max-w-md whitespace-pre-wrap">
                                   {row.message?.trim() ? row.message : "—"}
-                                </td>
-                                <td className="p-3 capitalize text-charcoal/80">{row.status}</td>
-                              </tr>
+                                </TableCell>
+                                <TableCell className="px-5 py-3">
+                                  <Badge variant="outline" className="border-sage/20 text-sage bg-sage/5 capitalize font-body whitespace-nowrap">
+                                    {row.status.replace(/_/g, " ")}
+                                  </Badge>
+                                </TableCell>
+                              </TableRow>
                             ))}
-                          </tbody>
-                        </table>
+                          </TableBody>
+                        </Table>
                       </div>
                     )}
                     <Pagination page={rentalInquiriesPg.page} total={rentalInquiriesPg.total} onChange={rentalInquiriesPg.setPage} />
@@ -2568,102 +2481,41 @@ export default function AdminDashboard() {
                 </div>
 
                 {/* Member Stats */}
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-                  <Card className="border-sage/20 bg-white/95 backdrop-blur-xl hover:shadow-2xl transition-all duration-600">
-                    <CardHeader className="pb-3">
-                      <div className="flex items-center justify-between">
-                        <CardTitle className="font-body text-sm text-charcoal/60 font-medium">
-                          On-Time Check-Ins
-                        </CardTitle>
-                        <UserCheck className="h-5 w-5 text-sage" />
-                      </div>
-                    </CardHeader>
-                    <CardContent>
-                      <div className="font-display text-4xl text-charcoal mb-2">
-                        {displayedMemberStats.onTimeCheckIns}
-                      </div>
-                      <div className="flex items-center gap-2 text-sm">
-                        <Badge variant="outline" className="border-sage/20 text-sage bg-sage/5">
-                          {displayedMemberStats.checkInSample > 0
-                            ? `${displayedMemberStats.onTimeCheckInPct}% of ${displayedMemberStats.checkInSample} check-ins`
-                            : "No recent check-ins"}
-                        </Badge>
-                      </div>
-                    </CardContent>
-                  </Card>
-
-                  <Card className="border-sage/20 bg-white/95 backdrop-blur-xl hover:shadow-2xl transition-all duration-600">
-                    <CardHeader className="pb-3">
-                      <div className="flex items-center justify-between">
-                        <CardTitle className="font-body text-sm text-charcoal/60 font-medium">
-                          Late Check-Ins
-                        </CardTitle>
-                        <Clock className="h-5 w-5 text-amber-500" />
-                      </div>
-                    </CardHeader>
-                    <CardContent>
-                      <div className="font-display text-4xl text-charcoal mb-2">
-                        {displayedMemberStats.lateCheckIns}
-                      </div>
-                      <div className="flex items-center gap-2 text-sm">
-                        <Badge variant="outline" className="border-amber-500/20 text-amber-600 bg-amber-50">
-                          {displayedMemberStats.checkInSample > 0
-                            ? `${displayedMemberStats.lateCheckInPct}% late (after start)`
-                            : "No recent check-ins"}
-                        </Badge>
-                      </div>
-                    </CardContent>
-                  </Card>
-
-                  <Card className="border-sage/20 bg-white/95 backdrop-blur-xl hover:shadow-2xl transition-all duration-600">
-                    <CardHeader className="pb-3">
-                      <div className="flex items-center justify-between">
-                        <CardTitle className="font-body text-sm text-charcoal/60 font-medium">
-                          No-Shows
-                        </CardTitle>
-                        <UserX className="h-5 w-5 text-red-500" />
-                      </div>
-                    </CardHeader>
-                    <CardContent>
-                      <div className="font-display text-4xl text-charcoal mb-2">
-                        {displayedMemberStats.noShows}
-                      </div>
-                      <div className="flex items-center gap-2 text-sm">
-                        <Button 
-                          variant="outline" 
-                          size="sm" 
-                          className="border-amber-500/20 text-amber-600 hover:bg-amber-50 h-7 text-xs font-body"
-                        >
-                          Send to CRM
-                        </Button>
-                      </div>
-                    </CardContent>
-                  </Card>
-
-                  <Card className="border-sage/20 bg-white/95 backdrop-blur-xl hover:shadow-2xl transition-all duration-600">
-                    <CardHeader className="pb-3">
-                      <div className="flex items-center justify-between">
-                        <CardTitle className="font-body text-sm text-charcoal/60 font-medium">
-                          Inactive Members
-                        </CardTitle>
-                        <AlertTriangle className="h-5 w-5 text-amber-500" />
-                      </div>
-                    </CardHeader>
-                    <CardContent>
-                      <div className="font-display text-4xl text-charcoal mb-2">
-                        {displayedMemberStats.inactiveUsers}
-                      </div>
-                      <div className="flex items-center gap-2 text-sm">
-                        <Button 
-                          variant="outline" 
-                          size="sm" 
-                          className="border-amber-500/20 text-amber-600 hover:bg-amber-50 h-7 text-xs font-body"
-                        >
-                          Send to CRM
-                        </Button>
-                      </div>
-                    </CardContent>
-                  </Card>
+                <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                  <MetricCard
+                    label="On-Time Check-Ins"
+                    value={displayedMemberStats.onTimeCheckIns}
+                    icon={UserCheck}
+                    tone="sage"
+                    hint={
+                      displayedMemberStats.checkInSample > 0
+                        ? `${displayedMemberStats.onTimeCheckInPct}% of ${displayedMemberStats.checkInSample}`
+                        : "No recent check-ins"
+                    }
+                  />
+                  <MetricCard
+                    label="Late Check-Ins"
+                    value={displayedMemberStats.lateCheckIns}
+                    icon={Clock}
+                    tone="amber"
+                    hint={
+                      displayedMemberStats.checkInSample > 0
+                        ? `${displayedMemberStats.lateCheckInPct}% after start`
+                        : "No recent check-ins"
+                    }
+                  />
+                  <MetricCard
+                    label="No-Shows"
+                    value={displayedMemberStats.noShows}
+                    icon={UserX}
+                    tone="terracotta"
+                  />
+                  <MetricCard
+                    label="Inactive Members"
+                    value={displayedMemberStats.inactiveUsers}
+                    icon={AlertTriangle}
+                    tone="charcoal"
+                  />
                 </div>
 
                 {/* Member Analytics Graphs */}
@@ -2679,26 +2531,34 @@ export default function AdminDashboard() {
                       </CardDescription>
                     </CardHeader>
                     <CardContent>
-                      <div className="space-y-4">
-                        <div className="h-48 flex items-end justify-between gap-2">
-                          {[8, 12, 10, 15, 13, 18, 16, 21, 19, 24, 22, 28].map((value, idx) => (
-                            <div key={idx} className="flex-1 flex flex-col items-center gap-1">
-                              <div 
-                                className="w-full bg-gradient-to-t from-sage to-sage/40 rounded-t-sm hover:from-sage/90 hover:to-sage/60 transition-all duration-300 cursor-pointer relative group"
-                                style={{ height: `${(value / 28) * 100}%` }}
-                              >
-                                <div className="absolute -top-8 left-1/2 -translate-x-1/2 bg-charcoal text-white text-xs px-2 py-1 rounded opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap">
-                                  {value} new
-                                </div>
-                              </div>
-                            </div>
-                          ))}
-                        </div>
-                        <div className="flex items-center justify-between text-xs text-charcoal/50 font-body">
-                          <span>Jan</span>
-                          <span>Dec</span>
-                        </div>
-                      </div>
+                      <ChartContainer
+                        config={{ growth: { label: "New members", color: "#8F9779" } }}
+                        className="h-[240px] w-full"
+                      >
+                        <BarChart
+                          data={[
+                            { month: "Jan", growth: 8 },
+                            { month: "Feb", growth: 12 },
+                            { month: "Mar", growth: 10 },
+                            { month: "Apr", growth: 15 },
+                            { month: "May", growth: 13 },
+                            { month: "Jun", growth: 18 },
+                            { month: "Jul", growth: 16 },
+                            { month: "Aug", growth: 21 },
+                            { month: "Sep", growth: 19 },
+                            { month: "Oct", growth: 24 },
+                            { month: "Nov", growth: 22 },
+                            { month: "Dec", growth: 28 },
+                          ]}
+                          margin={{ top: 8, right: 12, left: 0, bottom: 0 }}
+                        >
+                          <CartesianGrid vertical={false} strokeDasharray="3 3" stroke="#E5E5E0" />
+                          <XAxis dataKey="month" tickLine={false} axisLine={false} tick={{ fontSize: 11, fill: "#6B6B6B" }} />
+                          <YAxis tickLine={false} axisLine={false} tick={{ fontSize: 11, fill: "#6B6B6B" }} width={32} />
+                          <ChartTooltip cursor={{ fill: "rgba(143,151,121,0.05)" }} content={<ChartTooltipContent />} />
+                          <Bar dataKey="growth" fill="var(--color-growth)" radius={[6, 6, 0, 0]} maxBarSize={24} />
+                        </BarChart>
+                      </ChartContainer>
                     </CardContent>
                   </Card>
 
@@ -2713,53 +2573,75 @@ export default function AdminDashboard() {
                       </CardDescription>
                     </CardHeader>
                     <CardContent>
-                      <div className="flex items-center justify-center py-8">
-                        <div className="relative w-40 h-40">
-                          <svg viewBox="0 0 100 100" className="transform -rotate-90">
-                            {/* Active - 88% */}
-                            <circle
-                              cx="50"
-                              cy="50"
-                              r="40"
-                              fill="transparent"
-                              stroke="#8F9779"
-                              strokeWidth="20"
-                              strokeDasharray="220 251"
-                            />
-                            {/* Inactive - 12% */}
-                            <circle
-                              cx="50"
-                              cy="50"
-                              r="40"
-                              fill="transparent"
-                              stroke="#D1D5DB"
-                              strokeWidth="20"
-                              strokeDasharray="30 221"
-                              strokeDashoffset="-220"
-                            />
-                          </svg>
-                          <div className="absolute inset-0 flex flex-col items-center justify-center">
-                            <div className="font-display text-3xl text-charcoal">88%</div>
-                            <div className="font-body text-xs text-charcoal/60">Active</div>
-                          </div>
-                        </div>
-                      </div>
-                      <div className="grid grid-cols-2 gap-4">
-                        <div className="p-3 rounded-lg bg-sage/5 border border-sage/20">
-                          <div className="flex items-center gap-2 mb-1">
-                            <div className="w-2 h-2 rounded-full bg-sage" />
-                            <span className="font-body text-xs text-charcoal/60">Active</span>
-                          </div>
-                          <div className="font-display text-2xl text-sage">112</div>
-                        </div>
-                        <div className="p-3 rounded-lg bg-charcoal/5 border border-charcoal/20">
-                          <div className="flex items-center gap-2 mb-1">
-                            <div className="w-2 h-2 rounded-full bg-charcoal/40" />
-                            <span className="font-body text-xs text-charcoal/60">Inactive</span>
-                          </div>
-                          <div className="font-display text-2xl text-charcoal">15</div>
-                        </div>
-                      </div>
+                      {(() => {
+                        const activeRaw = displayedMemberStats.specialtyActive + displayedMemberStats.premiumActive;
+                        const inactiveRaw = displayedMemberStats.inactiveUsers;
+                        const active = activeRaw > 0 || inactiveRaw > 0 ? activeRaw : 112;
+                        const inactive = activeRaw > 0 || inactiveRaw > 0 ? inactiveRaw : 15;
+                        const total = active + inactive;
+                        const activePct = total > 0 ? Math.round((active / total) * 100) : 0;
+                        const pieData = [
+                          { name: "Active", value: active },
+                          { name: "Inactive", value: inactive },
+                        ];
+                        return (
+                          <>
+                            <ChartContainer
+                              config={{
+                                Active: { label: "Active", color: "#8F9779" },
+                                Inactive: { label: "Inactive", color: "#D1D5DB" },
+                              }}
+                              className="mx-auto aspect-square max-h-[200px]"
+                            >
+                              <RechartsPieChart>
+                                <ChartTooltip content={<ChartTooltipContent hideLabel />} />
+                                <Pie
+                                  data={pieData}
+                                  dataKey="value"
+                                  nameKey="name"
+                                  innerRadius={55}
+                                  outerRadius={80}
+                                  strokeWidth={2}
+                                  stroke="#FFFFFF"
+                                >
+                                  <Cell fill="#8F9779" />
+                                  <Cell fill="#D1D5DB" />
+                                  <RechartsLabel
+                                    position="center"
+                                    content={({ viewBox }) => {
+                                      if (!viewBox || !("cx" in viewBox)) return null;
+                                      const cx = viewBox.cx ?? 0;
+                                      const cy = viewBox.cy ?? 0;
+                                      return (
+                                        <text x={cx} y={cy} textAnchor="middle" dominantBaseline="middle">
+                                          <tspan x={cx} y={cy - 4} fill="#333333" fontSize="22" fontWeight="600">{activePct}%</tspan>
+                                          <tspan x={cx} y={cy + 16} fill="#6B6B6B" fontSize="10">Active</tspan>
+                                        </text>
+                                      );
+                                    }}
+                                  />
+                                </Pie>
+                              </RechartsPieChart>
+                            </ChartContainer>
+                            <div className="grid grid-cols-2 gap-3 mt-3">
+                              <div className="p-3 rounded-lg bg-sage/5 border border-sage/20">
+                                <div className="flex items-center gap-2 mb-1">
+                                  <div className="w-2 h-2 rounded-full bg-sage" />
+                                  <span className="font-body text-xs text-charcoal/60">Active</span>
+                                </div>
+                                <div className="font-display text-2xl text-sage tabular-nums">{active}</div>
+                              </div>
+                              <div className="p-3 rounded-lg bg-charcoal/5 border border-charcoal/20">
+                                <div className="flex items-center gap-2 mb-1">
+                                  <div className="w-2 h-2 rounded-full bg-charcoal/40" />
+                                  <span className="font-body text-xs text-charcoal/60">Inactive</span>
+                                </div>
+                                <div className="font-display text-2xl text-charcoal tabular-nums">{inactive}</div>
+                              </div>
+                            </div>
+                          </>
+                        );
+                      })()}
                     </CardContent>
                   </Card>
 
@@ -2774,30 +2656,28 @@ export default function AdminDashboard() {
                       </CardDescription>
                     </CardHeader>
                     <CardContent>
-                      <div className="space-y-3">
-                        {[
-                          { range: "1-2 weeks", count: 45, percentage: 35 },
-                          { range: "3-4 weeks", count: 38, percentage: 30 },
-                          { range: "5-8 weeks", count: 28, percentage: 22 },
-                          { range: "9-12 weeks", count: 12, percentage: 9 },
-                          { range: "13+ weeks", count: 5, percentage: 4 }
-                        ].map((data, idx) => (
-                          <div key={idx} className="space-y-1">
-                            <div className="flex items-center justify-between text-sm">
-                              <span className="font-body text-charcoal/60">{data.range}</span>
-                              <span className="font-body font-medium text-charcoal">{data.count} members</span>
-                            </div>
-                            <div className="h-8 bg-charcoal/5 rounded-lg overflow-hidden">
-                              <div 
-                                className="h-full bg-gradient-to-r from-sage to-sage/60 rounded-lg flex items-center justify-end pr-3 hover:shadow-lg transition-all duration-300"
-                                style={{ width: `${data.percentage}%` }}
-                              >
-                                <span className="text-xs font-body text-white font-medium">{data.percentage}%</span>
-                              </div>
-                            </div>
-                          </div>
-                        ))}
-                      </div>
+                      <ChartContainer
+                        config={{ count: { label: "Members", color: "#8F9779" } }}
+                        className="h-[220px] w-full"
+                      >
+                        <BarChart
+                          data={[
+                            { range: "1-2 wk", count: 45 },
+                            { range: "3-4 wk", count: 38 },
+                            { range: "5-8 wk", count: 28 },
+                            { range: "9-12 wk", count: 12 },
+                            { range: "13+ wk", count: 5 },
+                          ]}
+                          layout="vertical"
+                          margin={{ top: 8, right: 24, left: 16, bottom: 0 }}
+                        >
+                          <CartesianGrid horizontal={false} strokeDasharray="3 3" stroke="#E5E5E0" />
+                          <XAxis type="number" tickLine={false} axisLine={false} tick={{ fontSize: 11, fill: "#6B6B6B" }} />
+                          <YAxis dataKey="range" type="category" tickLine={false} axisLine={false} tick={{ fontSize: 12, fill: "#6B6B6B" }} width={70} />
+                          <ChartTooltip cursor={{ fill: "rgba(143,151,121,0.05)" }} content={<ChartTooltipContent />} />
+                          <Bar dataKey="count" fill="var(--color-count)" radius={[0, 6, 6, 0]} maxBarSize={28} />
+                        </BarChart>
+                      </ChartContainer>
                     </CardContent>
                   </Card>
                 </div>
@@ -3005,72 +2885,49 @@ export default function AdminDashboard() {
                     </div>
                   </CardHeader>
                   <CardContent>
-                    <div className="space-y-3">
-                      {membersPg.pageItems.map((member) => (
-                        <div 
-                          key={`${member.profileId ?? "p"}-${member.id}`}
-                          className="flex items-center justify-between p-4 rounded-xl border border-charcoal/10 hover:border-sage/30 hover:bg-sage/5 transition-all duration-600"
-                        >
-                          <div className="flex items-center gap-4 flex-1">
-                            <div className="h-12 w-12 rounded-full bg-sage/10 flex items-center justify-center">
-                              <span className="font-display text-lg text-sage">
-                                {String(member.name ?? "?")
-                                  .split(" ")
-                                  .map((n: string) => n[0])
-                                  .join("")}
-                              </span>
-                            </div>
-                            <div>
-                              <div className="font-body font-medium text-charcoal mb-0.5">
-                                {member.name}
-                              </div>
-                              <div className="flex items-center gap-3 text-sm text-charcoal/60">
-                                <Badge variant="outline" className="border-sage/20 text-sage bg-sage/5">
+                    <div className="rounded-xl border border-sage/15 bg-white overflow-hidden">
+                      <Table>
+                        <TableHeader>
+                          <TableRow className="bg-sage/5 hover:bg-sage/5 border-sage/10">
+                            <TableHead className="font-body text-xs uppercase tracking-wide text-charcoal/60 px-5 py-3">Member</TableHead>
+                            <TableHead className="font-body text-xs uppercase tracking-wide text-charcoal/60 px-5 py-3 w-[160px]">Package</TableHead>
+                            <TableHead className="font-body text-xs uppercase tracking-wide text-charcoal/60 px-5 py-3 w-[80px]">Streak</TableHead>
+                            <TableHead className="font-body text-xs uppercase tracking-wide text-charcoal/60 px-5 py-3 w-[80px]">On Time</TableHead>
+                            <TableHead className="font-body text-xs uppercase tracking-wide text-charcoal/60 px-5 py-3 w-[70px]">Late</TableHead>
+                            <TableHead className="font-body text-xs uppercase tracking-wide text-charcoal/60 px-5 py-3 w-[90px]">No-Show</TableHead>
+                            <TableHead className="font-body text-xs uppercase tracking-wide text-charcoal/60 px-5 py-3 w-[80px] text-right">Action</TableHead>
+                          </TableRow>
+                        </TableHeader>
+                        <TableBody>
+                          {membersPg.pageItems.map((member) => (
+                            <TableRow key={`${member.profileId ?? "p"}-${member.id}`} className="border-sage/10">
+                              <TableCell className="px-5 py-3">
+                                <div className="flex items-center gap-3">
+                                  <ListAvatar name={String(member.name ?? "?")} src={member.avatarUrl ?? null} size="sm" ringClassName="ring-sage/20" />
+                                  <div className="min-w-0">
+                                    <div className="font-body font-medium text-charcoal truncate">{member.name}</div>
+                                    <div className="font-body text-xs text-charcoal/50">{member.credits} credits</div>
+                                  </div>
+                                </div>
+                              </TableCell>
+                              <TableCell className="px-5 py-3">
+                                <Badge variant="outline" className="border-sage/20 text-sage bg-sage/5 font-body whitespace-nowrap">
                                   {member.package}
                                 </Badge>
-                                <span>{member.credits} credits</span>
-                              </div>
-                            </div>
-                          </div>
-                          <div className="flex items-center gap-6">
-                            <div className="text-center">
-                              <div className="font-display text-2xl text-sage mb-1">
-                                {member.streak}
-                              </div>
-                              <div className="font-body text-xs text-charcoal/50">
-                                Streak
-                              </div>
-                            </div>
-                            <div className="text-center">
-                              <div className="font-display text-2xl text-charcoal mb-1">
-                                {member.onTime}
-                              </div>
-                              <div className="font-body text-xs text-charcoal/50">
-                                On Time
-                              </div>
-                            </div>
-                            <div className="text-center">
-                              <div className="font-display text-2xl text-amber-500 mb-1">
-                                {member.late}
-                              </div>
-                              <div className="font-body text-xs text-charcoal/50">
-                                Late
-                              </div>
-                            </div>
-                            <div className="text-center">
-                              <div className="font-display text-2xl text-red-500 mb-1">
-                                {member.noShow}
-                              </div>
-                              <div className="font-body text-xs text-charcoal/50">
-                                No Show
-                              </div>
-                            </div>
-                            <Button variant="outline" size="sm" className="border-sage/20 text-sage hover:bg-sage/5 font-body">
-                              View
-                            </Button>
-                          </div>
-                        </div>
-                      ))}
+                              </TableCell>
+                              <TableCell className="px-5 py-3 font-display text-base text-sage tabular-nums">{member.streak}</TableCell>
+                              <TableCell className="px-5 py-3 font-display text-base text-charcoal tabular-nums">{member.onTime}</TableCell>
+                              <TableCell className="px-5 py-3 font-display text-base text-amber-600 tabular-nums">{member.late}</TableCell>
+                              <TableCell className="px-5 py-3 font-display text-base text-red-500 tabular-nums">{member.noShow}</TableCell>
+                              <TableCell className="px-5 py-3 text-right">
+                                <Button variant="outline" size="sm" className="border-sage/20 text-sage hover:bg-sage/10 font-body h-8">
+                                  View
+                                </Button>
+                              </TableCell>
+                            </TableRow>
+                          ))}
+                        </TableBody>
+                      </Table>
                     </div>
                     <Pagination page={membersPg.page} total={membersPg.total} onChange={membersPg.setPage} />
                   </CardContent>
@@ -3079,6 +2936,26 @@ export default function AdminDashboard() {
 
               {/* INSTRUCTORS TAB */}
               <TabsContent value="instructors" className="space-y-6">
+                {(() => {
+                  const total = dashboardInstructors.length;
+                  const checkInsSum = filteredInstructorPerformance.reduce((s, i) => s + i.totalCheckIns, 0);
+                  const classesSum = filteredInstructorPerformance.reduce((s, i) => s + i.classes, 0);
+                  const totalPayout = checkInsSum * 150;
+                  const avgPerInstructor = total > 0 ? Math.round(totalPayout / total) : 0;
+                  const ratings = filteredInstructorPerformance.filter((i) => i.rating > 0).map((i) => i.rating);
+                  const avgRating = ratings.length > 0 ? ratings.reduce((s, r) => s + r, 0) / ratings.length : 0;
+                  const top = [...filteredInstructorPerformance].sort((a, b) => b.totalCheckIns - a.totalCheckIns)[0];
+                  return (
+                    <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4">
+                      <MetricCard label="Active Instructors" value={total} icon={Award} tone="sage" />
+                      <MetricCard label="Check-Ins (30d)" value={checkInsSum} icon={UserCheck} tone="sage" />
+                      <MetricCard label="Classes (30d)" value={classesSum} icon={Calendar} tone="sage" />
+                      <MetricCard label="Avg Rating" value={avgRating} decimals={1} icon={Star} tone="amber" />
+                      <MetricCard label="Total Payout" value={totalPayout} prefix="₹" icon={CreditCard} tone="terracotta" hint={`Avg ₹${avgPerInstructor.toLocaleString("en-IN")} / instructor`} />
+                      <MetricCard label="Top Performer" value={top?.name ?? "—"} icon={TrendingUp} tone="terracotta" hint={top ? `${top.totalCheckIns} check-ins` : ""} />
+                    </div>
+                  );
+                })()}
                 {/* Instructor Filter */}
                 <Card className="border-sage/20 bg-white/95 backdrop-blur-xl">
                   <CardHeader>
@@ -3102,490 +2979,566 @@ export default function AdminDashboard() {
                     </div>
                   </CardHeader>
                   <CardContent>
-                    <div className="space-y-4">
-                      {instructorsPerfPg.pageItems.map((instructor, index) => (
-                        <div 
-                          key={instructor.name}
-                          className="flex items-center justify-between p-5 rounded-xl border border-charcoal/10 hover:border-sage/30 hover:bg-sage/5 transition-all duration-600"
-                        >
-                          <div className="flex items-center gap-4 flex-1">
-                            <div className="h-14 w-14 rounded-full bg-sage/10 flex items-center justify-center">
-                              <span className="font-display text-2xl text-sage">
-                                #{index + 1}
-                              </span>
-                            </div>
-                            <div>
-                              <div className="font-display text-xl text-charcoal mb-1">
-                                {instructor.name}
-                              </div>
-                              <div className="flex items-center gap-2">
-                                <div className="flex items-center gap-1">
-                                  <Star className="h-4 w-4 text-amber-500 fill-amber-500" />
-                                  <span className="font-body text-sm text-charcoal/60">{instructor.rating}</span>
-                                </div>
-                                <span className="font-body text-sm text-charcoal/60">•</span>
-                                <span className="font-body text-sm text-charcoal/60">{instructor.classes} classes</span>
-                              </div>
-                            </div>
-                          </div>
-                          <div className="flex items-center gap-8">
-                            <div className="text-center">
-                              <div className="font-display text-3xl text-sage mb-1">
-                                {instructor.totalCheckIns}
-                              </div>
-                              <div className="font-body text-xs text-charcoal/50">
-                                Total Check-Ins
-                              </div>
-                            </div>
-                            <div className="text-center">
-                              <div className="font-display text-3xl text-charcoal mb-1">
-                                {instructor.avgAttendance}
-                              </div>
-                              <div className="font-body text-xs text-charcoal/50">
-                                Avg Attendance
-                              </div>
-                            </div>
-                            <Button className="bg-sage hover:bg-sage/90 text-white font-body">
-                              View Details
-                            </Button>
-                          </div>
-                        </div>
-                      ))}
+                    <div className="rounded-xl border border-sage/15 bg-white overflow-hidden">
+                      <Table>
+                        <TableHeader>
+                          <TableRow className="bg-sage/5 hover:bg-sage/5 border-sage/10">
+                            <TableHead className="font-body text-xs uppercase tracking-wide text-charcoal/60 px-5 py-3 w-[60px]">Rank</TableHead>
+                            <TableHead className="font-body text-xs uppercase tracking-wide text-charcoal/60 px-5 py-3">Instructor</TableHead>
+                            <TableHead className="font-body text-xs uppercase tracking-wide text-charcoal/60 px-5 py-3 w-[110px]">Rating</TableHead>
+                            <TableHead className="font-body text-xs uppercase tracking-wide text-charcoal/60 px-5 py-3 w-[100px]">Classes</TableHead>
+                            <TableHead className="font-body text-xs uppercase tracking-wide text-charcoal/60 px-5 py-3 w-[110px]">Check-Ins</TableHead>
+                            <TableHead className="font-body text-xs uppercase tracking-wide text-charcoal/60 px-5 py-3 w-[130px]">Avg Attendance</TableHead>
+                            <TableHead className="font-body text-xs uppercase tracking-wide text-charcoal/60 px-5 py-3 w-[130px]">Earnings</TableHead>
+                            <TableHead className="font-body text-xs uppercase tracking-wide text-charcoal/60 px-5 py-3 w-[90px] text-right">Action</TableHead>
+                          </TableRow>
+                        </TableHeader>
+                        <TableBody>
+                          {instructorsPerfPg.pageItems.map((instructor, index) => {
+                            const rank = (instructorsPerfPg.page - 1) * instructorsPerfPg.pageSize + index + 1;
+                            return (
+                              <TableRow key={instructor.name} className="border-sage/10">
+                                <TableCell className="px-5 py-3">
+                                  <span className="inline-flex h-7 w-7 items-center justify-center rounded-full bg-sage/10 text-sage font-display text-xs">
+                                    #{rank}
+                                  </span>
+                                </TableCell>
+                                <TableCell className="px-5 py-3">
+                                  <div className="flex items-center gap-3 min-w-0">
+                                    <ListAvatar name={instructor.name} src={instructor.photo ?? null} size="md" ringClassName="ring-sage/20" />
+                                    <div className="font-body font-medium text-charcoal truncate">{instructor.name}</div>
+                                  </div>
+                                </TableCell>
+                                <TableCell className="px-5 py-3">
+                                  <div className="flex items-center gap-1">
+                                    <Star className="h-3.5 w-3.5 text-amber-500 fill-amber-500" />
+                                    <span className="font-body text-sm text-charcoal tabular-nums">{instructor.rating}</span>
+                                  </div>
+                                </TableCell>
+                                <TableCell className="px-5 py-3 font-body text-sm text-charcoal tabular-nums">{instructor.classes}</TableCell>
+                                <TableCell className="px-5 py-3 font-display text-base text-sage tabular-nums">{instructor.totalCheckIns}</TableCell>
+                                <TableCell className="px-5 py-3 font-display text-base text-charcoal tabular-nums">{instructor.avgAttendance}</TableCell>
+                                <TableCell className="px-5 py-3 font-display text-sm text-terracotta tabular-nums whitespace-nowrap">
+                                  ₹{(instructor.totalCheckIns * 150).toLocaleString("en-IN")}
+                                </TableCell>
+                                <TableCell className="px-5 py-3 text-right">
+                                  <Button variant="outline" size="sm" className="border-sage/20 text-sage hover:bg-sage/10 font-body h-8">
+                                    View
+                                  </Button>
+                                </TableCell>
+                              </TableRow>
+                            );
+                          })}
+                        </TableBody>
+                      </Table>
                     </div>
                     <Pagination page={instructorsPerfPg.page} total={instructorsPerfPg.total} onChange={instructorsPerfPg.setPage} />
                   </CardContent>
                 </Card>
 
-                {/* Pay Calculation Summary */}
-                <Card className="border-sage/20 bg-gradient-to-br from-sage/5 to-white backdrop-blur-xl">
+                <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                {/* Class share donut */}
+                <Card className="border-sage/20 bg-white/95 backdrop-blur-xl">
                   <CardHeader>
-                    <CardTitle className="font-display text-2xl text-charcoal">
-                      Pay Calculation Summary
+                    <CardTitle className="font-display text-xl text-charcoal">
+                      Class Share
                     </CardTitle>
                     <CardDescription className="font-body text-charcoal/60">
-                      Based on total check-ins per instructor
+                      Classes taught split by instructor
                     </CardDescription>
                   </CardHeader>
-                  <CardContent>
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                      {filteredInstructorPerformance.map((instructor) => (
-                        <div 
-                          key={instructor.name}
-                          className="p-4 rounded-xl bg-white border border-sage/20"
-                        >
-                          <div className="flex items-center justify-between mb-3">
-                            <div className="font-body font-medium text-charcoal">
-                              {instructor.name}
-                            </div>
-                            <Badge className="bg-sage text-white">
-                              {instructor.totalCheckIns} check-ins
-                            </Badge>
-                          </div>
-                          <div className="font-display text-3xl text-sage">
-                            ₹{(instructor.totalCheckIns * 150).toLocaleString()}
-                          </div>
-                          <div className="font-body text-xs text-charcoal/50 mt-1">
-                            @ ₹150 per check-in
-                          </div>
+                    <CardContent>
+                      {filteredInstructorPerformance.length === 0 || instructorClassTotal === 0 ? (
+                        <div className="h-[240px] flex items-center justify-center font-body text-sm text-charcoal/40">
+                          No classes yet.
                         </div>
-                      ))}
-                    </div>
-                  </CardContent>
-                </Card>
-
-                {/* Instructor Analytics Graphs */}
-                <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-                  {/* Instructor Performance Comparison */}
-                  <Card className="border-sage/20 bg-white/95 backdrop-blur-xl lg:col-span-2">
-                    <CardHeader>
-                      <CardTitle className="font-display text-xl text-charcoal">
-                        Instructor Performance Comparison
-                      </CardTitle>
-                      <CardDescription className="font-body text-charcoal/60">
-                        Total check-ins per instructor this month
-                      </CardDescription>
-                    </CardHeader>
-                    <CardContent>
-                      <div className="space-y-4">
-                        {filteredInstructorPerformance.map((instructor, idx) => (
-                          <div key={idx} className="space-y-2">
-                            <div className="flex items-center justify-between">
-                              <div className="flex items-center gap-3">
-                                <div className="h-10 w-10 rounded-full bg-sage/10 flex items-center justify-center">
-                                  <span className="font-body text-2xl text-sage">
-                                    #{idx + 1}
-                                  </span>
-                                </div>
-                                <div>
-                                  <div className="font-body font-medium text-charcoal">
-                                    {instructor.name}
-                                  </div>
-                                  <div className="font-body text-xs text-charcoal/50">{instructor.classes} classes</div>
-                                </div>
-                              </div>
-                              <div className="text-right">
-                                <div className="font-display text-2xl text-sage">{instructor.totalCheckIns}</div>
-                                <div className="font-body text-xs text-charcoal/50">check-ins</div>
-                              </div>
-                            </div>
-                            <div className="h-3 bg-charcoal/5 rounded-full overflow-hidden">
-                              <div 
-                                className="h-full bg-gradient-to-r from-sage to-sage/60 rounded-full hover:shadow-lg transition-all duration-300"
-                                style={{ width: `${(instructor.totalCheckIns / maxInstructorCheckIns) * 100}%` }}
-                              />
-                            </div>
-                          </div>
-                        ))}
-                      </div>
-                    </CardContent>
-                  </Card>
-
-                  {/* Class Distribution by Instructor */}
-                  <Card className="border-sage/20 bg-white/95 backdrop-blur-xl">
-                    <CardHeader>
-                      <CardTitle className="font-display text-xl text-charcoal">
-                        Classes Taught
-                      </CardTitle>
-                      <CardDescription className="font-body text-charcoal/60">
-                        Total classes per instructor
-                      </CardDescription>
-                    </CardHeader>
-                    <CardContent>
-                      <div className="space-y-2">
-                        {filteredInstructorPerformance.map((inst, idx) => {
-                          const pct =
-                            instructorClassTotal > 0
-                              ? Math.round((inst.classes / instructorClassTotal) * 100)
-                              : 0;
-                          return (
-                            <div
-                              key={inst.name}
-                              className="flex items-center justify-between p-2 rounded hover:bg-sage/5"
+                      ) : (
+                        <ChartContainer
+                          config={Object.fromEntries(
+                            filteredInstructorPerformance.map((i, idx) => [
+                              i.name,
+                              { label: i.name, color: instructorPieColors[idx % instructorPieColors.length] },
+                            ]),
+                          )}
+                          className="h-[240px] w-full"
+                        >
+                          <RechartsPieChart>
+                            <ChartTooltip content={<ChartTooltipContent hideLabel />} />
+                            <Pie
+                              data={filteredInstructorPerformance.map((i) => ({
+                                name: i.name,
+                                value: i.classes,
+                              }))}
+                              dataKey="value"
+                              nameKey="name"
+                              innerRadius={50}
+                              outerRadius={80}
+                              strokeWidth={2}
+                              stroke="#FFFFFF"
                             >
-                              <div className="flex items-center gap-2">
-                                <div
-                                  className="w-3 h-3 rounded-full"
-                                  style={{
-                                    backgroundColor: instructorPieColors[idx % instructorPieColors.length],
-                                  }}
-                                />
-                                <span className="font-body text-sm">{inst.name}</span>
-                              </div>
-                              <span className="font-body text-sm font-medium">
-                                {inst.classes} ({pct}%)
-                              </span>
-                            </div>
-                          );
-                        })}
-                      </div>
+                              {filteredInstructorPerformance.map((_, idx) => (
+                                <Cell key={idx} fill={instructorPieColors[idx % instructorPieColors.length]} />
+                              ))}
+                              <RechartsLabel
+                                position="center"
+                                content={({ viewBox }) => {
+                                  if (!viewBox || !("cx" in viewBox)) return null;
+                                  const cx = viewBox.cx ?? 0;
+                                  const cy = viewBox.cy ?? 0;
+                                  return (
+                                    <text x={cx} y={cy} textAnchor="middle" dominantBaseline="middle">
+                                      <tspan x={cx} y={cy - 4} fill="#333333" fontSize="22" fontWeight="600">{instructorClassTotal}</tspan>
+                                      <tspan x={cx} y={cy + 16} fill="#6B6B6B" fontSize="10">classes</tspan>
+                                    </text>
+                                  );
+                                }}
+                              />
+                            </Pie>
+                          </RechartsPieChart>
+                        </ChartContainer>
+                      )}
                     </CardContent>
                   </Card>
 
-                  {/* Earnings Breakdown */}
+                  {/* Earnings per instructor — horizontal bar */}
                   <Card className="border-sage/20 bg-white/95 backdrop-blur-xl">
                     <CardHeader>
-                      <CardTitle className="font-display text-xl text-charcoal">
-                        Monthly Earnings
-                      </CardTitle>
+                      <CardTitle className="font-display text-xl text-charcoal">Earnings Leaderboard</CardTitle>
                       <CardDescription className="font-body text-charcoal/60">
-                        Total compensation per instructor
+                        ₹ payout this month per instructor
                       </CardDescription>
                     </CardHeader>
                     <CardContent>
-                      <div className="space-y-3">
-                        {filteredInstructorPerformance.map((instructor, idx) => {
-                          const earnings = instructor.totalCheckIns * 150;
-                          return (
-                            <div key={idx} className="flex items-center justify-between p-3 rounded-lg border border-sage/10 hover:border-sage/30 hover:bg-sage/5 transition-all">
-                              <div className="font-body text-sm text-charcoal">{instructor.name}</div>
-                              <div className="text-right">
-                                <div className="font-display text-lg text-sage">₹{(earnings / 1000).toFixed(1)}k</div>
-                                <div className="w-24 h-1.5 bg-charcoal/5 rounded-full mt-1 overflow-hidden">
-                                  <div 
-                                    className="h-full bg-sage rounded-full"
-                                    style={{
-                                      width: `${maxInstructorEarnings > 0 ? (earnings / maxInstructorEarnings) * 100 : 0}%`,
-                                    }}
-                                  />
-                                </div>
-                              </div>
-                            </div>
-                          );
-                        })}
-                      </div>
+                      {filteredInstructorPerformance.length === 0 ? (
+                        <div className="h-[260px] flex items-center justify-center font-body text-sm text-charcoal/40">
+                          No earnings yet.
+                        </div>
+                      ) : (
+                        <ChartContainer
+                          config={{ earnings: { label: "Earnings (₹)", color: "#C17856" } }}
+                          className="h-[260px] w-full"
+                        >
+                          <BarChart
+                            data={[...filteredInstructorPerformance]
+                              .sort((a, b) => b.totalCheckIns - a.totalCheckIns)
+                              .slice(0, 8)
+                              .map((i) => ({ name: i.name, earnings: i.totalCheckIns * 150 }))}
+                            layout="vertical"
+                            margin={{ top: 4, right: 16, left: 0, bottom: 0 }}
+                          >
+                            <CartesianGrid horizontal={false} strokeDasharray="3 3" stroke="#E5E5E0" />
+                            <XAxis
+                              type="number"
+                              tickLine={false}
+                              axisLine={false}
+                              tick={{ fontSize: 10, fill: "#6B6B6B" }}
+                              tickFormatter={(v: number) => `₹${(v / 1000).toFixed(0)}k`}
+                            />
+                            <YAxis
+                              dataKey="name"
+                              type="category"
+                              tickLine={false}
+                              axisLine={false}
+                              tick={{ fontSize: 11, fill: "#6B6B6B" }}
+                              width={80}
+                            />
+                            <ChartTooltip
+                              cursor={{ fill: "rgba(193,120,86,0.05)" }}
+                              content={<ChartTooltipContent formatter={(v) => `₹${Number(v).toLocaleString("en-IN")}`} />}
+                            />
+                            <Bar dataKey="earnings" fill="var(--color-earnings)" radius={[0, 6, 6, 0]} maxBarSize={20} />
+                          </BarChart>
+                        </ChartContainer>
+                      )}
+                    </CardContent>
+                  </Card>
+
+                  {/* Avg attendance per instructor */}
+                  <Card className="border-sage/20 bg-white/95 backdrop-blur-xl">
+                    <CardHeader>
+                      <CardTitle className="font-display text-xl text-charcoal">Avg Attendance</CardTitle>
+                      <CardDescription className="font-body text-charcoal/60">
+                        Members per class on average
+                      </CardDescription>
+                    </CardHeader>
+                    <CardContent>
+                      {filteredInstructorPerformance.length === 0 ? (
+                        <div className="h-[260px] flex items-center justify-center font-body text-sm text-charcoal/40">
+                          No attendance data yet.
+                        </div>
+                      ) : (
+                        <ChartContainer
+                          config={{ avgAttendance: { label: "Avg attendance", color: "#8F9779" } }}
+                          className="h-[260px] w-full"
+                        >
+                          <BarChart
+                            data={filteredInstructorPerformance.map((i) => ({
+                              name: i.name,
+                              avgAttendance: i.avgAttendance,
+                            }))}
+                            margin={{ top: 8, right: 12, left: 0, bottom: 0 }}
+                          >
+                            <CartesianGrid vertical={false} strokeDasharray="3 3" stroke="#E5E5E0" />
+                            <XAxis
+                              dataKey="name"
+                              tickLine={false}
+                              axisLine={false}
+                              tick={{ fontSize: 10, fill: "#6B6B6B" }}
+                              interval={0}
+                              angle={-25}
+                              textAnchor="end"
+                              height={60}
+                            />
+                            <YAxis tickLine={false} axisLine={false} tick={{ fontSize: 10, fill: "#6B6B6B" }} width={28} />
+                            <ChartTooltip cursor={{ fill: "rgba(143,151,121,0.05)" }} content={<ChartTooltipContent />} />
+                            <Bar dataKey="avgAttendance" fill="var(--color-avgAttendance)" radius={[6, 6, 0, 0]} maxBarSize={22} />
+                          </BarChart>
+                        </ChartContainer>
+                      )}
                     </CardContent>
                   </Card>
                 </div>
+
+                {/* Check-Ins vs Capacity efficiency */}
+                <Card className="border-sage/20 bg-white/95 backdrop-blur-xl">
+                  <CardHeader>
+                    <CardTitle className="font-display text-xl text-charcoal">Efficiency: Check-Ins vs Classes</CardTitle>
+                    <CardDescription className="font-body text-charcoal/60">
+                      Higher check-ins-per-class = stronger draw
+                    </CardDescription>
+                  </CardHeader>
+                  <CardContent>
+                    {filteredInstructorPerformance.length === 0 ? (
+                      <div className="h-[280px] flex items-center justify-center font-body text-sm text-charcoal/40">
+                        No data yet.
+                      </div>
+                    ) : (
+                      <ChartContainer
+                        config={{
+                          classes: { label: "Classes", color: "#A3B18A" },
+                          totalCheckIns: { label: "Check-ins", color: "#8F9779" },
+                          perClass: { label: "Per class", color: "#C17856" },
+                        }}
+                        className="h-[280px] w-full"
+                      >
+                        <ComposedChart
+                          data={filteredInstructorPerformance.map((i) => ({
+                            name: i.name,
+                            classes: i.classes,
+                            totalCheckIns: i.totalCheckIns,
+                            perClass: i.classes > 0 ? Number((i.totalCheckIns / i.classes).toFixed(1)) : 0,
+                          }))}
+                          margin={{ top: 8, right: 12, left: 0, bottom: 0 }}
+                        >
+                          <CartesianGrid vertical={false} strokeDasharray="3 3" stroke="#E5E5E0" />
+                          <XAxis dataKey="name" tickLine={false} axisLine={false} tick={{ fontSize: 11, fill: "#6B6B6B" }} interval={0} angle={-15} textAnchor="end" height={50} />
+                          <YAxis yAxisId="left" tickLine={false} axisLine={false} tick={{ fontSize: 11, fill: "#6B6B6B" }} width={32} />
+                          <YAxis yAxisId="right" orientation="right" tickLine={false} axisLine={false} tick={{ fontSize: 11, fill: "#C17856" }} width={32} />
+                          <ChartTooltip cursor={{ fill: "rgba(143,151,121,0.05)" }} content={<ChartTooltipContent />} />
+                          <ChartLegend content={<ChartLegendContent />} />
+                          <Bar yAxisId="left" dataKey="classes" fill="var(--color-classes)" radius={[6, 6, 0, 0]} maxBarSize={22} />
+                          <Bar yAxisId="left" dataKey="totalCheckIns" fill="var(--color-totalCheckIns)" radius={[6, 6, 0, 0]} maxBarSize={22} />
+                          <Line yAxisId="right" type="monotone" dataKey="perClass" stroke="var(--color-perClass)" strokeWidth={2.5} dot={{ r: 4, fill: "var(--color-perClass)" }} activeDot={{ r: 6 }} />
+                        </ComposedChart>
+                      </ChartContainer>
+                    )}
+                  </CardContent>
+                </Card>
               </TabsContent>
 
               {/* CLASSES TAB */}
               <TabsContent value="classes" className="space-y-6">
-                {/* Class Performance */}
+                {(() => {
+                  const total = classPerformance.length;
+                  const avgUtil = total > 0
+                    ? Math.round(classPerformance.reduce((s, c) => s + c.utilization, 0) / total)
+                    : 0;
+                  const totalBookings = classPerformance.reduce((s, c) => s + c.bookings, 0);
+                  const underperformingCount = classPerformance.filter((c) => c.utilization < 60).length;
+                  const topClass = [...classPerformance].sort((a, b) => b.utilization - a.utilization)[0];
+                  return (
+                    <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-4">
+                      <MetricCard label="Total Classes" value={total} icon={Calendar} tone="sage" loading={!classesLoaded} />
+                      <MetricCard label="Avg Utilization" value={avgUtil} suffix="%" icon={TrendingUp} tone="sage" loading={!classesLoaded} />
+                      <MetricCard label="Bookings 30d" value={totalBookings} icon={Users} tone="sage" loading={!classesLoaded} />
+                      <MetricCard label="Low Util" value={underperformingCount} icon={AlertTriangle} tone="terracotta" loading={!classesLoaded} hint="Below 60% capacity" />
+                      <MetricCard label="Top Class" value={topClass?.name ?? "—"} icon={Star} tone="amber" loading={!classesLoaded} hint={topClass ? `${topClass.utilization}% filled` : ""} />
+                    </div>
+                  );
+                })()}
+
+                {/* Class Performance Table */}
                 <Card className="border-sage/20 bg-white/95 backdrop-blur-xl">
                   <CardHeader>
                     <CardTitle className="font-display text-2xl text-charcoal">
-                      Class Performance Overview
+                      Class Performance
                     </CardTitle>
                     <CardDescription className="font-body text-charcoal/60">
-                      Utilization and popularity metrics
+                      Utilization and bookings per class type
                     </CardDescription>
                   </CardHeader>
                   <CardContent>
-                    <div className="space-y-4">
-                      {classesPerfPg.pageItems.map((cls) => (
-                        <div 
-                          key={cls.name}
-                          className="p-4 rounded-xl border border-charcoal/10 hover:border-sage/30 hover:bg-sage/5 transition-all duration-600"
-                        >
-                          <div className="flex items-center justify-between mb-3">
-                            <div>
-                              <div className="font-body font-medium text-charcoal mb-1">
-                                {cls.name}
-                              </div>
-                              <Badge variant="outline" className="border-sage/20 text-sage bg-sage/5">
-                                {cls.discipline}
-                              </Badge>
-                            </div>
-                            <div className="text-right">
-                              <div className="font-display text-2xl text-charcoal mb-1">
-                                {cls.utilization}%
-                              </div>
-                              <div className="font-body text-xs text-charcoal/50">
-                                {cls.bookings} / {cls.capacity} spots
-                              </div>
-                            </div>
-                          </div>
-                          <Progress
-                            value={cls.utilization}
-                            className={`h-2 ${
-                              cls.utilization >= 75 ? "bg-sage/10" :
-                              cls.utilization >= 50 ? "bg-amber-500/10" :
-                              "bg-red-500/10"
-                            }`}
-                          />
-                        </div>
-                      ))}
+                    <div className="rounded-xl border border-sage/15 bg-white overflow-hidden">
+                      <Table>
+                        <TableHeader>
+                          <TableRow className="bg-sage/5 hover:bg-sage/5 border-sage/10">
+                            <TableHead className="font-body text-xs uppercase tracking-wide text-charcoal/60 px-5 py-3">Class</TableHead>
+                            <TableHead className="font-body text-xs uppercase tracking-wide text-charcoal/60 px-5 py-3 w-[160px]">Discipline</TableHead>
+                            <TableHead className="font-body text-xs uppercase tracking-wide text-charcoal/60 px-5 py-3 w-[120px]">Spots</TableHead>
+                            <TableHead className="font-body text-xs uppercase tracking-wide text-charcoal/60 px-5 py-3 w-[220px]">Utilization</TableHead>
+                            <TableHead className="font-body text-xs uppercase tracking-wide text-charcoal/60 px-5 py-3 w-[120px]">Status</TableHead>
+                          </TableRow>
+                        </TableHeader>
+                        <TableBody>
+                          {classesPerfPg.pageItems.map((cls) => {
+                            const util = cls.utilization;
+                            const statusColor =
+                              util >= 75 ? "border-sage/30 text-sage bg-sage/5" :
+                              util >= 50 ? "border-amber-500/20 text-amber-600 bg-amber-50" :
+                              "border-red-500/30 text-red-600 bg-red-50";
+                            const barColor =
+                              util >= 75 ? "bg-sage" :
+                              util >= 50 ? "bg-amber-500" :
+                              "bg-red-500";
+                            const status = util >= 75 ? "Strong" : util >= 50 ? "Steady" : "Low";
+                            return (
+                              <TableRow key={cls.name} className="border-sage/10">
+                                <TableCell className="px-5 py-3 font-body font-medium text-charcoal">{cls.name}</TableCell>
+                                <TableCell className="px-5 py-3">
+                                  <Badge variant="outline" className="border-sage/20 text-sage bg-sage/5 font-body whitespace-nowrap">
+                                    {cls.discipline}
+                                  </Badge>
+                                </TableCell>
+                                <TableCell className="px-5 py-3 font-body text-sm text-charcoal/70 tabular-nums whitespace-nowrap">
+                                  {cls.bookings} / {cls.capacity}
+                                </TableCell>
+                                <TableCell className="px-5 py-3">
+                                  <div className="flex items-center gap-3">
+                                    <div className="h-1.5 flex-1 max-w-[160px] rounded-full bg-sage/10 overflow-hidden">
+                                      <div className={`h-full transition-all ${barColor}`} style={{ width: `${util}%` }} />
+                                    </div>
+                                    <span className="font-display text-sm text-charcoal tabular-nums whitespace-nowrap">{util}%</span>
+                                  </div>
+                                </TableCell>
+                                <TableCell className="px-5 py-3">
+                                  <Badge variant="outline" className={`font-body whitespace-nowrap ${statusColor}`}>
+                                    {status}
+                                  </Badge>
+                                </TableCell>
+                              </TableRow>
+                            );
+                          })}
+                        </TableBody>
+                      </Table>
                     </div>
                     <Pagination page={classesPerfPg.page} total={classesPerfPg.total} onChange={classesPerfPg.setPage} />
                   </CardContent>
                 </Card>
 
-                {/* Underperforming Classes */}
-                <Card className="border-red-500/20 bg-gradient-to-br from-red-50 to-white backdrop-blur-xl">
-                  <CardHeader>
-                    <div className="flex items-center justify-between">
-                      <div>
-                        <CardTitle className="font-display text-2xl text-charcoal flex items-center gap-2">
-                          <AlertTriangle className="h-6 w-6 text-red-500" />
-                          Underperforming Classes
-                        </CardTitle>
-                        <CardDescription className="font-body text-charcoal/60 mt-1">
-                          Classes below 60% capacity utilization
-                        </CardDescription>
-                      </div>
-                    </div>
-                  </CardHeader>
-                  <CardContent>
-                    <div className="space-y-3">
-                      {classPerformance.filter(c => c.utilization < 60).map((cls) => (
-                        <div 
-                          key={cls.name}
-                          className="flex items-center justify-between p-4 rounded-xl border border-red-500/20 bg-white hover:shadow-md transition-all duration-600"
-                        >
-                          <div className="flex-1">
-                            <div className="font-body font-medium text-charcoal mb-1">
-                              {cls.name}
-                            </div>
-                            <div className="font-body text-sm text-charcoal/60">
-                              Only {cls.bookings} out of {cls.capacity} spots filled
-                            </div>
-                          </div>
-                          <div className="flex items-center gap-3">
-                            <div className="text-right">
-                              <div className="font-display text-2xl text-red-500 mb-1">
-                                {cls.utilization}%
-                              </div>
-                              <div className="font-body text-xs text-charcoal/50">
-                                Utilization
-                              </div>
-                            </div>
-                            <Button 
-                              variant="outline" 
-                              size="sm"
-                              className="border-red-500/20 text-red-600 hover:bg-red-50 font-body"
-                            >
-                              Boost
-                            </Button>
-                          </div>
-                        </div>
-                      ))}
-                    </div>
-                  </CardContent>
-                </Card>
-
-                {/* Discipline Split */}
-                <Card className="border-sage/20 bg-white/95 backdrop-blur-xl">
-                  <CardHeader>
-                    <CardTitle className="font-display text-2xl text-charcoal">
-                      Discipline Split
-                    </CardTitle>
-                    <CardDescription className="font-body text-charcoal/60">
-                      Class bookings by discipline category
-                    </CardDescription>
-                  </CardHeader>
-                  <CardContent>
-                    <div className="space-y-4">
-                      {disciplineSplit.map((discipline) => (
-                        <div key={discipline.name}>
-                          <div className="flex items-center justify-between mb-2">
-                            <div className="flex items-center gap-3">
-                              <div className="h-10 w-10 rounded-lg bg-sage/10 flex items-center justify-center">
-                                <Activity className="h-5 w-5 text-sage" />
-                              </div>
-                              <div>
-                                <div className="font-body font-medium text-charcoal">
-                                  {discipline.name}
-                                </div>
-                                <div className="font-body text-xs text-charcoal/50">
-                                  {discipline.count} bookings
-                                </div>
-                              </div>
-                            </div>
-                            <div className="font-display text-2xl text-charcoal">
-                              {discipline.percentage}%
-                            </div>
-                          </div>
-                          <Progress value={discipline.percentage} className="h-3 bg-sage/10" />
-                        </div>
-                      ))}
-                    </div>
-                  </CardContent>
-                </Card>
-
-                {/* Class Analytics Graphs */}
-                <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-                  {/* Peak Hours Heatmap */}
-                  <Card className="border-sage/20 bg-white/95 backdrop-blur-xl lg:col-span-2">
+                {/* Charts grid */}
+                <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                  {/* Discipline donut */}
+                  <Card className="border-sage/20 bg-white/95 backdrop-blur-xl">
                     <CardHeader>
-                      <CardTitle className="font-display text-xl text-charcoal">
-                        Peak Hours Analysis
-                      </CardTitle>
-                      <CardDescription className="font-body text-charcoal/60">
-                        Class popularity by time of day
-                      </CardDescription>
+                      <CardTitle className="font-display text-xl text-charcoal">Discipline Split</CardTitle>
+                      <CardDescription className="font-body text-charcoal/60">Bookings by category</CardDescription>
                     </CardHeader>
                     <CardContent>
-                      <div className="grid grid-cols-6 gap-3">
-                        {[
-                          { time: "6-8 AM", bookings: 145, percentage: 95 },
-                          { time: "8-10 AM", bookings: 98, percentage: 64 },
-                          { time: "10-12 PM", bookings: 56, percentage: 37 },
-                          { time: "12-2 PM", bookings: 42, percentage: 28 },
-                          { time: "5-7 PM", bookings: 168, percentage: 100 },
-                          { time: "7-9 PM", bookings: 134, percentage: 80 }
-                        ].map((slot, idx) => (
-                          <div key={idx} className="space-y-2">
-                            <div 
-                              className="h-32 rounded-lg flex flex-col items-center justify-end p-3 transition-all duration-300 hover:shadow-lg cursor-pointer relative group"
-                              style={{ 
-                                backgroundColor: `rgba(143, 151, 121, ${slot.percentage / 100})`,
-                              }}
+                      {disciplineSplit.length === 0 ? (
+                        <div className="h-[240px] flex items-center justify-center font-body text-sm text-charcoal/40">No bookings yet.</div>
+                      ) : (
+                        <ChartContainer
+                          config={Object.fromEntries(
+                            disciplineSplit.map((d, idx) => [
+                              d.name,
+                              { label: d.name, color: instructorPieColors[idx % instructorPieColors.length] },
+                            ]),
+                          )}
+                          className="mx-auto aspect-square max-h-[240px]"
+                        >
+                          <RechartsPieChart>
+                            <ChartTooltip content={<ChartTooltipContent hideLabel />} />
+                            <Pie
+                              data={disciplineSplit.map((d) => ({ name: d.name, value: d.count }))}
+                              dataKey="value"
+                              nameKey="name"
+                              innerRadius={55}
+                              outerRadius={85}
+                              strokeWidth={2}
+                              stroke="#FFFFFF"
                             >
-                              <div className="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
-                                <div className="bg-charcoal text-white text-xs px-2 py-1 rounded">
-                                  {slot.bookings} bookings
-                                </div>
-                              </div>
-                              <div className="font-display text-xl text-white">{slot.percentage}%</div>
-                            </div>
-                            <div className="text-center font-body text-xs text-charcoal/60">{slot.time}</div>
-                          </div>
-                        ))}
-                      </div>
-                      <div className="mt-6 flex items-center justify-center gap-6">
-                        <div className="flex items-center gap-2">
-                          <div className="w-6 h-3 rounded" style={{ backgroundColor: 'rgba(143, 151, 121, 0.3)' }} />
-                          <span className="font-body text-xs text-charcoal/60">Low</span>
-                        </div>
-                        <div className="flex items-center gap-2">
-                          <div className="w-6 h-3 rounded" style={{ backgroundColor: 'rgba(143, 151, 121, 0.6)' }} />
-                          <span className="font-body text-xs text-charcoal/60">Medium</span>
-                        </div>
-                        <div className="flex items-center gap-2">
-                          <div className="w-6 h-3 rounded bg-sage" />
-                          <span className="font-body text-xs text-charcoal/60">High</span>
-                        </div>
-                      </div>
+                              {disciplineSplit.map((_, idx) => (
+                                <Cell key={idx} fill={instructorPieColors[idx % instructorPieColors.length]} />
+                              ))}
+                              <RechartsLabel
+                                position="center"
+                                content={({ viewBox }) => {
+                                  if (!viewBox || !("cx" in viewBox)) return null;
+                                  const cx = viewBox.cx ?? 0;
+                                  const cy = viewBox.cy ?? 0;
+                                  const total = disciplineSplit.reduce((s, d) => s + d.count, 0);
+                                  return (
+                                    <text x={cx} y={cy} textAnchor="middle" dominantBaseline="middle">
+                                      <tspan x={cx} y={cy - 4} fill="#333333" fontSize="22" fontWeight="600">{total}</tspan>
+                                      <tspan x={cx} y={cy + 16} fill="#6B6B6B" fontSize="10">bookings</tspan>
+                                    </text>
+                                  );
+                                }}
+                              />
+                            </Pie>
+                          </RechartsPieChart>
+                        </ChartContainer>
+                      )}
                     </CardContent>
                   </Card>
 
-                  {/* Occupancy Trend */}
+                  {/* Utilization by class — horizontal bar */}
                   <Card className="border-sage/20 bg-white/95 backdrop-blur-xl lg:col-span-2">
                     <CardHeader>
-                      <CardTitle className="font-display text-xl text-charcoal">
-                        Weekly Occupancy Trend
-                      </CardTitle>
+                      <CardTitle className="font-display text-xl text-charcoal">Utilization Leaderboard</CardTitle>
                       <CardDescription className="font-body text-charcoal/60">
-                        Average class occupancy over the past 4 weeks
+                        Top 10 classes by capacity fill
                       </CardDescription>
                     </CardHeader>
                     <CardContent>
-                      <div className="space-y-4">
-                        <div className="h-64 flex items-end justify-between gap-3">
-                          {[
-                            { day: "Mon", weeks: [72, 75, 78, 82] },
-                            { day: "Tue", weeks: [68, 71, 74, 76] },
-                            { day: "Wed", weeks: [75, 78, 81, 85] },
-                            { day: "Thu", weeks: [65, 68, 70, 73] },
-                            { day: "Fri", weeks: [80, 83, 86, 89] },
-                            { day: "Sat", weeks: [88, 90, 92, 95] },
-                            { day: "Sun", weeks: [62, 65, 67, 70] }
-                          ].map((day, dayIdx) => (
-                            <div key={dayIdx} className="flex-1 flex flex-col items-center gap-2">
-                              <div className="w-full flex items-end justify-center gap-0.5 h-full">
-                                {day.weeks.map((occupancy, weekIdx) => (
-                                  <div 
-                                    key={weekIdx}
-                                    className={`flex-1 rounded-t transition-all duration-300 hover:opacity-80 cursor-pointer relative group ${
-                                      weekIdx === 0 ? 'bg-sage/30' :
-                                      weekIdx === 1 ? 'bg-sage/50' :
-                                      weekIdx === 2 ? 'bg-sage/70' :
-                                      'bg-sage'
-                                    }`}
-                                    style={{ height: `${occupancy}%` }}
-                                  >
-                                    <div className="absolute -top-8 left-1/2 -translate-x-1/2 bg-charcoal text-white text-xs px-2 py-1 rounded opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap z-10">
-                                      {occupancy}%
-                                    </div>
-                                  </div>
-                                ))}
-                              </div>
-                              <div className="font-body text-xs text-charcoal/60 font-medium">{day.day}</div>
-                            </div>
-                          ))}
-                        </div>
-                        <div className="flex items-center justify-center gap-6 pt-4 border-t border-sage/20">
-                          <div className="flex items-center gap-2">
-                            <div className="w-4 h-4 rounded bg-sage/30" />
-                            <span className="font-body text-xs text-charcoal/60">Week 1</span>
-                          </div>
-                          <div className="flex items-center gap-2">
-                            <div className="w-4 h-4 rounded bg-sage/50" />
-                            <span className="font-body text-xs text-charcoal/60">Week 2</span>
-                          </div>
-                          <div className="flex items-center gap-2">
-                            <div className="w-4 h-4 rounded bg-sage/70" />
-                            <span className="font-body text-xs text-charcoal/60">Week 3</span>
-                          </div>
-                          <div className="flex items-center gap-2">
-                            <div className="w-4 h-4 rounded bg-sage" />
-                            <span className="font-body text-xs text-charcoal/60">Week 4 (Current)</span>
-                          </div>
-                        </div>
-                      </div>
+                      {classPerformance.length === 0 ? (
+                        <div className="h-[280px] flex items-center justify-center font-body text-sm text-charcoal/40">No class data yet.</div>
+                      ) : (
+                        <ChartContainer
+                          config={{ utilization: { label: "Utilization %", color: "#8F9779" } }}
+                          className="h-[280px] w-full"
+                        >
+                          <BarChart
+                            data={[...classPerformance]
+                              .sort((a, b) => b.utilization - a.utilization)
+                              .slice(0, 10)
+                              .map((c) => ({ name: c.name, utilization: c.utilization }))}
+                            layout="vertical"
+                            margin={{ top: 4, right: 32, left: 0, bottom: 0 }}
+                          >
+                            <CartesianGrid horizontal={false} strokeDasharray="3 3" stroke="#E5E5E0" />
+                            <XAxis
+                              type="number"
+                              domain={[0, 100]}
+                              tickLine={false}
+                              axisLine={false}
+                              tick={{ fontSize: 11, fill: "#6B6B6B" }}
+                              tickFormatter={(v: number) => `${v}%`}
+                            />
+                            <YAxis
+                              dataKey="name"
+                              type="category"
+                              tickLine={false}
+                              axisLine={false}
+                              tick={{ fontSize: 11, fill: "#6B6B6B" }}
+                              width={180}
+                              interval={0}
+                            />
+                            <ChartTooltip cursor={{ fill: "rgba(143,151,121,0.05)" }} content={<ChartTooltipContent formatter={(v) => `${v}%`} />} />
+                            <Bar dataKey="utilization" fill="var(--color-utilization)" radius={[0, 6, 6, 0]} maxBarSize={20} />
+                          </BarChart>
+                        </ChartContainer>
+                      )}
                     </CardContent>
                   </Card>
                 </div>
+
+                {/* Peak Hours Heatmap */}
+                <Card className="border-sage/20 bg-white/95 backdrop-blur-xl">
+                  <CardHeader>
+                    <CardTitle className="font-display text-xl text-charcoal">Peak Hours Heatmap</CardTitle>
+                    <CardDescription className="font-body text-charcoal/60">
+                      Bookings by time slot × day of week · last 30 days
+                    </CardDescription>
+                  </CardHeader>
+                  <CardContent>
+                    {peakHours.max === 0 ? (
+                      <div className="h-[240px] flex items-center justify-center font-body text-sm text-charcoal/40">
+                        No bookings yet to plot.
+                      </div>
+                    ) : (
+                      <div className="space-y-3">
+                        <div className="overflow-x-auto">
+                          <div
+                            className="inline-grid gap-1 min-w-full"
+                            style={{ gridTemplateColumns: `auto repeat(${peakHours.days.length}, minmax(56px, 1fr))` }}
+                          >
+                            {/* header row */}
+                            <div />
+                            {peakHours.days.map((d) => (
+                              <div key={d} className="font-body text-[11px] text-charcoal/50 text-center uppercase tracking-wide pb-1">
+                                {d}
+                              </div>
+                            ))}
+                            {/* rows */}
+                            {peakHours.slots.map((slot, rIdx) => (
+                              <Fragment key={slot}>
+                                <div className="font-body text-[11px] text-charcoal/60 pr-3 flex items-center justify-end whitespace-nowrap">
+                                  {slot}
+                                </div>
+                                {peakHours.days.map((day, cIdx) => {
+                                  const count = peakHours.grid[rIdx]?.[cIdx] ?? 0;
+                                  const intensity = peakHours.max > 0 ? count / peakHours.max : 0;
+                                  const opacity = count === 0 ? 0.06 : 0.18 + intensity * 0.82;
+                                  return (
+                                    <div
+                                      key={`${slot}-${day}`}
+                                      className="h-10 rounded-md flex items-center justify-center font-body text-xs font-medium transition-all hover:scale-[1.04] hover:shadow-md cursor-default"
+                                      style={{
+                                        backgroundColor: `rgba(143, 151, 121, ${opacity})`,
+                                        color: intensity > 0.55 ? "#FFFFFF" : "#333333",
+                                      }}
+                                      title={`${day} ${slot}: ${count} bookings`}
+                                    >
+                                      {count > 0 ? count : ""}
+                                    </div>
+                                  );
+                                })}
+                              </Fragment>
+                            ))}
+                          </div>
+                        </div>
+                        <div className="flex items-center justify-end gap-2 pt-1">
+                          <span className="font-body text-[11px] text-charcoal/50">Less</span>
+                          {[0.1, 0.3, 0.5, 0.7, 0.95].map((op) => (
+                            <div key={op} className="w-5 h-3 rounded-sm" style={{ backgroundColor: `rgba(143,151,121,${op})` }} />
+                          ))}
+                          <span className="font-body text-[11px] text-charcoal/50">More</span>
+                        </div>
+                      </div>
+                    )}
+                  </CardContent>
+                </Card>
+
+                {/* Underperforming Classes alert */}
+                {classPerformance.filter((c) => c.utilization < 60).length > 0 && (
+                  <Card className="border-red-500/20 bg-gradient-to-br from-red-50 to-white backdrop-blur-xl">
+                    <CardHeader>
+                      <CardTitle className="font-display text-xl text-charcoal flex items-center gap-2">
+                        <AlertTriangle className="h-5 w-5 text-red-500" />
+                        Needs Attention
+                      </CardTitle>
+                      <CardDescription className="font-body text-charcoal/60">
+                        Classes below 60% capacity — consider rescheduling or promoting
+                      </CardDescription>
+                    </CardHeader>
+                    <CardContent>
+                      <div className="flex flex-wrap gap-2">
+                        {classPerformance
+                          .filter((c) => c.utilization < 60)
+                          .map((cls) => (
+                            <div key={cls.name} className="flex items-center gap-2 rounded-full bg-white border border-red-500/20 px-3 py-1.5">
+                              <span className="font-body text-sm text-charcoal">{cls.name}</span>
+                              <Badge className="bg-red-500/10 text-red-600 border-red-500/20 font-body">
+                                {cls.utilization}%
+                              </Badge>
+                            </div>
+                          ))}
+                      </div>
+                    </CardContent>
+                  </Card>
+                )}
+
               </TabsContent>
             </Tabs>
 
@@ -3841,15 +3794,16 @@ export default function AdminDashboard() {
 
               {/* Attendee List */}
               <div>
-                <div className="font-body font-medium text-charcoal mb-3">Enrolled Members:</div>
+                <div className="font-body font-medium text-charcoal mb-3">Enrolled Members</div>
+                {(selectedClass.attendees ?? []).length === 0 ? (
+                  <div className="text-center py-8 rounded-lg border border-dashed border-sage/20 bg-cream/20">
+                    <p className="font-body text-sm text-charcoal/50">
+                      Roster details aren&apos;t available for this class yet.
+                    </p>
+                  </div>
+                ) : (
                 <div className="space-y-2 max-h-96 overflow-y-auto">
                   {(selectedClass.attendees ?? []).map((attendee: any) => {
-                    const initials = (attendee.name || "M")
-                      .split(" ")
-                      .filter(Boolean)
-                      .map((n: string) => n[0])
-                      .join("")
-                      .slice(0, 3);
                     const outcome = attendee.checkInOutcome as string | null | undefined;
                     const outcomeLabel =
                       attendee.checkedIn && outcome === "on_time"
@@ -3862,13 +3816,14 @@ export default function AdminDashboard() {
                               ? "No-show"
                               : "Not checked in";
                     return (
-                    <div key={attendee.id} className="flex items-center justify-between p-3 rounded-lg border border-sage/20 bg-white">
+                    <div key={attendee.id} className="flex items-center justify-between p-3 rounded-lg border border-sage/15 bg-white">
                       <div className="flex items-center gap-3 min-w-0">
-                        <div className="h-10 w-10 shrink-0 rounded-full bg-sage/10 flex items-center justify-center">
-                          <span className="font-body text-sm text-sage">
-                            {initials || "—"}
-                          </span>
-                        </div>
+                        <ListAvatar
+                          name={attendee.name || "Member"}
+                          src={attendee.avatarUrl}
+                          size="md"
+                          ringClassName="ring-sage/20"
+                        />
                         <div className="min-w-0">
                           <div className="font-body font-medium text-charcoal truncate">
                             {attendee.name}
@@ -3887,16 +3842,16 @@ export default function AdminDashboard() {
                       </div>
                       <div className="flex flex-col items-end gap-1 shrink-0 ml-2">
                         {attendee.checkedIn ? (
-                          <Badge className="bg-sage text-white">
+                          <Badge className="bg-sage text-white whitespace-nowrap font-body">
                             <CheckCircle2 className="h-3 w-3 mr-1" />
                             {outcomeLabel}
                           </Badge>
                         ) : outcome === "no_show" ? (
-                          <Badge variant="outline" className="border-charcoal/25 text-charcoal/70">
+                          <Badge variant="outline" className="border-charcoal/25 text-charcoal/70 whitespace-nowrap font-body">
                             No-show
                           </Badge>
                         ) : (
-                          <Badge variant="outline" className="border-charcoal/20 text-charcoal/60">
+                          <Badge variant="outline" className="border-charcoal/20 text-charcoal/60 whitespace-nowrap font-body">
                             Not checked in
                           </Badge>
                         )}
@@ -3905,6 +3860,7 @@ export default function AdminDashboard() {
                     );
                   })}
                 </div>
+                )}
               </div>
             </div>
           )}

@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useRouter } from "next/router";
 import { signOut } from "next-auth/react";
 import Link from "next/link";
@@ -10,230 +10,344 @@ import {
   Coffee,
   Settings,
   LogOut,
-  Menu,
-  X,
-  ChevronRight,
   Package,
-  Award
+  Award,
+  MessageSquare,
+  BellRing,
+  User,
+  Search,
+  type LucideIcon,
 } from "lucide-react";
+import {
+  Command,
+  CommandEmpty,
+  CommandGroup,
+  CommandInput,
+  CommandItem,
+  CommandList,
+} from "@/components/ui/command";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
+import { Separator } from "@/components/ui/separator";
 import {
-  Breadcrumb,
-  BreadcrumbItem,
-  BreadcrumbLink,
-  BreadcrumbList,
-  BreadcrumbPage,
-  BreadcrumbSeparator,
-} from "@/components/ui/breadcrumb";
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuGroup,
+  DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
+import {
+  Sidebar,
+  SidebarContent,
+  SidebarFooter,
+  SidebarGroup,
+  SidebarGroupContent,
+  SidebarGroupLabel,
+  SidebarHeader,
+  SidebarInset,
+  SidebarMenu,
+  SidebarMenuButton,
+  SidebarMenuItem,
+  SidebarProvider,
+  SidebarTrigger,
+} from "@/components/ui/sidebar";
+import { cn } from "@/lib/utils";
 
 interface AdminNavigationProps {
   adminName?: string;
   adminEmail?: string;
+  children?: React.ReactNode;
 }
 
-export function AdminNavigation({ 
+type NavLink = { href: string; label: string; icon: LucideIcon };
+type NavSection = { label: string; items: NavLink[] };
+
+const navSections: NavSection[] = [
+  {
+    label: "Dashboard",
+    items: [
+      { href: "/admin/dashboard", label: "Dashboard", icon: LayoutDashboard },
+    ],
+  },
+  {
+    label: "Operations",
+    items: [
+      { href: "/admin/schedule", label: "Schedule", icon: Calendar },
+      { href: "/admin/members", label: "Members", icon: Users },
+      { href: "/admin/credits", label: "Credits", icon: CreditCard },
+      { href: "/admin/badges", label: "Badges", icon: Award },
+      { href: "/admin/CRM", label: "CRM", icon: MessageSquare },
+    ],
+  },
+  {
+    label: "Catalog",
+    items: [
+      { href: "/admin/cafe", label: "Café Menu", icon: Coffee },
+      { href: "/admin/products", label: "Products", icon: Package },
+    ],
+  },
+  {
+    label: "System",
+    items: [{ href: "/admin/control", label: "Settings", icon: Settings }],
+  },
+];
+
+function SearchCommand() {
+  const router = useRouter();
+  const [open, setOpen] = useState(false);
+  const [query, setQuery] = useState("");
+  const inputRef = useRef<HTMLInputElement | null>(null);
+
+  useEffect(() => {
+    const onKey = (e: KeyboardEvent) => {
+      if ((e.metaKey || e.ctrlKey) && e.key.toLowerCase() === "k") {
+        e.preventDefault();
+        setOpen(true);
+        setTimeout(() => inputRef.current?.focus(), 30);
+      }
+    };
+    window.addEventListener("keydown", onKey);
+    return () => window.removeEventListener("keydown", onKey);
+  }, []);
+
+  const go = (href: string) => {
+    setOpen(false);
+    setQuery("");
+    void router.push(href);
+  };
+
+  return (
+    <Popover open={open} onOpenChange={setOpen}>
+      <PopoverTrigger asChild>
+        <button
+          type="button"
+          onClick={() => setOpen(true)}
+          className="flex items-center gap-2 w-full max-w-xs rounded-full border border-sage/20 bg-white/70 px-3 py-1.5 text-left text-sm text-charcoal/50 hover:border-sage/40 transition-colors"
+        >
+          <Search className="h-4 w-4" />
+          <span className="flex-1 truncate font-body">Search pages…</span>
+          <kbd className="hidden sm:inline rounded border border-sage/20 bg-cream/50 px-1.5 text-[10px] font-body text-charcoal/50">
+            ⌘K
+          </kbd>
+        </button>
+      </PopoverTrigger>
+      <PopoverContent align="start" className="w-[380px] p-0">
+        <Command>
+          <CommandInput
+            ref={inputRef}
+            placeholder="Search pages…"
+            value={query}
+            onValueChange={setQuery}
+          />
+          <CommandList>
+            <CommandEmpty>No pages found.</CommandEmpty>
+            {navSections.map((section) => (
+              <CommandGroup key={section.label} heading={section.label}>
+                {section.items.map((item) => (
+                  <CommandItem
+                    key={item.href}
+                    value={`${item.label} ${item.href}`}
+                    onSelect={() => go(item.href)}
+                    className="cursor-pointer"
+                  >
+                    <item.icon className="mr-2 h-4 w-4 text-sage" />
+                    <div className="flex flex-col">
+                      <span className="font-body text-sm text-charcoal">{item.label}</span>
+                      <span className="font-body text-xs text-charcoal/50">{item.href}</span>
+                    </div>
+                  </CommandItem>
+                ))}
+              </CommandGroup>
+            ))}
+          </CommandList>
+        </Command>
+      </PopoverContent>
+    </Popover>
+  );
+}
+
+export function AdminNavigation({
   adminName = "Admin",
-  adminEmail = "admin@studio.com"
+  adminEmail = "admin@studio.com",
+  children,
 }: AdminNavigationProps) {
   const router = useRouter();
-  const [isOpen, setIsOpen] = useState(false);
 
-  const navItems = [
-    { href: "/admin/dashboard", label: "Dashboard", icon: LayoutDashboard, description: "Overview & analytics" },
-    { href: "/admin/schedule", label: "Schedule", icon: Calendar, description: "Manage classes" },
-    { href: "/admin/members", label: "Members", icon: Users, description: "User management" },
-    { href: "/admin/credits", label: "Credits", icon: CreditCard, description: "Track credits" },
-    { href: "/admin/badges", label: "Badges", icon: Award, description: "Manage badge system" },
-    { href: "/admin/cafe", label: "Café Menu", icon: Coffee, description: "Manage menu" },
-    { href: "/admin/products", label: "Products", icon: Package, description: "Shop items" },
-    { href: "/admin/control", label: "Settings", icon: Settings, description: "System config" },
-  ];
-
-  const isActive = (path: string) => router.pathname === path;
-
-  /** Derive breadcrumb crumbs from the current admin route. */
-  const crumbs = (() => {
-    const segs = router.pathname.split("/").filter(Boolean); // e.g. ["admin","members"]
-    const labelMap: Record<string, string> = {
-      admin: "Admin",
-      dashboard: "Dashboard",
-      schedule: "Schedule",
-      members: "Members",
-      credits: "Credits",
-      badges: "Badges",
-      cafe: "Café Menu",
-      products: "Products",
-      control: "Settings",
-      CRM: "CRM",
-      login: "Login",
-    };
-    return segs.map((seg, idx) => ({
-      label: labelMap[seg] ?? seg.charAt(0).toUpperCase() + seg.slice(1),
-      href: "/" + segs.slice(0, idx + 1).join("/"),
-    }));
-  })();
+  const isActive = (href: string) => router.pathname === href;
 
   const handleSignOut = async () => {
-    setIsOpen(false);
     await signOut({ redirect: false });
     await router.replace("/admin/login");
   };
 
-  const getInitials = (name: string) => {
-    return name.split(" ").map(n => n[0]).join("").toUpperCase().slice(0, 2);
-  };
+  const getInitials = (name: string) =>
+    name.split(" ").map((n) => n[0]).join("").toUpperCase().slice(0, 2);
 
   return (
-    <>
-      {/* Header with Hamburger for All Screen Sizes */}
-      <header className="fixed top-0 left-0 right-0 z-50 bg-white/80 backdrop-blur-xl border-b border-sage/10 shadow-sm h-16">
-        <div className="flex items-center justify-between h-full px-4">
-          {/* Left Side: Logo + Hamburger + Breadcrumb */}
-          <div className="flex items-center gap-4 min-w-0">
-            {/* Logo - Back to Home */}
-            <Link href="/" className="flex items-center gap-3 group shrink-0">
-              <img
-                src="/logo2.png"
-                alt="The Studio Logo"
-                className="h-12 w-auto group-hover:scale-105 transition-transform duration-300"
-                style={{ filter: 'brightness(0)' }}
-              />
-            </Link>
+    <SidebarProvider
+      style={
+        {
+          "--sidebar-width": "16rem",
+          "--sidebar-background": "0 0% 100%",
+          "--sidebar-foreground": "20 14% 25%",
+          "--sidebar-primary": "150 14% 45%",
+          "--sidebar-primary-foreground": "0 0% 100%",
+          "--sidebar-accent": "150 20% 95%",
+          "--sidebar-accent-foreground": "150 14% 30%",
+          "--sidebar-border": "150 14% 88%",
+          "--sidebar-ring": "150 14% 45%",
+        } as React.CSSProperties
+      }
+    >
+      {/* Inset sidebar — acts as page background panel */}
+      <Sidebar variant="inset" collapsible="icon">
+        <SidebarHeader className="px-3 pb-3">
+          <Link href="/" className="flex items-center gap-2 group">
+            <img
+              src="/logo2.png"
+              alt="The Studio Logo"
+              className="h-10 w-auto group-hover:scale-105 transition-transform duration-300 group-data-[collapsible=icon]:hidden"
+              style={{ filter: "brightness(0)" }}
+            />
+            <img
+              src="/favicon.svg"
+              alt="The Studio"
+              className="hidden h-8 w-8 group-data-[collapsible=icon]:block"
+            />
+          </Link>
+        </SidebarHeader>
 
-            {/* Hamburger Menu Button */}
-            <button
-              onClick={() => setIsOpen(!isOpen)}
-              className="p-2 text-charcoal hover:text-sage transition-colors duration-600 shrink-0"
-              aria-label="Toggle menu"
-            >
-              {isOpen ? <X size={24} /> : <Menu size={24} />}
-            </button>
-
-            {/* Breadcrumb trail */}
-            {crumbs.length > 0 && (
-              <Breadcrumb className="hidden sm:block min-w-0">
-                <BreadcrumbList className="text-charcoal/70">
-                  {crumbs.map((c, i) => {
-                    const last = i === crumbs.length - 1;
+        <SidebarContent>
+          {navSections.map((section) => (
+            <SidebarGroup key={section.label}>
+              <SidebarGroupLabel className="text-xs font-medium uppercase tracking-wider text-charcoal/40">
+                {section.label}
+              </SidebarGroupLabel>
+              <SidebarGroupContent>
+                <SidebarMenu>
+                  {section.items.map((item) => {
+                    const active = isActive(item.href);
                     return (
-                      <span key={c.href} className="contents">
-                        <BreadcrumbItem>
-                          {last ? (
-                            <BreadcrumbPage className="font-body text-charcoal truncate">
-                              {c.label}
-                            </BreadcrumbPage>
-                          ) : (
-                            <BreadcrumbLink asChild>
-                              <Link href={c.href} className="font-body text-charcoal/60 hover:text-sage">
-                                {c.label}
-                              </Link>
-                            </BreadcrumbLink>
+                      <SidebarMenuItem key={item.href}>
+                        <SidebarMenuButton
+                          asChild
+                          isActive={active}
+                          tooltip={item.label}
+                          className={cn(
+                            "rounded-md font-body transition-colors",
+                            active &&
+                              "bg-sage text-white hover:bg-sage hover:text-white data-[active=true]:bg-sage data-[active=true]:text-white",
                           )}
-                        </BreadcrumbItem>
-                        {!last && <BreadcrumbSeparator />}
-                      </span>
+                        >
+                          <Link href={item.href}>
+                            <item.icon className="h-4 w-4" />
+                            <span>{item.label}</span>
+                          </Link>
+                        </SidebarMenuButton>
+                      </SidebarMenuItem>
                     );
                   })}
-                </BreadcrumbList>
-              </Breadcrumb>
-            )}
-          </div>
+                </SidebarMenu>
+              </SidebarGroupContent>
+            </SidebarGroup>
+          ))}
+        </SidebarContent>
 
-          {/* Admin Badge */}
-          <div className="flex items-center gap-3 shrink-0">
-            <Badge className="bg-terracotta text-white font-body">
-              Admin Portal
-            </Badge>
+        <SidebarFooter className="border-t border-sage/10 pt-3">
+          <div className="flex items-center gap-3 px-2 pb-2 group-data-[collapsible=icon]:justify-center">
+            <Avatar className="h-9 w-9 border-2 border-terracotta/20">
+              <AvatarFallback className="bg-terracotta/10 text-terracotta font-display text-sm">
+                {getInitials(adminName)}
+              </AvatarFallback>
+            </Avatar>
+            <div className="min-w-0 flex-1 group-data-[collapsible=icon]:hidden">
+              <p className="font-body text-sm font-medium text-charcoal truncate">{adminName}</p>
+              <p className="font-body text-xs text-charcoal/50 truncate">{adminEmail}</p>
+            </div>
+          </div>
+        </SidebarFooter>
+      </Sidebar>
+
+      <SidebarInset>
+      {/* Sticky top header inside the inset card */}
+      <header className="sticky top-0 z-40 bg-white/80 backdrop-blur-xl border-b border-sage/10 h-16 md:rounded-t-xl">
+        <div className="flex items-center justify-between h-full px-4 gap-3">
+          <div className="flex items-center gap-3 flex-1 min-w-0">
+            <SidebarTrigger className="text-charcoal hover:text-sage shrink-0" />
+            <div className="flex-1 max-w-md">
+              <SearchCommand />
+            </div>
+          </div>
+          <div className="flex items-center gap-2.5 shrink-0">
+            <Badge className="hidden lg:inline-flex bg-terracotta text-white font-body">Admin Portal</Badge>
+            <Separator orientation="vertical" className="hidden lg:block h-6" />
+            <button
+              type="button"
+              aria-label="Notifications"
+              className="relative rounded-full p-2 hover:bg-sage/10 transition-colors before:absolute before:top-1 before:left-1/2 before:z-10 before:w-2 before:h-2 before:rounded-full before:bg-terracotta"
+            >
+              <BellRing className="size-4 text-charcoal" />
+            </button>
+            <DropdownMenu modal={false}>
+              <DropdownMenuTrigger asChild>
+                <button
+                  type="button"
+                  className="rounded-full cursor-pointer focus:outline-none focus:ring-2 focus:ring-sage/40"
+                  aria-label="Profile"
+                >
+                  <Avatar className="size-8 rounded-full ring-2 ring-sage/30">
+                    <AvatarFallback className="bg-terracotta/10 text-terracotta font-display text-sm">
+                      {getInitials(adminName)}
+                    </AvatarFallback>
+                  </Avatar>
+                </button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent className="w-72" align="end">
+                <DropdownMenuGroup>
+                  <DropdownMenuLabel className="flex items-center gap-3 px-3 py-2.5 font-normal">
+                    <div className="relative">
+                      <Avatar className="size-10">
+                        <AvatarFallback className="bg-terracotta/10 text-terracotta font-display">
+                          {getInitials(adminName)}
+                        </AvatarFallback>
+                      </Avatar>
+                      <span className="ring-card absolute right-0 bottom-0 size-2 rounded-full bg-green-600 ring-2" />
+                    </div>
+                    <div className="flex flex-col min-w-0">
+                      <span className="text-charcoal font-body font-semibold truncate">{adminName}</span>
+                      <span className="text-charcoal/60 text-xs truncate">{adminEmail}</span>
+                    </div>
+                  </DropdownMenuLabel>
+                  <DropdownMenuSeparator />
+                  <DropdownMenuItem asChild className="cursor-pointer gap-3 px-3 py-2">
+                    <Link href="/admin/control">
+                      <User size={16} />
+                      <span>Account Settings</span>
+                    </Link>
+                  </DropdownMenuItem>
+                  <DropdownMenuSeparator />
+                  <DropdownMenuItem
+                    className="cursor-pointer gap-3 px-3 py-2 text-terracotta focus:bg-terracotta/10 focus:text-terracotta"
+                    onSelect={(e) => {
+                      e.preventDefault();
+                      void handleSignOut();
+                    }}
+                  >
+                    <LogOut size={16} />
+                    <span>Sign Out</span>
+                  </DropdownMenuItem>
+                </DropdownMenuGroup>
+              </DropdownMenuContent>
+            </DropdownMenu>
           </div>
         </div>
       </header>
-
-      {/* Overlay for all screen sizes */}
-      {isOpen && (
-        <div
-          className="fixed inset-0 bg-charcoal/60 backdrop-blur-sm z-40 animate-in fade-in duration-600"
-          onClick={() => setIsOpen(false)}
-        />
-      )}
-
-      {/* Sidebar Drawer for All Screen Sizes */}
-      <aside
-        className={`fixed top-0 left-0 bottom-0 w-80 bg-white/95 backdrop-blur-2xl shadow-2xl z-50 transform transition-all duration-600 ease-out ${
-          isOpen ? "translate-x-0" : "-translate-x-full"
-        }`}
-      >
-        <div className="flex flex-col h-full">
-          {/* Admin Profile Section */}
-          <div className="p-6 bg-gradient-to-br from-terracotta/5 to-white border-b border-sage/10">
-            <div className="flex items-center gap-4 mb-4">
-              <Avatar className="h-16 w-16 border-2 border-terracotta/20">
-                <AvatarFallback className="bg-terracotta/10 text-terracotta font-display text-xl">
-                  {getInitials(adminName)}
-                </AvatarFallback>
-              </Avatar>
-              <div className="flex-1 min-w-0">
-                <h3 className="font-display text-xl text-charcoal truncate">{adminName}</h3>
-                <p className="font-body text-sm text-charcoal/60 truncate">{adminEmail}</p>
-                <div className="mt-2 inline-flex items-center px-2 py-0.5 rounded-full bg-terracotta/10 text-terracotta text-xs font-body border border-terracotta/20">
-                  Administrator
-                </div>
-              </div>
-            </div>
-          </div>
-
-          {/* Navigation Items */}
-          <nav className="flex-1 p-4 overflow-y-auto">
-            <p className="font-body text-xs text-charcoal/40 uppercase tracking-wider mb-3 px-2">Admin Menu</p>
-            <div className="space-y-1">
-              {navItems.map((item) => {
-                const Icon = item.icon;
-                const active = isActive(item.href);
-                return (
-                  <Link
-                    key={item.href}
-                    href={item.href}
-                    onClick={() => setIsOpen(false)}
-                    className={`group flex items-center gap-3 px-4 py-3.5 rounded-xl transition-all duration-600 ${
-                      active
-                        ? "bg-sage text-white shadow-lg"
-                        : "text-charcoal hover:bg-sage/10 hover:translate-x-1"
-                    }`}
-                  >
-                    <div className={`p-2 rounded-lg transition-colors duration-600 ${
-                      active ? "bg-white/20" : "bg-sage/10 group-hover:bg-sage/20"
-                    }`}>
-                      <Icon size={18} />
-                    </div>
-                    <div className="flex-1">
-                      <p className="font-body font-medium">{item.label}</p>
-                      <p className={`font-body text-xs transition-colors duration-600 ${
-                        active ? "text-white/70" : "text-charcoal/50"
-                      }`}>
-                        {item.description}
-                      </p>
-                    </div>
-                    {active && <ChevronRight size={16} />}
-                  </Link>
-                );
-              })}
-            </div>
-          </nav>
-
-          {/* Sign Out Button */}
-          <div className="p-4 border-t border-sage/10 bg-gradient-to-t from-cream/30 to-white">
-            <Button
-              onClick={handleSignOut}
-              variant="outline"
-              className="w-full justify-start text-terracotta border-terracotta/20 hover:bg-terracotta/10 hover:border-terracotta/40 h-12 font-body transition-all duration-600"
-            >
-              <LogOut size={20} className="mr-3" />
-              Sign Out
-            </Button>
-          </div>
-        </div>
-      </aside>
-    </>
+      <div className="flex-1">{children}</div>
+      </SidebarInset>
+    </SidebarProvider>
   );
 }

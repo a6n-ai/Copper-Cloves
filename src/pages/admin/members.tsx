@@ -1,7 +1,17 @@
 import { useState, useEffect } from "react";
 import { useRouter } from "next/router";
-import { AdminNavigation } from "@/components/AdminNavigation";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
+import { MetricCard } from "@/components/admin/MetricCard";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
+import { MoreHorizontal } from "lucide-react";
+import { AdminPageHeader } from "@/components/admin/AdminPageHeader";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
@@ -17,9 +27,11 @@ import {
   Phone,
   Trophy,
   Search,
+  Plus,
 } from "lucide-react";
 import { SEO } from "@/components/SEO";
 import { Pagination, usePagination } from "@/components/Pagination";
+import { ListAvatar } from "@/components/admin/ListAvatar";
 import { useSession } from "next-auth/react";
 import {
   Dialog,
@@ -43,6 +55,7 @@ interface Member {
   name: string;
   email: string;
   phone: string;
+  avatarUrl: string | null;
   package: string;
   credits: number;
   unlimited: boolean;
@@ -98,6 +111,15 @@ export default function AdminMembers() {
   const [loadError, setLoadError] = useState<string | null>(null);
 
   // Offline payment recording
+  // Add Member dialog
+  const [addOpen, setAddOpen] = useState(false);
+  const [addName, setAddName] = useState("");
+  const [addEmail, setAddEmail] = useState("");
+  const [addPhone, setAddPhone] = useState("");
+  const [addPassword, setAddPassword] = useState("");
+  const [addError, setAddError] = useState<string | null>(null);
+  const [addSubmitting, setAddSubmitting] = useState(false);
+
   const [paymentMethod, setPaymentMethod] = useState<string>("");
   const [paymentAmount, setPaymentAmount] = useState<string>("");
   const [paymentReference, setPaymentReference] = useState<string>("");
@@ -108,14 +130,14 @@ export default function AdminMembers() {
 
   const { data: session, status } = useSession();
 
+  const userRole = (session?.user as { role?: string })?.role;
   useEffect(() => {
     if (status === "loading") return;
     if (status === "unauthenticated") {
       router.push("/admin/login");
       return;
     }
-    const role = (session?.user as { role?: string })?.role;
-    if (status === "authenticated" && role !== "admin") {
+    if (status === "authenticated" && userRole !== "admin") {
       router.push("/admin/login");
       return;
     }
@@ -123,7 +145,8 @@ export default function AdminMembers() {
       setLoading(true);
       void loadMembers().finally(() => setLoading(false));
     }
-  }, [status, session, router]);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [status, userRole]);
 
   useEffect(() => {
     const qRaw = searchQuery.trim();
@@ -170,6 +193,7 @@ export default function AdminMembers() {
         full_name: string | null;
         email: string;
         phone: string | null;
+        avatar_url: string | null;
         pass_type: string | null;
         start_date: string | null;
         user_packages: Array<{
@@ -227,6 +251,7 @@ export default function AdminMembers() {
           name: p.full_name || p.email || "Member",
           email: p.email,
           phone: p.phone || "—",
+          avatarUrl: p.avatar_url ?? null,
           package: activePkg?.package_type?.name ?? lastPkg?.package_type?.name ?? "No active package",
           credits,
           unlimited,
@@ -416,11 +441,11 @@ export default function AdminMembers() {
   const getStatusBadge = (status: string) => {
     switch (status) {
       case "active":
-        return <Badge className="bg-sage/10 text-sage border-sage/20">Active</Badge>;
+        return <Badge className="bg-sage/10 text-sage border-sage/20 whitespace-nowrap font-body">Active</Badge>;
       case "expiring":
-        return <Badge variant="outline" className="border-amber-500/20 text-amber-600 bg-amber-50">Expiring Soon</Badge>;
+        return <Badge variant="outline" className="border-amber-500/20 text-amber-600 bg-amber-50 whitespace-nowrap font-body">Expiring</Badge>;
       case "expired":
-        return <Badge variant="destructive">Expired</Badge>;
+        return <Badge variant="destructive" className="whitespace-nowrap font-body">Expired</Badge>;
       default:
         return null;
     }
@@ -455,22 +480,13 @@ export default function AdminMembers() {
       />
       
       <div className="min-h-screen bg-gradient-to-br from-cream via-cream to-sage/10">
-        <AdminNavigation />
         
-        <main className="md:pl-64 min-h-screen pt-20">
+        <main className="min-h-screen">
           <div className="max-w-7xl mx-auto p-6 lg:p-8 space-y-8">
-            
-            {/* Header */}
-            <div className="flex items-center justify-between">
-              <div>
-                <h1 className="font-display text-4xl md:text-5xl text-charcoal mb-2">
-                  Member Management
-                </h1>
-                <p className="font-body text-charcoal/60 text-lg">
-                  Manage credits, subscriptions, and member data
-                </p>
-              </div>
-            </div>
+            <AdminPageHeader
+              title="Member Management"
+              subtitle="Manage credits, subscriptions, and member data"
+            />
 
             {loadError && (
               <Card className="border-terracotta/30 bg-terracotta/5 backdrop-blur-xl">
@@ -496,252 +512,234 @@ export default function AdminMembers() {
             )}
 
             {/* Stats Grid */}
-            <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
-              <Card className="border-sage/20 bg-white/95 backdrop-blur-xl hover:shadow-2xl transition-all duration-600">
-                <CardHeader className="pb-3">
-                  <div className="flex items-center justify-between">
-                    <CardTitle className="font-body text-sm text-charcoal/60 font-medium">
-                      Total Members
-                    </CardTitle>
-                    <Users className="h-5 w-5 text-sage" />
-                  </div>
-                </CardHeader>
-                <CardContent>
-                  <div className="font-display text-4xl text-charcoal">
-                    {stats.totalMembers}
-                  </div>
-                </CardContent>
-              </Card>
-
-              <Card className="border-sage/20 bg-white/95 backdrop-blur-xl hover:shadow-2xl transition-all duration-600">
-                <CardHeader className="pb-3">
-                  <div className="flex items-center justify-between">
-                    <CardTitle className="font-body text-sm text-charcoal/60 font-medium">
-                      Active Members
-                    </CardTitle>
-                    <CheckCircle2 className="h-5 w-5 text-sage" />
-                  </div>
-                </CardHeader>
-                <CardContent>
-                  <div className="font-display text-4xl text-charcoal">
-                    {stats.activeMembers}
-                  </div>
-                </CardContent>
-              </Card>
-
-              <Card className="border-sage/20 bg-white/95 backdrop-blur-xl hover:shadow-2xl transition-all duration-600">
-                <CardHeader className="pb-3">
-                  <div className="flex items-center justify-between">
-                    <CardTitle className="font-body text-sm text-charcoal/60 font-medium">
-                      Expiring Soon
-                    </CardTitle>
-                    <AlertTriangle className="h-5 w-5 text-amber-500" />
-                  </div>
-                </CardHeader>
-                <CardContent>
-                  <div className="font-display text-4xl text-charcoal">
-                    {stats.expiringMembers}
-                  </div>
-                </CardContent>
-              </Card>
-
-              <Card className="border-sage/20 bg-white/95 backdrop-blur-xl hover:shadow-2xl transition-all duration-600">
-                <CardHeader className="pb-3">
-                  <div className="flex items-center justify-between">
-                    <CardTitle className="font-body text-sm text-charcoal/60 font-medium">
-                      Inactive (14d+)
-                    </CardTitle>
-                    <AlertTriangle className="h-5 w-5 text-charcoal/50" />
-                  </div>
-                </CardHeader>
-                <CardContent>
-                  <div className="font-display text-4xl text-charcoal">
-                    {stats.inactiveLong}
-                  </div>
-                  <p className="text-xs text-charcoal/50 font-body mt-1">No package for over 14 days</p>
-                </CardContent>
-              </Card>
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+              <MetricCard label="Total Members" value={stats.totalMembers} icon={Users} tone="sage" />
+              <MetricCard label="Active" value={stats.activeMembers} icon={CheckCircle2} tone="sage" hint="Holding an active pass" />
+              <MetricCard label="Expiring" value={stats.expiringMembers} icon={AlertTriangle} tone="amber" hint="≤14 days left" />
+              <MetricCard label="Inactive" value={stats.inactiveLong} icon={AlertTriangle} tone="charcoal" hint="No pass 14d+" />
             </div>
-
-            {/* Search Bar */}
-            <Card className="border-sage/20 bg-white/95 backdrop-blur-xl">
-              <CardContent className="p-6">
-                <div className="flex flex-col md:flex-row gap-4">
-                  <div className="relative flex-1">
-                    <Search className="absolute left-4 top-1/2 -translate-y-1/2 h-5 w-5 text-charcoal/40" />
-                    <Input
-                      value={searchQuery}
-                      onChange={(e) => setSearchQuery(e.target.value)}
-                      placeholder="Search by name, email, or phone..."
-                      className="h-14 pl-12 border-charcoal/20 focus:border-sage font-body text-lg"
-                    />
-                  </div>
-                  <Select value={packageFilter} onValueChange={(v) => setPackageFilter(v as typeof packageFilter)}>
-                    <SelectTrigger className="h-14 w-full md:w-[200px] border-charcoal/20">
-                      <SelectValue placeholder="Package" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="all">All packages</SelectItem>
-                      <SelectItem value="studio">Studio pass</SelectItem>
-                      <SelectItem value="class">Class pass</SelectItem>
-                      <SelectItem value="none">No pass</SelectItem>
-                    </SelectContent>
-                  </Select>
-                  <Select
-                    value={accountStatusFilter}
-                    onValueChange={(v) => setAccountStatusFilter(v as typeof accountStatusFilter)}
-                  >
-                    <SelectTrigger className="h-14 w-full md:w-[200px] border-charcoal/20">
-                      <SelectValue placeholder="Status" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="all">All statuses</SelectItem>
-                      <SelectItem value="active">Active</SelectItem>
-                      <SelectItem value="inactive">Inactive</SelectItem>
-                    </SelectContent>
-                  </Select>
-                </div>
-              </CardContent>
-            </Card>
 
             {/* Members Table */}
             <Card className="border-sage/20 bg-white/95 backdrop-blur-xl">
-              <CardHeader>
-                <CardTitle className="font-display text-2xl text-charcoal">
-                  Members ({filteredMembers.length})
-                </CardTitle>
-                <CardDescription className="font-body text-charcoal/60">
-                  Click on a member to manage credits and subscription
-                </CardDescription>
+              <CardHeader className="space-y-4">
+                <div className="flex flex-wrap items-start justify-between gap-3">
+                  <div>
+                    <CardTitle className="font-display text-2xl text-charcoal">
+                      Members <span className="font-body text-base text-charcoal/40">({filteredMembers.length})</span>
+                    </CardTitle>
+                    <CardDescription className="font-body text-charcoal/60">
+                      Click Manage to update credits and subscription
+                    </CardDescription>
+                  </div>
+                  <div className="flex items-center gap-2 w-full sm:w-auto">
+                    <div className="relative flex-1 sm:w-72">
+                      <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-charcoal/40" />
+                      <Input
+                        value={searchQuery}
+                        onChange={(e) => setSearchQuery(e.target.value)}
+                        placeholder="Search name, email, phone…"
+                        className="h-9 pl-9 border-sage/20 focus:border-sage font-body"
+                      />
+                    </div>
+                    <Button
+                      onClick={() => {
+                        setAddName("");
+                        setAddEmail("");
+                        setAddPhone("");
+                        setAddPassword("");
+                        setAddError(null);
+                        setAddOpen(true);
+                      }}
+                      className="bg-sage hover:bg-sage/90 text-white font-body h-9 shrink-0"
+                    >
+                      <Plus className="h-4 w-4 mr-1.5" />
+                      Add Member
+                    </Button>
+                  </div>
+                </div>
+
+                {/* Primary filter: tab strip with underline */}
+                <div className="flex items-center justify-between flex-wrap gap-3 border-b border-sage/10">
+                  <div className="flex items-center gap-1 -mb-px overflow-x-auto">
+                    {[
+                      { v: "all", l: "All" },
+                      { v: "studio", l: "Studio" },
+                      { v: "class", l: "Class pass" },
+                      { v: "none", l: "No pass" },
+                    ].map((o) => {
+                      const active = packageFilter === o.v;
+                      return (
+                        <button
+                          key={o.v}
+                          type="button"
+                          onClick={() => setPackageFilter(o.v as typeof packageFilter)}
+                          className={`relative px-4 py-2 font-body text-sm whitespace-nowrap transition-colors ${
+                            active ? "text-sage" : "text-charcoal/60 hover:text-charcoal"
+                          }`}
+                        >
+                          {o.l}
+                          {active && (
+                            <span className="absolute left-0 right-0 -bottom-px h-0.5 bg-sage rounded-full" />
+                          )}
+                        </button>
+                      );
+                    })}
+                  </div>
+                  <div className="flex items-center gap-2 pb-2 flex-wrap">
+                    <div className="flex items-center gap-1 rounded-full bg-cream/50 p-1 border border-sage/15">
+                      {[
+                        { v: "all", l: "All" },
+                        { v: "active", l: "Active" },
+                        { v: "inactive", l: "Inactive" },
+                      ].map((o) => (
+                        <button
+                          key={o.v}
+                          type="button"
+                          onClick={() => setAccountStatusFilter(o.v as typeof accountStatusFilter)}
+                          className={`px-3 h-7 rounded-full font-body text-xs transition-colors ${
+                            accountStatusFilter === o.v
+                              ? "bg-sage text-white shadow-sm"
+                              : "text-charcoal/60 hover:text-charcoal hover:bg-sage/10"
+                          }`}
+                        >
+                          {o.l}
+                        </button>
+                      ))}
+                    </div>
+                    {(packageFilter !== "all" || accountStatusFilter !== "all" || searchQuery) && (
+                      <button
+                        type="button"
+                        onClick={() => {
+                          setPackageFilter("all");
+                          setAccountStatusFilter("all");
+                          setSearchQuery("");
+                        }}
+                        className="font-body text-xs text-terracotta hover:underline"
+                      >
+                        Reset
+                      </button>
+                    )}
+                  </div>
+                </div>
               </CardHeader>
               <CardContent>
-                <div className="space-y-3">
-                  {membersPg.pageItems.map((member) => (
-                    <div 
-                      key={member.id}
-                      className="p-6 rounded-xl border border-charcoal/10 hover:border-sage/30 hover:bg-sage/5 transition-all duration-600"
-                    >
-                      <div className="grid md:grid-cols-5 gap-6">
-                        
-                        {/* Member Info */}
-                        <div className="md:col-span-2">
-                          <div className="flex items-start gap-4">
-                            <div className="h-12 w-12 rounded-full bg-sage/10 flex items-center justify-center text-sage font-display text-xl">
-                              {member.name.charAt(0)}
-                            </div>
-                            <div className="flex-1">
-                              <div className="font-body font-medium text-charcoal mb-1">
-                                {member.name}
-                              </div>
-                              <div className="space-y-1 text-sm text-charcoal/60 font-body">
-                                <div className="flex items-center gap-2">
-                                  <Mail className="h-3.5 w-3.5" />
-                                  {member.email}
-                                </div>
-                                <div className="flex items-center gap-2">
-                                  <Phone className="h-3.5 w-3.5" />
-                                  {member.phone}
-                                </div>
+                <div className="rounded-xl border border-sage/15 bg-white overflow-hidden">
+                  <Table>
+                    <TableHeader>
+                      <TableRow className="bg-sage/5 hover:bg-sage/5 border-sage/10">
+                        <TableHead className="font-body text-xs uppercase tracking-wide text-charcoal/60 px-5 py-3">Member</TableHead>
+                        <TableHead className="font-body text-xs uppercase tracking-wide text-charcoal/60 px-5 py-3 w-[180px]">Pass</TableHead>
+                        <TableHead className="font-body text-xs uppercase tracking-wide text-charcoal/60 px-5 py-3 w-[100px]">Account</TableHead>
+                        <TableHead className="font-body text-xs uppercase tracking-wide text-charcoal/60 px-5 py-3 w-[100px]">Classes</TableHead>
+                        <TableHead className="font-body text-xs uppercase tracking-wide text-charcoal/60 px-5 py-3 w-[140px]">Status</TableHead>
+                        <TableHead className="font-body text-xs uppercase tracking-wide text-charcoal/60 px-5 py-3 w-[60px] text-right">Actions</TableHead>
+                      </TableRow>
+                    </TableHeader>
+                    <TableBody>
+                      {membersPg.pageItems.map((member) => (
+                        <TableRow key={member.id} className="border-sage/10 hover:bg-sage/5">
+                          <TableCell className="px-5 py-4">
+                            <div className="flex items-center gap-3 min-w-0">
+                              <ListAvatar name={member.name} src={member.avatarUrl} size="md" />
+                              <div className="min-w-0">
+                                <div className="font-body font-medium text-charcoal truncate">{member.name}</div>
+                                <div className="font-body text-xs text-charcoal/60 truncate">{member.email}</div>
+                                <div className="font-body text-xs text-charcoal/50 truncate">{member.phone}</div>
                               </div>
                             </div>
-                          </div>
-                        </div>
-
-                        {/* Package & Credits */}
-                        <div>
-                          <div className="font-body text-sm text-charcoal/60 mb-2">
-                            Package
-                          </div>
-                          <Badge variant="outline" className="border-sage/20 text-sage bg-sage/5 mb-3">
-                            {member.package}
-                          </Badge>
-                          {member.unlimited && (
-                            <Badge className="bg-terracotta/10 text-terracotta border-terracotta/20 ml-2">
-                              Unlimited
-                            </Badge>
-                          )}
-                          <div className="mt-2 flex items-center gap-2">
-                            <CreditCard className="h-4 w-4 text-charcoal/40" />
-                            <span className="font-body font-medium text-charcoal">
-                              {member.totalClasses} classes taken
+                          </TableCell>
+                          <TableCell className="px-5 py-4">
+                            <div className="flex flex-wrap items-center gap-1.5">
+                              {member.passCategory === "studio_pass" ? (
+                                <Badge className="bg-sage text-white border-transparent font-body">
+                                  Studio
+                                </Badge>
+                              ) : member.passCategory === "class_pass" ? (
+                                <Badge variant="outline" className="border-sage/30 text-sage bg-sage/5 font-body">
+                                  Class pass
+                                </Badge>
+                              ) : (
+                                <Badge variant="outline" className="border-charcoal/15 text-charcoal/40 bg-cream/30 font-body">
+                                  No pass
+                                </Badge>
+                              )}
+                              {member.unlimited && (
+                                <Badge className="bg-terracotta/10 text-terracotta border-terracotta/30 font-body">
+                                  ∞ Unlimited
+                                </Badge>
+                              )}
+                            </div>
+                            <div className="font-body text-xs text-charcoal/50 mt-1 truncate" title={member.package}>
+                              {member.package}
+                            </div>
+                          </TableCell>
+                          <TableCell className="px-5 py-4">
+                            <span className={`font-body text-sm font-medium ${
+                              member.accountFilter === "active"
+                                ? "text-sage"
+                                : member.accountFilter === "inactive"
+                                ? "text-charcoal/40"
+                                : "text-amber-600"
+                            }`}>
+                              {member.accountFilter === "active"
+                                ? "Active"
+                                : member.accountFilter === "inactive"
+                                ? "Inactive"
+                                : "Lapsed"}
                             </span>
-                          </div>
-                        </div>
-
-                        {/* Pass & activity */}
-                        <div>
-                          <div className="font-body text-sm text-charcoal/60 mb-2">
-                            Pass & activity
-                          </div>
-                          <div className="space-y-2 text-sm font-body">
-                            <div>
-                              <span className="text-charcoal/50">Pass: </span>
-                              <span className="text-charcoal font-medium">
-                                {member.passCategory === "studio_pass"
-                                  ? "Studio pass"
-                                  : member.passCategory === "class_pass"
-                                    ? "Class pass"
-                                    : "No pass"}
-                              </span>
+                          </TableCell>
+                          <TableCell className="px-5 py-4">
+                            <div className="flex items-center gap-1.5">
+                              <Trophy className="h-3.5 w-3.5 text-sage/60" />
+                              <span className="font-body font-medium text-charcoal tabular-nums">{member.totalClasses}</span>
                             </div>
-                            <div>
-                              <span className="text-charcoal/50">Account: </span>
-                              <span className="text-charcoal font-medium">
-                                {member.accountFilter === "active"
-                                  ? "Active"
-                                  : member.accountFilter === "inactive"
-                                    ? "Inactive"
-                                    : "Lapsed (<14 d)"}
-                              </span>
+                            <div className="font-body text-xs text-charcoal/50 mt-0.5">
+                              Last: {member.lastVisit}
                             </div>
-                            <div className="flex items-center gap-2">
-                              <Trophy className="h-3.5 w-3.5 text-sage" />
-                              <span className="text-charcoal">{member.totalClasses} classes attended</span>
+                          </TableCell>
+                          <TableCell className="px-5 py-4">
+                            {getStatusBadge(member.status)}
+                            <div className="font-body text-xs text-charcoal/50 mt-1">
+                              Exp {new Date(member.expiryDate).toLocaleDateString("en-IN", { day: "numeric", month: "short" })}
                             </div>
-                            <div className="flex items-center gap-2 text-charcoal/60">
-                              <Calendar className="h-3.5 w-3.5" />
-                              <span>Last visit: {member.lastVisit}</span>
-                            </div>
-                            {member.startDate && (
-                              <div className="flex items-center gap-2 text-charcoal/60">
-                                <Calendar className="h-3.5 w-3.5 text-sage/60" />
-                                <span>Started: {new Date(member.startDate).toLocaleDateString("en-IN", { day: "numeric", month: "short", year: "numeric" })}</span>
-                              </div>
-                            )}
-                          </div>
-                        </div>
-
-                        {/* Actions */}
-                        <div className="flex flex-col gap-2">
-                          {getStatusBadge(member.status)}
-                          <div className="text-sm font-body text-charcoal/60 mt-2">
-                            Expires: {new Date(member.expiryDate).toLocaleDateString()}
-                          </div>
-                          <Button
-                            onClick={() => handleManageCredits(member)}
-                            variant="outline"
-                            size="sm"
-                            className="border-sage/20 text-sage hover:bg-sage/10 font-body mt-2"
-                          >
-                            <Edit2 className="h-3.5 w-3.5 mr-2" />
-                            Manage
-                          </Button>
-                          <Button
-                            onClick={() => handleToggleUnlimited(member.id)}
-                            variant="outline"
-                            size="sm"
-                            className={`font-body ${
-                              member.unlimited 
-                                ? "border-terracotta/20 text-terracotta hover:bg-terracotta/10" 
-                                : "border-charcoal/20 text-charcoal hover:bg-charcoal/5"
-                            }`}
-                          >
-                            {member.unlimited ? "Remove Unlimited" : "Make Unlimited"}
-                          </Button>
-                        </div>
-                      </div>
-                    </div>
-                  ))}
+                          </TableCell>
+                          <TableCell className="px-5 py-4 text-right">
+                            <DropdownMenu modal={false}>
+                              <DropdownMenuTrigger asChild>
+                                <Button
+                                  variant="ghost"
+                                  size="sm"
+                                  className="h-8 w-8 p-0 text-charcoal/60 hover:bg-sage/10 hover:text-charcoal"
+                                  aria-label="Member actions"
+                                >
+                                  <MoreHorizontal className="h-4 w-4" />
+                                </Button>
+                              </DropdownMenuTrigger>
+                              <DropdownMenuContent align="end" className="w-44">
+                                <DropdownMenuItem
+                                  onSelect={() => handleManageCredits(member)}
+                                  className="cursor-pointer gap-2"
+                                >
+                                  <Edit2 className="h-3.5 w-3.5" />
+                                  Manage
+                                </DropdownMenuItem>
+                                <DropdownMenuSeparator />
+                                <DropdownMenuItem
+                                  onSelect={() => handleToggleUnlimited(member.id)}
+                                  className={`cursor-pointer gap-2 ${
+                                    member.unlimited ? "text-terracotta focus:text-terracotta" : ""
+                                  }`}
+                                >
+                                  <span className="text-base leading-none">∞</span>
+                                  {member.unlimited ? "Remove unlimited" : "Make unlimited"}
+                                </DropdownMenuItem>
+                              </DropdownMenuContent>
+                            </DropdownMenu>
+                          </TableCell>
+                        </TableRow>
+                      ))}
+                    </TableBody>
+                  </Table>
                 </div>
                 <Pagination
                   page={membersPg.page}
@@ -754,6 +752,114 @@ export default function AdminMembers() {
           </div>
         </main>
       </div>
+
+      {/* Add Member Dialog */}
+      <Dialog open={addOpen} onOpenChange={setAddOpen}>
+        <DialogContent className="sm:max-w-[440px] bg-white border-sage/20">
+          <DialogHeader>
+            <DialogTitle className="font-display text-2xl text-charcoal">Add Member</DialogTitle>
+            <DialogDescription className="font-body text-charcoal/60">
+              Create a new member account. They can sign in with the email + password.
+            </DialogDescription>
+          </DialogHeader>
+          <div className="space-y-3 py-2">
+            <div>
+              <Label className="font-body text-charcoal/80 mb-1.5 block text-sm">Full name</Label>
+              <Input
+                value={addName}
+                onChange={(e) => setAddName(e.target.value)}
+                placeholder="Jane Doe"
+                className="border-sage/20 focus:border-sage font-body"
+              />
+            </div>
+            <div>
+              <Label className="font-body text-charcoal/80 mb-1.5 block text-sm">Email</Label>
+              <Input
+                type="email"
+                value={addEmail}
+                onChange={(e) => setAddEmail(e.target.value)}
+                placeholder="jane@example.com"
+                className="border-sage/20 focus:border-sage font-body"
+              />
+            </div>
+            <div>
+              <Label className="font-body text-charcoal/80 mb-1.5 block text-sm">Phone</Label>
+              <Input
+                value={addPhone}
+                onChange={(e) => setAddPhone(e.target.value)}
+                placeholder="+91 9876543210"
+                className="border-sage/20 focus:border-sage font-body"
+              />
+            </div>
+            <div>
+              <Label className="font-body text-charcoal/80 mb-1.5 block text-sm">Temporary password</Label>
+              <Input
+                type="text"
+                value={addPassword}
+                onChange={(e) => setAddPassword(e.target.value)}
+                placeholder="At least 8 characters"
+                className="border-sage/20 focus:border-sage font-body"
+              />
+            </div>
+            {addError && (
+              <p className="text-sm font-body text-terracotta">{addError}</p>
+            )}
+          </div>
+          <DialogFooter>
+            <Button
+              variant="outline"
+              onClick={() => setAddOpen(false)}
+              className="border-charcoal/20 text-charcoal hover:bg-charcoal/5 font-body"
+              disabled={addSubmitting}
+            >
+              Cancel
+            </Button>
+            <Button
+              onClick={async () => {
+                setAddError(null);
+                if (!addEmail || !addPassword) {
+                  setAddError("Email and password are required.");
+                  return;
+                }
+                if (addPassword.length < 8) {
+                  setAddError("Password must be at least 8 characters.");
+                  return;
+                }
+                setAddSubmitting(true);
+                try {
+                  const res = await fetch("/api/auth/signup", {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({
+                      email: addEmail.trim(),
+                      password: addPassword,
+                      full_name: addName.trim() || undefined,
+                      phone: addPhone.trim() || undefined,
+                    }),
+                  });
+                  const body = await res.json().catch(() => ({}));
+                  if (!res.ok) {
+                    setAddError((body as { error?: string }).error ?? `Signup failed (HTTP ${res.status}).`);
+                    return;
+                  }
+                  setAddOpen(false);
+                  setSuccessMessage(`Member ${addEmail} created`);
+                  await loadMembers();
+                  setTimeout(() => setSuccessMessage(""), 3000);
+                } catch (err) {
+                  setAddError(err instanceof Error ? err.message : "Could not create member.");
+                } finally {
+                  setAddSubmitting(false);
+                }
+              }}
+              disabled={addSubmitting}
+              className="bg-sage hover:bg-sage/90 text-white font-body"
+            >
+              {addSubmitting ? "Adding…" : "Add Member"}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
 
       {/* Manage Member Dialog — 2-step: pass config → payment */}
       <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>

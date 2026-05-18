@@ -105,6 +105,9 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       name: s.class_model?.name ?? "Class",
       time: timeLabel,
       instructor: s.instructor?.name ?? "—",
+      instructorAvatarUrl: s.instructor?.image_url ?? null,
+      enrolled: Math.max(cap - spotsLeft, 0),
+      capacity: cap,
       spots: `${Math.max(cap - spotsLeft, 0)}/${cap || "—"}`,
       status: full ? "full" : "upcoming",
     };

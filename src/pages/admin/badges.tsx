@@ -1,7 +1,7 @@
 import { useEffect, useState, useCallback, useRef } from "react";
 import { useRouter } from "next/router";
 import { useSession } from "next-auth/react";
-import { AdminNavigation } from "@/components/AdminNavigation";
+import { AdminPageHeader } from "@/components/admin/AdminPageHeader";
 import {
   Card,
   CardContent,
@@ -466,22 +466,13 @@ export default function AdminBadgesPage() {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-cream via-cream to-sage/5">
-      <AdminNavigation adminName={adminUser?.name ?? "Admin"} adminEmail={adminUser?.email ?? ""} />
 
-      <main className="pt-20 min-h-screen">
-        <div className="max-w-6xl mx-auto p-6 lg:p-8">
-          {/* Header */}
-          <div className="flex items-center gap-4 mb-8">
-            <div className="w-14 h-14 rounded-2xl bg-gradient-to-br from-sage/20 to-terracotta/10 flex items-center justify-center shadow-lg">
-              <Award className="text-sage" size={28} />
-            </div>
-            <div>
-              <h1 className="font-display text-3xl text-charcoal">Badge Management</h1>
-              <p className="font-body text-sm text-charcoal/60">
-                Configure milestone tiers and custom recognition badges
-              </p>
-            </div>
-          </div>
+      <main className="min-h-screen">
+        <div className="max-w-6xl mx-auto p-6 lg:p-8 space-y-6">
+          <AdminPageHeader
+            title="Badge Management"
+            subtitle="Configure milestone tiers and custom recognition badges"
+          />
 
           {/* Tabs */}
           <div className="flex gap-1 bg-white/60 p-1 rounded-xl shadow-sm border border-sage/10 w-fit mb-8">
