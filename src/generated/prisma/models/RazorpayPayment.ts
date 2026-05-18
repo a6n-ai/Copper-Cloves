@@ -14,7 +14,7 @@ import type * as Prisma from "../internal/prismaNamespace"
 
 /**
  * Model RazorpayPayment
- * Razorpay Payment (`pay_*`). Persist after Checkout signature verification; reconcile via webhooks.
+ * Razorpay Payment (`pay_*`). Gateway-native columns only. Ownership (user, booking, package) lives on `Payment`.
  */
 export type RazorpayPaymentModel = runtime.Types.Result.DefaultSelection<Prisma.$RazorpayPaymentPayload>
 
@@ -38,9 +38,6 @@ export type RazorpayPaymentMinAggregateOutputType = {
   id: string | null
   razorpay_payment_id: string | null
   razorpay_order_id: string | null
-  user_id: string | null
-  booking_id: string | null
-  user_package_id: string | null
   amount_paise: number | null
   currency: string | null
   status: string | null
@@ -56,9 +53,6 @@ export type RazorpayPaymentMaxAggregateOutputType = {
   id: string | null
   razorpay_payment_id: string | null
   razorpay_order_id: string | null
-  user_id: string | null
-  booking_id: string | null
-  user_package_id: string | null
   amount_paise: number | null
   currency: string | null
   status: string | null
@@ -74,9 +68,6 @@ export type RazorpayPaymentCountAggregateOutputType = {
   id: number
   razorpay_payment_id: number
   razorpay_order_id: number
-  user_id: number
-  booking_id: number
-  user_package_id: number
   amount_paise: number
   currency: number
   status: number
@@ -102,9 +93,6 @@ export type RazorpayPaymentMinAggregateInputType = {
   id?: true
   razorpay_payment_id?: true
   razorpay_order_id?: true
-  user_id?: true
-  booking_id?: true
-  user_package_id?: true
   amount_paise?: true
   currency?: true
   status?: true
@@ -120,9 +108,6 @@ export type RazorpayPaymentMaxAggregateInputType = {
   id?: true
   razorpay_payment_id?: true
   razorpay_order_id?: true
-  user_id?: true
-  booking_id?: true
-  user_package_id?: true
   amount_paise?: true
   currency?: true
   status?: true
@@ -138,9 +123,6 @@ export type RazorpayPaymentCountAggregateInputType = {
   id?: true
   razorpay_payment_id?: true
   razorpay_order_id?: true
-  user_id?: true
-  booking_id?: true
-  user_package_id?: true
   amount_paise?: true
   currency?: true
   status?: true
@@ -243,9 +225,6 @@ export type RazorpayPaymentGroupByOutputType = {
   id: string
   razorpay_payment_id: string
   razorpay_order_id: string
-  user_id: string
-  booking_id: string | null
-  user_package_id: string | null
   amount_paise: number | null
   currency: string | null
   status: string
@@ -284,9 +263,6 @@ export type RazorpayPaymentWhereInput = {
   id?: Prisma.StringFilter<"RazorpayPayment"> | string
   razorpay_payment_id?: Prisma.StringFilter<"RazorpayPayment"> | string
   razorpay_order_id?: Prisma.StringFilter<"RazorpayPayment"> | string
-  user_id?: Prisma.StringFilter<"RazorpayPayment"> | string
-  booking_id?: Prisma.StringNullableFilter<"RazorpayPayment"> | string | null
-  user_package_id?: Prisma.StringNullableFilter<"RazorpayPayment"> | string | null
   amount_paise?: Prisma.IntNullableFilter<"RazorpayPayment"> | number | null
   currency?: Prisma.StringNullableFilter<"RazorpayPayment"> | string | null
   status?: Prisma.StringFilter<"RazorpayPayment"> | string
@@ -297,18 +273,13 @@ export type RazorpayPaymentWhereInput = {
   created_at?: Prisma.DateTimeFilter<"RazorpayPayment"> | Date | string
   updated_at?: Prisma.DateTimeFilter<"RazorpayPayment"> | Date | string
   order?: Prisma.XOR<Prisma.RazorpayOrderScalarRelationFilter, Prisma.RazorpayOrderWhereInput>
-  profile?: Prisma.XOR<Prisma.ProfileScalarRelationFilter, Prisma.ProfileWhereInput>
-  booking?: Prisma.XOR<Prisma.BookingNullableScalarRelationFilter, Prisma.BookingWhereInput> | null
-  user_package?: Prisma.XOR<Prisma.UserPackageNullableScalarRelationFilter, Prisma.UserPackageWhereInput> | null
+  payments?: Prisma.PaymentListRelationFilter
 }
 
 export type RazorpayPaymentOrderByWithRelationInput = {
   id?: Prisma.SortOrder
   razorpay_payment_id?: Prisma.SortOrder
   razorpay_order_id?: Prisma.SortOrder
-  user_id?: Prisma.SortOrder
-  booking_id?: Prisma.SortOrderInput | Prisma.SortOrder
-  user_package_id?: Prisma.SortOrderInput | Prisma.SortOrder
   amount_paise?: Prisma.SortOrderInput | Prisma.SortOrder
   currency?: Prisma.SortOrderInput | Prisma.SortOrder
   status?: Prisma.SortOrder
@@ -319,9 +290,7 @@ export type RazorpayPaymentOrderByWithRelationInput = {
   created_at?: Prisma.SortOrder
   updated_at?: Prisma.SortOrder
   order?: Prisma.RazorpayOrderOrderByWithRelationInput
-  profile?: Prisma.ProfileOrderByWithRelationInput
-  booking?: Prisma.BookingOrderByWithRelationInput
-  user_package?: Prisma.UserPackageOrderByWithRelationInput
+  payments?: Prisma.PaymentOrderByRelationAggregateInput
 }
 
 export type RazorpayPaymentWhereUniqueInput = Prisma.AtLeast<{
@@ -331,9 +300,6 @@ export type RazorpayPaymentWhereUniqueInput = Prisma.AtLeast<{
   OR?: Prisma.RazorpayPaymentWhereInput[]
   NOT?: Prisma.RazorpayPaymentWhereInput | Prisma.RazorpayPaymentWhereInput[]
   razorpay_order_id?: Prisma.StringFilter<"RazorpayPayment"> | string
-  user_id?: Prisma.StringFilter<"RazorpayPayment"> | string
-  booking_id?: Prisma.StringNullableFilter<"RazorpayPayment"> | string | null
-  user_package_id?: Prisma.StringNullableFilter<"RazorpayPayment"> | string | null
   amount_paise?: Prisma.IntNullableFilter<"RazorpayPayment"> | number | null
   currency?: Prisma.StringNullableFilter<"RazorpayPayment"> | string | null
   status?: Prisma.StringFilter<"RazorpayPayment"> | string
@@ -344,18 +310,13 @@ export type RazorpayPaymentWhereUniqueInput = Prisma.AtLeast<{
   created_at?: Prisma.DateTimeFilter<"RazorpayPayment"> | Date | string
   updated_at?: Prisma.DateTimeFilter<"RazorpayPayment"> | Date | string
   order?: Prisma.XOR<Prisma.RazorpayOrderScalarRelationFilter, Prisma.RazorpayOrderWhereInput>
-  profile?: Prisma.XOR<Prisma.ProfileScalarRelationFilter, Prisma.ProfileWhereInput>
-  booking?: Prisma.XOR<Prisma.BookingNullableScalarRelationFilter, Prisma.BookingWhereInput> | null
-  user_package?: Prisma.XOR<Prisma.UserPackageNullableScalarRelationFilter, Prisma.UserPackageWhereInput> | null
+  payments?: Prisma.PaymentListRelationFilter
 }, "id" | "razorpay_payment_id">
 
 export type RazorpayPaymentOrderByWithAggregationInput = {
   id?: Prisma.SortOrder
   razorpay_payment_id?: Prisma.SortOrder
   razorpay_order_id?: Prisma.SortOrder
-  user_id?: Prisma.SortOrder
-  booking_id?: Prisma.SortOrderInput | Prisma.SortOrder
-  user_package_id?: Prisma.SortOrderInput | Prisma.SortOrder
   amount_paise?: Prisma.SortOrderInput | Prisma.SortOrder
   currency?: Prisma.SortOrderInput | Prisma.SortOrder
   status?: Prisma.SortOrder
@@ -379,9 +340,6 @@ export type RazorpayPaymentScalarWhereWithAggregatesInput = {
   id?: Prisma.StringWithAggregatesFilter<"RazorpayPayment"> | string
   razorpay_payment_id?: Prisma.StringWithAggregatesFilter<"RazorpayPayment"> | string
   razorpay_order_id?: Prisma.StringWithAggregatesFilter<"RazorpayPayment"> | string
-  user_id?: Prisma.StringWithAggregatesFilter<"RazorpayPayment"> | string
-  booking_id?: Prisma.StringNullableWithAggregatesFilter<"RazorpayPayment"> | string | null
-  user_package_id?: Prisma.StringNullableWithAggregatesFilter<"RazorpayPayment"> | string | null
   amount_paise?: Prisma.IntNullableWithAggregatesFilter<"RazorpayPayment"> | number | null
   currency?: Prisma.StringNullableWithAggregatesFilter<"RazorpayPayment"> | string | null
   status?: Prisma.StringWithAggregatesFilter<"RazorpayPayment"> | string
@@ -406,18 +364,13 @@ export type RazorpayPaymentCreateInput = {
   created_at?: Date | string
   updated_at?: Date | string
   order: Prisma.RazorpayOrderCreateNestedOneWithoutPaymentsInput
-  profile: Prisma.ProfileCreateNestedOneWithoutRazorpay_paymentsInput
-  booking?: Prisma.BookingCreateNestedOneWithoutRazorpay_paymentsInput
-  user_package?: Prisma.UserPackageCreateNestedOneWithoutRazorpay_paymentsInput
+  payments?: Prisma.PaymentCreateNestedManyWithoutRazorpay_paymentInput
 }
 
 export type RazorpayPaymentUncheckedCreateInput = {
   id?: string
   razorpay_payment_id: string
   razorpay_order_id: string
-  user_id: string
-  booking_id?: string | null
-  user_package_id?: string | null
   amount_paise?: number | null
   currency?: string | null
   status: string
@@ -427,6 +380,7 @@ export type RazorpayPaymentUncheckedCreateInput = {
   failure_reason?: string | null
   created_at?: Date | string
   updated_at?: Date | string
+  payments?: Prisma.PaymentUncheckedCreateNestedManyWithoutRazorpay_paymentInput
 }
 
 export type RazorpayPaymentUpdateInput = {
@@ -442,18 +396,13 @@ export type RazorpayPaymentUpdateInput = {
   created_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updated_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   order?: Prisma.RazorpayOrderUpdateOneRequiredWithoutPaymentsNestedInput
-  profile?: Prisma.ProfileUpdateOneRequiredWithoutRazorpay_paymentsNestedInput
-  booking?: Prisma.BookingUpdateOneWithoutRazorpay_paymentsNestedInput
-  user_package?: Prisma.UserPackageUpdateOneWithoutRazorpay_paymentsNestedInput
+  payments?: Prisma.PaymentUpdateManyWithoutRazorpay_paymentNestedInput
 }
 
 export type RazorpayPaymentUncheckedUpdateInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   razorpay_payment_id?: Prisma.StringFieldUpdateOperationsInput | string
   razorpay_order_id?: Prisma.StringFieldUpdateOperationsInput | string
-  user_id?: Prisma.StringFieldUpdateOperationsInput | string
-  booking_id?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  user_package_id?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   amount_paise?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   currency?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   status?: Prisma.StringFieldUpdateOperationsInput | string
@@ -463,15 +412,13 @@ export type RazorpayPaymentUncheckedUpdateInput = {
   failure_reason?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   created_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updated_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  payments?: Prisma.PaymentUncheckedUpdateManyWithoutRazorpay_paymentNestedInput
 }
 
 export type RazorpayPaymentCreateManyInput = {
   id?: string
   razorpay_payment_id: string
   razorpay_order_id: string
-  user_id: string
-  booking_id?: string | null
-  user_package_id?: string | null
   amount_paise?: number | null
   currency?: string | null
   status: string
@@ -501,9 +448,6 @@ export type RazorpayPaymentUncheckedUpdateManyInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   razorpay_payment_id?: Prisma.StringFieldUpdateOperationsInput | string
   razorpay_order_id?: Prisma.StringFieldUpdateOperationsInput | string
-  user_id?: Prisma.StringFieldUpdateOperationsInput | string
-  booking_id?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  user_package_id?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   amount_paise?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   currency?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   status?: Prisma.StringFieldUpdateOperationsInput | string
@@ -529,9 +473,6 @@ export type RazorpayPaymentCountOrderByAggregateInput = {
   id?: Prisma.SortOrder
   razorpay_payment_id?: Prisma.SortOrder
   razorpay_order_id?: Prisma.SortOrder
-  user_id?: Prisma.SortOrder
-  booking_id?: Prisma.SortOrder
-  user_package_id?: Prisma.SortOrder
   amount_paise?: Prisma.SortOrder
   currency?: Prisma.SortOrder
   status?: Prisma.SortOrder
@@ -551,9 +492,6 @@ export type RazorpayPaymentMaxOrderByAggregateInput = {
   id?: Prisma.SortOrder
   razorpay_payment_id?: Prisma.SortOrder
   razorpay_order_id?: Prisma.SortOrder
-  user_id?: Prisma.SortOrder
-  booking_id?: Prisma.SortOrder
-  user_package_id?: Prisma.SortOrder
   amount_paise?: Prisma.SortOrder
   currency?: Prisma.SortOrder
   status?: Prisma.SortOrder
@@ -569,9 +507,6 @@ export type RazorpayPaymentMinOrderByAggregateInput = {
   id?: Prisma.SortOrder
   razorpay_payment_id?: Prisma.SortOrder
   razorpay_order_id?: Prisma.SortOrder
-  user_id?: Prisma.SortOrder
-  booking_id?: Prisma.SortOrder
-  user_package_id?: Prisma.SortOrder
   amount_paise?: Prisma.SortOrder
   currency?: Prisma.SortOrder
   status?: Prisma.SortOrder
@@ -587,130 +522,9 @@ export type RazorpayPaymentSumOrderByAggregateInput = {
   amount_paise?: Prisma.SortOrder
 }
 
-export type RazorpayPaymentCreateNestedManyWithoutProfileInput = {
-  create?: Prisma.XOR<Prisma.RazorpayPaymentCreateWithoutProfileInput, Prisma.RazorpayPaymentUncheckedCreateWithoutProfileInput> | Prisma.RazorpayPaymentCreateWithoutProfileInput[] | Prisma.RazorpayPaymentUncheckedCreateWithoutProfileInput[]
-  connectOrCreate?: Prisma.RazorpayPaymentCreateOrConnectWithoutProfileInput | Prisma.RazorpayPaymentCreateOrConnectWithoutProfileInput[]
-  createMany?: Prisma.RazorpayPaymentCreateManyProfileInputEnvelope
-  connect?: Prisma.RazorpayPaymentWhereUniqueInput | Prisma.RazorpayPaymentWhereUniqueInput[]
-}
-
-export type RazorpayPaymentUncheckedCreateNestedManyWithoutProfileInput = {
-  create?: Prisma.XOR<Prisma.RazorpayPaymentCreateWithoutProfileInput, Prisma.RazorpayPaymentUncheckedCreateWithoutProfileInput> | Prisma.RazorpayPaymentCreateWithoutProfileInput[] | Prisma.RazorpayPaymentUncheckedCreateWithoutProfileInput[]
-  connectOrCreate?: Prisma.RazorpayPaymentCreateOrConnectWithoutProfileInput | Prisma.RazorpayPaymentCreateOrConnectWithoutProfileInput[]
-  createMany?: Prisma.RazorpayPaymentCreateManyProfileInputEnvelope
-  connect?: Prisma.RazorpayPaymentWhereUniqueInput | Prisma.RazorpayPaymentWhereUniqueInput[]
-}
-
-export type RazorpayPaymentUpdateManyWithoutProfileNestedInput = {
-  create?: Prisma.XOR<Prisma.RazorpayPaymentCreateWithoutProfileInput, Prisma.RazorpayPaymentUncheckedCreateWithoutProfileInput> | Prisma.RazorpayPaymentCreateWithoutProfileInput[] | Prisma.RazorpayPaymentUncheckedCreateWithoutProfileInput[]
-  connectOrCreate?: Prisma.RazorpayPaymentCreateOrConnectWithoutProfileInput | Prisma.RazorpayPaymentCreateOrConnectWithoutProfileInput[]
-  upsert?: Prisma.RazorpayPaymentUpsertWithWhereUniqueWithoutProfileInput | Prisma.RazorpayPaymentUpsertWithWhereUniqueWithoutProfileInput[]
-  createMany?: Prisma.RazorpayPaymentCreateManyProfileInputEnvelope
-  set?: Prisma.RazorpayPaymentWhereUniqueInput | Prisma.RazorpayPaymentWhereUniqueInput[]
-  disconnect?: Prisma.RazorpayPaymentWhereUniqueInput | Prisma.RazorpayPaymentWhereUniqueInput[]
-  delete?: Prisma.RazorpayPaymentWhereUniqueInput | Prisma.RazorpayPaymentWhereUniqueInput[]
-  connect?: Prisma.RazorpayPaymentWhereUniqueInput | Prisma.RazorpayPaymentWhereUniqueInput[]
-  update?: Prisma.RazorpayPaymentUpdateWithWhereUniqueWithoutProfileInput | Prisma.RazorpayPaymentUpdateWithWhereUniqueWithoutProfileInput[]
-  updateMany?: Prisma.RazorpayPaymentUpdateManyWithWhereWithoutProfileInput | Prisma.RazorpayPaymentUpdateManyWithWhereWithoutProfileInput[]
-  deleteMany?: Prisma.RazorpayPaymentScalarWhereInput | Prisma.RazorpayPaymentScalarWhereInput[]
-}
-
-export type RazorpayPaymentUncheckedUpdateManyWithoutProfileNestedInput = {
-  create?: Prisma.XOR<Prisma.RazorpayPaymentCreateWithoutProfileInput, Prisma.RazorpayPaymentUncheckedCreateWithoutProfileInput> | Prisma.RazorpayPaymentCreateWithoutProfileInput[] | Prisma.RazorpayPaymentUncheckedCreateWithoutProfileInput[]
-  connectOrCreate?: Prisma.RazorpayPaymentCreateOrConnectWithoutProfileInput | Prisma.RazorpayPaymentCreateOrConnectWithoutProfileInput[]
-  upsert?: Prisma.RazorpayPaymentUpsertWithWhereUniqueWithoutProfileInput | Prisma.RazorpayPaymentUpsertWithWhereUniqueWithoutProfileInput[]
-  createMany?: Prisma.RazorpayPaymentCreateManyProfileInputEnvelope
-  set?: Prisma.RazorpayPaymentWhereUniqueInput | Prisma.RazorpayPaymentWhereUniqueInput[]
-  disconnect?: Prisma.RazorpayPaymentWhereUniqueInput | Prisma.RazorpayPaymentWhereUniqueInput[]
-  delete?: Prisma.RazorpayPaymentWhereUniqueInput | Prisma.RazorpayPaymentWhereUniqueInput[]
-  connect?: Prisma.RazorpayPaymentWhereUniqueInput | Prisma.RazorpayPaymentWhereUniqueInput[]
-  update?: Prisma.RazorpayPaymentUpdateWithWhereUniqueWithoutProfileInput | Prisma.RazorpayPaymentUpdateWithWhereUniqueWithoutProfileInput[]
-  updateMany?: Prisma.RazorpayPaymentUpdateManyWithWhereWithoutProfileInput | Prisma.RazorpayPaymentUpdateManyWithWhereWithoutProfileInput[]
-  deleteMany?: Prisma.RazorpayPaymentScalarWhereInput | Prisma.RazorpayPaymentScalarWhereInput[]
-}
-
-export type RazorpayPaymentCreateNestedManyWithoutUser_packageInput = {
-  create?: Prisma.XOR<Prisma.RazorpayPaymentCreateWithoutUser_packageInput, Prisma.RazorpayPaymentUncheckedCreateWithoutUser_packageInput> | Prisma.RazorpayPaymentCreateWithoutUser_packageInput[] | Prisma.RazorpayPaymentUncheckedCreateWithoutUser_packageInput[]
-  connectOrCreate?: Prisma.RazorpayPaymentCreateOrConnectWithoutUser_packageInput | Prisma.RazorpayPaymentCreateOrConnectWithoutUser_packageInput[]
-  createMany?: Prisma.RazorpayPaymentCreateManyUser_packageInputEnvelope
-  connect?: Prisma.RazorpayPaymentWhereUniqueInput | Prisma.RazorpayPaymentWhereUniqueInput[]
-}
-
-export type RazorpayPaymentUncheckedCreateNestedManyWithoutUser_packageInput = {
-  create?: Prisma.XOR<Prisma.RazorpayPaymentCreateWithoutUser_packageInput, Prisma.RazorpayPaymentUncheckedCreateWithoutUser_packageInput> | Prisma.RazorpayPaymentCreateWithoutUser_packageInput[] | Prisma.RazorpayPaymentUncheckedCreateWithoutUser_packageInput[]
-  connectOrCreate?: Prisma.RazorpayPaymentCreateOrConnectWithoutUser_packageInput | Prisma.RazorpayPaymentCreateOrConnectWithoutUser_packageInput[]
-  createMany?: Prisma.RazorpayPaymentCreateManyUser_packageInputEnvelope
-  connect?: Prisma.RazorpayPaymentWhereUniqueInput | Prisma.RazorpayPaymentWhereUniqueInput[]
-}
-
-export type RazorpayPaymentUpdateManyWithoutUser_packageNestedInput = {
-  create?: Prisma.XOR<Prisma.RazorpayPaymentCreateWithoutUser_packageInput, Prisma.RazorpayPaymentUncheckedCreateWithoutUser_packageInput> | Prisma.RazorpayPaymentCreateWithoutUser_packageInput[] | Prisma.RazorpayPaymentUncheckedCreateWithoutUser_packageInput[]
-  connectOrCreate?: Prisma.RazorpayPaymentCreateOrConnectWithoutUser_packageInput | Prisma.RazorpayPaymentCreateOrConnectWithoutUser_packageInput[]
-  upsert?: Prisma.RazorpayPaymentUpsertWithWhereUniqueWithoutUser_packageInput | Prisma.RazorpayPaymentUpsertWithWhereUniqueWithoutUser_packageInput[]
-  createMany?: Prisma.RazorpayPaymentCreateManyUser_packageInputEnvelope
-  set?: Prisma.RazorpayPaymentWhereUniqueInput | Prisma.RazorpayPaymentWhereUniqueInput[]
-  disconnect?: Prisma.RazorpayPaymentWhereUniqueInput | Prisma.RazorpayPaymentWhereUniqueInput[]
-  delete?: Prisma.RazorpayPaymentWhereUniqueInput | Prisma.RazorpayPaymentWhereUniqueInput[]
-  connect?: Prisma.RazorpayPaymentWhereUniqueInput | Prisma.RazorpayPaymentWhereUniqueInput[]
-  update?: Prisma.RazorpayPaymentUpdateWithWhereUniqueWithoutUser_packageInput | Prisma.RazorpayPaymentUpdateWithWhereUniqueWithoutUser_packageInput[]
-  updateMany?: Prisma.RazorpayPaymentUpdateManyWithWhereWithoutUser_packageInput | Prisma.RazorpayPaymentUpdateManyWithWhereWithoutUser_packageInput[]
-  deleteMany?: Prisma.RazorpayPaymentScalarWhereInput | Prisma.RazorpayPaymentScalarWhereInput[]
-}
-
-export type RazorpayPaymentUncheckedUpdateManyWithoutUser_packageNestedInput = {
-  create?: Prisma.XOR<Prisma.RazorpayPaymentCreateWithoutUser_packageInput, Prisma.RazorpayPaymentUncheckedCreateWithoutUser_packageInput> | Prisma.RazorpayPaymentCreateWithoutUser_packageInput[] | Prisma.RazorpayPaymentUncheckedCreateWithoutUser_packageInput[]
-  connectOrCreate?: Prisma.RazorpayPaymentCreateOrConnectWithoutUser_packageInput | Prisma.RazorpayPaymentCreateOrConnectWithoutUser_packageInput[]
-  upsert?: Prisma.RazorpayPaymentUpsertWithWhereUniqueWithoutUser_packageInput | Prisma.RazorpayPaymentUpsertWithWhereUniqueWithoutUser_packageInput[]
-  createMany?: Prisma.RazorpayPaymentCreateManyUser_packageInputEnvelope
-  set?: Prisma.RazorpayPaymentWhereUniqueInput | Prisma.RazorpayPaymentWhereUniqueInput[]
-  disconnect?: Prisma.RazorpayPaymentWhereUniqueInput | Prisma.RazorpayPaymentWhereUniqueInput[]
-  delete?: Prisma.RazorpayPaymentWhereUniqueInput | Prisma.RazorpayPaymentWhereUniqueInput[]
-  connect?: Prisma.RazorpayPaymentWhereUniqueInput | Prisma.RazorpayPaymentWhereUniqueInput[]
-  update?: Prisma.RazorpayPaymentUpdateWithWhereUniqueWithoutUser_packageInput | Prisma.RazorpayPaymentUpdateWithWhereUniqueWithoutUser_packageInput[]
-  updateMany?: Prisma.RazorpayPaymentUpdateManyWithWhereWithoutUser_packageInput | Prisma.RazorpayPaymentUpdateManyWithWhereWithoutUser_packageInput[]
-  deleteMany?: Prisma.RazorpayPaymentScalarWhereInput | Prisma.RazorpayPaymentScalarWhereInput[]
-}
-
-export type RazorpayPaymentCreateNestedManyWithoutBookingInput = {
-  create?: Prisma.XOR<Prisma.RazorpayPaymentCreateWithoutBookingInput, Prisma.RazorpayPaymentUncheckedCreateWithoutBookingInput> | Prisma.RazorpayPaymentCreateWithoutBookingInput[] | Prisma.RazorpayPaymentUncheckedCreateWithoutBookingInput[]
-  connectOrCreate?: Prisma.RazorpayPaymentCreateOrConnectWithoutBookingInput | Prisma.RazorpayPaymentCreateOrConnectWithoutBookingInput[]
-  createMany?: Prisma.RazorpayPaymentCreateManyBookingInputEnvelope
-  connect?: Prisma.RazorpayPaymentWhereUniqueInput | Prisma.RazorpayPaymentWhereUniqueInput[]
-}
-
-export type RazorpayPaymentUncheckedCreateNestedManyWithoutBookingInput = {
-  create?: Prisma.XOR<Prisma.RazorpayPaymentCreateWithoutBookingInput, Prisma.RazorpayPaymentUncheckedCreateWithoutBookingInput> | Prisma.RazorpayPaymentCreateWithoutBookingInput[] | Prisma.RazorpayPaymentUncheckedCreateWithoutBookingInput[]
-  connectOrCreate?: Prisma.RazorpayPaymentCreateOrConnectWithoutBookingInput | Prisma.RazorpayPaymentCreateOrConnectWithoutBookingInput[]
-  createMany?: Prisma.RazorpayPaymentCreateManyBookingInputEnvelope
-  connect?: Prisma.RazorpayPaymentWhereUniqueInput | Prisma.RazorpayPaymentWhereUniqueInput[]
-}
-
-export type RazorpayPaymentUpdateManyWithoutBookingNestedInput = {
-  create?: Prisma.XOR<Prisma.RazorpayPaymentCreateWithoutBookingInput, Prisma.RazorpayPaymentUncheckedCreateWithoutBookingInput> | Prisma.RazorpayPaymentCreateWithoutBookingInput[] | Prisma.RazorpayPaymentUncheckedCreateWithoutBookingInput[]
-  connectOrCreate?: Prisma.RazorpayPaymentCreateOrConnectWithoutBookingInput | Prisma.RazorpayPaymentCreateOrConnectWithoutBookingInput[]
-  upsert?: Prisma.RazorpayPaymentUpsertWithWhereUniqueWithoutBookingInput | Prisma.RazorpayPaymentUpsertWithWhereUniqueWithoutBookingInput[]
-  createMany?: Prisma.RazorpayPaymentCreateManyBookingInputEnvelope
-  set?: Prisma.RazorpayPaymentWhereUniqueInput | Prisma.RazorpayPaymentWhereUniqueInput[]
-  disconnect?: Prisma.RazorpayPaymentWhereUniqueInput | Prisma.RazorpayPaymentWhereUniqueInput[]
-  delete?: Prisma.RazorpayPaymentWhereUniqueInput | Prisma.RazorpayPaymentWhereUniqueInput[]
-  connect?: Prisma.RazorpayPaymentWhereUniqueInput | Prisma.RazorpayPaymentWhereUniqueInput[]
-  update?: Prisma.RazorpayPaymentUpdateWithWhereUniqueWithoutBookingInput | Prisma.RazorpayPaymentUpdateWithWhereUniqueWithoutBookingInput[]
-  updateMany?: Prisma.RazorpayPaymentUpdateManyWithWhereWithoutBookingInput | Prisma.RazorpayPaymentUpdateManyWithWhereWithoutBookingInput[]
-  deleteMany?: Prisma.RazorpayPaymentScalarWhereInput | Prisma.RazorpayPaymentScalarWhereInput[]
-}
-
-export type RazorpayPaymentUncheckedUpdateManyWithoutBookingNestedInput = {
-  create?: Prisma.XOR<Prisma.RazorpayPaymentCreateWithoutBookingInput, Prisma.RazorpayPaymentUncheckedCreateWithoutBookingInput> | Prisma.RazorpayPaymentCreateWithoutBookingInput[] | Prisma.RazorpayPaymentUncheckedCreateWithoutBookingInput[]
-  connectOrCreate?: Prisma.RazorpayPaymentCreateOrConnectWithoutBookingInput | Prisma.RazorpayPaymentCreateOrConnectWithoutBookingInput[]
-  upsert?: Prisma.RazorpayPaymentUpsertWithWhereUniqueWithoutBookingInput | Prisma.RazorpayPaymentUpsertWithWhereUniqueWithoutBookingInput[]
-  createMany?: Prisma.RazorpayPaymentCreateManyBookingInputEnvelope
-  set?: Prisma.RazorpayPaymentWhereUniqueInput | Prisma.RazorpayPaymentWhereUniqueInput[]
-  disconnect?: Prisma.RazorpayPaymentWhereUniqueInput | Prisma.RazorpayPaymentWhereUniqueInput[]
-  delete?: Prisma.RazorpayPaymentWhereUniqueInput | Prisma.RazorpayPaymentWhereUniqueInput[]
-  connect?: Prisma.RazorpayPaymentWhereUniqueInput | Prisma.RazorpayPaymentWhereUniqueInput[]
-  update?: Prisma.RazorpayPaymentUpdateWithWhereUniqueWithoutBookingInput | Prisma.RazorpayPaymentUpdateWithWhereUniqueWithoutBookingInput[]
-  updateMany?: Prisma.RazorpayPaymentUpdateManyWithWhereWithoutBookingInput | Prisma.RazorpayPaymentUpdateManyWithWhereWithoutBookingInput[]
-  deleteMany?: Prisma.RazorpayPaymentScalarWhereInput | Prisma.RazorpayPaymentScalarWhereInput[]
+export type RazorpayPaymentNullableScalarRelationFilter = {
+  is?: Prisma.RazorpayPaymentWhereInput | null
+  isNot?: Prisma.RazorpayPaymentWhereInput | null
 }
 
 export type RazorpayPaymentCreateNestedManyWithoutOrderInput = {
@@ -755,205 +569,20 @@ export type RazorpayPaymentUncheckedUpdateManyWithoutOrderNestedInput = {
   deleteMany?: Prisma.RazorpayPaymentScalarWhereInput | Prisma.RazorpayPaymentScalarWhereInput[]
 }
 
-export type RazorpayPaymentCreateWithoutProfileInput = {
-  id?: string
-  razorpay_payment_id: string
-  amount_paise?: number | null
-  currency?: string | null
-  status: string
-  method?: string | null
-  signature_verified?: boolean
-  verified_at?: Date | string | null
-  failure_reason?: string | null
-  created_at?: Date | string
-  updated_at?: Date | string
-  order: Prisma.RazorpayOrderCreateNestedOneWithoutPaymentsInput
-  booking?: Prisma.BookingCreateNestedOneWithoutRazorpay_paymentsInput
-  user_package?: Prisma.UserPackageCreateNestedOneWithoutRazorpay_paymentsInput
+export type RazorpayPaymentCreateNestedOneWithoutPaymentsInput = {
+  create?: Prisma.XOR<Prisma.RazorpayPaymentCreateWithoutPaymentsInput, Prisma.RazorpayPaymentUncheckedCreateWithoutPaymentsInput>
+  connectOrCreate?: Prisma.RazorpayPaymentCreateOrConnectWithoutPaymentsInput
+  connect?: Prisma.RazorpayPaymentWhereUniqueInput
 }
 
-export type RazorpayPaymentUncheckedCreateWithoutProfileInput = {
-  id?: string
-  razorpay_payment_id: string
-  razorpay_order_id: string
-  booking_id?: string | null
-  user_package_id?: string | null
-  amount_paise?: number | null
-  currency?: string | null
-  status: string
-  method?: string | null
-  signature_verified?: boolean
-  verified_at?: Date | string | null
-  failure_reason?: string | null
-  created_at?: Date | string
-  updated_at?: Date | string
-}
-
-export type RazorpayPaymentCreateOrConnectWithoutProfileInput = {
-  where: Prisma.RazorpayPaymentWhereUniqueInput
-  create: Prisma.XOR<Prisma.RazorpayPaymentCreateWithoutProfileInput, Prisma.RazorpayPaymentUncheckedCreateWithoutProfileInput>
-}
-
-export type RazorpayPaymentCreateManyProfileInputEnvelope = {
-  data: Prisma.RazorpayPaymentCreateManyProfileInput | Prisma.RazorpayPaymentCreateManyProfileInput[]
-  skipDuplicates?: boolean
-}
-
-export type RazorpayPaymentUpsertWithWhereUniqueWithoutProfileInput = {
-  where: Prisma.RazorpayPaymentWhereUniqueInput
-  update: Prisma.XOR<Prisma.RazorpayPaymentUpdateWithoutProfileInput, Prisma.RazorpayPaymentUncheckedUpdateWithoutProfileInput>
-  create: Prisma.XOR<Prisma.RazorpayPaymentCreateWithoutProfileInput, Prisma.RazorpayPaymentUncheckedCreateWithoutProfileInput>
-}
-
-export type RazorpayPaymentUpdateWithWhereUniqueWithoutProfileInput = {
-  where: Prisma.RazorpayPaymentWhereUniqueInput
-  data: Prisma.XOR<Prisma.RazorpayPaymentUpdateWithoutProfileInput, Prisma.RazorpayPaymentUncheckedUpdateWithoutProfileInput>
-}
-
-export type RazorpayPaymentUpdateManyWithWhereWithoutProfileInput = {
-  where: Prisma.RazorpayPaymentScalarWhereInput
-  data: Prisma.XOR<Prisma.RazorpayPaymentUpdateManyMutationInput, Prisma.RazorpayPaymentUncheckedUpdateManyWithoutProfileInput>
-}
-
-export type RazorpayPaymentScalarWhereInput = {
-  AND?: Prisma.RazorpayPaymentScalarWhereInput | Prisma.RazorpayPaymentScalarWhereInput[]
-  OR?: Prisma.RazorpayPaymentScalarWhereInput[]
-  NOT?: Prisma.RazorpayPaymentScalarWhereInput | Prisma.RazorpayPaymentScalarWhereInput[]
-  id?: Prisma.StringFilter<"RazorpayPayment"> | string
-  razorpay_payment_id?: Prisma.StringFilter<"RazorpayPayment"> | string
-  razorpay_order_id?: Prisma.StringFilter<"RazorpayPayment"> | string
-  user_id?: Prisma.StringFilter<"RazorpayPayment"> | string
-  booking_id?: Prisma.StringNullableFilter<"RazorpayPayment"> | string | null
-  user_package_id?: Prisma.StringNullableFilter<"RazorpayPayment"> | string | null
-  amount_paise?: Prisma.IntNullableFilter<"RazorpayPayment"> | number | null
-  currency?: Prisma.StringNullableFilter<"RazorpayPayment"> | string | null
-  status?: Prisma.StringFilter<"RazorpayPayment"> | string
-  method?: Prisma.StringNullableFilter<"RazorpayPayment"> | string | null
-  signature_verified?: Prisma.BoolFilter<"RazorpayPayment"> | boolean
-  verified_at?: Prisma.DateTimeNullableFilter<"RazorpayPayment"> | Date | string | null
-  failure_reason?: Prisma.StringNullableFilter<"RazorpayPayment"> | string | null
-  created_at?: Prisma.DateTimeFilter<"RazorpayPayment"> | Date | string
-  updated_at?: Prisma.DateTimeFilter<"RazorpayPayment"> | Date | string
-}
-
-export type RazorpayPaymentCreateWithoutUser_packageInput = {
-  id?: string
-  razorpay_payment_id: string
-  amount_paise?: number | null
-  currency?: string | null
-  status: string
-  method?: string | null
-  signature_verified?: boolean
-  verified_at?: Date | string | null
-  failure_reason?: string | null
-  created_at?: Date | string
-  updated_at?: Date | string
-  order: Prisma.RazorpayOrderCreateNestedOneWithoutPaymentsInput
-  profile: Prisma.ProfileCreateNestedOneWithoutRazorpay_paymentsInput
-  booking?: Prisma.BookingCreateNestedOneWithoutRazorpay_paymentsInput
-}
-
-export type RazorpayPaymentUncheckedCreateWithoutUser_packageInput = {
-  id?: string
-  razorpay_payment_id: string
-  razorpay_order_id: string
-  user_id: string
-  booking_id?: string | null
-  amount_paise?: number | null
-  currency?: string | null
-  status: string
-  method?: string | null
-  signature_verified?: boolean
-  verified_at?: Date | string | null
-  failure_reason?: string | null
-  created_at?: Date | string
-  updated_at?: Date | string
-}
-
-export type RazorpayPaymentCreateOrConnectWithoutUser_packageInput = {
-  where: Prisma.RazorpayPaymentWhereUniqueInput
-  create: Prisma.XOR<Prisma.RazorpayPaymentCreateWithoutUser_packageInput, Prisma.RazorpayPaymentUncheckedCreateWithoutUser_packageInput>
-}
-
-export type RazorpayPaymentCreateManyUser_packageInputEnvelope = {
-  data: Prisma.RazorpayPaymentCreateManyUser_packageInput | Prisma.RazorpayPaymentCreateManyUser_packageInput[]
-  skipDuplicates?: boolean
-}
-
-export type RazorpayPaymentUpsertWithWhereUniqueWithoutUser_packageInput = {
-  where: Prisma.RazorpayPaymentWhereUniqueInput
-  update: Prisma.XOR<Prisma.RazorpayPaymentUpdateWithoutUser_packageInput, Prisma.RazorpayPaymentUncheckedUpdateWithoutUser_packageInput>
-  create: Prisma.XOR<Prisma.RazorpayPaymentCreateWithoutUser_packageInput, Prisma.RazorpayPaymentUncheckedCreateWithoutUser_packageInput>
-}
-
-export type RazorpayPaymentUpdateWithWhereUniqueWithoutUser_packageInput = {
-  where: Prisma.RazorpayPaymentWhereUniqueInput
-  data: Prisma.XOR<Prisma.RazorpayPaymentUpdateWithoutUser_packageInput, Prisma.RazorpayPaymentUncheckedUpdateWithoutUser_packageInput>
-}
-
-export type RazorpayPaymentUpdateManyWithWhereWithoutUser_packageInput = {
-  where: Prisma.RazorpayPaymentScalarWhereInput
-  data: Prisma.XOR<Prisma.RazorpayPaymentUpdateManyMutationInput, Prisma.RazorpayPaymentUncheckedUpdateManyWithoutUser_packageInput>
-}
-
-export type RazorpayPaymentCreateWithoutBookingInput = {
-  id?: string
-  razorpay_payment_id: string
-  amount_paise?: number | null
-  currency?: string | null
-  status: string
-  method?: string | null
-  signature_verified?: boolean
-  verified_at?: Date | string | null
-  failure_reason?: string | null
-  created_at?: Date | string
-  updated_at?: Date | string
-  order: Prisma.RazorpayOrderCreateNestedOneWithoutPaymentsInput
-  profile: Prisma.ProfileCreateNestedOneWithoutRazorpay_paymentsInput
-  user_package?: Prisma.UserPackageCreateNestedOneWithoutRazorpay_paymentsInput
-}
-
-export type RazorpayPaymentUncheckedCreateWithoutBookingInput = {
-  id?: string
-  razorpay_payment_id: string
-  razorpay_order_id: string
-  user_id: string
-  user_package_id?: string | null
-  amount_paise?: number | null
-  currency?: string | null
-  status: string
-  method?: string | null
-  signature_verified?: boolean
-  verified_at?: Date | string | null
-  failure_reason?: string | null
-  created_at?: Date | string
-  updated_at?: Date | string
-}
-
-export type RazorpayPaymentCreateOrConnectWithoutBookingInput = {
-  where: Prisma.RazorpayPaymentWhereUniqueInput
-  create: Prisma.XOR<Prisma.RazorpayPaymentCreateWithoutBookingInput, Prisma.RazorpayPaymentUncheckedCreateWithoutBookingInput>
-}
-
-export type RazorpayPaymentCreateManyBookingInputEnvelope = {
-  data: Prisma.RazorpayPaymentCreateManyBookingInput | Prisma.RazorpayPaymentCreateManyBookingInput[]
-  skipDuplicates?: boolean
-}
-
-export type RazorpayPaymentUpsertWithWhereUniqueWithoutBookingInput = {
-  where: Prisma.RazorpayPaymentWhereUniqueInput
-  update: Prisma.XOR<Prisma.RazorpayPaymentUpdateWithoutBookingInput, Prisma.RazorpayPaymentUncheckedUpdateWithoutBookingInput>
-  create: Prisma.XOR<Prisma.RazorpayPaymentCreateWithoutBookingInput, Prisma.RazorpayPaymentUncheckedCreateWithoutBookingInput>
-}
-
-export type RazorpayPaymentUpdateWithWhereUniqueWithoutBookingInput = {
-  where: Prisma.RazorpayPaymentWhereUniqueInput
-  data: Prisma.XOR<Prisma.RazorpayPaymentUpdateWithoutBookingInput, Prisma.RazorpayPaymentUncheckedUpdateWithoutBookingInput>
-}
-
-export type RazorpayPaymentUpdateManyWithWhereWithoutBookingInput = {
-  where: Prisma.RazorpayPaymentScalarWhereInput
-  data: Prisma.XOR<Prisma.RazorpayPaymentUpdateManyMutationInput, Prisma.RazorpayPaymentUncheckedUpdateManyWithoutBookingInput>
+export type RazorpayPaymentUpdateOneWithoutPaymentsNestedInput = {
+  create?: Prisma.XOR<Prisma.RazorpayPaymentCreateWithoutPaymentsInput, Prisma.RazorpayPaymentUncheckedCreateWithoutPaymentsInput>
+  connectOrCreate?: Prisma.RazorpayPaymentCreateOrConnectWithoutPaymentsInput
+  upsert?: Prisma.RazorpayPaymentUpsertWithoutPaymentsInput
+  disconnect?: Prisma.RazorpayPaymentWhereInput | boolean
+  delete?: Prisma.RazorpayPaymentWhereInput | boolean
+  connect?: Prisma.RazorpayPaymentWhereUniqueInput
+  update?: Prisma.XOR<Prisma.XOR<Prisma.RazorpayPaymentUpdateToOneWithWhereWithoutPaymentsInput, Prisma.RazorpayPaymentUpdateWithoutPaymentsInput>, Prisma.RazorpayPaymentUncheckedUpdateWithoutPaymentsInput>
 }
 
 export type RazorpayPaymentCreateWithoutOrderInput = {
@@ -968,17 +597,12 @@ export type RazorpayPaymentCreateWithoutOrderInput = {
   failure_reason?: string | null
   created_at?: Date | string
   updated_at?: Date | string
-  profile: Prisma.ProfileCreateNestedOneWithoutRazorpay_paymentsInput
-  booking?: Prisma.BookingCreateNestedOneWithoutRazorpay_paymentsInput
-  user_package?: Prisma.UserPackageCreateNestedOneWithoutRazorpay_paymentsInput
+  payments?: Prisma.PaymentCreateNestedManyWithoutRazorpay_paymentInput
 }
 
 export type RazorpayPaymentUncheckedCreateWithoutOrderInput = {
   id?: string
   razorpay_payment_id: string
-  user_id: string
-  booking_id?: string | null
-  user_package_id?: string | null
   amount_paise?: number | null
   currency?: string | null
   status: string
@@ -988,6 +612,7 @@ export type RazorpayPaymentUncheckedCreateWithoutOrderInput = {
   failure_reason?: string | null
   created_at?: Date | string
   updated_at?: Date | string
+  payments?: Prisma.PaymentUncheckedCreateNestedManyWithoutRazorpay_paymentInput
 }
 
 export type RazorpayPaymentCreateOrConnectWithoutOrderInput = {
@@ -1016,12 +641,43 @@ export type RazorpayPaymentUpdateManyWithWhereWithoutOrderInput = {
   data: Prisma.XOR<Prisma.RazorpayPaymentUpdateManyMutationInput, Prisma.RazorpayPaymentUncheckedUpdateManyWithoutOrderInput>
 }
 
-export type RazorpayPaymentCreateManyProfileInput = {
+export type RazorpayPaymentScalarWhereInput = {
+  AND?: Prisma.RazorpayPaymentScalarWhereInput | Prisma.RazorpayPaymentScalarWhereInput[]
+  OR?: Prisma.RazorpayPaymentScalarWhereInput[]
+  NOT?: Prisma.RazorpayPaymentScalarWhereInput | Prisma.RazorpayPaymentScalarWhereInput[]
+  id?: Prisma.StringFilter<"RazorpayPayment"> | string
+  razorpay_payment_id?: Prisma.StringFilter<"RazorpayPayment"> | string
+  razorpay_order_id?: Prisma.StringFilter<"RazorpayPayment"> | string
+  amount_paise?: Prisma.IntNullableFilter<"RazorpayPayment"> | number | null
+  currency?: Prisma.StringNullableFilter<"RazorpayPayment"> | string | null
+  status?: Prisma.StringFilter<"RazorpayPayment"> | string
+  method?: Prisma.StringNullableFilter<"RazorpayPayment"> | string | null
+  signature_verified?: Prisma.BoolFilter<"RazorpayPayment"> | boolean
+  verified_at?: Prisma.DateTimeNullableFilter<"RazorpayPayment"> | Date | string | null
+  failure_reason?: Prisma.StringNullableFilter<"RazorpayPayment"> | string | null
+  created_at?: Prisma.DateTimeFilter<"RazorpayPayment"> | Date | string
+  updated_at?: Prisma.DateTimeFilter<"RazorpayPayment"> | Date | string
+}
+
+export type RazorpayPaymentCreateWithoutPaymentsInput = {
+  id?: string
+  razorpay_payment_id: string
+  amount_paise?: number | null
+  currency?: string | null
+  status: string
+  method?: string | null
+  signature_verified?: boolean
+  verified_at?: Date | string | null
+  failure_reason?: string | null
+  created_at?: Date | string
+  updated_at?: Date | string
+  order: Prisma.RazorpayOrderCreateNestedOneWithoutPaymentsInput
+}
+
+export type RazorpayPaymentUncheckedCreateWithoutPaymentsInput = {
   id?: string
   razorpay_payment_id: string
   razorpay_order_id: string
-  booking_id?: string | null
-  user_package_id?: string | null
   amount_paise?: number | null
   currency?: string | null
   status: string
@@ -1033,7 +689,23 @@ export type RazorpayPaymentCreateManyProfileInput = {
   updated_at?: Date | string
 }
 
-export type RazorpayPaymentUpdateWithoutProfileInput = {
+export type RazorpayPaymentCreateOrConnectWithoutPaymentsInput = {
+  where: Prisma.RazorpayPaymentWhereUniqueInput
+  create: Prisma.XOR<Prisma.RazorpayPaymentCreateWithoutPaymentsInput, Prisma.RazorpayPaymentUncheckedCreateWithoutPaymentsInput>
+}
+
+export type RazorpayPaymentUpsertWithoutPaymentsInput = {
+  update: Prisma.XOR<Prisma.RazorpayPaymentUpdateWithoutPaymentsInput, Prisma.RazorpayPaymentUncheckedUpdateWithoutPaymentsInput>
+  create: Prisma.XOR<Prisma.RazorpayPaymentCreateWithoutPaymentsInput, Prisma.RazorpayPaymentUncheckedCreateWithoutPaymentsInput>
+  where?: Prisma.RazorpayPaymentWhereInput
+}
+
+export type RazorpayPaymentUpdateToOneWithWhereWithoutPaymentsInput = {
+  where?: Prisma.RazorpayPaymentWhereInput
+  data: Prisma.XOR<Prisma.RazorpayPaymentUpdateWithoutPaymentsInput, Prisma.RazorpayPaymentUncheckedUpdateWithoutPaymentsInput>
+}
+
+export type RazorpayPaymentUpdateWithoutPaymentsInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   razorpay_payment_id?: Prisma.StringFieldUpdateOperationsInput | string
   amount_paise?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
@@ -1046,169 +718,12 @@ export type RazorpayPaymentUpdateWithoutProfileInput = {
   created_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updated_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   order?: Prisma.RazorpayOrderUpdateOneRequiredWithoutPaymentsNestedInput
-  booking?: Prisma.BookingUpdateOneWithoutRazorpay_paymentsNestedInput
-  user_package?: Prisma.UserPackageUpdateOneWithoutRazorpay_paymentsNestedInput
 }
 
-export type RazorpayPaymentUncheckedUpdateWithoutProfileInput = {
+export type RazorpayPaymentUncheckedUpdateWithoutPaymentsInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   razorpay_payment_id?: Prisma.StringFieldUpdateOperationsInput | string
   razorpay_order_id?: Prisma.StringFieldUpdateOperationsInput | string
-  booking_id?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  user_package_id?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  amount_paise?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
-  currency?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  status?: Prisma.StringFieldUpdateOperationsInput | string
-  method?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  signature_verified?: Prisma.BoolFieldUpdateOperationsInput | boolean
-  verified_at?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
-  failure_reason?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  created_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
-  updated_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
-}
-
-export type RazorpayPaymentUncheckedUpdateManyWithoutProfileInput = {
-  id?: Prisma.StringFieldUpdateOperationsInput | string
-  razorpay_payment_id?: Prisma.StringFieldUpdateOperationsInput | string
-  razorpay_order_id?: Prisma.StringFieldUpdateOperationsInput | string
-  booking_id?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  user_package_id?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  amount_paise?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
-  currency?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  status?: Prisma.StringFieldUpdateOperationsInput | string
-  method?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  signature_verified?: Prisma.BoolFieldUpdateOperationsInput | boolean
-  verified_at?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
-  failure_reason?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  created_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
-  updated_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
-}
-
-export type RazorpayPaymentCreateManyUser_packageInput = {
-  id?: string
-  razorpay_payment_id: string
-  razorpay_order_id: string
-  user_id: string
-  booking_id?: string | null
-  amount_paise?: number | null
-  currency?: string | null
-  status: string
-  method?: string | null
-  signature_verified?: boolean
-  verified_at?: Date | string | null
-  failure_reason?: string | null
-  created_at?: Date | string
-  updated_at?: Date | string
-}
-
-export type RazorpayPaymentUpdateWithoutUser_packageInput = {
-  id?: Prisma.StringFieldUpdateOperationsInput | string
-  razorpay_payment_id?: Prisma.StringFieldUpdateOperationsInput | string
-  amount_paise?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
-  currency?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  status?: Prisma.StringFieldUpdateOperationsInput | string
-  method?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  signature_verified?: Prisma.BoolFieldUpdateOperationsInput | boolean
-  verified_at?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
-  failure_reason?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  created_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
-  updated_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
-  order?: Prisma.RazorpayOrderUpdateOneRequiredWithoutPaymentsNestedInput
-  profile?: Prisma.ProfileUpdateOneRequiredWithoutRazorpay_paymentsNestedInput
-  booking?: Prisma.BookingUpdateOneWithoutRazorpay_paymentsNestedInput
-}
-
-export type RazorpayPaymentUncheckedUpdateWithoutUser_packageInput = {
-  id?: Prisma.StringFieldUpdateOperationsInput | string
-  razorpay_payment_id?: Prisma.StringFieldUpdateOperationsInput | string
-  razorpay_order_id?: Prisma.StringFieldUpdateOperationsInput | string
-  user_id?: Prisma.StringFieldUpdateOperationsInput | string
-  booking_id?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  amount_paise?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
-  currency?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  status?: Prisma.StringFieldUpdateOperationsInput | string
-  method?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  signature_verified?: Prisma.BoolFieldUpdateOperationsInput | boolean
-  verified_at?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
-  failure_reason?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  created_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
-  updated_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
-}
-
-export type RazorpayPaymentUncheckedUpdateManyWithoutUser_packageInput = {
-  id?: Prisma.StringFieldUpdateOperationsInput | string
-  razorpay_payment_id?: Prisma.StringFieldUpdateOperationsInput | string
-  razorpay_order_id?: Prisma.StringFieldUpdateOperationsInput | string
-  user_id?: Prisma.StringFieldUpdateOperationsInput | string
-  booking_id?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  amount_paise?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
-  currency?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  status?: Prisma.StringFieldUpdateOperationsInput | string
-  method?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  signature_verified?: Prisma.BoolFieldUpdateOperationsInput | boolean
-  verified_at?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
-  failure_reason?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  created_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
-  updated_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
-}
-
-export type RazorpayPaymentCreateManyBookingInput = {
-  id?: string
-  razorpay_payment_id: string
-  razorpay_order_id: string
-  user_id: string
-  user_package_id?: string | null
-  amount_paise?: number | null
-  currency?: string | null
-  status: string
-  method?: string | null
-  signature_verified?: boolean
-  verified_at?: Date | string | null
-  failure_reason?: string | null
-  created_at?: Date | string
-  updated_at?: Date | string
-}
-
-export type RazorpayPaymentUpdateWithoutBookingInput = {
-  id?: Prisma.StringFieldUpdateOperationsInput | string
-  razorpay_payment_id?: Prisma.StringFieldUpdateOperationsInput | string
-  amount_paise?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
-  currency?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  status?: Prisma.StringFieldUpdateOperationsInput | string
-  method?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  signature_verified?: Prisma.BoolFieldUpdateOperationsInput | boolean
-  verified_at?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
-  failure_reason?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  created_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
-  updated_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
-  order?: Prisma.RazorpayOrderUpdateOneRequiredWithoutPaymentsNestedInput
-  profile?: Prisma.ProfileUpdateOneRequiredWithoutRazorpay_paymentsNestedInput
-  user_package?: Prisma.UserPackageUpdateOneWithoutRazorpay_paymentsNestedInput
-}
-
-export type RazorpayPaymentUncheckedUpdateWithoutBookingInput = {
-  id?: Prisma.StringFieldUpdateOperationsInput | string
-  razorpay_payment_id?: Prisma.StringFieldUpdateOperationsInput | string
-  razorpay_order_id?: Prisma.StringFieldUpdateOperationsInput | string
-  user_id?: Prisma.StringFieldUpdateOperationsInput | string
-  user_package_id?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  amount_paise?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
-  currency?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  status?: Prisma.StringFieldUpdateOperationsInput | string
-  method?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  signature_verified?: Prisma.BoolFieldUpdateOperationsInput | boolean
-  verified_at?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
-  failure_reason?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  created_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
-  updated_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
-}
-
-export type RazorpayPaymentUncheckedUpdateManyWithoutBookingInput = {
-  id?: Prisma.StringFieldUpdateOperationsInput | string
-  razorpay_payment_id?: Prisma.StringFieldUpdateOperationsInput | string
-  razorpay_order_id?: Prisma.StringFieldUpdateOperationsInput | string
-  user_id?: Prisma.StringFieldUpdateOperationsInput | string
-  user_package_id?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   amount_paise?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   currency?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   status?: Prisma.StringFieldUpdateOperationsInput | string
@@ -1223,9 +738,6 @@ export type RazorpayPaymentUncheckedUpdateManyWithoutBookingInput = {
 export type RazorpayPaymentCreateManyOrderInput = {
   id?: string
   razorpay_payment_id: string
-  user_id: string
-  booking_id?: string | null
-  user_package_id?: string | null
   amount_paise?: number | null
   currency?: string | null
   status: string
@@ -1249,17 +761,12 @@ export type RazorpayPaymentUpdateWithoutOrderInput = {
   failure_reason?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   created_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updated_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
-  profile?: Prisma.ProfileUpdateOneRequiredWithoutRazorpay_paymentsNestedInput
-  booking?: Prisma.BookingUpdateOneWithoutRazorpay_paymentsNestedInput
-  user_package?: Prisma.UserPackageUpdateOneWithoutRazorpay_paymentsNestedInput
+  payments?: Prisma.PaymentUpdateManyWithoutRazorpay_paymentNestedInput
 }
 
 export type RazorpayPaymentUncheckedUpdateWithoutOrderInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   razorpay_payment_id?: Prisma.StringFieldUpdateOperationsInput | string
-  user_id?: Prisma.StringFieldUpdateOperationsInput | string
-  booking_id?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  user_package_id?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   amount_paise?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   currency?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   status?: Prisma.StringFieldUpdateOperationsInput | string
@@ -1269,14 +776,12 @@ export type RazorpayPaymentUncheckedUpdateWithoutOrderInput = {
   failure_reason?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   created_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updated_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  payments?: Prisma.PaymentUncheckedUpdateManyWithoutRazorpay_paymentNestedInput
 }
 
 export type RazorpayPaymentUncheckedUpdateManyWithoutOrderInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   razorpay_payment_id?: Prisma.StringFieldUpdateOperationsInput | string
-  user_id?: Prisma.StringFieldUpdateOperationsInput | string
-  booking_id?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  user_package_id?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   amount_paise?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   currency?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   status?: Prisma.StringFieldUpdateOperationsInput | string
@@ -1288,15 +793,41 @@ export type RazorpayPaymentUncheckedUpdateManyWithoutOrderInput = {
   updated_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
 }
 
+
+/**
+ * Count Type RazorpayPaymentCountOutputType
+ */
+
+export type RazorpayPaymentCountOutputType = {
+  payments: number
+}
+
+export type RazorpayPaymentCountOutputTypeSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  payments?: boolean | RazorpayPaymentCountOutputTypeCountPaymentsArgs
+}
+
+/**
+ * RazorpayPaymentCountOutputType without action
+ */
+export type RazorpayPaymentCountOutputTypeDefaultArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  /**
+   * Select specific fields to fetch from the RazorpayPaymentCountOutputType
+   */
+  select?: Prisma.RazorpayPaymentCountOutputTypeSelect<ExtArgs> | null
+}
+
+/**
+ * RazorpayPaymentCountOutputType without action
+ */
+export type RazorpayPaymentCountOutputTypeCountPaymentsArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  where?: Prisma.PaymentWhereInput
+}
 
 
 export type RazorpayPaymentSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetSelect<{
   id?: boolean
   razorpay_payment_id?: boolean
   razorpay_order_id?: boolean
-  user_id?: boolean
-  booking_id?: boolean
-  user_package_id?: boolean
   amount_paise?: boolean
   currency?: boolean
   status?: boolean
@@ -1307,18 +838,14 @@ export type RazorpayPaymentSelect<ExtArgs extends runtime.Types.Extensions.Inter
   created_at?: boolean
   updated_at?: boolean
   order?: boolean | Prisma.RazorpayOrderDefaultArgs<ExtArgs>
-  profile?: boolean | Prisma.ProfileDefaultArgs<ExtArgs>
-  booking?: boolean | Prisma.RazorpayPayment$bookingArgs<ExtArgs>
-  user_package?: boolean | Prisma.RazorpayPayment$user_packageArgs<ExtArgs>
+  payments?: boolean | Prisma.RazorpayPayment$paymentsArgs<ExtArgs>
+  _count?: boolean | Prisma.RazorpayPaymentCountOutputTypeDefaultArgs<ExtArgs>
 }, ExtArgs["result"]["razorpayPayment"]>
 
 export type RazorpayPaymentSelectCreateManyAndReturn<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetSelect<{
   id?: boolean
   razorpay_payment_id?: boolean
   razorpay_order_id?: boolean
-  user_id?: boolean
-  booking_id?: boolean
-  user_package_id?: boolean
   amount_paise?: boolean
   currency?: boolean
   status?: boolean
@@ -1329,18 +856,12 @@ export type RazorpayPaymentSelectCreateManyAndReturn<ExtArgs extends runtime.Typ
   created_at?: boolean
   updated_at?: boolean
   order?: boolean | Prisma.RazorpayOrderDefaultArgs<ExtArgs>
-  profile?: boolean | Prisma.ProfileDefaultArgs<ExtArgs>
-  booking?: boolean | Prisma.RazorpayPayment$bookingArgs<ExtArgs>
-  user_package?: boolean | Prisma.RazorpayPayment$user_packageArgs<ExtArgs>
 }, ExtArgs["result"]["razorpayPayment"]>
 
 export type RazorpayPaymentSelectUpdateManyAndReturn<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetSelect<{
   id?: boolean
   razorpay_payment_id?: boolean
   razorpay_order_id?: boolean
-  user_id?: boolean
-  booking_id?: boolean
-  user_package_id?: boolean
   amount_paise?: boolean
   currency?: boolean
   status?: boolean
@@ -1351,18 +872,12 @@ export type RazorpayPaymentSelectUpdateManyAndReturn<ExtArgs extends runtime.Typ
   created_at?: boolean
   updated_at?: boolean
   order?: boolean | Prisma.RazorpayOrderDefaultArgs<ExtArgs>
-  profile?: boolean | Prisma.ProfileDefaultArgs<ExtArgs>
-  booking?: boolean | Prisma.RazorpayPayment$bookingArgs<ExtArgs>
-  user_package?: boolean | Prisma.RazorpayPayment$user_packageArgs<ExtArgs>
 }, ExtArgs["result"]["razorpayPayment"]>
 
 export type RazorpayPaymentSelectScalar = {
   id?: boolean
   razorpay_payment_id?: boolean
   razorpay_order_id?: boolean
-  user_id?: boolean
-  booking_id?: boolean
-  user_package_id?: boolean
   amount_paise?: boolean
   currency?: boolean
   status?: boolean
@@ -1374,41 +889,29 @@ export type RazorpayPaymentSelectScalar = {
   updated_at?: boolean
 }
 
-export type RazorpayPaymentOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "razorpay_payment_id" | "razorpay_order_id" | "user_id" | "booking_id" | "user_package_id" | "amount_paise" | "currency" | "status" | "method" | "signature_verified" | "verified_at" | "failure_reason" | "created_at" | "updated_at", ExtArgs["result"]["razorpayPayment"]>
+export type RazorpayPaymentOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "razorpay_payment_id" | "razorpay_order_id" | "amount_paise" | "currency" | "status" | "method" | "signature_verified" | "verified_at" | "failure_reason" | "created_at" | "updated_at", ExtArgs["result"]["razorpayPayment"]>
 export type RazorpayPaymentInclude<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   order?: boolean | Prisma.RazorpayOrderDefaultArgs<ExtArgs>
-  profile?: boolean | Prisma.ProfileDefaultArgs<ExtArgs>
-  booking?: boolean | Prisma.RazorpayPayment$bookingArgs<ExtArgs>
-  user_package?: boolean | Prisma.RazorpayPayment$user_packageArgs<ExtArgs>
+  payments?: boolean | Prisma.RazorpayPayment$paymentsArgs<ExtArgs>
+  _count?: boolean | Prisma.RazorpayPaymentCountOutputTypeDefaultArgs<ExtArgs>
 }
 export type RazorpayPaymentIncludeCreateManyAndReturn<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   order?: boolean | Prisma.RazorpayOrderDefaultArgs<ExtArgs>
-  profile?: boolean | Prisma.ProfileDefaultArgs<ExtArgs>
-  booking?: boolean | Prisma.RazorpayPayment$bookingArgs<ExtArgs>
-  user_package?: boolean | Prisma.RazorpayPayment$user_packageArgs<ExtArgs>
 }
 export type RazorpayPaymentIncludeUpdateManyAndReturn<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   order?: boolean | Prisma.RazorpayOrderDefaultArgs<ExtArgs>
-  profile?: boolean | Prisma.ProfileDefaultArgs<ExtArgs>
-  booking?: boolean | Prisma.RazorpayPayment$bookingArgs<ExtArgs>
-  user_package?: boolean | Prisma.RazorpayPayment$user_packageArgs<ExtArgs>
 }
 
 export type $RazorpayPaymentPayload<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   name: "RazorpayPayment"
   objects: {
     order: Prisma.$RazorpayOrderPayload<ExtArgs>
-    profile: Prisma.$ProfilePayload<ExtArgs>
-    booking: Prisma.$BookingPayload<ExtArgs> | null
-    user_package: Prisma.$UserPackagePayload<ExtArgs> | null
+    payments: Prisma.$PaymentPayload<ExtArgs>[]
   }
   scalars: runtime.Types.Extensions.GetPayloadResult<{
     id: string
     razorpay_payment_id: string
     razorpay_order_id: string
-    user_id: string
-    booking_id: string | null
-    user_package_id: string | null
     amount_paise: number | null
     currency: string | null
     status: string
@@ -1813,9 +1316,7 @@ readonly fields: RazorpayPaymentFieldRefs;
 export interface Prisma__RazorpayPaymentClient<T, Null = never, ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs, GlobalOmitOptions = {}> extends Prisma.PrismaPromise<T> {
   readonly [Symbol.toStringTag]: "PrismaPromise"
   order<T extends Prisma.RazorpayOrderDefaultArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.RazorpayOrderDefaultArgs<ExtArgs>>): Prisma.Prisma__RazorpayOrderClient<runtime.Types.Result.GetResult<Prisma.$RazorpayOrderPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | Null, Null, ExtArgs, GlobalOmitOptions>
-  profile<T extends Prisma.ProfileDefaultArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.ProfileDefaultArgs<ExtArgs>>): Prisma.Prisma__ProfileClient<runtime.Types.Result.GetResult<Prisma.$ProfilePayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | Null, Null, ExtArgs, GlobalOmitOptions>
-  booking<T extends Prisma.RazorpayPayment$bookingArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.RazorpayPayment$bookingArgs<ExtArgs>>): Prisma.Prisma__BookingClient<runtime.Types.Result.GetResult<Prisma.$BookingPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | null, null, ExtArgs, GlobalOmitOptions>
-  user_package<T extends Prisma.RazorpayPayment$user_packageArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.RazorpayPayment$user_packageArgs<ExtArgs>>): Prisma.Prisma__UserPackageClient<runtime.Types.Result.GetResult<Prisma.$UserPackagePayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | null, null, ExtArgs, GlobalOmitOptions>
+  payments<T extends Prisma.RazorpayPayment$paymentsArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.RazorpayPayment$paymentsArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$PaymentPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
   /**
    * Attaches callbacks for the resolution and/or rejection of the Promise.
    * @param onfulfilled The callback to execute when the Promise is resolved.
@@ -1848,9 +1349,6 @@ export interface RazorpayPaymentFieldRefs {
   readonly id: Prisma.FieldRef<"RazorpayPayment", 'String'>
   readonly razorpay_payment_id: Prisma.FieldRef<"RazorpayPayment", 'String'>
   readonly razorpay_order_id: Prisma.FieldRef<"RazorpayPayment", 'String'>
-  readonly user_id: Prisma.FieldRef<"RazorpayPayment", 'String'>
-  readonly booking_id: Prisma.FieldRef<"RazorpayPayment", 'String'>
-  readonly user_package_id: Prisma.FieldRef<"RazorpayPayment", 'String'>
   readonly amount_paise: Prisma.FieldRef<"RazorpayPayment", 'Int'>
   readonly currency: Prisma.FieldRef<"RazorpayPayment", 'String'>
   readonly status: Prisma.FieldRef<"RazorpayPayment", 'String'>
@@ -2261,41 +1759,27 @@ export type RazorpayPaymentDeleteManyArgs<ExtArgs extends runtime.Types.Extensio
 }
 
 /**
- * RazorpayPayment.booking
+ * RazorpayPayment.payments
  */
-export type RazorpayPayment$bookingArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+export type RazorpayPayment$paymentsArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   /**
-   * Select specific fields to fetch from the Booking
+   * Select specific fields to fetch from the Payment
    */
-  select?: Prisma.BookingSelect<ExtArgs> | null
+  select?: Prisma.PaymentSelect<ExtArgs> | null
   /**
-   * Omit specific fields from the Booking
+   * Omit specific fields from the Payment
    */
-  omit?: Prisma.BookingOmit<ExtArgs> | null
+  omit?: Prisma.PaymentOmit<ExtArgs> | null
   /**
    * Choose, which related nodes to fetch as well
    */
-  include?: Prisma.BookingInclude<ExtArgs> | null
-  where?: Prisma.BookingWhereInput
-}
-
-/**
- * RazorpayPayment.user_package
- */
-export type RazorpayPayment$user_packageArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
-  /**
-   * Select specific fields to fetch from the UserPackage
-   */
-  select?: Prisma.UserPackageSelect<ExtArgs> | null
-  /**
-   * Omit specific fields from the UserPackage
-   */
-  omit?: Prisma.UserPackageOmit<ExtArgs> | null
-  /**
-   * Choose, which related nodes to fetch as well
-   */
-  include?: Prisma.UserPackageInclude<ExtArgs> | null
-  where?: Prisma.UserPackageWhereInput
+  include?: Prisma.PaymentInclude<ExtArgs> | null
+  where?: Prisma.PaymentWhereInput
+  orderBy?: Prisma.PaymentOrderByWithRelationInput | Prisma.PaymentOrderByWithRelationInput[]
+  cursor?: Prisma.PaymentWhereUniqueInput
+  take?: number
+  skip?: number
+  distinct?: Prisma.PaymentScalarFieldEnum | Prisma.PaymentScalarFieldEnum[]
 }
 
 /**

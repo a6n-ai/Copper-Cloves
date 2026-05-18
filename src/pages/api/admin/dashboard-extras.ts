@@ -188,7 +188,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         profile: { select: { full_name: true, email: true, phone: true } },
         class_schedule: { include: { class_model: { select: { name: true } } } },
         razorpay_order: { select: { razorpay_order_id: true, amount_paise: true } },
-        razorpay_payments: { select: { razorpay_payment_id: true, amount_paise: true } },
+        payments: { select: { razorpay_payment_id: true, amount_paise: true } },
         cafe_orders: {
           include: {
             cafe_item: { select: { name: true, price: true } },
@@ -526,7 +526,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     const category = `${classTitle} (${passLine})`;
 
     const payIds =
-      b.razorpay_payments?.map((p) => p.razorpay_payment_id).filter(Boolean) ?? [];
+      b.payments?.map((p) => p.razorpay_payment_id).filter(Boolean) ?? [];
 
     const guestRows = guestListFromJson(b.guest_attendees);
     const attendeeLines: {

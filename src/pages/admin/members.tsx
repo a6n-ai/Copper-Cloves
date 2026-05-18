@@ -19,6 +19,7 @@ import {
   Search,
 } from "lucide-react";
 import { SEO } from "@/components/SEO";
+import { Pagination, usePagination } from "@/components/Pagination";
 import { useSession } from "next-auth/react";
 import {
   Dialog,
@@ -95,6 +96,15 @@ export default function AdminMembers() {
   const [newStartDate, setNewStartDate] = useState("");
   const [successMessage, setSuccessMessage] = useState("");
   const [loadError, setLoadError] = useState<string | null>(null);
+
+  // Offline payment recording
+  const [paymentMethod, setPaymentMethod] = useState<string>("");
+  const [paymentAmount, setPaymentAmount] = useState<string>("");
+  const [paymentReference, setPaymentReference] = useState<string>("");
+  const [paymentProofUrl, setPaymentProofUrl] = useState<string>("");
+  const [proofUploading, setProofUploading] = useState(false);
+  const [dialogStep, setDialogStep] = useState<"config" | "payment">("config");
+  const [submitting, setSubmitting] = useState(false);
 
   const { data: session, status } = useSession();
 
@@ -243,7 +253,81 @@ export default function AdminMembers() {
     setSelectedCredits(null);
     setSelectedDays(null);
     setNewStartDate(member.startDate ?? "");
+    setPaymentMethod("");
+    setPaymentAmount("");
+    setPaymentReference("");
+    setPaymentProofUrl("");
+    setDialogStep("config");
     setDialogOpen(true);
+  };
+
+  const goToPaymentStep = () => {
+    if (dialogPassType === "class_pass" && selectedCredits === null) {
+      alert("Select number of classes first"); return;
+    }
+    if (dialogPassType === "studio_pass" && selectedDays === null) {
+      alert("Select number of days first"); return;
+    }
+    setDialogStep("payment");
+  };
+
+  const uploadProof = async (file: File) => {
+    setProofUploading(true);
+    try {
+      const fd = new FormData();
+      fd.append("file", file);
+      const res = await fetch("/api/upload", { method: "POST", credentials: "include", body: fd });
+      const json = await res.json().catch(() => ({}));
+      if (!res.ok || !json.url) throw new Error(json.error ?? "Upload failed");
+      setPaymentProofUrl(json.url);
+    } catch (e) {
+      alert(e instanceof Error ? e.message : "Upload failed");
+    } finally {
+      setProofUploading(false);
+    }
+  };
+
+  const handleRecordPayment = async () => {
+    if (!selectedMember) return;
+    if (!paymentMethod) { alert("Select a payment method"); return; }
+    const rupees = Number(paymentAmount);
+    if (!Number.isFinite(rupees) || rupees <= 0) { alert("Enter a valid amount in INR"); return; }
+    try {
+      const res = await fetch("/api/admin/payments", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        credentials: "include",
+        body: JSON.stringify({
+          user_id: selectedMember.id,
+          user_package_id: selectedMember.userPackageId ?? undefined,
+          method: paymentMethod,
+          amount_paise: Math.round(rupees * 100),
+          reference: paymentReference || undefined,
+          proof_url: paymentProofUrl || undefined,
+        }),
+      });
+      if (!res.ok) {
+        const err = await res.json().catch(() => ({}));
+        throw new Error(err.error ?? "Failed to record payment");
+      }
+      // Save start date if changed
+      if (newStartDate && newStartDate !== (selectedMember.startDate ?? "")) {
+        await patchMember({ profile_id: selectedMember.id, start_date: newStartDate });
+      }
+
+      // Apply the pass config in the same submit if a selection is made
+      if ((dialogPassType === "class_pass" && selectedCredits !== null) ||
+          (dialogPassType === "studio_pass" && selectedDays !== null)) {
+        await handleApplyPassConfig();
+      } else {
+        await loadMembers();
+        setSuccessMessage(`Payment recorded for ${selectedMember.name}`);
+        setDialogOpen(false);
+        setTimeout(() => setSuccessMessage(""), 3000);
+      }
+    } catch (e) {
+      alert(e instanceof Error ? e.message : "Could not record payment");
+    }
   };
 
   const patchMember = async (body: Record<string, unknown>) => {
@@ -265,14 +349,13 @@ export default function AdminMembers() {
       const patches: Record<string, unknown>[] = [];
 
       if (dialogPassType === "class_pass" && selectedCredits !== null) {
-        if (!selectedMember.userPackageId) {
-          alert("Member has no active package to set credits on.");
-          return;
-        }
-        const delta = selectedCredits - selectedMember.credits;
+        // No userPackageId → API auto-creates a UserPackage with the chosen credits.
+        const delta = selectedMember.userPackageId
+          ? selectedCredits - selectedMember.credits
+          : selectedCredits;
         patches.push({
           profile_id: selectedMember.id,
-          user_package_id: selectedMember.userPackageId,
+          user_package_id: selectedMember.userPackageId ?? undefined,
           credits_delta: delta,
           pass_type: "class_pass",
         });
@@ -347,6 +430,12 @@ export default function AdminMembers() {
     expiringMembers: members.filter((m) => m.status === "expiring").length,
     inactiveLong: members.filter((m) => m.accountFilter === "inactive").length,
   };
+
+  const membersPg = usePagination(
+    filteredMembers,
+    10,
+    `${searchQuery}|${packageFilter}|${accountStatusFilter}`,
+  );
 
   if (loading) {
     return (
@@ -525,7 +614,7 @@ export default function AdminMembers() {
               </CardHeader>
               <CardContent>
                 <div className="space-y-3">
-                  {filteredMembers.map((member) => (
+                  {membersPg.pageItems.map((member) => (
                     <div 
                       key={member.id}
                       className="p-6 rounded-xl border border-charcoal/10 hover:border-sage/30 hover:bg-sage/5 transition-all duration-600"
@@ -572,7 +661,7 @@ export default function AdminMembers() {
                           <div className="mt-2 flex items-center gap-2">
                             <CreditCard className="h-4 w-4 text-charcoal/40" />
                             <span className="font-body font-medium text-charcoal">
-                              {member.unlimited ? "Unlimited pass" : `${member.credits} credits`}
+                              {member.totalClasses} classes taken
                             </span>
                           </div>
                         </div>
@@ -652,6 +741,11 @@ export default function AdminMembers() {
                     </div>
                   ))}
                 </div>
+                <Pagination
+                  page={membersPg.page}
+                  total={membersPg.total}
+                  onChange={membersPg.setPage}
+                />
               </CardContent>
             </Card>
 
@@ -659,7 +753,7 @@ export default function AdminMembers() {
         </main>
       </div>
 
-      {/* Manage Member Dialog */}
+      {/* Manage Member Dialog — 2-step: pass config → payment */}
       <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
         <DialogContent className="sm:max-w-[480px] bg-white border-sage/20">
           <DialogHeader>
@@ -667,123 +761,232 @@ export default function AdminMembers() {
               Manage {selectedMember?.name}
             </DialogTitle>
             <DialogDescription className="font-body text-charcoal/60">
-              Update pass type, credits, and membership details
+              {dialogStep === "config" ? "Step 1 of 2 — pass configuration" : "Step 2 of 2 — payment"}
             </DialogDescription>
           </DialogHeader>
 
-          <div className="space-y-6 py-4">
+          {/* Step indicator */}
+          <div className="flex items-center gap-2 px-1">
+            <div className={`h-1.5 flex-1 rounded-full ${dialogStep === "config" ? "bg-sage" : "bg-sage"}`} />
+            <div className={`h-1.5 flex-1 rounded-full ${dialogStep === "payment" ? "bg-sage" : "bg-sage/20"}`} />
+          </div>
 
-            {/* Pass Type toggle */}
-            <div>
-              <Label className="font-body text-charcoal/80 mb-3 block">Pass Type</Label>
-              <div className="flex gap-2">
-                {(["class_pass", "studio_pass"] as const).map((pt) => (
-                  <button
-                    key={pt}
-                    type="button"
-                    onClick={() => { setDialogPassType(pt); setSelectedCredits(null); setSelectedDays(null); }}
-                    className={`flex-1 py-2.5 rounded-full text-sm font-body font-medium border transition-colors ${
-                      dialogPassType === pt
-                        ? "bg-sage text-white border-sage"
-                        : "bg-white text-charcoal/70 border-charcoal/20 hover:border-sage/40"
-                    }`}
-                  >
-                    {pt === "class_pass" ? "Class Pass" : "Studio Pass"}
-                  </button>
-                ))}
-              </div>
-            </div>
-
-            {/* Class pass — classes remaining */}
-            {dialogPassType === "class_pass" && (
+          {dialogStep === "config" && (
+            <div className="space-y-6 py-4">
               <div>
-                <Label className="font-body text-charcoal/80 mb-3 block">
-                  Classes Remaining
-                  {selectedMember && (
-                    <span className="ml-2 text-charcoal/40 font-normal">
-                      (currently {selectedMember.credits})
-                    </span>
-                  )}
-                </Label>
-                <div className="grid grid-cols-4 gap-2">
-                  {[1, 4, 8, 12].map((n) => (
+                <Label className="font-body text-charcoal/80 mb-3 block">Pass Type</Label>
+                <div className="flex gap-2">
+                  {(["class_pass", "studio_pass"] as const).map((pt) => (
                     <button
-                      key={n}
+                      key={pt}
                       type="button"
-                      onClick={() => setSelectedCredits(n)}
-                      className={`py-3 rounded-xl text-lg font-display border transition-colors ${
-                        selectedCredits === n
+                      onClick={() => { setDialogPassType(pt); setSelectedCredits(null); setSelectedDays(null); }}
+                      className={`flex-1 py-2.5 rounded-full text-sm font-body font-medium border transition-colors ${
+                        dialogPassType === pt
                           ? "bg-sage text-white border-sage"
-                          : "bg-sage/5 text-charcoal border-sage/20 hover:bg-sage/10"
+                          : "bg-white text-charcoal/70 border-charcoal/20 hover:border-sage/40"
                       }`}
                     >
-                      {n}
+                      {pt === "class_pass" ? "Class Pass" : "Studio Pass"}
                     </button>
                   ))}
                 </div>
               </div>
-            )}
 
-            {/* Studio pass — days remaining */}
-            {dialogPassType === "studio_pass" && (
-              <div>
-                <Label className="font-body text-charcoal/80 mb-3 block">
-                  Days Remaining (from today)
-                </Label>
-                <div className="grid grid-cols-4 gap-2">
-                  {[30, 90, 180, 365].map((d) => (
-                    <button
-                      key={d}
-                      type="button"
-                      onClick={() => setSelectedDays(d)}
-                      className={`py-3 rounded-xl text-sm font-display border transition-colors ${
-                        selectedDays === d
-                          ? "bg-sage text-white border-sage"
-                          : "bg-sage/5 text-charcoal border-sage/20 hover:bg-sage/10"
-                      }`}
-                    >
-                      {d}d
-                    </button>
-                  ))}
+              {dialogPassType === "class_pass" && (
+                <div>
+                  <Label className="font-body text-charcoal/80 mb-3 block">
+                    Classes Remaining
+                    {selectedMember && (
+                      <span className="ml-2 text-charcoal/40 font-normal">
+                        (currently {selectedMember.credits})
+                      </span>
+                    )}
+                  </Label>
+                  <div className="grid grid-cols-4 gap-2">
+                    {[1, 4, 8, 12].map((n) => (
+                      <button
+                        key={n}
+                        type="button"
+                        onClick={() => setSelectedCredits(n)}
+                        className={`h-14 rounded-xl text-base font-display border transition-colors flex items-center justify-center ${
+                          selectedCredits === n
+                            ? "bg-sage text-white border-sage"
+                            : "bg-sage/5 text-charcoal border-sage/20 hover:bg-sage/10"
+                        }`}
+                      >
+                        {n}
+                      </button>
+                    ))}
+                  </div>
                 </div>
-              </div>
-            )}
+              )}
 
-            <Button
-              onClick={handleApplyPassConfig}
-              className="w-full bg-sage hover:bg-sage/90 text-white font-body h-11"
-            >
-              Apply
-            </Button>
+              {dialogPassType === "studio_pass" && (
+                <div>
+                  <Label className="font-body text-charcoal/80 mb-3 block">
+                    Days Remaining (from today)
+                  </Label>
+                  <div className="grid grid-cols-4 gap-2">
+                    {[30, 90, 180, 365].map((d) => (
+                      <button
+                        key={d}
+                        type="button"
+                        onClick={() => setSelectedDays(d)}
+                        className={`h-14 rounded-xl text-base font-display border transition-colors flex items-center justify-center ${
+                          selectedDays === d
+                            ? "bg-sage text-white border-sage"
+                            : "bg-sage/5 text-charcoal border-sage/20 hover:bg-sage/10"
+                        }`}
+                      >
+                        {d}d
+                      </button>
+                    ))}
+                  </div>
+                </div>
+              )}
 
-            <div className="border-t border-sage/10 pt-4">
-              <Label className="font-body text-charcoal/80 mb-2 block">Member Start Date</Label>
-              <div className="flex gap-2">
+              <div className="border-t border-sage/10 pt-4">
+                <Label className="font-body text-charcoal/80 mb-2 block">Member Start Date</Label>
                 <Input
                   type="date"
                   value={newStartDate}
                   onChange={(e) => setNewStartDate(e.target.value)}
-                  className="h-11 border-charcoal/20 focus:border-sage font-body flex-1"
+                  className="h-11 border-charcoal/20 focus:border-sage font-body w-full"
                 />
-                <Button
-                  onClick={handleUpdateStartDate}
-                  variant="outline"
-                  className="h-11 border-sage/20 text-sage hover:bg-sage/10 font-body px-4"
-                >
-                  Save
-                </Button>
+                <p className="font-body text-xs text-charcoal/50 mt-1">Saved together with payment at the next step.</p>
               </div>
             </div>
-          </div>
+          )}
 
-          <DialogFooter>
-            <Button
-              variant="outline"
-              onClick={() => setDialogOpen(false)}
-              className="border-charcoal/20 text-charcoal hover:bg-charcoal/5 font-body"
-            >
-              Close
-            </Button>
+          {dialogStep === "payment" && (
+            <div className="space-y-4 py-4">
+              {/* Summary of selected pass */}
+              <div className="rounded-xl bg-sage/5 border border-sage/20 p-3">
+                <div className="font-body text-xs text-charcoal/60 uppercase tracking-wide mb-1">Selected Pass</div>
+                <div className="font-display text-lg text-charcoal">
+                  {dialogPassType === "class_pass"
+                    ? `Class Pass — ${selectedCredits} classes`
+                    : `Studio Pass — ${selectedDays} days`}
+                </div>
+              </div>
+
+              <div>
+                <Label className="font-body text-charcoal/70 text-sm mb-2 block">Choose Payment Method</Label>
+                <div className="grid grid-cols-2 gap-2">
+                  {[
+                    { v: "razorpay_online", l: "Razorpay (Online)" },
+                    { v: "pine_lab_card", l: "Pine Lab Card" },
+                    { v: "pine_lab_upi", l: "Pine Lab UPI" },
+                    { v: "direct_upi", l: "Direct UPI" },
+                    { v: "razorpay_completed", l: "Razorpay Completed" },
+                    { v: "cash", l: "Cash" },
+                  ].map((m) => (
+                    <button
+                      key={m.v}
+                      type="button"
+                      onClick={() => setPaymentMethod(m.v)}
+                      className={`h-11 rounded-lg text-sm font-body border transition-colors flex items-center justify-center px-2 ${
+                        paymentMethod === m.v
+                          ? "bg-sage text-white border-sage"
+                          : "bg-sage/5 text-charcoal border-sage/20 hover:bg-sage/10"
+                      }`}
+                    >
+                      {m.l}
+                    </button>
+                  ))}
+                </div>
+              </div>
+
+              <div className="grid grid-cols-2 gap-2">
+                <div>
+                  <Label className="font-body text-charcoal/70 text-sm mb-1 block">Amount (₹)</Label>
+                  <Input
+                    type="number"
+                    min="0"
+                    step="1"
+                    value={paymentAmount}
+                    onChange={(e) => setPaymentAmount(e.target.value)}
+                    className="h-11 border-charcoal/20 focus:border-sage font-body"
+                    placeholder="e.g. 6015"
+                  />
+                </div>
+                <div>
+                  <Label className="font-body text-charcoal/70 text-sm mb-1 block">Reference (opt.)</Label>
+                  <Input
+                    type="text"
+                    value={paymentReference}
+                    onChange={(e) => setPaymentReference(e.target.value)}
+                    className="h-11 border-charcoal/20 focus:border-sage font-body"
+                    placeholder="txn id / slip #"
+                  />
+                </div>
+              </div>
+
+              <div>
+                <Label className="font-body text-charcoal/70 text-sm mb-1 block">
+                  Proof of Payment (optional)
+                </Label>
+                <Input
+                  type="file"
+                  accept="image/*"
+                  disabled={proofUploading}
+                  onChange={(e) => {
+                    const f = e.target.files?.[0];
+                    if (f) void uploadProof(f);
+                  }}
+                  className="h-11 border-charcoal/20 focus:border-sage font-body file:mr-3 file:py-1 file:px-3 file:rounded file:border-0 file:bg-sage/10 file:text-sage"
+                />
+                {proofUploading && (
+                  <p className="font-body text-xs text-charcoal/50 mt-1">Uploading…</p>
+                )}
+                {paymentProofUrl && !proofUploading && (
+                  <p className="font-body text-xs text-sage mt-1">
+                    Proof uploaded ✓ <a href={paymentProofUrl} target="_blank" rel="noreferrer" className="underline">view</a>
+                  </p>
+                )}
+              </div>
+            </div>
+          )}
+
+          <DialogFooter className="gap-2 sm:gap-2">
+            {dialogStep === "config" ? (
+              <>
+                <Button
+                  variant="outline"
+                  onClick={() => setDialogOpen(false)}
+                  className="border-charcoal/20 text-charcoal hover:bg-charcoal/5 font-body"
+                >
+                  Cancel
+                </Button>
+                <Button
+                  onClick={goToPaymentStep}
+                  className="bg-sage hover:bg-sage/90 text-white font-body"
+                >
+                  Continue
+                </Button>
+              </>
+            ) : (
+              <>
+                <Button
+                  variant="outline"
+                  onClick={() => setDialogStep("config")}
+                  className="border-charcoal/20 text-charcoal hover:bg-charcoal/5 font-body"
+                >
+                  Back
+                </Button>
+                <Button
+                  onClick={async () => {
+                    setSubmitting(true);
+                    try { await handleRecordPayment(); } finally { setSubmitting(false); }
+                  }}
+                  disabled={proofUploading || submitting}
+                  className="bg-sage hover:bg-sage/90 text-white font-body"
+                >
+                  {submitting ? "Processing…" : "Record Payment & Apply Pass"}
+                </Button>
+              </>
+            )}
           </DialogFooter>
         </DialogContent>
       </Dialog>

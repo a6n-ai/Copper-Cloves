@@ -71,6 +71,7 @@ import {
   type FinanceReportPeriod,
 } from "@/lib/financeReportExport";
 import { COUPON_CONTEXTS } from "@/lib/couponHelpers";
+import { Pagination, usePagination } from "@/components/Pagination";
 
 type FinanceBreakdownDetail = {
   packageListInr?: number;
@@ -591,14 +592,6 @@ export default function AdminDashboard() {
     };
   }, [status, session, activeTab]);
 
-  if (loading) {
-    return (
-      <div className="min-h-screen bg-gradient-to-br from-cream via-cream to-sage/10 flex items-center justify-center">
-        <div className="h-12 w-12 border-4 border-sage/20 border-t-sage rounded-full animate-spin" />
-      </div>
-    );
-  }
-
   const handleToggleMember = (memberId: string) => {
     const newSelected = new Set(selectedMembers);
     if (newSelected.has(memberId)) {
@@ -899,11 +892,71 @@ export default function AdminDashboard() {
     return true;
   });
 
-  const activeMemberTierTotal = memberStats.premiumActive + memberStats.specialtyActive;
+  /** Aggregates derived from the visible (filtered) member list. */
+  const filteredMemberStats = useMemo(() => {
+    const sum = (k: string) => filteredMemberList.reduce((s, m) => s + (Number((m as Record<string, unknown>)[k]) || 0), 0);
+    const onTime = sum("onTime");
+    const late = sum("late");
+    const noShows = sum("noShow");
+    const sample = onTime + late;
+    const isPremium = (pkg: string) => pkg.includes("premium");
+    const isSpecialty = (pkg: string) =>
+      pkg.includes("aerial") || pkg.includes("special") || pkg.includes("unlimited");
+    let premiumActive = 0,
+      specialtyActive = 0,
+      inactive = 0;
+    for (const m of filteredMemberList) {
+      const pkg = String((m as { package?: string }).package ?? "").toLowerCase();
+      const credits = Number((m as { credits?: number }).credits ?? 0);
+      if (credits <= 0) inactive += 1;
+      if (credits > 0 && isPremium(pkg)) premiumActive += 1;
+      if (credits > 0 && isSpecialty(pkg)) specialtyActive += 1;
+    }
+    return {
+      onTimeCheckIns: onTime,
+      lateCheckIns: late,
+      noShows,
+      checkInSample: sample,
+      onTimeCheckInPct: sample > 0 ? Math.round((onTime / sample) * 100) : 0,
+      lateCheckInPct: sample > 0 ? Math.round((late / sample) * 100) : 0,
+      premiumActive,
+      specialtyActive,
+      inactiveUsers: inactive,
+    };
+  }, [filteredMemberList]);
+
+  /** Stats actually rendered in the Members tab — filter drives scope. 'all' = global; specific filter = aggregates from filtered list. */
+  const displayedMemberStats = selectedMember !== "all"
+    ? { ...memberStats, ...filteredMemberStats }
+    : memberStats;
+
+  const activeMemberTierTotal = displayedMemberStats.premiumActive + displayedMemberStats.specialtyActive;
+
+  // Pagination hooks for dashboard lists — resetKey resets page to 1 on filter change
+  const membersPg = usePagination(filteredMemberList, 10, selectedMember);
+  const instructorsPerfPg = usePagination(filteredInstructorPerformance, 10, selectedInstructor);
+  const expiringPg = usePagination(expiringMembers);
+  const financeTxnPg = usePagination(
+    filteredFinanceTransactions,
+    10,
+    `${transactionFilter}|${transactionDateRange}|${transactionType}|${transactionSearch}`,
+  );
+  const classesPerfPg = usePagination(classPerformance);
+  const couponsPg = usePagination(coupons);
+  const mealInquiriesPg = usePagination(mealInquiries);
+  const rentalInquiriesPg = usePagination(rentalInquiries);
+
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-cream via-cream to-sage/10 flex items-center justify-center">
+        <div className="h-12 w-12 border-4 border-sage/20 border-t-sage rounded-full animate-spin" />
+      </div>
+    );
+  }
 
   return (
     <>
-      <SEO 
+      <SEO
         title="Admin Dashboard - The Studio"
         description="Manage classes, members, and operations"
       />
@@ -1274,7 +1327,7 @@ export default function AdminDashboard() {
                     </div>
 
                     <div className="space-y-3">
-                      {expiringMembers.map((member) => (
+                      {expiringPg.pageItems.map((member) => (
                         <div 
                           key={member.id}
                           className="flex items-center justify-between p-4 rounded-xl border border-amber-500/20 bg-white hover:shadow-md transition-all duration-600"
@@ -1329,6 +1382,7 @@ export default function AdminDashboard() {
                         </div>
                       ))}
                     </div>
+                    <Pagination page={expiringPg.page} total={expiringPg.total} onChange={expiringPg.setPage} />
                   </CardContent>
                 </Card>
               </TabsContent>
@@ -1551,7 +1605,7 @@ export default function AdminDashboard() {
                       </p>
                     ) : null}
                     <div className="space-y-3">
-                      {filteredFinanceTransactions.map((txn) => {
+                      {financeTxnPg.pageItems.map((txn) => {
                         const openFinance = txn.finance1Tag === true && txn.financeDetail != null;
                         const displayMember = txn.memberFull ?? txn.member ?? txn.instructor ?? "Studio";
                         const plus = txn.memberPlusLabel?.trim() ? ` ${txn.memberPlusLabel.trim()}` : "";
@@ -1644,7 +1698,8 @@ export default function AdminDashboard() {
                         );
                       })}
                     </div>
-                    
+                    <Pagination page={financeTxnPg.page} total={financeTxnPg.total} onChange={financeTxnPg.setPage} />
+
                     {/* Show message if no transactions match filters */}
                     {filteredFinanceTransactions.length === 0 && (
                       <div className="text-center py-12">
@@ -2193,7 +2248,7 @@ export default function AdminDashboard() {
                               </tr>
                             </thead>
                             <tbody>
-                              {coupons.map((c) => (
+                              {couponsPg.pageItems.map((c) => (
                                 <tr key={c.id} className="border-b border-sage/10 last:border-0">
                                   <td className="p-3 font-mono font-semibold text-charcoal">{c.code}</td>
                                   <td className="p-3 text-charcoal/80">
@@ -2243,6 +2298,7 @@ export default function AdminDashboard() {
                           </table>
                         </div>
                       )}
+                      <Pagination page={couponsPg.page} total={couponsPg.total} onChange={couponsPg.setPage} />
                     </div>
                   </CardContent>
                 </Card>
@@ -2276,7 +2332,7 @@ export default function AdminDashboard() {
                             </tr>
                           </thead>
                           <tbody>
-                            {mealInquiries.map((row) => (
+                            {mealInquiriesPg.pageItems.map((row) => (
                               <tr key={row.id} className="border-b border-sage/10 last:border-0 align-top">
                                 <td className="p-3 text-charcoal/80 whitespace-nowrap">
                                   {new Date(row.created_at).toLocaleString("en-IN", {
@@ -2322,6 +2378,7 @@ export default function AdminDashboard() {
                         </table>
                       </div>
                     )}
+                    <Pagination page={mealInquiriesPg.page} total={mealInquiriesPg.total} onChange={mealInquiriesPg.setPage} />
                   </CardContent>
                 </Card>
               </TabsContent>
@@ -2355,7 +2412,7 @@ export default function AdminDashboard() {
                             </tr>
                           </thead>
                           <tbody>
-                            {rentalInquiries.map((row) => (
+                            {rentalInquiriesPg.pageItems.map((row) => (
                               <tr key={row.id} className="border-b border-sage/10 last:border-0 align-top">
                                 <td className="p-3 text-charcoal/80 whitespace-nowrap">
                                   {new Date(row.created_at).toLocaleString("en-IN", {
@@ -2394,12 +2451,23 @@ export default function AdminDashboard() {
                         </table>
                       </div>
                     )}
+                    <Pagination page={rentalInquiriesPg.page} total={rentalInquiriesPg.total} onChange={rentalInquiriesPg.setPage} />
                   </CardContent>
                 </Card>
               </TabsContent>
 
               {/* MEMBERS TAB */}
               <TabsContent value="members" className="space-y-6">
+                {/* Scope indicator — metrics auto-track the selected filter */}
+                <div className="rounded-xl border border-sage/20 bg-white/60 backdrop-blur-xl p-3">
+                  <div className="font-body text-sm font-medium text-charcoal">Metrics scope</div>
+                  <div className="font-body text-xs text-charcoal/60">
+                    {selectedMember === "all"
+                      ? "Showing stats across all members"
+                      : `Showing stats from the ${filteredMemberList.length} member(s) matching the current filter`}
+                  </div>
+                </div>
+
                 {/* Member Stats */}
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
                   <Card className="border-sage/20 bg-white/95 backdrop-blur-xl hover:shadow-2xl transition-all duration-600">
@@ -2413,12 +2481,12 @@ export default function AdminDashboard() {
                     </CardHeader>
                     <CardContent>
                       <div className="font-display text-4xl text-charcoal mb-2">
-                        {memberStats.onTimeCheckIns}
+                        {displayedMemberStats.onTimeCheckIns}
                       </div>
                       <div className="flex items-center gap-2 text-sm">
                         <Badge variant="outline" className="border-sage/20 text-sage bg-sage/5">
-                          {memberStats.checkInSample > 0
-                            ? `${memberStats.onTimeCheckInPct}% of ${memberStats.checkInSample} check-ins`
+                          {displayedMemberStats.checkInSample > 0
+                            ? `${displayedMemberStats.onTimeCheckInPct}% of ${displayedMemberStats.checkInSample} check-ins`
                             : "No recent check-ins"}
                         </Badge>
                       </div>
@@ -2436,12 +2504,12 @@ export default function AdminDashboard() {
                     </CardHeader>
                     <CardContent>
                       <div className="font-display text-4xl text-charcoal mb-2">
-                        {memberStats.lateCheckIns}
+                        {displayedMemberStats.lateCheckIns}
                       </div>
                       <div className="flex items-center gap-2 text-sm">
                         <Badge variant="outline" className="border-amber-500/20 text-amber-600 bg-amber-50">
-                          {memberStats.checkInSample > 0
-                            ? `${memberStats.lateCheckInPct}% late (after start)`
+                          {displayedMemberStats.checkInSample > 0
+                            ? `${displayedMemberStats.lateCheckInPct}% late (after start)`
                             : "No recent check-ins"}
                         </Badge>
                       </div>
@@ -2459,7 +2527,7 @@ export default function AdminDashboard() {
                     </CardHeader>
                     <CardContent>
                       <div className="font-display text-4xl text-charcoal mb-2">
-                        {memberStats.noShows}
+                        {displayedMemberStats.noShows}
                       </div>
                       <div className="flex items-center gap-2 text-sm">
                         <Button 
@@ -2484,7 +2552,7 @@ export default function AdminDashboard() {
                     </CardHeader>
                     <CardContent>
                       <div className="font-display text-4xl text-charcoal mb-2">
-                        {memberStats.inactiveUsers}
+                        {displayedMemberStats.inactiveUsers}
                       </div>
                       <div className="flex items-center gap-2 text-sm">
                         <Button 
@@ -2766,11 +2834,11 @@ export default function AdminDashboard() {
                         <div className="flex items-center justify-between mb-2">
                           <div className="flex items-center gap-2">
                             <Badge className="bg-sage text-white">Premium</Badge>
-                            <span className="font-body text-charcoal/60">{memberStats.premiumActive} members</span>
+                            <span className="font-body text-charcoal/60">{displayedMemberStats.premiumActive} members</span>
                           </div>
                           <span className="font-body font-medium text-charcoal">
                             {activeMemberTierTotal > 0
-                              ? ((memberStats.premiumActive / activeMemberTierTotal) * 100).toFixed(0)
+                              ? ((displayedMemberStats.premiumActive / activeMemberTierTotal) * 100).toFixed(0)
                               : "0"}
                             %
                           </span>
@@ -2778,7 +2846,7 @@ export default function AdminDashboard() {
                         <Progress
                           value={
                             activeMemberTierTotal > 0
-                              ? (memberStats.premiumActive / activeMemberTierTotal) * 100
+                              ? (displayedMemberStats.premiumActive / activeMemberTierTotal) * 100
                               : 0
                           }
                           className="h-3 bg-sage/10"
@@ -2789,11 +2857,11 @@ export default function AdminDashboard() {
                         <div className="flex items-center justify-between mb-2">
                           <div className="flex items-center gap-2">
                             <Badge variant="outline" className="border-terracotta/20 text-terracotta">Specialty</Badge>
-                            <span className="font-body text-charcoal/60">{memberStats.specialtyActive} members</span>
+                            <span className="font-body text-charcoal/60">{displayedMemberStats.specialtyActive} members</span>
                           </div>
                           <span className="font-body font-medium text-charcoal">
                             {activeMemberTierTotal > 0
-                              ? ((memberStats.specialtyActive / activeMemberTierTotal) * 100).toFixed(0)
+                              ? ((displayedMemberStats.specialtyActive / activeMemberTierTotal) * 100).toFixed(0)
                               : "0"}
                             %
                           </span>
@@ -2801,7 +2869,7 @@ export default function AdminDashboard() {
                         <Progress
                           value={
                             activeMemberTierTotal > 0
-                              ? (memberStats.specialtyActive / activeMemberTierTotal) * 100
+                              ? (displayedMemberStats.specialtyActive / activeMemberTierTotal) * 100
                               : 0
                           }
                           className="h-3 bg-terracotta/10"
@@ -2839,7 +2907,7 @@ export default function AdminDashboard() {
                   </CardHeader>
                   <CardContent>
                     <div className="space-y-3">
-                      {filteredMemberList.map((member) => (
+                      {membersPg.pageItems.map((member) => (
                         <div 
                           key={`${member.profileId ?? "p"}-${member.id}`}
                           className="flex items-center justify-between p-4 rounded-xl border border-charcoal/10 hover:border-sage/30 hover:bg-sage/5 transition-all duration-600"
@@ -2905,6 +2973,7 @@ export default function AdminDashboard() {
                         </div>
                       ))}
                     </div>
+                    <Pagination page={membersPg.page} total={membersPg.total} onChange={membersPg.setPage} />
                   </CardContent>
                 </Card>
               </TabsContent>
@@ -2935,7 +3004,7 @@ export default function AdminDashboard() {
                   </CardHeader>
                   <CardContent>
                     <div className="space-y-4">
-                      {filteredInstructorPerformance.map((instructor, index) => (
+                      {instructorsPerfPg.pageItems.map((instructor, index) => (
                         <div 
                           key={instructor.name}
                           className="flex items-center justify-between p-5 rounded-xl border border-charcoal/10 hover:border-sage/30 hover:bg-sage/5 transition-all duration-600"
@@ -2984,6 +3053,7 @@ export default function AdminDashboard() {
                         </div>
                       ))}
                     </div>
+                    <Pagination page={instructorsPerfPg.page} total={instructorsPerfPg.total} onChange={instructorsPerfPg.setPage} />
                   </CardContent>
                 </Card>
 
@@ -3163,7 +3233,7 @@ export default function AdminDashboard() {
                   </CardHeader>
                   <CardContent>
                     <div className="space-y-4">
-                      {classPerformance.map((cls) => (
+                      {classesPerfPg.pageItems.map((cls) => (
                         <div 
                           key={cls.name}
                           className="p-4 rounded-xl border border-charcoal/10 hover:border-sage/30 hover:bg-sage/5 transition-all duration-600"
@@ -3186,8 +3256,8 @@ export default function AdminDashboard() {
                               </div>
                             </div>
                           </div>
-                          <Progress 
-                            value={cls.utilization} 
+                          <Progress
+                            value={cls.utilization}
                             className={`h-2 ${
                               cls.utilization >= 75 ? "bg-sage/10" :
                               cls.utilization >= 50 ? "bg-amber-500/10" :
@@ -3197,6 +3267,7 @@ export default function AdminDashboard() {
                         </div>
                       ))}
                     </div>
+                    <Pagination page={classesPerfPg.page} total={classesPerfPg.total} onChange={classesPerfPg.setPage} />
                   </CardContent>
                 </Card>
 

@@ -9,7 +9,23 @@
 * 🟢 You can import this file directly.
 */
 
+export const PaymentMethod = {
+  razorpay_online: 'razorpay_online',
+  razorpay_completed: 'razorpay_completed',
+  pine_lab_card: 'pine_lab_card',
+  pine_lab_upi: 'pine_lab_upi',
+  direct_upi: 'direct_upi',
+  cash: 'cash'
+} as const
+
+export type PaymentMethod = (typeof PaymentMethod)[keyof typeof PaymentMethod]
 
 
-// This file is empty because there are no enums in the schema.
-export {}
+export const PaymentStatus = {
+  pending: 'pending',
+  succeeded: 'succeeded',
+  failed: 'failed',
+  refunded: 'refunded'
+} as const
+
+export type PaymentStatus = (typeof PaymentStatus)[keyof typeof PaymentStatus]

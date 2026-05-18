@@ -422,9 +422,9 @@ export type CafeItemSumOrderByAggregateInput = {
   price?: Prisma.SortOrder
 }
 
-export type CafeItemScalarRelationFilter = {
-  is?: Prisma.CafeItemWhereInput
-  isNot?: Prisma.CafeItemWhereInput
+export type CafeItemNullableScalarRelationFilter = {
+  is?: Prisma.CafeItemWhereInput | null
+  isNot?: Prisma.CafeItemWhereInput | null
 }
 
 export type CafeItemCreateNestedOneWithoutCafe_ordersInput = {
@@ -433,10 +433,12 @@ export type CafeItemCreateNestedOneWithoutCafe_ordersInput = {
   connect?: Prisma.CafeItemWhereUniqueInput
 }
 
-export type CafeItemUpdateOneRequiredWithoutCafe_ordersNestedInput = {
+export type CafeItemUpdateOneWithoutCafe_ordersNestedInput = {
   create?: Prisma.XOR<Prisma.CafeItemCreateWithoutCafe_ordersInput, Prisma.CafeItemUncheckedCreateWithoutCafe_ordersInput>
   connectOrCreate?: Prisma.CafeItemCreateOrConnectWithoutCafe_ordersInput
   upsert?: Prisma.CafeItemUpsertWithoutCafe_ordersInput
+  disconnect?: Prisma.CafeItemWhereInput | boolean
+  delete?: Prisma.CafeItemWhereInput | boolean
   connect?: Prisma.CafeItemWhereUniqueInput
   update?: Prisma.XOR<Prisma.XOR<Prisma.CafeItemUpdateToOneWithWhereWithoutCafe_ordersInput, Prisma.CafeItemUpdateWithoutCafe_ordersInput>, Prisma.CafeItemUncheckedUpdateWithoutCafe_ordersInput>
 }

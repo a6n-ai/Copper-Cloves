@@ -112,10 +112,10 @@ export async function finishBookingCheckoutOnServer(
     throw new Error("PAYMENT_ALREADY_USED");
   }
 
+  // Order ownership already validated above (findFirst by user_id+order); payment table no longer carries user_id.
   const verified = await prisma.razorpayPayment.findFirst({
     where: {
       razorpay_order_id: pending.razorpayOrderId,
-      user_id: userId,
       status: { in: ["captured", "authorized"] },
     },
   });

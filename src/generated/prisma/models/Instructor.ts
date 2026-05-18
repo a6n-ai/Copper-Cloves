@@ -53,6 +53,7 @@ export type InstructorMinAggregateOutputType = {
   social_linkedin: string | null
   social_whatsapp: string | null
   hashed_password: string | null
+  is_active: boolean | null
   created_at: Date | null
 }
 
@@ -73,6 +74,7 @@ export type InstructorMaxAggregateOutputType = {
   social_linkedin: string | null
   social_whatsapp: string | null
   hashed_password: string | null
+  is_active: boolean | null
   created_at: Date | null
 }
 
@@ -95,6 +97,7 @@ export type InstructorCountAggregateOutputType = {
   social_linkedin: number
   social_whatsapp: number
   hashed_password: number
+  is_active: number
   created_at: number
   _all: number
 }
@@ -127,6 +130,7 @@ export type InstructorMinAggregateInputType = {
   social_linkedin?: true
   social_whatsapp?: true
   hashed_password?: true
+  is_active?: true
   created_at?: true
 }
 
@@ -147,6 +151,7 @@ export type InstructorMaxAggregateInputType = {
   social_linkedin?: true
   social_whatsapp?: true
   hashed_password?: true
+  is_active?: true
   created_at?: true
 }
 
@@ -169,6 +174,7 @@ export type InstructorCountAggregateInputType = {
   social_linkedin?: true
   social_whatsapp?: true
   hashed_password?: true
+  is_active?: true
   created_at?: true
   _all?: true
 }
@@ -278,6 +284,7 @@ export type InstructorGroupByOutputType = {
   social_linkedin: string | null
   social_whatsapp: string | null
   hashed_password: string | null
+  is_active: boolean
   created_at: Date
   _count: InstructorCountAggregateOutputType | null
   _avg: InstructorAvgAggregateOutputType | null
@@ -323,6 +330,7 @@ export type InstructorWhereInput = {
   social_linkedin?: Prisma.StringNullableFilter<"Instructor"> | string | null
   social_whatsapp?: Prisma.StringNullableFilter<"Instructor"> | string | null
   hashed_password?: Prisma.StringNullableFilter<"Instructor"> | string | null
+  is_active?: Prisma.BoolFilter<"Instructor"> | boolean
   created_at?: Prisma.DateTimeFilter<"Instructor"> | Date | string
   classes?: Prisma.ClassModelListRelationFilter
   class_schedules?: Prisma.ClassScheduleListRelationFilter
@@ -347,6 +355,7 @@ export type InstructorOrderByWithRelationInput = {
   social_linkedin?: Prisma.SortOrderInput | Prisma.SortOrder
   social_whatsapp?: Prisma.SortOrderInput | Prisma.SortOrder
   hashed_password?: Prisma.SortOrderInput | Prisma.SortOrder
+  is_active?: Prisma.SortOrder
   created_at?: Prisma.SortOrder
   classes?: Prisma.ClassModelOrderByRelationAggregateInput
   class_schedules?: Prisma.ClassScheduleOrderByRelationAggregateInput
@@ -374,6 +383,7 @@ export type InstructorWhereUniqueInput = Prisma.AtLeast<{
   social_linkedin?: Prisma.StringNullableFilter<"Instructor"> | string | null
   social_whatsapp?: Prisma.StringNullableFilter<"Instructor"> | string | null
   hashed_password?: Prisma.StringNullableFilter<"Instructor"> | string | null
+  is_active?: Prisma.BoolFilter<"Instructor"> | boolean
   created_at?: Prisma.DateTimeFilter<"Instructor"> | Date | string
   classes?: Prisma.ClassModelListRelationFilter
   class_schedules?: Prisma.ClassScheduleListRelationFilter
@@ -398,6 +408,7 @@ export type InstructorOrderByWithAggregationInput = {
   social_linkedin?: Prisma.SortOrderInput | Prisma.SortOrder
   social_whatsapp?: Prisma.SortOrderInput | Prisma.SortOrder
   hashed_password?: Prisma.SortOrderInput | Prisma.SortOrder
+  is_active?: Prisma.SortOrder
   created_at?: Prisma.SortOrder
   _count?: Prisma.InstructorCountOrderByAggregateInput
   _avg?: Prisma.InstructorAvgOrderByAggregateInput
@@ -428,6 +439,7 @@ export type InstructorScalarWhereWithAggregatesInput = {
   social_linkedin?: Prisma.StringNullableWithAggregatesFilter<"Instructor"> | string | null
   social_whatsapp?: Prisma.StringNullableWithAggregatesFilter<"Instructor"> | string | null
   hashed_password?: Prisma.StringNullableWithAggregatesFilter<"Instructor"> | string | null
+  is_active?: Prisma.BoolWithAggregatesFilter<"Instructor"> | boolean
   created_at?: Prisma.DateTimeWithAggregatesFilter<"Instructor"> | Date | string
 }
 
@@ -450,6 +462,7 @@ export type InstructorCreateInput = {
   social_linkedin?: string | null
   social_whatsapp?: string | null
   hashed_password?: string | null
+  is_active?: boolean
   created_at?: Date | string
   classes?: Prisma.ClassModelCreateNestedManyWithoutInstructorInput
   class_schedules?: Prisma.ClassScheduleCreateNestedManyWithoutInstructorInput
@@ -474,6 +487,7 @@ export type InstructorUncheckedCreateInput = {
   social_linkedin?: string | null
   social_whatsapp?: string | null
   hashed_password?: string | null
+  is_active?: boolean
   created_at?: Date | string
   classes?: Prisma.ClassModelUncheckedCreateNestedManyWithoutInstructorInput
   class_schedules?: Prisma.ClassScheduleUncheckedCreateNestedManyWithoutInstructorInput
@@ -498,6 +512,7 @@ export type InstructorUpdateInput = {
   social_linkedin?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   social_whatsapp?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   hashed_password?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  is_active?: Prisma.BoolFieldUpdateOperationsInput | boolean
   created_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   classes?: Prisma.ClassModelUpdateManyWithoutInstructorNestedInput
   class_schedules?: Prisma.ClassScheduleUpdateManyWithoutInstructorNestedInput
@@ -522,6 +537,7 @@ export type InstructorUncheckedUpdateInput = {
   social_linkedin?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   social_whatsapp?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   hashed_password?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  is_active?: Prisma.BoolFieldUpdateOperationsInput | boolean
   created_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   classes?: Prisma.ClassModelUncheckedUpdateManyWithoutInstructorNestedInput
   class_schedules?: Prisma.ClassScheduleUncheckedUpdateManyWithoutInstructorNestedInput
@@ -546,6 +562,7 @@ export type InstructorCreateManyInput = {
   social_linkedin?: string | null
   social_whatsapp?: string | null
   hashed_password?: string | null
+  is_active?: boolean
   created_at?: Date | string
 }
 
@@ -568,6 +585,7 @@ export type InstructorUpdateManyMutationInput = {
   social_linkedin?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   social_whatsapp?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   hashed_password?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  is_active?: Prisma.BoolFieldUpdateOperationsInput | boolean
   created_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
 }
 
@@ -590,6 +608,7 @@ export type InstructorUncheckedUpdateManyInput = {
   social_linkedin?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   social_whatsapp?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   hashed_password?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  is_active?: Prisma.BoolFieldUpdateOperationsInput | boolean
   created_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
 }
 
@@ -620,6 +639,7 @@ export type InstructorCountOrderByAggregateInput = {
   social_linkedin?: Prisma.SortOrder
   social_whatsapp?: Prisma.SortOrder
   hashed_password?: Prisma.SortOrder
+  is_active?: Prisma.SortOrder
   created_at?: Prisma.SortOrder
 }
 
@@ -645,6 +665,7 @@ export type InstructorMaxOrderByAggregateInput = {
   social_linkedin?: Prisma.SortOrder
   social_whatsapp?: Prisma.SortOrder
   hashed_password?: Prisma.SortOrder
+  is_active?: Prisma.SortOrder
   created_at?: Prisma.SortOrder
 }
 
@@ -665,6 +686,7 @@ export type InstructorMinOrderByAggregateInput = {
   social_linkedin?: Prisma.SortOrder
   social_whatsapp?: Prisma.SortOrder
   hashed_password?: Prisma.SortOrder
+  is_active?: Prisma.SortOrder
   created_at?: Prisma.SortOrder
 }
 
@@ -755,6 +777,7 @@ export type InstructorCreateWithoutClassesInput = {
   social_linkedin?: string | null
   social_whatsapp?: string | null
   hashed_password?: string | null
+  is_active?: boolean
   created_at?: Date | string
   class_schedules?: Prisma.ClassScheduleCreateNestedManyWithoutInstructorInput
 }
@@ -778,6 +801,7 @@ export type InstructorUncheckedCreateWithoutClassesInput = {
   social_linkedin?: string | null
   social_whatsapp?: string | null
   hashed_password?: string | null
+  is_active?: boolean
   created_at?: Date | string
   class_schedules?: Prisma.ClassScheduleUncheckedCreateNestedManyWithoutInstructorInput
 }
@@ -817,6 +841,7 @@ export type InstructorUpdateWithoutClassesInput = {
   social_linkedin?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   social_whatsapp?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   hashed_password?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  is_active?: Prisma.BoolFieldUpdateOperationsInput | boolean
   created_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   class_schedules?: Prisma.ClassScheduleUpdateManyWithoutInstructorNestedInput
 }
@@ -840,6 +865,7 @@ export type InstructorUncheckedUpdateWithoutClassesInput = {
   social_linkedin?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   social_whatsapp?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   hashed_password?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  is_active?: Prisma.BoolFieldUpdateOperationsInput | boolean
   created_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   class_schedules?: Prisma.ClassScheduleUncheckedUpdateManyWithoutInstructorNestedInput
 }
@@ -863,6 +889,7 @@ export type InstructorCreateWithoutClass_schedulesInput = {
   social_linkedin?: string | null
   social_whatsapp?: string | null
   hashed_password?: string | null
+  is_active?: boolean
   created_at?: Date | string
   classes?: Prisma.ClassModelCreateNestedManyWithoutInstructorInput
 }
@@ -886,6 +913,7 @@ export type InstructorUncheckedCreateWithoutClass_schedulesInput = {
   social_linkedin?: string | null
   social_whatsapp?: string | null
   hashed_password?: string | null
+  is_active?: boolean
   created_at?: Date | string
   classes?: Prisma.ClassModelUncheckedCreateNestedManyWithoutInstructorInput
 }
@@ -925,6 +953,7 @@ export type InstructorUpdateWithoutClass_schedulesInput = {
   social_linkedin?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   social_whatsapp?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   hashed_password?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  is_active?: Prisma.BoolFieldUpdateOperationsInput | boolean
   created_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   classes?: Prisma.ClassModelUpdateManyWithoutInstructorNestedInput
 }
@@ -948,6 +977,7 @@ export type InstructorUncheckedUpdateWithoutClass_schedulesInput = {
   social_linkedin?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   social_whatsapp?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   hashed_password?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  is_active?: Prisma.BoolFieldUpdateOperationsInput | boolean
   created_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   classes?: Prisma.ClassModelUncheckedUpdateManyWithoutInstructorNestedInput
 }
@@ -1011,6 +1041,7 @@ export type InstructorSelect<ExtArgs extends runtime.Types.Extensions.InternalAr
   social_linkedin?: boolean
   social_whatsapp?: boolean
   hashed_password?: boolean
+  is_active?: boolean
   created_at?: boolean
   classes?: boolean | Prisma.Instructor$classesArgs<ExtArgs>
   class_schedules?: boolean | Prisma.Instructor$class_schedulesArgs<ExtArgs>
@@ -1036,6 +1067,7 @@ export type InstructorSelectCreateManyAndReturn<ExtArgs extends runtime.Types.Ex
   social_linkedin?: boolean
   social_whatsapp?: boolean
   hashed_password?: boolean
+  is_active?: boolean
   created_at?: boolean
 }, ExtArgs["result"]["instructor"]>
 
@@ -1058,6 +1090,7 @@ export type InstructorSelectUpdateManyAndReturn<ExtArgs extends runtime.Types.Ex
   social_linkedin?: boolean
   social_whatsapp?: boolean
   hashed_password?: boolean
+  is_active?: boolean
   created_at?: boolean
 }, ExtArgs["result"]["instructor"]>
 
@@ -1080,10 +1113,11 @@ export type InstructorSelectScalar = {
   social_linkedin?: boolean
   social_whatsapp?: boolean
   hashed_password?: boolean
+  is_active?: boolean
   created_at?: boolean
 }
 
-export type InstructorOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "name" | "title" | "email" | "phone" | "studio_payout_cut_percent" | "image_url" | "about" | "philosophy" | "specialties" | "certifications" | "years_of_experience" | "display_order" | "social_facebook" | "social_twitter" | "social_linkedin" | "social_whatsapp" | "hashed_password" | "created_at", ExtArgs["result"]["instructor"]>
+export type InstructorOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "name" | "title" | "email" | "phone" | "studio_payout_cut_percent" | "image_url" | "about" | "philosophy" | "specialties" | "certifications" | "years_of_experience" | "display_order" | "social_facebook" | "social_twitter" | "social_linkedin" | "social_whatsapp" | "hashed_password" | "is_active" | "created_at", ExtArgs["result"]["instructor"]>
 export type InstructorInclude<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   classes?: boolean | Prisma.Instructor$classesArgs<ExtArgs>
   class_schedules?: boolean | Prisma.Instructor$class_schedulesArgs<ExtArgs>
@@ -1120,6 +1154,7 @@ export type $InstructorPayload<ExtArgs extends runtime.Types.Extensions.Internal
     social_linkedin: string | null
     social_whatsapp: string | null
     hashed_password: string | null
+    is_active: boolean
     created_at: Date
   }, ExtArgs["result"]["instructor"]>
   composites: {}
@@ -1564,6 +1599,7 @@ export interface InstructorFieldRefs {
   readonly social_linkedin: Prisma.FieldRef<"Instructor", 'String'>
   readonly social_whatsapp: Prisma.FieldRef<"Instructor", 'String'>
   readonly hashed_password: Prisma.FieldRef<"Instructor", 'String'>
+  readonly is_active: Prisma.FieldRef<"Instructor", 'Boolean'>
   readonly created_at: Prisma.FieldRef<"Instructor", 'DateTime'>
 }
     

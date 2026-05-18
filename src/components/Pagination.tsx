@@ -7,7 +7,11 @@ const DEFAULT_PAGE_SIZE = 10;
  * Client-side pagination hook. Returns the slice for the current page plus
  * controls + meta. Page resets to 1 if the underlying items shrink past it.
  */
-export function usePagination<T>(items: T[], pageSize: number = DEFAULT_PAGE_SIZE) {
+export function usePagination<T>(
+  items: T[],
+  pageSize: number = DEFAULT_PAGE_SIZE,
+  resetKey?: unknown,
+) {
   const [page, setPage] = useState(1);
 
   const total = items.length;
@@ -16,6 +20,10 @@ export function usePagination<T>(items: T[], pageSize: number = DEFAULT_PAGE_SIZ
   useEffect(() => {
     if (page > totalPages) setPage(1);
   }, [page, totalPages]);
+
+  useEffect(() => {
+    setPage(1);
+  }, [resetKey]);
 
   const pageItems = useMemo(() => {
     const start = (page - 1) * pageSize;

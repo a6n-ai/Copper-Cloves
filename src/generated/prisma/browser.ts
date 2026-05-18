@@ -84,9 +84,14 @@ export type Booking = Prisma.BookingModel
 export type RazorpayOrder = Prisma.RazorpayOrderModel
 /**
  * Model RazorpayPayment
- * Razorpay Payment (`pay_*`). Persist after Checkout signature verification; reconcile via webhooks.
+ * Razorpay Payment (`pay_*`). Gateway-native columns only. Ownership (user, booking, package) lives on `Payment`.
  */
 export type RazorpayPayment = Prisma.RazorpayPaymentModel
+/**
+ * Model Payment
+ * 
+ */
+export type Payment = Prisma.PaymentModel
 /**
  * Model CafeItem
  * 

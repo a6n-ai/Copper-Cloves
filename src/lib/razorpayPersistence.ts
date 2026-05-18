@@ -110,13 +110,14 @@ export async function persistVerifiedRazorpayPayment(params: {
   const method =
     params.payment.method != null ? String(params.payment.method) : null;
 
+  const paid = ["captured", "authorized"].includes(statusNorm);
+
   await prisma.$transaction(async (tx) => {
     await tx.razorpayPayment.upsert({
       where: { razorpay_payment_id: params.razorpayPaymentId },
       create: {
         razorpay_payment_id: params.razorpayPaymentId,
         razorpay_order_id: params.razorpayOrderId,
-        user_id: params.userId,
         amount_paise: amountPaise,
         currency,
         status: statusNorm,
@@ -134,7 +135,26 @@ export async function persistVerifiedRazorpayPayment(params: {
       },
     });
 
-    const paid = ["captured", "authorized"].includes(statusNorm);
+    // Unified Payment ledger: mirror this Razorpay capture so all readers (admin, reports) can use one table.
+    await tx.payment.upsert({
+      where: { razorpay_payment_id: params.razorpayPaymentId },
+      create: {
+        user_id: params.userId,
+        method: "razorpay_online",
+        status: paid ? "succeeded" : "failed",
+        amount_paise: amountPaise ?? 0,
+        currency,
+        reference: params.razorpayPaymentId,
+        razorpay_payment_id: params.razorpayPaymentId,
+        razorpay_order_id: params.razorpayOrderId,
+      },
+      update: {
+        status: paid ? "succeeded" : "failed",
+        amount_paise: amountPaise ?? undefined,
+        currency,
+      },
+    });
+
     await tx.razorpayOrder.updateMany({
       where: { razorpay_order_id: params.razorpayOrderId, user_id: params.userId },
       data: { status: paid ? "paid" : "failed" },
@@ -162,7 +182,6 @@ export async function linkRazorpayOrderToBookingTx(
   const verified = await tx.razorpayPayment.findFirst({
     where: {
       razorpay_order_id: params.razorpayOrderId,
-      user_id: params.userId,
       signature_verified: true,
       status: { in: ["captured", "authorized"] },
     },
@@ -177,7 +196,8 @@ export async function linkRazorpayOrderToBookingTx(
     data: { booking_id: params.bookingId },
   });
 
-  await tx.razorpayPayment.updateMany({
+  // Attach booking to all Payment rows for this order so finance/booking-detail queries can join via Booking.payments.
+  await tx.payment.updateMany({
     where: { razorpay_order_id: params.razorpayOrderId, user_id: params.userId },
     data: { booking_id: params.bookingId },
   });
@@ -200,7 +220,6 @@ export async function linkRazorpayOrderToUserPackageTx(
   const verified = await tx.razorpayPayment.findFirst({
     where: {
       razorpay_order_id: params.razorpayOrderId,
-      user_id: params.userId,
       signature_verified: true,
       status: { in: ["captured", "authorized"] },
     },
@@ -215,7 +234,7 @@ export async function linkRazorpayOrderToUserPackageTx(
     data: { user_package_id: params.userPackageId },
   });
 
-  await tx.razorpayPayment.updateMany({
+  await tx.payment.updateMany({
     where: { razorpay_order_id: params.razorpayOrderId, user_id: params.userId },
     data: { user_package_id: params.userPackageId },
   });
@@ -280,9 +299,6 @@ export async function reconcileRazorpayPaymentFromWebhook(body: {
     create: {
       razorpay_payment_id: payId,
       razorpay_order_id: ordId,
-      user_id: orderRow.user_id,
-      booking_id: orderRow.booking_id,
-      user_package_id: orderRow.user_package_id,
       amount_paise: amountPaise,
       currency,
       status: statusNorm,
@@ -295,9 +311,32 @@ export async function reconcileRazorpayPaymentFromWebhook(body: {
       currency,
       status: statusNorm,
       method: method ?? undefined,
+      failure_reason: failed ? failureReason : null,
+    },
+  });
+
+  // Mirror to unified Payment ledger (status pending until verified).
+  const paymentStatus = failed ? "failed" : ["captured", "authorized"].includes(statusNorm) ? "succeeded" : "pending";
+  await prisma.payment.upsert({
+    where: { razorpay_payment_id: payId },
+    create: {
+      user_id: orderRow.user_id,
       booking_id: orderRow.booking_id,
       user_package_id: orderRow.user_package_id,
-      failure_reason: failed ? failureReason : null,
+      method: "razorpay_online",
+      status: paymentStatus,
+      amount_paise: amountPaise ?? 0,
+      currency,
+      reference: payId,
+      razorpay_payment_id: payId,
+      razorpay_order_id: ordId,
+    },
+    update: {
+      status: paymentStatus,
+      amount_paise: amountPaise ?? undefined,
+      currency,
+      booking_id: orderRow.booking_id,
+      user_package_id: orderRow.user_package_id,
     },
   });
 

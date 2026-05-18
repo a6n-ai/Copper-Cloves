@@ -43,8 +43,9 @@ model Profile {
   retail_orders     RetailOrder[]
   coupon_redemptions CouponRedemption[]
   razorpay_orders   RazorpayOrder[]
-  razorpay_payments RazorpayPayment[]
   member_tickets    MemberTicket[]
+  payments          Payment[]
+  recorded_payments Payment[] @relation("PaymentRecordedBy")
 
   @@map("profiles")
 }
@@ -260,7 +261,7 @@ model UserPackage {
   coupon       Coupon?     @relation(fields: [coupon_id], references: [id], onDelete: SetNull)
   bookings     Booking[]
   razorpay_order   RazorpayOrder?
-  razorpay_payments RazorpayPayment[]
+  payments         Payment[]
 
   @@map("user_packages")
 }
@@ -292,7 +293,7 @@ model Booking {
   user_package   UserPackage?   @relation(fields: [user_package_id], references: [id], onDelete: SetNull)
   cafe_orders    CafeOrder[]
   razorpay_order RazorpayOrder?
-  razorpay_payments RazorpayPayment[]
+  payments       Payment[]
 
   @@map("bookings")
 }
@@ -325,14 +326,11 @@ model RazorpayOrder {
   @@map("razorpay_orders")
 }
 
-/// Razorpay Payment (`pay_*`). Persist after Checkout signature verification; reconcile via webhooks.
+/// Razorpay Payment (`pay_*`). Gateway-native columns only. Ownership (user, booking, package) lives on `Payment`.
 model RazorpayPayment {
   id                   String    @id @default(uuid())
   razorpay_payment_id  String    @unique
   razorpay_order_id    String
-  user_id              String
-  booking_id           String?
-  user_package_id      String?
   amount_paise         Int?
   currency             String?   @default("INR")
   status               String
@@ -344,16 +342,67 @@ model RazorpayPayment {
   created_at DateTime @default(now())
   updated_at DateTime @updatedAt
 
-  order        RazorpayOrder @relation(fields: [razorpay_order_id], references: [razorpay_order_id], onDelete: Cascade)
-  profile      Profile       @relation(fields: [user_id], references: [id], onDelete: Cascade)
-  booking      Booking?      @relation(fields: [booking_id], references: [id], onDelete: SetNull)
-  user_package UserPackage?  @relation(fields: [user_package_id], references: [id], onDelete: SetNull)
+  order    RazorpayOrder @relation(fields: [razorpay_order_id], references: [razorpay_order_id], onDelete: Cascade)
+  payments Payment[]
+
+  @@index([razorpay_order_id])
+  @@map("razorpay_payments")
+}
+
+/// Unified payment ledger. Covers offline (cash, Pine Lab card/UPI, direct UPI) and online (Razorpay) — future-proof for new gateways via the `method` enum.
+enum PaymentMethod {
+  razorpay_online
+  razorpay_completed
+  pine_lab_card
+  pine_lab_upi
+  direct_upi
+  cash
+}
+
+enum PaymentStatus {
+  pending
+  succeeded
+  failed
+  refunded
+}
+
+model Payment {
+  id                  String        @id @default(uuid())
+  user_id             String
+  user_package_id     String?
+  booking_id          String?
+  method              PaymentMethod
+  status              PaymentStatus @default(succeeded)
+  amount_paise        Int
+  currency            String        @default("INR")
+  /// Free-text reference: txn id, last-4, terminal slip number, etc.
+  reference           String?
+  /// URL to uploaded proof (receipt/screenshot). Required by policy for offline methods when admin has it.
+  proof_url           String?
+  notes               String?
+  /// Admin profile id who recorded this payment (null for system/online flows).
+  recorded_by         String?
+  /// Optional FK to razorpay_payments.razorpay_payment_id when this payment was captured via Razorpay (online or completed-via-link).
+  razorpay_payment_id String? @unique
+  /// Razorpay order id for fulfillment lookup (set on online flows even before razorpay_payment_id is known).
+  razorpay_order_id   String?
+
+  created_at DateTime @default(now())
+  updated_at DateTime @updatedAt
+
+  profile           Profile          @relation(fields: [user_id], references: [id], onDelete: Cascade)
+  user_package      UserPackage?     @relation(fields: [user_package_id], references: [id], onDelete: SetNull)
+  booking           Booking?         @relation(fields: [booking_id], references: [id], onDelete: SetNull)
+  recorded_by_admin Profile?         @relation("PaymentRecordedBy", fields: [recorded_by], references: [id], onDelete: SetNull)
+  razorpay_payment  RazorpayPayment? @relation(fields: [razorpay_payment_id], references: [razorpay_payment_id], onDelete: SetNull)
 
   @@index([user_id])
-  @@index([razorpay_order_id])
-  @@index([booking_id])
   @@index([user_package_id])
-  @@map("razorpay_payments")
+  @@index([booking_id])
+  @@index([method])
+  @@index([status])
+  @@index([razorpay_order_id])
+  @@map("payments")
 }
 
 model CafeItem {
