@@ -1,4 +1,4 @@
-import { useState, useEffect, useMemo } from "react";
+import { useState, useEffect, useMemo, useRef } from "react";
 import { useRouter } from "next/router";
 import { AdminNavigation } from "@/components/AdminNavigation";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -289,7 +289,7 @@ export default function AdminDashboard() {
   const [upcomingClasses, setUpcomingClasses] = useState<
     { id: string | number; scheduleId?: string; name: string; time: string; instructor: string; spots: string; status: string }[]
   >([]);
-  /** Today's rosters with check-in details (from dashboard-extras). */
+  /** Today's rosters with check-in details (from /api/admin/dashboard/today-classes). */
   const [todayClassesDetail, setTodayClassesDetail] = useState<any[]>([]);
   const [financeStats, setFinanceStats] = useState({
     totalRevenue: 0,
@@ -455,66 +455,165 @@ export default function AdminDashboard() {
     };
   }, [status, session]);
 
+  /**
+   * Per-section lazy loader. Tracks which slices have been fetched so a tab
+   * never re-fetches its data twice. Each tab effect calls `loadSection(name, fn)`
+   * which becomes a no-op after the first successful load.
+   */
+  const loadedRef = useRef<Set<string>>(new Set());
+  const inflightRef = useRef<Map<string, Promise<void>>>(new Map());
+  const loadSection = (key: string, run: () => Promise<void>): Promise<void> => {
+    if (loadedRef.current.has(key)) return Promise.resolve();
+    const existing = inflightRef.current.get(key);
+    if (existing) return existing;
+    const p = (async () => {
+      try {
+        await run();
+        loadedRef.current.add(key);
+      } finally {
+        inflightRef.current.delete(key);
+      }
+    })();
+    inflightRef.current.set(key, p);
+    return p;
+  };
+
+  /** Overview tab: today's classes, expiring members, member stats (for top-class card), instructor payouts. */
   useEffect(() => {
     if (status !== "authenticated") return;
     const role = (session?.user as { role?: string })?.role;
-    if (role !== "admin") return;
+    if (role !== "admin" || activeTab !== "overview") return;
     let cancelled = false;
-    (async () => {
-      const [exRes, payRes] = await Promise.all([
-        fetch("/api/admin/dashboard-extras"),
-        fetch("/api/admin/instructor-payouts?window=month"),
-      ]);
-      if (cancelled) return;
-      if (exRes.ok) {
-        const d = await exRes.json();
-        if (cancelled) return;
-        if (d.memberStats) setMemberStats(d.memberStats);
-        if (Array.isArray(d.classPerformance)) setClassPerformance(d.classPerformance);
-        if (Array.isArray(d.disciplineSplit)) setDisciplineSplit(d.disciplineSplit);
-        if (Array.isArray(d.instructorPerformance)) setInstructorPerformance(d.instructorPerformance);
-        if (Array.isArray(d.transactions)) setTransactions(d.transactions);
-        if (Array.isArray(d.memberList)) setMemberList(d.memberList);
-        if (Array.isArray(d.expiringMembers)) setExpiringMembers(d.expiringMembers);
-        if (Array.isArray(d.instructors)) setDashboardInstructors(d.instructors);
-        if (Array.isArray(d.todayClasses)) setTodayClassesDetail(d.todayClasses);
-      }
-      if (cancelled || !payRes.ok) return;
-      const pay = await payRes.json();
+
+    void loadSection("today-classes", async () => {
+      const r = await fetch("/api/admin/dashboard/today-classes");
+      if (!r.ok || cancelled) return;
+      const d = await r.json();
+      if (!cancelled && Array.isArray(d.todayClasses)) setTodayClassesDetail(d.todayClasses);
+    });
+    void loadSection("expiring-members", async () => {
+      const r = await fetch("/api/admin/dashboard/expiring-members");
+      if (!r.ok || cancelled) return;
+      const d = await r.json();
+      if (!cancelled && Array.isArray(d.expiringMembers)) setExpiringMembers(d.expiringMembers);
+    });
+    void loadSection("member-stats", async () => {
+      const r = await fetch("/api/admin/dashboard/member-stats");
+      if (!r.ok || cancelled) return;
+      const d = await r.json();
+      if (!cancelled && d.memberStats) setMemberStats(d.memberStats);
+    });
+    void loadSection("instructor-payouts", async () => {
+      const r = await fetch("/api/admin/instructor-payouts?window=month");
+      if (!r.ok || cancelled) return;
+      const pay = await r.json();
       if (cancelled) return;
       const coachPayments = Number(pay.summary?.totalPayouts ?? 0);
       setInstructorPayouts(Array.isArray(pay.instructors) ? pay.instructors : []);
       setFinanceStats((prev) => {
         const totalExpenses = coachPayments + prev.studioExpenses;
-        return {
-          ...prev,
-          coachPayments,
-          totalExpenses,
-          profit: prev.totalRevenue - totalExpenses,
-        };
+        return { ...prev, coachPayments, totalExpenses, profit: prev.totalRevenue - totalExpenses };
       });
-    })();
-    return () => {
-      cancelled = true;
-    };
-  }, [status, session]);
+    });
 
-  /** Finance tab: reload ledger after portal checkouts (data is only fetched on mount otherwise). */
+    return () => { cancelled = true; };
+  }, [status, session, activeTab]);
+
+  /** Members tab. */
+  useEffect(() => {
+    if (status !== "authenticated") return;
+    const role = (session?.user as { role?: string })?.role;
+    if (role !== "admin" || activeTab !== "members") return;
+    let cancelled = false;
+
+    void loadSection("member-stats", async () => {
+      const r = await fetch("/api/admin/dashboard/member-stats");
+      if (!r.ok || cancelled) return;
+      const d = await r.json();
+      if (!cancelled && d.memberStats) setMemberStats(d.memberStats);
+    });
+    void loadSection("member-list", async () => {
+      const r = await fetch("/api/admin/dashboard/member-list");
+      if (!r.ok || cancelled) return;
+      const d = await r.json();
+      if (!cancelled && Array.isArray(d.memberList)) setMemberList(d.memberList);
+    });
+    void loadSection("expiring-members", async () => {
+      const r = await fetch("/api/admin/dashboard/expiring-members");
+      if (!r.ok || cancelled) return;
+      const d = await r.json();
+      if (!cancelled && Array.isArray(d.expiringMembers)) setExpiringMembers(d.expiringMembers);
+    });
+
+    return () => { cancelled = true; };
+  }, [status, session, activeTab]);
+
+  /** Instructors tab. */
+  useEffect(() => {
+    if (status !== "authenticated") return;
+    const role = (session?.user as { role?: string })?.role;
+    if (role !== "admin" || activeTab !== "instructors") return;
+    let cancelled = false;
+
+    void loadSection("instructor-performance", async () => {
+      const r = await fetch("/api/admin/dashboard/instructor-performance");
+      if (!r.ok || cancelled) return;
+      const d = await r.json();
+      if (!cancelled && Array.isArray(d.instructorPerformance)) setInstructorPerformance(d.instructorPerformance);
+    });
+    void loadSection("instructors-summary", async () => {
+      const r = await fetch("/api/admin/dashboard/instructors-summary");
+      if (!r.ok || cancelled) return;
+      const d = await r.json();
+      if (!cancelled && Array.isArray(d.instructors)) setDashboardInstructors(d.instructors);
+    });
+    void loadSection("instructor-payouts", async () => {
+      const r = await fetch("/api/admin/instructor-payouts?window=month");
+      if (!r.ok || cancelled) return;
+      const pay = await r.json();
+      if (cancelled) return;
+      const coachPayments = Number(pay.summary?.totalPayouts ?? 0);
+      setInstructorPayouts(Array.isArray(pay.instructors) ? pay.instructors : []);
+    });
+
+    return () => { cancelled = true; };
+  }, [status, session, activeTab]);
+
+  /** Classes tab. */
+  useEffect(() => {
+    if (status !== "authenticated") return;
+    const role = (session?.user as { role?: string })?.role;
+    if (role !== "admin" || activeTab !== "classes") return;
+    let cancelled = false;
+
+    void loadSection("class-performance", async () => {
+      const r = await fetch("/api/admin/dashboard/class-performance");
+      if (!r.ok || cancelled) return;
+      const d = await r.json();
+      if (!cancelled) {
+        if (Array.isArray(d.classPerformance)) setClassPerformance(d.classPerformance);
+        if (Array.isArray(d.disciplineSplit)) setDisciplineSplit(d.disciplineSplit);
+      }
+    });
+
+    return () => { cancelled = true; };
+  }, [status, session, activeTab]);
+
+  /** Finance tab. */
   useEffect(() => {
     if (status !== "authenticated") return;
     const role = (session?.user as { role?: string })?.role;
     if (role !== "admin" || activeTab !== "finance") return;
     let cancelled = false;
-    void (async () => {
-      const exRes = await fetch("/api/admin/dashboard-extras");
-      if (cancelled || !exRes.ok) return;
-      const d = await exRes.json();
-      if (cancelled) return;
-      if (Array.isArray(d.transactions)) setTransactions(d.transactions);
-    })();
-    return () => {
-      cancelled = true;
-    };
+
+    void loadSection("transactions", async () => {
+      const r = await fetch("/api/admin/dashboard/transactions");
+      if (!r.ok || cancelled) return;
+      const d = await r.json();
+      if (!cancelled && Array.isArray(d.transactions)) setTransactions(d.transactions);
+    });
+
+    return () => { cancelled = true; };
   }, [status, session, activeTab]);
 
   useEffect(() => {

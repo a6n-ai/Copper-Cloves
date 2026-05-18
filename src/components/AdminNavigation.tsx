@@ -19,6 +19,14 @@ import {
 import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
+import {
+  Breadcrumb,
+  BreadcrumbItem,
+  BreadcrumbLink,
+  BreadcrumbList,
+  BreadcrumbPage,
+  BreadcrumbSeparator,
+} from "@/components/ui/breadcrumb";
 
 interface AdminNavigationProps {
   adminName?: string;
@@ -45,6 +53,28 @@ export function AdminNavigation({
 
   const isActive = (path: string) => router.pathname === path;
 
+  /** Derive breadcrumb crumbs from the current admin route. */
+  const crumbs = (() => {
+    const segs = router.pathname.split("/").filter(Boolean); // e.g. ["admin","members"]
+    const labelMap: Record<string, string> = {
+      admin: "Admin",
+      dashboard: "Dashboard",
+      schedule: "Schedule",
+      members: "Members",
+      credits: "Credits",
+      badges: "Badges",
+      cafe: "Café Menu",
+      products: "Products",
+      control: "Settings",
+      CRM: "CRM",
+      login: "Login",
+    };
+    return segs.map((seg, idx) => ({
+      label: labelMap[seg] ?? seg.charAt(0).toUpperCase() + seg.slice(1),
+      href: "/" + segs.slice(0, idx + 1).join("/"),
+    }));
+  })();
+
   const handleSignOut = async () => {
     setIsOpen(false);
     await signOut({ redirect: false });
@@ -60,30 +90,59 @@ export function AdminNavigation({
       {/* Header with Hamburger for All Screen Sizes */}
       <header className="fixed top-0 left-0 right-0 z-50 bg-white/80 backdrop-blur-xl border-b border-sage/10 shadow-sm h-16">
         <div className="flex items-center justify-between h-full px-4">
-          {/* Left Side: Logo + Hamburger */}
-          <div className="flex items-center gap-4">
+          {/* Left Side: Logo + Hamburger + Breadcrumb */}
+          <div className="flex items-center gap-4 min-w-0">
             {/* Logo - Back to Home */}
-            <Link href="/" className="flex items-center gap-3 group">
-              <img 
-                src="/logo2.png" 
-                alt="The Studio Logo" 
+            <Link href="/" className="flex items-center gap-3 group shrink-0">
+              <img
+                src="/logo2.png"
+                alt="The Studio Logo"
                 className="h-12 w-auto group-hover:scale-105 transition-transform duration-300"
                 style={{ filter: 'brightness(0)' }}
               />
             </Link>
-            
+
             {/* Hamburger Menu Button */}
             <button
               onClick={() => setIsOpen(!isOpen)}
-              className="p-2 text-charcoal hover:text-sage transition-colors duration-600"
+              className="p-2 text-charcoal hover:text-sage transition-colors duration-600 shrink-0"
               aria-label="Toggle menu"
             >
               {isOpen ? <X size={24} /> : <Menu size={24} />}
             </button>
+
+            {/* Breadcrumb trail */}
+            {crumbs.length > 0 && (
+              <Breadcrumb className="hidden sm:block min-w-0">
+                <BreadcrumbList className="text-charcoal/70">
+                  {crumbs.map((c, i) => {
+                    const last = i === crumbs.length - 1;
+                    return (
+                      <span key={c.href} className="contents">
+                        <BreadcrumbItem>
+                          {last ? (
+                            <BreadcrumbPage className="font-body text-charcoal truncate">
+                              {c.label}
+                            </BreadcrumbPage>
+                          ) : (
+                            <BreadcrumbLink asChild>
+                              <Link href={c.href} className="font-body text-charcoal/60 hover:text-sage">
+                                {c.label}
+                              </Link>
+                            </BreadcrumbLink>
+                          )}
+                        </BreadcrumbItem>
+                        {!last && <BreadcrumbSeparator />}
+                      </span>
+                    );
+                  })}
+                </BreadcrumbList>
+              </Breadcrumb>
+            )}
           </div>
 
           {/* Admin Badge */}
-          <div className="flex items-center gap-3">
+          <div className="flex items-center gap-3 shrink-0">
             <Badge className="bg-terracotta text-white font-body">
               Admin Portal
             </Badge>

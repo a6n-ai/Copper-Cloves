@@ -10,6 +10,12 @@ const memberInclude = {
     take: 8,
   },
   user_stats: true,
+  // Authoritative attendance count — derived from actual check-ins, not the (sometimes stale) user_stats.total_classes_attended.
+  _count: {
+    select: {
+      bookings: { where: { checked_in: true } },
+    },
+  },
 } as const;
 
 const memberDetailInclude = {

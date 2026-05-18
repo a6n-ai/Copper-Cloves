@@ -139,14 +139,15 @@ export default function AdminBadgesPage() {
 
   const fetchDashboardExtras = useCallback(async () => {
     try {
-      const res = await fetch("/api/admin/dashboard-extras");
+      const res = await fetch("/api/admin/dashboard/member-stats");
       if (!res.ok) return;
       const data = await res.json();
-      if (data.memberOfMonth?.name && data.memberOfMonth.name !== "—") {
-        setMomName(data.memberOfMonth.name);
+      const mom = data.memberStats?.memberOfMonth;
+      if (mom?.name && mom.name !== "—") {
+        setMomName(mom.name);
         // Try to find the user id via search
         const sq = await fetch(
-          `/api/admin/members-search?q=${encodeURIComponent(data.memberOfMonth.name)}`
+          `/api/admin/members-search?q=${encodeURIComponent(mom.name)}`
         );
         if (sq.ok) {
           const sdata: MemberSearchResult[] = await sq.json();

@@ -184,6 +184,7 @@ export default function AdminMembers() {
           total_classes_attended?: number;
           last_class_date?: string | null;
         } | null;
+        _count?: { bookings?: number };
       }>;
 
       const now = new Date();
@@ -230,7 +231,8 @@ export default function AdminMembers() {
           credits,
           unlimited,
           expiryDate,
-          totalClasses: stats?.total_classes_attended ?? 0,
+          // Prefer real check-in count from bookings; fall back to user_stats if relation count missing.
+          totalClasses: p._count?.bookings ?? stats?.total_classes_attended ?? 0,
           lastVisit: formatRelativeDay(stats?.last_class_date ?? null),
           status: deriveMemberStatus(expiryRaw, credits, unlimited),
           passCategory,

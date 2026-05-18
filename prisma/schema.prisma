@@ -128,6 +128,9 @@ model RetailOrder {
   profile Profile? @relation(fields: [user_id], references: [id], onDelete: SetNull)
   coupon  Coupon?  @relation(fields: [coupon_id], references: [id], onDelete: SetNull)
 
+  @@index([user_id])
+  @@index([coupon_id])
+  @@index([order_date])
   @@map("retail_orders")
 }
 
@@ -178,6 +181,7 @@ model ClassModel {
   instructor      Instructor?     @relation(fields: [instructor_id], references: [id], onDelete: SetNull)
   class_schedules ClassSchedule[]
 
+  @@index([instructor_id])
   @@map("classes")
 }
 
@@ -198,6 +202,9 @@ model ClassSchedule {
   instructor  Instructor? @relation(fields: [instructor_id], references: [id], onDelete: SetNull)
   bookings    Booking[]
 
+  @@index([class_id])
+  @@index([instructor_id])
+  @@index([start_time])
   @@map("class_schedules")
 }
 
@@ -263,6 +270,12 @@ model UserPackage {
   razorpay_order   RazorpayOrder?
   payments         Payment[]
 
+  @@index([user_id])
+  @@index([package_type_id])
+  @@index([package_id])
+  @@index([coupon_id])
+  @@index([expiration_date])
+  @@index([is_active, expiration_date])
   @@map("user_packages")
 }
 
@@ -295,6 +308,13 @@ model Booking {
   razorpay_order RazorpayOrder?
   payments       Payment[]
 
+  @@index([user_id])
+  @@index([class_schedule_id])
+  @@index([user_package_id])
+  @@index([booking_date])
+  @@index([status, booking_date])
+  @@index([checked_in, booking_date])
+  @@index([check_in_outcome, booking_date])
   @@map("bookings")
 }
 
@@ -439,6 +459,11 @@ model CafeOrder {
   booking   Booking?  @relation(fields: [booking_id], references: [id], onDelete: SetNull)
   coupon    Coupon?   @relation(fields: [coupon_id], references: [id], onDelete: SetNull)
 
+  @@index([user_id])
+  @@index([cafe_item_id])
+  @@index([booking_id])
+  @@index([coupon_id])
+  @@index([order_date])
   @@index([batch_id])
   @@map("cafe_orders")
 }
@@ -456,6 +481,7 @@ model MealSubscription {
 
   profile Profile @relation(fields: [user_id], references: [id], onDelete: Cascade)
 
+  @@index([user_id])
   @@map("meal_subscriptions")
 }
 
@@ -561,6 +587,8 @@ model UserBadge {
   profile        Profile        @relation(fields: [user_id], references: [id], onDelete: Cascade)
   badge_template BadgeTemplate? @relation(fields: [badge_template_id], references: [id], onDelete: SetNull)
 
+  @@index([user_id])
+  @@index([badge_template_id])
   @@map("user_badges")
 }
 
@@ -575,6 +603,7 @@ model Waiver {
 
   profile Profile @relation(fields: [user_id], references: [id], onDelete: Cascade)
 
+  @@index([user_id])
   @@map("waivers")
 }
 
@@ -612,6 +641,9 @@ model CrmMessage {
   profile  Profile?     @relation(fields: [user_id], references: [id], onDelete: Cascade)
   template CrmTemplate? @relation(fields: [template_id], references: [id], onDelete: SetNull)
 
+  @@index([user_id])
+  @@index([template_id])
+  @@index([created_at])
   @@map("crm_messages")
 }
 
