@@ -205,6 +205,8 @@ model ClassSchedule {
   @@index([class_id])
   @@index([instructor_id])
   @@index([start_time])
+  /// Prevent duplicate schedules at the same slot for the same class+instructor.
+  @@unique([start_time, class_id, instructor_id], name: "class_schedules_slot_unique")
   @@map("class_schedules")
 }
 

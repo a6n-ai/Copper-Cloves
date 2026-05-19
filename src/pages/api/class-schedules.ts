@@ -11,6 +11,9 @@ function prismaUserMessage(e: unknown): string {
     if (e.code === "P2021") {
       return "Database is missing a table. Sync the schema with prisma db push on this environment.";
     }
+    if (e.code === "P2002") {
+      return "A schedule for this class, instructor and time already exists.";
+    }
   }
   return e instanceof Error ? e.message : "Database error";
 }
@@ -85,6 +88,18 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       }
       if (Number.isNaN(data.start_time.getTime()) || Number.isNaN(data.end_time.getTime())) {
         return res.status(400).json({ error: "Invalid start_time or end_time." });
+      }
+      // Dedup: reject if a schedule already exists at this exact slot (same class + instructor + start_time).
+      const existing = await prisma.classSchedule.findFirst({
+        where: {
+          start_time: data.start_time,
+          class_id: data.class_id,
+          instructor_id: data.instructor_id,
+        },
+        select: { id: true },
+      });
+      if (existing) {
+        return res.status(200).json({ ...existing, _existed: true });
       }
       const schedule = await prisma.classSchedule.create({ data });
       return res.status(201).json(schedule);
