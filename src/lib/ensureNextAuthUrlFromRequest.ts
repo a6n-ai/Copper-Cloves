@@ -3,6 +3,15 @@ import type { NextApiRequest } from "next";
 const PLACEHOLDER_HOST_IN_URL = /d1a2b3c4e5|xxxxx|YOUR_|your-app\.|example\.amplifyapp/i;
 
 /**
+ * Dynamic key so SWC can't inline `process.env.NEXTAUTH_URL = …` into
+ * `"<value>" = …` (Next.config.mjs's `env` block replaces all static reads).
+ */
+const NEXTAUTH_URL_KEY = "NEXTAUTH_URL";
+function setNextAuthUrl(value: string) {
+  process.env[NEXTAUTH_URL_KEY] = value;
+}
+
+/**
  * NextAuth uses NEXTAUTH_URL for CSRF and callback URLs. Amplify often mis-copies a doc
  * placeholder (e.g. main.d1a2b3c4e5.amplifyapp.com). Derive the canonical URL from the
  * incoming request when the env value is missing or clearly a placeholder.
@@ -20,7 +29,7 @@ export function ensureNextAuthUrlFromRequest(req: NextApiRequest): void {
   const current = process.env.NEXTAUTH_URL?.trim() ?? "";
 
   if (!current || PLACEHOLDER_HOST_IN_URL.test(current)) {
-    process.env.NEXTAUTH_URL = derived;
+    setNextAuthUrl(derived);
     return;
   }
 
@@ -33,11 +42,11 @@ export function ensureNextAuthUrlFromRequest(req: NextApiRequest): void {
         configured.hostname === "localhost" ||
         configured.hostname === "127.0.0.1";
       if (local && request.hostname === configured.hostname && configured.origin !== request.origin) {
-        process.env.NEXTAUTH_URL = derived;
+        setNextAuthUrl(derived);
         return;
       }
     } catch {
-      process.env.NEXTAUTH_URL = derived;
+      setNextAuthUrl(derived);
       return;
     }
   }
@@ -54,9 +63,9 @@ export function ensureNextAuthUrlFromRequest(req: NextApiRequest): void {
       requestHost.endsWith(".amplifyapp.com") &&
       configuredHost !== requestHost
     ) {
-      process.env.NEXTAUTH_URL = derived;
+      setNextAuthUrl(derived);
     }
   } catch {
-    process.env.NEXTAUTH_URL = derived;
+    setNextAuthUrl(derived);
   }
 }
