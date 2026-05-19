@@ -195,7 +195,7 @@ export default function OnboardingPage() {
 
   if (done) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-cream via-cream to-sage/10 flex items-center justify-center p-4">
+      <div className="min-h-screen bg-linear-to-br from-cream via-cream to-sage/10 flex items-center justify-center p-4">
         <div className="text-center animate-in zoom-in duration-500">
           <CheckCircle2 className="h-20 w-20 text-sage mx-auto mb-6" />
           <h2 className="font-display text-3xl text-charcoal mb-2">{"You're all set!"}</h2>
@@ -209,7 +209,7 @@ export default function OnboardingPage() {
     <>
       <SEO title="Welcome — The Studio" description="Tell us a little about yourself" />
 
-      <div className="min-h-screen bg-gradient-to-br from-cream via-cream to-sage/10 flex items-center justify-center py-12 px-4">
+      <div className="min-h-screen bg-linear-to-br from-cream via-cream to-sage/10 flex items-center justify-center py-12 px-4">
         <div className="w-full max-w-lg">
           {/* Logo */}
           <div className="flex justify-center mb-8">
@@ -279,7 +279,7 @@ export default function OnboardingPage() {
                             id="dob"
                             type="date"
                             max={new Date().toISOString().split("T")[0]}
-                            className="flex h-10 w-full rounded-md border border-sage/20 bg-transparent px-3 py-1 text-sm font-body shadow-xs focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-sage"
+                            className="flex h-10 w-full rounded-md border border-sage/20 bg-transparent px-3 py-1 text-sm font-body shadow-2xs focus-visible:outline-hidden focus-visible:ring-1 focus-visible:ring-sage"
                           />
                         )}
                       />

@@ -73,7 +73,7 @@ const MILESTONES = [
     icon: Crown,
     description: "Legendary status achieved",
     color: "text-yellow-600",
-    bgColor: "bg-gradient-to-br from-yellow-50 to-amber-50",
+    bgColor: "bg-linear-to-br from-yellow-50 to-amber-50",
     borderColor: "border-yellow-400"
   }
 ];
@@ -416,14 +416,14 @@ export default function Dashboard() {
 
   if (loading) {
     return (
-      <div className="flex items-center justify-center min-h-screen bg-gradient-to-br from-cream via-cream to-sage/5">
+      <div className="flex items-center justify-center min-h-screen bg-linear-to-br from-cream via-cream to-sage/5">
         <div className="text-sage font-display text-2xl animate-pulse">Loading your sanctuary...</div>
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-cream via-cream to-sage/5">
+    <div className="min-h-screen bg-linear-to-br from-cream via-cream to-sage/5">
       <PortalNavigation 
         userName={userName || "Member"} 
         userEmail={userEmail || ""} 
@@ -462,7 +462,7 @@ export default function Dashboard() {
 
               {/* Today's Intention */}
               <div className="flex items-start gap-3 flex-1 max-w-xl">
-                <div className="w-10 h-10 rounded-full bg-sage/10 flex items-center justify-center flex-shrink-0">
+                <div className="w-10 h-10 rounded-full bg-sage/10 flex items-center justify-center shrink-0">
                   <Target className="text-sage" size={20} />
                 </div>
                 <div className="flex-1">
@@ -490,7 +490,7 @@ export default function Dashboard() {
                         variant="ghost"
                         size="sm"
                         onClick={() => setIsEditingIntention(true)}
-                        className="text-sage hover:text-sage/80 font-body flex-shrink-0"
+                        className="text-sage hover:text-sage/80 font-body shrink-0"
                       >
                         Edit
                       </Button>
@@ -503,7 +503,7 @@ export default function Dashboard() {
             {/* Streak & Attendance Strip */}
             <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 mb-6">
               {/* Current Streak */}
-              <div className="bg-white/80 backdrop-blur-sm rounded-2xl border border-sage/20 p-4 flex items-center gap-3">
+              <div className="bg-white/80 backdrop-blur-xs rounded-2xl border border-sage/20 p-4 flex items-center gap-3">
                 <div className="w-10 h-10 rounded-full bg-orange-50 border border-orange-200 flex items-center justify-center shrink-0">
                   <Flame className="text-orange-500" size={20} />
                 </div>
@@ -517,7 +517,7 @@ export default function Dashboard() {
               </div>
 
               {/* On Time */}
-              <div className="bg-white/80 backdrop-blur-sm rounded-2xl border border-sage/20 p-4 flex items-center gap-3">
+              <div className="bg-white/80 backdrop-blur-xs rounded-2xl border border-sage/20 p-4 flex items-center gap-3">
                 <div className="w-10 h-10 rounded-full bg-sage/10 border border-sage/30 flex items-center justify-center shrink-0">
                   <CheckCircle className="text-sage" size={20} />
                 </div>
@@ -528,7 +528,7 @@ export default function Dashboard() {
               </div>
 
               {/* Late */}
-              <div className="bg-white/80 backdrop-blur-sm rounded-2xl border border-sage/20 p-4 flex items-center gap-3">
+              <div className="bg-white/80 backdrop-blur-xs rounded-2xl border border-sage/20 p-4 flex items-center gap-3">
                 <div className="w-10 h-10 rounded-full bg-amber-50 border border-amber-200 flex items-center justify-center shrink-0">
                   <Clock className="text-amber-500" size={20} />
                 </div>
@@ -539,7 +539,7 @@ export default function Dashboard() {
               </div>
 
               {/* No Show */}
-              <div className="bg-white/80 backdrop-blur-sm rounded-2xl border border-sage/20 p-4 flex items-center gap-3">
+              <div className="bg-white/80 backdrop-blur-xs rounded-2xl border border-sage/20 p-4 flex items-center gap-3">
                 <div className="w-10 h-10 rounded-full bg-red-50 border border-red-200 flex items-center justify-center shrink-0">
                   <AlertCircle className="text-red-400" size={20} />
                 </div>
@@ -575,7 +575,7 @@ export default function Dashboard() {
 
                   {/* Progress Bar Fill */}
                   <div
-                    className="absolute top-12 left-0 h-1 bg-gradient-to-r from-sage to-terracotta rounded-full transition-all duration-1000"
+                    className="absolute top-12 left-0 h-1 bg-linear-to-r from-sage to-terracotta rounded-full transition-all duration-1000"
                     style={{
                       width: `${Math.min(100, (userClassesCompleted / (activeMilestones[activeMilestones.length - 1]?.classes || 150)) * 100)}%`
                     }}
@@ -679,7 +679,7 @@ export default function Dashboard() {
                     return (
                       <div
                         key={badge.id}
-                        className="flex-shrink-0 w-44 rounded-2xl p-4 border shadow-md text-center transition-transform hover:scale-105"
+                        className="shrink-0 w-44 rounded-2xl p-4 border shadow-md text-center transition-transform hover:scale-105"
                         style={{
                           background: `linear-gradient(135deg, ${badgeColor}18, ${badgeColor}08)`,
                           borderColor: badgeColor + "44",
@@ -705,7 +705,7 @@ export default function Dashboard() {
                   return (
                     <div
                       key={badge.id}
-                      className="flex-shrink-0 flex items-center gap-2 px-4 py-2.5 rounded-full border bg-white/80 shadow-sm transition-transform hover:scale-105"
+                      className="shrink-0 flex items-center gap-2 px-4 py-2.5 rounded-full border bg-white/80 shadow-xs transition-transform hover:scale-105"
                       style={{ borderColor: (badge.color ?? "#7C9070") + "55" }}
                     >
                       <span className="text-xl">{badge.icon ?? "🏆"}</span>
@@ -854,7 +854,7 @@ export default function Dashboard() {
             <div className="lg:col-span-1 space-y-6">
               
               {/* Quick Book Section */}
-              <div className="bg-white rounded-lg shadow p-6">
+              <div className="bg-white rounded-lg shadow-sm p-6">
                 <div className="flex items-center gap-2 mb-4">
                   <Zap className="w-5 h-5 text-sage" />
                   <h2 className="font-display text-xl text-charcoal">Quick Book</h2>
@@ -898,7 +898,7 @@ export default function Dashboard() {
               </div>
 
               {/* Upcoming Classes */}
-              <div className="bg-white rounded-lg shadow p-6">
+              <div className="bg-white rounded-lg shadow-sm p-6">
                 <div className="flex items-center gap-2 mb-4">
                   <CalendarDays className="w-5 h-5 text-sage" />
                   <h2 className="font-display text-xl text-charcoal">Upcoming</h2>
@@ -995,7 +995,7 @@ export default function Dashboard() {
                       const Icon = activity.icon;
                       return (
                         <div key={activity.id} className="flex items-start gap-3 group">
-                          <div className="flex-shrink-0 w-10 h-10 rounded-full bg-sage/10 flex items-center justify-center group-hover:bg-sage/20 transition-all duration-300 group-hover:scale-110">
+                          <div className="shrink-0 w-10 h-10 rounded-full bg-sage/10 flex items-center justify-center group-hover:bg-sage/20 transition-all duration-300 group-hover:scale-110">
                             <Icon className={activity.color} size={18} />
                           </div>
                           <div className="flex-1 min-w-0">
@@ -1023,10 +1023,10 @@ export default function Dashboard() {
             </Card>
 
             {/* Nourish Quick-Order Café Widget */}
-            <Card className="border-0 bg-gradient-to-br from-sage/5 to-white/80 backdrop-blur-xl shadow-lg">
+            <Card className="border-0 bg-linear-to-br from-sage/5 to-white/80 backdrop-blur-xl shadow-lg">
               <CardContent className="p-8">
                 <div className="flex items-start gap-4 mb-6">
-                  <div className="w-14 h-14 rounded-full bg-sage/10 flex items-center justify-center flex-shrink-0">
+                  <div className="w-14 h-14 rounded-full bg-sage/10 flex items-center justify-center shrink-0">
                     <Coffee className="text-sage" size={28} />
                   </div>
                   <div className="flex-1">
@@ -1080,7 +1080,7 @@ export default function Dashboard() {
         <div className="fixed inset-0 z-50">
           {/* Backdrop */}
           <div
-            className="absolute inset-0 bg-charcoal/60 backdrop-blur-sm"
+            className="absolute inset-0 bg-charcoal/60 backdrop-blur-xs"
             onClick={() => setShowOrderHistory(false)}
           />
 
@@ -1171,7 +1171,7 @@ export default function Dashboard() {
 
                         <div className="flex items-center justify-between">
                           <div className="flex items-center gap-3 min-w-0">
-                            <div className="w-12 h-12 rounded-lg overflow-hidden bg-gradient-to-br from-sage/20 via-cream/50 to-terracotta/20 flex-shrink-0">
+                            <div className="w-12 h-12 rounded-lg overflow-hidden bg-linear-to-br from-sage/20 via-cream/50 to-terracotta/20 shrink-0">
                               {thumb ? (
                                 <Image src={thumb} alt="" width={48} height={48} unoptimized className="w-full h-full object-cover" />
                               ) : null}

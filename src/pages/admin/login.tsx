@@ -68,10 +68,10 @@ export default function AdminLogin() {
         description="Administrative access for The Studio by Copper + Cloves"
       />
       
-      <main className="min-h-screen bg-gradient-to-br from-cream via-cream to-sage/10 flex items-center justify-center p-6">
+      <main className="min-h-screen bg-linear-to-br from-cream via-cream to-sage/10 flex items-center justify-center p-6">
         {/* Success Overlay */}
         {success && (
-          <div className="fixed inset-0 bg-cream/90 backdrop-blur-sm z-50 flex items-center justify-center">
+          <div className="fixed inset-0 bg-cream/90 backdrop-blur-xs z-50 flex items-center justify-center">
             <div className="text-center animate-in zoom-in duration-600">
               <CheckCircle2 className="h-24 w-24 text-sage mx-auto mb-6" />
               <h2 className="font-display text-4xl text-charcoal mb-4">
@@ -85,7 +85,7 @@ export default function AdminLogin() {
         )}
 
         <Card className="w-full max-w-md border-sage/20 bg-white/95 backdrop-blur-xl shadow-2xl">
-          <CardHeader className="text-center space-y-4 bg-gradient-to-b from-sage/10 to-transparent pb-8">
+          <CardHeader className="text-center space-y-4 bg-linear-to-b from-sage/10 to-transparent pb-8">
             <div className="mx-auto h-20 w-20 rounded-full bg-sage/10 flex items-center justify-center ring-4 ring-sage/20">
               <Shield className="h-10 w-10 text-sage" />
             </div>

@@ -602,7 +602,7 @@ export default function AdminCafe() {
         }
       `}</style>
       
-      <div className="min-h-screen bg-gradient-to-br from-cream via-cream to-sage/10">
+      <div className="min-h-screen bg-linear-to-br from-cream via-cream to-sage/10">
         
         <main className="min-h-screen">
           <div className="max-w-7xl mx-auto p-6 lg:p-8 space-y-8">
@@ -750,7 +750,7 @@ export default function AdminCafe() {
                   <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                     {menuItems.map(item => (
                       <Card key={item.id} className="border-0 bg-white/80 backdrop-blur-xl shadow-lg flex flex-col h-full">
-                        <div className="aspect-video w-full overflow-hidden rounded-t-xl bg-sage/5 flex-shrink-0">
+                        <div className="aspect-video w-full overflow-hidden rounded-t-xl bg-sage/5 shrink-0">
                           {item.image_url ? (
                             <img 
                               src={item.image_url} 
@@ -888,7 +888,7 @@ export default function AdminCafe() {
                             <CardContent className="p-6">
                               <div className="flex flex-col md:flex-row gap-6">
                                 {/* Item Image */}
-                                <div className="w-32 h-32 rounded-xl overflow-hidden bg-sage/5 flex-shrink-0">
+                                <div className="w-32 h-32 rounded-xl overflow-hidden bg-sage/5 shrink-0">
                                   {cafeItem?.image_url ? (
                                     <img 
                                       src={cafeItem.image_url} 
@@ -1105,7 +1105,7 @@ export default function AdminCafe() {
                             <CardContent className="p-6">
                               <div className="flex flex-col md:flex-row gap-6">
                                 {/* Item Image */}
-                                <div className="w-32 h-32 rounded-xl overflow-hidden bg-sage/5 flex-shrink-0">
+                                <div className="w-32 h-32 rounded-xl overflow-hidden bg-sage/5 shrink-0">
                                   {cafeItem?.image_url ? (
                                     <img 
                                       src={cafeItem.image_url} 
@@ -1202,10 +1202,10 @@ export default function AdminCafe() {
         {/* Add/Edit Form Modal */}
         {showForm && (
           <div className="fixed inset-0 z-50">
-            <div className="absolute inset-0 bg-charcoal/60 backdrop-blur-sm" onClick={handleCancel} />
+            <div className="absolute inset-0 bg-charcoal/60 backdrop-blur-xs" onClick={handleCancel} />
             
             <div className="absolute right-0 top-0 bottom-0 w-full max-w-2xl bg-white shadow-2xl flex flex-col">
-              <div className="bg-white/95 backdrop-blur-xl border-b border-sage/10 p-6 z-10 flex-shrink-0">
+              <div className="bg-white/95 backdrop-blur-xl border-b border-sage/10 p-6 z-10 shrink-0">
                 <div className="flex items-center justify-between">
                   <h2 className="font-display text-3xl text-charcoal">
                     {editingItem ? "Edit Menu Item" : "Add Menu Item"}
@@ -1347,7 +1347,7 @@ export default function AdminCafe() {
                 </div>
               </div>
               
-              <div className="p-6 border-t border-sage/10 bg-white flex-shrink-0 flex gap-3">
+              <div className="p-6 border-t border-sage/10 bg-white shrink-0 flex gap-3">
                 <Button
                   onClick={handleCancel}
                   variant="outline"
@@ -1380,7 +1380,7 @@ export default function AdminCafe() {
         {/* Category Form Modal */}
         {showCategoryForm && (
           <div className="fixed inset-0 z-50">
-            <div className="absolute inset-0 bg-charcoal/60 backdrop-blur-sm" onClick={handleCancelCategory} />
+            <div className="absolute inset-0 bg-charcoal/60 backdrop-blur-xs" onClick={handleCancelCategory} />
             
             <div className="absolute right-0 top-0 bottom-0 w-full max-w-xl bg-white shadow-2xl overflow-y-auto">
               <div className="sticky top-0 bg-white/95 backdrop-blur-xl border-b border-sage/10 p-6 z-10">

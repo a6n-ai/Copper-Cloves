@@ -228,7 +228,7 @@ export default function Shop() {
       
       {/* Hero Section */}
       <section className="relative pt-32 pb-16 px-6 lg:px-8 overflow-hidden">
-        <div className="absolute inset-0 bg-gradient-to-br from-cream via-white to-sage/5 -z-10" />
+        <div className="absolute inset-0 bg-linear-to-br from-cream via-white to-sage/5 -z-10" />
         <div className="absolute top-20 left-20 w-96 h-96 bg-sage/5 rounded-full blur-3xl" />
         <div className="absolute bottom-20 right-20 w-96 h-96 bg-terracotta/5 rounded-full blur-3xl" />
         
@@ -249,7 +249,7 @@ export default function Shop() {
       </section>
 
       {/* Filters & Cart Button */}
-      <section className="sticky top-0 z-40 bg-white/80 backdrop-blur-xl border-b border-sage/10 shadow-sm">
+      <section className="sticky top-0 z-40 bg-white/80 backdrop-blur-xl border-b border-sage/10 shadow-xs">
         <div className="max-w-7xl mx-auto px-6 lg:px-8 py-4">
           {/* Search Bar */}
           <div className="mb-4">
@@ -260,7 +260,7 @@ export default function Shop() {
                 placeholder="Search products by name or category..."
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
-                className="w-full pl-12 pr-4 py-3 rounded-full bg-white/60 border border-sage/10 font-body text-sm text-charcoal placeholder:text-charcoal/40 focus:outline-none focus:ring-2 focus:ring-sage/30 focus:border-sage transition-all"
+                className="w-full pl-12 pr-4 py-3 rounded-full bg-white/60 border border-sage/10 font-body text-sm text-charcoal placeholder:text-charcoal/40 focus:outline-hidden focus:ring-2 focus:ring-sage/30 focus:border-sage transition-all"
               />
               {searchQuery && (
                 <button
@@ -300,7 +300,7 @@ export default function Shop() {
               <select
                 value={sortBy}
                 onChange={(e) => setSortBy(toSortBy(e.target.value))}
-                className="px-4 py-2 rounded-full bg-white/60 border border-sage/10 font-body text-sm text-charcoal focus:outline-none focus:ring-2 focus:ring-sage/30"
+                className="px-4 py-2 rounded-full bg-white/60 border border-sage/10 font-body text-sm text-charcoal focus:outline-hidden focus:ring-2 focus:ring-sage/30"
               >
                 <option value="featured">Featured</option>
                 <option value="price-low">Price: Low to High</option>
@@ -335,10 +335,10 @@ export default function Shop() {
             ) : (
             filteredProducts.map((product) => (
               <Link key={product.id} href={`/shop/${product.id}`}>
-                <div className="group relative bg-white/60 backdrop-blur-sm rounded-3xl border border-sage/10 overflow-hidden transition-all duration-500 hover:border-sage/30 hover:shadow-2xl hover:bg-sage/5 cursor-pointer">
+                <div className="group relative bg-white/60 backdrop-blur-xs rounded-3xl border border-sage/10 overflow-hidden transition-all duration-500 hover:border-sage/30 hover:shadow-2xl hover:bg-sage/5 cursor-pointer">
                   {/* Image */}
                   <div className="relative h-80 overflow-hidden">
-                    <div className="absolute inset-0 bg-gradient-to-br from-sage/20 via-cream/50 to-terracotta/20" />
+                    <div className="absolute inset-0 bg-linear-to-br from-sage/20 via-cream/50 to-terracotta/20" />
                     <Image
                       src={product.image_url || PLACEHOLDER_IMAGE}
                       alt={product.name}
@@ -358,11 +358,11 @@ export default function Shop() {
                     </div>
 
                     {/* Hover Overlay */}
-                    <div className="absolute inset-0 bg-gradient-to-t from-charcoal/40 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
+                    <div className="absolute inset-0 bg-linear-to-t from-charcoal/40 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
                     
                     {/* View Details Hint */}
                     <div className="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity duration-500">
-                      <span className="px-4 py-2 rounded-full bg-white/90 backdrop-blur-sm text-charcoal font-body text-sm">
+                      <span className="px-4 py-2 rounded-full bg-white/90 backdrop-blur-xs text-charcoal font-body text-sm">
                         View Details
                       </span>
                     </div>
@@ -428,7 +428,7 @@ export default function Shop() {
         <div className="fixed inset-0 z-50">
           {/* Backdrop */}
           <div 
-            className="absolute inset-0 bg-charcoal/60 backdrop-blur-sm"
+            className="absolute inset-0 bg-charcoal/60 backdrop-blur-xs"
             onClick={() => setShowCart(false)}
           />
           
@@ -466,7 +466,7 @@ export default function Shop() {
                           key={item.id}
                           className="flex gap-4 p-4 rounded-2xl bg-cream/30 border border-sage/10"
                         >
-                          <div className="w-20 h-20 rounded-xl bg-gradient-to-br from-sage/20 via-cream/50 to-terracotta/20 flex-shrink-0" />
+                          <div className="w-20 h-20 rounded-xl bg-linear-to-br from-sage/20 via-cream/50 to-terracotta/20 shrink-0" />
                           
                           <div className="flex-1">
                             <h4 className="font-display text-lg text-charcoal mb-1">
@@ -543,7 +543,7 @@ export default function Shop() {
                     <label className="font-body text-sm text-charcoal/70 mb-2 block">Full Name</label>
                     <input
                       type="text"
-                      className="w-full px-4 py-3 rounded-xl border border-sage/20 focus:border-sage focus:outline-none font-body"
+                      className="w-full px-4 py-3 rounded-xl border border-sage/20 focus:border-sage focus:outline-hidden font-body"
                       placeholder="Enter your name"
                       value={customerName}
                       onChange={(e) => setCustomerName(e.target.value)}
@@ -554,7 +554,7 @@ export default function Shop() {
                     <label className="font-body text-sm text-charcoal/70 mb-2 block">Email</label>
                     <input
                       type="email"
-                      className="w-full px-4 py-3 rounded-xl border border-sage/20 focus:border-sage focus:outline-none font-body"
+                      className="w-full px-4 py-3 rounded-xl border border-sage/20 focus:border-sage focus:outline-hidden font-body"
                       placeholder="your@email.com"
                       value={customerEmail}
                       onChange={(e) => setCustomerEmail(e.target.value)}
@@ -565,7 +565,7 @@ export default function Shop() {
                     <label className="font-body text-sm text-charcoal/70 mb-2 block">Phone</label>
                     <input
                       type="tel"
-                      className="w-full px-4 py-3 rounded-xl border border-sage/20 focus:border-sage focus:outline-none font-body"
+                      className="w-full px-4 py-3 rounded-xl border border-sage/20 focus:border-sage focus:outline-hidden font-body"
                       placeholder="Phone number"
                       value={customerPhone}
                       onChange={(e) => setCustomerPhone(e.target.value)}
@@ -575,7 +575,7 @@ export default function Shop() {
                   <div>
                     <label className="font-body text-sm text-charcoal/70 mb-2 block">Address</label>
                     <textarea
-                      className="w-full px-4 py-3 rounded-xl border border-sage/20 focus:border-sage focus:outline-none font-body resize-none"
+                      className="w-full px-4 py-3 rounded-xl border border-sage/20 focus:border-sage focus:outline-hidden font-body resize-none"
                       rows={3}
                       placeholder="Delivery address"
                       value={shippingAddress}

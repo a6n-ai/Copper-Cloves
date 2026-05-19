@@ -52,7 +52,7 @@ function CheckboxGroup({ options, selected, onChange }: {
               checked ? "border-sage bg-sage/10 text-charcoal" : "border-sage/20 bg-white text-charcoal/70 hover:border-sage/40"
             }`}
           >
-            <div className={`w-4 h-4 rounded border flex-shrink-0 flex items-center justify-center ${
+            <div className={`w-4 h-4 rounded border shrink-0 flex items-center justify-center ${
               checked ? "bg-sage border-sage" : "border-charcoal/30"
             }`}>
               {checked && <CheckCircle2 size={10} className="text-white" />}
@@ -346,7 +346,7 @@ export default function Profile() {
 
           {/* ── Personal Details ──────────────────────────────────── */}
           <Card className="border-sage/20 bg-white/90 shadow-lg">
-            <CardHeader className="p-6 border-b border-sage/10 bg-gradient-to-r from-cream/50 to-white">
+            <CardHeader className="p-6 border-b border-sage/10 bg-linear-to-r from-cream/50 to-white">
               <CardTitle className="font-display text-2xl text-charcoal flex items-center gap-3">
                 <div className="w-10 h-10 rounded-full bg-sage/10 flex items-center justify-center">
                   <User className="text-sage" size={20} />
@@ -362,7 +362,7 @@ export default function Profile() {
 
                 {/* Avatar */}
                 <div className="flex gap-5 items-center pb-5 border-b border-sage/10">
-                  <div className="relative w-24 h-24 rounded-full overflow-hidden bg-sage/10 border border-sage/20 flex-shrink-0">
+                  <div className="relative w-24 h-24 rounded-full overflow-hidden bg-sage/10 border border-sage/20 shrink-0">
                     {avatarUrl
                       ? <img src={avatarUrl} alt="" className="w-full h-full object-cover" />
                       : <div className="w-full h-full flex items-center justify-center text-sage"><User size={36} /></div>
@@ -414,7 +414,7 @@ export default function Profile() {
                     <Label className="font-body text-sm text-charcoal">Gender</Label>
                     <div className="relative">
                       <select value={gender} onChange={(e) => setGender(e.target.value)}
-                        className="w-full h-11 pl-3 pr-8 rounded-md border border-sage/20 bg-white font-body text-sm text-charcoal focus:outline-none focus:ring-1 focus:ring-sage appearance-none">
+                        className="w-full h-11 pl-3 pr-8 rounded-md border border-sage/20 bg-white font-body text-sm text-charcoal focus:outline-hidden focus:ring-1 focus:ring-sage appearance-none">
                         <option value="">Select</option>
                         <option value="male">Male</option>
                         <option value="female">Female</option>
@@ -459,7 +459,7 @@ export default function Profile() {
 
           {/* ── Health & Fitness ──────────────────────────────────── */}
           <Card className="border-sage/20 bg-white/90 shadow-lg">
-            <CardHeader className="p-6 border-b border-sage/10 bg-gradient-to-r from-cream/50 to-white">
+            <CardHeader className="p-6 border-b border-sage/10 bg-linear-to-r from-cream/50 to-white">
               <CardTitle className="font-display text-2xl text-charcoal flex items-center gap-3">
                 <div className="w-10 h-10 rounded-full bg-sage/10 flex items-center justify-center">
                   <Heart className="text-sage" size={20} />
@@ -549,7 +549,7 @@ export default function Profile() {
 
           {/* ── Pause Subscription ───────────────────────────────── */}
           <Card className="border-sage/20 bg-white/90 shadow-lg">
-            <CardHeader className="p-6 border-b border-sage/10 bg-gradient-to-r from-cream/50 to-white">
+            <CardHeader className="p-6 border-b border-sage/10 bg-linear-to-r from-cream/50 to-white">
               <CardTitle className="font-display text-xl text-charcoal flex items-center gap-3">
                 <div className="w-10 h-10 rounded-full bg-terracotta/10 flex items-center justify-center">
                   <PauseCircle className="text-terracotta" size={20} />

@@ -207,7 +207,7 @@ export default function ProductDetail() {
 
       <Navigation />
 
-      <main className="min-h-screen bg-gradient-to-br from-cream via-white to-sage/5 pt-24 pb-16">
+      <main className="min-h-screen bg-linear-to-br from-cream via-white to-sage/5 pt-24 pb-16">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <Link href="/shop">
             <button
@@ -222,7 +222,7 @@ export default function ProductDetail() {
           <div className="grid lg:grid-cols-2 gap-12 mb-20">
             <div className="space-y-4">
               <div className="relative aspect-square rounded-3xl overflow-hidden bg-white/60 backdrop-blur-xl border border-sage/10 shadow-2xl group">
-                <div className="absolute inset-0 bg-gradient-to-br from-sage/20 via-transparent to-terracotta/20 pointer-events-none z-[1]" />
+                <div className="absolute inset-0 bg-linear-to-br from-sage/20 via-transparent to-terracotta/20 pointer-events-none z-1" />
                 <Image
                   src={images[currentImageIndex]}
                   alt={product.name}
@@ -239,7 +239,7 @@ export default function ProductDetail() {
                       onClick={() =>
                         setCurrentImageIndex((prev) => (prev - 1 + images.length) % images.length)
                       }
-                      className="absolute left-4 top-1/2 -translate-y-1/2 z-10 w-10 h-10 rounded-full bg-white/80 backdrop-blur-sm flex items-center justify-center hover:bg-white transition-all opacity-0 group-hover:opacity-100 shadow-lg"
+                      className="absolute left-4 top-1/2 -translate-y-1/2 z-10 w-10 h-10 rounded-full bg-white/80 backdrop-blur-xs flex items-center justify-center hover:bg-white transition-all opacity-0 group-hover:opacity-100 shadow-lg"
                       aria-label="Previous image"
                     >
                       <ChevronLeft className="text-charcoal" size={20} />
@@ -247,7 +247,7 @@ export default function ProductDetail() {
                     <button
                       type="button"
                       onClick={() => setCurrentImageIndex((prev) => (prev + 1) % images.length)}
-                      className="absolute right-4 top-1/2 -translate-y-1/2 z-10 w-10 h-10 rounded-full bg-white/80 backdrop-blur-sm flex items-center justify-center hover:bg-white transition-all opacity-0 group-hover:opacity-100 shadow-lg"
+                      className="absolute right-4 top-1/2 -translate-y-1/2 z-10 w-10 h-10 rounded-full bg-white/80 backdrop-blur-xs flex items-center justify-center hover:bg-white transition-all opacity-0 group-hover:opacity-100 shadow-lg"
                       aria-label="Next image"
                     >
                       <ChevronRight className="text-charcoal" size={20} />
@@ -256,7 +256,7 @@ export default function ProductDetail() {
                 )}
 
                 {product.featured && (
-                  <div className="absolute top-4 left-4 z-10 px-3 py-1 rounded-full bg-terracotta/90 backdrop-blur-sm text-white text-xs font-body font-medium">
+                  <div className="absolute top-4 left-4 z-10 px-3 py-1 rounded-full bg-terracotta/90 backdrop-blur-xs text-white text-xs font-body font-medium">
                     Featured
                   </div>
                 )}
@@ -372,7 +372,7 @@ export default function ProductDetail() {
                   <Link key={rp.id} href={`/shop/${rp.id}`}>
                     <div className="group relative rounded-2xl overflow-hidden bg-white/60 backdrop-blur-xl border border-sage/10 hover:border-sage/30 transition-all duration-300 hover:shadow-xl hover:scale-105 cursor-pointer">
                       <div className="relative aspect-square overflow-hidden">
-                        <div className="absolute inset-0 bg-gradient-to-br from-sage/20 via-transparent to-terracotta/20" />
+                        <div className="absolute inset-0 bg-linear-to-br from-sage/20 via-transparent to-terracotta/20" />
                         <Image
                           src={rp.image_url || PLACEHOLDER}
                           alt={rp.name}
@@ -381,7 +381,7 @@ export default function ProductDetail() {
                           sizes="(max-width: 640px) 100vw, 25vw"
                         />
                         {rp.featured && (
-                          <div className="absolute top-3 left-3 px-2 py-1 rounded-full bg-terracotta/90 backdrop-blur-sm text-white text-xs font-body">
+                          <div className="absolute top-3 left-3 px-2 py-1 rounded-full bg-terracotta/90 backdrop-blur-xs text-white text-xs font-body">
                             Featured
                           </div>
                         )}

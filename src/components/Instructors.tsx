@@ -23,7 +23,7 @@ interface Instructor {
 }
 
 function instructorObjectPositionClass(name: string): string {
-  return name === "Shruti" || name === "Siddhartha" ? "object-right-top" : "object-top";
+  return name === "Shruti" || name === "Siddhartha" ? "object-top-right" : "object-top";
 }
 
 function InstructorCarouselPhoto({
@@ -223,30 +223,30 @@ export function Instructors() {
   const parallaxOffset = scrollY * 0.3;
 
   return (
-    <section id="instructors" className="py-16 md:py-20 bg-gradient-to-b from-cream via-white to-cream relative overflow-hidden">
+    <section id="instructors" className="py-16 md:py-20 bg-linear-to-b from-cream via-white to-cream relative overflow-hidden">
       {/* Parallax Background Texture - Enhanced */}
       <div 
         className="absolute inset-0 opacity-[0.04] transition-transform duration-100 ease-out"
         style={{ transform: `translateY(${parallaxOffset}px)` }}
       >
-        <div className="absolute top-20 left-20 w-96 h-96 rounded-full bg-gradient-to-br from-sage to-terracotta blur-3xl animate-pulse" style={{ animationDuration: "8s" }} />
-        <div className="absolute bottom-20 right-20 w-[500px] h-[500px] rounded-full bg-gradient-to-tl from-sage via-terracotta/30 to-sage blur-3xl animate-pulse" style={{ animationDuration: "12s", animationDelay: "2s" }} />
+        <div className="absolute top-20 left-20 w-96 h-96 rounded-full bg-linear-to-br from-sage to-terracotta blur-3xl animate-pulse" style={{ animationDuration: "8s" }} />
+        <div className="absolute bottom-20 right-20 w-[500px] h-[500px] rounded-full bg-linear-to-tl from-sage via-terracotta/30 to-sage blur-3xl animate-pulse" style={{ animationDuration: "12s", animationDelay: "2s" }} />
         <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[600px] rounded-full bg-gradient-radial from-sage/10 to-transparent blur-2xl" />
       </div>
 
       {/* Subtle Gold Accent Lines */}
       <div className="absolute inset-0 pointer-events-none">
-        <div className="absolute top-0 left-0 right-0 h-px bg-gradient-to-r from-transparent via-terracotta/20 to-transparent" />
-        <div className="absolute bottom-0 left-0 right-0 h-px bg-gradient-to-r from-transparent via-terracotta/20 to-transparent" />
+        <div className="absolute top-0 left-0 right-0 h-px bg-linear-to-r from-transparent via-terracotta/20 to-transparent" />
+        <div className="absolute bottom-0 left-0 right-0 h-px bg-linear-to-r from-transparent via-terracotta/20 to-transparent" />
       </div>
 
       <div className="relative z-10 max-w-7xl mx-auto px-6 lg:px-8">
         {/* Section Header - Enhanced */}
         <div className="text-center mb-20">
           <div className="flex items-center justify-center gap-3 mb-6">
-            <div className="w-12 h-px bg-gradient-to-r from-transparent to-sage/50" />
+            <div className="w-12 h-px bg-linear-to-r from-transparent to-sage/50" />
             <div className="w-2 h-2 rounded-full bg-terracotta/60" />
-            <div className="w-12 h-px bg-gradient-to-l from-transparent to-sage/50" />
+            <div className="w-12 h-px bg-linear-to-l from-transparent to-sage/50" />
           </div>
 
           <h2 className="font-display text-4xl md:text-5xl text-charcoal mb-6 tracking-tight">
@@ -259,11 +259,11 @@ export function Instructors() {
           </p>
 
           <div className="flex items-center justify-center gap-3 mt-8">
-            <div className="w-16 h-px bg-gradient-to-r from-transparent via-sage/30 to-sage/50" />
+            <div className="w-16 h-px bg-linear-to-r from-transparent via-sage/30 to-sage/50" />
             <div className="w-1.5 h-1.5 rounded-full bg-sage/40" />
             <div className="w-8 h-px bg-sage/30" />
             <div className="w-1.5 h-1.5 rounded-full bg-terracotta/40" />
-            <div className="w-16 h-px bg-gradient-to-l from-transparent via-sage/30 to-sage/50" />
+            <div className="w-16 h-px bg-linear-to-l from-transparent via-sage/30 to-sage/50" />
           </div>
         </div>
 
@@ -311,7 +311,7 @@ export function Instructors() {
                 {instructors.map((instructor, index) => (
                   <div
                     key={instructor.id ?? `${instructor.name}-${index}`}
-                    className="flex-shrink-0 w-[260px] group/card snap-center cursor-pointer"
+                    className="shrink-0 w-[260px] group/card snap-center cursor-pointer"
                     onMouseEnter={() => setHoveredIndex(index)}
                     onMouseLeave={() => setHoveredIndex(null)}
                     onClick={() => openModal(instructor)}
@@ -326,12 +326,12 @@ export function Instructors() {
                         transform: hoveredIndex === index ? "translateY(-8px) scale(1.05)" : "translateY(0) scale(1)"
                       }}
                     >
-                      <div className="relative h-[230px] overflow-hidden bg-gradient-to-b from-sage/5 to-cream/30">
-                        <div className="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-transparent via-terracotta/30 to-transparent z-10" />
+                      <div className="relative h-[230px] overflow-hidden bg-linear-to-b from-sage/5 to-cream/30">
+                        <div className="absolute top-0 left-0 right-0 h-1 bg-linear-to-r from-transparent via-terracotta/30 to-transparent z-10" />
                         
                         {/* Skeleton Loading State */}
                         {!loadedImages.has(index) && (
-                          <div className="absolute inset-0 bg-gradient-to-br from-sage/10 via-cream/50 to-sage/10 animate-pulse" />
+                          <div className="absolute inset-0 bg-linear-to-br from-sage/10 via-cream/50 to-sage/10 animate-pulse" />
                         )}
                         
                         {/* Instructor Photo */}
@@ -345,7 +345,7 @@ export function Instructors() {
                         
                         {/* Hover Overlay */}
                         <div 
-                          className={`absolute inset-0 bg-gradient-to-t from-sage/10 to-transparent transition-opacity duration-700 ${
+                          className={`absolute inset-0 bg-linear-to-t from-sage/10 to-transparent transition-opacity duration-700 ${
                             hoveredIndex === index ? "opacity-100" : "opacity-0"
                           }`}
                         />
@@ -355,7 +355,7 @@ export function Instructors() {
                         <div className="absolute top-4 right-4 w-8 h-8 border-t-2 border-r-2 border-terracotta/20 rounded-tr-lg" />
                       </div>
 
-                      <div className="p-5 bg-gradient-to-b from-white to-cream/30">
+                      <div className="p-5 bg-linear-to-b from-white to-cream/30">
                         <h3 className="font-display font-normal text-2xl text-charcoal mb-2 tracking-tight leading-tight">
                           {instructor.name}
                         </h3>
@@ -396,9 +396,9 @@ export function Instructors() {
             </p>
             
             <div className="flex items-center justify-center gap-2 mt-6">
-              <div className="w-12 h-px bg-gradient-to-r from-transparent to-sage/20" />
+              <div className="w-12 h-px bg-linear-to-r from-transparent to-sage/20" />
               <div className="w-1 h-1 rounded-full bg-sage/30" />
-              <div className="w-12 h-px bg-gradient-to-l from-transparent to-sage/20" />
+              <div className="w-12 h-px bg-linear-to-l from-transparent to-sage/20" />
             </div>
           </div>
         </>
@@ -430,7 +430,7 @@ export function Instructors() {
             onClick={(e) => e.stopPropagation()}
           >
             {/* Modal Header */}
-            <div className="relative h-56 bg-gradient-to-br from-sage/10 via-cream to-terracotta/10">
+            <div className="relative h-56 bg-linear-to-br from-sage/10 via-cream to-terracotta/10">
               <button
                 onClick={closeModal}
                 className="absolute top-4 right-4 w-10 h-10 rounded-full bg-white/80 backdrop-blur-xl border border-sage/20 hover:border-sage/40 flex items-center justify-center transition-all duration-300 hover:scale-110 z-10"
@@ -559,7 +559,7 @@ export function Instructors() {
                 <ul className="space-y-2">
                   {selectedInstructor.certifications.map((cert) => (
                     <li key={cert} className="flex items-start gap-2">
-                      <div className="w-1.5 h-1.5 rounded-full bg-terracotta/60 mt-1.5 flex-shrink-0" />
+                      <div className="w-1.5 h-1.5 rounded-full bg-terracotta/60 mt-1.5 shrink-0" />
                       <span className="font-body text-charcoal/80 text-sm">{cert}</span>
                     </li>
                   ))}

@@ -33,13 +33,13 @@ export function Navigation({ variant = "default" }: NavigationProps) {
     isOverlay && [
       "fixed top-0 left-0 right-0 z-50",
       scrolled
-        ? "bg-white/90 backdrop-blur-md border-b border-charcoal/10 shadow-sm"
+        ? "bg-white/90 backdrop-blur-md border-b border-charcoal/10 shadow-xs"
         : "bg-transparent border-b border-transparent shadow-none",
     ],
     !isOverlay && [
       "sticky top-0 z-50 border-b",
       scrolled
-        ? "bg-white/92 backdrop-blur-md border-charcoal/10 shadow-sm"
+        ? "bg-white/92 backdrop-blur-md border-charcoal/10 shadow-xs"
         : "bg-white/78 backdrop-blur-xl border-sage/10",
     ]
   );
@@ -50,11 +50,11 @@ export function Navigation({ variant = "default" }: NavigationProps) {
   return (
     <nav className={shellClass}>
       <div className="max-w-7xl mx-auto px-5 sm:px-8 lg:px-10">
-        <div className="flex justify-between items-center min-h-[4.25rem] md:min-h-[4.5rem] py-3">
+        <div className="flex justify-between items-center min-h-17 md:min-h-18 py-3">
           {/* Full lockup: THE STUDIO + byline (see /public/the_studio_by_C_C_og.png) */}
           <Link
             href="/"
-            className="block select-none outline-none focus-visible:ring-2 focus-visible:ring-[#7A8B7C]/40 focus-visible:rounded-sm"
+            className="block select-none outline-hidden focus-visible:ring-2 focus-visible:ring-[#7A8B7C]/40 focus-visible:rounded-sm"
           >
             <Image
               src="/the_studio_by_C_C_og.png"
@@ -83,7 +83,7 @@ export function Navigation({ variant = "default" }: NavigationProps) {
             <Link href="/portal/login">
               <Button
                 className={cn(
-                  "rounded-full border-0 px-7 py-2.5 h-auto text-[15px] font-body font-medium text-white shadow-sm",
+                  "rounded-full border-0 px-7 py-2.5 h-auto text-[15px] font-body font-medium text-white shadow-xs",
                   HEADER_SAGE
                 )}
               >

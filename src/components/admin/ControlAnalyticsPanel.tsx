@@ -181,7 +181,7 @@ export function ControlAnalyticsPanel() {
                   d.financial.monthlyRevenue.map((cell, idx) => (
                     <div key={idx} className="flex-1 flex flex-col items-center gap-2 min-w-0">
                       <div
-                        className="w-full bg-gradient-to-t from-sage to-sage/40 rounded-t-lg hover:from-sage/90 transition-all cursor-pointer relative group"
+                        className="w-full bg-linear-to-t from-sage to-sage/40 rounded-t-lg hover:from-sage/90 transition-all cursor-pointer relative group"
                         style={{
                           height: `${barPct(cell.amount, maxRev)}%`,
                           minHeight: cell.amount > 0 ? "8px" : "2px",
@@ -316,7 +316,7 @@ export function ControlAnalyticsPanel() {
                   d.members.newMembersMonthly.map((cell, idx) => (
                     <div key={idx} className="flex-1 flex flex-col items-center gap-2">
                       <div
-                        className="w-full bg-gradient-to-t from-sage to-sage/40 rounded-t-lg hover:from-sage/90 transition-all cursor-pointer relative group"
+                        className="w-full bg-linear-to-t from-sage to-sage/40 rounded-t-lg hover:from-sage/90 transition-all cursor-pointer relative group"
                         style={{
                           height: `${barPct(cell.count, maxGrowth)}%`,
                           minHeight: cell.count > 0 ? "8px" : "2px",
@@ -433,14 +433,14 @@ export function ControlAnalyticsPanel() {
                 <div className="space-y-3">
                   {d.members.leaderboard.map((member, idx) => (
                     <div key={idx} className="flex items-center gap-3">
-                      <div className="flex-shrink-0 w-8 h-8 rounded-full bg-sage/10 flex items-center justify-center">
+                      <div className="shrink-0 w-8 h-8 rounded-full bg-sage/10 flex items-center justify-center">
                         <span className="font-display text-sm text-sage">#{idx + 1}</span>
                       </div>
                       <div className="flex-1 min-w-0">
                         <div className="font-body text-sm text-charcoal truncate mb-1">{member.name}</div>
                         <div className="h-2 bg-sage/10 rounded-full overflow-hidden">
                           <div
-                            className="h-full bg-gradient-to-r from-sage to-sage/60 rounded-full transition-all duration-600"
+                            className="h-full bg-linear-to-r from-sage to-sage/60 rounded-full transition-all duration-600"
                             style={{ width: `${barPct(member.streak, d.members.streakMax)}%` }}
                           />
                         </div>
@@ -578,7 +578,7 @@ export function ControlAnalyticsPanel() {
                       </div>
                       <div className="h-3 bg-sage/10 rounded-full overflow-hidden">
                         <div
-                          className="h-full rounded-full bg-gradient-to-r from-sage to-sage/60 transition-all duration-600"
+                          className="h-full rounded-full bg-linear-to-r from-sage to-sage/60 transition-all duration-600"
                           style={{ width: `${barPct(cls.bookings, cls.maxScale)}%` }}
                         />
                       </div>
@@ -640,7 +640,7 @@ export function ControlAnalyticsPanel() {
                       </div>
                       <div className="h-6 bg-sage/10 rounded overflow-hidden">
                         <div
-                          className="h-full bg-gradient-to-r from-sage via-sage/80 to-sage/60 transition-all duration-600"
+                          className="h-full bg-linear-to-r from-sage via-sage/80 to-sage/60 transition-all duration-600"
                           style={{ width: `${slot.intensity}%` }}
                         />
                       </div>
@@ -656,7 +656,7 @@ export function ControlAnalyticsPanel() {
       <div>
         <h3 className="font-display text-2xl text-charcoal mb-4">🎯 KPIs</h3>
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-          <Card className="border-sage/20 bg-gradient-to-br from-sage/5 to-white backdrop-blur-xl">
+          <Card className="border-sage/20 bg-linear-to-br from-sage/5 to-white backdrop-blur-xl">
             <CardContent className="p-6">
               <div className="flex items-center justify-between mb-2">
                 <div className="font-body text-sm text-charcoal/60">Revenue / member (prev month)</div>
@@ -671,7 +671,7 @@ export function ControlAnalyticsPanel() {
             </CardContent>
           </Card>
 
-          <Card className="border-sage/20 bg-gradient-to-br from-sage/5 to-white backdrop-blur-xl">
+          <Card className="border-sage/20 bg-linear-to-br from-sage/5 to-white backdrop-blur-xl">
             <CardContent className="p-6">
               <div className="flex items-center justify-between mb-2">
                 <div className="font-body text-sm text-charcoal/60">Utilization (30d)</div>
@@ -682,7 +682,7 @@ export function ControlAnalyticsPanel() {
             </CardContent>
           </Card>
 
-          <Card className="border-sage/20 bg-gradient-to-br from-sage/5 to-white backdrop-blur-xl">
+          <Card className="border-sage/20 bg-linear-to-br from-sage/5 to-white backdrop-blur-xl">
             <CardContent className="p-6">
               <div className="flex items-center justify-between mb-2">
                 <div className="font-body text-sm text-charcoal/60">Surveys</div>
@@ -693,7 +693,7 @@ export function ControlAnalyticsPanel() {
             </CardContent>
           </Card>
 
-          <Card className="border-sage/20 bg-gradient-to-br from-sage/5 to-white backdrop-blur-xl">
+          <Card className="border-sage/20 bg-linear-to-br from-sage/5 to-white backdrop-blur-xl">
             <CardContent className="p-6">
               <div className="flex items-center justify-between mb-2">
                 <div className="font-body text-sm text-charcoal/60">Café overlap 30d</div>

@@ -112,7 +112,7 @@ export function CheckoutModal({ packageDetails, onClose, userId }: CheckoutModal
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-charcoal/60 backdrop-blur-md animate-in fade-in duration-300">
       <div className="bg-white rounded-3xl max-w-2xl w-full max-h-[90vh] overflow-y-auto shadow-2xl animate-in zoom-in-95 duration-500">
         {/* Header */}
-        <div className="sticky top-0 bg-gradient-to-br from-sage/10 via-cream to-terracotta/10 p-6 border-b border-sage/10">
+        <div className="sticky top-0 bg-linear-to-br from-sage/10 via-cream to-terracotta/10 p-6 border-b border-sage/10">
           <div className="flex items-start justify-between">
             <div>
               <h2 className="font-display text-3xl text-charcoal mb-2">Complete Your Purchase</h2>
@@ -228,7 +228,7 @@ export function CheckoutModal({ packageDetails, onClose, userId }: CheckoutModal
           {/* Error Message */}
           {error && (
             <div className="p-4 rounded-xl bg-red-50 border border-red-200 flex items-start gap-3">
-              <AlertCircle className="text-red-600 flex-shrink-0 mt-0.5" size={20} />
+              <AlertCircle className="text-red-600 shrink-0 mt-0.5" size={20} />
               <p className="font-body text-sm text-red-600">{error}</p>
             </div>
           )}

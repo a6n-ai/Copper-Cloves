@@ -177,7 +177,7 @@ export default function CafePage() {
             {heroMedia.map((media, index) => (
               <div
                 key={`left-${index}`}
-                className="absolute inset-0 transition-opacity duration-[2000ms]"
+                className="absolute inset-0 transition-opacity duration-2000"
                 style={{
                   opacity: index === heroMediaIndex ? 1 : 0,
                   zIndex: index === heroMediaIndex ? 1 : 0
@@ -232,7 +232,7 @@ export default function CafePage() {
               return (
                 <div
                   key={`right-${index}`}
-                  className="absolute inset-0 transition-opacity duration-[2000ms]"
+                  className="absolute inset-0 transition-opacity duration-2000"
                   style={{
                     opacity: isVisible ? 1 : 0,
                     zIndex: isVisible ? 1 : 0
@@ -274,7 +274,7 @@ export default function CafePage() {
           </div>
 
           {/* Gradient Overlay for Text Readability */}
-          <div className="absolute inset-0 bg-gradient-to-r from-charcoal/80 via-charcoal/60 to-transparent" />
+          <div className="absolute inset-0 bg-linear-to-r from-charcoal/80 via-charcoal/60 to-transparent" />
         </div>
 
         {/* Hero Content */}
@@ -318,7 +318,7 @@ export default function CafePage() {
                 <Button 
                   size="lg"
                   variant="outline"
-                  className="border-2 border-white/40 hover:bg-white/10 text-white backdrop-blur-sm px-10 py-6 text-base rounded-full transition-all duration-300"
+                  className="border-2 border-white/40 hover:bg-white/10 text-white backdrop-blur-xs px-10 py-6 text-base rounded-full transition-all duration-300"
                 >
                   Subscribe to Meal Subscription
                 </Button>
@@ -331,7 +331,7 @@ export default function CafePage() {
                 <Button 
                   size="lg"
                   variant="outline"
-                  className="border-2 border-white/40 hover:bg-white/10 text-white backdrop-blur-sm px-10 py-6 text-base rounded-full transition-all duration-300"
+                  className="border-2 border-white/40 hover:bg-white/10 text-white backdrop-blur-xs px-10 py-6 text-base rounded-full transition-all duration-300"
                 >
                   <MapPin className="mr-2" size={20} />
                   Find Our Location
@@ -386,7 +386,7 @@ export default function CafePage() {
       {/* Open Invitation Section - Public Welcome */}
       <section className="relative py-20 px-6 lg:px-8 overflow-hidden">
         {/* Decorative Background */}
-        <div className="absolute inset-0 bg-gradient-to-br from-sage/5 via-cream to-white -z-10" />
+        <div className="absolute inset-0 bg-linear-to-br from-sage/5 via-cream to-white -z-10" />
         
         <div className="max-w-7xl mx-auto">
           <div className="grid lg:grid-cols-2 gap-12 items-center">
@@ -443,7 +443,7 @@ export default function CafePage() {
                   quality={90}
                 />
                 {/* Gradient Overlay */}
-                <div className="absolute inset-0 bg-gradient-to-t from-charcoal/20 to-transparent" />
+                <div className="absolute inset-0 bg-linear-to-t from-charcoal/20 to-transparent" />
               </div>
               
               {/* Floating Stats Badge */}
@@ -468,7 +468,7 @@ export default function CafePage() {
         <div className="max-w-7xl mx-auto">
           <div className="grid md:grid-cols-3 gap-8">
             {/* Feature 1: Fast Wi-Fi */}
-            <div className="group text-center p-8 rounded-3xl bg-white/60 backdrop-blur-sm border border-sage/10 hover:border-sage/30 transition-all duration-300 hover:shadow-lg">
+            <div className="group text-center p-8 rounded-3xl bg-white/60 backdrop-blur-xs border border-sage/10 hover:border-sage/30 transition-all duration-300 hover:shadow-lg">
               <div className="w-16 h-16 rounded-full bg-sage/10 flex items-center justify-center mx-auto mb-6 group-hover:bg-sage/20 transition-colors">
                 <Wifi className="text-sage" size={32} />
               </div>
@@ -479,7 +479,7 @@ export default function CafePage() {
             </div>
             
             {/* Feature 2: Power & Comfort */}
-            <div className="group text-center p-8 rounded-3xl bg-white/60 backdrop-blur-sm border border-sage/10 hover:border-sage/30 transition-all duration-300 hover:shadow-lg">
+            <div className="group text-center p-8 rounded-3xl bg-white/60 backdrop-blur-xs border border-sage/10 hover:border-sage/30 transition-all duration-300 hover:shadow-lg">
               <div className="w-16 h-16 rounded-full bg-sage/10 flex items-center justify-center mx-auto mb-6 group-hover:bg-sage/20 transition-colors">
                 <Zap className="text-sage" size={32} />
               </div>
@@ -490,7 +490,7 @@ export default function CafePage() {
             </div>
             
             {/* Feature 3: Quiet Zones */}
-            <div className="group text-center p-8 rounded-3xl bg-white/60 backdrop-blur-sm border border-sage/10 hover:border-sage/30 transition-all duration-300 hover:shadow-lg">
+            <div className="group text-center p-8 rounded-3xl bg-white/60 backdrop-blur-xs border border-sage/10 hover:border-sage/30 transition-all duration-300 hover:shadow-lg">
               <div className="w-16 h-16 rounded-full bg-sage/10 flex items-center justify-center mx-auto mb-6 group-hover:bg-sage/20 transition-colors">
                 <Volume2 className="text-sage" size={32} />
               </div>
@@ -533,7 +533,7 @@ export default function CafePage() {
                   {/* Glassmorphism Card */}
                   <div className="relative overflow-hidden rounded-3xl bg-white/40 backdrop-blur-xl border border-white/60 shadow-2xl transition-all duration-500 hover:scale-[1.02] hover:shadow-sage/20 p-8">
                     {/* Gradient Background */}
-                    <div className={`absolute inset-0 bg-gradient-to-br ${category.color} opacity-50`} />
+                    <div className={`absolute inset-0 bg-linear-to-br ${category.color} opacity-50`} />
                     
                     {/* Content */}
                     <div className="relative z-10">
@@ -564,11 +564,11 @@ export default function CafePage() {
           <div className="max-w-4xl mx-auto">
             <Card className="relative overflow-hidden border-2 border-sage shadow-2xl">
               {/* Decorative Background */}
-              <div className="absolute inset-0 bg-gradient-to-br from-sage/10 via-cream to-terracotta/10" />
+              <div className="absolute inset-0 bg-linear-to-br from-sage/10 via-cream to-terracotta/10" />
               
               <CardContent className="relative z-10 p-10 md:p-12">
                 <div className="flex items-start gap-6">
-                  <div className="w-20 h-20 rounded-full bg-sage/20 flex items-center justify-center flex-shrink-0">
+                  <div className="w-20 h-20 rounded-full bg-sage/20 flex items-center justify-center shrink-0">
                     <Heart className="text-sage" size={36} />
                   </div>
                   
@@ -609,7 +609,7 @@ export default function CafePage() {
       </section>
 
       {/* Nutritionist CTA Section */}
-      <section className="relative py-16 px-6 lg:px-8 bg-gradient-to-br from-sage/5 to-cream">
+      <section className="relative py-16 px-6 lg:px-8 bg-linear-to-br from-sage/5 to-cream">
         <div className="max-w-4xl mx-auto text-center">
           <p className="font-body text-xl text-charcoal/80 leading-relaxed">
             Not sure what your body needs? <Link href="/cafe/meal-subscription" className="text-sage font-semibold underline hover:text-sage/80 transition-colors">Connect with our in-house nutritionist</Link> for personalized guidance.
@@ -620,7 +620,7 @@ export default function CafePage() {
       {/* ===== NOURISH GALLERY — horizontal marquee on all viewports (same as mobile) ===== */}
       <section className="relative w-full min-h-[50vh] md:min-h-[60vh] bg-white overflow-hidden">
         {/* Watermark — behind scrolling strip */}
-        <div className="absolute inset-0 flex items-center justify-center pointer-events-none z-[1]">
+        <div className="absolute inset-0 flex items-center justify-center pointer-events-none z-1">
           <h2 className="font-display text-7xl sm:text-8xl md:text-9xl text-charcoal select-none tracking-wider italic opacity-[0.12] md:opacity-80">
             GATHER
           </h2>
@@ -631,7 +631,7 @@ export default function CafePage() {
             {[...galleryImages, ...galleryImages].map((image, index) => (
               <div
                 key={`${image}-${index}`}
-                className="relative flex-shrink-0 w-[260px] h-[320px] sm:w-[280px] sm:h-[350px] md:w-[300px] md:h-[380px] rounded-2xl md:rounded-3xl overflow-hidden shadow-2xl transition-transform duration-500 hover:scale-[1.02] hover:shadow-sage/25"
+                className="relative shrink-0 w-[260px] h-[320px] sm:w-[280px] sm:h-[350px] md:w-[300px] md:h-[380px] rounded-2xl md:rounded-3xl overflow-hidden shadow-2xl transition-transform duration-500 hover:scale-[1.02] hover:shadow-sage/25"
                 style={{
                   animation: `float-gentle ${3 + (index % 3)}s ease-in-out infinite`,
                   animationDelay: `${index * 0.15}s`,
@@ -765,7 +765,7 @@ export default function CafePage() {
                     </div>
                   ))}
                   {/* Gradient Overlay */}
-                  <div className="absolute inset-0 bg-gradient-to-t from-charcoal via-charcoal/60 to-transparent z-10" />
+                  <div className="absolute inset-0 bg-linear-to-t from-charcoal via-charcoal/60 to-transparent z-10" />
                 </div>
                 
                 {/* Content */}
@@ -814,7 +814,7 @@ export default function CafePage() {
                     quality={90}
                   />
                   {/* Gradient Overlay */}
-                  <div className="absolute inset-0 bg-gradient-to-t from-charcoal via-charcoal/60 to-transparent" />
+                  <div className="absolute inset-0 bg-linear-to-t from-charcoal via-charcoal/60 to-transparent" />
                 </div>
                 
                 {/* Content */}
@@ -863,7 +863,7 @@ export default function CafePage() {
                     quality={90}
                   />
                   {/* Gradient Overlay */}
-                  <div className="absolute inset-0 bg-gradient-to-t from-charcoal via-charcoal/60 to-transparent" />
+                  <div className="absolute inset-0 bg-linear-to-t from-charcoal via-charcoal/60 to-transparent" />
                 </div>
                 
                 {/* Content */}
@@ -912,7 +912,7 @@ export default function CafePage() {
                     quality={90}
                   />
                   {/* Gradient Overlay */}
-                  <div className="absolute inset-0 bg-gradient-to-t from-charcoal via-charcoal/60 to-transparent" />
+                  <div className="absolute inset-0 bg-linear-to-t from-charcoal via-charcoal/60 to-transparent" />
                 </div>
                 
                 {/* Content */}
@@ -982,7 +982,7 @@ export default function CafePage() {
 
       {/* Final CTA Section */}
       <section className="relative py-24 px-6 lg:px-8 overflow-hidden">
-        <div className="absolute inset-0 bg-gradient-to-br from-sage/20 to-terracotta/20" />
+        <div className="absolute inset-0 bg-linear-to-br from-sage/20 to-terracotta/20" />
         
         <div className="relative z-10 max-w-4xl mx-auto text-center">
           <h2 className="font-display text-4xl md:text-5xl text-charcoal mb-6">

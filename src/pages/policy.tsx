@@ -17,7 +17,7 @@ export default function PrivacyPolicyPage() {
 
       <Navigation />
 
-      <div className="min-h-screen bg-gradient-to-b from-cream via-white to-cream">
+      <div className="min-h-screen bg-linear-to-b from-cream via-white to-cream">
         <section className="relative pt-28 pb-12 px-6 lg:px-8">
           <div className="max-w-3xl mx-auto">
             <Link href="/">

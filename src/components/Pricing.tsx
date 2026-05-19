@@ -207,7 +207,7 @@ export function Pricing() {
 
         {/* Tier Selector */}
         <div className="flex justify-center mb-12">
-          <div className="inline-flex bg-white/80 backdrop-blur-sm rounded-full p-1.5 border border-sage/20 shadow-sm">
+          <div className="inline-flex bg-white/80 backdrop-blur-xs rounded-full p-1.5 border border-sage/20 shadow-xs">
             <button
               onClick={() => setSelectedTier("studio")}
               className={`px-8 py-3 rounded-full font-body text-sm transition-all duration-300 ${
@@ -255,7 +255,7 @@ export function Pricing() {
           {currentPackages.map((pkg, index) => (
             <div
               key={index}
-              className={`flex-shrink-0 w-80 lg:w-auto snap-center ${
+              className={`shrink-0 w-80 lg:w-auto snap-center ${
                 pkg.featured ? "lg:scale-105" : ""
               }`}
             >
@@ -299,7 +299,7 @@ export function Pricing() {
                 <ul className="space-y-4 mb-8">
                   {pkg.benefits.map((benefit, i) => (
                     <li key={i} className="flex items-start gap-3">
-                      <div className="flex-shrink-0 w-5 h-5 rounded-full bg-sage/10 flex items-center justify-center mt-0.5">
+                      <div className="shrink-0 w-5 h-5 rounded-full bg-sage/10 flex items-center justify-center mt-0.5">
                         <Check className="text-sage" size={14} />
                       </div>
                       <span className="font-body text-sm text-charcoal/80 leading-relaxed">

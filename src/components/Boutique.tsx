@@ -73,7 +73,7 @@ export function Boutique() {
           <button
             type="button"
             onClick={() => scroll("left")}
-            className="hidden lg:flex absolute left-0 top-1/2 -translate-y-1/2 -translate-x-4 z-20 w-12 h-12 items-center justify-center rounded-full bg-white/90 backdrop-blur-sm border border-sage/20 text-sage hover:bg-sage hover:text-white transition-all duration-300 shadow-lg hover:shadow-xl"
+            className="hidden lg:flex absolute left-0 top-1/2 -translate-y-1/2 -translate-x-4 z-20 w-12 h-12 items-center justify-center rounded-full bg-white/90 backdrop-blur-xs border border-sage/20 text-sage hover:bg-sage hover:text-white transition-all duration-300 shadow-lg hover:shadow-xl"
             aria-label="Previous products"
           >
             <ChevronLeft size={24} />
@@ -81,7 +81,7 @@ export function Boutique() {
           <button
             type="button"
             onClick={() => scroll("right")}
-            className="hidden lg:flex absolute right-0 top-1/2 -translate-y-1/2 translate-x-4 z-20 w-12 h-12 items-center justify-center rounded-full bg-white/90 backdrop-blur-sm border border-sage/20 text-sage hover:bg-sage hover:text-white transition-all duration-300 shadow-lg hover:shadow-xl"
+            className="hidden lg:flex absolute right-0 top-1/2 -translate-y-1/2 translate-x-4 z-20 w-12 h-12 items-center justify-center rounded-full bg-white/90 backdrop-blur-xs border border-sage/20 text-sage hover:bg-sage hover:text-white transition-all duration-300 shadow-lg hover:shadow-xl"
             aria-label="Next products"
           >
             <ChevronRight size={24} />
@@ -97,9 +97,9 @@ export function Boutique() {
               </p>
             ) : (
               products.map((product) => (
-                <div key={product.id} className="group flex-shrink-0 w-80 lg:w-auto snap-start">
-                  <div className="relative h-full bg-white/80 backdrop-blur-sm rounded-2xl border border-sage/10 overflow-hidden transition-all duration-500 hover:border-sage/30 hover:shadow-xl hover:bg-sage/5">
-                    <div className="relative h-80 overflow-hidden bg-gradient-to-br from-sage/20 via-cream/50 to-terracotta/20">
+                <div key={product.id} className="group shrink-0 w-80 lg:w-auto snap-start">
+                  <div className="relative h-full bg-white/80 backdrop-blur-xs rounded-2xl border border-sage/10 overflow-hidden transition-all duration-500 hover:border-sage/30 hover:shadow-xl hover:bg-sage/5">
+                    <div className="relative h-80 overflow-hidden bg-linear-to-br from-sage/20 via-cream/50 to-terracotta/20">
                       <Image
                         src={product.image_url || PLACEHOLDER_IMAGE}
                         alt={product.name}
@@ -107,9 +107,9 @@ export function Boutique() {
                         className="object-cover"
                         sizes="(max-width: 1024px) 320px, 25vw"
                       />
-                      <div className="absolute inset-0 bg-gradient-to-t from-charcoal/40 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
+                      <div className="absolute inset-0 bg-linear-to-t from-charcoal/40 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
                       <div className="absolute top-4 right-4">
-                        <span className="bg-white/90 backdrop-blur-sm px-3 py-1 rounded-full text-xs font-body text-charcoal/70 border border-sage/20">
+                        <span className="bg-white/90 backdrop-blur-xs px-3 py-1 rounded-full text-xs font-body text-charcoal/70 border border-sage/20">
                           {product.category}
                         </span>
                       </div>

@@ -39,7 +39,7 @@ export function Rental() {
                 className="object-cover"
                 quality={90}
               />
-              <div className="absolute inset-0 bg-gradient-to-t from-charcoal/60 via-transparent to-transparent" />
+              <div className="absolute inset-0 bg-linear-to-t from-charcoal/60 via-transparent to-transparent" />
               
               {/* Floating Badge */}
               <div className="absolute bottom-8 left-8 right-8">
@@ -62,7 +62,7 @@ export function Rental() {
           <div className="space-y-8">
             {/* Feature 1 */}
             <div className="flex gap-4">
-              <div className="flex-shrink-0 w-14 h-14 rounded-full bg-sage/10 flex items-center justify-center">
+              <div className="shrink-0 w-14 h-14 rounded-full bg-sage/10 flex items-center justify-center">
                 <Sparkles className="text-sage" size={24} />
               </div>
               <div>
@@ -78,7 +78,7 @@ export function Rental() {
 
             {/* Feature 2 */}
             <div className="flex gap-4">
-              <div className="flex-shrink-0 w-14 h-14 rounded-full bg-sage/10 flex items-center justify-center">
+              <div className="shrink-0 w-14 h-14 rounded-full bg-sage/10 flex items-center justify-center">
                 <Calendar className="text-sage" size={24} />
               </div>
               <div>
@@ -94,7 +94,7 @@ export function Rental() {
 
             {/* Feature 3 */}
             <div className="flex gap-4">
-              <div className="flex-shrink-0 w-14 h-14 rounded-full bg-sage/10 flex items-center justify-center">
+              <div className="shrink-0 w-14 h-14 rounded-full bg-sage/10 flex items-center justify-center">
                 <Users className="text-sage" size={24} />
               </div>
               <div>
@@ -122,19 +122,19 @@ export function Rental() {
 
         {/* Stats Bar */}
         <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
-          <div className="text-center p-6 rounded-2xl bg-white/50 backdrop-blur-sm border border-sage/10">
+          <div className="text-center p-6 rounded-2xl bg-white/50 backdrop-blur-xs border border-sage/10">
             <p className="font-display text-4xl text-sage mb-2">40+</p>
             <p className="font-body text-sm text-charcoal/70">Events Hosted</p>
           </div>
-          <div className="text-center p-6 rounded-2xl bg-white/50 backdrop-blur-sm border border-sage/10">
+          <div className="text-center p-6 rounded-2xl bg-white/50 backdrop-blur-xs border border-sage/10">
             <p className="font-display text-4xl text-sage mb-2">1,000 sq ft +</p>
             <p className="font-body text-sm text-charcoal/70">Open Space</p>
           </div>
-          <div className="text-center p-6 rounded-2xl bg-white/50 backdrop-blur-sm border border-sage/10">
+          <div className="text-center p-6 rounded-2xl bg-white/50 backdrop-blur-xs border border-sage/10">
             <p className="font-display text-4xl text-sage mb-2">Natural</p>
             <p className="font-body text-sm text-charcoal/70">Lighting</p>
           </div>
-          <div className="text-center p-6 rounded-2xl bg-white/50 backdrop-blur-sm border border-sage/10">
+          <div className="text-center p-6 rounded-2xl bg-white/50 backdrop-blur-xs border border-sage/10">
             <p className="font-display text-4xl text-sage mb-2">Premium</p>
             <p className="font-body text-sm text-charcoal/70">Amenities</p>
           </div>

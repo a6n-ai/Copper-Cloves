@@ -92,7 +92,7 @@ export default function RentalPage() {
 
         {/* Hero Section */}
         <section className="relative pt-32 pb-20 px-6 lg:px-8 overflow-hidden">
-          <div className="absolute inset-0 bg-gradient-to-b from-sage/5 to-transparent" />
+          <div className="absolute inset-0 bg-linear-to-b from-sage/5 to-transparent" />
           
           <div className="relative z-10 max-w-7xl mx-auto text-center">
             <h1 className="font-display text-5xl md:text-7xl text-charcoal mb-6">
@@ -132,7 +132,7 @@ export default function RentalPage() {
                     className="object-cover"
                     quality={90}
                   />
-                  <div className="absolute inset-0 bg-gradient-to-t from-charcoal/40 via-transparent to-transparent" />
+                  <div className="absolute inset-0 bg-linear-to-t from-charcoal/40 via-transparent to-transparent" />
                 </div>
               ))}
             </div>

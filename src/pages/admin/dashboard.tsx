@@ -1099,7 +1099,7 @@ export default function AdminDashboard() {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-cream via-cream to-sage/10 flex items-center justify-center">
+      <div className="min-h-screen bg-linear-to-br from-cream via-cream to-sage/10 flex items-center justify-center">
         <div className="h-12 w-12 border-4 border-sage/20 border-t-sage rounded-full animate-spin" />
       </div>
     );
@@ -1112,7 +1112,7 @@ export default function AdminDashboard() {
         description="Manage classes, members, and operations"
       />
       
-      <div className="min-h-screen bg-gradient-to-br from-cream via-cream to-sage/10">
+      <div className="min-h-screen bg-linear-to-br from-cream via-cream to-sage/10">
         {/* Decorative Elements */}
         <div className="fixed top-20 right-20 w-72 h-72 bg-sage/10 rounded-full blur-3xl pointer-events-none" />
         <div className="fixed bottom-20 left-20 w-96 h-96 bg-cream/50 rounded-full blur-3xl pointer-events-none" />
@@ -1154,7 +1154,7 @@ export default function AdminDashboard() {
                   <TabsTrigger
                     key={t.v}
                     value={t.v}
-                    className="font-body gap-2 px-3 text-charcoal/60 data-[state=active]:bg-sage data-[state=active]:text-white data-[state=active]:shadow-sm"
+                    className="font-body gap-2 px-3 text-charcoal/60 data-[state=active]:bg-sage data-[state=active]:text-white data-[state=active]:shadow-xs"
                   >
                     <t.I className="h-4 w-4" />
                     {t.l}
@@ -1319,7 +1319,7 @@ export default function AdminDashboard() {
                   </Card>
 
                 {/* Expiring Members Alert */}
-                <Card className="border-amber-500/20 bg-gradient-to-br from-amber-50 to-white backdrop-blur-xl">
+                <Card className="border-amber-500/20 bg-linear-to-br from-amber-50 to-white backdrop-blur-xl">
                   <CardHeader>
                     <div className="flex items-center justify-between">
                       <div>
@@ -1915,7 +1915,7 @@ export default function AdminDashboard() {
                           {[45, 52, 48, 61, 55, 58, 63, 59, 67, 64, 71, 68, 75, 72, 78, 82, 79, 85, 88, 84, 91, 87, 94, 92, 98, 99].map((value, idx) => (
                             <div key={idx} className="flex-1 flex flex-col items-center gap-1">
                               <div 
-                                className="w-full bg-gradient-to-t from-sage to-sage/40 rounded-t-sm hover:from-sage/90 hover:to-sage/60 transition-all duration-300 cursor-pointer relative group"
+                                className="w-full bg-linear-to-t from-sage to-sage/40 rounded-t-sm hover:from-sage/90 hover:to-sage/60 transition-all duration-300 cursor-pointer relative group"
                                 style={{ height: `${value}%` }}
                               >
                                 <div className="absolute -top-8 left-1/2 -translate-x-1/2 bg-charcoal text-white text-xs rounded opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap">
@@ -2683,7 +2683,7 @@ export default function AdminDashboard() {
                 </div>
 
                 {/* Member of the Month */}
-                <Card className="border-sage/20 bg-gradient-to-br from-sage/5 to-white backdrop-blur-xl">
+                <Card className="border-sage/20 bg-linear-to-br from-sage/5 to-white backdrop-blur-xl">
                   <CardHeader>
                     <div className="flex items-center justify-between">
                       <div>
@@ -2727,7 +2727,7 @@ export default function AdminDashboard() {
 
                 {/* Pass Expiry Stats */}
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-                  <Card className="border-amber-500/20 bg-gradient-to-br from-amber-50 to-white backdrop-blur-xl">
+                  <Card className="border-amber-500/20 bg-linear-to-br from-amber-50 to-white backdrop-blur-xl">
                     <CardHeader className="pb-3">
                       <div className="flex items-center justify-between">
                         <CardTitle className="font-body text-sm text-charcoal/60 font-medium">
@@ -2750,7 +2750,7 @@ export default function AdminDashboard() {
                     </CardContent>
                   </Card>
 
-                  <Card className="border-amber-500/20 bg-gradient-to-br from-amber-50/50 to-white backdrop-blur-xl">
+                  <Card className="border-amber-500/20 bg-linear-to-br from-amber-50/50 to-white backdrop-blur-xl">
                     <CardHeader className="pb-3">
                       <div className="flex items-center justify-between">
                         <CardTitle className="font-body text-sm text-charcoal/60 font-medium">
@@ -3512,7 +3512,7 @@ export default function AdminDashboard() {
 
                 {/* Underperforming Classes alert */}
                 {classPerformance.filter((c) => c.utilization < 60).length > 0 && (
-                  <Card className="border-red-500/20 bg-gradient-to-br from-red-50 to-white backdrop-blur-xl">
+                  <Card className="border-red-500/20 bg-linear-to-br from-red-50 to-white backdrop-blur-xl">
                     <CardHeader>
                       <CardTitle className="font-display text-xl text-charcoal flex items-center gap-2">
                         <AlertTriangle className="h-5 w-5 text-red-500" />
@@ -4093,9 +4093,9 @@ export default function AdminDashboard() {
       {/* Member Profile Modal */}
       {showMemberProfile && selectedMemberProfile && (
         <div className="fixed inset-0 z-50">
-          <div className="absolute inset-0 bg-charcoal/60 backdrop-blur-sm" onClick={() => setShowMemberProfile(false)} />
+          <div className="absolute inset-0 bg-charcoal/60 backdrop-blur-xs" onClick={() => setShowMemberProfile(false)} />
           
-          <div className="absolute right-0 top-0 bottom-0 w-full max-w-3xl bg-gradient-to-br from-cream via-white to-cream shadow-2xl overflow-y-auto">
+          <div className="absolute right-0 top-0 bottom-0 w-full max-w-3xl bg-linear-to-br from-cream via-white to-cream shadow-2xl overflow-y-auto">
             <div className="sticky top-0 bg-white/95 backdrop-blur-xl border-b border-sage/10 p-6 z-10">
               <div className="flex items-center justify-between">
                 <div>

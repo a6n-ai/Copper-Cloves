@@ -69,7 +69,7 @@ export default function ResetPasswordPage() {
     <>
       <SEO title="Reset Password — The Studio" description="Choose a new password" />
 
-      <nav className="bg-white/40 backdrop-blur-xl shadow-sm sticky top-0 z-40 border-b border-sage/10">
+      <nav className="bg-white/40 backdrop-blur-xl shadow-xs sticky top-0 z-40 border-b border-sage/10">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex justify-between items-center h-20">
             <Link href="/" className="flex flex-col leading-none">
@@ -84,7 +84,7 @@ export default function ResetPasswordPage() {
         </div>
       </nav>
 
-      <div className="min-h-[calc(100vh-5rem)] bg-gradient-to-br from-cream via-cream to-sage/5 flex items-center justify-center py-12 px-4">
+      <div className="min-h-[calc(100vh-5rem)] bg-linear-to-br from-cream via-cream to-sage/5 flex items-center justify-center py-12 px-4">
         <Card className="w-full max-w-md border-sage/20 bg-white/95 backdrop-blur-xl shadow-2xl">
           <CardHeader className="space-y-6 pb-6">
             <div className="flex justify-center">

@@ -90,7 +90,7 @@ export default function SignupPage() {
 
   if (success) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-cream via-cream to-sage/10 flex items-center justify-center p-4">
+      <div className="min-h-screen bg-linear-to-br from-cream via-cream to-sage/10 flex items-center justify-center p-4">
         <SEO
           title="Account Created - The Studio"
           description="Your account has been created successfully"
@@ -130,7 +130,7 @@ export default function SignupPage() {
         description="Create your account and start your wellness journey"
       />
 
-      <nav className="bg-white/40 backdrop-blur-xl shadow-sm sticky top-0 z-50 border-b border-sage/10">
+      <nav className="bg-white/40 backdrop-blur-xl shadow-xs sticky top-0 z-50 border-b border-sage/10">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex justify-between items-center h-20">
             <Link href="/" className="flex flex-col leading-none group">
@@ -148,7 +148,7 @@ export default function SignupPage() {
         </div>
       </nav>
 
-      <div className="min-h-[calc(100vh-5rem)] bg-gradient-to-br from-cream via-cream to-sage/10 flex items-center justify-center py-12 px-4">
+      <div className="min-h-[calc(100vh-5rem)] bg-linear-to-br from-cream via-cream to-sage/10 flex items-center justify-center py-12 px-4">
         <div className="w-full max-w-md">
           <Card className="border-sage/20 bg-white/95 backdrop-blur-xl shadow-2xl">
             <CardHeader className="space-y-6 pb-8">

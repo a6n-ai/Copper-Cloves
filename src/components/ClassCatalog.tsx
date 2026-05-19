@@ -128,7 +128,7 @@ export function ClassCatalog() {
               {classes.map((classItem, index) => (
                 <div
                   key={classItem.id || index}
-                  className="group relative flex-shrink-0 w-[22rem] sm:w-96 h-[26rem] md:h-[32rem] rounded-2xl overflow-hidden cursor-pointer"
+                  className="group relative shrink-0 w-88 sm:w-96 h-104 md:h-128 rounded-2xl overflow-hidden cursor-pointer"
                 >
                   {/* Background Image */}
                   <img
@@ -138,7 +138,7 @@ export function ClassCatalog() {
                   />
 
                   {/* Default State - Dark gradient with class name */}
-                  <div className="absolute inset-0 bg-gradient-to-t from-charcoal/80 via-charcoal/40 to-transparent transition-opacity duration-600 ease-in-out group-hover:opacity-0 flex items-end p-6">
+                  <div className="absolute inset-0 bg-linear-to-t from-charcoal/80 via-charcoal/40 to-transparent transition-opacity duration-600 ease-in-out group-hover:opacity-0 flex items-end p-6">
                     <h3 className="font-display text-3xl md:text-4xl text-white drop-shadow-lg leading-tight">
                       {classItem.name}
                     </h3>

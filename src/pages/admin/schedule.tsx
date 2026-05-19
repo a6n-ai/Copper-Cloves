@@ -770,7 +770,7 @@ export default function AdminSchedule() {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-cream via-cream to-sage/10 flex items-center justify-center">
+      <div className="min-h-screen bg-linear-to-br from-cream via-cream to-sage/10 flex items-center justify-center">
         <div className="h-12 w-12 border-4 border-sage/20 border-t-sage rounded-full animate-spin" />
       </div>
     );
@@ -783,7 +783,7 @@ export default function AdminSchedule() {
         description="Manage class schedules and instructors"
       />
       
-      <div className="min-h-screen bg-gradient-to-br from-cream via-cream to-sage/10">
+      <div className="min-h-screen bg-linear-to-br from-cream via-cream to-sage/10">
         
         <main className="min-h-screen">
           <div className="max-w-7xl mx-auto p-6 lg:p-8 space-y-8">
@@ -840,7 +840,7 @@ export default function AdminSchedule() {
                       head_row: "flex w-full",
                       head_cell: "text-muted-foreground rounded-md flex-1 font-normal text-[0.8rem] text-center",
                       row: "flex w-full mt-2",
-                      cell: "relative p-0 text-center text-sm flex-1 focus-within:relative focus-within:z-20 [&:has([aria-selected])]:bg-accent [&:has([aria-selected])]:rounded-md",
+                      cell: "relative p-0 text-center text-sm flex-1 focus-within:relative focus-within:z-20 has-aria-[selected]:bg-accent has-aria-[selected]:rounded-md",
                       day: "h-9 w-full p-0 font-normal aria-selected:opacity-100 hover:bg-sage/10 rounded-md transition-colors",
                       day_selected: "bg-sage text-white hover:bg-sage hover:text-white focus:bg-sage focus:text-white",
                       day_today: "bg-sage/10 text-sage font-medium",

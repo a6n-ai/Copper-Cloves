@@ -101,7 +101,7 @@ function MemberAvatar({ name, url }: { name: string; url: string | null }) {
   }
   const initials = name.split(" ").slice(0, 2).map((p) => p[0]).join("").toUpperCase();
   return (
-    <div className="h-9 w-9 rounded-full bg-sage/10 border border-sage/20 flex items-center justify-center flex-shrink-0">
+    <div className="h-9 w-9 rounded-full bg-sage/10 border border-sage/20 flex items-center justify-center shrink-0">
       <span className="font-body text-xs font-medium text-sage">{initials}</span>
     </div>
   );
@@ -279,7 +279,7 @@ export default function InstructorDashboard() {
             { icon: UserCheck, label: "Checked In Today", value: totalCheckedIn },
           ].map(({ icon: Icon, label, value }) => (
             <div key={label} className="bg-white rounded-2xl border border-sage/10 p-4 flex items-center gap-3">
-              <div className="h-9 w-9 rounded-xl bg-sage/10 flex items-center justify-center flex-shrink-0">
+              <div className="h-9 w-9 rounded-xl bg-sage/10 flex items-center justify-center shrink-0">
                 <Icon className="h-4 w-4 text-sage" />
               </div>
               <div>
@@ -295,13 +295,13 @@ export default function InstructorDashboard() {
           <TabsList className="mb-5 bg-sage/10 p-1 rounded-xl">
             <TabsTrigger
               value="today"
-              className="font-body data-[state=active]:bg-white data-[state=active]:text-charcoal data-[state=active]:shadow-sm rounded-lg px-5"
+              className="font-body data-[state=active]:bg-white data-[state=active]:text-charcoal data-[state=active]:shadow-xs rounded-lg px-5"
             >
               My Schedule
             </TabsTrigger>
             <TabsTrigger
               value="checkin"
-              className="font-body data-[state=active]:bg-white data-[state=active]:text-charcoal data-[state=active]:shadow-sm rounded-lg px-5"
+              className="font-body data-[state=active]:bg-white data-[state=active]:text-charcoal data-[state=active]:shadow-xs rounded-lg px-5"
             >
               Check In
             </TabsTrigger>

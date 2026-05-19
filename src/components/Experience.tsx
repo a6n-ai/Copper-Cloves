@@ -3,7 +3,7 @@ import Link from "next/link";
 
 export function Experience() {
   return (
-    <section id="experience" className="py-14 md:py-16 px-6 lg:px-8 bg-gradient-to-br from-cream via-white to-sage/5">
+    <section id="experience" className="py-14 md:py-16 px-6 lg:px-8 bg-linear-to-br from-cream via-white to-sage/5">
       <div className="max-w-7xl mx-auto">
         <h2 className="font-display text-4xl md:text-6xl text-center text-charcoal mb-10 md:mb-12">
           The Experience

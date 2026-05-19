@@ -57,7 +57,7 @@ export function PortalNavigation({
   return (
     <>
       {/* Header with Hamburger for All Screen Sizes */}
-      <header className="fixed top-0 left-0 right-0 z-50 bg-white/80 backdrop-blur-xl border-b border-sage/10 shadow-sm h-16">
+      <header className="fixed top-0 left-0 right-0 z-50 bg-white/80 backdrop-blur-xl border-b border-sage/10 shadow-xs h-16">
         <div className="flex items-center justify-between h-full px-4">
           {/* Left Side: Hamburger + Logo */}
           <div className="flex items-center gap-4">
@@ -95,7 +95,7 @@ export function PortalNavigation({
       {/* Overlay for all screen sizes */}
       {isOpen && (
         <div
-          className="fixed inset-0 bg-charcoal/60 backdrop-blur-sm z-40 animate-in fade-in duration-600"
+          className="fixed inset-0 bg-charcoal/60 backdrop-blur-xs z-40 animate-in fade-in duration-600"
           onClick={() => setIsOpen(false)}
         />
       )}
@@ -108,7 +108,7 @@ export function PortalNavigation({
       >
         <div className="flex flex-col h-full">
           {/* User Profile Section */}
-          <div className="p-6 bg-gradient-to-br from-cream/50 to-white border-b border-sage/10">
+          <div className="p-6 bg-linear-to-br from-cream/50 to-white border-b border-sage/10">
             <div className="flex items-center gap-4 mb-4">
               <Avatar className="h-16 w-16 border-2 border-sage/20">
                 <AvatarFallback className="bg-sage/10 text-sage font-display text-xl">
@@ -164,7 +164,7 @@ export function PortalNavigation({
           </nav>
 
           {/* Sign Out Button */}
-          <div className="p-4 border-t border-sage/10 bg-gradient-to-t from-cream/30 to-white">
+          <div className="p-4 border-t border-sage/10 bg-linear-to-t from-cream/30 to-white">
             <Button
               onClick={handleSignOut}
               variant="outline"

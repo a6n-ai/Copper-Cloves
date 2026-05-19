@@ -28,7 +28,7 @@ export function Founder() {
   return (
     <section className="relative py-16 md:py-20 px-6 lg:px-8 overflow-hidden">
       {/* Subtle Background */}
-      <div className="absolute inset-0 bg-gradient-to-br from-cream via-white to-sage/5 -z-10" />
+      <div className="absolute inset-0 bg-linear-to-br from-cream via-white to-sage/5 -z-10" />
       
       <div className="max-w-7xl mx-auto">
         {/* Section Badge */}
@@ -62,7 +62,7 @@ export function Founder() {
               {features.map((feature, index) => (
                 <div key={index} className="flex items-start gap-4">
                   {/* Sage Green Organic Dot */}
-                  <div className="w-2 h-2 rounded-full bg-sage mt-2.5 flex-shrink-0" />
+                  <div className="w-2 h-2 rounded-full bg-sage mt-2.5 shrink-0" />
                   
                   <div>
                     <p className="font-body text-base text-charcoal leading-relaxed">
@@ -116,7 +116,7 @@ export function Founder() {
                 {stats.slice(0, 2).map((stat, index) => (
                   <div 
                     key={index}
-                    className={`absolute ${stat.position} bg-white/95 backdrop-blur-sm px-4 py-3 rounded-2xl shadow-lg border border-white/40`}
+                    className={`absolute ${stat.position} bg-white/95 backdrop-blur-xs px-4 py-3 rounded-2xl shadow-lg border border-white/40`}
                   >
                     <p className="font-display text-3xl text-charcoal leading-none mb-1">
                       {stat.value}
@@ -140,7 +140,7 @@ export function Founder() {
                 />
                 
                 {/* Stat Overlay */}
-                <div className={`absolute ${stats[2].position} bg-white/95 backdrop-blur-sm px-4 py-3 rounded-2xl shadow-lg border border-white/40`}>
+                <div className={`absolute ${stats[2].position} bg-white/95 backdrop-blur-xs px-4 py-3 rounded-2xl shadow-lg border border-white/40`}>
                   <p className="font-display text-3xl text-charcoal leading-none mb-1">
                     {stats[2].value}
                   </p>
@@ -162,7 +162,7 @@ export function Founder() {
                 />
                 
                 {/* Stat Overlay */}
-                <div className={`absolute ${stats[3].position} bg-white/95 backdrop-blur-sm px-4 py-3 rounded-2xl shadow-lg border border-white/40`}>
+                <div className={`absolute ${stats[3].position} bg-white/95 backdrop-blur-xs px-4 py-3 rounded-2xl shadow-lg border border-white/40`}>
                   <p className="font-display text-3xl text-charcoal leading-none mb-1">
                     {stats[3].value}
                   </p>

@@ -408,7 +408,7 @@ export default function AdminBadgesPage() {
                 key={p.hex}
                 title={p.label}
                 onClick={() => setForm((f) => ({ ...f, color: p.hex }))}
-                className="w-6 h-6 rounded-full border-2 border-white shadow transition-transform hover:scale-110"
+                className="w-6 h-6 rounded-full border-2 border-white shadow-sm transition-transform hover:scale-110"
                 style={{ backgroundColor: p.hex, outline: form.color === p.hex ? `2px solid ${p.hex}` : "none" }}
               />
             ))}
@@ -456,7 +456,7 @@ export default function AdminBadgesPage() {
 
   if (status === "loading" || loading) {
     return (
-      <div className="flex items-center justify-center min-h-screen bg-gradient-to-br from-cream via-cream to-sage/5">
+      <div className="flex items-center justify-center min-h-screen bg-linear-to-br from-cream via-cream to-sage/5">
         <div className="text-sage font-display text-2xl animate-pulse">Loading badges...</div>
       </div>
     );
@@ -465,7 +465,7 @@ export default function AdminBadgesPage() {
   const adminUser = session?.user as { name?: string; email?: string } | undefined;
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-cream via-cream to-sage/5">
+    <div className="min-h-screen bg-linear-to-br from-cream via-cream to-sage/5">
 
       <main className="min-h-screen">
         <div className="max-w-6xl mx-auto p-6 lg:p-8 space-y-6">
@@ -475,7 +475,7 @@ export default function AdminBadgesPage() {
           />
 
           {/* Tabs */}
-          <div className="flex gap-1 bg-white/60 p-1 rounded-xl shadow-sm border border-sage/10 w-fit mb-8">
+          <div className="flex gap-1 bg-white/60 p-1 rounded-xl shadow-xs border border-sage/10 w-fit mb-8">
             {(["ptm", "custom"] as Tab[]).map((t) => (
               <button
                 key={t}
@@ -495,12 +495,12 @@ export default function AdminBadgesPage() {
           {tab === "ptm" && (
             <div className="space-y-4">
               {ptmTemplates.map((template) => (
-                <Card key={template.id} className="border-0 bg-white/80 backdrop-blur-xl shadow-sm">
+                <Card key={template.id} className="border-0 bg-white/80 backdrop-blur-xl shadow-xs">
                   <CardContent className="p-5">
                     <div className="flex items-center gap-4">
                       {/* Icon + color swatch */}
                       <div
-                        className="w-14 h-14 rounded-2xl flex items-center justify-center text-2xl shadow-sm flex-shrink-0"
+                        className="w-14 h-14 rounded-2xl flex items-center justify-center text-2xl shadow-xs shrink-0"
                         style={{ backgroundColor: template.color + "22" }}
                       >
                         {template.icon}
@@ -517,7 +517,7 @@ export default function AdminBadgesPage() {
                             </Badge>
                           )}
                           <div
-                            className="w-4 h-4 rounded-full border border-white shadow-sm"
+                            className="w-4 h-4 rounded-full border border-white shadow-xs"
                             style={{ backgroundColor: template.color }}
                             title={template.color}
                           />
@@ -528,7 +528,7 @@ export default function AdminBadgesPage() {
                           </p>
                         )}
                       </div>
-                      <div className="flex gap-2 flex-shrink-0">
+                      <div className="flex gap-2 shrink-0">
                         <Button
                           size="sm"
                           variant="outline"
@@ -563,7 +563,7 @@ export default function AdminBadgesPage() {
 
               {/* Add Milestone */}
               {showAddPtm ? (
-                <Card className="border-0 bg-white/80 backdrop-blur-xl shadow-sm">
+                <Card className="border-0 bg-white/80 backdrop-blur-xl shadow-xs">
                   <CardContent className="p-5">
                     <h3 className="font-display text-lg text-charcoal mb-2">New Milestone</h3>
                     {renderBadgeForm(
@@ -611,7 +611,7 @@ export default function AdminBadgesPage() {
                 </div>
 
                 {showCreateCustom && (
-                  <Card className="border-0 bg-white/80 backdrop-blur-xl shadow-sm">
+                  <Card className="border-0 bg-white/80 backdrop-blur-xl shadow-xs">
                     <CardContent className="p-5">
                       <h3 className="font-display text-lg text-charcoal mb-2">New Custom Badge</h3>
                       {renderBadgeForm(customForm, setCustomForm, createCustom, () => {
@@ -631,7 +631,7 @@ export default function AdminBadgesPage() {
                 {customTemplates.map((template) => (
                   <Card
                     key={template.id}
-                    className={`border-0 bg-white/80 backdrop-blur-xl shadow-sm cursor-pointer transition-all duration-200 ${
+                    className={`border-0 bg-white/80 backdrop-blur-xl shadow-xs cursor-pointer transition-all duration-200 ${
                       selectedCustomTemplate?.id === template.id
                         ? "ring-2 ring-sage/50 shadow-md"
                         : "hover:shadow-md"
@@ -645,7 +645,7 @@ export default function AdminBadgesPage() {
                     <CardContent className="p-4">
                       <div className="flex items-center gap-3">
                         <div
-                          className="w-12 h-12 rounded-xl flex items-center justify-center text-xl shadow-sm flex-shrink-0"
+                          className="w-12 h-12 rounded-xl flex items-center justify-center text-xl shadow-xs shrink-0"
                           style={{ backgroundColor: template.color + "22" }}
                         >
                           {template.icon}
@@ -660,7 +660,7 @@ export default function AdminBadgesPage() {
                             </p>
                           )}
                         </div>
-                        <div className="flex gap-1.5 flex-shrink-0" onClick={(e) => e.stopPropagation()}>
+                        <div className="flex gap-1.5 shrink-0" onClick={(e) => e.stopPropagation()}>
                           <Button
                             size="sm"
                             variant="outline"
@@ -704,7 +704,7 @@ export default function AdminBadgesPage() {
                 ))}
 
                 {/* Member of the Month */}
-                <Card className="border-0 bg-gradient-to-br from-terracotta/5 to-sage/5 shadow-sm mt-6">
+                <Card className="border-0 bg-linear-to-br from-terracotta/5 to-sage/5 shadow-xs mt-6">
                   <CardHeader className="pb-2">
                     <CardTitle className="font-display text-lg text-charcoal flex items-center gap-2">
                       <Star size={18} className="text-terracotta" />
@@ -743,7 +743,7 @@ export default function AdminBadgesPage() {
               {/* Right: Allocation panel */}
               <div>
                 {selectedCustomTemplate ? (
-                  <Card className="border-0 bg-white/80 backdrop-blur-xl shadow-sm sticky top-24">
+                  <Card className="border-0 bg-white/80 backdrop-blur-xl shadow-xs sticky top-24">
                     <CardHeader className="pb-2">
                       <CardTitle className="font-display text-lg text-charcoal flex items-center gap-3">
                         <span className="text-2xl">{selectedCustomTemplate.icon}</span>

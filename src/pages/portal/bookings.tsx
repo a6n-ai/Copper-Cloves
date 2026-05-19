@@ -151,7 +151,7 @@ export default function MyBookingsPage() {
 
   if (isLoading) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-cream via-cream to-sage/5 flex items-center justify-center">
+      <div className="min-h-screen bg-linear-to-br from-cream via-cream to-sage/5 flex items-center justify-center">
         <div className="text-center">
           <div className="w-16 h-16 border-4 border-sage/30 border-t-sage rounded-full animate-spin mx-auto mb-4" />
           <p className="font-body text-charcoal/60">Loading...</p>
@@ -165,7 +165,7 @@ export default function MyBookingsPage() {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-cream via-cream to-sage/5">
+    <div className="min-h-screen bg-linear-to-br from-cream via-cream to-sage/5">
       <PortalNavigation />
 
       {/* Header */}
@@ -224,7 +224,7 @@ export default function MyBookingsPage() {
               return (
                 <div
                   key={booking.id}
-                  className="bg-white rounded-xl shadow-sm border border-sage/10 p-6 hover:shadow-md transition-all duration-300"
+                  className="bg-white rounded-xl shadow-xs border border-sage/10 p-6 hover:shadow-md transition-all duration-300"
                 >
                   <div className="flex items-center justify-between gap-6">
                     {/* Left: Class Info */}
@@ -280,7 +280,7 @@ export default function MyBookingsPage() {
 
                     {/* Right: Action Button */}
                     {!isPast && (
-                      <div className="flex-shrink-0 flex flex-col gap-2 items-end max-w-xs text-right">
+                      <div className="shrink-0 flex flex-col gap-2 items-end max-w-xs text-right">
                         {beforeCheckInWindow && (
                           <p className="font-body text-xs text-charcoal/55">
                             Check-in opens at {formatTime(new Date(checkInOpen).toISOString())} (15 minutes

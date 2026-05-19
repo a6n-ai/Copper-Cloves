@@ -395,14 +395,14 @@ export default function CRMPage() {
 
   if (loading) {
     return (
-      <div className="flex items-center justify-center min-h-screen bg-gradient-to-br from-cream via-white to-cream">
+      <div className="flex items-center justify-center min-h-screen bg-linear-to-br from-cream via-white to-cream">
         <Loader2 className="animate-spin text-sage" size={48} />
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-cream via-white to-cream">
+    <div className="min-h-screen bg-linear-to-br from-cream via-white to-cream">
       
       <main className="min-h-screen">
         <div className="max-w-7xl mx-auto p-6 lg:p-8 space-y-8">
@@ -791,7 +791,7 @@ export default function CRMPage() {
                   </CardContent>
                 </Card>
 
-                <Card className="border-0 bg-gradient-to-br from-sage/5 to-white backdrop-blur-xl shadow-lg">
+                <Card className="border-0 bg-linear-to-br from-sage/5 to-white backdrop-blur-xl shadow-lg">
                   <CardContent className="p-6">
                     <div className="flex items-center justify-between mb-3">
                       <p className="font-body text-sm text-charcoal/60">Conversion Rate</p>
@@ -843,11 +843,11 @@ export default function CRMPage() {
                         </div>
                         <div className="flex gap-2 h-8">
                           <div 
-                            className="bg-gradient-to-r from-sage to-sage/60 rounded-lg hover:shadow-lg transition-all duration-300"
+                            className="bg-linear-to-r from-sage to-sage/60 rounded-lg hover:shadow-lg transition-all duration-300"
                             style={{ width: `${(week.nudges / 50) * 100}%` }}
                           />
                           <div 
-                            className="bg-gradient-to-r from-green-500 to-green-400 rounded-lg hover:shadow-lg transition-all duration-300"
+                            className="bg-linear-to-r from-green-500 to-green-400 rounded-lg hover:shadow-lg transition-all duration-300"
                             style={{ width: `${(week.conversions / 50) * 100}%` }}
                           />
                         </div>
@@ -916,7 +916,7 @@ export default function CRMPage() {
       {/* Template Form Modal */}
       {showTemplateForm && (
         <div className="fixed inset-0 z-50">
-          <div className="absolute inset-0 bg-charcoal/60 backdrop-blur-sm" onClick={() => {
+          <div className="absolute inset-0 bg-charcoal/60 backdrop-blur-xs" onClick={() => {
             setShowTemplateForm(false);
             setEditingTemplate(null);
           }} />
@@ -1066,7 +1066,7 @@ export default function CRMPage() {
       {/* Trigger Form Modal */}
       {showTriggerForm && (
         <div className="fixed inset-0 z-50">
-          <div className="absolute inset-0 bg-charcoal/60 backdrop-blur-sm" onClick={() => setShowTriggerForm(false)} />
+          <div className="absolute inset-0 bg-charcoal/60 backdrop-blur-xs" onClick={() => setShowTriggerForm(false)} />
           
           <div className="absolute right-0 top-0 bottom-0 w-full max-w-2xl bg-white shadow-2xl overflow-y-auto">
             <div className="sticky top-0 bg-white/95 backdrop-blur-xl border-b border-sage/10 p-6 z-10">

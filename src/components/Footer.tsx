@@ -121,7 +121,7 @@ export function Footer() {
             <h3 className="font-display text-xl text-white mb-6">Get in Touch</h3>
             <ul className="space-y-4">
               <li className="flex items-start gap-3">
-                <MapPin className="text-white mt-1 flex-shrink-0" size={20} />
+                <MapPin className="text-white mt-1 shrink-0" size={20} />
                 <div className="font-body text-white/70 leading-relaxed">
                   1226, 12th Main Road, HAL 2nd Stage,<br />
                   Indiranagar, Bengaluru,<br />
@@ -129,13 +129,13 @@ export function Footer() {
                 </div>
               </li>
               <li className="flex items-center gap-3">
-                <Phone className="text-white flex-shrink-0" size={20} />
+                <Phone className="text-white shrink-0" size={20} />
                 <a href="tel:+919008426703" className="font-body text-white/70 hover:text-white transition-colors duration-300">
                   +91 90084 26703
                 </a>
               </li>
               <li className="flex items-center gap-3">
-                <Mail className="text-white flex-shrink-0" size={20} />
+                <Mail className="text-white shrink-0" size={20} />
                 <a href="mailto:thestudio@copperandcloves.com" className="font-body text-white/70 hover:text-white transition-colors duration-300">
                   thestudio@copperandcloves.com
                 </a>

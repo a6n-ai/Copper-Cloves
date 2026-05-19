@@ -410,7 +410,7 @@ export default function AdminProducts() {
     <>
       <SEO title="Boutique Management - Admin" />
       
-      <div className="flex min-h-screen bg-gradient-to-br from-cream via-white to-sage/5">
+      <div className="flex min-h-screen bg-linear-to-br from-cream via-white to-sage/5">
         
         <main className="min-h-screen">
           <div className="max-w-7xl mx-auto p-6 lg:p-8 space-y-8">
@@ -515,7 +515,7 @@ export default function AdminProducts() {
                       placeholder="Search products..."
                       value={searchQuery}
                       onChange={(e) => setSearchQuery(e.target.value)}
-                      className="w-full pl-12 pr-4 py-3 rounded-full bg-white/60 border border-sage/10 font-body text-sm text-charcoal placeholder:text-charcoal/40 focus:outline-none focus:ring-2 focus:ring-sage/30"
+                      className="w-full pl-12 pr-4 py-3 rounded-full bg-white/60 border border-sage/10 font-body text-sm text-charcoal placeholder:text-charcoal/40 focus:outline-hidden focus:ring-2 focus:ring-sage/30"
                     />
                   </div>
 
@@ -539,7 +539,7 @@ export default function AdminProducts() {
                             <tr key={product.id} className="border-b border-sage/10 hover:bg-sage/5 transition-colors">
                               <td className="p-4">
                                 <div className="flex items-center gap-3">
-                                  <div className="w-12 h-12 rounded-lg bg-gradient-to-br from-sage/20 via-cream/50 to-terracotta/20 flex-shrink-0" />
+                                  <div className="w-12 h-12 rounded-lg bg-linear-to-br from-sage/20 via-cream/50 to-terracotta/20 shrink-0" />
                                   <div>
                                     <p className="font-body text-sm font-medium text-charcoal">{product.name}</p>
                                     {product.featured && (
@@ -656,7 +656,7 @@ export default function AdminProducts() {
                                 {productCount} product{productCount !== 1 ? 's' : ''}
                               </p>
                             </div>
-                            <div className="w-12 h-12 rounded-full bg-gradient-to-br from-sage/20 via-cream/50 to-terracotta/20 flex items-center justify-center">
+                            <div className="w-12 h-12 rounded-full bg-linear-to-br from-sage/20 via-cream/50 to-terracotta/20 flex items-center justify-center">
                               <Package size={24} className="text-sage" />
                             </div>
                           </div>
@@ -763,7 +763,7 @@ export default function AdminProducts() {
                         <select
                           value={order.status}
                           onChange={(e) => handleUpdateOrderStatus(order.id, e.target.value as Order["status"])}
-                          className="px-3 py-2 rounded-lg border border-sage/20 font-body text-sm text-charcoal focus:outline-none focus:ring-2 focus:ring-sage/30"
+                          className="px-3 py-2 rounded-lg border border-sage/20 font-body text-sm text-charcoal focus:outline-hidden focus:ring-2 focus:ring-sage/30"
                         >
                           <option value="pending">Pending</option>
                           <option value="processing">Processing</option>
@@ -815,7 +815,7 @@ export default function AdminProducts() {
         {/* Add/Edit Product Modal */}
         {showProductForm && (
           <div className="fixed inset-0 z-50">
-            <div className="absolute inset-0 bg-charcoal/60 backdrop-blur-sm" onClick={resetForm} />
+            <div className="absolute inset-0 bg-charcoal/60 backdrop-blur-xs" onClick={resetForm} />
             
             <div className="absolute right-0 top-0 bottom-0 w-full max-w-2xl bg-white shadow-2xl overflow-y-auto">
               <div className="sticky top-0 bg-white/95 backdrop-blur-xl border-b border-sage/10 p-6 z-10">
@@ -853,7 +853,7 @@ export default function AdminProducts() {
                   <select
                     value={formData.category}
                     onChange={(e) => setFormData({ ...formData, category: e.target.value })}
-                    className="w-full px-4 py-2 rounded-lg border border-sage/20 font-body text-sm focus:outline-none focus:ring-2 focus:ring-sage/30"
+                    className="w-full px-4 py-2 rounded-lg border border-sage/20 font-body text-sm focus:outline-hidden focus:ring-2 focus:ring-sage/30"
                   >
                     {categoryRows.map((cat) => (
                       <option key={cat.id} value={cat.id}>{cat.name}</option>
@@ -981,7 +981,7 @@ export default function AdminProducts() {
         {/* Add/Edit Category Modal */}
         {showCategoryForm && (
           <div className="fixed inset-0 z-50">
-            <div className="absolute inset-0 bg-charcoal/60 backdrop-blur-sm" onClick={resetCategoryForm} />
+            <div className="absolute inset-0 bg-charcoal/60 backdrop-blur-xs" onClick={resetCategoryForm} />
             
             <div className="absolute right-0 top-0 bottom-0 w-full max-w-lg bg-white shadow-2xl overflow-y-auto">
               <div className="sticky top-0 bg-white/95 backdrop-blur-xl border-b border-sage/10 p-6 z-10">

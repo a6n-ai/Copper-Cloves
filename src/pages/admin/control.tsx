@@ -714,7 +714,7 @@ async function fetchPayoutData() {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-cream via-cream to-sage/10 flex items-center justify-center">
+      <div className="min-h-screen bg-linear-to-br from-cream via-cream to-sage/10 flex items-center justify-center">
         <div className="h-12 w-12 border-4 border-sage/20 border-t-sage rounded-full animate-spin" />
       </div>
     );
@@ -729,7 +729,7 @@ async function fetchPayoutData() {
         description="Manage operations and settings"
       />
       
-      <div className="min-h-screen bg-gradient-to-br from-cream via-cream to-sage/10">
+      <div className="min-h-screen bg-linear-to-br from-cream via-cream to-sage/10">
         {/* Decorative Elements */}
         <div className="fixed top-20 right-20 w-72 h-72 bg-sage/10 rounded-full blur-3xl pointer-events-none" />
         <div className="fixed bottom-20 left-20 w-96 h-96 bg-cream/50 rounded-full blur-3xl pointer-events-none" />
@@ -976,7 +976,7 @@ async function fetchPayoutData() {
                       <Card key={cls.id} className="border-sage/20 bg-white/95 backdrop-blur-xl hover:shadow-xl transition-all duration-600">
                         <CardContent className="p-6">
                           <div className="flex gap-4">
-                            <div className="h-24 w-24 rounded-lg overflow-hidden bg-sage/10 flex-shrink-0">
+                            <div className="h-24 w-24 rounded-lg overflow-hidden bg-sage/10 shrink-0">
                               {cls.image_url ? (
                                 <img 
                                   src={cls.image_url} 
@@ -1231,7 +1231,7 @@ async function fetchPayoutData() {
                 </div>
 
                 {/* Bulk Actions */}
-                <Card className="border-sage/20 bg-gradient-to-br from-sage/5 to-white backdrop-blur-xl">
+                <Card className="border-sage/20 bg-linear-to-br from-sage/5 to-white backdrop-blur-xl">
                   <CardContent className="p-6">
                     <div className="flex items-center justify-between">
                       <div>
@@ -1291,7 +1291,7 @@ async function fetchPayoutData() {
                       <Card key={instructor.id} className="border-sage/20 bg-white/95 backdrop-blur-xl hover:shadow-xl transition-all duration-600">
                         <CardContent className="p-6">
                           <div className="flex gap-4">
-                            <div className="h-24 w-24 rounded-lg overflow-hidden bg-sage/10 flex-shrink-0">
+                            <div className="h-24 w-24 rounded-lg overflow-hidden bg-sage/10 shrink-0">
                               <InstructorAvatar
                                 src={instructor.image_url}
                                 name={instructor.name}

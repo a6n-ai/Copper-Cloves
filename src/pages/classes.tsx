@@ -393,7 +393,7 @@ export default function ClassesPage() {
       <Navigation />
 
       {/* Hero Section */}
-      <section className="relative pt-32 pb-16 bg-gradient-to-br from-sage/10 via-cream to-terracotta/5">
+      <section className="relative pt-32 pb-16 bg-linear-to-br from-sage/10 via-cream to-terracotta/5">
         <div className="max-w-7xl mx-auto px-6 lg:px-8 text-center">
           <h1 className="font-display text-5xl md:text-6xl text-charcoal mb-6">
             Our Classes
@@ -409,7 +409,7 @@ export default function ClassesPage() {
       <section className="py-8 bg-cream">
         <div className="max-w-7xl mx-auto px-6 lg:px-8">
           <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-            <TabsList className="grid w-full max-w-md mx-auto grid-cols-2 bg-white/80 backdrop-blur-sm border border-sage/20 p-1 rounded-full">
+            <TabsList className="grid w-full max-w-md mx-auto grid-cols-2 bg-white/80 backdrop-blur-xs border border-sage/20 p-1 rounded-full">
               <TabsTrigger 
                 value="classes" 
                 className="rounded-full data-[state=active]:bg-sage data-[state=active]:text-white transition-all duration-300"
@@ -449,7 +449,7 @@ export default function ClassesPage() {
                           alt={classItem.name}
                           className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-600"
                         />
-                        <Badge className="absolute top-4 right-4 bg-sage/90 text-white border-0 backdrop-blur-sm">
+                        <Badge className="absolute top-4 right-4 bg-sage/90 text-white border-0 backdrop-blur-xs">
                           {classItem.category}
                         </Badge>
                       </div>
@@ -507,7 +507,7 @@ export default function ClassesPage() {
             <TabsContent value="schedule" className="mt-8">
               <div className="bg-white rounded-2xl shadow-lg border border-sage/10 overflow-hidden">
                 {/* Schedule Header */}
-                <div className="bg-gradient-to-r from-sage/10 via-cream to-terracotta/5 p-6 border-b border-sage/10">
+                <div className="bg-linear-to-r from-sage/10 via-cream to-terracotta/5 p-6 border-b border-sage/10">
                   <h2 className="font-display text-3xl text-charcoal text-center mb-2">
                     Weekly Schedule
                   </h2>
@@ -628,7 +628,7 @@ export default function ClassesPage() {
                                     : ""
                                 }`}
                               >
-                                <div className="flex-shrink-0">
+                                <div className="shrink-0">
                                   <p className={`font-body text-xs whitespace-nowrap ${
                                     classItem.name === "Class Cancelled"
                                       ? "text-charcoal/70"

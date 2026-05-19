@@ -32,7 +32,7 @@ export function Hero() {
             {moveMedia.map((media, index) => (
               <div
                 key={media}
-                className={`absolute inset-0 transition-opacity duration-[2000ms] ease-in-out ${
+                className={`absolute inset-0 transition-opacity duration-2000 ease-in-out ${
                   index === moveIndex ? "opacity-100" : "opacity-0"
                 }`}
               >
@@ -46,7 +46,7 @@ export function Hero() {
                 />
               </div>
             ))}
-            <div className="absolute inset-0 bg-gradient-to-t from-black/40 via-transparent to-transparent" />
+            <div className="absolute inset-0 bg-linear-to-t from-black/40 via-transparent to-transparent" />
             <div className="absolute bottom-8 left-1/2 -translate-x-1/2 z-10">
               <span className="font-script text-white/90 text-2xl sm:text-3xl md:text-4xl tracking-wider">move</span>
             </div>
@@ -57,7 +57,7 @@ export function Hero() {
             {refuelMedia.map((media, index) => (
               <div
                 key={media}
-                className={`absolute inset-0 transition-opacity duration-[2000ms] ease-in-out ${
+                className={`absolute inset-0 transition-opacity duration-2000 ease-in-out ${
                   index === refuelIndex ? "opacity-100" : "opacity-0"
                 }`}
               >
@@ -79,7 +79,7 @@ export function Hero() {
                 )}
               </div>
             ))}
-            <div className="absolute inset-0 bg-gradient-to-t from-black/40 via-transparent to-transparent" />
+            <div className="absolute inset-0 bg-linear-to-t from-black/40 via-transparent to-transparent" />
             <div className="absolute bottom-8 left-1/2 -translate-x-1/2 z-10">
               <span className="font-script text-white/90 text-2xl sm:text-3xl md:text-4xl tracking-wider">refuel</span>
             </div>
@@ -95,7 +95,7 @@ export function Hero() {
               playsInline
               className="w-full h-full object-cover animate-floatAndZoom23"
             />
-            <div className="absolute inset-0 bg-gradient-to-t from-black/40 via-transparent to-transparent" />
+            <div className="absolute inset-0 bg-linear-to-t from-black/40 via-transparent to-transparent" />
             <div className="absolute bottom-8 left-1/2 -translate-x-1/2 z-10">
               <span className="font-script text-white/90 text-2xl sm:text-3xl md:text-4xl tracking-wider">connect</span>
             </div>
@@ -104,7 +104,7 @@ export function Hero() {
 
         {/* Headline — light glass; copy forced to ~6 lines */}
         <div className="pointer-events-none absolute inset-0 z-20 hidden lg:flex flex-col items-center justify-center px-4 sm:px-6">
-          <div className="pointer-events-auto w-full max-w-xl rounded-[2rem] border border-white/10 bg-black/[0.01] p-8 text-center shadow-none backdrop-blur-sm sm:max-w-2xl sm:p-10 xl:rounded-[2.5rem] xl:p-11 2xl:p-12">
+          <div className="pointer-events-auto w-full max-w-xl rounded-4xl border border-white/10 bg-black/1 p-8 text-center shadow-none backdrop-blur-xs sm:max-w-2xl sm:p-10 xl:rounded-[2.5rem] xl:p-11 2xl:p-12">
             <h1 className="font-anchor-black mb-3 text-5xl text-white drop-shadow-2xl lg:text-6xl leading-tight">
               {"We're more than a studio,"}
               <br />

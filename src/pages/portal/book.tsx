@@ -851,7 +851,7 @@ export default function BookClass() {
 
   if (isLoading || loadingClasses) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-cream via-cream to-sage/5 flex items-center justify-center">
+      <div className="min-h-screen bg-linear-to-br from-cream via-cream to-sage/5 flex items-center justify-center">
         <div className="text-center">
           <div className="w-16 h-16 border-4 border-sage/30 border-t-sage rounded-full animate-spin mx-auto mb-4" />
           <p className="font-body text-charcoal/60">Loading...</p>
@@ -867,7 +867,7 @@ export default function BookClass() {
   const totals = calculateTotals();
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-cream via-cream to-sage/5">
+    <div className="min-h-screen bg-linear-to-br from-cream via-cream to-sage/5">
       <PortalNavigation 
         userName={userName}
         userEmail={userEmail}
@@ -888,7 +888,7 @@ export default function BookClass() {
           </div>
 
           {/* Week Navigation */}
-          <div className="mb-6 bg-white/80 backdrop-blur-sm rounded-2xl border border-sage/20 p-4">
+          <div className="mb-6 bg-white/80 backdrop-blur-xs rounded-2xl border border-sage/20 p-4">
             <div className="flex items-center justify-between mb-3">
               <button
                 onClick={() => setWeekOffset(o => o - 1)}
@@ -979,7 +979,7 @@ export default function BookClass() {
             {paginatedClasses.map(cls => (
               <Card 
                 key={cls.id} 
-                className="border-sage/20 bg-white/80 backdrop-blur-sm hover:border-sage hover:shadow-xl transition-all duration-600 overflow-hidden group"
+                className="border-sage/20 bg-white/80 backdrop-blur-xs hover:border-sage hover:shadow-xl transition-all duration-600 overflow-hidden group"
               >
                 <CardContent className="p-0">
                   <div className="flex flex-col">
@@ -990,7 +990,7 @@ export default function BookClass() {
                         alt={cls.name}
                         className="w-full h-full object-cover transition-transform duration-600 group-hover:scale-110"
                       />
-                      <div className="absolute inset-0 bg-gradient-to-t from-charcoal/60 via-charcoal/20 to-transparent" />
+                      <div className="absolute inset-0 bg-linear-to-t from-charcoal/60 via-charcoal/20 to-transparent" />
                       <Badge 
                         className={`absolute top-4 left-4 ${
                           cls.intensity === 'high' 
@@ -998,11 +998,11 @@ export default function BookClass() {
                             : cls.intensity === 'moderate'
                             ? 'bg-sage/90 hover:bg-sage'
                             : 'bg-charcoal/90 hover:bg-charcoal'
-                        } text-white border-none backdrop-blur-sm font-body`}
+                        } text-white border-none backdrop-blur-xs font-body`}
                       >
                         {cls.intensity}
                       </Badge>
-                      <div className="absolute top-4 right-4 bg-cream/90 backdrop-blur-sm rounded-lg px-3 py-2">
+                      <div className="absolute top-4 right-4 bg-cream/90 backdrop-blur-xs rounded-lg px-3 py-2">
                         <p className="text-xs font-body text-charcoal/60">Spots Left</p>
                         <p className="text-2xl font-display text-sage">{cls.spots}</p>
                       </div>
@@ -1043,7 +1043,7 @@ export default function BookClass() {
 
           {/* Pagination Controls */}
           {totalPages > 1 && (
-            <div className="flex flex-col sm:flex-row items-center justify-between gap-4 bg-white/80 backdrop-blur-sm rounded-xl p-6 border border-sage/20">
+            <div className="flex flex-col sm:flex-row items-center justify-between gap-4 bg-white/80 backdrop-blur-xs rounded-xl p-6 border border-sage/20">
               <Button
                 variant="outline"
                 onClick={() => setCurrentPage(prev => Math.max(1, prev - 1))}
@@ -1084,7 +1084,7 @@ export default function BookClass() {
 
           {/* Empty State */}
           {paginatedClasses.length === 0 && (
-            <Card className="border-sage/20 bg-white/80 backdrop-blur-sm">
+            <Card className="border-sage/20 bg-white/80 backdrop-blur-xs">
               <CardContent className="flex flex-col items-center justify-center py-16 text-center">
                 <Calendar className="w-16 h-16 text-sage/40 mb-4" />
                 <h3 className="font-display text-2xl text-charcoal mb-2">No Classes Available</h3>
@@ -1110,7 +1110,7 @@ export default function BookClass() {
       >
         <div className="h-full flex flex-col">
           {/* Panel Header */}
-          <div className="sticky top-0 z-10 p-6 flex items-center justify-between border-b border-sage/10 bg-gradient-to-r from-cream/80 to-white/80 backdrop-blur-xl">
+          <div className="sticky top-0 z-10 p-6 flex items-center justify-between border-b border-sage/10 bg-linear-to-r from-cream/80 to-white/80 backdrop-blur-xl">
             <div>
               <h2 className="font-display text-2xl md:text-3xl text-charcoal mb-1">
                 {bookingStep === 1 && "Who's Coming?"}
@@ -1252,7 +1252,7 @@ export default function BookClass() {
             {/* Step 2: Credit Management */}
             {bookingStep === 2 && (
               <div className="space-y-6">
-                <div className="p-6 rounded-xl bg-gradient-to-br from-sage/10 to-cream/30 border border-sage/20">
+                <div className="p-6 rounded-xl bg-linear-to-br from-sage/10 to-cream/30 border border-sage/20">
                   <div className="flex items-center justify-between mb-4">
                     <div>
                       <p className="font-body text-sm text-charcoal/60 uppercase tracking-wide mb-1">
@@ -1391,7 +1391,7 @@ export default function BookClass() {
                   {userPackage.type === null && featuredPackage && (
                     <div className="p-5 rounded-xl border-2 border-sage/40 bg-sage/5">
                       <div className="flex items-start gap-3 mb-3">
-                        <div className="w-5 h-5 rounded-full border-2 border-sage bg-sage/20 mt-0.5 flex items-center justify-center flex-shrink-0">
+                        <div className="w-5 h-5 rounded-full border-2 border-sage bg-sage/20 mt-0.5 flex items-center justify-center shrink-0">
                           <span className="text-sage text-[10px] font-bold">★</span>
                         </div>
                         <div className="flex-1">
@@ -1566,7 +1566,7 @@ export default function BookClass() {
                 </div>
 
                 {/* Booking Summary */}
-                <div className="p-6 rounded-xl bg-gradient-to-br from-cream/40 to-sage/5 border border-sage/10 space-y-4">
+                <div className="p-6 rounded-xl bg-linear-to-br from-cream/40 to-sage/5 border border-sage/10 space-y-4">
                   <div>
                     <p className="font-body text-xs text-charcoal/60 uppercase tracking-wide mb-1">Class</p>
                     <p className="font-display text-xl text-charcoal">{selectedClass?.name}</p>
@@ -1620,7 +1620,7 @@ export default function BookClass() {
                           value={couponCode}
                           onChange={(e) => { setCouponCode(e.target.value.toUpperCase()); setCouponError(null); }}
                           placeholder="Enter code"
-                          className="flex-1 font-body text-sm px-3 py-2 rounded-lg border border-sage/30 focus:outline-none focus:ring-1 focus:ring-sage bg-white text-charcoal placeholder:text-charcoal/30 uppercase"
+                          className="flex-1 font-body text-sm px-3 py-2 rounded-lg border border-sage/30 focus:outline-hidden focus:ring-1 focus:ring-sage bg-white text-charcoal placeholder:text-charcoal/30 uppercase"
                         />
                         <button
                           disabled={!couponCode.trim() || couponLoading}
@@ -1771,7 +1771,7 @@ export default function BookClass() {
           </div>
 
           {/* Panel Footer - Navigation */}
-          <div className="sticky bottom-0 p-6 bg-gradient-to-t from-cream/50 to-white border-t border-sage/10 backdrop-blur-sm">
+          <div className="sticky bottom-0 p-6 bg-linear-to-t from-cream/50 to-white border-t border-sage/10 backdrop-blur-xs">
             <div className="flex gap-3">
               {bookingStep > 1 && (
                 <Button
@@ -1824,7 +1824,7 @@ export default function BookClass() {
       {/* Overlay */}
       {showBookingPanel && (
         <div 
-          className="fixed inset-0 bg-charcoal/40 backdrop-blur-sm z-40 transition-opacity duration-600 animate-in fade-in"
+          className="fixed inset-0 bg-charcoal/40 backdrop-blur-xs z-40 transition-opacity duration-600 animate-in fade-in"
           onClick={() => setShowBookingPanel(false)}
         />
       )}

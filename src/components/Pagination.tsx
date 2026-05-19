@@ -79,7 +79,7 @@ export function Pagination({
         Showing {start}–{end} of {total}
       </p>
       <ShadPagination className="mx-0 w-auto">
-        <PaginationContent className="bg-white/80 border border-sage/20 p-1 rounded-full shadow-sm">
+        <PaginationContent className="bg-white/80 border border-sage/20 p-1 rounded-full shadow-xs">
           <PaginationItem>
             <PaginationPrevious
               href="#"

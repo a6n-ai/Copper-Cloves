@@ -584,7 +584,7 @@ export default function PackagesPage() {
     : studioPassPackages;
 
   return (
-    <div className="min-h-screen bg-gradient-to-b from-cream via-white to-cream">
+    <div className="min-h-screen bg-linear-to-b from-cream via-white to-cream">
       <PortalNavigation />
       
       <div className="max-w-7xl mx-auto px-6 lg:px-8 py-12">
@@ -656,7 +656,7 @@ export default function PackagesPage() {
           {currentPackages.map((pkg, index) => (
             <div
               key={index}
-              className={`flex-shrink-0 w-80 lg:w-auto snap-center ${
+              className={`shrink-0 w-80 lg:w-auto snap-center ${
                 pkg.featured ? "lg:scale-105" : ""
               }`}
             >
@@ -695,7 +695,7 @@ export default function PackagesPage() {
                 <ul className="space-y-4 mb-8">
                   {pkg.benefits.map((benefit, i) => (
                     <li key={i} className="flex items-start gap-3">
-                      <div className="flex-shrink-0 w-5 h-5 rounded-full bg-sage/10 flex items-center justify-center mt-0.5">
+                      <div className="shrink-0 w-5 h-5 rounded-full bg-sage/10 flex items-center justify-center mt-0.5">
                         <Check className="text-sage" size={14} />
                       </div>
                       <span className="font-body text-sm text-charcoal/80 leading-relaxed">
@@ -846,7 +846,7 @@ export default function PackagesPage() {
           ) : (
             <div className="bg-white rounded-3xl max-w-2xl w-full max-h-[90vh] overflow-y-auto shadow-2xl animate-in zoom-in-95 duration-500 relative">
               {/* Header */}
-              <div className="sticky top-0 z-20 bg-white pt-6 px-6 pb-4 border-b border-sage/10 shadow-sm">
+              <div className="sticky top-0 z-20 bg-white pt-6 px-6 pb-4 border-b border-sage/10 shadow-xs">
                 <div className="flex items-start justify-between">
                   <div>
                     <h2 className="font-display text-3xl text-charcoal mb-2">Complete Your Purchase</h2>

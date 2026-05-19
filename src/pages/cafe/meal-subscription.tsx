@@ -124,8 +124,8 @@ export default function MealSubscriptionPage() {
             ))}
             
             {/* Gradient Overlays for Text Readability */}
-            <div className="absolute inset-0 bg-gradient-to-b from-charcoal/70 via-charcoal/50 to-charcoal/80 z-10" />
-            <div className="absolute inset-0 bg-gradient-to-r from-charcoal/60 via-transparent to-charcoal/60 z-10" />
+            <div className="absolute inset-0 bg-linear-to-b from-charcoal/70 via-charcoal/50 to-charcoal/80 z-10" />
+            <div className="absolute inset-0 bg-linear-to-r from-charcoal/60 via-transparent to-charcoal/60 z-10" />
           </div>
 
           {/* Hero Content */}
@@ -256,7 +256,7 @@ export default function MealSubscriptionPage() {
         </section>
 
         {/* What You Get Section */}
-        <section className="py-24 px-6 lg:px-8 bg-gradient-to-br from-sage/10 via-cream to-terracotta/10">
+        <section className="py-24 px-6 lg:px-8 bg-linear-to-br from-sage/10 via-cream to-terracotta/10">
           <div className="max-w-6xl mx-auto">
             <div className="text-center mb-16">
               <h2 className="font-display text-5xl md:text-6xl text-charcoal mb-6">
@@ -304,7 +304,7 @@ export default function MealSubscriptionPage() {
                 <Card key={index} className="border-2 border-sage/30 hover:border-sage transition-all duration-300 hover:shadow-xl bg-white">
                   <CardContent className="p-8">
                     <div className="flex items-start gap-4">
-                      <div className="w-14 h-14 rounded-full bg-sage/20 flex items-center justify-center flex-shrink-0">
+                      <div className="w-14 h-14 rounded-full bg-sage/20 flex items-center justify-center shrink-0">
                         <div className="text-sage">{benefit.icon}</div>
                       </div>
                       <div>
@@ -337,7 +337,7 @@ export default function MealSubscriptionPage() {
                 </div>
 
                 <div className="space-y-8">
-                  <Card className="border-2 border-sage/20 bg-gradient-to-br from-sage/5 to-white">
+                  <Card className="border-2 border-sage/20 bg-linear-to-br from-sage/5 to-white">
                     <CardContent className="p-10">
                       <h3 className="font-display text-3xl text-charcoal font-semibold mb-4">
                         Because clean eating shouldn't be hard.
@@ -351,7 +351,7 @@ export default function MealSubscriptionPage() {
                     </CardContent>
                   </Card>
 
-                  <Card className="border-2 border-sage/20 bg-gradient-to-br from-sage/5 to-white">
+                  <Card className="border-2 border-sage/20 bg-linear-to-br from-sage/5 to-white">
                     <CardContent className="p-10">
                       <h3 className="font-display text-3xl text-charcoal font-semibold mb-4">
                         For the ones who train hard and deserve better fuel.

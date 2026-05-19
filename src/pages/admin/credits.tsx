@@ -134,7 +134,7 @@ export default function AdminCredits() {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-cream via-cream to-sage/10 flex items-center justify-center">
+      <div className="min-h-screen bg-linear-to-br from-cream via-cream to-sage/10 flex items-center justify-center">
         <div className="h-12 w-12 border-4 border-sage/20 border-t-sage rounded-full animate-spin" />
       </div>
     );
@@ -147,7 +147,7 @@ export default function AdminCredits() {
         description="Monitor and manage member credits"
       />
       
-      <div className="min-h-screen bg-gradient-to-br from-cream via-cream to-sage/10">
+      <div className="min-h-screen bg-linear-to-br from-cream via-cream to-sage/10">
         
         <main className="min-h-screen">
           <div className="max-w-7xl mx-auto p-6 lg:p-8 space-y-8">

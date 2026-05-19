@@ -98,7 +98,7 @@ export default function RazorpayReturnPage() {
   return (
     <>
       <SEO title="Payment — The Studio" description="Completing your payment" />
-      <div className="min-h-screen bg-gradient-to-br from-cream via-cream to-sage/5 flex items-center justify-center px-4">
+      <div className="min-h-screen bg-linear-to-br from-cream via-cream to-sage/5 flex items-center justify-center px-4">
         <div className="max-w-md w-full rounded-xl border border-sage/20 bg-white/95 p-8 text-center shadow-xl">
           {status === "working" ? (
             <Loader2 className="h-10 w-10 animate-spin text-sage mx-auto mb-4" />

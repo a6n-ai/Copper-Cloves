@@ -242,14 +242,14 @@ export default function MenuPage() {
 
   if (loading) {
     return (
-      <div className="flex items-center justify-center min-h-screen bg-gradient-to-br from-cream via-cream to-sage/5">
+      <div className="flex items-center justify-center min-h-screen bg-linear-to-br from-cream via-cream to-sage/5">
         <Loader2 className="animate-spin text-sage" size={48} />
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-cream via-cream to-sage/5">
+    <div className="min-h-screen bg-linear-to-br from-cream via-cream to-sage/5">
       <PortalNavigation />
       
       <main className="pt-20 min-h-screen">
@@ -353,7 +353,7 @@ export default function MenuPage() {
       {/* Checkout Modal */}
       {showCheckout && (
         <div className="fixed inset-0 z-50">
-          <div className="absolute inset-0 bg-charcoal/60 backdrop-blur-sm" onClick={() => setShowCheckout(false)} />
+          <div className="absolute inset-0 bg-charcoal/60 backdrop-blur-xs" onClick={() => setShowCheckout(false)} />
           
           <div className="absolute right-0 top-0 bottom-0 w-full max-w-2xl bg-white shadow-2xl overflow-y-auto">
             {/* Header */}

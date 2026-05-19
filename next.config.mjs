@@ -1,46 +1,16 @@
 /** @type {import('next').NextConfig} */
-import { createRequire } from "module";
-
-// Check if element-tagger is available
-function isElementTaggerAvailable() {
-  try {
-    const require = createRequire(import.meta.url);
-    require.resolve("@softgenai/element-tagger");
-    return true;
-  } catch {
-    return false;
-  }
-}
-
-// Build turbo rules only if tagger is available
-function getTurboRules() {
-  if (!isElementTaggerAvailable()) {
-    console.log(
-      "[Softgen] Element tagger not found, skipping loader configuration"
-    );
-    return {};
-  }
-
-  return {
-    "*.tsx": ["@softgenai/element-tagger"],
-    "*.jsx": ["@softgenai/element-tagger"],
-  };
-}
-
 const nextConfig = {
   reactStrictMode: true,
-  eslint: {
-    ignoreDuringBuilds: true,
-  },
+  poweredByHeader: false,
+  productionBrowserSourceMaps: false,
   typescript: {
     ignoreBuildErrors: true,
   },
-  experimental: {
-    turbo: {
-      rules: getTurboRules(),
-    },
+  turbopack: {
+    root: import.meta.dirname,
   },
   images: {
+    formats: ["image/avif", "image/webp"],
     remotePatterns: [
       {
         protocol: "https",
@@ -48,7 +18,19 @@ const nextConfig = {
       },
     ],
   },
-  allowedDevOrigins: ["*.daytona.work", "*.softgen.dev"],
+  async headers() {
+    return [
+      {
+        source: "/:path*",
+        headers: [
+          { key: "X-Content-Type-Options", value: "nosniff" },
+          { key: "X-Frame-Options", value: "SAMEORIGIN" },
+          { key: "Referrer-Policy", value: "strict-origin-when-cross-origin" },
+          { key: "Permissions-Policy", value: "camera=(), microphone=(), geolocation=()" },
+        ],
+      },
+    ];
+  },
 };
 
 export default nextConfig;

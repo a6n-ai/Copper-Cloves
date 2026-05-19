@@ -466,7 +466,7 @@ export default function AdminMembers() {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-cream via-cream to-sage/10 flex items-center justify-center">
+      <div className="min-h-screen bg-linear-to-br from-cream via-cream to-sage/10 flex items-center justify-center">
         <div className="h-12 w-12 border-4 border-sage/20 border-t-sage rounded-full animate-spin" />
       </div>
     );
@@ -479,7 +479,7 @@ export default function AdminMembers() {
         description="Manage members, credits, and subscriptions"
       />
       
-      <div className="min-h-screen bg-gradient-to-br from-cream via-cream to-sage/10">
+      <div className="min-h-screen bg-linear-to-br from-cream via-cream to-sage/10">
         
         <main className="min-h-screen">
           <div className="max-w-7xl mx-auto p-6 lg:p-8 space-y-8">
@@ -492,7 +492,7 @@ export default function AdminMembers() {
               <Card className="border-terracotta/30 bg-terracotta/5 backdrop-blur-xl">
                 <CardContent className="p-4">
                   <div className="flex items-center gap-3 text-terracotta">
-                    <AlertTriangle className="h-5 w-5 flex-shrink-0" />
+                    <AlertTriangle className="h-5 w-5 shrink-0" />
                     <p className="font-body text-charcoal">{loadError}</p>
                   </div>
                 </CardContent>
@@ -598,7 +598,7 @@ export default function AdminMembers() {
                           onClick={() => setAccountStatusFilter(o.v as typeof accountStatusFilter)}
                           className={`px-3 h-7 rounded-full font-body text-xs transition-colors ${
                             accountStatusFilter === o.v
-                              ? "bg-sage text-white shadow-sm"
+                              ? "bg-sage text-white shadow-xs"
                               : "text-charcoal/60 hover:text-charcoal hover:bg-sage/10"
                           }`}
                         >

@@ -17,7 +17,7 @@ export default function FounderPage() {
       <Navigation />
 
       {/* Background */}
-      <div className="fixed inset-0 -z-10 bg-gradient-to-br from-cream via-white to-sage/5" />
+      <div className="fixed inset-0 -z-10 bg-linear-to-br from-cream via-white to-sage/5" />
 
       {/* Hero Section */}
       <section className="relative pt-32 pb-20 px-6 lg:px-8">
@@ -69,11 +69,11 @@ export default function FounderPage() {
                   priority
                 />
                 {/* Subtle Overlay */}
-                <div className="absolute inset-0 bg-gradient-to-t from-charcoal/10 to-transparent" />
+                <div className="absolute inset-0 bg-linear-to-t from-charcoal/10 to-transparent" />
               </div>
 
               {/* Decorative Background Element */}
-              <div className="absolute -bottom-6 -right-6 w-full h-full rounded-3xl bg-gradient-to-br from-sage/20 to-terracotta/20 -z-10" />
+              <div className="absolute -bottom-6 -right-6 w-full h-full rounded-3xl bg-linear-to-br from-sage/20 to-terracotta/20 -z-10" />
             </div>
 
             {/* Right: Story */}
@@ -91,22 +91,22 @@ export default function FounderPage() {
 
               {/* Stats Grid */}
               <div className="grid grid-cols-3 gap-4 pt-8">
-                <div className="text-center p-6 rounded-2xl bg-white/60 backdrop-blur-sm border border-sage/10">
+                <div className="text-center p-6 rounded-2xl bg-white/60 backdrop-blur-xs border border-sage/10">
                   <p className="font-display text-3xl text-sage mb-1">2018</p>
                   <p className="font-body text-xs text-charcoal/70">Founded</p>
                 </div>
-                <div className="text-center p-6 rounded-2xl bg-white/60 backdrop-blur-sm border border-sage/10">
+                <div className="text-center p-6 rounded-2xl bg-white/60 backdrop-blur-xs border border-sage/10">
                   <p className="font-display text-3xl text-sage mb-1">3</p>
                   <p className="font-body text-xs text-charcoal/70">Locations</p>
                 </div>
-                <div className="text-center p-6 rounded-2xl bg-white/60 backdrop-blur-sm border border-sage/10">
+                <div className="text-center p-6 rounded-2xl bg-white/60 backdrop-blur-xs border border-sage/10">
                   <p className="font-display text-3xl text-sage mb-1">20+</p>
                   <p className="font-body text-xs text-charcoal/70">Team Members</p>
                 </div>
               </div>
 
               {/* Quote Card */}
-              <div className="relative p-8 rounded-3xl bg-gradient-to-br from-sage/10 to-cream border border-sage/20 mt-8">
+              <div className="relative p-8 rounded-3xl bg-linear-to-br from-sage/10 to-cream border border-sage/20 mt-8">
                 <div className="absolute top-6 left-6 w-12 h-12 rounded-full bg-terracotta/10 flex items-center justify-center">
                   <Heart className="text-terracotta" size={24} />
                 </div>
@@ -132,7 +132,7 @@ export default function FounderPage() {
       </section>
 
       {/* Journey Timeline */}
-      <section className="relative py-20 px-6 lg:px-8 bg-gradient-to-b from-transparent to-cream/50">
+      <section className="relative py-20 px-6 lg:px-8 bg-linear-to-b from-transparent to-cream/50">
         <div className="max-w-6xl mx-auto">
           <h2 className="font-display text-4xl md:text-5xl text-charcoal text-center mb-16">
             The Journey
@@ -141,10 +141,10 @@ export default function FounderPage() {
           <div className="space-y-8">
             {/* Timeline Item 1 */}
             <div className="flex gap-6 items-start">
-              <div className="flex-shrink-0 w-24 text-right">
+              <div className="shrink-0 w-24 text-right">
                 <p className="font-display text-2xl text-sage">2016</p>
               </div>
-              <div className="flex-shrink-0 w-px h-full bg-sage/20" />
+              <div className="shrink-0 w-px h-full bg-sage/20" />
               <div className="flex-1 pb-8">
                 <p className="font-body text-charcoal/80 leading-relaxed">
                   Moved from London to Bangalore, beginning a new chapter and discovering plant-based living.
@@ -154,10 +154,10 @@ export default function FounderPage() {
 
             {/* Timeline Item 2 */}
             <div className="flex gap-6 items-start">
-              <div className="flex-shrink-0 w-24 text-right">
+              <div className="shrink-0 w-24 text-right">
                 <p className="font-display text-2xl text-sage">2018</p>
               </div>
-              <div className="flex-shrink-0 w-px h-full bg-sage/20" />
+              <div className="shrink-0 w-px h-full bg-sage/20" />
               <div className="flex-1 pb-8">
                 <p className="font-body text-charcoal/80 leading-relaxed">
                   Founded Copper + Cloves — started with granola in a home kitchen, hosting monthly events and cooking workshops.
@@ -167,10 +167,10 @@ export default function FounderPage() {
 
             {/* Timeline Item 3 */}
             <div className="flex gap-6 items-start">
-              <div className="flex-shrink-0 w-24 text-right">
+              <div className="shrink-0 w-24 text-right">
                 <p className="font-display text-2xl text-sage">2020</p>
               </div>
-              <div className="flex-shrink-0 w-px h-full bg-sage/20" />
+              <div className="shrink-0 w-px h-full bg-sage/20" />
               <div className="flex-1 pb-8">
                 <p className="font-body text-charcoal/80 leading-relaxed">
                   Opened the first Copper + Cloves outlet, creating a physical space for the community.
@@ -180,10 +180,10 @@ export default function FounderPage() {
 
             {/* Timeline Item 4 */}
             <div className="flex gap-6 items-start">
-              <div className="flex-shrink-0 w-24 text-right">
+              <div className="shrink-0 w-24 text-right">
                 <p className="font-display text-2xl text-sage">2024</p>
               </div>
-              <div className="flex-shrink-0 w-px h-full bg-sage/20" />
+              <div className="shrink-0 w-px h-full bg-sage/20" />
               <div className="flex-1">
                 <p className="font-body text-charcoal/80 leading-relaxed">
                   Expanded to three locations, launched meal subscription service, and grew to a team of 20+ with a thriving community hosting weekly events.
