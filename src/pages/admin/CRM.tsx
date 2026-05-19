@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useRouter } from "next/router";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -32,6 +32,8 @@ import {
 interface CRMTemplate {
   id: string;
   name: string;
+  template_key: string | null;
+  is_system: boolean;
   subject: string | null;
   message_body: string;
   template_type: string;
@@ -39,6 +41,50 @@ interface CRMTemplate {
   channel_email: boolean;
   variables: string[];
   created_at: string;
+}
+
+// Sample values used by the preview iframe for known system placeholders.
+const PREVIEW_SAMPLES: Record<string, string> = {
+  memberName: "Priya Kapoor",
+  className: "Hatha Yoga",
+  instructorName: "Vivek",
+  dateStr: "Mon 20 May",
+  startTime: "7:00 PM",
+  endTime: "8:00 PM",
+  portalUrl: "https://thestudiobycopperandcloves.in",
+  transactionId: "pay_PRb1aXyZ123",
+  paymentDate: "Sun 19 May",
+  amountPaid: "₹800",
+  email: "priya@example.com",
+  password: "TempPass1234",
+  loginUrl: "https://thestudiobycopperandcloves.in/portal/login",
+  creditsCount: "1",
+  // CRM commonVariables (legacy keys)
+  Member_Name: "Priya Kapoor",
+  Class_Name: "Hatha Yoga",
+  Class_Time: "7:00 PM",
+  Class_Date: "Mon 20 May",
+  Instructor_Name: "Vivek",
+  Portal_Link: "https://thestudiobycopperandcloves.in/portal",
+  Studio_Link: "https://thestudiobycopperandcloves.in",
+  Expiry_Date: "31 May 2026",
+  Renewal_Link: "https://thestudiobycopperandcloves.in/portal/packages",
+  Badge_Name: "Path to Mastery",
+  Class_Count: "12",
+  Last_Class_Attended: "Hatha Yoga",
+  Credits_Remaining: "5",
+};
+
+function renderPreview(body: string, subject: string): string {
+  const sub = (s: string) =>
+    s.replace(/\{\{\s*([A-Za-z0-9_]+)\s*\}\}/g, (_, k) =>
+      k in PREVIEW_SAMPLES ? PREVIEW_SAMPLES[k] : `{{${k}}}`
+    );
+  const renderedSubject = sub(subject);
+  const renderedBody = sub(body);
+  // If body already contains <html>, just return it. Else wrap.
+  if (/<html|<!doctype/i.test(renderedBody)) return renderedBody;
+  return `<!DOCTYPE html><html><head><meta charset="UTF-8"><title>${renderedSubject}</title></head><body style="font-family:Georgia,serif;margin:0;padding:16px;background:#F5F0E8">${renderedBody}</body></html>`;
 }
 
 interface CRMMessage {
@@ -101,8 +147,14 @@ export default function CRMPage() {
     message_body: "",
     template_type: "custom",
     channel_whatsapp: false,
-    channel_email: true
+    channel_email: true,
+    template_key: null as string | null,
+    is_system: false,
+    variables: [] as string[],
   });
+  const [showPreview, setShowPreview] = useState(false);
+  const [editMode, setEditMode] = useState<"preview" | "html">("preview");
+  const previewIframeRef = useRef<HTMLIFrameElement | null>(null);
 
   // Messages state
   const [messages, setMessages] = useState<CRMMessage[]>([]);
@@ -198,7 +250,11 @@ export default function CRMPage() {
   const handleSaveTemplate = async () => {
     setIsSaving(true);
     try {
-      const templateData = { ...templateForm, variables: extractVariables(templateForm.message_body) };
+      const extracted = extractVariables(templateForm.message_body);
+      const mergedVars = templateForm.is_system
+        ? Array.from(new Set([...templateForm.variables, ...extracted]))
+        : extracted;
+      const templateData = { ...templateForm, variables: mergedVars };
       if (editingTemplate?.id) {
         await fetch("/api/admin/crm/templates", {
           method: "PUT",
@@ -294,7 +350,10 @@ export default function CRMPage() {
       message_body: "",
       template_type: "custom",
       channel_whatsapp: false,
-      channel_email: true
+      channel_email: true,
+      template_key: null,
+      is_system: false,
+      variables: [],
     });
   };
 
@@ -310,13 +369,17 @@ export default function CRMPage() {
 
   const handleEditTemplate = (template: CRMTemplate) => {
     setEditingTemplate(template);
+    setEditMode("preview");
     setTemplateForm({
       name: template.name,
       subject: template.subject || "",
       message_body: template.message_body,
       template_type: template.template_type,
       channel_whatsapp: template.channel_whatsapp,
-      channel_email: template.channel_email
+      channel_email: template.channel_email,
+      template_key: template.template_key,
+      is_system: template.is_system,
+      variables: template.variables || [],
     });
     setShowTemplateForm(true);
   };
@@ -369,7 +432,10 @@ export default function CRMPage() {
 
   const triggerTypes = [
     { id: CrmTriggerType.ClassBookingConfirmed, label: "Class booked (member confirmed)" },
-    { id: CrmTriggerType.ClassBookingCancelled, label: "Class booking cancelled" },
+    { id: CrmTriggerType.ClassBookingCancelled, label: "Class booking cancelled (credit returned)" },
+    { id: CrmTriggerType.LateCancellation, label: "Class booking cancelled (within 12h, no credit)" },
+    { id: CrmTriggerType.AccountCreated, label: "Account created (welcome email)" },
+    { id: CrmTriggerType.IndividualClassPaid, label: "Individual class purchase confirmed" },
     { id: "expiry_7_days", label: "7 Days Before Expiry" },
     { id: "expiry_24_hours", label: "24 Hours Before Expiry" },
     { id: "badge_earned", label: "Badge Earned" },
@@ -563,6 +629,7 @@ export default function CRMPage() {
                   onClick={() => {
                     resetTemplateForm();
                     setEditingTemplate(null);
+                    setEditMode("preview");
                     setShowTemplateForm(true);
                   }}
                   className="bg-sage hover:bg-sage/90 text-white font-body"
@@ -581,9 +648,19 @@ export default function CRMPage() {
                           <CardTitle className="font-display text-xl text-charcoal mb-1">
                             {template.name}
                           </CardTitle>
-                          <Badge className="bg-sage/10 text-sage">
-                            {templateTypes.find(t => t.id === template.template_type)?.label}
-                          </Badge>
+                          <div className="flex flex-wrap items-center gap-2">
+                            <Badge className="bg-sage/10 text-sage">
+                              {templateTypes.find(t => t.id === template.template_type)?.label || template.template_type}
+                            </Badge>
+                            {template.is_system && (
+                              <Badge className="bg-terracotta/15 text-terracotta">System</Badge>
+                            )}
+                            {template.template_key && (
+                              <code className="font-mono text-[10px] bg-charcoal/5 text-charcoal/60 px-1.5 py-0.5 rounded">
+                                {template.template_key}
+                              </code>
+                            )}
+                          </div>
                         </div>
                         <div className="flex gap-2">
                           <Button
@@ -591,6 +668,7 @@ export default function CRMPage() {
                             size="sm"
                             variant="ghost"
                             className="text-sage hover:bg-sage/10"
+                            title="Edit"
                           >
                             <Edit size={14} />
                           </Button>
@@ -599,17 +677,21 @@ export default function CRMPage() {
                             size="sm"
                             variant="ghost"
                             className="text-blue-600 hover:bg-blue-50"
+                            title="Duplicate"
                           >
                             <Copy size={14} />
                           </Button>
-                          <Button
-                            onClick={() => handleDeleteTemplate(template.id)}
-                            size="sm"
-                            variant="ghost"
-                            className="text-terracotta hover:bg-terracotta/10"
-                          >
-                            <Trash2 size={14} />
-                          </Button>
+                          {!template.is_system && (
+                            <Button
+                              onClick={() => handleDeleteTemplate(template.id)}
+                              size="sm"
+                              variant="ghost"
+                              className="text-terracotta hover:bg-terracotta/10"
+                              title="Delete"
+                            >
+                              <Trash2 size={14} />
+                            </Button>
+                          )}
                         </div>
                       </div>
                     </CardHeader>
@@ -621,10 +703,14 @@ export default function CRMPage() {
                         </div>
                       )}
                       
-                      <div className="bg-cream/30 rounded-lg p-4 mb-4 max-h-32 overflow-y-auto">
-                        <p className="font-body text-sm text-charcoal whitespace-pre-wrap">
-                          {template.message_body}
-                        </p>
+                      <div className="rounded-lg overflow-hidden border border-sage/10 mb-4 bg-white" style={{ height: 180 }}>
+                        <iframe
+                          title={`preview-${template.id}`}
+                          srcDoc={renderPreview(template.message_body, template.subject || "")}
+                          sandbox=""
+                          className="w-full h-full pointer-events-none"
+                          style={{ transform: "scale(0.6)", transformOrigin: "top left", width: "166.66%", height: "300px" }}
+                        />
                       </div>
 
                       <div className="flex items-center gap-2 mb-3">
@@ -924,18 +1010,38 @@ export default function CRMPage() {
           <div className="absolute right-0 top-0 bottom-0 w-full max-w-3xl bg-white shadow-2xl overflow-y-auto">
             <div className="sticky top-0 bg-white/95 backdrop-blur-xl border-b border-sage/10 p-6 z-10">
               <div className="flex items-center justify-between">
-                <h2 className="font-display text-3xl text-charcoal">
-                  {editingTemplate ? "Edit Template" : "Create New Template"}
-                </h2>
-                <button
-                  onClick={() => {
-                    setShowTemplateForm(false);
-                    setEditingTemplate(null);
-                  }}
-                  className="w-10 h-10 rounded-full hover:bg-sage/10 flex items-center justify-center transition-colors"
-                >
-                  <X size={24} />
-                </button>
+                <div>
+                  <h2 className="font-display text-3xl text-charcoal">
+                    {editingTemplate ? "Edit Template" : "Create New Template"}
+                  </h2>
+                  {templateForm.is_system && templateForm.template_key && (
+                    <div className="flex items-center gap-2 mt-1">
+                      <Badge className="bg-terracotta/15 text-terracotta">System</Badge>
+                      <code className="font-mono text-xs bg-charcoal/5 text-charcoal/60 px-1.5 py-0.5 rounded">
+                        {templateForm.template_key}
+                      </code>
+                    </div>
+                  )}
+                </div>
+                <div className="flex items-center gap-2">
+                  <button
+                    type="button"
+                    onClick={() => setShowPreview(true)}
+                    disabled={!templateForm.message_body}
+                    className="font-body text-xs bg-sage/10 text-sage px-3 py-2 rounded hover:bg-sage/20 disabled:opacity-40 disabled:cursor-not-allowed"
+                  >
+                    Preview with sample data
+                  </button>
+                  <button
+                    onClick={() => {
+                      setShowTemplateForm(false);
+                      setEditingTemplate(null);
+                    }}
+                    className="w-10 h-10 rounded-full hover:bg-sage/10 flex items-center justify-center transition-colors"
+                  >
+                    <X size={24} />
+                  </button>
+                </div>
               </div>
             </div>
 
@@ -978,11 +1084,40 @@ export default function CRMPage() {
               <div>
                 <div className="flex items-center justify-between mb-2">
                   <label className="font-body text-sm text-charcoal/70">Message Body</label>
-                  <div className="flex gap-2">
-                    <span className="font-body text-xs text-charcoal/50">Insert variables:</span>
-                    {commonVariables.slice(0, 3).map(variable => (
+                  <div className="flex gap-1 bg-sage/10 rounded-full p-1">
+                    <button
+                      type="button"
+                      onClick={() => setEditMode("preview")}
+                      className={`font-body text-xs px-3 py-1 rounded-full transition-colors ${
+                        editMode === "preview" ? "bg-sage text-white" : "text-sage hover:bg-sage/20"
+                      }`}
+                    >
+                      Visual
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => setEditMode("html")}
+                      className={`font-body text-xs px-3 py-1 rounded-full transition-colors ${
+                        editMode === "html" ? "bg-sage text-white" : "text-sage hover:bg-sage/20"
+                      }`}
+                    >
+                      HTML
+                    </button>
+                  </div>
+                </div>
+
+                <div className="mb-3">
+                  <p className="font-body text-xs text-charcoal/50 mb-1">
+                    {templateForm.is_system ? "System placeholders (click to insert):" : "Insert variables:"}
+                  </p>
+                  <div className="flex flex-wrap gap-1.5">
+                    {(templateForm.is_system && templateForm.variables.length > 0
+                      ? templateForm.variables
+                      : commonVariables
+                    ).map((variable) => (
                       <button
                         key={variable}
+                        type="button"
                         onClick={() => insertVariable(variable)}
                         className="font-mono text-xs bg-sage/10 text-sage px-2 py-1 rounded hover:bg-sage/20 transition-colors"
                       >
@@ -991,15 +1126,54 @@ export default function CRMPage() {
                     ))}
                   </div>
                 </div>
-                <Textarea
-                  value={templateForm.message_body}
-                  onChange={(e) => setTemplateForm({ ...templateForm, message_body: e.target.value })}
-                  placeholder="Hi {{Member_Name}},&#10;&#10;Your message here..."
-                  rows={12}
-                  className="font-body"
-                />
+
+                {editMode === "preview" ? (
+                  <div className="border border-sage/20 rounded-lg overflow-hidden bg-white" style={{ height: 600 }}>
+                    <iframe
+                      ref={previewIframeRef}
+                      title="visual-editor"
+                      key={editingTemplate?.id ?? "new"}
+                      srcDoc={`<!DOCTYPE html><html><head><meta charset="UTF-8"><style>body{margin:0;padding:16px;background:#F5F0E8;font-family:Georgia,serif;min-height:100vh}body[contenteditable=true]{outline:2px dashed transparent}body[contenteditable=true]:focus{outline-color:#7C9070}[data-placeholder]{background:#FEF3C7;color:#92400E;padding:1px 4px;border-radius:3px;font-family:monospace;font-size:0.85em}</style></head><body contenteditable="true">${templateForm.message_body
+                        .replace(/<!DOCTYPE[^>]*>/i, "")
+                        .replace(/<\/?html[^>]*>/gi, "")
+                        .replace(/<head[\s\S]*?<\/head>/gi, "")
+                        .replace(/<\/?body[^>]*>/gi, "")
+                        .replace(/\{\{\s*([A-Za-z0-9_]+)\s*\}\}/g, '<span data-placeholder="$1">{{$1}}</span>')}</body><script>
+                        document.body.addEventListener('blur', () => {
+                          const html = document.body.innerHTML.replace(/<span data-placeholder="([^"]+)">[^<]*<\\/span>/g, '{{$1}}');
+                          window.parent.postMessage({ type: 'visual-edit', html }, '*');
+                        }, true);
+                      </script></html>`}
+                      className="w-full h-full"
+                      onLoad={(e) => {
+                        const win = (e.currentTarget as HTMLIFrameElement).contentWindow;
+                        if (!win) return;
+                        const handler = (ev: MessageEvent) => {
+                          if (ev.source !== win) return;
+                          if (ev.data?.type !== "visual-edit") return;
+                          setTemplateForm((prev) => ({ ...prev, message_body: ev.data.html }));
+                        };
+                        window.addEventListener("message", handler);
+                        // store cleanup on iframe element
+                        (e.currentTarget as unknown as { __cleanup?: () => void }).__cleanup = () =>
+                          window.removeEventListener("message", handler);
+                      }}
+                    />
+                  </div>
+                ) : (
+                  <Textarea
+                    value={templateForm.message_body}
+                    onChange={(e) => setTemplateForm({ ...templateForm, message_body: e.target.value })}
+                    placeholder="Hi {{memberName}},&#10;&#10;Your message here..."
+                    rows={templateForm.is_system ? 22 : 14}
+                    className="font-mono text-xs"
+                  />
+                )}
                 <p className="font-body text-xs text-charcoal/50 mt-2">
-                  Use double curly braces for variables: <code className="font-mono bg-sage/10 px-1">{`{{Variable_Name}}`}</code>
+                  {editMode === "preview"
+                    ? "Visual mode: click anywhere to edit text inline. Yellow chips are dynamic placeholders — keep them as-is. Switch to HTML to edit markup directly."
+                    : "Use double curly braces for variables: "}
+                  {editMode === "html" && <code className="font-mono bg-sage/10 px-1">{`{{Variable_Name}}`}</code>}
                 </p>
               </div>
 
@@ -1059,6 +1233,45 @@ export default function CRMPage() {
                 </Button>
               </div>
             </div>
+          </div>
+        </div>
+      )}
+
+      {/* Template Preview Modal */}
+      {showPreview && (
+        <div className="fixed inset-0 z-[60] flex items-center justify-center p-4">
+          <div className="absolute inset-0 bg-charcoal/70 backdrop-blur-xs" onClick={() => setShowPreview(false)} />
+          <div className="relative bg-white rounded-2xl shadow-2xl w-full max-w-3xl max-h-[90vh] flex flex-col">
+            <div className="flex items-center justify-between px-6 py-4 border-b border-sage/10">
+              <div>
+                <h3 className="font-display text-2xl text-charcoal">Preview</h3>
+                <p className="font-body text-xs text-charcoal/60 mt-0.5">
+                  Sample values filled in for placeholders. Real send uses actual member data.
+                </p>
+              </div>
+              <button
+                onClick={() => setShowPreview(false)}
+                className="w-9 h-9 rounded-full hover:bg-sage/10 flex items-center justify-center"
+              >
+                <X size={20} />
+              </button>
+            </div>
+            <div className="px-6 py-3 border-b border-sage/10 bg-cream/30">
+              <p className="font-body text-xs text-charcoal/50 mb-1">Subject</p>
+              <p className="font-body text-sm text-charcoal">
+                {templateForm.subject
+                  ? templateForm.subject.replace(/\{\{\s*([A-Za-z0-9_]+)\s*\}\}/g, (_, k) =>
+                      k in PREVIEW_SAMPLES ? PREVIEW_SAMPLES[k] : `{{${k}}}`
+                    )
+                  : <span className="text-charcoal/40 italic">(no subject)</span>}
+              </p>
+            </div>
+            <iframe
+              title="template-preview"
+              srcDoc={renderPreview(templateForm.message_body, templateForm.subject)}
+              sandbox=""
+              className="flex-1 w-full min-h-[500px] bg-white rounded-b-2xl"
+            />
           </div>
         </div>
       )}

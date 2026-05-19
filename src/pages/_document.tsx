@@ -7,10 +7,7 @@ export default function Document() {
     <Html lang="en">
       <Head>
         <SEOElements />
-        
-        {/* Viewport Configuration for Optimal Display */}
-        <meta name="viewport" content="width=device-width, initial-scale=1.0, minimum-scale=1.0, maximum-scale=5.0, user-scalable=yes" />
-        
+
         {/* Google Analytics 4 */}
         {process.env.NEXT_PUBLIC_GA_MEASUREMENT_ID && (
           <>

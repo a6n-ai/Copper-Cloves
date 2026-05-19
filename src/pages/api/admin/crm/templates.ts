@@ -9,25 +9,33 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
   if (req.method === "GET") {
     const templates = await prisma.crmTemplate.findMany({
-      orderBy: { created_at: "desc" },
+      orderBy: [{ is_system: "desc" }, { created_at: "desc" }],
     });
     return res.json(templates);
   }
 
   if (req.method === "POST") {
-    const template = await prisma.crmTemplate.create({ data: req.body });
+    // Strip server-controlled fields — admins cannot create system templates.
+    const { is_system: _ignoreIsSystem, template_key: _ignoreKey, ...body } = req.body ?? {};
+    const template = await prisma.crmTemplate.create({ data: body });
     return res.status(201).json(template);
   }
 
   if (req.method === "PUT") {
-    const { id, ...data } = req.body;
+    const { id, is_system: _ignoreIsSystem, template_key: _ignoreKey, ...data } = req.body ?? {};
+    if (!id) return res.status(400).json({ error: "id required" });
     const template = await prisma.crmTemplate.update({ where: { id }, data });
     return res.json(template);
   }
 
   if (req.method === "DELETE") {
-    const { id } = req.query;
-    await prisma.crmTemplate.delete({ where: { id: String(id) } });
+    const id = String(req.query.id ?? "");
+    if (!id) return res.status(400).json({ error: "id required" });
+    const existing = await prisma.crmTemplate.findUnique({ where: { id } });
+    if (existing?.is_system) {
+      return res.status(403).json({ error: "System templates cannot be deleted" });
+    }
+    await prisma.crmTemplate.delete({ where: { id } });
     return res.status(204).end();
   }
 

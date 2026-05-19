@@ -551,6 +551,8 @@ export type WaiverScalarFieldEnum = (typeof WaiverScalarFieldEnum)[keyof typeof 
 export const CrmTemplateScalarFieldEnum = {
   id: 'id',
   name: 'name',
+  template_key: 'template_key',
+  is_system: 'is_system',
   template_type: 'template_type',
   subject: 'subject',
   message_body: 'message_body',

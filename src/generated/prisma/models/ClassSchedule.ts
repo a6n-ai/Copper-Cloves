@@ -296,6 +296,7 @@ export type ClassScheduleOrderByWithRelationInput = {
 
 export type ClassScheduleWhereUniqueInput = Prisma.AtLeast<{
   id?: string
+  class_schedules_slot_unique?: Prisma.ClassScheduleClass_schedules_slot_uniqueCompoundUniqueInput
   AND?: Prisma.ClassScheduleWhereInput | Prisma.ClassScheduleWhereInput[]
   OR?: Prisma.ClassScheduleWhereInput[]
   NOT?: Prisma.ClassScheduleWhereInput | Prisma.ClassScheduleWhereInput[]
@@ -312,7 +313,7 @@ export type ClassScheduleWhereUniqueInput = Prisma.AtLeast<{
   class_model?: Prisma.XOR<Prisma.ClassModelNullableScalarRelationFilter, Prisma.ClassModelWhereInput> | null
   instructor?: Prisma.XOR<Prisma.InstructorNullableScalarRelationFilter, Prisma.InstructorWhereInput> | null
   bookings?: Prisma.BookingListRelationFilter
-}, "id">
+}, "id" | "class_schedules_slot_unique">
 
 export type ClassScheduleOrderByWithAggregationInput = {
   id?: Prisma.SortOrder
@@ -458,6 +459,12 @@ export type ClassScheduleListRelationFilter = {
 
 export type ClassScheduleOrderByRelationAggregateInput = {
   _count?: Prisma.SortOrder
+}
+
+export type ClassScheduleClass_schedules_slot_uniqueCompoundUniqueInput = {
+  start_time: Date | string
+  class_id: string
+  instructor_id: string
 }
 
 export type ClassScheduleCountOrderByAggregateInput = {

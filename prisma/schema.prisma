@@ -612,6 +612,8 @@ model Waiver {
 model CrmTemplate {
   id                String   @id @default(uuid())
   name              String
+  template_key      String?  @unique
+  is_system         Boolean  @default(false)
   template_type     String
   subject           String?
   message_body      String

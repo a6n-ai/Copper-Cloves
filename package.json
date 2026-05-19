@@ -20,6 +20,9 @@
     "db:seed:instructors": "tsx scripts/seed-instructors.ts",
     "db:seed:weekend-may-2026": "tsx scripts/seed-weekend-schedule-may-2026.ts",
     "db:seed:members": "tsx scripts/seed-member-users.ts",
+    "db:seed:crm-system": "tsx scripts/seed-crm-system-templates.ts",
+    "db:seed:crm-triggers": "tsx scripts/seed-crm-system-triggers.ts",
+    "crm:dump-templates": "tsx scripts/dump-email-templates.ts",
     "instructor:set-password": "tsx scripts/set-instructor-password.ts"
   },
   "prisma": {

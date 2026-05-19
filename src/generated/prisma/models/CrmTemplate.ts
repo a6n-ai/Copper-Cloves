@@ -27,6 +27,8 @@ export type AggregateCrmTemplate = {
 export type CrmTemplateMinAggregateOutputType = {
   id: string | null
   name: string | null
+  template_key: string | null
+  is_system: boolean | null
   template_type: string | null
   subject: string | null
   message_body: string | null
@@ -39,6 +41,8 @@ export type CrmTemplateMinAggregateOutputType = {
 export type CrmTemplateMaxAggregateOutputType = {
   id: string | null
   name: string | null
+  template_key: string | null
+  is_system: boolean | null
   template_type: string | null
   subject: string | null
   message_body: string | null
@@ -51,6 +55,8 @@ export type CrmTemplateMaxAggregateOutputType = {
 export type CrmTemplateCountAggregateOutputType = {
   id: number
   name: number
+  template_key: number
+  is_system: number
   template_type: number
   subject: number
   message_body: number
@@ -66,6 +72,8 @@ export type CrmTemplateCountAggregateOutputType = {
 export type CrmTemplateMinAggregateInputType = {
   id?: true
   name?: true
+  template_key?: true
+  is_system?: true
   template_type?: true
   subject?: true
   message_body?: true
@@ -78,6 +86,8 @@ export type CrmTemplateMinAggregateInputType = {
 export type CrmTemplateMaxAggregateInputType = {
   id?: true
   name?: true
+  template_key?: true
+  is_system?: true
   template_type?: true
   subject?: true
   message_body?: true
@@ -90,6 +100,8 @@ export type CrmTemplateMaxAggregateInputType = {
 export type CrmTemplateCountAggregateInputType = {
   id?: true
   name?: true
+  template_key?: true
+  is_system?: true
   template_type?: true
   subject?: true
   message_body?: true
@@ -176,6 +188,8 @@ export type CrmTemplateGroupByArgs<ExtArgs extends runtime.Types.Extensions.Inte
 export type CrmTemplateGroupByOutputType = {
   id: string
   name: string
+  template_key: string | null
+  is_system: boolean
   template_type: string
   subject: string | null
   message_body: string
@@ -210,6 +224,8 @@ export type CrmTemplateWhereInput = {
   NOT?: Prisma.CrmTemplateWhereInput | Prisma.CrmTemplateWhereInput[]
   id?: Prisma.StringFilter<"CrmTemplate"> | string
   name?: Prisma.StringFilter<"CrmTemplate"> | string
+  template_key?: Prisma.StringNullableFilter<"CrmTemplate"> | string | null
+  is_system?: Prisma.BoolFilter<"CrmTemplate"> | boolean
   template_type?: Prisma.StringFilter<"CrmTemplate"> | string
   subject?: Prisma.StringNullableFilter<"CrmTemplate"> | string | null
   message_body?: Prisma.StringFilter<"CrmTemplate"> | string
@@ -225,6 +241,8 @@ export type CrmTemplateWhereInput = {
 export type CrmTemplateOrderByWithRelationInput = {
   id?: Prisma.SortOrder
   name?: Prisma.SortOrder
+  template_key?: Prisma.SortOrderInput | Prisma.SortOrder
+  is_system?: Prisma.SortOrder
   template_type?: Prisma.SortOrder
   subject?: Prisma.SortOrderInput | Prisma.SortOrder
   message_body?: Prisma.SortOrder
@@ -239,10 +257,12 @@ export type CrmTemplateOrderByWithRelationInput = {
 
 export type CrmTemplateWhereUniqueInput = Prisma.AtLeast<{
   id?: string
+  template_key?: string
   AND?: Prisma.CrmTemplateWhereInput | Prisma.CrmTemplateWhereInput[]
   OR?: Prisma.CrmTemplateWhereInput[]
   NOT?: Prisma.CrmTemplateWhereInput | Prisma.CrmTemplateWhereInput[]
   name?: Prisma.StringFilter<"CrmTemplate"> | string
+  is_system?: Prisma.BoolFilter<"CrmTemplate"> | boolean
   template_type?: Prisma.StringFilter<"CrmTemplate"> | string
   subject?: Prisma.StringNullableFilter<"CrmTemplate"> | string | null
   message_body?: Prisma.StringFilter<"CrmTemplate"> | string
@@ -253,11 +273,13 @@ export type CrmTemplateWhereUniqueInput = Prisma.AtLeast<{
   updated_at?: Prisma.DateTimeFilter<"CrmTemplate"> | Date | string
   crm_messages?: Prisma.CrmMessageListRelationFilter
   crm_triggers?: Prisma.CrmTriggerListRelationFilter
-}, "id">
+}, "id" | "template_key">
 
 export type CrmTemplateOrderByWithAggregationInput = {
   id?: Prisma.SortOrder
   name?: Prisma.SortOrder
+  template_key?: Prisma.SortOrderInput | Prisma.SortOrder
+  is_system?: Prisma.SortOrder
   template_type?: Prisma.SortOrder
   subject?: Prisma.SortOrderInput | Prisma.SortOrder
   message_body?: Prisma.SortOrder
@@ -277,6 +299,8 @@ export type CrmTemplateScalarWhereWithAggregatesInput = {
   NOT?: Prisma.CrmTemplateScalarWhereWithAggregatesInput | Prisma.CrmTemplateScalarWhereWithAggregatesInput[]
   id?: Prisma.StringWithAggregatesFilter<"CrmTemplate"> | string
   name?: Prisma.StringWithAggregatesFilter<"CrmTemplate"> | string
+  template_key?: Prisma.StringNullableWithAggregatesFilter<"CrmTemplate"> | string | null
+  is_system?: Prisma.BoolWithAggregatesFilter<"CrmTemplate"> | boolean
   template_type?: Prisma.StringWithAggregatesFilter<"CrmTemplate"> | string
   subject?: Prisma.StringNullableWithAggregatesFilter<"CrmTemplate"> | string | null
   message_body?: Prisma.StringWithAggregatesFilter<"CrmTemplate"> | string
@@ -290,6 +314,8 @@ export type CrmTemplateScalarWhereWithAggregatesInput = {
 export type CrmTemplateCreateInput = {
   id?: string
   name: string
+  template_key?: string | null
+  is_system?: boolean
   template_type: string
   subject?: string | null
   message_body: string
@@ -305,6 +331,8 @@ export type CrmTemplateCreateInput = {
 export type CrmTemplateUncheckedCreateInput = {
   id?: string
   name: string
+  template_key?: string | null
+  is_system?: boolean
   template_type: string
   subject?: string | null
   message_body: string
@@ -320,6 +348,8 @@ export type CrmTemplateUncheckedCreateInput = {
 export type CrmTemplateUpdateInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   name?: Prisma.StringFieldUpdateOperationsInput | string
+  template_key?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  is_system?: Prisma.BoolFieldUpdateOperationsInput | boolean
   template_type?: Prisma.StringFieldUpdateOperationsInput | string
   subject?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   message_body?: Prisma.StringFieldUpdateOperationsInput | string
@@ -335,6 +365,8 @@ export type CrmTemplateUpdateInput = {
 export type CrmTemplateUncheckedUpdateInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   name?: Prisma.StringFieldUpdateOperationsInput | string
+  template_key?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  is_system?: Prisma.BoolFieldUpdateOperationsInput | boolean
   template_type?: Prisma.StringFieldUpdateOperationsInput | string
   subject?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   message_body?: Prisma.StringFieldUpdateOperationsInput | string
@@ -350,6 +382,8 @@ export type CrmTemplateUncheckedUpdateInput = {
 export type CrmTemplateCreateManyInput = {
   id?: string
   name: string
+  template_key?: string | null
+  is_system?: boolean
   template_type: string
   subject?: string | null
   message_body: string
@@ -363,6 +397,8 @@ export type CrmTemplateCreateManyInput = {
 export type CrmTemplateUpdateManyMutationInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   name?: Prisma.StringFieldUpdateOperationsInput | string
+  template_key?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  is_system?: Prisma.BoolFieldUpdateOperationsInput | boolean
   template_type?: Prisma.StringFieldUpdateOperationsInput | string
   subject?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   message_body?: Prisma.StringFieldUpdateOperationsInput | string
@@ -376,6 +412,8 @@ export type CrmTemplateUpdateManyMutationInput = {
 export type CrmTemplateUncheckedUpdateManyInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   name?: Prisma.StringFieldUpdateOperationsInput | string
+  template_key?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  is_system?: Prisma.BoolFieldUpdateOperationsInput | boolean
   template_type?: Prisma.StringFieldUpdateOperationsInput | string
   subject?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   message_body?: Prisma.StringFieldUpdateOperationsInput | string
@@ -389,6 +427,8 @@ export type CrmTemplateUncheckedUpdateManyInput = {
 export type CrmTemplateCountOrderByAggregateInput = {
   id?: Prisma.SortOrder
   name?: Prisma.SortOrder
+  template_key?: Prisma.SortOrder
+  is_system?: Prisma.SortOrder
   template_type?: Prisma.SortOrder
   subject?: Prisma.SortOrder
   message_body?: Prisma.SortOrder
@@ -402,6 +442,8 @@ export type CrmTemplateCountOrderByAggregateInput = {
 export type CrmTemplateMaxOrderByAggregateInput = {
   id?: Prisma.SortOrder
   name?: Prisma.SortOrder
+  template_key?: Prisma.SortOrder
+  is_system?: Prisma.SortOrder
   template_type?: Prisma.SortOrder
   subject?: Prisma.SortOrder
   message_body?: Prisma.SortOrder
@@ -414,6 +456,8 @@ export type CrmTemplateMaxOrderByAggregateInput = {
 export type CrmTemplateMinOrderByAggregateInput = {
   id?: Prisma.SortOrder
   name?: Prisma.SortOrder
+  template_key?: Prisma.SortOrder
+  is_system?: Prisma.SortOrder
   template_type?: Prisma.SortOrder
   subject?: Prisma.SortOrder
   message_body?: Prisma.SortOrder
@@ -463,6 +507,8 @@ export type CrmTemplateUpdateOneWithoutCrm_triggersNestedInput = {
 export type CrmTemplateCreateWithoutCrm_messagesInput = {
   id?: string
   name: string
+  template_key?: string | null
+  is_system?: boolean
   template_type: string
   subject?: string | null
   message_body: string
@@ -477,6 +523,8 @@ export type CrmTemplateCreateWithoutCrm_messagesInput = {
 export type CrmTemplateUncheckedCreateWithoutCrm_messagesInput = {
   id?: string
   name: string
+  template_key?: string | null
+  is_system?: boolean
   template_type: string
   subject?: string | null
   message_body: string
@@ -507,6 +555,8 @@ export type CrmTemplateUpdateToOneWithWhereWithoutCrm_messagesInput = {
 export type CrmTemplateUpdateWithoutCrm_messagesInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   name?: Prisma.StringFieldUpdateOperationsInput | string
+  template_key?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  is_system?: Prisma.BoolFieldUpdateOperationsInput | boolean
   template_type?: Prisma.StringFieldUpdateOperationsInput | string
   subject?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   message_body?: Prisma.StringFieldUpdateOperationsInput | string
@@ -521,6 +571,8 @@ export type CrmTemplateUpdateWithoutCrm_messagesInput = {
 export type CrmTemplateUncheckedUpdateWithoutCrm_messagesInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   name?: Prisma.StringFieldUpdateOperationsInput | string
+  template_key?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  is_system?: Prisma.BoolFieldUpdateOperationsInput | boolean
   template_type?: Prisma.StringFieldUpdateOperationsInput | string
   subject?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   message_body?: Prisma.StringFieldUpdateOperationsInput | string
@@ -535,6 +587,8 @@ export type CrmTemplateUncheckedUpdateWithoutCrm_messagesInput = {
 export type CrmTemplateCreateWithoutCrm_triggersInput = {
   id?: string
   name: string
+  template_key?: string | null
+  is_system?: boolean
   template_type: string
   subject?: string | null
   message_body: string
@@ -549,6 +603,8 @@ export type CrmTemplateCreateWithoutCrm_triggersInput = {
 export type CrmTemplateUncheckedCreateWithoutCrm_triggersInput = {
   id?: string
   name: string
+  template_key?: string | null
+  is_system?: boolean
   template_type: string
   subject?: string | null
   message_body: string
@@ -579,6 +635,8 @@ export type CrmTemplateUpdateToOneWithWhereWithoutCrm_triggersInput = {
 export type CrmTemplateUpdateWithoutCrm_triggersInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   name?: Prisma.StringFieldUpdateOperationsInput | string
+  template_key?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  is_system?: Prisma.BoolFieldUpdateOperationsInput | boolean
   template_type?: Prisma.StringFieldUpdateOperationsInput | string
   subject?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   message_body?: Prisma.StringFieldUpdateOperationsInput | string
@@ -593,6 +651,8 @@ export type CrmTemplateUpdateWithoutCrm_triggersInput = {
 export type CrmTemplateUncheckedUpdateWithoutCrm_triggersInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   name?: Prisma.StringFieldUpdateOperationsInput | string
+  template_key?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  is_system?: Prisma.BoolFieldUpdateOperationsInput | boolean
   template_type?: Prisma.StringFieldUpdateOperationsInput | string
   subject?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   message_body?: Prisma.StringFieldUpdateOperationsInput | string
@@ -647,6 +707,8 @@ export type CrmTemplateCountOutputTypeCountCrm_triggersArgs<ExtArgs extends runt
 export type CrmTemplateSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetSelect<{
   id?: boolean
   name?: boolean
+  template_key?: boolean
+  is_system?: boolean
   template_type?: boolean
   subject?: boolean
   message_body?: boolean
@@ -663,6 +725,8 @@ export type CrmTemplateSelect<ExtArgs extends runtime.Types.Extensions.InternalA
 export type CrmTemplateSelectCreateManyAndReturn<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetSelect<{
   id?: boolean
   name?: boolean
+  template_key?: boolean
+  is_system?: boolean
   template_type?: boolean
   subject?: boolean
   message_body?: boolean
@@ -676,6 +740,8 @@ export type CrmTemplateSelectCreateManyAndReturn<ExtArgs extends runtime.Types.E
 export type CrmTemplateSelectUpdateManyAndReturn<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetSelect<{
   id?: boolean
   name?: boolean
+  template_key?: boolean
+  is_system?: boolean
   template_type?: boolean
   subject?: boolean
   message_body?: boolean
@@ -689,6 +755,8 @@ export type CrmTemplateSelectUpdateManyAndReturn<ExtArgs extends runtime.Types.E
 export type CrmTemplateSelectScalar = {
   id?: boolean
   name?: boolean
+  template_key?: boolean
+  is_system?: boolean
   template_type?: boolean
   subject?: boolean
   message_body?: boolean
@@ -699,7 +767,7 @@ export type CrmTemplateSelectScalar = {
   updated_at?: boolean
 }
 
-export type CrmTemplateOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "name" | "template_type" | "subject" | "message_body" | "channel_email" | "channel_whatsapp" | "variables" | "created_at" | "updated_at", ExtArgs["result"]["crmTemplate"]>
+export type CrmTemplateOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "name" | "template_key" | "is_system" | "template_type" | "subject" | "message_body" | "channel_email" | "channel_whatsapp" | "variables" | "created_at" | "updated_at", ExtArgs["result"]["crmTemplate"]>
 export type CrmTemplateInclude<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   crm_messages?: boolean | Prisma.CrmTemplate$crm_messagesArgs<ExtArgs>
   crm_triggers?: boolean | Prisma.CrmTemplate$crm_triggersArgs<ExtArgs>
@@ -717,6 +785,8 @@ export type $CrmTemplatePayload<ExtArgs extends runtime.Types.Extensions.Interna
   scalars: runtime.Types.Extensions.GetPayloadResult<{
     id: string
     name: string
+    template_key: string | null
+    is_system: boolean
     template_type: string
     subject: string | null
     message_body: string
@@ -1152,6 +1222,8 @@ export interface Prisma__CrmTemplateClient<T, Null = never, ExtArgs extends runt
 export interface CrmTemplateFieldRefs {
   readonly id: Prisma.FieldRef<"CrmTemplate", 'String'>
   readonly name: Prisma.FieldRef<"CrmTemplate", 'String'>
+  readonly template_key: Prisma.FieldRef<"CrmTemplate", 'String'>
+  readonly is_system: Prisma.FieldRef<"CrmTemplate", 'Boolean'>
   readonly template_type: Prisma.FieldRef<"CrmTemplate", 'String'>
   readonly subject: Prisma.FieldRef<"CrmTemplate", 'String'>
   readonly message_body: Prisma.FieldRef<"CrmTemplate", 'String'>
