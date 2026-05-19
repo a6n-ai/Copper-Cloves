@@ -156,6 +156,66 @@ export default function CRMPage() {
   const [editMode, setEditMode] = useState<"preview" | "html">("preview");
   const previewIframeRef = useRef<HTMLIFrameElement | null>(null);
 
+  // Manual send dialog state
+  const [sendDialog, setSendDialog] = useState<CRMTemplate | null>(null);
+  const [sendQuery, setSendQuery] = useState("");
+  const [sendResults, setSendResults] = useState<Array<{ id: string; full_name: string | null; email: string }>>([]);
+  const [sendTarget, setSendTarget] = useState<{ id: string; full_name: string | null; email: string } | null>(null);
+  const [sendOverrides, setSendOverrides] = useState<Record<string, string>>({});
+  const [sending, setSending] = useState(false);
+  const [sendResult, setSendResult] = useState<{ ok: boolean; msg: string } | null>(null);
+
+  // Member search (debounced)
+  useEffect(() => {
+    if (!sendDialog) return;
+    const q = sendQuery.trim();
+    if (!q) { setSendResults([]); return; }
+    const t = setTimeout(async () => {
+      try {
+        const r = await fetch(`/api/admin/members-search?q=${encodeURIComponent(q)}`);
+        if (r.ok) setSendResults(await r.json());
+      } catch (e) { console.error(e); }
+    }, 250);
+    return () => clearTimeout(t);
+  }, [sendQuery, sendDialog]);
+
+  const openSendDialog = (template: CRMTemplate) => {
+    setSendDialog(template);
+    setSendQuery("");
+    setSendResults([]);
+    setSendTarget(null);
+    setSendOverrides({});
+    setSendResult(null);
+  };
+
+  const handleManualSend = async () => {
+    if (!sendDialog || !sendTarget) return;
+    setSending(true);
+    setSendResult(null);
+    try {
+      const r = await fetch("/api/admin/crm/send", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          template_id: sendDialog.id,
+          user_id: sendTarget.id,
+          variables: sendOverrides,
+        }),
+      });
+      const data = await r.json().catch(() => ({}));
+      if (r.ok) {
+        setSendResult({ ok: true, msg: `Email sent to ${sendTarget.email}` });
+        fetchMessages();
+      } else {
+        setSendResult({ ok: false, msg: data?.error || `Send failed (${r.status})` });
+      }
+    } catch (e: unknown) {
+      setSendResult({ ok: false, msg: e instanceof Error ? e.message : "Network error" });
+    } finally {
+      setSending(false);
+    }
+  };
+
   // Messages state
   const [messages, setMessages] = useState<CRMMessage[]>([]);
   
@@ -663,6 +723,16 @@ export default function CRMPage() {
                           </div>
                         </div>
                         <div className="flex gap-2">
+                          <Button
+                            onClick={() => openSendDialog(template)}
+                            size="sm"
+                            variant="ghost"
+                            className="text-green-700 hover:bg-green-50"
+                            title="Send to member"
+                            disabled={!template.channel_email}
+                          >
+                            <Send size={14} />
+                          </Button>
                           <Button
                             onClick={() => handleEditTemplate(template)}
                             size="sm"
@@ -1232,6 +1302,123 @@ export default function CRMPage() {
                   )}
                 </Button>
               </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Manual Send Modal */}
+      {sendDialog && (
+        <div className="fixed inset-0 z-[60] flex items-center justify-center p-4">
+          <div className="absolute inset-0 bg-charcoal/70 backdrop-blur-xs" onClick={() => setSendDialog(null)} />
+          <div className="relative bg-white rounded-2xl shadow-2xl w-full max-w-xl max-h-[90vh] flex flex-col overflow-hidden">
+            <div className="flex items-center justify-between px-6 py-4 border-b border-sage/10">
+              <div>
+                <h3 className="font-display text-2xl text-charcoal">Send template</h3>
+                <p className="font-body text-xs text-charcoal/60 mt-0.5">{sendDialog.name}</p>
+              </div>
+              <button
+                onClick={() => setSendDialog(null)}
+                className="w-9 h-9 rounded-full hover:bg-sage/10 flex items-center justify-center"
+              >
+                <X size={20} />
+              </button>
+            </div>
+
+            <div className="p-6 space-y-5 overflow-y-auto">
+              <div>
+                <label className="font-body text-sm text-charcoal/70 mb-2 block">Recipient member</label>
+                {sendTarget ? (
+                  <div className="flex items-center justify-between bg-sage/5 border border-sage/20 rounded-lg px-3 py-2">
+                    <div>
+                      <p className="font-body text-sm text-charcoal">{sendTarget.full_name || "(no name)"}</p>
+                      <p className="font-body text-xs text-charcoal/60">{sendTarget.email}</p>
+                    </div>
+                    <button
+                      onClick={() => setSendTarget(null)}
+                      className="text-charcoal/50 hover:text-charcoal"
+                    >
+                      <X size={16} />
+                    </button>
+                  </div>
+                ) : (
+                  <>
+                    <Input
+                      autoFocus
+                      placeholder="Search by name or email…"
+                      value={sendQuery}
+                      onChange={(e) => setSendQuery(e.target.value)}
+                      className="font-body"
+                    />
+                    {sendResults.length > 0 && (
+                      <div className="mt-2 border border-sage/20 rounded-lg max-h-48 overflow-y-auto bg-white">
+                        {sendResults.map((m) => (
+                          <button
+                            key={m.id}
+                            type="button"
+                            onClick={() => setSendTarget(m)}
+                            className="w-full text-left px-3 py-2 hover:bg-sage/5 border-b border-sage/10 last:border-0"
+                          >
+                            <p className="font-body text-sm text-charcoal">{m.full_name || "(no name)"}</p>
+                            <p className="font-body text-xs text-charcoal/60">{m.email}</p>
+                          </button>
+                        ))}
+                      </div>
+                    )}
+                  </>
+                )}
+              </div>
+
+              {sendDialog.variables?.length > 0 && (
+                <div>
+                  <label className="font-body text-sm text-charcoal/70 mb-2 block">
+                    Variables <span className="text-charcoal/40">(optional — leave blank to use defaults)</span>
+                  </label>
+                  <div className="space-y-2">
+                    {sendDialog.variables.map((v) => (
+                      <div key={v} className="flex items-center gap-2">
+                        <code className="font-mono text-xs bg-sage/10 text-sage px-2 py-1 rounded min-w-[140px]">{`{{${v}}}`}</code>
+                        <Input
+                          placeholder={`Override ${v}`}
+                          value={sendOverrides[v] ?? ""}
+                          onChange={(e) => setSendOverrides({ ...sendOverrides, [v]: e.target.value })}
+                          className="font-body text-sm"
+                        />
+                      </div>
+                    ))}
+                  </div>
+                  <p className="font-body text-xs text-charcoal/50 mt-2">
+                    Defaults used when blank: <code>memberName</code>, <code>email</code>, <code>portalUrl</code>, <code>loginUrl</code> auto-filled from the member's profile and site config.
+                  </p>
+                </div>
+              )}
+
+              {sendResult && (
+                <div className={`rounded-lg p-3 ${sendResult.ok ? "bg-green-50 border border-green-200 text-green-800" : "bg-red-50 border border-red-200 text-red-800"}`}>
+                  <p className="font-body text-sm">{sendResult.msg}</p>
+                </div>
+              )}
+            </div>
+
+            <div className="px-6 py-4 border-t border-sage/10 flex justify-end gap-2">
+              <Button
+                variant="outline"
+                onClick={() => setSendDialog(null)}
+                className="border-sage/30 text-charcoal font-body"
+              >
+                Close
+              </Button>
+              <Button
+                onClick={handleManualSend}
+                disabled={sending || !sendTarget}
+                className="bg-sage hover:bg-sage/90 text-white font-body"
+              >
+                {sending ? (
+                  <><Loader2 className="animate-spin mr-2" size={14} />Sending…</>
+                ) : (
+                  <><Send size={14} className="mr-2" />Send email</>
+                )}
+              </Button>
             </div>
           </div>
         </div>
