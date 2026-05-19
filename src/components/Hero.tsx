@@ -1,10 +1,11 @@
 import { useState, useEffect } from "react";
+import { cdnUrl } from "@/lib/cdnUrl";
 export function Hero() {
   const [moveIndex, setMoveIndex] = useState(0);
   const [refuelIndex, setRefuelIndex] = useState(0);
 
-  const moveMedia = ["/Move-1.mp4", "/Move-2.mp4"];
-  const refuelMedia = ["/Refuel-1.mp4", "/refuel-2.jpeg", "/refuel-3.mp4"];
+  const moveMedia = [cdnUrl("/Move-1.mp4"), cdnUrl("/Move-2.mp4")];
+  const refuelMedia = [cdnUrl("/Refuel-1.mp4"), cdnUrl("/refuel-2.jpeg"), cdnUrl("/refuel-3.mp4")];
 
   useEffect(() => {
     const moveInterval = setInterval(() => {
@@ -88,7 +89,7 @@ export function Hero() {
           {/* Panel 3: Connect */}
           <div className="relative flex-1 min-h-0 overflow-hidden lg:flex-none lg:h-full group">
             <video
-              src="/Connect-1.mp4"
+              src={cdnUrl("/Connect-1.mp4")}
               autoPlay
               loop
               muted

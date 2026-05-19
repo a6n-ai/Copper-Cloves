@@ -11,6 +11,7 @@ import { SessionProvider, useSession } from "next-auth/react";
 import { useActivityTracking } from "@/hooks/useActivityTracking";
 import { AdminNavigation } from "@/components/AdminNavigation";
 
+import { cdnUrl } from "@/lib/cdnUrl";
 const ADMIN_CHROME_EXEMPT = ["/admin/login"];
 
 function AdminChrome({ children }: { children: React.ReactNode }) {
@@ -71,8 +72,8 @@ export default function App({ Component, pageProps: { session, ...pageProps } }:
     <SessionProvider session={session}>
       <Head>
         <meta name="viewport" content="width=device-width, initial-scale=1.0, minimum-scale=1.0, maximum-scale=5.0, user-scalable=yes" />
-        <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
-        <link rel="icon" href="/favicon.ico" sizes="any" />
+        <link rel="icon" href={cdnUrl("/favicon.svg")} type="image/svg+xml" />
+        <link rel="icon" href={cdnUrl("/favicon.ico")} sizes="any" />
       </Head>
       <ActivityTrackingSubscriber />
       <OnboardingGate />

@@ -18,6 +18,7 @@ import {
   CalendarCheck
 } from "lucide-react";
 
+import { cdnUrl } from "@/lib/cdnUrl";
 interface PortalNavigationProps {
   userName?: string;
   userEmail?: string;
@@ -77,7 +78,7 @@ export function PortalNavigation({
             {/* Logo - Back to Home */}
             <Link href="/" className="flex items-center gap-3 group">
               <img 
-                src="/logo2.png" 
+                src={cdnUrl("/logo2.png")} 
                 alt="The Studio Logo" 
                 className="h-12 w-auto group-hover:scale-105 transition-transform duration-300"
                 style={{ filter: 'brightness(0)' }}

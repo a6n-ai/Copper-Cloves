@@ -19,6 +19,7 @@ import {
 } from "lucide-react";
 import Link from "next/link";
 
+import { cdnUrl } from "@/lib/cdnUrl";
 interface MenuItem {
   id: string;
   name: string;
@@ -302,7 +303,7 @@ export default function MenuPage() {
               <Card key={item.id} className="border-0 bg-white/80 backdrop-blur-xl shadow-lg overflow-hidden group">
                 <div className="aspect-video w-full overflow-hidden">
                   <Image
-                    src={item.image_url || "/food/A7401864.jpg"}
+                    src={item.image_url || cdnUrl("/food/A7401864.jpg")}
                     alt={item.name}
                     width={1200}
                     height={675}
@@ -374,7 +375,7 @@ export default function MenuPage() {
               {cart.map(item => (
                 <div key={item.id} className="flex items-center gap-4 p-4 rounded-xl bg-cream/30 border border-sage/10">
                   <Image
-                    src={item.image_url || "/food/A7401864.jpg"}
+                    src={item.image_url || cdnUrl("/food/A7401864.jpg")}
                     alt={item.name}
                     width={80}
                     height={80}

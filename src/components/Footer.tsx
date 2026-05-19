@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { MapPin, Phone, Mail, Instagram, Facebook, Youtube } from "lucide-react";
 
+import { cdnUrl } from "@/lib/cdnUrl";
 export function Footer() {
   const currentYear = new Date().getFullYear();
 
@@ -14,7 +15,7 @@ export function Footer() {
           <div className="lg:col-span-1">
             <Link href="/" className="inline-block mb-6">
               <img 
-                src="/the_studio_by_C_C_og.png" 
+                src={cdnUrl("/the_studio_by_C_C_og.png")} 
                 alt="The Studio by Copper + Cloves"
                 className="h-16 w-auto brightness-0 invert"
               />

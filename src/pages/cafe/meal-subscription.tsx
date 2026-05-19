@@ -21,6 +21,7 @@ import {
   Leaf
 } from "lucide-react";
 
+import { cdnUrl } from "@/lib/cdnUrl";
 export default function MealSubscriptionPage() {
   const [formData, setFormData] = useState({
     fullName: "",
@@ -33,10 +34,10 @@ export default function MealSubscriptionPage() {
   const [currentImageIndex, setCurrentImageIndex] = useState(0);
 
   const heroImages = [
-    "/meal-sub-1.jpg",
-    "/meal-sub-2.jpg",
-    "/meal-sub-3.jpg",
-    "/meal-sub-4.jpg"
+    cdnUrl("/meal-sub-1.jpg"),
+    cdnUrl("/meal-sub-2.jpg"),
+    cdnUrl("/meal-sub-3.jpg"),
+    cdnUrl("/meal-sub-4.jpg")
   ];
 
   // Auto-rotate hero images

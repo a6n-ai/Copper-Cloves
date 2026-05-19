@@ -57,6 +57,7 @@ import {
 } from "@/components/ui/sidebar";
 import { cn } from "@/lib/utils";
 
+import { cdnUrl } from "@/lib/cdnUrl";
 interface AdminNavigationProps {
   adminName?: string;
   adminEmail?: string;
@@ -208,13 +209,13 @@ export function AdminNavigation({
         <SidebarHeader className="px-3 pb-3">
           <Link href="/" className="flex items-center gap-2 group">
             <img
-              src="/logo2.png"
+              src={cdnUrl("/logo2.png")}
               alt="The Studio Logo"
               className="h-10 w-auto group-hover:scale-105 transition-transform duration-300 group-data-[collapsible=icon]:hidden"
               style={{ filter: "brightness(0)" }}
             />
             <img
-              src="/favicon.svg"
+              src={cdnUrl("/favicon.svg")}
               alt="The Studio"
               className="hidden h-8 w-8 group-data-[collapsible=icon]:block"
             />

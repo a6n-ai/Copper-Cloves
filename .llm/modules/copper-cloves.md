@@ -110,8 +110,6 @@
 | Target | Config |
 |---|---|
 | AWS Amplify | `amplify.yml` — requires Rust-free Prisma engine (`engineType = "client"`) |
-| Vercel | `vercel.json` |
-| PM2 | `ecosystem.config.js` |
 | Docker (local DB only) | `docker-compose.yml` — Postgres 16-alpine on host port 5433 |
 
 ## Notable constraints

@@ -1,5 +1,6 @@
 import Head from 'next/head';
 
+import { cdnUrl } from "@/lib/cdnUrl";
 interface SEOProps {
   title?: string;
   description?: string;
@@ -11,15 +12,15 @@ interface SEOProps {
 export function SEOElements({
   title = "Hello World",
   description = "Welcome to my app",
-  image = "/og-image.png",
+  image = cdnUrl("/og-image.png"),
   url,
 }: SEOProps) {
   return (
     <>
       <title>{title}</title>
       <meta name="description" content={description} />
-      <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
-      <link rel="icon" href="/favicon.ico" sizes="any" />
+      <link rel="icon" href={cdnUrl("/favicon.svg")} type="image/svg+xml" />
+      <link rel="icon" href={cdnUrl("/favicon.ico")} sizes="any" />
 
       {/* Open Graph */}
       <meta property="og:title" content={title} />
@@ -42,15 +43,15 @@ export function SEOElements({
 export function SEO({
   title = "Hello World",
   description = "Welcome to my app",
-  image = "/og-image.png",
+  image = cdnUrl("/og-image.png"),
   url,
 }: SEOProps) {
   return (
     <Head>
       <title>{title}</title>
       <meta name="description" content={description} />
-      <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
-      <link rel="icon" href="/favicon.ico" sizes="any" />
+      <link rel="icon" href={cdnUrl("/favicon.svg")} type="image/svg+xml" />
+      <link rel="icon" href={cdnUrl("/favicon.ico")} sizes="any" />
 
       {/* Open Graph */}
       <meta property="og:title" content={title} />

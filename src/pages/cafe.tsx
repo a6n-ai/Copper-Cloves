@@ -22,6 +22,7 @@ import {
   MapPin
 } from "lucide-react";
 
+import { cdnUrl } from "@/lib/cdnUrl";
 export default function CafePage() {
   const [scrollY, setScrollY] = useState(0);
 
@@ -31,47 +32,47 @@ export default function CafePage() {
 
   // Event images arrays
   const analogImages = [
-    "/events/Analog-0.jpeg",
-    "/events/Analog-1.jpeg",
-    "/events/Analog-2.jpeg",
-    "/events/Analog-3.jpeg",
-    "/events/Analog-4.jpeg"
+    cdnUrl("/events/Analog-0.jpeg"),
+    cdnUrl("/events/Analog-1.jpeg"),
+    cdnUrl("/events/Analog-2.jpeg"),
+    cdnUrl("/events/Analog-3.jpeg"),
+    cdnUrl("/events/Analog-4.jpeg")
   ];
 
   // Hero media rotation - videos + images
   const heroMedia = [
-    { type: "video", src: "/Refuel-1.mp4" },
-    { type: "image", src: "/meal-sub-2.jpg" },
-    { type: "video", src: "/refuel-3.mp4" },
-    { type: "image", src: "/food/BAG02716.jpg" },
-    { type: "image", src: "/meal-sub-1.jpg" },
-    { type: "image", src: "/food/A7404719.jpg" }
+    { type: "video", src: cdnUrl("/Refuel-1.mp4") },
+    { type: "image", src: cdnUrl("/meal-sub-2.jpg") },
+    { type: "video", src: cdnUrl("/refuel-3.mp4") },
+    { type: "image", src: cdnUrl("/food/BAG02716.jpg") },
+    { type: "image", src: cdnUrl("/meal-sub-1.jpg") },
+    { type: "image", src: cdnUrl("/food/A7404719.jpg") }
   ];
 
   // Food images for kinetic gallery
   const galleryImages = [
-    "/food/A7401864.jpg",
-    "/food/A7403685.jpg",
-    "/food/A7403837.jpg",
-    "/food/A7403872.jpg",
-    "/food/A7403877.jpg",
-    "/food/A7403883.jpg",
-    "/food/A7404545.jpg",
-    "/food/A7404719.jpg",
-    "/food/A7404723.jpg",
-    "/food/A7404737.jpg",
-    "/food/A7406773.jpg",
-    "/food/A7406776.jpg",
-    "/food/BAG02663.jpg",
-    "/food/BAG02716.jpg",
-    "/food/BAG02721.jpg",
-    "/food/BAG02755.jpg",
-    "/food/BAG02768.jpg",
-    "/food/BAG02801.jpg",
-    "/food/BAG08771.jpg",
-    "/food/BAG09447.jpg",
-    "/food/DSC05959.jpg",
-    "/food/BAG09574.jpg"
+    cdnUrl("/food/A7401864.jpg"),
+    cdnUrl("/food/A7403685.jpg"),
+    cdnUrl("/food/A7403837.jpg"),
+    cdnUrl("/food/A7403872.jpg"),
+    cdnUrl("/food/A7403877.jpg"),
+    cdnUrl("/food/A7403883.jpg"),
+    cdnUrl("/food/A7404545.jpg"),
+    cdnUrl("/food/A7404719.jpg"),
+    cdnUrl("/food/A7404723.jpg"),
+    cdnUrl("/food/A7404737.jpg"),
+    cdnUrl("/food/A7406773.jpg"),
+    cdnUrl("/food/A7406776.jpg"),
+    cdnUrl("/food/BAG02663.jpg"),
+    cdnUrl("/food/BAG02716.jpg"),
+    cdnUrl("/food/BAG02721.jpg"),
+    cdnUrl("/food/BAG02755.jpg"),
+    cdnUrl("/food/BAG02768.jpg"),
+    cdnUrl("/food/BAG02801.jpg"),
+    cdnUrl("/food/BAG08771.jpg"),
+    cdnUrl("/food/BAG09447.jpg"),
+    cdnUrl("/food/DSC05959.jpg"),
+    cdnUrl("/food/BAG09574.jpg")
   ];
 
   // Scroll effect for background color transition
@@ -435,7 +436,7 @@ export default function CafePage() {
             <div className="relative">
               <div className="relative rounded-3xl overflow-hidden shadow-2xl">
                 <Image
-                  src="/coworking.jpg"
+                  src={cdnUrl("/coworking.jpg")}
                   alt="Co-working at The Studio - Laptop, coffee, and community"
                   width={600}
                   height={450}
@@ -806,7 +807,7 @@ export default function CafePage() {
                 {/* Image */}
                 <div className="relative h-[400px]">
                   <Image
-                    src="/cafe-studio.jpg"
+                    src={cdnUrl("/cafe-studio.jpg")}
                     alt="Sober Sundowners - Alcohol-Free Social Gathering"
                     fill
                     sizes="(max-width: 768px) 100vw, (max-width: 1024px) 50vw, 25vw"
@@ -855,7 +856,7 @@ export default function CafePage() {
                 {/* Image */}
                 <div className="relative h-[400px]">
                   <Image
-                    src="/events/Reading-social.png"
+                    src={cdnUrl("/events/Reading-social.png")}
                     alt="The Reading Social - Monthly Book Club Gathering"
                     fill
                     sizes="(max-width: 768px) 100vw, (max-width: 1024px) 50vw, 25vw"
@@ -904,7 +905,7 @@ export default function CafePage() {
                 {/* Image */}
                 <div className="relative h-[400px]">
                   <Image
-                    src="/events/Work-Deli-1.jpeg"
+                    src={cdnUrl("/events/Work-Deli-1.jpeg")}
                     alt="Friday Work Deli - Co-working Community"
                     fill
                     sizes="(max-width: 768px) 100vw, (max-width: 1024px) 50vw, 25vw"

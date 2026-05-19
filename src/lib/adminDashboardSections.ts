@@ -11,6 +11,7 @@ import {
 } from "@/lib/adminFinanceDemoTransactions";
 import { parseFinanceSnapshot } from "@/lib/financeBookingCheckout";
 
+import { cdnUrl } from "@/lib/cdnUrl";
 function dt(d: Date) {
   const pad = (n: number) => String(n).padStart(2, "0");
   return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}`;
@@ -280,7 +281,7 @@ export async function getInstructorsSummary(db: Db = prisma) {
     specialties: Array.isArray(ins.specialties) && ins.specialties.length > 0 ? ins.specialties.slice(0, 4) : ["Classes"],
     philosophy: ins.philosophy || ins.about || "",
     paymentPercentage: 60,
-    photo: ins.image_url || "/placeholder.jpg",
+    photo: ins.image_url || cdnUrl("/placeholder.jpg"),
     status: "active" as const,
   }));
 }

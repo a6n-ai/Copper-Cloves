@@ -13,6 +13,7 @@ import { FormAlert } from "@/components/ui/form-alert";
 import { CheckCircle2, Loader2 } from "lucide-react";
 import { SEO } from "@/components/SEO";
 
+import { cdnUrl } from "@/lib/cdnUrl";
 const schema = z
   .object({
     password: z.string().min(6, "Password must be at least 6 characters"),
@@ -89,7 +90,7 @@ export default function ResetPasswordPage() {
           <CardHeader className="space-y-6 pb-6">
             <div className="flex justify-center">
               <Image
-                src="/logo2.png"
+                src={cdnUrl("/logo2.png")}
                 alt="The Studio"
                 width={180}
                 height={64}

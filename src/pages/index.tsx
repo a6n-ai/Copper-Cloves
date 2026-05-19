@@ -11,13 +11,14 @@ import { Testimonial } from "@/components/Testimonial";
 import { Footer } from "@/components/Footer";
 import { SEO } from "@/components/SEO";
 
+import { cdnUrl } from "@/lib/cdnUrl";
 export default function Home() {
   return (
     <>
       <SEO
         title="The Studio by Copper + Cloves | Your Home Away From Home"
         description="Move your body, refuel with a café bowl, and find your community. Expert-led wellness classes, plant-based café, and a sanctuary in the city."
-        image="/og-image.png"
+        image={cdnUrl("/og-image.png")}
       />
       <div className="min-h-screen bg-cream">
         <Navigation variant="overlay" />

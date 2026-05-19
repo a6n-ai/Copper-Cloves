@@ -2,6 +2,7 @@ import { ArrowRight } from "lucide-react";
 import Link from "next/link";
 import Image from "next/image";
 
+import { cdnUrl } from "@/lib/cdnUrl";
 export function Founder() {
   const features = [
     {
@@ -104,7 +105,7 @@ export function Founder() {
               {/* Main Wide Image - Studio Interior */}
               <div className="absolute top-0 left-0 right-0 h-[65%] rounded-3xl overflow-hidden shadow-2xl">
                 <Image
-                  src="/cafe-studio.jpg"
+                  src={cdnUrl("/cafe-studio.jpg")}
                   alt="Light-filled studio with tropical plants"
                   fill
                   className="object-cover"
@@ -131,7 +132,7 @@ export function Founder() {
               {/* Inset Image 1 - Smoothie Bowl (Bottom Left) */}
               <div className="absolute bottom-0 left-0 w-[45%] h-[32%] rounded-3xl overflow-hidden shadow-2xl">
                 <Image
-                  src="/food/A7401864.jpg"
+                  src={cdnUrl("/food/A7401864.jpg")}
                   alt="Vibrant smoothie bowl"
                   fill
                   className="object-cover"
@@ -153,7 +154,7 @@ export function Founder() {
               {/* Inset Image 2 - Community Space (Bottom Right) */}
               <div className="absolute bottom-0 right-0 w-[50%] h-[32%] rounded-3xl overflow-hidden shadow-2xl">
                 <Image
-                  src="/cafe-hero-shelves.jpg"
+                  src={cdnUrl("/cafe-hero-shelves.jpg")}
                   alt="Community space with people connecting"
                   fill
                   className="object-cover"

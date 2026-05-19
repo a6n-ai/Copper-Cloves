@@ -6,6 +6,7 @@ import { ArrowLeft, Heart } from "lucide-react";
 import Image from "next/image";
 import Link from "next/link";
 
+import { cdnUrl } from "@/lib/cdnUrl";
 export default function FounderPage() {
   return (
     <>
@@ -60,7 +61,7 @@ export default function FounderPage() {
               {/* Main Photo */}
               <div className="relative rounded-3xl overflow-hidden shadow-2xl">
                 <Image
-                  src="/founder.jpg"
+                  src={cdnUrl("/founder.jpg")}
                   alt="Founder of Copper + Cloves"
                   width={600}
                   height={750}

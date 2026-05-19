@@ -44,3 +44,11 @@ next-env.d.ts
 
 # firebase
 firebase-service-account.json
+
+# local dev: user uploads fallback when S3 not configured. We keep files locally
+# but never commit — production uploads go to S3.
+/public/uploads/
+
+# IDE / local-only
+/.idea/
+/.claude/

@@ -21,6 +21,7 @@ import {
   Upload
 } from "lucide-react";
 
+import { cdnUrl } from "@/lib/cdnUrl";
 interface MenuItem {
   id?: string;
   name: string;
@@ -524,10 +525,10 @@ export default function AdminCafe() {
     if (menuItems.length > 0) return;
     setIsSaving(true);
     const defaults = [
-      { name: "Green Power Combo", category: "meal", description: "Green Smoothie, Salted Espresso, Cacao Protein Balls", price: 350, image_url: "/food/BAG09574.jpg", is_available: true },
-      { name: "Savory Strength Combo", category: "meal", description: "Smoked Mushroom Toastie, Flat White, Cacao Protein Ball", price: 350, image_url: "/food/BAG02755.jpg", is_available: true },
-      { name: "Miso Banana Bowl", category: "smoothie_bowl", description: "Banana, Granola, Miso Caramel, Seeds", price: 280, image_url: "/food/A7401864.jpg", is_available: true },
-      { name: "Avocado Sourdough Toast", category: "meal", description: "Avocado, Sourdough, Cherry Tomatoes, Microgreens", price: 320, image_url: "/food/BAG02768.jpg", is_available: true }
+      { name: "Green Power Combo", category: "meal", description: "Green Smoothie, Salted Espresso, Cacao Protein Balls", price: 350, image_url: cdnUrl("/food/BAG09574.jpg"), is_available: true },
+      { name: "Savory Strength Combo", category: "meal", description: "Smoked Mushroom Toastie, Flat White, Cacao Protein Ball", price: 350, image_url: cdnUrl("/food/BAG02755.jpg"), is_available: true },
+      { name: "Miso Banana Bowl", category: "smoothie_bowl", description: "Banana, Granola, Miso Caramel, Seeds", price: 280, image_url: cdnUrl("/food/A7401864.jpg"), is_available: true },
+      { name: "Avocado Sourdough Toast", category: "meal", description: "Avocado, Sourdough, Cherry Tomatoes, Microgreens", price: 320, image_url: cdnUrl("/food/BAG02768.jpg"), is_available: true }
     ];
     try {
       for (const item of defaults) {

@@ -3,6 +3,7 @@ import { ArrowRight, Clock } from "lucide-react";
 import { useRouter } from "next/router";
 import { useRef, useState, useEffect } from "react";
 
+import { cdnUrl } from "@/lib/cdnUrl";
 interface ClassData {
   id?: string;
   name: string;
@@ -15,10 +16,10 @@ interface ClassData {
 
 /** Shown only when the database has no class types yet (landing still feels alive). */
 const STATIC_CATALOG_FALLBACK: ClassData[] = [
-  { name: "Muay Thai Circuit Training", duration: "55 min", image: "/muaythaicircuittraining.jpg", benefit: "Power, speed, and conditioning" },
-  { name: "Aerial Yoga", duration: "55 min", image: "/aerialyoga.jpg", benefit: "Decompress and build core strength" },
-  { name: "WARRIOR Strength", duration: "55 min", image: "/warriorstrength.jpg", benefit: "Strength and cardio to music" },
-  { name: "Mat Pilates", duration: "55 min", image: "/matpilates.jpg", benefit: "Core-focused classical Pilates" },
+  { name: "Muay Thai Circuit Training", duration: "55 min", image: cdnUrl("/muaythaicircuittraining.jpg"), benefit: "Power, speed, and conditioning" },
+  { name: "Aerial Yoga", duration: "55 min", image: cdnUrl("/aerialyoga.jpg"), benefit: "Decompress and build core strength" },
+  { name: "WARRIOR Strength", duration: "55 min", image: cdnUrl("/warriorstrength.jpg"), benefit: "Strength and cardio to music" },
+  { name: "Mat Pilates", duration: "55 min", image: cdnUrl("/matpilates.jpg"), benefit: "Core-focused classical Pilates" },
 ];
 
 export function ClassCatalog() {
@@ -44,7 +45,7 @@ export function ClassCatalog() {
         benefit: cls.benefits?.[0] || cls.benefit || "",
         benefits: cls.benefits,
         duration: `${cls.duration} min`,
-        image: cls.image_url || "/placeholder.jpg",
+        image: cls.image_url || cdnUrl("/placeholder.jpg"),
         image_url: cls.image_url,
       }));
       setClasses(transformedClasses.length > 0 ? transformedClasses : STATIC_CATALOG_FALLBACK);

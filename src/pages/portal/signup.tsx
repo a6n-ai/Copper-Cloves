@@ -19,6 +19,7 @@ import { Loader2, CheckCircle2, ChevronDown } from "lucide-react";
 import { SEO } from "@/components/SEO";
 import { signUp } from "@/services/authService";
 
+import { cdnUrl } from "@/lib/cdnUrl";
 const signupSchema = z
   .object({
     fullName: z.string().min(1, "Full name is required"),
@@ -154,7 +155,7 @@ export default function SignupPage() {
             <CardHeader className="space-y-6 pb-8">
               <div className="flex justify-center">
                 <Image
-                  src="/logo2.png"
+                  src={cdnUrl("/logo2.png")}
                   alt="The Studio Logo"
                   width={220}
                   height={80}

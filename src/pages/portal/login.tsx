@@ -16,6 +16,7 @@ import { SEO } from "@/components/SEO";
 import { Label } from "@/components/ui/label";
 import { Card, CardHeader, CardTitle, CardDescription, CardContent } from "@/components/ui/card";
 
+import { cdnUrl } from "@/lib/cdnUrl";
 const loginSchema = z.object({
   email: z.string().email("Please enter a valid email address"),
   password: z.string().min(6, "Password must be at least 6 characters"),
@@ -209,7 +210,7 @@ export default function Login() {
           <CardHeader className="space-y-6 pb-8">
             <div className="flex justify-center">
               <Image
-                src="/logo2.png"
+                src={cdnUrl("/logo2.png")}
                 alt="The Studio Logo"
                 width={220}
                 height={80}

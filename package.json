@@ -22,6 +22,7 @@
     "db:seed:members": "tsx scripts/seed-member-users.ts",
     "db:seed:crm-system": "tsx scripts/seed-crm-system-templates.ts",
     "db:seed:crm-triggers": "tsx scripts/seed-crm-system-triggers.ts",
+    "sync:public": "tsx scripts/sync-public-to-s3.ts",
     "crm:dump-templates": "tsx scripts/dump-email-templates.ts",
     "instructor:set-password": "tsx scripts/set-instructor-password.ts"
   },
@@ -87,6 +88,7 @@
     "@types/nodemailer": "^7.0.11",
     "@types/react": "^19.2.14",
     "@types/react-dom": "^19.2.3",
+    "dotenv": "^17.4.2",
     "eslint": "^10.4.0",
     "eslint-config-next": "^16.2.6",
     "postcss": "^8",

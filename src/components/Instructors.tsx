@@ -4,6 +4,7 @@ import Link from "next/link";
 import { supportsResponsivePicture } from "@/lib/imageDelivery";
 import { dedupeInstructorRows } from "@/lib/instructorIdentity";
 
+import { cdnUrl } from "@/lib/cdnUrl";
 interface Instructor {
   id?: string;
   name: string;
@@ -138,7 +139,7 @@ export function Instructors() {
         title: instructor.title || "Instructor",
         experience: instructor.years_of_experience ? `${instructor.years_of_experience} years experience` : "",
         about: instructor.about || "",
-        image: instructor.image_url || "/placeholder.jpg",
+        image: instructor.image_url || cdnUrl("/placeholder.jpg"),
         image_url: instructor.image_url,
         specialties: instructor.specialties || [],
         certifications: instructor.certifications || [],

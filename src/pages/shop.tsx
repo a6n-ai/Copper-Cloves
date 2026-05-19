@@ -24,6 +24,7 @@ import Link from "next/link";
 import { useSession } from "next-auth/react";
 import { Input } from "@/components/ui/input";
 
+import { cdnUrl } from "@/lib/cdnUrl";
 interface RetailProduct {
   id: string;
   name: string;
@@ -35,7 +36,7 @@ interface RetailProduct {
   featured?: boolean;
 }
 
-const PLACEHOLDER_IMAGE = "/boutique-candle.jpg";
+const PLACEHOLDER_IMAGE = cdnUrl("/boutique-candle.jpg");
 
 function formatCategoryLabel(raw: string) {
   return raw

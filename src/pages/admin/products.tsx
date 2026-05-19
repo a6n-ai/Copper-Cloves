@@ -23,6 +23,7 @@ import {
   ChevronRight
 } from "lucide-react";
 
+import { cdnUrl } from "@/lib/cdnUrl";
 interface Product {
   id: string;
   name: string;
@@ -73,7 +74,7 @@ function apiToProduct(r: RetailProductApi): Product {
     inStock: r.stock > 0 && r.is_active,
     featured: r.featured,
     description: r.description ?? "",
-    image: r.image_url || "/placeholder.jpg",
+    image: r.image_url || cdnUrl("/placeholder.jpg"),
     sales: r.sales_count ?? 0,
   };
 }
@@ -193,7 +194,7 @@ export default function AdminProducts() {
     }
 
     const primaryImage =
-      formData.images.find((u) => u.trim())?.trim() || "/food/A7401864.jpg";
+      formData.images.find((u) => u.trim())?.trim() || cdnUrl("/food/A7401864.jpg");
 
     try {
       const res = await fetch("/api/admin/retail-products", {

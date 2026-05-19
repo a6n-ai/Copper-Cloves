@@ -5,6 +5,7 @@ import { Menu, X } from "lucide-react";
 import { useState, useEffect } from "react";
 import { cn } from "@/lib/utils";
 
+import { cdnUrl } from "@/lib/cdnUrl";
 /** Muted sage for CTA (reference ~#7A8B7C) */
 const HEADER_SAGE = "bg-[#7A8B7C] hover:bg-[#6d7c6e] active:bg-[#637069]";
 
@@ -57,7 +58,7 @@ export function Navigation({ variant = "default" }: NavigationProps) {
             className="block select-none outline-hidden focus-visible:ring-2 focus-visible:ring-[#7A8B7C]/40 focus-visible:rounded-sm"
           >
             <Image
-              src="/the_studio_by_C_C_og.png"
+              src={cdnUrl("/the_studio_by_C_C_og.png")}
               alt="The STUDIO"
               width={320}
               height={84}

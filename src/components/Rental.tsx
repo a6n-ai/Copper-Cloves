@@ -3,6 +3,7 @@ import { Calendar, Users, Sparkles } from "lucide-react";
 import Link from "next/link";
 import Image from "next/image";
 
+import { cdnUrl } from "@/lib/cdnUrl";
 export function Rental() {
   return (
     <section className="relative py-16 px-6 lg:px-8 overflow-hidden bg-cream">
@@ -32,7 +33,7 @@ export function Rental() {
           <div className="relative">
             <div className="relative h-[500px] rounded-3xl overflow-hidden shadow-2xl">
               <Image
-                src="/cafe-studio.jpg"
+                src={cdnUrl("/cafe-studio.jpg")}
                 alt="The Studio by Copper + Cloves - Event Space"
                 fill
                 sizes="(max-width: 1024px) 100vw, 50vw"

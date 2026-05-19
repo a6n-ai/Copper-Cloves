@@ -49,6 +49,7 @@ import {
 } from "@/lib/pendingRazorpayCheckout";
 import { payWithRazorpayOrder } from "@/lib/razorpayCheckout";
 
+import { cdnUrl } from "@/lib/cdnUrl";
 // Discount mapping based on unlimited tier (simplified - using package name)
 const UNLIMITED_DISCOUNTS: Record<string, number> = {
   "1 Month Unlimited": 0.10,
@@ -268,7 +269,7 @@ export default function BookClass() {
           duration: `${schedule.class_model?.duration || 60} min`,
           intensity: schedule.class_model?.category?.toLowerCase() || "moderate",
           spots: schedule.class_model?.max_capacity || 10,
-          image: schedule.class_model?.image_url || "/placeholder.jpg",
+          image: schedule.class_model?.image_url || cdnUrl("/placeholder.jpg"),
           startTimeIso:
             typeof schedule.start_time === "string"
               ? schedule.start_time
@@ -364,7 +365,7 @@ export default function BookClass() {
             name: item.name,
             category: item.category ?? "other",
             description: item.description?.trim() ?? "",
-            image: item.image_url?.trim() || "/placeholder.jpg",
+            image: item.image_url?.trim() || cdnUrl("/placeholder.jpg"),
             price: Number(item.price),
             quantity: 0,
           }),

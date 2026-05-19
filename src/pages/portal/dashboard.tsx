@@ -34,6 +34,7 @@ import {
   TrendingUp,
 } from "lucide-react";
 
+import { cdnUrl } from "@/lib/cdnUrl";
 // Milestone tier definitions
 const MILESTONES = [
   {
@@ -918,8 +919,8 @@ export default function Dashboard() {
                         ? booking.class_schedule?.instructor?.name
                         : "Instructor TBD";
                       const imageUrl = isScheduled
-                        ? booking.class_schedule?.class_model?.image_url || "/placeholder.jpg"
-                        : "/placeholder.jpg";
+                        ? booking.class_schedule?.class_model?.image_url || cdnUrl("/placeholder.jpg")
+                        : cdnUrl("/placeholder.jpg");
                       const startTime = isScheduled
                         ? booking.class_schedule?.start_time
                         : booking.class_time;
@@ -1250,8 +1251,8 @@ export default function Dashboard() {
                   : "Instructor TBD";
                 const imageUrl = isScheduled
                   ? selectedBookingForCheckIn.class_schedule?.class_model?.image_url ||
-                    "/placeholder.jpg"
-                  : "/placeholder.jpg";
+                    cdnUrl("/placeholder.jpg")
+                  : cdnUrl("/placeholder.jpg");
                 const startTime = isScheduled
                   ? selectedBookingForCheckIn.class_schedule?.start_time
                   : selectedBookingForCheckIn.class_time;

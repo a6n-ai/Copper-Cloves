@@ -8,6 +8,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Calendar, Users, Clock, Mail, Phone, User, MessageSquare } from "lucide-react";
 import Image from "next/image";
 
+import { cdnUrl } from "@/lib/cdnUrl";
 export default function RentalPage() {
   const [formData, setFormData] = useState({
     name: "",
@@ -74,10 +75,10 @@ export default function RentalPage() {
   };
 
   const eventGallery = [
-    "/cafe-studio.jpg",
-    "/coworking.jpg",
-    "/Heatlycafe.jpg",
-    "/cafe-hero-shelves.jpg"
+    cdnUrl("/cafe-studio.jpg"),
+    cdnUrl("/coworking.jpg"),
+    cdnUrl("/Heatlycafe.jpg"),
+    cdnUrl("/cafe-hero-shelves.jpg")
   ];
 
   return (
@@ -85,7 +86,7 @@ export default function RentalPage() {
       <SEO
         title="Rent Our Space | The Studio by Copper + Cloves"
         description="Host your next workshop, celebration, or corporate event in our beautifully designed sanctuary. Flexible bookings, full-service experience, up to 50 guests."
-        image="/og-image.png"
+        image={cdnUrl("/og-image.png")}
       />
       <div className="min-h-screen bg-cream">
         <Navigation />

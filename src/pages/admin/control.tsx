@@ -47,6 +47,7 @@ import type React from "react";
 import { ControlAnalyticsPanel } from "@/components/admin/ControlAnalyticsPanel";
 import { Pagination, usePagination } from "@/components/Pagination";
 
+import { cdnUrl } from "@/lib/cdnUrl";
 export default function ControlPanel() {
   const router = useRouter();
   const [loading, setLoading] = useState(true);
@@ -438,7 +439,7 @@ async function fetchPayoutData() {
     
     // Handle image upload
     const imageFile = formData.get("class-image") as File;
-    let imageUrl = "/placeholder.jpg";
+    let imageUrl = cdnUrl("/placeholder.jpg");
     
     if (imageFile && imageFile.size > 0) {
       const uploadedUrl = await handleClassImageUpload(imageFile);
@@ -561,7 +562,7 @@ async function fetchPayoutData() {
     
     // Handle image upload
     const imageFile = formData.get("instructor-image") as File;
-    let imageUrl = "/placeholder.jpg";
+    let imageUrl = cdnUrl("/placeholder.jpg");
     
     if (imageFile && imageFile.size > 0) {
       const uploadedUrl = await handleImageUpload(imageFile);

@@ -20,6 +20,7 @@ import {
 import Link from "next/link";
 import Image from "next/image";
 
+import { cdnUrl } from "@/lib/cdnUrl";
 type RetailProduct = {
   id: string;
   name: string;
@@ -31,7 +32,7 @@ type RetailProduct = {
   featured: boolean;
 };
 
-const PLACEHOLDER = "/boutique-candle.jpg";
+const PLACEHOLDER = cdnUrl("/boutique-candle.jpg");
 
 function formatCategoryLabel(raw: string) {
   return raw

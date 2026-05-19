@@ -14,6 +14,7 @@ import { FormAlert } from "@/components/ui/form-alert";
 import { Loader2, ChevronRight, ChevronLeft, CheckCircle2 } from "lucide-react";
 import { SEO } from "@/components/SEO";
 
+import { cdnUrl } from "@/lib/cdnUrl";
 // ── Fitness goals (shared) ────────────────────────────────────────────────────
 const FITNESS_GOALS = [
   "Weight Loss",
@@ -214,7 +215,7 @@ export default function OnboardingPage() {
           {/* Logo */}
           <div className="flex justify-center mb-8">
             <Image
-              src="/logo2.png"
+              src={cdnUrl("/logo2.png")}
               alt="The Studio"
               width={160}
               height={60}

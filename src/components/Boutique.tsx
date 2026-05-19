@@ -3,6 +3,7 @@ import { ChevronLeft, ChevronRight, ArrowRight } from "lucide-react";
 import Link from "next/link";
 import Image from "next/image";
 
+import { cdnUrl } from "@/lib/cdnUrl";
 type RetailProduct = {
   id: string;
   name: string;
@@ -13,7 +14,7 @@ type RetailProduct = {
   featured?: boolean;
 };
 
-const PLACEHOLDER_IMAGE = "/boutique-candle.jpg";
+const PLACEHOLDER_IMAGE = cdnUrl("/boutique-candle.jpg");
 
 export function Boutique() {
   const scrollRef = useRef<HTMLDivElement>(null);
