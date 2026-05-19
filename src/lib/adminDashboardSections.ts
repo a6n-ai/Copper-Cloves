@@ -88,7 +88,7 @@ export async function getTodayClasses(db: Db = prisma, forDate?: Date) {
   return todaySchedules.map((s) => ({
     id: s.id,
     name: s.class_model?.name ?? "Class",
-    time: new Date(s.start_time).toLocaleTimeString("en-US", { hour: "2-digit", minute: "2-digit" }),
+    time: new Date(s.start_time).toLocaleTimeString("en-US", { hour: "2-digit", minute: "2-digit", timeZone: "Asia/Kolkata" }),
     instructor: s.instructor?.name ?? "—",
     instructorAvatarUrl: s.instructor?.image_url ?? null,
     enrolled: s.bookings.length,
@@ -103,7 +103,7 @@ export async function getTodayClasses(db: Db = prisma, forDate?: Date) {
       checkedIn: bk.checked_in,
       checkInOutcome: bk.check_in_outcome,
       checkInTime: bk.check_in_time
-        ? new Date(bk.check_in_time).toLocaleTimeString("en-US", { hour: "2-digit", minute: "2-digit" })
+        ? new Date(bk.check_in_time).toLocaleTimeString("en-US", { hour: "2-digit", minute: "2-digit", timeZone: "Asia/Kolkata" })
         : null,
     })),
   }));

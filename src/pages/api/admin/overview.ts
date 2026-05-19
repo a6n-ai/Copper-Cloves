@@ -95,9 +95,10 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     const cap = s.capacity ?? s.class_model?.max_capacity ?? 0;
     const spotsLeft = s.available_spots;
     const full = spotsLeft <= 0;
-    const timeLabel = new Date(s.start_time).toLocaleTimeString(undefined, {
+    const timeLabel = new Date(s.start_time).toLocaleTimeString("en-US", {
       hour: "numeric",
       minute: "2-digit",
+      timeZone: "Asia/Kolkata",
     });
     return {
       id: s.id,
