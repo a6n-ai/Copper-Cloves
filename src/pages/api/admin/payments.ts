@@ -54,16 +54,41 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       return res.status(400).json({ error: "amount_paise must be non-negative integer" });
     }
 
+    const amountPaise = Math.round(amount);
+    const refNorm = typeof reference === "string" && reference.trim() ? reference.trim() : null;
+    const upkgId = user_package_id || null;
+    const bkId = booking_id || null;
+
+    // Idempotency guard: same user + method + amount + reference + linkage within last 5 minutes
+    // covers double-submit (page reload mid-request, double-click, network retry, duplicate tab).
+    const fiveMinAgo = new Date(Date.now() - 5 * 60 * 1000);
+    const existing = await prisma.payment.findFirst({
+      where: {
+        user_id,
+        method,
+        amount_paise: amountPaise,
+        user_package_id: upkgId,
+        booking_id: bkId,
+        ...(refNorm ? { reference: refNorm } : {}),
+        created_at: { gte: fiveMinAgo },
+      },
+      orderBy: { created_at: "desc" },
+    });
+    if (existing) {
+      res.setHeader("X-Idempotent-Replay", "true");
+      return res.status(200).json(existing);
+    }
+
     const payment = await prisma.payment.create({
       data: {
         user_id,
-        user_package_id: user_package_id || null,
-        booking_id: booking_id || null,
+        user_package_id: upkgId,
+        booking_id: bkId,
         method,
         status: PaymentStatus.succeeded,
-        amount_paise: Math.round(amount),
+        amount_paise: amountPaise,
         currency: typeof currency === "string" && currency ? currency : "INR",
-        reference: typeof reference === "string" ? reference : null,
+        reference: refNorm,
         proof_url: typeof proof_url === "string" ? proof_url : null,
         notes: typeof notes === "string" ? notes : null,
         recorded_by: adminId,
