@@ -34,10 +34,10 @@ frontend:
           else
             echo "Skipping Prisma db push (SKIP_PRISMA_DB_PUSH is set)"
           fi
-        - npm run db:seed:instructors
-        # Dummy weekend class schedule + extra instructors — removed from auto-deploy
-        # (re-created rows on every push). Run manually with `npm run db:seed:weekend-may-2026`.
-        - npm run db:seed:members
+        # Seeding runs ONCE manually after first deploy — not on every build.
+        # Re-running overwrites admin edits to instructor profiles + recreates seed members.
+        # Run on demand: `npm run db:seed:instructors`, `npm run db:seed:members`,
+        # `npm run db:seed:weekend-may-2026`, `npm run db:seed:crm-system`, `npm run db:seed:crm-triggers`.
     build:
       commands:
         - |
