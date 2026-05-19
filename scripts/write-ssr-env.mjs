@@ -40,6 +40,12 @@ const KEYS = [
   "S3_ACCESS_KEY_ID",
   "S3_SECRET_ACCESS_KEY",
   "S3_PUBLIC_URL",
+  // CDN for public/ assets (client-side reads via NEXT_PUBLIC_)
+  "NEXT_PUBLIC_CDN_URL",
+  // Optional: Google Analytics
+  "NEXT_PUBLIC_GA_MEASUREMENT_ID",
+  // Cron auth
+  "CRON_SECRET",
 ];
 
 const hasDb =

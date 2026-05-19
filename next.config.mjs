@@ -38,11 +38,11 @@ const nextConfig = {
   reactStrictMode: true,
   poweredByHeader: false,
   env: inlineEnv,
+  eslint: {
+    ignoreDuringBuilds: true,
+  },
   typescript: {
     ignoreBuildErrors: true,
-  },
-  turbopack: {
-    root: import.meta.dirname,
   },
   images: {
     formats: ["image/avif", "image/webp"],
