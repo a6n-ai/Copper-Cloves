@@ -2,6 +2,7 @@ import type { NextApiRequest, NextApiResponse } from "next";
 import { CrmTriggerType } from "@/lib/crmTriggerTypes";
 import prisma from "@/lib/prisma";
 import { buildBookingCrmVariables, dispatchCrmEmailTriggers } from "@/lib/notifications/crmTemplatedDispatch";
+import { sendBookingConfirmationEmail } from "@/lib/notifications/sendBookingEmail";
 import { getStudioServerSession } from "@/lib/getStudioServerSession";
 import {
   canCheckInNow,
@@ -268,6 +269,8 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         return created;
       });
 
+      void sendBookingConfirmationEmail(booking.id)
+        .catch((e) => console.error("[booking email]", e));
       void buildBookingCrmVariables(booking.id)
         .then((variables) =>
           dispatchCrmEmailTriggers({

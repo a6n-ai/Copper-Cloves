@@ -187,6 +187,12 @@ export default function AdminSchedule() {
   const [rosterLoading, setRosterLoading] = useState(false);
   const [checkingInMap, setCheckingInMap] = useState<Record<string, boolean>>({});
 
+  // Add-member search state
+  const [memberQuery, setMemberQuery] = useState("");
+  const [memberResults, setMemberResults] = useState<{ id: string; full_name: string | null; email: string }[]>([]);
+  const [memberSearching, setMemberSearching] = useState(false);
+  const [addingMemberId, setAddingMemberId] = useState<string | null>(null);
+
   const classOptions: ClassSelectOption[] = useMemo(() => {
     if (dbClasses.length > 0) {
       return dbClasses.map((c: { id: string; name: string; max_capacity?: number; duration?: number }) => ({
@@ -703,6 +709,38 @@ export default function AdminSchedule() {
   const getInstructorAvatar = (instructorId: number | string): string | null => {
     const instructor = dbInstructors.find(i => String(i.id) === String(instructorId));
     return instructor?.image_url ?? null;
+  };
+
+  const searchMembers = async (q: string) => {
+    setMemberQuery(q);
+    if (!q.trim()) { setMemberResults([]); return; }
+    setMemberSearching(true);
+    try {
+      const res = await fetch(`/api/admin/members-search?q=${encodeURIComponent(q)}`, { credentials: "include" });
+      if (res.ok) setMemberResults(await res.json());
+    } finally {
+      setMemberSearching(false);
+    }
+  };
+
+  const handleAddMember = async (userId: string) => {
+    if (!rosterScheduleId) return;
+    setAddingMemberId(userId);
+    try {
+      const res = await fetch("/api/admin/add-booking", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        credentials: "include",
+        body: JSON.stringify({ scheduleId: rosterScheduleId, userId }),
+      });
+      const json = await res.json();
+      if (!res.ok) { alert(json.error ?? "Failed to add member"); return; }
+      setRosterData(prev => prev ? { ...prev, bookings: [...prev.bookings, json.booking] } : prev);
+      setMemberQuery("");
+      setMemberResults([]);
+    } finally {
+      setAddingMemberId(null);
+    }
   };
 
   if (loading) {
@@ -1233,7 +1271,7 @@ export default function AdminSchedule() {
       </Dialog>
 
       {/* Roster Dialog */}
-      <Dialog open={!!rosterScheduleId} onOpenChange={(open) => { if (!open) { setRosterScheduleId(null); setRosterData(null); } }}>
+      <Dialog open={!!rosterScheduleId} onOpenChange={(open) => { if (!open) { setRosterScheduleId(null); setRosterData(null); setMemberQuery(""); setMemberResults([]); } }}>
         <DialogContent className="max-w-lg w-full bg-white flex flex-col p-0 max-h-[85vh] overflow-hidden">
           {/* Header */}
           <div className="px-6 pt-6 pb-4 border-b border-sage/10 shrink-0">
@@ -1307,6 +1345,51 @@ export default function AdminSchedule() {
                           ) : (
                             <><UserCheck className="h-3.5 w-3.5 mr-1" />Check In</>
                           )}
+                        </Button>
+                      )}
+                    </li>
+                  );
+                })}
+              </ul>
+            )}
+          </div>
+
+          {/* Add Member panel */}
+          <div className="shrink-0 px-6 py-4 border-t border-sage/10 bg-sage/3">
+            <p className="font-body text-xs font-medium text-charcoal/50 uppercase tracking-wide mb-2">Add Member</p>
+            <div className="relative">
+              <Input
+                className="h-9 font-body text-sm border-charcoal/20 pr-8"
+                placeholder="Search by name or email…"
+                value={memberQuery}
+                onChange={e => searchMembers(e.target.value)}
+              />
+              {memberSearching && (
+                <div className="absolute right-2 top-2 h-4 w-4 border-2 border-sage border-t-transparent rounded-full animate-spin" />
+              )}
+            </div>
+            {memberResults.length > 0 && (
+              <ul className="mt-1 rounded-lg border border-sage/20 bg-white shadow-sm divide-y divide-sage/10 max-h-44 overflow-y-auto">
+                {memberResults.map(m => {
+                  const alreadyBooked = rosterData?.bookings.some(b => b.userId === m.id);
+                  return (
+                    <li key={m.id} className="flex items-center justify-between gap-3 px-3 py-2">
+                      <div className="min-w-0">
+                        <p className="font-body text-sm font-medium text-charcoal truncate">{m.full_name || "—"}</p>
+                        <p className="font-body text-xs text-charcoal/40 truncate">{m.email}</p>
+                      </div>
+                      {alreadyBooked ? (
+                        <span className="font-body text-xs text-sage shrink-0">Booked</span>
+                      ) : (
+                        <Button
+                          size="sm"
+                          onClick={() => handleAddMember(m.id)}
+                          disabled={addingMemberId === m.id}
+                          className="bg-sage hover:bg-sage/90 text-white font-body h-7 px-3 text-xs shrink-0"
+                        >
+                          {addingMemberId === m.id ? (
+                            <div className="h-3 w-3 border-2 border-white border-t-transparent rounded-full animate-spin" />
+                          ) : "Add"}
                         </Button>
                       )}
                     </li>

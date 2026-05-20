@@ -47,7 +47,7 @@ export function Hero() {
                 />
               </div>
             ))}
-            <div className="absolute inset-0 bg-linear-to-t from-black/40 via-transparent to-transparent" />
+            <div className="absolute inset-0 bg-linear-to-t from-black/50 via-transparent to-transparent" />
             <div className="absolute bottom-8 left-1/2 -translate-x-1/2 z-10">
               <span className="font-script text-white/90 text-2xl sm:text-3xl md:text-4xl tracking-wider">move</span>
             </div>
@@ -80,7 +80,7 @@ export function Hero() {
                 )}
               </div>
             ))}
-            <div className="absolute inset-0 bg-linear-to-t from-black/40 via-transparent to-transparent" />
+            <div className="absolute inset-0 bg-linear-to-t from-black/50 via-transparent to-transparent" />
             <div className="absolute bottom-8 left-1/2 -translate-x-1/2 z-10">
               <span className="font-script text-white/90 text-2xl sm:text-3xl md:text-4xl tracking-wider">refuel</span>
             </div>
@@ -96,22 +96,25 @@ export function Hero() {
               playsInline
               className="w-full h-full object-cover animate-floatAndZoom23"
             />
-            <div className="absolute inset-0 bg-linear-to-t from-black/40 via-transparent to-transparent" />
+            <div className="absolute inset-0 bg-linear-to-t from-black/50 via-transparent to-transparent" />
             <div className="absolute bottom-8 left-1/2 -translate-x-1/2 z-10">
               <span className="font-script text-white/90 text-2xl sm:text-3xl md:text-4xl tracking-wider">connect</span>
             </div>
           </div>
         </div>
 
-        {/* Headline — light glass; copy forced to ~6 lines */}
+        {/* Single full-hero overlay — spans all 3 panels, no box edges */}
+        <div className="absolute inset-0 z-10 bg-black/25 pointer-events-none" />
+
+        {/* Headline — no box, text floats directly over overlay */}
         <div className="pointer-events-none absolute inset-0 z-20 hidden lg:flex flex-col items-center justify-center px-4 sm:px-6">
-          <div className="pointer-events-auto w-full max-w-xl rounded-4xl border border-white/10 bg-black/1 p-8 text-center shadow-none backdrop-blur-xs sm:max-w-2xl sm:p-10 xl:rounded-[2.5rem] xl:p-11 2xl:p-12">
-            <h1 className="font-anchor-black mb-3 text-5xl text-white drop-shadow-2xl lg:text-6xl leading-tight">
-              {"We're more than a studio,"}
+          <div className="pointer-events-auto w-full max-w-2xl p-8 text-center sm:p-10 xl:p-11 2xl:p-12">
+            <h1 className="font-display mb-3 text-6xl text-white drop-shadow-2xl lg:text-7xl xl:text-8xl leading-[1.05]">
+              <span className="italic text-white/90">{"We're more than a studio,"}</span>
               <br />
               {"We're your home away from home"}
             </h1>
-            <p className="font-display mx-auto mt-4 max-w-none text-base font-normal leading-snug text-white xl:text-lg xl:leading-relaxed 2xl:text-xl [text-shadow:0_1px_2px_rgba(0,0,0,0.8),0_0_20px_rgba(0,0,0,0.35)]">
+            <p className="font-body mx-auto mt-6 max-w-none text-xl font-light leading-relaxed text-white/90 xl:text-2xl 2xl:text-3xl [text-shadow:0_1px_2px_rgba(0,0,0,0.8),0_0_20px_rgba(0,0,0,0.35)]">
               <span className="italic">move</span> your body, <span className="italic">refuel</span> with a coffee and a smoothie bowl,
               <br />
               work from our cafe and find your <span className="italic">community</span>
@@ -182,16 +185,16 @@ export function Hero() {
       {/* Headline — mobile / tablet only (under hero stack) */}
       <section className="bg-white py-8 sm:py-10 lg:hidden px-6">
         <div className="max-w-3xl mx-auto text-center">
-          <h1 className="font-anchor-black text-3xl sm:text-4xl md:text-5xl lg:text-5xl xl:text-6xl text-charcoal mb-6 leading-tight">
-            We're more than a studio,<br />
+          <h1 className="font-display text-4xl sm:text-5xl md:text-6xl text-charcoal mb-6 leading-[1.05]">
+            <span className="italic text-charcoal/70">We're more than a studio,</span><br />
             We're your home away from home
           </h1>
-          <p className="font-body text-lg sm:text-xl md:text-2xl text-charcoal/80 leading-relaxed max-w-2xl mx-auto">
-            <span className="font-script text-2xl sm:text-3xl text-charcoal">move</span> your body,{" "}
-            <span className="font-script text-2xl sm:text-3xl text-charcoal">refuel</span> with a coffee and a smoothie bowl,
+          <p className="font-body text-lg sm:text-xl md:text-2xl text-charcoal/80 font-light leading-relaxed max-w-2xl mx-auto">
+            <span className="italic">move</span> your body,{" "}
+            <span className="italic">refuel</span> with a coffee and a smoothie bowl,
             <br className="hidden sm:block" />
             work from our cafe and find your{" "}
-            <span className="font-script text-2xl sm:text-3xl text-charcoal">community</span>
+            <span className="italic">community</span>
           </p>
         </div>
       </section>

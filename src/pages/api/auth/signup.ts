@@ -133,7 +133,13 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       to: email,
       subject: "welcome to The Studio by Copper + Cloves",
       html: welcomeEmail({ memberName: full_name || email, portalUrl }),
-    }).catch((err) => console.error("[signup] welcome email failed:", err));
+    }).then((result) => {
+      if (!result.ok) {
+        console.error("[signup] welcome email failed:", result);
+      } else {
+        console.log("[signup] welcome email sent to:", email);
+      }
+    }).catch((err) => console.error("[signup] welcome email threw:", err));
 
     return res.status(201).json({ message: "Account created successfully." });
   } catch (e: unknown) {
