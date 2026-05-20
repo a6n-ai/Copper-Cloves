@@ -107,14 +107,14 @@ export function Hero() {
         <div className="absolute inset-0 z-10 bg-black/25 pointer-events-none" />
 
         {/* Headline — no box, text floats directly over overlay */}
-        <div className="pointer-events-none absolute inset-0 z-20 hidden lg:flex flex-col items-center justify-center px-4 sm:px-6">
-          <div className="pointer-events-auto w-full max-w-2xl p-8 text-center sm:p-10 xl:p-11 2xl:p-12">
-            <h1 className="font-display mb-3 text-6xl text-white drop-shadow-2xl lg:text-7xl xl:text-8xl leading-[1.05]">
+        <div className="pointer-events-none absolute inset-0 z-20 hidden lg:flex flex-col items-center justify-center px-8">
+          <div className="pointer-events-auto w-full max-w-5xl text-center">
+            <h1 className="font-display mb-6 text-6xl lg:text-7xl xl:text-8xl text-white drop-shadow-2xl leading-[1.05]">
               <span className="italic text-white/90">{"We're more than a studio,"}</span>
               <br />
               {"We're your home away from home"}
             </h1>
-            <p className="font-body mx-auto mt-6 max-w-none text-xl font-light leading-relaxed text-white/90 xl:text-2xl 2xl:text-3xl [text-shadow:0_1px_2px_rgba(0,0,0,0.8),0_0_20px_rgba(0,0,0,0.35)]">
+            <p className="font-body mx-auto mt-6 text-xl lg:text-2xl xl:text-2xl font-light leading-relaxed text-white/85 [text-shadow:0_1px_2px_rgba(0,0,0,0.8),0_0_20px_rgba(0,0,0,0.35)]">
               <span className="italic">move</span> your body, <span className="italic">refuel</span> with a coffee and a smoothie bowl,
               <br />
               work from our cafe and find your <span className="italic">community</span>
@@ -185,7 +185,7 @@ export function Hero() {
       {/* Headline — mobile / tablet only (under hero stack) */}
       <section className="bg-white py-8 sm:py-10 lg:hidden px-6">
         <div className="max-w-3xl mx-auto text-center">
-          <h1 className="font-display text-4xl sm:text-5xl md:text-6xl text-charcoal mb-6 leading-[1.05]">
+          <h1 className="font-display text-5xl sm:text-6xl md:text-7xl text-charcoal mb-6 leading-[1.05]">
             <span className="italic text-charcoal/70">We're more than a studio,</span><br />
             We're your home away from home
           </h1>

@@ -1,4 +1,8 @@
 import { Fragment, useState, useEffect, useMemo, useRef } from "react";
+import { useForm } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { z } from "zod";
+import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 import { useRouter } from "next/router";
 import { ListAvatar } from "@/components/admin/ListAvatar";
 import { DayScheduleList } from "@/components/admin/DayScheduleList";
@@ -72,6 +76,7 @@ import {
   Tag,
   ChefHat,
   Building2,
+  UserPlus,
 } from "lucide-react";
 import { SEO } from "@/components/SEO";
 import { Input } from "@/components/ui/input";
@@ -201,6 +206,15 @@ function formatInrDetail(n?: number): string {
   return `₹${Math.round(Number(n)).toLocaleString("en-IN")}`;
 }
 
+const instructorSchema = z.object({
+  name: z.string().min(1, "Name is required"),
+  email: z.string().email("Invalid email").or(z.literal("")),
+  phone: z.string().optional(),
+  studio_payout_cut_percent: z.string().optional(),
+  specialties: z.string().optional(),
+  philosophy: z.string().optional(),
+});
+
 export default function AdminDashboard() {
   const router = useRouter();
   const [loading, setLoading] = useState(true);
@@ -223,10 +237,16 @@ export default function AdminDashboard() {
   const [selectedClass, setSelectedClass] = useState<any>(null);
   const [rosterCheckingIn, setRosterCheckingIn] = useState<Record<string, boolean>>({});
   const [selectedInstructorData, setSelectedInstructorData] = useState<any>(null);
-  const [newInstructorForm, setNewInstructorForm] = useState({
-    name: "", email: "", phone: "", studio_payout_cut_percent: "", specialties: "", philosophy: "",
+  const instructorForm = useForm<z.infer<typeof instructorSchema>>({
+    resolver: zodResolver(instructorSchema),
+    defaultValues: { name: "", email: "", phone: "", studio_payout_cut_percent: "", specialties: "", philosophy: "" },
   });
   const [savingInstructor, setSavingInstructor] = useState(false);
+
+  const [dashMemberQuery, setDashMemberQuery] = useState("");
+  const [dashMemberResults, setDashMemberResults] = useState<{ id: string; full_name: string | null; email: string }[]>([]);
+  const [dashMemberSearching, setDashMemberSearching] = useState(false);
+  const [dashAddingMemberId, setDashAddingMemberId] = useState<string | null>(null);
 
   // Transaction filter states
   const [transactionFilter, setTransactionFilter] = useState("all"); // all, credit, debit
@@ -872,19 +892,17 @@ export default function AdminDashboard() {
     );
   }
 
-  async function handleCreateInstructor() {
+  async function handleCreateInstructor(data: z.infer<typeof instructorSchema>) {
     setSavingInstructor(true);
     try {
-      const body: Record<string, unknown> = {};
-      if (newInstructorForm.name.trim()) body.name = newInstructorForm.name.trim();
-      else body.name = "New Instructor";
-      if (newInstructorForm.email.trim()) body.email = newInstructorForm.email.trim();
-      if (newInstructorForm.phone.trim()) body.phone = newInstructorForm.phone.trim();
-      if (newInstructorForm.studio_payout_cut_percent.trim())
-        body.studio_payout_cut_percent = parseFloat(newInstructorForm.studio_payout_cut_percent);
-      if (newInstructorForm.specialties.trim())
-        body.specialties = newInstructorForm.specialties.split(",").map((s) => s.trim()).filter(Boolean);
-      if (newInstructorForm.philosophy.trim()) body.philosophy = newInstructorForm.philosophy.trim();
+      const body: Record<string, unknown> = { name: data.name };
+      if (data.email) body.email = data.email;
+      if (data.phone?.trim()) body.phone = data.phone.trim();
+      if (data.studio_payout_cut_percent?.trim())
+        body.studio_payout_cut_percent = parseFloat(data.studio_payout_cut_percent);
+      if (data.specialties?.trim())
+        body.specialties = data.specialties.split(",").map((s) => s.trim()).filter(Boolean);
+      if (data.philosophy?.trim()) body.philosophy = data.philosophy.trim();
       const res = await fetch("/api/admin/instructors", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -892,13 +910,55 @@ export default function AdminDashboard() {
       });
       if (!res.ok) throw new Error("Failed to create instructor");
       setShowAddInstructorDialog(false);
-      setNewInstructorForm({ name: "", email: "", phone: "", studio_payout_cut_percent: "", specialties: "", philosophy: "" });
+      instructorForm.reset();
       const updated = await fetch("/api/admin/instructors");
       if (updated.ok) setDashboardInstructors(await updated.json());
     } catch {
       alert("Failed to save instructor.");
     } finally {
       setSavingInstructor(false);
+    }
+  }
+
+  async function searchDashMembers(q: string) {
+    setDashMemberQuery(q);
+    if (q.length < 2) { setDashMemberResults([]); return; }
+    setDashMemberSearching(true);
+    try {
+      const res = await fetch(`/api/admin/members-search?q=${encodeURIComponent(q)}`);
+      if (res.ok) setDashMemberResults(await res.json());
+    } finally {
+      setDashMemberSearching(false);
+    }
+  }
+
+  async function handleDashAddMember(userId: string) {
+    if (!selectedClass?.id) return;
+    setDashAddingMemberId(userId);
+    try {
+      const res = await fetch("/api/admin/add-booking", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ scheduleId: selectedClass.id, userId }),
+      });
+      if (!res.ok) {
+        const body = await res.json().catch(() => ({}));
+        alert((body as { error?: string }).error ?? "Failed to add member");
+        return;
+      }
+      const { booking } = await res.json();
+      setSelectedClass((prev: any) => ({
+        ...prev,
+        enrolled: (prev.enrolled ?? 0) + 1,
+        attendees: [
+          ...(prev.attendees ?? []),
+          { id: booking.userId, bookingId: booking.id, name: booking.name, email: booking.email, avatarUrl: booking.avatarUrl, checkedIn: false, checkInTime: null, checkInOutcome: null },
+        ],
+      }));
+      setDashMemberQuery("");
+      setDashMemberResults([]);
+    } finally {
+      setDashAddingMemberId(null);
     }
   }
 
@@ -3773,7 +3833,7 @@ export default function AdminDashboard() {
       </Dialog>
 
       {/* Class Details Dialog */}
-      <Dialog open={showClassDetailsDialog} onOpenChange={(open) => { setShowClassDetailsDialog(open); if (!open) setRosterCheckingIn({}); }}>
+      <Dialog open={showClassDetailsDialog} onOpenChange={(open) => { setShowClassDetailsDialog(open); if (!open) { setRosterCheckingIn({}); setDashMemberQuery(""); setDashMemberResults([]); } }}>
         <DialogContent className="max-w-3xl bg-white/95 backdrop-blur-xl border-sage/20">
           <DialogHeader>
             <DialogTitle className="font-display text-2xl text-charcoal">
@@ -3916,6 +3976,54 @@ export default function AdminDashboard() {
                 </div>
                 )}
               </div>
+
+              {/* Add Member */}
+              <div className="border-t border-sage/15 pt-4">
+                <div className="font-body font-medium text-charcoal mb-2 flex items-center gap-2">
+                  <UserPlus className="h-4 w-4 text-sage" />
+                  Add Member
+                </div>
+                <div className="relative">
+                  <Input
+                    placeholder="Search by name or email…"
+                    value={dashMemberQuery}
+                    onChange={e => searchDashMembers(e.target.value)}
+                    className="border-sage/20 focus:ring-sage placeholder:text-charcoal/40"
+                  />
+                  {dashMemberSearching && (
+                    <div className="absolute right-3 top-1/2 -translate-y-1/2 h-4 w-4 border-2 border-sage border-t-transparent rounded-full animate-spin" />
+                  )}
+                </div>
+                {dashMemberResults.length > 0 && (
+                  <div className="mt-1 rounded-lg border border-sage/20 bg-white shadow-sm overflow-hidden max-h-40 overflow-y-auto">
+                    {dashMemberResults.map(m => {
+                      const alreadyIn = (selectedClass?.attendees ?? []).some((a: any) => a.id === m.id);
+                      return (
+                        <div key={m.id} className="flex items-center justify-between px-3 py-2 hover:bg-cream/30 transition-colors">
+                          <div className="min-w-0">
+                            <div className="font-body text-sm text-charcoal truncate">{m.full_name || "—"}</div>
+                            <div className="font-body text-xs text-charcoal/50 truncate">{m.email}</div>
+                          </div>
+                          {alreadyIn ? (
+                            <span className="text-xs text-charcoal/40 font-body ml-2 shrink-0">Booked</span>
+                          ) : (
+                            <Button
+                              size="sm"
+                              disabled={dashAddingMemberId === m.id}
+                              onClick={() => handleDashAddMember(m.id)}
+                              className="ml-2 shrink-0 bg-sage hover:bg-sage/90 text-white font-body h-7 px-3 text-xs rounded-full"
+                            >
+                              {dashAddingMemberId === m.id ? (
+                                <div className="h-3 w-3 border-2 border-white border-t-transparent rounded-full animate-spin" />
+                              ) : "Add"}
+                            </Button>
+                          )}
+                        </div>
+                      );
+                    })}
+                  </div>
+                )}
+              </div>
             </div>
           )}
           <DialogFooter>
@@ -4014,7 +4122,7 @@ export default function AdminDashboard() {
       </Dialog>
 
       {/* Add Instructor Dialog */}
-      <Dialog open={showAddInstructorDialog} onOpenChange={setShowAddInstructorDialog}>
+      <Dialog open={showAddInstructorDialog} onOpenChange={(open) => { setShowAddInstructorDialog(open); if (!open) instructorForm.reset(); }}>
         <DialogContent className="max-w-2xl bg-white/95 backdrop-blur-xl border-sage/20">
           <DialogHeader>
             <DialogTitle className="font-display text-2xl text-charcoal">Add New Instructor</DialogTitle>
@@ -4022,44 +4130,71 @@ export default function AdminDashboard() {
               Create instructor profile and set payment percentage
             </DialogDescription>
           </DialogHeader>
-          <div className="grid grid-cols-2 gap-4 py-4">
-            <div className="space-y-2">
-              <Label htmlFor="instructor-name" className="font-body text-charcoal">Full Name</Label>
-              <Input id="instructor-name" placeholder="Instructor name" value={newInstructorForm.name} onChange={e => setNewInstructorForm(f => ({ ...f, name: e.target.value }))} className="border-sage/20 focus:ring-sage placeholder:text-charcoal/40" />
-            </div>
-            <div className="space-y-2">
-              <Label htmlFor="instructor-email" className="font-body text-charcoal">Email</Label>
-              <Input id="instructor-email" type="email" placeholder="instructor@email.com" value={newInstructorForm.email} onChange={e => setNewInstructorForm(f => ({ ...f, email: e.target.value }))} className="border-sage/20 focus:ring-sage placeholder:text-charcoal/40" />
-            </div>
-            <div className="space-y-2">
-              <Label htmlFor="instructor-phone" className="font-body text-charcoal">Phone Number</Label>
-              <Input id="instructor-phone" placeholder="+91 98765 43210" value={newInstructorForm.phone} onChange={e => setNewInstructorForm(f => ({ ...f, phone: e.target.value }))} className="border-sage/20 focus:ring-sage placeholder:text-charcoal/40" />
-            </div>
-            <div className="space-y-2">
-              <Label htmlFor="payment-percentage" className="font-body text-charcoal">Payment Share (%)</Label>
-              <Input id="payment-percentage" type="number" placeholder="60" value={newInstructorForm.studio_payout_cut_percent} onChange={e => setNewInstructorForm(f => ({ ...f, studio_payout_cut_percent: e.target.value }))} className="border-sage/20 focus:ring-sage placeholder:text-charcoal/40" />
-            </div>
-            <div className="col-span-2 space-y-2">
-              <Label htmlFor="specialties" className="font-body text-charcoal">Specialties (comma-separated)</Label>
-              <Input id="specialties" placeholder="Muay Thai, Warrior Strength" value={newInstructorForm.specialties} onChange={e => setNewInstructorForm(f => ({ ...f, specialties: e.target.value }))} className="border-sage/20 focus:ring-sage placeholder:text-charcoal/40" />
-            </div>
-            <div className="col-span-2 space-y-2">
-              <Label htmlFor="philosophy" className="font-body text-charcoal">Philosophy/Bio</Label>
-              <Textarea
-                id="philosophy"
-                placeholder="Instructor's teaching philosophy and approach..."
-                value={newInstructorForm.philosophy}
-                onChange={e => setNewInstructorForm(f => ({ ...f, philosophy: e.target.value }))}
-                className="border-sage/20 focus:ring-sage"
-                rows={3}
-              />
-            </div>
-          </div>
+          <Form {...instructorForm}>
+            <form id="add-instructor-form" onSubmit={instructorForm.handleSubmit(handleCreateInstructor)}>
+              <div className="grid grid-cols-2 gap-4 py-4">
+                <FormField control={instructorForm.control} name="name" render={({ field }) => (
+                  <FormItem>
+                    <FormLabel className="font-body text-charcoal">Full Name</FormLabel>
+                    <FormControl>
+                      <Input placeholder="Instructor name" className="border-sage/20 focus:ring-sage placeholder:text-charcoal/40" {...field} />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )} />
+                <FormField control={instructorForm.control} name="email" render={({ field }) => (
+                  <FormItem>
+                    <FormLabel className="font-body text-charcoal">Email</FormLabel>
+                    <FormControl>
+                      <Input type="email" placeholder="instructor@email.com" className="border-sage/20 focus:ring-sage placeholder:text-charcoal/40" {...field} />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )} />
+                <FormField control={instructorForm.control} name="phone" render={({ field }) => (
+                  <FormItem>
+                    <FormLabel className="font-body text-charcoal">Phone Number</FormLabel>
+                    <FormControl>
+                      <Input placeholder="+91 98765 43210" className="border-sage/20 focus:ring-sage placeholder:text-charcoal/40" {...field} />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )} />
+                <FormField control={instructorForm.control} name="studio_payout_cut_percent" render={({ field }) => (
+                  <FormItem>
+                    <FormLabel className="font-body text-charcoal">Payment Share (%)</FormLabel>
+                    <FormControl>
+                      <Input type="number" placeholder="60" className="border-sage/20 focus:ring-sage placeholder:text-charcoal/40" {...field} />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )} />
+                <FormField control={instructorForm.control} name="specialties" render={({ field }) => (
+                  <FormItem className="col-span-2">
+                    <FormLabel className="font-body text-charcoal">Specialties (comma-separated)</FormLabel>
+                    <FormControl>
+                      <Input placeholder="Muay Thai, Warrior Strength" className="border-sage/20 focus:ring-sage placeholder:text-charcoal/40" {...field} />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )} />
+                <FormField control={instructorForm.control} name="philosophy" render={({ field }) => (
+                  <FormItem className="col-span-2">
+                    <FormLabel className="font-body text-charcoal">Philosophy/Bio</FormLabel>
+                    <FormControl>
+                      <Textarea placeholder="Instructor's teaching philosophy and approach..." className="border-sage/20 focus:ring-sage" rows={3} {...field} />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )} />
+              </div>
+            </form>
+          </Form>
           <DialogFooter>
             <Button variant="outline" onClick={() => setShowAddInstructorDialog(false)} className="border-sage/20 font-body">
               Cancel
             </Button>
-            <Button onClick={handleCreateInstructor} disabled={savingInstructor} className="bg-sage hover:bg-sage/90 text-white font-body">
+            <Button type="submit" form="add-instructor-form" disabled={savingInstructor} className="bg-sage hover:bg-sage/90 text-white font-body">
               <Save className="h-4 w-4 mr-2" />
               {savingInstructor ? "Saving…" : "Create Instructor"}
             </Button>
