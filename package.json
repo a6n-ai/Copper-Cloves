@@ -27,9 +27,6 @@
     "crm:dump-templates": "tsx scripts/dump-email-templates.ts",
     "instructor:set-password": "tsx scripts/set-instructor-password.ts"
   },
-  "prisma": {
-    "seed": "tsx scripts/ensure-admin.ts"
-  },
   "dependencies": {
     "@aws-sdk/client-s3": "^3.1049.0",
     "@aws-sdk/s3-request-presigner": "^3.1049.0",

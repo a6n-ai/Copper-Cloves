@@ -218,6 +218,7 @@ layer(base);
 /* Smooth Scrolling */
 html {
   scroll-behavior: smooth;
+  scrollbar-gutter: stable;
 }
 
 /* Custom Scrollbar */

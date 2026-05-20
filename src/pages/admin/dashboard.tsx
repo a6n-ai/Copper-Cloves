@@ -221,6 +221,7 @@ export default function AdminDashboard() {
   const [showEditInstructorDialog, setShowEditInstructorDialog] = useState(false);
   const [selectedUser, setSelectedUser] = useState<any>(null);
   const [selectedClass, setSelectedClass] = useState<any>(null);
+  const [rosterCheckingIn, setRosterCheckingIn] = useState<Record<string, boolean>>({});
   const [selectedInstructorData, setSelectedInstructorData] = useState<any>(null);
   const [newInstructorForm, setNewInstructorForm] = useState({
     name: "", email: "", phone: "", studio_payout_cut_percent: "", specialties: "", philosophy: "",
@@ -1311,8 +1312,34 @@ export default function AdminDashboard() {
                             _raw: cls,
                           } as any))}
                         onSelect={(row: any) => {
-                          setSelectedClass(row._raw);
+                          const cls = row._raw;
+                          setSelectedClass(cls);
                           setShowClassDetailsDialog(true);
+                          // Refresh roster live from API
+                          if (cls?.id) {
+                            fetch(`/api/admin/class-roster?scheduleId=${cls.id}`)
+                              .then(r => r.ok ? r.json() : null)
+                              .then(data => {
+                                if (data) {
+                                  setSelectedClass((prev: any) => ({
+                                    ...prev,
+                                    attendees: data.bookings.map((b: any) => ({
+                                      id: b.id,
+                                      bookingId: b.id,
+                                      name: b.name,
+                                      email: b.email,
+                                      avatarUrl: b.avatarUrl,
+                                      checkedIn: b.checkedIn,
+                                      checkInTime: b.checkInTime ? new Date(b.checkInTime).toLocaleTimeString("en-IN", { hour: "2-digit", minute: "2-digit", timeZone: "Asia/Kolkata" }) : null,
+                                      checkInOutcome: b.checkInOutcome,
+                                    })),
+                                    checkedIn: data.bookings.filter((b: any) => b.checkedIn).length,
+                                    enrolled: data.bookings.length,
+                                  }));
+                                }
+                              })
+                              .catch(() => {});
+                          }
                         }}
                       />
                     </CardContent>
@@ -3746,7 +3773,7 @@ export default function AdminDashboard() {
       </Dialog>
 
       {/* Class Details Dialog */}
-      <Dialog open={showClassDetailsDialog} onOpenChange={setShowClassDetailsDialog}>
+      <Dialog open={showClassDetailsDialog} onOpenChange={(open) => { setShowClassDetailsDialog(open); if (!open) setRosterCheckingIn({}); }}>
         <DialogContent className="max-w-3xl bg-white/95 backdrop-blur-xl border-sage/20">
           <DialogHeader>
             <DialogTitle className="font-display text-2xl text-charcoal">
@@ -3851,9 +3878,36 @@ export default function AdminDashboard() {
                             No-show
                           </Badge>
                         ) : (
-                          <Badge variant="outline" className="border-charcoal/20 text-charcoal/60 whitespace-nowrap font-body">
-                            Not checked in
-                          </Badge>
+                          <Button
+                            size="sm"
+                            disabled={rosterCheckingIn[attendee.id]}
+                            onClick={() => {
+                              const bookingId = attendee.bookingId ?? attendee.id;
+                              setRosterCheckingIn(prev => ({ ...prev, [attendee.id]: true }));
+                              fetch("/api/admin/manual-check-in", {
+                                method: "POST",
+                                headers: { "Content-Type": "application/json" },
+                                body: JSON.stringify({ bookingId }),
+                              })
+                                .then(r => r.ok ? r.json() : Promise.reject())
+                                .then(() => {
+                                  setSelectedClass((prev: any) => ({
+                                    ...prev,
+                                    checkedIn: (prev.checkedIn ?? 0) + 1,
+                                    attendees: prev.attendees.map((a: any) =>
+                                      a.id === attendee.id ? { ...a, checkedIn: true, checkInTime: new Date().toLocaleTimeString("en-IN", { hour: "2-digit", minute: "2-digit", timeZone: "Asia/Kolkata" }), checkInOutcome: "on_time" } : a
+                                    ),
+                                  }));
+                                })
+                                .catch(() => alert("Check-in failed"))
+                                .finally(() => setRosterCheckingIn(prev => ({ ...prev, [attendee.id]: false })));
+                            }}
+                            className="bg-sage hover:bg-sage/90 text-white font-body rounded-full px-3 h-7 text-xs"
+                          >
+                            {rosterCheckingIn[attendee.id] ? (
+                              <div className="h-3 w-3 border-2 border-white border-t-transparent rounded-full animate-spin" />
+                            ) : "Check In"}
+                          </Button>
                         )}
                       </div>
                     </div>

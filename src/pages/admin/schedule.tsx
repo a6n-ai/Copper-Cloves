@@ -1,5 +1,8 @@
 import { useState, useEffect, useMemo } from "react";
 import { useRouter } from "next/router";
+import { useForm } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { z } from "zod";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { AdminPageHeader } from "@/components/admin/AdminPageHeader";
 import { Calendar } from "@/components/ui/calendar";
@@ -7,9 +10,17 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { DayScheduleList } from "@/components/admin/DayScheduleList";
 import { MetricCard } from "@/components/admin/MetricCard";
 import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
+import { Checkbox } from "@/components/ui/checkbox";
+import {
+  Form,
+  FormControl,
+  FormDescription,
+  FormField,
+  FormItem,
+  FormLabel,
+  FormMessage,
+} from "@/components/ui/form";
 import {
   Calendar as CalendarIcon,
   Plus,
@@ -25,7 +36,6 @@ import {
   ChevronRight,
   UserCheck,
 } from "lucide-react";
-import { Sheet, SheetContent, SheetHeader, SheetTitle } from "@/components/ui/sheet";
 import { SEO } from "@/components/SEO";
 import { useSession } from "next-auth/react";
 import { Alert, AlertDescription } from "@/components/ui/alert";
@@ -45,6 +55,23 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 
+const classSchema = z.object({
+  classId: z.string().min(1, "Select a class"),
+  instructorId: z.string().min(1, "Select an instructor"),
+  day: z.string().min(1, "Select a day"),
+  hour: z.string().min(1, "Required").refine(v => /^\d{1,2}$/.test(v) && +v >= 1 && +v <= 12, "Enter 1–12"),
+  minute: z.string().min(1, "Required").refine(v => /^\d{1,2}$/.test(v) && +v >= 0 && +v <= 59, "Enter 0–59"),
+  period: z.enum(["AM", "PM"]),
+  endHour: z.string().optional(),
+  endMinute: z.string().optional(),
+  endPeriod: z.enum(["AM", "PM"]),
+  recurring: z.boolean(),
+  weekOfMonth: z.string().optional(),
+}).refine(
+  d => d.recurring || !!d.weekOfMonth,
+  { message: "Select a week or enable recurring", path: ["weekOfMonth"] }
+);
+
 const WEEKDAYS = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"];
 
 const MONTHS = [
@@ -58,6 +85,13 @@ function parseTimeStr(t: string): { h: string; m: string; p: "AM" | "PM" } | nul
   const match = t.match(/(\d+):(\d+)\s*(AM|PM)/i);
   if (!match) return null;
   return { h: match[1].padStart(2, "0"), m: match[2].padStart(2, "0"), p: match[3].toUpperCase() as "AM" | "PM" };
+}
+
+async function extractApiError(res: Response, fallback: string): Promise<string> {
+  const body = await res.json().catch(() => ({}));
+  return typeof (body as { error?: string }).error === "string"
+    ? (body as { error: string }).error
+    : fallback;
 }
 
 const CLASSES = [
@@ -74,24 +108,22 @@ const CLASSES = [
 ];
 
 const INSTRUCTORS = [
-  { id: 1, name: "Vivek", specialties: ["Muay Thai", "WARRIOR Strength"] },
-  { id: 2, name: "Usha", specialties: ["Aerial Yoga", "Hatha Yoga"] },
-  { id: 3, name: "Akshata", specialties: ["Mat Pilates", "Barre"] },
-  { id: 4, name: "Prachi", specialties: ["Physique 57", "Barre"] },
-  { id: 5, name: "Siddarth", specialties: ["WARRIOR Strength", "WARRIOR Rhythm"] },
-  { id: 6, name: "Chaitanya", specialties: ["Animal Flow", "WARRIOR Rhythm"] },
-  { id: 7, name: "Gayathri", specialties: ["Hatha Yoga", "Aerial Yoga"] },
-  { id: 8, name: "Kajol", specialties: ["Mat Pilates", "Physique 57"] },
-  { id: 9, name: "Shruti", specialties: ["Barre", "Physique 57"] },
-  { id: 10, name: "Pushyank", specialties: ["WARRIOR Strength", "Muay Thai"] }
+  { id: 1, name: "Vivek" },
+  { id: 2, name: "Usha" },
+  { id: 3, name: "Akshata" },
+  { id: 4, name: "Prachi" },
+  { id: 5, name: "Siddarth" },
+  { id: 6, name: "Chaitanya" },
+  { id: 7, name: "Gayathri" },
+  { id: 8, name: "Kajol" },
+  { id: 9, name: "Shruti" },
+  { id: 10, name: "Pushyank" },
 ];
 
 interface ScheduledClass {
   id: string;
   day: string;
-  /** ISO date string e.g. "2026-05-17" for the actual calendar date */
   dateIso: string;
-  /** Full ISO datetime from DB — used to preserve date when editing */
   startTimeIso: string;
   time: string;
   classId: string;
@@ -121,23 +153,24 @@ export default function AdminSchedule() {
   const [schedule, setSchedule] = useState<ScheduledClass[]>([]);
   const [dialogOpen, setDialogOpen] = useState(false);
   const [editingClass, setEditingClass] = useState<ScheduledClass | null>(null);
-  const [selectedDay, setSelectedDay] = useState("");
-  const [selectedHour, setSelectedHour] = useState("07");
-  const [selectedMinute, setSelectedMinute] = useState("00");
-  const [selectedPeriod, setSelectedPeriod] = useState<"AM" | "PM">("AM");
-  const [selectedEndHour, setSelectedEndHour] = useState("");
-  const [selectedEndMinute, setSelectedEndMinute] = useState("");
-  const [selectedEndPeriod, setSelectedEndPeriod] = useState<"AM" | "PM">("AM");
   const [selectedDate, setSelectedDate] = useState<Date>(() => new Date());
-  const [selectedClass, setSelectedClass] = useState("");
-  const [selectedInstructor, setSelectedInstructor] = useState("");
-  const [isRecurring, setIsRecurring] = useState(false);
   const [successMessage, setSuccessMessage] = useState("");
+
+  const classForm = useForm<z.infer<typeof classSchema>>({
+    resolver: zodResolver(classSchema),
+    defaultValues: {
+      classId: "", instructorId: "", day: "",
+      hour: "07", minute: "00", period: "AM",
+      endHour: "", endMinute: "", endPeriod: "AM",
+      recurring: false, weekOfMonth: "",
+    },
+  });
+  const watchRecurring = classForm.watch("recurring");
+  const watchClassId = classForm.watch("classId");
   
   // New state for month/week selection
   const [scheduleViewYear, setScheduleViewYear] = useState(() => new Date().getFullYear());
   const [selectedMonth, setSelectedMonth] = useState(new Date().getMonth());
-  const [selectedWeek, setSelectedWeek] = useState<string>("");
   const [dbClasses, setDbClasses] = useState<any[]>([]);
   const [dbInstructors, setDbInstructors] = useState<any[]>([]);
   const [loadError, setLoadError] = useState<string | null>(null);
@@ -316,24 +349,14 @@ export default function AdminSchedule() {
         fetch("/api/admin/instructors", { credentials: "omit" }),
       ]);
       if (!classesRes.ok) {
-        const body = await classesRes.json().catch(() => ({}));
-        const msg =
-          typeof (body as { error?: string }).error === "string"
-            ? (body as { error: string }).error
-            : `Class catalog request failed (HTTP ${classesRes.status}).`;
         setDbClasses([]);
         setDbInstructors([]);
-        return msg;
+        return extractApiError(classesRes, `Class catalog request failed (HTTP ${classesRes.status}).`);
       }
       if (!instructorsRes.ok) {
-        const body = await instructorsRes.json().catch(() => ({}));
-        const msg =
-          typeof (body as { error?: string }).error === "string"
-            ? (body as { error: string }).error
-            : `Instructors request failed (HTTP ${instructorsRes.status}).`;
         setDbClasses(await classesRes.json());
         setDbInstructors([]);
-        return msg;
+        return extractApiError(instructorsRes, `Instructors request failed (HTTP ${instructorsRes.status}).`);
       }
       setDbClasses(await classesRes.json());
       setDbInstructors(await instructorsRes.json());
@@ -363,20 +386,14 @@ export default function AdminSchedule() {
         cache: "no-store",
       });
       if (!res.ok) {
-        const body = await res.json().catch(() => ({}));
-        const fromApi =
-          typeof (body as { error?: string }).error === "string"
-            ? (body as { error: string }).error
-            : null;
-        const fallback =
+        const statusFallback =
           res.status === 413
-            ? `Schedule could not be loaded (HTTP 413). Usually the request is too large for CloudFront (often a huge Cookie header). In DevTools → Network, open the failing "class-schedules" request and check Request Headers: if Cookie is present, clear site data for this domain or use Incognito. If Cookie is empty, redeploy so the API supports expand=0 (smaller JSON).`
+            ? "Schedule could not be loaded (HTTP 413 — request too large for CloudFront). Clear site cookies or use Incognito and retry."
             : res.status === 503
-              ? `Schedule could not be loaded (HTTP 503). The server may be unable to reach the database or the schema may be out of sync (run Prisma db push on production, or redeploy so Amplify preBuild can sync).`
+              ? "Schedule could not be loaded (HTTP 503 — server or DB unreachable). Try redeploying after db push."
               : `Schedule could not be loaded (HTTP ${res.status}).`;
-        const msg = fromApi ?? fallback;
         setSchedule([]);
-        return msg;
+        return extractApiError(res, statusFallback);
       }
       const data = (await res.json()) as Array<{
         id: string;
@@ -417,152 +434,72 @@ export default function AdminSchedule() {
 
   const handleAddClass = () => {
     setEditingClass(null);
-    setSelectedDay("");
-    setSelectedHour("07");
-    setSelectedMinute("00");
-    setSelectedPeriod("AM");
-    setSelectedEndHour("");
-    setSelectedEndMinute("");
-    setSelectedEndPeriod("AM");
-    setSelectedClass("");
-    setSelectedInstructor("");
-    setIsRecurring(false);
-    setSelectedWeek("");
+    classForm.reset({
+      classId: "", instructorId: "", day: "",
+      hour: "07", minute: "00", period: "AM",
+      endHour: "", endMinute: "", endPeriod: "AM",
+      recurring: false, weekOfMonth: "",
+    });
     setDialogOpen(true);
   };
 
   const handleEditClass = (scheduledClass: ScheduledClass) => {
     setEditingClass(scheduledClass);
-    setSelectedDay(scheduledClass.day);
     const parsed = parseTimeStr(scheduledClass.time);
-    setSelectedHour(parsed?.h ?? "07");
-    setSelectedMinute(parsed?.m ?? "00");
-    setSelectedPeriod(parsed?.p ?? "AM");
-    setSelectedEndHour("");
-    setSelectedEndMinute("");
-    setSelectedEndPeriod("AM");
-    setSelectedClass(scheduledClass.classId.toString());
-    setSelectedInstructor(scheduledClass.instructorId.toString());
-    setIsRecurring(scheduledClass.recurring);
+    classForm.reset({
+      classId: scheduledClass.classId.toString(),
+      instructorId: scheduledClass.instructorId.toString(),
+      day: scheduledClass.day,
+      hour: parsed?.h ?? "07",
+      minute: parsed?.m ?? "00",
+      period: parsed?.p ?? "AM",
+      endHour: "", endMinute: "", endPeriod: "AM",
+      recurring: scheduledClass.recurring,
+      weekOfMonth: "",
+    });
     setDialogOpen(true);
   };
 
-  const handleSaveClass = async () => {
-    const selectedTime = selectedHour && selectedMinute
-      ? `${selectedHour.padStart(2, "0")}:${selectedMinute.padStart(2, "0")} ${selectedPeriod}`
-      : "";
-    const selectedEndTime = selectedEndHour && selectedEndMinute
-      ? `${selectedEndHour.padStart(2, "0")}:${selectedEndMinute.padStart(2, "0")} ${selectedEndPeriod}`
-      : "";
+  const handleSaveClass = async (data: z.infer<typeof classSchema>) => {
+    const selectedClassData = classOptions.find(c => String(c.id) === String(data.classId));
 
-    console.log('🔵 handleSaveClass called');
-    console.log('🔵 Form values:', {
-      selectedDay,
-      selectedTime,
-      selectedClass,
-      selectedInstructor,
-      selectedWeek,
-      isRecurring,
-      selectedMonth
-    });
+    if (selectedClassData?._isPlaceholder) {
+      alert("No class types are set up in the database yet. Add classes in Admin → Settings (System config), then schedule here.");
+      return;
+    }
+
+    const selectedInstructorRecord = instructorOptions.find(i => String(i.id) === String(data.instructorId));
+    if (selectedInstructorRecord?._isPlaceholder) {
+      alert("No instructors are set up in the database yet. Add instructors in Admin → Settings, then schedule here.");
+      return;
+    }
 
     try {
       const year = scheduleViewYear;
-      const selectedClassData = classOptions.find(c => String(c.id) === String(selectedClass));
 
-      console.log('🔵 Selected class data:', selectedClassData);
+      // Parse start time
+      let hour = parseInt(data.hour);
+      const minute = parseInt(data.minute);
+      if (data.period === "PM" && hour !== 12) hour += 12;
+      if (data.period === "AM" && hour === 12) hour = 0;
 
-      if (!selectedClassData) {
-        alert("Please select a valid class");
-        return;
-      }
-
-      if (selectedClassData._isPlaceholder) {
-        alert(
-          "No class types are set up in the database yet. Add classes in Admin → Settings (System config), then schedule here. The dropdown shows sample names only."
-        );
-        return;
-      }
-
-      const selectedInstructorRecord = instructorOptions.find(
-        i => String(i.id) === String(selectedInstructor)
-      );
-      if (!selectedInstructor) {
-        alert("Please select an instructor");
-        return;
-      }
-      if (!selectedInstructorRecord) {
-        alert("Please select a valid instructor");
-        return;
-      }
-      if (selectedInstructorRecord._isPlaceholder) {
-        alert(
-          "No instructors are set up in the database yet. Add instructors in Admin → Settings, then schedule here. The dropdown shows sample names only."
-        );
-        return;
-      }
-
-      if (!selectedDay) {
-        alert("Please select a day");
-        return;
-      }
-
-      if (!selectedTime) {
-        alert("Please enter a start time");
-        return;
-      }
-
-      if (!isRecurring && !selectedWeek) {
-        alert("Please select a week of the month");
-        return;
-      }
-
-      // Parse time (e.g., "07:00 AM" -> hour: 7, minute: 0)
-      const timeParts = selectedTime.match(/(\d+):(\d+)\s*(AM|PM)/);
-      if (!timeParts) {
-        alert("Invalid time format");
-        return;
-      }
-      
-      let hour = parseInt(timeParts[1]);
-      const minute = parseInt(timeParts[2]);
-      const period = timeParts[3];
-      
-      if (period === "PM" && hour !== 12) hour += 12;
-      if (period === "AM" && hour === 12) hour = 0;
-
-      // Parse end time if provided, otherwise use class duration
+      // Parse end time — fall back to class duration
       let endHour = hour;
       let endMinute = minute;
-      
-      if (selectedEndTime) {
-        const endTimeParts = selectedEndTime.match(/(\d+):(\d+)\s*(AM|PM)/);
-        if (endTimeParts) {
-          endHour = parseInt(endTimeParts[1]);
-          endMinute = parseInt(endTimeParts[2]);
-          const endPeriod = endTimeParts[3];
-          
-          if (endPeriod === "PM" && endHour !== 12) endHour += 12;
-          if (endPeriod === "AM" && endHour === 12) endHour = 0;
-        }
-      } else {
-        // Use class duration
+      if (data.endHour && data.endMinute) {
+        endHour = parseInt(data.endHour);
+        endMinute = parseInt(data.endMinute);
+        if (data.endPeriod === "PM" && endHour !== 12) endHour += 12;
+        if (data.endPeriod === "AM" && endHour === 12) endHour = 0;
+      } else if (selectedClassData) {
         const totalMinutes = minute + selectedClassData.duration;
         endHour = hour + Math.floor(totalMinutes / 60);
         endMinute = totalMinutes % 60;
       }
 
-      const dayIndex = WEEKDAYS.indexOf(selectedDay);
-      if (dayIndex === -1) {
-        alert("Invalid day selected");
-        return;
-      }
-
-      console.log('🔵 Parsed time:', { hour, minute, period });
-      console.log('🔵 Day index:', dayIndex);
+      const dayIndex = WEEKDAYS.indexOf(data.day);
 
       if (editingClass) {
-        console.log('🔵 Editing existing class:', editingClass.id);
         // Preserve the original calendar date — only update the time.
         // Re-deriving the date from weekday + month would pick the wrong week (always week 1).
         const originalDate = new Date(editingClass.startTimeIso);
@@ -579,121 +516,85 @@ export default function AdminSchedule() {
         const endDate = new Date(startDate);
         endDate.setHours(endHour, endMinute, 0, 0);
 
-        console.log('🔵 Updating with:', {
-          class_id: selectedClass,
-          instructor_id: selectedInstructor,
-          start_time: startDate.toISOString(),
-          end_time: endDate.toISOString(),
-          available_spots: selectedClassData.max_capacity,
-          capacity: selectedClassData.max_capacity
-        });
-
         const updateRes = await fetch("/api/class-schedules", {
           method: "PUT",
           headers: { "Content-Type": "application/json" },
           credentials: "include",
           body: JSON.stringify({
             id: editingClass.id,
-            class_id: selectedClass,
-            instructor_id: selectedInstructor,
+            class_id: data.classId,
+            instructor_id: data.instructorId,
             start_time: startDate.toISOString(),
             end_time: endDate.toISOString(),
-            available_spots: selectedClassData.max_capacity,
-            capacity: selectedClassData.max_capacity,
+            available_spots: selectedClassData?.max_capacity,
+            capacity: selectedClassData?.max_capacity,
           }),
         });
         if (!updateRes.ok) {
-          const body = await updateRes.json().catch(() => ({}));
-          const msg =
-            typeof (body as { error?: string }).error === "string"
-              ? (body as { error: string }).error
-              : `Update failed (HTTP ${updateRes.status})`;
-          throw new Error(msg);
+          throw new Error(await extractApiError(updateRes, `Update failed (HTTP ${updateRes.status})`));
         }
         setSuccessMessage("Class updated successfully!");
       } else {
-        console.log('🔵 Creating new class schedule(s)');
-        // Create new class schedule(s)
         const schedulesToCreate = [];
-        
-        if (isRecurring) {
-          console.log('🔵 Creating recurring classes for', MONTHS[selectedMonth]);
-          // Create for all occurrences of this day in the selected month
+
+        if (data.recurring) {
           const startOfMonth = new Date(year, selectedMonth, 1);
           const endOfMonth = new Date(year, selectedMonth + 1, 0);
-          
           const currentDate = new Date(startOfMonth);
-          // Find first occurrence of selected day
           while (currentDate.getDay() !== (dayIndex + 1) % 7) {
             currentDate.setDate(currentDate.getDate() + 1);
           }
-          
-          // Add all occurrences in this month
           while (currentDate <= endOfMonth) {
             const startTime = new Date(currentDate);
             startTime.setHours(hour, minute, 0, 0);
             const endTime = new Date(startTime);
             endTime.setHours(endHour, endMinute, 0, 0);
-            
             schedulesToCreate.push({
-              class_id: selectedClass,
-              instructor_id: selectedInstructor,
+              class_id: data.classId,
+              instructor_id: data.instructorId,
               start_time: startTime.toISOString(),
               end_time: endTime.toISOString(),
-              available_spots: selectedClassData.max_capacity,
-              capacity: selectedClassData.max_capacity,
+              available_spots: selectedClassData?.max_capacity,
+              capacity: selectedClassData?.max_capacity,
               status: "available",
-              current_bookings: 0
+              current_bookings: 0,
             });
-            
-            currentDate.setDate(currentDate.getDate() + 7); // Next week
+            currentDate.setDate(currentDate.getDate() + 7);
           }
-          console.log('🔵 Total recurring classes to create:', schedulesToCreate.length);
         } else {
-          console.log('🔵 Creating single class for week:', selectedWeek);
-          // Single occurrence
-          const weekMatch = selectedWeek.match(/week\s+(\d+)/i);
+          const weekMatch = data.weekOfMonth?.match(/week\s+(\d+)/i);
           const weekNumber = weekMatch ? parseInt(weekMatch[1], 10) : NaN;
           if (!Number.isFinite(weekNumber) || weekNumber < 1 || weekNumber > 5) {
             alert("Please select a valid week (Week 1–Week 5).");
             return;
           }
           const startOfMonth = new Date(year, selectedMonth, 1);
-          
-          // Find the nth occurrence of this day in the month
           const currentDate = new Date(startOfMonth);
           while (currentDate.getDay() !== (dayIndex + 1) % 7) {
             currentDate.setDate(currentDate.getDate() + 1);
           }
-          
-          // Move to the selected week
           currentDate.setDate(currentDate.getDate() + (weekNumber - 1) * 7);
-          
           if (currentDate.getMonth() !== selectedMonth) {
             alert(
-              `${selectedWeek} for ${selectedDay} does not exist in ${MONTHS[selectedMonth]} ${year} (that date falls in the next month). Choose Week 1–4, use Recurring, or pick another month.`
+              `${data.weekOfMonth} for ${data.day} does not exist in ${MONTHS[selectedMonth]} ${year}. Choose Week 1–4, use Recurring, or pick another month.`
             );
             return;
           }
-
           const startTime = new Date(currentDate);
           startTime.setHours(hour, minute, 0, 0);
           const endTime = new Date(startTime);
           endTime.setHours(endHour, endMinute, 0, 0);
-          
           schedulesToCreate.push({
-            class_id: selectedClass,
-            instructor_id: selectedInstructor,
+            class_id: data.classId,
+            instructor_id: data.instructorId,
             start_time: startTime.toISOString(),
             end_time: endTime.toISOString(),
-            available_spots: selectedClassData.max_capacity,
-            capacity: selectedClassData.max_capacity,
+            available_spots: selectedClassData?.max_capacity,
+            capacity: selectedClassData?.max_capacity,
             status: "available",
-            current_bookings: 0
+            current_bookings: 0,
           });
         }
-
-        console.log('🔵 Schedules to create:', schedulesToCreate);
 
         for (const schedule of schedulesToCreate) {
           const res = await fetch("/api/class-schedules", {
@@ -702,16 +603,9 @@ export default function AdminSchedule() {
             credentials: "include",
             body: JSON.stringify(schedule),
           });
-          if (!res.ok) {
-            const body = await res.json().catch(() => ({}));
-            const msg =
-              typeof (body as { error?: string }).error === "string"
-                ? (body as { error: string }).error
-                : `Insert failed (HTTP ${res.status})`;
-            throw new Error(msg);
-          }
+          if (!res.ok) throw new Error(await extractApiError(res, `Insert failed (HTTP ${res.status})`));
         }
-        setSuccessMessage(isRecurring 
+        setSuccessMessage(data.recurring
           ? `${schedulesToCreate.length} recurring classes scheduled for ${MONTHS[selectedMonth]}!`
           : "Class scheduled successfully!"
         );
@@ -721,9 +615,9 @@ export default function AdminSchedule() {
       const schedErr = await loadSchedule();
       if (schedErr) setLoadError(schedErr);
       setTimeout(() => setSuccessMessage(""), 3000);
-    } catch (err: any) {
-      console.error("❌ Error saving class:", err);
-      alert(`Failed to save class: ${err?.message || 'Unknown error'}. Please check the console for details.`);
+    } catch (err: unknown) {
+      console.error("Error saving class:", err);
+      alert(`Failed to save: ${(err as Error)?.message ?? "Unknown error"}`);
     }
   };
 
@@ -733,14 +627,7 @@ export default function AdminSchedule() {
         method: "DELETE",
         credentials: "include",
       });
-      if (!res.ok) {
-        const body = await res.json().catch(() => ({}));
-        const msg =
-          typeof (body as { error?: string }).error === "string"
-            ? (body as { error: string }).error
-            : `Delete failed (HTTP ${res.status})`;
-        throw new Error(msg);
-      }
+      if (!res.ok) throw new Error(await extractApiError(res, `Delete failed (HTTP ${res.status})`));
       setSuccessMessage("Class removed from schedule");
       const schedErr = await loadSchedule();
       if (schedErr) setLoadError(schedErr);
@@ -1042,200 +929,292 @@ export default function AdminSchedule() {
               Configure class details, time, and recurring schedule
             </DialogDescription>
           </DialogHeader>
-          
-          <div className="py-4">
-            {usingPlaceholderCatalog ? (
-              <div className="rounded-lg border border-amber-200 bg-amber-50 px-4 py-3 font-body text-sm text-amber-950 mb-4">
-                <strong className="font-medium">Sample list:</strong> there are no class types or instructors in the database yet, so the menus below show built-in examples. Add real classes and instructors in Admin → Settings, then you can schedule live sessions.
-              </div>
-            ) : null}
 
-            <Tabs defaultValue="basics" className="w-full">
-              <TabsList className="grid w-full grid-cols-2 bg-cream/50">
-                <TabsTrigger value="basics" className="font-body data-[state=active]:bg-sage data-[state=active]:text-white">
-                  Basics
-                </TabsTrigger>
-                <TabsTrigger value="schedule" className="font-body data-[state=active]:bg-sage data-[state=active]:text-white">
-                  When &amp; Repeat
-                </TabsTrigger>
-              </TabsList>
-
-              <TabsContent value="basics" className="space-y-4 mt-4">
-            <div>
-              <Label className="font-body text-charcoal/80 mb-2">Class Type</Label>
-              <Select value={selectedClass} onValueChange={setSelectedClass}>
-                <SelectTrigger className="h-12 border-charcoal/20 focus:border-sage font-body">
-                  <SelectValue placeholder="Select class" />
-                </SelectTrigger>
-                <SelectContent position="popper" className="max-h-[300px] overflow-y-auto">
-                  {classOptions.map(cls => (
-                    <SelectItem key={cls.id} value={cls.id}>
-                      {cls.name} (Max: {cls.max_capacity})
-                      {cls._isPlaceholder ? " — sample" : ""}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
-
-            <div>
-              <Label className="font-body text-charcoal/80 mb-2">Instructor</Label>
-              <Select value={selectedInstructor} onValueChange={setSelectedInstructor}>
-                <SelectTrigger className="h-12 border-charcoal/20 focus:border-sage font-body">
-                  <SelectValue placeholder="Select instructor" />
-                </SelectTrigger>
-                <SelectContent position="popper" className="max-h-[300px] overflow-y-auto">
-                  {instructorOptions.map(instructor => (
-                    <SelectItem key={instructor.id} value={instructor.id}>
-                      {instructor.name}
-                      {instructor._isPlaceholder ? " — sample" : ""}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
-              </TabsContent>
-
-              <TabsContent value="schedule" className="space-y-4 mt-4">
-            <div>
-              <Label className="font-body text-charcoal/80 mb-2">Day of Week</Label>
-              <Select value={selectedDay} onValueChange={setSelectedDay}>
-                <SelectTrigger className="h-12 border-charcoal/20 focus:border-sage font-body">
-                  <SelectValue placeholder="Select day" />
-                </SelectTrigger>
-                <SelectContent position="popper">
-                  {WEEKDAYS.map(day => (
-                    <SelectItem key={day} value={day}>{day}</SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
-
-            <div>
-              <Label className="font-body text-charcoal/80 mb-2">Start Time</Label>
-              <div className="flex items-center gap-2">
-                <Input
-                  className="w-16 h-12 text-center font-body text-lg border-charcoal/20 focus:border-sage"
-                  placeholder="07"
-                  maxLength={2}
-                  value={selectedHour}
-                  onChange={e => setSelectedHour(e.target.value.replace(/\D/g, "").slice(0, 2))}
-                />
-                <span className="text-xl font-semibold text-charcoal/50">:</span>
-                <Input
-                  className="w-16 h-12 text-center font-body text-lg border-charcoal/20 focus:border-sage"
-                  placeholder="00"
-                  maxLength={2}
-                  value={selectedMinute}
-                  onChange={e => setSelectedMinute(e.target.value.replace(/\D/g, "").slice(0, 2))}
-                />
-                <div className="flex rounded-lg overflow-hidden border border-charcoal/20">
-                  <button
-                    type="button"
-                    onClick={() => setSelectedPeriod("AM")}
-                    className={`px-4 h-12 font-body text-sm font-medium transition-colors ${
-                      selectedPeriod === "AM" ? "bg-sage text-white" : "bg-white text-charcoal/70 hover:bg-sage/10"
-                    }`}
-                  >AM</button>
-                  <button
-                    type="button"
-                    onClick={() => setSelectedPeriod("PM")}
-                    className={`px-4 h-12 font-body text-sm font-medium transition-colors border-l border-charcoal/20 ${
-                      selectedPeriod === "PM" ? "bg-sage text-white" : "bg-white text-charcoal/70 hover:bg-sage/10"
-                    }`}
-                  >PM</button>
+          <Form {...classForm}>
+            <form
+              id="class-form"
+              onSubmit={classForm.handleSubmit(handleSaveClass)}
+              className="py-4 space-y-0"
+            >
+              {usingPlaceholderCatalog && (
+                <div className="rounded-lg border border-amber-200 bg-amber-50 px-4 py-3 font-body text-sm text-amber-950 mb-4">
+                  <strong className="font-medium">Sample list:</strong> no class types or instructors in the database yet. Add them in Admin → Settings, then schedule live sessions.
                 </div>
-              </div>
-            </div>
+              )}
 
-            <div>
-              <Label className="font-body text-charcoal/80 mb-2">End Time <span className="text-charcoal/40 font-normal">(Optional)</span></Label>
-              <div className="flex items-center gap-2">
-                <Input
-                  className="w-16 h-12 text-center font-body text-lg border-charcoal/20 focus:border-sage"
-                  placeholder="08"
-                  maxLength={2}
-                  value={selectedEndHour}
-                  onChange={e => setSelectedEndHour(e.target.value.replace(/\D/g, "").slice(0, 2))}
-                />
-                <span className="text-xl font-semibold text-charcoal/50">:</span>
-                <Input
-                  className="w-16 h-12 text-center font-body text-lg border-charcoal/20 focus:border-sage"
-                  placeholder="00"
-                  maxLength={2}
-                  value={selectedEndMinute}
-                  onChange={e => setSelectedEndMinute(e.target.value.replace(/\D/g, "").slice(0, 2))}
-                />
-                <div className="flex rounded-lg overflow-hidden border border-charcoal/20">
-                  <button
-                    type="button"
-                    onClick={() => setSelectedEndPeriod("AM")}
-                    className={`px-4 h-12 font-body text-sm font-medium transition-colors ${
-                      selectedEndPeriod === "AM" ? "bg-sage text-white" : "bg-white text-charcoal/70 hover:bg-sage/10"
-                    }`}
-                  >AM</button>
-                  <button
-                    type="button"
-                    onClick={() => setSelectedEndPeriod("PM")}
-                    className={`px-4 h-12 font-body text-sm font-medium transition-colors border-l border-charcoal/20 ${
-                      selectedEndPeriod === "PM" ? "bg-sage text-white" : "bg-white text-charcoal/70 hover:bg-sage/10"
-                    }`}
-                  >PM</button>
-                </div>
-              </div>
-              <p className="font-body text-xs text-charcoal/50 mt-1">
-                Leave empty to auto-calculate from class duration (
-                {selectedClass
-                  ? classOptions.find(c => String(c.id) === String(selectedClass))?.duration ?? "—"
-                  : "—"}{" "}
-                min)
-              </p>
-            </div>
+              <Tabs defaultValue="basics" className="w-full">
+                <TabsList className="grid w-full grid-cols-2 bg-cream/50">
+                  <TabsTrigger value="basics" className="font-body data-[state=active]:bg-sage data-[state=active]:text-white">
+                    Basics
+                  </TabsTrigger>
+                  <TabsTrigger value="schedule" className="font-body data-[state=active]:bg-sage data-[state=active]:text-white">
+                    When &amp; Repeat
+                  </TabsTrigger>
+                </TabsList>
 
-            {!isRecurring && (
-              <div>
-                <Label className="font-body text-charcoal/80 mb-2">Week of Month</Label>
-                <Select value={selectedWeek} onValueChange={setSelectedWeek}>
-                  <SelectTrigger className="h-12 border-charcoal/20 focus:border-sage font-body">
-                    <SelectValue placeholder="Select week" />
-                  </SelectTrigger>
-                  <SelectContent position="popper">
-                    {WEEKS_OF_MONTH.map((week, index) => (
-                      <SelectItem key={week} value={week}>
-                        {week} ({getWeekDateRange(index + 1, selectedMonth)})
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-                <p className="font-body text-xs text-charcoal/50 mt-1">
-                  Select which week of {MONTHS[selectedMonth]} to schedule this class
-                </p>
-              </div>
-            )}
+                {/* ── Basics Tab ── */}
+                <TabsContent value="basics" className="space-y-5 mt-5">
+                  <FormField
+                    control={classForm.control}
+                    name="classId"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel className="font-body text-charcoal/80">Class Type</FormLabel>
+                        <Select onValueChange={field.onChange} value={field.value}>
+                          <FormControl>
+                            <SelectTrigger className="h-12 border-charcoal/20 focus:border-sage font-body">
+                              <SelectValue placeholder="Select class" />
+                            </SelectTrigger>
+                          </FormControl>
+                          <SelectContent position="popper" className="max-h-[300px] overflow-y-auto">
+                            {classOptions.map(cls => (
+                              <SelectItem key={cls.id} value={cls.id}>
+                                {cls.name} (Max: {cls.max_capacity}){cls._isPlaceholder ? " — sample" : ""}
+                              </SelectItem>
+                            ))}
+                          </SelectContent>
+                        </Select>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
 
-            <div className="flex items-center gap-3 p-4 rounded-xl border border-charcoal/10 bg-cream/30">
-              <input
-                type="checkbox"
-                id="recurring"
-                checked={isRecurring}
-                onChange={(e) => setIsRecurring(e.target.checked)}
-                className="h-5 w-5 rounded border-charcoal/20 text-sage focus:ring-sage"
-              />
-              <div>
-                <Label htmlFor="recurring" className="font-body font-medium text-charcoal cursor-pointer">
-                  Recurring Weekly (All {MONTHS[selectedMonth]})
-                </Label>
-                <p className="font-body text-sm text-charcoal/60">
-                  Repeat this class every week throughout {MONTHS[selectedMonth]}
-                </p>
-              </div>
-            </div>
-              </TabsContent>
-            </Tabs>
-          </div>
+                  <FormField
+                    control={classForm.control}
+                    name="instructorId"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel className="font-body text-charcoal/80">Instructor</FormLabel>
+                        <Select onValueChange={field.onChange} value={field.value}>
+                          <FormControl>
+                            <SelectTrigger className="h-12 border-charcoal/20 focus:border-sage font-body">
+                              <SelectValue placeholder="Select instructor" />
+                            </SelectTrigger>
+                          </FormControl>
+                          <SelectContent position="popper" className="max-h-[300px] overflow-y-auto">
+                            {instructorOptions.map(instructor => (
+                              <SelectItem key={instructor.id} value={instructor.id}>
+                                {instructor.name}{instructor._isPlaceholder ? " — sample" : ""}
+                              </SelectItem>
+                            ))}
+                          </SelectContent>
+                        </Select>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                </TabsContent>
+
+                {/* ── When & Repeat Tab ── */}
+                <TabsContent value="schedule" className="space-y-5 mt-5">
+                  <FormField
+                    control={classForm.control}
+                    name="day"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel className="font-body text-charcoal/80">Day of Week</FormLabel>
+                        <Select onValueChange={field.onChange} value={field.value}>
+                          <FormControl>
+                            <SelectTrigger className="h-12 border-charcoal/20 focus:border-sage font-body">
+                              <SelectValue placeholder="Select day" />
+                            </SelectTrigger>
+                          </FormControl>
+                          <SelectContent position="popper">
+                            {WEEKDAYS.map(day => (
+                              <SelectItem key={day} value={day}>{day}</SelectItem>
+                            ))}
+                          </SelectContent>
+                        </Select>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+
+                  {/* Start Time */}
+                  <FormItem>
+                    <FormLabel className="font-body text-charcoal/80">Start Time</FormLabel>
+                    <div className="flex items-center gap-2">
+                      <FormField
+                        control={classForm.control}
+                        name="hour"
+                        render={({ field }) => (
+                          <FormControl>
+                            <Input
+                              {...field}
+                              className="w-16 h-12 text-center font-body text-lg border-charcoal/20 focus:border-sage"
+                              placeholder="07"
+                              maxLength={2}
+                              onChange={e => field.onChange(e.target.value.replace(/\D/g, "").slice(0, 2))}
+                            />
+                          </FormControl>
+                        )}
+                      />
+                      <span className="text-xl font-semibold text-charcoal/50">:</span>
+                      <FormField
+                        control={classForm.control}
+                        name="minute"
+                        render={({ field }) => (
+                          <FormControl>
+                            <Input
+                              {...field}
+                              className="w-16 h-12 text-center font-body text-lg border-charcoal/20 focus:border-sage"
+                              placeholder="00"
+                              maxLength={2}
+                              onChange={e => field.onChange(e.target.value.replace(/\D/g, "").slice(0, 2))}
+                            />
+                          </FormControl>
+                        )}
+                      />
+                      <FormField
+                        control={classForm.control}
+                        name="period"
+                        render={({ field }) => (
+                          <div className="flex rounded-lg overflow-hidden border border-charcoal/20">
+                            {(["AM", "PM"] as const).map(p => (
+                              <button
+                                key={p}
+                                type="button"
+                                onClick={() => field.onChange(p)}
+                                className={`px-4 h-12 font-body text-sm font-medium transition-colors ${p === "PM" ? "border-l border-charcoal/20" : ""} ${
+                                  field.value === p ? "bg-sage text-white" : "bg-white text-charcoal/70 hover:bg-sage/10"
+                                }`}
+                              >{p}</button>
+                            ))}
+                          </div>
+                        )}
+                      />
+                    </div>
+                    <div className="flex gap-1">
+                      <FormField control={classForm.control} name="hour" render={() => <FormMessage />} />
+                      <FormField control={classForm.control} name="minute" render={() => <FormMessage />} />
+                    </div>
+                  </FormItem>
+
+                  {/* End Time (optional) */}
+                  <FormItem>
+                    <FormLabel className="font-body text-charcoal/80">
+                      End Time <span className="text-charcoal/40 font-normal">(Optional)</span>
+                    </FormLabel>
+                    <div className="flex items-center gap-2">
+                      <FormField
+                        control={classForm.control}
+                        name="endHour"
+                        render={({ field }) => (
+                          <FormControl>
+                            <Input
+                              {...field}
+                              className="w-16 h-12 text-center font-body text-lg border-charcoal/20 focus:border-sage"
+                              placeholder="08"
+                              maxLength={2}
+                              onChange={e => field.onChange(e.target.value.replace(/\D/g, "").slice(0, 2))}
+                            />
+                          </FormControl>
+                        )}
+                      />
+                      <span className="text-xl font-semibold text-charcoal/50">:</span>
+                      <FormField
+                        control={classForm.control}
+                        name="endMinute"
+                        render={({ field }) => (
+                          <FormControl>
+                            <Input
+                              {...field}
+                              className="w-16 h-12 text-center font-body text-lg border-charcoal/20 focus:border-sage"
+                              placeholder="00"
+                              maxLength={2}
+                              onChange={e => field.onChange(e.target.value.replace(/\D/g, "").slice(0, 2))}
+                            />
+                          </FormControl>
+                        )}
+                      />
+                      <FormField
+                        control={classForm.control}
+                        name="endPeriod"
+                        render={({ field }) => (
+                          <div className="flex rounded-lg overflow-hidden border border-charcoal/20">
+                            {(["AM", "PM"] as const).map(p => (
+                              <button
+                                key={p}
+                                type="button"
+                                onClick={() => field.onChange(p)}
+                                className={`px-4 h-12 font-body text-sm font-medium transition-colors ${p === "PM" ? "border-l border-charcoal/20" : ""} ${
+                                  field.value === p ? "bg-sage text-white" : "bg-white text-charcoal/70 hover:bg-sage/10"
+                                }`}
+                              >{p}</button>
+                            ))}
+                          </div>
+                        )}
+                      />
+                    </div>
+                    <FormDescription className="font-body text-xs text-charcoal/50">
+                      Leave empty to auto-calculate from class duration (
+                      {watchClassId ? classOptions.find(c => String(c.id) === String(watchClassId))?.duration ?? "—" : "—"} min)
+                    </FormDescription>
+                  </FormItem>
+
+                  {/* Week of Month — only when not recurring */}
+                  {!watchRecurring && (
+                    <FormField
+                      control={classForm.control}
+                      name="weekOfMonth"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel className="font-body text-charcoal/80">Week of Month</FormLabel>
+                          <Select onValueChange={field.onChange} value={field.value ?? ""}>
+                            <FormControl>
+                              <SelectTrigger className="h-12 border-charcoal/20 focus:border-sage font-body">
+                                <SelectValue placeholder="Select week" />
+                              </SelectTrigger>
+                            </FormControl>
+                            <SelectContent position="popper">
+                              {WEEKS_OF_MONTH.map((week, index) => (
+                                <SelectItem key={week} value={week}>
+                                  {week} ({getWeekDateRange(index + 1, selectedMonth)})
+                                </SelectItem>
+                              ))}
+                            </SelectContent>
+                          </Select>
+                          <FormDescription className="font-body text-xs text-charcoal/50">
+                            Select which week of {MONTHS[selectedMonth]} to schedule this class
+                          </FormDescription>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+                  )}
+
+                  {/* Recurring toggle */}
+                  <FormField
+                    control={classForm.control}
+                    name="recurring"
+                    render={({ field }) => (
+                      <FormItem className="flex items-start gap-3 p-4 rounded-xl border border-charcoal/10 bg-cream/30">
+                        <FormControl>
+                          <Checkbox
+                            checked={field.value}
+                            onCheckedChange={field.onChange}
+                            className="mt-0.5 border-charcoal/30 data-[state=checked]:bg-sage data-[state=checked]:border-sage"
+                          />
+                        </FormControl>
+                        <div className="space-y-0.5">
+                          <FormLabel className="font-body font-medium text-charcoal cursor-pointer">
+                            Recurring Weekly (All {MONTHS[selectedMonth]})
+                          </FormLabel>
+                          <FormDescription className="font-body text-sm text-charcoal/60">
+                            Repeat this class every week throughout {MONTHS[selectedMonth]}
+                          </FormDescription>
+                        </div>
+                      </FormItem>
+                    )}
+                  />
+                </TabsContent>
+              </Tabs>
+            </form>
+          </Form>
 
           <DialogFooter>
             <Button
+              type="button"
               variant="outline"
               onClick={() => setDialogOpen(false)}
               className="border-charcoal/20 text-charcoal hover:bg-charcoal/5 font-body"
@@ -1243,8 +1222,8 @@ export default function AdminSchedule() {
               Cancel
             </Button>
             <Button
-              onClick={handleSaveClass}
-              disabled={!selectedDay || !selectedHour || !selectedMinute || !selectedClass || !selectedInstructor}
+              type="submit"
+              form="class-form"
               className="bg-sage hover:bg-sage/90 text-white font-body"
             >
               {editingClass ? "Update Class" : "Schedule Class"}
@@ -1253,23 +1232,28 @@ export default function AdminSchedule() {
         </DialogContent>
       </Dialog>
 
-      {/* Roster Sheet */}
-      <Sheet open={!!rosterScheduleId} onOpenChange={(open) => { if (!open) { setRosterScheduleId(null); setRosterData(null); } }}>
-        <SheetContent className="w-full sm:max-w-md overflow-y-auto">
-          <SheetHeader className="pb-4 border-b border-sage/10">
-            <SheetTitle className="font-display text-2xl text-charcoal">
-              {rosterData ? rosterData.className : "Roster"}
-            </SheetTitle>
+      {/* Roster Dialog */}
+      <Dialog open={!!rosterScheduleId} onOpenChange={(open) => { if (!open) { setRosterScheduleId(null); setRosterData(null); } }}>
+        <DialogContent className="max-w-lg w-full bg-white flex flex-col p-0 max-h-[85vh] overflow-hidden">
+          {/* Header */}
+          <div className="px-6 pt-6 pb-4 border-b border-sage/10 shrink-0">
+            <DialogTitle className="font-display text-2xl text-charcoal">
+              {rosterData ? rosterData.className : "Class Roster"}
+            </DialogTitle>
             {rosterData && (
-              <div className="font-body text-sm text-charcoal/60 space-y-0.5">
+              <div className="font-body text-sm text-charcoal/60 space-y-0.5 mt-1">
                 <p>{new Date(rosterData.startTime).toLocaleString("en-IN", { dateStyle: "medium", timeStyle: "short", timeZone: "Asia/Kolkata" })}</p>
                 <p>Instructor: {rosterData.instructor}</p>
-                <p className="text-sage font-medium">{rosterData.bookings.filter(b => b.checkedIn).length}/{rosterData.bookings.length} checked in{rosterData.capacity ? ` · ${rosterData.capacity} capacity` : ""}</p>
+                <p className="text-sage font-medium">
+                  {rosterData.bookings.filter(b => b.checkedIn).length}/{rosterData.bookings.length} checked in
+                  {rosterData.capacity ? ` · ${rosterData.capacity} capacity` : ""}
+                </p>
               </div>
             )}
-          </SheetHeader>
+          </div>
 
-          <div className="mt-4">
+          {/* Scrollable member list */}
+          <div className="flex-1 overflow-y-auto px-6 py-4">
             {rosterLoading && (
               <div className="flex items-center justify-center py-16">
                 <div className="h-8 w-8 border-2 border-sage border-t-transparent rounded-full animate-spin" />
@@ -1331,8 +1315,8 @@ export default function AdminSchedule() {
               </ul>
             )}
           </div>
-        </SheetContent>
-      </Sheet>
+        </DialogContent>
+      </Dialog>
     </>
   );
 }
