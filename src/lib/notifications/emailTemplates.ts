@@ -180,8 +180,8 @@ export function bookingConfirmationEmail(opts: BookingConfirmationEmailOpts): st
       <div style="background:#fff;border:1px solid ${BORDER};border-radius:12px;padding:24px;margin-bottom:24px">
         <p style="font-family:Georgia,serif;font-size:15px;font-weight:700;color:${TERRACOTTA};margin:0 0 12px">cancellation policy</p>
         <p style="font-family:Georgia,serif;font-size:14px;color:${CHARCOAL};margin:0 0 8px;line-height:1.6">This booking will be deducted from your class balance.</p>
-        <p style="font-family:Georgia,serif;font-size:14px;color:${CHARCOAL};margin:0 0 8px;line-height:1.6">Cancel at least <strong>12 hours</strong> before class to retain the credit and book into another session.</p>
-        <p style="font-family:Georgia,serif;font-size:14px;color:${MUTED};margin:0 0 16px;line-height:1.6">Cancellations made within 12 hours of class start cannot be transferred.</p>
+        <p style="font-family:Georgia,serif;font-size:14px;color:${CHARCOAL};margin:0 0 8px;line-height:1.6">Cancel at least <strong>6 hours</strong> before class to retain the credit and book into another session.</p>
+        <p style="font-family:Georgia,serif;font-size:14px;color:${MUTED};margin:0 0 16px;line-height:1.6">Cancellations made within 6 hours of class start cannot be transferred.</p>
         <p style="font-family:Georgia,serif;font-size:14px;font-style:italic;color:${MUTED};margin:0;text-align:center">we look forward to seeing you on the mat!!</p>
       </div>
     </div>
@@ -387,7 +387,7 @@ export function cancellationEmail(opts: CancellationEmailOpts): string {
           </div>`
         : `<div style="background:#FFF7ED;border:1px solid #FED7AA;border-radius:12px;padding:20px;margin-bottom:20px;text-align:center">
             <p style="font-family:Georgia,serif;font-size:14px;font-weight:700;color:#9A3412;margin:0 0 6px">⚠ no credit returned</p>
-            <p style="font-family:Georgia,serif;font-size:14px;color:#9A3412;margin:0">This cancellation was made within 12 hours of class start and the credit cannot be transferred.</p>
+            <p style="font-family:Georgia,serif;font-size:14px;color:#9A3412;margin:0">This cancellation was made within 6 hours of class start and the credit cannot be transferred.</p>
           </div>`
       }
 
@@ -410,8 +410,8 @@ export function cancellationEmail(opts: CancellationEmailOpts): string {
 
       <div style="background:#fff;border:1px solid ${BORDER};border-radius:12px;padding:20px;margin-bottom:24px">
         <p style="font-family:Georgia,serif;font-size:15px;font-weight:700;color:${TERRACOTTA};margin:0 0 12px">cancellation policy reminder</p>
-        <p style="font-family:Georgia,serif;font-size:14px;color:${CHARCOAL};margin:0 0 8px;line-height:1.6">Cancel at least <strong>12 hours</strong> before class to retain your credit.</p>
-        <p style="font-family:Georgia,serif;font-size:14px;color:${MUTED};margin:0;line-height:1.6">Cancellations within 12 hours of class start cannot be transferred.</p>
+        <p style="font-family:Georgia,serif;font-size:14px;color:${CHARCOAL};margin:0 0 8px;line-height:1.6">Cancel at least <strong>6 hours</strong> before class to retain your credit.</p>
+        <p style="font-family:Georgia,serif;font-size:14px;color:${MUTED};margin:0;line-height:1.6">Cancellations within 6 hours of class start cannot be transferred.</p>
       </div>
 
     </div>

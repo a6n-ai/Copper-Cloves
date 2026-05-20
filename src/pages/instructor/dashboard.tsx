@@ -499,15 +499,10 @@ export default function InstructorDashboard() {
                           </span>
                         </p>
                         {/* Instructor check-in status */}
-                        {selectedClass.instructorCheckedIn ? (
+                        {selectedClass.instructorCheckedIn && (
                           <p className="font-body text-xs text-sage mt-1 flex items-center gap-1">
                             <CheckCircle2 className="h-3.5 w-3.5" />
                             You checked in at {selectedClass.instructorCheckInTime ? format(new Date(selectedClass.instructorCheckInTime), "h:mm a") : "—"}
-                          </p>
-                        ) : (
-                          <p className="font-body text-xs text-amber-600 mt-1 flex items-center gap-1">
-                            <AlertCircle className="h-3.5 w-3.5" />
-                            Check yourself in first to enable member attendance
                           </p>
                         )}
                       </div>
@@ -570,8 +565,6 @@ export default function InstructorDashboard() {
                                 <CheckCircle2 className="h-5 w-5" />
                                 <span className="hidden sm:inline">Checked In</span>
                               </div>
-                            ) : !selectedClass.instructorCheckedIn ? (
-                              <span className="font-body text-xs text-charcoal/40 italic shrink-0">Awaiting your check-in</span>
                             ) : (
                               <Button
                                 size="sm"

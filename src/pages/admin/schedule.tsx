@@ -22,8 +22,10 @@ import {
   CheckCircle2,
   AlertCircle,
   ChevronLeft,
-  ChevronRight
+  ChevronRight,
+  UserCheck,
 } from "lucide-react";
+import { Sheet, SheetContent, SheetHeader, SheetTitle } from "@/components/ui/sheet";
 import { SEO } from "@/components/SEO";
 import { useSession } from "next-auth/react";
 import { Alert, AlertDescription } from "@/components/ui/alert";
@@ -139,6 +141,18 @@ export default function AdminSchedule() {
   const [dbClasses, setDbClasses] = useState<any[]>([]);
   const [dbInstructors, setDbInstructors] = useState<any[]>([]);
   const [loadError, setLoadError] = useState<string | null>(null);
+
+  // Roster sheet state
+  const [rosterScheduleId, setRosterScheduleId] = useState<string | null>(null);
+  const [rosterData, setRosterData] = useState<{
+    scheduleId: string; className: string; instructor: string;
+    startTime: string; capacity: number | null;
+    bookings: { id: string; userId: string; name: string; email: string;
+      avatarUrl: string | null; checkedIn: boolean; checkInTime: string | null;
+      checkInOutcome: string | null; extraGuests: number; }[];
+  } | null>(null);
+  const [rosterLoading, setRosterLoading] = useState(false);
+  const [checkingInMap, setCheckingInMap] = useState<Record<string, boolean>>({});
 
   const classOptions: ClassSelectOption[] = useMemo(() => {
     if (dbClasses.length > 0) {
@@ -748,6 +762,42 @@ export default function AdminSchedule() {
     setTimeout(() => setSuccessMessage(""), 3000);
   };
 
+  async function loadRoster(scheduleId: string) {
+    setRosterScheduleId(scheduleId);
+    setRosterLoading(true);
+    setRosterData(null);
+    try {
+      const res = await fetch(`/api/admin/class-roster?scheduleId=${scheduleId}`);
+      if (res.ok) setRosterData(await res.json());
+    } finally {
+      setRosterLoading(false);
+    }
+  }
+
+  async function handleAdminCheckIn(bookingId: string) {
+    setCheckingInMap(prev => ({ ...prev, [bookingId]: true }));
+    try {
+      const res = await fetch("/api/admin/manual-check-in", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ bookingId }),
+      });
+      if (res.ok) {
+        setRosterData(prev => prev ? {
+          ...prev,
+          bookings: prev.bookings.map(b =>
+            b.id === bookingId ? { ...b, checkedIn: true, checkInTime: new Date().toISOString(), checkInOutcome: "on_time" } : b
+          ),
+        } : prev);
+      } else {
+        const err = await res.json().catch(() => ({}));
+        alert((err as { error?: string }).error ?? "Check-in failed");
+      }
+    } finally {
+      setCheckingInMap(prev => ({ ...prev, [bookingId]: false }));
+    }
+  }
+
   const getClassName = (classId: number | string) => {
     const cls = dbClasses.find(c => String(c.id) === String(classId));
     return cls?.name || "";
@@ -939,6 +989,15 @@ export default function AdminSchedule() {
                           <Button
                             variant="outline"
                             size="sm"
+                            onClick={(e) => { e.stopPropagation(); void loadRoster(sc.id); }}
+                            className="border-sage/20 text-sage hover:bg-sage/10 font-body h-8 w-8 p-0"
+                            title="View roster"
+                          >
+                            <Users className="h-3.5 w-3.5" />
+                          </Button>
+                          <Button
+                            variant="outline"
+                            size="sm"
                             onClick={() => handleEditClass(sc)}
                             className="border-sage/20 text-sage hover:bg-sage/10 font-body h-8 w-8 p-0"
                           >
@@ -1008,7 +1067,7 @@ export default function AdminSchedule() {
                 <SelectTrigger className="h-12 border-charcoal/20 focus:border-sage font-body">
                   <SelectValue placeholder="Select class" />
                 </SelectTrigger>
-                <SelectContent className="max-h-[300px] overflow-y-auto">
+                <SelectContent position="popper" className="max-h-[300px] overflow-y-auto">
                   {classOptions.map(cls => (
                     <SelectItem key={cls.id} value={cls.id}>
                       {cls.name} (Max: {cls.max_capacity})
@@ -1025,7 +1084,7 @@ export default function AdminSchedule() {
                 <SelectTrigger className="h-12 border-charcoal/20 focus:border-sage font-body">
                   <SelectValue placeholder="Select instructor" />
                 </SelectTrigger>
-                <SelectContent className="max-h-[300px] overflow-y-auto">
+                <SelectContent position="popper" className="max-h-[300px] overflow-y-auto">
                   {instructorOptions.map(instructor => (
                     <SelectItem key={instructor.id} value={instructor.id}>
                       {instructor.name}
@@ -1044,7 +1103,7 @@ export default function AdminSchedule() {
                 <SelectTrigger className="h-12 border-charcoal/20 focus:border-sage font-body">
                   <SelectValue placeholder="Select day" />
                 </SelectTrigger>
-                <SelectContent>
+                <SelectContent position="popper">
                   {WEEKDAYS.map(day => (
                     <SelectItem key={day} value={day}>{day}</SelectItem>
                   ))}
@@ -1140,7 +1199,7 @@ export default function AdminSchedule() {
                   <SelectTrigger className="h-12 border-charcoal/20 focus:border-sage font-body">
                     <SelectValue placeholder="Select week" />
                   </SelectTrigger>
-                  <SelectContent>
+                  <SelectContent position="popper">
                     {WEEKS_OF_MONTH.map((week, index) => (
                       <SelectItem key={week} value={week}>
                         {week} ({getWeekDateRange(index + 1, selectedMonth)})
@@ -1193,6 +1252,87 @@ export default function AdminSchedule() {
           </DialogFooter>
         </DialogContent>
       </Dialog>
+
+      {/* Roster Sheet */}
+      <Sheet open={!!rosterScheduleId} onOpenChange={(open) => { if (!open) { setRosterScheduleId(null); setRosterData(null); } }}>
+        <SheetContent className="w-full sm:max-w-md overflow-y-auto">
+          <SheetHeader className="pb-4 border-b border-sage/10">
+            <SheetTitle className="font-display text-2xl text-charcoal">
+              {rosterData ? rosterData.className : "Roster"}
+            </SheetTitle>
+            {rosterData && (
+              <div className="font-body text-sm text-charcoal/60 space-y-0.5">
+                <p>{new Date(rosterData.startTime).toLocaleString("en-IN", { dateStyle: "medium", timeStyle: "short", timeZone: "Asia/Kolkata" })}</p>
+                <p>Instructor: {rosterData.instructor}</p>
+                <p className="text-sage font-medium">{rosterData.bookings.filter(b => b.checkedIn).length}/{rosterData.bookings.length} checked in{rosterData.capacity ? ` · ${rosterData.capacity} capacity` : ""}</p>
+              </div>
+            )}
+          </SheetHeader>
+
+          <div className="mt-4">
+            {rosterLoading && (
+              <div className="flex items-center justify-center py-16">
+                <div className="h-8 w-8 border-2 border-sage border-t-transparent rounded-full animate-spin" />
+              </div>
+            )}
+
+            {!rosterLoading && rosterData && rosterData.bookings.length === 0 && (
+              <div className="py-16 text-center">
+                <Users className="h-10 w-10 text-sage/20 mx-auto mb-3" />
+                <p className="font-body text-sm text-charcoal/50">No confirmed bookings yet</p>
+              </div>
+            )}
+
+            {!rosterLoading && rosterData && rosterData.bookings.length > 0 && (
+              <ul className="divide-y divide-sage/10">
+                {rosterData.bookings.map(b => {
+                  const initials = b.name.split(" ").slice(0, 2).map((p: string) => p[0]).join("").toUpperCase();
+                  return (
+                    <li key={b.id} className="py-3 flex items-center gap-3">
+                      {b.avatarUrl ? (
+                        <img src={b.avatarUrl} alt={b.name} className="h-9 w-9 rounded-full object-cover border border-sage/20 shrink-0" />
+                      ) : (
+                        <div className="h-9 w-9 rounded-full bg-sage/10 border border-sage/20 flex items-center justify-center shrink-0">
+                          <span className="font-body text-xs font-medium text-sage">{initials}</span>
+                        </div>
+                      )}
+                      <div className="flex-1 min-w-0">
+                        <p className="font-body text-sm font-medium text-charcoal truncate">
+                          {b.name}
+                          {b.extraGuests > 0 && <span className="ml-1.5 text-xs text-terracotta">+{b.extraGuests} guest{b.extraGuests > 1 ? "s" : ""}</span>}
+                        </p>
+                        <p className="font-body text-xs text-charcoal/40 truncate">{b.email}</p>
+                        {b.checkedIn && b.checkInTime && (
+                          <p className="font-body text-xs text-sage mt-0.5">
+                            Checked in {new Date(b.checkInTime).toLocaleTimeString("en-IN", { hour: "2-digit", minute: "2-digit", timeZone: "Asia/Kolkata" })}
+                            {b.checkInOutcome === "late" && <span className="ml-1 text-amber-600">(late)</span>}
+                          </p>
+                        )}
+                      </div>
+                      {b.checkedIn ? (
+                        <CheckCircle2 className="h-5 w-5 text-sage shrink-0" />
+                      ) : (
+                        <Button
+                          size="sm"
+                          onClick={() => void handleAdminCheckIn(b.id)}
+                          disabled={checkingInMap[b.id]}
+                          className="bg-sage hover:bg-sage/90 text-white font-body rounded-full px-3 h-8 text-xs shrink-0"
+                        >
+                          {checkingInMap[b.id] ? (
+                            <div className="h-3.5 w-3.5 border-2 border-white border-t-transparent rounded-full animate-spin" />
+                          ) : (
+                            <><UserCheck className="h-3.5 w-3.5 mr-1" />Check In</>
+                          )}
+                        </Button>
+                      )}
+                    </li>
+                  );
+                })}
+              </ul>
+            )}
+          </div>
+        </SheetContent>
+      </Sheet>
     </>
   );
 }

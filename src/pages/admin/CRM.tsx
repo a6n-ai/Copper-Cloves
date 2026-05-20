@@ -493,7 +493,7 @@ export default function CRMPage() {
   const triggerTypes = [
     { id: CrmTriggerType.ClassBookingConfirmed, label: "Class booked (member confirmed)" },
     { id: CrmTriggerType.ClassBookingCancelled, label: "Class booking cancelled (credit returned)" },
-    { id: CrmTriggerType.LateCancellation, label: "Class booking cancelled (within 12h, no credit)" },
+    { id: CrmTriggerType.LateCancellation, label: "Class booking cancelled (within 6h, no credit)" },
     { id: CrmTriggerType.AccountCreated, label: "Account created (welcome email)" },
     { id: CrmTriggerType.IndividualClassPaid, label: "Individual class purchase confirmed" },
     { id: "expiry_7_days", label: "7 Days Before Expiry" },
