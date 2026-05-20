@@ -3,6 +3,8 @@ import bcrypt from "bcryptjs";
 import { Prisma } from "@/generated/prisma/client";
 import prisma from "@/lib/prisma";
 import { normalizeLoginEmail } from "@/lib/loginEmail";
+import { sendHtmlEmail } from "@/lib/notifications/sendEmail";
+import { welcomeEmail } from "@/lib/notifications/emailTemplates";
 
 function walkErrorChain(e: unknown): unknown[] {
   const list: unknown[] = [];
@@ -125,6 +127,13 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         user_stats: { create: {} },
       },
     });
+
+    const portalUrl = process.env.NEXTAUTH_URL?.replace(/\/$/, "") ?? "";
+    sendHtmlEmail({
+      to: email,
+      subject: "welcome to The Studio by Copper + Cloves",
+      html: welcomeEmail({ memberName: full_name || email, portalUrl }),
+    }).catch((err) => console.error("[signup] welcome email failed:", err));
 
     return res.status(201).json({ message: "Account created successfully." });
   } catch (e: unknown) {

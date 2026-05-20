@@ -418,3 +418,105 @@ export function cancellationEmail(opts: CancellationEmailOpts): string {
     ${footer()}
   `);
 }
+
+// ── Template 5: Instructor Account Created (admin-created, shows credentials) ─
+
+export interface InstructorWelcomeEmailOpts {
+  instructorName: string;
+  email: string;
+  tempPassword: string;
+  loginUrl: string;
+}
+
+export function instructorWelcomeEmail(opts: InstructorWelcomeEmailOpts): string {
+  return emailWrapper(`
+    ${logoHeader("instructor portal")}
+    <div style="padding:32px 32px 0">
+
+      <div style="text-align:center;margin-bottom:28px">
+        <h1 style="font-family:Georgia,serif;font-size:28px;font-weight:400;color:${CHARCOAL};margin:0">welcome, ${h(opts.instructorName)}!</h1>
+      </div>
+
+      <div style="border-left:3px solid ${SAGE};padding-left:20px;margin-bottom:28px">
+        <p style="font-family:Georgia,serif;font-size:15px;color:${CHARCOAL};margin:0;line-height:1.7">
+          your instructor account at The Studio by Copper + Cloves has been created. use the credentials below to sign in and manage your class check-ins.
+        </p>
+      </div>
+
+      <div style="background:#fff;border:1px solid ${BORDER};border-radius:12px;padding:28px;margin-bottom:16px">
+        <p style="font-family:Georgia,serif;font-size:16px;font-weight:700;color:${CHARCOAL};margin:0 0 20px;text-align:center">your login credentials</p>
+        <div style="background:${CREAM};border-radius:8px;padding:16px;margin-bottom:12px;text-align:center">
+          <p style="font-family:Georgia,serif;font-size:12px;color:${MUTED};margin:0 0 6px;letter-spacing:0.05em;text-transform:uppercase">Email</p>
+          <p style="font-family:monospace;font-size:15px;font-weight:700;color:${CHARCOAL};margin:0">${h(opts.email)}</p>
+        </div>
+        <div style="background:${CREAM};border-radius:8px;padding:16px;text-align:center">
+          <p style="font-family:Georgia,serif;font-size:12px;color:${MUTED};margin:0 0 6px;letter-spacing:0.05em;text-transform:uppercase">Temporary Password</p>
+          <p style="font-family:monospace;font-size:15px;font-weight:700;color:${CHARCOAL};margin:0">${h(opts.tempPassword)}</p>
+        </div>
+      </div>
+
+      <div style="background:#FFFBF0;border:1px solid #E8D8A0;border-radius:12px;padding:20px;margin-bottom:24px">
+        <p style="font-family:Georgia,serif;font-size:14px;font-weight:700;color:#8B6914;margin:0 0 10px">🔒 security reminder</p>
+        <ul style="font-family:Georgia,serif;font-size:14px;color:#8B6914;margin:0;padding-left:20px;line-height:1.8">
+          <li>please change your password after your first login</li>
+          <li>do not share these credentials with anyone</li>
+          <li>if you didn't expect this email, contact the studio immediately</li>
+        </ul>
+      </div>
+
+      <div style="text-align:center;margin-bottom:28px">
+        <a href="${h(opts.loginUrl)}" style="display:inline-block;background:${SAGE};color:#fff;padding:14px 40px;border-radius:999px;text-decoration:none;font-family:Georgia,serif;font-size:15px;font-weight:600">sign in to instructor portal</a>
+      </div>
+
+      ${needHelpCard()}
+
+      <div style="text-align:center;padding:24px 0">
+        <p style="font-family:Georgia,serif;font-size:14px;color:${SAGE};margin:0">The Studio Team</p>
+      </div>
+
+    </div>
+    ${footer()}
+  `);
+}
+
+// ── Template 6: Self-Signup Welcome ───────────────────────────────────────
+
+export interface WelcomeEmailOpts {
+  memberName: string;
+  portalUrl?: string;
+}
+
+export function welcomeEmail(opts: WelcomeEmailOpts): string {
+  const portal = opts.portalUrl ?? BASE_URL;
+  return emailWrapper(`
+    ${logoHeader("welcome to the Studio")}
+    <div style="padding:32px 32px 0">
+
+      <div style="text-align:center;margin-bottom:28px">
+        <h1 style="font-family:Georgia,serif;font-size:28px;font-weight:400;color:${CHARCOAL};margin:0">welcome, ${h(opts.memberName)}!</h1>
+      </div>
+
+      <div style="border-left:3px solid ${SAGE};padding-left:20px;margin-bottom:28px">
+        <p style="font-family:Georgia,serif;font-size:15px;color:${CHARCOAL};margin:0;line-height:1.7">
+          your account is ready. we're so glad to have you join our community at The Studio by Copper + Cloves. browse our classes, grab a package, and start your wellness journey whenever you're ready.
+        </p>
+      </div>
+
+      <div style="text-align:center;margin-bottom:28px">
+        <a href="${portal}/portal/book" style="display:inline-block;background:${SAGE};color:#fff;padding:14px 40px;border-radius:999px;text-decoration:none;font-family:Georgia,serif;font-size:15px;font-weight:600">browse classes</a>
+      </div>
+
+      ${locationCard()}
+      ${facilitiesCard()}
+      ${afterClassCard()}
+      ${needHelpCard()}
+
+      <div style="text-align:center;padding:24px 0">
+        <p style="font-family:Georgia,serif;font-size:18px;font-weight:400;color:${CHARCOAL};margin:0 0 4px">see you on the mat!</p>
+        <p style="font-family:Georgia,serif;font-size:14px;color:${SAGE};margin:0">The Studio Team</p>
+      </div>
+
+    </div>
+    ${footer()}
+  `);
+}
