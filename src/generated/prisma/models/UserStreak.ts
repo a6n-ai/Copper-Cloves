@@ -43,6 +43,7 @@ export type UserStreakMinAggregateOutputType = {
   longest_streak: number | null
   last_class_date: Date | null
   last_attendance_date: Date | null
+  created_at: Date | null
   updated_at: Date | null
 }
 
@@ -53,6 +54,7 @@ export type UserStreakMaxAggregateOutputType = {
   longest_streak: number | null
   last_class_date: Date | null
   last_attendance_date: Date | null
+  created_at: Date | null
   updated_at: Date | null
 }
 
@@ -63,6 +65,7 @@ export type UserStreakCountAggregateOutputType = {
   longest_streak: number
   last_class_date: number
   last_attendance_date: number
+  created_at: number
   updated_at: number
   _all: number
 }
@@ -85,6 +88,7 @@ export type UserStreakMinAggregateInputType = {
   longest_streak?: true
   last_class_date?: true
   last_attendance_date?: true
+  created_at?: true
   updated_at?: true
 }
 
@@ -95,6 +99,7 @@ export type UserStreakMaxAggregateInputType = {
   longest_streak?: true
   last_class_date?: true
   last_attendance_date?: true
+  created_at?: true
   updated_at?: true
 }
 
@@ -105,6 +110,7 @@ export type UserStreakCountAggregateInputType = {
   longest_streak?: true
   last_class_date?: true
   last_attendance_date?: true
+  created_at?: true
   updated_at?: true
   _all?: true
 }
@@ -202,6 +208,7 @@ export type UserStreakGroupByOutputType = {
   longest_streak: number
   last_class_date: Date | null
   last_attendance_date: Date | null
+  created_at: Date
   updated_at: Date
   _count: UserStreakCountAggregateOutputType | null
   _avg: UserStreakAvgAggregateOutputType | null
@@ -235,6 +242,7 @@ export type UserStreakWhereInput = {
   longest_streak?: Prisma.IntFilter<"UserStreak"> | number
   last_class_date?: Prisma.DateTimeNullableFilter<"UserStreak"> | Date | string | null
   last_attendance_date?: Prisma.DateTimeNullableFilter<"UserStreak"> | Date | string | null
+  created_at?: Prisma.DateTimeFilter<"UserStreak"> | Date | string
   updated_at?: Prisma.DateTimeFilter<"UserStreak"> | Date | string
   profile?: Prisma.XOR<Prisma.ProfileScalarRelationFilter, Prisma.ProfileWhereInput>
 }
@@ -246,6 +254,7 @@ export type UserStreakOrderByWithRelationInput = {
   longest_streak?: Prisma.SortOrder
   last_class_date?: Prisma.SortOrderInput | Prisma.SortOrder
   last_attendance_date?: Prisma.SortOrderInput | Prisma.SortOrder
+  created_at?: Prisma.SortOrder
   updated_at?: Prisma.SortOrder
   profile?: Prisma.ProfileOrderByWithRelationInput
 }
@@ -260,6 +269,7 @@ export type UserStreakWhereUniqueInput = Prisma.AtLeast<{
   longest_streak?: Prisma.IntFilter<"UserStreak"> | number
   last_class_date?: Prisma.DateTimeNullableFilter<"UserStreak"> | Date | string | null
   last_attendance_date?: Prisma.DateTimeNullableFilter<"UserStreak"> | Date | string | null
+  created_at?: Prisma.DateTimeFilter<"UserStreak"> | Date | string
   updated_at?: Prisma.DateTimeFilter<"UserStreak"> | Date | string
   profile?: Prisma.XOR<Prisma.ProfileScalarRelationFilter, Prisma.ProfileWhereInput>
 }, "id" | "user_id">
@@ -271,6 +281,7 @@ export type UserStreakOrderByWithAggregationInput = {
   longest_streak?: Prisma.SortOrder
   last_class_date?: Prisma.SortOrderInput | Prisma.SortOrder
   last_attendance_date?: Prisma.SortOrderInput | Prisma.SortOrder
+  created_at?: Prisma.SortOrder
   updated_at?: Prisma.SortOrder
   _count?: Prisma.UserStreakCountOrderByAggregateInput
   _avg?: Prisma.UserStreakAvgOrderByAggregateInput
@@ -289,6 +300,7 @@ export type UserStreakScalarWhereWithAggregatesInput = {
   longest_streak?: Prisma.IntWithAggregatesFilter<"UserStreak"> | number
   last_class_date?: Prisma.DateTimeNullableWithAggregatesFilter<"UserStreak"> | Date | string | null
   last_attendance_date?: Prisma.DateTimeNullableWithAggregatesFilter<"UserStreak"> | Date | string | null
+  created_at?: Prisma.DateTimeWithAggregatesFilter<"UserStreak"> | Date | string
   updated_at?: Prisma.DateTimeWithAggregatesFilter<"UserStreak"> | Date | string
 }
 
@@ -298,6 +310,7 @@ export type UserStreakCreateInput = {
   longest_streak?: number
   last_class_date?: Date | string | null
   last_attendance_date?: Date | string | null
+  created_at?: Date | string
   updated_at?: Date | string
   profile: Prisma.ProfileCreateNestedOneWithoutUser_streaksInput
 }
@@ -309,6 +322,7 @@ export type UserStreakUncheckedCreateInput = {
   longest_streak?: number
   last_class_date?: Date | string | null
   last_attendance_date?: Date | string | null
+  created_at?: Date | string
   updated_at?: Date | string
 }
 
@@ -318,6 +332,7 @@ export type UserStreakUpdateInput = {
   longest_streak?: Prisma.IntFieldUpdateOperationsInput | number
   last_class_date?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   last_attendance_date?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  created_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updated_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   profile?: Prisma.ProfileUpdateOneRequiredWithoutUser_streaksNestedInput
 }
@@ -329,6 +344,7 @@ export type UserStreakUncheckedUpdateInput = {
   longest_streak?: Prisma.IntFieldUpdateOperationsInput | number
   last_class_date?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   last_attendance_date?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  created_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updated_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
 }
 
@@ -339,6 +355,7 @@ export type UserStreakCreateManyInput = {
   longest_streak?: number
   last_class_date?: Date | string | null
   last_attendance_date?: Date | string | null
+  created_at?: Date | string
   updated_at?: Date | string
 }
 
@@ -348,6 +365,7 @@ export type UserStreakUpdateManyMutationInput = {
   longest_streak?: Prisma.IntFieldUpdateOperationsInput | number
   last_class_date?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   last_attendance_date?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  created_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updated_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
 }
 
@@ -358,6 +376,7 @@ export type UserStreakUncheckedUpdateManyInput = {
   longest_streak?: Prisma.IntFieldUpdateOperationsInput | number
   last_class_date?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   last_attendance_date?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  created_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updated_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
 }
 
@@ -373,6 +392,7 @@ export type UserStreakCountOrderByAggregateInput = {
   longest_streak?: Prisma.SortOrder
   last_class_date?: Prisma.SortOrder
   last_attendance_date?: Prisma.SortOrder
+  created_at?: Prisma.SortOrder
   updated_at?: Prisma.SortOrder
 }
 
@@ -388,6 +408,7 @@ export type UserStreakMaxOrderByAggregateInput = {
   longest_streak?: Prisma.SortOrder
   last_class_date?: Prisma.SortOrder
   last_attendance_date?: Prisma.SortOrder
+  created_at?: Prisma.SortOrder
   updated_at?: Prisma.SortOrder
 }
 
@@ -398,6 +419,7 @@ export type UserStreakMinOrderByAggregateInput = {
   longest_streak?: Prisma.SortOrder
   last_class_date?: Prisma.SortOrder
   last_attendance_date?: Prisma.SortOrder
+  created_at?: Prisma.SortOrder
   updated_at?: Prisma.SortOrder
 }
 
@@ -444,6 +466,7 @@ export type UserStreakCreateWithoutProfileInput = {
   longest_streak?: number
   last_class_date?: Date | string | null
   last_attendance_date?: Date | string | null
+  created_at?: Date | string
   updated_at?: Date | string
 }
 
@@ -453,6 +476,7 @@ export type UserStreakUncheckedCreateWithoutProfileInput = {
   longest_streak?: number
   last_class_date?: Date | string | null
   last_attendance_date?: Date | string | null
+  created_at?: Date | string
   updated_at?: Date | string
 }
 
@@ -478,6 +502,7 @@ export type UserStreakUpdateWithoutProfileInput = {
   longest_streak?: Prisma.IntFieldUpdateOperationsInput | number
   last_class_date?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   last_attendance_date?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  created_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updated_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
 }
 
@@ -487,6 +512,7 @@ export type UserStreakUncheckedUpdateWithoutProfileInput = {
   longest_streak?: Prisma.IntFieldUpdateOperationsInput | number
   last_class_date?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   last_attendance_date?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  created_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updated_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
 }
 
@@ -499,6 +525,7 @@ export type UserStreakSelect<ExtArgs extends runtime.Types.Extensions.InternalAr
   longest_streak?: boolean
   last_class_date?: boolean
   last_attendance_date?: boolean
+  created_at?: boolean
   updated_at?: boolean
   profile?: boolean | Prisma.ProfileDefaultArgs<ExtArgs>
 }, ExtArgs["result"]["userStreak"]>
@@ -510,6 +537,7 @@ export type UserStreakSelectCreateManyAndReturn<ExtArgs extends runtime.Types.Ex
   longest_streak?: boolean
   last_class_date?: boolean
   last_attendance_date?: boolean
+  created_at?: boolean
   updated_at?: boolean
   profile?: boolean | Prisma.ProfileDefaultArgs<ExtArgs>
 }, ExtArgs["result"]["userStreak"]>
@@ -521,6 +549,7 @@ export type UserStreakSelectUpdateManyAndReturn<ExtArgs extends runtime.Types.Ex
   longest_streak?: boolean
   last_class_date?: boolean
   last_attendance_date?: boolean
+  created_at?: boolean
   updated_at?: boolean
   profile?: boolean | Prisma.ProfileDefaultArgs<ExtArgs>
 }, ExtArgs["result"]["userStreak"]>
@@ -532,10 +561,11 @@ export type UserStreakSelectScalar = {
   longest_streak?: boolean
   last_class_date?: boolean
   last_attendance_date?: boolean
+  created_at?: boolean
   updated_at?: boolean
 }
 
-export type UserStreakOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "user_id" | "current_streak" | "longest_streak" | "last_class_date" | "last_attendance_date" | "updated_at", ExtArgs["result"]["userStreak"]>
+export type UserStreakOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "user_id" | "current_streak" | "longest_streak" | "last_class_date" | "last_attendance_date" | "created_at" | "updated_at", ExtArgs["result"]["userStreak"]>
 export type UserStreakInclude<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   profile?: boolean | Prisma.ProfileDefaultArgs<ExtArgs>
 }
@@ -558,6 +588,7 @@ export type $UserStreakPayload<ExtArgs extends runtime.Types.Extensions.Internal
     longest_streak: number
     last_class_date: Date | null
     last_attendance_date: Date | null
+    created_at: Date
     updated_at: Date
   }, ExtArgs["result"]["userStreak"]>
   composites: {}
@@ -989,6 +1020,7 @@ export interface UserStreakFieldRefs {
   readonly longest_streak: Prisma.FieldRef<"UserStreak", 'Int'>
   readonly last_class_date: Prisma.FieldRef<"UserStreak", 'DateTime'>
   readonly last_attendance_date: Prisma.FieldRef<"UserStreak", 'DateTime'>
+  readonly created_at: Prisma.FieldRef<"UserStreak", 'DateTime'>
   readonly updated_at: Prisma.FieldRef<"UserStreak", 'DateTime'>
 }
     

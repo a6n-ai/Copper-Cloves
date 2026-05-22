@@ -42,6 +42,7 @@ export type ClassScheduleMinAggregateOutputType = {
   id: string | null
   class_id: string | null
   instructor_id: string | null
+  actual_instructor_id: string | null
   start_time: Date | null
   end_time: Date | null
   capacity: number | null
@@ -49,13 +50,17 @@ export type ClassScheduleMinAggregateOutputType = {
   current_bookings: number | null
   status: string | null
   instructor_check_in_time: Date | null
+  instructor_check_in_outcome: string | null
+  class_notes: string | null
   created_at: Date | null
+  updated_at: Date | null
 }
 
 export type ClassScheduleMaxAggregateOutputType = {
   id: string | null
   class_id: string | null
   instructor_id: string | null
+  actual_instructor_id: string | null
   start_time: Date | null
   end_time: Date | null
   capacity: number | null
@@ -63,13 +68,17 @@ export type ClassScheduleMaxAggregateOutputType = {
   current_bookings: number | null
   status: string | null
   instructor_check_in_time: Date | null
+  instructor_check_in_outcome: string | null
+  class_notes: string | null
   created_at: Date | null
+  updated_at: Date | null
 }
 
 export type ClassScheduleCountAggregateOutputType = {
   id: number
   class_id: number
   instructor_id: number
+  actual_instructor_id: number
   start_time: number
   end_time: number
   capacity: number
@@ -77,7 +86,10 @@ export type ClassScheduleCountAggregateOutputType = {
   current_bookings: number
   status: number
   instructor_check_in_time: number
+  instructor_check_in_outcome: number
+  class_notes: number
   created_at: number
+  updated_at: number
   _all: number
 }
 
@@ -98,6 +110,7 @@ export type ClassScheduleMinAggregateInputType = {
   id?: true
   class_id?: true
   instructor_id?: true
+  actual_instructor_id?: true
   start_time?: true
   end_time?: true
   capacity?: true
@@ -105,13 +118,17 @@ export type ClassScheduleMinAggregateInputType = {
   current_bookings?: true
   status?: true
   instructor_check_in_time?: true
+  instructor_check_in_outcome?: true
+  class_notes?: true
   created_at?: true
+  updated_at?: true
 }
 
 export type ClassScheduleMaxAggregateInputType = {
   id?: true
   class_id?: true
   instructor_id?: true
+  actual_instructor_id?: true
   start_time?: true
   end_time?: true
   capacity?: true
@@ -119,13 +136,17 @@ export type ClassScheduleMaxAggregateInputType = {
   current_bookings?: true
   status?: true
   instructor_check_in_time?: true
+  instructor_check_in_outcome?: true
+  class_notes?: true
   created_at?: true
+  updated_at?: true
 }
 
 export type ClassScheduleCountAggregateInputType = {
   id?: true
   class_id?: true
   instructor_id?: true
+  actual_instructor_id?: true
   start_time?: true
   end_time?: true
   capacity?: true
@@ -133,7 +154,10 @@ export type ClassScheduleCountAggregateInputType = {
   current_bookings?: true
   status?: true
   instructor_check_in_time?: true
+  instructor_check_in_outcome?: true
+  class_notes?: true
   created_at?: true
+  updated_at?: true
   _all?: true
 }
 
@@ -227,6 +251,7 @@ export type ClassScheduleGroupByOutputType = {
   id: string
   class_id: string
   instructor_id: string | null
+  actual_instructor_id: string | null
   start_time: Date
   end_time: Date
   capacity: number | null
@@ -234,7 +259,10 @@ export type ClassScheduleGroupByOutputType = {
   current_bookings: number
   status: string
   instructor_check_in_time: Date | null
+  instructor_check_in_outcome: string | null
+  class_notes: string | null
   created_at: Date
+  updated_at: Date
   _count: ClassScheduleCountAggregateOutputType | null
   _avg: ClassScheduleAvgAggregateOutputType | null
   _sum: ClassScheduleSumAggregateOutputType | null
@@ -264,6 +292,7 @@ export type ClassScheduleWhereInput = {
   id?: Prisma.StringFilter<"ClassSchedule"> | string
   class_id?: Prisma.StringFilter<"ClassSchedule"> | string
   instructor_id?: Prisma.StringNullableFilter<"ClassSchedule"> | string | null
+  actual_instructor_id?: Prisma.StringNullableFilter<"ClassSchedule"> | string | null
   start_time?: Prisma.DateTimeFilter<"ClassSchedule"> | Date | string
   end_time?: Prisma.DateTimeFilter<"ClassSchedule"> | Date | string
   capacity?: Prisma.IntNullableFilter<"ClassSchedule"> | number | null
@@ -271,9 +300,13 @@ export type ClassScheduleWhereInput = {
   current_bookings?: Prisma.IntFilter<"ClassSchedule"> | number
   status?: Prisma.StringFilter<"ClassSchedule"> | string
   instructor_check_in_time?: Prisma.DateTimeNullableFilter<"ClassSchedule"> | Date | string | null
+  instructor_check_in_outcome?: Prisma.StringNullableFilter<"ClassSchedule"> | string | null
+  class_notes?: Prisma.StringNullableFilter<"ClassSchedule"> | string | null
   created_at?: Prisma.DateTimeFilter<"ClassSchedule"> | Date | string
+  updated_at?: Prisma.DateTimeFilter<"ClassSchedule"> | Date | string
   class_model?: Prisma.XOR<Prisma.ClassModelNullableScalarRelationFilter, Prisma.ClassModelWhereInput> | null
   instructor?: Prisma.XOR<Prisma.InstructorNullableScalarRelationFilter, Prisma.InstructorWhereInput> | null
+  actual_instructor?: Prisma.XOR<Prisma.InstructorNullableScalarRelationFilter, Prisma.InstructorWhereInput> | null
   bookings?: Prisma.BookingListRelationFilter
 }
 
@@ -281,6 +314,7 @@ export type ClassScheduleOrderByWithRelationInput = {
   id?: Prisma.SortOrder
   class_id?: Prisma.SortOrder
   instructor_id?: Prisma.SortOrderInput | Prisma.SortOrder
+  actual_instructor_id?: Prisma.SortOrderInput | Prisma.SortOrder
   start_time?: Prisma.SortOrder
   end_time?: Prisma.SortOrder
   capacity?: Prisma.SortOrderInput | Prisma.SortOrder
@@ -288,9 +322,13 @@ export type ClassScheduleOrderByWithRelationInput = {
   current_bookings?: Prisma.SortOrder
   status?: Prisma.SortOrder
   instructor_check_in_time?: Prisma.SortOrderInput | Prisma.SortOrder
+  instructor_check_in_outcome?: Prisma.SortOrderInput | Prisma.SortOrder
+  class_notes?: Prisma.SortOrderInput | Prisma.SortOrder
   created_at?: Prisma.SortOrder
+  updated_at?: Prisma.SortOrder
   class_model?: Prisma.ClassModelOrderByWithRelationInput
   instructor?: Prisma.InstructorOrderByWithRelationInput
+  actual_instructor?: Prisma.InstructorOrderByWithRelationInput
   bookings?: Prisma.BookingOrderByRelationAggregateInput
 }
 
@@ -302,6 +340,7 @@ export type ClassScheduleWhereUniqueInput = Prisma.AtLeast<{
   NOT?: Prisma.ClassScheduleWhereInput | Prisma.ClassScheduleWhereInput[]
   class_id?: Prisma.StringFilter<"ClassSchedule"> | string
   instructor_id?: Prisma.StringNullableFilter<"ClassSchedule"> | string | null
+  actual_instructor_id?: Prisma.StringNullableFilter<"ClassSchedule"> | string | null
   start_time?: Prisma.DateTimeFilter<"ClassSchedule"> | Date | string
   end_time?: Prisma.DateTimeFilter<"ClassSchedule"> | Date | string
   capacity?: Prisma.IntNullableFilter<"ClassSchedule"> | number | null
@@ -309,9 +348,13 @@ export type ClassScheduleWhereUniqueInput = Prisma.AtLeast<{
   current_bookings?: Prisma.IntFilter<"ClassSchedule"> | number
   status?: Prisma.StringFilter<"ClassSchedule"> | string
   instructor_check_in_time?: Prisma.DateTimeNullableFilter<"ClassSchedule"> | Date | string | null
+  instructor_check_in_outcome?: Prisma.StringNullableFilter<"ClassSchedule"> | string | null
+  class_notes?: Prisma.StringNullableFilter<"ClassSchedule"> | string | null
   created_at?: Prisma.DateTimeFilter<"ClassSchedule"> | Date | string
+  updated_at?: Prisma.DateTimeFilter<"ClassSchedule"> | Date | string
   class_model?: Prisma.XOR<Prisma.ClassModelNullableScalarRelationFilter, Prisma.ClassModelWhereInput> | null
   instructor?: Prisma.XOR<Prisma.InstructorNullableScalarRelationFilter, Prisma.InstructorWhereInput> | null
+  actual_instructor?: Prisma.XOR<Prisma.InstructorNullableScalarRelationFilter, Prisma.InstructorWhereInput> | null
   bookings?: Prisma.BookingListRelationFilter
 }, "id" | "class_schedules_slot_unique">
 
@@ -319,6 +362,7 @@ export type ClassScheduleOrderByWithAggregationInput = {
   id?: Prisma.SortOrder
   class_id?: Prisma.SortOrder
   instructor_id?: Prisma.SortOrderInput | Prisma.SortOrder
+  actual_instructor_id?: Prisma.SortOrderInput | Prisma.SortOrder
   start_time?: Prisma.SortOrder
   end_time?: Prisma.SortOrder
   capacity?: Prisma.SortOrderInput | Prisma.SortOrder
@@ -326,7 +370,10 @@ export type ClassScheduleOrderByWithAggregationInput = {
   current_bookings?: Prisma.SortOrder
   status?: Prisma.SortOrder
   instructor_check_in_time?: Prisma.SortOrderInput | Prisma.SortOrder
+  instructor_check_in_outcome?: Prisma.SortOrderInput | Prisma.SortOrder
+  class_notes?: Prisma.SortOrderInput | Prisma.SortOrder
   created_at?: Prisma.SortOrder
+  updated_at?: Prisma.SortOrder
   _count?: Prisma.ClassScheduleCountOrderByAggregateInput
   _avg?: Prisma.ClassScheduleAvgOrderByAggregateInput
   _max?: Prisma.ClassScheduleMaxOrderByAggregateInput
@@ -341,6 +388,7 @@ export type ClassScheduleScalarWhereWithAggregatesInput = {
   id?: Prisma.StringWithAggregatesFilter<"ClassSchedule"> | string
   class_id?: Prisma.StringWithAggregatesFilter<"ClassSchedule"> | string
   instructor_id?: Prisma.StringNullableWithAggregatesFilter<"ClassSchedule"> | string | null
+  actual_instructor_id?: Prisma.StringNullableWithAggregatesFilter<"ClassSchedule"> | string | null
   start_time?: Prisma.DateTimeWithAggregatesFilter<"ClassSchedule"> | Date | string
   end_time?: Prisma.DateTimeWithAggregatesFilter<"ClassSchedule"> | Date | string
   capacity?: Prisma.IntNullableWithAggregatesFilter<"ClassSchedule"> | number | null
@@ -348,7 +396,10 @@ export type ClassScheduleScalarWhereWithAggregatesInput = {
   current_bookings?: Prisma.IntWithAggregatesFilter<"ClassSchedule"> | number
   status?: Prisma.StringWithAggregatesFilter<"ClassSchedule"> | string
   instructor_check_in_time?: Prisma.DateTimeNullableWithAggregatesFilter<"ClassSchedule"> | Date | string | null
+  instructor_check_in_outcome?: Prisma.StringNullableWithAggregatesFilter<"ClassSchedule"> | string | null
+  class_notes?: Prisma.StringNullableWithAggregatesFilter<"ClassSchedule"> | string | null
   created_at?: Prisma.DateTimeWithAggregatesFilter<"ClassSchedule"> | Date | string
+  updated_at?: Prisma.DateTimeWithAggregatesFilter<"ClassSchedule"> | Date | string
 }
 
 export type ClassScheduleCreateInput = {
@@ -360,9 +411,13 @@ export type ClassScheduleCreateInput = {
   current_bookings?: number
   status?: string
   instructor_check_in_time?: Date | string | null
+  instructor_check_in_outcome?: string | null
+  class_notes?: string | null
   created_at?: Date | string
+  updated_at?: Date | string
   class_model?: Prisma.ClassModelCreateNestedOneWithoutClass_schedulesInput
   instructor?: Prisma.InstructorCreateNestedOneWithoutClass_schedulesInput
+  actual_instructor?: Prisma.InstructorCreateNestedOneWithoutActual_class_schedulesInput
   bookings?: Prisma.BookingCreateNestedManyWithoutClass_scheduleInput
 }
 
@@ -370,6 +425,7 @@ export type ClassScheduleUncheckedCreateInput = {
   id?: string
   class_id: string
   instructor_id?: string | null
+  actual_instructor_id?: string | null
   start_time: Date | string
   end_time: Date | string
   capacity?: number | null
@@ -377,7 +433,10 @@ export type ClassScheduleUncheckedCreateInput = {
   current_bookings?: number
   status?: string
   instructor_check_in_time?: Date | string | null
+  instructor_check_in_outcome?: string | null
+  class_notes?: string | null
   created_at?: Date | string
+  updated_at?: Date | string
   bookings?: Prisma.BookingUncheckedCreateNestedManyWithoutClass_scheduleInput
 }
 
@@ -390,9 +449,13 @@ export type ClassScheduleUpdateInput = {
   current_bookings?: Prisma.IntFieldUpdateOperationsInput | number
   status?: Prisma.StringFieldUpdateOperationsInput | string
   instructor_check_in_time?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  instructor_check_in_outcome?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  class_notes?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   created_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updated_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   class_model?: Prisma.ClassModelUpdateOneWithoutClass_schedulesNestedInput
   instructor?: Prisma.InstructorUpdateOneWithoutClass_schedulesNestedInput
+  actual_instructor?: Prisma.InstructorUpdateOneWithoutActual_class_schedulesNestedInput
   bookings?: Prisma.BookingUpdateManyWithoutClass_scheduleNestedInput
 }
 
@@ -400,6 +463,7 @@ export type ClassScheduleUncheckedUpdateInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   class_id?: Prisma.StringFieldUpdateOperationsInput | string
   instructor_id?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  actual_instructor_id?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   start_time?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   end_time?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   capacity?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
@@ -407,7 +471,10 @@ export type ClassScheduleUncheckedUpdateInput = {
   current_bookings?: Prisma.IntFieldUpdateOperationsInput | number
   status?: Prisma.StringFieldUpdateOperationsInput | string
   instructor_check_in_time?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  instructor_check_in_outcome?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  class_notes?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   created_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updated_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   bookings?: Prisma.BookingUncheckedUpdateManyWithoutClass_scheduleNestedInput
 }
 
@@ -415,6 +482,7 @@ export type ClassScheduleCreateManyInput = {
   id?: string
   class_id: string
   instructor_id?: string | null
+  actual_instructor_id?: string | null
   start_time: Date | string
   end_time: Date | string
   capacity?: number | null
@@ -422,7 +490,10 @@ export type ClassScheduleCreateManyInput = {
   current_bookings?: number
   status?: string
   instructor_check_in_time?: Date | string | null
+  instructor_check_in_outcome?: string | null
+  class_notes?: string | null
   created_at?: Date | string
+  updated_at?: Date | string
 }
 
 export type ClassScheduleUpdateManyMutationInput = {
@@ -434,13 +505,17 @@ export type ClassScheduleUpdateManyMutationInput = {
   current_bookings?: Prisma.IntFieldUpdateOperationsInput | number
   status?: Prisma.StringFieldUpdateOperationsInput | string
   instructor_check_in_time?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  instructor_check_in_outcome?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  class_notes?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   created_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updated_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
 }
 
 export type ClassScheduleUncheckedUpdateManyInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   class_id?: Prisma.StringFieldUpdateOperationsInput | string
   instructor_id?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  actual_instructor_id?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   start_time?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   end_time?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   capacity?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
@@ -448,7 +523,10 @@ export type ClassScheduleUncheckedUpdateManyInput = {
   current_bookings?: Prisma.IntFieldUpdateOperationsInput | number
   status?: Prisma.StringFieldUpdateOperationsInput | string
   instructor_check_in_time?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  instructor_check_in_outcome?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  class_notes?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   created_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updated_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
 }
 
 export type ClassScheduleListRelationFilter = {
@@ -471,6 +549,7 @@ export type ClassScheduleCountOrderByAggregateInput = {
   id?: Prisma.SortOrder
   class_id?: Prisma.SortOrder
   instructor_id?: Prisma.SortOrder
+  actual_instructor_id?: Prisma.SortOrder
   start_time?: Prisma.SortOrder
   end_time?: Prisma.SortOrder
   capacity?: Prisma.SortOrder
@@ -478,7 +557,10 @@ export type ClassScheduleCountOrderByAggregateInput = {
   current_bookings?: Prisma.SortOrder
   status?: Prisma.SortOrder
   instructor_check_in_time?: Prisma.SortOrder
+  instructor_check_in_outcome?: Prisma.SortOrder
+  class_notes?: Prisma.SortOrder
   created_at?: Prisma.SortOrder
+  updated_at?: Prisma.SortOrder
 }
 
 export type ClassScheduleAvgOrderByAggregateInput = {
@@ -491,6 +573,7 @@ export type ClassScheduleMaxOrderByAggregateInput = {
   id?: Prisma.SortOrder
   class_id?: Prisma.SortOrder
   instructor_id?: Prisma.SortOrder
+  actual_instructor_id?: Prisma.SortOrder
   start_time?: Prisma.SortOrder
   end_time?: Prisma.SortOrder
   capacity?: Prisma.SortOrder
@@ -498,13 +581,17 @@ export type ClassScheduleMaxOrderByAggregateInput = {
   current_bookings?: Prisma.SortOrder
   status?: Prisma.SortOrder
   instructor_check_in_time?: Prisma.SortOrder
+  instructor_check_in_outcome?: Prisma.SortOrder
+  class_notes?: Prisma.SortOrder
   created_at?: Prisma.SortOrder
+  updated_at?: Prisma.SortOrder
 }
 
 export type ClassScheduleMinOrderByAggregateInput = {
   id?: Prisma.SortOrder
   class_id?: Prisma.SortOrder
   instructor_id?: Prisma.SortOrder
+  actual_instructor_id?: Prisma.SortOrder
   start_time?: Prisma.SortOrder
   end_time?: Prisma.SortOrder
   capacity?: Prisma.SortOrder
@@ -512,7 +599,10 @@ export type ClassScheduleMinOrderByAggregateInput = {
   current_bookings?: Prisma.SortOrder
   status?: Prisma.SortOrder
   instructor_check_in_time?: Prisma.SortOrder
+  instructor_check_in_outcome?: Prisma.SortOrder
+  class_notes?: Prisma.SortOrder
   created_at?: Prisma.SortOrder
+  updated_at?: Prisma.SortOrder
 }
 
 export type ClassScheduleSumOrderByAggregateInput = {
@@ -533,10 +623,24 @@ export type ClassScheduleCreateNestedManyWithoutInstructorInput = {
   connect?: Prisma.ClassScheduleWhereUniqueInput | Prisma.ClassScheduleWhereUniqueInput[]
 }
 
+export type ClassScheduleCreateNestedManyWithoutActual_instructorInput = {
+  create?: Prisma.XOR<Prisma.ClassScheduleCreateWithoutActual_instructorInput, Prisma.ClassScheduleUncheckedCreateWithoutActual_instructorInput> | Prisma.ClassScheduleCreateWithoutActual_instructorInput[] | Prisma.ClassScheduleUncheckedCreateWithoutActual_instructorInput[]
+  connectOrCreate?: Prisma.ClassScheduleCreateOrConnectWithoutActual_instructorInput | Prisma.ClassScheduleCreateOrConnectWithoutActual_instructorInput[]
+  createMany?: Prisma.ClassScheduleCreateManyActual_instructorInputEnvelope
+  connect?: Prisma.ClassScheduleWhereUniqueInput | Prisma.ClassScheduleWhereUniqueInput[]
+}
+
 export type ClassScheduleUncheckedCreateNestedManyWithoutInstructorInput = {
   create?: Prisma.XOR<Prisma.ClassScheduleCreateWithoutInstructorInput, Prisma.ClassScheduleUncheckedCreateWithoutInstructorInput> | Prisma.ClassScheduleCreateWithoutInstructorInput[] | Prisma.ClassScheduleUncheckedCreateWithoutInstructorInput[]
   connectOrCreate?: Prisma.ClassScheduleCreateOrConnectWithoutInstructorInput | Prisma.ClassScheduleCreateOrConnectWithoutInstructorInput[]
   createMany?: Prisma.ClassScheduleCreateManyInstructorInputEnvelope
+  connect?: Prisma.ClassScheduleWhereUniqueInput | Prisma.ClassScheduleWhereUniqueInput[]
+}
+
+export type ClassScheduleUncheckedCreateNestedManyWithoutActual_instructorInput = {
+  create?: Prisma.XOR<Prisma.ClassScheduleCreateWithoutActual_instructorInput, Prisma.ClassScheduleUncheckedCreateWithoutActual_instructorInput> | Prisma.ClassScheduleCreateWithoutActual_instructorInput[] | Prisma.ClassScheduleUncheckedCreateWithoutActual_instructorInput[]
+  connectOrCreate?: Prisma.ClassScheduleCreateOrConnectWithoutActual_instructorInput | Prisma.ClassScheduleCreateOrConnectWithoutActual_instructorInput[]
+  createMany?: Prisma.ClassScheduleCreateManyActual_instructorInputEnvelope
   connect?: Prisma.ClassScheduleWhereUniqueInput | Prisma.ClassScheduleWhereUniqueInput[]
 }
 
@@ -554,6 +658,20 @@ export type ClassScheduleUpdateManyWithoutInstructorNestedInput = {
   deleteMany?: Prisma.ClassScheduleScalarWhereInput | Prisma.ClassScheduleScalarWhereInput[]
 }
 
+export type ClassScheduleUpdateManyWithoutActual_instructorNestedInput = {
+  create?: Prisma.XOR<Prisma.ClassScheduleCreateWithoutActual_instructorInput, Prisma.ClassScheduleUncheckedCreateWithoutActual_instructorInput> | Prisma.ClassScheduleCreateWithoutActual_instructorInput[] | Prisma.ClassScheduleUncheckedCreateWithoutActual_instructorInput[]
+  connectOrCreate?: Prisma.ClassScheduleCreateOrConnectWithoutActual_instructorInput | Prisma.ClassScheduleCreateOrConnectWithoutActual_instructorInput[]
+  upsert?: Prisma.ClassScheduleUpsertWithWhereUniqueWithoutActual_instructorInput | Prisma.ClassScheduleUpsertWithWhereUniqueWithoutActual_instructorInput[]
+  createMany?: Prisma.ClassScheduleCreateManyActual_instructorInputEnvelope
+  set?: Prisma.ClassScheduleWhereUniqueInput | Prisma.ClassScheduleWhereUniqueInput[]
+  disconnect?: Prisma.ClassScheduleWhereUniqueInput | Prisma.ClassScheduleWhereUniqueInput[]
+  delete?: Prisma.ClassScheduleWhereUniqueInput | Prisma.ClassScheduleWhereUniqueInput[]
+  connect?: Prisma.ClassScheduleWhereUniqueInput | Prisma.ClassScheduleWhereUniqueInput[]
+  update?: Prisma.ClassScheduleUpdateWithWhereUniqueWithoutActual_instructorInput | Prisma.ClassScheduleUpdateWithWhereUniqueWithoutActual_instructorInput[]
+  updateMany?: Prisma.ClassScheduleUpdateManyWithWhereWithoutActual_instructorInput | Prisma.ClassScheduleUpdateManyWithWhereWithoutActual_instructorInput[]
+  deleteMany?: Prisma.ClassScheduleScalarWhereInput | Prisma.ClassScheduleScalarWhereInput[]
+}
+
 export type ClassScheduleUncheckedUpdateManyWithoutInstructorNestedInput = {
   create?: Prisma.XOR<Prisma.ClassScheduleCreateWithoutInstructorInput, Prisma.ClassScheduleUncheckedCreateWithoutInstructorInput> | Prisma.ClassScheduleCreateWithoutInstructorInput[] | Prisma.ClassScheduleUncheckedCreateWithoutInstructorInput[]
   connectOrCreate?: Prisma.ClassScheduleCreateOrConnectWithoutInstructorInput | Prisma.ClassScheduleCreateOrConnectWithoutInstructorInput[]
@@ -565,6 +683,20 @@ export type ClassScheduleUncheckedUpdateManyWithoutInstructorNestedInput = {
   connect?: Prisma.ClassScheduleWhereUniqueInput | Prisma.ClassScheduleWhereUniqueInput[]
   update?: Prisma.ClassScheduleUpdateWithWhereUniqueWithoutInstructorInput | Prisma.ClassScheduleUpdateWithWhereUniqueWithoutInstructorInput[]
   updateMany?: Prisma.ClassScheduleUpdateManyWithWhereWithoutInstructorInput | Prisma.ClassScheduleUpdateManyWithWhereWithoutInstructorInput[]
+  deleteMany?: Prisma.ClassScheduleScalarWhereInput | Prisma.ClassScheduleScalarWhereInput[]
+}
+
+export type ClassScheduleUncheckedUpdateManyWithoutActual_instructorNestedInput = {
+  create?: Prisma.XOR<Prisma.ClassScheduleCreateWithoutActual_instructorInput, Prisma.ClassScheduleUncheckedCreateWithoutActual_instructorInput> | Prisma.ClassScheduleCreateWithoutActual_instructorInput[] | Prisma.ClassScheduleUncheckedCreateWithoutActual_instructorInput[]
+  connectOrCreate?: Prisma.ClassScheduleCreateOrConnectWithoutActual_instructorInput | Prisma.ClassScheduleCreateOrConnectWithoutActual_instructorInput[]
+  upsert?: Prisma.ClassScheduleUpsertWithWhereUniqueWithoutActual_instructorInput | Prisma.ClassScheduleUpsertWithWhereUniqueWithoutActual_instructorInput[]
+  createMany?: Prisma.ClassScheduleCreateManyActual_instructorInputEnvelope
+  set?: Prisma.ClassScheduleWhereUniqueInput | Prisma.ClassScheduleWhereUniqueInput[]
+  disconnect?: Prisma.ClassScheduleWhereUniqueInput | Prisma.ClassScheduleWhereUniqueInput[]
+  delete?: Prisma.ClassScheduleWhereUniqueInput | Prisma.ClassScheduleWhereUniqueInput[]
+  connect?: Prisma.ClassScheduleWhereUniqueInput | Prisma.ClassScheduleWhereUniqueInput[]
+  update?: Prisma.ClassScheduleUpdateWithWhereUniqueWithoutActual_instructorInput | Prisma.ClassScheduleUpdateWithWhereUniqueWithoutActual_instructorInput[]
+  updateMany?: Prisma.ClassScheduleUpdateManyWithWhereWithoutActual_instructorInput | Prisma.ClassScheduleUpdateManyWithWhereWithoutActual_instructorInput[]
   deleteMany?: Prisma.ClassScheduleScalarWhereInput | Prisma.ClassScheduleScalarWhereInput[]
 }
 
@@ -635,14 +767,19 @@ export type ClassScheduleCreateWithoutInstructorInput = {
   current_bookings?: number
   status?: string
   instructor_check_in_time?: Date | string | null
+  instructor_check_in_outcome?: string | null
+  class_notes?: string | null
   created_at?: Date | string
+  updated_at?: Date | string
   class_model?: Prisma.ClassModelCreateNestedOneWithoutClass_schedulesInput
+  actual_instructor?: Prisma.InstructorCreateNestedOneWithoutActual_class_schedulesInput
   bookings?: Prisma.BookingCreateNestedManyWithoutClass_scheduleInput
 }
 
 export type ClassScheduleUncheckedCreateWithoutInstructorInput = {
   id?: string
   class_id: string
+  actual_instructor_id?: string | null
   start_time: Date | string
   end_time: Date | string
   capacity?: number | null
@@ -650,7 +787,10 @@ export type ClassScheduleUncheckedCreateWithoutInstructorInput = {
   current_bookings?: number
   status?: string
   instructor_check_in_time?: Date | string | null
+  instructor_check_in_outcome?: string | null
+  class_notes?: string | null
   created_at?: Date | string
+  updated_at?: Date | string
   bookings?: Prisma.BookingUncheckedCreateNestedManyWithoutClass_scheduleInput
 }
 
@@ -661,6 +801,52 @@ export type ClassScheduleCreateOrConnectWithoutInstructorInput = {
 
 export type ClassScheduleCreateManyInstructorInputEnvelope = {
   data: Prisma.ClassScheduleCreateManyInstructorInput | Prisma.ClassScheduleCreateManyInstructorInput[]
+  skipDuplicates?: boolean
+}
+
+export type ClassScheduleCreateWithoutActual_instructorInput = {
+  id?: string
+  start_time: Date | string
+  end_time: Date | string
+  capacity?: number | null
+  available_spots: number
+  current_bookings?: number
+  status?: string
+  instructor_check_in_time?: Date | string | null
+  instructor_check_in_outcome?: string | null
+  class_notes?: string | null
+  created_at?: Date | string
+  updated_at?: Date | string
+  class_model?: Prisma.ClassModelCreateNestedOneWithoutClass_schedulesInput
+  instructor?: Prisma.InstructorCreateNestedOneWithoutClass_schedulesInput
+  bookings?: Prisma.BookingCreateNestedManyWithoutClass_scheduleInput
+}
+
+export type ClassScheduleUncheckedCreateWithoutActual_instructorInput = {
+  id?: string
+  class_id: string
+  instructor_id?: string | null
+  start_time: Date | string
+  end_time: Date | string
+  capacity?: number | null
+  available_spots: number
+  current_bookings?: number
+  status?: string
+  instructor_check_in_time?: Date | string | null
+  instructor_check_in_outcome?: string | null
+  class_notes?: string | null
+  created_at?: Date | string
+  updated_at?: Date | string
+  bookings?: Prisma.BookingUncheckedCreateNestedManyWithoutClass_scheduleInput
+}
+
+export type ClassScheduleCreateOrConnectWithoutActual_instructorInput = {
+  where: Prisma.ClassScheduleWhereUniqueInput
+  create: Prisma.XOR<Prisma.ClassScheduleCreateWithoutActual_instructorInput, Prisma.ClassScheduleUncheckedCreateWithoutActual_instructorInput>
+}
+
+export type ClassScheduleCreateManyActual_instructorInputEnvelope = {
+  data: Prisma.ClassScheduleCreateManyActual_instructorInput | Prisma.ClassScheduleCreateManyActual_instructorInput[]
   skipDuplicates?: boolean
 }
 
@@ -687,6 +873,7 @@ export type ClassScheduleScalarWhereInput = {
   id?: Prisma.StringFilter<"ClassSchedule"> | string
   class_id?: Prisma.StringFilter<"ClassSchedule"> | string
   instructor_id?: Prisma.StringNullableFilter<"ClassSchedule"> | string | null
+  actual_instructor_id?: Prisma.StringNullableFilter<"ClassSchedule"> | string | null
   start_time?: Prisma.DateTimeFilter<"ClassSchedule"> | Date | string
   end_time?: Prisma.DateTimeFilter<"ClassSchedule"> | Date | string
   capacity?: Prisma.IntNullableFilter<"ClassSchedule"> | number | null
@@ -694,7 +881,26 @@ export type ClassScheduleScalarWhereInput = {
   current_bookings?: Prisma.IntFilter<"ClassSchedule"> | number
   status?: Prisma.StringFilter<"ClassSchedule"> | string
   instructor_check_in_time?: Prisma.DateTimeNullableFilter<"ClassSchedule"> | Date | string | null
+  instructor_check_in_outcome?: Prisma.StringNullableFilter<"ClassSchedule"> | string | null
+  class_notes?: Prisma.StringNullableFilter<"ClassSchedule"> | string | null
   created_at?: Prisma.DateTimeFilter<"ClassSchedule"> | Date | string
+  updated_at?: Prisma.DateTimeFilter<"ClassSchedule"> | Date | string
+}
+
+export type ClassScheduleUpsertWithWhereUniqueWithoutActual_instructorInput = {
+  where: Prisma.ClassScheduleWhereUniqueInput
+  update: Prisma.XOR<Prisma.ClassScheduleUpdateWithoutActual_instructorInput, Prisma.ClassScheduleUncheckedUpdateWithoutActual_instructorInput>
+  create: Prisma.XOR<Prisma.ClassScheduleCreateWithoutActual_instructorInput, Prisma.ClassScheduleUncheckedCreateWithoutActual_instructorInput>
+}
+
+export type ClassScheduleUpdateWithWhereUniqueWithoutActual_instructorInput = {
+  where: Prisma.ClassScheduleWhereUniqueInput
+  data: Prisma.XOR<Prisma.ClassScheduleUpdateWithoutActual_instructorInput, Prisma.ClassScheduleUncheckedUpdateWithoutActual_instructorInput>
+}
+
+export type ClassScheduleUpdateManyWithWhereWithoutActual_instructorInput = {
+  where: Prisma.ClassScheduleScalarWhereInput
+  data: Prisma.XOR<Prisma.ClassScheduleUpdateManyMutationInput, Prisma.ClassScheduleUncheckedUpdateManyWithoutActual_instructorInput>
 }
 
 export type ClassScheduleCreateWithoutClass_modelInput = {
@@ -706,14 +912,19 @@ export type ClassScheduleCreateWithoutClass_modelInput = {
   current_bookings?: number
   status?: string
   instructor_check_in_time?: Date | string | null
+  instructor_check_in_outcome?: string | null
+  class_notes?: string | null
   created_at?: Date | string
+  updated_at?: Date | string
   instructor?: Prisma.InstructorCreateNestedOneWithoutClass_schedulesInput
+  actual_instructor?: Prisma.InstructorCreateNestedOneWithoutActual_class_schedulesInput
   bookings?: Prisma.BookingCreateNestedManyWithoutClass_scheduleInput
 }
 
 export type ClassScheduleUncheckedCreateWithoutClass_modelInput = {
   id?: string
   instructor_id?: string | null
+  actual_instructor_id?: string | null
   start_time: Date | string
   end_time: Date | string
   capacity?: number | null
@@ -721,7 +932,10 @@ export type ClassScheduleUncheckedCreateWithoutClass_modelInput = {
   current_bookings?: number
   status?: string
   instructor_check_in_time?: Date | string | null
+  instructor_check_in_outcome?: string | null
+  class_notes?: string | null
   created_at?: Date | string
+  updated_at?: Date | string
   bookings?: Prisma.BookingUncheckedCreateNestedManyWithoutClass_scheduleInput
 }
 
@@ -760,15 +974,20 @@ export type ClassScheduleCreateWithoutBookingsInput = {
   current_bookings?: number
   status?: string
   instructor_check_in_time?: Date | string | null
+  instructor_check_in_outcome?: string | null
+  class_notes?: string | null
   created_at?: Date | string
+  updated_at?: Date | string
   class_model?: Prisma.ClassModelCreateNestedOneWithoutClass_schedulesInput
   instructor?: Prisma.InstructorCreateNestedOneWithoutClass_schedulesInput
+  actual_instructor?: Prisma.InstructorCreateNestedOneWithoutActual_class_schedulesInput
 }
 
 export type ClassScheduleUncheckedCreateWithoutBookingsInput = {
   id?: string
   class_id: string
   instructor_id?: string | null
+  actual_instructor_id?: string | null
   start_time: Date | string
   end_time: Date | string
   capacity?: number | null
@@ -776,7 +995,10 @@ export type ClassScheduleUncheckedCreateWithoutBookingsInput = {
   current_bookings?: number
   status?: string
   instructor_check_in_time?: Date | string | null
+  instructor_check_in_outcome?: string | null
+  class_notes?: string | null
   created_at?: Date | string
+  updated_at?: Date | string
 }
 
 export type ClassScheduleCreateOrConnectWithoutBookingsInput = {
@@ -804,15 +1026,20 @@ export type ClassScheduleUpdateWithoutBookingsInput = {
   current_bookings?: Prisma.IntFieldUpdateOperationsInput | number
   status?: Prisma.StringFieldUpdateOperationsInput | string
   instructor_check_in_time?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  instructor_check_in_outcome?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  class_notes?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   created_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updated_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   class_model?: Prisma.ClassModelUpdateOneWithoutClass_schedulesNestedInput
   instructor?: Prisma.InstructorUpdateOneWithoutClass_schedulesNestedInput
+  actual_instructor?: Prisma.InstructorUpdateOneWithoutActual_class_schedulesNestedInput
 }
 
 export type ClassScheduleUncheckedUpdateWithoutBookingsInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   class_id?: Prisma.StringFieldUpdateOperationsInput | string
   instructor_id?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  actual_instructor_id?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   start_time?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   end_time?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   capacity?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
@@ -820,12 +1047,16 @@ export type ClassScheduleUncheckedUpdateWithoutBookingsInput = {
   current_bookings?: Prisma.IntFieldUpdateOperationsInput | number
   status?: Prisma.StringFieldUpdateOperationsInput | string
   instructor_check_in_time?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  instructor_check_in_outcome?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  class_notes?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   created_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updated_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
 }
 
 export type ClassScheduleCreateManyInstructorInput = {
   id?: string
   class_id: string
+  actual_instructor_id?: string | null
   start_time: Date | string
   end_time: Date | string
   capacity?: number | null
@@ -833,7 +1064,27 @@ export type ClassScheduleCreateManyInstructorInput = {
   current_bookings?: number
   status?: string
   instructor_check_in_time?: Date | string | null
+  instructor_check_in_outcome?: string | null
+  class_notes?: string | null
   created_at?: Date | string
+  updated_at?: Date | string
+}
+
+export type ClassScheduleCreateManyActual_instructorInput = {
+  id?: string
+  class_id: string
+  instructor_id?: string | null
+  start_time: Date | string
+  end_time: Date | string
+  capacity?: number | null
+  available_spots: number
+  current_bookings?: number
+  status?: string
+  instructor_check_in_time?: Date | string | null
+  instructor_check_in_outcome?: string | null
+  class_notes?: string | null
+  created_at?: Date | string
+  updated_at?: Date | string
 }
 
 export type ClassScheduleUpdateWithoutInstructorInput = {
@@ -845,14 +1096,19 @@ export type ClassScheduleUpdateWithoutInstructorInput = {
   current_bookings?: Prisma.IntFieldUpdateOperationsInput | number
   status?: Prisma.StringFieldUpdateOperationsInput | string
   instructor_check_in_time?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  instructor_check_in_outcome?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  class_notes?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   created_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updated_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   class_model?: Prisma.ClassModelUpdateOneWithoutClass_schedulesNestedInput
+  actual_instructor?: Prisma.InstructorUpdateOneWithoutActual_class_schedulesNestedInput
   bookings?: Prisma.BookingUpdateManyWithoutClass_scheduleNestedInput
 }
 
 export type ClassScheduleUncheckedUpdateWithoutInstructorInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   class_id?: Prisma.StringFieldUpdateOperationsInput | string
+  actual_instructor_id?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   start_time?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   end_time?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   capacity?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
@@ -860,13 +1116,17 @@ export type ClassScheduleUncheckedUpdateWithoutInstructorInput = {
   current_bookings?: Prisma.IntFieldUpdateOperationsInput | number
   status?: Prisma.StringFieldUpdateOperationsInput | string
   instructor_check_in_time?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  instructor_check_in_outcome?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  class_notes?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   created_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updated_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   bookings?: Prisma.BookingUncheckedUpdateManyWithoutClass_scheduleNestedInput
 }
 
 export type ClassScheduleUncheckedUpdateManyWithoutInstructorInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   class_id?: Prisma.StringFieldUpdateOperationsInput | string
+  actual_instructor_id?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   start_time?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   end_time?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   capacity?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
@@ -874,12 +1134,69 @@ export type ClassScheduleUncheckedUpdateManyWithoutInstructorInput = {
   current_bookings?: Prisma.IntFieldUpdateOperationsInput | number
   status?: Prisma.StringFieldUpdateOperationsInput | string
   instructor_check_in_time?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  instructor_check_in_outcome?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  class_notes?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   created_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updated_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+}
+
+export type ClassScheduleUpdateWithoutActual_instructorInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  start_time?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  end_time?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  capacity?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  available_spots?: Prisma.IntFieldUpdateOperationsInput | number
+  current_bookings?: Prisma.IntFieldUpdateOperationsInput | number
+  status?: Prisma.StringFieldUpdateOperationsInput | string
+  instructor_check_in_time?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  instructor_check_in_outcome?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  class_notes?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  created_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updated_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  class_model?: Prisma.ClassModelUpdateOneWithoutClass_schedulesNestedInput
+  instructor?: Prisma.InstructorUpdateOneWithoutClass_schedulesNestedInput
+  bookings?: Prisma.BookingUpdateManyWithoutClass_scheduleNestedInput
+}
+
+export type ClassScheduleUncheckedUpdateWithoutActual_instructorInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  class_id?: Prisma.StringFieldUpdateOperationsInput | string
+  instructor_id?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  start_time?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  end_time?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  capacity?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  available_spots?: Prisma.IntFieldUpdateOperationsInput | number
+  current_bookings?: Prisma.IntFieldUpdateOperationsInput | number
+  status?: Prisma.StringFieldUpdateOperationsInput | string
+  instructor_check_in_time?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  instructor_check_in_outcome?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  class_notes?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  created_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updated_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  bookings?: Prisma.BookingUncheckedUpdateManyWithoutClass_scheduleNestedInput
+}
+
+export type ClassScheduleUncheckedUpdateManyWithoutActual_instructorInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  class_id?: Prisma.StringFieldUpdateOperationsInput | string
+  instructor_id?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  start_time?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  end_time?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  capacity?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  available_spots?: Prisma.IntFieldUpdateOperationsInput | number
+  current_bookings?: Prisma.IntFieldUpdateOperationsInput | number
+  status?: Prisma.StringFieldUpdateOperationsInput | string
+  instructor_check_in_time?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  instructor_check_in_outcome?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  class_notes?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  created_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updated_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
 }
 
 export type ClassScheduleCreateManyClass_modelInput = {
   id?: string
   instructor_id?: string | null
+  actual_instructor_id?: string | null
   start_time: Date | string
   end_time: Date | string
   capacity?: number | null
@@ -887,7 +1204,10 @@ export type ClassScheduleCreateManyClass_modelInput = {
   current_bookings?: number
   status?: string
   instructor_check_in_time?: Date | string | null
+  instructor_check_in_outcome?: string | null
+  class_notes?: string | null
   created_at?: Date | string
+  updated_at?: Date | string
 }
 
 export type ClassScheduleUpdateWithoutClass_modelInput = {
@@ -899,14 +1219,19 @@ export type ClassScheduleUpdateWithoutClass_modelInput = {
   current_bookings?: Prisma.IntFieldUpdateOperationsInput | number
   status?: Prisma.StringFieldUpdateOperationsInput | string
   instructor_check_in_time?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  instructor_check_in_outcome?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  class_notes?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   created_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updated_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   instructor?: Prisma.InstructorUpdateOneWithoutClass_schedulesNestedInput
+  actual_instructor?: Prisma.InstructorUpdateOneWithoutActual_class_schedulesNestedInput
   bookings?: Prisma.BookingUpdateManyWithoutClass_scheduleNestedInput
 }
 
 export type ClassScheduleUncheckedUpdateWithoutClass_modelInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   instructor_id?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  actual_instructor_id?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   start_time?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   end_time?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   capacity?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
@@ -914,13 +1239,17 @@ export type ClassScheduleUncheckedUpdateWithoutClass_modelInput = {
   current_bookings?: Prisma.IntFieldUpdateOperationsInput | number
   status?: Prisma.StringFieldUpdateOperationsInput | string
   instructor_check_in_time?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  instructor_check_in_outcome?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  class_notes?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   created_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updated_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   bookings?: Prisma.BookingUncheckedUpdateManyWithoutClass_scheduleNestedInput
 }
 
 export type ClassScheduleUncheckedUpdateManyWithoutClass_modelInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   instructor_id?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  actual_instructor_id?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   start_time?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   end_time?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   capacity?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
@@ -928,7 +1257,10 @@ export type ClassScheduleUncheckedUpdateManyWithoutClass_modelInput = {
   current_bookings?: Prisma.IntFieldUpdateOperationsInput | number
   status?: Prisma.StringFieldUpdateOperationsInput | string
   instructor_check_in_time?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  instructor_check_in_outcome?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  class_notes?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   created_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updated_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
 }
 
 
@@ -966,6 +1298,7 @@ export type ClassScheduleSelect<ExtArgs extends runtime.Types.Extensions.Interna
   id?: boolean
   class_id?: boolean
   instructor_id?: boolean
+  actual_instructor_id?: boolean
   start_time?: boolean
   end_time?: boolean
   capacity?: boolean
@@ -973,9 +1306,13 @@ export type ClassScheduleSelect<ExtArgs extends runtime.Types.Extensions.Interna
   current_bookings?: boolean
   status?: boolean
   instructor_check_in_time?: boolean
+  instructor_check_in_outcome?: boolean
+  class_notes?: boolean
   created_at?: boolean
+  updated_at?: boolean
   class_model?: boolean | Prisma.ClassSchedule$class_modelArgs<ExtArgs>
   instructor?: boolean | Prisma.ClassSchedule$instructorArgs<ExtArgs>
+  actual_instructor?: boolean | Prisma.ClassSchedule$actual_instructorArgs<ExtArgs>
   bookings?: boolean | Prisma.ClassSchedule$bookingsArgs<ExtArgs>
   _count?: boolean | Prisma.ClassScheduleCountOutputTypeDefaultArgs<ExtArgs>
 }, ExtArgs["result"]["classSchedule"]>
@@ -984,6 +1321,7 @@ export type ClassScheduleSelectCreateManyAndReturn<ExtArgs extends runtime.Types
   id?: boolean
   class_id?: boolean
   instructor_id?: boolean
+  actual_instructor_id?: boolean
   start_time?: boolean
   end_time?: boolean
   capacity?: boolean
@@ -991,15 +1329,20 @@ export type ClassScheduleSelectCreateManyAndReturn<ExtArgs extends runtime.Types
   current_bookings?: boolean
   status?: boolean
   instructor_check_in_time?: boolean
+  instructor_check_in_outcome?: boolean
+  class_notes?: boolean
   created_at?: boolean
+  updated_at?: boolean
   class_model?: boolean | Prisma.ClassSchedule$class_modelArgs<ExtArgs>
   instructor?: boolean | Prisma.ClassSchedule$instructorArgs<ExtArgs>
+  actual_instructor?: boolean | Prisma.ClassSchedule$actual_instructorArgs<ExtArgs>
 }, ExtArgs["result"]["classSchedule"]>
 
 export type ClassScheduleSelectUpdateManyAndReturn<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetSelect<{
   id?: boolean
   class_id?: boolean
   instructor_id?: boolean
+  actual_instructor_id?: boolean
   start_time?: boolean
   end_time?: boolean
   capacity?: boolean
@@ -1007,15 +1350,20 @@ export type ClassScheduleSelectUpdateManyAndReturn<ExtArgs extends runtime.Types
   current_bookings?: boolean
   status?: boolean
   instructor_check_in_time?: boolean
+  instructor_check_in_outcome?: boolean
+  class_notes?: boolean
   created_at?: boolean
+  updated_at?: boolean
   class_model?: boolean | Prisma.ClassSchedule$class_modelArgs<ExtArgs>
   instructor?: boolean | Prisma.ClassSchedule$instructorArgs<ExtArgs>
+  actual_instructor?: boolean | Prisma.ClassSchedule$actual_instructorArgs<ExtArgs>
 }, ExtArgs["result"]["classSchedule"]>
 
 export type ClassScheduleSelectScalar = {
   id?: boolean
   class_id?: boolean
   instructor_id?: boolean
+  actual_instructor_id?: boolean
   start_time?: boolean
   end_time?: boolean
   capacity?: boolean
@@ -1023,23 +1371,29 @@ export type ClassScheduleSelectScalar = {
   current_bookings?: boolean
   status?: boolean
   instructor_check_in_time?: boolean
+  instructor_check_in_outcome?: boolean
+  class_notes?: boolean
   created_at?: boolean
+  updated_at?: boolean
 }
 
-export type ClassScheduleOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "class_id" | "instructor_id" | "start_time" | "end_time" | "capacity" | "available_spots" | "current_bookings" | "status" | "instructor_check_in_time" | "created_at", ExtArgs["result"]["classSchedule"]>
+export type ClassScheduleOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "class_id" | "instructor_id" | "actual_instructor_id" | "start_time" | "end_time" | "capacity" | "available_spots" | "current_bookings" | "status" | "instructor_check_in_time" | "instructor_check_in_outcome" | "class_notes" | "created_at" | "updated_at", ExtArgs["result"]["classSchedule"]>
 export type ClassScheduleInclude<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   class_model?: boolean | Prisma.ClassSchedule$class_modelArgs<ExtArgs>
   instructor?: boolean | Prisma.ClassSchedule$instructorArgs<ExtArgs>
+  actual_instructor?: boolean | Prisma.ClassSchedule$actual_instructorArgs<ExtArgs>
   bookings?: boolean | Prisma.ClassSchedule$bookingsArgs<ExtArgs>
   _count?: boolean | Prisma.ClassScheduleCountOutputTypeDefaultArgs<ExtArgs>
 }
 export type ClassScheduleIncludeCreateManyAndReturn<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   class_model?: boolean | Prisma.ClassSchedule$class_modelArgs<ExtArgs>
   instructor?: boolean | Prisma.ClassSchedule$instructorArgs<ExtArgs>
+  actual_instructor?: boolean | Prisma.ClassSchedule$actual_instructorArgs<ExtArgs>
 }
 export type ClassScheduleIncludeUpdateManyAndReturn<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   class_model?: boolean | Prisma.ClassSchedule$class_modelArgs<ExtArgs>
   instructor?: boolean | Prisma.ClassSchedule$instructorArgs<ExtArgs>
+  actual_instructor?: boolean | Prisma.ClassSchedule$actual_instructorArgs<ExtArgs>
 }
 
 export type $ClassSchedulePayload<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
@@ -1047,12 +1401,20 @@ export type $ClassSchedulePayload<ExtArgs extends runtime.Types.Extensions.Inter
   objects: {
     class_model: Prisma.$ClassModelPayload<ExtArgs> | null
     instructor: Prisma.$InstructorPayload<ExtArgs> | null
+    actual_instructor: Prisma.$InstructorPayload<ExtArgs> | null
     bookings: Prisma.$BookingPayload<ExtArgs>[]
   }
   scalars: runtime.Types.Extensions.GetPayloadResult<{
     id: string
     class_id: string
+    /**
+     * Planned instructor at time of scheduling.
+     */
     instructor_id: string | null
+    /**
+     * Who actually taught — set post-class if a sub covered. Null = planned instructor taught.
+     */
+    actual_instructor_id: string | null
     start_time: Date
     end_time: Date
     capacity: number | null
@@ -1060,7 +1422,16 @@ export type $ClassSchedulePayload<ExtArgs extends runtime.Types.Extensions.Inter
     current_bookings: number
     status: string
     instructor_check_in_time: Date | null
+    /**
+     * `on_time` | `late` | `absent` — set after class ends.
+     */
+    instructor_check_in_outcome: string | null
+    /**
+     * Admin notes for this session (sub reason, incidents, announcements).
+     */
+    class_notes: string | null
     created_at: Date
+    updated_at: Date
   }, ExtArgs["result"]["classSchedule"]>
   composites: {}
 }
@@ -1457,6 +1828,7 @@ export interface Prisma__ClassScheduleClient<T, Null = never, ExtArgs extends ru
   readonly [Symbol.toStringTag]: "PrismaPromise"
   class_model<T extends Prisma.ClassSchedule$class_modelArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.ClassSchedule$class_modelArgs<ExtArgs>>): Prisma.Prisma__ClassModelClient<runtime.Types.Result.GetResult<Prisma.$ClassModelPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | null, null, ExtArgs, GlobalOmitOptions>
   instructor<T extends Prisma.ClassSchedule$instructorArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.ClassSchedule$instructorArgs<ExtArgs>>): Prisma.Prisma__InstructorClient<runtime.Types.Result.GetResult<Prisma.$InstructorPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | null, null, ExtArgs, GlobalOmitOptions>
+  actual_instructor<T extends Prisma.ClassSchedule$actual_instructorArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.ClassSchedule$actual_instructorArgs<ExtArgs>>): Prisma.Prisma__InstructorClient<runtime.Types.Result.GetResult<Prisma.$InstructorPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | null, null, ExtArgs, GlobalOmitOptions>
   bookings<T extends Prisma.ClassSchedule$bookingsArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.ClassSchedule$bookingsArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$BookingPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
   /**
    * Attaches callbacks for the resolution and/or rejection of the Promise.
@@ -1490,6 +1862,7 @@ export interface ClassScheduleFieldRefs {
   readonly id: Prisma.FieldRef<"ClassSchedule", 'String'>
   readonly class_id: Prisma.FieldRef<"ClassSchedule", 'String'>
   readonly instructor_id: Prisma.FieldRef<"ClassSchedule", 'String'>
+  readonly actual_instructor_id: Prisma.FieldRef<"ClassSchedule", 'String'>
   readonly start_time: Prisma.FieldRef<"ClassSchedule", 'DateTime'>
   readonly end_time: Prisma.FieldRef<"ClassSchedule", 'DateTime'>
   readonly capacity: Prisma.FieldRef<"ClassSchedule", 'Int'>
@@ -1497,7 +1870,10 @@ export interface ClassScheduleFieldRefs {
   readonly current_bookings: Prisma.FieldRef<"ClassSchedule", 'Int'>
   readonly status: Prisma.FieldRef<"ClassSchedule", 'String'>
   readonly instructor_check_in_time: Prisma.FieldRef<"ClassSchedule", 'DateTime'>
+  readonly instructor_check_in_outcome: Prisma.FieldRef<"ClassSchedule", 'String'>
+  readonly class_notes: Prisma.FieldRef<"ClassSchedule", 'String'>
   readonly created_at: Prisma.FieldRef<"ClassSchedule", 'DateTime'>
+  readonly updated_at: Prisma.FieldRef<"ClassSchedule", 'DateTime'>
 }
     
 
@@ -1921,6 +2297,25 @@ export type ClassSchedule$class_modelArgs<ExtArgs extends runtime.Types.Extensio
  * ClassSchedule.instructor
  */
 export type ClassSchedule$instructorArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  /**
+   * Select specific fields to fetch from the Instructor
+   */
+  select?: Prisma.InstructorSelect<ExtArgs> | null
+  /**
+   * Omit specific fields from the Instructor
+   */
+  omit?: Prisma.InstructorOmit<ExtArgs> | null
+  /**
+   * Choose, which related nodes to fetch as well
+   */
+  include?: Prisma.InstructorInclude<ExtArgs> | null
+  where?: Prisma.InstructorWhereInput
+}
+
+/**
+ * ClassSchedule.actual_instructor
+ */
+export type ClassSchedule$actual_instructorArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   /**
    * Select specific fields to fetch from the Instructor
    */

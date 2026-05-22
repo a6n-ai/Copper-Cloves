@@ -174,7 +174,11 @@ async function fetchPayoutData() {
         return;
       }
       const raw: unknown = await res.json();
-      const profiles = Array.isArray(raw) ? raw : [];
+      const profiles = Array.isArray(raw)
+        ? raw
+        : Array.isArray((raw as { members?: unknown })?.members)
+        ? (raw as { members: unknown[] }).members
+        : [];
       const now = new Date();
 
       const processedUsers = profiles.map(

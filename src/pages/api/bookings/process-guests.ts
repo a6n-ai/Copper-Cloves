@@ -228,7 +228,6 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
             hashedPassword,
             role: "user",
             onboarding_completed: false,
-            user_stats: { create: {} },
           },
         });
 

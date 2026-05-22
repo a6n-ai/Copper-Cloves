@@ -5,6 +5,7 @@ import type { CouponContext } from "@/lib/couponHelpers";
 import { getStudioServerSession } from "@/lib/getStudioServerSession";
 import {
   incrementCouponAndRecordRedemption,
+  passCategoryForPackageType,
   toFiniteNumber,
   validateAndComputeCoupon,
 } from "@/lib/couponHelpers";
@@ -31,7 +32,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   }
 
   if (req.method === "POST") {
-    const { package_type_id, pass_type, coupon_code, razorpay_order_id } = req.body as {
+    const { package_type_id, coupon_code, razorpay_order_id } = req.body as {
       package_type_id?: string;
       pass_type?: string;
       coupon_code?: string;
@@ -41,9 +42,6 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     if (!package_type_id || typeof package_type_id !== "string") {
       return res.status(400).json({ error: "package_type_id required" });
     }
-
-    const pass = pass_type === "studio_pass" ? "studio_pass" : "class_pass";
-    const couponContext: CouponContext = pass === "studio_pass" ? "studio_pass" : "class_pass";
 
     const rpOrderRaw =
       razorpay_order_id != null && String(razorpay_order_id).trim()
@@ -64,6 +62,11 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
           where: { id: package_type_id },
         });
         if (!packageType) throw new Error("NOT_FOUND");
+
+        // Authoritative pass category from the package (type column, then
+        // is_unlimited) — not the client-sent pass_type — keeps coupon matching correct.
+        const pass = passCategoryForPackageType(packageType);
+        const couponContext: CouponContext = pass;
 
         const subtotal = toFiniteNumber(packageType.price);
         if (!Number.isFinite(subtotal) || subtotal <= 0) {

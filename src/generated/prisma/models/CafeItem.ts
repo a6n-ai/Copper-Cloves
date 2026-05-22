@@ -43,6 +43,7 @@ export type CafeItemMinAggregateOutputType = {
   image_url: string | null
   is_available: boolean | null
   created_at: Date | null
+  updated_at: Date | null
 }
 
 export type CafeItemMaxAggregateOutputType = {
@@ -54,6 +55,7 @@ export type CafeItemMaxAggregateOutputType = {
   image_url: string | null
   is_available: boolean | null
   created_at: Date | null
+  updated_at: Date | null
 }
 
 export type CafeItemCountAggregateOutputType = {
@@ -65,6 +67,7 @@ export type CafeItemCountAggregateOutputType = {
   image_url: number
   is_available: number
   created_at: number
+  updated_at: number
   _all: number
 }
 
@@ -86,6 +89,7 @@ export type CafeItemMinAggregateInputType = {
   image_url?: true
   is_available?: true
   created_at?: true
+  updated_at?: true
 }
 
 export type CafeItemMaxAggregateInputType = {
@@ -97,6 +101,7 @@ export type CafeItemMaxAggregateInputType = {
   image_url?: true
   is_available?: true
   created_at?: true
+  updated_at?: true
 }
 
 export type CafeItemCountAggregateInputType = {
@@ -108,6 +113,7 @@ export type CafeItemCountAggregateInputType = {
   image_url?: true
   is_available?: true
   created_at?: true
+  updated_at?: true
   _all?: true
 }
 
@@ -206,6 +212,7 @@ export type CafeItemGroupByOutputType = {
   image_url: string | null
   is_available: boolean
   created_at: Date
+  updated_at: Date
   _count: CafeItemCountAggregateOutputType | null
   _avg: CafeItemAvgAggregateOutputType | null
   _sum: CafeItemSumAggregateOutputType | null
@@ -240,6 +247,7 @@ export type CafeItemWhereInput = {
   image_url?: Prisma.StringNullableFilter<"CafeItem"> | string | null
   is_available?: Prisma.BoolFilter<"CafeItem"> | boolean
   created_at?: Prisma.DateTimeFilter<"CafeItem"> | Date | string
+  updated_at?: Prisma.DateTimeFilter<"CafeItem"> | Date | string
   cafe_orders?: Prisma.CafeOrderListRelationFilter
 }
 
@@ -252,6 +260,7 @@ export type CafeItemOrderByWithRelationInput = {
   image_url?: Prisma.SortOrderInput | Prisma.SortOrder
   is_available?: Prisma.SortOrder
   created_at?: Prisma.SortOrder
+  updated_at?: Prisma.SortOrder
   cafe_orders?: Prisma.CafeOrderOrderByRelationAggregateInput
 }
 
@@ -267,6 +276,7 @@ export type CafeItemWhereUniqueInput = Prisma.AtLeast<{
   image_url?: Prisma.StringNullableFilter<"CafeItem"> | string | null
   is_available?: Prisma.BoolFilter<"CafeItem"> | boolean
   created_at?: Prisma.DateTimeFilter<"CafeItem"> | Date | string
+  updated_at?: Prisma.DateTimeFilter<"CafeItem"> | Date | string
   cafe_orders?: Prisma.CafeOrderListRelationFilter
 }, "id">
 
@@ -279,6 +289,7 @@ export type CafeItemOrderByWithAggregationInput = {
   image_url?: Prisma.SortOrderInput | Prisma.SortOrder
   is_available?: Prisma.SortOrder
   created_at?: Prisma.SortOrder
+  updated_at?: Prisma.SortOrder
   _count?: Prisma.CafeItemCountOrderByAggregateInput
   _avg?: Prisma.CafeItemAvgOrderByAggregateInput
   _max?: Prisma.CafeItemMaxOrderByAggregateInput
@@ -298,6 +309,7 @@ export type CafeItemScalarWhereWithAggregatesInput = {
   image_url?: Prisma.StringNullableWithAggregatesFilter<"CafeItem"> | string | null
   is_available?: Prisma.BoolWithAggregatesFilter<"CafeItem"> | boolean
   created_at?: Prisma.DateTimeWithAggregatesFilter<"CafeItem"> | Date | string
+  updated_at?: Prisma.DateTimeWithAggregatesFilter<"CafeItem"> | Date | string
 }
 
 export type CafeItemCreateInput = {
@@ -309,6 +321,7 @@ export type CafeItemCreateInput = {
   image_url?: string | null
   is_available?: boolean
   created_at?: Date | string
+  updated_at?: Date | string
   cafe_orders?: Prisma.CafeOrderCreateNestedManyWithoutCafe_itemInput
 }
 
@@ -321,6 +334,7 @@ export type CafeItemUncheckedCreateInput = {
   image_url?: string | null
   is_available?: boolean
   created_at?: Date | string
+  updated_at?: Date | string
   cafe_orders?: Prisma.CafeOrderUncheckedCreateNestedManyWithoutCafe_itemInput
 }
 
@@ -333,6 +347,7 @@ export type CafeItemUpdateInput = {
   image_url?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   is_available?: Prisma.BoolFieldUpdateOperationsInput | boolean
   created_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updated_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   cafe_orders?: Prisma.CafeOrderUpdateManyWithoutCafe_itemNestedInput
 }
 
@@ -345,6 +360,7 @@ export type CafeItemUncheckedUpdateInput = {
   image_url?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   is_available?: Prisma.BoolFieldUpdateOperationsInput | boolean
   created_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updated_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   cafe_orders?: Prisma.CafeOrderUncheckedUpdateManyWithoutCafe_itemNestedInput
 }
 
@@ -357,6 +373,7 @@ export type CafeItemCreateManyInput = {
   image_url?: string | null
   is_available?: boolean
   created_at?: Date | string
+  updated_at?: Date | string
 }
 
 export type CafeItemUpdateManyMutationInput = {
@@ -368,6 +385,7 @@ export type CafeItemUpdateManyMutationInput = {
   image_url?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   is_available?: Prisma.BoolFieldUpdateOperationsInput | boolean
   created_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updated_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
 }
 
 export type CafeItemUncheckedUpdateManyInput = {
@@ -379,6 +397,7 @@ export type CafeItemUncheckedUpdateManyInput = {
   image_url?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   is_available?: Prisma.BoolFieldUpdateOperationsInput | boolean
   created_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updated_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
 }
 
 export type CafeItemCountOrderByAggregateInput = {
@@ -390,6 +409,7 @@ export type CafeItemCountOrderByAggregateInput = {
   image_url?: Prisma.SortOrder
   is_available?: Prisma.SortOrder
   created_at?: Prisma.SortOrder
+  updated_at?: Prisma.SortOrder
 }
 
 export type CafeItemAvgOrderByAggregateInput = {
@@ -405,6 +425,7 @@ export type CafeItemMaxOrderByAggregateInput = {
   image_url?: Prisma.SortOrder
   is_available?: Prisma.SortOrder
   created_at?: Prisma.SortOrder
+  updated_at?: Prisma.SortOrder
 }
 
 export type CafeItemMinOrderByAggregateInput = {
@@ -416,6 +437,7 @@ export type CafeItemMinOrderByAggregateInput = {
   image_url?: Prisma.SortOrder
   is_available?: Prisma.SortOrder
   created_at?: Prisma.SortOrder
+  updated_at?: Prisma.SortOrder
 }
 
 export type CafeItemSumOrderByAggregateInput = {
@@ -452,6 +474,7 @@ export type CafeItemCreateWithoutCafe_ordersInput = {
   image_url?: string | null
   is_available?: boolean
   created_at?: Date | string
+  updated_at?: Date | string
 }
 
 export type CafeItemUncheckedCreateWithoutCafe_ordersInput = {
@@ -463,6 +486,7 @@ export type CafeItemUncheckedCreateWithoutCafe_ordersInput = {
   image_url?: string | null
   is_available?: boolean
   created_at?: Date | string
+  updated_at?: Date | string
 }
 
 export type CafeItemCreateOrConnectWithoutCafe_ordersInput = {
@@ -490,6 +514,7 @@ export type CafeItemUpdateWithoutCafe_ordersInput = {
   image_url?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   is_available?: Prisma.BoolFieldUpdateOperationsInput | boolean
   created_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updated_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
 }
 
 export type CafeItemUncheckedUpdateWithoutCafe_ordersInput = {
@@ -501,6 +526,7 @@ export type CafeItemUncheckedUpdateWithoutCafe_ordersInput = {
   image_url?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   is_available?: Prisma.BoolFieldUpdateOperationsInput | boolean
   created_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updated_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
 }
 
 
@@ -543,6 +569,7 @@ export type CafeItemSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs
   image_url?: boolean
   is_available?: boolean
   created_at?: boolean
+  updated_at?: boolean
   cafe_orders?: boolean | Prisma.CafeItem$cafe_ordersArgs<ExtArgs>
   _count?: boolean | Prisma.CafeItemCountOutputTypeDefaultArgs<ExtArgs>
 }, ExtArgs["result"]["cafeItem"]>
@@ -556,6 +583,7 @@ export type CafeItemSelectCreateManyAndReturn<ExtArgs extends runtime.Types.Exte
   image_url?: boolean
   is_available?: boolean
   created_at?: boolean
+  updated_at?: boolean
 }, ExtArgs["result"]["cafeItem"]>
 
 export type CafeItemSelectUpdateManyAndReturn<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetSelect<{
@@ -567,6 +595,7 @@ export type CafeItemSelectUpdateManyAndReturn<ExtArgs extends runtime.Types.Exte
   image_url?: boolean
   is_available?: boolean
   created_at?: boolean
+  updated_at?: boolean
 }, ExtArgs["result"]["cafeItem"]>
 
 export type CafeItemSelectScalar = {
@@ -578,9 +607,10 @@ export type CafeItemSelectScalar = {
   image_url?: boolean
   is_available?: boolean
   created_at?: boolean
+  updated_at?: boolean
 }
 
-export type CafeItemOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "name" | "category" | "description" | "price" | "image_url" | "is_available" | "created_at", ExtArgs["result"]["cafeItem"]>
+export type CafeItemOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "name" | "category" | "description" | "price" | "image_url" | "is_available" | "created_at" | "updated_at", ExtArgs["result"]["cafeItem"]>
 export type CafeItemInclude<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   cafe_orders?: boolean | Prisma.CafeItem$cafe_ordersArgs<ExtArgs>
   _count?: boolean | Prisma.CafeItemCountOutputTypeDefaultArgs<ExtArgs>
@@ -602,6 +632,7 @@ export type $CafeItemPayload<ExtArgs extends runtime.Types.Extensions.InternalAr
     image_url: string | null
     is_available: boolean
     created_at: Date
+    updated_at: Date
   }, ExtArgs["result"]["cafeItem"]>
   composites: {}
 }
@@ -1034,6 +1065,7 @@ export interface CafeItemFieldRefs {
   readonly image_url: Prisma.FieldRef<"CafeItem", 'String'>
   readonly is_available: Prisma.FieldRef<"CafeItem", 'Boolean'>
   readonly created_at: Prisma.FieldRef<"CafeItem", 'DateTime'>
+  readonly updated_at: Prisma.FieldRef<"CafeItem", 'DateTime'>
 }
     
 

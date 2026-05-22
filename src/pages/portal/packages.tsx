@@ -373,10 +373,23 @@ export default function PackagesPage() {
     const subtotal = packageSubtotalInr(pkg);
     if (subtotal <= 0) return;
     const ctx = pkg.classes === "Unlimited" ? "studio_pass" : "class_pass";
+    // Resolve the package_type_id so the server can derive the authoritative pass
+    // category (unlimited = studio) rather than relying on the client hint.
+    let packageTypeId: string | undefined;
+    try {
+      const pkgsRes = await fetch("/api/packages");
+      const pkgs = pkgsRes.ok ? await pkgsRes.json() : [];
+      const match = Array.isArray(pkgs)
+        ? pkgs.find((p: { id?: string; name?: string }) => p.name === pkg.name)
+        : null;
+      if (match?.id) packageTypeId = match.id;
+    } catch {
+      /* fall back to client-derived context */
+    }
     const r = await fetch("/api/coupons/validate", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ code: couponCode, context: ctx, subtotal }),
+      body: JSON.stringify({ code: couponCode, context: ctx, subtotal, package_type_id: packageTypeId }),
     });
     const d = r.ok ? await r.json() : { valid: false, error: "Could not validate" };
     if (!d.valid) {
@@ -517,13 +530,17 @@ export default function PackagesPage() {
           return;
         }
 
+        if (checkoutResult.kind !== "success") {
+          // redirect flow (not used here, redirect:false) — nothing to finalize inline
+          return;
+        }
         const pending = loadPendingRazorpayCheckout();
         if (!pending || pending.purpose !== "package") {
           throw new Error("Checkout session lost. Please try again.");
         }
         await completePendingPackageCheckout(pending, checkoutResult.payload);
         clearPendingRazorpayCheckout();
-        setShowPurchaseDialog(false);
+        setShowCheckout(false);
         router.push("/portal/dashboard");
         return;
       }

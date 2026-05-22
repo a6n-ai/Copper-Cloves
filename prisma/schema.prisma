@@ -27,7 +27,7 @@ model Profile {
   terms_accepted_at    DateTime?
   start_date           DateTime?
   created_at           DateTime @default(now())
-  updated_at           DateTime @updatedAt
+  updated_at           DateTime @default(now()) @updatedAt
 
   bookings          Booking[]
   cafe_orders       CafeOrder[]
@@ -64,7 +64,7 @@ model Coupon {
   starts_at         DateTime?
   ends_at           DateTime?
   created_at        DateTime  @default(now())
-  updated_at        DateTime  @updatedAt
+  updated_at        DateTime  @default(now()) @updatedAt
 
   redemptions   CouponRedemption[]
   cafe_orders   CafeOrder[]
@@ -82,6 +82,7 @@ model CouponRedemption {
   context         String
   discount_amount Decimal  @db.Decimal(10, 2)
   created_at      DateTime @default(now())
+  updated_at      DateTime @default(now()) @updatedAt
 
   coupon  Coupon   @relation(fields: [coupon_id], references: [id], onDelete: Cascade)
   profile Profile? @relation(fields: [user_id], references: [id], onDelete: SetNull)
@@ -104,7 +105,7 @@ model RetailProduct {
   sales_count Int      @default(0)
   is_active   Boolean  @default(true)
   created_at  DateTime @default(now())
-  updated_at  DateTime @updatedAt
+  updated_at  DateTime @default(now()) @updatedAt
 
   @@map("retail_products")
 }
@@ -121,7 +122,7 @@ model RetailOrder {
   shipping_address String?
   order_date       DateTime @default(now())
   created_at       DateTime @default(now())
-  updated_at       DateTime @updatedAt
+  updated_at       DateTime @default(now()) @updatedAt
   coupon_id        String?
   discount_inr     Decimal  @default(0) @db.Decimal(10, 2)
 
@@ -156,9 +157,11 @@ model Instructor {
   hashed_password          String?
   is_active                Boolean  @default(true)
   created_at               DateTime @default(now())
+  updated_at               DateTime @default(now()) @updatedAt
 
-  classes         ClassModel[]
-  class_schedules ClassSchedule[]
+  classes                    ClassModel[]
+  class_schedules            ClassSchedule[] @relation("ScheduledInstructor")
+  actual_class_schedules     ClassSchedule[] @relation("ActualInstructor")
 
   @@map("instructors")
 }
@@ -169,26 +172,28 @@ model ClassModel {
   category      String
   description   String?
   benefits      String[]
-  benefit       String?
   duration      Int
   max_capacity  Int      @default(15)
   image_url     String?
   display_order Int?
   instructor_id String?
   created_at    DateTime @default(now())
-  updated_at    DateTime @updatedAt
+  updated_at    DateTime @default(now()) @updatedAt
 
   instructor      Instructor?     @relation(fields: [instructor_id], references: [id], onDelete: SetNull)
   class_schedules ClassSchedule[]
 
   @@index([instructor_id])
-  @@map("classes")
+  @@map("class_types")
 }
 
 model ClassSchedule {
   id               String   @id @default(uuid())
   class_id         String
+  /// Planned instructor at time of scheduling.
   instructor_id    String?
+  /// Who actually taught — set post-class if a sub covered. Null = planned instructor taught.
+  actual_instructor_id      String?
   start_time       DateTime
   end_time         DateTime
   capacity         Int?
@@ -196,14 +201,21 @@ model ClassSchedule {
   current_bookings Int      @default(0)
   status                    String    @default("available")
   instructor_check_in_time  DateTime?
+  /// `on_time` | `late` | `absent` — set after class ends.
+  instructor_check_in_outcome String?
+  /// Admin notes for this session (sub reason, incidents, announcements).
+  class_notes               String?
   created_at                DateTime  @default(now())
+  updated_at                DateTime  @default(now()) @updatedAt
 
-  class_model ClassModel?    @relation(fields: [class_id], references: [id], onDelete: Cascade)
-  instructor  Instructor? @relation(fields: [instructor_id], references: [id], onDelete: SetNull)
-  bookings    Booking[]
+  class_model       ClassModel?  @relation(fields: [class_id], references: [id], onDelete: Cascade)
+  instructor        Instructor?  @relation("ScheduledInstructor", fields: [instructor_id], references: [id], onDelete: SetNull)
+  actual_instructor Instructor?  @relation("ActualInstructor", fields: [actual_instructor_id], references: [id], onDelete: SetNull)
+  bookings          Booking[]
 
   @@index([class_id])
   @@index([instructor_id])
+  @@index([actual_instructor_id])
   @@index([start_time])
   /// Prevent duplicate schedules at the same slot for the same class+instructor.
   @@unique([start_time, class_id, instructor_id], name: "class_schedules_slot_unique")
@@ -221,6 +233,7 @@ model PackageType {
   is_unlimited        Boolean  @default(false)
   description         String?
   created_at          DateTime @default(now())
+  updated_at          DateTime @default(now()) @updatedAt
 
   user_packages UserPackage[]
 
@@ -239,6 +252,7 @@ model Package {
   display_order    Int?
   is_active        Boolean  @default(true)
   created_at       DateTime @default(now())
+  updated_at       DateTime @default(now()) @updatedAt
 
   user_packages UserPackage[]
 
@@ -263,6 +277,7 @@ model UserPackage {
   coupon_id         String?
   purchase_discount_inr Decimal? @db.Decimal(10, 2)
   created_at        DateTime  @default(now())
+  updated_at        DateTime  @default(now()) @updatedAt
 
   profile      Profile     @relation(fields: [user_id], references: [id], onDelete: Cascade)
   package_type PackageType @relation(fields: [package_type_id], references: [id], onDelete: Restrict)
@@ -289,6 +304,7 @@ model Booking {
   status            String    @default("confirmed")
   booking_date      DateTime  @default(now())
   created_at        DateTime  @default(now())
+  updated_at        DateTime  @default(now()) @updatedAt
   cancellation_date DateTime?
   class_name        String?
   class_time        String?
@@ -317,7 +333,7 @@ model Booking {
   @@index([status, booking_date])
   @@index([checked_in, booking_date])
   @@index([check_in_outcome, booking_date])
-  @@map("bookings")
+  @@map("class_bookings")
 }
 
 /// Razorpay Orders API (`order_*`). Amounts in paise (smallest currency unit) per Razorpay docs / MCP.
@@ -337,7 +353,7 @@ model RazorpayOrder {
   notes             Json?
 
   created_at DateTime @default(now())
-  updated_at DateTime @updatedAt
+  updated_at DateTime @default(now()) @updatedAt
 
   profile      Profile           @relation(fields: [user_id], references: [id], onDelete: Cascade)
   booking      Booking?          @relation(fields: [booking_id], references: [id], onDelete: SetNull)
@@ -362,7 +378,7 @@ model RazorpayPayment {
   failure_reason       String?
 
   created_at DateTime @default(now())
-  updated_at DateTime @updatedAt
+  updated_at DateTime @default(now()) @updatedAt
 
   order    RazorpayOrder @relation(fields: [razorpay_order_id], references: [razorpay_order_id], onDelete: Cascade)
   payments Payment[]
@@ -410,7 +426,7 @@ model Payment {
   razorpay_order_id   String?
 
   created_at DateTime @default(now())
-  updated_at DateTime @updatedAt
+  updated_at DateTime @default(now()) @updatedAt
 
   profile           Profile          @relation(fields: [user_id], references: [id], onDelete: Cascade)
   user_package      UserPackage?     @relation(fields: [user_package_id], references: [id], onDelete: SetNull)
@@ -436,6 +452,7 @@ model CafeItem {
   image_url    String?
   is_available Boolean  @default(true)
   created_at   DateTime @default(now())
+  updated_at   DateTime @default(now()) @updatedAt
 
   cafe_orders CafeOrder[]
 
@@ -452,6 +469,7 @@ model CafeOrder {
   status         String   @default("pending")
   order_date     DateTime @default(now())
   created_at     DateTime @default(now())
+  updated_at     DateTime @default(now()) @updatedAt
   coupon_id      String?
   discount_inr   Decimal  @default(0) @db.Decimal(10, 2)
   batch_id       String?
@@ -480,6 +498,7 @@ model MealSubscription {
   next_billing_date DateTime
   status           String   @default("active")
   created_at       DateTime @default(now())
+  updated_at       DateTime @default(now()) @updatedAt
 
   profile Profile @relation(fields: [user_id], references: [id], onDelete: Cascade)
 
@@ -497,7 +516,7 @@ model MealSubscriptionInquiry {
   status     String   @default("new")
   source     String   @default("meal_subscription_waitlist")
   created_at DateTime @default(now())
-  updated_at DateTime @updatedAt
+  updated_at DateTime @default(now()) @updatedAt
 
   @@index([email])
   @@index([created_at])
@@ -518,7 +537,7 @@ model RentalInquiry {
   message     String?
   status      String   @default("new")
   created_at  DateTime @default(now())
-  updated_at  DateTime @updatedAt
+  updated_at  DateTime @default(now()) @updatedAt
 
   @@index([email])
   @@index([created_at])
@@ -533,7 +552,7 @@ model UserStats {
   longest_streak        Int       @default(0)
   last_class_date       DateTime?
   created_at            DateTime  @default(now())
-  updated_at            DateTime  @updatedAt
+  updated_at            DateTime  @default(now()) @updatedAt
 
   profile Profile @relation(fields: [user_id], references: [id], onDelete: Cascade)
 
@@ -547,7 +566,8 @@ model UserStreak {
   longest_streak       Int       @default(0)
   last_class_date      DateTime?
   last_attendance_date DateTime?
-  updated_at           DateTime  @updatedAt
+  created_at           DateTime  @default(now())
+  updated_at           DateTime  @default(now()) @updatedAt
 
   profile Profile @relation(fields: [user_id], references: [id], onDelete: Cascade)
 
@@ -565,7 +585,7 @@ model BadgeTemplate {
   is_active         Boolean     @default(true)
   sort_order        Int         @default(0)
   created_at        DateTime    @default(now())
-  updated_at        DateTime    @updatedAt
+  updated_at        DateTime    @default(now()) @updatedAt
 
   user_badges       UserBadge[]
 
@@ -585,6 +605,8 @@ model UserBadge {
   icon              String?  @default("🏆")
   color             String?  @default("#7C9070")
   allocated_by      String?  // admin user id for custom badges
+  created_at        DateTime @default(now())
+  updated_at        DateTime @default(now()) @updatedAt
 
   profile        Profile        @relation(fields: [user_id], references: [id], onDelete: Cascade)
   badge_template BadgeTemplate? @relation(fields: [badge_template_id], references: [id], onDelete: SetNull)
@@ -602,6 +624,7 @@ model Waiver {
   document_url String?
   ip_address   String?
   created_at   DateTime @default(now())
+  updated_at   DateTime @default(now()) @updatedAt
 
   profile Profile @relation(fields: [user_id], references: [id], onDelete: Cascade)
 
@@ -621,7 +644,7 @@ model CrmTemplate {
   channel_whatsapp  Boolean  @default(false)
   variables         Json     @default("[]")
   created_at        DateTime @default(now())
-  updated_at        DateTime @updatedAt
+  updated_at        DateTime @default(now()) @updatedAt
 
   crm_messages CrmMessage[]
   crm_triggers CrmTrigger[]
@@ -641,6 +664,7 @@ model CrmMessage {
   sent_at      DateTime?
   error_message String?
   created_at   DateTime  @default(now())
+  updated_at   DateTime  @default(now()) @updatedAt
 
   profile  Profile?     @relation(fields: [user_id], references: [id], onDelete: Cascade)
   template CrmTemplate? @relation(fields: [template_id], references: [id], onDelete: SetNull)
@@ -660,7 +684,7 @@ model CrmTrigger {
   channel_email    Boolean  @default(false)
   channel_whatsapp Boolean  @default(false)
   created_at       DateTime @default(now())
-  updated_at       DateTime @updatedAt
+  updated_at       DateTime @default(now()) @updatedAt
 
   template CrmTemplate? @relation(fields: [template_id], references: [id], onDelete: Cascade)
 
@@ -677,7 +701,7 @@ model UserActivitySession {
   ip           String?
   referrer     String?
   started_at   DateTime  @default(now())
-  last_seen_at DateTime  @updatedAt
+  last_seen_at DateTime  @default(now()) @updatedAt
   ended_at     DateTime?
 
   profile Profile?            @relation(fields: [profile_id], references: [id], onDelete: SetNull)
@@ -729,7 +753,7 @@ model MemberTicket {
   status         String   @default("open")
   admin_note     String?
   created_at     DateTime @default(now())
-  updated_at     DateTime @updatedAt
+  updated_at     DateTime @default(now()) @updatedAt
 
   profile Profile @relation(fields: [user_id], references: [id], onDelete: Cascade)
 
@@ -745,6 +769,7 @@ model PasswordResetToken {
   expires_at DateTime
   used       Boolean  @default(false)
   created_at DateTime @default(now())
+  updated_at DateTime @default(now()) @updatedAt
 
   @@index([email])
   @@map("password_reset_tokens")

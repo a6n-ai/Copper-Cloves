@@ -58,6 +58,7 @@ export type UserPackageMinAggregateOutputType = {
   coupon_id: string | null
   purchase_discount_inr: runtime.Decimal | null
   created_at: Date | null
+  updated_at: Date | null
 }
 
 export type UserPackageMaxAggregateOutputType = {
@@ -78,6 +79,7 @@ export type UserPackageMaxAggregateOutputType = {
   coupon_id: string | null
   purchase_discount_inr: runtime.Decimal | null
   created_at: Date | null
+  updated_at: Date | null
 }
 
 export type UserPackageCountAggregateOutputType = {
@@ -98,6 +100,7 @@ export type UserPackageCountAggregateOutputType = {
   coupon_id: number
   purchase_discount_inr: number
   created_at: number
+  updated_at: number
   _all: number
 }
 
@@ -134,6 +137,7 @@ export type UserPackageMinAggregateInputType = {
   coupon_id?: true
   purchase_discount_inr?: true
   created_at?: true
+  updated_at?: true
 }
 
 export type UserPackageMaxAggregateInputType = {
@@ -154,6 +158,7 @@ export type UserPackageMaxAggregateInputType = {
   coupon_id?: true
   purchase_discount_inr?: true
   created_at?: true
+  updated_at?: true
 }
 
 export type UserPackageCountAggregateInputType = {
@@ -174,6 +179,7 @@ export type UserPackageCountAggregateInputType = {
   coupon_id?: true
   purchase_discount_inr?: true
   created_at?: true
+  updated_at?: true
   _all?: true
 }
 
@@ -281,6 +287,7 @@ export type UserPackageGroupByOutputType = {
   coupon_id: string | null
   purchase_discount_inr: runtime.Decimal | null
   created_at: Date
+  updated_at: Date
   _count: UserPackageCountAggregateOutputType | null
   _avg: UserPackageAvgAggregateOutputType | null
   _sum: UserPackageSumAggregateOutputType | null
@@ -324,6 +331,7 @@ export type UserPackageWhereInput = {
   coupon_id?: Prisma.StringNullableFilter<"UserPackage"> | string | null
   purchase_discount_inr?: Prisma.DecimalNullableFilter<"UserPackage"> | runtime.Decimal | runtime.DecimalJsLike | number | string | null
   created_at?: Prisma.DateTimeFilter<"UserPackage"> | Date | string
+  updated_at?: Prisma.DateTimeFilter<"UserPackage"> | Date | string
   profile?: Prisma.XOR<Prisma.ProfileScalarRelationFilter, Prisma.ProfileWhereInput>
   package_type?: Prisma.XOR<Prisma.PackageTypeScalarRelationFilter, Prisma.PackageTypeWhereInput>
   package?: Prisma.XOR<Prisma.PackageNullableScalarRelationFilter, Prisma.PackageWhereInput> | null
@@ -351,6 +359,7 @@ export type UserPackageOrderByWithRelationInput = {
   coupon_id?: Prisma.SortOrderInput | Prisma.SortOrder
   purchase_discount_inr?: Prisma.SortOrderInput | Prisma.SortOrder
   created_at?: Prisma.SortOrder
+  updated_at?: Prisma.SortOrder
   profile?: Prisma.ProfileOrderByWithRelationInput
   package_type?: Prisma.PackageTypeOrderByWithRelationInput
   package?: Prisma.PackageOrderByWithRelationInput
@@ -381,6 +390,7 @@ export type UserPackageWhereUniqueInput = Prisma.AtLeast<{
   coupon_id?: Prisma.StringNullableFilter<"UserPackage"> | string | null
   purchase_discount_inr?: Prisma.DecimalNullableFilter<"UserPackage"> | runtime.Decimal | runtime.DecimalJsLike | number | string | null
   created_at?: Prisma.DateTimeFilter<"UserPackage"> | Date | string
+  updated_at?: Prisma.DateTimeFilter<"UserPackage"> | Date | string
   profile?: Prisma.XOR<Prisma.ProfileScalarRelationFilter, Prisma.ProfileWhereInput>
   package_type?: Prisma.XOR<Prisma.PackageTypeScalarRelationFilter, Prisma.PackageTypeWhereInput>
   package?: Prisma.XOR<Prisma.PackageNullableScalarRelationFilter, Prisma.PackageWhereInput> | null
@@ -408,6 +418,7 @@ export type UserPackageOrderByWithAggregationInput = {
   coupon_id?: Prisma.SortOrderInput | Prisma.SortOrder
   purchase_discount_inr?: Prisma.SortOrderInput | Prisma.SortOrder
   created_at?: Prisma.SortOrder
+  updated_at?: Prisma.SortOrder
   _count?: Prisma.UserPackageCountOrderByAggregateInput
   _avg?: Prisma.UserPackageAvgOrderByAggregateInput
   _max?: Prisma.UserPackageMaxOrderByAggregateInput
@@ -436,6 +447,7 @@ export type UserPackageScalarWhereWithAggregatesInput = {
   coupon_id?: Prisma.StringNullableWithAggregatesFilter<"UserPackage"> | string | null
   purchase_discount_inr?: Prisma.DecimalNullableWithAggregatesFilter<"UserPackage"> | runtime.Decimal | runtime.DecimalJsLike | number | string | null
   created_at?: Prisma.DateTimeWithAggregatesFilter<"UserPackage"> | Date | string
+  updated_at?: Prisma.DateTimeWithAggregatesFilter<"UserPackage"> | Date | string
 }
 
 export type UserPackageCreateInput = {
@@ -452,6 +464,7 @@ export type UserPackageCreateInput = {
   pass_type?: string | null
   purchase_discount_inr?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
   created_at?: Date | string
+  updated_at?: Date | string
   profile: Prisma.ProfileCreateNestedOneWithoutUser_packagesInput
   package_type: Prisma.PackageTypeCreateNestedOneWithoutUser_packagesInput
   package?: Prisma.PackageCreateNestedOneWithoutUser_packagesInput
@@ -479,6 +492,7 @@ export type UserPackageUncheckedCreateInput = {
   coupon_id?: string | null
   purchase_discount_inr?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
   created_at?: Date | string
+  updated_at?: Date | string
   bookings?: Prisma.BookingUncheckedCreateNestedManyWithoutUser_packageInput
   razorpay_order?: Prisma.RazorpayOrderUncheckedCreateNestedOneWithoutUser_packageInput
   payments?: Prisma.PaymentUncheckedCreateNestedManyWithoutUser_packageInput
@@ -498,6 +512,7 @@ export type UserPackageUpdateInput = {
   pass_type?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   purchase_discount_inr?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
   created_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updated_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   profile?: Prisma.ProfileUpdateOneRequiredWithoutUser_packagesNestedInput
   package_type?: Prisma.PackageTypeUpdateOneRequiredWithoutUser_packagesNestedInput
   package?: Prisma.PackageUpdateOneWithoutUser_packagesNestedInput
@@ -525,6 +540,7 @@ export type UserPackageUncheckedUpdateInput = {
   coupon_id?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   purchase_discount_inr?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
   created_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updated_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   bookings?: Prisma.BookingUncheckedUpdateManyWithoutUser_packageNestedInput
   razorpay_order?: Prisma.RazorpayOrderUncheckedUpdateOneWithoutUser_packageNestedInput
   payments?: Prisma.PaymentUncheckedUpdateManyWithoutUser_packageNestedInput
@@ -548,6 +564,7 @@ export type UserPackageCreateManyInput = {
   coupon_id?: string | null
   purchase_discount_inr?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
   created_at?: Date | string
+  updated_at?: Date | string
 }
 
 export type UserPackageUpdateManyMutationInput = {
@@ -564,6 +581,7 @@ export type UserPackageUpdateManyMutationInput = {
   pass_type?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   purchase_discount_inr?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
   created_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updated_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
 }
 
 export type UserPackageUncheckedUpdateManyInput = {
@@ -584,6 +602,7 @@ export type UserPackageUncheckedUpdateManyInput = {
   coupon_id?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   purchase_discount_inr?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
   created_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updated_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
 }
 
 export type UserPackageListRelationFilter = {
@@ -614,6 +633,7 @@ export type UserPackageCountOrderByAggregateInput = {
   coupon_id?: Prisma.SortOrder
   purchase_discount_inr?: Prisma.SortOrder
   created_at?: Prisma.SortOrder
+  updated_at?: Prisma.SortOrder
 }
 
 export type UserPackageAvgOrderByAggregateInput = {
@@ -641,6 +661,7 @@ export type UserPackageMaxOrderByAggregateInput = {
   coupon_id?: Prisma.SortOrder
   purchase_discount_inr?: Prisma.SortOrder
   created_at?: Prisma.SortOrder
+  updated_at?: Prisma.SortOrder
 }
 
 export type UserPackageMinOrderByAggregateInput = {
@@ -661,6 +682,7 @@ export type UserPackageMinOrderByAggregateInput = {
   coupon_id?: Prisma.SortOrder
   purchase_discount_inr?: Prisma.SortOrder
   created_at?: Prisma.SortOrder
+  updated_at?: Prisma.SortOrder
 }
 
 export type UserPackageSumOrderByAggregateInput = {
@@ -905,6 +927,7 @@ export type UserPackageCreateWithoutProfileInput = {
   pass_type?: string | null
   purchase_discount_inr?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
   created_at?: Date | string
+  updated_at?: Date | string
   package_type: Prisma.PackageTypeCreateNestedOneWithoutUser_packagesInput
   package?: Prisma.PackageCreateNestedOneWithoutUser_packagesInput
   coupon?: Prisma.CouponCreateNestedOneWithoutUser_packagesInput
@@ -930,6 +953,7 @@ export type UserPackageUncheckedCreateWithoutProfileInput = {
   coupon_id?: string | null
   purchase_discount_inr?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
   created_at?: Date | string
+  updated_at?: Date | string
   bookings?: Prisma.BookingUncheckedCreateNestedManyWithoutUser_packageInput
   razorpay_order?: Prisma.RazorpayOrderUncheckedCreateNestedOneWithoutUser_packageInput
   payments?: Prisma.PaymentUncheckedCreateNestedManyWithoutUser_packageInput
@@ -982,6 +1006,7 @@ export type UserPackageScalarWhereInput = {
   coupon_id?: Prisma.StringNullableFilter<"UserPackage"> | string | null
   purchase_discount_inr?: Prisma.DecimalNullableFilter<"UserPackage"> | runtime.Decimal | runtime.DecimalJsLike | number | string | null
   created_at?: Prisma.DateTimeFilter<"UserPackage"> | Date | string
+  updated_at?: Prisma.DateTimeFilter<"UserPackage"> | Date | string
 }
 
 export type UserPackageCreateWithoutCouponInput = {
@@ -998,6 +1023,7 @@ export type UserPackageCreateWithoutCouponInput = {
   pass_type?: string | null
   purchase_discount_inr?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
   created_at?: Date | string
+  updated_at?: Date | string
   profile: Prisma.ProfileCreateNestedOneWithoutUser_packagesInput
   package_type: Prisma.PackageTypeCreateNestedOneWithoutUser_packagesInput
   package?: Prisma.PackageCreateNestedOneWithoutUser_packagesInput
@@ -1023,6 +1049,7 @@ export type UserPackageUncheckedCreateWithoutCouponInput = {
   pass_type?: string | null
   purchase_discount_inr?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
   created_at?: Date | string
+  updated_at?: Date | string
   bookings?: Prisma.BookingUncheckedCreateNestedManyWithoutUser_packageInput
   razorpay_order?: Prisma.RazorpayOrderUncheckedCreateNestedOneWithoutUser_packageInput
   payments?: Prisma.PaymentUncheckedCreateNestedManyWithoutUser_packageInput
@@ -1068,6 +1095,7 @@ export type UserPackageCreateWithoutPackage_typeInput = {
   pass_type?: string | null
   purchase_discount_inr?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
   created_at?: Date | string
+  updated_at?: Date | string
   profile: Prisma.ProfileCreateNestedOneWithoutUser_packagesInput
   package?: Prisma.PackageCreateNestedOneWithoutUser_packagesInput
   coupon?: Prisma.CouponCreateNestedOneWithoutUser_packagesInput
@@ -1093,6 +1121,7 @@ export type UserPackageUncheckedCreateWithoutPackage_typeInput = {
   coupon_id?: string | null
   purchase_discount_inr?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
   created_at?: Date | string
+  updated_at?: Date | string
   bookings?: Prisma.BookingUncheckedCreateNestedManyWithoutUser_packageInput
   razorpay_order?: Prisma.RazorpayOrderUncheckedCreateNestedOneWithoutUser_packageInput
   payments?: Prisma.PaymentUncheckedCreateNestedManyWithoutUser_packageInput
@@ -1138,6 +1167,7 @@ export type UserPackageCreateWithoutPackageInput = {
   pass_type?: string | null
   purchase_discount_inr?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
   created_at?: Date | string
+  updated_at?: Date | string
   profile: Prisma.ProfileCreateNestedOneWithoutUser_packagesInput
   package_type: Prisma.PackageTypeCreateNestedOneWithoutUser_packagesInput
   coupon?: Prisma.CouponCreateNestedOneWithoutUser_packagesInput
@@ -1163,6 +1193,7 @@ export type UserPackageUncheckedCreateWithoutPackageInput = {
   coupon_id?: string | null
   purchase_discount_inr?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
   created_at?: Date | string
+  updated_at?: Date | string
   bookings?: Prisma.BookingUncheckedCreateNestedManyWithoutUser_packageInput
   razorpay_order?: Prisma.RazorpayOrderUncheckedCreateNestedOneWithoutUser_packageInput
   payments?: Prisma.PaymentUncheckedCreateNestedManyWithoutUser_packageInput
@@ -1208,6 +1239,7 @@ export type UserPackageCreateWithoutBookingsInput = {
   pass_type?: string | null
   purchase_discount_inr?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
   created_at?: Date | string
+  updated_at?: Date | string
   profile: Prisma.ProfileCreateNestedOneWithoutUser_packagesInput
   package_type: Prisma.PackageTypeCreateNestedOneWithoutUser_packagesInput
   package?: Prisma.PackageCreateNestedOneWithoutUser_packagesInput
@@ -1234,6 +1266,7 @@ export type UserPackageUncheckedCreateWithoutBookingsInput = {
   coupon_id?: string | null
   purchase_discount_inr?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
   created_at?: Date | string
+  updated_at?: Date | string
   razorpay_order?: Prisma.RazorpayOrderUncheckedCreateNestedOneWithoutUser_packageInput
   payments?: Prisma.PaymentUncheckedCreateNestedManyWithoutUser_packageInput
 }
@@ -1268,6 +1301,7 @@ export type UserPackageUpdateWithoutBookingsInput = {
   pass_type?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   purchase_discount_inr?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
   created_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updated_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   profile?: Prisma.ProfileUpdateOneRequiredWithoutUser_packagesNestedInput
   package_type?: Prisma.PackageTypeUpdateOneRequiredWithoutUser_packagesNestedInput
   package?: Prisma.PackageUpdateOneWithoutUser_packagesNestedInput
@@ -1294,6 +1328,7 @@ export type UserPackageUncheckedUpdateWithoutBookingsInput = {
   coupon_id?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   purchase_discount_inr?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
   created_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updated_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   razorpay_order?: Prisma.RazorpayOrderUncheckedUpdateOneWithoutUser_packageNestedInput
   payments?: Prisma.PaymentUncheckedUpdateManyWithoutUser_packageNestedInput
 }
@@ -1312,6 +1347,7 @@ export type UserPackageCreateWithoutRazorpay_orderInput = {
   pass_type?: string | null
   purchase_discount_inr?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
   created_at?: Date | string
+  updated_at?: Date | string
   profile: Prisma.ProfileCreateNestedOneWithoutUser_packagesInput
   package_type: Prisma.PackageTypeCreateNestedOneWithoutUser_packagesInput
   package?: Prisma.PackageCreateNestedOneWithoutUser_packagesInput
@@ -1338,6 +1374,7 @@ export type UserPackageUncheckedCreateWithoutRazorpay_orderInput = {
   coupon_id?: string | null
   purchase_discount_inr?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
   created_at?: Date | string
+  updated_at?: Date | string
   bookings?: Prisma.BookingUncheckedCreateNestedManyWithoutUser_packageInput
   payments?: Prisma.PaymentUncheckedCreateNestedManyWithoutUser_packageInput
 }
@@ -1372,6 +1409,7 @@ export type UserPackageUpdateWithoutRazorpay_orderInput = {
   pass_type?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   purchase_discount_inr?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
   created_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updated_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   profile?: Prisma.ProfileUpdateOneRequiredWithoutUser_packagesNestedInput
   package_type?: Prisma.PackageTypeUpdateOneRequiredWithoutUser_packagesNestedInput
   package?: Prisma.PackageUpdateOneWithoutUser_packagesNestedInput
@@ -1398,6 +1436,7 @@ export type UserPackageUncheckedUpdateWithoutRazorpay_orderInput = {
   coupon_id?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   purchase_discount_inr?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
   created_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updated_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   bookings?: Prisma.BookingUncheckedUpdateManyWithoutUser_packageNestedInput
   payments?: Prisma.PaymentUncheckedUpdateManyWithoutUser_packageNestedInput
 }
@@ -1416,6 +1455,7 @@ export type UserPackageCreateWithoutPaymentsInput = {
   pass_type?: string | null
   purchase_discount_inr?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
   created_at?: Date | string
+  updated_at?: Date | string
   profile: Prisma.ProfileCreateNestedOneWithoutUser_packagesInput
   package_type: Prisma.PackageTypeCreateNestedOneWithoutUser_packagesInput
   package?: Prisma.PackageCreateNestedOneWithoutUser_packagesInput
@@ -1442,6 +1482,7 @@ export type UserPackageUncheckedCreateWithoutPaymentsInput = {
   coupon_id?: string | null
   purchase_discount_inr?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
   created_at?: Date | string
+  updated_at?: Date | string
   bookings?: Prisma.BookingUncheckedCreateNestedManyWithoutUser_packageInput
   razorpay_order?: Prisma.RazorpayOrderUncheckedCreateNestedOneWithoutUser_packageInput
 }
@@ -1476,6 +1517,7 @@ export type UserPackageUpdateWithoutPaymentsInput = {
   pass_type?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   purchase_discount_inr?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
   created_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updated_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   profile?: Prisma.ProfileUpdateOneRequiredWithoutUser_packagesNestedInput
   package_type?: Prisma.PackageTypeUpdateOneRequiredWithoutUser_packagesNestedInput
   package?: Prisma.PackageUpdateOneWithoutUser_packagesNestedInput
@@ -1502,6 +1544,7 @@ export type UserPackageUncheckedUpdateWithoutPaymentsInput = {
   coupon_id?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   purchase_discount_inr?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
   created_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updated_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   bookings?: Prisma.BookingUncheckedUpdateManyWithoutUser_packageNestedInput
   razorpay_order?: Prisma.RazorpayOrderUncheckedUpdateOneWithoutUser_packageNestedInput
 }
@@ -1523,6 +1566,7 @@ export type UserPackageCreateManyProfileInput = {
   coupon_id?: string | null
   purchase_discount_inr?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
   created_at?: Date | string
+  updated_at?: Date | string
 }
 
 export type UserPackageUpdateWithoutProfileInput = {
@@ -1539,6 +1583,7 @@ export type UserPackageUpdateWithoutProfileInput = {
   pass_type?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   purchase_discount_inr?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
   created_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updated_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   package_type?: Prisma.PackageTypeUpdateOneRequiredWithoutUser_packagesNestedInput
   package?: Prisma.PackageUpdateOneWithoutUser_packagesNestedInput
   coupon?: Prisma.CouponUpdateOneWithoutUser_packagesNestedInput
@@ -1564,6 +1609,7 @@ export type UserPackageUncheckedUpdateWithoutProfileInput = {
   coupon_id?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   purchase_discount_inr?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
   created_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updated_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   bookings?: Prisma.BookingUncheckedUpdateManyWithoutUser_packageNestedInput
   razorpay_order?: Prisma.RazorpayOrderUncheckedUpdateOneWithoutUser_packageNestedInput
   payments?: Prisma.PaymentUncheckedUpdateManyWithoutUser_packageNestedInput
@@ -1586,6 +1632,7 @@ export type UserPackageUncheckedUpdateManyWithoutProfileInput = {
   coupon_id?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   purchase_discount_inr?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
   created_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updated_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
 }
 
 export type UserPackageCreateManyCouponInput = {
@@ -1605,6 +1652,7 @@ export type UserPackageCreateManyCouponInput = {
   pass_type?: string | null
   purchase_discount_inr?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
   created_at?: Date | string
+  updated_at?: Date | string
 }
 
 export type UserPackageUpdateWithoutCouponInput = {
@@ -1621,6 +1669,7 @@ export type UserPackageUpdateWithoutCouponInput = {
   pass_type?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   purchase_discount_inr?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
   created_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updated_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   profile?: Prisma.ProfileUpdateOneRequiredWithoutUser_packagesNestedInput
   package_type?: Prisma.PackageTypeUpdateOneRequiredWithoutUser_packagesNestedInput
   package?: Prisma.PackageUpdateOneWithoutUser_packagesNestedInput
@@ -1646,6 +1695,7 @@ export type UserPackageUncheckedUpdateWithoutCouponInput = {
   pass_type?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   purchase_discount_inr?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
   created_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updated_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   bookings?: Prisma.BookingUncheckedUpdateManyWithoutUser_packageNestedInput
   razorpay_order?: Prisma.RazorpayOrderUncheckedUpdateOneWithoutUser_packageNestedInput
   payments?: Prisma.PaymentUncheckedUpdateManyWithoutUser_packageNestedInput
@@ -1668,6 +1718,7 @@ export type UserPackageUncheckedUpdateManyWithoutCouponInput = {
   pass_type?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   purchase_discount_inr?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
   created_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updated_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
 }
 
 export type UserPackageCreateManyPackage_typeInput = {
@@ -1687,6 +1738,7 @@ export type UserPackageCreateManyPackage_typeInput = {
   coupon_id?: string | null
   purchase_discount_inr?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
   created_at?: Date | string
+  updated_at?: Date | string
 }
 
 export type UserPackageUpdateWithoutPackage_typeInput = {
@@ -1703,6 +1755,7 @@ export type UserPackageUpdateWithoutPackage_typeInput = {
   pass_type?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   purchase_discount_inr?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
   created_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updated_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   profile?: Prisma.ProfileUpdateOneRequiredWithoutUser_packagesNestedInput
   package?: Prisma.PackageUpdateOneWithoutUser_packagesNestedInput
   coupon?: Prisma.CouponUpdateOneWithoutUser_packagesNestedInput
@@ -1728,6 +1781,7 @@ export type UserPackageUncheckedUpdateWithoutPackage_typeInput = {
   coupon_id?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   purchase_discount_inr?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
   created_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updated_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   bookings?: Prisma.BookingUncheckedUpdateManyWithoutUser_packageNestedInput
   razorpay_order?: Prisma.RazorpayOrderUncheckedUpdateOneWithoutUser_packageNestedInput
   payments?: Prisma.PaymentUncheckedUpdateManyWithoutUser_packageNestedInput
@@ -1750,6 +1804,7 @@ export type UserPackageUncheckedUpdateManyWithoutPackage_typeInput = {
   coupon_id?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   purchase_discount_inr?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
   created_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updated_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
 }
 
 export type UserPackageCreateManyPackageInput = {
@@ -1769,6 +1824,7 @@ export type UserPackageCreateManyPackageInput = {
   coupon_id?: string | null
   purchase_discount_inr?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
   created_at?: Date | string
+  updated_at?: Date | string
 }
 
 export type UserPackageUpdateWithoutPackageInput = {
@@ -1785,6 +1841,7 @@ export type UserPackageUpdateWithoutPackageInput = {
   pass_type?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   purchase_discount_inr?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
   created_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updated_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   profile?: Prisma.ProfileUpdateOneRequiredWithoutUser_packagesNestedInput
   package_type?: Prisma.PackageTypeUpdateOneRequiredWithoutUser_packagesNestedInput
   coupon?: Prisma.CouponUpdateOneWithoutUser_packagesNestedInput
@@ -1810,6 +1867,7 @@ export type UserPackageUncheckedUpdateWithoutPackageInput = {
   coupon_id?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   purchase_discount_inr?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
   created_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updated_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   bookings?: Prisma.BookingUncheckedUpdateManyWithoutUser_packageNestedInput
   razorpay_order?: Prisma.RazorpayOrderUncheckedUpdateOneWithoutUser_packageNestedInput
   payments?: Prisma.PaymentUncheckedUpdateManyWithoutUser_packageNestedInput
@@ -1832,6 +1890,7 @@ export type UserPackageUncheckedUpdateManyWithoutPackageInput = {
   coupon_id?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   purchase_discount_inr?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
   created_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updated_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
 }
 
 
@@ -1892,6 +1951,7 @@ export type UserPackageSelect<ExtArgs extends runtime.Types.Extensions.InternalA
   coupon_id?: boolean
   purchase_discount_inr?: boolean
   created_at?: boolean
+  updated_at?: boolean
   profile?: boolean | Prisma.ProfileDefaultArgs<ExtArgs>
   package_type?: boolean | Prisma.PackageTypeDefaultArgs<ExtArgs>
   package?: boolean | Prisma.UserPackage$packageArgs<ExtArgs>
@@ -1920,6 +1980,7 @@ export type UserPackageSelectCreateManyAndReturn<ExtArgs extends runtime.Types.E
   coupon_id?: boolean
   purchase_discount_inr?: boolean
   created_at?: boolean
+  updated_at?: boolean
   profile?: boolean | Prisma.ProfileDefaultArgs<ExtArgs>
   package_type?: boolean | Prisma.PackageTypeDefaultArgs<ExtArgs>
   package?: boolean | Prisma.UserPackage$packageArgs<ExtArgs>
@@ -1944,6 +2005,7 @@ export type UserPackageSelectUpdateManyAndReturn<ExtArgs extends runtime.Types.E
   coupon_id?: boolean
   purchase_discount_inr?: boolean
   created_at?: boolean
+  updated_at?: boolean
   profile?: boolean | Prisma.ProfileDefaultArgs<ExtArgs>
   package_type?: boolean | Prisma.PackageTypeDefaultArgs<ExtArgs>
   package?: boolean | Prisma.UserPackage$packageArgs<ExtArgs>
@@ -1968,9 +2030,10 @@ export type UserPackageSelectScalar = {
   coupon_id?: boolean
   purchase_discount_inr?: boolean
   created_at?: boolean
+  updated_at?: boolean
 }
 
-export type UserPackageOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "user_id" | "package_type_id" | "package_id" | "credits_remaining" | "credits_total" | "classes_remaining" | "expiration_date" | "purchase_date" | "is_active" | "is_paused" | "pause_start_date" | "pause_end_date" | "pass_type" | "coupon_id" | "purchase_discount_inr" | "created_at", ExtArgs["result"]["userPackage"]>
+export type UserPackageOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "user_id" | "package_type_id" | "package_id" | "credits_remaining" | "credits_total" | "classes_remaining" | "expiration_date" | "purchase_date" | "is_active" | "is_paused" | "pause_start_date" | "pause_end_date" | "pass_type" | "coupon_id" | "purchase_discount_inr" | "created_at" | "updated_at", ExtArgs["result"]["userPackage"]>
 export type UserPackageInclude<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   profile?: boolean | Prisma.ProfileDefaultArgs<ExtArgs>
   package_type?: boolean | Prisma.PackageTypeDefaultArgs<ExtArgs>
@@ -2023,6 +2086,7 @@ export type $UserPackagePayload<ExtArgs extends runtime.Types.Extensions.Interna
     coupon_id: string | null
     purchase_discount_inr: runtime.Decimal | null
     created_at: Date
+    updated_at: Date
   }, ExtArgs["result"]["userPackage"]>
   composites: {}
 }
@@ -2470,6 +2534,7 @@ export interface UserPackageFieldRefs {
   readonly coupon_id: Prisma.FieldRef<"UserPackage", 'String'>
   readonly purchase_discount_inr: Prisma.FieldRef<"UserPackage", 'Decimal'>
   readonly created_at: Prisma.FieldRef<"UserPackage", 'DateTime'>
+  readonly updated_at: Prisma.FieldRef<"UserPackage", 'DateTime'>
 }
     
 

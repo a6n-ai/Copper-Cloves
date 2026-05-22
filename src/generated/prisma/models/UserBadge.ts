@@ -49,6 +49,8 @@ export type UserBadgeMinAggregateOutputType = {
   icon: string | null
   color: string | null
   allocated_by: string | null
+  created_at: Date | null
+  updated_at: Date | null
 }
 
 export type UserBadgeMaxAggregateOutputType = {
@@ -64,6 +66,8 @@ export type UserBadgeMaxAggregateOutputType = {
   icon: string | null
   color: string | null
   allocated_by: string | null
+  created_at: Date | null
+  updated_at: Date | null
 }
 
 export type UserBadgeCountAggregateOutputType = {
@@ -79,6 +83,8 @@ export type UserBadgeCountAggregateOutputType = {
   icon: number
   color: number
   allocated_by: number
+  created_at: number
+  updated_at: number
   _all: number
 }
 
@@ -106,6 +112,8 @@ export type UserBadgeMinAggregateInputType = {
   icon?: true
   color?: true
   allocated_by?: true
+  created_at?: true
+  updated_at?: true
 }
 
 export type UserBadgeMaxAggregateInputType = {
@@ -121,6 +129,8 @@ export type UserBadgeMaxAggregateInputType = {
   icon?: true
   color?: true
   allocated_by?: true
+  created_at?: true
+  updated_at?: true
 }
 
 export type UserBadgeCountAggregateInputType = {
@@ -136,6 +146,8 @@ export type UserBadgeCountAggregateInputType = {
   icon?: true
   color?: true
   allocated_by?: true
+  created_at?: true
+  updated_at?: true
   _all?: true
 }
 
@@ -238,6 +250,8 @@ export type UserBadgeGroupByOutputType = {
   icon: string | null
   color: string | null
   allocated_by: string | null
+  created_at: Date
+  updated_at: Date
   _count: UserBadgeCountAggregateOutputType | null
   _avg: UserBadgeAvgAggregateOutputType | null
   _sum: UserBadgeSumAggregateOutputType | null
@@ -276,6 +290,8 @@ export type UserBadgeWhereInput = {
   icon?: Prisma.StringNullableFilter<"UserBadge"> | string | null
   color?: Prisma.StringNullableFilter<"UserBadge"> | string | null
   allocated_by?: Prisma.StringNullableFilter<"UserBadge"> | string | null
+  created_at?: Prisma.DateTimeFilter<"UserBadge"> | Date | string
+  updated_at?: Prisma.DateTimeFilter<"UserBadge"> | Date | string
   profile?: Prisma.XOR<Prisma.ProfileScalarRelationFilter, Prisma.ProfileWhereInput>
   badge_template?: Prisma.XOR<Prisma.BadgeTemplateNullableScalarRelationFilter, Prisma.BadgeTemplateWhereInput> | null
 }
@@ -293,6 +309,8 @@ export type UserBadgeOrderByWithRelationInput = {
   icon?: Prisma.SortOrderInput | Prisma.SortOrder
   color?: Prisma.SortOrderInput | Prisma.SortOrder
   allocated_by?: Prisma.SortOrderInput | Prisma.SortOrder
+  created_at?: Prisma.SortOrder
+  updated_at?: Prisma.SortOrder
   profile?: Prisma.ProfileOrderByWithRelationInput
   badge_template?: Prisma.BadgeTemplateOrderByWithRelationInput
 }
@@ -313,6 +331,8 @@ export type UserBadgeWhereUniqueInput = Prisma.AtLeast<{
   icon?: Prisma.StringNullableFilter<"UserBadge"> | string | null
   color?: Prisma.StringNullableFilter<"UserBadge"> | string | null
   allocated_by?: Prisma.StringNullableFilter<"UserBadge"> | string | null
+  created_at?: Prisma.DateTimeFilter<"UserBadge"> | Date | string
+  updated_at?: Prisma.DateTimeFilter<"UserBadge"> | Date | string
   profile?: Prisma.XOR<Prisma.ProfileScalarRelationFilter, Prisma.ProfileWhereInput>
   badge_template?: Prisma.XOR<Prisma.BadgeTemplateNullableScalarRelationFilter, Prisma.BadgeTemplateWhereInput> | null
 }, "id">
@@ -330,6 +350,8 @@ export type UserBadgeOrderByWithAggregationInput = {
   icon?: Prisma.SortOrderInput | Prisma.SortOrder
   color?: Prisma.SortOrderInput | Prisma.SortOrder
   allocated_by?: Prisma.SortOrderInput | Prisma.SortOrder
+  created_at?: Prisma.SortOrder
+  updated_at?: Prisma.SortOrder
   _count?: Prisma.UserBadgeCountOrderByAggregateInput
   _avg?: Prisma.UserBadgeAvgOrderByAggregateInput
   _max?: Prisma.UserBadgeMaxOrderByAggregateInput
@@ -353,6 +375,8 @@ export type UserBadgeScalarWhereWithAggregatesInput = {
   icon?: Prisma.StringNullableWithAggregatesFilter<"UserBadge"> | string | null
   color?: Prisma.StringNullableWithAggregatesFilter<"UserBadge"> | string | null
   allocated_by?: Prisma.StringNullableWithAggregatesFilter<"UserBadge"> | string | null
+  created_at?: Prisma.DateTimeWithAggregatesFilter<"UserBadge"> | Date | string
+  updated_at?: Prisma.DateTimeWithAggregatesFilter<"UserBadge"> | Date | string
 }
 
 export type UserBadgeCreateInput = {
@@ -366,6 +390,8 @@ export type UserBadgeCreateInput = {
   icon?: string | null
   color?: string | null
   allocated_by?: string | null
+  created_at?: Date | string
+  updated_at?: Date | string
   profile: Prisma.ProfileCreateNestedOneWithoutUser_badgesInput
   badge_template?: Prisma.BadgeTemplateCreateNestedOneWithoutUser_badgesInput
 }
@@ -383,6 +409,8 @@ export type UserBadgeUncheckedCreateInput = {
   icon?: string | null
   color?: string | null
   allocated_by?: string | null
+  created_at?: Date | string
+  updated_at?: Date | string
 }
 
 export type UserBadgeUpdateInput = {
@@ -396,6 +424,8 @@ export type UserBadgeUpdateInput = {
   icon?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   color?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   allocated_by?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  created_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updated_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   profile?: Prisma.ProfileUpdateOneRequiredWithoutUser_badgesNestedInput
   badge_template?: Prisma.BadgeTemplateUpdateOneWithoutUser_badgesNestedInput
 }
@@ -413,6 +443,8 @@ export type UserBadgeUncheckedUpdateInput = {
   icon?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   color?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   allocated_by?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  created_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updated_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
 }
 
 export type UserBadgeCreateManyInput = {
@@ -428,6 +460,8 @@ export type UserBadgeCreateManyInput = {
   icon?: string | null
   color?: string | null
   allocated_by?: string | null
+  created_at?: Date | string
+  updated_at?: Date | string
 }
 
 export type UserBadgeUpdateManyMutationInput = {
@@ -441,6 +475,8 @@ export type UserBadgeUpdateManyMutationInput = {
   icon?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   color?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   allocated_by?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  created_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updated_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
 }
 
 export type UserBadgeUncheckedUpdateManyInput = {
@@ -456,6 +492,8 @@ export type UserBadgeUncheckedUpdateManyInput = {
   icon?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   color?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   allocated_by?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  created_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updated_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
 }
 
 export type UserBadgeListRelationFilter = {
@@ -481,6 +519,8 @@ export type UserBadgeCountOrderByAggregateInput = {
   icon?: Prisma.SortOrder
   color?: Prisma.SortOrder
   allocated_by?: Prisma.SortOrder
+  created_at?: Prisma.SortOrder
+  updated_at?: Prisma.SortOrder
 }
 
 export type UserBadgeAvgOrderByAggregateInput = {
@@ -501,6 +541,8 @@ export type UserBadgeMaxOrderByAggregateInput = {
   icon?: Prisma.SortOrder
   color?: Prisma.SortOrder
   allocated_by?: Prisma.SortOrder
+  created_at?: Prisma.SortOrder
+  updated_at?: Prisma.SortOrder
 }
 
 export type UserBadgeMinOrderByAggregateInput = {
@@ -516,6 +558,8 @@ export type UserBadgeMinOrderByAggregateInput = {
   icon?: Prisma.SortOrder
   color?: Prisma.SortOrder
   allocated_by?: Prisma.SortOrder
+  created_at?: Prisma.SortOrder
+  updated_at?: Prisma.SortOrder
 }
 
 export type UserBadgeSumOrderByAggregateInput = {
@@ -618,6 +662,8 @@ export type UserBadgeCreateWithoutProfileInput = {
   icon?: string | null
   color?: string | null
   allocated_by?: string | null
+  created_at?: Date | string
+  updated_at?: Date | string
   badge_template?: Prisma.BadgeTemplateCreateNestedOneWithoutUser_badgesInput
 }
 
@@ -633,6 +679,8 @@ export type UserBadgeUncheckedCreateWithoutProfileInput = {
   icon?: string | null
   color?: string | null
   allocated_by?: string | null
+  created_at?: Date | string
+  updated_at?: Date | string
 }
 
 export type UserBadgeCreateOrConnectWithoutProfileInput = {
@@ -677,6 +725,8 @@ export type UserBadgeScalarWhereInput = {
   icon?: Prisma.StringNullableFilter<"UserBadge"> | string | null
   color?: Prisma.StringNullableFilter<"UserBadge"> | string | null
   allocated_by?: Prisma.StringNullableFilter<"UserBadge"> | string | null
+  created_at?: Prisma.DateTimeFilter<"UserBadge"> | Date | string
+  updated_at?: Prisma.DateTimeFilter<"UserBadge"> | Date | string
 }
 
 export type UserBadgeCreateWithoutBadge_templateInput = {
@@ -690,6 +740,8 @@ export type UserBadgeCreateWithoutBadge_templateInput = {
   icon?: string | null
   color?: string | null
   allocated_by?: string | null
+  created_at?: Date | string
+  updated_at?: Date | string
   profile: Prisma.ProfileCreateNestedOneWithoutUser_badgesInput
 }
 
@@ -705,6 +757,8 @@ export type UserBadgeUncheckedCreateWithoutBadge_templateInput = {
   icon?: string | null
   color?: string | null
   allocated_by?: string | null
+  created_at?: Date | string
+  updated_at?: Date | string
 }
 
 export type UserBadgeCreateOrConnectWithoutBadge_templateInput = {
@@ -745,6 +799,8 @@ export type UserBadgeCreateManyProfileInput = {
   icon?: string | null
   color?: string | null
   allocated_by?: string | null
+  created_at?: Date | string
+  updated_at?: Date | string
 }
 
 export type UserBadgeUpdateWithoutProfileInput = {
@@ -758,6 +814,8 @@ export type UserBadgeUpdateWithoutProfileInput = {
   icon?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   color?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   allocated_by?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  created_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updated_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   badge_template?: Prisma.BadgeTemplateUpdateOneWithoutUser_badgesNestedInput
 }
 
@@ -773,6 +831,8 @@ export type UserBadgeUncheckedUpdateWithoutProfileInput = {
   icon?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   color?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   allocated_by?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  created_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updated_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
 }
 
 export type UserBadgeUncheckedUpdateManyWithoutProfileInput = {
@@ -787,6 +847,8 @@ export type UserBadgeUncheckedUpdateManyWithoutProfileInput = {
   icon?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   color?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   allocated_by?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  created_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updated_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
 }
 
 export type UserBadgeCreateManyBadge_templateInput = {
@@ -801,6 +863,8 @@ export type UserBadgeCreateManyBadge_templateInput = {
   icon?: string | null
   color?: string | null
   allocated_by?: string | null
+  created_at?: Date | string
+  updated_at?: Date | string
 }
 
 export type UserBadgeUpdateWithoutBadge_templateInput = {
@@ -814,6 +878,8 @@ export type UserBadgeUpdateWithoutBadge_templateInput = {
   icon?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   color?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   allocated_by?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  created_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updated_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   profile?: Prisma.ProfileUpdateOneRequiredWithoutUser_badgesNestedInput
 }
 
@@ -829,6 +895,8 @@ export type UserBadgeUncheckedUpdateWithoutBadge_templateInput = {
   icon?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   color?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   allocated_by?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  created_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updated_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
 }
 
 export type UserBadgeUncheckedUpdateManyWithoutBadge_templateInput = {
@@ -843,6 +911,8 @@ export type UserBadgeUncheckedUpdateManyWithoutBadge_templateInput = {
   icon?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   color?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   allocated_by?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  created_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updated_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
 }
 
 
@@ -860,6 +930,8 @@ export type UserBadgeSelect<ExtArgs extends runtime.Types.Extensions.InternalArg
   icon?: boolean
   color?: boolean
   allocated_by?: boolean
+  created_at?: boolean
+  updated_at?: boolean
   profile?: boolean | Prisma.ProfileDefaultArgs<ExtArgs>
   badge_template?: boolean | Prisma.UserBadge$badge_templateArgs<ExtArgs>
 }, ExtArgs["result"]["userBadge"]>
@@ -877,6 +949,8 @@ export type UserBadgeSelectCreateManyAndReturn<ExtArgs extends runtime.Types.Ext
   icon?: boolean
   color?: boolean
   allocated_by?: boolean
+  created_at?: boolean
+  updated_at?: boolean
   profile?: boolean | Prisma.ProfileDefaultArgs<ExtArgs>
   badge_template?: boolean | Prisma.UserBadge$badge_templateArgs<ExtArgs>
 }, ExtArgs["result"]["userBadge"]>
@@ -894,6 +968,8 @@ export type UserBadgeSelectUpdateManyAndReturn<ExtArgs extends runtime.Types.Ext
   icon?: boolean
   color?: boolean
   allocated_by?: boolean
+  created_at?: boolean
+  updated_at?: boolean
   profile?: boolean | Prisma.ProfileDefaultArgs<ExtArgs>
   badge_template?: boolean | Prisma.UserBadge$badge_templateArgs<ExtArgs>
 }, ExtArgs["result"]["userBadge"]>
@@ -911,9 +987,11 @@ export type UserBadgeSelectScalar = {
   icon?: boolean
   color?: boolean
   allocated_by?: boolean
+  created_at?: boolean
+  updated_at?: boolean
 }
 
-export type UserBadgeOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "user_id" | "badge_name" | "badge_description" | "milestone_value" | "total_classes" | "earned_at" | "badge_template_id" | "badge_type" | "icon" | "color" | "allocated_by", ExtArgs["result"]["userBadge"]>
+export type UserBadgeOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "user_id" | "badge_name" | "badge_description" | "milestone_value" | "total_classes" | "earned_at" | "badge_template_id" | "badge_type" | "icon" | "color" | "allocated_by" | "created_at" | "updated_at", ExtArgs["result"]["userBadge"]>
 export type UserBadgeInclude<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   profile?: boolean | Prisma.ProfileDefaultArgs<ExtArgs>
   badge_template?: boolean | Prisma.UserBadge$badge_templateArgs<ExtArgs>
@@ -946,6 +1024,8 @@ export type $UserBadgePayload<ExtArgs extends runtime.Types.Extensions.InternalA
     icon: string | null
     color: string | null
     allocated_by: string | null
+    created_at: Date
+    updated_at: Date
   }, ExtArgs["result"]["userBadge"]>
   composites: {}
 }
@@ -1383,6 +1463,8 @@ export interface UserBadgeFieldRefs {
   readonly icon: Prisma.FieldRef<"UserBadge", 'String'>
   readonly color: Prisma.FieldRef<"UserBadge", 'String'>
   readonly allocated_by: Prisma.FieldRef<"UserBadge", 'String'>
+  readonly created_at: Prisma.FieldRef<"UserBadge", 'DateTime'>
+  readonly updated_at: Prisma.FieldRef<"UserBadge", 'DateTime'>
 }
     
 

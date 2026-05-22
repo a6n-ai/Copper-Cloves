@@ -28,6 +28,9 @@ import {
   Trophy,
   Search,
   Plus,
+  ArrowUpDown,
+  ChevronUp,
+  ChevronDown,
 } from "lucide-react";
 import { SEO } from "@/components/SEO";
 import { Pagination, usePagination } from "@/components/Pagination";
@@ -62,12 +65,20 @@ interface Member {
   expiryDate: string;
   totalClasses: number;
   lastVisit: string;
+  lastVisitTs: number | null;
   status: "active" | "expiring" | "expired";
   /** Studio pass vs class pass vs no current pass */
   passCategory: "studio_pass" | "class_pass" | "none";
   /** Active = holding a package; inactive = lapsed 14+ days; grace = between */
   accountFilter: "active" | "inactive" | "grace";
   startDate: string | null;
+}
+
+interface HistoryRow {
+  id: string;
+  name: string;
+  when: number | null;
+  status: "attended" | "no_show" | "missed" | "upcoming";
 }
 
 function formatRelativeDay(date: Date | string | null | undefined): string {
@@ -101,6 +112,13 @@ export default function AdminMembers() {
   const [accountStatusFilter, setAccountStatusFilter] = useState<"all" | "active" | "inactive">("all");
   const [members, setMembers] = useState<Member[]>([]);
   const [filteredMembers, setFilteredMembers] = useState<Member[]>([]);
+  const [checkInsThisMonth, setCheckInsThisMonth] = useState(0);
+  const [sortKey, setSortKey] = useState<"name" | "classes" | "lastVisit" | "status" | null>(null);
+  const [sortDir, setSortDir] = useState<"asc" | "desc">("desc");
+  const [historyOpen, setHistoryOpen] = useState(false);
+  const [historyMember, setHistoryMember] = useState<Member | null>(null);
+  const [historyRows, setHistoryRows] = useState<HistoryRow[]>([]);
+  const [historyLoading, setHistoryLoading] = useState(false);
   const [selectedMember, setSelectedMember] = useState<Member | null>(null);
   const [dialogOpen, setDialogOpen] = useState(false);
   const [dialogPassType, setDialogPassType] = useState<"class_pass" | "studio_pass">("class_pass");
@@ -165,8 +183,32 @@ export default function AdminMembers() {
       if (accountStatusFilter === "inactive" && member.accountFilter !== "inactive") return false;
       return true;
     });
+
+    if (sortKey) {
+      const dir = sortDir === "asc" ? 1 : -1;
+      const statusRank = { active: 0, expiring: 1, expired: 2 } as const;
+      filtered.sort((a, b) => {
+        let cmp = 0;
+        switch (sortKey) {
+          case "name":
+            cmp = a.name.localeCompare(b.name);
+            break;
+          case "classes":
+            cmp = a.totalClasses - b.totalClasses;
+            break;
+          case "lastVisit":
+            cmp = (a.lastVisitTs ?? -Infinity) - (b.lastVisitTs ?? -Infinity);
+            break;
+          case "status":
+            cmp = statusRank[a.status] - statusRank[b.status];
+            break;
+        }
+        return cmp * dir;
+      });
+    }
+
     setFilteredMembers(filtered);
-  }, [searchQuery, members, packageFilter, accountStatusFilter]);
+  }, [searchQuery, members, packageFilter, accountStatusFilter, sortKey, sortDir]);
 
   const loadMembers = async () => {
     setLoadError(null);
@@ -183,12 +225,21 @@ export default function AdminMembers() {
         return;
       }
       const raw: unknown = await res.json();
-      if (!Array.isArray(raw)) {
+      const payload = raw as { members?: unknown; checkInsThisMonth?: number };
+      const list = Array.isArray(payload?.members)
+        ? payload.members
+        : Array.isArray(raw)
+        ? raw
+        : null;
+      if (!list) {
         setLoadError("Members list response was invalid.");
         setMembers([]);
         return;
       }
-      const profiles = raw as Array<{
+      setCheckInsThisMonth(
+        typeof payload?.checkInsThisMonth === "number" ? payload.checkInsThisMonth : 0,
+      );
+      const profiles = list as Array<{
         id: string;
         full_name: string | null;
         email: string;
@@ -259,6 +310,7 @@ export default function AdminMembers() {
           // Prefer real check-in count from bookings; fall back to user_stats if relation count missing.
           totalClasses: p._count?.bookings ?? stats?.total_classes_attended ?? 0,
           lastVisit: formatRelativeDay(stats?.last_class_date ?? null),
+          lastVisitTs: stats?.last_class_date ? new Date(stats.last_class_date).getTime() : null,
           status: deriveMemberStatus(expiryRaw, credits, unlimited),
           passCategory,
           accountFilter,
@@ -456,12 +508,80 @@ export default function AdminMembers() {
     activeMembers: members.filter((m) => m.accountFilter === "active").length,
     expiringMembers: members.filter((m) => m.status === "expiring").length,
     inactiveLong: members.filter((m) => m.accountFilter === "inactive").length,
+    studioPass: members.filter((m) => m.passCategory === "studio_pass").length,
+    classPass: members.filter((m) => m.passCategory === "class_pass").length,
+    checkInsThisMonth,
   };
+
+  const openHistory = async (member: Member) => {
+    setHistoryMember(member);
+    setHistoryRows([]);
+    setHistoryOpen(true);
+    setHistoryLoading(true);
+    try {
+      const res = await fetch(`/api/admin/members?id=${encodeURIComponent(member.id)}`, {
+        credentials: "include",
+      });
+      if (!res.ok) throw new Error();
+      const data = await res.json();
+      const bookings = Array.isArray(data?.bookings)
+        ? (data.bookings as Array<{
+            id: string;
+            class_name?: string | null;
+            class_time?: string | null;
+            booking_date?: string | null;
+            checked_in?: boolean;
+            check_in_outcome?: string | null;
+            class_schedule?: {
+              start_time?: string | null;
+              class_model?: { name?: string | null } | null;
+            } | null;
+          }>)
+        : [];
+      const rows: HistoryRow[] = bookings.map((b) => {
+        const startRaw = b.class_schedule?.start_time ?? b.class_time ?? b.booking_date ?? null;
+        const when = startRaw ? new Date(startRaw).getTime() : null;
+        const name = b.class_schedule?.class_model?.name ?? b.class_name ?? "Class";
+        let status: HistoryRow["status"];
+        if (b.checked_in) status = "attended";
+        else if (b.check_in_outcome === "no_show") status = "no_show";
+        else if (when != null && when < Date.now()) status = "missed";
+        else status = "upcoming";
+        return { id: b.id, name, when, status };
+      });
+      rows.sort((a, b) => (b.when ?? 0) - (a.when ?? 0));
+      setHistoryRows(rows);
+    } catch {
+      setHistoryRows([]);
+    } finally {
+      setHistoryLoading(false);
+    }
+  };
+
+  const toggleSort = (key: "name" | "classes" | "lastVisit" | "status") => {
+    if (sortKey === key) {
+      setSortDir((d) => (d === "asc" ? "desc" : "asc"));
+    } else {
+      setSortKey(key);
+      setSortDir(key === "name" ? "asc" : "desc");
+    }
+  };
+
+  const sortIcon = (key: "name" | "classes" | "lastVisit" | "status") =>
+    sortKey === key ? (
+      sortDir === "asc" ? (
+        <ChevronUp className="h-3 w-3" />
+      ) : (
+        <ChevronDown className="h-3 w-3" />
+      )
+    ) : (
+      <ArrowUpDown className="h-3 w-3 opacity-40" />
+    );
 
   const membersPg = usePagination(
     filteredMembers,
     10,
-    `${searchQuery}|${packageFilter}|${accountStatusFilter}`,
+    `${searchQuery}|${packageFilter}|${accountStatusFilter}|${sortKey}|${sortDir}`,
   );
 
   if (loading) {
@@ -512,11 +632,14 @@ export default function AdminMembers() {
             )}
 
             {/* Stats Grid */}
-            <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+            <div className="grid grid-cols-2 md:grid-cols-4 xl:grid-cols-7 gap-4">
               <MetricCard label="Total Members" value={stats.totalMembers} icon={Users} tone="sage" />
               <MetricCard label="Active" value={stats.activeMembers} icon={CheckCircle2} tone="sage" hint="Holding an active pass" />
               <MetricCard label="Expiring" value={stats.expiringMembers} icon={AlertTriangle} tone="amber" hint="≤14 days left" />
               <MetricCard label="Inactive" value={stats.inactiveLong} icon={AlertTriangle} tone="charcoal" hint="No pass 14d+" />
+              <MetricCard label="Studio Pass" value={stats.studioPass} icon={Trophy} tone="sage" hint="Active studio passes" />
+              <MetricCard label="Class Pass" value={stats.classPass} icon={CreditCard} tone="sage" hint="Active class passes" />
+              <MetricCard label="Check-ins (mo)" value={stats.checkInsThisMonth} icon={Calendar} tone="amber" hint="This month" />
             </div>
 
             {/* Members Table */}
@@ -627,11 +750,28 @@ export default function AdminMembers() {
                   <Table>
                     <TableHeader>
                       <TableRow className="bg-sage/5 hover:bg-sage/5 border-sage/10">
-                        <TableHead className="font-body text-xs uppercase tracking-wide text-charcoal/60 px-5 py-3">Member</TableHead>
+                        <TableHead className="font-body text-xs uppercase tracking-wide text-charcoal/60 px-5 py-3">
+                          <button type="button" onClick={() => toggleSort("name")} className="inline-flex items-center gap-1 uppercase hover:text-charcoal transition-colors">
+                            Member {sortIcon("name")}
+                          </button>
+                        </TableHead>
                         <TableHead className="font-body text-xs uppercase tracking-wide text-charcoal/60 px-5 py-3 w-[180px]">Pass</TableHead>
                         <TableHead className="font-body text-xs uppercase tracking-wide text-charcoal/60 px-5 py-3 w-[100px]">Account</TableHead>
-                        <TableHead className="font-body text-xs uppercase tracking-wide text-charcoal/60 px-5 py-3 w-[100px]">Classes</TableHead>
-                        <TableHead className="font-body text-xs uppercase tracking-wide text-charcoal/60 px-5 py-3 w-[140px]">Status</TableHead>
+                        <TableHead className="font-body text-xs uppercase tracking-wide text-charcoal/60 px-5 py-3 w-[100px]">
+                          <button type="button" onClick={() => toggleSort("classes")} className="inline-flex items-center gap-1 uppercase hover:text-charcoal transition-colors">
+                            Classes {sortIcon("classes")}
+                          </button>
+                        </TableHead>
+                        <TableHead className="font-body text-xs uppercase tracking-wide text-charcoal/60 px-5 py-3 w-[120px]">
+                          <button type="button" onClick={() => toggleSort("lastVisit")} className="inline-flex items-center gap-1 uppercase hover:text-charcoal transition-colors">
+                            Last Visit {sortIcon("lastVisit")}
+                          </button>
+                        </TableHead>
+                        <TableHead className="font-body text-xs uppercase tracking-wide text-charcoal/60 px-5 py-3 w-[140px]">
+                          <button type="button" onClick={() => toggleSort("status")} className="inline-flex items-center gap-1 uppercase hover:text-charcoal transition-colors">
+                            Status {sortIcon("status")}
+                          </button>
+                        </TableHead>
                         <TableHead className="font-body text-xs uppercase tracking-wide text-charcoal/60 px-5 py-3 w-[60px] text-right">Actions</TableHead>
                       </TableRow>
                     </TableHeader>
@@ -693,9 +833,9 @@ export default function AdminMembers() {
                               <Trophy className="h-3.5 w-3.5 text-sage/60" />
                               <span className="font-body font-medium text-charcoal tabular-nums">{member.totalClasses}</span>
                             </div>
-                            <div className="font-body text-xs text-charcoal/50 mt-0.5">
-                              Last: {member.lastVisit}
-                            </div>
+                          </TableCell>
+                          <TableCell className="px-5 py-4">
+                            <span className="font-body text-sm text-charcoal/70">{member.lastVisit}</span>
                           </TableCell>
                           <TableCell className="px-5 py-4">
                             {getStatusBadge(member.status)}
@@ -722,6 +862,13 @@ export default function AdminMembers() {
                                 >
                                   <Edit2 className="h-3.5 w-3.5" />
                                   Manage
+                                </DropdownMenuItem>
+                                <DropdownMenuItem
+                                  onSelect={() => openHistory(member)}
+                                  className="cursor-pointer gap-2"
+                                >
+                                  <Calendar className="h-3.5 w-3.5" />
+                                  Class history
                                 </DropdownMenuItem>
                                 <DropdownMenuSeparator />
                                 <DropdownMenuItem
@@ -1096,6 +1243,61 @@ export default function AdminMembers() {
               </>
             )}
           </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Class History Dialog */}
+      <Dialog open={historyOpen} onOpenChange={setHistoryOpen}>
+        <DialogContent className="sm:max-w-[520px] bg-white border-sage/20">
+          <DialogHeader>
+            <DialogTitle className="font-display text-2xl text-charcoal">
+              Class History
+            </DialogTitle>
+            <DialogDescription className="font-body text-charcoal/60">
+              {historyMember?.name ?? "Member"}
+              {!historyLoading && ` · ${historyRows.length} classes`}
+            </DialogDescription>
+          </DialogHeader>
+
+          <div className="max-h-[60vh] overflow-y-auto -mx-1 px-1">
+            {historyLoading ? (
+              <p className="font-body text-sm text-charcoal/50 py-8 text-center">Loading…</p>
+            ) : historyRows.length === 0 ? (
+              <p className="font-body text-sm text-charcoal/50 py-8 text-center">
+                No class history yet.
+              </p>
+            ) : (
+              <ul className="divide-y divide-sage/10">
+                {historyRows.map((row) => (
+                  <li key={row.id} className="flex items-center justify-between gap-3 py-3">
+                    <div className="min-w-0">
+                      <div className="font-body font-medium text-charcoal truncate">{row.name}</div>
+                      <div className="font-body text-xs text-charcoal/50">
+                        {row.when
+                          ? new Date(row.when).toLocaleString("en-IN", {
+                              day: "numeric",
+                              month: "short",
+                              year: "numeric",
+                              hour: "numeric",
+                              minute: "2-digit",
+                            })
+                          : "—"}
+                      </div>
+                    </div>
+                    {row.status === "attended" ? (
+                      <Badge className="bg-sage/10 text-sage border-sage/20 font-body whitespace-nowrap">Attended</Badge>
+                    ) : row.status === "no_show" ? (
+                      <Badge variant="destructive" className="font-body whitespace-nowrap">No-show</Badge>
+                    ) : row.status === "missed" ? (
+                      <Badge variant="outline" className="border-amber-500/20 text-amber-600 bg-amber-50 font-body whitespace-nowrap">Missed</Badge>
+                    ) : (
+                      <Badge variant="outline" className="border-charcoal/15 text-charcoal/50 bg-cream/30 font-body whitespace-nowrap">Upcoming</Badge>
+                    )}
+                  </li>
+                ))}
+              </ul>
+            )}
+          </div>
         </DialogContent>
       </Dialog>
     </>

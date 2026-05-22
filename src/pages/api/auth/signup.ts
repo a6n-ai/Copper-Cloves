@@ -124,7 +124,6 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         phone: typeof phone === "string" ? phone : null,
         hashedPassword,
         role: "user",
-        user_stats: { create: {} },
       },
     });
 

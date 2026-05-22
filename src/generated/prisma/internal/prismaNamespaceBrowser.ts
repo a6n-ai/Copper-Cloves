@@ -151,7 +151,8 @@ export const CouponRedemptionScalarFieldEnum = {
   guest_email: 'guest_email',
   context: 'context',
   discount_amount: 'discount_amount',
-  created_at: 'created_at'
+  created_at: 'created_at',
+  updated_at: 'updated_at'
 } as const
 
 export type CouponRedemptionScalarFieldEnum = (typeof CouponRedemptionScalarFieldEnum)[keyof typeof CouponRedemptionScalarFieldEnum]
@@ -215,7 +216,8 @@ export const InstructorScalarFieldEnum = {
   social_whatsapp: 'social_whatsapp',
   hashed_password: 'hashed_password',
   is_active: 'is_active',
-  created_at: 'created_at'
+  created_at: 'created_at',
+  updated_at: 'updated_at'
 } as const
 
 export type InstructorScalarFieldEnum = (typeof InstructorScalarFieldEnum)[keyof typeof InstructorScalarFieldEnum]
@@ -227,7 +229,6 @@ export const ClassModelScalarFieldEnum = {
   category: 'category',
   description: 'description',
   benefits: 'benefits',
-  benefit: 'benefit',
   duration: 'duration',
   max_capacity: 'max_capacity',
   image_url: 'image_url',
@@ -244,6 +245,7 @@ export const ClassScheduleScalarFieldEnum = {
   id: 'id',
   class_id: 'class_id',
   instructor_id: 'instructor_id',
+  actual_instructor_id: 'actual_instructor_id',
   start_time: 'start_time',
   end_time: 'end_time',
   capacity: 'capacity',
@@ -251,7 +253,10 @@ export const ClassScheduleScalarFieldEnum = {
   current_bookings: 'current_bookings',
   status: 'status',
   instructor_check_in_time: 'instructor_check_in_time',
-  created_at: 'created_at'
+  instructor_check_in_outcome: 'instructor_check_in_outcome',
+  class_notes: 'class_notes',
+  created_at: 'created_at',
+  updated_at: 'updated_at'
 } as const
 
 export type ClassScheduleScalarFieldEnum = (typeof ClassScheduleScalarFieldEnum)[keyof typeof ClassScheduleScalarFieldEnum]
@@ -267,7 +272,8 @@ export const PackageTypeScalarFieldEnum = {
   includes_physique_57: 'includes_physique_57',
   is_unlimited: 'is_unlimited',
   description: 'description',
-  created_at: 'created_at'
+  created_at: 'created_at',
+  updated_at: 'updated_at'
 } as const
 
 export type PackageTypeScalarFieldEnum = (typeof PackageTypeScalarFieldEnum)[keyof typeof PackageTypeScalarFieldEnum]
@@ -284,7 +290,8 @@ export const PackageScalarFieldEnum = {
   description: 'description',
   display_order: 'display_order',
   is_active: 'is_active',
-  created_at: 'created_at'
+  created_at: 'created_at',
+  updated_at: 'updated_at'
 } as const
 
 export type PackageScalarFieldEnum = (typeof PackageScalarFieldEnum)[keyof typeof PackageScalarFieldEnum]
@@ -307,7 +314,8 @@ export const UserPackageScalarFieldEnum = {
   pass_type: 'pass_type',
   coupon_id: 'coupon_id',
   purchase_discount_inr: 'purchase_discount_inr',
-  created_at: 'created_at'
+  created_at: 'created_at',
+  updated_at: 'updated_at'
 } as const
 
 export type UserPackageScalarFieldEnum = (typeof UserPackageScalarFieldEnum)[keyof typeof UserPackageScalarFieldEnum]
@@ -321,6 +329,7 @@ export const BookingScalarFieldEnum = {
   status: 'status',
   booking_date: 'booking_date',
   created_at: 'created_at',
+  updated_at: 'updated_at',
   cancellation_date: 'cancellation_date',
   class_name: 'class_name',
   class_time: 'class_time',
@@ -401,7 +410,8 @@ export const CafeItemScalarFieldEnum = {
   price: 'price',
   image_url: 'image_url',
   is_available: 'is_available',
-  created_at: 'created_at'
+  created_at: 'created_at',
+  updated_at: 'updated_at'
 } as const
 
 export type CafeItemScalarFieldEnum = (typeof CafeItemScalarFieldEnum)[keyof typeof CafeItemScalarFieldEnum]
@@ -417,6 +427,7 @@ export const CafeOrderScalarFieldEnum = {
   status: 'status',
   order_date: 'order_date',
   created_at: 'created_at',
+  updated_at: 'updated_at',
   coupon_id: 'coupon_id',
   discount_inr: 'discount_inr',
   batch_id: 'batch_id'
@@ -434,7 +445,8 @@ export const MealSubscriptionScalarFieldEnum = {
   start_date: 'start_date',
   next_billing_date: 'next_billing_date',
   status: 'status',
-  created_at: 'created_at'
+  created_at: 'created_at',
+  updated_at: 'updated_at'
 } as const
 
 export type MealSubscriptionScalarFieldEnum = (typeof MealSubscriptionScalarFieldEnum)[keyof typeof MealSubscriptionScalarFieldEnum]
@@ -494,6 +506,7 @@ export const UserStreakScalarFieldEnum = {
   longest_streak: 'longest_streak',
   last_class_date: 'last_class_date',
   last_attendance_date: 'last_attendance_date',
+  created_at: 'created_at',
   updated_at: 'updated_at'
 } as const
 
@@ -529,7 +542,9 @@ export const UserBadgeScalarFieldEnum = {
   badge_type: 'badge_type',
   icon: 'icon',
   color: 'color',
-  allocated_by: 'allocated_by'
+  allocated_by: 'allocated_by',
+  created_at: 'created_at',
+  updated_at: 'updated_at'
 } as const
 
 export type UserBadgeScalarFieldEnum = (typeof UserBadgeScalarFieldEnum)[keyof typeof UserBadgeScalarFieldEnum]
@@ -542,7 +557,8 @@ export const WaiverScalarFieldEnum = {
   signed_date: 'signed_date',
   document_url: 'document_url',
   ip_address: 'ip_address',
-  created_at: 'created_at'
+  created_at: 'created_at',
+  updated_at: 'updated_at'
 } as const
 
 export type WaiverScalarFieldEnum = (typeof WaiverScalarFieldEnum)[keyof typeof WaiverScalarFieldEnum]
@@ -577,7 +593,8 @@ export const CrmMessageScalarFieldEnum = {
   scheduled_for: 'scheduled_for',
   sent_at: 'sent_at',
   error_message: 'error_message',
-  created_at: 'created_at'
+  created_at: 'created_at',
+  updated_at: 'updated_at'
 } as const
 
 export type CrmMessageScalarFieldEnum = (typeof CrmMessageScalarFieldEnum)[keyof typeof CrmMessageScalarFieldEnum]
@@ -657,7 +674,8 @@ export const PasswordResetTokenScalarFieldEnum = {
   token: 'token',
   expires_at: 'expires_at',
   used: 'used',
-  created_at: 'created_at'
+  created_at: 'created_at',
+  updated_at: 'updated_at'
 } as const
 
 export type PasswordResetTokenScalarFieldEnum = (typeof PasswordResetTokenScalarFieldEnum)[keyof typeof PasswordResetTokenScalarFieldEnum]

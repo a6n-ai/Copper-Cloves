@@ -4,6 +4,7 @@ import { getStudioServerSession } from "@/lib/getStudioServerSession";
 import {
   COUPON_CONTEXTS,
   validateAndComputeCoupon,
+  passCategoryForPackageType,
   type CouponContext,
   toFiniteNumber,
 } from "@/lib/couponHelpers";
@@ -17,9 +18,24 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   if (req.method !== "POST") return res.status(405).end();
 
   const body = req.body ?? {};
-  const context = parseContext(body.context);
+  let context = parseContext(body.context);
   if (!context) {
     return res.status(400).json({ valid: false, error: "Invalid context" });
+  }
+
+  // For package coupons, derive the authoritative pass category from the package
+  // itself (unlimited = studio pass) instead of trusting the client's hint, so the
+  // Apply preview matches what create-order / user-packages will accept.
+  if (
+    (context === "class_pass" || context === "studio_pass") &&
+    typeof body.package_type_id === "string" &&
+    body.package_type_id.trim()
+  ) {
+    const pt = await prisma.packageType.findUnique({
+      where: { id: body.package_type_id.trim() },
+      select: { is_unlimited: true, type: true },
+    });
+    if (pt) context = passCategoryForPackageType(pt);
   }
 
   const session = await getStudioServerSession(req, res);

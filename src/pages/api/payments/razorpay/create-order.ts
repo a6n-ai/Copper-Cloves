@@ -11,7 +11,7 @@ import { razorpayKeyMode, razorpayKeysMismatch } from "@/lib/razorpayClientHints
 import { persistRazorpayOrderOnCreate } from "@/lib/razorpayPersistence";
 import { getRazorpay, razorpayConfigured } from "@/lib/razorpayServer";
 import prisma from "@/lib/prisma";
-import { validateAndComputeCoupon, toFiniteNumber, type CouponContext } from "@/lib/couponHelpers";
+import { validateAndComputeCoupon, toFiniteNumber, passCategoryForPackageType, type CouponContext } from "@/lib/couponHelpers";
 
 /**
  * Razorpay `receipt` must be ≤ 40 chars (see Orders API). Previously we built a longer string:
@@ -78,16 +78,18 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     if (!packageTypeId) {
       return res.status(400).json({ error: "package_type_id is required for package checkout" });
     }
-    const passRaw = typeof raw.pass_type === "string" ? raw.pass_type.trim() : "class_pass";
-    const pass = passRaw === "studio_pass" ? "studio_pass" : "class_pass";
-    const couponContext: CouponContext = pass === "studio_pass" ? "studio_pass" : "class_pass";
-
     const packageType = await prisma.packageType.findUnique({
       where: { id: packageTypeId },
     });
     if (!packageType) {
       return res.status(404).json({ error: "Package not found" });
     }
+
+    // Authoritative pass category from the package itself (type column, then
+    // is_unlimited) — not the client-sent hint — so a studio/class coupon is
+    // matched correctly regardless of how the client labelled the package.
+    const pass = passCategoryForPackageType(packageType);
+    const couponContext: CouponContext = pass;
 
     const subtotal = toFiniteNumber(packageType.price);
     if (!Number.isFinite(subtotal) || subtotal <= 0) {

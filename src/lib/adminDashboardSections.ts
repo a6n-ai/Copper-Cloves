@@ -10,6 +10,7 @@ import {
   isFinanceDemoEnabled,
 } from "@/lib/adminFinanceDemoTransactions";
 import { parseFinanceSnapshot } from "@/lib/financeBookingCheckout";
+import { getDynamicStats, getDynamicStatsForUsers, getTopStreaks, getStreakDistribution } from "@/lib/attendanceStats";
 
 import { cdnUrl } from "@/lib/cdnUrl";
 function dt(d: Date) {
@@ -298,9 +299,9 @@ export async function getMemberStats(db: Db = prisma) {
   type TopClassRow = { name: string; c: bigint };
   const topClassRowsP = db.$queryRaw<TopClassRow[]>`
     SELECT cm.name AS name, COUNT(*)::bigint AS c
-    FROM bookings b
+    FROM class_bookings b
     JOIN class_schedules cs ON cs.id = b.class_schedule_id
-    JOIN classes cm ON cm.id = cs.class_id
+    JOIN class_types cm ON cm.id = cs.class_id
     WHERE b.booking_date >= ${mAgo} AND b.status = 'confirmed'
     GROUP BY cm.id, cm.name
     ORDER BY c DESC
@@ -311,7 +312,7 @@ export async function getMemberStats(db: Db = prisma) {
   type TopBookerRow = { user_id: string; c: bigint };
   const topBookerRowsP = db.$queryRaw<TopBookerRow[]>`
     SELECT user_id, COUNT(*)::bigint AS c
-    FROM bookings
+    FROM class_bookings
     WHERE booking_date >= ${mAgo} AND status = 'confirmed'
     GROUP BY user_id
     ORDER BY c DESC
@@ -334,6 +335,9 @@ export async function getMemberStats(db: Db = prisma) {
       )
   `;
 
+  const monthStart = new Date(now.getFullYear(), now.getMonth(), 1);
+  const growthStart = new Date(now.getFullYear(), now.getMonth() - 11, 1);
+
   const [
     checkInsRecent,
     noShowsCount,
@@ -343,6 +347,10 @@ export async function getMemberStats(db: Db = prisma) {
     topClassRows,
     topBookerRows,
     inactiveRow,
+    totalMembersCount,
+    checkInsThisMonth,
+    signupRows,
+    streakDistribution,
   ] = await Promise.all([
     db.booking.findMany({
       where: { checked_in: true, check_in_time: { not: null }, booking_date: { gte: mAgo }, class_schedule_id: { not: null } },
@@ -351,9 +359,9 @@ export async function getMemberStats(db: Db = prisma) {
     db.booking.count({ where: { check_in_outcome: "no_show", booking_date: { gte: mAgo } } }),
     db.userPackage.findMany({
       where: { is_active: true, expiration_date: { gte: now } },
-      select: { pass_type: true, package_type: { select: { type: true, is_unlimited: true } } },
+      select: { user_id: true, pass_type: true, package_type: { select: { type: true, is_unlimited: true } } },
     }),
-    db.userStats.findMany({ orderBy: { total_classes_attended: "desc" }, take: 1, select: { current_streak: true, longest_streak: true } }),
+    getTopStreaks(1),
     db.userPackage.findMany({
       where: { is_active: true, expiration_date: { gt: now, lte: d30 } },
       select: { expiration_date: true },
@@ -361,7 +369,29 @@ export async function getMemberStats(db: Db = prisma) {
     topClassRowsP,
     topBookerRowsP,
     inactiveRowP,
+    db.profile.count({ where: { NOT: { role: { equals: "admin", mode: "insensitive" } } } }),
+    db.booking.count({ where: { checked_in: true, check_in_time: { gte: monthStart } } }),
+    db.profile.findMany({
+      where: { created_at: { gte: growthStart }, NOT: { role: { equals: "admin", mode: "insensitive" } } },
+      select: { created_at: true },
+    }),
+    getStreakDistribution(),
   ]);
+
+  // New-member signups bucketed by month for the last 12 months.
+  const monthNames = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
+  const growthBuckets: { key: string; month: string; growth: number }[] = [];
+  for (let i = 11; i >= 0; i--) {
+    const d = new Date(now.getFullYear(), now.getMonth() - i, 1);
+    growthBuckets.push({ key: `${d.getFullYear()}-${d.getMonth()}`, month: monthNames[d.getMonth()], growth: 0 });
+  }
+  const growthIndex = new Map(growthBuckets.map((b, idx) => [b.key, idx]));
+  for (const row of signupRows) {
+    const d = new Date(row.created_at);
+    const idx = growthIndex.get(`${d.getFullYear()}-${d.getMonth()}`);
+    if (idx != null) growthBuckets[idx].growth += 1;
+  }
+  const memberGrowth = growthBuckets.map(({ month, growth }) => ({ month, growth }));
 
   let lateCheckIns = 0;
   for (const b of checkInsRecent) {
@@ -376,11 +406,20 @@ export async function getMemberStats(db: Db = prisma) {
   const lateCheckInPct = checkInSample > 0 ? Math.round((lateCheckIns / checkInSample) * 100) : 0;
 
   let specialtyActive = 0;
+  const activeMemberIds = new Set<string>();
+  const studioMemberIds = new Set<string>();
   for (const up of activePackages) {
     const t = (up.package_type?.type || "").toLowerCase();
     const pass = (up.pass_type || "").toLowerCase();
-    if (t.includes("studio") || pass === "studio_pass" || up.package_type?.is_unlimited) specialtyActive++;
+    const isStudio = t.includes("studio") || pass === "studio_pass" || Boolean(up.package_type?.is_unlimited);
+    if (isStudio) specialtyActive++;
+    activeMemberIds.add(up.user_id);
+    if (isStudio) studioMemberIds.add(up.user_id);
   }
+  const activeMembers = activeMemberIds.size;
+  const studioPassActive = studioMemberIds.size;
+  // Members whose only active pass(es) are non-studio class passes.
+  const classPassActive = Array.from(activeMemberIds).filter((id) => !studioMemberIds.has(id)).length;
 
   const inactiveUsers = Number(inactiveRow[0]?.c ?? 0);
 
@@ -395,25 +434,24 @@ export async function getMemberStats(db: Db = prisma) {
   let memberOfMonth = { name: "—", classes: 0, streak: 0 };
   const topBooker = topBookerRows[0];
   if (topBooker?.user_id) {
-    const profile = await db.profile.findUnique({
-      where: { id: topBooker.user_id },
-      select: {
-        full_name: true,
-        email: true,
-        user_stats: { select: { current_streak: true } },
-      },
-    });
+    const [profile, streak] = await Promise.all([
+      db.profile.findUnique({
+        where: { id: topBooker.user_id },
+        select: { full_name: true, email: true },
+      }),
+      getDynamicStats(topBooker.user_id),
+    ]);
     if (profile) {
       memberOfMonth = {
         name: profile.full_name || profile.email || "Member",
         classes: Number(topBooker.c) || 0,
-        streak: profile.user_stats?.current_streak ?? 0,
+        streak: streak.current_streak,
       };
     }
   }
 
   const topClassRow = topClassRows[0];
-  const lead = topLeaderStats[0];
+  const lead = topLeaderStats[0]?.stats;
 
   return {
     memberOfMonth,
@@ -430,6 +468,13 @@ export async function getMemberStats(db: Db = prisma) {
     expiring30Days: expBucketRows.length,
     specialtyActive,
     inactiveUsers,
+    totalMembers: totalMembersCount,
+    activeMembers,
+    studioPassActive,
+    classPassActive,
+    checkInsThisMonth,
+    memberGrowth,
+    streakDistribution,
   };
 }
 
@@ -445,20 +490,45 @@ export async function getMemberList(db: Db = prisma) {
       package_type: { select: { name: true } },
     },
   });
-  return recent.slice(0, 24).map((up, idx) => ({
-    id: idx + 1,
-    profileId: up.user_id,
-    name: up.profile.full_name || up.profile.email || "Member",
-    email: up.profile.email ?? "",
-    avatarUrl: up.profile.avatar_url ?? null,
-    package: up.package_type.name,
-    credits: up.credits_remaining ?? 0,
-    expiry: dt(up.expiration_date),
-    streak: 0,
-    onTime: 0,
-    late: 0,
-    noShow: 0,
-  }));
+  const top = recent.slice(0, 24);
+  const userIds = top.map((up) => up.user_id);
+
+  const [statsByUser, bookingRows] = await Promise.all([
+    getDynamicStatsForUsers(userIds),
+    db.booking.findMany({
+      where: { user_id: { in: userIds } },
+      select: { user_id: true, checked_in: true, check_in_outcome: true },
+    }),
+  ]);
+
+  const perf = new Map<string, { onTime: number; late: number; noShow: number }>();
+  for (const b of bookingRows) {
+    const p = perf.get(b.user_id) ?? { onTime: 0, late: 0, noShow: 0 };
+    if (b.check_in_outcome === "no_show") p.noShow += 1;
+    else if (b.checked_in) {
+      if (b.check_in_outcome === "late") p.late += 1;
+      else p.onTime += 1;
+    }
+    perf.set(b.user_id, p);
+  }
+
+  return top.map((up, idx) => {
+    const pf = perf.get(up.user_id) ?? { onTime: 0, late: 0, noShow: 0 };
+    return {
+      id: idx + 1,
+      profileId: up.user_id,
+      name: up.profile.full_name || up.profile.email || "Member",
+      email: up.profile.email ?? "",
+      avatarUrl: up.profile.avatar_url ?? null,
+      package: up.package_type.name,
+      credits: up.credits_remaining ?? 0,
+      expiry: dt(up.expiration_date),
+      streak: statsByUser.get(up.user_id)?.current_streak ?? 0,
+      onTime: pf.onTime,
+      late: pf.late,
+      noShow: pf.noShow,
+    };
+  });
 }
 
 export async function getTransactions(db: Db = prisma, opts: { includeFinanceDemo?: boolean } = {}) {

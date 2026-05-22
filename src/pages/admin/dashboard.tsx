@@ -55,7 +55,6 @@ import {
   PieChart,
   FileText,
   UserCheck,
-  UserX,
   Zap,
   Trophy,
   Star,
@@ -77,6 +76,9 @@ import {
   ChefHat,
   Building2,
   UserPlus,
+  ArrowUpDown,
+  ChevronUp,
+  ChevronDown,
 } from "lucide-react";
 import { SEO } from "@/components/SEO";
 import { Input } from "@/components/ui/input";
@@ -219,6 +221,8 @@ export default function AdminDashboard() {
   const router = useRouter();
   const [loading, setLoading] = useState(true);
   const [activeTab, setActiveTab] = useState("overview");
+  const [perfSortKey, setPerfSortKey] = useState<"name" | "streak" | "onTime" | "late" | "noShow" | null>(null);
+  const [perfSortDir, setPerfSortDir] = useState<"asc" | "desc">("desc");
   const [dateRange, setDateRange] = useState("month");
   const [selectedMember, setSelectedMember] = useState("all");
   const [selectedInstructor, setSelectedInstructor] = useState("all");
@@ -370,6 +374,13 @@ export default function AdminDashboard() {
     premiumActive: 0,
     specialtyActive: 0,
     inactiveUsers: 0,
+    totalMembers: 0,
+    activeMembers: 0,
+    studioPassActive: 0,
+    classPassActive: 0,
+    checkInsThisMonth: 0,
+    memberGrowth: [] as { month: string; growth: number }[],
+    streakDistribution: [] as { range: string; count: number }[],
   });
   const [instructorPerformance, setInstructorPerformance] = useState<
     {
@@ -518,14 +529,17 @@ export default function AdminDashboard() {
    */
   const loadedRef = useRef<Set<string>>(new Set());
   const inflightRef = useRef<Map<string, Promise<void>>>(new Map());
-  const loadSection = (key: string, run: () => Promise<void>): Promise<void> => {
+  const loadSection = (key: string, run: () => Promise<boolean | void>): Promise<void> => {
     if (loadedRef.current.has(key)) return Promise.resolve();
     const existing = inflightRef.current.get(key);
     if (existing) return existing;
     const p = (async () => {
       try {
-        await run();
-        loadedRef.current.add(key);
+        // Only mark loaded when the callback actually applied data. A callback
+        // that bails (cancelled tab switch, !r.ok) returns false so the section
+        // is retried on the next mount instead of being stuck on stale defaults.
+        const applied = await run();
+        if (applied !== false) loadedRef.current.add(key);
       } finally {
         inflightRef.current.delete(key);
       }
@@ -549,15 +563,17 @@ export default function AdminDashboard() {
     });
     void loadSection("expiring-members", async () => {
       const r = await fetch("/api/admin/dashboard/expiring-members");
-      if (!r.ok || cancelled) return;
+      if (!r.ok) return false;
       const d = await r.json();
-      if (!cancelled && Array.isArray(d.expiringMembers)) setExpiringMembers(d.expiringMembers);
+      if (Array.isArray(d.expiringMembers)) setExpiringMembers(d.expiringMembers);
+      return true;
     });
     void loadSection("member-stats", async () => {
       const r = await fetch("/api/admin/dashboard/member-stats");
-      if (!r.ok || cancelled) return;
+      if (!r.ok) return false;
       const d = await r.json();
-      if (!cancelled && d.memberStats) setMemberStats(d.memberStats);
+      if (d.memberStats) setMemberStats(d.memberStats);
+      return true;
     });
     void loadSection("instructor-payouts", async () => {
       const r = await fetch("/api/admin/instructor-payouts?window=month");
@@ -584,21 +600,24 @@ export default function AdminDashboard() {
 
     void loadSection("member-stats", async () => {
       const r = await fetch("/api/admin/dashboard/member-stats");
-      if (!r.ok || cancelled) return;
+      if (!r.ok) return false;
       const d = await r.json();
-      if (!cancelled && d.memberStats) setMemberStats(d.memberStats);
+      if (d.memberStats) setMemberStats(d.memberStats);
+      return true;
     });
     void loadSection("member-list", async () => {
       const r = await fetch("/api/admin/dashboard/member-list");
-      if (!r.ok || cancelled) return;
+      if (!r.ok) return false;
       const d = await r.json();
-      if (!cancelled && Array.isArray(d.memberList)) setMemberList(d.memberList);
+      if (Array.isArray(d.memberList)) setMemberList(d.memberList);
+      return true;
     });
     void loadSection("expiring-members", async () => {
       const r = await fetch("/api/admin/dashboard/expiring-members");
-      if (!r.ok || cancelled) return;
+      if (!r.ok) return false;
       const d = await r.json();
-      if (!cancelled && Array.isArray(d.expiringMembers)) setExpiringMembers(d.expiringMembers);
+      if (Array.isArray(d.expiringMembers)) setExpiringMembers(d.expiringMembers);
+      return true;
     });
 
     return () => { cancelled = true; };
@@ -1093,14 +1112,16 @@ export default function AdminDashboard() {
   const maxInstructorEarnings = maxInstructorCheckIns * 150;
   const instructorPieColors = ["#8F9779", "#D4A574", "#C4B8A8", "#B8A99A", "#6B7280", "#9CA3AF"];
 
+  const isStudioPkg = (pkg: string) =>
+    pkg.includes("studio") || pkg.includes("aerial") || pkg.includes("special") || pkg.includes("unlimited");
   const filteredMemberList = memberList.filter((m) => {
     if (selectedMember === "all") return true;
     const pkg = String(m.package ?? "").toLowerCase();
-    if (selectedMember === "premium") return pkg.includes("premium");
-    if (selectedMember === "specialty")
-      return pkg.includes("aerial") || pkg.includes("special") || pkg.includes("unlimited");
-    if (selectedMember === "active") return (m.credits ?? 0) > 0;
-    if (selectedMember === "inactive") return (m.credits ?? 0) <= 0;
+    const credits = m.credits ?? 0;
+    if (selectedMember === "studio") return credits > 0 && isStudioPkg(pkg);
+    if (selectedMember === "class") return credits > 0 && !isStudioPkg(pkg);
+    if (selectedMember === "active") return credits > 0;
+    if (selectedMember === "inactive") return credits <= 0;
     return true;
   });
 
@@ -1116,11 +1137,20 @@ export default function AdminDashboard() {
       pkg.includes("aerial") || pkg.includes("special") || pkg.includes("unlimited");
     let premiumActive = 0,
       specialtyActive = 0,
-      inactive = 0;
+      inactive = 0,
+      active = 0,
+      studio = 0,
+      classPass = 0;
     for (const m of filteredMemberList) {
       const pkg = String((m as { package?: string }).package ?? "").toLowerCase();
       const credits = Number((m as { credits?: number }).credits ?? 0);
-      if (credits <= 0) inactive += 1;
+      if (credits <= 0) {
+        inactive += 1;
+      } else {
+        active += 1;
+        if (isSpecialty(pkg)) studio += 1;
+        else classPass += 1;
+      }
       if (credits > 0 && isPremium(pkg)) premiumActive += 1;
       if (credits > 0 && isSpecialty(pkg)) specialtyActive += 1;
     }
@@ -1134,6 +1164,9 @@ export default function AdminDashboard() {
       premiumActive,
       specialtyActive,
       inactiveUsers: inactive,
+      activeMembers: active,
+      studioPassActive: studio,
+      classPassActive: classPass,
     };
   }, [filteredMemberList]);
 
@@ -1142,10 +1175,37 @@ export default function AdminDashboard() {
     ? { ...memberStats, ...filteredMemberStats }
     : memberStats;
 
-  const activeMemberTierTotal = displayedMemberStats.premiumActive + displayedMemberStats.specialtyActive;
+  const activeMemberTierTotal = displayedMemberStats.studioPassActive + displayedMemberStats.classPassActive;
+
+  const sortedMemberList = useMemo(() => {
+    if (!perfSortKey) return filteredMemberList;
+    const dir = perfSortDir === "asc" ? 1 : -1;
+    return [...filteredMemberList].sort((a, b) => {
+      const cmp =
+        perfSortKey === "name"
+          ? String(a.name ?? "").localeCompare(String(b.name ?? ""))
+          : (Number(a[perfSortKey]) || 0) - (Number(b[perfSortKey]) || 0);
+      return cmp * dir;
+    });
+  }, [filteredMemberList, perfSortKey, perfSortDir]);
+
+  const togglePerfSort = (key: "name" | "streak" | "onTime" | "late" | "noShow") => {
+    if (perfSortKey === key) setPerfSortDir((d) => (d === "asc" ? "desc" : "asc"));
+    else {
+      setPerfSortKey(key);
+      setPerfSortDir(key === "name" ? "asc" : "desc");
+    }
+  };
+
+  const perfSortIcon = (key: "name" | "streak" | "onTime" | "late" | "noShow") =>
+    perfSortKey === key ? (
+      perfSortDir === "asc" ? <ChevronUp className="h-3 w-3" /> : <ChevronDown className="h-3 w-3" />
+    ) : (
+      <ArrowUpDown className="h-3 w-3 opacity-40" />
+    );
 
   // Pagination hooks for dashboard lists — resetKey resets page to 1 on filter change
-  const membersPg = usePagination(filteredMemberList, 10, selectedMember);
+  const membersPg = usePagination(sortedMemberList, 10, `${selectedMember}|${perfSortKey}|${perfSortDir}`);
   const instructorsPerfPg = usePagination(filteredInstructorPerformance, 10, selectedInstructor);
   const expiringPg = usePagination(expiringMembers);
   const financeTxnPg = usePagination(
@@ -2568,40 +2628,40 @@ export default function AdminDashboard() {
                 </div>
 
                 {/* Member Stats */}
-                <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                <div className="grid grid-cols-2 md:grid-cols-3 xl:grid-cols-5 gap-4">
                   <MetricCard
-                    label="On-Time Check-Ins"
-                    value={displayedMemberStats.onTimeCheckIns}
+                    label="Total Members"
+                    value={memberStats.totalMembers}
+                    icon={Users}
+                    tone="sage"
+                  />
+                  <MetricCard
+                    label="Active"
+                    value={memberStats.activeMembers}
                     icon={UserCheck}
                     tone="sage"
-                    hint={
-                      displayedMemberStats.checkInSample > 0
-                        ? `${displayedMemberStats.onTimeCheckInPct}% of ${displayedMemberStats.checkInSample}`
-                        : "No recent check-ins"
-                    }
+                    hint="Holding an active pass"
                   />
                   <MetricCard
-                    label="Late Check-Ins"
-                    value={displayedMemberStats.lateCheckIns}
-                    icon={Clock}
+                    label="Studio Pass"
+                    value={memberStats.studioPassActive}
+                    icon={Trophy}
+                    tone="sage"
+                    hint="Active studio passes"
+                  />
+                  <MetricCard
+                    label="Class Pass"
+                    value={memberStats.classPassActive}
+                    icon={CreditCard}
+                    tone="sage"
+                    hint="Active class passes"
+                  />
+                  <MetricCard
+                    label="Check-ins (mo)"
+                    value={memberStats.checkInsThisMonth}
+                    icon={Calendar}
                     tone="amber"
-                    hint={
-                      displayedMemberStats.checkInSample > 0
-                        ? `${displayedMemberStats.lateCheckInPct}% after start`
-                        : "No recent check-ins"
-                    }
-                  />
-                  <MetricCard
-                    label="No-Shows"
-                    value={displayedMemberStats.noShows}
-                    icon={UserX}
-                    tone="terracotta"
-                  />
-                  <MetricCard
-                    label="Inactive Members"
-                    value={displayedMemberStats.inactiveUsers}
-                    icon={AlertTriangle}
-                    tone="charcoal"
+                    hint="This month"
                   />
                 </div>
 
@@ -2623,20 +2683,7 @@ export default function AdminDashboard() {
                         className="h-[240px] w-full"
                       >
                         <BarChart
-                          data={[
-                            { month: "Jan", growth: 8 },
-                            { month: "Feb", growth: 12 },
-                            { month: "Mar", growth: 10 },
-                            { month: "Apr", growth: 15 },
-                            { month: "May", growth: 13 },
-                            { month: "Jun", growth: 18 },
-                            { month: "Jul", growth: 16 },
-                            { month: "Aug", growth: 21 },
-                            { month: "Sep", growth: 19 },
-                            { month: "Oct", growth: 24 },
-                            { month: "Nov", growth: 22 },
-                            { month: "Dec", growth: 28 },
-                          ]}
+                          data={memberStats.memberGrowth}
                           margin={{ top: 8, right: 12, left: 0, bottom: 0 }}
                         >
                           <CartesianGrid vertical={false} strokeDasharray="3 3" stroke="#E5E5E0" />
@@ -2661,10 +2708,8 @@ export default function AdminDashboard() {
                     </CardHeader>
                     <CardContent>
                       {(() => {
-                        const activeRaw = displayedMemberStats.specialtyActive + displayedMemberStats.premiumActive;
-                        const inactiveRaw = displayedMemberStats.inactiveUsers;
-                        const active = activeRaw > 0 || inactiveRaw > 0 ? activeRaw : 112;
-                        const inactive = activeRaw > 0 || inactiveRaw > 0 ? inactiveRaw : 15;
+                        const active = displayedMemberStats.activeMembers ?? 0;
+                        const inactive = displayedMemberStats.inactiveUsers ?? 0;
                         const total = active + inactive;
                         const activePct = total > 0 ? Math.round((active / total) * 100) : 0;
                         const pieData = [
@@ -2736,10 +2781,10 @@ export default function AdminDashboard() {
                   <Card className="border-sage/20 bg-white/95 backdrop-blur-xl lg:col-span-2">
                     <CardHeader>
                       <CardTitle className="font-display text-xl text-charcoal">
-                        Weekly Streak Distribution
+                        Streak Distribution
                       </CardTitle>
                       <CardDescription className="font-body text-charcoal/60">
-                        How many members maintain different streak lengths
+                        Members by current streak length (days)
                       </CardDescription>
                     </CardHeader>
                     <CardContent>
@@ -2748,13 +2793,7 @@ export default function AdminDashboard() {
                         className="h-[220px] w-full"
                       >
                         <BarChart
-                          data={[
-                            { range: "1-2 wk", count: 45 },
-                            { range: "3-4 wk", count: 38 },
-                            { range: "5-8 wk", count: 28 },
-                            { range: "9-12 wk", count: 12 },
-                            { range: "13+ wk", count: 5 },
-                          ]}
+                          data={memberStats.streakDistribution}
                           layout="vertical"
                           margin={{ top: 8, right: 24, left: 16, bottom: 0 }}
                         >
@@ -2899,12 +2938,12 @@ export default function AdminDashboard() {
                       <div>
                         <div className="flex items-center justify-between mb-2">
                           <div className="flex items-center gap-2">
-                            <Badge className="bg-sage text-white">Premium</Badge>
-                            <span className="font-body text-charcoal/60">{displayedMemberStats.premiumActive} members</span>
+                            <Badge className="bg-sage text-white">Studio Pass</Badge>
+                            <span className="font-body text-charcoal/60">{displayedMemberStats.studioPassActive} members</span>
                           </div>
                           <span className="font-body font-medium text-charcoal">
                             {activeMemberTierTotal > 0
-                              ? ((displayedMemberStats.premiumActive / activeMemberTierTotal) * 100).toFixed(0)
+                              ? ((displayedMemberStats.studioPassActive / activeMemberTierTotal) * 100).toFixed(0)
                               : "0"}
                             %
                           </span>
@@ -2912,7 +2951,7 @@ export default function AdminDashboard() {
                         <Progress
                           value={
                             activeMemberTierTotal > 0
-                              ? (displayedMemberStats.premiumActive / activeMemberTierTotal) * 100
+                              ? (displayedMemberStats.studioPassActive / activeMemberTierTotal) * 100
                               : 0
                           }
                           className="h-3 bg-sage/10"
@@ -2922,12 +2961,12 @@ export default function AdminDashboard() {
                       <div>
                         <div className="flex items-center justify-between mb-2">
                           <div className="flex items-center gap-2">
-                            <Badge variant="outline" className="border-terracotta/20 text-terracotta">Specialty</Badge>
-                            <span className="font-body text-charcoal/60">{displayedMemberStats.specialtyActive} members</span>
+                            <Badge variant="outline" className="border-terracotta/20 text-terracotta">Class Pass</Badge>
+                            <span className="font-body text-charcoal/60">{displayedMemberStats.classPassActive} members</span>
                           </div>
                           <span className="font-body font-medium text-charcoal">
                             {activeMemberTierTotal > 0
-                              ? ((displayedMemberStats.specialtyActive / activeMemberTierTotal) * 100).toFixed(0)
+                              ? ((displayedMemberStats.classPassActive / activeMemberTierTotal) * 100).toFixed(0)
                               : "0"}
                             %
                           </span>
@@ -2935,7 +2974,7 @@ export default function AdminDashboard() {
                         <Progress
                           value={
                             activeMemberTierTotal > 0
-                              ? (displayedMemberStats.specialtyActive / activeMemberTierTotal) * 100
+                              ? (displayedMemberStats.classPassActive / activeMemberTierTotal) * 100
                               : 0
                           }
                           className="h-3 bg-terracotta/10"
@@ -2963,8 +3002,8 @@ export default function AdminDashboard() {
                         </SelectTrigger>
                         <SelectContent>
                           <SelectItem value="all">All Users</SelectItem>
-                          <SelectItem value="premium">Premium Pass</SelectItem>
-                          <SelectItem value="specialty">Aerial Specialty</SelectItem>
+                          <SelectItem value="studio">Studio Pass</SelectItem>
+                          <SelectItem value="class">Class Pass</SelectItem>
                           <SelectItem value="active">Active Only</SelectItem>
                           <SelectItem value="inactive">Inactive Only</SelectItem>
                         </SelectContent>
@@ -2976,12 +3015,32 @@ export default function AdminDashboard() {
                       <Table>
                         <TableHeader>
                           <TableRow className="bg-sage/5 hover:bg-sage/5 border-sage/10">
-                            <TableHead className="font-body text-xs uppercase tracking-wide text-charcoal/60 px-5 py-3">Member</TableHead>
+                            <TableHead className="font-body text-xs uppercase tracking-wide text-charcoal/60 px-5 py-3">
+                              <button type="button" onClick={() => togglePerfSort("name")} className="inline-flex items-center gap-1 uppercase hover:text-charcoal transition-colors">
+                                Member {perfSortIcon("name")}
+                              </button>
+                            </TableHead>
                             <TableHead className="font-body text-xs uppercase tracking-wide text-charcoal/60 px-5 py-3 w-[160px]">Package</TableHead>
-                            <TableHead className="font-body text-xs uppercase tracking-wide text-charcoal/60 px-5 py-3 w-[80px]">Streak</TableHead>
-                            <TableHead className="font-body text-xs uppercase tracking-wide text-charcoal/60 px-5 py-3 w-[80px]">On Time</TableHead>
-                            <TableHead className="font-body text-xs uppercase tracking-wide text-charcoal/60 px-5 py-3 w-[70px]">Late</TableHead>
-                            <TableHead className="font-body text-xs uppercase tracking-wide text-charcoal/60 px-5 py-3 w-[90px]">No-Show</TableHead>
+                            <TableHead className="font-body text-xs uppercase tracking-wide text-charcoal/60 px-5 py-3 w-[80px]">
+                              <button type="button" onClick={() => togglePerfSort("streak")} className="inline-flex items-center gap-1 uppercase hover:text-charcoal transition-colors">
+                                Streak {perfSortIcon("streak")}
+                              </button>
+                            </TableHead>
+                            <TableHead className="font-body text-xs uppercase tracking-wide text-charcoal/60 px-5 py-3 w-[80px]">
+                              <button type="button" onClick={() => togglePerfSort("onTime")} className="inline-flex items-center gap-1 uppercase hover:text-charcoal transition-colors">
+                                On Time {perfSortIcon("onTime")}
+                              </button>
+                            </TableHead>
+                            <TableHead className="font-body text-xs uppercase tracking-wide text-charcoal/60 px-5 py-3 w-[70px]">
+                              <button type="button" onClick={() => togglePerfSort("late")} className="inline-flex items-center gap-1 uppercase hover:text-charcoal transition-colors">
+                                Late {perfSortIcon("late")}
+                              </button>
+                            </TableHead>
+                            <TableHead className="font-body text-xs uppercase tracking-wide text-charcoal/60 px-5 py-3 w-[90px]">
+                              <button type="button" onClick={() => togglePerfSort("noShow")} className="inline-flex items-center gap-1 uppercase hover:text-charcoal transition-colors">
+                                No-Show {perfSortIcon("noShow")}
+                              </button>
+                            </TableHead>
                             <TableHead className="font-body text-xs uppercase tracking-wide text-charcoal/60 px-5 py-3 w-[80px] text-right">Action</TableHead>
                           </TableRow>
                         </TableHeader>

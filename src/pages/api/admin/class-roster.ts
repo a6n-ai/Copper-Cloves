@@ -19,8 +19,11 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       id: true,
       start_time: true,
       capacity: true,
+      instructor_check_in_outcome: true,
+      class_notes: true,
       class_model: { select: { name: true } },
-      instructor: { select: { name: true } },
+      instructor: { select: { id: true, name: true } },
+      actual_instructor: { select: { id: true, name: true } },
       bookings: {
         where: { status: "confirmed" },
         select: {
@@ -43,6 +46,11 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     scheduleId: schedule.id,
     className: schedule.class_model?.name ?? "Class",
     instructor: schedule.instructor?.name ?? "—",
+    instructorId: schedule.instructor?.id ?? null,
+    actualInstructor: schedule.actual_instructor?.name ?? null,
+    actualInstructorId: schedule.actual_instructor?.id ?? null,
+    instructorCheckInOutcome: schedule.instructor_check_in_outcome ?? null,
+    classNotes: schedule.class_notes ?? null,
     startTime: schedule.start_time.toISOString(),
     capacity: schedule.capacity,
     bookings: schedule.bookings.map(b => ({

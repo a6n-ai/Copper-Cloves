@@ -48,6 +48,7 @@ import {
   savePendingRazorpayCheckout,
 } from "@/lib/pendingRazorpayCheckout";
 import { payWithRazorpayOrder } from "@/lib/razorpayCheckout";
+import { passCategoryForPackageType } from "@/lib/couponHelpers";
 
 import { cdnUrl } from "@/lib/cdnUrl";
 // Discount mapping based on unlimited tier (simplified - using package name)
@@ -328,7 +329,7 @@ export default function BookClass() {
         const pkg = activePackages[0];
         const packageType = pkg.package_type;
         setUserPackage({
-          type: packageType?.is_unlimited ? "studio_pass" : "class_pass",
+          type: packageType ? passCategoryForPackageType(packageType) : "class_pass",
           name: packageType?.name || "Package",
           classesRemaining: packageType?.is_unlimited ? null : pkg.credits_remaining,
           isUnlimited: packageType?.is_unlimited || false,

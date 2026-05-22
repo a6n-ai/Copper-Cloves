@@ -43,7 +43,6 @@ export type ClassModelMinAggregateOutputType = {
   name: string | null
   category: string | null
   description: string | null
-  benefit: string | null
   duration: number | null
   max_capacity: number | null
   image_url: string | null
@@ -58,7 +57,6 @@ export type ClassModelMaxAggregateOutputType = {
   name: string | null
   category: string | null
   description: string | null
-  benefit: string | null
   duration: number | null
   max_capacity: number | null
   image_url: string | null
@@ -74,7 +72,6 @@ export type ClassModelCountAggregateOutputType = {
   category: number
   description: number
   benefits: number
-  benefit: number
   duration: number
   max_capacity: number
   image_url: number
@@ -103,7 +100,6 @@ export type ClassModelMinAggregateInputType = {
   name?: true
   category?: true
   description?: true
-  benefit?: true
   duration?: true
   max_capacity?: true
   image_url?: true
@@ -118,7 +114,6 @@ export type ClassModelMaxAggregateInputType = {
   name?: true
   category?: true
   description?: true
-  benefit?: true
   duration?: true
   max_capacity?: true
   image_url?: true
@@ -134,7 +129,6 @@ export type ClassModelCountAggregateInputType = {
   category?: true
   description?: true
   benefits?: true
-  benefit?: true
   duration?: true
   max_capacity?: true
   image_url?: true
@@ -237,7 +231,6 @@ export type ClassModelGroupByOutputType = {
   category: string
   description: string | null
   benefits: string[]
-  benefit: string | null
   duration: number
   max_capacity: number
   image_url: string | null
@@ -276,7 +269,6 @@ export type ClassModelWhereInput = {
   category?: Prisma.StringFilter<"ClassModel"> | string
   description?: Prisma.StringNullableFilter<"ClassModel"> | string | null
   benefits?: Prisma.StringNullableListFilter<"ClassModel">
-  benefit?: Prisma.StringNullableFilter<"ClassModel"> | string | null
   duration?: Prisma.IntFilter<"ClassModel"> | number
   max_capacity?: Prisma.IntFilter<"ClassModel"> | number
   image_url?: Prisma.StringNullableFilter<"ClassModel"> | string | null
@@ -294,7 +286,6 @@ export type ClassModelOrderByWithRelationInput = {
   category?: Prisma.SortOrder
   description?: Prisma.SortOrderInput | Prisma.SortOrder
   benefits?: Prisma.SortOrder
-  benefit?: Prisma.SortOrderInput | Prisma.SortOrder
   duration?: Prisma.SortOrder
   max_capacity?: Prisma.SortOrder
   image_url?: Prisma.SortOrderInput | Prisma.SortOrder
@@ -315,7 +306,6 @@ export type ClassModelWhereUniqueInput = Prisma.AtLeast<{
   category?: Prisma.StringFilter<"ClassModel"> | string
   description?: Prisma.StringNullableFilter<"ClassModel"> | string | null
   benefits?: Prisma.StringNullableListFilter<"ClassModel">
-  benefit?: Prisma.StringNullableFilter<"ClassModel"> | string | null
   duration?: Prisma.IntFilter<"ClassModel"> | number
   max_capacity?: Prisma.IntFilter<"ClassModel"> | number
   image_url?: Prisma.StringNullableFilter<"ClassModel"> | string | null
@@ -333,7 +323,6 @@ export type ClassModelOrderByWithAggregationInput = {
   category?: Prisma.SortOrder
   description?: Prisma.SortOrderInput | Prisma.SortOrder
   benefits?: Prisma.SortOrder
-  benefit?: Prisma.SortOrderInput | Prisma.SortOrder
   duration?: Prisma.SortOrder
   max_capacity?: Prisma.SortOrder
   image_url?: Prisma.SortOrderInput | Prisma.SortOrder
@@ -357,7 +346,6 @@ export type ClassModelScalarWhereWithAggregatesInput = {
   category?: Prisma.StringWithAggregatesFilter<"ClassModel"> | string
   description?: Prisma.StringNullableWithAggregatesFilter<"ClassModel"> | string | null
   benefits?: Prisma.StringNullableListFilter<"ClassModel">
-  benefit?: Prisma.StringNullableWithAggregatesFilter<"ClassModel"> | string | null
   duration?: Prisma.IntWithAggregatesFilter<"ClassModel"> | number
   max_capacity?: Prisma.IntWithAggregatesFilter<"ClassModel"> | number
   image_url?: Prisma.StringNullableWithAggregatesFilter<"ClassModel"> | string | null
@@ -373,7 +361,6 @@ export type ClassModelCreateInput = {
   category: string
   description?: string | null
   benefits?: Prisma.ClassModelCreatebenefitsInput | string[]
-  benefit?: string | null
   duration: number
   max_capacity?: number
   image_url?: string | null
@@ -390,7 +377,6 @@ export type ClassModelUncheckedCreateInput = {
   category: string
   description?: string | null
   benefits?: Prisma.ClassModelCreatebenefitsInput | string[]
-  benefit?: string | null
   duration: number
   max_capacity?: number
   image_url?: string | null
@@ -407,7 +393,6 @@ export type ClassModelUpdateInput = {
   category?: Prisma.StringFieldUpdateOperationsInput | string
   description?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   benefits?: Prisma.ClassModelUpdatebenefitsInput | string[]
-  benefit?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   duration?: Prisma.IntFieldUpdateOperationsInput | number
   max_capacity?: Prisma.IntFieldUpdateOperationsInput | number
   image_url?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -424,7 +409,6 @@ export type ClassModelUncheckedUpdateInput = {
   category?: Prisma.StringFieldUpdateOperationsInput | string
   description?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   benefits?: Prisma.ClassModelUpdatebenefitsInput | string[]
-  benefit?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   duration?: Prisma.IntFieldUpdateOperationsInput | number
   max_capacity?: Prisma.IntFieldUpdateOperationsInput | number
   image_url?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -441,7 +425,6 @@ export type ClassModelCreateManyInput = {
   category: string
   description?: string | null
   benefits?: Prisma.ClassModelCreatebenefitsInput | string[]
-  benefit?: string | null
   duration: number
   max_capacity?: number
   image_url?: string | null
@@ -457,7 +440,6 @@ export type ClassModelUpdateManyMutationInput = {
   category?: Prisma.StringFieldUpdateOperationsInput | string
   description?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   benefits?: Prisma.ClassModelUpdatebenefitsInput | string[]
-  benefit?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   duration?: Prisma.IntFieldUpdateOperationsInput | number
   max_capacity?: Prisma.IntFieldUpdateOperationsInput | number
   image_url?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -472,7 +454,6 @@ export type ClassModelUncheckedUpdateManyInput = {
   category?: Prisma.StringFieldUpdateOperationsInput | string
   description?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   benefits?: Prisma.ClassModelUpdatebenefitsInput | string[]
-  benefit?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   duration?: Prisma.IntFieldUpdateOperationsInput | number
   max_capacity?: Prisma.IntFieldUpdateOperationsInput | number
   image_url?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -498,7 +479,6 @@ export type ClassModelCountOrderByAggregateInput = {
   category?: Prisma.SortOrder
   description?: Prisma.SortOrder
   benefits?: Prisma.SortOrder
-  benefit?: Prisma.SortOrder
   duration?: Prisma.SortOrder
   max_capacity?: Prisma.SortOrder
   image_url?: Prisma.SortOrder
@@ -519,7 +499,6 @@ export type ClassModelMaxOrderByAggregateInput = {
   name?: Prisma.SortOrder
   category?: Prisma.SortOrder
   description?: Prisma.SortOrder
-  benefit?: Prisma.SortOrder
   duration?: Prisma.SortOrder
   max_capacity?: Prisma.SortOrder
   image_url?: Prisma.SortOrder
@@ -534,7 +513,6 @@ export type ClassModelMinOrderByAggregateInput = {
   name?: Prisma.SortOrder
   category?: Prisma.SortOrder
   description?: Prisma.SortOrder
-  benefit?: Prisma.SortOrder
   duration?: Prisma.SortOrder
   max_capacity?: Prisma.SortOrder
   image_url?: Prisma.SortOrder
@@ -628,7 +606,6 @@ export type ClassModelCreateWithoutInstructorInput = {
   category: string
   description?: string | null
   benefits?: Prisma.ClassModelCreatebenefitsInput | string[]
-  benefit?: string | null
   duration: number
   max_capacity?: number
   image_url?: string | null
@@ -644,7 +621,6 @@ export type ClassModelUncheckedCreateWithoutInstructorInput = {
   category: string
   description?: string | null
   benefits?: Prisma.ClassModelCreatebenefitsInput | string[]
-  benefit?: string | null
   duration: number
   max_capacity?: number
   image_url?: string | null
@@ -689,7 +665,6 @@ export type ClassModelScalarWhereInput = {
   category?: Prisma.StringFilter<"ClassModel"> | string
   description?: Prisma.StringNullableFilter<"ClassModel"> | string | null
   benefits?: Prisma.StringNullableListFilter<"ClassModel">
-  benefit?: Prisma.StringNullableFilter<"ClassModel"> | string | null
   duration?: Prisma.IntFilter<"ClassModel"> | number
   max_capacity?: Prisma.IntFilter<"ClassModel"> | number
   image_url?: Prisma.StringNullableFilter<"ClassModel"> | string | null
@@ -705,7 +680,6 @@ export type ClassModelCreateWithoutClass_schedulesInput = {
   category: string
   description?: string | null
   benefits?: Prisma.ClassModelCreatebenefitsInput | string[]
-  benefit?: string | null
   duration: number
   max_capacity?: number
   image_url?: string | null
@@ -721,7 +695,6 @@ export type ClassModelUncheckedCreateWithoutClass_schedulesInput = {
   category: string
   description?: string | null
   benefits?: Prisma.ClassModelCreatebenefitsInput | string[]
-  benefit?: string | null
   duration: number
   max_capacity?: number
   image_url?: string | null
@@ -753,7 +726,6 @@ export type ClassModelUpdateWithoutClass_schedulesInput = {
   category?: Prisma.StringFieldUpdateOperationsInput | string
   description?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   benefits?: Prisma.ClassModelUpdatebenefitsInput | string[]
-  benefit?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   duration?: Prisma.IntFieldUpdateOperationsInput | number
   max_capacity?: Prisma.IntFieldUpdateOperationsInput | number
   image_url?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -769,7 +741,6 @@ export type ClassModelUncheckedUpdateWithoutClass_schedulesInput = {
   category?: Prisma.StringFieldUpdateOperationsInput | string
   description?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   benefits?: Prisma.ClassModelUpdatebenefitsInput | string[]
-  benefit?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   duration?: Prisma.IntFieldUpdateOperationsInput | number
   max_capacity?: Prisma.IntFieldUpdateOperationsInput | number
   image_url?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -785,7 +756,6 @@ export type ClassModelCreateManyInstructorInput = {
   category: string
   description?: string | null
   benefits?: Prisma.ClassModelCreatebenefitsInput | string[]
-  benefit?: string | null
   duration: number
   max_capacity?: number
   image_url?: string | null
@@ -800,7 +770,6 @@ export type ClassModelUpdateWithoutInstructorInput = {
   category?: Prisma.StringFieldUpdateOperationsInput | string
   description?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   benefits?: Prisma.ClassModelUpdatebenefitsInput | string[]
-  benefit?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   duration?: Prisma.IntFieldUpdateOperationsInput | number
   max_capacity?: Prisma.IntFieldUpdateOperationsInput | number
   image_url?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -816,7 +785,6 @@ export type ClassModelUncheckedUpdateWithoutInstructorInput = {
   category?: Prisma.StringFieldUpdateOperationsInput | string
   description?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   benefits?: Prisma.ClassModelUpdatebenefitsInput | string[]
-  benefit?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   duration?: Prisma.IntFieldUpdateOperationsInput | number
   max_capacity?: Prisma.IntFieldUpdateOperationsInput | number
   image_url?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -832,7 +800,6 @@ export type ClassModelUncheckedUpdateManyWithoutInstructorInput = {
   category?: Prisma.StringFieldUpdateOperationsInput | string
   description?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   benefits?: Prisma.ClassModelUpdatebenefitsInput | string[]
-  benefit?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   duration?: Prisma.IntFieldUpdateOperationsInput | number
   max_capacity?: Prisma.IntFieldUpdateOperationsInput | number
   image_url?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -878,7 +845,6 @@ export type ClassModelSelect<ExtArgs extends runtime.Types.Extensions.InternalAr
   category?: boolean
   description?: boolean
   benefits?: boolean
-  benefit?: boolean
   duration?: boolean
   max_capacity?: boolean
   image_url?: boolean
@@ -897,7 +863,6 @@ export type ClassModelSelectCreateManyAndReturn<ExtArgs extends runtime.Types.Ex
   category?: boolean
   description?: boolean
   benefits?: boolean
-  benefit?: boolean
   duration?: boolean
   max_capacity?: boolean
   image_url?: boolean
@@ -914,7 +879,6 @@ export type ClassModelSelectUpdateManyAndReturn<ExtArgs extends runtime.Types.Ex
   category?: boolean
   description?: boolean
   benefits?: boolean
-  benefit?: boolean
   duration?: boolean
   max_capacity?: boolean
   image_url?: boolean
@@ -931,7 +895,6 @@ export type ClassModelSelectScalar = {
   category?: boolean
   description?: boolean
   benefits?: boolean
-  benefit?: boolean
   duration?: boolean
   max_capacity?: boolean
   image_url?: boolean
@@ -941,7 +904,7 @@ export type ClassModelSelectScalar = {
   updated_at?: boolean
 }
 
-export type ClassModelOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "name" | "category" | "description" | "benefits" | "benefit" | "duration" | "max_capacity" | "image_url" | "display_order" | "instructor_id" | "created_at" | "updated_at", ExtArgs["result"]["classModel"]>
+export type ClassModelOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "name" | "category" | "description" | "benefits" | "duration" | "max_capacity" | "image_url" | "display_order" | "instructor_id" | "created_at" | "updated_at", ExtArgs["result"]["classModel"]>
 export type ClassModelInclude<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   instructor?: boolean | Prisma.ClassModel$instructorArgs<ExtArgs>
   class_schedules?: boolean | Prisma.ClassModel$class_schedulesArgs<ExtArgs>
@@ -966,7 +929,6 @@ export type $ClassModelPayload<ExtArgs extends runtime.Types.Extensions.Internal
     category: string
     description: string | null
     benefits: string[]
-    benefit: string | null
     duration: number
     max_capacity: number
     image_url: string | null
@@ -1404,7 +1366,6 @@ export interface ClassModelFieldRefs {
   readonly category: Prisma.FieldRef<"ClassModel", 'String'>
   readonly description: Prisma.FieldRef<"ClassModel", 'String'>
   readonly benefits: Prisma.FieldRef<"ClassModel", 'String[]'>
-  readonly benefit: Prisma.FieldRef<"ClassModel", 'String'>
   readonly duration: Prisma.FieldRef<"ClassModel", 'Int'>
   readonly max_capacity: Prisma.FieldRef<"ClassModel", 'Int'>
   readonly image_url: Prisma.FieldRef<"ClassModel", 'String'>

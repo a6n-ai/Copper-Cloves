@@ -21,6 +21,8 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         onTimeCheckInPct: 0, lateCheckInPct: 0, noShows: 0,
         expiring7Days: 0, expiring15Days: 0, expiring30Days: 0,
         specialtyActive: 0, inactiveUsers: 0,
+        totalMembers: 0, activeMembers: 0, studioPassActive: 0, classPassActive: 0, checkInsThisMonth: 0,
+        memberGrowth: [], streakDistribution: [],
       },
       _partial: true,
     });

@@ -38,11 +38,11 @@ export function ClassCatalog() {
       const res = await fetch("/api/classes");
       const data = res.ok ? await res.json() : [];
       const transformedClasses: ClassData[] = data.map((cls: {
-        id?: string; name: string; benefits?: string[]; benefit?: string; duration: number; image_url?: string;
+        id?: string; name: string; benefits?: string[]; duration: number; image_url?: string;
       }) => ({
         id: cls.id,
         name: cls.name,
-        benefit: cls.benefits?.[0] || cls.benefit || "",
+        benefit: cls.benefits?.[0] || "",
         benefits: cls.benefits,
         duration: `${cls.duration} min`,
         image: cls.image_url || cdnUrl("/placeholder.jpg"),

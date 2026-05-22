@@ -48,6 +48,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
             include: {
               class_model: true,
               instructor: true,
+              actual_instructor: true,
             },
             orderBy: { start_time: "asc" },
           });
@@ -123,6 +124,17 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       }
       if (rest.status != null) data.status = String(rest.status);
       if (rest.current_bookings != null) data.current_bookings = Number(rest.current_bookings);
+      if (rest.actual_instructor_id !== undefined) {
+        data.actual_instructor_id =
+          rest.actual_instructor_id != null && rest.actual_instructor_id !== "" ? String(rest.actual_instructor_id) : null;
+      }
+      if (rest.instructor_check_in_outcome !== undefined) {
+        data.instructor_check_in_outcome =
+          rest.instructor_check_in_outcome != null && rest.instructor_check_in_outcome !== "" ? String(rest.instructor_check_in_outcome) : null;
+      }
+      if (rest.class_notes !== undefined) {
+        data.class_notes = rest.class_notes != null && rest.class_notes !== "" ? String(rest.class_notes) : null;
+      }
       if (Object.keys(data).length === 0) {
         return res.status(400).json({ error: "No valid fields to update." });
       }

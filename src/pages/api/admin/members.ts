@@ -2,6 +2,7 @@ import type { NextApiRequest, NextApiResponse } from "next";
 import prisma from "@/lib/prisma";
 import { isStudioAdminProfileRole } from "@/lib/isStudioAdminProfile";
 import { getStudioServerSession } from "@/lib/getStudioServerSession";
+import { getDynamicStats, getDynamicStatsForUsers } from "@/lib/attendanceStats";
 
 const memberInclude = {
   user_packages: {
@@ -9,17 +10,9 @@ const memberInclude = {
     orderBy: { purchase_date: "desc" as const },
     take: 8,
   },
-  user_stats: true,
-  // Authoritative attendance count — derived from actual check-ins, not the (sometimes stale) user_stats.total_classes_attended.
-  _count: {
-    select: {
-      bookings: { where: { checked_in: true } },
-    },
-  },
 } as const;
 
 const memberDetailInclude = {
-  user_stats: true,
   user_badges: { orderBy: { earned_at: "desc" as const }, take: 20 },
   bookings: {
     where: { status: "confirmed" as const },
@@ -47,7 +40,8 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       if (!profile || isStudioAdminProfileRole(profile.role)) {
         return res.status(404).json({ error: "Member not found" });
       }
-      return res.json(profile);
+      const stats = await getDynamicStats(profile.id);
+      return res.json({ ...profile, user_stats: stats });
     }
 
     const rows = await prisma.profile.findMany({
@@ -55,7 +49,24 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       orderBy: { created_at: "desc" },
     });
     const members = rows.filter((p) => !isStudioAdminProfileRole(p.role));
-    return res.json(members);
+    const statsByUser = await getDynamicStatsForUsers(members.map((m) => m.id));
+    const withStats = members.map((m) => {
+      const stats = statsByUser.get(m.id) ?? null;
+      return {
+        ...m,
+        user_stats: stats,
+        _count: { bookings: stats?.total_classes_attended ?? 0 },
+      };
+    });
+
+    const monthStart = new Date();
+    monthStart.setDate(1);
+    monthStart.setHours(0, 0, 0, 0);
+    const checkInsThisMonth = await prisma.booking.count({
+      where: { checked_in: true, check_in_time: { gte: monthStart } },
+    });
+
+    return res.json({ members: withStats, checkInsThisMonth });
   }
 
   if (req.method === "PATCH") {

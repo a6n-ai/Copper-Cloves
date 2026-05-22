@@ -11,6 +11,7 @@ import { DayScheduleList } from "@/components/admin/DayScheduleList";
 import { MetricCard } from "@/components/admin/MetricCard";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { Textarea } from "@/components/ui/textarea";
 import { Checkbox } from "@/components/ui/checkbox";
 import {
   Form,
@@ -67,6 +68,9 @@ const classSchema = z.object({
   endPeriod: z.enum(["AM", "PM"]),
   recurring: z.boolean(),
   weekOfMonth: z.string().optional(),
+  classNotes: z.string().optional(),
+  actualInstructorId: z.string().optional(),
+  instructorCheckInOutcome: z.enum(["on_time", "late", "absent"]).optional(),
 }).refine(
   d => d.recurring || !!d.weekOfMonth,
   { message: "Select a week or enable recurring", path: ["weekOfMonth"] }
@@ -128,9 +132,12 @@ interface ScheduledClass {
   time: string;
   classId: string;
   instructorId: string;
+  actualInstructorId?: string | null;
   recurring: boolean;
   booked: number;
   instructorCheckInTime?: string | null;
+  instructorCheckInOutcome?: string | null;
+  classNotes?: string | null;
 }
 
 type ClassSelectOption = {
@@ -178,12 +185,17 @@ export default function AdminSchedule() {
   // Roster sheet state
   const [rosterScheduleId, setRosterScheduleId] = useState<string | null>(null);
   const [rosterData, setRosterData] = useState<{
-    scheduleId: string; className: string; instructor: string;
+    scheduleId: string; className: string;
+    instructor: string; instructorId: string | null;
+    actualInstructor: string | null; actualInstructorId: string | null;
+    instructorCheckInOutcome: string | null;
+    classNotes: string | null;
     startTime: string; capacity: number | null;
     bookings: { id: string; userId: string; name: string; email: string;
       avatarUrl: string | null; checkedIn: boolean; checkInTime: string | null;
       checkInOutcome: string | null; extraGuests: number; }[];
   } | null>(null);
+  const [savingInstructorOutcome, setSavingInstructorOutcome] = useState(false);
   const [rosterLoading, setRosterLoading] = useState(false);
   const [checkingInMap, setCheckingInMap] = useState<Record<string, boolean>>({});
 
@@ -406,8 +418,11 @@ export default function AdminSchedule() {
         start_time: string;
         class_id: string;
         instructor_id?: string;
+        actual_instructor_id?: string | null;
         current_bookings?: number;
         instructor_check_in_time?: string | null;
+        instructor_check_in_outcome?: string | null;
+        class_notes?: string | null;
       }>;
 
       const formattedSchedule: ScheduledClass[] = data.map((item) => {
@@ -424,9 +439,12 @@ export default function AdminSchedule() {
           time: startTime.toLocaleTimeString("en-US", { hour: "2-digit", minute: "2-digit" }),
           classId: item.class_id.toString(),
           instructorId: item.instructor_id?.toString() || "",
+          actualInstructorId: item.actual_instructor_id ?? null,
           recurring: false,
           booked: item.current_bookings || 0,
           instructorCheckInTime: item.instructor_check_in_time ?? null,
+          instructorCheckInOutcome: item.instructor_check_in_outcome ?? null,
+          classNotes: item.class_notes ?? null,
         };
       });
       setSchedule(formattedSchedule);
@@ -462,6 +480,9 @@ export default function AdminSchedule() {
       endHour: "", endMinute: "", endPeriod: "AM",
       recurring: scheduledClass.recurring,
       weekOfMonth: "",
+      classNotes: scheduledClass.classNotes ?? "",
+      actualInstructorId: scheduledClass.actualInstructorId ?? "",
+      instructorCheckInOutcome: (scheduledClass.instructorCheckInOutcome as "on_time" | "late" | "absent" | undefined) ?? undefined,
     });
     setDialogOpen(true);
   };
@@ -534,6 +555,9 @@ export default function AdminSchedule() {
             end_time: endDate.toISOString(),
             available_spots: selectedClassData?.max_capacity,
             capacity: selectedClassData?.max_capacity,
+            actual_instructor_id: data.actualInstructorId || null,
+            instructor_check_in_outcome: data.instructorCheckInOutcome || null,
+            class_notes: data.classNotes || null,
           }),
         });
         if (!updateRes.ok) {
@@ -742,6 +766,27 @@ export default function AdminSchedule() {
       setAddingMemberId(null);
     }
   };
+
+  async function handleSaveInstructorOutcome(outcome: "on_time" | "late" | "absent") {
+    if (!rosterScheduleId) return;
+    setSavingInstructorOutcome(true);
+    try {
+      const res = await fetch("/api/class-schedules", {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        credentials: "include",
+        body: JSON.stringify({ id: rosterScheduleId, instructor_check_in_outcome: outcome }),
+      });
+      if (res.ok) {
+        setRosterData(prev => prev ? { ...prev, instructorCheckInOutcome: outcome } : prev);
+      } else {
+        const err = await res.json().catch(() => ({}));
+        alert((err as { error?: string }).error ?? "Failed to save");
+      }
+    } finally {
+      setSavingInstructorOutcome(false);
+    }
+  }
 
   if (loading) {
     return (
@@ -1041,6 +1086,95 @@ export default function AdminSchedule() {
                       </FormItem>
                     )}
                   />
+
+                  <FormField
+                    control={classForm.control}
+                    name="classNotes"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel className="font-body text-charcoal/80">
+                          Class Notes <span className="text-charcoal/40 font-normal">(Optional)</span>
+                        </FormLabel>
+                        <FormControl>
+                          <Textarea
+                            {...field}
+                            rows={2}
+                            placeholder="Substitute reason, announcements, incidents…"
+                            className="border-charcoal/20 focus:border-sage font-body resize-none"
+                          />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+
+                  {editingClass && (
+                    <div className="rounded-xl border border-charcoal/10 bg-cream/30 p-4 space-y-4">
+                      <p className="font-body text-xs font-medium text-charcoal/50 uppercase tracking-wide">Post-Class</p>
+
+                      <FormField
+                        control={classForm.control}
+                        name="actualInstructorId"
+                        render={({ field }) => (
+                          <FormItem>
+                            <FormLabel className="font-body text-charcoal/80">Substitute Instructor</FormLabel>
+                            <Select onValueChange={field.onChange} value={field.value ?? ""}>
+                              <FormControl>
+                                <SelectTrigger className="h-12 border-charcoal/20 focus:border-sage font-body">
+                                  <SelectValue placeholder="Same as scheduled" />
+                                </SelectTrigger>
+                              </FormControl>
+                              <SelectContent position="popper" className="max-h-[300px] overflow-y-auto">
+                                <SelectItem value="">Same as scheduled</SelectItem>
+                                {instructorOptions.filter(i => !i._isPlaceholder).map(instructor => (
+                                  <SelectItem key={instructor.id} value={instructor.id}>
+                                    {instructor.name}
+                                  </SelectItem>
+                                ))}
+                              </SelectContent>
+                            </Select>
+                            <FormDescription className="font-body text-xs text-charcoal/50">
+                              Set only if a substitute covered this class
+                            </FormDescription>
+                            <FormMessage />
+                          </FormItem>
+                        )}
+                      />
+
+                      <FormField
+                        control={classForm.control}
+                        name="instructorCheckInOutcome"
+                        render={({ field }) => (
+                          <FormItem>
+                            <FormLabel className="font-body text-charcoal/80">Instructor Attendance</FormLabel>
+                            <div className="flex gap-2">
+                              {(["on_time", "late", "absent"] as const).map(v => {
+                                const labels = { on_time: "On Time", late: "Late", absent: "Absent" };
+                                const active = field.value === v;
+                                return (
+                                  <button
+                                    key={v}
+                                    type="button"
+                                    onClick={() => field.onChange(active ? undefined : v)}
+                                    className={`flex-1 h-10 rounded-lg border font-body text-sm font-medium transition-colors ${
+                                      v === "absent"
+                                        ? active ? "bg-red-500 border-red-500 text-white" : "border-charcoal/20 text-charcoal/60 hover:bg-red-50"
+                                        : v === "late"
+                                          ? active ? "bg-amber-500 border-amber-500 text-white" : "border-charcoal/20 text-charcoal/60 hover:bg-amber-50"
+                                          : active ? "bg-sage border-sage text-white" : "border-charcoal/20 text-charcoal/60 hover:bg-sage/10"
+                                    }`}
+                                  >
+                                    {labels[v]}
+                                  </button>
+                                );
+                              })}
+                            </div>
+                            <FormMessage />
+                          </FormItem>
+                        )}
+                      />
+                    </div>
+                  )}
                 </TabsContent>
 
                 {/* ── When & Repeat Tab ── */}
@@ -1279,9 +1413,36 @@ export default function AdminSchedule() {
               {rosterData ? rosterData.className : "Class Roster"}
             </DialogTitle>
             {rosterData && (
-              <div className="font-body text-sm text-charcoal/60 space-y-0.5 mt-1">
+              <div className="font-body text-sm text-charcoal/60 space-y-1 mt-1">
                 <p>{new Date(rosterData.startTime).toLocaleString("en-IN", { dateStyle: "medium", timeStyle: "short", timeZone: "Asia/Kolkata" })}</p>
-                <p>Instructor: {rosterData.instructor}</p>
+                <div className="flex items-center gap-2 flex-wrap">
+                  <span>
+                    {rosterData.actualInstructor ? (
+                      <>
+                        <span className="line-through text-charcoal/40">{rosterData.instructor}</span>
+                        {" "}
+                        <span className="text-terracotta font-medium">{rosterData.actualInstructor}</span>
+                        <span className="ml-1 text-xs bg-terracotta/10 text-terracotta px-1.5 py-0.5 rounded-full">sub</span>
+                      </>
+                    ) : (
+                      <span>{rosterData.instructor}</span>
+                    )}
+                  </span>
+                  {rosterData.instructorCheckInOutcome && (
+                    <span className={`text-xs px-1.5 py-0.5 rounded-full font-medium ${
+                      rosterData.instructorCheckInOutcome === "absent"
+                        ? "bg-red-100 text-red-600"
+                        : rosterData.instructorCheckInOutcome === "late"
+                          ? "bg-amber-100 text-amber-700"
+                          : "bg-sage/10 text-sage"
+                    }`}>
+                      {rosterData.instructorCheckInOutcome.replace("_", " ")}
+                    </span>
+                  )}
+                </div>
+                {rosterData.classNotes && (
+                  <p className="text-xs text-charcoal/50 italic">{rosterData.classNotes}</p>
+                )}
                 <p className="text-sage font-medium">
                   {rosterData.bookings.filter(b => b.checkedIn).length}/{rosterData.bookings.length} checked in
                   {rosterData.capacity ? ` · ${rosterData.capacity} capacity` : ""}
@@ -1353,6 +1514,36 @@ export default function AdminSchedule() {
               </ul>
             )}
           </div>
+
+          {/* Instructor outcome quick-pick */}
+          {rosterData && (
+            <div className="shrink-0 px-6 py-3 border-t border-sage/10">
+              <p className="font-body text-xs font-medium text-charcoal/50 uppercase tracking-wide mb-2">Instructor Attendance</p>
+              <div className="flex gap-2">
+                {(["on_time", "late", "absent"] as const).map(v => {
+                  const labels = { on_time: "On Time", late: "Late", absent: "Absent" };
+                  const active = rosterData.instructorCheckInOutcome === v;
+                  return (
+                    <button
+                      key={v}
+                      type="button"
+                      onClick={() => void handleSaveInstructorOutcome(v)}
+                      disabled={savingInstructorOutcome}
+                      className={`flex-1 h-9 rounded-lg border font-body text-xs font-medium transition-colors disabled:opacity-50 ${
+                        v === "absent"
+                          ? active ? "bg-red-500 border-red-500 text-white" : "border-charcoal/20 text-charcoal/60 hover:bg-red-50"
+                          : v === "late"
+                            ? active ? "bg-amber-500 border-amber-500 text-white" : "border-charcoal/20 text-charcoal/60 hover:bg-amber-50"
+                            : active ? "bg-sage border-sage text-white" : "border-charcoal/20 text-charcoal/60 hover:bg-sage/10"
+                      }`}
+                    >
+                      {labels[v]}
+                    </button>
+                  );
+                })}
+              </div>
+            </div>
+          )}
 
           {/* Add Member panel */}
           <div className="shrink-0 px-6 py-4 border-t border-sage/10 bg-sage/3">

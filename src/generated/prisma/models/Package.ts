@@ -52,6 +52,7 @@ export type PackageMinAggregateOutputType = {
   display_order: number | null
   is_active: boolean | null
   created_at: Date | null
+  updated_at: Date | null
 }
 
 export type PackageMaxAggregateOutputType = {
@@ -66,6 +67,7 @@ export type PackageMaxAggregateOutputType = {
   display_order: number | null
   is_active: boolean | null
   created_at: Date | null
+  updated_at: Date | null
 }
 
 export type PackageCountAggregateOutputType = {
@@ -80,6 +82,7 @@ export type PackageCountAggregateOutputType = {
   display_order: number
   is_active: number
   created_at: number
+  updated_at: number
   _all: number
 }
 
@@ -110,6 +113,7 @@ export type PackageMinAggregateInputType = {
   display_order?: true
   is_active?: true
   created_at?: true
+  updated_at?: true
 }
 
 export type PackageMaxAggregateInputType = {
@@ -124,6 +128,7 @@ export type PackageMaxAggregateInputType = {
   display_order?: true
   is_active?: true
   created_at?: true
+  updated_at?: true
 }
 
 export type PackageCountAggregateInputType = {
@@ -138,6 +143,7 @@ export type PackageCountAggregateInputType = {
   display_order?: true
   is_active?: true
   created_at?: true
+  updated_at?: true
   _all?: true
 }
 
@@ -239,6 +245,7 @@ export type PackageGroupByOutputType = {
   display_order: number | null
   is_active: boolean
   created_at: Date
+  updated_at: Date
   _count: PackageCountAggregateOutputType | null
   _avg: PackageAvgAggregateOutputType | null
   _sum: PackageSumAggregateOutputType | null
@@ -276,6 +283,7 @@ export type PackageWhereInput = {
   display_order?: Prisma.IntNullableFilter<"Package"> | number | null
   is_active?: Prisma.BoolFilter<"Package"> | boolean
   created_at?: Prisma.DateTimeFilter<"Package"> | Date | string
+  updated_at?: Prisma.DateTimeFilter<"Package"> | Date | string
   user_packages?: Prisma.UserPackageListRelationFilter
 }
 
@@ -291,6 +299,7 @@ export type PackageOrderByWithRelationInput = {
   display_order?: Prisma.SortOrderInput | Prisma.SortOrder
   is_active?: Prisma.SortOrder
   created_at?: Prisma.SortOrder
+  updated_at?: Prisma.SortOrder
   user_packages?: Prisma.UserPackageOrderByRelationAggregateInput
 }
 
@@ -309,6 +318,7 @@ export type PackageWhereUniqueInput = Prisma.AtLeast<{
   display_order?: Prisma.IntNullableFilter<"Package"> | number | null
   is_active?: Prisma.BoolFilter<"Package"> | boolean
   created_at?: Prisma.DateTimeFilter<"Package"> | Date | string
+  updated_at?: Prisma.DateTimeFilter<"Package"> | Date | string
   user_packages?: Prisma.UserPackageListRelationFilter
 }, "id">
 
@@ -324,6 +334,7 @@ export type PackageOrderByWithAggregationInput = {
   display_order?: Prisma.SortOrderInput | Prisma.SortOrder
   is_active?: Prisma.SortOrder
   created_at?: Prisma.SortOrder
+  updated_at?: Prisma.SortOrder
   _count?: Prisma.PackageCountOrderByAggregateInput
   _avg?: Prisma.PackageAvgOrderByAggregateInput
   _max?: Prisma.PackageMaxOrderByAggregateInput
@@ -346,6 +357,7 @@ export type PackageScalarWhereWithAggregatesInput = {
   display_order?: Prisma.IntNullableWithAggregatesFilter<"Package"> | number | null
   is_active?: Prisma.BoolWithAggregatesFilter<"Package"> | boolean
   created_at?: Prisma.DateTimeWithAggregatesFilter<"Package"> | Date | string
+  updated_at?: Prisma.DateTimeWithAggregatesFilter<"Package"> | Date | string
 }
 
 export type PackageCreateInput = {
@@ -360,6 +372,7 @@ export type PackageCreateInput = {
   display_order?: number | null
   is_active?: boolean
   created_at?: Date | string
+  updated_at?: Date | string
   user_packages?: Prisma.UserPackageCreateNestedManyWithoutPackageInput
 }
 
@@ -375,6 +388,7 @@ export type PackageUncheckedCreateInput = {
   display_order?: number | null
   is_active?: boolean
   created_at?: Date | string
+  updated_at?: Date | string
   user_packages?: Prisma.UserPackageUncheckedCreateNestedManyWithoutPackageInput
 }
 
@@ -390,6 +404,7 @@ export type PackageUpdateInput = {
   display_order?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   is_active?: Prisma.BoolFieldUpdateOperationsInput | boolean
   created_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updated_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   user_packages?: Prisma.UserPackageUpdateManyWithoutPackageNestedInput
 }
 
@@ -405,6 +420,7 @@ export type PackageUncheckedUpdateInput = {
   display_order?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   is_active?: Prisma.BoolFieldUpdateOperationsInput | boolean
   created_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updated_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   user_packages?: Prisma.UserPackageUncheckedUpdateManyWithoutPackageNestedInput
 }
 
@@ -420,6 +436,7 @@ export type PackageCreateManyInput = {
   display_order?: number | null
   is_active?: boolean
   created_at?: Date | string
+  updated_at?: Date | string
 }
 
 export type PackageUpdateManyMutationInput = {
@@ -434,6 +451,7 @@ export type PackageUpdateManyMutationInput = {
   display_order?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   is_active?: Prisma.BoolFieldUpdateOperationsInput | boolean
   created_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updated_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
 }
 
 export type PackageUncheckedUpdateManyInput = {
@@ -448,6 +466,7 @@ export type PackageUncheckedUpdateManyInput = {
   display_order?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   is_active?: Prisma.BoolFieldUpdateOperationsInput | boolean
   created_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updated_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
 }
 
 export type PackageCountOrderByAggregateInput = {
@@ -462,6 +481,7 @@ export type PackageCountOrderByAggregateInput = {
   display_order?: Prisma.SortOrder
   is_active?: Prisma.SortOrder
   created_at?: Prisma.SortOrder
+  updated_at?: Prisma.SortOrder
 }
 
 export type PackageAvgOrderByAggregateInput = {
@@ -483,6 +503,7 @@ export type PackageMaxOrderByAggregateInput = {
   display_order?: Prisma.SortOrder
   is_active?: Prisma.SortOrder
   created_at?: Prisma.SortOrder
+  updated_at?: Prisma.SortOrder
 }
 
 export type PackageMinOrderByAggregateInput = {
@@ -497,6 +518,7 @@ export type PackageMinOrderByAggregateInput = {
   display_order?: Prisma.SortOrder
   is_active?: Prisma.SortOrder
   created_at?: Prisma.SortOrder
+  updated_at?: Prisma.SortOrder
 }
 
 export type PackageSumOrderByAggregateInput = {
@@ -539,6 +561,7 @@ export type PackageCreateWithoutUser_packagesInput = {
   display_order?: number | null
   is_active?: boolean
   created_at?: Date | string
+  updated_at?: Date | string
 }
 
 export type PackageUncheckedCreateWithoutUser_packagesInput = {
@@ -553,6 +576,7 @@ export type PackageUncheckedCreateWithoutUser_packagesInput = {
   display_order?: number | null
   is_active?: boolean
   created_at?: Date | string
+  updated_at?: Date | string
 }
 
 export type PackageCreateOrConnectWithoutUser_packagesInput = {
@@ -583,6 +607,7 @@ export type PackageUpdateWithoutUser_packagesInput = {
   display_order?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   is_active?: Prisma.BoolFieldUpdateOperationsInput | boolean
   created_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updated_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
 }
 
 export type PackageUncheckedUpdateWithoutUser_packagesInput = {
@@ -597,6 +622,7 @@ export type PackageUncheckedUpdateWithoutUser_packagesInput = {
   display_order?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   is_active?: Prisma.BoolFieldUpdateOperationsInput | boolean
   created_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updated_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
 }
 
 
@@ -642,6 +668,7 @@ export type PackageSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs 
   display_order?: boolean
   is_active?: boolean
   created_at?: boolean
+  updated_at?: boolean
   user_packages?: boolean | Prisma.Package$user_packagesArgs<ExtArgs>
   _count?: boolean | Prisma.PackageCountOutputTypeDefaultArgs<ExtArgs>
 }, ExtArgs["result"]["package"]>
@@ -658,6 +685,7 @@ export type PackageSelectCreateManyAndReturn<ExtArgs extends runtime.Types.Exten
   display_order?: boolean
   is_active?: boolean
   created_at?: boolean
+  updated_at?: boolean
 }, ExtArgs["result"]["package"]>
 
 export type PackageSelectUpdateManyAndReturn<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetSelect<{
@@ -672,6 +700,7 @@ export type PackageSelectUpdateManyAndReturn<ExtArgs extends runtime.Types.Exten
   display_order?: boolean
   is_active?: boolean
   created_at?: boolean
+  updated_at?: boolean
 }, ExtArgs["result"]["package"]>
 
 export type PackageSelectScalar = {
@@ -686,9 +715,10 @@ export type PackageSelectScalar = {
   display_order?: boolean
   is_active?: boolean
   created_at?: boolean
+  updated_at?: boolean
 }
 
-export type PackageOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "name" | "tier" | "price" | "validity_days" | "credits_total" | "includes_physique57" | "description" | "display_order" | "is_active" | "created_at", ExtArgs["result"]["package"]>
+export type PackageOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "name" | "tier" | "price" | "validity_days" | "credits_total" | "includes_physique57" | "description" | "display_order" | "is_active" | "created_at" | "updated_at", ExtArgs["result"]["package"]>
 export type PackageInclude<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   user_packages?: boolean | Prisma.Package$user_packagesArgs<ExtArgs>
   _count?: boolean | Prisma.PackageCountOutputTypeDefaultArgs<ExtArgs>
@@ -713,6 +743,7 @@ export type $PackagePayload<ExtArgs extends runtime.Types.Extensions.InternalArg
     display_order: number | null
     is_active: boolean
     created_at: Date
+    updated_at: Date
   }, ExtArgs["result"]["package"]>
   composites: {}
 }
@@ -1148,6 +1179,7 @@ export interface PackageFieldRefs {
   readonly display_order: Prisma.FieldRef<"Package", 'Int'>
   readonly is_active: Prisma.FieldRef<"Package", 'Boolean'>
   readonly created_at: Prisma.FieldRef<"Package", 'DateTime'>
+  readonly updated_at: Prisma.FieldRef<"Package", 'DateTime'>
 }
     
 

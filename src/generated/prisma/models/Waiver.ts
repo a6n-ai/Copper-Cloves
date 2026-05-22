@@ -32,6 +32,7 @@ export type WaiverMinAggregateOutputType = {
   document_url: string | null
   ip_address: string | null
   created_at: Date | null
+  updated_at: Date | null
 }
 
 export type WaiverMaxAggregateOutputType = {
@@ -42,6 +43,7 @@ export type WaiverMaxAggregateOutputType = {
   document_url: string | null
   ip_address: string | null
   created_at: Date | null
+  updated_at: Date | null
 }
 
 export type WaiverCountAggregateOutputType = {
@@ -52,6 +54,7 @@ export type WaiverCountAggregateOutputType = {
   document_url: number
   ip_address: number
   created_at: number
+  updated_at: number
   _all: number
 }
 
@@ -64,6 +67,7 @@ export type WaiverMinAggregateInputType = {
   document_url?: true
   ip_address?: true
   created_at?: true
+  updated_at?: true
 }
 
 export type WaiverMaxAggregateInputType = {
@@ -74,6 +78,7 @@ export type WaiverMaxAggregateInputType = {
   document_url?: true
   ip_address?: true
   created_at?: true
+  updated_at?: true
 }
 
 export type WaiverCountAggregateInputType = {
@@ -84,6 +89,7 @@ export type WaiverCountAggregateInputType = {
   document_url?: true
   ip_address?: true
   created_at?: true
+  updated_at?: true
   _all?: true
 }
 
@@ -167,6 +173,7 @@ export type WaiverGroupByOutputType = {
   document_url: string | null
   ip_address: string | null
   created_at: Date
+  updated_at: Date
   _count: WaiverCountAggregateOutputType | null
   _min: WaiverMinAggregateOutputType | null
   _max: WaiverMaxAggregateOutputType | null
@@ -198,6 +205,7 @@ export type WaiverWhereInput = {
   document_url?: Prisma.StringNullableFilter<"Waiver"> | string | null
   ip_address?: Prisma.StringNullableFilter<"Waiver"> | string | null
   created_at?: Prisma.DateTimeFilter<"Waiver"> | Date | string
+  updated_at?: Prisma.DateTimeFilter<"Waiver"> | Date | string
   profile?: Prisma.XOR<Prisma.ProfileScalarRelationFilter, Prisma.ProfileWhereInput>
 }
 
@@ -209,6 +217,7 @@ export type WaiverOrderByWithRelationInput = {
   document_url?: Prisma.SortOrderInput | Prisma.SortOrder
   ip_address?: Prisma.SortOrderInput | Prisma.SortOrder
   created_at?: Prisma.SortOrder
+  updated_at?: Prisma.SortOrder
   profile?: Prisma.ProfileOrderByWithRelationInput
 }
 
@@ -223,6 +232,7 @@ export type WaiverWhereUniqueInput = Prisma.AtLeast<{
   document_url?: Prisma.StringNullableFilter<"Waiver"> | string | null
   ip_address?: Prisma.StringNullableFilter<"Waiver"> | string | null
   created_at?: Prisma.DateTimeFilter<"Waiver"> | Date | string
+  updated_at?: Prisma.DateTimeFilter<"Waiver"> | Date | string
   profile?: Prisma.XOR<Prisma.ProfileScalarRelationFilter, Prisma.ProfileWhereInput>
 }, "id">
 
@@ -234,6 +244,7 @@ export type WaiverOrderByWithAggregationInput = {
   document_url?: Prisma.SortOrderInput | Prisma.SortOrder
   ip_address?: Prisma.SortOrderInput | Prisma.SortOrder
   created_at?: Prisma.SortOrder
+  updated_at?: Prisma.SortOrder
   _count?: Prisma.WaiverCountOrderByAggregateInput
   _max?: Prisma.WaiverMaxOrderByAggregateInput
   _min?: Prisma.WaiverMinOrderByAggregateInput
@@ -250,6 +261,7 @@ export type WaiverScalarWhereWithAggregatesInput = {
   document_url?: Prisma.StringNullableWithAggregatesFilter<"Waiver"> | string | null
   ip_address?: Prisma.StringNullableWithAggregatesFilter<"Waiver"> | string | null
   created_at?: Prisma.DateTimeWithAggregatesFilter<"Waiver"> | Date | string
+  updated_at?: Prisma.DateTimeWithAggregatesFilter<"Waiver"> | Date | string
 }
 
 export type WaiverCreateInput = {
@@ -259,6 +271,7 @@ export type WaiverCreateInput = {
   document_url?: string | null
   ip_address?: string | null
   created_at?: Date | string
+  updated_at?: Date | string
   profile: Prisma.ProfileCreateNestedOneWithoutWaiversInput
 }
 
@@ -270,6 +283,7 @@ export type WaiverUncheckedCreateInput = {
   document_url?: string | null
   ip_address?: string | null
   created_at?: Date | string
+  updated_at?: Date | string
 }
 
 export type WaiverUpdateInput = {
@@ -279,6 +293,7 @@ export type WaiverUpdateInput = {
   document_url?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   ip_address?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   created_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updated_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   profile?: Prisma.ProfileUpdateOneRequiredWithoutWaiversNestedInput
 }
 
@@ -290,6 +305,7 @@ export type WaiverUncheckedUpdateInput = {
   document_url?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   ip_address?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   created_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updated_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
 }
 
 export type WaiverCreateManyInput = {
@@ -300,6 +316,7 @@ export type WaiverCreateManyInput = {
   document_url?: string | null
   ip_address?: string | null
   created_at?: Date | string
+  updated_at?: Date | string
 }
 
 export type WaiverUpdateManyMutationInput = {
@@ -309,6 +326,7 @@ export type WaiverUpdateManyMutationInput = {
   document_url?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   ip_address?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   created_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updated_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
 }
 
 export type WaiverUncheckedUpdateManyInput = {
@@ -319,6 +337,7 @@ export type WaiverUncheckedUpdateManyInput = {
   document_url?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   ip_address?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   created_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updated_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
 }
 
 export type WaiverListRelationFilter = {
@@ -339,6 +358,7 @@ export type WaiverCountOrderByAggregateInput = {
   document_url?: Prisma.SortOrder
   ip_address?: Prisma.SortOrder
   created_at?: Prisma.SortOrder
+  updated_at?: Prisma.SortOrder
 }
 
 export type WaiverMaxOrderByAggregateInput = {
@@ -349,6 +369,7 @@ export type WaiverMaxOrderByAggregateInput = {
   document_url?: Prisma.SortOrder
   ip_address?: Prisma.SortOrder
   created_at?: Prisma.SortOrder
+  updated_at?: Prisma.SortOrder
 }
 
 export type WaiverMinOrderByAggregateInput = {
@@ -359,6 +380,7 @@ export type WaiverMinOrderByAggregateInput = {
   document_url?: Prisma.SortOrder
   ip_address?: Prisma.SortOrder
   created_at?: Prisma.SortOrder
+  updated_at?: Prisma.SortOrder
 }
 
 export type WaiverCreateNestedManyWithoutProfileInput = {
@@ -410,6 +432,7 @@ export type WaiverCreateWithoutProfileInput = {
   document_url?: string | null
   ip_address?: string | null
   created_at?: Date | string
+  updated_at?: Date | string
 }
 
 export type WaiverUncheckedCreateWithoutProfileInput = {
@@ -419,6 +442,7 @@ export type WaiverUncheckedCreateWithoutProfileInput = {
   document_url?: string | null
   ip_address?: string | null
   created_at?: Date | string
+  updated_at?: Date | string
 }
 
 export type WaiverCreateOrConnectWithoutProfileInput = {
@@ -458,6 +482,7 @@ export type WaiverScalarWhereInput = {
   document_url?: Prisma.StringNullableFilter<"Waiver"> | string | null
   ip_address?: Prisma.StringNullableFilter<"Waiver"> | string | null
   created_at?: Prisma.DateTimeFilter<"Waiver"> | Date | string
+  updated_at?: Prisma.DateTimeFilter<"Waiver"> | Date | string
 }
 
 export type WaiverCreateManyProfileInput = {
@@ -467,6 +492,7 @@ export type WaiverCreateManyProfileInput = {
   document_url?: string | null
   ip_address?: string | null
   created_at?: Date | string
+  updated_at?: Date | string
 }
 
 export type WaiverUpdateWithoutProfileInput = {
@@ -476,6 +502,7 @@ export type WaiverUpdateWithoutProfileInput = {
   document_url?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   ip_address?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   created_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updated_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
 }
 
 export type WaiverUncheckedUpdateWithoutProfileInput = {
@@ -485,6 +512,7 @@ export type WaiverUncheckedUpdateWithoutProfileInput = {
   document_url?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   ip_address?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   created_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updated_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
 }
 
 export type WaiverUncheckedUpdateManyWithoutProfileInput = {
@@ -494,6 +522,7 @@ export type WaiverUncheckedUpdateManyWithoutProfileInput = {
   document_url?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   ip_address?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   created_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updated_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
 }
 
 
@@ -506,6 +535,7 @@ export type WaiverSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs =
   document_url?: boolean
   ip_address?: boolean
   created_at?: boolean
+  updated_at?: boolean
   profile?: boolean | Prisma.ProfileDefaultArgs<ExtArgs>
 }, ExtArgs["result"]["waiver"]>
 
@@ -517,6 +547,7 @@ export type WaiverSelectCreateManyAndReturn<ExtArgs extends runtime.Types.Extens
   document_url?: boolean
   ip_address?: boolean
   created_at?: boolean
+  updated_at?: boolean
   profile?: boolean | Prisma.ProfileDefaultArgs<ExtArgs>
 }, ExtArgs["result"]["waiver"]>
 
@@ -528,6 +559,7 @@ export type WaiverSelectUpdateManyAndReturn<ExtArgs extends runtime.Types.Extens
   document_url?: boolean
   ip_address?: boolean
   created_at?: boolean
+  updated_at?: boolean
   profile?: boolean | Prisma.ProfileDefaultArgs<ExtArgs>
 }, ExtArgs["result"]["waiver"]>
 
@@ -539,9 +571,10 @@ export type WaiverSelectScalar = {
   document_url?: boolean
   ip_address?: boolean
   created_at?: boolean
+  updated_at?: boolean
 }
 
-export type WaiverOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "user_id" | "waiver_type" | "signed_date" | "document_url" | "ip_address" | "created_at", ExtArgs["result"]["waiver"]>
+export type WaiverOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "user_id" | "waiver_type" | "signed_date" | "document_url" | "ip_address" | "created_at" | "updated_at", ExtArgs["result"]["waiver"]>
 export type WaiverInclude<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   profile?: boolean | Prisma.ProfileDefaultArgs<ExtArgs>
 }
@@ -565,6 +598,7 @@ export type $WaiverPayload<ExtArgs extends runtime.Types.Extensions.InternalArgs
     document_url: string | null
     ip_address: string | null
     created_at: Date
+    updated_at: Date
   }, ExtArgs["result"]["waiver"]>
   composites: {}
 }
@@ -996,6 +1030,7 @@ export interface WaiverFieldRefs {
   readonly document_url: Prisma.FieldRef<"Waiver", 'String'>
   readonly ip_address: Prisma.FieldRef<"Waiver", 'String'>
   readonly created_at: Prisma.FieldRef<"Waiver", 'DateTime'>
+  readonly updated_at: Prisma.FieldRef<"Waiver", 'DateTime'>
 }
     
 

@@ -36,6 +36,7 @@ export type CrmMessageMinAggregateOutputType = {
   sent_at: Date | null
   error_message: string | null
   created_at: Date | null
+  updated_at: Date | null
 }
 
 export type CrmMessageMaxAggregateOutputType = {
@@ -50,6 +51,7 @@ export type CrmMessageMaxAggregateOutputType = {
   sent_at: Date | null
   error_message: string | null
   created_at: Date | null
+  updated_at: Date | null
 }
 
 export type CrmMessageCountAggregateOutputType = {
@@ -64,6 +66,7 @@ export type CrmMessageCountAggregateOutputType = {
   sent_at: number
   error_message: number
   created_at: number
+  updated_at: number
   _all: number
 }
 
@@ -80,6 +83,7 @@ export type CrmMessageMinAggregateInputType = {
   sent_at?: true
   error_message?: true
   created_at?: true
+  updated_at?: true
 }
 
 export type CrmMessageMaxAggregateInputType = {
@@ -94,6 +98,7 @@ export type CrmMessageMaxAggregateInputType = {
   sent_at?: true
   error_message?: true
   created_at?: true
+  updated_at?: true
 }
 
 export type CrmMessageCountAggregateInputType = {
@@ -108,6 +113,7 @@ export type CrmMessageCountAggregateInputType = {
   sent_at?: true
   error_message?: true
   created_at?: true
+  updated_at?: true
   _all?: true
 }
 
@@ -195,6 +201,7 @@ export type CrmMessageGroupByOutputType = {
   sent_at: Date | null
   error_message: string | null
   created_at: Date
+  updated_at: Date
   _count: CrmMessageCountAggregateOutputType | null
   _min: CrmMessageMinAggregateOutputType | null
   _max: CrmMessageMaxAggregateOutputType | null
@@ -230,6 +237,7 @@ export type CrmMessageWhereInput = {
   sent_at?: Prisma.DateTimeNullableFilter<"CrmMessage"> | Date | string | null
   error_message?: Prisma.StringNullableFilter<"CrmMessage"> | string | null
   created_at?: Prisma.DateTimeFilter<"CrmMessage"> | Date | string
+  updated_at?: Prisma.DateTimeFilter<"CrmMessage"> | Date | string
   profile?: Prisma.XOR<Prisma.ProfileNullableScalarRelationFilter, Prisma.ProfileWhereInput> | null
   template?: Prisma.XOR<Prisma.CrmTemplateNullableScalarRelationFilter, Prisma.CrmTemplateWhereInput> | null
 }
@@ -246,6 +254,7 @@ export type CrmMessageOrderByWithRelationInput = {
   sent_at?: Prisma.SortOrderInput | Prisma.SortOrder
   error_message?: Prisma.SortOrderInput | Prisma.SortOrder
   created_at?: Prisma.SortOrder
+  updated_at?: Prisma.SortOrder
   profile?: Prisma.ProfileOrderByWithRelationInput
   template?: Prisma.CrmTemplateOrderByWithRelationInput
 }
@@ -265,6 +274,7 @@ export type CrmMessageWhereUniqueInput = Prisma.AtLeast<{
   sent_at?: Prisma.DateTimeNullableFilter<"CrmMessage"> | Date | string | null
   error_message?: Prisma.StringNullableFilter<"CrmMessage"> | string | null
   created_at?: Prisma.DateTimeFilter<"CrmMessage"> | Date | string
+  updated_at?: Prisma.DateTimeFilter<"CrmMessage"> | Date | string
   profile?: Prisma.XOR<Prisma.ProfileNullableScalarRelationFilter, Prisma.ProfileWhereInput> | null
   template?: Prisma.XOR<Prisma.CrmTemplateNullableScalarRelationFilter, Prisma.CrmTemplateWhereInput> | null
 }, "id">
@@ -281,6 +291,7 @@ export type CrmMessageOrderByWithAggregationInput = {
   sent_at?: Prisma.SortOrderInput | Prisma.SortOrder
   error_message?: Prisma.SortOrderInput | Prisma.SortOrder
   created_at?: Prisma.SortOrder
+  updated_at?: Prisma.SortOrder
   _count?: Prisma.CrmMessageCountOrderByAggregateInput
   _max?: Prisma.CrmMessageMaxOrderByAggregateInput
   _min?: Prisma.CrmMessageMinOrderByAggregateInput
@@ -301,6 +312,7 @@ export type CrmMessageScalarWhereWithAggregatesInput = {
   sent_at?: Prisma.DateTimeNullableWithAggregatesFilter<"CrmMessage"> | Date | string | null
   error_message?: Prisma.StringNullableWithAggregatesFilter<"CrmMessage"> | string | null
   created_at?: Prisma.DateTimeWithAggregatesFilter<"CrmMessage"> | Date | string
+  updated_at?: Prisma.DateTimeWithAggregatesFilter<"CrmMessage"> | Date | string
 }
 
 export type CrmMessageCreateInput = {
@@ -313,6 +325,7 @@ export type CrmMessageCreateInput = {
   sent_at?: Date | string | null
   error_message?: string | null
   created_at?: Date | string
+  updated_at?: Date | string
   profile?: Prisma.ProfileCreateNestedOneWithoutCrm_messagesInput
   template?: Prisma.CrmTemplateCreateNestedOneWithoutCrm_messagesInput
 }
@@ -329,6 +342,7 @@ export type CrmMessageUncheckedCreateInput = {
   sent_at?: Date | string | null
   error_message?: string | null
   created_at?: Date | string
+  updated_at?: Date | string
 }
 
 export type CrmMessageUpdateInput = {
@@ -341,6 +355,7 @@ export type CrmMessageUpdateInput = {
   sent_at?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   error_message?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   created_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updated_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   profile?: Prisma.ProfileUpdateOneWithoutCrm_messagesNestedInput
   template?: Prisma.CrmTemplateUpdateOneWithoutCrm_messagesNestedInput
 }
@@ -357,6 +372,7 @@ export type CrmMessageUncheckedUpdateInput = {
   sent_at?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   error_message?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   created_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updated_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
 }
 
 export type CrmMessageCreateManyInput = {
@@ -371,6 +387,7 @@ export type CrmMessageCreateManyInput = {
   sent_at?: Date | string | null
   error_message?: string | null
   created_at?: Date | string
+  updated_at?: Date | string
 }
 
 export type CrmMessageUpdateManyMutationInput = {
@@ -383,6 +400,7 @@ export type CrmMessageUpdateManyMutationInput = {
   sent_at?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   error_message?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   created_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updated_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
 }
 
 export type CrmMessageUncheckedUpdateManyInput = {
@@ -397,6 +415,7 @@ export type CrmMessageUncheckedUpdateManyInput = {
   sent_at?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   error_message?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   created_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updated_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
 }
 
 export type CrmMessageListRelationFilter = {
@@ -421,6 +440,7 @@ export type CrmMessageCountOrderByAggregateInput = {
   sent_at?: Prisma.SortOrder
   error_message?: Prisma.SortOrder
   created_at?: Prisma.SortOrder
+  updated_at?: Prisma.SortOrder
 }
 
 export type CrmMessageMaxOrderByAggregateInput = {
@@ -435,6 +455,7 @@ export type CrmMessageMaxOrderByAggregateInput = {
   sent_at?: Prisma.SortOrder
   error_message?: Prisma.SortOrder
   created_at?: Prisma.SortOrder
+  updated_at?: Prisma.SortOrder
 }
 
 export type CrmMessageMinOrderByAggregateInput = {
@@ -449,6 +470,7 @@ export type CrmMessageMinOrderByAggregateInput = {
   sent_at?: Prisma.SortOrder
   error_message?: Prisma.SortOrder
   created_at?: Prisma.SortOrder
+  updated_at?: Prisma.SortOrder
 }
 
 export type CrmMessageCreateNestedManyWithoutProfileInput = {
@@ -545,6 +567,7 @@ export type CrmMessageCreateWithoutProfileInput = {
   sent_at?: Date | string | null
   error_message?: string | null
   created_at?: Date | string
+  updated_at?: Date | string
   template?: Prisma.CrmTemplateCreateNestedOneWithoutCrm_messagesInput
 }
 
@@ -559,6 +582,7 @@ export type CrmMessageUncheckedCreateWithoutProfileInput = {
   sent_at?: Date | string | null
   error_message?: string | null
   created_at?: Date | string
+  updated_at?: Date | string
 }
 
 export type CrmMessageCreateOrConnectWithoutProfileInput = {
@@ -602,6 +626,7 @@ export type CrmMessageScalarWhereInput = {
   sent_at?: Prisma.DateTimeNullableFilter<"CrmMessage"> | Date | string | null
   error_message?: Prisma.StringNullableFilter<"CrmMessage"> | string | null
   created_at?: Prisma.DateTimeFilter<"CrmMessage"> | Date | string
+  updated_at?: Prisma.DateTimeFilter<"CrmMessage"> | Date | string
 }
 
 export type CrmMessageCreateWithoutTemplateInput = {
@@ -614,6 +639,7 @@ export type CrmMessageCreateWithoutTemplateInput = {
   sent_at?: Date | string | null
   error_message?: string | null
   created_at?: Date | string
+  updated_at?: Date | string
   profile?: Prisma.ProfileCreateNestedOneWithoutCrm_messagesInput
 }
 
@@ -628,6 +654,7 @@ export type CrmMessageUncheckedCreateWithoutTemplateInput = {
   sent_at?: Date | string | null
   error_message?: string | null
   created_at?: Date | string
+  updated_at?: Date | string
 }
 
 export type CrmMessageCreateOrConnectWithoutTemplateInput = {
@@ -667,6 +694,7 @@ export type CrmMessageCreateManyProfileInput = {
   sent_at?: Date | string | null
   error_message?: string | null
   created_at?: Date | string
+  updated_at?: Date | string
 }
 
 export type CrmMessageUpdateWithoutProfileInput = {
@@ -679,6 +707,7 @@ export type CrmMessageUpdateWithoutProfileInput = {
   sent_at?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   error_message?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   created_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updated_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   template?: Prisma.CrmTemplateUpdateOneWithoutCrm_messagesNestedInput
 }
 
@@ -693,6 +722,7 @@ export type CrmMessageUncheckedUpdateWithoutProfileInput = {
   sent_at?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   error_message?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   created_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updated_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
 }
 
 export type CrmMessageUncheckedUpdateManyWithoutProfileInput = {
@@ -706,6 +736,7 @@ export type CrmMessageUncheckedUpdateManyWithoutProfileInput = {
   sent_at?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   error_message?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   created_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updated_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
 }
 
 export type CrmMessageCreateManyTemplateInput = {
@@ -719,6 +750,7 @@ export type CrmMessageCreateManyTemplateInput = {
   sent_at?: Date | string | null
   error_message?: string | null
   created_at?: Date | string
+  updated_at?: Date | string
 }
 
 export type CrmMessageUpdateWithoutTemplateInput = {
@@ -731,6 +763,7 @@ export type CrmMessageUpdateWithoutTemplateInput = {
   sent_at?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   error_message?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   created_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updated_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   profile?: Prisma.ProfileUpdateOneWithoutCrm_messagesNestedInput
 }
 
@@ -745,6 +778,7 @@ export type CrmMessageUncheckedUpdateWithoutTemplateInput = {
   sent_at?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   error_message?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   created_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updated_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
 }
 
 export type CrmMessageUncheckedUpdateManyWithoutTemplateInput = {
@@ -758,6 +792,7 @@ export type CrmMessageUncheckedUpdateManyWithoutTemplateInput = {
   sent_at?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   error_message?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   created_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updated_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
 }
 
 
@@ -774,6 +809,7 @@ export type CrmMessageSelect<ExtArgs extends runtime.Types.Extensions.InternalAr
   sent_at?: boolean
   error_message?: boolean
   created_at?: boolean
+  updated_at?: boolean
   profile?: boolean | Prisma.CrmMessage$profileArgs<ExtArgs>
   template?: boolean | Prisma.CrmMessage$templateArgs<ExtArgs>
 }, ExtArgs["result"]["crmMessage"]>
@@ -790,6 +826,7 @@ export type CrmMessageSelectCreateManyAndReturn<ExtArgs extends runtime.Types.Ex
   sent_at?: boolean
   error_message?: boolean
   created_at?: boolean
+  updated_at?: boolean
   profile?: boolean | Prisma.CrmMessage$profileArgs<ExtArgs>
   template?: boolean | Prisma.CrmMessage$templateArgs<ExtArgs>
 }, ExtArgs["result"]["crmMessage"]>
@@ -806,6 +843,7 @@ export type CrmMessageSelectUpdateManyAndReturn<ExtArgs extends runtime.Types.Ex
   sent_at?: boolean
   error_message?: boolean
   created_at?: boolean
+  updated_at?: boolean
   profile?: boolean | Prisma.CrmMessage$profileArgs<ExtArgs>
   template?: boolean | Prisma.CrmMessage$templateArgs<ExtArgs>
 }, ExtArgs["result"]["crmMessage"]>
@@ -822,9 +860,10 @@ export type CrmMessageSelectScalar = {
   sent_at?: boolean
   error_message?: boolean
   created_at?: boolean
+  updated_at?: boolean
 }
 
-export type CrmMessageOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "user_id" | "template_id" | "channel" | "subject" | "message_body" | "status" | "scheduled_for" | "sent_at" | "error_message" | "created_at", ExtArgs["result"]["crmMessage"]>
+export type CrmMessageOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "user_id" | "template_id" | "channel" | "subject" | "message_body" | "status" | "scheduled_for" | "sent_at" | "error_message" | "created_at" | "updated_at", ExtArgs["result"]["crmMessage"]>
 export type CrmMessageInclude<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   profile?: boolean | Prisma.CrmMessage$profileArgs<ExtArgs>
   template?: boolean | Prisma.CrmMessage$templateArgs<ExtArgs>
@@ -856,6 +895,7 @@ export type $CrmMessagePayload<ExtArgs extends runtime.Types.Extensions.Internal
     sent_at: Date | null
     error_message: string | null
     created_at: Date
+    updated_at: Date
   }, ExtArgs["result"]["crmMessage"]>
   composites: {}
 }
@@ -1292,6 +1332,7 @@ export interface CrmMessageFieldRefs {
   readonly sent_at: Prisma.FieldRef<"CrmMessage", 'DateTime'>
   readonly error_message: Prisma.FieldRef<"CrmMessage", 'String'>
   readonly created_at: Prisma.FieldRef<"CrmMessage", 'DateTime'>
+  readonly updated_at: Prisma.FieldRef<"CrmMessage", 'DateTime'>
 }
     
 

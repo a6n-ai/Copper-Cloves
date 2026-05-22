@@ -42,6 +42,7 @@ export type CouponRedemptionMinAggregateOutputType = {
   context: string | null
   discount_amount: runtime.Decimal | null
   created_at: Date | null
+  updated_at: Date | null
 }
 
 export type CouponRedemptionMaxAggregateOutputType = {
@@ -52,6 +53,7 @@ export type CouponRedemptionMaxAggregateOutputType = {
   context: string | null
   discount_amount: runtime.Decimal | null
   created_at: Date | null
+  updated_at: Date | null
 }
 
 export type CouponRedemptionCountAggregateOutputType = {
@@ -62,6 +64,7 @@ export type CouponRedemptionCountAggregateOutputType = {
   context: number
   discount_amount: number
   created_at: number
+  updated_at: number
   _all: number
 }
 
@@ -82,6 +85,7 @@ export type CouponRedemptionMinAggregateInputType = {
   context?: true
   discount_amount?: true
   created_at?: true
+  updated_at?: true
 }
 
 export type CouponRedemptionMaxAggregateInputType = {
@@ -92,6 +96,7 @@ export type CouponRedemptionMaxAggregateInputType = {
   context?: true
   discount_amount?: true
   created_at?: true
+  updated_at?: true
 }
 
 export type CouponRedemptionCountAggregateInputType = {
@@ -102,6 +107,7 @@ export type CouponRedemptionCountAggregateInputType = {
   context?: true
   discount_amount?: true
   created_at?: true
+  updated_at?: true
   _all?: true
 }
 
@@ -199,6 +205,7 @@ export type CouponRedemptionGroupByOutputType = {
   context: string
   discount_amount: runtime.Decimal
   created_at: Date
+  updated_at: Date
   _count: CouponRedemptionCountAggregateOutputType | null
   _avg: CouponRedemptionAvgAggregateOutputType | null
   _sum: CouponRedemptionSumAggregateOutputType | null
@@ -232,6 +239,7 @@ export type CouponRedemptionWhereInput = {
   context?: Prisma.StringFilter<"CouponRedemption"> | string
   discount_amount?: Prisma.DecimalFilter<"CouponRedemption"> | runtime.Decimal | runtime.DecimalJsLike | number | string
   created_at?: Prisma.DateTimeFilter<"CouponRedemption"> | Date | string
+  updated_at?: Prisma.DateTimeFilter<"CouponRedemption"> | Date | string
   coupon?: Prisma.XOR<Prisma.CouponScalarRelationFilter, Prisma.CouponWhereInput>
   profile?: Prisma.XOR<Prisma.ProfileNullableScalarRelationFilter, Prisma.ProfileWhereInput> | null
 }
@@ -244,6 +252,7 @@ export type CouponRedemptionOrderByWithRelationInput = {
   context?: Prisma.SortOrder
   discount_amount?: Prisma.SortOrder
   created_at?: Prisma.SortOrder
+  updated_at?: Prisma.SortOrder
   coupon?: Prisma.CouponOrderByWithRelationInput
   profile?: Prisma.ProfileOrderByWithRelationInput
 }
@@ -259,6 +268,7 @@ export type CouponRedemptionWhereUniqueInput = Prisma.AtLeast<{
   context?: Prisma.StringFilter<"CouponRedemption"> | string
   discount_amount?: Prisma.DecimalFilter<"CouponRedemption"> | runtime.Decimal | runtime.DecimalJsLike | number | string
   created_at?: Prisma.DateTimeFilter<"CouponRedemption"> | Date | string
+  updated_at?: Prisma.DateTimeFilter<"CouponRedemption"> | Date | string
   coupon?: Prisma.XOR<Prisma.CouponScalarRelationFilter, Prisma.CouponWhereInput>
   profile?: Prisma.XOR<Prisma.ProfileNullableScalarRelationFilter, Prisma.ProfileWhereInput> | null
 }, "id">
@@ -271,6 +281,7 @@ export type CouponRedemptionOrderByWithAggregationInput = {
   context?: Prisma.SortOrder
   discount_amount?: Prisma.SortOrder
   created_at?: Prisma.SortOrder
+  updated_at?: Prisma.SortOrder
   _count?: Prisma.CouponRedemptionCountOrderByAggregateInput
   _avg?: Prisma.CouponRedemptionAvgOrderByAggregateInput
   _max?: Prisma.CouponRedemptionMaxOrderByAggregateInput
@@ -289,6 +300,7 @@ export type CouponRedemptionScalarWhereWithAggregatesInput = {
   context?: Prisma.StringWithAggregatesFilter<"CouponRedemption"> | string
   discount_amount?: Prisma.DecimalWithAggregatesFilter<"CouponRedemption"> | runtime.Decimal | runtime.DecimalJsLike | number | string
   created_at?: Prisma.DateTimeWithAggregatesFilter<"CouponRedemption"> | Date | string
+  updated_at?: Prisma.DateTimeWithAggregatesFilter<"CouponRedemption"> | Date | string
 }
 
 export type CouponRedemptionCreateInput = {
@@ -297,6 +309,7 @@ export type CouponRedemptionCreateInput = {
   context: string
   discount_amount: runtime.Decimal | runtime.DecimalJsLike | number | string
   created_at?: Date | string
+  updated_at?: Date | string
   coupon: Prisma.CouponCreateNestedOneWithoutRedemptionsInput
   profile?: Prisma.ProfileCreateNestedOneWithoutCoupon_redemptionsInput
 }
@@ -309,6 +322,7 @@ export type CouponRedemptionUncheckedCreateInput = {
   context: string
   discount_amount: runtime.Decimal | runtime.DecimalJsLike | number | string
   created_at?: Date | string
+  updated_at?: Date | string
 }
 
 export type CouponRedemptionUpdateInput = {
@@ -317,6 +331,7 @@ export type CouponRedemptionUpdateInput = {
   context?: Prisma.StringFieldUpdateOperationsInput | string
   discount_amount?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
   created_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updated_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   coupon?: Prisma.CouponUpdateOneRequiredWithoutRedemptionsNestedInput
   profile?: Prisma.ProfileUpdateOneWithoutCoupon_redemptionsNestedInput
 }
@@ -329,6 +344,7 @@ export type CouponRedemptionUncheckedUpdateInput = {
   context?: Prisma.StringFieldUpdateOperationsInput | string
   discount_amount?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
   created_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updated_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
 }
 
 export type CouponRedemptionCreateManyInput = {
@@ -339,6 +355,7 @@ export type CouponRedemptionCreateManyInput = {
   context: string
   discount_amount: runtime.Decimal | runtime.DecimalJsLike | number | string
   created_at?: Date | string
+  updated_at?: Date | string
 }
 
 export type CouponRedemptionUpdateManyMutationInput = {
@@ -347,6 +364,7 @@ export type CouponRedemptionUpdateManyMutationInput = {
   context?: Prisma.StringFieldUpdateOperationsInput | string
   discount_amount?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
   created_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updated_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
 }
 
 export type CouponRedemptionUncheckedUpdateManyInput = {
@@ -357,6 +375,7 @@ export type CouponRedemptionUncheckedUpdateManyInput = {
   context?: Prisma.StringFieldUpdateOperationsInput | string
   discount_amount?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
   created_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updated_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
 }
 
 export type CouponRedemptionListRelationFilter = {
@@ -377,6 +396,7 @@ export type CouponRedemptionCountOrderByAggregateInput = {
   context?: Prisma.SortOrder
   discount_amount?: Prisma.SortOrder
   created_at?: Prisma.SortOrder
+  updated_at?: Prisma.SortOrder
 }
 
 export type CouponRedemptionAvgOrderByAggregateInput = {
@@ -391,6 +411,7 @@ export type CouponRedemptionMaxOrderByAggregateInput = {
   context?: Prisma.SortOrder
   discount_amount?: Prisma.SortOrder
   created_at?: Prisma.SortOrder
+  updated_at?: Prisma.SortOrder
 }
 
 export type CouponRedemptionMinOrderByAggregateInput = {
@@ -401,6 +422,7 @@ export type CouponRedemptionMinOrderByAggregateInput = {
   context?: Prisma.SortOrder
   discount_amount?: Prisma.SortOrder
   created_at?: Prisma.SortOrder
+  updated_at?: Prisma.SortOrder
 }
 
 export type CouponRedemptionSumOrderByAggregateInput = {
@@ -497,6 +519,7 @@ export type CouponRedemptionCreateWithoutProfileInput = {
   context: string
   discount_amount: runtime.Decimal | runtime.DecimalJsLike | number | string
   created_at?: Date | string
+  updated_at?: Date | string
   coupon: Prisma.CouponCreateNestedOneWithoutRedemptionsInput
 }
 
@@ -507,6 +530,7 @@ export type CouponRedemptionUncheckedCreateWithoutProfileInput = {
   context: string
   discount_amount: runtime.Decimal | runtime.DecimalJsLike | number | string
   created_at?: Date | string
+  updated_at?: Date | string
 }
 
 export type CouponRedemptionCreateOrConnectWithoutProfileInput = {
@@ -546,6 +570,7 @@ export type CouponRedemptionScalarWhereInput = {
   context?: Prisma.StringFilter<"CouponRedemption"> | string
   discount_amount?: Prisma.DecimalFilter<"CouponRedemption"> | runtime.Decimal | runtime.DecimalJsLike | number | string
   created_at?: Prisma.DateTimeFilter<"CouponRedemption"> | Date | string
+  updated_at?: Prisma.DateTimeFilter<"CouponRedemption"> | Date | string
 }
 
 export type CouponRedemptionCreateWithoutCouponInput = {
@@ -554,6 +579,7 @@ export type CouponRedemptionCreateWithoutCouponInput = {
   context: string
   discount_amount: runtime.Decimal | runtime.DecimalJsLike | number | string
   created_at?: Date | string
+  updated_at?: Date | string
   profile?: Prisma.ProfileCreateNestedOneWithoutCoupon_redemptionsInput
 }
 
@@ -564,6 +590,7 @@ export type CouponRedemptionUncheckedCreateWithoutCouponInput = {
   context: string
   discount_amount: runtime.Decimal | runtime.DecimalJsLike | number | string
   created_at?: Date | string
+  updated_at?: Date | string
 }
 
 export type CouponRedemptionCreateOrConnectWithoutCouponInput = {
@@ -599,6 +626,7 @@ export type CouponRedemptionCreateManyProfileInput = {
   context: string
   discount_amount: runtime.Decimal | runtime.DecimalJsLike | number | string
   created_at?: Date | string
+  updated_at?: Date | string
 }
 
 export type CouponRedemptionUpdateWithoutProfileInput = {
@@ -607,6 +635,7 @@ export type CouponRedemptionUpdateWithoutProfileInput = {
   context?: Prisma.StringFieldUpdateOperationsInput | string
   discount_amount?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
   created_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updated_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   coupon?: Prisma.CouponUpdateOneRequiredWithoutRedemptionsNestedInput
 }
 
@@ -617,6 +646,7 @@ export type CouponRedemptionUncheckedUpdateWithoutProfileInput = {
   context?: Prisma.StringFieldUpdateOperationsInput | string
   discount_amount?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
   created_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updated_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
 }
 
 export type CouponRedemptionUncheckedUpdateManyWithoutProfileInput = {
@@ -626,6 +656,7 @@ export type CouponRedemptionUncheckedUpdateManyWithoutProfileInput = {
   context?: Prisma.StringFieldUpdateOperationsInput | string
   discount_amount?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
   created_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updated_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
 }
 
 export type CouponRedemptionCreateManyCouponInput = {
@@ -635,6 +666,7 @@ export type CouponRedemptionCreateManyCouponInput = {
   context: string
   discount_amount: runtime.Decimal | runtime.DecimalJsLike | number | string
   created_at?: Date | string
+  updated_at?: Date | string
 }
 
 export type CouponRedemptionUpdateWithoutCouponInput = {
@@ -643,6 +675,7 @@ export type CouponRedemptionUpdateWithoutCouponInput = {
   context?: Prisma.StringFieldUpdateOperationsInput | string
   discount_amount?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
   created_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updated_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   profile?: Prisma.ProfileUpdateOneWithoutCoupon_redemptionsNestedInput
 }
 
@@ -653,6 +686,7 @@ export type CouponRedemptionUncheckedUpdateWithoutCouponInput = {
   context?: Prisma.StringFieldUpdateOperationsInput | string
   discount_amount?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
   created_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updated_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
 }
 
 export type CouponRedemptionUncheckedUpdateManyWithoutCouponInput = {
@@ -662,6 +696,7 @@ export type CouponRedemptionUncheckedUpdateManyWithoutCouponInput = {
   context?: Prisma.StringFieldUpdateOperationsInput | string
   discount_amount?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
   created_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updated_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
 }
 
 
@@ -674,6 +709,7 @@ export type CouponRedemptionSelect<ExtArgs extends runtime.Types.Extensions.Inte
   context?: boolean
   discount_amount?: boolean
   created_at?: boolean
+  updated_at?: boolean
   coupon?: boolean | Prisma.CouponDefaultArgs<ExtArgs>
   profile?: boolean | Prisma.CouponRedemption$profileArgs<ExtArgs>
 }, ExtArgs["result"]["couponRedemption"]>
@@ -686,6 +722,7 @@ export type CouponRedemptionSelectCreateManyAndReturn<ExtArgs extends runtime.Ty
   context?: boolean
   discount_amount?: boolean
   created_at?: boolean
+  updated_at?: boolean
   coupon?: boolean | Prisma.CouponDefaultArgs<ExtArgs>
   profile?: boolean | Prisma.CouponRedemption$profileArgs<ExtArgs>
 }, ExtArgs["result"]["couponRedemption"]>
@@ -698,6 +735,7 @@ export type CouponRedemptionSelectUpdateManyAndReturn<ExtArgs extends runtime.Ty
   context?: boolean
   discount_amount?: boolean
   created_at?: boolean
+  updated_at?: boolean
   coupon?: boolean | Prisma.CouponDefaultArgs<ExtArgs>
   profile?: boolean | Prisma.CouponRedemption$profileArgs<ExtArgs>
 }, ExtArgs["result"]["couponRedemption"]>
@@ -710,9 +748,10 @@ export type CouponRedemptionSelectScalar = {
   context?: boolean
   discount_amount?: boolean
   created_at?: boolean
+  updated_at?: boolean
 }
 
-export type CouponRedemptionOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "coupon_id" | "user_id" | "guest_email" | "context" | "discount_amount" | "created_at", ExtArgs["result"]["couponRedemption"]>
+export type CouponRedemptionOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "coupon_id" | "user_id" | "guest_email" | "context" | "discount_amount" | "created_at" | "updated_at", ExtArgs["result"]["couponRedemption"]>
 export type CouponRedemptionInclude<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   coupon?: boolean | Prisma.CouponDefaultArgs<ExtArgs>
   profile?: boolean | Prisma.CouponRedemption$profileArgs<ExtArgs>
@@ -740,6 +779,7 @@ export type $CouponRedemptionPayload<ExtArgs extends runtime.Types.Extensions.In
     context: string
     discount_amount: runtime.Decimal
     created_at: Date
+    updated_at: Date
   }, ExtArgs["result"]["couponRedemption"]>
   composites: {}
 }
@@ -1172,6 +1212,7 @@ export interface CouponRedemptionFieldRefs {
   readonly context: Prisma.FieldRef<"CouponRedemption", 'String'>
   readonly discount_amount: Prisma.FieldRef<"CouponRedemption", 'Decimal'>
   readonly created_at: Prisma.FieldRef<"CouponRedemption", 'DateTime'>
+  readonly updated_at: Prisma.FieldRef<"CouponRedemption", 'DateTime'>
 }
     
 

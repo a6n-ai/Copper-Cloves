@@ -16,6 +16,7 @@ import {
 import { getRazorpay, razorpayConfigured } from "@/lib/razorpayServer";
 import {
   incrementCouponAndRecordRedemption,
+  passCategoryForPackageType,
   toFiniteNumber,
   validateAndComputeCoupon,
   type CouponContext,
@@ -254,14 +255,16 @@ export async function finishPackageCheckoutOnServer(
     });
   }
 
-  const pass = pending.pass_type === "studio_pass" ? "studio_pass" : "class_pass";
-  const couponContext: CouponContext = pass === "studio_pass" ? "studio_pass" : "class_pass";
-
   const userPackage = await prisma.$transaction(async (tx) => {
     const packageType = await tx.packageType.findUnique({
       where: { id: pending.package_type_id },
     });
     if (!packageType) throw new Error("NOT_FOUND");
+
+    // Authoritative pass category from the package (type column, then is_unlimited),
+    // not the client-sent pass_type — keeps coupon matching correct.
+    const pass = passCategoryForPackageType(packageType);
+    const couponContext: CouponContext = pass;
 
     const subtotal = toFiniteNumber(packageType.price);
     if (!Number.isFinite(subtotal) || subtotal <= 0) throw new Error("BAD_PRICE");

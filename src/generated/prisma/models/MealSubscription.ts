@@ -48,6 +48,7 @@ export type MealSubscriptionMinAggregateOutputType = {
   next_billing_date: Date | null
   status: string | null
   created_at: Date | null
+  updated_at: Date | null
 }
 
 export type MealSubscriptionMaxAggregateOutputType = {
@@ -60,6 +61,7 @@ export type MealSubscriptionMaxAggregateOutputType = {
   next_billing_date: Date | null
   status: string | null
   created_at: Date | null
+  updated_at: Date | null
 }
 
 export type MealSubscriptionCountAggregateOutputType = {
@@ -72,6 +74,7 @@ export type MealSubscriptionCountAggregateOutputType = {
   next_billing_date: number
   status: number
   created_at: number
+  updated_at: number
   _all: number
 }
 
@@ -98,6 +101,7 @@ export type MealSubscriptionMinAggregateInputType = {
   next_billing_date?: true
   status?: true
   created_at?: true
+  updated_at?: true
 }
 
 export type MealSubscriptionMaxAggregateInputType = {
@@ -110,6 +114,7 @@ export type MealSubscriptionMaxAggregateInputType = {
   next_billing_date?: true
   status?: true
   created_at?: true
+  updated_at?: true
 }
 
 export type MealSubscriptionCountAggregateInputType = {
@@ -122,6 +127,7 @@ export type MealSubscriptionCountAggregateInputType = {
   next_billing_date?: true
   status?: true
   created_at?: true
+  updated_at?: true
   _all?: true
 }
 
@@ -221,6 +227,7 @@ export type MealSubscriptionGroupByOutputType = {
   next_billing_date: Date
   status: string
   created_at: Date
+  updated_at: Date
   _count: MealSubscriptionCountAggregateOutputType | null
   _avg: MealSubscriptionAvgAggregateOutputType | null
   _sum: MealSubscriptionSumAggregateOutputType | null
@@ -256,6 +263,7 @@ export type MealSubscriptionWhereInput = {
   next_billing_date?: Prisma.DateTimeFilter<"MealSubscription"> | Date | string
   status?: Prisma.StringFilter<"MealSubscription"> | string
   created_at?: Prisma.DateTimeFilter<"MealSubscription"> | Date | string
+  updated_at?: Prisma.DateTimeFilter<"MealSubscription"> | Date | string
   profile?: Prisma.XOR<Prisma.ProfileScalarRelationFilter, Prisma.ProfileWhereInput>
 }
 
@@ -269,6 +277,7 @@ export type MealSubscriptionOrderByWithRelationInput = {
   next_billing_date?: Prisma.SortOrder
   status?: Prisma.SortOrder
   created_at?: Prisma.SortOrder
+  updated_at?: Prisma.SortOrder
   profile?: Prisma.ProfileOrderByWithRelationInput
 }
 
@@ -285,6 +294,7 @@ export type MealSubscriptionWhereUniqueInput = Prisma.AtLeast<{
   next_billing_date?: Prisma.DateTimeFilter<"MealSubscription"> | Date | string
   status?: Prisma.StringFilter<"MealSubscription"> | string
   created_at?: Prisma.DateTimeFilter<"MealSubscription"> | Date | string
+  updated_at?: Prisma.DateTimeFilter<"MealSubscription"> | Date | string
   profile?: Prisma.XOR<Prisma.ProfileScalarRelationFilter, Prisma.ProfileWhereInput>
 }, "id">
 
@@ -298,6 +308,7 @@ export type MealSubscriptionOrderByWithAggregationInput = {
   next_billing_date?: Prisma.SortOrder
   status?: Prisma.SortOrder
   created_at?: Prisma.SortOrder
+  updated_at?: Prisma.SortOrder
   _count?: Prisma.MealSubscriptionCountOrderByAggregateInput
   _avg?: Prisma.MealSubscriptionAvgOrderByAggregateInput
   _max?: Prisma.MealSubscriptionMaxOrderByAggregateInput
@@ -318,6 +329,7 @@ export type MealSubscriptionScalarWhereWithAggregatesInput = {
   next_billing_date?: Prisma.DateTimeWithAggregatesFilter<"MealSubscription"> | Date | string
   status?: Prisma.StringWithAggregatesFilter<"MealSubscription"> | string
   created_at?: Prisma.DateTimeWithAggregatesFilter<"MealSubscription"> | Date | string
+  updated_at?: Prisma.DateTimeWithAggregatesFilter<"MealSubscription"> | Date | string
 }
 
 export type MealSubscriptionCreateInput = {
@@ -329,6 +341,7 @@ export type MealSubscriptionCreateInput = {
   next_billing_date: Date | string
   status?: string
   created_at?: Date | string
+  updated_at?: Date | string
   profile: Prisma.ProfileCreateNestedOneWithoutMeal_subscriptionsInput
 }
 
@@ -342,6 +355,7 @@ export type MealSubscriptionUncheckedCreateInput = {
   next_billing_date: Date | string
   status?: string
   created_at?: Date | string
+  updated_at?: Date | string
 }
 
 export type MealSubscriptionUpdateInput = {
@@ -353,6 +367,7 @@ export type MealSubscriptionUpdateInput = {
   next_billing_date?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   status?: Prisma.StringFieldUpdateOperationsInput | string
   created_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updated_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   profile?: Prisma.ProfileUpdateOneRequiredWithoutMeal_subscriptionsNestedInput
 }
 
@@ -366,6 +381,7 @@ export type MealSubscriptionUncheckedUpdateInput = {
   next_billing_date?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   status?: Prisma.StringFieldUpdateOperationsInput | string
   created_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updated_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
 }
 
 export type MealSubscriptionCreateManyInput = {
@@ -378,6 +394,7 @@ export type MealSubscriptionCreateManyInput = {
   next_billing_date: Date | string
   status?: string
   created_at?: Date | string
+  updated_at?: Date | string
 }
 
 export type MealSubscriptionUpdateManyMutationInput = {
@@ -389,6 +406,7 @@ export type MealSubscriptionUpdateManyMutationInput = {
   next_billing_date?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   status?: Prisma.StringFieldUpdateOperationsInput | string
   created_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updated_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
 }
 
 export type MealSubscriptionUncheckedUpdateManyInput = {
@@ -401,6 +419,7 @@ export type MealSubscriptionUncheckedUpdateManyInput = {
   next_billing_date?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   status?: Prisma.StringFieldUpdateOperationsInput | string
   created_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updated_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
 }
 
 export type MealSubscriptionListRelationFilter = {
@@ -423,6 +442,7 @@ export type MealSubscriptionCountOrderByAggregateInput = {
   next_billing_date?: Prisma.SortOrder
   status?: Prisma.SortOrder
   created_at?: Prisma.SortOrder
+  updated_at?: Prisma.SortOrder
 }
 
 export type MealSubscriptionAvgOrderByAggregateInput = {
@@ -441,6 +461,7 @@ export type MealSubscriptionMaxOrderByAggregateInput = {
   next_billing_date?: Prisma.SortOrder
   status?: Prisma.SortOrder
   created_at?: Prisma.SortOrder
+  updated_at?: Prisma.SortOrder
 }
 
 export type MealSubscriptionMinOrderByAggregateInput = {
@@ -453,6 +474,7 @@ export type MealSubscriptionMinOrderByAggregateInput = {
   next_billing_date?: Prisma.SortOrder
   status?: Prisma.SortOrder
   created_at?: Prisma.SortOrder
+  updated_at?: Prisma.SortOrder
 }
 
 export type MealSubscriptionSumOrderByAggregateInput = {
@@ -512,6 +534,7 @@ export type MealSubscriptionCreateWithoutProfileInput = {
   next_billing_date: Date | string
   status?: string
   created_at?: Date | string
+  updated_at?: Date | string
 }
 
 export type MealSubscriptionUncheckedCreateWithoutProfileInput = {
@@ -523,6 +546,7 @@ export type MealSubscriptionUncheckedCreateWithoutProfileInput = {
   next_billing_date: Date | string
   status?: string
   created_at?: Date | string
+  updated_at?: Date | string
 }
 
 export type MealSubscriptionCreateOrConnectWithoutProfileInput = {
@@ -564,6 +588,7 @@ export type MealSubscriptionScalarWhereInput = {
   next_billing_date?: Prisma.DateTimeFilter<"MealSubscription"> | Date | string
   status?: Prisma.StringFilter<"MealSubscription"> | string
   created_at?: Prisma.DateTimeFilter<"MealSubscription"> | Date | string
+  updated_at?: Prisma.DateTimeFilter<"MealSubscription"> | Date | string
 }
 
 export type MealSubscriptionCreateManyProfileInput = {
@@ -575,6 +600,7 @@ export type MealSubscriptionCreateManyProfileInput = {
   next_billing_date: Date | string
   status?: string
   created_at?: Date | string
+  updated_at?: Date | string
 }
 
 export type MealSubscriptionUpdateWithoutProfileInput = {
@@ -586,6 +612,7 @@ export type MealSubscriptionUpdateWithoutProfileInput = {
   next_billing_date?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   status?: Prisma.StringFieldUpdateOperationsInput | string
   created_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updated_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
 }
 
 export type MealSubscriptionUncheckedUpdateWithoutProfileInput = {
@@ -597,6 +624,7 @@ export type MealSubscriptionUncheckedUpdateWithoutProfileInput = {
   next_billing_date?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   status?: Prisma.StringFieldUpdateOperationsInput | string
   created_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updated_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
 }
 
 export type MealSubscriptionUncheckedUpdateManyWithoutProfileInput = {
@@ -608,6 +636,7 @@ export type MealSubscriptionUncheckedUpdateManyWithoutProfileInput = {
   next_billing_date?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   status?: Prisma.StringFieldUpdateOperationsInput | string
   created_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updated_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
 }
 
 
@@ -622,6 +651,7 @@ export type MealSubscriptionSelect<ExtArgs extends runtime.Types.Extensions.Inte
   next_billing_date?: boolean
   status?: boolean
   created_at?: boolean
+  updated_at?: boolean
   profile?: boolean | Prisma.ProfileDefaultArgs<ExtArgs>
 }, ExtArgs["result"]["mealSubscription"]>
 
@@ -635,6 +665,7 @@ export type MealSubscriptionSelectCreateManyAndReturn<ExtArgs extends runtime.Ty
   next_billing_date?: boolean
   status?: boolean
   created_at?: boolean
+  updated_at?: boolean
   profile?: boolean | Prisma.ProfileDefaultArgs<ExtArgs>
 }, ExtArgs["result"]["mealSubscription"]>
 
@@ -648,6 +679,7 @@ export type MealSubscriptionSelectUpdateManyAndReturn<ExtArgs extends runtime.Ty
   next_billing_date?: boolean
   status?: boolean
   created_at?: boolean
+  updated_at?: boolean
   profile?: boolean | Prisma.ProfileDefaultArgs<ExtArgs>
 }, ExtArgs["result"]["mealSubscription"]>
 
@@ -661,9 +693,10 @@ export type MealSubscriptionSelectScalar = {
   next_billing_date?: boolean
   status?: boolean
   created_at?: boolean
+  updated_at?: boolean
 }
 
-export type MealSubscriptionOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "user_id" | "meal_count" | "meals_remaining" | "price_per_month" | "start_date" | "next_billing_date" | "status" | "created_at", ExtArgs["result"]["mealSubscription"]>
+export type MealSubscriptionOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "user_id" | "meal_count" | "meals_remaining" | "price_per_month" | "start_date" | "next_billing_date" | "status" | "created_at" | "updated_at", ExtArgs["result"]["mealSubscription"]>
 export type MealSubscriptionInclude<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   profile?: boolean | Prisma.ProfileDefaultArgs<ExtArgs>
 }
@@ -689,6 +722,7 @@ export type $MealSubscriptionPayload<ExtArgs extends runtime.Types.Extensions.In
     next_billing_date: Date
     status: string
     created_at: Date
+    updated_at: Date
   }, ExtArgs["result"]["mealSubscription"]>
   composites: {}
 }
@@ -1122,6 +1156,7 @@ export interface MealSubscriptionFieldRefs {
   readonly next_billing_date: Prisma.FieldRef<"MealSubscription", 'DateTime'>
   readonly status: Prisma.FieldRef<"MealSubscription", 'String'>
   readonly created_at: Prisma.FieldRef<"MealSubscription", 'DateTime'>
+  readonly updated_at: Prisma.FieldRef<"MealSubscription", 'DateTime'>
 }
     
 

@@ -2,6 +2,7 @@ import type { NextApiRequest, NextApiResponse } from "next";
 import prisma from "@/lib/prisma";
 import { isStudioAdminProfileRole } from "@/lib/isStudioAdminProfile";
 import { getStudioServerSession } from "@/lib/getStudioServerSession";
+import { getTopStreaks } from "@/lib/attendanceStats";
 
 const CHECKIN_RATE_INR = 150;
 const COACH_SHARE_PERCENT = 60;
@@ -91,11 +92,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         booking_date: { gte: thirtyAgo },
       },
     }),
-    prisma.userStats.findMany({
-      orderBy: { current_streak: "desc" },
-      take: 8,
-      include: { profile: { select: { full_name: true, email: true } } },
-    }),
+    getTopStreaks(8),
     prisma.booking.findMany({
       where: {
         status: "confirmed",
@@ -211,13 +208,18 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   const inactiveApprox = Math.max(0, allMembersCount - active30);
   const activeRatePct = allMembersCount > 0 ? Math.round((active30 / allMembersCount) * 100) : 0;
 
-  const leaderboard = streakLeaders
-    .filter((s) => s.current_streak > 0 && s.profile)
-    .slice(0, 5)
-    .map((s) => ({
-      name: s.profile!.full_name || s.profile!.email || "Member",
-      streak: s.current_streak,
-    }));
+  const streakWinners = streakLeaders.filter((s) => s.stats.current_streak > 0).slice(0, 5);
+  const streakProfiles = await prisma.profile.findMany({
+    where: { id: { in: streakWinners.map((s) => s.user_id) } },
+    select: { id: true, full_name: true, email: true },
+  });
+  const streakNameById = new Map(
+    streakProfiles.map((p) => [p.id, p.full_name || p.email || "Member"]),
+  );
+  const leaderboard = streakWinners.map((s) => ({
+    name: streakNameById.get(s.user_id) ?? "Member",
+    streak: s.stats.current_streak,
+  }));
   const streakMax = Math.max(...leaderboard.map((l) => l.streak), 1);
 
   const instCheck = new Map<string, { name: string; checkins: number }>();

@@ -18,6 +18,21 @@ type DbClient = {
   couponRedemption: { count: (args: unknown) => Promise<number>; create: (args: unknown) => Promise<unknown> };
 };
 
+/**
+ * Authoritative pass category for a package type, used to pick the coupon context
+ * (studio_pass vs class_pass). Prefers the explicit `type` column; falls back to
+ * `is_unlimited` for legacy "standard" rows (unlimited passes are studio passes).
+ */
+export function passCategoryForPackageType(pt: {
+  type?: string | null;
+  is_unlimited?: boolean | null;
+}): "studio_pass" | "class_pass" {
+  const t = String(pt.type ?? "").trim().toLowerCase();
+  if (t === "studio_pass" || t === "studio") return "studio_pass";
+  if (t === "class_pass" || t === "class") return "class_pass";
+  return pt.is_unlimited ? "studio_pass" : "class_pass";
+}
+
 export function normalizeCouponCode(code: unknown): string {
   if (typeof code !== "string") return "";
   return code.trim().toUpperCase();
