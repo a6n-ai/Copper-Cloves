@@ -1,7 +1,6 @@
 import { useState } from "react";
 import { useRouter } from "next/router";
 import Link from "next/link";
-import Image from "next/image";
 import { useForm, Controller, useWatch } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
@@ -13,13 +12,15 @@ import { EmailInput } from "@/components/ui/email-input";
 import { PasswordInput } from "@/components/ui/password-input";
 import { PhoneInput, type PhoneValue } from "@/components/ui/phone-input";
 import { Label } from "@/components/ui/label";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent } from "@/components/ui/card";
 import { FormAlert } from "@/components/ui/form-alert";
 import { Loader2, CheckCircle2, ChevronDown } from "lucide-react";
 import { SEO } from "@/components/SEO";
+import { motion } from "framer-motion";
+import { AuthMeshBackground } from "@/components/AuthMeshBackground";
+import { WeatherWidget } from "@/components/WeatherWidget";
+import { useAuthWeather } from "@/hooks/useAuthWeather";
 import { signUp } from "@/services/authService";
-
-import { cdnUrl } from "@/lib/cdnUrl";
 const signupSchema = z
   .object({
     fullName: z.string().min(1, "Full name is required"),
@@ -43,6 +44,7 @@ type SignupFormValues = z.infer<typeof signupSchema>;
 
 export default function SignupPage() {
   const router = useRouter();
+  const { palette, weather, greeting } = useAuthWeather();
   const [apiError, setApiError] = useState<string | null>(null);
   const [success, setSuccess] = useState(false);
   const [waiverExpanded, setWaiverExpanded] = useState(false);
@@ -80,7 +82,7 @@ export default function SignupPage() {
 
       setSuccess(true);
       setTimeout(() => {
-        router.push("/portal/login?signup=success");
+        router.push("/login?signup=success");
       }, 2000);
     } catch (err: unknown) {
       setApiError(
@@ -91,12 +93,13 @@ export default function SignupPage() {
 
   if (success) {
     return (
-      <div className="min-h-screen bg-linear-to-br from-cream via-cream to-sage/10 flex items-center justify-center p-4">
+      <div className="relative min-h-screen bg-cream flex items-center justify-center p-4 overflow-hidden">
+        <AuthMeshBackground />
         <SEO
           title="Account Created - The Studio"
           description="Your account has been created successfully"
         />
-        <Card className="w-full max-w-md border-sage/20 bg-white/95 backdrop-blur-xl shadow-xl">
+        <Card className="relative w-full max-w-md border-white/40 bg-white/80 backdrop-blur-xl shadow-2xl">
           <CardContent className="pt-12 pb-8 text-center">
             <div className="mb-6 flex justify-center">
               <div className="h-16 w-16 rounded-full bg-sage/10 flex items-center justify-center">
@@ -131,50 +134,37 @@ export default function SignupPage() {
         description="Create your account and start your wellness journey"
       />
 
-      <nav className="bg-white/40 backdrop-blur-xl shadow-xs sticky top-0 z-50 border-b border-sage/10">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex justify-between items-center h-20">
-            <Link href="/" className="flex flex-col leading-none group">
-              <span className="font-display text-2xl text-charcoal italic tracking-tight">
-                the<span className="font-normal not-italic uppercase tracking-wider">STUDIO</span>
-              </span>
-              <span className="font-body text-[10px] text-charcoal/60 tracking-widest uppercase mt-0.5">
-                by COPPER+CLOVES
-              </span>
-            </Link>
-            <Link href="/" className="font-body text-sm text-charcoal/60 hover:text-sage transition-colors">
-              ← Back to Home
-            </Link>
-          </div>
-        </div>
-      </nav>
+      <div className="min-h-screen grid lg:grid-cols-2 bg-cream">
+        {/* Form panel (left) */}
+        <div className="flex items-center justify-center p-6 sm:p-10 py-12 order-2 lg:order-1">
+          <motion.div
+            className="w-full max-w-md"
+            initial={{ opacity: 0, y: 18 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.5, ease: "easeOut" }}
+          >
+            <div className="mb-8 flex items-start justify-between">
+              <Link href="/" className="flex flex-col leading-none">
+                <span className="font-display text-xl text-charcoal italic tracking-tight">
+                  the<span className="font-normal not-italic uppercase tracking-wider">STUDIO</span>
+                </span>
+                <span className="font-body text-[10px] tracking-[0.3em] uppercase text-charcoal/50 mt-0.5">
+                  by Copper + Cloves
+                </span>
+              </Link>
+              <Link href="/" className="font-body text-sm text-charcoal/60 hover:text-sage transition-colors">
+                ← Home
+              </Link>
+            </div>
 
-      <div className="min-h-[calc(100vh-5rem)] bg-linear-to-br from-cream via-cream to-sage/10 flex items-center justify-center py-12 px-4">
-        <div className="w-full max-w-md">
-          <Card className="border-sage/20 bg-white/95 backdrop-blur-xl shadow-2xl">
-            <CardHeader className="space-y-6 pb-8">
-              <div className="flex justify-center">
-                <Image
-                  src={cdnUrl("/logo2.png")}
-                  alt="The Studio Logo"
-                  width={220}
-                  height={80}
-                  className="h-20 w-auto"
-                  style={{ filter: "brightness(0)" }}
-                />
-              </div>
-              <div className="text-center">
-                <CardTitle className="font-display text-3xl text-charcoal mb-2">
-                  Join Our Community
-                </CardTitle>
-                <CardDescription className="font-body text-charcoal/60">
-                  Create your account and start your wellness journey
-                </CardDescription>
-              </div>
-            </CardHeader>
+            <h1 className="font-display text-4xl sm:text-5xl text-charcoal mb-2 leading-[1.05]">
+              Join our <span className="italic text-sage">community</span>
+            </h1>
+            <p className="font-body text-sm text-charcoal/60 mb-8">
+              Create your account and start your wellness journey
+            </p>
 
-            <CardContent>
-              <FormAlert message={apiError} variant="error" className="mb-6" />
+            <FormAlert message={apiError} variant="error" className="mb-6" />
 
               <form onSubmit={handleSubmit(onSubmit)} noValidate className="space-y-4">
                 {/* Full Name */}
@@ -357,16 +347,57 @@ export default function SignupPage() {
                 </Button>
               </form>
 
-              <div className="mt-6 text-center">
-                <p className="font-body text-sm text-charcoal/60">
-                  Already have an account?{" "}
-                  <Link href="/portal/login" className="text-sage hover:underline font-medium">
-                    Sign in
-                  </Link>
-                </p>
-              </div>
-            </CardContent>
-          </Card>
+            <div className="mt-8">
+              <p className="font-body text-sm text-charcoal/60">
+                Already have an account?{" "}
+                <Link href="/login" className="text-sage hover:underline font-medium">
+                  Sign in
+                </Link>
+              </p>
+            </div>
+          </motion.div>
+        </div>
+
+        {/* Visual panel (right) — weather-aware animated mesh gradient */}
+        <div className="relative hidden lg:flex flex-col justify-between overflow-hidden p-12 text-charcoal order-1 lg:order-2">
+          <AuthMeshBackground palette={palette} />
+          <div className="relative flex items-center justify-between gap-4">
+            <WeatherWidget weather={weather} />
+            <span className="font-body text-[11px] tracking-[0.3em] uppercase text-charcoal/60">The Studio</span>
+          </div>
+          <motion.div
+            className="relative"
+            initial={{ opacity: 0, y: 16 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.6, ease: "easeOut", delay: 0.1 }}
+          >
+            <h2 className="font-display text-5xl xl:text-6xl leading-[1.02] text-charcoal drop-shadow-sm">
+              Begin your<br />
+              <span className="italic text-sage">wellness</span> journey.
+            </h2>
+            <p className="font-body text-base text-charcoal/75 mt-5 max-w-sm leading-relaxed">
+              {greeting ?? "Movement, nourishment, and community under one roof. Create an account to book classes, buy packages, and more."}
+            </p>
+            {weather?.quote && (
+              <motion.figure
+                key={weather.quote.text}
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                transition={{ duration: 0.8, delay: 0.3 }}
+                className="mt-8 max-w-sm border-l-2 border-sage/40 pl-4"
+              >
+                <blockquote className="font-display text-lg italic text-charcoal/80 leading-snug">
+                  “{weather.quote.text}”
+                </blockquote>
+                <figcaption className="font-body text-xs uppercase tracking-widest text-charcoal/50 mt-2">
+                  — {weather.quote.author}
+                </figcaption>
+              </motion.figure>
+            )}
+          </motion.div>
+          <p className="relative font-body text-[11px] tracking-widest uppercase text-charcoal/50">
+            © 2026 The Studio by Copper + Cloves
+          </p>
         </div>
       </div>
     </>
