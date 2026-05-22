@@ -255,6 +255,7 @@ export const ClassScheduleScalarFieldEnum = {
   instructor_check_in_time: 'instructor_check_in_time',
   instructor_check_in_outcome: 'instructor_check_in_outcome',
   class_notes: 'class_notes',
+  roster_sent_at: 'roster_sent_at',
   created_at: 'created_at',
   updated_at: 'updated_at'
 } as const
@@ -336,6 +337,7 @@ export const BookingScalarFieldEnum = {
   checked_in: 'checked_in',
   check_in_time: 'check_in_time',
   check_in_outcome: 'check_in_outcome',
+  reminder_sent_at: 'reminder_sent_at',
   extra_guest_count: 'extra_guest_count',
   guest_attendees: 'guest_attendees',
   finance_snapshot: 'finance_snapshot'

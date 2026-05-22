@@ -151,7 +151,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         return created;
       });
 
-      void notifyPackagePurchase({
+      await notifyPackagePurchase({
         userId,
         packageType: userPackage.package_type,
         expirationDate: userPackage.expiration_date,

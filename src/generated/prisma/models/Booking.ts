@@ -49,6 +49,7 @@ export type BookingMinAggregateOutputType = {
   checked_in: boolean | null
   check_in_time: Date | null
   check_in_outcome: string | null
+  reminder_sent_at: Date | null
   extra_guest_count: number | null
 }
 
@@ -67,6 +68,7 @@ export type BookingMaxAggregateOutputType = {
   checked_in: boolean | null
   check_in_time: Date | null
   check_in_outcome: string | null
+  reminder_sent_at: Date | null
   extra_guest_count: number | null
 }
 
@@ -85,6 +87,7 @@ export type BookingCountAggregateOutputType = {
   checked_in: number
   check_in_time: number
   check_in_outcome: number
+  reminder_sent_at: number
   extra_guest_count: number
   guest_attendees: number
   finance_snapshot: number
@@ -115,6 +118,7 @@ export type BookingMinAggregateInputType = {
   checked_in?: true
   check_in_time?: true
   check_in_outcome?: true
+  reminder_sent_at?: true
   extra_guest_count?: true
 }
 
@@ -133,6 +137,7 @@ export type BookingMaxAggregateInputType = {
   checked_in?: true
   check_in_time?: true
   check_in_outcome?: true
+  reminder_sent_at?: true
   extra_guest_count?: true
 }
 
@@ -151,6 +156,7 @@ export type BookingCountAggregateInputType = {
   checked_in?: true
   check_in_time?: true
   check_in_outcome?: true
+  reminder_sent_at?: true
   extra_guest_count?: true
   guest_attendees?: true
   finance_snapshot?: true
@@ -258,6 +264,7 @@ export type BookingGroupByOutputType = {
   checked_in: boolean
   check_in_time: Date | null
   check_in_outcome: string | null
+  reminder_sent_at: Date | null
   extra_guest_count: number
   guest_attendees: runtime.JsonValue | null
   finance_snapshot: runtime.JsonValue | null
@@ -301,6 +308,7 @@ export type BookingWhereInput = {
   checked_in?: Prisma.BoolFilter<"Booking"> | boolean
   check_in_time?: Prisma.DateTimeNullableFilter<"Booking"> | Date | string | null
   check_in_outcome?: Prisma.StringNullableFilter<"Booking"> | string | null
+  reminder_sent_at?: Prisma.DateTimeNullableFilter<"Booking"> | Date | string | null
   extra_guest_count?: Prisma.IntFilter<"Booking"> | number
   guest_attendees?: Prisma.JsonNullableFilter<"Booking">
   finance_snapshot?: Prisma.JsonNullableFilter<"Booking">
@@ -327,6 +335,7 @@ export type BookingOrderByWithRelationInput = {
   checked_in?: Prisma.SortOrder
   check_in_time?: Prisma.SortOrderInput | Prisma.SortOrder
   check_in_outcome?: Prisma.SortOrderInput | Prisma.SortOrder
+  reminder_sent_at?: Prisma.SortOrderInput | Prisma.SortOrder
   extra_guest_count?: Prisma.SortOrder
   guest_attendees?: Prisma.SortOrderInput | Prisma.SortOrder
   finance_snapshot?: Prisma.SortOrderInput | Prisma.SortOrder
@@ -356,6 +365,7 @@ export type BookingWhereUniqueInput = Prisma.AtLeast<{
   checked_in?: Prisma.BoolFilter<"Booking"> | boolean
   check_in_time?: Prisma.DateTimeNullableFilter<"Booking"> | Date | string | null
   check_in_outcome?: Prisma.StringNullableFilter<"Booking"> | string | null
+  reminder_sent_at?: Prisma.DateTimeNullableFilter<"Booking"> | Date | string | null
   extra_guest_count?: Prisma.IntFilter<"Booking"> | number
   guest_attendees?: Prisma.JsonNullableFilter<"Booking">
   finance_snapshot?: Prisma.JsonNullableFilter<"Booking">
@@ -382,6 +392,7 @@ export type BookingOrderByWithAggregationInput = {
   checked_in?: Prisma.SortOrder
   check_in_time?: Prisma.SortOrderInput | Prisma.SortOrder
   check_in_outcome?: Prisma.SortOrderInput | Prisma.SortOrder
+  reminder_sent_at?: Prisma.SortOrderInput | Prisma.SortOrder
   extra_guest_count?: Prisma.SortOrder
   guest_attendees?: Prisma.SortOrderInput | Prisma.SortOrder
   finance_snapshot?: Prisma.SortOrderInput | Prisma.SortOrder
@@ -410,6 +421,7 @@ export type BookingScalarWhereWithAggregatesInput = {
   checked_in?: Prisma.BoolWithAggregatesFilter<"Booking"> | boolean
   check_in_time?: Prisma.DateTimeNullableWithAggregatesFilter<"Booking"> | Date | string | null
   check_in_outcome?: Prisma.StringNullableWithAggregatesFilter<"Booking"> | string | null
+  reminder_sent_at?: Prisma.DateTimeNullableWithAggregatesFilter<"Booking"> | Date | string | null
   extra_guest_count?: Prisma.IntWithAggregatesFilter<"Booking"> | number
   guest_attendees?: Prisma.JsonNullableWithAggregatesFilter<"Booking">
   finance_snapshot?: Prisma.JsonNullableWithAggregatesFilter<"Booking">
@@ -427,6 +439,7 @@ export type BookingCreateInput = {
   checked_in?: boolean
   check_in_time?: Date | string | null
   check_in_outcome?: string | null
+  reminder_sent_at?: Date | string | null
   extra_guest_count?: number
   guest_attendees?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   finance_snapshot?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
@@ -453,6 +466,7 @@ export type BookingUncheckedCreateInput = {
   checked_in?: boolean
   check_in_time?: Date | string | null
   check_in_outcome?: string | null
+  reminder_sent_at?: Date | string | null
   extra_guest_count?: number
   guest_attendees?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   finance_snapshot?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
@@ -473,6 +487,7 @@ export type BookingUpdateInput = {
   checked_in?: Prisma.BoolFieldUpdateOperationsInput | boolean
   check_in_time?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   check_in_outcome?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  reminder_sent_at?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   extra_guest_count?: Prisma.IntFieldUpdateOperationsInput | number
   guest_attendees?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   finance_snapshot?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
@@ -499,6 +514,7 @@ export type BookingUncheckedUpdateInput = {
   checked_in?: Prisma.BoolFieldUpdateOperationsInput | boolean
   check_in_time?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   check_in_outcome?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  reminder_sent_at?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   extra_guest_count?: Prisma.IntFieldUpdateOperationsInput | number
   guest_attendees?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   finance_snapshot?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
@@ -522,6 +538,7 @@ export type BookingCreateManyInput = {
   checked_in?: boolean
   check_in_time?: Date | string | null
   check_in_outcome?: string | null
+  reminder_sent_at?: Date | string | null
   extra_guest_count?: number
   guest_attendees?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   finance_snapshot?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
@@ -539,6 +556,7 @@ export type BookingUpdateManyMutationInput = {
   checked_in?: Prisma.BoolFieldUpdateOperationsInput | boolean
   check_in_time?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   check_in_outcome?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  reminder_sent_at?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   extra_guest_count?: Prisma.IntFieldUpdateOperationsInput | number
   guest_attendees?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   finance_snapshot?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
@@ -559,6 +577,7 @@ export type BookingUncheckedUpdateManyInput = {
   checked_in?: Prisma.BoolFieldUpdateOperationsInput | boolean
   check_in_time?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   check_in_outcome?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  reminder_sent_at?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   extra_guest_count?: Prisma.IntFieldUpdateOperationsInput | number
   guest_attendees?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   finance_snapshot?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
@@ -589,6 +608,7 @@ export type BookingCountOrderByAggregateInput = {
   checked_in?: Prisma.SortOrder
   check_in_time?: Prisma.SortOrder
   check_in_outcome?: Prisma.SortOrder
+  reminder_sent_at?: Prisma.SortOrder
   extra_guest_count?: Prisma.SortOrder
   guest_attendees?: Prisma.SortOrder
   finance_snapshot?: Prisma.SortOrder
@@ -613,6 +633,7 @@ export type BookingMaxOrderByAggregateInput = {
   checked_in?: Prisma.SortOrder
   check_in_time?: Prisma.SortOrder
   check_in_outcome?: Prisma.SortOrder
+  reminder_sent_at?: Prisma.SortOrder
   extra_guest_count?: Prisma.SortOrder
 }
 
@@ -631,6 +652,7 @@ export type BookingMinOrderByAggregateInput = {
   checked_in?: Prisma.SortOrder
   check_in_time?: Prisma.SortOrder
   check_in_outcome?: Prisma.SortOrder
+  reminder_sent_at?: Prisma.SortOrder
   extra_guest_count?: Prisma.SortOrder
 }
 
@@ -829,6 +851,7 @@ export type BookingCreateWithoutProfileInput = {
   checked_in?: boolean
   check_in_time?: Date | string | null
   check_in_outcome?: string | null
+  reminder_sent_at?: Date | string | null
   extra_guest_count?: number
   guest_attendees?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   finance_snapshot?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
@@ -853,6 +876,7 @@ export type BookingUncheckedCreateWithoutProfileInput = {
   checked_in?: boolean
   check_in_time?: Date | string | null
   check_in_outcome?: string | null
+  reminder_sent_at?: Date | string | null
   extra_guest_count?: number
   guest_attendees?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   finance_snapshot?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
@@ -905,6 +929,7 @@ export type BookingScalarWhereInput = {
   checked_in?: Prisma.BoolFilter<"Booking"> | boolean
   check_in_time?: Prisma.DateTimeNullableFilter<"Booking"> | Date | string | null
   check_in_outcome?: Prisma.StringNullableFilter<"Booking"> | string | null
+  reminder_sent_at?: Prisma.DateTimeNullableFilter<"Booking"> | Date | string | null
   extra_guest_count?: Prisma.IntFilter<"Booking"> | number
   guest_attendees?: Prisma.JsonNullableFilter<"Booking">
   finance_snapshot?: Prisma.JsonNullableFilter<"Booking">
@@ -922,6 +947,7 @@ export type BookingCreateWithoutClass_scheduleInput = {
   checked_in?: boolean
   check_in_time?: Date | string | null
   check_in_outcome?: string | null
+  reminder_sent_at?: Date | string | null
   extra_guest_count?: number
   guest_attendees?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   finance_snapshot?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
@@ -946,6 +972,7 @@ export type BookingUncheckedCreateWithoutClass_scheduleInput = {
   checked_in?: boolean
   check_in_time?: Date | string | null
   check_in_outcome?: string | null
+  reminder_sent_at?: Date | string | null
   extra_guest_count?: number
   guest_attendees?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   finance_snapshot?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
@@ -992,6 +1019,7 @@ export type BookingCreateWithoutUser_packageInput = {
   checked_in?: boolean
   check_in_time?: Date | string | null
   check_in_outcome?: string | null
+  reminder_sent_at?: Date | string | null
   extra_guest_count?: number
   guest_attendees?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   finance_snapshot?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
@@ -1016,6 +1044,7 @@ export type BookingUncheckedCreateWithoutUser_packageInput = {
   checked_in?: boolean
   check_in_time?: Date | string | null
   check_in_outcome?: string | null
+  reminder_sent_at?: Date | string | null
   extra_guest_count?: number
   guest_attendees?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   finance_snapshot?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
@@ -1062,6 +1091,7 @@ export type BookingCreateWithoutRazorpay_orderInput = {
   checked_in?: boolean
   check_in_time?: Date | string | null
   check_in_outcome?: string | null
+  reminder_sent_at?: Date | string | null
   extra_guest_count?: number
   guest_attendees?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   finance_snapshot?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
@@ -1087,6 +1117,7 @@ export type BookingUncheckedCreateWithoutRazorpay_orderInput = {
   checked_in?: boolean
   check_in_time?: Date | string | null
   check_in_outcome?: string | null
+  reminder_sent_at?: Date | string | null
   extra_guest_count?: number
   guest_attendees?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   finance_snapshot?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
@@ -1122,6 +1153,7 @@ export type BookingUpdateWithoutRazorpay_orderInput = {
   checked_in?: Prisma.BoolFieldUpdateOperationsInput | boolean
   check_in_time?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   check_in_outcome?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  reminder_sent_at?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   extra_guest_count?: Prisma.IntFieldUpdateOperationsInput | number
   guest_attendees?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   finance_snapshot?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
@@ -1147,6 +1179,7 @@ export type BookingUncheckedUpdateWithoutRazorpay_orderInput = {
   checked_in?: Prisma.BoolFieldUpdateOperationsInput | boolean
   check_in_time?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   check_in_outcome?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  reminder_sent_at?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   extra_guest_count?: Prisma.IntFieldUpdateOperationsInput | number
   guest_attendees?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   finance_snapshot?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
@@ -1166,6 +1199,7 @@ export type BookingCreateWithoutPaymentsInput = {
   checked_in?: boolean
   check_in_time?: Date | string | null
   check_in_outcome?: string | null
+  reminder_sent_at?: Date | string | null
   extra_guest_count?: number
   guest_attendees?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   finance_snapshot?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
@@ -1191,6 +1225,7 @@ export type BookingUncheckedCreateWithoutPaymentsInput = {
   checked_in?: boolean
   check_in_time?: Date | string | null
   check_in_outcome?: string | null
+  reminder_sent_at?: Date | string | null
   extra_guest_count?: number
   guest_attendees?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   finance_snapshot?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
@@ -1226,6 +1261,7 @@ export type BookingUpdateWithoutPaymentsInput = {
   checked_in?: Prisma.BoolFieldUpdateOperationsInput | boolean
   check_in_time?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   check_in_outcome?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  reminder_sent_at?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   extra_guest_count?: Prisma.IntFieldUpdateOperationsInput | number
   guest_attendees?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   finance_snapshot?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
@@ -1251,6 +1287,7 @@ export type BookingUncheckedUpdateWithoutPaymentsInput = {
   checked_in?: Prisma.BoolFieldUpdateOperationsInput | boolean
   check_in_time?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   check_in_outcome?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  reminder_sent_at?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   extra_guest_count?: Prisma.IntFieldUpdateOperationsInput | number
   guest_attendees?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   finance_snapshot?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
@@ -1270,6 +1307,7 @@ export type BookingCreateWithoutCafe_ordersInput = {
   checked_in?: boolean
   check_in_time?: Date | string | null
   check_in_outcome?: string | null
+  reminder_sent_at?: Date | string | null
   extra_guest_count?: number
   guest_attendees?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   finance_snapshot?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
@@ -1295,6 +1333,7 @@ export type BookingUncheckedCreateWithoutCafe_ordersInput = {
   checked_in?: boolean
   check_in_time?: Date | string | null
   check_in_outcome?: string | null
+  reminder_sent_at?: Date | string | null
   extra_guest_count?: number
   guest_attendees?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   finance_snapshot?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
@@ -1330,6 +1369,7 @@ export type BookingUpdateWithoutCafe_ordersInput = {
   checked_in?: Prisma.BoolFieldUpdateOperationsInput | boolean
   check_in_time?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   check_in_outcome?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  reminder_sent_at?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   extra_guest_count?: Prisma.IntFieldUpdateOperationsInput | number
   guest_attendees?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   finance_snapshot?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
@@ -1355,6 +1395,7 @@ export type BookingUncheckedUpdateWithoutCafe_ordersInput = {
   checked_in?: Prisma.BoolFieldUpdateOperationsInput | boolean
   check_in_time?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   check_in_outcome?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  reminder_sent_at?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   extra_guest_count?: Prisma.IntFieldUpdateOperationsInput | number
   guest_attendees?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   finance_snapshot?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
@@ -1376,6 +1417,7 @@ export type BookingCreateManyProfileInput = {
   checked_in?: boolean
   check_in_time?: Date | string | null
   check_in_outcome?: string | null
+  reminder_sent_at?: Date | string | null
   extra_guest_count?: number
   guest_attendees?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   finance_snapshot?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
@@ -1393,6 +1435,7 @@ export type BookingUpdateWithoutProfileInput = {
   checked_in?: Prisma.BoolFieldUpdateOperationsInput | boolean
   check_in_time?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   check_in_outcome?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  reminder_sent_at?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   extra_guest_count?: Prisma.IntFieldUpdateOperationsInput | number
   guest_attendees?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   finance_snapshot?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
@@ -1417,6 +1460,7 @@ export type BookingUncheckedUpdateWithoutProfileInput = {
   checked_in?: Prisma.BoolFieldUpdateOperationsInput | boolean
   check_in_time?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   check_in_outcome?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  reminder_sent_at?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   extra_guest_count?: Prisma.IntFieldUpdateOperationsInput | number
   guest_attendees?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   finance_snapshot?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
@@ -1439,6 +1483,7 @@ export type BookingUncheckedUpdateManyWithoutProfileInput = {
   checked_in?: Prisma.BoolFieldUpdateOperationsInput | boolean
   check_in_time?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   check_in_outcome?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  reminder_sent_at?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   extra_guest_count?: Prisma.IntFieldUpdateOperationsInput | number
   guest_attendees?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   finance_snapshot?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
@@ -1458,6 +1503,7 @@ export type BookingCreateManyClass_scheduleInput = {
   checked_in?: boolean
   check_in_time?: Date | string | null
   check_in_outcome?: string | null
+  reminder_sent_at?: Date | string | null
   extra_guest_count?: number
   guest_attendees?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   finance_snapshot?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
@@ -1475,6 +1521,7 @@ export type BookingUpdateWithoutClass_scheduleInput = {
   checked_in?: Prisma.BoolFieldUpdateOperationsInput | boolean
   check_in_time?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   check_in_outcome?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  reminder_sent_at?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   extra_guest_count?: Prisma.IntFieldUpdateOperationsInput | number
   guest_attendees?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   finance_snapshot?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
@@ -1499,6 +1546,7 @@ export type BookingUncheckedUpdateWithoutClass_scheduleInput = {
   checked_in?: Prisma.BoolFieldUpdateOperationsInput | boolean
   check_in_time?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   check_in_outcome?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  reminder_sent_at?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   extra_guest_count?: Prisma.IntFieldUpdateOperationsInput | number
   guest_attendees?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   finance_snapshot?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
@@ -1521,6 +1569,7 @@ export type BookingUncheckedUpdateManyWithoutClass_scheduleInput = {
   checked_in?: Prisma.BoolFieldUpdateOperationsInput | boolean
   check_in_time?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   check_in_outcome?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  reminder_sent_at?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   extra_guest_count?: Prisma.IntFieldUpdateOperationsInput | number
   guest_attendees?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   finance_snapshot?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
@@ -1540,6 +1589,7 @@ export type BookingCreateManyUser_packageInput = {
   checked_in?: boolean
   check_in_time?: Date | string | null
   check_in_outcome?: string | null
+  reminder_sent_at?: Date | string | null
   extra_guest_count?: number
   guest_attendees?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   finance_snapshot?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
@@ -1557,6 +1607,7 @@ export type BookingUpdateWithoutUser_packageInput = {
   checked_in?: Prisma.BoolFieldUpdateOperationsInput | boolean
   check_in_time?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   check_in_outcome?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  reminder_sent_at?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   extra_guest_count?: Prisma.IntFieldUpdateOperationsInput | number
   guest_attendees?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   finance_snapshot?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
@@ -1581,6 +1632,7 @@ export type BookingUncheckedUpdateWithoutUser_packageInput = {
   checked_in?: Prisma.BoolFieldUpdateOperationsInput | boolean
   check_in_time?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   check_in_outcome?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  reminder_sent_at?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   extra_guest_count?: Prisma.IntFieldUpdateOperationsInput | number
   guest_attendees?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   finance_snapshot?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
@@ -1603,6 +1655,7 @@ export type BookingUncheckedUpdateManyWithoutUser_packageInput = {
   checked_in?: Prisma.BoolFieldUpdateOperationsInput | boolean
   check_in_time?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   check_in_outcome?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  reminder_sent_at?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   extra_guest_count?: Prisma.IntFieldUpdateOperationsInput | number
   guest_attendees?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   finance_snapshot?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
@@ -1663,6 +1716,7 @@ export type BookingSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs 
   checked_in?: boolean
   check_in_time?: boolean
   check_in_outcome?: boolean
+  reminder_sent_at?: boolean
   extra_guest_count?: boolean
   guest_attendees?: boolean
   finance_snapshot?: boolean
@@ -1690,6 +1744,7 @@ export type BookingSelectCreateManyAndReturn<ExtArgs extends runtime.Types.Exten
   checked_in?: boolean
   check_in_time?: boolean
   check_in_outcome?: boolean
+  reminder_sent_at?: boolean
   extra_guest_count?: boolean
   guest_attendees?: boolean
   finance_snapshot?: boolean
@@ -1713,6 +1768,7 @@ export type BookingSelectUpdateManyAndReturn<ExtArgs extends runtime.Types.Exten
   checked_in?: boolean
   check_in_time?: boolean
   check_in_outcome?: boolean
+  reminder_sent_at?: boolean
   extra_guest_count?: boolean
   guest_attendees?: boolean
   finance_snapshot?: boolean
@@ -1736,12 +1792,13 @@ export type BookingSelectScalar = {
   checked_in?: boolean
   check_in_time?: boolean
   check_in_outcome?: boolean
+  reminder_sent_at?: boolean
   extra_guest_count?: boolean
   guest_attendees?: boolean
   finance_snapshot?: boolean
 }
 
-export type BookingOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "user_id" | "class_schedule_id" | "user_package_id" | "status" | "booking_date" | "created_at" | "updated_at" | "cancellation_date" | "class_name" | "class_time" | "checked_in" | "check_in_time" | "check_in_outcome" | "extra_guest_count" | "guest_attendees" | "finance_snapshot", ExtArgs["result"]["booking"]>
+export type BookingOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "user_id" | "class_schedule_id" | "user_package_id" | "status" | "booking_date" | "created_at" | "updated_at" | "cancellation_date" | "class_name" | "class_time" | "checked_in" | "check_in_time" | "check_in_outcome" | "reminder_sent_at" | "extra_guest_count" | "guest_attendees" | "finance_snapshot", ExtArgs["result"]["booking"]>
 export type BookingInclude<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   profile?: boolean | Prisma.ProfileDefaultArgs<ExtArgs>
   class_schedule?: boolean | Prisma.Booking$class_scheduleArgs<ExtArgs>
@@ -1790,6 +1847,10 @@ export type $BookingPayload<ExtArgs extends runtime.Types.Extensions.InternalArg
      * `on_time` | `late` | `no_show` (set by portal check-in or reconcileNoShowsGlobally).
      */
     check_in_outcome: string | null
+    /**
+     * Set when the ~1h pre-class reminder email has been sent (idempotency guard).
+     */
+    reminder_sent_at: Date | null
     /**
      * Portal flow may attach friends/family to one roster row (`extra_guest_count` seats).
      */
@@ -2245,6 +2306,7 @@ export interface BookingFieldRefs {
   readonly checked_in: Prisma.FieldRef<"Booking", 'Boolean'>
   readonly check_in_time: Prisma.FieldRef<"Booking", 'DateTime'>
   readonly check_in_outcome: Prisma.FieldRef<"Booking", 'String'>
+  readonly reminder_sent_at: Prisma.FieldRef<"Booking", 'DateTime'>
   readonly extra_guest_count: Prisma.FieldRef<"Booking", 'Int'>
   readonly guest_attendees: Prisma.FieldRef<"Booking", 'Json'>
   readonly finance_snapshot: Prisma.FieldRef<"Booking", 'Json'>

@@ -555,11 +555,13 @@ export default function AdminDashboard() {
     if (role !== "admin" || activeTab !== "overview") return;
     let cancelled = false;
 
-    void loadSection("today-classes", async () => {
+    // Keyed by date so toggling days refetches instead of reusing the first load.
+    void loadSection(`today-classes:${scheduleDate}`, async () => {
       const r = await fetch(`/api/admin/dashboard/today-classes?date=${encodeURIComponent(scheduleDate)}`);
-      if (!r.ok || cancelled) return;
+      if (!r.ok) return false;
       const d = await r.json();
-      if (!cancelled && Array.isArray(d.todayClasses)) setTodayClassesDetail(d.todayClasses);
+      if (Array.isArray(d.todayClasses)) setTodayClassesDetail(d.todayClasses);
+      return true;
     });
     void loadSection("expiring-members", async () => {
       const r = await fetch("/api/admin/dashboard/expiring-members");
@@ -936,6 +938,43 @@ export default function AdminDashboard() {
       alert("Failed to save instructor.");
     } finally {
       setSavingInstructor(false);
+    }
+  }
+
+  async function applyRosterOutcome(
+    attendee: { id: string; bookingId?: string; checkInTime?: string | null },
+    outcome: "on_time" | "late" | "no_show" | "not_checked_in",
+  ) {
+    const bookingId = attendee.bookingId ?? attendee.id;
+    setRosterCheckingIn((prev) => ({ ...prev, [attendee.id]: true }));
+    try {
+      const res = await fetch("/api/admin/manual-check-in", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ bookingId, outcome }),
+      });
+      if (!res.ok) throw new Error();
+      const checkedIn = outcome === "on_time" || outcome === "late";
+      setSelectedClass((prev: any) => {
+        if (!prev) return prev;
+        const attendees = (prev.attendees ?? []).map((a: any) =>
+          a.id === attendee.id
+            ? {
+                ...a,
+                checkedIn,
+                checkInOutcome: outcome === "not_checked_in" ? null : outcome,
+                checkInTime: checkedIn
+                  ? a.checkInTime ?? new Date().toLocaleTimeString("en-IN", { hour: "2-digit", minute: "2-digit", timeZone: "Asia/Kolkata" })
+                  : null,
+              }
+            : a,
+        );
+        return { ...prev, attendees, checkedIn: attendees.filter((a: any) => a.checkedIn).length };
+      });
+    } catch {
+      alert("Could not update status");
+    } finally {
+      setRosterCheckingIn((prev) => ({ ...prev, [attendee.id]: false }));
     }
   }
 
@@ -3951,16 +3990,6 @@ export default function AdminDashboard() {
                 <div className="space-y-2 max-h-96 overflow-y-auto">
                   {(selectedClass.attendees ?? []).map((attendee: any) => {
                     const outcome = attendee.checkInOutcome as string | null | undefined;
-                    const outcomeLabel =
-                      attendee.checkedIn && outcome === "on_time"
-                        ? "On time"
-                        : attendee.checkedIn && outcome === "late"
-                          ? "Late"
-                          : attendee.checkedIn
-                            ? "Checked in"
-                            : outcome === "no_show"
-                              ? "No-show"
-                              : "Not checked in";
                     return (
                     <div key={attendee.id} className="flex items-center justify-between p-3 rounded-lg border border-sage/15 bg-white">
                       <div className="flex items-center gap-3 min-w-0">
@@ -3986,48 +4015,35 @@ export default function AdminDashboard() {
                           ) : null}
                         </div>
                       </div>
-                      <div className="flex flex-col items-end gap-1 shrink-0 ml-2">
-                        {attendee.checkedIn ? (
-                          <Badge className="bg-sage text-white whitespace-nowrap font-body">
-                            <CheckCircle2 className="h-3 w-3 mr-1" />
-                            {outcomeLabel}
-                          </Badge>
-                        ) : outcome === "no_show" ? (
-                          <Badge variant="outline" className="border-charcoal/25 text-charcoal/70 whitespace-nowrap font-body">
-                            No-show
-                          </Badge>
-                        ) : (
-                          <Button
-                            size="sm"
-                            disabled={rosterCheckingIn[attendee.id]}
-                            onClick={() => {
-                              const bookingId = attendee.bookingId ?? attendee.id;
-                              setRosterCheckingIn(prev => ({ ...prev, [attendee.id]: true }));
-                              fetch("/api/admin/manual-check-in", {
-                                method: "POST",
-                                headers: { "Content-Type": "application/json" },
-                                body: JSON.stringify({ bookingId }),
-                              })
-                                .then(r => r.ok ? r.json() : Promise.reject())
-                                .then(() => {
-                                  setSelectedClass((prev: any) => ({
-                                    ...prev,
-                                    checkedIn: (prev.checkedIn ?? 0) + 1,
-                                    attendees: prev.attendees.map((a: any) =>
-                                      a.id === attendee.id ? { ...a, checkedIn: true, checkInTime: new Date().toLocaleTimeString("en-IN", { hour: "2-digit", minute: "2-digit", timeZone: "Asia/Kolkata" }), checkInOutcome: "on_time" } : a
-                                    ),
-                                  }));
-                                })
-                                .catch(() => alert("Check-in failed"))
-                                .finally(() => setRosterCheckingIn(prev => ({ ...prev, [attendee.id]: false })));
-                            }}
-                            className="bg-sage hover:bg-sage/90 text-white font-body rounded-full px-3 h-7 text-xs"
-                          >
-                            {rosterCheckingIn[attendee.id] ? (
-                              <div className="h-3 w-3 border-2 border-white border-t-transparent rounded-full animate-spin" />
-                            ) : "Check In"}
-                          </Button>
+                      <div className="flex items-center gap-2 shrink-0 ml-2">
+                        {rosterCheckingIn[attendee.id] && (
+                          <div className="h-3 w-3 border-2 border-sage border-t-transparent rounded-full animate-spin" />
                         )}
+                        <Select
+                          value={
+                            attendee.checkedIn
+                              ? outcome === "late"
+                                ? "late"
+                                : "on_time"
+                              : outcome === "no_show"
+                                ? "no_show"
+                                : "not_checked_in"
+                          }
+                          onValueChange={(v) =>
+                            applyRosterOutcome(attendee, v as "on_time" | "late" | "no_show" | "not_checked_in")
+                          }
+                          disabled={rosterCheckingIn[attendee.id]}
+                        >
+                          <SelectTrigger className="h-8 w-[150px] border-sage/20 font-body text-xs">
+                            <SelectValue />
+                          </SelectTrigger>
+                          <SelectContent>
+                            <SelectItem value="on_time">On time</SelectItem>
+                            <SelectItem value="late">Late</SelectItem>
+                            <SelectItem value="no_show">No-show</SelectItem>
+                            <SelectItem value="not_checked_in">Not checked in</SelectItem>
+                          </SelectContent>
+                        </Select>
                       </div>
                     </div>
                     );

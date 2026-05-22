@@ -1,0 +1,679 @@
+<!DOCTYPE html>
+<html lang="en" xmlns="http://www.w3.org/1999/xhtml" xmlns:v="urn:schemas-microsoft-com:vml" xmlns:o="urn:schemas-microsoft-com:office:office">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <meta name="x-apple-disable-message-reformatting">
+  <meta name="color-scheme" content="light only">
+  <meta name="supported-color-schemes" content="light only">
+  <title>your class roster — 6 hours out</title>
+  <!--[if mso]>
+  <noscript><xml><o:OfficeDocumentSettings><o:PixelsPerInch>96</o:PixelsPerInch></o:OfficeDocumentSettings></xml></noscript>
+  <![endif]-->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,500;0,600;1,300;1,400;1,500&family=Fraunces:ital,opsz,wght@0,9..144,300;0,9..144,400;0,9..144,500;0,9..144,600;1,9..144,300;1,9..144,400&family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet">
+  <style>
+    /* ---------- Reset ---------- */
+    body, table, td, a { -webkit-text-size-adjust: 100%; -ms-text-size-adjust: 100%; }
+    table, td { mso-table-lspace: 0pt; mso-table-rspace: 0pt; border-collapse: collapse; }
+    img { -ms-interpolation-mode: bicubic; border: 0; outline: none; text-decoration: none; display: block; }
+    body { margin: 0 !important; padding: 0 !important; width: 100% !important; }
+    a { color: #4a5d3a; text-decoration: none; }
+
+    .px-32 { padding-left: 32px; padding-right: 32px; }
+    .hairline { border-top: 1px solid #d9d2c3; line-height: 0; font-size: 0; }
+
+    .eyebrow {
+      font-family: 'Inter', sans-serif;
+      font-size: 11px;
+      letter-spacing: 0.32em;
+      text-transform: uppercase;
+      color: #8e8a7e;
+      font-weight: 400;
+    }
+
+    .hero-headline {
+      font-family: 'Fraunces', 'Cormorant Garamond', Georgia, serif;
+      font-weight: 300;
+      font-size: 44px;
+      line-height: 1.05;
+      letter-spacing: -0.01em;
+      color: #2a2a26;
+    }
+    .hero-headline em {
+      font-family: 'Cormorant Garamond', Georgia, serif;
+      font-style: italic;
+      font-weight: 400;
+      color: #4a5d3a;
+    }
+
+    .body-text {
+      font-family: 'Fraunces', Georgia, serif;
+      font-weight: 300;
+      font-size: 16px;
+      line-height: 1.7;
+      color: #2a2a26;
+    }
+    .small {
+      font-family: 'Inter', sans-serif;
+      font-size: 13px;
+      line-height: 1.6;
+      color: #5c5a52;
+    }
+
+    .btn-ghost {
+      display: inline-block;
+      color: #4a5d3a !important;
+      font-family: 'Inter', sans-serif;
+      font-size: 11px;
+      letter-spacing: 0.28em;
+      text-transform: uppercase;
+      font-weight: 500;
+      padding: 8px 0;
+      text-decoration: none;
+      border-bottom: 1px solid #4a5d3a;
+    }
+
+    /* Class card (mirrors member booking ticket) */
+    .ticket-label {
+      font-family: 'Inter', sans-serif;
+      font-size: 10px;
+      letter-spacing: 0.28em;
+      text-transform: uppercase;
+      color: #8e8a7e;
+      font-weight: 400;
+    }
+    .ticket-value {
+      font-family: 'Fraunces', Georgia, serif;
+      font-weight: 400;
+      font-size: 18px;
+      color: #2a2a26;
+      line-height: 1.3;
+    }
+    .ticket-big {
+      font-family: 'Fraunces', Georgia, serif;
+      font-weight: 300;
+      font-size: 28px;
+      color: #2a2a26;
+      line-height: 1.1;
+    }
+    .ticket-big em {
+      font-family: 'Cormorant Garamond', Georgia, serif;
+      font-style: italic;
+      color: #4a5d3a;
+      font-weight: 400;
+    }
+
+    /* Roster headcount — large display number */
+    .count-display {
+      font-family: 'Fraunces', Georgia, serif;
+      font-weight: 300;
+      font-size: 56px;
+      line-height: 1;
+      color: #4a5d3a;
+      letter-spacing: -0.02em;
+    }
+    .count-suffix {
+      font-family: 'Cormorant Garamond', Georgia, serif;
+      font-style: italic;
+      font-weight: 400;
+      font-size: 22px;
+      color: #5c5a52;
+      letter-spacing: 0;
+    }
+
+    /* Roster table */
+    .roster-num {
+      font-family: 'Cormorant Garamond', Georgia, serif;
+      font-style: italic;
+      font-weight: 400;
+      font-size: 18px;
+      color: #b87333;
+      line-height: 1;
+    }
+    .roster-name {
+      font-family: 'Fraunces', Georgia, serif;
+      font-weight: 400;
+      font-size: 16px;
+      color: #2a2a26;
+      line-height: 1.3;
+    }
+    .roster-email {
+      font-family: 'Inter', sans-serif;
+      font-weight: 400;
+      font-size: 12px;
+      color: #5c5a52;
+      letter-spacing: 0.01em;
+      line-height: 1.4;
+    }
+    .roster-phone {
+      font-family: 'Inter', sans-serif;
+      font-weight: 400;
+      font-size: 12px;
+      color: #5c5a52;
+      letter-spacing: 0.02em;
+    }
+    .roster-tag {
+      display: inline-block;
+      font-family: 'Inter', sans-serif;
+      font-size: 9px;
+      letter-spacing: 0.22em;
+      text-transform: uppercase;
+      color: #b87333;
+      font-weight: 500;
+      padding: 3px 8px;
+      border: 1px solid #b87333;
+      margin-left: 8px;
+      vertical-align: 2px;
+    }
+
+    /* Note callout */
+    .note-title {
+      font-family: 'Cormorant Garamond', Georgia, serif;
+      font-style: italic;
+      font-weight: 400;
+      font-size: 22px;
+      color: #4a5d3a;
+      line-height: 1;
+    }
+    .note-name {
+      font-family: 'Inter', sans-serif;
+      font-size: 11px;
+      letter-spacing: 0.18em;
+      text-transform: uppercase;
+      color: #2a2a26;
+      font-weight: 500;
+    }
+    .note-text {
+      font-family: 'Fraunces', Georgia, serif;
+      font-weight: 300;
+      font-size: 15px;
+      color: #2a2a26;
+      line-height: 1.55;
+    }
+
+    /* Footer */
+    .footer-link {
+      font-family: 'Inter', sans-serif;
+      font-size: 11px;
+      letter-spacing: 0.18em;
+      text-transform: uppercase;
+      color: #5c5a52 !important;
+      text-decoration: none;
+    }
+
+    @media only screen and (max-width: 620px) {
+      .container { width: 100% !important; }
+      .px-32 { padding-left: 22px !important; padding-right: 22px !important; }
+      .hero-headline { font-size: 32px !important; }
+      .ticket-big { font-size: 22px !important; }
+      .count-display { font-size: 44px !important; }
+      .stack { display: block !important; width: 100% !important; }
+      .stack-pad { padding: 12px 0 !important; border-left: 0 !important; border-right: 0 !important; border-top: 1px solid #d9d2c3 !important; }
+      .ticket-side { padding: 18px 22px !important; border-left: 0 !important; border-right: 0 !important; }
+      .roster-row td { font-size: 14px !important; }
+      .roster-contact { display: block !important; padding-top: 4px !important; }
+    }
+  </style>
+</head>
+<body style="margin:0; padding:0; background:#f7f3ec;">
+  <!-- Preheader (hidden) -->
+  <div style="display:none; max-height:0; overflow:hidden; mso-hide:all; font-size:1px; line-height:1px; color:#f7f3ec;">
+    8 students confirmed for vinyasa flow today at 7:00 pm. see who's coming and any notes to keep in mind.
+  </div>
+
+  <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="background:#f7f3ec;">
+    <tr>
+      <td align="center" style="padding: 36px 16px;">
+        <table role="presentation" class="container" width="600" cellpadding="0" cellspacing="0" border="0" style="width:600px; max-width:600px; background:#fbf8f2;">
+
+          <!-- ============ TOP BAND ============ -->
+          <tr>
+            <td class="px-32" style="padding: 28px 32px 0 32px;" align="center">
+              <span class="eyebrow">a class is coming up</span>
+            </td>
+          </tr>
+
+          <!-- ============ WORDMARK ============ -->
+          <tr>
+            <td class="px-32" style="padding: 22px 32px 8px 32px;" align="center">
+              <a href="https://www.thestudiobycopperandcloves.in" style="text-decoration:none; border:0; outline:none; color:#000000;"><img src="https://copper-cloves.s3.ap-south-1.amazonaws.com/uploads/the+studio+by+C%2BC+og.png" alt="The Studio by Copper + Cloves" width="220" style="display:inline-block; width:220px; max-width:62%; height:auto; border:0; outline:none; text-decoration:none; font-family:'Fraunces', Georgia, serif; font-size:28px; font-weight:400; letter-spacing:0.18em; color:#000000; text-transform:uppercase;" /></a>
+            </td>
+          </tr>
+
+          <tr>
+            <td class="px-32" style="padding: 14px 32px 0 32px;" align="center">
+              <span style="font-family:'Cormorant Garamond',serif; color:#b87333; font-size:14px; letter-spacing:0.6em;">• • •</span>
+            </td>
+          </tr>
+
+          <!-- ============ HERO ============ -->
+          <tr>
+            <td class="px-32" style="padding: 36px 32px 8px 32px;" align="center">
+              <p class="eyebrow" style="margin:0 0 20px 0;">good morning, sarah</p>
+              <h1 class="hero-headline" style="margin:0;">
+                here's <em>who's</em><br>
+                joining you<br>
+                today.
+              </h1>
+            </td>
+          </tr>
+
+          <tr>
+            <td class="px-32" style="padding: 28px 32px 0 32px;" align="center">
+              <p class="body-text" style="margin:0; max-width: 440px;">
+                Your class begins in about 6 hours. Here's the roster as it stands —
+                anyone who books in the meantime will be added automatically.
+              </p>
+            </td>
+          </tr>
+
+          <!-- ornament -->
+          <tr>
+            <td class="px-32" style="padding: 40px 32px;" align="center">
+              <table role="presentation" cellpadding="0" cellspacing="0" border="0">
+                <tr>
+                  <td style="width:60px; border-top:1px solid #d9d2c3; line-height:0; font-size:0;">&nbsp;</td>
+                  <td style="padding: 0 14px; font-family:'Cormorant Garamond',serif; font-style:italic; color:#b87333; font-size:18px;">&#10070;</td>
+                  <td style="width:60px; border-top:1px solid #d9d2c3; line-height:0; font-size:0;">&nbsp;</td>
+                </tr>
+              </table>
+            </td>
+          </tr>
+
+          <!-- ============ CLASS CARD ============ -->
+          <tr>
+            <td class="px-32" style="padding: 0 32px;">
+              <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="background:#fbf8f2; border:1px solid #d9d2c3;">
+                <tr>
+                  <td style="padding: 28px 28px 22px 28px;" align="center">
+                    <p class="eyebrow" style="margin: 0 0 12px 0; color:#4a5d3a;">today's class</p>
+                    <p class="ticket-big" style="margin: 0;">
+                      <em>vinyasa</em> flow
+                    </p>
+                  </td>
+                </tr>
+
+                <tr>
+                  <td style="padding: 0 28px;">
+                    <div style="border-top: 1px dashed #d9d2c3; line-height: 0; font-size: 0;">&nbsp;</div>
+                  </td>
+                </tr>
+
+                <tr>
+                  <td style="padding: 0;">
+                    <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0">
+                      <tr>
+                        <td class="stack ticket-side" valign="top" align="center" style="width:33.33%; padding: 24px 16px;">
+                          <p class="ticket-label" style="margin: 0 0 8px 0;">date</p>
+                          <p class="ticket-value" style="margin: 0;">mon, 15 sept</p>
+                        </td>
+                        <td class="stack ticket-side stack-pad" valign="top" align="center" style="width:33.33%; padding: 24px 16px; border-left: 1px solid #e5dfd2; border-right: 1px solid #e5dfd2;">
+                          <p class="ticket-label" style="margin: 0 0 8px 0;">time</p>
+                          <p class="ticket-value" style="margin: 0;">7:00 – 8:30 pm</p>
+                        </td>
+                        <td class="stack ticket-side stack-pad" valign="top" align="center" style="width:33.33%; padding: 24px 16px;">
+                          <p class="ticket-label" style="margin: 0 0 8px 0;">duration</p>
+                          <p class="ticket-value" style="margin: 0;">90 minutes</p>
+                        </td>
+                      </tr>
+                    </table>
+                  </td>
+                </tr>
+              </table>
+            </td>
+          </tr>
+
+          <!-- ============ HEADCOUNT ============ -->
+          <tr>
+            <td class="px-32" style="padding: 40px 32px 0 32px;" align="center">
+              <span class="eyebrow" style="color:#4a5d3a;">your headcount</span>
+              <p style="margin: 14px 0 0 0;">
+                <span class="count-display">8</span>
+                <span class="count-suffix">&nbsp;students confirmed</span>
+              </p>
+              <p class="small" style="margin: 10px 0 0 0; font-style: italic;">
+                out of 15 mat capacity · room for 7 more
+              </p>
+            </td>
+          </tr>
+
+          <!-- ornament -->
+          <tr>
+            <td class="px-32" style="padding: 40px 32px;" align="center">
+              <table role="presentation" cellpadding="0" cellspacing="0" border="0">
+                <tr>
+                  <td style="width:60px; border-top:1px solid #d9d2c3; line-height:0; font-size:0;">&nbsp;</td>
+                  <td style="padding: 0 14px; font-family:'Cormorant Garamond',serif; font-style:italic; color:#b87333; font-size:18px;">&#10070;</td>
+                  <td style="width:60px; border-top:1px solid #d9d2c3; line-height:0; font-size:0;">&nbsp;</td>
+                </tr>
+              </table>
+            </td>
+          </tr>
+
+          <!-- ============ ROSTER ============ -->
+          <tr>
+            <td class="px-32" style="padding: 0 32px;">
+              <p class="note-title" style="margin: 0 0 22px 0;">the roster</p>
+              <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0">
+
+                <!-- Row 1 -->
+                <tr class="roster-row">
+                  <td valign="top" style="padding: 16px 0; border-bottom: 1px solid #e5dfd2;">
+                    <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0">
+                      <tr>
+                        <td valign="top" width="30" style="padding-right: 12px;">
+                          <p class="roster-num" style="margin: 0;">i.</p>
+                        </td>
+                        <td valign="top">
+                          <p class="roster-name" style="margin: 0;">Anirudh Patel<span class="roster-tag">new</span></p>
+                          <p class="roster-email" style="margin: 4px 0 0 0;">
+                            <span class="roster-contact">anirudhpt3@gmail.com</span>
+                            <span class="roster-contact" style="color:#a8a497;">&nbsp;·&nbsp;</span>
+                            <span class="roster-contact roster-phone">+91 98765 43210</span>
+                          </p>
+                        </td>
+                      </tr>
+                    </table>
+                  </td>
+                </tr>
+
+                <!-- Row 2 -->
+                <tr class="roster-row">
+                  <td valign="top" style="padding: 16px 0; border-bottom: 1px solid #e5dfd2;">
+                    <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0">
+                      <tr>
+                        <td valign="top" width="30" style="padding-right: 12px;">
+                          <p class="roster-num" style="margin: 0;">ii.</p>
+                        </td>
+                        <td valign="top">
+                          <p class="roster-name" style="margin: 0;">Priya Sharma</p>
+                          <p class="roster-email" style="margin: 4px 0 0 0;">
+                            <span class="roster-contact">priya.sharma@gmail.com</span>
+                            <span class="roster-contact" style="color:#a8a497;">&nbsp;·&nbsp;</span>
+                            <span class="roster-contact roster-phone">+91 98123 45678</span>
+                          </p>
+                        </td>
+                      </tr>
+                    </table>
+                  </td>
+                </tr>
+
+                <!-- Row 3 -->
+                <tr class="roster-row">
+                  <td valign="top" style="padding: 16px 0; border-bottom: 1px solid #e5dfd2;">
+                    <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0">
+                      <tr>
+                        <td valign="top" width="30" style="padding-right: 12px;">
+                          <p class="roster-num" style="margin: 0;">iii.</p>
+                        </td>
+                        <td valign="top">
+                          <p class="roster-name" style="margin: 0;">Rohan Mehta</p>
+                          <p class="roster-email" style="margin: 4px 0 0 0;">
+                            <span class="roster-contact">rohan.mehta@outlook.com</span>
+                            <span class="roster-contact" style="color:#a8a497;">&nbsp;·&nbsp;</span>
+                            <span class="roster-contact roster-phone">+91 99887 65432</span>
+                          </p>
+                        </td>
+                      </tr>
+                    </table>
+                  </td>
+                </tr>
+
+                <!-- Row 4 -->
+                <tr class="roster-row">
+                  <td valign="top" style="padding: 16px 0; border-bottom: 1px solid #e5dfd2;">
+                    <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0">
+                      <tr>
+                        <td valign="top" width="30" style="padding-right: 12px;">
+                          <p class="roster-num" style="margin: 0;">iv.</p>
+                        </td>
+                        <td valign="top">
+                          <p class="roster-name" style="margin: 0;">Aditi Verma</p>
+                          <p class="roster-email" style="margin: 4px 0 0 0;">
+                            <span class="roster-contact">aditi.v@gmail.com</span>
+                            <span class="roster-contact" style="color:#a8a497;">&nbsp;·&nbsp;</span>
+                            <span class="roster-contact roster-phone">+91 98456 12378</span>
+                          </p>
+                        </td>
+                      </tr>
+                    </table>
+                  </td>
+                </tr>
+
+                <!-- Row 5 -->
+                <tr class="roster-row">
+                  <td valign="top" style="padding: 16px 0; border-bottom: 1px solid #e5dfd2;">
+                    <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0">
+                      <tr>
+                        <td valign="top" width="30" style="padding-right: 12px;">
+                          <p class="roster-num" style="margin: 0;">v.</p>
+                        </td>
+                        <td valign="top">
+                          <p class="roster-name" style="margin: 0;">Karan Singh<span class="roster-tag">new</span></p>
+                          <p class="roster-email" style="margin: 4px 0 0 0;">
+                            <span class="roster-contact">karansingh@gmail.com</span>
+                            <span class="roster-contact" style="color:#a8a497;">&nbsp;·&nbsp;</span>
+                            <span class="roster-contact roster-phone">+91 97654 32198</span>
+                          </p>
+                        </td>
+                      </tr>
+                    </table>
+                  </td>
+                </tr>
+
+                <!-- Row 6 -->
+                <tr class="roster-row">
+                  <td valign="top" style="padding: 16px 0; border-bottom: 1px solid #e5dfd2;">
+                    <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0">
+                      <tr>
+                        <td valign="top" width="30" style="padding-right: 12px;">
+                          <p class="roster-num" style="margin: 0;">vi.</p>
+                        </td>
+                        <td valign="top">
+                          <p class="roster-name" style="margin: 0;">Megha Iyer</p>
+                          <p class="roster-email" style="margin: 4px 0 0 0;">
+                            <span class="roster-contact">megha.iyer@gmail.com</span>
+                            <span class="roster-contact" style="color:#a8a497;">&nbsp;·&nbsp;</span>
+                            <span class="roster-contact roster-phone">+91 98321 45670</span>
+                          </p>
+                        </td>
+                      </tr>
+                    </table>
+                  </td>
+                </tr>
+
+                <!-- Row 7 -->
+                <tr class="roster-row">
+                  <td valign="top" style="padding: 16px 0; border-bottom: 1px solid #e5dfd2;">
+                    <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0">
+                      <tr>
+                        <td valign="top" width="30" style="padding-right: 12px;">
+                          <p class="roster-num" style="margin: 0;">vii.</p>
+                        </td>
+                        <td valign="top">
+                          <p class="roster-name" style="margin: 0;">Devika Rao</p>
+                          <p class="roster-email" style="margin: 4px 0 0 0;">
+                            <span class="roster-contact">devika.rao@yahoo.com</span>
+                            <span class="roster-contact" style="color:#a8a497;">&nbsp;·&nbsp;</span>
+                            <span class="roster-contact roster-phone">+91 99812 34567</span>
+                          </p>
+                        </td>
+                      </tr>
+                    </table>
+                  </td>
+                </tr>
+
+                <!-- Row 8 -->
+                <tr class="roster-row">
+                  <td valign="top" style="padding: 16px 0;">
+                    <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0">
+                      <tr>
+                        <td valign="top" width="30" style="padding-right: 12px;">
+                          <p class="roster-num" style="margin: 0;">viii.</p>
+                        </td>
+                        <td valign="top">
+                          <p class="roster-name" style="margin: 0;">Vikram Joshi</p>
+                          <p class="roster-email" style="margin: 4px 0 0 0;">
+                            <span class="roster-contact">vikram.j@gmail.com</span>
+                            <span class="roster-contact" style="color:#a8a497;">&nbsp;·&nbsp;</span>
+                            <span class="roster-contact roster-phone">+91 98765 12340</span>
+                          </p>
+                        </td>
+                      </tr>
+                    </table>
+                  </td>
+                </tr>
+
+              </table>
+            </td>
+          </tr>
+
+          <!-- ornament -->
+          <tr>
+            <td class="px-32" style="padding: 48px 32px;" align="center">
+              <table role="presentation" cellpadding="0" cellspacing="0" border="0">
+                <tr>
+                  <td style="width:60px; border-top:1px solid #d9d2c3; line-height:0; font-size:0;">&nbsp;</td>
+                  <td style="padding: 0 14px; font-family:'Cormorant Garamond',serif; font-style:italic; color:#b87333; font-size:18px;">&#10070;</td>
+                  <td style="width:60px; border-top:1px solid #d9d2c3; line-height:0; font-size:0;">&nbsp;</td>
+                </tr>
+              </table>
+            </td>
+          </tr>
+
+          <!-- ============ THINGS TO NOTE ============ -->
+          <tr>
+            <td class="px-32" style="padding: 0 32px;">
+              <p class="note-title" style="margin: 0 0 22px 0;">a few things to note</p>
+
+              <!-- New students note -->
+              <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="margin-bottom: 18px;">
+                <tr>
+                  <td style="border-left: 2px solid #b87333; padding: 4px 0 4px 18px;">
+                    <p class="note-name" style="margin: 0 0 6px 0;">first-timers</p>
+                    <p class="note-text" style="margin: 0;">
+                      <em style="font-family:'Cormorant Garamond',serif; font-style:italic; color:#4a5d3a;">Anirudh Patel</em>
+                      and
+                      <em style="font-family:'Cormorant Garamond',serif; font-style:italic; color:#4a5d3a;">Karan Singh</em>
+                      are joining their first class with us — a quick welcome and intro
+                      to the studio flow would be lovely.
+                    </p>
+                  </td>
+                </tr>
+              </table>
+
+              <!-- Injury / health note -->
+              <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="margin-bottom: 18px;">
+                <tr>
+                  <td style="border-left: 2px solid #c97a55; padding: 4px 0 4px 18px;">
+                    <p class="note-name" style="margin: 0 0 6px 0;">health flags</p>
+                    <p class="note-text" style="margin: 0 0 8px 0;">
+                      <em style="font-family:'Cormorant Garamond',serif; font-style:italic; color:#4a5d3a;">Priya Sharma</em>
+                      — recovering from a mild lower-back strain. Please offer modifications
+                      for deep forward folds.
+                    </p>
+                    <p class="note-text" style="margin: 0;">
+                      <em style="font-family:'Cormorant Garamond',serif; font-style:italic; color:#4a5d3a;">Devika Rao</em>
+                      — early-stage pregnancy (first trimester). She has been advised by her
+                      doctor that gentle practice is fine; please keep an eye out.
+                    </p>
+                  </td>
+                </tr>
+              </table>
+
+              <!-- General note -->
+              <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0">
+                <tr>
+                  <td style="border-left: 2px solid #4a5d3a; padding: 4px 0 4px 18px;">
+                    <p class="note-name" style="margin: 0 0 6px 0;">a gentle reminder</p>
+                    <p class="note-text" style="margin: 0;">
+                      Students arriving more than 10 minutes late are turned away at the
+                      door — no refund. Please make sure to start exactly on time.
+                    </p>
+                  </td>
+                </tr>
+              </table>
+            </td>
+          </tr>
+
+          <!-- ============ FULL DASHBOARD LINK ============ -->
+          <tr>
+            <td class="px-32" style="padding: 48px 32px 0 32px;" align="center">
+              <p class="small" style="margin: 0 0 8px 0;">View the full roster, mark attendance and add notes after class</p>
+              <p style="margin: 0;">
+                <a href="https://www.thestudiobycopperandcloves.in/portal/instructor" class="btn-ghost">open instructor dashboard &nbsp;→</a>
+              </p>
+            </td>
+          </tr>
+
+          <!-- ============ CLOSING ============ -->
+          <tr>
+            <td class="px-32" style="padding: 56px 32px 8px 32px;" align="center">
+              <p class="body-text" style="margin:0; font-style:italic; font-size: 22px; line-height: 1.4; color:#4a5d3a; font-family:'Cormorant Garamond',serif;">
+                'have a beautiful class'
+              </p>
+              <p class="small" style="margin: 18px 0 0 0; letter-spacing: 0.18em; text-transform: uppercase; font-size: 10px;">— The Studio team</p>
+            </td>
+          </tr>
+
+          <!-- ============ NEED HELP ============ -->
+          <tr>
+            <td class="px-32" style="padding: 48px 32px 0 32px;">
+              <div class="hairline">&nbsp;</div>
+            </td>
+          </tr>
+          <tr>
+            <td class="px-32" style="padding: 28px 32px 0 32px;" align="center">
+              <span class="eyebrow">need to swap or sub the class?</span>
+              <p class="body-text" style="margin: 18px 0 0 0; font-size: 15px;">
+                <a href="tel:+919008426703" style="color:#2a2a26; border-bottom: 1px solid #d9d2c3; text-decoration:none;">+91 90084 26703</a>
+                &nbsp;&nbsp;·&nbsp;&nbsp;
+                <a href="mailto:thestudio@copperandcloves.com" style="color:#2a2a26; border-bottom: 1px solid #d9d2c3; text-decoration:none;">thestudio@copperandcloves.com</a>
+              </p>
+              <p class="small" style="margin: 14px 0 0 0; font-style: italic;">Please give us at least 4 hours notice for sub requests.</p>
+            </td>
+          </tr>
+
+          <!-- ============ FOOTER ============ -->
+          <tr>
+            <td style="padding: 48px 32px 0 32px;">
+              <div class="hairline">&nbsp;</div>
+            </td>
+          </tr>
+          <tr>
+            <td class="px-32" style="padding: 28px 32px 12px 32px;" align="center">
+              <a href="https://www.thestudiobycopperandcloves.in" style="text-decoration:none; border:0; outline:none; color:#000000;"><img src="https://copper-cloves.s3.ap-south-1.amazonaws.com/uploads/the+studio+by+C%2BC+og.png" alt="The Studio" width="140" style="display:inline-block; width:140px; max-width:50%; height:auto; border:0; outline:none; text-decoration:none; font-family:'Fraunces', Georgia, serif; font-size:18px; font-weight:400; letter-spacing:0.18em; color:#000000; text-transform:uppercase;" /></a>
+            </td>
+          </tr>
+          <tr>
+            <td class="px-32" style="padding: 0 32px 18px 32px;" align="center">
+              <p class="small" style="margin:0; font-style:italic; color:#8e8a7e;">by copper + cloves · indiranagar, bengaluru</p>
+            </td>
+          </tr>
+          <tr>
+            <td class="px-32" style="padding: 0 32px 32px 32px;" align="center">
+              <a href="https://www.thestudiobycopperandcloves.in/portal/instructor" class="footer-link">dashboard</a>
+              &nbsp;&nbsp;·&nbsp;&nbsp;
+              <a href="https://www.thestudiobycopperandcloves.in/classes" class="footer-link">schedule</a>
+              &nbsp;&nbsp;·&nbsp;&nbsp;
+              <a href="mailto:thestudio@copperandcloves.com" class="footer-link">contact</a>
+            </td>
+          </tr>
+          <tr>
+            <td class="px-32" style="padding: 0 32px 36px 32px;" align="center">
+              <p class="small" style="margin:0; color:#a8a497; font-size: 11px; line-height:1.7;">
+                This roster is sent automatically 6 hours before your class. Student details<br>
+                are confidential — please don't share outside The Studio team.
+              </p>
+              <p class="small" style="margin: 18px 0 0 0; color:#a8a497; font-size: 10px; letter-spacing: 0.2em; text-transform: uppercase;">© 2026 the studio by copper + cloves</p>
+            </td>
+          </tr>
+        </table>
+      </td>
+    </tr>
+  </table>
+</body>
+</html>

@@ -52,6 +52,7 @@ export type ClassScheduleMinAggregateOutputType = {
   instructor_check_in_time: Date | null
   instructor_check_in_outcome: string | null
   class_notes: string | null
+  roster_sent_at: Date | null
   created_at: Date | null
   updated_at: Date | null
 }
@@ -70,6 +71,7 @@ export type ClassScheduleMaxAggregateOutputType = {
   instructor_check_in_time: Date | null
   instructor_check_in_outcome: string | null
   class_notes: string | null
+  roster_sent_at: Date | null
   created_at: Date | null
   updated_at: Date | null
 }
@@ -88,6 +90,7 @@ export type ClassScheduleCountAggregateOutputType = {
   instructor_check_in_time: number
   instructor_check_in_outcome: number
   class_notes: number
+  roster_sent_at: number
   created_at: number
   updated_at: number
   _all: number
@@ -120,6 +123,7 @@ export type ClassScheduleMinAggregateInputType = {
   instructor_check_in_time?: true
   instructor_check_in_outcome?: true
   class_notes?: true
+  roster_sent_at?: true
   created_at?: true
   updated_at?: true
 }
@@ -138,6 +142,7 @@ export type ClassScheduleMaxAggregateInputType = {
   instructor_check_in_time?: true
   instructor_check_in_outcome?: true
   class_notes?: true
+  roster_sent_at?: true
   created_at?: true
   updated_at?: true
 }
@@ -156,6 +161,7 @@ export type ClassScheduleCountAggregateInputType = {
   instructor_check_in_time?: true
   instructor_check_in_outcome?: true
   class_notes?: true
+  roster_sent_at?: true
   created_at?: true
   updated_at?: true
   _all?: true
@@ -261,6 +267,7 @@ export type ClassScheduleGroupByOutputType = {
   instructor_check_in_time: Date | null
   instructor_check_in_outcome: string | null
   class_notes: string | null
+  roster_sent_at: Date | null
   created_at: Date
   updated_at: Date
   _count: ClassScheduleCountAggregateOutputType | null
@@ -302,6 +309,7 @@ export type ClassScheduleWhereInput = {
   instructor_check_in_time?: Prisma.DateTimeNullableFilter<"ClassSchedule"> | Date | string | null
   instructor_check_in_outcome?: Prisma.StringNullableFilter<"ClassSchedule"> | string | null
   class_notes?: Prisma.StringNullableFilter<"ClassSchedule"> | string | null
+  roster_sent_at?: Prisma.DateTimeNullableFilter<"ClassSchedule"> | Date | string | null
   created_at?: Prisma.DateTimeFilter<"ClassSchedule"> | Date | string
   updated_at?: Prisma.DateTimeFilter<"ClassSchedule"> | Date | string
   class_model?: Prisma.XOR<Prisma.ClassModelNullableScalarRelationFilter, Prisma.ClassModelWhereInput> | null
@@ -324,6 +332,7 @@ export type ClassScheduleOrderByWithRelationInput = {
   instructor_check_in_time?: Prisma.SortOrderInput | Prisma.SortOrder
   instructor_check_in_outcome?: Prisma.SortOrderInput | Prisma.SortOrder
   class_notes?: Prisma.SortOrderInput | Prisma.SortOrder
+  roster_sent_at?: Prisma.SortOrderInput | Prisma.SortOrder
   created_at?: Prisma.SortOrder
   updated_at?: Prisma.SortOrder
   class_model?: Prisma.ClassModelOrderByWithRelationInput
@@ -350,6 +359,7 @@ export type ClassScheduleWhereUniqueInput = Prisma.AtLeast<{
   instructor_check_in_time?: Prisma.DateTimeNullableFilter<"ClassSchedule"> | Date | string | null
   instructor_check_in_outcome?: Prisma.StringNullableFilter<"ClassSchedule"> | string | null
   class_notes?: Prisma.StringNullableFilter<"ClassSchedule"> | string | null
+  roster_sent_at?: Prisma.DateTimeNullableFilter<"ClassSchedule"> | Date | string | null
   created_at?: Prisma.DateTimeFilter<"ClassSchedule"> | Date | string
   updated_at?: Prisma.DateTimeFilter<"ClassSchedule"> | Date | string
   class_model?: Prisma.XOR<Prisma.ClassModelNullableScalarRelationFilter, Prisma.ClassModelWhereInput> | null
@@ -372,6 +382,7 @@ export type ClassScheduleOrderByWithAggregationInput = {
   instructor_check_in_time?: Prisma.SortOrderInput | Prisma.SortOrder
   instructor_check_in_outcome?: Prisma.SortOrderInput | Prisma.SortOrder
   class_notes?: Prisma.SortOrderInput | Prisma.SortOrder
+  roster_sent_at?: Prisma.SortOrderInput | Prisma.SortOrder
   created_at?: Prisma.SortOrder
   updated_at?: Prisma.SortOrder
   _count?: Prisma.ClassScheduleCountOrderByAggregateInput
@@ -398,6 +409,7 @@ export type ClassScheduleScalarWhereWithAggregatesInput = {
   instructor_check_in_time?: Prisma.DateTimeNullableWithAggregatesFilter<"ClassSchedule"> | Date | string | null
   instructor_check_in_outcome?: Prisma.StringNullableWithAggregatesFilter<"ClassSchedule"> | string | null
   class_notes?: Prisma.StringNullableWithAggregatesFilter<"ClassSchedule"> | string | null
+  roster_sent_at?: Prisma.DateTimeNullableWithAggregatesFilter<"ClassSchedule"> | Date | string | null
   created_at?: Prisma.DateTimeWithAggregatesFilter<"ClassSchedule"> | Date | string
   updated_at?: Prisma.DateTimeWithAggregatesFilter<"ClassSchedule"> | Date | string
 }
@@ -413,6 +425,7 @@ export type ClassScheduleCreateInput = {
   instructor_check_in_time?: Date | string | null
   instructor_check_in_outcome?: string | null
   class_notes?: string | null
+  roster_sent_at?: Date | string | null
   created_at?: Date | string
   updated_at?: Date | string
   class_model?: Prisma.ClassModelCreateNestedOneWithoutClass_schedulesInput
@@ -435,6 +448,7 @@ export type ClassScheduleUncheckedCreateInput = {
   instructor_check_in_time?: Date | string | null
   instructor_check_in_outcome?: string | null
   class_notes?: string | null
+  roster_sent_at?: Date | string | null
   created_at?: Date | string
   updated_at?: Date | string
   bookings?: Prisma.BookingUncheckedCreateNestedManyWithoutClass_scheduleInput
@@ -451,6 +465,7 @@ export type ClassScheduleUpdateInput = {
   instructor_check_in_time?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   instructor_check_in_outcome?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   class_notes?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  roster_sent_at?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   created_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updated_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   class_model?: Prisma.ClassModelUpdateOneWithoutClass_schedulesNestedInput
@@ -473,6 +488,7 @@ export type ClassScheduleUncheckedUpdateInput = {
   instructor_check_in_time?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   instructor_check_in_outcome?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   class_notes?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  roster_sent_at?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   created_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updated_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   bookings?: Prisma.BookingUncheckedUpdateManyWithoutClass_scheduleNestedInput
@@ -492,6 +508,7 @@ export type ClassScheduleCreateManyInput = {
   instructor_check_in_time?: Date | string | null
   instructor_check_in_outcome?: string | null
   class_notes?: string | null
+  roster_sent_at?: Date | string | null
   created_at?: Date | string
   updated_at?: Date | string
 }
@@ -507,6 +524,7 @@ export type ClassScheduleUpdateManyMutationInput = {
   instructor_check_in_time?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   instructor_check_in_outcome?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   class_notes?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  roster_sent_at?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   created_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updated_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
 }
@@ -525,6 +543,7 @@ export type ClassScheduleUncheckedUpdateManyInput = {
   instructor_check_in_time?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   instructor_check_in_outcome?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   class_notes?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  roster_sent_at?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   created_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updated_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
 }
@@ -559,6 +578,7 @@ export type ClassScheduleCountOrderByAggregateInput = {
   instructor_check_in_time?: Prisma.SortOrder
   instructor_check_in_outcome?: Prisma.SortOrder
   class_notes?: Prisma.SortOrder
+  roster_sent_at?: Prisma.SortOrder
   created_at?: Prisma.SortOrder
   updated_at?: Prisma.SortOrder
 }
@@ -583,6 +603,7 @@ export type ClassScheduleMaxOrderByAggregateInput = {
   instructor_check_in_time?: Prisma.SortOrder
   instructor_check_in_outcome?: Prisma.SortOrder
   class_notes?: Prisma.SortOrder
+  roster_sent_at?: Prisma.SortOrder
   created_at?: Prisma.SortOrder
   updated_at?: Prisma.SortOrder
 }
@@ -601,6 +622,7 @@ export type ClassScheduleMinOrderByAggregateInput = {
   instructor_check_in_time?: Prisma.SortOrder
   instructor_check_in_outcome?: Prisma.SortOrder
   class_notes?: Prisma.SortOrder
+  roster_sent_at?: Prisma.SortOrder
   created_at?: Prisma.SortOrder
   updated_at?: Prisma.SortOrder
 }
@@ -769,6 +791,7 @@ export type ClassScheduleCreateWithoutInstructorInput = {
   instructor_check_in_time?: Date | string | null
   instructor_check_in_outcome?: string | null
   class_notes?: string | null
+  roster_sent_at?: Date | string | null
   created_at?: Date | string
   updated_at?: Date | string
   class_model?: Prisma.ClassModelCreateNestedOneWithoutClass_schedulesInput
@@ -789,6 +812,7 @@ export type ClassScheduleUncheckedCreateWithoutInstructorInput = {
   instructor_check_in_time?: Date | string | null
   instructor_check_in_outcome?: string | null
   class_notes?: string | null
+  roster_sent_at?: Date | string | null
   created_at?: Date | string
   updated_at?: Date | string
   bookings?: Prisma.BookingUncheckedCreateNestedManyWithoutClass_scheduleInput
@@ -815,6 +839,7 @@ export type ClassScheduleCreateWithoutActual_instructorInput = {
   instructor_check_in_time?: Date | string | null
   instructor_check_in_outcome?: string | null
   class_notes?: string | null
+  roster_sent_at?: Date | string | null
   created_at?: Date | string
   updated_at?: Date | string
   class_model?: Prisma.ClassModelCreateNestedOneWithoutClass_schedulesInput
@@ -835,6 +860,7 @@ export type ClassScheduleUncheckedCreateWithoutActual_instructorInput = {
   instructor_check_in_time?: Date | string | null
   instructor_check_in_outcome?: string | null
   class_notes?: string | null
+  roster_sent_at?: Date | string | null
   created_at?: Date | string
   updated_at?: Date | string
   bookings?: Prisma.BookingUncheckedCreateNestedManyWithoutClass_scheduleInput
@@ -883,6 +909,7 @@ export type ClassScheduleScalarWhereInput = {
   instructor_check_in_time?: Prisma.DateTimeNullableFilter<"ClassSchedule"> | Date | string | null
   instructor_check_in_outcome?: Prisma.StringNullableFilter<"ClassSchedule"> | string | null
   class_notes?: Prisma.StringNullableFilter<"ClassSchedule"> | string | null
+  roster_sent_at?: Prisma.DateTimeNullableFilter<"ClassSchedule"> | Date | string | null
   created_at?: Prisma.DateTimeFilter<"ClassSchedule"> | Date | string
   updated_at?: Prisma.DateTimeFilter<"ClassSchedule"> | Date | string
 }
@@ -914,6 +941,7 @@ export type ClassScheduleCreateWithoutClass_modelInput = {
   instructor_check_in_time?: Date | string | null
   instructor_check_in_outcome?: string | null
   class_notes?: string | null
+  roster_sent_at?: Date | string | null
   created_at?: Date | string
   updated_at?: Date | string
   instructor?: Prisma.InstructorCreateNestedOneWithoutClass_schedulesInput
@@ -934,6 +962,7 @@ export type ClassScheduleUncheckedCreateWithoutClass_modelInput = {
   instructor_check_in_time?: Date | string | null
   instructor_check_in_outcome?: string | null
   class_notes?: string | null
+  roster_sent_at?: Date | string | null
   created_at?: Date | string
   updated_at?: Date | string
   bookings?: Prisma.BookingUncheckedCreateNestedManyWithoutClass_scheduleInput
@@ -976,6 +1005,7 @@ export type ClassScheduleCreateWithoutBookingsInput = {
   instructor_check_in_time?: Date | string | null
   instructor_check_in_outcome?: string | null
   class_notes?: string | null
+  roster_sent_at?: Date | string | null
   created_at?: Date | string
   updated_at?: Date | string
   class_model?: Prisma.ClassModelCreateNestedOneWithoutClass_schedulesInput
@@ -997,6 +1027,7 @@ export type ClassScheduleUncheckedCreateWithoutBookingsInput = {
   instructor_check_in_time?: Date | string | null
   instructor_check_in_outcome?: string | null
   class_notes?: string | null
+  roster_sent_at?: Date | string | null
   created_at?: Date | string
   updated_at?: Date | string
 }
@@ -1028,6 +1059,7 @@ export type ClassScheduleUpdateWithoutBookingsInput = {
   instructor_check_in_time?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   instructor_check_in_outcome?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   class_notes?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  roster_sent_at?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   created_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updated_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   class_model?: Prisma.ClassModelUpdateOneWithoutClass_schedulesNestedInput
@@ -1049,6 +1081,7 @@ export type ClassScheduleUncheckedUpdateWithoutBookingsInput = {
   instructor_check_in_time?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   instructor_check_in_outcome?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   class_notes?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  roster_sent_at?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   created_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updated_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
 }
@@ -1066,6 +1099,7 @@ export type ClassScheduleCreateManyInstructorInput = {
   instructor_check_in_time?: Date | string | null
   instructor_check_in_outcome?: string | null
   class_notes?: string | null
+  roster_sent_at?: Date | string | null
   created_at?: Date | string
   updated_at?: Date | string
 }
@@ -1083,6 +1117,7 @@ export type ClassScheduleCreateManyActual_instructorInput = {
   instructor_check_in_time?: Date | string | null
   instructor_check_in_outcome?: string | null
   class_notes?: string | null
+  roster_sent_at?: Date | string | null
   created_at?: Date | string
   updated_at?: Date | string
 }
@@ -1098,6 +1133,7 @@ export type ClassScheduleUpdateWithoutInstructorInput = {
   instructor_check_in_time?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   instructor_check_in_outcome?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   class_notes?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  roster_sent_at?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   created_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updated_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   class_model?: Prisma.ClassModelUpdateOneWithoutClass_schedulesNestedInput
@@ -1118,6 +1154,7 @@ export type ClassScheduleUncheckedUpdateWithoutInstructorInput = {
   instructor_check_in_time?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   instructor_check_in_outcome?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   class_notes?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  roster_sent_at?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   created_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updated_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   bookings?: Prisma.BookingUncheckedUpdateManyWithoutClass_scheduleNestedInput
@@ -1136,6 +1173,7 @@ export type ClassScheduleUncheckedUpdateManyWithoutInstructorInput = {
   instructor_check_in_time?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   instructor_check_in_outcome?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   class_notes?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  roster_sent_at?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   created_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updated_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
 }
@@ -1151,6 +1189,7 @@ export type ClassScheduleUpdateWithoutActual_instructorInput = {
   instructor_check_in_time?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   instructor_check_in_outcome?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   class_notes?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  roster_sent_at?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   created_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updated_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   class_model?: Prisma.ClassModelUpdateOneWithoutClass_schedulesNestedInput
@@ -1171,6 +1210,7 @@ export type ClassScheduleUncheckedUpdateWithoutActual_instructorInput = {
   instructor_check_in_time?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   instructor_check_in_outcome?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   class_notes?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  roster_sent_at?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   created_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updated_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   bookings?: Prisma.BookingUncheckedUpdateManyWithoutClass_scheduleNestedInput
@@ -1189,6 +1229,7 @@ export type ClassScheduleUncheckedUpdateManyWithoutActual_instructorInput = {
   instructor_check_in_time?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   instructor_check_in_outcome?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   class_notes?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  roster_sent_at?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   created_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updated_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
 }
@@ -1206,6 +1247,7 @@ export type ClassScheduleCreateManyClass_modelInput = {
   instructor_check_in_time?: Date | string | null
   instructor_check_in_outcome?: string | null
   class_notes?: string | null
+  roster_sent_at?: Date | string | null
   created_at?: Date | string
   updated_at?: Date | string
 }
@@ -1221,6 +1263,7 @@ export type ClassScheduleUpdateWithoutClass_modelInput = {
   instructor_check_in_time?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   instructor_check_in_outcome?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   class_notes?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  roster_sent_at?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   created_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updated_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   instructor?: Prisma.InstructorUpdateOneWithoutClass_schedulesNestedInput
@@ -1241,6 +1284,7 @@ export type ClassScheduleUncheckedUpdateWithoutClass_modelInput = {
   instructor_check_in_time?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   instructor_check_in_outcome?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   class_notes?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  roster_sent_at?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   created_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updated_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   bookings?: Prisma.BookingUncheckedUpdateManyWithoutClass_scheduleNestedInput
@@ -1259,6 +1303,7 @@ export type ClassScheduleUncheckedUpdateManyWithoutClass_modelInput = {
   instructor_check_in_time?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   instructor_check_in_outcome?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   class_notes?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  roster_sent_at?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   created_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updated_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
 }
@@ -1308,6 +1353,7 @@ export type ClassScheduleSelect<ExtArgs extends runtime.Types.Extensions.Interna
   instructor_check_in_time?: boolean
   instructor_check_in_outcome?: boolean
   class_notes?: boolean
+  roster_sent_at?: boolean
   created_at?: boolean
   updated_at?: boolean
   class_model?: boolean | Prisma.ClassSchedule$class_modelArgs<ExtArgs>
@@ -1331,6 +1377,7 @@ export type ClassScheduleSelectCreateManyAndReturn<ExtArgs extends runtime.Types
   instructor_check_in_time?: boolean
   instructor_check_in_outcome?: boolean
   class_notes?: boolean
+  roster_sent_at?: boolean
   created_at?: boolean
   updated_at?: boolean
   class_model?: boolean | Prisma.ClassSchedule$class_modelArgs<ExtArgs>
@@ -1352,6 +1399,7 @@ export type ClassScheduleSelectUpdateManyAndReturn<ExtArgs extends runtime.Types
   instructor_check_in_time?: boolean
   instructor_check_in_outcome?: boolean
   class_notes?: boolean
+  roster_sent_at?: boolean
   created_at?: boolean
   updated_at?: boolean
   class_model?: boolean | Prisma.ClassSchedule$class_modelArgs<ExtArgs>
@@ -1373,11 +1421,12 @@ export type ClassScheduleSelectScalar = {
   instructor_check_in_time?: boolean
   instructor_check_in_outcome?: boolean
   class_notes?: boolean
+  roster_sent_at?: boolean
   created_at?: boolean
   updated_at?: boolean
 }
 
-export type ClassScheduleOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "class_id" | "instructor_id" | "actual_instructor_id" | "start_time" | "end_time" | "capacity" | "available_spots" | "current_bookings" | "status" | "instructor_check_in_time" | "instructor_check_in_outcome" | "class_notes" | "created_at" | "updated_at", ExtArgs["result"]["classSchedule"]>
+export type ClassScheduleOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "class_id" | "instructor_id" | "actual_instructor_id" | "start_time" | "end_time" | "capacity" | "available_spots" | "current_bookings" | "status" | "instructor_check_in_time" | "instructor_check_in_outcome" | "class_notes" | "roster_sent_at" | "created_at" | "updated_at", ExtArgs["result"]["classSchedule"]>
 export type ClassScheduleInclude<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   class_model?: boolean | Prisma.ClassSchedule$class_modelArgs<ExtArgs>
   instructor?: boolean | Prisma.ClassSchedule$instructorArgs<ExtArgs>
@@ -1430,6 +1479,10 @@ export type $ClassSchedulePayload<ExtArgs extends runtime.Types.Extensions.Inter
      * Admin notes for this session (sub reason, incidents, announcements).
      */
     class_notes: string | null
+    /**
+     * Set when the ~6h pre-class instructor roster email has been sent (idempotency guard).
+     */
+    roster_sent_at: Date | null
     created_at: Date
     updated_at: Date
   }, ExtArgs["result"]["classSchedule"]>
@@ -1872,6 +1925,7 @@ export interface ClassScheduleFieldRefs {
   readonly instructor_check_in_time: Prisma.FieldRef<"ClassSchedule", 'DateTime'>
   readonly instructor_check_in_outcome: Prisma.FieldRef<"ClassSchedule", 'String'>
   readonly class_notes: Prisma.FieldRef<"ClassSchedule", 'String'>
+  readonly roster_sent_at: Prisma.FieldRef<"ClassSchedule", 'DateTime'>
   readonly created_at: Prisma.FieldRef<"ClassSchedule", 'DateTime'>
   readonly updated_at: Prisma.FieldRef<"ClassSchedule", 'DateTime'>
 }

@@ -268,17 +268,20 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         return created;
       });
 
-      void sendBookingConfirmationEmail(booking.id)
-        .catch((e) => console.error("[booking email]", e));
-      void buildBookingCrmVariables(booking.id)
-        .then((variables) =>
-          dispatchCrmEmailTriggers({
-            triggerType: CrmTriggerType.ClassBookingConfirmed,
-            userId,
-            variables,
-          })
-        )
-        .catch((e) => console.error("CRM class_booking_confirmed:", e));
+      // Awaited (in parallel) so emails/CRM actually send before the serverless
+      // handler returns; failures are logged but never block the booking.
+      await Promise.all([
+        sendBookingConfirmationEmail(booking.id).catch((e) => console.error("[booking email]", e)),
+        buildBookingCrmVariables(booking.id)
+          .then((variables) =>
+            dispatchCrmEmailTriggers({
+              triggerType: CrmTriggerType.ClassBookingConfirmed,
+              userId,
+              variables,
+            })
+          )
+          .catch((e) => console.error("CRM class_booking_confirmed:", e)),
+      ]);
       return res.status(201).json(booking);
     } catch (e) {
       const msg = e instanceof Error ? e.message : String(e);
@@ -405,7 +408,8 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     });
 
     if (status === "cancelled") {
-      void buildBookingCrmVariables(booking.id)
+      // Awaited so the cancellation email/CRM actually sends on serverless.
+      await buildBookingCrmVariables(booking.id)
         .then((variables) =>
           dispatchCrmEmailTriggers({
             triggerType: CrmTriggerType.ClassBookingCancelled,

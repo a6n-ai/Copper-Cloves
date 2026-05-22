@@ -33,6 +33,10 @@ export async function sendHtmlEmailViaGmailSmtp(options: {
     port: 465,
     secure: true, // SSL — works on AWS Lambda (port 587/STARTTLS is often blocked)
     auth: { user, pass },
+    // Bound the send so awaiting it can never hang the API request (serverless).
+    connectionTimeout: 10_000,
+    greetingTimeout: 10_000,
+    socketTimeout: 15_000,
   });
 
   try {

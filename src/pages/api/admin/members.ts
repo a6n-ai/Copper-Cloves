@@ -13,14 +13,24 @@ const memberInclude = {
 } as const;
 
 const memberDetailInclude = {
-  user_badges: { orderBy: { earned_at: "desc" as const }, take: 20 },
+  user_badges: { orderBy: { earned_at: "desc" as const }, take: 50 },
   bookings: {
     where: { status: "confirmed" as const },
     orderBy: { booking_date: "desc" as const },
-    take: 60,
+    take: 100,
     include: {
       class_schedule: { include: { class_model: true } },
     },
+  },
+  user_packages: {
+    include: { package_type: true },
+    orderBy: { purchase_date: "desc" as const },
+    take: 50,
+  },
+  cafe_orders: {
+    include: { cafe_item: true },
+    orderBy: { order_date: "desc" as const },
+    take: 50,
   },
 } as const;
 

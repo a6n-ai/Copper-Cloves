@@ -42,7 +42,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     },
   });
 
-  void sendBookingConfirmationEmail(booking.id).catch(e => console.error("[add-booking email]", e));
+  await sendBookingConfirmationEmail(booking.id).catch(e => console.error("[add-booking email]", e));
 
   return res.status(201).json({
     booking: {

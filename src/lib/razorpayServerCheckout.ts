@@ -230,7 +230,7 @@ export async function finishBookingCheckoutOnServer(
     });
   }
 
-  void buildBookingCrmVariables(booking.id)
+  await buildBookingCrmVariables(booking.id)
     .then((variables) =>
       dispatchCrmEmailTriggers({
         triggerType: CrmTriggerType.ClassBookingConfirmed,
@@ -338,7 +338,7 @@ export async function finishPackageCheckoutOnServer(
     return created;
   });
 
-  void notifyPackagePurchase({
+  await notifyPackagePurchase({
     userId,
     packageType: userPackage.package_type,
     expirationDate: userPackage.expiration_date,

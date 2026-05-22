@@ -5,6 +5,10 @@ export const CrmTriggerType = {
   AccountCreated: "account_created",
   IndividualClassPaid: "individual_class_paid",
   LateCancellation: "late_cancellation",
+  /** Time-based: ~1h before class, to the member. Dispatched by the cron scheduler. */
+  ClassReminder: "class_reminder",
+  /** Time-based: ~6h before class, to the instructor (roster). Dispatched by the cron scheduler. */
+  InstructorRoster: "instructor_roster",
 } as const;
 
 export type CrmTriggerTypeId = (typeof CrmTriggerType)[keyof typeof CrmTriggerType];

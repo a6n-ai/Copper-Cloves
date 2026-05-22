@@ -19,19 +19,27 @@ export async function sendHtmlEmailViaResend(options: {
     };
   }
 
-  const res = await fetch("https://api.resend.com/emails", {
-    method: "POST",
-    headers: {
-      Authorization: `Bearer ${key}`,
-      "Content-Type": "application/json",
-    },
-    body: JSON.stringify({
-      from,
-      to: options.to.trim(),
-      subject: options.subject,
-      html: options.html,
-    }),
-  });
+  let res: Response;
+  try {
+    res = await fetch("https://api.resend.com/emails", {
+      method: "POST",
+      headers: {
+        Authorization: `Bearer ${key}`,
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        from,
+        to: options.to.trim(),
+        subject: options.subject,
+        html: options.html,
+      }),
+      // Bound the request so awaiting it can never hang the API handler.
+      signal: AbortSignal.timeout(15_000),
+    });
+  } catch (e) {
+    const msg = e instanceof Error ? e.message : String(e);
+    return { ok: false, error: `Resend request failed: ${msg.slice(0, 300)}` };
+  }
 
   const json = (await res.json().catch(() => ({}))) as {
     message?: string;

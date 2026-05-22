@@ -9,7 +9,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   if ((session.user as { role?: string }).role !== "admin") return res.status(403).json({ error: "Forbidden" });
   if (req.method !== "POST") return res.status(405).end();
 
-  const { bookingId } = req.body as { bookingId?: string };
+  const { bookingId, outcome } = req.body as { bookingId?: string; outcome?: string };
   if (!bookingId) return res.status(400).json({ error: "bookingId required" });
 
   const booking = await prisma.booking.findUnique({
@@ -18,10 +18,29 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   });
   if (!booking) return res.status(404).json({ error: "Booking not found" });
   if (booking.status === "cancelled") return res.status(400).json({ error: "Booking is cancelled" });
-  if (booking.checked_in) return res.json({ alreadyCheckedIn: true });
 
   const now = new Date();
   const classStart = booking.class_schedule?.start_time ?? now;
+
+  // Manual override: admin sets an explicit attendance outcome (can correct an
+  // already-checked-in row, mark no-show, or clear back to not-checked-in).
+  if (typeof outcome === "string") {
+    let data: { checked_in: boolean; check_in_time: Date | null; check_in_outcome: string | null };
+    if (outcome === "on_time" || outcome === "late") {
+      data = { checked_in: true, check_in_time: booking.check_in_time ?? now, check_in_outcome: outcome };
+    } else if (outcome === "no_show") {
+      data = { checked_in: false, check_in_time: null, check_in_outcome: "no_show" };
+    } else if (outcome === "not_checked_in") {
+      data = { checked_in: false, check_in_time: null, check_in_outcome: null };
+    } else {
+      return res.status(400).json({ error: "Invalid outcome" });
+    }
+    const updated = await prisma.booking.update({ where: { id: bookingId }, data });
+    return res.json({ ok: true, booking: updated });
+  }
+
+  // Default: clock-based check-in (on_time/late). No-op if already checked in.
+  if (booking.checked_in) return res.json({ alreadyCheckedIn: true });
   const updated = await prisma.booking.update({
     where: { id: bookingId },
     data: {

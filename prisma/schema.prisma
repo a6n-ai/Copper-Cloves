@@ -205,6 +205,8 @@ model ClassSchedule {
   instructor_check_in_outcome String?
   /// Admin notes for this session (sub reason, incidents, announcements).
   class_notes               String?
+  /// Set when the ~6h pre-class instructor roster email has been sent (idempotency guard).
+  roster_sent_at            DateTime?
   created_at                DateTime  @default(now())
   updated_at                DateTime  @default(now()) @updatedAt
 
@@ -312,6 +314,8 @@ model Booking {
   check_in_time     DateTime?
   /// `on_time` | `late` | `no_show` (set by portal check-in or reconcileNoShowsGlobally).
   check_in_outcome  String?
+  /// Set when the ~1h pre-class reminder email has been sent (idempotency guard).
+  reminder_sent_at    DateTime?
   /// Portal flow may attach friends/family to one roster row (`extra_guest_count` seats).
   extra_guest_count   Int       @default(0)
   /// [{ name, email, phone }] for Finance-1 detail dialog.

@@ -33,6 +33,16 @@ const TRIGGERS: TriggerDef[] = [
     template_key: "cancellation_no_credit",
     trigger_type: CrmTriggerType.LateCancellation,
   },
+  {
+    name: "System — Class Reminder (≈1h before)",
+    template_key: "class_reminder",
+    trigger_type: CrmTriggerType.ClassReminder,
+  },
+  {
+    name: "System — Instructor Roster (≈6h before)",
+    template_key: "instructor_roster",
+    trigger_type: CrmTriggerType.InstructorRoster,
+  },
 ];
 
 async function main() {

@@ -51,6 +51,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 
 interface Member {
   id: string;
@@ -79,6 +80,32 @@ interface HistoryRow {
   name: string;
   when: number | null;
   status: "attended" | "no_show" | "missed" | "upcoming";
+  checkedIn: boolean;
+  checkInOutcome: string | null;
+}
+
+interface PackageRow {
+  id: string;
+  name: string;
+  purchasedAt: string | null;
+  expiresAt: string | null;
+  creditsRemaining: number | null;
+  isActive: boolean;
+  isUnlimited: boolean;
+}
+interface FoodRow {
+  id: string;
+  item: string;
+  quantity: number;
+  orderedAt: string | null;
+  status: string;
+}
+interface BadgeRow {
+  id: string;
+  name: string;
+  description: string | null;
+  icon: string | null;
+  earnedAt: string | null;
 }
 
 function formatRelativeDay(date: Date | string | null | undefined): string {
@@ -118,7 +145,11 @@ export default function AdminMembers() {
   const [historyOpen, setHistoryOpen] = useState(false);
   const [historyMember, setHistoryMember] = useState<Member | null>(null);
   const [historyRows, setHistoryRows] = useState<HistoryRow[]>([]);
+  const [historyPackages, setHistoryPackages] = useState<PackageRow[]>([]);
+  const [historyFood, setHistoryFood] = useState<FoodRow[]>([]);
+  const [historyBadges, setHistoryBadges] = useState<BadgeRow[]>([]);
   const [historyLoading, setHistoryLoading] = useState(false);
+  const [historySavingId, setHistorySavingId] = useState<string | null>(null);
   const [selectedMember, setSelectedMember] = useState<Member | null>(null);
   const [dialogOpen, setDialogOpen] = useState(false);
   const [dialogPassType, setDialogPassType] = useState<"class_pass" | "studio_pass">("class_pass");
@@ -516,6 +547,9 @@ export default function AdminMembers() {
   const openHistory = async (member: Member) => {
     setHistoryMember(member);
     setHistoryRows([]);
+    setHistoryPackages([]);
+    setHistoryFood([]);
+    setHistoryBadges([]);
     setHistoryOpen(true);
     setHistoryLoading(true);
     try {
@@ -524,6 +558,67 @@ export default function AdminMembers() {
       });
       if (!res.ok) throw new Error();
       const data = await res.json();
+
+      const pkgs = Array.isArray(data?.user_packages)
+        ? (data.user_packages as Array<{
+            id: string;
+            purchase_date?: string | null;
+            expiration_date?: string | null;
+            credits_remaining?: number | null;
+            is_active?: boolean;
+            package_type?: { name?: string | null; is_unlimited?: boolean } | null;
+          }>)
+        : [];
+      setHistoryPackages(
+        pkgs.map((p) => ({
+          id: p.id,
+          name: p.package_type?.name ?? "Package",
+          purchasedAt: p.purchase_date ?? null,
+          expiresAt: p.expiration_date ?? null,
+          creditsRemaining: p.credits_remaining ?? null,
+          isActive: !!p.is_active && (p.expiration_date ? new Date(p.expiration_date) > new Date() : true),
+          isUnlimited: !!p.package_type?.is_unlimited,
+        })),
+      );
+
+      const food = Array.isArray(data?.cafe_orders)
+        ? (data.cafe_orders as Array<{
+            id: string;
+            quantity?: number | null;
+            order_date?: string | null;
+            status?: string | null;
+            cafe_item?: { name?: string | null } | null;
+          }>)
+        : [];
+      setHistoryFood(
+        food.map((o) => ({
+          id: o.id,
+          item: o.cafe_item?.name ?? "Item",
+          quantity: o.quantity ?? 1,
+          orderedAt: o.order_date ?? null,
+          status: o.status ?? "—",
+        })),
+      );
+
+      const badges = Array.isArray(data?.user_badges)
+        ? (data.user_badges as Array<{
+            id: string;
+            badge_name?: string | null;
+            badge_description?: string | null;
+            icon?: string | null;
+            earned_at?: string | null;
+          }>)
+        : [];
+      setHistoryBadges(
+        badges.map((b) => ({
+          id: b.id,
+          name: b.badge_name ?? "Badge",
+          description: b.badge_description ?? null,
+          icon: b.icon ?? null,
+          earnedAt: b.earned_at ?? null,
+        })),
+      );
+
       const bookings = Array.isArray(data?.bookings)
         ? (data.bookings as Array<{
             id: string;
@@ -547,7 +642,7 @@ export default function AdminMembers() {
         else if (b.check_in_outcome === "no_show") status = "no_show";
         else if (when != null && when < Date.now()) status = "missed";
         else status = "upcoming";
-        return { id: b.id, name, when, status };
+        return { id: b.id, name, when, status, checkedIn: !!b.checked_in, checkInOutcome: b.check_in_outcome ?? null };
       });
       rows.sort((a, b) => (b.when ?? 0) - (a.when ?? 0));
       setHistoryRows(rows);
@@ -555,6 +650,41 @@ export default function AdminMembers() {
       setHistoryRows([]);
     } finally {
       setHistoryLoading(false);
+    }
+  };
+
+  const applyHistoryOutcome = async (
+    rowId: string,
+    outcome: "on_time" | "late" | "no_show" | "not_checked_in",
+  ) => {
+    setHistorySavingId(rowId);
+    try {
+      const res = await fetch("/api/admin/manual-check-in", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ bookingId: rowId, outcome }),
+      });
+      if (!res.ok) throw new Error();
+      setHistoryRows((rows) =>
+        rows.map((r) => {
+          if (r.id !== rowId) return r;
+          const checkedIn = outcome === "on_time" || outcome === "late";
+          let status: HistoryRow["status"];
+          if (checkedIn) status = "attended";
+          else if (outcome === "no_show") status = "no_show";
+          else status = r.when != null && r.when < Date.now() ? "missed" : "upcoming";
+          return {
+            ...r,
+            checkedIn,
+            checkInOutcome: outcome === "not_checked_in" ? null : outcome,
+            status,
+          };
+        }),
+      );
+    } catch {
+      alert("Could not update status");
+    } finally {
+      setHistorySavingId(null);
     }
   };
 
@@ -868,7 +998,7 @@ export default function AdminMembers() {
                                   className="cursor-pointer gap-2"
                                 >
                                   <Calendar className="h-3.5 w-3.5" />
-                                  Class history
+                                  View profile
                                 </DropdownMenuItem>
                                 <DropdownMenuSeparator />
                                 <DropdownMenuItem
@@ -1246,58 +1376,164 @@ export default function AdminMembers() {
         </DialogContent>
       </Dialog>
 
-      {/* Class History Dialog */}
+      {/* Member Profile Dialog */}
       <Dialog open={historyOpen} onOpenChange={setHistoryOpen}>
-        <DialogContent className="sm:max-w-[520px] bg-white border-sage/20">
+        <DialogContent className="sm:max-w-[640px] bg-white border-sage/20">
           <DialogHeader>
-            <DialogTitle className="font-display text-2xl text-charcoal">
-              Class History
-            </DialogTitle>
+            <DialogTitle className="font-display text-2xl text-charcoal">Member Profile</DialogTitle>
             <DialogDescription className="font-body text-charcoal/60">
               {historyMember?.name ?? "Member"}
-              {!historyLoading && ` · ${historyRows.length} classes`}
+              {historyMember?.email ? ` · ${historyMember.email}` : ""}
             </DialogDescription>
           </DialogHeader>
 
-          <div className="max-h-[60vh] overflow-y-auto -mx-1 px-1">
-            {historyLoading ? (
-              <p className="font-body text-sm text-charcoal/50 py-8 text-center">Loading…</p>
-            ) : historyRows.length === 0 ? (
-              <p className="font-body text-sm text-charcoal/50 py-8 text-center">
-                No class history yet.
-              </p>
-            ) : (
-              <ul className="divide-y divide-sage/10">
-                {historyRows.map((row) => (
-                  <li key={row.id} className="flex items-center justify-between gap-3 py-3">
-                    <div className="min-w-0">
-                      <div className="font-body font-medium text-charcoal truncate">{row.name}</div>
-                      <div className="font-body text-xs text-charcoal/50">
-                        {row.when
-                          ? new Date(row.when).toLocaleString("en-IN", {
-                              day: "numeric",
-                              month: "short",
-                              year: "numeric",
-                              hour: "numeric",
-                              minute: "2-digit",
-                            })
-                          : "—"}
-                      </div>
-                    </div>
-                    {row.status === "attended" ? (
-                      <Badge className="bg-sage/10 text-sage border-sage/20 font-body whitespace-nowrap">Attended</Badge>
-                    ) : row.status === "no_show" ? (
-                      <Badge variant="destructive" className="font-body whitespace-nowrap">No-show</Badge>
-                    ) : row.status === "missed" ? (
-                      <Badge variant="outline" className="border-amber-500/20 text-amber-600 bg-amber-50 font-body whitespace-nowrap">Missed</Badge>
-                    ) : (
-                      <Badge variant="outline" className="border-charcoal/15 text-charcoal/50 bg-cream/30 font-body whitespace-nowrap">Upcoming</Badge>
-                    )}
-                  </li>
-                ))}
-              </ul>
-            )}
-          </div>
+          {historyLoading ? (
+            <p className="font-body text-sm text-charcoal/50 py-10 text-center">Loading…</p>
+          ) : (
+            <Tabs defaultValue="classes" className="w-full">
+              <TabsList className="grid grid-cols-4 w-full bg-cream/50">
+                <TabsTrigger value="classes" className="font-body text-xs data-[state=active]:bg-sage data-[state=active]:text-white">
+                  Classes ({historyRows.length})
+                </TabsTrigger>
+                <TabsTrigger value="packages" className="font-body text-xs data-[state=active]:bg-sage data-[state=active]:text-white">
+                  Packages ({historyPackages.length})
+                </TabsTrigger>
+                <TabsTrigger value="food" className="font-body text-xs data-[state=active]:bg-sage data-[state=active]:text-white">
+                  Food ({historyFood.length})
+                </TabsTrigger>
+                <TabsTrigger value="badges" className="font-body text-xs data-[state=active]:bg-sage data-[state=active]:text-white">
+                  Badges ({historyBadges.length})
+                </TabsTrigger>
+              </TabsList>
+
+              <div className="max-h-[55vh] overflow-y-auto mt-3 -mx-1 px-1">
+                {/* Classes */}
+                <TabsContent value="classes" className="mt-0">
+                  {historyRows.length === 0 ? (
+                    <p className="font-body text-sm text-charcoal/50 py-8 text-center">No class history yet.</p>
+                  ) : (
+                    <ul className="divide-y divide-sage/10">
+                      {historyRows.map((row) => (
+                        <li key={row.id} className="flex items-center justify-between gap-3 py-3">
+                          <div className="min-w-0">
+                            <div className="font-body font-medium text-charcoal truncate">{row.name}</div>
+                            <div className="font-body text-xs text-charcoal/50">
+                              {row.when
+                                ? new Date(row.when).toLocaleString("en-IN", { day: "numeric", month: "short", year: "numeric", hour: "numeric", minute: "2-digit" })
+                                : "—"}
+                            </div>
+                          </div>
+                          <div className="flex items-center gap-2 shrink-0">
+                            {historySavingId === row.id && (
+                              <div className="h-3 w-3 border-2 border-sage border-t-transparent rounded-full animate-spin" />
+                            )}
+                            <Select
+                              value={
+                                row.checkedIn
+                                  ? row.checkInOutcome === "late" ? "late" : "on_time"
+                                  : row.checkInOutcome === "no_show" ? "no_show" : "not_checked_in"
+                              }
+                              onValueChange={(v) => applyHistoryOutcome(row.id, v as "on_time" | "late" | "no_show" | "not_checked_in")}
+                              disabled={historySavingId === row.id}
+                            >
+                              <SelectTrigger className="h-8 w-[150px] border-sage/20 font-body text-xs">
+                                <SelectValue />
+                              </SelectTrigger>
+                              <SelectContent>
+                                <SelectItem value="on_time">On time</SelectItem>
+                                <SelectItem value="late">Late</SelectItem>
+                                <SelectItem value="no_show">No-show</SelectItem>
+                                <SelectItem value="not_checked_in">Not checked in</SelectItem>
+                              </SelectContent>
+                            </Select>
+                          </div>
+                        </li>
+                      ))}
+                    </ul>
+                  )}
+                </TabsContent>
+
+                {/* Packages */}
+                <TabsContent value="packages" className="mt-0">
+                  {historyPackages.length === 0 ? (
+                    <p className="font-body text-sm text-charcoal/50 py-8 text-center">No packages purchased.</p>
+                  ) : (
+                    <ul className="divide-y divide-sage/10">
+                      {historyPackages.map((p) => (
+                        <li key={p.id} className="flex items-center justify-between gap-3 py-3">
+                          <div className="min-w-0">
+                            <div className="font-body font-medium text-charcoal truncate">{p.name}</div>
+                            <div className="font-body text-xs text-charcoal/50">
+                              Purchased {p.purchasedAt ? new Date(p.purchasedAt).toLocaleDateString("en-IN", { day: "numeric", month: "short", year: "numeric" }) : "—"}
+                              {p.expiresAt ? ` · expires ${new Date(p.expiresAt).toLocaleDateString("en-IN", { day: "numeric", month: "short", year: "numeric" })}` : ""}
+                            </div>
+                          </div>
+                          <div className="flex items-center gap-2 shrink-0">
+                            <span className="font-body text-xs text-charcoal/60">
+                              {p.isUnlimited ? "Unlimited" : `${p.creditsRemaining ?? 0} left`}
+                            </span>
+                            <Badge
+                              variant="outline"
+                              className={p.isActive ? "border-sage/30 text-sage bg-sage/5 font-body" : "border-charcoal/15 text-charcoal/40 bg-cream/30 font-body"}
+                            >
+                              {p.isActive ? "Active" : "Expired"}
+                            </Badge>
+                          </div>
+                        </li>
+                      ))}
+                    </ul>
+                  )}
+                </TabsContent>
+
+                {/* Food */}
+                <TabsContent value="food" className="mt-0">
+                  {historyFood.length === 0 ? (
+                    <p className="font-body text-sm text-charcoal/50 py-8 text-center">No café orders.</p>
+                  ) : (
+                    <ul className="divide-y divide-sage/10">
+                      {historyFood.map((o) => (
+                        <li key={o.id} className="flex items-center justify-between gap-3 py-3">
+                          <div className="min-w-0">
+                            <div className="font-body font-medium text-charcoal truncate">
+                              {o.item} <span className="text-charcoal/50 font-normal">× {o.quantity}</span>
+                            </div>
+                            <div className="font-body text-xs text-charcoal/50">
+                              {o.orderedAt ? new Date(o.orderedAt).toLocaleDateString("en-IN", { day: "numeric", month: "short", year: "numeric" }) : "—"}
+                            </div>
+                          </div>
+                          <Badge variant="outline" className="border-charcoal/15 text-charcoal/60 font-body capitalize">{o.status}</Badge>
+                        </li>
+                      ))}
+                    </ul>
+                  )}
+                </TabsContent>
+
+                {/* Badges */}
+                <TabsContent value="badges" className="mt-0">
+                  {historyBadges.length === 0 ? (
+                    <p className="font-body text-sm text-charcoal/50 py-8 text-center">No badges earned yet.</p>
+                  ) : (
+                    <ul className="divide-y divide-sage/10">
+                      {historyBadges.map((b) => (
+                        <li key={b.id} className="flex items-center gap-3 py-3">
+                          <span className="text-2xl leading-none">{b.icon || "🏆"}</span>
+                          <div className="min-w-0">
+                            <div className="font-body font-medium text-charcoal truncate">{b.name}</div>
+                            {b.description && (
+                              <div className="font-body text-xs text-charcoal/50 truncate">{b.description}</div>
+                            )}
+                            <div className="font-body text-xs text-charcoal/40">
+                              {b.earnedAt ? `Earned ${new Date(b.earnedAt).toLocaleDateString("en-IN", { day: "numeric", month: "short", year: "numeric" })}` : ""}
+                            </div>
+                          </div>
+                        </li>
+                      ))}
+                    </ul>
+                  )}
+                </TabsContent>
+              </div>
+            </Tabs>
+          )}
         </DialogContent>
       </Dialog>
     </>

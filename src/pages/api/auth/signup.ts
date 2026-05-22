@@ -128,17 +128,18 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     });
 
     const portalUrl = process.env.NEXTAUTH_URL?.replace(/\/$/, "") ?? "";
-    sendHtmlEmail({
+    // Awaited so the email actually sends on serverless (the handler would
+    // otherwise return and the function freezes before delivery). Failures are
+    // logged but never block account creation.
+    await sendHtmlEmail({
       to: email,
       subject: "welcome to The Studio by Copper + Cloves",
       html: welcomeEmail({ memberName: full_name || email, portalUrl }),
-    }).then((result) => {
-      if (!result.ok) {
-        console.error("[signup] welcome email failed:", result);
-      } else {
-        console.log("[signup] welcome email sent to:", email);
-      }
-    }).catch((err) => console.error("[signup] welcome email threw:", err));
+    })
+      .then((result) => {
+        if (!result.ok) console.error("[signup] welcome email failed:", result);
+      })
+      .catch((err) => console.error("[signup] welcome email threw:", err));
 
     return res.status(201).json({ message: "Account created successfully." });
   } catch (e: unknown) {
