@@ -33,6 +33,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
           check_in_time: true,
           check_in_outcome: true,
           extra_guest_count: true,
+          confirmation_status: true,
           profile: { select: { full_name: true, email: true, avatar_url: true } },
         },
         orderBy: { created_at: "asc" },
@@ -63,6 +64,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       checkInTime: b.check_in_time?.toISOString() ?? null,
       checkInOutcome: b.check_in_outcome ?? null,
       extraGuests: b.extra_guest_count ?? 0,
+      confirmationStatus: b.confirmation_status ?? null,
     })),
   });
 }

@@ -25,11 +25,14 @@ src/
 
 ## Auth / session access
 
+- One unified `/login` for all roles (email → portal picker → password). `authorize` keys on (email, role); pass `role` in the `signIn` credentials.
 - Server pages: `getStudioServerSession()` from `src/lib/getStudioServerSession.ts`.
 - Admin guard: `requireAdmin(session)` from `src/lib/requireAdmin.ts`.
+- Instructor APIs: `getInstructorSession(req, res)` from `src/lib/instructorAuth.ts` (NextAuth-backed; needs role `instructor` + `instructor_id`).
 - Never call `getServerSession()` directly in pages — always use wrapper.
-- JWT contains: `id`, `email`, `name`, `role`.
-- Roles: `"user"` (default), `"admin"`.
+- JWT/session contains: `id`, `email`, `name`, `role`, `partner_id`, `instructor_id`.
+- Roles: `"user"` (default) \| `"instructor"` \| `"partner"` \| `"admin"`.
+- **Profile email is unique per role, not globally** (`@@unique([email, role])`). Look up profiles by email with `findFirst({ email, role })` or the `email_role` composite key — `findUnique({ where: { email } })` no longer compiles. Same email may have several login rows (one per portal), each its own password.
 
 ## API route patterns
 

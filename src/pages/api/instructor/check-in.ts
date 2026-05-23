@@ -6,7 +6,7 @@ import { checkInOutcomeFromTimes } from "@/lib/bookingAttendance";
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
   if (req.method !== "POST") return res.status(405).end();
 
-  const session = getInstructorSession(req);
+  const session = await getInstructorSession(req, res);
   if (!session) return res.status(401).json({ error: "Not authenticated" });
 
   const { bookingId } = req.body as { bookingId?: string };

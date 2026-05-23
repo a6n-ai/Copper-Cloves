@@ -80,6 +80,7 @@ export async function getTodayClasses(db: Db = prisma, forDate?: Date) {
           checked_in: true,
           check_in_outcome: true,
           check_in_time: true,
+          confirmation_status: true,
           profile: { select: { full_name: true, email: true, avatar_url: true } },
         },
       },
@@ -103,6 +104,7 @@ export async function getTodayClasses(db: Db = prisma, forDate?: Date) {
       email: bk.profile?.email ?? "",
       avatarUrl: bk.profile?.avatar_url ?? null,
       checkedIn: bk.checked_in,
+      confirmationStatus: bk.confirmation_status ?? null,
       checkInOutcome: bk.check_in_outcome,
       checkInTime: bk.check_in_time
         ? new Date(bk.check_in_time).toLocaleTimeString("en-US", { hour: "2-digit", minute: "2-digit", timeZone: "Asia/Kolkata" })
@@ -485,9 +487,11 @@ export async function getMemberList(db: Db = prisma) {
     select: {
       user_id: true,
       credits_remaining: true,
+      classes_remaining: true,
       expiration_date: true,
+      pass_type: true,
       profile: { select: { full_name: true, email: true, phone: true, avatar_url: true } },
-      package_type: { select: { name: true } },
+      package_type: { select: { name: true, is_unlimited: true, type: true } },
     },
   });
   const top = recent.slice(0, 24);
@@ -514,6 +518,11 @@ export async function getMemberList(db: Db = prisma) {
 
   return top.map((up, idx) => {
     const pf = perf.get(up.user_id) ?? { onTime: 0, late: 0, noShow: 0 };
+    const isUnlimited = !!(
+      up.package_type.is_unlimited ||
+      up.pass_type === "studio_pass" ||
+      up.package_type.type === "studio_pass"
+    );
     return {
       id: idx + 1,
       profileId: up.user_id,
@@ -521,7 +530,8 @@ export async function getMemberList(db: Db = prisma) {
       email: up.profile.email ?? "",
       avatarUrl: up.profile.avatar_url ?? null,
       package: up.package_type.name,
-      credits: up.credits_remaining ?? 0,
+      isUnlimited,
+      credits: up.credits_remaining ?? up.classes_remaining ?? 0,
       expiry: dt(up.expiration_date),
       streak: statsByUser.get(up.user_id)?.current_streak ?? 0,
       onTime: pf.onTime,
@@ -643,7 +653,10 @@ export async function getTransactions(db: Db = prisma, opts: { includeFinanceDem
     const snap = parseFinanceSnapshot(b.finance_snapshot)!;
     const profile = b.profile;
     const fullName = profile.full_name || profile.email || "Member";
-    const guests = Math.max(0, b.extra_guest_count ?? 0);
+    // Guests are stored on the booker's guest_attendees (their own roster rows
+    // carry extra_guest_count 0), so headcount comes from that list.
+    const guestRows = guestListFromJson(b.guest_attendees);
+    const guests = guestRows.length;
     const foodNet = Math.max(0, snap.foodFeeInr - snap.foodDiscountInr);
     const cafeOrdered = foodNet > 0.009 || (Array.isArray(b.cafe_orders) && b.cafe_orders.length > 0);
     const memberPlusLabel = guests > 0 ? `+${guests}` : "";
@@ -654,7 +667,6 @@ export async function getTransactions(db: Db = prisma, opts: { includeFinanceDem
     const classTitle = b.class_schedule?.class_model?.name ?? "Class";
     const category = `${classTitle} (${passLine})`;
     const payIds = b.payments?.map((p) => p.razorpay_payment_id).filter(Boolean) ?? [];
-    const guestRows = guestListFromJson(b.guest_attendees);
 
     const attendeeLines: { role: string; name: string; email?: string; phone?: string; notes?: string }[] = [
       {

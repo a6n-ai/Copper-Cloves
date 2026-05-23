@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import { useRouter } from "next/router";
 import Image from "next/image";
 import { PortalNavigation } from "@/components/PortalNavigation";
+import { RoleSwitcher } from "@/components/RoleSwitcher";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -459,6 +460,7 @@ export default function Dashboard() {
                       : `${packageDetails.classCount || 0} classes remaining`
                     : "No active package"}
                 </p>
+                <RoleSwitcher className="mt-3" />
               </div>
 
               {/* Today's Intention */}
@@ -949,6 +951,11 @@ export default function Dashboard() {
                             <p className="font-body text-xs text-charcoal/60">
                               {instructor}
                             </p>
+                            {booking.confirmation_status === "pending" && (
+                              <span className="inline-flex items-center px-2 py-0.5 mt-1 rounded-full text-[10px] font-body bg-amber-100 text-amber-700">
+                                Pending confirmation
+                              </span>
+                            )}
                             {startTime && (
                               <p className="font-body text-xs text-sage font-semibold mt-1">
                                 {new Date(startTime).toLocaleDateString("en-US", {

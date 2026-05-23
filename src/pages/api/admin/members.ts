@@ -4,6 +4,12 @@ import { isStudioAdminProfileRole } from "@/lib/isStudioAdminProfile";
 import { getStudioServerSession } from "@/lib/getStudioServerSession";
 import { getDynamicStats, getDynamicStatsForUsers } from "@/lib/attendanceStats";
 
+// Member Management lists real members only — never staff/partner/instructor logins.
+function isNonMemberRole(role?: string | null): boolean {
+  const r = String(role ?? "").trim().toLowerCase();
+  return isStudioAdminProfileRole(role) || r === "partner" || r === "instructor";
+}
+
 const memberInclude = {
   user_packages: {
     include: { package_type: true },
@@ -47,7 +53,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         where: { id },
         include: memberDetailInclude,
       });
-      if (!profile || isStudioAdminProfileRole(profile.role)) {
+      if (!profile || isNonMemberRole(profile.role)) {
         return res.status(404).json({ error: "Member not found" });
       }
       const stats = await getDynamicStats(profile.id);
@@ -58,7 +64,8 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       include: memberInclude,
       orderBy: { created_at: "desc" },
     });
-    const members = rows.filter((p) => !isStudioAdminProfileRole(p.role));
+    // Exclude staff/partner/instructor logins — only real members.
+    const members = rows.filter((p) => !isNonMemberRole(p.role));
     const statsByUser = await getDynamicStatsForUsers(members.map((m) => m.id));
     const withStats = members.map((m) => {
       const stats = statsByUser.get(m.id) ?? null;
@@ -80,7 +87,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   }
 
   if (req.method === "PATCH") {
-    const { profile_id, user_package_id, credits_delta, expiration_date, pass_type, start_date } = req.body ?? {};
+    const { profile_id, user_package_id, credits_delta, expiration_date, pass_type, start_date, action } = req.body ?? {};
     if (!profile_id || typeof profile_id !== "string") {
       return res.status(400).json({ error: "profile_id required" });
     }
@@ -88,7 +95,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     const profile = await prisma.profile.findFirst({
       where: { id: profile_id },
     });
-    if (!profile || isStudioAdminProfileRole(profile.role)) {
+    if (!profile || isNonMemberRole(profile.role)) {
       return res.status(404).json({ error: "Member not found" });
     }
 
@@ -99,6 +106,36 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         orderBy: { purchase_date: "desc" },
       });
       pkgId = latest?.id;
+    }
+
+    // Pause / resume a pass. Resuming extends the expiry by the days it was paused.
+    if (action === "pause" || action === "resume") {
+      if (!pkgId) return res.status(400).json({ error: "No package to pause/resume" });
+      const pkg = await prisma.userPackage.findUnique({ where: { id: pkgId } });
+      if (!pkg || pkg.user_id !== profile_id) return res.status(400).json({ error: "Invalid package" });
+
+      if (action === "pause") {
+        if (!pkg.is_paused) {
+          await prisma.userPackage.update({
+            where: { id: pkgId },
+            data: { is_paused: true, pause_start_date: new Date(), pause_end_date: null },
+          });
+        }
+        return res.json({ ok: true, paused: true });
+      }
+      // resume
+      if (pkg.is_paused) {
+        const start = pkg.pause_start_date ?? new Date();
+        const daysPaused = Math.max(0, Math.ceil((Date.now() - new Date(start).getTime()) / 86_400_000));
+        const newExpiry = new Date(pkg.expiration_date);
+        newExpiry.setDate(newExpiry.getDate() + daysPaused);
+        await prisma.userPackage.update({
+          where: { id: pkgId },
+          data: { is_paused: false, pause_start_date: null, pause_end_date: new Date(), expiration_date: newExpiry },
+        });
+        return res.json({ ok: true, paused: false, daysPaused });
+      }
+      return res.json({ ok: true, paused: false, daysPaused: 0 });
     }
 
     // Auto-create a UserPackage when admin is assigning a new pass to a member with no active package.

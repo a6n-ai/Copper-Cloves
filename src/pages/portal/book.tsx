@@ -769,7 +769,7 @@ export default function BookClass() {
         await completePendingBookingCheckout(pending, checkoutResult.payload);
         clearPendingRazorpayCheckout();
         paidViaRazorpay = true;
-        void processGuests(selectedClass?.id ?? "");
+        await processGuests(selectedClass?.id ?? "");
         toast({ title: "Payment successful", description: `Booking confirmed for ₹${finalTotal.toFixed(0)}.`, variant: "success" });
         setShowBookingPanel(false);
         router.push("/portal/dashboard");
@@ -832,7 +832,7 @@ export default function BookClass() {
         }
       }
 
-      void processGuests(selectedClass?.id ?? "");
+      await processGuests(selectedClass?.id ?? "");
 
       if (finalTotal > 0) {
         toast({ title: "Booking confirmed", description: `Payment of ₹${finalTotal.toFixed(0)} processed.`, variant: "success" });

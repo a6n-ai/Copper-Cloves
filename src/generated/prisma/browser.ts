@@ -53,6 +53,17 @@ export type Instructor = Prisma.InstructorModel
  */
 export type ClassModel = Prisma.ClassModelModel
 /**
+ * Model Partner
+ * External partner/brand renting the studio to run their own classes (e.g. Physique 57). Mainly classes today; rentals/events can attach later.
+ */
+export type Partner = Prisma.PartnerModel
+/**
+ * Model PartnerMember
+ * Links a user (Profile) to a Partner they manage — a partner can have many users,
+ * and a user could belong to multiple partners. `role`: manager today, instructor later.
+ */
+export type PartnerMember = Prisma.PartnerMemberModel
+/**
  * Model ClassSchedule
  * 
  */
@@ -117,6 +128,11 @@ export type MealSubscriptionInquiry = Prisma.MealSubscriptionInquiryModel
  * Space rental inquiry submissions from /rental
  */
 export type RentalInquiry = Prisma.RentalInquiryModel
+/**
+ * Model SignupLead
+ * Partial signups captured at step 1 (name + email) before completion — lets us nudge un-converted leads later.
+ */
+export type SignupLead = Prisma.SignupLeadModel
 /**
  * Model UserStats
  * 

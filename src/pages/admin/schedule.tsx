@@ -135,6 +135,7 @@ interface ScheduledClass {
   actualInstructorId?: string | null;
   recurring: boolean;
   booked: number;
+  capacity: number | null;
   instructorCheckInTime?: string | null;
   instructorCheckInOutcome?: string | null;
   classNotes?: string | null;
@@ -420,6 +421,7 @@ export default function AdminSchedule() {
         instructor_id?: string;
         actual_instructor_id?: string | null;
         current_bookings?: number;
+        capacity?: number | null;
         instructor_check_in_time?: string | null;
         instructor_check_in_outcome?: string | null;
         class_notes?: string | null;
@@ -442,6 +444,7 @@ export default function AdminSchedule() {
           actualInstructorId: item.actual_instructor_id ?? null,
           recurring: false,
           booked: item.current_bookings || 0,
+          capacity: item.capacity ?? null,
           instructorCheckInTime: item.instructor_check_in_time ?? null,
           instructorCheckInOutcome: item.instructor_check_in_outcome ?? null,
           classNotes: item.class_notes ?? null,
@@ -938,6 +941,7 @@ export default function AdminSchedule() {
                     onSelect={(row: any) => handleEditClass(row._raw)}
                     items={schedule
                       .filter((c) => c.dateIso === selectedDateIso)
+                      .sort((a, b) => a.startTimeIso.localeCompare(b.startTimeIso))
                       .map((sc) => ({
                         id: sc.id,
                         name: getClassName(sc.classId),
@@ -945,7 +949,7 @@ export default function AdminSchedule() {
                         instructor: getInstructorName(sc.instructorId),
                         instructorAvatarUrl: getInstructorAvatar(sc.instructorId),
                         enrolled: sc.booked,
-                        capacity: getClassCapacity(sc.classId),
+                        capacity: sc.capacity ?? getClassCapacity(sc.classId),
                         recurring: sc.recurring,
                         instructorCheckedInAt: sc.instructorCheckInTime
                           ? new Date(sc.instructorCheckInTime).toLocaleTimeString("en-US", { hour: "2-digit", minute: "2-digit" })
@@ -1118,14 +1122,17 @@ export default function AdminSchedule() {
                         render={({ field }) => (
                           <FormItem>
                             <FormLabel className="font-body text-charcoal/80">Substitute Instructor</FormLabel>
-                            <Select onValueChange={field.onChange} value={field.value ?? ""}>
+                            <Select
+                              onValueChange={(v) => field.onChange(v === "__same__" ? "" : v)}
+                              value={field.value ? field.value : "__same__"}
+                            >
                               <FormControl>
                                 <SelectTrigger className="h-12 border-charcoal/20 focus:border-sage font-body">
                                   <SelectValue placeholder="Same as scheduled" />
                                 </SelectTrigger>
                               </FormControl>
                               <SelectContent position="popper" className="max-h-[300px] overflow-y-auto">
-                                <SelectItem value="">Same as scheduled</SelectItem>
+                                <SelectItem value="__same__">Same as scheduled</SelectItem>
                                 {instructorOptions.filter(i => !i._isPlaceholder).map(instructor => (
                                   <SelectItem key={instructor.id} value={instructor.id}>
                                     {instructor.name}

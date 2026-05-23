@@ -21,7 +21,7 @@ async function main() {
   const hash = await bcrypt.hash(password, 12);
 
   await prisma.profile.upsert({
-    where: { email },
+    where: { email_role: { email, role: "admin" } },
     create: {
       email,
       full_name: "Studio Administrator",
@@ -29,14 +29,13 @@ async function main() {
       hashedPassword: hash,
     },
     update: {
-      role: "admin",
       hashedPassword: hash,
     },
   });
 
   console.log("");
   console.log("Admin profile is ready.");
-  console.log("  • URL:   /admin/login");
+  console.log("  • URL:   /login");
   console.log(`  • Email: ${email}`);
   console.log(`  • Password: ${password}`);
   console.log("  (override with ADMIN_EMAIL / ADMIN_PASSWORD in .env.local)");

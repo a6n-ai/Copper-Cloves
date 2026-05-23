@@ -23,6 +23,7 @@ interface Booking {
   class_name: string;
   class_time: string;
   status: string;
+  confirmation_status?: string | null;
   created_at: string;
   checked_in: boolean;
   check_in_outcome: string | null;
@@ -234,12 +235,17 @@ export default function MyBookingsPage() {
                           {booking.class_name}
                         </h3>
                         <span className={`inline-flex items-center px-2 py-1 rounded-full text-xs font-body ${
-                          booking.status === "confirmed" 
-                            ? "bg-sage/10 text-sage" 
+                          booking.status === "confirmed"
+                            ? "bg-sage/10 text-sage"
                             : "bg-terracotta/10 text-terracotta"
                         }`}>
                           {booking.status === "confirmed" ? "Confirmed" : "Pending"}
                         </span>
+                        {booking.confirmation_status === "pending" && booking.status !== "cancelled" && (
+                          <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-body bg-amber-100 text-amber-700">
+                            Pending confirmation
+                          </span>
+                        )}
                         {booking.checked_in && (
                           <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-body bg-sage/10 text-sage">
                             Checked in

@@ -6,7 +6,7 @@ import { startOfDay } from "date-fns";
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
   if (req.method !== "GET") return res.status(405).end();
 
-  const session = getInstructorSession(req);
+  const session = await getInstructorSession(req, res);
   if (!session) return res.status(401).json({ error: "Not authenticated" });
 
   const now = new Date();

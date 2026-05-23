@@ -9,7 +9,7 @@ const CLOSE_AFTER_MS = 5 * 60 * 1000;
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
   if (req.method !== "POST") return res.status(405).end();
 
-  const session = getInstructorSession(req);
+  const session = await getInstructorSession(req, res);
   if (!session) return res.status(401).json({ error: "Not authenticated" });
 
   const { scheduleId } = req.body as { scheduleId?: string };

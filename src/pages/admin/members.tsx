@@ -7,7 +7,6 @@ import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
-  DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { MoreHorizontal } from "lucide-react";
@@ -507,20 +506,6 @@ export default function AdminMembers() {
     }
   };
 
-  const handleToggleUnlimited = async (memberId: string) => {
-    const member = members.find((m) => m.id === memberId);
-    if (!member) return;
-    const nextPass = member.unlimited ? "class_pass" : "studio_pass";
-    try {
-      await patchMember({ profile_id: member.id, pass_type: nextPass });
-      await loadMembers();
-      setSuccessMessage("Pass type updated (unlimited uses studio pass in your app)");
-      setTimeout(() => setSuccessMessage(""), 3000);
-    } catch (e) {
-      alert(e instanceof Error ? e.message : "Could not update pass");
-    }
-  };
-
   const getStatusBadge = (status: string) => {
     switch (status) {
       case "active":
@@ -987,28 +972,19 @@ export default function AdminMembers() {
                               </DropdownMenuTrigger>
                               <DropdownMenuContent align="end" className="w-44">
                                 <DropdownMenuItem
-                                  onSelect={() => handleManageCredits(member)}
-                                  className="cursor-pointer gap-2"
-                                >
-                                  <Edit2 className="h-3.5 w-3.5" />
-                                  Manage
-                                </DropdownMenuItem>
-                                <DropdownMenuItem
                                   onSelect={() => openHistory(member)}
                                   className="cursor-pointer gap-2"
                                 >
                                   <Calendar className="h-3.5 w-3.5" />
-                                  View profile
+                                  Manage
                                 </DropdownMenuItem>
-                                <DropdownMenuSeparator />
                                 <DropdownMenuItem
-                                  onSelect={() => handleToggleUnlimited(member.id)}
-                                  className={`cursor-pointer gap-2 ${
-                                    member.unlimited ? "text-terracotta focus:text-terracotta" : ""
-                                  }`}
+                                  disabled={!(member.status === "expired" || member.passCategory === "none")}
+                                  onSelect={() => handleManageCredits(member)}
+                                  className="cursor-pointer gap-2"
                                 >
-                                  <span className="text-base leading-none">∞</span>
-                                  {member.unlimited ? "Remove unlimited" : "Make unlimited"}
+                                  <Edit2 className="h-3.5 w-3.5" />
+                                  Assign pass
                                 </DropdownMenuItem>
                               </DropdownMenuContent>
                             </DropdownMenu>
@@ -1380,7 +1356,7 @@ export default function AdminMembers() {
       <Dialog open={historyOpen} onOpenChange={setHistoryOpen}>
         <DialogContent className="sm:max-w-[640px] bg-white border-sage/20">
           <DialogHeader>
-            <DialogTitle className="font-display text-2xl text-charcoal">Member Profile</DialogTitle>
+            <DialogTitle className="font-display text-2xl text-charcoal">Manage Member</DialogTitle>
             <DialogDescription className="font-body text-charcoal/60">
               {historyMember?.name ?? "Member"}
               {historyMember?.email ? ` · ${historyMember.email}` : ""}

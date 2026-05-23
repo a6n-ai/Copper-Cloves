@@ -74,6 +74,8 @@ export default function ControlPanel() {
 
   // Users state
   const [users, setUsers] = useState<any[]>([]);
+  const [userSearch, setUserSearch] = useState("");
+  const [userFilter, setUserFilter] = useState("all");
   const [loadingUsers, setLoadingUsers] = useState(true);
 
   // Instructors state
@@ -192,8 +194,10 @@ async function fetchPayoutData() {
             id: string;
             is_active: boolean;
             is_paused?: boolean;
+            pause_start_date?: string | null;
             pass_type?: string | null;
             credits_remaining?: number | null;
+            classes_remaining?: number | null;
             expiration_date: string;
             purchase_date?: string;
             created_at?: string;
@@ -250,7 +254,7 @@ async function fetchPayoutData() {
                 )
               : 0;
 
-          const creditsVal = mostRecentPackage?.credits_remaining ?? 0;
+          const creditsVal = mostRecentPackage?.credits_remaining ?? mostRecentPackage?.classes_remaining ?? 0;
           const classesRemaining =
             passType === "studio_pass" || isUnlimited ? "Unlimited" : creditsVal;
 
@@ -269,6 +273,8 @@ async function fetchPayoutData() {
                 ? exp.toISOString()
                 : "N/A",
             isPaused: Boolean(mostRecentPackage?.is_paused),
+            pauseStartDate: mostRecentPackage?.pause_start_date ?? null,
+            userPackageId: mostRecentPackage?.id ?? null,
             phone: profile.phone ?? "—",
           };
         }
@@ -367,6 +373,52 @@ async function fetchPayoutData() {
       setCreatingUser(false);
     }
   }
+
+  const openEditUser = (user: any) => {
+    setSelectedUser(user);
+    const pt = user.passType === "studio_pass" ? "studio_pass" : "class_pass";
+    setEditPassType(pt);
+    setEditClassCredits(pt === "class_pass" && typeof user.classesRemaining === "number" ? String(user.classesRemaining) : "");
+    setEditDays(pt === "studio_pass" && typeof user.daysRemaining === "number" ? String(user.daysRemaining) : "");
+    setEditStartDate(user.start_date ? new Date(user.start_date).toISOString().slice(0, 10) : "");
+    setEditEndDate(user.expiry && user.expiry !== "N/A" ? new Date(user.expiry).toISOString().slice(0, 10) : "");
+    setShowEditUserDialog(true);
+  };
+
+  async function handlePauseToggle() {
+    if (!selectedUser?.userPackageId) {
+      alert("This member has no package to pause.");
+      return;
+    }
+    const action = selectedUser.isPaused ? "resume" : "pause";
+    try {
+      const res = await fetch("/api/admin/members", {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        credentials: "same-origin",
+        body: JSON.stringify({ profile_id: selectedUser.id, user_package_id: selectedUser.userPackageId, action }),
+      });
+      if (!res.ok) throw new Error();
+      setShowEditUserDialog(false);
+      fetchUsers();
+    } catch {
+      alert("Could not update pause state");
+    }
+  }
+
+  // Deep link from the admin dashboard ("Manage Packages"): /admin/control?editUser=<profileId>
+  // opens the User Management edit dialog for that member, then strips the param.
+  useEffect(() => {
+    const editId = router.query.editUser;
+    if (!editId || typeof editId !== "string" || users.length === 0) return;
+    const target = users.find((u) => String(u.id) === editId);
+    if (!target) return;
+    setActiveTab("users");
+    openEditUser(target);
+    const { editUser: _omit, ...rest } = router.query;
+    void router.replace({ pathname: router.pathname, query: rest }, undefined, { shallow: true });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [router.query.editUser, users]);
 
   async function handleEditUserSave() {
     if (!selectedUser) return;
@@ -712,7 +764,21 @@ async function fetchPayoutData() {
     }
   }
 
-  const usersPg = usePagination(users);
+  const filteredUsers = users.filter((u) => {
+    const q = userSearch.trim().toLowerCase();
+    if (q) {
+      const hit = [u.name, u.email, u.phone].some((f) => String(f ?? "").toLowerCase().includes(q));
+      if (!hit) return false;
+    }
+    const expired = u.expiry === "N/A" || (u.expiry && new Date(u.expiry).getTime() < Date.now());
+    const active = u.passType !== "none" && !expired;
+    if (userFilter === "studio_pass") return u.passType === "studio_pass";
+    if (userFilter === "class_pass") return u.passType === "class_pass";
+    if (userFilter === "active") return active;
+    if (userFilter === "inactive") return !active;
+    return true;
+  });
+  const usersPg = usePagination(filteredUsers, 10, `${userSearch}|${userFilter}`);
   const classesPg = usePagination(classes);
   const payoutsPg = usePagination(instructorPayouts);
   const instructorsPg = usePagination(instructors);
@@ -794,12 +860,14 @@ async function fetchPayoutData() {
                   <CardContent className="p-6">
                     <div className="flex gap-4">
                       <div className="flex-1">
-                        <Input 
-                          placeholder="Search by name, email, or phone..." 
+                        <Input
+                          value={userSearch}
+                          onChange={(e) => setUserSearch(e.target.value)}
+                          placeholder="Search by name, email, or phone..."
                           className="border-sage/20 focus:ring-sage placeholder:text-charcoal/40"
                         />
                       </div>
-                      <Select defaultValue="all">
+                      <Select value={userFilter} onValueChange={setUserFilter}>
                         <SelectTrigger className="w-48 border-sage/20">
                           <SelectValue />
                         </SelectTrigger>
@@ -820,10 +888,12 @@ async function fetchPayoutData() {
                   <div className="flex items-center justify-center py-12">
                     <div className="h-12 w-12 border-4 border-sage/20 border-t-sage rounded-full animate-spin" />
                   </div>
-                ) : users.length === 0 ? (
+                ) : filteredUsers.length === 0 ? (
                   <Card className="border-sage/20 bg-white/95 backdrop-blur-xl">
                     <CardContent className="p-12 text-center">
-                      <p className="font-body text-charcoal/60">No users found. Add a user to get started.</p>
+                      <p className="font-body text-charcoal/60">
+                        {users.length === 0 ? "No users found. Add a user to get started." : "No users match your search."}
+                      </p>
                     </CardContent>
                   </Card>
                 ) : (
@@ -910,16 +980,7 @@ async function fetchPayoutData() {
                                   variant="outline" 
                                   size="sm"
                                   className="border-sage/20 text-sage hover:bg-sage/5 font-body"
-                                  onClick={() => {
-                                    setSelectedUser(user);
-                                    const pt = user.passType === "studio_pass" ? "studio_pass" : "class_pass";
-                                    setEditPassType(pt);
-                                    setEditClassCredits(pt === "class_pass" && typeof user.classesRemaining === "number" ? String(user.classesRemaining) : "");
-                                    setEditDays("");
-                                    setEditStartDate(user.start_date ? new Date(user.start_date).toISOString().slice(0, 10) : "");
-                                    setEditEndDate(user.expiry && user.expiry !== "N/A" ? new Date(user.expiry).toISOString().slice(0, 10) : "");
-                                    setShowEditUserDialog(true);
-                                  }}
+                                  onClick={() => openEditUser(user)}
                                 >
                                   <Edit className="h-3.5 w-3.5 mr-1" />
                                   Edit
@@ -1559,6 +1620,50 @@ async function fetchPayoutData() {
           </DialogHeader>
           {selectedUser && (
             <div className="grid grid-cols-2 gap-4 py-4">
+              {/* Current pass status */}
+              <div className="col-span-2 rounded-xl border border-sage/15 bg-sage/5 p-4">
+                <div className="flex flex-wrap items-center justify-between gap-2">
+                  <div className="flex items-center gap-2">
+                    <span className="font-body text-xs uppercase tracking-wide text-charcoal/50">Current Pass</span>
+                    <Badge className="bg-sage text-white">
+                      {selectedUser.passType === "studio_pass" ? "Studio Pass" : selectedUser.passType === "class_pass" ? "Class Pass" : "No Pass"}
+                    </Badge>
+                    {(() => {
+                      const expired = selectedUser.expiry === "N/A" || (selectedUser.expiry && new Date(selectedUser.expiry).getTime() < Date.now());
+                      const label = selectedUser.isPaused ? "Paused" : selectedUser.passType === "none" ? "None" : expired ? "Expired" : "Active";
+                      const cls = selectedUser.isPaused
+                        ? "border-amber-200 bg-amber-50 text-amber-700"
+                        : label === "Active"
+                          ? "border-green-200 bg-green-50 text-green-700"
+                          : "border-red-200 bg-red-50 text-red-600";
+                      return <Badge variant="outline" className={`font-body ${cls}`}>{label}</Badge>;
+                    })()}
+                  </div>
+                  {selectedUser.userPackageId && (
+                    <Button
+                      type="button"
+                      variant="outline"
+                      size="sm"
+                      onClick={() => void handlePauseToggle()}
+                      className="border-sage/30 text-charcoal hover:bg-sage/10 font-body h-8"
+                    >
+                      {selectedUser.isPaused ? "Resume pass" : "Pause pass"}
+                    </Button>
+                  )}
+                </div>
+                <p className="mt-2 font-body text-sm text-charcoal/70">
+                  {selectedUser.passType === "studio_pass"
+                    ? `${selectedUser.daysRemaining} day${selectedUser.daysRemaining === 1 ? "" : "s"} remaining`
+                    : selectedUser.passType === "class_pass"
+                      ? `${selectedUser.classesRemaining} class${selectedUser.classesRemaining === 1 ? "" : "es"} remaining`
+                      : "No active pass"}
+                  {selectedUser.expiry && selectedUser.expiry !== "N/A"
+                    ? ` · expires ${new Date(selectedUser.expiry).toLocaleDateString("en-IN", { day: "2-digit", month: "short", year: "numeric" })}`
+                    : ""}
+                  {selectedUser.isPaused ? " · paused (resume to extend expiry by paused days)" : ""}
+                </p>
+              </div>
+
               <div className="space-y-2">
                 <Label className="font-body text-charcoal">Full Name</Label>
                 <Input defaultValue={selectedUser.name} disabled className="border-sage/20 bg-sage/5 text-charcoal/60" />
@@ -1590,34 +1695,52 @@ async function fetchPayoutData() {
               {editPassType === "class_pass" ? (
                 <div className="space-y-2">
                   <Label className="font-body text-charcoal">Classes Remaining</Label>
-                  <Select value={editClassCredits} onValueChange={setEditClassCredits}>
-                    <SelectTrigger className="border-sage/20">
-                      <SelectValue placeholder="Select classes" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {[1, 4, 8, 12].map((n) => (
-                        <SelectItem key={n} value={String(n)}>
-                          {n} {n === 1 ? "Class" : "Classes"}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
+                  <div className="flex items-center gap-2">
+                    <Button
+                      type="button"
+                      variant="outline"
+                      className="h-10 w-10 p-0 border-sage/20 text-lg leading-none"
+                      onClick={() => setEditClassCredits(String(Math.max(0, (Number(editClassCredits) || 0) - 1)))}
+                    >
+                      −
+                    </Button>
+                    <Input
+                      type="number"
+                      min={0}
+                      value={editClassCredits}
+                      onChange={(e) => setEditClassCredits(e.target.value)}
+                      className="border-sage/20 focus:ring-sage text-center w-24"
+                    />
+                    <Button
+                      type="button"
+                      variant="outline"
+                      className="h-10 w-10 p-0 border-sage/20 text-lg leading-none"
+                      onClick={() => setEditClassCredits(String((Number(editClassCredits) || 0) + 1))}
+                    >
+                      +
+                    </Button>
+                  </div>
                 </div>
               ) : (
                 <div className="space-y-2">
                   <Label className="font-body text-charcoal">Days Remaining (from today)</Label>
-                  <Select value={editDays} onValueChange={setEditDays}>
-                    <SelectTrigger className="border-sage/20">
-                      <SelectValue placeholder="Select days" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {[30, 90, 180, 365].map((d) => (
-                        <SelectItem key={d} value={String(d)}>
-                          {d} Days
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
+                  <Input
+                    type="number"
+                    min={0}
+                    value={editDays}
+                    onChange={(e) => {
+                      const v = e.target.value;
+                      setEditDays(v);
+                      const n = Number(v);
+                      if (v !== "" && Number.isFinite(n)) {
+                        const d = new Date();
+                        d.setDate(d.getDate() + n);
+                        setEditEndDate(d.toISOString().slice(0, 10));
+                      }
+                    }}
+                    placeholder="e.g. 30"
+                    className="border-sage/20 focus:ring-sage"
+                  />
                 </div>
               )}
               <div className="space-y-2">

@@ -154,6 +154,13 @@ function createPrismaClient() {
       connectionString: poolUrl,
       max: 10,
       connectionTimeoutMillis: 15_000,
+      // Keep established connections warm. RDS over a remote/NAT'd network drops
+      // idle TCP, and re-dialing lands on a flaky connect path. TCP keepalive
+      // holds good connections open; idleTimeoutMillis: 0 stops the pool from
+      // proactively closing them after the (default 10s) idle window.
+      idleTimeoutMillis: 0,
+      keepAlive: true,
+      keepAliveInitialDelayMillis: 10_000,
       ...(useSsl ? { ssl: { rejectUnauthorized: false } } : {}),
     });
   }

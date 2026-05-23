@@ -10,7 +10,7 @@ Copper & Cloves — Next.js 15 studio platform for fitness/wellness studio (The 
 |---|---|
 | Framework | Next.js 15 (Pages Router), React 18, TypeScript |
 | DB | PostgreSQL 16 (Docker local, hosted prod) via Prisma 7 ORM |
-| Auth | NextAuth 4 — credentials only, JWT sessions, role in token |
+| Auth | NextAuth 4 — credentials only, JWT sessions. Unified `/login` for all roles. Token holds `role` + `partner_id` + `instructor_id` |
 | Payments | Razorpay (INR, paise units) |
 | Email | Gmail SMTP (primary) → Resend (fallback) |
 | Notifications | WhatsApp Cloud API (template messages) |
@@ -24,8 +24,11 @@ Copper & Cloves — Next.js 15 studio platform for fitness/wellness studio (The 
 ### Public pages
 `/` `/classes` `/cafe` `/rental` `/shop` `/shop/[id]` `/policy` `/terms` `/founder` `/meal-subscription`
 
+### Unified login (`/login`)
+Single sign-in for every role. Step 1: enter email → `POST /api/auth/login-roles` returns the roles that email has. Step 2: if >1 role, pick portal; else skip. Step 3: password → `signIn("credentials", { email, password, role })` → redirect by role (admin→`/admin/dashboard`, partner→`/partner/dashboard`, instructor→`/instructor/dashboard`, user→`/portal/dashboard`). Old `/{admin,portal,instructor,partner}/login` all 307-redirect to `/login`. Signup still at `/portal/signup`.
+
 ### Member portal (`/portal/*`)
-Auth gated via `getStudioServerSession` → redirect to `/portal/login`.
+Auth gated via `getStudioServerSession` → redirect to `/login`.
 
 | Page | Purpose |
 |---|---|
@@ -51,13 +54,34 @@ Auth gated + `requireAdmin` check (`role === "admin"`). `/admin` (no path) serve
 | `/admin/products` | Boutique product management |
 | `/admin/CRM` | CRM templates, triggers, message log |
 | `/admin/control` | Analytics panel, raw activity data |
+| `/admin/partners` | Manage outside-client partners; create partner + manager login, assign classes |
+
+### Partner portal (`/partner/*`)
+Outside clients renting the studio (e.g. Physique 57) who run their own classes. Chrome via `PartnerNavigation` (sidebar sections Dashboard/Operations/System). Gated: session role `partner` + `partner_id`. Scoped to classes where `ClassModel.partner_id` = their partner.
+
+| Page | Purpose |
+|---|---|
+| `/partner/dashboard` | Stats + today's classes |
+| `/partner/classes` | Week/month calendar, rosters, confirm/reject pending bookings |
+| `/partner/settings` | Edit partner brand (name, logo, description) + own login email/phone |
+
+### Instructor portal (`/instructor/*`)
+Gated: session role `instructor` + `instructor_id`. `/instructor/dashboard` — today/week classes, member check-in, instructor self check-in window.
 
 ### API routes (`/api/*`)
 
 | Route | Purpose |
 |---|---|
-| `/api/auth/[...nextauth]` | NextAuth signin/signout |
-| `/api/auth/signup` | New member registration |
+| `/api/auth/[...nextauth]` | NextAuth signin/signout; `authorize` keys on (email, role) |
+| `/api/auth/login-roles` | POST `{email}` → roles that email can sign in as (powers `/login` picker) |
+| `/api/auth/signup` | New member registration (role `user`) |
+| `/api/auth/forgot-password` / `reset-password` | Member (role `user`) password reset via emailed token |
+| `/api/partner/profile` | GET/PATCH signed-in partner's brand + own login email/phone |
+| `/api/partner/classes` | Partner-scoped class list |
+| `/api/partner/booking-action` | Confirm/reject pending partner-class bookings |
+| `/api/admin/partners` | CRUD partners + manager logins; assign/unassign classes |
+| `/api/instructor/today-classes` | Instructor's week rosters (NextAuth session) |
+| `/api/instructor/check-in` / `instructor-check-in` | Member check-in / instructor self check-in |
 | `/api/bookings` | CRUD bookings, check-in, guest slots |
 | `/api/class-schedules` | List/create/update schedules |
 | `/api/classes` | List/create/update class types |
@@ -107,7 +131,9 @@ Auth gated + `requireAdmin` check (`role === "admin"`). `/admin` (no path) serve
 
 | Entity | Purpose |
 |---|---|
-| `Profile` | All users (members + admin). `role` = `"user"` \| `"admin"` |
+| `Profile` | All login accounts. `role` = `"user"` \| `"instructor"` \| `"partner"` \| `"admin"`. **`@@unique([email, role])`** — email NOT globally unique; one person can have a separate login row (own password) per portal. Lookups by email use `findFirst` scoped by role, never `findUnique`. |
+| `Partner` | Outside client running classes (name, slug, logo_url, description). Has `members PartnerMember[]` + `classes ClassModel[]` (via `ClassModel.partner_id`). No email/phone — those live on the manager's Profile. |
+| `PartnerMember` | Join: Partner ↔ Profile (manager logins). `@@unique([partner_id, profile_id])`. Session `partner_id` resolved from here. |
 | `ClassModel` | Class type template (name, category, duration, capacity) |
 | `ClassSchedule` | Specific dated instance of class |
 | `Booking` | Member claim on ClassSchedule slot; holds finance snapshot + guest slots |
@@ -121,7 +147,7 @@ Auth gated + `requireAdmin` check (`role === "admin"`). `/admin` (no path) serve
 | `RetailProduct` / `RetailOrder` | Boutique product catalog + purchase orders |
 | `MealSubscription` | Monthly meal plan; `meals_remaining` decrements per order |
 | `Coupon` / `CouponRedemption` | Promo codes; `applies_to`: `food` \| `ecommerce` \| `class_pass` \| `studio_pass` |
-| `Instructor` | Studio instructors; `studio_payout_cut_percent` not public |
+| `Instructor` | Studio instructors; `studio_payout_cut_percent` not public. `profile_id` (`@unique`) links to the role `instructor` login Profile. Session `instructor_id` resolved from this link. |
 | `Waiver` | Signed liability waivers |
 | `CrmTemplate` / `CrmMessage` / `CrmTrigger` | Internal CRM — email + WhatsApp |
 | `UserStats` / `UserStreak` / `UserBadge` | Gamification: streak tracking, badges earned |
@@ -144,10 +170,11 @@ Auth gated + `requireAdmin` check (`role === "admin"`). `/admin` (no path) serve
 
 ## Auth flow
 
-1. `POST /api/auth/callback/credentials` → NextAuth `authorize()` → bcrypt compare vs `profile.hashedPassword`
-2. JWT issued; `role` embedded in token
-3. Server pages call `getStudioServerSession()` → wraps `getServerSession(authOptions)`
-4. Admin pages call `requireAdmin(session)` → throws/redirects on `role !== "admin"`
+1. `/login` step 1: email → `POST /api/auth/login-roles` → roles for that email. Pick portal if >1.
+2. `POST /api/auth/callback/credentials` with `{email, password, role}` → `authorize()` finds Profile by `findFirst({ email, role })` → bcrypt compare vs `profile.hashedPassword`. Role is authoritative on the row.
+3. `authorize` also resolves scope ids: `partner_id` from `PartnerMember` (if role partner), `instructor_id` from `Instructor.profile_id` (if role instructor). JWT/session carry `id`, `role`, `partner_id`, `instructor_id`.
+4. Server pages call `getStudioServerSession()` → wraps `getServerSession(authOptions)`.
+5. Admin pages call `requireAdmin(session)` → throws/redirects on `role !== "admin"`. Partner/instructor APIs check `role` + their scope id (`partner_id` / `instructor_id`).
 
 ## Razorpay checkout flow
 

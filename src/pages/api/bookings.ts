@@ -22,6 +22,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   if (!session?.user) return res.status(401).json({ error: "Unauthorized" });
 
   const userId = (session.user as { id: string }).id;
+  const userEmail = (session.user as { email?: string | null }).email ?? null;
 
   if (req.method === "GET") {
     const { status, limit, days } = req.query;
@@ -149,7 +150,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       const booking = await prisma.$transaction(async (tx) => {
         const schedule = await tx.classSchedule.findUnique({
           where: { id: scheduleId },
-          include: { class_model: { select: { max_capacity: true, name: true } } },
+          include: { class_model: { select: { max_capacity: true, name: true, partner_id: true } } },
         });
 
         if (!schedule) {
@@ -225,8 +226,15 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
             user_package_id: packageId,
             class_name: resolvedClassName,
             class_time: resolvedClassTime,
+            email: userEmail,
             status: "confirmed",
-            extra_guest_count: extraGuests,
+            // Partner-run classes need the partner to sign off before the
+            // member's booking is confirmed (and the confirmation email sent).
+            confirmation_status: schedule.class_model?.partner_id ? "pending" : null,
+            // Guests get their own roster rows (see /api/bookings/process-guests),
+            // so the booker counts as one seat here. The capacity check below
+            // still reserves 1 + guests up front so the group is guaranteed.
+            extra_guest_count: 0,
             guest_attendees: guestList.length > 0 ? guestList : undefined,
             finance_snapshot: financeSnap ?? undefined,
           },
@@ -268,20 +276,22 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         return created;
       });
 
-      // Awaited (in parallel) so emails/CRM actually send before the serverless
-      // handler returns; failures are logged but never block the booking.
-      await Promise.all([
-        sendBookingConfirmationEmail(booking.id).catch((e) => console.error("[booking email]", e)),
-        buildBookingCrmVariables(booking.id)
-          .then((variables) =>
-            dispatchCrmEmailTriggers({
-              triggerType: CrmTriggerType.ClassBookingConfirmed,
-              userId,
-              variables,
-            })
-          )
-          .catch((e) => console.error("CRM class_booking_confirmed:", e)),
-      ]);
+      // Physique 57 bookings stay pending until the instructor confirms — the
+      // confirmation email fires on confirm, not now. Non-57 bookings notify now.
+      if (booking.confirmation_status !== "pending") {
+        await Promise.all([
+          sendBookingConfirmationEmail(booking.id).catch((e) => console.error("[booking email]", e)),
+          buildBookingCrmVariables(booking.id)
+            .then((variables) =>
+              dispatchCrmEmailTriggers({
+                triggerType: CrmTriggerType.ClassBookingConfirmed,
+                userId,
+                variables,
+              })
+            )
+            .catch((e) => console.error("CRM class_booking_confirmed:", e)),
+        ]);
+      }
       return res.status(201).json(booking);
     } catch (e) {
       const msg = e instanceof Error ? e.message : String(e);

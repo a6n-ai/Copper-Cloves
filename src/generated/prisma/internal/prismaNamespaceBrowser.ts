@@ -58,6 +58,8 @@ export const ModelName = {
   RetailOrder: 'RetailOrder',
   Instructor: 'Instructor',
   ClassModel: 'ClassModel',
+  Partner: 'Partner',
+  PartnerMember: 'PartnerMember',
   ClassSchedule: 'ClassSchedule',
   PackageType: 'PackageType',
   Package: 'Package',
@@ -71,6 +73,7 @@ export const ModelName = {
   MealSubscription: 'MealSubscription',
   MealSubscriptionInquiry: 'MealSubscriptionInquiry',
   RentalInquiry: 'RentalInquiry',
+  SignupLead: 'SignupLead',
   UserStats: 'UserStats',
   UserStreak: 'UserStreak',
   BadgeTemplate: 'BadgeTemplate',
@@ -216,6 +219,7 @@ export const InstructorScalarFieldEnum = {
   social_whatsapp: 'social_whatsapp',
   hashed_password: 'hashed_password',
   is_active: 'is_active',
+  profile_id: 'profile_id',
   created_at: 'created_at',
   updated_at: 'updated_at'
 } as const
@@ -234,11 +238,38 @@ export const ClassModelScalarFieldEnum = {
   image_url: 'image_url',
   display_order: 'display_order',
   instructor_id: 'instructor_id',
+  partner_id: 'partner_id',
   created_at: 'created_at',
   updated_at: 'updated_at'
 } as const
 
 export type ClassModelScalarFieldEnum = (typeof ClassModelScalarFieldEnum)[keyof typeof ClassModelScalarFieldEnum]
+
+
+export const PartnerScalarFieldEnum = {
+  id: 'id',
+  name: 'name',
+  slug: 'slug',
+  logo_url: 'logo_url',
+  description: 'description',
+  is_active: 'is_active',
+  created_at: 'created_at',
+  updated_at: 'updated_at'
+} as const
+
+export type PartnerScalarFieldEnum = (typeof PartnerScalarFieldEnum)[keyof typeof PartnerScalarFieldEnum]
+
+
+export const PartnerMemberScalarFieldEnum = {
+  id: 'id',
+  partner_id: 'partner_id',
+  profile_id: 'profile_id',
+  role: 'role',
+  created_at: 'created_at',
+  updated_at: 'updated_at'
+} as const
+
+export type PartnerMemberScalarFieldEnum = (typeof PartnerMemberScalarFieldEnum)[keyof typeof PartnerMemberScalarFieldEnum]
 
 
 export const ClassScheduleScalarFieldEnum = {
@@ -328,12 +359,14 @@ export const BookingScalarFieldEnum = {
   class_schedule_id: 'class_schedule_id',
   user_package_id: 'user_package_id',
   status: 'status',
+  confirmation_status: 'confirmation_status',
   booking_date: 'booking_date',
   created_at: 'created_at',
   updated_at: 'updated_at',
   cancellation_date: 'cancellation_date',
   class_name: 'class_name',
   class_time: 'class_time',
+  email: 'email',
   checked_in: 'checked_in',
   check_in_time: 'check_in_time',
   check_in_outcome: 'check_in_outcome',
@@ -485,6 +518,20 @@ export const RentalInquiryScalarFieldEnum = {
 } as const
 
 export type RentalInquiryScalarFieldEnum = (typeof RentalInquiryScalarFieldEnum)[keyof typeof RentalInquiryScalarFieldEnum]
+
+
+export const SignupLeadScalarFieldEnum = {
+  id: 'id',
+  email: 'email',
+  full_name: 'full_name',
+  phone: 'phone',
+  status: 'status',
+  converted_at: 'converted_at',
+  created_at: 'created_at',
+  updated_at: 'updated_at'
+} as const
+
+export type SignupLeadScalarFieldEnum = (typeof SignupLeadScalarFieldEnum)[keyof typeof SignupLeadScalarFieldEnum]
 
 
 export const UserStatsScalarFieldEnum = {

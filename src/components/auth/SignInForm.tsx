@@ -1,0 +1,241 @@
+import { useState } from "react";
+import { useRouter } from "next/router";
+import { signIn } from "next-auth/react";
+import { motion, AnimatePresence } from "framer-motion";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Checkbox } from "@/components/ui/checkbox";
+import { PasswordInput } from "@/components/ui/password-input";
+import { Loader2, LayoutDashboard, Calendar, Users, ShieldCheck, Leaf, type LucideIcon } from "lucide-react";
+
+type Role = "admin" | "partner" | "instructor" | "user";
+
+const PORTALS: Record<Role, { label: string; blurb: string; href: string; icon: LucideIcon }> = {
+  admin: { label: "Admin", blurb: "Manage the studio", href: "/admin/dashboard", icon: ShieldCheck },
+  partner: { label: "Partner", blurb: "Your classes & roster", href: "/partner/dashboard", icon: Calendar },
+  instructor: { label: "Instructor", blurb: "Today's classes & check-in", href: "/instructor/dashboard", icon: Users },
+  user: { label: "Member", blurb: "Book classes & packages", href: "/portal/dashboard", icon: LayoutDashboard },
+};
+
+export function SignInForm({ onSwitchToSignup }: { onSwitchToSignup: () => void }) {
+  const router = useRouter();
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+  const [remember, setRemember] = useState(true);
+  const [emailChecked, setEmailChecked] = useState(false);
+  const [roles, setRoles] = useState<Role[]>([]);
+  const [role, setRole] = useState<Role | null>(null);
+  const [error, setError] = useState<string | null>(null);
+  const [loading, setLoading] = useState(false);
+
+  // Editing the email after a check resets everything revealed below it.
+  function onEmailChange(value: string) {
+    setEmail(value);
+    if (emailChecked || role || roles.length) {
+      setEmailChecked(false);
+      setRoles([]);
+      setRole(null);
+      setPassword("");
+      setError(null);
+    }
+  }
+
+  async function checkEmail() {
+    setError(null);
+    setLoading(true);
+    try {
+      const res = await fetch("/api/auth/login-roles", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ email: email.trim() }),
+      });
+      const data = await res.json();
+      const found = (data.roles ?? []) as Role[];
+      if (found.length === 0) {
+        setError("Invalid email or password");
+        return;
+      }
+      setRoles(found);
+      setEmailChecked(true);
+      if (found.length === 1) setRole(found[0]); // single role → reveal password
+      // >1 role → leave role null → show portal picker below
+    } catch {
+      setError("Something went wrong. Please try again.");
+    } finally {
+      setLoading(false);
+    }
+  }
+
+  async function doSignIn(r: Role) {
+    setError(null);
+    setLoading(true);
+    try {
+      const res = await signIn("credentials", { email: email.trim(), password, role: r, redirect: false });
+      if (!res || res.error) {
+        setError("Invalid email or password");
+        setLoading(false);
+        return;
+      }
+      await router.replace(PORTALS[r].href);
+    } catch {
+      setError("Something went wrong. Please try again.");
+      setLoading(false);
+    }
+  }
+
+  function handleSubmit(e: React.FormEvent) {
+    e.preventDefault();
+    if (!emailChecked) {
+      checkEmail();
+    } else if (role) {
+      doSignIn(role);
+    }
+  }
+
+  const needPick = emailChecked && roles.length > 1 && !role;
+
+  return (
+    <>
+      <h1 className="font-display text-4xl sm:text-5xl text-charcoal leading-[1.05] text-center">
+        Welcome <span className="italic text-sage">back</span>
+      </h1>
+
+      {/* delicate leaf divider */}
+      <div className="my-5 flex items-center justify-center gap-3" aria-hidden>
+        <span className="h-px w-10 bg-linear-to-r from-transparent to-terracotta/40" />
+        <Leaf className="h-3.5 w-3.5 text-terracotta/70" />
+        <span className="h-px w-10 bg-linear-to-l from-transparent to-terracotta/40" />
+      </div>
+
+      <p className="font-body text-sm text-charcoal/60 mb-8 text-center">
+        {!emailChecked
+          ? "Enter your email to continue"
+          : needPick
+            ? "Choose a portal to continue"
+            : "Enter your password to sign in"}
+      </p>
+
+      <form onSubmit={handleSubmit} className="space-y-5">
+        {/* Email — always present, editable */}
+        <div className="space-y-1.5">
+          <Label htmlFor="email" className="font-body text-charcoal/70 text-[11px] uppercase tracking-[0.15em]">Email</Label>
+          <Input
+            id="email"
+            type="email"
+            autoComplete="email"
+            value={email}
+            onChange={(e) => onEmailChange(e.target.value)}
+            placeholder="you@email.com"
+            className="border-sage/25 bg-white/60 focus:ring-sage placeholder:text-charcoal/40 h-12 rounded-xl"
+            required
+            autoFocus
+          />
+        </div>
+
+        {/* Portal picker — only when this email maps to more than one portal */}
+        <AnimatePresence initial={false}>
+          {needPick && (
+            <motion.div
+              key="picker"
+              initial={{ height: 0, opacity: 0 }}
+              animate={{ height: "auto", opacity: 1 }}
+              exit={{ height: 0, opacity: 0 }}
+              transition={{ duration: 0.25, ease: "easeOut" }}
+              className="overflow-hidden -mx-1 px-1"
+            >
+              <div className="space-y-2.5 pt-0.5">
+                {roles.map((r) => {
+                  const p = PORTALS[r];
+                  return (
+                    <button
+                      key={r}
+                      type="button"
+                      disabled={loading}
+                      onClick={() => { setRole(r); setError(null); }}
+                      className="w-full flex items-center gap-3 rounded-xl border border-sage/20 bg-white px-4 py-3 text-left transition-colors hover:border-sage hover:bg-sage/5 disabled:opacity-60"
+                    >
+                      <div className="h-9 w-9 rounded-full bg-sage/10 flex items-center justify-center text-sage shrink-0">
+                        <p.icon className="h-4 w-4" />
+                      </div>
+                      <div className="min-w-0">
+                        <p className="font-body font-medium text-charcoal text-sm">{p.label}</p>
+                        <p className="font-body text-xs text-charcoal/55 truncate">{p.blurb}</p>
+                      </div>
+                    </button>
+                  );
+                })}
+              </div>
+            </motion.div>
+          )}
+        </AnimatePresence>
+
+        {/* Password — revealed once a single role is known / a portal is picked */}
+        <AnimatePresence initial={false}>
+          {role && (
+            <motion.div
+              key="password"
+              initial={{ height: 0, opacity: 0 }}
+              animate={{ height: "auto", opacity: 1 }}
+              exit={{ height: 0, opacity: 0 }}
+              transition={{ duration: 0.25, ease: "easeOut" }}
+              className="overflow-hidden -mx-1 px-1"
+            >
+              <div className="space-y-5 pt-0.5">
+                {roles.length > 1 && (
+                  <button
+                    type="button"
+                    onClick={() => { setRole(null); setPassword(""); setError(null); }}
+                    className="font-body text-xs text-sage hover:underline"
+                  >
+                    ← Choose a different portal ({PORTALS[role].label})
+                  </button>
+                )}
+                <div className="space-y-1.5">
+                  <Label htmlFor="password" className="font-body text-charcoal/70 text-[11px] uppercase tracking-[0.15em]">Password</Label>
+                  <PasswordInput
+                    id="password"
+                    autoComplete="current-password"
+                    value={password}
+                    onChange={(e) => setPassword(e.target.value)}
+                    placeholder="••••••••"
+                    className="border-sage/25 bg-white/60 focus:ring-sage placeholder:text-charcoal/40 h-12 rounded-xl"
+                    required
+                    autoFocus
+                  />
+                </div>
+                <div className="flex items-center justify-between">
+                  <label className="flex items-center gap-2 font-body text-sm text-charcoal/70 cursor-pointer">
+                    <Checkbox checked={remember} onCheckedChange={(v) => setRemember(Boolean(v))} className="border-sage/30 data-[state=checked]:bg-sage data-[state=checked]:border-sage" />
+                    Remember this device
+                  </label>
+                  <a href="mailto:thestudio@copperandcloves.com?subject=Password%20reset" className="font-body text-sm text-sage hover:underline">Forgot password?</a>
+                </div>
+              </div>
+            </motion.div>
+          )}
+        </AnimatePresence>
+
+        {error && (
+          <div className="bg-red-50 border border-red-200 rounded-lg px-4 py-3 text-sm text-red-700 font-body">{error}</div>
+        )}
+
+        {/* Hide the primary button while the picker is the active choice */}
+        {!needPick && (
+          <Button type="submit" disabled={loading} className="w-full bg-sage hover:bg-sage/90 text-white font-body h-12 rounded-full text-sm uppercase tracking-[0.15em] shadow-lg shadow-sage/25 transition-all hover:shadow-xl hover:shadow-sage/30">
+            {loading
+              ? <><Loader2 className="animate-spin mr-2 h-4 w-4" />{role ? "Signing in…" : "Checking…"}</>
+              : role ? "Sign In" : "Continue"}
+          </Button>
+        )}
+      </form>
+
+      <p className="mt-8 font-body text-sm text-charcoal/60 text-center">
+        New to The Studio?{" "}
+        <button type="button" onClick={onSwitchToSignup} className="text-sage hover:underline font-medium">
+          Create account
+        </button>
+      </p>
+    </>
+  );
+}

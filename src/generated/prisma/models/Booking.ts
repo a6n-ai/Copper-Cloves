@@ -40,12 +40,14 @@ export type BookingMinAggregateOutputType = {
   class_schedule_id: string | null
   user_package_id: string | null
   status: string | null
+  confirmation_status: string | null
   booking_date: Date | null
   created_at: Date | null
   updated_at: Date | null
   cancellation_date: Date | null
   class_name: string | null
   class_time: string | null
+  email: string | null
   checked_in: boolean | null
   check_in_time: Date | null
   check_in_outcome: string | null
@@ -59,12 +61,14 @@ export type BookingMaxAggregateOutputType = {
   class_schedule_id: string | null
   user_package_id: string | null
   status: string | null
+  confirmation_status: string | null
   booking_date: Date | null
   created_at: Date | null
   updated_at: Date | null
   cancellation_date: Date | null
   class_name: string | null
   class_time: string | null
+  email: string | null
   checked_in: boolean | null
   check_in_time: Date | null
   check_in_outcome: string | null
@@ -78,12 +82,14 @@ export type BookingCountAggregateOutputType = {
   class_schedule_id: number
   user_package_id: number
   status: number
+  confirmation_status: number
   booking_date: number
   created_at: number
   updated_at: number
   cancellation_date: number
   class_name: number
   class_time: number
+  email: number
   checked_in: number
   check_in_time: number
   check_in_outcome: number
@@ -109,12 +115,14 @@ export type BookingMinAggregateInputType = {
   class_schedule_id?: true
   user_package_id?: true
   status?: true
+  confirmation_status?: true
   booking_date?: true
   created_at?: true
   updated_at?: true
   cancellation_date?: true
   class_name?: true
   class_time?: true
+  email?: true
   checked_in?: true
   check_in_time?: true
   check_in_outcome?: true
@@ -128,12 +136,14 @@ export type BookingMaxAggregateInputType = {
   class_schedule_id?: true
   user_package_id?: true
   status?: true
+  confirmation_status?: true
   booking_date?: true
   created_at?: true
   updated_at?: true
   cancellation_date?: true
   class_name?: true
   class_time?: true
+  email?: true
   checked_in?: true
   check_in_time?: true
   check_in_outcome?: true
@@ -147,12 +157,14 @@ export type BookingCountAggregateInputType = {
   class_schedule_id?: true
   user_package_id?: true
   status?: true
+  confirmation_status?: true
   booking_date?: true
   created_at?: true
   updated_at?: true
   cancellation_date?: true
   class_name?: true
   class_time?: true
+  email?: true
   checked_in?: true
   check_in_time?: true
   check_in_outcome?: true
@@ -255,12 +267,14 @@ export type BookingGroupByOutputType = {
   class_schedule_id: string | null
   user_package_id: string | null
   status: string
+  confirmation_status: string | null
   booking_date: Date
   created_at: Date
   updated_at: Date
   cancellation_date: Date | null
   class_name: string | null
   class_time: string | null
+  email: string | null
   checked_in: boolean
   check_in_time: Date | null
   check_in_outcome: string | null
@@ -299,12 +313,14 @@ export type BookingWhereInput = {
   class_schedule_id?: Prisma.StringNullableFilter<"Booking"> | string | null
   user_package_id?: Prisma.StringNullableFilter<"Booking"> | string | null
   status?: Prisma.StringFilter<"Booking"> | string
+  confirmation_status?: Prisma.StringNullableFilter<"Booking"> | string | null
   booking_date?: Prisma.DateTimeFilter<"Booking"> | Date | string
   created_at?: Prisma.DateTimeFilter<"Booking"> | Date | string
   updated_at?: Prisma.DateTimeFilter<"Booking"> | Date | string
   cancellation_date?: Prisma.DateTimeNullableFilter<"Booking"> | Date | string | null
   class_name?: Prisma.StringNullableFilter<"Booking"> | string | null
   class_time?: Prisma.StringNullableFilter<"Booking"> | string | null
+  email?: Prisma.StringNullableFilter<"Booking"> | string | null
   checked_in?: Prisma.BoolFilter<"Booking"> | boolean
   check_in_time?: Prisma.DateTimeNullableFilter<"Booking"> | Date | string | null
   check_in_outcome?: Prisma.StringNullableFilter<"Booking"> | string | null
@@ -326,12 +342,14 @@ export type BookingOrderByWithRelationInput = {
   class_schedule_id?: Prisma.SortOrderInput | Prisma.SortOrder
   user_package_id?: Prisma.SortOrderInput | Prisma.SortOrder
   status?: Prisma.SortOrder
+  confirmation_status?: Prisma.SortOrderInput | Prisma.SortOrder
   booking_date?: Prisma.SortOrder
   created_at?: Prisma.SortOrder
   updated_at?: Prisma.SortOrder
   cancellation_date?: Prisma.SortOrderInput | Prisma.SortOrder
   class_name?: Prisma.SortOrderInput | Prisma.SortOrder
   class_time?: Prisma.SortOrderInput | Prisma.SortOrder
+  email?: Prisma.SortOrderInput | Prisma.SortOrder
   checked_in?: Prisma.SortOrder
   check_in_time?: Prisma.SortOrderInput | Prisma.SortOrder
   check_in_outcome?: Prisma.SortOrderInput | Prisma.SortOrder
@@ -356,12 +374,14 @@ export type BookingWhereUniqueInput = Prisma.AtLeast<{
   class_schedule_id?: Prisma.StringNullableFilter<"Booking"> | string | null
   user_package_id?: Prisma.StringNullableFilter<"Booking"> | string | null
   status?: Prisma.StringFilter<"Booking"> | string
+  confirmation_status?: Prisma.StringNullableFilter<"Booking"> | string | null
   booking_date?: Prisma.DateTimeFilter<"Booking"> | Date | string
   created_at?: Prisma.DateTimeFilter<"Booking"> | Date | string
   updated_at?: Prisma.DateTimeFilter<"Booking"> | Date | string
   cancellation_date?: Prisma.DateTimeNullableFilter<"Booking"> | Date | string | null
   class_name?: Prisma.StringNullableFilter<"Booking"> | string | null
   class_time?: Prisma.StringNullableFilter<"Booking"> | string | null
+  email?: Prisma.StringNullableFilter<"Booking"> | string | null
   checked_in?: Prisma.BoolFilter<"Booking"> | boolean
   check_in_time?: Prisma.DateTimeNullableFilter<"Booking"> | Date | string | null
   check_in_outcome?: Prisma.StringNullableFilter<"Booking"> | string | null
@@ -383,12 +403,14 @@ export type BookingOrderByWithAggregationInput = {
   class_schedule_id?: Prisma.SortOrderInput | Prisma.SortOrder
   user_package_id?: Prisma.SortOrderInput | Prisma.SortOrder
   status?: Prisma.SortOrder
+  confirmation_status?: Prisma.SortOrderInput | Prisma.SortOrder
   booking_date?: Prisma.SortOrder
   created_at?: Prisma.SortOrder
   updated_at?: Prisma.SortOrder
   cancellation_date?: Prisma.SortOrderInput | Prisma.SortOrder
   class_name?: Prisma.SortOrderInput | Prisma.SortOrder
   class_time?: Prisma.SortOrderInput | Prisma.SortOrder
+  email?: Prisma.SortOrderInput | Prisma.SortOrder
   checked_in?: Prisma.SortOrder
   check_in_time?: Prisma.SortOrderInput | Prisma.SortOrder
   check_in_outcome?: Prisma.SortOrderInput | Prisma.SortOrder
@@ -412,12 +434,14 @@ export type BookingScalarWhereWithAggregatesInput = {
   class_schedule_id?: Prisma.StringNullableWithAggregatesFilter<"Booking"> | string | null
   user_package_id?: Prisma.StringNullableWithAggregatesFilter<"Booking"> | string | null
   status?: Prisma.StringWithAggregatesFilter<"Booking"> | string
+  confirmation_status?: Prisma.StringNullableWithAggregatesFilter<"Booking"> | string | null
   booking_date?: Prisma.DateTimeWithAggregatesFilter<"Booking"> | Date | string
   created_at?: Prisma.DateTimeWithAggregatesFilter<"Booking"> | Date | string
   updated_at?: Prisma.DateTimeWithAggregatesFilter<"Booking"> | Date | string
   cancellation_date?: Prisma.DateTimeNullableWithAggregatesFilter<"Booking"> | Date | string | null
   class_name?: Prisma.StringNullableWithAggregatesFilter<"Booking"> | string | null
   class_time?: Prisma.StringNullableWithAggregatesFilter<"Booking"> | string | null
+  email?: Prisma.StringNullableWithAggregatesFilter<"Booking"> | string | null
   checked_in?: Prisma.BoolWithAggregatesFilter<"Booking"> | boolean
   check_in_time?: Prisma.DateTimeNullableWithAggregatesFilter<"Booking"> | Date | string | null
   check_in_outcome?: Prisma.StringNullableWithAggregatesFilter<"Booking"> | string | null
@@ -430,12 +454,14 @@ export type BookingScalarWhereWithAggregatesInput = {
 export type BookingCreateInput = {
   id?: string
   status?: string
+  confirmation_status?: string | null
   booking_date?: Date | string
   created_at?: Date | string
   updated_at?: Date | string
   cancellation_date?: Date | string | null
   class_name?: string | null
   class_time?: string | null
+  email?: string | null
   checked_in?: boolean
   check_in_time?: Date | string | null
   check_in_outcome?: string | null
@@ -457,12 +483,14 @@ export type BookingUncheckedCreateInput = {
   class_schedule_id?: string | null
   user_package_id?: string | null
   status?: string
+  confirmation_status?: string | null
   booking_date?: Date | string
   created_at?: Date | string
   updated_at?: Date | string
   cancellation_date?: Date | string | null
   class_name?: string | null
   class_time?: string | null
+  email?: string | null
   checked_in?: boolean
   check_in_time?: Date | string | null
   check_in_outcome?: string | null
@@ -478,12 +506,14 @@ export type BookingUncheckedCreateInput = {
 export type BookingUpdateInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   status?: Prisma.StringFieldUpdateOperationsInput | string
+  confirmation_status?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   booking_date?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   created_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updated_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   cancellation_date?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   class_name?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   class_time?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  email?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   checked_in?: Prisma.BoolFieldUpdateOperationsInput | boolean
   check_in_time?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   check_in_outcome?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -505,12 +535,14 @@ export type BookingUncheckedUpdateInput = {
   class_schedule_id?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   user_package_id?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   status?: Prisma.StringFieldUpdateOperationsInput | string
+  confirmation_status?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   booking_date?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   created_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updated_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   cancellation_date?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   class_name?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   class_time?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  email?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   checked_in?: Prisma.BoolFieldUpdateOperationsInput | boolean
   check_in_time?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   check_in_outcome?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -529,12 +561,14 @@ export type BookingCreateManyInput = {
   class_schedule_id?: string | null
   user_package_id?: string | null
   status?: string
+  confirmation_status?: string | null
   booking_date?: Date | string
   created_at?: Date | string
   updated_at?: Date | string
   cancellation_date?: Date | string | null
   class_name?: string | null
   class_time?: string | null
+  email?: string | null
   checked_in?: boolean
   check_in_time?: Date | string | null
   check_in_outcome?: string | null
@@ -547,12 +581,14 @@ export type BookingCreateManyInput = {
 export type BookingUpdateManyMutationInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   status?: Prisma.StringFieldUpdateOperationsInput | string
+  confirmation_status?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   booking_date?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   created_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updated_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   cancellation_date?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   class_name?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   class_time?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  email?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   checked_in?: Prisma.BoolFieldUpdateOperationsInput | boolean
   check_in_time?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   check_in_outcome?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -568,12 +604,14 @@ export type BookingUncheckedUpdateManyInput = {
   class_schedule_id?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   user_package_id?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   status?: Prisma.StringFieldUpdateOperationsInput | string
+  confirmation_status?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   booking_date?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   created_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updated_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   cancellation_date?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   class_name?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   class_time?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  email?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   checked_in?: Prisma.BoolFieldUpdateOperationsInput | boolean
   check_in_time?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   check_in_outcome?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -599,12 +637,14 @@ export type BookingCountOrderByAggregateInput = {
   class_schedule_id?: Prisma.SortOrder
   user_package_id?: Prisma.SortOrder
   status?: Prisma.SortOrder
+  confirmation_status?: Prisma.SortOrder
   booking_date?: Prisma.SortOrder
   created_at?: Prisma.SortOrder
   updated_at?: Prisma.SortOrder
   cancellation_date?: Prisma.SortOrder
   class_name?: Prisma.SortOrder
   class_time?: Prisma.SortOrder
+  email?: Prisma.SortOrder
   checked_in?: Prisma.SortOrder
   check_in_time?: Prisma.SortOrder
   check_in_outcome?: Prisma.SortOrder
@@ -624,12 +664,14 @@ export type BookingMaxOrderByAggregateInput = {
   class_schedule_id?: Prisma.SortOrder
   user_package_id?: Prisma.SortOrder
   status?: Prisma.SortOrder
+  confirmation_status?: Prisma.SortOrder
   booking_date?: Prisma.SortOrder
   created_at?: Prisma.SortOrder
   updated_at?: Prisma.SortOrder
   cancellation_date?: Prisma.SortOrder
   class_name?: Prisma.SortOrder
   class_time?: Prisma.SortOrder
+  email?: Prisma.SortOrder
   checked_in?: Prisma.SortOrder
   check_in_time?: Prisma.SortOrder
   check_in_outcome?: Prisma.SortOrder
@@ -643,12 +685,14 @@ export type BookingMinOrderByAggregateInput = {
   class_schedule_id?: Prisma.SortOrder
   user_package_id?: Prisma.SortOrder
   status?: Prisma.SortOrder
+  confirmation_status?: Prisma.SortOrder
   booking_date?: Prisma.SortOrder
   created_at?: Prisma.SortOrder
   updated_at?: Prisma.SortOrder
   cancellation_date?: Prisma.SortOrder
   class_name?: Prisma.SortOrder
   class_time?: Prisma.SortOrder
+  email?: Prisma.SortOrder
   checked_in?: Prisma.SortOrder
   check_in_time?: Prisma.SortOrder
   check_in_outcome?: Prisma.SortOrder
@@ -842,12 +886,14 @@ export type BookingUpdateOneWithoutCafe_ordersNestedInput = {
 export type BookingCreateWithoutProfileInput = {
   id?: string
   status?: string
+  confirmation_status?: string | null
   booking_date?: Date | string
   created_at?: Date | string
   updated_at?: Date | string
   cancellation_date?: Date | string | null
   class_name?: string | null
   class_time?: string | null
+  email?: string | null
   checked_in?: boolean
   check_in_time?: Date | string | null
   check_in_outcome?: string | null
@@ -867,12 +913,14 @@ export type BookingUncheckedCreateWithoutProfileInput = {
   class_schedule_id?: string | null
   user_package_id?: string | null
   status?: string
+  confirmation_status?: string | null
   booking_date?: Date | string
   created_at?: Date | string
   updated_at?: Date | string
   cancellation_date?: Date | string | null
   class_name?: string | null
   class_time?: string | null
+  email?: string | null
   checked_in?: boolean
   check_in_time?: Date | string | null
   check_in_outcome?: string | null
@@ -920,12 +968,14 @@ export type BookingScalarWhereInput = {
   class_schedule_id?: Prisma.StringNullableFilter<"Booking"> | string | null
   user_package_id?: Prisma.StringNullableFilter<"Booking"> | string | null
   status?: Prisma.StringFilter<"Booking"> | string
+  confirmation_status?: Prisma.StringNullableFilter<"Booking"> | string | null
   booking_date?: Prisma.DateTimeFilter<"Booking"> | Date | string
   created_at?: Prisma.DateTimeFilter<"Booking"> | Date | string
   updated_at?: Prisma.DateTimeFilter<"Booking"> | Date | string
   cancellation_date?: Prisma.DateTimeNullableFilter<"Booking"> | Date | string | null
   class_name?: Prisma.StringNullableFilter<"Booking"> | string | null
   class_time?: Prisma.StringNullableFilter<"Booking"> | string | null
+  email?: Prisma.StringNullableFilter<"Booking"> | string | null
   checked_in?: Prisma.BoolFilter<"Booking"> | boolean
   check_in_time?: Prisma.DateTimeNullableFilter<"Booking"> | Date | string | null
   check_in_outcome?: Prisma.StringNullableFilter<"Booking"> | string | null
@@ -938,12 +988,14 @@ export type BookingScalarWhereInput = {
 export type BookingCreateWithoutClass_scheduleInput = {
   id?: string
   status?: string
+  confirmation_status?: string | null
   booking_date?: Date | string
   created_at?: Date | string
   updated_at?: Date | string
   cancellation_date?: Date | string | null
   class_name?: string | null
   class_time?: string | null
+  email?: string | null
   checked_in?: boolean
   check_in_time?: Date | string | null
   check_in_outcome?: string | null
@@ -963,12 +1015,14 @@ export type BookingUncheckedCreateWithoutClass_scheduleInput = {
   user_id: string
   user_package_id?: string | null
   status?: string
+  confirmation_status?: string | null
   booking_date?: Date | string
   created_at?: Date | string
   updated_at?: Date | string
   cancellation_date?: Date | string | null
   class_name?: string | null
   class_time?: string | null
+  email?: string | null
   checked_in?: boolean
   check_in_time?: Date | string | null
   check_in_outcome?: string | null
@@ -1010,12 +1064,14 @@ export type BookingUpdateManyWithWhereWithoutClass_scheduleInput = {
 export type BookingCreateWithoutUser_packageInput = {
   id?: string
   status?: string
+  confirmation_status?: string | null
   booking_date?: Date | string
   created_at?: Date | string
   updated_at?: Date | string
   cancellation_date?: Date | string | null
   class_name?: string | null
   class_time?: string | null
+  email?: string | null
   checked_in?: boolean
   check_in_time?: Date | string | null
   check_in_outcome?: string | null
@@ -1035,12 +1091,14 @@ export type BookingUncheckedCreateWithoutUser_packageInput = {
   user_id: string
   class_schedule_id?: string | null
   status?: string
+  confirmation_status?: string | null
   booking_date?: Date | string
   created_at?: Date | string
   updated_at?: Date | string
   cancellation_date?: Date | string | null
   class_name?: string | null
   class_time?: string | null
+  email?: string | null
   checked_in?: boolean
   check_in_time?: Date | string | null
   check_in_outcome?: string | null
@@ -1082,12 +1140,14 @@ export type BookingUpdateManyWithWhereWithoutUser_packageInput = {
 export type BookingCreateWithoutRazorpay_orderInput = {
   id?: string
   status?: string
+  confirmation_status?: string | null
   booking_date?: Date | string
   created_at?: Date | string
   updated_at?: Date | string
   cancellation_date?: Date | string | null
   class_name?: string | null
   class_time?: string | null
+  email?: string | null
   checked_in?: boolean
   check_in_time?: Date | string | null
   check_in_outcome?: string | null
@@ -1108,12 +1168,14 @@ export type BookingUncheckedCreateWithoutRazorpay_orderInput = {
   class_schedule_id?: string | null
   user_package_id?: string | null
   status?: string
+  confirmation_status?: string | null
   booking_date?: Date | string
   created_at?: Date | string
   updated_at?: Date | string
   cancellation_date?: Date | string | null
   class_name?: string | null
   class_time?: string | null
+  email?: string | null
   checked_in?: boolean
   check_in_time?: Date | string | null
   check_in_outcome?: string | null
@@ -1144,12 +1206,14 @@ export type BookingUpdateToOneWithWhereWithoutRazorpay_orderInput = {
 export type BookingUpdateWithoutRazorpay_orderInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   status?: Prisma.StringFieldUpdateOperationsInput | string
+  confirmation_status?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   booking_date?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   created_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updated_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   cancellation_date?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   class_name?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   class_time?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  email?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   checked_in?: Prisma.BoolFieldUpdateOperationsInput | boolean
   check_in_time?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   check_in_outcome?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -1170,12 +1234,14 @@ export type BookingUncheckedUpdateWithoutRazorpay_orderInput = {
   class_schedule_id?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   user_package_id?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   status?: Prisma.StringFieldUpdateOperationsInput | string
+  confirmation_status?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   booking_date?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   created_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updated_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   cancellation_date?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   class_name?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   class_time?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  email?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   checked_in?: Prisma.BoolFieldUpdateOperationsInput | boolean
   check_in_time?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   check_in_outcome?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -1190,12 +1256,14 @@ export type BookingUncheckedUpdateWithoutRazorpay_orderInput = {
 export type BookingCreateWithoutPaymentsInput = {
   id?: string
   status?: string
+  confirmation_status?: string | null
   booking_date?: Date | string
   created_at?: Date | string
   updated_at?: Date | string
   cancellation_date?: Date | string | null
   class_name?: string | null
   class_time?: string | null
+  email?: string | null
   checked_in?: boolean
   check_in_time?: Date | string | null
   check_in_outcome?: string | null
@@ -1216,12 +1284,14 @@ export type BookingUncheckedCreateWithoutPaymentsInput = {
   class_schedule_id?: string | null
   user_package_id?: string | null
   status?: string
+  confirmation_status?: string | null
   booking_date?: Date | string
   created_at?: Date | string
   updated_at?: Date | string
   cancellation_date?: Date | string | null
   class_name?: string | null
   class_time?: string | null
+  email?: string | null
   checked_in?: boolean
   check_in_time?: Date | string | null
   check_in_outcome?: string | null
@@ -1252,12 +1322,14 @@ export type BookingUpdateToOneWithWhereWithoutPaymentsInput = {
 export type BookingUpdateWithoutPaymentsInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   status?: Prisma.StringFieldUpdateOperationsInput | string
+  confirmation_status?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   booking_date?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   created_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updated_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   cancellation_date?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   class_name?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   class_time?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  email?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   checked_in?: Prisma.BoolFieldUpdateOperationsInput | boolean
   check_in_time?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   check_in_outcome?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -1278,12 +1350,14 @@ export type BookingUncheckedUpdateWithoutPaymentsInput = {
   class_schedule_id?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   user_package_id?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   status?: Prisma.StringFieldUpdateOperationsInput | string
+  confirmation_status?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   booking_date?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   created_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updated_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   cancellation_date?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   class_name?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   class_time?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  email?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   checked_in?: Prisma.BoolFieldUpdateOperationsInput | boolean
   check_in_time?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   check_in_outcome?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -1298,12 +1372,14 @@ export type BookingUncheckedUpdateWithoutPaymentsInput = {
 export type BookingCreateWithoutCafe_ordersInput = {
   id?: string
   status?: string
+  confirmation_status?: string | null
   booking_date?: Date | string
   created_at?: Date | string
   updated_at?: Date | string
   cancellation_date?: Date | string | null
   class_name?: string | null
   class_time?: string | null
+  email?: string | null
   checked_in?: boolean
   check_in_time?: Date | string | null
   check_in_outcome?: string | null
@@ -1324,12 +1400,14 @@ export type BookingUncheckedCreateWithoutCafe_ordersInput = {
   class_schedule_id?: string | null
   user_package_id?: string | null
   status?: string
+  confirmation_status?: string | null
   booking_date?: Date | string
   created_at?: Date | string
   updated_at?: Date | string
   cancellation_date?: Date | string | null
   class_name?: string | null
   class_time?: string | null
+  email?: string | null
   checked_in?: boolean
   check_in_time?: Date | string | null
   check_in_outcome?: string | null
@@ -1360,12 +1438,14 @@ export type BookingUpdateToOneWithWhereWithoutCafe_ordersInput = {
 export type BookingUpdateWithoutCafe_ordersInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   status?: Prisma.StringFieldUpdateOperationsInput | string
+  confirmation_status?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   booking_date?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   created_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updated_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   cancellation_date?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   class_name?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   class_time?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  email?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   checked_in?: Prisma.BoolFieldUpdateOperationsInput | boolean
   check_in_time?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   check_in_outcome?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -1386,12 +1466,14 @@ export type BookingUncheckedUpdateWithoutCafe_ordersInput = {
   class_schedule_id?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   user_package_id?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   status?: Prisma.StringFieldUpdateOperationsInput | string
+  confirmation_status?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   booking_date?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   created_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updated_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   cancellation_date?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   class_name?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   class_time?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  email?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   checked_in?: Prisma.BoolFieldUpdateOperationsInput | boolean
   check_in_time?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   check_in_outcome?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -1408,12 +1490,14 @@ export type BookingCreateManyProfileInput = {
   class_schedule_id?: string | null
   user_package_id?: string | null
   status?: string
+  confirmation_status?: string | null
   booking_date?: Date | string
   created_at?: Date | string
   updated_at?: Date | string
   cancellation_date?: Date | string | null
   class_name?: string | null
   class_time?: string | null
+  email?: string | null
   checked_in?: boolean
   check_in_time?: Date | string | null
   check_in_outcome?: string | null
@@ -1426,12 +1510,14 @@ export type BookingCreateManyProfileInput = {
 export type BookingUpdateWithoutProfileInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   status?: Prisma.StringFieldUpdateOperationsInput | string
+  confirmation_status?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   booking_date?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   created_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updated_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   cancellation_date?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   class_name?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   class_time?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  email?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   checked_in?: Prisma.BoolFieldUpdateOperationsInput | boolean
   check_in_time?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   check_in_outcome?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -1451,12 +1537,14 @@ export type BookingUncheckedUpdateWithoutProfileInput = {
   class_schedule_id?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   user_package_id?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   status?: Prisma.StringFieldUpdateOperationsInput | string
+  confirmation_status?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   booking_date?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   created_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updated_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   cancellation_date?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   class_name?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   class_time?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  email?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   checked_in?: Prisma.BoolFieldUpdateOperationsInput | boolean
   check_in_time?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   check_in_outcome?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -1474,12 +1562,14 @@ export type BookingUncheckedUpdateManyWithoutProfileInput = {
   class_schedule_id?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   user_package_id?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   status?: Prisma.StringFieldUpdateOperationsInput | string
+  confirmation_status?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   booking_date?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   created_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updated_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   cancellation_date?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   class_name?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   class_time?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  email?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   checked_in?: Prisma.BoolFieldUpdateOperationsInput | boolean
   check_in_time?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   check_in_outcome?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -1494,12 +1584,14 @@ export type BookingCreateManyClass_scheduleInput = {
   user_id: string
   user_package_id?: string | null
   status?: string
+  confirmation_status?: string | null
   booking_date?: Date | string
   created_at?: Date | string
   updated_at?: Date | string
   cancellation_date?: Date | string | null
   class_name?: string | null
   class_time?: string | null
+  email?: string | null
   checked_in?: boolean
   check_in_time?: Date | string | null
   check_in_outcome?: string | null
@@ -1512,12 +1604,14 @@ export type BookingCreateManyClass_scheduleInput = {
 export type BookingUpdateWithoutClass_scheduleInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   status?: Prisma.StringFieldUpdateOperationsInput | string
+  confirmation_status?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   booking_date?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   created_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updated_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   cancellation_date?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   class_name?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   class_time?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  email?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   checked_in?: Prisma.BoolFieldUpdateOperationsInput | boolean
   check_in_time?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   check_in_outcome?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -1537,12 +1631,14 @@ export type BookingUncheckedUpdateWithoutClass_scheduleInput = {
   user_id?: Prisma.StringFieldUpdateOperationsInput | string
   user_package_id?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   status?: Prisma.StringFieldUpdateOperationsInput | string
+  confirmation_status?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   booking_date?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   created_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updated_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   cancellation_date?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   class_name?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   class_time?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  email?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   checked_in?: Prisma.BoolFieldUpdateOperationsInput | boolean
   check_in_time?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   check_in_outcome?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -1560,12 +1656,14 @@ export type BookingUncheckedUpdateManyWithoutClass_scheduleInput = {
   user_id?: Prisma.StringFieldUpdateOperationsInput | string
   user_package_id?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   status?: Prisma.StringFieldUpdateOperationsInput | string
+  confirmation_status?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   booking_date?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   created_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updated_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   cancellation_date?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   class_name?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   class_time?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  email?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   checked_in?: Prisma.BoolFieldUpdateOperationsInput | boolean
   check_in_time?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   check_in_outcome?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -1580,12 +1678,14 @@ export type BookingCreateManyUser_packageInput = {
   user_id: string
   class_schedule_id?: string | null
   status?: string
+  confirmation_status?: string | null
   booking_date?: Date | string
   created_at?: Date | string
   updated_at?: Date | string
   cancellation_date?: Date | string | null
   class_name?: string | null
   class_time?: string | null
+  email?: string | null
   checked_in?: boolean
   check_in_time?: Date | string | null
   check_in_outcome?: string | null
@@ -1598,12 +1698,14 @@ export type BookingCreateManyUser_packageInput = {
 export type BookingUpdateWithoutUser_packageInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   status?: Prisma.StringFieldUpdateOperationsInput | string
+  confirmation_status?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   booking_date?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   created_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updated_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   cancellation_date?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   class_name?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   class_time?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  email?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   checked_in?: Prisma.BoolFieldUpdateOperationsInput | boolean
   check_in_time?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   check_in_outcome?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -1623,12 +1725,14 @@ export type BookingUncheckedUpdateWithoutUser_packageInput = {
   user_id?: Prisma.StringFieldUpdateOperationsInput | string
   class_schedule_id?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   status?: Prisma.StringFieldUpdateOperationsInput | string
+  confirmation_status?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   booking_date?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   created_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updated_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   cancellation_date?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   class_name?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   class_time?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  email?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   checked_in?: Prisma.BoolFieldUpdateOperationsInput | boolean
   check_in_time?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   check_in_outcome?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -1646,12 +1750,14 @@ export type BookingUncheckedUpdateManyWithoutUser_packageInput = {
   user_id?: Prisma.StringFieldUpdateOperationsInput | string
   class_schedule_id?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   status?: Prisma.StringFieldUpdateOperationsInput | string
+  confirmation_status?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   booking_date?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   created_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updated_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   cancellation_date?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   class_name?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   class_time?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  email?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   checked_in?: Prisma.BoolFieldUpdateOperationsInput | boolean
   check_in_time?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   check_in_outcome?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -1707,12 +1813,14 @@ export type BookingSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs 
   class_schedule_id?: boolean
   user_package_id?: boolean
   status?: boolean
+  confirmation_status?: boolean
   booking_date?: boolean
   created_at?: boolean
   updated_at?: boolean
   cancellation_date?: boolean
   class_name?: boolean
   class_time?: boolean
+  email?: boolean
   checked_in?: boolean
   check_in_time?: boolean
   check_in_outcome?: boolean
@@ -1735,12 +1843,14 @@ export type BookingSelectCreateManyAndReturn<ExtArgs extends runtime.Types.Exten
   class_schedule_id?: boolean
   user_package_id?: boolean
   status?: boolean
+  confirmation_status?: boolean
   booking_date?: boolean
   created_at?: boolean
   updated_at?: boolean
   cancellation_date?: boolean
   class_name?: boolean
   class_time?: boolean
+  email?: boolean
   checked_in?: boolean
   check_in_time?: boolean
   check_in_outcome?: boolean
@@ -1759,12 +1869,14 @@ export type BookingSelectUpdateManyAndReturn<ExtArgs extends runtime.Types.Exten
   class_schedule_id?: boolean
   user_package_id?: boolean
   status?: boolean
+  confirmation_status?: boolean
   booking_date?: boolean
   created_at?: boolean
   updated_at?: boolean
   cancellation_date?: boolean
   class_name?: boolean
   class_time?: boolean
+  email?: boolean
   checked_in?: boolean
   check_in_time?: boolean
   check_in_outcome?: boolean
@@ -1783,12 +1895,14 @@ export type BookingSelectScalar = {
   class_schedule_id?: boolean
   user_package_id?: boolean
   status?: boolean
+  confirmation_status?: boolean
   booking_date?: boolean
   created_at?: boolean
   updated_at?: boolean
   cancellation_date?: boolean
   class_name?: boolean
   class_time?: boolean
+  email?: boolean
   checked_in?: boolean
   check_in_time?: boolean
   check_in_outcome?: boolean
@@ -1798,7 +1912,7 @@ export type BookingSelectScalar = {
   finance_snapshot?: boolean
 }
 
-export type BookingOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "user_id" | "class_schedule_id" | "user_package_id" | "status" | "booking_date" | "created_at" | "updated_at" | "cancellation_date" | "class_name" | "class_time" | "checked_in" | "check_in_time" | "check_in_outcome" | "reminder_sent_at" | "extra_guest_count" | "guest_attendees" | "finance_snapshot", ExtArgs["result"]["booking"]>
+export type BookingOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "user_id" | "class_schedule_id" | "user_package_id" | "status" | "confirmation_status" | "booking_date" | "created_at" | "updated_at" | "cancellation_date" | "class_name" | "class_time" | "email" | "checked_in" | "check_in_time" | "check_in_outcome" | "reminder_sent_at" | "extra_guest_count" | "guest_attendees" | "finance_snapshot", ExtArgs["result"]["booking"]>
 export type BookingInclude<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   profile?: boolean | Prisma.ProfileDefaultArgs<ExtArgs>
   class_schedule?: boolean | Prisma.Booking$class_scheduleArgs<ExtArgs>
@@ -1835,12 +1949,20 @@ export type $BookingPayload<ExtArgs extends runtime.Types.Extensions.InternalArg
     class_schedule_id: string | null
     user_package_id: string | null
     status: string
+    /**
+     * Physique 57 instructor sign-off: `pending` until the 57 instructor confirms, then `confirmed`. Null = not a 57 class (no sign-off needed).
+     */
+    confirmation_status: string | null
     booking_date: Date
     created_at: Date
     updated_at: Date
     cancellation_date: Date | null
     class_name: string | null
     class_time: string | null
+    /**
+     * Snapshot of the booked person's email (booker or guest) for quick lookup/audit.
+     */
+    email: string | null
     checked_in: boolean
     check_in_time: Date | null
     /**
@@ -2297,12 +2419,14 @@ export interface BookingFieldRefs {
   readonly class_schedule_id: Prisma.FieldRef<"Booking", 'String'>
   readonly user_package_id: Prisma.FieldRef<"Booking", 'String'>
   readonly status: Prisma.FieldRef<"Booking", 'String'>
+  readonly confirmation_status: Prisma.FieldRef<"Booking", 'String'>
   readonly booking_date: Prisma.FieldRef<"Booking", 'DateTime'>
   readonly created_at: Prisma.FieldRef<"Booking", 'DateTime'>
   readonly updated_at: Prisma.FieldRef<"Booking", 'DateTime'>
   readonly cancellation_date: Prisma.FieldRef<"Booking", 'DateTime'>
   readonly class_name: Prisma.FieldRef<"Booking", 'String'>
   readonly class_time: Prisma.FieldRef<"Booking", 'String'>
+  readonly email: Prisma.FieldRef<"Booking", 'String'>
   readonly checked_in: Prisma.FieldRef<"Booking", 'Boolean'>
   readonly check_in_time: Prisma.FieldRef<"Booking", 'DateTime'>
   readonly check_in_outcome: Prisma.FieldRef<"Booking", 'String'>

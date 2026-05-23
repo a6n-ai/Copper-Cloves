@@ -132,7 +132,7 @@ export async function finishBookingCheckoutOnServer(
   const booking = await prisma.$transaction(async (tx) => {
     const schedule = await tx.classSchedule.findUnique({
       where: { id: scheduleId },
-      include: { class_model: { select: { max_capacity: true, name: true } } },
+      include: { class_model: { select: { max_capacity: true, name: true, partner_id: true } } },
     });
     if (!schedule) throw new Error("SCHEDULE_NOT_FOUND");
     if (schedule.status === "cancelled") throw new Error("CLASS_CANCELLED");
@@ -174,6 +174,8 @@ export async function finishBookingCheckoutOnServer(
       if (pkg.package_type?.is_unlimited) throw new Error("PACKAGE_WRONG_TYPE");
     }
 
+    const booker = await tx.profile.findUnique({ where: { id: userId }, select: { email: true } });
+
     const created = await tx.booking.create({
       data: {
         user_id: userId,
@@ -181,8 +183,13 @@ export async function finishBookingCheckoutOnServer(
         user_package_id: packageId,
         class_name: resolvedClassName,
         class_time: resolvedClassTime,
+        email: booker?.email ?? null,
         status: "confirmed",
-        extra_guest_count: extraGuests,
+        // Partner-run classes await partner sign-off before confirmation.
+        confirmation_status: schedule.class_model?.partner_id ? "pending" : null,
+        // Guests get their own roster rows (process-guests); booker = one seat.
+        // The capacity check above still reserves 1 + guests up front.
+        extra_guest_count: 0,
         guest_attendees: guestList.length > 0 ? guestList : undefined,
         finance_snapshot: financeSnap,
       },
@@ -230,15 +237,18 @@ export async function finishBookingCheckoutOnServer(
     });
   }
 
-  await buildBookingCrmVariables(booking.id)
-    .then((variables) =>
-      dispatchCrmEmailTriggers({
-        triggerType: CrmTriggerType.ClassBookingConfirmed,
-        userId,
-        variables,
-      }),
-    )
-    .catch((e) => console.error("CRM class_booking_confirmed:", e));
+  // Physique 57 bookings notify on instructor confirm, not now.
+  if (booking.confirmation_status !== "pending") {
+    await buildBookingCrmVariables(booking.id)
+      .then((variables) =>
+        dispatchCrmEmailTriggers({
+          triggerType: CrmTriggerType.ClassBookingConfirmed,
+          userId,
+          variables,
+        }),
+      )
+      .catch((e) => console.error("CRM class_booking_confirmed:", e));
+  }
 
   return { bookingId: booking.id };
 }

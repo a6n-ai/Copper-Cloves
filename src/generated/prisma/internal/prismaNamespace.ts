@@ -391,6 +391,8 @@ export const ModelName = {
   RetailOrder: 'RetailOrder',
   Instructor: 'Instructor',
   ClassModel: 'ClassModel',
+  Partner: 'Partner',
+  PartnerMember: 'PartnerMember',
   ClassSchedule: 'ClassSchedule',
   PackageType: 'PackageType',
   Package: 'Package',
@@ -404,6 +406,7 @@ export const ModelName = {
   MealSubscription: 'MealSubscription',
   MealSubscriptionInquiry: 'MealSubscriptionInquiry',
   RentalInquiry: 'RentalInquiry',
+  SignupLead: 'SignupLead',
   UserStats: 'UserStats',
   UserStreak: 'UserStreak',
   BadgeTemplate: 'BadgeTemplate',
@@ -431,7 +434,7 @@ export type TypeMap<ExtArgs extends runtime.Types.Extensions.InternalArgs = runt
     omit: GlobalOmitOptions
   }
   meta: {
-    modelProps: "profile" | "coupon" | "couponRedemption" | "retailProduct" | "retailOrder" | "instructor" | "classModel" | "classSchedule" | "packageType" | "package" | "userPackage" | "booking" | "razorpayOrder" | "razorpayPayment" | "payment" | "cafeItem" | "cafeOrder" | "mealSubscription" | "mealSubscriptionInquiry" | "rentalInquiry" | "userStats" | "userStreak" | "badgeTemplate" | "userBadge" | "waiver" | "crmTemplate" | "crmMessage" | "crmTrigger" | "userActivitySession" | "userActivityEvent" | "memberTicket" | "passwordResetToken"
+    modelProps: "profile" | "coupon" | "couponRedemption" | "retailProduct" | "retailOrder" | "instructor" | "classModel" | "partner" | "partnerMember" | "classSchedule" | "packageType" | "package" | "userPackage" | "booking" | "razorpayOrder" | "razorpayPayment" | "payment" | "cafeItem" | "cafeOrder" | "mealSubscription" | "mealSubscriptionInquiry" | "rentalInquiry" | "signupLead" | "userStats" | "userStreak" | "badgeTemplate" | "userBadge" | "waiver" | "crmTemplate" | "crmMessage" | "crmTrigger" | "userActivitySession" | "userActivityEvent" | "memberTicket" | "passwordResetToken"
     txIsolationLevel: TransactionIsolationLevel
   }
   model: {
@@ -950,6 +953,154 @@ export type TypeMap<ExtArgs extends runtime.Types.Extensions.InternalArgs = runt
         count: {
           args: Prisma.ClassModelCountArgs<ExtArgs>
           result: runtime.Types.Utils.Optional<Prisma.ClassModelCountAggregateOutputType> | number
+        }
+      }
+    }
+    Partner: {
+      payload: Prisma.$PartnerPayload<ExtArgs>
+      fields: Prisma.PartnerFieldRefs
+      operations: {
+        findUnique: {
+          args: Prisma.PartnerFindUniqueArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$PartnerPayload> | null
+        }
+        findUniqueOrThrow: {
+          args: Prisma.PartnerFindUniqueOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$PartnerPayload>
+        }
+        findFirst: {
+          args: Prisma.PartnerFindFirstArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$PartnerPayload> | null
+        }
+        findFirstOrThrow: {
+          args: Prisma.PartnerFindFirstOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$PartnerPayload>
+        }
+        findMany: {
+          args: Prisma.PartnerFindManyArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$PartnerPayload>[]
+        }
+        create: {
+          args: Prisma.PartnerCreateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$PartnerPayload>
+        }
+        createMany: {
+          args: Prisma.PartnerCreateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        createManyAndReturn: {
+          args: Prisma.PartnerCreateManyAndReturnArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$PartnerPayload>[]
+        }
+        delete: {
+          args: Prisma.PartnerDeleteArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$PartnerPayload>
+        }
+        update: {
+          args: Prisma.PartnerUpdateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$PartnerPayload>
+        }
+        deleteMany: {
+          args: Prisma.PartnerDeleteManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateMany: {
+          args: Prisma.PartnerUpdateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateManyAndReturn: {
+          args: Prisma.PartnerUpdateManyAndReturnArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$PartnerPayload>[]
+        }
+        upsert: {
+          args: Prisma.PartnerUpsertArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$PartnerPayload>
+        }
+        aggregate: {
+          args: Prisma.PartnerAggregateArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.AggregatePartner>
+        }
+        groupBy: {
+          args: Prisma.PartnerGroupByArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.PartnerGroupByOutputType>[]
+        }
+        count: {
+          args: Prisma.PartnerCountArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.PartnerCountAggregateOutputType> | number
+        }
+      }
+    }
+    PartnerMember: {
+      payload: Prisma.$PartnerMemberPayload<ExtArgs>
+      fields: Prisma.PartnerMemberFieldRefs
+      operations: {
+        findUnique: {
+          args: Prisma.PartnerMemberFindUniqueArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$PartnerMemberPayload> | null
+        }
+        findUniqueOrThrow: {
+          args: Prisma.PartnerMemberFindUniqueOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$PartnerMemberPayload>
+        }
+        findFirst: {
+          args: Prisma.PartnerMemberFindFirstArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$PartnerMemberPayload> | null
+        }
+        findFirstOrThrow: {
+          args: Prisma.PartnerMemberFindFirstOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$PartnerMemberPayload>
+        }
+        findMany: {
+          args: Prisma.PartnerMemberFindManyArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$PartnerMemberPayload>[]
+        }
+        create: {
+          args: Prisma.PartnerMemberCreateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$PartnerMemberPayload>
+        }
+        createMany: {
+          args: Prisma.PartnerMemberCreateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        createManyAndReturn: {
+          args: Prisma.PartnerMemberCreateManyAndReturnArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$PartnerMemberPayload>[]
+        }
+        delete: {
+          args: Prisma.PartnerMemberDeleteArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$PartnerMemberPayload>
+        }
+        update: {
+          args: Prisma.PartnerMemberUpdateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$PartnerMemberPayload>
+        }
+        deleteMany: {
+          args: Prisma.PartnerMemberDeleteManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateMany: {
+          args: Prisma.PartnerMemberUpdateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateManyAndReturn: {
+          args: Prisma.PartnerMemberUpdateManyAndReturnArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$PartnerMemberPayload>[]
+        }
+        upsert: {
+          args: Prisma.PartnerMemberUpsertArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$PartnerMemberPayload>
+        }
+        aggregate: {
+          args: Prisma.PartnerMemberAggregateArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.AggregatePartnerMember>
+        }
+        groupBy: {
+          args: Prisma.PartnerMemberGroupByArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.PartnerMemberGroupByOutputType>[]
+        }
+        count: {
+          args: Prisma.PartnerMemberCountArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.PartnerMemberCountAggregateOutputType> | number
         }
       }
     }
@@ -1912,6 +2063,80 @@ export type TypeMap<ExtArgs extends runtime.Types.Extensions.InternalArgs = runt
         count: {
           args: Prisma.RentalInquiryCountArgs<ExtArgs>
           result: runtime.Types.Utils.Optional<Prisma.RentalInquiryCountAggregateOutputType> | number
+        }
+      }
+    }
+    SignupLead: {
+      payload: Prisma.$SignupLeadPayload<ExtArgs>
+      fields: Prisma.SignupLeadFieldRefs
+      operations: {
+        findUnique: {
+          args: Prisma.SignupLeadFindUniqueArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$SignupLeadPayload> | null
+        }
+        findUniqueOrThrow: {
+          args: Prisma.SignupLeadFindUniqueOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$SignupLeadPayload>
+        }
+        findFirst: {
+          args: Prisma.SignupLeadFindFirstArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$SignupLeadPayload> | null
+        }
+        findFirstOrThrow: {
+          args: Prisma.SignupLeadFindFirstOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$SignupLeadPayload>
+        }
+        findMany: {
+          args: Prisma.SignupLeadFindManyArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$SignupLeadPayload>[]
+        }
+        create: {
+          args: Prisma.SignupLeadCreateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$SignupLeadPayload>
+        }
+        createMany: {
+          args: Prisma.SignupLeadCreateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        createManyAndReturn: {
+          args: Prisma.SignupLeadCreateManyAndReturnArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$SignupLeadPayload>[]
+        }
+        delete: {
+          args: Prisma.SignupLeadDeleteArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$SignupLeadPayload>
+        }
+        update: {
+          args: Prisma.SignupLeadUpdateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$SignupLeadPayload>
+        }
+        deleteMany: {
+          args: Prisma.SignupLeadDeleteManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateMany: {
+          args: Prisma.SignupLeadUpdateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateManyAndReturn: {
+          args: Prisma.SignupLeadUpdateManyAndReturnArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$SignupLeadPayload>[]
+        }
+        upsert: {
+          args: Prisma.SignupLeadUpsertArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$SignupLeadPayload>
+        }
+        aggregate: {
+          args: Prisma.SignupLeadAggregateArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.AggregateSignupLead>
+        }
+        groupBy: {
+          args: Prisma.SignupLeadGroupByArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.SignupLeadGroupByOutputType>[]
+        }
+        count: {
+          args: Prisma.SignupLeadCountArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.SignupLeadCountAggregateOutputType> | number
         }
       }
     }
@@ -2957,6 +3182,7 @@ export const InstructorScalarFieldEnum = {
   social_whatsapp: 'social_whatsapp',
   hashed_password: 'hashed_password',
   is_active: 'is_active',
+  profile_id: 'profile_id',
   created_at: 'created_at',
   updated_at: 'updated_at'
 } as const
@@ -2975,11 +3201,38 @@ export const ClassModelScalarFieldEnum = {
   image_url: 'image_url',
   display_order: 'display_order',
   instructor_id: 'instructor_id',
+  partner_id: 'partner_id',
   created_at: 'created_at',
   updated_at: 'updated_at'
 } as const
 
 export type ClassModelScalarFieldEnum = (typeof ClassModelScalarFieldEnum)[keyof typeof ClassModelScalarFieldEnum]
+
+
+export const PartnerScalarFieldEnum = {
+  id: 'id',
+  name: 'name',
+  slug: 'slug',
+  logo_url: 'logo_url',
+  description: 'description',
+  is_active: 'is_active',
+  created_at: 'created_at',
+  updated_at: 'updated_at'
+} as const
+
+export type PartnerScalarFieldEnum = (typeof PartnerScalarFieldEnum)[keyof typeof PartnerScalarFieldEnum]
+
+
+export const PartnerMemberScalarFieldEnum = {
+  id: 'id',
+  partner_id: 'partner_id',
+  profile_id: 'profile_id',
+  role: 'role',
+  created_at: 'created_at',
+  updated_at: 'updated_at'
+} as const
+
+export type PartnerMemberScalarFieldEnum = (typeof PartnerMemberScalarFieldEnum)[keyof typeof PartnerMemberScalarFieldEnum]
 
 
 export const ClassScheduleScalarFieldEnum = {
@@ -3069,12 +3322,14 @@ export const BookingScalarFieldEnum = {
   class_schedule_id: 'class_schedule_id',
   user_package_id: 'user_package_id',
   status: 'status',
+  confirmation_status: 'confirmation_status',
   booking_date: 'booking_date',
   created_at: 'created_at',
   updated_at: 'updated_at',
   cancellation_date: 'cancellation_date',
   class_name: 'class_name',
   class_time: 'class_time',
+  email: 'email',
   checked_in: 'checked_in',
   check_in_time: 'check_in_time',
   check_in_outcome: 'check_in_outcome',
@@ -3226,6 +3481,20 @@ export const RentalInquiryScalarFieldEnum = {
 } as const
 
 export type RentalInquiryScalarFieldEnum = (typeof RentalInquiryScalarFieldEnum)[keyof typeof RentalInquiryScalarFieldEnum]
+
+
+export const SignupLeadScalarFieldEnum = {
+  id: 'id',
+  email: 'email',
+  full_name: 'full_name',
+  phone: 'phone',
+  status: 'status',
+  converted_at: 'converted_at',
+  created_at: 'created_at',
+  updated_at: 'updated_at'
+} as const
+
+export type SignupLeadScalarFieldEnum = (typeof SignupLeadScalarFieldEnum)[keyof typeof SignupLeadScalarFieldEnum]
 
 
 export const UserStatsScalarFieldEnum = {
@@ -3713,6 +3982,8 @@ export type GlobalOmitConfig = {
   retailOrder?: Prisma.RetailOrderOmit
   instructor?: Prisma.InstructorOmit
   classModel?: Prisma.ClassModelOmit
+  partner?: Prisma.PartnerOmit
+  partnerMember?: Prisma.PartnerMemberOmit
   classSchedule?: Prisma.ClassScheduleOmit
   packageType?: Prisma.PackageTypeOmit
   package?: Prisma.PackageOmit
@@ -3726,6 +3997,7 @@ export type GlobalOmitConfig = {
   mealSubscription?: Prisma.MealSubscriptionOmit
   mealSubscriptionInquiry?: Prisma.MealSubscriptionInquiryOmit
   rentalInquiry?: Prisma.RentalInquiryOmit
+  signupLead?: Prisma.SignupLeadOmit
   userStats?: Prisma.UserStatsOmit
   userStreak?: Prisma.UserStreakOmit
   badgeTemplate?: Prisma.BadgeTemplateOmit

@@ -32,7 +32,26 @@ async function main() {
     data: { hashed_password: hashed },
   });
 
-  console.log(`Password set for instructor: ${instructor.name} (${instructor.email})`);
+  // Unified login: the actual login lives on the linked role "instructor" Profile.
+  const lower = (instructor.email ?? email).trim().toLowerCase();
+  let profileId = instructor.profile_id;
+  if (!profileId) {
+    const existing = await prisma.profile.findFirst({ where: { email: lower, role: "instructor" }, select: { id: true } });
+    profileId = existing?.id ?? null;
+  }
+  if (profileId) {
+    await prisma.profile.update({ where: { id: profileId }, data: { hashedPassword: hashed } });
+  } else {
+    const created = await prisma.profile.create({
+      data: { email: lower, full_name: instructor.name, hashedPassword: hashed, role: "instructor", onboarding_completed: true },
+    });
+    profileId = created.id;
+  }
+  if (instructor.profile_id !== profileId) {
+    await prisma.instructor.update({ where: { id: instructor.id }, data: { profile_id: profileId } });
+  }
+
+  console.log(`Password set for instructor login: ${instructor.name} (${lower})`);
   await prisma.$disconnect();
 }
 

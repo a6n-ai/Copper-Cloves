@@ -208,7 +208,7 @@ async function upsertMember(
       ? null
       : Math.max(0, Math.floor(member.sessionsLeft));
 
-  let profile = await prisma.profile.findUnique({ where: { email } });
+  let profile = await prisma.profile.findFirst({ where: { email, role: "user" } });
 
   if (profile) {
     profile = await prisma.profile.update({

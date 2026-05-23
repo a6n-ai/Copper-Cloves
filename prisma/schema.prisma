@@ -11,7 +11,7 @@ datasource db {
 
 model Profile {
   id             String   @id @default(uuid())
-  email          String   @unique
+  email          String
   full_name      String?
   phone          String?
   whatsapp_phone String?
@@ -29,6 +29,8 @@ model Profile {
   created_at           DateTime @default(now())
   updated_at           DateTime @default(now()) @updatedAt
 
+  instructor_account Instructor?
+  partner_memberships PartnerMember[]
   bookings          Booking[]
   cafe_orders       CafeOrder[]
   meal_subscriptions MealSubscription[]
@@ -47,6 +49,7 @@ model Profile {
   payments          Payment[]
   recorded_payments Payment[] @relation("PaymentRecordedBy")
 
+  @@unique([email, role])
   @@map("profiles")
 }
 
@@ -156,12 +159,15 @@ model Instructor {
   social_whatsapp    String?
   hashed_password          String?
   is_active                Boolean  @default(true)
+  /// Links this instructor to their unified-login user account (NextAuth Profile).
+  profile_id               String?  @unique
   created_at               DateTime @default(now())
   updated_at               DateTime @default(now()) @updatedAt
 
   classes                    ClassModel[]
   class_schedules            ClassSchedule[] @relation("ScheduledInstructor")
   actual_class_schedules     ClassSchedule[] @relation("ActualInstructor")
+  profile                    Profile? @relation(fields: [profile_id], references: [id], onDelete: SetNull)
 
   @@map("instructors")
 }
@@ -177,14 +183,53 @@ model ClassModel {
   image_url     String?
   display_order Int?
   instructor_id String?
+  /// When set, this class is run by an external partner/brand (rented slot) — its bookings need partner sign-off.
+  partner_id    String?
   created_at    DateTime @default(now())
   updated_at    DateTime @default(now()) @updatedAt
 
   instructor      Instructor?     @relation(fields: [instructor_id], references: [id], onDelete: SetNull)
+  partner         Partner?        @relation(fields: [partner_id], references: [id], onDelete: SetNull)
   class_schedules ClassSchedule[]
 
   @@index([instructor_id])
+  @@index([partner_id])
   @@map("class_types")
+}
+
+/// External partner/brand renting the studio to run their own classes (e.g. Physique 57). Mainly classes today; rentals/events can attach later.
+model Partner {
+  id            String   @id @default(uuid())
+  name          String
+  slug          String   @unique
+  logo_url      String?
+  description   String?
+  is_active     Boolean  @default(true)
+  created_at    DateTime @default(now())
+  updated_at    DateTime @default(now()) @updatedAt
+
+  classes ClassModel[]
+  members PartnerMember[]
+
+  @@map("partners")
+}
+
+/// Links a user (Profile) to a Partner they manage — a partner can have many users,
+/// and a user could belong to multiple partners. `role`: manager today, instructor later.
+model PartnerMember {
+  id         String   @id @default(uuid())
+  partner_id String
+  profile_id String
+  role       String   @default("manager")
+  created_at DateTime @default(now())
+  updated_at DateTime @default(now()) @updatedAt
+
+  partner Partner @relation(fields: [partner_id], references: [id], onDelete: Cascade)
+  profile Profile @relation(fields: [profile_id], references: [id], onDelete: Cascade)
+
+  @@unique([partner_id, profile_id])
+  @@index([profile_id])
+  @@map("partner_members")
 }
 
 model ClassSchedule {
@@ -304,12 +349,16 @@ model Booking {
   class_schedule_id String?
   user_package_id   String?
   status            String    @default("confirmed")
+  /// Physique 57 instructor sign-off: `pending` until the 57 instructor confirms, then `confirmed`. Null = not a 57 class (no sign-off needed).
+  confirmation_status String?
   booking_date      DateTime  @default(now())
   created_at        DateTime  @default(now())
   updated_at        DateTime  @default(now()) @updatedAt
   cancellation_date DateTime?
   class_name        String?
   class_time        String?
+  /// Snapshot of the booked person's email (booker or guest) for quick lookup/audit.
+  email             String?
   checked_in        Boolean   @default(false)
   check_in_time     DateTime?
   /// `on_time` | `late` | `no_show` (set by portal check-in or reconcileNoShowsGlobally).
@@ -334,6 +383,7 @@ model Booking {
   @@index([class_schedule_id])
   @@index([user_package_id])
   @@index([booking_date])
+  @@index([email])
   @@index([status, booking_date])
   @@index([checked_in, booking_date])
   @@index([check_in_outcome, booking_date])
@@ -546,6 +596,22 @@ model RentalInquiry {
   @@index([email])
   @@index([created_at])
   @@map("rental_inquiries")
+}
+
+/// Partial signups captured at step 1 (name + email) before completion — lets us nudge un-converted leads later.
+model SignupLead {
+  id           String    @id @default(uuid())
+  email        String    @unique
+  full_name    String
+  phone        String?
+  status       String    @default("captured") // captured | converted
+  converted_at DateTime?
+  created_at   DateTime  @default(now())
+  updated_at   DateTime  @default(now()) @updatedAt
+
+  @@index([status])
+  @@index([created_at])
+  @@map("signup_leads")
 }
 
 model UserStats {

@@ -19,8 +19,9 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   const hashedPassword = await bcrypt.hash(password, 12);
 
   await prisma.$transaction([
-    prisma.profile.update({
-      where: { email: record.email },
+    // Portal reset targets the member (role "user") login for this email.
+    prisma.profile.updateMany({
+      where: { email: record.email, role: "user" },
       data: { hashedPassword },
     }),
     prisma.passwordResetToken.update({

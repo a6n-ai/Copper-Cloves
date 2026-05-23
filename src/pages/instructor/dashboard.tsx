@@ -1,8 +1,10 @@
 import { useState, useEffect, useCallback } from "react";
 import { useRouter } from "next/router";
+import { useSession, signOut } from "next-auth/react";
 import Link from "next/link";
 import { format, isAfter, isBefore, isToday, isTomorrow } from "date-fns";
 import { Button } from "@/components/ui/button";
+import { RoleSwitcher } from "@/components/RoleSwitcher";
 import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import {
@@ -109,6 +111,7 @@ function MemberAvatar({ name, url }: { name: string; url: string | null }) {
 
 export default function InstructorDashboard() {
   const router = useRouter();
+  const { data: session, status } = useSession();
   const [instructorName, setInstructorName] = useState("");
   const [classes, setClasses] = useState<ClassRow[]>([]);
   const [loading, setLoading] = useState(true);
@@ -124,17 +127,11 @@ export default function InstructorDashboard() {
 
   const loadData = useCallback(async () => {
     try {
-      const [sessionRes, classesRes] = await Promise.all([
-        fetch("/api/instructor/auth"),
-        fetch("/api/instructor/today-classes"),
-      ]);
-      if (sessionRes.status === 401) {
-        router.replace("/instructor/login");
+      const classesRes = await fetch("/api/instructor/today-classes");
+      if (classesRes.status === 401) {
+        router.replace("/login");
         return;
       }
-      const session = await sessionRes.json();
-      setInstructorName(session.name ?? "Instructor");
-
       if (classesRes.ok) {
         const data: ClassRow[] = await classesRes.json();
         setClasses(data);
@@ -147,13 +144,21 @@ export default function InstructorDashboard() {
     }
   }, [router, selectedClassId]);
 
+  // Guard: only instructors here; everyone else goes to the unified login.
   useEffect(() => {
+    if (status === "loading") return;
+    const role = (session?.user as { role?: string } | undefined)?.role;
+    if (status === "unauthenticated" || role !== "instructor") {
+      router.replace("/login");
+      return;
+    }
+    setInstructorName(session?.user?.name ?? "Instructor");
     void loadData();
-  }, []); // eslint-disable-line react-hooks/exhaustive-deps
+  }, [status, session, router, loadData]);
 
   async function handleSignOut() {
-    await fetch("/api/instructor/auth", { method: "DELETE" });
-    router.replace("/instructor/login");
+    await signOut({ redirect: false });
+    router.replace("/login");
   }
 
   async function handleCheckIn(bookingId: string) {
@@ -244,6 +249,7 @@ export default function InstructorDashboard() {
           </Link>
 
           <div className="flex items-center gap-3">
+            <RoleSwitcher />
             <div className="hidden sm:block text-right">
               <p className="font-body text-sm font-medium text-charcoal">{instructorName}</p>
               <p className="font-body text-[10px] text-charcoal/50 uppercase tracking-wider">Instructor</p>

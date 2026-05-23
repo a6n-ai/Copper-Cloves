@@ -62,7 +62,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
   try {
     await prisma.profile.upsert({
-      where: { email },
+      where: { email_role: { email, role: "admin" } },
       create: {
         email,
         full_name: "Studio Administrator",
@@ -70,7 +70,6 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         hashedPassword: hash,
       },
       update: {
-        role: "admin",
         hashedPassword: hash,
       },
     });
@@ -82,6 +81,6 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   return res.status(200).json({
     ok: true,
     email,
-    message: "Admin profile ready. Log in at /admin/login. Remove ADMIN_SETUP_SECRET and ADMIN_PASSWORD from env when done.",
+    message: "Admin profile ready. Log in at /login. Remove ADMIN_SETUP_SECRET and ADMIN_PASSWORD from env when done.",
   });
 }

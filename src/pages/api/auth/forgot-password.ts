@@ -13,8 +13,9 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
   const normalised = email.trim().toLowerCase();
 
-  // Always return 200 — never reveal whether email exists
-  const profile = await prisma.profile.findUnique({ where: { email: normalised } });
+  // Always return 200 — never reveal whether email exists.
+  // Portal reset is for the member (role "user") login.
+  const profile = await prisma.profile.findFirst({ where: { email: normalised, role: "user" } });
   if (!profile) return res.status(200).json({ ok: true });
 
   const token = crypto.randomBytes(32).toString("hex");

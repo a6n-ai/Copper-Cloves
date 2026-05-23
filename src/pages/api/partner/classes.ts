@@ -1,6 +1,6 @@
 import type { NextApiRequest, NextApiResponse } from "next";
 import prisma from "@/lib/prisma";
-import { getP57Session } from "@/lib/p57Auth";
+import { getStudioServerSession } from "@/lib/getStudioServerSession";
 import { startOfMondayWeekLocal, endOfSundayWeekLocal } from "@/lib/calendarWeek";
 
 function parseDate(v: unknown): Date | null {
@@ -12,11 +12,13 @@ function parseDate(v: unknown): Date | null {
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
   if (req.method !== "GET") return res.status(405).end();
 
-  const session = getP57Session(req);
-  if (!session) return res.status(401).json({ error: "Not authenticated" });
+  const sess = await getStudioServerSession(req, res);
+  const user = sess?.user as { role?: string; partner_id?: string | null } | undefined;
+  if (!user || user.role !== "partner" || !user.partner_id) {
+    return res.status(401).json({ error: "Not authenticated" });
+  }
+  const partnerId = user.partner_id;
 
-  // Range comes from the client (week or month being viewed). Defaults to the
-  // current Monday-based week when not provided.
   const now = new Date();
   let rangeStart = parseDate(req.query.from);
   let rangeEnd = parseDate(req.query.to);
@@ -24,18 +26,16 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     rangeStart = startOfMondayWeekLocal(now);
     rangeEnd = endOfSundayWeekLocal(rangeStart);
   }
-  // Cap the span to ~3 months to keep the query bounded.
   if (rangeEnd.getTime() - rangeStart.getTime() > 1000 * 60 * 60 * 24 * 100) {
     rangeEnd = new Date(rangeStart.getTime() + 1000 * 60 * 60 * 24 * 100);
   }
 
-  // Physique 57 classes are identified by "57" in the class name
-  // (Barre 57, Mat 57, FIT 57, Barre 57 Express, …).
+  // Only this partner's classes (instructor role would further scope to own classes later).
   const schedules = await prisma.classSchedule.findMany({
     where: {
       start_time: { gte: rangeStart, lte: rangeEnd },
       status: { not: "cancelled" },
-      class_model: { is: { name: { contains: "57" } } },
+      class_model: { is: { partner_id: partnerId } },
     },
     include: {
       class_model: true,
@@ -74,6 +74,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         checkedIn: b.checked_in,
         checkInOutcome: b.check_in_outcome,
         extraGuests: b.extra_guest_count ?? 0,
+        confirmationStatus: b.confirmation_status ?? null,
       })),
     };
   });

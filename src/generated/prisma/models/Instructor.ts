@@ -54,6 +54,7 @@ export type InstructorMinAggregateOutputType = {
   social_whatsapp: string | null
   hashed_password: string | null
   is_active: boolean | null
+  profile_id: string | null
   created_at: Date | null
   updated_at: Date | null
 }
@@ -76,6 +77,7 @@ export type InstructorMaxAggregateOutputType = {
   social_whatsapp: string | null
   hashed_password: string | null
   is_active: boolean | null
+  profile_id: string | null
   created_at: Date | null
   updated_at: Date | null
 }
@@ -100,6 +102,7 @@ export type InstructorCountAggregateOutputType = {
   social_whatsapp: number
   hashed_password: number
   is_active: number
+  profile_id: number
   created_at: number
   updated_at: number
   _all: number
@@ -134,6 +137,7 @@ export type InstructorMinAggregateInputType = {
   social_whatsapp?: true
   hashed_password?: true
   is_active?: true
+  profile_id?: true
   created_at?: true
   updated_at?: true
 }
@@ -156,6 +160,7 @@ export type InstructorMaxAggregateInputType = {
   social_whatsapp?: true
   hashed_password?: true
   is_active?: true
+  profile_id?: true
   created_at?: true
   updated_at?: true
 }
@@ -180,6 +185,7 @@ export type InstructorCountAggregateInputType = {
   social_whatsapp?: true
   hashed_password?: true
   is_active?: true
+  profile_id?: true
   created_at?: true
   updated_at?: true
   _all?: true
@@ -291,6 +297,7 @@ export type InstructorGroupByOutputType = {
   social_whatsapp: string | null
   hashed_password: string | null
   is_active: boolean
+  profile_id: string | null
   created_at: Date
   updated_at: Date
   _count: InstructorCountAggregateOutputType | null
@@ -338,11 +345,13 @@ export type InstructorWhereInput = {
   social_whatsapp?: Prisma.StringNullableFilter<"Instructor"> | string | null
   hashed_password?: Prisma.StringNullableFilter<"Instructor"> | string | null
   is_active?: Prisma.BoolFilter<"Instructor"> | boolean
+  profile_id?: Prisma.StringNullableFilter<"Instructor"> | string | null
   created_at?: Prisma.DateTimeFilter<"Instructor"> | Date | string
   updated_at?: Prisma.DateTimeFilter<"Instructor"> | Date | string
   classes?: Prisma.ClassModelListRelationFilter
   class_schedules?: Prisma.ClassScheduleListRelationFilter
   actual_class_schedules?: Prisma.ClassScheduleListRelationFilter
+  profile?: Prisma.XOR<Prisma.ProfileNullableScalarRelationFilter, Prisma.ProfileWhereInput> | null
 }
 
 export type InstructorOrderByWithRelationInput = {
@@ -365,15 +374,18 @@ export type InstructorOrderByWithRelationInput = {
   social_whatsapp?: Prisma.SortOrderInput | Prisma.SortOrder
   hashed_password?: Prisma.SortOrderInput | Prisma.SortOrder
   is_active?: Prisma.SortOrder
+  profile_id?: Prisma.SortOrderInput | Prisma.SortOrder
   created_at?: Prisma.SortOrder
   updated_at?: Prisma.SortOrder
   classes?: Prisma.ClassModelOrderByRelationAggregateInput
   class_schedules?: Prisma.ClassScheduleOrderByRelationAggregateInput
   actual_class_schedules?: Prisma.ClassScheduleOrderByRelationAggregateInput
+  profile?: Prisma.ProfileOrderByWithRelationInput
 }
 
 export type InstructorWhereUniqueInput = Prisma.AtLeast<{
   id?: string
+  profile_id?: string
   AND?: Prisma.InstructorWhereInput | Prisma.InstructorWhereInput[]
   OR?: Prisma.InstructorWhereInput[]
   NOT?: Prisma.InstructorWhereInput | Prisma.InstructorWhereInput[]
@@ -400,7 +412,8 @@ export type InstructorWhereUniqueInput = Prisma.AtLeast<{
   classes?: Prisma.ClassModelListRelationFilter
   class_schedules?: Prisma.ClassScheduleListRelationFilter
   actual_class_schedules?: Prisma.ClassScheduleListRelationFilter
-}, "id">
+  profile?: Prisma.XOR<Prisma.ProfileNullableScalarRelationFilter, Prisma.ProfileWhereInput> | null
+}, "id" | "profile_id">
 
 export type InstructorOrderByWithAggregationInput = {
   id?: Prisma.SortOrder
@@ -422,6 +435,7 @@ export type InstructorOrderByWithAggregationInput = {
   social_whatsapp?: Prisma.SortOrderInput | Prisma.SortOrder
   hashed_password?: Prisma.SortOrderInput | Prisma.SortOrder
   is_active?: Prisma.SortOrder
+  profile_id?: Prisma.SortOrderInput | Prisma.SortOrder
   created_at?: Prisma.SortOrder
   updated_at?: Prisma.SortOrder
   _count?: Prisma.InstructorCountOrderByAggregateInput
@@ -454,6 +468,7 @@ export type InstructorScalarWhereWithAggregatesInput = {
   social_whatsapp?: Prisma.StringNullableWithAggregatesFilter<"Instructor"> | string | null
   hashed_password?: Prisma.StringNullableWithAggregatesFilter<"Instructor"> | string | null
   is_active?: Prisma.BoolWithAggregatesFilter<"Instructor"> | boolean
+  profile_id?: Prisma.StringNullableWithAggregatesFilter<"Instructor"> | string | null
   created_at?: Prisma.DateTimeWithAggregatesFilter<"Instructor"> | Date | string
   updated_at?: Prisma.DateTimeWithAggregatesFilter<"Instructor"> | Date | string
 }
@@ -483,6 +498,7 @@ export type InstructorCreateInput = {
   classes?: Prisma.ClassModelCreateNestedManyWithoutInstructorInput
   class_schedules?: Prisma.ClassScheduleCreateNestedManyWithoutInstructorInput
   actual_class_schedules?: Prisma.ClassScheduleCreateNestedManyWithoutActual_instructorInput
+  profile?: Prisma.ProfileCreateNestedOneWithoutInstructor_accountInput
 }
 
 export type InstructorUncheckedCreateInput = {
@@ -505,6 +521,7 @@ export type InstructorUncheckedCreateInput = {
   social_whatsapp?: string | null
   hashed_password?: string | null
   is_active?: boolean
+  profile_id?: string | null
   created_at?: Date | string
   updated_at?: Date | string
   classes?: Prisma.ClassModelUncheckedCreateNestedManyWithoutInstructorInput
@@ -537,6 +554,7 @@ export type InstructorUpdateInput = {
   classes?: Prisma.ClassModelUpdateManyWithoutInstructorNestedInput
   class_schedules?: Prisma.ClassScheduleUpdateManyWithoutInstructorNestedInput
   actual_class_schedules?: Prisma.ClassScheduleUpdateManyWithoutActual_instructorNestedInput
+  profile?: Prisma.ProfileUpdateOneWithoutInstructor_accountNestedInput
 }
 
 export type InstructorUncheckedUpdateInput = {
@@ -559,6 +577,7 @@ export type InstructorUncheckedUpdateInput = {
   social_whatsapp?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   hashed_password?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   is_active?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  profile_id?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   created_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updated_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   classes?: Prisma.ClassModelUncheckedUpdateManyWithoutInstructorNestedInput
@@ -586,6 +605,7 @@ export type InstructorCreateManyInput = {
   social_whatsapp?: string | null
   hashed_password?: string | null
   is_active?: boolean
+  profile_id?: string | null
   created_at?: Date | string
   updated_at?: Date | string
 }
@@ -634,8 +654,14 @@ export type InstructorUncheckedUpdateManyInput = {
   social_whatsapp?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   hashed_password?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   is_active?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  profile_id?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   created_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updated_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+}
+
+export type InstructorNullableScalarRelationFilter = {
+  is?: Prisma.InstructorWhereInput | null
+  isNot?: Prisma.InstructorWhereInput | null
 }
 
 export type StringNullableListFilter<$PrismaModel = never> = {
@@ -666,6 +692,7 @@ export type InstructorCountOrderByAggregateInput = {
   social_whatsapp?: Prisma.SortOrder
   hashed_password?: Prisma.SortOrder
   is_active?: Prisma.SortOrder
+  profile_id?: Prisma.SortOrder
   created_at?: Prisma.SortOrder
   updated_at?: Prisma.SortOrder
 }
@@ -693,6 +720,7 @@ export type InstructorMaxOrderByAggregateInput = {
   social_whatsapp?: Prisma.SortOrder
   hashed_password?: Prisma.SortOrder
   is_active?: Prisma.SortOrder
+  profile_id?: Prisma.SortOrder
   created_at?: Prisma.SortOrder
   updated_at?: Prisma.SortOrder
 }
@@ -715,6 +743,7 @@ export type InstructorMinOrderByAggregateInput = {
   social_whatsapp?: Prisma.SortOrder
   hashed_password?: Prisma.SortOrder
   is_active?: Prisma.SortOrder
+  profile_id?: Prisma.SortOrder
   created_at?: Prisma.SortOrder
   updated_at?: Prisma.SortOrder
 }
@@ -724,9 +753,36 @@ export type InstructorSumOrderByAggregateInput = {
   display_order?: Prisma.SortOrder
 }
 
-export type InstructorNullableScalarRelationFilter = {
-  is?: Prisma.InstructorWhereInput | null
-  isNot?: Prisma.InstructorWhereInput | null
+export type InstructorCreateNestedOneWithoutProfileInput = {
+  create?: Prisma.XOR<Prisma.InstructorCreateWithoutProfileInput, Prisma.InstructorUncheckedCreateWithoutProfileInput>
+  connectOrCreate?: Prisma.InstructorCreateOrConnectWithoutProfileInput
+  connect?: Prisma.InstructorWhereUniqueInput
+}
+
+export type InstructorUncheckedCreateNestedOneWithoutProfileInput = {
+  create?: Prisma.XOR<Prisma.InstructorCreateWithoutProfileInput, Prisma.InstructorUncheckedCreateWithoutProfileInput>
+  connectOrCreate?: Prisma.InstructorCreateOrConnectWithoutProfileInput
+  connect?: Prisma.InstructorWhereUniqueInput
+}
+
+export type InstructorUpdateOneWithoutProfileNestedInput = {
+  create?: Prisma.XOR<Prisma.InstructorCreateWithoutProfileInput, Prisma.InstructorUncheckedCreateWithoutProfileInput>
+  connectOrCreate?: Prisma.InstructorCreateOrConnectWithoutProfileInput
+  upsert?: Prisma.InstructorUpsertWithoutProfileInput
+  disconnect?: Prisma.InstructorWhereInput | boolean
+  delete?: Prisma.InstructorWhereInput | boolean
+  connect?: Prisma.InstructorWhereUniqueInput
+  update?: Prisma.XOR<Prisma.XOR<Prisma.InstructorUpdateToOneWithWhereWithoutProfileInput, Prisma.InstructorUpdateWithoutProfileInput>, Prisma.InstructorUncheckedUpdateWithoutProfileInput>
+}
+
+export type InstructorUncheckedUpdateOneWithoutProfileNestedInput = {
+  create?: Prisma.XOR<Prisma.InstructorCreateWithoutProfileInput, Prisma.InstructorUncheckedCreateWithoutProfileInput>
+  connectOrCreate?: Prisma.InstructorCreateOrConnectWithoutProfileInput
+  upsert?: Prisma.InstructorUpsertWithoutProfileInput
+  disconnect?: Prisma.InstructorWhereInput | boolean
+  delete?: Prisma.InstructorWhereInput | boolean
+  connect?: Prisma.InstructorWhereUniqueInput
+  update?: Prisma.XOR<Prisma.XOR<Prisma.InstructorUpdateToOneWithWhereWithoutProfileInput, Prisma.InstructorUpdateWithoutProfileInput>, Prisma.InstructorUncheckedUpdateWithoutProfileInput>
 }
 
 export type InstructorCreatespecialtiesInput = {
@@ -803,6 +859,130 @@ export type InstructorUpdateOneWithoutActual_class_schedulesNestedInput = {
   update?: Prisma.XOR<Prisma.XOR<Prisma.InstructorUpdateToOneWithWhereWithoutActual_class_schedulesInput, Prisma.InstructorUpdateWithoutActual_class_schedulesInput>, Prisma.InstructorUncheckedUpdateWithoutActual_class_schedulesInput>
 }
 
+export type InstructorCreateWithoutProfileInput = {
+  id?: string
+  name: string
+  title?: string | null
+  email?: string | null
+  phone?: string | null
+  studio_payout_cut_percent?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
+  image_url?: string | null
+  about?: string | null
+  philosophy?: string | null
+  specialties?: Prisma.InstructorCreatespecialtiesInput | string[]
+  certifications?: Prisma.InstructorCreatecertificationsInput | string[]
+  years_of_experience?: string | null
+  display_order?: number | null
+  social_facebook?: string | null
+  social_twitter?: string | null
+  social_linkedin?: string | null
+  social_whatsapp?: string | null
+  hashed_password?: string | null
+  is_active?: boolean
+  created_at?: Date | string
+  updated_at?: Date | string
+  classes?: Prisma.ClassModelCreateNestedManyWithoutInstructorInput
+  class_schedules?: Prisma.ClassScheduleCreateNestedManyWithoutInstructorInput
+  actual_class_schedules?: Prisma.ClassScheduleCreateNestedManyWithoutActual_instructorInput
+}
+
+export type InstructorUncheckedCreateWithoutProfileInput = {
+  id?: string
+  name: string
+  title?: string | null
+  email?: string | null
+  phone?: string | null
+  studio_payout_cut_percent?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
+  image_url?: string | null
+  about?: string | null
+  philosophy?: string | null
+  specialties?: Prisma.InstructorCreatespecialtiesInput | string[]
+  certifications?: Prisma.InstructorCreatecertificationsInput | string[]
+  years_of_experience?: string | null
+  display_order?: number | null
+  social_facebook?: string | null
+  social_twitter?: string | null
+  social_linkedin?: string | null
+  social_whatsapp?: string | null
+  hashed_password?: string | null
+  is_active?: boolean
+  created_at?: Date | string
+  updated_at?: Date | string
+  classes?: Prisma.ClassModelUncheckedCreateNestedManyWithoutInstructorInput
+  class_schedules?: Prisma.ClassScheduleUncheckedCreateNestedManyWithoutInstructorInput
+  actual_class_schedules?: Prisma.ClassScheduleUncheckedCreateNestedManyWithoutActual_instructorInput
+}
+
+export type InstructorCreateOrConnectWithoutProfileInput = {
+  where: Prisma.InstructorWhereUniqueInput
+  create: Prisma.XOR<Prisma.InstructorCreateWithoutProfileInput, Prisma.InstructorUncheckedCreateWithoutProfileInput>
+}
+
+export type InstructorUpsertWithoutProfileInput = {
+  update: Prisma.XOR<Prisma.InstructorUpdateWithoutProfileInput, Prisma.InstructorUncheckedUpdateWithoutProfileInput>
+  create: Prisma.XOR<Prisma.InstructorCreateWithoutProfileInput, Prisma.InstructorUncheckedCreateWithoutProfileInput>
+  where?: Prisma.InstructorWhereInput
+}
+
+export type InstructorUpdateToOneWithWhereWithoutProfileInput = {
+  where?: Prisma.InstructorWhereInput
+  data: Prisma.XOR<Prisma.InstructorUpdateWithoutProfileInput, Prisma.InstructorUncheckedUpdateWithoutProfileInput>
+}
+
+export type InstructorUpdateWithoutProfileInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  name?: Prisma.StringFieldUpdateOperationsInput | string
+  title?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  email?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  phone?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  studio_payout_cut_percent?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
+  image_url?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  about?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  philosophy?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  specialties?: Prisma.InstructorUpdatespecialtiesInput | string[]
+  certifications?: Prisma.InstructorUpdatecertificationsInput | string[]
+  years_of_experience?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  display_order?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  social_facebook?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  social_twitter?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  social_linkedin?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  social_whatsapp?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  hashed_password?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  is_active?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  created_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updated_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  classes?: Prisma.ClassModelUpdateManyWithoutInstructorNestedInput
+  class_schedules?: Prisma.ClassScheduleUpdateManyWithoutInstructorNestedInput
+  actual_class_schedules?: Prisma.ClassScheduleUpdateManyWithoutActual_instructorNestedInput
+}
+
+export type InstructorUncheckedUpdateWithoutProfileInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  name?: Prisma.StringFieldUpdateOperationsInput | string
+  title?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  email?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  phone?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  studio_payout_cut_percent?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
+  image_url?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  about?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  philosophy?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  specialties?: Prisma.InstructorUpdatespecialtiesInput | string[]
+  certifications?: Prisma.InstructorUpdatecertificationsInput | string[]
+  years_of_experience?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  display_order?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  social_facebook?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  social_twitter?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  social_linkedin?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  social_whatsapp?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  hashed_password?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  is_active?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  created_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updated_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  classes?: Prisma.ClassModelUncheckedUpdateManyWithoutInstructorNestedInput
+  class_schedules?: Prisma.ClassScheduleUncheckedUpdateManyWithoutInstructorNestedInput
+  actual_class_schedules?: Prisma.ClassScheduleUncheckedUpdateManyWithoutActual_instructorNestedInput
+}
+
 export type InstructorCreateWithoutClassesInput = {
   id?: string
   name: string
@@ -827,6 +1007,7 @@ export type InstructorCreateWithoutClassesInput = {
   updated_at?: Date | string
   class_schedules?: Prisma.ClassScheduleCreateNestedManyWithoutInstructorInput
   actual_class_schedules?: Prisma.ClassScheduleCreateNestedManyWithoutActual_instructorInput
+  profile?: Prisma.ProfileCreateNestedOneWithoutInstructor_accountInput
 }
 
 export type InstructorUncheckedCreateWithoutClassesInput = {
@@ -849,6 +1030,7 @@ export type InstructorUncheckedCreateWithoutClassesInput = {
   social_whatsapp?: string | null
   hashed_password?: string | null
   is_active?: boolean
+  profile_id?: string | null
   created_at?: Date | string
   updated_at?: Date | string
   class_schedules?: Prisma.ClassScheduleUncheckedCreateNestedManyWithoutInstructorInput
@@ -895,6 +1077,7 @@ export type InstructorUpdateWithoutClassesInput = {
   updated_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   class_schedules?: Prisma.ClassScheduleUpdateManyWithoutInstructorNestedInput
   actual_class_schedules?: Prisma.ClassScheduleUpdateManyWithoutActual_instructorNestedInput
+  profile?: Prisma.ProfileUpdateOneWithoutInstructor_accountNestedInput
 }
 
 export type InstructorUncheckedUpdateWithoutClassesInput = {
@@ -917,6 +1100,7 @@ export type InstructorUncheckedUpdateWithoutClassesInput = {
   social_whatsapp?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   hashed_password?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   is_active?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  profile_id?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   created_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updated_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   class_schedules?: Prisma.ClassScheduleUncheckedUpdateManyWithoutInstructorNestedInput
@@ -947,6 +1131,7 @@ export type InstructorCreateWithoutClass_schedulesInput = {
   updated_at?: Date | string
   classes?: Prisma.ClassModelCreateNestedManyWithoutInstructorInput
   actual_class_schedules?: Prisma.ClassScheduleCreateNestedManyWithoutActual_instructorInput
+  profile?: Prisma.ProfileCreateNestedOneWithoutInstructor_accountInput
 }
 
 export type InstructorUncheckedCreateWithoutClass_schedulesInput = {
@@ -969,6 +1154,7 @@ export type InstructorUncheckedCreateWithoutClass_schedulesInput = {
   social_whatsapp?: string | null
   hashed_password?: string | null
   is_active?: boolean
+  profile_id?: string | null
   created_at?: Date | string
   updated_at?: Date | string
   classes?: Prisma.ClassModelUncheckedCreateNestedManyWithoutInstructorInput
@@ -1004,6 +1190,7 @@ export type InstructorCreateWithoutActual_class_schedulesInput = {
   updated_at?: Date | string
   classes?: Prisma.ClassModelCreateNestedManyWithoutInstructorInput
   class_schedules?: Prisma.ClassScheduleCreateNestedManyWithoutInstructorInput
+  profile?: Prisma.ProfileCreateNestedOneWithoutInstructor_accountInput
 }
 
 export type InstructorUncheckedCreateWithoutActual_class_schedulesInput = {
@@ -1026,6 +1213,7 @@ export type InstructorUncheckedCreateWithoutActual_class_schedulesInput = {
   social_whatsapp?: string | null
   hashed_password?: string | null
   is_active?: boolean
+  profile_id?: string | null
   created_at?: Date | string
   updated_at?: Date | string
   classes?: Prisma.ClassModelUncheckedCreateNestedManyWithoutInstructorInput
@@ -1072,6 +1260,7 @@ export type InstructorUpdateWithoutClass_schedulesInput = {
   updated_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   classes?: Prisma.ClassModelUpdateManyWithoutInstructorNestedInput
   actual_class_schedules?: Prisma.ClassScheduleUpdateManyWithoutActual_instructorNestedInput
+  profile?: Prisma.ProfileUpdateOneWithoutInstructor_accountNestedInput
 }
 
 export type InstructorUncheckedUpdateWithoutClass_schedulesInput = {
@@ -1094,6 +1283,7 @@ export type InstructorUncheckedUpdateWithoutClass_schedulesInput = {
   social_whatsapp?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   hashed_password?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   is_active?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  profile_id?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   created_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updated_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   classes?: Prisma.ClassModelUncheckedUpdateManyWithoutInstructorNestedInput
@@ -1135,6 +1325,7 @@ export type InstructorUpdateWithoutActual_class_schedulesInput = {
   updated_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   classes?: Prisma.ClassModelUpdateManyWithoutInstructorNestedInput
   class_schedules?: Prisma.ClassScheduleUpdateManyWithoutInstructorNestedInput
+  profile?: Prisma.ProfileUpdateOneWithoutInstructor_accountNestedInput
 }
 
 export type InstructorUncheckedUpdateWithoutActual_class_schedulesInput = {
@@ -1157,6 +1348,7 @@ export type InstructorUncheckedUpdateWithoutActual_class_schedulesInput = {
   social_whatsapp?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   hashed_password?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   is_active?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  profile_id?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   created_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updated_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   classes?: Prisma.ClassModelUncheckedUpdateManyWithoutInstructorNestedInput
@@ -1232,11 +1424,13 @@ export type InstructorSelect<ExtArgs extends runtime.Types.Extensions.InternalAr
   social_whatsapp?: boolean
   hashed_password?: boolean
   is_active?: boolean
+  profile_id?: boolean
   created_at?: boolean
   updated_at?: boolean
   classes?: boolean | Prisma.Instructor$classesArgs<ExtArgs>
   class_schedules?: boolean | Prisma.Instructor$class_schedulesArgs<ExtArgs>
   actual_class_schedules?: boolean | Prisma.Instructor$actual_class_schedulesArgs<ExtArgs>
+  profile?: boolean | Prisma.Instructor$profileArgs<ExtArgs>
   _count?: boolean | Prisma.InstructorCountOutputTypeDefaultArgs<ExtArgs>
 }, ExtArgs["result"]["instructor"]>
 
@@ -1260,8 +1454,10 @@ export type InstructorSelectCreateManyAndReturn<ExtArgs extends runtime.Types.Ex
   social_whatsapp?: boolean
   hashed_password?: boolean
   is_active?: boolean
+  profile_id?: boolean
   created_at?: boolean
   updated_at?: boolean
+  profile?: boolean | Prisma.Instructor$profileArgs<ExtArgs>
 }, ExtArgs["result"]["instructor"]>
 
 export type InstructorSelectUpdateManyAndReturn<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetSelect<{
@@ -1284,8 +1480,10 @@ export type InstructorSelectUpdateManyAndReturn<ExtArgs extends runtime.Types.Ex
   social_whatsapp?: boolean
   hashed_password?: boolean
   is_active?: boolean
+  profile_id?: boolean
   created_at?: boolean
   updated_at?: boolean
+  profile?: boolean | Prisma.Instructor$profileArgs<ExtArgs>
 }, ExtArgs["result"]["instructor"]>
 
 export type InstructorSelectScalar = {
@@ -1308,19 +1506,25 @@ export type InstructorSelectScalar = {
   social_whatsapp?: boolean
   hashed_password?: boolean
   is_active?: boolean
+  profile_id?: boolean
   created_at?: boolean
   updated_at?: boolean
 }
 
-export type InstructorOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "name" | "title" | "email" | "phone" | "studio_payout_cut_percent" | "image_url" | "about" | "philosophy" | "specialties" | "certifications" | "years_of_experience" | "display_order" | "social_facebook" | "social_twitter" | "social_linkedin" | "social_whatsapp" | "hashed_password" | "is_active" | "created_at" | "updated_at", ExtArgs["result"]["instructor"]>
+export type InstructorOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "name" | "title" | "email" | "phone" | "studio_payout_cut_percent" | "image_url" | "about" | "philosophy" | "specialties" | "certifications" | "years_of_experience" | "display_order" | "social_facebook" | "social_twitter" | "social_linkedin" | "social_whatsapp" | "hashed_password" | "is_active" | "profile_id" | "created_at" | "updated_at", ExtArgs["result"]["instructor"]>
 export type InstructorInclude<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   classes?: boolean | Prisma.Instructor$classesArgs<ExtArgs>
   class_schedules?: boolean | Prisma.Instructor$class_schedulesArgs<ExtArgs>
   actual_class_schedules?: boolean | Prisma.Instructor$actual_class_schedulesArgs<ExtArgs>
+  profile?: boolean | Prisma.Instructor$profileArgs<ExtArgs>
   _count?: boolean | Prisma.InstructorCountOutputTypeDefaultArgs<ExtArgs>
 }
-export type InstructorIncludeCreateManyAndReturn<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {}
-export type InstructorIncludeUpdateManyAndReturn<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {}
+export type InstructorIncludeCreateManyAndReturn<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  profile?: boolean | Prisma.Instructor$profileArgs<ExtArgs>
+}
+export type InstructorIncludeUpdateManyAndReturn<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  profile?: boolean | Prisma.Instructor$profileArgs<ExtArgs>
+}
 
 export type $InstructorPayload<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   name: "Instructor"
@@ -1328,6 +1532,7 @@ export type $InstructorPayload<ExtArgs extends runtime.Types.Extensions.Internal
     classes: Prisma.$ClassModelPayload<ExtArgs>[]
     class_schedules: Prisma.$ClassSchedulePayload<ExtArgs>[]
     actual_class_schedules: Prisma.$ClassSchedulePayload<ExtArgs>[]
+    profile: Prisma.$ProfilePayload<ExtArgs> | null
   }
   scalars: runtime.Types.Extensions.GetPayloadResult<{
     id: string
@@ -1352,6 +1557,10 @@ export type $InstructorPayload<ExtArgs extends runtime.Types.Extensions.Internal
     social_whatsapp: string | null
     hashed_password: string | null
     is_active: boolean
+    /**
+     * Links this instructor to their unified-login user account (NextAuth Profile).
+     */
+    profile_id: string | null
     created_at: Date
     updated_at: Date
   }, ExtArgs["result"]["instructor"]>
@@ -1751,6 +1960,7 @@ export interface Prisma__InstructorClient<T, Null = never, ExtArgs extends runti
   classes<T extends Prisma.Instructor$classesArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.Instructor$classesArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$ClassModelPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
   class_schedules<T extends Prisma.Instructor$class_schedulesArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.Instructor$class_schedulesArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$ClassSchedulePayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
   actual_class_schedules<T extends Prisma.Instructor$actual_class_schedulesArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.Instructor$actual_class_schedulesArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$ClassSchedulePayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
+  profile<T extends Prisma.Instructor$profileArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.Instructor$profileArgs<ExtArgs>>): Prisma.Prisma__ProfileClient<runtime.Types.Result.GetResult<Prisma.$ProfilePayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | null, null, ExtArgs, GlobalOmitOptions>
   /**
    * Attaches callbacks for the resolution and/or rejection of the Promise.
    * @param onfulfilled The callback to execute when the Promise is resolved.
@@ -1799,6 +2009,7 @@ export interface InstructorFieldRefs {
   readonly social_whatsapp: Prisma.FieldRef<"Instructor", 'String'>
   readonly hashed_password: Prisma.FieldRef<"Instructor", 'String'>
   readonly is_active: Prisma.FieldRef<"Instructor", 'Boolean'>
+  readonly profile_id: Prisma.FieldRef<"Instructor", 'String'>
   readonly created_at: Prisma.FieldRef<"Instructor", 'DateTime'>
   readonly updated_at: Prisma.FieldRef<"Instructor", 'DateTime'>
 }
@@ -2055,6 +2266,10 @@ export type InstructorCreateManyAndReturnArgs<ExtArgs extends runtime.Types.Exte
    */
   data: Prisma.InstructorCreateManyInput | Prisma.InstructorCreateManyInput[]
   skipDuplicates?: boolean
+  /**
+   * Choose, which related nodes to fetch as well
+   */
+  include?: Prisma.InstructorIncludeCreateManyAndReturn<ExtArgs> | null
 }
 
 /**
@@ -2125,6 +2340,10 @@ export type InstructorUpdateManyAndReturnArgs<ExtArgs extends runtime.Types.Exte
    * Limit how many Instructors to update.
    */
   limit?: number
+  /**
+   * Choose, which related nodes to fetch as well
+   */
+  include?: Prisma.InstructorIncludeUpdateManyAndReturn<ExtArgs> | null
 }
 
 /**
@@ -2263,6 +2482,25 @@ export type Instructor$actual_class_schedulesArgs<ExtArgs extends runtime.Types.
   take?: number
   skip?: number
   distinct?: Prisma.ClassScheduleScalarFieldEnum | Prisma.ClassScheduleScalarFieldEnum[]
+}
+
+/**
+ * Instructor.profile
+ */
+export type Instructor$profileArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  /**
+   * Select specific fields to fetch from the Profile
+   */
+  select?: Prisma.ProfileSelect<ExtArgs> | null
+  /**
+   * Omit specific fields from the Profile
+   */
+  omit?: Prisma.ProfileOmit<ExtArgs> | null
+  /**
+   * Choose, which related nodes to fetch as well
+   */
+  include?: Prisma.ProfileInclude<ExtArgs> | null
+  where?: Prisma.ProfileWhereInput
 }
 
 /**

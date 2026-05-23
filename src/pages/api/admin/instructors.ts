@@ -52,6 +52,30 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       data: { ...body, hashed_password },
     });
 
+    // Unified login: give the instructor a role "instructor" Profile and link it.
+    if (email) {
+      const lower = email.toLowerCase();
+      const existing = await prisma.profile.findFirst({
+        where: { email: lower, role: "instructor" },
+        select: { id: true },
+      });
+      const profile = existing
+        ? await prisma.profile.update({
+            where: { id: existing.id },
+            data: { hashedPassword: hashed_password, full_name: instructor.name ?? undefined, onboarding_completed: true },
+          })
+        : await prisma.profile.create({
+            data: {
+              email: lower,
+              full_name: instructor.name ?? null,
+              hashedPassword: hashed_password,
+              role: "instructor",
+              onboarding_completed: true,
+            },
+          });
+      await prisma.instructor.update({ where: { id: instructor.id }, data: { profile_id: profile.id } });
+    }
+
     // Best-effort welcome email with the plain password. Errors don't block creation.
     if (email) {
       try {
@@ -59,7 +83,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
           process.env.NEXTAUTH_URL?.trim() ||
           process.env.NEXT_PUBLIC_SITE_URL?.trim() ||
           "https://www.thestudiobycopperandcloves.in";
-        const loginUrl = `${baseUrl.replace(/\/$/, "")}/instructor/login`;
+        const loginUrl = `${baseUrl.replace(/\/$/, "")}/login`;
         await sendHtmlEmail({
           to: email,
           subject: "Your instructor login — The Studio",

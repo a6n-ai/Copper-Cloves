@@ -1101,8 +1101,49 @@ export default function AdminDashboard() {
           ? (snap.user_badges as { badge_name: string }[]).map((b) => b.badge_name)
           : [];
 
+        // Every past class this member booked, with its attendance outcome.
+        const attendanceHistory = bookings
+          .filter((b: Record<string, unknown>) => {
+            const st = (b.class_schedule as { start_time?: string } | undefined)?.start_time;
+            const when = st ? new Date(st) : b.class_time ? new Date(b.class_time as string) : null;
+            return when ? when < now : false;
+          })
+          .map((b: Record<string, unknown>) => {
+            const sch = b.class_schedule as { start_time?: string; class_model?: { name?: string } } | undefined;
+            const st = sch?.start_time;
+            const outcomeRaw = (b.check_in_outcome as string | null) ?? null;
+            const outcome = outcomeRaw ?? (b.checked_in ? "on_time" : "no_show");
+            return {
+              class: sch?.class_model?.name || (b.class_name as string) || "Class",
+              date: st || (b.class_time as string) || (b.booking_date as string),
+              outcome, // "on_time" | "late" | "no_show"
+            };
+          })
+          .sort(
+            (a: { date: string }, b: { date: string }) =>
+              new Date(b.date).getTime() - new Date(a.date).getTime()
+          );
+
+        // Active pass summary: studio/unlimited → infinite credits; class pass → credits left. Both show expiry.
+        const pkgs = Array.isArray(snap?.user_packages) ? (snap.user_packages as Record<string, unknown>[]) : [];
+        const activePkg = pkgs.find((p) => p.is_active) ?? pkgs[0];
+        const pt = activePkg?.package_type as { name?: string; is_unlimited?: boolean; type?: string } | undefined;
+        const isUnlimited = !!(
+          pt?.is_unlimited ||
+          activePkg?.pass_type === "studio_pass" ||
+          pt?.type === "studio_pass"
+        );
+        const creditsLeft = Number(activePkg?.credits_remaining ?? activePkg?.classes_remaining ?? 0);
+        const creditsDisplay = activePkg ? (isUnlimited ? "∞" : String(creditsLeft)) : "—";
+        const packageName = pt?.name || (member.package as string) || "—";
+        const passExpiryISO = (activePkg?.expiration_date as string | undefined) ?? null;
+
         const profileData = {
           ...member,
+          credits: creditsDisplay,
+          package: packageName,
+          isUnlimited,
+          passExpiryISO,
           name: snap?.full_name ?? member.name,
           email: snap?.email ?? member.email,
           phone: snap?.phone ?? "—",
@@ -1115,6 +1156,7 @@ export default function AdminDashboard() {
           badges,
           upcomingBookings,
           orderHistory,
+          attendanceHistory,
         };
         setSelectedMemberProfile(profileData);
         setShowMemberProfile(true);
@@ -1131,6 +1173,9 @@ export default function AdminDashboard() {
           badges: [],
           upcomingBookings: [],
           orderHistory: [],
+          attendanceHistory: [],
+          isUnlimited: false,
+          passExpiryISO: null,
         });
         setShowMemberProfile(true);
       }
@@ -1157,10 +1202,12 @@ export default function AdminDashboard() {
     if (selectedMember === "all") return true;
     const pkg = String(m.package ?? "").toLowerCase();
     const credits = m.credits ?? 0;
-    if (selectedMember === "studio") return credits > 0 && isStudioPkg(pkg);
-    if (selectedMember === "class") return credits > 0 && !isStudioPkg(pkg);
-    if (selectedMember === "active") return credits > 0;
-    if (selectedMember === "inactive") return credits <= 0;
+    // Unlimited (studio) passes are active regardless of credit count.
+    const active = Boolean(m.isUnlimited) || credits > 0;
+    if (selectedMember === "studio") return active && isStudioPkg(pkg);
+    if (selectedMember === "class") return active && !isStudioPkg(pkg);
+    if (selectedMember === "active") return active;
+    if (selectedMember === "inactive") return !active;
     return true;
   });
 
@@ -1491,6 +1538,7 @@ export default function AdminDashboard() {
                                       checkedIn: b.checkedIn,
                                       checkInTime: b.checkInTime ? new Date(b.checkInTime).toLocaleTimeString("en-IN", { hour: "2-digit", minute: "2-digit", timeZone: "Asia/Kolkata" }) : null,
                                       checkInOutcome: b.checkInOutcome,
+                                      confirmationStatus: b.confirmationStatus ?? null,
                                     })),
                                     checkedIn: data.bookings.filter((b: any) => b.checkedIn).length,
                                     enrolled: data.bookings.length,
@@ -3091,7 +3139,7 @@ export default function AdminDashboard() {
                                   <ListAvatar name={String(member.name ?? "?")} src={member.avatarUrl ?? null} size="sm" ringClassName="ring-sage/20" />
                                   <div className="min-w-0">
                                     <div className="font-body font-medium text-charcoal truncate">{member.name}</div>
-                                    <div className="font-body text-xs text-charcoal/50">{member.credits} credits</div>
+                                    <div className="font-body text-xs text-charcoal/50">{member.isUnlimited ? "∞ Unlimited" : `${member.credits} credits`}</div>
                                   </div>
                                 </div>
                               </TableCell>
@@ -3105,7 +3153,7 @@ export default function AdminDashboard() {
                               <TableCell className="px-5 py-3 font-display text-base text-amber-600 tabular-nums">{member.late}</TableCell>
                               <TableCell className="px-5 py-3 font-display text-base text-red-500 tabular-nums">{member.noShow}</TableCell>
                               <TableCell className="px-5 py-3 text-right">
-                                <Button variant="outline" size="sm" className="border-sage/20 text-sage hover:bg-sage/10 font-body h-8">
+                                <Button variant="outline" size="sm" onClick={() => handleViewProfile(member)} className="border-sage/20 text-sage hover:bg-sage/10 font-body h-8">
                                   View
                                 </Button>
                               </TableCell>
@@ -4000,8 +4048,13 @@ export default function AdminDashboard() {
                           ringClassName="ring-sage/20"
                         />
                         <div className="min-w-0">
-                          <div className="font-body font-medium text-charcoal truncate">
+                          <div className="font-body font-medium text-charcoal truncate flex items-center gap-2">
                             {attendee.name}
+                            {attendee.confirmationStatus === "pending" && (
+                              <span className="inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-body bg-amber-100 text-amber-700 whitespace-nowrap">
+                                Pending confirmation
+                              </span>
+                            )}
                           </div>
                           {attendee.email ? (
                             <div className="font-body text-xs text-charcoal/50 truncate">
@@ -4403,7 +4456,9 @@ export default function AdminDashboard() {
                     <p className="font-display text-3xl text-charcoal mb-1">
                       {selectedMemberProfile.credits}
                     </p>
-                    <p className="font-body text-xs text-charcoal/60">Credits Left</p>
+                    <p className="font-body text-xs text-charcoal/60">
+                      {selectedMemberProfile.isUnlimited ? "Unlimited Pass" : "Credits Left"}
+                    </p>
                   </CardContent>
                 </Card>
               </div>
@@ -4421,7 +4476,9 @@ export default function AdminDashboard() {
                   <div className="flex justify-between">
                     <span className="font-body text-sm text-charcoal/60">Expires</span>
                     <span className="font-body text-sm font-medium text-amber-600">
-                      In {selectedMemberProfile.expires}
+                      {selectedMemberProfile.passExpiryISO
+                        ? new Date(selectedMemberProfile.passExpiryISO).toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" })
+                        : "—"}
                     </span>
                   </div>
                   <div className="flex justify-between">
@@ -4506,6 +4563,43 @@ export default function AdminDashboard() {
                 </CardContent>
               </Card>
 
+              {/* Attendance History */}
+              <Card className="border-0 bg-white/80 backdrop-blur-xl shadow-lg">
+                <CardHeader className="border-b border-sage/10">
+                  <CardTitle className="font-display text-xl text-charcoal">Attendance History</CardTitle>
+                  <CardDescription className="font-body text-charcoal/60">
+                    {(selectedMemberProfile.attendanceHistory?.length ?? 0)} past class{(selectedMemberProfile.attendanceHistory?.length ?? 0) !== 1 ? "es" : ""}
+                  </CardDescription>
+                </CardHeader>
+                <CardContent className="p-6 space-y-3 max-h-80 overflow-y-auto">
+                  {(selectedMemberProfile.attendanceHistory?.length ?? 0) === 0 ? (
+                    <p className="font-body text-sm text-charcoal/50">No past classes yet</p>
+                  ) : (
+                    selectedMemberProfile.attendanceHistory.map((a: { class: string; date: string; outcome: string }, idx: number) => {
+                      const meta =
+                        a.outcome === "on_time"
+                          ? { label: "On time", cls: "border-green-200 bg-green-50 text-green-700" }
+                          : a.outcome === "late"
+                            ? { label: "Late", cls: "border-amber-200 bg-amber-50 text-amber-700" }
+                            : { label: "No-show", cls: "border-red-200 bg-red-50 text-red-600" };
+                      return (
+                        <div key={idx} className="flex items-center justify-between p-3 rounded-lg bg-cream/30">
+                          <div className="min-w-0">
+                            <p className="font-body text-sm font-medium text-charcoal truncate">{a.class}</p>
+                            <p className="font-body text-xs text-charcoal/60">
+                              {new Date(a.date).toLocaleDateString("en-US", { weekday: "short", month: "short", day: "numeric", year: "numeric" })}
+                            </p>
+                          </div>
+                          <Badge variant="outline" className={`font-body whitespace-nowrap ${meta.cls}`}>
+                            {meta.label}
+                          </Badge>
+                        </div>
+                      );
+                    })
+                  )}
+                </CardContent>
+              </Card>
+
               {/* Order History */}
               <Card className="border-0 bg-white/80 backdrop-blur-xl shadow-lg">
                 <CardHeader className="border-b border-sage/10">
@@ -4536,9 +4630,16 @@ export default function AdminDashboard() {
                   <Zap size={16} className="mr-2" />
                   Send Nudge
                 </Button>
-                <Button variant="outline" className="border-sage/30 text-charcoal hover:bg-sage/5 font-body h-12">
+                <Button
+                  variant="outline"
+                  onClick={() => {
+                    const pid = String(selectedMemberProfile.profileId ?? selectedMemberProfile.id ?? "");
+                    if (pid) void router.push(`/admin/control?editUser=${encodeURIComponent(pid)}`);
+                  }}
+                  className="border-sage/30 text-charcoal hover:bg-sage/5 font-body h-12"
+                >
                   <CreditCard size={16} className="mr-2" />
-                  Manage Credits
+                  Manage Packages
                 </Button>
                 <Button variant="outline" className="border-sage/30 text-charcoal hover:bg-sage/5 font-body h-12">
                   <Mail size={16} className="mr-2" />

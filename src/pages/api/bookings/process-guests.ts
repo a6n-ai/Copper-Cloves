@@ -164,7 +164,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     if (!email) continue;
 
     try {
-      const existing = await prisma.profile.findUnique({ where: { email } });
+      const existing = await prisma.profile.findFirst({ where: { email, role: "user" } });
 
       if (existing) {
         // Create booking for existing user if they don't already have one
@@ -183,6 +183,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
               class_schedule_id: classScheduleId,
               class_name: className,
               class_time: schedule.start_time.toISOString(),
+              email,
               status: "confirmed",
               extra_guest_count: 0,
               finance_snapshot: {
@@ -237,6 +238,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
             class_schedule_id: classScheduleId,
             class_name: className,
             class_time: schedule.start_time.toISOString(),
+            email,
             status: "confirmed",
             extra_guest_count: 0,
             finance_snapshot: {

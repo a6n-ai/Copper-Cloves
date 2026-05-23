@@ -49,7 +49,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     return res.status(400).json({ error: "Password is too long (max 72 characters)." });
   }
 
-  const existing = await prisma.profile.findUnique({ where: { email } });
+  const existing = await prisma.profile.findFirst({ where: { email, role: "user" } });
   if (existing) return res.status(409).json({ error: "An account with this email already exists." });
 
   try {

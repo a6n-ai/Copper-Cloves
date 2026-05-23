@@ -47,19 +47,19 @@ export function WeatherWidget({ weather }: { weather: AuthWeather | null }) {
   const TIcon = todMeta?.icon ?? null;
 
   return (
-    <div className="inline-flex items-center gap-2.5 rounded-full border border-white/50 bg-white/40 px-3.5 py-1.5 backdrop-blur-md">
+    <div className="inline-flex items-center gap-2.5 [text-shadow:0_1px_6px_rgba(255,255,255,0.7)]">
       {weather && WIcon && (
         <span className="inline-flex items-center gap-1.5">
-          <WIcon className="h-4 w-4 text-sage" />
+          <WIcon className="h-4 w-4 text-sage drop-shadow-sm" />
           <span className="font-body text-sm font-semibold text-charcoal">{Math.round(weather.tempC)}°</span>
-          <span className="font-body text-xs text-charcoal/60">{weather.city}</span>
+          <span className="font-body text-xs font-medium text-charcoal/70">{weather.city}</span>
         </span>
       )}
-      {weather && todMeta && <span className="h-3.5 w-px bg-charcoal/20" />}
+      {weather && todMeta && <span className="h-3.5 w-px bg-charcoal/25" />}
       {todMeta && TIcon && (
         <span className="inline-flex items-center gap-1.5">
-          <TIcon className="h-4 w-4 text-terracotta" />
-          <span className="font-body text-xs font-medium text-charcoal/70">{todMeta.label}</span>
+          <TIcon className="h-4 w-4 text-terracotta drop-shadow-sm" />
+          <span className="font-body text-xs font-medium text-charcoal/75">{todMeta.label}</span>
         </span>
       )}
     </div>
