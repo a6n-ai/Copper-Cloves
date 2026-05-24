@@ -911,7 +911,7 @@ export default function BookClass() {
               >
                 <ChevronLeft size={20} />
               </button>
-              <span className="font-body text-sm text-charcoal/70 font-medium flex items-center gap-2">
+              <span className="font-body text-xs sm:text-sm text-charcoal/70 font-medium flex items-center gap-1.5 sm:gap-2">
                 {weekSummary || "Loading…"}
                 {weekOffset === 0 && <span className="text-xs text-sage bg-sage/10 px-2 py-0.5 rounded-full">This Week</span>}
                 {weekOffset === 1 && <span className="text-xs text-sage bg-sage/10 px-2 py-0.5 rounded-full">Next Week</span>}

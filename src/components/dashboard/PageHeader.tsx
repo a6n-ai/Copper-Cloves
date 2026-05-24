@@ -82,7 +82,7 @@ export function PageHeader({ title, subtitle, actions, crumbs: crumbsProp }: Pag
     <div className="flex flex-wrap items-center justify-between gap-3 rounded-xl border border-sage/15 bg-white/95 px-5 py-4">
       <div className="min-w-0">
         <h1 className="truncate font-display text-xl leading-tight text-charcoal md:text-2xl">{title}</h1>
-        {subtitle ? <p className="truncate font-body text-sm text-charcoal/60">{subtitle}</p> : null}
+        {subtitle ? <p className="hidden truncate font-body text-sm text-charcoal/60 sm:block">{subtitle}</p> : null}
       </div>
       <div className="flex flex-wrap items-center gap-4">
         {actions}
