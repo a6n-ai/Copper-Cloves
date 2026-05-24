@@ -364,7 +364,7 @@ export default function AdminBadgesPage() {
     showThreshold = false
   ) => (
     <div className="mt-3 p-4 bg-cream/60 rounded-xl border border-sage/20 space-y-3">
-      <div className="grid grid-cols-2 gap-3">
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
         <div>
           <Label className="font-body text-xs text-charcoal/60 mb-1 block">Name</Label>
           <Input
@@ -393,7 +393,7 @@ export default function AdminBadgesPage() {
           className="font-body text-sm"
         />
       </div>
-      <div className="grid grid-cols-2 gap-3">
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
         <div>
           <Label className="font-body text-xs text-charcoal/60 mb-1 block">Color (hex)</Label>
           <Input
