@@ -1,7 +1,7 @@
 import { useEffect, useState, useRef } from "react";
 import { PageHeader } from "@/components/dashboard/PageHeader";
 import { useRouter } from "next/router";
-import { ChevronLeft, ChevronRight, Check, X, CreditCard, AlertCircle, Download } from "lucide-react";
+import { Check, X, CreditCard, AlertCircle, Download, Flame } from "lucide-react";
 import { Spinner } from "@/components/ui/spinner";
 import { Skeleton } from "@/components/ui/skeleton";
 import { FormAlert } from "@/components/ui/form-alert";
@@ -9,6 +9,9 @@ import { useSession } from "next-auth/react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { Badge } from "@/components/ui/badge";
+import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
+import { Separator } from "@/components/ui/separator";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -28,6 +31,9 @@ import {
 } from "@/lib/pendingRazorpayCheckout";
 import { razorpayPaymentErrorHelp } from "@/lib/razorpayClientHints";
 import { payWithRazorpayOrder } from "@/lib/razorpayCheckout";
+import { cn } from "@/lib/utils";
+import { ResponsiveCards } from "@/components/responsive/ResponsiveTable";
+import { MobilePagination } from "@/components/responsive/MobilePagination";
 
 interface Package {
   name: string;
@@ -167,30 +173,26 @@ const premiumPackages: Package[] = [
   },
 ];
 
-/** Mirrors a purchase-history row: title + status pill, 3-column detail grid, amount + download button on the right. */
+const HISTORY_PAGE_SIZE = 6;
+
+/** Mirrors a purchase-history row skeleton. */
 function PurchaseHistoryRowSkeleton() {
   return (
-    <div className="p-6 rounded-2xl bg-white/80 backdrop-blur-xl border border-sage/10">
-      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
+    <div className="p-4 rounded-xl bg-white/80 border border-sage/10">
+      <div className="flex items-start justify-between gap-3 mb-3">
         <div className="flex-1">
-          <div className="flex items-center gap-3 mb-2">
-            <Skeleton className="h-6 w-44" />
-            <Skeleton className="h-6 w-20 rounded-full" />
-          </div>
-          <div className="grid md:grid-cols-3 gap-4 mt-4">
-            {Array.from({ length: 3 }).map((_, i) => (
-              <div key={i}>
-                <Skeleton className="h-3 w-24 mb-1" />
-                <Skeleton className="h-4 w-28" />
-              </div>
-            ))}
-          </div>
+          <Skeleton className="h-5 w-40 mb-2" />
+          <Skeleton className="h-5 w-16 rounded-full" />
         </div>
-        <div className="md:text-right">
-          <Skeleton className="h-3 w-20 mb-1 md:ml-auto" />
-          <Skeleton className="h-8 w-24 md:ml-auto" />
-          <Skeleton className="h-9 w-36 rounded-md mt-4 md:ml-auto" />
-        </div>
+        <Skeleton className="h-7 w-20" />
+      </div>
+      <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
+        {Array.from({ length: 3 }).map((_, i) => (
+          <div key={i}>
+            <Skeleton className="h-3 w-20 mb-1" />
+            <Skeleton className="h-4 w-24" />
+          </div>
+        ))}
       </div>
     </div>
   );
@@ -198,10 +200,102 @@ function PurchaseHistoryRowSkeleton() {
 
 function PurchaseHistorySkeleton({ rows = 4 }: { rows?: number }) {
   return (
-    <div className="space-y-4">
+    <div className="space-y-3">
       {Array.from({ length: rows }).map((_, i) => (
         <PurchaseHistoryRowSkeleton key={i} />
       ))}
+    </div>
+  );
+}
+
+/** pricing-02 style tier card */
+function PackageTierCard({
+  pkg,
+  isRecommended,
+  onChoose,
+}: {
+  pkg: Package;
+  isRecommended: boolean;
+  onChoose: (pkg: Package) => void;
+}) {
+  const classesLabel =
+    typeof pkg.classes === "number"
+      ? `${pkg.classes} ${pkg.classes === 1 ? "class" : "classes"}`
+      : pkg.classes;
+
+  return (
+    <div
+      className={cn(
+        "relative flex-1 flex flex-col w-full",
+        isRecommended && "md:scale-105 z-10"
+      )}
+    >
+      {/* Accent border for recommended */}
+      {isRecommended && (
+        <div className="absolute -inset-0.5 rounded-2xl overflow-hidden pointer-events-none">
+          <div className="absolute inset-0 rounded-2xl bg-gradient-to-br from-sage via-terracotta/60 to-sand opacity-70" />
+          <div className="absolute inset-0.5 rounded-2xl bg-white" />
+        </div>
+      )}
+
+      <Card
+        className={cn(
+          "relative flex-1 flex flex-col rounded-2xl p-6 gap-6",
+          isRecommended
+            ? "border-0 shadow-xl ring-0"
+            : "border border-sage/20 shadow-md hover:shadow-lg transition-shadow duration-300"
+        )}
+      >
+        <CardHeader className="p-0">
+          <div className="flex items-center justify-between gap-2 mb-2">
+            <CardTitle className="font-display text-xl text-charcoal">
+              {pkg.name}
+            </CardTitle>
+            {isRecommended && (
+              <Badge className="bg-sage text-white text-xs font-body font-semibold px-2.5 py-1 flex items-center gap-1 shrink-0">
+                <Flame size={12} />
+                {pkg.badge ?? "Popular"}
+              </Badge>
+            )}
+          </div>
+          <CardDescription className="font-body text-sm text-charcoal/60">
+            {classesLabel} · Valid {pkg.validity}
+          </CardDescription>
+        </CardHeader>
+
+        <CardContent className="flex flex-col flex-1 gap-6 p-0">
+          {/* Big price */}
+          <div className="flex items-baseline gap-1.5">
+            <span className="font-display text-4xl text-charcoal">{pkg.price}</span>
+          </div>
+
+          <Separator className="bg-sage/10" />
+
+          {/* Feature checklist */}
+          <ul className="flex flex-col gap-3 flex-1">
+            {pkg.benefits.map((benefit, i) => (
+              <li key={i} className="flex items-center gap-3 font-body text-sm text-charcoal/70">
+                <Check className="size-4 text-sage shrink-0" />
+                {benefit}
+              </li>
+            ))}
+          </ul>
+
+          {/* CTA */}
+          <Button
+            onClick={() => onChoose(pkg)}
+            variant={isRecommended ? "default" : "outline"}
+            className={cn(
+              "w-full min-h-[44px] font-body font-semibold rounded-full transition-all duration-300",
+              isRecommended
+                ? "bg-sage hover:bg-sage/90 text-white shadow-lg hover:shadow-xl"
+                : "border-sage/40 text-sage hover:bg-sage/10"
+            )}
+          >
+            Choose Plan
+          </Button>
+        </CardContent>
+      </Card>
     </div>
   );
 }
@@ -212,14 +306,14 @@ export default function PackagesPage() {
   const { selected } = router.query;
   const [selectedCategory, setSelectedCategory] = useState<"studio" | "class">("studio");
   const [selectedPackage, setSelectedPackage] = useState<Package | null>(null);
-  const scrollContainerRef = useRef<HTMLDivElement>(null);
   const [showCheckout, setShowCheckout] = useState(false);
   const [isProcessing, setIsProcessing] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState(false);
   const [purchaseHistory, setPurchaseHistory] = useState<PurchaseRecord[]>([]);
   const [loadingHistory, setLoadingHistory] = useState(true);
-  
+  const [historyPage, setHistoryPage] = useState(1);
+
   const [formData, setFormData] = useState({
     fullName: "",
     email: "",
@@ -267,8 +361,7 @@ export default function PackagesPage() {
 
   const generateInvoicePDF = async (purchase: PurchaseRecord) => {
     const packageType = purchase.package_types;
-    
-    // Create invoice HTML
+
     const invoiceHTML = `
       <!DOCTYPE html>
       <html>
@@ -302,9 +395,9 @@ export default function PackagesPage() {
           <div class="company-name">The Studio by Copper + Cloves</div>
           <div class="tagline">Your home away from home</div>
         </div>
-        
+
         <h2 style="color: #8F9779;">INVOICE</h2>
-        
+
         <div class="invoice-details">
           <div class="detail-row">
             <span class="detail-label">Invoice Number:</span>
@@ -323,7 +416,7 @@ export default function PackagesPage() {
             </span>
           </div>
         </div>
-        
+
         <div class="package-section">
           <div class="package-name">${packageType?.name || "Package"}</div>
           <table>
@@ -346,7 +439,7 @@ export default function PackagesPage() {
               </tr>
             </tbody>
           </table>
-          
+
           <div style="margin-top: 20px;">
             <div class="detail-row">
               <span class="detail-label">Credits Used:</span>
@@ -358,12 +451,12 @@ export default function PackagesPage() {
             </div>
           </div>
         </div>
-        
+
         <div class="total-section">
           <div style="font-size: 16px; color: #666; margin-bottom: 10px;">Total Amount Paid</div>
           <div class="total-amount">₹${packageType?.price?.toLocaleString("en-IN") || "0"}</div>
         </div>
-        
+
         <div class="footer">
           <p><strong>The Studio by Copper + Cloves</strong></p>
           <p>Thank you for choosing us for your wellness journey!</p>
@@ -372,15 +465,12 @@ export default function PackagesPage() {
       </body>
       </html>
     `;
-    
-    // Create a new window and print
+
     const printWindow = window.open('', '_blank');
     if (printWindow) {
       printWindow.document.write(invoiceHTML);
       printWindow.document.close();
       printWindow.focus();
-      
-      // Trigger print dialog
       setTimeout(() => {
         printWindow.print();
       }, 250);
@@ -413,8 +503,6 @@ export default function PackagesPage() {
     const subtotal = packageSubtotalInr(pkg);
     if (subtotal <= 0) return;
     const ctx = pkg.classes === "Unlimited" ? "studio_pass" : "class_pass";
-    // Resolve the package_type_id so the server can derive the authoritative pass
-    // category (unlimited = studio) rather than relying on the client hint.
     let packageTypeId: string | undefined;
     try {
       const pkgsRes = await fetch("/api/packages");
@@ -571,7 +659,6 @@ export default function PackagesPage() {
         }
 
         if (checkoutResult.kind !== "success") {
-          // redirect flow (not used here, redirect:false) — nothing to finalize inline
           return;
         }
         const pending = loadPendingRazorpayCheckout();
@@ -617,28 +704,32 @@ export default function PackagesPage() {
     }
   };
 
-  const scroll = (direction: "left" | "right") => {
-    if (scrollContainerRef.current) {
-      const scrollAmount = 350;
-      scrollContainerRef.current.scrollBy({
-        left: direction === "left" ? -scrollAmount : scrollAmount,
-        behavior: "smooth",
-      });
-    }
-  };
-
   // Filter packages based on active tab
-  const classPassPackages = premiumPackages.filter(pkg => 
+  const classPassPackages = premiumPackages.filter(pkg =>
     typeof pkg.classes === "number"
   );
-  
-  const studioPassPackages = premiumPackages.filter(pkg => 
+
+  const studioPassPackages = premiumPackages.filter(pkg =>
     pkg.classes === "Unlimited"
   );
 
-  const currentPackages = selectedCategory === "class" 
-    ? classPassPackages 
+  const currentPackages = selectedCategory === "class"
+    ? classPassPackages
     : studioPassPackages;
+
+  // Recommended: use featured flag if present; fall back to middle card
+  const recommendedIndex = (() => {
+    const fi = currentPackages.findIndex(p => p.featured);
+    if (fi !== -1) return fi;
+    return Math.floor((currentPackages.length - 1) / 2);
+  })();
+
+  // Paginated history
+  const totalHistoryPages = Math.max(1, Math.ceil(purchaseHistory.length / HISTORY_PAGE_SIZE));
+  const pagedHistory = purchaseHistory.slice(
+    (historyPage - 1) * HISTORY_PAGE_SIZE,
+    historyPage * HISTORY_PAGE_SIZE
+  );
 
   return (
     <div className="min-h-screen bg-linear-to-b from-cream via-white to-cream">
@@ -652,7 +743,7 @@ export default function PackagesPage() {
         </div>
 
         {/* Tab Switcher */}
-        <div className="flex justify-center mb-8">
+        <div className="flex justify-center mb-10">
           <div className="inline-flex bg-white/80 backdrop-blur-xl rounded-full p-1.5 shadow-lg border border-sage/10 w-full max-w-xs sm:w-auto">
             <button
               onClick={() => setSelectedCategory("class")}
@@ -677,185 +768,92 @@ export default function PackagesPage() {
           </div>
         </div>
 
-        {/* Mobile Scroll Buttons — only shown when cards overflow (lg+) uses grid */}
-        <div className="flex justify-center gap-4 mb-6 lg:hidden">
-          <button
-            onClick={() => scroll("left")}
-            className="w-10 h-10 rounded-full bg-white/80 backdrop-blur-xl shadow-md flex items-center justify-center hover:bg-white transition-all"
-          >
-            <ChevronLeft className="text-charcoal" size={20} />
-          </button>
-          <button
-            onClick={() => scroll("right")}
-            className="w-10 h-10 rounded-full bg-white/80 backdrop-blur-xl shadow-md flex items-center justify-center hover:bg-white transition-all"
-          >
-            <ChevronRight className="text-charcoal" size={20} />
-          </button>
-        </div>
-
-        {/* Packages Container — stacks on phone, horizontal scroll on sm/md, grid on lg */}
-        <div
-          ref={scrollContainerRef}
-          className="grid grid-cols-1 gap-5 sm:flex sm:gap-5 sm:overflow-x-auto sm:pb-8 sm:snap-x sm:snap-mandatory sm:scrollbar-hide lg:grid lg:grid-cols-4 lg:gap-8 lg:overflow-visible"
-        >
+        {/* Pricing tier cards — pricing-02 layout */}
+        <div className="flex flex-col gap-5 md:flex-row md:items-stretch md:gap-6">
           {currentPackages.map((pkg, index) => (
-            <div
-              key={index}
-              className={`sm:shrink-0 sm:w-72 sm:snap-center lg:w-auto ${
-                pkg.featured ? "lg:scale-105" : ""
-              }`}
-            >
-              <div
-                className={`relative h-full rounded-2xl p-6 sm:p-8 transition-all duration-500 hover:shadow-2xl ${
-                  pkg.featured
-                    ? "bg-white/90 backdrop-blur-xl border-2 border-sage shadow-xl"
-                    : "bg-white/80 backdrop-blur-xl border border-sage/10 shadow-lg hover:border-sage/30"
-                }`}
-              >
-                {pkg.badge && (
-                  <div className="absolute -top-4 left-1/2 -translate-x-1/2">
-                    <span className="bg-sage text-white px-4 py-1.5 rounded-full text-xs font-body font-semibold shadow-md">
-                      {pkg.badge}
-                    </span>
-                  </div>
-                )}
-
-                {/* Mobile: price + name side by side for fast scanning */}
-                <div className="flex items-start justify-between gap-3 sm:block mt-2">
-                  <div className="flex-1">
-                    <h3 className="font-display text-xl sm:text-2xl text-charcoal mb-1">
-                      {pkg.name}
-                    </h3>
-                    <div className="text-charcoal/60 font-body text-sm sm:mb-6">
-                      {typeof pkg.classes === "number" ? `${pkg.classes} ${pkg.classes === 1 ? "class" : "classes"}` : pkg.classes}
-                    </div>
-                  </div>
-                  <div className="shrink-0 text-right sm:hidden">
-                    <div className="font-display text-2xl text-charcoal">
-                      {pkg.price}
-                    </div>
-                    <div className="text-charcoal/50 font-body text-xs">
-                      {pkg.validity}
-                    </div>
-                  </div>
-                </div>
-
-                <div className="hidden sm:block mb-8">
-                  <div className="font-display text-3xl text-charcoal mb-2">
-                    {pkg.price}
-                  </div>
-                  <div className="text-charcoal/50 font-body text-sm">
-                    Valid for {pkg.validity}
-                  </div>
-                </div>
-
-                <ul className="space-y-2 sm:space-y-4 my-4 sm:mb-8">
-                  {pkg.benefits.map((benefit, i) => (
-                    <li key={i} className="flex items-center gap-2.5 sm:items-start sm:gap-3">
-                      <div className="shrink-0 w-4 h-4 sm:w-5 sm:h-5 rounded-full bg-sage/10 flex items-center justify-center sm:mt-0.5">
-                        <Check className="text-sage" size={12} />
-                      </div>
-                      <span className="font-body text-sm text-charcoal/80 leading-snug">
-                        {benefit}
-                      </span>
-                    </li>
-                  ))}
-                </ul>
-
-                <button
-                  onClick={() => handleChoosePlan(pkg)}
-                  className="w-full py-3.5 px-6 bg-sage hover:bg-sage/90 text-white font-body text-sm rounded-full transition-all duration-300 hover:scale-105 shadow-lg hover:shadow-xl flex items-center justify-center gap-2 min-h-[44px]"
-                >
-                  Choose Plan
-                  <Check size={16} />
-                </button>
-              </div>
-            </div>
+            <PackageTierCard
+              key={pkg.name}
+              pkg={pkg}
+              isRecommended={index === recommendedIndex}
+              onChoose={handleChoosePlan}
+            />
           ))}
         </div>
       </div>
 
       {/* Purchase History Section */}
-      <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-12 mt-12">
-        <div className="mb-8">
-          <h2 className="font-display text-3xl text-charcoal mb-2">Purchase History</h2>
+      <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-10 mt-4 border-t border-sage/10">
+        <div className="mb-6">
+          <h2 className="font-display text-2xl text-charcoal mb-1">Purchase History</h2>
           <p className="font-body text-sm text-charcoal/60">
-            View all your past package purchases and transactions
+            Your past package purchases and transactions
           </p>
         </div>
 
         {loadingHistory ? (
           <PurchaseHistorySkeleton rows={4} />
         ) : purchaseHistory.length === 0 ? (
-          <div className="text-center py-20 px-6 rounded-2xl bg-white/60 backdrop-blur-xl border border-sage/10">
-            <CreditCard className="mx-auto mb-4 text-charcoal/20" size={64} />
-            <h3 className="font-display text-2xl text-charcoal mb-2">No purchases yet</h3>
-            <p className="font-body text-charcoal/60">
+          <div className="text-center py-16 px-6 rounded-2xl bg-white/60 backdrop-blur-xl border border-sage/10">
+            <CreditCard className="mx-auto mb-4 text-charcoal/20" size={48} />
+            <h3 className="font-display text-xl text-charcoal mb-1">No purchases yet</h3>
+            <p className="font-body text-sm text-charcoal/60">
               Your purchase history will appear here once you buy a package
             </p>
           </div>
         ) : (
-          <div className="space-y-4">
-            {purchaseHistory.map((purchase) => {
-              const packageType = purchase.package_types;
-              const isActive = purchase.status === "active" && new Date(purchase.expires_at) > new Date();
-              const isExpired = new Date(purchase.expires_at) < new Date();
-              
-              return (
-                <div
-                  key={purchase.id}
-                  className="p-6 rounded-2xl bg-white/80 backdrop-blur-xl border border-sage/10 hover:border-sage/30 transition-all duration-300"
-                >
-                  <div className="flex flex-col gap-4">
-                    {/* Name + status + amount on one row on mobile */}
-                    <div className="flex items-start justify-between gap-3">
+          <>
+            <ResponsiveCards
+              data={pagedHistory}
+              renderCard={(purchase, i) => {
+                const packageType = purchase.package_types;
+                const isActive = purchase.status === "active" && new Date(purchase.expires_at) > new Date();
+                const isExpired = new Date(purchase.expires_at) < new Date();
+                return (
+                  <div
+                    key={purchase.id}
+                    className="p-4 rounded-xl bg-white/80 backdrop-blur-xl border border-sage/10 hover:border-sage/30 transition-all duration-200"
+                  >
+                    <div className="flex items-start justify-between gap-3 mb-3">
                       <div className="flex-1 min-w-0">
-                        <h3 className="font-display text-lg sm:text-xl text-charcoal truncate">
+                        <h3 className="font-display text-base text-charcoal truncate">
                           {packageType?.name || "Unknown Package"}
                         </h3>
-                        <span className={`inline-block mt-1 px-2.5 py-0.5 rounded-full text-xs font-body font-semibold ${
-                          isActive
-                            ? "bg-green-100 text-green-700"
-                            : isExpired
-                            ? "bg-gray-100 text-gray-600"
+                        <span className={cn(
+                          "inline-block mt-1 px-2 py-0.5 rounded-full text-xs font-body font-semibold",
+                          isActive ? "bg-green-100 text-green-700"
+                            : isExpired ? "bg-gray-100 text-gray-600"
                             : "bg-yellow-100 text-yellow-700"
-                        }`}>
+                        )}>
                           {isActive ? "Active" : isExpired ? "Expired" : purchase.status}
                         </span>
                       </div>
                       <div className="shrink-0 text-right">
                         <p className="font-body text-xs text-charcoal/50 mb-0.5">Amount Paid</p>
-                        <p className="font-display text-xl sm:text-2xl text-sage">
+                        <p className="font-display text-lg text-sage">
                           ₹{packageType?.price?.toLocaleString("en-IN") || "0"}
                         </p>
                       </div>
                     </div>
 
-                    <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
+                    <div className="grid grid-cols-2 md:grid-cols-3 gap-3 mb-3">
                       <div>
-                        <p className="font-body text-xs text-charcoal/50 mb-1">Purchase Date</p>
+                        <p className="font-body text-xs text-charcoal/50 mb-0.5">Purchased</p>
                         <p className="font-body text-sm text-charcoal">
                           {new Date(purchase.created_at).toLocaleDateString("en-US", {
-                            year: "numeric",
-                            month: "short",
-                            day: "numeric"
+                            year: "numeric", month: "short", day: "numeric"
                           })}
                         </p>
                       </div>
-
                       <div>
-                        <p className="font-body text-xs text-charcoal/50 mb-1">Expires On</p>
+                        <p className="font-body text-xs text-charcoal/50 mb-0.5">Expires</p>
                         <p className="font-body text-sm text-charcoal">
                           {new Date(purchase.expires_at).toLocaleDateString("en-US", {
-                            year: "numeric",
-                            month: "short",
-                            day: "numeric"
+                            year: "numeric", month: "short", day: "numeric"
                           })}
                         </p>
                       </div>
-
                       <div>
-                        <p className="font-body text-xs text-charcoal/50 mb-1">Credits</p>
+                        <p className="font-body text-xs text-charcoal/50 mb-0.5">Credits</p>
                         <p className="font-body text-sm text-charcoal">
                           {packageType?.is_unlimited
                             ? "Unlimited"
@@ -868,16 +866,83 @@ export default function PackagesPage() {
                       onClick={() => generateInvoicePDF(purchase)}
                       variant="outline"
                       size="sm"
-                      className="self-start border-sage/30 text-sage hover:bg-sage/10"
+                      className="border-sage/30 text-sage hover:bg-sage/10 text-xs"
                     >
-                      <Download size={16} className="mr-2" />
+                      <Download size={14} className="mr-1.5" />
                       Download Invoice
                     </Button>
                   </div>
+                );
+              }}
+              renderTable={() => (
+                <div className="space-y-3">
+                  {pagedHistory.map((purchase) => {
+                    const packageType = purchase.package_types;
+                    const isActive = purchase.status === "active" && new Date(purchase.expires_at) > new Date();
+                    const isExpired = new Date(purchase.expires_at) < new Date();
+                    return (
+                      <div
+                        key={purchase.id}
+                        className="p-4 rounded-xl bg-white/80 backdrop-blur-xl border border-sage/10 hover:border-sage/30 transition-all duration-200"
+                      >
+                        <div className="flex items-center gap-4">
+                          <div className="flex-1 min-w-0">
+                            <h3 className="font-display text-base text-charcoal">
+                              {packageType?.name || "Unknown Package"}
+                            </h3>
+                            <span className={cn(
+                              "inline-block mt-1 px-2 py-0.5 rounded-full text-xs font-body font-semibold",
+                              isActive ? "bg-green-100 text-green-700"
+                                : isExpired ? "bg-gray-100 text-gray-600"
+                                : "bg-yellow-100 text-yellow-700"
+                            )}>
+                              {isActive ? "Active" : isExpired ? "Expired" : purchase.status}
+                            </span>
+                          </div>
+                          <div className="text-sm text-charcoal/70 font-body shrink-0">
+                            {new Date(purchase.created_at).toLocaleDateString("en-US", {
+                              year: "numeric", month: "short", day: "numeric"
+                            })}
+                          </div>
+                          <div className="text-sm text-charcoal/70 font-body shrink-0">
+                            {new Date(purchase.expires_at).toLocaleDateString("en-US", {
+                              year: "numeric", month: "short", day: "numeric"
+                            })}
+                          </div>
+                          <div className="text-sm text-charcoal/70 font-body shrink-0">
+                            {packageType?.is_unlimited
+                              ? "Unlimited"
+                              : `${purchase.remaining_credits || 0} / ${packageType?.class_count || 0}`}
+                          </div>
+                          <div className="font-display text-lg text-sage shrink-0">
+                            ₹{packageType?.price?.toLocaleString("en-IN") || "0"}
+                          </div>
+                          <Button
+                            onClick={() => generateInvoicePDF(purchase)}
+                            variant="outline"
+                            size="sm"
+                            className="border-sage/30 text-sage hover:bg-sage/10 shrink-0 text-xs"
+                          >
+                            <Download size={14} className="mr-1.5" />
+                            Invoice
+                          </Button>
+                        </div>
+                      </div>
+                    );
+                  })}
                 </div>
-              );
-            })}
-          </div>
+              )}
+            />
+
+            {totalHistoryPages > 1 && (
+              <MobilePagination
+                currentPage={historyPage}
+                totalPages={totalHistoryPages}
+                onPageChange={(p) => { setHistoryPage(p); window.scrollTo({ top: 0, behavior: "smooth" }); }}
+                className="mt-4"
+              />
+            )}
+          </>
         )}
       </div>
 
@@ -886,122 +951,123 @@ export default function PackagesPage() {
         <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center sm:p-4 bg-charcoal/60 backdrop-blur-md animate-in fade-in duration-300">
           {success ? (
             <div className="bg-white rounded-3xl max-w-md w-full p-8 shadow-2xl animate-in zoom-in-95 duration-500 text-center">
-              <div className="w-16 h-16 rounded-full bg-sage/20 flex items-center justify-center mx-auto mb-4">
-                <Check className="text-sage" size={32} />
+              <div className="w-14 h-14 rounded-full bg-sage/20 flex items-center justify-center mx-auto mb-3">
+                <Check className="text-sage" size={28} />
               </div>
-              <h2 className="font-display text-3xl text-charcoal mb-2">Purchase Successful!</h2>
-              <p className="font-body text-charcoal/70 mb-6">
+              <h2 className="font-display text-2xl text-charcoal mb-2">Purchase Successful!</h2>
+              <p className="font-body text-sm text-charcoal/70 mb-4">
                 Your {selectedPackage.name} has been activated. Redirecting to your dashboard...
               </p>
               <div className="flex items-center justify-center gap-2">
-                <Spinner className="size-5 text-sage" />
+                <Spinner className="size-4 text-sage" />
                 <span className="font-body text-sm text-charcoal/60">Redirecting...</span>
               </div>
             </div>
           ) : (
-            <div className="bg-white rounded-t-3xl sm:rounded-3xl max-w-2xl w-full max-h-[92svh] sm:max-h-[90vh] overflow-y-auto shadow-2xl animate-in slide-in-from-bottom sm:zoom-in-95 duration-400 relative">
+            // Compact checkout: max-h-[100dvh] so it never overflows the phone screen
+            <div className="bg-white rounded-t-3xl sm:rounded-3xl max-w-lg w-full max-h-[100dvh] sm:max-h-[90vh] overflow-y-auto shadow-2xl animate-in slide-in-from-bottom sm:zoom-in-95 duration-400 relative">
               {/* Drag handle — mobile only */}
-              <div className="sm:hidden flex justify-center pt-3 pb-1">
-                <div className="w-10 h-1 rounded-full bg-charcoal/20" />
+              <div className="sm:hidden flex justify-center pt-2.5 pb-0">
+                <div className="w-9 h-1 rounded-full bg-charcoal/20" />
               </div>
 
-              {/* Header */}
-              <div className="sticky top-0 z-20 bg-white pt-3 sm:pt-6 px-5 sm:px-6 pb-4 border-b border-sage/10 shadow-xs">
-                <div className="flex items-start justify-between">
+              {/* Compact header */}
+              <div className="sticky top-0 z-20 bg-white pt-2 sm:pt-4 px-4 sm:px-5 pb-3 border-b border-sage/10">
+                <div className="flex items-center justify-between">
                   <div>
-                    <h2 className="font-display text-2xl sm:text-3xl text-charcoal mb-1">Complete Your Purchase</h2>
-                    <p className="font-body text-sm text-charcoal/60">
-                      Secure checkout for {selectedPackage?.name}
-                    </p>
+                    <h2 className="font-display text-lg sm:text-2xl text-charcoal leading-tight">Complete Your Purchase</h2>
+                    <p className="font-body text-xs text-charcoal/60 mt-0.5">{selectedPackage?.name}</p>
                   </div>
                   <button
                     onClick={closeCheckout}
-                    className="w-10 h-10 rounded-full bg-white border border-sage/20 hover:border-sage/40 flex items-center justify-center transition-all duration-300 hover:scale-110"
+                    className="w-8 h-8 rounded-full bg-white border border-sage/20 hover:border-sage/40 flex items-center justify-center transition-all duration-200 shrink-0"
                     aria-label="Close checkout"
                   >
-                    <X className="text-charcoal" size={20} />
+                    <X className="text-charcoal" size={16} />
                   </button>
                 </div>
               </div>
 
-              {/* Package Summary */}
-              <div className="p-5 sm:p-6 border-b border-sage/10 bg-sage/5">
-                <h3 className="font-display text-lg sm:text-xl text-charcoal mb-3">Package Summary</h3>
-                <div className="grid grid-cols-2 md:grid-cols-2 gap-3 sm:gap-4">
-                  <div>
-                    <p className="font-body text-sm text-charcoal/60 mb-1">Package Name</p>
-                    <p className="font-display text-lg text-charcoal">{selectedPackage.name}</p>
+              {/* Compact summary */}
+              <div className="px-4 sm:px-5 py-3 border-b border-sage/10 bg-sage/5">
+                <div className="grid grid-cols-2 gap-x-4 gap-y-2 text-sm">
+                  <div className="flex items-baseline gap-2">
+                    <span className="font-body text-xs text-charcoal/50 shrink-0">Classes</span>
+                    <span className="font-display text-sm text-charcoal">{selectedPackage.classes}</span>
                   </div>
-                  <div>
-                    <p className="font-body text-sm text-charcoal/60 mb-1">Classes Included</p>
-                    <p className="font-display text-lg text-charcoal">{selectedPackage.classes}</p>
+                  <div className="flex items-baseline gap-2">
+                    <span className="font-body text-xs text-charcoal/50 shrink-0">Valid</span>
+                    <span className="font-display text-sm text-charcoal">{selectedPackage.validity}</span>
                   </div>
-                  <div>
-                    <p className="font-body text-sm text-charcoal/60 mb-1">Validity</p>
-                    <p className="font-display text-lg text-charcoal">{selectedPackage.validity}</p>
-                  </div>
-                  <div>
-                    <p className="font-body text-sm text-charcoal/60 mb-1">Total Amount</p>
-                    <p className="font-display text-2xl text-sage">{selectedPackage.price}</p>
+                  <div className="col-span-2 flex items-baseline gap-2">
+                    <span className="font-body text-xs text-charcoal/50 shrink-0">Total</span>
+                    <span className="font-display text-xl text-sage">{selectedPackage.price}</span>
                     {couponDiscount != null && couponDiscount > 0 && (
-                      <p className="font-body text-sm text-sage mt-1">
-                        After coupon: ₹
-                        {Math.max(
-                          0,
-                          packageSubtotalInr(selectedPackage) - couponDiscount
-                        ).toLocaleString("en-IN")}
-                      </p>
+                      <span className="font-body text-sm text-sage">
+                        → ₹{Math.max(0, packageSubtotalInr(selectedPackage) - couponDiscount).toLocaleString("en-IN")}
+                      </span>
                     )}
                   </div>
                 </div>
-                <div className="mt-4 space-y-2">
-                  <Label className="font-body text-charcoal">Promo code (optional)</Label>
-                  <div className="flex gap-2 flex-col sm:flex-row">
-                    <Input
-                      className="border-sage/20 font-mono uppercase"
-                      placeholder="Code"
-                      value={couponCode}
-                      onChange={(e) => {
-                        setCouponCode(e.target.value.toUpperCase());
-                        setCouponDiscount(null);
-                        setCouponError(null);
-                      }}
-                    />
-                    <Button
-                      type="button"
-                      variant="outline"
-                      className="border-sage/30 shrink-0"
-                      onClick={() => selectedPackage && void validatePackageCoupon(selectedPackage)}
-                    >
-                      Apply
-                    </Button>
-                  </div>
-                  {couponError && (
-                    <p className="text-sm text-red-600 font-body">{couponError}</p>
-                  )}
+
+                {/* Coupon row — inline on one line */}
+                <div className="mt-2 flex gap-2">
+                  <Input
+                    className="h-8 border-sage/20 font-mono uppercase text-sm flex-1"
+                    placeholder="Promo code"
+                    value={couponCode}
+                    onChange={(e) => {
+                      setCouponCode(e.target.value.toUpperCase());
+                      setCouponDiscount(null);
+                      setCouponError(null);
+                    }}
+                  />
+                  <Button
+                    type="button"
+                    variant="outline"
+                    size="sm"
+                    className="border-sage/30 h-8 shrink-0"
+                    onClick={() => selectedPackage && void validatePackageCoupon(selectedPackage)}
+                  >
+                    Apply
+                  </Button>
                 </div>
+                {couponError && (
+                  <p className="text-xs text-red-600 font-body mt-1">{couponError}</p>
+                )}
               </div>
 
-              {/* Checkout Form */}
-              <form onSubmit={handlePurchase} className="p-5 sm:p-6 space-y-5 sm:space-y-6">
-                <div className="space-y-2">
-                  <Label htmlFor="fullName" className="font-body text-charcoal">
-                    Full Name *
-                  </Label>
-                  <Input
-                    id="fullName"
-                    value={formData.fullName}
-                    onChange={(e) => setFormData({ ...formData, fullName: e.target.value })}
-                    placeholder="Enter your full name"
-                    required
-                    className="border-sage/20 focus:ring-sage font-body placeholder:text-charcoal/40"
-                  />
+              {/* Compact form */}
+              <form onSubmit={handlePurchase} className="px-4 sm:px-5 py-3 space-y-3">
+                {/* Name + Phone side by side on sm+ */}
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                  <div className="space-y-1">
+                    <Label htmlFor="fullName" className="font-body text-xs text-charcoal">Full Name *</Label>
+                    <Input
+                      id="fullName"
+                      value={formData.fullName}
+                      onChange={(e) => setFormData({ ...formData, fullName: e.target.value })}
+                      placeholder="Your name"
+                      required
+                      className="h-9 border-sage/20 font-body text-sm placeholder:text-charcoal/40"
+                    />
+                  </div>
+                  <div className="space-y-1">
+                    <Label htmlFor="phone" className="font-body text-xs text-charcoal">Phone *</Label>
+                    <Input
+                      id="phone"
+                      type="tel"
+                      value={formData.phone}
+                      onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
+                      placeholder="+91 98765 43210"
+                      required
+                      className="h-9 border-sage/20 font-body text-sm placeholder:text-charcoal/40"
+                    />
+                  </div>
                 </div>
 
-                <div className="space-y-2">
-                  <Label htmlFor="email" className="font-body text-charcoal">
-                    Email Address *
-                  </Label>
+                <div className="space-y-1">
+                  <Label htmlFor="email" className="font-body text-xs text-charcoal">Email *</Label>
                   <Input
                     id="email"
                     type="email"
@@ -1009,60 +1075,25 @@ export default function PackagesPage() {
                     onChange={(e) => setFormData({ ...formData, email: e.target.value })}
                     placeholder="your@email.com"
                     required
-                    className="border-sage/20 focus:ring-sage font-body placeholder:text-charcoal/40"
+                    className="h-9 border-sage/20 font-body text-sm placeholder:text-charcoal/40"
                   />
                 </div>
 
-                <div className="space-y-2">
-                  <Label htmlFor="phone" className="font-body text-charcoal">
-                    Phone Number *
-                  </Label>
-                  <Input
-                    id="phone"
-                    type="tel"
-                    value={formData.phone}
-                    onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
-                    placeholder="+91 98765 43210"
-                    required
-                    className="border-sage/20 focus:ring-sage font-body placeholder:text-charcoal/40"
-                  />
-                </div>
-
-                {/* Payment Method */}
-                <div>
-                  <h3 className="font-display text-xl text-charcoal mb-4">Payment Method</h3>
-                  <div className="grid md:grid-cols-1 gap-4">
-                    <button
-                      type="button"
-                      onClick={() => setFormData({ ...formData, paymentMethod: "online" })}
-                      className={`p-4 rounded-xl border-2 transition-all duration-300 ${
-                        formData.paymentMethod === "online"
-                          ? "border-sage bg-sage/5"
-                          : "border-sage/20 hover:border-sage/40"
-                      }`}
-                    >
-                      <div className="flex items-center gap-3">
-                        <div className={`w-5 h-5 rounded-full border-2 flex items-center justify-center ${
-                          formData.paymentMethod === "online" ? "border-sage" : "border-sage/20"
-                        }`}>
-                          {formData.paymentMethod === "online" && (
-                            <div className="w-3 h-3 rounded-full bg-sage" />
-                          )}
-                        </div>
-                        <div className="text-left">
-                          <p className="font-body font-semibold text-charcoal">Online Payment</p>
-                          <p className="font-body text-xs text-charcoal/60">Pay now via UPI/Card</p>
-                        </div>
-                      </div>
-                    </button>
+                {/* Payment method — compact single option */}
+                <div className="flex items-center gap-3 p-3 rounded-xl border border-sage/20 bg-sage/5">
+                  <div className="w-4 h-4 rounded-full border-2 border-sage flex items-center justify-center shrink-0">
+                    <div className="w-2.5 h-2.5 rounded-full bg-sage" />
+                  </div>
+                  <div>
+                    <p className="font-body text-sm font-semibold text-charcoal">Online Payment</p>
+                    <p className="font-body text-xs text-charcoal/50">Pay now via UPI / Card</p>
                   </div>
                 </div>
 
-                {/* Error Message */}
                 <FormAlert message={error} variant="error" />
 
-                {/* Submit Buttons */}
-                <div className="flex flex-col-reverse sm:flex-row gap-3 pt-4 border-t border-sage/10">
+                {/* Action buttons */}
+                <div className="flex gap-2 pt-1">
                   <Button
                     type="button"
                     onClick={closeCheckout}
@@ -1074,7 +1105,7 @@ export default function PackagesPage() {
                   </Button>
                   <Button
                     type="submit"
-                    className="flex-1 bg-sage hover:bg-sage/90 text-white h-11"
+                    className="flex-1 bg-sage hover:bg-sage/90 text-white h-11 font-body font-semibold"
                     disabled={isProcessing}
                   >
                     {isProcessing ? (
@@ -1084,15 +1115,15 @@ export default function PackagesPage() {
                       </>
                     ) : (
                       <>
-                        <CreditCard size={18} className="mr-2" />
-                        Complete Purchase
+                        <CreditCard size={16} className="mr-2" />
+                        Pay Now
                       </>
                     )}
                   </Button>
                 </div>
 
-                <p className="text-center font-body text-xs text-charcoal/50 mt-4">
-                  By completing this purchase, you agree to our Terms of Service and Privacy Policy
+                <p className="text-center font-body text-xs text-charcoal/40 pb-1">
+                  By purchasing you agree to our Terms of Service
                 </p>
               </form>
             </div>
@@ -1109,11 +1140,11 @@ export default function PackagesPage() {
         <AlertDialogContent className="border-sage/20 bg-white text-charcoal">
           <AlertDialogHeader>
             <AlertDialogTitle>
-              {paymentRecovery?.variant === "failed" ? "Payment didn’t go through" : "Payment cancelled"}
+              {paymentRecovery?.variant === "failed" ? "Payment didn't go through" : "Payment cancelled"}
             </AlertDialogTitle>
             <AlertDialogDescription>
               {paymentRecovery?.variant === "cancelled" ? (
-                <span>You closed the checkout. You can try again when you’re ready.</span>
+                <span>You closed the checkout. You can try again when you're ready.</span>
               ) : (
                 <span className="whitespace-pre-line block">
                   {paymentRecovery?.detail ?? "Something went wrong with this payment attempt."}
@@ -1134,16 +1165,6 @@ export default function PackagesPage() {
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
-
-      <style jsx>{`
-        .scrollbar-hide::-webkit-scrollbar {
-          display: none;
-        }
-        .scrollbar-hide {
-          -ms-overflow-style: none;
-          scrollbar-width: none;
-        }
-      `}</style>
     </div>
   );
 }
