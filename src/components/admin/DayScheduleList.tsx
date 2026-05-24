@@ -12,6 +12,7 @@ import {
 import { Pagination, usePagination } from "@/components/Pagination";
 import { ListAvatar } from "@/components/admin/ListAvatar";
 import { cn } from "@/lib/utils";
+import { ResponsiveTable } from "@/components/responsive/ResponsiveTable";
 
 export interface ScheduleRow {
   id: string | number;
@@ -71,6 +72,7 @@ export function DayScheduleList({
 
   return (
     <div className="space-y-3">
+      <ResponsiveTable>
       <div className="rounded-xl border border-sage/15 bg-white overflow-hidden">
         <Table>
           <TableHeader>
@@ -157,6 +159,7 @@ export function DayScheduleList({
           </TableBody>
         </Table>
       </div>
+      </ResponsiveTable>
       <Pagination page={pg.page} total={pg.total} pageSize={pg.pageSize} onChange={pg.setPage} />
     </div>
   );

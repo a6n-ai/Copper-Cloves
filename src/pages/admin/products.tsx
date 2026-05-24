@@ -24,6 +24,7 @@ import {
 } from "lucide-react";
 
 import { cdnUrl } from "@/lib/cdnUrl";
+import { ResponsiveTable } from "@/components/responsive/ResponsiveTable";
 interface Product {
   id: string;
   name: string;
@@ -522,7 +523,7 @@ export default function AdminProducts() {
 
                   {/* Products Table */}
                   <div className="rounded-2xl bg-white/60 backdrop-blur-xl border border-sage/10 overflow-hidden">
-                    <div className="overflow-x-auto">
+                    <ResponsiveTable>
                       <table className="w-full">
                         <thead>
                           <tr className="border-b border-sage/10 bg-sage/5">
@@ -593,7 +594,7 @@ export default function AdminProducts() {
                           ))}
                         </tbody>
                       </table>
-                    </div>
+                    </ResponsiveTable>
 
                     {/* Pagination */}
                     {totalProductPages > 1 && (
