@@ -31,6 +31,15 @@ export interface PortalConfig {
   accountLabel?: string;
   /** Subtitle under the user's name in footer / profile menu. */
   subtitle: string;
+  /** Phone bottom-nav: hrefs shown as direct side tabs (rest fall under "More"). */
+  mobilePrimary: string[];
+  /** Phone bottom-nav: show the raised center check-in scanner FAB. */
+  mobileScanner?: boolean;
+}
+
+/** All nav links across a portal's sections, flattened (sidebar order). */
+export function flattenNavItems(config: PortalConfig): NavLink[] {
+  return config.sections.flatMap((s) => s.items);
 }
 
 const SIGN_OUT_HREF = "/login";
@@ -43,6 +52,7 @@ export const PORTAL_CONFIGS: Record<PortalKind, PortalConfig> = {
     accountHref: "/admin/control",
     accountLabel: "Account Settings",
     subtitle: "Admin portal",
+    mobilePrimary: ["/admin/dashboard", "/admin/schedule", "/admin/members", "/admin/CRM"],
     sections: [
       { label: "Dashboard", items: [{ href: "/admin/dashboard", label: "Dashboard", icon: LayoutDashboard }] },
       {
@@ -72,6 +82,7 @@ export const PORTAL_CONFIGS: Record<PortalKind, PortalConfig> = {
     accountHref: "/partner/settings",
     accountLabel: "Profile & settings",
     subtitle: "Partner portal",
+    mobilePrimary: ["/partner/dashboard", "/partner/classes", "/partner/members", "/partner/settings"],
     sections: [
       { label: "Dashboard", items: [{ href: "/partner/dashboard", label: "Dashboard", icon: LayoutDashboard }] },
       {
@@ -91,6 +102,8 @@ export const PORTAL_CONFIGS: Record<PortalKind, PortalConfig> = {
     accountHref: "/portal/profile",
     accountLabel: "Profile & settings",
     subtitle: "Member portal",
+    mobilePrimary: ["/portal/dashboard", "/portal/book", "/portal/bookings"],
+    mobileScanner: true,
     sections: [
       { label: "Dashboard", items: [{ href: "/portal/dashboard", label: "Dashboard", icon: LayoutDashboard }] },
       {
@@ -110,6 +123,8 @@ export const PORTAL_CONFIGS: Record<PortalKind, PortalConfig> = {
     badgeLabel: "Instructor Portal",
     badgeClass: "bg-sage text-white",
     subtitle: "Instructor portal",
+    mobilePrimary: ["/instructor/dashboard"],
+    mobileScanner: true,
     sections: [
       { label: "Dashboard", items: [{ href: "/instructor/dashboard", label: "Dashboard", icon: LayoutDashboard }] },
     ],

@@ -151,7 +151,6 @@ export function DashboardShell({ config, user, children }: DashboardShellProps) 
     router.pathname === href || router.pathname.startsWith(`${href}/`);
   const initials = getInitials(user.name);
   const isPartner = config.kind === "partner";
-  const isMember = config.kind === "member";
 
   const handleSignOut = async () => {
     await signOut({ redirect: false });
@@ -254,7 +253,7 @@ export function DashboardShell({ config, user, children }: DashboardShellProps) 
         <header className="sticky top-0 z-40 bg-white/80 backdrop-blur-xl border-b border-sage/10 h-16 md:rounded-t-xl">
           <div className="flex items-center justify-between h-full px-4 gap-3">
             <div className="flex items-center gap-3 flex-1 min-w-0">
-              <SidebarTrigger className="text-charcoal hover:text-sage shrink-0" />
+              <SidebarTrigger className="text-charcoal hover:text-sage shrink-0 hidden md:inline-flex" />
               <div className="flex-1 max-w-md">
                 <SearchCommand sections={config.sections} />
               </div>
@@ -326,9 +325,9 @@ export function DashboardShell({ config, user, children }: DashboardShellProps) 
             </div>
           </div>
         </header>
-        <div className={cn("flex-1", isMember && "pb-20 md:pb-0")}>{children}</div>
+        <div className={cn("flex-1", "pb-24 md:pb-0")}>{children}</div>
       </SidebarInset>
-      {isMember && <MobileBottomNav />}
+      <MobileBottomNav config={config} />
     </SidebarProvider>
   );
 }

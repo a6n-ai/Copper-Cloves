@@ -1,76 +1,77 @@
-# Universal Mobile Bottom Nav + Member Component Polish — Design
+# App-Style Mobile Nav (center check-in scanner) + Member/Instructor Polish — Design
 
 **Date:** 2026-05-24
 **Status:** Approved (design)
-**Topic:** Make the mobile bottom navigation config-driven and apply it to all portals (member, admin, partner, instructor) with a "More" menu for items that don't fit; deep-polish the member portal pages for mobile (packages first).
+**Topic:** Config-driven, app-style mobile bottom navigation for all portals with a raised center **Check-in Scanner** (member + instructor), a **More** sheet for overflow items, and app-like, minimal-scroll polish of member + instructor pages (packages first).
 
 ## Decisions (locked)
 
 | Decision | Choice |
 |---|---|
-| Bottom nav scope | All portals (member, admin, partner, instructor), config-driven |
-| Overflow items | A "More" tab opens a bottom Sheet listing every nav item, grouped by section |
-| Member bottom bar | Keep 5 tabs: Home·Book·Bookings·Café·More (Packages + Profile live in More) |
-| Admin bottom bar | Dashboard·Schedule·Members·CRM·More |
-| Partner bottom bar | Dashboard·Classes·Members·Settings (4 items → no More) |
-| Instructor | Only Dashboard → no bottom bar (uses header) |
-| Hamburger on phones | Hidden — bottom bar + More is the sole mobile nav |
-| Member polish scope | All member pages; `/portal/packages` first |
+| Bottom nav | Config-driven from `dashboardNav`, all portals, app-style |
+| Center scanner | Raised circular FAB opening `ScanCheckInModal` — **member + instructor only** |
+| Overflow items | **More** tab → bottom Sheet listing all nav items grouped by section |
+| Member bar | `Home · Book | ◉Scan | Bookings · More` (More: Café, Packages, Profile) |
+| Admin bar | `Dashboard · Schedule · Members · CRM · More` (no scanner) |
+| Partner bar | `Dashboard · Classes · Members · Settings` (4 → no More, no scanner) |
+| Instructor bar | `Dashboard | ◉Scan` (no More) |
+| Hamburger on phones | Hidden — bottom bar is the sole mobile nav |
+| Polish | App-like, minimal scroll; member pages (packages first) + instructor dashboard |
 
 ## Context
 
-- Nav source of truth: `src/components/dashboard/dashboardNav.ts` — `PORTALS[kind]` with `sections: NavSection[]` (`{ label, items: { href, label, icon }[] }`).
-- `src/components/dashboard/DashboardShell.tsx` renders the sidebar (desktop) / Sheet (mobile via `ui/sidebar`), a header with `SidebarTrigger` (line ~257) + avatar dropdown (Profile/logout live here too), and currently `<MobileBottomNav />` only when `config.kind === "member"` with `pb-20 md:pb-0` clearance.
-- `src/components/responsive/MobileBottomNav.tsx` — currently a hardcoded 5-item member bar.
-- Member nav (6): Dashboard, Book Class, My Bookings, Packages, Café, Profile. Admin (9), Partner (4), Instructor (1).
-- `useIsMobile` (`@/hooks/use-mobile`) → `md` (768px) breakpoint.
+- Nav source: `src/components/dashboard/dashboardNav.ts` → `PORTAL_CONFIGS[kind]` (`sections: NavSection[]`, each `{ label, items: { href, label, icon }[] }`).
+- `DashboardShell.tsx`: sidebar (desktop) / Sheet (mobile), header with `SidebarTrigger` (~line 257) + avatar dropdown (Profile/logout), renders `<MobileBottomNav />` only for member with `pb-20 md:pb-0`.
+- `MobileBottomNav.tsx`: hardcoded 5-item member bar (to be rewritten).
+- Check-in: `CheckInScanButton` ("drop into any portal") + `ScanCheckInModal` (camera QR → `POST /api/checkin/scan`). The scan API handles `kind:"instructor"` (self check-in) and member (role `user`) check-in from session. No backend change needed.
+- `useIsMobile` → `md` (768px).
 
-## Part A — Config-driven mobile bottom nav (all portals)
+## Part A — App-style config-driven bottom nav
 
-### A1. Nav config additions (`dashboardNav.ts`)
-Add `mobilePrimary: string[]` (≤4 hrefs) to each `PortalConfig`:
-- member: `["/portal/dashboard","/portal/book","/portal/bookings","/portal/menu"]`
-- admin: `["/admin/dashboard","/admin/schedule","/admin/members","/admin/CRM"]`
-- partner: `["/partner/dashboard","/partner/classes","/partner/members","/partner/settings"]`
-- instructor: `["/instructor/dashboard"]`
+### A1. `dashboardNav.ts` additions
+Add to `PortalConfig`: `mobilePrimary: string[]` (side-tab hrefs) and `mobileScanner?: boolean`.
+- member: `mobilePrimary: ["/portal/dashboard","/portal/book","/portal/bookings"]`, `mobileScanner: true`
+- admin: `mobilePrimary: ["/admin/dashboard","/admin/schedule","/admin/members","/admin/CRM"]`
+- partner: `mobilePrimary: ["/partner/dashboard","/partner/classes","/partner/members","/partner/settings"]`
+- instructor: `mobilePrimary: ["/instructor/dashboard"]`, `mobileScanner: true`
 
-Helper: a `flattenNavItems(config)` returning all `{href,label,icon}` across sections (for the More sheet + lookups).
+Export helper `flattenNavItems(config): NavLink[]` (all items across sections).
 
-### A2. `MobileBottomNav` (rewritten, config-driven)
-- Props: `config: PortalConfig` (the active portal's config).
-- Compute `allItems = flattenNavItems(config)`; `primary = allItems filtered/ordered by config.mobilePrimary` (max 4); `overflow = allItems not in primary`.
-- Render:
-  - If `allItems.length <= 1` → render nothing (instructor).
-  - Else show a fixed bottom bar (`md:hidden`, safe-area padding) with the `primary` tabs; if `overflow.length > 0`, append a **More** tab (icon `Menu`/`MoreHorizontal`).
-  - Active tab: `router.pathname === href`. More is "active" when current route is in `overflow` (not a primary tab).
-- **More** opens a bottom `Sheet` (`side="bottom"`, `max-h-[80dvh]`, scroll) titled "Menu", listing **all** items grouped by `config.sections` (section label + items with icons), each a `Link` that closes the sheet on navigate. Current route highlighted.
-- One source of truth: bar + More + desktop sidebar all derive from `dashboardNav`.
+### A2. `MobileBottomNav` (rewrite, config-driven)
+Props: `{ config: PortalConfig }`.
+- `all = flattenNavItems(config)`; `primary = config.mobilePrimary` resolved to `NavLink`s (skip missing); `overflow = all − primary`.
+- `showMore = overflow.length > 0`; `showScanner = !!config.mobileScanner`.
+- Render nothing if `all.length <= 1 && !showScanner` (defensive).
+- **Slots** = `[...primary, ...(showMore ? [MoreSlot] : [])]`.
+- **Layout** (`fixed bottom-0 inset-x-0 z-50 md:hidden`, safe-area bottom padding, blurred bg):
+  - If `showScanner`: split slots into left/right halves; render `flex`: `[left slots] [center FAB] [right slots]`. The FAB is a raised circular button (`-translate-y-3`, shadow, sage/terracotta) with QR icon + "Check in" label below.
+  - Else: even `grid` of slots (e.g. `grid-cols-{n}`).
+- **Tab**: `Link`, icon + short label, active when `router.pathname === href` (terracotta) else muted.
+- **More**: opens bottom `Sheet` ("Menu", `max-h-[80dvh]`, scroll) listing every section (label + items as `Link`s with icons), closing on navigate; active route highlighted. "More" tab itself active when current route ∈ overflow.
+- **Scanner FAB**: local `open` state → `<ScanCheckInModal open onOpenChange />`.
 
-### A3. Shell integration (`DashboardShell.tsx`)
-- Render `<MobileBottomNav config={config} />` for **all** portals (remove the `kind === "member"` gate). The component self-suppresses when there's nothing to show (instructor).
-- Apply bottom clearance to the main content for all portals on mobile: `pb-20 md:pb-0` (only meaningful when a bar renders; harmless otherwise — or gate on `allItems.length > 1`).
-- Hide the header `SidebarTrigger` on phones: add `hidden md:inline-flex` (keep on desktop where it collapses the sidebar). The mobile Sheet from `ui/sidebar` is no longer the mobile nav.
+### A3. `DashboardShell.tsx`
+- Render `<MobileBottomNav config={config} />` for **all** portals (drop the member-only gate); component self-suppresses when empty.
+- Main content bottom clearance on phones: `pb-24 md:pb-0` (taller to clear the raised FAB) when a bar shows.
+- Hide header `SidebarTrigger` on phones: `hidden md:inline-flex`.
 
-## Part B — Member page mobile polish
+## Part B — App-like, minimal-scroll polish (member + instructor)
 
-Beyond the shipped overflow pass, improve touch ergonomics and layout on phones; **desktop (`md+`) unchanged**. Use existing primitives (`Container`, `ResponsiveDialog`, `ResponsiveTable`) + responsive Tailwind.
+Principle: phone screens should feel like an app — content fits with minimal scrolling, card-based, comfortable density, primary actions full-width and ≥44px. Desktop (`md+`) unchanged. Use `Container`, `ResponsiveDialog`, `ResponsiveTable` + responsive Tailwind.
 
-Priority order:
-1. **`/portal/packages`** (pay packages) — pass cards stack full-width on phones; price + "Buy/Pay" CTAs are full-width, ≥44px tall; benefits list readable; remove cramped multi-column rows; ensure the checkout modal is usable on phones.
-2. `/portal/dashboard` — stat cards/grids stack cleanly; charts/`PathToMastery` scroll rather than overflow; comfortable spacing.
-3. `/portal/book` — class list/filters; booking panel as a usable mobile sheet; week scroller already done.
-4. `/portal/bookings` — booking cards stack; actions reachable.
-5. `/portal/menu` — café items grid + cart/checkout panel on phones.
-6. `/portal/profile` — form sections + avatar; comfortable spacing.
-
-Each page: verify no horizontal overflow at 320/390/414/768; tap targets ≥44px; primary actions full-width on phones.
+Priority:
+1. **`/portal/packages`** — pass cards full-width stacked; price + CTA prominent, full-width, ≥44px; benefits compact; checkout modal usable on phones.
+2. **`/portal/dashboard`** — compact stat cards, fit common content above the fold where feasible; charts/PathToMastery scroll, don't overflow.
+3. **`/instructor/dashboard`** — app-like today/week + the center scanner is the primary action; compact cards.
+4. `/portal/book`, `/portal/bookings`, `/portal/menu`, `/portal/profile` — comfortable spacing, stacked cards, full-width actions, no horizontal overflow at 320/390/414/768.
 
 ## Out of scope
-- Deep component polish of admin/partner/instructor *pages* (they got the overflow pass; only the nav view changes here).
-- Backend/API changes.
+- Deep polish of admin/partner *pages* (overflow pass already shipped; only their nav view changes).
+- Backend/API/check-in logic changes.
 - Editing `src/components/ui/*`.
 
 ## Risks / notes
-- `next build` must not run while `next dev` is live (corrupts `.next`); verify via dev compile or stop/build/restart.
-- Instructor portal has 1 item — `MobileBottomNav` must render nothing for it (no 1-tab bar).
-- Profile is reachable via header avatar dropdown + the More sheet, so it need not be a member bottom tab.
+- Don't run `next build` while `next dev` is live (corrupts `.next`); verify via dev compile or stop/build/restart.
+- Center FAB overlaps content → main needs `pb-24` on phones.
+- Instructor bar = 1 tab + scanner; layout must look intentional (Dashboard beside a centered Scan).
+- Scanner uses camera (`@yudiel/react-qr-scanner`) — needs HTTPS/localhost + camera permission; existing modal already handles the unavailable case.
