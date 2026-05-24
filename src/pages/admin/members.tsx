@@ -38,13 +38,14 @@ import { Pagination, usePagination } from "@/components/Pagination";
 import { ListAvatar } from "@/components/admin/ListAvatar";
 import { useSession } from "next-auth/react";
 import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogHeader,
-  DialogTitle,
-  DialogFooter,
-} from "@/components/ui/dialog";
+  ResponsiveDialog,
+  ResponsiveDialogContent,
+  ResponsiveDialogDescription,
+  ResponsiveDialogHeader,
+  ResponsiveDialogTitle,
+  ResponsiveDialogFooter,
+} from "@/components/responsive/ResponsiveDialog";
+import { ResponsiveTable } from "@/components/responsive/ResponsiveTable";
 import {
   Select,
   SelectContent,
@@ -966,6 +967,7 @@ export default function AdminMembers() {
                 </div>
               </CardHeader>
               <CardContent>
+                <ResponsiveTable>
                 <div className="rounded-xl border border-sage/15 bg-white overflow-hidden">
                   <Table>
                     <TableHeader>
@@ -1099,6 +1101,7 @@ export default function AdminMembers() {
                     </TableBody>
                   </Table>
                 </div>
+                </ResponsiveTable>
                 <Pagination
                   page={membersPg.page}
                   total={membersPg.total}
@@ -1112,14 +1115,14 @@ export default function AdminMembers() {
       </div>
 
       {/* Add Member Dialog */}
-      <Dialog open={addOpen} onOpenChange={setAddOpen}>
-        <DialogContent className="sm:max-w-[440px] bg-white border-sage/20">
-          <DialogHeader>
-            <DialogTitle className="font-display text-2xl text-charcoal">Add Member</DialogTitle>
-            <DialogDescription className="font-body text-charcoal/60">
+      <ResponsiveDialog open={addOpen} onOpenChange={setAddOpen}>
+        <ResponsiveDialogContent className="sm:max-w-[440px] bg-white border-sage/20">
+          <ResponsiveDialogHeader>
+            <ResponsiveDialogTitle className="font-display text-2xl text-charcoal">Add Member</ResponsiveDialogTitle>
+            <ResponsiveDialogDescription className="font-body text-charcoal/60">
               Create a new member account. They can sign in with the email + password.
-            </DialogDescription>
-          </DialogHeader>
+            </ResponsiveDialogDescription>
+          </ResponsiveDialogHeader>
           <div className="space-y-3 py-2">
             <div>
               <Label className="font-body text-charcoal/80 mb-1.5 block text-sm">Full name</Label>
@@ -1163,7 +1166,7 @@ export default function AdminMembers() {
               <p className="text-sm font-body text-terracotta">{addError}</p>
             )}
           </div>
-          <DialogFooter>
+          <ResponsiveDialogFooter>
             <Button
               variant="outline"
               onClick={() => setAddOpen(false)}
@@ -1215,21 +1218,21 @@ export default function AdminMembers() {
             >
               {addSubmitting ? "Adding…" : "Add Member"}
             </Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
+          </ResponsiveDialogFooter>
+        </ResponsiveDialogContent>
+      </ResponsiveDialog>
 
       {/* Manage Member Dialog — 2-step: pass config → payment */}
-      <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
-        <DialogContent className="sm:max-w-[480px] bg-white border-sage/20">
-          <DialogHeader>
-            <DialogTitle className="font-display text-2xl text-charcoal">
+      <ResponsiveDialog open={dialogOpen} onOpenChange={setDialogOpen}>
+        <ResponsiveDialogContent className="sm:max-w-[480px] bg-white border-sage/20">
+          <ResponsiveDialogHeader>
+            <ResponsiveDialogTitle className="font-display text-2xl text-charcoal">
               Manage {selectedMember?.name}
-            </DialogTitle>
-            <DialogDescription className="font-body text-charcoal/60">
+            </ResponsiveDialogTitle>
+            <ResponsiveDialogDescription className="font-body text-charcoal/60">
               {dialogStep === "config" ? "Step 1 of 2 — pass configuration" : "Step 2 of 2 — payment"}
-            </DialogDescription>
-          </DialogHeader>
+            </ResponsiveDialogDescription>
+          </ResponsiveDialogHeader>
 
           {/* Step indicator */}
           <div className="flex items-center gap-2 px-1">
@@ -1269,7 +1272,7 @@ export default function AdminMembers() {
                       </span>
                     )}
                   </Label>
-                  <div className="grid grid-cols-4 gap-2">
+                  <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
                     {[1, 4, 8, 12].map((n) => (
                       <button
                         key={n}
@@ -1293,7 +1296,7 @@ export default function AdminMembers() {
                   <Label className="font-body text-charcoal/80 mb-3 block">
                     Days Remaining (from today)
                   </Label>
-                  <div className="grid grid-cols-4 gap-2">
+                  <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
                     {[30, 90, 180, 365].map((d) => (
                       <button
                         key={d}
@@ -1415,7 +1418,7 @@ export default function AdminMembers() {
             </div>
           )}
 
-          <DialogFooter className="gap-2 sm:gap-2">
+          <ResponsiveDialogFooter className="gap-2 sm:gap-2">
             {dialogStep === "config" ? (
               <>
                 <Button
@@ -1453,20 +1456,20 @@ export default function AdminMembers() {
                 </Button>
               </>
             )}
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
+          </ResponsiveDialogFooter>
+        </ResponsiveDialogContent>
+      </ResponsiveDialog>
 
       {/* Member Profile Dialog */}
-      <Dialog open={historyOpen} onOpenChange={setHistoryOpen}>
-        <DialogContent className="sm:max-w-[640px] bg-white border-sage/20">
-          <DialogHeader>
-            <DialogTitle className="font-display text-2xl text-charcoal">Manage Member</DialogTitle>
-            <DialogDescription className="font-body text-charcoal/60">
+      <ResponsiveDialog open={historyOpen} onOpenChange={setHistoryOpen}>
+        <ResponsiveDialogContent className="sm:max-w-[640px] bg-white border-sage/20">
+          <ResponsiveDialogHeader>
+            <ResponsiveDialogTitle className="font-display text-2xl text-charcoal">Manage Member</ResponsiveDialogTitle>
+            <ResponsiveDialogDescription className="font-body text-charcoal/60">
               {historyMember?.name ?? "Member"}
               {historyMember?.email ? ` · ${historyMember.email}` : ""}
-            </DialogDescription>
-          </DialogHeader>
+            </ResponsiveDialogDescription>
+          </ResponsiveDialogHeader>
 
           {historyLoading ? (
             <p className="font-body text-sm text-charcoal/50 py-10 text-center">Loading…</p>
@@ -1615,8 +1618,8 @@ export default function AdminMembers() {
               </div>
             </Tabs>
           )}
-        </DialogContent>
-      </Dialog>
+        </ResponsiveDialogContent>
+      </ResponsiveDialog>
     </>
   );
 }
