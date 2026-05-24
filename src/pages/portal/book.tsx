@@ -536,27 +536,6 @@ export default function BookClass() {
     return { classTotal, foodTotal, discount, couponDiscount, subtotal, taxIncluded, finalTotal };
   }
 
-  async function processGuests(classScheduleId: string) {
-    if (friendsFamily.length === 0) return;
-    try {
-      await fetch("/api/bookings/process-guests", {
-        method: "POST",
-        credentials: "include",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          classScheduleId,
-          guests: friendsFamily.map((g) => ({
-            name: g.name,
-            email: g.email,
-            phone: g.phone,
-          })),
-        }),
-      });
-    } catch (err) {
-      console.error("[processGuests]", err);
-    }
-  }
-
   async function handleAddPass() {
     if (!featuredPackage) return;
     setAddingPass(true);
@@ -806,7 +785,8 @@ export default function BookClass() {
         await completePendingBookingCheckout(pending, checkoutResult.payload);
         clearPendingRazorpayCheckout();
         paidViaRazorpay = true;
-        await processGuests(selectedClass?.id ?? "");
+        // Guest onboarding now happens server-side during fulfillment (see
+        // /api/bookings + razorpayServerCheckout) so it survives redirect flows.
         toast({ title: "Payment successful", description: `Booking confirmed for ₹${finalTotal.toFixed(0)}.`, variant: "success" });
         setShowBookingPanel(false);
         router.push("/portal/dashboard");
@@ -868,8 +848,6 @@ export default function BookClass() {
           throw new Error(msg);
         }
       }
-
-      await processGuests(selectedClass?.id ?? "");
 
       if (finalTotal > 0) {
         toast({ title: "Booking confirmed", description: `Payment of ₹${finalTotal.toFixed(0)} processed.`, variant: "success" });

@@ -22,6 +22,7 @@ import {
   type CouponContext,
 } from "@/lib/couponHelpers";
 import { notifyPackagePurchase } from "@/lib/notifications/notifyPackagePurchase";
+import { onboardGuestsForBooking } from "@/lib/guestOnboarding";
 import type { Coupon } from "@/generated/prisma/client";
 import type { PendingBookingCheckout, PendingPackageCheckout } from "@/lib/pendingRazorpayCheckout";
 import {
@@ -248,6 +249,17 @@ export async function finishBookingCheckoutOnServer(
         }),
       )
       .catch((e) => console.error("CRM class_booking_confirmed:", e));
+  }
+
+  // Onboard friends & family guests here too: this path runs for finish-checkout
+  // (redirect return with no payload) and the webhook backup — neither of which
+  // execute the client. Idempotent + best-effort so it never fails fulfillment.
+  if (guestList.length > 0) {
+    await onboardGuestsForBooking({
+      guests: guestList,
+      classScheduleId: scheduleId,
+      bookerId: userId,
+    }).catch((e) => console.error("[onboardGuestsForBooking] finishBookingCheckoutOnServer:", e));
   }
 
   return { bookingId: booking.id };

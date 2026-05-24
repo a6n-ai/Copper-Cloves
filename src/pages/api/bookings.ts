@@ -10,6 +10,7 @@ import {
 } from "@/lib/bookingAttendance";
 import { reconcileNoShowsGlobally } from "@/lib/bookingReconcile";
 import { linkRazorpayOrderToBookingTx } from "@/lib/razorpayPersistence";
+import { onboardGuestsForBooking } from "@/lib/guestOnboarding";
 import {
   expectedBookingCheckoutPaise,
   parseFinanceSnapshot,
@@ -292,6 +293,18 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
             .catch((e) => console.error("CRM class_booking_confirmed:", e)),
         ]);
       }
+
+      // Onboard friends & family guests server-side (create accounts + roster
+      // rows + emails). Done here — not on the client — so it also runs when
+      // payment completes via a Razorpay full-page redirect. Idempotent + best-effort.
+      if (guestList.length > 0) {
+        await onboardGuestsForBooking({
+          guests: guestList,
+          classScheduleId: scheduleId,
+          bookerId: userId,
+        }).catch((e) => console.error("[onboardGuestsForBooking] bookings.ts:", e));
+      }
+
       return res.status(201).json(booking);
     } catch (e) {
       const msg = e instanceof Error ? e.message : String(e);
