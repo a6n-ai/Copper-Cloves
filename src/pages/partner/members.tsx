@@ -12,10 +12,11 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
+import { ResponsiveTable } from "@/components/responsive/ResponsiveTable";
 
 function PartnerMembersSkeleton() {
   return (
-    <div className="overflow-x-auto">
+    <ResponsiveTable>
       <Table>
         <TableHeader>
           <TableRow className="hover:bg-transparent">
@@ -41,7 +42,7 @@ function PartnerMembersSkeleton() {
           ))}
         </TableBody>
       </Table>
-    </div>
+    </ResponsiveTable>
   );
 }
 
@@ -97,7 +98,7 @@ export default function PartnerMembersPage() {
               <UserX className="h-4 w-4" /> No members have attended a session yet.
             </div>
           ) : (
-            <div className="overflow-x-auto">
+            <ResponsiveTable>
               <Table>
                 <TableHeader>
                   <TableRow className="hover:bg-transparent">
@@ -142,7 +143,7 @@ export default function PartnerMembersPage() {
                   ))}
                 </TableBody>
               </Table>
-            </div>
+            </ResponsiveTable>
           )}
         </CardContent>
       </Card>
