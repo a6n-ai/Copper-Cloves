@@ -947,7 +947,7 @@ export default function BookClass() {
                 <ChevronRight size={20} />
               </button>
             </div>
-            <div className="grid grid-cols-7 gap-1">
+            <div className="flex gap-1 overflow-x-auto snap-x [-webkit-overflow-scrolling:touch] pb-2 md:grid md:grid-cols-7 md:overflow-visible md:pb-0">
               {weekDays.map((day, i) => {
                 const today = new Date();
                 const isToday = isSameLocalCalendarDay(day, today);
@@ -958,7 +958,7 @@ export default function BookClass() {
                   <button
                     key={i}
                     onClick={() => setSelectedDayIndex(isSelected ? null : i)}
-                    className={`flex flex-col items-center py-2 px-1 rounded-xl transition-all ${
+                    className={`flex flex-col items-center py-2 px-1 rounded-xl transition-all min-w-[3.25rem] snap-start shrink-0 md:min-w-0 ${
                       isSelected
                         ? "bg-sage text-white"
                         : isPast

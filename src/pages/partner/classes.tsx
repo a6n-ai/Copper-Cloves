@@ -216,7 +216,7 @@ export default function PartnerClasses() {
       <div className="flex flex-wrap items-center justify-between gap-3">
         <div className="flex items-center gap-2">
           <Button variant="outline" size="icon" className="h-9 w-9 border-sage/20" onClick={() => shift(-1)} aria-label="Previous"><ChevronLeft className="h-4 w-4" /></Button>
-          <div className="font-display text-2xl text-charcoal min-w-[180px] text-center flex items-center justify-center gap-2">
+          <div className="font-display text-2xl text-charcoal min-w-0 sm:min-w-[180px] text-center flex items-center justify-center gap-2 truncate">
             <Calendar className="h-5 w-5 text-sage" /> {periodLabel}
           </div>
           <Button variant="outline" size="icon" className="h-9 w-9 border-sage/20" onClick={() => shift(1)} aria-label="Next"><ChevronRight className="h-4 w-4" /></Button>
@@ -230,13 +230,13 @@ export default function PartnerClasses() {
       </div>
 
       {viewMode === "week" && (
-        <div className="grid grid-cols-7 gap-2">
+        <div className="flex gap-2 overflow-x-auto snap-x [-webkit-overflow-scrolling:touch] pb-2 md:grid md:grid-cols-7 md:overflow-visible md:pb-0">
           {gridDays.map((d) => {
             const k = dayKey(d);
             const count = (byDay.get(k) ?? []).length;
             const active = k === selectedDay;
             return (
-              <button key={k} type="button" onClick={() => setSelectedDay(k)} className={`flex flex-col items-center py-2 rounded-xl border transition-colors ${active ? "bg-sage text-white border-sage" : "bg-white/70 border-sage/15 text-charcoal hover:bg-sage/5"}`}>
+              <button key={k} type="button" onClick={() => setSelectedDay(k)} className={`flex flex-col items-center py-2 rounded-xl border transition-colors min-w-[3.25rem] snap-start shrink-0 md:min-w-0 ${active ? "bg-sage text-white border-sage" : "bg-white/70 border-sage/15 text-charcoal hover:bg-sage/5"}`}>
                 <span className="font-body text-[10px] uppercase tracking-wide opacity-80">{DAY_SHORT[d.getDay()]}</span>
                 <span className="font-display text-lg leading-tight">{d.getDate()}</span>
                 <span className={`font-body text-[10px] ${active ? "text-white/80" : k === todayKey ? "text-sage" : "text-charcoal/50"}`}>{k === todayKey ? "Today" : count ? `${count} cls` : "—"}</span>
