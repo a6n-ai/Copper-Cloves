@@ -44,6 +44,7 @@ import { cdnUrl } from "@/lib/cdnUrl";
 import { RoleSwitcher } from "@/components/RoleSwitcher";
 import { CheckinBeacon } from "@/components/checkin/CheckinBeacon";
 import { SIGN_OUT_HREF, type NavSection, type PortalConfig } from "@/components/dashboard/dashboardNav";
+import { MobileBottomNav } from "@/components/responsive/MobileBottomNav";
 
 export interface DashboardUser {
   name: string;
@@ -113,7 +114,7 @@ function SearchCommand({ sections }: { sections: NavSection[] }) {
           </kbd>
         </button>
       </PopoverTrigger>
-      <PopoverContent align="start" className="w-[380px] p-0">
+      <PopoverContent align="start" className="w-[min(380px,calc(100vw-2rem))] p-0">
         <Command>
           <CommandInput ref={inputRef} placeholder="Search pages…" value={query} onValueChange={setQuery} />
           <CommandList>
@@ -150,6 +151,7 @@ export function DashboardShell({ config, user, children }: DashboardShellProps) 
     router.pathname === href || router.pathname.startsWith(`${href}/`);
   const initials = getInitials(user.name);
   const isPartner = config.kind === "partner";
+  const isMember = config.kind === "member";
 
   const handleSignOut = async () => {
     await signOut({ redirect: false });
@@ -324,8 +326,9 @@ export function DashboardShell({ config, user, children }: DashboardShellProps) 
             </div>
           </div>
         </header>
-        <div className="flex-1">{children}</div>
+        <div className={cn("flex-1", isMember && "pb-20 md:pb-0")}>{children}</div>
       </SidebarInset>
+      {isMember && <MobileBottomNav />}
     </SidebarProvider>
   );
 }

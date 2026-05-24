@@ -3,6 +3,7 @@ import Image from "next/image";
 import { Button } from "@/components/ui/button";
 import { Menu, X } from "lucide-react";
 import { useState, useEffect } from "react";
+import { useRouter } from "next/router";
 import { cn } from "@/lib/utils";
 
 import { cdnUrl } from "@/lib/cdnUrl";
@@ -19,6 +20,7 @@ interface NavigationProps {
 export function Navigation({ variant = "default" }: NavigationProps) {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [scrolled, setScrolled] = useState(false);
+  const router = useRouter();
 
   useEffect(() => {
     const onScroll = () => setScrolled(window.scrollY > 24);
@@ -26,6 +28,12 @@ export function Navigation({ variant = "default" }: NavigationProps) {
     window.addEventListener("scroll", onScroll, { passive: true });
     return () => window.removeEventListener("scroll", onScroll);
   }, []);
+
+  useEffect(() => {
+    const close = () => setMobileMenuOpen(false);
+    router.events.on("routeChangeComplete", close);
+    return () => router.events.off("routeChangeComplete", close);
+  }, [router.events]);
 
   const isOverlay = variant === "overlay";
 
