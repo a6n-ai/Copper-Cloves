@@ -3,6 +3,11 @@ layer(base);
 
 @import 'tailwindcss';
 
+/* Load tailwindcss-animate for Tailwind v4 so Radix data-state animations
+   (animate-in / slide-in-from-bottom / fade) actually render — sheets, dialogs,
+   the bottom-nav More menu, etc. Without this the utilities are no-ops. */
+@plugin "tailwindcss-animate";
+
 @custom-variant dark (&:is(.dark *));
 
 @theme {
