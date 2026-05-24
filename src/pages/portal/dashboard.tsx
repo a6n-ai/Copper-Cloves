@@ -10,8 +10,10 @@ import { UpcomingScheduleCard, type ScheduleEntry } from "@/components/dashboard
 import { VitalityAreaChart } from "@/components/dashboard/VitalityAreaChart";
 import { OrderHistoryTable } from "@/components/dashboard/OrderHistoryTable";
 import { PathToMastery } from "@/components/dashboard/PathToMastery";
-import { MemberDashboardSkeleton } from "@/components/dashboard/skeletons";
+import { MemberDashboardSkeleton, MemberMobileDashboardSkeleton } from "@/components/dashboard/skeletons";
 import { AnimatedIcon } from "@/components/dashboard/AnimatedIcon";
+import { MemberMobileDashboard } from "@/components/dashboard/mobile/MemberMobileDashboard";
+import { useIsMobile } from "@/hooks/use-mobile";
 import { useSession } from "next-auth/react";
 import {
   Calendar,
@@ -145,6 +147,7 @@ function computeMovementVitalityFromBookings(bookings: VitalityBookingRow[], now
 
 export default function Dashboard() {
   const router = useRouter();
+  const isMobile = useIsMobile();
   const { data: session, status } = useSession();
   const [loading, setLoading] = useState(true);
   const [dailyIntention, setDailyIntention] = useState("Deep breathing and presence");
@@ -424,15 +427,45 @@ export default function Dashboard() {
   }));
 
   if (loading) {
-    return <MemberDashboardSkeleton />;
+    return isMobile ? <MemberMobileDashboardSkeleton /> : <MemberDashboardSkeleton />;
   }
 
   return (
     <div className="min-h-screen bg-linear-to-br from-cream via-cream to-sage/5">
       {/* Main Content */}
       <main className="min-h-screen">
+        {isMobile ? (
+          <MemberMobileDashboard
+            userName={userName}
+            userClassesCompleted={userClassesCompleted}
+            currentStreak={currentStreak}
+            packageDetails={packageDetails}
+            creditsRemaining={creditsRemaining}
+            dailyIntention={dailyIntention}
+            isEditingIntention={isEditingIntention}
+            onIntentionChange={setDailyIntention}
+            onToggleEditIntention={setIsEditingIntention}
+            statItems={statItems}
+            milestones={activeMilestones}
+            currentMilestoneId={currentMilestone.id}
+            nextMilestone={nextMilestone}
+            ptmLoading={ptmLoading}
+            upcomingEntries={upcomingEntries}
+            userBadges={userBadges}
+            recentActivities={recentActivities}
+            lastCafeOrder={lastCafeOrder}
+            vitality={{
+              series: vitalityData,
+              totalMinutes,
+              avgPerDay,
+              vsLabel: vitalityVsPrev.text,
+              vsTone: vitalityVsPrev.tone,
+            }}
+            onShowOrderHistory={() => setShowOrderHistory(true)}
+          />
+        ) : (
         <div className="max-w-7xl mx-auto px-4 py-5 sm:px-6 lg:px-8 lg:py-8">
-          
+
           {/* TOP SECTION: Greeting & Path to Mastery */}
           <div className="mb-6 lg:mb-12">
             {/* Welcome Header + Today's Intention - Same Row */}
@@ -741,6 +774,7 @@ export default function Dashboard() {
             </Card>
           </div>
         </div>
+        )}
       </main>
 
       {/* Order History Modal — member café orders */}

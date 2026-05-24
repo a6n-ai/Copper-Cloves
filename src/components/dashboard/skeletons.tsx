@@ -122,6 +122,38 @@ export function MemberDashboardSkeleton() {
   );
 }
 
+/** Mirrors MemberMobileDashboard: hero, next-class CTA, quick-book tiles, stats, journey, upcoming, peek tiles. */
+export function MemberMobileDashboardSkeleton() {
+  return (
+    <main className="min-h-screen">
+      <div className="space-y-5 px-4 py-5">
+        {/* Hero */}
+        <Skeleton className="h-40 w-full rounded-3xl" />
+        {/* Next-class CTA */}
+        <Skeleton className="h-[72px] w-full rounded-2xl" />
+        {/* Quick book — 4 tiles */}
+        <div className="grid grid-cols-4 gap-2">
+          {Array.from({ length: 4 }).map((_, i) => (
+            <Skeleton key={i} className="h-16 rounded-xl" />
+          ))}
+        </div>
+        {/* Stat mini-grid */}
+        <StatRowSkeleton />
+        {/* Your journey */}
+        <Skeleton className="h-28 w-full rounded-2xl" />
+        {/* Upcoming */}
+        <ListSkeleton rows={2} />
+        {/* Explore peek tiles */}
+        <div className="space-y-2">
+          {Array.from({ length: 4 }).map((_, i) => (
+            <Skeleton key={i} className="h-[68px] w-full rounded-2xl" />
+          ))}
+        </div>
+      </div>
+    </main>
+  );
+}
+
 export function AdminDashboardSkeleton() {
   return (
     <main className="mx-auto max-w-7xl space-y-6 p-4 lg:p-6">
