@@ -85,15 +85,16 @@ import { SEO } from "@/components/SEO";
 import { Spinner } from "@/components/ui/spinner";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
-import { 
-  Dialog, 
-  DialogContent, 
-  DialogDescription, 
-  DialogFooter, 
-  DialogHeader, 
-  DialogTitle,
-  DialogTrigger 
-} from "@/components/ui/dialog";
+import {
+  ResponsiveDialog,
+  ResponsiveDialogContent,
+  ResponsiveDialogDescription,
+  ResponsiveDialogFooter,
+  ResponsiveDialogHeader,
+  ResponsiveDialogTitle,
+  ResponsiveDialogTrigger,
+} from "@/components/responsive/ResponsiveDialog";
+import { ResponsiveTable } from "@/components/responsive/ResponsiveTable";
 import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
 import { useSession } from "next-auth/react";
@@ -1855,6 +1856,7 @@ export default function AdminDashboard() {
                       </p>
                     ) : null}
                     <div className="rounded-xl border border-sage/15 bg-white overflow-hidden">
+                      <ResponsiveTable>
                       <Table>
                         <TableHeader>
                           <TableRow className="bg-sage/5 hover:bg-sage/5 border-sage/10">
@@ -1930,6 +1932,7 @@ export default function AdminDashboard() {
                           })}
                         </TableBody>
                       </Table>
+                      </ResponsiveTable>
                     </div>
                     <Pagination page={financeTxnPg.page} total={financeTxnPg.total} onChange={financeTxnPg.setPage} />
 
@@ -1958,20 +1961,20 @@ export default function AdminDashboard() {
                   </CardContent>
                 </Card>
 
-                <Dialog
+                <ResponsiveDialog
                   open={financeDetailOpen}
                   onOpenChange={(open) => {
                     setFinanceDetailOpen(open);
                     if (!open) setSelectedFinanceDetail(null);
                   }}
                 >
-                  <DialogContent className="max-h-[85vh] overflow-y-auto border-sage/20 bg-white sm:max-w-lg">
-                    <DialogHeader>
-                      <DialogTitle className="font-display text-charcoal">Finance-1 — transaction detail</DialogTitle>
-                      <DialogDescription className="font-body text-charcoal/70">
+                  <ResponsiveDialogContent className="max-h-[85vh] overflow-y-auto border-sage/20 bg-white sm:max-w-lg">
+                    <ResponsiveDialogHeader>
+                      <ResponsiveDialogTitle className="font-display text-charcoal">Finance-1 — transaction detail</ResponsiveDialogTitle>
+                      <ResponsiveDialogDescription className="font-body text-charcoal/70">
                         Full breakdown (Razorpay, package vs café amounts, and attendees). Shown only when you open this dialog.
-                      </DialogDescription>
-                    </DialogHeader>
+                      </ResponsiveDialogDescription>
+                    </ResponsiveDialogHeader>
 
                     {selectedFinanceDetail ? (
                       <div className="space-y-4 font-body text-sm text-charcoal">
@@ -2125,8 +2128,8 @@ export default function AdminDashboard() {
                         </div>
                       </div>
                     ) : null}
-                  </DialogContent>
-                </Dialog>
+                  </ResponsiveDialogContent>
+                </ResponsiveDialog>
 
                 {/* Analytics Graphs */}
                 <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
@@ -2488,6 +2491,7 @@ export default function AdminDashboard() {
                         </div>
                       ) : (
                         <div className="rounded-xl border border-sage/15 bg-white overflow-hidden">
+                          <ResponsiveTable>
                           <Table>
                             <TableHeader>
                               <TableRow className="bg-sage/5 hover:bg-sage/5 border-sage/10">
@@ -2532,6 +2536,7 @@ export default function AdminDashboard() {
                               ))}
                             </TableBody>
                           </Table>
+                          </ResponsiveTable>
                         </div>
                       )}
                       <Pagination page={couponsPg.page} total={couponsPg.total} onChange={couponsPg.setPage} />
@@ -2570,6 +2575,7 @@ export default function AdminDashboard() {
                       </div>
                     ) : (
                       <div className="rounded-xl border border-sage/15 bg-white overflow-hidden">
+                        <ResponsiveTable>
                         <Table>
                           <TableHeader>
                             <TableRow className="bg-sage/5 hover:bg-sage/5 border-sage/10">
@@ -2612,6 +2618,7 @@ export default function AdminDashboard() {
                             ))}
                           </TableBody>
                         </Table>
+                        </ResponsiveTable>
                       </div>
                     )}
                     <Pagination page={mealInquiriesPg.page} total={mealInquiriesPg.total} onChange={mealInquiriesPg.setPage} />
@@ -2649,6 +2656,7 @@ export default function AdminDashboard() {
                       </div>
                     ) : (
                       <div className="rounded-xl border border-sage/15 bg-white overflow-hidden">
+                        <ResponsiveTable>
                         <Table>
                           <TableHeader>
                             <TableRow className="bg-sage/5 hover:bg-sage/5 border-sage/10">
@@ -2693,6 +2701,7 @@ export default function AdminDashboard() {
                             ))}
                           </TableBody>
                         </Table>
+                        </ResponsiveTable>
                       </div>
                     )}
                     <Pagination page={rentalInquiriesPg.page} total={rentalInquiriesPg.total} onChange={rentalInquiriesPg.setPage} />
@@ -3097,6 +3106,7 @@ export default function AdminDashboard() {
                   </CardHeader>
                   <CardContent>
                     <div className="rounded-xl border border-sage/15 bg-white overflow-hidden">
+                      <ResponsiveTable>
                       <Table>
                         <TableHeader>
                           <TableRow className="bg-sage/5 hover:bg-sage/5 border-sage/10">
@@ -3159,6 +3169,7 @@ export default function AdminDashboard() {
                           ))}
                         </TableBody>
                       </Table>
+                      </ResponsiveTable>
                     </div>
                     <Pagination page={membersPg.page} total={membersPg.total} onChange={membersPg.setPage} />
                   </CardContent>
@@ -3211,6 +3222,7 @@ export default function AdminDashboard() {
                   </CardHeader>
                   <CardContent>
                     <div className="rounded-xl border border-sage/15 bg-white overflow-hidden">
+                      <ResponsiveTable>
                       <Table>
                         <TableHeader>
                           <TableRow className="bg-sage/5 hover:bg-sage/5 border-sage/10">
@@ -3262,6 +3274,7 @@ export default function AdminDashboard() {
                           })}
                         </TableBody>
                       </Table>
+                      </ResponsiveTable>
                     </div>
                     <Pagination page={instructorsPerfPg.page} total={instructorsPerfPg.total} onChange={instructorsPerfPg.setPage} />
                   </CardContent>
@@ -3510,6 +3523,7 @@ export default function AdminDashboard() {
                   </CardHeader>
                   <CardContent>
                     <div className="rounded-xl border border-sage/15 bg-white overflow-hidden">
+                      <ResponsiveTable>
                       <Table>
                         <TableHeader>
                           <TableRow className="bg-sage/5 hover:bg-sage/5 border-sage/10">
@@ -3561,6 +3575,7 @@ export default function AdminDashboard() {
                           })}
                         </TableBody>
                       </Table>
+                      </ResponsiveTable>
                     </div>
                     <Pagination page={classesPerfPg.page} total={classesPerfPg.total} onChange={classesPerfPg.setPage} />
                   </CardContent>
@@ -3778,14 +3793,14 @@ export default function AdminDashboard() {
       </div>
 
       {/* Add User Dialog */}
-      <Dialog open={showAddUserDialog} onOpenChange={setShowAddUserDialog}>
-        <DialogContent className="max-w-2xl bg-white/95 backdrop-blur-xl border-sage/20">
-          <DialogHeader>
-            <DialogTitle className="font-display text-2xl text-charcoal">Add New User</DialogTitle>
-            <DialogDescription className="font-body text-charcoal/60">
+      <ResponsiveDialog open={showAddUserDialog} onOpenChange={setShowAddUserDialog}>
+        <ResponsiveDialogContent className="max-w-2xl bg-white/95 backdrop-blur-xl border-sage/20">
+          <ResponsiveDialogHeader>
+            <ResponsiveDialogTitle className="font-display text-2xl text-charcoal">Add New User</ResponsiveDialogTitle>
+            <ResponsiveDialogDescription className="font-body text-charcoal/60">
               Create a new member account with package and credits
-            </DialogDescription>
-          </DialogHeader>
+            </ResponsiveDialogDescription>
+          </ResponsiveDialogHeader>
           <div className="grid grid-cols-2 gap-4 py-4">
             <div className="space-y-2">
               <Label htmlFor="name" className="font-body text-charcoal">Full Name</Label>
@@ -3824,7 +3839,7 @@ export default function AdminDashboard() {
               <Textarea id="address" placeholder="Enter full address..." className="border-sage/20 focus:ring-sage placeholder:text-charcoal/40" />
             </div>
           </div>
-          <DialogFooter>
+          <ResponsiveDialogFooter>
             <Button variant="outline" onClick={() => setShowAddUserDialog(false)} className="border-sage/20 font-body">
               Cancel
             </Button>
@@ -3832,19 +3847,19 @@ export default function AdminDashboard() {
               <Save className="h-4 w-4 mr-2" />
               Create User
             </Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
+          </ResponsiveDialogFooter>
+        </ResponsiveDialogContent>
+      </ResponsiveDialog>
 
       {/* Edit User Dialog */}
-      <Dialog open={showEditUserDialog} onOpenChange={setShowEditUserDialog}>
-        <DialogContent className="max-w-2xl bg-white/95 backdrop-blur-xl border-sage/20">
-          <DialogHeader>
-            <DialogTitle className="font-display text-2xl text-charcoal">Edit User</DialogTitle>
-            <DialogDescription className="font-body text-charcoal/60">
+      <ResponsiveDialog open={showEditUserDialog} onOpenChange={setShowEditUserDialog}>
+        <ResponsiveDialogContent className="max-w-2xl bg-white/95 backdrop-blur-xl border-sage/20">
+          <ResponsiveDialogHeader>
+            <ResponsiveDialogTitle className="font-display text-2xl text-charcoal">Edit User</ResponsiveDialogTitle>
+            <ResponsiveDialogDescription className="font-body text-charcoal/60">
               Update member information, package, or credits
-            </DialogDescription>
-          </DialogHeader>
+            </ResponsiveDialogDescription>
+          </ResponsiveDialogHeader>
           {selectedUser && (
             <div className="grid grid-cols-2 gap-4 py-4">
               <div className="space-y-2">
@@ -3886,7 +3901,7 @@ export default function AdminDashboard() {
               </div>
             </div>
           )}
-          <DialogFooter>
+          <ResponsiveDialogFooter>
             <Button variant="outline" onClick={() => setShowEditUserDialog(false)} className="border-sage/20 font-body">
               Cancel
             </Button>
@@ -3894,19 +3909,19 @@ export default function AdminDashboard() {
               <Save className="h-4 w-4 mr-2" />
               Save Changes
             </Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
+          </ResponsiveDialogFooter>
+        </ResponsiveDialogContent>
+      </ResponsiveDialog>
 
       {/* Add Class Dialog */}
-      <Dialog open={showAddClassDialog} onOpenChange={setShowAddClassDialog}>
-        <DialogContent className="max-w-2xl bg-white/95 backdrop-blur-xl border-sage/20">
-          <DialogHeader>
-            <DialogTitle className="font-display text-2xl text-charcoal">Create New Class</DialogTitle>
-            <DialogDescription className="font-body text-charcoal/60">
+      <ResponsiveDialog open={showAddClassDialog} onOpenChange={setShowAddClassDialog}>
+        <ResponsiveDialogContent className="max-w-2xl bg-white/95 backdrop-blur-xl border-sage/20">
+          <ResponsiveDialogHeader>
+            <ResponsiveDialogTitle className="font-display text-2xl text-charcoal">Create New Class</ResponsiveDialogTitle>
+            <ResponsiveDialogDescription className="font-body text-charcoal/60">
               Schedule a one-time or recurring class
-            </DialogDescription>
-          </DialogHeader>
+            </ResponsiveDialogDescription>
+          </ResponsiveDialogHeader>
           <div className="grid grid-cols-2 gap-4 py-4">
             <div className="space-y-2">
               <Label htmlFor="class-name" className="font-body text-charcoal">Class Name</Label>
@@ -3964,7 +3979,7 @@ export default function AdminDashboard() {
               </div>
             </div>
           </div>
-          <DialogFooter>
+          <ResponsiveDialogFooter>
             <Button variant="outline" onClick={() => setShowAddClassDialog(false)} className="border-sage/20 font-body">
               Cancel
             </Button>
@@ -3972,25 +3987,25 @@ export default function AdminDashboard() {
               <Save className="h-4 w-4 mr-2" />
               Create Class
             </Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
+          </ResponsiveDialogFooter>
+        </ResponsiveDialogContent>
+      </ResponsiveDialog>
 
       {/* Class Details Dialog */}
-      <Dialog open={showClassDetailsDialog} onOpenChange={(open) => { setShowClassDetailsDialog(open); if (!open) { setRosterCheckingIn({}); setDashMemberQuery(""); setDashMemberResults([]); } }}>
-        <DialogContent className="max-w-3xl bg-white/95 backdrop-blur-xl border-sage/20">
-          <DialogHeader>
-            <DialogTitle className="font-display text-2xl text-charcoal">
+      <ResponsiveDialog open={showClassDetailsDialog} onOpenChange={(open) => { setShowClassDetailsDialog(open); if (!open) { setRosterCheckingIn({}); setDashMemberQuery(""); setDashMemberResults([]); } }}>
+        <ResponsiveDialogContent className="max-w-3xl bg-white/95 backdrop-blur-xl border-sage/20">
+          <ResponsiveDialogHeader>
+            <ResponsiveDialogTitle className="font-display text-2xl text-charcoal">
               {selectedClass?.name} - Class Details
-            </DialogTitle>
-            <DialogDescription className="font-body text-charcoal/60">
+            </ResponsiveDialogTitle>
+            <ResponsiveDialogDescription className="font-body text-charcoal/60">
               {selectedClass?.time} with {selectedClass?.instructor}
-            </DialogDescription>
-          </DialogHeader>
+            </ResponsiveDialogDescription>
+          </ResponsiveDialogHeader>
           {selectedClass && (
             <div className="space-y-4 py-4">
               {/* Stats */}
-              <div className="grid grid-cols-3 gap-4">
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
                 <Card className="border-sage/20 bg-cream/20">
                   <CardContent className="p-4 text-center">
                     <div className="font-display text-3xl text-sage mb-1">
@@ -4152,7 +4167,7 @@ export default function AdminDashboard() {
               </div>
             </div>
           )}
-          <DialogFooter>
+          <ResponsiveDialogFooter>
             <Button variant="outline" onClick={() => setShowClassDetailsDialog(false)} className="border-sage/20 font-body">
               Close
             </Button>
@@ -4160,19 +4175,19 @@ export default function AdminDashboard() {
               <Download className="h-4 w-4 mr-2" />
               Export Attendance
             </Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
+          </ResponsiveDialogFooter>
+        </ResponsiveDialogContent>
+      </ResponsiveDialog>
 
       {/* Payout Dialog */}
-      <Dialog open={showPayoutDialog} onOpenChange={setShowPayoutDialog}>
-        <DialogContent className="max-w-lg bg-white/95 backdrop-blur-xl border-sage/20">
-          <DialogHeader>
-            <DialogTitle className="font-display text-2xl text-charcoal">Process Payment</DialogTitle>
-            <DialogDescription className="font-body text-charcoal/60">
+      <ResponsiveDialog open={showPayoutDialog} onOpenChange={setShowPayoutDialog}>
+        <ResponsiveDialogContent className="max-w-lg bg-white/95 backdrop-blur-xl border-sage/20">
+          <ResponsiveDialogHeader>
+            <ResponsiveDialogTitle className="font-display text-2xl text-charcoal">Process Payment</ResponsiveDialogTitle>
+            <ResponsiveDialogDescription className="font-body text-charcoal/60">
               Confirm instructor payout details
-            </DialogDescription>
-          </DialogHeader>
+            </ResponsiveDialogDescription>
+          </ResponsiveDialogHeader>
           {selectedInstructorData && (
             <div className="space-y-4 py-4">
               <div className="p-4 rounded-lg bg-sage/5 border border-sage/20">
@@ -4235,7 +4250,7 @@ export default function AdminDashboard() {
               </div>
             </div>
           )}
-          <DialogFooter>
+          <ResponsiveDialogFooter>
             <Button variant="outline" onClick={() => setShowPayoutDialog(false)} className="border-sage/20 font-body">
               Cancel
             </Button>
@@ -4243,19 +4258,19 @@ export default function AdminDashboard() {
               <DollarSign className="h-4 w-4 mr-2" />
               Confirm Payment
             </Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
+          </ResponsiveDialogFooter>
+        </ResponsiveDialogContent>
+      </ResponsiveDialog>
 
       {/* Add Instructor Dialog */}
-      <Dialog open={showAddInstructorDialog} onOpenChange={(open) => { setShowAddInstructorDialog(open); if (!open) instructorForm.reset(); }}>
-        <DialogContent className="max-w-2xl bg-white/95 backdrop-blur-xl border-sage/20">
-          <DialogHeader>
-            <DialogTitle className="font-display text-2xl text-charcoal">Add New Instructor</DialogTitle>
-            <DialogDescription className="font-body text-charcoal/60">
+      <ResponsiveDialog open={showAddInstructorDialog} onOpenChange={(open) => { setShowAddInstructorDialog(open); if (!open) instructorForm.reset(); }}>
+        <ResponsiveDialogContent className="max-w-2xl bg-white/95 backdrop-blur-xl border-sage/20">
+          <ResponsiveDialogHeader>
+            <ResponsiveDialogTitle className="font-display text-2xl text-charcoal">Add New Instructor</ResponsiveDialogTitle>
+            <ResponsiveDialogDescription className="font-body text-charcoal/60">
               Create instructor profile and set payment percentage
-            </DialogDescription>
-          </DialogHeader>
+            </ResponsiveDialogDescription>
+          </ResponsiveDialogHeader>
           <Form {...instructorForm}>
             <form id="add-instructor-form" onSubmit={instructorForm.handleSubmit(handleCreateInstructor)}>
               <div className="grid grid-cols-2 gap-4 py-4">
@@ -4316,7 +4331,7 @@ export default function AdminDashboard() {
               </div>
             </form>
           </Form>
-          <DialogFooter>
+          <ResponsiveDialogFooter>
             <Button variant="outline" onClick={() => setShowAddInstructorDialog(false)} className="border-sage/20 font-body">
               Cancel
             </Button>
@@ -4324,19 +4339,19 @@ export default function AdminDashboard() {
               <Save className="h-4 w-4 mr-2" />
               {savingInstructor ? "Saving…" : "Create Instructor"}
             </Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
+          </ResponsiveDialogFooter>
+        </ResponsiveDialogContent>
+      </ResponsiveDialog>
 
       {/* Edit Instructor Dialog */}
-      <Dialog open={showEditInstructorDialog} onOpenChange={setShowEditInstructorDialog}>
-        <DialogContent className="max-w-2xl bg-white/95 backdrop-blur-xl border-sage/20">
-          <DialogHeader>
-            <DialogTitle className="font-display text-2xl text-charcoal">Edit Instructor</DialogTitle>
-            <DialogDescription className="font-body text-charcoal/60">
+      <ResponsiveDialog open={showEditInstructorDialog} onOpenChange={setShowEditInstructorDialog}>
+        <ResponsiveDialogContent className="max-w-2xl bg-white/95 backdrop-blur-xl border-sage/20">
+          <ResponsiveDialogHeader>
+            <ResponsiveDialogTitle className="font-display text-2xl text-charcoal">Edit Instructor</ResponsiveDialogTitle>
+            <ResponsiveDialogDescription className="font-body text-charcoal/60">
               Update instructor profile and payment settings
-            </DialogDescription>
-          </DialogHeader>
+            </ResponsiveDialogDescription>
+          </ResponsiveDialogHeader>
           {selectedInstructorData && (
             <div className="grid grid-cols-2 gap-4 py-4">
               <div className="space-y-2">
@@ -4393,7 +4408,7 @@ export default function AdminDashboard() {
               </div>
             </div>
           )}
-          <DialogFooter>
+          <ResponsiveDialogFooter>
             <Button variant="outline" onClick={() => setShowEditInstructorDialog(false)} className="border-sage/20 font-body">
               Cancel
             </Button>
@@ -4401,9 +4416,9 @@ export default function AdminDashboard() {
               <Save className="h-4 w-4 mr-2" />
               Save Changes
             </Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
+          </ResponsiveDialogFooter>
+        </ResponsiveDialogContent>
+      </ResponsiveDialog>
 
       {/* Member Profile Modal */}
       {showMemberProfile && selectedMemberProfile && (
@@ -4432,7 +4447,7 @@ export default function AdminDashboard() {
 
             <div className="p-6 space-y-6">
               {/* Quick Stats */}
-              <div className="grid grid-cols-3 gap-4">
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
                 <Card className="border-0 bg-white/80 backdrop-blur-xl shadow-lg">
                   <CardContent className="p-4 text-center">
                     <p className="font-display text-3xl text-sage mb-1">
