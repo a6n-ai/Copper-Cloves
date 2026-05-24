@@ -1,4 +1,4 @@
-import { defineConfig, devices } from "@playwright/test";
+import { defineConfig } from "@playwright/test";
 
 export default defineConfig({
   testDir: "./e2e",
@@ -17,7 +17,7 @@ export default defineConfig({
   },
   projects: [
     { name: "phone-320", use: { viewport: { width: 320, height: 568 } } },
-    { name: "phone-390", use: { ...devices["iPhone 12"] } },
+    { name: "phone-390", use: { viewport: { width: 390, height: 844 } } },
     { name: "tablet-768", use: { viewport: { width: 768, height: 1024 } } },
   ],
 });
