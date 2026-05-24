@@ -84,7 +84,7 @@ export function VitalityAreaChart({
           </AreaChart>
         </ChartContainer>
 
-        <div className="mt-8 grid grid-cols-3 gap-4 border-t pt-6">
+        <div className="mt-8 grid grid-cols-3 gap-2 md:gap-4 border-t pt-6">
           <Stat value={totalMinutes} label="Total Minutes" />
           <Stat value={avgPerDay} label="Avg per Day" />
           <Stat
@@ -112,7 +112,7 @@ function Stat({
 }) {
   return (
     <div className="text-center">
-      <p className={cn("mb-1 font-display text-3xl text-card-foreground md:text-4xl", className)}>
+      <p className={cn("mb-1 font-display text-2xl text-card-foreground md:text-3xl lg:text-4xl break-all", className)}>
         {value}
       </p>
       <p className="text-xs text-muted-foreground">{label}</p>
