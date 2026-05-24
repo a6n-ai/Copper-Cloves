@@ -140,7 +140,7 @@ export function PathToMastery({
                               className={cn("relative flex items-center justify-center leading-none", !earned && "text-muted-foreground")}
                               style={earned ? { color } : undefined}
                             >
-                              <AnimatedIcon icon={m.icon} size={18} />
+                              <AnimatedIcon icon={m.icon} size={24} />
                             </span>
                           ) : null}
                         </div>
