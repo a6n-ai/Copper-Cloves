@@ -240,7 +240,7 @@ function PackageTierCard({
 
       <Card
         className={cn(
-          "relative flex-1 flex flex-col rounded-2xl p-6 gap-6",
+          "relative flex-1 flex flex-col rounded-2xl p-4 gap-4 sm:p-6 sm:gap-6",
           isRecommended
             ? "border-0 shadow-xl ring-0"
             : "border border-sage/20 shadow-md hover:shadow-lg transition-shadow duration-300"
@@ -263,16 +263,16 @@ function PackageTierCard({
           </CardDescription>
         </CardHeader>
 
-        <CardContent className="flex flex-col flex-1 gap-6 p-0">
+        <CardContent className="flex flex-col flex-1 gap-4 sm:gap-6 p-0">
           {/* Big price */}
           <div className="flex items-baseline gap-1.5">
-            <span className="font-display text-4xl text-charcoal">{pkg.price}</span>
+            <span className="font-display text-3xl sm:text-4xl text-charcoal">{pkg.price}</span>
           </div>
 
           <Separator className="bg-sage/10" />
 
           {/* Feature checklist */}
-          <ul className="flex flex-col gap-3 flex-1">
+          <ul className="flex flex-col gap-2.5 sm:gap-3 flex-1">
             {pkg.benefits.map((benefit, i) => (
               <li key={i} className="flex items-center gap-3 font-body text-sm text-charcoal/70">
                 <Check className="size-4 text-sage shrink-0" />
