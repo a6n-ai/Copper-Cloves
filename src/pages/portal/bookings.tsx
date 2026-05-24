@@ -7,14 +7,13 @@ import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Calendar, Clock, MapPin, User, AlertCircle, X } from "lucide-react";
 import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
-  DialogOverlay,
-} from "@/components/ui/dialog";
+  ResponsiveDialog,
+  ResponsiveDialogContent,
+  ResponsiveDialogDescription,
+  ResponsiveDialogFooter,
+  ResponsiveDialogHeader,
+  ResponsiveDialogTitle,
+} from "@/components/responsive/ResponsiveDialog";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 
 import { canCheckInNow, checkInWindowBounds } from "@/lib/bookingAttendance";
@@ -360,16 +359,16 @@ export default function MyBookingsPage() {
       </div>
 
       {/* Cancel Confirmation Dialog */}
-      <Dialog open={showCancelDialog} onOpenChange={setShowCancelDialog}>
-        <DialogContent className="sm:max-w-md bg-white">
-          <DialogHeader>
-            <DialogTitle className="font-display text-2xl text-charcoal">
+      <ResponsiveDialog open={showCancelDialog} onOpenChange={setShowCancelDialog}>
+        <ResponsiveDialogContent className="sm:max-w-md bg-white">
+          <ResponsiveDialogHeader>
+            <ResponsiveDialogTitle className="font-display text-2xl text-charcoal">
               Cancel Booking
-            </DialogTitle>
-            <DialogDescription className="font-body text-charcoal/70">
+            </ResponsiveDialogTitle>
+            <ResponsiveDialogDescription className="font-body text-charcoal/70">
               Are you sure you want to cancel your booking for {selectedBooking?.class_name}?
-            </DialogDescription>
-          </DialogHeader>
+            </ResponsiveDialogDescription>
+          </ResponsiveDialogHeader>
 
           {/* Warning Alert */}
           <Alert className="border-terracotta/30 bg-terracotta/5">
@@ -410,7 +409,7 @@ export default function MyBookingsPage() {
             </div>
           )}
 
-          <DialogFooter className="flex gap-2">
+          <ResponsiveDialogFooter className="flex gap-2">
             <Button
               variant="outline"
               onClick={() => setShowCancelDialog(false)}
@@ -426,9 +425,9 @@ export default function MyBookingsPage() {
             >
               {canceling ? "Canceling..." : "Confirm Cancellation"}
             </Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
+          </ResponsiveDialogFooter>
+        </ResponsiveDialogContent>
+      </ResponsiveDialog>
     </div>
   );
 }
