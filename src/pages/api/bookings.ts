@@ -280,18 +280,11 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       // Physique 57 bookings stay pending until the instructor confirms — the
       // confirmation email fires on confirm, not now. Non-57 bookings notify now.
       if (booking.confirmation_status !== "pending") {
-        await Promise.all([
-          sendBookingConfirmationEmail(booking.id).catch((e) => console.error("[booking email]", e)),
-          buildBookingCrmVariables(booking.id)
-            .then((variables) =>
-              dispatchCrmEmailTriggers({
-                triggerType: CrmTriggerType.ClassBookingConfirmed,
-                userId,
-                variables,
-              })
-            )
-            .catch((e) => console.error("CRM class_booking_confirmed:", e)),
-        ]);
+        // Single source of truth for the confirmation email. The CRM
+        // class_booking_confirmed email trigger was removed here — it duplicated
+        // this send and rendered blank (template used {{className}}-style keys
+        // that don't match the dispatcher's Snake_Case variables).
+        await sendBookingConfirmationEmail(booking.id).catch((e) => console.error("[booking email]", e));
       }
 
       // Onboard friends & family guests server-side (create accounts + roster

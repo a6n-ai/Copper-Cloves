@@ -1,6 +1,5 @@
 import prisma from "@/lib/prisma";
-import { CrmTriggerType } from "@/lib/crmTriggerTypes";
-import { buildBookingCrmVariables, dispatchCrmEmailTriggers } from "@/lib/notifications/crmTemplatedDispatch";
+import { sendBookingConfirmationEmail } from "@/lib/notifications/sendBookingEmail";
 import {
   expectedBookingCheckoutPaise,
   parseFinanceSnapshot,
@@ -239,16 +238,10 @@ export async function finishBookingCheckoutOnServer(
   }
 
   // Physique 57 bookings notify on instructor confirm, not now.
+  // Same dedicated confirmation email as /api/bookings, so redirect/webhook
+  // fulfilled bookings also get exactly one correct email.
   if (booking.confirmation_status !== "pending") {
-    await buildBookingCrmVariables(booking.id)
-      .then((variables) =>
-        dispatchCrmEmailTriggers({
-          triggerType: CrmTriggerType.ClassBookingConfirmed,
-          userId,
-          variables,
-        }),
-      )
-      .catch((e) => console.error("CRM class_booking_confirmed:", e));
+    await sendBookingConfirmationEmail(booking.id).catch((e) => console.error("[booking email]", e));
   }
 
   // Onboard friends & family guests here too: this path runs for finish-checkout

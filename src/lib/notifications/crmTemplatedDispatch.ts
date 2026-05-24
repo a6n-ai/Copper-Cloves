@@ -92,6 +92,26 @@ export async function dispatchCrmEmailTriggers(options: {
     const bodyInterpolated = interpolateCrmTemplate(bodyRaw, merged);
     const html = crmBodyToEmailHtml(bodyInterpolated);
 
+    // Never blast a blank email. If the body interpolates to nothing (e.g. the
+    // template's placeholders don't match the supplied variables), log it and
+    // skip the send instead of mailing an empty message.
+    const bodyText = bodyInterpolated.replace(/<[^>]*>/g, "").replace(/&nbsp;/gi, " ").trim();
+    if (!bodyText) {
+      await prisma.crmMessage.create({
+        data: {
+          user_id: profile.id,
+          template_id: tmpl.id,
+          channel: "email",
+          subject,
+          message_body: "",
+          status: "skipped",
+          sent_at: null,
+          error_message: "empty body after interpolation (template/variable mismatch?)",
+        },
+      });
+      continue;
+    }
+
     const result = await sendHtmlEmail({
       to: profile.email,
       subject,
