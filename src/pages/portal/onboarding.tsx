@@ -298,7 +298,7 @@ export default function OnboardingPage() {
                         name="gender"
                         control={control}
                         render={({ field }) => (
-                          <div className="grid grid-cols-3 gap-2">
+                          <div className="grid grid-cols-1 sm:grid-cols-3 gap-2">
                             {(["male", "female", "other"] as const).map((g) => (
                               <button
                                 key={g}
