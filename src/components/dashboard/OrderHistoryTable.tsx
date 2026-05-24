@@ -9,6 +9,7 @@ import {
 } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
 import { cn } from "@/lib/utils";
+import { ResponsiveTable } from "@/components/responsive/ResponsiveTable";
 
 export interface OrderRow {
   id: string;
@@ -51,7 +52,7 @@ function formatMethod(method: string) {
 
 export function OrderHistoryTable({ rows }: OrderHistoryTableProps) {
   return (
-    <div className="overflow-x-auto">
+    <ResponsiveTable>
       <Table>
         <TableHeader>
           <TableRow className="hover:bg-transparent">
@@ -94,6 +95,6 @@ export function OrderHistoryTable({ rows }: OrderHistoryTableProps) {
           ))}
         </TableBody>
       </Table>
-    </div>
+    </ResponsiveTable>
   );
 }
