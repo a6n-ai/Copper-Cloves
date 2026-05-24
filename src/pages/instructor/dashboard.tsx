@@ -310,17 +310,17 @@ export default function InstructorDashboard() {
                   return (
                     <div
                       key={cls.id}
-                      className="bg-white rounded-2xl border border-sage/10 p-5 hover:border-sage/30 transition-colors"
+                      className="bg-white rounded-2xl border border-sage/10 p-4 sm:p-5 hover:border-sage/30 transition-colors"
                     >
-                      <div className="flex items-start justify-between gap-4">
+                      <div className="flex items-start justify-between gap-3">
                         <div className="flex-1 min-w-0">
                           <div className="flex items-center gap-2 flex-wrap">
-                            <h2 className="font-display text-lg text-charcoal">{cls.className}</h2>
+                            <h2 className="font-display text-base sm:text-lg text-charcoal">{cls.className}</h2>
                             <span className={`font-body text-xs px-2.5 py-0.5 rounded-full border ${statusInfo.color}`}>
                               {statusInfo.label}
                             </span>
                             {cls.category && (
-                              <span className="font-body text-xs text-charcoal/40 uppercase tracking-wider">
+                              <span className="font-body text-xs text-charcoal/40 uppercase tracking-wider hidden sm:inline">
                                 {cls.category}
                               </span>
                             )}
@@ -328,31 +328,32 @@ export default function InstructorDashboard() {
                             {cls.instructorCheckedIn ? (
                               <span className="flex items-center gap-1 font-body text-xs px-2.5 py-0.5 rounded-full bg-sage/10 text-sage border border-sage/30">
                                 <CheckCircle2 className="h-3 w-3" />
-                                You checked in {cls.instructorCheckInTime ? format(new Date(cls.instructorCheckInTime), "h:mm a") : ""}
+                                <span className="hidden xs:inline">You checked in {cls.instructorCheckInTime ? format(new Date(cls.instructorCheckInTime), "h:mm a") : ""}</span>
+                                <span className="xs:hidden">Checked in</span>
                               </span>
                             ) : winStatus === "open" ? (
                               <span className="font-body text-xs px-2.5 py-0.5 rounded-full bg-amber-50 text-amber-700 border border-amber-200">
-                                Check-in window open
+                                Window open
                               </span>
                             ) : winStatus === "too_early" ? (
-                              <span className="font-body text-xs px-2.5 py-0.5 rounded-full bg-charcoal/5 text-charcoal/50 border border-charcoal/10">
+                              <span className="font-body text-xs px-2.5 py-0.5 rounded-full bg-charcoal/5 text-charcoal/50 border border-charcoal/10 hidden sm:inline-flex">
                                 Opens {minutesUntilOpen(cls.startTime)} min before class
                               </span>
                             ) : (
-                              <span className="font-body text-xs px-2.5 py-0.5 rounded-full bg-red-50 text-red-600 border border-red-200">
-                                Check-in window closed
+                              <span className="font-body text-xs px-2.5 py-0.5 rounded-full bg-red-50 text-red-600 border border-red-200 hidden sm:inline-flex">
+                                Window closed
                               </span>
                             )}
                           </div>
 
-                          <div className="flex items-center gap-4 mt-2 text-sm text-charcoal/60 font-body">
+                          <div className="flex flex-wrap items-center gap-3 mt-2 text-sm text-charcoal/60 font-body">
                             <span className="flex items-center gap-1.5">
                               <Clock className="h-3.5 w-3.5" />
                               {format(new Date(cls.startTime), "h:mm a")} – {format(new Date(cls.endTime), "h:mm a")}
                             </span>
                             <span className="flex items-center gap-1.5">
                               <UserCheck className="h-3.5 w-3.5 text-sage" />
-                              {checkedInCount}/{cls.enrolled} members checked in
+                              {checkedInCount}/{cls.enrolled} checked in
                             </span>
                           </div>
 
@@ -366,7 +367,7 @@ export default function InstructorDashboard() {
                               size="sm"
                               onClick={() => void handleInstructorCheckIn(cls.id)}
                               disabled={instructorCheckingIn[cls.id]}
-                              className="bg-terracotta hover:bg-terracotta/90 text-white font-body rounded-full px-4 text-xs h-8"
+                              className="bg-terracotta hover:bg-terracotta/90 text-white font-body rounded-full px-4 text-xs h-9 min-w-[80px]"
                             >
                               {instructorCheckingIn[cls.id] ? (
                                 <Spinner className="size-4" />
@@ -377,9 +378,10 @@ export default function InstructorDashboard() {
                           {cls.instructorCheckedIn && (
                             <button
                               onClick={() => { setSelectedClassId(cls.id); setActiveTab("checkin"); }}
-                              className="flex items-center gap-1.5 font-body text-sm text-sage hover:text-sage/70 transition-colors"
+                              className="flex items-center gap-1 font-body text-xs sm:text-sm text-sage hover:text-sage/70 transition-colors"
                             >
-                              Member Check-In
+                              <span className="hidden sm:inline">Member Check-In</span>
+                              <span className="sm:hidden">Check In</span>
                               <ChevronRight className="h-4 w-4" />
                             </button>
                           )}
@@ -511,7 +513,7 @@ export default function InstructorDashboard() {
                     ) : (
                       <ul className="divide-y divide-sage/10">
                         {selectedClass.bookings.map((b) => (
-                          <li key={b.id} className="px-5 py-3.5 flex items-center gap-4">
+                          <li key={b.id} className="px-4 sm:px-5 py-3 flex items-center gap-3">
                             <MemberAvatar name={b.memberName} url={b.avatarUrl} />
 
                             <div className="flex-1 min-w-0">
@@ -519,37 +521,36 @@ export default function InstructorDashboard() {
                                 {b.memberName}
                                 {b.extraGuests > 0 && (
                                   <span className="ml-1.5 font-body text-xs text-terracotta">
-                                    +{b.extraGuests} guest{b.extraGuests > 1 ? "s" : ""}
+                                    +{b.extraGuests}
                                   </span>
                                 )}
                               </p>
                               {b.checkedIn && b.checkInTime && (
                                 <p className="font-body text-xs text-charcoal/40 mt-0.5">
-                                  Checked in at {format(new Date(b.checkInTime), "h:mm a")}
+                                  {format(new Date(b.checkInTime), "h:mm a")}
                                   {b.checkInOutcome === "late" && (
-                                    <span className="ml-1.5 text-amber-600">(late)</span>
+                                    <span className="ml-1 text-amber-600">(late)</span>
                                   )}
                                 </p>
                               )}
                             </div>
 
                             {b.checkedIn ? (
-                              <div className="flex items-center gap-1.5 text-sage font-body text-sm">
+                              <div className="flex items-center gap-1 text-sage font-body text-sm shrink-0">
                                 <CheckCircle2 className="h-5 w-5" />
-                                <span className="hidden sm:inline">Checked In</span>
                               </div>
                             ) : (
                               <Button
                                 size="sm"
                                 onClick={() => void handleCheckIn(b.id)}
                                 disabled={checkingIn[b.id]}
-                                className="bg-sage hover:bg-sage/90 text-white font-body rounded-full px-4 shrink-0"
+                                className="bg-sage hover:bg-sage/90 text-white font-body rounded-full px-3 shrink-0 h-9"
                               >
                                 {checkingIn[b.id] ? (
                                   <Spinner className="size-4" />
                                 ) : (
                                   <>
-                                    <Circle className="h-4 w-4 mr-1.5" />
+                                    <Circle className="h-3.5 w-3.5 mr-1" />
                                     Check In
                                   </>
                                 )}
