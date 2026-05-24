@@ -28,7 +28,7 @@ import {
   Activity
 } from "lucide-react";
 import { Spinner } from "@/components/ui/spinner";
-import { ListSkeleton } from "@/components/skeletons";
+import { Skeleton } from "@/components/ui/skeleton";
 
 interface CRMTemplate {
   id: string;
@@ -121,6 +121,61 @@ interface CRMTrigger {
   crm_templates?: {
     name: string;
   };
+}
+
+function CrmHubLoadingSkeleton() {
+  return (
+    <div className="space-y-8">
+      <div className="space-y-2">
+        <Skeleton className="h-8 w-48" />
+        <Skeleton className="h-4 w-72" />
+      </div>
+
+      {/* Tab strip */}
+      <div className="flex items-center gap-6 border-b border-sage/10 pb-1">
+        {Array.from({ length: 4 }).map((_, i) => (
+          <Skeleton key={i} className="h-6 w-36" />
+        ))}
+      </div>
+
+      {/* Communication hub message cards */}
+      <div className="space-y-4">
+        {Array.from({ length: 5 }).map((_, i) => (
+          <Card key={i} className="border-0 bg-white/80 backdrop-blur-xl shadow-lg">
+            <CardContent className="p-6">
+              {/* Header: channel avatar + name/email, status icon + badge */}
+              <div className="flex items-start justify-between mb-4">
+                <div className="flex items-center gap-3">
+                  <Skeleton className="h-10 w-10 rounded-full" />
+                  <div className="space-y-1.5">
+                    <Skeleton className="h-5 w-36" />
+                    <Skeleton className="h-3 w-44" />
+                  </div>
+                </div>
+                <div className="flex items-center gap-2">
+                  <Skeleton className="h-4 w-4 rounded" />
+                  <Skeleton className="h-6 w-20 rounded-full" />
+                </div>
+              </div>
+
+              {/* Message body box */}
+              <div className="bg-cream/30 rounded-lg p-4 mb-4 space-y-2">
+                <Skeleton className="h-4 w-full" />
+                <Skeleton className="h-4 w-11/12" />
+                <Skeleton className="h-4 w-2/3" />
+              </div>
+
+              {/* Footer: template name + timestamp */}
+              <div className="flex items-center justify-between">
+                <Skeleton className="h-3 w-32" />
+                <Skeleton className="h-3 w-40" />
+              </div>
+            </CardContent>
+          </Card>
+        ))}
+      </div>
+    </div>
+  );
 }
 
 export default function CRMPage() {
@@ -525,7 +580,7 @@ export default function CRMPage() {
       <div className="min-h-screen bg-linear-to-br from-cream via-white to-cream">
         <main className="min-h-screen">
           <div className="max-w-7xl mx-auto p-6 lg:p-8 space-y-8">
-            <ListSkeleton rows={5} />
+            <CrmHubLoadingSkeleton />
           </div>
         </main>
       </div>

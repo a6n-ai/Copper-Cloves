@@ -19,7 +19,7 @@ import {
   Activity
 } from "lucide-react";
 import { SEO } from "@/components/SEO";
-import { TableSkeleton } from "@/components/skeletons";
+import { Skeleton } from "@/components/ui/skeleton";
 import { useSession } from "next-auth/react";
 import {
   Select,
@@ -38,6 +38,93 @@ interface CreditTransaction {
   reason: string;
   date: string;
   adminName: string;
+}
+
+function CreditsLoadingSkeleton() {
+  return (
+    <div className="space-y-8">
+      <div className="space-y-2">
+        <Skeleton className="h-8 w-56" />
+        <Skeleton className="h-4 w-80" />
+      </div>
+
+      {/* Stats grid — 4 credit summary cards */}
+      <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
+        {Array.from({ length: 4 }).map((_, i) => (
+          <Card key={i} className="border-sage/20 bg-white/95 backdrop-blur-xl">
+            <CardHeader className="pb-3">
+              <div className="flex items-center justify-between">
+                <Skeleton className="h-4 w-28" />
+                <Skeleton className="h-5 w-5 rounded" />
+              </div>
+            </CardHeader>
+            <CardContent>
+              <Skeleton className="h-10 w-20" />
+            </CardContent>
+          </Card>
+        ))}
+      </div>
+
+      {/* Filters bar — search + type select */}
+      <Card className="border-sage/20 bg-white/95 backdrop-blur-xl">
+        <CardContent className="p-6">
+          <div className="grid md:grid-cols-2 gap-4">
+            <Skeleton className="h-12 w-full rounded-md" />
+            <Skeleton className="h-12 w-full rounded-md" />
+          </div>
+        </CardContent>
+      </Card>
+
+      {/* Transaction history list */}
+      <Card className="border-sage/20 bg-white/95 backdrop-blur-xl">
+        <CardHeader className="space-y-2">
+          <Skeleton className="h-7 w-56" />
+          <Skeleton className="h-4 w-72" />
+        </CardHeader>
+        <CardContent>
+          <div className="space-y-3">
+            {Array.from({ length: 8 }).map((_, i) => (
+              <div
+                key={i}
+                className="p-6 rounded-xl border border-charcoal/10"
+              >
+                <div className="grid md:grid-cols-5 gap-4 items-center">
+                  {/* Type & Amount: icon box + big number + label */}
+                  <div className="flex items-center gap-4">
+                    <Skeleton className="h-12 w-12 rounded-lg" />
+                    <div className="space-y-1.5">
+                      <Skeleton className="h-7 w-12" />
+                      <Skeleton className="h-3 w-12" />
+                    </div>
+                  </div>
+                  {/* Member: label + name */}
+                  <div className="space-y-1.5">
+                    <Skeleton className="h-3 w-14" />
+                    <Skeleton className="h-4 w-28" />
+                  </div>
+                  {/* Reason: label + text */}
+                  <div className="space-y-1.5">
+                    <Skeleton className="h-3 w-14" />
+                    <Skeleton className="h-4 w-32" />
+                  </div>
+                  {/* Date & Admin: label + date + by-line */}
+                  <div className="space-y-1.5">
+                    <Skeleton className="h-3 w-20" />
+                    <Skeleton className="h-4 w-36" />
+                    <Skeleton className="h-3 w-24" />
+                  </div>
+                  {/* Status badge */}
+                  <div className="flex md:justify-end">
+                    <Skeleton className="h-6 w-20 rounded-full" />
+                  </div>
+                </div>
+              </div>
+            ))}
+          </div>
+        </CardContent>
+      </Card>
+    </div>
+  );
 }
 
 export default function AdminCredits() {
@@ -138,7 +225,7 @@ export default function AdminCredits() {
       <div className="min-h-screen bg-linear-to-br from-cream via-cream to-sage/10">
         <main className="min-h-screen">
           <div className="max-w-7xl mx-auto p-6 lg:p-8 space-y-8">
-            <TableSkeleton rows={8} />
+            <CreditsLoadingSkeleton />
           </div>
         </main>
       </div>

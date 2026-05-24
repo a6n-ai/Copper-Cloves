@@ -2,7 +2,7 @@ import { useCallback, useEffect, useState } from "react";
 import { useRouter } from "next/router";
 import { Trash2, Pencil, UserPlus, CheckCircle2 } from "lucide-react";
 import { SEO } from "@/components/SEO";
-import { ListSkeleton } from "@/components/skeletons";
+import { Skeleton } from "@/components/ui/skeleton";
 import { PageHeader } from "@/components/dashboard/PageHeader";
 import { AnimatedIcon } from "@/components/dashboard/AnimatedIcon";
 import { QrZoomImage } from "@/components/checkin/QrZoomImage";
@@ -64,6 +64,84 @@ interface NamedRow {
 }
 
 const NONE = "__none__";
+
+/** Shape-matched loading state mirroring the class header, info stats, QR card, and roster list. */
+function ClassDetailSkeleton() {
+  return (
+    <>
+      {/* PageHeader */}
+      <div className="flex flex-wrap items-start justify-between gap-4">
+        <div className="space-y-2">
+          <Skeleton className="h-4 w-64 bg-sage/10" />
+          <Skeleton className="h-8 w-72 max-w-full bg-sage/10" />
+          <Skeleton className="h-4 w-56 bg-sage/10" />
+        </div>
+        <div className="flex items-center gap-2">
+          <Skeleton className="h-10 w-24 rounded-md bg-sage/10" />
+          <Skeleton className="h-10 w-24 rounded-md bg-sage/10" />
+        </div>
+      </div>
+
+      {/* Info stat cards */}
+      <div className="grid grid-cols-2 gap-4 sm:grid-cols-4">
+        {Array.from({ length: 4 }).map((_, i) => (
+          <Card key={i} className="rounded-2xl shadow-xs">
+            <CardContent className="p-4 space-y-2">
+              <Skeleton className="h-7 w-16 bg-sage/10" />
+              <Skeleton className="h-3 w-20 bg-sage/10" />
+            </CardContent>
+          </Card>
+        ))}
+      </div>
+
+      {/* QR codes card */}
+      <Card className="rounded-2xl shadow-xs">
+        <CardHeader>
+          <Skeleton className="h-6 w-48 bg-sage/10" />
+        </CardHeader>
+        <CardContent>
+          <div className="grid grid-cols-1 gap-6 sm:grid-cols-2">
+            {Array.from({ length: 2 }).map((_, i) => (
+              <div key={i} className="flex flex-col items-center gap-3 rounded-xl border border-sage/15 p-6">
+                <Skeleton className="h-5 w-24 bg-sage/10" />
+                <Skeleton className="h-40 w-40 rounded-lg bg-sage/10" />
+              </div>
+            ))}
+          </div>
+        </CardContent>
+      </Card>
+
+      {/* Roster card */}
+      <Card className="rounded-2xl shadow-xs">
+        <CardHeader>
+          <Skeleton className="h-6 w-32 bg-sage/10" />
+        </CardHeader>
+        <CardContent className="space-y-4">
+          {/* Add-member search */}
+          <div className="flex items-center gap-2">
+            <Skeleton className="h-4 w-4 rounded bg-sage/10 shrink-0" />
+            <Skeleton className="h-10 flex-1 rounded-md bg-sage/10" />
+          </div>
+          {/* Roster rows */}
+          <ul className="divide-y divide-sage/10">
+            {Array.from({ length: 6 }).map((_, i) => (
+              <li key={i} className="flex items-center justify-between gap-3 py-2.5">
+                <div className="min-w-0 space-y-1.5">
+                  <Skeleton className="h-4 w-40 bg-sage/10" />
+                  <Skeleton className="h-3 w-52 bg-sage/10" />
+                </div>
+                <div className="flex shrink-0 items-center gap-1.5">
+                  <Skeleton className="h-8 w-20 rounded-md bg-sage/10" />
+                  <Skeleton className="h-8 w-20 rounded-md bg-sage/10" />
+                </div>
+              </li>
+            ))}
+          </ul>
+        </CardContent>
+      </Card>
+    </>
+  );
+}
 
 function toLocalInput(iso: string): string {
   const d = new Date(iso);
@@ -245,7 +323,7 @@ export default function AdminClassPage() {
         <main className="min-h-screen">
           <div className="max-w-7xl mx-auto p-6 lg:p-8 space-y-6">
             {loading || !roster || !start ? (
-              <ListSkeleton rows={6} />
+              <ClassDetailSkeleton />
             ) : (
               <>
                 <PageHeader

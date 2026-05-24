@@ -4,7 +4,7 @@ import { useToast } from "@/hooks/use-toast";
 import { useRouter } from "next/router";
 import { useSession } from "next-auth/react";
 import { Button } from "@/components/ui/button";
-import { ListSkeleton } from "@/components/skeletons";
+import { Skeleton } from "@/components/ui/skeleton";
 import { Calendar, Clock, MapPin, User, AlertCircle, X } from "lucide-react";
 import {
   Dialog,
@@ -32,6 +32,46 @@ interface Booking {
     start_time: string;
     instructor?: { name?: string | null };
   } | null;
+}
+
+/** Mirrors a booking row: title + status pill, time/date lines, instructor + starts-in columns, action buttons. */
+function BookingRowSkeleton() {
+  return (
+    <div className="bg-white rounded-xl shadow-xs border border-sage/10 p-6">
+      <div className="flex items-center justify-between gap-6">
+        <div className="flex-1">
+          <div className="flex items-center gap-3 mb-2">
+            <Skeleton className="h-7 w-44" />
+            <Skeleton className="h-6 w-20 rounded-full" />
+          </div>
+          <Skeleton className="h-4 w-24 mb-2" />
+          <Skeleton className="h-3.5 w-40" />
+        </div>
+        <div className="hidden md:block space-y-2">
+          <Skeleton className="h-3.5 w-16" />
+          <Skeleton className="h-4 w-24" />
+        </div>
+        <div className="hidden lg:block space-y-2">
+          <Skeleton className="h-3.5 w-14" />
+          <Skeleton className="h-4 w-16" />
+        </div>
+        <div className="shrink-0 flex flex-col gap-2 items-end">
+          <Skeleton className="h-10 w-28 rounded-md" />
+          <Skeleton className="h-10 w-28 rounded-md" />
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function BookingsListSkeleton({ rows = 5 }: { rows?: number }) {
+  return (
+    <div className="space-y-4">
+      {Array.from({ length: rows }).map((_, i) => (
+        <BookingRowSkeleton key={i} />
+      ))}
+    </div>
+  );
 }
 
 export default function MyBookingsPage() {
@@ -155,7 +195,7 @@ export default function MyBookingsPage() {
     return (
       <div className="min-h-screen bg-linear-to-br from-cream via-cream to-sage/5">
         <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 pt-8 pb-6">
-          <ListSkeleton rows={5} />
+          <BookingsListSkeleton rows={5} />
         </div>
       </div>
     );

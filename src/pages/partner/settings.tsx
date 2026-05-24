@@ -8,8 +8,60 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Spinner } from "@/components/ui/spinner";
-import { FormSkeleton } from "@/components/skeletons";
+import { Skeleton } from "@/components/ui/skeleton";
 import { Check } from "lucide-react";
+
+function PartnerSettingsSkeleton() {
+  return (
+    <Card className="border-sage/20 bg-white/95">
+      <CardHeader>
+        <Skeleton className="h-6 w-40" />
+        <Skeleton className="h-4 w-64 mt-2" />
+      </CardHeader>
+      <CardContent>
+        <div className="space-y-5">
+          {/* Logo + URL row */}
+          <div className="flex items-center gap-4">
+            <Skeleton className="h-16 w-16 rounded-full shrink-0" />
+            <div className="flex-1 space-y-1.5">
+              <Skeleton className="h-4 w-28" />
+              <Skeleton className="h-10 w-full rounded-md" />
+            </div>
+          </div>
+
+          {/* Partner name */}
+          <div className="space-y-1.5">
+            <Skeleton className="h-4 w-28" />
+            <Skeleton className="h-10 w-full rounded-md" />
+          </div>
+
+          {/* Login email + phone */}
+          <div className="grid sm:grid-cols-2 gap-4">
+            <div className="space-y-1.5">
+              <Skeleton className="h-4 w-24" />
+              <Skeleton className="h-10 w-full rounded-md" />
+            </div>
+            <div className="space-y-1.5">
+              <Skeleton className="h-4 w-16" />
+              <Skeleton className="h-10 w-full rounded-md" />
+            </div>
+          </div>
+
+          {/* Description */}
+          <div className="space-y-1.5">
+            <Skeleton className="h-4 w-24" />
+            <Skeleton className="h-10 w-full rounded-md" />
+          </div>
+
+          {/* Save button */}
+          <div className="pt-2">
+            <Skeleton className="h-10 w-32 rounded-md" />
+          </div>
+        </div>
+      </CardContent>
+    </Card>
+  );
+}
 
 interface PartnerProfile {
   name: string;
@@ -67,7 +119,7 @@ export default function PartnerSettings() {
       <PageHeader title="Settings" subtitle="Manage your brand and login" />
 
       {loading ? (
-        <FormSkeleton />
+        <PartnerSettingsSkeleton />
       ) : !profile ? (
         <Card className="border-terracotta/30 bg-terracotta/5"><CardContent className="p-4 font-body text-charcoal">Could not load your profile.</CardContent></Card>
       ) : (

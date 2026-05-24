@@ -16,7 +16,7 @@ import {
   Check
 } from "lucide-react";
 import { Spinner } from "@/components/ui/spinner";
-import { GridSkeleton } from "@/components/skeletons";
+import { Skeleton } from "@/components/ui/skeleton";
 
 import { cdnUrl } from "@/lib/cdnUrl";
 interface MenuItem {
@@ -42,6 +42,37 @@ interface ClassSchedule {
   instructor?: {
     full_name: string;
   };
+}
+
+/** Mirrors a café menu Card: aspect-video image, category chip, title, description, price, add-to-cart button. */
+function MenuItemCardSkeleton() {
+  return (
+    <Card className="border-0 bg-white/80 backdrop-blur-xl shadow-lg overflow-hidden">
+      <div className="aspect-video w-full overflow-hidden">
+        <Skeleton className="h-full w-full rounded-none" />
+      </div>
+      <CardContent className="p-6">
+        <div className="mb-3">
+          <Skeleton className="h-5 w-24 rounded-full mb-2" />
+          <Skeleton className="h-7 w-3/5 mb-2" />
+          <Skeleton className="h-3.5 w-full mb-1" />
+          <Skeleton className="h-3.5 w-4/5 mb-3" />
+          <Skeleton className="h-8 w-20" />
+        </div>
+        <Skeleton className="h-10 w-full rounded-md" />
+      </CardContent>
+    </Card>
+  );
+}
+
+function MenuGridSkeleton({ count = 6 }: { count?: number }) {
+  return (
+    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+      {Array.from({ length: count }).map((_, i) => (
+        <MenuItemCardSkeleton key={i} />
+      ))}
+    </div>
+  );
 }
 
 export default function MenuPage() {
@@ -245,7 +276,7 @@ export default function MenuPage() {
       <div className="min-h-screen bg-linear-to-br from-cream via-cream to-sage/5">
         <main className="min-h-screen">
           <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 pt-8 pb-6">
-            <GridSkeleton count={6} />
+            <MenuGridSkeleton count={6} />
           </div>
         </main>
       </div>

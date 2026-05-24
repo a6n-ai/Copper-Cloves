@@ -40,7 +40,7 @@ import {
 } from "lucide-react";
 import { SEO } from "@/components/SEO";
 import { Spinner } from "@/components/ui/spinner";
-import { ListSkeleton } from "@/components/skeletons";
+import { Skeleton } from "@/components/ui/skeleton";
 import { AnimatedIcon } from "@/components/dashboard/AnimatedIcon";
 import { useSession } from "next-auth/react";
 import { Alert, AlertDescription } from "@/components/ui/alert";
@@ -158,6 +158,109 @@ type InstructorSelectOption = {
   name: string;
   _isPlaceholder?: boolean;
 };
+
+/** Shape-matched loading state mirroring the page header, KPI strip, and calendar + day-list layout. */
+function ScheduleLoadingSkeleton() {
+  return (
+    <div className="space-y-8">
+      {/* AdminPageHeader */}
+      <div className="space-y-2">
+        <Skeleton className="h-8 w-56 bg-sage/10" />
+        <Skeleton className="h-4 w-96 max-w-full bg-sage/10" />
+      </div>
+
+      {/* KPI strip — 4 MetricCards */}
+      <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+        {Array.from({ length: 4 }).map((_, i) => (
+          <Card key={i} className="border-sage/15 bg-white h-full">
+            <CardContent className="p-5 flex flex-col h-full">
+              <div className="flex items-start justify-between gap-3">
+                <Skeleton className="h-9 w-24 bg-sage/10" />
+                <Skeleton className="h-9 w-9 rounded-xl bg-sage/10 shrink-0" />
+              </div>
+              <Skeleton className="mt-3 h-8 w-20 bg-sage/10" />
+            </CardContent>
+          </Card>
+        ))}
+      </div>
+
+      {/* 2-column: calendar + day list */}
+      <div className="grid lg:grid-cols-[280px_1fr] gap-6 items-stretch">
+        <Card className="border-sage/20 bg-white/95 flex flex-col">
+          <CardHeader className="pb-2 space-y-2">
+            <Skeleton className="h-5 w-24 bg-sage/10" />
+            <Skeleton className="h-3 w-40 bg-sage/10" />
+          </CardHeader>
+          <CardContent className="p-3 flex-1">
+            {/* Weekday header row */}
+            <div className="grid grid-cols-7 gap-1 mb-2">
+              {Array.from({ length: 7 }).map((_, i) => (
+                <Skeleton key={i} className="h-4 w-full bg-sage/10" />
+              ))}
+            </div>
+            {/* Day grid */}
+            <div className="grid grid-cols-7 gap-1">
+              {Array.from({ length: 35 }).map((_, i) => (
+                <Skeleton key={i} className="h-9 w-full rounded-md bg-sage/10" />
+              ))}
+            </div>
+          </CardContent>
+        </Card>
+
+        <Card className="border-sage/20 bg-white/95">
+          <CardHeader className="pb-3">
+            <div className="flex flex-wrap items-center justify-between gap-3">
+              <div className="space-y-2">
+                <Skeleton className="h-7 w-64 bg-sage/10" />
+                <Skeleton className="h-4 w-20 bg-sage/10" />
+              </div>
+              <div className="flex items-center gap-2">
+                <Skeleton className="h-9 w-9 rounded-md bg-sage/10" />
+                <Skeleton className="h-9 w-16 rounded-md bg-sage/10" />
+                <Skeleton className="h-9 w-9 rounded-md bg-sage/10" />
+                <Skeleton className="h-9 w-36 rounded-md bg-sage/10" />
+              </div>
+            </div>
+          </CardHeader>
+          <CardContent className="p-4">
+            {/* DayScheduleList table */}
+            <div className="rounded-xl border border-sage/15 bg-white overflow-hidden">
+              {/* Table header */}
+              <div className="flex items-center gap-4 bg-sage/5 px-5 py-3">
+                <Skeleton className="h-3 w-[90px] bg-sage/10" />
+                <Skeleton className="h-3 flex-1 bg-sage/10" />
+                <Skeleton className="h-3 w-32 bg-sage/10" />
+                <Skeleton className="h-3 w-[200px] bg-sage/10" />
+                <Skeleton className="h-3 w-12 bg-sage/10" />
+                <Skeleton className="h-3 w-[120px] bg-sage/10" />
+              </div>
+              {/* Table rows */}
+              {Array.from({ length: 5 }).map((_, i) => (
+                <div key={i} className="flex items-center gap-4 border-t border-sage/10 px-5 py-4">
+                  <Skeleton className="h-5 w-[90px] bg-sage/10" />
+                  <Skeleton className="h-4 flex-1 bg-sage/10" />
+                  <div className="flex w-32 items-center gap-3">
+                    <Skeleton className="h-8 w-8 rounded-full bg-sage/10 shrink-0" />
+                    <Skeleton className="h-4 flex-1 bg-sage/10" />
+                  </div>
+                  <div className="flex w-[200px] items-center gap-3">
+                    <Skeleton className="h-1.5 flex-1 max-w-[160px] rounded-full bg-sage/10" />
+                    <Skeleton className="h-4 w-10 bg-sage/10" />
+                  </div>
+                  <Skeleton className="h-5 w-12 rounded-full bg-sage/10" />
+                  <div className="flex w-[120px] items-center justify-end gap-1.5">
+                    <Skeleton className="h-8 w-8 rounded-md bg-sage/10" />
+                    <Skeleton className="h-8 w-8 rounded-md bg-sage/10" />
+                  </div>
+                </div>
+              ))}
+            </div>
+          </CardContent>
+        </Card>
+      </div>
+    </div>
+  );
+}
 
 export default function AdminSchedule() {
   const router = useRouter();
@@ -812,8 +915,8 @@ export default function AdminSchedule() {
     return (
       <div className="min-h-screen bg-linear-to-br from-cream via-cream to-sage/10">
         <main className="min-h-screen">
-          <div className="max-w-7xl mx-auto p-6 lg:p-8 space-y-8">
-            <ListSkeleton rows={6} />
+          <div className="max-w-7xl mx-auto p-6 lg:p-8">
+            <ScheduleLoadingSkeleton />
           </div>
         </main>
       </div>

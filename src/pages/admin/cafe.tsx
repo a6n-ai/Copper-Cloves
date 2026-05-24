@@ -20,7 +20,7 @@ import {
   Upload
 } from "lucide-react";
 import { Spinner } from "@/components/ui/spinner";
-import { GridSkeleton } from "@/components/skeletons";
+import { Skeleton } from "@/components/ui/skeleton";
 
 import { cdnUrl } from "@/lib/cdnUrl";
 interface MenuItem {
@@ -31,6 +31,54 @@ interface MenuItem {
   price: number;
   image_url: string;
   is_available: boolean;
+}
+
+function CafeMenuLoadingSkeleton() {
+  return (
+    <div className="space-y-8">
+      <div className="space-y-2">
+        <Skeleton className="h-8 w-56" />
+        <Skeleton className="h-4 w-72" />
+      </div>
+
+      {/* Menu item card grid — mirrors café item cards */}
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+        {Array.from({ length: 6 }).map((_, i) => (
+          <Card
+            key={i}
+            className="border-0 bg-white/80 backdrop-blur-xl shadow-lg flex flex-col h-full"
+          >
+            {/* Image */}
+            <Skeleton className="aspect-video w-full rounded-t-xl rounded-b-none shrink-0" />
+            <CardContent className="p-6 flex flex-col flex-1">
+              <div className="flex items-start justify-between mb-3">
+                <div className="flex-1 space-y-2">
+                  {/* Category badge */}
+                  <Skeleton className="h-5 w-20 rounded-full" />
+                  {/* Title */}
+                  <Skeleton className="h-6 w-3/4" />
+                </div>
+                {/* Availability badge */}
+                <Skeleton className="h-6 w-20 rounded-full ml-2" />
+              </div>
+              {/* Description */}
+              <div className="mb-4 flex-1 space-y-2">
+                <Skeleton className="h-4 w-full" />
+                <Skeleton className="h-4 w-5/6" />
+              </div>
+              {/* Price */}
+              <Skeleton className="h-7 w-16 mb-4" />
+              {/* Edit / Delete buttons */}
+              <div className="flex gap-2 mt-auto">
+                <Skeleton className="h-9 flex-1 rounded-md" />
+                <Skeleton className="h-9 w-10 rounded-md" />
+              </div>
+            </CardContent>
+          </Card>
+        ))}
+      </div>
+    </div>
+  );
 }
 
 export default function AdminCafe() {
@@ -545,7 +593,7 @@ export default function AdminCafe() {
       <div className="min-h-screen bg-linear-to-br from-cream via-cream to-sage/10">
         <main className="min-h-screen">
           <div className="max-w-7xl mx-auto p-6 lg:p-8 space-y-8">
-            <GridSkeleton count={6} />
+            <CafeMenuLoadingSkeleton />
           </div>
         </main>
       </div>

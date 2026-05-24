@@ -1,5 +1,5 @@
 import { Button } from "@/components/ui/button";
-import { GridSkeleton } from "@/components/skeletons";
+import { Skeleton } from "@/components/ui/skeleton";
 import { ArrowRight, Clock } from "lucide-react";
 import { useRouter } from "next/router";
 import { useRef, useState, useEffect } from "react";
@@ -22,6 +22,27 @@ const STATIC_CATALOG_FALLBACK: ClassData[] = [
   { name: "WARRIOR Strength", duration: "55 min", image: cdnUrl("/warriorstrength.jpg"), benefit: "Strength and cardio to music" },
   { name: "Mat Pilates", duration: "55 min", image: cdnUrl("/matpilates.jpg"), benefit: "Core-focused classical Pilates" },
 ];
+
+/** Mirrors the horizontal row of full-bleed class cards in the carousel. */
+function ClassCatalogSkeleton({ count = 3 }: { count?: number }) {
+  return (
+    <div className="flex gap-6 overflow-hidden pb-4 px-2">
+      {Array.from({ length: count }).map((_, i) => (
+        <div
+          key={i}
+          className="relative shrink-0 w-88 sm:w-96 h-104 md:h-128 rounded-2xl overflow-hidden"
+        >
+          <Skeleton className="absolute inset-0 w-full h-full rounded-2xl" />
+          {/* Name placeholder anchored to bottom, matching the default overlay */}
+          <div className="absolute inset-x-0 bottom-0 p-6 space-y-2">
+            <Skeleton className="h-9 w-3/4 bg-white/30" />
+            <Skeleton className="h-4 w-1/2 bg-white/20" />
+          </div>
+        </div>
+      ))}
+    </div>
+  );
+}
 
 export function ClassCatalog() {
   const router = useRouter();
@@ -115,7 +136,7 @@ export function ClassCatalog() {
           {/* Carousel Scroll Container */}
           {loading ? (
             <div className="w-full py-4">
-              <GridSkeleton count={3} />
+              <ClassCatalogSkeleton count={3} />
             </div>
           ) : classes.length === 0 ? (
             <div className="text-center py-12">

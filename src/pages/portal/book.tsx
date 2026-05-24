@@ -3,7 +3,7 @@ import { PageHeader } from "@/components/dashboard/PageHeader";
 import { useToast } from "@/hooks/use-toast";
 import { useRouter } from "next/router";
 import { Card, CardContent } from "@/components/ui/card";
-import { GridSkeleton } from "@/components/skeletons";
+import { Skeleton } from "@/components/ui/skeleton";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -102,6 +102,42 @@ export interface Class {
   startTimeIso: string;
   /** False when start time is in the past (still listed for the weekly grid). */
   isBookable?: boolean;
+}
+
+/** Mirrors a bookable class Card: image with intensity badge + spots box, title, 3-icon info row, full-width button. */
+function BookClassCardSkeleton() {
+  return (
+    <Card className="border-sage/20 bg-white/80 backdrop-blur-xs overflow-hidden">
+      <CardContent className="p-0">
+        <div className="flex flex-col">
+          <div className="relative w-full h-48 overflow-hidden">
+            <Skeleton className="h-full w-full rounded-none" />
+            <Skeleton className="absolute top-4 left-4 h-6 w-20 rounded-full" />
+            <Skeleton className="absolute top-4 right-4 h-14 w-20 rounded-lg" />
+          </div>
+          <div className="p-6">
+            <Skeleton className="h-7 w-3/5 mb-3" />
+            <div className="flex flex-wrap items-center gap-4 mb-4">
+              <Skeleton className="h-4 w-20" />
+              <Skeleton className="h-4 w-16" />
+              <Skeleton className="h-4 w-24" />
+            </div>
+            <Skeleton className="h-10 w-full rounded-md" />
+          </div>
+        </div>
+      </CardContent>
+    </Card>
+  );
+}
+
+function BookClassGridSkeleton({ count = 6 }: { count?: number }) {
+  return (
+    <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+      {Array.from({ length: count }).map((_, i) => (
+        <BookClassCardSkeleton key={i} />
+      ))}
+    </div>
+  );
 }
 
 export default function BookClass() {
@@ -857,7 +893,7 @@ export default function BookClass() {
       <div className="min-h-screen bg-linear-to-br from-cream via-cream to-sage/5">
         <main className="pt-8 pb-12 min-h-screen">
           <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
-            <GridSkeleton count={6} />
+            <BookClassGridSkeleton count={6} />
           </div>
         </main>
       </div>

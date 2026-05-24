@@ -41,7 +41,7 @@ import {
   Trash2
 } from "lucide-react";
 import { SEO } from "@/components/SEO";
-import { CardBlockSkeleton, ListSkeleton } from "@/components/skeletons";
+import { Skeleton } from "@/components/ui/skeleton";
 import { InstructorAvatar } from "@/components/InstructorAvatar";
 import { useSession } from "next-auth/react";
 import type React from "react";
@@ -49,6 +49,166 @@ import { ControlAnalyticsPanel } from "@/components/admin/ControlAnalyticsPanel"
 import { Pagination, usePagination } from "@/components/Pagination";
 
 import { cdnUrl } from "@/lib/cdnUrl";
+
+/** Member list cards — mirrors the avatar + name/contact + pass badge + dates + actions row. */
+function UserListSkeleton({ rows = 6 }: { rows?: number }) {
+  return (
+    <div className="space-y-3">
+      {Array.from({ length: rows }).map((_, i) => (
+        <Card key={i} className="border-sage/20 bg-white/95 backdrop-blur-xl">
+          <CardContent className="p-6">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-4 flex-1">
+                <Skeleton className="h-14 w-14 rounded-full bg-sage/10 shrink-0" />
+                <div className="space-y-2">
+                  <Skeleton className="h-5 w-40 bg-sage/10" />
+                  <div className="flex items-center gap-4">
+                    <Skeleton className="h-3.5 w-44 bg-sage/10" />
+                    <Skeleton className="h-3.5 w-28 bg-sage/10" />
+                  </div>
+                </div>
+              </div>
+              <div className="flex items-center gap-6">
+                <div className="flex flex-col items-center gap-2">
+                  <Skeleton className="h-5 w-24 rounded-full bg-sage/10" />
+                  <Skeleton className="h-4 w-20 bg-sage/10" />
+                </div>
+                <div className="hidden md:flex flex-col items-center gap-1.5">
+                  <Skeleton className="h-3.5 w-16 bg-sage/10" />
+                  <Skeleton className="h-4 w-24 bg-sage/10" />
+                </div>
+                <div className="flex items-center gap-2">
+                  <Skeleton className="h-9 w-16 rounded-md bg-sage/10" />
+                  <Skeleton className="h-9 w-20 rounded-md bg-sage/10" />
+                </div>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+      ))}
+    </div>
+  );
+}
+
+/** Class catalog cards — mirrors the image thumb + title/category + description + benefits + meta row. */
+function ClassGridSkeleton({ count = 4 }: { count?: number }) {
+  return (
+    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+      {Array.from({ length: count }).map((_, i) => (
+        <Card key={i} className="border-sage/20 bg-white/95 backdrop-blur-xl">
+          <CardContent className="p-6">
+            <div className="flex gap-4">
+              <Skeleton className="h-24 w-24 rounded-lg bg-sage/10 shrink-0" />
+              <div className="flex-1 space-y-3">
+                <div className="flex items-start justify-between">
+                  <div className="space-y-2">
+                    <Skeleton className="h-6 w-36 bg-sage/10" />
+                    <Skeleton className="h-5 w-20 rounded-full bg-sage/10" />
+                  </div>
+                  <div className="flex gap-2">
+                    <Skeleton className="h-8 w-16 rounded-md bg-sage/10" />
+                    <Skeleton className="h-8 w-9 rounded-md bg-sage/10" />
+                  </div>
+                </div>
+                <div className="space-y-1.5">
+                  <Skeleton className="h-3.5 w-full bg-sage/10" />
+                  <Skeleton className="h-3.5 w-2/3 bg-sage/10" />
+                </div>
+                <div className="flex flex-wrap gap-1">
+                  <Skeleton className="h-5 w-16 rounded-full bg-sage/10" />
+                  <Skeleton className="h-5 w-20 rounded-full bg-sage/10" />
+                  <Skeleton className="h-5 w-14 rounded-full bg-sage/10" />
+                </div>
+                <div className="flex items-center gap-4">
+                  <Skeleton className="h-3.5 w-16 bg-sage/10" />
+                  <Skeleton className="h-3.5 w-16 bg-sage/10" />
+                </div>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+      ))}
+    </div>
+  );
+}
+
+/** Instructor profile cards — mirrors avatar + name/title + active badge + contact + specialties. */
+function InstructorGridSkeleton({ count = 4 }: { count?: number }) {
+  return (
+    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+      {Array.from({ length: count }).map((_, i) => (
+        <Card key={i} className="border-sage/20 bg-white/95 backdrop-blur-xl">
+          <CardContent className="p-6">
+            <div className="flex gap-4">
+              <Skeleton className="h-24 w-24 rounded-lg bg-sage/10 shrink-0" />
+              <div className="flex-1 space-y-3">
+                <div className="flex items-start justify-between">
+                  <div className="space-y-2">
+                    <Skeleton className="h-6 w-36 bg-sage/10" />
+                    <Skeleton className="h-3.5 w-24 bg-sage/10" />
+                    <Skeleton className="h-3 w-28 bg-sage/10" />
+                    <Skeleton className="h-5 w-16 rounded-full bg-sage/10" />
+                  </div>
+                  <div className="flex gap-2">
+                    <Skeleton className="h-8 w-24 rounded-md bg-sage/10" />
+                    <Skeleton className="h-8 w-16 rounded-md bg-sage/10" />
+                    <Skeleton className="h-8 w-9 rounded-md bg-sage/10" />
+                  </div>
+                </div>
+                <div className="space-y-2">
+                  <Skeleton className="h-3.5 w-40 bg-sage/10" />
+                  <Skeleton className="h-3.5 w-32 bg-sage/10" />
+                </div>
+                <div className="flex flex-wrap gap-1">
+                  <Skeleton className="h-5 w-16 rounded-full bg-sage/10" />
+                  <Skeleton className="h-5 w-20 rounded-full bg-sage/10" />
+                </div>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+      ))}
+    </div>
+  );
+}
+
+/** Full page shell while session/data initially loads — header + tab bar + user list. */
+function ControlPanelShellSkeleton() {
+  return (
+    <div className="space-y-8">
+      {/* AdminPageHeader */}
+      <div className="space-y-2">
+        <Skeleton className="h-8 w-48 bg-sage/10" />
+        <Skeleton className="h-4 w-80 max-w-full bg-sage/10" />
+      </div>
+      {/* Tab bar */}
+      <div className="flex gap-1 rounded-lg border border-sage/20 bg-white/80 p-1 w-fit max-w-full overflow-hidden">
+        {Array.from({ length: 5 }).map((_, i) => (
+          <Skeleton key={i} className="h-9 w-32 rounded-md bg-sage/10" />
+        ))}
+      </div>
+      {/* Section header + add button */}
+      <div className="flex items-center justify-between">
+        <div className="space-y-2">
+          <Skeleton className="h-8 w-56 bg-sage/10" />
+          <Skeleton className="h-4 w-72 bg-sage/10" />
+        </div>
+        <Skeleton className="h-10 w-28 rounded-md bg-sage/10" />
+      </div>
+      {/* Search/filter bar */}
+      <Card className="border-sage/20 bg-white/95 backdrop-blur-xl">
+        <CardContent className="p-6">
+          <div className="flex gap-4">
+            <Skeleton className="h-10 flex-1 rounded-md bg-sage/10" />
+            <Skeleton className="h-10 w-48 rounded-md bg-sage/10" />
+          </div>
+        </CardContent>
+      </Card>
+      <UserListSkeleton />
+    </div>
+  );
+}
+
 export default function ControlPanel() {
   const router = useRouter();
   const [loading, setLoading] = useState(true);
@@ -787,8 +947,8 @@ async function fetchPayoutData() {
   if (loading) {
     return (
       <div className="min-h-screen bg-linear-to-br from-cream via-cream to-sage/10">
-        <div className="max-w-7xl mx-auto p-6 lg:p-8 space-y-6">
-          <ListSkeleton rows={6} />
+        <div className="max-w-7xl mx-auto p-6 lg:p-8">
+          <ControlPanelShellSkeleton />
         </div>
       </div>
     );
@@ -888,7 +1048,7 @@ async function fetchPayoutData() {
 
                 {/* User List */}
                 {loadingUsers ? (
-                  <ListSkeleton rows={6} />
+                  <UserListSkeleton rows={6} />
                 ) : filteredUsers.length === 0 ? (
                   <Card className="border-sage/20 bg-white/95 backdrop-blur-xl">
                     <CardContent className="p-12 text-center">
@@ -1034,12 +1194,7 @@ async function fetchPayoutData() {
 
                 {/* Classes Grid */}
                 {loadingClasses ? (
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    <CardBlockSkeleton bodyClassName="h-24" />
-                    <CardBlockSkeleton bodyClassName="h-24" />
-                    <CardBlockSkeleton bodyClassName="h-24" />
-                    <CardBlockSkeleton bodyClassName="h-24" />
-                  </div>
+                  <ClassGridSkeleton count={4} />
                 ) : (
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     {classesPg.pageItems.map((cls) => (
@@ -1346,12 +1501,7 @@ async function fetchPayoutData() {
 
                 {/* Instructor Cards */}
                 {loadingInstructors ? (
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                    <CardBlockSkeleton bodyClassName="h-24" />
-                    <CardBlockSkeleton bodyClassName="h-24" />
-                    <CardBlockSkeleton bodyClassName="h-24" />
-                    <CardBlockSkeleton bodyClassName="h-24" />
-                  </div>
+                  <InstructorGridSkeleton count={4} />
                 ) : instructors.length === 0 ? (
                   <Card className="border-sage/20 bg-white/95 backdrop-blur-xl">
                     <CardContent className="p-12 text-center">

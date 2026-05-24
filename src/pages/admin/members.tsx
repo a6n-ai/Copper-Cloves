@@ -33,7 +33,7 @@ import {
 } from "lucide-react";
 import { SEO } from "@/components/SEO";
 import { Spinner } from "@/components/ui/spinner";
-import { TableSkeleton } from "@/components/skeletons";
+import { Skeleton } from "@/components/ui/skeleton";
 import { Pagination, usePagination } from "@/components/Pagination";
 import { ListAvatar } from "@/components/admin/ListAvatar";
 import { useSession } from "next-auth/react";
@@ -130,6 +130,105 @@ function deriveMemberStatus(
   const days = (expiry.getTime() - now.getTime()) / 86400000;
   if (days <= 14 || (!unlimited && credits <= 2)) return "expiring";
   return "active";
+}
+
+function MembersLoadingSkeleton() {
+  return (
+    <div className="space-y-8">
+      <div className="space-y-2">
+        <Skeleton className="h-8 w-64" />
+        <Skeleton className="h-4 w-80" />
+      </div>
+
+      {/* Stats grid — mirrors MetricCard row */}
+      <div className="grid grid-cols-2 md:grid-cols-4 xl:grid-cols-7 gap-4">
+        {Array.from({ length: 7 }).map((_, i) => (
+          <Card key={i} className="border-sage/20 bg-white/95 backdrop-blur-xl">
+            <CardContent className="p-4 space-y-3">
+              <div className="flex items-center justify-between">
+                <Skeleton className="h-3 w-20" />
+                <Skeleton className="h-8 w-8 rounded-lg" />
+              </div>
+              <Skeleton className="h-7 w-12" />
+            </CardContent>
+          </Card>
+        ))}
+      </div>
+
+      {/* Members table card */}
+      <Card className="border-sage/20 bg-white/95 backdrop-blur-xl">
+        <CardHeader className="space-y-4">
+          <div className="flex flex-wrap items-start justify-between gap-3">
+            <div className="space-y-2">
+              <Skeleton className="h-7 w-40" />
+              <Skeleton className="h-4 w-64" />
+            </div>
+            <div className="flex items-center gap-2 w-full sm:w-auto">
+              <Skeleton className="h-9 flex-1 sm:w-72 rounded-md" />
+              <Skeleton className="h-9 w-32 shrink-0 rounded-md" />
+            </div>
+          </div>
+          <div className="flex items-center gap-4 border-b border-sage/10 pb-2">
+            {Array.from({ length: 4 }).map((_, i) => (
+              <Skeleton key={i} className="h-5 w-16" />
+            ))}
+          </div>
+        </CardHeader>
+        <CardContent>
+          <div className="rounded-xl border border-sage/15 bg-white overflow-hidden">
+            {/* Header row */}
+            <div className="flex items-center gap-4 bg-sage/5 px-5 py-3 border-b border-sage/10">
+              <Skeleton className="h-3 flex-1" />
+              <Skeleton className="hidden md:block h-3 w-[180px]" />
+              <Skeleton className="hidden md:block h-3 w-[100px]" />
+              <Skeleton className="hidden lg:block h-3 w-[100px]" />
+              <Skeleton className="hidden lg:block h-3 w-[120px]" />
+              <Skeleton className="hidden md:block h-3 w-[140px]" />
+              <Skeleton className="h-3 w-[60px]" />
+            </div>
+            {/* Body rows — mirror Member / Pass / Account / Classes / Last Visit / Status / Actions */}
+            {Array.from({ length: 10 }).map((_, i) => (
+              <div
+                key={i}
+                className="flex items-center gap-4 px-5 py-4 border-b border-sage/10 last:border-b-0"
+              >
+                {/* Member: avatar + 3 lines */}
+                <div className="flex flex-1 items-center gap-3 min-w-0">
+                  <Skeleton className="h-10 w-10 shrink-0 rounded-full" />
+                  <div className="min-w-0 space-y-1.5">
+                    <Skeleton className="h-4 w-32" />
+                    <Skeleton className="h-3 w-40" />
+                    <Skeleton className="h-3 w-24" />
+                  </div>
+                </div>
+                {/* Pass: badge + package line */}
+                <div className="hidden md:block w-[180px] space-y-1.5">
+                  <Skeleton className="h-5 w-16 rounded-full" />
+                  <Skeleton className="h-3 w-28" />
+                </div>
+                {/* Account */}
+                <Skeleton className="hidden md:block h-4 w-14" />
+                {/* Classes: icon + number */}
+                <div className="hidden lg:flex w-[100px] items-center gap-1.5">
+                  <Skeleton className="h-3.5 w-3.5 rounded" />
+                  <Skeleton className="h-4 w-6" />
+                </div>
+                {/* Last Visit */}
+                <Skeleton className="hidden lg:block h-4 w-[120px]" />
+                {/* Status: badge + exp line */}
+                <div className="hidden md:block w-[140px] space-y-1.5">
+                  <Skeleton className="h-5 w-20 rounded-full" />
+                  <Skeleton className="h-3 w-16" />
+                </div>
+                {/* Actions */}
+                <Skeleton className="h-8 w-8 shrink-0 rounded-md" />
+              </div>
+            ))}
+          </div>
+        </CardContent>
+      </Card>
+    </div>
+  );
 }
 
 export default function AdminMembers() {
@@ -706,7 +805,7 @@ export default function AdminMembers() {
       <div className="min-h-screen bg-linear-to-br from-cream via-cream to-sage/10">
         <main className="min-h-screen">
           <div className="max-w-7xl mx-auto p-6 lg:p-8 space-y-8">
-            <TableSkeleton rows={10} />
+            <MembersLoadingSkeleton />
           </div>
         </main>
       </div>

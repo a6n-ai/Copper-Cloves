@@ -9,8 +9,54 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { MetricCard } from "@/components/admin/MetricCard";
-import { ListSkeleton } from "@/components/skeletons";
+import { Skeleton } from "@/components/ui/skeleton";
 import { Calendar, Users, CheckCircle2, Clock, UserX, ChevronLeft, ChevronRight, Hourglass, TrendingUp } from "lucide-react";
+
+function PartnerClassesSkeleton() {
+  return (
+    <div className="space-y-4">
+      {Array.from({ length: 2 }).map((_, ci) => (
+        <Card key={ci} className="border-sage/15 bg-white/95">
+          <CardContent className="p-5">
+            {/* Header: title/time + capacity badges */}
+            <div className="flex flex-wrap items-start justify-between gap-3 mb-4">
+              <div>
+                <Skeleton className="h-7 w-44" />
+                <Skeleton className="h-4 w-56 mt-2" />
+              </div>
+              <div className="flex items-center gap-2">
+                <Skeleton className="h-6 w-32 rounded-full" />
+                <Skeleton className="h-6 w-16 rounded-full" />
+              </div>
+            </div>
+
+            {/* Capacity progress bar */}
+            <Skeleton className="h-2 w-full rounded-full mb-4" />
+
+            {/* Booking rows */}
+            <ul className="divide-y divide-sage/10">
+              {Array.from({ length: 3 }).map((__, bi) => (
+                <li key={bi} className="flex items-center justify-between gap-3 py-2">
+                  <div className="flex items-center gap-3 min-w-0">
+                    <Skeleton className="h-8 w-8 rounded-full shrink-0" />
+                    <div className="min-w-0 space-y-1.5">
+                      <Skeleton className="h-4 w-32" />
+                      <Skeleton className="h-3 w-44" />
+                    </div>
+                  </div>
+                  <div className="flex items-center gap-2 shrink-0">
+                    <Skeleton className="h-6 w-20 rounded-full" />
+                    <Skeleton className="h-6 w-24 rounded-full" />
+                  </div>
+                </li>
+              ))}
+            </ul>
+          </CardContent>
+        </Card>
+      ))}
+    </div>
+  );
+}
 
 interface BookingRow {
   id: string;
@@ -230,7 +276,7 @@ export default function PartnerClasses() {
         </h2>
 
         {loading ? (
-          <ListSkeleton />
+          <PartnerClassesSkeleton />
         ) : error ? (
           <Card className="border-terracotta/30 bg-terracotta/5"><CardContent className="p-4 font-body text-charcoal">{error}</CardContent></Card>
         ) : activeClasses.length === 0 ? (

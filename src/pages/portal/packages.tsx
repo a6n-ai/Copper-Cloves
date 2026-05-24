@@ -3,7 +3,7 @@ import { PageHeader } from "@/components/dashboard/PageHeader";
 import { useRouter } from "next/router";
 import { ChevronLeft, ChevronRight, Check, X, CreditCard, AlertCircle, Download } from "lucide-react";
 import { Spinner } from "@/components/ui/spinner";
-import { ListSkeleton } from "@/components/skeletons";
+import { Skeleton } from "@/components/ui/skeleton";
 import { FormAlert } from "@/components/ui/form-alert";
 import { useSession } from "next-auth/react";
 import { Button } from "@/components/ui/button";
@@ -166,6 +166,45 @@ const premiumPackages: Package[] = [
     ],
   },
 ];
+
+/** Mirrors a purchase-history row: title + status pill, 3-column detail grid, amount + download button on the right. */
+function PurchaseHistoryRowSkeleton() {
+  return (
+    <div className="p-6 rounded-2xl bg-white/80 backdrop-blur-xl border border-sage/10">
+      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
+        <div className="flex-1">
+          <div className="flex items-center gap-3 mb-2">
+            <Skeleton className="h-6 w-44" />
+            <Skeleton className="h-6 w-20 rounded-full" />
+          </div>
+          <div className="grid md:grid-cols-3 gap-4 mt-4">
+            {Array.from({ length: 3 }).map((_, i) => (
+              <div key={i}>
+                <Skeleton className="h-3 w-24 mb-1" />
+                <Skeleton className="h-4 w-28" />
+              </div>
+            ))}
+          </div>
+        </div>
+        <div className="md:text-right">
+          <Skeleton className="h-3 w-20 mb-1 md:ml-auto" />
+          <Skeleton className="h-8 w-24 md:ml-auto" />
+          <Skeleton className="h-9 w-36 rounded-md mt-4 md:ml-auto" />
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function PurchaseHistorySkeleton({ rows = 4 }: { rows?: number }) {
+  return (
+    <div className="space-y-4">
+      {Array.from({ length: rows }).map((_, i) => (
+        <PurchaseHistoryRowSkeleton key={i} />
+      ))}
+    </div>
+  );
+}
 
 export default function PackagesPage() {
   const router = useRouter();
@@ -734,7 +773,7 @@ export default function PackagesPage() {
         </div>
 
         {loadingHistory ? (
-          <ListSkeleton rows={4} />
+          <PurchaseHistorySkeleton rows={4} />
         ) : purchaseHistory.length === 0 ? (
           <div className="text-center py-20 px-6 rounded-2xl bg-white/60 backdrop-blur-xl border border-sage/10">
             <CreditCard className="mx-auto mb-4 text-charcoal/20" size={64} />

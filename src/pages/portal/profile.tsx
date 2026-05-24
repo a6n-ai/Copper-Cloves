@@ -10,7 +10,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { useToast } from "@/hooks/use-toast";
 import { Spinner } from "@/components/ui/spinner";
-import { FormSkeleton } from "@/components/skeletons";
+import { Skeleton } from "@/components/ui/skeleton";
 import {
   User, Save, CheckCircle2, Mail, Phone, Camera, Lock,
   MessageCircle, Calendar, Heart, PauseCircle, Paperclip, ChevronDown,
@@ -63,6 +63,112 @@ function CheckboxGroup({ options, selected, onChange }: {
           </button>
         );
       })}
+    </div>
+  );
+}
+
+/** Mirrors the real Personal Details + Health & Fitness cards on the profile page. */
+function ProfileSkeleton() {
+  return (
+    <div className="space-y-6">
+      {/* Personal Details card */}
+      <Card className="border-sage/20 bg-white/90 shadow-lg">
+        <CardHeader className="p-6 border-b border-sage/10 bg-linear-to-r from-cream/50 to-white">
+          <div className="flex items-center gap-3">
+            <Skeleton className="w-10 h-10 rounded-full" />
+            <Skeleton className="h-7 w-44" />
+          </div>
+          <Skeleton className="h-4 w-56 mt-2" />
+        </CardHeader>
+        <CardContent className="p-6">
+          <div className="space-y-5">
+            {/* Avatar row */}
+            <div className="flex gap-5 items-center pb-5 border-b border-sage/10">
+              <Skeleton className="w-24 h-24 rounded-full shrink-0" />
+              <div className="flex-1 space-y-2">
+                <Skeleton className="h-4 w-28" />
+                <Skeleton className="h-8 w-32 rounded-md" />
+                <Skeleton className="h-3 w-36" />
+              </div>
+            </div>
+            {/* Name */}
+            <div className="space-y-1.5">
+              <Skeleton className="h-4 w-24" />
+              <Skeleton className="h-11 w-full rounded-md" />
+            </div>
+            {/* Email */}
+            <div className="space-y-1.5">
+              <Skeleton className="h-4 w-32" />
+              <Skeleton className="h-11 w-full rounded-md" />
+            </div>
+            {/* DOB + Gender */}
+            <div className="grid grid-cols-2 gap-4">
+              <div className="space-y-1.5">
+                <Skeleton className="h-4 w-28" />
+                <Skeleton className="h-11 w-full rounded-md" />
+              </div>
+              <div className="space-y-1.5">
+                <Skeleton className="h-4 w-16" />
+                <Skeleton className="h-11 w-full rounded-md" />
+              </div>
+            </div>
+            {/* Phone */}
+            <div className="space-y-1.5">
+              <Skeleton className="h-4 w-28" />
+              <Skeleton className="h-11 w-full rounded-md" />
+            </div>
+            {/* WhatsApp */}
+            <div className="space-y-1.5">
+              <Skeleton className="h-4 w-40" />
+              <Skeleton className="h-11 w-full rounded-md" />
+            </div>
+            {/* Submit */}
+            <div className="pt-2">
+              <Skeleton className="h-12 w-full rounded-md" />
+            </div>
+          </div>
+        </CardContent>
+      </Card>
+
+      {/* Health & Fitness card */}
+      <Card className="border-sage/20 bg-white/90 shadow-lg">
+        <CardHeader className="p-6 border-b border-sage/10 bg-linear-to-r from-cream/50 to-white">
+          <div className="flex items-center gap-3">
+            <Skeleton className="w-10 h-10 rounded-full" />
+            <Skeleton className="h-7 w-40" />
+          </div>
+          <Skeleton className="h-4 w-64 mt-2" />
+        </CardHeader>
+        <CardContent className="p-6">
+          <div className="space-y-6">
+            {/* Fitness goals grid */}
+            <div className="space-y-3">
+              <Skeleton className="h-4 w-28" />
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                {Array.from({ length: 8 }).map((_, i) => (
+                  <Skeleton key={i} className="h-10 w-full rounded-lg" />
+                ))}
+              </div>
+            </div>
+            {/* Health conditions grid */}
+            <div className="space-y-3">
+              <Skeleton className="h-4 w-44" />
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                {Array.from({ length: 6 }).map((_, i) => (
+                  <Skeleton key={i} className="h-10 w-full rounded-lg" />
+                ))}
+              </div>
+            </div>
+            {/* Injuries textarea */}
+            <div className="space-y-2">
+              <Skeleton className="h-4 w-40" />
+              <Skeleton className="h-20 w-full rounded-md" />
+            </div>
+            {/* Submit */}
+            <Skeleton className="h-12 w-full rounded-md" />
+          </div>
+        </CardContent>
+      </Card>
     </div>
   );
 }
@@ -325,11 +431,7 @@ export default function Profile() {
             <PageHeader title="Your Profile" subtitle="Manage your information and preferences" />
           </div>
           <div className="max-w-2xl mx-auto space-y-6 px-4 sm:px-6 lg:px-8">
-            <Card className="border-sage/20 bg-white/90 shadow-lg">
-              <CardContent className="p-6">
-                <FormSkeleton fields={5} />
-              </CardContent>
-            </Card>
+            <ProfileSkeleton />
           </div>
         </main>
       </div>

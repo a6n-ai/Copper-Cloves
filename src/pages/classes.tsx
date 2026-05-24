@@ -6,7 +6,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { GridSkeleton } from "@/components/skeletons";
+import { Skeleton } from "@/components/ui/skeleton";
 import { Clock, CheckCircle, Calendar, Users, Sparkles, ChevronLeft, ChevronRight } from "lucide-react";
 import { useRouter } from "next/router";
 import { useCallback, useEffect, useState } from "react";
@@ -215,6 +215,76 @@ const classDetails: ClassDetail[] = [
     intensity: "High"
   }
 ];
+
+/** Mirrors the class catalog Card: tall image with a badge, title, two-line copy, info row, benefit chips, button. */
+function ClassCardSkeleton() {
+  return (
+    <Card className="border-0 bg-white/95 backdrop-blur-xl shadow-lg overflow-hidden">
+      <div className="relative h-64 overflow-hidden bg-sage/5">
+        <Skeleton className="h-full w-full rounded-none" />
+        <Skeleton className="absolute top-4 right-4 h-6 w-20 rounded-full" />
+      </div>
+      <CardContent className="p-6">
+        <Skeleton className="h-7 w-3/5 mb-3" />
+        <Skeleton className="h-3.5 w-full mb-2" />
+        <Skeleton className="h-3.5 w-4/5 mb-4" />
+        <div className="flex items-center gap-4 mb-4">
+          <Skeleton className="h-4 w-20" />
+          <Skeleton className="h-4 w-16" />
+        </div>
+        <div className="mb-4">
+          <Skeleton className="h-3.5 w-24 mb-2" />
+          <div className="flex flex-wrap gap-2">
+            <Skeleton className="h-5 w-24 rounded-full" />
+            <Skeleton className="h-5 w-28 rounded-full" />
+            <Skeleton className="h-5 w-20 rounded-full" />
+          </div>
+        </div>
+        <Skeleton className="h-10 w-full rounded-md" />
+      </CardContent>
+    </Card>
+  );
+}
+
+function ClassesGridSkeleton({ count = 6 }: { count?: number }) {
+  return (
+    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+      {Array.from({ length: count }).map((_, i) => (
+        <ClassCardSkeleton key={i} />
+      ))}
+    </div>
+  );
+}
+
+/** Mirrors one weekly-schedule day column: day header (title + date), then a few time/name rows. */
+function ScheduleDaySkeleton() {
+  return (
+    <div className="p-6">
+      <div className="mb-4 pb-3 border-b border-sage/10">
+        <Skeleton className="h-6 w-28 mb-2" />
+        <Skeleton className="h-3.5 w-16" />
+      </div>
+      <div className="space-y-3">
+        {Array.from({ length: 4 }).map((_, i) => (
+          <div key={i} className="flex gap-3">
+            <Skeleton className="h-3.5 w-24 shrink-0" />
+            <Skeleton className="h-3.5 w-40 flex-1" />
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+}
+
+function ScheduleGridSkeleton({ count = 4 }: { count?: number }) {
+  return (
+    <div className="grid sm:grid-cols-2 lg:grid-cols-2">
+      {Array.from({ length: count }).map((_, i) => (
+        <ScheduleDaySkeleton key={i} />
+      ))}
+    </div>
+  );
+}
 
 export default function ClassesPage() {
   const router = useRouter();
@@ -431,7 +501,7 @@ export default function ClassesPage() {
             {/* Classes Tab Content */}
             <TabsContent value="classes" className="mt-8">
               {loading ? (
-                <GridSkeleton count={6} className="md:grid-cols-2 lg:grid-cols-3" />
+                <ClassesGridSkeleton count={6} />
               ) : filteredClasses.length === 0 ? (
                 <div className="text-center py-12">
                   <p className="font-body text-charcoal/60">No classes found for this category.</p>
@@ -591,8 +661,8 @@ export default function ClassesPage() {
                 {/* Schedule Grid */}
                 <div className="grid md:grid-cols-2 divide-y md:divide-y-0 md:divide-x divide-sage/10">
                   {scheduleLoading ? (
-                    <div className="col-span-2 p-6">
-                      <GridSkeleton count={4} className="sm:grid-cols-2 lg:grid-cols-2" />
+                    <div className="col-span-2">
+                      <ScheduleGridSkeleton count={4} />
                     </div>
                   ) : scheduleData.length === 0 ? (
                     <div className="col-span-2 text-center py-12">

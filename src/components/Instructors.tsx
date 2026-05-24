@@ -1,5 +1,5 @@
 import { useRef, useState, useEffect } from "react";
-import { GridSkeleton } from "@/components/skeletons";
+import { Skeleton } from "@/components/ui/skeleton";
 import { ChevronLeft, ChevronRight, X, Award, Calendar, Heart, Share2, Facebook, Twitter, Linkedin, MessageCircle } from "lucide-react";
 import Link from "next/link";
 import { supportsResponsivePicture } from "@/lib/imageDelivery";
@@ -104,6 +104,40 @@ function InstructorModalPhoto({ src, name }: { src: string; name: string }) {
   }
 
   return <img src={src} alt={name} className={imgClass} />;
+}
+
+/** Mirrors the horizontal row of instructor cards (photo + name/title/experience/about). */
+function InstructorsSkeleton({ count = 3 }: { count?: number }) {
+  return (
+    <div className="flex gap-6 overflow-hidden pb-8">
+      {Array.from({ length: count }).map((_, i) => (
+        <div key={i} className="shrink-0 w-[260px]">
+          <div className="bg-white rounded-3xl overflow-hidden shadow-lg">
+            {/* Photo region */}
+            <Skeleton className="h-[230px] w-full rounded-none" />
+            {/* Content */}
+            <div className="p-5">
+              {/* Name */}
+              <Skeleton className="h-7 w-3/4 mb-2" />
+              {/* Dot + title */}
+              <div className="flex items-center gap-2 mb-2">
+                <Skeleton className="w-1 h-1 rounded-full" />
+                <Skeleton className="h-4 w-1/2" />
+              </div>
+              {/* Experience */}
+              <Skeleton className="h-4 w-2/5 mb-6" />
+              {/* About paragraph */}
+              <div className="space-y-2">
+                <Skeleton className="h-3 w-full" />
+                <Skeleton className="h-3 w-full" />
+                <Skeleton className="h-3 w-4/5" />
+              </div>
+            </div>
+          </div>
+        </div>
+      ))}
+    </div>
+  );
 }
 
 export function Instructors() {
@@ -272,7 +306,7 @@ export function Instructors() {
         {/* Loading State */}
         {loading ? (
           <div className="w-full py-4">
-            <GridSkeleton count={3} />
+            <InstructorsSkeleton count={3} />
           </div>
         ) : instructors.length === 0 ? (
           <div className="text-center py-20">

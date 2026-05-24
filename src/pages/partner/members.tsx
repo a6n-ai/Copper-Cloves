@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import { UserX } from "lucide-react";
 import { PageHeader } from "@/components/dashboard/PageHeader";
-import { TableSkeleton } from "@/components/skeletons";
+import { Skeleton } from "@/components/ui/skeleton";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import {
@@ -12,6 +12,38 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
+
+function PartnerMembersSkeleton() {
+  return (
+    <div className="overflow-x-auto">
+      <Table>
+        <TableHeader>
+          <TableRow className="hover:bg-transparent">
+            <TableHead>Member</TableHead>
+            <TableHead>Contact</TableHead>
+            <TableHead className="text-center">Sessions</TableHead>
+            <TableHead>Last session</TableHead>
+            <TableHead className="text-right">Waiver</TableHead>
+          </TableRow>
+        </TableHeader>
+        <TableBody className="divide-y divide-sage/10">
+          {Array.from({ length: 6 }).map((_, i) => (
+            <TableRow key={i}>
+              <TableCell><Skeleton className="h-4 w-32" /></TableCell>
+              <TableCell>
+                <Skeleton className="h-4 w-40" />
+                <Skeleton className="h-3 w-24 mt-1.5" />
+              </TableCell>
+              <TableCell className="text-center"><Skeleton className="h-6 w-8 mx-auto" /></TableCell>
+              <TableCell><Skeleton className="h-4 w-24" /></TableCell>
+              <TableCell className="text-right"><Skeleton className="h-6 w-20 rounded-full ml-auto" /></TableCell>
+            </TableRow>
+          ))}
+        </TableBody>
+      </Table>
+    </div>
+  );
+}
 
 interface PartnerMemberRow {
   id: string;
@@ -59,9 +91,7 @@ export default function PartnerMembersPage() {
       <Card className="border-sage/20 bg-white/95">
         <CardContent className="p-0">
           {loading ? (
-            <div className="p-4">
-              <TableSkeleton />
-            </div>
+            <PartnerMembersSkeleton />
           ) : rows.length === 0 ? (
             <div className="flex items-center justify-center gap-2 py-16 font-body text-sm text-charcoal/40">
               <UserX className="h-4 w-4" /> No members have attended a session yet.
