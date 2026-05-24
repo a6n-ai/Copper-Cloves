@@ -1022,11 +1022,11 @@ export default function BookClass() {
                     </div>
 
                     {/* Class Info */}
-                    <div className="p-6">
-                      <h3 className="font-display text-2xl text-charcoal mb-3 group-hover:text-sage transition-colors duration-600">
+                    <div className="p-4 sm:p-6">
+                      <h3 className="font-display text-xl sm:text-2xl text-charcoal mb-2 sm:mb-3 group-hover:text-sage transition-colors duration-600">
                         {cls.name}
                       </h3>
-                      <div className="flex flex-wrap items-center gap-4 text-sm font-body text-charcoal/70 mb-4">
+                      <div className="flex flex-wrap items-center gap-3 sm:gap-4 text-sm font-body text-charcoal/70 mb-3 sm:mb-4">
                         <span className="flex items-center gap-2">
                           <Clock size={16} className="text-sage" />
                           {cls.time}
@@ -1123,28 +1123,28 @@ export default function BookClass() {
       >
         <div className="h-full flex flex-col">
           {/* Panel Header */}
-          <div className="sticky top-0 z-10 p-6 flex items-center justify-between border-b border-sage/10 bg-linear-to-r from-cream/80 to-white/80 backdrop-blur-xl">
+          <div className="sticky top-0 z-10 px-4 sm:px-6 py-4 flex items-center justify-between border-b border-sage/10 bg-linear-to-r from-cream/80 to-white/80 backdrop-blur-xl">
             <div>
-              <h2 className="font-display text-2xl md:text-3xl text-charcoal mb-1">
+              <h2 className="font-display text-xl sm:text-3xl text-charcoal mb-0.5">
                 {bookingStep === 1 && "Who's Coming?"}
                 {bookingStep === 2 && "Credit Management"}
                 {bookingStep === 3 && "Add Nourishment"}
                 {bookingStep === 4 && "Checkout"}
               </h2>
-              <p className="font-body text-sm text-charcoal/60">
-                Step {bookingStep} of 4 • {selectedClass?.name}
+              <p className="font-body text-xs sm:text-sm text-charcoal/60">
+                Step {bookingStep} of 4 · {selectedClass?.name}
               </p>
             </div>
-            <button 
-              onClick={() => setShowBookingPanel(false)} 
+            <button
+              onClick={() => setShowBookingPanel(false)}
               className="p-2 rounded-full hover:bg-sage/10 text-sage hover:text-charcoal transition-all duration-600 hover:rotate-90"
             >
               <X size={20} />
             </button>
           </div>
-          
+
           {/* Panel Content */}
-          <div className="flex-1 overflow-y-auto p-6">
+          <div className="flex-1 overflow-y-auto px-4 sm:px-6 py-5 sm:py-6">
             {/* Step 1: Add People */}
             {bookingStep === 1 && (
               <div className="space-y-6">
