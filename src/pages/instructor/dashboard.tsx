@@ -245,7 +245,7 @@ export default function InstructorDashboard() {
         </div>
 
         {/* Stats row */}
-        <div className="grid grid-cols-3 gap-3 mb-6">
+        <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 mb-6">
           {[
             { icon: Calendar, label: "This Week", value: classes.length },
             { icon: Users, label: "Total Enrolled", value: totalEnrolled },
