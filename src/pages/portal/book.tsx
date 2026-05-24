@@ -15,6 +15,7 @@ import {
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
 import { Button } from "@/components/ui/button";
+import { MobilePagination } from "@/components/responsive/MobilePagination";
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -1054,46 +1055,12 @@ export default function BookClass() {
             ))}
           </div>
 
-          {/* Pagination Controls */}
-          {totalPages > 1 && (
-            <div className="flex flex-col sm:flex-row items-center justify-between gap-4 bg-white/80 backdrop-blur-xs rounded-xl p-6 border border-sage/20">
-              <Button
-                variant="outline"
-                onClick={() => setCurrentPage(prev => Math.max(1, prev - 1))}
-                disabled={currentPage === 1}
-                className="border-sage/30 text-sage hover:bg-sage/10 disabled:opacity-30 disabled:cursor-not-allowed font-body transition-all duration-600 w-full sm:w-auto"
-              >
-                <ChevronLeft size={16} className="mr-2" />
-                Previous
-              </Button>
-
-              <div className="flex items-center gap-2">
-                {Array.from({ length: totalPages }, (_, i) => i + 1).map(page => (
-                  <button
-                    key={page}
-                    onClick={() => setCurrentPage(page)}
-                    className={`w-10 h-10 rounded-lg font-body text-sm transition-all duration-600 ${
-                      page === currentPage
-                        ? "bg-sage text-white shadow-md"
-                        : "text-charcoal/60 hover:bg-sage/10"
-                    }`}
-                  >
-                    {page}
-                  </button>
-                ))}
-              </div>
-
-              <Button
-                variant="outline"
-                onClick={() => setCurrentPage(prev => Math.min(totalPages, prev + 1))}
-                disabled={currentPage === totalPages}
-                className="border-sage/30 text-sage hover:bg-sage/10 disabled:opacity-30 disabled:cursor-not-allowed font-body transition-all duration-600 w-full sm:w-auto"
-              >
-                Next
-                <ChevronRight size={16} className="ml-2" />
-              </Button>
-            </div>
-          )}
+          {/* Pagination — compact on phones, windowed numbers on desktop */}
+          <MobilePagination
+            currentPage={currentPage}
+            totalPages={totalPages}
+            onPageChange={setCurrentPage}
+          />
 
           {/* Empty State */}
           {paginatedClasses.length === 0 && (
