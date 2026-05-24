@@ -91,7 +91,7 @@ export default function FounderPage() {
               </div>
 
               {/* Stats Grid */}
-              <div className="grid grid-cols-3 gap-4 pt-8">
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 pt-8">
                 <div className="text-center p-6 rounded-2xl bg-white/60 backdrop-blur-xs border border-sage/10">
                   <p className="font-display text-3xl text-sage mb-1">2018</p>
                   <p className="font-body text-xs text-charcoal/70">Founded</p>
