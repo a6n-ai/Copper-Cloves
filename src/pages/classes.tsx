@@ -588,7 +588,7 @@ export default function ClassesPage() {
 
                 {/* Week/Month Navigation */}
                 <div className="bg-cream/30 border-b border-sage/10 p-4">
-                  <div className="flex items-center justify-center gap-4">
+                  <div className="flex flex-wrap items-center justify-center gap-4">
                     <Button
                       variant="outline"
                       size="sm"
@@ -598,8 +598,8 @@ export default function ClassesPage() {
                     >
                       <ChevronLeft className="h-4 w-4" />
                     </Button>
-                    
-                    <div className="flex items-center gap-2">
+
+                    <div className="flex flex-wrap items-center gap-2">
                       <Select 
                         value={selectedMonth.toString()} 
                         onValueChange={(val) => {
@@ -610,7 +610,7 @@ export default function ClassesPage() {
                           });
                         }}
                       >
-                        <SelectTrigger className="w-[180px] border-sage/20 bg-white font-body text-charcoal rounded-xl focus:ring-sage">
+                        <SelectTrigger className="w-full sm:w-[180px] border-sage/20 bg-white font-body text-charcoal rounded-xl focus:ring-sage">
                           <SelectValue />
                         </SelectTrigger>
                         <SelectContent>
@@ -626,7 +626,7 @@ export default function ClassesPage() {
                         value={selectedWeek.toString()} 
                         onValueChange={(val) => setSelectedWeek(parseInt(val))}
                       >
-                        <SelectTrigger className="w-[280px] border-sage/20 bg-white font-body text-charcoal rounded-xl focus:ring-sage">
+                        <SelectTrigger className="w-full sm:w-[280px] border-sage/20 bg-white font-body text-charcoal rounded-xl focus:ring-sage">
                           <SelectValue />
                         </SelectTrigger>
                         <SelectContent>
