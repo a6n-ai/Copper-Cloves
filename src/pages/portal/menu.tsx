@@ -331,19 +331,19 @@ export default function MenuPage() {
                     className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500"
                   />
                 </div>
-                <CardContent className="p-6">
+                <CardContent className="p-4 sm:p-6">
                   <div className="mb-3">
                     <Badge variant="outline" className="mb-2 text-xs font-body border-sage/30 text-sage">
                       {categories.find(c => c.id === item.category)?.label}
                     </Badge>
-                    <h3 className="font-display text-2xl text-charcoal mb-2">{item.name}</h3>
-                    <p className="font-body text-sm text-charcoal/70 mb-3">{item.description}</p>
-                    <p className="font-display text-3xl text-sage">₹{item.price}</p>
+                    <h3 className="font-display text-xl sm:text-2xl text-charcoal mb-1.5">{item.name}</h3>
+                    <p className="font-body text-sm text-charcoal/70 mb-2 line-clamp-2">{item.description}</p>
+                    <p className="font-display text-2xl sm:text-3xl text-sage">₹{item.price}</p>
                   </div>
-                  
+
                   <Button
                     onClick={() => addToCart(item)}
-                    className="w-full bg-sage hover:bg-sage/90 text-white font-body"
+                    className="w-full bg-sage hover:bg-sage/90 text-white font-body h-11"
                   >
                     <Plus size={18} className="mr-2" />
                     Add to Cart
@@ -354,16 +354,16 @@ export default function MenuPage() {
             )}
           </div>
 
-          {/* Floating Cart Button */}
+          {/* Floating Cart Button — raised above bottom nav on mobile */}
           {cart.length > 0 && (
-            <div className="fixed bottom-8 right-8 z-40">
+            <div className="fixed bottom-28 right-4 sm:bottom-8 sm:right-8 z-40">
               <Button
                 onClick={handleCheckout}
                 size="lg"
-                className="bg-sage hover:bg-sage/90 text-white shadow-2xl font-body text-lg h-16 px-8 rounded-full"
+                className="bg-sage hover:bg-sage/90 text-white shadow-2xl font-body text-base sm:text-lg h-14 sm:h-16 px-6 sm:px-8 rounded-full"
               >
-                <ShoppingCart size={24} className="mr-3" />
-                View Cart ({cart.length})
+                <ShoppingCart size={22} className="mr-2 sm:mr-3" />
+                Cart ({cart.length})
               </Button>
             </div>
           )}
