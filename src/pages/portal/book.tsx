@@ -1111,7 +1111,7 @@ export default function BookClass() {
           </div>
 
           {/* Panel Content */}
-          <div className="flex-1 overflow-y-auto px-4 sm:px-6 py-5 sm:py-6">
+          <div className="flex-1 overflow-y-auto px-4 sm:px-6 py-4 sm:py-6">
             {/* Step 1: Add People */}
             {bookingStep === 1 && (
               <div className="space-y-6">
@@ -1535,52 +1535,33 @@ export default function BookClass() {
 
             {/* Step 4: Checkout */}
             {bookingStep === 4 && (
-              <div className="space-y-6">
-                <div>
-                  <h3 className="font-display text-2xl text-charcoal mb-2">
-                    Review & Confirm
-                  </h3>
-                  <p className="font-body text-charcoal/60">
-                    Please review your booking details before confirming.
-                  </p>
-                </div>
-
-                {/* Booking Summary */}
-                <div className="p-6 rounded-xl bg-linear-to-br from-cream/40 to-sage/5 border border-sage/10 space-y-4">
-                  <div>
-                    <p className="font-body text-xs text-charcoal/60 uppercase tracking-wide mb-1">Class</p>
-                    <p className="font-display text-xl text-charcoal">{selectedClass?.name}</p>
-                    <p className="font-body text-sm text-charcoal/60">{selectedClass?.time} • {selectedClass?.instructor}</p>
-                  </div>
-
-                  <div className="pt-4 border-t border-sage/10">
-                    <p className="font-body text-xs text-charcoal/60 uppercase tracking-wide mb-2">Attendees</p>
-                    <div className="space-y-1">
-                      <p className="font-body text-sm text-charcoal">• {userName}</p>
-                      {friendsFamily.map((person, index) => (
-                        <p key={index} className="font-body text-sm text-charcoal">• {person.name}</p>
-                      ))}
+              <div className="space-y-3 sm:space-y-6">
+                {/* Booking Summary — collapsed on mobile into a single compact row */}
+                <div className="p-3 sm:p-6 rounded-xl bg-linear-to-br from-cream/40 to-sage/5 border border-sage/10">
+                  <div className="flex items-start justify-between gap-3">
+                    <div className="min-w-0">
+                      <p className="font-body text-xs text-charcoal/60 uppercase tracking-wide mb-0.5">Class</p>
+                      <p className="font-display text-base sm:text-xl text-charcoal leading-tight">{selectedClass?.name}</p>
+                      <p className="font-body text-xs sm:text-sm text-charcoal/60">{selectedClass?.time} • {selectedClass?.instructor}</p>
+                    </div>
+                    <div className="text-right shrink-0">
+                      <p className="font-body text-xs text-charcoal/60 uppercase tracking-wide mb-0.5">Attendees</p>
+                      <p className="font-body text-sm text-charcoal font-medium">{1 + friendsFamily.length}</p>
                     </div>
                   </div>
-
                   {foodItems.filter(item => item.quantity > 0).length > 0 && (
-                    <div className="pt-4 border-t border-sage/10">
-                      <p className="font-body text-xs text-charcoal/60 uppercase tracking-wide mb-2">Food Items</p>
-                      <div className="space-y-1">
-                        {foodItems.filter(item => item.quantity > 0).map(item => (
-                          <p key={item.id} className="font-body text-sm text-charcoal">
-                            • {item.name} × {item.quantity}
-                          </p>
-                        ))}
-                      </div>
+                    <div className="mt-2 pt-2 border-t border-sage/10">
+                      <p className="font-body text-xs text-charcoal/50">
+                        + {foodItems.filter(item => item.quantity > 0).map(i => `${i.name} ×${i.quantity}`).join(", ")}
+                      </p>
                     </div>
                   )}
                 </div>
 
                 {/* Coupon Code */}
                 {totals.finalTotal > 0 && (
-                  <div className="p-5 rounded-xl bg-white border border-sage/10">
-                    <p className="font-body text-sm font-medium text-charcoal mb-3">Have a coupon code?</p>
+                  <div className="p-3 sm:p-5 rounded-xl bg-white border border-sage/10">
+                    <p className="font-body text-sm font-medium text-charcoal mb-2">Have a coupon code?</p>
                     {appliedCoupon ? (
                       <div className="flex items-center justify-between">
                         <span className="font-body text-sm text-sage font-medium">
@@ -1642,39 +1623,33 @@ export default function BookClass() {
                 )}
 
                 {/* Payment Breakdown */}
-                <div className="p-6 rounded-xl bg-white border border-sage/10 space-y-3">
-                  <h4 className="font-display text-lg text-charcoal mb-3">Payment Breakdown</h4>
-                  
+                <div className="p-3 sm:p-6 rounded-xl bg-white border border-sage/10 space-y-2 sm:space-y-3">
+                  <h4 className="font-display text-base sm:text-lg text-charcoal">Payment Breakdown</h4>
+
                   {totals.classTotal > 0 && (
                     <div className="flex justify-between font-body text-sm">
                       <span className="text-charcoal/70">
                         {userPackage.type === "class_pass" && useCredits
-                          ? `Guest Fees (${friendsFamily.length} × ₹945)`
+                          ? `Guests (${friendsFamily.length} × ₹945)`
                           : userPackage.type === "studio_pass"
-                          ? `Additional Guests (${friendsFamily.length} × ₹945)`
-                          : `Class Fee (${1 + friendsFamily.length} × ₹945)`
+                          ? `Guests (${friendsFamily.length} × ₹945)`
+                          : `Class (${1 + friendsFamily.length} × ₹945)`
                         }
                       </span>
                       <span className="text-charcoal">₹{totals.classTotal}</span>
                     </div>
                   )}
-                  
+
                   {totals.foodTotal > 0 && (
                     <div className="flex justify-between font-body text-sm">
-                      <span className="text-charcoal/70">Food Items</span>
+                      <span className="text-charcoal/70">Food</span>
                       <span className="text-charcoal">₹{totals.foodTotal}</span>
                     </div>
                   )}
-                  
+
                   {totals.discount > 0 && (
                     <div className="flex justify-between font-body text-sm">
-                      <span className="text-sage">
-                        Package discount (
-                        {userPackage.type === "class_pass"
-                          ? "5% on food"
-                          : `${((UNLIMITED_DISCOUNTS[userPackage.name] || 0) * 100).toFixed(0)}% on food`
-                        })
-                      </span>
+                      <span className="text-sage">Discount</span>
                       <span className="text-sage">-₹{totals.discount.toFixed(0)}</span>
                     </div>
                   )}
@@ -1686,7 +1661,7 @@ export default function BookClass() {
                     </div>
                   )}
 
-                  <div className="pt-3 border-t border-sage/10 flex justify-between font-display text-xl">
+                  <div className="pt-2 border-t border-sage/10 flex justify-between font-display text-xl">
                     <span className="text-charcoal">Total</span>
                     <span className="text-sage">₹{totals.finalTotal.toFixed(0)}</span>
                   </div>
@@ -1698,51 +1673,45 @@ export default function BookClass() {
                   )}
 
                   {userPackage.type === "class_pass" && useCredits && (
-                    <p className="font-body text-xs text-charcoal/60 italic pt-2">
-                      * 1 class will be deducted from your account (for your spot only)
+                    <p className="font-body text-xs text-charcoal/60 italic">
+                      * 1 class deducted (your spot only)
                     </p>
                   )}
-                  
+
                   {userPackage.type === "studio_pass" && (
-                    <p className="font-body text-xs text-charcoal/60 italic pt-2">
-                      * Your {userPackage.name} includes unlimited classes - no deduction
+                    <p className="font-body text-xs text-charcoal/60 italic">
+                      * Unlimited pass — no deduction
                     </p>
                   )}
-                  
+
                   {userPackage.type === null && (
-                    <p className="font-body text-xs text-terracotta/80 italic pt-2">
-                      * No active package - full payment required
+                    <p className="font-body text-xs text-terracotta/80 italic">
+                      * No active package — full payment required
                     </p>
                   )}
                 </div>
 
                 {/* Payment method — online only */}
                 {totals.finalTotal > 0 && (
-                  <Card className="border-sage/20 bg-white/95">
-                    <CardContent className="p-5">
-                      <div className="flex items-center gap-4">
-                        <div className="h-10 w-10 rounded-full bg-sage/10 flex items-center justify-center shrink-0">
-                          <CreditCard className="h-5 w-5 text-sage" />
-                        </div>
-                        <div className="flex-1 min-w-0">
-                          <p className="font-body font-semibold text-charcoal">Pay online via Razorpay</p>
-                          <p className="font-body text-sm text-charcoal/60">Card, UPI, netbanking — secure checkout</p>
-                        </div>
-                      </div>
-                    </CardContent>
-                  </Card>
+                  <div className="flex items-center gap-3 p-3 sm:p-4 rounded-xl border border-sage/20 bg-white/95">
+                    <div className="h-8 w-8 rounded-full bg-sage/10 flex items-center justify-center shrink-0">
+                      <CreditCard className="h-4 w-4 text-sage" />
+                    </div>
+                    <div className="min-w-0">
+                      <p className="font-body text-sm font-semibold text-charcoal">Pay via Razorpay</p>
+                      <p className="font-body text-xs text-charcoal/60">Card · UPI · netbanking</p>
+                    </div>
+                  </div>
                 )}
 
                 {totals.finalTotal === 0 && (
-                  <div className="p-5 rounded-xl bg-sage/5 border border-sage/20">
-                    <div className="flex items-center gap-3">
-                      <div className="w-10 h-10 rounded-full bg-sage/20 flex items-center justify-center">
-                        <Heart className="text-sage" size={20} fill="currentColor" />
-                      </div>
-                      <div>
-                        <p className="font-body text-charcoal font-medium">No Payment Required</p>
-                        <p className="font-body text-sm text-charcoal/60">Your unlimited package covers everything!</p>
-                      </div>
+                  <div className="flex items-center gap-3 p-3 sm:p-5 rounded-xl bg-sage/5 border border-sage/20">
+                    <div className="w-8 h-8 rounded-full bg-sage/20 flex items-center justify-center shrink-0">
+                      <Heart className="text-sage" size={18} fill="currentColor" />
+                    </div>
+                    <div>
+                      <p className="font-body text-sm text-charcoal font-medium">No Payment Required</p>
+                      <p className="font-body text-xs text-charcoal/60">Your unlimited package covers everything!</p>
                     </div>
                   </div>
                 )}
@@ -1751,7 +1720,7 @@ export default function BookClass() {
           </div>
 
           {/* Panel Footer - Navigation */}
-          <div className="sticky bottom-0 p-6 bg-linear-to-t from-cream/50 to-white border-t border-sage/10 backdrop-blur-xs">
+          <div className="sticky bottom-0 p-3 sm:p-6 bg-linear-to-t from-cream/50 to-white border-t border-sage/10 backdrop-blur-xs">
             <div className="flex gap-3">
               {bookingStep > 1 && (
                 <Button
@@ -1769,7 +1738,7 @@ export default function BookClass() {
                 <Button
                   onClick={handleNextStep}
                   disabled={isSubmittingBooking}
-                  className="flex-1 bg-sage hover:bg-sage/90 text-white transition-all duration-600 hover:scale-105 active:scale-95 text-base py-6"
+                  className="flex-1 bg-sage hover:bg-sage/90 text-white transition-all duration-600 hover:scale-105 active:scale-95 text-base py-3 sm:py-6 min-h-[44px]"
                 >
                   Continue
                   <ChevronRight size={18} className="ml-2" />
@@ -1778,7 +1747,7 @@ export default function BookClass() {
                 <Button
                   onClick={handleConfirmBooking}
                   disabled={isSubmittingBooking}
-                  className="flex-1 bg-sage hover:bg-sage/90 text-white transition-all duration-600 hover:scale-105 active:scale-95 text-base py-6 disabled:opacity-60 disabled:hover:scale-100"
+                  className="flex-1 bg-sage hover:bg-sage/90 text-white transition-all duration-600 hover:scale-105 active:scale-95 text-base py-3 sm:py-6 min-h-[44px] disabled:opacity-60 disabled:hover:scale-100"
                 >
                   {isSubmittingBooking
                     ? "Working…"
