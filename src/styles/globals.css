@@ -259,8 +259,11 @@ body::before {
   z-index: 0;
 }
 
-/* Ensure content stays above watermark */
-body > * {
+/* Ensure app content stays above the watermark — scoped to the Next app root
+   only. Using `body > *` here also hit Radix portals (Sheets/Dialogs render as
+   direct <body> children), forcing them position:relative and breaking their
+   fixed overlay (unlayered CSS overrides Tailwind v4 layered utilities). */
+body > #__next {
   position: relative;
   z-index: 1;
 }
