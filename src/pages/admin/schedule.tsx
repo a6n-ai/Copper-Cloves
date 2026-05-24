@@ -45,13 +45,13 @@ import { AnimatedIcon } from "@/components/dashboard/AnimatedIcon";
 import { useSession } from "next-auth/react";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogHeader,
-  DialogTitle,
-  DialogFooter,
-} from "@/components/ui/dialog";
+  ResponsiveDialog,
+  ResponsiveDialogContent,
+  ResponsiveDialogDescription,
+  ResponsiveDialogHeader,
+  ResponsiveDialogTitle,
+  ResponsiveDialogFooter,
+} from "@/components/responsive/ResponsiveDialog";
 import {
   Select,
   SelectContent,
@@ -1115,16 +1115,16 @@ export default function AdminSchedule() {
       </div>
 
       {/* Add/Edit Class Dialog */}
-      <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
-        <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto bg-white">
-          <DialogHeader>
-            <DialogTitle className="font-display text-3xl text-charcoal">
+      <ResponsiveDialog open={dialogOpen} onOpenChange={setDialogOpen}>
+        <ResponsiveDialogContent className="max-w-2xl bg-white">
+          <ResponsiveDialogHeader>
+            <ResponsiveDialogTitle className="font-display text-3xl text-charcoal">
               {editingClass ? "Edit Class" : "Schedule Class"}
-            </DialogTitle>
-            <DialogDescription className="font-body text-charcoal/60">
+            </ResponsiveDialogTitle>
+            <ResponsiveDialogDescription className="font-body text-charcoal/60">
               Configure class details, time, and recurring schedule
-            </DialogDescription>
-          </DialogHeader>
+            </ResponsiveDialogDescription>
+          </ResponsiveDialogHeader>
 
           <Form {...classForm}>
             <form
@@ -1500,7 +1500,7 @@ export default function AdminSchedule() {
             </form>
           </Form>
 
-          <DialogFooter>
+          <ResponsiveDialogFooter>
             <Button
               type="button"
               variant="outline"
@@ -1516,18 +1516,18 @@ export default function AdminSchedule() {
             >
               {editingClass ? "Update Class" : "Schedule Class"}
             </Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
+          </ResponsiveDialogFooter>
+        </ResponsiveDialogContent>
+      </ResponsiveDialog>
 
       {/* Roster Dialog */}
-      <Dialog open={!!rosterScheduleId} onOpenChange={(open) => { if (!open) { setRosterScheduleId(null); setRosterData(null); setMemberQuery(""); setMemberResults([]); } }}>
-        <DialogContent className="max-w-lg w-full bg-white flex flex-col p-0 max-h-[85vh] overflow-hidden">
+      <ResponsiveDialog open={!!rosterScheduleId} onOpenChange={(open) => { if (!open) { setRosterScheduleId(null); setRosterData(null); setMemberQuery(""); setMemberResults([]); } }}>
+        <ResponsiveDialogContent className="max-w-lg w-full bg-white flex flex-col p-0 max-h-[85vh] overflow-hidden">
           {/* Header */}
           <div className="px-6 pt-6 pb-4 border-b border-sage/10 shrink-0">
-            <DialogTitle className="font-display text-2xl text-charcoal">
+            <ResponsiveDialogTitle className="font-display text-2xl text-charcoal">
               {rosterData ? rosterData.className : "Class Roster"}
-            </DialogTitle>
+            </ResponsiveDialogTitle>
             {rosterData && (
               <div className="font-body text-sm text-charcoal/60 space-y-1 mt-1">
                 <p>{new Date(rosterData.startTime).toLocaleString("en-IN", { dateStyle: "medium", timeStyle: "short", timeZone: "Asia/Kolkata" })}</p>
@@ -1705,8 +1705,8 @@ export default function AdminSchedule() {
               </ul>
             )}
           </div>
-        </DialogContent>
-      </Dialog>
+        </ResponsiveDialogContent>
+      </ResponsiveDialog>
     </>
   );
 }
