@@ -2919,15 +2919,15 @@ export default function AdminDashboard() {
                     </div>
                   </CardHeader>
                   <CardContent>
-                    <div className="flex items-center gap-6 p-6 rounded-xl bg-white border border-sage/20">
+                    <div className="flex flex-wrap items-center gap-6 p-6 rounded-xl bg-white border border-sage/20">
                       <div className="h-20 w-20 rounded-full bg-sage/10 flex items-center justify-center">
                         <Star className="h-10 w-10 text-sage" />
                       </div>
-                      <div className="flex-1">
+                      <div className="flex-1 min-w-[180px]">
                         <div className="font-display text-3xl text-charcoal mb-2">
                           {memberStats.memberOfMonth.name}
                         </div>
-                        <div className="flex items-center gap-6 text-charcoal/60">
+                        <div className="flex flex-wrap items-center gap-x-6 gap-y-2 text-charcoal/60">
                           <div className="flex items-center gap-2">
                             <Calendar className="h-4 w-4" />
                             <span className="font-body">{memberStats.memberOfMonth.classes} classes</span>

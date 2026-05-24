@@ -245,19 +245,19 @@ export default function InstructorDashboard() {
         </div>
 
         {/* Stats row */}
-        <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 mb-6">
+        <div className="grid grid-cols-3 gap-2 sm:gap-3 mb-6">
           {[
             { icon: Calendar, label: "This Week", value: classes.length },
             { icon: Users, label: "Total Enrolled", value: totalEnrolled },
             { icon: UserCheck, label: "Checked In Today", value: totalCheckedIn },
           ].map(({ icon: Icon, label, value }) => (
-            <div key={label} className="bg-white rounded-2xl border border-sage/10 p-4 flex items-center gap-3">
+            <div key={label} className="bg-white rounded-2xl border border-sage/10 p-3 sm:p-4 flex flex-col items-start gap-1.5 sm:flex-row sm:items-center sm:gap-3">
               <div className="h-9 w-9 rounded-xl bg-sage/10 flex items-center justify-center shrink-0">
                 <Icon className="h-4 w-4 text-sage" />
               </div>
               <div>
-                <p className="font-display text-2xl text-charcoal leading-none">{value}</p>
-                <p className="font-body text-xs text-charcoal/50 mt-0.5">{label}</p>
+                <p className="font-display text-xl sm:text-2xl text-charcoal leading-none">{value}</p>
+                <p className="font-body text-[11px] sm:text-xs text-charcoal/50 mt-0.5 leading-tight">{label}</p>
               </div>
             </div>
           ))}
