@@ -29,6 +29,8 @@ export function SignInForm({ onSwitchToSignup }: { onSwitchToSignup: () => void 
   const [role, setRole] = useState<Role | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
+  const [resetLoading, setResetLoading] = useState(false);
+  const [resetMsg, setResetMsg] = useState<string | null>(null);
 
   // Editing the email after a check resets everything revealed below it.
   function onEmailChange(value: string) {
@@ -39,6 +41,7 @@ export function SignInForm({ onSwitchToSignup }: { onSwitchToSignup: () => void 
       setRole(null);
       setPassword("");
       setError(null);
+      setResetMsg(null);
     }
   }
 
@@ -91,6 +94,30 @@ export function SignInForm({ onSwitchToSignup }: { onSwitchToSignup: () => void 
       checkEmail();
     } else if (role) {
       doSignIn(role);
+    }
+  }
+
+  async function handleForgotPassword() {
+    const target = email.trim();
+    if (!target) {
+      setError("Enter your email above, then tap “Forgot password?” again.");
+      return;
+    }
+    setError(null);
+    setResetMsg(null);
+    setResetLoading(true);
+    try {
+      // API always returns 200 (never reveals whether the email exists).
+      await fetch("/api/auth/forgot-password", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ email: target }),
+      });
+      setResetMsg(`If an account exists for ${target}, a password reset link is on its way. Check your inbox (and spam).`);
+    } catch {
+      setResetMsg("Could not send the reset email just now. Please try again in a moment.");
+    } finally {
+      setResetLoading(false);
     }
   }
 
@@ -210,8 +237,20 @@ export function SignInForm({ onSwitchToSignup }: { onSwitchToSignup: () => void 
                     <Checkbox checked={remember} onCheckedChange={(v) => setRemember(Boolean(v))} className="border-sage/30 data-[state=checked]:bg-sage data-[state=checked]:border-sage" />
                     Remember this device
                   </label>
-                  <a href="mailto:thestudio@copperandcloves.com?subject=Password%20reset" className="font-body text-sm text-sage hover:underline">Forgot password?</a>
+                  <button
+                    type="button"
+                    onClick={handleForgotPassword}
+                    disabled={resetLoading}
+                    className="font-body text-sm text-sage hover:underline disabled:opacity-60 disabled:no-underline"
+                  >
+                    {resetLoading ? "Sending…" : "Forgot password?"}
+                  </button>
                 </div>
+                {resetMsg && (
+                  <p className="font-body text-sm text-sage/90 bg-sage/5 border border-sage/15 rounded-lg px-3 py-2">
+                    {resetMsg}
+                  </p>
+                )}
               </div>
             </motion.div>
           )}
