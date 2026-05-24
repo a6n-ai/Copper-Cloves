@@ -62,23 +62,23 @@ export function PathToMastery({
           <div className="flex gap-6">
             {Array.from({ length: 4 }).map((_, i) => (
               <div key={i} className="flex flex-1 flex-col items-center gap-3">
-                <Skeleton className="h-16 w-16 rounded-full" />
-                <Skeleton className="h-4 w-20" />
-                <Skeleton className="h-5 w-16 rounded-full" />
+                <Skeleton className="h-11 w-11 md:h-16 md:w-16 rounded-full" />
+                <Skeleton className="h-3 w-14 md:h-4 md:w-20" />
+                <Skeleton className="h-4 w-12 md:h-5 md:w-16 rounded-full" />
               </div>
             ))}
           </div>
         ) : (
           <div className="overflow-x-auto px-3 pt-6 pb-3">
-            <div className="relative min-w-[520px]">
+            <div className="relative min-w-0 md:min-w-[520px]">
               {/* Track background — runs from first circle centre to last, behind opaque circles */}
               <div
-                className="absolute top-8 h-1 -translate-y-1/2 rounded-full bg-muted"
+                className="absolute top-[22px] md:top-8 h-1 -translate-y-1/2 rounded-full bg-muted"
                 style={{ left: `${trackLeft}%`, width: `${trackSpan}%` }}
               />
               {/* Track fill */}
               <motion.div
-                className="absolute top-8 h-1 -translate-y-1/2 rounded-full"
+                className="absolute top-[22px] md:top-8 h-1 -translate-y-1/2 rounded-full"
                 style={{ left: `${trackLeft}%`, backgroundImage: gradient }}
                 initial={{ width: 0 }}
                 animate={{ width: `${(pct / 100) * trackSpan}%` }}
@@ -118,7 +118,7 @@ export function PathToMastery({
                         {/* Opaque base so the track never shows through the circle */}
                         <div
                           className={cn(
-                            "relative flex h-16 w-16 items-center justify-center overflow-hidden rounded-full border-4 bg-card transition-colors",
+                            "relative flex h-11 w-11 md:h-16 md:w-16 items-center justify-center overflow-hidden rounded-full border-4 bg-card transition-colors",
                             !earned && "border-muted",
                           )}
                           style={earned ? { borderColor: `${color}66` } : undefined}
@@ -132,7 +132,7 @@ export function PathToMastery({
                             <span className="absolute inset-0 rounded-full bg-muted/40" />
                           )}
                           {m.dbIcon ? (
-                            <span className={cn("relative flex items-center justify-center text-3xl leading-none", !earned && "opacity-40")}>
+                            <span className={cn("relative flex items-center justify-center text-xl md:text-3xl leading-none", !earned && "opacity-40")}>
                               {m.dbIcon}
                             </span>
                           ) : m.icon ? (
@@ -140,7 +140,7 @@ export function PathToMastery({
                               className={cn("relative flex items-center justify-center leading-none", !earned && "text-muted-foreground")}
                               style={earned ? { color } : undefined}
                             >
-                              <AnimatedIcon icon={m.icon} size={28} />
+                              <AnimatedIcon icon={m.icon} size={18} />
                             </span>
                           ) : null}
                         </div>
@@ -172,10 +172,10 @@ export function PathToMastery({
                         ) : null}
                       </div>
 
-                      <div className="mt-4 text-center">
+                      <div className="mt-3 text-center">
                         <h4
                           className={cn(
-                            "mb-1 font-display text-sm sm:text-base",
+                            "mb-1 font-display text-[10px] md:text-sm lg:text-base",
                             earned ? "text-card-foreground" : "text-muted-foreground/60",
                           )}
                         >
@@ -183,7 +183,7 @@ export function PathToMastery({
                         </h4>
                         <Badge
                           variant="outline"
-                          className="text-xs"
+                          className="text-[9px] md:text-xs px-1 md:px-2"
                           style={earned ? { borderColor: `${color}66`, color } : undefined}
                         >
                           {m.classes} classes
