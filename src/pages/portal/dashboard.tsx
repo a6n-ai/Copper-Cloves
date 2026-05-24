@@ -508,7 +508,28 @@ export default function Dashboard() {
                     <p className="text-xs text-muted-foreground">Fast access to your favorites</p>
                   </div>
                 </div>
-                <div className="grid grid-cols-2 gap-2 sm:flex sm:flex-wrap sm:justify-end w-full sm:w-auto">
+                {/* Mobile icon grid — 4 tiles, no scroll, no Scan (bottom-nav FAB handles it) */}
+                <div className="grid grid-cols-4 gap-2 sm:hidden w-full">
+                  {[
+                    { icon: Calendar, label: "Book", action: () => void router.push("/portal/book") },
+                    { icon: Package, label: "Packages", action: () => void router.push("/portal/packages") },
+                    { icon: History, label: "History", action: () => setShowOrderHistory(true) },
+                    { icon: Lock, label: "Password", action: () => void router.push("/portal/profile#reset-password") },
+                  ].map(({ icon: Icon, label, action }) => (
+                    <button
+                      key={label}
+                      type="button"
+                      onClick={action}
+                      className="flex flex-col items-center justify-center gap-1.5 min-h-16 rounded-xl border border-sage/15 bg-white active:scale-95 transition-transform px-1 py-2"
+                    >
+                      <AnimatedIcon icon={Icon} size={20} className="text-sage" />
+                      <span className="text-[10px] font-body text-charcoal/70 leading-tight text-center">{label}</span>
+                    </button>
+                  ))}
+                </div>
+
+                {/* Desktop button row — unchanged */}
+                <div className="hidden sm:flex sm:flex-wrap sm:justify-end w-full sm:w-auto gap-2">
                   <Button
                     type="button"
                     onClick={() => void router.push("/portal/book")}
