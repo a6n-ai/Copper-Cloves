@@ -59,7 +59,7 @@ export function MetricCard({
   const t = tones[tone];
   return (
     <Card className={cn("border-sage/15 bg-white h-full", className)}>
-      <CardContent className="p-5 flex flex-col h-full">
+      <CardContent className="p-4 sm:p-5 flex flex-col h-full">
         <div className="flex items-start justify-between gap-3">
           <span className="font-body text-xs uppercase tracking-wide text-charcoal/50 leading-snug min-w-0 line-clamp-2 min-h-[2.25rem]">
             {label}

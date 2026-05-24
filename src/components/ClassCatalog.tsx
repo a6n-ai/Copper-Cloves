@@ -30,7 +30,7 @@ function ClassCatalogSkeleton({ count = 3 }: { count?: number }) {
       {Array.from({ length: count }).map((_, i) => (
         <div
           key={i}
-          className="relative shrink-0 w-88 sm:w-96 h-104 md:h-128 rounded-2xl overflow-hidden"
+          className="relative shrink-0 w-[82vw] sm:w-96 h-104 md:h-128 rounded-2xl overflow-hidden"
         >
           <Skeleton className="absolute inset-0 w-full h-full rounded-2xl" />
           {/* Name placeholder anchored to bottom, matching the default overlay */}
@@ -145,13 +145,13 @@ export function ClassCatalog() {
           ) : (
             <div 
               ref={scrollContainerRef}
-              className="flex gap-6 overflow-x-auto scrollbar-hide scroll-smooth pb-4 px-2"
+              className="flex gap-6 overflow-x-auto scrollbar-hide scroll-smooth snap-x snap-mandatory scroll-px-2 pb-4 px-2"
               style={{ scrollbarWidth: "none", msOverflowStyle: "none" }}
             >
               {classes.map((classItem, index) => (
                 <div
                   key={classItem.id || index}
-                  className="group relative shrink-0 w-88 sm:w-96 h-104 md:h-128 rounded-2xl overflow-hidden cursor-pointer"
+                  className="group relative shrink-0 snap-start w-[82vw] sm:w-96 h-104 md:h-128 rounded-2xl overflow-hidden cursor-pointer"
                 >
                   {/* Background Image */}
                   <img

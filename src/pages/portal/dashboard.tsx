@@ -630,7 +630,7 @@ export default function Dashboard() {
                 <h2 className="font-display text-2xl text-charcoal">Achievements</h2>
               </div>
 
-              <div className="flex gap-4 overflow-x-auto pb-2">
+              <div className="flex gap-4 overflow-x-auto scrollbar-hide scroll-smooth snap-x snap-mandatory scroll-px-1 pb-2">
                 {userBadges.map((badge) => {
                   const isCustom = badge.badge_type === "custom";
                   const badgeColor = badge.color ?? "#7C9070";
@@ -638,7 +638,7 @@ export default function Dashboard() {
                     return (
                       <div
                         key={badge.id}
-                        className="shrink-0 w-44 rounded-2xl p-4 border shadow-md text-center transition-transform hover:scale-105"
+                        className="shrink-0 snap-start w-44 rounded-2xl p-4 border shadow-md text-center transition-transform hover:scale-105"
                         style={{
                           background: `linear-gradient(135deg, ${badgeColor}18, ${badgeColor}08)`,
                           borderColor: badgeColor + "44",
@@ -664,7 +664,7 @@ export default function Dashboard() {
                   return (
                     <div
                       key={badge.id}
-                      className="shrink-0 flex items-center gap-2 px-4 py-2.5 rounded-full border bg-white/80 shadow-xs transition-transform hover:scale-105"
+                      className="shrink-0 snap-start flex items-center gap-2 px-4 py-2.5 rounded-full border bg-white/80 shadow-xs transition-transform hover:scale-105"
                       style={{ borderColor: (badge.color ?? "#7C9070") + "55" }}
                     >
                       <span className="text-xl">{badge.icon ?? "🏆"}</span>

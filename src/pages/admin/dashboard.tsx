@@ -220,6 +220,17 @@ const instructorSchema = z.object({
   philosophy: z.string().optional(),
 });
 
+const ADMIN_TABS = [
+  { v: "overview", l: "Overview", I: BarChart3 },
+  { v: "finance", l: "Finance", I: DollarSign },
+  { v: "pricing", l: "Pricing", I: Tag },
+  { v: "meal-waitlist", l: "Meal waitlist", I: ChefHat },
+  { v: "rental-inquiries", l: "Rentals", I: Building2 },
+  { v: "members", l: "Members", I: Users },
+  { v: "instructors", l: "Instructors", I: Award },
+  { v: "classes", l: "Classes", I: Target },
+] as const;
+
 export default function AdminDashboard() {
   const router = useRouter();
   const [loading, setLoading] = useState(true);
@@ -1329,7 +1340,7 @@ export default function AdminDashboard() {
             <div className="flex items-center justify-between flex-wrap gap-3">
               <div>
                 <h1 className="font-display text-3xl md:text-4xl text-charcoal leading-tight">Dashboard</h1>
-                <p className="font-body text-charcoal/60">Welcome back, Admin. Here&apos;s what&apos;s happening today.</p>
+                <p className="font-body text-charcoal/60">Welcome back, {(session?.user?.name?.trim().split(" ")[0]) || "Admin"}. Here&apos;s what&apos;s happening today.</p>
               </div>
               <Select value={dateRange} onValueChange={setDateRange}>
                 <SelectTrigger className="w-36 border-sage/20 font-body">
@@ -1346,17 +1357,23 @@ export default function AdminDashboard() {
 
             {/* Tabs */}
             <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">
-              <TabsList className="bg-cream/50 border border-sage/15 p-1 flex flex-wrap gap-1 h-auto justify-start w-full sm:w-auto">
-                {[
-                  { v: "overview", l: "Overview", I: BarChart3 },
-                  { v: "finance", l: "Finance", I: DollarSign },
-                  { v: "pricing", l: "Pricing", I: Tag },
-                  { v: "meal-waitlist", l: "Meal waitlist", I: ChefHat },
-                  { v: "rental-inquiries", l: "Rentals", I: Building2 },
-                  { v: "members", l: "Members", I: Users },
-                  { v: "instructors", l: "Instructors", I: Award },
-                  { v: "classes", l: "Classes", I: Target },
-                ].map((t) => (
+              {/* Mobile: dropdown picker (no horizontal scroll) */}
+              <Select value={activeTab} onValueChange={setActiveTab}>
+                <SelectTrigger className="md:hidden w-full border-sage/20 font-body">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  {ADMIN_TABS.map((t) => (
+                    <SelectItem key={t.v} value={t.v} className="font-body">
+                      {t.l}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+
+              {/* Desktop: tab row */}
+              <TabsList className="hidden md:flex bg-cream/50 border border-sage/15 p-1 flex-wrap gap-1 h-auto justify-start w-auto">
+                {ADMIN_TABS.map((t) => (
                   <TabsTrigger
                     key={t.v}
                     value={t.v}
@@ -1371,7 +1388,7 @@ export default function AdminDashboard() {
               {/* OVERVIEW TAB */}
               <TabsContent value="overview" className="space-y-6">
                 {/* Key Stats */}
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                <div className="grid grid-cols-2 md:grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-4">
                   <MetricCard
                     label="Total Members"
                     value={overviewStats.totalMembers}
@@ -1613,49 +1630,45 @@ export default function AdminDashboard() {
 
                     <div className="space-y-3">
                       {expiringPg.pageItems.map((member) => (
-                        <div 
+                        <div
                           key={member.id}
-                          className="flex items-center justify-between p-4 rounded-xl border border-amber-500/20 bg-white hover:shadow-md transition-all duration-600"
+                          className="rounded-xl border border-amber-500/20 bg-white p-4 hover:shadow-md transition-all duration-600"
                         >
-                          <div className="flex items-center gap-3 flex-1">
+                          <div className="flex items-start gap-3">
                             <input
                               type="checkbox"
                               checked={selectedMembers.has(member.id)}
                               onChange={() => handleToggleMember(member.id)}
-                              className="w-4 h-4 accent-sage cursor-pointer"
+                              className="mt-1 w-4 h-4 shrink-0 accent-sage cursor-pointer"
                               onClick={(e) => e.stopPropagation()}
                             />
-                            <div className="flex-1">
-                              <div className="font-body font-medium text-charcoal mb-1">
-                                {member.name}
+                            <div className="flex-1 min-w-0">
+                              <div className="flex items-start justify-between gap-2">
+                                <p className="font-body font-medium text-charcoal truncate">{member.name}</p>
+                                <span className="shrink-0 rounded-full bg-amber-50 border border-amber-500/20 px-2.5 py-0.5 font-body text-xs font-medium text-amber-600 whitespace-nowrap">
+                                  Expires in {member.expires}
+                                </span>
                               </div>
-                              <div className="font-body text-sm text-charcoal/60">
-                                {member.email} • {member.package} Package
-                              </div>
+                              <p className="font-body text-sm text-charcoal/55 truncate">{member.email}</p>
+                              <p className="font-body text-xs text-charcoal/45 mt-0.5">
+                                {member.package} Package · {member.credits} credits left
+                              </p>
                             </div>
                           </div>
-                          <div className="flex items-center gap-3">
-                            <div className="text-right">
-                              <div className="font-body text-sm font-medium text-amber-600">
-                                Expires in {member.expires}
-                              </div>
-                              <div className="font-body text-xs text-charcoal/50">
-                                {member.credits} credits remaining
-                              </div>
-                            </div>
+                          <div className="mt-3 flex gap-2 pl-7">
                             <Button
                               onClick={() => handleViewProfile(member)}
                               variant="outline"
                               size="sm"
-                              className="border-sage/30 text-sage hover:bg-sage/5 font-body"
+                              className="flex-1 sm:flex-none border-sage/30 text-sage hover:bg-sage/5 font-body"
                             >
                               <Eye size={14} className="mr-1" />
                               View
                             </Button>
-                            <Button 
-                              variant="outline" 
+                            <Button
+                              variant="outline"
                               size="sm"
-                              className="border-amber-500/20 text-amber-600 hover:bg-amber-50 font-body transition-all"
+                              className="flex-1 sm:flex-none border-amber-500/20 text-amber-600 hover:bg-amber-50 font-body transition-all"
                               onClick={() => {
                                 alert(`"The Ritual Renewal" CRM template instantly queued for ${member.name} via WhatsApp/Email!`);
                               }}
@@ -1675,7 +1688,7 @@ export default function AdminDashboard() {
               {/* FINANCE TAB */}
               <TabsContent value="finance" className="space-y-6">
                 {/* Finance Stats */}
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                <div className="grid grid-cols-2 md:grid-cols-3 gap-3 sm:gap-4">
                   <MetricCard
                     label="Total Revenue"
                     value={Math.round(financeStats.totalRevenue)}
