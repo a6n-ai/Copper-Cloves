@@ -13,10 +13,11 @@ export interface AnimatedIconProps {
   hover?: "pop" | "wiggle" | "spin";
 }
 
+// Multi-keyframe rotations need a tween transition (springs support only 2 keyframes).
 const HOVER: Record<NonNullable<AnimatedIconProps["hover"]>, TargetAndTransition> = {
   pop: { scale: 1.25 },
-  wiggle: { rotate: [0, -12, 12, -6, 0] },
-  spin: { rotate: 360 },
+  wiggle: { rotate: [0, -12, 12, -6, 0], transition: { duration: 0.45, ease: "easeInOut" } },
+  spin: { rotate: 360, transition: { duration: 0.6, ease: "easeInOut" } },
 };
 
 /**

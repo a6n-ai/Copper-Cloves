@@ -145,7 +145,9 @@ function SearchCommand({ sections }: { sections: NavSection[] }) {
 
 export function DashboardShell({ config, user, children }: DashboardShellProps) {
   const router = useRouter();
-  const isActive = (href: string) => router.pathname === href;
+  // Active when on the exact route or any sub-route (e.g. /admin/schedule/[id] → Schedule).
+  const isActive = (href: string) =>
+    router.pathname === href || router.pathname.startsWith(`${href}/`);
   const initials = getInitials(user.name);
   const isPartner = config.kind === "partner";
 

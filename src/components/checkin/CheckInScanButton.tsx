@@ -31,9 +31,7 @@ export function CheckInScanButton({
         onClick={() => setOpen(true)}
         className={className}
       >
-        <span className="mr-2">
-          <AnimatedIcon icon={QrCode} size={16} />
-        </span>
+        <AnimatedIcon icon={QrCode} size={16} />
         {label}
       </Button>
       {disabled ? null : <ScanCheckInModal open={open} onOpenChange={setOpen} />}

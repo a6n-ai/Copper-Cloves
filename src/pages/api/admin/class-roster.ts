@@ -17,7 +17,10 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     where: { id: scheduleId },
     select: {
       id: true,
+      class_id: true,
       start_time: true,
+      end_time: true,
+      status: true,
       capacity: true,
       instructor_check_in_outcome: true,
       class_notes: true,
@@ -45,6 +48,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
   return res.json({
     scheduleId: schedule.id,
+    classId: schedule.class_id,
     className: schedule.class_model?.name ?? "Class",
     instructor: schedule.instructor?.name ?? "—",
     instructorId: schedule.instructor?.id ?? null,
@@ -53,6 +57,8 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     instructorCheckInOutcome: schedule.instructor_check_in_outcome ?? null,
     classNotes: schedule.class_notes ?? null,
     startTime: schedule.start_time.toISOString(),
+    endTime: schedule.end_time.toISOString(),
+    status: schedule.status,
     capacity: schedule.capacity,
     bookings: schedule.bookings.map(b => ({
       id: b.id,

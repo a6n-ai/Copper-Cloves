@@ -10,10 +10,17 @@ import {
   BreadcrumbSeparator,
 } from "@/components/ui/breadcrumb";
 
+export interface Crumb {
+  label: string;
+  href?: string;
+}
+
 export interface PageHeaderProps {
   title: string;
   subtitle?: string;
   actions?: ReactNode;
+  /** Override the auto-derived breadcrumb (e.g. to add a dynamic page name). */
+  crumbs?: Crumb[];
 }
 
 /** Pretty labels for known route segments across every portal. */
@@ -52,7 +59,7 @@ const cap = (s: string) => s.charAt(0).toUpperCase() + s.slice(1);
  * the first segment is the portal root (links to its dashboard) and the rest
  * become crumbs.
  */
-export function PageHeader({ title, subtitle, actions }: PageHeaderProps) {
+export function PageHeader({ title, subtitle, actions, crumbs: crumbsProp }: PageHeaderProps) {
   const router = useRouter();
   const segs = router.pathname.split("/").filter(Boolean);
   const root = segs[0] ?? "";
@@ -60,13 +67,16 @@ export function PageHeader({ title, subtitle, actions }: PageHeaderProps) {
   // Drop the dashboard root and any dynamic route segments (e.g. "[id]").
   const tail = segs.slice(1).filter((s) => s !== "dashboard" && !/^\[.*\]$/.test(s));
 
-  const crumbs = [
-    { label: "Dashboard", href: rootHref },
-    ...tail.map((seg, idx, arr) => ({
-      label: LABEL_MAP[seg] ?? cap(seg),
-      href: `/${root}/` + arr.slice(0, idx + 1).join("/"),
-    })),
-  ];
+  const crumbs: Crumb[] =
+    crumbsProp && crumbsProp.length > 0
+      ? crumbsProp
+      : [
+          { label: "Dashboard", href: rootHref },
+          ...tail.map((seg, idx, arr) => ({
+            label: LABEL_MAP[seg] ?? cap(seg),
+            href: `/${root}/` + arr.slice(0, idx + 1).join("/"),
+          })),
+        ];
 
   return (
     <div className="flex flex-wrap items-center justify-between gap-3 rounded-xl border border-sage/15 bg-white/95 px-5 py-4">
@@ -81,10 +91,10 @@ export function PageHeader({ title, subtitle, actions }: PageHeaderProps) {
             {crumbs.map((c, i) => {
               const last = i === crumbs.length - 1;
               return (
-                <span key={c.href} className="contents">
+                <span key={`${c.label}-${i}`} className="contents">
                   {i > 0 && <BreadcrumbSeparator />}
                   <BreadcrumbItem>
-                    {last ? (
+                    {last || !c.href ? (
                       <BreadcrumbPage className="text-charcoal">{c.label}</BreadcrumbPage>
                     ) : (
                       <BreadcrumbLink asChild>
