@@ -7,6 +7,7 @@ src/
   pages/          # Next.js Pages Router — UI pages + API routes under pages/api/
   components/     # Shared UI components; admin/ subdir for admin-specific
   components/ui/  # shadcn/ui primitives — do NOT edit directly
+  components/responsive/ # mobile primitives (Container, ResponsiveDialog, ResponsiveTable, MobileBottomNav)
   lib/            # Server + shared utilities
   services/       # Client-side fetch wrappers (not server-only)
   contexts/       # React context providers
@@ -77,6 +78,17 @@ src/
 - Dark mode via `next-themes` (`ThemeProvider`).
 - `framer-motion` for animations.
 - Forms via `react-hook-form` + `zod` schema validation + `@hookform/resolvers`.
+
+## Mobile / responsive
+
+- Tailwind v4 — breakpoints `sm/md/lg`; `md`=768px is the phone↔tablet line (`useIsMobile` from `@/hooks/use-mobile` also keys on 768).
+- Mobile primitives in `src/components/responsive/` — prefer these over hand-rolling:
+  - `ResponsiveDialog` (+ `ResponsiveDialogContent/Header/Footer/Title/Description/Trigger`) — shadcn `Dialog` on desktop, bottom `Sheet` on phone. Same API as shadcn Dialog parts; swap tags 1:1. Use for any new dialog. `DialogClose` (no Responsive equiv) stays on `@/components/ui/dialog`.
+  - `ResponsiveTable` — wraps a `<Table>` in a touch scroll container with edge fade. Wrap all data tables. `ResponsiveCards` for card-stack-under-md when scroll isn't enough.
+  - `MobileBottomNav` — member-portal bottom tab bar, `md:hidden`; rendered by `DashboardShell` when `config.kind === "member"`.
+  - `Container` — consistent `px-4 sm:px-6 lg:px-8` + max width.
+- Page rules: no non-responsive `grid-cols-{3..9}` (always prefix `sm:/md:/lg:`); avoid fixed `w-[NNNpx]`/`min-w-[NNNpx]` on phones (use `w-full sm:w-[NNN]`); keep desktop (`md+`) output unchanged when adding mobile classes.
+- Custom `fixed inset-0` / slide-panel modals are already full-width on phones — leave them.
 
 ## Code style
 
