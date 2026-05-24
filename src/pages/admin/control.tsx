@@ -8,14 +8,14 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
-import { 
-  Dialog, 
-  DialogContent, 
-  DialogDescription, 
-  DialogFooter, 
-  DialogHeader, 
-  DialogTitle
-} from "@/components/ui/dialog";
+import {
+  ResponsiveDialog,
+  ResponsiveDialogContent,
+  ResponsiveDialogDescription,
+  ResponsiveDialogFooter,
+  ResponsiveDialogHeader,
+  ResponsiveDialogTitle,
+} from "@/components/responsive/ResponsiveDialog";
 import { Label } from "@/components/ui/label";
 import { 
   Users, 
@@ -1648,14 +1648,14 @@ async function fetchPayoutData() {
 
       {/* Dialogs - same as in dashboard */}
       {/* Add User Dialog */}
-      <Dialog open={showAddUserDialog} onOpenChange={setShowAddUserDialog}>
-        <DialogContent className="max-w-2xl bg-white/95 backdrop-blur-xl border-sage/20">
-          <DialogHeader>
-            <DialogTitle className="font-display text-2xl text-charcoal">Add New User</DialogTitle>
-            <DialogDescription className="font-body text-charcoal/60">
+      <ResponsiveDialog open={showAddUserDialog} onOpenChange={setShowAddUserDialog}>
+        <ResponsiveDialogContent className="max-w-2xl bg-white/95 backdrop-blur-xl border-sage/20">
+          <ResponsiveDialogHeader>
+            <ResponsiveDialogTitle className="font-display text-2xl text-charcoal">Add New User</ResponsiveDialogTitle>
+            <ResponsiveDialogDescription className="font-body text-charcoal/60">
               Create a new member account with password and package (class count or studio days).
-            </DialogDescription>
-          </DialogHeader>
+            </ResponsiveDialogDescription>
+          </ResponsiveDialogHeader>
           <div className="grid grid-cols-2 gap-4 py-4">
             <div className="space-y-2">
               <Label className="font-body text-charcoal">Full Name</Label>
@@ -1750,7 +1750,7 @@ async function fetchPayoutData() {
             </div>
 
           </div>
-          <DialogFooter>
+          <ResponsiveDialogFooter>
             <Button variant="outline" onClick={() => setShowAddUserDialog(false)} className="border-sage/20 font-body">
               Cancel
             </Button>
@@ -1762,19 +1762,19 @@ async function fetchPayoutData() {
               <Save className="h-4 w-4 mr-2" />
               {creatingUser ? "Creating…" : "Create User"}
             </Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
+          </ResponsiveDialogFooter>
+        </ResponsiveDialogContent>
+      </ResponsiveDialog>
 
       {/* Edit User Dialog */}
-      <Dialog open={showEditUserDialog} onOpenChange={setShowEditUserDialog}>
-        <DialogContent className="max-w-2xl bg-white/95 backdrop-blur-xl border-sage/20">
-          <DialogHeader>
-            <DialogTitle className="font-display text-2xl text-charcoal">Edit User</DialogTitle>
-            <DialogDescription className="font-body text-charcoal/60">
+      <ResponsiveDialog open={showEditUserDialog} onOpenChange={setShowEditUserDialog}>
+        <ResponsiveDialogContent className="max-w-2xl bg-white/95 backdrop-blur-xl border-sage/20">
+          <ResponsiveDialogHeader>
+            <ResponsiveDialogTitle className="font-display text-2xl text-charcoal">Edit User</ResponsiveDialogTitle>
+            <ResponsiveDialogDescription className="font-body text-charcoal/60">
               Update member information, package, or credits
-            </DialogDescription>
-          </DialogHeader>
+            </ResponsiveDialogDescription>
+          </ResponsiveDialogHeader>
           {selectedUser && (
             <div className="grid grid-cols-2 gap-4 py-4">
               {/* Current pass status */}
@@ -1920,7 +1920,7 @@ async function fetchPayoutData() {
               </div>
             </div>
           )}
-          <DialogFooter>
+          <ResponsiveDialogFooter>
             <Button variant="outline" onClick={() => setShowEditUserDialog(false)} className="border-sage/20 font-body">
               Cancel
             </Button>
@@ -1928,19 +1928,19 @@ async function fetchPayoutData() {
               <Save className="h-4 w-4 mr-2" />
               Save Changes
             </Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
+          </ResponsiveDialogFooter>
+        </ResponsiveDialogContent>
+      </ResponsiveDialog>
 
       {/* Add Class Dialog */}
-      <Dialog open={showAddClassDialog} onOpenChange={setShowAddClassDialog}>
-        <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto bg-white/95 backdrop-blur-xl border-sage/20">
-          <DialogHeader>
-            <DialogTitle className="font-display text-2xl text-charcoal">Create New Class</DialogTitle>
-            <DialogDescription className="font-body text-charcoal/60">
+      <ResponsiveDialog open={showAddClassDialog} onOpenChange={setShowAddClassDialog}>
+        <ResponsiveDialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto bg-white/95 backdrop-blur-xl border-sage/20">
+          <ResponsiveDialogHeader>
+            <ResponsiveDialogTitle className="font-display text-2xl text-charcoal">Create New Class</ResponsiveDialogTitle>
+            <ResponsiveDialogDescription className="font-body text-charcoal/60">
               Define a new class type (scheduling happens in Schedule tab)
-            </DialogDescription>
-          </DialogHeader>
+            </ResponsiveDialogDescription>
+          </ResponsiveDialogHeader>
           <form onSubmit={handleCreateClass}>
             <div className="grid grid-cols-2 gap-4 py-4">
               <div className="space-y-2">
@@ -2042,7 +2042,7 @@ async function fetchPayoutData() {
                 )}
               </div>
             </div>
-            <DialogFooter className="sticky bottom-0 bg-white/95 backdrop-blur-xl pt-4 border-t border-sage/10">
+            <ResponsiveDialogFooter className="sticky bottom-0 bg-white/95 backdrop-blur-xl pt-4 border-t border-sage/10">
               <Button type="button" variant="outline" onClick={() => setShowAddClassDialog(false)} className="border-sage/20 font-body">
                 Cancel
               </Button>
@@ -2050,22 +2050,22 @@ async function fetchPayoutData() {
                 <Save className="h-4 w-4 mr-2" />
                 Create Class
               </Button>
-            </DialogFooter>
+            </ResponsiveDialogFooter>
           </form>
-        </DialogContent>
-      </Dialog>
+        </ResponsiveDialogContent>
+      </ResponsiveDialog>
 
       {/* Class Details Dialog */}
-      <Dialog open={showClassDetailsDialog} onOpenChange={setShowClassDetailsDialog}>
-        <DialogContent className="max-w-3xl max-h-[90vh] overflow-y-auto bg-white/95 backdrop-blur-xl border-sage/20">
-          <DialogHeader>
-            <DialogTitle className="font-display text-2xl text-charcoal">
+      <ResponsiveDialog open={showClassDetailsDialog} onOpenChange={setShowClassDetailsDialog}>
+        <ResponsiveDialogContent className="max-w-3xl max-h-[90vh] overflow-y-auto bg-white/95 backdrop-blur-xl border-sage/20">
+          <ResponsiveDialogHeader>
+            <ResponsiveDialogTitle className="font-display text-2xl text-charcoal">
               {selectedClass?.name}
-            </DialogTitle>
-            <DialogDescription className="font-body text-charcoal/60">
+            </ResponsiveDialogTitle>
+            <ResponsiveDialogDescription className="font-body text-charcoal/60">
               Edit class details and settings
-            </DialogDescription>
-          </DialogHeader>
+            </ResponsiveDialogDescription>
+          </ResponsiveDialogHeader>
           {selectedClass && (
             <form onSubmit={handleUpdateClass}>
               <div className="space-y-4 py-4">
@@ -2171,10 +2171,10 @@ async function fetchPayoutData() {
                   </div>
                 </div>
               </div>
-              <DialogFooter className="sticky bottom-0 bg-white/95 backdrop-blur-xl pt-4 border-t border-sage/10 flex-col sm:flex-row gap-2">
-                <Button 
-                  type="button" 
-                  variant="outline" 
+              <ResponsiveDialogFooter className="sticky bottom-0 bg-white/95 backdrop-blur-xl pt-4 border-t border-sage/10 flex-col sm:flex-row gap-2">
+                <Button
+                  type="button"
+                  variant="outline"
                   onClick={() => handleDeleteClass(selectedClass.id, selectedClass.name)}
                   className="border-red-200 text-red-600 hover:bg-red-50 font-body sm:mr-auto"
                 >
@@ -2190,21 +2190,21 @@ async function fetchPayoutData() {
                     Save Changes
                   </Button>
                 </div>
-              </DialogFooter>
+              </ResponsiveDialogFooter>
             </form>
           )}
-        </DialogContent>
-      </Dialog>
+        </ResponsiveDialogContent>
+      </ResponsiveDialog>
 
       {/* Payout Dialog */}
-      <Dialog open={showPayoutDialog} onOpenChange={setShowPayoutDialog}>
-        <DialogContent className="max-w-lg bg-white/95 backdrop-blur-xl border-sage/20">
-          <DialogHeader>
-            <DialogTitle className="font-display text-2xl text-charcoal">Process Payment</DialogTitle>
-            <DialogDescription className="font-body text-charcoal/60">
+      <ResponsiveDialog open={showPayoutDialog} onOpenChange={setShowPayoutDialog}>
+        <ResponsiveDialogContent className="max-w-lg bg-white/95 backdrop-blur-xl border-sage/20">
+          <ResponsiveDialogHeader>
+            <ResponsiveDialogTitle className="font-display text-2xl text-charcoal">Process Payment</ResponsiveDialogTitle>
+            <ResponsiveDialogDescription className="font-body text-charcoal/60">
               Confirm instructor payout details
-            </DialogDescription>
-          </DialogHeader>
+            </ResponsiveDialogDescription>
+          </ResponsiveDialogHeader>
           {selectedPayoutData && (
             <div className="space-y-4 py-4">
               <div className="p-4 rounded-lg bg-sage/5 border border-sage/20">
@@ -2267,7 +2267,7 @@ async function fetchPayoutData() {
               </div>
             </div>
           )}
-          <DialogFooter>
+          <ResponsiveDialogFooter>
             <Button variant="outline" onClick={() => setShowPayoutDialog(false)} className="border-sage/20 font-body">
               Cancel
             </Button>
@@ -2275,19 +2275,19 @@ async function fetchPayoutData() {
               <DollarSign className="h-4 w-4 mr-2" />
               Confirm Payment
             </Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
+          </ResponsiveDialogFooter>
+        </ResponsiveDialogContent>
+      </ResponsiveDialog>
 
       {/* Add Instructor Dialog */}
-      <Dialog open={showAddInstructorDialog} onOpenChange={setShowAddInstructorDialog}>
-        <DialogContent className="max-w-3xl max-h-[90vh] overflow-y-auto bg-white">
-          <DialogHeader>
-            <DialogTitle className="font-display text-2xl text-charcoal">Add New Instructor</DialogTitle>
-            <DialogDescription className="font-body text-charcoal/60">
+      <ResponsiveDialog open={showAddInstructorDialog} onOpenChange={setShowAddInstructorDialog}>
+        <ResponsiveDialogContent className="max-w-3xl max-h-[90vh] overflow-y-auto bg-white">
+          <ResponsiveDialogHeader>
+            <ResponsiveDialogTitle className="font-display text-2xl text-charcoal">Add New Instructor</ResponsiveDialogTitle>
+            <ResponsiveDialogDescription className="font-body text-charcoal/60">
               Create complete instructor profile with all details
-            </DialogDescription>
-          </DialogHeader>
+            </ResponsiveDialogDescription>
+          </ResponsiveDialogHeader>
           <form onSubmit={handleCreateInstructor}>
             <div className="grid grid-cols-2 gap-4 py-4">
               {/* Basic Information */}
@@ -2434,7 +2434,7 @@ async function fetchPayoutData() {
                 <Input id="social-whatsapp" name="social-whatsapp" placeholder="+91 98765 43210" className="border-sage/20 focus:ring-sage placeholder:text-charcoal/40" />
               </div>
             </div>
-            <DialogFooter className="mt-6">
+            <ResponsiveDialogFooter className="mt-6">
               <Button type="button" variant="outline" onClick={() => setShowAddInstructorDialog(false)} className="border-sage/20 font-body">
                 Cancel
               </Button>
@@ -2442,20 +2442,20 @@ async function fetchPayoutData() {
                 <Save className="h-4 w-4 mr-2" />
                 Create Instructor
               </Button>
-            </DialogFooter>
+            </ResponsiveDialogFooter>
           </form>
-        </DialogContent>
-      </Dialog>
+        </ResponsiveDialogContent>
+      </ResponsiveDialog>
 
       {/* Edit Instructor Dialog */}
-      <Dialog open={showEditInstructorDialog} onOpenChange={setShowEditInstructorDialog}>
-        <DialogContent className="max-w-3xl max-h-[90vh] overflow-y-auto bg-white">
-          <DialogHeader>
-            <DialogTitle className="font-display text-2xl text-charcoal">Edit Instructor</DialogTitle>
-            <DialogDescription className="font-body text-charcoal/60">
+      <ResponsiveDialog open={showEditInstructorDialog} onOpenChange={setShowEditInstructorDialog}>
+        <ResponsiveDialogContent className="max-w-3xl max-h-[90vh] overflow-y-auto bg-white">
+          <ResponsiveDialogHeader>
+            <ResponsiveDialogTitle className="font-display text-2xl text-charcoal">Edit Instructor</ResponsiveDialogTitle>
+            <ResponsiveDialogDescription className="font-body text-charcoal/60">
               Update instructor profile and details
-            </DialogDescription>
-          </DialogHeader>
+            </ResponsiveDialogDescription>
+          </ResponsiveDialogHeader>
           {selectedInstructorData && (
             <form onSubmit={handleUpdateInstructor}>
               <div className="grid grid-cols-2 gap-4 py-4">
@@ -2610,7 +2610,7 @@ async function fetchPayoutData() {
                   <Input id="edit-social-whatsapp" name="edit-social-whatsapp" defaultValue={selectedInstructorData.social_whatsapp} className="border-sage/20 focus:ring-sage" />
                 </div>
               </div>
-              <DialogFooter className="mt-6">
+              <ResponsiveDialogFooter className="mt-6">
                 <Button type="button" variant="outline" onClick={() => setShowEditInstructorDialog(false)} className="border-sage/20 font-body">
                   Cancel
                 </Button>
@@ -2618,11 +2618,11 @@ async function fetchPayoutData() {
                   <Save className="h-4 w-4 mr-2" />
                   Save Changes
                 </Button>
-              </DialogFooter>
+              </ResponsiveDialogFooter>
             </form>
           )}
-        </DialogContent>
-      </Dialog>
+        </ResponsiveDialogContent>
+      </ResponsiveDialog>
     </>
   );
 }
