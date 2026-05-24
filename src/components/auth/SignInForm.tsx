@@ -7,7 +7,8 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Checkbox } from "@/components/ui/checkbox";
 import { PasswordInput } from "@/components/ui/password-input";
-import { Loader2, LayoutDashboard, Calendar, Users, ShieldCheck, Leaf, type LucideIcon } from "lucide-react";
+import { LayoutDashboard, Calendar, Users, ShieldCheck, Leaf, type LucideIcon } from "lucide-react";
+import { Spinner } from "@/components/ui/spinner";
 
 type Role = "admin" | "partner" | "instructor" | "user";
 
@@ -224,7 +225,7 @@ export function SignInForm({ onSwitchToSignup }: { onSwitchToSignup: () => void 
         {!needPick && (
           <Button type="submit" disabled={loading} className="w-full bg-sage hover:bg-sage/90 text-white font-body h-12 rounded-full text-sm uppercase tracking-[0.15em] shadow-lg shadow-sage/25 transition-all hover:shadow-xl hover:shadow-sage/30">
             {loading
-              ? <><Loader2 className="animate-spin mr-2 h-4 w-4" />{role ? "Signing in…" : "Checking…"}</>
+              ? <><Spinner className="mr-2 size-4" />{role ? "Signing in…" : "Checking…"}</>
               : role ? "Sign In" : "Continue"}
           </Button>
         )}

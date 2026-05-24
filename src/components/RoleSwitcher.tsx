@@ -1,7 +1,8 @@
 import { useState } from "react";
 import { useRouter } from "next/router";
 import { useSession, signIn } from "next-auth/react";
-import { ArrowLeftRight, Loader2 } from "lucide-react";
+import { ArrowLeftRight } from "lucide-react";
+import { Spinner } from "@/components/ui/spinner";
 
 /**
  * Seamless role switch for people whose email owns both a member and an
@@ -51,7 +52,7 @@ export function RoleSwitcher({ className = "" }: { className?: string }) {
       disabled={busy}
       className={`inline-flex items-center gap-2 rounded-full border border-sage/30 bg-sage/5 px-3.5 py-1.5 font-body text-sm text-sage transition-colors hover:bg-sage/10 disabled:opacity-60 ${className}`}
     >
-      {busy ? <Loader2 className="h-4 w-4 animate-spin" /> : <ArrowLeftRight className="h-4 w-4" />}
+      {busy ? <Spinner className="size-4" /> : <ArrowLeftRight className="h-4 w-4" />}
       {busy ? "Switching…" : label}
     </button>
   );

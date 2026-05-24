@@ -41,6 +41,7 @@ import {
   Trash2
 } from "lucide-react";
 import { SEO } from "@/components/SEO";
+import { CardBlockSkeleton, ListSkeleton } from "@/components/skeletons";
 import { InstructorAvatar } from "@/components/InstructorAvatar";
 import { useSession } from "next-auth/react";
 import type React from "react";
@@ -785,8 +786,10 @@ async function fetchPayoutData() {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-linear-to-br from-cream via-cream to-sage/10 flex items-center justify-center">
-        <div className="h-12 w-12 border-4 border-sage/20 border-t-sage rounded-full animate-spin" />
+      <div className="min-h-screen bg-linear-to-br from-cream via-cream to-sage/10">
+        <div className="max-w-7xl mx-auto p-6 lg:p-8 space-y-6">
+          <ListSkeleton rows={6} />
+        </div>
       </div>
     );
   }
@@ -885,9 +888,7 @@ async function fetchPayoutData() {
 
                 {/* User List */}
                 {loadingUsers ? (
-                  <div className="flex items-center justify-center py-12">
-                    <div className="h-12 w-12 border-4 border-sage/20 border-t-sage rounded-full animate-spin" />
-                  </div>
+                  <ListSkeleton rows={6} />
                 ) : filteredUsers.length === 0 ? (
                   <Card className="border-sage/20 bg-white/95 backdrop-blur-xl">
                     <CardContent className="p-12 text-center">
@@ -1033,8 +1034,11 @@ async function fetchPayoutData() {
 
                 {/* Classes Grid */}
                 {loadingClasses ? (
-                  <div className="flex items-center justify-center py-12">
-                    <div className="h-12 w-12 border-4 border-sage/20 border-t-sage rounded-full animate-spin" />
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <CardBlockSkeleton bodyClassName="h-24" />
+                    <CardBlockSkeleton bodyClassName="h-24" />
+                    <CardBlockSkeleton bodyClassName="h-24" />
+                    <CardBlockSkeleton bodyClassName="h-24" />
                   </div>
                 ) : (
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -1342,8 +1346,11 @@ async function fetchPayoutData() {
 
                 {/* Instructor Cards */}
                 {loadingInstructors ? (
-                  <div className="flex items-center justify-center py-12">
-                    <div className="h-12 w-12 border-4 border-sage/20 border-t-sage rounded-full animate-spin" />
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <CardBlockSkeleton bodyClassName="h-24" />
+                    <CardBlockSkeleton bodyClassName="h-24" />
+                    <CardBlockSkeleton bodyClassName="h-24" />
+                    <CardBlockSkeleton bodyClassName="h-24" />
                   </div>
                 ) : instructors.length === 0 ? (
                   <Card className="border-sage/20 bg-white/95 backdrop-blur-xl">

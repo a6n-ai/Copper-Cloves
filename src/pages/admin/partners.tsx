@@ -8,7 +8,8 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Badge } from "@/components/ui/badge";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Building2, Plus, X, Loader2 } from "lucide-react";
+import { Building2, Plus, X } from "lucide-react";
+import { Spinner, PageLoader } from "@/components/ui/spinner";
 
 interface PartnerClass { id: string; name: string }
 interface PartnerManager { id: string; email: string; full_name: string | null }
@@ -104,7 +105,11 @@ export default function AdminPartners() {
   }
 
   if (status === "loading" || (loading && status === "authenticated")) {
-    return <div className="min-h-screen flex items-center justify-center bg-cream text-charcoal/50"><Loader2 className="h-5 w-5 animate-spin mr-2" /> Loading…</div>;
+    return (
+      <div className="min-h-screen bg-cream">
+        <PageLoader />
+      </div>
+    );
   }
   if ((session?.user as { role?: string })?.role !== "admin") {
     return <div className="min-h-screen flex items-center justify-center bg-cream font-body text-charcoal/60">Admins only.</div>;
@@ -143,7 +148,7 @@ export default function AdminPartners() {
               {error && <div className="sm:col-span-2 text-sm text-red-600 font-body">{error}</div>}
               <div className="sm:col-span-2">
                 <Button type="submit" disabled={busy} className="bg-sage hover:bg-sage/90 text-white font-body">
-                  {busy ? <Loader2 className="h-4 w-4 animate-spin" /> : "Create partner + login"}
+                  {busy ? <Spinner className="size-4" /> : "Create partner + login"}
                 </Button>
               </div>
             </form>

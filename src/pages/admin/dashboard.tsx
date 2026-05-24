@@ -82,6 +82,7 @@ import {
   ChevronDown,
 } from "lucide-react";
 import { SEO } from "@/components/SEO";
+import { Spinner } from "@/components/ui/spinner";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { 
@@ -4067,7 +4068,7 @@ export default function AdminDashboard() {
                       </div>
                       <div className="flex items-center gap-2 shrink-0 ml-2">
                         {rosterCheckingIn[attendee.id] && (
-                          <div className="h-3 w-3 border-2 border-sage border-t-transparent rounded-full animate-spin" />
+                          <Spinner className="size-3 text-sage" />
                         )}
                         <Select
                           value={
@@ -4116,7 +4117,7 @@ export default function AdminDashboard() {
                     className="border-sage/20 focus:ring-sage placeholder:text-charcoal/40"
                   />
                   {dashMemberSearching && (
-                    <div className="absolute right-3 top-1/2 -translate-y-1/2 h-4 w-4 border-2 border-sage border-t-transparent rounded-full animate-spin" />
+                    <Spinner className="absolute right-3 top-1/2 -translate-y-1/2 size-4 text-sage" />
                   )}
                 </div>
                 {dashMemberResults.length > 0 && (
@@ -4139,7 +4140,7 @@ export default function AdminDashboard() {
                               className="ml-2 shrink-0 bg-sage hover:bg-sage/90 text-white font-body h-7 px-3 text-xs rounded-full"
                             >
                               {dashAddingMemberId === m.id ? (
-                                <div className="h-3 w-3 border-2 border-white border-t-transparent rounded-full animate-spin" />
+                                <Spinner className="size-3" />
                               ) : "Add"}
                             </Button>
                           )}

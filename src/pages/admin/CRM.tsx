@@ -12,9 +12,8 @@ import {
   Plus, 
   Edit, 
   Trash2, 
-  X, 
+  X,
   Save,
-  Loader2,
   Send,
   Clock,
   CheckCircle2,
@@ -28,6 +27,8 @@ import {
   DollarSign,
   Activity
 } from "lucide-react";
+import { Spinner } from "@/components/ui/spinner";
+import { ListSkeleton } from "@/components/skeletons";
 
 interface CRMTemplate {
   id: string;
@@ -521,8 +522,12 @@ export default function CRMPage() {
 
   if (loading) {
     return (
-      <div className="flex items-center justify-center min-h-screen bg-linear-to-br from-cream via-white to-cream">
-        <Loader2 className="animate-spin text-sage" size={48} />
+      <div className="min-h-screen bg-linear-to-br from-cream via-white to-cream">
+        <main className="min-h-screen">
+          <div className="max-w-7xl mx-auto p-6 lg:p-8 space-y-8">
+            <ListSkeleton rows={5} />
+          </div>
+        </main>
       </div>
     );
   }
@@ -1291,7 +1296,7 @@ export default function CRMPage() {
                 >
                   {isSaving ? (
                     <>
-                      <Loader2 className="animate-spin mr-2" size={16} />
+                      <Spinner className="mr-2 size-4" />
                       Saving...
                     </>
                   ) : (
@@ -1414,7 +1419,7 @@ export default function CRMPage() {
                 className="bg-sage hover:bg-sage/90 text-white font-body"
               >
                 {sending ? (
-                  <><Loader2 className="animate-spin mr-2" size={14} />Sending…</>
+                  <><Spinner className="mr-2 size-4" />Sending…</>
                 ) : (
                   <><Send size={14} className="mr-2" />Send email</>
                 )}
@@ -1560,7 +1565,7 @@ export default function CRMPage() {
                 >
                   {isSaving ? (
                     <>
-                      <Loader2 className="animate-spin mr-2" size={16} />
+                      <Spinner className="mr-2 size-4" />
                       Creating...
                     </>
                   ) : (

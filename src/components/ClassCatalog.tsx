@@ -1,4 +1,5 @@
 import { Button } from "@/components/ui/button";
+import { GridSkeleton } from "@/components/skeletons";
 import { ArrowRight, Clock } from "lucide-react";
 import { useRouter } from "next/router";
 import { useRef, useState, useEffect } from "react";
@@ -113,8 +114,8 @@ export function ClassCatalog() {
 
           {/* Carousel Scroll Container */}
           {loading ? (
-            <div className="flex items-center justify-center py-12">
-              <div className="h-12 w-12 border-4 border-sage/20 border-t-sage rounded-full animate-spin" />
+            <div className="w-full py-4">
+              <GridSkeleton count={3} />
             </div>
           ) : classes.length === 0 ? (
             <div className="text-center py-12">

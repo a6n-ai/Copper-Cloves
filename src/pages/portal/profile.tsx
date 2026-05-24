@@ -9,6 +9,8 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { useToast } from "@/hooks/use-toast";
+import { Spinner } from "@/components/ui/spinner";
+import { FormSkeleton } from "@/components/skeletons";
 import {
   User, Save, CheckCircle2, Mail, Phone, Camera, Lock,
   MessageCircle, Calendar, Heart, PauseCircle, Paperclip, ChevronDown,
@@ -317,11 +319,19 @@ export default function Profile() {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-cream flex items-center justify-center">
-        <div className="text-center">
-          <div className="w-16 h-16 border-4 border-sage/30 border-t-sage rounded-full animate-spin mx-auto mb-4" />
-          <p className="text-sage font-display text-xl">Loading your profile…</p>
-        </div>
+      <div className="min-h-screen bg-cream">
+        <main className="pt-8 pb-16 min-h-screen">
+          <div className="max-w-6xl mx-auto mb-6 px-4 sm:px-6 lg:px-8">
+            <PageHeader title="Your Profile" subtitle="Manage your information and preferences" />
+          </div>
+          <div className="max-w-2xl mx-auto space-y-6 px-4 sm:px-6 lg:px-8">
+            <Card className="border-sage/20 bg-white/90 shadow-lg">
+              <CardContent className="p-6">
+                <FormSkeleton fields={5} />
+              </CardContent>
+            </Card>
+          </div>
+        </main>
       </div>
     );
   }
@@ -441,7 +451,7 @@ export default function Profile() {
                 <div className="pt-2">
                   <Button type="submit" disabled={savingPersonal}
                     className="bg-sage hover:bg-sage/90 text-white w-full h-12 font-body transition-all hover:scale-[1.01] active:scale-95 disabled:opacity-50">
-                    {savingPersonal ? <><div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin mr-2" />Saving…</> : <><Save size={16} className="mr-2" />Save Personal Details</>}
+                    {savingPersonal ? <><Spinner className="mr-2 size-4" />Saving…</> : <><Save size={16} className="mr-2" />Save Personal Details</>}
                   </Button>
                 </div>
               </form>
@@ -502,7 +512,7 @@ export default function Profile() {
 
                 <Button type="submit" disabled={savingHealth}
                   className="bg-sage hover:bg-sage/90 text-white w-full h-12 font-body transition-all hover:scale-[1.01] active:scale-95 disabled:opacity-50">
-                  {savingHealth ? <><div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin mr-2" />Saving…</> : <><Save size={16} className="mr-2" />Save Health Profile</>}
+                  {savingHealth ? <><Spinner className="mr-2 size-4" />Saving…</> : <><Save size={16} className="mr-2" />Save Health Profile</>}
                 </Button>
               </form>
             </CardContent>
@@ -595,7 +605,7 @@ export default function Profile() {
 
                   <Button type="submit" disabled={submittingTicket || !pauseReason.trim()}
                     className="bg-terracotta hover:bg-terracotta/90 text-white w-full h-12 font-body transition-all hover:scale-[1.01] active:scale-95 disabled:opacity-50">
-                    {submittingTicket ? <><div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin mr-2" />Submitting…</> : "Submit Pause Request"}
+                    {submittingTicket ? <><Spinner className="mr-2 size-4" />Submitting…</> : "Submit Pause Request"}
                   </Button>
                 </form>
               )}

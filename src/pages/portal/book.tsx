@@ -3,6 +3,7 @@ import { PageHeader } from "@/components/dashboard/PageHeader";
 import { useToast } from "@/hooks/use-toast";
 import { useRouter } from "next/router";
 import { Card, CardContent } from "@/components/ui/card";
+import { GridSkeleton } from "@/components/skeletons";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -853,11 +854,12 @@ export default function BookClass() {
 
   if (isLoading || loadingClasses) {
     return (
-      <div className="min-h-screen bg-linear-to-br from-cream via-cream to-sage/5 flex items-center justify-center">
-        <div className="text-center">
-          <div className="w-16 h-16 border-4 border-sage/30 border-t-sage rounded-full animate-spin mx-auto mb-4" />
-          <p className="font-body text-charcoal/60">Loading...</p>
-        </div>
+      <div className="min-h-screen bg-linear-to-br from-cream via-cream to-sage/5">
+        <main className="pt-8 pb-12 min-h-screen">
+          <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
+            <GridSkeleton count={6} />
+          </div>
+        </main>
       </div>
     );
   }

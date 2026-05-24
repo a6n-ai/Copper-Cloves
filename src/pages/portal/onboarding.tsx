@@ -11,7 +11,8 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { Textarea } from "@/components/ui/textarea";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { FormAlert } from "@/components/ui/form-alert";
-import { Loader2, ChevronRight, ChevronLeft, CheckCircle2 } from "lucide-react";
+import { ChevronRight, ChevronLeft, CheckCircle2 } from "lucide-react";
+import { Spinner, PageLoader } from "@/components/ui/spinner";
 import { SEO } from "@/components/SEO";
 
 import { cdnUrl } from "@/lib/cdnUrl";
@@ -191,7 +192,7 @@ export default function OnboardingPage() {
   }
 
   if (!session) {
-    return null;
+    return <PageLoader />;
   }
 
   if (done) {
@@ -438,7 +439,7 @@ export default function OnboardingPage() {
                     >
                       {isSubmitting ? (
                         <>
-                          <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                          <Spinner className="mr-2 size-4" />
                           Saving…
                         </>
                       ) : (

@@ -9,7 +9,8 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { MetricCard } from "@/components/admin/MetricCard";
-import { Calendar, Users, CheckCircle2, Clock, Loader2, UserX, ChevronLeft, ChevronRight, Hourglass, TrendingUp } from "lucide-react";
+import { ListSkeleton } from "@/components/skeletons";
+import { Calendar, Users, CheckCircle2, Clock, UserX, ChevronLeft, ChevronRight, Hourglass, TrendingUp } from "lucide-react";
 
 interface BookingRow {
   id: string;
@@ -229,7 +230,7 @@ export default function PartnerClasses() {
         </h2>
 
         {loading ? (
-          <div className="flex items-center justify-center py-16 text-charcoal/50"><Loader2 className="h-5 w-5 animate-spin mr-2" /> Loading…</div>
+          <ListSkeleton />
         ) : error ? (
           <Card className="border-terracotta/30 bg-terracotta/5"><CardContent className="p-4 font-body text-charcoal">{error}</CardContent></Card>
         ) : activeClasses.length === 0 ? (

@@ -4,6 +4,7 @@ import { useToast } from "@/hooks/use-toast";
 import { useRouter } from "next/router";
 import { useSession } from "next-auth/react";
 import { Button } from "@/components/ui/button";
+import { ListSkeleton } from "@/components/skeletons";
 import { Calendar, Clock, MapPin, User, AlertCircle, X } from "lucide-react";
 import {
   Dialog,
@@ -152,10 +153,9 @@ export default function MyBookingsPage() {
 
   if (isLoading) {
     return (
-      <div className="min-h-screen bg-linear-to-br from-cream via-cream to-sage/5 flex items-center justify-center">
-        <div className="text-center">
-          <div className="w-16 h-16 border-4 border-sage/30 border-t-sage rounded-full animate-spin mx-auto mb-4" />
-          <p className="font-body text-charcoal/60">Loading...</p>
+      <div className="min-h-screen bg-linear-to-br from-cream via-cream to-sage/5">
+        <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 pt-8 pb-6">
+          <ListSkeleton rows={5} />
         </div>
       </div>
     );

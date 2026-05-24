@@ -1,5 +1,6 @@
 import { useState } from "react";
-import { X, Check, CreditCard, Loader2, AlertCircle } from "lucide-react";
+import { X, Check, CreditCard, AlertCircle } from "lucide-react";
+import { Spinner } from "@/components/ui/spinner";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { useRouter } from "next/router";
@@ -100,7 +101,7 @@ export function CheckoutModal({ packageDetails, onClose, userId }: CheckoutModal
             Your {packageDetails.name} has been activated. Redirecting to your dashboard...
           </p>
           <div className="flex items-center justify-center gap-2">
-            <Loader2 className="animate-spin text-sage" size={20} />
+            <Spinner className="size-5 text-sage" />
             <span className="font-body text-sm text-charcoal/60">Redirecting...</span>
           </div>
         </div>
@@ -250,7 +251,7 @@ export function CheckoutModal({ packageDetails, onClose, userId }: CheckoutModal
             >
               {isProcessing ? (
                 <>
-                  <Loader2 className="animate-spin mr-2" size={18} />
+                  <Spinner className="mr-2 size-[18px]" />
                   Processing...
                 </>
               ) : (

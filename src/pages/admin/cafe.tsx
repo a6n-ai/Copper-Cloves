@@ -14,12 +14,13 @@ import {
   Plus, 
   Edit, 
   Trash2, 
-  X, 
+  X,
   Save,
-  Loader2,
   Image as ImageIcon,
   Upload
 } from "lucide-react";
+import { Spinner } from "@/components/ui/spinner";
+import { GridSkeleton } from "@/components/skeletons";
 
 import { cdnUrl } from "@/lib/cdnUrl";
 interface MenuItem {
@@ -541,8 +542,12 @@ export default function AdminCafe() {
 
   if (loading) {
     return (
-      <div className="flex items-center justify-center min-h-screen">
-        <Loader2 className="animate-spin text-sage" size={48} />
+      <div className="min-h-screen bg-linear-to-br from-cream via-cream to-sage/10">
+        <main className="min-h-screen">
+          <div className="max-w-7xl mx-auto p-6 lg:p-8 space-y-8">
+            <GridSkeleton count={6} />
+          </div>
+        </main>
       </div>
     );
   }
@@ -844,7 +849,7 @@ export default function AdminCafe() {
                   <>
                     {loadingOrders ? (
                       <div className="text-center py-12">
-                        <Loader2 className="animate-spin mx-auto text-sage mb-4" size={48} />
+                        <Spinner className="mx-auto size-12 text-sage mb-4" />
                         <p className="font-body text-charcoal/60">Loading orders...</p>
                       </div>
                     ) : orders.length === 0 ? (
@@ -1080,7 +1085,7 @@ export default function AdminCafe() {
                   <>
                     {loadingHistory ? (
                       <div className="text-center py-12">
-                        <Loader2 className="animate-spin mx-auto text-sage mb-4" size={48} />
+                        <Spinner className="mx-auto size-12 text-sage mb-4" />
                         <p className="font-body text-charcoal/60">Loading order history...</p>
                       </div>
                     ) : orderHistory.length === 0 ? (
@@ -1302,7 +1307,7 @@ export default function AdminCafe() {
                       >
                         {uploadingImage ? (
                           <>
-                            <Loader2 className="animate-spin mr-2" size={18} />
+                            <Spinner className="mr-2 size-4" />
                             Uploading…
                           </>
                         ) : (
@@ -1363,7 +1368,7 @@ export default function AdminCafe() {
                 >
                   {isSaving ? (
                     <>
-                      <Loader2 className="animate-spin mr-2" size={18} />
+                      <Spinner className="mr-2 size-4" />
                       Saving...
                     </>
                   ) : (

@@ -3,6 +3,7 @@ import { useRouter } from "next/router";
 import { useSession } from "next-auth/react";
 import { format, isAfter, isBefore, isToday, isTomorrow } from "date-fns";
 import { Button } from "@/components/ui/button";
+import { Spinner } from "@/components/ui/spinner";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { InstructorDashboardSkeleton } from "@/components/dashboard/skeletons";
 import { PageHeader } from "@/components/dashboard/PageHeader";
@@ -368,7 +369,7 @@ export default function InstructorDashboard() {
                               className="bg-terracotta hover:bg-terracotta/90 text-white font-body rounded-full px-4 text-xs h-8"
                             >
                               {instructorCheckingIn[cls.id] ? (
-                                <div className="h-3.5 w-3.5 border-2 border-white border-t-transparent rounded-full animate-spin" />
+                                <Spinner className="size-4" />
                               ) : "I'm Here"}
                             </Button>
                           )}
@@ -487,7 +488,7 @@ export default function InstructorDashboard() {
                             className="bg-terracotta hover:bg-terracotta/90 text-white font-body rounded-full px-4 text-xs h-8"
                           >
                             {instructorCheckingIn[selectedClass.id] ? (
-                              <div className="h-3.5 w-3.5 border-2 border-white border-t-transparent rounded-full animate-spin" />
+                              <Spinner className="size-4" />
                             ) : "I'm Here"}
                           </Button>
                         )}
@@ -545,7 +546,7 @@ export default function InstructorDashboard() {
                                 className="bg-sage hover:bg-sage/90 text-white font-body rounded-full px-4 shrink-0"
                               >
                                 {checkingIn[b.id] ? (
-                                  <div className="h-4 w-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
+                                  <Spinner className="size-4" />
                                 ) : (
                                   <>
                                     <Circle className="h-4 w-4 mr-1.5" />

@@ -3,7 +3,7 @@ import { useRouter } from "next/router";
 import Link from "next/link";
 import { SEO } from "@/components/SEO";
 import { Button } from "@/components/ui/button";
-import { Loader2 } from "lucide-react";
+import { Spinner } from "@/components/ui/spinner";
 import {
   completePendingBookingCheckout,
   completePendingPackageCheckout,
@@ -101,7 +101,7 @@ export default function RazorpayReturnPage() {
       <div className="min-h-screen bg-linear-to-br from-cream via-cream to-sage/5 flex items-center justify-center px-4">
         <div className="max-w-md w-full rounded-xl border border-sage/20 bg-white/95 p-8 text-center shadow-xl">
           {status === "working" ? (
-            <Loader2 className="h-10 w-10 animate-spin text-sage mx-auto mb-4" />
+            <Spinner className="size-10 text-sage mx-auto mb-4" />
           ) : null}
           <p className="font-body text-charcoal mb-6">{message}</p>
           {status === "error" ? (

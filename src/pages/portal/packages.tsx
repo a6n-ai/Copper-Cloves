@@ -1,7 +1,9 @@
 import { useEffect, useState, useRef } from "react";
 import { PageHeader } from "@/components/dashboard/PageHeader";
 import { useRouter } from "next/router";
-import { ChevronLeft, ChevronRight, Check, X, CreditCard, Loader2, AlertCircle, Download } from "lucide-react";
+import { ChevronLeft, ChevronRight, Check, X, CreditCard, AlertCircle, Download } from "lucide-react";
+import { Spinner } from "@/components/ui/spinner";
+import { ListSkeleton } from "@/components/skeletons";
 import { FormAlert } from "@/components/ui/form-alert";
 import { useSession } from "next-auth/react";
 import { Button } from "@/components/ui/button";
@@ -732,10 +734,7 @@ export default function PackagesPage() {
         </div>
 
         {loadingHistory ? (
-          <div className="text-center py-12">
-            <Loader2 className="animate-spin mx-auto text-sage mb-4" size={48} />
-            <p className="font-body text-charcoal/60">Loading purchase history...</p>
-          </div>
+          <ListSkeleton rows={4} />
         ) : purchaseHistory.length === 0 ? (
           <div className="text-center py-20 px-6 rounded-2xl bg-white/60 backdrop-blur-xl border border-sage/10">
             <CreditCard className="mx-auto mb-4 text-charcoal/20" size={64} />
@@ -843,7 +842,7 @@ export default function PackagesPage() {
                 Your {selectedPackage.name} has been activated. Redirecting to your dashboard...
               </p>
               <div className="flex items-center justify-center gap-2">
-                <Loader2 className="animate-spin text-sage" size={20} />
+                <Spinner className="size-5 text-sage" />
                 <span className="font-body text-sm text-charcoal/60">Redirecting...</span>
               </div>
             </div>
@@ -1023,7 +1022,7 @@ export default function PackagesPage() {
                   >
                     {isProcessing ? (
                       <>
-                        <Loader2 className="animate-spin mr-2" size={18} />
+                        <Spinner className="mr-2 size-4" />
                         Processing...
                       </>
                     ) : (

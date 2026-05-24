@@ -13,9 +13,10 @@ import {
   ShoppingCart, 
   Users,
   X,
-  Loader2,
   Check
 } from "lucide-react";
+import { Spinner } from "@/components/ui/spinner";
+import { GridSkeleton } from "@/components/skeletons";
 
 import { cdnUrl } from "@/lib/cdnUrl";
 interface MenuItem {
@@ -241,8 +242,12 @@ export default function MenuPage() {
 
   if (loading) {
     return (
-      <div className="flex items-center justify-center min-h-screen bg-linear-to-br from-cream via-cream to-sage/5">
-        <Loader2 className="animate-spin text-sage" size={48} />
+      <div className="min-h-screen bg-linear-to-br from-cream via-cream to-sage/5">
+        <main className="min-h-screen">
+          <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 pt-8 pb-6">
+            <GridSkeleton count={6} />
+          </div>
+        </main>
       </div>
     );
   }
@@ -542,7 +547,7 @@ export default function MenuPage() {
               >
                 {isProcessing ? (
                   <>
-                    <Loader2 className="animate-spin mr-2" size={20} />
+                    <Spinner className="mr-2 size-4" />
                     Processing...
                   </>
                 ) : orderSuccess ? (

@@ -1,4 +1,5 @@
 import { useRef, useState, useEffect } from "react";
+import { GridSkeleton } from "@/components/skeletons";
 import { ChevronLeft, ChevronRight, X, Award, Calendar, Heart, Share2, Facebook, Twitter, Linkedin, MessageCircle } from "lucide-react";
 import Link from "next/link";
 import { supportsResponsivePicture } from "@/lib/imageDelivery";
@@ -270,8 +271,8 @@ export function Instructors() {
 
         {/* Loading State */}
         {loading ? (
-          <div className="flex items-center justify-center py-20">
-            <div className="h-12 w-12 border-4 border-sage/20 border-t-sage rounded-full animate-spin" />
+          <div className="w-full py-4">
+            <GridSkeleton count={3} />
           </div>
         ) : instructors.length === 0 ? (
           <div className="text-center py-20">

@@ -6,6 +6,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { GridSkeleton } from "@/components/skeletons";
 import { Clock, CheckCircle, Calendar, Users, Sparkles, ChevronLeft, ChevronRight } from "lucide-react";
 import { useRouter } from "next/router";
 import { useCallback, useEffect, useState } from "react";
@@ -430,9 +431,7 @@ export default function ClassesPage() {
             {/* Classes Tab Content */}
             <TabsContent value="classes" className="mt-8">
               {loading ? (
-                <div className="flex items-center justify-center py-12">
-                  <div className="h-12 w-12 border-4 border-sage/20 border-t-sage rounded-full animate-spin" />
-                </div>
+                <GridSkeleton count={6} className="md:grid-cols-2 lg:grid-cols-3" />
               ) : filteredClasses.length === 0 ? (
                 <div className="text-center py-12">
                   <p className="font-body text-charcoal/60">No classes found for this category.</p>
@@ -592,8 +591,8 @@ export default function ClassesPage() {
                 {/* Schedule Grid */}
                 <div className="grid md:grid-cols-2 divide-y md:divide-y-0 md:divide-x divide-sage/10">
                   {scheduleLoading ? (
-                    <div className="col-span-2 flex items-center justify-center py-12">
-                      <div className="h-12 w-12 border-4 border-sage/20 border-t-sage rounded-full animate-spin" />
+                    <div className="col-span-2 p-6">
+                      <GridSkeleton count={4} className="sm:grid-cols-2 lg:grid-cols-2" />
                     </div>
                   ) : scheduleData.length === 0 ? (
                     <div className="col-span-2 text-center py-12">

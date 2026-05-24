@@ -36,8 +36,12 @@ import {
   ChevronLeft,
   ChevronRight,
   UserCheck,
+  Settings2,
 } from "lucide-react";
 import { SEO } from "@/components/SEO";
+import { Spinner } from "@/components/ui/spinner";
+import { ListSkeleton } from "@/components/skeletons";
+import { AnimatedIcon } from "@/components/dashboard/AnimatedIcon";
 import { useSession } from "next-auth/react";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import {
@@ -806,8 +810,12 @@ export default function AdminSchedule() {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-linear-to-br from-cream via-cream to-sage/10 flex items-center justify-center">
-        <div className="h-12 w-12 border-4 border-sage/20 border-t-sage rounded-full animate-spin" />
+      <div className="min-h-screen bg-linear-to-br from-cream via-cream to-sage/10">
+        <main className="min-h-screen">
+          <div className="max-w-7xl mx-auto p-6 lg:p-8 space-y-8">
+            <ListSkeleton rows={6} />
+          </div>
+        </main>
       </div>
     );
   }
@@ -977,18 +985,19 @@ export default function AdminSchedule() {
                             variant="outline"
                             size="sm"
                             onClick={(e) => { e.stopPropagation(); router.push(`/admin/schedule/${sc.id}`); }}
-                            className="border-sage/20 text-sage hover:bg-sage/10 font-body h-8 px-3 text-xs"
+                            className="border-sage/20 text-sage hover:bg-sage/10 font-body h-8 w-8 p-0 transition-transform hover:scale-110 active:scale-95"
+                            title="Manage"
                           >
-                            Manage
+                            <AnimatedIcon icon={Settings2} size={14} animateOnMount={false} hover="spin" />
                           </Button>
                           <Button
-                            variant="outline"
+                            variant="destructive"
                             size="sm"
                             onClick={(e) => { e.stopPropagation(); handleDeleteClass(sc.id); }}
-                            className="border-red-500/20 text-red-600 hover:bg-red-50 font-body h-8 w-8 p-0"
+                            className="font-body h-8 w-8 p-0 transition-transform hover:scale-110 active:scale-95"
                             title="Delete"
                           >
-                            <Trash2 className="h-3.5 w-3.5" />
+                            <AnimatedIcon icon={Trash2} size={14} animateOnMount={false} hover="wiggle" />
                           </Button>
                         </>
                       );
@@ -1459,7 +1468,7 @@ export default function AdminSchedule() {
           <div className="flex-1 overflow-y-auto px-6 py-4">
             {rosterLoading && (
               <div className="flex items-center justify-center py-16">
-                <div className="h-8 w-8 border-2 border-sage border-t-transparent rounded-full animate-spin" />
+                <Spinner className="size-8 text-sage" />
               </div>
             )}
 
@@ -1506,7 +1515,7 @@ export default function AdminSchedule() {
                           className="bg-sage hover:bg-sage/90 text-white font-body rounded-full px-3 h-8 text-xs shrink-0"
                         >
                           {checkingInMap[b.id] ? (
-                            <div className="h-3.5 w-3.5 border-2 border-white border-t-transparent rounded-full animate-spin" />
+                            <Spinner className="size-3.5" />
                           ) : (
                             <><UserCheck className="h-3.5 w-3.5 mr-1" />Check In</>
                           )}
@@ -1560,7 +1569,7 @@ export default function AdminSchedule() {
                 onChange={e => searchMembers(e.target.value)}
               />
               {memberSearching && (
-                <div className="absolute right-2 top-2 h-4 w-4 border-2 border-sage border-t-transparent rounded-full animate-spin" />
+                <Spinner className="absolute right-2 top-2 size-4 text-sage" />
               )}
             </div>
             {memberResults.length > 0 && (
@@ -1583,7 +1592,7 @@ export default function AdminSchedule() {
                           className="bg-sage hover:bg-sage/90 text-white font-body h-7 px-3 text-xs shrink-0"
                         >
                           {addingMemberId === m.id ? (
-                            <div className="h-3 w-3 border-2 border-white border-t-transparent rounded-full animate-spin" />
+                            <Spinner className="size-3" />
                           ) : "Add"}
                         </Button>
                       )}

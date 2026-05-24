@@ -32,6 +32,8 @@ import {
   ChevronDown,
 } from "lucide-react";
 import { SEO } from "@/components/SEO";
+import { Spinner } from "@/components/ui/spinner";
+import { TableSkeleton } from "@/components/skeletons";
 import { Pagination, usePagination } from "@/components/Pagination";
 import { ListAvatar } from "@/components/admin/ListAvatar";
 import { useSession } from "next-auth/react";
@@ -701,8 +703,12 @@ export default function AdminMembers() {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-linear-to-br from-cream via-cream to-sage/10 flex items-center justify-center">
-        <div className="h-12 w-12 border-4 border-sage/20 border-t-sage rounded-full animate-spin" />
+      <div className="min-h-screen bg-linear-to-br from-cream via-cream to-sage/10">
+        <main className="min-h-screen">
+          <div className="max-w-7xl mx-auto p-6 lg:p-8 space-y-8">
+            <TableSkeleton rows={10} />
+          </div>
+        </main>
       </div>
     );
   }
@@ -1401,7 +1407,7 @@ export default function AdminMembers() {
                           </div>
                           <div className="flex items-center gap-2 shrink-0">
                             {historySavingId === row.id && (
-                              <div className="h-3 w-3 border-2 border-sage border-t-transparent rounded-full animate-spin" />
+                              <Spinner className="size-3" />
                             )}
                             <Select
                               value={

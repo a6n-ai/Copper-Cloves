@@ -1,13 +1,31 @@
 import { useCallback, useEffect, useState } from "react";
 import { useRouter } from "next/router";
-import Link from "next/link";
-import { ArrowLeft, Trash2, Pencil, Loader2, UserPlus, CheckCircle2 } from "lucide-react";
+import { Trash2, Pencil, UserPlus, CheckCircle2 } from "lucide-react";
+import { SEO } from "@/components/SEO";
+import { ListSkeleton } from "@/components/skeletons";
 import { PageHeader } from "@/components/dashboard/PageHeader";
+import { AnimatedIcon } from "@/components/dashboard/AnimatedIcon";
 import { QrZoomImage } from "@/components/checkin/QrZoomImage";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Textarea } from "@/components/ui/textarea";
 import { Badge } from "@/components/ui/badge";
+import {
+  Dialog,
+  DialogContent,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 
 interface RosterBooking {
   id: string;
@@ -20,11 +38,17 @@ interface RosterBooking {
 }
 interface Roster {
   scheduleId: string;
+  classId: string;
   className: string;
   instructor: string;
+  instructorId: string | null;
   actualInstructor: string | null;
+  actualInstructorId: string | null;
+  instructorCheckInOutcome: string | null;
   classNotes: string | null;
   startTime: string;
+  endTime: string;
+  status: string;
   capacity: number | null;
   bookings: RosterBooking[];
 }
@@ -33,6 +57,18 @@ interface QrData {
   memberQrUrl: string | null;
   withinWindow: boolean;
   startTime: string;
+}
+interface NamedRow {
+  id: string;
+  name: string;
+}
+
+const NONE = "__none__";
+
+function toLocalInput(iso: string): string {
+  const d = new Date(iso);
+  const local = new Date(d.getTime() - d.getTimezoneOffset() * 60000);
+  return local.toISOString().slice(0, 16);
 }
 
 export default function AdminClassPage() {
@@ -45,6 +81,21 @@ export default function AdminClassPage() {
   const [results, setResults] = useState<{ id: string; full_name: string | null; email: string }[]>([]);
   const [busyId, setBusyId] = useState<string | null>(null);
 
+  // Edit dialog
+  const [editOpen, setEditOpen] = useState(false);
+  const [instructors, setInstructors] = useState<NamedRow[]>([]);
+  const [classTypes, setClassTypes] = useState<NamedRow[]>([]);
+  const [saving, setSaving] = useState(false);
+  const [form, setForm] = useState({
+    classId: "",
+    instructorId: NONE,
+    actualInstructorId: NONE,
+    start: "",
+    capacity: "",
+    status: "available",
+    classNotes: "",
+  });
+
   const loadRoster = useCallback(async () => {
     if (!id) return;
     const r = await fetch(`/api/admin/class-roster?scheduleId=${id}`);
@@ -55,19 +106,81 @@ export default function AdminClassPage() {
     if (!id) return;
     let cancelled = false;
     (async () => {
-      const [rosterRes, qrRes] = await Promise.all([
+      const [rosterRes, qrRes, instRes, clsRes] = await Promise.all([
         fetch(`/api/admin/class-roster?scheduleId=${id}`),
         fetch(`/api/admin/schedule-qr?scheduleId=${id}`),
+        fetch(`/api/admin/instructors`),
+        fetch(`/api/classes`),
       ]);
       if (cancelled) return;
       if (rosterRes.ok) setRoster(await rosterRes.json());
       if (qrRes.ok) setQr(await qrRes.json());
+      if (instRes.ok) {
+        const d = await instRes.json();
+        setInstructors(Array.isArray(d) ? d.map((i: NamedRow) => ({ id: i.id, name: i.name })) : []);
+      }
+      if (clsRes.ok) {
+        const d = await clsRes.json();
+        setClassTypes(Array.isArray(d) ? d.map((c: NamedRow) => ({ id: c.id, name: c.name })) : []);
+      }
       setLoading(false);
     })();
     return () => {
       cancelled = true;
     };
   }, [id]);
+
+  function openEdit() {
+    if (!roster) return;
+    setForm({
+      classId: roster.classId,
+      instructorId: roster.instructorId ?? NONE,
+      actualInstructorId: roster.actualInstructorId ?? NONE,
+      start: toLocalInput(roster.startTime),
+      capacity: roster.capacity != null ? String(roster.capacity) : "",
+      status: roster.status || "available",
+      classNotes: roster.classNotes ?? "",
+    });
+    setEditOpen(true);
+  }
+
+  async function saveEdit() {
+    if (!roster) return;
+    setSaving(true);
+    try {
+      // End auto-derives: keep the original class duration relative to the new start.
+      const durationMs = Math.max(
+        30 * 60000,
+        new Date(roster.endTime).getTime() - new Date(roster.startTime).getTime(),
+      );
+      const startIso = new Date(form.start).toISOString();
+      const endIso = new Date(new Date(form.start).getTime() + durationMs).toISOString();
+      const res = await fetch(`/api/class-schedules`, {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          id,
+          class_id: form.classId,
+          instructor_id: form.instructorId === NONE ? "" : form.instructorId,
+          actual_instructor_id: form.actualInstructorId === NONE ? "" : form.actualInstructorId,
+          start_time: startIso,
+          end_time: endIso,
+          capacity: form.capacity,
+          status: form.status,
+          class_notes: form.classNotes,
+        }),
+      });
+      if (!res.ok) {
+        const d = await res.json().catch(() => ({}));
+        alert(d.error ?? "Could not save changes");
+        return;
+      }
+      setEditOpen(false);
+      await loadRoster();
+    } finally {
+      setSaving(false);
+    }
+  }
 
   async function applyOutcome(bookingId: string, outcome: "on_time" | "no_show" | "not_checked_in") {
     setBusyId(bookingId);
@@ -121,179 +234,257 @@ export default function AdminClassPage() {
     else alert("Failed to delete class");
   }
 
-  if (loading) {
-    return (
-      <main className="mx-auto max-w-5xl p-4 lg:p-6">
-        <div className="flex items-center justify-center py-20 text-charcoal/50">
-          <Loader2 className="mr-2 h-5 w-5 animate-spin" /> Loading…
-        </div>
-      </main>
-    );
-  }
-  if (!roster) {
-    return (
-      <main className="mx-auto max-w-5xl p-4 lg:p-6">
-        <p className="py-20 text-center text-charcoal/60">Class not found.</p>
-      </main>
-    );
-  }
-
-  const start = new Date(roster.startTime);
-  const enrolled = roster.bookings.reduce((n, b) => n + 1 + (b.extraGuests ?? 0), 0);
-  const checkedIn = roster.bookings.filter((b) => b.checkedIn).length;
+  const start = roster ? new Date(roster.startTime) : null;
+  const enrolled = roster ? roster.bookings.reduce((n, b) => n + 1 + (b.extraGuests ?? 0), 0) : 0;
+  const checkedIn = roster ? roster.bookings.filter((b) => b.checkedIn).length : 0;
 
   return (
-    <main className="mx-auto max-w-5xl space-y-6 p-4 lg:p-6">
-      <PageHeader
-        title={roster.className}
-        subtitle={`${start.toLocaleString("en-US", { weekday: "short", month: "short", day: "numeric", hour: "2-digit", minute: "2-digit" })} · ${roster.instructor}`}
-        actions={
-          <div className="flex items-center gap-2">
-            <Button asChild variant="outline" className="border-sage/20 text-sage hover:bg-sage/10 font-body">
-              <Link href={`/admin/schedule?edit=${id}`}><Pencil className="mr-2 h-4 w-4" /> Edit in scheduler</Link>
-            </Button>
-            <Button variant="outline" onClick={handleDelete} className="border-terracotta/30 text-terracotta hover:bg-terracotta/5 font-body">
-              <Trash2 className="mr-2 h-4 w-4" /> Delete
-            </Button>
+    <>
+      <SEO title="Class — Admin" description="Class details, check-in and roster" />
+      <div className="min-h-screen bg-linear-to-br from-cream via-cream to-sage/10">
+        <main className="min-h-screen">
+          <div className="max-w-7xl mx-auto p-6 lg:p-8 space-y-6">
+            {loading || !roster || !start ? (
+              <ListSkeleton rows={6} />
+            ) : (
+              <>
+                <PageHeader
+                  title={roster.className}
+                  subtitle={`${start.toLocaleString("en-US", { weekday: "short", month: "short", day: "numeric", hour: "2-digit", minute: "2-digit" })} · ${roster.instructor}`}
+                  crumbs={[
+                    { label: "Dashboard", href: "/admin/dashboard" },
+                    { label: "Schedule", href: "/admin/schedule" },
+                    { label: roster.className },
+                  ]}
+                  actions={
+                    <div className="flex items-center gap-2">
+                      <Button
+                        onClick={openEdit}
+                        className="bg-sage hover:bg-sage/90 text-white font-body transition-transform hover:scale-[1.03] active:scale-95"
+                      >
+                        <AnimatedIcon icon={Pencil} size={16} animateOnMount={false} hover="wiggle" />
+                        Edit
+                      </Button>
+                      <Button
+                        variant="destructive"
+                        onClick={handleDelete}
+                        className="font-body transition-transform hover:scale-[1.03] active:scale-95"
+                      >
+                        <AnimatedIcon icon={Trash2} size={16} animateOnMount={false} hover="wiggle" />
+                        Delete
+                      </Button>
+                    </div>
+                  }
+                />
+
+                {/* Info */}
+                <div className="grid grid-cols-2 gap-4 sm:grid-cols-4">
+                  {[
+                    { label: "Instructor", value: roster.actualInstructor ? `${roster.actualInstructor} (sub)` : roster.instructor },
+                    { label: "Capacity", value: roster.capacity ?? "—" },
+                    { label: "Enrolled", value: enrolled },
+                    { label: "Checked in", value: checkedIn },
+                  ].map((s) => (
+                    <Card key={s.label} className="rounded-2xl shadow-xs">
+                      <CardContent className="p-4">
+                        <p className="font-display text-2xl text-charcoal">{s.value}</p>
+                        <p className="text-xs text-muted-foreground">{s.label}</p>
+                      </CardContent>
+                    </Card>
+                  ))}
+                </div>
+
+                {/* QR codes */}
+                <Card className="rounded-2xl shadow-xs">
+                  <CardHeader>
+                    <CardTitle className="font-display text-xl text-charcoal">Check-in QR codes</CardTitle>
+                  </CardHeader>
+                  <CardContent>
+                    {!qr?.withinWindow ? (
+                      <p className="mb-4 rounded-lg bg-cream/60 px-4 py-2 text-sm text-charcoal/60">
+                        QR scanning is active from 30 minutes before until 30 minutes after class start.
+                      </p>
+                    ) : null}
+                    <div className="grid grid-cols-1 gap-6 sm:grid-cols-2">
+                      <div className="flex flex-col items-center gap-2 rounded-xl border border-sage/15 p-6">
+                        <p className="font-display text-lg text-charcoal">Instructor</p>
+                        {qr?.instructorQrUrl ? (
+                          <QrZoomImage url={qr.instructorQrUrl} label="Instructor check-in" caption="Tap to enlarge" />
+                        ) : (
+                          <p className="py-10 text-sm text-charcoal/50">QR unavailable</p>
+                        )}
+                      </div>
+                      <div className="flex flex-col items-center gap-2 rounded-xl border border-sage/15 p-6">
+                        <p className="font-display text-lg text-charcoal">Members</p>
+                        {qr?.memberQrUrl ? (
+                          <QrZoomImage url={qr.memberQrUrl} label="Member check-in" caption="Tap to enlarge" />
+                        ) : (
+                          <p className="py-10 text-sm text-charcoal/50">QR unavailable</p>
+                        )}
+                      </div>
+                    </div>
+                  </CardContent>
+                </Card>
+
+                {/* Roster */}
+                <Card className="rounded-2xl shadow-xs">
+                  <CardHeader>
+                    <CardTitle className="font-display text-xl text-charcoal">Roster ({roster.bookings.length})</CardTitle>
+                  </CardHeader>
+                  <CardContent className="space-y-4">
+                    <div className="relative">
+                      <div className="flex items-center gap-2">
+                        <UserPlus className="h-4 w-4 text-charcoal/40" />
+                        <Input
+                          value={query}
+                          onChange={(e) => searchMembers(e.target.value)}
+                          placeholder="Add a member by name or email…"
+                          className="border-sage/20"
+                        />
+                      </div>
+                      {results.length > 0 ? (
+                        <div className="absolute z-10 mt-1 w-full rounded-lg border border-sage/20 bg-white shadow-lg">
+                          {results.map((m) => (
+                            <button
+                              key={m.id}
+                              type="button"
+                              disabled={busyId === m.id}
+                              onClick={() => addMember(m.id)}
+                              className="flex w-full items-center justify-between px-3 py-2 text-left hover:bg-sage/5"
+                            >
+                              <span className="font-body text-sm text-charcoal">{m.full_name ?? m.email}</span>
+                              <span className="font-body text-xs text-charcoal/50">{m.email}</span>
+                            </button>
+                          ))}
+                        </div>
+                      ) : null}
+                    </div>
+
+                    {roster.bookings.length === 0 ? (
+                      <p className="py-6 text-center text-sm text-charcoal/50">No one booked yet.</p>
+                    ) : (
+                      <ul className="divide-y divide-sage/10">
+                        {roster.bookings.map((b) => (
+                          <li key={b.id} className="flex items-center justify-between gap-3 py-2.5">
+                            <div className="min-w-0">
+                              <p className="font-body text-sm font-medium text-charcoal">
+                                {b.name}
+                                {b.extraGuests > 0 ? <span className="font-normal text-charcoal/50"> +{b.extraGuests}</span> : null}
+                              </p>
+                              <p className="font-body text-xs text-charcoal/50">{b.email}</p>
+                            </div>
+                            <div className="flex shrink-0 items-center gap-1.5">
+                              {b.checkedIn ? (
+                                <Badge className="bg-sage/10 text-sage border-sage/20 font-body">
+                                  <CheckCircle2 className="mr-1 h-3.5 w-3.5" />
+                                  {b.checkInOutcome === "late" ? "Late" : "In"}
+                                </Badge>
+                              ) : null}
+                              <Button
+                                size="sm"
+                                variant="outline"
+                                disabled={busyId === b.id}
+                                onClick={() => applyOutcome(b.id, b.checkedIn ? "not_checked_in" : "on_time")}
+                                className="h-8 border-sage/20 text-sage hover:bg-sage/10 font-body text-xs"
+                              >
+                                {b.checkedIn ? "Undo" : "Check in"}
+                              </Button>
+                              {!b.checkedIn ? (
+                                <Button
+                                  size="sm"
+                                  variant="outline"
+                                  disabled={busyId === b.id}
+                                  onClick={() => applyOutcome(b.id, "no_show")}
+                                  className="h-8 border-terracotta/30 text-terracotta hover:bg-terracotta/5 font-body text-xs"
+                                >
+                                  No-show
+                                </Button>
+                              ) : null}
+                            </div>
+                          </li>
+                        ))}
+                      </ul>
+                    )}
+                  </CardContent>
+                </Card>
+              </>
+            )}
           </div>
-        }
-      />
-
-      <Button asChild variant="ghost" size="sm" className="text-charcoal/60 font-body">
-        <Link href="/admin/schedule"><ArrowLeft className="mr-1.5 h-4 w-4" /> Back to schedule</Link>
-      </Button>
-
-      {/* Info */}
-      <div className="grid grid-cols-2 gap-4 sm:grid-cols-4">
-        {[
-          { label: "Instructor", value: roster.actualInstructor ? `${roster.actualInstructor} (sub)` : roster.instructor },
-          { label: "Capacity", value: roster.capacity ?? "—" },
-          { label: "Enrolled", value: enrolled },
-          { label: "Checked in", value: checkedIn },
-        ].map((s) => (
-          <Card key={s.label} className="rounded-2xl shadow-xs">
-            <CardContent className="p-4">
-              <p className="font-display text-2xl text-charcoal">{s.value}</p>
-              <p className="text-xs text-muted-foreground">{s.label}</p>
-            </CardContent>
-          </Card>
-        ))}
+        </main>
       </div>
 
-      {/* QR codes */}
-      <Card className="rounded-2xl shadow-xs">
-        <CardHeader>
-          <CardTitle className="font-display text-xl text-charcoal">Check-in QR codes</CardTitle>
-        </CardHeader>
-        <CardContent>
-          {!qr?.withinWindow ? (
-            <p className="mb-4 rounded-lg bg-cream/60 px-4 py-2 text-sm text-charcoal/60">
-              QR scanning is active from 30 minutes before until 30 minutes after class start.
-            </p>
-          ) : null}
-          <div className="grid grid-cols-1 gap-6 sm:grid-cols-2">
-            <div className="flex flex-col items-center gap-2 rounded-xl border border-sage/15 p-6">
-              <p className="font-display text-lg text-charcoal">Instructor</p>
-              {qr?.instructorQrUrl ? (
-                <QrZoomImage url={qr.instructorQrUrl} label="Instructor check-in" caption="Tap to enlarge" />
-              ) : (
-                <p className="py-10 text-sm text-charcoal/50">QR unavailable</p>
-              )}
+      {/* Edit dialog */}
+      <Dialog open={editOpen} onOpenChange={setEditOpen}>
+        <DialogContent className="max-w-lg max-h-[90vh] overflow-y-auto bg-white">
+          <DialogHeader>
+            <DialogTitle className="font-display text-2xl text-charcoal">Edit class</DialogTitle>
+          </DialogHeader>
+          <div className="space-y-4">
+            <div className="space-y-1.5">
+              <Label className="font-body text-sm">Class type</Label>
+              <Select value={form.classId} onValueChange={(v) => setForm((f) => ({ ...f, classId: v }))}>
+                <SelectTrigger><SelectValue placeholder="Select class" /></SelectTrigger>
+                <SelectContent>
+                  {classTypes.map((c) => <SelectItem key={c.id} value={c.id}>{c.name}</SelectItem>)}
+                </SelectContent>
+              </Select>
             </div>
-            <div className="flex flex-col items-center gap-2 rounded-xl border border-sage/15 p-6">
-              <p className="font-display text-lg text-charcoal">Members</p>
-              {qr?.memberQrUrl ? (
-                <QrZoomImage url={qr.memberQrUrl} label="Member check-in" caption="Tap to enlarge" />
-              ) : (
-                <p className="py-10 text-sm text-charcoal/50">QR unavailable</p>
-              )}
+            <div className="space-y-1.5">
+              <Label className="font-body text-sm">Date &amp; time</Label>
+              <Input type="datetime-local" value={form.start} onChange={(e) => setForm((f) => ({ ...f, start: e.target.value }))} />
+              <p className="text-xs text-charcoal/40">End time keeps the class&apos;s usual duration.</p>
             </div>
-          </div>
-        </CardContent>
-      </Card>
-
-      {/* Roster */}
-      <Card className="rounded-2xl shadow-xs">
-        <CardHeader>
-          <CardTitle className="font-display text-xl text-charcoal">Roster ({roster.bookings.length})</CardTitle>
-        </CardHeader>
-        <CardContent className="space-y-4">
-          {/* Add member */}
-          <div className="relative">
-            <div className="flex items-center gap-2">
-              <UserPlus className="h-4 w-4 text-charcoal/40" />
-              <Input
-                value={query}
-                onChange={(e) => searchMembers(e.target.value)}
-                placeholder="Add a member by name or email…"
-                className="border-sage/20"
-              />
-            </div>
-            {results.length > 0 ? (
-              <div className="absolute z-10 mt-1 w-full rounded-lg border border-sage/20 bg-white shadow-lg">
-                {results.map((m) => (
-                  <button
-                    key={m.id}
-                    type="button"
-                    disabled={busyId === m.id}
-                    onClick={() => addMember(m.id)}
-                    className="flex w-full items-center justify-between px-3 py-2 text-left hover:bg-sage/5"
-                  >
-                    <span className="font-body text-sm text-charcoal">{m.full_name ?? m.email}</span>
-                    <span className="font-body text-xs text-charcoal/50">{m.email}</span>
-                  </button>
-                ))}
+            <div className="grid grid-cols-2 gap-3">
+              <div className="space-y-1.5">
+                <Label className="font-body text-sm">Instructor</Label>
+                <Select value={form.instructorId} onValueChange={(v) => setForm((f) => ({ ...f, instructorId: v }))}>
+                  <SelectTrigger><SelectValue placeholder="Instructor" /></SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value={NONE}>—</SelectItem>
+                    {instructors.map((i) => <SelectItem key={i.id} value={i.id}>{i.name}</SelectItem>)}
+                  </SelectContent>
+                </Select>
               </div>
-            ) : null}
+              <div className="space-y-1.5">
+                <Label className="font-body text-sm">Substitute</Label>
+                <Select value={form.actualInstructorId} onValueChange={(v) => setForm((f) => ({ ...f, actualInstructorId: v }))}>
+                  <SelectTrigger><SelectValue placeholder="None" /></SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value={NONE}>None</SelectItem>
+                    {instructors.map((i) => <SelectItem key={i.id} value={i.id}>{i.name}</SelectItem>)}
+                  </SelectContent>
+                </Select>
+              </div>
+            </div>
+            <div className="grid grid-cols-2 gap-3">
+              <div className="space-y-1.5">
+                <Label className="font-body text-sm">Capacity</Label>
+                <Input type="number" min={0} value={form.capacity} onChange={(e) => setForm((f) => ({ ...f, capacity: e.target.value }))} />
+              </div>
+              <div className="space-y-1.5">
+                <Label className="font-body text-sm">Status</Label>
+                <Select value={form.status} onValueChange={(v) => setForm((f) => ({ ...f, status: v }))}>
+                  <SelectTrigger><SelectValue /></SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="available">Available</SelectItem>
+                    <SelectItem value="cancelled">Cancelled</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+            </div>
+            <div className="space-y-1.5">
+              <Label className="font-body text-sm">Class notes</Label>
+              <Textarea value={form.classNotes} onChange={(e) => setForm((f) => ({ ...f, classNotes: e.target.value }))} rows={3} />
+            </div>
           </div>
-
-          {roster.bookings.length === 0 ? (
-            <p className="py-6 text-center text-sm text-charcoal/50">No one booked yet.</p>
-          ) : (
-            <ul className="divide-y divide-sage/10">
-              {roster.bookings.map((b) => (
-                <li key={b.id} className="flex items-center justify-between gap-3 py-2.5">
-                  <div className="min-w-0">
-                    <p className="font-body text-sm font-medium text-charcoal">
-                      {b.name}
-                      {b.extraGuests > 0 ? <span className="font-normal text-charcoal/50"> +{b.extraGuests}</span> : null}
-                    </p>
-                    <p className="font-body text-xs text-charcoal/50">{b.email}</p>
-                  </div>
-                  <div className="flex shrink-0 items-center gap-1.5">
-                    {b.checkedIn ? (
-                      <Badge className="bg-sage/10 text-sage border-sage/20 font-body">
-                        <CheckCircle2 className="mr-1 h-3.5 w-3.5" />
-                        {b.checkInOutcome === "late" ? "Late" : "In"}
-                      </Badge>
-                    ) : null}
-                    <Button
-                      size="sm"
-                      variant="outline"
-                      disabled={busyId === b.id}
-                      onClick={() => applyOutcome(b.id, b.checkedIn ? "not_checked_in" : "on_time")}
-                      className="h-8 border-sage/20 text-sage hover:bg-sage/10 font-body text-xs"
-                    >
-                      {b.checkedIn ? "Undo" : "Check in"}
-                    </Button>
-                    {!b.checkedIn ? (
-                      <Button
-                        size="sm"
-                        variant="outline"
-                        disabled={busyId === b.id}
-                        onClick={() => applyOutcome(b.id, "no_show")}
-                        className="h-8 border-terracotta/30 text-terracotta hover:bg-terracotta/5 font-body text-xs"
-                      >
-                        No-show
-                      </Button>
-                    ) : null}
-                  </div>
-                </li>
-              ))}
-            </ul>
-          )}
-        </CardContent>
-      </Card>
-    </main>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setEditOpen(false)} className="font-body">Cancel</Button>
+            <Button onClick={saveEdit} disabled={saving} className="bg-sage hover:bg-sage/90 text-white font-body">
+              {saving ? "Saving…" : "Save changes"}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+    </>
   );
 }

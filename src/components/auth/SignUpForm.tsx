@@ -12,7 +12,8 @@ import { PasswordInput } from "@/components/ui/password-input";
 import { PhoneInput, type PhoneValue } from "@/components/ui/phone-input";
 import { Label } from "@/components/ui/label";
 import { FormAlert } from "@/components/ui/form-alert";
-import { Loader2, CheckCircle2, ChevronDown, Leaf, Sparkles } from "lucide-react";
+import { CheckCircle2, ChevronDown, Leaf, Sparkles } from "lucide-react";
+import { Spinner } from "@/components/ui/spinner";
 import { motion, AnimatePresence } from "framer-motion";
 import { signUp } from "@/services/authService";
 
@@ -402,7 +403,7 @@ export function SignUpForm({ onSwitchToSignin }: { onSwitchToSignin: () => void 
               >
                 {isSubmitting ? (
                   <>
-                    <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                    <Spinner className="mr-2 size-4" />
                     Creating Account...
                   </>
                 ) : (

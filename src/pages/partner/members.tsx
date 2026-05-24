@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
-import { Loader2, UserX } from "lucide-react";
+import { UserX } from "lucide-react";
 import { PageHeader } from "@/components/dashboard/PageHeader";
+import { TableSkeleton } from "@/components/skeletons";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import {
@@ -58,8 +59,8 @@ export default function PartnerMembersPage() {
       <Card className="border-sage/20 bg-white/95">
         <CardContent className="p-0">
           {loading ? (
-            <div className="flex items-center justify-center py-16 text-charcoal/50">
-              <Loader2 className="h-5 w-5 animate-spin mr-2" /> Loading…
+            <div className="p-4">
+              <TableSkeleton />
             </div>
           ) : rows.length === 0 ? (
             <div className="flex items-center justify-center gap-2 py-16 font-body text-sm text-charcoal/40">

@@ -10,7 +10,8 @@ import { PasswordInput } from "@/components/ui/password-input";
 import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { FormAlert } from "@/components/ui/form-alert";
-import { CheckCircle2, Loader2 } from "lucide-react";
+import { CheckCircle2 } from "lucide-react";
+import { Spinner } from "@/components/ui/spinner";
 import { SEO } from "@/components/SEO";
 
 import { cdnUrl } from "@/lib/cdnUrl";
@@ -167,7 +168,7 @@ export default function ResetPasswordPage() {
                     className="w-full bg-sage hover:bg-sage/90 text-white font-body h-12 rounded-full"
                   >
                     {isSubmitting ? (
-                      <><Loader2 className="animate-spin mr-2 h-4 w-4" />Saving…</>
+                      <><Spinner className="mr-2 size-4" />Saving…</>
                     ) : (
                       "Update Password"
                     )}

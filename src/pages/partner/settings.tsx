@@ -7,7 +7,9 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/com
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Loader2, Check } from "lucide-react";
+import { Spinner } from "@/components/ui/spinner";
+import { FormSkeleton } from "@/components/skeletons";
+import { Check } from "lucide-react";
 
 interface PartnerProfile {
   name: string;
@@ -65,7 +67,7 @@ export default function PartnerSettings() {
       <PageHeader title="Settings" subtitle="Manage your brand and login" />
 
       {loading ? (
-        <div className="flex items-center justify-center py-16 text-charcoal/50"><Loader2 className="h-5 w-5 animate-spin mr-2" /> Loading…</div>
+        <FormSkeleton />
       ) : !profile ? (
         <Card className="border-terracotta/30 bg-terracotta/5"><CardContent className="p-4 font-body text-charcoal">Could not load your profile.</CardContent></Card>
       ) : (
@@ -114,7 +116,7 @@ export default function PartnerSettings() {
 
               <div className="flex items-center gap-3 pt-2">
                 <Button type="submit" disabled={saving} className="bg-sage hover:bg-sage/90 text-white font-body">
-                  {saving ? <Loader2 className="h-4 w-4 animate-spin" /> : "Save changes"}
+                  {saving ? <Spinner className="size-4" /> : "Save changes"}
                 </Button>
                 {saved && <span className="font-body text-sm text-sage flex items-center gap-1"><Check className="h-4 w-4" /> Saved</span>}
               </div>
