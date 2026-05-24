@@ -257,16 +257,16 @@ export default function MyBookingsPage() {
               return (
                 <div
                   key={booking.id}
-                  className="bg-white rounded-xl shadow-xs border border-sage/10 p-6 hover:shadow-md transition-all duration-300"
+                  className="bg-white rounded-xl shadow-xs border border-sage/10 p-4 sm:p-6 hover:shadow-md transition-all duration-300"
                 >
-                  <div className="flex items-center justify-between gap-6">
-                    {/* Left: Class Info */}
-                    <div className="flex-1">
-                      <div className="flex items-center gap-3 mb-2">
-                        <h3 className="font-display text-2xl text-charcoal">
-                          {booking.class_name}
-                        </h3>
-                        <span className={`inline-flex items-center px-2 py-1 rounded-full text-xs font-body ${
+                  {/* Top row: class name + status badges */}
+                  <div className="flex items-start justify-between gap-3 mb-3">
+                    <div className="flex-1 min-w-0">
+                      <h3 className="font-display text-lg sm:text-2xl text-charcoal truncate">
+                        {booking.class_name}
+                      </h3>
+                      <div className="flex flex-wrap gap-1.5 mt-1.5">
+                        <span className={`inline-flex items-center px-2 py-0.5 rounded-full text-xs font-body ${
                           booking.status === "confirmed"
                             ? "bg-sage/10 text-sage"
                             : "bg-terracotta/10 text-terracotta"
@@ -274,67 +274,66 @@ export default function MyBookingsPage() {
                           {booking.status === "confirmed" ? "Confirmed" : "Pending"}
                         </span>
                         {booking.confirmation_status === "pending" && booking.status !== "cancelled" && (
-                          <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-body bg-amber-100 text-amber-700">
-                            Pending confirmation
+                          <span className="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-body bg-amber-100 text-amber-700">
+                            Awaiting confirmation
                           </span>
                         )}
                         {booking.checked_in && (
-                          <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-body bg-sage/10 text-sage">
-                            Checked in
-                            {booking.check_in_outcome === "on_time" ? " · On time" : ""}
-                            {booking.check_in_outcome === "late" ? " · Late" : ""}
+                          <span className="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-body bg-sage/10 text-sage">
+                            Checked in{booking.check_in_outcome === "on_time" ? " · On time" : ""}{booking.check_in_outcome === "late" ? " · Late" : ""}
                           </span>
                         )}
                         {booking.check_in_outcome === "no_show" && (
-                          <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-body bg-charcoal/10 text-charcoal/70">
+                          <span className="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-body bg-charcoal/10 text-charcoal/70">
                             No-show
                           </span>
                         )}
                       </div>
-                      <div className="flex items-center gap-2 text-charcoal/60">
-                        <Clock size={16} />
-                        <span className="font-body text-sm">{formatTime(startIso)}</span>
-                      </div>
-                      <div className="text-sm text-charcoal/50 font-body mt-1">
-                        {formatDate(startIso)}
-                      </div>
                     </div>
-
-                    {/* Middle: Instructor (placeholder) */}
-                    <div className="hidden md:block">
-                      <p className="font-body text-sm text-charcoal/60">Instructor</p>
-                      <p className="font-body text-charcoal">
-                        {booking.class_schedule?.instructor?.name || "—"}
-                      </p>
-                    </div>
-
-                    {/* Middle-Right: Time Until */}
+                    {/* Time until (compact, always visible) */}
                     {!isPast && (
-                      <div className="hidden lg:block">
-                        <p className="font-body text-sm text-charcoal/60">Starts in</p>
-                        <p className="font-body text-charcoal font-medium">{timeUntil}</p>
+                      <div className="shrink-0 text-right">
+                        <p className="font-body text-xs text-charcoal/50">Starts in</p>
+                        <p className="font-body text-sm font-medium text-charcoal">{timeUntil}</p>
                       </div>
                     )}
+                  </div>
 
-                    {/* Right: Action Button */}
-                    {!isPast && (
-                      <div className="shrink-0 flex flex-col gap-2 items-end max-w-xs text-right">
-                        {beforeCheckInWindow && (
-                          <p className="font-body text-xs text-charcoal/55">
-                            Check-in opens at {formatTime(new Date(checkInOpen).toISOString())} (15 minutes
-                            before class).
-                          </p>
-                        )}
-                        {afterCheckInWindow && (
-                          <p className="font-body text-xs text-charcoal/55">
-                            Check-in closed for this class.
-                          </p>
-                        )}
+                  {/* Date/time + instructor row */}
+                  <div className="flex flex-wrap gap-x-4 gap-y-1 mb-3">
+                    <div className="flex items-center gap-1.5 text-charcoal/60">
+                      <Clock size={14} />
+                      <span className="font-body text-sm">{formatTime(startIso)}</span>
+                    </div>
+                    <div className="font-body text-sm text-charcoal/50">
+                      {formatDate(startIso)}
+                    </div>
+                    {booking.class_schedule?.instructor?.name && (
+                      <div className="font-body text-sm text-charcoal/60 hidden md:block">
+                        {booking.class_schedule.instructor.name}
+                      </div>
+                    )}
+                  </div>
+
+                  {/* Action buttons */}
+                  {!isPast && (
+                    <div className="flex flex-col gap-2">
+                      {beforeCheckInWindow && (
+                        <p className="font-body text-xs text-charcoal/55">
+                          Check-in opens at {formatTime(new Date(checkInOpen).toISOString())} (15 min before class).
+                        </p>
+                      )}
+                      {afterCheckInWindow && (
+                        <p className="font-body text-xs text-charcoal/55">
+                          Check-in closed for this class.
+                        </p>
+                      )}
+                      <div className="flex gap-2">
                         {canCheck && (
                           <Button
                             onClick={() => void handleCheckIn(booking)}
                             size="sm"
-                            className="bg-sage hover:bg-sage/90 text-white h-10 px-6"
+                            className="flex-1 sm:flex-none bg-sage hover:bg-sage/90 text-white h-11 px-6"
                           >
                             Check in
                           </Button>
@@ -343,14 +342,14 @@ export default function MyBookingsPage() {
                           onClick={() => handleCancelClick(booking)}
                           size="sm"
                           variant="outline"
-                          className="border-terracotta/30 text-terracotta hover:bg-terracotta/5 h-10 px-6"
+                          className="flex-1 sm:flex-none border-terracotta/30 text-terracotta hover:bg-terracotta/5 h-11 px-6"
                         >
-                          <X size={16} className="mr-2" />
+                          <X size={16} className="mr-1.5" />
                           Cancel
                         </Button>
                       </div>
-                    )}
-                  </div>
+                    </div>
+                  )}
                 </div>
               );
             })}
