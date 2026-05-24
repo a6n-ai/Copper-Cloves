@@ -221,7 +221,7 @@ export default function RentalPage() {
                     </div>
                   ) : (
                     <form onSubmit={handleSubmit} className="space-y-6">
-                      <div className="bg-white rounded-2xl p-8 shadow-xl border border-sage/10">
+                      <div className="bg-white rounded-2xl p-4 sm:p-8 shadow-xl border border-sage/10">
                         {/* Name */}
                         <div className="mb-6">
                           <label className="flex items-center gap-2 font-body text-sm text-charcoal/70 mb-2">
