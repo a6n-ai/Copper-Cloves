@@ -431,15 +431,15 @@ export default function Dashboard() {
     <div className="min-h-screen bg-linear-to-br from-cream via-cream to-sage/5">
       {/* Main Content */}
       <main className="min-h-screen">
-        <div className="max-w-7xl mx-auto p-6 lg:p-8">
+        <div className="max-w-7xl mx-auto px-4 py-5 sm:px-6 lg:px-8 lg:py-8">
           
           {/* TOP SECTION: Greeting & Path to Mastery */}
-          <div className="mb-12">
+          <div className="mb-6 lg:mb-12">
             {/* Welcome Header + Today's Intention - Same Row */}
-            <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-6 mb-8">
+            <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4 lg:gap-6 mb-6 lg:mb-8">
               {/* Welcome Header */}
               <div>
-                <h1 className="font-display text-3xl md:text-4xl text-charcoal mb-2 leading-tight">
+                <h1 className="font-display text-2xl md:text-4xl text-charcoal mb-1 leading-tight">
                   Welcome Home, {userName || "Member"}
                 </h1>
                 <p className="font-body text-sm text-charcoal/60">
@@ -459,7 +459,7 @@ export default function Dashboard() {
               </div>
 
               {/* Today's Intention */}
-              <div className="flex items-start gap-3 flex-1 max-w-xl">
+              <div className="flex items-start gap-3 flex-1 lg:max-w-xl">
                 <div className="w-10 h-10 rounded-full bg-sage/10 flex items-center justify-center shrink-0">
                   <AnimatedIcon icon={Target} size={20} className="text-sage" />
                 </div>
@@ -508,7 +508,7 @@ export default function Dashboard() {
                     <p className="text-xs text-muted-foreground">Fast access to your favorites</p>
                   </div>
                 </div>
-                <div className="grid grid-cols-2 gap-2 sm:flex sm:flex-wrap sm:justify-end">
+                <div className="grid grid-cols-2 gap-2 sm:flex sm:flex-wrap sm:justify-end w-full sm:w-auto">
                   <Button
                     type="button"
                     onClick={() => void router.push("/portal/book")}
@@ -632,7 +632,7 @@ export default function Dashboard() {
           )}
 
           {/* MIDDLE ROW: Movement Vitality (2/3) + Sidebar (1/3) */}
-          <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 mb-8">
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-5 lg:gap-8 mb-5 lg:mb-8">
             
             {/* LEFT COLUMN (2/3) - Movement Vitality Graph */}
             <div className="lg:col-span-2">
@@ -653,7 +653,7 @@ export default function Dashboard() {
           </div>
 
           {/* BOTTOM ROW: Recent Activity + Nourish Café */}
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-5 lg:gap-8">
             
             {/* Recent Activity Feed */}
             <ActivityTimeline
@@ -671,7 +671,7 @@ export default function Dashboard() {
 
             {/* Nourish Quick-Order Café Widget */}
             <Card className="border-0 bg-linear-to-br from-sage/5 to-white/80 backdrop-blur-xl shadow-lg">
-              <CardContent className="p-8">
+              <CardContent className="p-5 sm:p-8">
                 <div className="flex items-start gap-4 mb-6">
                   <div className="w-14 h-14 rounded-full bg-sage/10 flex items-center justify-center shrink-0">
                     <AnimatedIcon icon={Coffee} size={28} className="text-sage" />
