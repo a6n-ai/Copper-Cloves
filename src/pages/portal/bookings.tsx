@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, useMemo } from "react";
 import { PageHeader } from "@/components/dashboard/PageHeader";
 import { useToast } from "@/hooks/use-toast";
 import { useRouter } from "next/router";
@@ -15,6 +15,8 @@ import {
   ResponsiveDialogTitle,
 } from "@/components/responsive/ResponsiveDialog";
 import { Alert, AlertDescription } from "@/components/ui/alert";
+import { ResponsiveCards } from "@/components/responsive/ResponsiveTable";
+import { MobilePagination } from "@/components/responsive/MobilePagination";
 
 import { canCheckInNow, checkInWindowBounds } from "@/lib/bookingAttendance";
 
@@ -84,6 +86,8 @@ export default function MyBookingsPage() {
   const [selectedBooking, setSelectedBooking] = useState<Booking | null>(null);
   const [canceling, setCanceling] = useState(false);
   const [canRefund, setCanRefund] = useState(false);
+  const [currentPage, setCurrentPage] = useState(1);
+  const PAGE_SIZE = 8;
 
   useEffect(() => {
     if (status === "unauthenticated") { router.push("/portal/login"); return; }
@@ -190,6 +194,9 @@ export default function MyBookingsPage() {
     }
   }
 
+  const totalPages = Math.ceil(bookings.length / PAGE_SIZE);
+  const paginatedBookings = bookings.slice((currentPage - 1) * PAGE_SIZE, currentPage * PAGE_SIZE);
+
   if (isLoading) {
     return (
       <div className="min-h-screen bg-linear-to-br from-cream via-cream to-sage/5">
@@ -230,130 +237,174 @@ export default function MyBookingsPage() {
             </Button>
           </div>
         ) : (
-          <div className="space-y-4">
-            {bookings.map((booking) => {
-              const startIso = effectiveClassTime(booking);
-              const timeUntil = getTimeUntilClass(startIso);
-              const isPast = timeUntil === "Past";
-              const startDate = new Date(startIso);
-              const now = new Date();
-              const { open: checkInOpen, close: checkInClose } = checkInWindowBounds(startDate);
-              const beforeCheckInWindow =
-                !isPast &&
-                !booking.checked_in &&
-                booking.status !== "cancelled" &&
-                now.getTime() < checkInOpen;
-              const afterCheckInWindow =
-                !isPast &&
-                !booking.checked_in &&
-                booking.status !== "cancelled" &&
-                now.getTime() > checkInClose;
-              const canCheck =
-                !isPast &&
-                !booking.checked_in &&
-                booking.status !== "cancelled" &&
-                canCheckInNow(startDate);
-
-              return (
-                <div
-                  key={booking.id}
-                  className="bg-white rounded-xl shadow-xs border border-sage/10 p-4 sm:p-6 hover:shadow-md transition-all duration-300"
-                >
-                  {/* Top row: class name + status badges */}
-                  <div className="flex items-start justify-between gap-3 mb-3">
-                    <div className="flex-1 min-w-0">
-                      <h3 className="font-display text-lg sm:text-2xl text-charcoal truncate">
-                        {booking.class_name}
-                      </h3>
-                      <div className="flex flex-wrap gap-1.5 mt-1.5">
-                        <span className={`inline-flex items-center px-2 py-0.5 rounded-full text-xs font-body ${
-                          booking.status === "confirmed"
-                            ? "bg-sage/10 text-sage"
-                            : "bg-terracotta/10 text-terracotta"
-                        }`}>
-                          {booking.status === "confirmed" ? "Confirmed" : "Pending"}
-                        </span>
-                        {booking.confirmation_status === "pending" && booking.status !== "cancelled" && (
-                          <span className="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-body bg-amber-100 text-amber-700">
-                            Awaiting confirmation
+          <>
+            <ResponsiveCards
+              data={paginatedBookings}
+              renderCard={(booking) => {
+                const startIso = effectiveClassTime(booking);
+                const timeUntil = getTimeUntilClass(startIso);
+                const isPast = timeUntil === "Past";
+                const startDate = new Date(startIso);
+                const now = new Date();
+                const { open: checkInOpen, close: checkInClose } = checkInWindowBounds(startDate);
+                const beforeCheckInWindow =
+                  !isPast && !booking.checked_in && booking.status !== "cancelled" && now.getTime() < checkInOpen;
+                const afterCheckInWindow =
+                  !isPast && !booking.checked_in && booking.status !== "cancelled" && now.getTime() > checkInClose;
+                const canCheck =
+                  !isPast && !booking.checked_in && booking.status !== "cancelled" && canCheckInNow(startDate);
+                return (
+                  <div
+                    key={booking.id}
+                    className="bg-white rounded-xl shadow-xs border border-sage/10 p-4 hover:shadow-md transition-all duration-300"
+                  >
+                    <div className="flex items-start justify-between gap-3 mb-2">
+                      <div className="flex-1 min-w-0">
+                        <h3 className="font-display text-lg text-charcoal truncate">{booking.class_name}</h3>
+                        <div className="flex flex-wrap gap-1.5 mt-1">
+                          <span className={`inline-flex items-center px-2 py-0.5 rounded-full text-xs font-body ${booking.status === "confirmed" ? "bg-sage/10 text-sage" : "bg-terracotta/10 text-terracotta"}`}>
+                            {booking.status === "confirmed" ? "Confirmed" : "Pending"}
                           </span>
-                        )}
-                        {booking.checked_in && (
-                          <span className="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-body bg-sage/10 text-sage">
-                            Checked in{booking.check_in_outcome === "on_time" ? " · On time" : ""}{booking.check_in_outcome === "late" ? " · Late" : ""}
-                          </span>
-                        )}
-                        {booking.check_in_outcome === "no_show" && (
-                          <span className="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-body bg-charcoal/10 text-charcoal/70">
-                            No-show
-                          </span>
-                        )}
+                          {booking.confirmation_status === "pending" && booking.status !== "cancelled" && (
+                            <span className="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-body bg-amber-100 text-amber-700">Awaiting confirmation</span>
+                          )}
+                          {booking.checked_in && (
+                            <span className="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-body bg-sage/10 text-sage">
+                              Checked in{booking.check_in_outcome === "on_time" ? " · On time" : ""}{booking.check_in_outcome === "late" ? " · Late" : ""}
+                            </span>
+                          )}
+                          {booking.check_in_outcome === "no_show" && (
+                            <span className="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-body bg-charcoal/10 text-charcoal/70">No-show</span>
+                          )}
+                        </div>
                       </div>
+                      {!isPast && (
+                        <div className="shrink-0 text-right">
+                          <p className="font-body text-xs text-charcoal/50">Starts in</p>
+                          <p className="font-body text-sm font-medium text-charcoal">{timeUntil}</p>
+                        </div>
+                      )}
                     </div>
-                    {/* Time until (compact, always visible) */}
+                    <div className="flex flex-wrap gap-x-4 gap-y-1 mb-3">
+                      <div className="flex items-center gap-1.5 text-charcoal/60">
+                        <Clock size={14} />
+                        <span className="font-body text-sm">{formatTime(startIso)}</span>
+                      </div>
+                      <div className="font-body text-sm text-charcoal/50">{formatDate(startIso)}</div>
+                    </div>
                     {!isPast && (
-                      <div className="shrink-0 text-right">
-                        <p className="font-body text-xs text-charcoal/50">Starts in</p>
-                        <p className="font-body text-sm font-medium text-charcoal">{timeUntil}</p>
-                      </div>
-                    )}
-                  </div>
-
-                  {/* Date/time + instructor row */}
-                  <div className="flex flex-wrap gap-x-4 gap-y-1 mb-3">
-                    <div className="flex items-center gap-1.5 text-charcoal/60">
-                      <Clock size={14} />
-                      <span className="font-body text-sm">{formatTime(startIso)}</span>
-                    </div>
-                    <div className="font-body text-sm text-charcoal/50">
-                      {formatDate(startIso)}
-                    </div>
-                    {booking.class_schedule?.instructor?.name && (
-                      <div className="font-body text-sm text-charcoal/60 hidden md:block">
-                        {booking.class_schedule.instructor.name}
-                      </div>
-                    )}
-                  </div>
-
-                  {/* Action buttons */}
-                  {!isPast && (
-                    <div className="flex flex-col gap-2">
-                      {beforeCheckInWindow && (
-                        <p className="font-body text-xs text-charcoal/55">
-                          Check-in opens at {formatTime(new Date(checkInOpen).toISOString())} (15 min before class).
-                        </p>
-                      )}
-                      {afterCheckInWindow && (
-                        <p className="font-body text-xs text-charcoal/55">
-                          Check-in closed for this class.
-                        </p>
-                      )}
-                      <div className="flex gap-2">
-                        {canCheck && (
-                          <Button
-                            onClick={() => void handleCheckIn(booking)}
-                            size="sm"
-                            className="flex-1 sm:flex-none bg-sage hover:bg-sage/90 text-white h-11 px-6"
-                          >
-                            Check in
-                          </Button>
+                      <div className="flex flex-col gap-2">
+                        {beforeCheckInWindow && (
+                          <p className="font-body text-xs text-charcoal/55">Check-in opens at {formatTime(new Date(checkInOpen).toISOString())} (15 min before class).</p>
                         )}
-                        <Button
-                          onClick={() => handleCancelClick(booking)}
-                          size="sm"
-                          variant="outline"
-                          className="flex-1 sm:flex-none border-terracotta/30 text-terracotta hover:bg-terracotta/5 h-11 px-6"
-                        >
-                          <X size={16} className="mr-1.5" />
-                          Cancel
-                        </Button>
+                        {afterCheckInWindow && (
+                          <p className="font-body text-xs text-charcoal/55">Check-in closed for this class.</p>
+                        )}
+                        <div className="flex gap-2">
+                          {canCheck && (
+                            <Button onClick={() => void handleCheckIn(booking)} size="sm" className="flex-1 bg-sage hover:bg-sage/90 text-white h-11 px-4">
+                              Check in
+                            </Button>
+                          )}
+                          <Button onClick={() => handleCancelClick(booking)} size="sm" variant="outline" className="flex-1 border-terracotta/30 text-terracotta hover:bg-terracotta/5 h-11 px-4">
+                            <X size={16} className="mr-1.5" />Cancel
+                          </Button>
+                        </div>
                       </div>
-                    </div>
-                  )}
+                    )}
+                  </div>
+                );
+              }}
+              renderTable={() => (
+                <div className="space-y-4">
+                  {paginatedBookings.map((booking) => {
+                    const startIso = effectiveClassTime(booking);
+                    const timeUntil = getTimeUntilClass(startIso);
+                    const isPast = timeUntil === "Past";
+                    const startDate = new Date(startIso);
+                    const now = new Date();
+                    const { open: checkInOpen, close: checkInClose } = checkInWindowBounds(startDate);
+                    const beforeCheckInWindow =
+                      !isPast && !booking.checked_in && booking.status !== "cancelled" && now.getTime() < checkInOpen;
+                    const afterCheckInWindow =
+                      !isPast && !booking.checked_in && booking.status !== "cancelled" && now.getTime() > checkInClose;
+                    const canCheck =
+                      !isPast && !booking.checked_in && booking.status !== "cancelled" && canCheckInNow(startDate);
+                    return (
+                      <div
+                        key={booking.id}
+                        className="bg-white rounded-xl shadow-xs border border-sage/10 p-4 sm:p-6 hover:shadow-md transition-all duration-300"
+                      >
+                        <div className="flex items-start justify-between gap-3 mb-3">
+                          <div className="flex-1 min-w-0">
+                            <h3 className="font-display text-lg sm:text-2xl text-charcoal truncate">{booking.class_name}</h3>
+                            <div className="flex flex-wrap gap-1.5 mt-1.5">
+                              <span className={`inline-flex items-center px-2 py-0.5 rounded-full text-xs font-body ${booking.status === "confirmed" ? "bg-sage/10 text-sage" : "bg-terracotta/10 text-terracotta"}`}>
+                                {booking.status === "confirmed" ? "Confirmed" : "Pending"}
+                              </span>
+                              {booking.confirmation_status === "pending" && booking.status !== "cancelled" && (
+                                <span className="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-body bg-amber-100 text-amber-700">Awaiting confirmation</span>
+                              )}
+                              {booking.checked_in && (
+                                <span className="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-body bg-sage/10 text-sage">
+                                  Checked in{booking.check_in_outcome === "on_time" ? " · On time" : ""}{booking.check_in_outcome === "late" ? " · Late" : ""}
+                                </span>
+                              )}
+                              {booking.check_in_outcome === "no_show" && (
+                                <span className="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-body bg-charcoal/10 text-charcoal/70">No-show</span>
+                              )}
+                            </div>
+                          </div>
+                          {!isPast && (
+                            <div className="shrink-0 text-right">
+                              <p className="font-body text-xs text-charcoal/50">Starts in</p>
+                              <p className="font-body text-sm font-medium text-charcoal">{timeUntil}</p>
+                            </div>
+                          )}
+                        </div>
+                        <div className="flex flex-wrap gap-x-4 gap-y-1 mb-3">
+                          <div className="flex items-center gap-1.5 text-charcoal/60">
+                            <Clock size={14} />
+                            <span className="font-body text-sm">{formatTime(startIso)}</span>
+                          </div>
+                          <div className="font-body text-sm text-charcoal/50">{formatDate(startIso)}</div>
+                          {booking.class_schedule?.instructor?.name && (
+                            <div className="font-body text-sm text-charcoal/60">{booking.class_schedule.instructor.name}</div>
+                          )}
+                        </div>
+                        {!isPast && (
+                          <div className="flex flex-col gap-2">
+                            {beforeCheckInWindow && (
+                              <p className="font-body text-xs text-charcoal/55">Check-in opens at {formatTime(new Date(checkInOpen).toISOString())} (15 min before class).</p>
+                            )}
+                            {afterCheckInWindow && (
+                              <p className="font-body text-xs text-charcoal/55">Check-in closed for this class.</p>
+                            )}
+                            <div className="flex gap-2">
+                              {canCheck && (
+                                <Button onClick={() => void handleCheckIn(booking)} size="sm" className="flex-1 sm:flex-none bg-sage hover:bg-sage/90 text-white h-11 px-6">Check in</Button>
+                              )}
+                              <Button onClick={() => handleCancelClick(booking)} size="sm" variant="outline" className="flex-1 sm:flex-none border-terracotta/30 text-terracotta hover:bg-terracotta/5 h-11 px-6">
+                                <X size={16} className="mr-1.5" />Cancel
+                              </Button>
+                            </div>
+                          </div>
+                        )}
+                      </div>
+                    );
+                  })}
                 </div>
-              );
-            })}
-          </div>
+              )}
+            />
+            {totalPages > 1 && (
+              <MobilePagination
+                currentPage={currentPage}
+                totalPages={totalPages}
+                onPageChange={setCurrentPage}
+                className="mt-4"
+              />
+            )}
+          </>
         )}
       </div>
 
