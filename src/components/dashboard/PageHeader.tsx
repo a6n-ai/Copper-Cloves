@@ -86,7 +86,7 @@ export function PageHeader({ title, subtitle, actions, crumbs: crumbsProp }: Pag
       </div>
       <div className="flex flex-wrap items-center gap-4">
         {actions}
-        <Breadcrumb>
+        <Breadcrumb className="hidden md:block">
           <BreadcrumbList className="font-body text-sm text-charcoal/60">
             {crumbs.map((c, i) => {
               const last = i === crumbs.length - 1;
