@@ -327,7 +327,7 @@ export function DashboardShell({ config, user, children }: DashboardShellProps) 
         </header>
         {/* overflow-x-clip: portal pages never scroll sideways on mobile (clip,
             not hidden, so sticky/dropdowns still work). */}
-        <div className={cn("flex-1 overflow-x-clip", "pb-24 md:pb-0")}>{children}</div>
+        <div className={cn("flex-1 overflow-x-clip", "pb-28 md:pb-0")}>{children}</div>
       </SidebarInset>
       <MobileBottomNav config={config} />
     </SidebarProvider>
