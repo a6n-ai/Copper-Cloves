@@ -490,6 +490,19 @@ export default function AdminSchedule() {
     setDialogOpen(true);
   };
 
+  // Deep-link from the class page ("Edit in scheduler") opens the edit dialog.
+  useEffect(() => {
+    const editId = router.query.edit;
+    if (typeof editId !== "string" || schedule.length === 0) return;
+    const sc = schedule.find((c) => c.id === editId);
+    if (!sc) return;
+    handleEditClass(sc);
+    const rest = { ...router.query };
+    delete rest.edit;
+    void router.replace({ pathname: router.pathname, query: rest }, undefined, { shallow: true });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [router.query.edit, schedule]);
+
   const handleSaveClass = async (data: z.infer<typeof classSchema>) => {
     const selectedClassData = classOptions.find(c => String(c.id) === String(data.classId));
 
@@ -938,7 +951,7 @@ export default function AdminSchedule() {
                   <DayScheduleList
                     variant="expanded"
                     emptyText="No classes on this day. Click Schedule Class to add one."
-                    onSelect={(row: any) => handleEditClass(row._raw)}
+                    onSelect={(row: any) => router.push(`/admin/schedule/${row.id}`)}
                     items={schedule
                       .filter((c) => c.dateIso === selectedDateIso)
                       .sort((a, b) => a.startTimeIso.localeCompare(b.startTimeIso))
@@ -963,33 +976,17 @@ export default function AdminSchedule() {
                           <Button
                             variant="outline"
                             size="sm"
-                            onClick={(e) => { e.stopPropagation(); void loadRoster(sc.id); }}
-                            className="border-sage/20 text-sage hover:bg-sage/10 font-body h-8 w-8 p-0"
-                            title="View roster"
+                            onClick={(e) => { e.stopPropagation(); router.push(`/admin/schedule/${sc.id}`); }}
+                            className="border-sage/20 text-sage hover:bg-sage/10 font-body h-8 px-3 text-xs"
                           >
-                            <Users className="h-3.5 w-3.5" />
+                            Manage
                           </Button>
                           <Button
                             variant="outline"
                             size="sm"
-                            onClick={() => handleEditClass(sc)}
-                            className="border-sage/20 text-sage hover:bg-sage/10 font-body h-8 w-8 p-0"
-                          >
-                            <Edit2 className="h-3.5 w-3.5" />
-                          </Button>
-                          <Button
-                            variant="outline"
-                            size="sm"
-                            onClick={() => handleDuplicateClass(sc)}
-                            className="border-charcoal/20 text-charcoal hover:bg-charcoal/5 font-body h-8 w-8 p-0"
-                          >
-                            <Copy className="h-3.5 w-3.5" />
-                          </Button>
-                          <Button
-                            variant="outline"
-                            size="sm"
-                            onClick={() => handleDeleteClass(sc.id)}
+                            onClick={(e) => { e.stopPropagation(); handleDeleteClass(sc.id); }}
                             className="border-red-500/20 text-red-600 hover:bg-red-50 font-body h-8 w-8 p-0"
+                            title="Delete"
                           >
                             <Trash2 className="h-3.5 w-3.5" />
                           </Button>

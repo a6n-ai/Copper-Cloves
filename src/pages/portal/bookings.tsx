@@ -1,8 +1,8 @@
 import { useEffect, useState } from "react";
+import { PageHeader } from "@/components/dashboard/PageHeader";
 import { useToast } from "@/hooks/use-toast";
 import { useRouter } from "next/router";
 import { useSession } from "next-auth/react";
-import { PortalNavigation } from "@/components/PortalNavigation";
 import { Button } from "@/components/ui/button";
 import { Calendar, Clock, MapPin, User, AlertCircle, X } from "lucide-react";
 import {
@@ -167,20 +167,13 @@ export default function MyBookingsPage() {
 
   return (
     <div className="min-h-screen bg-linear-to-br from-cream via-cream to-sage/5">
-      <PortalNavigation />
-
       {/* Header */}
-      <div className="relative pt-32 pb-20 px-6">
-        <div className="max-w-6xl mx-auto text-center">
-          <h1 className="font-display text-5xl text-charcoal mb-4">My Bookings</h1>
-          <p className="font-body text-lg text-charcoal/70 max-w-2xl mx-auto">
-            View and manage your upcoming class reservations
-          </p>
-        </div>
+      <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 pt-8 pb-6">
+        <PageHeader title="My Bookings" subtitle="View and manage your upcoming class reservations" />
       </div>
 
       {/* Bookings Grid */}
-      <div className="max-w-6xl mx-auto px-6 pb-20">
+      <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 pb-20">
         {bookings.length === 0 ? (
           <div className="text-center py-16">
             <div className="w-20 h-20 bg-sage/10 rounded-full flex items-center justify-center mx-auto mb-6">

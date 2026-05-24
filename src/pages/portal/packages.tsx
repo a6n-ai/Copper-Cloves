@@ -1,10 +1,9 @@
 import { useEffect, useState, useRef } from "react";
+import { PageHeader } from "@/components/dashboard/PageHeader";
 import { useRouter } from "next/router";
-import { ChevronLeft, ChevronRight, Check, X, CreditCard, Loader2, AlertCircle, ArrowLeft, Download } from "lucide-react";
+import { ChevronLeft, ChevronRight, Check, X, CreditCard, Loader2, AlertCircle, Download } from "lucide-react";
 import { FormAlert } from "@/components/ui/form-alert";
-import Link from "next/link";
 import { useSession } from "next-auth/react";
-import { PortalNavigation } from "@/components/PortalNavigation";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -602,25 +601,13 @@ export default function PackagesPage() {
 
   return (
     <div className="min-h-screen bg-linear-to-b from-cream via-white to-cream">
-      <PortalNavigation />
-      
-      <div className="max-w-7xl mx-auto px-6 lg:px-8 py-12">
-        {/* Back Button */}
-        <Link href="/portal/dashboard">
-          <button className="mb-8 flex items-center gap-2 text-charcoal/60 hover:text-charcoal transition-colors">
-            <ArrowLeft size={20} />
-            <span className="font-body text-sm">Back to Dashboard</span>
-          </button>
-        </Link>
-
+      <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 pt-8 pb-12">
         {/* Header */}
-        <div className="text-center mb-16">
-          <h1 className="font-display text-4xl md:text-5xl text-charcoal mb-4">
-            Choose Your Package
-          </h1>
-          <p className="font-body text-lg text-charcoal/60 max-w-2xl mx-auto">
-            Select the perfect package for your wellness journey
-          </p>
+        <div className="mb-6">
+          <PageHeader
+            title="Choose Your Package"
+            subtitle="Select the perfect package for your wellness journey"
+          />
         </div>
 
         {/* Tab Switcher */}
@@ -736,7 +723,7 @@ export default function PackagesPage() {
       </div>
 
       {/* Purchase History Section */}
-      <div className="max-w-7xl mx-auto px-6 lg:px-8 py-12 mt-12">
+      <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-12 mt-12">
         <div className="mb-8">
           <h2 className="font-display text-3xl text-charcoal mb-2">Purchase History</h2>
           <p className="font-body text-sm text-charcoal/60">

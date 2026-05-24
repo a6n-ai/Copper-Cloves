@@ -1,14 +1,13 @@
 import { useState, useEffect, useCallback } from "react";
 import { useRouter } from "next/router";
-import { useSession, signOut } from "next-auth/react";
-import Link from "next/link";
+import { useSession } from "next-auth/react";
 import { format, isAfter, isBefore, isToday, isTomorrow } from "date-fns";
 import { Button } from "@/components/ui/button";
-import { RoleSwitcher } from "@/components/RoleSwitcher";
-import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
+import { InstructorDashboardSkeleton } from "@/components/dashboard/skeletons";
+import { PageHeader } from "@/components/dashboard/PageHeader";
+import { InstructorCheckinBeacon } from "@/components/checkin/InstructorCheckinBeacon";
 import {
-  LogOut,
   Users,
   Clock,
   CheckCircle2,
@@ -156,10 +155,6 @@ export default function InstructorDashboard() {
     void loadData();
   }, [status, session, router, loadData]);
 
-  async function handleSignOut() {
-    await signOut({ redirect: false });
-    router.replace("/login");
-  }
 
   async function handleCheckIn(bookingId: string) {
     setCheckingIn((prev) => ({ ...prev, [bookingId]: true }));
@@ -225,10 +220,9 @@ export default function InstructorDashboard() {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-cream flex items-center justify-center">
-        <div className="flex flex-col items-center gap-3">
-          <div className="h-10 w-10 border-2 border-sage border-t-transparent rounded-full animate-spin" />
-          <p className="font-body text-sm text-charcoal/60">Loading your schedule…</p>
+      <div className="min-h-screen bg-cream">
+        <div className="mx-auto max-w-5xl px-4 py-6">
+          <InstructorDashboardSkeleton />
         </div>
       </div>
     );
@@ -236,45 +230,17 @@ export default function InstructorDashboard() {
 
   return (
     <div className="min-h-screen bg-cream">
-      {/* Nav */}
-      <nav className="bg-white/70 backdrop-blur-xl border-b border-sage/10 sticky top-0 z-40">
-        <div className="max-w-5xl mx-auto px-4 h-16 flex items-center justify-between">
-          <Link href="/" className="flex flex-col leading-none">
-            <span className="font-display text-xl text-charcoal italic tracking-tight">
-              the<span className="font-normal not-italic uppercase tracking-wider">STUDIO</span>
-            </span>
-            <span className="font-body text-[9px] text-charcoal/60 tracking-widest uppercase">
-              by COPPER+CLOVES
-            </span>
-          </Link>
-
-          <div className="flex items-center gap-3">
-            <RoleSwitcher />
-            <div className="hidden sm:block text-right">
-              <p className="font-body text-sm font-medium text-charcoal">{instructorName}</p>
-              <p className="font-body text-[10px] text-charcoal/50 uppercase tracking-wider">Instructor</p>
-            </div>
-            <button
-              onClick={handleSignOut}
-              className="flex items-center gap-1.5 font-body text-sm text-charcoal/60 hover:text-charcoal transition-colors"
-            >
-              <LogOut className="h-4 w-4" />
-              <span className="hidden sm:inline">Sign out</span>
-            </button>
-          </div>
-        </div>
-      </nav>
-
       <div className="max-w-5xl mx-auto px-4 py-6">
         {/* Header */}
         <div className="mb-6">
-          <h1 className="font-display text-3xl text-charcoal">
-            Good {new Date().getHours() < 12 ? "morning" : new Date().getHours() < 17 ? "afternoon" : "evening"},{" "}
-            {instructorName.split(" ")[0]}
-          </h1>
-          <p className="font-body text-charcoal/60 mt-0.5">
-            {format(new Date(), "EEEE, MMMM d")} · {classes.filter(c => isToday(new Date(c.startTime))).length} class{classes.filter(c => isToday(new Date(c.startTime))).length !== 1 ? "es" : ""} today · {classes.length} this week
-          </p>
+          <PageHeader
+            title={`Good ${new Date().getHours() < 12 ? "morning" : new Date().getHours() < 17 ? "afternoon" : "evening"}, ${instructorName.split(" ")[0]}`}
+            subtitle={`${format(new Date(), "EEEE, MMMM d")} · ${classes.filter(c => isToday(new Date(c.startTime))).length} class${classes.filter(c => isToday(new Date(c.startTime))).length !== 1 ? "es" : ""} today · ${classes.length} this week`}
+          />
+        </div>
+
+        <div className="mb-6">
+          <InstructorCheckinBeacon classes={classes} />
         </div>
 
         {/* Stats row */}

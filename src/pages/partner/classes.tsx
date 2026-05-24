@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useState } from "react";
+import { PageHeader } from "@/components/dashboard/PageHeader";
 import { useRouter } from "next/router";
 import type { GetServerSideProps } from "next";
 import { getStudioServerSession } from "@/lib/getStudioServerSession";
@@ -14,11 +15,13 @@ interface BookingRow {
   id: string;
   memberName: string;
   email: string;
+  phone: string | null;
   avatarUrl: string | null;
   checkedIn: boolean;
   checkInOutcome: string | null;
   extraGuests: number;
   confirmationStatus: string | null;
+  hasWaiver: boolean;
 }
 interface ClassRow {
   id: string;
@@ -154,6 +157,7 @@ export default function PartnerClasses() {
 
   return (
     <main className="max-w-5xl mx-auto p-4 lg:p-6 space-y-5">
+      <PageHeader title="Classes" subtitle="Your weekly roster and bookings" />
       {/* Period metrics — admin classes style */}
       <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
         <MetricCard label="Classes" value={periodStats.count} icon={Calendar} tone="sage" hint="In this view" />
@@ -165,9 +169,9 @@ export default function PartnerClasses() {
       <div className="flex flex-wrap items-center justify-between gap-3">
         <div className="flex items-center gap-2">
           <Button variant="outline" size="icon" className="h-9 w-9 border-sage/20" onClick={() => shift(-1)} aria-label="Previous"><ChevronLeft className="h-4 w-4" /></Button>
-          <h1 className="font-display text-2xl text-charcoal min-w-[180px] text-center flex items-center justify-center gap-2">
+          <div className="font-display text-2xl text-charcoal min-w-[180px] text-center flex items-center justify-center gap-2">
             <Calendar className="h-5 w-5 text-sage" /> {periodLabel}
-          </h1>
+          </div>
           <Button variant="outline" size="icon" className="h-9 w-9 border-sage/20" onClick={() => shift(1)} aria-label="Next"><ChevronRight className="h-4 w-4" /></Button>
           <Button variant="ghost" size="sm" className="text-sage hover:bg-sage/10 font-body" onClick={goToday}>Today</Button>
         </div>
@@ -269,10 +273,23 @@ export default function PartnerClasses() {
                                 {b.memberName}
                                 {b.extraGuests > 0 && <span className="text-charcoal/50 font-normal"> +{b.extraGuests} guest{b.extraGuests > 1 ? "s" : ""}</span>}
                               </div>
-                              <div className="font-body text-xs text-charcoal/50 truncate">{b.email}</div>
+                              <div className="font-body text-xs text-charcoal/50 truncate">
+                                {b.email}
+                                {b.phone ? ` · ${b.phone}` : ""}
+                              </div>
                             </div>
                           </div>
                           <div className="flex items-center gap-2 shrink-0">
+                            <Badge
+                              variant="outline"
+                              className={
+                                b.hasWaiver
+                                  ? "border-sage/30 text-sage bg-sage/5 font-body whitespace-nowrap"
+                                  : "border-terracotta/30 text-terracotta bg-terracotta/5 font-body whitespace-nowrap"
+                              }
+                            >
+                              {b.hasWaiver ? "Waiver ✓" : "No waiver"}
+                            </Badge>
                             {b.confirmationStatus === "pending" ? (
                               <>
                                 <Badge variant="outline" className="border-amber-500/30 text-amber-600 bg-amber-50 font-body whitespace-nowrap">Pending</Badge>

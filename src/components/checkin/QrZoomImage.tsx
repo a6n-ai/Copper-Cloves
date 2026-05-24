@@ -1,0 +1,53 @@
+import { useState } from "react";
+import { Maximize2, X } from "lucide-react";
+
+/** A QR image that opens fullscreen on click for easy scanning across a room. */
+export function QrZoomImage({
+  url,
+  label,
+  caption,
+  size = 220,
+}: {
+  url: string;
+  label: string;
+  caption?: string;
+  size?: number;
+}) {
+  const [zoom, setZoom] = useState(false);
+  return (
+    <>
+      <button type="button" onClick={() => setZoom(true)} className="group flex flex-col items-center gap-2">
+        <div className="relative">
+          {/* eslint-disable-next-line @next/next/no-img-element */}
+          <img src={url} alt={label} width={size} height={size} className="rounded-lg" />
+          <span className="absolute right-2 top-2 rounded-full bg-charcoal/60 p-1.5 text-white opacity-0 transition-opacity group-hover:opacity-100">
+            <Maximize2 size={16} />
+          </span>
+        </div>
+        {caption ? <p className="text-xs text-charcoal/50">{caption}</p> : null}
+      </button>
+
+      {zoom ? (
+        <div
+          className="fixed inset-0 z-[70] flex flex-col items-center justify-center gap-6 bg-white p-6"
+          onClick={() => setZoom(false)}
+          role="dialog"
+          aria-label={label}
+        >
+          <button
+            type="button"
+            onClick={() => setZoom(false)}
+            className="absolute right-5 top-5 rounded-full p-2 text-charcoal/60 hover:bg-charcoal/5"
+            aria-label="Close"
+          >
+            <X size={28} />
+          </button>
+          <p className="font-display text-3xl text-charcoal">{label}</p>
+          {/* eslint-disable-next-line @next/next/no-img-element */}
+          <img src={url} alt={label} className="h-auto w-auto max-h-[75vh] max-w-[75vw] rounded-2xl" />
+          <p className="font-body text-sm text-charcoal/50">Tap anywhere to close</p>
+        </div>
+      ) : null}
+    </>
+  );
+}

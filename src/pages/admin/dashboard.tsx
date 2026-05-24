@@ -7,6 +7,7 @@ import { useRouter } from "next/router";
 import { ListAvatar } from "@/components/admin/ListAvatar";
 import { DayScheduleList } from "@/components/admin/DayScheduleList";
 import { MetricCard } from "@/components/admin/MetricCard";
+import { AdminDashboardSkeleton } from "@/components/dashboard/skeletons";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import {
   ChartContainer,
@@ -1305,11 +1306,7 @@ export default function AdminDashboard() {
   const rentalInquiriesPg = usePagination(rentalInquiries);
 
   if (loading) {
-    return (
-      <div className="min-h-screen bg-linear-to-br from-cream via-cream to-sage/10 flex items-center justify-center">
-        <div className="h-12 w-12 border-4 border-sage/20 border-t-sage rounded-full animate-spin" />
-      </div>
-    );
+    return <AdminDashboardSkeleton />;
   }
 
   return (

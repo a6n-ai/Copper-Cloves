@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useRef, useState } from "react";
+import { PageHeader } from "@/components/dashboard/PageHeader";
 import { useRouter } from "next/router";
 import { useSession } from "next-auth/react";
-import { PortalNavigation } from "@/components/PortalNavigation";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -10,7 +10,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { useToast } from "@/hooks/use-toast";
 import {
-  User, Save, CheckCircle2, Mail, Phone, ArrowLeft, Camera, Lock,
+  User, Save, CheckCircle2, Mail, Phone, Camera, Lock,
   MessageCircle, Calendar, Heart, PauseCircle, Paperclip, ChevronDown,
 } from "lucide-react";
 
@@ -328,21 +328,12 @@ export default function Profile() {
 
   return (
     <div className="min-h-screen bg-cream">
-      <PortalNavigation />
-      <main className="pt-24 px-4 sm:px-6 lg:px-8 pb-16 min-h-screen">
-        <div className="max-w-2xl mx-auto space-y-6">
-
+      <main className="pt-8 pb-16 min-h-screen">
+        <div className="max-w-6xl mx-auto mb-6 px-4 sm:px-6 lg:px-8">
           {/* Header */}
-          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-2">
-            <div>
-              <h1 className="font-display text-4xl md:text-5xl text-charcoal mb-2">Your Profile</h1>
-              <p className="font-body text-sage text-base">Manage your information and preferences</p>
-            </div>
-            <Button variant="outline" onClick={() => router.push("/portal/dashboard")}
-              className="border-sage text-sage hover:bg-sage hover:text-white transition-all w-full sm:w-auto font-body">
-              <ArrowLeft className="mr-2" size={18} /> Back
-            </Button>
-          </div>
+          <PageHeader title="Your Profile" subtitle="Manage your information and preferences" />
+        </div>
+        <div className="max-w-2xl mx-auto space-y-6 px-4 sm:px-6 lg:px-8">
 
           {/* ── Personal Details ──────────────────────────────────── */}
           <Card className="border-sage/20 bg-white/90 shadow-lg">

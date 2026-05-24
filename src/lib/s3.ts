@@ -42,3 +42,33 @@ export async function presignAvatarUpload(params: {
 
   return { uploadUrl, publicUrl };
 }
+
+/** Server-side direct upload of a buffer (e.g. generated QR PNG). Returns the public URL + key. */
+export async function putObject(params: {
+  key: string;
+  body: Buffer;
+  contentType: string;
+}): Promise<{ url: string; key: string; bucket: string }> {
+  if (!isS3Configured() || !bucket) {
+    throw new Error("S3_NOT_CONFIGURED");
+  }
+
+  const client = new S3Client({
+    region,
+    credentials: {
+      accessKeyId: process.env.S3_ACCESS_KEY_ID!,
+      secretAccessKey: process.env.S3_SECRET_ACCESS_KEY!,
+    },
+  });
+
+  await client.send(
+    new PutObjectCommand({
+      Bucket: bucket,
+      Key: params.key,
+      Body: params.body,
+      ContentType: params.contentType,
+    }),
+  );
+
+  return { url: `${publicBase.replace(/\/$/, "")}/${params.key}`, key: params.key, bucket };
+}

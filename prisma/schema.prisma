@@ -259,6 +259,7 @@ model ClassSchedule {
   instructor        Instructor?  @relation("ScheduledInstructor", fields: [instructor_id], references: [id], onDelete: SetNull)
   actual_instructor Instructor?  @relation("ActualInstructor", fields: [actual_instructor_id], references: [id], onDelete: SetNull)
   bookings          Booking[]
+  qr_codes          QrCode[]
 
   @@index([class_id])
   @@index([instructor_id])
@@ -843,4 +844,46 @@ model PasswordResetToken {
 
   @@index([email])
   @@map("password_reset_tokens")
+}
+
+/// Generic uploaded-file registry (S3 or local fallback). Referenced by QR codes, etc.
+model File {
+  id           String   @id @default(uuid())
+  bucket       String?
+  s3_key       String?
+  url          String
+  content_type String
+  size_bytes   Int?
+  /// "qr_code" | "avatar" | "payment_proof" | ...
+  purpose      String
+  /// Profile id of the uploader (admin/system), if known.
+  created_by   String?
+  created_at   DateTime @default(now())
+
+  qr_codes QrCode[]
+
+  @@index([purpose])
+  @@map("files")
+}
+
+/// One stored QR per (schedule, kind). Image lives in S3 via `file`; `token` is the
+/// signed HMAC encoded in that image (verified statelessly at scan time).
+model QrCode {
+  id                String   @id @default(uuid())
+  class_schedule_id String
+  /// "instructor" | "member"
+  kind              String
+  token             String
+  exp               DateTime
+  file_id           String?
+  is_active         Boolean  @default(true)
+  created_at        DateTime @default(now())
+  updated_at        DateTime @default(now()) @updatedAt
+
+  class_schedule ClassSchedule @relation(fields: [class_schedule_id], references: [id], onDelete: Cascade)
+  file           File?         @relation(fields: [file_id], references: [id], onDelete: SetNull)
+
+  @@unique([class_schedule_id, kind])
+  @@index([class_schedule_id])
+  @@map("qr_codes")
 }

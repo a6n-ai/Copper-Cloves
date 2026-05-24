@@ -217,3 +217,14 @@ export type MemberTicket = Prisma.MemberTicketModel
  * 
  */
 export type PasswordResetToken = Prisma.PasswordResetTokenModel
+/**
+ * Model File
+ * Generic uploaded-file registry (S3 or local fallback). Referenced by QR codes, etc.
+ */
+export type File = Prisma.FileModel
+/**
+ * Model QrCode
+ * One stored QR per (schedule, kind). Image lives in S3 via `file`; `token` is the
+ * signed HMAC encoded in that image (verified statelessly at scan time).
+ */
+export type QrCode = Prisma.QrCodeModel

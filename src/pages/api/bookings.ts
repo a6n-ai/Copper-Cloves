@@ -414,6 +414,35 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         }
       }
 
+      // Refund the class credit consumed at booking time. Policy: refund only when
+      // cancelled at least 6h before class start; late cancels (<6h) forfeit the credit.
+      // Also only for an active, non-attended credit-pass booking (unlimited never
+      // consumed a credit). `wasActiveSeat` guards against double refund on repeated
+      // cancel calls (a cancelled row is no longer an active seat).
+      const REFUND_CUTOFF_MS = 6 * 60 * 60 * 1000;
+      const classStartForRefund = existing.class_schedule?.start_time;
+      const refundEligible =
+        !!classStartForRefund &&
+        Date.now() <= classStartForRefund.getTime() - REFUND_CUTOFF_MS;
+      if (
+        status === "cancelled" &&
+        wasActiveSeat &&
+        refundEligible &&
+        existing.user_package_id &&
+        !existing.checked_in
+      ) {
+        const up = await tx.userPackage.findUnique({
+          where: { id: existing.user_package_id },
+          include: { package_type: { select: { is_unlimited: true } } },
+        });
+        if (up && !up.package_type?.is_unlimited && up.credits_remaining != null) {
+          await tx.userPackage.update({
+            where: { id: up.id },
+            data: { credits_remaining: { increment: 1 } },
+          });
+        }
+      }
+
       return updated;
     });
 

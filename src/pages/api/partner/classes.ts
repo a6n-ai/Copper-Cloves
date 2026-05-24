@@ -43,13 +43,27 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       bookings: {
         where: { status: { not: "cancelled" } },
         include: {
-          profile: { select: { id: true, full_name: true, email: true, avatar_url: true } },
+          profile: {
+            select: { id: true, full_name: true, email: true, phone: true, avatar_url: true },
+          },
         },
         orderBy: { booking_date: "asc" },
       },
     },
     orderBy: { start_time: "asc" },
   });
+
+  // Which attendees have signed any waiver (one batch query).
+  const attendeeIds = Array.from(
+    new Set(schedules.flatMap((s) => s.bookings.map((b) => b.profile.id))),
+  );
+  const signedWaivers = attendeeIds.length
+    ? await prisma.waiver.findMany({
+        where: { user_id: { in: attendeeIds } },
+        select: { user_id: true },
+      })
+    : [];
+  const waiverSignedIds = new Set(signedWaivers.map((w) => w.user_id));
 
   const result = schedules.map((s) => {
     const capacity = s.capacity ?? s.available_spots + s.current_bookings;
@@ -70,11 +84,13 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         id: b.id,
         memberName: b.profile.full_name ?? b.profile.email ?? "Guest",
         email: b.profile.email,
+        phone: b.profile.phone ?? null,
         avatarUrl: b.profile.avatar_url ?? null,
         checkedIn: b.checked_in,
         checkInOutcome: b.check_in_outcome,
         extraGuests: b.extra_guest_count ?? 0,
         confirmationStatus: b.confirmation_status ?? null,
+        hasWaiver: waiverSignedIds.has(b.profile.id),
       })),
     };
   });

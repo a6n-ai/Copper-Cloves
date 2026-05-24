@@ -1,15 +1,14 @@
 import { useEffect, useState } from "react";
+import { PageHeader } from "@/components/dashboard/PageHeader";
 import { useRouter } from "next/router";
 import Image from "next/image";
-import { PortalNavigation } from "@/components/PortalNavigation";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent } from "@/components/ui/card";
 import { useSession } from "next-auth/react";
-import { 
-  ArrowLeft, 
-  Plus, 
+import {
+  Plus,
   Minus, 
   ShoppingCart, 
   Users,
@@ -17,7 +16,6 @@ import {
   Loader2,
   Check
 } from "lucide-react";
-import Link from "next/link";
 
 import { cdnUrl } from "@/lib/cdnUrl";
 interface MenuItem {
@@ -251,26 +249,12 @@ export default function MenuPage() {
 
   return (
     <div className="min-h-screen bg-linear-to-br from-cream via-cream to-sage/5">
-      <PortalNavigation />
-      
-      <main className="pt-20 min-h-screen">
-        <div className="max-w-7xl mx-auto p-6 lg:p-8">
+      <main className="min-h-screen">
+        <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 pt-8 pb-6">
           
           {/* Header */}
-          <div className="mb-8">
-            <Link href="/portal/dashboard">
-              <button className="mb-4 flex items-center gap-2 text-charcoal/60 hover:text-charcoal transition-colors">
-                <ArrowLeft size={20} />
-                <span className="font-body text-sm">Back to Dashboard</span>
-              </button>
-            </Link>
-            
-            <h1 className="font-display text-5xl md:text-6xl text-charcoal mb-4">
-              Today's Menu
-            </h1>
-            <p className="font-body text-lg text-charcoal/70">
-              Nourish your body after movement
-            </p>
+          <div className="mb-6">
+            <PageHeader title="Today's Menu" subtitle="Nourish your body after movement" />
           </div>
 
           {/* Category Filters */}

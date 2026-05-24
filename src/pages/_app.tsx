@@ -4,41 +4,85 @@ import "react-easy-crop/react-easy-crop.css";
 import type { AppProps } from "next/app";
 import Head from "next/head";
 import { useRouter } from "next/router";
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import * as analytics from "@/lib/analytics";
 import { CartProvider } from "@/contexts/CartContext";
 import { SessionProvider, useSession } from "next-auth/react";
 import { useActivityTracking } from "@/hooks/useActivityTracking";
-import { AdminNavigation } from "@/components/AdminNavigation";
-import { PartnerNavigation } from "@/components/PartnerNavigation";
+import { DashboardShell } from "@/components/dashboard/DashboardShell";
+import { PORTAL_CONFIGS, type PortalKind } from "@/components/dashboard/dashboardNav";
 
 import { cdnUrl } from "@/lib/cdnUrl";
-const ADMIN_CHROME_EXEMPT = ["/admin/login"];
 
-function AdminChrome({ children }: { children: React.ReactNode }) {
-  const { data: session, status } = useSession();
-  const router = useRouter();
-  const isAdminRoute =
-    router.pathname.startsWith("/admin") &&
-    !ADMIN_CHROME_EXEMPT.some((p) => router.pathname.startsWith(p));
-  const user = session?.user as { name?: string; email?: string; role?: string } | undefined;
-  const show = isAdminRoute && status === "authenticated" && user?.role === "admin";
-  if (!show) return <>{children}</>;
-  return (
-    <AdminNavigation adminName={user?.name ?? "Admin"} adminEmail={user?.email ?? ""}>
-      {children}
-    </AdminNavigation>
-  );
+const CHROME_EXEMPT = [
+  "/admin/login",
+  "/partner/login",
+  "/instructor/login",
+  "/portal/login",
+  "/portal/signup",
+  "/portal/onboarding",
+  "/portal/payment/razorpay-return",
+];
+
+function resolvePortalKind(pathname: string, role?: string): PortalKind | null {
+  if (pathname.startsWith("/admin") && role === "admin") return "admin";
+  if (pathname.startsWith("/partner") && role === "partner") return "partner";
+  if (pathname.startsWith("/instructor") && role === "instructor") return "instructor";
+  if (pathname.startsWith("/portal") && role === "user") return "member";
+  return null;
 }
 
-function PartnerChrome({ children }: { children: React.ReactNode }) {
+/** Single chrome for every authenticated dashboard (admin/partner/member/instructor). */
+function DashboardChrome({ children }: { children: React.ReactNode }) {
   const { data: session, status } = useSession();
   const router = useRouter();
-  const isPartnerRoute = router.pathname.startsWith("/partner") && router.pathname !== "/partner/login";
-  const user = session?.user as { role?: string } | undefined;
-  const show = isPartnerRoute && status === "authenticated" && user?.role === "partner";
-  if (!show) return <>{children}</>;
-  return <PartnerNavigation>{children}</PartnerNavigation>;
+  const user = session?.user as { name?: string; email?: string; role?: string } | undefined;
+
+  const exempt = CHROME_EXEMPT.some((p) => router.pathname.startsWith(p));
+  const kind =
+    !exempt && status === "authenticated" ? resolvePortalKind(router.pathname, user?.role) : null;
+
+  const [partnerBrand, setPartnerBrand] = useState<{ name: string; logoUrl: string | null } | null>(
+    null,
+  );
+  useEffect(() => {
+    if (kind !== "partner") {
+      setPartnerBrand(null);
+      return;
+    }
+    let cancelled = false;
+    (async () => {
+      try {
+        const res = await fetch("/api/partner/profile");
+        if (res.ok && !cancelled) {
+          const p = await res.json();
+          setPartnerBrand({ name: p.name ?? "Partner", logoUrl: p.logo_url ?? null });
+        }
+      } catch {
+        /* ignore */
+      }
+    })();
+    return () => {
+      cancelled = true;
+    };
+  }, [kind]);
+
+  if (!kind) return <>{children}</>;
+
+  const shellUser =
+    kind === "partner"
+      ? {
+          name: partnerBrand?.name ?? "Partner",
+          email: user?.email,
+          logoUrl: partnerBrand?.logoUrl ?? null,
+        }
+      : { name: user?.name ?? "Member", email: user?.email };
+
+  return (
+    <DashboardShell config={PORTAL_CONFIGS[kind]} user={shellUser}>
+      {children}
+    </DashboardShell>
+  );
 }
 
 const PORTAL_EXEMPT = ["/portal/login", "/portal/signup", "/portal/onboarding", "/portal/payment/razorpay-return"];
@@ -89,11 +133,9 @@ export default function App({ Component, pageProps: { session, ...pageProps } }:
       <ActivityTrackingSubscriber />
       <OnboardingGate />
       <CartProvider>
-        <AdminChrome>
-          <PartnerChrome>
-            <Component {...pageProps} />
-          </PartnerChrome>
-        </AdminChrome>
+        <DashboardChrome>
+          <Component {...pageProps} />
+        </DashboardChrome>
         <Toaster />
       </CartProvider>
     </SessionProvider>

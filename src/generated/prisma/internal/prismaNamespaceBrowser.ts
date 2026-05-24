@@ -85,7 +85,9 @@ export const ModelName = {
   UserActivitySession: 'UserActivitySession',
   UserActivityEvent: 'UserActivityEvent',
   MemberTicket: 'MemberTicket',
-  PasswordResetToken: 'PasswordResetToken'
+  PasswordResetToken: 'PasswordResetToken',
+  File: 'File',
+  QrCode: 'QrCode'
 } as const
 
 export type ModelName = (typeof ModelName)[keyof typeof ModelName]
@@ -728,6 +730,36 @@ export const PasswordResetTokenScalarFieldEnum = {
 } as const
 
 export type PasswordResetTokenScalarFieldEnum = (typeof PasswordResetTokenScalarFieldEnum)[keyof typeof PasswordResetTokenScalarFieldEnum]
+
+
+export const FileScalarFieldEnum = {
+  id: 'id',
+  bucket: 'bucket',
+  s3_key: 's3_key',
+  url: 'url',
+  content_type: 'content_type',
+  size_bytes: 'size_bytes',
+  purpose: 'purpose',
+  created_by: 'created_by',
+  created_at: 'created_at'
+} as const
+
+export type FileScalarFieldEnum = (typeof FileScalarFieldEnum)[keyof typeof FileScalarFieldEnum]
+
+
+export const QrCodeScalarFieldEnum = {
+  id: 'id',
+  class_schedule_id: 'class_schedule_id',
+  kind: 'kind',
+  token: 'token',
+  exp: 'exp',
+  file_id: 'file_id',
+  is_active: 'is_active',
+  created_at: 'created_at',
+  updated_at: 'updated_at'
+} as const
+
+export type QrCodeScalarFieldEnum = (typeof QrCodeScalarFieldEnum)[keyof typeof QrCodeScalarFieldEnum]
 
 
 export const SortOrder = {

@@ -8,7 +8,9 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/com
 import { Button } from "@/components/ui/button";
 import { MetricCard } from "@/components/admin/MetricCard";
 import { DayScheduleList, type ScheduleRow } from "@/components/admin/DayScheduleList";
-import { CalendarDays, Users, Hourglass, CheckCircle2, ArrowRight, Loader2 } from "lucide-react";
+import { CalendarDays, Users, Hourglass, CheckCircle2, ArrowRight } from "lucide-react";
+import { PartnerDashboardSkeleton } from "@/components/dashboard/skeletons";
+import { PageHeader } from "@/components/dashboard/PageHeader";
 
 interface ClassRow {
   id: string;
@@ -71,15 +73,17 @@ export default function PartnerDashboard() {
 
   return (
     <main className="max-w-5xl mx-auto p-4 lg:p-6 space-y-6">
-      <div className="flex items-center justify-between">
-        <h1 className="font-display text-3xl text-charcoal">Dashboard</h1>
-        <Button asChild className="bg-sage hover:bg-sage/90 text-white font-body">
-          <Link href="/partner/classes">View classes <ArrowRight className="h-4 w-4 ml-1.5" /></Link>
-        </Button>
-      </div>
+      <PageHeader
+        title="Dashboard"
+        actions={
+          <Button asChild className="bg-sage hover:bg-sage/90 text-white font-body">
+            <Link href="/partner/classes">View classes <ArrowRight className="h-4 w-4 ml-1.5" /></Link>
+          </Button>
+        }
+      />
 
       {loading ? (
-        <div className="flex items-center justify-center py-16 text-charcoal/50"><Loader2 className="h-5 w-5 animate-spin mr-2" /> Loading…</div>
+        <PartnerDashboardSkeleton />
       ) : (
         <>
           <div className="grid grid-cols-2 md:grid-cols-4 gap-4">

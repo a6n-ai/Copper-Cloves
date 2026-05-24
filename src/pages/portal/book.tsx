@@ -1,7 +1,7 @@
 import { useEffect, useState, useMemo } from "react";
+import { PageHeader } from "@/components/dashboard/PageHeader";
 import { useToast } from "@/hooks/use-toast";
 import { useRouter } from "next/router";
-import { PortalNavigation } from "@/components/PortalNavigation";
 import { Card, CardContent } from "@/components/ui/card";
 import {
   AlertDialog,
@@ -870,23 +870,18 @@ export default function BookClass() {
 
   return (
     <div className="min-h-screen bg-linear-to-br from-cream via-cream to-sage/5">
-      <PortalNavigation 
-        userName={userName}
-        userEmail={userEmail}
-        creditsRemaining={userPackage.classesRemaining || 0}
-        currentBadge="The Seeker"
-      />
-      
-      <main className="pt-24 px-4 sm:px-6 lg:px-8 pb-12 min-h-screen">
-        <div className="max-w-6xl mx-auto">
+      <main className="pt-8 pb-12 min-h-screen">
+        <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
           {/* Page Header */}
-          <div className="mb-8 md:mb-12">
-            <h1 className="font-display text-4xl md:text-5xl text-charcoal mb-3">Book Your Next Session</h1>
-            <p className="font-body text-charcoal/60 text-base">
-              {filteredClasses.length > 0
-                ? `${filteredClasses.length} class${filteredClasses.length !== 1 ? "es" : ""} found`
-                : "No classes match your filters"}
-            </p>
+          <div className="mb-6">
+            <PageHeader
+              title="Book Your Next Session"
+              subtitle={
+                filteredClasses.length > 0
+                  ? `${filteredClasses.length} class${filteredClasses.length !== 1 ? "es" : ""} found`
+                  : "No classes match your filters"
+              }
+            />
           </div>
 
           {/* Week Navigation */}

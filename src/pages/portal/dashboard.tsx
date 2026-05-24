@@ -1,39 +1,38 @@
 import { useEffect, useState } from "react";
 import { useRouter } from "next/router";
 import Image from "next/image";
-import { PortalNavigation } from "@/components/PortalNavigation";
-import { RoleSwitcher } from "@/components/RoleSwitcher";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Badge } from "@/components/ui/badge";
+import { StatCardRow, type StatCardProps } from "@/components/dashboard/StatCard";
+import { ActivityTimeline } from "@/components/dashboard/ActivityTimeline";
+import { UpcomingScheduleCard, type ScheduleEntry } from "@/components/dashboard/UpcomingScheduleCard";
+import { VitalityAreaChart } from "@/components/dashboard/VitalityAreaChart";
+import { OrderHistoryTable } from "@/components/dashboard/OrderHistoryTable";
+import { PathToMastery } from "@/components/dashboard/PathToMastery";
+import { MemberDashboardSkeleton } from "@/components/dashboard/skeletons";
+import { AnimatedIcon } from "@/components/dashboard/AnimatedIcon";
 import { useSession } from "next-auth/react";
 import {
   Calendar,
-  Plus,
   CheckCircle,
-  Sparkles,
   Leaf,
   Shield,
   Sun,
   Crown,
   Coffee,
   Target,
-  Trophy,
   Award,
   Package,
-  CreditCard,
   X,
   Zap,
   History,
   Lock,
-  CalendarDays,
-  ChevronRight,
   Flame,
   Clock,
   AlertCircle,
-  TrendingUp,
 } from "lucide-react";
+import { CheckInScanButton } from "@/components/checkin/CheckInScanButton";
 
 import { cdnUrl } from "@/lib/cdnUrl";
 // Milestone tier definitions
@@ -88,35 +87,6 @@ type CafeOrderRow = {
   status: string;
   cafe_item?: { name?: string; price?: unknown; image_url?: string | null } | null;
 };
-
-function formatCafePaymentMethod(pm: string) {
-  const u = (pm || "").toLowerCase();
-  if (u === "pay_at_studio" || u.includes("studio")) return "Pay at studio";
-  return "Paid online";
-}
-
-function cafeStatusBadgeClass(status: string) {
-  switch ((status || "").toLowerCase()) {
-    case "pending":
-      return "bg-amber-50 text-amber-800 border-amber-200";
-    case "preparing":
-      return "bg-blue-50 text-blue-800 border-blue-200";
-    case "ready":
-      return "bg-emerald-50 text-emerald-800 border-emerald-200";
-    case "completed":
-      return "bg-sage/10 text-sage border-sage/20";
-    case "cancelled":
-      return "bg-red-50 text-red-700 border-red-200";
-    default:
-      return "bg-charcoal/5 text-charcoal border-charcoal/15";
-  }
-}
-
-function formatCafeStatus(status: string) {
-  return (status || "pending")
-    .replace(/_/g, " ")
-    .replace(/\b\w/g, c => c.toUpperCase());
-}
 
 type VitalityBookingRow = {
   checked_in?: boolean;
@@ -220,7 +190,6 @@ export default function Dashboard() {
     movementVitalityData.length === 30 ? movementVitalityData : new Array(30).fill(0);
   const vitSeriesReady = movementVitalityData.length === 30;
 
-  const maxVitality = Math.max(...vitalityData, 1);
   const totalMinutes = vitSeriesReady ? Math.round(vitalityData.reduce((sum, val) => sum + val, 0)) : 0;
   const avgPerDay = vitSeriesReady ? Math.round(totalMinutes / 30) : 0;
   // Use DB templates if loaded, otherwise fall back to hardcoded MILESTONES
@@ -416,25 +385,52 @@ export default function Dashboard() {
     return now >= tenMinBefore && now <= fifteenMinAfter;
   };
 
+  const statItems: StatCardProps[] = [
+    {
+      label: "Day streak",
+      value: currentStreak,
+      icon: Flame,
+      tone: "warn",
+      hint: longestStreak > 0 ? `Best: ${longestStreak}` : undefined,
+    },
+    { label: "On time", value: attendanceCounts.on_time, icon: CheckCircle, tone: "up" },
+    { label: "Late", value: attendanceCounts.late, icon: Clock, tone: "warn" },
+    { label: "No-shows", value: attendanceCounts.no_show, icon: AlertCircle, tone: "down" },
+  ];
+
+  const upcomingEntries: ScheduleEntry[] = upcomingBookings.slice(0, 3).map((booking) => {
+    const isScheduled = !!booking.class_schedule;
+    return {
+      id: booking.id,
+      title: isScheduled ? booking.class_schedule?.class_model?.name : booking.class_name || "Class",
+      subtitle: isScheduled ? booking.class_schedule?.instructor?.name : "Instructor TBD",
+      whenISO: isScheduled ? booking.class_schedule?.start_time : booking.class_time,
+      imageUrl: isScheduled ? booking.class_schedule?.class_model?.image_url || undefined : undefined,
+      status: booking.confirmation_status === "pending" ? "pending" : "confirmed",
+      onClick: () => {
+        setSelectedBookingForCheckIn(booking);
+        setShowCheckIn(true);
+      },
+    };
+  });
+
+  const orderRows = cafeOrdersHistory.map((order) => ({
+    id: order.id,
+    item: order.cafe_item?.name || "Café item",
+    dateISO: order.order_date,
+    amount: Math.round(Number(order.cafe_item?.price ?? 0) * order.quantity * 100) / 100,
+    status: order.status,
+    method: order.payment_method,
+  }));
+
   if (loading) {
-    return (
-      <div className="flex items-center justify-center min-h-screen bg-linear-to-br from-cream via-cream to-sage/5">
-        <div className="text-sage font-display text-2xl animate-pulse">Loading your sanctuary...</div>
-      </div>
-    );
+    return <MemberDashboardSkeleton />;
   }
 
   return (
     <div className="min-h-screen bg-linear-to-br from-cream via-cream to-sage/5">
-      <PortalNavigation 
-        userName={userName || "Member"} 
-        userEmail={userEmail || ""} 
-        creditsRemaining={creditsRemaining}
-        currentBadge={currentMilestone.name}
-      />
-      
       {/* Main Content */}
-      <main className="pt-20 min-h-screen">
+      <main className="min-h-screen">
         <div className="max-w-7xl mx-auto p-6 lg:p-8">
           
           {/* TOP SECTION: Greeting & Path to Mastery */}
@@ -460,13 +456,12 @@ export default function Dashboard() {
                       : `${packageDetails.classCount || 0} classes remaining`
                     : "No active package"}
                 </p>
-                <RoleSwitcher className="mt-3" />
               </div>
 
               {/* Today's Intention */}
               <div className="flex items-start gap-3 flex-1 max-w-xl">
                 <div className="w-10 h-10 rounded-full bg-sage/10 flex items-center justify-center shrink-0">
-                  <Target className="text-sage" size={20} />
+                  <AnimatedIcon icon={Target} size={20} className="text-sage" />
                 </div>
                 <div className="flex-1">
                   <h3 className="font-display text-lg text-charcoal mb-2">Today's Intention</h3>
@@ -503,165 +498,72 @@ export default function Dashboard() {
               </div>
             </div>
 
-            {/* Streak & Attendance Strip */}
-            <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 mb-6">
-              {/* Current Streak */}
-              <div className="bg-white/80 backdrop-blur-xs rounded-2xl border border-sage/20 p-4 flex items-center gap-3">
-                <div className="w-10 h-10 rounded-full bg-orange-50 border border-orange-200 flex items-center justify-center shrink-0">
-                  <Flame className="text-orange-500" size={20} />
-                </div>
-                <div>
-                  <p className="font-display text-2xl text-charcoal leading-none">{currentStreak}</p>
-                  <p className="font-body text-xs text-charcoal/50 mt-0.5">Day streak</p>
-                  {longestStreak > 0 && (
-                    <p className="font-body text-[10px] text-charcoal/40">Best: {longestStreak}</p>
-                  )}
-                </div>
-              </div>
-
-              {/* On Time */}
-              <div className="bg-white/80 backdrop-blur-xs rounded-2xl border border-sage/20 p-4 flex items-center gap-3">
-                <div className="w-10 h-10 rounded-full bg-sage/10 border border-sage/30 flex items-center justify-center shrink-0">
-                  <CheckCircle className="text-sage" size={20} />
-                </div>
-                <div>
-                  <p className="font-display text-2xl text-charcoal leading-none">{attendanceCounts.on_time}</p>
-                  <p className="font-body text-xs text-charcoal/50 mt-0.5">On time</p>
-                </div>
-              </div>
-
-              {/* Late */}
-              <div className="bg-white/80 backdrop-blur-xs rounded-2xl border border-sage/20 p-4 flex items-center gap-3">
-                <div className="w-10 h-10 rounded-full bg-amber-50 border border-amber-200 flex items-center justify-center shrink-0">
-                  <Clock className="text-amber-500" size={20} />
-                </div>
-                <div>
-                  <p className="font-display text-2xl text-charcoal leading-none">{attendanceCounts.late}</p>
-                  <p className="font-body text-xs text-charcoal/50 mt-0.5">Late</p>
-                </div>
-              </div>
-
-              {/* No Show */}
-              <div className="bg-white/80 backdrop-blur-xs rounded-2xl border border-sage/20 p-4 flex items-center gap-3">
-                <div className="w-10 h-10 rounded-full bg-red-50 border border-red-200 flex items-center justify-center shrink-0">
-                  <AlertCircle className="text-red-400" size={20} />
-                </div>
-                <div>
-                  <p className="font-display text-2xl text-charcoal leading-none">{attendanceCounts.no_show}</p>
-                  <p className="font-body text-xs text-charcoal/50 mt-0.5">No-shows</p>
-                </div>
-              </div>
-            </div>
-
-            {/* Path to Mastery - Horizontal Milestone Track */}
-            <Card className="border-0 bg-white/80 backdrop-blur-xl shadow-lg">
-              <CardContent className="p-8">
-                <div className="flex items-center gap-3 mb-6">
-                  <div className="w-12 h-12 rounded-full bg-sage/10 flex items-center justify-center">
-                    <Trophy className="text-sage" size={24} />
-                  </div>
+            {/* Quick Book — primary actions, kept up top for fast access */}
+            <Card className="mb-6 rounded-2xl shadow-xs">
+              <CardContent className="flex flex-col gap-4 p-5 sm:flex-row sm:items-center sm:justify-between">
+                <div className="flex items-center gap-2">
+                  <AnimatedIcon icon={Zap} size={20} className="text-primary" />
                   <div>
-                    <h2 className="font-display text-3xl text-charcoal">Path to Mastery</h2>
-                    <p className="font-body text-sm text-charcoal/60">Your journey through the tiers</p>
+                    <h2 className="font-display text-lg text-card-foreground">Quick Book</h2>
+                    <p className="text-xs text-muted-foreground">Fast access to your favorites</p>
                   </div>
                 </div>
-
-                {/* Horizontal Milestone Track */}
-                {ptmLoading ? (
-                  <div className="h-40 flex items-center justify-center">
-                    <div className="text-sage/60 font-body text-sm animate-pulse">Loading milestones…</div>
-                  </div>
-                ) : (
-                <div className="relative">
-                  {/* Progress Bar Background */}
-                  <div className="absolute top-12 left-0 right-0 h-1 bg-charcoal/10 rounded-full" />
-
-                  {/* Progress Bar Fill */}
-                  <div
-                    className="absolute top-12 left-0 h-1 bg-linear-to-r from-sage to-terracotta rounded-full transition-all duration-1000"
-                    style={{
-                      width: `${Math.min(100, (userClassesCompleted / (activeMilestones[activeMilestones.length - 1]?.classes || 150)) * 100)}%`
-                    }}
+                <div className="grid grid-cols-2 gap-2 sm:flex sm:flex-wrap sm:justify-end">
+                  <Button
+                    type="button"
+                    onClick={() => void router.push("/portal/book")}
+                    className="bg-sage hover:bg-sage/90 text-white font-body justify-start"
+                  >
+                    <span className="mr-2"><AnimatedIcon icon={Calendar} size={16} /></span>
+                    Book a Class
+                  </Button>
+                  <Button
+                    type="button"
+                    variant="outline"
+                    onClick={() => router.push("/portal/packages")}
+                    className="border-sage/20 text-charcoal hover:bg-cream font-body justify-start"
+                  >
+                    <span className="mr-2"><AnimatedIcon icon={Package} size={16} /></span>
+                    Buy Packages
+                  </Button>
+                  <Button
+                    type="button"
+                    variant="outline"
+                    onClick={() => setShowOrderHistory(true)}
+                    className="border-sage/20 text-charcoal hover:bg-cream font-body justify-start"
+                  >
+                    <span className="mr-2"><AnimatedIcon icon={History} size={16} /></span>
+                    Order History
+                  </Button>
+                  <Button
+                    type="button"
+                    variant="outline"
+                    onClick={() => void router.push("/portal/profile#reset-password")}
+                    className="border-sage/20 text-charcoal hover:bg-cream font-body justify-start"
+                  >
+                    <span className="mr-2"><AnimatedIcon icon={Lock} size={16} /></span>
+                    Reset password
+                  </Button>
+                  <CheckInScanButton
+                    label="Scan check-in"
+                    variant="outline"
+                    className="border-sage/20 text-charcoal hover:bg-cream font-body justify-start"
                   />
-
-                  {/* Milestone Badges */}
-                  <div className="relative flex justify-between">
-                    {activeMilestones.map((milestone) => {
-                      const Icon = milestone.icon;
-                      const dbIcon = (milestone as any).dbIcon as string | undefined;
-                      const dbColor = (milestone as any).dbColor as string | undefined;
-                      const isEarned = userClassesCompleted >= milestone.classes;
-                      const isCurrent = currentMilestone.id === milestone.id;
-                      const isNext = nextMilestone?.id === milestone.id;
-
-                      return (
-                        <div
-                          key={milestone.id}
-                          className="flex flex-col items-center relative"
-                          style={{ width: `${100 / activeMilestones.length}%` }}
-                        >
-                          {/* Badge Circle */}
-                          <div
-                            className={`relative w-24 h-24 rounded-full border-4 flex items-center justify-center transition-all duration-500 ${
-                              isEarned
-                                ? `${milestone.bgColor} ${milestone.borderColor} shadow-lg`
-                                : isNext
-                                ? "bg-charcoal/5 border-charcoal/20 opacity-60"
-                                : "bg-charcoal/5 border-charcoal/10 opacity-30"
-                            }`}
-                            style={isEarned && dbColor ? { backgroundColor: dbColor + "22", borderColor: dbColor + "55" } : undefined}
-                          >
-                            {isCurrent && (
-                              <div className="absolute -top-2 -right-2">
-                                <div className="w-8 h-8 rounded-full bg-sage flex items-center justify-center shadow-lg">
-                                  <Sparkles className="text-white" size={16} />
-                                </div>
-                              </div>
-                            )}
-
-                            {dbIcon ? (
-                              <span className={`text-4xl ${isEarned ? "" : "opacity-30"}`}>{dbIcon}</span>
-                            ) : (
-                              <Icon
-                                className={isEarned ? milestone.color : "text-charcoal/30"}
-                                size={40}
-                              />
-                            )}
-                          </div>
-
-                          {/* Badge Info */}
-                          <div className="mt-4 text-center">
-                            <h4 className={`font-display text-base mb-1 ${isEarned ? "text-charcoal" : "text-charcoal/40"}`}>
-                              {milestone.name}
-                            </h4>
-                            <Badge
-                              variant="outline"
-                              className={`text-xs ${isEarned ? milestone.borderColor : "border-charcoal/20"}`}
-                            >
-                              {milestone.classes} classes
-                            </Badge>
-                          </div>
-                        </div>
-                      );
-                    })}
-                  </div>
-                </div>
-                )}
-
-                {/* Progress Summary */}
-                <div className="mt-8 pt-6 border-t border-charcoal/10 text-center">
-                  <p className="font-body text-sm text-charcoal/70 mb-2">
-                    {nextMilestone ? (
-                      <>
-                        <span className="font-semibold">{nextMilestone.classes - userClassesCompleted} more classes</span> to unlock <span className="font-semibold text-sage">{nextMilestone.name}</span>
-                      </>
-                    ) : (
-                      <span className="font-semibold text-sage">🎉 All milestones unlocked! You're a legend!</span>
-                    )}
-                  </p>
                 </div>
               </CardContent>
             </Card>
+
+            {/* Streak & Attendance Strip */}
+            <StatCardRow items={statItems} className="mb-6" />
+
+            {/* Path to Mastery - Horizontal Milestone Track */}
+            <PathToMastery
+              milestones={activeMilestones}
+              classesCompleted={userClassesCompleted}
+              currentId={currentMilestone.id}
+              nextMilestone={nextMilestone}
+              loading={ptmLoading}
+            />
           </div>
 
           {/* Achievements */}
@@ -669,7 +571,7 @@ export default function Dashboard() {
             <div className="mb-8">
               <div className="flex items-center gap-3 mb-4">
                 <div className="w-10 h-10 rounded-full bg-terracotta/10 flex items-center justify-center">
-                  <Award className="text-terracotta" size={20} />
+                  <AnimatedIcon icon={Award} size={20} className="text-terracotta" />
                 </div>
                 <h2 className="font-display text-2xl text-charcoal">Achievements</h2>
               </div>
@@ -734,249 +636,19 @@ export default function Dashboard() {
             
             {/* LEFT COLUMN (2/3) - Movement Vitality Graph */}
             <div className="lg:col-span-2">
-              <Card className="border-0 bg-white/80 backdrop-blur-xl shadow-lg h-full">
-                <CardHeader className="p-8 border-b border-charcoal/5">
-                  <div className="flex items-center gap-3">
-                    <div className="w-12 h-12 rounded-full bg-sage/10 flex items-center justify-center">
-                      <Trophy className="text-sage" size={24} />
-                    </div>
-                    <div>
-                      <CardTitle className="font-display text-3xl text-charcoal">Movement Vitality</CardTitle>
-                      <CardDescription className="font-body text-sm text-charcoal/60">Your activity rhythm over the last 30 days</CardDescription>
-                    </div>
-                  </div>
-                </CardHeader>
-                <CardContent className="p-8">
-                  {/* Soft Wave Graph - Area Chart Style */}
-                  <div className="relative h-64 w-full">
-                    <svg 
-                      viewBox="0 0 100 100" 
-                      preserveAspectRatio="none"
-                      className="absolute inset-0 w-full h-full"
-                    >
-                      <defs>
-                        <linearGradient id="waveGradient" x1="0%" y1="0%" x2="0%" y2="100%">
-                          <stop offset="0%" style={{ stopColor: "#8F9779", stopOpacity: 0.4 }} />
-                          <stop offset="100%" style={{ stopColor: "#8F9779", stopOpacity: 0.05 }} />
-                        </linearGradient>
-                      </defs>
-                      
-                      {/* Generate smooth wave path */}
-                      <path
-                        d={(() => {
-                          const points = vitalityData.map((value, index) => {
-                            const x = (index / (vitalityData.length - 1)) * 100;
-                            const y = 100 - (value / maxVitality) * 80;
-                            return { x, y };
-                          });
-
-                          let pathData = `M 0 ${points[0].y}`;
-                          
-                          for (let i = 0; i < points.length - 1; i++) {
-                            const current = points[i];
-                            const next = points[i + 1];
-                            const midX = (current.x + next.x) / 2;
-                            
-                            pathData += ` Q ${current.x} ${current.y}, ${midX} ${(current.y + next.y) / 2}`;
-                            pathData += ` T ${next.x} ${next.y}`;
-                          }
-                          
-                          pathData += ` L 100 100 L 0 100 Z`;
-                          return pathData;
-                        })()}
-                        fill="url(#waveGradient)"
-                        className="transition-all duration-1000"
-                      />
-                      
-                      {/* Wave line on top */}
-                      <path
-                        d={(() => {
-                          const points = vitalityData.map((value, index) => {
-                            const x = (index / (vitalityData.length - 1)) * 100;
-                            const y = 100 - (value / maxVitality) * 80;
-                            return { x, y };
-                          });
-
-                          let pathData = `M 0 ${points[0].y}`;
-                          
-                          for (let i = 0; i < points.length - 1; i++) {
-                            const current = points[i];
-                            const next = points[i + 1];
-                            const midX = (current.x + next.x) / 2;
-                            
-                            pathData += ` Q ${current.x} ${current.y}, ${midX} ${(current.y + next.y) / 2}`;
-                            pathData += ` T ${next.x} ${next.y}`;
-                          }
-                          
-                          return pathData;
-                        })()}
-                        fill="none"
-                        stroke="#8F9779"
-                        strokeWidth="0.5"
-                        className="transition-all duration-1000"
-                      />
-                    </svg>
-                  </div>
-                  
-                  {/* Minimalist Axis Labels */}
-                  <div className="flex justify-between mt-4 font-body text-xs text-charcoal/50">
-                    <span>30 days ago</span>
-                    <span>Today</span>
-                  </div>
-                  
-                  {/* Stats Summary */}
-                  <div className="grid grid-cols-3 gap-4 mt-8 pt-6 border-t border-charcoal/10">
-                    <div className="text-center">
-                      <p className="font-display text-4xl text-charcoal mb-1">{totalMinutes}</p>
-                      <p className="font-body text-xs text-charcoal/60">Total Minutes</p>
-                    </div>
-                    <div className="text-center">
-                      <p className="font-display text-4xl text-charcoal mb-1">{avgPerDay}</p>
-                      <p className="font-body text-xs text-charcoal/60">Avg per Day</p>
-                    </div>
-                    <div className="text-center">
-                      <p
-                        className={`font-display text-4xl mb-1 ${
-                          vitalityVsPrev.tone === "up"
-                            ? "text-sage"
-                            : vitalityVsPrev.tone === "down"
-                              ? "text-terracotta"
-                              : "text-charcoal"
-                        }`}
-                      >
-                        {vitalityVsPrev.text}
-                      </p>
-                      <p className="font-body text-xs text-charcoal/60">vs Last Month</p>
-                    </div>
-                  </div>
-                </CardContent>
-              </Card>
+              <VitalityAreaChart
+                series={vitalityData}
+                totalMinutes={totalMinutes}
+                avgPerDay={avgPerDay}
+                vsLabel={vitalityVsPrev.text}
+                vsTone={vitalityVsPrev.tone}
+              />
             </div>
 
-            {/* RIGHT COLUMN (1/3) - Quick Actions & Upcoming */}
+            {/* RIGHT COLUMN (1/3) - Upcoming */}
             <div className="lg:col-span-1 space-y-6">
-              
-              {/* Quick Book Section */}
-              <div className="bg-white rounded-lg shadow-sm p-6">
-                <div className="flex items-center gap-2 mb-4">
-                  <Zap className="w-5 h-5 text-sage" />
-                  <h2 className="font-display text-xl text-charcoal">Quick Book</h2>
-                </div>
-                <p className="font-body text-sm text-charcoal/60 mb-4">Fast access to your favorites</p>
-
-                <div className="space-y-2">
-                  <Button
-                    type="button"
-                    onClick={() => void router.push("/portal/book")}
-                    className="w-full bg-sage hover:bg-sage/90 text-white font-body justify-start"
-                  >
-                    <Calendar className="w-4 h-4 mr-2" />
-                    Book a Class
-                  </Button>
-
-                  <Button
-                    onClick={() => router.push("/portal/packages")}
-                    className="w-full bg-white hover:bg-cream text-charcoal border border-sage/20 font-body justify-start"
-                  >
-                    <Package className="w-4 h-4 mr-2" />
-                    Buy Packages
-                  </Button>
-
-                  <Button
-                    onClick={() => setShowOrderHistory(true)}
-                    className="w-full bg-white hover:bg-cream text-charcoal border border-sage/20 font-body justify-start"
-                  >
-                    <History className="w-4 h-4 mr-2" />
-                    Order History
-                  </Button>
-                  <Button
-                    type="button"
-                    onClick={() => void router.push("/portal/profile#reset-password")}
-                    className="w-full bg-white hover:bg-cream text-charcoal border border-sage/20 font-body justify-start"
-                  >
-                    <Lock className="w-4 h-4 mr-2" />
-                    Reset password
-                  </Button>
-                </div>
-              </div>
-
               {/* Upcoming Classes */}
-              <div className="bg-white rounded-lg shadow-sm p-6">
-                <div className="flex items-center gap-2 mb-4">
-                  <CalendarDays className="w-5 h-5 text-sage" />
-                  <h2 className="font-display text-xl text-charcoal">Upcoming</h2>
-                </div>
-                <p className="font-body text-sm text-charcoal/60 mb-4">Your next sessions</p>
-
-                {upcomingBookings.length === 0 ? (
-                  <p className="font-body text-sm text-charcoal/50 italic">No upcoming classes</p>
-                ) : (
-                  <div className="space-y-3">
-                    {upcomingBookings.slice(0, 3).map((booking) => {
-                      const isScheduled = !!booking.class_schedule;
-                      const className = isScheduled
-                        ? booking.class_schedule?.class_model?.name
-                        : booking.class_name || "Class";
-                      const instructor = isScheduled
-                        ? booking.class_schedule?.instructor?.name
-                        : "Instructor TBD";
-                      const imageUrl = isScheduled
-                        ? booking.class_schedule?.class_model?.image_url || cdnUrl("/placeholder.jpg")
-                        : cdnUrl("/placeholder.jpg");
-                      const startTime = isScheduled
-                        ? booking.class_schedule?.start_time
-                        : booking.class_time;
-
-                      return (
-                        <button
-                          key={booking.id}
-                          onClick={() => {
-                            setSelectedBookingForCheckIn(booking);
-                            setShowCheckIn(true);
-                          }}
-                          className="w-full flex items-center gap-3 p-3 rounded-lg hover:bg-cream/50 transition-colors text-left"
-                        >
-                          <Image
-                            src={imageUrl}
-                            alt={className}
-                            width={64}
-                            height={64}
-                            unoptimized
-                            className="w-16 h-16 rounded-lg object-cover"
-                          />
-                          <div className="flex-1">
-                            <p className="font-display text-base text-charcoal mb-1">
-                              {className}
-                            </p>
-                            <p className="font-body text-xs text-charcoal/60">
-                              {instructor}
-                            </p>
-                            {booking.confirmation_status === "pending" && (
-                              <span className="inline-flex items-center px-2 py-0.5 mt-1 rounded-full text-[10px] font-body bg-amber-100 text-amber-700">
-                                Pending confirmation
-                              </span>
-                            )}
-                            {startTime && (
-                              <p className="font-body text-xs text-sage font-semibold mt-1">
-                                {new Date(startTime).toLocaleDateString("en-US", {
-                                  month: "short",
-                                  day: "numeric",
-                                })}{" "}
-                                at{" "}
-                                {new Date(startTime).toLocaleTimeString("en-US", {
-                                  hour: "2-digit",
-                                  minute: "2-digit",
-                                })}
-                              </p>
-                            )}
-                          </div>
-                          <ChevronRight className="w-5 h-5 text-charcoal/30" />
-                        </button>
-                      );
-                    })}
-                  </div>
-                )}
-              </div>
+              <UpcomingScheduleCard entries={upcomingEntries} />
             </div>
           </div>
 
@@ -984,58 +656,25 @@ export default function Dashboard() {
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
             
             {/* Recent Activity Feed */}
-            <Card className="border-0 bg-white/80 backdrop-blur-xl shadow-lg">
-              <CardHeader className="p-8 border-b border-charcoal/5">
-                <div className="flex items-center gap-3">
-                  <div className="w-12 h-12 rounded-full bg-sage/10 flex items-center justify-center">
-                    <Award className="text-sage" size={24} />
-                  </div>
-                  <div>
-                    <CardTitle className="font-display text-2xl text-charcoal">Recent Activity</CardTitle>
-                    <CardDescription className="font-body text-sm text-charcoal/60">Your latest movements</CardDescription>
-                  </div>
-                </div>
-              </CardHeader>
-              <CardContent className="p-8">
-                <div className="space-y-4">
-                  {recentActivities.length > 0 ? (
-                    recentActivities.map((activity) => {
-                      const Icon = activity.icon;
-                      return (
-                        <div key={activity.id} className="flex items-start gap-3 group">
-                          <div className="shrink-0 w-10 h-10 rounded-full bg-sage/10 flex items-center justify-center group-hover:bg-sage/20 transition-all duration-300 group-hover:scale-110">
-                            <Icon className={activity.color} size={18} />
-                          </div>
-                          <div className="flex-1 min-w-0">
-                            <p className="font-body text-sm text-charcoal font-medium">{activity.text}</p>
-                            <p className="font-body text-xs text-charcoal/50 mt-1">{activity.date}</p>
-                          </div>
-                        </div>
-                      );
-                    })
-                  ) : (
-                    <div className="text-center py-8">
-                      <Calendar className="mx-auto mb-3 text-charcoal/20" size={40} />
-                      <p className="font-body text-sm text-charcoal/60">No recent activity yet</p>
-                      <Button
-                        onClick={() => router.push("/portal/book")}
-                        size="sm"
-                        className="mt-4 bg-sage hover:bg-sage/90 text-white font-body"
-                      >
-                        Book Your First Class
-                      </Button>
-                    </div>
-                  )}
-                </div>
-              </CardContent>
-            </Card>
+            <ActivityTimeline
+              items={recentActivities}
+              emptyCta={
+                <Button
+                  onClick={() => router.push("/portal/book")}
+                  size="sm"
+                  className="bg-sage hover:bg-sage/90 text-white font-body"
+                >
+                  Book Your First Class
+                </Button>
+              }
+            />
 
             {/* Nourish Quick-Order Café Widget */}
             <Card className="border-0 bg-linear-to-br from-sage/5 to-white/80 backdrop-blur-xl shadow-lg">
               <CardContent className="p-8">
                 <div className="flex items-start gap-4 mb-6">
                   <div className="w-14 h-14 rounded-full bg-sage/10 flex items-center justify-center shrink-0">
-                    <Coffee className="text-sage" size={28} />
+                    <AnimatedIcon icon={Coffee} size={28} className="text-sage" />
                   </div>
                   <div className="flex-1">
                     <h3 className="font-display text-2xl text-charcoal mb-2">Nourish</h3>
@@ -1099,7 +738,7 @@ export default function Dashboard() {
               <div className="flex items-center justify-between mb-2">
                 <div className="flex items-center gap-3">
                   <div className="w-12 h-12 rounded-full bg-sage/10 flex items-center justify-center">
-                    <Coffee className="text-sage" size={24} />
+                    <AnimatedIcon icon={Coffee} size={24} className="text-sage" />
                   </div>
                   <div>
                     <h2 className="font-display text-3xl text-charcoal">Order History</h2>
@@ -1135,82 +774,7 @@ export default function Dashboard() {
                   </Button>
                 </div>
               ) : (
-                <>
-                  {cafeOrdersHistory.map((order) => {
-                    const unit = Number(order.cafe_item?.price ?? 0);
-                    const lineTotal = Math.round(unit * order.quantity * 100) / 100;
-                    const name = order.cafe_item?.name || "Café item";
-                    const thumb = order.cafe_item?.image_url;
-                    return (
-                      <div
-                        key={order.id}
-                        className="p-6 rounded-2xl bg-white border border-sage/10 hover:border-sage/30 transition-all duration-300 hover:shadow-lg"
-                      >
-                        <div className="flex items-start justify-between mb-4 pb-4 border-b border-sage/10">
-                          <div>
-                            <div className="flex items-center gap-3 mb-2 flex-wrap">
-                              <h3 className="font-display text-lg text-charcoal font-mono">
-                                #{order.id.slice(0, 8)}…
-                              </h3>
-                              <Badge
-                                className={`font-body border ${cafeStatusBadgeClass(order.status)}`}
-                              >
-                                {formatCafeStatus(order.status)}
-                              </Badge>
-                            </div>
-                            <p className="font-body text-sm text-charcoal/60">
-                              {new Date(order.order_date).toLocaleString("en-US", {
-                                month: "long",
-                                day: "numeric",
-                                year: "numeric",
-                                hour: "2-digit",
-                                minute: "2-digit",
-                              })}
-                            </p>
-                          </div>
-                          <div className="text-right">
-                            <p className="font-display text-2xl text-sage mb-1">₹{lineTotal}</p>
-                            <div className="flex items-center justify-end gap-1 text-charcoal/60">
-                              <CreditCard size={14} />
-                              <p className="font-body text-xs">{formatCafePaymentMethod(order.payment_method)}</p>
-                            </div>
-                          </div>
-                        </div>
-
-                        <div className="flex items-center justify-between">
-                          <div className="flex items-center gap-3 min-w-0">
-                            <div className="w-12 h-12 rounded-lg overflow-hidden bg-linear-to-br from-sage/20 via-cream/50 to-terracotta/20 shrink-0">
-                              {thumb ? (
-                                <Image src={thumb} alt="" width={48} height={48} unoptimized className="w-full h-full object-cover" />
-                              ) : null}
-                            </div>
-                            <div className="min-w-0">
-                              <p className="font-body text-sm font-medium text-charcoal truncate">{name}</p>
-                              <p className="font-body text-xs text-charcoal/60">
-                                Qty {order.quantity}
-                                {unit > 0 ? ` · ₹${unit} each` : ""}
-                              </p>
-                            </div>
-                          </div>
-                        </div>
-
-                        <div className="flex gap-3 mt-4 pt-4 border-t border-sage/10">
-                          <Button
-                            variant="outline"
-                            size="sm"
-                            className="flex-1 border-sage/30 text-sage hover:bg-sage/10 font-body"
-                            onClick={() => {
-                              setShowOrderHistory(false);
-                              router.push("/portal/menu");
-                            }}
-                          >
-                            Order again
-                          </Button>
-                        </div>
-                      </div>
-                    );
-                  })}
-                </>
+                <OrderHistoryTable rows={orderRows} />
               )}
             </div>
 

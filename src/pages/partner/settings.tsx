@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import { PageHeader } from "@/components/dashboard/PageHeader";
 import { useRouter } from "next/router";
 import type { GetServerSideProps } from "next";
 import { getStudioServerSession } from "@/lib/getStudioServerSession";
@@ -61,7 +62,7 @@ export default function PartnerSettings() {
 
   return (
     <main className="max-w-2xl mx-auto p-4 lg:p-6 space-y-6">
-      <h1 className="font-display text-3xl text-charcoal">Settings</h1>
+      <PageHeader title="Settings" subtitle="Manage your brand and login" />
 
       {loading ? (
         <div className="flex items-center justify-center py-16 text-charcoal/50"><Loader2 className="h-5 w-5 animate-spin mr-2" /> Loading…</div>
