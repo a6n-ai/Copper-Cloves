@@ -166,11 +166,15 @@ export async function onboardGuestsForBooking(opts: {
   const schedule = await prisma.classSchedule.findUnique({
     where: { id: opts.classScheduleId },
     include: {
-      class_model: { select: { name: true } },
+      class_model: { select: { name: true, partner_id: true } },
       instructor: { select: { name: true } },
     },
   });
   if (!schedule) return { processed: 0, results: [] };
+
+  // Partner-run classes (e.g. Physique 57) await partner sign-off; guest rows
+  // must mirror the booker's pending state rather than auto-confirming.
+  const confirmationStatus = schedule.class_model?.partner_id ? "pending" : null;
 
   const booker = await prisma.profile.findUnique({
     where: { id: opts.bookerId },
@@ -216,6 +220,7 @@ export async function onboardGuestsForBooking(opts: {
             class_time: schedule.start_time.toISOString(),
             email,
             status: "confirmed",
+            confirmation_status: confirmationStatus,
             extra_guest_count: 0,
             finance_snapshot: GUEST_FINANCE_SNAPSHOT,
           },
@@ -258,6 +263,7 @@ export async function onboardGuestsForBooking(opts: {
             class_time: schedule.start_time.toISOString(),
             email,
             status: "confirmed",
+            confirmation_status: confirmationStatus,
             extra_guest_count: 0,
             finance_snapshot: GUEST_FINANCE_SNAPSHOT,
           },
