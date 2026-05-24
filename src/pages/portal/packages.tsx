@@ -652,11 +652,11 @@ export default function PackagesPage() {
         </div>
 
         {/* Tab Switcher */}
-        <div className="flex justify-center mb-12">
-          <div className="inline-flex bg-white/80 backdrop-blur-xl rounded-full p-2 shadow-lg border border-sage/10">
+        <div className="flex justify-center mb-8">
+          <div className="inline-flex bg-white/80 backdrop-blur-xl rounded-full p-1.5 shadow-lg border border-sage/10 w-full max-w-xs sm:w-auto">
             <button
               onClick={() => setSelectedCategory("class")}
-              className={`px-6 py-3 rounded-full font-body text-sm font-medium transition-all duration-300 ${
+              className={`flex-1 sm:flex-none px-5 py-2.5 rounded-full font-body text-sm font-medium transition-all duration-300 ${
                 selectedCategory === "class"
                   ? "bg-sage text-white shadow-md"
                   : "text-charcoal/70 hover:text-charcoal"
@@ -666,7 +666,7 @@ export default function PackagesPage() {
             </button>
             <button
               onClick={() => setSelectedCategory("studio")}
-              className={`px-6 py-3 rounded-full font-body text-sm font-medium transition-all duration-300 ${
+              className={`flex-1 sm:flex-none px-5 py-2.5 rounded-full font-body text-sm font-medium transition-all duration-300 ${
                 selectedCategory === "studio"
                   ? "bg-sage text-white shadow-md"
                   : "text-charcoal/70 hover:text-charcoal"
@@ -677,7 +677,7 @@ export default function PackagesPage() {
           </div>
         </div>
 
-        {/* Mobile Scroll Buttons */}
+        {/* Mobile Scroll Buttons — only shown when cards overflow (lg+) uses grid */}
         <div className="flex justify-center gap-4 mb-6 lg:hidden">
           <button
             onClick={() => scroll("left")}
@@ -693,20 +693,20 @@ export default function PackagesPage() {
           </button>
         </div>
 
-        {/* Packages Container */}
+        {/* Packages Container — stacks on phone, horizontal scroll on sm/md, grid on lg */}
         <div
           ref={scrollContainerRef}
-          className="flex gap-6 overflow-x-auto pb-8 snap-x snap-mandatory scrollbar-hide lg:grid lg:grid-cols-4 lg:gap-8 lg:overflow-visible"
+          className="grid grid-cols-1 gap-5 sm:flex sm:gap-5 sm:overflow-x-auto sm:pb-8 sm:snap-x sm:snap-mandatory sm:scrollbar-hide lg:grid lg:grid-cols-4 lg:gap-8 lg:overflow-visible"
         >
           {currentPackages.map((pkg, index) => (
             <div
               key={index}
-              className={`shrink-0 w-80 lg:w-auto snap-center ${
+              className={`sm:shrink-0 sm:w-72 sm:snap-center lg:w-auto ${
                 pkg.featured ? "lg:scale-105" : ""
               }`}
             >
               <div
-                className={`relative h-full rounded-3xl p-8 transition-all duration-500 hover:shadow-2xl ${
+                className={`relative h-full rounded-2xl p-6 sm:p-8 transition-all duration-500 hover:shadow-2xl ${
                   pkg.featured
                     ? "bg-white/90 backdrop-blur-xl border-2 border-sage shadow-xl"
                     : "bg-white/80 backdrop-blur-xl border border-sage/10 shadow-lg hover:border-sage/30"
@@ -720,15 +720,27 @@ export default function PackagesPage() {
                   </div>
                 )}
 
-                <h3 className="font-display text-2xl text-charcoal mb-2 mt-2">
-                  {pkg.name}
-                </h3>
-
-                <div className="text-charcoal/60 font-body text-sm mb-6">
-                  {typeof pkg.classes === "number" ? `${pkg.classes} ${pkg.classes === 1 ? "class" : "classes"}` : pkg.classes}
+                {/* Mobile: price + name side by side for fast scanning */}
+                <div className="flex items-start justify-between gap-3 sm:block mt-2">
+                  <div className="flex-1">
+                    <h3 className="font-display text-xl sm:text-2xl text-charcoal mb-1">
+                      {pkg.name}
+                    </h3>
+                    <div className="text-charcoal/60 font-body text-sm sm:mb-6">
+                      {typeof pkg.classes === "number" ? `${pkg.classes} ${pkg.classes === 1 ? "class" : "classes"}` : pkg.classes}
+                    </div>
+                  </div>
+                  <div className="shrink-0 text-right sm:hidden">
+                    <div className="font-display text-2xl text-charcoal">
+                      {pkg.price}
+                    </div>
+                    <div className="text-charcoal/50 font-body text-xs">
+                      {pkg.validity}
+                    </div>
+                  </div>
                 </div>
 
-                <div className="mb-8">
+                <div className="hidden sm:block mb-8">
                   <div className="font-display text-3xl text-charcoal mb-2">
                     {pkg.price}
                   </div>
@@ -737,13 +749,13 @@ export default function PackagesPage() {
                   </div>
                 </div>
 
-                <ul className="space-y-4 mb-8">
+                <ul className="space-y-2 sm:space-y-4 my-4 sm:mb-8">
                   {pkg.benefits.map((benefit, i) => (
-                    <li key={i} className="flex items-start gap-3">
-                      <div className="shrink-0 w-5 h-5 rounded-full bg-sage/10 flex items-center justify-center mt-0.5">
-                        <Check className="text-sage" size={14} />
+                    <li key={i} className="flex items-center gap-2.5 sm:items-start sm:gap-3">
+                      <div className="shrink-0 w-4 h-4 sm:w-5 sm:h-5 rounded-full bg-sage/10 flex items-center justify-center sm:mt-0.5">
+                        <Check className="text-sage" size={12} />
                       </div>
-                      <span className="font-body text-sm text-charcoal/80 leading-relaxed">
+                      <span className="font-body text-sm text-charcoal/80 leading-snug">
                         {benefit}
                       </span>
                     </li>
@@ -752,7 +764,7 @@ export default function PackagesPage() {
 
                 <button
                   onClick={() => handleChoosePlan(pkg)}
-                  className="w-full py-3 px-6 bg-sage hover:bg-sage/90 text-white font-body text-sm rounded-full transition-all duration-300 hover:scale-105 shadow-lg hover:shadow-xl flex items-center justify-center gap-2"
+                  className="w-full py-3.5 px-6 bg-sage hover:bg-sage/90 text-white font-body text-sm rounded-full transition-all duration-300 hover:scale-105 shadow-lg hover:shadow-xl flex items-center justify-center gap-2 min-h-[44px]"
                 >
                   Choose Plan
                   <Check size={16} />
@@ -794,14 +806,15 @@ export default function PackagesPage() {
                   key={purchase.id}
                   className="p-6 rounded-2xl bg-white/80 backdrop-blur-xl border border-sage/10 hover:border-sage/30 transition-all duration-300"
                 >
-                  <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
-                    <div className="flex-1">
-                      <div className="flex items-center gap-3 mb-2">
-                        <h3 className="font-display text-xl text-charcoal">
+                  <div className="flex flex-col gap-4">
+                    {/* Name + status + amount on one row on mobile */}
+                    <div className="flex items-start justify-between gap-3">
+                      <div className="flex-1 min-w-0">
+                        <h3 className="font-display text-lg sm:text-xl text-charcoal truncate">
                           {packageType?.name || "Unknown Package"}
                         </h3>
-                        <span className={`px-3 py-1 rounded-full text-xs font-body font-semibold ${
-                          isActive 
+                        <span className={`inline-block mt-1 px-2.5 py-0.5 rounded-full text-xs font-body font-semibold ${
+                          isActive
                             ? "bg-green-100 text-green-700"
                             : isExpired
                             ? "bg-gray-100 text-gray-600"
@@ -810,56 +823,56 @@ export default function PackagesPage() {
                           {isActive ? "Active" : isExpired ? "Expired" : purchase.status}
                         </span>
                       </div>
-                      
-                      <div className="grid md:grid-cols-3 gap-4 mt-4">
-                        <div>
-                          <p className="font-body text-xs text-charcoal/50 mb-1">Purchase Date</p>
-                          <p className="font-body text-sm text-charcoal">
-                            {new Date(purchase.created_at).toLocaleDateString("en-US", {
-                              year: "numeric",
-                              month: "short",
-                              day: "numeric"
-                            })}
-                          </p>
-                        </div>
-                        
-                        <div>
-                          <p className="font-body text-xs text-charcoal/50 mb-1">Expires On</p>
-                          <p className="font-body text-sm text-charcoal">
-                            {new Date(purchase.expires_at).toLocaleDateString("en-US", {
-                              year: "numeric",
-                              month: "short",
-                              day: "numeric"
-                            })}
-                          </p>
-                        </div>
-                        
-                        <div>
-                          <p className="font-body text-xs text-charcoal/50 mb-1">Credits Remaining</p>
-                          <p className="font-body text-sm text-charcoal">
-                            {packageType?.is_unlimited 
-                              ? "Unlimited" 
-                              : `${purchase.remaining_credits || 0} / ${packageType?.class_count || 0}`}
-                          </p>
-                        </div>
+                      <div className="shrink-0 text-right">
+                        <p className="font-body text-xs text-charcoal/50 mb-0.5">Amount Paid</p>
+                        <p className="font-display text-xl sm:text-2xl text-sage">
+                          ₹{packageType?.price?.toLocaleString("en-IN") || "0"}
+                        </p>
                       </div>
                     </div>
-                    
-                    <div className="text-right">
-                      <p className="font-body text-xs text-charcoal/50 mb-1">Amount Paid</p>
-                      <p className="font-display text-2xl text-sage">
-                        ₹{packageType?.price?.toLocaleString("en-IN") || "0"}
-                      </p>
-                      <Button
-                        onClick={() => generateInvoicePDF(purchase)}
-                        variant="outline"
-                        size="sm"
-                        className="mt-4 border-sage/30 text-sage hover:bg-sage/10"
-                      >
-                        <Download size={16} className="mr-2" />
-                        Download Invoice
-                      </Button>
+
+                    <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
+                      <div>
+                        <p className="font-body text-xs text-charcoal/50 mb-1">Purchase Date</p>
+                        <p className="font-body text-sm text-charcoal">
+                          {new Date(purchase.created_at).toLocaleDateString("en-US", {
+                            year: "numeric",
+                            month: "short",
+                            day: "numeric"
+                          })}
+                        </p>
+                      </div>
+
+                      <div>
+                        <p className="font-body text-xs text-charcoal/50 mb-1">Expires On</p>
+                        <p className="font-body text-sm text-charcoal">
+                          {new Date(purchase.expires_at).toLocaleDateString("en-US", {
+                            year: "numeric",
+                            month: "short",
+                            day: "numeric"
+                          })}
+                        </p>
+                      </div>
+
+                      <div>
+                        <p className="font-body text-xs text-charcoal/50 mb-1">Credits</p>
+                        <p className="font-body text-sm text-charcoal">
+                          {packageType?.is_unlimited
+                            ? "Unlimited"
+                            : `${purchase.remaining_credits || 0} / ${packageType?.class_count || 0}`}
+                        </p>
+                      </div>
                     </div>
+
+                    <Button
+                      onClick={() => generateInvoicePDF(purchase)}
+                      variant="outline"
+                      size="sm"
+                      className="self-start border-sage/30 text-sage hover:bg-sage/10"
+                    >
+                      <Download size={16} className="mr-2" />
+                      Download Invoice
+                    </Button>
                   </div>
                 </div>
               );
@@ -868,9 +881,9 @@ export default function PackagesPage() {
         )}
       </div>
 
-      {/* Checkout Modal */}
+      {/* Checkout Modal — bottom sheet on phones, centered dialog on md+ */}
       {showCheckout && selectedPackage && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-charcoal/60 backdrop-blur-md animate-in fade-in duration-300">
+        <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center sm:p-4 bg-charcoal/60 backdrop-blur-md animate-in fade-in duration-300">
           {success ? (
             <div className="bg-white rounded-3xl max-w-md w-full p-8 shadow-2xl animate-in zoom-in-95 duration-500 text-center">
               <div className="w-16 h-16 rounded-full bg-sage/20 flex items-center justify-center mx-auto mb-4">
@@ -886,13 +899,18 @@ export default function PackagesPage() {
               </div>
             </div>
           ) : (
-            <div className="bg-white rounded-3xl max-w-2xl w-full max-h-[90vh] overflow-y-auto shadow-2xl animate-in zoom-in-95 duration-500 relative">
+            <div className="bg-white rounded-t-3xl sm:rounded-3xl max-w-2xl w-full max-h-[92svh] sm:max-h-[90vh] overflow-y-auto shadow-2xl animate-in slide-in-from-bottom sm:zoom-in-95 duration-400 relative">
+              {/* Drag handle — mobile only */}
+              <div className="sm:hidden flex justify-center pt-3 pb-1">
+                <div className="w-10 h-1 rounded-full bg-charcoal/20" />
+              </div>
+
               {/* Header */}
-              <div className="sticky top-0 z-20 bg-white pt-6 px-6 pb-4 border-b border-sage/10 shadow-xs">
+              <div className="sticky top-0 z-20 bg-white pt-3 sm:pt-6 px-5 sm:px-6 pb-4 border-b border-sage/10 shadow-xs">
                 <div className="flex items-start justify-between">
                   <div>
-                    <h2 className="font-display text-3xl text-charcoal mb-2">Complete Your Purchase</h2>
-                    <p className="font-body text-charcoal/60">
+                    <h2 className="font-display text-2xl sm:text-3xl text-charcoal mb-1">Complete Your Purchase</h2>
+                    <p className="font-body text-sm text-charcoal/60">
                       Secure checkout for {selectedPackage?.name}
                     </p>
                   </div>
@@ -907,9 +925,9 @@ export default function PackagesPage() {
               </div>
 
               {/* Package Summary */}
-              <div className="p-6 border-b border-sage/10 bg-sage/5">
-                <h3 className="font-display text-xl text-charcoal mb-4">Package Summary</h3>
-                <div className="grid md:grid-cols-2 gap-4">
+              <div className="p-5 sm:p-6 border-b border-sage/10 bg-sage/5">
+                <h3 className="font-display text-lg sm:text-xl text-charcoal mb-3">Package Summary</h3>
+                <div className="grid grid-cols-2 md:grid-cols-2 gap-3 sm:gap-4">
                   <div>
                     <p className="font-body text-sm text-charcoal/60 mb-1">Package Name</p>
                     <p className="font-display text-lg text-charcoal">{selectedPackage.name}</p>
@@ -965,7 +983,7 @@ export default function PackagesPage() {
               </div>
 
               {/* Checkout Form */}
-              <form onSubmit={handlePurchase} className="p-6 space-y-6">
+              <form onSubmit={handlePurchase} className="p-5 sm:p-6 space-y-5 sm:space-y-6">
                 <div className="space-y-2">
                   <Label htmlFor="fullName" className="font-body text-charcoal">
                     Full Name *
@@ -1044,19 +1062,19 @@ export default function PackagesPage() {
                 <FormAlert message={error} variant="error" />
 
                 {/* Submit Buttons */}
-                <div className="flex gap-3 pt-4 border-t border-sage/10">
+                <div className="flex flex-col-reverse sm:flex-row gap-3 pt-4 border-t border-sage/10">
                   <Button
                     type="button"
                     onClick={closeCheckout}
                     variant="outline"
-                    className="flex-1 border-sage/30 text-charcoal hover:bg-sage/10"
+                    className="flex-1 border-sage/30 text-charcoal hover:bg-sage/10 h-11"
                     disabled={isProcessing}
                   >
                     Cancel
                   </Button>
                   <Button
                     type="submit"
-                    className="flex-1 bg-sage hover:bg-sage/90 text-white"
+                    className="flex-1 bg-sage hover:bg-sage/90 text-white h-11"
                     disabled={isProcessing}
                   >
                     {isProcessing ? (
