@@ -9,6 +9,7 @@
  * 🟢 You can import this file directly.
  */
 export type * from './models/Profile'
+export type * from './models/UserSession'
 export type * from './models/Coupon'
 export type * from './models/CouponRedemption'
 export type * from './models/RetailProduct'

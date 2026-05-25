@@ -5,6 +5,9 @@ import bcrypt from "bcryptjs";
 import type { Profile } from "@/generated/prisma/client";
 import prisma from "./prisma";
 import { normalizeLoginEmail } from "./loginEmail";
+import { startSession, endSession, SESSION_MAX_AGE_SECONDS } from "./sessionGuard";
+
+type Headers = Record<string, string | string[] | undefined>;
 
 // Roles a signed-in user may seamlessly switch between (no password) when the
 // same email owns multiple profiles. Deliberately excludes admin/partner so a
@@ -49,6 +52,10 @@ async function buildUserFromProfile(profile: Profile) {
 export const authOptions: NextAuthOptions = {
   session: {
     strategy: "jwt",
+    maxAge: SESSION_MAX_AGE_SECONDS,
+  },
+  jwt: {
+    maxAge: SESSION_MAX_AGE_SECONDS,
   },
   providers: [
     CredentialsProvider({
@@ -87,7 +94,9 @@ export const authOptions: NextAuthOptions = {
 
             const target = await prisma.profile.findFirst({ where: { email, role: wantRole } });
             if (!target) return null;
-            return await buildUserFromProfile(target);
+            const switched = await buildUserFromProfile(target);
+            const { sid: switchSid } = await startSession(target.id, (req?.headers ?? {}) as Headers);
+            return { ...switched, sid: switchSid };
           }
 
           if (!credentials.password) {
@@ -119,7 +128,9 @@ export const authOptions: NextAuthOptions = {
             return null;
           }
 
-          return await buildUserFromProfile(profile);
+          const built = await buildUserFromProfile(profile);
+          const { sid } = await startSession(profile.id, (req?.headers ?? {}) as Headers);
+          return { ...built, sid };
         } catch (e) {
           console.error("[next-auth] authorize error (DB or unexpected)", e);
           return null;
@@ -131,6 +142,7 @@ export const authOptions: NextAuthOptions = {
     async jwt({ token, user, trigger, session }) {
       if (user) {
         token.id = user.id;
+        token.sid = (user as { sid?: string }).sid ?? null;
         token.role = (user as { role?: string }).role ?? "user";
         token.partner_id = (user as { partner_id?: string | null }).partner_id ?? null;
         token.instructor_id = (user as { instructor_id?: string | null }).instructor_id ?? null;
@@ -152,6 +164,11 @@ export const authOptions: NextAuthOptions = {
         (session.user as { available_roles?: string[] }).available_roles = (token.available_roles as string[] | undefined) ?? [];
       }
       return session;
+    },
+  },
+  events: {
+    async signOut({ token }) {
+      await endSession((token as { sid?: string } | null)?.sid);
     },
   },
   pages: {

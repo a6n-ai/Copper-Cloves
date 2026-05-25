@@ -108,10 +108,11 @@ export function SignInForm({ onSwitchToSignup }: { onSwitchToSignup: () => void 
     setResetLoading(true);
     try {
       // API always returns 200 (never reveals whether the email exists).
+      // Pass the picked role so non-member portals (instructor/partner/admin) reset too.
       await fetch("/api/auth/forgot-password", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ email: target }),
+        body: JSON.stringify({ email: target, role: role ?? undefined }),
       });
       setResetMsg(`If an account exists for ${target}, a password reset link is on its way. Check your inbox (and spam).`);
     } catch {

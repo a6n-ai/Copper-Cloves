@@ -4,31 +4,44 @@ import prisma from "@/lib/prisma";
 import { sendHtmlEmail } from "@/lib/notifications/sendEmail";
 
 const TOKEN_TTL_MS = 60 * 60 * 1000; // 1 hour
+const VALID_ROLES = new Set(["user", "instructor", "partner", "admin"]);
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
   if (req.method !== "POST") return res.status(405).end();
 
-  const { email } = req.body as { email?: string };
+  const { email, role } = req.body as { email?: string; role?: string };
   if (!email?.trim()) return res.status(400).json({ error: "Email is required" });
 
   const normalised = email.trim().toLowerCase();
+  const wantRole = role?.trim();
 
-  // Always return 200 — never reveal whether email exists.
-  // Portal reset is for the member (role "user") login.
-  const profile = await prisma.profile.findFirst({ where: { email: normalised, role: "user" } });
+  // Resolve which portal login to reset. Unified login passes the picked role;
+  // if absent, fall back to the email's sole login, else the member ("user") one.
+  let targetRole: string | null = null;
+  if (wantRole && VALID_ROLES.has(wantRole)) {
+    targetRole = wantRole;
+  } else {
+    const rows = await prisma.profile.findMany({ where: { email: normalised }, select: { role: true } });
+    const roles = Array.from(new Set(rows.map((r) => r.role)));
+    targetRole = roles.length === 1 ? roles[0] : roles.includes("user") ? "user" : roles[0] ?? null;
+  }
+
+  // Always return 200 — never reveal whether the email/role exists.
+  if (!targetRole) return res.status(200).json({ ok: true });
+  const profile = await prisma.profile.findFirst({ where: { email: normalised, role: targetRole } });
   if (!profile) return res.status(200).json({ ok: true });
 
   const token = crypto.randomBytes(32).toString("hex");
   const expiresAt = new Date(Date.now() + TOKEN_TTL_MS);
 
-  // Invalidate any prior unused tokens for this email
+  // Invalidate any prior unused tokens for this same email+role
   await prisma.passwordResetToken.updateMany({
-    where: { email: normalised, used: false },
+    where: { email: normalised, role: targetRole, used: false },
     data: { used: true },
   });
 
   await prisma.passwordResetToken.create({
-    data: { email: normalised, token, expires_at: expiresAt },
+    data: { email: normalised, role: targetRole, token, expires_at: expiresAt },
   });
 
   const baseUrl = process.env.NEXTAUTH_URL ?? `https://${req.headers.host}`;
