@@ -1,6 +1,5 @@
 import type { NextApiRequest, NextApiResponse } from "next";
-import { getServerSession } from "next-auth/next";
-import { authOptions } from "@/lib/auth";
+import { getStudioServerSession } from "@/lib/getStudioServerSession";
 
 export interface InstructorSession {
   instructorId: string;
@@ -18,7 +17,7 @@ export async function getInstructorSession(
   req: NextApiRequest,
   res: NextApiResponse,
 ): Promise<InstructorSession | null> {
-  const session = await getServerSession(req, res, authOptions);
+  const session = await getStudioServerSession(req, res);
   const user = session?.user as
     | { id?: string; name?: string | null; email?: string | null; role?: string; instructor_id?: string | null }
     | undefined;

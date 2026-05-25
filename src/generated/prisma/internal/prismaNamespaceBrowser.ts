@@ -52,6 +52,7 @@ export const AnyNull = runtime.AnyNull
 
 export const ModelName = {
   Profile: 'Profile',
+  UserSession: 'UserSession',
   Coupon: 'Coupon',
   CouponRedemption: 'CouponRedemption',
   RetailProduct: 'RetailProduct',
@@ -128,6 +129,20 @@ export const ProfileScalarFieldEnum = {
 } as const
 
 export type ProfileScalarFieldEnum = (typeof ProfileScalarFieldEnum)[keyof typeof ProfileScalarFieldEnum]
+
+
+export const UserSessionScalarFieldEnum = {
+  id: 'id',
+  profile_id: 'profile_id',
+  session_id: 'session_id',
+  fingerprint: 'fingerprint',
+  ip: 'ip',
+  user_agent: 'user_agent',
+  created_at: 'created_at',
+  last_seen_at: 'last_seen_at'
+} as const
+
+export type UserSessionScalarFieldEnum = (typeof UserSessionScalarFieldEnum)[keyof typeof UserSessionScalarFieldEnum]
 
 
 export const CouponScalarFieldEnum = {

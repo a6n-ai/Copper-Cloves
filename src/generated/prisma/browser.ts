@@ -23,6 +23,16 @@ export * from './enums';
  */
 export type Profile = Prisma.ProfileModel
 /**
+ * Model UserSession
+ * Single active login session per profile (anti session-sharing). The
+ * `session_id` is embedded as `sid` in the JWT; a fresh login upserts this row
+ * so any older token (another device, or a copied cookie) fails validation —
+ * "kick the old device". `fingerprint` (User-Agent hash) binds the token to the
+ * browser it was issued to; `last_seen_at` powers the idle timeout. Enforced
+ * centrally in getStudioServerSession via isRequestSessionValid.
+ */
+export type UserSession = Prisma.UserSessionModel
+/**
  * Model Coupon
  * Promotional codes: food (café), ecommerce (boutique), class_pass, or studio_pass.
  */
