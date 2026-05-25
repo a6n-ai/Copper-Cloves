@@ -858,6 +858,7 @@ model MemberTicket {
 model PasswordResetToken {
   id         String   @id @default(cuid())
   email      String
+  role       String?  // which portal login this token resets; null = legacy member ("user")
   token      String   @unique
   expires_at DateTime
   used       Boolean  @default(false)

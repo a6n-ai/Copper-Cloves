@@ -18,15 +18,21 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
   const hashedPassword = await bcrypt.hash(password, 12);
 
+  // Token carries the portal it was issued for; legacy tokens (null) = member.
+  const targetRole = record.role ?? "user";
+
   await prisma.$transaction([
-    // Portal reset targets the member (role "user") login for this email.
     prisma.profile.updateMany({
-      where: { email: record.email, role: "user" },
+      where: { email: record.email, role: targetRole },
       data: { hashedPassword },
     }),
     prisma.passwordResetToken.update({
       where: { token },
       data: { used: true },
+    }),
+    // Force re-login on all devices for the reset account (kills any live session).
+    prisma.userSession.deleteMany({
+      where: { profile: { email: record.email, role: targetRole } },
     }),
   ]);
 

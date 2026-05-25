@@ -61,7 +61,7 @@ export default function ResetPasswordPage() {
         return;
       }
       setDone(true);
-      setTimeout(() => router.replace("/portal/login"), 3000);
+      setTimeout(() => router.replace("/login"), 3000);
     } catch {
       setApiError("Something went wrong. Please try again.");
     }
@@ -115,7 +115,7 @@ export default function ResetPasswordPage() {
             {done ? (
               <div className="flex flex-col items-center gap-4 py-4">
                 <CheckCircle2 className="h-14 w-14 text-sage" />
-                <Link href="/portal/login" className="font-body text-sm text-sage hover:underline">
+                <Link href="/login" className="font-body text-sm text-sage hover:underline">
                   Sign in now →
                 </Link>
               </div>

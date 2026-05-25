@@ -3922,6 +3922,7 @@ export type MemberTicketScalarFieldEnum = (typeof MemberTicketScalarFieldEnum)[k
 export const PasswordResetTokenScalarFieldEnum = {
   id: 'id',
   email: 'email',
+  role: 'role',
   token: 'token',
   expires_at: 'expires_at',
   used: 'used',
