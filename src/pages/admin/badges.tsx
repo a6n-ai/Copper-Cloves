@@ -1,10 +1,11 @@
-import { useEffect, useState, useCallback, useRef } from "react";
+import { useEffect, useState, useCallback, useRef, useMemo, Fragment } from "react";
 import { useRouter } from "next/router";
 import { useSession } from "next-auth/react";
 import { AdminPageHeader } from "@/components/admin/AdminPageHeader";
 import {
   Card,
   CardContent,
+  CardDescription,
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
@@ -12,6 +13,10 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Badge } from "@/components/ui/badge";
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
+import { ResponsiveTable } from "@/components/responsive/ResponsiveTable";
+import { Pagination, usePagination } from "@/components/Pagination";
+import { MetricCard } from "@/components/admin/MetricCard";
 import {
   Award,
   Plus,
@@ -22,6 +27,11 @@ import {
   Search,
   UserCheck,
   Star,
+  Layers,
+  CheckCircle2,
+  ChevronUp,
+  ChevronDown,
+  ArrowUpDown,
 } from "lucide-react";
 
 const COLOR_PRESETS = [
@@ -71,6 +81,7 @@ interface EditFormState {
 }
 
 type Tab = "ptm" | "custom";
+type PtmSortKey = "name" | "threshold" | "status";
 
 const emptyForm = (): EditFormState => ({
   name: "",
@@ -88,6 +99,11 @@ export default function AdminBadgesPage() {
   const [ptmTemplates, setPtmTemplates] = useState<BadgeTemplate[]>([]);
   const [customTemplates, setCustomTemplates] = useState<BadgeTemplate[]>([]);
   const [loading, setLoading] = useState(true);
+
+  // PTM table search + sort
+  const [ptmSearch, setPtmSearch] = useState("");
+  const [ptmSortKey, setPtmSortKey] = useState<PtmSortKey | null>(null);
+  const [ptmSortDir, setPtmSortDir] = useState<"asc" | "desc">("asc");
 
   // PTM editing
   const [editingPtmId, setEditingPtmId] = useState<string | null>(null);
@@ -197,6 +213,60 @@ export default function AdminBadgesPage() {
       if (searchTimer.current) clearTimeout(searchTimer.current);
     };
   }, [memberSearch]);
+
+  // ---- Stats + PTM table derivation ----
+  const activeCount = [...ptmTemplates, ...customTemplates].filter((t) => t.is_active).length;
+  const totalBadges = ptmTemplates.length + customTemplates.length;
+
+  const filteredPtm = useMemo(() => {
+    let list = [...ptmTemplates];
+    if (ptmSearch.trim()) {
+      const q = ptmSearch.toLowerCase();
+      list = list.filter(
+        (t) => t.name.toLowerCase().includes(q) || (t.description ?? "").toLowerCase().includes(q),
+      );
+    }
+    if (ptmSortKey) {
+      const dir = ptmSortDir === "asc" ? 1 : -1;
+      list.sort((a, b) => {
+        switch (ptmSortKey) {
+          case "name":
+            return a.name.localeCompare(b.name) * dir;
+          case "threshold":
+            return ((a.threshold_classes ?? 0) - (b.threshold_classes ?? 0)) * dir;
+          case "status":
+            return (Number(a.is_active) - Number(b.is_active)) * dir;
+          default:
+            return 0;
+        }
+      });
+    } else {
+      list.sort((a, b) => a.sort_order - b.sort_order);
+    }
+    return list;
+  }, [ptmTemplates, ptmSearch, ptmSortKey, ptmSortDir]);
+
+  const ptmPg = usePagination(filteredPtm, 10, `${ptmSearch}|${ptmSortKey}|${ptmSortDir}`);
+
+  const togglePtmSort = (key: PtmSortKey) => {
+    if (ptmSortKey === key) {
+      setPtmSortDir((d) => (d === "asc" ? "desc" : "asc"));
+    } else {
+      setPtmSortKey(key);
+      setPtmSortDir(key === "name" ? "asc" : "desc");
+    }
+  };
+
+  const ptmSortIcon = (key: PtmSortKey) =>
+    ptmSortKey === key ? (
+      ptmSortDir === "asc" ? (
+        <ChevronUp className="h-3 w-3" />
+      ) : (
+        <ChevronDown className="h-3 w-3" />
+      )
+    ) : (
+      <ArrowUpDown className="h-3 w-3 opacity-40" />
+    );
 
   // ---- PTM CRUD ----
   const startEditPtm = (t: BadgeTemplate) => {
@@ -474,6 +544,14 @@ export default function AdminBadgesPage() {
             subtitle="Configure milestone tiers and custom recognition badges"
           />
 
+          {/* Stats Grid */}
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+            <MetricCard label="Milestones" value={ptmTemplates.length} icon={Award} tone="sage" hint="Path-to-mastery tiers" />
+            <MetricCard label="Custom Badges" value={customTemplates.length} icon={Star} tone="terracotta" hint="Recognition badges" />
+            <MetricCard label="Active" value={activeCount} icon={CheckCircle2} tone="sage" hint="Currently enabled" />
+            <MetricCard label="Total Badges" value={totalBadges} icon={Layers} tone="charcoal" hint="All templates" />
+          </div>
+
           {/* Tabs */}
           <div className="flex gap-1 bg-white/60 p-1 rounded-xl shadow-xs border border-sage/10 w-fit mb-8">
             {(["ptm", "custom"] as Tab[]).map((t) => (
@@ -493,79 +571,45 @@ export default function AdminBadgesPage() {
 
           {/* ============ PATH TO MASTERY TAB ============ */}
           {tab === "ptm" && (
-            <div className="space-y-4">
-              {ptmTemplates.map((template) => (
-                <Card key={template.id} className="border-0 bg-white/80 backdrop-blur-xl shadow-xs">
-                  <CardContent className="p-5">
-                    <div className="flex items-center gap-4">
-                      {/* Icon + color swatch */}
-                      <div
-                        className="w-14 h-14 rounded-2xl flex items-center justify-center text-2xl shadow-xs shrink-0"
-                        style={{ backgroundColor: template.color + "22" }}
-                      >
-                        {template.icon}
-                      </div>
-                      <div className="flex-1 min-w-0">
-                        <div className="flex items-center gap-2 flex-wrap">
-                          <h3 className="font-display text-lg text-charcoal">{template.name}</h3>
-                          {template.threshold_classes !== null && (
-                            <Badge
-                              variant="outline"
-                              className="text-xs border-charcoal/20 font-body"
-                            >
-                              At {template.threshold_classes} classes
-                            </Badge>
-                          )}
-                          <div
-                            className="w-4 h-4 rounded-full border border-white shadow-xs"
-                            style={{ backgroundColor: template.color }}
-                            title={template.color}
-                          />
-                        </div>
-                        {template.description && (
-                          <p className="font-body text-sm text-charcoal/60 mt-0.5">
-                            {template.description}
-                          </p>
-                        )}
-                      </div>
-                      <div className="flex gap-2 shrink-0">
-                        <Button
-                          size="sm"
-                          variant="outline"
-                          className="font-body border-sage/30 text-sage hover:bg-sage/10"
-                          onClick={() => startEditPtm(template)}
-                        >
-                          <Edit2 size={14} className="mr-1" /> Edit
-                        </Button>
-                        <Button
-                          size="sm"
-                          variant="outline"
-                          className="font-body border-terracotta/30 text-terracotta hover:bg-terracotta/10"
-                          onClick={() => deletePtm(template.id)}
-                        >
-                          <Trash2 size={14} />
-                        </Button>
-                      </div>
+            <Card className="border-sage/20 bg-white/95 backdrop-blur-xl">
+              <CardHeader className="space-y-4">
+                <div className="flex flex-wrap items-start justify-between gap-3">
+                  <div>
+                    <CardTitle className="font-display text-2xl text-charcoal">
+                      Path to Mastery <span className="font-body text-base text-charcoal/40">({filteredPtm.length})</span>
+                    </CardTitle>
+                    <CardDescription className="font-body text-charcoal/60">
+                      Milestone tiers auto-awarded by class count
+                    </CardDescription>
+                  </div>
+                  <div className="flex items-center gap-2 w-full sm:w-auto">
+                    <div className="relative flex-1 sm:w-64">
+                      <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-charcoal/40" />
+                      <Input
+                        value={ptmSearch}
+                        onChange={(e) => setPtmSearch(e.target.value)}
+                        placeholder="Search milestones…"
+                        className="h-9 pl-9 border-sage/20 focus:border-sage font-body"
+                      />
                     </div>
-
-                    {/* Inline edit */}
-                    {editingPtmId === template.id &&
-                      renderBadgeForm(
-                        ptmForm,
-                        setPtmForm,
-                        () => savePtm(template.id),
-                        () => setEditingPtmId(null),
-                        true
-                      )}
-                  </CardContent>
-                </Card>
-              ))}
-
-              {/* Add Milestone */}
-              {showAddPtm ? (
-                <Card className="border-0 bg-white/80 backdrop-blur-xl shadow-xs">
-                  <CardContent className="p-5">
-                    <h3 className="font-display text-lg text-charcoal mb-2">New Milestone</h3>
+                    <Button
+                      onClick={() => {
+                        setPtmForm(emptyForm());
+                        setShowAddPtm(true);
+                      }}
+                      className="bg-sage hover:bg-sage/90 text-white font-body h-9 shrink-0"
+                    >
+                      <Plus className="h-4 w-4 mr-1.5" />
+                      Add Milestone
+                    </Button>
+                  </div>
+                </div>
+              </CardHeader>
+              <CardContent>
+                {/* New milestone form */}
+                {showAddPtm && (
+                  <div className="mb-4">
+                    <h3 className="font-display text-lg text-charcoal mb-1">New Milestone</h3>
                     {renderBadgeForm(
                       ptmForm,
                       setPtmForm,
@@ -574,23 +618,149 @@ export default function AdminBadgesPage() {
                         setShowAddPtm(false);
                         setPtmForm(emptyForm());
                       },
-                      true
+                      true,
                     )}
-                  </CardContent>
-                </Card>
-              ) : (
-                <Button
-                  onClick={() => {
-                    setPtmForm(emptyForm());
-                    setShowAddPtm(true);
-                  }}
-                  variant="outline"
-                  className="w-full font-body border-dashed border-sage/40 text-sage hover:bg-sage/5 h-12"
-                >
-                  <Plus size={16} className="mr-2" /> Add Milestone
-                </Button>
-              )}
-            </div>
+                  </div>
+                )}
+
+                {filteredPtm.length === 0 ? (
+                  <div className="text-center py-12">
+                    <Award className="h-12 w-12 text-charcoal/20 mx-auto mb-3" />
+                    <p className="font-body text-charcoal/40">
+                      {ptmSearch ? "No milestones match your search" : "No milestones yet"}
+                    </p>
+                    {ptmSearch && (
+                      <Button
+                        onClick={() => setPtmSearch("")}
+                        variant="outline"
+                        className="mt-4 border-sage/20 text-sage hover:bg-sage/10 font-body"
+                      >
+                        Clear search
+                      </Button>
+                    )}
+                  </div>
+                ) : (
+                  <>
+                    <ResponsiveTable>
+                      <div className="rounded-xl border border-sage/15 bg-white overflow-hidden">
+                        <Table>
+                          <TableHeader>
+                            <TableRow className="bg-sage/5 hover:bg-sage/5 border-sage/10">
+                              <TableHead className="font-body text-xs uppercase tracking-wide text-charcoal/60 px-5 py-3">
+                                <button type="button" onClick={() => togglePtmSort("name")} className="inline-flex items-center gap-1 uppercase hover:text-charcoal transition-colors">
+                                  Badge {ptmSortIcon("name")}
+                                </button>
+                              </TableHead>
+                              <TableHead className="font-body text-xs uppercase tracking-wide text-charcoal/60 px-5 py-3 w-[150px]">
+                                <button type="button" onClick={() => togglePtmSort("threshold")} className="inline-flex items-center gap-1 uppercase hover:text-charcoal transition-colors">
+                                  Threshold {ptmSortIcon("threshold")}
+                                </button>
+                              </TableHead>
+                              <TableHead className="font-body text-xs uppercase tracking-wide text-charcoal/60 px-5 py-3 w-[130px]">Color</TableHead>
+                              <TableHead className="font-body text-xs uppercase tracking-wide text-charcoal/60 px-5 py-3 w-[110px]">
+                                <button type="button" onClick={() => togglePtmSort("status")} className="inline-flex items-center gap-1 uppercase hover:text-charcoal transition-colors">
+                                  Status {ptmSortIcon("status")}
+                                </button>
+                              </TableHead>
+                              <TableHead className="font-body text-xs uppercase tracking-wide text-charcoal/60 px-5 py-3 w-[110px] text-right">Actions</TableHead>
+                            </TableRow>
+                          </TableHeader>
+                          <TableBody>
+                            {ptmPg.pageItems.map((template) => (
+                              <Fragment key={template.id}>
+                                <TableRow className="border-sage/10 hover:bg-sage/5">
+                                  <TableCell className="px-5 py-4">
+                                    <div className="flex items-center gap-3 min-w-0">
+                                      <div
+                                        className="w-11 h-11 rounded-xl flex items-center justify-center text-xl shadow-xs shrink-0"
+                                        style={{ backgroundColor: template.color + "22" }}
+                                      >
+                                        {template.icon}
+                                      </div>
+                                      <div className="min-w-0">
+                                        <div className="font-body font-medium text-charcoal truncate">{template.name}</div>
+                                        {template.description && (
+                                          <div className="font-body text-xs text-charcoal/50 truncate">{template.description}</div>
+                                        )}
+                                      </div>
+                                    </div>
+                                  </TableCell>
+                                  <TableCell className="px-5 py-4">
+                                    {template.threshold_classes !== null ? (
+                                      <Badge variant="outline" className="text-xs border-charcoal/20 font-body">
+                                        At {template.threshold_classes} classes
+                                      </Badge>
+                                    ) : (
+                                      <span className="font-body text-sm text-charcoal/40">—</span>
+                                    )}
+                                  </TableCell>
+                                  <TableCell className="px-5 py-4">
+                                    <div className="flex items-center gap-2">
+                                      <span
+                                        className="w-4 h-4 rounded-full border border-white shadow-xs shrink-0"
+                                        style={{ backgroundColor: template.color }}
+                                      />
+                                      <span className="font-body text-xs text-charcoal/60 tabular-nums">{template.color}</span>
+                                    </div>
+                                  </TableCell>
+                                  <TableCell className="px-5 py-4">
+                                    {template.is_active ? (
+                                      <Badge className="bg-sage/10 text-sage border-sage/20 font-body">Active</Badge>
+                                    ) : (
+                                      <Badge variant="outline" className="border-charcoal/15 text-charcoal/40 font-body">Inactive</Badge>
+                                    )}
+                                  </TableCell>
+                                  <TableCell className="px-5 py-4">
+                                    <div className="flex gap-2 justify-end">
+                                      <Button
+                                        size="sm"
+                                        variant="outline"
+                                        className="h-8 w-8 p-0 font-body border-sage/30 text-sage hover:bg-sage/10"
+                                        onClick={() => startEditPtm(template)}
+                                        aria-label="Edit milestone"
+                                      >
+                                        <Edit2 size={14} />
+                                      </Button>
+                                      <Button
+                                        size="sm"
+                                        variant="outline"
+                                        className="h-8 w-8 p-0 font-body border-terracotta/30 text-terracotta hover:bg-terracotta/10"
+                                        onClick={() => deletePtm(template.id)}
+                                        aria-label="Delete milestone"
+                                      >
+                                        <Trash2 size={14} />
+                                      </Button>
+                                    </div>
+                                  </TableCell>
+                                </TableRow>
+                                {editingPtmId === template.id && (
+                                  <TableRow className="border-sage/10 hover:bg-transparent">
+                                    <TableCell colSpan={5} className="px-5 pb-5 pt-0">
+                                      {renderBadgeForm(
+                                        ptmForm,
+                                        setPtmForm,
+                                        () => savePtm(template.id),
+                                        () => setEditingPtmId(null),
+                                        true,
+                                      )}
+                                    </TableCell>
+                                  </TableRow>
+                                )}
+                              </Fragment>
+                            ))}
+                          </TableBody>
+                        </Table>
+                      </div>
+                    </ResponsiveTable>
+                    <Pagination
+                      page={ptmPg.page}
+                      total={ptmPg.total}
+                      onChange={ptmPg.setPage}
+                    />
+                  </>
+                )}
+              </CardContent>
+            </Card>
           )}
 
           {/* ============ CUSTOM BADGES TAB ============ */}

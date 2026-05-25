@@ -1,6 +1,10 @@
-﻿import { useState, useEffect } from "react";
+﻿import { useState, useEffect, useMemo } from "react";
 import { useRouter } from "next/router";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
+import { ResponsiveTable } from "@/components/responsive/ResponsiveTable";
+import { MetricCard } from "@/components/admin/MetricCard";
+import { ListAvatar } from "@/components/admin/ListAvatar";
 import { AdminPageHeader } from "@/components/admin/AdminPageHeader";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -38,7 +42,12 @@ import {
   TrendingDown,
   PieChart,
   Coffee,
-  Trash2
+  Trash2,
+  ChevronUp,
+  ChevronDown,
+  ArrowUpDown,
+  Layers,
+  Award,
 } from "lucide-react";
 import { SEO } from "@/components/SEO";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -208,6 +217,33 @@ function ControlPanelShellSkeleton() {
     </div>
   );
 }
+
+type SortDir = "asc" | "desc";
+
+function useSort<K extends string>() {
+  const [key, setKey] = useState<K | null>(null);
+  const [dir, setDir] = useState<SortDir>("asc");
+  const toggle = (k: K, defaultDir: SortDir = "asc") => {
+    if (key === k) setDir((d) => (d === "asc" ? "desc" : "asc"));
+    else {
+      setKey(k);
+      setDir(defaultDir);
+    }
+  };
+  return { key, dir, toggle };
+}
+
+function sortArrow(active: boolean, dir: SortDir) {
+  if (!active) return <ArrowUpDown className="h-3 w-3 opacity-40" />;
+  return dir === "asc" ? <ChevronUp className="h-3 w-3" /> : <ChevronDown className="h-3 w-3" />;
+}
+
+const isUserExpired = (u: any) =>
+  u.expiry === "N/A" || (u.expiry && new Date(u.expiry).getTime() < Date.now());
+const isUserActive = (u: any) => u.passType !== "none" && !isUserExpired(u);
+
+const thBtn = "inline-flex items-center gap-1 uppercase hover:text-charcoal transition-colors";
+const thBase = "font-body text-xs uppercase tracking-wide text-charcoal/60 px-5 py-3";
 
 export default function ControlPanel() {
   const router = useRouter();
@@ -925,24 +961,167 @@ async function fetchPayoutData() {
     }
   }
 
-  const filteredUsers = users.filter((u) => {
-    const q = userSearch.trim().toLowerCase();
-    if (q) {
-      const hit = [u.name, u.email, u.phone].some((f) => String(f ?? "").toLowerCase().includes(q));
-      if (!hit) return false;
+  // ---- Tab search + sort ----
+  const [classSearch, setClassSearch] = useState("");
+  const [payoutSearch, setPayoutSearch] = useState("");
+  const [instructorSearch, setInstructorSearch] = useState("");
+
+  const userSort = useSort<"name" | "end" | "status">();
+  const classSort = useSort<"name" | "category" | "duration" | "capacity">();
+  const payoutSort = useSort<"name" | "checkIns" | "total" | "status">();
+  const instructorSort = useSort<"name" | "status">();
+
+  const filteredUsers = useMemo(() => {
+    let list = users.filter((u) => {
+      const q = userSearch.trim().toLowerCase();
+      if (q && ![u.name, u.email, u.phone].some((f) => String(f ?? "").toLowerCase().includes(q)))
+        return false;
+      if (userFilter === "studio_pass") return u.passType === "studio_pass";
+      if (userFilter === "class_pass") return u.passType === "class_pass";
+      if (userFilter === "active") return isUserActive(u);
+      if (userFilter === "inactive") return !isUserActive(u);
+      return true;
+    });
+    if (userSort.key) {
+      const dir = userSort.dir === "asc" ? 1 : -1;
+      list = [...list].sort((a, b) => {
+        switch (userSort.key) {
+          case "name":
+            return String(a.name).localeCompare(String(b.name)) * dir;
+          case "end": {
+            const av = a.expiry && a.expiry !== "N/A" ? new Date(a.expiry).getTime() : 0;
+            const bv = b.expiry && b.expiry !== "N/A" ? new Date(b.expiry).getTime() : 0;
+            return (av - bv) * dir;
+          }
+          case "status":
+            return (Number(isUserActive(a)) - Number(isUserActive(b))) * dir;
+          default:
+            return 0;
+        }
+      });
     }
-    const expired = u.expiry === "N/A" || (u.expiry && new Date(u.expiry).getTime() < Date.now());
-    const active = u.passType !== "none" && !expired;
-    if (userFilter === "studio_pass") return u.passType === "studio_pass";
-    if (userFilter === "class_pass") return u.passType === "class_pass";
-    if (userFilter === "active") return active;
-    if (userFilter === "inactive") return !active;
-    return true;
-  });
-  const usersPg = usePagination(filteredUsers, 10, `${userSearch}|${userFilter}`);
-  const classesPg = usePagination(classes);
-  const payoutsPg = usePagination(instructorPayouts);
-  const instructorsPg = usePagination(instructors);
+    return list;
+  }, [users, userSearch, userFilter, userSort.key, userSort.dir]);
+
+  const filteredClasses = useMemo(() => {
+    let list = classes;
+    const q = classSearch.trim().toLowerCase();
+    if (q)
+      list = list.filter(
+        (c) =>
+          String(c.name ?? "").toLowerCase().includes(q) ||
+          String(c.category ?? "").toLowerCase().includes(q),
+      );
+    if (classSort.key) {
+      const dir = classSort.dir === "asc" ? 1 : -1;
+      list = [...list].sort((a, b) => {
+        switch (classSort.key) {
+          case "name":
+            return String(a.name ?? "").localeCompare(String(b.name ?? "")) * dir;
+          case "category":
+            return String(a.category ?? "").localeCompare(String(b.category ?? "")) * dir;
+          case "duration":
+            return ((a.duration ?? 0) - (b.duration ?? 0)) * dir;
+          case "capacity":
+            return ((a.max_capacity ?? 0) - (b.max_capacity ?? 0)) * dir;
+          default:
+            return 0;
+        }
+      });
+    }
+    return list;
+  }, [classes, classSearch, classSort.key, classSort.dir]);
+
+  const filteredPayouts = useMemo(() => {
+    let list = instructorPayouts;
+    const q = payoutSearch.trim().toLowerCase();
+    if (q)
+      list = list.filter(
+        (p) =>
+          p.name.toLowerCase().includes(q) || String(p.specialties ?? "").toLowerCase().includes(q),
+      );
+    if (payoutSort.key) {
+      const dir = payoutSort.dir === "asc" ? 1 : -1;
+      list = [...list].sort((a, b) => {
+        switch (payoutSort.key) {
+          case "name":
+            return a.name.localeCompare(b.name) * dir;
+          case "checkIns":
+            return (a.checkIns - b.checkIns) * dir;
+          case "total":
+            return (a.total - b.total) * dir;
+          case "status":
+            return a.status.localeCompare(b.status) * dir;
+          default:
+            return 0;
+        }
+      });
+    }
+    return list;
+  }, [instructorPayouts, payoutSearch, payoutSort.key, payoutSort.dir]);
+
+  const filteredInstructors = useMemo(() => {
+    let list = instructors;
+    const q = instructorSearch.trim().toLowerCase();
+    if (q)
+      list = list.filter((i) =>
+        [i.name, i.email, i.title].some((f) => String(f ?? "").toLowerCase().includes(q)),
+      );
+    if (instructorSort.key) {
+      const dir = instructorSort.dir === "asc" ? 1 : -1;
+      list = [...list].sort((a, b) => {
+        switch (instructorSort.key) {
+          case "name":
+            return String(a.name ?? "").localeCompare(String(b.name ?? "")) * dir;
+          case "status":
+            return (Number(a.is_active !== false) - Number(b.is_active !== false)) * dir;
+          default:
+            return 0;
+        }
+      });
+    }
+    return list;
+  }, [instructors, instructorSearch, instructorSort.key, instructorSort.dir]);
+
+  // ---- Stat summaries ----
+  const userStats = useMemo(() => {
+    const active = users.filter(isUserActive).length;
+    return {
+      total: users.length,
+      active,
+      studio: users.filter((u) => u.passType === "studio_pass").length,
+      classPass: users.filter((u) => u.passType === "class_pass").length,
+    };
+  }, [users]);
+
+  const classStats = useMemo(() => {
+    const cats = new Set(classes.map((c) => c.category).filter(Boolean));
+    const durations = classes.map((c) => Number(c.duration) || 0).filter((d) => d > 0);
+    const avgDur = durations.length
+      ? Math.round(durations.reduce((s, d) => s + d, 0) / durations.length)
+      : 0;
+    const capacity = classes.reduce((s, c) => s + (Number(c.max_capacity) || 0), 0);
+    return { total: classes.length, categories: cats.size, avgDur, capacity };
+  }, [classes]);
+
+  const instructorStats = useMemo(() => {
+    const activeCount = instructors.filter((i) => i.is_active !== false).length;
+    const years = instructors
+      .map((i) => parseInt(i.years_of_experience) || 0)
+      .filter((y) => y > 0);
+    const avgYears = years.length ? Math.round(years.reduce((s, y) => s + y, 0) / years.length) : 0;
+    return {
+      total: instructors.length,
+      active: activeCount,
+      inactive: instructors.length - activeCount,
+      avgYears,
+    };
+  }, [instructors]);
+
+  const usersPg = usePagination(filteredUsers, 10, `${userSearch}|${userFilter}|${userSort.key}|${userSort.dir}`);
+  const classesPg = usePagination(filteredClasses, 10, `${classSearch}|${classSort.key}|${classSort.dir}`);
+  const payoutsPg = usePagination(filteredPayouts, 10, `${payoutSearch}|${payoutSort.key}|${payoutSort.dir}`);
+  const instructorsPg = usePagination(filteredInstructors, 10, `${instructorSearch}|${instructorSort.key}|${instructorSort.dir}`);
 
   if (loading) {
     return (
@@ -1003,457 +1182,514 @@ async function fetchPayoutData() {
 
               {/* USER MANAGEMENT TAB */}
               <TabsContent value="users" className="space-y-6">
-                {/* Header with Add User Button */}
-                <div className="flex items-center justify-between">
-                  <div>
-                    <h2 className="font-display text-3xl text-charcoal mb-2">User Management</h2>
-                    <p className="font-body text-charcoal/60">Add, edit, or remove members from the system</p>
-                  </div>
-                  <Button 
-                    className="bg-sage hover:bg-sage/90 text-white font-body"
-                    onClick={() => setShowAddUserDialog(true)}
-                  >
-                    <Plus className="h-4 w-4 mr-2" />
-                    Add User
-                  </Button>
+                {/* Stats */}
+                <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                  <MetricCard label="Total Members" value={userStats.total} icon={Users} tone="sage" />
+                  <MetricCard label="Active" value={userStats.active} icon={CheckCircle2} tone="sage" hint="Holding a valid pass" />
+                  <MetricCard label="Studio Pass" value={userStats.studio} icon={Award} tone="terracotta" />
+                  <MetricCard label="Class Pass" value={userStats.classPass} icon={CreditCard} tone="charcoal" />
                 </div>
 
-                {/* Search and Filters */}
                 <Card className="border-sage/20 bg-white/95 backdrop-blur-xl">
-                  <CardContent className="p-6">
-                    <div className="flex gap-4">
-                      <div className="flex-1">
-                        <Input
-                          value={userSearch}
-                          onChange={(e) => setUserSearch(e.target.value)}
-                          placeholder="Search by name, email, or phone..."
-                          className="border-sage/20 focus:ring-sage placeholder:text-charcoal/40"
-                        />
+                  <CardHeader className="space-y-4">
+                    <div className="flex flex-wrap items-start justify-between gap-3">
+                      <div>
+                        <CardTitle className="font-display text-2xl text-charcoal">
+                          User Management <span className="font-body text-base text-charcoal/40">({filteredUsers.length})</span>
+                        </CardTitle>
+                        <CardDescription className="font-body text-charcoal/60">
+                          Add, edit, or remove members from the system
+                        </CardDescription>
                       </div>
-                      <Select value={userFilter} onValueChange={setUserFilter}>
-                        <SelectTrigger className="w-48 border-sage/20">
-                          <SelectValue />
-                        </SelectTrigger>
-                        <SelectContent>
-                          <SelectItem value="all">All Users</SelectItem>
-                          <SelectItem value="studio_pass">Studio Pass</SelectItem>
-                          <SelectItem value="class_pass">Class Pass</SelectItem>
-                          <SelectItem value="active">Active Only</SelectItem>
-                          <SelectItem value="inactive">Inactive Only</SelectItem>
-                        </SelectContent>
-                      </Select>
+                      <div className="flex items-center gap-2 w-full sm:w-auto">
+                        <div className="relative flex-1 sm:w-64">
+                          <Input
+                            value={userSearch}
+                            onChange={(e) => setUserSearch(e.target.value)}
+                            placeholder="Search name, email, phone…"
+                            className="h-9 border-sage/20 focus:border-sage font-body"
+                          />
+                        </div>
+                        <Button
+                          onClick={() => setShowAddUserDialog(true)}
+                          className="bg-sage hover:bg-sage/90 text-white font-body h-9 shrink-0"
+                        >
+                          <Plus className="h-4 w-4 mr-1.5" />
+                          Add User
+                        </Button>
+                      </div>
                     </div>
+
+                    {/* Filter tab strip */}
+                    <div className="flex items-center justify-between flex-wrap gap-3 border-b border-sage/10">
+                      <div className="flex items-center gap-1 -mb-px overflow-x-auto">
+                        {[
+                          { v: "all", l: "All" },
+                          { v: "studio_pass", l: "Studio" },
+                          { v: "class_pass", l: "Class pass" },
+                          { v: "active", l: "Active" },
+                          { v: "inactive", l: "Inactive" },
+                        ].map((o) => {
+                          const active = userFilter === o.v;
+                          return (
+                            <button
+                              key={o.v}
+                              type="button"
+                              onClick={() => setUserFilter(o.v)}
+                              className={`relative px-4 py-2 font-body text-sm whitespace-nowrap transition-colors ${
+                                active ? "text-sage" : "text-charcoal/60 hover:text-charcoal"
+                              }`}
+                            >
+                              {o.l}
+                              {active && <span className="absolute left-0 right-0 -bottom-px h-0.5 bg-sage rounded-full" />}
+                            </button>
+                          );
+                        })}
+                      </div>
+                      {(userFilter !== "all" || userSearch) && (
+                        <button
+                          type="button"
+                          onClick={() => { setUserFilter("all"); setUserSearch(""); }}
+                          className="font-body text-xs text-terracotta hover:underline pb-2"
+                        >
+                          Reset
+                        </button>
+                      )}
+                    </div>
+                  </CardHeader>
+                  <CardContent>
+                    {loadingUsers ? (
+                      <UserListSkeleton rows={6} />
+                    ) : filteredUsers.length === 0 ? (
+                      <div className="text-center py-12">
+                        <Users className="h-12 w-12 text-charcoal/20 mx-auto mb-3" />
+                        <p className="font-body text-charcoal/40">
+                          {users.length === 0 ? "No users yet. Add a user to get started." : "No users match your search."}
+                        </p>
+                      </div>
+                    ) : (
+                      <>
+                        <ResponsiveTable>
+                          <div className="rounded-xl border border-sage/15 bg-white overflow-hidden">
+                            <Table>
+                              <TableHeader>
+                                <TableRow className="bg-sage/5 hover:bg-sage/5 border-sage/10">
+                                  <TableHead className={thBase}>
+                                    <button type="button" onClick={() => userSort.toggle("name")} className={thBtn}>
+                                      Member {sortArrow(userSort.key === "name", userSort.dir)}
+                                    </button>
+                                  </TableHead>
+                                  <TableHead className={`${thBase} w-[150px]`}>Pass</TableHead>
+                                  <TableHead className={`${thBase} w-[110px]`}>Remaining</TableHead>
+                                  <TableHead className={`${thBase} w-[120px]`}>Start</TableHead>
+                                  <TableHead className={`${thBase} w-[120px]`}>
+                                    <button type="button" onClick={() => userSort.toggle("end", "desc")} className={thBtn}>
+                                      End {sortArrow(userSort.key === "end", userSort.dir)}
+                                    </button>
+                                  </TableHead>
+                                  <TableHead className={`${thBase} w-[110px]`}>
+                                    <button type="button" onClick={() => userSort.toggle("status")} className={thBtn}>
+                                      Status {sortArrow(userSort.key === "status", userSort.dir)}
+                                    </button>
+                                  </TableHead>
+                                  <TableHead className={`${thBase} w-[120px] text-right`}>Actions</TableHead>
+                                </TableRow>
+                              </TableHeader>
+                              <TableBody>
+                                {usersPg.pageItems.map((user) => {
+                                  const active = isUserActive(user);
+                                  return (
+                                    <TableRow key={user.id} className="border-sage/10 hover:bg-sage/5">
+                                      <TableCell className="px-5 py-4">
+                                        <div className="flex items-center gap-3 min-w-0">
+                                          <ListAvatar name={user.name || user.email} size="md" />
+                                          <div className="min-w-0">
+                                            <div className="font-body font-medium text-charcoal truncate">{user.name || user.full_name || user.email}</div>
+                                            <div className="font-body text-xs text-charcoal/60 truncate">{user.email}</div>
+                                            <div className="font-body text-xs text-charcoal/50 truncate">{user.phone}</div>
+                                          </div>
+                                        </div>
+                                      </TableCell>
+                                      <TableCell className="px-5 py-4">
+                                        {user.passType === "none" ? (
+                                          <Badge variant="outline" className="border-charcoal/15 text-charcoal/40 bg-cream/30 font-body">No pass</Badge>
+                                        ) : user.passType === "class_pass" ? (
+                                          <Badge variant="outline" className="border-sage/30 text-sage bg-sage/5 font-body">Class pass</Badge>
+                                        ) : (
+                                          <Badge className={`${user.isPaused ? "bg-amber-500" : "bg-sage"} text-white border-transparent font-body`}>
+                                            Studio{user.isPaused ? " (Paused)" : ""}
+                                          </Badge>
+                                        )}
+                                      </TableCell>
+                                      <TableCell className="px-5 py-4">
+                                        {user.passType === "none" ? (
+                                          <span className="font-body text-sm text-charcoal/40">—</span>
+                                        ) : user.passType === "class_pass" ? (
+                                          <span className="font-body text-sm text-charcoal tabular-nums">{user.classesRemaining} left</span>
+                                        ) : (
+                                          <span className="font-body text-sm text-charcoal tabular-nums">{user.daysRemaining}d left</span>
+                                        )}
+                                      </TableCell>
+                                      <TableCell className="px-5 py-4">
+                                        <span className="font-body text-sm text-charcoal/70">
+                                          {user.start_date ? new Date(user.start_date).toLocaleDateString("en-IN", { day: "2-digit", month: "short", year: "numeric" }) : "—"}
+                                        </span>
+                                      </TableCell>
+                                      <TableCell className="px-5 py-4">
+                                        <span className="font-body text-sm text-charcoal/70">
+                                          {user.expiry && user.expiry !== "N/A" ? new Date(user.expiry).toLocaleDateString("en-IN", { day: "2-digit", month: "short", year: "numeric" }) : "N/A"}
+                                        </span>
+                                      </TableCell>
+                                      <TableCell className="px-5 py-4">
+                                        {user.passType === "none" ? (
+                                          <Badge variant="outline" className="border-charcoal/15 text-charcoal/40 font-body">No pass</Badge>
+                                        ) : active ? (
+                                          <Badge className="bg-sage/10 text-sage border-sage/20 font-body">Active</Badge>
+                                        ) : (
+                                          <Badge variant="outline" className="border-amber-500/20 text-amber-600 bg-amber-50 font-body">Expired</Badge>
+                                        )}
+                                      </TableCell>
+                                      <TableCell className="px-5 py-4">
+                                        <div className="flex gap-2 justify-end">
+                                          <Button
+                                            variant="outline"
+                                            size="sm"
+                                            className="h-8 w-8 p-0 border-sage/20 text-sage hover:bg-sage/5"
+                                            onClick={() => openEditUser(user)}
+                                            aria-label="Edit user"
+                                          >
+                                            <Edit className="h-3.5 w-3.5" />
+                                          </Button>
+                                          <Button
+                                            variant="outline"
+                                            size="sm"
+                                            className="h-8 w-8 p-0 border-red-500/20 text-red-600 hover:bg-red-50"
+                                            onClick={() => handleDeleteUser(user.id, user.name || user.full_name || user.email)}
+                                            aria-label="Delete user"
+                                          >
+                                            <Trash2 className="h-3.5 w-3.5" />
+                                          </Button>
+                                        </div>
+                                      </TableCell>
+                                    </TableRow>
+                                  );
+                                })}
+                              </TableBody>
+                            </Table>
+                          </div>
+                        </ResponsiveTable>
+                        <Pagination page={usersPg.page} total={usersPg.total} onChange={usersPg.setPage} />
+                      </>
+                    )}
                   </CardContent>
                 </Card>
-
-                {/* User List */}
-                {loadingUsers ? (
-                  <UserListSkeleton rows={6} />
-                ) : filteredUsers.length === 0 ? (
-                  <Card className="border-sage/20 bg-white/95 backdrop-blur-xl">
-                    <CardContent className="p-12 text-center">
-                      <p className="font-body text-charcoal/60">
-                        {users.length === 0 ? "No users found. Add a user to get started." : "No users match your search."}
-                      </p>
-                    </CardContent>
-                  </Card>
-                ) : (
-                  <div className="space-y-3">
-                    {usersPg.pageItems.map((user) => (
-                      <Card key={user.id} className="border-sage/20 bg-white/95 backdrop-blur-xl hover:shadow-xl transition-all duration-600">
-                        <CardContent className="p-6">
-                          <div className="flex items-center justify-between">
-                            <div className="flex items-center gap-4 flex-1">
-                              <div className="h-14 w-14 rounded-full bg-sage/10 flex items-center justify-center">
-                                <span className="font-display text-xl text-sage">
-                                  {(user.name || user.full_name || user.email || "M").split(" ").map((n: string) => n[0]).join("")}
-                                </span>
-                              </div>
-                              <div>
-                                <div className="font-body font-medium text-charcoal text-lg mb-1">
-                                  {user.name || user.full_name || user.email}
-                                </div>
-                                <div className="flex items-center gap-4 text-sm text-charcoal/60">
-                                  <div className="flex items-center gap-1">
-                                    <Mail className="h-3.5 w-3.5" />
-                                    {user.email}
-                                  </div>
-                                  <div className="flex items-center gap-1">
-                                    <Phone className="h-3.5 w-3.5" />
-                                    {user.phone}
-                                  </div>
-                                </div>
-                              </div>
-                            </div>
-                            <div className="flex items-center gap-6">
-                              <div className="text-center">
-                                {user.passType === "none" ? (
-                                  <>
-                                    <Badge className="bg-charcoal/20 text-charcoal mb-2">
-                                      No Subscription
-                                    </Badge>
-                                    <div className="font-body text-sm text-charcoal/60">
-                                      Not enrolled
-                                    </div>
-                                  </>
-                                ) : user.passType === "class_pass" ? (
-                                  <>
-                                    <Badge className="bg-sage text-white mb-2">
-                                      Class Pass
-                                    </Badge>
-                                    <div className="font-body text-sm text-charcoal/60">
-                                      {user.classesRemaining} classes left
-                                    </div>
-                                  </>
-                                ) : (
-                                  <>
-                                    <Badge className={`${user.isPaused ? 'bg-amber-500' : 'bg-sage'} text-white mb-2`}>
-                                      Studio Pass {user.isPaused && '(Paused)'}
-                                    </Badge>
-                                    <div className="font-body text-sm text-charcoal/60">
-                                      {user.daysRemaining} days left
-                                    </div>
-                                  </>
-                                )}
-                              </div>
-                              {user.passType !== "none" && (
-                                <div className="text-center">
-                                  <div className="font-body text-sm text-charcoal/60 mb-1">
-                                    Start Date
-                                  </div>
-                                  <div className="font-body font-medium text-charcoal">
-                                    {user.start_date ? new Date(user.start_date).toLocaleDateString('en-IN', { day: '2-digit', month: 'short', year: 'numeric' }) : "—"}
-                                  </div>
-                                </div>
-                              )}
-                              {user.passType !== "none" && (
-                                <div className="text-center">
-                                  <div className="font-body text-sm text-charcoal/60 mb-1">
-                                    End Date
-                                  </div>
-                                  <div className="font-body font-medium text-charcoal">
-                                    {user.expiry !== "N/A" ? new Date(user.expiry).toLocaleDateString('en-IN', { day: '2-digit', month: 'short', year: 'numeric' }) : "N/A"}
-                                  </div>
-                                </div>
-                              )}
-                              <div className="flex items-center gap-2">
-                                <Button 
-                                  variant="outline" 
-                                  size="sm"
-                                  className="border-sage/20 text-sage hover:bg-sage/5 font-body"
-                                  onClick={() => openEditUser(user)}
-                                >
-                                  <Edit className="h-3.5 w-3.5 mr-1" />
-                                  Edit
-                                </Button>
-                                {user.passType === "studio_pass" && (
-                                  <Button 
-                                    variant="outline" 
-                                    size="sm"
-                                    className={`border-amber-500/20 ${user.isPaused ? 'text-sage' : 'text-amber-600'} hover:bg-amber-50 font-body`}
-                                  >
-                                    {user.isPaused ? 'Resume' : 'Pause'}
-                                  </Button>
-                                )}
-                                <Button
-                                  variant="outline"
-                                  size="sm"
-                                  className="border-red-500/20 text-red-600 hover:bg-red-50 font-body"
-                                  onClick={() => handleDeleteUser(user.id, user.name || user.full_name || user.email)}
-                                >
-                                  <Ban className="h-3.5 w-3.5 mr-1" />
-                                  Delete
-                                </Button>
-                              </div>
-                            </div>
-                          </div>
-                        </CardContent>
-                      </Card>
-                    ))}
-                    <Pagination page={usersPg.page} total={usersPg.total} onChange={usersPg.setPage} />
-                  </div>
-                )}
               </TabsContent>
 
               {/* CLASS MANAGEMENT TAB */}
               <TabsContent value="classes" className="space-y-6">
-                {/* Header */}
-                <div className="flex items-center justify-between">
-                  <div>
-                    <h2 className="font-display text-3xl text-charcoal mb-2">Class Management</h2>
-                    <p className="font-body text-charcoal/60">Manage class types, descriptions, and settings</p>
-                  </div>
-                  <Button 
-                    className="bg-sage hover:bg-sage/90 text-white font-body"
-                    onClick={() => setShowAddClassDialog(true)}
-                  >
-                    <Plus className="h-4 w-4 mr-2" />
-                    Create Class
-                  </Button>
+                {/* Stats */}
+                <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                  <MetricCard label="Classes" value={classStats.total} icon={Calendar} tone="sage" />
+                  <MetricCard label="Categories" value={classStats.categories} icon={Layers} tone="terracotta" />
+                  <MetricCard label="Avg Duration" value={classStats.avgDur} icon={Clock} tone="charcoal" suffix=" min" />
+                  <MetricCard label="Total Capacity" value={classStats.capacity} icon={Users} tone="sage" />
                 </div>
 
-                {/* Classes Grid */}
-                {loadingClasses ? (
-                  <ClassGridSkeleton count={4} />
-                ) : (
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    {classesPg.pageItems.map((cls) => (
-                      <Card key={cls.id} className="border-sage/20 bg-white/95 backdrop-blur-xl hover:shadow-xl transition-all duration-600">
-                        <CardContent className="p-6">
-                          <div className="flex gap-4">
-                            <div className="h-24 w-24 rounded-lg overflow-hidden bg-sage/10 shrink-0">
-                              {cls.image_url ? (
-                                <img 
-                                  src={cls.image_url} 
-                                  alt={cls.name}
-                                  className="w-full h-full object-cover"
-                                />
-                              ) : (
-                                <div className="w-full h-full flex items-center justify-center">
-                                  <Calendar className="h-12 w-12 text-sage" />
-                                </div>
-                              )}
-                            </div>
-                            <div className="flex-1">
-                              <div className="flex items-start justify-between mb-2">
-                                <div>
-                                  <div className="font-display text-xl text-charcoal mb-1">
-                                    {cls.name}
-                                  </div>
-                                  <Badge className="bg-sage/10 text-sage border-sage/20">
-                                    {cls.category}
-                                  </Badge>
-                                </div>
-                                <div className="flex gap-2">
-                                  <Button 
-                                    variant="outline" 
-                                    size="sm"
-                                    className="border-sage/20 text-sage hover:bg-sage/5"
-                                    onClick={() => {
-                                      setSelectedClass(cls);
-                                      setShowClassDetailsDialog(true);
-                                    }}
-                                  >
-                                    <Edit className="h-3.5 w-3.5 mr-1" />
-                                    Edit
-                                  </Button>
-                                  <Button 
-                                    variant="outline" 
-                                    size="sm"
-                                    className="border-red-200 text-red-600 hover:bg-red-50"
-                                    onClick={() => handleDeleteClass(cls.id, cls.name)}
-                                  >
-                                    <Trash2 className="h-3.5 w-3.5" />
-                                  </Button>
-                                </div>
-                              </div>
-                              
-                              <div className="mb-3">
-                                <div className="font-body text-sm text-charcoal/80 line-clamp-2">
-                                  {cls.description}
-                                </div>
-                              </div>
-
-                              {cls.benefits && cls.benefits.length > 0 && (
-                                <div className="mb-3">
-                                  <div className="font-body text-xs text-charcoal/50 mb-1">Key Benefits:</div>
-                                  <div className="flex flex-wrap gap-1">
-                                    {cls.benefits.slice(0, 3).map((benefit: string, idx: number) => (
-                                      <Badge key={idx} variant="outline" className="border-sage/20 text-sage bg-sage/5 text-xs">
-                                        {benefit}
-                                      </Badge>
-                                    ))}
-                                    {cls.benefits.length > 3 && (
-                                      <Badge variant="outline" className="border-sage/20 text-charcoal/60 bg-cream/30 text-xs">
-                                        +{cls.benefits.length - 3} more
-                                      </Badge>
-                                    )}
-                                  </div>
-                                </div>
-                              )}
-
-                              <div className="flex items-center gap-4 text-xs text-charcoal/60">
-                                <div className="flex items-center gap-1">
-                                  <Clock className="h-3.5 w-3.5" />
-                                  {cls.duration} min
-                                </div>
-                                <div className="flex items-center gap-1">
-                                  <Users className="h-3.5 w-3.5" />
-                                  Max {cls.max_capacity}
-                                </div>
-                              </div>
-                            </div>
+                <Card className="border-sage/20 bg-white/95 backdrop-blur-xl">
+                  <CardHeader className="space-y-4">
+                    <div className="flex flex-wrap items-start justify-between gap-3">
+                      <div>
+                        <CardTitle className="font-display text-2xl text-charcoal">
+                          Class Management <span className="font-body text-base text-charcoal/40">({filteredClasses.length})</span>
+                        </CardTitle>
+                        <CardDescription className="font-body text-charcoal/60">
+                          Manage class types, descriptions, and settings
+                        </CardDescription>
+                      </div>
+                      <div className="flex items-center gap-2 w-full sm:w-auto">
+                        <Input
+                          value={classSearch}
+                          onChange={(e) => setClassSearch(e.target.value)}
+                          placeholder="Search class or category…"
+                          className="h-9 flex-1 sm:w-64 border-sage/20 focus:border-sage font-body"
+                        />
+                        <Button
+                          onClick={() => setShowAddClassDialog(true)}
+                          className="bg-sage hover:bg-sage/90 text-white font-body h-9 shrink-0"
+                        >
+                          <Plus className="h-4 w-4 mr-1.5" />
+                          Create Class
+                        </Button>
+                      </div>
+                    </div>
+                  </CardHeader>
+                  <CardContent>
+                    {loadingClasses ? (
+                      <ClassGridSkeleton count={4} />
+                    ) : filteredClasses.length === 0 ? (
+                      <div className="text-center py-12">
+                        <Calendar className="h-12 w-12 text-charcoal/20 mx-auto mb-3" />
+                        <p className="font-body text-charcoal/40">
+                          {classes.length === 0 ? "No classes yet. Create one to get started." : "No classes match your search."}
+                        </p>
+                      </div>
+                    ) : (
+                      <>
+                        <ResponsiveTable>
+                          <div className="rounded-xl border border-sage/15 bg-white overflow-hidden">
+                            <Table>
+                              <TableHeader>
+                                <TableRow className="bg-sage/5 hover:bg-sage/5 border-sage/10">
+                                  <TableHead className={thBase}>
+                                    <button type="button" onClick={() => classSort.toggle("name")} className={thBtn}>
+                                      Class {sortArrow(classSort.key === "name", classSort.dir)}
+                                    </button>
+                                  </TableHead>
+                                  <TableHead className={`${thBase} w-[150px]`}>
+                                    <button type="button" onClick={() => classSort.toggle("category")} className={thBtn}>
+                                      Category {sortArrow(classSort.key === "category", classSort.dir)}
+                                    </button>
+                                  </TableHead>
+                                  <TableHead className={`${thBase} w-[120px]`}>
+                                    <button type="button" onClick={() => classSort.toggle("duration", "desc")} className={thBtn}>
+                                      Duration {sortArrow(classSort.key === "duration", classSort.dir)}
+                                    </button>
+                                  </TableHead>
+                                  <TableHead className={`${thBase} w-[110px]`}>
+                                    <button type="button" onClick={() => classSort.toggle("capacity", "desc")} className={thBtn}>
+                                      Capacity {sortArrow(classSort.key === "capacity", classSort.dir)}
+                                    </button>
+                                  </TableHead>
+                                  <TableHead className={`${thBase} w-[110px] text-right`}>Actions</TableHead>
+                                </TableRow>
+                              </TableHeader>
+                              <TableBody>
+                                {classesPg.pageItems.map((cls) => (
+                                  <TableRow key={cls.id} className="border-sage/10 hover:bg-sage/5">
+                                    <TableCell className="px-5 py-4">
+                                      <div className="flex items-center gap-3 min-w-0">
+                                        <div className="h-11 w-11 rounded-lg overflow-hidden bg-sage/10 shrink-0 flex items-center justify-center">
+                                          {cls.image_url ? (
+                                            // eslint-disable-next-line @next/next/no-img-element
+                                            <img src={cls.image_url} alt={cls.name} className="w-full h-full object-cover" />
+                                          ) : (
+                                            <Calendar className="h-5 w-5 text-sage" />
+                                          )}
+                                        </div>
+                                        <div className="min-w-0">
+                                          <div className="font-body font-medium text-charcoal truncate">{cls.name}</div>
+                                          {cls.description && (
+                                            <div className="font-body text-xs text-charcoal/50 truncate max-w-[280px]">{cls.description}</div>
+                                          )}
+                                        </div>
+                                      </div>
+                                    </TableCell>
+                                    <TableCell className="px-5 py-4">
+                                      <Badge className="bg-sage/10 text-sage border-sage/20 font-body">{cls.category}</Badge>
+                                    </TableCell>
+                                    <TableCell className="px-5 py-4">
+                                      <span className="font-body text-sm text-charcoal/70 tabular-nums">{cls.duration} min</span>
+                                    </TableCell>
+                                    <TableCell className="px-5 py-4">
+                                      <span className="font-body text-sm text-charcoal/70 tabular-nums">Max {cls.max_capacity}</span>
+                                    </TableCell>
+                                    <TableCell className="px-5 py-4">
+                                      <div className="flex gap-2 justify-end">
+                                        <Button
+                                          variant="outline"
+                                          size="sm"
+                                          className="h-8 w-8 p-0 border-sage/20 text-sage hover:bg-sage/5"
+                                          onClick={() => { setSelectedClass(cls); setShowClassDetailsDialog(true); }}
+                                          aria-label="Edit class"
+                                        >
+                                          <Edit className="h-3.5 w-3.5" />
+                                        </Button>
+                                        <Button
+                                          variant="outline"
+                                          size="sm"
+                                          className="h-8 w-8 p-0 border-red-200 text-red-600 hover:bg-red-50"
+                                          onClick={() => handleDeleteClass(cls.id, cls.name)}
+                                          aria-label="Delete class"
+                                        >
+                                          <Trash2 className="h-3.5 w-3.5" />
+                                        </Button>
+                                      </div>
+                                    </TableCell>
+                                  </TableRow>
+                                ))}
+                              </TableBody>
+                            </Table>
                           </div>
-                        </CardContent>
-                      </Card>
-                    ))}
-                  </div>
-                )}
-                <Pagination page={classesPg.page} total={classesPg.total} onChange={classesPg.setPage} />
+                        </ResponsiveTable>
+                        <Pagination page={classesPg.page} total={classesPg.total} onChange={classesPg.setPage} />
+                      </>
+                    )}
+                  </CardContent>
+                </Card>
               </TabsContent>
 
               {/* PAYOUT MANAGEMENT TAB */}
               <TabsContent value="payouts" className="space-y-6">
-                {/* Header */}
-                <div className="flex items-center justify-between">
-                  <div>
-                    <h2 className="font-display text-3xl text-charcoal mb-2">Instructor Payouts</h2>
-                    <p className="font-body text-charcoal/60">Calculate and manage instructor payments based on check-ins</p>
-                  </div>
-                  <div className="flex items-center gap-3">
-                    <Select defaultValue="month">
-                      <SelectTrigger className="w-48 border-sage/20">
-                        <SelectValue />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="week">This Week</SelectItem>
-                        <SelectItem value="month">This Month</SelectItem>
-                        <SelectItem value="quarter">This Quarter</SelectItem>
-                        <SelectItem value="custom">Custom Range</SelectItem>
-                      </SelectContent>
-                    </Select>
-                  </div>
+                {/* Stats */}
+                <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                  <MetricCard
+                    label="Total Payouts"
+                    value={payoutSummary.totalPayouts}
+                    icon={DollarSign}
+                    tone="sage"
+                    prefix="₹"
+                    hint={`${payoutSummary.instructorsCount ?? instructorPayouts.length} instructors`}
+                  />
+                  <MetricCard
+                    label="Pending"
+                    value={payoutSummary.pendingPayments}
+                    icon={Clock}
+                    tone="amber"
+                    prefix="₹"
+                    hint={`${payoutSummary.pendingCount} pending`}
+                  />
+                  <MetricCard
+                    label="Completed"
+                    value={payoutSummary.completedPayments}
+                    icon={CheckCircle2}
+                    tone="sage"
+                    prefix="₹"
+                  />
+                  <MetricCard
+                    label="Total Check-ins"
+                    value={payoutSummary.totalCheckIns}
+                    icon={TrendingUp}
+                    tone="charcoal"
+                  />
                 </div>
 
-                {/* Payout Summary */}
-                <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
-                  <Card className="border-sage/20 bg-white/95 backdrop-blur-xl">
-                    <CardHeader className="pb-3">
-                      <CardTitle className="font-body text-sm text-charcoal/60 font-medium">
-                        Total Payouts
-                      </CardTitle>
-                    </CardHeader>
-                    <CardContent>
-                      <div className="font-display text-4xl text-charcoal mb-2">
-                        ₹{payoutSummary.totalPayouts.toLocaleString("en-IN")}
+                <Card className="border-sage/20 bg-white/95 backdrop-blur-xl">
+                  <CardHeader className="space-y-4">
+                    <div className="flex flex-wrap items-start justify-between gap-3">
+                      <div>
+                        <CardTitle className="font-display text-2xl text-charcoal">
+                          Instructor Payouts <span className="font-body text-base text-charcoal/40">({filteredPayouts.length})</span>
+                        </CardTitle>
+                        <CardDescription className="font-body text-charcoal/60">
+                          Calculate and manage instructor payments based on check-ins
+                        </CardDescription>
                       </div>
-                      <Badge variant="outline" className="border-sage/20 text-sage bg-sage/5">
-                        {payoutSummary.instructorsCount ?? instructorPayouts.length} instructors
-                      </Badge>
-                    </CardContent>
-                  </Card>
-
-                  <Card className="border-sage/20 bg-white/95 backdrop-blur-xl">
-                    <CardHeader className="pb-3">
-                      <CardTitle className="font-body text-sm text-charcoal/60 font-medium">
-                        Pending Payments
-                      </CardTitle>
-                    </CardHeader>
-                    <CardContent>
-                      <div className="font-display text-4xl text-amber-600 mb-2">
-                        ₹{payoutSummary.pendingPayments.toLocaleString("en-IN")}
+                      <div className="flex items-center gap-2 w-full sm:w-auto">
+                        <Input
+                          value={payoutSearch}
+                          onChange={(e) => setPayoutSearch(e.target.value)}
+                          placeholder="Search instructor…"
+                          className="h-9 flex-1 sm:w-56 border-sage/20 focus:border-sage font-body"
+                        />
+                        <Select defaultValue="month">
+                          <SelectTrigger className="h-9 w-36 border-sage/20 shrink-0">
+                            <SelectValue />
+                          </SelectTrigger>
+                          <SelectContent>
+                            <SelectItem value="week">This Week</SelectItem>
+                            <SelectItem value="month">This Month</SelectItem>
+                            <SelectItem value="quarter">This Quarter</SelectItem>
+                            <SelectItem value="custom">Custom Range</SelectItem>
+                          </SelectContent>
+                        </Select>
                       </div>
-                      <Badge variant="outline" className="border-amber-500/20 text-amber-600 bg-amber-50">
-                        {payoutSummary.pendingCount} pending
-                      </Badge>
-                    </CardContent>
-                  </Card>
-
-                  <Card className="border-sage/20 bg-white/95 backdrop-blur-xl">
-                    <CardHeader className="pb-3">
-                      <CardTitle className="font-body text-sm text-charcoal/60 font-medium">
-                        Completed Payments
-                      </CardTitle>
-                    </CardHeader>
-                    <CardContent>
-                      <div className="font-display text-4xl text-sage mb-2">
-                        ₹{payoutSummary.completedPayments.toLocaleString("en-IN")}
+                    </div>
+                  </CardHeader>
+                  <CardContent>
+                    {filteredPayouts.length === 0 ? (
+                      <div className="text-center py-12">
+                        <DollarSign className="h-12 w-12 text-charcoal/20 mx-auto mb-3" />
+                        <p className="font-body text-charcoal/40">
+                          {instructorPayouts.length === 0 ? "No payout data yet." : "No instructors match your search."}
+                        </p>
                       </div>
-                      <Badge variant="outline" className="border-sage/20 text-sage bg-sage/5">
-                        0 completed
-                      </Badge>
-                    </CardContent>
-                  </Card>
-
-                  <Card className="border-sage/20 bg-white/95 backdrop-blur-xl">
-                    <CardHeader className="pb-3">
-                      <CardTitle className="font-body text-sm text-charcoal/60 font-medium">
-                        Total Check-ins
-                      </CardTitle>
-                    </CardHeader>
-                    <CardContent>
-                      <div className="font-display text-4xl text-charcoal mb-2">
-                        {payoutSummary.totalCheckIns}
-                      </div>
-                      <Badge variant="outline" className="border-charcoal/10 text-charcoal/60">
-                        @ ₹150 each
-                      </Badge>
-                    </CardContent>
-                  </Card>
-                </div>
-
-                {/* Instructor Payout Cards */}
-                <div className="space-y-3">
-                  {payoutsPg.pageItems.map((instructor) => (
-                    <Card key={instructor.instructorId} className="border-sage/20 bg-white/95 backdrop-blur-xl hover:shadow-xl transition-all duration-600">
-                      <CardContent className="p-6">
-                        <div className="flex items-center justify-between">
-                          <div className="flex items-center gap-4 flex-1">
-                            <div className="h-16 w-16 rounded-full bg-sage/10 flex items-center justify-center">
-                              <span className="font-display text-2xl text-sage">
-                                {(instructor.name || "I").split(" ").map(n => n[0]).join("")}
-                              </span>
-                            </div>
-                            <div className="flex-1">
-                              <div className="font-display text-xl text-charcoal mb-1">
-                                {instructor.name}
-                              </div>
-                              <div className="font-body text-sm text-charcoal/60 mb-2">
-                                {instructor.specialties}
-                              </div>
-                              <div className="flex items-center gap-4">
-                                <Badge variant="outline" className="border-sage/20 text-sage bg-sage/5">
-                                  {instructor.checkIns} check-ins
-                                </Badge>
-                                <span className="font-body text-xs text-charcoal/50">
-                                  @ ₹{instructor.rate} per check-in
-                                </span>
-                                <span className="font-body text-xs text-charcoal/50">
-                                  {instructor.percentage}% share
-                                </span>
-                              </div>
-                            </div>
+                    ) : (
+                      <>
+                        <ResponsiveTable>
+                          <div className="rounded-xl border border-sage/15 bg-white overflow-hidden">
+                            <Table>
+                              <TableHeader>
+                                <TableRow className="bg-sage/5 hover:bg-sage/5 border-sage/10">
+                                  <TableHead className={thBase}>
+                                    <button type="button" onClick={() => payoutSort.toggle("name")} className={thBtn}>
+                                      Instructor {sortArrow(payoutSort.key === "name", payoutSort.dir)}
+                                    </button>
+                                  </TableHead>
+                                  <TableHead className={`${thBase} w-[120px]`}>
+                                    <button type="button" onClick={() => payoutSort.toggle("checkIns", "desc")} className={thBtn}>
+                                      Check-ins {sortArrow(payoutSort.key === "checkIns", payoutSort.dir)}
+                                    </button>
+                                  </TableHead>
+                                  <TableHead className={`${thBase} w-[90px]`}>Rate</TableHead>
+                                  <TableHead className={`${thBase} w-[90px]`}>Share</TableHead>
+                                  <TableHead className={`${thBase} w-[120px]`}>
+                                    <button type="button" onClick={() => payoutSort.toggle("total", "desc")} className={thBtn}>
+                                      Total {sortArrow(payoutSort.key === "total", payoutSort.dir)}
+                                    </button>
+                                  </TableHead>
+                                  <TableHead className={`${thBase} w-[160px] text-right`}>
+                                    <button type="button" onClick={() => payoutSort.toggle("status")} className={`${thBtn} ml-auto`}>
+                                      Status {sortArrow(payoutSort.key === "status", payoutSort.dir)}
+                                    </button>
+                                  </TableHead>
+                                </TableRow>
+                              </TableHeader>
+                              <TableBody>
+                                {payoutsPg.pageItems.map((instructor) => (
+                                  <TableRow key={instructor.instructorId} className="border-sage/10 hover:bg-sage/5">
+                                    <TableCell className="px-5 py-4">
+                                      <div className="flex items-center gap-3 min-w-0">
+                                        <ListAvatar name={instructor.name} size="md" />
+                                        <div className="min-w-0">
+                                          <div className="font-body font-medium text-charcoal truncate">{instructor.name}</div>
+                                          <div className="font-body text-xs text-charcoal/50 truncate">{instructor.specialties}</div>
+                                        </div>
+                                      </div>
+                                    </TableCell>
+                                    <TableCell className="px-5 py-4">
+                                      <Badge variant="outline" className="border-sage/20 text-sage bg-sage/5 font-body tabular-nums">
+                                        {instructor.checkIns}
+                                      </Badge>
+                                    </TableCell>
+                                    <TableCell className="px-5 py-4">
+                                      <span className="font-body text-sm text-charcoal/60 tabular-nums">₹{instructor.rate}</span>
+                                    </TableCell>
+                                    <TableCell className="px-5 py-4">
+                                      <span className="font-body text-sm text-charcoal/60 tabular-nums">{instructor.percentage}%</span>
+                                    </TableCell>
+                                    <TableCell className="px-5 py-4">
+                                      <span className="font-display text-xl text-sage tabular-nums">₹{instructor.total.toLocaleString("en-IN")}</span>
+                                    </TableCell>
+                                    <TableCell className="px-5 py-4">
+                                      <div className="flex items-center gap-2 justify-end">
+                                        {instructor.status === "pending" ? (
+                                          <Button
+                                            size="sm"
+                                            className="bg-sage hover:bg-sage/90 text-white font-body h-8"
+                                            onClick={() => { setSelectedPayoutData(instructor); setShowPayoutDialog(true); }}
+                                          >
+                                            <DollarSign className="h-3.5 w-3.5 mr-1" />
+                                            Process
+                                          </Button>
+                                        ) : (
+                                          <Badge className="bg-sage text-white border-transparent font-body">
+                                            <Check className="h-3 w-3 mr-1" />
+                                            Paid
+                                          </Badge>
+                                        )}
+                                      </div>
+                                    </TableCell>
+                                  </TableRow>
+                                ))}
+                              </TableBody>
+                            </Table>
                           </div>
-                          <div className="flex items-center gap-6">
-                            <div className="text-right">
-                              <div className="font-display text-4xl text-sage mb-1">
-                                ₹{instructor.total.toLocaleString()}
-                              </div>
-                              <div className="font-body text-xs text-charcoal/50">
-                                Total Payout
-                              </div>
-                            </div>
-                            <div className="flex flex-col gap-2">
-                              {instructor.status === "pending" ? (
-                                <>
-                                  <Button 
-                                    className="bg-sage hover:bg-sage/90 text-white font-body"
-                                    onClick={() => {
-                                      setSelectedPayoutData(instructor);
-                            setShowPayoutDialog(true);
-                                    }}
-                                  >
-                                    <DollarSign className="h-4 w-4 mr-1" />
-                                    Process Payment
-                                  </Button>
-                                  <Badge variant="outline" className="border-amber-500/20 text-amber-600 bg-amber-50">
-                                    Pending
-                                  </Badge>
-                                </>
-                              ) : (
-                                <Badge className="bg-sage text-white">
-                                  <Check className="h-3 w-3 mr-1" />
-                                  Paid
-                                </Badge>
-                              )}
-                            </div>
-                          </div>
-                        </div>
-                      </CardContent>
-                    </Card>
-                  ))}
-                  <Pagination page={payoutsPg.page} total={payoutsPg.total} onChange={payoutsPg.setPage} />
-                </div>
+                        </ResponsiveTable>
+                        <Pagination page={payoutsPg.page} total={payoutsPg.total} onChange={payoutsPg.setPage} />
+                      </>
+                    )}
+                  </CardContent>
+                </Card>
 
                 {/* Bulk Actions */}
                 <Card className="border-sage/20 bg-linear-to-br from-sage/5 to-white backdrop-blur-xl">
@@ -1484,156 +1720,170 @@ async function fetchPayoutData() {
 
               {/* INSTRUCTOR MANAGEMENT TAB */}
               <TabsContent value="instructors" className="space-y-6">
-                {/* Header */}
-                <div className="flex items-center justify-between">
-                  <div>
-                    <h2 className="font-display text-3xl text-charcoal mb-2">Instructor Management</h2>
-                    <p className="font-body text-charcoal/60">Add, edit, and manage instructor profiles and payment settings</p>
-                  </div>
-                  <Button 
-                    className="bg-sage hover:bg-sage/90 text-white font-body"
-                    onClick={() => setShowAddInstructorDialog(true)}
-                  >
-                    <Plus className="h-4 w-4 mr-2" />
-                    Add Instructor
-                  </Button>
+                {/* Stats */}
+                <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                  <MetricCard label="Instructors" value={instructorStats.total} icon={Users} tone="sage" />
+                  <MetricCard label="Active" value={instructorStats.active} icon={CheckCircle2} tone="sage" />
+                  <MetricCard label="Inactive" value={instructorStats.inactive} icon={Ban} tone="charcoal" />
+                  <MetricCard label="Avg Experience" value={instructorStats.avgYears} icon={Award} tone="terracotta" suffix=" yrs" />
                 </div>
 
-                {/* Instructor Cards */}
-                {loadingInstructors ? (
-                  <InstructorGridSkeleton count={4} />
-                ) : instructors.length === 0 ? (
-                  <Card className="border-sage/20 bg-white/95 backdrop-blur-xl">
-                    <CardContent className="p-12 text-center">
-                      <p className="font-body text-charcoal/60">No instructors found. Add an instructor to get started.</p>
-                    </CardContent>
-                  </Card>
-                ) : (
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                    {instructorsPg.pageItems.map((instructor) => (
-                      <Card key={instructor.id} className="border-sage/20 bg-white/95 backdrop-blur-xl hover:shadow-xl transition-all duration-600">
-                        <CardContent className="p-6">
-                          <div className="flex gap-4">
-                            <div className="h-24 w-24 rounded-lg overflow-hidden bg-sage/10 shrink-0">
-                              <InstructorAvatar
-                                src={instructor.image_url}
-                                name={instructor.name}
-                                className="h-full w-full"
-                              />
-                            </div>
-                            <div className="flex-1">
-                              <div className="flex items-start justify-between mb-2">
-                                <div>
-                                  <div className="font-display text-xl text-charcoal mb-1">
-                                    {instructor.name}
-                                  </div>
-                                  {instructor.title && (
-                                    <div className="font-body text-sm text-sage uppercase tracking-wide mb-1">
-                                      {instructor.title}
-                                    </div>
-                                  )}
-                                  {instructor.years_of_experience && (
-                                    <div className="font-body text-xs text-charcoal/60 italic mb-2">
-                                      {instructor.years_of_experience} years experience
-                                    </div>
-                                  )}
-                                  <Badge className={instructor.is_active !== false ? "bg-sage text-white" : "bg-charcoal/20 text-charcoal/60"}>
-                                    {instructor.is_active !== false ? "active" : "inactive"}
-                                  </Badge>
-                                </div>
-                                <div className="flex gap-2">
-                                  <Button
-                                    variant="outline"
-                                    size="sm"
-                                    className={instructor.is_active !== false ? "border-charcoal/20 text-charcoal/60 hover:bg-charcoal/5" : "border-sage/20 text-sage hover:bg-sage/5"}
-                                    onClick={() => handleToggleInstructorActive(instructor.id, instructor.is_active !== false)}
-                                  >
-                                    {instructor.is_active !== false ? "Set Inactive" : "Set Active"}
-                                  </Button>
-                                  <Button
-                                    variant="outline"
-                                    size="sm"
-                                    className="border-sage/20 text-sage hover:bg-sage/5"
-                                    onClick={() => {
-                                      setSelectedInstructorData(instructor);
-                                      setShowEditInstructorDialog(true);
-                                    }}
-                                  >
-                                    <Edit className="h-3.5 w-3.5 mr-1" />
-                                    Edit
-                                  </Button>
-                                  <Button
-                                    variant="outline"
-                                    size="sm"
-                                    className="border-red-200 text-red-600 hover:bg-red-50"
-                                    onClick={() => handleDeleteInstructor(instructor.id, instructor.name)}
-                                  >
-                                    <Trash2 className="h-3.5 w-3.5" />
-                                  </Button>
-                                </div>
-                              </div>
-                              
-                              <div className="space-y-2 mb-3">
-                                <div className="flex items-center gap-2 text-sm text-charcoal/60">
-                                  <Mail className="h-3.5 w-3.5" />
-                                  {instructor.email}
-                                </div>
-                                <div className="flex items-center gap-2 text-sm text-charcoal/60">
-                                  <Phone className="h-3.5 w-3.5" />
-                                  {instructor.phone}
-                                </div>
-                              </div>
-
-                              {instructor.specialties && instructor.specialties.length > 0 && (
-                                <div className="mb-3">
-                                  <div className="font-body text-xs text-charcoal/50 mb-1">Specialties:</div>
-                                  <div className="flex flex-wrap gap-1">
-                                    {instructor.specialties.map((specialty: string, idx: number) => (
-                                      <Badge key={idx} variant="outline" className="border-sage/20 text-sage bg-sage/5 text-xs">
-                                        {specialty}
-                                      </Badge>
-                                    ))}
-                                  </div>
-                                </div>
-                              )}
-
-                              {instructor.certifications && instructor.certifications.length > 0 && (
-                                <div className="mb-3">
-                                  <div className="font-body text-xs text-charcoal/50 mb-1">Certifications:</div>
-                                  <ul className="list-disc list-inside space-y-0.5">
-                                    {instructor.certifications.map((cert: string, idx: number) => (
-                                      <li key={idx} className="font-body text-xs text-charcoal/70">
-                                        {cert}
-                                      </li>
-                                    ))}
-                                  </ul>
-                                </div>
-                              )}
-
-                              {instructor.philosophy && (
-                                <div className="p-3 rounded-lg bg-cream/30 mb-3">
-                                  <div className="font-body text-xs text-charcoal/80 italic">
-                                    "{instructor.philosophy}"
-                                  </div>
-                                </div>
-                              )}
-
-                              {instructor.about && (
-                                <div className="mb-3">
-                                  <div className="font-body text-xs text-charcoal/50 mb-1">About:</div>
-                                  <div className="font-body text-xs text-charcoal/70">
-                                    {instructor.about}
-                                  </div>
-                                </div>
-                              )}
-                            </div>
+                <Card className="border-sage/20 bg-white/95 backdrop-blur-xl">
+                  <CardHeader className="space-y-4">
+                    <div className="flex flex-wrap items-start justify-between gap-3">
+                      <div>
+                        <CardTitle className="font-display text-2xl text-charcoal">
+                          Instructor Management <span className="font-body text-base text-charcoal/40">({filteredInstructors.length})</span>
+                        </CardTitle>
+                        <CardDescription className="font-body text-charcoal/60">
+                          Profiles, payment settings, and status. Full bio lives in Edit.
+                        </CardDescription>
+                      </div>
+                      <div className="flex items-center gap-2 w-full sm:w-auto">
+                        <Input
+                          value={instructorSearch}
+                          onChange={(e) => setInstructorSearch(e.target.value)}
+                          placeholder="Search name, email, title…"
+                          className="h-9 flex-1 sm:w-64 border-sage/20 focus:border-sage font-body"
+                        />
+                        <Button
+                          onClick={() => setShowAddInstructorDialog(true)}
+                          className="bg-sage hover:bg-sage/90 text-white font-body h-9 shrink-0"
+                        >
+                          <Plus className="h-4 w-4 mr-1.5" />
+                          Add Instructor
+                        </Button>
+                      </div>
+                    </div>
+                  </CardHeader>
+                  <CardContent>
+                    {loadingInstructors ? (
+                      <InstructorGridSkeleton count={4} />
+                    ) : filteredInstructors.length === 0 ? (
+                      <div className="text-center py-12">
+                        <Users className="h-12 w-12 text-charcoal/20 mx-auto mb-3" />
+                        <p className="font-body text-charcoal/40">
+                          {instructors.length === 0 ? "No instructors yet. Add one to get started." : "No instructors match your search."}
+                        </p>
+                      </div>
+                    ) : (
+                      <>
+                        <ResponsiveTable>
+                          <div className="rounded-xl border border-sage/15 bg-white overflow-hidden">
+                            <Table>
+                              <TableHeader>
+                                <TableRow className="bg-sage/5 hover:bg-sage/5 border-sage/10">
+                                  <TableHead className={thBase}>
+                                    <button type="button" onClick={() => instructorSort.toggle("name")} className={thBtn}>
+                                      Instructor {sortArrow(instructorSort.key === "name", instructorSort.dir)}
+                                    </button>
+                                  </TableHead>
+                                  <TableHead className={`${thBase} w-[200px]`}>Contact</TableHead>
+                                  <TableHead className={`${thBase} w-[220px]`}>Specialties</TableHead>
+                                  <TableHead className={`${thBase} w-[110px]`}>
+                                    <button type="button" onClick={() => instructorSort.toggle("status")} className={thBtn}>
+                                      Status {sortArrow(instructorSort.key === "status", instructorSort.dir)}
+                                    </button>
+                                  </TableHead>
+                                  <TableHead className={`${thBase} w-[160px] text-right`}>Actions</TableHead>
+                                </TableRow>
+                              </TableHeader>
+                              <TableBody>
+                                {instructorsPg.pageItems.map((instructor) => {
+                                  const active = instructor.is_active !== false;
+                                  return (
+                                    <TableRow key={instructor.id} className="border-sage/10 hover:bg-sage/5">
+                                      <TableCell className="px-5 py-4">
+                                        <div className="flex items-center gap-3 min-w-0">
+                                          <div className="h-11 w-11 rounded-lg overflow-hidden bg-sage/10 shrink-0">
+                                            <InstructorAvatar src={instructor.image_url} name={instructor.name} className="h-full w-full" />
+                                          </div>
+                                          <div className="min-w-0">
+                                            <div className="font-body font-medium text-charcoal truncate">{instructor.name}</div>
+                                            {instructor.title && (
+                                              <div className="font-body text-xs text-sage uppercase tracking-wide truncate">{instructor.title}</div>
+                                            )}
+                                            {instructor.years_of_experience && (
+                                              <div className="font-body text-xs text-charcoal/50 truncate">{instructor.years_of_experience} yrs exp</div>
+                                            )}
+                                          </div>
+                                        </div>
+                                      </TableCell>
+                                      <TableCell className="px-5 py-4">
+                                        <div className="space-y-1 min-w-0">
+                                          <div className="flex items-center gap-1.5 text-xs text-charcoal/60 truncate">
+                                            <Mail className="h-3 w-3 shrink-0" /> <span className="truncate">{instructor.email}</span>
+                                          </div>
+                                          <div className="flex items-center gap-1.5 text-xs text-charcoal/60 truncate">
+                                            <Phone className="h-3 w-3 shrink-0" /> <span className="truncate">{instructor.phone}</span>
+                                          </div>
+                                        </div>
+                                      </TableCell>
+                                      <TableCell className="px-5 py-4">
+                                        {instructor.specialties && instructor.specialties.length > 0 ? (
+                                          <div className="flex flex-wrap gap-1">
+                                            {instructor.specialties.slice(0, 2).map((s: string, idx: number) => (
+                                              <Badge key={idx} variant="outline" className="border-sage/20 text-sage bg-sage/5 text-xs font-body">{s}</Badge>
+                                            ))}
+                                            {instructor.specialties.length > 2 && (
+                                              <Badge variant="outline" className="border-charcoal/15 text-charcoal/50 bg-cream/30 text-xs font-body">
+                                                +{instructor.specialties.length - 2}
+                                              </Badge>
+                                            )}
+                                          </div>
+                                        ) : (
+                                          <span className="font-body text-sm text-charcoal/40">—</span>
+                                        )}
+                                      </TableCell>
+                                      <TableCell className="px-5 py-4">
+                                        {active ? (
+                                          <Badge className="bg-sage/10 text-sage border-sage/20 font-body">Active</Badge>
+                                        ) : (
+                                          <Badge variant="outline" className="border-charcoal/15 text-charcoal/40 font-body">Inactive</Badge>
+                                        )}
+                                      </TableCell>
+                                      <TableCell className="px-5 py-4">
+                                        <div className="flex gap-2 justify-end">
+                                          <Button
+                                            variant="outline"
+                                            size="sm"
+                                            className={`h-8 px-2 font-body text-xs ${active ? "border-charcoal/20 text-charcoal/60 hover:bg-charcoal/5" : "border-sage/20 text-sage hover:bg-sage/5"}`}
+                                            onClick={() => handleToggleInstructorActive(instructor.id, active)}
+                                          >
+                                            {active ? "Deactivate" : "Activate"}
+                                          </Button>
+                                          <Button
+                                            variant="outline"
+                                            size="sm"
+                                            className="h-8 w-8 p-0 border-sage/20 text-sage hover:bg-sage/5"
+                                            onClick={() => { setSelectedInstructorData(instructor); setShowEditInstructorDialog(true); }}
+                                            aria-label="Edit instructor"
+                                          >
+                                            <Edit className="h-3.5 w-3.5" />
+                                          </Button>
+                                          <Button
+                                            variant="outline"
+                                            size="sm"
+                                            className="h-8 w-8 p-0 border-red-200 text-red-600 hover:bg-red-50"
+                                            onClick={() => handleDeleteInstructor(instructor.id, instructor.name)}
+                                            aria-label="Delete instructor"
+                                          >
+                                            <Trash2 className="h-3.5 w-3.5" />
+                                          </Button>
+                                        </div>
+                                      </TableCell>
+                                    </TableRow>
+                                  );
+                                })}
+                              </TableBody>
+                            </Table>
                           </div>
-                        </CardContent>
-                      </Card>
-                    ))}
-                  </div>
-                )}
-                <Pagination page={instructorsPg.page} total={instructorsPg.total} onChange={instructorsPg.setPage} />
+                        </ResponsiveTable>
+                        <Pagination page={instructorsPg.page} total={instructorsPg.total} onChange={instructorsPg.setPage} />
+                      </>
+                    )}
+                  </CardContent>
+                </Card>
               </TabsContent>
 
               {/* ANALYTICS TAB */}

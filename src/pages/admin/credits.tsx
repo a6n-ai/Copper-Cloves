@@ -5,29 +5,26 @@ import { AdminPageHeader } from "@/components/admin/AdminPageHeader";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import { 
-  CreditCard, 
-  Search, 
-  TrendingUp, 
+import {
+  Search,
+  TrendingUp,
   TrendingDown,
   CheckCircle2,
   AlertCircle,
   Calendar,
   User,
-  Package,
-  Activity
+  Activity,
+  ChevronUp,
+  ChevronDown,
+  ArrowUpDown,
 } from "lucide-react";
 import { SEO } from "@/components/SEO";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useSession } from "next-auth/react";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
+import { ResponsiveTable } from "@/components/responsive/ResponsiveTable";
+import { Pagination, usePagination } from "@/components/Pagination";
+import { MetricCard } from "@/components/admin/MetricCard";
 
 interface CreditTransaction {
   id: string;
@@ -39,6 +36,8 @@ interface CreditTransaction {
   date: string;
   adminName: string;
 }
+
+type SortKey = "type" | "amount" | "member" | "date";
 
 function CreditsLoadingSkeleton() {
   return (
@@ -75,48 +74,33 @@ function CreditsLoadingSkeleton() {
         </CardContent>
       </Card>
 
-      {/* Transaction history list */}
+      {/* Transaction history table */}
       <Card className="border-sage/20 bg-white/95 backdrop-blur-xl">
         <CardHeader className="space-y-2">
           <Skeleton className="h-7 w-56" />
           <Skeleton className="h-4 w-72" />
         </CardHeader>
         <CardContent>
-          <div className="space-y-3">
+          <div className="rounded-xl border border-sage/15 bg-white overflow-hidden">
+            <div className="flex items-center gap-4 bg-sage/5 px-5 py-3 border-b border-sage/10">
+              <Skeleton className="h-3 w-12" />
+              <Skeleton className="h-3 w-14" />
+              <Skeleton className="h-3 w-16" />
+              <Skeleton className="h-3 flex-1" />
+              <Skeleton className="h-3 w-20" />
+            </div>
             {Array.from({ length: 8 }).map((_, i) => (
-              <div
-                key={i}
-                className="p-6 rounded-xl border border-charcoal/10"
-              >
-                <div className="grid md:grid-cols-5 gap-4 items-center">
-                  {/* Type & Amount: icon box + big number + label */}
-                  <div className="flex items-center gap-4">
-                    <Skeleton className="h-12 w-12 rounded-lg" />
-                    <div className="space-y-1.5">
-                      <Skeleton className="h-7 w-12" />
-                      <Skeleton className="h-3 w-12" />
-                    </div>
-                  </div>
-                  {/* Member: label + name */}
-                  <div className="space-y-1.5">
-                    <Skeleton className="h-3 w-14" />
-                    <Skeleton className="h-4 w-28" />
-                  </div>
-                  {/* Reason: label + text */}
-                  <div className="space-y-1.5">
-                    <Skeleton className="h-3 w-14" />
-                    <Skeleton className="h-4 w-32" />
-                  </div>
-                  {/* Date & Admin: label + date + by-line */}
-                  <div className="space-y-1.5">
-                    <Skeleton className="h-3 w-20" />
-                    <Skeleton className="h-4 w-36" />
-                    <Skeleton className="h-3 w-24" />
-                  </div>
-                  {/* Status badge */}
-                  <div className="flex md:justify-end">
-                    <Skeleton className="h-6 w-20 rounded-full" />
-                  </div>
+              <div key={i} className="flex items-center gap-4 px-5 py-4 border-b border-sage/10 last:border-0">
+                <div className="flex items-center gap-2.5 w-[130px]">
+                  <Skeleton className="h-8 w-8 rounded-lg shrink-0" />
+                  <Skeleton className="h-6 w-16 rounded-full" />
+                </div>
+                <Skeleton className="h-7 w-12" />
+                <Skeleton className="h-4 w-28" />
+                <Skeleton className="h-4 flex-1" />
+                <div className="w-[200px] space-y-1.5">
+                  <Skeleton className="h-4 w-36" />
+                  <Skeleton className="h-3 w-24" />
                 </div>
               </div>
             ))}
@@ -134,6 +118,8 @@ export default function AdminCredits() {
   const [transactions, setTransactions] = useState<CreditTransaction[]>([]);
   const [filteredTransactions, setFilteredTransactions] = useState<CreditTransaction[]>([]);
   const [filterType, setFilterType] = useState("all");
+  const [sortKey, setSortKey] = useState<SortKey | null>(null);
+  const [sortDir, setSortDir] = useState<"asc" | "desc">("desc");
   const [successMessage, setSuccessMessage] = useState("");
 
   const { data: session, status } = useSession();
@@ -156,7 +142,7 @@ export default function AdminCredits() {
   }, [status, session, router]);
 
   useEffect(() => {
-    let filtered = transactions;
+    let filtered = [...transactions];
 
     if (filterType !== "all") {
       filtered = filtered.filter(t => t.type === filterType);
@@ -169,8 +155,52 @@ export default function AdminCredits() {
       );
     }
 
+    if (sortKey) {
+      const dir = sortDir === "asc" ? 1 : -1;
+      filtered.sort((a, b) => {
+        switch (sortKey) {
+          case "amount":
+            return (a.amount - b.amount) * dir;
+          case "member":
+            return a.memberName.localeCompare(b.memberName) * dir;
+          case "type":
+            return a.type.localeCompare(b.type) * dir;
+          case "date":
+            return a.date.localeCompare(b.date) * dir;
+          default:
+            return 0;
+        }
+      });
+    }
+
     setFilteredTransactions(filtered);
-  }, [searchQuery, filterType, transactions]);
+  }, [searchQuery, filterType, transactions, sortKey, sortDir]);
+
+  const toggleSort = (key: SortKey) => {
+    if (sortKey === key) {
+      setSortDir((d) => (d === "asc" ? "desc" : "asc"));
+    } else {
+      setSortKey(key);
+      setSortDir(key === "member" || key === "type" ? "asc" : "desc");
+    }
+  };
+
+  const sortIcon = (key: SortKey) =>
+    sortKey === key ? (
+      sortDir === "asc" ? (
+        <ChevronUp className="h-3 w-3" />
+      ) : (
+        <ChevronDown className="h-3 w-3" />
+      )
+    ) : (
+      <ArrowUpDown className="h-3 w-3 opacity-40" />
+    );
+
+  const txPg = usePagination(
+    filteredTransactions,
+    10,
+    `${searchQuery}|${filterType}|${sortKey}|${sortDir}`,
+  );
 
   const loadTransactions = async () => {
     try {
@@ -267,203 +297,174 @@ export default function AdminCredits() {
             )}
 
             {/* Stats Grid */}
-            <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
-              <Card className="border-sage/20 bg-white/95 backdrop-blur-xl hover:shadow-2xl transition-all duration-600">
-                <CardHeader className="pb-3">
-                  <div className="flex items-center justify-between">
-                    <CardTitle className="font-body text-sm text-charcoal/60 font-medium">
-                      Credits Added
-                    </CardTitle>
-                    <TrendingUp className="h-5 w-5 text-sage" />
-                  </div>
-                </CardHeader>
-                <CardContent>
-                  <div className="font-display text-4xl text-charcoal">
-                    +{stats.totalAdded}
-                  </div>
-                </CardContent>
-              </Card>
-
-              <Card className="border-sage/20 bg-white/95 backdrop-blur-xl hover:shadow-2xl transition-all duration-600">
-                <CardHeader className="pb-3">
-                  <div className="flex items-center justify-between">
-                    <CardTitle className="font-body text-sm text-charcoal/60 font-medium">
-                      Credits Used
-                    </CardTitle>
-                    <CheckCircle2 className="h-5 w-5 text-charcoal" />
-                  </div>
-                </CardHeader>
-                <CardContent>
-                  <div className="font-display text-4xl text-charcoal">
-                    -{stats.totalUsed}
-                  </div>
-                </CardContent>
-              </Card>
-
-              <Card className="border-sage/20 bg-white/95 backdrop-blur-xl hover:shadow-2xl transition-all duration-600">
-                <CardHeader className="pb-3">
-                  <div className="flex items-center justify-between">
-                    <CardTitle className="font-body text-sm text-charcoal/60 font-medium">
-                      Credits Deducted
-                    </CardTitle>
-                    <TrendingDown className="h-5 w-5 text-red-500" />
-                  </div>
-                </CardHeader>
-                <CardContent>
-                  <div className="font-display text-4xl text-charcoal">
-                    -{stats.totalDeducted}
-                  </div>
-                </CardContent>
-              </Card>
-
-              <Card className="border-sage/20 bg-white/95 backdrop-blur-xl hover:shadow-2xl transition-all duration-600">
-                <CardHeader className="pb-3">
-                  <div className="flex items-center justify-between">
-                    <CardTitle className="font-body text-sm text-charcoal/60 font-medium">
-                      Credits Expired
-                    </CardTitle>
-                    <AlertCircle className="h-5 w-5 text-amber-500" />
-                  </div>
-                </CardHeader>
-                <CardContent>
-                  <div className="font-display text-4xl text-charcoal">
-                    -{stats.totalExpired}
-                  </div>
-                </CardContent>
-              </Card>
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+              <MetricCard label="Credits Added" value={stats.totalAdded} icon={TrendingUp} tone="sage" prefix="+" />
+              <MetricCard label="Credits Used" value={stats.totalUsed} icon={CheckCircle2} tone="charcoal" prefix="-" />
+              <MetricCard label="Credits Deducted" value={stats.totalDeducted} icon={TrendingDown} tone="terracotta" prefix="-" />
+              <MetricCard label="Credits Expired" value={stats.totalExpired} icon={AlertCircle} tone="amber" prefix="-" />
             </div>
-
-            {/* Filters */}
-            <Card className="border-sage/20 bg-white/95 backdrop-blur-xl">
-              <CardContent className="p-6">
-                <div className="grid md:grid-cols-2 gap-4">
-                  {/* Search */}
-                  <div className="relative">
-                    <Search className="absolute left-4 top-1/2 -translate-y-1/2 h-5 w-5 text-charcoal/40" />
-                    <Input
-                      value={searchQuery}
-                      onChange={(e) => setSearchQuery(e.target.value)}
-                      placeholder="Search by member name or reason..."
-                      className="h-12 pl-12 border-charcoal/20 focus:border-sage font-body"
-                    />
-                  </div>
-
-                  {/* Type Filter */}
-                  <div>
-                    <Select value={filterType} onValueChange={setFilterType}>
-                      <SelectTrigger className="h-12 border-charcoal/20 focus:border-sage font-body">
-                        <SelectValue placeholder="Filter by type" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="all">All Transactions</SelectItem>
-                        <SelectItem value="added">Added Only</SelectItem>
-                        <SelectItem value="used">Used Only</SelectItem>
-                        <SelectItem value="deducted">Deducted Only</SelectItem>
-                        <SelectItem value="expired">Expired Only</SelectItem>
-                      </SelectContent>
-                    </Select>
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
 
             {/* Transactions Table */}
             <Card className="border-sage/20 bg-white/95 backdrop-blur-xl">
-              <CardHeader>
-                <CardTitle className="font-display text-2xl text-charcoal">
-                  Transaction History ({filteredTransactions.length})
-                </CardTitle>
-                <CardDescription className="font-body text-charcoal/60">
-                  Complete audit trail of all credit movements
-                </CardDescription>
-              </CardHeader>
-              <CardContent>
-                <div className="space-y-3">
-                  {filteredTransactions.map((transaction) => (
-                    <div 
-                      key={transaction.id}
-                      className="p-6 rounded-xl border border-charcoal/10 hover:border-sage/30 hover:bg-sage/5 transition-all duration-600"
+              <CardHeader className="space-y-4">
+                <div className="flex flex-wrap items-start justify-between gap-3">
+                  <div>
+                    <CardTitle className="font-display text-2xl text-charcoal">
+                      Transaction History <span className="font-body text-base text-charcoal/40">({filteredTransactions.length})</span>
+                    </CardTitle>
+                    <CardDescription className="font-body text-charcoal/60">
+                      Complete audit trail of all credit movements
+                    </CardDescription>
+                  </div>
+                  <div className="relative w-full sm:w-72">
+                    <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-charcoal/40" />
+                    <Input
+                      value={searchQuery}
+                      onChange={(e) => setSearchQuery(e.target.value)}
+                      placeholder="Search member or reason…"
+                      className="h-9 pl-9 border-sage/20 focus:border-sage font-body"
+                    />
+                  </div>
+                </div>
+
+                {/* Type filter: tab strip */}
+                <div className="flex items-center justify-between flex-wrap gap-3 border-b border-sage/10">
+                  <div className="flex items-center gap-1 -mb-px overflow-x-auto">
+                    {[
+                      { v: "all", l: "All" },
+                      { v: "added", l: "Added" },
+                      { v: "used", l: "Used" },
+                      { v: "deducted", l: "Deducted" },
+                      { v: "expired", l: "Expired" },
+                    ].map((o) => {
+                      const active = filterType === o.v;
+                      return (
+                        <button
+                          key={o.v}
+                          type="button"
+                          onClick={() => setFilterType(o.v)}
+                          className={`relative px-4 py-2 font-body text-sm whitespace-nowrap transition-colors ${
+                            active ? "text-sage" : "text-charcoal/60 hover:text-charcoal"
+                          }`}
+                        >
+                          {o.l}
+                          {active && (
+                            <span className="absolute left-0 right-0 -bottom-px h-0.5 bg-sage rounded-full" />
+                          )}
+                        </button>
+                      );
+                    })}
+                  </div>
+                  {(filterType !== "all" || searchQuery) && (
+                    <button
+                      type="button"
+                      onClick={() => { setFilterType("all"); setSearchQuery(""); }}
+                      className="font-body text-xs text-terracotta hover:underline pb-2"
                     >
-                      <div className="grid md:grid-cols-5 gap-4 items-center">
-                        
-                        {/* Type & Amount */}
-                        <div className="flex items-center gap-4">
-                          <div className={`p-3 rounded-lg ${
-                            transaction.type === "added" ? "bg-sage/10" :
-                            transaction.type === "deducted" ? "bg-red-50" :
-                            transaction.type === "used" ? "bg-charcoal/5" :
-                            "bg-amber-50"
-                          }`}>
-                            {getTypeIcon(transaction.type)}
-                          </div>
-                          <div>
-                            <div className="font-display text-2xl text-charcoal">
-                              {transaction.type === "added" ? "+" : "-"}{transaction.amount}
-                            </div>
-                            <div className="font-body text-xs text-charcoal/60">
-                              Credits
-                            </div>
-                          </div>
-                        </div>
-
-                        {/* Member */}
-                        <div>
-                          <div className="font-body text-sm text-charcoal/60 mb-1">
-                            Member
-                          </div>
-                          <div className="font-body font-medium text-charcoal">
-                            {transaction.memberName}
-                          </div>
-                        </div>
-
-                        {/* Reason */}
-                        <div>
-                          <div className="font-body text-sm text-charcoal/60 mb-1">
-                            Reason
-                          </div>
-                          <div className="font-body text-sm text-charcoal">
-                            {transaction.reason}
-                          </div>
-                        </div>
-
-                        {/* Date & Admin */}
-                        <div>
-                          <div className="font-body text-sm text-charcoal/60 mb-1">
-                            Date & Time
-                          </div>
-                          <div className="flex items-center gap-2 text-sm">
-                            <Calendar className="h-3.5 w-3.5 text-charcoal/40" />
-                            <span className="font-body text-charcoal">
-                              {new Date(transaction.date).toLocaleString()}
-                            </span>
-                          </div>
-                          <div className="font-body text-xs text-charcoal/50 mt-1">
-                            By: {transaction.adminName}
-                          </div>
-                        </div>
-
-                        {/* Status Badge */}
-                        <div className="flex justify-end">
-                          {getTypeBadge(transaction.type)}
-                        </div>
-                      </div>
-                    </div>
-                  ))}
-
-                  {filteredTransactions.length === 0 && (
-                    <div className="text-center py-12">
-                      <Activity className="h-12 w-12 text-charcoal/20 mx-auto mb-3" />
-                      <p className="font-body text-charcoal/40">No transactions found</p>
-                      <Button 
-                        onClick={() => { setSearchQuery(""); setFilterType("all"); }}
-                        variant="outline"
-                        className="mt-4 border-sage/20 text-sage hover:bg-sage/10 font-body"
-                      >
-                        Clear Filters
-                      </Button>
-                    </div>
+                      Reset
+                    </button>
                   )}
                 </div>
+              </CardHeader>
+              <CardContent>
+                {filteredTransactions.length === 0 ? (
+                  <div className="text-center py-12">
+                    <Activity className="h-12 w-12 text-charcoal/20 mx-auto mb-3" />
+                    <p className="font-body text-charcoal/40">No transactions found</p>
+                    <Button
+                      onClick={() => { setSearchQuery(""); setFilterType("all"); }}
+                      variant="outline"
+                      className="mt-4 border-sage/20 text-sage hover:bg-sage/10 font-body"
+                    >
+                      Clear Filters
+                    </Button>
+                  </div>
+                ) : (
+                  <>
+                    <ResponsiveTable>
+                      <div className="rounded-xl border border-sage/15 bg-white overflow-hidden">
+                        <Table>
+                          <TableHeader>
+                            <TableRow className="bg-sage/5 hover:bg-sage/5 border-sage/10">
+                              <TableHead className="font-body text-xs uppercase tracking-wide text-charcoal/60 px-5 py-3 w-[130px]">
+                                <button type="button" onClick={() => toggleSort("type")} className="inline-flex items-center gap-1 uppercase hover:text-charcoal transition-colors">
+                                  Type {sortIcon("type")}
+                                </button>
+                              </TableHead>
+                              <TableHead className="font-body text-xs uppercase tracking-wide text-charcoal/60 px-5 py-3 w-[110px]">
+                                <button type="button" onClick={() => toggleSort("amount")} className="inline-flex items-center gap-1 uppercase hover:text-charcoal transition-colors">
+                                  Amount {sortIcon("amount")}
+                                </button>
+                              </TableHead>
+                              <TableHead className="font-body text-xs uppercase tracking-wide text-charcoal/60 px-5 py-3 w-[180px]">
+                                <button type="button" onClick={() => toggleSort("member")} className="inline-flex items-center gap-1 uppercase hover:text-charcoal transition-colors">
+                                  Member {sortIcon("member")}
+                                </button>
+                              </TableHead>
+                              <TableHead className="font-body text-xs uppercase tracking-wide text-charcoal/60 px-5 py-3">Reason</TableHead>
+                              <TableHead className="font-body text-xs uppercase tracking-wide text-charcoal/60 px-5 py-3 w-[200px]">
+                                <button type="button" onClick={() => toggleSort("date")} className="inline-flex items-center gap-1 uppercase hover:text-charcoal transition-colors">
+                                  Date &amp; Admin {sortIcon("date")}
+                                </button>
+                              </TableHead>
+                            </TableRow>
+                          </TableHeader>
+                          <TableBody>
+                            {txPg.pageItems.map((transaction) => (
+                              <TableRow key={transaction.id} className="border-sage/10 hover:bg-sage/5">
+                                <TableCell className="px-5 py-4">
+                                  <div className="flex items-center gap-2.5">
+                                    <div className={`p-2 rounded-lg shrink-0 ${
+                                      transaction.type === "added" ? "bg-sage/10" :
+                                      transaction.type === "deducted" ? "bg-red-50" :
+                                      transaction.type === "used" ? "bg-charcoal/5" :
+                                      "bg-amber-50"
+                                    }`}>
+                                      {getTypeIcon(transaction.type)}
+                                    </div>
+                                    {getTypeBadge(transaction.type)}
+                                  </div>
+                                </TableCell>
+                                <TableCell className="px-5 py-4">
+                                  <span className={`font-display text-2xl tabular-nums ${
+                                    transaction.type === "added" ? "text-sage" :
+                                    transaction.type === "expired" ? "text-amber-600" :
+                                    "text-charcoal"
+                                  }`}>
+                                    {transaction.type === "added" ? "+" : "-"}{transaction.amount}
+                                  </span>
+                                  <span className="font-body text-xs text-charcoal/50 ml-1">cr</span>
+                                </TableCell>
+                                <TableCell className="px-5 py-4">
+                                  <span className="font-body font-medium text-charcoal">{transaction.memberName}</span>
+                                </TableCell>
+                                <TableCell className="px-5 py-4">
+                                  <span className="font-body text-sm text-charcoal/80">{transaction.reason}</span>
+                                </TableCell>
+                                <TableCell className="px-5 py-4">
+                                  <div className="flex items-center gap-2 text-sm">
+                                    <Calendar className="h-3.5 w-3.5 text-charcoal/40 shrink-0" />
+                                    <span className="font-body text-charcoal">
+                                      {new Date(transaction.date).toLocaleString()}
+                                    </span>
+                                  </div>
+                                  <div className="font-body text-xs text-charcoal/50 mt-1">
+                                    By: {transaction.adminName}
+                                  </div>
+                                </TableCell>
+                              </TableRow>
+                            ))}
+                          </TableBody>
+                        </Table>
+                      </div>
+                    </ResponsiveTable>
+                    <Pagination
+                      page={txPg.page}
+                      total={txPg.total}
+                      onChange={txPg.setPage}
+                    />
+                  </>
+                )}
               </CardContent>
             </Card>
 
