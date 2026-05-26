@@ -25,6 +25,7 @@ import {
 
 import { cdnUrl } from "@/lib/cdnUrl";
 import { ResponsiveTable } from "@/components/responsive/ResponsiveTable";
+import { toast } from "sonner";
 interface Product {
   id: string;
   name: string;
@@ -190,7 +191,7 @@ export default function AdminProducts() {
 
   const handleAddProduct = async () => {
     if (!formData.name || !formData.price || !formData.stock || !formData.description) {
-      alert("Please fill all required fields");
+      toast.error("Please fill all required fields");
       return;
     }
 
@@ -213,19 +214,19 @@ export default function AdminProducts() {
       });
       if (!res.ok) {
         const err = await res.json().catch(() => ({}));
-        alert((err as { error?: string }).error ?? "Could not save product");
+        toast.error((err as { error?: string }).error ?? "Could not save product");
         return;
       }
       await loadRetail();
       resetForm();
     } catch {
-      alert("Could not save product");
+      toast.error("Could not save product");
     }
   };
 
   const handleUpdateProduct = async () => {
     if (!editingProduct || !formData.name || !formData.price || !formData.stock || !formData.description) {
-      alert("Please fill all required fields");
+      toast.error("Please fill all required fields");
       return;
     }
 
@@ -249,13 +250,13 @@ export default function AdminProducts() {
       });
       if (!res.ok) {
         const err = await res.json().catch(() => ({}));
-        alert((err as { error?: string }).error ?? "Could not update product");
+        toast.error((err as { error?: string }).error ?? "Could not update product");
         return;
       }
       await loadRetail();
       resetForm();
     } catch {
-      alert("Could not update product");
+      toast.error("Could not update product");
     }
   };
 
@@ -280,12 +281,12 @@ export default function AdminProducts() {
         method: "DELETE",
       });
       if (!res.ok) {
-        alert("Could not delete product");
+        toast.error("Could not delete product");
         return;
       }
       await loadRetail();
     } catch {
-      alert("Could not delete product");
+      toast.error("Could not delete product");
     }
   };
 
@@ -305,7 +306,7 @@ export default function AdminProducts() {
 
   const handleAddCategory = () => {
     if (!categoryFormData.name.trim()) {
-      alert("Please enter a category name");
+      toast.error("Please enter a category name");
       return;
     }
 
@@ -321,7 +322,7 @@ export default function AdminProducts() {
 
   const handleUpdateCategory = () => {
     if (!editingCategory || !categoryFormData.name.trim()) {
-      alert("Please enter a category name");
+      toast.error("Please enter a category name");
       return;
     }
 
@@ -346,7 +347,7 @@ export default function AdminProducts() {
     const productsInCategory = products.filter((p) => p.category === id);
 
     if (productsInCategory.length > 0) {
-      alert(`Cannot delete category. ${productsInCategory.length} product(s) are using this category.`);
+      toast.error(`Cannot delete category. ${productsInCategory.length} product(s) are using this category.`);
       return;
     }
 
@@ -372,12 +373,12 @@ export default function AdminProducts() {
         body: JSON.stringify({ id: orderId, status: newStatus }),
       });
       if (!res.ok) {
-        alert("Could not update order");
+        toast.error("Could not update order");
         return;
       }
       await loadRetail();
     } catch {
-      alert("Could not update order");
+      toast.error("Could not update order");
     }
   };
 

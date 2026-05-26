@@ -52,6 +52,7 @@ import {
   ResponsiveDialogTitle,
   ResponsiveDialogFooter,
 } from "@/components/responsive/ResponsiveDialog";
+import { toast } from "sonner";
 import {
   Select,
   SelectContent,
@@ -614,13 +615,13 @@ export default function AdminSchedule() {
     const selectedClassData = classOptions.find(c => String(c.id) === String(data.classId));
 
     if (selectedClassData?._isPlaceholder) {
-      alert("No class types are set up in the database yet. Add classes in Admin → Settings (System config), then schedule here.");
+      toast.error("No class types are set up in the database yet. Add classes in Admin → Settings (System config), then schedule here.");
       return;
     }
 
     const selectedInstructorRecord = instructorOptions.find(i => String(i.id) === String(data.instructorId));
     if (selectedInstructorRecord?._isPlaceholder) {
-      alert("No instructors are set up in the database yet. Add instructors in Admin → Settings, then schedule here.");
+      toast.error("No instructors are set up in the database yet. Add instructors in Admin → Settings, then schedule here.");
       return;
     }
 
@@ -718,7 +719,7 @@ export default function AdminSchedule() {
           const weekMatch = data.weekOfMonth?.match(/week\s+(\d+)/i);
           const weekNumber = weekMatch ? parseInt(weekMatch[1], 10) : NaN;
           if (!Number.isFinite(weekNumber) || weekNumber < 1 || weekNumber > 5) {
-            alert("Please select a valid week (Week 1–Week 5).");
+            toast.error("Please select a valid week (Week 1–Week 5).");
             return;
           }
           const startOfMonth = new Date(year, selectedMonth, 1);
@@ -728,7 +729,7 @@ export default function AdminSchedule() {
           }
           currentDate.setDate(currentDate.getDate() + (weekNumber - 1) * 7);
           if (currentDate.getMonth() !== selectedMonth) {
-            alert(
+            toast.error(
               `${data.weekOfMonth} for ${data.day} does not exist in ${MONTHS[selectedMonth]} ${year}. Choose Week 1–4, use Recurring, or pick another month.`
             );
             return;
@@ -770,7 +771,7 @@ export default function AdminSchedule() {
       setTimeout(() => setSuccessMessage(""), 3000);
     } catch (err: unknown) {
       console.error("Error saving class:", err);
-      alert(`Failed to save: ${(err as Error)?.message ?? "Unknown error"}`);
+      toast.error(`Failed to save: ${(err as Error)?.message ?? "Unknown error"}`);
     }
   };
 
@@ -787,7 +788,7 @@ export default function AdminSchedule() {
       setTimeout(() => setSuccessMessage(""), 3000);
     } catch (err) {
       console.error("Error deleting class:", err);
-      alert("Failed to delete class. Please try again.");
+      toast.error("Failed to delete class. Please try again.");
     }
   };
 
@@ -831,7 +832,7 @@ export default function AdminSchedule() {
         } : prev);
       } else {
         const err = await res.json().catch(() => ({}));
-        alert((err as { error?: string }).error ?? "Check-in failed");
+        toast.error((err as { error?: string }).error ?? "Check-in failed");
       }
     } finally {
       setCheckingInMap(prev => ({ ...prev, [bookingId]: false }));
@@ -881,7 +882,7 @@ export default function AdminSchedule() {
         body: JSON.stringify({ scheduleId: rosterScheduleId, userId }),
       });
       const json = await res.json();
-      if (!res.ok) { alert(json.error ?? "Failed to add member"); return; }
+      if (!res.ok) { toast.error(json.error ?? "Failed to add member"); return; }
       setRosterData(prev => prev ? { ...prev, bookings: [...prev.bookings, json.booking] } : prev);
       setMemberQuery("");
       setMemberResults([]);
@@ -904,7 +905,7 @@ export default function AdminSchedule() {
         setRosterData(prev => prev ? { ...prev, instructorCheckInOutcome: outcome } : prev);
       } else {
         const err = await res.json().catch(() => ({}));
-        alert((err as { error?: string }).error ?? "Failed to save");
+        toast.error((err as { error?: string }).error ?? "Failed to save");
       }
     } finally {
       setSavingInstructorOutcome(false);

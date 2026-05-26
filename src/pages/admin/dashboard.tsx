@@ -106,6 +106,7 @@ import {
 } from "@/lib/financeReportExport";
 import { COUPON_CONTEXTS } from "@/lib/couponHelpers";
 import { Pagination, usePagination } from "@/components/Pagination";
+import { toast } from "sonner";
 
 type FinanceBreakdownDetail = {
   packageListInr?: number;
@@ -488,7 +489,7 @@ export default function AdminDashboard() {
       );
     }
     if (rows.length === 0) {
-      window.alert("No transactions to export for this selection.");
+      toast.error("No transactions to export for this selection.");
       return;
     }
     downloadFinanceReportExcel(rows, `copper-cloves-finance-${mode}`);
@@ -820,7 +821,7 @@ export default function AdminDashboard() {
 
   const handleBulkNudge = () => {
     const count = selectedMembers.size;
-    alert(`"The Ritual Renewal" template queued for ${count} members via WhatsApp/Email!`);
+    toast.error(`"The Ritual Renewal" template queued for ${count} members via WhatsApp/Email!`);
     setSelectedMembers(new Set());
   };
 
@@ -851,7 +852,7 @@ export default function AdminDashboard() {
           });
       if (!res.ok) {
         const err = await res.json().catch(() => ({}));
-        alert(typeof err?.error === "string" ? err.error : "Could not save coupon");
+        toast.error(typeof err?.error === "string" ? err.error : "Could not save coupon");
         return;
       }
       setEditingCouponId(null);
@@ -880,7 +881,7 @@ export default function AdminDashboard() {
     if (!confirm("Delete this coupon?")) return;
     const res = await fetch(`/api/admin/coupons?id=${encodeURIComponent(id)}`, { method: "DELETE" });
     if (!res.ok) {
-      alert("Could not delete coupon");
+      toast.error("Could not delete coupon");
       return;
     }
     setCoupons((prev) => prev.filter((c) => c.id !== id));
@@ -950,7 +951,7 @@ export default function AdminDashboard() {
       const updated = await fetch("/api/admin/instructors");
       if (updated.ok) setDashboardInstructors(await updated.json());
     } catch {
-      alert("Failed to save instructor.");
+      toast.error("Failed to save instructor.");
     } finally {
       setSavingInstructor(false);
     }
@@ -987,7 +988,7 @@ export default function AdminDashboard() {
         return { ...prev, attendees, checkedIn: attendees.filter((a: any) => a.checkedIn).length };
       });
     } catch {
-      alert("Could not update status");
+      toast.error("Could not update status");
     } finally {
       setRosterCheckingIn((prev) => ({ ...prev, [attendee.id]: false }));
     }
@@ -1008,7 +1009,7 @@ export default function AdminDashboard() {
         prev ? { ...prev, instructorCheckedIn: !!d.instructorCheckedIn, instructorCheckInTime: d.instructorCheckInTime } : prev,
       );
     } catch {
-      alert("Could not update instructor check-in");
+      toast.error("Could not update instructor check-in");
     } finally {
       setInstructorCheckingIn(false);
     }
@@ -1037,7 +1038,7 @@ export default function AdminDashboard() {
       });
       if (!res.ok) {
         const body = await res.json().catch(() => ({}));
-        alert((body as { error?: string }).error ?? "Failed to add member");
+        toast.error((body as { error?: string }).error ?? "Failed to add member");
         return;
       }
       const { booking } = await res.json();
@@ -1694,7 +1695,7 @@ export default function AdminDashboard() {
                               size="sm"
                               className="flex-1 sm:flex-none border-amber-500/20 text-amber-600 hover:bg-amber-50 font-body transition-all"
                               onClick={() => {
-                                alert(`"The Ritual Renewal" CRM template instantly queued for ${member.name} via WhatsApp/Email!`);
+                                toast.error(`"The Ritual Renewal" CRM template instantly queued for ${member.name} via WhatsApp/Email!`);
                               }}
                             >
                               <Zap size={14} className="mr-1" />

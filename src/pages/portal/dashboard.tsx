@@ -37,6 +37,7 @@ import {
 import { CheckInScanButton } from "@/components/checkin/CheckInScanButton";
 
 import { cdnUrl } from "@/lib/cdnUrl";
+import { toast } from "sonner";
 // Milestone tier definitions
 const MILESTONES = [
   {
@@ -370,12 +371,12 @@ export default function Dashboard() {
         body: JSON.stringify({ id: bookingId, checked_in: true }),
       });
       if (!res.ok) throw new Error("Check-in failed");
-      alert("✅ Checked in successfully!");
+      toast.error("✅ Checked in successfully!");
       setShowCheckIn(false);
       if (currentUserId) fetchUserData(currentUserId);
     } catch (err) {
       console.error("Check-in error:", err);
-      alert("Failed to check in. Please try again.");
+      toast.error("Failed to check in. Please try again.");
     }
   };
 

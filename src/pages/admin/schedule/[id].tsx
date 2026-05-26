@@ -19,6 +19,7 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
+import { toast } from "sonner";
 import {
   Select,
   SelectContent,
@@ -141,6 +142,46 @@ function ClassDetailSkeleton() {
         </CardContent>
       </Card>
     </>
+  );
+}
+
+function QrPlaceholder({ caption }: { caption: string }) {
+  // 13x13 pseudo-QR pattern: three finder squares in corners + sparse data dots.
+  const size = 13;
+  const isFinder = (r: number, c: number) => {
+    const inBox = (br: number, bc: number) =>
+      r >= br && r <= br + 6 && c >= bc && c <= bc + 6;
+    const onRing = (br: number, bc: number) =>
+      r === br || r === br + 6 || c === bc || c === bc + 6;
+    const inCenter = (br: number, bc: number) =>
+      r >= br + 2 && r <= br + 4 && c >= bc + 2 && c <= bc + 4;
+    const corners: [number, number][] = [[0, 0], [0, size - 7], [size - 7, 0]];
+    return corners.some(([br, bc]) => inBox(br, bc) && (onRing(br, bc) || inCenter(br, bc)));
+  };
+  const cells = Array.from({ length: size * size }, (_, i) => {
+    const r = Math.floor(i / size);
+    const c = i % size;
+    if (isFinder(r, c)) return true;
+    return ((r * 31 + c * 17 + r * c) % 5) === 0;
+  });
+  return (
+    <div className="relative flex h-[200px] w-[200px] items-center justify-center">
+      <div
+        className="grid h-full w-full gap-[2px] rounded-md bg-white p-2 blur-[3px]"
+        style={{ gridTemplateColumns: `repeat(${size}, minmax(0, 1fr))` }}
+        aria-hidden
+      >
+        {cells.map((on, i) => (
+          <div key={i} className={on ? "bg-charcoal" : "bg-transparent"} />
+        ))}
+      </div>
+      <div className="absolute inset-0 flex flex-col items-center justify-center rounded-md bg-cream/40 px-3 text-center">
+        <p className="text-xs font-semibold uppercase tracking-wide text-charcoal/70">
+          QR generates in
+        </p>
+        <p className="text-sm font-medium text-charcoal">{caption}</p>
+      </div>
+    </div>
   );
 }
 
@@ -272,7 +313,7 @@ export default function AdminClassPage() {
       });
       if (!res.ok) {
         const d = await res.json().catch(() => ({}));
-        alert(d.error ?? "Could not save changes");
+        toast.error(d.error ?? "Could not save changes");
         return;
       }
       setEditOpen(false);
@@ -320,7 +361,7 @@ export default function AdminClassPage() {
         await loadRoster();
       } else {
         const d = await res.json().catch(() => ({}));
-        alert(d.error ?? "Could not add member");
+        toast.error(d.error ?? "Could not add member");
       }
     } finally {
       setBusyId(null);
@@ -331,7 +372,7 @@ export default function AdminClassPage() {
     if (!confirm("Remove this class from the schedule?")) return;
     const res = await fetch(`/api/class-schedules?id=${id}`, { method: "DELETE", credentials: "include" });
     if (res.ok) router.push("/admin/schedule");
-    else alert("Failed to delete class");
+    else toast.error("Failed to delete class");
   }
 
   const start = roster ? new Date(roster.startTime) : null;
@@ -421,60 +462,54 @@ export default function AdminClassPage() {
                       </p>
                     ) : null}
                     <div className="grid grid-cols-1 gap-6 sm:grid-cols-2">
-                      <div className="flex flex-col items-center gap-2 rounded-xl border border-sage/15 p-6">
-                        <p className="font-display text-lg text-charcoal">Instructor</p>
-                        {qr?.instructorQrUrl ? (
-                          <QrZoomImage url={qr.instructorQrUrl} label="Instructor check-in" caption="Tap to enlarge" />
-                        ) : (
-                          <div className="flex flex-col items-center gap-2 py-10">
-                            <p className="text-sm text-charcoal/50">QR unavailable</p>
-                            {qr?.windowOpensAt && !qr?.withinWindow ? (
-                              <p className="text-xs text-charcoal/40">
-                                Will generate at{" "}
-                                {new Date(qr.windowOpensAt).toLocaleTimeString(undefined, {
-                                  timeStyle: "short",
-                                })}
-                              </p>
+                      {(["instructor", "member"] as const).map((kind) => {
+                        const url = kind === "instructor" ? qr?.instructorQrUrl : qr?.memberQrUrl;
+                        const label = kind === "instructor" ? "Instructor" : "Members";
+                        const preWindow = qr?.windowOpensAt && !qr?.withinWindow;
+                        return (
+                          <div
+                            key={kind}
+                            className="flex flex-col items-center gap-2 rounded-xl border border-sage/15 p-6"
+                          >
+                            <p className="font-display text-lg text-charcoal">{label}</p>
+                            {url ? (
+                              <QrZoomImage
+                                url={url}
+                                label={`${label} check-in`}
+                                caption="Tap to enlarge"
+                              />
+                            ) : preWindow ? (
+                              <div className="flex flex-col items-center gap-3">
+                                <QrPlaceholder
+                                  caption={new Date(qr!.windowOpensAt!).toLocaleTimeString(undefined, {
+                                    timeStyle: "short",
+                                  })}
+                                />
+                                <Button
+                                  size="sm"
+                                  variant="ghost"
+                                  onClick={() => refreshQr(true)}
+                                  disabled={qrRefreshing}
+                                >
+                                  {qrRefreshing ? "Generating…" : "Generate now"}
+                                </Button>
+                              </div>
                             ) : (
-                              <Button
-                                size="sm"
-                                variant="ghost"
-                                onClick={() => refreshQr(true)}
-                                disabled={qrRefreshing}
-                              >
-                                Try again
-                              </Button>
+                              <div className="flex flex-col items-center gap-2 py-10">
+                                <p className="text-sm text-charcoal/50">QR temporarily unavailable</p>
+                                <Button
+                                  size="sm"
+                                  variant="ghost"
+                                  onClick={() => refreshQr(true)}
+                                  disabled={qrRefreshing}
+                                >
+                                  Try again
+                                </Button>
+                              </div>
                             )}
                           </div>
-                        )}
-                      </div>
-                      <div className="flex flex-col items-center gap-2 rounded-xl border border-sage/15 p-6">
-                        <p className="font-display text-lg text-charcoal">Members</p>
-                        {qr?.memberQrUrl ? (
-                          <QrZoomImage url={qr.memberQrUrl} label="Member check-in" caption="Tap to enlarge" />
-                        ) : (
-                          <div className="flex flex-col items-center gap-2 py-10">
-                            <p className="text-sm text-charcoal/50">QR unavailable</p>
-                            {qr?.windowOpensAt && !qr?.withinWindow ? (
-                              <p className="text-xs text-charcoal/40">
-                                Will generate at{" "}
-                                {new Date(qr.windowOpensAt).toLocaleTimeString(undefined, {
-                                  timeStyle: "short",
-                                })}
-                              </p>
-                            ) : (
-                              <Button
-                                size="sm"
-                                variant="ghost"
-                                onClick={() => refreshQr(true)}
-                                disabled={qrRefreshing}
-                              >
-                                Try again
-                              </Button>
-                            )}
-                          </div>
-                        )}
-                      </div>
+                        );
+                      })}
                     </div>
                   </CardContent>
                 </Card>

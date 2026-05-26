@@ -9,6 +9,7 @@ import { Calendar, Users, Clock, Mail, Phone, User, MessageSquare } from "lucide
 import Image from "next/image";
 
 import { cdnUrl } from "@/lib/cdnUrl";
+import { toast } from "sonner";
 export default function RentalPage() {
   const [formData, setFormData] = useState({
     name: "",
@@ -46,7 +47,7 @@ export default function RentalPage() {
       });
       const data = await res.json().catch(() => ({}));
       if (!res.ok) {
-        alert(typeof data.error === "string" ? data.error : "Could not send your request. Try again.");
+        toast.error(typeof data.error === "string" ? data.error : "Could not send your request. Try again.");
         return;
       }
       setIsSuccess(true);
@@ -61,7 +62,7 @@ export default function RentalPage() {
         message: "",
       });
     } catch {
-      alert("Network error. Please try again.");
+      toast.error("Network error. Please try again.");
     } finally {
       setIsSubmitting(false);
     }

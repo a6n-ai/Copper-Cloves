@@ -54,6 +54,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { toast } from "sonner";
 
 interface Member {
   id: string;
@@ -474,10 +475,10 @@ export default function AdminMembers() {
 
   const goToPaymentStep = () => {
     if (dialogPassType === "class_pass" && selectedCredits === null) {
-      alert("Select number of classes first"); return;
+      toast.error("Select number of classes first"); return;
     }
     if (dialogPassType === "studio_pass" && selectedDays === null) {
-      alert("Select number of days first"); return;
+      toast.error("Select number of days first"); return;
     }
     setDialogStep("payment");
   };
@@ -492,7 +493,7 @@ export default function AdminMembers() {
       if (!res.ok || !json.url) throw new Error(json.error ?? "Upload failed");
       setPaymentProofUrl(json.url);
     } catch (e) {
-      alert(e instanceof Error ? e.message : "Upload failed");
+      toast.error(e instanceof Error ? e.message : "Upload failed");
     } finally {
       setProofUploading(false);
     }
@@ -500,9 +501,9 @@ export default function AdminMembers() {
 
   const handleRecordPayment = async () => {
     if (!selectedMember) return;
-    if (!paymentMethod) { alert("Select a payment method"); return; }
+    if (!paymentMethod) { toast.error("Select a payment method"); return; }
     const rupees = Number(paymentAmount);
-    if (!Number.isFinite(rupees) || rupees <= 0) { alert("Enter a valid amount in INR"); return; }
+    if (!Number.isFinite(rupees) || rupees <= 0) { toast.error("Enter a valid amount in INR"); return; }
     try {
       const res = await fetch("/api/admin/payments", {
         method: "POST",
@@ -537,7 +538,7 @@ export default function AdminMembers() {
         setTimeout(() => setSuccessMessage(""), 3000);
       }
     } catch (e) {
-      alert(e instanceof Error ? e.message : "Could not record payment");
+      toast.error(e instanceof Error ? e.message : "Could not record payment");
     }
   };
 
@@ -581,7 +582,7 @@ export default function AdminMembers() {
           pass_type: "studio_pass",
         });
       } else {
-        alert("Select a value before applying.");
+        toast.error("Select a value before applying.");
         return;
       }
 
@@ -591,7 +592,7 @@ export default function AdminMembers() {
       setDialogOpen(false);
       setTimeout(() => setSuccessMessage(""), 3000);
     } catch (e) {
-      alert(e instanceof Error ? e.message : "Could not update member");
+      toast.error(e instanceof Error ? e.message : "Could not update member");
     }
   };
 
@@ -604,7 +605,7 @@ export default function AdminMembers() {
       setDialogOpen(false);
       setTimeout(() => setSuccessMessage(""), 3000);
     } catch (e) {
-      alert(e instanceof Error ? e.message : "Could not update start date");
+      toast.error(e instanceof Error ? e.message : "Could not update start date");
     }
   };
 
@@ -769,7 +770,7 @@ export default function AdminMembers() {
         }),
       );
     } catch {
-      alert("Could not update status");
+      toast.error("Could not update status");
     } finally {
       setHistorySavingId(null);
     }

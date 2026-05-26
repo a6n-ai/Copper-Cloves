@@ -10,6 +10,7 @@ import { Badge } from "@/components/ui/badge";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Building2, Plus, X } from "lucide-react";
 import { Spinner, PageLoader } from "@/components/ui/spinner";
+import { toast } from "sonner";
 
 interface PartnerClass { id: string; name: string }
 interface PartnerManager { id: string; email: string; full_name: string | null }
@@ -95,7 +96,7 @@ export default function AdminPartners() {
       });
       if (!res.ok) {
         const d = await res.json().catch(() => ({}));
-        alert(d.error ?? "Action failed");
+        toast.error(d.error ?? "Action failed");
         return;
       }
       await load();

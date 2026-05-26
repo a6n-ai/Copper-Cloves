@@ -23,6 +23,7 @@ import { Spinner } from "@/components/ui/spinner";
 import { Skeleton } from "@/components/ui/skeleton";
 
 import { cdnUrl } from "@/lib/cdnUrl";
+import { toast } from "sonner";
 interface MenuItem {
   id?: string;
   name: string;
@@ -210,7 +211,7 @@ export default function AdminCafe() {
       await fetchOrderHistory();
     } catch (err) {
       console.error("Error updating order status:", err);
-      alert("Failed to update order status. Please try again.");
+      toast.error("Failed to update order status. Please try again.");
     }
   };
 
@@ -367,7 +368,7 @@ export default function AdminCafe() {
     const exists = categories.find(c => c.id === categoryId);
     
     if (exists) {
-      alert("Category ID already exists!");
+      toast.error("Category ID already exists!");
       return;
     }
     
@@ -379,7 +380,7 @@ export default function AdminCafe() {
   const handleDeleteCategory = (categoryId: string) => {
     const itemsInCategory = menuItems.filter(item => item.category === categoryId);
     if (itemsInCategory.length > 0) {
-      alert(`Cannot delete category: ${itemsInCategory.length} menu items are using it.`);
+      toast.error(`Cannot delete category: ${itemsInCategory.length} menu items are using it.`);
       return;
     }
     if (!confirm("Are you sure you want to delete this category?")) return;
@@ -516,13 +517,13 @@ export default function AdminCafe() {
       const res = await fetch(`/api/cafe/items?id=${id}`, { method: "DELETE" });
       if (!res.ok) {
         const data = await res.json().catch(() => ({}));
-        alert(data.error ?? "Failed to delete item");
+        toast.error(data.error ?? "Failed to delete item");
         return;
       }
       fetchMenuItems();
     } catch (err) {
       console.error("Error deleting item:", err);
-      alert("Failed to delete item");
+      toast.error("Failed to delete item");
     }
   };
 

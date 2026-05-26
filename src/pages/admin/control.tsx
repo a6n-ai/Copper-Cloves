@@ -58,6 +58,7 @@ import { ControlAnalyticsPanel } from "@/components/admin/ControlAnalyticsPanel"
 import { Pagination, usePagination } from "@/components/Pagination";
 
 import { cdnUrl } from "@/lib/cdnUrl";
+import { toast } from "sonner";
 
 /** Member list cards — mirrors the avatar + name/contact + pass badge + dates + actions row. */
 function UserListSkeleton({ rows = 6 }: { rows?: number }) {
@@ -549,17 +550,17 @@ async function fetchPayoutData() {
       const data = await res.json().catch(() => ({}));
       if (!res.ok) {
         const msg = typeof data.error === "string" ? data.error : `Upload failed (HTTP ${res.status}).`;
-        alert(msg);
+        toast.error(msg);
         return null;
       }
       if (typeof data.url !== "string" || !data.url) {
-        alert("Upload response was invalid.");
+        toast.error("Upload response was invalid.");
         return null;
       }
       return data.url;
     } catch (error) {
       console.error("Error uploading image:", error);
-      alert("Failed to upload image. Please try again.");
+      toast.error("Failed to upload image. Please try again.");
       return null;
     } finally {
       setUploadingImage(false);
@@ -571,7 +572,7 @@ async function fetchPayoutData() {
 
   async function handleAdminCreateUser() {
     if (!newUserForm.email.trim() || !newUserForm.password) {
-      alert("Email and password are required.");
+      toast.error("Email and password are required.");
       return;
     }
     setCreatingUser(true);
@@ -594,10 +595,10 @@ async function fetchPayoutData() {
       });
       const data = await res.json().catch(() => ({}));
       if (!res.ok) {
-        alert(typeof data.error === "string" ? data.error : "Could not create user");
+        toast.error(typeof data.error === "string" ? data.error : "Could not create user");
         return;
       }
-      alert("User created successfully.");
+      toast.error("User created successfully.");
       setShowAddUserDialog(false);
       setNewUserForm({
         full_name: "",
@@ -627,7 +628,7 @@ async function fetchPayoutData() {
 
   async function handlePauseToggle() {
     if (!selectedUser?.userPackageId) {
-      alert("This member has no package to pause.");
+      toast.error("This member has no package to pause.");
       return;
     }
     const action = selectedUser.isPaused ? "resume" : "pause";
@@ -642,7 +643,7 @@ async function fetchPayoutData() {
       setShowEditUserDialog(false);
       fetchUsers();
     } catch {
-      alert("Could not update pause state");
+      toast.error("Could not update pause state");
     }
   }
 
@@ -705,7 +706,7 @@ async function fetchPayoutData() {
       setShowEditUserDialog(false);
       fetchUsers();
     } catch (e) {
-      alert(e instanceof Error ? e.message : "Could not save changes");
+      toast.error(e instanceof Error ? e.message : "Could not save changes");
     }
   }
 
@@ -720,7 +721,7 @@ async function fetchPayoutData() {
       if (!res.ok) throw new Error(data.error ?? "Delete failed");
       fetchUsers();
     } catch (e) {
-      alert(e instanceof Error ? e.message : "Could not delete user");
+      toast.error(e instanceof Error ? e.message : "Could not delete user");
     }
   }
 
@@ -764,14 +765,14 @@ async function fetchPayoutData() {
       });
       if (!res.ok) throw new Error("Failed to create class");
 
-      alert("Class created successfully!");
+      toast.error("Class created successfully!");
       setShowAddClassDialog(false);
       setClassImagePreview("");
       fetchClasses();
       form.reset();
     } catch (err) {
       console.error("Error:", err);
-      alert("Failed to create class. Please try again.");
+      toast.error("Failed to create class. Please try again.");
     }
   }
 
@@ -814,13 +815,13 @@ async function fetchPayoutData() {
       });
       if (!res.ok) throw new Error("Update failed");
 
-      alert("Class updated successfully!");
+      toast.error("Class updated successfully!");
       setShowClassDetailsDialog(false);
       setClassImagePreview("");
       fetchClasses();
     } catch (err) {
       console.error("Error:", err);
-      alert("Failed to update class. Please try again.");
+      toast.error("Failed to update class. Please try again.");
     }
   }
 
@@ -835,12 +836,12 @@ async function fetchPayoutData() {
       const res = await fetch(`/api/admin/classes?id=${classId}`, { method: "DELETE" });
       if (!res.ok) throw new Error("Delete failed");
 
-      alert("Class deleted successfully!");
+      toast.error("Class deleted successfully!");
       setShowClassDetailsDialog(false);
       fetchClasses();
     } catch (err) {
       console.error("Error:", err);
-      alert("Failed to delete class. Please try again.");
+      toast.error("Failed to delete class. Please try again.");
     }
   }
 
@@ -895,14 +896,14 @@ async function fetchPayoutData() {
       });
       if (!res.ok) throw new Error("Create instructor failed");
 
-      alert("Instructor created successfully!");
+      toast.error("Instructor created successfully!");
       setShowAddInstructorDialog(false);
       setImagePreview("");
       fetchInstructors();
       form.reset();
     } catch (err) {
       console.error("Error:", err);
-      alert("Failed to create instructor. Please try again.");
+      toast.error("Failed to create instructor. Please try again.");
     }
   }
 
@@ -960,13 +961,13 @@ async function fetchPayoutData() {
       });
       if (!res.ok) throw new Error("Update failed");
 
-      alert("Instructor updated successfully!");
+      toast.error("Instructor updated successfully!");
       setShowEditInstructorDialog(false);
       setImagePreview("");
       fetchInstructors();
     } catch (err) {
       console.error("Error:", err);
-      alert("Failed to update instructor. Please try again.");
+      toast.error("Failed to update instructor. Please try again.");
     }
   }
 
@@ -982,7 +983,7 @@ async function fetchPayoutData() {
       fetchInstructors();
     } catch (err) {
       console.error("Error:", err);
-      alert("Failed to update instructor status.");
+      toast.error("Failed to update instructor status.");
     }
   }
 
@@ -995,12 +996,12 @@ async function fetchPayoutData() {
       const res = await fetch(`/api/admin/instructors?id=${instructorId}`, { method: "DELETE" });
       if (!res.ok) throw new Error("Delete failed");
 
-      alert("Instructor deleted successfully!");
+      toast.error("Instructor deleted successfully!");
       setShowEditInstructorDialog(false);
       fetchInstructors();
     } catch (err) {
       console.error("Error:", err);
-      alert("Failed to delete instructor. Please try again.");
+      toast.error("Failed to delete instructor. Please try again.");
     }
   }
 

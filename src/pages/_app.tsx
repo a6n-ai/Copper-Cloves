@@ -1,4 +1,4 @@
-import { Toaster } from "@/components/ui/toaster";
+import { Toaster } from "sonner";
 import "@/styles/globals.css";
 import "react-easy-crop/react-easy-crop.css";
 import type { AppProps } from "next/app";
@@ -149,7 +149,7 @@ export default function App({ Component, pageProps: { session, ...pageProps } }:
         <DashboardChrome>
           <Component {...pageProps} />
         </DashboardChrome>
-        <Toaster />
+        <Toaster richColors closeButton position="top-right" />
       </CartProvider>
     </SessionProvider>
   );

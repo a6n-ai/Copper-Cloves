@@ -22,6 +22,7 @@ import {
 } from "lucide-react";
 
 import { cdnUrl } from "@/lib/cdnUrl";
+import { toast } from "sonner";
 export default function MealSubscriptionPage() {
   const [formData, setFormData] = useState({
     fullName: "",
@@ -69,13 +70,13 @@ export default function MealSubscriptionPage() {
           typeof (data as { error?: string } | null)?.error === "string"
             ? (data as { error: string }).error
             : "Something went wrong. Please try again.";
-        alert(msg);
+        toast.error(msg);
         return;
       }
       setIsSuccess(true);
       setFormData({ fullName: "", email: "", phone: "", message: "" });
     } catch {
-      alert("Network error. Please try again.");
+      toast.error("Network error. Please try again.");
     } finally {
       setIsSubmitting(false);
     }

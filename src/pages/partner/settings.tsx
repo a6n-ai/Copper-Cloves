@@ -10,6 +10,7 @@ import { Label } from "@/components/ui/label";
 import { Spinner } from "@/components/ui/spinner";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Check } from "lucide-react";
+import { toast } from "sonner";
 
 function PartnerSettingsSkeleton() {
   return (
@@ -108,7 +109,7 @@ export default function PartnerSettings() {
       setSaved(true);
       setTimeout(() => setSaved(false), 2500);
     } catch {
-      alert("Could not save settings.");
+      toast.error("Could not save settings.");
     } finally {
       setSaving(false);
     }

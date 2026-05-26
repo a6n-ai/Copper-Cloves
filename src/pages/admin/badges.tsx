@@ -17,6 +17,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { ResponsiveTable } from "@/components/responsive/ResponsiveTable";
 import { Pagination, usePagination } from "@/components/Pagination";
 import { MetricCard } from "@/components/admin/MetricCard";
+import { toast } from "sonner";
 import {
   Award,
   Plus,
@@ -381,7 +382,7 @@ export default function AdminBadgesPage() {
       }),
     });
     if (res.status === 409) {
-      alert(`${member.full_name || member.email} already has this badge.`);
+      toast.error(`${member.full_name || member.email} already has this badge.`);
       return;
     }
     setMemberSearch("");
@@ -401,10 +402,10 @@ export default function AdminBadgesPage() {
 
   // ---- Member of Month ----
   const awardMoM = async () => {
-    if (!momUserId) return alert("Could not find the member's profile.");
+    if (!momUserId) return toast.error("Could not find the member's profile.");
     const momTemplate = customTemplates.find((t) => t.name === "Member of the Month");
     if (!momTemplate) {
-      return alert(
+      return toast.error(
         'No "Member of the Month" custom badge template found. Create one in Custom Badges first.'
       );
     }

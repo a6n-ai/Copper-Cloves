@@ -8,6 +8,7 @@ import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { InstructorDashboardSkeleton } from "@/components/dashboard/skeletons";
 import { PageHeader } from "@/components/dashboard/PageHeader";
 import { InstructorCheckinBeacon } from "@/components/checkin/InstructorCheckinBeacon";
+import { toast } from "sonner";
 import {
   Users,
   Clock,
@@ -167,7 +168,7 @@ export default function InstructorDashboard() {
       });
       if (!res.ok) {
         const err = await res.json().catch(() => ({}));
-        alert(err.error ?? "Check-in failed");
+        toast.error(err.error ?? "Check-in failed");
         return;
       }
       // Optimistic update

@@ -11,6 +11,7 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { MetricCard } from "@/components/admin/MetricCard";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Calendar, Users, CheckCircle2, Clock, UserX, ChevronLeft, ChevronRight, Hourglass, TrendingUp } from "lucide-react";
+import { toast } from "sonner";
 
 function PartnerClassesSkeleton() {
   return (
@@ -165,7 +166,7 @@ export default function PartnerClasses() {
         }),
       );
     } catch {
-      alert("Could not update the booking. Please try again.");
+      toast.error("Could not update the booking. Please try again.");
     } finally {
       setActioningId(null);
     }
