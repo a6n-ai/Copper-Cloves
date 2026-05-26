@@ -12,6 +12,7 @@ import {
   User,
   ChefHat,
   ClipboardList,
+  GraduationCap,
   type LucideIcon,
 } from "lucide-react";
 
@@ -62,6 +63,7 @@ export const PORTAL_CONFIGS: Record<PortalKind, PortalConfig> = {
         items: [
           { href: "/admin/schedule", label: "Schedule", icon: Calendar },
           { href: "/admin/members", label: "Members", icon: Users },
+          { href: "/admin/instructors", label: "Instructors", icon: GraduationCap },
           { href: "/admin/credits", label: "Credits", icon: CreditCard },
           { href: "/admin/badges", label: "Badges", icon: Award },
           { href: "/admin/CRM", label: "CRM", icon: MessageSquare },

@@ -23,6 +23,14 @@ import {
 
 import { cdnUrl } from "@/lib/cdnUrl";
 import { toast } from "sonner";
+
+const heroImages = [
+  cdnUrl("/meal-sub-1.jpg"),
+  cdnUrl("/meal-sub-2.jpg"),
+  cdnUrl("/meal-sub-3.jpg"),
+  cdnUrl("/meal-sub-4.jpg")
+];
+
 export default function MealSubscriptionPage() {
   const [formData, setFormData] = useState({
     fullName: "",
@@ -34,20 +42,12 @@ export default function MealSubscriptionPage() {
   const [isSuccess, setIsSuccess] = useState(false);
   const [currentImageIndex, setCurrentImageIndex] = useState(0);
 
-  const heroImages = [
-    cdnUrl("/meal-sub-1.jpg"),
-    cdnUrl("/meal-sub-2.jpg"),
-    cdnUrl("/meal-sub-3.jpg"),
-    cdnUrl("/meal-sub-4.jpg")
-  ];
-
-  // Auto-rotate hero images
   useEffect(() => {
     const interval = setInterval(() => {
       setCurrentImageIndex((prev) => (prev + 1) % heroImages.length);
     }, 4000);
     return () => clearInterval(interval);
-  }, [heroImages.length]);
+  }, []);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -158,9 +158,10 @@ export default function MealSubscriptionPage() {
               </p>
 
               {/* CTA */}
-              <Button 
+              <Button
                 size="lg"
-                className="bg-sage hover:bg-sage/90 text-white px-12 py-7 text-lg rounded-full shadow-2xl hover:shadow-sage/50 transition-all duration-300 hover:scale-105"
+                variant="sage"
+                className="px-12 py-7 text-lg rounded-full shadow-2xl"
                 onClick={() => document.getElementById('waitlist-form')?.scrollIntoView({ behavior: 'smooth', block: 'start' })}
               >
                 Join the Waitlist
@@ -454,11 +455,12 @@ export default function MealSubscriptionPage() {
                           </div>
 
                           {/* Submit Button */}
-                          <Button 
+                          <Button
                             type="submit"
                             disabled={isSubmitting}
                             size="lg"
-                            className="w-full bg-sage hover:bg-sage/90 text-white shadow-xl h-14 text-lg"
+                            variant="sage"
+                            className="w-full h-14 text-lg"
                           >
                             {isSubmitting ? "Submitting..." : "Join the Waitlist"}
                           </Button>

@@ -149,7 +149,7 @@ export default function App({ Component, pageProps: { session, ...pageProps } }:
         <DashboardChrome>
           <Component {...pageProps} />
         </DashboardChrome>
-        <Toaster richColors closeButton position="top-right" />
+        <Toaster richColors closeButton position="top-center" />
       </CartProvider>
     </SessionProvider>
   );

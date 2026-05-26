@@ -37,11 +37,14 @@ import {
   ChevronRight,
   UserCheck,
   Settings2,
+  Power,
+  PowerOff,
 } from "lucide-react";
 import { SEO } from "@/components/SEO";
 import { Spinner } from "@/components/ui/spinner";
 import { Skeleton } from "@/components/ui/skeleton";
 import { AnimatedIcon } from "@/components/dashboard/AnimatedIcon";
+import { ManageButton, DeleteButton } from "@/components/ui/quick-actions";
 import { useSession } from "next-auth/react";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import {
@@ -144,6 +147,7 @@ interface ScheduledClass {
   instructorCheckInTime?: string | null;
   instructorCheckInOutcome?: string | null;
   classNotes?: string | null;
+  status?: string;
 }
 
 type ClassSelectOption = {
@@ -533,6 +537,7 @@ export default function AdminSchedule() {
         instructor_check_in_time?: string | null;
         instructor_check_in_outcome?: string | null;
         class_notes?: string | null;
+        status?: string | null;
       }>;
 
       const formattedSchedule: ScheduledClass[] = data.map((item) => {
@@ -556,6 +561,7 @@ export default function AdminSchedule() {
           instructorCheckInTime: item.instructor_check_in_time ?? null,
           instructorCheckInOutcome: item.instructor_check_in_outcome ?? null,
           classNotes: item.class_notes ?? null,
+          status: item.status ?? "available",
         };
       });
       setSchedule(formattedSchedule);
@@ -792,6 +798,39 @@ export default function AdminSchedule() {
     }
   };
 
+  const [statusToggleTarget, setStatusToggleTarget] = useState<ScheduledClass | null>(null);
+  const [statusToggleBusy, setStatusToggleBusy] = useState(false);
+
+  const confirmToggleStatus = async () => {
+    if (!statusToggleTarget) return;
+    const sc = statusToggleTarget;
+    const next = sc.status === "available" ? "inactive" : "available";
+    // For "cancelled" → next is "available" (reactivation). Same for "inactive".
+    setStatusToggleBusy(true);
+    try {
+      const res = await fetch(`/api/class-schedules`, {
+        method: "PUT",
+        credentials: "include",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ id: sc.id, status: next }),
+      });
+      if (!res.ok) throw new Error(await extractApiError(res, `Status change failed (HTTP ${res.status})`));
+      toast.success(next === "inactive" ? "Class set to inactive" : "Class reactivated");
+      setStatusToggleTarget(null);
+      const schedErr = await loadSchedule();
+      if (schedErr) setLoadError(schedErr);
+    } catch (err) {
+      console.error("Error toggling status:", err);
+      toast.error(`Could not change status: ${(err as Error)?.message ?? "Unknown error"}`);
+    } finally {
+      setStatusToggleBusy(false);
+    }
+  };
+
+  const handleToggleStatus = (sc: ScheduledClass) => {
+    setStatusToggleTarget(sc);
+  };
+
   const handleDuplicateClass = (scheduledClass: ScheduledClass) => {
     const newClass: ScheduledClass = {
       ...scheduledClass,
@@ -1009,7 +1048,16 @@ export default function AdminSchedule() {
                         {(() => {
                           const t = new Date();
                           const todayIso = `${t.getFullYear()}-${String(t.getMonth() + 1).padStart(2, "0")}-${String(t.getDate()).padStart(2, "0")}`;
-                          return selectedDateIso === todayIso ? "Today" : selectedDate.toLocaleDateString("en-US", { year: "numeric" });
+                          if (selectedDateIso === todayIso) return "Today";
+                          const yesterday = new Date(t);
+                          yesterday.setDate(t.getDate() - 1);
+                          const yIso = `${yesterday.getFullYear()}-${String(yesterday.getMonth() + 1).padStart(2, "0")}-${String(yesterday.getDate()).padStart(2, "0")}`;
+                          const tomorrow = new Date(t);
+                          tomorrow.setDate(t.getDate() + 1);
+                          const tomIso = `${tomorrow.getFullYear()}-${String(tomorrow.getMonth() + 1).padStart(2, "0")}-${String(tomorrow.getDate()).padStart(2, "0")}`;
+                          if (selectedDateIso === yIso) return "Yesterday";
+                          if (selectedDateIso === tomIso) return "Tomorrow";
+                          return selectedDate.toLocaleDateString("en-US", { year: "numeric" });
                         })()}
                       </CardDescription>
                     </div>
@@ -1017,7 +1065,7 @@ export default function AdminSchedule() {
                       <Button
                         variant="outline"
                         size="sm"
-                        className="border-sage/20 text-sage hover:bg-sage/5 h-9 w-9 p-0"
+                        className="border-sage/40 text-sage hover:bg-sage hover:text-white hover:border-sage h-9 w-9 p-0 transition-colors"
                         onClick={() => {
                           const d = new Date(selectedDate);
                           d.setDate(d.getDate() - 1);
@@ -1027,18 +1075,30 @@ export default function AdminSchedule() {
                       >
                         <ChevronLeft className="h-4 w-4" />
                       </Button>
+                      {(() => {
+                        const t = new Date();
+                        const todayIso = `${t.getFullYear()}-${String(t.getMonth() + 1).padStart(2, "0")}-${String(t.getDate()).padStart(2, "0")}`;
+                        const isToday = selectedDateIso === todayIso;
+                        return (
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            className={
+                              isToday
+                                ? "bg-sage text-white border-sage hover:bg-sage/90 h-9 font-body transition-colors"
+                                : "border-sage/40 text-sage hover:bg-sage hover:text-white hover:border-sage h-9 font-body transition-colors"
+                            }
+                            onClick={() => setSelectedDate(new Date())}
+                            disabled={isToday}
+                          >
+                            Today
+                          </Button>
+                        );
+                      })()}
                       <Button
                         variant="outline"
                         size="sm"
-                        className="border-sage/20 text-sage hover:bg-sage/5 h-9 font-body"
-                        onClick={() => setSelectedDate(new Date())}
-                      >
-                        Today
-                      </Button>
-                      <Button
-                        variant="outline"
-                        size="sm"
-                        className="border-sage/20 text-sage hover:bg-sage/5 h-9 w-9 p-0"
+                        className="border-sage/40 text-sage hover:bg-sage hover:text-white hover:border-sage h-9 w-9 p-0 transition-colors"
                         onClick={() => {
                           const d = new Date(selectedDate);
                           d.setDate(d.getDate() + 1);
@@ -1051,7 +1111,8 @@ export default function AdminSchedule() {
                       <Button
                         onClick={handleAddClass}
                         size="sm"
-                        className="bg-sage hover:bg-sage/90 text-white font-body h-9"
+                        variant="sage"
+                        className="h-9"
                       >
                         <Plus className="h-4 w-4 mr-1" />
                         Schedule Class
@@ -1072,6 +1133,7 @@ export default function AdminSchedule() {
                         name: getClassName(sc.classId),
                         time: sc.time,
                         instructor: getInstructorName(sc.instructorId),
+                        instructorId: sc.instructorId,
                         instructorAvatarUrl: getInstructorAvatar(sc.instructorId),
                         enrolled: sc.booked,
                         capacity: sc.capacity ?? getClassCapacity(sc.classId),
@@ -1079,30 +1141,47 @@ export default function AdminSchedule() {
                         instructorCheckedInAt: sc.instructorCheckInTime
                           ? new Date(sc.instructorCheckInTime).toLocaleTimeString("en-US", { hour: "2-digit", minute: "2-digit" })
                           : null,
+                        status: sc.status ?? "available",
                         _raw: sc,
                       } as any))}
                     actions={(row: any) => {
-                      const sc = row._raw;
+                      const sc: ScheduledClass = row._raw;
+                      const isActive = (sc.status ?? "available") === "available";
+                      const isInactive = sc.status === "inactive";
+                      const isCancelled = sc.status === "cancelled";
+                      const isLockedRow = sc.status === "completed" || sc.status === "abandoned";
+                      const toggleable = !isLockedRow && (isActive || isInactive || isCancelled);
                       return (
                         <>
-                          <Button
-                            variant="outline"
-                            size="sm"
+                          {toggleable && (
+                            <Button
+                              variant="outline"
+                              size="sm"
+                              onClick={(e) => { e.stopPropagation(); handleToggleStatus(sc); }}
+                              className={`font-body h-8 w-8 p-0 transition-all hover:scale-110 active:scale-95 ${
+                                isActive
+                                  ? "border-amber-400 text-amber-700 bg-white hover:!bg-amber-500 hover:!text-white hover:!border-amber-500"
+                                  : "border-sage/60 text-sage bg-white hover:!bg-sage hover:!text-white hover:!border-sage"
+                              }`}
+                              title={
+                                isActive
+                                  ? "Set inactive (hide from members)"
+                                  : isCancelled
+                                  ? "Reactivate cancelled class"
+                                  : "Reactivate"
+                              }
+                            >
+                              <AnimatedIcon icon={isActive ? PowerOff : Power} size={14} animateOnMount={false} hover="wiggle" />
+                            </Button>
+                          )}
+                          <ManageButton
                             onClick={(e) => { e.stopPropagation(); router.push(`/admin/schedule/${sc.id}`); }}
-                            className="border-sage/20 text-sage hover:bg-sage/10 font-body h-8 w-8 p-0 transition-transform hover:scale-110 active:scale-95"
-                            title="Manage"
-                          >
-                            <AnimatedIcon icon={Settings2} size={14} animateOnMount={false} hover="spin" />
-                          </Button>
-                          <Button
-                            variant="destructive"
-                            size="sm"
+                          />
+                          <DeleteButton
                             onClick={(e) => { e.stopPropagation(); handleDeleteClass(sc.id); }}
-                            className="font-body h-8 w-8 p-0 transition-transform hover:scale-110 active:scale-95"
-                            title="Delete"
-                          >
-                            <AnimatedIcon icon={Trash2} size={14} animateOnMount={false} hover="wiggle" />
-                          </Button>
+                            disabled={isLockedRow}
+                            label={isLockedRow ? `Class is ${sc.status}; cannot delete.` : "Delete"}
+                          />
                         </>
                       );
                     }}
@@ -1513,7 +1592,7 @@ export default function AdminSchedule() {
             <Button
               type="submit"
               form="class-form"
-              className="bg-sage hover:bg-sage/90 text-white font-body"
+              variant="sage"
             >
               {editingClass ? "Update Class" : "Schedule Class"}
             </Button>
@@ -1616,7 +1695,8 @@ export default function AdminSchedule() {
                           size="sm"
                           onClick={() => void handleAdminCheckIn(b.id)}
                           disabled={checkingInMap[b.id]}
-                          className="bg-sage hover:bg-sage/90 text-white font-body rounded-full px-3 h-8 text-xs shrink-0"
+                          variant="sage"
+                          className="rounded-full px-3 h-8 text-xs shrink-0"
                         >
                           {checkingInMap[b.id] ? (
                             <Spinner className="size-3.5" />
@@ -1693,7 +1773,8 @@ export default function AdminSchedule() {
                           size="sm"
                           onClick={() => handleAddMember(m.id)}
                           disabled={addingMemberId === m.id}
-                          className="bg-sage hover:bg-sage/90 text-white font-body h-7 px-3 text-xs shrink-0"
+                          variant="sage"
+                          className="h-7 px-3 text-xs shrink-0"
                         >
                           {addingMemberId === m.id ? (
                             <Spinner className="size-3" />
@@ -1705,6 +1786,47 @@ export default function AdminSchedule() {
                 })}
               </ul>
             )}
+          </div>
+        </ResponsiveDialogContent>
+      </ResponsiveDialog>
+
+      {/* Status toggle confirmation */}
+      <ResponsiveDialog
+        open={!!statusToggleTarget}
+        onOpenChange={(o) => { if (!o) setStatusToggleTarget(null); }}
+      >
+        <ResponsiveDialogContent className="sm:max-w-md">
+          <ResponsiveDialogHeader>
+            <ResponsiveDialogTitle>
+              {statusToggleTarget?.status === "available"
+                ? "Set class inactive?"
+                : statusToggleTarget?.status === "cancelled"
+                ? "Reactivate cancelled class?"
+                : "Reactivate class?"}
+            </ResponsiveDialogTitle>
+            <ResponsiveDialogDescription>
+              {statusToggleTarget?.status === "available"
+                ? "Class will be hidden from members on the booking page and block new bookings. Existing bookings keep their seat. You can reactivate any time."
+                : statusToggleTarget?.status === "cancelled"
+                ? "Class will move from cancelled back to available. Members will be able to book again. Note: members previously notified of cancellation will not be auto-notified."
+                : "Class will become bookable again and appear on the member portal."}
+            </ResponsiveDialogDescription>
+          </ResponsiveDialogHeader>
+          <div className="flex justify-end gap-2 pt-2">
+            <Button variant="outline" onClick={() => setStatusToggleTarget(null)} disabled={statusToggleBusy} className="font-body">
+              Cancel
+            </Button>
+            <Button
+              onClick={confirmToggleStatus}
+              disabled={statusToggleBusy}
+              variant={statusToggleTarget?.status === "available" ? "terracotta" : "sage"}
+            >
+              {statusToggleBusy
+                ? "Saving…"
+                : statusToggleTarget?.status === "available"
+                ? "Set inactive"
+                : "Reactivate"}
+            </Button>
           </div>
         </ResponsiveDialogContent>
       </ResponsiveDialog>

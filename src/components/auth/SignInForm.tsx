@@ -239,14 +239,15 @@ export function SignInForm({ onSwitchToSignup }: { onSwitchToSignup: () => void 
                     <Checkbox checked={remember} onCheckedChange={(v) => setRemember(Boolean(v))} className="border-sage/30 data-[state=checked]:bg-sage data-[state=checked]:border-sage" />
                     Remember this device
                   </label>
-                  <button
+                  <Button
                     type="button"
+                    variant="link"
                     onClick={handleForgotPassword}
                     disabled={resetLoading}
-                    className="font-body text-sm text-sage hover:underline disabled:opacity-60 disabled:no-underline"
+                    className="text-sage h-auto p-0"
                   >
                     {resetLoading ? "Sending…" : "Forgot password?"}
-                  </button>
+                  </Button>
                 </div>
                 {resetMsg && (
                   <p className="font-body text-sm text-sage/90 bg-sage/5 border border-sage/15 rounded-lg px-3 py-2">
@@ -264,7 +265,7 @@ export function SignInForm({ onSwitchToSignup }: { onSwitchToSignup: () => void 
 
         {/* Hide the primary button while the picker is the active choice */}
         {!needPick && (
-          <Button type="submit" disabled={loading} className="w-full bg-sage hover:bg-sage/90 text-white font-body h-12 rounded-full text-sm uppercase tracking-[0.15em] shadow-lg shadow-sage/25 transition-all hover:shadow-xl hover:shadow-sage/30">
+          <Button type="submit" variant="sage" size="lg" disabled={loading} className="w-full rounded-full text-sm uppercase tracking-[0.15em]">
             {loading
               ? <><Spinner className="mr-2 size-4" />{role ? "Signing in…" : "Checking…"}</>
               : role ? "Sign In" : "Continue"}
@@ -274,9 +275,9 @@ export function SignInForm({ onSwitchToSignup }: { onSwitchToSignup: () => void 
 
       <p className="mt-8 font-body text-sm text-charcoal/60 text-center">
         New to The Studio?{" "}
-        <button type="button" onClick={onSwitchToSignup} className="text-sage hover:underline font-medium">
+        <Button type="button" variant="link" onClick={onSwitchToSignup} className="text-sage h-auto p-0 font-medium">
           Create account
-        </button>
+        </Button>
       </p>
     </>
   );

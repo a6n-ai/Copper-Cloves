@@ -12,6 +12,7 @@ import { Label } from "@/components/ui/label";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
+import { CloseButton } from "@/components/ui/quick-actions";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -284,13 +285,8 @@ function PackageTierCard({
           {/* CTA */}
           <Button
             onClick={() => onChoose(pkg)}
-            variant={isRecommended ? "default" : "outline"}
-            className={cn(
-              "w-full min-h-[44px] font-body font-semibold rounded-full transition-all duration-300",
-              isRecommended
-                ? "bg-sage hover:bg-sage/90 text-white shadow-lg hover:shadow-xl"
-                : "border-sage/40 text-sage hover:bg-sage/10"
-            )}
+            variant={isRecommended ? "sage" : "sage-outline"}
+            className="w-full min-h-[44px] font-semibold rounded-full"
           >
             Choose Plan
           </Button>
@@ -864,9 +860,9 @@ export default function PackagesPage() {
 
                     <Button
                       onClick={() => generateInvoicePDF(purchase)}
-                      variant="outline"
+                      variant="sage-outline"
                       size="sm"
-                      className="border-sage/30 text-sage hover:bg-sage/10 text-xs"
+                      className="text-xs"
                     >
                       <Download size={14} className="mr-1.5" />
                       Download Invoice
@@ -919,9 +915,9 @@ export default function PackagesPage() {
                           </div>
                           <Button
                             onClick={() => generateInvoicePDF(purchase)}
-                            variant="outline"
+                            variant="sage-outline"
                             size="sm"
-                            className="border-sage/30 text-sage hover:bg-sage/10 shrink-0 text-xs"
+                            className="shrink-0 text-xs"
                           >
                             <Download size={14} className="mr-1.5" />
                             Invoice
@@ -978,13 +974,11 @@ export default function PackagesPage() {
                     <h2 className="font-display text-lg sm:text-2xl text-charcoal leading-tight">Complete Your Purchase</h2>
                     <p className="font-body text-xs text-charcoal/60 mt-0.5">{selectedPackage?.name}</p>
                   </div>
-                  <button
+                  <CloseButton
                     onClick={closeCheckout}
-                    className="w-8 h-8 rounded-full bg-white border border-sage/20 hover:border-sage/40 flex items-center justify-center transition-all duration-200 shrink-0"
-                    aria-label="Close checkout"
-                  >
-                    <X className="text-charcoal" size={16} />
-                  </button>
+                    label="Close checkout"
+                    className="rounded-full shrink-0"
+                  />
                 </div>
               </div>
 
@@ -1105,7 +1099,8 @@ export default function PackagesPage() {
                   </Button>
                   <Button
                     type="submit"
-                    className="flex-1 bg-sage hover:bg-sage/90 text-white h-11 font-body font-semibold"
+                    variant="sage"
+                    className="flex-1 h-11 font-semibold"
                     disabled={isProcessing}
                   >
                     {isProcessing ? (

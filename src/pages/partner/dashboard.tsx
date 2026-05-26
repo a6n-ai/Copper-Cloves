@@ -76,7 +76,7 @@ export default function PartnerDashboard() {
       <PageHeader
         title="Dashboard"
         actions={
-          <Button asChild className="bg-sage hover:bg-sage/90 text-white font-body">
+          <Button asChild variant="sage">
             <Link href="/partner/classes">View classes <ArrowRight className="h-4 w-4 ml-1.5" /></Link>
           </Button>
         }

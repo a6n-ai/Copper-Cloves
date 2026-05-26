@@ -47,7 +47,10 @@ export function ResponsiveDialogContent({ className, children, ...props }: React
     );
   }
   return (
-    <DialogContent className={cn("max-h-[90dvh] overflow-y-auto", className)} {...props}>
+    <DialogContent
+      className={cn("max-h-[90dvh] w-[calc(100%-2rem)] max-w-lg overflow-y-auto sm:w-full", className)}
+      {...props}
+    >
       {children}
     </DialogContent>
   );

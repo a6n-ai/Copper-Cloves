@@ -153,7 +153,8 @@ export function ResetPasswordForm({ token }: { token: string | undefined }) {
         <Button
           type="submit"
           disabled={isSubmitting || !token}
-          className="w-full bg-sage hover:bg-sage/90 text-white font-body h-12 rounded-full text-sm uppercase tracking-[0.15em] shadow-lg shadow-sage/25 transition-all hover:shadow-xl hover:shadow-sage/30"
+          variant="sage"
+          className="w-full h-12 rounded-full text-sm uppercase tracking-[0.15em]"
         >
           {isSubmitting ? (
             <><Spinner className="mr-2 size-4" />Saving…</>

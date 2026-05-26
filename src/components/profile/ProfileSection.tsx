@@ -508,7 +508,7 @@ export function ProfileSection({ role, title, subtitle }: ProfileSectionProps) {
 
                 <div className="pt-2">
                   <Button type="submit" disabled={savingPersonal}
-                    className="bg-sage hover:bg-sage/90 text-white w-full h-12 font-body transition-all hover:scale-[1.01] active:scale-95 disabled:opacity-50">
+                    variant="sage" className="w-full h-12">
                     {savingPersonal ? <><Spinner className="mr-2 size-4" />Saving…</> : <><Save size={16} className="mr-2" />Save Personal Details</>}
                   </Button>
                 </div>
@@ -548,11 +548,11 @@ export function ProfileSection({ role, title, subtitle }: ProfileSectionProps) {
                   </div>
                   {isFemale && (
                     <div className="space-y-3">
-                      <button type="button" onClick={() => setShowLongHealth(!showLongHealth)}
-                        className="flex items-center gap-2 text-sm font-body text-sage hover:text-sage/80 transition-colors">
+                      <Button type="button" variant="sage-outline" size="sm" onClick={() => setShowLongHealth(!showLongHealth)}
+                        className="h-auto p-0">
                         <ChevronDown size={14} className={`transition-transform ${showLongHealth ? "rotate-180" : ""}`} />
                         {showLongHealth ? "Hide" : "Show"} additional health conditions
-                      </button>
+                      </Button>
                       {showLongHealth && (
                         <CheckboxGroup options={HEALTH_ISSUES_FEMALE_LONG} selected={healthLong} onChange={setHealthLong} />
                       )}
@@ -565,7 +565,7 @@ export function ProfileSection({ role, title, subtitle }: ProfileSectionProps) {
                       className="border-sage/20 focus:border-sage font-body text-sm resize-none" rows={3} />
                   </div>
                   <Button type="submit" disabled={savingHealth}
-                    className="bg-sage hover:bg-sage/90 text-white w-full h-12 font-body transition-all hover:scale-[1.01] active:scale-95 disabled:opacity-50">
+                    variant="sage" className="w-full h-12">
                     {savingHealth ? <><Spinner className="mr-2 size-4" />Saving…</> : <><Save size={16} className="mr-2" />Save Health Profile</>}
                   </Button>
                 </form>
@@ -596,7 +596,7 @@ export function ProfileSection({ role, title, subtitle }: ProfileSectionProps) {
                     onChange={(e) => setNewPassword(e.target.value)} className="border-sage/20 h-11" required minLength={8} />
                 </div>
                 <Button type="submit" disabled={passwordSaving}
-                  className="bg-sage hover:bg-sage/90 text-white w-full h-12 font-body">
+                  variant="sage" className="w-full h-12">
                   {passwordSaving ? "Updating…" : "Reset Password"}
                 </Button>
               </form>
@@ -695,7 +695,7 @@ export function ProfileSection({ role, title, subtitle }: ProfileSectionProps) {
                     </div>
                     <Button type="submit"
                       disabled={submittingTicket || !pauseReason.trim() || !pauseRange?.from || !pauseRange?.to}
-                      className="bg-terracotta hover:bg-terracotta/90 text-white w-full h-12 font-body transition-all hover:scale-[1.01] active:scale-95 disabled:opacity-50">
+                      variant="terracotta" className="w-full h-12">
                       {submittingTicket ? <><Spinner className="mr-2 size-4" />Submitting…</> : "Submit Pause Request"}
                     </Button>
                   </form>

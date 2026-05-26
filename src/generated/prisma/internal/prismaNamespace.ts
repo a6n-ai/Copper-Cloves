@@ -4097,6 +4097,20 @@ export type ListDecimalFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaMo
 
 
 /**
+ * Reference to a field of type 'ClassScheduleStatus'
+ */
+export type EnumClassScheduleStatusFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'ClassScheduleStatus'>
+    
+
+
+/**
+ * Reference to a field of type 'ClassScheduleStatus[]'
+ */
+export type ListEnumClassScheduleStatusFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'ClassScheduleStatus[]'>
+    
+
+
+/**
  * Reference to a field of type 'PaymentMethod'
  */
 export type EnumPaymentMethodFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'PaymentMethod'>

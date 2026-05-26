@@ -1,4 +1,5 @@
 import { Button } from "@/components/ui/button";
+import { NavPrevButton, NavNextButton } from "@/components/ui/quick-actions";
 import { Skeleton } from "@/components/ui/skeleton";
 import { ArrowRight, Clock } from "lucide-react";
 import { useRouter } from "next/router";
@@ -112,26 +113,18 @@ export function ClassCatalog() {
         {/* Carousel Container */}
         <div className="relative">
           {/* Left Scroll Button */}
-          <button
+          <NavPrevButton
             onClick={() => scroll("left")}
-            className="hidden md:flex absolute left-0 top-1/2 -translate-y-1/2 -translate-x-4 z-20 w-12 h-12 rounded-full bg-white/80 backdrop-blur-md border border-sage/20 items-center justify-center hover:bg-white hover:scale-110 transition-all duration-600 ease-in-out shadow-lg"
-            aria-label="Scroll left"
-          >
-            <svg className="w-6 h-6 text-sage" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
-            </svg>
-          </button>
+            className="hidden md:flex absolute left-0 top-1/2 -translate-y-1/2 -translate-x-4 z-20 rounded-full bg-white/80 backdrop-blur-md border border-sage/20"
+            label="Scroll left"
+          />
 
           {/* Right Scroll Button */}
-          <button
+          <NavNextButton
             onClick={() => scroll("right")}
-            className="hidden md:flex absolute right-0 top-1/2 -translate-y-1/2 translate-x-4 z-20 w-12 h-12 rounded-full bg-white/80 backdrop-blur-md border border-sage/20 items-center justify-center hover:bg-white hover:scale-110 transition-all duration-600 ease-in-out shadow-lg"
-            aria-label="Scroll right"
-          >
-            <svg className="w-6 h-6 text-sage" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
-            </svg>
-          </button>
+            className="hidden md:flex absolute right-0 top-1/2 -translate-y-1/2 translate-x-4 z-20 rounded-full bg-white/80 backdrop-blur-md border border-sage/20"
+            label="Scroll right"
+          />
 
           {/* Carousel Scroll Container */}
           {loading ? (

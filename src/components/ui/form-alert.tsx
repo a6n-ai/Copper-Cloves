@@ -33,7 +33,7 @@ export function FormAlert({ message, variant = "error", className }: FormAlertPr
     <div
       role="alert"
       className={cn(
-        "flex items-start gap-3 rounded-lg border px-4 py-3 text-sm font-body animate-in slide-in-from-top duration-300",
+        "flex items-start gap-3 rounded-lg border px-4 py-3 text-sm font-body animate-in fade-in-0 zoom-in-95 duration-200",
         styles[variant],
         className
       )}

@@ -435,7 +435,8 @@ export default function OnboardingPage() {
                     <Button
                       type="submit"
                       disabled={isSubmitting}
-                      className="flex-1 bg-sage hover:bg-sage/90 text-white font-body h-11 rounded-full"
+                      variant="sage"
+                      className="flex-1 h-11 rounded-full"
                     >
                       {isSubmitting ? (
                         <>

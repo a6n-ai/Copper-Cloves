@@ -252,7 +252,9 @@ export function SignUpForm({ onSwitchToSignin }: { onSwitchToSignin: () => void 
 
               <Button
                 type="submit"
-                className="w-full bg-sage hover:bg-sage/90 text-white font-body h-12 rounded-full text-sm uppercase tracking-[0.15em] shadow-lg shadow-sage/25 transition-all hover:shadow-xl hover:shadow-sage/30 mt-2"
+                variant="sage"
+                size="lg"
+                className="w-full rounded-full text-sm uppercase tracking-[0.15em] mt-2"
               >
                 Continue
               </Button>
@@ -266,13 +268,14 @@ export function SignUpForm({ onSwitchToSignin }: { onSwitchToSignin: () => void 
               transition={{ duration: 0.22, ease: "easeOut" }}
               className="space-y-3"
             >
-              <button
+              <Button
                 type="button"
+                variant="outline"
+                size="sm"
                 onClick={() => { setStep(1); setApiError(null); }}
-                className="font-body text-xs text-sage hover:underline"
               >
                 ← Back to details
-              </button>
+              </Button>
 
               {/* Password */}
               <div className="space-y-1">
@@ -398,8 +401,10 @@ export function SignUpForm({ onSwitchToSignin }: { onSwitchToSignin: () => void 
 
               <Button
                 type="submit"
+                variant="sage"
+                size="lg"
                 disabled={isSubmitting}
-                className="w-full bg-sage hover:bg-sage/90 text-white font-body h-12 rounded-full text-sm uppercase tracking-[0.15em] shadow-lg shadow-sage/25 transition-all hover:shadow-xl hover:shadow-sage/30 mt-2"
+                className="w-full rounded-full text-sm uppercase tracking-[0.15em] mt-2"
               >
                 {isSubmitting ? (
                   <>
@@ -417,9 +422,9 @@ export function SignUpForm({ onSwitchToSignin }: { onSwitchToSignin: () => void 
 
       <p className="mt-5 font-body text-sm text-charcoal/60 text-center">
         Already have an account?{" "}
-        <button type="button" onClick={onSwitchToSignin} className="text-sage hover:underline font-medium">
+        <Button type="button" variant="link" onClick={onSwitchToSignin} className="text-sage h-auto p-0 font-medium">
           Sign in
-        </button>
+        </Button>
       </p>
     </>
   );

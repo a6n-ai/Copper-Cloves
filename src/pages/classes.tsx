@@ -313,7 +313,7 @@ export default function ClassesPage() {
       if (isStale?.()) return;
       const data = allData.filter((item: { start_time: string; status?: string }) => {
         const t = new Date(item.start_time);
-        return t >= weekStart && t <= weekEnd && item.status !== "cancelled";
+        return t >= weekStart && t <= weekEnd && item.status !== "cancelled" && item.status !== "inactive";
       });
 
       const instructorMap = new Map(
@@ -560,9 +560,10 @@ export default function ClassesPage() {
                           </div>
                         )}
 
-                        <Button 
+                        <Button
                           onClick={handleBookClass}
-                          className="w-full bg-sage hover:bg-sage/90 text-white font-body"
+                          variant="sage"
+                          className="w-full"
                         >
                           Book This Class
                         </Button>

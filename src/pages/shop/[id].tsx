@@ -12,11 +12,13 @@ import {
   Heart,
   Share2,
   Check,
-  Minus,
-  Plus,
-  ChevronLeft,
-  ChevronRight,
 } from "lucide-react";
+import {
+  NavPrevButton,
+  NavNextButton,
+  QtyMinusButton,
+  QtyPlusButton,
+} from "@/components/ui/quick-actions";
 import Link from "next/link";
 import Image from "next/image";
 
@@ -211,13 +213,14 @@ export default function ProductDetail() {
       <main className="min-h-screen bg-linear-to-br from-cream via-white to-sage/5 pt-24 pb-16">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <Link href="/shop">
-            <button
+            <Button
               type="button"
-              className="group inline-flex items-center gap-2 font-body text-sm text-charcoal/70 hover:text-sage mb-8 transition-colors"
+              variant="ghost"
+              className="group mb-8 text-charcoal/70"
             >
-              <ArrowLeft size={16} className="transition-transform group-hover:-translate-x-1" />
+              <ArrowLeft size={16} />
               Back to Shop
-            </button>
+            </Button>
           </Link>
 
           <div className="grid lg:grid-cols-2 gap-12 mb-20">
@@ -235,24 +238,18 @@ export default function ProductDetail() {
 
                 {images.length > 1 && (
                   <>
-                    <button
-                      type="button"
+                    <NavPrevButton
                       onClick={() =>
                         setCurrentImageIndex((prev) => (prev - 1 + images.length) % images.length)
                       }
-                      className="absolute left-4 top-1/2 -translate-y-1/2 z-10 w-10 h-10 rounded-full bg-white/80 backdrop-blur-xs flex items-center justify-center hover:bg-white transition-all opacity-0 group-hover:opacity-100 shadow-lg"
-                      aria-label="Previous image"
-                    >
-                      <ChevronLeft className="text-charcoal" size={20} />
-                    </button>
-                    <button
-                      type="button"
+                      className="absolute left-4 top-1/2 -translate-y-1/2 z-10 rounded-full bg-white/80 backdrop-blur-xs opacity-0 group-hover:opacity-100 text-charcoal"
+                      label="Previous image"
+                    />
+                    <NavNextButton
                       onClick={() => setCurrentImageIndex((prev) => (prev + 1) % images.length)}
-                      className="absolute right-4 top-1/2 -translate-y-1/2 z-10 w-10 h-10 rounded-full bg-white/80 backdrop-blur-xs flex items-center justify-center hover:bg-white transition-all opacity-0 group-hover:opacity-100 shadow-lg"
-                      aria-label="Next image"
-                    >
-                      <ChevronRight className="text-charcoal" size={20} />
-                    </button>
+                      className="absolute right-4 top-1/2 -translate-y-1/2 z-10 rounded-full bg-white/80 backdrop-blur-xs opacity-0 group-hover:opacity-100 text-charcoal"
+                      label="Next image"
+                    />
                   </>
                 )}
 
@@ -288,55 +285,51 @@ export default function ProductDetail() {
 
               <div className="flex flex-wrap items-center gap-4 pt-4">
                 <div className="flex items-center gap-3 px-4 py-2 rounded-full bg-white/60 backdrop-blur-xl border border-sage/10">
-                  <button
-                    type="button"
+                  <QtyMinusButton
                     onClick={() => setQuantity(Math.max(1, quantity - 1))}
-                    className="w-8 h-8 rounded-full bg-sage/10 hover:bg-sage/20 flex items-center justify-center transition-colors"
-                  >
-                    <Minus size={16} className="text-sage" />
-                  </button>
+                    className="rounded-full bg-sage/10 text-sage"
+                  />
                   <span className="font-body text-lg text-charcoal w-8 text-center">{quantity}</span>
-                  <button
-                    type="button"
+                  <QtyPlusButton
                     onClick={() => setQuantity(inStock ? Math.min(product.stock, quantity + 1) : quantity)}
-                    className="w-8 h-8 rounded-full bg-sage/10 hover:bg-sage/20 flex items-center justify-center transition-colors disabled:opacity-40"
+                    className="rounded-full bg-sage/10 text-sage"
                     disabled={!inStock || quantity >= product.stock}
-                  >
-                    <Plus size={16} className="text-sage" />
-                  </button>
+                  />
                 </div>
 
-                <button
+                <Button
                   type="button"
+                  variant="sage"
+                  size="lg"
                   onClick={handleAddToCart}
                   disabled={!inStock}
-                  className="flex-1 min-w-[200px] inline-flex items-center justify-center gap-2 px-8 py-4 rounded-full bg-sage hover:bg-sage/90 text-white font-body transition-all duration-300 shadow-lg hover:shadow-xl hover:scale-105 active:scale-95 disabled:opacity-50 disabled:pointer-events-none"
+                  className="flex-1 min-w-[200px] rounded-full"
                 >
                   <ShoppingCart size={20} />
                   Add to Cart
-                </button>
+                </Button>
 
-                <button
+                <Button
                   type="button"
+                  variant={isWishlisted ? "terracotta" : "terracotta-ghost"}
+                  size="icon-lg"
                   onClick={() => setIsWishlisted(!isWishlisted)}
-                  className={`w-14 h-14 rounded-full flex items-center justify-center transition-all ${
-                    isWishlisted
-                      ? "bg-terracotta text-white"
-                      : "bg-white/60 backdrop-blur-xl border border-sage/10 text-charcoal/60 hover:text-terracotta"
-                  }`}
+                  className={`rounded-full ${isWishlisted ? "" : "bg-white/60 backdrop-blur-xl border border-sage/10"}`}
                   aria-label="Wishlist"
                 >
                   <Heart size={20} className={isWishlisted ? "fill-current" : ""} />
-                </button>
+                </Button>
 
-                <button
+                <Button
                   type="button"
+                  variant="ghost"
+                  size="icon-lg"
                   onClick={handleShare}
-                  className="w-14 h-14 rounded-full bg-white/60 backdrop-blur-xl border border-sage/10 flex items-center justify-center text-charcoal/60 hover:text-sage transition-colors"
+                  className="rounded-full bg-white/60 backdrop-blur-xl border border-sage/10 text-charcoal/60"
                   aria-label="Copy link"
                 >
                   <Share2 size={20} />
-                </button>
+                </Button>
               </div>
 
               <div className="flex items-center gap-2 pt-2">

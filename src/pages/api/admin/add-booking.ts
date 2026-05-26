@@ -21,6 +21,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   });
   if (!schedule) return res.status(404).json({ error: "Schedule not found" });
   if (schedule.status === "cancelled") return res.status(400).json({ error: "Class is cancelled" });
+  if (schedule.status === "inactive") return res.status(400).json({ error: "Class is inactive — reactivate before booking" });
 
   const alreadyBooked = schedule.bookings.some(b => b.user_id === userId);
   if (alreadyBooked) return res.status(409).json({ error: "Member already booked into this class" });

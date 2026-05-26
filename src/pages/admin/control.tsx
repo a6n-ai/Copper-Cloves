@@ -1,4 +1,5 @@
 ﻿import { useState, useEffect, useMemo } from "react";
+import dynamic from "next/dynamic";
 import { useRouter } from "next/router";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
@@ -7,6 +8,10 @@ import { MetricCard } from "@/components/admin/MetricCard";
 import { ListAvatar } from "@/components/admin/ListAvatar";
 import { AdminPageHeader } from "@/components/admin/AdminPageHeader";
 import { Button } from "@/components/ui/button";
+import { EditButton, DeleteButton, ManageButton } from "@/components/ui/quick-actions";
+import { AnimatedIcon } from "@/components/dashboard/AnimatedIcon";
+import { cn } from "@/lib/utils";
+import { StatusPill } from "@/components/ui/status-pill";
 import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
@@ -48,13 +53,19 @@ import {
   ArrowUpDown,
   Layers,
   Award,
+  Power,
+  PowerOff,
 } from "lucide-react";
 import { SEO } from "@/components/SEO";
 import { Skeleton } from "@/components/ui/skeleton";
 import { InstructorAvatar } from "@/components/InstructorAvatar";
 import { useSession } from "next-auth/react";
 import type React from "react";
-import { ControlAnalyticsPanel } from "@/components/admin/ControlAnalyticsPanel";
+// ~700 lines, only rendered when Analytics tab opens — defer.
+const ControlAnalyticsPanel = dynamic(
+  () => import("@/components/admin/ControlAnalyticsPanel").then((m) => m.ControlAnalyticsPanel),
+  { ssr: false, loading: () => null },
+);
 import { Pagination, usePagination } from "@/components/Pagination";
 
 import { cdnUrl } from "@/lib/cdnUrl";
@@ -250,6 +261,13 @@ export default function ControlPanel() {
   const router = useRouter();
   const [loading, setLoading] = useState(true);
   const [activeTab, setActiveTab] = useState("users");
+
+  // Sync activeTab with ?tab= query so sidebar links can deep-link into a tab.
+  useEffect(() => {
+    const t = typeof router.query.tab === "string" ? router.query.tab : null;
+    if (t && t !== activeTab) setActiveTab(t);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [router.query.tab]);
 
   // Dialog states
   const [showAddUserDialog, setShowAddUserDialog] = useState(false);
@@ -598,7 +616,7 @@ async function fetchPayoutData() {
         toast.error(typeof data.error === "string" ? data.error : "Could not create user");
         return;
       }
-      toast.error("User created successfully.");
+      toast.success("User created successfully.");
       setShowAddUserDialog(false);
       setNewUserForm({
         full_name: "",
@@ -765,7 +783,7 @@ async function fetchPayoutData() {
       });
       if (!res.ok) throw new Error("Failed to create class");
 
-      toast.error("Class created successfully!");
+      toast.success("Class created successfully!");
       setShowAddClassDialog(false);
       setClassImagePreview("");
       fetchClasses();
@@ -815,7 +833,7 @@ async function fetchPayoutData() {
       });
       if (!res.ok) throw new Error("Update failed");
 
-      toast.error("Class updated successfully!");
+      toast.success("Class updated successfully!");
       setShowClassDetailsDialog(false);
       setClassImagePreview("");
       fetchClasses();
@@ -836,7 +854,7 @@ async function fetchPayoutData() {
       const res = await fetch(`/api/admin/classes?id=${classId}`, { method: "DELETE" });
       if (!res.ok) throw new Error("Delete failed");
 
-      toast.error("Class deleted successfully!");
+      toast.success("Class deleted successfully!");
       setShowClassDetailsDialog(false);
       fetchClasses();
     } catch (err) {
@@ -896,7 +914,7 @@ async function fetchPayoutData() {
       });
       if (!res.ok) throw new Error("Create instructor failed");
 
-      toast.error("Instructor created successfully!");
+      toast.success("Instructor created successfully!");
       setShowAddInstructorDialog(false);
       setImagePreview("");
       fetchInstructors();
@@ -961,7 +979,7 @@ async function fetchPayoutData() {
       });
       if (!res.ok) throw new Error("Update failed");
 
-      toast.error("Instructor updated successfully!");
+      toast.success("Instructor updated successfully!");
       setShowEditInstructorDialog(false);
       setImagePreview("");
       fetchInstructors();
@@ -996,7 +1014,7 @@ async function fetchPayoutData() {
       const res = await fetch(`/api/admin/instructors?id=${instructorId}`, { method: "DELETE" });
       if (!res.ok) throw new Error("Delete failed");
 
-      toast.error("Instructor deleted successfully!");
+      toast.success("Instructor deleted successfully!");
       setShowEditInstructorDialog(false);
       fetchInstructors();
     } catch (err) {
@@ -1265,7 +1283,8 @@ async function fetchPayoutData() {
                         </div>
                         <Button
                           onClick={() => setShowAddUserDialog(true)}
-                          className="bg-sage hover:bg-sage/90 text-white font-body h-9 shrink-0"
+                          variant="sage"
+                          className="h-9 shrink-0"
                         >
                           <Plus className="h-4 w-4 mr-1.5" />
                           Add User
@@ -1365,13 +1384,13 @@ async function fetchPayoutData() {
                                       </TableCell>
                                       <TableCell className="px-5 py-4">
                                         {user.passType === "none" ? (
-                                          <Badge variant="outline" className="border-charcoal/15 text-charcoal/40 bg-cream/30 font-body">No pass</Badge>
+                                          <StatusPill tone="neutral">No pass</StatusPill>
                                         ) : user.passType === "class_pass" ? (
-                                          <Badge variant="outline" className="border-sage/30 text-sage bg-sage/5 font-body">Class pass</Badge>
+                                          <StatusPill tone="sage">Class pass</StatusPill>
                                         ) : (
-                                          <Badge className={`${user.isPaused ? "bg-amber-500" : "bg-sage"} text-white border-transparent font-body`}>
+                                          <StatusPill tone={user.isPaused ? "amber" : "sage"} variant="solid" dot pulse={!user.isPaused}>
                                             Studio{user.isPaused ? " (Paused)" : ""}
-                                          </Badge>
+                                          </StatusPill>
                                         )}
                                       </TableCell>
                                       <TableCell className="px-5 py-4">
@@ -1395,33 +1414,17 @@ async function fetchPayoutData() {
                                       </TableCell>
                                       <TableCell className="px-5 py-4">
                                         {user.passType === "none" ? (
-                                          <Badge variant="outline" className="border-charcoal/15 text-charcoal/40 font-body">No pass</Badge>
+                                          <StatusPill tone="neutral">No pass</StatusPill>
                                         ) : active ? (
-                                          <Badge className="bg-sage/10 text-sage border-sage/20 font-body">Active</Badge>
+                                          <StatusPill tone="sage" dot pulse>Active</StatusPill>
                                         ) : (
-                                          <Badge variant="outline" className="border-amber-500/20 text-amber-600 bg-amber-50 font-body">Expired</Badge>
+                                          <StatusPill tone="red" dot>Expired</StatusPill>
                                         )}
                                       </TableCell>
                                       <TableCell className="px-5 py-4">
                                         <div className="flex gap-2 justify-end">
-                                          <Button
-                                            variant="outline"
-                                            size="sm"
-                                            className="h-8 w-8 p-0 border-sage/20 text-sage hover:bg-sage/5"
-                                            onClick={() => openEditUser(user)}
-                                            aria-label="Edit user"
-                                          >
-                                            <Edit className="h-3.5 w-3.5" />
-                                          </Button>
-                                          <Button
-                                            variant="outline"
-                                            size="sm"
-                                            className="h-8 w-8 p-0 border-red-500/20 text-red-600 hover:bg-red-50"
-                                            onClick={() => handleDeleteUser(user.id, user.name || user.full_name || user.email)}
-                                            aria-label="Delete user"
-                                          >
-                                            <Trash2 className="h-3.5 w-3.5" />
-                                          </Button>
+                                          <EditButton onClick={() => openEditUser(user)} label="Edit user" />
+                                          <DeleteButton onClick={() => handleDeleteUser(user.id, user.name || user.full_name || user.email)} label="Delete user" />
                                         </div>
                                       </TableCell>
                                     </TableRow>
@@ -1556,7 +1559,7 @@ async function fetchPayoutData() {
                                       <Button size="sm"
                                         disabled={pauseSavingId === t.id || !t.pause_from || !t.pause_to}
                                         onClick={() => updatePauseTicket(t.id, { status: "resolved", admin_note: draft })}
-                                        className="bg-sage hover:bg-sage/90 text-white font-body">
+                                        variant="sage">
                                         Approve & Extend Expiry
                                       </Button>
                                     )}
@@ -1611,7 +1614,8 @@ async function fetchPayoutData() {
                         />
                         <Button
                           onClick={() => setShowAddClassDialog(true)}
-                          className="bg-sage hover:bg-sage/90 text-white font-body h-9 shrink-0"
+                          variant="sage"
+                          className="h-9 shrink-0"
                         >
                           <Plus className="h-4 w-4 mr-1.5" />
                           Create Class
@@ -1691,24 +1695,8 @@ async function fetchPayoutData() {
                                     </TableCell>
                                     <TableCell className="px-5 py-4">
                                       <div className="flex gap-2 justify-end">
-                                        <Button
-                                          variant="outline"
-                                          size="sm"
-                                          className="h-8 w-8 p-0 border-sage/20 text-sage hover:bg-sage/5"
-                                          onClick={() => { setSelectedClass(cls); setShowClassDetailsDialog(true); }}
-                                          aria-label="Edit class"
-                                        >
-                                          <Edit className="h-3.5 w-3.5" />
-                                        </Button>
-                                        <Button
-                                          variant="outline"
-                                          size="sm"
-                                          className="h-8 w-8 p-0 border-red-200 text-red-600 hover:bg-red-50"
-                                          onClick={() => handleDeleteClass(cls.id, cls.name)}
-                                          aria-label="Delete class"
-                                        >
-                                          <Trash2 className="h-3.5 w-3.5" />
-                                        </Button>
+                                        <EditButton onClick={() => { setSelectedClass(cls); setShowClassDetailsDialog(true); }} label="Edit class" />
+                                        <DeleteButton onClick={() => handleDeleteClass(cls.id, cls.name)} label="Delete class" />
                                       </div>
                                     </TableCell>
                                   </TableRow>
@@ -1861,7 +1849,8 @@ async function fetchPayoutData() {
                                         {instructor.status === "pending" ? (
                                           <Button
                                             size="sm"
-                                            className="bg-sage hover:bg-sage/90 text-white font-body h-8"
+                                            variant="sage"
+                                            className="h-8"
                                             onClick={() => { setSelectedPayoutData(instructor); setShowPayoutDialog(true); }}
                                           >
                                             <DollarSign className="h-3.5 w-3.5 mr-1" />
@@ -1900,11 +1889,11 @@ async function fetchPayoutData() {
                         </div>
                       </div>
                       <div className="flex gap-3">
-                        <Button variant="outline" className="border-sage/20 text-sage hover:bg-sage/5 font-body">
+                        <Button variant="sage-outline">
                           <Download className="h-4 w-4 mr-2" />
                           Export Payouts
                         </Button>
-                        <Button className="bg-sage hover:bg-sage/90 text-white font-body">
+                        <Button variant="sage">
                           <CreditCard className="h-4 w-4 mr-2" />
                           Pay All Pending
                         </Button>
@@ -1944,7 +1933,8 @@ async function fetchPayoutData() {
                         />
                         <Button
                           onClick={() => setShowAddInstructorDialog(true)}
-                          className="bg-sage hover:bg-sage/90 text-white font-body h-9 shrink-0"
+                          variant="sage"
+                          className="h-9 shrink-0"
                         >
                           <Plus className="h-4 w-4 mr-1.5" />
                           Add Instructor
@@ -2033,39 +2023,36 @@ async function fetchPayoutData() {
                                       </TableCell>
                                       <TableCell className="px-5 py-4">
                                         {active ? (
-                                          <Badge className="bg-sage/10 text-sage border-sage/20 font-body">Active</Badge>
+                                          <StatusPill tone="sage" variant="solid" dot pulse>Active</StatusPill>
                                         ) : (
-                                          <Badge variant="outline" className="border-charcoal/15 text-charcoal/40 font-body">Inactive</Badge>
+                                          <StatusPill tone="red" variant="solid" dot>Inactive</StatusPill>
                                         )}
                                       </TableCell>
                                       <TableCell className="px-5 py-4">
-                                        <div className="flex gap-2 justify-end">
+                                        <div className="flex gap-1.5 justify-end">
                                           <Button
+                                            type="button"
                                             variant="outline"
                                             size="sm"
-                                            className={`h-8 px-2 font-body text-xs ${active ? "border-charcoal/20 text-charcoal/60 hover:bg-charcoal/5" : "border-sage/20 text-sage hover:bg-sage/5"}`}
                                             onClick={() => handleToggleInstructorActive(instructor.id, active)}
+                                            aria-label={active ? "Deactivate instructor" : "Activate instructor"}
+                                            title={active ? "Deactivate instructor" : "Activate instructor"}
+                                            className={cn(
+                                              "h-8 w-8 p-0 font-body transition-all hover:scale-110 active:scale-95",
+                                              active
+                                                ? "border-amber-400 text-amber-700 bg-white hover:!bg-amber-500 hover:!text-white hover:!border-amber-500"
+                                                : "border-sage/60 text-sage bg-white hover:!bg-sage hover:!text-white hover:!border-sage",
+                                            )}
                                           >
-                                            {active ? "Deactivate" : "Activate"}
+                                            <AnimatedIcon icon={active ? PowerOff : Power} size={14} animateOnMount={false} hover="wiggle" />
                                           </Button>
-                                          <Button
-                                            variant="outline"
-                                            size="sm"
-                                            className="h-8 w-8 p-0 border-sage/20 text-sage hover:bg-sage/5"
-                                            onClick={() => { setSelectedInstructorData(instructor); setShowEditInstructorDialog(true); }}
-                                            aria-label="Edit instructor"
-                                          >
-                                            <Edit className="h-3.5 w-3.5" />
-                                          </Button>
-                                          <Button
-                                            variant="outline"
-                                            size="sm"
-                                            className="h-8 w-8 p-0 border-red-200 text-red-600 hover:bg-red-50"
+                                          <ManageButton onClick={() => router.push(`/admin/instructors/${instructor.id}`)} label="Open profile" />
+                                          <DeleteButton
                                             onClick={() => handleDeleteInstructor(instructor.id, instructor.name)}
-                                            aria-label="Delete instructor"
-                                          >
-                                            <Trash2 className="h-3.5 w-3.5" />
-                                          </Button>
+                                            label="Delete instructor"
+                                            confirmTitle={`Delete ${instructor.name}?`}
+                                            confirmDescription="The instructor will be permanently removed. Past class history is preserved."
+                                          />
                                         </div>
                                       </TableCell>
                                     </TableRow>
@@ -2201,7 +2188,7 @@ async function fetchPayoutData() {
               Cancel
             </Button>
             <Button
-              className="bg-sage hover:bg-sage/90 text-white font-body"
+              variant="sage"
               disabled={creatingUser}
               onClick={() => void handleAdminCreateUser()}
             >
@@ -2370,7 +2357,7 @@ async function fetchPayoutData() {
             <Button variant="outline" onClick={() => setShowEditUserDialog(false)} className="border-sage/20 font-body">
               Cancel
             </Button>
-            <Button className="bg-sage hover:bg-sage/90 text-white font-body" onClick={() => void handleEditUserSave()}>
+            <Button variant="sage" onClick={() => void handleEditUserSave()}>
               <Save className="h-4 w-4 mr-2" />
               Save Changes
             </Button>
@@ -2492,7 +2479,7 @@ async function fetchPayoutData() {
               <Button type="button" variant="outline" onClick={() => setShowAddClassDialog(false)} className="border-sage/20 font-body">
                 Cancel
               </Button>
-              <Button type="submit" className="bg-sage hover:bg-sage/90 text-white font-body">
+              <Button type="submit" variant="sage">
                 <Save className="h-4 w-4 mr-2" />
                 Create Class
               </Button>
@@ -2631,7 +2618,7 @@ async function fetchPayoutData() {
                   <Button type="button" variant="outline" onClick={() => setShowClassDetailsDialog(false)} className="border-sage/20 font-body">
                     Cancel
                   </Button>
-                  <Button type="submit" className="bg-sage hover:bg-sage/90 text-white font-body">
+                  <Button type="submit" variant="sage">
                     <Save className="h-4 w-4 mr-2" />
                     Save Changes
                   </Button>
@@ -2717,7 +2704,7 @@ async function fetchPayoutData() {
             <Button variant="outline" onClick={() => setShowPayoutDialog(false)} className="border-sage/20 font-body">
               Cancel
             </Button>
-            <Button className="bg-sage hover:bg-sage/90 text-white font-body">
+            <Button variant="sage">
               <DollarSign className="h-4 w-4 mr-2" />
               Confirm Payment
             </Button>
@@ -2884,7 +2871,7 @@ async function fetchPayoutData() {
               <Button type="button" variant="outline" onClick={() => setShowAddInstructorDialog(false)} className="border-sage/20 font-body">
                 Cancel
               </Button>
-              <Button type="submit" className="bg-sage hover:bg-sage/90 text-white font-body">
+              <Button type="submit" variant="sage">
                 <Save className="h-4 w-4 mr-2" />
                 Create Instructor
               </Button>
@@ -3060,7 +3047,7 @@ async function fetchPayoutData() {
                 <Button type="button" variant="outline" onClick={() => setShowEditInstructorDialog(false)} className="border-sage/20 font-body">
                   Cancel
                 </Button>
-                <Button type="submit" className="bg-sage hover:bg-sage/90 text-white font-body">
+                <Button type="submit" variant="sage">
                   <Save className="h-4 w-4 mr-2" />
                   Save Changes
                 </Button>

@@ -334,7 +334,7 @@ export function MemberMobileDashboard({
                   <Button
                     onClick={() => router.push("/portal/book")}
                     size="sm"
-                    className="bg-sage hover:bg-sage/90 text-white font-body"
+                    variant="sage"
                   >
                     Book Your First Class
                   </Button>

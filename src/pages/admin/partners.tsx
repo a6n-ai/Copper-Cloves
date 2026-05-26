@@ -148,7 +148,7 @@ export default function AdminPartners() {
               </div>
               {error && <div className="sm:col-span-2 text-sm text-red-600 font-body">{error}</div>}
               <div className="sm:col-span-2">
-                <Button type="submit" disabled={busy} className="bg-sage hover:bg-sage/90 text-white font-body">
+                <Button type="submit" disabled={busy} variant="sage">
                   {busy ? <Spinner className="size-4" /> : "Create partner + login"}
                 </Button>
               </div>
@@ -186,9 +186,9 @@ export default function AdminPartners() {
                       {p.classes.map((c) => (
                         <span key={c.id} className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full bg-sage/10 text-sage font-body text-xs">
                           {c.name}
-                          <button type="button" onClick={() => patch({ id: p.id, action: "unassign_class", classId: c.id })} className="hover:text-terracotta">
+                          <Button type="button" variant="terracotta-ghost" size="icon-sm" onClick={() => patch({ id: p.id, action: "unassign_class", classId: c.id })}>
                             <X className="h-3 w-3" />
-                          </button>
+                          </Button>
                         </span>
                       ))}
                       {p.classes.length === 0 && <span className="font-body text-sm text-charcoal/40">No classes assigned.</span>}

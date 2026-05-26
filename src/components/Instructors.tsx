@@ -1,5 +1,7 @@
 import { useRef, useState, useEffect } from "react";
 import { Skeleton } from "@/components/ui/skeleton";
+import { Button } from "@/components/ui/button";
+import { CloseButton } from "@/components/ui/quick-actions";
 import { ChevronLeft, ChevronRight, X, Award, Calendar, Heart, Share2, Facebook, Twitter, Linkedin, MessageCircle } from "lucide-react";
 import Link from "next/link";
 import { supportsResponsivePicture } from "@/lib/imageDelivery";
@@ -316,23 +318,29 @@ export function Instructors() {
           <>
             {/* Carousel Container - Enhanced */}
             <div className="relative group">
-              <button
+              <Button
+                type="button"
+                variant="sage-outline"
+                size="icon-lg"
                 onClick={() => scroll("left")}
                 disabled={isScrolling}
-                className="absolute left-4 top-1/2 -translate-y-1/2 z-20 w-14 h-14 rounded-full bg-white/80 hover:bg-white backdrop-blur-xl border border-sage/20 hover:border-sage/40 flex items-center justify-center transition-all duration-500 opacity-0 group-hover:opacity-100 hover:scale-110 disabled:opacity-50 disabled:cursor-not-allowed shadow-lg hover:shadow-2xl"
+                className="absolute left-4 top-1/2 -translate-y-1/2 z-20 rounded-full bg-white/80 backdrop-blur-xl border border-sage/20 opacity-0 group-hover:opacity-100"
                 aria-label="Scroll left"
               >
                 <ChevronLeft className="text-sage" size={28} strokeWidth={2} />
-              </button>
+              </Button>
 
-              <button
+              <Button
+                type="button"
+                variant="sage-outline"
+                size="icon-lg"
                 onClick={() => scroll("right")}
                 disabled={isScrolling}
-                className="absolute right-4 top-1/2 -translate-y-1/2 z-20 w-14 h-14 rounded-full bg-white/80 hover:bg-white backdrop-blur-xl border border-sage/20 hover:border-sage/40 flex items-center justify-center transition-all duration-500 opacity-0 group-hover:opacity-100 hover:scale-110 disabled:opacity-50 disabled:cursor-not-allowed shadow-lg hover:shadow-2xl"
+                className="absolute right-4 top-1/2 -translate-y-1/2 z-20 rounded-full bg-white/80 backdrop-blur-xl border border-sage/20 opacity-0 group-hover:opacity-100"
                 aria-label="Scroll right"
               >
                 <ChevronRight className="text-sage" size={28} strokeWidth={2} />
-              </button>
+              </Button>
 
               {/* Scrollable Carousel */}
               <div
@@ -445,9 +453,9 @@ export function Instructors() {
       <div className="relative z-10 max-w-7xl mx-auto px-6 lg:px-8 mt-16">
         <div className="text-center">
           <Link href="/classes?tab=schedule">
-            <button className="px-8 py-3 bg-sage hover:bg-sage/90 text-white font-body rounded-full transition-all duration-300 hover:scale-105 text-base shadow-lg hover:shadow-xl">
+            <Button variant="sage" size="lg" className="rounded-full">
               View Weekly Schedule
-            </button>
+            </Button>
           </Link>
           <p className="font-body text-charcoal/50 text-sm mt-4">
             Check our full weekly class schedule
@@ -467,13 +475,11 @@ export function Instructors() {
           >
             {/* Modal Header */}
             <div className="relative h-56 bg-linear-to-br from-sage/10 via-cream to-terracotta/10">
-              <button
+              <CloseButton
                 onClick={closeModal}
-                className="absolute top-4 right-4 w-10 h-10 rounded-full bg-white/80 backdrop-blur-xl border border-sage/20 hover:border-sage/40 flex items-center justify-center transition-all duration-300 hover:scale-110 z-10"
-                aria-label="Close modal"
-              >
-                <X className="text-charcoal" size={20} />
-              </button>
+                label="Close modal"
+                className="absolute top-4 right-4 rounded-full bg-white/80 backdrop-blur-xl border border-sage/20 z-10"
+              />
 
               <div className="absolute inset-0 flex items-end justify-center pb-6">
                 <div className="w-32 h-32 rounded-full overflow-hidden border-4 border-white shadow-2xl">
@@ -604,12 +610,14 @@ export function Instructors() {
 
               {/* Close Button */}
               <div className="mt-8 text-center">
-                <button
+                <Button
+                  type="button"
+                  variant="sage"
                   onClick={closeModal}
-                  className="px-6 py-2.5 bg-sage hover:bg-sage/90 text-white font-body rounded-full transition-all duration-300 hover:scale-105 text-sm"
+                  className="rounded-full"
                 >
                   Close
-                </button>
+                </Button>
               </div>
             </div>
           </div>

@@ -119,9 +119,10 @@ export default function FounderPage() {
               {/* CTA */}
               <div className="pt-8">
                 <Link href="/">
-                  <Button 
+                  <Button
                     size="lg"
-                    className="bg-sage hover:bg-sage/90 text-white px-10 py-6 text-base rounded-full shadow-lg hover:shadow-xl transition-all duration-300 w-full sm:w-auto"
+                    variant="sage"
+                    className="px-10 py-6 text-base rounded-full w-full sm:w-auto"
                   >
                     Explore The Studio
                   </Button>

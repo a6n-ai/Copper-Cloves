@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from "react";
 import { useRouter } from "next/router";
 import { Button } from "@/components/ui/button";
+import { EditButton, DeleteButton } from "@/components/ui/quick-actions";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
@@ -29,6 +30,7 @@ import {
 } from "lucide-react";
 import { Spinner } from "@/components/ui/spinner";
 import { Skeleton } from "@/components/ui/skeleton";
+import { CloseButton } from "@/components/ui/quick-actions";
 
 interface CRMTemplate {
   id: string;
@@ -752,7 +754,7 @@ export default function CRMPage() {
                     setEditMode("preview");
                     setShowTemplateForm(true);
                   }}
-                  className="bg-sage hover:bg-sage/90 text-white font-body"
+                  variant="sage"
                 >
                   <Plus size={20} className="mr-2" />
                   Create Template
@@ -793,15 +795,7 @@ export default function CRMPage() {
                           >
                             <Send size={14} />
                           </Button>
-                          <Button
-                            onClick={() => handleEditTemplate(template)}
-                            size="sm"
-                            variant="ghost"
-                            className="text-sage hover:bg-sage/10"
-                            title="Edit"
-                          >
-                            <Edit size={14} />
-                          </Button>
+                          <EditButton onClick={() => handleEditTemplate(template)} />
                           <Button
                             onClick={() => duplicateTemplate(template)}
                             size="sm"
@@ -812,15 +806,7 @@ export default function CRMPage() {
                             <Copy size={14} />
                           </Button>
                           {!template.is_system && (
-                            <Button
-                              onClick={() => handleDeleteTemplate(template.id)}
-                              size="sm"
-                              variant="ghost"
-                              className="text-terracotta hover:bg-terracotta/10"
-                              title="Delete"
-                            >
-                              <Trash2 size={14} />
-                            </Button>
+                            <DeleteButton onClick={() => handleDeleteTemplate(template.id)} />
                           )}
                         </div>
                       </div>
@@ -886,7 +872,7 @@ export default function CRMPage() {
                     resetTriggerForm();
                     setShowTriggerForm(true);
                   }}
-                  className="bg-sage hover:bg-sage/90 text-white font-body"
+                  variant="sage"
                 >
                   <Plus size={20} className="mr-2" />
                   Create Trigger
@@ -942,14 +928,7 @@ export default function CRMPage() {
                             />
                             <span className="font-body text-sm text-charcoal">Active</span>
                           </label>
-                          <Button
-                            onClick={() => handleDeleteTrigger(trigger.id)}
-                            size="sm"
-                            variant="ghost"
-                            className="text-terracotta hover:bg-terracotta/10"
-                          >
-                            <Trash2 size={16} />
-                          </Button>
+                          <DeleteButton onClick={() => handleDeleteTrigger(trigger.id)} />
                         </div>
                       </div>
                     </CardContent>
@@ -964,7 +943,7 @@ export default function CRMPage() {
                       <p className="font-body text-charcoal/60 mb-6">Create automated triggers to engage members at the right moment</p>
                       <Button
                         onClick={() => setShowTriggerForm(true)}
-                        className="bg-sage hover:bg-sage/90 text-white font-body"
+                        variant="sage"
                       >
                         <Plus size={20} className="mr-2" />
                         Create First Trigger
@@ -1340,14 +1319,15 @@ export default function CRMPage() {
                     setEditingTemplate(null);
                   }}
                   variant="outline"
-                  className="flex-1 border-sage/30 text-charcoal font-body"
+                  className="flex-1"
                 >
                   Cancel
                 </Button>
                 <Button
                   onClick={handleSaveTemplate}
                   disabled={isSaving || !templateForm.name || !templateForm.message_body}
-                  className="flex-1 bg-sage hover:bg-sage/90 text-white font-body"
+                  variant="sage"
+                  className="flex-1"
                 >
                   {isSaving ? (
                     <>
@@ -1377,12 +1357,7 @@ export default function CRMPage() {
                 <h3 className="font-display text-2xl text-charcoal">Send template</h3>
                 <p className="font-body text-xs text-charcoal/60 mt-0.5">{sendDialog.name}</p>
               </div>
-              <button
-                onClick={() => setSendDialog(null)}
-                className="w-9 h-9 rounded-full hover:bg-sage/10 flex items-center justify-center"
-              >
-                <X size={20} />
-              </button>
+              <CloseButton onClick={() => setSendDialog(null)} className="rounded-full" />
             </div>
 
             <div className="p-6 space-y-5 overflow-y-auto">
@@ -1394,12 +1369,11 @@ export default function CRMPage() {
                       <p className="font-body text-sm text-charcoal">{sendTarget.full_name || "(no name)"}</p>
                       <p className="font-body text-xs text-charcoal/60">{sendTarget.email}</p>
                     </div>
-                    <button
+                    <CloseButton
                       onClick={() => setSendTarget(null)}
-                      className="text-charcoal/50 hover:text-charcoal"
-                    >
-                      <X size={16} />
-                    </button>
+                      label="Remove recipient"
+                      className="h-8 w-8"
+                    />
                   </div>
                 ) : (
                   <>
@@ -1464,14 +1438,13 @@ export default function CRMPage() {
               <Button
                 variant="outline"
                 onClick={() => setSendDialog(null)}
-                className="border-sage/30 text-charcoal font-body"
               >
                 Close
               </Button>
               <Button
                 onClick={handleManualSend}
                 disabled={sending || !sendTarget}
-                className="bg-sage hover:bg-sage/90 text-white font-body"
+                variant="sage"
               >
                 {sending ? (
                   <><Spinner className="mr-2 size-4" />Sending…</>
@@ -1496,12 +1469,7 @@ export default function CRMPage() {
                   Sample values filled in for placeholders. Real send uses actual member data.
                 </p>
               </div>
-              <button
-                onClick={() => setShowPreview(false)}
-                className="w-9 h-9 rounded-full hover:bg-sage/10 flex items-center justify-center"
-              >
-                <X size={20} />
-              </button>
+              <CloseButton onClick={() => setShowPreview(false)} className="rounded-full" />
             </div>
             <div className="px-6 py-3 border-b border-sage/10 bg-cream/30">
               <p className="font-body text-xs text-charcoal/50 mb-1">Subject</p>
@@ -1532,12 +1500,7 @@ export default function CRMPage() {
             <div className="sticky top-0 bg-white/95 backdrop-blur-xl border-b border-sage/10 p-6 z-10">
               <div className="flex items-center justify-between">
                 <h2 className="font-display text-3xl text-charcoal">Create Automation Trigger</h2>
-                <button
-                  onClick={() => setShowTriggerForm(false)}
-                  className="w-10 h-10 rounded-full hover:bg-sage/10 flex items-center justify-center transition-colors"
-                >
-                  <X size={24} />
-                </button>
+                <CloseButton onClick={() => setShowTriggerForm(false)} className="rounded-full" />
               </div>
             </div>
 
@@ -1609,14 +1572,15 @@ export default function CRMPage() {
                 <Button
                   onClick={() => setShowTriggerForm(false)}
                   variant="outline"
-                  className="flex-1 border-sage/30 text-charcoal font-body"
+                  className="flex-1"
                 >
                   Cancel
                 </Button>
                 <Button
                   onClick={handleSaveTrigger}
                   disabled={isSaving || !triggerForm.name || !triggerForm.template_id}
-                  className="flex-1 bg-sage hover:bg-sage/90 text-white font-body"
+                  variant="sage"
+                  className="flex-1"
                 >
                   {isSaving ? (
                     <>

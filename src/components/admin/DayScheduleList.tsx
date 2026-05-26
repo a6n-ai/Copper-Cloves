@@ -1,4 +1,5 @@
 import { useState, type ReactNode } from "react";
+import { useRouter } from "next/router";
 import { Repeat, CalendarIcon, ChevronRight, ArrowUp, ArrowDown, ChevronsUpDown } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import {
@@ -12,18 +13,38 @@ import {
 import { Pagination, usePagination } from "@/components/Pagination";
 import { ListAvatar } from "@/components/admin/ListAvatar";
 import { cn } from "@/lib/utils";
-import { ResponsiveTable } from "@/components/responsive/ResponsiveTable";
 
 export interface ScheduleRow {
   id: string | number;
   name: string;
   time: string;
   instructor: string;
+  instructorId?: string | null;
   instructorAvatarUrl?: string | null;
   enrolled: number;
   capacity: number;
   recurring?: boolean;
   instructorCheckedInAt?: string | null;
+  status?: string;
+}
+
+function statusBadgeClass(status: string): string {
+  switch (status) {
+    case "available":
+      return "border-sage/30 text-sage bg-sage/10";
+    case "inactive":
+      return "border-amber-400/40 text-amber-700 bg-amber-50";
+    case "started":
+      return "border-blue-400/40 text-blue-700 bg-blue-50";
+    case "completed":
+      return "border-charcoal/20 text-charcoal/70 bg-charcoal/5";
+    case "cancelled":
+      return "border-red-400/40 text-red-700 bg-red-50";
+    case "abandoned":
+      return "border-red-300/40 text-red-600/80 bg-red-50/60";
+    default:
+      return "border-charcoal/20 text-charcoal/60 bg-white";
+  }
 }
 
 interface Props {
@@ -48,7 +69,16 @@ function occupancyBadge(pct: number): string {
   return "border-sage/20 text-sage bg-sage/5";
 }
 
-type SortKey = "time" | "name" | "instructor" | "capacity" | "fill";
+type SortKey = "time" | "name" | "instructor" | "capacity" | "fill" | "status";
+
+const STATUS_ORDER: Record<string, number> = {
+  available: 0,
+  started: 1,
+  inactive: 2,
+  completed: 3,
+  cancelled: 4,
+  abandoned: 5,
+};
 type SortDir = "asc" | "desc";
 
 /** Parse "07:00 AM" / "01:30 PM" / "14:05" into minutes-of-day for correct ordering. */
@@ -79,6 +109,11 @@ function compareRows(a: ScheduleRow, b: ScheduleRow, key: SortKey): number {
       return a.enrolled - b.enrolled;
     case "fill":
       return fillPct(a) - fillPct(b);
+    case "status": {
+      const av = STATUS_ORDER[a.status ?? "available"] ?? 99;
+      const bv = STATUS_ORDER[b.status ?? "available"] ?? 99;
+      return av - bv;
+    }
   }
 }
 
@@ -127,6 +162,7 @@ export function DayScheduleList({
   variant = "compact",
   pageSize = 8,
 }: Props) {
+  const router = useRouter();
   const [sortKey, setSortKey] = useState<SortKey>("time");
   const [sortDir, setSortDir] = useState<SortDir>("asc");
 
@@ -158,18 +194,19 @@ export function DayScheduleList({
 
   return (
     <div className="space-y-3">
-      <ResponsiveTable>
       <div className="rounded-xl border border-sage/15 bg-white overflow-hidden">
-        <Table>
+        <Table className="w-full table-fixed">
           <TableHeader>
             <TableRow className="bg-sage/5 hover:bg-sage/5 border-sage/10">
-              <SortHead label="Time" sortKey="time" active={sortKey} dir={sortDir} onSort={toggleSort} className="w-[110px]" />
-              <SortHead label="Class" sortKey="name" active={sortKey} dir={sortDir} onSort={toggleSort} />
-              <SortHead label="Instructor" sortKey="instructor" active={sortKey} dir={sortDir} onSort={toggleSort} />
-              <SortHead label="Capacity" sortKey="capacity" active={sortKey} dir={sortDir} onSort={toggleSort} className="w-[220px]" />
-              <SortHead label="Fill" sortKey="fill" active={sortKey} dir={sortDir} onSort={toggleSort} className="w-[80px]" />
+              <SortHead label="Class & Time" sortKey="time" active={sortKey} dir={sortDir} onSort={toggleSort} />
+              <SortHead label="Instructor" sortKey="instructor" active={sortKey} dir={sortDir} onSort={toggleSort} className="w-[22%]" />
+              <SortHead label="Capacity" sortKey="capacity" active={sortKey} dir={sortDir} onSort={toggleSort} className="w-[180px] hidden md:table-cell" />
+              <SortHead label="Fill" sortKey="fill" active={sortKey} dir={sortDir} onSort={toggleSort} className="w-[72px] hidden md:table-cell" />
               {variant === "expanded" && (
-                <TableHead className="font-body text-xs uppercase tracking-wide text-charcoal/60 w-[140px] px-5 py-3 text-right">Actions</TableHead>
+                <>
+                  <SortHead label="Status" sortKey="status" active={sortKey} dir={sortDir} onSort={toggleSort} className="w-[110px] hidden lg:table-cell" />
+                  <TableHead className="font-body text-xs uppercase tracking-wide text-charcoal/60 w-[150px] px-3 py-3 text-right">Actions</TableHead>
+                </>
               )}
               {variant === "compact" && interactive && <TableHead className="w-[40px] px-3" />}
             </TableRow>
@@ -182,38 +219,67 @@ export function DayScheduleList({
                 <TableRow
                   key={row.id}
                   className={cn(
-                    "border-sage/10",
-                    interactive && "cursor-pointer hover:bg-sage/5",
+                    "border-sage/10 transition-colors",
+                    interactive && "cursor-pointer hover:bg-sage/10",
                   )}
                   onClick={interactive ? () => onSelect?.(row) : undefined}
                 >
-                  <TableCell className="font-display text-base text-charcoal px-5 py-4 align-middle whitespace-nowrap">
-                    <div className="flex items-center gap-2">
-                      {row.time}
-                      {row.recurring && (
-                        <Repeat className="h-3 w-3 text-sage/60" aria-label="Weekly" />
-                      )}
-                    </div>
-                  </TableCell>
-                  <TableCell className="font-body font-medium text-charcoal px-5 py-4">
-                    {row.name}
-                  </TableCell>
-                  <TableCell className="px-5 py-4">
-                    <div className="flex items-center gap-3 min-w-0">
-                      <ListAvatar
-                        name={row.instructor || "—"}
-                        src={row.instructorAvatarUrl}
-                        size="sm"
-                        ringClassName="ring-sage/20"
-                      />
-                      <div className="font-body text-sm text-charcoal truncate">
-                        {row.instructor || "—"}
+                  <TableCell className="px-3 py-4">
+                    <div className="flex flex-col gap-0.5 min-w-0">
+                      <div className="font-body font-medium text-charcoal truncate">
+                        {row.name}
+                      </div>
+                      <div className="flex items-center gap-2 text-xs font-body text-charcoal/60 whitespace-nowrap">
+                        <span className="font-display text-sm text-charcoal/80">{row.time}</span>
+                        {row.recurring && (
+                          <Repeat className="h-3 w-3 text-sage/60" aria-label="Weekly" />
+                        )}
+                        {variant === "expanded" && row.status && row.status !== "available" && (
+                          <span className="lg:hidden">
+                            <Badge variant="outline" className={cn("font-body capitalize text-[10px] py-0", statusBadgeClass(row.status))}>
+                              {row.status}
+                            </Badge>
+                          </span>
+                        )}
+                        <span className="md:hidden tabular-nums">· {row.enrolled}/{row.capacity}</span>
                       </div>
                     </div>
                   </TableCell>
-                  <TableCell className="px-5 py-4">
+                  <TableCell className="px-3 py-4" onClick={(e) => e.stopPropagation()}>
+                    {row.instructorId ? (
+                      <button
+                        type="button"
+                        onClick={() => router.push(`/admin/instructors/${row.instructorId}`)}
+                        className="group flex items-center gap-3 min-w-0 rounded-md -mx-1 px-1 py-0.5 hover:bg-sage/10 transition-colors text-left"
+                        aria-label={`Open profile for ${row.instructor || "instructor"}`}
+                      >
+                        <ListAvatar
+                          name={row.instructor || "—"}
+                          src={row.instructorAvatarUrl}
+                          size="sm"
+                          ringClassName="ring-sage/20"
+                        />
+                        <div className="font-body text-sm text-charcoal truncate group-hover:text-sage transition-colors">
+                          {row.instructor || "—"}
+                        </div>
+                      </button>
+                    ) : (
+                      <div className="flex items-center gap-3 min-w-0">
+                        <ListAvatar
+                          name={row.instructor || "—"}
+                          src={row.instructorAvatarUrl}
+                          size="sm"
+                          ringClassName="ring-sage/20"
+                        />
+                        <div className="font-body text-sm text-charcoal truncate">
+                          {row.instructor || "—"}
+                        </div>
+                      </div>
+                    )}
+                  </TableCell>
+                  <TableCell className="px-3 py-4 hidden md:table-cell">
                     <div className="flex items-center gap-3">
-                      <div className="h-1.5 flex-1 max-w-[160px] rounded-full bg-sage/10 overflow-hidden">
+                      <div className="h-1.5 flex-1 max-w-[120px] rounded-full bg-sage/10 overflow-hidden">
                         <div
                           className={cn("h-full transition-all", occupancyColor(pct))}
                           style={{ width: `${pct}%` }}
@@ -224,15 +290,22 @@ export function DayScheduleList({
                       </span>
                     </div>
                   </TableCell>
-                  <TableCell className="px-5 py-4">
+                  <TableCell className="px-3 py-4 hidden md:table-cell">
                     <Badge variant="outline" className={cn("font-body", occupancyBadge(pct))}>
                       {pct}%
                     </Badge>
                   </TableCell>
                   {variant === "expanded" && (
-                    <TableCell onClick={(e) => e.stopPropagation()} className="px-5 py-4 text-right">
-                      <div className="flex items-center gap-1.5 justify-end">{actions?.(row)}</div>
-                    </TableCell>
+                    <>
+                      <TableCell className="px-3 py-4 hidden lg:table-cell">
+                        <Badge variant="outline" className={cn("font-body capitalize", statusBadgeClass(row.status ?? "available"))}>
+                          {row.status ?? "available"}
+                        </Badge>
+                      </TableCell>
+                      <TableCell onClick={(e) => e.stopPropagation()} className="px-3 py-4 text-right">
+                        <div className="flex items-center gap-1.5 justify-end">{actions?.(row)}</div>
+                      </TableCell>
+                    </>
                   )}
                   {variant === "compact" && interactive && (
                     <TableCell className="text-charcoal/30 px-3 py-4">
@@ -245,7 +318,6 @@ export function DayScheduleList({
           </TableBody>
         </Table>
       </div>
-      </ResponsiveTable>
       <Pagination page={pg.page} total={pg.total} pageSize={pg.pageSize} onChange={pg.setPage} />
     </div>
   );

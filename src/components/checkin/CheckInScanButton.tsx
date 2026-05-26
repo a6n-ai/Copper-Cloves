@@ -1,12 +1,12 @@
 import { useState } from "react";
 import { QrCode } from "lucide-react";
-import { Button } from "@/components/ui/button";
+import { Button, type ButtonProps } from "@/components/ui/button";
 import { AnimatedIcon } from "@/components/dashboard/AnimatedIcon";
 import { ScanCheckInModal } from "@/components/checkin/ScanCheckInModal";
 
 export interface CheckInScanButtonProps {
   label?: string;
-  variant?: "default" | "outline";
+  variant?: ButtonProps["variant"];
   className?: string;
   disabled?: boolean;
 }

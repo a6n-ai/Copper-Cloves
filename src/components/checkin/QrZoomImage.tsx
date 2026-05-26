@@ -1,5 +1,7 @@
 import { useState } from "react";
 import { Maximize2, X } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { CloseButton } from "@/components/ui/quick-actions";
 
 /** A QR image that opens fullscreen on click for easy scanning across a room. */
 export function QrZoomImage({
@@ -34,14 +36,10 @@ export function QrZoomImage({
           role="dialog"
           aria-label={label}
         >
-          <button
-            type="button"
+          <CloseButton
             onClick={() => setZoom(false)}
-            className="absolute right-5 top-5 rounded-full p-2 text-charcoal/60 hover:bg-charcoal/5"
-            aria-label="Close"
-          >
-            <X size={28} />
-          </button>
+            className="absolute right-5 top-5 rounded-full text-charcoal/60"
+          />
           <p className="font-display text-3xl text-charcoal">{label}</p>
           {/* eslint-disable-next-line @next/next/no-img-element */}
           <img src={url} alt={label} className="h-auto w-auto max-h-[75vh] max-w-[75vw] rounded-2xl" />

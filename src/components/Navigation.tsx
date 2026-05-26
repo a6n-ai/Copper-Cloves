@@ -102,10 +102,12 @@ export function Navigation({ variant = "default" }: NavigationProps) {
           </div>
 
           {/* Mobile toggle */}
-          <button
+          <Button
             type="button"
+            variant="ghost"
+            size="icon"
             onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-            className="md:hidden p-2.5 rounded-full hover:bg-black/5 transition-colors"
+            className="md:hidden rounded-full"
             aria-expanded={mobileMenuOpen}
             aria-label={mobileMenuOpen ? "Close menu" : "Open menu"}
           >
@@ -114,7 +116,7 @@ export function Navigation({ variant = "default" }: NavigationProps) {
             ) : (
               <Menu size={22} className="text-charcoal" />
             )}
-          </button>
+          </Button>
         </div>
 
         {/* Mobile menu */}

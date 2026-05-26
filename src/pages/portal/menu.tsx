@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { PageHeader } from "@/components/dashboard/PageHeader";
 import { useRouter } from "next/router";
 import Image from "next/image";
@@ -17,8 +17,18 @@ import {
 } from "lucide-react";
 import { Spinner } from "@/components/ui/spinner";
 import { Skeleton } from "@/components/ui/skeleton";
+import { CloseButton, QtyMinusButton, QtyPlusButton } from "@/components/ui/quick-actions";
 
 import { cdnUrl } from "@/lib/cdnUrl";
+
+const CATEGORIES = [
+  { id: "all", label: "All Items" },
+  { id: "smoothie_bowl", label: "Smoothie Bowls" },
+  { id: "drink", label: "Drinks" },
+  { id: "snack", label: "Snacks" },
+  { id: "meal", label: "Meals" }
+];
+
 interface MenuItem {
   id: string;
   name: string;
@@ -96,14 +106,12 @@ export default function MenuPage() {
   const [couponCode, setCouponCode] = useState("");
   const [couponError, setCouponError] = useState<string | null>(null);
   const [couponDiscount, setCouponDiscount] = useState<number | null>(null);
+  const successTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  useEffect(() => () => {
+    if (successTimeoutRef.current) clearTimeout(successTimeoutRef.current);
+  }, []);
 
-  const categories = [
-    { id: "all", label: "All Items" },
-    { id: "smoothie_bowl", label: "Smoothie Bowls" },
-    { id: "drink", label: "Drinks" },
-    { id: "snack", label: "Snacks" },
-    { id: "meal", label: "Meals" }
-  ];
+  const categories = CATEGORIES;
 
   useEffect(() => {
     if (status === "unauthenticated") {
@@ -114,7 +122,8 @@ export default function MenuPage() {
       fetchMenuItems();
       fetchUpcomingClasses();
     }
-  }, [router, status]);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [status]);
 
   const fetchMenuItems = async () => {
     try {
@@ -251,7 +260,7 @@ export default function MenuPage() {
       }
 
       setOrderSuccess(true);
-      setTimeout(() => {
+      successTimeoutRef.current = setTimeout(() => {
         setCart([]);
         setShowCheckout(false);
         setOrderSuccess(false);
@@ -267,9 +276,12 @@ export default function MenuPage() {
     }
   };
 
-  const filteredItems = selectedCategory === "all" 
-    ? menuItems 
-    : menuItems.filter(item => item.category === selectedCategory);
+  const filteredItems = useMemo(
+    () => selectedCategory === "all"
+      ? menuItems
+      : menuItems.filter((item) => item.category === selectedCategory),
+    [menuItems, selectedCategory],
+  );
 
   if (loading) {
     return (
@@ -343,7 +355,8 @@ export default function MenuPage() {
 
                   <Button
                     onClick={() => addToCart(item)}
-                    className="w-full bg-sage hover:bg-sage/90 text-white font-body h-11"
+                    variant="sage"
+                    className="w-full h-11"
                   >
                     <Plus size={18} className="mr-2" />
                     Add to Cart
@@ -360,7 +373,8 @@ export default function MenuPage() {
               <Button
                 onClick={handleCheckout}
                 size="lg"
-                className="bg-sage hover:bg-sage/90 text-white shadow-2xl font-body text-base sm:text-lg h-14 sm:h-16 px-6 sm:px-8 rounded-full"
+                variant="sage"
+                className="shadow-2xl text-base sm:text-lg h-14 sm:h-16 px-6 sm:px-8 rounded-full"
               >
                 <ShoppingCart size={22} className="mr-2 sm:mr-3" />
                 Cart ({cart.length})
@@ -381,12 +395,7 @@ export default function MenuPage() {
             <div className="sticky top-0 bg-white/95 backdrop-blur-xl border-b border-sage/10 p-6 z-10">
               <div className="flex items-center justify-between">
                 <h2 className="font-display text-3xl text-charcoal">Your Order</h2>
-                <button
-                  onClick={() => setShowCheckout(false)}
-                  className="w-10 h-10 rounded-full hover:bg-sage/10 flex items-center justify-center transition-colors"
-                >
-                  <X size={24} />
-                </button>
+                <CloseButton onClick={() => setShowCheckout(false)} className="rounded-full" />
               </div>
             </div>
 
@@ -407,26 +416,26 @@ export default function MenuPage() {
                     <p className="font-body text-sm text-sage">₹{item.price} each</p>
                   </div>
                   <div className="flex items-center gap-3">
-                    <button
+                    <QtyMinusButton
                       onClick={() => updateQuantity(item.id, -1)}
-                      className="w-8 h-8 rounded-full bg-sage/10 hover:bg-sage/20 flex items-center justify-center"
-                    >
-                      <Minus size={16} />
-                    </button>
+                      className="rounded-full bg-sage/10"
+                      label="Decrease quantity"
+                    />
                     <span className="font-body text-lg w-8 text-center">{item.quantity}</span>
-                    <button
+                    <QtyPlusButton
                       onClick={() => updateQuantity(item.id, 1)}
-                      className="w-8 h-8 rounded-full bg-sage/10 hover:bg-sage/20 flex items-center justify-center"
-                    >
-                      <Plus size={16} />
-                    </button>
+                      className="rounded-full bg-sage/10"
+                      label="Increase quantity"
+                    />
                   </div>
-                  <button
+                  <Button
                     onClick={() => removeFromCart(item.id)}
-                    className="text-terracotta hover:text-terracotta/80"
+                    variant="terracotta-ghost"
+                    size="icon-sm"
+                    aria-label="Remove"
                   >
                     <X size={20} />
-                  </button>
+                  </Button>
                 </div>
               ))}
 
@@ -466,19 +475,17 @@ export default function MenuPage() {
                     Order for friends/family
                   </label>
                   <div className="flex gap-2">
-                    <button
+                    <QtyMinusButton
                       onClick={() => handleGuestCountChange(guestCount - 1)}
-                      className="w-8 h-8 rounded-full bg-sage/10 hover:bg-sage/20"
-                    >
-                      <Minus size={16} className="mx-auto" />
-                    </button>
+                      className="rounded-full bg-sage/10"
+                      label="Decrease guests"
+                    />
                     <span className="font-body px-4">{guestCount}</span>
-                    <button
+                    <QtyPlusButton
                       onClick={() => handleGuestCountChange(guestCount + 1)}
-                      className="w-8 h-8 rounded-full bg-sage/10 hover:bg-sage/20"
-                    >
-                      <Plus size={16} className="mx-auto" />
-                    </button>
+                      className="rounded-full bg-sage/10"
+                      label="Increase guests"
+                    />
                   </div>
                 </div>
 
@@ -516,7 +523,7 @@ export default function MenuPage() {
                       className="font-mono uppercase"
                     />
                   </div>
-                  <Button type="button" variant="outline" className="border-sage/30" onClick={() => void validateMenuCoupon()}>
+                  <Button type="button" variant="sage-outline" onClick={() => void validateMenuCoupon()}>
                     Apply
                   </Button>
                 </div>
@@ -574,7 +581,8 @@ export default function MenuPage() {
               <Button
                 onClick={handlePlaceOrder}
                 disabled={isProcessing || orderSuccess}
-                className="w-full bg-sage hover:bg-sage/90 text-white font-body h-14 text-lg"
+                variant="sage"
+                className="w-full h-14 text-lg"
               >
                 {isProcessing ? (
                   <>

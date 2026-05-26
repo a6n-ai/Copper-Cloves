@@ -4,7 +4,7 @@
  */
 import { config } from "dotenv";
 import { resolve } from "node:path";
-import type { PrismaClient } from "../src/generated/prisma/client";
+import type { PrismaClient, Prisma } from "../src/generated/prisma/client";
 import { normalizeInstructorKey } from "../src/lib/instructorIdentity";
 
 config({ path: resolve(process.cwd(), ".env") });
@@ -330,8 +330,8 @@ async function ensureSessions(
       capacity: DEFAULT_CAPACITY,
       available_spots: DEFAULT_CAPACITY,
       current_bookings: 0,
-      status: "available",
-    };
+      status: "available" as const,
+    } satisfies Prisma.ClassScheduleUncheckedCreateInput;
 
     if (existing) {
       await prisma.classSchedule.update({

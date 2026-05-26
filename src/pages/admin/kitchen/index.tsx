@@ -177,7 +177,8 @@ export default function KitchenDashboard() {
                               size="sm"
                               disabled={updating === o.id}
                               onClick={() => updateStatus(o.id, step.next)}
-                              className="flex-1 bg-sage hover:bg-sage/90 text-white font-body"
+                              variant="sage"
+                              className="flex-1"
                             >
                               {step.label}
                             </Button>

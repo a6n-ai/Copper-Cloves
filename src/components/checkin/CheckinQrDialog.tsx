@@ -1,6 +1,8 @@
 import { useEffect, useState } from "react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { CheckCircle2, Maximize2, X } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { CloseButton } from "@/components/ui/quick-actions";
 
 interface ActiveSchedule {
   scheduleId: string;
@@ -26,16 +28,20 @@ export function CheckinQrDialog({
     if (!open) return;
     let cancelled = false;
     const load = async () => {
+      if (typeof document !== "undefined" && document.hidden) return;
       const r = await fetch("/api/admin/active-checkin-schedule");
       if (!r.ok || cancelled) return;
       const d = await r.json();
       if (!cancelled) setData(d.active);
     };
     load();
-    const id = setInterval(load, 15000); // refresh instructor status
+    const id = setInterval(load, 15000);
+    const onVis = () => { if (!document.hidden) load(); };
+    document.addEventListener("visibilitychange", onVis);
     return () => {
       cancelled = true;
       clearInterval(id);
+      document.removeEventListener("visibilitychange", onVis);
     };
   }, [open]);
 
@@ -105,14 +111,10 @@ export function CheckinQrDialog({
           role="dialog"
           aria-label={zoom.label}
         >
-          <button
-            type="button"
+          <CloseButton
             onClick={() => setZoom(null)}
-            className="absolute right-5 top-5 rounded-full p-2 text-charcoal/60 hover:bg-charcoal/5"
-            aria-label="Close"
-          >
-            <X size={28} />
-          </button>
+            className="absolute right-5 top-5 rounded-full text-charcoal/60"
+          />
           <p className="font-display text-3xl text-charcoal">{zoom.label}</p>
           {/* eslint-disable-next-line @next/next/no-img-element */}
           <img

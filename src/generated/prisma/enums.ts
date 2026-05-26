@@ -29,3 +29,15 @@ export const PaymentStatus = {
 } as const
 
 export type PaymentStatus = (typeof PaymentStatus)[keyof typeof PaymentStatus]
+
+
+export const ClassScheduleStatus = {
+  available: 'available',
+  inactive: 'inactive',
+  started: 'started',
+  completed: 'completed',
+  cancelled: 'cancelled',
+  abandoned: 'abandoned'
+} as const
+
+export type ClassScheduleStatus = (typeof ClassScheduleStatus)[keyof typeof ClassScheduleStatus]

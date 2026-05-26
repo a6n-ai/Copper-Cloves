@@ -48,7 +48,7 @@ export type ClassScheduleMinAggregateOutputType = {
   capacity: number | null
   available_spots: number | null
   current_bookings: number | null
-  status: string | null
+  status: $Enums.ClassScheduleStatus | null
   instructor_check_in_time: Date | null
   instructor_check_in_outcome: string | null
   class_notes: string | null
@@ -67,7 +67,7 @@ export type ClassScheduleMaxAggregateOutputType = {
   capacity: number | null
   available_spots: number | null
   current_bookings: number | null
-  status: string | null
+  status: $Enums.ClassScheduleStatus | null
   instructor_check_in_time: Date | null
   instructor_check_in_outcome: string | null
   class_notes: string | null
@@ -263,7 +263,7 @@ export type ClassScheduleGroupByOutputType = {
   capacity: number | null
   available_spots: number
   current_bookings: number
-  status: string
+  status: $Enums.ClassScheduleStatus
   instructor_check_in_time: Date | null
   instructor_check_in_outcome: string | null
   class_notes: string | null
@@ -305,7 +305,7 @@ export type ClassScheduleWhereInput = {
   capacity?: Prisma.IntNullableFilter<"ClassSchedule"> | number | null
   available_spots?: Prisma.IntFilter<"ClassSchedule"> | number
   current_bookings?: Prisma.IntFilter<"ClassSchedule"> | number
-  status?: Prisma.StringFilter<"ClassSchedule"> | string
+  status?: Prisma.EnumClassScheduleStatusFilter<"ClassSchedule"> | $Enums.ClassScheduleStatus
   instructor_check_in_time?: Prisma.DateTimeNullableFilter<"ClassSchedule"> | Date | string | null
   instructor_check_in_outcome?: Prisma.StringNullableFilter<"ClassSchedule"> | string | null
   class_notes?: Prisma.StringNullableFilter<"ClassSchedule"> | string | null
@@ -357,7 +357,7 @@ export type ClassScheduleWhereUniqueInput = Prisma.AtLeast<{
   capacity?: Prisma.IntNullableFilter<"ClassSchedule"> | number | null
   available_spots?: Prisma.IntFilter<"ClassSchedule"> | number
   current_bookings?: Prisma.IntFilter<"ClassSchedule"> | number
-  status?: Prisma.StringFilter<"ClassSchedule"> | string
+  status?: Prisma.EnumClassScheduleStatusFilter<"ClassSchedule"> | $Enums.ClassScheduleStatus
   instructor_check_in_time?: Prisma.DateTimeNullableFilter<"ClassSchedule"> | Date | string | null
   instructor_check_in_outcome?: Prisma.StringNullableFilter<"ClassSchedule"> | string | null
   class_notes?: Prisma.StringNullableFilter<"ClassSchedule"> | string | null
@@ -408,7 +408,7 @@ export type ClassScheduleScalarWhereWithAggregatesInput = {
   capacity?: Prisma.IntNullableWithAggregatesFilter<"ClassSchedule"> | number | null
   available_spots?: Prisma.IntWithAggregatesFilter<"ClassSchedule"> | number
   current_bookings?: Prisma.IntWithAggregatesFilter<"ClassSchedule"> | number
-  status?: Prisma.StringWithAggregatesFilter<"ClassSchedule"> | string
+  status?: Prisma.EnumClassScheduleStatusWithAggregatesFilter<"ClassSchedule"> | $Enums.ClassScheduleStatus
   instructor_check_in_time?: Prisma.DateTimeNullableWithAggregatesFilter<"ClassSchedule"> | Date | string | null
   instructor_check_in_outcome?: Prisma.StringNullableWithAggregatesFilter<"ClassSchedule"> | string | null
   class_notes?: Prisma.StringNullableWithAggregatesFilter<"ClassSchedule"> | string | null
@@ -424,7 +424,7 @@ export type ClassScheduleCreateInput = {
   capacity?: number | null
   available_spots: number
   current_bookings?: number
-  status?: string
+  status?: $Enums.ClassScheduleStatus
   instructor_check_in_time?: Date | string | null
   instructor_check_in_outcome?: string | null
   class_notes?: string | null
@@ -448,7 +448,7 @@ export type ClassScheduleUncheckedCreateInput = {
   capacity?: number | null
   available_spots: number
   current_bookings?: number
-  status?: string
+  status?: $Enums.ClassScheduleStatus
   instructor_check_in_time?: Date | string | null
   instructor_check_in_outcome?: string | null
   class_notes?: string | null
@@ -466,7 +466,7 @@ export type ClassScheduleUpdateInput = {
   capacity?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   available_spots?: Prisma.IntFieldUpdateOperationsInput | number
   current_bookings?: Prisma.IntFieldUpdateOperationsInput | number
-  status?: Prisma.StringFieldUpdateOperationsInput | string
+  status?: Prisma.EnumClassScheduleStatusFieldUpdateOperationsInput | $Enums.ClassScheduleStatus
   instructor_check_in_time?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   instructor_check_in_outcome?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   class_notes?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -490,7 +490,7 @@ export type ClassScheduleUncheckedUpdateInput = {
   capacity?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   available_spots?: Prisma.IntFieldUpdateOperationsInput | number
   current_bookings?: Prisma.IntFieldUpdateOperationsInput | number
-  status?: Prisma.StringFieldUpdateOperationsInput | string
+  status?: Prisma.EnumClassScheduleStatusFieldUpdateOperationsInput | $Enums.ClassScheduleStatus
   instructor_check_in_time?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   instructor_check_in_outcome?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   class_notes?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -511,7 +511,7 @@ export type ClassScheduleCreateManyInput = {
   capacity?: number | null
   available_spots: number
   current_bookings?: number
-  status?: string
+  status?: $Enums.ClassScheduleStatus
   instructor_check_in_time?: Date | string | null
   instructor_check_in_outcome?: string | null
   class_notes?: string | null
@@ -527,7 +527,7 @@ export type ClassScheduleUpdateManyMutationInput = {
   capacity?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   available_spots?: Prisma.IntFieldUpdateOperationsInput | number
   current_bookings?: Prisma.IntFieldUpdateOperationsInput | number
-  status?: Prisma.StringFieldUpdateOperationsInput | string
+  status?: Prisma.EnumClassScheduleStatusFieldUpdateOperationsInput | $Enums.ClassScheduleStatus
   instructor_check_in_time?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   instructor_check_in_outcome?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   class_notes?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -546,7 +546,7 @@ export type ClassScheduleUncheckedUpdateManyInput = {
   capacity?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   available_spots?: Prisma.IntFieldUpdateOperationsInput | number
   current_bookings?: Prisma.IntFieldUpdateOperationsInput | number
-  status?: Prisma.StringFieldUpdateOperationsInput | string
+  status?: Prisma.EnumClassScheduleStatusFieldUpdateOperationsInput | $Enums.ClassScheduleStatus
   instructor_check_in_time?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   instructor_check_in_outcome?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   class_notes?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -776,6 +776,10 @@ export type ClassScheduleUncheckedUpdateManyWithoutClass_modelNestedInput = {
   deleteMany?: Prisma.ClassScheduleScalarWhereInput | Prisma.ClassScheduleScalarWhereInput[]
 }
 
+export type EnumClassScheduleStatusFieldUpdateOperationsInput = {
+  set?: $Enums.ClassScheduleStatus
+}
+
 export type ClassScheduleCreateNestedOneWithoutBookingsInput = {
   create?: Prisma.XOR<Prisma.ClassScheduleCreateWithoutBookingsInput, Prisma.ClassScheduleUncheckedCreateWithoutBookingsInput>
   connectOrCreate?: Prisma.ClassScheduleCreateOrConnectWithoutBookingsInput
@@ -813,7 +817,7 @@ export type ClassScheduleCreateWithoutInstructorInput = {
   capacity?: number | null
   available_spots: number
   current_bookings?: number
-  status?: string
+  status?: $Enums.ClassScheduleStatus
   instructor_check_in_time?: Date | string | null
   instructor_check_in_outcome?: string | null
   class_notes?: string | null
@@ -835,7 +839,7 @@ export type ClassScheduleUncheckedCreateWithoutInstructorInput = {
   capacity?: number | null
   available_spots: number
   current_bookings?: number
-  status?: string
+  status?: $Enums.ClassScheduleStatus
   instructor_check_in_time?: Date | string | null
   instructor_check_in_outcome?: string | null
   class_notes?: string | null
@@ -863,7 +867,7 @@ export type ClassScheduleCreateWithoutActual_instructorInput = {
   capacity?: number | null
   available_spots: number
   current_bookings?: number
-  status?: string
+  status?: $Enums.ClassScheduleStatus
   instructor_check_in_time?: Date | string | null
   instructor_check_in_outcome?: string | null
   class_notes?: string | null
@@ -885,7 +889,7 @@ export type ClassScheduleUncheckedCreateWithoutActual_instructorInput = {
   capacity?: number | null
   available_spots: number
   current_bookings?: number
-  status?: string
+  status?: $Enums.ClassScheduleStatus
   instructor_check_in_time?: Date | string | null
   instructor_check_in_outcome?: string | null
   class_notes?: string | null
@@ -935,7 +939,7 @@ export type ClassScheduleScalarWhereInput = {
   capacity?: Prisma.IntNullableFilter<"ClassSchedule"> | number | null
   available_spots?: Prisma.IntFilter<"ClassSchedule"> | number
   current_bookings?: Prisma.IntFilter<"ClassSchedule"> | number
-  status?: Prisma.StringFilter<"ClassSchedule"> | string
+  status?: Prisma.EnumClassScheduleStatusFilter<"ClassSchedule"> | $Enums.ClassScheduleStatus
   instructor_check_in_time?: Prisma.DateTimeNullableFilter<"ClassSchedule"> | Date | string | null
   instructor_check_in_outcome?: Prisma.StringNullableFilter<"ClassSchedule"> | string | null
   class_notes?: Prisma.StringNullableFilter<"ClassSchedule"> | string | null
@@ -967,7 +971,7 @@ export type ClassScheduleCreateWithoutClass_modelInput = {
   capacity?: number | null
   available_spots: number
   current_bookings?: number
-  status?: string
+  status?: $Enums.ClassScheduleStatus
   instructor_check_in_time?: Date | string | null
   instructor_check_in_outcome?: string | null
   class_notes?: string | null
@@ -989,7 +993,7 @@ export type ClassScheduleUncheckedCreateWithoutClass_modelInput = {
   capacity?: number | null
   available_spots: number
   current_bookings?: number
-  status?: string
+  status?: $Enums.ClassScheduleStatus
   instructor_check_in_time?: Date | string | null
   instructor_check_in_outcome?: string | null
   class_notes?: string | null
@@ -1033,7 +1037,7 @@ export type ClassScheduleCreateWithoutBookingsInput = {
   capacity?: number | null
   available_spots: number
   current_bookings?: number
-  status?: string
+  status?: $Enums.ClassScheduleStatus
   instructor_check_in_time?: Date | string | null
   instructor_check_in_outcome?: string | null
   class_notes?: string | null
@@ -1056,7 +1060,7 @@ export type ClassScheduleUncheckedCreateWithoutBookingsInput = {
   capacity?: number | null
   available_spots: number
   current_bookings?: number
-  status?: string
+  status?: $Enums.ClassScheduleStatus
   instructor_check_in_time?: Date | string | null
   instructor_check_in_outcome?: string | null
   class_notes?: string | null
@@ -1089,7 +1093,7 @@ export type ClassScheduleUpdateWithoutBookingsInput = {
   capacity?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   available_spots?: Prisma.IntFieldUpdateOperationsInput | number
   current_bookings?: Prisma.IntFieldUpdateOperationsInput | number
-  status?: Prisma.StringFieldUpdateOperationsInput | string
+  status?: Prisma.EnumClassScheduleStatusFieldUpdateOperationsInput | $Enums.ClassScheduleStatus
   instructor_check_in_time?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   instructor_check_in_outcome?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   class_notes?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -1112,7 +1116,7 @@ export type ClassScheduleUncheckedUpdateWithoutBookingsInput = {
   capacity?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   available_spots?: Prisma.IntFieldUpdateOperationsInput | number
   current_bookings?: Prisma.IntFieldUpdateOperationsInput | number
-  status?: Prisma.StringFieldUpdateOperationsInput | string
+  status?: Prisma.EnumClassScheduleStatusFieldUpdateOperationsInput | $Enums.ClassScheduleStatus
   instructor_check_in_time?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   instructor_check_in_outcome?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   class_notes?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -1129,7 +1133,7 @@ export type ClassScheduleCreateWithoutQr_codesInput = {
   capacity?: number | null
   available_spots: number
   current_bookings?: number
-  status?: string
+  status?: $Enums.ClassScheduleStatus
   instructor_check_in_time?: Date | string | null
   instructor_check_in_outcome?: string | null
   class_notes?: string | null
@@ -1152,7 +1156,7 @@ export type ClassScheduleUncheckedCreateWithoutQr_codesInput = {
   capacity?: number | null
   available_spots: number
   current_bookings?: number
-  status?: string
+  status?: $Enums.ClassScheduleStatus
   instructor_check_in_time?: Date | string | null
   instructor_check_in_outcome?: string | null
   class_notes?: string | null
@@ -1185,7 +1189,7 @@ export type ClassScheduleUpdateWithoutQr_codesInput = {
   capacity?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   available_spots?: Prisma.IntFieldUpdateOperationsInput | number
   current_bookings?: Prisma.IntFieldUpdateOperationsInput | number
-  status?: Prisma.StringFieldUpdateOperationsInput | string
+  status?: Prisma.EnumClassScheduleStatusFieldUpdateOperationsInput | $Enums.ClassScheduleStatus
   instructor_check_in_time?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   instructor_check_in_outcome?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   class_notes?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -1208,7 +1212,7 @@ export type ClassScheduleUncheckedUpdateWithoutQr_codesInput = {
   capacity?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   available_spots?: Prisma.IntFieldUpdateOperationsInput | number
   current_bookings?: Prisma.IntFieldUpdateOperationsInput | number
-  status?: Prisma.StringFieldUpdateOperationsInput | string
+  status?: Prisma.EnumClassScheduleStatusFieldUpdateOperationsInput | $Enums.ClassScheduleStatus
   instructor_check_in_time?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   instructor_check_in_outcome?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   class_notes?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -1227,7 +1231,7 @@ export type ClassScheduleCreateManyInstructorInput = {
   capacity?: number | null
   available_spots: number
   current_bookings?: number
-  status?: string
+  status?: $Enums.ClassScheduleStatus
   instructor_check_in_time?: Date | string | null
   instructor_check_in_outcome?: string | null
   class_notes?: string | null
@@ -1245,7 +1249,7 @@ export type ClassScheduleCreateManyActual_instructorInput = {
   capacity?: number | null
   available_spots: number
   current_bookings?: number
-  status?: string
+  status?: $Enums.ClassScheduleStatus
   instructor_check_in_time?: Date | string | null
   instructor_check_in_outcome?: string | null
   class_notes?: string | null
@@ -1261,7 +1265,7 @@ export type ClassScheduleUpdateWithoutInstructorInput = {
   capacity?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   available_spots?: Prisma.IntFieldUpdateOperationsInput | number
   current_bookings?: Prisma.IntFieldUpdateOperationsInput | number
-  status?: Prisma.StringFieldUpdateOperationsInput | string
+  status?: Prisma.EnumClassScheduleStatusFieldUpdateOperationsInput | $Enums.ClassScheduleStatus
   instructor_check_in_time?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   instructor_check_in_outcome?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   class_notes?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -1283,7 +1287,7 @@ export type ClassScheduleUncheckedUpdateWithoutInstructorInput = {
   capacity?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   available_spots?: Prisma.IntFieldUpdateOperationsInput | number
   current_bookings?: Prisma.IntFieldUpdateOperationsInput | number
-  status?: Prisma.StringFieldUpdateOperationsInput | string
+  status?: Prisma.EnumClassScheduleStatusFieldUpdateOperationsInput | $Enums.ClassScheduleStatus
   instructor_check_in_time?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   instructor_check_in_outcome?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   class_notes?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -1303,7 +1307,7 @@ export type ClassScheduleUncheckedUpdateManyWithoutInstructorInput = {
   capacity?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   available_spots?: Prisma.IntFieldUpdateOperationsInput | number
   current_bookings?: Prisma.IntFieldUpdateOperationsInput | number
-  status?: Prisma.StringFieldUpdateOperationsInput | string
+  status?: Prisma.EnumClassScheduleStatusFieldUpdateOperationsInput | $Enums.ClassScheduleStatus
   instructor_check_in_time?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   instructor_check_in_outcome?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   class_notes?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -1319,7 +1323,7 @@ export type ClassScheduleUpdateWithoutActual_instructorInput = {
   capacity?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   available_spots?: Prisma.IntFieldUpdateOperationsInput | number
   current_bookings?: Prisma.IntFieldUpdateOperationsInput | number
-  status?: Prisma.StringFieldUpdateOperationsInput | string
+  status?: Prisma.EnumClassScheduleStatusFieldUpdateOperationsInput | $Enums.ClassScheduleStatus
   instructor_check_in_time?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   instructor_check_in_outcome?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   class_notes?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -1341,7 +1345,7 @@ export type ClassScheduleUncheckedUpdateWithoutActual_instructorInput = {
   capacity?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   available_spots?: Prisma.IntFieldUpdateOperationsInput | number
   current_bookings?: Prisma.IntFieldUpdateOperationsInput | number
-  status?: Prisma.StringFieldUpdateOperationsInput | string
+  status?: Prisma.EnumClassScheduleStatusFieldUpdateOperationsInput | $Enums.ClassScheduleStatus
   instructor_check_in_time?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   instructor_check_in_outcome?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   class_notes?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -1361,7 +1365,7 @@ export type ClassScheduleUncheckedUpdateManyWithoutActual_instructorInput = {
   capacity?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   available_spots?: Prisma.IntFieldUpdateOperationsInput | number
   current_bookings?: Prisma.IntFieldUpdateOperationsInput | number
-  status?: Prisma.StringFieldUpdateOperationsInput | string
+  status?: Prisma.EnumClassScheduleStatusFieldUpdateOperationsInput | $Enums.ClassScheduleStatus
   instructor_check_in_time?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   instructor_check_in_outcome?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   class_notes?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -1379,7 +1383,7 @@ export type ClassScheduleCreateManyClass_modelInput = {
   capacity?: number | null
   available_spots: number
   current_bookings?: number
-  status?: string
+  status?: $Enums.ClassScheduleStatus
   instructor_check_in_time?: Date | string | null
   instructor_check_in_outcome?: string | null
   class_notes?: string | null
@@ -1395,7 +1399,7 @@ export type ClassScheduleUpdateWithoutClass_modelInput = {
   capacity?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   available_spots?: Prisma.IntFieldUpdateOperationsInput | number
   current_bookings?: Prisma.IntFieldUpdateOperationsInput | number
-  status?: Prisma.StringFieldUpdateOperationsInput | string
+  status?: Prisma.EnumClassScheduleStatusFieldUpdateOperationsInput | $Enums.ClassScheduleStatus
   instructor_check_in_time?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   instructor_check_in_outcome?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   class_notes?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -1417,7 +1421,7 @@ export type ClassScheduleUncheckedUpdateWithoutClass_modelInput = {
   capacity?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   available_spots?: Prisma.IntFieldUpdateOperationsInput | number
   current_bookings?: Prisma.IntFieldUpdateOperationsInput | number
-  status?: Prisma.StringFieldUpdateOperationsInput | string
+  status?: Prisma.EnumClassScheduleStatusFieldUpdateOperationsInput | $Enums.ClassScheduleStatus
   instructor_check_in_time?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   instructor_check_in_outcome?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   class_notes?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -1437,7 +1441,7 @@ export type ClassScheduleUncheckedUpdateManyWithoutClass_modelInput = {
   capacity?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   available_spots?: Prisma.IntFieldUpdateOperationsInput | number
   current_bookings?: Prisma.IntFieldUpdateOperationsInput | number
-  status?: Prisma.StringFieldUpdateOperationsInput | string
+  status?: Prisma.EnumClassScheduleStatusFieldUpdateOperationsInput | $Enums.ClassScheduleStatus
   instructor_check_in_time?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   instructor_check_in_outcome?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   class_notes?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -1619,7 +1623,7 @@ export type $ClassSchedulePayload<ExtArgs extends runtime.Types.Extensions.Inter
     capacity: number | null
     available_spots: number
     current_bookings: number
-    status: string
+    status: $Enums.ClassScheduleStatus
     instructor_check_in_time: Date | null
     /**
      * `on_time` | `late` | `absent` — set after class ends.
@@ -2072,7 +2076,7 @@ export interface ClassScheduleFieldRefs {
   readonly capacity: Prisma.FieldRef<"ClassSchedule", 'Int'>
   readonly available_spots: Prisma.FieldRef<"ClassSchedule", 'Int'>
   readonly current_bookings: Prisma.FieldRef<"ClassSchedule", 'Int'>
-  readonly status: Prisma.FieldRef<"ClassSchedule", 'String'>
+  readonly status: Prisma.FieldRef<"ClassSchedule", 'ClassScheduleStatus'>
   readonly instructor_check_in_time: Prisma.FieldRef<"ClassSchedule", 'DateTime'>
   readonly instructor_check_in_outcome: Prisma.FieldRef<"ClassSchedule", 'String'>
   readonly class_notes: Prisma.FieldRef<"ClassSchedule", 'String'>

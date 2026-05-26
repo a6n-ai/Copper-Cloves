@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
 import { useRouter } from "next/router";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
@@ -240,7 +240,6 @@ export default function AdminMembers() {
   const [packageFilter, setPackageFilter] = useState<"all" | "studio" | "class" | "none">("all");
   const [accountStatusFilter, setAccountStatusFilter] = useState<"all" | "active" | "inactive">("all");
   const [members, setMembers] = useState<Member[]>([]);
-  const [filteredMembers, setFilteredMembers] = useState<Member[]>([]);
   const [checkInsThisMonth, setCheckInsThisMonth] = useState(0);
   const [sortKey, setSortKey] = useState<"name" | "classes" | "lastVisit" | "status" | null>(null);
   const [sortDir, setSortDir] = useState<"asc" | "desc">("desc");
@@ -299,7 +298,7 @@ export default function AdminMembers() {
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [status, userRole]);
 
-  useEffect(() => {
+  const filteredMembers = useMemo(() => {
     const qRaw = searchQuery.trim();
     const q = qRaw.toLowerCase();
     const filtered = members.filter((member) => {
@@ -340,7 +339,7 @@ export default function AdminMembers() {
       });
     }
 
-    setFilteredMembers(filtered);
+    return filtered;
   }, [searchQuery, members, packageFilter, accountStatusFilter, sortKey, sortDir]);
 
   const loadMembers = async () => {
@@ -895,7 +894,8 @@ export default function AdminMembers() {
                         setAddError(null);
                         setAddOpen(true);
                       }}
-                      className="bg-sage hover:bg-sage/90 text-white font-body h-9 shrink-0"
+                      variant="sage"
+                      className="h-9 shrink-0"
                     >
                       <Plus className="h-4 w-4 mr-1.5" />
                       Add Member
@@ -1215,7 +1215,7 @@ export default function AdminMembers() {
                 }
               }}
               disabled={addSubmitting}
-              className="bg-sage hover:bg-sage/90 text-white font-body"
+              variant="sage"
             >
               {addSubmitting ? "Adding…" : "Add Member"}
             </Button>
@@ -1431,7 +1431,7 @@ export default function AdminMembers() {
                 </Button>
                 <Button
                   onClick={goToPaymentStep}
-                  className="bg-sage hover:bg-sage/90 text-white font-body"
+                  variant="sage"
                 >
                   Continue
                 </Button>
@@ -1451,7 +1451,7 @@ export default function AdminMembers() {
                     try { await handleRecordPayment(); } finally { setSubmitting(false); }
                   }}
                   disabled={proofUploading || submitting}
-                  className="bg-sage hover:bg-sage/90 text-white font-body"
+                  variant="sage"
                 >
                   {submitting ? "Processing…" : "Record Payment & Apply Pass"}
                 </Button>

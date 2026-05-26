@@ -23,9 +23,12 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
   const schedule = await prisma.classSchedule.findUnique({
     where: { id: scheduleId },
-    select: { id: true, start_time: true, instructor_id: true, actual_instructor_id: true },
+    select: { id: true, start_time: true, instructor_id: true, actual_instructor_id: true, status: true },
   });
   if (!schedule) return res.status(404).json({ error: "Not found" });
+  if (schedule.status === "completed" || schedule.status === "abandoned") {
+    return res.status(409).json({ error: `Class is ${schedule.status}; QR is locked.` });
+  }
 
   const ownsClass =
     schedule.instructor_id === instructor.instructorId ||

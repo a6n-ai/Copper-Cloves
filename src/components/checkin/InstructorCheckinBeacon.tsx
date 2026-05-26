@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { QrCode, CheckCircle2, Clock } from "lucide-react";
 import { Card, CardContent } from "@/components/ui/card";
 import { CheckInScanButton } from "@/components/checkin/CheckInScanButton";
@@ -21,13 +21,33 @@ interface BeaconClass {
 export function InstructorCheckinBeacon({ classes }: { classes: BeaconClass[] }) {
   const [now, setNow] = useState(() => Date.now());
 
-  useEffect(() => {
-    const id = setInterval(() => setNow(Date.now()), 1000);
-    return () => clearInterval(id);
-  }, []);
+  // Precompute start ms per class once; only recompute when classes ref changes.
+  const classStarts = useMemo(
+    () => classes.map((c) => ({ c, start: new Date(c.startTime).getTime() })),
+    [classes],
+  );
 
-  const active = classes
-    .map((c) => ({ c, start: new Date(c.startTime).getTime() }))
+  // Find the soonest class whose window contains "now". Skip ticking if none ever.
+  const anyEverActive = classStarts.some(
+    ({ start }) => Date.now() <= start + CLOSE_AFTER_MS,
+  );
+
+  useEffect(() => {
+    if (!anyEverActive) return;
+    const tick = () => setNow(Date.now());
+    const id = setInterval(() => {
+      if (typeof document !== "undefined" && document.hidden) return;
+      tick();
+    }, 1000);
+    const onVis = () => { if (!document.hidden) tick(); };
+    document.addEventListener("visibilitychange", onVis);
+    return () => {
+      clearInterval(id);
+      document.removeEventListener("visibilitychange", onVis);
+    };
+  }, [anyEverActive]);
+
+  const active = classStarts
     .filter(({ start }) => now >= start - OPEN_BEFORE_MS && now <= start + CLOSE_AFTER_MS)
     .sort((a, b) => a.start - b.start)[0];
 
@@ -71,7 +91,7 @@ export function InstructorCheckinBeacon({ classes }: { classes: BeaconClass[] })
           <CheckInScanButton
             label={closed ? "Check-in closed" : "Scan to check in"}
             disabled={closed}
-            className="bg-sage hover:bg-sage/90 text-white font-body"
+            variant="sage"
           />
         )}
       </CardContent>

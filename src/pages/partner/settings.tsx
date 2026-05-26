@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { PageHeader } from "@/components/dashboard/PageHeader";
 import { useRouter } from "next/router";
 import type { GetServerSideProps } from "next";
@@ -80,6 +80,10 @@ export default function PartnerSettings() {
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [saved, setSaved] = useState(false);
+  const savedTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  useEffect(() => () => {
+    if (savedTimeoutRef.current) clearTimeout(savedTimeoutRef.current);
+  }, []);
 
   useEffect(() => {
     (async () => {
@@ -107,7 +111,7 @@ export default function PartnerSettings() {
       if (!res.ok) throw new Error();
       setProfile(await res.json());
       setSaved(true);
-      setTimeout(() => setSaved(false), 2500);
+      savedTimeoutRef.current = setTimeout(() => setSaved(false), 2500);
     } catch {
       toast.error("Could not save settings.");
     } finally {
@@ -168,7 +172,7 @@ export default function PartnerSettings() {
               </div>
 
               <div className="flex items-center gap-3 pt-2">
-                <Button type="submit" disabled={saving} className="bg-sage hover:bg-sage/90 text-white font-body">
+                <Button type="submit" disabled={saving} variant="sage">
                   {saving ? <Spinner className="size-4" /> : "Save changes"}
                 </Button>
                 {saved && <span className="font-body text-sm text-sage flex items-center gap-1"><Check className="h-4 w-4" /> Saved</span>}

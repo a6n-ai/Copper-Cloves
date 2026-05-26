@@ -21,6 +21,7 @@ import {
 } from "lucide-react";
 import { Spinner } from "@/components/ui/spinner";
 import { Skeleton } from "@/components/ui/skeleton";
+import { CloseButton, EditButton, DeleteButton } from "@/components/ui/quick-actions";
 
 import { cdnUrl } from "@/lib/cdnUrl";
 import { toast } from "sonner";
@@ -130,26 +131,26 @@ export default function AdminCafe() {
 
   const { data: session, status } = useSession();
 
+  const userRole = (session?.user as { role?: string })?.role;
   useEffect(() => {
     if (status === "unauthenticated") { router.push("/login"); return; }
-    const role = (session?.user as { role?: string })?.role;
-    if (status === "authenticated" && role !== "admin" && role !== "chef") { router.push("/login"); return; }
+    if (status === "authenticated" && userRole !== "admin" && userRole !== "chef") { router.push("/login"); return; }
     if (status === "authenticated") {
       fetchMenuItems();
-      fetchOrders();
-      fetchOrderHistory();
+      fetchAllOrders();
     }
 
     const timeInterval = setInterval(() => setCurrentTime(new Date()), 1000);
     const pollingInterval = setInterval(() => {
-      fetchOrders();
-      fetchOrderHistory();
+      if (typeof document !== "undefined" && document.hidden) return;
+      fetchAllOrders();
     }, 10000);
     return () => {
       clearInterval(timeInterval);
       clearInterval(pollingInterval);
     };
-  }, [status, session]);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [status, userRole]);
 
   const fetchMenuItems = async () => {
     try {
@@ -162,12 +163,15 @@ export default function AdminCafe() {
     }
   };
 
-  const fetchOrders = async () => {
+  // Single fetch — derive active/history client-side. Replaces two duplicate calls.
+  const fetchAllOrders = async () => {
     setLoadingOrders(true);
+    setLoadingHistory(true);
     try {
       const res = await fetch("/api/cafe/orders");
-      const data = res.ok ? await res.json() : [];
+      const data: any[] = res.ok ? await res.json() : [];
       const active = data.filter((o: { status: string }) => !["completed", "cancelled"].includes(o.status));
+      const history = data.filter((o: { status: string }) => ["completed", "cancelled"].includes(o.status));
       const classSortKey = (o: { booking?: { class_schedule?: { start_time?: string }; class_time?: string | null } }) =>
         o.booking?.class_schedule?.start_time ?? o.booking?.class_time ?? null;
       active.sort((a, b) => {
@@ -179,22 +183,11 @@ export default function AdminCafe() {
         return new Date(a.order_date).getTime() - new Date(b.order_date).getTime();
       });
       setOrders(active);
+      setOrderHistory(history);
     } catch (err) {
       console.error("Error fetching orders:", err);
     } finally {
       setLoadingOrders(false);
-    }
-  };
-
-  const fetchOrderHistory = async () => {
-    setLoadingHistory(true);
-    try {
-      const res = await fetch("/api/cafe/orders");
-      const data = res.ok ? await res.json() : [];
-      setOrderHistory(data.filter((o: { status: string }) => ["completed", "cancelled"].includes(o.status)));
-    } catch (err) {
-      console.error("Error fetching order history:", err);
-    } finally {
       setLoadingHistory(false);
     }
   };
@@ -207,8 +200,7 @@ export default function AdminCafe() {
         body: JSON.stringify({ id: orderId, status: newStatus }),
       });
       if (!res.ok) throw new Error("Update failed");
-      await fetchOrders();
-      await fetchOrderHistory();
+      await fetchAllOrders();
     } catch (err) {
       console.error("Error updating order status:", err);
       toast.error("Failed to update order status. Please try again.");
@@ -680,7 +672,7 @@ export default function AdminCafe() {
                         setShowCategoryForm(true);
                       }
                     }}
-                    className="bg-sage hover:bg-sage/90 text-white font-body"
+                    variant="sage"
                   >
                     <Plus size={20} className="mr-2" />
                     {activeTab === "menu" ? "Add Menu Item" : "Add Category"}
@@ -749,22 +741,8 @@ export default function AdminCafe() {
                           <p className="font-body text-xs text-charcoal/50">ID: {cat.id}</p>
                         </div>
                         <div className="flex gap-2">
-                          <Button
-                            onClick={() => handleEditCategory(cat)}
-                            size="sm"
-                            variant="ghost"
-                            className="text-sage hover:bg-sage/10"
-                          >
-                            <Edit size={14} />
-                          </Button>
-                          <Button
-                            onClick={() => handleDeleteCategory(cat.id)}
-                            size="sm"
-                            variant="ghost"
-                            className="text-terracotta hover:bg-terracotta/10"
-                          >
-                            <Trash2 size={14} />
-                          </Button>
+                          <EditButton onClick={() => handleEditCategory(cat)} />
+                          <DeleteButton onClick={() => handleDeleteCategory(cat.id)} />
                         </div>
                       </div>
                     ))}
@@ -785,7 +763,7 @@ export default function AdminCafe() {
                       <div className="flex gap-4">
                         <Button
                           onClick={openAddMenuForm}
-                          className="bg-sage hover:bg-sage/90 text-white font-body"
+                          variant="sage"
                         >
                           <Plus size={20} className="mr-2" />
                           Add First Item
@@ -844,14 +822,7 @@ export default function AdminCafe() {
                               <Edit size={16} className="mr-2" />
                               Edit
                             </Button>
-                            <Button
-                              onClick={() => handleDelete(item.id!)}
-                              variant="outline"
-                              size="sm"
-                              className="border-terracotta/30 text-terracotta hover:bg-terracotta/10"
-                            >
-                              <Trash2 size={16} />
-                            </Button>
+                            <DeleteButton onClick={() => handleDelete(item.id!)} />
                           </div>
                         </CardContent>
                       </Card>
@@ -1102,7 +1073,7 @@ export default function AdminCafe() {
                                       <Button
                                         onClick={() => updateOrderStatus(order.id, "completed")}
                                         size="sm"
-                                        className="bg-sage hover:bg-sage/90 text-white font-body"
+                                        variant="sage"
                                       >
                                         Complete Order
                                       </Button>
@@ -1265,12 +1236,7 @@ export default function AdminCafe() {
                   <h2 className="font-display text-3xl text-charcoal">
                     {editingItem ? "Edit Menu Item" : "Add Menu Item"}
                   </h2>
-                  <button
-                    onClick={handleCancel}
-                    className="w-10 h-10 rounded-full hover:bg-sage/10 flex items-center justify-center transition-colors"
-                  >
-                    <X size={24} />
-                  </button>
+                  <CloseButton onClick={handleCancel} className="rounded-full" />
                 </div>
               </div>
 
@@ -1413,7 +1379,8 @@ export default function AdminCafe() {
                 <Button
                   onClick={handleSave}
                   disabled={isSaving || uploadingImage || !formData.name || !formData.price}
-                  className="flex-1 bg-sage hover:bg-sage/90 text-white h-12"
+                  variant="sage"
+                  className="flex-1 h-12"
                 >
                   {isSaving ? (
                     <>
@@ -1443,12 +1410,7 @@ export default function AdminCafe() {
                   <h2 className="font-display text-3xl text-charcoal">
                     {editingCategory ? "Edit Category" : "Add New Category"}
                   </h2>
-                  <button
-                    onClick={handleCancelCategory}
-                    className="w-10 h-10 rounded-full hover:bg-sage/10 flex items-center justify-center transition-colors"
-                  >
-                    <X size={24} />
-                  </button>
+                  <CloseButton onClick={handleCancelCategory} className="rounded-full" />
                 </div>
               </div>
 
@@ -1490,7 +1452,8 @@ export default function AdminCafe() {
                   </Button>
                   <Button
                     onClick={editingCategory ? handleUpdateCategory : handleAddCategory}
-                    className="flex-1 bg-sage hover:bg-sage/90 text-white font-body"
+                    variant="sage"
+                    className="flex-1"
                   >
                     {editingCategory ? "Update Category" : "Add Category"}
                   </Button>
@@ -1507,9 +1470,7 @@ export default function AdminCafe() {
           <div className="bg-white rounded-2xl shadow-2xl w-full max-w-lg mx-4 overflow-hidden">
             <div className="flex items-center justify-between px-6 py-4 border-b border-sage/20">
               <h3 className="font-display text-lg text-charcoal">Adjust image</h3>
-              <button onClick={handleCropCancel} className="text-charcoal/50 hover:text-charcoal">
-                <X size={20} />
-              </button>
+              <CloseButton onClick={handleCropCancel} />
             </div>
             <div className="relative bg-black" style={{ height: 360 }}>
               <Cropper
@@ -1537,10 +1498,10 @@ export default function AdminCafe() {
               </div>
               <p className="font-body text-xs text-charcoal/40">Drag to reposition · pinch or use slider to zoom</p>
               <div className="flex gap-3 justify-end pt-1">
-                <Button variant="outline" className="font-body border-sage/20" onClick={handleCropCancel}>
+                <Button variant="sage-outline" onClick={handleCropCancel}>
                   Cancel
                 </Button>
-                <Button className="font-body bg-sage hover:bg-sage/90 text-white" onClick={handleCropConfirm}>
+                <Button variant="sage" onClick={handleCropConfirm}>
                   Use this image
                 </Button>
               </div>

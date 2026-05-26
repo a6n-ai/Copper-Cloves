@@ -160,6 +160,9 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         if (schedule.status === "cancelled") {
           throw new Error("CLASS_CANCELLED");
         }
+        if (schedule.status === "inactive") {
+          throw new Error("CLASS_INACTIVE");
+        }
 
         const duplicate = await tx.booking.findFirst({
           where: {
@@ -306,6 +309,9 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       }
       if (msg === "CLASS_CANCELLED") {
         return res.status(400).json({ error: "This class has been cancelled" });
+      }
+      if (msg === "CLASS_INACTIVE") {
+        return res.status(400).json({ error: "This class is currently paused" });
       }
       if (msg === "ALREADY_BOOKED") {
         return res.status(409).json({ error: "You already have a booking for this class" });

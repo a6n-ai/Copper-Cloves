@@ -1,4 +1,5 @@
 import { CheckCircle2, Sparkles } from "lucide-react";
+import { Button } from "@/components/ui/button";
 
 interface FormSuccessStateProps {
   title: string;
@@ -43,12 +44,15 @@ export function FormSuccessState({ title, message, onClose }: FormSuccessStatePr
 
         {/* Action Button */}
         {onClose && (
-          <button
+          <Button
+            type="button"
+            variant="sage"
+            size="lg"
             onClick={onClose}
-            className="mt-8 w-full py-3 px-6 bg-sage hover:bg-sage/90 text-white rounded-lg font-body transition-all duration-200 hover:scale-105 active:scale-95 animate-in slide-in-from-bottom duration-500 delay-500"
+            className="mt-8 w-full animate-in slide-in-from-bottom duration-500 delay-500"
           >
             Continue
-          </button>
+          </Button>
         )}
       </div>
     </div>

@@ -106,7 +106,7 @@ export default function RazorpayReturnPage() {
           <p className="font-body text-charcoal mb-6">{message}</p>
           {status === "error" ? (
             <div className="flex flex-col gap-2">
-              <Button asChild className="bg-sage hover:bg-sage/90">
+              <Button asChild variant="sage">
                 <Link href="/portal/book">Back to Book Class</Link>
               </Button>
               <Button asChild variant="outline">

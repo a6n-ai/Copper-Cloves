@@ -1,7 +1,9 @@
 import { useRef, useEffect, useState } from "react";
-import { ChevronLeft, ChevronRight, ArrowRight } from "lucide-react";
+import { ArrowRight } from "lucide-react";
+import { NavPrevButton, NavNextButton } from "@/components/ui/quick-actions";
 import Link from "next/link";
 import Image from "next/image";
+import { Button } from "@/components/ui/button";
 
 import { cdnUrl } from "@/lib/cdnUrl";
 type RetailProduct = {
@@ -71,22 +73,16 @@ export function Boutique() {
         </div>
 
         <div className="relative">
-          <button
-            type="button"
+          <NavPrevButton
             onClick={() => scroll("left")}
-            className="hidden lg:flex absolute left-0 top-1/2 -translate-y-1/2 -translate-x-4 z-20 w-12 h-12 items-center justify-center rounded-full bg-white/90 backdrop-blur-xs border border-sage/20 text-sage hover:bg-sage hover:text-white transition-all duration-300 shadow-lg hover:shadow-xl"
-            aria-label="Previous products"
-          >
-            <ChevronLeft size={24} />
-          </button>
-          <button
-            type="button"
+            className="hidden lg:flex absolute left-0 top-1/2 -translate-y-1/2 -translate-x-4 z-20 rounded-full bg-white/90 backdrop-blur-xs border border-sage/20"
+            label="Previous products"
+          />
+          <NavNextButton
             onClick={() => scroll("right")}
-            className="hidden lg:flex absolute right-0 top-1/2 -translate-y-1/2 translate-x-4 z-20 w-12 h-12 items-center justify-center rounded-full bg-white/90 backdrop-blur-xs border border-sage/20 text-sage hover:bg-sage hover:text-white transition-all duration-300 shadow-lg hover:shadow-xl"
-            aria-label="Next products"
-          >
-            <ChevronRight size={24} />
-          </button>
+            className="hidden lg:flex absolute right-0 top-1/2 -translate-y-1/2 translate-x-4 z-20 rounded-full bg-white/90 backdrop-blur-xs border border-sage/20"
+            label="Next products"
+          />
 
           <div
             ref={scrollRef}
@@ -140,12 +136,12 @@ export function Boutique() {
 
         <div className="text-center mt-12">
           <p className="font-body text-sm text-charcoal/50 italic mb-6">bring the sanctuary home</p>
-          <Link href="/shop">
-            <span className="group inline-flex items-center gap-2 px-8 py-4 rounded-full bg-sage hover:bg-sage/90 text-white font-body text-sm transition-all duration-300 shadow-lg hover:shadow-xl hover:scale-105 active:scale-95 cursor-pointer">
+          <Button asChild variant="sage" size="lg" className="rounded-full px-8">
+            <Link href="/shop">
               Explore All Products
-              <ArrowRight className="transition-transform duration-300 group-hover:translate-x-1" size={18} />
-            </span>
-          </Link>
+              <ArrowRight size={18} />
+            </Link>
+          </Button>
         </div>
       </div>
 

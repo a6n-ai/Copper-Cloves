@@ -136,6 +136,7 @@ export async function finishBookingCheckoutOnServer(
     });
     if (!schedule) throw new Error("SCHEDULE_NOT_FOUND");
     if (schedule.status === "cancelled") throw new Error("CLASS_CANCELLED");
+    if (schedule.status === "inactive") throw new Error("CLASS_INACTIVE");
 
     const duplicate = await tx.booking.findFirst({
       where: {

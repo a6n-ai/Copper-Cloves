@@ -4,6 +4,7 @@ import Image from "next/image";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { CloseButton } from "@/components/ui/quick-actions";
 import { StatCardRow, type StatCardProps } from "@/components/dashboard/StatCard";
 import { ActivityTimeline } from "@/components/dashboard/ActivityTimeline";
 import { UpcomingScheduleCard, type ScheduleEntry } from "@/components/dashboard/UpcomingScheduleCard";
@@ -223,17 +224,18 @@ export default function Dashboard() {
   const currentMilestone = getCurrentMilestone();
   const nextMilestone = activeMilestones.find(m => m.classes > userClassesCompleted);
 
+  const sessionUserId = (session?.user as { id?: string } | undefined)?.id;
   useEffect(() => {
     if (status === "unauthenticated") {
       router.push("/portal/login");
       return;
     }
-    if (status === "authenticated" && session?.user) {
-      const userId = (session.user as { id: string }).id;
-      setCurrentUserId(userId);
-      fetchUserData(userId).then(() => setLoading(false));
+    if (status === "authenticated" && sessionUserId) {
+      setCurrentUserId(sessionUserId);
+      fetchUserData(sessionUserId).then(() => setLoading(false));
     }
-  }, [status, session, router]);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [status, sessionUserId]);
 
   async function fetchUserData(_userId: string) {
     // Fetch PTM templates in parallel (public data, non-blocking)
@@ -371,7 +373,7 @@ export default function Dashboard() {
         body: JSON.stringify({ id: bookingId, checked_in: true }),
       });
       if (!res.ok) throw new Error("Check-in failed");
-      toast.error("✅ Checked in successfully!");
+      toast.success("Checked in successfully!");
       setShowCheckIn(false);
       if (currentUserId) fetchUserData(currentUserId);
     } catch (err) {
@@ -510,7 +512,7 @@ export default function Dashboard() {
                       <Button
                         onClick={() => setIsEditingIntention(false)}
                         size="sm"
-                        className="bg-sage hover:bg-sage/90 text-white font-body"
+                        variant="sage"
                       >
                         Save
                       </Button>
@@ -567,7 +569,8 @@ export default function Dashboard() {
                   <Button
                     type="button"
                     onClick={() => void router.push("/portal/book")}
-                    className="bg-sage hover:bg-sage/90 text-white font-body justify-start"
+                    variant="sage"
+                    className="justify-start"
                   >
                     <span className="mr-2"><AnimatedIcon icon={Calendar} size={16} /></span>
                     Book a Class
@@ -717,7 +720,7 @@ export default function Dashboard() {
                 <Button
                   onClick={() => router.push("/portal/book")}
                   size="sm"
-                  className="bg-sage hover:bg-sage/90 text-white font-body"
+                  variant="sage"
                 >
                   Book Your First Class
                 </Button>
@@ -749,8 +752,8 @@ export default function Dashboard() {
                       
                       <Button
                         onClick={() => router.push("/cafe")}
-                        variant="outline"
-                        className="w-full border-sage/30 text-sage hover:bg-sage hover:text-white transition-all duration-300 font-body"
+                        variant="sage-outline"
+                        className="w-full"
                       >
                         Re-order for tomorrow's class
                       </Button>
@@ -766,7 +769,8 @@ export default function Dashboard() {
                   
                   <Button
                     onClick={() => router.push("/portal/menu")}
-                    className="w-full bg-sage hover:bg-sage/90 text-white font-body"
+                    variant="sage"
+                    className="w-full"
                   >
                     Browse Full Menu
                   </Button>
@@ -801,12 +805,7 @@ export default function Dashboard() {
                     <p className="font-body text-sm text-charcoal/60">Your Nourish café orders</p>
                   </div>
                 </div>
-                <button
-                  onClick={() => setShowOrderHistory(false)}
-                  className="w-10 h-10 rounded-full hover:bg-sage/10 flex items-center justify-center transition-colors"
-                >
-                  <X className="text-charcoal" size={24} />
-                </button>
+                <CloseButton onClick={() => setShowOrderHistory(false)} className="rounded-full" />
               </div>
             </div>
 
@@ -824,7 +823,8 @@ export default function Dashboard() {
                       setShowOrderHistory(false);
                       router.push("/portal/menu");
                     }}
-                    className="mt-4 bg-sage hover:bg-sage/90 text-white font-body"
+                    variant="sage"
+                    className="mt-4"
                   >
                     Browse café menu
                   </Button>
@@ -841,7 +841,8 @@ export default function Dashboard() {
                   setShowOrderHistory(false);
                   router.push("/portal/menu");
                 }}
-                className="w-full bg-sage hover:bg-sage/90 text-white font-body"
+                variant="sage"
+                className="w-full"
               >
                 Browse café menu
               </Button>
@@ -856,15 +857,12 @@ export default function Dashboard() {
           <div className="bg-white rounded-lg shadow-xl max-w-md w-full p-6">
             <div className="flex justify-between items-start mb-4">
               <h3 className="font-display text-2xl text-charcoal">Check-In</h3>
-              <button
+              <CloseButton
                 onClick={() => {
                   setShowCheckIn(false);
                   setSelectedBookingForCheckIn(null);
                 }}
-                className="text-charcoal/50 hover:text-charcoal"
-              >
-                <X className="w-6 h-6" />
-              </button>
+              />
             </div>
 
             <div className="mb-6">
@@ -940,7 +938,8 @@ export default function Dashboard() {
               return startTime && canCheckIn(startTime) ? (
                 <Button
                   onClick={() => handleCheckIn(selectedBookingForCheckIn.id)}
-                  className="w-full bg-sage hover:bg-sage/90 text-white font-body"
+                  variant="sage"
+                  className="w-full"
                 >
                   Check In Now
                 </Button>

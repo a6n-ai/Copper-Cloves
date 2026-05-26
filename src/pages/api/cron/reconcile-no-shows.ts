@@ -11,6 +11,7 @@ import type { NextApiRequest, NextApiResponse } from "next";
 import prisma from "@/lib/prisma";
 import { getStudioServerSession } from "@/lib/getStudioServerSession";
 import { reconcileNoShowsGlobally } from "@/lib/bookingReconcile";
+import { advanceCompletedSchedules } from "@/lib/scheduleLifecycle";
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
   if (req.method !== "GET" && req.method !== "POST") return res.status(405).end();
@@ -28,7 +29,13 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   const startedAt = Date.now();
   try {
     await reconcileNoShowsGlobally(prisma);
-    return res.json({ ok: true, durationMs: Date.now() - startedAt });
+    const lifecycle = await advanceCompletedSchedules(prisma);
+    return res.json({
+      ok: true,
+      durationMs: Date.now() - startedAt,
+      schedulesCompleted: lifecycle.completed,
+      schedulesAbandoned: lifecycle.abandoned,
+    });
   } catch (e) {
     console.error("[cron/reconcile-no-shows] failed", e);
     return res.status(500).json({ error: "Reconcile failed" });

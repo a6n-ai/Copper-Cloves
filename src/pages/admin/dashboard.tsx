@@ -1,4 +1,5 @@
 import { Fragment, useState, useEffect, useMemo, useRef } from "react";
+import dynamic from "next/dynamic";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
@@ -6,8 +7,10 @@ import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "
 import { useRouter } from "next/router";
 import { ListAvatar } from "@/components/admin/ListAvatar";
 import { DayScheduleList } from "@/components/admin/DayScheduleList";
+import { TodayClassesCarousel } from "@/components/admin/TodayClassesCarousel";
 import { MetricCard } from "@/components/admin/MetricCard";
 import { AdminDashboardSkeleton } from "@/components/dashboard/skeletons";
+import { Skeleton } from "@/components/ui/skeleton";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import {
   ChartContainer,
@@ -16,19 +19,22 @@ import {
   ChartTooltip,
   ChartTooltipContent,
 } from "@/components/ui/chart";
-import {
-  Bar,
-  BarChart,
-  CartesianGrid,
-  Cell,
-  ComposedChart,
-  Label as RechartsLabel,
-  Line,
-  Pie,
-  PieChart as RechartsPieChart,
-  XAxis,
-  YAxis,
-} from "recharts";
+// recharts is heavy — defer until a chart tab renders.
+// Recharts class components don't match next/dynamic's ComponentType<P> generic
+// — cast loaders through `any` to bypass without losing the runtime behavior.
+/* eslint-disable @typescript-eslint/no-explicit-any */
+const Bar = dynamic((() => import("recharts").then((m) => m.Bar)) as any, { ssr: false }) as unknown as typeof import("recharts").Bar;
+const BarChart = dynamic((() => import("recharts").then((m) => m.BarChart)) as any, { ssr: false }) as unknown as typeof import("recharts").BarChart;
+const CartesianGrid = dynamic((() => import("recharts").then((m) => m.CartesianGrid)) as any, { ssr: false }) as unknown as typeof import("recharts").CartesianGrid;
+const Cell = dynamic((() => import("recharts").then((m) => m.Cell)) as any, { ssr: false }) as unknown as typeof import("recharts").Cell;
+const ComposedChart = dynamic((() => import("recharts").then((m) => m.ComposedChart)) as any, { ssr: false }) as unknown as typeof import("recharts").ComposedChart;
+const RechartsLabel = dynamic((() => import("recharts").then((m) => m.Label)) as any, { ssr: false }) as unknown as typeof import("recharts").Label;
+const Line = dynamic((() => import("recharts").then((m) => m.Line)) as any, { ssr: false }) as unknown as typeof import("recharts").Line;
+const Pie = dynamic((() => import("recharts").then((m) => m.Pie)) as any, { ssr: false }) as unknown as typeof import("recharts").Pie;
+const RechartsPieChart = dynamic((() => import("recharts").then((m) => m.PieChart)) as any, { ssr: false }) as unknown as typeof import("recharts").PieChart;
+const XAxis = dynamic((() => import("recharts").then((m) => m.XAxis)) as any, { ssr: false }) as unknown as typeof import("recharts").XAxis;
+const YAxis = dynamic((() => import("recharts").then((m) => m.YAxis)) as any, { ssr: false }) as unknown as typeof import("recharts").YAxis;
+/* eslint-enable @typescript-eslint/no-explicit-any */
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -80,6 +86,7 @@ import {
   ArrowUpDown,
   ChevronUp,
   ChevronDown,
+  ExternalLink,
 } from "lucide-react";
 import { SEO } from "@/components/SEO";
 import { Spinner } from "@/components/ui/spinner";
@@ -97,6 +104,7 @@ import {
 import { ResponsiveTable } from "@/components/responsive/ResponsiveTable";
 import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
+import { CloseButton } from "@/components/ui/quick-actions";
 import { useSession } from "next-auth/react";
 import { financeDemoTransactionsForUi } from "@/lib/adminFinanceDemoTransactions";
 import {
@@ -107,6 +115,19 @@ import {
 import { COUPON_CONTEXTS } from "@/lib/couponHelpers";
 import { Pagination, usePagination } from "@/components/Pagination";
 import { toast } from "sonner";
+import { cn } from "@/lib/utils";
+import { ClassCheckinQr } from "@/components/checkin/ClassCheckinQr";
+import { ClassCountdownPill } from "@/components/checkin/ClassCountdownPill";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 
 type FinanceBreakdownDetail = {
   packageListInr?: number;
@@ -249,6 +270,15 @@ export default function AdminDashboard() {
   const [showEditUserDialog, setShowEditUserDialog] = useState(false);
   const [showAddClassDialog, setShowAddClassDialog] = useState(false);
   const [showClassDetailsDialog, setShowClassDetailsDialog] = useState(false);
+  const [pendingStatusChange, setPendingStatusChange] = useState<{ id: string; name: string; time: string; currentStatus?: string; newStatus: string } | null>(null);
+  const [statusChangeBusy, setStatusChangeBusy] = useState(false);
+  const [selectedClassQr, setSelectedClassQr] = useState<{
+    memberQrUrl?: string | null;
+    instructorQrUrl?: string | null;
+    withinWindow?: boolean;
+    windowOpensAt?: string | null;
+  } | null>(null);
+  const [selectedClassQrLoading, setSelectedClassQrLoading] = useState(false);
   const [showPayoutDialog, setShowPayoutDialog] = useState(false);
   const [showAddInstructorDialog, setShowAddInstructorDialog] = useState(false);
   const [showEditInstructorDialog, setShowEditInstructorDialog] = useState(false);
@@ -360,6 +390,7 @@ export default function AdminDashboard() {
   >([]);
   /** Day rosters with check-in details (from /api/admin/dashboard/today-classes). */
   const [todayClassesDetail, setTodayClassesDetail] = useState<any[]>([]);
+  const [todayClassesLoading, setTodayClassesLoading] = useState<boolean>(true);
   /** ISO yyyy-mm-dd date for the schedule card; defaults to today. */
   const [scheduleDate, setScheduleDate] = useState<string>(() => {
     const d = new Date();
@@ -496,6 +527,8 @@ export default function AdminDashboard() {
   };
 
   const { data: session, status } = useSession();
+  // Scalar role — avoids `session` object identity churn re-firing every effect.
+  const userRole = (session?.user as { role?: string })?.role;
 
   useEffect(() => {
     if (status === "loading") return;
@@ -503,18 +536,17 @@ export default function AdminDashboard() {
       router.push("/admin/login");
       return;
     }
-    const role = (session?.user as { role?: string })?.role;
-    if (status === "authenticated" && role !== "admin") {
+    if (status === "authenticated" && userRole !== "admin") {
       router.push("/admin/login");
       return;
     }
     if (status === "authenticated") setLoading(false);
-  }, [status, session, router]);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [status, userRole]);
 
   useEffect(() => {
     if (status !== "authenticated") return;
-    const role = (session?.user as { role?: string })?.role;
-    if (role !== "admin") return;
+    if (userRole !== "admin") return;
     let cancelled = false;
     (async () => {
       const r = await fetch("/api/admin/overview");
@@ -536,7 +568,8 @@ export default function AdminDashboard() {
     return () => {
       cancelled = true;
     };
-  }, [status, session]);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [status, userRole]);
 
   /**
    * Per-section lazy loader. Tracks which slices have been fetched so a tab
@@ -567,18 +600,29 @@ export default function AdminDashboard() {
   /** Overview tab: today's classes, expiring members, member stats (for top-class card), instructor payouts. */
   useEffect(() => {
     if (status !== "authenticated") return;
-    const role = (session?.user as { role?: string })?.role;
-    if (role !== "admin" || activeTab !== "overview") return;
+    if (userRole !== "admin" || activeTab !== "overview") return;
     let cancelled = false;
 
-    // Keyed by date so toggling days refetches instead of reusing the first load.
-    void loadSection(`today-classes:${scheduleDate}`, async () => {
-      const r = await fetch(`/api/admin/dashboard/today-classes?date=${encodeURIComponent(scheduleDate)}`);
-      if (!r.ok) return false;
-      const d = await r.json();
-      if (Array.isArray(d.todayClasses)) setTodayClassesDetail(d.todayClasses);
-      return true;
-    });
+    // Always refetch on date change — bypass loadSection cache. The cache +
+    // StrictMode double-effect can leave loading stuck true on first mount:
+    // mount-1 fills loadedRef, cleanup sets cancelled, mount-2's call short-
+    // circuits, and mount-1's finally skips the setLoading(false) because
+    // cancelled is now true.
+    // Don't clear existing items — keeps the carousel mounted so only the
+    // inner cards swap when the response arrives. A subtle opacity dim on the
+    // wrapper signals the refetch without resizing the outer card.
+    setTodayClassesLoading(true);
+    void (async () => {
+      try {
+        const r = await fetch(`/api/admin/dashboard/today-classes?date=${encodeURIComponent(scheduleDate)}`);
+        if (!r.ok || cancelled) return;
+        const d = await r.json();
+        if (cancelled) return;
+        if (Array.isArray(d.todayClasses)) setTodayClassesDetail(d.todayClasses);
+      } finally {
+        if (!cancelled) setTodayClassesLoading(false);
+      }
+    })();
     void loadSection("expiring-members", async () => {
       const r = await fetch("/api/admin/dashboard/expiring-members");
       if (!r.ok) return false;
@@ -607,13 +651,35 @@ export default function AdminDashboard() {
     });
 
     return () => { cancelled = true; };
-  }, [status, session, activeTab, scheduleDate]);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [status, userRole, activeTab, scheduleDate]);
+
+  /** Fetch check-in QR when the class-details dialog opens for a class. */
+  useEffect(() => {
+    if (!showClassDetailsDialog || !selectedClass?.id) {
+      setSelectedClassQr(null);
+      return;
+    }
+    let cancelled = false;
+    setSelectedClassQrLoading(true);
+    setSelectedClassQr(null);
+    (async () => {
+      try {
+        const r = await fetch(`/api/admin/schedule-qr?scheduleId=${selectedClass.id}`);
+        if (!r.ok || cancelled) return;
+        const d = await r.json();
+        if (!cancelled) setSelectedClassQr(d);
+      } finally {
+        if (!cancelled) setSelectedClassQrLoading(false);
+      }
+    })();
+    return () => { cancelled = true; };
+  }, [showClassDetailsDialog, selectedClass?.id]);
 
   /** Members tab. */
   useEffect(() => {
     if (status !== "authenticated") return;
-    const role = (session?.user as { role?: string })?.role;
-    if (role !== "admin" || activeTab !== "members") return;
+    if (userRole !== "admin" || activeTab !== "members") return;
     let cancelled = false;
 
     void loadSection("member-stats", async () => {
@@ -639,13 +705,13 @@ export default function AdminDashboard() {
     });
 
     return () => { cancelled = true; };
-  }, [status, session, activeTab]);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [status, userRole, activeTab]);
 
   /** Instructors tab. */
   useEffect(() => {
     if (status !== "authenticated") return;
-    const role = (session?.user as { role?: string })?.role;
-    if (role !== "admin" || activeTab !== "instructors") return;
+    if (userRole !== "admin" || activeTab !== "instructors") return;
     let cancelled = false;
 
     void loadSection("instructor-performance", async () => {
@@ -670,13 +736,13 @@ export default function AdminDashboard() {
     });
 
     return () => { cancelled = true; };
-  }, [status, session, activeTab]);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [status, userRole, activeTab]);
 
   /** Classes tab. */
   useEffect(() => {
     if (status !== "authenticated") return;
-    const role = (session?.user as { role?: string })?.role;
-    if (role !== "admin" || activeTab !== "classes") return;
+    if (userRole !== "admin" || activeTab !== "classes") return;
     let cancelled = false;
 
     void loadSection("class-performance", async () => {
@@ -700,13 +766,13 @@ export default function AdminDashboard() {
     });
 
     return () => { cancelled = true; };
-  }, [status, session, activeTab]);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [status, userRole, activeTab]);
 
   /** Finance tab. */
   useEffect(() => {
     if (status !== "authenticated") return;
-    const role = (session?.user as { role?: string })?.role;
-    if (role !== "admin" || activeTab !== "finance") return;
+    if (userRole !== "admin" || activeTab !== "finance") return;
     let cancelled = false;
 
     void loadSection("transactions", async () => {
@@ -724,7 +790,8 @@ export default function AdminDashboard() {
     });
 
     return () => { cancelled = true; };
-  }, [status, session, activeTab]);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [status, userRole, activeTab]);
 
   useEffect(() => {
     if (status !== "authenticated") return;
@@ -749,7 +816,8 @@ export default function AdminDashboard() {
     return () => {
       cancelled = true;
     };
-  }, [status, session, activeTab]);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [status, userRole, activeTab]);
 
   useEffect(() => {
     if (status !== "authenticated") return;
@@ -774,7 +842,8 @@ export default function AdminDashboard() {
     return () => {
       cancelled = true;
     };
-  }, [status, session, activeTab]);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [status, userRole, activeTab]);
 
   useEffect(() => {
     if (status !== "authenticated") return;
@@ -799,7 +868,8 @@ export default function AdminDashboard() {
     return () => {
       cancelled = true;
     };
-  }, [status, session, activeTab]);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [status, userRole, activeTab]);
 
   const handleToggleMember = (memberId: string) => {
     const newSelected = new Set(selectedMembers);
@@ -821,7 +891,7 @@ export default function AdminDashboard() {
 
   const handleBulkNudge = () => {
     const count = selectedMembers.size;
-    toast.error(`"The Ritual Renewal" template queued for ${count} members via WhatsApp/Email!`);
+    toast.success(`"The Ritual Renewal" template queued for ${count} members via WhatsApp/Email!`);
     setSelectedMembers(new Set());
   };
 
@@ -1471,18 +1541,24 @@ export default function AdminDashboard() {
                 </div>
 
                 {/* Upcoming Classes */}
-                <Card className="border-sage/20 bg-white/95 backdrop-blur-xl">
+                <Card className="border-sage/20 bg-white/95 backdrop-blur-xl overflow-x-hidden overflow-y-visible w-full min-w-0 max-w-full">
                     <CardHeader>
                       <div className="flex flex-wrap items-start justify-between gap-3">
                         <div>
                           <CardTitle className="font-display text-2xl text-charcoal">
                             {(() => {
                               const today = new Date();
-                              const todayIso = `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, "0")}-${String(today.getDate()).padStart(2, "0")}`;
-                              if (scheduleDate === todayIso) return "Today's schedule";
+                              const iso = (dt: Date) => `${dt.getFullYear()}-${String(dt.getMonth() + 1).padStart(2, "0")}-${String(dt.getDate()).padStart(2, "0")}`;
+                              const todayIso = iso(today);
+                              const tom = new Date(today); tom.setDate(tom.getDate() + 1);
+                              const yest = new Date(today); yest.setDate(yest.getDate() - 1);
                               const [y, m, d] = scheduleDate.split("-").map(Number);
                               const dt = new Date(y, m - 1, d);
-                              return dt.toLocaleDateString("en-US", { weekday: "long", month: "short", day: "numeric" });
+                              const pretty = dt.toLocaleDateString("en-US", { weekday: "long", month: "short", day: "numeric" });
+                              if (scheduleDate === todayIso) return `Today · ${pretty}`;
+                              if (scheduleDate === iso(tom)) return `Tomorrow · ${pretty}`;
+                              if (scheduleDate === iso(yest)) return `Yesterday · ${pretty}`;
+                              return pretty;
                             })()}
                           </CardTitle>
                           <CardDescription className="font-body text-charcoal/60">
@@ -1495,7 +1571,7 @@ export default function AdminDashboard() {
                           <Button
                             variant="outline"
                             size="sm"
-                            className="border-sage/20 text-sage hover:bg-sage/5 h-9 px-2"
+                            className="border-sage/40 text-sage bg-white hover:!bg-sage hover:!text-white hover:!border-sage h-9 w-9 p-0 transition-all"
                             onClick={() => {
                               const [y, m, d] = scheduleDate.split("-").map(Number);
                               const dt = new Date(y, m - 1, d - 1);
@@ -1509,12 +1585,12 @@ export default function AdminDashboard() {
                             type="date"
                             value={scheduleDate}
                             onChange={(e) => setScheduleDate(e.target.value)}
-                            className="h-9 w-40 border-sage/20 font-body"
+                            className="h-9 w-40 border-sage/40 font-body"
                           />
                           <Button
                             variant="outline"
                             size="sm"
-                            className="border-sage/20 text-sage hover:bg-sage/5 h-9 px-2"
+                            className="border-sage/40 text-sage bg-white hover:!bg-sage hover:!text-white hover:!border-sage h-9 w-9 p-0 transition-all"
                             onClick={() => {
                               const [y, m, d] = scheduleDate.split("-").map(Number);
                               const dt = new Date(y, m - 1, d + 1);
@@ -1527,7 +1603,7 @@ export default function AdminDashboard() {
                           <Button
                             variant="outline"
                             size="sm"
-                            className="border-sage/20 text-sage hover:bg-sage/5 h-9 font-body"
+                            className="border-sage/40 text-sage bg-white hover:!bg-sage hover:!text-white hover:!border-sage h-9 font-body transition-all"
                             onClick={() => {
                               const t = new Date();
                               setScheduleDate(`${t.getFullYear()}-${String(t.getMonth() + 1).padStart(2, "0")}-${String(t.getDate()).padStart(2, "0")}`);
@@ -1538,29 +1614,77 @@ export default function AdminDashboard() {
                         </div>
                       </div>
                     </CardHeader>
-                    <CardContent>
-                      <DayScheduleList
+                    <CardContent className="min-w-0 max-w-full overflow-x-hidden overflow-y-visible">
+                      <div
+                        className={cn(
+                          "transition-opacity duration-200",
+                          todayClassesLoading && todayClassesDetail.length === 0 ? "opacity-0" : todayClassesLoading ? "opacity-50" : "opacity-100",
+                        )}
+                      >
+                      {todayClassesLoading && todayClassesDetail.length === 0 ? (
+                        <div className="flex gap-4 w-full max-w-full overflow-hidden py-2">
+                          {Array.from({ length: 3 }).map((_, i) => (
+                            <div
+                              key={i}
+                              className="shrink-0 w-[340px] rounded-2xl border border-sage/15 bg-white p-5"
+                            >
+                              <div className="flex items-start justify-between gap-3">
+                                <div className="space-y-2 min-w-0 flex-1">
+                                  <Skeleton className="h-5 w-3/4" />
+                                  <Skeleton className="h-4 w-1/2" />
+                                </div>
+                                <Skeleton className="h-6 w-16 rounded-full" />
+                              </div>
+                              <div className="mt-5 flex items-center gap-3">
+                                <Skeleton className="h-9 w-9 rounded-full" />
+                                <Skeleton className="h-4 w-24" />
+                              </div>
+                              <Skeleton className="mt-5 h-1.5 w-full rounded-full" />
+                              <div className="mt-4 flex gap-2">
+                                <Skeleton className="h-8 flex-1 rounded-md" />
+                                <Skeleton className="h-8 w-20 rounded-md" />
+                              </div>
+                            </div>
+                          ))}
+                        </div>
+                      ) : (
+                      <TodayClassesCarousel
+                        isToday={(() => {
+                          const t = new Date();
+                          const todayIso = `${t.getFullYear()}-${String(t.getMonth() + 1).padStart(2, "0")}-${String(t.getDate()).padStart(2, "0")}`;
+                          return scheduleDate === todayIso;
+                        })()}
                         items={(todayClassesDetail.length > 0
                           ? todayClassesDetail
                           : upcomingClasses
-                        )
-                          .slice(0, 8)
-                          .map((cls: any) => ({
-                            id: cls.id,
-                            name: cls.name,
-                            time: cls.time,
-                            instructor: cls.instructor ?? "—",
-                            instructorAvatarUrl: cls.instructorAvatarUrl ?? null,
-                            enrolled: cls.enrolled ?? 0,
-                            capacity: cls.capacity ?? (cls.enrolled ?? 0),
-                            recurring: cls.recurring,
-                            _raw: cls,
-                          } as any))}
-                        onSelect={(row: any) => {
-                          const cls = row._raw;
+                        ).map((cls: any) => ({
+                          id: cls.id,
+                          name: cls.name,
+                          time: cls.time,
+                          startIso: cls.startIso,
+                          endIso: cls.endIso,
+                          instructor: cls.instructor ?? "—",
+                          instructorAvatarUrl: cls.instructorAvatarUrl ?? null,
+                          enrolled: cls.enrolled ?? 0,
+                          capacity: cls.capacity ?? (cls.enrolled ?? 0),
+                          recurring: cls.recurring,
+                          status: cls.status,
+                          _raw: cls,
+                        }))}
+                        onManage={(row) => router.push(`/admin/schedule/${row.id}`)}
+                        onStatusChange={(row, newStatus) => {
+                          setPendingStatusChange({
+                            id: row.id,
+                            name: row.name,
+                            time: row.time,
+                            currentStatus: row.status,
+                            newStatus,
+                          });
+                        }}
+                        onSelect={(row) => {
+                          const cls: any = row._raw;
                           setSelectedClass(cls);
                           setShowClassDetailsDialog(true);
-                          // Refresh roster live from API
                           if (cls?.id) {
                             fetch(`/api/admin/class-roster?scheduleId=${cls.id}`)
                               .then(r => r.ok ? r.json() : null)
@@ -1589,7 +1713,10 @@ export default function AdminDashboard() {
                               .catch(() => {});
                           }
                         }}
+                        emptyText="No classes scheduled for this day."
                       />
+                      )}
+                      </div>
                     </CardContent>
                   </Card>
 
@@ -1606,9 +1733,9 @@ export default function AdminDashboard() {
                           {expiringMembers.length} memberships expiring in the next 14 days
                         </CardDescription>
                       </div>
-                      <Button 
+                      <Button
                         onClick={() => router.push("/admin/CRM")}
-                        className="bg-amber-500 hover:bg-amber-600 text-white font-body"
+                        variant="sage"
                       >
                         Open CRM
                       </Button>
@@ -1625,7 +1752,7 @@ export default function AdminDashboard() {
                           <Button
                             onClick={handleBulkNudge}
                             size="sm"
-                            className="bg-sage hover:bg-sage/90 text-white font-body"
+                            variant="sage"
                           >
                             <Zap size={14} className="mr-1" />
                             Nudge All ({selectedMembers.size})
@@ -1695,7 +1822,7 @@ export default function AdminDashboard() {
                               size="sm"
                               className="flex-1 sm:flex-none border-amber-500/20 text-amber-600 hover:bg-amber-50 font-body transition-all"
                               onClick={() => {
-                                toast.error(`"The Ritual Renewal" CRM template instantly queued for ${member.name} via WhatsApp/Email!`);
+                                toast.success(`"The Ritual Renewal" CRM template instantly queued for ${member.name} via WhatsApp/Email!`);
                               }}
                             >
                               <Zap size={14} className="mr-1" />
@@ -1766,7 +1893,7 @@ export default function AdminDashboard() {
                     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
                       <Button
                         type="button"
-                        className="bg-sage hover:bg-sage/90 text-white font-body h-12"
+                        variant="sage" className="h-12"
                         onClick={() => exportFinanceReport("week")}
                       >
                         <Download className="h-4 w-4 mr-2" />
@@ -1774,7 +1901,7 @@ export default function AdminDashboard() {
                       </Button>
                       <Button
                         type="button"
-                        className="bg-sage hover:bg-sage/90 text-white font-body h-12"
+                        variant="sage" className="h-12"
                         onClick={() => exportFinanceReport("month")}
                       >
                         <Download className="h-4 w-4 mr-2" />
@@ -1782,7 +1909,7 @@ export default function AdminDashboard() {
                       </Button>
                       <Button
                         type="button"
-                        className="bg-sage hover:bg-sage/90 text-white font-body h-12"
+                        variant="sage" className="h-12"
                         onClick={() => exportFinanceReport("quarter")}
                       >
                         <Download className="h-4 w-4 mr-2" />
@@ -1790,7 +1917,7 @@ export default function AdminDashboard() {
                       </Button>
                       <Button
                         type="button"
-                        className="bg-sage hover:bg-sage/90 text-white font-body h-12"
+                        variant="sage" className="h-12"
                         onClick={() => exportFinanceReport("year")}
                       >
                         <Download className="h-4 w-4 mr-2" />
@@ -2482,7 +2609,7 @@ export default function AdminDashboard() {
                             type="button"
                             onClick={() => void saveCouponFromDraft()}
                             disabled={couponSaving}
-                            className="bg-sage hover:bg-sage/90 text-white font-body"
+                            variant="sage"
                           >
                             {couponSaving ? "Saving..." : editingCouponId ? "Update coupon" : "Create coupon"}
                           </Button>
@@ -2562,7 +2689,7 @@ export default function AdminDashboard() {
                                   </TableCell>
                                   <TableCell className="px-5 py-3">
                                     <div className="flex items-center gap-1.5">
-                                      <Button type="button" size="sm" variant="outline" className="border-sage/20 text-sage hover:bg-sage/10 font-body h-8" onClick={() => startEditCoupon(c)}>
+                                      <Button type="button" size="sm" variant="sage-outline" className="h-8" onClick={() => startEditCoupon(c)}>
                                         Edit
                                       </Button>
                                       <Button type="button" size="sm" variant="outline" className="border-red-200 text-red-600 hover:bg-red-50 font-body h-8" onClick={() => void deleteCouponById(c.id)}>
@@ -2976,7 +3103,7 @@ export default function AdminDashboard() {
                           </div>
                         </div>
                       </div>
-                      <Button className="bg-sage hover:bg-sage/90 text-white font-body">
+                      <Button variant="sage">
                         View Profile
                       </Button>
                     </div>
@@ -3199,7 +3326,7 @@ export default function AdminDashboard() {
                               <TableCell className="px-5 py-3 font-display text-base text-amber-600 tabular-nums">{member.late}</TableCell>
                               <TableCell className="px-5 py-3 font-display text-base text-red-500 tabular-nums">{member.noShow}</TableCell>
                               <TableCell className="px-5 py-3 text-right">
-                                <Button variant="outline" size="sm" onClick={() => handleViewProfile(member)} className="border-sage/20 text-sage hover:bg-sage/10 font-body h-8">
+                                <Button variant="sage-outline" size="sm" onClick={() => handleViewProfile(member)} className="h-8">
                                   View
                                 </Button>
                               </TableCell>
@@ -3303,7 +3430,7 @@ export default function AdminDashboard() {
                                   ₹{(instructor.totalCheckIns * 150).toLocaleString("en-IN")}
                                 </TableCell>
                                 <TableCell className="px-5 py-3 text-right">
-                                  <Button variant="outline" size="sm" className="border-sage/20 text-sage hover:bg-sage/10 font-body h-8">
+                                  <Button variant="sage-outline" size="sm" className="h-8">
                                     View
                                   </Button>
                                 </TableCell>
@@ -3881,7 +4008,7 @@ export default function AdminDashboard() {
             <Button variant="outline" onClick={() => setShowAddUserDialog(false)} className="border-sage/20 font-body">
               Cancel
             </Button>
-            <Button className="bg-sage hover:bg-sage/90 text-white font-body">
+            <Button variant="sage">
               <Save className="h-4 w-4 mr-2" />
               Create User
             </Button>
@@ -3928,7 +4055,7 @@ export default function AdminDashboard() {
                 <Label htmlFor="edit-credits" className="font-body text-charcoal">Credits</Label>
                 <div className="flex gap-2">
                   <Input id="edit-credits" type="number" defaultValue={selectedUser.credits} className="border-sage/20 focus:ring-sage" />
-                  <Button variant="outline" size="sm" className="border-sage/20 text-sage hover:bg-sage/5">
+                  <Button variant="sage-outline" size="sm">
                     <Plus className="h-4 w-4" />
                   </Button>
                 </div>
@@ -3943,7 +4070,7 @@ export default function AdminDashboard() {
             <Button variant="outline" onClick={() => setShowEditUserDialog(false)} className="border-sage/20 font-body">
               Cancel
             </Button>
-            <Button className="bg-sage hover:bg-sage/90 text-white font-body">
+            <Button variant="sage">
               <Save className="h-4 w-4 mr-2" />
               Save Changes
             </Button>
@@ -4021,7 +4148,7 @@ export default function AdminDashboard() {
             <Button variant="outline" onClick={() => setShowAddClassDialog(false)} className="border-sage/20 font-body">
               Cancel
             </Button>
-            <Button className="bg-sage hover:bg-sage/90 text-white font-body">
+            <Button variant="sage">
               <Save className="h-4 w-4 mr-2" />
               Create Class
             </Button>
@@ -4029,51 +4156,127 @@ export default function AdminDashboard() {
         </ResponsiveDialogContent>
       </ResponsiveDialog>
 
+      {/* Confirm class status change */}
+      <AlertDialog
+        open={!!pendingStatusChange}
+        onOpenChange={(open) => { if (!open && !statusChangeBusy) setPendingStatusChange(null); }}
+      >
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle className="font-display">
+              {pendingStatusChange?.newStatus === "available"
+                ? "Reactivate this class?"
+                : pendingStatusChange?.newStatus === "inactive"
+                ? "Set this class to inactive?"
+                : pendingStatusChange?.newStatus === "cancelled"
+                ? "Cancel this class?"
+                : "Change class status?"}
+            </AlertDialogTitle>
+            <AlertDialogDescription className="font-body">
+              {pendingStatusChange?.name} at {pendingStatusChange?.time} — status will change from{" "}
+              <span className="capitalize font-medium">{pendingStatusChange?.currentStatus ?? "available"}</span>
+              {" "}to{" "}
+              <span className="capitalize font-medium">{pendingStatusChange?.newStatus}</span>.
+              {pendingStatusChange?.newStatus === "cancelled" && " Bookings will be blocked."}
+              {pendingStatusChange?.newStatus === "inactive" && " The class will be hidden from members."}
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel disabled={statusChangeBusy}>Cancel</AlertDialogCancel>
+            <AlertDialogAction
+              disabled={statusChangeBusy}
+              onClick={async (e) => {
+                e.preventDefault();
+                if (!pendingStatusChange) return;
+                const { id, newStatus } = pendingStatusChange;
+                setStatusChangeBusy(true);
+                try {
+                  const res = await fetch(`/api/class-schedules`, {
+                    method: "PUT",
+                    credentials: "include",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({ id, status: newStatus }),
+                  });
+                  if (!res.ok) throw new Error(`HTTP ${res.status}`);
+                  setTodayClassesDetail((prev) =>
+                    prev.map((c: any) => (c.id === id ? { ...c, status: newStatus } : c)),
+                  );
+                  toast.success(
+                    newStatus === "available"
+                      ? "Class reactivated"
+                      : newStatus === "inactive"
+                      ? "Class set to inactive"
+                      : newStatus === "cancelled"
+                      ? "Class cancelled"
+                      : "Status updated",
+                  );
+                  setPendingStatusChange(null);
+                } catch (err) {
+                  toast.error(`Could not change status: ${(err as Error).message}`);
+                } finally {
+                  setStatusChangeBusy(false);
+                }
+              }}
+            >
+              {statusChangeBusy ? "Saving…" : "Confirm"}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+
       {/* Class Details Dialog */}
       <ResponsiveDialog open={showClassDetailsDialog} onOpenChange={(open) => { setShowClassDetailsDialog(open); if (!open) { setRosterCheckingIn({}); setDashMemberQuery(""); setDashMemberResults([]); } }}>
         <ResponsiveDialogContent className="max-w-3xl bg-white/95 backdrop-blur-xl border-sage/20">
           <ResponsiveDialogHeader>
-            <ResponsiveDialogTitle className="font-display text-2xl text-charcoal">
-              {selectedClass?.name} - Class Details
-            </ResponsiveDialogTitle>
-            <ResponsiveDialogDescription className="font-body text-charcoal/60">
-              {selectedClass?.time} with {selectedClass?.instructor}
-            </ResponsiveDialogDescription>
+            <div className="flex items-start justify-between gap-3">
+              <div className="min-w-0">
+                <ResponsiveDialogTitle className="font-display text-2xl text-charcoal">
+                  {selectedClass?.name} - Class Details
+                </ResponsiveDialogTitle>
+                <ResponsiveDialogDescription className="font-body text-charcoal/60">
+                  {selectedClass?.time} with {selectedClass?.instructor}
+                </ResponsiveDialogDescription>
+              </div>
+              {selectedClass?.id && (
+                <Button
+                  size="sm"
+                  variant="outline"
+                  onClick={() => router.push(`/admin/schedule/${selectedClass.id}`)}
+                  className="shrink-0 mr-8 border-sage/40 text-sage bg-white hover:!bg-sage hover:!text-white hover:!border-sage font-body"
+                >
+                  <ExternalLink className="h-4 w-4 mr-1.5" />
+                  Open full page
+                </Button>
+              )}
+            </div>
           </ResponsiveDialogHeader>
           {selectedClass && (
             <div className="space-y-4 py-4">
-              {/* Stats */}
-              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-                <Card className="border-sage/20 bg-cream/20">
-                  <CardContent className="p-4 text-center">
-                    <div className="font-display text-3xl text-sage mb-1">
-                      {selectedClass.checkedIn}
-                    </div>
-                    <div className="font-body text-xs text-charcoal/60">
-                      Checked In
-                    </div>
-                  </CardContent>
-                </Card>
-                <Card className="border-sage/20 bg-cream/20">
-                  <CardContent className="p-4 text-center">
-                    <div className="font-display text-3xl text-charcoal mb-1">
-                      {selectedClass.enrolled}
-                    </div>
-                    <div className="font-body text-xs text-charcoal/60">
-                      Total Enrolled
-                    </div>
-                  </CardContent>
-                </Card>
-                <Card className="border-sage/20 bg-cream/20">
-                  <CardContent className="p-4 text-center">
-                    <div className="font-display text-3xl text-charcoal/60 mb-1">
-                      {selectedClass.capacity}
-                    </div>
-                    <div className="font-body text-xs text-charcoal/60">
-                      Max Capacity
-                    </div>
-                  </CardContent>
-                </Card>
+              {/* Check-in QR codes */}
+              <div className="rounded-xl border border-sage/15 bg-cream/10 p-4">
+                <div className="flex flex-wrap items-center justify-between gap-2 mb-3">
+                  <div className="font-body font-medium text-charcoal">Check-in QR codes</div>
+                  <ClassCountdownPill
+                    startIso={selectedClass.startIso}
+                    endIso={selectedClass.endIso}
+                    fallbackTime={selectedClass.time}
+                    size="sm"
+                  />
+                </div>
+                {selectedClassQrLoading ? (
+                  <div className="grid grid-cols-2 gap-4">
+                    <Skeleton className="h-44 w-full rounded-lg" />
+                    <Skeleton className="h-44 w-full rounded-lg" />
+                  </div>
+                ) : (
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    {(["instructor", "member"] as const).map((kind) => (
+                      <div key={kind} className="rounded-lg border border-sage/15 bg-white p-4">
+                        <ClassCheckinQr kind={kind} qr={selectedClassQr} size={160} />
+                      </div>
+                    ))}
+                  </div>
+                )}
               </div>
 
               {/* Instructor check-in */}
@@ -4119,7 +4322,7 @@ export default function AdminDashboard() {
                     size="sm"
                     disabled={instructorCheckingIn}
                     onClick={() => handleInstructorCheckIn(true)}
-                    className="bg-sage hover:bg-sage/90 text-white font-body"
+                    variant="sage"
                   >
                     Check In
                   </Button>
@@ -4128,7 +4331,20 @@ export default function AdminDashboard() {
 
               {/* Attendee List */}
               <div>
-                <div className="font-body font-medium text-charcoal mb-3">Enrolled Members</div>
+                <div className="flex flex-wrap items-baseline justify-between gap-2 mb-3">
+                  <div className="font-body font-medium text-charcoal">Enrolled Members</div>
+                  <div className="flex items-center gap-3 font-body text-xs">
+                    <span className="text-sage">
+                      <span className="font-display text-base mr-1">{selectedClass.checkedIn}</span>checked in
+                    </span>
+                    <span className="text-charcoal/60">
+                      <span className="font-display text-base mr-1">{selectedClass.enrolled}</span>enrolled
+                    </span>
+                    <span className="text-charcoal/45">
+                      <span className="font-display text-base mr-1">{selectedClass.capacity}</span>capacity
+                    </span>
+                  </div>
+                </div>
                 {(selectedClass.attendees ?? []).length === 0 ? (
                   <div className="text-center py-8 rounded-lg border border-dashed border-sage/20 bg-cream/20">
                     <p className="font-body text-sm text-charcoal/50">
@@ -4240,7 +4456,8 @@ export default function AdminDashboard() {
                               size="sm"
                               disabled={dashAddingMemberId === m.id}
                               onClick={() => handleDashAddMember(m.id)}
-                              className="ml-2 shrink-0 bg-sage hover:bg-sage/90 text-white font-body h-7 px-3 text-xs rounded-full"
+                              variant="sage"
+                              className="ml-2 shrink-0 h-7 px-3 text-xs rounded-full"
                             >
                               {dashAddingMemberId === m.id ? (
                                 <Spinner className="size-3" />
@@ -4259,7 +4476,7 @@ export default function AdminDashboard() {
             <Button variant="outline" onClick={() => setShowClassDetailsDialog(false)} className="border-sage/20 font-body">
               Close
             </Button>
-            <Button className="bg-sage hover:bg-sage/90 text-white font-body">
+            <Button variant="sage">
               <Download className="h-4 w-4 mr-2" />
               Export Attendance
             </Button>
@@ -4342,7 +4559,7 @@ export default function AdminDashboard() {
             <Button variant="outline" onClick={() => setShowPayoutDialog(false)} className="border-sage/20 font-body">
               Cancel
             </Button>
-            <Button className="bg-sage hover:bg-sage/90 text-white font-body">
+            <Button variant="sage">
               <DollarSign className="h-4 w-4 mr-2" />
               Confirm Payment
             </Button>
@@ -4423,7 +4640,7 @@ export default function AdminDashboard() {
             <Button variant="outline" onClick={() => setShowAddInstructorDialog(false)} className="border-sage/20 font-body">
               Cancel
             </Button>
-            <Button type="submit" form="add-instructor-form" disabled={savingInstructor} className="bg-sage hover:bg-sage/90 text-white font-body">
+            <Button type="submit" form="add-instructor-form" disabled={savingInstructor} variant="sage">
               <Save className="h-4 w-4 mr-2" />
               {savingInstructor ? "Saving…" : "Create Instructor"}
             </Button>
@@ -4475,7 +4692,7 @@ export default function AdminDashboard() {
                 <Label htmlFor="edit-photo-upload" className="font-body text-charcoal">Update Profile Photo</Label>
                 <div className="flex items-center gap-3">
                   <Input id="edit-photo-upload" type="file" accept="image/*" className="border-sage/20 focus:ring-sage" />
-                  <Button variant="outline" className="border-sage/20 text-sage hover:bg-sage/5">
+                  <Button variant="sage-outline">
                     <Upload className="h-4 w-4 mr-2" />
                     Upload
                   </Button>
@@ -4500,7 +4717,7 @@ export default function AdminDashboard() {
             <Button variant="outline" onClick={() => setShowEditInstructorDialog(false)} className="border-sage/20 font-body">
               Cancel
             </Button>
-            <Button className="bg-sage hover:bg-sage/90 text-white font-body">
+            <Button variant="sage">
               <Save className="h-4 w-4 mr-2" />
               Save Changes
             </Button>
@@ -4524,12 +4741,7 @@ export default function AdminDashboard() {
                     {selectedMemberProfile.email} • {selectedMemberProfile.phone}
                   </p>
                 </div>
-                <button
-                  onClick={() => setShowMemberProfile(false)}
-                  className="w-10 h-10 rounded-full hover:bg-sage/10 flex items-center justify-center transition-colors"
-                >
-                  <X size={24} />
-                </button>
+                <CloseButton onClick={() => setShowMemberProfile(false)} className="rounded-full" />
               </div>
             </div>
 
@@ -4727,7 +4939,7 @@ export default function AdminDashboard() {
 
               {/* Quick Actions */}
               <div className="grid grid-cols-2 gap-4 pt-4">
-                <Button className="bg-sage hover:bg-sage/90 text-white font-body h-12">
+                <Button variant="sage" className="h-12">
                   <Zap size={16} className="mr-2" />
                   Send Nudge
                 </Button>
@@ -4742,11 +4954,11 @@ export default function AdminDashboard() {
                   <CreditCard size={16} className="mr-2" />
                   Manage Packages
                 </Button>
-                <Button variant="outline" className="border-sage/30 text-charcoal hover:bg-sage/5 font-body h-12">
+                <Button variant="sage-outline" className="h-12">
                   <Mail size={16} className="mr-2" />
                   Send Email
                 </Button>
-                <Button variant="outline" className="border-sage/30 text-charcoal hover:bg-sage/5 font-body h-12">
+                <Button variant="sage-outline" className="h-12">
                   <Edit size={16} className="mr-2" />
                   Edit Profile
                 </Button>

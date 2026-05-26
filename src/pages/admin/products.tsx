@@ -4,6 +4,7 @@ import { useSession } from "next-auth/react";
 import { SEO } from "@/components/SEO";
 import { AdminPageHeader } from "@/components/admin/AdminPageHeader";
 import { Button } from "@/components/ui/button";
+import { EditButton, DeleteButton } from "@/components/ui/quick-actions";
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
@@ -423,7 +424,7 @@ export default function AdminProducts() {
               actions={
                 <Button
                   onClick={() => setShowProductForm(true)}
-                  className="bg-sage hover:bg-sage/90 text-white"
+                  variant="sage"
                 >
                   <Plus size={20} className="mr-2" />
                   Add Product
@@ -577,18 +578,8 @@ export default function AdminProducts() {
                               </td>
                               <td className="p-4">
                                 <div className="flex items-center justify-end gap-2">
-                                  <button
-                                    onClick={() => handleEditProduct(product)}
-                                    className="p-2 rounded-lg hover:bg-sage/10 text-sage transition-colors"
-                                  >
-                                    <Edit size={16} />
-                                  </button>
-                                  <button
-                                    onClick={() => handleDeleteProduct(product.id)}
-                                    className="p-2 rounded-lg hover:bg-terracotta/10 text-terracotta transition-colors"
-                                  >
-                                    <Trash2 size={16} />
-                                  </button>
+                                  <EditButton onClick={() => handleEditProduct(product)} />
+                                  <DeleteButton onClick={() => handleDeleteProduct(product.id)} />
                                 </div>
                               </td>
                             </tr>
@@ -633,7 +624,7 @@ export default function AdminProducts() {
                     </p>
                     <Button
                       onClick={() => setShowCategoryForm(true)}
-                      className="bg-sage hover:bg-sage/90 text-white"
+                      variant="sage"
                     >
                       <Plus size={20} className="mr-2" />
                       Add Category
@@ -696,7 +687,7 @@ export default function AdminProducts() {
                       </p>
                       <Button
                         onClick={() => setShowCategoryForm(true)}
-                        className="bg-sage hover:bg-sage/90 text-white"
+                        variant="sage"
                       >
                         <Plus size={20} className="mr-2" />
                         Add Category
@@ -970,7 +961,8 @@ export default function AdminProducts() {
                   </Button>
                   <Button
                     onClick={editingProduct ? handleUpdateProduct : handleAddProduct}
-                    className="flex-1 bg-sage hover:bg-sage/90 text-white"
+                    variant="sage"
+                    className="flex-1"
                   >
                     <Check size={18} className="mr-2" />
                     {editingProduct ? "Update Product" : "Add Product"}
@@ -1043,7 +1035,8 @@ export default function AdminProducts() {
                   </Button>
                   <Button
                     onClick={editingCategory ? handleUpdateCategory : handleAddCategory}
-                    className="flex-1 bg-sage hover:bg-sage/90 text-white"
+                    variant="sage"
+                    className="flex-1"
                   >
                     <Check size={18} className="mr-2" />
                     {editingCategory ? "Update Category" : "Add Category"}

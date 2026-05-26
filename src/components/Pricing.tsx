@@ -1,5 +1,6 @@
 import { useRef, useState } from "react";
-import { ChevronLeft, ChevronRight, Check, Sparkles } from "lucide-react";
+import { Check, Sparkles } from "lucide-react";
+import { NavPrevButton, NavNextButton } from "@/components/ui/quick-actions";
 import Link from "next/link";
 import { useRouter } from "next/router";
 import { useSession } from "next-auth/react";
@@ -233,18 +234,14 @@ export function Pricing() {
 
         {/* Mobile Scroll Buttons */}
         <div className="flex justify-center gap-4 mb-6 lg:hidden">
-          <button
+          <NavPrevButton
             onClick={() => scroll("left")}
-            className="w-10 h-10 rounded-full bg-white/80 backdrop-blur-xl shadow-md flex items-center justify-center hover:bg-white transition-all"
-          >
-            <ChevronLeft className="text-charcoal" size={20} />
-          </button>
-          <button
+            className="rounded-full bg-white/80 backdrop-blur-xl"
+          />
+          <NavNextButton
             onClick={() => scroll("right")}
-            className="w-10 h-10 rounded-full bg-white/80 backdrop-blur-xl shadow-md flex items-center justify-center hover:bg-white transition-all"
-          >
-            <ChevronRight className="text-charcoal" size={20} />
-          </button>
+            className="rounded-full bg-white/80 backdrop-blur-xl"
+          />
         </div>
 
         {/* Packages Container */}
@@ -310,12 +307,10 @@ export function Pricing() {
                 </ul>
 
                 {/* CTA Button */}
-                <Button 
+                <Button
                   onClick={handleSelectPackage}
-                  className={pkg.featured 
-                    ? "w-full bg-sage hover:bg-sage/90 text-white font-body shadow-lg shadow-sage/20" 
-                    : "w-full border-2 border-sage/30 text-sage hover:bg-sage/5 font-body bg-transparent"
-                  }
+                  variant={pkg.featured ? "sage" : "sage-outline"}
+                  className="w-full"
                 >
                   Select Package
                 </Button>

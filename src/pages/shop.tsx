@@ -23,6 +23,7 @@ import Image from "next/image";
 import Link from "next/link";
 import { useSession } from "next-auth/react";
 import { Input } from "@/components/ui/input";
+import { CloseButton, QtyMinusButton, QtyPlusButton } from "@/components/ui/quick-actions";
 
 import { cdnUrl } from "@/lib/cdnUrl";
 interface RetailProduct {
@@ -264,12 +265,15 @@ export default function Shop() {
                 className="w-full pl-12 pr-4 py-3 rounded-full bg-white/60 border border-sage/10 font-body text-sm text-charcoal placeholder:text-charcoal/40 focus:outline-hidden focus:ring-2 focus:ring-sage/30 focus:border-sage transition-all"
               />
               {searchQuery && (
-                <button
+                <Button
+                  type="button"
+                  variant="ghost"
+                  size="icon-sm"
                   onClick={() => setSearchQuery("")}
-                  className="absolute right-4 top-1/2 -translate-y-1/2 text-charcoal/40 hover:text-charcoal transition-colors"
+                  className="absolute right-4 top-1/2 -translate-y-1/2 text-charcoal/40"
                 >
                   <X size={16} />
-                </button>
+                </Button>
               )}
             </div>
           </div>
@@ -308,9 +312,11 @@ export default function Shop() {
                 <option value="price-high">Price: High to Low</option>
               </select>
 
-              <button
+              <Button
+                type="button"
+                variant="sage"
                 onClick={() => setShowCart(true)}
-                className="relative flex items-center gap-2 px-6 py-2 rounded-full bg-sage hover:bg-sage/90 text-white font-body text-sm transition-all duration-300 shadow-lg hover:shadow-xl"
+                className="relative rounded-full px-6"
               >
                 <ShoppingCart size={18} />
                 Cart
@@ -319,7 +325,7 @@ export default function Shop() {
                     {cart.itemCount}
                   </span>
                 )}
-              </button>
+              </Button>
             </div>
           </div>
         </div>
@@ -410,15 +416,17 @@ export default function Shop() {
               <p className="font-body text-charcoal/60 mb-6">
                 Try adjusting your search or filters
               </p>
-              <button
+              <Button
+                type="button"
+                variant="sage"
                 onClick={() => {
                   setSearchQuery("");
                   setSelectedCategory("all");
                 }}
-                className="px-6 py-3 rounded-full bg-sage text-white font-body text-sm hover:bg-sage/90 transition-colors"
+                className="rounded-full px-6"
               >
                 Clear Filters
-              </button>
+              </Button>
             </div>
           )}
         </div>
@@ -441,12 +449,7 @@ export default function Shop() {
                 <div className="sticky top-0 bg-white/95 backdrop-blur-xl border-b border-sage/10 p-6 z-10">
                   <div className="flex items-center justify-between mb-2">
                     <h2 className="font-display text-3xl text-charcoal">Your Cart</h2>
-                    <button
-                      onClick={() => setShowCart(false)}
-                      className="w-10 h-10 rounded-full hover:bg-sage/10 flex items-center justify-center transition-colors"
-                    >
-                      <X className="text-charcoal" size={24} />
-                    </button>
+                    <CloseButton onClick={() => setShowCart(false)} />
                   </div>
                   <p className="font-body text-sm text-charcoal/60">
                     {cart.itemCount} {cart.itemCount === 1 ? "item" : "items"}
@@ -478,28 +481,27 @@ export default function Shop() {
                             </p>
                             
                             <div className="flex items-center gap-3">
-                              <button
+                              <QtyMinusButton
                                 onClick={() => cart.updateQuantity(item.id, item.quantity - 1)}
-                                className="w-8 h-8 rounded-full bg-white border border-sage/20 hover:bg-sage/10 flex items-center justify-center transition-colors"
-                              >
-                                <Minus size={14} className="text-charcoal" />
-                              </button>
+                                className="rounded-full bg-white border border-sage/20 text-charcoal"
+                              />
                               <span className="font-body text-sm text-charcoal w-8 text-center">
                                 {item.quantity}
                               </span>
-                              <button
+                              <QtyPlusButton
                                 onClick={() => cart.updateQuantity(item.id, item.quantity + 1)}
-                                className="w-8 h-8 rounded-full bg-white border border-sage/20 hover:bg-sage/10 flex items-center justify-center transition-colors"
-                              >
-                                <Plus size={14} className="text-charcoal" />
-                              </button>
-                              
-                              <button
+                                className="rounded-full bg-white border border-sage/20 text-charcoal"
+                              />
+
+                              <Button
+                                type="button"
+                                variant="terracotta-ghost"
+                                size="icon-sm"
                                 onClick={() => cart.removeItem(item.id)}
-                                className="ml-auto text-charcoal/40 hover:text-terracotta transition-colors"
+                                className="ml-auto"
                               >
                                 <X size={18} />
-                              </button>
+                              </Button>
                             </div>
                           </div>
                         </div>
@@ -517,8 +519,10 @@ export default function Shop() {
                     </div>
                     
                     <Button
+                      variant="sage"
+                      size="lg"
                       onClick={() => setCheckoutStep("details")}
-                      className="w-full bg-sage hover:bg-sage/90 text-white rounded-full py-6 text-base font-body"
+                      className="w-full rounded-full"
                     >
                       Proceed to Checkout
                       <ArrowRight className="ml-2" size={18} />
@@ -586,8 +590,10 @@ export default function Shop() {
                 </div>
                 
                 <Button
+                  variant="sage"
+                  size="lg"
                   onClick={() => setCheckoutStep("payment")}
-                  className="w-full mt-6 bg-sage hover:bg-sage/90 text-white rounded-full py-6 text-base font-body"
+                  className="w-full mt-6 rounded-full"
                 >
                   Continue to Payment
                   <ArrowRight className="ml-2" size={18} />
@@ -677,9 +683,11 @@ export default function Shop() {
                 )}
 
                 <Button
+                  variant="sage"
+                  size="lg"
                   onClick={() => void completeRetailOrder()}
                   disabled={checkoutLoading}
-                  className="w-full bg-sage hover:bg-sage/90 text-white rounded-full py-6 text-base font-body"
+                  className="w-full rounded-full"
                 >
                   {checkoutLoading ? "Processing…" : "Complete Order"}
                   <Check className="ml-2" size={18} />
@@ -699,7 +707,7 @@ export default function Shop() {
                   Thank you for your purchase. We'll send you a confirmation email shortly.
                 </p>
                 <Link href="/">
-                  <Button className="bg-sage hover:bg-sage/90 text-white rounded-full px-8">
+                  <Button variant="sage" className="rounded-full px-8">
                     Back to Home
                   </Button>
                 </Link>

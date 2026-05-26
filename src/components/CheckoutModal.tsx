@@ -1,8 +1,9 @@
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { X, Check, CreditCard, AlertCircle } from "lucide-react";
 import { Spinner } from "@/components/ui/spinner";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { CloseButton } from "@/components/ui/quick-actions";
 import { useRouter } from "next/router";
 
 interface CheckoutModalProps {
@@ -29,6 +30,10 @@ export function CheckoutModal({ packageDetails, onClose, userId }: CheckoutModal
     phone: "",
     paymentMethod: "online" as const
   });
+  const redirectTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  useEffect(() => () => {
+    if (redirectTimeoutRef.current) clearTimeout(redirectTimeoutRef.current);
+  }, []);
 
   const handlePurchase = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -79,7 +84,7 @@ export function CheckoutModal({ packageDetails, onClose, userId }: CheckoutModal
       if (!purchaseRes.ok) throw new Error("Purchase failed");
 
       setSuccess(true);
-      setTimeout(() => router.push("/portal/dashboard"), 2000);
+      redirectTimeoutRef.current = setTimeout(() => router.push("/portal/dashboard"), 2000);
       
     } catch (err) {
       console.error("Purchase error:", err);
@@ -121,13 +126,11 @@ export function CheckoutModal({ packageDetails, onClose, userId }: CheckoutModal
                 Secure checkout for {packageDetails.name}
               </p>
             </div>
-            <button
+            <CloseButton
               onClick={onClose}
-              className="w-10 h-10 rounded-full bg-white/80 backdrop-blur-xl border border-sage/20 hover:border-sage/40 flex items-center justify-center transition-all duration-300 hover:scale-110"
-              aria-label="Close checkout"
-            >
-              <X className="text-charcoal" size={20} />
-            </button>
+              label="Close checkout"
+              className="rounded-full bg-white/80 backdrop-blur-xl border border-sage/20"
+            />
           </div>
         </div>
 
@@ -246,7 +249,8 @@ export function CheckoutModal({ packageDetails, onClose, userId }: CheckoutModal
             </Button>
             <Button
               type="submit"
-              className="flex-1 bg-sage hover:bg-sage/90 text-white font-body"
+              variant="sage"
+              className="flex-1"
               disabled={isProcessing}
             >
               {isProcessing ? (

@@ -1,7 +1,14 @@
 import type { NextApiRequest, NextApiResponse } from "next";
-import { Prisma } from "@/generated/prisma/client";
+import { Prisma, ClassScheduleStatus } from "@/generated/prisma/client";
 import prisma from "@/lib/prisma";
 import { getStudioServerSession } from "@/lib/getStudioServerSession";
+
+const VALID_STATUS = new Set<string>(Object.values(ClassScheduleStatus));
+const LOCKED_STATUSES = new Set<string>(["completed", "abandoned"]);
+function parseStatus(v: unknown): ClassScheduleStatus | undefined {
+  if (typeof v !== "string") return undefined;
+  return VALID_STATUS.has(v) ? (v as ClassScheduleStatus) : undefined;
+}
 
 function prismaUserMessage(e: unknown): string {
   if (e instanceof Prisma.PrismaClientKnownRequestError) {
@@ -81,7 +88,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         end_time: new Date(endRaw as string),
         available_spots: Number(body.available_spots),
         capacity: body.capacity != null && body.capacity !== "" ? Number(body.capacity) : null,
-        status: typeof body.status === "string" ? body.status : "available",
+        status: parseStatus(body.status) ?? ClassScheduleStatus.available,
         current_bookings: Number(body.current_bookings ?? 0),
       };
       if (!Number.isFinite(data.available_spots) || data.available_spots < 0) {
@@ -122,7 +129,11 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         data.capacity =
           rest.capacity != null && rest.capacity !== "" ? Number(rest.capacity) : null;
       }
-      if (rest.status != null) data.status = String(rest.status);
+      if (rest.status != null) {
+        const parsed = parseStatus(rest.status);
+        if (!parsed) return res.status(400).json({ error: `Invalid status. Allowed: ${Array.from(VALID_STATUS).join(", ")}` });
+        data.status = parsed;
+      }
       if (rest.current_bookings != null) data.current_bookings = Number(rest.current_bookings);
       if (rest.actual_instructor_id !== undefined) {
         data.actual_instructor_id =
@@ -138,6 +149,14 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       if (Object.keys(data).length === 0) {
         return res.status(400).json({ error: "No valid fields to update." });
       }
+      const existing = await prisma.classSchedule.findUnique({
+        where: { id: String(id) },
+        select: { status: true },
+      });
+      if (!existing) return res.status(404).json({ error: "Schedule not found" });
+      if (LOCKED_STATUSES.has(existing.status)) {
+        return res.status(409).json({ error: `Class is ${existing.status} and cannot be edited.` });
+      }
       const schedule = await prisma.classSchedule.update({
         where: { id: String(id) },
         data: data as Prisma.ClassScheduleUpdateInput,
@@ -147,6 +166,14 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
     if (req.method === "DELETE") {
       const { id } = req.query;
+      const existing = await prisma.classSchedule.findUnique({
+        where: { id: String(id) },
+        select: { status: true },
+      });
+      if (!existing) return res.status(404).json({ error: "Schedule not found" });
+      if (LOCKED_STATUSES.has(existing.status)) {
+        return res.status(409).json({ error: `Class is ${existing.status} and cannot be deleted.` });
+      }
       await prisma.classSchedule.delete({ where: { id: String(id) } });
       return res.status(204).end();
     }

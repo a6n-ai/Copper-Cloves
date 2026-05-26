@@ -266,7 +266,7 @@ model ClassSchedule {
   capacity         Int?
   available_spots  Int
   current_bookings Int      @default(0)
-  status                    String    @default("available")
+  status                    ClassScheduleStatus @default(available)
   instructor_check_in_time  DateTime?
   /// `on_time` | `late` | `absent` — set after class ends.
   instructor_check_in_outcome String?
@@ -479,6 +479,16 @@ enum PaymentStatus {
   succeeded
   failed
   refunded
+}
+
+/// Lifecycle for a class schedule row. `available` = bookable. `inactive` = hidden from members (admin draft / paused). `started` / `completed` = lifecycle markers (not booking blockers in member API yet). `cancelled` = soft-deleted; blocks all booking flows.
+enum ClassScheduleStatus {
+  available
+  inactive
+  started
+  completed
+  cancelled
+  abandoned
 }
 
 model Payment {

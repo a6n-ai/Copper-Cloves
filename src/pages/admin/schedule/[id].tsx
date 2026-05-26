@@ -1,13 +1,16 @@
 import { useCallback, useEffect, useState } from "react";
 import { useRouter } from "next/router";
-import { Trash2, Pencil, UserPlus, CheckCircle2 } from "lucide-react";
+import { UserPlus, UserMinus, CheckCircle2, User as UserIcon, Users } from "lucide-react";
+import { MetricCard } from "@/components/admin/MetricCard";
 import { SEO } from "@/components/SEO";
 import { Skeleton } from "@/components/ui/skeleton";
 import { PageHeader } from "@/components/dashboard/PageHeader";
-import { AnimatedIcon } from "@/components/dashboard/AnimatedIcon";
-import { QrZoomImage } from "@/components/checkin/QrZoomImage";
+import { ClassCheckinQr } from "@/components/checkin/ClassCheckinQr";
+import { ClassCountdownPill } from "@/components/checkin/ClassCountdownPill";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
+import { EditButton, ManageButton, DeleteButton } from "@/components/ui/quick-actions";
+import { cn } from "@/lib/utils";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
@@ -84,8 +87,8 @@ function ClassDetailSkeleton() {
         </div>
       </div>
 
-      {/* Info stat cards */}
-      <div className="grid grid-cols-2 gap-4 sm:grid-cols-4">
+      {/* Metric cards — capacity / enrolled / spots / checked-in */}
+      <div className="grid grid-cols-2 gap-3 sm:gap-4 lg:grid-cols-4">
         {Array.from({ length: 4 }).map((_, i) => (
           <Card key={i} className="rounded-2xl shadow-xs">
             <CardContent className="p-4 space-y-2">
@@ -94,6 +97,31 @@ function ClassDetailSkeleton() {
             </CardContent>
           </Card>
         ))}
+      </div>
+
+      {/* Instructor hero card */}
+      <div className="relative overflow-hidden rounded-2xl border border-sage/15 bg-linear-to-br from-sage/8 via-white to-cream/30 shadow-xs">
+        <div className="absolute -top-12 -right-12 size-44 rounded-full bg-sage/10 blur-3xl pointer-events-none" />
+        <div className="grid grid-cols-1 gap-6 p-6 md:grid-cols-[1fr_auto_1fr] md:items-center relative">
+          <div className="flex items-center gap-5">
+            <Skeleton className="size-16 rounded-full bg-sage/15" />
+            <div className="space-y-2 min-w-0 flex-1">
+              <Skeleton className="h-3 w-24 bg-sage/10" />
+              <Skeleton className="h-6 w-40 bg-sage/15" />
+              <Skeleton className="h-3 w-32 bg-sage/10" />
+            </div>
+          </div>
+          <div className="md:px-6 md:border-x md:border-sage/15 flex flex-col items-center gap-2">
+            <Skeleton className="h-7 w-32 rounded-full bg-sage/10" />
+            <Skeleton className="h-3 w-28 bg-sage/10" />
+            <Skeleton className="h-3 w-36 bg-sage/10" />
+          </div>
+          <div className="flex flex-col gap-2 md:items-end">
+            <Skeleton className="h-3 w-24 bg-sage/10" />
+            <Skeleton className="h-8 w-36 rounded-full bg-sage/10" />
+            <Skeleton className="h-3 w-48 bg-sage/10" />
+          </div>
+        </div>
       </div>
 
       {/* QR codes card */}
@@ -145,45 +173,6 @@ function ClassDetailSkeleton() {
   );
 }
 
-function QrPlaceholder({ caption }: { caption: string }) {
-  // 13x13 pseudo-QR pattern: three finder squares in corners + sparse data dots.
-  const size = 13;
-  const isFinder = (r: number, c: number) => {
-    const inBox = (br: number, bc: number) =>
-      r >= br && r <= br + 6 && c >= bc && c <= bc + 6;
-    const onRing = (br: number, bc: number) =>
-      r === br || r === br + 6 || c === bc || c === bc + 6;
-    const inCenter = (br: number, bc: number) =>
-      r >= br + 2 && r <= br + 4 && c >= bc + 2 && c <= bc + 4;
-    const corners: [number, number][] = [[0, 0], [0, size - 7], [size - 7, 0]];
-    return corners.some(([br, bc]) => inBox(br, bc) && (onRing(br, bc) || inCenter(br, bc)));
-  };
-  const cells = Array.from({ length: size * size }, (_, i) => {
-    const r = Math.floor(i / size);
-    const c = i % size;
-    if (isFinder(r, c)) return true;
-    return ((r * 31 + c * 17 + r * c) % 5) === 0;
-  });
-  return (
-    <div className="relative flex h-[200px] w-[200px] items-center justify-center">
-      <div
-        className="grid h-full w-full gap-[2px] rounded-md bg-white p-2 blur-[3px]"
-        style={{ gridTemplateColumns: `repeat(${size}, minmax(0, 1fr))` }}
-        aria-hidden
-      >
-        {cells.map((on, i) => (
-          <div key={i} className={on ? "bg-charcoal" : "bg-transparent"} />
-        ))}
-      </div>
-      <div className="absolute inset-0 flex flex-col items-center justify-center rounded-md bg-cream/40 px-3 text-center">
-        <p className="text-xs font-semibold uppercase tracking-wide text-charcoal/70">
-          QR generates in
-        </p>
-        <p className="text-sm font-medium text-charcoal">{caption}</p>
-      </div>
-    </div>
-  );
-}
 
 function toLocalInput(iso: string): string {
   const d = new Date(iso);
@@ -323,6 +312,43 @@ export default function AdminClassPage() {
     }
   }
 
+  const [statusEditOpen, setStatusEditOpen] = useState(false);
+  const [statusDraft, setStatusDraft] = useState<string>("available");
+  const [statusSaving, setStatusSaving] = useState(false);
+
+  function openStatusEdit() {
+    if (!roster) return;
+    setStatusDraft(roster.status || "available");
+    setStatusEditOpen(true);
+  }
+
+  async function saveStatus() {
+    if (!roster) return;
+    if (statusDraft === roster.status) {
+      setStatusEditOpen(false);
+      return;
+    }
+    setStatusSaving(true);
+    try {
+      const res = await fetch(`/api/class-schedules`, {
+        method: "PUT",
+        credentials: "include",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ id: roster.scheduleId, status: statusDraft }),
+      });
+      if (!res.ok) {
+        const d = await res.json().catch(() => ({}));
+        toast.error(d.error ?? "Could not change status");
+        return;
+      }
+      toast.success("Status updated");
+      setStatusEditOpen(false);
+      await loadRoster();
+    } finally {
+      setStatusSaving(false);
+    }
+  }
+
   async function applyOutcome(bookingId: string, outcome: "on_time" | "no_show" | "not_checked_in") {
     setBusyId(bookingId);
     try {
@@ -369,7 +395,7 @@ export default function AdminClassPage() {
   }
 
   async function handleDelete() {
-    if (!confirm("Remove this class from the schedule?")) return;
+    // Confirmation handled by <DeleteButton/>'s built-in AlertDialog.
     const res = await fetch(`/api/class-schedules?id=${id}`, { method: "DELETE", credentials: "include" });
     if (res.ok) router.push("/admin/schedule");
     else toast.error("Failed to delete class");
@@ -378,6 +404,7 @@ export default function AdminClassPage() {
   const start = roster ? new Date(roster.startTime) : null;
   const enrolled = roster ? roster.bookings.reduce((n, b) => n + 1 + (b.extraGuests ?? 0), 0) : 0;
   const checkedIn = roster ? roster.bookings.filter((b) => b.checkedIn).length : 0;
+  const isLocked = roster?.status === "completed" || roster?.status === "abandoned";
 
   return (
     <>
@@ -397,47 +424,171 @@ export default function AdminClassPage() {
                     { label: "Schedule", href: "/admin/schedule" },
                     { label: roster.className },
                   ]}
-                  actions={
-                    <div className="flex items-center gap-2">
-                      <Button
-                        onClick={openEdit}
-                        className="bg-sage hover:bg-sage/90 text-white font-body transition-transform hover:scale-[1.03] active:scale-95"
-                      >
-                        <AnimatedIcon icon={Pencil} size={16} animateOnMount={false} hover="wiggle" />
-                        Edit
-                      </Button>
-                      <Button
-                        variant="destructive"
-                        onClick={handleDelete}
-                        className="font-body transition-transform hover:scale-[1.03] active:scale-95"
-                      >
-                        <AnimatedIcon icon={Trash2} size={16} animateOnMount={false} hover="wiggle" />
-                        Delete
-                      </Button>
-                    </div>
-                  }
                 />
 
-                {/* Info */}
-                <div className="grid grid-cols-2 gap-4 sm:grid-cols-4">
-                  {[
-                    { label: "Instructor", value: roster.actualInstructor ? `${roster.actualInstructor} (sub)` : roster.instructor },
-                    { label: "Capacity", value: roster.capacity ?? "—" },
-                    { label: "Enrolled", value: enrolled },
-                    { label: "Checked in", value: checkedIn },
-                  ].map((s) => (
-                    <Card key={s.label} className="rounded-2xl shadow-xs">
-                      <CardContent className="p-4">
-                        <p className="font-display text-2xl text-charcoal">{s.value}</p>
-                        <p className="text-xs text-muted-foreground">{s.label}</p>
-                      </CardContent>
-                    </Card>
-                  ))}
-                </div>
+                {/* Metrics — 2x2 on mobile, 4-up on desktop for symmetry */}
+                {(() => {
+                  const cap = roster.capacity ?? 0;
+                  const spotsLeft = cap > 0 ? Math.max(0, cap - enrolled) : 0;
+                  const fillPct = cap > 0 ? Math.min(100, Math.round((enrolled / cap) * 100)) : 0;
+                  return (
+                    <div className="grid grid-cols-2 gap-3 sm:gap-4 lg:grid-cols-4">
+                      <MetricCard label="Capacity" value={roster.capacity ?? "—"} icon={Users} tone="charcoal" />
+                      <MetricCard label="Enrolled" value={enrolled} icon={UserPlus} tone="terracotta" />
+                      <MetricCard label="Spots left" value={cap > 0 ? spotsLeft : "—"} icon={UserMinus} tone="amber" hint={cap > 0 ? `${fillPct}% full` : undefined} />
+                      <MetricCard label="Checked in" value={checkedIn} icon={CheckCircle2} tone="sage" />
+                    </div>
+                  );
+                })()}
 
-                {/* QR codes */}
+                {/* Instructor hero card — richer than a MetricCard */}
+                {(() => {
+                  const statusLabel =
+                    roster.status === "available" ? "Open for booking"
+                    : roster.status === "inactive" ? "Paused"
+                    : roster.status === "started" ? "In session"
+                    : roster.status === "completed" ? "Class complete"
+                    : roster.status === "cancelled" ? "Cancelled"
+                    : roster.status === "abandoned" ? "Cancelled & past"
+                    : roster.status || "—";
+                  const statusTone =
+                    roster.status === "inactive" ? "bg-amber-100 text-amber-700 border-amber-200"
+                    : roster.status === "cancelled" || roster.status === "abandoned" ? "bg-terracotta/10 text-terracotta border-terracotta/30"
+                    : roster.status === "completed" ? "bg-charcoal/10 text-charcoal/60 border-charcoal/15"
+                    : roster.status === "started" ? "bg-amber-100 text-amber-700 border-amber-300"
+                    : "bg-sage/15 text-sage border-sage/30";
+                  const statusDot =
+                    roster.status === "inactive" ? "bg-amber-500"
+                    : roster.status === "cancelled" || roster.status === "abandoned" ? "bg-terracotta"
+                    : roster.status === "completed" ? "bg-charcoal/40"
+                    : roster.status === "started" ? "bg-amber-500"
+                    : "bg-sage";
+                  const statusHint =
+                    roster.status === "available" ? "Members can book and check in."
+                    : roster.status === "inactive" ? "Hidden from members. Existing bookings keep their seat."
+                    : roster.status === "started" ? "Check-in window is open."
+                    : roster.status === "completed" ? "Class ended. Roster archived."
+                    : roster.status === "cancelled" ? "Bookings blocked. Reactivate before class ends."
+                    : roster.status === "abandoned" ? "Cancelled class is past — locked for edits."
+                    : "";
+                  const isSub = !!roster.actualInstructor && roster.actualInstructor !== roster.instructor;
+                  const taught = roster.actualInstructor ?? roster.instructor;
+                  const initial = (taught ?? "I").slice(0, 1).toUpperCase();
+                  return (
+                    <div className="relative overflow-hidden rounded-2xl border border-sage/20 bg-linear-to-br from-sage/8 via-white to-cream/30 shadow-xs">
+                      {/* Decorative accent */}
+                      <div className="absolute -top-12 -right-12 size-44 rounded-full bg-sage/10 blur-3xl pointer-events-none" />
+                      <div className="absolute -bottom-16 -left-16 size-48 rounded-full bg-cream/40 blur-3xl pointer-events-none" />
+
+                      <div className="relative grid grid-cols-1 gap-6 p-6 md:grid-cols-[1fr_auto_1fr] md:items-center">
+                        {/* Instructor identity — clickable to profile */}
+                        {(() => {
+                          const targetId = roster.actualInstructorId ?? roster.instructorId;
+                          const inner = (
+                            <>
+                              <div className="relative shrink-0">
+                                <div className="size-16 rounded-full bg-linear-to-br from-sage to-sage/70 text-white font-display text-2xl flex items-center justify-center ring-4 ring-white shadow-md">
+                                  {initial}
+                                </div>
+                                <div className="absolute -bottom-1 -right-1 size-6 rounded-full bg-white shadow-sm flex items-center justify-center">
+                                  <UserIcon className="h-3 w-3 text-sage" />
+                                </div>
+                              </div>
+                              <div className="min-w-0">
+                                <p className="font-body text-[11px] uppercase tracking-[0.18em] text-charcoal/50">Teaching today</p>
+                                <p className="font-display text-2xl text-charcoal truncate mt-0.5 group-hover:text-sage transition-colors">{taught}</p>
+                                {isSub ? (
+                                  <p className="font-body text-xs text-amber-700 mt-1 inline-flex items-center gap-1.5">
+                                    <span className="size-1.5 rounded-full bg-amber-500" />
+                                    Substituting for {roster.instructor}
+                                  </p>
+                                ) : (
+                                  <p className="font-body text-xs text-charcoal/55 mt-1">Originally scheduled</p>
+                                )}
+                              </div>
+                            </>
+                          );
+                          return targetId ? (
+                            <button
+                              type="button"
+                              onClick={() => router.push(`/admin/instructors/${targetId}`)}
+                              className="group flex items-center gap-5 min-w-0 text-left rounded-xl -m-2 p-2 hover:bg-sage/5 transition-colors cursor-pointer"
+                              aria-label={`Open profile for ${taught}`}
+                            >
+                              {inner}
+                            </button>
+                          ) : (
+                            <div className="flex items-center gap-5 min-w-0">{inner}</div>
+                          );
+                        })()}
+
+                        {/* Center: live countdown + class window */}
+                        <div className="md:px-6 md:border-x md:border-sage/15 flex flex-col items-center gap-2 text-center min-w-0">
+                          <ClassCountdownPill startIso={roster.startTime} endIso={roster.endTime} size="sm" />
+                          <div className="font-body text-xs text-charcoal/55">
+                            {new Date(roster.startTime).toLocaleTimeString("en-US", { hour: "2-digit", minute: "2-digit", timeZone: "Asia/Kolkata" })}
+                            {" – "}
+                            {new Date(roster.endTime).toLocaleTimeString("en-US", { hour: "2-digit", minute: "2-digit", timeZone: "Asia/Kolkata" })}
+                            <span className="text-charcoal/35"> · </span>
+                            {(() => {
+                              const mins = Math.max(0, Math.round((new Date(roster.endTime).getTime() - new Date(roster.startTime).getTime()) / 60000));
+                              return mins >= 60 ? `${Math.floor(mins / 60)}h ${mins % 60}m` : `${mins}m`;
+                            })()}
+                          </div>
+                          {roster.classNotes && (
+                            <p className="font-body text-xs text-charcoal/60 line-clamp-2 max-w-xs italic">
+                              &ldquo;{roster.classNotes}&rdquo;
+                            </p>
+                          )}
+                        </div>
+
+                        {/* Status + actions block */}
+                        <div className="flex flex-col gap-2 md:items-end md:min-w-[200px]">
+                          <p className="font-body text-[11px] uppercase tracking-[0.18em] text-charcoal/50">Class status</p>
+                          <div className="flex items-center gap-2 flex-wrap md:justify-end">
+                            <span className={cn("inline-flex items-center gap-2 rounded-full border px-3 py-1.5 font-body text-sm font-medium", statusTone)}>
+                              <span className={cn("size-1.5 rounded-full", statusDot, (roster.status === "available" || roster.status === "started") && "animate-pulse")} />
+                              {statusLabel}
+                            </span>
+                          </div>
+                          {statusHint && (
+                            <p className="font-body text-xs text-charcoal/55 max-w-xs md:text-right">{statusHint}</p>
+                          )}
+                          <div className="flex items-center gap-1.5 md:justify-end mt-2">
+                            {isLocked ? (
+                              <span className="text-[10px] uppercase tracking-wide text-charcoal/40 font-body">Locked</span>
+                            ) : (
+                              <>
+                                <EditButton onClick={openStatusEdit} label="Edit status" />
+                                <ManageButton onClick={openEdit} label="Edit class" />
+                                <DeleteButton
+                                  onClick={handleDelete}
+                                  confirmTitle="Delete this class?"
+                                  confirmDescription={`${roster.className} at ${start.toLocaleString("en-US", { weekday: "short", month: "short", day: "numeric", hour: "2-digit", minute: "2-digit" })} will be removed from the schedule. Bookings will be cancelled.`}
+                                />
+                              </>
+                            )}
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  );
+                })()}
+                {/* QR codes — hidden when class is completed/abandoned */}
+                {isLocked ? (
+                  <Card className="rounded-2xl shadow-xs">
+                    <CardContent className="p-6 text-center">
+                      <p className="font-display text-lg text-charcoal/70">
+                        Check-in is closed
+                      </p>
+                      <p className="text-sm text-muted-foreground mt-1">
+                        Class is {roster.status}. QR codes are no longer available.
+                      </p>
+                    </CardContent>
+                  </Card>
+                ) : (
                 <Card className="rounded-2xl shadow-xs">
-                  <CardHeader className="flex flex-row items-center justify-between gap-2">
+                  <CardHeader className="flex flex-row items-center justify-between gap-2 flex-wrap">
                     <CardTitle className="font-display text-xl text-charcoal">Check-in QR codes</CardTitle>
                     <Button
                       type="button"
@@ -445,6 +596,7 @@ export default function AdminClassPage() {
                       variant="outline"
                       onClick={() => refreshQr(true)}
                       disabled={qrRefreshing}
+                      className="border-sage/40 text-sage bg-white hover:!bg-sage hover:!text-white hover:!border-sage font-body"
                     >
                       {qrRefreshing ? "Refreshing…" : "Refresh QR"}
                     </Button>
@@ -462,57 +614,29 @@ export default function AdminClassPage() {
                       </p>
                     ) : null}
                     <div className="grid grid-cols-1 gap-6 sm:grid-cols-2">
-                      {(["instructor", "member"] as const).map((kind) => {
-                        const url = kind === "instructor" ? qr?.instructorQrUrl : qr?.memberQrUrl;
-                        const label = kind === "instructor" ? "Instructor" : "Members";
-                        const preWindow = qr?.windowOpensAt && !qr?.withinWindow;
-                        return (
-                          <div
-                            key={kind}
-                            className="flex flex-col items-center gap-2 rounded-xl border border-sage/15 p-6"
-                          >
-                            <p className="font-display text-lg text-charcoal">{label}</p>
-                            {url ? (
-                              <QrZoomImage
-                                url={url}
-                                label={`${label} check-in`}
-                                caption="Tap to enlarge"
-                              />
-                            ) : preWindow ? (
-                              <div className="flex flex-col items-center gap-3">
-                                <QrPlaceholder
-                                  caption={new Date(qr!.windowOpensAt!).toLocaleTimeString(undefined, {
-                                    timeStyle: "short",
-                                  })}
-                                />
-                                <Button
-                                  size="sm"
-                                  variant="ghost"
-                                  onClick={() => refreshQr(true)}
-                                  disabled={qrRefreshing}
-                                >
-                                  {qrRefreshing ? "Generating…" : "Generate now"}
-                                </Button>
-                              </div>
-                            ) : (
-                              <div className="flex flex-col items-center gap-2 py-10">
-                                <p className="text-sm text-charcoal/50">QR temporarily unavailable</p>
-                                <Button
-                                  size="sm"
-                                  variant="ghost"
-                                  onClick={() => refreshQr(true)}
-                                  disabled={qrRefreshing}
-                                >
-                                  Try again
-                                </Button>
-                              </div>
-                            )}
-                          </div>
-                        );
-                      })}
+                      {(["instructor", "member"] as const).map((kind) => (
+                        <div
+                          key={kind}
+                          className="flex flex-col items-center gap-3 rounded-xl border border-sage/15 p-6"
+                        >
+                          <ClassCheckinQr kind={kind} qr={qr} size={220} />
+                          {!qr?.withinWindow && (
+                            <Button
+                              size="sm"
+                              variant="outline"
+                              onClick={() => refreshQr(true)}
+                              disabled={qrRefreshing}
+                              className="border-sage/40 text-sage bg-white hover:!bg-sage hover:!text-white hover:!border-sage font-body"
+                            >
+                              {qrRefreshing ? "Generating…" : qr?.windowOpensAt ? "Generate now" : "Try again"}
+                            </Button>
+                          )}
+                        </div>
+                      ))}
                     </div>
                   </CardContent>
                 </Card>
+                )}
 
                 {/* Roster */}
                 <Card className="rounded-2xl shadow-xs">
@@ -655,6 +779,9 @@ export default function AdminClassPage() {
                   <SelectTrigger><SelectValue /></SelectTrigger>
                   <SelectContent>
                     <SelectItem value="available">Available</SelectItem>
+                    <SelectItem value="inactive">Inactive (hidden from members)</SelectItem>
+                    <SelectItem value="started">Started</SelectItem>
+                    <SelectItem value="completed">Completed</SelectItem>
                     <SelectItem value="cancelled">Cancelled</SelectItem>
                   </SelectContent>
                 </Select>
@@ -667,8 +794,58 @@ export default function AdminClassPage() {
           </div>
           <DialogFooter>
             <Button variant="outline" onClick={() => setEditOpen(false)} className="font-body">Cancel</Button>
-            <Button onClick={saveEdit} disabled={saving} className="bg-sage hover:bg-sage/90 text-white font-body">
+            <Button onClick={saveEdit} disabled={saving} variant="sage">
               {saving ? "Saving…" : "Save changes"}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Status edit dialog */}
+      <Dialog open={statusEditOpen} onOpenChange={setStatusEditOpen}>
+        <DialogContent className="sm:max-w-md">
+          <DialogHeader>
+            <DialogTitle className="font-display text-charcoal">Change class status</DialogTitle>
+          </DialogHeader>
+          <div className="space-y-3 py-2">
+            <div className="grid grid-cols-1 gap-2">
+              {([
+                { value: "available", label: "Available", desc: "Bookable. Members see it on the schedule.", tone: "bg-sage/10 text-sage border-sage/30", active: "bg-sage text-white border-sage" },
+                { value: "inactive", label: "Inactive", desc: "Hidden from members. Existing bookings keep their seat.", tone: "bg-amber-50 text-amber-700 border-amber-200", active: "bg-amber-500 text-white border-amber-600" },
+                { value: "started", label: "Started", desc: "Check-in window is open.", tone: "bg-amber-50 text-amber-700 border-amber-200", active: "bg-amber-500 text-white border-amber-600" },
+                { value: "completed", label: "Completed", desc: "Class ended. Roster archived.", tone: "bg-charcoal/5 text-charcoal/70 border-charcoal/15", active: "bg-charcoal text-white border-charcoal" },
+                { value: "cancelled", label: "Cancelled", desc: "Blocks all bookings. Members notified.", tone: "bg-terracotta/10 text-terracotta border-terracotta/30", active: "bg-terracotta text-white border-terracotta" },
+              ] as const).map((opt) => {
+                const selected = statusDraft === opt.value;
+                return (
+                  <button
+                    key={opt.value}
+                    type="button"
+                    onClick={() => setStatusDraft(opt.value)}
+                    className={cn(
+                      "flex items-center gap-3 rounded-xl border px-4 py-3 text-left transition-all",
+                      selected ? cn(opt.active, "shadow-sm") : cn(opt.tone, "hover:brightness-95"),
+                    )}
+                  >
+                    <span className={cn(
+                      "inline-flex items-center justify-center size-5 rounded-full border-2 shrink-0 transition-colors",
+                      selected ? "bg-white/95 border-white/95" : "bg-white border-current/40",
+                    )}>
+                      {selected && <span className="size-2 rounded-full bg-current opacity-80" style={{ color: "var(--color-sage)" }} />}
+                    </span>
+                    <div className="min-w-0">
+                      <p className="font-body text-sm font-medium capitalize">{opt.label}</p>
+                      <p className={cn("font-body text-xs mt-0.5", selected ? "opacity-85" : "opacity-70")}>{opt.desc}</p>
+                    </div>
+                  </button>
+                );
+              })}
+            </div>
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setStatusEditOpen(false)} disabled={statusSaving} className="font-body">Cancel</Button>
+            <Button onClick={saveStatus} disabled={statusSaving} variant="sage">
+              {statusSaving ? "Saving…" : "Save status"}
             </Button>
           </DialogFooter>
         </DialogContent>

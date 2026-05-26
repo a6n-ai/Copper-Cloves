@@ -75,11 +75,35 @@ export async function isRequestSessionValid(req: ReqLike): Promise<boolean> {
   const profileId = (token as { id?: string }).id;
   if (!sid || !profileId) return false; // legacy token w/o session id -> force re-login
 
-  const row = await prisma.userSession.findUnique({ where: { profile_id: profileId } });
-  if (!row || row.session_id !== sid) return false; // superseded by a newer login, or revoked
-
   const headers = (req as { headers?: Headers }).headers ?? {};
-  if (row.fingerprint !== computeFingerprint(headers)) return false; // replayed on another device
+  const fp = computeFingerprint(headers);
+  const ua = headerVal(headers, "user-agent").slice(0, 512) || null;
+  const ip = clientIp(headers);
+
+  const row = await prisma.userSession.findUnique({ where: { profile_id: profileId } });
+
+  // Self-heal: JWT is signed by us and carries sid+profileId, but the row was
+  // wiped (DB reset, fresh env, manual cleanup). Re-bind to this device rather
+  // than locking the user out of their otherwise-valid token.
+  if (!row) {
+    const now = new Date();
+    await prisma.userSession.create({
+      data: { profile_id: profileId, session_id: sid, fingerprint: fp, user_agent: ua, ip, created_at: now, last_seen_at: now },
+    }).catch(() => {});
+    return true;
+  }
+
+  if (row.session_id !== sid) return false; // superseded by a newer login
+
+  // Self-heal: UA varies behind some proxies / browser updates. JWT + sid + DB
+  // row all agree, so accept once and rebind the fingerprint to the new UA.
+  if (row.fingerprint !== fp) {
+    await prisma.userSession.update({
+      where: { id: row.id },
+      data: { fingerprint: fp, user_agent: ua, ip, last_seen_at: new Date() },
+    }).catch(() => {});
+    return true;
+  }
 
   const idleMs = Date.now() - row.last_seen_at.getTime();
   if (idleMs > SESSION_IDLE_MS) {

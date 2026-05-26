@@ -233,9 +233,9 @@ export default function MyBookingsPage() {
             <p className="font-body text-charcoal/60 mb-6">
               You haven't booked any classes. Start your wellness journey today!
             </p>
-            <Button 
+            <Button
               onClick={() => router.push("/portal/book")}
-              className="bg-sage hover:bg-sage/90 text-white"
+              variant="sage"
             >
               Browse Classes
             </Button>
@@ -306,7 +306,7 @@ export default function MyBookingsPage() {
                         )}
                         <div className="flex gap-2">
                           {canCheck && (
-                            <Button onClick={() => void handleCheckIn(booking)} size="sm" className="flex-1 bg-sage hover:bg-sage/90 text-white h-11 px-4">
+                            <Button onClick={() => void handleCheckIn(booking)} size="sm" variant="sage" className="flex-1 h-11 px-4">
                               Check in
                             </Button>
                           )}
@@ -386,7 +386,7 @@ export default function MyBookingsPage() {
                             )}
                             <div className="flex gap-2">
                               {canCheck && (
-                                <Button onClick={() => void handleCheckIn(booking)} size="sm" className="flex-1 sm:flex-none bg-sage hover:bg-sage/90 text-white h-11 px-6">Check in</Button>
+                                <Button onClick={() => void handleCheckIn(booking)} size="sm" variant="sage" className="flex-1 sm:flex-none h-11 px-6">Check in</Button>
                               )}
                               <Button onClick={() => handleCancelClick(booking)} size="sm" variant="outline" className="flex-1 sm:flex-none border-terracotta/30 text-terracotta hover:bg-terracotta/5 h-11 px-6">
                                 <X size={16} className="mr-1.5" />Cancel
@@ -475,7 +475,7 @@ export default function MyBookingsPage() {
             <Button
               onClick={handleConfirmCancel}
               disabled={canceling}
-              className="bg-terracotta hover:bg-terracotta/90 text-white"
+              variant="terracotta"
             >
               {canceling ? "Canceling..." : "Confirm Cancellation"}
             </Button>

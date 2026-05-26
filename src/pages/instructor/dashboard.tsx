@@ -365,10 +365,11 @@ export default function InstructorDashboard() {
                           {/* Instructor self check-in */}
                           {!cls.instructorCheckedIn && winStatus === "open" && (
                             <Button
+                              variant="terracotta"
                               size="sm"
                               onClick={() => void handleInstructorCheckIn(cls.id)}
                               disabled={instructorCheckingIn[cls.id]}
-                              className="bg-terracotta hover:bg-terracotta/90 text-white font-body rounded-full px-4 text-xs h-9 min-w-[80px]"
+                              className="rounded-full min-w-[80px]"
                             >
                               {instructorCheckingIn[cls.id] ? (
                                 <Spinner className="size-4" />
@@ -377,14 +378,15 @@ export default function InstructorDashboard() {
                           )}
                           {/* Member check-in shortcut */}
                           {cls.instructorCheckedIn && (
-                            <button
+                            <Button
                               onClick={() => { setSelectedClassId(cls.id); setActiveTab("checkin"); }}
-                              className="flex items-center gap-1 font-body text-xs sm:text-sm text-sage hover:text-sage/70 transition-colors"
+                              variant="sage-outline"
+                              size="sm"
                             >
                               <span className="hidden sm:inline">Member Check-In</span>
                               <span className="sm:hidden">Check In</span>
                               <ChevronRight className="h-4 w-4" />
-                            </button>
+                            </Button>
                           )}
                         </div>
                       </div>
@@ -485,23 +487,27 @@ export default function InstructorDashboard() {
                       <div className="flex items-center gap-2">
                         {!selectedClass.instructorCheckedIn && instructorCheckInWindowStatus(selectedClass.startTime) === "open" && (
                           <Button
+                            variant="terracotta"
                             size="sm"
                             onClick={() => void handleInstructorCheckIn(selectedClass.id)}
                             disabled={instructorCheckingIn[selectedClass.id]}
-                            className="bg-terracotta hover:bg-terracotta/90 text-white font-body rounded-full px-4 text-xs h-8"
+                            className="rounded-full"
                           >
                             {instructorCheckingIn[selectedClass.id] ? (
                               <Spinner className="size-4" />
                             ) : "I'm Here"}
                           </Button>
                         )}
-                        <button
+                        <Button
                           onClick={() => void loadData()}
-                          className="h-8 w-8 flex items-center justify-center rounded-full hover:bg-sage/10 text-charcoal/40 hover:text-sage transition-colors"
+                          variant="sage-outline"
+                          size="icon-sm"
+                          className="rounded-full"
                           title="Refresh"
+                          aria-label="Refresh"
                         >
                           <RefreshCw className="h-4 w-4" />
-                        </button>
+                        </Button>
                       </div>
                     </div>
 
@@ -543,9 +549,10 @@ export default function InstructorDashboard() {
                             ) : (
                               <Button
                                 size="sm"
+                                variant="sage"
                                 onClick={() => void handleCheckIn(b.id)}
                                 disabled={checkingIn[b.id]}
-                                className="bg-sage hover:bg-sage/90 text-white font-body rounded-full px-3 shrink-0 h-9"
+                                className="rounded-full px-3 shrink-0 h-9"
                               >
                                 {checkingIn[b.id] ? (
                                   <Spinner className="size-4" />

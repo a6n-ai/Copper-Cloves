@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
 import { useRouter } from "next/router";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { AdminPageHeader } from "@/components/admin/AdminPageHeader";
@@ -116,7 +116,6 @@ export default function AdminCredits() {
   const [loading, setLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState("");
   const [transactions, setTransactions] = useState<CreditTransaction[]>([]);
-  const [filteredTransactions, setFilteredTransactions] = useState<CreditTransaction[]>([]);
   const [filterType, setFilterType] = useState("all");
   const [sortKey, setSortKey] = useState<SortKey | null>(null);
   const [sortDir, setSortDir] = useState<"asc" | "desc">("desc");
@@ -124,14 +123,14 @@ export default function AdminCredits() {
 
   const { data: session, status } = useSession();
 
+  const userRole = (session?.user as { role?: string })?.role;
   useEffect(() => {
     if (status === "loading") return;
     if (status === "unauthenticated") {
       router.push("/admin/login");
       return;
     }
-    const role = (session?.user as { role?: string })?.role;
-    if (status === "authenticated" && role !== "admin") {
+    if (status === "authenticated" && userRole !== "admin") {
       router.push("/admin/login");
       return;
     }
@@ -139,25 +138,28 @@ export default function AdminCredits() {
       setLoading(true);
       void loadTransactions().finally(() => setLoading(false));
     }
-  }, [status, session, router]);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [status, userRole]);
 
-  useEffect(() => {
-    let filtered = [...transactions];
+  const filteredTransactions = useMemo(() => {
+    let filtered: CreditTransaction[] = transactions;
 
     if (filterType !== "all") {
-      filtered = filtered.filter(t => t.type === filterType);
+      filtered = filtered.filter((t) => t.type === filterType);
     }
 
     if (searchQuery) {
-      filtered = filtered.filter(t =>
-        t.memberName.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        t.reason.toLowerCase().includes(searchQuery.toLowerCase())
+      const q = searchQuery.toLowerCase();
+      filtered = filtered.filter(
+        (t) =>
+          t.memberName.toLowerCase().includes(q) ||
+          t.reason.toLowerCase().includes(q),
       );
     }
 
     if (sortKey) {
       const dir = sortDir === "asc" ? 1 : -1;
-      filtered.sort((a, b) => {
+      filtered = [...filtered].sort((a, b) => {
         switch (sortKey) {
           case "amount":
             return (a.amount - b.amount) * dir;
@@ -173,7 +175,7 @@ export default function AdminCredits() {
       });
     }
 
-    setFilteredTransactions(filtered);
+    return filtered;
   }, [searchQuery, filterType, transactions, sortKey, sortDir]);
 
   const toggleSort = (key: SortKey) => {
@@ -277,7 +279,7 @@ export default function AdminCredits() {
               title="Credit Tracking"
               subtitle="Monitor all credit transactions and package purchases"
               actions={
-                <Button onClick={() => router.push("/admin/members")} className="bg-sage hover:bg-sage/90 text-white font-body">
+                <Button onClick={() => router.push("/admin/members")} variant="sage">
                   <User className="h-5 w-5 mr-2" />
                   Manage Members
                 </Button>

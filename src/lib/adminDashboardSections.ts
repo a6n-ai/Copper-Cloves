@@ -69,7 +69,9 @@ export async function getTodayClasses(db: Db = prisma, forDate?: Date) {
     select: {
       id: true,
       start_time: true,
+      end_time: true,
       capacity: true,
+      status: true,
       instructor_check_in_time: true,
       class_model: { select: { name: true, max_capacity: true } },
       instructor: { select: { name: true, image_url: true } },
@@ -89,10 +91,23 @@ export async function getTodayClasses(db: Db = prisma, forDate?: Date) {
     orderBy: { start_time: "asc" },
   });
 
-  return todaySchedules.map((s) => ({
+  const now = Date.now();
+  return todaySchedules.map((s) => {
+    const startMs = new Date(s.start_time).getTime();
+    const endMs = new Date(s.end_time).getTime();
+    // Derive "live" from window when DB says available/started and we're inside the class.
+    let derived: string = String(s.status);
+    if (s.status === "available" || s.status === "started") {
+      if (now >= startMs && now < endMs) derived = "live";
+      else if (now >= endMs) derived = "completed";
+    }
+    return {
     id: s.id,
     name: s.class_model?.name ?? "Class",
     time: new Date(s.start_time).toLocaleTimeString("en-US", { hour: "2-digit", minute: "2-digit", timeZone: "Asia/Kolkata" }),
+    startIso: new Date(s.start_time).toISOString(),
+    endIso: new Date(s.end_time).toISOString(),
+    status: derived,
     instructor: s.instructor?.name ?? "—",
     instructorAvatarUrl: s.instructor?.image_url ?? null,
     instructorCheckedIn: !!s.instructor_check_in_time,
@@ -113,7 +128,8 @@ export async function getTodayClasses(db: Db = prisma, forDate?: Date) {
         ? new Date(bk.check_in_time).toLocaleTimeString("en-US", { hour: "2-digit", minute: "2-digit", timeZone: "Asia/Kolkata" })
         : null,
     })),
-  }));
+    };
+  });
 }
 
 export async function getExpiringMembers(db: Db = prisma) {

@@ -23,104 +23,94 @@ import {
 } from "lucide-react";
 
 import { cdnUrl } from "@/lib/cdnUrl";
+
+const analogImages = [
+  cdnUrl("/events/Analog-0.jpeg"),
+  cdnUrl("/events/Analog-1.jpeg"),
+  cdnUrl("/events/Analog-2.jpeg"),
+  cdnUrl("/events/Analog-3.jpeg"),
+  cdnUrl("/events/Analog-4.jpeg")
+];
+
+const heroMedia = [
+  { type: "video", src: cdnUrl("/Refuel-1.mp4") },
+  { type: "image", src: cdnUrl("/meal-sub-2.jpg") },
+  { type: "video", src: cdnUrl("/refuel-3.mp4") },
+  { type: "image", src: cdnUrl("/food/BAG02716.jpg") },
+  { type: "image", src: cdnUrl("/meal-sub-1.jpg") },
+  { type: "image", src: cdnUrl("/food/A7404719.jpg") }
+];
+
+const galleryImages = [
+  cdnUrl("/food/A7401864.jpg"),
+  cdnUrl("/food/A7403685.jpg"),
+  cdnUrl("/food/A7403837.jpg"),
+  cdnUrl("/food/A7403872.jpg"),
+  cdnUrl("/food/A7403877.jpg"),
+  cdnUrl("/food/A7403883.jpg"),
+  cdnUrl("/food/A7404545.jpg"),
+  cdnUrl("/food/A7404719.jpg"),
+  cdnUrl("/food/A7404723.jpg"),
+  cdnUrl("/food/A7404737.jpg"),
+  cdnUrl("/food/A7406773.jpg"),
+  cdnUrl("/food/A7406776.jpg"),
+  cdnUrl("/food/BAG02663.jpg"),
+  cdnUrl("/food/BAG02716.jpg"),
+  cdnUrl("/food/BAG02721.jpg"),
+  cdnUrl("/food/BAG02755.jpg"),
+  cdnUrl("/food/BAG02768.jpg"),
+  cdnUrl("/food/BAG02801.jpg"),
+  cdnUrl("/food/BAG08771.jpg"),
+  cdnUrl("/food/BAG09447.jpg"),
+  cdnUrl("/food/DSC05959.jpg"),
+  cdnUrl("/food/BAG09574.jpg")
+];
+
+function getBackgroundColor(scrollY: number) {
+  const transitionStart = 800;
+  const transitionEnd = 1400;
+  if (scrollY < transitionStart) return "rgb(255, 255, 255)";
+  if (scrollY > transitionEnd) return "rgb(245, 235, 220)";
+  const progress = (scrollY - transitionStart) / (transitionEnd - transitionStart);
+  const r = Math.round(255 + (245 - 255) * progress);
+  const g = Math.round(255 + (235 - 255) * progress);
+  const b = Math.round(255 + (220 - 255) * progress);
+  return `rgb(${r}, ${g}, ${b})`;
+}
+
 export default function CafePage() {
   const [scrollY, setScrollY] = useState(0);
-
-  // Event image carousel state
   const [analogImageIndex, setAnalogImageIndex] = useState(0);
   const [heroMediaIndex, setHeroMediaIndex] = useState(0);
 
-  // Event images arrays
-  const analogImages = [
-    cdnUrl("/events/Analog-0.jpeg"),
-    cdnUrl("/events/Analog-1.jpeg"),
-    cdnUrl("/events/Analog-2.jpeg"),
-    cdnUrl("/events/Analog-3.jpeg"),
-    cdnUrl("/events/Analog-4.jpeg")
-  ];
-
-  // Hero media rotation - videos + images
-  const heroMedia = [
-    { type: "video", src: cdnUrl("/Refuel-1.mp4") },
-    { type: "image", src: cdnUrl("/meal-sub-2.jpg") },
-    { type: "video", src: cdnUrl("/refuel-3.mp4") },
-    { type: "image", src: cdnUrl("/food/BAG02716.jpg") },
-    { type: "image", src: cdnUrl("/meal-sub-1.jpg") },
-    { type: "image", src: cdnUrl("/food/A7404719.jpg") }
-  ];
-
-  // Food images for kinetic gallery
-  const galleryImages = [
-    cdnUrl("/food/A7401864.jpg"),
-    cdnUrl("/food/A7403685.jpg"),
-    cdnUrl("/food/A7403837.jpg"),
-    cdnUrl("/food/A7403872.jpg"),
-    cdnUrl("/food/A7403877.jpg"),
-    cdnUrl("/food/A7403883.jpg"),
-    cdnUrl("/food/A7404545.jpg"),
-    cdnUrl("/food/A7404719.jpg"),
-    cdnUrl("/food/A7404723.jpg"),
-    cdnUrl("/food/A7404737.jpg"),
-    cdnUrl("/food/A7406773.jpg"),
-    cdnUrl("/food/A7406776.jpg"),
-    cdnUrl("/food/BAG02663.jpg"),
-    cdnUrl("/food/BAG02716.jpg"),
-    cdnUrl("/food/BAG02721.jpg"),
-    cdnUrl("/food/BAG02755.jpg"),
-    cdnUrl("/food/BAG02768.jpg"),
-    cdnUrl("/food/BAG02801.jpg"),
-    cdnUrl("/food/BAG08771.jpg"),
-    cdnUrl("/food/BAG09447.jpg"),
-    cdnUrl("/food/DSC05959.jpg"),
-    cdnUrl("/food/BAG09574.jpg")
-  ];
-
-  // Scroll effect for background color transition
+  // rAF-throttled scroll: avoid setState on every pixel
   useEffect(() => {
+    let ticking = false;
     const handleScroll = () => {
-      setScrollY(window.scrollY);
+      if (ticking) return;
+      ticking = true;
+      requestAnimationFrame(() => {
+        setScrollY(window.scrollY);
+        ticking = false;
+      });
     };
-
     window.addEventListener("scroll", handleScroll, { passive: true });
     return () => window.removeEventListener("scroll", handleScroll);
   }, []);
 
-  // Analog Club image carousel
   useEffect(() => {
     const interval = setInterval(() => {
       setAnalogImageIndex((prev) => (prev + 1) % analogImages.length);
-    }, 3000); // Change image every 3 seconds
-
+    }, 3000);
     return () => clearInterval(interval);
-  }, [analogImages.length]);
+  }, []);
 
-  // Hero media carousel
   useEffect(() => {
     const interval = setInterval(() => {
       setHeroMediaIndex((prev) => (prev + 1) % heroMedia.length);
-    }, 5000); // Change every 5 seconds
-
+    }, 5000);
     return () => clearInterval(interval);
-  }, [heroMedia.length]);
-
-  // Calculate background color transition (white to beige)
-  const getBackgroundColor = () => {
-    const transitionStart = 800; // Start transition after hero
-    const transitionEnd = 1400; // Complete transition
-    
-    if (scrollY < transitionStart) {
-      return "rgb(255, 255, 255)"; // White
-    } else if (scrollY > transitionEnd) {
-      return "rgb(245, 235, 220)"; // Warm Beige
-    } else {
-      const progress = (scrollY - transitionStart) / (transitionEnd - transitionStart);
-      // Interpolate between white and beige
-      const r = Math.round(255 + (245 - 255) * progress);
-      const g = Math.round(255 + (235 - 255) * progress);
-      const b = Math.round(255 + (220 - 255) * progress);
-      return `rgb(${r}, ${g}, ${b})`;
-    }
-  };
+  }, []);
 
   const menuCategories = [
     {
@@ -156,7 +146,7 @@ export default function CafePage() {
       <div 
         className="fixed inset-0 -z-10 transition-colors duration-1000"
         style={{ 
-          backgroundColor: getBackgroundColor(),
+          backgroundColor: getBackgroundColor(scrollY),
           backgroundImage: `url("data:image/svg+xml,%3Csvg width='100' height='100' viewBox='0 0 100 100' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' /%3E%3C/filter%3E%3Crect width='100' height='100' filter='url(%23noise)' opacity='0.08'/%3E%3C/svg%3E")`,
           backgroundBlendMode: "multiply"
         }}
@@ -307,9 +297,10 @@ export default function CafePage() {
 
             <div className="flex flex-col sm:flex-row gap-4 justify-center">
               <Link href="/cafe/meal-subscription">
-                <Button 
+                <Button
                   size="lg"
-                  className="bg-sage hover:bg-sage/90 text-white px-10 py-6 text-base rounded-full shadow-2xl hover:shadow-sage/50 transition-all duration-300"
+                  variant="sage"
+                  className="px-10 py-6 text-base rounded-full shadow-2xl"
                 >
                   Explore the Menu
                   <ArrowRight className="ml-2" size={20} />
@@ -412,9 +403,10 @@ export default function CafePage() {
                   target="_blank"
                   rel="noopener noreferrer"
                 >
-                  <Button 
+                  <Button
                     size="lg"
-                    className="bg-sage hover:bg-sage/90 text-white px-8 py-6 text-base rounded-full w-full sm:w-auto"
+                    variant="sage"
+                    className="px-8 py-6 text-base rounded-full w-full sm:w-auto"
                   >
                     <MapPin className="mr-2" size={20} />
                     Find Our Location
@@ -584,9 +576,10 @@ export default function CafePage() {
                     
                     <div className="flex flex-col sm:flex-row gap-4">
                       <Link href="/cafe/meal-subscription">
-                        <Button 
+                        <Button
                           size="lg"
-                          className="bg-sage hover:bg-sage/90 text-white shadow-lg w-full sm:w-auto"
+                          variant="sage"
+                          className="w-full sm:w-auto"
                         >
                           Subscribe to Intentful Eating
                         </Button>

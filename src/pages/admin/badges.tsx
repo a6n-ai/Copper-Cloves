@@ -10,6 +10,7 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
+import { EditButton, DeleteButton } from "@/components/ui/quick-actions";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Badge } from "@/components/ui/badge";
@@ -510,7 +511,7 @@ export default function AdminBadgesPage() {
         </div>
       </div>
       <div className="flex gap-2 pt-1">
-        <Button size="sm" onClick={onSave} className="bg-sage hover:bg-sage/90 text-white font-body">
+        <Button size="sm" onClick={onSave} variant="sage">
           <Save size={14} className="mr-1" /> Save
         </Button>
         <Button
@@ -598,7 +599,8 @@ export default function AdminBadgesPage() {
                         setPtmForm(emptyForm());
                         setShowAddPtm(true);
                       }}
-                      className="bg-sage hover:bg-sage/90 text-white font-body h-9 shrink-0"
+                      variant="sage"
+                      className="h-9 shrink-0"
                     >
                       <Plus className="h-4 w-4 mr-1.5" />
                       Add Milestone
@@ -713,24 +715,8 @@ export default function AdminBadgesPage() {
                                   </TableCell>
                                   <TableCell className="px-5 py-4">
                                     <div className="flex gap-2 justify-end">
-                                      <Button
-                                        size="sm"
-                                        variant="outline"
-                                        className="h-8 w-8 p-0 font-body border-sage/30 text-sage hover:bg-sage/10"
-                                        onClick={() => startEditPtm(template)}
-                                        aria-label="Edit milestone"
-                                      >
-                                        <Edit2 size={14} />
-                                      </Button>
-                                      <Button
-                                        size="sm"
-                                        variant="outline"
-                                        className="h-8 w-8 p-0 font-body border-terracotta/30 text-terracotta hover:bg-terracotta/10"
-                                        onClick={() => deletePtm(template.id)}
-                                        aria-label="Delete milestone"
-                                      >
-                                        <Trash2 size={14} />
-                                      </Button>
+                                      <EditButton onClick={() => startEditPtm(template)} label="Edit milestone" />
+                                      <DeleteButton onClick={() => deletePtm(template.id)} label="Delete milestone" />
                                     </div>
                                   </TableCell>
                                 </TableRow>
@@ -774,7 +760,7 @@ export default function AdminBadgesPage() {
                   <Button
                     size="sm"
                     onClick={() => setShowCreateCustom(!showCreateCustom)}
-                    className="bg-sage hover:bg-sage/90 text-white font-body"
+                    variant="sage"
                   >
                     <Plus size={14} className="mr-1" />
                     {showCreateCustom ? "Cancel" : "Create Badge"}
@@ -832,10 +818,7 @@ export default function AdminBadgesPage() {
                           )}
                         </div>
                         <div className="flex gap-1.5 shrink-0" onClick={(e) => e.stopPropagation()}>
-                          <Button
-                            size="sm"
-                            variant="outline"
-                            className="h-8 w-8 p-0 border-sage/30 text-sage hover:bg-sage/10"
+                          <EditButton
                             onClick={() => {
                               setEditingCustomId(template.id);
                               setCustomEditForm({
@@ -847,17 +830,8 @@ export default function AdminBadgesPage() {
                                 sort_order: template.sort_order.toString(),
                               });
                             }}
-                          >
-                            <Edit2 size={13} />
-                          </Button>
-                          <Button
-                            size="sm"
-                            variant="outline"
-                            className="h-8 w-8 p-0 border-terracotta/30 text-terracotta hover:bg-terracotta/10"
-                            onClick={() => deleteCustom(template.id)}
-                          >
-                            <Trash2 size={13} />
-                          </Button>
+                          />
+                          <DeleteButton onClick={() => deleteCustom(template.id)} />
                         </div>
                       </div>
                       {editingCustomId === template.id && (
@@ -893,7 +867,7 @@ export default function AdminBadgesPage() {
                           size="sm"
                           disabled={momAwarding}
                           onClick={awardMoM}
-                          className="bg-terracotta hover:bg-terracotta/90 text-white font-body"
+                          variant="terracotta"
                         >
                           <Award size={14} className="mr-1.5" />
                           {momAwarding ? "Awarding…" : "Award Member of the Month Badge"}

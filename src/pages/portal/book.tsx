@@ -37,6 +37,7 @@ import {
   ArrowUp,
   ArrowDown,
 } from "lucide-react";
+import { NavPrevButton, NavNextButton, QtyMinusButton, QtyPlusButton } from "@/components/ui/quick-actions";
 import { useSession } from "next-auth/react";
 import {
   startOfMondayWeekLocal,
@@ -300,7 +301,8 @@ export default function BookClass() {
           return (
             t >= weekStart.getTime() &&
             t <= weekEnd.getTime() &&
-            s.status !== "cancelled"
+            s.status !== "cancelled" &&
+            s.status !== "inactive"
           );
         })
         .map((schedule: {
@@ -912,13 +914,11 @@ export default function BookClass() {
           {/* Week Navigation */}
           <div className="mb-6 bg-white/80 backdrop-blur-xs rounded-2xl border border-sage/20 p-4">
             <div className="flex items-center justify-between mb-3">
-              <button
+              <NavPrevButton
                 onClick={() => setWeekOffset(o => o - 1)}
-                className="p-2 rounded-full hover:bg-sage/10 text-sage transition-colors"
-                aria-label="Previous week"
-              >
-                <ChevronLeft size={20} />
-              </button>
+                className="rounded-full"
+                label="Previous week"
+              />
               <span className="font-body text-xs sm:text-sm text-charcoal/70 font-medium flex items-center gap-1.5 sm:gap-2">
                 {weekSummary || "Loading…"}
                 {weekOffset === 0 && <span className="text-xs text-sage bg-sage/10 px-2 py-0.5 rounded-full">This Week</span>}
@@ -926,13 +926,11 @@ export default function BookClass() {
                 {weekOffset < 0 && <span className="text-xs text-terracotta/80 bg-terracotta/10 px-2 py-0.5 rounded-full">Past</span>}
                 {weekOffset > 1 && <span className="text-xs text-sage bg-sage/10 px-2 py-0.5 rounded-full">Upcoming</span>}
               </span>
-              <button
+              <NavNextButton
                 onClick={() => setWeekOffset(o => o + 1)}
-                className="p-2 rounded-full hover:bg-sage/10 text-sage transition-colors"
-                aria-label="Next week"
-              >
-                <ChevronRight size={20} />
-              </button>
+                className="rounded-full"
+                label="Next week"
+              />
             </div>
             <div className="grid grid-cols-7 gap-1">
               {weekDays.map((day, i) => {
@@ -1062,10 +1060,11 @@ export default function BookClass() {
                           {cls.instructor}
                         </span>
                       </div>
-                      <Button 
-                        onClick={() => cls.isBookable !== false && handleSelectClass(cls)} 
+                      <Button
+                        onClick={() => cls.isBookable !== false && handleSelectClass(cls)}
                         disabled={cls.isBookable === false}
-                        className="bg-sage hover:bg-sage/90 text-white font-body w-full transition-all duration-600 hover:scale-105 active:scale-95 disabled:opacity-50 disabled:hover:scale-100"
+                        variant="sage"
+                        className="w-full"
                       >
                         {cls.isBookable === false ? "Session started" : "Reserve Your Spot"}
                       </Button>
@@ -1123,12 +1122,15 @@ export default function BookClass() {
                 Step {bookingStep} of 4 · {selectedClass?.name}
               </p>
             </div>
-            <button
+            <Button
               onClick={() => setShowBookingPanel(false)}
-              className="p-2 rounded-full hover:bg-sage/10 text-sage hover:text-charcoal transition-all duration-600 hover:rotate-90"
+              variant="sage-outline"
+              size="icon"
+              className="rounded-full"
+              aria-label="Close"
             >
               <X size={20} />
-            </button>
+            </Button>
           </div>
 
           {/* Panel Content */}
@@ -1158,12 +1160,15 @@ export default function BookClass() {
                             <p className="font-body text-sm text-charcoal/60">{person.email}</p>
                             <p className="font-body text-xs text-charcoal/50">{person.phone}</p>
                           </div>
-                          <button
+                          <Button
                             onClick={() => handleRemovePerson(index)}
-                            className="p-2 rounded-full hover:bg-terracotta/10 text-terracotta transition-all"
+                            variant="terracotta-ghost"
+                            size="icon-sm"
+                            className="rounded-full"
+                            aria-label="Remove"
                           >
                             <X size={18} />
-                          </button>
+                          </Button>
                         </div>
                       ))}
                     </div>
@@ -1215,7 +1220,8 @@ export default function BookClass() {
                     <div className="flex gap-3">
                       <Button
                         onClick={handleAddPerson}
-                        className="flex-1 bg-sage hover:bg-sage/90 text-white"
+                        variant="sage"
+                        className="flex-1"
                       >
                         Add Person
                       </Button>
@@ -1409,13 +1415,15 @@ export default function BookClass() {
                         </div>
                       </div>
                       <div className="flex items-center gap-3 pt-2 border-t border-sage/20">
-                        <button
+                        <Button
                           onClick={handleAddPass}
                           disabled={addingPass}
-                          className="flex-1 text-center font-body text-xs font-medium bg-sage text-white rounded-lg py-2 px-3 hover:bg-sage/90 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                          variant="sage"
+                          size="sm"
+                          className="flex-1"
                         >
                           {addingPass ? "Processing…" : "Add this Pass →"}
-                        </button>
+                        </Button>
                         <a
                           href="/portal/packages"
                           className="font-body text-xs text-sage hover:text-sage/80 underline underline-offset-2 transition-colors whitespace-nowrap"
@@ -1515,22 +1523,20 @@ export default function BookClass() {
                           <div className="flex items-center justify-between">
                             <p className="font-body text-sage font-semibold">₹{item.price}</p>
                             <div className="flex items-center gap-3">
-                              <button
+                              <QtyMinusButton
                                 onClick={() => handleFoodQuantity(item.id, -1)}
                                 disabled={item.quantity === 0}
-                                className="w-8 h-8 rounded-full bg-sage/10 hover:bg-sage/20 disabled:opacity-30 disabled:cursor-not-allowed flex items-center justify-center transition-all"
-                              >
-                                <Minus size={14} className="text-sage" />
-                              </button>
+                                className="rounded-full bg-sage/10"
+                                label="Decrease quantity"
+                              />
                               <span className="font-body text-charcoal font-medium w-8 text-center">
                                 {item.quantity}
                               </span>
-                              <button
+                              <QtyPlusButton
                                 onClick={() => handleFoodQuantity(item.id, 1)}
-                                className="w-8 h-8 rounded-full bg-sage/10 hover:bg-sage/20 flex items-center justify-center transition-all"
-                              >
-                                <Plus size={14} className="text-sage" />
-                              </button>
+                                className="rounded-full bg-sage/10"
+                                label="Increase quantity"
+                              />
                             </div>
                           </div>
                         </div>
@@ -1604,8 +1610,9 @@ export default function BookClass() {
                           placeholder="Enter code"
                           className="flex-1 font-body text-sm px-3 py-2 rounded-lg border border-sage/30 focus:outline-hidden focus:ring-1 focus:ring-sage bg-white text-charcoal placeholder:text-charcoal/30 uppercase"
                         />
-                        <button
+                        <Button
                           disabled={!couponCode.trim() || couponLoading}
+                          variant="sage"
                           onClick={async () => {
                             setCouponLoading(true);
                             setCouponError(null);
@@ -1631,10 +1638,9 @@ export default function BookClass() {
                               setCouponLoading(false);
                             }
                           }}
-                          className="font-body text-sm px-4 py-2 rounded-lg bg-sage text-white hover:bg-sage/90 disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
                         >
                           {couponLoading ? "…" : "Apply"}
-                        </button>
+                        </Button>
                       </div>
                     )}
                     {couponError && (
@@ -1759,7 +1765,8 @@ export default function BookClass() {
                 <Button
                   onClick={handleNextStep}
                   disabled={isSubmittingBooking}
-                  className="flex-1 bg-sage hover:bg-sage/90 text-white transition-all duration-600 hover:scale-105 active:scale-95 text-base py-3 sm:py-6 min-h-[44px]"
+                  variant="sage"
+                  className="flex-1 text-base py-3 sm:py-6 min-h-[44px]"
                 >
                   Continue
                   <ChevronRight size={18} className="ml-2" />
@@ -1768,7 +1775,8 @@ export default function BookClass() {
                 <Button
                   onClick={handleConfirmBooking}
                   disabled={isSubmittingBooking}
-                  className="flex-1 bg-sage hover:bg-sage/90 text-white transition-all duration-600 hover:scale-105 active:scale-95 text-base py-3 sm:py-6 min-h-[44px] disabled:opacity-60 disabled:hover:scale-100"
+                  variant="sage"
+                  className="flex-1 text-base py-3 sm:py-6 min-h-[44px]"
                 >
                   {isSubmittingBooking
                     ? "Working…"

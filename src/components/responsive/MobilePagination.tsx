@@ -62,18 +62,17 @@ export function MobilePagination({
               …
             </span>
           ) : (
-            <button
+            <Button
               key={p}
               type="button"
+              variant={p === currentPage ? "sage" : "sage-outline"}
+              size="icon-sm"
               onClick={() => go(p)}
               aria-current={p === currentPage ? "page" : undefined}
-              className={cn(
-                "h-9 w-9 rounded-lg font-body text-sm transition-colors",
-                p === currentPage ? "bg-sage text-white shadow-md" : "text-charcoal/60 hover:bg-sage/10",
-              )}
+              className="rounded-lg"
             >
               {p}
-            </button>
+            </Button>
           ),
         )}
       </div>

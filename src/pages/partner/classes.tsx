@@ -10,7 +10,8 @@ import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { MetricCard } from "@/components/admin/MetricCard";
 import { Skeleton } from "@/components/ui/skeleton";
-import { Calendar, Users, CheckCircle2, Clock, UserX, ChevronLeft, ChevronRight, Hourglass, TrendingUp } from "lucide-react";
+import { Calendar, Users, CheckCircle2, Clock, UserX, Hourglass, TrendingUp } from "lucide-react";
+import { NavPrevButton, NavNextButton } from "@/components/ui/quick-actions";
 import { toast } from "sonner";
 
 function PartnerClassesSkeleton() {
@@ -216,12 +217,12 @@ export default function PartnerClasses() {
 
       <div className="flex flex-wrap items-center justify-between gap-3">
         <div className="flex items-center gap-2">
-          <Button variant="outline" size="icon" className="h-9 w-9 border-sage/20" onClick={() => shift(-1)} aria-label="Previous"><ChevronLeft className="h-4 w-4" /></Button>
+          <NavPrevButton onClick={() => shift(-1)} />
           <div className="font-display text-2xl text-charcoal min-w-0 sm:min-w-[180px] text-center flex items-center justify-center gap-2 truncate">
             <Calendar className="h-5 w-5 text-sage" /> {periodLabel}
           </div>
-          <Button variant="outline" size="icon" className="h-9 w-9 border-sage/20" onClick={() => shift(1)} aria-label="Next"><ChevronRight className="h-4 w-4" /></Button>
-          <Button variant="ghost" size="sm" className="text-sage hover:bg-sage/10 font-body" onClick={goToday}>Today</Button>
+          <NavNextButton onClick={() => shift(1)} />
+          <Button variant="sage-outline" size="sm" onClick={goToday}>Today</Button>
         </div>
         <div className="flex items-center gap-1 rounded-full bg-cream/60 p-1 border border-sage/15">
           {(["week", "month"] as const).map((m) => (
@@ -341,7 +342,7 @@ export default function PartnerClasses() {
                             {b.confirmationStatus === "pending" ? (
                               <>
                                 <Badge variant="outline" className="border-amber-500/30 text-amber-600 bg-amber-50 font-body whitespace-nowrap">Pending</Badge>
-                                <Button size="sm" disabled={actioningId === b.id} onClick={() => actionBooking(c.id, b.id, "confirm")} className="bg-sage hover:bg-sage/90 text-white h-7 px-3 text-xs rounded-full font-body">Confirm</Button>
+                                <Button size="sm" variant="sage" disabled={actioningId === b.id} onClick={() => actionBooking(c.id, b.id, "confirm")} className="h-7 px-3 text-xs rounded-full">Confirm</Button>
                                 <Button size="sm" variant="outline" disabled={actioningId === b.id} onClick={() => actionBooking(c.id, b.id, "reject")} className="border-terracotta/30 text-terracotta hover:bg-terracotta/5 h-7 px-3 text-xs rounded-full font-body">Reject</Button>
                               </>
                             ) : b.checkedIn ? (
