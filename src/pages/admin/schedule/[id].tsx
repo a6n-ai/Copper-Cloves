@@ -57,6 +57,7 @@ interface QrData {
   memberQrUrl: string | null;
   withinWindow: boolean;
   startTime: string;
+  windowOpensAt?: string;
 }
 interface NamedRow {
   id: string;
@@ -154,6 +155,27 @@ export default function AdminClassPage() {
   const id = typeof router.query.id === "string" ? router.query.id : "";
   const [roster, setRoster] = useState<Roster | null>(null);
   const [qr, setQr] = useState<QrData | null>(null);
+  const [qrRefreshing, setQrRefreshing] = useState(false);
+
+  const refreshQr = useCallback(
+    async (force: boolean) => {
+      if (!id) return;
+      setQrRefreshing(true);
+      try {
+        const r = force
+          ? await fetch(`/api/admin/schedule-qr`, {
+              method: "POST",
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify({ scheduleId: id }),
+            })
+          : await fetch(`/api/admin/schedule-qr?scheduleId=${id}`);
+        if (r.ok) setQr(await r.json());
+      } finally {
+        setQrRefreshing(false);
+      }
+    },
+    [id],
+  );
   const [loading, setLoading] = useState(true);
   const [query, setQuery] = useState("");
   const [results, setResults] = useState<{ id: string; full_name: string | null; email: string }[]>([]);
@@ -374,13 +396,28 @@ export default function AdminClassPage() {
 
                 {/* QR codes */}
                 <Card className="rounded-2xl shadow-xs">
-                  <CardHeader>
+                  <CardHeader className="flex flex-row items-center justify-between gap-2">
                     <CardTitle className="font-display text-xl text-charcoal">Check-in QR codes</CardTitle>
+                    <Button
+                      type="button"
+                      size="sm"
+                      variant="outline"
+                      onClick={() => refreshQr(true)}
+                      disabled={qrRefreshing}
+                    >
+                      {qrRefreshing ? "Refreshing…" : "Refresh QR"}
+                    </Button>
                   </CardHeader>
                   <CardContent>
                     {!qr?.withinWindow ? (
                       <p className="mb-4 rounded-lg bg-cream/60 px-4 py-2 text-sm text-charcoal/60">
                         QR scanning is active from 30 minutes before until 30 minutes after class start.
+                        {qr?.windowOpensAt
+                          ? ` Opens at ${new Date(qr.windowOpensAt).toLocaleString(undefined, {
+                              dateStyle: "medium",
+                              timeStyle: "short",
+                            })}.`
+                          : null}
                       </p>
                     ) : null}
                     <div className="grid grid-cols-1 gap-6 sm:grid-cols-2">
@@ -389,7 +426,26 @@ export default function AdminClassPage() {
                         {qr?.instructorQrUrl ? (
                           <QrZoomImage url={qr.instructorQrUrl} label="Instructor check-in" caption="Tap to enlarge" />
                         ) : (
-                          <p className="py-10 text-sm text-charcoal/50">QR unavailable</p>
+                          <div className="flex flex-col items-center gap-2 py-10">
+                            <p className="text-sm text-charcoal/50">QR unavailable</p>
+                            {qr?.windowOpensAt && !qr?.withinWindow ? (
+                              <p className="text-xs text-charcoal/40">
+                                Will generate at{" "}
+                                {new Date(qr.windowOpensAt).toLocaleTimeString(undefined, {
+                                  timeStyle: "short",
+                                })}
+                              </p>
+                            ) : (
+                              <Button
+                                size="sm"
+                                variant="ghost"
+                                onClick={() => refreshQr(true)}
+                                disabled={qrRefreshing}
+                              >
+                                Try again
+                              </Button>
+                            )}
+                          </div>
                         )}
                       </div>
                       <div className="flex flex-col items-center gap-2 rounded-xl border border-sage/15 p-6">
@@ -397,7 +453,26 @@ export default function AdminClassPage() {
                         {qr?.memberQrUrl ? (
                           <QrZoomImage url={qr.memberQrUrl} label="Member check-in" caption="Tap to enlarge" />
                         ) : (
-                          <p className="py-10 text-sm text-charcoal/50">QR unavailable</p>
+                          <div className="flex flex-col items-center gap-2 py-10">
+                            <p className="text-sm text-charcoal/50">QR unavailable</p>
+                            {qr?.windowOpensAt && !qr?.withinWindow ? (
+                              <p className="text-xs text-charcoal/40">
+                                Will generate at{" "}
+                                {new Date(qr.windowOpensAt).toLocaleTimeString(undefined, {
+                                  timeStyle: "short",
+                                })}
+                              </p>
+                            ) : (
+                              <Button
+                                size="sm"
+                                variant="ghost"
+                                onClick={() => refreshQr(true)}
+                                disabled={qrRefreshing}
+                              >
+                                Try again
+                              </Button>
+                            )}
+                          </div>
                         )}
                       </div>
                     </div>
