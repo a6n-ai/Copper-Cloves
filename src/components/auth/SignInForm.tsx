@@ -7,16 +7,17 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Checkbox } from "@/components/ui/checkbox";
 import { PasswordInput } from "@/components/ui/password-input";
-import { LayoutDashboard, Calendar, Users, ShieldCheck, Leaf, type LucideIcon } from "lucide-react";
+import { LayoutDashboard, Calendar, Users, ShieldCheck, Leaf, ChefHat, type LucideIcon } from "lucide-react";
 import { Spinner } from "@/components/ui/spinner";
 
-type Role = "admin" | "partner" | "instructor" | "user";
+type Role = "admin" | "partner" | "instructor" | "user" | "chef";
 
 const PORTALS: Record<Role, { label: string; blurb: string; href: string; icon: LucideIcon }> = {
   admin: { label: "Admin", blurb: "Manage the studio", href: "/admin/dashboard", icon: ShieldCheck },
   partner: { label: "Partner", blurb: "Your classes & roster", href: "/partner/dashboard", icon: Calendar },
   instructor: { label: "Instructor", blurb: "Today's classes & check-in", href: "/instructor/dashboard", icon: Users },
   user: { label: "Member", blurb: "Book classes & packages", href: "/portal/dashboard", icon: LayoutDashboard },
+  chef: { label: "Kitchen", blurb: "Café & live orders", href: "/admin/kitchen", icon: ChefHat },
 };
 
 export function SignInForm({ onSwitchToSignup }: { onSwitchToSignup: () => void }) {

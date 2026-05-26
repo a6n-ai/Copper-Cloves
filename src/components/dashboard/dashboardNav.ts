@@ -10,10 +10,12 @@ import {
   Package,
   Settings,
   User,
+  ChefHat,
+  ClipboardList,
   type LucideIcon,
 } from "lucide-react";
 
-export type PortalKind = "admin" | "partner" | "member" | "instructor";
+export type PortalKind = "admin" | "partner" | "member" | "instructor" | "kitchen";
 
 export type NavLink = { href: string; label: string; icon: LucideIcon };
 export type NavSection = { label: string; items: NavLink[] };
@@ -49,8 +51,8 @@ export const PORTAL_CONFIGS: Record<PortalKind, PortalConfig> = {
     kind: "admin",
     badgeLabel: "Admin Portal",
     badgeClass: "bg-terracotta text-white",
-    accountHref: "/admin/control",
-    accountLabel: "Account Settings",
+    accountHref: "/account",
+    accountLabel: "Profile & password",
     subtitle: "Admin portal",
     mobilePrimary: ["/admin/dashboard", "/admin/schedule", "/admin/members", "/admin/CRM"],
     sections: [
@@ -72,17 +74,23 @@ export const PORTAL_CONFIGS: Record<PortalKind, PortalConfig> = {
           { href: "/admin/products", label: "Products", icon: Package },
         ],
       },
-      { label: "System", items: [{ href: "/admin/control", label: "Settings", icon: Settings }] },
+      {
+        label: "System",
+        items: [
+          { href: "/admin/control", label: "Settings", icon: Settings },
+          { href: "/account", label: "Profile", icon: User },
+        ],
+      },
     ],
   },
   partner: {
     kind: "partner",
     badgeLabel: "Partner Portal",
     badgeClass: "bg-sage text-white",
-    accountHref: "/partner/settings",
-    accountLabel: "Profile & settings",
+    accountHref: "/account",
+    accountLabel: "Profile & password",
     subtitle: "Partner portal",
-    mobilePrimary: ["/partner/dashboard", "/partner/classes", "/partner/members", "/partner/settings"],
+    mobilePrimary: ["/partner/dashboard", "/partner/classes", "/partner/members", "/account"],
     sections: [
       { label: "Dashboard", items: [{ href: "/partner/dashboard", label: "Dashboard", icon: LayoutDashboard }] },
       {
@@ -92,15 +100,21 @@ export const PORTAL_CONFIGS: Record<PortalKind, PortalConfig> = {
           { href: "/partner/members", label: "Members", icon: Users },
         ],
       },
-      { label: "System", items: [{ href: "/partner/settings", label: "Settings", icon: Settings }] },
+      {
+        label: "System",
+        items: [
+          { href: "/partner/settings", label: "Brand Settings", icon: Settings },
+          { href: "/account", label: "Profile", icon: User },
+        ],
+      },
     ],
   },
   member: {
     kind: "member",
     badgeLabel: "Member Portal",
     badgeClass: "bg-sage text-white",
-    accountHref: "/portal/profile",
-    accountLabel: "Profile & settings",
+    accountHref: "/account",
+    accountLabel: "Profile & password",
     subtitle: "Member portal",
     mobilePrimary: ["/portal/dashboard", "/portal/book", "/portal/bookings"],
     mobileScanner: true,
@@ -115,18 +129,33 @@ export const PORTAL_CONFIGS: Record<PortalKind, PortalConfig> = {
           { href: "/portal/menu", label: "Café", icon: Coffee },
         ],
       },
-      { label: "Account", items: [{ href: "/portal/profile", label: "Profile", icon: User }] },
+      { label: "Account", items: [{ href: "/account", label: "Profile", icon: User }] },
     ],
   },
   instructor: {
     kind: "instructor",
     badgeLabel: "Instructor Portal",
     badgeClass: "bg-sage text-white",
+    accountHref: "/account",
+    accountLabel: "Profile & password",
     subtitle: "Instructor portal",
-    mobilePrimary: ["/instructor/dashboard"],
+    mobilePrimary: ["/instructor/dashboard", "/account"],
     mobileScanner: true,
     sections: [
       { label: "Dashboard", items: [{ href: "/instructor/dashboard", label: "Dashboard", icon: LayoutDashboard }] },
+      { label: "Account", items: [{ href: "/account", label: "Profile", icon: User }] },
+    ],
+  },
+  kitchen: {
+    kind: "kitchen",
+    badgeLabel: "Kitchen",
+    badgeClass: "bg-terracotta text-white",
+    subtitle: "Kitchen portal",
+    mobilePrimary: ["/admin/kitchen", "/admin/cafe", "/admin/kitchen/members"],
+    sections: [
+      { label: "Kitchen", items: [{ href: "/admin/kitchen", label: "Live Orders", icon: ClipboardList }] },
+      { label: "Café", items: [{ href: "/admin/cafe", label: "Menu & Orders", icon: Coffee }] },
+      { label: "Members", items: [{ href: "/admin/kitchen/members", label: "Members & Discounts", icon: ChefHat }] },
     ],
   },
 };

@@ -198,7 +198,7 @@ export function MemberMobileDashboard({
             { icon: Calendar, label: "Book", action: () => router.push("/portal/book") },
             { icon: Package, label: "Packages", action: () => router.push("/portal/packages") },
             { icon: History, label: "History", action: onShowOrderHistory },
-            { icon: Lock, label: "Password", action: () => router.push("/portal/profile#reset-password") },
+            { icon: Lock, label: "Password", action: () => router.push("/account#reset-password") },
           ].map(({ icon: Icon, label, action }) => (
             <button
               key={label}

@@ -1,5 +1,5 @@
-import type { ReactNode } from "react";
-import { Repeat, CalendarIcon, ChevronRight } from "lucide-react";
+import { useState, type ReactNode } from "react";
+import { Repeat, CalendarIcon, ChevronRight, ArrowUp, ArrowDown, ChevronsUpDown } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import {
   Table,
@@ -48,6 +48,77 @@ function occupancyBadge(pct: number): string {
   return "border-sage/20 text-sage bg-sage/5";
 }
 
+type SortKey = "time" | "name" | "instructor" | "capacity" | "fill";
+type SortDir = "asc" | "desc";
+
+/** Parse "07:00 AM" / "01:30 PM" / "14:05" into minutes-of-day for correct ordering. */
+function timeToMinutes(t: string): number {
+  const m = t.trim().match(/^(\d{1,2}):(\d{2})\s*(AM|PM)?$/i);
+  if (!m) return Number.MAX_SAFE_INTEGER;
+  let h = parseInt(m[1], 10);
+  const min = parseInt(m[2], 10);
+  const mer = m[3]?.toUpperCase();
+  if (mer === "PM" && h !== 12) h += 12;
+  if (mer === "AM" && h === 12) h = 0;
+  return h * 60 + min;
+}
+
+function fillPct(row: ScheduleRow): number {
+  return row.enrolled / Math.max(row.capacity, 1);
+}
+
+function compareRows(a: ScheduleRow, b: ScheduleRow, key: SortKey): number {
+  switch (key) {
+    case "time":
+      return timeToMinutes(a.time) - timeToMinutes(b.time);
+    case "name":
+      return a.name.localeCompare(b.name);
+    case "instructor":
+      return (a.instructor || "").localeCompare(b.instructor || "");
+    case "capacity":
+      return a.enrolled - b.enrolled;
+    case "fill":
+      return fillPct(a) - fillPct(b);
+  }
+}
+
+function SortHead({
+  label,
+  sortKey,
+  active,
+  dir,
+  onSort,
+  className,
+}: {
+  label: string;
+  sortKey: SortKey;
+  active: SortKey;
+  dir: SortDir;
+  onSort: (k: SortKey) => void;
+  className?: string;
+}) {
+  const isActive = active === sortKey;
+  return (
+    <TableHead className={cn("font-body text-xs uppercase tracking-wide text-charcoal/60 px-5 py-3", className)}>
+      <button
+        type="button"
+        onClick={() => onSort(sortKey)}
+        className={cn(
+          "inline-flex items-center gap-1 transition-colors hover:text-charcoal",
+          isActive && "text-charcoal",
+        )}
+      >
+        {label}
+        {isActive ? (
+          dir === "asc" ? <ArrowUp className="h-3 w-3" /> : <ArrowDown className="h-3 w-3" />
+        ) : (
+          <ChevronsUpDown className="h-3 w-3 opacity-40" />
+        )}
+      </button>
+    </TableHead>
+  );
+}
+
 export function DayScheduleList({
   items,
   onSelect,
@@ -56,7 +127,22 @@ export function DayScheduleList({
   variant = "compact",
   pageSize = 8,
 }: Props) {
-  const sorted = [...items].sort((a, b) => a.time.localeCompare(b.time));
+  const [sortKey, setSortKey] = useState<SortKey>("time");
+  const [sortDir, setSortDir] = useState<SortDir>("asc");
+
+  function toggleSort(key: SortKey) {
+    if (key === sortKey) {
+      setSortDir((d) => (d === "asc" ? "desc" : "asc"));
+    } else {
+      setSortKey(key);
+      setSortDir("asc");
+    }
+  }
+
+  const sorted = [...items].sort((a, b) => {
+    const cmp = compareRows(a, b, sortKey);
+    return sortDir === "asc" ? cmp : -cmp;
+  });
   const pg = usePagination(sorted, pageSize);
 
   if (items.length === 0) {
@@ -77,11 +163,11 @@ export function DayScheduleList({
         <Table>
           <TableHeader>
             <TableRow className="bg-sage/5 hover:bg-sage/5 border-sage/10">
-              <TableHead className="font-body text-xs uppercase tracking-wide text-charcoal/60 w-[110px] px-5 py-3">Time</TableHead>
-              <TableHead className="font-body text-xs uppercase tracking-wide text-charcoal/60 px-5 py-3">Class</TableHead>
-              <TableHead className="font-body text-xs uppercase tracking-wide text-charcoal/60 px-5 py-3">Instructor</TableHead>
-              <TableHead className="font-body text-xs uppercase tracking-wide text-charcoal/60 w-[220px] px-5 py-3">Capacity</TableHead>
-              <TableHead className="font-body text-xs uppercase tracking-wide text-charcoal/60 w-[80px] px-5 py-3">Fill</TableHead>
+              <SortHead label="Time" sortKey="time" active={sortKey} dir={sortDir} onSort={toggleSort} className="w-[110px]" />
+              <SortHead label="Class" sortKey="name" active={sortKey} dir={sortDir} onSort={toggleSort} />
+              <SortHead label="Instructor" sortKey="instructor" active={sortKey} dir={sortDir} onSort={toggleSort} />
+              <SortHead label="Capacity" sortKey="capacity" active={sortKey} dir={sortDir} onSort={toggleSort} className="w-[220px]" />
+              <SortHead label="Fill" sortKey="fill" active={sortKey} dir={sortDir} onSort={toggleSort} className="w-[80px]" />
               {variant === "expanded" && (
                 <TableHead className="font-body text-xs uppercase tracking-wide text-charcoal/60 w-[140px] px-5 py-3 text-right">Actions</TableHead>
               )}

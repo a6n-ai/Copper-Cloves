@@ -26,9 +26,22 @@ const CHROME_EXEMPT = [
 
 function resolvePortalKind(pathname: string, role?: string): PortalKind | null {
   if (pathname.startsWith("/admin") && role === "admin") return "admin";
+  // Chef lives under /admin (café + kitchen) but gets its own scoped chrome.
+  if (pathname.startsWith("/admin") && role === "chef") return "kitchen";
   if (pathname.startsWith("/partner") && role === "partner") return "partner";
   if (pathname.startsWith("/instructor") && role === "instructor") return "instructor";
-  if (pathname.startsWith("/portal") && role === "user") return "member";
+  // /portal is the member area: any authenticated user gets member chrome.
+  // Role-specific portals above stay strict (server-guarded); /portal is the
+  // shared fallback so non-"user" roles previewing it still get sidebar+topbar.
+  if (pathname.startsWith("/portal")) return "member";
+  // Unified /account: every signed-in role keeps its own portal chrome here.
+  if (pathname === "/account") {
+    if (role === "admin") return "admin";
+    if (role === "partner") return "partner";
+    if (role === "instructor") return "instructor";
+    if (role === "chef") return "kitchen";
+    return "member";
+  }
   return null;
 }
 

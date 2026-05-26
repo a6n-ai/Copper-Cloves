@@ -70,6 +70,7 @@ export async function getTodayClasses(db: Db = prisma, forDate?: Date) {
       id: true,
       start_time: true,
       capacity: true,
+      instructor_check_in_time: true,
       class_model: { select: { name: true, max_capacity: true } },
       instructor: { select: { name: true, image_url: true } },
       bookings: {
@@ -94,6 +95,8 @@ export async function getTodayClasses(db: Db = prisma, forDate?: Date) {
     time: new Date(s.start_time).toLocaleTimeString("en-US", { hour: "2-digit", minute: "2-digit", timeZone: "Asia/Kolkata" }),
     instructor: s.instructor?.name ?? "—",
     instructorAvatarUrl: s.instructor?.image_url ?? null,
+    instructorCheckedIn: !!s.instructor_check_in_time,
+    instructorCheckInTime: s.instructor_check_in_time?.toISOString() ?? null,
     enrolled: s.bookings.length,
     checkedIn: s.bookings.filter((bk) => bk.checked_in).length,
     capacity: s.capacity ?? s.class_model?.max_capacity ?? 0,

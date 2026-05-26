@@ -31,7 +31,37 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     },
   });
 
-  if (!schedule) return res.json({ active: null });
+  if (!schedule) {
+    // No class in the check-in window — surface the soonest upcoming class so
+    // the admin beacon can show "next class" info before the QR window opens.
+    const upcoming = await prisma.classSchedule.findFirst({
+      where: {
+        status: { not: "cancelled" },
+        start_time: { gt: new Date(now) },
+      },
+      orderBy: { start_time: "asc" },
+      select: {
+        id: true,
+        start_time: true,
+        end_time: true,
+        class_model: { select: { name: true } },
+        instructor: { select: { name: true } },
+      },
+    });
+
+    return res.json({
+      active: null,
+      next: upcoming
+        ? {
+            scheduleId: upcoming.id,
+            className: upcoming.class_model?.name ?? "Class",
+            instructorName: upcoming.instructor?.name ?? null,
+            startTime: upcoming.start_time.toISOString(),
+            endTime: upcoming.end_time.toISOString(),
+          }
+        : null,
+    });
+  }
 
   const qrs = await ensureScheduleQrCodes(schedule.id);
   return res.json({
@@ -45,5 +75,6 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       instructorQrUrl: qrs.instructor.imageUrl,
       memberQrUrl: qrs.member.imageUrl,
     },
+    next: null,
   });
 }

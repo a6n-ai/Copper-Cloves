@@ -8,9 +8,11 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
   const userId = (session.user as { id: string }).id;
   const userRole = (session.user as { role?: string }).role;
+  // Admin + kitchen staff see and manage every order; members see only their own.
+  const isStaff = userRole === "admin" || userRole === "chef";
 
   if (req.method === "GET") {
-    const where = userRole === "admin" ? {} : { user_id: userId };
+    const where = isStaff ? {} : { user_id: userId };
     const orders = await prisma.cafeOrder.findMany({
       where,
       include: {
@@ -65,7 +67,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   }
 
   if (req.method === "PATCH") {
-    if (userRole !== "admin") {
+    if (!isStaff) {
       return res.status(403).json({ error: "Forbidden" });
     }
     const { id, status } = req.body;

@@ -130,9 +130,9 @@ export default function AdminCafe() {
   const { data: session, status } = useSession();
 
   useEffect(() => {
-    if (status === "unauthenticated") { router.push("/admin/login"); return; }
+    if (status === "unauthenticated") { router.push("/login"); return; }
     const role = (session?.user as { role?: string })?.role;
-    if (status === "authenticated" && role !== "admin") { router.push("/admin/login"); return; }
+    if (status === "authenticated" && role !== "admin" && role !== "chef") { router.push("/login"); return; }
     if (status === "authenticated") {
       fetchMenuItems();
       fetchOrders();

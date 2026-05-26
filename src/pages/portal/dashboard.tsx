@@ -547,7 +547,7 @@ export default function Dashboard() {
                     { icon: Calendar, label: "Book", action: () => void router.push("/portal/book") },
                     { icon: Package, label: "Packages", action: () => void router.push("/portal/packages") },
                     { icon: History, label: "History", action: () => setShowOrderHistory(true) },
-                    { icon: Lock, label: "Password", action: () => void router.push("/portal/profile#reset-password") },
+                    { icon: Lock, label: "Password", action: () => void router.push("/account#reset-password") },
                   ].map(({ icon: Icon, label, action }) => (
                     <button
                       key={label}
@@ -592,7 +592,7 @@ export default function Dashboard() {
                   <Button
                     type="button"
                     variant="outline"
-                    onClick={() => void router.push("/portal/profile#reset-password")}
+                    onClick={() => void router.push("/account#reset-password")}
                     className="border-sage/20 text-charcoal hover:bg-cream font-body justify-start"
                   >
                     <span className="mr-2"><AnimatedIcon icon={Lock} size={16} /></span>

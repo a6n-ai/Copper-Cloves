@@ -2,7 +2,7 @@ import type { NextApiRequest, NextApiResponse } from "next";
 import prisma from "@/lib/prisma";
 import { normalizeLoginEmail } from "@/lib/loginEmail";
 
-const PORTAL_ORDER = ["admin", "partner", "instructor", "user"];
+const PORTAL_ORDER = ["admin", "chef", "partner", "instructor", "user"];
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
   if (req.method !== "POST") {

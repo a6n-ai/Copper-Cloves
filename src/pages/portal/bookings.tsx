@@ -194,8 +194,12 @@ export default function MyBookingsPage() {
     }
   }
 
-  const totalPages = Math.ceil(bookings.length / PAGE_SIZE);
-  const paginatedBookings = bookings.slice((currentPage - 1) * PAGE_SIZE, currentPage * PAGE_SIZE);
+  // Newest class first (API returns ascending for the dashboard's "next class").
+  const sortedBookings = [...bookings].sort(
+    (a, b) => new Date(effectiveClassTime(b)).getTime() - new Date(effectiveClassTime(a)).getTime(),
+  );
+  const totalPages = Math.ceil(sortedBookings.length / PAGE_SIZE);
+  const paginatedBookings = sortedBookings.slice((currentPage - 1) * PAGE_SIZE, currentPage * PAGE_SIZE);
 
   if (isLoading) {
     return (

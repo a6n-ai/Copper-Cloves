@@ -32,7 +32,10 @@ import {
   Minus,
   UserPlus,
   CreditCard,
-  AlertCircle
+  AlertCircle,
+  ArrowDownUp,
+  ArrowUp,
+  ArrowDown,
 } from "lucide-react";
 import { useSession } from "next-auth/react";
 import {
@@ -51,18 +54,12 @@ import {
 } from "@/lib/pendingRazorpayCheckout";
 import { payWithRazorpayOrder } from "@/lib/razorpayCheckout";
 import { passCategoryForPackageType } from "@/lib/couponHelpers";
+import {
+  STUDIO_PASS_FOOD_DISCOUNTS as UNLIMITED_DISCOUNTS,
+  CLASS_PASS_FOOD_DISCOUNT,
+} from "@/lib/cafeDiscount";
 
 import { cdnUrl } from "@/lib/cdnUrl";
-// Discount mapping based on unlimited tier (simplified - using package name)
-const UNLIMITED_DISCOUNTS: Record<string, number> = {
-  "1 Month Unlimited": 0.10,
-  "3 Month Unlimited": 0.12,
-  "6 Month Unlimited": 0.15,
-  "12 Month Unlimited": 0.20,
-};
-
-// Class Pass gets 5% discount on food only
-const CLASS_PASS_FOOD_DISCOUNT = 0.05;
 
 // Tax rate (adjust as needed)
 const TAX_RATE = 0.05; // 5% tax
@@ -141,6 +138,9 @@ function BookClassGridSkeleton({ count = 6 }: { count?: number }) {
   );
 }
 
+/** Monday-based index (Mon=0 … Sun=6) of a date within its week. */
+const mondayWeekIndex = (d: Date) => (d.getDay() + 6) % 7;
+
 export default function BookClass() {
   const router = useRouter();
   const { toast } = useToast();
@@ -204,8 +204,9 @@ export default function BookClass() {
   // Pagination & filters
   const [currentPage, setCurrentPage] = useState(1);
   const [filterClassName, setFilterClassName] = useState<string>("all");
+  const [dateSort, setDateSort] = useState<"asc" | "desc">("asc");
   const [weekOffset, setWeekOffset] = useState(0);
-  const [selectedDayIndex, setSelectedDayIndex] = useState<number | null>(null);
+  const [selectedDayIndex, setSelectedDayIndex] = useState<number | null>(() => mondayWeekIndex(new Date()));
   const classesPerPage = 6;
 
   const [weekSummary, setWeekSummary] = useState("");
@@ -235,11 +236,17 @@ export default function BookClass() {
     return Array.from(names).sort();
   }, [allClasses]);
 
-  const filteredClasses = allClasses.filter(cls => {
-    const nameMatch = filterClassName === "all" || cls.name === filterClassName;
-    const dayMatch = selectedDayIndex === null || isSameLocalCalendarDay(new Date(cls.startTimeIso), weekDays[selectedDayIndex]);
-    return nameMatch && dayMatch;
-  });
+  const filteredClasses = useMemo(() => {
+    const list = allClasses.filter(cls => {
+      const nameMatch = filterClassName === "all" || cls.name === filterClassName;
+      const dayMatch = selectedDayIndex === null || isSameLocalCalendarDay(new Date(cls.startTimeIso), weekDays[selectedDayIndex]);
+      return nameMatch && dayMatch;
+    });
+    const dir = dateSort === "asc" ? 1 : -1;
+    return list.sort(
+      (a, b) => (new Date(a.startTimeIso).getTime() - new Date(b.startTimeIso).getTime()) * dir,
+    );
+  }, [allClasses, filterClassName, selectedDayIndex, weekDays, dateSort]);
 
   const totalPages = Math.ceil(filteredClasses.length / classesPerPage);
   const startIndex = (currentPage - 1) * classesPerPage;
@@ -258,7 +265,8 @@ export default function BookClass() {
 
   useEffect(() => {
     if (status === "authenticated") {
-      setSelectedDayIndex(null);
+      // Current week → preselect today; other weeks → show all days.
+      setSelectedDayIndex(weekOffset === 0 ? mondayWeekIndex(new Date()) : null);
       setFilterClassName("all");
       fetchClasses(weekOffset);
     }
@@ -421,7 +429,7 @@ export default function BookClass() {
 
   useEffect(() => {
     setCurrentPage(1);
-  }, [filterClassName, selectedDayIndex]);
+  }, [filterClassName, selectedDayIndex, dateSort]);
 
   // Handlers
   function handleSelectClass(cls: any) {
@@ -961,31 +969,44 @@ export default function BookClass() {
             </div>
           </div>
 
-          {/* Class Filter */}
-          <div className="flex gap-2 mb-8 overflow-x-auto pb-2 scrollbar-hide">
-            <button
-              onClick={() => setFilterClassName("all")}
-              className={`shrink-0 px-4 py-2 rounded-full text-sm font-body transition-all border ${
-                filterClassName === "all"
-                  ? "bg-sage text-white border-sage"
-                  : "border-sage/30 text-charcoal hover:border-sage hover:bg-sage/5"
-              }`}
-            >
-              All Classes
-            </button>
-            {uniqueClassNames.map(name => (
+          {/* Class Filter + Date sort */}
+          <div className="flex items-center gap-3 mb-8">
+            <div className="flex gap-2 overflow-x-auto pb-2 scrollbar-hide flex-1 min-w-0">
               <button
-                key={name}
-                onClick={() => setFilterClassName(filterClassName === name ? "all" : name)}
+                onClick={() => setFilterClassName("all")}
                 className={`shrink-0 px-4 py-2 rounded-full text-sm font-body transition-all border ${
-                  filterClassName === name
+                  filterClassName === "all"
                     ? "bg-sage text-white border-sage"
                     : "border-sage/30 text-charcoal hover:border-sage hover:bg-sage/5"
                 }`}
               >
-                {name}
+                All Classes
               </button>
-            ))}
+              {uniqueClassNames.map(name => (
+                <button
+                  key={name}
+                  onClick={() => setFilterClassName(filterClassName === name ? "all" : name)}
+                  className={`shrink-0 px-4 py-2 rounded-full text-sm font-body transition-all border ${
+                    filterClassName === name
+                      ? "bg-sage text-white border-sage"
+                      : "border-sage/30 text-charcoal hover:border-sage hover:bg-sage/5"
+                  }`}
+                >
+                  {name}
+                </button>
+              ))}
+            </div>
+            <button
+              type="button"
+              onClick={() => setDateSort(d => (d === "asc" ? "desc" : "asc"))}
+              title={dateSort === "asc" ? "Date: soonest first" : "Date: latest first"}
+              aria-label={dateSort === "asc" ? "Sort by date, soonest first. Click to reverse." : "Sort by date, latest first. Click to reverse."}
+              className="shrink-0 inline-flex items-center gap-1.5 px-4 py-2 rounded-full text-sm font-body border border-sage/30 text-charcoal hover:border-sage hover:bg-sage/5 transition-all"
+            >
+              <ArrowDownUp className="w-3.5 h-3.5 text-sage" />
+              Date
+              {dateSort === "asc" ? <ArrowUp className="w-3.5 h-3.5" /> : <ArrowDown className="w-3.5 h-3.5" />}
+            </button>
           </div>
 
           {/* Class Cards Grid */}

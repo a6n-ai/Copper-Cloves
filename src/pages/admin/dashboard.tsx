@@ -254,6 +254,7 @@ export default function AdminDashboard() {
   const [selectedUser, setSelectedUser] = useState<any>(null);
   const [selectedClass, setSelectedClass] = useState<any>(null);
   const [rosterCheckingIn, setRosterCheckingIn] = useState<Record<string, boolean>>({});
+  const [instructorCheckingIn, setInstructorCheckingIn] = useState(false);
   const [selectedInstructorData, setSelectedInstructorData] = useState<any>(null);
   const instructorForm = useForm<z.infer<typeof instructorSchema>>({
     resolver: zodResolver(instructorSchema),
@@ -992,6 +993,27 @@ export default function AdminDashboard() {
     }
   }
 
+  async function handleInstructorCheckIn(checked: boolean) {
+    if (!selectedClass?.id) return;
+    setInstructorCheckingIn(true);
+    try {
+      const res = await fetch("/api/admin/instructor-check-in", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ scheduleId: selectedClass.id, checked }),
+      });
+      if (!res.ok) throw new Error();
+      const d = await res.json();
+      setSelectedClass((prev: any) =>
+        prev ? { ...prev, instructorCheckedIn: !!d.instructorCheckedIn, instructorCheckInTime: d.instructorCheckInTime } : prev,
+      );
+    } catch {
+      alert("Could not update instructor check-in");
+    } finally {
+      setInstructorCheckingIn(false);
+    }
+  }
+
   async function searchDashMembers(q: string) {
     setDashMemberQuery(q);
     if (q.length < 2) { setDashMemberResults([]); return; }
@@ -1545,6 +1567,8 @@ export default function AdminDashboard() {
                                 if (data) {
                                   setSelectedClass((prev: any) => ({
                                     ...prev,
+                                    instructorCheckedIn: !!data.instructorCheckedIn,
+                                    instructorCheckInTime: data.instructorCheckInTime ?? null,
                                     attendees: data.bookings.map((b: any) => ({
                                       id: b.id,
                                       bookingId: b.id,
@@ -4049,6 +4073,56 @@ export default function AdminDashboard() {
                     </div>
                   </CardContent>
                 </Card>
+              </div>
+
+              {/* Instructor check-in */}
+              <div className="rounded-xl border border-sage/15 bg-cream/20 p-4 flex items-center gap-3">
+                {selectedClass.instructorAvatarUrl ? (
+                  /* eslint-disable-next-line @next/next/no-img-element */
+                  <img
+                    src={selectedClass.instructorAvatarUrl}
+                    alt={selectedClass.instructor}
+                    className="h-10 w-10 rounded-full object-cover border border-sage/20"
+                  />
+                ) : (
+                  <div className="h-10 w-10 rounded-full bg-sage/10 flex items-center justify-center font-display text-sage text-sm">
+                    {(selectedClass.instructor ?? "I").slice(0, 1).toUpperCase()}
+                  </div>
+                )}
+                <div className="min-w-0 flex-1">
+                  <p className="font-body text-xs uppercase tracking-wider text-charcoal/45">Instructor</p>
+                  <p className="font-body font-medium text-charcoal truncate">{selectedClass.instructor}</p>
+                  {selectedClass.instructorCheckedIn ? (
+                    <p className="font-body text-xs text-sage">
+                      Checked in
+                      {selectedClass.instructorCheckInTime
+                        ? ` at ${new Date(selectedClass.instructorCheckInTime).toLocaleTimeString("en-IN", { hour: "2-digit", minute: "2-digit", timeZone: "Asia/Kolkata" })}`
+                        : ""}
+                    </p>
+                  ) : (
+                    <p className="font-body text-xs text-charcoal/45">Not checked in</p>
+                  )}
+                </div>
+                {selectedClass.instructorCheckedIn ? (
+                  <Button
+                    size="sm"
+                    variant="outline"
+                    disabled={instructorCheckingIn}
+                    onClick={() => handleInstructorCheckIn(false)}
+                    className="border-charcoal/20 text-charcoal/70 hover:bg-charcoal/5 font-body"
+                  >
+                    Undo
+                  </Button>
+                ) : (
+                  <Button
+                    size="sm"
+                    disabled={instructorCheckingIn}
+                    onClick={() => handleInstructorCheckIn(true)}
+                    className="bg-sage hover:bg-sage/90 text-white font-body"
+                  >
+                    Check In
+                  </Button>
+                )}
               </div>
 
               {/* Attendee List */}
