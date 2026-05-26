@@ -49,6 +49,19 @@ firebase-service-account.json
 # but never commit — production uploads go to S3.
 /public/uploads/
 
-# IDE / local-only
+# IDE / agent tooling (local only)
 /.idea/
+/.vscode/
 /.claude/
+/.agents/
+/.cursor/
+/.llm/
+/.softgen/
+/.superpowers/
+/skills-lock.json
+
+# One-off ops / backfill scripts (keep reusable scripts in repo)
+/scripts/backfill-*.ts
+/scripts/inspect-*.ts
+/scripts/onboard-missing-*.ts
+/scripts/_*.ts
