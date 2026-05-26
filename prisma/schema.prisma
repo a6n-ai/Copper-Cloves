@@ -845,6 +845,8 @@ model MemberTicket {
   attachment_url String?
   status         String   @default("open")
   admin_note     String?
+  pause_from     DateTime?
+  pause_to       DateTime?
   created_at     DateTime @default(now())
   updated_at     DateTime @default(now()) @updatedAt
 

@@ -11,8 +11,12 @@ import { Spinner } from "@/components/ui/spinner";
 import { Skeleton } from "@/components/ui/skeleton";
 import {
   User, Save, CheckCircle2, Mail, Phone, Camera, Lock,
-  MessageCircle, Calendar, Heart, PauseCircle, Paperclip, ChevronDown,
+  MessageCircle, Calendar as CalendarIcon, Heart, PauseCircle, Paperclip, ChevronDown,
 } from "lucide-react";
+import { Calendar } from "@/components/ui/calendar";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import { addHours, differenceInCalendarDays, format } from "date-fns";
+import type { DateRange } from "react-day-picker";
 
 export type ProfileRole = "user" | "admin" | "partner" | "instructor";
 
@@ -143,6 +147,8 @@ export function ProfileSection({ role, title, subtitle }: ProfileSectionProps) {
   const [passwordSaving, setPasswordSaving] = useState(false);
 
   const [pauseReason, setPauseReason] = useState("");
+  const [pauseRange, setPauseRange] = useState<DateRange | undefined>(undefined);
+  const minPauseStart = (() => { const d = addHours(new Date(), 72); d.setHours(0, 0, 0, 0); return d; })();
   const [attachmentUrl, setAttachmentUrl] = useState("");
   const [attachmentUploading, setAttachmentUploading] = useState(false);
   const [attachmentName, setAttachmentName] = useState("");
@@ -345,17 +351,29 @@ export function ProfileSection({ role, title, subtitle }: ProfileSectionProps) {
   async function submitPauseTicket(e: React.FormEvent) {
     e.preventDefault();
     if (!pauseReason.trim()) { toast({ title: "Please describe your reason", variant: "destructive" }); return; }
+    if (!pauseRange?.from || !pauseRange?.to) { toast({ title: "Please select pause dates", variant: "destructive" }); return; }
+    if (pauseRange.from < minPauseStart) {
+      toast({ title: "Start date must be at least 72 hours from now", variant: "destructive" });
+      return;
+    }
     setSubmittingTicket(true);
     try {
       const res = await fetch("/api/user/support-tickets", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ type: "pause_subscription", reason: pauseReason, attachment_url: attachmentUrl || undefined }),
+        body: JSON.stringify({
+          type: "pause_subscription",
+          reason: pauseReason,
+          attachment_url: attachmentUrl || undefined,
+          pause_from: pauseRange.from.toISOString(),
+          pause_to: pauseRange.to.toISOString(),
+        }),
       });
       const data = await res.json().catch(() => ({}));
       if (!res.ok) { toast({ title: "Submission failed", description: data.error ?? "Try again.", variant: "destructive" }); return; }
       setTicketSubmitted(true);
       setPauseReason("");
+      setPauseRange(undefined);
       setAttachmentUrl("");
       setAttachmentName("");
       toast({ title: "Request submitted", description: "We'll review and get back to you soon." });
@@ -447,7 +465,7 @@ export function ProfileSection({ role, title, subtitle }: ProfileSectionProps) {
                   <div className="grid grid-cols-2 gap-4">
                     <div className="space-y-1.5">
                       <Label className="font-body text-sm text-charcoal flex items-center gap-2">
-                        <Calendar size={14} className="text-sage" /> Date of Birth
+                        <CalendarIcon size={14} className="text-sage" /> Date of Birth
                       </Label>
                       <Input type="date" value={dob} onChange={(e) => setDob(e.target.value)}
                         className="border-sage/20 focus:border-sage h-11 font-body" />
@@ -610,6 +628,42 @@ export function ProfileSection({ role, title, subtitle }: ProfileSectionProps) {
                 ) : (
                   <form onSubmit={submitPauseTicket} className="space-y-4" noValidate>
                     <div className="space-y-1.5">
+                      <Label className="font-body text-sm text-charcoal flex items-center gap-2">
+                        <CalendarIcon size={13} className="text-sage" />
+                        Pause dates <span className="text-terracotta">*</span>
+                      </Label>
+                      <Popover>
+                        <PopoverTrigger asChild>
+                          <Button type="button" variant="outline"
+                            className="w-full justify-start text-left font-body text-sm border-sage/20 hover:bg-sage/5 h-11">
+                            {pauseRange?.from && pauseRange?.to ? (
+                              <>
+                                {format(pauseRange.from, "d MMM yyyy")} → {format(pauseRange.to, "d MMM yyyy")}
+                                <span className="ml-auto text-xs text-charcoal/50">
+                                  {differenceInCalendarDays(pauseRange.to, pauseRange.from) + 1} day{differenceInCalendarDays(pauseRange.to, pauseRange.from) === 0 ? "" : "s"}
+                                </span>
+                              </>
+                            ) : (
+                              <span className="text-charcoal/50">Select start and end dates</span>
+                            )}
+                          </Button>
+                        </PopoverTrigger>
+                        <PopoverContent className="w-auto p-0" align="start">
+                          <Calendar
+                            mode="range"
+                            numberOfMonths={2}
+                            selected={pauseRange}
+                            onSelect={setPauseRange}
+                            disabled={{ before: minPauseStart }}
+                            defaultMonth={minPauseStart}
+                          />
+                        </PopoverContent>
+                      </Popover>
+                      <p className="text-xs text-charcoal/50 font-body">
+                        Start date must be at least 72 hours from now. Earliest available: {format(minPauseStart, "d MMM yyyy")}.
+                      </p>
+                    </div>
+                    <div className="space-y-1.5">
                       <Label className="font-body text-sm text-charcoal">Reason for pausing <span className="text-terracotta">*</span></Label>
                       <Textarea value={pauseReason} onChange={(e) => setPauseReason(e.target.value)}
                         placeholder="E.g. travelling for 3 weeks, recovering from injury, etc. The more detail, the faster we can help…"
@@ -639,7 +693,8 @@ export function ProfileSection({ role, title, subtitle }: ProfileSectionProps) {
                       </div>
                       <p className="text-xs text-charcoal/40 font-body">Doctor&apos;s note, travel itinerary, etc. PDF, image, or Word doc.</p>
                     </div>
-                    <Button type="submit" disabled={submittingTicket || !pauseReason.trim()}
+                    <Button type="submit"
+                      disabled={submittingTicket || !pauseReason.trim() || !pauseRange?.from || !pauseRange?.to}
                       className="bg-terracotta hover:bg-terracotta/90 text-white w-full h-12 font-body transition-all hover:scale-[1.01] active:scale-95 disabled:opacity-50">
                       {submittingTicket ? <><Spinner className="mr-2 size-4" />Submitting…</> : "Submit Pause Request"}
                     </Button>

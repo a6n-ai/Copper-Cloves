@@ -279,6 +279,13 @@ export default function ControlPanel() {
   const [instructors, setInstructors] = useState<any[]>([]);
   const [loadingInstructors, setLoadingInstructors] = useState(true);
 
+  // Pause request tickets state
+  const [pauseTickets, setPauseTickets] = useState<any[]>([]);
+  const [loadingPauseTickets, setLoadingPauseTickets] = useState(true);
+  const [pauseStatusFilter, setPauseStatusFilter] = useState<"all" | "open" | "in_review" | "resolved" | "rejected">("all");
+  const [pauseNoteDrafts, setPauseNoteDrafts] = useState<Record<string, string>>({});
+  const [pauseSavingId, setPauseSavingId] = useState<string | null>(null);
+
 
   const [uploadingImage, setUploadingImage] = useState(false);
   const [newUserForm, setNewUserForm] = useState({
@@ -332,9 +339,45 @@ export default function ControlPanel() {
       fetchUsers();
       fetchInstructors();
       void fetchPayoutData();
+      void fetchPauseTickets();
       setLoading(false);
     }
   }, [status, session, router]);
+
+  async function fetchPauseTickets() {
+    setLoadingPauseTickets(true);
+    try {
+      const res = await fetch("/api/admin/member-tickets", { credentials: "same-origin" });
+      if (!res.ok) { setPauseTickets([]); return; }
+      const data = await res.json();
+      const onlyPause = Array.isArray(data)
+        ? data.filter((t: any) => t.type === "pause_subscription")
+        : [];
+      setPauseTickets(onlyPause);
+      setPauseNoteDrafts(
+        Object.fromEntries(onlyPause.map((t: any) => [t.id, t.admin_note ?? ""])),
+      );
+    } catch {
+      setPauseTickets([]);
+    } finally {
+      setLoadingPauseTickets(false);
+    }
+  }
+
+  async function updatePauseTicket(id: string, patch: { status?: string; admin_note?: string }) {
+    setPauseSavingId(id);
+    try {
+      const res = await fetch("/api/admin/member-tickets", {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ id, ...patch }),
+      });
+      if (!res.ok) return;
+      await fetchPauseTickets();
+    } finally {
+      setPauseSavingId(null);
+    }
+  }
 
 async function fetchPayoutData() {
     try {
@@ -1162,6 +1205,15 @@ async function fetchPayoutData() {
                   <Users className="h-4 w-4 mr-2" />
                   User Management
                 </TabsTrigger>
+                <TabsTrigger value="pauses" className="data-[state=active]:bg-sage data-[state=active]:text-white font-body">
+                  <Clock className="h-4 w-4 mr-2" />
+                  Pause Requests
+                  {pauseTickets.filter((t) => t.status === "open").length > 0 && (
+                    <Badge variant="secondary" className="ml-2 bg-terracotta/15 text-terracotta px-1.5 py-0 text-xs">
+                      {pauseTickets.filter((t) => t.status === "open").length}
+                    </Badge>
+                  )}
+                </TabsTrigger>
                 <TabsTrigger value="classes" className="data-[state=active]:bg-sage data-[state=active]:text-white font-body">
                   <Calendar className="h-4 w-4 mr-2" />
                   Class Management
@@ -1381,6 +1433,149 @@ async function fetchPayoutData() {
                         <Pagination page={usersPg.page} total={usersPg.total} onChange={usersPg.setPage} />
                       </>
                     )}
+                  </CardContent>
+                </Card>
+              </TabsContent>
+
+              {/* PAUSE REQUESTS TAB */}
+              <TabsContent value="pauses" className="space-y-6">
+                <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                  <MetricCard label="Total" value={pauseTickets.length} icon={Clock} tone="sage" />
+                  <MetricCard label="Open" value={pauseTickets.filter((t) => t.status === "open").length} icon={Clock} tone="terracotta" />
+                  <MetricCard label="In Review" value={pauseTickets.filter((t) => t.status === "in_review").length} icon={Edit} tone="charcoal" />
+                  <MetricCard label="Resolved" value={pauseTickets.filter((t) => t.status === "resolved").length} icon={CheckCircle2} tone="sage" />
+                </div>
+
+                <Card className="border-sage/20 bg-white/95 backdrop-blur-xl">
+                  <CardHeader className="flex flex-row items-center justify-between gap-4 flex-wrap">
+                    <div>
+                      <CardTitle className="font-display text-xl">Pause Subscription Requests</CardTitle>
+                      <CardDescription>Approving extends the member&apos;s most recent active package expiry by the pause duration.</CardDescription>
+                    </div>
+                    <Select value={pauseStatusFilter} onValueChange={(v: any) => setPauseStatusFilter(v)}>
+                      <SelectTrigger className="w-40 border-sage/30">
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="all">All statuses</SelectItem>
+                        <SelectItem value="open">Open</SelectItem>
+                        <SelectItem value="in_review">In Review</SelectItem>
+                        <SelectItem value="resolved">Resolved</SelectItem>
+                        <SelectItem value="rejected">Rejected</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </CardHeader>
+                  <CardContent>
+                    {loadingPauseTickets ? (
+                      <UserListSkeleton rows={3} />
+                    ) : (() => {
+                      const filtered = pauseStatusFilter === "all"
+                        ? pauseTickets
+                        : pauseTickets.filter((t) => t.status === pauseStatusFilter);
+                      if (filtered.length === 0) {
+                        return <p className="font-body text-sm text-charcoal/60 py-8 text-center">No pause requests {pauseStatusFilter !== "all" && `with status "${pauseStatusFilter}"`}.</p>;
+                      }
+                      return (
+                        <div className="space-y-3">
+                          {filtered.map((t) => {
+                            const from = t.pause_from ? new Date(t.pause_from) : null;
+                            const to = t.pause_to ? new Date(t.pause_to) : null;
+                            const days = from && to
+                              ? Math.max(1, Math.ceil((to.getTime() - from.getTime()) / (24 * 60 * 60 * 1000)))
+                              : null;
+                            const statusColor: Record<string, string> = {
+                              open: "bg-terracotta/15 text-terracotta border-terracotta/30",
+                              in_review: "bg-charcoal/10 text-charcoal border-charcoal/20",
+                              resolved: "bg-sage/15 text-sage border-sage/30",
+                              rejected: "bg-charcoal/10 text-charcoal/60 border-charcoal/20",
+                            };
+                            const draft = pauseNoteDrafts[t.id] ?? t.admin_note ?? "";
+                            return (
+                              <Card key={t.id} className="border-sage/15 bg-white">
+                                <CardContent className="p-5 space-y-3">
+                                  <div className="flex items-start justify-between gap-4 flex-wrap">
+                                    <div className="space-y-0.5">
+                                      <p className="font-body font-medium text-charcoal">{t.profile?.full_name || "Unknown"}</p>
+                                      <p className="font-body text-xs text-charcoal/60">{t.profile?.email}{t.profile?.phone && ` · ${t.profile.phone}`}</p>
+                                    </div>
+                                    <Badge variant="outline" className={`font-body text-xs uppercase ${statusColor[t.status] ?? ""}`}>
+                                      {t.status?.replace("_", " ")}
+                                    </Badge>
+                                  </div>
+                                  <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 text-sm font-body">
+                                    <div>
+                                      <p className="text-xs text-charcoal/50 uppercase tracking-wide">From</p>
+                                      <p className="text-charcoal">{from ? from.toLocaleDateString("en-IN", { day: "2-digit", month: "short", year: "numeric" }) : "—"}</p>
+                                    </div>
+                                    <div>
+                                      <p className="text-xs text-charcoal/50 uppercase tracking-wide">To</p>
+                                      <p className="text-charcoal">{to ? to.toLocaleDateString("en-IN", { day: "2-digit", month: "short", year: "numeric" }) : "—"}</p>
+                                    </div>
+                                    <div>
+                                      <p className="text-xs text-charcoal/50 uppercase tracking-wide">Duration</p>
+                                      <p className="text-charcoal">{days ? `${days} day${days === 1 ? "" : "s"}` : "—"}</p>
+                                    </div>
+                                  </div>
+                                  <div>
+                                    <p className="text-xs text-charcoal/50 uppercase tracking-wide font-body mb-1">Reason</p>
+                                    <p className="font-body text-sm text-charcoal whitespace-pre-wrap">{t.reason}</p>
+                                  </div>
+                                  {t.attachment_url && (
+                                    <a href={t.attachment_url} target="_blank" rel="noopener noreferrer"
+                                      className="inline-flex items-center gap-1.5 text-xs text-sage hover:text-sage/80 font-body underline">
+                                      View attachment
+                                    </a>
+                                  )}
+                                  <div className="space-y-1.5">
+                                    <Label className="text-xs text-charcoal/60 font-body">Admin note</Label>
+                                    <Textarea
+                                      value={draft}
+                                      onChange={(e) => setPauseNoteDrafts((p) => ({ ...p, [t.id]: e.target.value }))}
+                                      placeholder="Internal note (optional)"
+                                      rows={2}
+                                      className="border-sage/20 text-sm font-body resize-none"
+                                    />
+                                  </div>
+                                  <div className="flex items-center gap-2 flex-wrap pt-1">
+                                    <Button size="sm" variant="outline"
+                                      disabled={pauseSavingId === t.id || draft === (t.admin_note ?? "")}
+                                      onClick={() => updatePauseTicket(t.id, { admin_note: draft })}
+                                      className="border-sage/30 text-sage hover:bg-sage hover:text-white font-body">
+                                      Save note
+                                    </Button>
+                                    {t.status !== "in_review" && t.status !== "resolved" && (
+                                      <Button size="sm" variant="outline"
+                                        disabled={pauseSavingId === t.id}
+                                        onClick={() => updatePauseTicket(t.id, { status: "in_review", admin_note: draft })}
+                                        className="border-charcoal/30 text-charcoal hover:bg-charcoal hover:text-white font-body">
+                                        Mark In Review
+                                      </Button>
+                                    )}
+                                    {t.status !== "resolved" && (
+                                      <Button size="sm"
+                                        disabled={pauseSavingId === t.id || !t.pause_from || !t.pause_to}
+                                        onClick={() => updatePauseTicket(t.id, { status: "resolved", admin_note: draft })}
+                                        className="bg-sage hover:bg-sage/90 text-white font-body">
+                                        Approve & Extend Expiry
+                                      </Button>
+                                    )}
+                                    {t.status !== "rejected" && t.status !== "resolved" && (
+                                      <Button size="sm" variant="outline"
+                                        disabled={pauseSavingId === t.id}
+                                        onClick={() => updatePauseTicket(t.id, { status: "rejected", admin_note: draft })}
+                                        className="border-terracotta/40 text-terracotta hover:bg-terracotta hover:text-white font-body">
+                                        Reject
+                                      </Button>
+                                    )}
+                                  </div>
+                                  <p className="text-xs text-charcoal/40 font-body">Raised {new Date(t.created_at).toLocaleString("en-IN")}</p>
+                                </CardContent>
+                              </Card>
+                            );
+                          })}
+                        </div>
+                      );
+                    })()}
                   </CardContent>
                 </Card>
               </TabsContent>
