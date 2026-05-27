@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useRouter } from "next/router";
 import Image from "next/image";
 import { Card, CardContent } from "@/components/ui/card";
@@ -197,32 +197,49 @@ export default function Dashboard() {
 
   const totalMinutes = vitSeriesReady ? Math.round(vitalityData.reduce((sum, val) => sum + val, 0)) : 0;
   const avgPerDay = vitSeriesReady ? Math.round(totalMinutes / 30) : 0;
-  // Use DB templates if loaded, otherwise fall back to hardcoded MILESTONES
-  const activeMilestones = ptmDbTemplates && ptmDbTemplates.length > 0
-    ? ptmDbTemplates
-        .filter((t: any) => t.threshold_classes !== null)
-        .sort((a: any, b: any) => (a.threshold_classes ?? 0) - (b.threshold_classes ?? 0))
-        .map((t: any) => ({
-          id: t.id,
-          name: t.name,
-          classes: t.threshold_classes as number,
-          icon: Leaf, // fallback icon for DB templates (emoji shown separately)
-          description: t.description ?? "",
-          color: "text-sage",
-          bgColor: "bg-sage/10",
-          borderColor: "border-sage/20",
-          dbIcon: t.icon,
-          dbColor: t.color,
-        }))
-    : MILESTONES;
+  // Use DB templates if loaded, otherwise fall back to hardcoded MILESTONES.
+  // Memoized so this filter/sort/map only runs when ptmDbTemplates changes.
+  const activeMilestones = useMemo(
+    () =>
+      ptmDbTemplates && ptmDbTemplates.length > 0
+        ? ptmDbTemplates
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any
+            .filter((t: any) => t.threshold_classes !== null)
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any
+            .sort((a: any, b: any) => (a.threshold_classes ?? 0) - (b.threshold_classes ?? 0))
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any
+            .map((t: any) => ({
+              id: t.id,
+              name: t.name,
+              classes: t.threshold_classes as number,
+              icon: Leaf,
+              description: t.description ?? "",
+              color: "text-sage",
+              bgColor: "bg-sage/10",
+              borderColor: "border-sage/20",
+              dbIcon: t.icon,
+              dbColor: t.color,
+            }))
+        : MILESTONES,
+    [ptmDbTemplates],
+  );
 
-  const getCurrentMilestone = () => {
-    const earned = [...activeMilestones].reverse().find(m => userClassesCompleted >= m.classes);
-    return earned || activeMilestones[0];
-  };
-
-  const currentMilestone = getCurrentMilestone();
-  const nextMilestone = activeMilestones.find(m => m.classes > userClassesCompleted);
+  // Walk milestones in reverse once to find earned + next. Avoids two scans per render.
+  const { currentMilestone, nextMilestone } = useMemo(() => {
+    let earned: typeof activeMilestones[number] | undefined;
+    let next: typeof activeMilestones[number] | undefined;
+    for (let i = activeMilestones.length - 1; i >= 0; i--) {
+      const m = activeMilestones[i];
+      if (!earned && userClassesCompleted >= m.classes) earned = m;
+    }
+    for (const m of activeMilestones) {
+      if (m.classes > userClassesCompleted) { next = m; break; }
+    }
+    return {
+      currentMilestone: earned ?? activeMilestones[0],
+      nextMilestone: next,
+    };
+  }, [activeMilestones, userClassesCompleted]);
 
   const sessionUserId = (session?.user as { id?: string } | undefined)?.id;
   useEffect(() => {

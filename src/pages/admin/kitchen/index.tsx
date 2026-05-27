@@ -1,4 +1,4 @@
-import { useEffect, useState, useCallback } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import { useRouter } from "next/router";
 import { useSession } from "next-auth/react";
 import { SEO } from "@/components/SEO";
@@ -78,8 +78,17 @@ export default function KitchenDashboard() {
     }
     if (status === "authenticated") {
       void load();
-      const id = setInterval(() => void load(), 20000);
-      return () => clearInterval(id);
+      // Pause polling when tab hidden — avoids hammering the API on idle screens.
+      const id = setInterval(() => {
+        if (typeof document !== "undefined" && document.hidden) return;
+        void load();
+      }, 20000);
+      const onVis = () => { if (!document.hidden) void load(); };
+      document.addEventListener("visibilitychange", onVis);
+      return () => {
+        clearInterval(id);
+        document.removeEventListener("visibilitychange", onVis);
+      };
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [status]);
@@ -98,11 +107,26 @@ export default function KitchenDashboard() {
     }
   }
 
-  const active = orders
-    .filter((o) => !["completed", "cancelled"].includes(o.status))
-    .sort((a, b) => new Date(a.order_date).getTime() - new Date(b.order_date).getTime());
-  const pendingCount = active.filter((o) => o.status === "pending").length;
-  const completedToday = orders.filter((o) => o.status === "completed" && isToday(o.order_date)).length;
+  // Single pass over `orders`: build active list (sorted asc by date), count pending,
+  // count completed-today. Was three separate filters/scans per render.
+  const { active, pendingCount, completedToday } = useMemo(() => {
+    const activeRows: Array<typeof orders[number] & { _ms: number }> = [];
+    let pending = 0;
+    let completed = 0;
+    for (const o of orders) {
+      if (o.status === "completed" && isToday(o.order_date)) completed += 1;
+      if (!(o.status === "completed" || o.status === "cancelled")) {
+        if (o.status === "pending") pending += 1;
+        activeRows.push({ ...o, _ms: new Date(o.order_date).getTime() });
+      }
+    }
+    activeRows.sort((a, b) => a._ms - b._ms);
+    return {
+      active: activeRows.map(({ _ms: _ms_omit, ...rest }) => rest as typeof orders[number]),
+      pendingCount: pending,
+      completedToday: completed,
+    };
+  }, [orders]);
 
   return (
     <>

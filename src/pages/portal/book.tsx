@@ -45,15 +45,16 @@ import {
   isSameLocalCalendarDay,
 } from "@/lib/calendarWeek";
 import { expectedBookingCheckoutPaise } from "@/lib/financeBookingCheckout";
-import { razorpayPaymentErrorHelp } from "@/lib/razorpayClientHints";
-import { completePendingBookingCheckout, completePendingPackageCheckout } from "@/lib/completeRazorpayCheckout";
+// Razorpay client helpers are loaded lazily inside payment handlers — they pull
+// in the razorpay SDK loader and several KB of helper code that's only needed
+// at checkout time. Keeping them out of the initial page bundle improves TTI
+// for the /portal/book route, which is the highest-traffic logged-in entry.
 import {
   buildRazorpayReturnUrl,
   clearPendingRazorpayCheckout,
   loadPendingRazorpayCheckout,
   savePendingRazorpayCheckout,
 } from "@/lib/pendingRazorpayCheckout";
-import { payWithRazorpayOrder } from "@/lib/razorpayCheckout";
 import { passCategoryForPackageType } from "@/lib/couponHelpers";
 import {
   STUDIO_PASS_FOOD_DISCOUNTS as UNLIMITED_DISCOUNTS,
@@ -95,7 +96,6 @@ export interface Class {
   instructor: string;
   duration: string;
   intensity: string;
-  spots: number;
   image: string;
   /** ISO datetime for this scheduled instance (for booking + sorting). */
   startTimeIso: string;
@@ -103,7 +103,7 @@ export interface Class {
   isBookable?: boolean;
 }
 
-/** Mirrors a bookable class Card: image with intensity badge + spots box, title, 3-icon info row, full-width button. */
+/** Mirrors a bookable class Card: image with intensity badge, title, 3-icon info row, full-width button. */
 function BookClassCardSkeleton() {
   return (
     <Card className="border-sage/20 bg-white/80 backdrop-blur-xs overflow-hidden">
@@ -112,7 +112,6 @@ function BookClassCardSkeleton() {
           <div className="relative w-full h-48 overflow-hidden">
             <Skeleton className="h-full w-full rounded-none" />
             <Skeleton className="absolute top-4 left-4 h-6 w-20 rounded-full" />
-            <Skeleton className="absolute top-4 right-4 h-14 w-20 rounded-lg" />
           </div>
           <div className="p-6">
             <Skeleton className="h-7 w-3/5 mb-3" />
@@ -136,6 +135,51 @@ function BookClassGridSkeleton({ count = 6 }: { count?: number }) {
         <BookClassCardSkeleton key={i} />
       ))}
     </div>
+  );
+}
+
+/** Full-page loading state — mirrors header, week calendar, filter row, and grid. */
+function BookPageSkeleton() {
+  return (
+    <>
+      {/* Page Header */}
+      <div className="mb-6">
+        <Skeleton className="h-8 w-64 mb-2" />
+        <Skeleton className="h-4 w-40" />
+      </div>
+
+      {/* Week Navigation */}
+      <div className="mb-6 bg-white/80 backdrop-blur-xs rounded-2xl border border-sage/20 p-4">
+        <div className="flex items-center justify-between mb-3">
+          <Skeleton className="h-9 w-9 rounded-full" />
+          <Skeleton className="h-4 w-56" />
+          <Skeleton className="h-9 w-9 rounded-full" />
+        </div>
+        <div className="grid grid-cols-7 gap-1">
+          {Array.from({ length: 7 }).map((_, i) => (
+            <div key={i} className="flex flex-col items-center py-2 px-0.5 gap-1">
+              <Skeleton className="h-2.5 w-6 rounded-sm" />
+              <Skeleton className="h-4 w-5 rounded-sm" />
+            </div>
+          ))}
+        </div>
+      </div>
+
+      {/* Filter row — Tailwind needs literal class names, no template interp */}
+      <div className="flex items-center gap-3 mb-8">
+        <div className="flex gap-2 overflow-hidden flex-1 min-w-0">
+          <Skeleton className="shrink-0 h-9 w-20 rounded-full" />
+          <Skeleton className="shrink-0 h-9 w-24 rounded-full" />
+          <Skeleton className="shrink-0 h-9 w-20 rounded-full" />
+          <Skeleton className="shrink-0 h-9 w-28 rounded-full" />
+          <Skeleton className="shrink-0 h-9 w-24 rounded-full" />
+        </div>
+        <Skeleton className="shrink-0 h-9 w-20 rounded-full" />
+      </div>
+
+      {/* Cards grid */}
+      <BookClassGridSkeleton count={6} />
+    </>
   );
 }
 
@@ -308,7 +352,7 @@ export default function BookClass() {
         .map((schedule: {
           id: string;
           start_time: string;
-          class_model?: { name?: string; duration?: number; category?: string; max_capacity?: number; image_url?: string };
+          class_model?: { name?: string; duration?: number; category?: string; image_url?: string };
           instructor?: { name?: string };
         }) => ({
           id: schedule.id,
@@ -317,7 +361,6 @@ export default function BookClass() {
           instructor: schedule.instructor?.name || "Instructor",
           duration: `${schedule.class_model?.duration || 60} min`,
           intensity: schedule.class_model?.category?.toLowerCase() || "moderate",
-          spots: schedule.class_model?.max_capacity || 10,
           image: schedule.class_model?.image_url || cdnUrl("/placeholder.jpg"),
           startTimeIso:
             typeof schedule.start_time === "string"
@@ -584,6 +627,7 @@ export default function BookClass() {
         savedAt: Date.now(),
       });
 
+      const { payWithRazorpayOrder } = await import("@/lib/razorpayCheckout");
       const checkoutResult = await payWithRazorpayOrder({
         keyId: String(orderPayload.key_id).trim(),
         amountPaise: amountPaiseServer,
@@ -603,6 +647,7 @@ export default function BookClass() {
       }
       if (checkoutResult.kind === "failed") {
         clearPendingRazorpayCheckout();
+        const { razorpayPaymentErrorHelp } = await import("@/lib/razorpayClientHints");
         toast({ title: "Payment failed", description: razorpayPaymentErrorHelp(checkoutResult.message, String(orderPayload.key_id).trim(), orderPayload.razorpay_mode), variant: "error" });
         return;
       }
@@ -610,6 +655,7 @@ export default function BookClass() {
       const pending = loadPendingRazorpayCheckout();
       if (!pending || pending.purpose !== "package") throw new Error("Checkout session lost.");
       if (checkoutResult.kind !== "success") throw new Error("Unexpected checkout state.");
+      const { completePendingPackageCheckout } = await import("@/lib/completeRazorpayCheckout");
       await completePendingPackageCheckout(pending, checkoutResult.payload);
       clearPendingRazorpayCheckout();
 
@@ -762,6 +808,7 @@ export default function BookClass() {
           savedAt: Date.now(),
         });
 
+        const { payWithRazorpayOrder } = await import("@/lib/razorpayCheckout");
         const checkoutResult = await payWithRazorpayOrder({
           keyId: String(orderPayload.key_id).trim(),
           amountPaise,
@@ -780,6 +827,7 @@ export default function BookClass() {
         }
         if (checkoutResult.kind === "failed") {
           clearPendingRazorpayCheckout();
+          const { razorpayPaymentErrorHelp } = await import("@/lib/razorpayClientHints");
           setPaymentRecovery({
             variant: "failed",
             detail: razorpayPaymentErrorHelp(
@@ -796,6 +844,7 @@ export default function BookClass() {
           throw new Error("Checkout session lost. Please try again.");
         }
         if (checkoutResult.kind !== "success") throw new Error("Unexpected checkout state.");
+        const { completePendingBookingCheckout } = await import("@/lib/completeRazorpayCheckout");
         await completePendingBookingCheckout(pending, checkoutResult.payload);
         clearPendingRazorpayCheckout();
         paidViaRazorpay = true;
@@ -839,18 +888,23 @@ export default function BookClass() {
 
       const cafePaymentMethod = paidViaRazorpay ? "razorpay" : "pay_at_studio";
       const orderedFoodItems = foodItems.filter((item) => item.quantity > 0);
-      for (const item of orderedFoodItems) {
-        const foodRes = await fetch("/api/cafe/orders", {
-          method: "POST",
-          credentials: "include",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({
-            cafe_item_id: item.id,
-            booking_id: bookingId,
-            quantity: item.quantity,
-            payment_method: cafePaymentMethod,
+      // Fire all café orders concurrently (was sequential — N round-trips serialized).
+      const foodResults = await Promise.all(
+        orderedFoodItems.map((item) =>
+          fetch("/api/cafe/orders", {
+            method: "POST",
+            credentials: "include",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+              cafe_item_id: item.id,
+              booking_id: bookingId,
+              quantity: item.quantity,
+              payment_method: cafePaymentMethod,
+            }),
           }),
-        });
+        ),
+      );
+      for (const foodRes of foodResults) {
         if (!foodRes.ok) {
           let msg = "Could not add café order.";
           try {
@@ -885,7 +939,7 @@ export default function BookClass() {
       <div className="min-h-screen bg-linear-to-br from-cream via-cream to-sage/5">
         <main className="pt-8 pb-12 min-h-screen">
           <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
-            <BookClassGridSkeleton count={6} />
+            <BookPageSkeleton />
           </div>
         </main>
       </div>
@@ -1038,10 +1092,6 @@ export default function BookClass() {
                       >
                         {cls.intensity}
                       </Badge>
-                      <div className="absolute top-4 right-4 bg-cream/90 backdrop-blur-xs rounded-lg px-3 py-2">
-                        <p className="text-xs font-body text-charcoal/60">Spots Left</p>
-                        <p className="text-2xl font-display text-sage">{cls.spots}</p>
-                      </div>
                     </div>
 
                     {/* Class Info */}

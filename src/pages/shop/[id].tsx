@@ -169,15 +169,17 @@ export default function ProductDetail() {
   const handleAddToCart = () => {
     if (!inStock) return;
     const qty = Math.min(quantity, product.stock);
-    for (let i = 0; i < qty; i++) {
-      addItem({
+    // Bulk add — single setState. Was N rerenders (one per loop iteration).
+    addItem(
+      {
         id: product.id,
         name: product.name,
         price: product.price,
         image: thumbSrc,
         category: product.category,
-      });
-    }
+      },
+      qty,
+    );
     toast({
       title: "Added to cart!",
       description: `${qty} × ${product.name}`,

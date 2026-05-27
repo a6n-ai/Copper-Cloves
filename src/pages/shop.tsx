@@ -119,29 +119,33 @@ export default function Shop() {
     ];
   }, [products]);
 
+  // Precompute lowercased haystack per product once per `products` change —
+  // was rebuilding 5 toLowerCase() strings per product on every keystroke.
+  const productsIndex = useMemo(
+    () =>
+      products.map((p) => ({
+        p,
+        haystack: `${p.name} ${p.description ?? ""} ${formatCategoryLabel(p.category)} ${p.category}`.toLowerCase(),
+      })),
+    [products],
+  );
+
   const filteredProducts = useMemo(() => {
     const q = searchQuery.trim().toLowerCase();
-    return products
-      .filter((p) => {
-        const matchesCategory = selectedCategory === "all" || p.category === selectedCategory;
-        const catLabel = formatCategoryLabel(p.category).toLowerCase();
-        const matchesSearch =
-          q === "" ||
-          p.name.toLowerCase().includes(q) ||
-          (p.description ?? "").toLowerCase().includes(q) ||
-          catLabel.includes(q) ||
-          p.category.toLowerCase().includes(q);
-        return matchesCategory && matchesSearch;
+    const filtered = productsIndex
+      .filter(({ p, haystack }) => {
+        if (selectedCategory !== "all" && p.category !== selectedCategory) return false;
+        if (q && !haystack.includes(q)) return false;
+        return true;
       })
-      .sort((a, b) => {
-        if (sortBy === "featured") {
-          return (b.featured ? 1 : 0) - (a.featured ? 1 : 0);
-        }
-        if (sortBy === "price-low") return a.price - b.price;
-        if (sortBy === "price-high") return b.price - a.price;
-        return 0;
-      });
-  }, [products, selectedCategory, searchQuery, sortBy]);
+      .map(({ p }) => p);
+    if (sortBy === "featured") {
+      return [...filtered].sort((a, b) => (b.featured ? 1 : 0) - (a.featured ? 1 : 0));
+    }
+    if (sortBy === "price-low") return [...filtered].sort((a, b) => a.price - b.price);
+    if (sortBy === "price-high") return [...filtered].sort((a, b) => b.price - a.price);
+    return filtered;
+  }, [productsIndex, selectedCategory, searchQuery, sortBy]);
 
   const deliveryFee = 50;
   const shopOrderTotal =

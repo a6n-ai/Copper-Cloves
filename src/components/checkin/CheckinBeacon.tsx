@@ -101,7 +101,13 @@ export function CheckinBeacon() {
     };
   }, []);
 
-  // Drag listeners — only react if pointer is currently pressed on the orb.
+  // Drag listeners — bound ONCE. Previously deps were [dragging, pos] which
+  // re-attached the window listeners on every pixel of drag (setPos churns pos).
+  // Use refs to read the latest dragging/pos values inside the handlers.
+  const draggingRef = useRef(dragging);
+  draggingRef.current = dragging;
+  const posRef = useRef(pos);
+  posRef.current = pos;
   useEffect(() => {
     const onMove = (e: PointerEvent) => {
       const s = dragStateRef.current;
@@ -110,7 +116,7 @@ export function CheckinBeacon() {
       const dy = e.clientY - s.startClientY;
       if (!s.crossed && Math.hypot(dx, dy) < DRAG_THRESHOLD_PX) return;
       s.crossed = true;
-      if (!dragging) setDragging(true);
+      if (!draggingRef.current) setDragging(true);
       const rect = wrapRef.current.getBoundingClientRect();
       const nextPos = clampToViewport(
         e.clientX - s.offsetX,
@@ -122,16 +128,14 @@ export function CheckinBeacon() {
     };
     const onUp = () => {
       const s = dragStateRef.current;
-      if (s?.crossed && pos) {
+      if (s?.crossed && posRef.current) {
         try {
-          localStorage.setItem(POS_KEY, JSON.stringify(pos));
+          localStorage.setItem(POS_KEY, JSON.stringify(posRef.current));
         } catch {
           /* ignore */
         }
       }
       setDragging(false);
-      // Keep `crossed` flag readable in the synthetic click handler that
-      // fires right after pointerup, then clear on the next tick.
       if (s) {
         setTimeout(() => {
           dragStateRef.current = null;
@@ -146,7 +150,7 @@ export function CheckinBeacon() {
       window.removeEventListener("pointerup", onUp);
       window.removeEventListener("pointercancel", onUp);
     };
-  }, [dragging, pos]);
+  }, []);
 
   function beginPress(e: React.PointerEvent) {
     if (!wrapRef.current) return;

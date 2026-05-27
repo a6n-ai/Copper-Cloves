@@ -23,15 +23,14 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
-import { completePendingPackageCheckout } from "@/lib/completeRazorpayCheckout";
+// Razorpay client helpers are loaded lazily inside the purchase handler — keeps
+// the SDK loader + completion helpers out of the initial /portal/packages bundle.
 import {
   buildRazorpayReturnUrl,
   clearPendingRazorpayCheckout,
   loadPendingRazorpayCheckout,
   savePendingRazorpayCheckout,
 } from "@/lib/pendingRazorpayCheckout";
-import { razorpayPaymentErrorHelp } from "@/lib/razorpayClientHints";
-import { payWithRazorpayOrder } from "@/lib/razorpayCheckout";
 import { cn } from "@/lib/utils";
 import { ResponsiveCards } from "@/components/responsive/ResponsiveTable";
 import { MobilePagination } from "@/components/responsive/MobilePagination";
@@ -625,6 +624,7 @@ export default function PackagesPage() {
           savedAt: Date.now(),
         });
 
+        const { payWithRazorpayOrder } = await import("@/lib/razorpayCheckout");
         const checkoutResult = await payWithRazorpayOrder({
           keyId: String(orderPayload.key_id).trim(),
           amountPaise,
@@ -643,6 +643,7 @@ export default function PackagesPage() {
         }
         if (checkoutResult.kind === "failed") {
           clearPendingRazorpayCheckout();
+          const { razorpayPaymentErrorHelp } = await import("@/lib/razorpayClientHints");
           setPaymentRecovery({
             variant: "failed",
             detail: razorpayPaymentErrorHelp(
@@ -661,6 +662,7 @@ export default function PackagesPage() {
         if (!pending || pending.purpose !== "package") {
           throw new Error("Checkout session lost. Please try again.");
         }
+        const { completePendingPackageCheckout } = await import("@/lib/completeRazorpayCheckout");
         await completePendingPackageCheckout(pending, checkoutResult.payload);
         clearPendingRazorpayCheckout();
         setShowCheckout(false);

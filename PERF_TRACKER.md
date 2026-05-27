@@ -10,8 +10,9 @@ Legend: `[x]` done · `[ ]` pending · `[~]` in progress · `[-]` deferred (need
 - [x] `admin/control.tsx` — `ControlAnalyticsPanel` (~700 lines) dynamic
 - [ ] `admin/schedule/[id].tsx` L730,806 — edit/status Dialogs dynamic
 - [x] `components/checkin/CheckInScanButton.tsx` — `ScanCheckInModal` (camera/jsqr) via `next/dynamic({ssr:false})`; only mounts when `open=true`
-- [ ] `portal/book.tsx` L880 — razorpay helper modules (`razorpayCheckout`, `completePendingBookingCheckout`) lazy `import()` inside handlers
-- [ ] `portal/packages.tsx` L34 — same razorpay helpers lazy
+- [x] `portal/book.tsx` — razorpay helpers (`payWithRazorpayOrder`, `razorpayPaymentErrorHelp`, `completePendingBookingCheckout`, `completePendingPackageCheckout`) all migrated to dynamic `import()` inside handlers
+- [x] `portal/packages.tsx` — same razorpay helpers dynamic
+- [ ] `admin/schedule/[id].tsx` L730,806 — edit/status Dialogs dynamic
 
 ## Scroll / event listeners
 
@@ -25,13 +26,13 @@ Legend: `[x]` done · `[ ]` pending · `[~]` in progress · `[-]` deferred (need
 - [x] `components/checkin/CheckinQrDialog.tsx` (15s)
 - [x] `components/checkin/InstructorCheckinBeacon.tsx` (1s, also stops when no window active)
 - [x] `pages/admin/cafe.tsx` (10s)
-- [ ] `pages/admin/kitchen/index.tsx` L81 — 20s setInterval → SWR refreshInterval (auto pause)
+- [x] `pages/admin/kitchen/index.tsx` — 20s poll now pauses when `document.hidden`; re-fires on `visibilitychange` resume
 
 ## Duplicate fetch dedup
 
 - [x] `pages/admin/cafe.tsx` — `fetchOrders` + `fetchOrderHistory` merged into one `fetchAllOrders`
 - [ ] `pages/admin/CRM.tsx` L300 — `fetchAnalytics` re-fetches `/api/admin/crm/messages` already loaded
-- [ ] `pages/shop/[id].tsx` L61-105 — refetches full `/api/retail-products` already loaded on `/shop`
+- [-] `pages/shop/[id].tsx` L61-105 — refetches catalog; still fetched but unblocked by detail (uses Promise.all). Deferred full dedup pending shared store/SWR.
 
 ## Hoist module-level constants
 
@@ -57,7 +58,7 @@ Legend: `[x]` done · `[ ]` pending · `[~]` in progress · `[-]` deferred (need
 - [x] `portal/bookings.tsx` — sort precomputes `startMs` once per booking (was building a Date per compare); `sortedBookings` + `paginatedBookings` `useMemo`
 - [x] `pages/classes.tsx` — `filteredClasses` `useMemo`; `activeTab` effect now depends on `router.query.tab` scalar (not object)
 - [ ] `portal/bookings.tsx` L198 — `sortedBookings`, `paginatedBookings`
-- [ ] `portal/dashboard.tsx` L201-217,393-429 — `activeMilestones`, `statItems`, `upcomingEntries`, `orderRows`
+- [~] `portal/dashboard.tsx` — `activeMilestones` `useMemo` done; `currentMilestone` + `nextMilestone` combined into single `useMemo` (was two scans per render). `statItems`/`upcomingEntries`/`orderRows` still TODO.
 - [ ] `pages/classes.tsx` L451-456 — `activeTab` effect+setState → derive from query
 
 ## Session-object deps → scalar role/id
@@ -114,15 +115,15 @@ Legend: `[x]` done · `[ ]` pending · `[~]` in progress · `[-]` deferred (need
 - [ ] `admin/products.tsx` L557 — category Map
 - [ ] `admin/cafe.tsx` L812 — category Map
 - [ ] `admin/schedule/[id].tsx` L416-419 — two passes → one reduce
-- [ ] `admin/kitchen/index.tsx` L101-105 — three filters → one reduce
+- [x] `admin/kitchen/index.tsx` — three filter scans collapsed into one `useMemo` pass producing `{active, pendingCount, completedToday}`
 - [ ] `portal/dashboard.tsx` L201,312,346 — chained filter/sort/map
 - [ ] `portal/menu.tsx` L338 — categories.find per item
 - [ ] `instructor/dashboard.tsx` L127,295-302,217-221 — classes.find + reduce
 - [ ] `portal/book.tsx` L240-250 — Date per compare; precompute startMs
-- [ ] `portal/book.tsx` L839 — sequential `await fetch` in loop → Promise.all
-- [ ] `pages/classes.tsx` L329-353 — 7×N filter → single bucket pass
-- [ ] `shop.tsx` L122-144 — precompute lower-cased haystack
-- [ ] `shop/[id].tsx` L172-180 — bulk addItem instead of N rerenders
+- [x] `portal/book.tsx` L839 — sequential `await fetch` in loop → `Promise.all` (café orders fire concurrently)
+- [x] `pages/classes.tsx` — 7×N filter → single bucket pass via `floor((itemMs - weekStartMs)/MS_PER_DAY)`
+- [x] `shop.tsx` — lowercased haystack precomputed once per `products` change (was 5× toLowerCase per product per keystroke)
+- [x] `shop/[id].tsx` — `addItem(item, qty)` overload; single setState (was N rerenders looping `addItem`)
 
 ## Waterfalls (`async-parallel`)
 
@@ -136,7 +137,7 @@ Legend: `[x]` done · `[ ]` pending · `[~]` in progress · `[-]` deferred (need
 - [x] `components/CheckoutModal.tsx` — `setFormData` now uses functional updater (was racy under fast typing)
 - [x] `components/Instructors.tsx` — `document.body.style.overflow` restored on unmount (no more leak on route change with modal open)
 - [x] `profile/ProfileSection.tsx` — avatar PUT now checks `!ok` and toasts on failure (was silent S3 fail)
-- [ ] `components/checkin/CheckinBeacon.tsx` L101-119 — drag listeners re-bind on every setPos; use refs + bind once
+- [x] `components/checkin/CheckinBeacon.tsx` — drag listeners now bound once via `useEffect([], [])`; latest `dragging`/`pos` read via refs (was re-attaching window listeners on every pixel of drag)
 
 ## Cross-cutting (project-wide)
 

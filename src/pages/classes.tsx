@@ -7,7 +7,7 @@ import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Skeleton } from "@/components/ui/skeleton";
-import { Clock, CheckCircle, Calendar, Users, Sparkles, ChevronLeft, ChevronRight } from "lucide-react";
+import { Clock, CheckCircle, Calendar, Sparkles, ChevronLeft, ChevronRight } from "lucide-react";
 import { useRouter } from "next/router";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { useSession } from "next-auth/react";
@@ -230,7 +230,6 @@ function ClassCardSkeleton() {
         <Skeleton className="h-3.5 w-4/5 mb-4" />
         <div className="flex items-center gap-4 mb-4">
           <Skeleton className="h-4 w-20" />
-          <Skeleton className="h-4 w-16" />
         </div>
         <div className="mb-4">
           <Skeleton className="h-3.5 w-24 mb-2" />
@@ -322,35 +321,42 @@ export default function ClassesPage() {
           .map((item: { instructor: { id: string; name: string } }) => [item.instructor.id, item.instructor.name])
       );
 
-      // Group by day
-      const daySchedules: DaySchedule[] = [];
+      // Group by day in a single bucket pass (was 7 × N filter scans).
       const daysOfWeek = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"];
-      
+      const buckets: { day: string; date: string; classes: DaySchedule["classes"] }[] = [];
       for (let i = 0; i < 7; i++) {
         const currentDay = new Date(weekStart);
         currentDay.setDate(currentDay.getDate() + i);
-        
-        const dayClasses = (data || [])
-          .filter((item: any) => {
-            const itemDate = new Date(item.start_time);
-            return isSameLocalCalendarDay(itemDate, currentDay);
-          })
-          .map((item: { start_time: string; end_time: string; class_model?: { name?: string; instructor_id?: string }; instructor?: { id: string; name: string } }) => {
-            const startTime = new Date(item.start_time);
-            const endTime = new Date(item.end_time);
-            return {
-              time: `${startTime.toLocaleTimeString("en-US", { hour: "2-digit", minute: "2-digit" })} - ${endTime.toLocaleTimeString("en-US", { hour: "2-digit", minute: "2-digit" })}`,
-              name: item.class_model?.name || "Class",
-              instructor: item.instructor?.name || instructorMap.get(item.class_model?.instructor_id ?? "") || "",
-            };
-          });
-
-        daySchedules.push({
+        buckets.push({
           day: daysOfWeek[i],
           date: currentDay.toLocaleDateString("en-US", { day: "numeric", month: "short" }),
-          classes: dayClasses
+          classes: [],
         });
       }
+      const weekStartMs = new Date(
+        weekStart.getFullYear(),
+        weekStart.getMonth(),
+        weekStart.getDate(),
+      ).getTime();
+      const MS_PER_DAY = 86_400_000;
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      for (const item of (data || []) as any[]) {
+        const itemDate = new Date(item.start_time);
+        const itemDayMs = new Date(
+          itemDate.getFullYear(),
+          itemDate.getMonth(),
+          itemDate.getDate(),
+        ).getTime();
+        const dayIdx = Math.floor((itemDayMs - weekStartMs) / MS_PER_DAY);
+        if (dayIdx < 0 || dayIdx > 6) continue;
+        const endTime = new Date(item.end_time);
+        buckets[dayIdx].classes.push({
+          time: `${itemDate.toLocaleTimeString("en-US", { hour: "2-digit", minute: "2-digit" })} - ${endTime.toLocaleTimeString("en-US", { hour: "2-digit", minute: "2-digit" })}`,
+          name: item.class_model?.name || "Class",
+          instructor: item.instructor?.name || instructorMap.get(item.class_model?.instructor_id ?? "") || "",
+        });
+      }
+      const daySchedules: DaySchedule[] = buckets;
 
       if (isStale?.()) return;
       setScheduleData(daySchedules);
@@ -537,10 +543,6 @@ export default function ClassesPage() {
                           <div className="flex items-center gap-1.5">
                             <Clock className="h-4 w-4" />
                             <span>{classItem.duration} min</span>
-                          </div>
-                          <div className="flex items-center gap-1.5">
-                            <Users className="h-4 w-4" />
-                            <span>Max {classItem.max_capacity}</span>
                           </div>
                         </div>
 
