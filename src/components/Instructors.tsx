@@ -148,7 +148,9 @@ export function Instructors() {
   const [isScrolling, setIsScrolling] = useState(false);
   const [loadedImages, setLoadedImages] = useState<Set<number>>(new Set());
   const [selectedInstructor, setSelectedInstructor] = useState<Instructor | null>(null);
-  const [scrollY, setScrollY] = useState(0);
+  // Parallax: use a ref + direct DOM mutation + rAF instead of setState-per-pixel,
+  // which was re-rendering the entire instructor list on every scroll tick.
+  const parallaxRef = useRef<HTMLDivElement | null>(null);
   const [instructors, setInstructors] = useState<Instructor[]>([]);
   const [loading, setLoading] = useState(true);
 
@@ -195,12 +197,21 @@ export function Instructors() {
     }
   };
 
-  // Parallax scroll effect
+  // Parallax scroll — rAF-throttled, mutates DOM via ref (no React re-render per pixel).
   useEffect(() => {
-    const handleScroll = () => {
-      setScrollY(window.scrollY);
+    let ticking = false;
+    const update = () => {
+      if (parallaxRef.current) {
+        parallaxRef.current.style.transform = `translateY(${window.scrollY * 0.3}px)`;
+      }
+      ticking = false;
     };
-
+    const handleScroll = () => {
+      if (ticking) return;
+      ticking = true;
+      requestAnimationFrame(update);
+    };
+    update();
     window.addEventListener("scroll", handleScroll, { passive: true });
     return () => window.removeEventListener("scroll", handleScroll);
   }, []);
@@ -257,15 +268,19 @@ export function Instructors() {
     document.body.style.overflow = "unset";
   };
 
-  // Calculate parallax offset
-  const parallaxOffset = scrollY * 0.3;
+  // Restore body scroll on unmount in case user navigates away while modal is open.
+  useEffect(() => {
+    return () => {
+      document.body.style.overflow = "unset";
+    };
+  }, []);
 
   return (
     <section id="instructors" className="py-16 md:py-20 bg-linear-to-b from-cream via-white to-cream relative overflow-hidden">
       {/* Parallax Background Texture - Enhanced */}
-      <div 
-        className="absolute inset-0 opacity-[0.04] transition-transform duration-100 ease-out"
-        style={{ transform: `translateY(${parallaxOffset}px)` }}
+      <div
+        ref={parallaxRef}
+        className="absolute inset-0 opacity-[0.04] transition-transform duration-100 ease-out will-change-transform"
       >
         <div className="absolute top-20 left-20 w-96 h-96 rounded-full bg-linear-to-br from-sage to-terracotta blur-3xl animate-pulse" style={{ animationDuration: "8s" }} />
         <div className="absolute bottom-20 right-20 w-[500px] h-[500px] rounded-full bg-linear-to-tl from-sage via-terracotta/30 to-sage blur-3xl animate-pulse" style={{ animationDuration: "12s", animationDelay: "2s" }} />

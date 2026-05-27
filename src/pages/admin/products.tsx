@@ -137,16 +137,20 @@ export default function AdminProducts() {
     name: ""
   });
 
-  const categoryRows = useMemo((): CategoryRow[] => {
+  // Build the id→name Map once; categoryRows is a sorted view of it for selects.
+  const categoryById = useMemo((): Map<string, string> => {
     const m = new Map<string, string>();
     categories.forEach((c) => m.set(c.id, c.name));
     products.forEach((p) => {
       if (p.category) m.set(p.category, prettifyCatId(p.category));
     });
-    return [...m.entries()]
+    return m;
+  }, [products, categories]);
+  const categoryRows = useMemo((): CategoryRow[] => {
+    return [...categoryById.entries()]
       .map(([id, name]) => ({ id, name }))
       .sort((a, b) => a.name.localeCompare(b.name));
-  }, [products, categories]);
+  }, [categoryById]);
 
   const loadRetail = useCallback(async () => {
     const [prRes, ordRes] = await Promise.all([
@@ -162,29 +166,37 @@ export default function AdminProducts() {
     }
   }, []);
 
-  // Calculate stats
+  // Calculate stats — single pass over orders rather than three separate scans.
+  const orderStats = useMemo(() => {
+    let totalRevenue = 0;
+    let pendingOrders = 0;
+    for (const o of orders) {
+      totalRevenue += o.total;
+      if (o.status === "pending" || o.status === "processing") pendingOrders += 1;
+    }
+    const avgOrderValue = orders.length > 0 ? totalRevenue / orders.length : 0;
+    return { totalRevenue, pendingOrders, avgOrderValue };
+  }, [orders]);
   const totalProducts = products.length;
-  const totalRevenue = orders.reduce((sum, order) => sum + order.total, 0);
-  const pendingOrders = orders.filter(o => o.status === "pending" || o.status === "processing").length;
-  const avgOrderValue = orders.length > 0 ? totalRevenue / orders.length : 0;
+  const { totalRevenue, pendingOrders, avgOrderValue } = orderStats;
 
-  // Filter products
-  const filteredProducts = products.filter(p => 
-    searchQuery === "" || 
-    p.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-    p.category.toLowerCase().includes(searchQuery.toLowerCase())
+  // Filter products — toLowerCase the haystack once, not twice per product.
+  const filteredProducts = useMemo(() => {
+    if (searchQuery === "") return products;
+    const q = searchQuery.toLowerCase();
+    return products.filter((p) =>
+      p.name.toLowerCase().includes(q) || p.category.toLowerCase().includes(q),
+    );
+  }, [products, searchQuery]);
+
+  const paginatedProducts = useMemo(
+    () => filteredProducts.slice((productPage - 1) * itemsPerPage, productPage * itemsPerPage),
+    [filteredProducts, productPage, itemsPerPage],
   );
 
-  // Paginate products
-  const paginatedProducts = filteredProducts.slice(
-    (productPage - 1) * itemsPerPage,
-    productPage * itemsPerPage
-  );
-
-  // Paginate orders
-  const paginatedOrders = orders.slice(
-    (orderPage - 1) * itemsPerPage,
-    orderPage * itemsPerPage
+  const paginatedOrders = useMemo(
+    () => orders.slice((orderPage - 1) * itemsPerPage, orderPage * itemsPerPage),
+    [orders, orderPage, itemsPerPage],
   );
 
   const totalProductPages = Math.ceil(filteredProducts.length / itemsPerPage);
@@ -554,7 +566,7 @@ export default function AdminProducts() {
                               </td>
                               <td className="p-4">
                                 <p className="font-body text-sm text-charcoal/70 capitalize">
-                                  {categoryRows.find((c) => c.id === product.category)?.name ??
+                                  {categoryById.get(product.category) ??
                                     prettifyCatId(product.category)}
                                 </p>
                               </td>

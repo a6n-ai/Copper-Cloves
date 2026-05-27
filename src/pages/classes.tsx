@@ -9,7 +9,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Skeleton } from "@/components/ui/skeleton";
 import { Clock, CheckCircle, Calendar, Users, Sparkles, ChevronLeft, ChevronRight } from "lucide-react";
 import { useRouter } from "next/router";
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import { useSession } from "next-auth/react";
 import {
   mondayBasedWeekBoundsInMonth,
@@ -436,9 +436,10 @@ export default function ClassesPage() {
     }
   }
 
-  const filteredClasses = selectedFilter === "all" 
-    ? classes 
-    : classes.filter(c => c.category === selectedFilter);
+  const filteredClasses = useMemo(
+    () => selectedFilter === "all" ? classes : classes.filter((c) => c.category === selectedFilter),
+    [classes, selectedFilter],
+  );
 
   // Helper function to determine if time is morning (before 12:00 PM)
   function isMorningClass(timeString: string): boolean {
@@ -448,12 +449,12 @@ export default function ClassesPage() {
     return hour < 12;
   }
 
+  // Use scalar `tab` — `router.query` is a fresh object each render and would
+  // re-fire this effect needlessly.
+  const queryTab = router.query.tab;
   useEffect(() => {
-    const { tab } = router.query;
-    if (tab === "schedule") {
-      setActiveTab("schedule");
-    }
-  }, [router.query]);
+    if (queryTab === "schedule") setActiveTab("schedule");
+  }, [queryTab]);
 
   return (
     <>

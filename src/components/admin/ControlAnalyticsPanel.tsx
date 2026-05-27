@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import {
@@ -137,8 +137,14 @@ export function ControlAnalyticsPanel() {
     );
   }
 
-  const maxRev = Math.max(...d.financial.monthlyRevenue.map((x) => x.amount), 1);
-  const maxGrowth = Math.max(...d.members.newMembersMonthly.map((x) => x.count), 1);
+  const maxRev = useMemo(
+    () => Math.max(...d.financial.monthlyRevenue.map((x) => x.amount), 1),
+    [d.financial.monthlyRevenue],
+  );
+  const maxGrowth = useMemo(
+    () => Math.max(...d.members.newMembersMonthly.map((x) => x.count), 1),
+    [d.members.newMembersMonthly],
+  );
 
   const growthLabel =
     d.financial.revenueGrowthPct !== null

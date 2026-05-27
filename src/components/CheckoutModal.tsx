@@ -166,7 +166,7 @@ export function CheckoutModal({ packageDetails, onClose, userId }: CheckoutModal
                 <label className="font-body text-sm text-charcoal/70 mb-2 block">Full Name *</label>
                 <Input
                   value={formData.fullName}
-                  onChange={(e) => setFormData({ ...formData, fullName: e.target.value })}
+                  onChange={(e) => setFormData((prev) => ({ ...prev, fullName: e.target.value }))}
                   placeholder="Enter your full name"
                   className="border-sage/20 focus:border-sage"
                   required
@@ -178,7 +178,7 @@ export function CheckoutModal({ packageDetails, onClose, userId }: CheckoutModal
                 <Input
                   type="email"
                   value={formData.email}
-                  onChange={(e) => setFormData({ ...formData, email: e.target.value })}
+                  onChange={(e) => setFormData((prev) => ({ ...prev, email: e.target.value }))}
                   placeholder="your.email@example.com"
                   className="border-sage/20 focus:border-sage"
                   required
@@ -190,7 +190,7 @@ export function CheckoutModal({ packageDetails, onClose, userId }: CheckoutModal
                 <Input
                   type="tel"
                   value={formData.phone}
-                  onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
+                  onChange={(e) => setFormData((prev) => ({ ...prev, phone: e.target.value }))}
                   placeholder="+91 98765 43210"
                   className="border-sage/20 focus:border-sage"
                   required

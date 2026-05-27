@@ -1,4 +1,4 @@
-import type { ReactNode } from "react";
+import { memo, type ReactNode } from "react";
 import type { LucideIcon } from "lucide-react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -51,7 +51,7 @@ const tones = {
   },
 };
 
-export function MetricCard({
+function MetricCardImpl({
   label,
   value,
   icon: Icon,
@@ -126,4 +126,6 @@ export function MetricCard({
   );
 }
 
+// Memoized so MetricCards skip rerender when parent state changes but their props don't.
+export const MetricCard = memo(MetricCardImpl);
 export default MetricCard;

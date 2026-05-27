@@ -194,12 +194,19 @@ export default function MyBookingsPage() {
     }
   }
 
-  // Newest class first (API returns ascending for the dashboard's "next class").
-  const sortedBookings = [...bookings].sort(
-    (a, b) => new Date(effectiveClassTime(b)).getTime() - new Date(effectiveClassTime(a)).getTime(),
-  );
+  // Newest class first. Precompute startMs once per booking to avoid building a
+  // new Date in every compare. Memoize so unrelated state changes don't re-sort.
+  const sortedBookings = useMemo(() => {
+    return bookings
+      .map((b) => ({ b, ms: new Date(effectiveClassTime(b)).getTime() }))
+      .sort((a, b) => b.ms - a.ms)
+      .map(({ b }) => b);
+  }, [bookings]);
   const totalPages = Math.ceil(sortedBookings.length / PAGE_SIZE);
-  const paginatedBookings = sortedBookings.slice((currentPage - 1) * PAGE_SIZE, currentPage * PAGE_SIZE);
+  const paginatedBookings = useMemo(
+    () => sortedBookings.slice((currentPage - 1) * PAGE_SIZE, currentPage * PAGE_SIZE),
+    [sortedBookings, currentPage],
+  );
 
   if (isLoading) {
     return (

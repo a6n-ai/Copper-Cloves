@@ -30,6 +30,14 @@ export interface PathToMasteryProps {
 /** Brand-leaning palette so each tier gets its own colour. */
 const TIER_COLORS = ["#8f9779", "#c17856", "#d4a574", "#6b9080", "#8d6e8e", "#c9a227"];
 
+// Stable framer variants — hoisted so each render doesn't recreate the object and
+// restart staggered animations on parent rerenders.
+const LIST_VARIANTS = { show: { transition: { staggerChildren: 0.12, delayChildren: 0.15 } } };
+const ITEM_VARIANTS = {
+  hidden: { opacity: 0, y: 16, scale: 0.8 },
+  show: { opacity: 1, y: 0, scale: 1 },
+};
+
 export function PathToMastery({
   milestones,
   classesCompleted,
@@ -89,7 +97,7 @@ export function PathToMastery({
                 className="relative flex"
                 initial="hidden"
                 animate="show"
-                variants={{ show: { transition: { staggerChildren: 0.12, delayChildren: 0.15 } } }}
+                variants={LIST_VARIANTS}
               >
                 {milestones.map((m, i) => {
                   const color = m.dbColor || TIER_COLORS[i % TIER_COLORS.length];
@@ -99,10 +107,7 @@ export function PathToMastery({
                     <motion.li
                       key={m.id}
                       className="flex min-w-0 flex-1 basis-0 flex-col items-center px-1"
-                      variants={{
-                        hidden: { opacity: 0, y: 16, scale: 0.8 },
-                        show: { opacity: 1, y: 0, scale: 1 },
-                      }}
+                      variants={ITEM_VARIANTS}
                       transition={{ type: "spring", stiffness: 260, damping: 18 }}
                     >
                       <div className="relative">

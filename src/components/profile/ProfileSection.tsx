@@ -159,7 +159,11 @@ export function ProfileSection({ role, title, subtitle }: ProfileSectionProps) {
 
   const loadProfile = useCallback(async () => {
     try {
-      const res = await fetch("/api/user/profile");
+      // Fire profile + tickets concurrently (was sequential).
+      const [res, ticketRes] = await Promise.all([
+        fetch("/api/user/profile"),
+        isMember ? fetch("/api/user/support-tickets") : Promise.resolve(null),
+      ]);
       if (!res.ok) throw new Error();
       const p = await res.json();
       setFullName(p.full_name || "");
@@ -177,16 +181,13 @@ export function ProfileSection({ role, title, subtitle }: ProfileSectionProps) {
         setInjuries(typeof q.injuries === "string" ? q.injuries : "");
       }
 
-      if (isMember) {
-        const ticketRes = await fetch("/api/user/support-tickets");
-        if (ticketRes.ok) {
-          const tickets = await ticketRes.json();
-          const openPause = Array.isArray(tickets) && tickets.some(
-            (t: { type: string; status: string }) =>
-              t.type === "pause_subscription" && ["open", "in_review"].includes(t.status)
-          );
-          setTicketSubmitted(openPause);
-        }
+      if (ticketRes && ticketRes.ok) {
+        const tickets = await ticketRes.json();
+        const openPause = Array.isArray(tickets) && tickets.some(
+          (t: { type: string; status: string }) =>
+            t.type === "pause_subscription" && ["open", "in_review"].includes(t.status)
+        );
+        setTicketSubmitted(openPause);
       }
     } catch {
       toast({ title: "Could not load profile", variant: "destructive" });
@@ -285,7 +286,11 @@ export function ProfileSection({ role, title, subtitle }: ProfileSectionProps) {
       }
       const { uploadUrl, publicUrl } = presignJson as { uploadUrl?: string; publicUrl?: string };
       if (!uploadUrl || !publicUrl) { toast({ title: "Upload error", variant: "destructive" }); return; }
-      await fetch(uploadUrl, { method: "PUT", body: file, headers: { "Content-Type": file.type } });
+      const putRes = await fetch(uploadUrl, { method: "PUT", body: file, headers: { "Content-Type": file.type } });
+      if (!putRes.ok) {
+        toast({ title: "Upload failed", description: "S3 upload rejected — try again.", variant: "destructive" });
+        return;
+      }
       await fetch("/api/user/profile", { method: "PATCH", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ avatar_url: publicUrl }) });
       setAvatarUrl(publicUrl);
       toast({ title: "Photo updated" });

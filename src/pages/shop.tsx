@@ -104,12 +104,12 @@ export default function Shop() {
     };
   }, []);
 
+  const sessionEmail = (session?.user as { email?: string } | undefined)?.email?.trim();
   useEffect(() => {
-    const e = (session?.user as { email?: string } | undefined)?.email?.trim();
-    if (e) {
-      setCustomerEmail((prev) => (prev.trim() ? prev : e));
+    if (sessionEmail) {
+      setCustomerEmail((prev) => (prev.trim() ? prev : sessionEmail));
     }
-  }, [session]);
+  }, [sessionEmail]);
 
   const categoryTabs = useMemo(() => {
     const uniq = [...new Set(products.map((p) => p.category))].sort();

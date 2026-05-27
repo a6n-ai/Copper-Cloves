@@ -143,7 +143,10 @@ export default function PartnerClasses() {
       }
     })();
     return () => { cancelled = true; };
-  }, [rangeKey, router, rangeStart, rangeEnd]);
+  // rangeKey already encodes start+end timestamps — including the Date objects
+  // would refire this effect on every render (new Date refs each pass).
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [rangeKey]);
 
   async function actionBooking(classId: string, bookingId: string, action: "confirm" | "reject") {
     setActioningId(bookingId);

@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback, useRef } from "react";
 import { useRouter } from "next/router";
 import { useSession } from "next-auth/react";
 import { format, isAfter, isBefore, isToday, isTomorrow } from "date-fns";
@@ -126,6 +126,11 @@ export default function InstructorDashboard() {
 
   const selectedClass = classes.find((c) => c.id === selectedClassId) ?? null;
 
+  // Use a ref for `selectedClassId` inside loadData so the callback identity is
+  // stable — otherwise picking a class refires the auth effect below (which
+  // refetches the whole list).
+  const selectedClassIdRef = useRef(selectedClassId);
+  selectedClassIdRef.current = selectedClassId;
   const loadData = useCallback(async () => {
     try {
       const classesRes = await fetch("/api/instructor/today-classes");
@@ -136,26 +141,27 @@ export default function InstructorDashboard() {
       if (classesRes.ok) {
         const data: ClassRow[] = await classesRes.json();
         setClasses(data);
-        // Default check-in selection to first TODAY class
-        const todayFirst = data.find(c => isToday(new Date(c.startTime)));
-        if (todayFirst && !selectedClassId) setSelectedClassId(todayFirst.id);
+        const todayFirst = data.find((c) => isToday(new Date(c.startTime)));
+        if (todayFirst && !selectedClassIdRef.current) setSelectedClassId(todayFirst.id);
       }
     } finally {
       setLoading(false);
     }
-  }, [router, selectedClassId]);
+  }, [router]);
 
+  const userRole = (session?.user as { role?: string } | undefined)?.role;
+  const userName = session?.user?.name;
   // Guard: only instructors here; everyone else goes to the unified login.
   useEffect(() => {
     if (status === "loading") return;
-    const role = (session?.user as { role?: string } | undefined)?.role;
-    if (status === "unauthenticated" || role !== "instructor") {
+    if (status === "unauthenticated" || userRole !== "instructor") {
       router.replace("/login");
       return;
     }
-    setInstructorName(session?.user?.name ?? "Instructor");
+    setInstructorName(userName ?? "Instructor");
     void loadData();
-  }, [status, session, router, loadData]);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [status, userRole, userName]);
 
 
   async function handleCheckIn(bookingId: string) {

@@ -1,8 +1,14 @@
 import { useState } from "react";
+import dynamic from "next/dynamic";
 import { QrCode } from "lucide-react";
 import { Button, type ButtonProps } from "@/components/ui/button";
 import { AnimatedIcon } from "@/components/dashboard/AnimatedIcon";
-import { ScanCheckInModal } from "@/components/checkin/ScanCheckInModal";
+
+// Defer camera/jsqr bundle until the user actually opens the scanner.
+const ScanCheckInModal = dynamic(
+  () => import("@/components/checkin/ScanCheckInModal").then((m) => m.ScanCheckInModal),
+  { ssr: false, loading: () => null },
+);
 
 export interface CheckInScanButtonProps {
   label?: string;
@@ -34,7 +40,7 @@ export function CheckInScanButton({
         <AnimatedIcon icon={QrCode} size={16} />
         {label}
       </Button>
-      {disabled ? null : <ScanCheckInModal open={open} onOpenChange={setOpen} />}
+      {disabled || !open ? null : <ScanCheckInModal open={open} onOpenChange={setOpen} />}
     </>
   );
 }

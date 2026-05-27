@@ -348,11 +348,11 @@ export default function ControlPanel() {
   });
 
   const { data: session, status } = useSession();
+  const userRole = (session?.user as { role?: string })?.role;
 
   useEffect(() => {
     if (status === "unauthenticated") { router.push("/admin/login"); return; }
-    const role = (session?.user as { role?: string })?.role;
-    if (status === "authenticated" && role !== "admin") { router.push("/admin/login"); return; }
+    if (status === "authenticated" && userRole !== "admin") { router.push("/admin/login"); return; }
     if (status === "authenticated") {
       fetchClasses();
       fetchUsers();
@@ -361,7 +361,8 @@ export default function ControlPanel() {
       void fetchPauseTickets();
       setLoading(false);
     }
-  }, [status, session, router]);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [status, userRole]);
 
   async function fetchPauseTickets() {
     setLoadingPauseTickets(true);

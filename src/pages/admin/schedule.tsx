@@ -401,6 +401,8 @@ export default function AdminSchedule() {
   }, [schedule, dbClasses]);
 
   const { data: session, status } = useSession();
+  // Scalar role — avoids session-object identity churn refiring the loader.
+  const userRole = (session?.user as { role?: string })?.role;
 
   useEffect(() => {
     if (status === "loading") return;
@@ -408,8 +410,7 @@ export default function AdminSchedule() {
       router.push("/admin/login");
       return;
     }
-    const role = (session?.user as { role?: string })?.role;
-    if (status === "authenticated" && role !== "admin") {
+    if (status === "authenticated" && userRole !== "admin") {
       router.push("/admin/login");
       return;
     }
@@ -419,8 +420,8 @@ export default function AdminSchedule() {
     (async () => {
       try {
         setLoadError(null);
-        const catErr = await loadDbData();
-        const schedErr = await loadSchedule();
+        // Run independent fetches concurrently (was sequential).
+        const [catErr, schedErr] = await Promise.all([loadDbData(), loadSchedule()]);
         const combined = [catErr, schedErr].filter(Boolean).join(" ");
         if (!cancelled) {
           setLoadError(combined || null);
@@ -434,7 +435,8 @@ export default function AdminSchedule() {
     return () => {
       cancelled = true;
     };
-  }, [status, session, router, selectedMonth, scheduleViewYear]);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [status, userRole, selectedMonth, scheduleViewYear]);
 
   // Sync month/year fetch range when calendar moves to a different month.
   useEffect(() => {

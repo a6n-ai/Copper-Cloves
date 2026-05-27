@@ -143,6 +143,9 @@ const aerialPackage: Package = {
   badge: "Specialty",
 };
 
+const classPassPackages = premiumPackages.filter((pkg) => typeof pkg.classes === "number");
+const studioPassPackages = premiumPackages.filter((pkg) => pkg.classes === "Unlimited");
+
 export function Pricing() {
   const router = useRouter();
   const { data: session } = useSession();
@@ -175,18 +178,8 @@ export function Pricing() {
     }
   };
 
-  // Filter packages based on active tab
-  const classPassPackages = premiumPackages.filter(pkg => 
-    typeof pkg.classes === "number" // 1 Day, 4, 8, 12 Class Pass
-  );
-  
-  const studioPassPackages = premiumPackages.filter(pkg => 
-    pkg.classes === "Unlimited" // Monthly unlimited packages
-  );
-
-  const currentPackages = selectedTier === "class" 
-    ? classPassPackages 
-    : studioPassPackages;
+  // premiumPackages is module-scope constant → these slices are stable; compute once
+  const currentPackages = selectedTier === "class" ? classPassPackages : studioPassPackages;
 
   return (
     <section id="pricing" className="py-16 md:py-20 bg-cream relative overflow-hidden">

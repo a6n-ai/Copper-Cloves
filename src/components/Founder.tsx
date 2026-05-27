@@ -3,28 +3,21 @@ import Link from "next/link";
 import Image from "next/image";
 
 import { cdnUrl } from "@/lib/cdnUrl";
-export function Founder() {
-  const features = [
-    {
-      title: "Expert-led movement",
-      description: "Yoga, Pilates, Strength, Cardio"
-    },
-    {
-      title: "Plant-based café",
-      description: "Smoothie bowls, salads, sourdough"
-    },
-    {
-      title: "Space for connection",
-      description: "Light-filled interiors and tropical greenery"
-    }
-  ];
 
-  const stats = [
-    { value: "500+", label: "Members", position: "top-8 left-8" },
-    { value: "15+", label: "Experts", position: "top-8 right-8" },
-    { value: "25+", label: "Classes", position: "bottom-32 left-8" },
-    { value: "5.0", label: "Rating", position: "bottom-32 right-8" }
-  ];
+const features = [
+  { title: "Expert-led movement", description: "Yoga, Pilates, Strength, Cardio" },
+  { title: "Plant-based café", description: "Smoothie bowls, salads, sourdough" },
+  { title: "Space for connection", description: "Light-filled interiors and tropical greenery" }
+];
+
+const stats = [
+  { value: "500+", label: "Members", position: "top-8 left-8" },
+  { value: "15+", label: "Experts", position: "top-8 right-8" },
+  { value: "25+", label: "Classes", position: "bottom-32 left-8" },
+  { value: "5.0", label: "Rating", position: "bottom-32 right-8" }
+];
+
+export function Founder() {
 
   return (
     <section className="relative py-16 md:py-20 px-6 lg:px-8 overflow-hidden">

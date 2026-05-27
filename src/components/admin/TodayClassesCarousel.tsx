@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { Users, Clock, Repeat, ChevronLeft, ChevronRight, Power, PowerOff } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { AnimatedIcon } from "@/components/dashboard/AnimatedIcon";
@@ -112,9 +112,9 @@ export function TodayClassesCarousel({
     scrollRef.current.scrollBy({ left: dir === "left" ? -step : step, behavior: "smooth" });
   }
 
-  // Index of the next upcoming class (soonest future class with a live-able status).
-  // Only meaningful on today's schedule; future/past days have no "now" reference.
-  const nextIndex = (() => {
+  // Index of the next upcoming class. Recompute only on item/tick change, not every
+  // parent render. `tick` increments every 60s to refresh the highlight.
+  const nextIndex = useMemo(() => {
     if (!isToday) return -1;
     const now = new Date();
     const nowMin = now.getHours() * 60 + now.getMinutes();
@@ -122,7 +122,8 @@ export function TodayClassesCarousel({
       const ok = !c.status || c.status === "available" || c.status === "live" || c.status === "started";
       return ok && parseTimeToMinutes(c.time) >= nowMin;
     });
-  })();
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [items, isToday, tick]);
 
   if (items.length === 0) {
     return (

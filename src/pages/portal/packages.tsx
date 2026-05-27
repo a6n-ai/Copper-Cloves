@@ -1,4 +1,4 @@
-import { useEffect, useState, useRef } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { PageHeader } from "@/components/dashboard/PageHeader";
 import { useRouter } from "next/router";
 import { Check, X, CreditCard, AlertCircle, Download, Flame } from "lucide-react";
@@ -713,18 +713,17 @@ export default function PackagesPage() {
     ? classPassPackages
     : studioPassPackages;
 
-  // Recommended: use featured flag if present; fall back to middle card
-  const recommendedIndex = (() => {
-    const fi = currentPackages.findIndex(p => p.featured);
+  // Recommended: use featured flag if present; fall back to middle card.
+  const recommendedIndex = useMemo(() => {
+    const fi = currentPackages.findIndex((p) => p.featured);
     if (fi !== -1) return fi;
     return Math.floor((currentPackages.length - 1) / 2);
-  })();
+  }, [currentPackages]);
 
-  // Paginated history
   const totalHistoryPages = Math.max(1, Math.ceil(purchaseHistory.length / HISTORY_PAGE_SIZE));
-  const pagedHistory = purchaseHistory.slice(
-    (historyPage - 1) * HISTORY_PAGE_SIZE,
-    historyPage * HISTORY_PAGE_SIZE
+  const pagedHistory = useMemo(
+    () => purchaseHistory.slice((historyPage - 1) * HISTORY_PAGE_SIZE, historyPage * HISTORY_PAGE_SIZE),
+    [purchaseHistory, historyPage],
   );
 
   return (

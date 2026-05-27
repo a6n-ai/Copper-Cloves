@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { useRouter } from "next/router";
 import { Button } from "@/components/ui/button";
 import { EditButton, DeleteButton } from "@/components/ui/quick-actions";
@@ -186,15 +186,6 @@ export default function CRMPage() {
   const [activeTab, setActiveTab] = useState<"hub" | "templates" | "triggers" | "analytics">("hub");
   
   // Analytics state
-  const [analyticsData, setAnalyticsData] = useState({
-    totalNudgesSent: 0,
-    renewalsAfterNudge: 0,
-    conversionRate: 0,
-    revenueFromNudges: 0,
-    nudgesByTemplate: [] as Array<{ template: string; sent: number; converted: number }>,
-    weeklyTrend: [] as Array<{ week: string; nudges: number; conversions: number }>
-  });
-  
   // Templates state
   const [templates, setTemplates] = useState<CRMTemplate[]>([]);
   const [showTemplateForm, setShowTemplateForm] = useState(false);
@@ -292,17 +283,17 @@ export default function CRMPage() {
 
   const { data: session, status } = useSession();
 
+  const userRole = (session?.user as { role?: string })?.role;
   useEffect(() => {
     if (status === "unauthenticated") { router.push("/admin/login"); return; }
-    const role = (session?.user as { role?: string })?.role;
-    if (status === "authenticated" && role !== "admin") { router.push("/admin/login"); return; }
+    if (status === "authenticated" && userRole !== "admin") { router.push("/admin/login"); return; }
     if (status === "authenticated") {
-      fetchTemplates();
-      fetchMessages();
-      fetchTriggers();
-      fetchAnalytics();
+      // Fire all three independent fetches concurrently. Analytics is derived
+      // from `messages` via useMemo below — no second /messages fetch needed.
+      void Promise.all([fetchTemplates(), fetchMessages(), fetchTriggers()]);
     }
-  }, [status, session, router]);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [status, userRole]);
 
   const fetchTemplates = async () => {
     try {
@@ -333,37 +324,34 @@ export default function CRMPage() {
     }
   };
 
-  const fetchAnalytics = async () => {
-    try {
-      const res = await fetch("/api/admin/crm/messages");
-      const messages = res.ok ? await res.json() : [];
-      const totalNudges = messages.length;
-      const renewals = Math.floor(totalNudges * 0.38);
-      const avgPackagePrice = 15000;
-      const templateStats = messages.reduce((acc: Record<string, { template: string; sent: number; converted: number }>, msg: { template?: { name: string } }) => {
-        const templateName = msg.template?.name || "Unknown";
-        if (!acc[templateName]) acc[templateName] = { template: templateName, sent: 0, converted: 0 };
-        acc[templateName].sent++;
-        if (Math.random() < 0.38) acc[templateName].converted++;
-        return acc;
-      }, {});
-      const weeklyTrend = [];
-      for (let i = 3; i >= 0; i--) {
-        const nudgesThisWeek = Math.floor(totalNudges / 4) + Math.floor(Math.random() * 10);
-        weeklyTrend.push({ week: `Week ${4 - i}`, nudges: nudgesThisWeek, conversions: Math.floor(nudgesThisWeek * 0.38) });
-      }
-      setAnalyticsData({
-        totalNudgesSent: totalNudges,
-        renewalsAfterNudge: renewals,
-        conversionRate: totalNudges > 0 ? Math.round((renewals / totalNudges) * 100) : 0,
-        revenueFromNudges: renewals * avgPackagePrice,
-        nudgesByTemplate: Object.values(templateStats),
-        weeklyTrend,
-      });
-    } catch (err) {
-      console.error("Error fetching analytics:", err);
+  // Analytics derived from `messages` (was duplicating /api/admin/crm/messages fetch).
+  // `Math.random()` calls preserved for visual parity — these are demo numbers.
+  const analyticsData = useMemo(() => {
+    const totalNudges = messages.length;
+    const renewals = Math.floor(totalNudges * 0.38);
+    const avgPackagePrice = 15000;
+    type Stats = Record<string, { template: string; sent: number; converted: number }>;
+    const templateStats = (messages as Array<{ template?: { name: string } }>).reduce<Stats>((acc, msg) => {
+      const templateName = msg.template?.name || "Unknown";
+      if (!acc[templateName]) acc[templateName] = { template: templateName, sent: 0, converted: 0 };
+      acc[templateName].sent++;
+      if (Math.random() < 0.38) acc[templateName].converted++;
+      return acc;
+    }, {});
+    const weeklyTrend = [];
+    for (let i = 3; i >= 0; i--) {
+      const nudgesThisWeek = Math.floor(totalNudges / 4) + Math.floor(Math.random() * 10);
+      weeklyTrend.push({ week: `Week ${4 - i}`, nudges: nudgesThisWeek, conversions: Math.floor(nudgesThisWeek * 0.38) });
     }
-  };
+    return {
+      totalNudgesSent: totalNudges,
+      renewalsAfterNudge: renewals,
+      conversionRate: totalNudges > 0 ? Math.round((renewals / totalNudges) * 100) : 0,
+      revenueFromNudges: renewals * avgPackagePrice,
+      nudgesByTemplate: Object.values(templateStats),
+      weeklyTrend,
+    };
+  }, [messages]);
 
   const handleSaveTemplate = async () => {
     setIsSaving(true);

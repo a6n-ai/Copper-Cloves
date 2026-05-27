@@ -1,4 +1,4 @@
-import { useEffect, useState, useMemo } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import { PageHeader } from "@/components/dashboard/PageHeader";
 import { useToast } from "@/hooks/use-toast";
 import { useRouter } from "next/router";
@@ -498,7 +498,7 @@ export default function BookClass() {
     ));
   }
 
-  function calculateTotals() {
+  const calculateTotals = useCallback(() => {
     const totalPeople = 1 + friendsFamily.length;
     const classPrice = 945;
     
@@ -545,7 +545,10 @@ export default function BookClass() {
     const taxIncluded = Math.round((finalTotal * TAX_RATE / (1 + TAX_RATE)) * 100) / 100;
 
     return { classTotal, foodTotal, discount, couponDiscount, subtotal, taxIncluded, finalTotal };
-  }
+  }, [friendsFamily, userPackage, useCredits, foodItems, appliedCoupon]);
+
+  // Single memoized total used by both the submit handler and JSX (was called twice).
+  const totals = useMemo(() => calculateTotals(), [calculateTotals]);
 
   async function handleAddPass() {
     if (!featuredPackage) return;
@@ -893,7 +896,7 @@ export default function BookClass() {
     return null; // Will redirect
   }
 
-  const totals = calculateTotals();
+  // `totals` defined above as a useMemo over the same inputs.
 
   return (
     <div className="min-h-screen bg-linear-to-br from-cream via-cream to-sage/5">
