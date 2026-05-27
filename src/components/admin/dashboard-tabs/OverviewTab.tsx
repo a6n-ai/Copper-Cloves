@@ -159,7 +159,7 @@ function OverviewTabImpl({
       <Card className="border-sage/20 bg-white/95 backdrop-blur-xl overflow-x-hidden overflow-y-visible w-full min-w-0 max-w-full">
         <CardHeader>
           <div className="flex flex-wrap items-start justify-between gap-3">
-            <div>
+            <div className="min-w-0">
               <CardTitle className="font-display text-2xl text-charcoal">{dateTitle}</CardTitle>
               <CardDescription className="font-body text-charcoal/60">
                 {todayClassesDetail.length > 0
@@ -167,7 +167,7 @@ function OverviewTabImpl({
                   : "No classes scheduled for this day."}
               </CardDescription>
             </div>
-            <div className="flex items-center gap-2">
+            <div className="flex items-center gap-2 flex-wrap">
               <Button
                 variant="outline"
                 size="sm"

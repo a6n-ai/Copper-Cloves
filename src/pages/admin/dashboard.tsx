@@ -63,25 +63,41 @@ import { MealWaitlistTab } from "@/components/admin/dashboard-tabs/MealWaitlistT
 import { RentalInquiriesTab } from "@/components/admin/dashboard-tabs/RentalInquiriesTab";
 import { PricingTab } from "@/components/admin/dashboard-tabs/PricingTab";
 // Heavy chart-laden tabs — defer JS+recharts chunks until opened.
+// `loading: () => <TabLoadingSkeleton />` prevents the production blink/
+// scrollbar flash that happens when SSR renders empty body, then client
+// hydrates and expands once the chunk arrives. Skeleton reserves the height.
+function TabLoadingSkeleton() {
+  return (
+    <div className="space-y-6 min-h-[60vh]">
+      <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-4">
+        {Array.from({ length: 5 }).map((_, i) => (
+          <div key={i} className="h-28 rounded-2xl border border-sage/15 bg-white/60 animate-pulse" />
+        ))}
+      </div>
+      <div className="h-64 rounded-2xl border border-sage/15 bg-white/60 animate-pulse" />
+      <div className="h-96 rounded-2xl border border-sage/15 bg-white/60 animate-pulse" />
+    </div>
+  );
+}
 const InstructorsTab = dynamic(
   () => import("@/components/admin/dashboard-tabs/InstructorsTab").then((m) => m.InstructorsTab),
-  { ssr: false, loading: () => null },
+  { ssr: false, loading: () => <TabLoadingSkeleton /> },
 );
 const ClassesTab = dynamic(
   () => import("@/components/admin/dashboard-tabs/ClassesTab").then((m) => m.ClassesTab),
-  { ssr: false, loading: () => null },
+  { ssr: false, loading: () => <TabLoadingSkeleton /> },
 );
 const MembersTab = dynamic(
   () => import("@/components/admin/dashboard-tabs/MembersTab").then((m) => m.MembersTab),
-  { ssr: false, loading: () => null },
+  { ssr: false, loading: () => <TabLoadingSkeleton /> },
 );
 const FinanceTab = dynamic(
   () => import("@/components/admin/dashboard-tabs/FinanceTab").then((m) => m.FinanceTab),
-  { ssr: false, loading: () => null },
+  { ssr: false, loading: () => <TabLoadingSkeleton /> },
 );
 const OverviewTab = dynamic(
   () => import("@/components/admin/dashboard-tabs/OverviewTab").then((m) => m.OverviewTab),
-  { ssr: false, loading: () => null },
+  { ssr: false, loading: () => <TabLoadingSkeleton /> },
 );
 import {
   AlertDialog,
@@ -1168,13 +1184,14 @@ export default function AdminDashboard() {
         description="Manage classes, members, and operations"
       />
       
-      <div className="min-h-screen bg-linear-to-br from-cream via-cream to-sage/10">
+      {/* overflow-x-hidden: prevents horizontal page scrollbar during dynamic-tab
+          chunk fetches in production (server-rendered empty → client expands → layout shift). */}
+      <div className="min-h-screen overflow-x-hidden bg-linear-to-br from-cream via-cream to-sage/10">
         {/* Decorative Elements */}
         <div className="fixed top-20 right-20 w-72 h-72 bg-sage/10 rounded-full blur-3xl pointer-events-none" />
         <div className="fixed bottom-20 left-20 w-96 h-96 bg-cream/50 rounded-full blur-3xl pointer-events-none" />
-        
-        
-        <main className="min-h-screen">
+
+        <main className="min-h-screen overflow-x-hidden">
           <div className="max-w-7xl mx-auto p-6 lg:p-8 space-y-8">
             <div className="flex items-center justify-between flex-wrap gap-3">
               <div>
