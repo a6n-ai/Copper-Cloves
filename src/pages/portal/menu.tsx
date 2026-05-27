@@ -283,6 +283,14 @@ export default function MenuPage() {
     [menuItems, selectedCategory],
   );
 
+  // Constant id → label Map. `CATEGORIES` is module scope, so this Map is
+  // effectively built once. Replaces `categories.find()` per menu item card.
+  const categoryLabelById = useMemo(() => {
+    const m = new Map<string, string>();
+    for (const c of CATEGORIES) m.set(c.id, c.label);
+    return m;
+  }, []);
+
   if (loading) {
     return (
       <div className="min-h-screen bg-linear-to-br from-cream via-cream to-sage/5">
@@ -346,7 +354,7 @@ export default function MenuPage() {
                 <CardContent className="p-4 sm:p-6">
                   <div className="mb-3">
                     <Badge variant="outline" className="mb-2 text-xs font-body border-sage/30 text-sage">
-                      {categories.find(c => c.id === item.category)?.label}
+                      {categoryLabelById.get(item.category)}
                     </Badge>
                     <h3 className="font-display text-xl sm:text-2xl text-charcoal mb-1.5">{item.name}</h3>
                     <p className="font-body text-sm text-charcoal/70 mb-2 line-clamp-2">{item.description}</p>

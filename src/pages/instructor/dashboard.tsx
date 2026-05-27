@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback, useRef } from "react";
+import { useState, useEffect, useCallback, useMemo, useRef } from "react";
 import { useRouter } from "next/router";
 import { useSession } from "next-auth/react";
 import { format, isAfter, isBefore, isToday, isTomorrow } from "date-fns";
@@ -124,7 +124,14 @@ export default function InstructorDashboard() {
   const [instructorCheckingIn, setInstructorCheckingIn] = useState<Record<string, boolean>>({});
   const [instructorCheckInError, setInstructorCheckInError] = useState<Record<string, string>>({});
 
-  const selectedClass = classes.find((c) => c.id === selectedClassId) ?? null;
+  // O(1) id → row lookup; replaces `classes.find()` per render and feeds the
+  // groupedByDay memo below so we only walk `classes` once per data load.
+  const classById = useMemo(() => {
+    const m = new Map<string, ClassRow>();
+    for (const c of classes) m.set(c.id, c);
+    return m;
+  }, [classes]);
+  const selectedClass = selectedClassId ? classById.get(selectedClassId) ?? null : null;
 
   // Use a ref for `selectedClassId` inside loadData so the callback identity is
   // stable — otherwise picking a class refires the auth effect below (which
@@ -220,11 +227,22 @@ export default function InstructorDashboard() {
     }
   }
 
-  const totalEnrolled = classes.reduce((s, c) => s + c.enrolled, 0);
-  const totalCheckedIn = classes.reduce(
-    (s, c) => s + c.bookings.filter((b) => b.checkedIn).length,
-    0,
-  );
+  // Single pass over `classes` produces totals + day-grouped buckets; both were
+  // previously separate scans (3 total) executed every render.
+  const { totalEnrolled, totalCheckedIn, classesByDay } = useMemo(() => {
+    let enrolled = 0;
+    let checkedIn = 0;
+    const byDay = new Map<string, ClassRow[]>();
+    for (const c of classes) {
+      enrolled += c.enrolled;
+      for (const b of c.bookings) if (b.checkedIn) checkedIn += 1;
+      const key = dayLabel(c.startTime);
+      const bucket = byDay.get(key);
+      if (bucket) bucket.push(c);
+      else byDay.set(key, [c]);
+    }
+    return { totalEnrolled: enrolled, totalCheckedIn: checkedIn, classesByDay: Array.from(byDay) };
+  }, [classes]);
 
   if (loading) {
     return (
@@ -297,15 +315,8 @@ export default function InstructorDashboard() {
               </div>
             ) : (
               <div className="space-y-5">
-                {/* Group by day */}
-                {Array.from(
-                  classes.reduce((map, cls) => {
-                    const key = dayLabel(cls.startTime);
-                    if (!map.has(key)) map.set(key, []);
-                    map.get(key)!.push(cls);
-                    return map;
-                  }, new Map<string, ClassRow[]>())
-                ).map(([label, dayCls]) => (
+                {/* Group by day — memoized above */}
+                {classesByDay.map(([label, dayCls]) => (
                   <div key={label}>
                     <p className="font-body text-xs font-semibold text-charcoal/50 uppercase tracking-widest mb-2 px-1">{label}</p>
                     <div className="space-y-3">

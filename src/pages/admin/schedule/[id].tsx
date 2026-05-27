@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import { useRouter } from "next/router";
 import { UserPlus, UserMinus, CheckCircle2, User as UserIcon, Users } from "lucide-react";
 import { MetricCard } from "@/components/admin/MetricCard";
@@ -402,8 +402,18 @@ export default function AdminClassPage() {
   }
 
   const start = roster ? new Date(roster.startTime) : null;
-  const enrolled = roster ? roster.bookings.reduce((n, b) => n + 1 + (b.extraGuests ?? 0), 0) : 0;
-  const checkedIn = roster ? roster.bookings.filter((b) => b.checkedIn).length : 0;
+  // Single pass over bookings — was reduce + filter (two scans). Memoize so
+  // these don't recompute on every render of this large detail page.
+  const { enrolled, checkedIn } = useMemo(() => {
+    if (!roster) return { enrolled: 0, checkedIn: 0 };
+    let e = 0;
+    let c = 0;
+    for (const b of roster.bookings) {
+      e += 1 + (b.extraGuests ?? 0);
+      if (b.checkedIn) c += 1;
+    }
+    return { enrolled: e, checkedIn: c };
+  }, [roster]);
   const isLocked = roster?.status === "completed" || roster?.status === "abandoned";
 
   return (
@@ -725,7 +735,10 @@ export default function AdminClassPage() {
         </main>
       </div>
 
-      {/* Edit dialog */}
+      {/* Edit dialog — gated so the JSX subtree only evaluates while open.
+          Radix unmounts Content when closed but the surrounding render path
+          still pays for the dozens of Select/Input expressions otherwise. */}
+      {editOpen && (
       <Dialog open={editOpen} onOpenChange={setEditOpen}>
         <DialogContent className="max-w-lg max-h-[90vh] overflow-y-auto bg-white">
           <DialogHeader>
@@ -800,8 +813,10 @@ export default function AdminClassPage() {
           </DialogFooter>
         </DialogContent>
       </Dialog>
+      )}
 
-      {/* Status edit dialog */}
+      {/* Status edit dialog — gated identically. */}
+      {statusEditOpen && (
       <Dialog open={statusEditOpen} onOpenChange={setStatusEditOpen}>
         <DialogContent className="sm:max-w-md">
           <DialogHeader>
@@ -850,6 +865,7 @@ export default function AdminClassPage() {
           </DialogFooter>
         </DialogContent>
       </Dialog>
+      )}
     </>
   );
 }

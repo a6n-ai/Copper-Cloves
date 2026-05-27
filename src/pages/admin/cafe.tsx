@@ -1,4 +1,4 @@
-import { useEffect, useState, useRef, useCallback } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import Cropper from "react-easy-crop";
 import type { Area } from "react-easy-crop";
 import { useRouter } from "next/router";
@@ -128,6 +128,14 @@ export default function AdminCafe() {
   const [currentTime, setCurrentTime] = useState(new Date());
 
   const categories_display = categories;
+
+  // Build id → label Map once per categories change. Replaces `categories.find()`
+  // per row in the menu items table (was O(items × categories)).
+  const categoryLabelById = useMemo(() => {
+    const m = new Map<string, string>();
+    for (const c of categories) m.set(c.id, c.label);
+    return m;
+  }, [categories]);
 
   const { data: session, status } = useSession();
 
@@ -800,7 +808,7 @@ export default function AdminCafe() {
                           <div className="flex items-start justify-between mb-3">
                             <div className="flex-1">
                               <Badge variant="outline" className="mb-2 text-xs font-body border-sage/30 text-sage">
-                                {categories.find(c => c.id === item.category)?.label || item.category}
+                                {categoryLabelById.get(item.category) || item.category}
                               </Badge>
                               <h3 className="font-display text-xl text-charcoal mb-1">{item.name}</h3>
                             </div>

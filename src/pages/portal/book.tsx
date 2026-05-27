@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { memo, useCallback, useEffect, useMemo, useState } from "react";
 import { PageHeader } from "@/components/dashboard/PageHeader";
 import { useToast } from "@/hooks/use-toast";
 import { useRouter } from "next/router";
@@ -98,11 +98,73 @@ export interface Class {
   image: string;
   /** ISO datetime for this scheduled instance (for booking + sorting). */
   startTimeIso: string;
+  /** ISO time as epoch ms — precomputed once so sort compares don't build Date per call. */
+  startTimeMs: number;
   /** False when start time is in the past (still listed for the weekly grid). */
   isBookable?: boolean;
 }
 
 /** Mirrors a bookable class Card: image, title, 3-icon info row, full-width button. */
+/**
+ * Memoized class card — extracted out of the parent map so each card only
+ * rerenders when its own props change. Previously every state change on the
+ * page (e.g. friends/family input keystroke, food quantity tick, coupon
+ * validate) rebuilt the inline JSX for every card in `paginatedClasses`.
+ * Combined with `useCallback` on the parent's `handleSelectClass`, this lets
+ * `React.memo` actually skip rerenders.
+ */
+interface BookClassCardProps {
+  cls: Class;
+  onSelect: (cls: Class) => void;
+}
+const BookClassCard = memo(function BookClassCard({ cls, onSelect }: BookClassCardProps) {
+  const bookable = cls.isBookable !== false;
+  return (
+    <Card className="border-sage/20 bg-white/80 backdrop-blur-xs hover:border-sage hover:shadow-xl transition-all duration-600 overflow-hidden group">
+      <CardContent className="p-0">
+        <div className="flex flex-col">
+          <div className="relative w-full h-48 overflow-hidden">
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img
+              src={cls.image}
+              alt={cls.name}
+              className="w-full h-full object-cover transition-transform duration-600 group-hover:scale-110"
+            />
+            <div className="absolute inset-0 bg-linear-to-t from-charcoal/60 via-charcoal/20 to-transparent" />
+          </div>
+          <div className="p-4 sm:p-6">
+            <h3 className="font-display text-xl sm:text-2xl text-charcoal mb-2 sm:mb-3 group-hover:text-sage transition-colors duration-600">
+              {cls.name}
+            </h3>
+            <div className="flex flex-wrap items-center gap-3 sm:gap-4 text-sm font-body text-charcoal/70 mb-3 sm:mb-4">
+              <span className="flex items-center gap-2">
+                <Clock size={16} className="text-sage" />
+                {cls.time}
+              </span>
+              <span className="flex items-center gap-2">
+                <Zap size={16} className="text-terracotta" />
+                {cls.duration}
+              </span>
+              <span className="flex items-center gap-2">
+                <User size={16} className="text-sage" />
+                {cls.instructor}
+              </span>
+            </div>
+            <Button
+              onClick={() => bookable && onSelect(cls)}
+              disabled={!bookable}
+              variant="sage"
+              className="w-full"
+            >
+              {bookable ? "Reserve Your Spot" : "Session started"}
+            </Button>
+          </div>
+        </div>
+      </CardContent>
+    </Card>
+  );
+});
+
 function BookClassCardSkeleton() {
   return (
     <Card className="border-sage/20 bg-white/80 backdrop-blur-xs overflow-hidden">
@@ -286,9 +348,7 @@ export default function BookClass() {
       return nameMatch && dayMatch;
     });
     const dir = dateSort === "asc" ? 1 : -1;
-    return list.sort(
-      (a, b) => (new Date(a.startTimeIso).getTime() - new Date(b.startTimeIso).getTime()) * dir,
-    );
+    return list.sort((a, b) => (a.startTimeMs - b.startTimeMs) * dir);
   }, [allClasses, filterClassName, selectedDayIndex, weekDays, dateSort]);
 
   const totalPages = Math.ceil(filteredClasses.length / classesPerPage);
@@ -352,23 +412,24 @@ export default function BookClass() {
           start_time: string;
           class_model?: { name?: string; duration?: number; category?: string; image_url?: string };
           instructor?: { name?: string };
-        }) => ({
-          id: schedule.id,
-          name: schedule.class_model?.name || "Unknown Class",
-          time: new Date(schedule.start_time).toLocaleTimeString("en-US", { hour: "2-digit", minute: "2-digit", hour12: true }),
-          instructor: schedule.instructor?.name || "Instructor",
-          duration: `${schedule.class_model?.duration || 60} min`,
-          image: schedule.class_model?.image_url || cdnUrl("/placeholder.jpg"),
-          startTimeIso:
-            typeof schedule.start_time === "string"
-              ? schedule.start_time
-              : new Date(schedule.start_time).toISOString(),
-          isBookable: new Date(schedule.start_time).getTime() > nowMs,
-        }))
-        .sort(
-          (a, b) =>
-            new Date(a.startTimeIso).getTime() - new Date(b.startTimeIso).getTime()
-        );
+        }) => {
+          const startMs = new Date(schedule.start_time).getTime();
+          return {
+            id: schedule.id,
+            name: schedule.class_model?.name || "Unknown Class",
+            time: new Date(schedule.start_time).toLocaleTimeString("en-US", { hour: "2-digit", minute: "2-digit", hour12: true }),
+            instructor: schedule.instructor?.name || "Instructor",
+            duration: `${schedule.class_model?.duration || 60} min`,
+            image: schedule.class_model?.image_url || cdnUrl("/placeholder.jpg"),
+            startTimeIso:
+              typeof schedule.start_time === "string"
+                ? schedule.start_time
+                : new Date(schedule.start_time).toISOString(),
+            startTimeMs: startMs,
+            isBookable: startMs > nowMs,
+          };
+        })
+        .sort((a, b) => a.startTimeMs - b.startTimeMs);
 
       setAllClasses(transformedClasses);
     } catch (error) {
@@ -473,8 +534,9 @@ export default function BookClass() {
     setCurrentPage(1);
   }, [filterClassName, selectedDayIndex, dateSort]);
 
-  // Handlers
-  function handleSelectClass(cls: any) {
+  // Handlers — useCallback so the memoized BookClassCard skips rerender when
+  // only unrelated parent state changes (typing in friends/family, etc).
+  const handleSelectClass = useCallback((cls: Class) => {
     setSelectedClass(cls);
     setShowBookingPanel(true);
     setBookingStep(1);
@@ -489,7 +551,8 @@ export default function BookClass() {
 
     // Fetch cafe items for Step 3
     fetchCafeItems();
-  }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   function handleAddPerson() {
     if (newPerson.name && newPerson.email && newPerson.phone) {
@@ -1063,54 +1126,8 @@ export default function BookClass() {
 
           {/* Class Cards Grid */}
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
-            {paginatedClasses.map(cls => (
-              <Card 
-                key={cls.id} 
-                className="border-sage/20 bg-white/80 backdrop-blur-xs hover:border-sage hover:shadow-xl transition-all duration-600 overflow-hidden group"
-              >
-                <CardContent className="p-0">
-                  <div className="flex flex-col">
-                    {/* Class Image */}
-                    <div className="relative w-full h-48 overflow-hidden">
-                      <img 
-                        src={cls.image} 
-                        alt={cls.name}
-                        className="w-full h-full object-cover transition-transform duration-600 group-hover:scale-110"
-                      />
-                      <div className="absolute inset-0 bg-linear-to-t from-charcoal/60 via-charcoal/20 to-transparent" />
-                    </div>
-
-                    {/* Class Info */}
-                    <div className="p-4 sm:p-6">
-                      <h3 className="font-display text-xl sm:text-2xl text-charcoal mb-2 sm:mb-3 group-hover:text-sage transition-colors duration-600">
-                        {cls.name}
-                      </h3>
-                      <div className="flex flex-wrap items-center gap-3 sm:gap-4 text-sm font-body text-charcoal/70 mb-3 sm:mb-4">
-                        <span className="flex items-center gap-2">
-                          <Clock size={16} className="text-sage" />
-                          {cls.time}
-                        </span>
-                        <span className="flex items-center gap-2">
-                          <Zap size={16} className="text-terracotta" />
-                          {cls.duration}
-                        </span>
-                        <span className="flex items-center gap-2">
-                          <User size={16} className="text-sage" />
-                          {cls.instructor}
-                        </span>
-                      </div>
-                      <Button
-                        onClick={() => cls.isBookable !== false && handleSelectClass(cls)}
-                        disabled={cls.isBookable === false}
-                        variant="sage"
-                        className="w-full"
-                      >
-                        {cls.isBookable === false ? "Session started" : "Reserve Your Spot"}
-                      </Button>
-                    </div>
-                  </div>
-                </CardContent>
-              </Card>
+            {paginatedClasses.map((cls) => (
+              <BookClassCard key={cls.id} cls={cls} onSelect={handleSelectClass} />
             ))}
           </div>
 

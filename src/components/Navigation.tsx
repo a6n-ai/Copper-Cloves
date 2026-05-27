@@ -22,9 +22,25 @@ export function Navigation({ variant = "default" }: NavigationProps) {
   const [scrolled, setScrolled] = useState(false);
   const router = useRouter();
 
+  // rAF-throttled + compare-and-skip — only calls setState when the boolean
+  // actually flips, so scrolling past the 24px threshold doesn't trigger a
+  // setState per scroll tick. Fires at most once per animation frame.
   useEffect(() => {
-    const onScroll = () => setScrolled(window.scrollY > 24);
-    onScroll();
+    let ticking = false;
+    let last = window.scrollY > 24;
+    setScrolled(last);
+    const onScroll = () => {
+      if (ticking) return;
+      ticking = true;
+      requestAnimationFrame(() => {
+        const next = window.scrollY > 24;
+        if (next !== last) {
+          last = next;
+          setScrolled(next);
+        }
+        ticking = false;
+      });
+    };
     window.addEventListener("scroll", onScroll, { passive: true });
     return () => window.removeEventListener("scroll", onScroll);
   }, []);

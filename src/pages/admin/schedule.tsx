@@ -880,23 +880,33 @@ export default function AdminSchedule() {
     }
   }
 
+  // Build id → row Maps once per fetch so per-row lookups are O(1) instead of
+  // scanning the full arrays for every cell in every schedule row.
+  const dbClassById = useMemo(() => {
+    const m = new Map<string, typeof dbClasses[number]>();
+    for (const c of dbClasses) m.set(String(c.id), c);
+    return m;
+  }, [dbClasses]);
+  const dbInstructorById = useMemo(() => {
+    const m = new Map<string, typeof dbInstructors[number]>();
+    for (const i of dbInstructors) m.set(String(i.id), i);
+    return m;
+  }, [dbInstructors]);
+
   const getClassName = (classId: number | string) => {
-    const cls = dbClasses.find(c => String(c.id) === String(classId));
-    return cls?.name || "";
+    return dbClassById.get(String(classId))?.name || "";
   };
 
   const getClassCapacity = (classId: number | string) => {
-    const cls = dbClasses.find(c => String(c.id) === String(classId));
-    return cls?.max_capacity || 0;
+    return dbClassById.get(String(classId))?.max_capacity || 0;
   };
 
   const getInstructorName = (instructorId: number | string) => {
-    const instructor = dbInstructors.find(i => String(i.id) === String(instructorId));
-    return instructor?.name || "";
+    return dbInstructorById.get(String(instructorId))?.name || "";
   };
 
   const getInstructorAvatar = (instructorId: number | string): string | null => {
-    const instructor = dbInstructors.find(i => String(i.id) === String(instructorId));
+    const instructor = dbInstructorById.get(String(instructorId));
     return instructor?.image_url ?? null;
   };
 

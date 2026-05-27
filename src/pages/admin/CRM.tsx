@@ -125,6 +125,29 @@ interface CRMTrigger {
   };
 }
 
+// Static reference data — hoisted to module scope so they aren't rebuilt every
+// CRMPage render. Used by both render JSX and the label-by-id Maps below.
+const TEMPLATE_TYPES: Array<{ id: string; label: string }> = [
+  { id: "class_booking", label: "Class booking" },
+  { id: "expiry", label: "Membership Expiry" },
+  { id: "badge", label: "Badge Achievement" },
+  { id: "birthday", label: "Birthday Greeting" },
+  { id: "custom", label: "Custom Message" },
+];
+
+const TRIGGER_TYPES: Array<{ id: string; label: string }> = [
+  { id: CrmTriggerType.ClassBookingConfirmed, label: "Class booked (member confirmed)" },
+  { id: CrmTriggerType.ClassBookingCancelled, label: "Class booking cancelled (credit returned)" },
+  { id: CrmTriggerType.LateCancellation, label: "Class booking cancelled (within 6h, no credit)" },
+  { id: CrmTriggerType.AccountCreated, label: "Account created (welcome email)" },
+  { id: CrmTriggerType.IndividualClassPaid, label: "Individual class purchase confirmed" },
+  { id: "expiry_7_days", label: "7 Days Before Expiry" },
+  { id: "expiry_24_hours", label: "24 Hours Before Expiry" },
+  { id: "badge_earned", label: "Badge Earned" },
+  { id: "birthday", label: "Birthday" },
+  { id: "custom", label: "Custom (manual / future automation)" },
+];
+
 function CrmHubLoadingSkeleton() {
   return (
     <div className="space-y-8">
@@ -528,26 +551,20 @@ export default function CRMPage() {
     return channel === "email" ? <Mail size={16} /> : <MessageCircle size={16} />;
   };
 
-  const templateTypes = [
-    { id: "class_booking", label: "Class booking" },
-    { id: "expiry", label: "Membership Expiry" },
-    { id: "badge", label: "Badge Achievement" },
-    { id: "birthday", label: "Birthday Greeting" },
-    { id: "custom", label: "Custom Message" },
-  ];
-
-  const triggerTypes = [
-    { id: CrmTriggerType.ClassBookingConfirmed, label: "Class booked (member confirmed)" },
-    { id: CrmTriggerType.ClassBookingCancelled, label: "Class booking cancelled (credit returned)" },
-    { id: CrmTriggerType.LateCancellation, label: "Class booking cancelled (within 6h, no credit)" },
-    { id: CrmTriggerType.AccountCreated, label: "Account created (welcome email)" },
-    { id: CrmTriggerType.IndividualClassPaid, label: "Individual class purchase confirmed" },
-    { id: "expiry_7_days", label: "7 Days Before Expiry" },
-    { id: "expiry_24_hours", label: "24 Hours Before Expiry" },
-    { id: "badge_earned", label: "Badge Earned" },
-    { id: "birthday", label: "Birthday" },
-    { id: "custom", label: "Custom (manual / future automation)" },
-  ];
+  // Lookup id → label once per render. Avoids `.find()` per row in the
+  // templates + triggers tables (was O(rows × types)).
+  const templateLabelById = useMemo(() => {
+    const m = new Map<string, string>();
+    for (const t of TEMPLATE_TYPES) m.set(t.id, t.label);
+    return m;
+  }, []);
+  const triggerLabelById = useMemo(() => {
+    const m = new Map<string, string>();
+    for (const t of TRIGGER_TYPES) m.set(String(t.id), t.label);
+    return m;
+  }, []);
+  const templateTypes = TEMPLATE_TYPES;
+  const triggerTypes = TRIGGER_TYPES;
 
   const commonVariables = [
     "Member_Name",
@@ -760,7 +777,7 @@ export default function CRMPage() {
                           </CardTitle>
                           <div className="flex flex-wrap items-center gap-2">
                             <Badge className="bg-sage/10 text-sage">
-                              {templateTypes.find(t => t.id === template.template_type)?.label || template.template_type}
+                              {templateLabelById.get(template.template_type) || template.template_type}
                             </Badge>
                             {template.is_system && (
                               <Badge className="bg-terracotta/15 text-terracotta">System</Badge>
@@ -883,7 +900,7 @@ export default function CRMPage() {
                             <h3 className="font-display text-lg text-charcoal mb-1">{trigger.name}</h3>
                             <div className="flex items-center gap-3">
                               <Badge className="bg-sage/10 text-sage">
-                                {triggerTypes.find(t => t.id === trigger.trigger_type)?.label}
+                                {triggerLabelById.get(String(trigger.trigger_type))}
                               </Badge>
                               <p className="font-body text-sm text-charcoal/60">
                                 → {trigger.crm_templates?.name}

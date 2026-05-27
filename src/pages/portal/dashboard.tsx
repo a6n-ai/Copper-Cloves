@@ -408,43 +408,57 @@ export default function Dashboard() {
     return now >= tenMinBefore && now <= fifteenMinAfter;
   };
 
-  const statItems: StatCardProps[] = [
-    {
-      label: "Day streak",
-      value: currentStreak,
-      icon: Flame,
-      tone: "warn",
-      hint: longestStreak > 0 ? `Best: ${longestStreak}` : undefined,
-    },
-    { label: "On time", value: attendanceCounts.on_time, icon: CheckCircle, tone: "up" },
-    { label: "Late", value: attendanceCounts.late, icon: Clock, tone: "warn" },
-    { label: "No-shows", value: attendanceCounts.no_show, icon: AlertCircle, tone: "down" },
-  ];
-
-  const upcomingEntries: ScheduleEntry[] = upcomingBookings.slice(0, 3).map((booking) => {
-    const isScheduled = !!booking.class_schedule;
-    return {
-      id: booking.id,
-      title: isScheduled ? booking.class_schedule?.class_model?.name : booking.class_name || "Class",
-      subtitle: isScheduled ? booking.class_schedule?.instructor?.name : "Instructor TBD",
-      whenISO: isScheduled ? booking.class_schedule?.start_time : booking.class_time,
-      imageUrl: isScheduled ? booking.class_schedule?.class_model?.image_url || undefined : undefined,
-      status: booking.confirmation_status === "pending" ? "pending" : "confirmed",
-      onClick: () => {
-        setSelectedBookingForCheckIn(booking);
-        setShowCheckIn(true);
+  // Memoized so child components (StatCardRow, UpcomingScheduleCard,
+  // OrderHistoryTable) get stable array refs and can skip rerenders when
+  // unrelated state on this page changes.
+  const statItems: StatCardProps[] = useMemo(
+    () => [
+      {
+        label: "Day streak",
+        value: currentStreak,
+        icon: Flame,
+        tone: "warn",
+        hint: longestStreak > 0 ? `Best: ${longestStreak}` : undefined,
       },
-    };
-  });
+      { label: "On time", value: attendanceCounts.on_time, icon: CheckCircle, tone: "up" },
+      { label: "Late", value: attendanceCounts.late, icon: Clock, tone: "warn" },
+      { label: "No-shows", value: attendanceCounts.no_show, icon: AlertCircle, tone: "down" },
+    ],
+    [currentStreak, longestStreak, attendanceCounts.on_time, attendanceCounts.late, attendanceCounts.no_show],
+  );
 
-  const orderRows = cafeOrdersHistory.map((order) => ({
-    id: order.id,
-    item: order.cafe_item?.name || "Café item",
-    dateISO: order.order_date,
-    amount: Math.round(Number(order.cafe_item?.price ?? 0) * order.quantity * 100) / 100,
-    status: order.status,
-    method: order.payment_method,
-  }));
+  const upcomingEntries: ScheduleEntry[] = useMemo(
+    () =>
+      upcomingBookings.slice(0, 3).map((booking) => {
+        const isScheduled = !!booking.class_schedule;
+        return {
+          id: booking.id,
+          title: isScheduled ? booking.class_schedule?.class_model?.name : booking.class_name || "Class",
+          subtitle: isScheduled ? booking.class_schedule?.instructor?.name : "Instructor TBD",
+          whenISO: isScheduled ? booking.class_schedule?.start_time : booking.class_time,
+          imageUrl: isScheduled ? booking.class_schedule?.class_model?.image_url || undefined : undefined,
+          status: booking.confirmation_status === "pending" ? "pending" : "confirmed",
+          onClick: () => {
+            setSelectedBookingForCheckIn(booking);
+            setShowCheckIn(true);
+          },
+        };
+      }),
+    [upcomingBookings],
+  );
+
+  const orderRows = useMemo(
+    () =>
+      cafeOrdersHistory.map((order) => ({
+        id: order.id,
+        item: order.cafe_item?.name || "Café item",
+        dateISO: order.order_date,
+        amount: Math.round(Number(order.cafe_item?.price ?? 0) * order.quantity * 100) / 100,
+        status: order.status,
+        method: order.payment_method,
+      })),
+    [cafeOrdersHistory],
+  );
 
   if (loading) {
     return isMobile ? <MemberMobileDashboardSkeleton /> : <MemberDashboardSkeleton />;

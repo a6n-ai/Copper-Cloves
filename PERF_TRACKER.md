@@ -8,17 +8,17 @@ Legend: `[x]` done · `[ ]` pending · `[~]` in progress · `[-]` deferred (need
 
 - [x] `admin/dashboard.tsx` — recharts (11 components) wrapped in `next/dynamic({ssr:false})`
 - [x] `admin/control.tsx` — `ControlAnalyticsPanel` (~700 lines) dynamic
-- [ ] `admin/schedule/[id].tsx` L730,806 — edit/status Dialogs dynamic
+- [x] `admin/schedule/[id].tsx` — edit + status dialogs gated with `{open && ...}` so JSX subtrees are skipped when closed
 - [x] `components/checkin/CheckInScanButton.tsx` — `ScanCheckInModal` (camera/jsqr) via `next/dynamic({ssr:false})`; only mounts when `open=true`
 - [x] `portal/book.tsx` — razorpay helpers (`payWithRazorpayOrder`, `razorpayPaymentErrorHelp`, `completePendingBookingCheckout`, `completePendingPackageCheckout`) all migrated to dynamic `import()` inside handlers
 - [x] `portal/packages.tsx` — same razorpay helpers dynamic
-- [ ] `admin/schedule/[id].tsx` L730,806 — edit/status Dialogs dynamic
+- [x] `admin/schedule/[id].tsx` — edit + status dialogs gated with `{open && ...}` so JSX subtrees are skipped when closed
 
 ## Scroll / event listeners
 
 - [x] `pages/cafe.tsx` — scroll listener rAF-throttled; `getBackgroundColor` pure module fn
 - [x] `components/Instructors.tsx` — scroll listener now rAF-throttled + DOM-ref mutation; was setState-per-pixel re-rendering the whole instructor list
-- [ ] `components/Navigation.tsx` L26-30 — compare-and-skip OK; throttle via rAF for safety
+- [x] `components/Navigation.tsx` — scroll listener now rAF-throttled + compare-and-skip; only `setState` when the 24-px threshold actually flips
 
 ## Polling visibility pause
 
@@ -58,7 +58,7 @@ Legend: `[x]` done · `[ ]` pending · `[~]` in progress · `[-]` deferred (need
 - [x] `portal/bookings.tsx` — sort precomputes `startMs` once per booking (was building a Date per compare); `sortedBookings` + `paginatedBookings` `useMemo`
 - [x] `pages/classes.tsx` — `filteredClasses` `useMemo`; `activeTab` effect now depends on `router.query.tab` scalar (not object)
 - [ ] `portal/bookings.tsx` L198 — `sortedBookings`, `paginatedBookings`
-- [~] `portal/dashboard.tsx` — `activeMilestones` `useMemo` done; `currentMilestone` + `nextMilestone` combined into single `useMemo` (was two scans per render). `statItems`/`upcomingEntries`/`orderRows` still TODO.
+- [x] `portal/dashboard.tsx` — `activeMilestones` `useMemo`; combined `currentMilestone`+`nextMilestone` single-pass `useMemo`; `statItems`/`upcomingEntries`/`orderRows` all wrapped in `useMemo` so memoized children get stable refs
 - [ ] `pages/classes.tsx` L451-456 — `activeTab` effect+setState → derive from query
 
 ## Session-object deps → scalar role/id
@@ -73,10 +73,10 @@ Legend: `[x]` done · `[ ]` pending · `[~]` in progress · `[-]` deferred (need
 - [x] `pages/shop.tsx` — `sessionEmail` scalar
 - [x] `pages/instructor/dashboard.tsx` — `userRole` + `userName` scalars; `selectedClassId` via ref to stabilize `loadData`
 - [x] `pages/partner/classes.tsx` — drop `rangeStart`/`rangeEnd` Date deps; `rangeKey` already encodes them
-- [ ] `pages/admin/members.tsx` (eslint-disable masks — low impact, keep as-is)
-- [ ] `pages/cafe.tsx` (post-hoist — no `session` deps left, low impact)
-- [ ] `pages/classes.tsx` L11,452
-- [ ] `pages/cafe/meal-subscription.tsx`
+- [-] `pages/admin/members.tsx` (eslint-disable masks — low impact, keep as-is)
+- [-] `pages/cafe.tsx` — no `router`/`session` deps left after hoist; not worth further touching
+- [-] `pages/classes.tsx` — already migrated to `router.query.tab` scalar earlier
+- [-] `pages/cafe/meal-subscription.tsx` — no `router`/`session` deps
 
 ## setTimeout cleanup
 
@@ -103,23 +103,24 @@ Legend: `[x]` done · `[ ]` pending · `[~]` in progress · `[-]` deferred (need
 - [ ] `admin/ControlAnalyticsPanel.tsx` L181..L635 — 11 unmemoized bar-rows → BarRow memo
 - [ ] `admin/MetricCard.tsx` L54 — wrap React.memo
 - [ ] `components/Instructors.tsx` L355-433 — extract `<InstructorCard>` React.memo
-- [ ] `portal/book.tsx` L1012,1502 — `BookClassCard`, `FoodRow` memo
-- [ ] `portal/bookings.tsx` L247,322 — merge mobile-card + desktop-table dual render
+- [x] `portal/book.tsx` — extracted memoized `BookClassCard`; `handleSelectClass` wrapped in `useCallback` so memo actually skips rerender when only unrelated page state changes (food qty, friends/family typing, coupon validate)
+- [ ] `portal/book.tsx` L1502 — `FoodRow` memo (cafe-items list, similar pattern)
+- [x] `portal/bookings.tsx` — single memoized `BookingCard` replaces dual mobile-card + desktop-card render (was 2× DOM per booking); `ResponsiveCards` no longer needed
 - [ ] `portal/dashboard.tsx` L548-553 — memo action-button array
 
 ## Iteration hotspots (`js-index-maps`, `js-combine-iterations`)
 
-- [ ] `admin/CRM.tsx` L775,898 — Map for `templateTypes`, `triggerTypes`
-- [ ] `admin/schedule.tsx` L611,621,628,882-897,1324 — class/instructor Map
-- [ ] `admin/control.tsx` L656 — users Map
-- [ ] `admin/products.tsx` L557 — category Map
-- [ ] `admin/cafe.tsx` L812 — category Map
-- [ ] `admin/schedule/[id].tsx` L416-419 — two passes → one reduce
+- [x] `admin/CRM.tsx` — `TEMPLATE_TYPES`/`TRIGGER_TYPES` hoisted to module scope; `templateLabelById`/`triggerLabelById` Maps replace `.find()` in table rows
+- [x] `admin/schedule.tsx` — `dbClassById` + `dbInstructorById` Maps (`useMemo`); `getClassName`/`getClassCapacity`/`getInstructorName`/`getInstructorAvatar` now O(1) lookups
+- [-] `admin/control.tsx` L656 — `users.find` runs once per `editUser` query change (not per render); skip
+- [x] `admin/products.tsx` — `categoryById` Map (landed earlier)
+- [x] `admin/cafe.tsx` — `categoryLabelById` Map; replaces `categories.find()` per menu item row
+- [x] `admin/schedule/[id].tsx` — `enrolled`/`checkedIn` combined into single-pass `useMemo` (was two scans over bookings)
 - [x] `admin/kitchen/index.tsx` — three filter scans collapsed into one `useMemo` pass producing `{active, pendingCount, completedToday}`
-- [ ] `portal/dashboard.tsx` L201,312,346 — chained filter/sort/map
-- [ ] `portal/menu.tsx` L338 — categories.find per item
-- [ ] `instructor/dashboard.tsx` L127,295-302,217-221 — classes.find + reduce
-- [ ] `portal/book.tsx` L240-250 — Date per compare; precompute startMs
+- [x] `portal/dashboard.tsx` — L201 `activeMilestones` memoized earlier; L312/346 chains live inside `fetchUserData` (fetch-time only, not per-render)
+- [x] `portal/menu.tsx` — `categoryLabelById` Map from module-scope `CATEGORIES`; replaces `categories.find()` per menu card
+- [x] `instructor/dashboard.tsx` — single-pass `useMemo` produces `totalEnrolled` + `totalCheckedIn` + `classesByDay` (was 3 separate scans per render); `classById` Map replaces `classes.find()` for `selectedClass`
+- [x] `portal/book.tsx` — `startTimeMs` precomputed on each class in the transform; both sort callsites (initial sort + filter-sort) compare integers (was `new Date(.startTimeIso).getTime()` per compare)
 - [x] `portal/book.tsx` L839 — sequential `await fetch` in loop → `Promise.all` (café orders fire concurrently)
 - [x] `pages/classes.tsx` — 7×N filter → single bucket pass via `floor((itemMs - weekStartMs)/MS_PER_DAY)`
 - [x] `shop.tsx` — lowercased haystack precomputed once per `products` change (was 5× toLowerCase per product per keystroke)
