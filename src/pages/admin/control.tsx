@@ -153,6 +153,25 @@ function ClassGridSkeleton({ count = 4 }: { count?: number }) {
   );
 }
 
+/**
+ * Normalize a `specialties` value to a clean `string[]`. Handles three shapes:
+ *  - `string[]`  (modern; one entry per specialty)
+ *  - `string`    (legacy; comma-separated)
+ *  - `string[]` where each entry is itself comma-joined (bad seed data)
+ * Returns [] for anything else.
+ */
+function normalizeSpecialties(raw: unknown): string[] {
+  if (Array.isArray(raw)) {
+    return raw.flatMap((e) =>
+      typeof e === "string" ? e.split(",").map((s) => s.trim()).filter(Boolean) : [],
+    );
+  }
+  if (typeof raw === "string") {
+    return raw.split(",").map((s) => s.trim()).filter(Boolean);
+  }
+  return [];
+}
+
 /** Instructor profile cards — mirrors avatar + name/title + active badge + contact + specialties. */
 function InstructorGridSkeleton({ count = 4 }: { count?: number }) {
   return (
@@ -1860,7 +1879,9 @@ async function fetchPayoutData() {
                                         <ListAvatar name={instructor.name} size="md" />
                                         <div className="min-w-0">
                                           <div className="font-body font-medium text-charcoal truncate">{instructor.name}</div>
-                                          <div className="font-body text-xs text-charcoal/50 truncate">{instructor.specialties}</div>
+                                          <div className="font-body text-xs text-charcoal/50 truncate">
+                                            {normalizeSpecialties(instructor.specialties).join(", ") || "—"}
+                                          </div>
                                         </div>
                                       </div>
                                     </TableCell>
@@ -2040,20 +2061,27 @@ async function fetchPayoutData() {
                                         </div>
                                       </TableCell>
                                       <TableCell className="px-5 py-4">
-                                        {instructor.specialties && instructor.specialties.length > 0 ? (
-                                          <div className="flex flex-wrap gap-1">
-                                            {instructor.specialties.slice(0, 2).map((s: string, idx: number) => (
-                                              <Badge key={idx} variant="outline" className="border-sage/20 text-sage bg-sage/5 text-xs font-body">{s}</Badge>
-                                            ))}
-                                            {instructor.specialties.length > 2 && (
-                                              <Badge variant="outline" className="border-charcoal/15 text-charcoal/50 bg-cream/30 text-xs font-body">
-                                                +{instructor.specialties.length - 2}
-                                              </Badge>
-                                            )}
-                                          </div>
-                                        ) : (
-                                          <span className="font-body text-sm text-charcoal/40">—</span>
-                                        )}
+                                        {(() => {
+                                          // Normalize defensively — legacy rows may store the array
+                                          // entries as one comma-joined string, which would otherwise
+                                          // render as a single chip with all specialties mashed together.
+                                          const list = normalizeSpecialties(instructor.specialties);
+                                          if (list.length === 0) {
+                                            return <span className="font-body text-sm text-charcoal/40">—</span>;
+                                          }
+                                          return (
+                                            <div className="flex flex-wrap gap-1">
+                                              {list.slice(0, 2).map((s, idx) => (
+                                                <Badge key={idx} variant="outline" className="border-sage/20 text-sage bg-sage/5 text-xs font-body">{s}</Badge>
+                                              ))}
+                                              {list.length > 2 && (
+                                                <Badge variant="outline" className="border-charcoal/15 text-charcoal/50 bg-cream/30 text-xs font-body">
+                                                  +{list.length - 2}
+                                                </Badge>
+                                              )}
+                                            </div>
+                                          );
+                                        })()}
                                       </TableCell>
                                       <TableCell className="px-5 py-4">
                                         {active ? (
@@ -2679,7 +2707,7 @@ async function fetchPayoutData() {
                   {selectedPayoutData.name}
                 </div>
                 <div className="font-body text-sm text-charcoal/60 mb-4">
-                  {selectedPayoutData.specialties}
+                  {normalizeSpecialties(selectedPayoutData.specialties).join(", ") || "—"}
                 </div>
                 
                 <div className="grid grid-cols-2 gap-4 mb-4">

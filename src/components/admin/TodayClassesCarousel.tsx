@@ -125,6 +125,22 @@ export function TodayClassesCarousel({
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [items, isToday, tick]);
 
+  // Auto-scroll the carousel so the active/next-upcoming class is in view.
+  // Otherwise the list always starts at the earliest class of the day even when
+  // it's long over — admins had to scroll right to find the relevant class.
+  useEffect(() => {
+    if (!scrollRef.current) return;
+    if (nextIndex < 0) return;
+    const cards = scrollRef.current.querySelectorAll<HTMLElement>("[data-card]");
+    const target = cards[nextIndex];
+    if (!target) return;
+    // Align target to the left edge of the scroll container.
+    const containerRect = scrollRef.current.getBoundingClientRect();
+    const targetRect = target.getBoundingClientRect();
+    const delta = targetRect.left - containerRect.left;
+    scrollRef.current.scrollBy({ left: delta, behavior: "smooth" });
+  }, [nextIndex, items.length]);
+
   if (items.length === 0) {
     return (
       <div className="flex items-center justify-center py-12 rounded-xl border border-dashed border-sage/20 bg-sage/5">

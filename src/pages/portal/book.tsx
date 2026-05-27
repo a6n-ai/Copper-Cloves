@@ -95,7 +95,6 @@ export interface Class {
   time: string;
   instructor: string;
   duration: string;
-  intensity: string;
   image: string;
   /** ISO datetime for this scheduled instance (for booking + sorting). */
   startTimeIso: string;
@@ -103,7 +102,7 @@ export interface Class {
   isBookable?: boolean;
 }
 
-/** Mirrors a bookable class Card: image with intensity badge, title, 3-icon info row, full-width button. */
+/** Mirrors a bookable class Card: image, title, 3-icon info row, full-width button. */
 function BookClassCardSkeleton() {
   return (
     <Card className="border-sage/20 bg-white/80 backdrop-blur-xs overflow-hidden">
@@ -111,7 +110,6 @@ function BookClassCardSkeleton() {
         <div className="flex flex-col">
           <div className="relative w-full h-48 overflow-hidden">
             <Skeleton className="h-full w-full rounded-none" />
-            <Skeleton className="absolute top-4 left-4 h-6 w-20 rounded-full" />
           </div>
           <div className="p-6">
             <Skeleton className="h-7 w-3/5 mb-3" />
@@ -360,7 +358,6 @@ export default function BookClass() {
           time: new Date(schedule.start_time).toLocaleTimeString("en-US", { hour: "2-digit", minute: "2-digit", hour12: true }),
           instructor: schedule.instructor?.name || "Instructor",
           duration: `${schedule.class_model?.duration || 60} min`,
-          intensity: schedule.class_model?.category?.toLowerCase() || "moderate",
           image: schedule.class_model?.image_url || cdnUrl("/placeholder.jpg"),
           startTimeIso:
             typeof schedule.start_time === "string"
@@ -1081,17 +1078,6 @@ export default function BookClass() {
                         className="w-full h-full object-cover transition-transform duration-600 group-hover:scale-110"
                       />
                       <div className="absolute inset-0 bg-linear-to-t from-charcoal/60 via-charcoal/20 to-transparent" />
-                      <Badge 
-                        className={`absolute top-4 left-4 ${
-                          cls.intensity === 'high' 
-                            ? 'bg-terracotta/90 hover:bg-terracotta' 
-                            : cls.intensity === 'moderate'
-                            ? 'bg-sage/90 hover:bg-sage'
-                            : 'bg-charcoal/90 hover:bg-charcoal'
-                        } text-white border-none backdrop-blur-xs font-body`}
-                      >
-                        {cls.intensity}
-                      </Badge>
                     </div>
 
                     {/* Class Info */}

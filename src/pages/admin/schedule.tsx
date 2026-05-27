@@ -955,9 +955,9 @@ export default function AdminSchedule() {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-linear-to-br from-cream via-cream to-sage/10">
-        <main className="min-h-screen">
-          <div className="max-w-7xl mx-auto p-6 lg:p-8">
+      <div className="min-h-screen overflow-x-hidden bg-linear-to-br from-cream via-cream to-sage/10">
+        <main className="min-h-screen overflow-x-hidden">
+          <div className="max-w-7xl mx-auto p-6 lg:p-8 min-w-0">
             <ScheduleLoadingSkeleton />
           </div>
         </main>
@@ -972,10 +972,10 @@ export default function AdminSchedule() {
         description="Manage class schedules and instructors"
       />
       
-      <div className="min-h-screen bg-linear-to-br from-cream via-cream to-sage/10">
-        
-        <main className="min-h-screen">
-          <div className="max-w-7xl mx-auto p-6 lg:p-8 space-y-8">
+      <div className="min-h-screen overflow-x-hidden bg-linear-to-br from-cream via-cream to-sage/10">
+
+        <main className="min-h-screen overflow-x-hidden">
+          <div className="max-w-7xl mx-auto p-6 lg:p-8 space-y-8 min-w-0">
             <AdminPageHeader
               title="Class Schedule"
               subtitle="Pick a date to see the day's classes, instructors, and check-ins."

@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useState } from "react";
 import { QrCode, Clock, CalendarOff, User as UserIcon } from "lucide-react";
 import { CheckinQrDialog } from "@/components/checkin/CheckinQrDialog";
 import {
@@ -8,12 +8,10 @@ import {
   DialogTitle,
   DialogDescription,
 } from "@/components/ui/dialog";
+import { cn } from "@/lib/utils";
 
 type Active = { className: string };
 type Next = { className: string; instructorName: string | null; startTime: string };
-
-const POS_KEY = "checkin-beacon-pos";
-const DRAG_THRESHOLD_PX = 6;
 
 function timeLabel(iso: string) {
   return new Date(iso).toLocaleTimeString("en-US", { hour: "2-digit", minute: "2-digit" });
@@ -29,50 +27,18 @@ function relLabel(iso: string) {
   return m ? `in ${h}h ${m}m` : `in ${h}h`;
 }
 
-function clampToViewport(x: number, y: number, w: number, h: number) {
-  const pad = 8;
-  const vw = window.innerWidth;
-  const vh = window.innerHeight;
-  return {
-    x: Math.max(pad, Math.min(vw - w - pad, x)),
-    y: Math.max(pad, Math.min(vh - h - pad, y)),
-  };
-}
-
-export function CheckinBeacon() {
+/**
+ * Check-in beacon — non-draggable inline button intended to live in the
+ * dashboard sidebar (was previously a floating orb that landed off-screen
+ * in production after hydration restored a stale localStorage position).
+ * Parent owns layout; component owns polling, click behaviour, and dialogs.
+ */
+export function CheckinBeacon({ className }: { className?: string }) {
   const [active, setActive] = useState<Active | null>(null);
   const [next, setNext] = useState<Next | null>(null);
   const [loaded, setLoaded] = useState(false);
   const [qrOpen, setQrOpen] = useState(false);
   const [infoOpen, setInfoOpen] = useState(false);
-  const [pos, setPos] = useState<{ x: number; y: number } | null>(null);
-  const [dragging, setDragging] = useState(false);
-  // Active press state: pointer offset inside the orb, screen origin, and
-  // whether we've crossed the drag threshold (used to suppress the trailing
-  // click event so a tap-vs-drag never confuses each other).
-  const dragStateRef = useRef<{
-    offsetX: number;
-    offsetY: number;
-    startClientX: number;
-    startClientY: number;
-    crossed: boolean;
-  } | null>(null);
-  const wrapRef = useRef<HTMLDivElement | null>(null);
-
-  // Restore saved position.
-  useEffect(() => {
-    try {
-      const p = localStorage.getItem(POS_KEY);
-      if (p) {
-        const parsed = JSON.parse(p);
-        if (typeof parsed?.x === "number" && typeof parsed?.y === "number") {
-          setPos(parsed);
-        }
-      }
-    } catch {
-      /* ignore */
-    }
-  }, []);
 
   useEffect(() => {
     let cancelled = false;
@@ -101,90 +67,15 @@ export function CheckinBeacon() {
     };
   }, []);
 
-  // Drag listeners — bound ONCE. Previously deps were [dragging, pos] which
-  // re-attached the window listeners on every pixel of drag (setPos churns pos).
-  // Use refs to read the latest dragging/pos values inside the handlers.
-  const draggingRef = useRef(dragging);
-  draggingRef.current = dragging;
-  const posRef = useRef(pos);
-  posRef.current = pos;
-  useEffect(() => {
-    const onMove = (e: PointerEvent) => {
-      const s = dragStateRef.current;
-      if (!s || !wrapRef.current) return;
-      const dx = e.clientX - s.startClientX;
-      const dy = e.clientY - s.startClientY;
-      if (!s.crossed && Math.hypot(dx, dy) < DRAG_THRESHOLD_PX) return;
-      s.crossed = true;
-      if (!draggingRef.current) setDragging(true);
-      const rect = wrapRef.current.getBoundingClientRect();
-      const nextPos = clampToViewport(
-        e.clientX - s.offsetX,
-        e.clientY - s.offsetY,
-        rect.width,
-        rect.height,
-      );
-      setPos(nextPos);
-    };
-    const onUp = () => {
-      const s = dragStateRef.current;
-      if (s?.crossed && posRef.current) {
-        try {
-          localStorage.setItem(POS_KEY, JSON.stringify(posRef.current));
-        } catch {
-          /* ignore */
-        }
-      }
-      setDragging(false);
-      if (s) {
-        setTimeout(() => {
-          dragStateRef.current = null;
-        }, 0);
-      }
-    };
-    window.addEventListener("pointermove", onMove);
-    window.addEventListener("pointerup", onUp);
-    window.addEventListener("pointercancel", onUp);
-    return () => {
-      window.removeEventListener("pointermove", onMove);
-      window.removeEventListener("pointerup", onUp);
-      window.removeEventListener("pointercancel", onUp);
-    };
-  }, []);
-
-  function beginPress(e: React.PointerEvent) {
-    if (!wrapRef.current) return;
-    const rect = wrapRef.current.getBoundingClientRect();
-    dragStateRef.current = {
-      offsetX: e.clientX - rect.left,
-      offsetY: e.clientY - rect.top,
-      startClientX: e.clientX,
-      startClientY: e.clientY,
-      crossed: false,
-    };
-  }
-
   function handleClick() {
-    if (dragStateRef.current?.crossed) return;
     if (active) {
       setQrOpen(true);
-      return;
-    }
-    if (next) {
-      setInfoOpen(true);
       return;
     }
     setInfoOpen(true);
   }
 
   if (!loaded) return null;
-
-  const defaultWrap = "fixed bottom-20 right-4 z-50 md:bottom-6 md:right-6";
-  const positionedStyle = pos
-    ? ({ position: "fixed", left: `${pos.x}px`, top: `${pos.y}px`, zIndex: 50 } as React.CSSProperties)
-    : undefined;
-  const wrapClass = pos ? "" : defaultWrap;
-  const cursorClass = dragging ? "cursor-grabbing" : "cursor-grab";
 
   const orbGradient = active
     ? "bg-linear-to-br from-sage to-sage/80 ring-white/60"
@@ -200,31 +91,35 @@ export function CheckinBeacon() {
 
   return (
     <>
-      <div
-        ref={wrapRef}
-        className={`${wrapClass} ${cursorClass} relative select-none`}
-        style={positionedStyle}
-        onPointerDown={beginPress}
+      <button
+        type="button"
         onClick={handleClick}
-        role="button"
-        tabIndex={0}
         aria-label={aria}
         title={aria}
+        className={cn("relative inline-flex select-none cursor-pointer", className)}
       >
-        {/* Outer pulse halo on live state for unmissable visibility. */}
-        {active && (
-          <span
-            className="absolute inset-0 -z-10 rounded-full bg-sage animate-ping opacity-40"
-            aria-hidden
-          />
-        )}
-        <div
-          className={`flex h-14 w-14 items-center justify-center rounded-full shadow-xl ring-2 transition-transform ${
-            dragging ? "" : "hover:scale-110"
-          } ${orbGradient} text-white`}
+        {/* Outer ping halo — strong when live, subtle always-on otherwise. */}
+        <span
+          className={cn(
+            "absolute inset-0 -z-10 rounded-full animate-ping",
+            active
+              ? "bg-sage opacity-40"
+              : next
+              ? "bg-terracotta opacity-30"
+              : "bg-charcoal opacity-15",
+          )}
+          aria-hidden
+        />
+        <span
+          className={cn(
+            "flex h-10 w-10 items-center justify-center rounded-full shadow ring-2 transition-transform hover:scale-110 text-white",
+            // Always-on slow pulse so the beacon reads as "live" even when idle.
+            "animate-pulse [animation-duration:2.4s]",
+            orbGradient,
+          )}
         >
-          {active ? <QrCode size={24} /> : next ? <Clock size={22} /> : <CalendarOff size={20} />}
-        </div>
+          {active ? <QrCode size={20} /> : next ? <Clock size={18} /> : <CalendarOff size={16} />}
+        </span>
         {/* Live indicator dot — matches WhatsApp-style unread badge. */}
         {active && (
           <span
@@ -239,7 +134,7 @@ export function CheckinBeacon() {
             {relLabel(next.startTime).replace("in ", "")}
           </span>
         )}
-      </div>
+      </button>
       <CheckinQrDialog open={qrOpen} onOpenChange={setQrOpen} />
       <NextClassInfoDialog open={infoOpen} onOpenChange={setInfoOpen} next={next} active={active} />
     </>

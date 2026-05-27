@@ -11,6 +11,7 @@ import { SessionProvider, useSession } from "next-auth/react";
 import { useActivityTracking } from "@/hooks/useActivityTracking";
 import { DashboardShell } from "@/components/dashboard/DashboardShell";
 import { PORTAL_CONFIGS, type PortalKind } from "@/components/dashboard/dashboardNav";
+import { BuildVersionWatcher } from "@/components/BuildVersionWatcher";
 
 import { cdnUrl } from "@/lib/cdnUrl";
 
@@ -137,12 +138,27 @@ export default function App({ Component, pageProps: { session, ...pageProps } }:
   }, [router.events]);
 
   return (
-    <SessionProvider session={session}>
+    <SessionProvider
+      session={session}
+      // Keep the in-memory session fresh against the JWT cookie.
+      //  - `refetchInterval`: re-hit /api/auth/session every 4 min so the client
+      //    side never drifts more than that from the real JWT state. Prevents
+      //    the "UI thinks I'm logged in but API returns 401" gap that users hit
+      //    after long-idle prod tabs.
+      //  - `refetchOnWindowFocus`: snap fresh the moment the tab regains focus
+      //    (e.g. after waking the laptop), so the next admin click can't 401.
+      //  - `refetchWhenOffline: false`: don't burn cycles when the network is
+      //    down — we'll re-validate the moment it returns.
+      refetchInterval={4 * 60}
+      refetchOnWindowFocus
+      refetchWhenOffline={false}
+    >
       <Head>
         <meta name="viewport" content="width=device-width, initial-scale=1.0, minimum-scale=1.0, maximum-scale=5.0, user-scalable=yes" />
         <link rel="icon" href={cdnUrl("/favicon.svg")} type="image/svg+xml" />
         <link rel="icon" href={cdnUrl("/favicon.ico")} sizes="any" />
       </Head>
+      <BuildVersionWatcher />
       <ActivityTrackingSubscriber />
       <OnboardingGate />
       <CartProvider>

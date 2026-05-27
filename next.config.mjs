@@ -32,12 +32,28 @@ const inlineEnv = {
   ADMIN_EMAIL: process.env.ADMIN_EMAIL ?? "",
   ADMIN_PASSWORD: process.env.ADMIN_PASSWORD ?? "",
   ENV_CHECK_KEY: process.env.ENV_CHECK_KEY ?? "",
+  // Build identifier exposed to the client. The BuildVersionWatcher component
+  // polls /api/version against this value; mismatch triggers a soft reload so
+  // long-idle prod tabs always pick up the latest bundle (and a fresh session
+  // signed by the current NEXTAUTH_SECRET) instead of 401-looping.
+  NEXT_PUBLIC_BUILD_ID:
+    process.env.NEXT_PUBLIC_BUILD_ID ??
+    process.env.VERCEL_GIT_COMMIT_SHA ??
+    process.env.AWS_COMMIT_ID ??
+    String(Date.now()),
 };
 
 const nextConfig = {
   reactStrictMode: true,
   poweredByHeader: false,
   env: inlineEnv,
+  // Stable build id per deploy → matches NEXT_PUBLIC_BUILD_ID above so client
+  // and server agree on which bundle is current.
+  generateBuildId: async () =>
+    process.env.NEXT_PUBLIC_BUILD_ID ??
+    process.env.VERCEL_GIT_COMMIT_SHA ??
+    process.env.AWS_COMMIT_ID ??
+    String(Date.now()),
   eslint: {
     ignoreDuringBuilds: true,
   },

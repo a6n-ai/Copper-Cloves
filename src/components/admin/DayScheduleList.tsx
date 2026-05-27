@@ -12,6 +12,7 @@ import {
 } from "@/components/ui/table";
 import { Pagination, usePagination } from "@/components/Pagination";
 import { ListAvatar } from "@/components/admin/ListAvatar";
+import { ResponsiveTable } from "@/components/responsive/ResponsiveTable";
 import { cn } from "@/lib/utils";
 
 export interface ScheduleRow {
@@ -199,9 +200,10 @@ export function DayScheduleList({
   const interactive = Boolean(onSelect);
 
   return (
-    <div className="space-y-3">
+    <div className="space-y-3 min-w-0">
       <div className="rounded-xl border border-sage/15 bg-white overflow-hidden">
-        <Table className="w-full table-fixed">
+        <ResponsiveTable>
+        <Table className="w-full table-fixed min-w-[640px]">
           <TableHeader>
             <TableRow className="bg-sage/5 hover:bg-sage/5 border-sage/10">
               <SortHead label="Class & Time" sortKey="time" active={sortKey} dir={sortDir} onSort={toggleSort} />
@@ -323,6 +325,7 @@ export function DayScheduleList({
             })}
           </TableBody>
         </Table>
+        </ResponsiveTable>
       </div>
       <Pagination page={pg.page} total={pg.total} pageSize={pg.pageSize} onChange={pg.setPage} />
     </div>

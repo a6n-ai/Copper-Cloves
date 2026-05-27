@@ -235,6 +235,17 @@ export function DashboardShell({ config, user, children }: DashboardShellProps) 
         </SidebarContent>
 
         <SidebarFooter className="border-t border-sage/10 pt-3">
+          {/* Check-in beacon — admin-only. Moved into sidebar (was a floating
+              draggable orb that jumped to top of viewport in prod after hydration
+              restored a stale localStorage position). */}
+          {config.kind === "admin" ? (
+            <div className="flex items-center gap-3 px-2 pb-2 group-data-[collapsible=icon]:justify-center">
+              <CheckinBeacon />
+              <span className="font-body text-xs text-charcoal/60 group-data-[collapsible=icon]:hidden">
+                Live check-in
+              </span>
+            </div>
+          ) : null}
           <div className="flex items-center gap-3 px-2 pb-2 group-data-[collapsible=icon]:justify-center">
             <Avatar className="h-9 w-9 border-2 border-sage/20">
               {user.logoUrl ? <AvatarImage src={user.logoUrl} alt={user.name} /> : null}
@@ -249,7 +260,6 @@ export function DashboardShell({ config, user, children }: DashboardShellProps) 
       </Sidebar>
 
       <SidebarInset>
-        {config.kind === "admin" ? <CheckinBeacon /> : null}
         <header className="sticky top-0 z-40 bg-white/80 backdrop-blur-xl border-b border-sage/10 h-16 md:rounded-t-xl">
           <div className="flex items-center justify-between h-full px-4 gap-3">
             <div className="flex items-center gap-3 flex-1 min-w-0">
