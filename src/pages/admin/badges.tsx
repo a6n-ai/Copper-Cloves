@@ -15,6 +15,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Badge } from "@/components/ui/badge";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
+import { SortableHeader } from "@/components/admin/sortable-table";
 import { ResponsiveTable } from "@/components/responsive/ResponsiveTable";
 import { Pagination, usePagination } from "@/components/Pagination";
 import { MetricCard } from "@/components/admin/MetricCard";
@@ -258,17 +259,6 @@ export default function AdminBadgesPage() {
       setPtmSortDir(key === "name" ? "asc" : "desc");
     }
   };
-
-  const ptmSortIcon = (key: PtmSortKey) =>
-    ptmSortKey === key ? (
-      ptmSortDir === "asc" ? (
-        <ChevronUp className="h-3 w-3" />
-      ) : (
-        <ChevronDown className="h-3 w-3" />
-      )
-    ) : (
-      <ArrowUpDown className="h-3 w-3 opacity-40" />
-    );
 
   // ---- PTM CRUD ----
   const startEditPtm = (t: BadgeTemplate) => {
@@ -649,22 +639,10 @@ export default function AdminBadgesPage() {
                         <Table>
                           <TableHeader>
                             <TableRow className="bg-sage/5 hover:bg-sage/5 border-sage/10">
-                              <TableHead className="font-body text-xs uppercase tracking-wide text-charcoal/60 px-5 py-3">
-                                <button type="button" onClick={() => togglePtmSort("name")} className="inline-flex items-center gap-1 uppercase hover:text-charcoal transition-colors">
-                                  Badge {ptmSortIcon("name")}
-                                </button>
-                              </TableHead>
-                              <TableHead className="font-body text-xs uppercase tracking-wide text-charcoal/60 px-5 py-3 w-[150px]">
-                                <button type="button" onClick={() => togglePtmSort("threshold")} className="inline-flex items-center gap-1 uppercase hover:text-charcoal transition-colors">
-                                  Threshold {ptmSortIcon("threshold")}
-                                </button>
-                              </TableHead>
+                              <SortableHeader sortKey="name" active={ptmSortKey} dir={ptmSortDir} onToggle={togglePtmSort}>Badge</SortableHeader>
+                              <SortableHeader sortKey="threshold" active={ptmSortKey} dir={ptmSortDir} onToggle={togglePtmSort} className="w-[150px]">Threshold</SortableHeader>
                               <TableHead className="font-body text-xs uppercase tracking-wide text-charcoal/60 px-5 py-3 w-[130px]">Color</TableHead>
-                              <TableHead className="font-body text-xs uppercase tracking-wide text-charcoal/60 px-5 py-3 w-[110px]">
-                                <button type="button" onClick={() => togglePtmSort("status")} className="inline-flex items-center gap-1 uppercase hover:text-charcoal transition-colors">
-                                  Status {ptmSortIcon("status")}
-                                </button>
-                              </TableHead>
+                              <SortableHeader sortKey="status" active={ptmSortKey} dir={ptmSortDir} onToggle={togglePtmSort} className="w-[110px]">Status</SortableHeader>
                               <TableHead className="font-body text-xs uppercase tracking-wide text-charcoal/60 px-5 py-3 w-[110px] text-right">Actions</TableHead>
                             </TableRow>
                           </TableHeader>

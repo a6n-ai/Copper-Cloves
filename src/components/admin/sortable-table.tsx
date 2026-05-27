@@ -1,4 +1,4 @@
-import { useCallback, useMemo, useState, type ReactNode } from "react";
+import { useCallback, useMemo, useRef, useState, type ReactNode } from "react";
 import { ArrowUpDown, ChevronDown, ChevronUp } from "lucide-react";
 import { TableHead } from "@/components/ui/table";
 import { cn } from "@/lib/utils";
@@ -36,16 +36,19 @@ export function useTableSort<T, K extends string>(
   const [sortKey, setSortKey] = useState<K | null>(initialKey);
   const [sortDir, setSortDir] = useState<SortDir>(initialDir);
 
+  // IMPORTANT: do NOT nest setSortDir inside a setSortKey updater — React 18
+  // StrictMode invokes setState updaters twice, which would flip direction back.
+  // Read current key from a ref so the callback identity stays stable.
+  const sortKeyRef = useRef<K | null>(sortKey);
+  sortKeyRef.current = sortKey;
   const toggle = useCallback(
     (key: K) => {
-      setSortKey((prev) => {
-        if (prev === key) {
-          setSortDir((d) => (d === "asc" ? "desc" : "asc"));
-          return prev;
-        }
+      if (sortKeyRef.current === key) {
+        setSortDir((d) => (d === "asc" ? "desc" : "asc"));
+      } else {
+        setSortKey(key);
         setSortDir(defaultDirFor ? defaultDirFor(key) : "desc");
-        return key;
-      });
+      }
     },
     [defaultDirFor],
   );

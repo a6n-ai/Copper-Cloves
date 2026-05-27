@@ -1029,9 +1029,9 @@ async function fetchPayoutData() {
   const [payoutSearch, setPayoutSearch] = useState("");
   const [instructorSearch, setInstructorSearch] = useState("");
 
-  const userSort = useSort<"name" | "end" | "status">();
+  const userSort = useSort<"name" | "pass" | "remaining" | "start" | "end" | "status">();
   const classSort = useSort<"name" | "category" | "duration" | "capacity">();
-  const payoutSort = useSort<"name" | "checkIns" | "total" | "status">();
+  const payoutSort = useSort<"name" | "checkIns" | "rate" | "share" | "total" | "status">();
   const instructorSort = useSort<"name" | "status">();
 
   const filteredUsers = useMemo(() => {
@@ -1051,6 +1051,15 @@ async function fetchPayoutData() {
         switch (userSort.key) {
           case "name":
             return String(a.name).localeCompare(String(b.name)) * dir;
+          case "pass":
+            return String(a.passType ?? "").localeCompare(String(b.passType ?? "")) * dir;
+          case "remaining":
+            return ((Number(a.classesRemaining ?? 0)) - (Number(b.classesRemaining ?? 0))) * dir;
+          case "start": {
+            const av = a.startDate ? new Date(a.startDate).getTime() : 0;
+            const bv = b.startDate ? new Date(b.startDate).getTime() : 0;
+            return (av - bv) * dir;
+          }
           case "end": {
             const av = a.expiry && a.expiry !== "N/A" ? new Date(a.expiry).getTime() : 0;
             const bv = b.expiry && b.expiry !== "N/A" ? new Date(b.expiry).getTime() : 0;
@@ -1111,6 +1120,10 @@ async function fetchPayoutData() {
             return a.name.localeCompare(b.name) * dir;
           case "checkIns":
             return (a.checkIns - b.checkIns) * dir;
+          case "rate":
+            return ((Number(a.rate ?? 0)) - (Number(b.rate ?? 0))) * dir;
+          case "share":
+            return ((Number(a.percentage ?? 0)) - (Number(b.percentage ?? 0))) * dir;
           case "total":
             return (a.total - b.total) * dir;
           case "status":
@@ -1352,9 +1365,21 @@ async function fetchPayoutData() {
                                       Member {sortArrow(userSort.key === "name", userSort.dir)}
                                     </button>
                                   </TableHead>
-                                  <TableHead className={`${thBase} w-[150px]`}>Pass</TableHead>
-                                  <TableHead className={`${thBase} w-[110px]`}>Remaining</TableHead>
-                                  <TableHead className={`${thBase} w-[120px]`}>Start</TableHead>
+                                  <TableHead className={`${thBase} w-[150px]`}>
+                                    <button type="button" onClick={() => userSort.toggle("pass")} className={thBtn}>
+                                      Pass {sortArrow(userSort.key === "pass", userSort.dir)}
+                                    </button>
+                                  </TableHead>
+                                  <TableHead className={`${thBase} w-[110px]`}>
+                                    <button type="button" onClick={() => userSort.toggle("remaining", "desc")} className={thBtn}>
+                                      Remaining {sortArrow(userSort.key === "remaining", userSort.dir)}
+                                    </button>
+                                  </TableHead>
+                                  <TableHead className={`${thBase} w-[120px]`}>
+                                    <button type="button" onClick={() => userSort.toggle("start", "desc")} className={thBtn}>
+                                      Start {sortArrow(userSort.key === "start", userSort.dir)}
+                                    </button>
+                                  </TableHead>
                                   <TableHead className={`${thBase} w-[120px]`}>
                                     <button type="button" onClick={() => userSort.toggle("end", "desc")} className={thBtn}>
                                       End {sortArrow(userSort.key === "end", userSort.dir)}
@@ -1805,8 +1830,16 @@ async function fetchPayoutData() {
                                       Check-ins {sortArrow(payoutSort.key === "checkIns", payoutSort.dir)}
                                     </button>
                                   </TableHead>
-                                  <TableHead className={`${thBase} w-[90px]`}>Rate</TableHead>
-                                  <TableHead className={`${thBase} w-[90px]`}>Share</TableHead>
+                                  <TableHead className={`${thBase} w-[90px]`}>
+                                    <button type="button" onClick={() => payoutSort.toggle("rate", "desc")} className={thBtn}>
+                                      Rate {sortArrow(payoutSort.key === "rate", payoutSort.dir)}
+                                    </button>
+                                  </TableHead>
+                                  <TableHead className={`${thBase} w-[90px]`}>
+                                    <button type="button" onClick={() => payoutSort.toggle("share", "desc")} className={thBtn}>
+                                      Share {sortArrow(payoutSort.key === "share", payoutSort.dir)}
+                                    </button>
+                                  </TableHead>
                                   <TableHead className={`${thBase} w-[120px]`}>
                                     <button type="button" onClick={() => payoutSort.toggle("total", "desc")} className={thBtn}>
                                       Total {sortArrow(payoutSort.key === "total", payoutSort.dir)}

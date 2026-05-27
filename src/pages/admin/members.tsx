@@ -10,6 +10,7 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { MoreHorizontal } from "lucide-react";
+import { SortableHeader } from "@/components/admin/sortable-table";
 import { AdminPageHeader } from "@/components/admin/AdminPageHeader";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -241,7 +242,7 @@ export default function AdminMembers() {
   const [accountStatusFilter, setAccountStatusFilter] = useState<"all" | "active" | "inactive">("all");
   const [members, setMembers] = useState<Member[]>([]);
   const [checkInsThisMonth, setCheckInsThisMonth] = useState(0);
-  const [sortKey, setSortKey] = useState<"name" | "classes" | "lastVisit" | "status" | null>(null);
+  const [sortKey, setSortKey] = useState<"name" | "pass" | "account" | "classes" | "lastVisit" | "status" | null>(null);
   const [sortDir, setSortDir] = useState<"asc" | "desc">("desc");
   const [historyOpen, setHistoryOpen] = useState(false);
   const [historyMember, setHistoryMember] = useState<Member | null>(null);
@@ -319,11 +320,19 @@ export default function AdminMembers() {
     if (sortKey) {
       const dir = sortDir === "asc" ? 1 : -1;
       const statusRank = { active: 0, expiring: 1, expired: 2 } as const;
+      const passRank = { studio_pass: 0, class_pass: 1, none: 2 } as const;
+      const accountRank = { active: 0, grace: 1, inactive: 2 } as const;
       filtered.sort((a, b) => {
         let cmp = 0;
         switch (sortKey) {
           case "name":
             cmp = a.name.localeCompare(b.name);
+            break;
+          case "pass":
+            cmp = passRank[a.passCategory] - passRank[b.passCategory];
+            break;
+          case "account":
+            cmp = accountRank[a.accountFilter] - accountRank[b.accountFilter];
             break;
           case "classes":
             cmp = a.totalClasses - b.totalClasses;
@@ -775,25 +784,15 @@ export default function AdminMembers() {
     }
   };
 
-  const toggleSort = (key: "name" | "classes" | "lastVisit" | "status") => {
+  type MemberSortKey = "name" | "pass" | "account" | "classes" | "lastVisit" | "status";
+  const toggleSort = (key: MemberSortKey) => {
     if (sortKey === key) {
       setSortDir((d) => (d === "asc" ? "desc" : "asc"));
     } else {
       setSortKey(key);
-      setSortDir(key === "name" ? "asc" : "desc");
+      setSortDir(key === "name" || key === "pass" || key === "account" ? "asc" : "desc");
     }
   };
-
-  const sortIcon = (key: "name" | "classes" | "lastVisit" | "status") =>
-    sortKey === key ? (
-      sortDir === "asc" ? (
-        <ChevronUp className="h-3 w-3" />
-      ) : (
-        <ChevronDown className="h-3 w-3" />
-      )
-    ) : (
-      <ArrowUpDown className="h-3 w-3 opacity-40" />
-    );
 
   const membersPg = usePagination(
     filteredMembers,
@@ -973,28 +972,12 @@ export default function AdminMembers() {
                   <Table>
                     <TableHeader>
                       <TableRow className="bg-sage/5 hover:bg-sage/5 border-sage/10">
-                        <TableHead className="font-body text-xs uppercase tracking-wide text-charcoal/60 px-5 py-3">
-                          <button type="button" onClick={() => toggleSort("name")} className="inline-flex items-center gap-1 uppercase hover:text-charcoal transition-colors">
-                            Member {sortIcon("name")}
-                          </button>
-                        </TableHead>
-                        <TableHead className="font-body text-xs uppercase tracking-wide text-charcoal/60 px-5 py-3 w-[180px]">Pass</TableHead>
-                        <TableHead className="font-body text-xs uppercase tracking-wide text-charcoal/60 px-5 py-3 w-[100px]">Account</TableHead>
-                        <TableHead className="font-body text-xs uppercase tracking-wide text-charcoal/60 px-5 py-3 w-[100px]">
-                          <button type="button" onClick={() => toggleSort("classes")} className="inline-flex items-center gap-1 uppercase hover:text-charcoal transition-colors">
-                            Classes {sortIcon("classes")}
-                          </button>
-                        </TableHead>
-                        <TableHead className="font-body text-xs uppercase tracking-wide text-charcoal/60 px-5 py-3 w-[120px]">
-                          <button type="button" onClick={() => toggleSort("lastVisit")} className="inline-flex items-center gap-1 uppercase hover:text-charcoal transition-colors">
-                            Last Visit {sortIcon("lastVisit")}
-                          </button>
-                        </TableHead>
-                        <TableHead className="font-body text-xs uppercase tracking-wide text-charcoal/60 px-5 py-3 w-[140px]">
-                          <button type="button" onClick={() => toggleSort("status")} className="inline-flex items-center gap-1 uppercase hover:text-charcoal transition-colors">
-                            Status {sortIcon("status")}
-                          </button>
-                        </TableHead>
+                        <SortableHeader sortKey="name" active={sortKey} dir={sortDir} onToggle={toggleSort}>Member</SortableHeader>
+                        <SortableHeader sortKey="pass" active={sortKey} dir={sortDir} onToggle={toggleSort} className="w-[180px]">Pass</SortableHeader>
+                        <SortableHeader sortKey="account" active={sortKey} dir={sortDir} onToggle={toggleSort} className="w-[100px]">Account</SortableHeader>
+                        <SortableHeader sortKey="classes" active={sortKey} dir={sortDir} onToggle={toggleSort} className="w-[100px]">Classes</SortableHeader>
+                        <SortableHeader sortKey="lastVisit" active={sortKey} dir={sortDir} onToggle={toggleSort} className="w-[120px]">Last Visit</SortableHeader>
+                        <SortableHeader sortKey="status" active={sortKey} dir={sortDir} onToggle={toggleSort} className="w-[140px]">Status</SortableHeader>
                         <TableHead className="font-body text-xs uppercase tracking-wide text-charcoal/60 px-5 py-3 w-[60px] text-right">Actions</TableHead>
                       </TableRow>
                     </TableHeader>

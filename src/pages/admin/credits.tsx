@@ -25,6 +25,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { ResponsiveTable } from "@/components/responsive/ResponsiveTable";
 import { Pagination, usePagination } from "@/components/Pagination";
 import { MetricCard } from "@/components/admin/MetricCard";
+import { SortableHeader } from "@/components/admin/sortable-table";
 
 interface CreditTransaction {
   id: string;
@@ -186,17 +187,6 @@ export default function AdminCredits() {
       setSortDir(key === "member" || key === "type" ? "asc" : "desc");
     }
   };
-
-  const sortIcon = (key: SortKey) =>
-    sortKey === key ? (
-      sortDir === "asc" ? (
-        <ChevronUp className="h-3 w-3" />
-      ) : (
-        <ChevronDown className="h-3 w-3" />
-      )
-    ) : (
-      <ArrowUpDown className="h-3 w-3 opacity-40" />
-    );
 
   const txPg = usePagination(
     filteredTransactions,
@@ -388,27 +378,11 @@ export default function AdminCredits() {
                         <Table>
                           <TableHeader>
                             <TableRow className="bg-sage/5 hover:bg-sage/5 border-sage/10">
-                              <TableHead className="font-body text-xs uppercase tracking-wide text-charcoal/60 px-5 py-3 w-[130px]">
-                                <button type="button" onClick={() => toggleSort("type")} className="inline-flex items-center gap-1 uppercase hover:text-charcoal transition-colors">
-                                  Type {sortIcon("type")}
-                                </button>
-                              </TableHead>
-                              <TableHead className="font-body text-xs uppercase tracking-wide text-charcoal/60 px-5 py-3 w-[110px]">
-                                <button type="button" onClick={() => toggleSort("amount")} className="inline-flex items-center gap-1 uppercase hover:text-charcoal transition-colors">
-                                  Amount {sortIcon("amount")}
-                                </button>
-                              </TableHead>
-                              <TableHead className="font-body text-xs uppercase tracking-wide text-charcoal/60 px-5 py-3 w-[180px]">
-                                <button type="button" onClick={() => toggleSort("member")} className="inline-flex items-center gap-1 uppercase hover:text-charcoal transition-colors">
-                                  Member {sortIcon("member")}
-                                </button>
-                              </TableHead>
+                              <SortableHeader sortKey="type" active={sortKey} dir={sortDir} onToggle={toggleSort} className="w-[130px]">Type</SortableHeader>
+                              <SortableHeader sortKey="amount" active={sortKey} dir={sortDir} onToggle={toggleSort} className="w-[110px]">Amount</SortableHeader>
+                              <SortableHeader sortKey="member" active={sortKey} dir={sortDir} onToggle={toggleSort} className="w-[180px]">Member</SortableHeader>
                               <TableHead className="font-body text-xs uppercase tracking-wide text-charcoal/60 px-5 py-3">Reason</TableHead>
-                              <TableHead className="font-body text-xs uppercase tracking-wide text-charcoal/60 px-5 py-3 w-[200px]">
-                                <button type="button" onClick={() => toggleSort("date")} className="inline-flex items-center gap-1 uppercase hover:text-charcoal transition-colors">
-                                  Date &amp; Admin {sortIcon("date")}
-                                </button>
-                              </TableHead>
+                              <SortableHeader sortKey="date" active={sortKey} dir={sortDir} onToggle={toggleSort} className="w-[200px]">Date &amp; Admin</SortableHeader>
                             </TableRow>
                           </TableHeader>
                           <TableBody>

@@ -1,4 +1,4 @@
-import { memo, useCallback, useMemo, useState } from "react";
+import { memo, useCallback, useMemo, useRef, useState } from "react";
 import {
   AlertTriangle,
   ArrowUpDown,
@@ -171,15 +171,17 @@ function MembersTabImpl({
     });
   }, [filteredMemberList, perfSortKey, perfSortDir]);
 
+  // Don't nest setPerfSortDir inside setPerfSortKey updater — StrictMode double-
+  // invocation flips direction back. Read latest key via ref.
+  const perfSortKeyRef = useRef(perfSortKey);
+  perfSortKeyRef.current = perfSortKey;
   const togglePerfSort = useCallback((key: SortKey) => {
-    setPerfSortKey((prevKey) => {
-      if (prevKey === key) {
-        setPerfSortDir((d) => (d === "asc" ? "desc" : "asc"));
-        return prevKey;
-      }
+    if (perfSortKeyRef.current === key) {
+      setPerfSortDir((d) => (d === "asc" ? "desc" : "asc"));
+    } else {
+      setPerfSortKey(key);
       setPerfSortDir(key === "name" ? "asc" : "desc");
-      return key;
-    });
+    }
   }, []);
 
   const perfSortIcon = (key: SortKey) =>
