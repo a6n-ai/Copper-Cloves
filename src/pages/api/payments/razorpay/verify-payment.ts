@@ -6,12 +6,14 @@ import {
   persistVerifiedRazorpayPayment,
 } from "@/lib/razorpayPersistence";
 import { getRazorpay, razorpayConfigured } from "@/lib/razorpayServer";
+import { requestLogger } from "@/lib/logger";
 
 /**
  * POST { razorpay_order_id, razorpay_payment_id, razorpay_signature }
  * Validates HMAC from Razorpay Checkout success callback.
  */
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
+  const log = requestLogger(req, res);
   if (req.method !== "POST") return res.status(405).end();
 
   const session = await getStudioServerSession(req, res);
@@ -58,6 +60,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     ok = false;
   }
   if (!ok) {
+    log.warn({ userId, orderId, paymentId }, "razorpay verify invalid signature");
     return res.status(400).json({ error: "Invalid signature." });
   }
 
@@ -96,9 +99,10 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     if (msg === "ORDER_USER_MISMATCH") {
       return res.status(403).json({ error: "Order does not belong to this account." });
     }
-    console.error("[razorpay/verify-payment]", e);
+    log.error({ err: e, userId, orderId, paymentId }, "razorpay verify-payment failed");
     return res.status(502).json({ error: "Could not confirm payment with Razorpay." });
   }
 
+  log.info({ userId, orderId, paymentId }, "razorpay payment verified");
   return res.json({ ok: true, razorpay_order_id: orderId, razorpay_payment_id: paymentId });
 }

@@ -4,7 +4,7 @@
 - When pushing: commit uncommitted project code first, then push to `origin/main`.
 - Before commit/push when asked: summarize what will be committed; user may want to approve first.
 - Never commit dummy/demo finance seed data; keep real financial records untouched.
-- Do not commit unless explicitly asked: `.idea/`, `public/uploads/`, `.cursor/`, `.agents/`, `.claude/`, `.llm/photos/`, `skills-lock.json`, one-off `scripts/` backfills/inspects, or other local tooling/credential files.
+- Do not commit unless explicitly asked: `.idea/`, `.vscode/`, `public/uploads/`, `.cursor/`, `.agents/`, `.claude/`, `.llm/`, `.softgen/`, `.superpowers/`, `skills-lock.json`, one-off `scripts/` backfills/inspects, or other local tooling/credential files.
 - When Docker is down, use `npm run dev:next` (not `npm run dev`); dev server runs on port 3000 or 3001.
 - Use Razorpay MCP for Razorpay integration patterns when relevant.
 
@@ -19,4 +19,5 @@
 - Amplify env minimum: `STUDIO_DATABASE_URL`, `NEXTAUTH_SECRET`, `NEXTAUTH_URL` (custom domain thestudiobycopperandcloves.in), Razorpay keys + `RAZORPAY_WEBHOOK_SECRET`.
 - Razorpay webhook endpoint: `/api/razorpay/webhook`; amounts stored in paise.
 - Production RDS: `copper-cloves` Postgres in ap-south-1.
-- Repo context docs in `.llm/` — `/llm` slash command lists topics.
+- Local repo context docs in `.llm/` (gitignored, not on remote) — `/llm` slash command lists topics.
+- `.gitignore` excludes agent/IDE folders and one-off script patterns; `.llm/`, `public/uploads/`, and guest backfill scripts were untracked from `main`.

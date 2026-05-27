@@ -206,6 +206,7 @@ export default function AdminDashboard() {
     instructorQrUrl?: string | null;
     withinWindow?: boolean;
     windowOpensAt?: string | null;
+    historical?: boolean;
   } | null>(null);
   const [selectedClassQrLoading, setSelectedClassQrLoading] = useState(false);
   const [showPayoutDialog, setShowPayoutDialog] = useState(false);

@@ -496,6 +496,7 @@ export default function AdminMembers() {
     try {
       const fd = new FormData();
       fd.append("file", file);
+      fd.append("purpose", "payment_proof");
       const res = await fetch("/api/upload", { method: "POST", credentials: "include", body: fd });
       const json = await res.json().catch(() => ({}));
       if (!res.ok || !json.url) throw new Error(json.error ?? "Upload failed");

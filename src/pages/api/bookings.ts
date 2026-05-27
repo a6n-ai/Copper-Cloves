@@ -17,8 +17,10 @@ import {
   parseGuestAttendees,
   snapshotTotalsConsistent,
 } from "@/lib/financeBookingCheckout";
+import { requestLogger } from "@/lib/logger";
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
+  const log = requestLogger(req, res);
   const session = await getStudioServerSession(req, res);
   if (!session?.user) return res.status(401).json({ error: "Unauthorized" });
 
@@ -287,7 +289,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         // class_booking_confirmed email trigger was removed here — it duplicated
         // this send and rendered blank (template used {{className}}-style keys
         // that don't match the dispatcher's Snake_Case variables).
-        await sendBookingConfirmationEmail(booking.id).catch((e) => console.error("[booking email]", e));
+        await sendBookingConfirmationEmail(booking.id).catch((e) => log.error({ err: e, bookingId: booking.id }, "booking confirmation email failed"));
       }
 
       // Onboard friends & family guests server-side (create accounts + roster
@@ -298,7 +300,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
           guests: guestList,
           classScheduleId: scheduleId,
           bookerId: userId,
-        }).catch((e) => console.error("[onboardGuestsForBooking] bookings.ts:", e));
+        }).catch((e) => log.error({ err: e, bookingId: booking.id }, "onboardGuestsForBooking failed"));
       }
 
       return res.status(201).json(booking);
@@ -340,7 +342,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
             "Online payment could not be linked to this booking. Try confirming again or contact support.",
         });
       }
-      console.error("[bookings] POST", e);
+      log.error({ err: e, userId }, "booking POST failed");
       return res.status(500).json({ error: "Could not complete booking" });
     }
   }
@@ -468,7 +470,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
             variables,
           })
         )
-        .catch((e) => console.error("CRM class_booking_cancelled:", e));
+        .catch((e) => log.error({ err: e }, "CRM class_booking_cancelled failed"));
     }
 
     if (checked_in === true && booking.checked_in) {
@@ -513,7 +515,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
             }
           }
         } catch (e) {
-          console.error("[check-in badge auto-award]", e);
+          log.error({ err: e }, "check-in badge auto-award failed");
         }
       })();
     }

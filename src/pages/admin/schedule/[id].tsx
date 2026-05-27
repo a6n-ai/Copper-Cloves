@@ -62,6 +62,7 @@ interface QrData {
   withinWindow: boolean;
   startTime: string;
   windowOpensAt?: string;
+  historical?: boolean;
 }
 interface NamedRow {
   id: string;
@@ -584,15 +585,15 @@ export default function AdminClassPage() {
                     </div>
                   );
                 })()}
-                {/* QR codes — hidden when class is completed/abandoned */}
-                {isLocked ? (
+                {/* QR codes — historical (read-only) for completed/abandoned, live otherwise */}
+                {isLocked && !qr?.instructorQrUrl && !qr?.memberQrUrl ? (
                   <Card className="rounded-2xl shadow-xs">
                     <CardContent className="p-6 text-center">
                       <p className="font-display text-lg text-charcoal/70">
                         Check-in is closed
                       </p>
                       <p className="text-sm text-muted-foreground mt-1">
-                        Class is {roster.status}. QR codes are no longer available.
+                        Class is {roster.status}. No QR was generated for this class.
                       </p>
                     </CardContent>
                   </Card>
@@ -600,19 +601,25 @@ export default function AdminClassPage() {
                 <Card className="rounded-2xl shadow-xs">
                   <CardHeader className="flex flex-row items-center justify-between gap-2 flex-wrap">
                     <CardTitle className="font-display text-xl text-charcoal">Check-in QR codes</CardTitle>
-                    <Button
-                      type="button"
-                      size="sm"
-                      variant="outline"
-                      onClick={() => refreshQr(true)}
-                      disabled={qrRefreshing}
-                      className="border-sage/40 text-sage bg-white hover:!bg-sage hover:!text-white hover:!border-sage font-body"
-                    >
-                      {qrRefreshing ? "Refreshing…" : "Refresh QR"}
-                    </Button>
+                    {!isLocked && !qr?.historical && (
+                      <Button
+                        type="button"
+                        size="sm"
+                        variant="outline"
+                        onClick={() => refreshQr(true)}
+                        disabled={qrRefreshing}
+                        className="border-sage/40 text-sage bg-white hover:!bg-sage hover:!text-white hover:!border-sage font-body"
+                      >
+                        {qrRefreshing ? "Refreshing…" : "Refresh QR"}
+                      </Button>
+                    )}
                   </CardHeader>
                   <CardContent>
-                    {!qr?.withinWindow ? (
+                    {qr?.historical ? (
+                      <p className="mb-4 rounded-lg bg-cream/60 px-4 py-2 text-sm text-charcoal/60">
+                        Class is closed. Showing the historical QR for reference — scans no longer check in.
+                      </p>
+                    ) : !qr?.withinWindow ? (
                       <p className="mb-4 rounded-lg bg-cream/60 px-4 py-2 text-sm text-charcoal/60">
                         QR scanning is active from 30 minutes before until 30 minutes after class start.
                         {qr?.windowOpensAt
@@ -630,7 +637,7 @@ export default function AdminClassPage() {
                           className="flex flex-col items-center gap-3 rounded-xl border border-sage/15 p-6"
                         >
                           <ClassCheckinQr kind={kind} qr={qr} size={220} />
-                          {!qr?.withinWindow && (
+                          {!qr?.withinWindow && !qr?.historical && (
                             <Button
                               size="sm"
                               variant="outline"

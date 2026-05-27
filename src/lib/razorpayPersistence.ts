@@ -1,5 +1,8 @@
 import prisma from "@/lib/prisma";
 import type { Prisma } from "@/generated/prisma/client";
+import { logger } from "@/lib/logger";
+
+const log = logger.child({ module: "razorpayPersistence" });
 
 export type DbTx = Prisma.TransactionClient;
 
@@ -277,7 +280,7 @@ export async function reconcileRazorpayPaymentFromWebhook(body: {
     where: { razorpay_order_id: ordId },
   });
   if (!orderRow) {
-    console.warn("[razorpay/webhook] No local razorpay_orders row for", ordId);
+    log.warn({ razorpayOrderId: ordId }, "no local razorpay_orders row for webhook");
     return;
   }
 
@@ -363,9 +366,11 @@ async function tryFulfillCheckoutAfterWebhook(razorpayOrderId: string): Promise<
   try {
     const outcome = await fulfillCheckoutFromPaidOrder(razorpayOrderId);
     if (outcome === "booking" || outcome === "package") {
-      console.info("[razorpay/webhook] fulfilled checkout", { razorpayOrderId, outcome });
+      log.info({ razorpayOrderId, outcome }, "webhook fulfilled checkout");
+    } else {
+      log.warn({ razorpayOrderId, outcome }, "webhook fulfill returned no-op");
     }
   } catch (e) {
-    console.error("[razorpay/webhook] fulfill checkout", razorpayOrderId, e);
+    log.error({ err: e, razorpayOrderId }, "webhook fulfill checkout failed — payment captured but not fulfilled");
   }
 }

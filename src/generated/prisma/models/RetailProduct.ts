@@ -46,6 +46,7 @@ export type RetailProductMinAggregateOutputType = {
   price: runtime.Decimal | null
   stock: number | null
   image_url: string | null
+  image_file_id: string | null
   featured: boolean | null
   sales_count: number | null
   is_active: boolean | null
@@ -61,6 +62,7 @@ export type RetailProductMaxAggregateOutputType = {
   price: runtime.Decimal | null
   stock: number | null
   image_url: string | null
+  image_file_id: string | null
   featured: boolean | null
   sales_count: number | null
   is_active: boolean | null
@@ -76,6 +78,7 @@ export type RetailProductCountAggregateOutputType = {
   price: number
   stock: number
   image_url: number
+  image_file_id: number
   featured: number
   sales_count: number
   is_active: number
@@ -105,6 +108,7 @@ export type RetailProductMinAggregateInputType = {
   price?: true
   stock?: true
   image_url?: true
+  image_file_id?: true
   featured?: true
   sales_count?: true
   is_active?: true
@@ -120,6 +124,7 @@ export type RetailProductMaxAggregateInputType = {
   price?: true
   stock?: true
   image_url?: true
+  image_file_id?: true
   featured?: true
   sales_count?: true
   is_active?: true
@@ -135,6 +140,7 @@ export type RetailProductCountAggregateInputType = {
   price?: true
   stock?: true
   image_url?: true
+  image_file_id?: true
   featured?: true
   sales_count?: true
   is_active?: true
@@ -237,6 +243,7 @@ export type RetailProductGroupByOutputType = {
   price: runtime.Decimal
   stock: number
   image_url: string | null
+  image_file_id: string | null
   featured: boolean
   sales_count: number
   is_active: boolean
@@ -275,6 +282,7 @@ export type RetailProductWhereInput = {
   price?: Prisma.DecimalFilter<"RetailProduct"> | runtime.Decimal | runtime.DecimalJsLike | number | string
   stock?: Prisma.IntFilter<"RetailProduct"> | number
   image_url?: Prisma.StringNullableFilter<"RetailProduct"> | string | null
+  image_file_id?: Prisma.StringNullableFilter<"RetailProduct"> | string | null
   featured?: Prisma.BoolFilter<"RetailProduct"> | boolean
   sales_count?: Prisma.IntFilter<"RetailProduct"> | number
   is_active?: Prisma.BoolFilter<"RetailProduct"> | boolean
@@ -290,6 +298,7 @@ export type RetailProductOrderByWithRelationInput = {
   price?: Prisma.SortOrder
   stock?: Prisma.SortOrder
   image_url?: Prisma.SortOrderInput | Prisma.SortOrder
+  image_file_id?: Prisma.SortOrderInput | Prisma.SortOrder
   featured?: Prisma.SortOrder
   sales_count?: Prisma.SortOrder
   is_active?: Prisma.SortOrder
@@ -299,6 +308,7 @@ export type RetailProductOrderByWithRelationInput = {
 
 export type RetailProductWhereUniqueInput = Prisma.AtLeast<{
   id?: string
+  image_file_id?: string
   AND?: Prisma.RetailProductWhereInput | Prisma.RetailProductWhereInput[]
   OR?: Prisma.RetailProductWhereInput[]
   NOT?: Prisma.RetailProductWhereInput | Prisma.RetailProductWhereInput[]
@@ -313,7 +323,7 @@ export type RetailProductWhereUniqueInput = Prisma.AtLeast<{
   is_active?: Prisma.BoolFilter<"RetailProduct"> | boolean
   created_at?: Prisma.DateTimeFilter<"RetailProduct"> | Date | string
   updated_at?: Prisma.DateTimeFilter<"RetailProduct"> | Date | string
-}, "id">
+}, "id" | "image_file_id">
 
 export type RetailProductOrderByWithAggregationInput = {
   id?: Prisma.SortOrder
@@ -323,6 +333,7 @@ export type RetailProductOrderByWithAggregationInput = {
   price?: Prisma.SortOrder
   stock?: Prisma.SortOrder
   image_url?: Prisma.SortOrderInput | Prisma.SortOrder
+  image_file_id?: Prisma.SortOrderInput | Prisma.SortOrder
   featured?: Prisma.SortOrder
   sales_count?: Prisma.SortOrder
   is_active?: Prisma.SortOrder
@@ -346,6 +357,7 @@ export type RetailProductScalarWhereWithAggregatesInput = {
   price?: Prisma.DecimalWithAggregatesFilter<"RetailProduct"> | runtime.Decimal | runtime.DecimalJsLike | number | string
   stock?: Prisma.IntWithAggregatesFilter<"RetailProduct"> | number
   image_url?: Prisma.StringNullableWithAggregatesFilter<"RetailProduct"> | string | null
+  image_file_id?: Prisma.StringNullableWithAggregatesFilter<"RetailProduct"> | string | null
   featured?: Prisma.BoolWithAggregatesFilter<"RetailProduct"> | boolean
   sales_count?: Prisma.IntWithAggregatesFilter<"RetailProduct"> | number
   is_active?: Prisma.BoolWithAggregatesFilter<"RetailProduct"> | boolean
@@ -361,6 +373,7 @@ export type RetailProductCreateInput = {
   price: runtime.Decimal | runtime.DecimalJsLike | number | string
   stock?: number
   image_url?: string | null
+  image_file_id?: string | null
   featured?: boolean
   sales_count?: number
   is_active?: boolean
@@ -376,6 +389,7 @@ export type RetailProductUncheckedCreateInput = {
   price: runtime.Decimal | runtime.DecimalJsLike | number | string
   stock?: number
   image_url?: string | null
+  image_file_id?: string | null
   featured?: boolean
   sales_count?: number
   is_active?: boolean
@@ -391,6 +405,7 @@ export type RetailProductUpdateInput = {
   price?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
   stock?: Prisma.IntFieldUpdateOperationsInput | number
   image_url?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  image_file_id?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   featured?: Prisma.BoolFieldUpdateOperationsInput | boolean
   sales_count?: Prisma.IntFieldUpdateOperationsInput | number
   is_active?: Prisma.BoolFieldUpdateOperationsInput | boolean
@@ -406,6 +421,7 @@ export type RetailProductUncheckedUpdateInput = {
   price?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
   stock?: Prisma.IntFieldUpdateOperationsInput | number
   image_url?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  image_file_id?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   featured?: Prisma.BoolFieldUpdateOperationsInput | boolean
   sales_count?: Prisma.IntFieldUpdateOperationsInput | number
   is_active?: Prisma.BoolFieldUpdateOperationsInput | boolean
@@ -421,6 +437,7 @@ export type RetailProductCreateManyInput = {
   price: runtime.Decimal | runtime.DecimalJsLike | number | string
   stock?: number
   image_url?: string | null
+  image_file_id?: string | null
   featured?: boolean
   sales_count?: number
   is_active?: boolean
@@ -436,6 +453,7 @@ export type RetailProductUpdateManyMutationInput = {
   price?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
   stock?: Prisma.IntFieldUpdateOperationsInput | number
   image_url?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  image_file_id?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   featured?: Prisma.BoolFieldUpdateOperationsInput | boolean
   sales_count?: Prisma.IntFieldUpdateOperationsInput | number
   is_active?: Prisma.BoolFieldUpdateOperationsInput | boolean
@@ -451,6 +469,7 @@ export type RetailProductUncheckedUpdateManyInput = {
   price?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
   stock?: Prisma.IntFieldUpdateOperationsInput | number
   image_url?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  image_file_id?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   featured?: Prisma.BoolFieldUpdateOperationsInput | boolean
   sales_count?: Prisma.IntFieldUpdateOperationsInput | number
   is_active?: Prisma.BoolFieldUpdateOperationsInput | boolean
@@ -466,6 +485,7 @@ export type RetailProductCountOrderByAggregateInput = {
   price?: Prisma.SortOrder
   stock?: Prisma.SortOrder
   image_url?: Prisma.SortOrder
+  image_file_id?: Prisma.SortOrder
   featured?: Prisma.SortOrder
   sales_count?: Prisma.SortOrder
   is_active?: Prisma.SortOrder
@@ -487,6 +507,7 @@ export type RetailProductMaxOrderByAggregateInput = {
   price?: Prisma.SortOrder
   stock?: Prisma.SortOrder
   image_url?: Prisma.SortOrder
+  image_file_id?: Prisma.SortOrder
   featured?: Prisma.SortOrder
   sales_count?: Prisma.SortOrder
   is_active?: Prisma.SortOrder
@@ -502,6 +523,7 @@ export type RetailProductMinOrderByAggregateInput = {
   price?: Prisma.SortOrder
   stock?: Prisma.SortOrder
   image_url?: Prisma.SortOrder
+  image_file_id?: Prisma.SortOrder
   featured?: Prisma.SortOrder
   sales_count?: Prisma.SortOrder
   is_active?: Prisma.SortOrder
@@ -525,6 +547,7 @@ export type RetailProductSelect<ExtArgs extends runtime.Types.Extensions.Interna
   price?: boolean
   stock?: boolean
   image_url?: boolean
+  image_file_id?: boolean
   featured?: boolean
   sales_count?: boolean
   is_active?: boolean
@@ -540,6 +563,7 @@ export type RetailProductSelectCreateManyAndReturn<ExtArgs extends runtime.Types
   price?: boolean
   stock?: boolean
   image_url?: boolean
+  image_file_id?: boolean
   featured?: boolean
   sales_count?: boolean
   is_active?: boolean
@@ -555,6 +579,7 @@ export type RetailProductSelectUpdateManyAndReturn<ExtArgs extends runtime.Types
   price?: boolean
   stock?: boolean
   image_url?: boolean
+  image_file_id?: boolean
   featured?: boolean
   sales_count?: boolean
   is_active?: boolean
@@ -570,6 +595,7 @@ export type RetailProductSelectScalar = {
   price?: boolean
   stock?: boolean
   image_url?: boolean
+  image_file_id?: boolean
   featured?: boolean
   sales_count?: boolean
   is_active?: boolean
@@ -577,7 +603,7 @@ export type RetailProductSelectScalar = {
   updated_at?: boolean
 }
 
-export type RetailProductOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "name" | "category" | "description" | "price" | "stock" | "image_url" | "featured" | "sales_count" | "is_active" | "created_at" | "updated_at", ExtArgs["result"]["retailProduct"]>
+export type RetailProductOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "name" | "category" | "description" | "price" | "stock" | "image_url" | "image_file_id" | "featured" | "sales_count" | "is_active" | "created_at" | "updated_at", ExtArgs["result"]["retailProduct"]>
 
 export type $RetailProductPayload<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   name: "RetailProduct"
@@ -590,6 +616,7 @@ export type $RetailProductPayload<ExtArgs extends runtime.Types.Extensions.Inter
     price: runtime.Decimal
     stock: number
     image_url: string | null
+    image_file_id: string | null
     featured: boolean
     sales_count: number
     is_active: boolean
@@ -1025,6 +1052,7 @@ export interface RetailProductFieldRefs {
   readonly price: Prisma.FieldRef<"RetailProduct", 'Decimal'>
   readonly stock: Prisma.FieldRef<"RetailProduct", 'Int'>
   readonly image_url: Prisma.FieldRef<"RetailProduct", 'String'>
+  readonly image_file_id: Prisma.FieldRef<"RetailProduct", 'String'>
   readonly featured: Prisma.FieldRef<"RetailProduct", 'Boolean'>
   readonly sales_count: Prisma.FieldRef<"RetailProduct", 'Int'>
   readonly is_active: Prisma.FieldRef<"RetailProduct", 'Boolean'>

@@ -3,6 +3,9 @@ import prisma from "@/lib/prisma";
 import { mintCheckinToken, type CheckinKind } from "@/lib/checkinToken";
 import { checkinTokenExp } from "@/lib/checkinWindow";
 import { putObject, isS3Configured } from "@/lib/s3";
+import { logger } from "@/lib/logger";
+
+const log = logger.child({ module: "checkinQr" });
 
 const KINDS: CheckinKind[] = ["instructor", "member"];
 
@@ -49,7 +52,7 @@ async function buildQr(
     });
     return { token, imageUrl: file.url, fileId: file.id };
   } catch (err) {
-    console.error("[checkinQr] S3 upload failed, falling back to inline data URL", err);
+    log.error({ err, scheduleId, kind }, "S3 upload failed, falling back to inline data URL");
     return { token, imageUrl: dataUrl, fileId: null };
   }
 }

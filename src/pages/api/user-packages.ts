@@ -11,8 +11,10 @@ import {
 } from "@/lib/couponHelpers";
 import type { Coupon } from "@/generated/prisma/client";
 import { linkRazorpayOrderToUserPackageTx } from "@/lib/razorpayPersistence";
+import { requestLogger } from "@/lib/logger";
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
+  const log = requestLogger(req, res);
   const session = await getStudioServerSession(req, res);
   if (!session?.user) return res.status(401).json({ error: "Unauthorized" });
 
@@ -155,7 +157,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         userId,
         packageType: userPackage.package_type,
         expirationDate: userPackage.expiration_date,
-      }).catch((err) => console.error("[user-packages] notifyPackagePurchase:", err));
+      }).catch((err) => log.error({ err, userId, packageTypeId: userPackage.package_type_id }, "notifyPackagePurchase failed"));
 
       return res.status(201).json(userPackage);
     } catch (e) {
@@ -189,7 +191,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
             "Online payment could not be linked to this purchase. Contact support if you were charged.",
         });
       }
-      console.error("[user-packages] POST", e);
+      log.error({ err: e, userId }, "user-packages POST failed");
       return res.status(500).json({ error: "Could not complete purchase" });
     }
   }

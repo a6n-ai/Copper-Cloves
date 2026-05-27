@@ -9,6 +9,7 @@ import type {
   PendingPackageCheckout,
   PendingRazorpayCheckout,
 } from "@/lib/pendingRazorpayCheckout";
+import { requestLogger } from "@/lib/logger";
 
 function isPendingBooking(raw: unknown): raw is PendingBookingCheckout {
   if (!raw || typeof raw !== "object") return false;
@@ -35,6 +36,7 @@ function isPendingPackage(raw: unknown): raw is PendingPackageCheckout {
  * Completes booking/package after Razorpay test redirect when browser signature params are missing.
  */
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
+  const log = requestLogger(req, res);
   if (req.method !== "POST") return res.status(405).end();
 
   const session = await getStudioServerSession(req, res);
@@ -50,14 +52,16 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   try {
     if (pending.purpose === "booking") {
       const { bookingId } = await finishBookingCheckoutOnServer(userId, pending);
+      log.info({ userId, bookingId, razorpayOrderId: pending.razorpayOrderId }, "booking checkout finished");
       return res.json({ ok: true, purpose: "booking", bookingId });
     }
 
     await finishPackageCheckoutOnServer(userId, pending);
+    log.info({ userId, razorpayOrderId: pending.razorpayOrderId }, "package checkout finished");
     return res.json({ ok: true, purpose: "package" });
   } catch (e) {
     const msg = e instanceof Error ? e.message : String(e);
-    console.error("[razorpay/finish-checkout]", e);
+    log.error({ err: e, userId, purpose: pending.purpose, razorpayOrderId: pending.razorpayOrderId }, "finish-checkout failed");
 
     if (msg === "PAYMENT_NOT_FOUND") {
       return res.status(400).json({

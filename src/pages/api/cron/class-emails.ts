@@ -10,8 +10,10 @@
 import type { NextApiRequest, NextApiResponse } from "next";
 import { getStudioServerSession } from "@/lib/getStudioServerSession";
 import { sendDueClassReminders, sendDueInstructorRosters } from "@/lib/notifications/scheduledClassEmails";
+import { requestLogger } from "@/lib/logger";
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
+  const log = requestLogger(req, res);
   if (req.method !== "GET" && req.method !== "POST") return res.status(405).end();
 
   const secret = process.env.CRON_SECRET;
@@ -30,9 +32,11 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       sendDueClassReminders(),
       sendDueInstructorRosters(),
     ]);
-    return res.json({ ok: true, reminders, rosters, durationMs: Date.now() - startedAt });
+    const durationMs = Date.now() - startedAt;
+    log.info({ reminders, rosters, durationMs }, "class-emails cron complete");
+    return res.json({ ok: true, reminders, rosters, durationMs });
   } catch (e) {
-    console.error("[cron/class-emails] failed", e);
+    log.error({ err: e }, "cron class-emails failed");
     return res.status(500).json({ error: "Class emails dispatch failed" });
   }
 }

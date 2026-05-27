@@ -579,11 +579,17 @@ async function fetchPayoutData() {
     }
   }
 
-  const uploadImage = async (file: File): Promise<string | null> => {
+  const uploadImage = async (
+    file: File,
+    purpose: "instructor_photo" | "class_image",
+    ownerId?: string,
+  ): Promise<{ url: string; fileId: string | null } | null> => {
     try {
       setUploadingImage(true);
       const fd = new FormData();
       fd.append("file", file);
+      fd.append("purpose", purpose);
+      if (ownerId) fd.append("ownerId", ownerId);
       const res = await fetch("/api/upload", { method: "POST", body: fd, credentials: "same-origin" });
       const data = await res.json().catch(() => ({}));
       if (!res.ok) {
@@ -595,7 +601,7 @@ async function fetchPayoutData() {
         toast.error("Upload response was invalid.");
         return null;
       }
-      return data.url;
+      return { url: data.url, fileId: typeof data.fileId === "string" ? data.fileId : null };
     } catch (error) {
       console.error("Error uploading image:", error);
       toast.error("Failed to upload image. Please try again.");
@@ -604,9 +610,6 @@ async function fetchPayoutData() {
       setUploadingImage(false);
     }
   };
-
-  const handleImageUpload = uploadImage;
-  const handleClassImageUpload = uploadImage;
 
   async function handleAdminCreateUser() {
     if (!newUserForm.email.trim() || !newUserForm.password) {
@@ -775,16 +778,18 @@ async function fetchPayoutData() {
     // Handle image upload
     const imageFile = formData.get("class-image") as File;
     let imageUrl = cdnUrl("/placeholder.jpg");
-    
+    let imageFileId: string | null = null;
+
     if (imageFile && imageFile.size > 0) {
-      const uploadedUrl = await handleClassImageUpload(imageFile);
-      if (uploadedUrl) {
-        imageUrl = uploadedUrl;
+      const uploaded = await uploadImage(imageFile, "class_image");
+      if (uploaded) {
+        imageUrl = uploaded.url;
+        imageFileId = uploaded.fileId;
       } else {
         return;
       }
     }
-    
+
     try {
       const res = await fetch("/api/admin/classes", {
         method: "POST",
@@ -799,6 +804,7 @@ async function fetchPayoutData() {
           instructor_id: formData.get("instructor") as string,
           display_order: parseInt(formData.get("display-order") as string) || 0,
           image_url: imageUrl,
+          image_file_id: imageFileId,
         }),
       });
       if (!res.ok) throw new Error("Failed to create class");
@@ -828,14 +834,16 @@ async function fetchPayoutData() {
     // Handle image upload if new image selected
     const imageFile = formData.get("edit-class-image") as File;
     let imageUrl = selectedClass.image_url;
-    
+    let imageFileId: string | null | undefined = undefined;
+
     if (imageFile && imageFile.size > 0) {
-      const uploadedUrl = await handleClassImageUpload(imageFile);
-      if (uploadedUrl) {
-        imageUrl = uploadedUrl;
+      const uploaded = await uploadImage(imageFile, "class_image", selectedClass.id);
+      if (uploaded) {
+        imageUrl = uploaded.url;
+        imageFileId = uploaded.fileId;
       }
     }
-    
+
     try {
       const res = await fetch("/api/admin/classes", {
         method: "PUT",
@@ -849,6 +857,7 @@ async function fetchPayoutData() {
           duration: parseInt(formData.get("edit-duration") as string),
           max_capacity: parseInt(formData.get("edit-capacity") as string),
           image_url: imageUrl,
+          ...(imageFileId !== undefined ? { image_file_id: imageFileId } : {}),
         }),
       });
       if (!res.ok) throw new Error("Update failed");
@@ -898,14 +907,16 @@ async function fetchPayoutData() {
     // Handle image upload
     const imageFile = formData.get("instructor-image") as File;
     let imageUrl = cdnUrl("/placeholder.jpg");
-    
+    let imageFileId: string | null = null;
+
     if (imageFile && imageFile.size > 0) {
-      const uploadedUrl = await handleImageUpload(imageFile);
-      if (uploadedUrl) {
-        imageUrl = uploadedUrl;
+      const uploaded = await uploadImage(imageFile, "instructor_photo");
+      if (uploaded) {
+        imageUrl = uploaded.url;
+        imageFileId = uploaded.fileId;
       }
     }
-    
+
     try {
       const res = await fetch("/api/admin/instructors", {
         method: "POST",
@@ -930,6 +941,7 @@ async function fetchPayoutData() {
           social_linkedin: formData.get("social-linkedin") as string,
           social_whatsapp: formData.get("social-whatsapp") as string,
           image_url: imageUrl,
+          image_file_id: imageFileId,
         }),
       });
       if (!res.ok) throw new Error("Create instructor failed");
@@ -962,14 +974,16 @@ async function fetchPayoutData() {
     // Handle image upload if new image selected
     const imageFile = formData.get("edit-instructor-image") as File;
     let imageUrl = selectedInstructorData.image_url;
-    
+    let imageFileId: string | null | undefined = undefined;
+
     if (imageFile && imageFile.size > 0) {
-      const uploadedUrl = await handleImageUpload(imageFile);
-      if (uploadedUrl) {
-        imageUrl = uploadedUrl;
+      const uploaded = await uploadImage(imageFile, "instructor_photo", selectedInstructorData.id);
+      if (uploaded) {
+        imageUrl = uploaded.url;
+        imageFileId = uploaded.fileId;
       }
     }
-    
+
     try {
       const res = await fetch("/api/admin/instructors", {
         method: "PUT",
@@ -995,6 +1009,7 @@ async function fetchPayoutData() {
           social_linkedin: formData.get("edit-social-linkedin") as string,
           social_whatsapp: formData.get("edit-social-whatsapp") as string,
           image_url: imageUrl,
+          ...(imageFileId !== undefined ? { image_file_id: imageFileId } : {}),
         }),
       });
       if (!res.ok) throw new Error("Update failed");

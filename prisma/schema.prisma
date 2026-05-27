@@ -16,6 +16,7 @@ model Profile {
   phone          String?
   whatsapp_phone String?
   avatar_url     String?
+  avatar_file_id String?  @unique
   movement_streak      Int      @default(0)
   pass_type            String?
   hashedPassword       String?
@@ -126,6 +127,7 @@ model RetailProduct {
   price       Decimal  @db.Decimal(10, 2)
   stock       Int      @default(0)
   image_url   String?
+  image_file_id String? @unique
   featured    Boolean  @default(false)
   sales_count Int      @default(0)
   is_active   Boolean  @default(true)
@@ -169,6 +171,7 @@ model Instructor {
   /// Percent of class check-in revenue retained by the studio (0–100). Instructor share = 100 − this. Not public.
   studio_payout_cut_percent Decimal? @db.Decimal(5, 2)
   image_url          String?
+  image_file_id      String?  @unique
   about              String?
   philosophy         String?
   specialties        String[]
@@ -203,6 +206,7 @@ model ClassModel {
   duration      Int
   max_capacity  Int      @default(15)
   image_url     String?
+  image_file_id String?  @unique
   display_order Int?
   instructor_id String?
   /// When set, this class is run by an external partner/brand (rented slot) — its bookings need partner sign-off.
@@ -537,6 +541,7 @@ model CafeItem {
   description  String?
   price        Decimal  @db.Decimal(10, 2)
   image_url    String?
+  image_file_id String? @unique
   is_available Boolean  @default(true)
   created_at   DateTime @default(now())
   updated_at   DateTime @default(now()) @updatedAt

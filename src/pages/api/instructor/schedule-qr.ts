@@ -3,6 +3,7 @@ import prisma from "@/lib/prisma";
 import { getInstructorSession } from "@/lib/instructorAuth";
 import { ensureScheduleQrCodes } from "@/lib/checkinQr";
 import { withinCheckinWindow } from "@/lib/checkinWindow";
+import { requestLogger } from "@/lib/logger";
 
 /**
  * Instructor: fetch / force-refresh QR for a class they own.
@@ -11,6 +12,7 @@ import { withinCheckinWindow } from "@/lib/checkinWindow";
  * actual_instructor_id matches their own instructor row.
  */
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
+  const log = requestLogger(req, res);
   if (req.method !== "GET" && req.method !== "POST") return res.status(405).end();
   const instructor = await getInstructorSession(req, res);
   if (!instructor) return res.status(401).json({ error: "Unauthorized" });
@@ -36,7 +38,13 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   if (!ownsClass) return res.status(403).json({ error: "Not your class" });
 
   const force = req.method === "POST";
-  const qrs = await ensureScheduleQrCodes(schedule.id, { force });
+  let qrs;
+  try {
+    qrs = await ensureScheduleQrCodes(schedule.id, { force });
+  } catch (err) {
+    log.error({ err, scheduleId: schedule.id, instructorId: instructor.instructorId }, "instructor schedule-qr failed");
+    throw err;
+  }
   const opensAt = new Date(schedule.start_time.getTime() - 30 * 60 * 1000);
   return res.json({
     instructorQrUrl: qrs.instructor.imageUrl,

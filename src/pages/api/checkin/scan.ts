@@ -5,15 +5,22 @@ import { withinCheckinWindow } from "@/lib/checkinWindow";
 import { getInstructorSession } from "@/lib/instructorAuth";
 import { getStudioServerSession } from "@/lib/getStudioServerSession";
 import { checkInOutcomeFromTimes } from "@/lib/bookingAttendance";
+import { requestLogger } from "@/lib/logger";
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
+  const log = requestLogger(req, res);
   if (req.method !== "POST") return res.status(405).end();
   const { token } = req.body as { token?: string };
-  if (!token) return res.status(400).json({ error: "token required" });
+  if (!token) {
+    log.warn("checkin scan missing token");
+    return res.status(400).json({ error: "token required" });
+  }
 
   const payload = verifyCheckinToken(token);
-  if (!payload)
+  if (!payload) {
+    log.warn("checkin scan invalid token");
     return res.status(400).json({ error: "Invalid or expired QR. Ask the desk for a fresh code." });
+  }
 
   const schedule = await prisma.classSchedule.findUnique({
     where: { id: payload.scheduleId },
@@ -27,7 +34,10 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       class_model: { select: { max_capacity: true } },
     },
   });
-  if (!schedule) return res.status(404).json({ error: "Class not found" });
+  if (!schedule) {
+    log.warn({ scheduleId: payload.scheduleId }, "checkin schedule not found");
+    return res.status(404).json({ error: "Class not found" });
+  }
   if (schedule.status === "cancelled") return res.status(400).json({ error: "Class is cancelled" });
   if (!withinCheckinWindow(schedule.start_time))
     return res.status(400).json({ error: "Check-in window is closed for this class." });
@@ -36,14 +46,17 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   if (payload.kind === "instructor") {
     const inst = await getInstructorSession(req, res);
     if (!inst) return res.status(401).json({ error: "Sign in as instructor first" });
-    if (schedule.instructor_id !== inst.instructorId)
+    if (schedule.instructor_id !== inst.instructorId) {
+      log.warn({ instructorId: inst.instructorId, scheduleId: schedule.id }, "instructor wrong class");
       return res.status(403).json({ error: "This is not your class" });
+    }
     if (schedule.instructor_check_in_time)
       return res.json({ ok: true, kind: "instructor", status: "already" });
     await prisma.classSchedule.update({
       where: { id: schedule.id },
       data: { instructor_check_in_time: new Date() },
     });
+    log.info({ instructorId: inst.instructorId, scheduleId: schedule.id }, "instructor checked in");
     return res.json({ ok: true, kind: "instructor", status: "checked_in" });
   }
 
@@ -70,6 +83,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         check_in_outcome: checkInOutcomeFromTimes(schedule.start_time, now),
       },
     });
+    log.info({ userId, bookingId: existing.id, scheduleId: schedule.id }, "member checked in");
     return res.json({ ok: true, kind: "member", status: "checked_in" });
   }
 
@@ -84,8 +98,10 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   const creditPass = activePackages.find(
     (p) => !p.package_type?.is_unlimited && (p.credits_remaining ?? 0) >= 1,
   );
-  if (!unlimited && !creditPass)
+  if (!unlimited && !creditPass) {
+    log.warn({ userId, scheduleId: schedule.id }, "walk-in blocked no pass");
     return res.status(402).json({ error: "No active pass with credits. Please buy a package." });
+  }
 
   // Live seat count (booker = 1 seat each, + their extra guests).
   const cap = schedule.capacity ?? schedule.class_model?.max_capacity ?? 0;
@@ -94,38 +110,47 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     select: { extra_guest_count: true },
   });
   const seatsTaken = seatRows.reduce((s, r) => s + 1 + Math.max(0, r.extra_guest_count ?? 0), 0);
-  if (cap > 0 && seatsTaken + 1 > cap) return res.status(400).json({ error: "Class is full" });
+  if (cap > 0 && seatsTaken + 1 > cap) {
+    log.warn({ scheduleId: schedule.id, cap, seatsTaken }, "walk-in blocked class full");
+    return res.status(400).json({ error: "Class is full" });
+  }
 
   const usePackageId = unlimited ? null : creditPass!.id;
 
-  await prisma.$transaction(async (tx) => {
-    if (usePackageId) {
-      const upd = await tx.userPackage.updateMany({
-        where: { id: usePackageId, user_id: userId, credits_remaining: { gte: 1 } },
-        data: { credits_remaining: { decrement: 1 } },
+  try {
+    await prisma.$transaction(async (tx) => {
+      if (usePackageId) {
+        const upd = await tx.userPackage.updateMany({
+          where: { id: usePackageId, user_id: userId, credits_remaining: { gte: 1 } },
+          data: { credits_remaining: { decrement: 1 } },
+        });
+        if (upd.count !== 1) throw new Error("NO_CREDITS");
+      }
+      await tx.booking.create({
+        data: {
+          user_id: userId,
+          class_schedule_id: schedule.id,
+          user_package_id: usePackageId,
+          status: "confirmed",
+          booking_date: now,
+          checked_in: true,
+          check_in_time: now,
+          check_in_outcome: checkInOutcomeFromTimes(schedule.start_time, now),
+        },
       });
-      if (upd.count !== 1) throw new Error("NO_CREDITS");
-    }
-    await tx.booking.create({
-      data: {
-        user_id: userId,
-        class_schedule_id: schedule.id,
-        user_package_id: usePackageId,
-        status: "confirmed",
-        booking_date: now,
-        checked_in: true,
-        check_in_time: now,
-        check_in_outcome: checkInOutcomeFromTimes(schedule.start_time, now),
-      },
+      if (cap > 0) {
+        const occupied = seatsTaken + 1;
+        await tx.classSchedule.update({
+          where: { id: schedule.id },
+          data: { current_bookings: occupied, available_spots: Math.max(0, cap - occupied) },
+        });
+      }
     });
-    if (cap > 0) {
-      const occupied = seatsTaken + 1;
-      await tx.classSchedule.update({
-        where: { id: schedule.id },
-        data: { current_bookings: occupied, available_spots: Math.max(0, cap - occupied) },
-      });
-    }
-  });
+  } catch (err) {
+    log.error({ err, userId, scheduleId: schedule.id }, "walk-in checkin tx failed");
+    throw err;
+  }
 
+  log.info({ userId, scheduleId: schedule.id, usedPackageId: usePackageId }, "walk-in checked in");
   return res.json({ ok: true, kind: "member", status: "walk_in_checked_in" });
 }

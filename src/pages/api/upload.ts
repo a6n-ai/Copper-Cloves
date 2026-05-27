@@ -4,7 +4,9 @@ import formidable from "formidable";
 import fs from "fs";
 import os from "os";
 import path from "path";
+import prisma from "@/lib/prisma";
 import { getStudioServerSession } from "@/lib/getStudioServerSession";
+import { buildS3Key, extFromContentType, S3_PURPOSE, type S3Purpose } from "@/lib/s3Paths";
 
 export const config = {
   api: { bodyParser: false },
@@ -17,6 +19,18 @@ function isS3Configured(): boolean {
     process.env.S3_SECRET_ACCESS_KEY &&
     process.env.S3_REGION,
   );
+}
+
+function firstField(v: string | string[] | undefined): string | undefined {
+  if (Array.isArray(v)) return v[0];
+  return v;
+}
+
+function resolvePurpose(raw: string | undefined): S3Purpose {
+  if (raw && (Object.values(S3_PURPOSE) as string[]).includes(raw)) {
+    return raw as S3Purpose;
+  }
+  return S3_PURPOSE.generic_upload;
 }
 
 function isServerlessUploadRuntime(): boolean {
@@ -56,12 +70,16 @@ function resolveImageMime(file: {
 
 const MAX_DATA_URL_IMAGE_BYTES = 4 * 1024 * 1024;
 
-async function uploadToS3(buf: Buffer, mime: string, originalName: string): Promise<string> {
+async function uploadToS3(
+  buf: Buffer,
+  mime: string,
+  purpose: S3Purpose,
+  ownerId: string | undefined,
+): Promise<{ url: string; key: string; bucket: string }> {
   const { S3Client, PutObjectCommand } = await import("@aws-sdk/client-s3");
   const bucket = process.env.S3_BUCKET!;
   const region = process.env.S3_REGION!;
-  const ext = mime === "image/jpeg" ? "jpg" : (mime.split("/")[1] ?? "jpg");
-  const key = `uploads/${Date.now()}-${Math.random().toString(36).slice(2)}.${ext}`;
+  const key = buildS3Key({ purpose, ownerId, ext: extFromContentType(mime) });
   const client = new S3Client({
     region,
     credentials: {
@@ -78,7 +96,7 @@ async function uploadToS3(buf: Buffer, mime: string, originalName: string): Prom
   const publicUrl = process.env.S3_PUBLIC_URL
     ? `${process.env.S3_PUBLIC_URL.replace(/\/$/, "")}/${key}`
     : `https://${bucket}.s3.${region}.amazonaws.com/${key}`;
-  return publicUrl;
+  return { url: publicUrl, key, bucket };
 }
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
@@ -97,7 +115,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     maxFileSize: 10 * 1024 * 1024,
   });
 
-  form.parse(req, async (err, _fields, files) => {
+  form.parse(req, async (err, fields, files) => {
     if (err) return res.status(500).json({ error: "Upload failed" });
 
     const fileArray = Array.isArray(files.file) ? files.file : [files.file];
@@ -109,6 +127,10 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       return res.status(400).json({ error: "File must be an image." });
     }
 
+    const purpose = resolvePurpose(firstField(fields.purpose));
+    const ownerId = firstField(fields.ownerId)?.trim() || undefined;
+    const adminId = (session!.user as { id?: string }).id ?? null;
+
     try {
       const buf = fs.readFileSync(file.filepath);
       try { fs.unlinkSync(file.filepath); } catch { /* ignore */ }
@@ -116,31 +138,42 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       // S3 — preferred when configured (works on all environments)
       if (s3) {
         try {
-          const url = await uploadToS3(buf, mime, file.originalFilename ?? "image");
-          return res.json({ url });
+          const up = await uploadToS3(buf, mime, purpose, ownerId);
+          const fileRow = await prisma.file.create({
+            data: {
+              bucket: up.bucket,
+              s3_key: up.key,
+              url: up.url,
+              content_type: mime,
+              size_bytes: buf.length,
+              purpose,
+              created_by: adminId,
+            },
+          });
+          return res.json({ url: up.url, fileId: fileRow.id });
         } catch (e) {
           console.error("S3 upload failed", e);
           return res.status(500).json({ error: "S3 upload failed. Check AWS credentials and bucket policy." });
         }
       }
 
-      // Serverless fallback — data URL (no S3 configured)
+      // Serverless fallback — data URL (no S3 configured). No File row (no durable key).
       if (serverless) {
         if (buf.length > MAX_DATA_URL_IMAGE_BYTES) {
           return res.status(413).json({
             error: `Image too large (max ${MAX_DATA_URL_IMAGE_BYTES / (1024 * 1024)}MB). Configure S3 for larger uploads.`,
           });
         }
-        return res.json({ url: `data:${mime};base64,${buf.toString("base64")}` });
+        return res.json({ url: `data:${mime};base64,${buf.toString("base64")}`, fileId: null });
       }
 
-      // Local dev — save to public/uploads/
+      // Local dev — save to public/uploads/. No File row (local path, not S3-backed).
       const localDir = path.join(process.cwd(), "public", "uploads");
       if (!fs.existsSync(localDir)) fs.mkdirSync(localDir, { recursive: true });
       const ext = mime === "image/jpeg" ? "jpg" : (mime.split("/")[1] ?? "jpg");
       const filename = `${Date.now()}-${Math.random().toString(36).slice(2)}.${ext}`;
       fs.writeFileSync(path.join(localDir, filename), buf);
-      return res.json({ url: `/uploads/${filename}` });
+      return res.json({ url: `/uploads/${filename}`, fileId: null });
     } catch (e) {
       console.error("upload failed", e);
       return res.status(500).json({ error: "Upload failed" });

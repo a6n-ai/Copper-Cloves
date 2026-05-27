@@ -41,6 +41,7 @@ export type ProfileMinAggregateOutputType = {
   phone: string | null
   whatsapp_phone: string | null
   avatar_url: string | null
+  avatar_file_id: string | null
   movement_streak: number | null
   pass_type: string | null
   hashedPassword: string | null
@@ -61,6 +62,7 @@ export type ProfileMaxAggregateOutputType = {
   phone: string | null
   whatsapp_phone: string | null
   avatar_url: string | null
+  avatar_file_id: string | null
   movement_streak: number | null
   pass_type: string | null
   hashedPassword: string | null
@@ -81,6 +83,7 @@ export type ProfileCountAggregateOutputType = {
   phone: number
   whatsapp_phone: number
   avatar_url: number
+  avatar_file_id: number
   movement_streak: number
   pass_type: number
   hashedPassword: number
@@ -112,6 +115,7 @@ export type ProfileMinAggregateInputType = {
   phone?: true
   whatsapp_phone?: true
   avatar_url?: true
+  avatar_file_id?: true
   movement_streak?: true
   pass_type?: true
   hashedPassword?: true
@@ -132,6 +136,7 @@ export type ProfileMaxAggregateInputType = {
   phone?: true
   whatsapp_phone?: true
   avatar_url?: true
+  avatar_file_id?: true
   movement_streak?: true
   pass_type?: true
   hashedPassword?: true
@@ -152,6 +157,7 @@ export type ProfileCountAggregateInputType = {
   phone?: true
   whatsapp_phone?: true
   avatar_url?: true
+  avatar_file_id?: true
   movement_streak?: true
   pass_type?: true
   hashedPassword?: true
@@ -260,6 +266,7 @@ export type ProfileGroupByOutputType = {
   phone: string | null
   whatsapp_phone: string | null
   avatar_url: string | null
+  avatar_file_id: string | null
   movement_streak: number
   pass_type: string | null
   hashedPassword: string | null
@@ -304,6 +311,7 @@ export type ProfileWhereInput = {
   phone?: Prisma.StringNullableFilter<"Profile"> | string | null
   whatsapp_phone?: Prisma.StringNullableFilter<"Profile"> | string | null
   avatar_url?: Prisma.StringNullableFilter<"Profile"> | string | null
+  avatar_file_id?: Prisma.StringNullableFilter<"Profile"> | string | null
   movement_streak?: Prisma.IntFilter<"Profile"> | number
   pass_type?: Prisma.StringNullableFilter<"Profile"> | string | null
   hashedPassword?: Prisma.StringNullableFilter<"Profile"> | string | null
@@ -345,6 +353,7 @@ export type ProfileOrderByWithRelationInput = {
   phone?: Prisma.SortOrderInput | Prisma.SortOrder
   whatsapp_phone?: Prisma.SortOrderInput | Prisma.SortOrder
   avatar_url?: Prisma.SortOrderInput | Prisma.SortOrder
+  avatar_file_id?: Prisma.SortOrderInput | Prisma.SortOrder
   movement_streak?: Prisma.SortOrder
   pass_type?: Prisma.SortOrderInput | Prisma.SortOrder
   hashedPassword?: Prisma.SortOrderInput | Prisma.SortOrder
@@ -381,6 +390,7 @@ export type ProfileOrderByWithRelationInput = {
 
 export type ProfileWhereUniqueInput = Prisma.AtLeast<{
   id?: string
+  avatar_file_id?: string
   email_role?: Prisma.ProfileEmailRoleCompoundUniqueInput
   AND?: Prisma.ProfileWhereInput | Prisma.ProfileWhereInput[]
   OR?: Prisma.ProfileWhereInput[]
@@ -422,7 +432,7 @@ export type ProfileWhereUniqueInput = Prisma.AtLeast<{
   payments?: Prisma.PaymentListRelationFilter
   recorded_payments?: Prisma.PaymentListRelationFilter
   session?: Prisma.XOR<Prisma.UserSessionNullableScalarRelationFilter, Prisma.UserSessionWhereInput> | null
-}, "id" | "email_role">
+}, "id" | "avatar_file_id" | "email_role">
 
 export type ProfileOrderByWithAggregationInput = {
   id?: Prisma.SortOrder
@@ -431,6 +441,7 @@ export type ProfileOrderByWithAggregationInput = {
   phone?: Prisma.SortOrderInput | Prisma.SortOrder
   whatsapp_phone?: Prisma.SortOrderInput | Prisma.SortOrder
   avatar_url?: Prisma.SortOrderInput | Prisma.SortOrder
+  avatar_file_id?: Prisma.SortOrderInput | Prisma.SortOrder
   movement_streak?: Prisma.SortOrder
   pass_type?: Prisma.SortOrderInput | Prisma.SortOrder
   hashedPassword?: Prisma.SortOrderInput | Prisma.SortOrder
@@ -460,6 +471,7 @@ export type ProfileScalarWhereWithAggregatesInput = {
   phone?: Prisma.StringNullableWithAggregatesFilter<"Profile"> | string | null
   whatsapp_phone?: Prisma.StringNullableWithAggregatesFilter<"Profile"> | string | null
   avatar_url?: Prisma.StringNullableWithAggregatesFilter<"Profile"> | string | null
+  avatar_file_id?: Prisma.StringNullableWithAggregatesFilter<"Profile"> | string | null
   movement_streak?: Prisma.IntWithAggregatesFilter<"Profile"> | number
   pass_type?: Prisma.StringNullableWithAggregatesFilter<"Profile"> | string | null
   hashedPassword?: Prisma.StringNullableWithAggregatesFilter<"Profile"> | string | null
@@ -481,6 +493,7 @@ export type ProfileCreateInput = {
   phone?: string | null
   whatsapp_phone?: string | null
   avatar_url?: string | null
+  avatar_file_id?: string | null
   movement_streak?: number
   pass_type?: string | null
   hashedPassword?: string | null
@@ -522,6 +535,7 @@ export type ProfileUncheckedCreateInput = {
   phone?: string | null
   whatsapp_phone?: string | null
   avatar_url?: string | null
+  avatar_file_id?: string | null
   movement_streak?: number
   pass_type?: string | null
   hashedPassword?: string | null
@@ -563,6 +577,7 @@ export type ProfileUpdateInput = {
   phone?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   whatsapp_phone?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   avatar_url?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  avatar_file_id?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   movement_streak?: Prisma.IntFieldUpdateOperationsInput | number
   pass_type?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   hashedPassword?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -604,6 +619,7 @@ export type ProfileUncheckedUpdateInput = {
   phone?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   whatsapp_phone?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   avatar_url?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  avatar_file_id?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   movement_streak?: Prisma.IntFieldUpdateOperationsInput | number
   pass_type?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   hashedPassword?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -645,6 +661,7 @@ export type ProfileCreateManyInput = {
   phone?: string | null
   whatsapp_phone?: string | null
   avatar_url?: string | null
+  avatar_file_id?: string | null
   movement_streak?: number
   pass_type?: string | null
   hashedPassword?: string | null
@@ -666,6 +683,7 @@ export type ProfileUpdateManyMutationInput = {
   phone?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   whatsapp_phone?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   avatar_url?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  avatar_file_id?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   movement_streak?: Prisma.IntFieldUpdateOperationsInput | number
   pass_type?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   hashedPassword?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -687,6 +705,7 @@ export type ProfileUncheckedUpdateManyInput = {
   phone?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   whatsapp_phone?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   avatar_url?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  avatar_file_id?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   movement_streak?: Prisma.IntFieldUpdateOperationsInput | number
   pass_type?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   hashedPassword?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -713,6 +732,7 @@ export type ProfileCountOrderByAggregateInput = {
   phone?: Prisma.SortOrder
   whatsapp_phone?: Prisma.SortOrder
   avatar_url?: Prisma.SortOrder
+  avatar_file_id?: Prisma.SortOrder
   movement_streak?: Prisma.SortOrder
   pass_type?: Prisma.SortOrder
   hashedPassword?: Prisma.SortOrder
@@ -738,6 +758,7 @@ export type ProfileMaxOrderByAggregateInput = {
   phone?: Prisma.SortOrder
   whatsapp_phone?: Prisma.SortOrder
   avatar_url?: Prisma.SortOrder
+  avatar_file_id?: Prisma.SortOrder
   movement_streak?: Prisma.SortOrder
   pass_type?: Prisma.SortOrder
   hashedPassword?: Prisma.SortOrder
@@ -758,6 +779,7 @@ export type ProfileMinOrderByAggregateInput = {
   phone?: Prisma.SortOrder
   whatsapp_phone?: Prisma.SortOrder
   avatar_url?: Prisma.SortOrder
+  avatar_file_id?: Prisma.SortOrder
   movement_streak?: Prisma.SortOrder
   pass_type?: Prisma.SortOrder
   hashedPassword?: Prisma.SortOrder
@@ -1114,6 +1136,7 @@ export type ProfileCreateWithoutSessionInput = {
   phone?: string | null
   whatsapp_phone?: string | null
   avatar_url?: string | null
+  avatar_file_id?: string | null
   movement_streak?: number
   pass_type?: string | null
   hashedPassword?: string | null
@@ -1154,6 +1177,7 @@ export type ProfileUncheckedCreateWithoutSessionInput = {
   phone?: string | null
   whatsapp_phone?: string | null
   avatar_url?: string | null
+  avatar_file_id?: string | null
   movement_streak?: number
   pass_type?: string | null
   hashedPassword?: string | null
@@ -1210,6 +1234,7 @@ export type ProfileUpdateWithoutSessionInput = {
   phone?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   whatsapp_phone?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   avatar_url?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  avatar_file_id?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   movement_streak?: Prisma.IntFieldUpdateOperationsInput | number
   pass_type?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   hashedPassword?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -1250,6 +1275,7 @@ export type ProfileUncheckedUpdateWithoutSessionInput = {
   phone?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   whatsapp_phone?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   avatar_url?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  avatar_file_id?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   movement_streak?: Prisma.IntFieldUpdateOperationsInput | number
   pass_type?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   hashedPassword?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -1290,6 +1316,7 @@ export type ProfileCreateWithoutCoupon_redemptionsInput = {
   phone?: string | null
   whatsapp_phone?: string | null
   avatar_url?: string | null
+  avatar_file_id?: string | null
   movement_streak?: number
   pass_type?: string | null
   hashedPassword?: string | null
@@ -1330,6 +1357,7 @@ export type ProfileUncheckedCreateWithoutCoupon_redemptionsInput = {
   phone?: string | null
   whatsapp_phone?: string | null
   avatar_url?: string | null
+  avatar_file_id?: string | null
   movement_streak?: number
   pass_type?: string | null
   hashedPassword?: string | null
@@ -1386,6 +1414,7 @@ export type ProfileUpdateWithoutCoupon_redemptionsInput = {
   phone?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   whatsapp_phone?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   avatar_url?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  avatar_file_id?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   movement_streak?: Prisma.IntFieldUpdateOperationsInput | number
   pass_type?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   hashedPassword?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -1426,6 +1455,7 @@ export type ProfileUncheckedUpdateWithoutCoupon_redemptionsInput = {
   phone?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   whatsapp_phone?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   avatar_url?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  avatar_file_id?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   movement_streak?: Prisma.IntFieldUpdateOperationsInput | number
   pass_type?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   hashedPassword?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -1466,6 +1496,7 @@ export type ProfileCreateWithoutRetail_ordersInput = {
   phone?: string | null
   whatsapp_phone?: string | null
   avatar_url?: string | null
+  avatar_file_id?: string | null
   movement_streak?: number
   pass_type?: string | null
   hashedPassword?: string | null
@@ -1506,6 +1537,7 @@ export type ProfileUncheckedCreateWithoutRetail_ordersInput = {
   phone?: string | null
   whatsapp_phone?: string | null
   avatar_url?: string | null
+  avatar_file_id?: string | null
   movement_streak?: number
   pass_type?: string | null
   hashedPassword?: string | null
@@ -1562,6 +1594,7 @@ export type ProfileUpdateWithoutRetail_ordersInput = {
   phone?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   whatsapp_phone?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   avatar_url?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  avatar_file_id?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   movement_streak?: Prisma.IntFieldUpdateOperationsInput | number
   pass_type?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   hashedPassword?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -1602,6 +1635,7 @@ export type ProfileUncheckedUpdateWithoutRetail_ordersInput = {
   phone?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   whatsapp_phone?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   avatar_url?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  avatar_file_id?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   movement_streak?: Prisma.IntFieldUpdateOperationsInput | number
   pass_type?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   hashedPassword?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -1642,6 +1676,7 @@ export type ProfileCreateWithoutInstructor_accountInput = {
   phone?: string | null
   whatsapp_phone?: string | null
   avatar_url?: string | null
+  avatar_file_id?: string | null
   movement_streak?: number
   pass_type?: string | null
   hashedPassword?: string | null
@@ -1682,6 +1717,7 @@ export type ProfileUncheckedCreateWithoutInstructor_accountInput = {
   phone?: string | null
   whatsapp_phone?: string | null
   avatar_url?: string | null
+  avatar_file_id?: string | null
   movement_streak?: number
   pass_type?: string | null
   hashedPassword?: string | null
@@ -1738,6 +1774,7 @@ export type ProfileUpdateWithoutInstructor_accountInput = {
   phone?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   whatsapp_phone?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   avatar_url?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  avatar_file_id?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   movement_streak?: Prisma.IntFieldUpdateOperationsInput | number
   pass_type?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   hashedPassword?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -1778,6 +1815,7 @@ export type ProfileUncheckedUpdateWithoutInstructor_accountInput = {
   phone?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   whatsapp_phone?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   avatar_url?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  avatar_file_id?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   movement_streak?: Prisma.IntFieldUpdateOperationsInput | number
   pass_type?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   hashedPassword?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -1818,6 +1856,7 @@ export type ProfileCreateWithoutPartner_membershipsInput = {
   phone?: string | null
   whatsapp_phone?: string | null
   avatar_url?: string | null
+  avatar_file_id?: string | null
   movement_streak?: number
   pass_type?: string | null
   hashedPassword?: string | null
@@ -1858,6 +1897,7 @@ export type ProfileUncheckedCreateWithoutPartner_membershipsInput = {
   phone?: string | null
   whatsapp_phone?: string | null
   avatar_url?: string | null
+  avatar_file_id?: string | null
   movement_streak?: number
   pass_type?: string | null
   hashedPassword?: string | null
@@ -1914,6 +1954,7 @@ export type ProfileUpdateWithoutPartner_membershipsInput = {
   phone?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   whatsapp_phone?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   avatar_url?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  avatar_file_id?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   movement_streak?: Prisma.IntFieldUpdateOperationsInput | number
   pass_type?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   hashedPassword?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -1954,6 +1995,7 @@ export type ProfileUncheckedUpdateWithoutPartner_membershipsInput = {
   phone?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   whatsapp_phone?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   avatar_url?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  avatar_file_id?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   movement_streak?: Prisma.IntFieldUpdateOperationsInput | number
   pass_type?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   hashedPassword?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -1994,6 +2036,7 @@ export type ProfileCreateWithoutUser_packagesInput = {
   phone?: string | null
   whatsapp_phone?: string | null
   avatar_url?: string | null
+  avatar_file_id?: string | null
   movement_streak?: number
   pass_type?: string | null
   hashedPassword?: string | null
@@ -2034,6 +2077,7 @@ export type ProfileUncheckedCreateWithoutUser_packagesInput = {
   phone?: string | null
   whatsapp_phone?: string | null
   avatar_url?: string | null
+  avatar_file_id?: string | null
   movement_streak?: number
   pass_type?: string | null
   hashedPassword?: string | null
@@ -2090,6 +2134,7 @@ export type ProfileUpdateWithoutUser_packagesInput = {
   phone?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   whatsapp_phone?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   avatar_url?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  avatar_file_id?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   movement_streak?: Prisma.IntFieldUpdateOperationsInput | number
   pass_type?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   hashedPassword?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -2130,6 +2175,7 @@ export type ProfileUncheckedUpdateWithoutUser_packagesInput = {
   phone?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   whatsapp_phone?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   avatar_url?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  avatar_file_id?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   movement_streak?: Prisma.IntFieldUpdateOperationsInput | number
   pass_type?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   hashedPassword?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -2170,6 +2216,7 @@ export type ProfileCreateWithoutBookingsInput = {
   phone?: string | null
   whatsapp_phone?: string | null
   avatar_url?: string | null
+  avatar_file_id?: string | null
   movement_streak?: number
   pass_type?: string | null
   hashedPassword?: string | null
@@ -2210,6 +2257,7 @@ export type ProfileUncheckedCreateWithoutBookingsInput = {
   phone?: string | null
   whatsapp_phone?: string | null
   avatar_url?: string | null
+  avatar_file_id?: string | null
   movement_streak?: number
   pass_type?: string | null
   hashedPassword?: string | null
@@ -2266,6 +2314,7 @@ export type ProfileUpdateWithoutBookingsInput = {
   phone?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   whatsapp_phone?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   avatar_url?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  avatar_file_id?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   movement_streak?: Prisma.IntFieldUpdateOperationsInput | number
   pass_type?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   hashedPassword?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -2306,6 +2355,7 @@ export type ProfileUncheckedUpdateWithoutBookingsInput = {
   phone?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   whatsapp_phone?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   avatar_url?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  avatar_file_id?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   movement_streak?: Prisma.IntFieldUpdateOperationsInput | number
   pass_type?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   hashedPassword?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -2346,6 +2396,7 @@ export type ProfileCreateWithoutRazorpay_ordersInput = {
   phone?: string | null
   whatsapp_phone?: string | null
   avatar_url?: string | null
+  avatar_file_id?: string | null
   movement_streak?: number
   pass_type?: string | null
   hashedPassword?: string | null
@@ -2386,6 +2437,7 @@ export type ProfileUncheckedCreateWithoutRazorpay_ordersInput = {
   phone?: string | null
   whatsapp_phone?: string | null
   avatar_url?: string | null
+  avatar_file_id?: string | null
   movement_streak?: number
   pass_type?: string | null
   hashedPassword?: string | null
@@ -2442,6 +2494,7 @@ export type ProfileUpdateWithoutRazorpay_ordersInput = {
   phone?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   whatsapp_phone?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   avatar_url?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  avatar_file_id?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   movement_streak?: Prisma.IntFieldUpdateOperationsInput | number
   pass_type?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   hashedPassword?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -2482,6 +2535,7 @@ export type ProfileUncheckedUpdateWithoutRazorpay_ordersInput = {
   phone?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   whatsapp_phone?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   avatar_url?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  avatar_file_id?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   movement_streak?: Prisma.IntFieldUpdateOperationsInput | number
   pass_type?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   hashedPassword?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -2522,6 +2576,7 @@ export type ProfileCreateWithoutPaymentsInput = {
   phone?: string | null
   whatsapp_phone?: string | null
   avatar_url?: string | null
+  avatar_file_id?: string | null
   movement_streak?: number
   pass_type?: string | null
   hashedPassword?: string | null
@@ -2562,6 +2617,7 @@ export type ProfileUncheckedCreateWithoutPaymentsInput = {
   phone?: string | null
   whatsapp_phone?: string | null
   avatar_url?: string | null
+  avatar_file_id?: string | null
   movement_streak?: number
   pass_type?: string | null
   hashedPassword?: string | null
@@ -2607,6 +2663,7 @@ export type ProfileCreateWithoutRecorded_paymentsInput = {
   phone?: string | null
   whatsapp_phone?: string | null
   avatar_url?: string | null
+  avatar_file_id?: string | null
   movement_streak?: number
   pass_type?: string | null
   hashedPassword?: string | null
@@ -2647,6 +2704,7 @@ export type ProfileUncheckedCreateWithoutRecorded_paymentsInput = {
   phone?: string | null
   whatsapp_phone?: string | null
   avatar_url?: string | null
+  avatar_file_id?: string | null
   movement_streak?: number
   pass_type?: string | null
   hashedPassword?: string | null
@@ -2703,6 +2761,7 @@ export type ProfileUpdateWithoutPaymentsInput = {
   phone?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   whatsapp_phone?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   avatar_url?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  avatar_file_id?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   movement_streak?: Prisma.IntFieldUpdateOperationsInput | number
   pass_type?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   hashedPassword?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -2743,6 +2802,7 @@ export type ProfileUncheckedUpdateWithoutPaymentsInput = {
   phone?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   whatsapp_phone?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   avatar_url?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  avatar_file_id?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   movement_streak?: Prisma.IntFieldUpdateOperationsInput | number
   pass_type?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   hashedPassword?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -2794,6 +2854,7 @@ export type ProfileUpdateWithoutRecorded_paymentsInput = {
   phone?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   whatsapp_phone?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   avatar_url?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  avatar_file_id?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   movement_streak?: Prisma.IntFieldUpdateOperationsInput | number
   pass_type?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   hashedPassword?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -2834,6 +2895,7 @@ export type ProfileUncheckedUpdateWithoutRecorded_paymentsInput = {
   phone?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   whatsapp_phone?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   avatar_url?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  avatar_file_id?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   movement_streak?: Prisma.IntFieldUpdateOperationsInput | number
   pass_type?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   hashedPassword?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -2874,6 +2936,7 @@ export type ProfileCreateWithoutCafe_ordersInput = {
   phone?: string | null
   whatsapp_phone?: string | null
   avatar_url?: string | null
+  avatar_file_id?: string | null
   movement_streak?: number
   pass_type?: string | null
   hashedPassword?: string | null
@@ -2914,6 +2977,7 @@ export type ProfileUncheckedCreateWithoutCafe_ordersInput = {
   phone?: string | null
   whatsapp_phone?: string | null
   avatar_url?: string | null
+  avatar_file_id?: string | null
   movement_streak?: number
   pass_type?: string | null
   hashedPassword?: string | null
@@ -2970,6 +3034,7 @@ export type ProfileUpdateWithoutCafe_ordersInput = {
   phone?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   whatsapp_phone?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   avatar_url?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  avatar_file_id?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   movement_streak?: Prisma.IntFieldUpdateOperationsInput | number
   pass_type?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   hashedPassword?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -3010,6 +3075,7 @@ export type ProfileUncheckedUpdateWithoutCafe_ordersInput = {
   phone?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   whatsapp_phone?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   avatar_url?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  avatar_file_id?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   movement_streak?: Prisma.IntFieldUpdateOperationsInput | number
   pass_type?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   hashedPassword?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -3050,6 +3116,7 @@ export type ProfileCreateWithoutMeal_subscriptionsInput = {
   phone?: string | null
   whatsapp_phone?: string | null
   avatar_url?: string | null
+  avatar_file_id?: string | null
   movement_streak?: number
   pass_type?: string | null
   hashedPassword?: string | null
@@ -3090,6 +3157,7 @@ export type ProfileUncheckedCreateWithoutMeal_subscriptionsInput = {
   phone?: string | null
   whatsapp_phone?: string | null
   avatar_url?: string | null
+  avatar_file_id?: string | null
   movement_streak?: number
   pass_type?: string | null
   hashedPassword?: string | null
@@ -3146,6 +3214,7 @@ export type ProfileUpdateWithoutMeal_subscriptionsInput = {
   phone?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   whatsapp_phone?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   avatar_url?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  avatar_file_id?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   movement_streak?: Prisma.IntFieldUpdateOperationsInput | number
   pass_type?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   hashedPassword?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -3186,6 +3255,7 @@ export type ProfileUncheckedUpdateWithoutMeal_subscriptionsInput = {
   phone?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   whatsapp_phone?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   avatar_url?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  avatar_file_id?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   movement_streak?: Prisma.IntFieldUpdateOperationsInput | number
   pass_type?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   hashedPassword?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -3226,6 +3296,7 @@ export type ProfileCreateWithoutUser_statsInput = {
   phone?: string | null
   whatsapp_phone?: string | null
   avatar_url?: string | null
+  avatar_file_id?: string | null
   movement_streak?: number
   pass_type?: string | null
   hashedPassword?: string | null
@@ -3266,6 +3337,7 @@ export type ProfileUncheckedCreateWithoutUser_statsInput = {
   phone?: string | null
   whatsapp_phone?: string | null
   avatar_url?: string | null
+  avatar_file_id?: string | null
   movement_streak?: number
   pass_type?: string | null
   hashedPassword?: string | null
@@ -3322,6 +3394,7 @@ export type ProfileUpdateWithoutUser_statsInput = {
   phone?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   whatsapp_phone?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   avatar_url?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  avatar_file_id?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   movement_streak?: Prisma.IntFieldUpdateOperationsInput | number
   pass_type?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   hashedPassword?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -3362,6 +3435,7 @@ export type ProfileUncheckedUpdateWithoutUser_statsInput = {
   phone?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   whatsapp_phone?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   avatar_url?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  avatar_file_id?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   movement_streak?: Prisma.IntFieldUpdateOperationsInput | number
   pass_type?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   hashedPassword?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -3402,6 +3476,7 @@ export type ProfileCreateWithoutUser_streaksInput = {
   phone?: string | null
   whatsapp_phone?: string | null
   avatar_url?: string | null
+  avatar_file_id?: string | null
   movement_streak?: number
   pass_type?: string | null
   hashedPassword?: string | null
@@ -3442,6 +3517,7 @@ export type ProfileUncheckedCreateWithoutUser_streaksInput = {
   phone?: string | null
   whatsapp_phone?: string | null
   avatar_url?: string | null
+  avatar_file_id?: string | null
   movement_streak?: number
   pass_type?: string | null
   hashedPassword?: string | null
@@ -3498,6 +3574,7 @@ export type ProfileUpdateWithoutUser_streaksInput = {
   phone?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   whatsapp_phone?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   avatar_url?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  avatar_file_id?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   movement_streak?: Prisma.IntFieldUpdateOperationsInput | number
   pass_type?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   hashedPassword?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -3538,6 +3615,7 @@ export type ProfileUncheckedUpdateWithoutUser_streaksInput = {
   phone?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   whatsapp_phone?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   avatar_url?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  avatar_file_id?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   movement_streak?: Prisma.IntFieldUpdateOperationsInput | number
   pass_type?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   hashedPassword?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -3578,6 +3656,7 @@ export type ProfileCreateWithoutUser_badgesInput = {
   phone?: string | null
   whatsapp_phone?: string | null
   avatar_url?: string | null
+  avatar_file_id?: string | null
   movement_streak?: number
   pass_type?: string | null
   hashedPassword?: string | null
@@ -3618,6 +3697,7 @@ export type ProfileUncheckedCreateWithoutUser_badgesInput = {
   phone?: string | null
   whatsapp_phone?: string | null
   avatar_url?: string | null
+  avatar_file_id?: string | null
   movement_streak?: number
   pass_type?: string | null
   hashedPassword?: string | null
@@ -3674,6 +3754,7 @@ export type ProfileUpdateWithoutUser_badgesInput = {
   phone?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   whatsapp_phone?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   avatar_url?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  avatar_file_id?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   movement_streak?: Prisma.IntFieldUpdateOperationsInput | number
   pass_type?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   hashedPassword?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -3714,6 +3795,7 @@ export type ProfileUncheckedUpdateWithoutUser_badgesInput = {
   phone?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   whatsapp_phone?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   avatar_url?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  avatar_file_id?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   movement_streak?: Prisma.IntFieldUpdateOperationsInput | number
   pass_type?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   hashedPassword?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -3754,6 +3836,7 @@ export type ProfileCreateWithoutWaiversInput = {
   phone?: string | null
   whatsapp_phone?: string | null
   avatar_url?: string | null
+  avatar_file_id?: string | null
   movement_streak?: number
   pass_type?: string | null
   hashedPassword?: string | null
@@ -3794,6 +3877,7 @@ export type ProfileUncheckedCreateWithoutWaiversInput = {
   phone?: string | null
   whatsapp_phone?: string | null
   avatar_url?: string | null
+  avatar_file_id?: string | null
   movement_streak?: number
   pass_type?: string | null
   hashedPassword?: string | null
@@ -3850,6 +3934,7 @@ export type ProfileUpdateWithoutWaiversInput = {
   phone?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   whatsapp_phone?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   avatar_url?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  avatar_file_id?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   movement_streak?: Prisma.IntFieldUpdateOperationsInput | number
   pass_type?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   hashedPassword?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -3890,6 +3975,7 @@ export type ProfileUncheckedUpdateWithoutWaiversInput = {
   phone?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   whatsapp_phone?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   avatar_url?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  avatar_file_id?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   movement_streak?: Prisma.IntFieldUpdateOperationsInput | number
   pass_type?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   hashedPassword?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -3930,6 +4016,7 @@ export type ProfileCreateWithoutCrm_messagesInput = {
   phone?: string | null
   whatsapp_phone?: string | null
   avatar_url?: string | null
+  avatar_file_id?: string | null
   movement_streak?: number
   pass_type?: string | null
   hashedPassword?: string | null
@@ -3970,6 +4057,7 @@ export type ProfileUncheckedCreateWithoutCrm_messagesInput = {
   phone?: string | null
   whatsapp_phone?: string | null
   avatar_url?: string | null
+  avatar_file_id?: string | null
   movement_streak?: number
   pass_type?: string | null
   hashedPassword?: string | null
@@ -4026,6 +4114,7 @@ export type ProfileUpdateWithoutCrm_messagesInput = {
   phone?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   whatsapp_phone?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   avatar_url?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  avatar_file_id?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   movement_streak?: Prisma.IntFieldUpdateOperationsInput | number
   pass_type?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   hashedPassword?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -4066,6 +4155,7 @@ export type ProfileUncheckedUpdateWithoutCrm_messagesInput = {
   phone?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   whatsapp_phone?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   avatar_url?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  avatar_file_id?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   movement_streak?: Prisma.IntFieldUpdateOperationsInput | number
   pass_type?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   hashedPassword?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -4106,6 +4196,7 @@ export type ProfileCreateWithoutActivity_sessionsInput = {
   phone?: string | null
   whatsapp_phone?: string | null
   avatar_url?: string | null
+  avatar_file_id?: string | null
   movement_streak?: number
   pass_type?: string | null
   hashedPassword?: string | null
@@ -4146,6 +4237,7 @@ export type ProfileUncheckedCreateWithoutActivity_sessionsInput = {
   phone?: string | null
   whatsapp_phone?: string | null
   avatar_url?: string | null
+  avatar_file_id?: string | null
   movement_streak?: number
   pass_type?: string | null
   hashedPassword?: string | null
@@ -4202,6 +4294,7 @@ export type ProfileUpdateWithoutActivity_sessionsInput = {
   phone?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   whatsapp_phone?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   avatar_url?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  avatar_file_id?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   movement_streak?: Prisma.IntFieldUpdateOperationsInput | number
   pass_type?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   hashedPassword?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -4242,6 +4335,7 @@ export type ProfileUncheckedUpdateWithoutActivity_sessionsInput = {
   phone?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   whatsapp_phone?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   avatar_url?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  avatar_file_id?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   movement_streak?: Prisma.IntFieldUpdateOperationsInput | number
   pass_type?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   hashedPassword?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -4282,6 +4376,7 @@ export type ProfileCreateWithoutActivity_eventsInput = {
   phone?: string | null
   whatsapp_phone?: string | null
   avatar_url?: string | null
+  avatar_file_id?: string | null
   movement_streak?: number
   pass_type?: string | null
   hashedPassword?: string | null
@@ -4322,6 +4417,7 @@ export type ProfileUncheckedCreateWithoutActivity_eventsInput = {
   phone?: string | null
   whatsapp_phone?: string | null
   avatar_url?: string | null
+  avatar_file_id?: string | null
   movement_streak?: number
   pass_type?: string | null
   hashedPassword?: string | null
@@ -4378,6 +4474,7 @@ export type ProfileUpdateWithoutActivity_eventsInput = {
   phone?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   whatsapp_phone?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   avatar_url?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  avatar_file_id?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   movement_streak?: Prisma.IntFieldUpdateOperationsInput | number
   pass_type?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   hashedPassword?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -4418,6 +4515,7 @@ export type ProfileUncheckedUpdateWithoutActivity_eventsInput = {
   phone?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   whatsapp_phone?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   avatar_url?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  avatar_file_id?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   movement_streak?: Prisma.IntFieldUpdateOperationsInput | number
   pass_type?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   hashedPassword?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -4458,6 +4556,7 @@ export type ProfileCreateWithoutMember_ticketsInput = {
   phone?: string | null
   whatsapp_phone?: string | null
   avatar_url?: string | null
+  avatar_file_id?: string | null
   movement_streak?: number
   pass_type?: string | null
   hashedPassword?: string | null
@@ -4498,6 +4597,7 @@ export type ProfileUncheckedCreateWithoutMember_ticketsInput = {
   phone?: string | null
   whatsapp_phone?: string | null
   avatar_url?: string | null
+  avatar_file_id?: string | null
   movement_streak?: number
   pass_type?: string | null
   hashedPassword?: string | null
@@ -4554,6 +4654,7 @@ export type ProfileUpdateWithoutMember_ticketsInput = {
   phone?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   whatsapp_phone?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   avatar_url?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  avatar_file_id?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   movement_streak?: Prisma.IntFieldUpdateOperationsInput | number
   pass_type?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   hashedPassword?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -4594,6 +4695,7 @@ export type ProfileUncheckedUpdateWithoutMember_ticketsInput = {
   phone?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   whatsapp_phone?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   avatar_url?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  avatar_file_id?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   movement_streak?: Prisma.IntFieldUpdateOperationsInput | number
   pass_type?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   hashedPassword?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -4800,6 +4902,7 @@ export type ProfileSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs 
   phone?: boolean
   whatsapp_phone?: boolean
   avatar_url?: boolean
+  avatar_file_id?: boolean
   movement_streak?: boolean
   pass_type?: boolean
   hashedPassword?: boolean
@@ -4842,6 +4945,7 @@ export type ProfileSelectCreateManyAndReturn<ExtArgs extends runtime.Types.Exten
   phone?: boolean
   whatsapp_phone?: boolean
   avatar_url?: boolean
+  avatar_file_id?: boolean
   movement_streak?: boolean
   pass_type?: boolean
   hashedPassword?: boolean
@@ -4863,6 +4967,7 @@ export type ProfileSelectUpdateManyAndReturn<ExtArgs extends runtime.Types.Exten
   phone?: boolean
   whatsapp_phone?: boolean
   avatar_url?: boolean
+  avatar_file_id?: boolean
   movement_streak?: boolean
   pass_type?: boolean
   hashedPassword?: boolean
@@ -4884,6 +4989,7 @@ export type ProfileSelectScalar = {
   phone?: boolean
   whatsapp_phone?: boolean
   avatar_url?: boolean
+  avatar_file_id?: boolean
   movement_streak?: boolean
   pass_type?: boolean
   hashedPassword?: boolean
@@ -4898,7 +5004,7 @@ export type ProfileSelectScalar = {
   updated_at?: boolean
 }
 
-export type ProfileOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "email" | "full_name" | "phone" | "whatsapp_phone" | "avatar_url" | "movement_streak" | "pass_type" | "hashedPassword" | "role" | "dob" | "gender" | "onboarding_completed" | "questionnaire" | "terms_accepted_at" | "start_date" | "created_at" | "updated_at", ExtArgs["result"]["profile"]>
+export type ProfileOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "email" | "full_name" | "phone" | "whatsapp_phone" | "avatar_url" | "avatar_file_id" | "movement_streak" | "pass_type" | "hashedPassword" | "role" | "dob" | "gender" | "onboarding_completed" | "questionnaire" | "terms_accepted_at" | "start_date" | "created_at" | "updated_at", ExtArgs["result"]["profile"]>
 export type ProfileInclude<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   instructor_account?: boolean | Prisma.Profile$instructor_accountArgs<ExtArgs>
   partner_memberships?: boolean | Prisma.Profile$partner_membershipsArgs<ExtArgs>
@@ -4956,6 +5062,7 @@ export type $ProfilePayload<ExtArgs extends runtime.Types.Extensions.InternalArg
     phone: string | null
     whatsapp_phone: string | null
     avatar_url: string | null
+    avatar_file_id: string | null
     movement_streak: number
     pass_type: string | null
     hashedPassword: string | null
@@ -5417,6 +5524,7 @@ export interface ProfileFieldRefs {
   readonly phone: Prisma.FieldRef<"Profile", 'String'>
   readonly whatsapp_phone: Prisma.FieldRef<"Profile", 'String'>
   readonly avatar_url: Prisma.FieldRef<"Profile", 'String'>
+  readonly avatar_file_id: Prisma.FieldRef<"Profile", 'String'>
   readonly movement_streak: Prisma.FieldRef<"Profile", 'Int'>
   readonly pass_type: Prisma.FieldRef<"Profile", 'String'>
   readonly hashedPassword: Prisma.FieldRef<"Profile", 'String'>

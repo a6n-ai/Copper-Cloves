@@ -1,6 +1,7 @@
 import type { NextApiRequest, NextApiResponse } from "next";
 import { presignAvatarUpload, isS3Configured } from "@/lib/s3";
 import { getStudioServerSession } from "@/lib/getStudioServerSession";
+import { buildS3Key, extFromContentType, S3_PURPOSE } from "@/lib/s3Paths";
 
 const ALLOWED = new Set(["image/jpeg", "image/png", "image/webp"]);
 
@@ -20,17 +21,20 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   const userId = (session.user as { id: string }).id;
   const body = req.body ?? {};
   const contentType = typeof body.contentType === "string" ? body.contentType.toLowerCase() : "";
+  // "avatar" (default) → members/{id}/avatars/...   |   "doc" → uploads/...
+  const isDoc = body.purpose === "doc";
 
-  if (!ALLOWED.has(contentType)) {
+  if (!isDoc && !ALLOWED.has(contentType)) {
     return res.status(400).json({ error: "Use JPEG, PNG, or WebP images only." });
   }
 
-  const ext = contentType === "image/png" ? "png" : contentType === "image/webp" ? "webp" : "jpg";
-  const key = `avatars/${userId}/${Date.now()}-${Math.random().toString(36).slice(2, 10)}.${ext}`;
+  const key = isDoc
+    ? buildS3Key({ purpose: S3_PURPOSE.generic_upload, ext: extFromContentType(contentType || "application/octet-stream") })
+    : buildS3Key({ purpose: S3_PURPOSE.member_avatar, ownerId: userId, ext: extFromContentType(contentType) });
 
   try {
     const { uploadUrl, publicUrl } = await presignAvatarUpload({ key, contentType });
-    return res.json({ uploadUrl, publicUrl });
+    return res.json({ uploadUrl, publicUrl, key });
   } catch (e) {
     console.error("[avatar-presign]", e);
     return res.status(500).json({ error: "Could not prepare upload" });

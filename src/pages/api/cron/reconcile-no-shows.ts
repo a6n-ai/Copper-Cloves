@@ -12,8 +12,10 @@ import prisma from "@/lib/prisma";
 import { getStudioServerSession } from "@/lib/getStudioServerSession";
 import { reconcileNoShowsGlobally } from "@/lib/bookingReconcile";
 import { advanceCompletedSchedules } from "@/lib/scheduleLifecycle";
+import { requestLogger } from "@/lib/logger";
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
+  const log = requestLogger(req, res);
   if (req.method !== "GET" && req.method !== "POST") return res.status(405).end();
 
   const secret = process.env.CRON_SECRET;
@@ -30,14 +32,23 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   try {
     await reconcileNoShowsGlobally(prisma);
     const lifecycle = await advanceCompletedSchedules(prisma);
+    const durationMs = Date.now() - startedAt;
+    log.info(
+      {
+        durationMs,
+        schedulesCompleted: lifecycle.completed,
+        schedulesAbandoned: lifecycle.abandoned,
+      },
+      "no-show reconcile complete"
+    );
     return res.json({
       ok: true,
-      durationMs: Date.now() - startedAt,
+      durationMs,
       schedulesCompleted: lifecycle.completed,
       schedulesAbandoned: lifecycle.abandoned,
     });
   } catch (e) {
-    console.error("[cron/reconcile-no-shows] failed", e);
+    log.error({ err: e, durationMs: Date.now() - startedAt }, "cron reconcile failed");
     return res.status(500).json({ error: "Reconcile failed" });
   }
 }

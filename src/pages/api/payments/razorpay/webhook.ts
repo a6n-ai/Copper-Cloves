@@ -1,6 +1,7 @@
 import type { NextApiRequest, NextApiResponse } from "next";
 import crypto from "node:crypto";
 import { reconcileRazorpayPaymentFromWebhook } from "@/lib/razorpayPersistence";
+import { requestLogger } from "@/lib/logger";
 
 /**
  * Razorpay webhooks — verify `X-Razorpay-Signature` against the **raw** body (see Razorpay docs).
@@ -34,11 +35,12 @@ function headerSignature(req: NextApiRequest): string {
 }
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
+  const log = requestLogger(req, res);
   if (req.method !== "POST") return res.status(405).end();
 
   const secret = process.env.RAZORPAY_WEBHOOK_SECRET?.trim();
   if (!secret) {
-    console.error("[razorpay/webhook] Missing RAZORPAY_WEBHOOK_SECRET");
+    log.error("razorpay webhook missing secret");
     return res.status(503).json({ error: "Webhook secret not configured" });
   }
 
@@ -46,7 +48,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   try {
     raw = await readRawBody(req);
   } catch (e) {
-    console.error("[razorpay/webhook] body read", e);
+    log.error({ err: e }, "razorpay webhook body read failed");
     return res.status(400).end();
   }
 
@@ -63,7 +65,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   }
 
   if (!signatureOk) {
-    console.warn("[razorpay/webhook] Invalid signature");
+    log.warn("razorpay webhook invalid signature");
     return res.status(400).json({ error: "Invalid signature" });
   }
 
@@ -74,10 +76,12 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     return res.status(400).json({ error: "Invalid JSON" });
   }
 
+  log.info({ event: body.event }, "razorpay webhook received");
   try {
     await reconcileRazorpayPaymentFromWebhook(body);
+    log.info({ event: body.event }, "razorpay webhook reconciled");
   } catch (reconcileErr) {
-    console.error("[razorpay/webhook] reconcile", reconcileErr);
+    log.error({ err: reconcileErr, event: body.event }, "razorpay webhook reconcile failed");
   }
 
   res.status(200).json({ ok: true });

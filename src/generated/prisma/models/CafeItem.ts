@@ -41,6 +41,7 @@ export type CafeItemMinAggregateOutputType = {
   description: string | null
   price: runtime.Decimal | null
   image_url: string | null
+  image_file_id: string | null
   is_available: boolean | null
   created_at: Date | null
   updated_at: Date | null
@@ -53,6 +54,7 @@ export type CafeItemMaxAggregateOutputType = {
   description: string | null
   price: runtime.Decimal | null
   image_url: string | null
+  image_file_id: string | null
   is_available: boolean | null
   created_at: Date | null
   updated_at: Date | null
@@ -65,6 +67,7 @@ export type CafeItemCountAggregateOutputType = {
   description: number
   price: number
   image_url: number
+  image_file_id: number
   is_available: number
   created_at: number
   updated_at: number
@@ -87,6 +90,7 @@ export type CafeItemMinAggregateInputType = {
   description?: true
   price?: true
   image_url?: true
+  image_file_id?: true
   is_available?: true
   created_at?: true
   updated_at?: true
@@ -99,6 +103,7 @@ export type CafeItemMaxAggregateInputType = {
   description?: true
   price?: true
   image_url?: true
+  image_file_id?: true
   is_available?: true
   created_at?: true
   updated_at?: true
@@ -111,6 +116,7 @@ export type CafeItemCountAggregateInputType = {
   description?: true
   price?: true
   image_url?: true
+  image_file_id?: true
   is_available?: true
   created_at?: true
   updated_at?: true
@@ -210,6 +216,7 @@ export type CafeItemGroupByOutputType = {
   description: string | null
   price: runtime.Decimal
   image_url: string | null
+  image_file_id: string | null
   is_available: boolean
   created_at: Date
   updated_at: Date
@@ -245,6 +252,7 @@ export type CafeItemWhereInput = {
   description?: Prisma.StringNullableFilter<"CafeItem"> | string | null
   price?: Prisma.DecimalFilter<"CafeItem"> | runtime.Decimal | runtime.DecimalJsLike | number | string
   image_url?: Prisma.StringNullableFilter<"CafeItem"> | string | null
+  image_file_id?: Prisma.StringNullableFilter<"CafeItem"> | string | null
   is_available?: Prisma.BoolFilter<"CafeItem"> | boolean
   created_at?: Prisma.DateTimeFilter<"CafeItem"> | Date | string
   updated_at?: Prisma.DateTimeFilter<"CafeItem"> | Date | string
@@ -258,6 +266,7 @@ export type CafeItemOrderByWithRelationInput = {
   description?: Prisma.SortOrderInput | Prisma.SortOrder
   price?: Prisma.SortOrder
   image_url?: Prisma.SortOrderInput | Prisma.SortOrder
+  image_file_id?: Prisma.SortOrderInput | Prisma.SortOrder
   is_available?: Prisma.SortOrder
   created_at?: Prisma.SortOrder
   updated_at?: Prisma.SortOrder
@@ -266,6 +275,7 @@ export type CafeItemOrderByWithRelationInput = {
 
 export type CafeItemWhereUniqueInput = Prisma.AtLeast<{
   id?: string
+  image_file_id?: string
   AND?: Prisma.CafeItemWhereInput | Prisma.CafeItemWhereInput[]
   OR?: Prisma.CafeItemWhereInput[]
   NOT?: Prisma.CafeItemWhereInput | Prisma.CafeItemWhereInput[]
@@ -278,7 +288,7 @@ export type CafeItemWhereUniqueInput = Prisma.AtLeast<{
   created_at?: Prisma.DateTimeFilter<"CafeItem"> | Date | string
   updated_at?: Prisma.DateTimeFilter<"CafeItem"> | Date | string
   cafe_orders?: Prisma.CafeOrderListRelationFilter
-}, "id">
+}, "id" | "image_file_id">
 
 export type CafeItemOrderByWithAggregationInput = {
   id?: Prisma.SortOrder
@@ -287,6 +297,7 @@ export type CafeItemOrderByWithAggregationInput = {
   description?: Prisma.SortOrderInput | Prisma.SortOrder
   price?: Prisma.SortOrder
   image_url?: Prisma.SortOrderInput | Prisma.SortOrder
+  image_file_id?: Prisma.SortOrderInput | Prisma.SortOrder
   is_available?: Prisma.SortOrder
   created_at?: Prisma.SortOrder
   updated_at?: Prisma.SortOrder
@@ -307,6 +318,7 @@ export type CafeItemScalarWhereWithAggregatesInput = {
   description?: Prisma.StringNullableWithAggregatesFilter<"CafeItem"> | string | null
   price?: Prisma.DecimalWithAggregatesFilter<"CafeItem"> | runtime.Decimal | runtime.DecimalJsLike | number | string
   image_url?: Prisma.StringNullableWithAggregatesFilter<"CafeItem"> | string | null
+  image_file_id?: Prisma.StringNullableWithAggregatesFilter<"CafeItem"> | string | null
   is_available?: Prisma.BoolWithAggregatesFilter<"CafeItem"> | boolean
   created_at?: Prisma.DateTimeWithAggregatesFilter<"CafeItem"> | Date | string
   updated_at?: Prisma.DateTimeWithAggregatesFilter<"CafeItem"> | Date | string
@@ -319,6 +331,7 @@ export type CafeItemCreateInput = {
   description?: string | null
   price: runtime.Decimal | runtime.DecimalJsLike | number | string
   image_url?: string | null
+  image_file_id?: string | null
   is_available?: boolean
   created_at?: Date | string
   updated_at?: Date | string
@@ -332,6 +345,7 @@ export type CafeItemUncheckedCreateInput = {
   description?: string | null
   price: runtime.Decimal | runtime.DecimalJsLike | number | string
   image_url?: string | null
+  image_file_id?: string | null
   is_available?: boolean
   created_at?: Date | string
   updated_at?: Date | string
@@ -345,6 +359,7 @@ export type CafeItemUpdateInput = {
   description?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   price?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
   image_url?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  image_file_id?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   is_available?: Prisma.BoolFieldUpdateOperationsInput | boolean
   created_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updated_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -358,6 +373,7 @@ export type CafeItemUncheckedUpdateInput = {
   description?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   price?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
   image_url?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  image_file_id?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   is_available?: Prisma.BoolFieldUpdateOperationsInput | boolean
   created_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updated_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -371,6 +387,7 @@ export type CafeItemCreateManyInput = {
   description?: string | null
   price: runtime.Decimal | runtime.DecimalJsLike | number | string
   image_url?: string | null
+  image_file_id?: string | null
   is_available?: boolean
   created_at?: Date | string
   updated_at?: Date | string
@@ -383,6 +400,7 @@ export type CafeItemUpdateManyMutationInput = {
   description?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   price?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
   image_url?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  image_file_id?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   is_available?: Prisma.BoolFieldUpdateOperationsInput | boolean
   created_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updated_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -395,6 +413,7 @@ export type CafeItemUncheckedUpdateManyInput = {
   description?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   price?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
   image_url?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  image_file_id?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   is_available?: Prisma.BoolFieldUpdateOperationsInput | boolean
   created_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updated_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -407,6 +426,7 @@ export type CafeItemCountOrderByAggregateInput = {
   description?: Prisma.SortOrder
   price?: Prisma.SortOrder
   image_url?: Prisma.SortOrder
+  image_file_id?: Prisma.SortOrder
   is_available?: Prisma.SortOrder
   created_at?: Prisma.SortOrder
   updated_at?: Prisma.SortOrder
@@ -423,6 +443,7 @@ export type CafeItemMaxOrderByAggregateInput = {
   description?: Prisma.SortOrder
   price?: Prisma.SortOrder
   image_url?: Prisma.SortOrder
+  image_file_id?: Prisma.SortOrder
   is_available?: Prisma.SortOrder
   created_at?: Prisma.SortOrder
   updated_at?: Prisma.SortOrder
@@ -435,6 +456,7 @@ export type CafeItemMinOrderByAggregateInput = {
   description?: Prisma.SortOrder
   price?: Prisma.SortOrder
   image_url?: Prisma.SortOrder
+  image_file_id?: Prisma.SortOrder
   is_available?: Prisma.SortOrder
   created_at?: Prisma.SortOrder
   updated_at?: Prisma.SortOrder
@@ -472,6 +494,7 @@ export type CafeItemCreateWithoutCafe_ordersInput = {
   description?: string | null
   price: runtime.Decimal | runtime.DecimalJsLike | number | string
   image_url?: string | null
+  image_file_id?: string | null
   is_available?: boolean
   created_at?: Date | string
   updated_at?: Date | string
@@ -484,6 +507,7 @@ export type CafeItemUncheckedCreateWithoutCafe_ordersInput = {
   description?: string | null
   price: runtime.Decimal | runtime.DecimalJsLike | number | string
   image_url?: string | null
+  image_file_id?: string | null
   is_available?: boolean
   created_at?: Date | string
   updated_at?: Date | string
@@ -512,6 +536,7 @@ export type CafeItemUpdateWithoutCafe_ordersInput = {
   description?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   price?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
   image_url?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  image_file_id?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   is_available?: Prisma.BoolFieldUpdateOperationsInput | boolean
   created_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updated_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -524,6 +549,7 @@ export type CafeItemUncheckedUpdateWithoutCafe_ordersInput = {
   description?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   price?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
   image_url?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  image_file_id?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   is_available?: Prisma.BoolFieldUpdateOperationsInput | boolean
   created_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updated_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -567,6 +593,7 @@ export type CafeItemSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs
   description?: boolean
   price?: boolean
   image_url?: boolean
+  image_file_id?: boolean
   is_available?: boolean
   created_at?: boolean
   updated_at?: boolean
@@ -581,6 +608,7 @@ export type CafeItemSelectCreateManyAndReturn<ExtArgs extends runtime.Types.Exte
   description?: boolean
   price?: boolean
   image_url?: boolean
+  image_file_id?: boolean
   is_available?: boolean
   created_at?: boolean
   updated_at?: boolean
@@ -593,6 +621,7 @@ export type CafeItemSelectUpdateManyAndReturn<ExtArgs extends runtime.Types.Exte
   description?: boolean
   price?: boolean
   image_url?: boolean
+  image_file_id?: boolean
   is_available?: boolean
   created_at?: boolean
   updated_at?: boolean
@@ -605,12 +634,13 @@ export type CafeItemSelectScalar = {
   description?: boolean
   price?: boolean
   image_url?: boolean
+  image_file_id?: boolean
   is_available?: boolean
   created_at?: boolean
   updated_at?: boolean
 }
 
-export type CafeItemOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "name" | "category" | "description" | "price" | "image_url" | "is_available" | "created_at" | "updated_at", ExtArgs["result"]["cafeItem"]>
+export type CafeItemOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "name" | "category" | "description" | "price" | "image_url" | "image_file_id" | "is_available" | "created_at" | "updated_at", ExtArgs["result"]["cafeItem"]>
 export type CafeItemInclude<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   cafe_orders?: boolean | Prisma.CafeItem$cafe_ordersArgs<ExtArgs>
   _count?: boolean | Prisma.CafeItemCountOutputTypeDefaultArgs<ExtArgs>
@@ -630,6 +660,7 @@ export type $CafeItemPayload<ExtArgs extends runtime.Types.Extensions.InternalAr
     description: string | null
     price: runtime.Decimal
     image_url: string | null
+    image_file_id: string | null
     is_available: boolean
     created_at: Date
     updated_at: Date
@@ -1063,6 +1094,7 @@ export interface CafeItemFieldRefs {
   readonly description: Prisma.FieldRef<"CafeItem", 'String'>
   readonly price: Prisma.FieldRef<"CafeItem", 'Decimal'>
   readonly image_url: Prisma.FieldRef<"CafeItem", 'String'>
+  readonly image_file_id: Prisma.FieldRef<"CafeItem", 'String'>
   readonly is_available: Prisma.FieldRef<"CafeItem", 'Boolean'>
   readonly created_at: Prisma.FieldRef<"CafeItem", 'DateTime'>
   readonly updated_at: Prisma.FieldRef<"CafeItem", 'DateTime'>

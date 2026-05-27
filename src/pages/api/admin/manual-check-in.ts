@@ -1,9 +1,11 @@
 import prisma from "@/lib/prisma";
 import { getStudioServerSession } from "@/lib/getStudioServerSession";
 import { checkInOutcomeFromTimes } from "@/lib/bookingAttendance";
+import { requestLogger } from "@/lib/logger";
 import type { NextApiRequest, NextApiResponse } from "next";
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
+  const log = requestLogger(req, res);
   const session = await getStudioServerSession(req, res);
   if (!session?.user) return res.status(401).json({ error: "Unauthorized" });
   if ((session.user as { role?: string }).role !== "admin") return res.status(403).json({ error: "Forbidden" });
@@ -36,6 +38,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       return res.status(400).json({ error: "Invalid outcome" });
     }
     const updated = await prisma.booking.update({ where: { id: bookingId }, data });
+    log.info({ adminId: (session.user as { id?: string }).id, bookingId, outcome }, "admin manual override");
     return res.json({ ok: true, booking: updated });
   }
 
@@ -50,5 +53,6 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     },
   });
 
+  log.info({ adminId: (session.user as { id?: string }).id, bookingId }, "admin manual check-in");
   return res.json({ ok: true, booking: updated });
 }

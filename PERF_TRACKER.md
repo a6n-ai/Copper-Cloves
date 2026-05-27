@@ -170,6 +170,127 @@ Non-dashboard admin tables (sort already worked on some columns; added missing +
 - [x] `admin/control.tsx` users table — added sort on **Pass / Remaining / Start** (was: Name/End/Status only)
 - [x] `admin/control.tsx` payouts table — added sort on **Rate / Share** (was: Instructor/Check-ins/Total/Status only)
 
+---
+
+# Round 2 — New findings (component + Next.js scan)
+
+Fresh scans against files NOT previously reviewed + Next.js Pages Router-specific patterns. Ordered roughly by impact.
+
+## R2 · React rerender / leak (highest leverage)
+
+- [ ] `contexts/CartContext.tsx` — provider `value` is a new object every render → every `useCart` consumer (Navigation cart badge, all checkout screens, shop pages) re-renders on any parent tick. Wrap value in `useMemo`; wrap `addItem`/`removeItem`/`updateQuantity`/`clearCart` in `useCallback`.
+- [ ] `components/responsive/ResponsiveDialog.tsx` — each sub-component calls `useIsMobile()` independently. A single dialog uses 4-6 of these → 4-6× matchMedia listener attach/teardown per dialog mount. Solution: single context provider that reads `useIsMobile` once and shares via context. Also: switching root component type on resize crossing 768 → unmount/remount entire subtree, losing form state mid-resize.
+- [ ] `hooks/useActivityTracking.ts` L48 — pageview effect deps include `router` object → re-binds on every render. Depend on `router.events` ref or use `[]`. L51 — 15s flush interval fires while tab hidden; gate on `document.hidden` + `visibilitychange`.
+- [ ] `components/checkin/ClassCountdownPill.tsx` L26-29 — 1-Hz `setInterval` runs even when tab hidden → battery drain on background instructor portal. Pause on visibilitychange. L42-43 — `new Date(startIso).getTime()` parsed every tick; cache in `useMemo` keyed on `startIso`/`endIso`.
+- [ ] `components/checkin/InstructorCheckinBeacon.tsx` L31 — `anyEverActive` derives from `Date.now()` during render (impure); 1-Hz tick + small list filter/sort runs ~60 passes/min.
+- [ ] `components/dashboard/AnimatedIcon.tsx` — used 50+ times across the app. Each instance ships a fresh framer `initial`/`animate`/`transition` literal object per parent render. Heavy aggregate framer cost. Memoize component; default to plain `<Icon>` and reserve `AnimatedIcon` for hover-only spots.
+- [ ] `hooks/useAuthWeather.ts` L45 — palette/greeting derived via `new Date()` during render (impure); wrap in `useMemo([weather])`.
+- [ ] `components/admin/dashboard-tabs/FinanceTab.tsx` L412-462 — `financeTxnPg.pageItems.map` rebuilds row JSX inline + computes `openFinance`/`displayMember`/`plus` per row per render. Extract memoized `<FinanceRow>`. L635-646 — `[45,52,48,...]` placeholder revenue array allocated each render; hoist to module scope.
+- [ ] `components/admin/dashboard-tabs/ClassesTab.tsx` L270-292 — Peak-Hours heatmap nests `slots × days` with inline title strings + style objects; extract memoized `<HeatCell>`.
+- [ ] `components/admin/dashboard-tabs/MembersTab.tsx` L110-153 — `displayedMemberStats = {...memberStats, ...filteredMemberStats}` spread every render; wrap in `useMemo`. `activeMemberTierTotal` also derived per render.
+- [ ] `components/admin/dashboard-tabs/OverviewTab.tsx` L123-135 — `today`/`iso`/`tom`/`yest`/`pretty`/`dateTitle` recomputed per render; wrap in `useMemo([scheduleDate])`. L250 — `.map((cls:any) => ({...}))` rebuilds carousel item shape every render; memoize.
+- [ ] `components/dashboard/UpcomingScheduleCard.tsx` L52-81 — `entries.map` calls `formatWhen` (Date parse + 2× toLocale*) per row per render; precompute or extract memoized `<EntryButton>`.
+- [ ] `components/dashboard/OrderHistoryTable.tsx` L67-95 — `rows.map` inline with `new Date().toLocaleDateString()` per row per render; extract `<OrderRow>` memo or memoize formatted strings per row.
+- [ ] `components/dashboard/VitalityAreaChart.tsx` L34 — chart `data` rebuilt each render → recharts re-renders all paths; `useMemo([series])`.
+- [ ] `components/dashboard/PathToMastery.tsx` L48-54 — `target`/`pct`/`gradient`/`trackLeft`/`trackSpan` recomputed per render; `useMemo([milestones])`. L102 — extract memoized `<MilestoneTier>` (motion.li per item runs spring on every parent tick).
+- [ ] `components/auth/SignUpForm.tsx` L87 — `useWatch({name:"password"})` rerenders entire form on every password keystroke; only used in one onChange. Read via `getValues("password")` inside handler instead.
+- [ ] `components/checkin/CheckinBeacon.tsx` L132 — `relLabel(next.startTime)` countdown badge text only updates on next poll (60s); either add 1-min tick interval or accept staleness explicitly.
+- [ ] `components/checkin/CheckinQrDialog.tsx` L48 — `validUntil` rebuilt every render; `useMemo([data?.startTime])`.
+- [ ] `components/checkin/ClassCheckinQr.tsx` L77-82 — `BlurredFakeQr` rebuilds 169-cell grid every render; hoist `cells` to module const (grid is static).
+- [ ] `components/checkin/ClassCheckinQr.tsx` L70-76 — `isFinder` closure recreated each render; hoist to module scope.
+- [ ] `components/responsive/MobileBottomNav.tsx` L29-41 — `Map`/`Set` constructions + `primary`/`overflow` slot derivation on every render; wrap in `useMemo([config])`.
+- [ ] `components/SEO.tsx` L15,17,46,48 — default param `image = cdnUrl("/og-image.png")` evaluates `cdnUrl` on every call; hoist default to module const.
+- [ ] `components/admin/NumberTicker.tsx` L30 — `fromRef.current = value` reads render-time `value`; should snapshot via ref on prev animation end to avoid stale reads.
+
+## R2 · Next.js Pages Router optimization (highest leverage)
+
+### Marketing pages — SSR per request → should be SSG/ISR
+
+- [ ] `pages/index.tsx` — fully static landing; add `export const getStaticProps = () => ({ props: {} })`. Big TTFB win + better SEO.
+- [ ] `pages/founder.tsx` · `pages/rental.tsx` · `pages/policy.tsx` · `pages/terms.tsx` — pure static content; convert to `getStaticProps` with `revalidate`.
+- [ ] `pages/cafe.tsx` — mostly static (gallery + heroMedia hard-coded); `getStaticProps`.
+- [ ] `pages/classes.tsx` L25 — `/api/classes` always fetched on mount; convert to `getStaticProps` + ISR (class catalog rarely changes). Keep schedule list client-side.
+- [ ] `pages/shop.tsx` L91 — `/api/retail-products` fetched in `useEffect`; convert to `getStaticProps` + ISR (60s) for SEO/LCP.
+- [ ] `pages/shop/[id].tsx` — product detail per-id, currently client-fetches every load; use `getStaticPaths` + `getStaticProps` with ISR.
+
+### Bundle / code splitting
+
+- [ ] `pages/index.tsx` L17-31 — below-the-fold sections (`Pricing`, `Founder`, `Rental`, `Boutique`, `Testimonial`, `Instructors`) load eagerly; wrap in `next/dynamic` to shrink landing JS bundle.
+- [ ] `pages/portal/dashboard.tsx` L16 — `MemberMobileDashboard` always imported even though only mobile renders; wrap both mobile + desktop variants in `next/dynamic({ssr:false})` and gate on `isMobile`.
+- [ ] `components/Pagination.tsx` L2 — uses `framer-motion` for trivial transitions; replace with CSS to drop framer from pagination chunk.
+
+### Hero / LCP
+
+- [ ] `components/Hero.tsx` L41-99 — three `<video autoPlay>` mount eagerly; only mid-panel is LCP. Lazy-mount left/right panels via `IntersectionObserver`.
+- [ ] `components/Hero.tsx` L41,67,92 — videos missing `preload="metadata"` (default `auto` downloads full MP4 on first paint).
+- [ ] `components/Hero.tsx` L42,68,93 — no `poster` attribute → black frame until video buffers, hurts LCP/CLS.
+
+### Auth flash-of-content (FOUC)
+
+- [ ] Move client-side auth redirects to `getServerSideProps` with session check + redirect. Eliminates ~200-400ms unauth flash. Applies to: `admin/{dashboard,cafe,credits,members,schedule,control,CRM,badges,partners,products,kitchen/*,instructors/*}`, `partner/*`, `instructor/dashboard`, `portal/{dashboard,book,bookings,packages,profile,menu}`.
+
+### Image optimization (`<img>` → `next/image`)
+
+- [ ] `components/Footer.tsx` L17 — logo
+- [ ] `components/Instructors.tsx` L103,108 — instructor cards
+- [ ] `components/Testimonial.tsx` L98 — testimonial portrait
+- [ ] `components/profile/ProfileSection.tsx` L434 — avatar preview
+- [ ] `pages/instructor/dashboard.tsx` L103 — avatar
+- [ ] `pages/admin/schedule.tsx` L1684 — booking avatars
+- [ ] `pages/admin/cafe.tsx` L796,927,1144 — menu item images
+- [ ] `pages/admin/control.tsx` L1719,2532,2656,2815,2982 — class/instructor previews
+
+### Fonts
+
+- [ ] `styles/globals.css` L1-3 — Google Fonts `@import url()` is render-blocking. Migrate to `next/font/google` (Playfair, Montserrat, Bricolage) in `_app.tsx`. **Single highest-impact LCP win for marketing pages.**
+
+### Scripts
+
+- [ ] `_document.tsx` L11-21 — GA `<script async>` should use `next/script strategy="afterInteractive"`.
+- [ ] `_document.tsx` L37-41 — Softgen monitoring inline `<script async>` should be `next/script strategy="lazyOnload"`.
+- [ ] `_document.tsx` L7 — add `<link rel="preconnect">` for `fonts.googleapis.com`, `fonts.gstatic.com` (crossOrigin), S3/CDN bucket, `checkout.razorpay.com`.
+- [ ] `lib/razorpayCheckout.ts` L65-76 — DOM-injects Razorpay `checkout.js` on first call; preload via `next/script lazyOnload` in `_app` so SDK is ready by user click. Min: add `preconnect` to `checkout.razorpay.com` in `_document`.
+
+### Navigation
+
+- [ ] `pages/classes.tsx` L438 — `router.push("/portal/book")` from click handler should be `<Link href>` (enables prefetch).
+
+### API routes — caching + payload
+
+- [ ] `pages/api/retail-products.ts` L34 — public catalog GET missing `Cache-Control: public, s-maxage=60, stale-while-revalidate=300`; also missing `select` (returns all columns) + unbounded `findMany`.
+- [ ] `pages/api/cafe/items.ts` L12 — public-when-anonymous GET missing `Cache-Control: public, s-maxage=30, stale-while-revalidate=120`; unbounded `findMany`.
+- [ ] `pages/api/classes.ts` L6 — missing `Cache-Control: s-maxage=300, swr=600`; `include: { instructor: true }` returns `studio_payout_cut_percent` to client (sensitive); switch to `select`.
+- [ ] `pages/api/packages.ts` L6 — public package list missing `Cache-Control`.
+- [ ] `pages/api/class-schedules.ts` L62 — `private, no-store` even for anonymous list; split anon vs auth: anon gets `public, s-maxage=60, swr=300`.
+- [ ] `pages/api/user-stats.ts` L13 — auth-scoped but cacheable per user; add `private, max-age=10, swr=60` to dedupe rapid portal-dashboard refetches.
+- [ ] `pages/api/admin/badges.ts` L54,62,68 — 3 unbounded `findMany` on `badgeTemplate`; admin-only but still no `select`/pagination.
+
+### Session / NextAuth
+
+- [ ] `pages/_app.tsx` L51,105 — `DashboardChrome` + `OnboardingGate` both call `useSession()` for full `session` data when status is enough. Causes rerender of these wrappers on every session refresh (every 4 min after our refetchInterval change).
+- [ ] `pages/portal/dashboard.tsx` L153 — destructures full `session` then derives role/email; switch to scalar reads.
+- [ ] `pages/classes.tsx` L430 — `session` destructure used only for role/id.
+- [ ] `pages/_app.tsx` L67 — `/api/partner/profile` fetched client-side after auth; should be passed via `getServerSideProps` on partner pages to avoid topbar logo flash.
+
+### Build config
+
+- [ ] `next.config.mjs` L73 — `images.remotePatterns: [{hostname: "**"}]` overly permissive. Restrict to S3 bucket + CDN domain (security + smaller image optimizer cache key space).
+- [ ] `next.config.mjs` — no `images.minimumCacheTTL`; set to `31536000` for CDN images.
+- [ ] `next.config.mjs` — no immutable cache headers configured for `/fonts/*` if custom font dir under `src/pages/fonts/` exists (verify).
+
+## R2 · Highest-leverage shortlist (recommended order)
+
+1. **`next/font/google` migration** (drop Google Fonts `@import` from `globals.css`) — biggest LCP win for every marketing page in one change.
+2. **`CartContext` value memoization** — cuts rerenders of cart consumers app-wide.
+3. **`ResponsiveDialog` single-`useIsMobile` refactor** — fixes form-state-loss-on-resize + cuts matchMedia listeners.
+4. **Marketing pages → `getStaticProps` + ISR** (`/`, `/founder`, `/rental`, `/policy`, `/terms`, `/cafe`, `/shop`, `/shop/[id]`, `/classes`).
+5. **Hero video lazy-mount + `preload="metadata"` + `poster`** — landing LCP.
+6. **`pages/index.tsx` below-the-fold sections via `next/dynamic`** — landing bundle size.
+7. **Auth-gated pages → `getServerSideProps` redirect** — kills flash-of-unauth-content site-wide.
+8. **Public API caching headers** (`/api/retail-products`, `/api/cafe/items`, `/api/classes`, `/api/packages`, `/api/class-schedules` for anon).
+9. **Image migration to `next/image`** across the file list above.
+10. **Background tick pause** on `ClassCountdownPill` + `InstructorCheckinBeacon` (battery drain).
+
 ## Notes
 
 - Pages Router, NOT App Router. Skip RSC `server-*` Vercel rules.

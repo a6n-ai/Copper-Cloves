@@ -12,6 +12,7 @@ import { persistRazorpayOrderOnCreate } from "@/lib/razorpayPersistence";
 import { getRazorpay, razorpayConfigured } from "@/lib/razorpayServer";
 import prisma from "@/lib/prisma";
 import { validateAndComputeCoupon, toFiniteNumber, passCategoryForPackageType, type CouponContext } from "@/lib/couponHelpers";
+import { requestLogger } from "@/lib/logger";
 
 /**
  * Razorpay `receipt` must be ≤ 40 chars (see Orders API). Previously we built a longer string:
@@ -53,6 +54,7 @@ function razorpayFailureMessage(e: unknown): string {
  *   checkout for /portal/packages (coupon applied server-side; client must not set amount).
  */
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
+  const log = requestLogger(req, res);
   if (req.method !== "POST") return res.status(405).end();
 
   const session = await getStudioServerSession(req, res);
@@ -182,8 +184,10 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         notes: dbNotes,
       });
     } catch (dbErr) {
-      console.error("[razorpay/create-order] persist order row", dbErr);
+      log.error({ err: dbErr, razorpayOrderId: order.id, userId }, "persist razorpay order row failed");
     }
+
+    log.info({ userId, razorpayOrderId: order.id, amount: order.amount }, "razorpay order created");
 
     const serverKeyId = process.env.RAZORPAY_KEY_ID?.trim() ?? "";
     const publicKeyId =
@@ -205,7 +209,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       razorpay_mode: razorpayKeyMode(keyId),
     });
   } catch (e: unknown) {
-    console.error("[razorpay/create-order]", e);
+    log.error({ err: e, userId }, "razorpay create-order failed");
     const msg = razorpayFailureMessage(e);
     return res.status(502).json({ error: msg });
   }

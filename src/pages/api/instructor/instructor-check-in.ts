@@ -1,12 +1,14 @@
 import type { NextApiRequest, NextApiResponse } from "next";
 import prisma from "@/lib/prisma";
 import { getInstructorSession } from "@/lib/instructorAuth";
+import { requestLogger } from "@/lib/logger";
 
 // Window: 15 min before class start → 5 min after class start
 const OPEN_BEFORE_MS = 15 * 60 * 1000;
 const CLOSE_AFTER_MS = 5 * 60 * 1000;
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
+  const log = requestLogger(req, res);
   if (req.method !== "POST") return res.status(405).end();
 
   const session = await getInstructorSession(req, res);
@@ -53,5 +55,6 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     data: { instructor_check_in_time: now },
   });
 
+  log.info({ instructorId: session.instructorId, scheduleId }, "instructor self checked in");
   return res.json({ ok: true, checkInTime: updated.instructor_check_in_time });
 }

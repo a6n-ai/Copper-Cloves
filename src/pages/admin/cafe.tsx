@@ -32,6 +32,7 @@ interface MenuItem {
   description: string;
   price: number;
   image_url: string;
+  image_file_id?: string | null;
   is_available: boolean;
 }
 
@@ -491,12 +492,15 @@ export default function AdminCafe() {
       URL.revokeObjectURL(cropSrc);
       const fd = new FormData();
       fd.append("file", croppedFile);
+      fd.append("purpose", "cafe_item_image");
+      if (editingItem?.id) fd.append("ownerId", editingItem.id);
       const res = await fetch("/api/upload", { method: "POST", body: fd });
       const data = await res.json().catch(() => ({}));
       if (!res.ok) throw new Error(typeof data?.error === "string" ? data.error : "Upload failed");
       const url = data?.url;
       if (typeof url !== "string" || !url) throw new Error("Invalid upload response");
-      setFormData(prev => ({ ...prev, image_url: url }));
+      const fileId = typeof data?.fileId === "string" ? data.fileId : null;
+      setFormData(prev => ({ ...prev, image_url: url, image_file_id: fileId }));
     } catch (err) {
       setImageUploadError(err instanceof Error ? err.message : "Upload failed");
     } finally {
@@ -533,7 +537,8 @@ export default function AdminCafe() {
       const payload = {
         name: formData.name, category: formData.category,
         description: formData.description, price: formData.price,
-        image_url: formData.image_url, is_available: formData.is_available,
+        image_url: formData.image_url, image_file_id: formData.image_file_id ?? null,
+        is_available: formData.is_available,
       };
       if (editingItem?.id) {
         await fetch("/api/cafe/items", {

@@ -46,6 +46,7 @@ export type ClassModelMinAggregateOutputType = {
   duration: number | null
   max_capacity: number | null
   image_url: string | null
+  image_file_id: string | null
   display_order: number | null
   instructor_id: string | null
   partner_id: string | null
@@ -61,6 +62,7 @@ export type ClassModelMaxAggregateOutputType = {
   duration: number | null
   max_capacity: number | null
   image_url: string | null
+  image_file_id: string | null
   display_order: number | null
   instructor_id: string | null
   partner_id: string | null
@@ -77,6 +79,7 @@ export type ClassModelCountAggregateOutputType = {
   duration: number
   max_capacity: number
   image_url: number
+  image_file_id: number
   display_order: number
   instructor_id: number
   partner_id: number
@@ -106,6 +109,7 @@ export type ClassModelMinAggregateInputType = {
   duration?: true
   max_capacity?: true
   image_url?: true
+  image_file_id?: true
   display_order?: true
   instructor_id?: true
   partner_id?: true
@@ -121,6 +125,7 @@ export type ClassModelMaxAggregateInputType = {
   duration?: true
   max_capacity?: true
   image_url?: true
+  image_file_id?: true
   display_order?: true
   instructor_id?: true
   partner_id?: true
@@ -137,6 +142,7 @@ export type ClassModelCountAggregateInputType = {
   duration?: true
   max_capacity?: true
   image_url?: true
+  image_file_id?: true
   display_order?: true
   instructor_id?: true
   partner_id?: true
@@ -240,6 +246,7 @@ export type ClassModelGroupByOutputType = {
   duration: number
   max_capacity: number
   image_url: string | null
+  image_file_id: string | null
   display_order: number | null
   instructor_id: string | null
   partner_id: string | null
@@ -279,6 +286,7 @@ export type ClassModelWhereInput = {
   duration?: Prisma.IntFilter<"ClassModel"> | number
   max_capacity?: Prisma.IntFilter<"ClassModel"> | number
   image_url?: Prisma.StringNullableFilter<"ClassModel"> | string | null
+  image_file_id?: Prisma.StringNullableFilter<"ClassModel"> | string | null
   display_order?: Prisma.IntNullableFilter<"ClassModel"> | number | null
   instructor_id?: Prisma.StringNullableFilter<"ClassModel"> | string | null
   partner_id?: Prisma.StringNullableFilter<"ClassModel"> | string | null
@@ -298,6 +306,7 @@ export type ClassModelOrderByWithRelationInput = {
   duration?: Prisma.SortOrder
   max_capacity?: Prisma.SortOrder
   image_url?: Prisma.SortOrderInput | Prisma.SortOrder
+  image_file_id?: Prisma.SortOrderInput | Prisma.SortOrder
   display_order?: Prisma.SortOrderInput | Prisma.SortOrder
   instructor_id?: Prisma.SortOrderInput | Prisma.SortOrder
   partner_id?: Prisma.SortOrderInput | Prisma.SortOrder
@@ -310,6 +319,7 @@ export type ClassModelOrderByWithRelationInput = {
 
 export type ClassModelWhereUniqueInput = Prisma.AtLeast<{
   id?: string
+  image_file_id?: string
   AND?: Prisma.ClassModelWhereInput | Prisma.ClassModelWhereInput[]
   OR?: Prisma.ClassModelWhereInput[]
   NOT?: Prisma.ClassModelWhereInput | Prisma.ClassModelWhereInput[]
@@ -328,7 +338,7 @@ export type ClassModelWhereUniqueInput = Prisma.AtLeast<{
   instructor?: Prisma.XOR<Prisma.InstructorNullableScalarRelationFilter, Prisma.InstructorWhereInput> | null
   partner?: Prisma.XOR<Prisma.PartnerNullableScalarRelationFilter, Prisma.PartnerWhereInput> | null
   class_schedules?: Prisma.ClassScheduleListRelationFilter
-}, "id">
+}, "id" | "image_file_id">
 
 export type ClassModelOrderByWithAggregationInput = {
   id?: Prisma.SortOrder
@@ -339,6 +349,7 @@ export type ClassModelOrderByWithAggregationInput = {
   duration?: Prisma.SortOrder
   max_capacity?: Prisma.SortOrder
   image_url?: Prisma.SortOrderInput | Prisma.SortOrder
+  image_file_id?: Prisma.SortOrderInput | Prisma.SortOrder
   display_order?: Prisma.SortOrderInput | Prisma.SortOrder
   instructor_id?: Prisma.SortOrderInput | Prisma.SortOrder
   partner_id?: Prisma.SortOrderInput | Prisma.SortOrder
@@ -363,6 +374,7 @@ export type ClassModelScalarWhereWithAggregatesInput = {
   duration?: Prisma.IntWithAggregatesFilter<"ClassModel"> | number
   max_capacity?: Prisma.IntWithAggregatesFilter<"ClassModel"> | number
   image_url?: Prisma.StringNullableWithAggregatesFilter<"ClassModel"> | string | null
+  image_file_id?: Prisma.StringNullableWithAggregatesFilter<"ClassModel"> | string | null
   display_order?: Prisma.IntNullableWithAggregatesFilter<"ClassModel"> | number | null
   instructor_id?: Prisma.StringNullableWithAggregatesFilter<"ClassModel"> | string | null
   partner_id?: Prisma.StringNullableWithAggregatesFilter<"ClassModel"> | string | null
@@ -379,6 +391,7 @@ export type ClassModelCreateInput = {
   duration: number
   max_capacity?: number
   image_url?: string | null
+  image_file_id?: string | null
   display_order?: number | null
   created_at?: Date | string
   updated_at?: Date | string
@@ -396,6 +409,7 @@ export type ClassModelUncheckedCreateInput = {
   duration: number
   max_capacity?: number
   image_url?: string | null
+  image_file_id?: string | null
   display_order?: number | null
   instructor_id?: string | null
   partner_id?: string | null
@@ -413,6 +427,7 @@ export type ClassModelUpdateInput = {
   duration?: Prisma.IntFieldUpdateOperationsInput | number
   max_capacity?: Prisma.IntFieldUpdateOperationsInput | number
   image_url?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  image_file_id?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   display_order?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   created_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updated_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -430,6 +445,7 @@ export type ClassModelUncheckedUpdateInput = {
   duration?: Prisma.IntFieldUpdateOperationsInput | number
   max_capacity?: Prisma.IntFieldUpdateOperationsInput | number
   image_url?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  image_file_id?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   display_order?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   instructor_id?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   partner_id?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -447,6 +463,7 @@ export type ClassModelCreateManyInput = {
   duration: number
   max_capacity?: number
   image_url?: string | null
+  image_file_id?: string | null
   display_order?: number | null
   instructor_id?: string | null
   partner_id?: string | null
@@ -463,6 +480,7 @@ export type ClassModelUpdateManyMutationInput = {
   duration?: Prisma.IntFieldUpdateOperationsInput | number
   max_capacity?: Prisma.IntFieldUpdateOperationsInput | number
   image_url?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  image_file_id?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   display_order?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   created_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updated_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -477,6 +495,7 @@ export type ClassModelUncheckedUpdateManyInput = {
   duration?: Prisma.IntFieldUpdateOperationsInput | number
   max_capacity?: Prisma.IntFieldUpdateOperationsInput | number
   image_url?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  image_file_id?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   display_order?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   instructor_id?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   partner_id?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -503,6 +522,7 @@ export type ClassModelCountOrderByAggregateInput = {
   duration?: Prisma.SortOrder
   max_capacity?: Prisma.SortOrder
   image_url?: Prisma.SortOrder
+  image_file_id?: Prisma.SortOrder
   display_order?: Prisma.SortOrder
   instructor_id?: Prisma.SortOrder
   partner_id?: Prisma.SortOrder
@@ -524,6 +544,7 @@ export type ClassModelMaxOrderByAggregateInput = {
   duration?: Prisma.SortOrder
   max_capacity?: Prisma.SortOrder
   image_url?: Prisma.SortOrder
+  image_file_id?: Prisma.SortOrder
   display_order?: Prisma.SortOrder
   instructor_id?: Prisma.SortOrder
   partner_id?: Prisma.SortOrder
@@ -539,6 +560,7 @@ export type ClassModelMinOrderByAggregateInput = {
   duration?: Prisma.SortOrder
   max_capacity?: Prisma.SortOrder
   image_url?: Prisma.SortOrder
+  image_file_id?: Prisma.SortOrder
   display_order?: Prisma.SortOrder
   instructor_id?: Prisma.SortOrder
   partner_id?: Prisma.SortOrder
@@ -675,6 +697,7 @@ export type ClassModelCreateWithoutInstructorInput = {
   duration: number
   max_capacity?: number
   image_url?: string | null
+  image_file_id?: string | null
   display_order?: number | null
   created_at?: Date | string
   updated_at?: Date | string
@@ -691,6 +714,7 @@ export type ClassModelUncheckedCreateWithoutInstructorInput = {
   duration: number
   max_capacity?: number
   image_url?: string | null
+  image_file_id?: string | null
   display_order?: number | null
   partner_id?: string | null
   created_at?: Date | string
@@ -736,6 +760,7 @@ export type ClassModelScalarWhereInput = {
   duration?: Prisma.IntFilter<"ClassModel"> | number
   max_capacity?: Prisma.IntFilter<"ClassModel"> | number
   image_url?: Prisma.StringNullableFilter<"ClassModel"> | string | null
+  image_file_id?: Prisma.StringNullableFilter<"ClassModel"> | string | null
   display_order?: Prisma.IntNullableFilter<"ClassModel"> | number | null
   instructor_id?: Prisma.StringNullableFilter<"ClassModel"> | string | null
   partner_id?: Prisma.StringNullableFilter<"ClassModel"> | string | null
@@ -752,6 +777,7 @@ export type ClassModelCreateWithoutPartnerInput = {
   duration: number
   max_capacity?: number
   image_url?: string | null
+  image_file_id?: string | null
   display_order?: number | null
   created_at?: Date | string
   updated_at?: Date | string
@@ -768,6 +794,7 @@ export type ClassModelUncheckedCreateWithoutPartnerInput = {
   duration: number
   max_capacity?: number
   image_url?: string | null
+  image_file_id?: string | null
   display_order?: number | null
   instructor_id?: string | null
   created_at?: Date | string
@@ -810,6 +837,7 @@ export type ClassModelCreateWithoutClass_schedulesInput = {
   duration: number
   max_capacity?: number
   image_url?: string | null
+  image_file_id?: string | null
   display_order?: number | null
   created_at?: Date | string
   updated_at?: Date | string
@@ -826,6 +854,7 @@ export type ClassModelUncheckedCreateWithoutClass_schedulesInput = {
   duration: number
   max_capacity?: number
   image_url?: string | null
+  image_file_id?: string | null
   display_order?: number | null
   instructor_id?: string | null
   partner_id?: string | null
@@ -858,6 +887,7 @@ export type ClassModelUpdateWithoutClass_schedulesInput = {
   duration?: Prisma.IntFieldUpdateOperationsInput | number
   max_capacity?: Prisma.IntFieldUpdateOperationsInput | number
   image_url?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  image_file_id?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   display_order?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   created_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updated_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -874,6 +904,7 @@ export type ClassModelUncheckedUpdateWithoutClass_schedulesInput = {
   duration?: Prisma.IntFieldUpdateOperationsInput | number
   max_capacity?: Prisma.IntFieldUpdateOperationsInput | number
   image_url?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  image_file_id?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   display_order?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   instructor_id?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   partner_id?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -890,6 +921,7 @@ export type ClassModelCreateManyInstructorInput = {
   duration: number
   max_capacity?: number
   image_url?: string | null
+  image_file_id?: string | null
   display_order?: number | null
   partner_id?: string | null
   created_at?: Date | string
@@ -905,6 +937,7 @@ export type ClassModelUpdateWithoutInstructorInput = {
   duration?: Prisma.IntFieldUpdateOperationsInput | number
   max_capacity?: Prisma.IntFieldUpdateOperationsInput | number
   image_url?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  image_file_id?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   display_order?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   created_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updated_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -921,6 +954,7 @@ export type ClassModelUncheckedUpdateWithoutInstructorInput = {
   duration?: Prisma.IntFieldUpdateOperationsInput | number
   max_capacity?: Prisma.IntFieldUpdateOperationsInput | number
   image_url?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  image_file_id?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   display_order?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   partner_id?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   created_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -937,6 +971,7 @@ export type ClassModelUncheckedUpdateManyWithoutInstructorInput = {
   duration?: Prisma.IntFieldUpdateOperationsInput | number
   max_capacity?: Prisma.IntFieldUpdateOperationsInput | number
   image_url?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  image_file_id?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   display_order?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   partner_id?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   created_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -952,6 +987,7 @@ export type ClassModelCreateManyPartnerInput = {
   duration: number
   max_capacity?: number
   image_url?: string | null
+  image_file_id?: string | null
   display_order?: number | null
   instructor_id?: string | null
   created_at?: Date | string
@@ -967,6 +1003,7 @@ export type ClassModelUpdateWithoutPartnerInput = {
   duration?: Prisma.IntFieldUpdateOperationsInput | number
   max_capacity?: Prisma.IntFieldUpdateOperationsInput | number
   image_url?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  image_file_id?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   display_order?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   created_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updated_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -983,6 +1020,7 @@ export type ClassModelUncheckedUpdateWithoutPartnerInput = {
   duration?: Prisma.IntFieldUpdateOperationsInput | number
   max_capacity?: Prisma.IntFieldUpdateOperationsInput | number
   image_url?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  image_file_id?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   display_order?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   instructor_id?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   created_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -999,6 +1037,7 @@ export type ClassModelUncheckedUpdateManyWithoutPartnerInput = {
   duration?: Prisma.IntFieldUpdateOperationsInput | number
   max_capacity?: Prisma.IntFieldUpdateOperationsInput | number
   image_url?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  image_file_id?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   display_order?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   instructor_id?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   created_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -1045,6 +1084,7 @@ export type ClassModelSelect<ExtArgs extends runtime.Types.Extensions.InternalAr
   duration?: boolean
   max_capacity?: boolean
   image_url?: boolean
+  image_file_id?: boolean
   display_order?: boolean
   instructor_id?: boolean
   partner_id?: boolean
@@ -1065,6 +1105,7 @@ export type ClassModelSelectCreateManyAndReturn<ExtArgs extends runtime.Types.Ex
   duration?: boolean
   max_capacity?: boolean
   image_url?: boolean
+  image_file_id?: boolean
   display_order?: boolean
   instructor_id?: boolean
   partner_id?: boolean
@@ -1083,6 +1124,7 @@ export type ClassModelSelectUpdateManyAndReturn<ExtArgs extends runtime.Types.Ex
   duration?: boolean
   max_capacity?: boolean
   image_url?: boolean
+  image_file_id?: boolean
   display_order?: boolean
   instructor_id?: boolean
   partner_id?: boolean
@@ -1101,6 +1143,7 @@ export type ClassModelSelectScalar = {
   duration?: boolean
   max_capacity?: boolean
   image_url?: boolean
+  image_file_id?: boolean
   display_order?: boolean
   instructor_id?: boolean
   partner_id?: boolean
@@ -1108,7 +1151,7 @@ export type ClassModelSelectScalar = {
   updated_at?: boolean
 }
 
-export type ClassModelOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "name" | "category" | "description" | "benefits" | "duration" | "max_capacity" | "image_url" | "display_order" | "instructor_id" | "partner_id" | "created_at" | "updated_at", ExtArgs["result"]["classModel"]>
+export type ClassModelOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "name" | "category" | "description" | "benefits" | "duration" | "max_capacity" | "image_url" | "image_file_id" | "display_order" | "instructor_id" | "partner_id" | "created_at" | "updated_at", ExtArgs["result"]["classModel"]>
 export type ClassModelInclude<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   instructor?: boolean | Prisma.ClassModel$instructorArgs<ExtArgs>
   partner?: boolean | Prisma.ClassModel$partnerArgs<ExtArgs>
@@ -1140,6 +1183,7 @@ export type $ClassModelPayload<ExtArgs extends runtime.Types.Extensions.Internal
     duration: number
     max_capacity: number
     image_url: string | null
+    image_file_id: string | null
     display_order: number | null
     instructor_id: string | null
     /**
@@ -1582,6 +1626,7 @@ export interface ClassModelFieldRefs {
   readonly duration: Prisma.FieldRef<"ClassModel", 'Int'>
   readonly max_capacity: Prisma.FieldRef<"ClassModel", 'Int'>
   readonly image_url: Prisma.FieldRef<"ClassModel", 'String'>
+  readonly image_file_id: Prisma.FieldRef<"ClassModel", 'String'>
   readonly display_order: Prisma.FieldRef<"ClassModel", 'Int'>
   readonly instructor_id: Prisma.FieldRef<"ClassModel", 'String'>
   readonly partner_id: Prisma.FieldRef<"ClassModel", 'String'>

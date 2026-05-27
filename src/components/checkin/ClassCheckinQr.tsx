@@ -7,6 +7,7 @@ export type ClassCheckinQrData = {
   instructorQrUrl?: string | null;
   withinWindow?: boolean;
   windowOpensAt?: string | null;
+  historical?: boolean;
 };
 
 interface Props {
@@ -27,14 +28,29 @@ interface Props {
 export function ClassCheckinQr({ kind, qr, size = 200, label }: Props) {
   const url = kind === "instructor" ? qr?.instructorQrUrl : qr?.memberQrUrl;
   const heading = label ?? (kind === "instructor" ? "Instructor" : "Members");
-  const preWindow = !qr?.withinWindow && !!qr?.windowOpensAt;
+  const preWindow = !qr?.withinWindow && !!qr?.windowOpensAt && !qr?.historical;
   const live = !!url && !!qr?.withinWindow;
+  const historical = !!url && !!qr?.historical;
 
   if (live) {
     return (
       <div className="flex flex-col items-center gap-2">
         <p className="font-display text-base text-charcoal">{heading}</p>
         <QrZoomImage url={url!} label={`${heading} check-in`} caption="Tap to enlarge" size={size} />
+      </div>
+    );
+  }
+
+  if (historical) {
+    return (
+      <div className="flex flex-col items-center gap-2">
+        <p className="font-display text-base text-charcoal">{heading}</p>
+        <QrZoomImage
+          url={url!}
+          label={`${heading} check-in (historical)`}
+          caption="Expired — historical record"
+          size={size}
+        />
       </div>
     );
   }

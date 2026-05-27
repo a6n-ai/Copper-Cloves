@@ -2,8 +2,10 @@ import type { NextApiRequest, NextApiResponse } from "next";
 import prisma from "@/lib/prisma";
 import { getInstructorSession } from "@/lib/instructorAuth";
 import { checkInOutcomeFromTimes } from "@/lib/bookingAttendance";
+import { requestLogger } from "@/lib/logger";
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
+  const log = requestLogger(req, res);
   if (req.method !== "POST") return res.status(405).end();
 
   const session = await getInstructorSession(req, res);
@@ -41,5 +43,9 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     },
   });
 
+  log.info(
+    { instructorId: session.instructorId, bookingId, scheduleId: booking.class_schedule_id },
+    "instructor checked in member"
+  );
   return res.json({ ok: true, booking: updated });
 }

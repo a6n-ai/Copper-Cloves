@@ -284,15 +284,21 @@ export function ProfileSection({ role, title, subtitle }: ProfileSectionProps) {
         toast({ title: "Upload not available", description: presignJson.error ?? "Try again later.", variant: "destructive" });
         return;
       }
-      const { uploadUrl, publicUrl } = presignJson as { uploadUrl?: string; publicUrl?: string };
-      if (!uploadUrl || !publicUrl) { toast({ title: "Upload error", variant: "destructive" }); return; }
+      const { uploadUrl, publicUrl, key } = presignJson as { uploadUrl?: string; publicUrl?: string; key?: string };
+      if (!uploadUrl || !publicUrl || !key) { toast({ title: "Upload error", variant: "destructive" }); return; }
       const putRes = await fetch(uploadUrl, { method: "PUT", body: file, headers: { "Content-Type": file.type } });
       if (!putRes.ok) {
         toast({ title: "Upload failed", description: "S3 upload rejected — try again.", variant: "destructive" });
         return;
       }
-      await fetch("/api/user/profile", { method: "PATCH", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ avatar_url: publicUrl }) });
-      setAvatarUrl(publicUrl);
+      const confirmRes = await fetch("/api/user/avatar-confirm", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ key, contentType: file.type, sizeBytes: file.size }),
+      });
+      const confirmJson = await confirmRes.json().catch(() => ({}));
+      const finalUrl = confirmRes.ok && typeof confirmJson.url === "string" ? confirmJson.url : publicUrl;
+      setAvatarUrl(finalUrl);
       toast({ title: "Photo updated" });
     } catch {
       toast({ title: "Upload failed", variant: "destructive" });
@@ -310,7 +316,7 @@ export function ProfileSection({ role, title, subtitle }: ProfileSectionProps) {
       const presignRes = await fetch("/api/user/avatar-presign", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ contentType: file.type }),
+        body: JSON.stringify({ contentType: file.type, purpose: "doc" }),
       });
       const presignJson = await presignRes.json().catch(() => ({}));
       if (!presignRes.ok) {
