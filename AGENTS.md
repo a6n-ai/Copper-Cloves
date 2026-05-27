@@ -4,6 +4,7 @@
 - When pushing: commit uncommitted project code first, then push to `origin/main`.
 - Before commit/push when asked: summarize what will be committed; user may want to approve first.
 - Never commit dummy/demo finance seed data; keep real financial records untouched.
+- Never commit or push S3 seed/migration ops (`scripts/migrate-images-*.ts`, `scripts/test-s3.ts`) — local-only; do not upload or register prod image data via git.
 - Do not commit unless explicitly asked: `.idea/`, `.vscode/`, `public/uploads/`, `.cursor/`, `.agents/`, `.claude/`, `.llm/`, `.softgen/`, `.superpowers/`, `skills-lock.json`, one-off `scripts/` backfills/inspects, or other local tooling/credential files.
 - When Docker is down, use `npm run dev:next` (not `npm run dev`); dev server runs on port 3000 or 3001.
 - Use Razorpay MCP for Razorpay integration patterns when relevant.

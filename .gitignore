@@ -65,3 +65,5 @@ firebase-service-account.json
 /scripts/inspect-*.ts
 /scripts/onboard-missing-*.ts
 /scripts/_*.ts
+/scripts/migrate-images-*.ts
+/scripts/test-s3.ts
