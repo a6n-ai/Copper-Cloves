@@ -46,6 +46,8 @@ const KEYS = [
   "NEXT_PUBLIC_GA_MEASUREMENT_ID",
   // Cron auth
   "CRON_SECRET",
+  // Check-in QR HMAC signing secret (mints/verifies class check-in tokens)
+  "CHECKIN_QR_SECRET",
 ];
 
 const hasDb =
