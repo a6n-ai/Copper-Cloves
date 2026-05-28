@@ -35,10 +35,9 @@ function clientIp(headers: Headers): string | null {
 }
 
 /**
- * Called from authorize() after a credential check succeeds. Generates a new
- * session id and upserts the profile's single active-session row — overwriting
- * any previous one, which is what logs the prior device out. Returns the id to
- * embed as `sid` in the JWT.
+ * Called from authorize() after a credential check succeeds. Creates a new
+ * session row for this device — does NOT remove other devices' sessions.
+ * Returns the sid to embed in the JWT.
  */
 export async function startSession(profileId: string, headers: Headers): Promise<{ sid: string }> {
   const sid = randomUUID();
@@ -46,10 +45,8 @@ export async function startSession(profileId: string, headers: Headers): Promise
   const ua = headerVal(headers, "user-agent").slice(0, 512) || null;
   const ip = clientIp(headers);
   const now = new Date();
-  await prisma.userSession.upsert({
-    where: { profile_id: profileId },
-    create: { profile_id: profileId, session_id: sid, fingerprint: fp, user_agent: ua, ip, created_at: now, last_seen_at: now },
-    update: { session_id: sid, fingerprint: fp, user_agent: ua, ip, created_at: now, last_seen_at: now },
+  await prisma.userSession.create({
+    data: { profile_id: profileId, session_id: sid, fingerprint: fp, user_agent: ua, ip, created_at: now, last_seen_at: now },
   });
   return { sid };
 }
@@ -62,9 +59,9 @@ export async function endSession(sid: string | undefined | null): Promise<void> 
 
 /**
  * Central validation. True only if: the JWT carries a `sid`, that sid matches
- * the profile's current active session in DB, the request fingerprint matches
- * the one stored at login, and the session isn't idle-expired. Slides
- * last_seen_at on success (throttled).
+ * a session row in DB, the request fingerprint matches the one stored at login,
+ * and the session isn't idle-expired. Each device has its own row so multiple
+ * concurrent sessions are supported. Slides last_seen_at on success (throttled).
  */
 export async function isRequestSessionValid(req: ReqLike): Promise<boolean> {
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -80,11 +77,10 @@ export async function isRequestSessionValid(req: ReqLike): Promise<boolean> {
   const ua = headerVal(headers, "user-agent").slice(0, 512) || null;
   const ip = clientIp(headers);
 
-  const row = await prisma.userSession.findUnique({ where: { profile_id: profileId } });
+  const row = await prisma.userSession.findUnique({ where: { session_id: sid } });
 
   // Self-heal: JWT is signed by us and carries sid+profileId, but the row was
-  // wiped (DB reset, fresh env, manual cleanup). Re-bind to this device rather
-  // than locking the user out of their otherwise-valid token.
+  // wiped (DB reset, fresh env, manual cleanup). Re-bind rather than locking out.
   if (!row) {
     const now = new Date();
     await prisma.userSession.create({
@@ -93,7 +89,8 @@ export async function isRequestSessionValid(req: ReqLike): Promise<boolean> {
     return true;
   }
 
-  if (row.session_id !== sid) return false; // superseded by a newer login
+  // Ensure the sid belongs to the correct profile (prevents sid guessing across accounts).
+  if (row.profile_id !== profileId) return false;
 
   // Self-heal: UA varies behind some proxies / browser updates. JWT + sid + DB
   // row all agree, so accept once and rebind the fingerprint to the new UA.

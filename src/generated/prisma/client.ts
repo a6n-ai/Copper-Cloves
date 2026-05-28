@@ -48,12 +48,10 @@ export { Prisma }
 export type Profile = Prisma.ProfileModel
 /**
  * Model UserSession
- * Single active login session per profile (anti session-sharing). The
- * `session_id` is embedded as `sid` in the JWT; a fresh login upserts this row
- * so any older token (another device, or a copied cookie) fails validation —
- * "kick the old device". `fingerprint` (User-Agent hash) binds the token to the
- * browser it was issued to; `last_seen_at` powers the idle timeout. Enforced
- * centrally in getStudioServerSession via isRequestSessionValid.
+ * One row per active device session. `session_id` is embedded as `sid` in the JWT;
+ * validation looks up by sid directly so multiple devices can coexist. Each new login
+ * creates a new row; logout/idle-expire deletes the matching row only. `fingerprint`
+ * (UA hash) binds the token to the browser; `last_seen_at` powers idle timeout.
  */
 export type UserSession = Prisma.UserSessionModel
 /**

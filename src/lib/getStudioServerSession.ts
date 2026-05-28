@@ -19,6 +19,10 @@ export async function getStudioServerSession(
   ensureNextAuthUrlFromRequest(req);
   const session = await getServerSession(req, res, authOptions);
   if (!session) return null;
-  if (!(await isRequestSessionValid(req))) return null;
+  try {
+    if (!(await isRequestSessionValid(req))) return null;
+  } catch {
+    return null;
+  }
   return session;
 }
