@@ -1,6 +1,5 @@
 import pino, { type Logger } from "pino";
 import type { NextApiRequest, NextApiResponse } from "next";
-import { randomUUID } from "node:crypto";
 
 const isProd = process.env.NODE_ENV === "production";
 
@@ -34,7 +33,7 @@ export function childLogger(bindings: Record<string, unknown>): Logger {
 
 export function requestLogger(req: NextApiRequest, res: NextApiResponse): Logger {
   const reqId =
-    (req.headers["x-request-id"] as string | undefined) ?? randomUUID();
+    (req.headers["x-request-id"] as string | undefined) ?? globalThis.crypto.randomUUID();
   res.setHeader("x-request-id", reqId);
   return logger.child({
     reqId,
