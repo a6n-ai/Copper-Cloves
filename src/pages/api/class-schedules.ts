@@ -28,6 +28,11 @@ function prismaUserMessage(e: unknown): string {
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
   if (req.method === "GET") {
+    // Anonymous callers (e.g. public /classes page) can hit a CDN-cached copy;
+    // authed callers always bypass since responses can include user-scoped
+    // booking joins downstream.
+    const anonGet = !req.headers.cookie?.includes("next-auth.session-token") &&
+      !req.headers.cookie?.includes("__Secure-next-auth.session-token");
     try {
       const { month, year, fromMs, toMs, expand, minimal } = req.query;
       /** Admin calendar only needs scalar rows; nested class_model + instructor can make responses very large. */
@@ -60,7 +65,12 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
             },
             orderBy: { start_time: "asc" },
           });
-      res.setHeader("Cache-Control", "private, no-store, max-age=0, must-revalidate");
+      res.setHeader(
+        "Cache-Control",
+        anonGet
+          ? "public, s-maxage=60, stale-while-revalidate=300"
+          : "private, no-store, max-age=0, must-revalidate",
+      );
       return res.json(schedules);
     } catch (e) {
       return apiError(res, e, "[class-schedules GET]", 503, prismaUserMessage(e));
@@ -75,41 +85,89 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   try {
     if (req.method === "POST") {
       const body = req.body ?? {};
-      const startRaw = body.start_time;
-      const endRaw = body.end_time;
-      if (!startRaw || !endRaw || !body.class_id) {
-        return res.status(400).json({ error: "class_id, start_time, and end_time are required." });
-      }
-      const data = {
-        class_id: String(body.class_id),
-        instructor_id: body.instructor_id != null && body.instructor_id !== "" ? String(body.instructor_id) : null,
-        start_time: new Date(startRaw as string),
-        end_time: new Date(endRaw as string),
-        available_spots: Number(body.available_spots),
-        capacity: body.capacity != null && body.capacity !== "" ? Number(body.capacity) : null,
-        status: parseStatus(body.status) ?? ClassScheduleStatus.available,
-        current_bookings: Number(body.current_bookings ?? 0),
+
+      type Incoming = {
+        class_id?: unknown;
+        instructor_id?: unknown;
+        start_time?: unknown;
+        end_time?: unknown;
+        available_spots?: unknown;
+        capacity?: unknown;
+        status?: unknown;
+        current_bookings?: unknown;
       };
-      if (!Number.isFinite(data.available_spots) || data.available_spots < 0) {
-        return res.status(400).json({ error: "Invalid available_spots." });
+
+      const normalize = (raw: Incoming, idx: number): { data?: Prisma.ClassScheduleCreateManyInput; error?: string } => {
+        if (!raw.start_time || !raw.end_time || !raw.class_id) {
+          return { error: `Item ${idx}: class_id, start_time, and end_time are required.` };
+        }
+        const start = new Date(String(raw.start_time));
+        const end = new Date(String(raw.end_time));
+        const spots = Number(raw.available_spots);
+        if (Number.isNaN(start.getTime()) || Number.isNaN(end.getTime())) {
+          return { error: `Item ${idx}: invalid start_time or end_time.` };
+        }
+        if (!Number.isFinite(spots) || spots < 0) {
+          return { error: `Item ${idx}: invalid available_spots.` };
+        }
+        return {
+          data: {
+            class_id: String(raw.class_id),
+            instructor_id:
+              raw.instructor_id != null && raw.instructor_id !== "" ? String(raw.instructor_id) : null,
+            start_time: start,
+            end_time: end,
+            available_spots: spots,
+            capacity:
+              raw.capacity != null && raw.capacity !== "" ? Number(raw.capacity) : null,
+            status: parseStatus(raw.status) ?? ClassScheduleStatus.available,
+            current_bookings: Number(raw.current_bookings ?? 0),
+          },
+        };
+      };
+
+      // Batch path: { items: [...] } → single createMany. Skips dupes via unique index.
+      if (Array.isArray(body.items)) {
+        if (body.items.length === 0) {
+          return res.status(400).json({ error: "items must be a non-empty array." });
+        }
+        if (body.items.length > 200) {
+          return res.status(400).json({ error: "Cannot create more than 200 schedules at once." });
+        }
+        const data: Prisma.ClassScheduleCreateManyInput[] = [];
+        for (let i = 0; i < body.items.length; i++) {
+          const { data: row, error } = normalize(body.items[i] as Incoming, i);
+          if (error) return res.status(400).json({ error });
+          if (row) data.push(row);
+        }
+        const result = await prisma.classSchedule.createMany({ data, skipDuplicates: true });
+        return res.status(201).json({
+          created: result.count,
+          skipped: data.length - result.count,
+        });
       }
-      if (Number.isNaN(data.start_time.getTime()) || Number.isNaN(data.end_time.getTime())) {
-        return res.status(400).json({ error: "Invalid start_time or end_time." });
+
+      // Single-item path. Rely on unique index to reject dupes (P2002 → friendly message).
+      const { data, error } = normalize(body as Incoming, 0);
+      if (error) return res.status(400).json({ error });
+      try {
+        const schedule = await prisma.classSchedule.create({ data: data! });
+        return res.status(201).json(schedule);
+      } catch (e) {
+        if (e instanceof Prisma.PrismaClientKnownRequestError && e.code === "P2002") {
+          // Idempotent re-submit — return the existing row id.
+          const existing = await prisma.classSchedule.findFirst({
+            where: {
+              start_time: data!.start_time as Date,
+              class_id: data!.class_id,
+              instructor_id: data!.instructor_id ?? null,
+            },
+            select: { id: true },
+          });
+          return res.status(200).json({ ...existing, _existed: true });
+        }
+        throw e;
       }
-      // Dedup: reject if a schedule already exists at this exact slot (same class + instructor + start_time).
-      const existing = await prisma.classSchedule.findFirst({
-        where: {
-          start_time: data.start_time,
-          class_id: data.class_id,
-          instructor_id: data.instructor_id,
-        },
-        select: { id: true },
-      });
-      if (existing) {
-        return res.status(200).json({ ...existing, _existed: true });
-      }
-      const schedule = await prisma.classSchedule.create({ data });
-      return res.status(201).json(schedule);
     }
 
     if (req.method === "PUT") {

@@ -165,6 +165,62 @@ const BookClassCard = memo(function BookClassCard({ cls, onSelect }: BookClassCa
   );
 });
 
+interface FoodRowProps {
+  item: FoodItem;
+  onAdjust: (id: string, delta: number) => void;
+}
+/**
+ * Café row inside Step 3. Memoed so adjusting one item's quantity doesn't
+ * re-render every other row (we render the full menu, not a paginated list).
+ */
+const FoodRow = memo(function FoodRow({ item, onAdjust }: FoodRowProps) {
+  return (
+    <div
+      key={item.id}
+      className="p-4 rounded-xl bg-white border border-sage/10 hover:border-sage/30 transition-all"
+    >
+      <div className="flex gap-4">
+        {/* eslint-disable-next-line @next/next/no-img-element */}
+        <img
+          src={item.image}
+          alt={item.name}
+          className="w-24 h-24 rounded-lg object-cover bg-sage/10"
+        />
+        <div className="flex-1">
+          <div className="flex flex-wrap items-center gap-2 mb-1">
+            <h4 className="font-display text-lg text-charcoal">{item.name}</h4>
+            <Badge variant="outline" className="border-sage/30 text-charcoal/70 text-[10px]">
+              {formatCafeCategory(item.category)}
+            </Badge>
+          </div>
+          {item.description ? (
+            <p className="font-body text-xs text-charcoal/60 mb-2">{item.description}</p>
+          ) : null}
+          <div className="flex items-center justify-between">
+            <p className="font-body text-sage font-semibold">₹{item.price}</p>
+            <div className="flex items-center gap-3">
+              <QtyMinusButton
+                onClick={() => onAdjust(item.id, -1)}
+                disabled={item.quantity === 0}
+                className="rounded-full bg-sage/10"
+                label="Decrease quantity"
+              />
+              <span className="font-body text-charcoal font-medium w-8 text-center">
+                {item.quantity}
+              </span>
+              <QtyPlusButton
+                onClick={() => onAdjust(item.id, 1)}
+                className="rounded-full bg-sage/10"
+                label="Increase quantity"
+              />
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+});
+
 function BookClassCardSkeleton() {
   return (
     <Card className="border-sage/20 bg-white/80 backdrop-blur-xs overflow-hidden">
@@ -593,13 +649,13 @@ export default function BookClass() {
     }
   }
 
-  function handleFoodQuantity(id: string, change: number) {
-    setFoodItems(prev => prev.map(item => 
-      item.id === id 
+  const handleFoodQuantity = useCallback((id: string, change: number) => {
+    setFoodItems(prev => prev.map(item =>
+      item.id === id
         ? { ...item, quantity: Math.max(0, item.quantity + change) }
         : item
     ));
-  }
+  }, []);
 
   const calculateTotals = useCallback(() => {
     const totalPeople = 1 + friendsFamily.length;
@@ -1556,48 +1612,7 @@ export default function BookClass() {
                     </p>
                   ) : null}
                   {foodItems.map((item) => (
-                    <div 
-                      key={item.id}
-                      className="p-4 rounded-xl bg-white border border-sage/10 hover:border-sage/30 transition-all"
-                    >
-                      <div className="flex gap-4">
-                        <img 
-                          src={item.image}
-                          alt={item.name}
-                          className="w-24 h-24 rounded-lg object-cover bg-sage/10"
-                        />
-                        <div className="flex-1">
-                          <div className="flex flex-wrap items-center gap-2 mb-1">
-                            <h4 className="font-display text-lg text-charcoal">{item.name}</h4>
-                            <Badge variant="outline" className="border-sage/30 text-charcoal/70 text-[10px]">
-                              {formatCafeCategory(item.category)}
-                            </Badge>
-                          </div>
-                          {item.description ? (
-                            <p className="font-body text-xs text-charcoal/60 mb-2">{item.description}</p>
-                          ) : null}
-                          <div className="flex items-center justify-between">
-                            <p className="font-body text-sage font-semibold">₹{item.price}</p>
-                            <div className="flex items-center gap-3">
-                              <QtyMinusButton
-                                onClick={() => handleFoodQuantity(item.id, -1)}
-                                disabled={item.quantity === 0}
-                                className="rounded-full bg-sage/10"
-                                label="Decrease quantity"
-                              />
-                              <span className="font-body text-charcoal font-medium w-8 text-center">
-                                {item.quantity}
-                              </span>
-                              <QtyPlusButton
-                                onClick={() => handleFoodQuantity(item.id, 1)}
-                                className="rounded-full bg-sage/10"
-                                label="Increase quantity"
-                              />
-                            </div>
-                          </div>
-                        </div>
-                      </div>
-                    </div>
+                    <FoodRow key={item.id} item={item} onAdjust={handleFoodQuantity} />
                   ))}
                 </div>
 

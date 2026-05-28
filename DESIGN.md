@@ -26,7 +26,7 @@ typography:
     letterSpacing: "normal"
   body:
     fontFamily: "Montserrat, system-ui, sans-serif"
-    fontSize: "1rem"
+    fontSize: "1rem"I 
     fontWeight: 400
     lineHeight: 1.7
     letterSpacing: "normal"

@@ -27,29 +27,47 @@ export function InstructorCheckinBeacon({ classes }: { classes: BeaconClass[] })
     [classes],
   );
 
-  // Find the soonest class whose window contains "now". Skip ticking if none ever.
-  const anyEverActive = classStarts.some(
-    ({ start }) => Date.now() <= start + CLOSE_AFTER_MS,
-  );
+  // Soonest class whose window contains `now`, plus a flag for whether any
+  // window is still reachable. Pure derivation against memoized inputs — no
+  // `Date.now()` during render.
+  const { active, anyEverActive } = useMemo(() => {
+    let chosen: { c: BeaconClass; start: number } | undefined;
+    let everActive = false;
+    for (const entry of classStarts) {
+      if (now <= entry.start + CLOSE_AFTER_MS) everActive = true;
+      if (now >= entry.start - OPEN_BEFORE_MS && now <= entry.start + CLOSE_AFTER_MS) {
+        if (!chosen || entry.start < chosen.start) chosen = entry;
+      }
+    }
+    return { active: chosen, anyEverActive: everActive };
+  }, [classStarts, now]);
 
   useEffect(() => {
     if (!anyEverActive) return;
-    const tick = () => setNow(Date.now());
-    const id = setInterval(() => {
-      if (typeof document !== "undefined" && document.hidden) return;
-      tick();
-    }, 1000);
-    const onVis = () => { if (!document.hidden) tick(); };
+    let id: number | null = null;
+    const start = () => {
+      if (id !== null) return;
+      id = window.setInterval(() => setNow(Date.now()), 1000);
+    };
+    const stop = () => {
+      if (id === null) return;
+      clearInterval(id);
+      id = null;
+    };
+    const onVis = () => {
+      if (document.hidden) stop();
+      else {
+        setNow(Date.now());
+        start();
+      }
+    };
+    if (!document.hidden) start();
     document.addEventListener("visibilitychange", onVis);
     return () => {
-      clearInterval(id);
       document.removeEventListener("visibilitychange", onVis);
+      stop();
     };
   }, [anyEverActive]);
-
-  const active = classStarts
-    .filter(({ start }) => now >= start - OPEN_BEFORE_MS && now <= start + CLOSE_AFTER_MS)
-    .sort((a, b) => a.start - b.start)[0];
 
   if (!active) return null;
 

@@ -6,6 +6,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     const packages = await prisma.packageType.findMany({
       orderBy: { price: "asc" },
     });
+    res.setHeader("Cache-Control", "public, s-maxage=300, stale-while-revalidate=600");
     return res.json(packages);
   }
 

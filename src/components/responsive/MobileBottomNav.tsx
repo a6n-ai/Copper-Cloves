@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useMemo, useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/router";
 import { QrCode, Menu, type LucideIcon } from "lucide-react";
@@ -25,28 +25,34 @@ export function MobileBottomNav({ config }: { config: PortalConfig }) {
   const [moreOpen, setMoreOpen] = useState(false);
   const [scanOpen, setScanOpen] = useState(false);
 
-  const all = flattenNavItems(config);
-  const byHref = new Map(all.map((i) => [i.href, i]));
-  const primary = config.mobilePrimary
-    .map((href) => byHref.get(href))
-    .filter((i): i is NavLink => Boolean(i));
-  const primaryHrefs = new Set(primary.map((i) => i.href));
-  const overflow = all.filter((i) => !primaryHrefs.has(i.href));
-  const showMore = overflow.length > 0;
-  const showScanner = Boolean(config.mobileScanner);
+  type Slot =
+    | { type: "link"; href: string; label: string; icon: LucideIcon }
+    | { type: "more" };
+
+  // Config is the only input that changes the slot layout; recomputing on every
+  // route change (the previous behavior, because everything sat in the render
+  // body) rebuilt Maps/Sets unnecessarily.
+  const { all, overflow, showMore, showScanner, slots } = useMemo(() => {
+    const all = flattenNavItems(config);
+    const byHref = new Map(all.map((i) => [i.href, i]));
+    const primary = config.mobilePrimary
+      .map((href) => byHref.get(href))
+      .filter((i): i is NavLink => Boolean(i));
+    const primaryHrefs = new Set(primary.map((i) => i.href));
+    const overflow = all.filter((i) => !primaryHrefs.has(i.href));
+    const showMore = overflow.length > 0;
+    const showScanner = Boolean(config.mobileScanner);
+    const slots: Slot[] = [
+      ...primary.map((i) => ({ type: "link" as const, href: i.href, label: i.label, icon: i.icon })),
+      ...(showMore ? [{ type: "more" as const }] : []),
+    ];
+    return { all, overflow, showMore, showScanner, slots };
+  }, [config]);
 
   if (all.length <= 1 && !showScanner) return null;
 
   const isActive = (href: string) => router.pathname === href;
   const moreActive = overflow.some((i) => isActive(i.href));
-
-  type Slot =
-    | { type: "link"; href: string; label: string; icon: LucideIcon }
-    | { type: "more" };
-  const slots: Slot[] = [
-    ...primary.map((i) => ({ type: "link" as const, href: i.href, label: i.label, icon: i.icon })),
-    ...(showMore ? [{ type: "more" as const }] : []),
-  ];
 
   const renderSlot = (slot: Slot, key: string) => {
     const cls = (active: boolean) =>

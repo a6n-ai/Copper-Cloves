@@ -18,6 +18,9 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       where: { id, is_active: true },
     });
     if (!p) return res.status(404).json({ error: "Not found" });
+    // Per-product detail rarely changes; safe to CDN-cache for a minute with
+    // a longer SWR window so the page hydrates without a fresh round-trip.
+    res.setHeader("Cache-Control", "public, s-maxage=60, stale-while-revalidate=300");
     return res.json({
       id: p.id,
       name: p.name,
@@ -36,6 +39,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     orderBy: [{ featured: "desc" }, { created_at: "desc" }],
   });
 
+  res.setHeader("Cache-Control", "public, s-maxage=60, stale-while-revalidate=300");
   return res.json(
     rows.map((p) => ({
       id: p.id,

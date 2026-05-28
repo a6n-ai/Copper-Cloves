@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { useRouter } from "next/router";
-import { useForm, Controller, useWatch } from "react-hook-form";
+import { useForm, Controller } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
 import { isValidPhoneNumber } from "react-phone-number-input";
@@ -84,7 +84,9 @@ export function SignUpForm({ onSwitchToSignin }: { onSwitchToSignin: () => void 
     defaultValues: { acceptAll: false },
   });
 
-  const passwordValue = useWatch({ control, name: "password" });
+  // No `useWatch` on password — every keystroke would rerender the whole form
+  // when the value is only needed inside a single onChange handler. Read via
+  // `getValues` instead.
 
   async function goToStep2() {
     setApiError(null);
@@ -295,7 +297,7 @@ export function SignUpForm({ onSwitchToSignin }: { onSwitchToSignin: () => void 
                   {...register("password", {
                     onChange: () => {
                       if (generated) setGenerated(null);
-                      if (passwordValue !== undefined) trigger("confirmPassword");
+                      if (getValues("password") !== undefined) trigger("confirmPassword");
                     },
                   })}
                   id="password"

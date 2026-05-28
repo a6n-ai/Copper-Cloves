@@ -1,5 +1,6 @@
 "use client";
 
+import { useMemo } from "react";
 import { Trophy } from "lucide-react";
 import { Area, AreaChart, CartesianGrid, XAxis } from "recharts";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -31,10 +32,16 @@ export function VitalityAreaChart({
   vsLabel,
   vsTone,
 }: VitalityAreaChartProps) {
-  const data = series.map((minutes, index) => ({
-    day: index - (series.length - 1), // -29..0
-    minutes,
-  }));
+  // Rebuilding `data` per render makes recharts diff every path and re-render
+  // the whole area chart even when the series is unchanged.
+  const data = useMemo(
+    () =>
+      series.map((minutes, index) => ({
+        day: index - (series.length - 1), // -29..0
+        minutes,
+      })),
+    [series],
+  );
 
   return (
     <Card className="h-full rounded-2xl shadow-xs">

@@ -4,6 +4,53 @@ Vercel React rules audit + remediation. Tracks all findings from initial scan + 
 
 Legend: `[x]` done · `[ ]` pending · `[~]` in progress · `[-]` deferred (needs discussion)
 
+---
+
+## Session 2026-05-28 — paused for dev test
+
+~30 items landed across React rerender hygiene, Pages Router platform wins, and bundle hygiene.
+
+### Test-on-dev checklist (regression surface)
+
+Hit these flows in `npm run dev` first — they're the surfaces this session touched:
+
+1. **Fonts** — every page should still show Playfair Display headings + Montserrat body (no FOUT to system fonts). Marketing pages should paint without the Google Fonts blocking request in Network tab.
+2. **Cart** — add / remove / update qty across `/portal/menu`, `/shop`, `/cafe`. Cart badge in `Navigation` must reflect changes; checkout totals must match.
+3. **Responsive dialogs** — open any admin dialog (e.g. `admin/members` → Manage), resize browser across 768px. Should NOT remount the form mid-edit. Mobile sheet variant should still appear under 768px on first open.
+4. **Activity tracking** — open DevTools → Network. Page nav should still emit `page_view`. Tab hidden for 30s should pause the 15s flush; tab visible should resume + flush.
+5. **Check-in countdown / beacon** — `/instructor/dashboard`. 1-Hz countdown should pause when tab hidden; instructor beacon should render correctly.
+6. **Class countdown pill** — on `/admin/dashboard` overview "Today's classes" carousel.
+7. **Sign-up form** — `/portal/signup`. Type into password field; the rest of the form should NOT visibly re-flash on every keystroke. Suggest-strong button still fills both password fields.
+8. **Path to Mastery + Vitality area chart** — `/portal/dashboard`. Charts should render; milestone progress should still animate on first paint.
+9. **Order history table** — `/portal/dashboard` or `/portal/bookings`. Date column, status badge, payment label should all render identically.
+10. **Mobile bottom nav** — under 768px, primary tabs + More sheet still work; scanner FAB (member/instructor) opens scan modal.
+11. **Admin Finance tab** — open a Finance-1 row → detail dialog should still open with full breakdown.
+12. **Admin Classes tab** — Peak Hours heatmap colors should still gradient correctly; hover scale still works.
+13. **Admin Overview tab** — Today carousel cards; date prev/next/today buttons; member selection checkboxes shouldn't re-render the carousel.
+14. **Landing `/`** — Hero videos still autoplay; below-the-fold sections (Instructors, Pricing, Founder, Rental, Boutique, Testimonial) should still appear as user scrolls (now lazy-loaded via `next/dynamic`).
+15. **Public API caching** — `/api/classes`, `/api/retail-products`, `/api/cafe/items`, `/api/packages`, `/api/class-schedules` (anon). Check Response headers for `Cache-Control: public, s-maxage=…`. Anon hits must NOT return `studio_payout_cut_percent` (was leaking via `include: instructor`).
+16. **Auth-scoped APIs** — `/api/class-schedules` while signed in should still return `private, no-store`; `/api/user-stats` should return `private, max-age=10, swr=60`.
+17. **GA + Softgen scripts** — Network tab: `googletagmanager.com/gtag/js?id=…` should fire after interactive; `cdn.softgen.ai/script.js` should fire on lazy load (not blocking first paint).
+18. **Razorpay checkout** — book a class or buy a package and complete a test payment. Preconnect should warm the Razorpay origin earlier than before.
+19. **NumberTicker** — admin dashboard metric cards animating from 0 → value should reach the correct end value (no off-by-one from the ref change).
+20. **Pagination** — any admin table with >10 rows. Page-pill click should snap to active page (no more FLIP spring animation — this is intentional).
+
+### Watch for
+- Build still passes (`npm run build`) — `next/font` + `next/script` migration touches the build pipeline.
+- Hydration warnings in console for the wrapped `<div>` in `_app.tsx` (the font-variable wrapper).
+- Any `prisma.classModel.findMany` callers downstream that expected `studio_payout_cut_percent` to be present on `instructor` — it's now `omit`ed.
+
+### Still pending after this session
+- Auth gSSP migration across ~25 pages (kills flash-of-unauth)
+- `next/image` migration (~9 `<img>` sites)
+- `pages/classes.tsx`, `shop.tsx`, `shop/[id].tsx` → `getStaticProps` + ISR
+- `DashboardChrome` scalar session destructure
+- SWR migration for shared endpoints
+- Hero video `poster` JPEGs (needs uploaded assets, not a code-only change)
+- `next.config.mjs` `remotePatterns` tightening (needs full image-host audit)
+
+---
+
 ## Bundle (CRITICAL)
 
 - [x] `admin/dashboard.tsx` — recharts (11 components) wrapped in `next/dynamic({ssr:false})`
@@ -57,9 +104,9 @@ Legend: `[x]` done · `[ ]` pending · `[~]` in progress · `[-]` deferred (need
 - [x] `portal/packages.tsx` — `recommendedIndex`, `pagedHistory` `useMemo`
 - [x] `portal/bookings.tsx` — sort precomputes `startMs` once per booking (was building a Date per compare); `sortedBookings` + `paginatedBookings` `useMemo`
 - [x] `pages/classes.tsx` — `filteredClasses` `useMemo`; `activeTab` effect now depends on `router.query.tab` scalar (not object)
-- [ ] `portal/bookings.tsx` L198 — `sortedBookings`, `paginatedBookings`
+- [x] `portal/bookings.tsx` — `sortedBookings` + `paginatedBookings` already `useMemo` (landed in earlier pass; verified at L295/L302).
 - [x] `portal/dashboard.tsx` — `activeMilestones` `useMemo`; combined `currentMilestone`+`nextMilestone` single-pass `useMemo`; `statItems`/`upcomingEntries`/`orderRows` all wrapped in `useMemo` so memoized children get stable refs
-- [ ] `pages/classes.tsx` L451-456 — `activeTab` effect+setState → derive from query
+- [x] `pages/classes.tsx` — `activeTab` effect now depends on scalar `queryTab = router.query.tab` (with explanatory comment); already in tree from earlier pass.
 
 ## Session-object deps → scalar role/id
 
@@ -104,7 +151,7 @@ Legend: `[x]` done · `[ ]` pending · `[~]` in progress · `[-]` deferred (need
 - [ ] `admin/MetricCard.tsx` L54 — wrap React.memo
 - [ ] `components/Instructors.tsx` L355-433 — extract `<InstructorCard>` React.memo
 - [x] `portal/book.tsx` — extracted memoized `BookClassCard`; `handleSelectClass` wrapped in `useCallback` so memo actually skips rerender when only unrelated page state changes (food qty, friends/family typing, coupon validate)
-- [ ] `portal/book.tsx` L1502 — `FoodRow` memo (cafe-items list, similar pattern)
+- [x] `portal/book.tsx` — café row extracted into memoized `<FoodRow>` (mirrors `BookClassCard` pattern); `handleFoodQuantity` wrapped in `useCallback` so qty tick on one item no longer re-renders every other row.
 - [x] `portal/bookings.tsx` — single memoized `BookingCard` replaces dual mobile-card + desktop-card render (was 2× DOM per booking); `ResponsiveCards` no longer needed
 - [ ] `portal/dashboard.tsx` L548-553 — memo action-button array
 
@@ -178,52 +225,50 @@ Fresh scans against files NOT previously reviewed + Next.js Pages Router-specifi
 
 ## R2 · React rerender / leak (highest leverage)
 
-- [ ] `contexts/CartContext.tsx` — provider `value` is a new object every render → every `useCart` consumer (Navigation cart badge, all checkout screens, shop pages) re-renders on any parent tick. Wrap value in `useMemo`; wrap `addItem`/`removeItem`/`updateQuantity`/`clearCart` in `useCallback`.
-- [ ] `components/responsive/ResponsiveDialog.tsx` — each sub-component calls `useIsMobile()` independently. A single dialog uses 4-6 of these → 4-6× matchMedia listener attach/teardown per dialog mount. Solution: single context provider that reads `useIsMobile` once and shares via context. Also: switching root component type on resize crossing 768 → unmount/remount entire subtree, losing form state mid-resize.
-- [ ] `hooks/useActivityTracking.ts` L48 — pageview effect deps include `router` object → re-binds on every render. Depend on `router.events` ref or use `[]`. L51 — 15s flush interval fires while tab hidden; gate on `document.hidden` + `visibilitychange`.
-- [ ] `components/checkin/ClassCountdownPill.tsx` L26-29 — 1-Hz `setInterval` runs even when tab hidden → battery drain on background instructor portal. Pause on visibilitychange. L42-43 — `new Date(startIso).getTime()` parsed every tick; cache in `useMemo` keyed on `startIso`/`endIso`.
-- [ ] `components/checkin/InstructorCheckinBeacon.tsx` L31 — `anyEverActive` derives from `Date.now()` during render (impure); 1-Hz tick + small list filter/sort runs ~60 passes/min.
-- [ ] `components/dashboard/AnimatedIcon.tsx` — used 50+ times across the app. Each instance ships a fresh framer `initial`/`animate`/`transition` literal object per parent render. Heavy aggregate framer cost. Memoize component; default to plain `<Icon>` and reserve `AnimatedIcon` for hover-only spots.
-- [ ] `hooks/useAuthWeather.ts` L45 — palette/greeting derived via `new Date()` during render (impure); wrap in `useMemo([weather])`.
-- [ ] `components/admin/dashboard-tabs/FinanceTab.tsx` L412-462 — `financeTxnPg.pageItems.map` rebuilds row JSX inline + computes `openFinance`/`displayMember`/`plus` per row per render. Extract memoized `<FinanceRow>`. L635-646 — `[45,52,48,...]` placeholder revenue array allocated each render; hoist to module scope.
-- [ ] `components/admin/dashboard-tabs/ClassesTab.tsx` L270-292 — Peak-Hours heatmap nests `slots × days` with inline title strings + style objects; extract memoized `<HeatCell>`.
-- [ ] `components/admin/dashboard-tabs/MembersTab.tsx` L110-153 — `displayedMemberStats = {...memberStats, ...filteredMemberStats}` spread every render; wrap in `useMemo`. `activeMemberTierTotal` also derived per render.
-- [ ] `components/admin/dashboard-tabs/OverviewTab.tsx` L123-135 — `today`/`iso`/`tom`/`yest`/`pretty`/`dateTitle` recomputed per render; wrap in `useMemo([scheduleDate])`. L250 — `.map((cls:any) => ({...}))` rebuilds carousel item shape every render; memoize.
-- [ ] `components/dashboard/UpcomingScheduleCard.tsx` L52-81 — `entries.map` calls `formatWhen` (Date parse + 2× toLocale*) per row per render; precompute or extract memoized `<EntryButton>`.
-- [ ] `components/dashboard/OrderHistoryTable.tsx` L67-95 — `rows.map` inline with `new Date().toLocaleDateString()` per row per render; extract `<OrderRow>` memo or memoize formatted strings per row.
-- [ ] `components/dashboard/VitalityAreaChart.tsx` L34 — chart `data` rebuilt each render → recharts re-renders all paths; `useMemo([series])`.
-- [ ] `components/dashboard/PathToMastery.tsx` L48-54 — `target`/`pct`/`gradient`/`trackLeft`/`trackSpan` recomputed per render; `useMemo([milestones])`. L102 — extract memoized `<MilestoneTier>` (motion.li per item runs spring on every parent tick).
-- [ ] `components/auth/SignUpForm.tsx` L87 — `useWatch({name:"password"})` rerenders entire form on every password keystroke; only used in one onChange. Read via `getValues("password")` inside handler instead.
-- [ ] `components/checkin/CheckinBeacon.tsx` L132 — `relLabel(next.startTime)` countdown badge text only updates on next poll (60s); either add 1-min tick interval or accept staleness explicitly.
-- [ ] `components/checkin/CheckinQrDialog.tsx` L48 — `validUntil` rebuilt every render; `useMemo([data?.startTime])`.
-- [ ] `components/checkin/ClassCheckinQr.tsx` L77-82 — `BlurredFakeQr` rebuilds 169-cell grid every render; hoist `cells` to module const (grid is static).
-- [ ] `components/checkin/ClassCheckinQr.tsx` L70-76 — `isFinder` closure recreated each render; hoist to module scope.
-- [ ] `components/responsive/MobileBottomNav.tsx` L29-41 — `Map`/`Set` constructions + `primary`/`overflow` slot derivation on every render; wrap in `useMemo([config])`.
-- [ ] `components/SEO.tsx` L15,17,46,48 — default param `image = cdnUrl("/og-image.png")` evaluates `cdnUrl` on every call; hoist default to module const.
-- [ ] `components/admin/NumberTicker.tsx` L30 — `fromRef.current = value` reads render-time `value`; should snapshot via ref on prev animation end to avoid stale reads.
+- [x] `contexts/CartContext.tsx` — `value` wrapped in `useMemo`; `addItem`/`removeItem`/`updateQuantity`/`clearCart` wrapped in `useCallback` (empty deps; all use functional setState). `itemCount`+`subtotal` collapsed into single-pass `useMemo([items])`. `updateQuantity` inlined remove path (no cross-handler dep).
+- [x] `components/responsive/ResponsiveDialog.tsx` — single `RespCtx` context; only the Root calls `useIsMobile()`, all parts read context. Value frozen for the open session (snapshot on open, cleared on close) so resize across 768px no longer unmount/remount the subtree mid-edit.
+- [x] `hooks/useActivityTracking.ts` — pageview effect now `[]` deps with `statusRef` for live status read (was re-binding listener + re-firing initial `page_view` on every router/session tick). 15s flush interval paused on `document.hidden`; flushes once + restarts on `visibilitychange` resume.
+- [x] `components/checkin/ClassCountdownPill.tsx` — 1-Hz tick paused on `document.hidden`; resumes on visibilitychange (with immediate `setNow` so the label snaps fresh). `startMs`/`endMs` `useMemo([startIso, endIso])` — no more 60 `new Date()` parses per minute.
+- [x] `components/checkin/InstructorCheckinBeacon.tsx` — `active` + `anyEverActive` collapsed into single-pass `useMemo([classStarts, now])` (no `Date.now()` during render; one loop instead of `some` + `filter` + `sort`). Interval now genuinely stops on `document.hidden` (not just early-returns) and snaps fresh on visibilitychange resume.
+- [x] `components/dashboard/AnimatedIcon.tsx` — wrapped in `React.memo`; `initial`/`animate`/`transition` literals hoisted to module-scope constants (`INITIAL_MOUNT`, `ANIMATE_MOUNT`, `SPRING_TRANSITION`) so every instance shares stable refs. With primitive props (icon ref, size, hover string) equal, memo now actually skips renders.
+- [x] `hooks/useAuthWeather.ts` — `palette` + `greeting` both `useMemo([weather])`; `new Date()` only called when weather payload changes.
+- [x] `components/admin/dashboard-tabs/FinanceTab.tsx` — row body extracted into `FinanceRowView` (React.memo); click handler hoisted to `handleSelectFinance` (`useCallback`) so memo doesn't bust on identity. `REVENUE_TREND_PLACEHOLDER` array hoisted to module scope (was re-allocated every render).
+- [x] `components/admin/dashboard-tabs/ClassesTab.tsx` — Peak-Hours heatmap cells extracted into memoized `<HeatCell>`; intensity/opacity/title now computed inside the cell (per-cell skip on parent rerenders).
+- [x] `components/admin/dashboard-tabs/MembersTab.tsx` — `displayedMemberStats` + `activeMemberTierTotal` both wrapped in `useMemo` with scalar deps (was reallocating the spread object every render even when nothing changed).
+- [x] `components/admin/dashboard-tabs/OverviewTab.tsx` — `todayIso`/`y`/`m`/`d`/`dateTitle` collapsed into single `useMemo([scheduleDate])`; carousel `items` now memoized via `carouselItems = useMemo([todayClassesDetail, upcomingClasses])` (was rebuilding 10-key shape per render, forcing `TodayClassesCarousel` to re-diff every card on unrelated state changes).
+- [x] `components/dashboard/UpcomingScheduleCard.tsx` — `formatWhen` precomputed per entry in `useMemo([entries])`; rendered row reads cached `when` string (was reparsing Date + 2× `toLocale*` per row per render).
+- [x] `components/dashboard/OrderHistoryTable.tsx` — display strings (dateLabel, statusBadge, statusBadgeClass, methodLabel) precomputed per row in `useMemo([rows])`; row body extracted into `OrderRowView` wrapped in `React.memo` so unchanged rows skip render.
+- [x] `components/dashboard/VitalityAreaChart.tsx` — `data` `useMemo([series])`; recharts no longer re-diffs paths on parent rerenders.
+- [x] `components/dashboard/PathToMastery.tsx` — `pct`/`gradient`/`trackLeft`/`trackSpan` collapsed into single `useMemo([milestones, classesCompleted])`; unused `target` dropped. (Extracting `<MilestoneTier>` deferred — would need to thread color/earned/isCurrent/tier handlers, low marginal value given the math now memoized.)
+- [x] `components/auth/SignUpForm.tsx` — removed `useWatch({name:"password"})`; password read inside the onChange via `getValues("password")` (was rerendering the entire form on every keystroke).
+- [x] `components/checkin/CheckinBeacon.tsx` — explicit staleness comment added to `badgeLabel`: 60s poll cadence matches the badge's minute resolution, so no separate `setInterval` needed; label intentionally freezes while tab hidden (poll paused) and snaps fresh on visibilitychange.
+- [x] `components/checkin/CheckinQrDialog.tsx` — `validUntil` `useMemo([data?.startTime])` (was reparsing + reformatting Date every render).
+- [x] `components/checkin/ClassCheckinQr.tsx` — `isFinder` + 169-cell `cells` array hoisted into module-scope `FAKE_QR_CELLS` IIFE (computed once at import, rendered identically every time).
+- [x] `components/responsive/MobileBottomNav.tsx` — `all`/`overflow`/`showMore`/`showScanner`/`slots` collapsed into single `useMemo([config])`; `Map`/`Set` allocations + `flattenNavItems` only run on config change, not on every route push.
+- [x] `components/SEO.tsx` — `DEFAULT_OG_IMAGE` + `FAVICON_SVG` + `FAVICON_ICO` hoisted to module consts (`cdnUrl` was being re-evaluated on every `<SEO>`/`<SEOElements>` render).
+- [x] `components/admin/NumberTicker.tsx` — added `currentRef` updated inside rAF; `fromRef.current = currentRef.current` (was reading the stale render-time `value` snapshot, which lagged the actually-displayed number on rapid `end` changes).
 
 ## R2 · Next.js Pages Router optimization (highest leverage)
 
 ### Marketing pages — SSR per request → should be SSG/ISR
 
-- [ ] `pages/index.tsx` — fully static landing; add `export const getStaticProps = () => ({ props: {} })`. Big TTFB win + better SEO.
-- [ ] `pages/founder.tsx` · `pages/rental.tsx` · `pages/policy.tsx` · `pages/terms.tsx` — pure static content; convert to `getStaticProps` with `revalidate`.
-- [ ] `pages/cafe.tsx` — mostly static (gallery + heroMedia hard-coded); `getStaticProps`.
-- [ ] `pages/classes.tsx` L25 — `/api/classes` always fetched on mount; convert to `getStaticProps` + ISR (class catalog rarely changes). Keep schedule list client-side.
-- [ ] `pages/shop.tsx` L91 — `/api/retail-products` fetched in `useEffect`; convert to `getStaticProps` + ISR (60s) for SEO/LCP.
-- [ ] `pages/shop/[id].tsx` — product detail per-id, currently client-fetches every load; use `getStaticPaths` + `getStaticProps` with ISR.
+- [-] `pages/index.tsx` · `founder.tsx` · `rental.tsx` · `policy.tsx` · `terms.tsx` — no data deps, no `useSession`, no `getServerSideProps`/`getInitialProps`. Pages Router already statically optimizes these at build (`Automatic Static Optimization`). Adding an empty `getStaticProps` is a no-op vs current behavior.
+- [-] `pages/cafe.tsx` — gallery static but page imports interactive components + a scroll listener; conversion to `getStaticProps` provides no TTFB benefit since the page already has no data dep. Skipped.
+- [ ] `pages/classes.tsx` L25 — `/api/classes` always fetched on mount; convert to `getStaticProps` + ISR (class catalog rarely changes). Keep schedule list client-side. **Still pending — would need to refactor the existing client `fetch` flow.**
+- [ ] `pages/shop.tsx` L91 — `/api/retail-products` fetched in `useEffect`; convert to `getStaticProps` + ISR (60s) for SEO/LCP. **Still pending.**
+- [ ] `pages/shop/[id].tsx` — product detail per-id, currently client-fetches every load; use `getStaticPaths` + `getStaticProps` with ISR. **Still pending.**
 
 ### Bundle / code splitting
 
-- [ ] `pages/index.tsx` L17-31 — below-the-fold sections (`Pricing`, `Founder`, `Rental`, `Boutique`, `Testimonial`, `Instructors`) load eagerly; wrap in `next/dynamic` to shrink landing JS bundle.
+- [x] `pages/index.tsx` — `Instructors`, `Pricing`, `Founder`, `Rental`, `Boutique`, `Testimonial` wrapped in `next/dynamic`. SSR kept on so SEO crawlers still see content; only the JS download for these sections is deferred. Above-the-fold `Navigation`, `Hero`, `ClassCatalog`, `Footer` stay static-imported.
 - [ ] `pages/portal/dashboard.tsx` L16 — `MemberMobileDashboard` always imported even though only mobile renders; wrap both mobile + desktop variants in `next/dynamic({ssr:false})` and gate on `isMobile`.
-- [ ] `components/Pagination.tsx` L2 — uses `framer-motion` for trivial transitions; replace with CSS to drop framer from pagination chunk.
+- [x] `components/Pagination.tsx` — `framer-motion` import dropped; active-page pill switched to CSS `transition-colors` on the link itself (no FLIP). One less framer instance per dashboard page that uses Pagination.
 
 ### Hero / LCP
 
 - [ ] `components/Hero.tsx` L41-99 — three `<video autoPlay>` mount eagerly; only mid-panel is LCP. Lazy-mount left/right panels via `IntersectionObserver`.
-- [ ] `components/Hero.tsx` L41,67,92 — videos missing `preload="metadata"` (default `auto` downloads full MP4 on first paint).
-- [ ] `components/Hero.tsx` L42,68,93 — no `poster` attribute → black frame until video buffers, hurts LCP/CLS.
+- [x] `components/Hero.tsx` — all four hero videos now `preload="metadata"` (default `auto` was pulling full MP4 on first paint).
+- [-] `components/Hero.tsx` poster attribute — deferred. Requires per-video poster JPEGs uploaded to S3; out of scope for code-only pass.
 
 ### Auth flash-of-content (FOUC)
 
@@ -242,14 +287,13 @@ Fresh scans against files NOT previously reviewed + Next.js Pages Router-specifi
 
 ### Fonts
 
-- [ ] `styles/globals.css` L1-3 — Google Fonts `@import url()` is render-blocking. Migrate to `next/font/google` (Playfair, Montserrat, Bricolage) in `_app.tsx`. **Single highest-impact LCP win for marketing pages.**
+- [x] `styles/globals.css` L1-3 — Google Fonts `@import url()` removed; migrated to `next/font/google` (Playfair Display + Montserrat) in `_app.tsx`. `--font-playfair` / `--font-montserrat` CSS vars piped through `--font-display` / `--font-body` / `--font-script` / `--font-anchor` so call-sites untouched. Bricolage dropped (was imported, never used).
 
 ### Scripts
 
-- [ ] `_document.tsx` L11-21 — GA `<script async>` should use `next/script strategy="afterInteractive"`.
-- [ ] `_document.tsx` L37-41 — Softgen monitoring inline `<script async>` should be `next/script strategy="lazyOnload"`.
-- [ ] `_document.tsx` L7 — add `<link rel="preconnect">` for `fonts.googleapis.com`, `fonts.gstatic.com` (crossOrigin), S3/CDN bucket, `checkout.razorpay.com`.
-- [ ] `lib/razorpayCheckout.ts` L65-76 — DOM-injects Razorpay `checkout.js` on first call; preload via `next/script lazyOnload` in `_app` so SDK is ready by user click. Min: add `preconnect` to `checkout.razorpay.com` in `_document`.
+- [x] `_document.tsx` GA + Softgen — moved both to `_app.tsx` using `next/script`. GA = `strategy="afterInteractive"`; Softgen = `strategy="lazyOnload"` (was blocking-async in `<head>`, competing with first paint).
+- [x] `_document.tsx` preconnect — added `preconnect` + `dns-prefetch` for `checkout.razorpay.com`. (Google Fonts hosts no longer needed — migrated to `next/font/google` which self-hosts. S3/CDN preconnect deferred — needs concrete host once we tighten `remotePatterns`.)
+- [-] `lib/razorpayCheckout.ts` Razorpay SDK preload — preconnect now in place; full SDK preload via `next/script` deferred (current DOM-inject is gated to checkout click, so first paint isn't blocked).
 
 ### Navigation
 
@@ -257,12 +301,12 @@ Fresh scans against files NOT previously reviewed + Next.js Pages Router-specifi
 
 ### API routes — caching + payload
 
-- [ ] `pages/api/retail-products.ts` L34 — public catalog GET missing `Cache-Control: public, s-maxage=60, stale-while-revalidate=300`; also missing `select` (returns all columns) + unbounded `findMany`.
-- [ ] `pages/api/cafe/items.ts` L12 — public-when-anonymous GET missing `Cache-Control: public, s-maxage=30, stale-while-revalidate=120`; unbounded `findMany`.
-- [ ] `pages/api/classes.ts` L6 — missing `Cache-Control: s-maxage=300, swr=600`; `include: { instructor: true }` returns `studio_payout_cut_percent` to client (sensitive); switch to `select`.
-- [ ] `pages/api/packages.ts` L6 — public package list missing `Cache-Control`.
-- [ ] `pages/api/class-schedules.ts` L62 — `private, no-store` even for anonymous list; split anon vs auth: anon gets `public, s-maxage=60, swr=300`.
-- [ ] `pages/api/user-stats.ts` L13 — auth-scoped but cacheable per user; add `private, max-age=10, swr=60` to dedupe rapid portal-dashboard refetches.
+- [x] `pages/api/retail-products.ts` — `Cache-Control: public, s-maxage=60, stale-while-revalidate=300` on both detail + list paths. (Column slimming via `select` deferred — current shape is the documented public response.)
+- [x] `pages/api/cafe/items.ts` — anon GET now `public, s-maxage=30, stale-while-revalidate=120`.
+- [x] `pages/api/classes.ts` — `public, s-maxage=300, stale-while-revalidate=600`; `instructor` join now uses `omit: { studio_payout_cut_percent, hashed_password }` to plug the sensitive-field leak (was `include: instructor` returning everything).
+- [x] `pages/api/packages.ts` — public list GET now `public, s-maxage=300, stale-while-revalidate=600`.
+- [x] `pages/api/class-schedules.ts` — anon (no NextAuth session cookie) gets `public, s-maxage=60, stale-while-revalidate=300`; auth path keeps `private, no-store`.
+- [x] `pages/api/user-stats.ts` — `private, max-age=10, stale-while-revalidate=60` to dedupe portal-dashboard refetches without leaking across users.
 - [ ] `pages/api/admin/badges.ts` L54,62,68 — 3 unbounded `findMany` on `badgeTemplate`; admin-only but still no `select`/pagination.
 
 ### Session / NextAuth
@@ -274,9 +318,9 @@ Fresh scans against files NOT previously reviewed + Next.js Pages Router-specifi
 
 ### Build config
 
-- [ ] `next.config.mjs` L73 — `images.remotePatterns: [{hostname: "**"}]` overly permissive. Restrict to S3 bucket + CDN domain (security + smaller image optimizer cache key space).
-- [ ] `next.config.mjs` — no `images.minimumCacheTTL`; set to `31536000` for CDN images.
-- [ ] `next.config.mjs` — no immutable cache headers configured for `/fonts/*` if custom font dir under `src/pages/fonts/` exists (verify).
+- [x] `next.config.mjs` — `images.minimumCacheTTL: 31536000` added (one-year CDN cache; image URLs are S3 content-addressed, new uploads change the key).
+- [-] `next.config.mjs` `remotePatterns` — still `**`. Tightening requires concrete audit of every external image host (admin uploads, instructor avatars, externally pasted URLs). Deferred.
+- [-] `next.config.mjs` `/fonts/*` cache headers — N/A. Fonts now self-hosted by `next/font/google`, which emits immutable cache headers automatically. No custom font dir to configure.
 
 ## R2 · Highest-leverage shortlist (recommended order)
 

@@ -3,8 +3,25 @@ import "@/styles/globals.css";
 import "react-easy-crop/react-easy-crop.css";
 import type { AppProps } from "next/app";
 import Head from "next/head";
+import Script from "next/script";
+import { Playfair_Display, Montserrat } from "next/font/google";
 import { useRouter } from "next/router";
 import { useEffect, useState } from "react";
+
+const playfair = Playfair_Display({
+  subsets: ["latin"],
+  weight: ["400", "500", "600", "700", "800", "900"],
+  style: ["normal", "italic"],
+  variable: "--font-playfair",
+  display: "swap",
+});
+
+const montserrat = Montserrat({
+  subsets: ["latin"],
+  weight: ["300", "400", "500", "600", "700"],
+  variable: "--font-montserrat",
+  display: "swap",
+});
 import * as analytics from "@/lib/analytics";
 import { CartProvider } from "@/contexts/CartContext";
 import { SessionProvider, useSession } from "next-auth/react";
@@ -158,15 +175,55 @@ export default function App({ Component, pageProps: { session, ...pageProps } }:
         <link rel="icon" href={cdnUrl("/favicon.svg")} type="image/svg+xml" />
         <link rel="icon" href={cdnUrl("/favicon.ico")} sizes="any" />
       </Head>
-      <BuildVersionWatcher />
-      <ActivityTrackingSubscriber />
-      <OnboardingGate />
-      <CartProvider>
-        <DashboardChrome>
-          <Component {...pageProps} />
-        </DashboardChrome>
-        <Toaster richColors closeButton position="top-center" />
-      </CartProvider>
+      <style jsx global>{`
+        :root {
+          --font-playfair: ${playfair.style.fontFamily};
+          --font-montserrat: ${montserrat.style.fontFamily};
+        }
+      `}</style>
+
+      {/* GA loaded after interactive so it doesn't block first paint. */}
+      {process.env.NEXT_PUBLIC_GA_MEASUREMENT_ID && (
+        <>
+          <Script
+            src={`https://www.googletagmanager.com/gtag/js?id=${process.env.NEXT_PUBLIC_GA_MEASUREMENT_ID}`}
+            strategy="afterInteractive"
+          />
+          <Script id="ga-init" strategy="afterInteractive">
+            {`
+              window.dataLayer = window.dataLayer || [];
+              function gtag(){dataLayer.push(arguments);}
+              gtag('js', new Date());
+              gtag('config', '${process.env.NEXT_PUBLIC_GA_MEASUREMENT_ID}', {
+                page_path: window.location.pathname,
+              });
+            `}
+          </Script>
+        </>
+      )}
+
+      {/*
+        CRITICAL: DO NOT REMOVE THIS SCRIPT
+        The Softgen AI monitoring script is essential for core app functionality.
+        Loaded lazily so it doesn't compete with first paint.
+      */}
+      <Script
+        src="https://cdn.softgen.ai/script.js"
+        strategy="lazyOnload"
+        data-softgen-monitoring="true"
+      />
+
+      <div className={`${playfair.variable} ${montserrat.variable}`}>
+        <BuildVersionWatcher />
+        <ActivityTrackingSubscriber />
+        <OnboardingGate />
+        <CartProvider>
+          <DashboardChrome>
+            <Component {...pageProps} />
+          </DashboardChrome>
+          <Toaster richColors closeButton position="top-center" />
+        </CartProvider>
+      </div>
     </SessionProvider>
   );
 }

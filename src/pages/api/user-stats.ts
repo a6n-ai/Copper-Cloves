@@ -10,6 +10,9 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
   if (req.method === "GET") {
     const stats = await getDynamicStats(userId);
+    // Per-user cacheable for a short window so the portal dashboard's
+    // multiple consumers (header chips, stat tiles) dedupe rapid refetches.
+    res.setHeader("Cache-Control", "private, max-age=10, stale-while-revalidate=60");
     return res.json(stats);
   }
 

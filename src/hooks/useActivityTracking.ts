@@ -17,6 +17,8 @@ export function useActivityTracking() {
   const router = useRouter();
   const { status } = useSession();
   const installed = useRef(false);
+  const statusRef = useRef(status);
+  statusRef.current = status;
 
   useEffect(() => {
     if (!installed.current) {
@@ -35,7 +37,7 @@ export function useActivityTracking() {
         event_name: "page_view",
         event_category: "navigation",
         path: url,
-        metadata: { auth_status: status },
+        metadata: { auth_status: statusRef.current },
       });
     };
 
@@ -45,10 +47,35 @@ export function useActivityTracking() {
     return () => {
       router.events.off("routeChangeComplete", onComplete);
     };
-  }, [router, status]);
+    // router.events is a stable ref; intentionally exclude `router` + `status`
+    // to avoid re-binding the listener (and re-firing initial page_view) on
+    // every router/session tick.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   useEffect(() => {
-    const id = window.setInterval(() => void flushActivityQueue(), 15_000);
-    return () => clearInterval(id);
+    let id: number | null = null;
+    const start = () => {
+      if (id !== null) return;
+      id = window.setInterval(() => void flushActivityQueue(), 15_000);
+    };
+    const stop = () => {
+      if (id === null) return;
+      clearInterval(id);
+      id = null;
+    };
+    const onVis = () => {
+      if (document.hidden) stop();
+      else {
+        void flushActivityQueue();
+        start();
+      }
+    };
+    if (!document.hidden) start();
+    document.addEventListener("visibilitychange", onVis);
+    return () => {
+      document.removeEventListener("visibilitychange", onVis);
+      stop();
+    };
   }, []);
 }

@@ -1,5 +1,6 @@
 "use client";
 
+import { memo } from "react";
 import { motion, type TargetAndTransition } from "framer-motion";
 import type { LucideIcon } from "lucide-react";
 
@@ -20,11 +21,17 @@ const HOVER: Record<NonNullable<AnimatedIconProps["hover"]>, TargetAndTransition
   spin: { rotate: 360, transition: { duration: 0.6, ease: "easeInOut" } },
 };
 
+// Hoisted so every <AnimatedIcon> renders against the same object references
+// (used 50+ times across the app — inline literals would defeat memo).
+const INITIAL_MOUNT = { scale: 0, opacity: 0, rotate: -25 };
+const ANIMATE_MOUNT = { scale: 1, opacity: 1, rotate: 0 };
+const SPRING_TRANSITION = { type: "spring", stiffness: 300, damping: 16 } as const;
+
 /**
  * Wraps any lucide icon in a Motion span so it animates on hover (and optionally
  * on mount). Drop-in for the lucide-animated look without the incomplete registry.
  */
-export function AnimatedIcon({
+function AnimatedIconImpl({
   icon: Icon,
   size = 20,
   className,
@@ -34,12 +41,14 @@ export function AnimatedIcon({
   return (
     <motion.span
       className="inline-flex items-center justify-center align-middle leading-none"
-      initial={animateOnMount ? { scale: 0, opacity: 0, rotate: -25 } : false}
-      animate={animateOnMount ? { scale: 1, opacity: 1, rotate: 0 } : undefined}
+      initial={animateOnMount ? INITIAL_MOUNT : false}
+      animate={animateOnMount ? ANIMATE_MOUNT : undefined}
       whileHover={HOVER[hover]}
-      transition={{ type: "spring", stiffness: 300, damping: 16 }}
+      transition={SPRING_TRANSITION}
     >
       <Icon size={size} className={className} />
     </motion.span>
   );
 }
+
+export const AnimatedIcon = memo(AnimatedIconImpl);

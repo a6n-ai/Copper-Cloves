@@ -62,6 +62,9 @@ const nextConfig = {
   },
   images: {
     formats: ["image/avif", "image/webp"],
+    // CDN-cache optimized variants for a year; image URLs are content-addressed
+    // by S3 key so a new upload changes the URL.
+    minimumCacheTTL: 31536000,
     remotePatterns: [
       {
         protocol: "https",

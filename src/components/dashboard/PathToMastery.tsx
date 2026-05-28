@@ -1,5 +1,6 @@
 "use client";
 
+import { useMemo } from "react";
 import { motion } from "framer-motion";
 import { Trophy, Sparkles, Check, type LucideIcon } from "lucide-react";
 import { Card, CardContent } from "@/components/ui/card";
@@ -45,13 +46,14 @@ export function PathToMastery({
   nextMilestone,
   loading,
 }: PathToMasteryProps) {
-  const target = milestones[milestones.length - 1]?.classes || 150;
-  const pct = Math.min(100, (classesCompleted / target) * 100);
-  const gradient = `linear-gradient(90deg, ${TIER_COLORS.slice(0, Math.max(2, milestones.length)).join(", ")})`;
-  // Equal-width columns → centre of first/last circle, so the track runs icon→icon.
-  const n = milestones.length || 1;
-  const trackLeft = 50 / n; // % from container left to first circle centre
-  const trackSpan = 100 - 100 / n; // % centre-to-centre span across all circles
+  const { pct, gradient, trackLeft, trackSpan } = useMemo(() => {
+    const target = milestones[milestones.length - 1]?.classes || 150;
+    const pct = Math.min(100, (classesCompleted / target) * 100);
+    const gradient = `linear-gradient(90deg, ${TIER_COLORS.slice(0, Math.max(2, milestones.length)).join(", ")})`;
+    const n = milestones.length || 1;
+    // Equal-width columns → centre of first/last circle, so the track runs icon→icon.
+    return { pct, gradient, trackLeft: 50 / n, trackSpan: 100 - 100 / n };
+  }, [milestones, classesCompleted]);
 
   return (
     <Card className="rounded-2xl shadow-xs">

@@ -7,12 +7,21 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { AdminPageHeader } from "@/components/admin/AdminPageHeader";
 import { Calendar } from "@/components/ui/calendar";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import {
+  Command,
+  CommandEmpty,
+  CommandGroup,
+  CommandInput,
+  CommandItem,
+  CommandList,
+} from "@/components/ui/command";
+import { cn } from "@/lib/utils";
 import { DayScheduleList } from "@/components/admin/DayScheduleList";
 import { MetricCard } from "@/components/admin/MetricCard";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
-import { Checkbox } from "@/components/ui/checkbox";
 import {
   Form,
   FormControl,
@@ -39,6 +48,9 @@ import {
   Settings2,
   Power,
   PowerOff,
+  ChevronsUpDown,
+  Check,
+  X,
 } from "lucide-react";
 import { SEO } from "@/components/SEO";
 import { Spinner } from "@/components/ui/spinner";
@@ -64,40 +76,49 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 
+const TIME_RE = /^([01]\d|2[0-3]):[0-5]\d$/;
+const ISO_DATE_RE = /^\d{4}-\d{2}-\d{2}$/;
+
 const classSchema = z.object({
   classId: z.string().min(1, "Select a class"),
   instructorId: z.string().min(1, "Select an instructor"),
-  day: z.string().min(1, "Select a day"),
-  hour: z.string().min(1, "Required").refine(v => /^\d{1,2}$/.test(v) && +v >= 1 && +v <= 12, "Enter 1–12"),
-  minute: z.string().min(1, "Required").refine(v => /^\d{1,2}$/.test(v) && +v >= 0 && +v <= 59, "Enter 0–59"),
-  period: z.enum(["AM", "PM"]),
-  endHour: z.string().optional(),
-  endMinute: z.string().optional(),
-  endPeriod: z.enum(["AM", "PM"]),
-  recurring: z.boolean(),
-  weekOfMonth: z.string().optional(),
+  startTime: z.string().regex(TIME_RE, "Use HH:MM (24h)"),
+  durationMin: z.number().int().min(15, "≥ 15 min").max(240, "≤ 240 min"),
+  mode: z.enum(["single", "weekly", "multi"]),
+  singleDate: z.string().optional(),
+  weeklyFrom: z.string().optional(),
+  weeklyTo: z.string().optional(),
+  weekdays: z.array(z.number().int().min(0).max(6)).optional(),
+  multiDates: z.array(z.string()).optional(),
   classNotes: z.string().optional(),
   actualInstructorId: z.string().optional(),
   instructorCheckInOutcome: z.enum(["on_time", "late", "absent"]).optional(),
-}).refine(
-  d => d.recurring || !!d.weekOfMonth,
-  { message: "Select a week or enable recurring", path: ["weekOfMonth"] }
-);
+}).superRefine((d, ctx) => {
+  if (d.mode === "single") {
+    if (!d.singleDate || !ISO_DATE_RE.test(d.singleDate)) {
+      ctx.addIssue({ code: z.ZodIssueCode.custom, path: ["singleDate"], message: "Pick a date" });
+    }
+  } else if (d.mode === "weekly") {
+    if (!d.weeklyFrom || !ISO_DATE_RE.test(d.weeklyFrom)) {
+      ctx.addIssue({ code: z.ZodIssueCode.custom, path: ["weeklyFrom"], message: "Pick a start date" });
+    }
+    if (!d.weeklyTo || !ISO_DATE_RE.test(d.weeklyTo)) {
+      ctx.addIssue({ code: z.ZodIssueCode.custom, path: ["weeklyTo"], message: "Pick an end date" });
+    }
+    if (d.weeklyFrom && d.weeklyTo && d.weeklyFrom > d.weeklyTo) {
+      ctx.addIssue({ code: z.ZodIssueCode.custom, path: ["weeklyTo"], message: "End must be after start" });
+    }
+    if (!d.weekdays || d.weekdays.length === 0) {
+      ctx.addIssue({ code: z.ZodIssueCode.custom, path: ["weekdays"], message: "Pick at least one weekday" });
+    }
+  } else if (d.mode === "multi") {
+    if (!d.multiDates || d.multiDates.length === 0) {
+      ctx.addIssue({ code: z.ZodIssueCode.custom, path: ["multiDates"], message: "Pick at least one date" });
+    }
+  }
+});
 
 const WEEKDAYS = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"];
-
-const MONTHS = [
-  "January", "February", "March", "April", "May", "June",
-  "July", "August", "September", "October", "November", "December"
-];
-
-const WEEKS_OF_MONTH = ["Week 1", "Week 2", "Week 3", "Week 4", "Week 5"];
-
-function parseTimeStr(t: string): { h: string; m: string; p: "AM" | "PM" } | null {
-  const match = t.match(/(\d+):(\d+)\s*(AM|PM)/i);
-  if (!match) return null;
-  return { h: match[1].padStart(2, "0"), m: match[2].padStart(2, "0"), p: match[3].toUpperCase() as "AM" | "PM" };
-}
 
 async function extractApiError(res: Response, fallback: string): Promise<string> {
   const body = await res.json().catch(() => ({}));
@@ -279,14 +300,28 @@ export default function AdminSchedule() {
   const classForm = useForm<z.infer<typeof classSchema>>({
     resolver: zodResolver(classSchema),
     defaultValues: {
-      classId: "", instructorId: "", day: "",
-      hour: "07", minute: "00", period: "AM",
-      endHour: "", endMinute: "", endPeriod: "AM",
-      recurring: false, weekOfMonth: "",
+      classId: "",
+      instructorId: "",
+      startTime: "07:00",
+      durationMin: 60,
+      mode: "single",
+      singleDate: "",
+      weeklyFrom: "",
+      weeklyTo: "",
+      weekdays: [],
+      multiDates: [],
+      classNotes: "",
     },
   });
-  const watchRecurring = classForm.watch("recurring");
+  const watchMode = classForm.watch("mode");
   const watchClassId = classForm.watch("classId");
+  const watchWeekdays = classForm.watch("weekdays") ?? [];
+  const watchMultiDates = classForm.watch("multiDates") ?? [];
+
+  // Combobox open state per field.
+  const [classPickerOpen, setClassPickerOpen] = useState(false);
+  const [instructorPickerOpen, setInstructorPickerOpen] = useState(false);
+  const [multiDateInput, setMultiDateInput] = useState("");
   
   // New state for month/week selection
   const [scheduleViewYear, setScheduleViewYear] = useState(() => new Date().getFullYear());
@@ -449,32 +484,6 @@ export default function AdminSchedule() {
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [selectedDate]);
 
-  const getWeekDateRange = (weekNumber: number, month: number) => {
-    const year = scheduleViewYear;
-    const startOfMonth = new Date(year, month, 1);
-    
-    // Find first Monday of the month
-    const firstMonday = new Date(startOfMonth);
-    while (firstMonday.getDay() !== 1) {
-      firstMonday.setDate(firstMonday.getDate() + 1);
-    }
-    
-    // Calculate week start
-    const weekStart = new Date(firstMonday);
-    weekStart.setDate(weekStart.getDate() + (weekNumber - 1) * 7);
-    
-    // Calculate week end (Sunday)
-    const weekEnd = new Date(weekStart);
-    weekEnd.setDate(weekEnd.getDate() + 6);
-    
-    const formatDate = (date: Date) => {
-      const monthName = MONTHS[date.getMonth()].slice(0, 3);
-      return `${monthName} ${date.getDate()}`;
-    };
-    
-    return `${formatDate(weekStart)}-${formatDate(weekEnd)}`;
-  };
-
   const loadDbData = async (): Promise<string | null> => {
     try {
       const [classesRes, instructorsRes] = await Promise.all([
@@ -516,7 +525,6 @@ export default function AdminSchedule() {
       // CloudFront/API limits and produce 413 Content Too Large on Amplify.
       const res = await fetch(`/api/class-schedules?${params}`, {
         credentials: "omit",
-        cache: "no-store",
       });
       if (!res.ok) {
         const statusFallback =
@@ -578,27 +586,37 @@ export default function AdminSchedule() {
   const handleAddClass = () => {
     setEditingClass(null);
     classForm.reset({
-      classId: "", instructorId: "", day: "",
-      hour: "07", minute: "00", period: "AM",
-      endHour: "", endMinute: "", endPeriod: "AM",
-      recurring: false, weekOfMonth: "",
+      classId: "",
+      instructorId: "",
+      startTime: "07:00",
+      durationMin: 60,
+      mode: "single",
+      singleDate: selectedDateIso,
+      weeklyFrom: selectedDateIso,
+      weeklyTo: "",
+      weekdays: [],
+      multiDates: [],
+      classNotes: "",
     });
     setDialogOpen(true);
   };
 
   const handleEditClass = (scheduledClass: ScheduledClass) => {
     setEditingClass(scheduledClass);
-    const parsed = parseTimeStr(scheduledClass.time);
+    const start = new Date(scheduledClass.startTimeIso);
+    const hh = String(start.getHours()).padStart(2, "0");
+    const mm = String(start.getMinutes()).padStart(2, "0");
     classForm.reset({
       classId: scheduledClass.classId.toString(),
       instructorId: scheduledClass.instructorId.toString(),
-      day: scheduledClass.day,
-      hour: parsed?.h ?? "07",
-      minute: parsed?.m ?? "00",
-      period: parsed?.p ?? "AM",
-      endHour: "", endMinute: "", endPeriod: "AM",
-      recurring: scheduledClass.recurring,
-      weekOfMonth: "",
+      startTime: `${hh}:${mm}`,
+      durationMin: 60,
+      mode: "single",
+      singleDate: scheduledClass.dateIso,
+      weeklyFrom: scheduledClass.dateIso,
+      weeklyTo: "",
+      weekdays: [],
+      multiDates: [],
       classNotes: scheduledClass.classNotes ?? "",
       actualInstructorId: scheduledClass.actualInstructorId ?? "",
       instructorCheckInOutcome: (scheduledClass.instructorCheckInOutcome as "on_time" | "late" | "absent" | undefined) ?? undefined,
@@ -633,48 +651,24 @@ export default function AdminSchedule() {
       return;
     }
 
+    const [hStr, mStr] = data.startTime.split(":");
+    const startHour = parseInt(hStr, 10);
+    const startMin = parseInt(mStr, 10);
+    const durationMin = Number(data.durationMin) || selectedClassData?.duration || 60;
+    const capacity = selectedClassData?.max_capacity ?? null;
+
+    const buildPair = (dateIso: string): { start: Date; end: Date } => {
+      const [y, mo, d] = dateIso.split("-").map(Number);
+      const start = new Date(y, mo - 1, d, startHour, startMin, 0, 0);
+      const end = new Date(start.getTime() + durationMin * 60_000);
+      return { start, end };
+    };
+
     try {
-      const year = scheduleViewYear;
-
-      // Parse start time
-      let hour = parseInt(data.hour);
-      const minute = parseInt(data.minute);
-      if (data.period === "PM" && hour !== 12) hour += 12;
-      if (data.period === "AM" && hour === 12) hour = 0;
-
-      // Parse end time — fall back to class duration
-      let endHour = hour;
-      let endMinute = minute;
-      if (data.endHour && data.endMinute) {
-        endHour = parseInt(data.endHour);
-        endMinute = parseInt(data.endMinute);
-        if (data.endPeriod === "PM" && endHour !== 12) endHour += 12;
-        if (data.endPeriod === "AM" && endHour === 12) endHour = 0;
-      } else if (selectedClassData) {
-        const totalMinutes = minute + selectedClassData.duration;
-        endHour = hour + Math.floor(totalMinutes / 60);
-        endMinute = totalMinutes % 60;
-      }
-
-      const dayIndex = WEEKDAYS.indexOf(data.day);
-
       if (editingClass) {
-        // Preserve the original calendar date — only update the time.
-        // Re-deriving the date from weekday + month would pick the wrong week (always week 1).
-        const originalDate = new Date(editingClass.startTimeIso);
-        const startDate = new Date(
-          originalDate.getFullYear(),
-          originalDate.getMonth(),
-          originalDate.getDate(),
-          hour,
-          minute,
-          0,
-          0
-        );
-
-        const endDate = new Date(startDate);
-        endDate.setHours(endHour, endMinute, 0, 0);
-
+        // Edit always single — preserve original date, swap time/duration.
+        const dateIso = editingClass.dateIso;
+        const { start, end } = buildPair(dateIso);
         const updateRes = await fetch("/api/class-schedules", {
           method: "PUT",
           headers: { "Content-Type": "application/json" },
@@ -683,10 +677,10 @@ export default function AdminSchedule() {
             id: editingClass.id,
             class_id: data.classId,
             instructor_id: data.instructorId,
-            start_time: startDate.toISOString(),
-            end_time: endDate.toISOString(),
-            available_spots: selectedClassData?.max_capacity,
-            capacity: selectedClassData?.max_capacity,
+            start_time: start.toISOString(),
+            end_time: end.toISOString(),
+            available_spots: capacity ?? undefined,
+            capacity: capacity ?? undefined,
             actual_instructor_id: data.actualInstructorId || null,
             instructor_check_in_outcome: data.instructorCheckInOutcome || null,
             class_notes: data.classNotes || null,
@@ -697,82 +691,69 @@ export default function AdminSchedule() {
         }
         setSuccessMessage("Class updated successfully!");
       } else {
-        const schedulesToCreate = [];
+        // Build items[] per mode.
+        const dates: string[] = [];
+        if (data.mode === "single" && data.singleDate) {
+          dates.push(data.singleDate);
+        } else if (data.mode === "weekly" && data.weeklyFrom && data.weeklyTo && data.weekdays?.length) {
+          const wd = new Set(data.weekdays);
+          const [fy, fm, fd] = data.weeklyFrom.split("-").map(Number);
+          const [ty, tm, td] = data.weeklyTo.split("-").map(Number);
+          const cur = new Date(fy, fm - 1, fd);
+          const stop = new Date(ty, tm - 1, td);
+          while (cur <= stop) {
+            // Convert getDay() (Sun=0..Sat=6) → Mon=0..Sun=6.
+            const idx = (cur.getDay() + 6) % 7;
+            if (wd.has(idx)) {
+              const yy = cur.getFullYear();
+              const mm = String(cur.getMonth() + 1).padStart(2, "0");
+              const dd = String(cur.getDate()).padStart(2, "0");
+              dates.push(`${yy}-${mm}-${dd}`);
+            }
+            cur.setDate(cur.getDate() + 1);
+          }
+        } else if (data.mode === "multi" && data.multiDates?.length) {
+          dates.push(...data.multiDates);
+        }
 
-        if (data.recurring) {
-          const startOfMonth = new Date(year, selectedMonth, 1);
-          const endOfMonth = new Date(year, selectedMonth + 1, 0);
-          const currentDate = new Date(startOfMonth);
-          while (currentDate.getDay() !== (dayIndex + 1) % 7) {
-            currentDate.setDate(currentDate.getDate() + 1);
-          }
-          while (currentDate <= endOfMonth) {
-            const startTime = new Date(currentDate);
-            startTime.setHours(hour, minute, 0, 0);
-            const endTime = new Date(startTime);
-            endTime.setHours(endHour, endMinute, 0, 0);
-            schedulesToCreate.push({
-              class_id: data.classId,
-              instructor_id: data.instructorId,
-              start_time: startTime.toISOString(),
-              end_time: endTime.toISOString(),
-              available_spots: selectedClassData?.max_capacity,
-              capacity: selectedClassData?.max_capacity,
-              status: "available",
-              current_bookings: 0,
-            });
-            currentDate.setDate(currentDate.getDate() + 7);
-          }
-        } else {
-          const weekMatch = data.weekOfMonth?.match(/week\s+(\d+)/i);
-          const weekNumber = weekMatch ? parseInt(weekMatch[1], 10) : NaN;
-          if (!Number.isFinite(weekNumber) || weekNumber < 1 || weekNumber > 5) {
-            toast.error("Please select a valid week (Week 1–Week 5).");
-            return;
-          }
-          const startOfMonth = new Date(year, selectedMonth, 1);
-          const currentDate = new Date(startOfMonth);
-          while (currentDate.getDay() !== (dayIndex + 1) % 7) {
-            currentDate.setDate(currentDate.getDate() + 1);
-          }
-          currentDate.setDate(currentDate.getDate() + (weekNumber - 1) * 7);
-          if (currentDate.getMonth() !== selectedMonth) {
-            toast.error(
-              `${data.weekOfMonth} for ${data.day} does not exist in ${MONTHS[selectedMonth]} ${year}. Choose Week 1–4, use Recurring, or pick another month.`
-            );
-            return;
-          }
-          const startTime = new Date(currentDate);
-          startTime.setHours(hour, minute, 0, 0);
-          const endTime = new Date(startTime);
-          endTime.setHours(endHour, endMinute, 0, 0);
-          schedulesToCreate.push({
+        if (dates.length === 0) {
+          toast.error("No dates resolved from the selected schedule. Adjust dates/weekdays and retry.");
+          return;
+        }
+        if (dates.length > 200) {
+          toast.error(`Too many occurrences (${dates.length}). Limit is 200.`);
+          return;
+        }
+
+        const items = dates.map((dateIso) => {
+          const { start, end } = buildPair(dateIso);
+          return {
             class_id: data.classId,
             instructor_id: data.instructorId,
-            start_time: startTime.toISOString(),
-            end_time: endTime.toISOString(),
-            available_spots: selectedClassData?.max_capacity,
-            capacity: selectedClassData?.max_capacity,
+            start_time: start.toISOString(),
+            end_time: end.toISOString(),
+            available_spots: capacity ?? 0,
+            capacity,
             status: "available",
             current_bookings: 0,
-          });
-        }
+          };
+        });
 
-        for (const schedule of schedulesToCreate) {
-          const res = await fetch("/api/class-schedules", {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            credentials: "include",
-            body: JSON.stringify(schedule),
-          });
-          if (!res.ok) throw new Error(await extractApiError(res, `Insert failed (HTTP ${res.status})`));
-        }
-        setSuccessMessage(data.recurring
-          ? `${schedulesToCreate.length} recurring classes scheduled for ${MONTHS[selectedMonth]}!`
-          : "Class scheduled successfully!"
+        const res = await fetch("/api/class-schedules", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          credentials: "include",
+          body: JSON.stringify({ items }),
+        });
+        if (!res.ok) throw new Error(await extractApiError(res, `Insert failed (HTTP ${res.status})`));
+        const result = (await res.json()) as { created: number; skipped: number };
+        setSuccessMessage(
+          result.skipped > 0
+            ? `Scheduled ${result.created} class${result.created === 1 ? "" : "es"} (${result.skipped} already existed).`
+            : `Scheduled ${result.created} class${result.created === 1 ? "" : "es"}.`
         );
       }
-      
+
       setDialogOpen(false);
       const schedErr = await loadSchedule();
       if (schedErr) setLoadError(schedErr);
@@ -1233,63 +1214,132 @@ export default function AdminSchedule() {
               <Tabs defaultValue="basics" className="w-full">
                 <TabsList className="grid w-full grid-cols-2 bg-cream/50">
                   <TabsTrigger value="basics" className="font-body data-[state=active]:bg-sage data-[state=active]:text-white">
-                    Basics
+                    Class
                   </TabsTrigger>
                   <TabsTrigger value="schedule" className="font-body data-[state=active]:bg-sage data-[state=active]:text-white">
-                    When &amp; Repeat
+                    When
                   </TabsTrigger>
                 </TabsList>
 
-                {/* ── Basics Tab ── */}
+                {/* ── Class Tab ── */}
                 <TabsContent value="basics" className="space-y-5 mt-5">
                   <FormField
                     control={classForm.control}
                     name="classId"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel className="font-body text-charcoal/80">Class Type</FormLabel>
-                        <Select onValueChange={field.onChange} value={field.value}>
-                          <FormControl>
-                            <SelectTrigger className="h-12 border-charcoal/20 focus:border-sage font-body">
-                              <SelectValue placeholder="Select class" />
-                            </SelectTrigger>
-                          </FormControl>
-                          <SelectContent position="popper" className="max-h-[300px] overflow-y-auto">
-                            {classOptions.map(cls => (
-                              <SelectItem key={cls.id} value={cls.id}>
-                                {cls.name} (Max: {cls.max_capacity}){cls._isPlaceholder ? " — sample" : ""}
-                              </SelectItem>
-                            ))}
-                          </SelectContent>
-                        </Select>
-                        <FormMessage />
-                      </FormItem>
-                    )}
+                    render={({ field }) => {
+                      const selected = classOptions.find(c => c.id === field.value);
+                      return (
+                        <FormItem className="flex flex-col">
+                          <FormLabel className="font-body text-charcoal/80">Class Type</FormLabel>
+                          <Popover open={classPickerOpen} onOpenChange={setClassPickerOpen}>
+                            <PopoverTrigger asChild>
+                              <FormControl>
+                                <Button
+                                  type="button"
+                                  variant="outline"
+                                  role="combobox"
+                                  className={cn(
+                                    "h-12 justify-between font-body border-charcoal/20 hover:bg-white",
+                                    !field.value && "text-charcoal/40",
+                                  )}
+                                >
+                                  {selected
+                                    ? `${selected.name} · ${selected.duration} min · max ${selected.max_capacity}`
+                                    : "Search and select class…"}
+                                  <ChevronsUpDown className="h-4 w-4 opacity-50 shrink-0 ml-2" />
+                                </Button>
+                              </FormControl>
+                            </PopoverTrigger>
+                            <PopoverContent className="p-0 w-[--radix-popover-trigger-width]" align="start">
+                              <Command>
+                                <CommandInput placeholder="Search classes…" className="font-body" />
+                                <CommandList>
+                                  <CommandEmpty>No classes found.</CommandEmpty>
+                                  <CommandGroup>
+                                    {classOptions.map(cls => (
+                                      <CommandItem
+                                        key={cls.id}
+                                        value={`${cls.name} ${cls.id}`}
+                                        onSelect={() => {
+                                          field.onChange(cls.id);
+                                          // Auto-fill duration from class default.
+                                          classForm.setValue("durationMin", cls.duration);
+                                          setClassPickerOpen(false);
+                                        }}
+                                        className="font-body"
+                                      >
+                                        <Check className={cn("mr-2 h-4 w-4", field.value === cls.id ? "opacity-100" : "opacity-0")} />
+                                        <span className="flex-1">{cls.name}</span>
+                                        <span className="text-xs text-charcoal/40 ml-2">
+                                          {cls.duration}m · {cls.max_capacity}p{cls._isPlaceholder ? " · sample" : ""}
+                                        </span>
+                                      </CommandItem>
+                                    ))}
+                                  </CommandGroup>
+                                </CommandList>
+                              </Command>
+                            </PopoverContent>
+                          </Popover>
+                          <FormMessage />
+                        </FormItem>
+                      );
+                    }}
                   />
 
                   <FormField
                     control={classForm.control}
                     name="instructorId"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel className="font-body text-charcoal/80">Instructor</FormLabel>
-                        <Select onValueChange={field.onChange} value={field.value}>
-                          <FormControl>
-                            <SelectTrigger className="h-12 border-charcoal/20 focus:border-sage font-body">
-                              <SelectValue placeholder="Select instructor" />
-                            </SelectTrigger>
-                          </FormControl>
-                          <SelectContent position="popper" className="max-h-[300px] overflow-y-auto">
-                            {instructorOptions.map(instructor => (
-                              <SelectItem key={instructor.id} value={instructor.id}>
-                                {instructor.name}{instructor._isPlaceholder ? " — sample" : ""}
-                              </SelectItem>
-                            ))}
-                          </SelectContent>
-                        </Select>
-                        <FormMessage />
-                      </FormItem>
-                    )}
+                    render={({ field }) => {
+                      const selected = instructorOptions.find(i => i.id === field.value);
+                      return (
+                        <FormItem className="flex flex-col">
+                          <FormLabel className="font-body text-charcoal/80">Instructor</FormLabel>
+                          <Popover open={instructorPickerOpen} onOpenChange={setInstructorPickerOpen}>
+                            <PopoverTrigger asChild>
+                              <FormControl>
+                                <Button
+                                  type="button"
+                                  variant="outline"
+                                  role="combobox"
+                                  className={cn(
+                                    "h-12 justify-between font-body border-charcoal/20 hover:bg-white",
+                                    !field.value && "text-charcoal/40",
+                                  )}
+                                >
+                                  {selected ? selected.name : "Search and select instructor…"}
+                                  <ChevronsUpDown className="h-4 w-4 opacity-50 shrink-0 ml-2" />
+                                </Button>
+                              </FormControl>
+                            </PopoverTrigger>
+                            <PopoverContent className="p-0 w-[--radix-popover-trigger-width]" align="start">
+                              <Command>
+                                <CommandInput placeholder="Search instructors…" className="font-body" />
+                                <CommandList>
+                                  <CommandEmpty>No instructors found.</CommandEmpty>
+                                  <CommandGroup>
+                                    {instructorOptions.map(instr => (
+                                      <CommandItem
+                                        key={instr.id}
+                                        value={`${instr.name} ${instr.id}`}
+                                        onSelect={() => {
+                                          field.onChange(instr.id);
+                                          setInstructorPickerOpen(false);
+                                        }}
+                                        className="font-body"
+                                      >
+                                        <Check className={cn("mr-2 h-4 w-4", field.value === instr.id ? "opacity-100" : "opacity-0")} />
+                                        <span className="flex-1">{instr.name}{instr._isPlaceholder ? " · sample" : ""}</span>
+                                      </CommandItem>
+                                    ))}
+                                  </CommandGroup>
+                                </CommandList>
+                              </Command>
+                            </PopoverContent>
+                          </Popover>
+                          <FormMessage />
+                        </FormItem>
+                      );
+                    }}
                   />
 
                   <FormField
@@ -1385,208 +1435,286 @@ export default function AdminSchedule() {
                   )}
                 </TabsContent>
 
-                {/* ── When & Repeat Tab ── */}
+                {/* ── When Tab ── */}
                 <TabsContent value="schedule" className="space-y-5 mt-5">
-                  <FormField
-                    control={classForm.control}
-                    name="day"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel className="font-body text-charcoal/80">Day of Week</FormLabel>
-                        <Select onValueChange={field.onChange} value={field.value}>
-                          <FormControl>
-                            <SelectTrigger className="h-12 border-charcoal/20 focus:border-sage font-body">
-                              <SelectValue placeholder="Select day" />
-                            </SelectTrigger>
-                          </FormControl>
-                          <SelectContent position="popper">
-                            {WEEKDAYS.map(day => (
-                              <SelectItem key={day} value={day}>{day}</SelectItem>
-                            ))}
-                          </SelectContent>
-                        </Select>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-
-                  {/* Start Time */}
-                  <FormItem>
-                    <FormLabel className="font-body text-charcoal/80">Start Time</FormLabel>
-                    <div className="flex items-center gap-2">
-                      <FormField
-                        control={classForm.control}
-                        name="hour"
-                        render={({ field }) => (
-                          <FormControl>
-                            <Input
-                              {...field}
-                              className="w-16 h-12 text-center font-body text-lg border-charcoal/20 focus:border-sage"
-                              placeholder="07"
-                              maxLength={2}
-                              onChange={e => field.onChange(e.target.value.replace(/\D/g, "").slice(0, 2))}
-                            />
-                          </FormControl>
-                        )}
-                      />
-                      <span className="text-xl font-semibold text-charcoal/50">:</span>
-                      <FormField
-                        control={classForm.control}
-                        name="minute"
-                        render={({ field }) => (
-                          <FormControl>
-                            <Input
-                              {...field}
-                              className="w-16 h-12 text-center font-body text-lg border-charcoal/20 focus:border-sage"
-                              placeholder="00"
-                              maxLength={2}
-                              onChange={e => field.onChange(e.target.value.replace(/\D/g, "").slice(0, 2))}
-                            />
-                          </FormControl>
-                        )}
-                      />
-                      <FormField
-                        control={classForm.control}
-                        name="period"
-                        render={({ field }) => (
-                          <div className="flex rounded-lg overflow-hidden border border-charcoal/20">
-                            {(["AM", "PM"] as const).map(p => (
-                              <button
-                                key={p}
-                                type="button"
-                                onClick={() => field.onChange(p)}
-                                className={`px-4 h-12 font-body text-sm font-medium transition-colors ${p === "PM" ? "border-l border-charcoal/20" : ""} ${
-                                  field.value === p ? "bg-sage text-white" : "bg-white text-charcoal/70 hover:bg-sage/10"
-                                }`}
-                              >{p}</button>
-                            ))}
-                          </div>
-                        )}
-                      />
-                    </div>
-                    <div className="flex gap-1">
-                      <FormField control={classForm.control} name="hour" render={() => <FormMessage />} />
-                      <FormField control={classForm.control} name="minute" render={() => <FormMessage />} />
-                    </div>
-                  </FormItem>
-
-                  {/* End Time (optional) */}
-                  <FormItem>
-                    <FormLabel className="font-body text-charcoal/80">
-                      End Time <span className="text-charcoal/40 font-normal">(Optional)</span>
-                    </FormLabel>
-                    <div className="flex items-center gap-2">
-                      <FormField
-                        control={classForm.control}
-                        name="endHour"
-                        render={({ field }) => (
-                          <FormControl>
-                            <Input
-                              {...field}
-                              className="w-16 h-12 text-center font-body text-lg border-charcoal/20 focus:border-sage"
-                              placeholder="08"
-                              maxLength={2}
-                              onChange={e => field.onChange(e.target.value.replace(/\D/g, "").slice(0, 2))}
-                            />
-                          </FormControl>
-                        )}
-                      />
-                      <span className="text-xl font-semibold text-charcoal/50">:</span>
-                      <FormField
-                        control={classForm.control}
-                        name="endMinute"
-                        render={({ field }) => (
-                          <FormControl>
-                            <Input
-                              {...field}
-                              className="w-16 h-12 text-center font-body text-lg border-charcoal/20 focus:border-sage"
-                              placeholder="00"
-                              maxLength={2}
-                              onChange={e => field.onChange(e.target.value.replace(/\D/g, "").slice(0, 2))}
-                            />
-                          </FormControl>
-                        )}
-                      />
-                      <FormField
-                        control={classForm.control}
-                        name="endPeriod"
-                        render={({ field }) => (
-                          <div className="flex rounded-lg overflow-hidden border border-charcoal/20">
-                            {(["AM", "PM"] as const).map(p => (
-                              <button
-                                key={p}
-                                type="button"
-                                onClick={() => field.onChange(p)}
-                                className={`px-4 h-12 font-body text-sm font-medium transition-colors ${p === "PM" ? "border-l border-charcoal/20" : ""} ${
-                                  field.value === p ? "bg-sage text-white" : "bg-white text-charcoal/70 hover:bg-sage/10"
-                                }`}
-                              >{p}</button>
-                            ))}
-                          </div>
-                        )}
-                      />
-                    </div>
-                    <FormDescription className="font-body text-xs text-charcoal/50">
-                      Leave empty to auto-calculate from class duration (
-                      {watchClassId ? classOptions.find(c => String(c.id) === String(watchClassId))?.duration ?? "—" : "—"} min)
-                    </FormDescription>
-                  </FormItem>
-
-                  {/* Week of Month — only when not recurring */}
-                  {!watchRecurring && (
+                  {/* Time + duration */}
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                     <FormField
                       control={classForm.control}
-                      name="weekOfMonth"
+                      name="startTime"
                       render={({ field }) => (
                         <FormItem>
-                          <FormLabel className="font-body text-charcoal/80">Week of Month</FormLabel>
-                          <Select onValueChange={field.onChange} value={field.value ?? ""}>
-                            <FormControl>
-                              <SelectTrigger className="h-12 border-charcoal/20 focus:border-sage font-body">
-                                <SelectValue placeholder="Select week" />
-                              </SelectTrigger>
-                            </FormControl>
-                            <SelectContent position="popper">
-                              {WEEKS_OF_MONTH.map((week, index) => (
-                                <SelectItem key={week} value={week}>
-                                  {week} ({getWeekDateRange(index + 1, selectedMonth)})
-                                </SelectItem>
-                              ))}
-                            </SelectContent>
-                          </Select>
+                          <FormLabel className="font-body text-charcoal/80">Start Time</FormLabel>
+                          <FormControl>
+                            <Input
+                              type="time"
+                              {...field}
+                              className="h-12 font-body text-lg border-charcoal/20 focus:border-sage"
+                            />
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+                    <FormField
+                      control={classForm.control}
+                      name="durationMin"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel className="font-body text-charcoal/80">
+                            Duration <span className="text-charcoal/40 font-normal">(min)</span>
+                          </FormLabel>
+                          <FormControl>
+                            <Input
+                              type="number"
+                              inputMode="numeric"
+                              min={15}
+                              max={240}
+                              step={5}
+                              value={field.value ?? ""}
+                              onChange={e => field.onChange(e.target.value === "" ? 0 : Number(e.target.value))}
+                              onBlur={field.onBlur}
+                              name={field.name}
+                              ref={field.ref}
+                              className="h-12 font-body text-lg border-charcoal/20 focus:border-sage"
+                            />
+                          </FormControl>
                           <FormDescription className="font-body text-xs text-charcoal/50">
-                            Select which week of {MONTHS[selectedMonth]} to schedule this class
+                            Auto-fills from class default ({watchClassId ? classOptions.find(c => c.id === watchClassId)?.duration ?? "—" : "—"} min)
                           </FormDescription>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+                  </div>
+
+                  {/* Mode picker — hidden when editing (single only) */}
+                  {!editingClass && (
+                    <FormField
+                      control={classForm.control}
+                      name="mode"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel className="font-body text-charcoal/80">How often?</FormLabel>
+                          <div className="grid grid-cols-3 gap-2">
+                            {([
+                              { v: "single", label: "Single date" },
+                              { v: "weekly", label: "Weekly" },
+                              { v: "multi", label: "Custom dates" },
+                            ] as const).map(opt => {
+                              const active = field.value === opt.v;
+                              return (
+                                <button
+                                  key={opt.v}
+                                  type="button"
+                                  onClick={() => field.onChange(opt.v)}
+                                  className={cn(
+                                    "h-11 rounded-lg border font-body text-sm font-medium transition-colors",
+                                    active
+                                      ? "bg-sage border-sage text-white"
+                                      : "border-charcoal/20 text-charcoal/70 hover:bg-sage/10",
+                                  )}
+                                >
+                                  {opt.label}
+                                </button>
+                              );
+                            })}
+                          </div>
+                        </FormItem>
+                      )}
+                    />
+                  )}
+
+                  {/* Single date */}
+                  {(editingClass || watchMode === "single") && (
+                    <FormField
+                      control={classForm.control}
+                      name="singleDate"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel className="font-body text-charcoal/80">Date</FormLabel>
+                          <FormControl>
+                            <Input
+                              type="date"
+                              {...field}
+                              disabled={!!editingClass}
+                              className="h-12 font-body text-lg border-charcoal/20 focus:border-sage"
+                            />
+                          </FormControl>
+                          {editingClass && (
+                            <FormDescription className="font-body text-xs text-charcoal/50">
+                              Date locked when editing. Delete and re-create to move to another day.
+                            </FormDescription>
+                          )}
                           <FormMessage />
                         </FormItem>
                       )}
                     />
                   )}
 
-                  {/* Recurring toggle */}
-                  <FormField
-                    control={classForm.control}
-                    name="recurring"
-                    render={({ field }) => (
-                      <FormItem className="flex items-start gap-3 p-4 rounded-xl border border-charcoal/10 bg-cream/30">
-                        <FormControl>
-                          <Checkbox
-                            checked={field.value}
-                            onCheckedChange={field.onChange}
-                            className="mt-0.5 border-charcoal/30 data-[state=checked]:bg-sage data-[state=checked]:border-sage"
-                          />
-                        </FormControl>
-                        <div className="space-y-0.5">
-                          <FormLabel className="font-body font-medium text-charcoal cursor-pointer">
-                            Recurring Weekly (All {MONTHS[selectedMonth]})
-                          </FormLabel>
-                          <FormDescription className="font-body text-sm text-charcoal/60">
-                            Repeat this class every week throughout {MONTHS[selectedMonth]}
+                  {/* Weekly recurring */}
+                  {!editingClass && watchMode === "weekly" && (
+                    <div className="space-y-4 rounded-xl border border-charcoal/10 bg-cream/30 p-4">
+                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                        <FormField
+                          control={classForm.control}
+                          name="weeklyFrom"
+                          render={({ field }) => (
+                            <FormItem>
+                              <FormLabel className="font-body text-charcoal/80">From</FormLabel>
+                              <FormControl>
+                                <Input
+                                  type="date"
+                                  {...field}
+                                  className="h-12 font-body border-charcoal/20 focus:border-sage"
+                                />
+                              </FormControl>
+                              <FormMessage />
+                            </FormItem>
+                          )}
+                        />
+                        <FormField
+                          control={classForm.control}
+                          name="weeklyTo"
+                          render={({ field }) => (
+                            <FormItem>
+                              <FormLabel className="font-body text-charcoal/80">To</FormLabel>
+                              <FormControl>
+                                <Input
+                                  type="date"
+                                  {...field}
+                                  className="h-12 font-body border-charcoal/20 focus:border-sage"
+                                />
+                              </FormControl>
+                              <FormMessage />
+                            </FormItem>
+                          )}
+                        />
+                      </div>
+
+                      <FormField
+                        control={classForm.control}
+                        name="weekdays"
+                        render={({ field }) => {
+                          const set = new Set(field.value ?? []);
+                          const labels = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"];
+                          return (
+                            <FormItem>
+                              <FormLabel className="font-body text-charcoal/80">Repeat on</FormLabel>
+                              <div className="grid grid-cols-7 gap-1.5">
+                                {labels.map((lbl, i) => {
+                                  const active = set.has(i);
+                                  return (
+                                    <button
+                                      key={lbl}
+                                      type="button"
+                                      onClick={() => {
+                                        const next = new Set(set);
+                                        if (next.has(i)) next.delete(i);
+                                        else next.add(i);
+                                        field.onChange(Array.from(next).sort());
+                                      }}
+                                      className={cn(
+                                        "h-10 rounded-md border font-body text-xs font-medium transition-colors",
+                                        active
+                                          ? "bg-sage border-sage text-white"
+                                          : "border-charcoal/20 text-charcoal/60 hover:bg-sage/10",
+                                      )}
+                                    >
+                                      {lbl}
+                                    </button>
+                                  );
+                                })}
+                              </div>
+                              <FormMessage />
+                            </FormItem>
+                          );
+                        }}
+                      />
+
+                      {(() => {
+                        const f = classForm.getValues("weeklyFrom");
+                        const t = classForm.getValues("weeklyTo");
+                        const wd = watchWeekdays;
+                        if (!f || !t || !ISO_DATE_RE.test(f) || !ISO_DATE_RE.test(t) || wd.length === 0) return null;
+                        const wdSet = new Set(wd);
+                        const [fy, fm, fdd] = f.split("-").map(Number);
+                        const [ty, tm, tdd] = t.split("-").map(Number);
+                        const cur = new Date(fy, fm - 1, fdd);
+                        const stop = new Date(ty, tm - 1, tdd);
+                        let n = 0;
+                        while (cur <= stop) {
+                          const idx = (cur.getDay() + 6) % 7;
+                          if (wdSet.has(idx)) n++;
+                          cur.setDate(cur.getDate() + 1);
+                        }
+                        return (
+                          <p className="font-body text-xs text-sage">
+                            Will create <strong>{n}</strong> class{n === 1 ? "" : "es"} in this date range.
+                          </p>
+                        );
+                      })()}
+                    </div>
+                  )}
+
+                  {/* Multi date chips */}
+                  {!editingClass && watchMode === "multi" && (
+                    <FormField
+                      control={classForm.control}
+                      name="multiDates"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel className="font-body text-charcoal/80">Pick dates</FormLabel>
+                          <div className="flex gap-2">
+                            <Input
+                              type="date"
+                              value={multiDateInput}
+                              onChange={e => setMultiDateInput(e.target.value)}
+                              className="h-11 font-body border-charcoal/20 focus:border-sage"
+                            />
+                            <Button
+                              type="button"
+                              variant="outline"
+                              className="h-11 border-sage/40 text-sage hover:bg-sage hover:text-white"
+                              onClick={() => {
+                                if (!ISO_DATE_RE.test(multiDateInput)) return;
+                                const next = Array.from(new Set([...(field.value ?? []), multiDateInput])).sort();
+                                field.onChange(next);
+                                setMultiDateInput("");
+                              }}
+                              disabled={!ISO_DATE_RE.test(multiDateInput)}
+                            >
+                              <Plus className="h-4 w-4 mr-1" /> Add
+                            </Button>
+                          </div>
+                          {watchMultiDates.length > 0 && (
+                            <div className="flex flex-wrap gap-1.5 mt-2">
+                              {watchMultiDates.map(d => (
+                                <span
+                                  key={d}
+                                  className="inline-flex items-center gap-1 rounded-full bg-sage/10 border border-sage/30 px-2.5 py-1 font-body text-xs text-sage"
+                                >
+                                  {new Date(d + "T00:00:00").toLocaleDateString("en-US", { weekday: "short", month: "short", day: "numeric" })}
+                                  <button
+                                    type="button"
+                                    onClick={() => field.onChange(watchMultiDates.filter(x => x !== d))}
+                                    className="hover:bg-sage/20 rounded-full p-0.5"
+                                    aria-label={`Remove ${d}`}
+                                  >
+                                    <X className="h-3 w-3" />
+                                  </button>
+                                </span>
+                              ))}
+                            </div>
+                          )}
+                          <FormDescription className="font-body text-xs text-charcoal/50">
+                            Use for irregular schedules (e.g. special workshops). Up to 200 dates.
                           </FormDescription>
-                        </div>
-                      </FormItem>
-                    )}
-                  />
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+                  )}
                 </TabsContent>
               </Tabs>
             </form>

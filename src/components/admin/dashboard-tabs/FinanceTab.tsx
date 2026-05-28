@@ -38,6 +38,12 @@ import { transactionInExportPeriod, type FinanceReportPeriod } from "@/lib/finan
 // Recharts MUST be static (see InstructorsTab.tsx comment). Tab itself is dynamic-loaded.
 import { Bar, CartesianGrid, ComposedChart, Line, XAxis, YAxis } from "recharts";
 
+// Placeholder bar heights for the "Revenue Trend" mock chart. Hoisted so the
+// 26-element array isn't re-allocated on every parent rerender.
+const REVENUE_TREND_PLACEHOLDER: readonly number[] = [
+  45, 52, 48, 61, 55, 58, 63, 59, 67, 64, 71, 68, 75, 72, 78, 82, 79, 85, 88, 84, 91, 87, 94, 92, 98, 99,
+];
+
 export type FinanceBreakdownDetail = {
   packageListInr?: number;
   couponDiscountInr?: number;
@@ -179,6 +185,11 @@ function FinanceTabImpl({
   const [transactionSearch, setTransactionSearch] = useState("");
   const [financeDetailOpen, setFinanceDetailOpen] = useState(false);
   const [selectedFinanceDetail, setSelectedFinanceDetail] = useState<DashboardFinanceDetail | null>(null);
+
+  const handleSelectFinance = useCallback((detail: DashboardFinanceDetail | undefined) => {
+    if (detail) setSelectedFinanceDetail(detail);
+    setFinanceDetailOpen(true);
+  }, []);
 
   const filteredFinanceTransactions = useMemo(() => {
     const q = transactionSearch.trim().toLowerCase();
@@ -409,57 +420,9 @@ function FinanceTabImpl({
                   </TableRow>
                 </TableHeader>
                 <TableBody>
-                  {financeTxnPg.pageItems.map((txn) => {
-                    const openFinance = txn.finance1Tag === true && txn.financeDetail != null;
-                    const displayMember = txn.memberFull ?? txn.member ?? txn.instructor ?? "Studio";
-                    const plus = txn.memberPlusLabel?.trim() ? ` ${txn.memberPlusLabel.trim()}` : "";
-                    return (
-                      <TableRow
-                        key={txn.id}
-                        className={`border-sage/10 ${openFinance ? "cursor-pointer hover:bg-sage/5" : ""}`}
-                        onClick={openFinance
-                          ? () => {
-                              if (txn.financeDetail) setSelectedFinanceDetail(txn.financeDetail);
-                              setFinanceDetailOpen(true);
-                            }
-                          : undefined}
-                      >
-                        <TableCell className="px-5 py-3">
-                          <div className={`p-2 rounded-lg w-fit ${txn.type === "revenue" ? "bg-sage/10" : "bg-red-50"}`}>
-                            {txn.type === "revenue"
-                              ? <TrendingUp className="h-4 w-4 text-sage" />
-                              : <TrendingDown className="h-4 w-4 text-red-500" />}
-                          </div>
-                        </TableCell>
-                        <TableCell className="px-5 py-3">
-                          <div className="flex items-center gap-2 flex-wrap">
-                            <span className="font-body font-medium text-charcoal">{txn.category}</span>
-                            {txn.isFinanceDemo && (
-                              <Badge variant="outline" className="border-amber-300 bg-amber-50 text-amber-900 text-[10px] uppercase tracking-wide font-body">Sample</Badge>
-                            )}
-                          </div>
-                          {txn.foodOrderedLabel && txn.foodOrderedLabel !== "—" && (
-                            <div className="font-body text-xs text-charcoal/50 mt-0.5 truncate" title={txn.foodOrderedLabel}>{txn.foodOrderedLabel}</div>
-                          )}
-                        </TableCell>
-                        <TableCell className="px-5 py-3">
-                          <div className="font-body text-sm text-charcoal truncate">
-                            {displayMember}
-                            {plus && <span className="text-sage font-medium">{plus}</span>}
-                          </div>
-                        </TableCell>
-                        <TableCell className="px-5 py-3 font-body text-sm text-charcoal/60 whitespace-nowrap">{txn.date}</TableCell>
-                        <TableCell className="px-5 py-3">
-                          <Badge variant="outline" className="border-charcoal/15 text-charcoal/60 font-body whitespace-nowrap">{txn.method}</Badge>
-                        </TableCell>
-                        <TableCell className="px-5 py-3 text-right">
-                          <span className={`font-display text-base tabular-nums ${txn.type === "revenue" ? "text-sage" : "text-red-500"}`}>
-                            {formatTxnAmountRupee(txn.amount, txn.type)}
-                          </span>
-                        </TableCell>
-                      </TableRow>
-                    );
-                  })}
+                  {financeTxnPg.pageItems.map((txn) => (
+                    <FinanceRowView key={txn.id} txn={txn} onSelect={handleSelectFinance} />
+                  ))}
                 </TableBody>
               </Table>
             </ResponsiveTable>
@@ -632,7 +595,7 @@ function FinanceTabImpl({
           <CardContent>
             <div className="space-y-4">
               <div className="h-64 flex items-end justify-between gap-2">
-                {[45, 52, 48, 61, 55, 58, 63, 59, 67, 64, 71, 68, 75, 72, 78, 82, 79, 85, 88, 84, 91, 87, 94, 92, 98, 99].map((value, idx) => (
+                {REVENUE_TREND_PLACEHOLDER.map((value, idx) => (
                   <div key={idx} className="flex-1 flex flex-col items-center gap-1">
                     <div
                       className="w-full bg-linear-to-t from-sage to-sage/40 rounded-t-sm hover:from-sage/90 hover:to-sage/60 transition-all duration-300 cursor-pointer relative group"
@@ -732,3 +695,57 @@ function FinanceTabImpl({
 }
 
 export const FinanceTab = memo(FinanceTabImpl);
+
+const FinanceRowView = memo(function FinanceRowView({
+  txn,
+  onSelect,
+}: {
+  txn: DashboardTxn;
+  onSelect: (detail: DashboardFinanceDetail | undefined) => void;
+}) {
+  const openFinance = txn.finance1Tag === true && txn.financeDetail != null;
+  const displayMember = txn.memberFull ?? txn.member ?? txn.instructor ?? "Studio";
+  const plus = txn.memberPlusLabel?.trim() ? ` ${txn.memberPlusLabel.trim()}` : "";
+  const handleClick = openFinance ? () => onSelect(txn.financeDetail) : undefined;
+
+  return (
+    <TableRow
+      className={`border-sage/10 ${openFinance ? "cursor-pointer hover:bg-sage/5" : ""}`}
+      onClick={handleClick}
+    >
+      <TableCell className="px-5 py-3">
+        <div className={`p-2 rounded-lg w-fit ${txn.type === "revenue" ? "bg-sage/10" : "bg-red-50"}`}>
+          {txn.type === "revenue"
+            ? <TrendingUp className="h-4 w-4 text-sage" />
+            : <TrendingDown className="h-4 w-4 text-red-500" />}
+        </div>
+      </TableCell>
+      <TableCell className="px-5 py-3">
+        <div className="flex items-center gap-2 flex-wrap">
+          <span className="font-body font-medium text-charcoal">{txn.category}</span>
+          {txn.isFinanceDemo && (
+            <Badge variant="outline" className="border-amber-300 bg-amber-50 text-amber-900 text-[10px] uppercase tracking-wide font-body">Sample</Badge>
+          )}
+        </div>
+        {txn.foodOrderedLabel && txn.foodOrderedLabel !== "—" && (
+          <div className="font-body text-xs text-charcoal/50 mt-0.5 truncate" title={txn.foodOrderedLabel}>{txn.foodOrderedLabel}</div>
+        )}
+      </TableCell>
+      <TableCell className="px-5 py-3">
+        <div className="font-body text-sm text-charcoal truncate">
+          {displayMember}
+          {plus && <span className="text-sage font-medium">{plus}</span>}
+        </div>
+      </TableCell>
+      <TableCell className="px-5 py-3 font-body text-sm text-charcoal/60 whitespace-nowrap">{txn.date}</TableCell>
+      <TableCell className="px-5 py-3">
+        <Badge variant="outline" className="border-charcoal/15 text-charcoal/60 font-body whitespace-nowrap">{txn.method}</Badge>
+      </TableCell>
+      <TableCell className="px-5 py-3 text-right">
+        <span className={`font-display text-base tabular-nums ${txn.type === "revenue" ? "text-sage" : "text-red-500"}`}>
+          {formatTxnAmountRupee(txn.amount, txn.type)}
+        </span>
+      </TableCell>
+    </TableRow>
+  );
+});

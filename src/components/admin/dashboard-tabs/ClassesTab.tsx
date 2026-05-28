@@ -272,20 +272,14 @@ function ClassesTabImpl({ classPerformance, disciplineSplit, peakHours, classesL
                       <div className="font-body text-[11px] text-charcoal/60 pr-3 flex items-center justify-end whitespace-nowrap">{slot}</div>
                       {peakHours.days.map((day, cIdx) => {
                         const count = peakHours.grid[rIdx]?.[cIdx] ?? 0;
-                        const intensity = peakHours.max > 0 ? count / peakHours.max : 0;
-                        const opacity = count === 0 ? 0.06 : 0.18 + intensity * 0.82;
                         return (
-                          <div
+                          <HeatCell
                             key={`${slot}-${day}`}
-                            className="h-10 rounded-md flex items-center justify-center font-body text-xs font-medium transition-all hover:scale-[1.04] hover:shadow-md cursor-default"
-                            style={{
-                              backgroundColor: `rgba(143, 151, 121, ${opacity})`,
-                              color: intensity > 0.55 ? "#FFFFFF" : "#333333",
-                            }}
-                            title={`${day} ${slot}: ${count} bookings`}
-                          >
-                            {count > 0 ? count : ""}
-                          </div>
+                            day={day}
+                            slot={slot}
+                            count={count}
+                            max={peakHours.max}
+                          />
                         );
                       })}
                     </Fragment>
@@ -334,3 +328,30 @@ function ClassesTabImpl({ classPerformance, disciplineSplit, peakHours, classesL
 }
 
 export const ClassesTab = memo(ClassesTabImpl);
+
+const HeatCell = memo(function HeatCell({
+  day,
+  slot,
+  count,
+  max,
+}: {
+  day: string;
+  slot: string;
+  count: number;
+  max: number;
+}) {
+  const intensity = max > 0 ? count / max : 0;
+  const opacity = count === 0 ? 0.06 : 0.18 + intensity * 0.82;
+  return (
+    <div
+      className="h-10 rounded-md flex items-center justify-center font-body text-xs font-medium transition-all hover:scale-[1.04] hover:shadow-md cursor-default"
+      style={{
+        backgroundColor: `rgba(143, 151, 121, ${opacity})`,
+        color: intensity > 0.55 ? "#FFFFFF" : "#333333",
+      }}
+      title={`${day} ${slot}: ${count} bookings`}
+    >
+      {count > 0 ? count : ""}
+    </div>
+  );
+});

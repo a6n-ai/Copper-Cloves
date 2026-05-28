@@ -17,7 +17,15 @@ function timeLabel(iso: string) {
   return new Date(iso).toLocaleTimeString("en-US", { hour: "2-digit", minute: "2-digit" });
 }
 
-/** Single-unit compact label for the badge overlay (e.g. "45m", "3h"). */
+/**
+ * Single-unit compact label for the badge overlay (e.g. "45m", "3h").
+ *
+ * Staleness: the label is recomputed only when the parent re-renders, which
+ * happens on the 60s poll above (each fetch reassigns `next`, forcing a render
+ * tick). That cadence matches the label's minute resolution — no separate
+ * `setInterval` needed. While the tab is hidden, polling pauses and the label
+ * intentionally freezes until visibilitychange resumes.
+ */
 function badgeLabel(iso: string) {
   const diffMs = new Date(iso).getTime() - Date.now();
   if (diffMs <= 0) return "now";

@@ -152,10 +152,14 @@ function MembersTabImpl({
     };
   }, [filteredMemberList]);
 
-  const displayedMemberStats =
-    selectedMember !== "all" ? { ...memberStats, ...filteredMemberStats } : memberStats;
-  const activeMemberTierTotal =
-    displayedMemberStats.studioPassActive + displayedMemberStats.classPassActive;
+  const displayedMemberStats = useMemo(
+    () => (selectedMember !== "all" ? { ...memberStats, ...filteredMemberStats } : memberStats),
+    [selectedMember, memberStats, filteredMemberStats],
+  );
+  const activeMemberTierTotal = useMemo(
+    () => displayedMemberStats.studioPassActive + displayedMemberStats.classPassActive,
+    [displayedMemberStats.studioPassActive, displayedMemberStats.classPassActive],
+  );
 
   const sortedMemberList = useMemo(() => {
     if (!perfSortKey) return filteredMemberList;

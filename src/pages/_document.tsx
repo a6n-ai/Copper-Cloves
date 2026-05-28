@@ -2,44 +2,20 @@ import { cn } from "@/lib/utils";
 import { Html, Head, Main, NextScript } from "next/document";
 import { SEOElements } from "@/components/SEO";
 
+// GA + Softgen moved into _app.tsx via `next/script` so they can use
+// `afterInteractive` / `lazyOnload` strategies (only `beforeInteractive` is
+// allowed inside _document, which would block the main thread on first paint).
+
 export default function Document() {
   return (
     <Html lang="en">
       <Head>
         <SEOElements />
 
-        {/* Google Analytics 4 */}
-        {process.env.NEXT_PUBLIC_GA_MEASUREMENT_ID && (
-          <>
-            <script
-              async
-              src={`https://www.googletagmanager.com/gtag/js?id=${process.env.NEXT_PUBLIC_GA_MEASUREMENT_ID}`}
-            />
-            <script
-              dangerouslySetInnerHTML={{
-                __html: `
-                  window.dataLayer = window.dataLayer || [];
-                  function gtag(){dataLayer.push(arguments);}
-                  gtag('js', new Date());
-                  gtag('config', '${process.env.NEXT_PUBLIC_GA_MEASUREMENT_ID}', {
-                    page_path: window.location.pathname,
-                  });
-                `,
-              }}
-            />
-          </>
-        )}
-        
-        {/*
-          CRITICAL: DO NOT REMOVE THIS SCRIPT
-          The Softgen AI monitoring script is essential for core app functionality.
-          The application will not function without it.
-        */}
-        <script
-          src="https://cdn.softgen.ai/script.js"
-          async
-          data-softgen-monitoring="true"
-        />
+        {/* Speeds up first connect to the third-party origins we load assets
+            from. Cheap to add; doesn't fire actual requests. */}
+        <link rel="preconnect" href="https://checkout.razorpay.com" />
+        <link rel="dns-prefetch" href="https://checkout.razorpay.com" />
       </Head>
       <body
         className={cn(

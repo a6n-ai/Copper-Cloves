@@ -1,4 +1,4 @@
-import { memo, useCallback, useState } from "react";
+import { memo, useCallback, useMemo, useState } from "react";
 import {
   AlertTriangle,
   ChevronLeft,
@@ -120,19 +120,49 @@ function OverviewTabImpl({
     setSelectedMembers(new Set());
   }, [selectedMembers]);
 
-  const today = new Date();
-  const iso = (dt: Date) => `${dt.getFullYear()}-${String(dt.getMonth() + 1).padStart(2, "0")}-${String(dt.getDate()).padStart(2, "0")}`;
-  const todayIso = iso(today);
-  const tom = new Date(today); tom.setDate(tom.getDate() + 1);
-  const yest = new Date(today); yest.setDate(yest.getDate() - 1);
-  const [y, m, d] = scheduleDate.split("-").map(Number);
-  const dt = new Date(y, m - 1, d);
-  const pretty = dt.toLocaleDateString("en-US", { weekday: "long", month: "short", day: "numeric" });
-  const dateTitle =
-    scheduleDate === todayIso ? `Today · ${pretty}` :
-    scheduleDate === iso(tom) ? `Tomorrow · ${pretty}` :
-    scheduleDate === iso(yest) ? `Yesterday · ${pretty}` :
-    pretty;
+  // Rebuilding this 10-key shape per render forced TodayClassesCarousel to re-diff
+  // every card on any parent state change (e.g. checkbox toggles).
+  /* eslint-disable @typescript-eslint/no-explicit-any */
+  const carouselItems = useMemo(
+    () =>
+      (todayClassesDetail.length > 0 ? todayClassesDetail : upcomingClasses).map((cls: any) => ({
+        id: cls.id,
+        name: cls.name,
+        time: cls.time,
+        startIso: cls.startIso,
+        endIso: cls.endIso,
+        instructor: cls.instructor ?? "—",
+        instructorAvatarUrl: cls.instructorAvatarUrl ?? null,
+        enrolled: cls.enrolled ?? 0,
+        capacity: cls.capacity ?? (cls.enrolled ?? 0),
+        recurring: cls.recurring,
+        status: cls.status,
+        _raw: cls,
+      })),
+    [todayClassesDetail, upcomingClasses],
+  );
+  /* eslint-enable @typescript-eslint/no-explicit-any */
+
+  const iso = (dt: Date) =>
+    `${dt.getFullYear()}-${String(dt.getMonth() + 1).padStart(2, "0")}-${String(dt.getDate()).padStart(2, "0")}`;
+
+  // Today/tomorrow/yesterday only change at midnight — recomputing per render
+  // (the previous behavior) cost 3× `new Date()` + locale formatting every tick.
+  const { todayIso, y, m, d, dateTitle } = useMemo(() => {
+    const today = new Date();
+    const todayIso = iso(today);
+    const tom = new Date(today); tom.setDate(tom.getDate() + 1);
+    const yest = new Date(today); yest.setDate(yest.getDate() - 1);
+    const [y, m, d] = scheduleDate.split("-").map(Number);
+    const dt = new Date(y, m - 1, d);
+    const pretty = dt.toLocaleDateString("en-US", { weekday: "long", month: "short", day: "numeric" });
+    const dateTitle =
+      scheduleDate === todayIso ? `Today · ${pretty}` :
+      scheduleDate === iso(tom) ? `Tomorrow · ${pretty}` :
+      scheduleDate === iso(yest) ? `Yesterday · ${pretty}` :
+      pretty;
+    return { todayIso, y, m, d, dateTitle };
+  }, [scheduleDate]);
 
   return (
     <>
@@ -246,22 +276,7 @@ function OverviewTabImpl({
             ) : (
               <TodayClassesCarousel
                 isToday={scheduleDate === todayIso}
-                /* eslint-disable @typescript-eslint/no-explicit-any */
-                items={(todayClassesDetail.length > 0 ? todayClassesDetail : upcomingClasses).map((cls: any) => ({
-                  id: cls.id,
-                  name: cls.name,
-                  time: cls.time,
-                  startIso: cls.startIso,
-                  endIso: cls.endIso,
-                  instructor: cls.instructor ?? "—",
-                  instructorAvatarUrl: cls.instructorAvatarUrl ?? null,
-                  enrolled: cls.enrolled ?? 0,
-                  capacity: cls.capacity ?? (cls.enrolled ?? 0),
-                  recurring: cls.recurring,
-                  status: cls.status,
-                  _raw: cls,
-                }))}
-                /* eslint-enable @typescript-eslint/no-explicit-any */
+                items={carouselItems}
                 onManage={(row) => onManageClass(String(row.id))}
                 onStatusChange={(row, newStatus) => {
                   onStatusChange({

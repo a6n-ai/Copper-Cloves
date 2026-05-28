@@ -1,3 +1,4 @@
+import { useMemo } from "react";
 import Image from "next/image";
 import { CalendarDays, ChevronRight } from "lucide-react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -35,6 +36,13 @@ export function UpcomingScheduleCard({
   description = "Your next sessions",
   entries,
 }: UpcomingScheduleCardProps) {
+  // Precompute the formatted when-label per entry so a parent rerender doesn't
+  // re-parse Date + invoke 2× toLocale* per row.
+  const rows = useMemo(
+    () => entries.map((entry) => ({ entry, when: formatWhen(entry.whenISO) })),
+    [entries],
+  );
+
   return (
     <Card className="rounded-2xl shadow-xs">
       <CardHeader>
@@ -49,8 +57,7 @@ export function UpcomingScheduleCard({
           <p className="text-sm italic text-muted-foreground">No upcoming classes</p>
         ) : (
           <div className="space-y-2">
-            {entries.map((entry) => {
-              const when = formatWhen(entry.whenISO);
+            {rows.map(({ entry, when }) => {
               return (
                 <button
                   key={entry.id}

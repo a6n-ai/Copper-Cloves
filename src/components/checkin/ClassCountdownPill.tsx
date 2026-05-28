@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { Clock } from "lucide-react";
 import { cn } from "@/lib/utils";
 
@@ -24,11 +24,39 @@ interface Props {
 export function ClassCountdownPill({ startIso, endIso, fallbackTime, className, size = "md" }: Props) {
   const [now, setNow] = useState(() => Date.now());
   useEffect(() => {
-    const id = setInterval(() => setNow(Date.now()), 1000);
-    return () => clearInterval(id);
+    let id: number | null = null;
+    const start = () => {
+      if (id !== null) return;
+      id = window.setInterval(() => setNow(Date.now()), 1000);
+    };
+    const stop = () => {
+      if (id === null) return;
+      clearInterval(id);
+      id = null;
+    };
+    const onVis = () => {
+      if (document.hidden) stop();
+      else {
+        setNow(Date.now());
+        start();
+      }
+    };
+    if (!document.hidden) start();
+    document.addEventListener("visibilitychange", onVis);
+    return () => {
+      document.removeEventListener("visibilitychange", onVis);
+      stop();
+    };
   }, []);
 
   const padding = size === "sm" ? "px-2.5 py-1 text-sm" : "px-3 py-1.5 text-base";
+
+  // Parse the ISO strings once per prop change, not 60 times per minute.
+  const { startMs, endMs } = useMemo(() => {
+    const s = startIso ? new Date(startIso).getTime() : NaN;
+    const e = endIso ? new Date(endIso).getTime() : s + 60 * 60 * 1000;
+    return { startMs: s, endMs: e };
+  }, [startIso, endIso]);
 
   if (!startIso) {
     return (
@@ -38,9 +66,6 @@ export function ClassCountdownPill({ startIso, endIso, fallbackTime, className, 
       </div>
     );
   }
-
-  const startMs = new Date(startIso).getTime();
-  const endMs = endIso ? new Date(endIso).getTime() : startMs + 60 * 60 * 1000;
   const untilStart = startMs - now;
   const untilEnd = endMs - now;
 

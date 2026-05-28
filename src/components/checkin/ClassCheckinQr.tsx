@@ -1,5 +1,24 @@
 import { QrZoomImage } from "@/components/checkin/QrZoomImage";
 
+// 13×13 pseudo-QR grid — three finder squares + sparse deterministic dots.
+// Pre-computed once at module load; rendered identically every time.
+const FAKE_QR_GRID = 13;
+const FAKE_QR_CELLS: boolean[] = (() => {
+  const isFinder = (r: number, c: number) => {
+    const inBox = (br: number, bc: number) => r >= br && r <= br + 6 && c >= bc && c <= bc + 6;
+    const onRing = (br: number, bc: number) => r === br || r === br + 6 || c === bc || c === bc + 6;
+    const inCenter = (br: number, bc: number) => r >= br + 2 && r <= br + 4 && c >= bc + 2 && c <= bc + 4;
+    const corners: [number, number][] = [[0, 0], [0, FAKE_QR_GRID - 7], [FAKE_QR_GRID - 7, 0]];
+    return corners.some(([br, bc]) => inBox(br, bc) && (onRing(br, bc) || inCenter(br, bc)));
+  };
+  return Array.from({ length: FAKE_QR_GRID * FAKE_QR_GRID }, (_, i) => {
+    const r = Math.floor(i / FAKE_QR_GRID);
+    const c = i % FAKE_QR_GRID;
+    if (isFinder(r, c)) return true;
+    return (r * 31 + c * 17 + r * c) % 5 === 0;
+  });
+})();
+
 type Kind = "member" | "instructor";
 
 export type ClassCheckinQrData = {
@@ -81,29 +100,14 @@ export function ClassCheckinQr({ kind, qr, size = 200, label }: Props) {
 }
 
 function BlurredFakeQr({ caption, size }: { caption: string; size: number }) {
-  // 13x13 pseudo-QR: three finder squares + sparse deterministic dots.
-  const grid = 13;
-  const isFinder = (r: number, c: number) => {
-    const inBox = (br: number, bc: number) => r >= br && r <= br + 6 && c >= bc && c <= bc + 6;
-    const onRing = (br: number, bc: number) => r === br || r === br + 6 || c === bc || c === bc + 6;
-    const inCenter = (br: number, bc: number) => r >= br + 2 && r <= br + 4 && c >= bc + 2 && c <= bc + 4;
-    const corners: [number, number][] = [[0, 0], [0, grid - 7], [grid - 7, 0]];
-    return corners.some(([br, bc]) => inBox(br, bc) && (onRing(br, bc) || inCenter(br, bc)));
-  };
-  const cells = Array.from({ length: grid * grid }, (_, i) => {
-    const r = Math.floor(i / grid);
-    const c = i % grid;
-    if (isFinder(r, c)) return true;
-    return (r * 31 + c * 17 + r * c) % 5 === 0;
-  });
   return (
     <div className="relative flex items-center justify-center" style={{ width: size, height: size }}>
       <div
         className="grid h-full w-full gap-[2px] rounded-md bg-white p-2 blur-[3px]"
-        style={{ gridTemplateColumns: `repeat(${grid}, minmax(0, 1fr))` }}
+        style={{ gridTemplateColumns: `repeat(${FAKE_QR_GRID}, minmax(0, 1fr))` }}
         aria-hidden
       >
-        {cells.map((on, i) => (
+        {FAKE_QR_CELLS.map((on, i) => (
           <div key={i} className={on ? "bg-charcoal" : "bg-transparent"} />
         ))}
       </div>

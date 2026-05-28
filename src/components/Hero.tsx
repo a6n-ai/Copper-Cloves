@@ -44,6 +44,7 @@ export function Hero() {
                   loop
                   muted
                   playsInline
+                  preload="metadata"
                   className="w-full h-full object-cover animate-floatAndZoom17"
                 />
               </div>
@@ -70,6 +71,7 @@ export function Hero() {
                     loop
                     muted
                     playsInline
+                    preload="metadata"
                     className="w-full h-full object-cover animate-floatAndZoom19"
                   />
                 ) : (
@@ -95,6 +97,7 @@ export function Hero() {
               loop
               muted
               playsInline
+              preload="metadata"
               className="w-full h-full object-cover animate-floatAndZoom23"
             />
             <div className="absolute inset-0 bg-linear-to-t from-black/50 via-transparent to-transparent" />

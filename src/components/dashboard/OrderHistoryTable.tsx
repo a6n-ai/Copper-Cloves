@@ -1,3 +1,4 @@
+import { memo, useMemo } from "react";
 import { CreditCard } from "lucide-react";
 import {
   Table,
@@ -50,7 +51,70 @@ function formatMethod(method: string) {
   return "Paid online";
 }
 
+interface RowViewProps {
+  id: string;
+  item: string;
+  dateLabel: string;
+  amount: number;
+  statusBadge: string;
+  statusBadgeClass: string;
+  methodLabel: string;
+}
+
+const OrderRowView = memo(function OrderRowView({
+  id,
+  item,
+  dateLabel,
+  amount,
+  statusBadge,
+  statusBadgeClass,
+  methodLabel,
+}: RowViewProps) {
+  return (
+    <TableRow>
+      <TableCell>
+        <p className="text-sm font-medium text-card-foreground">{item}</p>
+        <p className="font-mono text-xs text-muted-foreground">#{id.slice(0, 8)}…</p>
+      </TableCell>
+      <TableCell className="whitespace-nowrap text-sm text-muted-foreground">{dateLabel}</TableCell>
+      <TableCell>
+        <Badge className={cn("font-normal", statusBadgeClass)}>{statusBadge}</Badge>
+      </TableCell>
+      <TableCell>
+        <span className="inline-flex items-center gap-1 text-xs text-muted-foreground">
+          <CreditCard size={14} />
+          {methodLabel}
+        </span>
+      </TableCell>
+      <TableCell className="whitespace-nowrap text-right font-display text-base text-primary">
+        ₹{amount}
+      </TableCell>
+    </TableRow>
+  );
+});
+
 export function OrderHistoryTable({ rows }: OrderHistoryTableProps) {
+  // Precompute display strings per row once per `rows` change. Without this the
+  // table re-parsed every Date + recomputed every status/method string on every
+  // parent rerender, even when row data was identical.
+  const viewRows = useMemo(
+    () =>
+      rows.map((row) => ({
+        id: row.id,
+        item: row.item,
+        amount: row.amount,
+        dateLabel: new Date(row.dateISO).toLocaleDateString("en-US", {
+          month: "short",
+          day: "numeric",
+          year: "numeric",
+        }),
+        statusBadge: formatStatus(row.status),
+        statusBadgeClass: statusClass(row.status),
+        methodLabel: formatMethod(row.method),
+      })),
+    [rows],
+  );
+
   return (
     <ResponsiveTable>
       <Table>
@@ -64,34 +128,8 @@ export function OrderHistoryTable({ rows }: OrderHistoryTableProps) {
           </TableRow>
         </TableHeader>
         <TableBody className="divide-y divide-border">
-          {rows.map((row) => (
-            <TableRow key={row.id}>
-              <TableCell>
-                <p className="text-sm font-medium text-card-foreground">{row.item}</p>
-                <p className="font-mono text-xs text-muted-foreground">#{row.id.slice(0, 8)}…</p>
-              </TableCell>
-              <TableCell className="whitespace-nowrap text-sm text-muted-foreground">
-                {new Date(row.dateISO).toLocaleDateString("en-US", {
-                  month: "short",
-                  day: "numeric",
-                  year: "numeric",
-                })}
-              </TableCell>
-              <TableCell>
-                <Badge className={cn("font-normal", statusClass(row.status))}>
-                  {formatStatus(row.status)}
-                </Badge>
-              </TableCell>
-              <TableCell>
-                <span className="inline-flex items-center gap-1 text-xs text-muted-foreground">
-                  <CreditCard size={14} />
-                  {formatMethod(row.method)}
-                </span>
-              </TableCell>
-              <TableCell className="whitespace-nowrap text-right font-display text-base text-primary">
-                ₹{row.amount}
-              </TableCell>
-            </TableRow>
+          {viewRows.map((row) => (
+            <OrderRowView key={row.id} {...row} />
           ))}
         </TableBody>
       </Table>

@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { DEFAULT_PALETTE, paletteFor, type MeshPalette, type WeatherCondition } from "@/lib/weatherPalette";
 import { greetingFor } from "@/lib/weatherCopy";
 
@@ -42,8 +42,14 @@ export function useAuthWeather(): UseAuthWeatherResult {
     };
   }, []);
 
-  const palette = weather ? paletteFor(weather.condition, new Date().getHours()) : DEFAULT_PALETTE;
-  const greeting = weather ? greetingFor(weather.condition, weather.isDay, weather.city) : null;
+  const palette = useMemo(
+    () => (weather ? paletteFor(weather.condition, new Date().getHours()) : DEFAULT_PALETTE),
+    [weather],
+  );
+  const greeting = useMemo(
+    () => (weather ? greetingFor(weather.condition, weather.isDay, weather.city) : null),
+    [weather],
+  );
 
   return { weather, palette, greeting, loading };
 }

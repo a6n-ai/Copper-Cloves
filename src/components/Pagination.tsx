@@ -1,5 +1,4 @@
-import { useEffect, useId, useMemo, useState } from "react";
-import { motion } from "framer-motion";
+import { useEffect, useMemo, useState } from "react";
 import {
   Pagination as ShadPagination,
   PaginationContent,
@@ -67,7 +66,6 @@ export function Pagination({
   className?: string;
 }) {
   const totalPages = Math.max(1, Math.ceil(total / pageSize));
-  const layoutId = useId();
   if (total <= pageSize) return null;
   const start = (page - 1) * pageSize + 1;
   const end = Math.min(page * pageSize, total);
@@ -111,21 +109,14 @@ export function Pagination({
                       onChange(it);
                     }}
                     className={cn(
-                      "relative z-10 w-9 h-9 rounded-full border-0 transition-colors text-xs font-bold tracking-tighter",
+                      "relative z-10 w-9 h-9 rounded-full border-0 text-xs font-bold tracking-tighter transition-colors duration-300",
                       page === it
-                        ? "bg-transparent text-white hover:bg-transparent hover:text-white"
+                        ? "bg-sage text-white shadow-md hover:bg-sage hover:text-white"
                         : "text-charcoal/60 hover:text-charcoal hover:bg-sage/10",
                     )}
                   >
                     {it}
                   </PaginationLink>
-                  {page === it && (
-                    <motion.div
-                      layoutId={`pill-active-${layoutId}`}
-                      className="absolute inset-0 bg-sage rounded-full shadow-md"
-                      transition={{ type: "spring", bounce: 0.2, duration: 0.6 }}
-                    />
-                  )}
                 </PaginationItem>
               ),
             )}

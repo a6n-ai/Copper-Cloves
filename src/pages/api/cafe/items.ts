@@ -13,6 +13,9 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       where,
       orderBy: [{ category: "asc" }, { name: "asc" }],
     });
+    // Public menu — safe to CDN-cache briefly; name-filter queries get the same
+    // policy because they hit a different URL key.
+    res.setHeader("Cache-Control", "public, s-maxage=30, stale-while-revalidate=120");
     return res.json(items);
   }
 

@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { CheckCircle2, Maximize2, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -45,12 +45,13 @@ export function CheckinQrDialog({
     };
   }, [open]);
 
-  const validUntil = data
-    ? new Date(new Date(data.startTime).getTime() + 30 * 60000).toLocaleTimeString("en-US", {
-        hour: "2-digit",
-        minute: "2-digit",
-      })
-    : "";
+  const validUntil = useMemo(() => {
+    if (!data) return "";
+    return new Date(new Date(data.startTime).getTime() + 30 * 60000).toLocaleTimeString("en-US", {
+      hour: "2-digit",
+      minute: "2-digit",
+    });
+  }, [data?.startTime]);
 
   return (
     <>
