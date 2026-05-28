@@ -1,6 +1,7 @@
 import type { NextApiRequest, NextApiResponse } from "next";
 import { getStudioServerSession } from "@/lib/getStudioServerSession";
 import { getMemberStats } from "@/lib/adminDashboardSections";
+import logger from "@/lib/logger";
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
   const session = await getStudioServerSession(req, res);
@@ -11,7 +12,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     // No-show reconciliation moved off the request path — runs via /api/cron/reconcile-no-shows.
     return res.json({ memberStats: await getMemberStats() });
   } catch (e) {
-    console.error("[dashboard/member-stats]", e);
+    logger.error({ err: e }, "[dashboard/member-stats]");
     return res.status(200).json({
       memberStats: {
         memberOfMonth: { name: "—", classes: 0, streak: 0 },

@@ -6,6 +6,7 @@ import type { Profile } from "@/generated/prisma/client";
 import prisma from "./prisma";
 import { normalizeLoginEmail } from "./loginEmail";
 import { startSession, endSession, SESSION_MAX_AGE_SECONDS } from "./sessionGuard";
+import logger from "@/lib/logger";
 
 type Headers = Record<string, string | string[] | undefined>;
 
@@ -100,7 +101,7 @@ export const authOptions: NextAuthOptions = {
           }
 
           if (!credentials.password) {
-            console.warn("[next-auth] credentials sign-in rejected: missing password");
+            logger.warn("[next-auth] credentials sign-in rejected: missing password");
             return null;
           }
 
@@ -110,21 +111,18 @@ export const authOptions: NextAuthOptions = {
             : await prisma.profile.findFirst({ where: { email } });
 
           if (!profile) {
-            console.warn(
-              "[next-auth] CredentialsSignin: no profile row (run bootstrap-admin or ensure-admin for this email)",
-              { email }
-            );
+            logger.warn({ email }, "[next-auth] CredentialsSignin: no profile row (run bootstrap-admin or ensure-admin for this email)");
             return null;
           }
 
           if (!profile.hashedPassword) {
-            console.warn("[next-auth] CredentialsSignin: profile has no hashedPassword", { email });
+            logger.warn({ email }, "[next-auth] CredentialsSignin: profile has no hashedPassword");
             return null;
           }
 
           const isValid = await bcrypt.compare(credentials.password, profile.hashedPassword);
           if (!isValid) {
-            console.warn("[next-auth] CredentialsSignin: password does not match stored hash", { email });
+            logger.warn({ email }, "[next-auth] CredentialsSignin: password does not match stored hash");
             return null;
           }
 
@@ -132,7 +130,7 @@ export const authOptions: NextAuthOptions = {
           const { sid } = await startSession(profile.id, (req?.headers ?? {}) as Headers);
           return { ...built, sid };
         } catch (e) {
-          console.error("[next-auth] authorize error (DB or unexpected)", e);
+          logger.error({ err: e }, "[next-auth] authorize error (DB or unexpected)");
           return null;
         }
       },

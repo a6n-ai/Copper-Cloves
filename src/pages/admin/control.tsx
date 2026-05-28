@@ -344,27 +344,57 @@ export default function ControlPanel() {
   const [imagePreview, setImagePreview] = useState<string>("");
   const [classImagePreview, setClassImagePreview] = useState<string>("");
 
-  const [instructorPayouts, setInstructorPayouts] = useState<
-    {
-      id: number;
-      instructorId: string;
-      name: string;
-      specialties: string;
-      checkIns: number;
-      rate: number;
-      total: number;
-      percentage: number;
-      status: "pending" | "paid";
-    }[]
-  >([]);
+  type PayoutRow = {
+    id: number;
+    instructorId: string;
+    name: string;
+    imageUrl: string | null;
+    specialties: string;
+    classes: number;
+    computedClasses: number;
+    extraClasses: number;
+    checkIns: number;
+    payableUnits: number;
+    computedPayableUnits: number;
+    extraPayableUnits: number;
+    netPerUnit: number;
+    rate: number;
+    gstPercent: number;
+    percentage: number;
+    studioCutPercent: number;
+    total: number;
+    overrideTotal: number | null;
+    paidAt: string | null;
+    paidMethod: string | null;
+    notes: string | null;
+    status: "pending" | "paid";
+  };
+  const [instructorPayouts, setInstructorPayouts] = useState<PayoutRow[]>([]);
   const [payoutSummary, setPayoutSummary] = useState({
     totalPayouts: 0,
     pendingPayments: 0,
     completedPayments: 0,
     totalCheckIns: 0,
+    totalPayableUnits: 0,
     pendingCount: 0,
     instructorsCount: 0,
+    window: "month" as "week" | "month" | "quarter" | "all",
+    periodKey: "",
+    netPerUnit: 897.75,
+    classRate: 945,
+    gstPercent: 5,
   });
+  const [payoutWindow, setPayoutWindow] = useState<"week" | "month" | "quarter" | "all">("month");
+  const [payoutInstructorFilter, setPayoutInstructorFilter] = useState<string>("all");
+  const [payoutEditRow, setPayoutEditRow] = useState<PayoutRow | null>(null);
+  const [payoutEditForm, setPayoutEditForm] = useState({
+    extra_payable_units: "0",
+    extra_classes: "0",
+    override_payout: "",
+    notes: "",
+    paid_method: "",
+  });
+  const [payoutEditSaving, setPayoutEditSaving] = useState(false);
 
   const { data: session, status } = useSession();
   const userRole = (session?.user as { role?: string })?.role;
@@ -418,9 +448,10 @@ export default function ControlPanel() {
     }
   }
 
-async function fetchPayoutData() {
+async function fetchPayoutData(opts?: { window?: "week" | "month" | "quarter" | "all" }) {
     try {
-      const res = await fetch("/api/admin/instructor-payouts");
+      const w = opts?.window ?? payoutWindow;
+      const res = await fetch(`/api/admin/instructor-payouts?window=${encodeURIComponent(w)}`);
       if (!res.ok) {
         setInstructorPayouts([]);
         return;
@@ -431,6 +462,134 @@ async function fetchPayoutData() {
     } catch {
       setInstructorPayouts([]);
     }
+  }
+
+  function openPayoutEdit(row: PayoutRow) {
+    setPayoutEditRow(row);
+    setPayoutEditForm({
+      extra_payable_units: String(row.extraPayableUnits ?? 0),
+      extra_classes: String(row.extraClasses ?? 0),
+      override_payout: row.overrideTotal != null ? String(row.overrideTotal) : "",
+      notes: row.notes ?? "",
+      paid_method: row.paidMethod ?? "",
+    });
+  }
+
+  async function savePayoutEdit() {
+    if (!payoutEditRow) return;
+    setPayoutEditSaving(true);
+    try {
+      const body: Record<string, unknown> = {
+        instructorId: payoutEditRow.instructorId,
+        window: payoutWindow,
+        extra_payable_units: Number(payoutEditForm.extra_payable_units) || 0,
+        extra_classes: Number(payoutEditForm.extra_classes) || 0,
+        notes: payoutEditForm.notes,
+        paid_method: payoutEditForm.paid_method || null,
+      };
+      if (payoutEditForm.override_payout.trim() === "") {
+        body.override_payout_paise = null;
+      } else {
+        const rupees = Number(payoutEditForm.override_payout);
+        if (!Number.isFinite(rupees)) {
+          toast.error("Override payout must be a number");
+          setPayoutEditSaving(false);
+          return;
+        }
+        body.override_payout_paise = Math.round(rupees * 100);
+      }
+      const res = await fetch("/api/admin/instructor-payout-adjustment", {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(body),
+      });
+      if (!res.ok) {
+        const d = await res.json().catch(() => ({}));
+        toast.error(d.error ?? "Save failed");
+        return;
+      }
+      toast.success("Adjustment saved");
+      setPayoutEditRow(null);
+      await fetchPayoutData();
+    } finally {
+      setPayoutEditSaving(false);
+    }
+  }
+
+  async function togglePayoutPaid(row: PayoutRow, paid: boolean) {
+    try {
+      const res = await fetch("/api/admin/instructor-payout-adjustment", {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          instructorId: row.instructorId,
+          window: payoutWindow,
+          paid,
+        }),
+      });
+      if (!res.ok) {
+        const d = await res.json().catch(() => ({}));
+        toast.error(d.error ?? "Save failed");
+        return;
+      }
+      toast.success(paid ? "Marked paid" : "Marked unpaid");
+      await fetchPayoutData();
+    } catch {
+      toast.error("Save failed");
+    }
+  }
+
+  function downloadPayoutCsv(rows: PayoutRow[], filenameSuffix: string) {
+    const header = [
+      "Instructor",
+      "Specialties",
+      "Classes",
+      "Check-ins",
+      "Payable Units",
+      "Net per Unit",
+      "Studio %",
+      "Instructor %",
+      "Total Payout INR",
+      "Override",
+      "Paid At",
+      "Paid Method",
+      "Notes",
+    ];
+    const esc = (v: unknown) => {
+      const s = v == null ? "" : String(v);
+      return /[",\n]/.test(s) ? `"${s.replace(/"/g, '""')}"` : s;
+    };
+    const lines = [header.join(",")];
+    for (const r of rows) {
+      lines.push(
+        [
+          r.name,
+          r.specialties,
+          r.classes,
+          r.checkIns,
+          r.payableUnits,
+          r.netPerUnit,
+          r.studioCutPercent,
+          r.percentage,
+          r.total.toFixed(2),
+          r.overrideTotal != null ? "yes" : "no",
+          r.paidAt ?? "",
+          r.paidMethod ?? "",
+          r.notes ?? "",
+        ]
+          .map(esc)
+          .join(","),
+      );
+    }
+    const blob = new Blob([lines.join("\n")], { type: "text/csv;charset=utf-8" });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = `instructor-payouts-${payoutSummary.periodKey || payoutWindow}-${filenameSuffix}.csv`;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
   }
 
   async function fetchClasses() {
@@ -1065,7 +1224,9 @@ async function fetchPayoutData() {
 
   const userSort = useSort<"name" | "pass" | "remaining" | "start" | "end" | "status">();
   const classSort = useSort<"name" | "category" | "duration" | "capacity">();
-  const payoutSort = useSort<"name" | "checkIns" | "rate" | "share" | "total" | "status">();
+  const payoutSort = useSort<
+    "name" | "classes" | "checkIns" | "payable" | "share" | "total" | "status"
+  >();
   const instructorSort = useSort<"name" | "status">();
 
   const filteredUsers = useMemo(() => {
@@ -1140,6 +1301,9 @@ async function fetchPayoutData() {
 
   const filteredPayouts = useMemo(() => {
     let list = instructorPayouts;
+    if (payoutInstructorFilter !== "all") {
+      list = list.filter((p) => p.instructorId === payoutInstructorFilter);
+    }
     const q = payoutSearch.trim().toLowerCase();
     if (q)
       list = list.filter(
@@ -1152,10 +1316,12 @@ async function fetchPayoutData() {
         switch (payoutSort.key) {
           case "name":
             return a.name.localeCompare(b.name) * dir;
+          case "classes":
+            return (a.classes - b.classes) * dir;
           case "checkIns":
             return (a.checkIns - b.checkIns) * dir;
-          case "rate":
-            return ((Number(a.rate ?? 0)) - (Number(b.rate ?? 0))) * dir;
+          case "payable":
+            return (a.payableUnits - b.payableUnits) * dir;
           case "share":
             return ((Number(a.percentage ?? 0)) - (Number(b.percentage ?? 0))) * dir;
           case "total":
@@ -1168,7 +1334,7 @@ async function fetchPayoutData() {
       });
     }
     return list;
-  }, [instructorPayouts, payoutSearch, payoutSort.key, payoutSort.dir]);
+  }, [instructorPayouts, payoutSearch, payoutSort.key, payoutSort.dir, payoutInstructorFilter]);
 
   const filteredInstructors = useMemo(() => {
     let list = instructors;
@@ -1818,14 +1984,37 @@ async function fetchPayoutData() {
                           Calculate and manage instructor payments based on check-ins
                         </CardDescription>
                       </div>
-                      <div className="flex items-center gap-2 w-full sm:w-auto">
+                      <div className="flex flex-wrap items-center gap-2 w-full sm:w-auto">
                         <Input
                           value={payoutSearch}
                           onChange={(e) => setPayoutSearch(e.target.value)}
                           placeholder="Search instructor…"
                           className="h-9 flex-1 sm:w-56 border-sage/20 focus:border-sage font-body"
                         />
-                        <Select defaultValue="month">
+                        <Select
+                          value={payoutInstructorFilter}
+                          onValueChange={setPayoutInstructorFilter}
+                        >
+                          <SelectTrigger className="h-9 w-44 border-sage/20 shrink-0">
+                            <SelectValue placeholder="All instructors" />
+                          </SelectTrigger>
+                          <SelectContent>
+                            <SelectItem value="all">All instructors</SelectItem>
+                            {instructorPayouts.map((p) => (
+                              <SelectItem key={p.instructorId} value={p.instructorId}>
+                                {p.name}
+                              </SelectItem>
+                            ))}
+                          </SelectContent>
+                        </Select>
+                        <Select
+                          value={payoutWindow}
+                          onValueChange={(v) => {
+                            const next = v as "week" | "month" | "quarter" | "all";
+                            setPayoutWindow(next);
+                            void fetchPayoutData({ window: next });
+                          }}
+                        >
                           <SelectTrigger className="h-9 w-36 border-sage/20 shrink-0">
                             <SelectValue />
                           </SelectTrigger>
@@ -1833,7 +2022,7 @@ async function fetchPayoutData() {
                             <SelectItem value="week">This Week</SelectItem>
                             <SelectItem value="month">This Month</SelectItem>
                             <SelectItem value="quarter">This Quarter</SelectItem>
-                            <SelectItem value="custom">Custom Range</SelectItem>
+                            <SelectItem value="all">All Time</SelectItem>
                           </SelectContent>
                         </Select>
                       </div>
@@ -1859,14 +2048,19 @@ async function fetchPayoutData() {
                                       Instructor {sortArrow(payoutSort.key === "name", payoutSort.dir)}
                                     </button>
                                   </TableHead>
-                                  <TableHead className={`${thBase} w-[120px]`}>
+                                  <TableHead className={`${thBase} w-[90px]`}>
+                                    <button type="button" onClick={() => payoutSort.toggle("classes", "desc")} className={thBtn}>
+                                      Classes {sortArrow(payoutSort.key === "classes", payoutSort.dir)}
+                                    </button>
+                                  </TableHead>
+                                  <TableHead className={`${thBase} w-[100px]`}>
                                     <button type="button" onClick={() => payoutSort.toggle("checkIns", "desc")} className={thBtn}>
                                       Check-ins {sortArrow(payoutSort.key === "checkIns", payoutSort.dir)}
                                     </button>
                                   </TableHead>
-                                  <TableHead className={`${thBase} w-[90px]`}>
-                                    <button type="button" onClick={() => payoutSort.toggle("rate", "desc")} className={thBtn}>
-                                      Rate {sortArrow(payoutSort.key === "rate", payoutSort.dir)}
+                                  <TableHead className={`${thBase} w-[100px]`}>
+                                    <button type="button" onClick={() => payoutSort.toggle("payable", "desc")} className={thBtn}>
+                                      Payable {sortArrow(payoutSort.key === "payable", payoutSort.dir)}
                                     </button>
                                   </TableHead>
                                   <TableHead className={`${thBase} w-[90px]`}>
@@ -1874,16 +2068,17 @@ async function fetchPayoutData() {
                                       Share {sortArrow(payoutSort.key === "share", payoutSort.dir)}
                                     </button>
                                   </TableHead>
-                                  <TableHead className={`${thBase} w-[120px]`}>
+                                  <TableHead className={`${thBase} w-[130px]`}>
                                     <button type="button" onClick={() => payoutSort.toggle("total", "desc")} className={thBtn}>
-                                      Total {sortArrow(payoutSort.key === "total", payoutSort.dir)}
+                                      Payout {sortArrow(payoutSort.key === "total", payoutSort.dir)}
                                     </button>
                                   </TableHead>
-                                  <TableHead className={`${thBase} w-[160px] text-right`}>
-                                    <button type="button" onClick={() => payoutSort.toggle("status")} className={`${thBtn} ml-auto`}>
+                                  <TableHead className={`${thBase} w-[110px]`}>
+                                    <button type="button" onClick={() => payoutSort.toggle("status")} className={thBtn}>
                                       Status {sortArrow(payoutSort.key === "status", payoutSort.dir)}
                                     </button>
                                   </TableHead>
+                                  <TableHead className={`${thBase} w-[110px] text-right`}>Actions</TableHead>
                                 </TableRow>
                               </TableHeader>
                               <TableBody>
@@ -1891,7 +2086,7 @@ async function fetchPayoutData() {
                                   <TableRow key={instructor.instructorId} className="border-sage/10 hover:bg-sage/5">
                                     <TableCell className="px-5 py-4">
                                       <div className="flex items-center gap-3 min-w-0">
-                                        <ListAvatar name={instructor.name} size="md" />
+                                        <ListAvatar src={instructor.imageUrl} name={instructor.name} size="md" />
                                         <div className="min-w-0">
                                           <div className="font-body font-medium text-charcoal truncate">{instructor.name}</div>
                                           <div className="font-body text-xs text-charcoal/50 truncate">
@@ -1901,37 +2096,62 @@ async function fetchPayoutData() {
                                       </div>
                                     </TableCell>
                                     <TableCell className="px-5 py-4">
+                                      <span className="font-body text-sm text-charcoal/70 tabular-nums">{instructor.classes}</span>
+                                    </TableCell>
+                                    <TableCell className="px-5 py-4">
                                       <Badge variant="outline" className="border-sage/20 text-sage bg-sage/5 font-body tabular-nums">
                                         {instructor.checkIns}
                                       </Badge>
                                     </TableCell>
                                     <TableCell className="px-5 py-4">
-                                      <span className="font-body text-sm text-charcoal/60 tabular-nums">₹{instructor.rate}</span>
+                                      <div className="flex items-center gap-1.5">
+                                        <span className="font-body text-sm text-charcoal/80 tabular-nums">{instructor.payableUnits}</span>
+                                        {instructor.extraPayableUnits ? (
+                                          <StatusPill tone="amber">
+                                            {instructor.extraPayableUnits > 0 ? "+" : ""}{instructor.extraPayableUnits}
+                                          </StatusPill>
+                                        ) : null}
+                                      </div>
                                     </TableCell>
                                     <TableCell className="px-5 py-4">
                                       <span className="font-body text-sm text-charcoal/60 tabular-nums">{instructor.percentage}%</span>
                                     </TableCell>
                                     <TableCell className="px-5 py-4">
-                                      <span className="font-display text-xl text-sage tabular-nums">₹{instructor.total.toLocaleString("en-IN")}</span>
+                                      <div className="flex items-baseline gap-1.5">
+                                        <span className="font-display text-xl text-sage tabular-nums">₹{instructor.total.toLocaleString("en-IN")}</span>
+                                        {instructor.overrideTotal != null ? (
+                                          <StatusPill tone="amber">override</StatusPill>
+                                        ) : null}
+                                      </div>
                                     </TableCell>
                                     <TableCell className="px-5 py-4">
-                                      <div className="flex items-center gap-2 justify-end">
-                                        {instructor.status === "pending" ? (
-                                          <Button
-                                            size="sm"
-                                            variant="sage"
-                                            className="h-8"
-                                            onClick={() => { setSelectedPayoutData(instructor); setShowPayoutDialog(true); }}
-                                          >
-                                            <DollarSign className="h-3.5 w-3.5 mr-1" />
-                                            Process
-                                          </Button>
+                                      <button
+                                        type="button"
+                                        onClick={() => togglePayoutPaid(instructor, instructor.status !== "paid")}
+                                        className="cursor-pointer focus:outline-none focus-visible:ring-2 focus-visible:ring-sage/40 rounded-full"
+                                        title={instructor.status === "paid" ? "Mark unpaid" : "Mark paid"}
+                                      >
+                                        {instructor.status === "paid" ? (
+                                          <StatusPill tone="sage" dot>Paid</StatusPill>
                                         ) : (
-                                          <Badge className="bg-sage text-white border-transparent font-body">
-                                            <Check className="h-3 w-3 mr-1" />
-                                            Paid
-                                          </Badge>
+                                          <StatusPill tone="amber" dot>Pending</StatusPill>
                                         )}
+                                      </button>
+                                    </TableCell>
+                                    <TableCell className="px-5 py-4">
+                                      <div className="flex gap-2 justify-end">
+                                        <Button
+                                          type="button"
+                                          variant="outline"
+                                          size="sm"
+                                          aria-label="Download CSV"
+                                          title="Download CSV"
+                                          onClick={() => downloadPayoutCsv([instructor], instructor.name.replace(/\s+/g, "-"))}
+                                          className="h-8 w-8 p-0 border-sage/40 text-sage bg-white hover:!bg-sage hover:!text-white hover:!border-sage transition-all hover:scale-110 active:scale-95"
+                                        >
+                                          <Download className="h-3.5 w-3.5" />
+                                        </Button>
+                                        <EditButton onClick={() => openPayoutEdit(instructor)} label="Edit payout" />
                                       </div>
                                     </TableCell>
                                   </TableRow>
@@ -1949,23 +2169,20 @@ async function fetchPayoutData() {
                 {/* Bulk Actions */}
                 <Card className="border-sage/20 bg-linear-to-br from-sage/5 to-white backdrop-blur-xl">
                   <CardContent className="p-6">
-                    <div className="flex items-center justify-between">
+                    <div className="flex items-center justify-between flex-wrap gap-3">
                       <div>
                         <div className="font-body font-medium text-charcoal mb-1">
-                          Bulk Payment Actions
+                          Bulk Export
                         </div>
                         <div className="font-body text-sm text-charcoal/60">
-                          Process multiple payments at once
+                          Download CSV of currently visible instructors ({filteredPayouts.length}).
+                          Class rate ₹{payoutSummary.classRate} − {payoutSummary.gstPercent}% GST = ₹{payoutSummary.netPerUnit}/unit.
                         </div>
                       </div>
                       <div className="flex gap-3">
-                        <Button variant="sage-outline">
+                        <Button variant="sage-outline" onClick={() => downloadPayoutCsv(filteredPayouts, "all")}>
                           <Download className="h-4 w-4 mr-2" />
-                          Export Payouts
-                        </Button>
-                        <Button variant="sage">
-                          <CreditCard className="h-4 w-4 mr-2" />
-                          Pay All Pending
+                          Download CSV
                         </Button>
                       </div>
                     </div>
@@ -2784,6 +3001,82 @@ async function fetchPayoutData() {
             <Button variant="sage">
               <DollarSign className="h-4 w-4 mr-2" />
               Confirm Payment
+            </Button>
+          </ResponsiveDialogFooter>
+        </ResponsiveDialogContent>
+      </ResponsiveDialog>
+
+      {/* Payout Edit Dialog */}
+      <ResponsiveDialog open={!!payoutEditRow} onOpenChange={(o) => { if (!o) setPayoutEditRow(null); }}>
+        <ResponsiveDialogContent className="max-w-lg bg-white">
+          <ResponsiveDialogHeader>
+            <ResponsiveDialogTitle className="font-display text-2xl text-charcoal">
+              Edit payout — {payoutEditRow?.name}
+            </ResponsiveDialogTitle>
+            <ResponsiveDialogDescription className="font-body text-charcoal/60">
+              Period {payoutSummary.periodKey || payoutWindow}. Adjustments saved to this period only.
+            </ResponsiveDialogDescription>
+          </ResponsiveDialogHeader>
+          {payoutEditRow ? (
+            <div className="space-y-4">
+              <div className="rounded-lg border border-sage/15 bg-sage/5 p-3 text-sm font-body text-charcoal/70">
+                <div>Computed payable: <strong>{payoutEditRow.computedPayableUnits}</strong></div>
+                <div>Computed classes: <strong>{payoutEditRow.computedClasses}</strong></div>
+                <div>Net per unit: <strong>₹{payoutEditRow.netPerUnit}</strong></div>
+                <div>Instructor share: <strong>{payoutEditRow.percentage}%</strong> (studio cut {payoutEditRow.studioCutPercent}%)</div>
+              </div>
+              <div className="grid grid-cols-2 gap-3">
+                <div>
+                  <label className="font-body text-xs text-charcoal/60 mb-1 block">Extra payable units</label>
+                  <Input
+                    type="number"
+                    value={payoutEditForm.extra_payable_units}
+                    onChange={(e) => setPayoutEditForm((f) => ({ ...f, extra_payable_units: e.target.value }))}
+                  />
+                </div>
+                <div>
+                  <label className="font-body text-xs text-charcoal/60 mb-1 block">Extra classes (cosmetic)</label>
+                  <Input
+                    type="number"
+                    value={payoutEditForm.extra_classes}
+                    onChange={(e) => setPayoutEditForm((f) => ({ ...f, extra_classes: e.target.value }))}
+                  />
+                </div>
+              </div>
+              <div>
+                <label className="font-body text-xs text-charcoal/60 mb-1 block">
+                  Override total payout (₹) — leave blank to use computed
+                </label>
+                <Input
+                  type="number"
+                  step="0.01"
+                  placeholder={`Computed: ₹${payoutEditRow.total}`}
+                  value={payoutEditForm.override_payout}
+                  onChange={(e) => setPayoutEditForm((f) => ({ ...f, override_payout: e.target.value }))}
+                />
+              </div>
+              <div>
+                <label className="font-body text-xs text-charcoal/60 mb-1 block">Paid method (when marking paid)</label>
+                <Input
+                  placeholder="cash | bank transfer | UPI…"
+                  value={payoutEditForm.paid_method}
+                  onChange={(e) => setPayoutEditForm((f) => ({ ...f, paid_method: e.target.value }))}
+                />
+              </div>
+              <div>
+                <label className="font-body text-xs text-charcoal/60 mb-1 block">Notes</label>
+                <Input
+                  placeholder="optional"
+                  value={payoutEditForm.notes}
+                  onChange={(e) => setPayoutEditForm((f) => ({ ...f, notes: e.target.value }))}
+                />
+              </div>
+            </div>
+          ) : null}
+          <ResponsiveDialogFooter>
+            <Button variant="outline" onClick={() => setPayoutEditRow(null)}>Cancel</Button>
+            <Button variant="sage" onClick={savePayoutEdit} disabled={payoutEditSaving}>
+              {payoutEditSaving ? "Saving…" : "Save adjustment"}
             </Button>
           </ResponsiveDialogFooter>
         </ResponsiveDialogContent>

@@ -2,6 +2,7 @@ import type { NextApiRequest, NextApiResponse } from "next";
 import { presignAvatarUpload, isS3Configured } from "@/lib/s3";
 import { getStudioServerSession } from "@/lib/getStudioServerSession";
 import { buildS3Key, extFromContentType, S3_PURPOSE } from "@/lib/s3Paths";
+import { apiError } from "@/lib/apiError";
 
 const ALLOWED = new Set(["image/jpeg", "image/png", "image/webp"]);
 
@@ -36,7 +37,6 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     const { uploadUrl, publicUrl } = await presignAvatarUpload({ key, contentType });
     return res.json({ uploadUrl, publicUrl, key });
   } catch (e) {
-    console.error("[avatar-presign]", e);
-    return res.status(500).json({ error: "Could not prepare upload" });
+    return apiError(res, e, "[avatar-presign]", 500, "Could not prepare upload");
   }
 }

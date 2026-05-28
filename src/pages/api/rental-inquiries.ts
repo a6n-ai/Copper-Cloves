@@ -1,5 +1,6 @@
 import type { NextApiRequest, NextApiResponse } from "next";
 import prisma from "@/lib/prisma";
+import { apiError } from "@/lib/apiError";
 
 const MAX = 2000;
 
@@ -42,7 +43,6 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     });
     return res.status(201).json({ id: row.id, ok: true });
   } catch (e) {
-    console.error("[rental-inquiries]", e);
-    return res.status(500).json({ error: "Could not save your request. Try again later." });
+    return apiError(res, e, "[rental-inquiries]", 500, "Could not save your request. Try again later.");
   }
 }

@@ -1,4 +1,5 @@
 import prisma from "@/lib/prisma";
+import logger from "@/lib/logger";
 
 export type CrmTemplateKey =
   | "booking_confirmation"
@@ -50,7 +51,7 @@ export async function renderCrmTemplate(
       };
     }
   } catch (err) {
-    console.error("[renderCrmTemplate] DB lookup failed for", key, err);
+    logger.error({ err, key }, "[renderCrmTemplate] DB lookup failed");
   }
   const fb = fallback();
   return { subject: fb.subject, html: fb.html, source: "fallback" };

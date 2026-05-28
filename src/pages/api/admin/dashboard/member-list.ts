@@ -1,6 +1,7 @@
 import type { NextApiRequest, NextApiResponse } from "next";
 import { getStudioServerSession } from "@/lib/getStudioServerSession";
 import { getMemberList } from "@/lib/adminDashboardSections";
+import logger from "@/lib/logger";
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
   const session = await getStudioServerSession(req, res);
@@ -10,7 +11,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   try {
     return res.json({ memberList: await getMemberList() });
   } catch (e) {
-    console.error("[dashboard/member-list]", e);
+    logger.error({ err: e }, "[dashboard/member-list]");
     return res.status(200).json({ memberList: [], _partial: true });
   }
 }

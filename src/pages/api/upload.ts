@@ -1,5 +1,6 @@
 import type { NextApiRequest, NextApiResponse } from "next";
 import { ensureAdmin } from "@/lib/requireAdmin";
+import { apiError } from "@/lib/apiError";
 import formidable from "formidable";
 import fs from "fs";
 import os from "os";
@@ -152,8 +153,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
           });
           return res.json({ url: up.url, fileId: fileRow.id });
         } catch (e) {
-          console.error("S3 upload failed", e);
-          return res.status(500).json({ error: "S3 upload failed. Check AWS credentials and bucket policy." });
+          return apiError(res, e, "S3 upload failed", 500, "S3 upload failed. Check AWS credentials and bucket policy.");
         }
       }
 
@@ -175,8 +175,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       fs.writeFileSync(path.join(localDir, filename), buf);
       return res.json({ url: `/uploads/${filename}`, fileId: null });
     } catch (e) {
-      console.error("upload failed", e);
-      return res.status(500).json({ error: "Upload failed" });
+      return apiError(res, e, "upload failed", 500, "Upload failed");
     }
   });
 }

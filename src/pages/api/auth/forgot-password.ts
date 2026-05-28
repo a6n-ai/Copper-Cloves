@@ -2,6 +2,7 @@ import type { NextApiRequest, NextApiResponse } from "next";
 import crypto from "crypto";
 import prisma from "@/lib/prisma";
 import { sendHtmlEmail } from "@/lib/notifications/sendEmail";
+import logger from "@/lib/logger";
 
 const TOKEN_TTL_MS = 60 * 60 * 1000; // 1 hour
 const VALID_ROLES = new Set(["user", "instructor", "partner", "admin"]);
@@ -72,7 +73,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
   if (!result.ok) {
     const reason = "error" in result ? result.error : ("reason" in result ? result.reason : "unknown");
-    console.error("[forgot-password] email send failed:", reason, "| EMAIL_USER set:", Boolean(process.env.EMAIL_USER), "| EMAIL_PASS set:", Boolean(process.env.EMAIL_PASS));
+    logger.error({ reason, emailUserSet: Boolean(process.env.EMAIL_USER), emailPassSet: Boolean(process.env.EMAIL_PASS) }, "[forgot-password] email send failed");
     return res.status(500).json({ error: "Could not send reset email. Please try again later." });
   }
 

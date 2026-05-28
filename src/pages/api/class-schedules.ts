@@ -2,6 +2,7 @@ import type { NextApiRequest, NextApiResponse } from "next";
 import { Prisma, ClassScheduleStatus } from "@/generated/prisma/client";
 import prisma from "@/lib/prisma";
 import { getStudioServerSession } from "@/lib/getStudioServerSession";
+import { apiError } from "@/lib/apiError";
 
 const VALID_STATUS = new Set<string>(Object.values(ClassScheduleStatus));
 const LOCKED_STATUSES = new Set<string>(["completed", "abandoned"]);
@@ -62,9 +63,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       res.setHeader("Cache-Control", "private, no-store, max-age=0, must-revalidate");
       return res.json(schedules);
     } catch (e) {
-      console.error("[class-schedules GET]", e);
-      const msg = prismaUserMessage(e);
-      return res.status(503).json({ error: msg });
+      return apiError(res, e, "[class-schedules GET]", 503, prismaUserMessage(e));
     }
   }
 
@@ -178,9 +177,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       return res.status(204).end();
     }
   } catch (e) {
-    console.error("[class-schedules mutate]", e);
-    const msg = prismaUserMessage(e);
-    return res.status(503).json({ error: msg });
+    return apiError(res, e, "[class-schedules mutate]", 503, prismaUserMessage(e));
   }
 
   res.status(405).end();

@@ -3,6 +3,7 @@ import bcrypt from "bcryptjs";
 import prisma from "@/lib/prisma";
 import { sendHtmlEmail } from "@/lib/notifications/sendEmail";
 import type { GuestAttendee } from "@/lib/financeBookingCheckout";
+import logger from "@/lib/logger";
 
 /**
  * Server-side guest onboarding for class bookings.
@@ -287,7 +288,7 @@ export async function onboardGuestsForBooking(opts: {
         results.push({ email, status: "new" });
       }
     } catch (err) {
-      console.error("[onboardGuestsForBooking] error for", email, err);
+      logger.error({ err, email }, "[onboardGuestsForBooking] error");
       results.push({ email, status: "error" });
     }
   }

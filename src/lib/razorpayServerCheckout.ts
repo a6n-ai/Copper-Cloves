@@ -1,4 +1,5 @@
 import prisma from "@/lib/prisma";
+import logger from "@/lib/logger";
 import { sendBookingConfirmationEmail } from "@/lib/notifications/sendBookingEmail";
 import {
   expectedBookingCheckoutPaise,
@@ -242,7 +243,7 @@ export async function finishBookingCheckoutOnServer(
   // Same dedicated confirmation email as /api/bookings, so redirect/webhook
   // fulfilled bookings also get exactly one correct email.
   if (booking.confirmation_status !== "pending") {
-    await sendBookingConfirmationEmail(booking.id).catch((e) => console.error("[booking email]", e));
+    await sendBookingConfirmationEmail(booking.id).catch((e) => logger.error({ err: e }, "[booking email]"));
   }
 
   // Onboard friends & family guests here too: this path runs for finish-checkout
@@ -253,7 +254,7 @@ export async function finishBookingCheckoutOnServer(
       guests: guestList,
       classScheduleId: scheduleId,
       bookerId: userId,
-    }).catch((e) => console.error("[onboardGuestsForBooking] finishBookingCheckoutOnServer:", e));
+    }).catch((e) => logger.error({ err: e }, "[onboardGuestsForBooking] finishBookingCheckoutOnServer"));
   }
 
   return { bookingId: booking.id };
@@ -358,7 +359,7 @@ export async function finishPackageCheckoutOnServer(
     userId,
     packageType: userPackage.package_type,
     expirationDate: userPackage.expiration_date,
-  }).catch((e) => console.error("notifyPackagePurchase:", e));
+  }).catch((e) => logger.error({ err: e }, "notifyPackagePurchase"));
 }
 
 /**

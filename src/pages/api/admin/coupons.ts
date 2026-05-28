@@ -3,6 +3,7 @@ import prisma from "@/lib/prisma";
 import { Prisma } from "@/generated/prisma/client";
 import { COUPON_CONTEXTS, normalizeCouponCode, type CouponContext } from "@/lib/couponHelpers";
 import { getStudioServerSession } from "@/lib/getStudioServerSession";
+import { apiError } from "@/lib/apiError";
 
 function isAdmin(session: unknown) {
   const role = (session as { user?: { role?: string } } | null | undefined)?.user?.role;
@@ -81,8 +82,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       });
       return res.status(201).json(created);
     } catch (e) {
-      console.error("[admin/coupons POST]", e);
-      return res.status(400).json({ error: "Could not create coupon (duplicate code?)" });
+      return apiError(res, e, "[admin/coupons POST]", 400, "Could not create coupon (duplicate code?)");
     }
   }
 
@@ -143,8 +143,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       });
       return res.json(updated);
     } catch (e) {
-      console.error("[admin/coupons PATCH]", e);
-      return res.status(400).json({ error: "Could not update coupon" });
+      return apiError(res, e, "[admin/coupons PATCH]", 400, "Could not update coupon");
     }
   }
 

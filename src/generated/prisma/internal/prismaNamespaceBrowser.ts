@@ -88,6 +88,7 @@ export const ModelName = {
   MemberTicket: 'MemberTicket',
   PasswordResetToken: 'PasswordResetToken',
   File: 'File',
+  InstructorPayoutAdjustment: 'InstructorPayoutAdjustment',
   QrCode: 'QrCode'
 } as const
 
@@ -768,6 +769,26 @@ export const FileScalarFieldEnum = {
 } as const
 
 export type FileScalarFieldEnum = (typeof FileScalarFieldEnum)[keyof typeof FileScalarFieldEnum]
+
+
+export const InstructorPayoutAdjustmentScalarFieldEnum = {
+  id: 'id',
+  instructor_id: 'instructor_id',
+  period_key: 'period_key',
+  period_start: 'period_start',
+  period_end: 'period_end',
+  extra_payable_units: 'extra_payable_units',
+  extra_classes: 'extra_classes',
+  override_payout_paise: 'override_payout_paise',
+  notes: 'notes',
+  paid_at: 'paid_at',
+  paid_method: 'paid_method',
+  recorded_by: 'recorded_by',
+  created_at: 'created_at',
+  updated_at: 'updated_at'
+} as const
+
+export type InstructorPayoutAdjustmentScalarFieldEnum = (typeof InstructorPayoutAdjustmentScalarFieldEnum)[keyof typeof InstructorPayoutAdjustmentScalarFieldEnum]
 
 
 export const QrCodeScalarFieldEnum = {

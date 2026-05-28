@@ -1,6 +1,7 @@
 import type { EmailSendResult } from "@/lib/notifications/resendEmail";
 import { sendHtmlEmailViaResend } from "@/lib/notifications/resendEmail";
 import { sendHtmlEmailViaGmailSmtp } from "@/lib/notifications/smtpGmail";
+import logger from "@/lib/logger";
 
 export type { EmailSendResult };
 
@@ -19,7 +20,7 @@ export async function sendHtmlEmail(options: {
     const gmail = await sendHtmlEmailViaGmailSmtp(options);
     if (gmail.ok) return gmail;
     if (!("skipped" in gmail && gmail.skipped)) {
-      console.warn("[email] Gmail SMTP failed, trying Resend if configured:", gmail);
+      logger.warn({ err: gmail }, "[email] Gmail SMTP failed, trying Resend");
     }
   }
 

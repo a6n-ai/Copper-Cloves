@@ -904,6 +904,34 @@ model File {
   @@map("files")
 }
 
+/// Admin overrides + paid state per instructor per payout period.
+/// `period_key` is the canonical bucket: "YYYY-WW" for week, "YYYY-MM" for month.
+/// Endpoint merges these onto the computed totals.
+model InstructorPayoutAdjustment {
+  id                   String   @id @default(uuid())
+  instructor_id        String
+  period_key           String
+  period_start         DateTime
+  period_end           DateTime
+  /// Extra payable units to ADD to the computed N (can be negative).
+  extra_payable_units  Int      @default(0)
+  /// Extra classes to ADD to the computed class count (cosmetic; doesn't affect payout math directly).
+  extra_classes        Int      @default(0)
+  /// Optional final override — if set, replaces computed payout entirely (paise).
+  override_payout_paise Int?
+  notes                String?
+  paid_at              DateTime?
+  paid_method          String?
+  recorded_by          String?
+  created_at           DateTime @default(now())
+  updated_at           DateTime @default(now()) @updatedAt
+
+  @@unique([instructor_id, period_key])
+  @@index([instructor_id])
+  @@index([period_key])
+  @@map("instructor_payout_adjustments")
+}
+
 /// One stored QR per (schedule, kind). Image lives in S3 via `file`; `token` is the
 /// signed HMAC encoded in that image (verified statelessly at scan time).
 model QrCode {

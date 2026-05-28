@@ -1,6 +1,7 @@
 import type { NextApiRequest, NextApiResponse } from "next";
 import { randomUUID } from "node:crypto";
 import prisma from "@/lib/prisma";
+import { apiError } from "@/lib/apiError";
 import type { Coupon } from "@/generated/prisma/client";
 import { getStudioServerSession } from "@/lib/getStudioServerSession";
 import {
@@ -124,8 +125,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     if (msg === "COUPON_EXHAUSTED") {
       return res.status(409).json({ error: "Coupon is no longer available" });
     }
-    console.error("[cafe/checkout]", e);
-    return res.status(500).json({ error: "Checkout failed" });
+    return apiError(res, e, "[cafe/checkout]", 500, "Checkout failed");
   }
 }
 

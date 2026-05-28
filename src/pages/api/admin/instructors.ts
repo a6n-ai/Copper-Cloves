@@ -5,6 +5,7 @@ import { dedupeInstructorRows } from "@/lib/instructorIdentity";
 import { getStudioServerSession } from "@/lib/getStudioServerSession";
 import { sendHtmlEmail } from "@/lib/notifications/sendEmail";
 import { instructorWelcomeEmail } from "@/lib/notifications/emailTemplates";
+import logger from "@/lib/logger";
 
 /** Random URL-safe alphanumeric password. */
 function generateTempPassword(len = 12): string {
@@ -95,7 +96,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
           }),
         });
       } catch (e) {
-        console.warn("[instructors] welcome email failed", e);
+        logger.warn({ err: e }, "[instructors] welcome email failed");
       }
     }
 

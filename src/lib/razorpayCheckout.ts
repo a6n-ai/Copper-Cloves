@@ -1,6 +1,7 @@
 /** Browser-only helpers for Razorpay Hosted Checkout (script loader + modal). */
 
 import { razorpayKeyMode } from "@/lib/razorpayClientHints";
+import logger from "@/lib/logger";
 
 export type RazorpaySuccessPayload = {
   razorpay_payment_id: string;
@@ -158,7 +159,7 @@ export async function payWithRazorpayOrder(options: {
     rzp.on("payment.failed", (raw: unknown) => {
       settled = true;
       if (process.env.NODE_ENV === "development") {
-        console.warn("[razorpayCheckout] payment.failed", raw);
+        logger.warn({ raw }, "[razorpayCheckout] payment.failed");
       }
       resolve({ kind: "failed", message: formatRazorpayPaymentFailure(raw) });
     });

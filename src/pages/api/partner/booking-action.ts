@@ -4,6 +4,7 @@ import { getStudioServerSession } from "@/lib/getStudioServerSession";
 import { sendBookingConfirmationEmail } from "@/lib/notifications/sendBookingEmail";
 import { buildBookingCrmVariables, dispatchCrmEmailTriggers } from "@/lib/notifications/crmTemplatedDispatch";
 import { CrmTriggerType } from "@/lib/crmTriggerTypes";
+import logger from "@/lib/logger";
 
 /**
  * Partner manager confirms or rejects a pending booking for one of THEIR classes.
@@ -50,7 +51,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       where: { id: booking.id },
       data: { confirmation_status: "confirmed" },
     });
-    await sendBookingConfirmationEmail(booking.id).catch((e) => console.error("[partner confirm email]", e));
+    await sendBookingConfirmationEmail(booking.id).catch((e) => logger.error({ err: e }, "[partner confirm email]"));
     await buildBookingCrmVariables(booking.id)
       .then((variables) =>
         dispatchCrmEmailTriggers({
@@ -59,7 +60,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
           variables,
         }),
       )
-      .catch((e) => console.error("[partner confirm CRM]", e));
+      .catch((e) => logger.error({ err: e }, "[partner confirm CRM]"));
     return res.json({ ok: true, status: "confirmed" });
   }
 
@@ -111,7 +112,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         variables,
       }),
     )
-    .catch((e) => console.error("[partner reject CRM]", e));
+    .catch((e) => logger.error({ err: e }, "[partner reject CRM]"));
 
   return res.json({ ok: true, status: "rejected" });
 }

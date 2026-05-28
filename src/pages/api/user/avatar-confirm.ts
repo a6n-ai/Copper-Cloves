@@ -2,6 +2,7 @@ import type { NextApiRequest, NextApiResponse } from "next";
 import prisma from "@/lib/prisma";
 import { getStudioServerSession } from "@/lib/getStudioServerSession";
 import { s3Bucket, buildPublicUrl } from "@/lib/s3";
+import { apiError } from "@/lib/apiError";
 
 /**
  * Finalises a member avatar after the browser PUTs the file to the presigned
@@ -43,7 +44,6 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     });
     return res.json({ url, fileId: result.id });
   } catch (e) {
-    console.error("[avatar-confirm]", e);
-    return res.status(500).json({ error: "Could not finalise avatar" });
+    return apiError(res, e, "[avatar-confirm]", 500, "Could not finalise avatar");
   }
 }

@@ -3,6 +3,7 @@ import { timingSafeEqual } from "node:crypto";
 import bcrypt from "bcryptjs";
 import prisma from "@/lib/prisma";
 import { normalizeLoginEmail } from "@/lib/loginEmail";
+import { apiError } from "@/lib/apiError";
 
 /**
  * One-time (or rare) admin creation on live hosts without local psql.
@@ -74,8 +75,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       },
     });
   } catch (e) {
-    console.error("bootstrap-admin:", e);
-    return res.status(500).json({ error: "Database error" });
+    return apiError(res, e, "bootstrap-admin", 500, "Database error");
   }
 
   return res.status(200).json({

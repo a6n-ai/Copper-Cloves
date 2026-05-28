@@ -1,6 +1,7 @@
 import type { NextApiRequest, NextApiResponse } from "next";
 import { getStudioServerSession } from "@/lib/getStudioServerSession";
 import { getInstructorPerformance } from "@/lib/adminDashboardSections";
+import logger from "@/lib/logger";
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
   const session = await getStudioServerSession(req, res);
@@ -10,7 +11,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   try {
     return res.json({ instructorPerformance: await getInstructorPerformance() });
   } catch (e) {
-    console.error("[dashboard/instructor-performance]", e);
+    logger.error({ err: e }, "[dashboard/instructor-performance]");
     return res.status(200).json({
       instructorPerformance: [{ name: "—", classes: 0, avgAttendance: 0, totalCheckIns: 0, rating: 0, specialties: "" }],
       _partial: true,

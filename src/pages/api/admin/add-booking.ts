@@ -2,6 +2,7 @@ import prisma from "@/lib/prisma";
 import { getStudioServerSession } from "@/lib/getStudioServerSession";
 import { sendBookingConfirmationEmail } from "@/lib/notifications/sendBookingEmail";
 import type { NextApiRequest, NextApiResponse } from "next";
+import logger from "@/lib/logger";
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
   const session = await getStudioServerSession(req, res);
@@ -43,7 +44,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     },
   });
 
-  await sendBookingConfirmationEmail(booking.id).catch(e => console.error("[add-booking email]", e));
+  await sendBookingConfirmationEmail(booking.id).catch(e => logger.error({ err: e }, "[add-booking email]"));
 
   return res.status(201).json({
     booking: {

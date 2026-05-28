@@ -2,6 +2,7 @@ import type { NextApiRequest, NextApiResponse } from "next";
 import { getStudioServerSession } from "@/lib/getStudioServerSession";
 import { getTransactions } from "@/lib/adminDashboardSections";
 import { isFinanceDemoEnabled } from "@/lib/adminFinanceDemoTransactions";
+import logger from "@/lib/logger";
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
   const session = await getStudioServerSession(req, res);
@@ -12,7 +13,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   try {
     return res.json({ transactions: await getTransactions(undefined, { includeFinanceDemo }) });
   } catch (e) {
-    console.error("[dashboard/transactions]", e);
+    logger.error({ err: e }, "[dashboard/transactions]");
     return res.status(200).json({ transactions: [], _partial: true });
   }
 }

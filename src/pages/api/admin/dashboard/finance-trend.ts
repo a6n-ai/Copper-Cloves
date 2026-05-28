@@ -1,6 +1,7 @@
 import type { NextApiRequest, NextApiResponse } from "next";
 import prisma from "@/lib/prisma";
 import { getStudioServerSession } from "@/lib/getStudioServerSession";
+import logger from "@/lib/logger";
 
 const CHECKIN_RATE_INR = 150;
 const DEFAULT_STUDIO_CUT_PERCENT = 40;
@@ -84,7 +85,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
     return res.json({ trend: series });
   } catch (e) {
-    console.error("[dashboard/finance-trend]", e);
+    logger.error({ err: e }, "[dashboard/finance-trend]");
     return res.status(200).json({ trend: [], _partial: true });
   }
 }

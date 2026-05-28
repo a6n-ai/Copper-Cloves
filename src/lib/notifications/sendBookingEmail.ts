@@ -1,6 +1,7 @@
 import prisma from "@/lib/prisma";
 import { sendHtmlEmail } from "@/lib/notifications/sendEmail";
 import { bookingConfirmationEmail } from "@/lib/notifications/emailTemplates";
+import logger from "@/lib/logger";
 
 function formatDate(d: Date): string {
   return d.toLocaleDateString("en-IN", { weekday: "short", day: "numeric", month: "short", timeZone: "Asia/Kolkata" });
@@ -39,6 +40,6 @@ export async function sendBookingConfirmationEmail(bookingId: string): Promise<v
 
   const result = await sendHtmlEmail({ to: booking.profile.email, subject: `You're booked for ${className}`, html });
   if (!result.ok && !("skipped" in result && result.skipped)) {
-    console.error("[sendBookingEmail] failed:", (result as { error?: string }).error);
+    logger.error((result as { error?: string }).error, "[sendBookingEmail] failed");
   }
 }

@@ -1,6 +1,7 @@
 import type { NextApiRequest, NextApiResponse } from "next";
 import { getStudioServerSession } from "@/lib/getStudioServerSession";
 import { getTodayClasses } from "@/lib/adminDashboardSections";
+import logger from "@/lib/logger";
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
   const session = await getStudioServerSession(req, res);
@@ -19,7 +20,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     }
     return res.json({ todayClasses: await getTodayClasses(undefined, forDate) });
   } catch (e) {
-    console.error("[dashboard/today-classes]", e);
+    logger.error({ err: e }, "[dashboard/today-classes]");
     return res.status(200).json({ todayClasses: [], _partial: true });
   }
 }

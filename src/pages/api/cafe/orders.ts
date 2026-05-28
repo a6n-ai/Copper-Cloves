@@ -1,6 +1,7 @@
 import type { NextApiRequest, NextApiResponse } from "next";
 import prisma from "@/lib/prisma";
 import { getStudioServerSession } from "@/lib/getStudioServerSession";
+import { apiError } from "@/lib/apiError";
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
   const session = await getStudioServerSession(req, res);
@@ -61,8 +62,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       });
       return res.status(201).json(order);
     } catch (e) {
-      console.error("cafeOrder.create", e);
-      return res.status(400).json({ error: "Could not create order. Check item id and try again." });
+      return apiError(res, e, "cafeOrder.create", 400, "Could not create order. Check item id and try again.");
     }
   }
 
@@ -82,8 +82,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       });
       return res.json(order);
     } catch (e) {
-      console.error("cafeOrder.update", e);
-      return res.status(400).json({ error: "Could not update order" });
+      return apiError(res, e, "cafeOrder.update", 400, "Could not update order");
     }
   }
 

@@ -1,6 +1,7 @@
 import type { NextApiRequest, NextApiResponse } from "next";
 import prisma from "@/lib/prisma";
 import { getStudioServerSession } from "@/lib/getStudioServerSession";
+import logger from "@/lib/logger";
 
 const SLOTS = [
   { label: "6–8 AM", startHour: 6, endHour: 8 },
@@ -57,7 +58,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       max,
     });
   } catch (e) {
-    console.error("[dashboard/peak-hours]", e);
+    logger.error({ err: e }, "[dashboard/peak-hours]");
     return res.status(200).json({ slots: SLOTS.map((s) => s.label), days: DAYS, grid: SLOTS.map(() => Array(DAYS.length).fill(0)), max: 0, _partial: true });
   }
 }

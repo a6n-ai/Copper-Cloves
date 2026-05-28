@@ -17,6 +17,15 @@ function timeLabel(iso: string) {
   return new Date(iso).toLocaleTimeString("en-US", { hour: "2-digit", minute: "2-digit" });
 }
 
+/** Single-unit compact label for the badge overlay (e.g. "45m", "3h"). */
+function badgeLabel(iso: string) {
+  const diffMs = new Date(iso).getTime() - Date.now();
+  if (diffMs <= 0) return "now";
+  const mins = Math.round(diffMs / 60000);
+  if (mins < 60) return `${mins}m`;
+  return `${Math.floor(mins / 60)}h`;
+}
+
 function relLabel(iso: string) {
   const diffMs = new Date(iso).getTime() - Date.now();
   if (diffMs <= 0) return "starting now";
@@ -96,12 +105,12 @@ export function CheckinBeacon({ className }: { className?: string }) {
         onClick={handleClick}
         aria-label={aria}
         title={aria}
-        className={cn("relative inline-flex select-none cursor-pointer", className)}
+        className={cn("relative flex h-10 w-10 shrink-0 select-none cursor-pointer overflow-visible", className)}
       >
-        {/* Outer ping halo — strong when live, subtle always-on otherwise. */}
+        {/* Outer ping halo — visible above sidebar background (z-0 not -z-10). */}
         <span
           className={cn(
-            "absolute inset-0 -z-10 rounded-full animate-ping",
+            "absolute inset-0 z-0 rounded-full animate-ping",
             active
               ? "bg-sage opacity-40"
               : next
@@ -112,26 +121,25 @@ export function CheckinBeacon({ className }: { className?: string }) {
         />
         <span
           className={cn(
-            "flex h-10 w-10 items-center justify-center rounded-full shadow ring-2 transition-transform hover:scale-110 text-white",
-            // Always-on slow pulse so the beacon reads as "live" even when idle.
+            "relative z-10 flex h-10 w-10 items-center justify-center rounded-full shadow ring-2 transition-transform hover:scale-110 text-white",
             "animate-pulse [animation-duration:2.4s]",
             orbGradient,
           )}
         >
           {active ? <QrCode size={20} /> : next ? <Clock size={18} /> : <CalendarOff size={16} />}
         </span>
-        {/* Live indicator dot — matches WhatsApp-style unread badge. */}
+        {/* Live indicator dot */}
         {active && (
           <span
-            className="absolute -top-0.5 -right-0.5 flex h-4 w-4 items-center justify-center rounded-full bg-red-500 ring-2 ring-white animate-pulse"
+            className="absolute -top-0.5 -right-0.5 z-20 flex h-4 w-4 items-center justify-center rounded-full bg-red-500 ring-2 ring-white animate-pulse"
             aria-label="Live"
             aria-hidden
           />
         )}
-        {/* "Next" countdown badge */}
+        {/* Next countdown badge — one unit only to stay compact */}
         {!active && next && (
-          <span className="absolute -top-1 -right-1 rounded-full bg-white px-1.5 py-0.5 text-[10px] font-bold text-terracotta shadow ring-1 ring-terracotta/40">
-            {relLabel(next.startTime).replace("in ", "")}
+          <span className="absolute -top-1 -right-1 z-20 rounded-full bg-white px-1 py-0.5 text-[9px] font-bold text-terracotta shadow ring-1 ring-terracotta/40 leading-none whitespace-nowrap">
+            {badgeLabel(next.startTime)}
           </span>
         )}
       </button>

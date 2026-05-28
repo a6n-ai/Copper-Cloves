@@ -5,6 +5,7 @@ import prisma from "@/lib/prisma";
 import { normalizeLoginEmail } from "@/lib/loginEmail";
 import { sendHtmlEmail } from "@/lib/notifications/sendEmail";
 import { welcomeEmail } from "@/lib/notifications/emailTemplates";
+import logger from "@/lib/logger";
 
 function walkErrorChain(e: unknown): unknown[] {
   const list: unknown[] = [];
@@ -137,15 +138,15 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       html: welcomeEmail({ memberName: full_name || email, portalUrl }),
     })
       .then((result) => {
-        if (!result.ok) console.error("[signup] welcome email failed:", result);
+        if (!result.ok) logger.error({ result }, "[signup] welcome email failed");
       })
-      .catch((err) => console.error("[signup] welcome email threw:", err));
+      .catch((err) => logger.error({ err }, "[signup] welcome email threw"));
 
     return res.status(201).json({ message: "Account created successfully." });
   } catch (e: unknown) {
     const { code, message } = prismaMeta(e);
 
-    console.error("[signup]", message, code || "");
+    logger.error({ code: code || undefined }, "[signup] " + message);
 
     if (code === "P2002") {
       return res.status(409).json({ error: "An account with this email already exists." });

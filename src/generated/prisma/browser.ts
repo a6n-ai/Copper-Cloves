@@ -207,6 +207,13 @@ export type PasswordResetToken = Prisma.PasswordResetTokenModel
  */
 export type File = Prisma.FileModel
 /**
+ * Model InstructorPayoutAdjustment
+ * Admin overrides + paid state per instructor per payout period.
+ * `period_key` is the canonical bucket: "YYYY-WW" for week, "YYYY-MM" for month.
+ * Endpoint merges these onto the computed totals.
+ */
+export type InstructorPayoutAdjustment = Prisma.InstructorPayoutAdjustmentModel
+/**
  * Model QrCode
  * One stored QR per (schedule, kind). Image lives in S3 via `file`; `token` is the
  * signed HMAC encoded in that image (verified statelessly at scan time).

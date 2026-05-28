@@ -1,6 +1,7 @@
 import type { NextApiRequest, NextApiResponse } from "next";
 import { getStudioServerSession } from "@/lib/getStudioServerSession";
 import { getClassPerformance } from "@/lib/adminDashboardSections";
+import logger from "@/lib/logger";
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
   const session = await getStudioServerSession(req, res);
@@ -10,7 +11,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   try {
     return res.json(await getClassPerformance());
   } catch (e) {
-    console.error("[dashboard/class-performance]", e);
+    logger.error({ err: e }, "[dashboard/class-performance]");
     return res.status(200).json({
       classPerformance: [{ name: "No bookings yet", bookings: 0, capacity: 0, utilization: 0, discipline: "—" }],
       disciplineSplit: [{ name: "—", count: 0, percentage: 100 }],

@@ -3,6 +3,7 @@ import bcrypt from "bcryptjs";
 import { Prisma } from "@/generated/prisma/client";
 import prisma from "@/lib/prisma";
 import { getStudioServerSession } from "@/lib/getStudioServerSession";
+import { apiError } from "@/lib/apiError";
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
   const session = await getStudioServerSession(req, res);
@@ -173,7 +174,6 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     if (e instanceof Prisma.PrismaClientKnownRequestError && e.code === "P2002") {
       return res.status(409).json({ error: "An account with this email already exists." });
     }
-    console.error("[admin/users]", e);
-    return res.status(500).json({ error: "Could not create user." });
+    return apiError(res, e, "[admin/users]", 500, "Could not create user.");
   }
 }

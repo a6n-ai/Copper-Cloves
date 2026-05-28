@@ -239,7 +239,7 @@ export function DashboardShell({ config, user, children }: DashboardShellProps) 
               draggable orb that jumped to top of viewport in prod after hydration
               restored a stale localStorage position). */}
           {config.kind === "admin" ? (
-            <div className="flex items-center gap-3 px-2 pb-2 group-data-[collapsible=icon]:justify-center">
+            <div className="flex items-center gap-3 px-2 pb-2 overflow-visible group-data-[collapsible=icon]:justify-center">
               <CheckinBeacon />
               <span className="font-body text-xs text-charcoal/60 group-data-[collapsible=icon]:hidden">
                 Live check-in
