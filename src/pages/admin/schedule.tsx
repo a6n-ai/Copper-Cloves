@@ -1465,7 +1465,7 @@ export default function AdminSchedule() {
                               inputMode="numeric"
                               min={15}
                               max={240}
-                              step={5}
+                              step={1}
                               value={field.value ?? ""}
                               onChange={e => field.onChange(e.target.value === "" ? 0 : Number(e.target.value))}
                               onBlur={field.onBlur}
