@@ -101,7 +101,7 @@ function PricingTabImpl({
         <MetricCard label="Redemptions" value={totalRedemptions} icon={TrendingUp} tone="terracotta" loading={loading} />
         <MetricCard label="Top scope" value={topLabel} icon={BarChart3} tone="charcoal" loading={loading} hint={topScope ? `${topScope[1]} coupons` : ""} />
       </div>
-      <Card className="border-sage/20 bg-white/95 backdrop-blur-xl">
+      <Card className="border-sage/20 bg-white-warm">
         <CardHeader>
           <CardTitle className="font-display text-2xl text-charcoal">Coupons & discounts</CardTitle>
           <CardDescription className="font-body text-charcoal/60">
@@ -234,7 +234,7 @@ function PricingTabImpl({
                 )}
               </div>
             </div>
-            <div className="rounded-xl bg-white/80 border border-sage/10 p-4">
+            <div className="rounded-xl bg-white-warm border border-sage/10 p-4">
               <p className="font-body text-sm text-charcoal/70 leading-relaxed">
                 Fixed amount never exceeds cart or package subtotal. Percent is capped at 100%.
                 Café and boutique prices are taken from the database at checkout so codes cannot be abused with

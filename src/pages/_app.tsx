@@ -6,7 +6,7 @@ import Head from "next/head";
 import Script from "next/script";
 import { Playfair_Display, Montserrat } from "next/font/google";
 import { useRouter } from "next/router";
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 
 const playfair = Playfair_Display({
   subsets: ["latin"],
@@ -25,6 +25,8 @@ const montserrat = Montserrat({
 import * as analytics from "@/lib/analytics";
 import { CartProvider } from "@/contexts/CartContext";
 import { SessionProvider, useSession } from "next-auth/react";
+import { useStudioSWR } from "@/lib/swr";
+import { getSessionRole, getSessionOnboardingCompleted } from "@/lib/sessionScalars";
 import { useActivityTracking } from "@/hooks/useActivityTracking";
 import { DashboardShell } from "@/components/dashboard/DashboardShell";
 import { PORTAL_CONFIGS, type PortalKind } from "@/components/dashboard/dashboardNav";
@@ -67,47 +69,51 @@ function resolvePortalKind(pathname: string, role?: string): PortalKind | null {
 function DashboardChrome({ children }: { children: React.ReactNode }) {
   const { data: session, status } = useSession();
   const router = useRouter();
-  const user = session?.user as { name?: string; email?: string; role?: string } | undefined;
+  // Pull scalar fields out of `session` once. Every 4-min `refetchInterval`
+  // tick produces a fresh `session` object even when the JWT is unchanged;
+  // downstream effects/memos key off these primitives instead so they don't
+  // re-run on identity churn.
+  const userName = session?.user?.name ?? undefined;
+  const userEmail = session?.user?.email ?? undefined;
+  const userRole = getSessionRole(session);
 
   const exempt = CHROME_EXEMPT.some((p) => router.pathname.startsWith(p));
   const kind =
-    !exempt && status === "authenticated" ? resolvePortalKind(router.pathname, user?.role) : null;
+    !exempt && status === "authenticated" ? resolvePortalKind(router.pathname, userRole) : null;
 
-  const [partnerBrand, setPartnerBrand] = useState<{ name: string; logoUrl: string | null } | null>(
-    null,
+  // SWR-shared with any other consumer of `/api/partner/profile` (e.g. the
+  // partner settings page) — first paint of either reuses the cached payload.
+  const { data: partnerProfile } = useStudioSWR<{ name?: string; logo_url?: string | null }>(
+    kind === "partner" ? "/api/partner/profile" : null,
   );
-  useEffect(() => {
-    if (kind !== "partner") {
-      setPartnerBrand(null);
-      return;
-    }
-    let cancelled = false;
-    (async () => {
-      try {
-        const res = await fetch("/api/partner/profile");
-        if (res.ok && !cancelled) {
-          const p = await res.json();
-          setPartnerBrand({ name: p.name ?? "Partner", logoUrl: p.logo_url ?? null });
-        }
-      } catch {
-        /* ignore */
-      }
-    })();
-    return () => {
-      cancelled = true;
-    };
-  }, [kind]);
+  const partnerBrand = partnerProfile
+    ? { name: partnerProfile.name ?? "Partner", logoUrl: partnerProfile.logo_url ?? null }
+    : null;
+
+  // Non-partner portals (member/admin/instructor/kitchen) show the user's own
+  // uploaded avatar in the topbar + sidebar. SWR-shared with `ProfileSection`
+  // so navigating to /account doesn't refetch.
+  const { data: userProfile } = useStudioSWR<{ avatar_url?: string | null }>(
+    kind && kind !== "partner" ? "/api/user/profile" : null,
+  );
+  const avatarUrl = userProfile?.avatar_url ?? null;
+
+  // Stabilize the `user` object identity so DashboardShell (and its memoed
+  // children) can short-circuit on prop equality. Without this, every 4-min
+  // session refetch would cascade a rerender through the whole shell.
+  const shellUser = useMemo(
+    () =>
+      kind === "partner"
+        ? {
+            name: partnerBrand?.name ?? "Partner",
+            email: userEmail,
+            logoUrl: partnerBrand?.logoUrl ?? null,
+          }
+        : { name: userName ?? "Member", email: userEmail, logoUrl: avatarUrl },
+    [kind, partnerBrand?.name, partnerBrand?.logoUrl, userName, userEmail, avatarUrl],
+  );
 
   if (!kind) return <>{children}</>;
-
-  const shellUser =
-    kind === "partner"
-      ? {
-          name: partnerBrand?.name ?? "Partner",
-          email: user?.email,
-          logoUrl: partnerBrand?.logoUrl ?? null,
-        }
-      : { name: user?.name ?? "Member", email: user?.email };
 
   return (
     <DashboardShell config={PORTAL_CONFIGS[kind]} user={shellUser}>
@@ -121,16 +127,18 @@ const PORTAL_EXEMPT = ["/portal/login", "/portal/signup", "/portal/onboarding", 
 function OnboardingGate() {
   const { data: session, status } = useSession();
   const router = useRouter();
+  // Scalar read so the effect only re-fires when the actual onboarding flag
+  // flips — not on every session-refetch tick.
+  const onboardingCompleted = getSessionOnboardingCompleted(session);
 
   useEffect(() => {
     if (status !== "authenticated") return;
     if (!router.pathname.startsWith("/portal/")) return;
     if (PORTAL_EXEMPT.some((p) => router.pathname.startsWith(p))) return;
-    const user = session?.user as { onboarding_completed?: boolean } | undefined;
-    if (user?.onboarding_completed === false) {
+    if (onboardingCompleted === false) {
       router.replace("/portal/onboarding");
     }
-  }, [status, session, router]);
+  }, [status, onboardingCompleted, router]);
 
   return null;
 }

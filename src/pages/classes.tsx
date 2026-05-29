@@ -8,6 +8,8 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Clock, CheckCircle, Calendar, Sparkles, ChevronLeft, ChevronRight } from "lucide-react";
+import type { GetStaticProps } from "next";
+import prisma from "@/lib/prisma";
 import { useRouter } from "next/router";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { useSession } from "next-auth/react";
@@ -18,20 +20,9 @@ import {
 } from "@/lib/calendarWeek";
 
 import { cdnUrl } from "@/lib/cdnUrl";
-/** Dedupe in-flight fetches (e.g. React Strict Mode) without AbortController — avoids "(canceled)" in DevTools. */
-let classesListPromise: Promise<unknown[]> | null = null;
-
-function fetchClassesList(): Promise<unknown[]> {
-  if (!classesListPromise) {
-    classesListPromise = fetch("/api/classes")
-      .then((res) => (res.ok ? res.json() : []))
-      .finally(() => {
-        classesListPromise = null;
-      });
-  }
-  return classesListPromise;
-}
-
+// Class catalog moved to `getStaticProps` + 5-min ISR — `fetchClassesList` is
+// no longer needed. The schedule fetcher below still dedupes in-flight requests
+// (Strict Mode + tab refetch) without AbortController.
 const scheduleListPromises = new Map<string, Promise<unknown[]>>();
 
 function fetchScheduleList(fromMs: number, toMs: number): Promise<unknown[]> {
@@ -285,13 +276,51 @@ function ScheduleGridSkeleton({ count = 4 }: { count?: number }) {
   );
 }
 
-export default function ClassesPage() {
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+type TransformedClass = any;
+
+interface ClassesPageProps {
+  initialClasses: TransformedClass[];
+}
+
+export const getStaticProps: GetStaticProps<ClassesPageProps> = async () => {
+  try {
+    const rows = await prisma.classModel.findMany({
+      orderBy: { name: "asc" },
+      include: {
+        instructor: {
+          omit: { studio_payout_cut_percent: true, hashed_password: true },
+        },
+      },
+    });
+    const initialClasses: TransformedClass[] = rows.map((cls) => ({
+      id: cls.id,
+      name: cls.name || "Class",
+      description: cls.description || "",
+      // ClassModel uses `duration_minutes` in schema; the public mapping keeps
+      // the legacy `duration` field expected by the JSX.
+      duration: (cls as unknown as { duration_minutes?: number }).duration_minutes || 60,
+      intensity: (cls.category || "general").toLowerCase(),
+      category: cls.category || "General",
+      image_url: cls.image_url || cdnUrl("/placeholder.jpg"),
+      benefits: (cls as unknown as { benefits?: string[] }).benefits || [],
+      instructor: cls.instructor?.name || "Instructor",
+      max_capacity: (cls as unknown as { capacity?: number }).capacity ?? 15,
+    }));
+    return { props: { initialClasses }, revalidate: 300 };
+  } catch {
+    return { props: { initialClasses: [] }, revalidate: 300 };
+  }
+};
+
+export default function ClassesPage({ initialClasses }: ClassesPageProps) {
   const router = useRouter();
   const initialCalendar = defaultPortalWeekSelection();
   const [activeTab, setActiveTab] = useState("classes");
   const [selectedFilter, setSelectedFilter] = useState("all");
-  const [classes, setClasses] = useState<any[]>([]);
-  const [loading, setLoading] = useState(true);
+  const [classes] = useState<TransformedClass[]>(initialClasses);
+  // Catalog is SSG'd via `getStaticProps` (5-min ISR); no client fetch.
+  const loading = false;
   const [viewYear, setViewYear] = useState(initialCalendar.year);
   const [selectedWeek, setSelectedWeek] = useState(initialCalendar.week);
   const [selectedMonth, setSelectedMonth] = useState(initialCalendar.monthIndex);
@@ -368,55 +397,6 @@ export default function ClassesPage() {
     }
   }, [viewYear, selectedMonth, selectedWeek]);
 
-  const fetchClasses = useCallback(async (isStale?: () => boolean) => {
-    try {
-      setLoading(true);
-
-      const data = await fetchClassesList();
-      if (isStale?.()) return;
-
-      const transformedClasses = (Array.isArray(data) ? data : []).map((cls: {
-        id: string;
-        name: string;
-        description?: string | null;
-        duration: number;
-        category: string;
-        max_capacity?: number;
-        image_url?: string | null;
-        benefits?: string[];
-        instructor?: { name?: string } | null;
-      }) => ({
-        id: cls.id,
-        name: cls.name || "Class",
-        description: cls.description || "",
-        duration: cls.duration || 60,
-        intensity: (cls.category || "general").toLowerCase(),
-        category: cls.category || "General",
-        image_url: cls.image_url || cdnUrl("/placeholder.jpg"),
-        benefits: cls.benefits || [],
-        instructor: cls.instructor?.name || "Instructor",
-        max_capacity: cls.max_capacity ?? 15,
-      }));
-
-      if (isStale?.()) return;
-      setClasses(transformedClasses);
-    } catch (error) {
-      console.error("Error fetching classes:", error);
-      if (!isStale?.()) setClasses([]);
-    } finally {
-      if (!isStale?.()) setLoading(false);
-    }
-  }, []);
-
-  useEffect(() => {
-    let stale = false;
-    const isStale = () => stale;
-    void fetchClasses(isStale);
-    return () => {
-      stale = true;
-    };
-  }, [fetchClasses]);
-
   useEffect(() => {
     if (activeTab !== "schedule") return;
     let stale = false;
@@ -427,11 +407,24 @@ export default function ClassesPage() {
     };
   }, [activeTab, fetchScheduleData]);
 
-  const { data: authSession } = useSession();
+  // Only the auth-status scalar is needed for the redirect decision; reading
+  // the full session would re-render this page on every 4-min refetch tick.
+  const { status: authStatus } = useSession();
+
+  // Prefetch the booking route once we know the visitor is signed in — gives
+  // the same perceived-speed win as a static `<Link>` without changing the
+  // auth-conditional behaviour of `handleBookClass`.
+  useEffect(() => {
+    if (authStatus === "authenticated") {
+      void router.prefetch("/portal/book");
+    } else if (authStatus === "unauthenticated") {
+      void router.prefetch("/portal/login?redirect=/portal/book");
+    }
+  }, [authStatus, router]);
 
   async function handleBookClass() {
     try {
-      if (!authSession) {
+      if (authStatus !== "authenticated") {
         router.push("/portal/login?redirect=/portal/book");
         return;
       }

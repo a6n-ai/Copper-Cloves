@@ -12,6 +12,12 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import {
+  Drawer,
+  DrawerContent,
+  DrawerTitle,
+  DrawerDescription,
+} from "@/components/ui/drawer";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import {
   Users,
@@ -50,12 +56,19 @@ import {
 import { Label } from "@/components/ui/label";
 import { CloseButton } from "@/components/ui/quick-actions";
 import { useSession } from "next-auth/react";
+import { requireSessionSSP } from "@/lib/requireSessionSSP";
+
+// Server-side gate kills the flash-of-unauth on first paint. `useSession()`
+// inside the component still returns the live session for downstream effects
+// that key on `status`/`session?.user?.role`.
+export const getServerSideProps = requireSessionSSP({ roles: ["admin"] });
 import { financeDemoTransactionsForUi } from "@/lib/adminFinanceDemoTransactions";
 import {
   downloadFinanceReportExcel,
   type FinanceReportPeriod,
 } from "@/lib/financeReportExport";
 import { usePagination } from "@/components/Pagination";
+import { refreshInstructors } from "@/hooks/useInstructors";
 import { toast } from "sonner";
 import { ClassCheckinQr } from "@/components/checkin/ClassCheckinQr";
 import { ClassCountdownPill } from "@/components/checkin/ClassCountdownPill";
@@ -71,11 +84,11 @@ function TabLoadingSkeleton() {
     <div className="space-y-6 min-h-[60vh]">
       <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-4">
         {Array.from({ length: 5 }).map((_, i) => (
-          <div key={i} className="h-28 rounded-2xl border border-sage/15 bg-white/60 animate-pulse" />
+          <div key={i} className="h-28 rounded-2xl border border-border bg-white-warm animate-pulse" />
         ))}
       </div>
-      <div className="h-64 rounded-2xl border border-sage/15 bg-white/60 animate-pulse" />
-      <div className="h-96 rounded-2xl border border-sage/15 bg-white/60 animate-pulse" />
+      <div className="h-64 rounded-2xl border border-border bg-white-warm animate-pulse" />
+      <div className="h-96 rounded-2xl border border-border bg-white-warm animate-pulse" />
     </div>
   );
 }
@@ -395,26 +408,18 @@ export default function AdminDashboard() {
       toast.error("No transactions to export for this selection.");
       return;
     }
-    downloadFinanceReportExcel(rows, `copper-cloves-finance-${mode}`);
+    void downloadFinanceReportExcel(rows, `copper-cloves-finance-${mode}`);
   }, []);
 
+  // Auth enforced server-side (see `getServerSideProps` above). Client-side
+  // `useSession()` is kept so existing effects that key on `status`/`session`
+  // for runtime decisions still work; the redirect dance + ~200ms flash that
+  // used to live here is gone.
   const { data: session, status } = useSession();
-  // Scalar role — avoids `session` object identity churn re-firing every effect.
   const userRole = (session?.user as { role?: string })?.role;
-
   useEffect(() => {
-    if (status === "loading") return;
-    if (status === "unauthenticated") {
-      router.push("/admin/login");
-      return;
-    }
-    if (status === "authenticated" && userRole !== "admin") {
-      router.push("/admin/login");
-      return;
-    }
     if (status === "authenticated") setLoading(false);
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [status, userRole]);
+  }, [status]);
 
   useEffect(() => {
     if (status !== "authenticated") return;
@@ -902,6 +907,9 @@ export default function AdminDashboard() {
       instructorForm.reset();
       const updated = await fetch("/api/admin/instructors");
       if (updated.ok) setDashboardInstructors(await updated.json());
+      // Revalidate the shared roster cache so other admin pages pick up the
+      // newly-created instructor without their own refetch.
+      void refreshInstructors();
     } catch {
       toast.error("Failed to save instructor.");
     } finally {
@@ -1171,6 +1179,15 @@ export default function AdminDashboard() {
     })();
   }, []);
 
+  // Stable identities so the memoized OverviewTab isn't re-rendered on every
+  // parent state change (the dashboard holds dozens of useState + timers).
+  const handleManageClass = useCallback(
+    (id: string) => router.push(`/admin/schedule/${id}`),
+    [router],
+  );
+  const handleOpenCRM = useCallback(() => router.push("/admin/CRM"), [router]);
+  const handleOpenCafe = useCallback(() => router.push("/admin/cafe"), [router]);
+
   // Pagination hooks for dashboard lists — resetKey resets page to 1 on filter change
   const expiringPg = usePagination(expiringMembers);
 
@@ -1255,12 +1272,12 @@ export default function AdminDashboard() {
                   upcomingClasses={upcomingClasses}
                   expiringMembers={expiringMembers}
                   expiringPg={expiringPg}
-                  onManageClass={(id) => router.push(`/admin/schedule/${id}`)}
+                  onManageClass={handleManageClass}
                   onStatusChange={setPendingStatusChange}
                   onSelectClass={handleSelectOverviewClass}
                   onViewProfile={handleViewProfile}
-                  onOpenCRM={() => router.push("/admin/CRM")}
-                  onOpenCafe={() => router.push("/admin/cafe")}
+                  onOpenCRM={handleOpenCRM}
+                  onOpenCafe={handleOpenCafe}
                 />
               </TabsContent>
 
@@ -1346,7 +1363,7 @@ export default function AdminDashboard() {
 
       {/* Add User Dialog */}
       <ResponsiveDialog open={showAddUserDialog} onOpenChange={setShowAddUserDialog}>
-        <ResponsiveDialogContent className="max-w-2xl bg-white/95 backdrop-blur-xl border-sage/20">
+        <ResponsiveDialogContent className="max-w-2xl bg-white-warm border-sage/20">
           <ResponsiveDialogHeader>
             <ResponsiveDialogTitle className="font-display text-2xl text-charcoal">Add New User</ResponsiveDialogTitle>
             <ResponsiveDialogDescription className="font-body text-charcoal/60">
@@ -1405,7 +1422,7 @@ export default function AdminDashboard() {
 
       {/* Edit User Dialog */}
       <ResponsiveDialog open={showEditUserDialog} onOpenChange={setShowEditUserDialog}>
-        <ResponsiveDialogContent className="max-w-2xl bg-white/95 backdrop-blur-xl border-sage/20">
+        <ResponsiveDialogContent className="max-w-2xl bg-white-warm border-sage/20">
           <ResponsiveDialogHeader>
             <ResponsiveDialogTitle className="font-display text-2xl text-charcoal">Edit User</ResponsiveDialogTitle>
             <ResponsiveDialogDescription className="font-body text-charcoal/60">
@@ -1467,7 +1484,7 @@ export default function AdminDashboard() {
 
       {/* Add Class Dialog */}
       <ResponsiveDialog open={showAddClassDialog} onOpenChange={setShowAddClassDialog}>
-        <ResponsiveDialogContent className="max-w-2xl bg-white/95 backdrop-blur-xl border-sage/20">
+        <ResponsiveDialogContent className="max-w-2xl bg-white-warm border-sage/20">
           <ResponsiveDialogHeader>
             <ResponsiveDialogTitle className="font-display text-2xl text-charcoal">Create New Class</ResponsiveDialogTitle>
             <ResponsiveDialogDescription className="font-body text-charcoal/60">
@@ -1613,7 +1630,7 @@ export default function AdminDashboard() {
 
       {/* Class Details Dialog */}
       <ResponsiveDialog open={showClassDetailsDialog} onOpenChange={(open) => { setShowClassDetailsDialog(open); if (!open) { setRosterCheckingIn({}); setDashMemberQuery(""); setDashMemberResults([]); } }}>
-        <ResponsiveDialogContent className="max-w-3xl bg-white/95 backdrop-blur-xl border-sage/20">
+        <ResponsiveDialogContent className="max-w-3xl bg-white-warm border-sage/20">
           <ResponsiveDialogHeader>
             <div className="flex items-start justify-between gap-3">
               <div className="min-w-0">
@@ -1873,7 +1890,7 @@ export default function AdminDashboard() {
 
       {/* Payout Dialog */}
       <ResponsiveDialog open={showPayoutDialog} onOpenChange={setShowPayoutDialog}>
-        <ResponsiveDialogContent className="max-w-lg bg-white/95 backdrop-blur-xl border-sage/20">
+        <ResponsiveDialogContent className="max-w-lg bg-white-warm border-sage/20">
           <ResponsiveDialogHeader>
             <ResponsiveDialogTitle className="font-display text-2xl text-charcoal">Process Payment</ResponsiveDialogTitle>
             <ResponsiveDialogDescription className="font-body text-charcoal/60">
@@ -1956,7 +1973,7 @@ export default function AdminDashboard() {
 
       {/* Add Instructor Dialog */}
       <ResponsiveDialog open={showAddInstructorDialog} onOpenChange={(open) => { setShowAddInstructorDialog(open); if (!open) instructorForm.reset(); }}>
-        <ResponsiveDialogContent className="max-w-2xl bg-white/95 backdrop-blur-xl border-sage/20">
+        <ResponsiveDialogContent className="max-w-2xl bg-white-warm border-sage/20">
           <ResponsiveDialogHeader>
             <ResponsiveDialogTitle className="font-display text-2xl text-charcoal">Add New Instructor</ResponsiveDialogTitle>
             <ResponsiveDialogDescription className="font-body text-charcoal/60">
@@ -2037,7 +2054,7 @@ export default function AdminDashboard() {
 
       {/* Edit Instructor Dialog */}
       <ResponsiveDialog open={showEditInstructorDialog} onOpenChange={setShowEditInstructorDialog}>
-        <ResponsiveDialogContent className="max-w-2xl bg-white/95 backdrop-blur-xl border-sage/20">
+        <ResponsiveDialogContent className="max-w-2xl bg-white-warm border-sage/20">
           <ResponsiveDialogHeader>
             <ResponsiveDialogTitle className="font-display text-2xl text-charcoal">Edit Instructor</ResponsiveDialogTitle>
             <ResponsiveDialogDescription className="font-body text-charcoal/60">
@@ -2113,20 +2130,23 @@ export default function AdminDashboard() {
       </ResponsiveDialog>
 
       {/* Member Profile Modal */}
-      {showMemberProfile && selectedMemberProfile && (
-        <div className="fixed inset-0 z-50">
-          <div className="absolute inset-0 bg-charcoal/60 backdrop-blur-xs" onClick={() => setShowMemberProfile(false)} />
-          
-          <div className="absolute right-0 top-0 bottom-0 w-full max-w-3xl bg-linear-to-br from-cream via-white to-cream shadow-2xl overflow-y-auto">
-            <div className="sticky top-0 bg-white/95 backdrop-blur-xl border-b border-sage/10 p-6 z-10">
+      <Drawer
+        direction="right"
+        open={showMemberProfile}
+        onOpenChange={(o) => { if (!o) setShowMemberProfile(false); }}
+      >
+        <DrawerContent direction="right" className="max-w-3xl overflow-y-auto">
+          {selectedMemberProfile && (
+            <>
+            <div className="sticky top-0 bg-white-warm border-b border-sage/10 p-6 z-10">
               <div className="flex items-center justify-between">
                 <div>
-                  <h2 className="font-display text-3xl text-charcoal mb-1">
+                  <DrawerTitle className="font-display text-3xl text-charcoal mb-1">
                     {selectedMemberProfile.name}
-                  </h2>
-                  <p className="font-body text-sm text-charcoal/60">
+                  </DrawerTitle>
+                  <DrawerDescription className="font-body text-sm text-charcoal/60">
                     {selectedMemberProfile.email} • {selectedMemberProfile.phone}
-                  </p>
+                  </DrawerDescription>
                 </div>
                 <CloseButton onClick={() => setShowMemberProfile(false)} className="rounded-full" />
               </div>
@@ -2135,7 +2155,7 @@ export default function AdminDashboard() {
             <div className="p-6 space-y-6">
               {/* Quick Stats */}
               <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-                <Card className="border-0 bg-white/80 backdrop-blur-xl shadow-lg">
+                <Card className="border border-border bg-white-warm shadow-none ring-0">
                   <CardContent className="p-4 text-center">
                     <p className="font-display text-3xl text-sage mb-1">
                       {selectedMemberProfile.totalClasses}
@@ -2143,7 +2163,7 @@ export default function AdminDashboard() {
                     <p className="font-body text-xs text-charcoal/60">Total Classes</p>
                   </CardContent>
                 </Card>
-                <Card className="border-0 bg-white/80 backdrop-blur-xl shadow-lg">
+                <Card className="border border-border bg-white-warm shadow-none ring-0">
                   <CardContent className="p-4 text-center">
                     <p className="font-display text-3xl text-charcoal mb-1">
                       {selectedMemberProfile.weeklyStreak}
@@ -2151,7 +2171,7 @@ export default function AdminDashboard() {
                     <p className="font-body text-xs text-charcoal/60">Week Streak</p>
                   </CardContent>
                 </Card>
-                <Card className="border-0 bg-white/80 backdrop-blur-xl shadow-lg">
+                <Card className="border border-border bg-white-warm shadow-none ring-0">
                   <CardContent className="p-4 text-center">
                     <p className="font-display text-3xl text-charcoal mb-1">
                       {selectedMemberProfile.credits}
@@ -2164,7 +2184,7 @@ export default function AdminDashboard() {
               </div>
 
               {/* Membership Info */}
-              <Card className="border-0 bg-white/80 backdrop-blur-xl shadow-lg">
+              <Card className="border border-border bg-white-warm shadow-none ring-0">
                 <CardHeader className="border-b border-sage/10">
                   <CardTitle className="font-display text-xl text-charcoal">Membership Details</CardTitle>
                 </CardHeader>
@@ -2195,7 +2215,7 @@ export default function AdminDashboard() {
               </Card>
 
               {/* Achievements */}
-              <Card className="border-0 bg-white/80 backdrop-blur-xl shadow-lg">
+              <Card className="border border-border bg-white-warm shadow-none ring-0">
                 <CardHeader className="border-b border-sage/10">
                   <CardTitle className="font-display text-xl text-charcoal">Achievements</CardTitle>
                 </CardHeader>
@@ -2216,7 +2236,7 @@ export default function AdminDashboard() {
               </Card>
 
               {/* Recent Activity */}
-              <Card className="border-0 bg-white/80 backdrop-blur-xl shadow-lg">
+              <Card className="border border-border bg-white-warm shadow-none ring-0">
                 <CardHeader className="border-b border-sage/10">
                   <CardTitle className="font-display text-xl text-charcoal">Recent Activity</CardTitle>
                 </CardHeader>
@@ -2237,7 +2257,7 @@ export default function AdminDashboard() {
               </Card>
 
               {/* Upcoming Bookings */}
-              <Card className="border-0 bg-white/80 backdrop-blur-xl shadow-lg">
+              <Card className="border border-border bg-white-warm shadow-none ring-0">
                 <CardHeader className="border-b border-sage/10">
                   <CardTitle className="font-display text-xl text-charcoal">Upcoming Bookings</CardTitle>
                 </CardHeader>
@@ -2264,7 +2284,7 @@ export default function AdminDashboard() {
               </Card>
 
               {/* Attendance History */}
-              <Card className="border-0 bg-white/80 backdrop-blur-xl shadow-lg">
+              <Card className="border border-border bg-white-warm shadow-none ring-0">
                 <CardHeader className="border-b border-sage/10">
                   <CardTitle className="font-display text-xl text-charcoal">Attendance History</CardTitle>
                   <CardDescription className="font-body text-charcoal/60">
@@ -2301,7 +2321,7 @@ export default function AdminDashboard() {
               </Card>
 
               {/* Order History */}
-              <Card className="border-0 bg-white/80 backdrop-blur-xl shadow-lg">
+              <Card className="border border-border bg-white-warm shadow-none ring-0">
                 <CardHeader className="border-b border-sage/10">
                   <CardTitle className="font-display text-xl text-charcoal">Café Orders</CardTitle>
                 </CardHeader>
@@ -2351,9 +2371,10 @@ export default function AdminDashboard() {
                 </Button>
               </div>
             </div>
-          </div>
-        </div>
-      )}
+            </>
+          )}
+        </DrawerContent>
+      </Drawer>
     </>
   );
 }

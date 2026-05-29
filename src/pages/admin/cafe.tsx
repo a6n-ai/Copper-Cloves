@@ -1,6 +1,21 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
-import Cropper from "react-easy-crop";
+import dynamic from "next/dynamic";
+import { mutate as swrMutate } from "swr";
+import Image from "next/image";
+import { requireSessionSSP } from "@/lib/requireSessionSSP";
+
+// Admin OR chef (kitchen role uses the same café page).
+export const getServerSideProps = requireSessionSSP({ roles: ["admin", "chef"] });
+
+import type CropperType from "react-easy-crop";
 import type { Area } from "react-easy-crop";
+
+// react-easy-crop is only mounted when the user actually opens the image-crop
+// modal. Dynamic-import + ssr:false keeps it out of the admin/cafe initial
+// bundle. Cast back to the typed component so JSX props still type-check.
+const Cropper = dynamic(() => import("react-easy-crop"), {
+  ssr: false,
+}) as unknown as typeof CropperType;
 import { useRouter } from "next/router";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -10,21 +25,45 @@ import { AdminPageHeader } from "@/components/admin/AdminPageHeader";
 import { Badge } from "@/components/ui/badge";
 import { useSession } from "next-auth/react";
 import { SEO } from "@/components/SEO";
-import { 
-  Plus, 
-  Edit, 
-  Trash2, 
-  X,
+import {
+  Plus,
+  Edit,
   Save,
   Image as ImageIcon,
-  Upload
+  Upload,
+  Search,
+  LayoutGrid,
+  UtensilsCrossed,
+  Tags,
+  ClipboardList,
 } from "lucide-react";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { Spinner } from "@/components/ui/spinner";
 import { Skeleton } from "@/components/ui/skeleton";
 import { CloseButton, EditButton, DeleteButton } from "@/components/ui/quick-actions";
 
 import { cdnUrl } from "@/lib/cdnUrl";
 import { toast } from "sonner";
+import {
+  Drawer,
+  DrawerContent,
+  DrawerTitle,
+} from "@/components/ui/drawer";
+import { MenuItemCard } from "@/components/cafe/MenuItemCard";
+// CafeStats pulls in recharts (~300KB+) but only renders behind the Overview
+// tab. Dynamic-import keeps recharts out of the admin/cafe initial bundle.
+const CafeStats = dynamic(
+  () => import("@/components/cafe/CafeStats").then((m) => m.CafeStats),
+  { ssr: false },
+);
+import { OrderStatusTimeline } from "@/components/cafe/OrderStatusTimeline";
+import type { CafeMenuItem } from "@/components/cafe/types";
 interface MenuItem {
   id?: string;
   name: string;
@@ -35,6 +74,13 @@ interface MenuItem {
   image_file_id?: string | null;
   is_available: boolean;
 }
+
+const CAFE_TABS = [
+  { v: "menu", l: "Menu Items", I: UtensilsCrossed },
+  { v: "overview", l: "Overview", I: LayoutGrid },
+  { v: "categories", l: "Categories", I: Tags },
+  { v: "orders", l: "Orders", I: ClipboardList },
+] as const;
 
 function CafeMenuLoadingSkeleton() {
   return (
@@ -49,7 +95,7 @@ function CafeMenuLoadingSkeleton() {
         {Array.from({ length: 6 }).map((_, i) => (
           <Card
             key={i}
-            className="border-0 bg-white/80 backdrop-blur-xl shadow-lg flex flex-col h-full"
+            className="border border-border bg-white-warm shadow-none ring-0 flex flex-col h-full"
           >
             {/* Image */}
             <Skeleton className="aspect-video w-full rounded-t-xl rounded-b-none shrink-0" />
@@ -118,7 +164,8 @@ export default function AdminCafe() {
   const [showCategoryForm, setShowCategoryForm] = useState(false);
   const [newCategory, setNewCategory] = useState({ id: "", label: "" });
   const [editingCategory, setEditingCategory] = useState<{ id: string; label: string } | null>(null);
-  const [activeTab, setActiveTab] = useState<"menu" | "categories" | "orders">("menu");
+  const [activeTab, setActiveTab] = useState<"overview" | "menu" | "categories" | "orders">("menu");
+  const [menuSearch, setMenuSearch] = useState("");
   const [orderHistoryTab, setOrderHistoryTab] = useState<"active" | "history">("active");
   
   // Orders state
@@ -137,6 +184,19 @@ export default function AdminCafe() {
     for (const c of categories) m.set(c.id, c.label);
     return m;
   }, [categories]);
+
+  const filteredMenuItems = useMemo(() => {
+    const q = menuSearch.trim().toLowerCase();
+    if (!q) return menuItems;
+    return menuItems.filter(
+      (item) =>
+        item.name.toLowerCase().includes(q) ||
+        item.description.toLowerCase().includes(q) ||
+        (categoryLabelById.get(item.category) ?? item.category)
+          .toLowerCase()
+          .includes(q),
+    );
+  }, [menuItems, menuSearch, categoryLabelById]);
 
   const { data: session, status } = useSession();
 
@@ -434,7 +494,7 @@ export default function AdminCafe() {
 
   async function getCroppedFile(src: string, pixelCrop: Area, originalFile: File): Promise<File> {
     return new Promise((resolve, reject) => {
-      const img = new Image();
+      const img = new window.Image();
       img.onload = () => {
         const canvas = document.createElement("canvas");
         canvas.width = pixelCrop.width;
@@ -525,6 +585,9 @@ export default function AdminCafe() {
         return;
       }
       fetchMenuItems();
+      // Member-facing menu (/portal/menu, /portal/book) reads the same
+      // endpoint via SWR — bust their cache so the item disappears live.
+      void swrMutate("/api/cafe/items?available=true");
     } catch (err) {
       console.error("Error deleting item:", err);
       toast.error("Failed to delete item");
@@ -558,6 +621,7 @@ export default function AdminCafe() {
       setImageUploadError(null);
       setFormData({ name: "", category: "smoothie_bowl", description: "", price: 0, image_url: "", is_available: true });
       fetchMenuItems();
+      void swrMutate("/api/cafe/items?available=true");
     } catch (err) {
       console.error("Error saving item:", err);
     } finally {
@@ -590,6 +654,7 @@ export default function AdminCafe() {
         await fetch("/api/cafe/items", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(item) });
       }
       fetchMenuItems();
+      void swrMutate("/api/cafe/items?available=true");
     } catch (e) {}
     setIsSaving(false);
   };
@@ -669,73 +734,82 @@ export default function AdminCafe() {
             <AdminPageHeader
               title="Café Management"
               subtitle={
-                activeTab === "menu"
+                activeTab === "overview"
+                  ? "Café performance at a glance"
+                  : activeTab === "menu"
                   ? "Add, edit, and manage café menu items"
                   : activeTab === "categories"
                   ? "Manage food categories"
                   : "Track and manage incoming food orders"
               }
               actions={
-                activeTab !== "orders" ? (
-                  <Button
-                    onClick={() => {
-                      if (activeTab === "menu") {
-                        openAddMenuForm();
-                      } else {
-                        setShowCategoryForm(true);
-                      }
-                    }}
-                    variant="sage"
-                  >
+                activeTab === "categories" ? (
+                  <Button onClick={() => setShowCategoryForm(true)} variant="sage">
                     <Plus size={20} className="mr-2" />
-                    {activeTab === "menu" ? "Add Menu Item" : "Add Category"}
+                    Add Category
                   </Button>
                 ) : null
               }
             />
 
-            {/* Tab Navigation */}
-            <div className="flex gap-3 mb-8 border-b border-sage/10">
-              <button
-                onClick={() => setActiveTab("menu")}
-                className={`px-6 py-3 font-body text-sm transition-all duration-300 border-b-2 ${
-                  activeTab === "menu"
-                    ? "border-sage text-sage"
-                    : "border-transparent text-charcoal/60 hover:text-charcoal"
-                }`}
+            {/* Tabs — same design as the admin dashboard (mobile Select + desktop segmented) */}
+            <div className="mb-8">
+              <Select
+                value={activeTab}
+                onValueChange={(v) => setActiveTab(v as typeof activeTab)}
               >
-                Menu Items
-              </button>
-              <button
-                onClick={() => setActiveTab("categories")}
-                className={`px-6 py-3 font-body text-sm transition-all duration-300 border-b-2 ${
-                  activeTab === "categories"
-                    ? "border-sage text-sage"
-                    : "border-transparent text-charcoal/60 hover:text-charcoal"
-                }`}
-              >
-                Categories
-              </button>
-              <button
-                onClick={() => setActiveTab("orders")}
-                className={`px-6 py-3 font-body text-sm transition-all duration-300 border-b-2 ${
-                  activeTab === "orders"
-                    ? "border-sage text-sage"
-                    : "border-transparent text-charcoal/60 hover:text-charcoal"
-                }`}
-              >
-                Orders
-                {orders.filter(o => o.status === "pending").length > 0 && (
-                  <Badge className="ml-2 bg-terracotta text-white">
-                    {orders.filter(o => o.status === "pending").length}
-                  </Badge>
-                )}
-              </button>
+                <SelectTrigger className="w-full border-sage/20 font-body md:hidden">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  {CAFE_TABS.map((t) => (
+                    <SelectItem key={t.v} value={t.v} className="font-body">
+                      {t.l}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+
+              <div className="hidden w-auto flex-wrap justify-start gap-1 rounded-lg border border-sage/15 bg-cream/50 p-1 md:inline-flex">
+                {CAFE_TABS.map((t) => {
+                  const active = activeTab === t.v;
+                  const pendingCount = orders.filter((o) => o.status === "pending").length;
+                  return (
+                    <button
+                      key={t.v}
+                      onClick={() => setActiveTab(t.v)}
+                      aria-pressed={active}
+                      className={`inline-flex items-center gap-2 rounded-md px-3 py-1.5 font-body text-sm transition-colors outline-none focus-visible:ring-2 focus-visible:ring-sage ${
+                        active
+                          ? "bg-sage text-white shadow-xs"
+                          : "text-charcoal/60 hover:text-charcoal"
+                      }`}
+                    >
+                      <t.I className="h-4 w-4" />
+                      {t.l}
+                      {t.v === "orders" && pendingCount > 0 && (
+                        <span
+                          className={`rounded-full px-1.5 text-xs ${
+                            active ? "bg-white/20 text-white" : "bg-terracotta text-white"
+                          }`}
+                        >
+                          {pendingCount}
+                        </span>
+                      )}
+                    </button>
+                  );
+                })}
+              </div>
             </div>
+
+            {/* Overview Section */}
+            {activeTab === "overview" && (
+              <CafeStats orders={[...orders, ...orderHistory]} />
+            )}
 
             {/* Category Management Section */}
             {activeTab === "categories" && (
-              <Card className="border-0 bg-white/80 backdrop-blur-xl shadow-lg">
+              <Card className="border border-border bg-white-warm shadow-none ring-0">
                 <CardHeader className="border-b border-sage/10">
                   <div>
                     <CardTitle className="font-display text-2xl text-charcoal">Menu Categories</CardTitle>
@@ -768,7 +842,7 @@ export default function AdminCafe() {
             {activeTab === "menu" && (
               <>
                 {menuItems.length === 0 ? (
-                  <Card className="border-0 bg-white/80 backdrop-blur-xl shadow-lg">
+                  <Card className="border border-border bg-white-warm shadow-none ring-0">
                     <CardContent className="flex flex-col items-center justify-center py-20">
                       <ImageIcon className="text-sage/40 mb-4" size={64} />
                       <h3 className="font-display text-2xl text-charcoal mb-2">No Menu Items Yet</h3>
@@ -783,8 +857,8 @@ export default function AdminCafe() {
                         </Button>
                         <Button
                           onClick={seedDefaultItems}
-                          variant="outline"
-                          className="border-sage/30 text-sage hover:bg-sage/10 font-body"
+                          variant="sage-outline"
+                          className="font-body"
                           disabled={isSaving}
                         >
                           Seed Default Menu Items
@@ -793,53 +867,62 @@ export default function AdminCafe() {
                     </CardContent>
                   </Card>
                 ) : (
-                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                    {menuItems.map(item => (
-                      <Card key={item.id} className="border-0 bg-white/80 backdrop-blur-xl shadow-lg flex flex-col h-full">
-                        <div className="aspect-video w-full overflow-hidden rounded-t-xl bg-sage/5 shrink-0">
-                          {item.image_url ? (
-                            <img 
-                              src={item.image_url} 
-                              alt={item.name}
-                              className="w-full h-full object-cover"
-                            />
-                          ) : (
-                            <div className="w-full h-full flex items-center justify-center">
-                              <ImageIcon className="text-sage/40" size={48} />
+                  <div className="space-y-6">
+                    <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+                      <div className="relative w-full sm:max-w-md">
+                        <Search className="pointer-events-none absolute left-3 top-1/2 size-4 -translate-y-1/2 text-charcoal/40" />
+                        <Input
+                          value={menuSearch}
+                          onChange={(e) => setMenuSearch(e.target.value)}
+                          placeholder="Search menu items…"
+                          className="h-11 rounded-full border-border bg-white-warm pl-10 font-body"
+                          aria-label="Search menu items"
+                        />
+                      </div>
+                      <Button onClick={openAddMenuForm} variant="sage" className="shrink-0">
+                        <Plus size={18} className="mr-2" />
+                        Add Menu Item
+                      </Button>
+                    </div>
+
+                    {filteredMenuItems.length === 0 ? (
+                      <div className="rounded-2xl border border-border bg-white-warm py-16 text-center">
+                        <p className="font-body text-charcoal/70">
+                          No menu items match “{menuSearch}”.
+                        </p>
+                      </div>
+                    ) : (
+                      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                        {filteredMenuItems.map((item, i) => (
+                          <MenuItemCard
+                            key={item.id}
+                            item={item as CafeMenuItem}
+                            index={i}
+                            categoryLabel={categoryLabelById.get(item.category) || item.category}
+                            badge={
+                              !item.is_available ? (
+                                <Badge className="bg-terracotta text-white-warm">
+                                  Unavailable
+                                </Badge>
+                              ) : undefined
+                            }
+                          >
+                            <div className="flex gap-2">
+                              <Button
+                                onClick={() => handleEdit(item)}
+                                variant="sage-outline"
+                                size="sm"
+                                className="flex-1"
+                              >
+                                <Edit size={16} className="mr-2" />
+                                Edit
+                              </Button>
+                              <DeleteButton onClick={() => handleDelete(item.id!)} />
                             </div>
-                          )}
-                        </div>
-                        <CardContent className="p-6 flex flex-col flex-1">
-                          <div className="flex items-start justify-between mb-3">
-                            <div className="flex-1">
-                              <Badge variant="outline" className="mb-2 text-xs font-body border-sage/30 text-sage">
-                                {categoryLabelById.get(item.category) || item.category}
-                              </Badge>
-                              <h3 className="font-display text-xl text-charcoal mb-1">{item.name}</h3>
-                            </div>
-                            <Badge className={item.is_available ? "bg-green-100 text-green-700 ml-2" : "bg-gray-100 text-gray-600 ml-2"}>
-                              {item.is_available ? "Available" : "Unavailable"}
-                            </Badge>
-                          </div>
-                          
-                          <p className="font-body text-sm text-charcoal/70 mb-4 flex-1">{item.description}</p>
-                          <p className="font-display text-2xl text-sage mb-4">₹{item.price}</p>
-                          
-                          <div className="flex gap-2 mt-auto">
-                            <Button
-                              onClick={() => handleEdit(item)}
-                              variant="outline"
-                              size="sm"
-                              className="flex-1 border-sage/30 text-sage hover:bg-sage/10"
-                            >
-                              <Edit size={16} className="mr-2" />
-                              Edit
-                            </Button>
-                            <DeleteButton onClick={() => handleDelete(item.id!)} />
-                          </div>
-                        </CardContent>
-                      </Card>
-                    ))}
+                          </MenuItemCard>
+                        ))}
+                      </div>
+                    )}
                   </div>
                 )}
               </>
@@ -848,29 +931,37 @@ export default function AdminCafe() {
             {/* Orders Section */}
             {activeTab === "orders" && (
               <div className="space-y-4">
-                {/* Sub-tabs for Active vs History */}
-                <div className="flex gap-2 border-b border-sage/10 mb-6">
+                {/* Sub-tabs for Active vs History — pill segmented control */}
+                <div className="mb-6 inline-flex items-center gap-1 rounded-full border border-border bg-white-warm p-1">
                   <button
                     onClick={() => setOrderHistoryTab("active")}
-                    className={`px-4 py-2 font-body text-sm transition-all duration-300 border-b-2 ${
+                    aria-pressed={orderHistoryTab === "active"}
+                    className={`flex items-center gap-2 whitespace-nowrap rounded-full px-5 py-2 font-body text-sm transition-colors duration-200 outline-none focus-visible:ring-2 focus-visible:ring-sage ${
                       orderHistoryTab === "active"
-                        ? "border-sage text-sage"
-                        : "border-transparent text-charcoal/60 hover:text-charcoal"
+                        ? "bg-sage text-white-warm"
+                        : "text-charcoal/60 hover:text-charcoal"
                     }`}
                   >
                     Active Orders
                     {orders.length > 0 && (
-                      <Badge className="ml-2 bg-terracotta text-white text-xs">
+                      <span
+                        className={`rounded-full px-1.5 text-xs ${
+                          orderHistoryTab === "active"
+                            ? "bg-white-warm/20 text-white-warm"
+                            : "bg-terracotta text-white-warm"
+                        }`}
+                      >
                         {orders.length}
-                      </Badge>
+                      </span>
                     )}
                   </button>
                   <button
                     onClick={() => setOrderHistoryTab("history")}
-                    className={`px-4 py-2 font-body text-sm transition-all duration-300 border-b-2 ${
+                    aria-pressed={orderHistoryTab === "history"}
+                    className={`whitespace-nowrap rounded-full px-5 py-2 font-body text-sm transition-colors duration-200 outline-none focus-visible:ring-2 focus-visible:ring-sage ${
                       orderHistoryTab === "history"
-                        ? "border-sage text-sage"
-                        : "border-transparent text-charcoal/60 hover:text-charcoal"
+                        ? "bg-sage text-white-warm"
+                        : "text-charcoal/60 hover:text-charcoal"
                     }`}
                   >
                     Order History
@@ -886,7 +977,7 @@ export default function AdminCafe() {
                         <p className="font-body text-charcoal/60">Loading orders...</p>
                       </div>
                     ) : orders.length === 0 ? (
-                      <Card className="border-0 bg-white/80 backdrop-blur-xl shadow-lg">
+                      <Card className="border border-border bg-white-warm shadow-none ring-0">
                         <CardContent className="flex flex-col items-center justify-center py-20">
                           <ImageIcon className="text-sage/40 mb-4" size={64} />
                           <h3 className="font-display text-2xl text-charcoal mb-2">No Active Orders</h3>
@@ -919,191 +1010,179 @@ export default function AdminCafe() {
                           }
                         }
                         
+                        const classTime = schedule?.start_time ?? booking?.class_time ?? null;
+                        const statusPill =
+                          order.status === "pending" ? "bg-sand text-charcoal" :
+                          order.status === "preparing" ? "bg-terracotta/15 text-terracotta" :
+                          order.status === "ready" ? "bg-sage/15 text-sage" :
+                          "bg-sand text-charcoal/60";
+                        const urgencyText =
+                          alertLevel.level === "red" ? "text-red-600" :
+                          alertLevel.level === "orange" ? "text-orange-600" :
+                          alertLevel.level === "yellow" ? "text-yellow-600" :
+                          "text-sage";
+
                         return (
                           <Card
                             key={order.id}
-                            className={`border-0 bg-white/80 backdrop-blur-xl shadow-lg transition-all duration-300 ${borderClass} ${animationClass}`}
+                            className={`overflow-hidden bg-white-warm shadow-none ring-0 transition-all duration-300 ${borderClass || "border border-border"} ${animationClass}`}
                           >
-                            <CardContent className="p-6">
-                              <div className="flex flex-col md:flex-row gap-6">
-                                {/* Item Image */}
-                                <div className="w-32 h-32 rounded-xl overflow-hidden bg-sage/5 shrink-0">
+                            <CardContent className="p-5 sm:p-6">
+                              {/* Header: thumb · name/meta · status */}
+                              <div className="flex gap-4">
+                                <div className="size-16 shrink-0 overflow-hidden rounded-xl bg-sand/40 sm:size-20">
                                   {cafeItem?.image_url ? (
-                                    <img 
-                                      src={cafeItem.image_url} 
+                                    <Image
+                                      src={cafeItem.image_url}
                                       alt={cafeItem.name}
-                                      className="w-full h-full object-cover"
+                                      width={160}
+                                      height={160}
+                                      className="h-full w-full object-cover"
+                                      unoptimized
                                     />
                                   ) : (
-                                    <div className="w-full h-full flex items-center justify-center">
-                                      <ImageIcon className="text-sage/40" size={32} />
+                                    <div className="flex h-full w-full items-center justify-center">
+                                      <ImageIcon className="text-sage/40" size={28} />
                                     </div>
                                   )}
                                 </div>
 
-                                {/* Order Details */}
-                                <div className="flex-1">
-                                  <div className="flex items-start justify-between mb-4">
-                                    <div>
-                                      <h3 className="font-display text-xl text-charcoal mb-1">
-                                        {cafeItem?.name}
-                                      </h3>
-                                      <p className="font-body text-sm text-charcoal/60">
-                                        Quantity: {order.quantity}
+                                <div className="flex min-w-0 flex-1 items-start justify-between gap-3">
+                                  <div className="min-w-0">
+                                    <h3 className="truncate font-display text-xl leading-snug text-charcoal">
+                                      {cafeItem?.name}
+                                    </h3>
+                                    <p className="mt-0.5 font-body text-sm text-charcoal/60">
+                                      Qty {order.quantity}
+                                      <span className="mx-1.5 text-charcoal/30">·</span>
+                                      <span className="font-medium text-charcoal">
+                                        ₹{(Number(cafeItem?.price ?? 0) * order.quantity).toLocaleString("en-IN")}
+                                      </span>
+                                    </p>
+                                  </div>
+                                  <span className={`shrink-0 rounded-full px-3 py-1 font-body text-[0.7rem] font-semibold uppercase tracking-[0.06em] ${statusPill}`}>
+                                    {order.status}
+                                  </span>
+                                </div>
+                              </div>
+
+                              <OrderStatusTimeline status={order.status} className="mt-5 max-w-md" />
+
+                              {/* Linked class strip */}
+                              {booking && (
+                                <div className="mt-5 rounded-xl border border-border bg-sand/30 p-4">
+                                  <div className="flex items-start justify-between gap-4">
+                                    <div className="min-w-0">
+                                      <p className="font-body text-[0.7rem] font-semibold uppercase tracking-[0.06em] text-terracotta">
+                                        Linked class
+                                      </p>
+                                      <p className="mt-1 font-display text-lg leading-snug text-charcoal">
+                                        {schedule?.class_model?.name || booking?.class_name || "—"}
+                                      </p>
+                                      <p className="mt-0.5 font-body text-sm text-charcoal/60">
+                                        {classTime
+                                          ? new Date(classTime).toLocaleString("en-US", {
+                                              month: "short",
+                                              day: "numeric",
+                                              hour: "2-digit",
+                                              minute: "2-digit",
+                                            })
+                                          : "Time pending"}
                                       </p>
                                     </div>
-                                    <Badge className={
-                                      order.status === "pending" ? "bg-yellow-100 text-yellow-700" :
-                                      order.status === "preparing" ? "bg-blue-100 text-blue-700" :
-                                      order.status === "ready" ? "bg-green-100 text-green-700" :
-                                      "bg-gray-100 text-gray-600"
-                                    }>
-                                      {order.status.toUpperCase()}
-                                    </Badge>
-                                  </div>
-
-                                  <div className="grid md:grid-cols-2 gap-4 mb-4">
-                                    {/* ALWAYS show class section if booking exists */}
-                                    {booking && (
-                                      <div className="md:col-span-2 p-4 rounded-lg bg-sage/5 border border-sage/20">
-                                        <div className="flex items-start justify-between mb-2">
-                                          <div className="flex-1">
-                                            <p className="font-body text-xs text-charcoal/50 mb-1">🏋️ Linked Class</p>
-                                            
-                                            {/* Class name */}
-                                            <p className="font-display text-xl text-charcoal mb-1">
-                                              {schedule?.class_model?.name || booking?.class_name || "—"}
-                                            </p>
-                                            
-                                            {/* Class time */}
-                                            <p className="font-body text-sm text-charcoal/70">
-                                              <strong>Class Time:</strong>{" "}
-                                              {schedule?.start_time 
-                                                ? new Date(schedule.start_time).toLocaleString("en-US", {
-                                                    month: "short",
-                                                    day: "numeric",
-                                                    hour: "2-digit",
-                                                    minute: "2-digit"
-                                                  })
-                                                : booking?.class_time 
-                                                  ? new Date(booking.class_time).toLocaleString("en-US", {
-                                                      month: "short",
-                                                      day: "numeric",
-                                                      hour: "2-digit",
-                                                      minute: "2-digit"
-                                                    })
-                                                  : "Time pending"
-                                              }
-                                            </p>
-                                          </div>
-                                          
-                                          {/* COUNTDOWN Timer (60 min → 0) */}
-                                          {(schedule?.start_time || booking?.class_time) && (
-                                            <div className="text-right">
-                                              <p className="font-body text-xs text-charcoal/50 mb-1">⏱️ Countdown</p>
-                                              <p className={`font-mono text-2xl font-bold ${
-                                                alertLevel.level === "red" ? "text-red-600" :
-                                                alertLevel.level === "orange" ? "text-orange-600" :
-                                                alertLevel.level === "yellow" ? "text-yellow-600" :
-                                                "text-sage"
-                                              }`}>
-                                                {formatTimeRemaining(schedule?.start_time || booking?.class_time)}
-                                              </p>
-                                            </div>
-                                          )}
-                                        </div>
-                                        
-                                        <div className="flex items-center gap-4 text-sm pt-2 border-t border-sage/10">
-                                          {alertLevel.readyBy && (
-                                            <p className="font-body text-sage font-semibold">
-                                              <strong>Ready by:</strong> {alertLevel.readyBy}
-                                            </p>
-                                          )}
-                                        </div>
+                                    {classTime && (
+                                      <div className="shrink-0 text-right">
+                                        <p className="font-body text-[0.7rem] font-semibold uppercase tracking-[0.06em] text-charcoal/45">
+                                          Countdown
+                                        </p>
+                                        <p className={`font-mono text-2xl font-bold tabular-nums ${urgencyText}`}>
+                                          {formatTimeRemaining(classTime)}
+                                        </p>
                                       </div>
                                     )}
-                                    
-                                    <div>
-                                      <p className="font-body text-xs text-charcoal/50 mb-1">Customer</p>
-                                      <p className="font-body text-sm text-charcoal">
-                                        {userProfile?.full_name || "Unknown"}
-                                      </p>
-                                      <p className="font-body text-xs text-charcoal/50">
-                                        {userProfile?.email}
-                                      </p>
-                                    </div>
-
-                                    <div>
-                                      <p className="font-body text-xs text-charcoal/50 mb-1">Order Time</p>
-                                      <p className="font-body text-sm text-charcoal">
-                                        {new Date(order.order_date).toLocaleString("en-US", {
-                                          month: "short",
-                                          day: "numeric",
-                                          hour: "2-digit",
-                                          minute: "2-digit"
-                                        })}
-                                      </p>
-                                      {alertLevel.level !== "normal" && alertLevel.message && (
-                                        <p className={`font-body text-xs font-semibold ${
-                                          alertLevel.level === "red" ? "text-red-600" :
-                                          alertLevel.level === "orange" ? "text-orange-600" :
-                                          "text-yellow-600"
-                                        }`}>
-                                          ⚠️ {alertLevel.message}
-                                        </p>
-                                      )}
-                                    </div>
-
-                                    <div className="md:col-span-2">
-                                      <p className="font-body text-xs text-charcoal/50 mb-1">Total</p>
-                                      <p className="font-display text-lg text-sage">
-                                        ₹{Number(cafeItem?.price ?? 0) * order.quantity}
-                                      </p>
-                                    </div>
                                   </div>
-
-                                  {/* Status Update Buttons */}
-                                  <div className="flex gap-2 flex-wrap">
-                                    {order.status === "pending" && (
-                                      <Button
-                                        onClick={() => updateOrderStatus(order.id, "preparing")}
-                                        size="sm"
-                                        className="bg-blue-500 hover:bg-blue-600 text-white font-body"
-                                      >
-                                        Start Preparing
-                                      </Button>
-                                    )}
-                                    {order.status === "preparing" && (
-                                      <Button
-                                        onClick={() => updateOrderStatus(order.id, "ready")}
-                                        size="sm"
-                                        className="bg-green-500 hover:bg-green-600 text-white font-body"
-                                      >
-                                        Mark Ready
-                                      </Button>
-                                    )}
-                                    {order.status === "ready" && (
-                                      <Button
-                                        onClick={() => updateOrderStatus(order.id, "completed")}
-                                        size="sm"
-                                        variant="sage"
-                                      >
-                                        Complete Order
-                                      </Button>
-                                    )}
-                                    {/* Cancel button available at any status except completed */}
-                                    {order.status !== "completed" && order.status !== "cancelled" && (
-                                      <Button
-                                        onClick={() => updateOrderStatus(order.id, "cancelled")}
-                                        size="sm"
-                                        variant="outline"
-                                        className="border-red-500 text-red-600 hover:bg-red-50 font-body"
-                                      >
-                                        Cancel Order
-                                      </Button>
-                                    )}
-                                  </div>
+                                  {alertLevel.readyBy && (
+                                    <p className="mt-3 border-t border-border pt-2 font-body text-sm font-semibold text-sage">
+                                      Ready by {alertLevel.readyBy}
+                                    </p>
+                                  )}
                                 </div>
+                              )}
+
+                              {/* Customer · order time */}
+                              <div className="mt-5 grid gap-4 sm:grid-cols-2">
+                                <div>
+                                  <p className="font-body text-[0.7rem] font-semibold uppercase tracking-[0.06em] text-charcoal/45">
+                                    Customer
+                                  </p>
+                                  <p className="mt-1 font-body text-sm text-charcoal">
+                                    {userProfile?.full_name || "Unknown"}
+                                  </p>
+                                  {userProfile?.email && (
+                                    <p className="font-body text-xs text-charcoal/50">
+                                      {userProfile.email}
+                                    </p>
+                                  )}
+                                </div>
+                                <div>
+                                  <p className="font-body text-[0.7rem] font-semibold uppercase tracking-[0.06em] text-charcoal/45">
+                                    Ordered
+                                  </p>
+                                  <p className="mt-1 font-body text-sm text-charcoal">
+                                    {new Date(order.order_date).toLocaleString("en-US", {
+                                      month: "short",
+                                      day: "numeric",
+                                      hour: "2-digit",
+                                      minute: "2-digit",
+                                    })}
+                                  </p>
+                                  {alertLevel.level !== "normal" && alertLevel.message && (
+                                    <p className={`font-body text-xs font-semibold ${urgencyText}`}>
+                                      ⚠️ {alertLevel.message}
+                                    </p>
+                                  )}
+                                </div>
+                              </div>
+
+                              {/* Actions */}
+                              <div className="mt-5 flex flex-wrap gap-2 border-t border-border pt-4">
+                                {order.status === "pending" && (
+                                  <Button
+                                    onClick={() => updateOrderStatus(order.id, "preparing")}
+                                    size="sm"
+                                    variant="terracotta"
+                                  >
+                                    Start preparing
+                                  </Button>
+                                )}
+                                {order.status === "preparing" && (
+                                  <Button
+                                    onClick={() => updateOrderStatus(order.id, "ready")}
+                                    size="sm"
+                                    variant="sage"
+                                  >
+                                    Mark ready
+                                  </Button>
+                                )}
+                                {order.status === "ready" && (
+                                  <Button
+                                    onClick={() => updateOrderStatus(order.id, "completed")}
+                                    size="sm"
+                                    variant="sage"
+                                  >
+                                    Complete order
+                                  </Button>
+                                )}
+                                {order.status !== "completed" && order.status !== "cancelled" && (
+                                  <Button
+                                    onClick={() => updateOrderStatus(order.id, "cancelled")}
+                                    size="sm"
+                                    variant="outline"
+                                    className="border-red-500/60 text-red-600 hover:bg-red-50 hover:text-red-700 font-body"
+                                  >
+                                    Cancel
+                                  </Button>
+                                )}
                               </div>
                             </CardContent>
                           </Card>
@@ -1122,7 +1201,7 @@ export default function AdminCafe() {
                         <p className="font-body text-charcoal/60">Loading order history...</p>
                       </div>
                     ) : orderHistory.length === 0 ? (
-                      <Card className="border-0 bg-white/80 backdrop-blur-xl shadow-lg">
+                      <Card className="border border-border bg-white-warm shadow-none ring-0">
                         <CardContent className="flex flex-col items-center justify-center py-20">
                           <ImageIcon className="text-sage/40 mb-4" size={64} />
                           <h3 className="font-display text-2xl text-charcoal mb-2">No Order History</h3>
@@ -1139,91 +1218,70 @@ export default function AdminCafe() {
                         return (
                           <Card
                             key={order.id}
-                            className="border-0 bg-white/60 backdrop-blur-xl shadow-md opacity-80"
+                            className="border border-border bg-white-warm shadow-none ring-0 opacity-90"
                           >
-                            <CardContent className="p-6">
-                              <div className="flex flex-col md:flex-row gap-6">
-                                {/* Item Image */}
-                                <div className="w-32 h-32 rounded-xl overflow-hidden bg-sage/5 shrink-0">
+                            <CardContent className="p-5 sm:p-6">
+                              <div className="flex gap-4">
+                                <div className="size-16 shrink-0 overflow-hidden rounded-xl bg-sand/40">
                                   {cafeItem?.image_url ? (
-                                    <img 
-                                      src={cafeItem.image_url} 
+                                    <Image
+                                      src={cafeItem.image_url}
                                       alt={cafeItem.name}
-                                      className="w-full h-full object-cover"
+                                      width={128}
+                                      height={128}
+                                      className="h-full w-full object-cover"
+                                      unoptimized
                                     />
                                   ) : (
-                                    <div className="w-full h-full flex items-center justify-center">
-                                      <ImageIcon className="text-sage/40" size={32} />
+                                    <div className="flex h-full w-full items-center justify-center">
+                                      <ImageIcon className="text-sage/40" size={24} />
                                     </div>
                                   )}
                                 </div>
 
-                                {/* Order Details */}
-                                <div className="flex-1">
-                                  <div className="flex items-start justify-between mb-4">
-                                    <div>
-                                      <h3 className="font-display text-xl text-charcoal mb-1">
-                                        {cafeItem?.name}
-                                      </h3>
-                                      <p className="font-body text-sm text-charcoal/60">
-                                        Quantity: {order.quantity}
-                                      </p>
-                                    </div>
-                                    <Badge className={
-                                      order.status === "completed" ? "bg-gray-100 text-gray-600" :
-                                      "bg-red-100 text-red-700"
-                                    }>
-                                      {order.status.toUpperCase()}
-                                    </Badge>
+                                <div className="flex min-w-0 flex-1 items-start justify-between gap-3">
+                                  <div className="min-w-0">
+                                    <h3 className="truncate font-display text-lg leading-snug text-charcoal">
+                                      {cafeItem?.name}
+                                    </h3>
+                                    <p className="mt-0.5 font-body text-sm text-charcoal/60">
+                                      Qty {order.quantity}
+                                      <span className="mx-1.5 text-charcoal/30">·</span>
+                                      <span className="font-medium text-charcoal/80">
+                                        ₹{(Number(cafeItem?.price ?? 0) * order.quantity).toLocaleString("en-IN")}
+                                      </span>
+                                    </p>
                                   </div>
-
-                                  <div className="grid md:grid-cols-3 gap-4">
-                                    {(schedule?.class_model || booking?.class_name) && (
-                                      <div className="md:col-span-3 p-3 rounded-lg bg-sage/5 border border-sage/10">
-                                        <p className="font-body text-xs text-charcoal/50 mb-1">🏋️ Class</p>
-                                        <p className="font-body text-sm text-charcoal">
-                                          {schedule?.class_model?.name || booking?.class_name}
-                                          {' • '}
-                                          {schedule?.start_time 
-                                            ? new Date(schedule.start_time).toLocaleString("en-US", {
-                                                month: "short",
-                                                day: "numeric",
-                                                hour: "2-digit",
-                                                minute: "2-digit"
-                                              })
-                                            : booking?.class_time
-                                          }
-                                        </p>
-                                      </div>
-                                    )}
-                                    
-                                    <div>
-                                      <p className="font-body text-xs text-charcoal/50 mb-1">Customer</p>
-                                      <p className="font-body text-sm text-charcoal">
-                                        {userProfile?.full_name || "Unknown"}
-                                      </p>
-                                    </div>
-
-                                    <div>
-                                      <p className="font-body text-xs text-charcoal/50 mb-1">Order Time</p>
-                                      <p className="font-body text-sm text-charcoal">
-                                        {new Date(order.order_date).toLocaleString("en-US", {
-                                          month: "short",
-                                          day: "numeric",
-                                          hour: "2-digit",
-                                          minute: "2-digit"
-                                        })}
-                                      </p>
-                                    </div>
-
-                                    <div>
-                                      <p className="font-body text-xs text-charcoal/50 mb-1">Total</p>
-                                      <p className="font-display text-lg text-charcoal/70">
-                                        ₹{Number(cafeItem?.price ?? 0) * order.quantity}
-                                      </p>
-                                    </div>
-                                  </div>
+                                  <span className={`shrink-0 rounded-full px-3 py-1 font-body text-[0.7rem] font-semibold uppercase tracking-[0.06em] ${
+                                    order.status === "completed" ? "bg-sand text-charcoal/60" : "bg-red-500/10 text-red-600"
+                                  }`}>
+                                    {order.status}
+                                  </span>
                                 </div>
+                              </div>
+
+                              <OrderStatusTimeline status={order.status} className="mt-5 max-w-md" />
+
+                              <div className="mt-5 flex flex-wrap gap-x-6 gap-y-2 border-t border-border pt-4 font-body text-sm">
+                                {(schedule?.class_model || booking?.class_name) && (
+                                  <span className="text-charcoal/70">
+                                    <span className="text-charcoal/45">Class</span>{" "}
+                                    {schedule?.class_model?.name || booking?.class_name}
+                                  </span>
+                                )}
+                                <span className="text-charcoal/70">
+                                  <span className="text-charcoal/45">Customer</span>{" "}
+                                  {userProfile?.full_name || "Unknown"}
+                                </span>
+                                <span className="text-charcoal/70">
+                                  <span className="text-charcoal/45">Ordered</span>{" "}
+                                  {new Date(order.order_date).toLocaleString("en-US", {
+                                    month: "short",
+                                    day: "numeric",
+                                    hour: "2-digit",
+                                    minute: "2-digit",
+                                  })}
+                                </span>
                               </div>
                             </CardContent>
                           </Card>
@@ -1238,22 +1296,21 @@ export default function AdminCafe() {
           </div>
         </main>
 
-        {/* Add/Edit Form Modal */}
-        {showForm && (
-          <div className="fixed inset-0 z-50">
-            <div className="absolute inset-0 bg-charcoal/60 backdrop-blur-xs" onClick={handleCancel} />
-            
-            <div className="absolute right-0 top-0 bottom-0 w-full max-w-2xl bg-white shadow-2xl flex flex-col">
-              <div className="bg-white/95 backdrop-blur-xl border-b border-sage/10 p-6 z-10 shrink-0">
-                <div className="flex items-center justify-between">
-                  <h2 className="font-display text-3xl text-charcoal">
-                    {editingItem ? "Edit Menu Item" : "Add Menu Item"}
-                  </h2>
-                  <CloseButton onClick={handleCancel} className="rounded-full" />
-                </div>
-              </div>
+        {/* Add/Edit Form Drawer (vaul, slides from right) */}
+        <Drawer
+          direction="right"
+          open={showForm}
+          onOpenChange={(o) => { if (!o) handleCancel(); }}
+        >
+          <DrawerContent direction="right" className="max-w-2xl">
+            <div className="flex shrink-0 items-center justify-between border-b border-sage/10 p-6">
+              <DrawerTitle className="font-display text-3xl text-charcoal">
+                {editingItem ? "Edit Menu Item" : "Add Menu Item"}
+              </DrawerTitle>
+              <CloseButton onClick={handleCancel} className="rounded-full" />
+            </div>
 
-              <div className="p-6 space-y-6 overflow-y-auto flex-1">
+            <div className="flex-1 space-y-6 overflow-y-auto p-6">
                 <div>
                   <label className="font-body text-sm font-medium text-charcoal/80 mb-2 block">Item Name</label>
                   <Input
@@ -1313,10 +1370,13 @@ export default function AdminCafe() {
                   <div className="flex flex-col gap-3">
                     {formData.image_url ? (
                       <div className="rounded-xl overflow-hidden border border-sage/20 bg-sage/5 max-h-56 w-full">
-                        <img
+                        <Image
                           src={formData.image_url}
                           alt=""
+                          width={640}
+                          height={192}
                           className="w-full h-48 object-cover"
+                          unoptimized
                         />
                       </div>
                     ) : (
@@ -1328,8 +1388,8 @@ export default function AdminCafe() {
                     <div className="flex flex-wrap gap-2">
                       <Button
                         type="button"
-                        variant="outline"
-                        className="font-body border-sage/30"
+                        variant="sage-outline"
+                        className="font-body"
                         disabled={uploadingImage}
                         onClick={() => menuPhotoInputRef.current?.click()}
                       >
@@ -1348,8 +1408,8 @@ export default function AdminCafe() {
                       {formData.image_url ? (
                         <Button
                           type="button"
-                          variant="ghost"
-                          className="font-body text-terracotta hover:text-terracotta/90"
+                          variant="terracotta-ghost"
+                          className="font-body"
                           disabled={uploadingImage}
                           onClick={() => setFormData(prev => ({ ...prev, image_url: "" }))}
                         >
@@ -1381,11 +1441,11 @@ export default function AdminCafe() {
                 </div>
               </div>
               
-              <div className="p-6 border-t border-sage/10 bg-white shrink-0 flex gap-3">
+              <div className="p-6 border-t border-sage/10 bg-white-warm shrink-0 flex gap-3">
                 <Button
                   onClick={handleCancel}
                   variant="outline"
-                  className="flex-1 border-charcoal/20 text-charcoal hover:bg-charcoal/5 h-12"
+                  className="flex-1 border-charcoal/20 text-charcoal hover:bg-charcoal/5 hover:text-charcoal h-12"
                 >
                   Cancel
                 </Button>
@@ -1408,26 +1468,24 @@ export default function AdminCafe() {
                   )}
                 </Button>
               </div>
+            </DrawerContent>
+          </Drawer>
+
+        {/* Category Form Drawer (vaul, slides from right) */}
+        <Drawer
+          direction="right"
+          open={showCategoryForm}
+          onOpenChange={(o) => { if (!o) handleCancelCategory(); }}
+        >
+          <DrawerContent direction="right" className="max-w-xl">
+            <div className="flex shrink-0 items-center justify-between border-b border-sage/10 p-6">
+              <DrawerTitle className="font-display text-3xl text-charcoal">
+                {editingCategory ? "Edit Category" : "Add New Category"}
+              </DrawerTitle>
+              <CloseButton onClick={handleCancelCategory} className="rounded-full" />
             </div>
-          </div>
-        )}
 
-        {/* Category Form Modal */}
-        {showCategoryForm && (
-          <div className="fixed inset-0 z-50">
-            <div className="absolute inset-0 bg-charcoal/60 backdrop-blur-xs" onClick={handleCancelCategory} />
-            
-            <div className="absolute right-0 top-0 bottom-0 w-full max-w-xl bg-white shadow-2xl overflow-y-auto">
-              <div className="sticky top-0 bg-white/95 backdrop-blur-xl border-b border-sage/10 p-6 z-10">
-                <div className="flex items-center justify-between">
-                  <h2 className="font-display text-3xl text-charcoal">
-                    {editingCategory ? "Edit Category" : "Add New Category"}
-                  </h2>
-                  <CloseButton onClick={handleCancelCategory} className="rounded-full" />
-                </div>
-              </div>
-
-              <div className="p-6 space-y-6">
+            <div className="flex-1 space-y-6 overflow-y-auto p-6">
                 <div>
                   <label className="font-body text-sm text-charcoal/70 mb-2 block">Category ID</label>
                   <Input
@@ -1472,15 +1530,14 @@ export default function AdminCafe() {
                   </Button>
                 </div>
               </div>
-            </div>
-          </div>
-        )}
+            </DrawerContent>
+          </Drawer>
       </div>
 
       {/* Image Crop Modal */}
       {cropSrc && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/70">
-          <div className="bg-white rounded-2xl shadow-2xl w-full max-w-lg mx-4 overflow-hidden">
+          <div className="bg-white-warm rounded-2xl shadow-2xl w-full max-w-lg mx-4 overflow-hidden">
             <div className="flex items-center justify-between px-6 py-4 border-b border-sage/20">
               <h3 className="font-display text-lg text-charcoal">Adjust image</h3>
               <CloseButton onClick={handleCropCancel} />

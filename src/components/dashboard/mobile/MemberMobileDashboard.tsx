@@ -1,4 +1,5 @@
-import { useState } from "react";
+import { useMemo, useState } from "react";
+import dynamic from "next/dynamic";
 import { useRouter } from "next/router";
 import {
   Calendar,
@@ -19,7 +20,16 @@ import { AnimatedIcon } from "@/components/dashboard/AnimatedIcon";
 import { StatCardRow, type StatCardProps } from "@/components/dashboard/StatCard";
 import { PathToMastery } from "@/components/dashboard/PathToMastery";
 import { UpcomingScheduleCard, type ScheduleEntry } from "@/components/dashboard/UpcomingScheduleCard";
-import { VitalityAreaChart } from "@/components/dashboard/VitalityAreaChart";
+// recharts only loads when the member taps open the vitality dialog.
+const VitalityAreaChart = dynamic(
+  () => import("@/components/dashboard/VitalityAreaChart").then((m) => ({ default: m.VitalityAreaChart })),
+  {
+    ssr: false,
+    loading: () => (
+      <div className="h-[300px] w-full animate-pulse rounded-2xl bg-muted/40" />
+    ),
+  },
+);
 import { ActivityTimeline, type ActivityItem } from "@/components/dashboard/ActivityTimeline";
 import { PeekTile } from "@/components/dashboard/mobile/PeekTile";
 import {
@@ -90,6 +100,19 @@ export function MemberMobileDashboard({
 }: MemberMobileDashboardProps) {
   const router = useRouter();
   const [peek, setPeek] = useState<PeekKey>(null);
+
+  // Memoized so the inline tile array doesn't allocate 4 fresh closures per
+  // render of the mobile dashboard (state changes here are frequent: peek,
+  // pull-to-refresh, etc.).
+  const quickBookTiles = useMemo(
+    () => [
+      { icon: Calendar, label: "Book", action: () => router.push("/portal/book") },
+      { icon: Package, label: "Packages", action: () => router.push("/portal/packages") },
+      { icon: History, label: "History", action: onShowOrderHistory },
+      { icon: Lock, label: "Password", action: () => router.push("/account#reset-password") },
+    ],
+    [router, onShowOrderHistory],
+  );
 
   const nextClass = upcomingEntries[0];
   const creditsLabel = packageDetails
@@ -194,12 +217,7 @@ export function MemberMobileDashboard({
       <section>
         <h2 className="mb-2 px-1 font-body text-xs uppercase tracking-wide text-charcoal/45">Quick book</h2>
         <div className="grid grid-cols-4 gap-2">
-          {[
-            { icon: Calendar, label: "Book", action: () => router.push("/portal/book") },
-            { icon: Package, label: "Packages", action: () => router.push("/portal/packages") },
-            { icon: History, label: "History", action: onShowOrderHistory },
-            { icon: Lock, label: "Password", action: () => router.push("/account#reset-password") },
-          ].map(({ icon: Icon, label, action }) => (
+          {quickBookTiles.map(({ icon: Icon, label, action }) => (
             <button
               key={label}
               type="button"
@@ -317,9 +335,9 @@ export function MemberMobileDashboard({
                             {badge.badge_description}
                           </p>
                         )}
-                        {badge.milestone_value && (
+                        {badge.milestone_value > 0 ? (
                           <p className="font-body text-xs text-charcoal/40">{badge.milestone_value} classes</p>
-                        )}
+                        ) : null}
                       </div>
                     </div>
                   );

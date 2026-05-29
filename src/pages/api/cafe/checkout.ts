@@ -48,8 +48,15 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         lineSubtotal: number;
       }[] = [];
 
+      // Fetch every ordered item in one round trip, then validate from a Map
+      // (was one findUnique per line — N round trips).
+      const cafeItems = await tx.cafeItem.findMany({
+        where: { id: { in: items.map((r) => r.cafe_item_id) } },
+      });
+      const cafeItemById = new Map(cafeItems.map((i) => [i.id, i]));
+
       for (const row of items) {
-        const item = await tx.cafeItem.findUnique({ where: { id: row.cafe_item_id } });
+        const item = cafeItemById.get(row.cafe_item_id);
         if (!item || !item.is_available) {
           throw new Error(`UNAVAILABLE:${row.cafe_item_id}`);
         }

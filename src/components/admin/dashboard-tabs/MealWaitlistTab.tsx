@@ -53,7 +53,7 @@ function MealWaitlistTabImpl({ inquiries, loading, onUpdateStatus }: Props) {
         <MetricCard label="Contacted" value={byStatus("contacted")} icon={CheckCircle2} tone="terracotta" loading={loading} />
         <MetricCard label="Closed" value={byStatus("closed")} icon={CheckCircle2} tone="charcoal" loading={loading} />
       </div>
-      <Card className="border-sage/20 bg-white/95 backdrop-blur-xl">
+      <Card className="border-sage/20 bg-white-warm">
         <CardHeader>
           <CardTitle className="font-display text-2xl text-charcoal">Meal subscription waitlist</CardTitle>
           <CardDescription className="font-body text-charcoal/60">

@@ -41,10 +41,14 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     const finalSlug = slugify(typeof slug === "string" && slug.trim() ? slug : name);
     const email = managerEmail.trim().toLowerCase();
 
-    if (await prisma.partner.findUnique({ where: { slug: finalSlug } })) {
+    const [slugTaken, emailTaken] = await Promise.all([
+      prisma.partner.findUnique({ where: { slug: finalSlug } }),
+      prisma.profile.findFirst({ where: { email, role: "partner" } }),
+    ]);
+    if (slugTaken) {
       return res.status(400).json({ error: "A partner with this slug already exists" });
     }
-    if (await prisma.profile.findFirst({ where: { email, role: "partner" } })) {
+    if (emailTaken) {
       return res.status(400).json({ error: "A partner login with this email already exists" });
     }
 

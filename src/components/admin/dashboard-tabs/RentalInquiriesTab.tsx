@@ -57,7 +57,7 @@ function RentalInquiriesTabImpl({ inquiries, loading }: Props) {
         <MetricCard label="In Review" value={byStatus("in_review")} icon={Clock} tone="terracotta" loading={loading} />
         <MetricCard label="Total Guests Asked" value={totalGuests} icon={Users} tone="charcoal" loading={loading} />
       </div>
-      <Card className="border-sage/20 bg-white/95 backdrop-blur-xl">
+      <Card className="border-sage/20 bg-white-warm">
         <CardHeader>
           <CardTitle className="font-display text-2xl text-charcoal">Space rental inquiries</CardTitle>
           <CardDescription className="font-body text-charcoal/60">

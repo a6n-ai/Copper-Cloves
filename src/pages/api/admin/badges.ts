@@ -51,12 +51,20 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   if (!ensureAdmin(session, res)) return;
 
   if (req.method === "GET") {
-    let ptmTemplates = await prisma.badgeTemplate.findMany({
-      where: { badge_type: "path_to_mastery" },
-      orderBy: { sort_order: "asc" },
-    });
+    // PTM + custom templates are independent reads — fetch in one round trip.
+    const [ptmInitial, customTemplates] = await Promise.all([
+      prisma.badgeTemplate.findMany({
+        where: { badge_type: "path_to_mastery" },
+        orderBy: { sort_order: "asc" },
+      }),
+      prisma.badgeTemplate.findMany({
+        where: { badge_type: "custom" },
+        orderBy: { created_at: "desc" },
+      }),
+    ]);
+    let ptmTemplates = ptmInitial;
 
-    // Auto-seed defaults if none exist
+    // Auto-seed defaults if none exist (cold start only).
     if (ptmTemplates.length === 0) {
       await prisma.badgeTemplate.createMany({ data: PTM_DEFAULTS });
       ptmTemplates = await prisma.badgeTemplate.findMany({
@@ -64,11 +72,6 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         orderBy: { sort_order: "asc" },
       });
     }
-
-    const customTemplates = await prisma.badgeTemplate.findMany({
-      where: { badge_type: "custom" },
-      orderBy: { created_at: "desc" },
-    });
 
     return res.json({ path_to_mastery: ptmTemplates, custom: customTemplates });
   }

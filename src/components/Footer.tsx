@@ -1,7 +1,10 @@
+import Image from "next/image";
 import Link from "next/link";
 import { MapPin, Phone, Mail, Instagram, Facebook, Youtube } from "lucide-react";
 
 import { cdnUrl } from "@/lib/cdnUrl";
+
+const LOGO_URL = cdnUrl("/the_studio_by_C_C_og.png");
 export function Footer() {
   const currentYear = new Date().getFullYear();
 
@@ -14,9 +17,11 @@ export function Footer() {
           {/* Brand & Tagline */}
           <div className="lg:col-span-1">
             <Link href="/" className="inline-block mb-6">
-              <img 
-                src={cdnUrl("/the_studio_by_C_C_og.png")} 
+              <Image
+                src={LOGO_URL}
                 alt="The Studio by Copper + Cloves"
+                width={200}
+                height={64}
                 className="h-16 w-auto brightness-0 invert"
               />
             </Link>

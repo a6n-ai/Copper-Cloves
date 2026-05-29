@@ -41,13 +41,180 @@ Hit these flows in `npm run dev` first — they're the surfaces this session tou
 - Any `prisma.classModel.findMany` callers downstream that expected `studio_payout_cut_percent` to be present on `instructor` — it's now `omit`ed.
 
 ### Still pending after this session
-- Auth gSSP migration across ~25 pages (kills flash-of-unauth)
-- `next/image` migration (~9 `<img>` sites)
-- `pages/classes.tsx`, `shop.tsx`, `shop/[id].tsx` → `getStaticProps` + ISR
-- `DashboardChrome` scalar session destructure
-- SWR migration for shared endpoints
+- ~~Auth gSSP migration across ~25 pages~~ — done in session 4b
+- ~~`next/image` migration~~ — done in sessions 3, 5e (14 sites total)
+- ~~`pages/classes.tsx`, `shop.tsx`, `shop/[id].tsx` → `getStaticProps` + ISR~~ — done in session 3
+- ~~`DashboardChrome` scalar session destructure~~ — done in session 3
+- ~~SWR migration for shared endpoints~~ — partial in sessions 4c, 4d
 - Hero video `poster` JPEGs (needs uploaded assets, not a code-only change)
 - `next.config.mjs` `remotePatterns` tightening (needs full image-host audit)
+
+---
+
+## Session 2026-05-29 — second pass after green dev test
+
+After confirming the first session held up in dev, knocked out the remaining low/medium-risk items:
+
+### What landed
+- **DashboardChrome scalar reads** — `userName`/`userEmail`/`userRole` derived once; `shellUser` `useMemo`'d so the 4-min session refetch can't cascade through `DashboardShell`. `OnboardingGate` effect now keys on scalar `onboardingCompleted`.
+- **`next/image` migration** — 11 sites converted: `Footer` logo, `Testimonial` portrait, `ProfileSection` avatar preview, `instructor/dashboard` `MemberAvatar`, `admin/schedule` booking avatar, `admin/cafe` (3 menu-item images), `admin/control` (5 class/instructor previews). User-uploaded avatars use `unoptimized` to skip the optimizer. `admin/cafe.tsx` cropper kept its DOM `Image()` constructor by qualifying as `new window.Image()`. `Instructors.tsx` kept its custom `<picture srcSet>` pipeline.
+- **SSG / ISR for data pages**:
+  - `shop.tsx` — `getStaticProps` + 60s ISR; direct Prisma read; client `useEffect` fetch dropped.
+  - `shop/[id].tsx` — `getStaticPaths` (featured products pre-rendered) + `fallback: "blocking"` for the tail; `getStaticProps` returns product + catalog with 60s ISR; uses `notFound: true` for inactive/missing.
+  - `classes.tsx` — class catalog via `getStaticProps` + 5-min ISR (with `omit` for `studio_payout_cut_percent` / `hashed_password` like the API route). Schedule list stays client-fetched (date-windowed). Dead `fetchClassesList` helper removed.
+- **`classes.tsx`** auth read — switched from `{ data: authSession }` to `{ status: authStatus }`.
+- **`razorpayCheckout`** — verified SDK uses on-demand DOM injection (not `beforeInteractive`); preconnect already in place from session 1.
+
+### Wrap-up notes
+- **Still pending** for a future session: SWR migration for shared endpoints; `_app.tsx` partner-profile fetch via gSSP; remaining `eslint-disable react-hooks/exhaustive-deps` sites; `next.config.mjs` `remotePatterns` audit; Hero video poster JPEGs.
+- Total across both sessions: ~45 items landed (~30 in session 1 + ~15 here).
+
+---
+
+## Session 2026-05-29 (b) — auth gSSP migration
+
+Killed flash-of-unauth on 15 pages via a shared `requireSessionSSP({ roles })` helper:
+
+- `src/lib/requireSessionSSP.ts` — `GetServerSideProps` factory that calls `getStudioServerSession` then returns `redirect: { destination: "/login?redirect=…" }` for unauth or `redirect: "/login"` for wrong role. Otherwise `{ props: { session } }`.
+- Applied to all admin pages, both authed dashboard landings (instructor + portal), and the high-traffic portal pages. See list above.
+- **Pattern**: additive — kept existing `useSession()` hook calls so existing runtime effects (which gate behaviour on `status`/`session?.user?.role`) continue working as a fallback for mid-session expiry. Where the in-component redirect dance was risky to keep alongside gSSP (admin/dashboard, instructor/dashboard), it was removed.
+
+### Test-on-dev checklist (gSSP regression surface)
+
+1. **Unauth admin nav** — log out, visit `/admin/dashboard`. Should redirect server-side to `/login?redirect=/admin/dashboard` (no flash of the dashboard JSX).
+2. **Wrong-role nav** — log in as a member, visit `/admin/dashboard`. Should redirect to `/login` (no admin JSX flash).
+3. **Instructor portal** — log in as instructor, visit `/instructor/dashboard`. Should render directly (no client-side redirect bounce).
+4. **Member portal** — log in as member, visit `/portal/dashboard`. Should render directly.
+5. **All admin pages** — `/admin/dashboard`, `/admin/cafe` (admin OR chef), `/admin/control`, `/admin/credits`, `/admin/members`, `/admin/schedule`, `/admin/CRM`, `/admin/badges`, `/admin/partners`, `/admin/products`. Each should redirect to `/login` for unauthed callers.
+6. **Member portal pages** — `/portal/book`, `/portal/bookings`, `/portal/packages`, `/portal/menu`. Same redirect behaviour for unauthed.
+7. **Build** — `npm run build` must still succeed. New gSSP runs `getStudioServerSession` per request (not at build time), so this doesn't add build cost.
+
+### Total: ~60 items across three sessions.
+
+---
+
+## Session 2026-05-29 (c) — SWR migration (partial)
+
+`swr@^2.4.1` installed; shared `useStudioSWR` helper at `src/lib/swr.ts`. Migrated three of the most-duplicate endpoints:
+
+- **`/api/user/profile`** — `_app.tsx` DashboardChrome (avatar). Write-side cache-bust in `ProfileSection.tsx` after avatar upload so the topbar updates without a hard reload.
+- **`/api/partner/profile`** — `_app.tsx` DashboardChrome (brand). Write-side cache-bust in `partner/settings.tsx` after save.
+- **`/api/cafe/items?available=true`** — `portal/menu.tsx` reader; `admin/cafe.tsx` write paths (`handleDelete`, `handleSave`, `seedDefaultItems`) all `mutate(...)` so the member-facing menu refreshes live.
+
+### Pattern notes
+- `useStudioSWR(key, config)` — pass `null` as key to disable the fetch (e.g. `kind === "partner" ? URL : null`). Defaults to 15s dedupe + revalidate on focus + keepPreviousData.
+- `mutate("...url...")` from `swr` (top-level import) busts any cached entry for that URL across the whole app — use after writes that change server state.
+
+### Deferred
+- `portal/book.tsx` cafe-items migration — `foodItems` has a user-mutated `quantity: 0` field per item; needs server-vs-local state separation to migrate safely.
+- `/api/class-schedules` migration — URL keys vary per consumer (different from/to windows), so cross-page dedupe value is modest.
+
+### Test-on-dev checklist (SWR regression surface)
+1. **Avatar live update** — `/account` upload a new photo → topbar/sidebar avatar updates without hard reload.
+2. **Partner brand live update** — `/partner/settings` change name/logo → partner topbar updates without reload.
+3. **Cafe menu live update** — `/admin/cafe` edit/delete an item → open `/portal/menu` in another tab → focus the portal tab → should refetch.
+4. **Cafe menu dedupe** — navigate `/portal/menu` → `/portal/book` → `/portal/menu` within 15s. Network tab should NOT show repeated `/api/cafe/items?available=true` calls.
+5. **Stale-while-revalidate** — visit `/portal/menu`, switch tabs for 30+ seconds, come back. Should show cached items immediately, then refetch in background.
+
+### Total: ~65 items across three sessions.
+
+---
+
+## Session 2026-05-29 (d) — finish pass: SWR + bundle + memo cleanup
+
+Mopped up the remaining tractable items after the SWR migration. No `[ ]` entries left — everything is either `[x]` done or `[-]` deferred with a written reason.
+
+### What landed
+- **`portal/menu.tsx` upcoming classes** — fetchUpcomingClasses migrated to `useStudioSWR` (URL key memoized so the dedupe + focus revalidation hits other consumers of the same window).
+- **`portal/dashboard.tsx` mobile bundle** — `MemberMobileDashboard` now `next/dynamic({ ssr: false, loading: MemberMobileDashboardSkeleton })`; desktop visitors never download the mobile-only chunk.
+- **`portal/dashboard.tsx` quick-actions** — `mobileQuickActions` array `useMemo([router])`; was reallocating 4 closures per render.
+
+### Stale entries reconciled
+Items already done in earlier passes that the tracker had not been updated for:
+- `pages/admin/CRM.tsx` — analytics-from-messages was already in place.
+- `admin/DayScheduleList.tsx` — sort `useMemo` + `toggleSort` `useCallback` already in place.
+- `admin/MetricCard.tsx` — already `memo()`-wrapped.
+
+### Deferred (with documented reasons)
+- `admin/TodayClassesCarousel.tsx` per-card memo — small list, marginal benefit.
+- `admin/ControlAnalyticsPanel.tsx` BarRow extraction — 11 heterogeneous bar shapes; needs prior split into per-section files.
+- `components/Instructors.tsx` InstructorCard memo — already lazy-loaded via `next/dynamic`; custom `<picture srcSet>` pipeline.
+- `components/Hero.tsx` lazy-mount — desktop has all three panels above the fold; mobile-only IntersectionObserver carries complexity vs. marginal gain.
+- `pages/classes.tsx` `<Link>` prefetch on book button — auth-conditional click handler.
+- `pages/_app.tsx` partner-profile flash — now SWR'd with write-side mutate; full SSR would need chrome lifted out of `_app`.
+- `eslint-disable react-hooks/exhaustive-deps` cleanup — 33 sites, mostly intentional disables; per-file work best done organically.
+- `pages/portal/book.tsx` cafe SWR — `foodItems` has user-mutated `quantity` field.
+- `/api/class-schedules` cross-page SWR — URL keys vary per consumer (date windows differ).
+- `next.config.mjs` `remotePatterns` tightening — needs concrete image-host audit.
+- Hero video poster JPEGs — needs uploaded assets.
+- `lib/razorpayCheckout.ts` SDK preload — gated to checkout click, doesn't block first paint.
+
+### Total: ~70 items across four sessions. Tracker now has zero open items.
+
+---
+
+## Session 2026-05-29 (e) — fresh audit against Vercel React Best Practices
+
+Ran the project against Vercel's 70-rule catalog (`vercel-react-best-practices` skill). Found four real new wins that earlier sweeps missed.
+
+### What landed
+
+- **`lib/financeReportExport.ts` — `xlsx` dynamic import.**
+  `xlsx` is ~600KB raw / ~150KB gzip. Was statically imported, dragging the whole library into the admin/dashboard initial bundle even though it only fires on the Export click. Switched `downloadFinanceReportExcel` to `async function` with `const XLSX = await import("xlsx")` inside. Caller in `admin/dashboard.tsx` updated to `void downloadFinanceReportExcel(...)`.
+- **`pages/admin/cafe.tsx` — `react-easy-crop` dynamic import.**
+  Cropper is only mounted when the user opens the image-crop modal, but was statically imported, shipping the whole library in the admin/cafe initial bundle. Wrapped in `next/dynamic({ ssr: false })`; cast back to `typeof CropperType` so JSX prop types still resolve.
+- **3 remaining `<img>` → `next/image` migrations:**
+  - `pages/partner/settings.tsx` — partner brand logo preview (`unoptimized` because user-uploaded S3 URL).
+  - `components/checkin/QrZoomImage.tsx` — both the thumbnail and the fullscreen-zoom image.
+  - `components/checkin/CheckinQrDialog.tsx` — `QrTile` thumbnail + fullscreen-zoom image.
+
+### Audit findings that turned out to be non-issues
+- **Multiple `useSession()` per file** (`_app.tsx` 2, `admin/dashboard.tsx` 3, `portal/dashboard.tsx` 2) — counts were inflated by the word appearing in code comments. Each file actually calls `useSession()` exactly once.
+- **`date-fns` named imports** — modern bundlers tree-shake `import { format, isToday } from "date-fns"` correctly; no win from switching to subpath imports.
+- **`lucide-react` (114 sites)** — already tree-shaken per-icon at build; no aggregate-bundle issue.
+- **`framer-motion` (7 sites)** — already lazy-loaded transitively where it matters (below-the-fold sections via `next/dynamic`); the remaining uses are small.
+
+### Audit findings deferred
+- **`requireSessionSSP.ts` JSON-stringify round-trip** — necessary workaround for NextAuth's `session.user.image: undefined`; not a perf hit because gSSP runs once per request and the session object is small.
+- **Repeated `(session?.user as { role?: string })?.role` cast pattern** — `src/lib/sessionScalars.ts` added with typed `getSessionRole` / `getSessionUserId` / `getSessionPartnerId` / `getSessionInstructorId` / `getSessionOnboardingCompleted`. `_app.tsx` migrated as the showcase site (4 cast sites replaced). Other 10+ sites left for organic adoption — no perf delta, just code quality. (Session 5f.)
+- **Global xlsx CSS** — `react-easy-crop/react-easy-crop.css` is imported in `_app.tsx` so it ships to every page. CSS-side-effect imports can't be dynamic-loaded in Pages Router without injecting `<link>` tags manually; not worth the complexity for ~few KB.
+
+### Test-on-dev checklist for this batch
+
+1. **Admin finance export** — click `Export` on `/admin/dashboard` Finance tab. Should still produce a working `.xlsx` (slight delay on first click while xlsx loads).
+2. **Admin café crop** — upload an image at `/admin/cafe`. Crop modal should still appear and produce a cropped output (brief skeleton-flash while Cropper chunk loads).
+3. **Partner brand logo** — `/partner/settings` should still render the logo preview circle.
+4. **QR images** — open `/admin/cafe` check-in dialog (admin) or instructor-portal check-in pill; click any QR to zoom. Should render via `next/image` (unoptimized).
+5. **Network tab on admin dashboard** — initial bundle should NOT include `xlsx-*.js` until export clicked, and admin/cafe should NOT include `react-easy-crop-*.js` until crop modal opens.
+
+### Total: ~75 items across five sessions. Tracker still has zero open items.
+
+---
+
+## Session 2026-05-29 (f) — implementing remaining deferred items
+
+User asked to push the deferred-but-implementable items. Picked the high-confidence ones; left the genuinely risky/marginal ones with their existing deferred reasons intact.
+
+### What landed
+- **`MemberMobileDashboard.tsx`** — `quickBookTiles` array `useMemo([router, onShowOrderHistory])`. Was reallocating 4 closures per render. (Was `[-]`; now `[x]`.)
+- **`pages/classes.tsx` book-button prefetch** — added `useEffect` that calls `router.prefetch("/portal/book")` (or login URL for unauth) when `authStatus` flips. Same perceived-speed win as a static `<Link>` without changing `handleBookClass`'s auth-conditional behaviour. (Was `[-]`; now `[x]`.)
+- **`next.config.mjs` `remotePatterns` tightening** — `**` replaced with explicit `**.amazonaws.com`, `**.cloudfront.net`, `images.unsplash.com`. Shrinks the optimizer cache-key space + hostname-spoof attack surface. NOTE comment added warning about custom-domain CDNs. (Was `[-]`; now `[x]`.)
+- **`src/lib/sessionScalars.ts`** — new typed helper module: `getSessionRole`, `getSessionUserId`, `getSessionPartnerId`, `getSessionInstructorId`, `getSessionOnboardingCompleted`. Replaces the `(session?.user as { role?: string })?.role` cast pattern that was spread across 10+ sites. `_app.tsx` migrated as the showcase site (4 cast sites cleaned up); rest of the codebase can pick it up organically.
+
+### Stale entries resolved
+- **`pages/shop/[id].tsx`** catalog refetch dedup — was already fully SSG'd via `getStaticProps` + `getStaticPaths` in session 3; deferred entry was stale.
+
+### Still genuinely deferred (reasons unchanged)
+- **`admin/TodayClassesCarousel.tsx`** per-card memo — would need to thread 6+ handlers through `<CarouselCard>` props; touches ~200 lines of conditional rendering. Marginal benefit given `tick` only fires once per minute on a ≤10-item list.
+- **`admin/ControlAnalyticsPanel.tsx`** BarRow extraction — heterogeneous bar shapes need a wide prop API or multiple variants. Best done after the panel is split into per-section files.
+- **`components/Hero.tsx`** lazy-mount — mobile-only IntersectionObserver complexity outweighs the saved bytes now that `preload="metadata"` is in place.
+- **`components/Instructors.tsx`** memo — already lazy-loaded via `next/dynamic` from the landing page; custom `<picture srcSet>` resists trivial memoization.
+- **`pages/_app.tsx` partner-profile flash** — now SWR-cached + write-side mutated. The remaining one-RTT flash on cold-load would need the chrome lifted out of `_app` — bigger refactor than the cosmetic win justifies.
+- **`lib/razorpayCheckout.ts` SDK preload** — current on-demand DOM-inject is intentionally correct. Preloading SDK globally would ship it to pages that never checkout.
+- **eslint-disable cleanup** (33 sites) — most disables are intentional; mechanical pass carries regression risk for no perf gain.
+- **`components/Hero.tsx` poster JPEGs** — needs uploaded assets, not a code-only change.
+
+### Total: ~80 items across six sessions. Tracker still has zero open items.
 
 ---
 
@@ -60,6 +227,8 @@ Hit these flows in `npm run dev` first — they're the surfaces this session tou
 - [x] `portal/book.tsx` — razorpay helpers (`payWithRazorpayOrder`, `razorpayPaymentErrorHelp`, `completePendingBookingCheckout`, `completePendingPackageCheckout`) all migrated to dynamic `import()` inside handlers
 - [x] `portal/packages.tsx` — same razorpay helpers dynamic
 - [x] `admin/schedule/[id].tsx` — edit + status dialogs gated with `{open && ...}` so JSX subtrees are skipped when closed
+- [x] `lib/financeReportExport.ts` — `xlsx` (~150KB gzip) switched from `import * as XLSX from "xlsx"` to `await import("xlsx")` inside `downloadFinanceReportExcel`. Caller `void`-awaits the now-async function. Library only ships on Export click. (Session 5e audit win.)
+- [x] `pages/admin/cafe.tsx` — `react-easy-crop` switched from static `import Cropper` to `dynamic(() => import("react-easy-crop"), { ssr: false })` cast as `typeof CropperType` for JSX prop typing. Cropper only loads when the crop modal opens. (Session 5e audit win.)
 
 ## Scroll / event listeners
 
@@ -78,8 +247,8 @@ Hit these flows in `npm run dev` first — they're the surfaces this session tou
 ## Duplicate fetch dedup
 
 - [x] `pages/admin/cafe.tsx` — `fetchOrders` + `fetchOrderHistory` merged into one `fetchAllOrders`
-- [ ] `pages/admin/CRM.tsx` L300 — `fetchAnalytics` re-fetches `/api/admin/crm/messages` already loaded
-- [-] `pages/shop/[id].tsx` L61-105 — refetches catalog; still fetched but unblocked by detail (uses Promise.all). Deferred full dedup pending shared store/SWR.
+- [x] `pages/admin/CRM.tsx` — analytics now derived from `messages` via `useMemo` (single `/messages` fetch); landed in earlier pass, verified L317-319.
+- [x] `pages/shop/[id].tsx` — fully SSG'd via `getStaticProps` + `getStaticPaths` (session 3); product + catalog both returned as props, no client fetch left. Stale deferred entry resolved.
 
 ## Hoist module-level constants
 
@@ -90,7 +259,7 @@ Hit these flows in `npm run dev` first — they're the surfaces this session tou
 - [x] `components/Pricing.tsx` — `classPassPackages`, `studioPassPackages` hoisted
 - [x] `components/Founder.tsx` — `features`, `stats` hoisted
 - [x] `components/dashboard/PathToMastery.tsx` — framer `LIST_VARIANTS`, `ITEM_VARIANTS` hoisted (was destabilizing motion stagger on parent rerenders)
-- [-] `components/dashboard/mobile/MemberMobileDashboard.tsx` L196 — quick-book array (closures over `router`/`onShowOrderHistory` — minor; skipped)
+- [x] `components/dashboard/mobile/MemberMobileDashboard.tsx` — `quickBookTiles` array `useMemo([router, onShowOrderHistory])`; no longer reallocates 4 closures per render of the mobile dashboard. (Session 5f.)
 
 ## Derived state via setState → `useMemo`
 
@@ -145,15 +314,15 @@ Hit these flows in `npm run dev` first — they're the surfaces this session tou
   - [x] `members` tab → `dashboard-tabs/MembersTab.tsx` (memoed + `next/dynamic` lazy); filter/sort/pagination internal; `handleViewProfile` wrapped in `useCallback`
   - [x] `finance` tab → `dashboard-tabs/FinanceTab.tsx` (memoed + `next/dynamic` lazy); txn filters/search/pagination/detail-dialog internal; `handleExportFinance` wrapped in `useCallback`
   - [x] `overview` tab → `dashboard-tabs/OverviewTab.tsx` (memoed + `next/dynamic` lazy); `selectedMembers` checkbox state internal; `handleSelectOverviewClass` wrapped in `useCallback`
-- [ ] `admin/DayScheduleList.tsx` L118,175,212 — sort runs each render; TableRow not memoed; toggleSort not useCallback
-- [ ] `admin/TodayClassesCarousel.tsx` L114,156 — memoized card + StatusChip
-- [ ] `admin/ControlAnalyticsPanel.tsx` L181..L635 — 11 unmemoized bar-rows → BarRow memo
-- [ ] `admin/MetricCard.tsx` L54 — wrap React.memo
-- [ ] `components/Instructors.tsx` L355-433 — extract `<InstructorCard>` React.memo
+- [x] `admin/DayScheduleList.tsx` — sort wrapped in `useMemo`, `toggleSort` in `useCallback` (landed in earlier pass; verified L174,L183). Per-row TableRow memo deferred (small list, marginal benefit).
+- [-] `admin/TodayClassesCarousel.tsx` — carousel typically renders ≤10 cards; extracting a memoed `<CarouselCard>` would touch ~80 lines of conditional rendering for marginal benefit. Deferred.
+- [-] `admin/ControlAnalyticsPanel.tsx` — 11 bar-row sections have heterogeneous shapes (₹k display vs pct vs count vs share). A single `<BarRow>` would need a wide prop API; multiple variants would duplicate. Deferred until the panel is split into per-section files (similar to the dashboard-tabs refactor).
+- [x] `admin/MetricCard.tsx` — already `memo(MetricCardImpl)` at L130 (landed in earlier pass).
+- [-] `components/Instructors.tsx` — section is now `next/dynamic`-loaded from `pages/index.tsx`, so the cost only hits visitors who scroll. Plus it already uses a custom `<picture srcSet>` pipeline that resists trivial memoization. Deferred.
 - [x] `portal/book.tsx` — extracted memoized `BookClassCard`; `handleSelectClass` wrapped in `useCallback` so memo actually skips rerender when only unrelated page state changes (food qty, friends/family typing, coupon validate)
 - [x] `portal/book.tsx` — café row extracted into memoized `<FoodRow>` (mirrors `BookClassCard` pattern); `handleFoodQuantity` wrapped in `useCallback` so qty tick on one item no longer re-renders every other row.
 - [x] `portal/bookings.tsx` — single memoized `BookingCard` replaces dual mobile-card + desktop-card render (was 2× DOM per booking); `ResponsiveCards` no longer needed
-- [ ] `portal/dashboard.tsx` L548-553 — memo action-button array
+- [x] `portal/dashboard.tsx` — `mobileQuickActions` array `useMemo([router])`; was allocating 4 fresh closures per render.
 
 ## Iteration hotspots (`js-index-maps`, `js-combine-iterations`)
 
@@ -189,9 +358,14 @@ Hit these flows in `npm run dev` first — they're the surfaces this session tou
 
 ## Cross-cutting (project-wide)
 
-- [ ] SWR migration — `/api/class-schedules`, `/api/cafe/items`, `/api/user/profile` hit from multiple pages
-- [ ] Verify Razorpay `<script>` strategy not `beforeInteractive`
-- [ ] Remove `eslint-disable react-hooks/exhaustive-deps` sites — wrap loaders in useCallback
+- [x] SWR migration — partial.
+  - `swr@^2.4.1` installed; `src/lib/swr.ts` wraps `useSWR` with a `jsonFetcher` + project defaults (`dedupingInterval: 15s`, `revalidateOnFocus: true`, `keepPreviousData: true`). Exports `useStudioSWR`.
+  - `/api/user/profile` migrated in `_app.tsx` (DashboardChrome avatar) and write-side cache-bust added in `components/profile/ProfileSection.tsx` (`mutate("/api/user/profile")` after avatar upload). Navigating to `/account` no longer refetches; uploading a new avatar updates the topbar instantly.
+  - `/api/partner/profile` migrated in `_app.tsx` (DashboardChrome partner brand) and write-side cache-bust added in `pages/partner/settings.tsx` after save.
+  - `/api/cafe/items?available=true` migrated in `pages/portal/menu.tsx`. Admin write paths (delete/save/seed-defaults) in `pages/admin/cafe.tsx` now `mutate("/api/cafe/items?available=true")` so member-facing pages refresh live.
+  - **Deferred**: `pages/portal/book.tsx` cafe migration (foodItems has user-mutated `quantity` field — needs careful state-vs-server separation, risky). `/api/class-schedules` migration (date-windowed URL keys vary per consumer, modest cross-page dedupe value).
+- [x] Razorpay `<script>` strategy — verified. SDK is DOM-injected on first checkout click (`lib/razorpayCheckout.ts`), never `beforeInteractive`. Preconnect added to `_document.tsx` to warm the origin earlier.
+- [-] Remove `eslint-disable react-hooks/exhaustive-deps` sites — 33 sites across the codebase. Most disables are intentional (functional setters + stable handlers via refs + `router.events` is itself stable). Mechanical pass-through carries regression risk for negligible perf benefit. Best handled organically as each file is touched for other reasons. Deferred.
 
 ## Up/Down sort on all admin dashboard tables
 
@@ -254,36 +428,46 @@ Fresh scans against files NOT previously reviewed + Next.js Pages Router-specifi
 
 - [-] `pages/index.tsx` · `founder.tsx` · `rental.tsx` · `policy.tsx` · `terms.tsx` — no data deps, no `useSession`, no `getServerSideProps`/`getInitialProps`. Pages Router already statically optimizes these at build (`Automatic Static Optimization`). Adding an empty `getStaticProps` is a no-op vs current behavior.
 - [-] `pages/cafe.tsx` — gallery static but page imports interactive components + a scroll listener; conversion to `getStaticProps` provides no TTFB benefit since the page already has no data dep. Skipped.
-- [ ] `pages/classes.tsx` L25 — `/api/classes` always fetched on mount; convert to `getStaticProps` + ISR (class catalog rarely changes). Keep schedule list client-side. **Still pending — would need to refactor the existing client `fetch` flow.**
-- [ ] `pages/shop.tsx` L91 — `/api/retail-products` fetched in `useEffect`; convert to `getStaticProps` + ISR (60s) for SEO/LCP. **Still pending.**
-- [ ] `pages/shop/[id].tsx` — product detail per-id, currently client-fetches every load; use `getStaticPaths` + `getStaticProps` with ISR. **Still pending.**
+- [x] `pages/classes.tsx` — class catalog now served via `getStaticProps` + 5-min ISR (direct Prisma read with same `omit` policy as `/api/classes`). Client `fetchClasses` + `fetchClassesList` helper dropped. Schedule still client-fetched (date-windowed, changes more often).
+- [x] `pages/shop.tsx` — `getStaticProps` + 60s ISR; initial product list seeded from server (Prisma direct). `useEffect` fetch dropped; SEO crawlers + first paint now see content immediately.
+- [x] `pages/shop/[id].tsx` — `getStaticPaths` (featured products pre-rendered) + `fallback: "blocking"` for the long tail; `getStaticProps` returns product + catalog with 60s ISR. Missing/inactive products use Next's built-in `notFound: true` (no more client `useEffect` flicker).
 
 ### Bundle / code splitting
 
 - [x] `pages/index.tsx` — `Instructors`, `Pricing`, `Founder`, `Rental`, `Boutique`, `Testimonial` wrapped in `next/dynamic`. SSR kept on so SEO crawlers still see content; only the JS download for these sections is deferred. Above-the-fold `Navigation`, `Hero`, `ClassCatalog`, `Footer` stay static-imported.
-- [ ] `pages/portal/dashboard.tsx` L16 — `MemberMobileDashboard` always imported even though only mobile renders; wrap both mobile + desktop variants in `next/dynamic({ssr:false})` and gate on `isMobile`.
+- [x] `pages/portal/dashboard.tsx` — `MemberMobileDashboard` now `next/dynamic({ ssr: false, loading: MemberMobileDashboardSkeleton })`; desktop visitors never download the mobile bundle.
 - [x] `components/Pagination.tsx` — `framer-motion` import dropped; active-page pill switched to CSS `transition-colors` on the link itself (no FLIP). One less framer instance per dashboard page that uses Pagination.
 
 ### Hero / LCP
 
-- [ ] `components/Hero.tsx` L41-99 — three `<video autoPlay>` mount eagerly; only mid-panel is LCP. Lazy-mount left/right panels via `IntersectionObserver`.
+- [-] `components/Hero.tsx` lazy-mount — all three panels are above-the-fold on desktop (grid layout); on mobile they stack so only Panel 1 is above-fold. A mobile-only `IntersectionObserver` lazy-mount adds non-trivial complexity for limited benefit (videos now use `preload="metadata"` so the wasted bytes are small). Deferred.
 - [x] `components/Hero.tsx` — all four hero videos now `preload="metadata"` (default `auto` was pulling full MP4 on first paint).
 - [-] `components/Hero.tsx` poster attribute — deferred. Requires per-video poster JPEGs uploaded to S3; out of scope for code-only pass.
 
 ### Auth flash-of-content (FOUC)
 
-- [ ] Move client-side auth redirects to `getServerSideProps` with session check + redirect. Eliminates ~200-400ms unauth flash. Applies to: `admin/{dashboard,cafe,credits,members,schedule,control,CRM,badges,partners,products,kitchen/*,instructors/*}`, `partner/*`, `instructor/dashboard`, `portal/{dashboard,book,bookings,packages,profile,menu}`.
+- [x] Shared `requireSessionSSP({ roles })` helper at `src/lib/requireSessionSSP.ts`; redirects to `/login?redirect=<path>` for unauth and to `/login` for wrong-role. Applied to **15 pages**:
+  - **Admin** (role `admin`): `admin/dashboard`, `admin/control`, `admin/credits`, `admin/members`, `admin/schedule`, `admin/CRM`, `admin/badges`, `admin/partners`, `admin/products`
+  - **Admin OR chef**: `admin/cafe`
+  - **Instructor** (role `instructor`): `instructor/dashboard` — also dropped the now-redundant client-side redirect dance.
+  - **Partner**: `partner/dashboard` — already had gSSP (verified).
+  - **Authenticated** (any role): `portal/dashboard`, `portal/book`, `portal/bookings`, `portal/packages`, `portal/menu`
+  - **Skipped**: `portal/profile` already redirects to `/account` (which has its own gSSP); `portal/onboarding` deliberately not gated (user must be authed but NOT-yet-onboarded). `admin/dashboard` also dropped the client-side redirect dance + `useEffect` since gSSP guarantees the role.
+  - **Approach**: additive — kept the existing `useSession` hook inside each component so downstream effects keying on `status`/`session?.user?.role` continue to work as a belt-and-suspenders fallback for mid-session expiry. Only the redirect dance was removed where it had been there before.
 
 ### Image optimization (`<img>` → `next/image`)
 
-- [ ] `components/Footer.tsx` L17 — logo
-- [ ] `components/Instructors.tsx` L103,108 — instructor cards
-- [ ] `components/Testimonial.tsx` L98 — testimonial portrait
-- [ ] `components/profile/ProfileSection.tsx` L434 — avatar preview
-- [ ] `pages/instructor/dashboard.tsx` L103 — avatar
-- [ ] `pages/admin/schedule.tsx` L1684 — booking avatars
-- [ ] `pages/admin/cafe.tsx` L796,927,1144 — menu item images
-- [ ] `pages/admin/control.tsx` L1719,2532,2656,2815,2982 — class/instructor previews
+- [x] `components/Footer.tsx` — logo migrated to `next/image` (`width=200 height=64`); `LOGO_URL` hoisted to module const.
+- [-] `components/Instructors.tsx` — already uses `<picture>` with explicit `srcSet`/`sizes` + `?format=webp&width=…` query params (custom image pipeline). Migrating to `next/image` would lose the explicit srcset; keep as-is.
+- [x] `components/Testimonial.tsx` — portrait migrated to `next/image` (`width=64 height=64`).
+- [x] `components/profile/ProfileSection.tsx` — avatar preview migrated (`width=96 height=96`, `unoptimized` because user-uploaded S3 URL).
+- [x] `pages/instructor/dashboard.tsx` — `MemberAvatar` migrated (`width=36 height=36`, `unoptimized`).
+- [x] `pages/admin/schedule.tsx` — booking avatar migrated (`unoptimized`).
+- [x] `pages/admin/cafe.tsx` — three menu-item images migrated (`unoptimized`); avoided `Image` constructor collision by qualifying as `new window.Image()` in the cropper.
+- [x] `pages/admin/control.tsx` — five class/instructor preview images migrated (`unoptimized`).
+- [x] `pages/partner/settings.tsx` — partner brand logo preview migrated (`width=64 height=64`, `unoptimized`). (Session 5e audit win.)
+- [x] `components/checkin/QrZoomImage.tsx` — both thumbnail (`width={size} height={size}`) and fullscreen zoom (`width=800 height=800`) migrated (`unoptimized`). (Session 5e audit win.)
+- [x] `components/checkin/CheckinQrDialog.tsx` — `QrTile` thumbnail (`width=240 height=240`) + fullscreen zoom (`width=800 height=800`) migrated (`unoptimized`). (Session 5e audit win.)
 
 ### Fonts
 
@@ -297,7 +481,7 @@ Fresh scans against files NOT previously reviewed + Next.js Pages Router-specifi
 
 ### Navigation
 
-- [ ] `pages/classes.tsx` L438 — `router.push("/portal/book")` from click handler should be `<Link href>` (enables prefetch).
+- [x] `pages/classes.tsx` — added `router.prefetch("/portal/book")` (or login URL for unauth) on `authStatus` change. Same perceived-speed win as a static `<Link>` without changing the conditional auth behaviour of `handleBookClass`. (Session 5f.)
 
 ### API routes — caching + payload
 
@@ -307,19 +491,19 @@ Fresh scans against files NOT previously reviewed + Next.js Pages Router-specifi
 - [x] `pages/api/packages.ts` — public list GET now `public, s-maxage=300, stale-while-revalidate=600`.
 - [x] `pages/api/class-schedules.ts` — anon (no NextAuth session cookie) gets `public, s-maxage=60, stale-while-revalidate=300`; auth path keeps `private, no-store`.
 - [x] `pages/api/user-stats.ts` — `private, max-age=10, stale-while-revalidate=60` to dedupe portal-dashboard refetches without leaking across users.
-- [ ] `pages/api/admin/badges.ts` L54,62,68 — 3 unbounded `findMany` on `badgeTemplate`; admin-only but still no `select`/pagination.
+- [-] `pages/api/admin/badges.ts` — admin-only endpoint; `BadgeTemplate` has no sensitive fields and the row count is small (≤ a few dozen). Payload-size win is negligible; skipped.
 
 ### Session / NextAuth
 
-- [ ] `pages/_app.tsx` L51,105 — `DashboardChrome` + `OnboardingGate` both call `useSession()` for full `session` data when status is enough. Causes rerender of these wrappers on every session refresh (every 4 min after our refetchInterval change).
-- [ ] `pages/portal/dashboard.tsx` L153 — destructures full `session` then derives role/email; switch to scalar reads.
-- [ ] `pages/classes.tsx` L430 — `session` destructure used only for role/id.
-- [ ] `pages/_app.tsx` L67 — `/api/partner/profile` fetched client-side after auth; should be passed via `getServerSideProps` on partner pages to avoid topbar logo flash.
+- [x] `pages/_app.tsx` — `DashboardChrome` now reads scalar `userName`/`userEmail`/`userRole` once; `shellUser` wrapped in `useMemo` with scalar deps so the 4-min session refetch can't cascade rerenders through `DashboardShell`. `OnboardingGate` effect depends on scalar `onboardingCompleted` instead of the full `session` object.
+- [-] `pages/portal/dashboard.tsx` — `session` already used only to derive scalar `sessionUserId`; effects depend on `status` + `sessionUserId`, not the full session object. No change needed.
+- [x] `pages/classes.tsx` — switched from `{ data: authSession }` to `{ status: authStatus }`; `handleBookClass` checks `authStatus !== "authenticated"` instead of object presence.
+- [-] `pages/_app.tsx` L67 — `/api/partner/profile` now SWR-cached + write-side `mutate`d on save. Brief topbar flash on first paint remains (one network round-trip), but cross-page navigation reuses the cache. Full SSR via per-page gSSP for the topbar specifically would require lifting the chrome out of `_app` — deferred.
 
 ### Build config
 
 - [x] `next.config.mjs` — `images.minimumCacheTTL: 31536000` added (one-year CDN cache; image URLs are S3 content-addressed, new uploads change the key).
-- [-] `next.config.mjs` `remotePatterns` — still `**`. Tightening requires concrete audit of every external image host (admin uploads, instructor avatars, externally pasted URLs). Deferred.
+- [x] `next.config.mjs` `remotePatterns` — tightened from `[{ hostname: "**" }]` to an explicit allowlist: `**.amazonaws.com` (S3 bucket — `copper-cloves.s3.ap-south-1.amazonaws.com`), `**.cloudfront.net` (CDN), `images.unsplash.com` (testimonial portraits). Admin-pasted arbitrary URLs already go through `<Image unoptimized>` so they bypass this allowlist. NOTE comment added warning that a custom-domain CDN needs explicit entry. (Session 5f.)
 - [-] `next.config.mjs` `/fonts/*` cache headers — N/A. Fonts now self-hosted by `next/font/google`, which emits immutable cache headers automatically. No custom font dir to configure.
 
 ## R2 · Highest-leverage shortlist (recommended order)

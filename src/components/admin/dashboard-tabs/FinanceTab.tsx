@@ -299,7 +299,7 @@ function FinanceTabImpl({
         />
       </div>
 
-      <Card className="border-sage/20 bg-white/95 backdrop-blur-xl">
+      <Card className="border-sage/20 bg-white-warm">
         <CardHeader>
           <div className="flex items-center justify-between">
             <div>
@@ -333,7 +333,7 @@ function FinanceTabImpl({
         </CardContent>
       </Card>
 
-      <Card className="border-sage/20 bg-white/95 backdrop-blur-xl">
+      <Card className="border-sage/20 bg-white-warm">
         <CardHeader>
           <div className="flex items-center justify-between mb-4">
             <div>
@@ -587,7 +587,7 @@ function FinanceTabImpl({
       </ResponsiveDialog>
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        <Card className="border-sage/20 bg-white/95 backdrop-blur-xl">
+        <Card className="border-sage/20 bg-white-warm">
           <CardHeader>
             <CardTitle className="font-display text-xl text-charcoal">Revenue Trend</CardTitle>
             <CardDescription className="font-body text-charcoal/60">Daily revenue over the past 30 days</CardDescription>
@@ -616,7 +616,7 @@ function FinanceTabImpl({
           </CardContent>
         </Card>
 
-        <Card className="border-sage/20 bg-white/95 backdrop-blur-xl">
+        <Card className="border-sage/20 bg-white-warm">
           <CardHeader>
             <CardTitle className="font-display text-xl text-charcoal">Revenue Sources</CardTitle>
             <CardDescription className="font-body text-charcoal/60">Breakdown by revenue type</CardDescription>
@@ -649,7 +649,7 @@ function FinanceTabImpl({
           </CardContent>
         </Card>
 
-        <Card className="border-sage/20 bg-white/95 backdrop-blur-xl lg:col-span-2">
+        <Card className="border-sage/20 bg-white-warm lg:col-span-2">
           <CardHeader>
             <CardTitle className="font-display text-xl text-charcoal">Monthly P&amp;L</CardTitle>
             <CardDescription className="font-body text-charcoal/60">Revenue vs expenses over the past 6 months</CardDescription>

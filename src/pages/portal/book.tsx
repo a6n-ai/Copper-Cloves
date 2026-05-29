@@ -1,5 +1,9 @@
 import { memo, useCallback, useEffect, useMemo, useState } from "react";
+import { useStudioSWR } from "@/lib/swr";
 import { PageHeader } from "@/components/dashboard/PageHeader";
+import { requireSessionSSP } from "@/lib/requireSessionSSP";
+
+export const getServerSideProps = requireSessionSSP();
 import { useToast } from "@/hooks/use-toast";
 import { useRouter } from "next/router";
 import { Card, CardContent } from "@/components/ui/card";
@@ -321,6 +325,14 @@ export default function BookClass() {
   const [userName, setUserName] = useState("");
   const [userEmail, setUserEmail] = useState("");
 
+  // Profile via shared SWR (deduped across the portal). Display-only here.
+  const { data: profileData } = useStudioSWR<{ full_name?: string; email?: string }>("/api/user/profile");
+  useEffect(() => {
+    if (!profileData) return;
+    setUserName(profileData.full_name || "Member");
+    setUserEmail(profileData.email || "");
+  }, [profileData]);
+
   // Booking panel states
   const [showBookingPanel, setShowBookingPanel] = useState(false);
   const [bookingStep, setBookingStep] = useState(1);
@@ -498,13 +510,12 @@ export default function BookClass() {
 
   async function checkAuthAndLoadData() {
     try {
-      const [profileRes, packagesRes, allPkgRes] = await Promise.all([
-        fetch("/api/user/profile"),
+      // Profile loads via shared SWR (deduped across the portal) — not here.
+      const [packagesRes, allPkgRes] = await Promise.all([
         fetch("/api/user-packages?active=true"),
         fetch("/api/packages"),
       ]);
 
-      const profile = profileRes.ok ? await profileRes.json() : null;
       const packages = packagesRes.ok ? await packagesRes.json() : [];
       const allPkgTypes = allPkgRes.ok ? await allPkgRes.json() : [];
       // Pick highest-priced unlimited 3-month pass as the featured upsell
@@ -517,11 +528,6 @@ export default function BookClass() {
         : null;
       if (studioPass3m) {
         setFeaturedPackage({ id: studioPass3m.id, name: studioPass3m.name, price: Number(studioPass3m.price), duration_months: studioPass3m.duration_months ?? null });
-      }
-
-      if (profile) {
-        setUserName(profile.full_name || "Member");
-        setUserEmail(profile.email || "");
       }
 
       const now = new Date();

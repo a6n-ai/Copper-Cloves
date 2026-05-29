@@ -1,4 +1,7 @@
-import { useCallback, useEffect, useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
+import { mutate } from "swr";
+import { useStudioSWR } from "@/lib/swr";
+import Image from "next/image";
 import { PageHeader } from "@/components/dashboard/PageHeader";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -112,6 +115,22 @@ interface ProfileSectionProps {
   subtitle?: string;
 }
 
+interface ProfileData {
+  full_name?: string;
+  email?: string;
+  phone?: string;
+  whatsapp_phone?: string;
+  gender?: string;
+  dob?: string | null;
+  avatar_url?: string | null;
+  questionnaire?: Record<string, unknown> | null;
+}
+
+interface SupportTicket {
+  type: string;
+  status: string;
+}
+
 /**
  * Unified profile editor shared across all four portals.
  * - All roles get: avatar + name + email + phone + whatsapp + change password.
@@ -123,7 +142,6 @@ export function ProfileSection({ role, title, subtitle }: ProfileSectionProps) {
   const fileInputRef = useRef<HTMLInputElement>(null);
   const attachmentRef = useRef<HTMLInputElement>(null);
 
-  const [loading, setLoading] = useState(true);
   const [avatarUrl, setAvatarUrl] = useState<string | null>(null);
   const [avatarUploading, setAvatarUploading] = useState(false);
 
@@ -157,46 +175,51 @@ export function ProfileSection({ role, title, subtitle }: ProfileSectionProps) {
 
   const isFemale = gender === "female";
 
-  const loadProfile = useCallback(async () => {
-    try {
-      // Fire profile + tickets concurrently (was sequential).
-      const [res, ticketRes] = await Promise.all([
-        fetch("/api/user/profile"),
-        isMember ? fetch("/api/user/support-tickets") : Promise.resolve(null),
-      ]);
-      if (!res.ok) throw new Error();
-      const p = await res.json();
-      setFullName(p.full_name || "");
-      setEmail(p.email || "");
-      setPhone(p.phone || "");
-      setWhatsappPhone(p.whatsapp_phone || "");
-      setGender(p.gender || "");
-      setDob(p.dob ? new Date(p.dob).toISOString().substring(0, 10) : "");
-      setAvatarUrl(p.avatar_url || null);
-      if (p.questionnaire && typeof p.questionnaire === "object") {
-        const q = p.questionnaire as Record<string, unknown>;
-        setFitnessGoals(Array.isArray(q.fitnessGoals) ? q.fitnessGoals as string[] : []);
-        setHealthShort(Array.isArray(q.healthIssuesShort) ? q.healthIssuesShort as string[] : []);
-        setHealthLong(Array.isArray(q.healthIssuesLong) ? q.healthIssuesLong as string[] : []);
-        setInjuries(typeof q.injuries === "string" ? q.injuries : "");
-      }
+  // Shares the in-flight request + cache with the `/api/user/profile` key
+  // `_app.tsx` already holds (and that this component mutates on avatar upload),
+  // so visiting the profile page no longer fires a duplicate concurrent GET.
+  const { data: profileData, error: profileError, isLoading: profileLoading } =
+    useStudioSWR<ProfileData>("/api/user/profile");
+  const { data: ticketData } = useStudioSWR<SupportTicket[]>(
+    isMember ? "/api/user/support-tickets" : null,
+  );
+  const loading = profileLoading && !profileData;
 
-      if (ticketRes && ticketRes.ok) {
-        const tickets = await ticketRes.json();
-        const openPause = Array.isArray(tickets) && tickets.some(
-          (t: { type: string; status: string }) =>
-            t.type === "pause_subscription" && ["open", "in_review"].includes(t.status)
-        );
-        setTicketSubmitted(openPause);
-      }
-    } catch {
-      toast({ title: "Could not load profile", variant: "destructive" });
-    } finally {
-      setLoading(false);
+  useEffect(() => {
+    if (profileError) toast({ title: "Could not load profile", variant: "destructive" });
+  }, [profileError, toast]);
+
+  // Seed the editable form fields once from the first SWR payload. Guarding on
+  // a ref keeps focus-revalidation (or the post-avatar mutate) from clobbering
+  // edits the member hasn't saved yet.
+  const seededRef = useRef(false);
+  useEffect(() => {
+    if (!profileData || seededRef.current) return;
+    seededRef.current = true;
+    const p = profileData;
+    setFullName(p.full_name || "");
+    setEmail(p.email || "");
+    setPhone(p.phone || "");
+    setWhatsappPhone(p.whatsapp_phone || "");
+    setGender(p.gender || "");
+    setDob(p.dob ? new Date(p.dob).toISOString().substring(0, 10) : "");
+    setAvatarUrl(p.avatar_url || null);
+    if (p.questionnaire && typeof p.questionnaire === "object") {
+      const q = p.questionnaire as Record<string, unknown>;
+      setFitnessGoals(Array.isArray(q.fitnessGoals) ? q.fitnessGoals as string[] : []);
+      setHealthShort(Array.isArray(q.healthIssuesShort) ? q.healthIssuesShort as string[] : []);
+      setHealthLong(Array.isArray(q.healthIssuesLong) ? q.healthIssuesLong as string[] : []);
+      setInjuries(typeof q.injuries === "string" ? q.injuries : "");
     }
-  }, [toast, isMember]);
+  }, [profileData]);
 
-  useEffect(() => { loadProfile(); }, [loadProfile]);
+  useEffect(() => {
+    if (!ticketData) return;
+    const openPause = Array.isArray(ticketData) && ticketData.some(
+      (t) => t.type === "pause_subscription" && ["open", "in_review"].includes(t.status),
+    );
+    setTicketSubmitted(openPause);
+  }, [ticketData]);
 
   useEffect(() => {
     if (loading || typeof window === "undefined") return;
@@ -299,6 +322,9 @@ export function ProfileSection({ role, title, subtitle }: ProfileSectionProps) {
       const confirmJson = await confirmRes.json().catch(() => ({}));
       const finalUrl = confirmRes.ok && typeof confirmJson.url === "string" ? confirmJson.url : publicUrl;
       setAvatarUrl(finalUrl);
+      // Bust the SWR cache so the topbar/sidebar avatar (DashboardChrome)
+      // picks up the new photo without a hard reload.
+      void mutate("/api/user/profile");
       toast({ title: "Photo updated" });
     } catch {
       toast({ title: "Upload failed", variant: "destructive" });
@@ -437,7 +463,7 @@ export function ProfileSection({ role, title, subtitle }: ProfileSectionProps) {
                 <div className="flex gap-5 items-center pb-5 border-b border-sage/10">
                   <div className="relative w-24 h-24 rounded-full overflow-hidden bg-sage/10 border border-sage/20 shrink-0">
                     {avatarUrl
-                      ? <img src={avatarUrl} alt="" className="w-full h-full object-cover" />
+                      ? <Image src={avatarUrl} alt="" width={96} height={96} className="w-full h-full object-cover" unoptimized />
                       : <div className="w-full h-full flex items-center justify-center text-sage"><User size={36} /></div>
                     }
                   </div>

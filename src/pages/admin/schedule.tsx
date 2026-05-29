@@ -1,6 +1,10 @@
 import { useState, useEffect, useMemo } from "react";
+import Image from "next/image";
 import { useRouter } from "next/router";
 import { useForm } from "react-hook-form";
+import { requireSessionSSP } from "@/lib/requireSessionSSP";
+
+export const getServerSideProps = requireSessionSSP({ roles: ["admin"] });
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -323,9 +327,11 @@ export default function AdminSchedule() {
   const [instructorPickerOpen, setInstructorPickerOpen] = useState(false);
   const [multiDateInput, setMultiDateInput] = useState("");
   
-  // New state for month/week selection
-  const [scheduleViewYear, setScheduleViewYear] = useState(() => new Date().getFullYear());
-  const [selectedMonth, setSelectedMonth] = useState(new Date().getMonth());
+  // Month/year are pure derivations of the selected calendar date — compute
+  // them during render instead of mirroring into state via an effect (which
+  // forced an extra render + refetch on every month change).
+  const selectedMonth = selectedDate.getMonth();
+  const scheduleViewYear = selectedDate.getFullYear();
   const [dbClasses, setDbClasses] = useState<any[]>([]);
   const [dbInstructors, setDbInstructors] = useState<any[]>([]);
   const [loadError, setLoadError] = useState<string | null>(null);
@@ -472,17 +478,6 @@ export default function AdminSchedule() {
     };
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [status, userRole, selectedMonth, scheduleViewYear]);
-
-  // Sync month/year fetch range when calendar moves to a different month.
-  useEffect(() => {
-    const m = selectedDate.getMonth();
-    const y = selectedDate.getFullYear();
-    if (m !== selectedMonth || y !== scheduleViewYear) {
-      setSelectedMonth(m);
-      setScheduleViewYear(y);
-    }
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [selectedDate]);
 
   const loadDbData = async (): Promise<string | null> => {
     try {
@@ -1809,7 +1804,7 @@ export default function AdminSchedule() {
                   return (
                     <li key={b.id} className="py-3 flex items-center gap-3">
                       {b.avatarUrl ? (
-                        <img src={b.avatarUrl} alt={b.name} className="h-9 w-9 rounded-full object-cover border border-sage/20 shrink-0" />
+                        <Image src={b.avatarUrl} alt={b.name} width={36} height={36} className="h-9 w-9 rounded-full object-cover border border-sage/20 shrink-0" unoptimized />
                       ) : (
                         <div className="h-9 w-9 rounded-full bg-sage/10 border border-sage/20 flex items-center justify-center shrink-0">
                           <span className="font-body text-xs font-medium text-sage">{initials}</span>

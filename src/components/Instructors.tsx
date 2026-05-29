@@ -1,4 +1,5 @@
-import { useRef, useState, useEffect } from "react";
+import { useRef, useState, useEffect, useMemo } from "react";
+import { useInstructors } from "@/hooks/useInstructors";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Button } from "@/components/ui/button";
 import { CloseButton } from "@/components/ui/quick-actions";
@@ -151,51 +152,37 @@ export function Instructors() {
   // Parallax: use a ref + direct DOM mutation + rAF instead of setState-per-pixel,
   // which was re-rendering the entire instructor list on every scroll tick.
   const parallaxRef = useRef<HTMLDivElement | null>(null);
-  const [instructors, setInstructors] = useState<Instructor[]>([]);
-  const [loading, setLoading] = useState(true);
-
-  // Fetch instructors from database
-  useEffect(() => {
-    fetchInstructors();
-  }, []);
-
-  const fetchInstructors = async () => {
-    try {
-      setLoading(true);
-      const res = await fetch("/api/admin/instructors");
-      const data = res.ok ? await res.json() : [];
-      const unique = dedupeInstructorRows(
-        data as { id: string; name: string; display_order?: number | null; about?: string | null; image_url?: string | null; specialties?: string[] }[],
-      );
-      const transformedInstructors: Instructor[] = unique.map((instructor: {
-        id?: string; name: string; title?: string; years_of_experience?: number; about?: string;
-        image_url?: string; specialties?: string[]; certifications?: string[];
-        philosophy?: string; social_facebook?: string; social_twitter?: string;
-        social_linkedin?: string; social_whatsapp?: string;
-      }) => ({
-        id: instructor.id,
-        name: instructor.name,
-        title: instructor.title || "Instructor",
-        experience: instructor.years_of_experience ? `${instructor.years_of_experience} years experience` : "",
-        about: instructor.about || "",
-        image: instructor.image_url || cdnUrl("/placeholder.jpg"),
-        image_url: instructor.image_url,
-        specialties: instructor.specialties || [],
-        certifications: instructor.certifications || [],
-        philosophy: instructor.philosophy || "",
-        social_facebook: instructor.social_facebook,
-        social_twitter: instructor.social_twitter,
-        social_linkedin: instructor.social_linkedin,
-        social_whatsapp: instructor.social_whatsapp,
-      }));
-      setInstructors(transformedInstructors);
-    } catch (error) {
-      console.error("Error fetching instructors:", error);
-      setInstructors([]);
-    } finally {
-      setLoading(false);
-    }
-  };
+  // Roster read through the shared SWR key (cached + deduped with the admin
+  // pages). Dedupe + transform to the display shape derived during render.
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const { data: instructorRows, isLoading } = useInstructors<any[]>();
+  const loading = isLoading && !instructorRows;
+  const instructors: Instructor[] = useMemo(() => {
+    const unique = dedupeInstructorRows(
+      (instructorRows ?? []) as { id: string; name: string; display_order?: number | null; about?: string | null; image_url?: string | null; specialties?: string[] }[],
+    );
+    return unique.map((instructor: {
+      id?: string; name: string; title?: string; years_of_experience?: number; about?: string;
+      image_url?: string; specialties?: string[]; certifications?: string[];
+      philosophy?: string; social_facebook?: string; social_twitter?: string;
+      social_linkedin?: string; social_whatsapp?: string;
+    }) => ({
+      id: instructor.id,
+      name: instructor.name,
+      title: instructor.title || "Instructor",
+      experience: instructor.years_of_experience ? `${instructor.years_of_experience} years experience` : "",
+      about: instructor.about || "",
+      image: instructor.image_url || cdnUrl("/placeholder.jpg"),
+      image_url: instructor.image_url,
+      specialties: instructor.specialties || [],
+      certifications: instructor.certifications || [],
+      philosophy: instructor.philosophy || "",
+      social_facebook: instructor.social_facebook,
+      social_twitter: instructor.social_twitter,
+      social_linkedin: instructor.social_linkedin,
+      social_whatsapp: instructor.social_whatsapp,
+    }));
+  }, [instructorRows]);
 
   // Parallax scroll — rAF-throttled, mutates DOM via ref (no React re-render per pixel).
   useEffect(() => {

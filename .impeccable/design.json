@@ -1,0 +1,304 @@
+{
+  "schemaVersion": 2,
+  "generatedAt": "2026-05-28T00:00:00.000Z",
+  "title": "Design System: The Studio by Copper + Cloves",
+  "extensions": {
+    "colorMeta": {
+      "sage": {
+        "role": "primary",
+        "displayName": "Studio Sage",
+        "canonical": "oklch(62% 0.055 126)",
+        "tonalRamp": [
+          "oklch(15% 0.04 126)",
+          "oklch(25% 0.05 126)",
+          "oklch(35% 0.055 126)",
+          "oklch(45% 0.055 126)",
+          "oklch(55% 0.055 126)",
+          "oklch(62% 0.055 126)",
+          "oklch(72% 0.045 126)",
+          "oklch(84% 0.03 126)",
+          "oklch(94% 0.015 126)"
+        ]
+      },
+      "terracotta": {
+        "role": "secondary",
+        "displayName": "Fired Terracotta",
+        "canonical": "oklch(62% 0.12 46)",
+        "tonalRamp": [
+          "oklch(15% 0.08 46)",
+          "oklch(25% 0.09 46)",
+          "oklch(35% 0.10 46)",
+          "oklch(45% 0.11 46)",
+          "oklch(55% 0.12 46)",
+          "oklch(62% 0.12 46)",
+          "oklch(72% 0.10 46)",
+          "oklch(84% 0.07 46)",
+          "oklch(94% 0.04 46)"
+        ]
+      },
+      "cream": {
+        "role": "neutral",
+        "displayName": "Warm Cream Canvas",
+        "canonical": "oklch(96% 0.010 88)",
+        "tonalRamp": [
+          "oklch(20% 0.008 88)",
+          "oklch(35% 0.009 88)",
+          "oklch(50% 0.010 88)",
+          "oklch(65% 0.010 88)",
+          "oklch(78% 0.010 88)",
+          "oklch(87% 0.010 88)",
+          "oklch(92% 0.010 88)",
+          "oklch(96% 0.010 88)",
+          "oklch(99% 0.005 88)"
+        ]
+      },
+      "sand": {
+        "role": "neutral",
+        "displayName": "Desert Sand",
+        "canonical": "oklch(91% 0.012 84)",
+        "tonalRamp": [
+          "oklch(20% 0.010 84)",
+          "oklch(35% 0.011 84)",
+          "oklch(50% 0.012 84)",
+          "oklch(65% 0.012 84)",
+          "oklch(78% 0.012 84)",
+          "oklch(87% 0.012 84)",
+          "oklch(91% 0.012 84)",
+          "oklch(95% 0.008 84)",
+          "oklch(98% 0.005 84)"
+        ]
+      },
+      "charcoal": {
+        "role": "neutral",
+        "displayName": "Warm Charcoal",
+        "canonical": "oklch(25% 0.005 126)",
+        "tonalRamp": [
+          "oklch(10% 0.004 126)",
+          "oklch(15% 0.004 126)",
+          "oklch(20% 0.005 126)",
+          "oklch(25% 0.005 126)",
+          "oklch(35% 0.005 126)",
+          "oklch(48% 0.005 126)",
+          "oklch(62% 0.004 126)",
+          "oklch(78% 0.004 126)",
+          "oklch(92% 0.003 126)"
+        ]
+      },
+      "border-warm": {
+        "role": "neutral",
+        "displayName": "Warm Border",
+        "canonical": "oklch(90% 0.008 84)"
+      },
+      "muted-surface": {
+        "role": "neutral",
+        "displayName": "Muted Surface",
+        "canonical": "oklch(95% 0.010 88)"
+      },
+      "muted-text": {
+        "role": "neutral",
+        "displayName": "Muted Text",
+        "canonical": "oklch(48% 0.005 126)"
+      },
+      "white-warm": {
+        "role": "neutral",
+        "displayName": "White-Warm",
+        "canonical": "oklch(99% 0.003 84)"
+      }
+    },
+    "typographyMeta": {
+      "display": {
+        "displayName": "Brand Display",
+        "purpose": "Section heroes, marketing headings, all brand-register moments."
+      },
+      "headline": {
+        "displayName": "Brand Headline",
+        "purpose": "Sub-section headings, feature card titles in marketing contexts."
+      },
+      "body": {
+        "displayName": "Body",
+        "purpose": "All prose. Max 65-75ch on marketing pages."
+      },
+      "label": {
+        "displayName": "UI Label",
+        "purpose": "Navigation, chips, badges, metadata. Montserrat only."
+      }
+    },
+    "shadows": [
+      {
+        "name": "lifted",
+        "value": "0 4px 24px rgba(51, 51, 51, 0.08)",
+        "purpose": "Card hover state, modal containers, active dropdown menus."
+      },
+      {
+        "name": "deep",
+        "value": "0 8px 48px rgba(51, 51, 51, 0.14)",
+        "purpose": "Hero image containers only. Not used on repeatable UI."
+      },
+      {
+        "name": "focus-ring-sage",
+        "value": "0 0 0 2px #8f9779",
+        "purpose": "Focus ring for all interactive elements. Replaces browser blue."
+      },
+      {
+        "name": "focus-ring-sage-soft",
+        "value": "0 0 0 2px rgba(143, 151, 121, 0.3)",
+        "purpose": "Softer focus ring for input fields."
+      }
+    ],
+    "motion": [
+      {
+        "name": "ease-state",
+        "value": "cubic-bezier(0, 0, 0.2, 1)",
+        "purpose": "Default easing for state transitions (hover, focus, active). Ease-out-quart feel."
+      },
+      {
+        "name": "ease-enter",
+        "value": "cubic-bezier(0, 0, 0.1, 1)",
+        "purpose": "Entrance motion for modals, sheets, dropdowns. Ease-out-expo."
+      },
+      {
+        "name": "duration-fast",
+        "value": "150ms",
+        "purpose": "Button and chip hover states."
+      },
+      {
+        "name": "duration-standard",
+        "value": "250ms",
+        "purpose": "Card hover, input focus, nav scroll transitions."
+      },
+      {
+        "name": "duration-slow",
+        "value": "500ms",
+        "purpose": "Modal entrance, hero crossfades."
+      }
+    ],
+    "breakpoints": [
+      { "name": "sm", "value": "640px" },
+      { "name": "md", "value": "768px" },
+      { "name": "lg", "value": "1024px" },
+      { "name": "xl", "value": "1280px" }
+    ]
+  },
+  "components": [
+    {
+      "name": "Primary Button",
+      "kind": "button",
+      "refersTo": "button-primary",
+      "description": "Main CTA. Sage background. Used for booking, sign-up, purchase.",
+      "html": "<button class=\"ds-btn-primary\">Book a Class</button>",
+      "css": ".ds-btn-primary { background: #8f9779; color: #fafaf8; padding: 12px 24px; border: none; border-radius: 8px; font-family: Montserrat, system-ui, sans-serif; font-size: 0.875rem; font-weight: 600; letter-spacing: 0.02em; cursor: pointer; transition: background 150ms cubic-bezier(0,0,0.2,1), transform 150ms cubic-bezier(0,0,0.2,1); } .ds-btn-primary:hover { background: #7A8B7C; transform: translateY(-1px); } .ds-btn-primary:focus-visible { outline: none; box-shadow: 0 0 0 2px #8f9779; } .ds-btn-primary:active { transform: translateY(0); background: #637069; }"
+    },
+    {
+      "name": "Secondary Button",
+      "kind": "button",
+      "refersTo": "button-secondary",
+      "description": "Adjacent non-primary action. Sand background.",
+      "html": "<button class=\"ds-btn-secondary\">View Schedule</button>",
+      "css": ".ds-btn-secondary { background: #e8e4d9; color: #333333; padding: 12px 24px; border: none; border-radius: 8px; font-family: Montserrat, system-ui, sans-serif; font-size: 0.875rem; font-weight: 600; letter-spacing: 0.02em; cursor: pointer; transition: background 150ms cubic-bezier(0,0,0.2,1), transform 150ms cubic-bezier(0,0,0.2,1); } .ds-btn-secondary:hover { background: #dcd8ce; transform: translateY(-1px); } .ds-btn-secondary:focus-visible { outline: none; box-shadow: 0 0 0 2px #8f9779; } .ds-btn-secondary:active { transform: translateY(0); }"
+    },
+    {
+      "name": "Ghost Button",
+      "kind": "button",
+      "refersTo": "button-ghost",
+      "description": "Non-destructive tertiary action. Used in portal.",
+      "html": "<button class=\"ds-btn-ghost\">Cancel</button>",
+      "css": ".ds-btn-ghost { background: transparent; color: #333333; padding: 12px 24px; border: 1px solid #e5e4dc; border-radius: 8px; font-family: Montserrat, system-ui, sans-serif; font-size: 0.875rem; font-weight: 500; cursor: pointer; transition: background 150ms cubic-bezier(0,0,0.2,1), border-color 150ms cubic-bezier(0,0,0.2,1); } .ds-btn-ghost:hover { background: #f4f3ec; border-color: #c8c6be; } .ds-btn-ghost:focus-visible { outline: none; box-shadow: 0 0 0 2px #8f9779; }"
+    },
+    {
+      "name": "Marketing Feature Card",
+      "kind": "card",
+      "refersTo": "card-surface",
+      "description": "Brand-register content card. Flat at rest, lifted on hover.",
+      "html": "<div class=\"ds-card-marketing\"><h3 class=\"ds-card-title\">Expert-Led Classes</h3><p class=\"ds-card-body\">From Muay Thai to Hatha Yoga, our certified instructors guide you through transformative movement practices.</p></div>",
+      "css": ".ds-card-marketing { background: #fafaf8; border: 1px solid #e5e4dc; border-radius: 16px; padding: 32px; transition: border-color 250ms cubic-bezier(0,0,0.2,1), box-shadow 250ms cubic-bezier(0,0,0.2,1), transform 250ms cubic-bezier(0,0,0.2,1); } .ds-card-marketing:hover { border-color: #c8c6be; box-shadow: 0 4px 24px rgba(51,51,51,0.08); transform: translateY(-2px); } .ds-card-title { font-family: 'Playfair Display', Georgia, serif; font-size: 1.5rem; font-weight: 600; color: #333333; margin: 0 0 12px; } .ds-card-body { font-family: Montserrat, system-ui, sans-serif; font-size: 1rem; line-height: 1.7; color: #6b6b6b; margin: 0; }"
+    },
+    {
+      "name": "Text Input",
+      "kind": "input",
+      "refersTo": "input-field",
+      "description": "Standard form input. Warm border, sage focus.",
+      "html": "<input class=\"ds-input\" type=\"text\" placeholder=\"Your email\">",
+      "css": ".ds-input { background: #fafaf8; color: #333333; border: 1px solid #e5e4dc; border-radius: 8px; padding: 10px 14px; font-family: Montserrat, system-ui, sans-serif; font-size: 0.875rem; width: 100%; transition: border-color 200ms cubic-bezier(0,0,0.2,1), box-shadow 200ms cubic-bezier(0,0,0.2,1); } .ds-input:focus { outline: none; border-color: #8f9779; box-shadow: 0 0 0 2px rgba(143,151,121,0.3); } .ds-input::placeholder { color: #6b6b6b; } .ds-input:disabled { opacity: 0.5; cursor: not-allowed; }"
+    },
+    {
+      "name": "Tier Badge / Chip",
+      "kind": "chip",
+      "description": "Package badge or milestone label. Small, rounded, brand palette only.",
+      "html": "<span class=\"ds-badge ds-badge--sage\">Most Popular</span>",
+      "css": ".ds-badge { display: inline-flex; align-items: center; padding: 4px 10px; border-radius: 9999px; font-family: Montserrat, system-ui, sans-serif; font-size: 0.75rem; font-weight: 600; letter-spacing: 0.06em; text-transform: uppercase; } .ds-badge--sage { background: rgba(143,151,121,0.15); color: #8f9779; border: 1px solid rgba(143,151,121,0.3); } .ds-badge--terracotta { background: rgba(193,120,86,0.12); color: #c17856; border: 1px solid rgba(193,120,86,0.25); } .ds-badge--sand { background: #e8e4d9; color: #333333; border: 1px solid #d5d1c6; }"
+    },
+    {
+      "name": "Navigation (Scrolled)",
+      "kind": "nav",
+      "description": "Top nav after scroll. Cream background, charcoal links, sage CTA.",
+      "html": "<nav class=\"ds-nav\"><a class=\"ds-nav-link\" href=\"#\">Classes</a><a class=\"ds-nav-link\" href=\"#\">Café</a><a class=\"ds-nav-link\" href=\"#\">Boutique</a><button class=\"ds-nav-cta\">Book Now</button></nav>",
+      "css": ".ds-nav { background: #f5f2ea; display: flex; align-items: center; gap: 32px; padding: 0 32px; height: 64px; box-shadow: 0 1px 0 #e5e4dc; } .ds-nav-link { font-family: Montserrat, system-ui, sans-serif; font-size: 0.875rem; font-weight: 500; color: #333333; text-decoration: none; letter-spacing: 0.01em; transition: color 150ms; } .ds-nav-link:hover { color: #8f9779; } .ds-nav-cta { background: #8f9779; color: #fafaf8; padding: 8px 20px; border: none; border-radius: 8px; font-family: Montserrat, system-ui, sans-serif; font-size: 0.875rem; font-weight: 600; cursor: pointer; transition: background 150ms cubic-bezier(0,0,0.2,1); } .ds-nav-cta:hover { background: #7A8B7C; }"
+    },
+    {
+      "name": "Pricing Card (Featured)",
+      "kind": "card",
+      "description": "Featured/highlighted pricing tier. Sage background, white text.",
+      "html": "<div class=\"ds-pricing-featured\"><p class=\"ds-pricing-name\">3 Month Unlimited</p><p class=\"ds-pricing-price\">₹36,000</p><ul class=\"ds-pricing-benefits\"><li>Access Any Class</li><li>Flat 12% Off on Cafe</li><li>2 Complimentary Aerial Classes</li></ul><button class=\"ds-btn-pricing\">Choose Plan</button></div>",
+      "css": ".ds-pricing-featured { background: #8f9779; border-radius: 16px; padding: 32px; color: #fafaf8; } .ds-pricing-name { font-family: Montserrat, system-ui, sans-serif; font-size: 0.75rem; font-weight: 600; letter-spacing: 0.08em; text-transform: uppercase; margin: 0 0 12px; opacity: 0.8; } .ds-pricing-price { font-family: 'Playfair Display', Georgia, serif; font-size: 2.5rem; font-weight: 700; margin: 0 0 20px; } .ds-pricing-benefits { list-style: none; padding: 0; margin: 0 0 24px; font-family: Montserrat, system-ui, sans-serif; font-size: 0.875rem; line-height: 2; opacity: 0.9; } .ds-btn-pricing { background: #fafaf8; color: #8f9779; padding: 12px 24px; border: none; border-radius: 8px; font-family: Montserrat, system-ui, sans-serif; font-size: 0.875rem; font-weight: 600; cursor: pointer; width: 100%; transition: background 150ms; } .ds-btn-pricing:hover { background: #f5f2ea; }"
+    }
+  ],
+  "narrative": {
+    "northStar": "The Copper & Clay Studio",
+    "overview": "This is a design system built like a handcrafted object, not a software product. Every surface should feel like it was shaped by someone who cared, not generated by a system that scaled. The palette draws from raw materials: fired terracotta, sage-green herbs, warm sand, and aged cream.\n\nThe system is fundamentally warm-register. It rejects the cold precision of SaaS and the aggressive maximalism of a gym brand. A visitor should feel like they have walked into a Bangalore studio that smells like eucalyptus and fresh coffee, not landed on a conversion-optimized landing page. Screens breathe. Space is generous. Color is used deliberately, not sprinkled.\n\nThe brand surface (public marketing pages) is the voice. The product surface (portals and admin) is the hands. Both share the same palette and type system; the portal surfaces are simply quieter.",
+    "keyCharacteristics": [
+      "Warm, earthy palette anchored by sage and terracotta — neither is decorative, both are structural",
+      "Serif-led display hierarchy (Playfair Display) + sans utility (Montserrat) — hard boundary between registers",
+      "Generous negative space; sections breathe rather than stack tightly",
+      "Photography is the primary decorative layer — real food, real instructors, real space",
+      "Lifted surface feedback on interaction; flat at rest"
+    ],
+    "rules": [
+      {
+        "name": "The Two-Voice Rule",
+        "body": "Sage and terracotta never share equal visual weight on the same surface. One leads; the other accents at 30% or less of the dominant.",
+        "section": "colors"
+      },
+      {
+        "name": "The No-Pure-White Rule",
+        "body": "All surfaces use #fafaf8 or warmer. Pure white (#ffffff) is prohibited on large surfaces.",
+        "section": "colors"
+      },
+      {
+        "name": "The Strict Handoff Rule",
+        "body": "Playfair Display is forbidden in portal UI text. Montserrat handles all UI surfaces; Playfair handles all brand surfaces.",
+        "section": "typography"
+      },
+      {
+        "name": "The Italic Sparingly Rule",
+        "body": "Italic Playfair is a single-use emphasis tool per section. Two italic headings per screen is affectation.",
+        "section": "typography"
+      },
+      {
+        "name": "The Flat-By-Default Rule",
+        "body": "A card at rest is flat. Shadow appears only as a response to hover or elevation state. shadow-2xl on resting cards is forbidden.",
+        "section": "elevation"
+      }
+    ],
+    "dos": [
+      "Use Playfair Display for all section headings, product names, and brand moments",
+      "Use cream (#f5f2ea) as the primary page background, not white",
+      "Let photography carry the decorative load — real images of food, instructors, and the studio space",
+      "Vary section heading alignment, size, and structure as you move down the landing page",
+      "Use sage for primary CTAs consistently",
+      "Add prefers-reduced-motion guards on all keyframe animations",
+      "Keep portal milestone/gamification colors within the brand palette (sage and terracotta tones)",
+      "Apply sage as the focus ring color on all interactive elements"
+    ],
+    "donts": [
+      "Don't use identical card grids: icon above heading above text, three across, same size",
+      "Don't use backdrop-blur for decorative floating badges — glassmorphism used decoratively is prohibited",
+      "Don't add large soft-blur decorative circles (rounded-full blur-3xl) to section backgrounds as texture",
+      "Don't assign all testimonials 5 stars — uniform 5-star ratings signal fabrication",
+      "Don't use pure #ffffff or #000000 on any surface",
+      "Don't use Playfair Display for portal UI labels, table cells, navigation links, or form copy",
+      "Don't load unused font families in the Google Fonts import",
+      "Don't use Tailwind amber or yellow utilities for portal gamification milestones",
+      "Don't use shadow-2xl on resting card states"
+    ]
+  }
+}

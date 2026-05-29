@@ -1,6 +1,10 @@
 import { useEffect, useMemo, useRef, useState } from "react";
+import { useStudioSWR } from "@/lib/swr";
 import { PageHeader } from "@/components/dashboard/PageHeader";
 import { useRouter } from "next/router";
+import { requireSessionSSP } from "@/lib/requireSessionSSP";
+
+export const getServerSideProps = requireSessionSSP();
 import { Check, X, CreditCard, AlertCircle, Download, Flame } from "lucide-react";
 import { Spinner } from "@/components/ui/spinner";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -315,6 +319,21 @@ export default function PackagesPage() {
     phone: "",
     paymentMethod: "online" as const
   });
+
+  // Profile via shared SWR (deduped across the portal). Seed the purchase form
+  // once so focus-revalidation can't overwrite what the buyer is typing.
+  const { data: profileData } = useStudioSWR<{ full_name?: string; email?: string; phone?: string }>("/api/user/profile");
+  const profileSeededRef = useRef(false);
+  useEffect(() => {
+    if (!profileData || profileSeededRef.current) return;
+    profileSeededRef.current = true;
+    setFormData((prev) => ({
+      ...prev,
+      fullName: profileData.full_name || "",
+      email: profileData.email || "",
+      phone: profileData.phone || "",
+    }));
+  }, [profileData]);
   const [couponCode, setCouponCode] = useState("");
   const [couponError, setCouponError] = useState<string | null>(null);
   const [couponDiscount, setCouponDiscount] = useState<number | null>(null);
@@ -337,15 +356,10 @@ export default function PackagesPage() {
 
   async function loadProfileAndHistory() {
     try {
-      const [profileRes, historyRes] = await Promise.all([
-        fetch("/api/user/profile"),
-        fetch("/api/user-packages"),
-      ]);
-      const profile = profileRes.ok ? await profileRes.json() : null;
+      // Profile loads via shared SWR (deduped across the portal); only the
+      // page-specific purchase history is fetched here.
+      const historyRes = await fetch("/api/user-packages");
       const history = historyRes.ok ? await historyRes.json() : [];
-      if (profile) {
-        setFormData({ fullName: profile.full_name || "", email: profile.email || "", phone: profile.phone || "", paymentMethod: "online" });
-      }
       setPurchaseHistory(history);
     } catch (err) {
       console.error("Error loading data:", err);

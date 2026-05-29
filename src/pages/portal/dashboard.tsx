@@ -5,17 +5,47 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { CloseButton } from "@/components/ui/quick-actions";
+import {
+  Drawer,
+  DrawerContent,
+  DrawerTitle,
+  DrawerDescription,
+} from "@/components/ui/drawer";
 import { StatCardRow, type StatCardProps } from "@/components/dashboard/StatCard";
 import { ActivityTimeline } from "@/components/dashboard/ActivityTimeline";
 import { UpcomingScheduleCard, type ScheduleEntry } from "@/components/dashboard/UpcomingScheduleCard";
-import { VitalityAreaChart } from "@/components/dashboard/VitalityAreaChart";
 import { OrderHistoryTable } from "@/components/dashboard/OrderHistoryTable";
 import { PathToMastery } from "@/components/dashboard/PathToMastery";
+import dynamic from "next/dynamic";
 import { MemberDashboardSkeleton, MemberMobileDashboardSkeleton } from "@/components/dashboard/skeletons";
 import { AnimatedIcon } from "@/components/dashboard/AnimatedIcon";
-import { MemberMobileDashboard } from "@/components/dashboard/mobile/MemberMobileDashboard";
 import { useIsMobile } from "@/hooks/use-mobile";
+
+// Mobile-only chunk — desktop visitors never download this. `ssr: false` keeps
+// it client-only (the skeleton renders during hydration on mobile).
+const MemberMobileDashboard = dynamic(
+  () => import("@/components/dashboard/mobile/MemberMobileDashboard").then((m) => ({ default: m.MemberMobileDashboard })),
+  { ssr: false, loading: () => <MemberMobileDashboardSkeleton /> },
+);
+
+// recharts is heavy; keep it off the initial member-dashboard chunk. The fixed
+// loading height matches the rendered chart so there is no layout shift.
+const VitalityAreaChart = dynamic(
+  () => import("@/components/dashboard/VitalityAreaChart").then((m) => ({ default: m.VitalityAreaChart })),
+  {
+    ssr: false,
+    loading: () => (
+      <div className="h-[320px] w-full animate-pulse rounded-2xl bg-muted/40" />
+    ),
+  },
+);
 import { useSession } from "next-auth/react";
+import { useStudioSWR } from "@/lib/swr";
+import { requireSessionSSP } from "@/lib/requireSessionSSP";
+
+// Server-side gate kills the flash-of-unauth; `useSession()` below still
+// drives runtime checks that depend on the session id.
+export const getServerSideProps = requireSessionSSP();
 import {
   Calendar,
   CheckCircle,
@@ -186,9 +216,26 @@ export default function Dashboard() {
   const [currentStreak, setCurrentStreak] = useState(0);
   const [longestStreak, setLongestStreak] = useState(0);
   const [attendanceCounts, setAttendanceCounts] = useState({ on_time: 0, late: 0, no_show: 0 });
-  const [userBadges, setUserBadges] = useState<any[]>([]);
-  const [ptmDbTemplates, setPtmDbTemplates] = useState<any[] | null>(null);
-  const [ptmLoading, setPtmLoading] = useState(true);
+  // Badge template + user-badge reads go through SWR so they share one cached
+  // copy app-wide (the templates are global/static) instead of refetching on
+  // every dashboard mount. `/api/admin/badges` is also read by admin/badges.tsx.
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const { data: badgeTplData, isLoading: ptmIsLoading } = useStudioSWR<{ path_to_mastery?: any[] }>("/api/admin/badges");
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const { data: userBadgesData } = useStudioSWR<any[]>("/api/user/badges");
+  const ptmDbTemplates = badgeTplData?.path_to_mastery ?? null;
+  const ptmLoading = ptmIsLoading && !badgeTplData;
+  const userBadges = Array.isArray(userBadgesData) ? userBadgesData : [];
+
+  // Profile shared across the member portal (one cached copy, deduped with
+  // _app + ProfileSection). Display-only here, so re-seeding on revalidate is
+  // harmless.
+  const { data: profileData } = useStudioSWR<{ full_name?: string; email?: string }>("/api/user/profile");
+  useEffect(() => {
+    if (!profileData) return;
+    setUserName((profileData.full_name || "Member").split(" ")[0]);
+    setUserEmail(profileData.email || "");
+  }, [profileData]);
 
   /** Always length 30 for chart; zeros until hydrated from API check-ins */
   const vitalityData =
@@ -241,12 +288,11 @@ export default function Dashboard() {
     };
   }, [activeMilestones, userClassesCompleted]);
 
+  // Auth enforced server-side via `getServerSideProps` → `requireSessionSSP`.
+  // No client-side redirect needed; just kick off the data load once we have
+  // the session id from the JWT.
   const sessionUserId = (session?.user as { id?: string } | undefined)?.id;
   useEffect(() => {
-    if (status === "unauthenticated") {
-      router.push("/portal/login");
-      return;
-    }
     if (status === "authenticated" && sessionUserId) {
       setCurrentUserId(sessionUserId);
       fetchUserData(sessionUserId).then(() => setLoading(false));
@@ -255,25 +301,12 @@ export default function Dashboard() {
   }, [status, sessionUserId]);
 
   async function fetchUserData(_userId: string) {
-    // Fetch PTM templates in parallel (public data, non-blocking)
-    fetch("/api/admin/badges")
-      .then((r) => (r.ok ? r.json() : null))
-      .then((d) => {
-        if (d?.path_to_mastery) setPtmDbTemplates(d.path_to_mastery);
-      })
-      .catch(() => {})
-      .finally(() => setPtmLoading(false));
-
-    // Fetch user badges
-    fetch("/api/user/badges")
-      .then((r) => (r.ok ? r.json() : []))
-      .then((b) => setUserBadges(Array.isArray(b) ? b : []))
-      .catch(() => setUserBadges([]));
-
+    // Badge templates + user badges now load via SWR hooks at component top.
     try {
-      const [profileRes, statsRes, packagesRes, bookingsRes, cafeOrdersRes, historyBookingsRes] =
+      // Profile loads via the shared SWR key (see hook below) — deduped across
+      // the member portal — so it's no longer fetched here.
+      const [statsRes, packagesRes, bookingsRes, cafeOrdersRes, historyBookingsRes] =
         await Promise.all([
-          fetch("/api/user/profile"),
           fetch("/api/user-stats"),
           fetch("/api/user-packages?active=true"),
           fetch("/api/bookings?status=confirmed"),
@@ -281,7 +314,6 @@ export default function Dashboard() {
           fetch("/api/bookings?limit=500"),
         ]);
 
-      const profile = profileRes.ok ? await profileRes.json() : null;
       const stats = statsRes.ok ? await statsRes.json() : null;
       const packages = packagesRes.ok ? await packagesRes.json() : [];
       const bookings = bookingsRes.ok ? await bookingsRes.json() : [];
@@ -296,11 +328,6 @@ export default function Dashboard() {
           new Date(b.order_date).getTime() - new Date(a.order_date).getTime()
       );
       setCafeOrdersHistory(cafeSorted);
-
-      if (profile) {
-        setUserName((profile.full_name || "Member").split(" ")[0]);
-        setUserEmail(profile.email || "");
-      }
 
       if (stats) {
         setUserClassesCompleted(stats.total_classes_attended || 0);
@@ -460,6 +487,18 @@ export default function Dashboard() {
     [cafeOrdersHistory],
   );
 
+  // Mobile quick-action tiles. Hoisted into a memo so the inline array literal
+  // doesn't re-allocate 4 fresh closures per render of the dashboard.
+  const mobileQuickActions = useMemo(
+    () => [
+      { icon: Calendar, label: "Book", action: () => void router.push("/portal/book") },
+      { icon: Package, label: "Packages", action: () => void router.push("/portal/packages") },
+      { icon: History, label: "History", action: () => setShowOrderHistory(true) },
+      { icon: Lock, label: "Password", action: () => void router.push("/account#reset-password") },
+    ],
+    [router],
+  );
+
   if (loading) {
     return isMobile ? <MemberMobileDashboardSkeleton /> : <MemberDashboardSkeleton />;
   }
@@ -577,12 +616,7 @@ export default function Dashboard() {
                 </div>
                 {/* Mobile icon grid — 4 tiles, no scroll, no Scan (bottom-nav FAB handles it) */}
                 <div className="grid grid-cols-4 gap-2 sm:hidden w-full">
-                  {[
-                    { icon: Calendar, label: "Book", action: () => void router.push("/portal/book") },
-                    { icon: Package, label: "Packages", action: () => void router.push("/portal/packages") },
-                    { icon: History, label: "History", action: () => setShowOrderHistory(true) },
-                    { icon: Lock, label: "Password", action: () => void router.push("/account#reset-password") },
-                  ].map(({ icon: Icon, label, action }) => (
+                  {mobileQuickActions.map(({ icon: Icon, label, action }) => (
                     <button
                       key={label}
                       type="button"
@@ -814,26 +848,22 @@ export default function Dashboard() {
       </main>
 
       {/* Order History Modal — member café orders */}
-      {showOrderHistory && (
-        <div className="fixed inset-0 z-50">
-          {/* Backdrop */}
-          <div
-            className="absolute inset-0 bg-charcoal/60 backdrop-blur-xs"
-            onClick={() => setShowOrderHistory(false)}
-          />
-
-          {/* Modal Panel */}
-          <div className="absolute right-0 top-0 bottom-0 w-full max-w-2xl bg-white shadow-2xl overflow-y-auto">
+      <Drawer
+        direction="right"
+        open={showOrderHistory}
+        onOpenChange={(o) => { if (!o) setShowOrderHistory(false); }}
+      >
+        <DrawerContent direction="right" className="max-w-2xl">
             {/* Header */}
-            <div className="sticky top-0 bg-white/95 backdrop-blur-xl border-b border-sage/10 p-6 z-10">
-              <div className="flex items-center justify-between mb-2">
+            <div className="shrink-0 border-b border-sage/10 bg-white-warm p-6">
+              <div className="flex items-center justify-between">
                 <div className="flex items-center gap-3">
                   <div className="w-12 h-12 rounded-full bg-sage/10 flex items-center justify-center">
                     <AnimatedIcon icon={Coffee} size={24} className="text-sage" />
                   </div>
                   <div>
-                    <h2 className="font-display text-3xl text-charcoal">Order History</h2>
-                    <p className="font-body text-sm text-charcoal/60">Your Nourish café orders</p>
+                    <DrawerTitle className="font-display text-3xl text-charcoal">Order History</DrawerTitle>
+                    <DrawerDescription className="font-body text-sm text-charcoal/60">Your Nourish café orders</DrawerDescription>
                   </div>
                 </div>
                 <CloseButton onClick={() => setShowOrderHistory(false)} className="rounded-full" />
@@ -841,7 +871,7 @@ export default function Dashboard() {
             </div>
 
             {/* Orders List */}
-            <div className="p-6 space-y-6">
+            <div className="flex-1 overflow-y-auto p-6 space-y-6">
               {cafeOrdersHistory.length === 0 ? (
                 <div className="text-center py-12">
                   <Coffee className="mx-auto mb-4 text-charcoal/20" size={48} />
@@ -866,7 +896,7 @@ export default function Dashboard() {
             </div>
 
             {/* Footer CTA */}
-            <div className="sticky bottom-0 bg-white/95 backdrop-blur-xl border-t border-sage/10 p-6">
+            <div className="shrink-0 border-t border-sage/10 bg-white-warm p-6">
               <Button
                 onClick={() => {
                   setShowOrderHistory(false);
@@ -878,9 +908,8 @@ export default function Dashboard() {
                 Browse café menu
               </Button>
             </div>
-          </div>
-        </div>
-      )}
+        </DrawerContent>
+      </Drawer>
 
       {/* Check-In Modal */}
       {showCheckIn && selectedBookingForCheckIn && (

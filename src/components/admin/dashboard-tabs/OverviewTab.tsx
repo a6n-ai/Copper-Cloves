@@ -186,7 +186,7 @@ function OverviewTabImpl({
         <MetricCard label="Pending Waivers" value={overviewStats.pendingWaivers} icon={AlertTriangle} tone="amber" loading={!overviewLoaded} />
       </div>
 
-      <Card className="border-sage/20 bg-white/95 backdrop-blur-xl overflow-x-hidden overflow-y-visible w-full min-w-0 max-w-full">
+      <Card className="border-sage/20 bg-white-warm overflow-x-hidden overflow-y-visible w-full min-w-0 max-w-full">
         <CardHeader>
           <div className="flex flex-wrap items-start justify-between gap-3">
             <div className="min-w-0">
@@ -295,7 +295,7 @@ function OverviewTabImpl({
         </CardContent>
       </Card>
 
-      <Card className="border-amber-500/20 bg-linear-to-br from-amber-50 to-white backdrop-blur-xl">
+      <Card className="border-terracotta/20 bg-terracotta/5">
         <CardHeader>
           <div className="flex items-center justify-between">
             <div>

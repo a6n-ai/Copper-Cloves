@@ -1,6 +1,12 @@
 import { useState, useEffect, useCallback, useMemo, useRef } from "react";
+import Image from "next/image";
 import { useRouter } from "next/router";
 import { useSession } from "next-auth/react";
+import { requireSessionSSP } from "@/lib/requireSessionSSP";
+
+// Server-side gate: instructors only. Unauthenticated / wrong-role callers
+// never see the dashboard JS bundle.
+export const getServerSideProps = requireSessionSSP({ roles: ["instructor"] });
 import { format, isAfter, isBefore, isToday, isTomorrow } from "date-fns";
 import { Button } from "@/components/ui/button";
 import { Spinner } from "@/components/ui/spinner";
@@ -100,7 +106,16 @@ function CapacityBar({ enrolled, capacity }: { enrolled: number; capacity: numbe
 
 function MemberAvatar({ name, url }: { name: string; url: string | null }) {
   if (url) {
-    return <img src={url} alt={name} className="h-9 w-9 rounded-full object-cover border border-sage/20" />;
+    return (
+      <Image
+        src={url}
+        alt={name}
+        width={36}
+        height={36}
+        className="h-9 w-9 rounded-full object-cover border border-sage/20"
+        unoptimized
+      />
+    );
   }
   const initials = name.split(" ").slice(0, 2).map((p) => p[0]).join("").toUpperCase();
   return (
@@ -156,19 +171,15 @@ export default function InstructorDashboard() {
     }
   }, [router]);
 
-  const userRole = (session?.user as { role?: string } | undefined)?.role;
+  // Auth + role enforced server-side (gSSP above). Just kick off the data
+  // load once the client-side session hydrates.
   const userName = session?.user?.name;
-  // Guard: only instructors here; everyone else goes to the unified login.
   useEffect(() => {
-    if (status === "loading") return;
-    if (status === "unauthenticated" || userRole !== "instructor") {
-      router.replace("/login");
-      return;
-    }
+    if (status !== "authenticated") return;
     setInstructorName(userName ?? "Instructor");
     void loadData();
   // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [status, userRole, userName]);
+  }, [status, userName]);
 
 
   async function handleCheckIn(bookingId: string) {

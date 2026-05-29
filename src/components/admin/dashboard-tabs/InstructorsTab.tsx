@@ -154,7 +154,7 @@ function InstructorsTabImpl({
         <MetricCard label="Top Performer" value={stats.top?.name ?? "—"} icon={TrendingUp} tone="terracotta" hint={stats.top ? `${stats.top.totalCheckIns} check-ins` : ""} />
       </div>
 
-      <Card className="border-sage/20 bg-white/95 backdrop-blur-xl">
+      <Card className="border-sage/20 bg-white-warm">
         <CardHeader>
           <div className="flex items-center justify-between">
             <CardTitle className="font-display text-2xl text-charcoal">Instructor Performance</CardTitle>
@@ -228,7 +228,7 @@ function InstructorsTabImpl({
       </Card>
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-        <Card className="border-sage/20 bg-white/95 backdrop-blur-xl">
+        <Card className="border-sage/20 bg-white-warm">
           <CardHeader>
             <CardTitle className="font-display text-xl text-charcoal">Class Share</CardTitle>
             <CardDescription className="font-body text-charcoal/60">Classes taught split by instructor</CardDescription>
@@ -265,7 +265,7 @@ function InstructorsTabImpl({
           </CardContent>
         </Card>
 
-        <Card className="border-sage/20 bg-white/95 backdrop-blur-xl">
+        <Card className="border-sage/20 bg-white-warm">
           <CardHeader>
             <CardTitle className="font-display text-xl text-charcoal">Earnings Leaderboard</CardTitle>
             <CardDescription className="font-body text-charcoal/60">₹ payout this month per instructor</CardDescription>
@@ -287,7 +287,7 @@ function InstructorsTabImpl({
           </CardContent>
         </Card>
 
-        <Card className="border-sage/20 bg-white/95 backdrop-blur-xl">
+        <Card className="border-sage/20 bg-white-warm">
           <CardHeader>
             <CardTitle className="font-display text-xl text-charcoal">Avg Attendance</CardTitle>
             <CardDescription className="font-body text-charcoal/60">Members per class on average</CardDescription>
@@ -310,7 +310,7 @@ function InstructorsTabImpl({
         </Card>
       </div>
 
-      <Card className="border-sage/20 bg-white/95 backdrop-blur-xl">
+      <Card className="border-sage/20 bg-white-warm">
         <CardHeader>
           <CardTitle className="font-display text-xl text-charcoal">Efficiency: Check-Ins vs Classes</CardTitle>
           <CardDescription className="font-body text-charcoal/60">Higher check-ins-per-class = stronger draw</CardDescription>

@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useState } from "react";
+import Image from "next/image";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { CheckCircle2, Maximize2, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -117,10 +118,12 @@ export function CheckinQrDialog({
             className="absolute right-5 top-5 rounded-full text-charcoal/60"
           />
           <p className="font-display text-3xl text-charcoal">{zoom.label}</p>
-          {/* eslint-disable-next-line @next/next/no-img-element */}
-          <img
+          <Image
             src={zoom.url}
             alt={zoom.label}
+            width={800}
+            height={800}
+            unoptimized
             className="h-auto w-auto max-h-[75vh] max-w-[75vw] rounded-2xl"
           />
           <p className="font-body text-sm text-charcoal/50">Tap anywhere to close</p>
@@ -144,8 +147,7 @@ function QrTile({
   return (
     <button type="button" onClick={onZoom} className="group flex flex-col items-center gap-2">
       <div className="relative">
-        {/* eslint-disable-next-line @next/next/no-img-element */}
-        <img src={url} alt={alt} width={240} height={240} className="rounded-lg" />
+        <Image src={url} alt={alt} width={240} height={240} className="rounded-lg" unoptimized />
         <span className="absolute right-2 top-2 rounded-full bg-charcoal/60 p-1.5 text-white opacity-0 transition-opacity group-hover:opacity-100">
           <Maximize2 size={16} />
         </span>

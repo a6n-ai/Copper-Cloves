@@ -1,9 +1,18 @@
 import { useState, useEffect, useMemo, useCallback } from "react";
 import { useRouter } from "next/router";
 import { useSession } from "next-auth/react";
+import { requireSessionSSP } from "@/lib/requireSessionSSP";
+
+export const getServerSideProps = requireSessionSSP({ roles: ["admin"] });
 import { SEO } from "@/components/SEO";
 import { AdminPageHeader } from "@/components/admin/AdminPageHeader";
 import { Button } from "@/components/ui/button";
+import {
+  Drawer,
+  DrawerContent,
+  DrawerTitle,
+  DrawerDescription,
+} from "@/components/ui/drawer";
 import { EditButton, DeleteButton } from "@/components/ui/quick-actions";
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
@@ -109,6 +118,9 @@ export default function AdminProducts() {
   const [orders, setOrders] = useState<Order[]>([]);
   const [categories, setCategories] = useState<CategoryRow[]>(DEFAULT_CATEGORY_PRESETS);
   const [searchQuery, setSearchQuery] = useState("");
+  const [categoryFilter, setCategoryFilter] = useState("all");
+  const [stockFilter, setStockFilter] = useState<"all" | "in" | "out">("all");
+  const [featuredOnly, setFeaturedOnly] = useState(false);
   const [showProductForm, setShowProductForm] = useState(false);
   const [showCategoryForm, setShowCategoryForm] = useState(false);
   const [editingProduct, setEditingProduct] = useState<Product | null>(null);
@@ -182,12 +194,20 @@ export default function AdminProducts() {
 
   // Filter products — toLowerCase the haystack once, not twice per product.
   const filteredProducts = useMemo(() => {
-    if (searchQuery === "") return products;
-    const q = searchQuery.toLowerCase();
-    return products.filter((p) =>
-      p.name.toLowerCase().includes(q) || p.category.toLowerCase().includes(q),
-    );
-  }, [products, searchQuery]);
+    const q = searchQuery.trim().toLowerCase();
+    return products.filter((p) => {
+      const matchSearch =
+        !q ||
+        p.name.toLowerCase().includes(q) ||
+        p.category.toLowerCase().includes(q);
+      const matchCategory = categoryFilter === "all" || p.category === categoryFilter;
+      const matchStock =
+        stockFilter === "all" ||
+        (stockFilter === "in" ? p.inStock : !p.inStock);
+      const matchFeatured = !featuredOnly || p.featured;
+      return matchSearch && matchCategory && matchStock && matchFeatured;
+    });
+  }, [products, searchQuery, categoryFilter, stockFilter, featuredOnly]);
 
   const paginatedProducts = useMemo(
     () => filteredProducts.slice((productPage - 1) * itemsPerPage, productPage * itemsPerPage),
@@ -523,16 +543,70 @@ export default function AdminProducts() {
               {/* Products Tab */}
               {activeTab === "products" && (
                 <div className="space-y-6">
-                  {/* Search */}
-                  <div className="relative max-w-md">
-                    <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-charcoal/40" size={20} />
-                    <input
-                      type="text"
-                      placeholder="Search products..."
-                      value={searchQuery}
-                      onChange={(e) => setSearchQuery(e.target.value)}
-                      className="w-full pl-12 pr-4 py-3 rounded-full bg-white/60 border border-sage/10 font-body text-sm text-charcoal placeholder:text-charcoal/40 focus:outline-hidden focus:ring-2 focus:ring-sage/30"
-                    />
+                  {/* Search + filters */}
+                  <div className="flex flex-col gap-3 lg:flex-row lg:flex-wrap lg:items-center">
+                    <div className="relative w-full lg:max-w-xs">
+                      <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-charcoal/40" size={20} />
+                      <input
+                        type="text"
+                        placeholder="Search products..."
+                        value={searchQuery}
+                        onChange={(e) => { setSearchQuery(e.target.value); setProductPage(1); }}
+                        className="w-full pl-12 pr-4 py-2.5 rounded-full bg-white-warm border border-sage/20 font-body text-sm text-charcoal placeholder:text-charcoal/40 focus:outline-hidden focus:ring-2 focus:ring-sage/30"
+                      />
+                    </div>
+
+                    <select
+                      value={categoryFilter}
+                      onChange={(e) => { setCategoryFilter(e.target.value); setProductPage(1); }}
+                      className="rounded-full border border-sage/20 bg-white-warm px-4 py-2.5 font-body text-sm text-charcoal outline-none focus:ring-2 focus:ring-sage/30"
+                      aria-label="Filter by category"
+                    >
+                      <option value="all">All categories</option>
+                      {categoryRows.map((c) => (
+                        <option key={c.id} value={c.id}>{c.name}</option>
+                      ))}
+                    </select>
+
+                    <select
+                      value={stockFilter}
+                      onChange={(e) => { setStockFilter(e.target.value as "all" | "in" | "out"); setProductPage(1); }}
+                      className="rounded-full border border-sage/20 bg-white-warm px-4 py-2.5 font-body text-sm text-charcoal outline-none focus:ring-2 focus:ring-sage/30"
+                      aria-label="Filter by stock"
+                    >
+                      <option value="all">All stock</option>
+                      <option value="in">In stock</option>
+                      <option value="out">Out of stock</option>
+                    </select>
+
+                    <button
+                      type="button"
+                      onClick={() => { setFeaturedOnly((v) => !v); setProductPage(1); }}
+                      aria-pressed={featuredOnly}
+                      className={`rounded-full border px-4 py-2.5 font-body text-sm transition-colors outline-none focus-visible:ring-2 focus-visible:ring-sage/30 ${
+                        featuredOnly
+                          ? "border-sage bg-sage text-white"
+                          : "border-sage/20 bg-white-warm text-charcoal/70 hover:text-charcoal"
+                      }`}
+                    >
+                      Featured only
+                    </button>
+
+                    {(categoryFilter !== "all" || stockFilter !== "all" || featuredOnly || searchQuery) && (
+                      <button
+                        type="button"
+                        onClick={() => {
+                          setSearchQuery("");
+                          setCategoryFilter("all");
+                          setStockFilter("all");
+                          setFeaturedOnly(false);
+                          setProductPage(1);
+                        }}
+                        className="font-body text-sm text-terracotta hover:underline"
+                      >
+                        Clear
+                      </button>
+                    )}
                   </div>
 
                   {/* Products Table */}
@@ -819,20 +893,21 @@ export default function AdminProducts() {
         </main>
 
         {/* Add/Edit Product Modal */}
-        {showProductForm && (
-          <div className="fixed inset-0 z-50">
-            <div className="absolute inset-0 bg-charcoal/60 backdrop-blur-xs" onClick={resetForm} />
-            
-            <div className="absolute right-0 top-0 bottom-0 w-full max-w-2xl bg-white shadow-2xl overflow-y-auto">
-              <div className="sticky top-0 bg-white/95 backdrop-blur-xl border-b border-sage/10 p-6 z-10">
+        <Drawer
+          direction="right"
+          open={showProductForm}
+          onOpenChange={(o) => { if (!o) resetForm(); }}
+        >
+          <DrawerContent direction="right" className="max-w-2xl">
+              <div className="shrink-0 border-b border-sage/10 bg-white-warm p-6">
                 <div className="flex items-center justify-between">
                   <div>
-                    <h2 className="font-display text-3xl text-charcoal">
+                    <DrawerTitle className="font-display text-3xl text-charcoal">
                       {editingProduct ? "Edit Product" : "Add New Product"}
-                    </h2>
-                    <p className="font-body text-sm text-charcoal/60">
+                    </DrawerTitle>
+                    <DrawerDescription className="font-body text-sm text-charcoal/60">
                       {editingProduct ? "Update product details" : "Create a new boutique product"}
-                    </p>
+                    </DrawerDescription>
                   </div>
                   <button
                     onClick={resetForm}
@@ -843,7 +918,7 @@ export default function AdminProducts() {
                 </div>
               </div>
 
-              <div className="p-6 space-y-6">
+              <div className="flex-1 overflow-y-auto p-6 space-y-6">
                 <div>
                   <label className="font-body text-sm text-charcoal/70 mb-2 block">Product Name *</label>
                   <Input
@@ -962,12 +1037,12 @@ export default function AdminProducts() {
                 </div>
               </div>
 
-              <div className="sticky bottom-0 bg-white/95 backdrop-blur-xl border-t border-sage/10 p-6">
+              <div className="shrink-0 border-t border-sage/10 bg-white-warm p-6">
                 <div className="flex gap-3">
                   <Button
                     onClick={resetForm}
                     variant="outline"
-                    className="flex-1 border-sage/30 text-charcoal hover:bg-sage/10"
+                    className="flex-1 border-sage/30 text-charcoal hover:bg-sage/10 hover:text-charcoal"
                   >
                     Cancel
                   </Button>
@@ -981,25 +1056,25 @@ export default function AdminProducts() {
                   </Button>
                 </div>
               </div>
-            </div>
-          </div>
-        )}
+          </DrawerContent>
+        </Drawer>
 
-        {/* Add/Edit Category Modal */}
-        {showCategoryForm && (
-          <div className="fixed inset-0 z-50">
-            <div className="absolute inset-0 bg-charcoal/60 backdrop-blur-xs" onClick={resetCategoryForm} />
-            
-            <div className="absolute right-0 top-0 bottom-0 w-full max-w-lg bg-white shadow-2xl overflow-y-auto">
-              <div className="sticky top-0 bg-white/95 backdrop-blur-xl border-b border-sage/10 p-6 z-10">
+        {/* Add/Edit Category Drawer */}
+        <Drawer
+          direction="right"
+          open={showCategoryForm}
+          onOpenChange={(o) => { if (!o) resetCategoryForm(); }}
+        >
+          <DrawerContent direction="right" className="max-w-lg">
+              <div className="shrink-0 border-b border-sage/10 bg-white-warm p-6">
                 <div className="flex items-center justify-between">
                   <div>
-                    <h2 className="font-display text-3xl text-charcoal">
+                    <DrawerTitle className="font-display text-3xl text-charcoal">
                       {editingCategory ? "Edit Category" : "Add New Category"}
-                    </h2>
-                    <p className="font-body text-sm text-charcoal/60">
+                    </DrawerTitle>
+                    <DrawerDescription className="font-body text-sm text-charcoal/60">
                       {editingCategory ? "Update category details" : "Create a new product category"}
-                    </p>
+                    </DrawerDescription>
                   </div>
                   <button
                     onClick={resetCategoryForm}
@@ -1010,7 +1085,7 @@ export default function AdminProducts() {
                 </div>
               </div>
 
-              <div className="p-6 space-y-6">
+              <div className="flex-1 overflow-y-auto p-6 space-y-6">
                 <div>
                   <label className="font-body text-sm text-charcoal/70 mb-2 block">Category Name *</label>
                   <Input
@@ -1036,12 +1111,12 @@ export default function AdminProducts() {
                 )}
               </div>
 
-              <div className="sticky bottom-0 bg-white/95 backdrop-blur-xl border-t border-sage/10 p-6">
+              <div className="shrink-0 border-t border-sage/10 bg-white-warm p-6">
                 <div className="flex gap-3">
                   <Button
                     onClick={resetCategoryForm}
                     variant="outline"
-                    className="flex-1 border-sage/30 text-charcoal hover:bg-sage/10"
+                    className="flex-1 border-sage/30 text-charcoal hover:bg-sage/10 hover:text-charcoal"
                   >
                     Cancel
                   </Button>
@@ -1055,9 +1130,8 @@ export default function AdminProducts() {
                   </Button>
                 </div>
               </div>
-            </div>
-          </div>
-        )}
+          </DrawerContent>
+        </Drawer>
       </div>
     </>
   );

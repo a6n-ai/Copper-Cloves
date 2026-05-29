@@ -1,6 +1,6 @@
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useMemo, useState } from "react";
 import { useRouter } from "next/router";
-import { useSession } from "next-auth/react";
+import { useInstructors } from "@/hooks/useInstructors";
 import {
   Award,
   CheckCircle2,
@@ -19,6 +19,7 @@ import { AdminPageHeader } from "@/components/admin/AdminPageHeader";
 import { MetricCard } from "@/components/admin/MetricCard";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { ResponsiveTable } from "@/components/responsive/ResponsiveTable";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -55,9 +56,11 @@ type Instructor = {
 
 export default function AdminInstructorsPage() {
   const router = useRouter();
-  const { status } = useSession();
-  const [instructors, setInstructors] = useState<Instructor[]>([]);
-  const [loading, setLoading] = useState(true);
+  // Roster shared through SWR (one cached copy across admin pages). Optimistic
+  // toggle/delete write straight to the cache via `mutateInstructors`.
+  const { data, isLoading, mutate: mutateInstructors } = useInstructors<Instructor[]>();
+  const instructors = data ?? [];
+  const loading = isLoading && !data;
   const [search, setSearch] = useState("");
   const [statusFilter, setStatusFilter] = useState<"all" | "active" | "inactive">("all");
 
@@ -65,20 +68,6 @@ export default function AdminInstructorsPage() {
   const [addOpen, setAddOpen] = useState(false);
   const [adding, setAdding] = useState(false);
   const [form, setForm] = useState({ name: "", title: "", email: "", phone: "" });
-
-  const load = useCallback(async () => {
-    setLoading(true);
-    try {
-      const r = await fetch("/api/admin/instructors");
-      if (r.ok) setInstructors(await r.json());
-    } finally {
-      setLoading(false);
-    }
-  }, []);
-
-  useEffect(() => {
-    if (status === "authenticated") load();
-  }, [status, load]);
 
   const filtered = useMemo(() => {
     let list = instructors;
@@ -121,7 +110,10 @@ export default function AdminInstructorsPage() {
       body: JSON.stringify({ is_active: !active }),
     });
     if (r.ok) {
-      setInstructors((prev) => prev.map((i) => (i.id === id ? { ...i, is_active: !active } : i)));
+      mutateInstructors(
+        (prev) => (prev ?? []).map((i) => (i.id === id ? { ...i, is_active: !active } : i)),
+        { revalidate: false },
+      );
       toast.success(active ? "Instructor deactivated" : "Instructor activated");
     } else {
       toast.error("Could not update status");
@@ -131,7 +123,7 @@ export default function AdminInstructorsPage() {
   async function handleDelete(id: string) {
     const r = await fetch(`/api/admin/instructors?id=${id}`, { method: "DELETE", credentials: "include" });
     if (r.ok) {
-      setInstructors((prev) => prev.filter((i) => i.id !== id));
+      mutateInstructors((prev) => (prev ?? []).filter((i) => i.id !== id), { revalidate: false });
       toast.success("Instructor removed");
     } else {
       toast.error("Could not delete");
@@ -324,14 +316,26 @@ export default function AdminInstructorsPage() {
                                 </TableCell>
                                 <TableCell className="px-5 py-4">
                                   {instructor.specialties && instructor.specialties.length > 0 ? (
-                                    <div className="flex flex-wrap gap-1">
-                                      {instructor.specialties.slice(0, 2).map((s, idx) => (
-                                        <Badge key={idx} variant="outline" className="border-sage/20 text-sage bg-sage/5 text-xs font-body">{s}</Badge>
-                                      ))}
-                                      {instructor.specialties.length > 2 && (
-                                        <Badge variant="outline" className="border-charcoal/15 text-charcoal/50 bg-cream/30 text-xs font-body">
-                                          +{instructor.specialties.length - 2}
-                                        </Badge>
+                                    <div className="flex items-center gap-1 max-w-[180px]">
+                                      <Badge
+                                        variant="outline"
+                                        className="border-sage/20 text-sage bg-sage/5 text-xs font-body truncate max-w-[120px]"
+                                      >
+                                        {instructor.specialties[0]}
+                                      </Badge>
+                                      {instructor.specialties.length > 1 && (
+                                        <TooltipProvider delayDuration={100}>
+                                          <Tooltip>
+                                            <TooltipTrigger asChild>
+                                              <span className="inline-flex shrink-0 cursor-default items-center rounded-md border border-charcoal/15 bg-cream/30 px-2 py-0.5 font-body text-xs text-charcoal/50">
+                                                +{instructor.specialties.length - 1}
+                                              </span>
+                                            </TooltipTrigger>
+                                            <TooltipContent className="max-w-xs font-body">
+                                              {instructor.specialties.slice(1).join(", ")}
+                                            </TooltipContent>
+                                          </Tooltip>
+                                        </TooltipProvider>
                                       )}
                                     </div>
                                   ) : (

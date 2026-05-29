@@ -1,4 +1,6 @@
-import * as XLSX from "xlsx";
+// xlsx is ~600KB raw / ~150KB gzip. Loaded dynamically inside the export
+// function so it never ships in the admin dashboard's initial bundle — only
+// the click handler actually pulls it down.
 
 export type FinanceExportBreakdown = {
   packageListInr?: number;
@@ -192,11 +194,14 @@ function buildCafeRows(transactions: FinanceExportTransaction[]) {
 }
 
 /** Build and download a multi-sheet Finance-1 Excel workbook (browser only). */
-export function downloadFinanceReportExcel(
+export async function downloadFinanceReportExcel(
   transactions: FinanceExportTransaction[],
   filenameStem: string,
-): void {
+): Promise<void> {
   if (typeof window === "undefined") return;
+
+  // Dynamic import keeps xlsx out of the admin dashboard's initial bundle.
+  const XLSX = await import("xlsx");
 
   const summary = buildSummaryRows(transactions);
   const attendees = buildAttendeeRows(transactions);

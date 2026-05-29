@@ -207,7 +207,7 @@ function MembersTabImpl({
 
   return (
     <>
-      <div className="rounded-xl border border-sage/20 bg-white/60 backdrop-blur-xl p-3">
+      <div className="rounded-xl border border-sage/20 bg-white-warm p-3">
         <div className="font-body text-sm font-medium text-charcoal">Metrics scope</div>
         <div className="font-body text-xs text-charcoal/60">
           {selectedMember === "all"
@@ -225,7 +225,7 @@ function MembersTabImpl({
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        <Card className="border-sage/20 bg-white/95 backdrop-blur-xl">
+        <Card className="border-sage/20 bg-white-warm">
           <CardHeader>
             <CardTitle className="font-display text-xl text-charcoal">Member Growth</CardTitle>
             <CardDescription className="font-body text-charcoal/60">New member signups over time</CardDescription>
@@ -243,7 +243,7 @@ function MembersTabImpl({
           </CardContent>
         </Card>
 
-        <Card className="border-sage/20 bg-white/95 backdrop-blur-xl">
+        <Card className="border-sage/20 bg-white-warm">
           <CardHeader>
             <CardTitle className="font-display text-xl text-charcoal">Member Activity Status</CardTitle>
             <CardDescription className="font-body text-charcoal/60">Active vs inactive members</CardDescription>
@@ -291,7 +291,7 @@ function MembersTabImpl({
           </CardContent>
         </Card>
 
-        <Card className="border-sage/20 bg-white/95 backdrop-blur-xl lg:col-span-2">
+        <Card className="border-sage/20 bg-white-warm lg:col-span-2">
           <CardHeader>
             <CardTitle className="font-display text-xl text-charcoal">Streak Distribution</CardTitle>
             <CardDescription className="font-body text-charcoal/60">Members by current streak length (days)</CardDescription>
@@ -310,7 +310,7 @@ function MembersTabImpl({
         </Card>
       </div>
 
-      <Card className="border-sage/20 bg-linear-to-br from-sage/5 to-white backdrop-blur-xl">
+      <Card className="border-sage/20 bg-sage/5">
         <CardHeader>
           <div className="flex items-center justify-between">
             <div>
@@ -347,7 +347,7 @@ function MembersTabImpl({
       </Card>
 
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-        <Card className="border-amber-500/20 bg-linear-to-br from-amber-50 to-white backdrop-blur-xl">
+        <Card className="border-terracotta/20 bg-terracotta/5">
           <CardHeader className="pb-3">
             <div className="flex items-center justify-between">
               <CardTitle className="font-body text-sm text-charcoal/60 font-medium">Expiring in 7 Days</CardTitle>
@@ -360,7 +360,7 @@ function MembersTabImpl({
           </CardContent>
         </Card>
 
-        <Card className="border-amber-500/20 bg-linear-to-br from-amber-50/50 to-white backdrop-blur-xl">
+        <Card className="border-terracotta/20 bg-terracotta/5">
           <CardHeader className="pb-3">
             <div className="flex items-center justify-between">
               <CardTitle className="font-body text-sm text-charcoal/60 font-medium">Expiring in 15 Days</CardTitle>
@@ -373,7 +373,7 @@ function MembersTabImpl({
           </CardContent>
         </Card>
 
-        <Card className="border-sage/20 bg-white/95 backdrop-blur-xl">
+        <Card className="border-sage/20 bg-white-warm">
           <CardHeader className="pb-3">
             <div className="flex items-center justify-between">
               <CardTitle className="font-body text-sm text-charcoal/60 font-medium">Expiring in 30 Days</CardTitle>
@@ -387,7 +387,7 @@ function MembersTabImpl({
         </Card>
       </div>
 
-      <Card className="border-sage/20 bg-white/95 backdrop-blur-xl">
+      <Card className="border-sage/20 bg-white-warm">
         <CardHeader>
           <CardTitle className="font-display text-2xl text-charcoal">Active Members by Pass Type</CardTitle>
           <CardDescription className="font-body text-charcoal/60">Distribution across membership tiers</CardDescription>
@@ -435,7 +435,7 @@ function MembersTabImpl({
         </CardContent>
       </Card>
 
-      <Card className="border-sage/20 bg-white/95 backdrop-blur-xl">
+      <Card className="border-sage/20 bg-white-warm">
         <CardHeader>
           <div className="flex items-center justify-between">
             <div>

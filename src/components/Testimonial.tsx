@@ -1,3 +1,4 @@
+import Image from "next/image";
 import { Star } from "lucide-react";
 import { useState, useEffect } from "react";
 
@@ -95,9 +96,11 @@ export function Testimonial() {
           
           <div className="flex items-center justify-center">
             <div className="w-16 h-16 rounded-full overflow-hidden mr-4 border-2 border-white/30">
-              <img 
+              <Image
                 src={currentTestimonial.image}
                 alt={currentTestimonial.author}
+                width={64}
+                height={64}
                 className="w-full h-full object-cover"
               />
             </div>

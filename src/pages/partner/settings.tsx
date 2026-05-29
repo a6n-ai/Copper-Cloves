@@ -1,4 +1,6 @@
 import { useEffect, useRef, useState } from "react";
+import { mutate } from "swr";
+import Image from "next/image";
 import { PageHeader } from "@/components/dashboard/PageHeader";
 import { useRouter } from "next/router";
 import type { GetServerSideProps } from "next";
@@ -110,6 +112,8 @@ export default function PartnerSettings() {
       });
       if (!res.ok) throw new Error();
       setProfile(await res.json());
+      // Bust SWR cache so DashboardChrome topbar logo refreshes.
+      void mutate("/api/partner/profile");
       setSaved(true);
       savedTimeoutRef.current = setTimeout(() => setSaved(false), 2500);
     } catch {
@@ -137,8 +141,14 @@ export default function PartnerSettings() {
             <form onSubmit={save} className="space-y-5">
               <div className="flex items-center gap-4">
                 {profile.logo_url ? (
-                  // eslint-disable-next-line @next/next/no-img-element
-                  <img src={profile.logo_url} alt="" className="h-16 w-16 rounded-full object-cover border border-sage/20" />
+                  <Image
+                    src={profile.logo_url}
+                    alt=""
+                    width={64}
+                    height={64}
+                    className="h-16 w-16 rounded-full object-cover border border-sage/20"
+                    unoptimized
+                  />
                 ) : (
                   <div className="h-16 w-16 rounded-full bg-sage/10 flex items-center justify-center font-display text-sage text-lg">
                     {profile.name.slice(0, 2).toUpperCase()}

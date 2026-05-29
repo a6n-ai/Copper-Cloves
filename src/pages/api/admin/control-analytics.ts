@@ -61,6 +61,8 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     packagesPrevMonthOnly,
     packagesTwoMonthsAgoOnly,
     schedules30dBookings,
+    scheduleCounts,
+    bookings30,
   ] = await Promise.all([
     prisma.userPackage.findMany({
       where: { purchase_date: { gte: rangeStart } },
@@ -131,6 +133,23 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       where: { start_time: { gte: new Date(now.getTime() - 30 * 86400000), lte: now } },
       select: { class_id: true, capacity: true, class_model: { select: { max_capacity: true } } },
     }),
+    // Independent of every result above (keyed only on now/monthStartCurr) —
+    // batched here instead of running as two trailing serial round trips.
+    prisma.classSchedule.groupBy({
+      by: ["instructor_id"],
+      where: {
+        start_time: { gte: monthStartCurr, lte: now },
+        instructor_id: { not: null },
+      },
+      _count: { id: true },
+    }),
+    prisma.booking.count({
+      where: {
+        status: "confirmed",
+        booking_date: { gte: new Date(now.getTime() - 30 * 86400000), lte: now },
+        class_schedule_id: { not: null },
+      },
+    }),
   ]);
 
   const allMembersCount = Math.max(0, totalProfiles - adminProfilesCount);
@@ -138,23 +157,28 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     (p) => !isStudioAdminProfileRole(p.role)
   );
 
-  const monthlyRevenue = windows.map(({ start, end, label }) => {
-    let r = 0;
-    let checkInsInMonth = 0;
-    for (const p of userPackagesRange) {
-      const d = new Date(p.purchase_date);
-      if (d >= start && d < end) r += money(p.package_type.price);
-    }
-    for (const b of checkInsRange) {
-      const d = new Date(b.booking_date);
-      if (d >= start && d < end) checkInsInMonth += 1;
-    }
-    return {
-      label,
-      revenue: Math.round(r),
-      expense: coachCostForMonth(checkInsInMonth),
-    };
-  });
+  // Windows are contiguous calendar months, so a date maps to exactly one
+  // window by its year*12+month key. Bucket each dataset in a single pass
+  // instead of re-scanning every array (and re-parsing every date) per window.
+  const monthKey = (d: Date) => d.getFullYear() * 12 + d.getMonth();
+  const winIdxByKey = new Map<number, number>();
+  windows.forEach((w, i) => winIdxByKey.set(monthKey(w.start), i));
+
+  const revenuePerWin = new Array(windows.length).fill(0);
+  const checkInsPerWin = new Array(windows.length).fill(0);
+  for (const p of userPackagesRange) {
+    const i = winIdxByKey.get(monthKey(new Date(p.purchase_date)));
+    if (i !== undefined) revenuePerWin[i] += money(p.package_type.price);
+  }
+  for (const b of checkInsRange) {
+    const i = winIdxByKey.get(monthKey(new Date(b.booking_date)));
+    if (i !== undefined) checkInsPerWin[i] += 1;
+  }
+  const monthlyRevenue = windows.map((w, i) => ({
+    label: w.label,
+    revenue: Math.round(revenuePerWin[i]),
+    expense: coachCostForMonth(checkInsPerWin[i]),
+  }));
 
   let revenueGrowthPct: number | null = null;
   const prevM = monthlyRevenue[monthlyRevenue.length - 2]?.revenue ?? 0;
@@ -177,14 +201,15 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     }));
   if (revenueSources.length === 0) revenueSources.push({ name: "No purchases", amount: 0, pct: 100 });
 
-  const newMembersMonthly = windows.map(({ start, end, label }) => {
-    let c = 0;
-    for (const m of membersCreatedRange) {
-      const d = new Date(m.created_at);
-      if (d >= start && d < end) c += 1;
-    }
-    return { label, count: c };
-  });
+  const newMembersPerWin = new Array(windows.length).fill(0);
+  for (const m of membersCreatedRange) {
+    const i = winIdxByKey.get(monthKey(new Date(m.created_at)));
+    if (i !== undefined) newMembersPerWin[i] += 1;
+  }
+  const newMembersMonthly = windows.map((w, i) => ({
+    label: w.label,
+    count: newMembersPerWin[i],
+  }));
   const ngPrev = newMembersMonthly[newMembersMonthly.length - 2]?.count ?? 0;
   const ngCurr = newMembersMonthly[newMembersMonthly.length - 1]?.count ?? 0;
   const memberGrowthPct: number | null =
@@ -231,14 +256,6 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     if (b.checked_in) p.checkins += 1;
     instCheck.set(iid, p);
   }
-  const scheduleCounts = await prisma.classSchedule.groupBy({
-    by: ["instructor_id"],
-    where: {
-      start_time: { gte: monthStartCurr, lte: now },
-      instructor_id: { not: null },
-    },
-    _count: { id: true },
-  });
   const instIdToTaught = new Map<string, number>();
   for (const row of scheduleCounts) {
     if (row.instructor_id) instIdToTaught.set(row.instructor_id, row._count.id);
@@ -335,13 +352,6 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   const rpmGrowth =
     rpmPrev > 0 ? Math.round(((rpmCurr - rpmPrev) / rpmPrev) * 100) : rpmCurr > 0 ? null : null;
 
-  const bookings30 = await prisma.booking.count({
-    where: {
-      status: "confirmed",
-      booking_date: { gte: new Date(now.getTime() - 30 * 86400000), lte: now },
-      class_schedule_id: { not: null },
-    },
-  });
   const slotOfferedApprox = schedules30dBookings.length * 14;
   const utilAvg =
     slotOfferedApprox > 0 ? Math.min(100, Math.round((bookings30 / slotOfferedApprox) * 100)) : 0;

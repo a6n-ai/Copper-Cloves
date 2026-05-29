@@ -1,4 +1,6 @@
-import { useState, useEffect, useMemo } from "react";
+import { useState, useMemo } from "react";
+import type { GetStaticPaths, GetStaticProps } from "next";
+import prisma from "@/lib/prisma";
 import { useRouter } from "next/router";
 import { SEO } from "@/components/SEO";
 import { Navigation } from "@/components/Navigation";
@@ -44,65 +46,83 @@ function formatCategoryLabel(raw: string) {
     .join(" ");
 }
 
-export default function ProductDetail() {
+interface ProductDetailProps {
+  product: RetailProduct | null;
+  catalog: RetailProduct[];
+}
+
+function mapProduct(p: {
+  id: string;
+  name: string;
+  category: string;
+  description: string | null;
+  price: unknown;
+  stock: number;
+  image_url: string | null;
+  featured: boolean;
+}): RetailProduct {
+  return {
+    id: p.id,
+    name: p.name,
+    category: p.category,
+    description: p.description,
+    price: Number(p.price ?? 0),
+    stock: p.stock,
+    image_url: p.image_url,
+    featured: p.featured,
+  };
+}
+
+export const getStaticPaths: GetStaticPaths = async () => {
+  try {
+    // Pre-render the most-trafficked products (featured first); everything
+    // else is generated on first visit via `fallback: "blocking"`.
+    const featured = await prisma.retailProduct.findMany({
+      where: { is_active: true, featured: true },
+      select: { id: true },
+      take: 20,
+    });
+    return {
+      paths: featured.map((p) => ({ params: { id: p.id } })),
+      fallback: "blocking",
+    };
+  } catch {
+    return { paths: [], fallback: "blocking" };
+  }
+};
+
+export const getStaticProps: GetStaticProps<ProductDetailProps> = async ({ params }) => {
+  const id = typeof params?.id === "string" ? params.id : "";
+  if (!id) return { notFound: true, revalidate: 60 };
+  try {
+    const [p, all] = await Promise.all([
+      prisma.retailProduct.findFirst({ where: { id, is_active: true } }),
+      prisma.retailProduct.findMany({
+        where: { is_active: true },
+        orderBy: [{ featured: "desc" }, { created_at: "desc" }],
+      }),
+    ]);
+    if (!p) return { notFound: true, revalidate: 60 };
+    return {
+      props: {
+        product: mapProduct(p),
+        catalog: all.map(mapProduct),
+      },
+      revalidate: 60,
+    };
+  } catch {
+    return { notFound: true, revalidate: 60 };
+  }
+};
+
+export default function ProductDetail({ product, catalog }: ProductDetailProps) {
   const router = useRouter();
-  const { id } = router.query;
   const { addItem } = useCart();
   const { toast } = useToast();
-
-  const [catalog, setCatalog] = useState<RetailProduct[]>([]);
-  const [product, setProduct] = useState<RetailProduct | null>(null);
-  const [status, setStatus] = useState<"loading" | "ready" | "notfound">("loading");
 
   const [quantity, setQuantity] = useState(1);
   const [currentImageIndex, setCurrentImageIndex] = useState(0);
   const [isWishlisted, setIsWishlisted] = useState(false);
-
-  useEffect(() => {
-    if (!router.isReady || typeof id !== "string") return undefined;
-
-    const productId = id;
-    let cancelled = false;
-
-    async function load() {
-      setStatus("loading");
-      try {
-        const [oneRes, allRes] = await Promise.all([
-          fetch(`/api/retail-products?id=${encodeURIComponent(productId)}`),
-          fetch("/api/retail-products"),
-        ]);
-
-        if (cancelled) return;
-
-        if (!oneRes.ok) {
-          setProduct(null);
-          setStatus("notfound");
-          return;
-        }
-
-        const p = (await oneRes.json()) as RetailProduct;
-        const rawAll = allRes.ok ? await allRes.json() : [];
-        const all = Array.isArray(rawAll) ? (rawAll as RetailProduct[]) : [];
-
-        if (cancelled) return;
-        setProduct(p);
-        setCatalog(all);
-        setQuantity(1);
-        setCurrentImageIndex(0);
-        setStatus("ready");
-      } catch {
-        if (!cancelled) {
-          setProduct(null);
-          setStatus("notfound");
-        }
-      }
-    }
-
-    load();
-    return () => {
-      cancelled = true;
-    };
-  }, [router.isReady, id]);
 
   const images = useMemo(() => [product?.image_url || PLACEHOLDER], [product?.image_url]);
 
@@ -122,11 +142,10 @@ export default function ProductDetail() {
   const seoDescription =
     product?.description?.slice(0, 160)?.replace(/\s+/g, " ").trim() || "Copper + Cloves boutique retail.";
 
-  if (!router.isReady || typeof id !== "string") {
-    return null;
-  }
-
-  if (status === "loading") {
+  // `fallback: "blocking"` means Next renders this route on the server before
+  // sending HTML — `router.isFallback` only flips when the slot is still being
+  // generated for the very first time.
+  if (router.isFallback) {
     return (
       <>
         <SEO title="Loading… | The Boutique" />
@@ -139,7 +158,7 @@ export default function ProductDetail() {
     );
   }
 
-  if (status === "notfound" || !product) {
+  if (!product) {
     return (
       <>
         <SEO title="Product Not Found | The Boutique" />

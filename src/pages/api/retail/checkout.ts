@@ -50,8 +50,15 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       const safeItems: SafeItem[] = [];
       let subtotal = 0;
 
+      // Fetch every cart product in one round trip, then validate from a Map
+      // (was one findUnique per line — N round trips).
+      const products = await tx.retailProduct.findMany({
+        where: { id: { in: items.map((r) => r.productId) } },
+      });
+      const productById = new Map(products.map((p) => [p.id, p]));
+
       for (const row of items) {
-        const prod = await tx.retailProduct.findUnique({ where: { id: row.productId } });
+        const prod = productById.get(row.productId);
         if (!prod || !prod.is_active) throw new Error(`PRODUCT:${row.productId}`);
         if (prod.stock < row.quantity) throw new Error(`STOCK:${prod.name}`);
         const price = num(prod.price);

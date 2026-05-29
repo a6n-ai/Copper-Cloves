@@ -40,8 +40,13 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
     try {
       const order = await prisma.$transaction(async (tx) => {
+        // One round trip for stock validation (was one findUnique per line).
+        const products = await tx.retailProduct.findMany({
+          where: { id: { in: safeItems.map((r) => r.productId) } },
+        });
+        const productById = new Map(products.map((p) => [p.id, p]));
         for (const row of safeItems) {
-          const prod = await tx.retailProduct.findUnique({ where: { id: row.productId } });
+          const prod = productById.get(row.productId);
           if (!prod) throw new Error(`PRODUCT_NOT_FOUND:${row.productId}`);
           if (prod.stock < row.quantity) throw new Error(`INSUFFICIENT_STOCK:${prod.name}`);
         }

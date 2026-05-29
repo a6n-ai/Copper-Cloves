@@ -13,6 +13,7 @@
   --color-cream: #f5f2ea;
   --color-charcoal: #333333;
   --color-terracotta: #c17856;
+  --color-white-warm: #fafaf8;
   --color-background: hsl(var(--background));
   --color-foreground: hsl(var(--foreground));
 

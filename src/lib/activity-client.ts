@@ -1,5 +1,7 @@
-const VISITOR_KEY = "cc_activity_visitor_id";
-const SERVER_SESSION_KEY = "cc_activity_server_session_id";
+// Versioned so a future format change can bump the suffix without colliding
+// with the old opaque IDs already in visitors' localStorage.
+const VISITOR_KEY = "cc_activity_visitor_id_v1";
+const SERVER_SESSION_KEY = "cc_activity_server_session_id_v1";
 
 export type ClientActivityEvent = {
   event_name: string;
@@ -133,8 +135,14 @@ export async function flushActivityQueue(): Promise<void> {
   }
 }
 
+let flushOnLeaveInstalled = false;
+
 export function installActivityFlushOnLeave() {
   if (typeof window === "undefined") return;
+  // Module-level guard: the listeners are bound once per page load. A
+  // component ref would reset on remount and re-bind duplicate listeners.
+  if (flushOnLeaveInstalled) return;
+  flushOnLeaveInstalled = true;
   const run = () => void flushActivityQueue();
   window.addEventListener("visibilitychange", () => {
     if (document.visibilityState === "hidden") run();

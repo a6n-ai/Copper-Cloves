@@ -1,6 +1,15 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import { useRouter } from "next/router";
+import { requireSessionSSP } from "@/lib/requireSessionSSP";
+
+export const getServerSideProps = requireSessionSSP({ roles: ["admin"] });
 import { Button } from "@/components/ui/button";
+import {
+  Drawer,
+  DrawerContent,
+  DrawerTitle,
+  DrawerDescription,
+} from "@/components/ui/drawer";
 import { EditButton, DeleteButton } from "@/components/ui/quick-actions";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
@@ -676,7 +685,7 @@ export default function CRMPage() {
                 </Card>
               ) : (
                 messages.map(msg => (
-                  <Card key={msg.id} className="border-0 bg-white/80 backdrop-blur-xl shadow-lg hover:shadow-xl transition-all duration-300">
+                  <Card key={msg.id} className="border-0 bg-white/80 backdrop-blur-xl shadow-lg hover:shadow-xl transition-all duration-300 [content-visibility:auto] [contain-intrinsic-size:0_180px]">
                     <CardContent className="p-6">
                       <div className="flex items-start justify-between mb-4">
                         <div className="flex items-center gap-3">
@@ -1114,20 +1123,19 @@ export default function CRMPage() {
       </main>
 
       {/* Template Form Modal */}
-      {showTemplateForm && (
-        <div className="fixed inset-0 z-50">
-          <div className="absolute inset-0 bg-charcoal/60 backdrop-blur-xs" onClick={() => {
-            setShowTemplateForm(false);
-            setEditingTemplate(null);
-          }} />
-          
-          <div className="absolute right-0 top-0 bottom-0 w-full max-w-3xl bg-white shadow-2xl overflow-y-auto">
-            <div className="sticky top-0 bg-white/95 backdrop-blur-xl border-b border-sage/10 p-6 z-10">
+      <Drawer
+        direction="right"
+        open={showTemplateForm}
+        onOpenChange={(o) => { if (!o) { setShowTemplateForm(false); setEditingTemplate(null); } }}
+      >
+        <DrawerContent direction="right" className="max-w-3xl overflow-y-auto">
+            <div className="sticky top-0 bg-white-warm/95 backdrop-blur-xl border-b border-sage/10 p-6 z-10">
               <div className="flex items-center justify-between">
                 <div>
-                  <h2 className="font-display text-3xl text-charcoal">
+                  <DrawerTitle className="font-display text-3xl text-charcoal">
                     {editingTemplate ? "Edit Template" : "Create New Template"}
-                  </h2>
+                  </DrawerTitle>
+                  <DrawerDescription className="sr-only">Email and WhatsApp message template editor</DrawerDescription>
                   {templateForm.is_system && templateForm.template_key && (
                     <div className="flex items-center gap-2 mt-1">
                       <Badge className="bg-terracotta/15 text-terracotta">System</Badge>
@@ -1348,9 +1356,8 @@ export default function CRMPage() {
                 </Button>
               </div>
             </div>
-          </div>
-        </div>
-      )}
+        </DrawerContent>
+      </Drawer>
 
       {/* Manual Send Modal */}
       {sendDialog && (
@@ -1497,14 +1504,16 @@ export default function CRMPage() {
       )}
 
       {/* Trigger Form Modal */}
-      {showTriggerForm && (
-        <div className="fixed inset-0 z-50">
-          <div className="absolute inset-0 bg-charcoal/60 backdrop-blur-xs" onClick={() => setShowTriggerForm(false)} />
-          
-          <div className="absolute right-0 top-0 bottom-0 w-full max-w-2xl bg-white shadow-2xl overflow-y-auto">
-            <div className="sticky top-0 bg-white/95 backdrop-blur-xl border-b border-sage/10 p-6 z-10">
+      <Drawer
+        direction="right"
+        open={showTriggerForm}
+        onOpenChange={(o) => { if (!o) setShowTriggerForm(false); }}
+      >
+        <DrawerContent direction="right" className="max-w-2xl overflow-y-auto">
+            <div className="sticky top-0 bg-white-warm/95 backdrop-blur-xl border-b border-sage/10 p-6 z-10">
               <div className="flex items-center justify-between">
-                <h2 className="font-display text-3xl text-charcoal">Create Automation Trigger</h2>
+                <DrawerTitle className="font-display text-3xl text-charcoal">Create Automation Trigger</DrawerTitle>
+                <DrawerDescription className="sr-only">Automation trigger editor</DrawerDescription>
                 <CloseButton onClick={() => setShowTriggerForm(false)} className="rounded-full" />
               </div>
             </div>
@@ -1601,9 +1610,8 @@ export default function CRMPage() {
                 </Button>
               </div>
             </div>
-          </div>
-        </div>
-      )}
+        </DrawerContent>
+      </Drawer>
     </div>
   );
 }

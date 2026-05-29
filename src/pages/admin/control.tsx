@@ -1,8 +1,16 @@
 ﻿import { useState, useEffect, useMemo } from "react";
+import Image from "next/image";
+import { requireSessionSSP } from "@/lib/requireSessionSSP";
+
+// Server-side auth gate — eliminates flash-of-unauth before the in-page
+// useSession redirect can fire. Existing client-side checks remain as a
+// belt-and-suspenders fallback for mid-session expiry.
+export const getServerSideProps = requireSessionSSP({ roles: ["admin"] });
 import dynamic from "next/dynamic";
 import { useRouter } from "next/router";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { ResponsiveTable } from "@/components/responsive/ResponsiveTable";
 import { MetricCard } from "@/components/admin/MetricCard";
 import { ListAvatar } from "@/components/admin/ListAvatar";
@@ -58,8 +66,8 @@ import {
 } from "lucide-react";
 import { SEO } from "@/components/SEO";
 import { Skeleton } from "@/components/ui/skeleton";
-import { InstructorAvatar } from "@/components/InstructorAvatar";
 import { useSession } from "next-auth/react";
+import { useInstructors } from "@/hooks/useInstructors";
 import type React from "react";
 // ~700 lines, only rendered when Analytics tab opens — defer.
 const ControlAnalyticsPanel = dynamic(
@@ -313,9 +321,11 @@ export default function ControlPanel() {
   const [userFilter, setUserFilter] = useState("all");
   const [loadingUsers, setLoadingUsers] = useState(true);
 
-  // Instructors state
-  const [instructors, setInstructors] = useState<any[]>([]);
-  const [loadingInstructors, setLoadingInstructors] = useState(true);
+  // Instructors roster — shared SWR key (one cached copy across admin pages).
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const { data: instructorsData, isLoading: instructorsLoading, mutate: mutateInstructors } = useInstructors<any[]>();
+  const instructors = instructorsData ?? [];
+  const loadingInstructors = instructorsLoading && !instructorsData;
 
   // Pause request tickets state
   const [pauseTickets, setPauseTickets] = useState<any[]>([]);
@@ -405,7 +415,6 @@ export default function ControlPanel() {
     if (status === "authenticated") {
       fetchClasses();
       fetchUsers();
-      fetchInstructors();
       void fetchPayoutData();
       void fetchPauseTickets();
       setLoading(false);
@@ -723,18 +732,6 @@ async function fetchPayoutData(opts?: { window?: "week" | "month" | "quarter" | 
       setUsers([]);
     } finally {
       setLoadingUsers(false);
-    }
-  }
-
-  const fetchInstructors = async () => {
-    setLoadingInstructors(true);
-    try {
-      const res = await fetch("/api/admin/instructors");
-      setInstructors(res.ok ? await res.json() : []);
-    } catch (error) {
-      console.error("Fetch instructors error:", error);
-    } finally {
-      setLoadingInstructors(false);
     }
   }
 
@@ -1108,7 +1105,7 @@ async function fetchPayoutData(opts?: { window?: "week" | "month" | "quarter" | 
       toast.success("Instructor created successfully!");
       setShowAddInstructorDialog(false);
       setImagePreview("");
-      fetchInstructors();
+      void mutateInstructors();
       form.reset();
     } catch (err) {
       console.error("Error:", err);
@@ -1176,7 +1173,7 @@ async function fetchPayoutData(opts?: { window?: "week" | "month" | "quarter" | 
       toast.success("Instructor updated successfully!");
       setShowEditInstructorDialog(false);
       setImagePreview("");
-      fetchInstructors();
+      void mutateInstructors();
     } catch (err) {
       console.error("Error:", err);
       toast.error("Failed to update instructor. Please try again.");
@@ -1192,7 +1189,7 @@ async function fetchPayoutData(opts?: { window?: "week" | "month" | "quarter" | 
         body: JSON.stringify({ is_active: !currentActive }),
       });
       if (!res.ok) throw new Error("Toggle failed");
-      fetchInstructors();
+      void mutateInstructors();
     } catch (err) {
       console.error("Error:", err);
       toast.error("Failed to update instructor status.");
@@ -1210,7 +1207,7 @@ async function fetchPayoutData(opts?: { window?: "week" | "month" | "quarter" | 
 
       toast.success("Instructor deleted successfully!");
       setShowEditInstructorDialog(false);
-      fetchInstructors();
+      void mutateInstructors();
     } catch (err) {
       console.error("Error:", err);
       toast.error("Failed to delete instructor. Please try again.");
@@ -1894,14 +1891,18 @@ async function fetchPayoutData(opts?: { window?: "week" | "month" | "quarter" | 
                                   <TableRow key={cls.id} className="border-sage/10 hover:bg-sage/5">
                                     <TableCell className="px-5 py-4">
                                       <div className="flex items-center gap-3 min-w-0">
-                                        <div className="h-11 w-11 rounded-lg overflow-hidden bg-sage/10 shrink-0 flex items-center justify-center">
-                                          {cls.image_url ? (
-                                            // eslint-disable-next-line @next/next/no-img-element
-                                            <img src={cls.image_url} alt={cls.name} className="w-full h-full object-cover" />
-                                          ) : (
-                                            <Calendar className="h-5 w-5 text-sage" />
-                                          )}
-                                        </div>
+                                        <ListAvatar
+                                          name={cls.name}
+                                          src={cls.image_url}
+                                          size="md"
+                                          className="shrink-0"
+                                          overlay={
+                                            !cls.image_url ? (
+                                              <Calendar className="absolute inset-0 m-auto h-5 w-5 text-sage" />
+                                            ) : null
+                                          }
+                                          fallbackClassName="bg-sage/10 text-transparent"
+                                        />
                                         <div className="min-w-0">
                                           <div className="font-body font-medium text-charcoal truncate">{cls.name}</div>
                                           {cls.description && (
@@ -2252,7 +2253,7 @@ async function fetchPayoutData(opts?: { window?: "week" | "month" | "quarter" | 
                                     </button>
                                   </TableHead>
                                   <TableHead className={`${thBase} w-[200px]`}>Contact</TableHead>
-                                  <TableHead className={`${thBase} w-[220px]`}>Specialties</TableHead>
+                                  <TableHead className={`${thBase} w-[300px]`}>Specialties</TableHead>
                                   <TableHead className={`${thBase} w-[110px]`}>
                                     <button type="button" onClick={() => instructorSort.toggle("status")} className={thBtn}>
                                       Status {sortArrow(instructorSort.key === "status", instructorSort.dir)}
@@ -2268,9 +2269,7 @@ async function fetchPayoutData(opts?: { window?: "week" | "month" | "quarter" | 
                                     <TableRow key={instructor.id} className="border-sage/10 hover:bg-sage/5">
                                       <TableCell className="px-5 py-4">
                                         <div className="flex items-center gap-3 min-w-0">
-                                          <div className="h-11 w-11 rounded-lg overflow-hidden bg-sage/10 shrink-0">
-                                            <InstructorAvatar src={instructor.image_url} name={instructor.name} className="h-full w-full" />
-                                          </div>
+                                          <ListAvatar name={instructor.name} src={instructor.image_url} size="md" className="shrink-0" />
                                           <div className="min-w-0">
                                             <div className="font-body font-medium text-charcoal truncate">{instructor.name}</div>
                                             {instructor.title && (
@@ -2302,14 +2301,26 @@ async function fetchPayoutData(opts?: { window?: "week" | "month" | "quarter" | 
                                             return <span className="font-body text-sm text-charcoal/40">—</span>;
                                           }
                                           return (
-                                            <div className="flex flex-wrap gap-1">
-                                              {list.slice(0, 2).map((s, idx) => (
-                                                <Badge key={idx} variant="outline" className="border-sage/20 text-sage bg-sage/5 text-xs font-body">{s}</Badge>
-                                              ))}
-                                              {list.length > 2 && (
-                                                <Badge variant="outline" className="border-charcoal/15 text-charcoal/50 bg-cream/30 text-xs font-body">
-                                                  +{list.length - 2}
-                                                </Badge>
+                                            <div className="flex items-center gap-1 max-w-[180px]">
+                                              <Badge
+                                                variant="outline"
+                                                className="border-sage/20 text-sage bg-sage/5 text-xs font-body truncate max-w-[120px]"
+                                              >
+                                                {list[0]}
+                                              </Badge>
+                                              {list.length > 1 && (
+                                                <TooltipProvider delayDuration={100}>
+                                                  <Tooltip>
+                                                    <TooltipTrigger asChild>
+                                                      <span className="inline-flex shrink-0 cursor-default items-center rounded-md border border-charcoal/15 bg-cream/30 px-2 py-0.5 font-body text-xs text-charcoal/50">
+                                                        +{list.length - 1}
+                                                      </span>
+                                                    </TooltipTrigger>
+                                                    <TooltipContent className="max-w-xs font-body">
+                                                      {list.slice(1).join(", ")}
+                                                    </TooltipContent>
+                                                  </Tooltip>
+                                                </TooltipProvider>
                                               )}
                                             </div>
                                           );
@@ -2761,7 +2772,7 @@ async function fetchPayoutData(opts?: { window?: "week" | "month" | "quarter" | 
                 />
                 {classImagePreview && (
                   <div className="mt-2">
-                    <img src={classImagePreview} alt="Preview" className="w-32 h-32 object-cover rounded-lg border border-sage/20" />
+                    <Image src={classImagePreview} alt="Preview" width={128} height={128} className="w-32 h-32 object-cover rounded-lg border border-sage/20" unoptimized />
                   </div>
                 )}
                 {uploadingImage && (
@@ -2885,10 +2896,13 @@ async function fetchPayoutData(opts?: { window?: "week" | "month" | "quarter" | 
                       }}
                     />
                     <div className="mt-2">
-                      <img 
-                        src={classImagePreview || selectedClass.image_url} 
-                        alt="Current" 
-                        className="w-32 h-32 object-cover rounded-lg border border-sage/20" 
+                      <Image
+                        src={classImagePreview || selectedClass.image_url}
+                        alt="Current"
+                        width={128}
+                        height={128}
+                        className="w-32 h-32 object-cover rounded-lg border border-sage/20"
+                        unoptimized
                       />
                     </div>
                     {uploadingImage && (
@@ -3120,7 +3134,7 @@ async function fetchPayoutData(opts?: { window?: "week" | "month" | "quarter" | 
                 />
                 {imagePreview && (
                   <div className="mt-2">
-                    <img src={imagePreview} alt="Preview" className="w-32 h-32 object-cover rounded-lg border border-sage/20" />
+                    <Image src={imagePreview} alt="Preview" width={128} height={128} className="w-32 h-32 object-cover rounded-lg border border-sage/20" unoptimized />
                   </div>
                 )}
                 {uploadingImage && (
@@ -3287,10 +3301,13 @@ async function fetchPayoutData(opts?: { window?: "week" | "month" | "quarter" | 
                     }}
                   />
                   <div className="mt-2">
-                    <img 
-                      src={imagePreview || selectedInstructorData.image_url} 
-                      alt="Current" 
-                      className="w-32 h-32 object-cover rounded-lg border border-sage/20" 
+                    <Image
+                      src={imagePreview || selectedInstructorData.image_url}
+                      alt="Current"
+                      width={128}
+                      height={128}
+                      className="w-32 h-32 object-cover rounded-lg border border-sage/20"
+                      unoptimized
                     />
                   </div>
                   {uploadingImage && (

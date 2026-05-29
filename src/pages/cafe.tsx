@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import Image from "next/image";
 import Link from "next/link";
 import { SEO } from "@/components/SEO";
@@ -79,18 +79,22 @@ function getBackgroundColor(scrollY: number) {
 }
 
 export default function CafePage() {
-  const [scrollY, setScrollY] = useState(0);
   const [analogImageIndex, setAnalogImageIndex] = useState(0);
   const [heroMediaIndex, setHeroMediaIndex] = useState(0);
+  const bgRef = useRef<HTMLDivElement>(null);
 
-  // rAF-throttled scroll: avoid setState on every pixel
+  // rAF-throttled scroll. The scroll position drives only the fixed background
+  // color, so write it straight to the DOM node instead of routing through
+  // React state — that previously re-rendered this entire ~1000-line page on
+  // every scroll frame.
   useEffect(() => {
     let ticking = false;
     const handleScroll = () => {
       if (ticking) return;
       ticking = true;
       requestAnimationFrame(() => {
-        setScrollY(window.scrollY);
+        const el = bgRef.current;
+        if (el) el.style.backgroundColor = getBackgroundColor(window.scrollY);
         ticking = false;
       });
     };
@@ -117,19 +121,19 @@ export default function CafePage() {
       icon: Apple,
       title: "Post-Workout Fuel",
       items: ["Smoothie Bowls", "Protein Shakes", "Bliss Balls"],
-      color: "from-sage/20 to-terracotta/10"
+      image: cdnUrl("/food/A7401864.jpg")
     },
     {
       icon: Coffee,
       title: "The Daily Pause",
       items: ["Sourdough Toasties", "Seasonal Salads", "Nourish Bowls"],
-      color: "from-terracotta/20 to-sage/10"
+      image: cdnUrl("/food/BAG02768.jpg")
     },
     {
       icon: Droplets,
       title: "Liquid Energy",
       items: ["Specialty Coffee", "Matcha Lattes", "Kombucha bar"],
-      color: "from-sage/20 to-cream"
+      image: cdnUrl("/food/A7404719.jpg")
     }
   ];
 
@@ -143,10 +147,11 @@ export default function CafePage() {
       <Navigation />
 
       {/* Dynamic Background with Lime-Plaster Texture */}
-      <div 
+      <div
+        ref={bgRef}
         className="fixed inset-0 -z-10 transition-colors duration-1000"
-        style={{ 
-          backgroundColor: getBackgroundColor(scrollY),
+        style={{
+          backgroundColor: getBackgroundColor(0),
           backgroundImage: `url("data:image/svg+xml,%3Csvg width='100' height='100' viewBox='0 0 100 100' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' /%3E%3C/filter%3E%3Crect width='100' height='100' filter='url(%23noise)' opacity='0.08'/%3E%3C/svg%3E")`,
           backgroundBlendMode: "multiply"
         }}
@@ -514,82 +519,79 @@ export default function CafePage() {
             </div>
           </div>
 
-          {/* Menu Category Cards */}
-          <div className="grid md:grid-cols-3 gap-8 mb-16">
-            {menuCategories.map((category) => {
+          {/* Menu Promo-Banner Grid — re-skin of shadcn-space product-listing-04.
+              Image-led, read-only (public page has no cart). */}
+          <div className="grid md:grid-cols-3 gap-6 mb-16">
+            {menuCategories.map((category, i) => {
               const Icon = category.icon;
               return (
-                <div 
+                <div
                   key={category.title}
-                  className="group relative"
+                  style={{ animationDelay: `${i * 90}ms` }}
+                  className="group relative flex min-h-[26rem] flex-col justify-end overflow-hidden rounded-2xl border border-border bg-charcoal shadow-none transition-all duration-500 fade-in-0 slide-in-from-bottom-4 fill-mode-both animate-in hover:-translate-y-1 hover:shadow-[0_12px_32px_rgba(51,51,51,0.16)]"
                 >
-                  {/* Glassmorphism Card */}
-                  <div className="relative overflow-hidden rounded-3xl bg-white/40 backdrop-blur-xl border border-white/60 shadow-2xl transition-all duration-500 hover:scale-[1.02] hover:shadow-sage/20 p-8">
-                    {/* Gradient Background */}
-                    <div className={`absolute inset-0 bg-linear-to-br ${category.color} opacity-50`} />
-                    
-                    {/* Content */}
-                    <div className="relative z-10">
-                      <div className="w-16 h-16 rounded-full bg-sage/20 flex items-center justify-center mb-6 group-hover:bg-sage/30 transition-colors">
-                        <Icon className="text-sage" size={28} />
-                      </div>
-                      
-                      <h3 className="font-display text-2xl text-charcoal font-semibold mb-4">
-                        {category.title}
-                      </h3>
-                      
-                      <ul className="space-y-2">
-                        {category.items.map((item) => (
-                          <li key={item} className="flex items-center gap-2 font-body text-charcoal/80">
-                            <div className="w-1.5 h-1.5 rounded-full bg-sage" />
-                            {item}
-                          </li>
-                        ))}
-                      </ul>
+                  <Image
+                    src={category.image}
+                    alt={category.title}
+                    width={800}
+                    height={1000}
+                    unoptimized
+                    className="absolute inset-0 h-full w-full object-cover transition-transform duration-700 group-hover:scale-105"
+                  />
+                  {/* Warm legibility scrim — not decorative blur */}
+                  <div className="absolute inset-0 bg-linear-to-t from-charcoal/85 via-charcoal/35 to-transparent" />
+
+                  <div className="relative z-10 p-7">
+                    <div className="mb-4 inline-flex size-12 items-center justify-center rounded-full bg-terracotta text-white-warm">
+                      <Icon size={22} />
                     </div>
+                    <h3 className="mb-3 font-display text-2xl text-white-warm">
+                      {category.title}
+                    </h3>
+                    <ul className="space-y-1.5">
+                      {category.items.map((item) => (
+                        <li
+                          key={item}
+                          className="flex items-center gap-2 font-body text-sm text-white-warm/85"
+                        >
+                          <span className="size-1.5 rounded-full bg-terracotta" />
+                          {item}
+                        </li>
+                      ))}
+                    </ul>
                   </div>
                 </div>
               );
             })}
           </div>
 
-          {/* The Daily Ritual - Prominent Card */}
+          {/* The Daily Ritual — meal-subscription CTA. Flat white-warm card,
+              terracotta-accented icon (food context), sage owns the CTA. */}
           <div className="max-w-4xl mx-auto">
-            <Card className="relative overflow-hidden border-2 border-sage shadow-2xl">
-              {/* Decorative Background */}
-              <div className="absolute inset-0 bg-linear-to-br from-sage/10 via-cream to-terracotta/10" />
-              
-              <CardContent className="relative z-10 p-10 md:p-12">
-                <div className="flex items-start gap-6">
-                  <div className="w-20 h-20 rounded-full bg-sage/20 flex items-center justify-center shrink-0">
-                    <Heart className="text-sage" size={36} />
+            <Card className="overflow-hidden rounded-2xl border border-border bg-white-warm shadow-none transition-shadow duration-300 hover:shadow-[0_4px_24px_rgba(51,51,51,0.08)]">
+              <CardContent className="p-8 md:p-12">
+                <div className="flex flex-col items-start gap-6 sm:flex-row">
+                  <div className="flex size-16 shrink-0 items-center justify-center rounded-full bg-terracotta/15 text-terracotta">
+                    <Heart size={30} />
                   </div>
-                  
+
                   <div className="flex-1">
-                    <h3 className="font-display text-3xl md:text-4xl text-charcoal font-semibold mb-4">
+                    <h3 className="mb-4 font-display text-3xl font-semibold text-charcoal md:text-4xl">
                       <span className="italic text-charcoal/60">The</span> Daily Ritual
                     </h3>
-                    <p className="font-body text-lg text-charcoal/80 leading-relaxed mb-6">
+                    <p className="mb-6 max-w-prose font-body text-lg leading-relaxed text-charcoal/80">
                       Struggling to eat clean? Guarantee yourself chef-prepared, plant-based meals
                       every day with our Studio Meal Subscription. Make wellness effortless.
                     </p>
-                    
-                    <div className="flex flex-col sm:flex-row gap-4">
+
+                    <div className="flex flex-col gap-4 sm:flex-row">
                       <Link href="/cafe/meal-subscription">
-                        <Button
-                          size="lg"
-                          variant="sage"
-                          className="w-full sm:w-auto"
-                        >
+                        <Button size="lg" variant="sage" className="w-full sm:w-auto">
                           Subscribe to Intentful Eating
                         </Button>
                       </Link>
                       <Link href="/cafe/meal-subscription">
-                        <Button 
-                          size="lg"
-                          variant="outline"
-                          className="border-sage/30 hover:bg-sage/5 text-charcoal w-full sm:w-auto"
-                        >
+                        <Button size="lg" variant="sage-outline" className="w-full sm:w-auto">
                           Learn More
                         </Button>
                       </Link>

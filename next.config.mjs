@@ -47,6 +47,19 @@ const nextConfig = {
   reactStrictMode: true,
   poweredByHeader: false,
   env: inlineEnv,
+  // Transform barrel imports (`import { X } from "lucide-react"`) into direct
+  // per-module imports so only the icons/charts actually used land in the
+  // bundle. Without listing them here Next does NOT auto-optimize these — the
+  // app barrel-imports lucide-react in 100+ files.
+  experimental: {
+    optimizePackageImports: [
+      "lucide-react",
+      "recharts",
+      "date-fns",
+      "framer-motion",
+      "@radix-ui/react-icons",
+    ],
+  },
   // Stable build id per deploy → matches NEXT_PUBLIC_BUILD_ID above so client
   // and server agree on which bundle is current.
   generateBuildId: async () =>
@@ -65,11 +78,21 @@ const nextConfig = {
     // CDN-cache optimized variants for a year; image URLs are content-addressed
     // by S3 key so a new upload changes the URL.
     minimumCacheTTL: 31536000,
+    // Explicit allowlist (was `**`). Tightens the optimizer's cache-key space
+    // and shrinks the attack surface for hostname-spoofing payloads.
+    //
+    // Admin-pasted arbitrary URLs (instructor avatars, member avatars, partner
+    // logos, product/cafe images uploaded via the in-app cropper) always go
+    // through S3 and so match `*.amazonaws.com`. The few sites that accept
+    // truly external URLs (admin pastes a Cloudinary link, etc.) are wrapped
+    // in `<Image unoptimized>` which bypasses this allowlist entirely.
+    // NOTE: if `NEXT_PUBLIC_CDN_URL` points at a custom domain (e.g.
+    // `cdn.copperandcloves.com`) rather than a raw `*.cloudfront.net` URL,
+    // add it explicitly here or the optimizer will 400 those requests.
     remotePatterns: [
-      {
-        protocol: "https",
-        hostname: "**",
-      },
+      { protocol: "https", hostname: "**.amazonaws.com" },
+      { protocol: "https", hostname: "**.cloudfront.net" },
+      { protocol: "https", hostname: "images.unsplash.com" },
     ],
   },
   async headers() {

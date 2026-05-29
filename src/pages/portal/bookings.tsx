@@ -1,5 +1,8 @@
 import { memo, useEffect, useMemo, useState } from "react";
 import { PageHeader } from "@/components/dashboard/PageHeader";
+import { requireSessionSSP } from "@/lib/requireSessionSSP";
+
+export const getServerSideProps = requireSessionSSP();
 import { useToast } from "@/hooks/use-toast";
 import { useRouter } from "next/router";
 import { useSession } from "next-auth/react";

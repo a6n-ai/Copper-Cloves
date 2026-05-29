@@ -60,10 +60,21 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       return res.json({ ...profile, user_stats: stats });
     }
 
-    const rows = await prisma.profile.findMany({
-      include: memberInclude,
-      orderBy: { created_at: "desc" },
-    });
+    const monthStart = new Date();
+    monthStart.setDate(1);
+    monthStart.setHours(0, 0, 0, 0);
+
+    // The month check-in count is independent of the member list, so fetch
+    // both in one round trip instead of as a trailing serial query.
+    const [rows, checkInsThisMonth] = await Promise.all([
+      prisma.profile.findMany({
+        include: memberInclude,
+        orderBy: { created_at: "desc" },
+      }),
+      prisma.booking.count({
+        where: { checked_in: true, check_in_time: { gte: monthStart } },
+      }),
+    ]);
     // Exclude staff/partner/instructor logins — only real members.
     const members = rows.filter((p) => !isNonMemberRole(p.role));
     const statsByUser = await getDynamicStatsForUsers(members.map((m) => m.id));
@@ -74,13 +85,6 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         user_stats: stats,
         _count: { bookings: stats?.total_classes_attended ?? 0 },
       };
-    });
-
-    const monthStart = new Date();
-    monthStart.setDate(1);
-    monthStart.setHours(0, 0, 0, 0);
-    const checkInsThisMonth = await prisma.booking.count({
-      where: { checked_in: true, check_in_time: { gte: monthStart } },
     });
 
     return res.json({ members: withStats, checkInsThisMonth });

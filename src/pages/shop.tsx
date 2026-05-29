@@ -1,9 +1,17 @@
 import { useState, useEffect, useMemo } from "react";
+import type { GetStaticProps } from "next";
+import prisma from "@/lib/prisma";
 import type { LucideIcon } from "lucide-react";
 import { SEO } from "@/components/SEO";
 import { Navigation } from "@/components/Navigation";
 import { Footer } from "@/components/Footer";
 import { Button } from "@/components/ui/button";
+import {
+  Drawer,
+  DrawerContent,
+  DrawerTitle,
+  DrawerDescription,
+} from "@/components/ui/drawer";
 import { Badge } from "@/components/ui/badge";
 import {
   ShoppingCart,
@@ -64,10 +72,41 @@ function toSortBy(value: string): "featured" | "price-low" | "price-high" {
   return "featured";
 }
 
-export default function Shop() {
+interface ShopProps {
+  initialProducts: RetailProduct[];
+}
+
+export const getStaticProps: GetStaticProps<ShopProps> = async () => {
+  try {
+    const rows = await prisma.retailProduct.findMany({
+      where: { is_active: true },
+      orderBy: [{ featured: "desc" }, { created_at: "desc" }],
+    });
+    const initialProducts: RetailProduct[] = rows.map((p) => ({
+      id: p.id,
+      name: p.name,
+      category: p.category,
+      description: p.description,
+      price: Number(p.price ?? 0),
+      stock: p.stock,
+      image_url: p.image_url,
+      featured: p.featured,
+    }));
+    return { props: { initialProducts }, revalidate: 60 };
+  } catch {
+    // Fall back to empty list on build-time DB error; client never refetches,
+    // so a deploy with a temporarily broken DB will serve an empty shop until
+    // the next ISR window. Acceptable tradeoff for the LCP win.
+    return { props: { initialProducts: [] }, revalidate: 60 };
+  }
+};
+
+export default function Shop({ initialProducts }: ShopProps) {
   const { data: session } = useSession();
-  const [products, setProducts] = useState<RetailProduct[]>([]);
-  const [catalogLoading, setCatalogLoading] = useState(true);
+  const [products] = useState<RetailProduct[]>(initialProducts);
+  // Always false — products are SSG'd via `getStaticProps`. Kept as a local
+  // const so the existing loading branches in the JSX still compile.
+  const catalogLoading = false;
   const [selectedCategory, setSelectedCategory] = useState<string>("all");
   const [sortBy, setSortBy] = useState<"featured" | "price-low" | "price-high">("featured");
   const [showCart, setShowCart] = useState(false);
@@ -84,25 +123,7 @@ export default function Shop() {
   const [checkoutLoading, setCheckoutLoading] = useState(false);
   const [checkoutError, setCheckoutError] = useState<string | null>(null);
 
-  useEffect(() => {
-    let cancelled = false;
-    (async () => {
-      try {
-        const res = await fetch("/api/retail-products");
-        const data = res.ok ? await res.json() : [];
-        if (!cancelled && Array.isArray(data)) {
-          setProducts(data.filter((p: RetailProduct) => p?.id && p?.name));
-        }
-      } catch {
-        if (!cancelled) setProducts([]);
-      } finally {
-        if (!cancelled) setCatalogLoading(false);
-      }
-    })();
-    return () => {
-      cancelled = true;
-    };
-  }, []);
+  // Products are served from `getStaticProps` + 60s ISR — no client fetch.
 
   const sessionEmail = (session?.user as { email?: string } | undefined)?.email?.trim();
   useEffect(() => {
@@ -437,16 +458,16 @@ export default function Shop() {
       </section>
 
       {/* Shopping Cart Sidebar */}
-      {showCart && (
-        <div className="fixed inset-0 z-50">
-          {/* Backdrop */}
-          <div 
-            className="absolute inset-0 bg-charcoal/60 backdrop-blur-xs"
-            onClick={() => setShowCart(false)}
-          />
-          
-          {/* Cart Panel */}
-          <div className="absolute right-0 top-0 bottom-0 w-full max-w-md bg-white shadow-2xl overflow-y-auto">
+      <Drawer
+        direction="right"
+        open={showCart}
+        onOpenChange={(o) => { if (!o) setShowCart(false); }}
+      >
+        <DrawerContent direction="right" className="max-w-md overflow-y-auto">
+            <DrawerTitle className="sr-only">Your Cart</DrawerTitle>
+            <DrawerDescription className="sr-only">
+              Shopping cart and checkout
+            </DrawerDescription>
             {checkoutStep === "cart" && (
               <>
                 {/* Header */}
@@ -717,9 +738,8 @@ export default function Shop() {
                 </Link>
               </div>
             )}
-          </div>
-        </div>
-      )}
+        </DrawerContent>
+      </Drawer>
 
       <Footer />
       

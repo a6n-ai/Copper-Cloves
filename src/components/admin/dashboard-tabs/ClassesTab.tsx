@@ -122,7 +122,7 @@ function ClassesTabImpl({ classPerformance, disciplineSplit, peakHours, classesL
         <MetricCard label="Top Class" value={stats.topClass?.name ?? "—"} icon={Star} tone="amber" loading={!classesLoaded} hint={stats.topClass ? `${stats.topClass.utilization}% filled` : ""} />
       </div>
 
-      <Card className="border-sage/20 bg-white/95 backdrop-blur-xl">
+      <Card className="border-sage/20 bg-white-warm">
         <CardHeader>
           <CardTitle className="font-display text-2xl text-charcoal">Class Performance</CardTitle>
           <CardDescription className="font-body text-charcoal/60">Utilization and bookings per class type</CardDescription>
@@ -184,7 +184,7 @@ function ClassesTabImpl({ classPerformance, disciplineSplit, peakHours, classesL
       </Card>
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-        <Card className="border-sage/20 bg-white/95 backdrop-blur-xl">
+        <Card className="border-sage/20 bg-white-warm">
           <CardHeader>
             <CardTitle className="font-display text-xl text-charcoal">Discipline Split</CardTitle>
             <CardDescription className="font-body text-charcoal/60">Bookings by category</CardDescription>
@@ -221,7 +221,7 @@ function ClassesTabImpl({ classPerformance, disciplineSplit, peakHours, classesL
           </CardContent>
         </Card>
 
-        <Card className="border-sage/20 bg-white/95 backdrop-blur-xl lg:col-span-2">
+        <Card className="border-sage/20 bg-white-warm lg:col-span-2">
           <CardHeader>
             <CardTitle className="font-display text-xl text-charcoal">Utilization Leaderboard</CardTitle>
             <CardDescription className="font-body text-charcoal/60">Top 10 classes by capacity fill</CardDescription>
@@ -244,7 +244,7 @@ function ClassesTabImpl({ classPerformance, disciplineSplit, peakHours, classesL
         </Card>
       </div>
 
-      <Card className="border-sage/20 bg-white/95 backdrop-blur-xl">
+      <Card className="border-sage/20 bg-white-warm">
         <CardHeader>
           <CardTitle className="font-display text-xl text-charcoal">Peak Hours Heatmap</CardTitle>
           <CardDescription className="font-body text-charcoal/60">
@@ -299,7 +299,7 @@ function ClassesTabImpl({ classPerformance, disciplineSplit, peakHours, classesL
       </Card>
 
       {stats.underperforming.length > 0 && (
-        <Card className="border-red-500/20 bg-linear-to-br from-red-50 to-white backdrop-blur-xl">
+        <Card className="border-red-500/20 bg-red-50">
           <CardHeader>
             <CardTitle className="font-display text-xl text-charcoal flex items-center gap-2">
               <AlertTriangle className="h-5 w-5 text-red-500" />

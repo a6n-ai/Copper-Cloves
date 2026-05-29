@@ -605,10 +605,6 @@ export async function getTransactions(db: Db = prisma, opts: { includeFinanceDem
     }),
   ]);
 
-  const financeBookings = financeBookingCandidates.filter(
-    (b) => parseFinanceSnapshot(b.finance_snapshot) !== null,
-  );
-
   const packageTransactions = recentPackages.map((up) => {
     const gross = money(up.package_type.price);
     const disc = money(up.purchase_discount_inr);
@@ -668,8 +664,11 @@ export async function getTransactions(db: Db = prisma, opts: { includeFinanceDem
     };
   });
 
-  const bookingFinanceTransactions = financeBookings.map((b) => {
-    const snap = parseFinanceSnapshot(b.finance_snapshot)!;
+  // Parse each snapshot exactly once: skip rows with no valid snapshot (was a
+  // separate .filter that parsed, then this .map parsed again per row).
+  const bookingFinanceTransactions = financeBookingCandidates.flatMap((b) => {
+    const snap = parseFinanceSnapshot(b.finance_snapshot);
+    if (!snap) return [];
     const profile = b.profile;
     const fullName = profile.full_name || profile.email || "Member";
     // Guests are stored on the booker's guest_attendees (their own roster rows
@@ -744,7 +743,7 @@ export async function getTransactions(db: Db = prisma, opts: { includeFinanceDem
       groupHeadcount: 1 + guests,
     };
 
-    return {
+    return [{
       id: `booking-${b.id}`,
       rawId: b.id,
       sortKey: b.booking_date.toISOString(),
@@ -762,7 +761,7 @@ export async function getTransactions(db: Db = prisma, opts: { includeFinanceDem
           ? "Razorpay"
           : snap.paymentMethod === "online" ? "Online" : "Pay at studio",
       financeDetail,
-    };
+    }];
   });
 
   const liveTransactions = [...packageTransactions, ...bookingFinanceTransactions].sort((a, b) =>

@@ -8,12 +8,15 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   if (!ensureAdmin(session, res)) return;
 
   if (req.method === "GET") {
+    // Cap the log — the Communication Hub renders every row as a heavy card,
+    // so an unbounded history would fully render months of messages on open.
     const messages = await prisma.crmMessage.findMany({
       include: {
         template: true,
         profile: { select: { id: true, full_name: true, email: true } },
       },
       orderBy: { created_at: "desc" },
+      take: 100,
     });
     return res.json(messages);
   }

@@ -1,6 +1,9 @@
 import { useEffect, useState, useCallback } from "react";
 import { useRouter } from "next/router";
 import { useSession } from "next-auth/react";
+import { requireSessionSSP } from "@/lib/requireSessionSSP";
+
+export const getServerSideProps = requireSessionSSP({ roles: ["admin"] });
 import { AdminPageHeader } from "@/components/admin/AdminPageHeader";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
