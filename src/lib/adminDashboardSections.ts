@@ -13,6 +13,7 @@ import { parseFinanceSnapshot } from "@/lib/financeBookingCheckout";
 import { getDynamicStats, getDynamicStatsForUsers, getTopStreaks, getStreakDistribution } from "@/lib/attendanceStats";
 
 import { cdnUrl } from "@/lib/cdnUrl";
+import { passCategoryForPackageType } from "@/lib/couponHelpers";
 function dt(d: Date) {
   const pad = (n: number) => String(n).padStart(2, "0");
   return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}`;
@@ -537,11 +538,7 @@ export async function getMemberList(db: Db = prisma) {
 
   return top.map((up, idx) => {
     const pf = perf.get(up.user_id) ?? { onTime: 0, late: 0, noShow: 0 };
-    const isUnlimited = !!(
-      up.package_type.is_unlimited ||
-      up.pass_type === "studio_pass" ||
-      up.package_type.type === "studio_pass"
-    );
+    const isUnlimited = passCategoryForPackageType(up.package_type) === "studio_pass";
     return {
       id: idx + 1,
       profileId: up.user_id,

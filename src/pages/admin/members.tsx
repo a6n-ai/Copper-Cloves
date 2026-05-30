@@ -1,6 +1,7 @@
 import { useState, useEffect, useMemo } from "react";
 import { useRouter } from "next/router";
 import { requireSessionSSP } from "@/lib/requireSessionSSP";
+import { passCategoryForPackageType } from "@/lib/couponHelpers";
 
 export const getServerSideProps = requireSessionSSP({ roles: ["admin"] });
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -426,14 +427,7 @@ export default function AdminMembers() {
 
         let passCategory: Member["passCategory"] = "none";
         if (pkg) {
-          const pass = (pkg.pass_type || p.pass_type || "").toLowerCase();
-          const pt = pkg.package_type;
-          const t = (pt?.type || "").toLowerCase();
-          if (pass === "studio_pass" || pt?.is_unlimited || t.includes("studio")) {
-            passCategory = "studio_pass";
-          } else {
-            passCategory = "class_pass";
-          }
+          passCategory = passCategoryForPackageType(pkg.package_type);
         }
 
         const unlimited = Boolean(pkg?.package_type?.is_unlimited || passCategory === "studio_pass");

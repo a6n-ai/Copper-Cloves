@@ -63,6 +63,7 @@ import { requireSessionSSP } from "@/lib/requireSessionSSP";
 // that key on `status`/`session?.user?.role`.
 export const getServerSideProps = requireSessionSSP({ roles: ["admin"] });
 import { financeDemoTransactionsForUi } from "@/lib/adminFinanceDemoTransactions";
+import { passCategoryForPackageType } from "@/lib/couponHelpers";
 import {
   downloadFinanceReportExcel,
   type FinanceReportPeriod,
@@ -1125,11 +1126,7 @@ export default function AdminDashboard() {
         const pkgs = Array.isArray(snap?.user_packages) ? (snap.user_packages as Record<string, unknown>[]) : [];
         const activePkg = pkgs.find((p) => p.is_active) ?? pkgs[0];
         const pt = activePkg?.package_type as { name?: string; is_unlimited?: boolean; type?: string } | undefined;
-        const isUnlimited = !!(
-          pt?.is_unlimited ||
-          activePkg?.pass_type === "studio_pass" ||
-          pt?.type === "studio_pass"
-        );
+        const isUnlimited = activePkg ? passCategoryForPackageType(pt ?? {}) === "studio_pass" : false;
         const creditsLeft = Number(activePkg?.credits_remaining ?? activePkg?.classes_remaining ?? 0);
         const creditsDisplay = activePkg ? (isUnlimited ? "∞" : String(creditsLeft)) : "—";
         const packageName = pt?.name || (member.package as string) || "—";

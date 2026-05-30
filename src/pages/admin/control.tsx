@@ -77,6 +77,7 @@ const ControlAnalyticsPanel = dynamic(
 import { Pagination, usePagination } from "@/components/Pagination";
 
 import { cdnUrl } from "@/lib/cdnUrl";
+import { passCategoryForPackageType } from "@/lib/couponHelpers";
 import { toast } from "sonner";
 
 /** Member list cards — mirrors the avatar + name/contact + pass badge + dates + actions row. */
@@ -668,27 +669,11 @@ async function fetchPayoutData(opts?: { window?: "week" | "month" | "quarter" | 
           const sortedAll = [...pkgs].sort(byRecency);
           const mostRecentPackage = activePkgs[0] ?? sortedAll[0];
 
-          const passRaw = (
-            mostRecentPackage?.pass_type ||
-            profile.pass_type ||
-            ""
-          ).toLowerCase();
           const pt = mostRecentPackage?.package_type;
-          const ptType = (pt?.type ?? "").toLowerCase();
-          const isUnlimited = Boolean(pt?.is_unlimited);
-
-          let passType: "none" | "class_pass" | "studio_pass" = "none";
-          if (mostRecentPackage) {
-            if (
-              passRaw === "studio_pass" ||
-              isUnlimited ||
-              ptType.includes("studio")
-            ) {
-              passType = "studio_pass";
-            } else {
-              passType = "class_pass";
-            }
-          }
+          const passType: "none" | "class_pass" | "studio_pass" = mostRecentPackage
+            ? passCategoryForPackageType(pt ?? {})
+            : "none";
+          const isUnlimited = passType === "studio_pass";
 
           const exp = mostRecentPackage?.expiration_date
             ? new Date(mostRecentPackage.expiration_date)
