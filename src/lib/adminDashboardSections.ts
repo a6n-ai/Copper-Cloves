@@ -507,7 +507,6 @@ export async function getMemberList(db: Db = prisma) {
     select: {
       user_id: true,
       credits_remaining: true,
-      classes_remaining: true,
       expiration_date: true,
       pass_type: true,
       profile: { select: { full_name: true, email: true, phone: true, avatar_url: true } },
@@ -547,7 +546,7 @@ export async function getMemberList(db: Db = prisma) {
       avatarUrl: up.profile.avatar_url ?? null,
       package: up.package_type.name,
       isUnlimited,
-      credits: up.credits_remaining ?? up.classes_remaining ?? 0,
+      credits: up.credits_remaining ?? 0,
       expiry: dt(up.expiration_date),
       streak: statsByUser.get(up.user_id)?.current_streak ?? 0,
       onTime: pf.onTime,

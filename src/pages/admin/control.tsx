@@ -645,7 +645,6 @@ async function fetchPayoutData(opts?: { window?: "week" | "month" | "quarter" | 
             pause_start_date?: string | null;
             pass_type?: string | null;
             credits_remaining?: number | null;
-            classes_remaining?: number | null;
             expiration_date: string;
             purchase_date?: string;
             created_at?: string;
@@ -686,7 +685,7 @@ async function fetchPayoutData(opts?: { window?: "week" | "month" | "quarter" | 
                 )
               : 0;
 
-          const creditsVal = mostRecentPackage?.credits_remaining ?? mostRecentPackage?.classes_remaining ?? 0;
+          const creditsVal = mostRecentPackage?.credits_remaining ?? 0;
           const classesRemaining =
             passType === "studio_pass" || isUnlimited ? "Unlimited" : creditsVal;
 

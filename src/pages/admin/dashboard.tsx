@@ -1127,7 +1127,7 @@ export default function AdminDashboard() {
         const activePkg = pkgs.find((p) => p.is_active) ?? pkgs[0];
         const pt = activePkg?.package_type as { name?: string; is_unlimited?: boolean; type?: string } | undefined;
         const isUnlimited = activePkg ? passCategoryForPackageType(pt ?? {}) === "studio_pass" : false;
-        const creditsLeft = Number(activePkg?.credits_remaining ?? activePkg?.classes_remaining ?? 0);
+        const creditsLeft = Number(activePkg?.credits_remaining ?? 0);
         const creditsDisplay = activePkg ? (isUnlimited ? "∞" : String(creditsLeft)) : "—";
         const packageName = pt?.name || (member.package as string) || "—";
         const passExpiryISO = (activePkg?.expiration_date as string | undefined) ?? null;

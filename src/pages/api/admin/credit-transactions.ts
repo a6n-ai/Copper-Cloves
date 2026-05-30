@@ -58,7 +58,6 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     const amount =
       up.credits_total ??
       up.package_type.class_count ??
-      up.classes_remaining ??
       0;
     return {
       id: `pkg-${up.id}`,
