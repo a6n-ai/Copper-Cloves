@@ -322,7 +322,6 @@ export async function finishPackageCheckoutOnServer(
         package_type_id: pending.package_type_id,
         credits_remaining: packageType.is_unlimited ? null : (packageType.class_count ?? null),
         credits_total: packageType.is_unlimited ? null : (packageType.class_count ?? null),
-        classes_remaining: packageType.class_count ?? null,
         expiration_date: expirationDate,
         is_active: true,
         pass_type: pass,
