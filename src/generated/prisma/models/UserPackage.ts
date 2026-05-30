@@ -29,14 +29,12 @@ export type AggregateUserPackage = {
 export type UserPackageAvgAggregateOutputType = {
   credits_remaining: number | null
   credits_total: number | null
-  classes_remaining: number | null
   purchase_discount_inr: runtime.Decimal | null
 }
 
 export type UserPackageSumAggregateOutputType = {
   credits_remaining: number | null
   credits_total: number | null
-  classes_remaining: number | null
   purchase_discount_inr: runtime.Decimal | null
 }
 
@@ -47,7 +45,6 @@ export type UserPackageMinAggregateOutputType = {
   package_id: string | null
   credits_remaining: number | null
   credits_total: number | null
-  classes_remaining: number | null
   expiration_date: Date | null
   purchase_date: Date | null
   is_active: boolean | null
@@ -68,7 +65,6 @@ export type UserPackageMaxAggregateOutputType = {
   package_id: string | null
   credits_remaining: number | null
   credits_total: number | null
-  classes_remaining: number | null
   expiration_date: Date | null
   purchase_date: Date | null
   is_active: boolean | null
@@ -89,7 +85,6 @@ export type UserPackageCountAggregateOutputType = {
   package_id: number
   credits_remaining: number
   credits_total: number
-  classes_remaining: number
   expiration_date: number
   purchase_date: number
   is_active: number
@@ -108,14 +103,12 @@ export type UserPackageCountAggregateOutputType = {
 export type UserPackageAvgAggregateInputType = {
   credits_remaining?: true
   credits_total?: true
-  classes_remaining?: true
   purchase_discount_inr?: true
 }
 
 export type UserPackageSumAggregateInputType = {
   credits_remaining?: true
   credits_total?: true
-  classes_remaining?: true
   purchase_discount_inr?: true
 }
 
@@ -126,7 +119,6 @@ export type UserPackageMinAggregateInputType = {
   package_id?: true
   credits_remaining?: true
   credits_total?: true
-  classes_remaining?: true
   expiration_date?: true
   purchase_date?: true
   is_active?: true
@@ -147,7 +139,6 @@ export type UserPackageMaxAggregateInputType = {
   package_id?: true
   credits_remaining?: true
   credits_total?: true
-  classes_remaining?: true
   expiration_date?: true
   purchase_date?: true
   is_active?: true
@@ -168,7 +159,6 @@ export type UserPackageCountAggregateInputType = {
   package_id?: true
   credits_remaining?: true
   credits_total?: true
-  classes_remaining?: true
   expiration_date?: true
   purchase_date?: true
   is_active?: true
@@ -276,7 +266,6 @@ export type UserPackageGroupByOutputType = {
   package_id: string | null
   credits_remaining: number | null
   credits_total: number | null
-  classes_remaining: number | null
   expiration_date: Date
   purchase_date: Date
   is_active: boolean
@@ -320,7 +309,6 @@ export type UserPackageWhereInput = {
   package_id?: Prisma.StringNullableFilter<"UserPackage"> | string | null
   credits_remaining?: Prisma.IntNullableFilter<"UserPackage"> | number | null
   credits_total?: Prisma.IntNullableFilter<"UserPackage"> | number | null
-  classes_remaining?: Prisma.IntNullableFilter<"UserPackage"> | number | null
   expiration_date?: Prisma.DateTimeFilter<"UserPackage"> | Date | string
   purchase_date?: Prisma.DateTimeFilter<"UserPackage"> | Date | string
   is_active?: Prisma.BoolFilter<"UserPackage"> | boolean
@@ -348,7 +336,6 @@ export type UserPackageOrderByWithRelationInput = {
   package_id?: Prisma.SortOrderInput | Prisma.SortOrder
   credits_remaining?: Prisma.SortOrderInput | Prisma.SortOrder
   credits_total?: Prisma.SortOrderInput | Prisma.SortOrder
-  classes_remaining?: Prisma.SortOrderInput | Prisma.SortOrder
   expiration_date?: Prisma.SortOrder
   purchase_date?: Prisma.SortOrder
   is_active?: Prisma.SortOrder
@@ -379,7 +366,6 @@ export type UserPackageWhereUniqueInput = Prisma.AtLeast<{
   package_id?: Prisma.StringNullableFilter<"UserPackage"> | string | null
   credits_remaining?: Prisma.IntNullableFilter<"UserPackage"> | number | null
   credits_total?: Prisma.IntNullableFilter<"UserPackage"> | number | null
-  classes_remaining?: Prisma.IntNullableFilter<"UserPackage"> | number | null
   expiration_date?: Prisma.DateTimeFilter<"UserPackage"> | Date | string
   purchase_date?: Prisma.DateTimeFilter<"UserPackage"> | Date | string
   is_active?: Prisma.BoolFilter<"UserPackage"> | boolean
@@ -407,7 +393,6 @@ export type UserPackageOrderByWithAggregationInput = {
   package_id?: Prisma.SortOrderInput | Prisma.SortOrder
   credits_remaining?: Prisma.SortOrderInput | Prisma.SortOrder
   credits_total?: Prisma.SortOrderInput | Prisma.SortOrder
-  classes_remaining?: Prisma.SortOrderInput | Prisma.SortOrder
   expiration_date?: Prisma.SortOrder
   purchase_date?: Prisma.SortOrder
   is_active?: Prisma.SortOrder
@@ -436,7 +421,6 @@ export type UserPackageScalarWhereWithAggregatesInput = {
   package_id?: Prisma.StringNullableWithAggregatesFilter<"UserPackage"> | string | null
   credits_remaining?: Prisma.IntNullableWithAggregatesFilter<"UserPackage"> | number | null
   credits_total?: Prisma.IntNullableWithAggregatesFilter<"UserPackage"> | number | null
-  classes_remaining?: Prisma.IntNullableWithAggregatesFilter<"UserPackage"> | number | null
   expiration_date?: Prisma.DateTimeWithAggregatesFilter<"UserPackage"> | Date | string
   purchase_date?: Prisma.DateTimeWithAggregatesFilter<"UserPackage"> | Date | string
   is_active?: Prisma.BoolWithAggregatesFilter<"UserPackage"> | boolean
@@ -454,7 +438,6 @@ export type UserPackageCreateInput = {
   id?: string
   credits_remaining?: number | null
   credits_total?: number | null
-  classes_remaining?: number | null
   expiration_date: Date | string
   purchase_date?: Date | string
   is_active?: boolean
@@ -481,7 +464,6 @@ export type UserPackageUncheckedCreateInput = {
   package_id?: string | null
   credits_remaining?: number | null
   credits_total?: number | null
-  classes_remaining?: number | null
   expiration_date: Date | string
   purchase_date?: Date | string
   is_active?: boolean
@@ -502,7 +484,6 @@ export type UserPackageUpdateInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   credits_remaining?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   credits_total?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
-  classes_remaining?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   expiration_date?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   purchase_date?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   is_active?: Prisma.BoolFieldUpdateOperationsInput | boolean
@@ -529,7 +510,6 @@ export type UserPackageUncheckedUpdateInput = {
   package_id?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   credits_remaining?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   credits_total?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
-  classes_remaining?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   expiration_date?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   purchase_date?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   is_active?: Prisma.BoolFieldUpdateOperationsInput | boolean
@@ -553,7 +533,6 @@ export type UserPackageCreateManyInput = {
   package_id?: string | null
   credits_remaining?: number | null
   credits_total?: number | null
-  classes_remaining?: number | null
   expiration_date: Date | string
   purchase_date?: Date | string
   is_active?: boolean
@@ -571,7 +550,6 @@ export type UserPackageUpdateManyMutationInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   credits_remaining?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   credits_total?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
-  classes_remaining?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   expiration_date?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   purchase_date?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   is_active?: Prisma.BoolFieldUpdateOperationsInput | boolean
@@ -591,7 +569,6 @@ export type UserPackageUncheckedUpdateManyInput = {
   package_id?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   credits_remaining?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   credits_total?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
-  classes_remaining?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   expiration_date?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   purchase_date?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   is_active?: Prisma.BoolFieldUpdateOperationsInput | boolean
@@ -622,7 +599,6 @@ export type UserPackageCountOrderByAggregateInput = {
   package_id?: Prisma.SortOrder
   credits_remaining?: Prisma.SortOrder
   credits_total?: Prisma.SortOrder
-  classes_remaining?: Prisma.SortOrder
   expiration_date?: Prisma.SortOrder
   purchase_date?: Prisma.SortOrder
   is_active?: Prisma.SortOrder
@@ -639,7 +615,6 @@ export type UserPackageCountOrderByAggregateInput = {
 export type UserPackageAvgOrderByAggregateInput = {
   credits_remaining?: Prisma.SortOrder
   credits_total?: Prisma.SortOrder
-  classes_remaining?: Prisma.SortOrder
   purchase_discount_inr?: Prisma.SortOrder
 }
 
@@ -650,7 +625,6 @@ export type UserPackageMaxOrderByAggregateInput = {
   package_id?: Prisma.SortOrder
   credits_remaining?: Prisma.SortOrder
   credits_total?: Prisma.SortOrder
-  classes_remaining?: Prisma.SortOrder
   expiration_date?: Prisma.SortOrder
   purchase_date?: Prisma.SortOrder
   is_active?: Prisma.SortOrder
@@ -671,7 +645,6 @@ export type UserPackageMinOrderByAggregateInput = {
   package_id?: Prisma.SortOrder
   credits_remaining?: Prisma.SortOrder
   credits_total?: Prisma.SortOrder
-  classes_remaining?: Prisma.SortOrder
   expiration_date?: Prisma.SortOrder
   purchase_date?: Prisma.SortOrder
   is_active?: Prisma.SortOrder
@@ -688,7 +661,6 @@ export type UserPackageMinOrderByAggregateInput = {
 export type UserPackageSumOrderByAggregateInput = {
   credits_remaining?: Prisma.SortOrder
   credits_total?: Prisma.SortOrder
-  classes_remaining?: Prisma.SortOrder
   purchase_discount_inr?: Prisma.SortOrder
 }
 
@@ -917,7 +889,6 @@ export type UserPackageCreateWithoutProfileInput = {
   id?: string
   credits_remaining?: number | null
   credits_total?: number | null
-  classes_remaining?: number | null
   expiration_date: Date | string
   purchase_date?: Date | string
   is_active?: boolean
@@ -942,7 +913,6 @@ export type UserPackageUncheckedCreateWithoutProfileInput = {
   package_id?: string | null
   credits_remaining?: number | null
   credits_total?: number | null
-  classes_remaining?: number | null
   expiration_date: Date | string
   purchase_date?: Date | string
   is_active?: boolean
@@ -995,7 +965,6 @@ export type UserPackageScalarWhereInput = {
   package_id?: Prisma.StringNullableFilter<"UserPackage"> | string | null
   credits_remaining?: Prisma.IntNullableFilter<"UserPackage"> | number | null
   credits_total?: Prisma.IntNullableFilter<"UserPackage"> | number | null
-  classes_remaining?: Prisma.IntNullableFilter<"UserPackage"> | number | null
   expiration_date?: Prisma.DateTimeFilter<"UserPackage"> | Date | string
   purchase_date?: Prisma.DateTimeFilter<"UserPackage"> | Date | string
   is_active?: Prisma.BoolFilter<"UserPackage"> | boolean
@@ -1013,7 +982,6 @@ export type UserPackageCreateWithoutCouponInput = {
   id?: string
   credits_remaining?: number | null
   credits_total?: number | null
-  classes_remaining?: number | null
   expiration_date: Date | string
   purchase_date?: Date | string
   is_active?: boolean
@@ -1039,7 +1007,6 @@ export type UserPackageUncheckedCreateWithoutCouponInput = {
   package_id?: string | null
   credits_remaining?: number | null
   credits_total?: number | null
-  classes_remaining?: number | null
   expiration_date: Date | string
   purchase_date?: Date | string
   is_active?: boolean
@@ -1085,7 +1052,6 @@ export type UserPackageCreateWithoutPackage_typeInput = {
   id?: string
   credits_remaining?: number | null
   credits_total?: number | null
-  classes_remaining?: number | null
   expiration_date: Date | string
   purchase_date?: Date | string
   is_active?: boolean
@@ -1110,7 +1076,6 @@ export type UserPackageUncheckedCreateWithoutPackage_typeInput = {
   package_id?: string | null
   credits_remaining?: number | null
   credits_total?: number | null
-  classes_remaining?: number | null
   expiration_date: Date | string
   purchase_date?: Date | string
   is_active?: boolean
@@ -1157,7 +1122,6 @@ export type UserPackageCreateWithoutPackageInput = {
   id?: string
   credits_remaining?: number | null
   credits_total?: number | null
-  classes_remaining?: number | null
   expiration_date: Date | string
   purchase_date?: Date | string
   is_active?: boolean
@@ -1182,7 +1146,6 @@ export type UserPackageUncheckedCreateWithoutPackageInput = {
   package_type_id: string
   credits_remaining?: number | null
   credits_total?: number | null
-  classes_remaining?: number | null
   expiration_date: Date | string
   purchase_date?: Date | string
   is_active?: boolean
@@ -1229,7 +1192,6 @@ export type UserPackageCreateWithoutBookingsInput = {
   id?: string
   credits_remaining?: number | null
   credits_total?: number | null
-  classes_remaining?: number | null
   expiration_date: Date | string
   purchase_date?: Date | string
   is_active?: boolean
@@ -1255,7 +1217,6 @@ export type UserPackageUncheckedCreateWithoutBookingsInput = {
   package_id?: string | null
   credits_remaining?: number | null
   credits_total?: number | null
-  classes_remaining?: number | null
   expiration_date: Date | string
   purchase_date?: Date | string
   is_active?: boolean
@@ -1291,7 +1252,6 @@ export type UserPackageUpdateWithoutBookingsInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   credits_remaining?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   credits_total?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
-  classes_remaining?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   expiration_date?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   purchase_date?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   is_active?: Prisma.BoolFieldUpdateOperationsInput | boolean
@@ -1317,7 +1277,6 @@ export type UserPackageUncheckedUpdateWithoutBookingsInput = {
   package_id?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   credits_remaining?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   credits_total?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
-  classes_remaining?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   expiration_date?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   purchase_date?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   is_active?: Prisma.BoolFieldUpdateOperationsInput | boolean
@@ -1337,7 +1296,6 @@ export type UserPackageCreateWithoutRazorpay_orderInput = {
   id?: string
   credits_remaining?: number | null
   credits_total?: number | null
-  classes_remaining?: number | null
   expiration_date: Date | string
   purchase_date?: Date | string
   is_active?: boolean
@@ -1363,7 +1321,6 @@ export type UserPackageUncheckedCreateWithoutRazorpay_orderInput = {
   package_id?: string | null
   credits_remaining?: number | null
   credits_total?: number | null
-  classes_remaining?: number | null
   expiration_date: Date | string
   purchase_date?: Date | string
   is_active?: boolean
@@ -1399,7 +1356,6 @@ export type UserPackageUpdateWithoutRazorpay_orderInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   credits_remaining?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   credits_total?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
-  classes_remaining?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   expiration_date?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   purchase_date?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   is_active?: Prisma.BoolFieldUpdateOperationsInput | boolean
@@ -1425,7 +1381,6 @@ export type UserPackageUncheckedUpdateWithoutRazorpay_orderInput = {
   package_id?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   credits_remaining?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   credits_total?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
-  classes_remaining?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   expiration_date?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   purchase_date?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   is_active?: Prisma.BoolFieldUpdateOperationsInput | boolean
@@ -1445,7 +1400,6 @@ export type UserPackageCreateWithoutPaymentsInput = {
   id?: string
   credits_remaining?: number | null
   credits_total?: number | null
-  classes_remaining?: number | null
   expiration_date: Date | string
   purchase_date?: Date | string
   is_active?: boolean
@@ -1471,7 +1425,6 @@ export type UserPackageUncheckedCreateWithoutPaymentsInput = {
   package_id?: string | null
   credits_remaining?: number | null
   credits_total?: number | null
-  classes_remaining?: number | null
   expiration_date: Date | string
   purchase_date?: Date | string
   is_active?: boolean
@@ -1507,7 +1460,6 @@ export type UserPackageUpdateWithoutPaymentsInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   credits_remaining?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   credits_total?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
-  classes_remaining?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   expiration_date?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   purchase_date?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   is_active?: Prisma.BoolFieldUpdateOperationsInput | boolean
@@ -1533,7 +1485,6 @@ export type UserPackageUncheckedUpdateWithoutPaymentsInput = {
   package_id?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   credits_remaining?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   credits_total?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
-  classes_remaining?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   expiration_date?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   purchase_date?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   is_active?: Prisma.BoolFieldUpdateOperationsInput | boolean
@@ -1555,7 +1506,6 @@ export type UserPackageCreateManyProfileInput = {
   package_id?: string | null
   credits_remaining?: number | null
   credits_total?: number | null
-  classes_remaining?: number | null
   expiration_date: Date | string
   purchase_date?: Date | string
   is_active?: boolean
@@ -1573,7 +1523,6 @@ export type UserPackageUpdateWithoutProfileInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   credits_remaining?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   credits_total?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
-  classes_remaining?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   expiration_date?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   purchase_date?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   is_active?: Prisma.BoolFieldUpdateOperationsInput | boolean
@@ -1598,7 +1547,6 @@ export type UserPackageUncheckedUpdateWithoutProfileInput = {
   package_id?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   credits_remaining?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   credits_total?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
-  classes_remaining?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   expiration_date?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   purchase_date?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   is_active?: Prisma.BoolFieldUpdateOperationsInput | boolean
@@ -1621,7 +1569,6 @@ export type UserPackageUncheckedUpdateManyWithoutProfileInput = {
   package_id?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   credits_remaining?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   credits_total?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
-  classes_remaining?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   expiration_date?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   purchase_date?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   is_active?: Prisma.BoolFieldUpdateOperationsInput | boolean
@@ -1642,7 +1589,6 @@ export type UserPackageCreateManyCouponInput = {
   package_id?: string | null
   credits_remaining?: number | null
   credits_total?: number | null
-  classes_remaining?: number | null
   expiration_date: Date | string
   purchase_date?: Date | string
   is_active?: boolean
@@ -1659,7 +1605,6 @@ export type UserPackageUpdateWithoutCouponInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   credits_remaining?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   credits_total?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
-  classes_remaining?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   expiration_date?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   purchase_date?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   is_active?: Prisma.BoolFieldUpdateOperationsInput | boolean
@@ -1685,7 +1630,6 @@ export type UserPackageUncheckedUpdateWithoutCouponInput = {
   package_id?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   credits_remaining?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   credits_total?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
-  classes_remaining?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   expiration_date?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   purchase_date?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   is_active?: Prisma.BoolFieldUpdateOperationsInput | boolean
@@ -1708,7 +1652,6 @@ export type UserPackageUncheckedUpdateManyWithoutCouponInput = {
   package_id?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   credits_remaining?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   credits_total?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
-  classes_remaining?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   expiration_date?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   purchase_date?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   is_active?: Prisma.BoolFieldUpdateOperationsInput | boolean
@@ -1727,7 +1670,6 @@ export type UserPackageCreateManyPackage_typeInput = {
   package_id?: string | null
   credits_remaining?: number | null
   credits_total?: number | null
-  classes_remaining?: number | null
   expiration_date: Date | string
   purchase_date?: Date | string
   is_active?: boolean
@@ -1745,7 +1687,6 @@ export type UserPackageUpdateWithoutPackage_typeInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   credits_remaining?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   credits_total?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
-  classes_remaining?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   expiration_date?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   purchase_date?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   is_active?: Prisma.BoolFieldUpdateOperationsInput | boolean
@@ -1770,7 +1711,6 @@ export type UserPackageUncheckedUpdateWithoutPackage_typeInput = {
   package_id?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   credits_remaining?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   credits_total?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
-  classes_remaining?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   expiration_date?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   purchase_date?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   is_active?: Prisma.BoolFieldUpdateOperationsInput | boolean
@@ -1793,7 +1733,6 @@ export type UserPackageUncheckedUpdateManyWithoutPackage_typeInput = {
   package_id?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   credits_remaining?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   credits_total?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
-  classes_remaining?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   expiration_date?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   purchase_date?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   is_active?: Prisma.BoolFieldUpdateOperationsInput | boolean
@@ -1813,7 +1752,6 @@ export type UserPackageCreateManyPackageInput = {
   package_type_id: string
   credits_remaining?: number | null
   credits_total?: number | null
-  classes_remaining?: number | null
   expiration_date: Date | string
   purchase_date?: Date | string
   is_active?: boolean
@@ -1831,7 +1769,6 @@ export type UserPackageUpdateWithoutPackageInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   credits_remaining?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   credits_total?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
-  classes_remaining?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   expiration_date?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   purchase_date?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   is_active?: Prisma.BoolFieldUpdateOperationsInput | boolean
@@ -1856,7 +1793,6 @@ export type UserPackageUncheckedUpdateWithoutPackageInput = {
   package_type_id?: Prisma.StringFieldUpdateOperationsInput | string
   credits_remaining?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   credits_total?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
-  classes_remaining?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   expiration_date?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   purchase_date?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   is_active?: Prisma.BoolFieldUpdateOperationsInput | boolean
@@ -1879,7 +1815,6 @@ export type UserPackageUncheckedUpdateManyWithoutPackageInput = {
   package_type_id?: Prisma.StringFieldUpdateOperationsInput | string
   credits_remaining?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   credits_total?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
-  classes_remaining?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   expiration_date?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   purchase_date?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   is_active?: Prisma.BoolFieldUpdateOperationsInput | boolean
@@ -1940,7 +1875,6 @@ export type UserPackageSelect<ExtArgs extends runtime.Types.Extensions.InternalA
   package_id?: boolean
   credits_remaining?: boolean
   credits_total?: boolean
-  classes_remaining?: boolean
   expiration_date?: boolean
   purchase_date?: boolean
   is_active?: boolean
@@ -1969,7 +1903,6 @@ export type UserPackageSelectCreateManyAndReturn<ExtArgs extends runtime.Types.E
   package_id?: boolean
   credits_remaining?: boolean
   credits_total?: boolean
-  classes_remaining?: boolean
   expiration_date?: boolean
   purchase_date?: boolean
   is_active?: boolean
@@ -1994,7 +1927,6 @@ export type UserPackageSelectUpdateManyAndReturn<ExtArgs extends runtime.Types.E
   package_id?: boolean
   credits_remaining?: boolean
   credits_total?: boolean
-  classes_remaining?: boolean
   expiration_date?: boolean
   purchase_date?: boolean
   is_active?: boolean
@@ -2019,7 +1951,6 @@ export type UserPackageSelectScalar = {
   package_id?: boolean
   credits_remaining?: boolean
   credits_total?: boolean
-  classes_remaining?: boolean
   expiration_date?: boolean
   purchase_date?: boolean
   is_active?: boolean
@@ -2033,7 +1964,7 @@ export type UserPackageSelectScalar = {
   updated_at?: boolean
 }
 
-export type UserPackageOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "user_id" | "package_type_id" | "package_id" | "credits_remaining" | "credits_total" | "classes_remaining" | "expiration_date" | "purchase_date" | "is_active" | "is_paused" | "pause_start_date" | "pause_end_date" | "pass_type" | "coupon_id" | "purchase_discount_inr" | "created_at" | "updated_at", ExtArgs["result"]["userPackage"]>
+export type UserPackageOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "user_id" | "package_type_id" | "package_id" | "credits_remaining" | "credits_total" | "expiration_date" | "purchase_date" | "is_active" | "is_paused" | "pause_start_date" | "pause_end_date" | "pass_type" | "coupon_id" | "purchase_discount_inr" | "created_at" | "updated_at", ExtArgs["result"]["userPackage"]>
 export type UserPackageInclude<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   profile?: boolean | Prisma.ProfileDefaultArgs<ExtArgs>
   package_type?: boolean | Prisma.PackageTypeDefaultArgs<ExtArgs>
@@ -2075,7 +2006,6 @@ export type $UserPackagePayload<ExtArgs extends runtime.Types.Extensions.Interna
     package_id: string | null
     credits_remaining: number | null
     credits_total: number | null
-    classes_remaining: number | null
     expiration_date: Date
     purchase_date: Date
     is_active: boolean
@@ -2523,7 +2453,6 @@ export interface UserPackageFieldRefs {
   readonly package_id: Prisma.FieldRef<"UserPackage", 'String'>
   readonly credits_remaining: Prisma.FieldRef<"UserPackage", 'Int'>
   readonly credits_total: Prisma.FieldRef<"UserPackage", 'Int'>
-  readonly classes_remaining: Prisma.FieldRef<"UserPackage", 'Int'>
   readonly expiration_date: Prisma.FieldRef<"UserPackage", 'DateTime'>
   readonly purchase_date: Prisma.FieldRef<"UserPackage", 'DateTime'>
   readonly is_active: Prisma.FieldRef<"UserPackage", 'Boolean'>

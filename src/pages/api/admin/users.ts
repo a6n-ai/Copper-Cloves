@@ -133,7 +133,6 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
           package_type_id: pkgTypeId!,
           credits_remaining: pass_type === "class_pass" ? creditsForClass : null,
           credits_total: pass_type === "class_pass" ? creditsForClass : null,
-          classes_remaining: pass_type === "class_pass" ? creditsForClass : null,
           expiration_date: expirationDate,
           is_active: true,
           pass_type,

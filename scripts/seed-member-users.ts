@@ -255,7 +255,6 @@ async function upsertMember(
     package_type_id: actualPackageTypeId,
     credits_remaining: isUnlimited ? null : credits,
     credits_total: isUnlimited ? null : credits,
-    classes_remaining: isUnlimited ? null : credits,
     expiration_date: expirationDate,
     purchase_date: startDate,
     is_active: true,

@@ -77,6 +77,7 @@ const ControlAnalyticsPanel = dynamic(
 import { Pagination, usePagination } from "@/components/Pagination";
 
 import { cdnUrl } from "@/lib/cdnUrl";
+import { passCategoryForPackageType } from "@/lib/couponHelpers";
 import { toast } from "sonner";
 
 /** Member list cards — mirrors the avatar + name/contact + pass badge + dates + actions row. */
@@ -644,7 +645,6 @@ async function fetchPayoutData(opts?: { window?: "week" | "month" | "quarter" | 
             pause_start_date?: string | null;
             pass_type?: string | null;
             credits_remaining?: number | null;
-            classes_remaining?: number | null;
             expiration_date: string;
             purchase_date?: string;
             created_at?: string;
@@ -668,27 +668,11 @@ async function fetchPayoutData(opts?: { window?: "week" | "month" | "quarter" | 
           const sortedAll = [...pkgs].sort(byRecency);
           const mostRecentPackage = activePkgs[0] ?? sortedAll[0];
 
-          const passRaw = (
-            mostRecentPackage?.pass_type ||
-            profile.pass_type ||
-            ""
-          ).toLowerCase();
           const pt = mostRecentPackage?.package_type;
-          const ptType = (pt?.type ?? "").toLowerCase();
-          const isUnlimited = Boolean(pt?.is_unlimited);
-
-          let passType: "none" | "class_pass" | "studio_pass" = "none";
-          if (mostRecentPackage) {
-            if (
-              passRaw === "studio_pass" ||
-              isUnlimited ||
-              ptType.includes("studio")
-            ) {
-              passType = "studio_pass";
-            } else {
-              passType = "class_pass";
-            }
-          }
+          const passType: "none" | "class_pass" | "studio_pass" = mostRecentPackage
+            ? passCategoryForPackageType(pt ?? {})
+            : "none";
+          const isUnlimited = passType === "studio_pass";
 
           const exp = mostRecentPackage?.expiration_date
             ? new Date(mostRecentPackage.expiration_date)
@@ -701,7 +685,7 @@ async function fetchPayoutData(opts?: { window?: "week" | "month" | "quarter" | 
                 )
               : 0;
 
-          const creditsVal = mostRecentPackage?.credits_remaining ?? mostRecentPackage?.classes_remaining ?? 0;
+          const creditsVal = mostRecentPackage?.credits_remaining ?? 0;
           const classesRemaining =
             passType === "studio_pass" || isUnlimited ? "Unlimited" : creditsVal;
 
@@ -2510,7 +2494,7 @@ async function fetchPayoutData(opts?: { window?: "week" | "month" | "quarter" | 
           <ResponsiveDialogHeader>
             <ResponsiveDialogTitle className="font-display text-2xl text-charcoal">Edit User</ResponsiveDialogTitle>
             <ResponsiveDialogDescription className="font-body text-charcoal/60">
-              Update member information, package, or credits
+              Update member information, package, or classes
             </ResponsiveDialogDescription>
           </ResponsiveDialogHeader>
           {selectedUser && (

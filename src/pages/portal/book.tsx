@@ -1232,7 +1232,7 @@ export default function BookClass() {
             <div>
               <h2 className="font-display text-xl sm:text-3xl text-charcoal mb-0.5">
                 {bookingStep === 1 && "Who's Coming?"}
-                {bookingStep === 2 && "Credit Management"}
+                {bookingStep === 2 && "Class Management"}
                 {bookingStep === 3 && "Add Nourishment"}
                 {bookingStep === 4 && "Checkout"}
               </h2>

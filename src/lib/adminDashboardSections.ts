@@ -13,6 +13,7 @@ import { parseFinanceSnapshot } from "@/lib/financeBookingCheckout";
 import { getDynamicStats, getDynamicStatsForUsers, getTopStreaks, getStreakDistribution } from "@/lib/attendanceStats";
 
 import { cdnUrl } from "@/lib/cdnUrl";
+import { passCategoryForPackageType } from "@/lib/couponHelpers";
 function dt(d: Date) {
   const pad = (n: number) => String(n).padStart(2, "0");
   return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}`;
@@ -430,9 +431,7 @@ export async function getMemberStats(db: Db = prisma) {
   const activeMemberIds = new Set<string>();
   const studioMemberIds = new Set<string>();
   for (const up of activePackages) {
-    const t = (up.package_type?.type || "").toLowerCase();
-    const pass = (up.pass_type || "").toLowerCase();
-    const isStudio = t.includes("studio") || pass === "studio_pass" || Boolean(up.package_type?.is_unlimited);
+    const isStudio = passCategoryForPackageType(up.package_type ?? {}) === "studio_pass";
     if (isStudio) specialtyActive++;
     activeMemberIds.add(up.user_id);
     if (isStudio) studioMemberIds.add(up.user_id);
@@ -506,7 +505,6 @@ export async function getMemberList(db: Db = prisma) {
     select: {
       user_id: true,
       credits_remaining: true,
-      classes_remaining: true,
       expiration_date: true,
       pass_type: true,
       profile: { select: { full_name: true, email: true, phone: true, avatar_url: true } },
@@ -537,11 +535,7 @@ export async function getMemberList(db: Db = prisma) {
 
   return top.map((up, idx) => {
     const pf = perf.get(up.user_id) ?? { onTime: 0, late: 0, noShow: 0 };
-    const isUnlimited = !!(
-      up.package_type.is_unlimited ||
-      up.pass_type === "studio_pass" ||
-      up.package_type.type === "studio_pass"
-    );
+    const isUnlimited = passCategoryForPackageType(up.package_type) === "studio_pass";
     return {
       id: idx + 1,
       profileId: up.user_id,
@@ -550,7 +544,7 @@ export async function getMemberList(db: Db = prisma) {
       avatarUrl: up.profile.avatar_url ?? null,
       package: up.package_type.name,
       isUnlimited,
-      credits: up.credits_remaining ?? up.classes_remaining ?? 0,
+      credits: up.credits_remaining ?? 0,
       expiry: dt(up.expiration_date),
       streak: statsByUser.get(up.user_id)?.current_streak ?? 0,
       onTime: pf.onTime,

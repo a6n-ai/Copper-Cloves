@@ -1,6 +1,7 @@
 import { useState, useEffect, useMemo } from "react";
 import { useRouter } from "next/router";
 import { requireSessionSSP } from "@/lib/requireSessionSSP";
+import { passCategoryForPackageType } from "@/lib/couponHelpers";
 
 export const getServerSideProps = requireSessionSSP({ roles: ["admin"] });
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -426,14 +427,7 @@ export default function AdminMembers() {
 
         let passCategory: Member["passCategory"] = "none";
         if (pkg) {
-          const pass = (pkg.pass_type || p.pass_type || "").toLowerCase();
-          const pt = pkg.package_type;
-          const t = (pt?.type || "").toLowerCase();
-          if (pass === "studio_pass" || pt?.is_unlimited || t.includes("studio")) {
-            passCategory = "studio_pass";
-          } else {
-            passCategory = "class_pass";
-          }
+          passCategory = passCategoryForPackageType(pkg.package_type);
         }
 
         const unlimited = Boolean(pkg?.package_type?.is_unlimited || passCategory === "studio_pass");
@@ -820,7 +814,7 @@ export default function AdminMembers() {
     <>
       <SEO 
         title="Member Management - Admin"
-        description="Manage members, credits, and subscriptions"
+        description="Manage members, classes, and subscriptions"
       />
       
       <div className="min-h-screen bg-linear-to-br from-cream via-cream to-sage/10">
@@ -829,7 +823,7 @@ export default function AdminMembers() {
           <div className="max-w-7xl mx-auto p-6 lg:p-8 space-y-8">
             <AdminPageHeader
               title="Member Management"
-              subtitle="Manage credits, subscriptions, and member data"
+              subtitle="Manage classes, subscriptions, and member data"
             />
 
             {loadError && (
@@ -875,7 +869,7 @@ export default function AdminMembers() {
                       Members <span className="font-body text-base text-charcoal/40">({filteredMembers.length})</span>
                     </CardTitle>
                     <CardDescription className="font-body text-charcoal/60">
-                      Click Manage to update credits and subscription
+                      Click Manage to update classes and subscription
                     </CardDescription>
                   </div>
                   <div className="flex items-center gap-2 w-full sm:w-auto">

@@ -412,12 +412,12 @@ export default function MyBookingsPage() {
               {canRefund ? (
                 <>
                   <strong>Cancellation with refund:</strong> You are canceling more than 6 hours before the class. 
-                  Your class credit will be refunded to your account.
+                  Your class will be refunded to your account.
                 </>
               ) : (
                 <>
                   <strong>No refund policy:</strong> You are canceling within 6 hours of the class start time. 
-                  The class will be canceled, but <strong>your class credit will NOT be reimbursed</strong>.
+                  The class will be canceled, but <strong>your class will NOT be reimbursed</strong>.
                 </>
               )}
             </AlertDescription>
