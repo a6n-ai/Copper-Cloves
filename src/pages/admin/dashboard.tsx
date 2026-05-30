@@ -1393,7 +1393,7 @@ export default function AdminDashboard() {
               </Select>
             </div>
             <div className="space-y-2">
-              <Label htmlFor="credits" className="font-body text-charcoal">Initial Credits</Label>
+              <Label htmlFor="credits" className="font-body text-charcoal">Initial Classes</Label>
               <Input id="credits" type="number" placeholder="12" className="border-sage/20 focus:ring-sage placeholder:text-charcoal/40" />
             </div>
             <div className="space-y-2">
@@ -1423,7 +1423,7 @@ export default function AdminDashboard() {
           <ResponsiveDialogHeader>
             <ResponsiveDialogTitle className="font-display text-2xl text-charcoal">Edit User</ResponsiveDialogTitle>
             <ResponsiveDialogDescription className="font-body text-charcoal/60">
-              Update member information, package, or credits
+              Update member information, package, or classes
             </ResponsiveDialogDescription>
           </ResponsiveDialogHeader>
           {selectedUser && (
@@ -1453,7 +1453,7 @@ export default function AdminDashboard() {
                 </Select>
               </div>
               <div className="space-y-2">
-                <Label htmlFor="edit-credits" className="font-body text-charcoal">Credits</Label>
+                <Label htmlFor="edit-credits" className="font-body text-charcoal">Classes</Label>
                 <div className="flex gap-2">
                   <Input id="edit-credits" type="number" defaultValue={selectedUser.credits} className="border-sage/20 focus:ring-sage" />
                   <Button variant="sage-outline" size="sm">
@@ -2174,7 +2174,7 @@ export default function AdminDashboard() {
                       {selectedMemberProfile.credits}
                     </p>
                     <p className="font-body text-xs text-charcoal/60">
-                      {selectedMemberProfile.isUnlimited ? "Unlimited Pass" : "Credits Left"}
+                      {selectedMemberProfile.isUnlimited ? "Unlimited Pass" : "Classes Left"}
                     </p>
                   </CardContent>
                 </Card>

@@ -431,9 +431,7 @@ export async function getMemberStats(db: Db = prisma) {
   const activeMemberIds = new Set<string>();
   const studioMemberIds = new Set<string>();
   for (const up of activePackages) {
-    const t = (up.package_type?.type || "").toLowerCase();
-    const pass = (up.pass_type || "").toLowerCase();
-    const isStudio = t.includes("studio") || pass === "studio_pass" || Boolean(up.package_type?.is_unlimited);
+    const isStudio = passCategoryForPackageType(up.package_type ?? {}) === "studio_pass";
     if (isStudio) specialtyActive++;
     activeMemberIds.add(up.user_id);
     if (isStudio) studioMemberIds.add(up.user_id);
