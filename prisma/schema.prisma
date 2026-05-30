@@ -338,7 +338,6 @@ model UserPackage {
   package_id        String?
   credits_remaining Int?
   credits_total     Int?
-  classes_remaining Int?
   expiration_date   DateTime
   purchase_date     DateTime  @default(now())
   is_active         Boolean   @default(true)

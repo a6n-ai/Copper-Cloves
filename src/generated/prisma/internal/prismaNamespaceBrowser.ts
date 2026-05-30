@@ -358,7 +358,6 @@ export const UserPackageScalarFieldEnum = {
   package_id: 'package_id',
   credits_remaining: 'credits_remaining',
   credits_total: 'credits_total',
-  classes_remaining: 'classes_remaining',
   expiration_date: 'expiration_date',
   purchase_date: 'purchase_date',
   is_active: 'is_active',
