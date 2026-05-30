@@ -2494,7 +2494,7 @@ async function fetchPayoutData(opts?: { window?: "week" | "month" | "quarter" | 
           <ResponsiveDialogHeader>
             <ResponsiveDialogTitle className="font-display text-2xl text-charcoal">Edit User</ResponsiveDialogTitle>
             <ResponsiveDialogDescription className="font-body text-charcoal/60">
-              Update member information, package, or credits
+              Update member information, package, or classes
             </ResponsiveDialogDescription>
           </ResponsiveDialogHeader>
           {selectedUser && (

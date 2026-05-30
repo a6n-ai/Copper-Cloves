@@ -260,8 +260,8 @@ export default function AdminCredits() {
   return (
     <>
       <SEO 
-        title="Credit Tracking - Admin"
-        description="Monitor and manage member credits"
+        title="Class Tracking - Admin"
+        description="Monitor and manage member classes"
       />
       
       <div className="min-h-screen bg-linear-to-br from-cream via-cream to-sage/10">
@@ -269,8 +269,8 @@ export default function AdminCredits() {
         <main className="min-h-screen">
           <div className="max-w-7xl mx-auto p-6 lg:p-8 space-y-8">
             <AdminPageHeader
-              title="Credit Tracking"
-              subtitle="Monitor all credit transactions and package purchases"
+              title="Class Tracking"
+              subtitle="Monitor all class transactions and package purchases"
               actions={
                 <Button onClick={() => router.push("/admin/members")} variant="sage">
                   <User className="h-5 w-5 mr-2" />
@@ -293,10 +293,10 @@ export default function AdminCredits() {
 
             {/* Stats Grid */}
             <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-              <MetricCard label="Credits Added" value={stats.totalAdded} icon={TrendingUp} tone="sage" prefix="+" />
-              <MetricCard label="Credits Used" value={stats.totalUsed} icon={CheckCircle2} tone="charcoal" prefix="-" />
-              <MetricCard label="Credits Deducted" value={stats.totalDeducted} icon={TrendingDown} tone="terracotta" prefix="-" />
-              <MetricCard label="Credits Expired" value={stats.totalExpired} icon={AlertCircle} tone="amber" prefix="-" />
+              <MetricCard label="Classes Added" value={stats.totalAdded} icon={TrendingUp} tone="sage" prefix="+" />
+              <MetricCard label="Classes Used" value={stats.totalUsed} icon={CheckCircle2} tone="charcoal" prefix="-" />
+              <MetricCard label="Classes Deducted" value={stats.totalDeducted} icon={TrendingDown} tone="terracotta" prefix="-" />
+              <MetricCard label="Classes Expired" value={stats.totalExpired} icon={AlertCircle} tone="amber" prefix="-" />
             </div>
 
             {/* Transactions Table */}
@@ -308,7 +308,7 @@ export default function AdminCredits() {
                       Transaction History <span className="font-body text-base text-charcoal/40">({filteredTransactions.length})</span>
                     </CardTitle>
                     <CardDescription className="font-body text-charcoal/60">
-                      Complete audit trail of all credit movements
+                      Complete audit trail of all class movements
                     </CardDescription>
                   </div>
                   <div className="relative w-full sm:w-72">

@@ -814,7 +814,7 @@ export default function AdminMembers() {
     <>
       <SEO 
         title="Member Management - Admin"
-        description="Manage members, credits, and subscriptions"
+        description="Manage members, classes, and subscriptions"
       />
       
       <div className="min-h-screen bg-linear-to-br from-cream via-cream to-sage/10">
@@ -823,7 +823,7 @@ export default function AdminMembers() {
           <div className="max-w-7xl mx-auto p-6 lg:p-8 space-y-8">
             <AdminPageHeader
               title="Member Management"
-              subtitle="Manage credits, subscriptions, and member data"
+              subtitle="Manage classes, subscriptions, and member data"
             />
 
             {loadError && (
@@ -869,7 +869,7 @@ export default function AdminMembers() {
                       Members <span className="font-body text-base text-charcoal/40">({filteredMembers.length})</span>
                     </CardTitle>
                     <CardDescription className="font-body text-charcoal/60">
-                      Click Manage to update credits and subscription
+                      Click Manage to update classes and subscription
                     </CardDescription>
                   </div>
                   <div className="flex items-center gap-2 w-full sm:w-auto">

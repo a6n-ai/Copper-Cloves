@@ -79,7 +79,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       memberName: up.profile.full_name || up.profile.email || "Member",
       type: "expired" as const,
       amount: up.credits_total ?? up.credits_remaining ?? 0,
-      reason: "Pass expired — credits cleared",
+      reason: "Pass expired — classes cleared",
       date: dt(up.expiration_date),
       adminName: "System",
     }));

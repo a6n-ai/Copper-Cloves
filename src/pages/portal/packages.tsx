@@ -451,11 +451,11 @@ export default function PackagesPage() {
 
           <div style="margin-top: 20px;">
             <div class="detail-row">
-              <span class="detail-label">Credits Used:</span>
+              <span class="detail-label">Classes Used:</span>
               <span class="detail-value">${packageType?.is_unlimited ? 'Unlimited' : `${(packageType?.class_count || 0) - (purchase.remaining_credits || 0)} / ${packageType?.class_count || 0}`}</span>
             </div>
             <div class="detail-row">
-              <span class="detail-label">Credits Remaining:</span>
+              <span class="detail-label">Classes Remaining:</span>
               <span class="detail-value">${packageType?.is_unlimited ? 'Unlimited' : purchase.remaining_credits || 0}</span>
             </div>
           </div>
@@ -864,7 +864,7 @@ export default function PackagesPage() {
                         </p>
                       </div>
                       <div>
-                        <p className="font-body text-xs text-charcoal/50 mb-0.5">Credits</p>
+                        <p className="font-body text-xs text-charcoal/50 mb-0.5">Classes</p>
                         <p className="font-body text-sm text-charcoal">
                           {packageType?.is_unlimited
                             ? "Unlimited"
