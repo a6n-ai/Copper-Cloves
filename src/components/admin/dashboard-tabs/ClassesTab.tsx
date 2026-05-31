@@ -128,7 +128,7 @@ function ClassesTabImpl({ classPerformance, disciplineSplit, peakHours, classesL
           <CardDescription className="font-body text-charcoal/60">Utilization and bookings per class type</CardDescription>
         </CardHeader>
         <CardContent>
-          <div className="rounded-xl border border-sage/15 bg-white overflow-hidden">
+          <div className="rounded-xl border border-sage/15 bg-white-warm overflow-hidden">
             <ResponsiveTable>
               <Table>
                 <TableHeader>
@@ -312,7 +312,7 @@ function ClassesTabImpl({ classPerformance, disciplineSplit, peakHours, classesL
           <CardContent>
             <div className="flex flex-wrap gap-2">
               {stats.underperforming.map((cls) => (
-                <div key={cls.name} className="flex items-center gap-2 rounded-full bg-white border border-[#a05e38]/25 px-3 py-1.5">
+                <div key={cls.name} className="flex items-center gap-2 rounded-full bg-white-warm border border-[#a05e38]/25 px-3 py-1.5">
                   <span className="font-body text-sm text-charcoal">{cls.name}</span>
                   <Badge className="bg-[#a05e38]/10 text-[#a05e38] border-[#a05e38]/25 font-body">
                     {cls.utilization}%

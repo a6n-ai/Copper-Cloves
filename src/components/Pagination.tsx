@@ -77,7 +77,7 @@ export function Pagination({
         Showing {start}–{end} of {total}
       </p>
       <ShadPagination className="mx-0 w-auto">
-        <PaginationContent className="bg-white/80 border border-sage/20 p-1 rounded-full shadow-xs">
+        <PaginationContent className="bg-[#fafaf8]/80 border border-sage/20 p-1 rounded-full shadow-xs">
           <PaginationItem>
             <PaginationPrevious
               href="#"
@@ -111,7 +111,7 @@ export function Pagination({
                     className={cn(
                       "relative z-10 w-9 h-9 rounded-full border-0 text-xs font-bold tracking-tighter transition-colors duration-300",
                       page === it
-                        ? "bg-sage text-white shadow-md hover:bg-sage hover:text-white"
+                        ? "bg-sage text-cream shadow-md hover:bg-sage hover:text-cream"
                         : "text-charcoal/60 hover:text-charcoal hover:bg-sage/10",
                     )}
                   >

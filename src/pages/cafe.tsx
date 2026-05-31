@@ -279,24 +279,24 @@ export default function CafePage() {
           <div className="mb-8">
             <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-sage/30 border border-sage/40">
               <Leaf className="text-sage" size={14} />
-              <span className="font-body text-xs text-white font-semibold tracking-wide">100% PLANT-BASED DAILY RITUAL</span>
+              <span className="font-body text-xs text-cream font-semibold tracking-wide">100% PLANT-BASED DAILY RITUAL</span>
             </div>
           </div>
 
           {/* Centered Content */}
           <div className="max-w-4xl mx-auto text-center">
             {/* Main Headline */}
-            <h1 className="font-display text-6xl md:text-7xl lg:text-8xl text-white leading-[1.05] mb-8">
-              <span className="italic text-white/90">Nourishment for the</span><br />
+            <h1 className="font-display text-6xl md:text-7xl lg:text-8xl text-cream leading-[1.05] mb-8">
+              <span className="italic text-cream/90">Nourishment for the</span><br />
               Soul, Fuel for the Body.
             </h1>
 
             {/* Subheadline */}
-            <p className="font-body text-2xl md:text-3xl text-white/95 leading-relaxed mb-6 max-w-3xl mx-auto font-light">
+            <p className="font-body text-2xl md:text-3xl text-cream/95 leading-relaxed mb-6 max-w-3xl mx-auto font-light">
               Your wellness journey continues beyond the mat. Refuel with chef-crafted, plant-based meals.
             </p>
 
-            <p className="font-body text-xl text-white/85 leading-relaxed mb-12 max-w-2xl mx-auto">
+            <p className="font-body text-xl text-cream/85 leading-relaxed mb-12 max-w-2xl mx-auto">
               Meals that restore, energize, and nourish from the inside out.
             </p>
 
@@ -315,7 +315,7 @@ export default function CafePage() {
                 <Button 
                   size="lg"
                   variant="outline"
-                  className="border-2 border-white/40 hover:bg-white/10 text-white backdrop-blur-xs px-10 py-6 text-base rounded-full transition-all duration-300"
+                  className="border-2 border-cream/40 hover:bg-[#fafaf8]/10 text-cream backdrop-blur-xs px-10 py-6 text-base rounded-full transition-all duration-300"
                 >
                   Subscribe to Meal Subscription
                 </Button>
@@ -328,7 +328,7 @@ export default function CafePage() {
                 <Button 
                   size="lg"
                   variant="outline"
-                  className="border-2 border-white/40 hover:bg-white/10 text-white backdrop-blur-xs px-10 py-6 text-base rounded-full transition-all duration-300"
+                  className="border-2 border-cream/40 hover:bg-[#fafaf8]/10 text-cream backdrop-blur-xs px-10 py-6 text-base rounded-full transition-all duration-300"
                 >
                   <MapPin className="mr-2" size={20} />
                   Find Our Location
@@ -383,7 +383,7 @@ export default function CafePage() {
       {/* Open Invitation Section - Public Welcome */}
       <section className="relative py-20 px-6 lg:px-8 overflow-hidden">
         {/* Decorative Background */}
-        <div className="absolute inset-0 bg-linear-to-br from-sage/5 via-cream to-white -z-10" />
+        <div className="absolute inset-0 bg-linear-to-br from-sage/5 via-cream to-[#fafaf8] -z-10" />
         
         <div className="max-w-7xl mx-auto">
           <div className="grid lg:grid-cols-2 gap-12 items-center">
@@ -767,15 +767,15 @@ export default function CafePage() {
                 {/* Content */}
                 <div className="absolute bottom-0 left-0 right-0 p-6 z-20">
                   <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-sage/30 border border-sage/40 mb-3">
-                    <Users className="text-white" size={14} />
-                    <span className="font-body text-xs text-white font-medium">Weekly Gathering</span>
+                    <Users className="text-cream" size={14} />
+                    <span className="font-body text-xs text-cream font-medium">Weekly Gathering</span>
                   </div>
                   
-                  <h3 className="font-display text-2xl text-white font-semibold mb-2">
-                    <span className="italic text-white/80">The</span> Analog Club
+                  <h3 className="font-display text-2xl text-cream font-semibold mb-2">
+                    <span className="italic text-cream/80">The</span> Analog Club
                   </h3>
                   
-                  <p className="font-body text-sm text-white/90 leading-relaxed mb-4">
+                  <p className="font-body text-sm text-cream/90 leading-relaxed mb-4">
                     Turn back the clock, for real. Leave your phone outside and let the minutes slow down.
                   </p>
                   
@@ -816,15 +816,15 @@ export default function CafePage() {
                 {/* Content */}
                 <div className="absolute bottom-0 left-0 right-0 p-6">
                   <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-terracotta/30 border border-terracotta/40 mb-3">
-                    <Sparkles className="text-white" size={14} />
-                    <span className="font-body text-xs text-white font-medium">Weekend Vibes</span>
+                    <Sparkles className="text-cream" size={14} />
+                    <span className="font-body text-xs text-cream font-medium">Weekend Vibes</span>
                   </div>
                   
-                  <h3 className="font-display text-2xl text-white font-semibold mb-2">
-                    <span className="italic text-white/80">Sober</span> Sundowners
+                  <h3 className="font-display text-2xl text-cream font-semibold mb-2">
+                    <span className="italic text-cream/80">Sober</span> Sundowners
                   </h3>
                   
-                  <p className="font-body text-sm text-white/90 leading-relaxed mb-4">
+                  <p className="font-body text-sm text-cream/90 leading-relaxed mb-4">
                     A welcoming space to celebrate life without alcohol and find joy in real connections.
                   </p>
                   
@@ -865,15 +865,15 @@ export default function CafePage() {
                 {/* Content */}
                 <div className="absolute bottom-0 left-0 right-0 p-6">
                   <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-sage/30 border border-sage/40 mb-3">
-                    <Calendar className="text-white" size={14} />
-                    <span className="font-body text-xs text-white font-medium">Monthly Haven</span>
+                    <Calendar className="text-cream" size={14} />
+                    <span className="font-body text-xs text-cream font-medium">Monthly Haven</span>
                   </div>
                   
-                  <h3 className="font-display text-2xl text-white font-semibold mb-2">
-                    <span className="italic text-white/80">The</span> Reading Social
+                  <h3 className="font-display text-2xl text-cream font-semibold mb-2">
+                    <span className="italic text-cream/80">The</span> Reading Social
                   </h3>
                   
-                  <p className="font-body text-sm text-white/90 leading-relaxed mb-4">
+                  <p className="font-body text-sm text-cream/90 leading-relaxed mb-4">
                     90 minutes of silent reading with coffee and breakfast, then a sharing circle.
                   </p>
                   
@@ -914,15 +914,15 @@ export default function CafePage() {
                 {/* Content */}
                 <div className="absolute bottom-0 left-0 right-0 p-6">
                   <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-sage/30 border border-sage/40 mb-3">
-                    <Sparkles className="text-white" size={14} />
-                    <span className="font-body text-xs text-white font-medium">Weekly Friday</span>
+                    <Sparkles className="text-cream" size={14} />
+                    <span className="font-body text-xs text-cream font-medium">Weekly Friday</span>
                   </div>
                   
-                  <h3 className="font-display text-2xl text-white font-semibold mb-2">
+                  <h3 className="font-display text-2xl text-cream font-semibold mb-2">
                     Friday Work Deli
                   </h3>
                   
-                  <p className="font-body text-sm text-white/90 leading-relaxed mb-4">
+                  <p className="font-body text-sm text-cream/90 leading-relaxed mb-4">
                     Focus, Create, Nourish. Work doesn't feel like work when you're part of the community.
                   </p>
                   
@@ -992,7 +992,7 @@ export default function CafePage() {
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
             <Button 
               size="lg"
-              className="bg-sage text-white hover:bg-sage/90 px-10 py-6 text-base rounded-full shadow-2xl"
+              className="bg-sage text-cream hover:bg-sage/90 px-10 py-6 text-base rounded-full shadow-2xl"
             >
               Book Your First Class
             </Button>

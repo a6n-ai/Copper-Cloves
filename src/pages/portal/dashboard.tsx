@@ -621,7 +621,7 @@ export default function Dashboard() {
                       key={label}
                       type="button"
                       onClick={action}
-                      className="flex flex-col items-center justify-center gap-1.5 min-h-16 rounded-xl border border-sage/15 bg-white active:scale-95 transition-transform px-1 py-2"
+                      className="flex flex-col items-center justify-center gap-1.5 min-h-16 rounded-xl border border-sage/15 bg-white-warm active:scale-95 transition-transform px-1 py-2"
                     >
                       <AnimatedIcon icon={Icon} size={20} className="text-sage" />
                       <span className="text-[10px] font-body text-charcoal/70 leading-tight text-center">{label}</span>
@@ -733,7 +733,7 @@ export default function Dashboard() {
                   return (
                     <div
                       key={badge.id}
-                      className="shrink-0 snap-start flex items-center gap-2 px-4 py-2.5 rounded-full border bg-white/80 shadow-xs transition-transform hover:scale-105"
+                      className="shrink-0 snap-start flex items-center gap-2 px-4 py-2.5 rounded-full border bg-[#fafaf8]/80 shadow-xs transition-transform hover:scale-105"
                       style={{ borderColor: (badge.color ?? "#7C9070") + "55" }}
                     >
                       <span className="text-xl">{badge.icon ?? "🏆"}</span>
@@ -810,7 +810,7 @@ export default function Dashboard() {
                 <div className="space-y-3">
                   {lastCafeOrder ? (
                     <>
-                      <div className="p-4 rounded-xl bg-white/60 border border-sage/10">
+                      <div className="p-4 rounded-xl bg-[#fafaf8]/60 border border-sage/10">
                         <p className="font-body text-sm text-charcoal/70 mb-2">Last Order</p>
                         <p className="font-display text-lg text-charcoal">{lastCafeOrder}</p>
                       </div>
@@ -824,7 +824,7 @@ export default function Dashboard() {
                       </Button>
                     </>
                   ) : (
-                    <div className="p-4 rounded-xl bg-white/60 border border-sage/10">
+                    <div className="p-4 rounded-xl bg-[#fafaf8]/60 border border-sage/10">
                       <p className="font-body text-sm text-charcoal/70 mb-2">No orders yet</p>
                       <p className="font-body text-xs text-charcoal/60">
                         Try our nourishing café items after your next class
@@ -914,7 +914,7 @@ export default function Dashboard() {
       {/* Check-In Modal */}
       {showCheckIn && selectedBookingForCheckIn && (
         <div className="fixed inset-0 bg-black/50 flex items-center justify-center p-4 z-50">
-          <div className="bg-white rounded-lg shadow-xl max-w-md w-full p-6">
+          <div className="bg-white-warm rounded-lg shadow-xl max-w-md w-full p-6">
             <div className="flex justify-between items-start mb-4">
               <h3 className="font-display text-2xl text-charcoal">Check-In</h3>
               <CloseButton

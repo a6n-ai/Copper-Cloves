@@ -182,7 +182,7 @@ function MembersLoadingSkeleton() {
           </div>
         </CardHeader>
         <CardContent>
-          <div className="rounded-xl border border-sage/15 bg-white overflow-hidden">
+          <div className="rounded-xl border border-sage/15 bg-white-warm overflow-hidden">
             {/* Header row */}
             <div className="flex items-center gap-4 bg-sage/5 px-5 py-3 border-b border-sage/10">
               <Skeleton className="h-3 flex-1" />
@@ -940,7 +940,7 @@ export default function AdminMembers() {
                           onClick={() => setAccountStatusFilter(o.v as typeof accountStatusFilter)}
                           className={`px-3 h-7 rounded-full font-body text-xs transition-colors ${
                             accountStatusFilter === o.v
-                              ? "bg-sage text-white shadow-xs"
+                              ? "bg-sage text-cream shadow-xs"
                               : "text-charcoal/60 hover:text-charcoal hover:bg-sage/10"
                           }`}
                         >
@@ -966,7 +966,7 @@ export default function AdminMembers() {
               </CardHeader>
               <CardContent>
                 <ResponsiveTable>
-                <div className="rounded-xl border border-sage/15 bg-white overflow-hidden">
+                <div className="rounded-xl border border-sage/15 bg-white-warm overflow-hidden">
                   <Table>
                     <TableHeader>
                       <TableRow className="bg-sage/5 hover:bg-sage/5 border-sage/10">
@@ -995,7 +995,7 @@ export default function AdminMembers() {
                           <TableCell className="px-5 py-4">
                             <div className="flex flex-wrap items-center gap-1.5">
                               {member.passCategory === "studio_pass" ? (
-                                <Badge className="bg-sage text-white border-transparent font-body">
+                                <Badge className="bg-sage text-cream border-transparent font-body">
                                   Studio
                                 </Badge>
                               ) : member.passCategory === "class_pass" ? (
@@ -1098,7 +1098,7 @@ export default function AdminMembers() {
 
       {/* Add Member Dialog */}
       <ResponsiveDialog open={addOpen} onOpenChange={setAddOpen}>
-        <ResponsiveDialogContent className="sm:max-w-[440px] bg-white border-sage/20">
+        <ResponsiveDialogContent className="sm:max-w-[440px] bg-white-warm border-sage/20">
           <ResponsiveDialogHeader>
             <ResponsiveDialogTitle className="font-display text-2xl text-charcoal">Add Member</ResponsiveDialogTitle>
             <ResponsiveDialogDescription className="font-body text-charcoal/60">
@@ -1206,7 +1206,7 @@ export default function AdminMembers() {
 
       {/* Manage Member Dialog — 2-step: pass config → payment */}
       <ResponsiveDialog open={dialogOpen} onOpenChange={setDialogOpen}>
-        <ResponsiveDialogContent className="sm:max-w-[480px] bg-white border-sage/20">
+        <ResponsiveDialogContent className="sm:max-w-[480px] bg-white-warm border-sage/20">
           <ResponsiveDialogHeader>
             <ResponsiveDialogTitle className="font-display text-2xl text-charcoal">
               Manage {selectedMember?.name}
@@ -1234,8 +1234,8 @@ export default function AdminMembers() {
                       onClick={() => { setDialogPassType(pt); setSelectedCredits(null); setSelectedDays(null); }}
                       className={`flex-1 py-2.5 rounded-full text-sm font-body font-medium border transition-colors ${
                         dialogPassType === pt
-                          ? "bg-sage text-white border-sage"
-                          : "bg-white text-charcoal/70 border-charcoal/20 hover:border-sage/40"
+                          ? "bg-sage text-cream border-sage"
+                          : "bg-white-warm text-charcoal/70 border-charcoal/20 hover:border-sage/40"
                       }`}
                     >
                       {pt === "class_pass" ? "Class Pass" : "Studio Pass"}
@@ -1262,7 +1262,7 @@ export default function AdminMembers() {
                         onClick={() => setSelectedCredits(n)}
                         className={`h-14 rounded-xl text-base font-display border transition-colors flex items-center justify-center ${
                           selectedCredits === n
-                            ? "bg-sage text-white border-sage"
+                            ? "bg-sage text-cream border-sage"
                             : "bg-sage/5 text-charcoal border-sage/20 hover:bg-sage/10"
                         }`}
                       >
@@ -1286,7 +1286,7 @@ export default function AdminMembers() {
                         onClick={() => setSelectedDays(d)}
                         className={`h-14 rounded-xl text-base font-display border transition-colors flex items-center justify-center ${
                           selectedDays === d
-                            ? "bg-sage text-white border-sage"
+                            ? "bg-sage text-cream border-sage"
                             : "bg-sage/5 text-charcoal border-sage/20 hover:bg-sage/10"
                         }`}
                       >
@@ -1339,7 +1339,7 @@ export default function AdminMembers() {
                       onClick={() => setPaymentMethod(m.v)}
                       className={`h-11 rounded-lg text-sm font-body border transition-colors flex items-center justify-center px-2 ${
                         paymentMethod === m.v
-                          ? "bg-sage text-white border-sage"
+                          ? "bg-sage text-cream border-sage"
                           : "bg-sage/5 text-charcoal border-sage/20 hover:bg-sage/10"
                       }`}
                     >
@@ -1444,7 +1444,7 @@ export default function AdminMembers() {
 
       {/* Member Profile Dialog */}
       <ResponsiveDialog open={historyOpen} onOpenChange={setHistoryOpen}>
-        <ResponsiveDialogContent className="sm:max-w-[640px] bg-white border-sage/20">
+        <ResponsiveDialogContent className="sm:max-w-[640px] bg-white-warm border-sage/20">
           <ResponsiveDialogHeader>
             <ResponsiveDialogTitle className="font-display text-2xl text-charcoal">Manage Member</ResponsiveDialogTitle>
             <ResponsiveDialogDescription className="font-body text-charcoal/60">
@@ -1458,16 +1458,16 @@ export default function AdminMembers() {
           ) : (
             <Tabs defaultValue="classes" className="w-full">
               <TabsList className="grid grid-cols-4 w-full bg-cream/50">
-                <TabsTrigger value="classes" className="font-body text-xs data-[state=active]:bg-sage data-[state=active]:text-white">
+                <TabsTrigger value="classes" className="font-body text-xs data-[state=active]:bg-sage data-[state=active]:text-cream">
                   Classes ({historyRows.length})
                 </TabsTrigger>
-                <TabsTrigger value="packages" className="font-body text-xs data-[state=active]:bg-sage data-[state=active]:text-white">
+                <TabsTrigger value="packages" className="font-body text-xs data-[state=active]:bg-sage data-[state=active]:text-cream">
                   Packages ({historyPackages.length})
                 </TabsTrigger>
-                <TabsTrigger value="food" className="font-body text-xs data-[state=active]:bg-sage data-[state=active]:text-white">
+                <TabsTrigger value="food" className="font-body text-xs data-[state=active]:bg-sage data-[state=active]:text-cream">
                   Food ({historyFood.length})
                 </TabsTrigger>
-                <TabsTrigger value="badges" className="font-body text-xs data-[state=active]:bg-sage data-[state=active]:text-white">
+                <TabsTrigger value="badges" className="font-body text-xs data-[state=active]:bg-sage data-[state=active]:text-cream">
                   Badges ({historyBadges.length})
                 </TabsTrigger>
               </TabsList>

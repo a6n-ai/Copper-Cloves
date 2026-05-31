@@ -484,14 +484,14 @@ export default function ClassesPage({ initialClasses }: ClassesPageProps) {
             <TabsList className="grid w-full max-w-md mx-auto grid-cols-2 bg-white-warm border border-sage/20 p-1 rounded-full">
               <TabsTrigger 
                 value="classes" 
-                className="rounded-full data-[state=active]:bg-sage data-[state=active]:text-white transition-all duration-300"
+                className="rounded-full data-[state=active]:bg-sage data-[state=active]:text-cream transition-all duration-300"
               >
                 <Calendar className="mr-2" size={16} />
                 Classes
               </TabsTrigger>
               <TabsTrigger 
                 value="schedule" 
-                className="rounded-full data-[state=active]:bg-sage data-[state=active]:text-white transition-all duration-300"
+                className="rounded-full data-[state=active]:bg-sage data-[state=active]:text-cream transition-all duration-300"
               >
                 <Clock className="mr-2" size={16} />
                 Schedule
@@ -572,7 +572,7 @@ export default function ClassesPage({ initialClasses }: ClassesPageProps) {
 
             {/* Schedule Tab Content */}
             <TabsContent value="schedule" className="mt-8">
-              <div className="bg-white rounded-2xl shadow-lg border border-sage/10 overflow-hidden">
+              <div className="bg-white-warm rounded-2xl shadow-lg border border-sage/10 overflow-hidden">
                 {/* Schedule Header */}
                 <div className="bg-linear-to-r from-sage/10 via-cream to-terracotta/5 p-6 border-b border-sage/10">
                   <h2 className="font-display text-3xl text-charcoal text-center mb-2">
@@ -607,7 +607,7 @@ export default function ClassesPage({ initialClasses }: ClassesPageProps) {
                           });
                         }}
                       >
-                        <SelectTrigger className="w-full sm:w-[180px] border-sage/20 bg-white font-body text-charcoal rounded-xl focus:ring-sage">
+                        <SelectTrigger className="w-full sm:w-[180px] border-sage/20 bg-white-warm font-body text-charcoal rounded-xl focus:ring-sage">
                           <SelectValue />
                         </SelectTrigger>
                         <SelectContent>
@@ -623,7 +623,7 @@ export default function ClassesPage({ initialClasses }: ClassesPageProps) {
                         value={selectedWeek.toString()} 
                         onValueChange={(val) => setSelectedWeek(parseInt(val))}
                       >
-                        <SelectTrigger className="w-full sm:w-[280px] border-sage/20 bg-white font-body text-charcoal rounded-xl focus:ring-sage">
+                        <SelectTrigger className="w-full sm:w-[280px] border-sage/20 bg-white-warm font-body text-charcoal rounded-xl focus:ring-sage">
                           <SelectValue />
                         </SelectTrigger>
                         <SelectContent>
@@ -735,19 +735,19 @@ export default function ClassesPage({ initialClasses }: ClassesPageProps) {
       </section>
 
       {/* CTA Section */}
-      <section className="py-24 bg-sage text-white relative overflow-hidden">
+      <section className="py-24 bg-sage text-cream relative overflow-hidden">
         <div className="relative z-10 max-w-4xl mx-auto px-6 lg:px-8 text-center">
           <h2 className="font-display text-4xl md:text-5xl mb-6">
             Ready to Begin?
           </h2>
-          <p className="font-body text-lg text-white/90 mb-8 leading-relaxed">
+          <p className="font-body text-lg text-cream/90 mb-8 leading-relaxed">
             Choose your package, book your first class, and step into your wellness journey today.
           </p>
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
             <Button 
               onClick={handleBookClass}
               size="lg"
-              className="bg-white text-sage hover:bg-white/90 px-8 transition-all duration-600 ease-in-out"
+              className="bg-white-warm text-sage hover:bg-[#fafaf8]/90 px-8 transition-all duration-600 ease-in-out"
             >
               View Packages
             </Button>
@@ -755,7 +755,7 @@ export default function ClassesPage({ initialClasses }: ClassesPageProps) {
               onClick={handleBookClass}
               size="lg"
               variant="outline"
-              className="border-white/40 text-white hover:bg-white/10 transition-all duration-600 ease-in-out"
+              className="border-cream/40 text-cream hover:bg-[#fafaf8]/10 transition-all duration-600 ease-in-out"
             >
               Book Your First Class
             </Button>

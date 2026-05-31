@@ -287,7 +287,7 @@ export default function InstructorDashboard() {
             { icon: Users, label: "Total Enrolled", value: totalEnrolled },
             { icon: UserCheck, label: "Checked In Today", value: totalCheckedIn },
           ].map(({ icon: Icon, label, value }) => (
-            <div key={label} className="bg-white rounded-2xl border border-sage/10 p-3 sm:p-4 flex flex-col items-start gap-1.5 sm:flex-row sm:items-center sm:gap-3">
+            <div key={label} className="bg-white-warm rounded-2xl border border-sage/10 p-3 sm:p-4 flex flex-col items-start gap-1.5 sm:flex-row sm:items-center sm:gap-3">
               <div className="h-9 w-9 rounded-xl bg-sage/10 flex items-center justify-center shrink-0">
                 <Icon className="h-4 w-4 text-sage" />
               </div>
@@ -304,13 +304,13 @@ export default function InstructorDashboard() {
           <TabsList className="mb-5 bg-sage/10 p-1 rounded-xl">
             <TabsTrigger
               value="today"
-              className="font-body data-[state=active]:bg-white data-[state=active]:text-charcoal data-[state=active]:shadow-xs rounded-lg px-5"
+              className="font-body data-[state=active]:bg-white-warm data-[state=active]:text-charcoal data-[state=active]:shadow-xs rounded-lg px-5"
             >
               My Schedule
             </TabsTrigger>
             <TabsTrigger
               value="checkin"
-              className="font-body data-[state=active]:bg-white data-[state=active]:text-charcoal data-[state=active]:shadow-xs rounded-lg px-5"
+              className="font-body data-[state=active]:bg-white-warm data-[state=active]:text-charcoal data-[state=active]:shadow-xs rounded-lg px-5"
             >
               Check In
             </TabsTrigger>
@@ -319,7 +319,7 @@ export default function InstructorDashboard() {
           {/* === MY SCHEDULE === */}
           <TabsContent value="today">
             {classes.length === 0 ? (
-              <div className="bg-white rounded-2xl border border-sage/10 p-10 text-center">
+              <div className="bg-white-warm rounded-2xl border border-sage/10 p-10 text-center">
                 <Dumbbell className="h-10 w-10 text-sage/30 mx-auto mb-3" />
                 <p className="font-display text-lg text-charcoal">No upcoming classes this week</p>
                 <p className="font-body text-sm text-charcoal/50 mt-1">Check back when your schedule is updated.</p>
@@ -339,7 +339,7 @@ export default function InstructorDashboard() {
                   return (
                     <div
                       key={cls.id}
-                      className="bg-white rounded-2xl border border-sage/10 p-4 sm:p-5 hover:border-sage/30 transition-colors"
+                      className="bg-white-warm rounded-2xl border border-sage/10 p-4 sm:p-5 hover:border-sage/30 transition-colors"
                     >
                       <div className="flex items-start justify-between gap-3">
                         <div className="flex-1 min-w-0">
@@ -463,7 +463,7 @@ export default function InstructorDashboard() {
             {(() => {
               const todayClasses = classes.filter(c => isToday(new Date(c.startTime)));
               if (todayClasses.length === 0) return (
-                <div className="bg-white rounded-2xl border border-sage/10 p-10 text-center">
+                <div className="bg-white-warm rounded-2xl border border-sage/10 p-10 text-center">
                   <AlertCircle className="h-10 w-10 text-sage/30 mx-auto mb-3" />
                   <p className="font-display text-lg text-charcoal">No classes today</p>
                   <p className="font-body text-sm text-charcoal/50 mt-1">Check-in is only available for today&apos;s classes.</p>
@@ -480,8 +480,8 @@ export default function InstructorDashboard() {
                         onClick={() => setSelectedClassId(cls.id)}
                         className={`font-body text-sm px-4 py-2 rounded-full border transition-colors ${
                           selectedClassId === cls.id
-                            ? "bg-sage text-white border-sage"
-                            : "bg-white text-charcoal border-sage/20 hover:border-sage/40"
+                            ? "bg-sage text-cream border-sage"
+                            : "bg-white-warm text-charcoal border-sage/20 hover:border-sage/40"
                         }`}
                       >
                         {cls.className} · {format(new Date(cls.startTime), "h:mm a")}
@@ -491,7 +491,7 @@ export default function InstructorDashboard() {
                 )}
 
                 {selectedClass ? (
-                  <div className="bg-white rounded-2xl border border-sage/10 overflow-hidden">
+                  <div className="bg-white-warm rounded-2xl border border-sage/10 overflow-hidden">
                     {/* Class header */}
                     <div className="px-5 py-4 border-b border-sage/10 flex items-center justify-between">
                       <div>

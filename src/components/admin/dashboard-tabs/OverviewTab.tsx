@@ -201,7 +201,7 @@ function OverviewTabImpl({
               <Button
                 variant="outline"
                 size="sm"
-                className="border-sage/40 text-sage bg-white hover:!bg-sage hover:!text-white hover:!border-sage h-9 w-9 p-0 transition-all"
+                className="border-sage/40 text-sage bg-white-warm hover:!bg-sage hover:!text-cream hover:!border-sage h-9 w-9 p-0 transition-all"
                 onClick={() => {
                   const prev = new Date(y, m - 1, d - 1);
                   onScheduleDateChange(iso(prev));
@@ -219,7 +219,7 @@ function OverviewTabImpl({
               <Button
                 variant="outline"
                 size="sm"
-                className="border-sage/40 text-sage bg-white hover:!bg-sage hover:!text-white hover:!border-sage h-9 w-9 p-0 transition-all"
+                className="border-sage/40 text-sage bg-white-warm hover:!bg-sage hover:!text-cream hover:!border-sage h-9 w-9 p-0 transition-all"
                 onClick={() => {
                   const next = new Date(y, m - 1, d + 1);
                   onScheduleDateChange(iso(next));
@@ -231,7 +231,7 @@ function OverviewTabImpl({
               <Button
                 variant="outline"
                 size="sm"
-                className="border-sage/40 text-sage bg-white hover:!bg-sage hover:!text-white hover:!border-sage h-9 font-body transition-all"
+                className="border-sage/40 text-sage bg-white-warm hover:!bg-sage hover:!text-cream hover:!border-sage h-9 font-body transition-all"
                 onClick={() => onScheduleDateChange(todayIso)}
               >
                 Today
@@ -253,7 +253,7 @@ function OverviewTabImpl({
             {todayClassesLoading && todayClassesDetail.length === 0 ? (
               <div className="flex gap-4 w-full max-w-full overflow-hidden py-2">
                 {Array.from({ length: 3 }).map((_, i) => (
-                  <div key={i} className="shrink-0 w-[340px] rounded-2xl border border-sage/15 bg-white p-5">
+                  <div key={i} className="shrink-0 w-[340px] rounded-2xl border border-sage/15 bg-white-warm p-5">
                     <div className="flex items-start justify-between gap-3">
                       <div className="space-y-2 min-w-0 flex-1">
                         <Skeleton className="h-5 w-3/4" />
@@ -347,7 +347,7 @@ function OverviewTabImpl({
             {expiringPg.pageItems.map((member) => (
               <div
                 key={member.id}
-                className="rounded-xl border border-terracotta/20 bg-white p-4 hover:shadow-md transition-all duration-600"
+                className="rounded-xl border border-terracotta/20 bg-white-warm p-4 hover:shadow-md transition-all duration-600"
               >
                 <div className="flex items-start gap-3">
                   <input

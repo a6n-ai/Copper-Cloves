@@ -72,7 +72,7 @@ function RentalInquiriesTabImpl({ inquiries, loading }: Props) {
               <p className="font-body text-sm text-charcoal/50">No inquiries yet.</p>
             </div>
           ) : (
-            <div className="rounded-xl border border-sage/15 bg-white overflow-hidden">
+            <div className="rounded-xl border border-sage/15 bg-white-warm overflow-hidden">
               <ResponsiveTable>
                 <Table>
                   <TableHeader>

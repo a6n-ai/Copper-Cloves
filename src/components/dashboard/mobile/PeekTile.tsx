@@ -17,7 +17,7 @@ export function PeekTile({ icon, label, hint, onClick, className }: PeekTileProp
       type="button"
       onClick={onClick}
       className={cn(
-        "flex w-full items-center gap-3 rounded-2xl border border-sage/15 bg-white p-3.5 text-left shadow-xs active:scale-[0.98] transition-transform",
+        "flex w-full items-center gap-3 rounded-2xl border border-sage/15 bg-white-warm p-3.5 text-left shadow-xs active:scale-[0.98] transition-transform",
         className
       )}
     >

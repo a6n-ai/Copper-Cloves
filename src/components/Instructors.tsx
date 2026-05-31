@@ -134,7 +134,7 @@ function InstructorsSkeleton({ count = 3 }: { count?: number }) {
     <div className="flex gap-6 overflow-hidden pb-8">
       {Array.from({ length: count }).map((_, i) => (
         <div key={i} className="shrink-0 w-[260px]">
-          <div className="bg-white rounded-3xl overflow-hidden shadow-lg">
+          <div className="bg-white-warm rounded-3xl overflow-hidden shadow-lg">
             {/* Photo region */}
             <Skeleton className="h-[230px] w-full rounded-none" />
             {/* Content */}
@@ -282,7 +282,7 @@ export function Instructors() {
   }, []);
 
   return (
-    <section id="instructors" className="py-16 md:py-20 bg-linear-to-b from-cream via-white to-cream relative overflow-hidden">
+    <section id="instructors" className="py-16 md:py-20 bg-linear-to-b from-cream via-[#fafaf8] to-cream relative overflow-hidden">
       {/* Parallax Background Texture - Enhanced */}
       <div
         ref={parallaxRef}
@@ -379,7 +379,7 @@ export function Instructors() {
                     onClick={() => openModal(instructor)}
                   >
                     <div
-                      className={`bg-white rounded-3xl overflow-hidden transition-all duration-700 ease-out will-change-transform ${
+                      className={`bg-white-warm rounded-3xl overflow-hidden transition-all duration-700 ease-out will-change-transform ${
                         hoveredIndex === index
                           ? "scale-105 shadow-2xl ring-2 ring-sage/20"
                           : "scale-100 shadow-lg hover:shadow-xl"
@@ -417,7 +417,7 @@ export function Instructors() {
                         <div className="absolute top-4 right-4 w-8 h-8 border-t-2 border-r-2 border-terracotta/20 rounded-tr-lg" />
                       </div>
 
-                      <div className="p-5 bg-linear-to-b from-white to-cream/30">
+                      <div className="p-5 bg-linear-to-b from-[#fafaf8] to-cream/30">
                         <h3 className="font-display font-normal text-2xl text-charcoal mb-2 tracking-tight leading-tight">
                           {instructor.name}
                         </h3>
@@ -488,7 +488,7 @@ export function Instructors() {
           onClick={closeModal}
         >
           <div 
-            className="bg-white rounded-3xl max-w-3xl w-full max-h-[85vh] overflow-y-auto shadow-2xl animate-in zoom-in-95 duration-500"
+            className="bg-white-warm rounded-3xl max-w-3xl w-full max-h-[85vh] overflow-y-auto shadow-2xl animate-in zoom-in-95 duration-500"
             onClick={(e) => e.stopPropagation()}
           >
             {/* Modal Header */}
@@ -500,7 +500,7 @@ export function Instructors() {
               />
 
               <div className="absolute inset-0 flex items-end justify-center pb-6">
-                <div className="w-32 h-32 rounded-full overflow-hidden border-4 border-white shadow-2xl">
+                <div className="w-32 h-32 rounded-full overflow-hidden border-4 border-cream shadow-2xl">
                   <InstructorModalPhoto src={selectedInstructor.image} name={selectedInstructor.name} />
                 </div>
               </div>

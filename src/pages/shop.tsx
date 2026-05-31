@@ -312,7 +312,7 @@ export default function Shop({ initialProducts }: ShopProps) {
                     onClick={() => setSelectedCategory(cat.id)}
                     className={`flex items-center gap-2 px-4 py-2 rounded-full font-body text-sm whitespace-nowrap transition-all duration-300 ${
                       selectedCategory === cat.id
-                        ? "bg-sage text-white shadow-lg"
+                        ? "bg-sage text-cream shadow-lg"
                         : "bg-white-warm text-charcoal/70 hover:bg-sage/10 border border-sage/10"
                     }`}
                   >
@@ -344,7 +344,7 @@ export default function Shop({ initialProducts }: ShopProps) {
                 <ShoppingCart size={18} />
                 Cart
                 {cart.itemCount > 0 && (
-                  <span className="absolute -top-2 -right-2 w-6 h-6 bg-terracotta text-white text-xs font-bold rounded-full flex items-center justify-center">
+                  <span className="absolute -top-2 -right-2 w-6 h-6 bg-terracotta text-cream text-xs font-bold rounded-full flex items-center justify-center">
                     {cart.itemCount}
                   </span>
                 )}
@@ -380,7 +380,7 @@ export default function Shop({ initialProducts }: ShopProps) {
                     {/* Badges */}
                     <div className="absolute top-4 right-4 flex flex-col gap-2 z-10">
                       {product.featured && (
-                        <Badge className="bg-sage text-white">Featured</Badge>
+                        <Badge className="bg-sage text-cream">Featured</Badge>
                       )}
                       {product.stock <= 0 && (
                         <Badge variant="outline" className="bg-white-warm">Out of Stock</Badge>

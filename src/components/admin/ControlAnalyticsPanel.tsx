@@ -87,15 +87,15 @@ function barPct(value: number, max: number) {
 function statusClasses(status: string) {
   switch (status) {
     case "full":
-      return "bg-sage text-white";
+      return "bg-sage text-cream";
     case "high":
-      return "bg-sage/80 text-white";
+      return "bg-sage/80 text-cream";
     case "good":
-      return "bg-sage/60 text-white";
+      return "bg-sage/60 text-cream";
     case "moderate":
-      return "bg-terracotta text-white";
+      return "bg-terracotta text-cream";
     default:
-      return "bg-[#a05e38] text-white";
+      return "bg-[#a05e38] text-cream";
   }
 }
 
@@ -131,7 +131,7 @@ export function ControlAnalyticsPanel() {
 
   if (loading) {
     return (
-      <div className="rounded-xl border border-sage/20 bg-white/80 p-12 text-center font-body text-charcoal/60">
+      <div className="rounded-xl border border-sage/20 bg-[#fafaf8]/80 p-12 text-center font-body text-charcoal/60">
         Loading analytics…
       </div>
     );
@@ -193,7 +193,7 @@ export function ControlAnalyticsPanel() {
                           minHeight: cell.amount > 0 ? "8px" : "2px",
                         }}
                       >
-                        <div className="absolute -top-10 left-1/2 -translate-x-1/2 bg-charcoal text-white text-xs px-2 py-1 rounded opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap z-10">
+                        <div className="absolute -top-10 left-1/2 -translate-x-1/2 bg-charcoal text-cream text-xs px-2 py-1 rounded opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap z-10">
                           ₹{cell.amountKDisplay}k
                         </div>
                       </div>
@@ -328,7 +328,7 @@ export function ControlAnalyticsPanel() {
                           minHeight: cell.count > 0 ? "8px" : "2px",
                         }}
                       >
-                        <div className="absolute -top-8 left-1/2 -translate-x-1/2 bg-charcoal text-white text-xs px-2 py-1 rounded opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap">
+                        <div className="absolute -top-8 left-1/2 -translate-x-1/2 bg-charcoal text-cream text-xs px-2 py-1 rounded opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap">
                           {cell.count} new
                         </div>
                       </div>
@@ -451,7 +451,7 @@ export function ControlAnalyticsPanel() {
                           />
                         </div>
                       </div>
-                      <Badge className="bg-sage text-white shrink-0">{member.streak}</Badge>
+                      <Badge className="bg-sage text-cream shrink-0">{member.streak}</Badge>
                     </div>
                   ))}
                 </div>

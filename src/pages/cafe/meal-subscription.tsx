@@ -98,7 +98,7 @@ export default function MealSubscriptionPage() {
       
       <Navigation />
 
-      <div className="min-h-screen bg-white">
+      <div className="min-h-screen bg-white-warm">
         {/* Stunning Hero Section with Rotating Images */}
         <section className="relative min-h-screen flex items-center overflow-hidden">
           {/* Rotating Background Images */}
@@ -136,24 +136,24 @@ export default function MealSubscriptionPage() {
             <div className="mb-8">
               <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-sage/30 border border-sage/40">
                 <Leaf className="text-sage" size={14} />
-                <span className="font-body text-xs text-white font-semibold tracking-wide">100% PLANT-BASED DAILY RITUAL</span>
+                <span className="font-body text-xs text-cream font-semibold tracking-wide">100% PLANT-BASED DAILY RITUAL</span>
               </div>
             </div>
 
             {/* Centered Content */}
             <div className="max-w-4xl mx-auto text-center">
               {/* Main Headline */}
-              <h1 className="font-display text-6xl md:text-7xl lg:text-8xl text-white leading-[1.05] mb-8">
-                <span className="italic text-white/90">Subscribe to</span><br />
+              <h1 className="font-display text-6xl md:text-7xl lg:text-8xl text-cream leading-[1.05] mb-8">
+                <span className="italic text-cream/90">Subscribe to</span><br />
                 Intentful Eating
               </h1>
 
               {/* Subheadline */}
-              <p className="font-body text-2xl md:text-3xl text-white/95 leading-relaxed mb-6 max-w-3xl mx-auto font-light">
+              <p className="font-body text-2xl md:text-3xl text-cream/95 leading-relaxed mb-6 max-w-3xl mx-auto font-light">
                 One chef-crafted, plant-based meal delivered to you daily.
               </p>
 
-              <p className="font-body text-xl text-white/85 leading-relaxed mb-12 max-w-2xl mx-auto">
+              <p className="font-body text-xl text-cream/85 leading-relaxed mb-12 max-w-2xl mx-auto">
                 Make wellness effortless. No meal prep, no decisions—just nourishment that restores, energizes, and fuels your practice.
               </p>
 
@@ -178,8 +178,8 @@ export default function MealSubscriptionPage() {
                 onClick={() => setCurrentImageIndex(index)}
                 className={`w-3 h-3 rounded-full transition-all duration-300 ${
                   index === currentImageIndex 
-                    ? 'bg-white w-8' 
-                    : 'bg-white/40 hover:bg-white/60'
+                    ? 'bg-white-warm w-8' 
+                    : 'bg-[#fafaf8]/40 hover:bg-[#fafaf8]/60'
                 }`}
                 aria-label={`View image ${index + 1}`}
               />
@@ -203,7 +203,7 @@ export default function MealSubscriptionPage() {
         </section>
 
         {/* How It Works Section */}
-        <section className="py-24 px-6 lg:px-8 bg-white">
+        <section className="py-24 px-6 lg:px-8 bg-white-warm">
           <div className="max-w-7xl mx-auto">
             <div className="text-center mb-20">
               <h2 className="font-display text-5xl md:text-6xl text-charcoal mb-6">
@@ -304,7 +304,7 @@ export default function MealSubscriptionPage() {
                   description: "Pickup at the café or opt for delivery. Pause, skip, or adjust your subscription anytime."
                 }
               ].map((benefit, index) => (
-                <Card key={index} className="border-2 border-sage/30 hover:border-sage transition-all duration-300 hover:shadow-xl bg-white">
+                <Card key={index} className="border-2 border-sage/30 hover:border-sage transition-all duration-300 hover:shadow-xl bg-white-warm">
                   <CardContent className="p-8">
                     <div className="flex items-start gap-4">
                       <div className="w-14 h-14 rounded-full bg-sage/20 flex items-center justify-center shrink-0">
@@ -327,7 +327,7 @@ export default function MealSubscriptionPage() {
         </section>
 
         {/* Why Subscribe + Join Waitlist - Side by Side */}
-        <section className="py-24 px-6 lg:px-8 bg-white">
+        <section className="py-24 px-6 lg:px-8 bg-white-warm">
           <div className="max-w-7xl mx-auto">
             <div className="grid lg:grid-cols-2 gap-16">
               
@@ -340,7 +340,7 @@ export default function MealSubscriptionPage() {
                 </div>
 
                 <div className="space-y-8">
-                  <Card className="border-2 border-sage/20 bg-linear-to-br from-sage/5 to-white">
+                  <Card className="border-2 border-sage/20 bg-linear-to-br from-sage/5 to-[#fafaf8]">
                     <CardContent className="p-10">
                       <h3 className="font-display text-3xl text-charcoal font-semibold mb-4">
                         Because clean eating shouldn't be hard.
@@ -354,7 +354,7 @@ export default function MealSubscriptionPage() {
                     </CardContent>
                   </Card>
 
-                  <Card className="border-2 border-sage/20 bg-linear-to-br from-sage/5 to-white">
+                  <Card className="border-2 border-sage/20 bg-linear-to-br from-sage/5 to-[#fafaf8]">
                     <CardContent className="p-10">
                       <h3 className="font-display text-3xl text-charcoal font-semibold mb-4">
                         For the ones who train hard and deserve better fuel.
@@ -380,7 +380,7 @@ export default function MealSubscriptionPage() {
                   </div>
 
                   {/* Contact Form */}
-                  <Card className="border-2 border-sage/30 shadow-2xl bg-white">
+                  <Card className="border-2 border-sage/30 shadow-2xl bg-white-warm">
                     <CardContent className="p-8 md:p-12">
                       {!isSuccess ? (
                         <form onSubmit={handleSubmit} className="space-y-6">

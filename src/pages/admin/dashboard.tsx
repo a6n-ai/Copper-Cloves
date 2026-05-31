@@ -1121,7 +1121,7 @@ export default function AdminDashboard() {
                   <TabsTrigger
                     key={t.v}
                     value={t.v}
-                    className="font-body gap-2 px-3 text-charcoal/60 data-[state=active]:bg-sage data-[state=active]:text-white data-[state=active]:shadow-xs"
+                    className="font-body gap-2 px-3 text-charcoal/60 data-[state=active]:bg-sage data-[state=active]:text-cream data-[state=active]:shadow-xs"
                   >
                     <t.I className="h-4 w-4" />
                     {t.l}
@@ -1510,7 +1510,7 @@ export default function AdminDashboard() {
                   size="sm"
                   variant="outline"
                   onClick={() => router.push(`/admin/schedule/${selectedClass.id}`)}
-                  className="shrink-0 mr-8 border-sage/40 text-sage bg-white hover:!bg-sage hover:!text-white hover:!border-sage font-body"
+                  className="shrink-0 mr-8 border-sage/40 text-sage bg-white-warm hover:!bg-sage hover:!text-cream hover:!border-sage font-body"
                 >
                   <ExternalLink className="h-4 w-4 mr-1.5" />
                   Open full page
@@ -1539,7 +1539,7 @@ export default function AdminDashboard() {
                 ) : (
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                     {(["instructor", "member"] as const).map((kind) => (
-                      <div key={kind} className="rounded-lg border border-sage/15 bg-white p-4">
+                      <div key={kind} className="rounded-lg border border-sage/15 bg-white-warm p-4">
                         <ClassCheckinQr kind={kind} qr={selectedClassQr} size={160} />
                       </div>
                     ))}
@@ -1624,7 +1624,7 @@ export default function AdminDashboard() {
                   {(selectedClass.attendees ?? []).map((attendee: any) => {
                     const outcome = attendee.checkInOutcome as string | null | undefined;
                     return (
-                    <div key={attendee.id} className="flex items-center justify-between p-3 rounded-lg border border-sage/15 bg-white">
+                    <div key={attendee.id} className="flex items-center justify-between p-3 rounded-lg border border-sage/15 bg-white-warm">
                       <div className="flex items-center gap-3 min-w-0">
                         <ListAvatar
                           name={attendee.name || "Member"}
@@ -1708,7 +1708,7 @@ export default function AdminDashboard() {
                   )}
                 </div>
                 {dashMemberResults.length > 0 && (
-                  <div className="mt-1 rounded-lg border border-sage/20 bg-white shadow-sm overflow-hidden max-h-40 overflow-y-auto">
+                  <div className="mt-1 rounded-lg border border-sage/20 bg-white-warm shadow-sm overflow-hidden max-h-40 overflow-y-auto">
                     {dashMemberResults.map(m => {
                       const alreadyIn = (selectedClass?.attendees ?? []).some((a: any) => a.id === m.id);
                       return (
@@ -2055,7 +2055,7 @@ export default function AdminDashboard() {
                 <CardContent className="p-6 space-y-3">
                   <div className="flex justify-between">
                     <span className="font-body text-sm text-charcoal/60">Package</span>
-                    <Badge className="bg-sage text-white">{selectedMemberProfile.package}</Badge>
+                    <Badge className="bg-sage text-cream">{selectedMemberProfile.package}</Badge>
                   </div>
                   <div className="flex justify-between">
                     <span className="font-body text-sm text-charcoal/60">Expires</span>

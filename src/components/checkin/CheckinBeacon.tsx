@@ -95,10 +95,10 @@ export function CheckinBeacon({ className }: { className?: string }) {
   if (!loaded) return null;
 
   const orbGradient = active
-    ? "bg-linear-to-br from-sage to-sage/80 ring-white/60"
+    ? "bg-linear-to-br from-sage to-sage/80 ring-cream/60"
     : next
-    ? "bg-linear-to-br from-terracotta to-[#a05e38] ring-white/40"
-    : "bg-linear-to-br from-charcoal/80 to-charcoal ring-white/30";
+    ? "bg-linear-to-br from-terracotta to-[#a05e38] ring-cream/40"
+    : "bg-linear-to-br from-charcoal/80 to-charcoal ring-cream/30";
 
   const aria = active
     ? `Check-in live: ${active.className}. Tap to open.`
@@ -129,7 +129,7 @@ export function CheckinBeacon({ className }: { className?: string }) {
         />
         <span
           className={cn(
-            "relative z-10 flex h-10 w-10 items-center justify-center rounded-full shadow ring-2 transition-transform hover:scale-110 text-white",
+            "relative z-10 flex h-10 w-10 items-center justify-center rounded-full shadow ring-2 transition-transform hover:scale-110 text-cream",
             "animate-pulse [animation-duration:2.4s]",
             orbGradient,
           )}
@@ -139,14 +139,14 @@ export function CheckinBeacon({ className }: { className?: string }) {
         {/* Live indicator dot */}
         {active && (
           <span
-            className="absolute -top-0.5 -right-0.5 z-20 flex h-4 w-4 items-center justify-center rounded-full bg-[#a05e38] ring-2 ring-white animate-pulse"
+            className="absolute -top-0.5 -right-0.5 z-20 flex h-4 w-4 items-center justify-center rounded-full bg-[#a05e38] ring-2 ring-cream animate-pulse"
             aria-label="Live"
             aria-hidden
           />
         )}
         {/* Next countdown badge — one unit only to stay compact */}
         {!active && next && (
-          <span className="absolute -top-1 -right-1 z-20 rounded-full bg-white px-1 py-0.5 text-[9px] font-bold text-terracotta shadow ring-1 ring-terracotta/40 leading-none whitespace-nowrap">
+          <span className="absolute -top-1 -right-1 z-20 rounded-full bg-white-warm px-1 py-0.5 text-[9px] font-bold text-terracotta shadow ring-1 ring-terracotta/40 leading-none whitespace-nowrap">
             {badgeLabel(next.startTime)}
           </span>
         )}

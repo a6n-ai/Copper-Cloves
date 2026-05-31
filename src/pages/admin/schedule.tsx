@@ -202,7 +202,7 @@ function ScheduleLoadingSkeleton() {
       {/* KPI strip — 4 MetricCards */}
       <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
         {Array.from({ length: 4 }).map((_, i) => (
-          <Card key={i} className="border-sage/15 bg-white h-full">
+          <Card key={i} className="border-sage/15 bg-white-warm h-full">
             <CardContent className="p-5 flex flex-col h-full">
               <div className="flex items-start justify-between gap-3">
                 <Skeleton className="h-9 w-24 bg-sage/10" />
@@ -216,7 +216,7 @@ function ScheduleLoadingSkeleton() {
 
       {/* 2-column: calendar + day list */}
       <div className="grid lg:grid-cols-[280px_1fr] gap-6 items-stretch">
-        <Card className="border-sage/20 bg-white/95 flex flex-col">
+        <Card className="border-sage/20 bg-[#fafaf8]/95 flex flex-col">
           <CardHeader className="pb-2 space-y-2">
             <Skeleton className="h-5 w-24 bg-sage/10" />
             <Skeleton className="h-3 w-40 bg-sage/10" />
@@ -237,7 +237,7 @@ function ScheduleLoadingSkeleton() {
           </CardContent>
         </Card>
 
-        <Card className="border-sage/20 bg-white/95">
+        <Card className="border-sage/20 bg-[#fafaf8]/95">
           <CardHeader className="pb-3">
             <div className="flex flex-wrap items-center justify-between gap-3">
               <div className="space-y-2">
@@ -254,7 +254,7 @@ function ScheduleLoadingSkeleton() {
           </CardHeader>
           <CardContent className="p-4">
             {/* DayScheduleList table */}
-            <div className="rounded-xl border border-sage/15 bg-white overflow-hidden">
+            <div className="rounded-xl border border-sage/15 bg-white-warm overflow-hidden">
               {/* Table header */}
               <div className="flex items-center gap-4 bg-sage/5 px-5 py-3">
                 <Skeleton className="h-3 w-[90px] bg-sage/10" />
@@ -990,7 +990,7 @@ export default function AdminSchedule() {
 
             {/* 2-column: calendar + day list */}
             <div className="grid lg:grid-cols-[280px_1fr] gap-6 items-stretch">
-              <Card className="border-sage/20 bg-white/95 flex flex-col">
+              <Card className="border-sage/20 bg-[#fafaf8]/95 flex flex-col">
                 <CardHeader className="pb-2">
                   <CardTitle className="font-display text-lg text-charcoal">Calendar</CardTitle>
                   <CardDescription className="font-body text-xs text-charcoal/60">
@@ -1017,7 +1017,7 @@ export default function AdminSchedule() {
                       row: "flex w-full mt-2",
                       cell: "relative p-0 text-center text-sm flex-1 focus-within:relative focus-within:z-20 has-aria-[selected]:bg-accent has-aria-[selected]:rounded-md",
                       day: "h-9 w-full p-0 font-normal aria-selected:opacity-100 hover:bg-sage/10 rounded-md transition-colors",
-                      day_selected: "bg-sage text-white hover:bg-sage hover:text-white focus:bg-sage focus:text-white",
+                      day_selected: "bg-sage text-cream hover:bg-sage hover:text-cream focus:bg-sage focus:text-cream",
                       day_today: "bg-sage/10 text-sage font-medium",
                     }}
                     className="w-full p-0"
@@ -1025,7 +1025,7 @@ export default function AdminSchedule() {
                 </CardContent>
               </Card>
 
-              <Card className="border-sage/20 bg-white/95">
+              <Card className="border-sage/20 bg-[#fafaf8]/95">
                 <CardHeader className="pb-3">
                   <div className="flex flex-wrap items-center justify-between gap-3">
                     <div>
@@ -1053,7 +1053,7 @@ export default function AdminSchedule() {
                       <Button
                         variant="outline"
                         size="sm"
-                        className="border-sage/40 text-sage hover:bg-sage hover:text-white hover:border-sage h-9 w-9 p-0 transition-colors"
+                        className="border-sage/40 text-sage hover:bg-sage hover:text-cream hover:border-sage h-9 w-9 p-0 transition-colors"
                         onClick={() => {
                           const d = new Date(selectedDate);
                           d.setDate(d.getDate() - 1);
@@ -1073,8 +1073,8 @@ export default function AdminSchedule() {
                             size="sm"
                             className={
                               isToday
-                                ? "bg-sage text-white border-sage hover:bg-sage/90 h-9 font-body transition-colors"
-                                : "border-sage/40 text-sage hover:bg-sage hover:text-white hover:border-sage h-9 font-body transition-colors"
+                                ? "bg-sage text-cream border-sage hover:bg-sage/90 h-9 font-body transition-colors"
+                                : "border-sage/40 text-sage hover:bg-sage hover:text-cream hover:border-sage h-9 font-body transition-colors"
                             }
                             onClick={() => setSelectedDate(new Date())}
                             disabled={isToday}
@@ -1086,7 +1086,7 @@ export default function AdminSchedule() {
                       <Button
                         variant="outline"
                         size="sm"
-                        className="border-sage/40 text-sage hover:bg-sage hover:text-white hover:border-sage h-9 w-9 p-0 transition-colors"
+                        className="border-sage/40 text-sage hover:bg-sage hover:text-cream hover:border-sage h-9 w-9 p-0 transition-colors"
                         onClick={() => {
                           const d = new Date(selectedDate);
                           d.setDate(d.getDate() + 1);
@@ -1148,8 +1148,8 @@ export default function AdminSchedule() {
                               onClick={(e) => { e.stopPropagation(); handleToggleStatus(sc); }}
                               className={`font-body h-8 w-8 p-0 transition-all hover:scale-110 active:scale-95 ${
                                 isActive
-                                  ? "border-terracotta/40 text-terracotta bg-white hover:!bg-terracotta hover:!text-white hover:!border-terracotta"
-                                  : "border-sage/60 text-sage bg-white hover:!bg-sage hover:!text-white hover:!border-sage"
+                                  ? "border-terracotta/40 text-terracotta bg-white-warm hover:!bg-terracotta hover:!text-cream hover:!border-terracotta"
+                                  : "border-sage/60 text-sage bg-white-warm hover:!bg-sage hover:!text-cream hover:!border-sage"
                               }`}
                               title={
                                 isActive
@@ -1184,7 +1184,7 @@ export default function AdminSchedule() {
 
       {/* Add/Edit Class Dialog */}
       <ResponsiveDialog open={dialogOpen} onOpenChange={setDialogOpen}>
-        <ResponsiveDialogContent className="max-w-2xl bg-white">
+        <ResponsiveDialogContent className="max-w-2xl bg-white-warm">
           <ResponsiveDialogHeader>
             <ResponsiveDialogTitle className="font-display text-3xl text-charcoal">
               {editingClass ? "Edit Class" : "Schedule Class"}
@@ -1208,10 +1208,10 @@ export default function AdminSchedule() {
 
               <Tabs defaultValue="basics" className="w-full">
                 <TabsList className="grid w-full grid-cols-2 bg-cream/50">
-                  <TabsTrigger value="basics" className="font-body data-[state=active]:bg-sage data-[state=active]:text-white">
+                  <TabsTrigger value="basics" className="font-body data-[state=active]:bg-sage data-[state=active]:text-cream">
                     Class
                   </TabsTrigger>
-                  <TabsTrigger value="schedule" className="font-body data-[state=active]:bg-sage data-[state=active]:text-white">
+                  <TabsTrigger value="schedule" className="font-body data-[state=active]:bg-sage data-[state=active]:text-cream">
                     When
                   </TabsTrigger>
                 </TabsList>
@@ -1234,7 +1234,7 @@ export default function AdminSchedule() {
                                   variant="outline"
                                   role="combobox"
                                   className={cn(
-                                    "h-12 justify-between font-body border-charcoal/20 hover:bg-white",
+                                    "h-12 justify-between font-body border-charcoal/20 hover:bg-white-warm",
                                     !field.value && "text-charcoal/40",
                                   )}
                                 >
@@ -1297,7 +1297,7 @@ export default function AdminSchedule() {
                                   variant="outline"
                                   role="combobox"
                                   className={cn(
-                                    "h-12 justify-between font-body border-charcoal/20 hover:bg-white",
+                                    "h-12 justify-between font-body border-charcoal/20 hover:bg-white-warm",
                                     !field.value && "text-charcoal/40",
                                   )}
                                 >
@@ -1411,10 +1411,10 @@ export default function AdminSchedule() {
                                     onClick={() => field.onChange(active ? undefined : v)}
                                     className={`flex-1 h-10 rounded-lg border font-body text-sm font-medium transition-colors ${
                                       v === "absent"
-                                        ? active ? "bg-[#a05e38] border-[#a05e38] text-white" : "border-charcoal/20 text-charcoal/60 hover:bg-[#a05e38]/10"
+                                        ? active ? "bg-[#a05e38] border-[#a05e38] text-cream" : "border-charcoal/20 text-charcoal/60 hover:bg-[#a05e38]/10"
                                         : v === "late"
-                                          ? active ? "bg-terracotta border-terracotta text-white" : "border-charcoal/20 text-charcoal/60 hover:bg-terracotta/10"
-                                          : active ? "bg-sage border-sage text-white" : "border-charcoal/20 text-charcoal/60 hover:bg-sage/10"
+                                          ? active ? "bg-terracotta border-terracotta text-cream" : "border-charcoal/20 text-charcoal/60 hover:bg-terracotta/10"
+                                          : active ? "bg-sage border-sage text-cream" : "border-charcoal/20 text-charcoal/60 hover:bg-sage/10"
                                     }`}
                                   >
                                     {labels[v]}
@@ -1506,7 +1506,7 @@ export default function AdminSchedule() {
                                   className={cn(
                                     "h-11 rounded-lg border font-body text-sm font-medium transition-colors",
                                     active
-                                      ? "bg-sage border-sage text-white"
+                                      ? "bg-sage border-sage text-cream"
                                       : "border-charcoal/20 text-charcoal/70 hover:bg-sage/10",
                                   )}
                                 >
@@ -1612,7 +1612,7 @@ export default function AdminSchedule() {
                                       className={cn(
                                         "h-10 rounded-md border font-body text-xs font-medium transition-colors",
                                         active
-                                          ? "bg-sage border-sage text-white"
+                                          ? "bg-sage border-sage text-cream"
                                           : "border-charcoal/20 text-charcoal/60 hover:bg-sage/10",
                                       )}
                                     >
@@ -1670,7 +1670,7 @@ export default function AdminSchedule() {
                             <Button
                               type="button"
                               variant="outline"
-                              className="h-11 border-sage/40 text-sage hover:bg-sage hover:text-white"
+                              className="h-11 border-sage/40 text-sage hover:bg-sage hover:text-cream"
                               onClick={() => {
                                 if (!ISO_DATE_RE.test(multiDateInput)) return;
                                 const next = Array.from(new Set([...(field.value ?? []), multiDateInput])).sort();
@@ -1737,7 +1737,7 @@ export default function AdminSchedule() {
 
       {/* Roster Dialog */}
       <ResponsiveDialog open={!!rosterScheduleId} onOpenChange={(open) => { if (!open) { setRosterScheduleId(null); setRosterData(null); setMemberQuery(""); setMemberResults([]); } }}>
-        <ResponsiveDialogContent className="max-w-lg w-full bg-white flex flex-col p-0 max-h-[85vh] overflow-hidden">
+        <ResponsiveDialogContent className="max-w-lg w-full bg-white-warm flex flex-col p-0 max-h-[85vh] overflow-hidden">
           {/* Header */}
           <div className="px-6 pt-6 pb-4 border-b border-sage/10 shrink-0">
             <ResponsiveDialogTitle className="font-display text-2xl text-charcoal">
@@ -1863,10 +1863,10 @@ export default function AdminSchedule() {
                       disabled={savingInstructorOutcome}
                       className={`flex-1 h-9 rounded-lg border font-body text-xs font-medium transition-colors disabled:opacity-50 ${
                         v === "absent"
-                          ? active ? "bg-[#a05e38] border-[#a05e38] text-white" : "border-charcoal/20 text-charcoal/60 hover:bg-[#a05e38]/10"
+                          ? active ? "bg-[#a05e38] border-[#a05e38] text-cream" : "border-charcoal/20 text-charcoal/60 hover:bg-[#a05e38]/10"
                           : v === "late"
-                            ? active ? "bg-terracotta border-terracotta text-white" : "border-charcoal/20 text-charcoal/60 hover:bg-terracotta/10"
-                            : active ? "bg-sage border-sage text-white" : "border-charcoal/20 text-charcoal/60 hover:bg-sage/10"
+                            ? active ? "bg-terracotta border-terracotta text-cream" : "border-charcoal/20 text-charcoal/60 hover:bg-terracotta/10"
+                            : active ? "bg-sage border-sage text-cream" : "border-charcoal/20 text-charcoal/60 hover:bg-sage/10"
                       }`}
                     >
                       {labels[v]}
@@ -1892,7 +1892,7 @@ export default function AdminSchedule() {
               )}
             </div>
             {memberResults.length > 0 && (
-              <ul className="mt-1 rounded-lg border border-sage/20 bg-white shadow-sm divide-y divide-sage/10 max-h-44 overflow-y-auto">
+              <ul className="mt-1 rounded-lg border border-sage/20 bg-white-warm shadow-sm divide-y divide-sage/10 max-h-44 overflow-y-auto">
                 {memberResults.map(m => {
                   const alreadyBooked = rosterData?.bookings.some(b => b.userId === m.id);
                   return (

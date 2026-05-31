@@ -105,7 +105,7 @@ function SearchCommand({ sections }: { sections: NavSection[] }) {
         <button
           type="button"
           onClick={() => setOpen(true)}
-          className="flex items-center gap-2 w-full max-w-xs rounded-full border border-sage/20 bg-white/70 px-3 py-1.5 text-left text-sm text-charcoal/50 hover:border-sage/40 transition-colors"
+          className="flex items-center gap-2 w-full max-w-xs rounded-full border border-sage/20 bg-[#fafaf8]/70 px-3 py-1.5 text-left text-sm text-charcoal/50 hover:border-sage/40 transition-colors"
         >
           <Search className="h-4 w-4" />
           <span className="flex-1 truncate font-body">Search pages…</span>
@@ -217,7 +217,7 @@ export function DashboardShell({ config, user, children }: DashboardShellProps) 
                           className={cn(
                             "rounded-md font-body transition-colors",
                             active &&
-                              "bg-sage text-white hover:bg-sage hover:text-white data-[active=true]:bg-sage data-[active=true]:text-white",
+                              "bg-sage text-cream hover:bg-sage hover:text-cream data-[active=true]:bg-sage data-[active=true]:text-cream",
                           )}
                         >
                           <Link href={item.href}>

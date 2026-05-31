@@ -125,7 +125,7 @@ export default function AdminPartners() {
         <AdminPageHeader title="Partners" subtitle="External brands renting the studio to run their own classes" />
 
         {/* Create partner */}
-        <Card className="border-sage/20 bg-white/95">
+        <Card className="border-sage/20 bg-[#fafaf8]/95">
           <CardHeader>
             <CardTitle className="font-display text-xl text-charcoal flex items-center gap-2">
               <Plus className="h-5 w-5 text-sage" /> Add partner
@@ -161,12 +161,12 @@ export default function AdminPartners() {
 
         {/* Partner list */}
         {partners.length === 0 ? (
-          <Card className="border-sage/15 bg-white/80"><CardContent className="p-8 text-center font-body text-charcoal/50">No partners yet.</CardContent></Card>
+          <Card className="border-sage/15 bg-[#fafaf8]/80"><CardContent className="p-8 text-center font-body text-charcoal/50">No partners yet.</CardContent></Card>
         ) : (
           partners.map((p) => {
             const unassigned = allClasses.filter((c) => !p.classes.some((pc) => pc.id === c.id));
             return (
-              <Card key={p.id} className="border-sage/20 bg-white/95">
+              <Card key={p.id} className="border-sage/20 bg-[#fafaf8]/95">
                 <CardHeader>
                   <div className="flex items-center justify-between gap-3 flex-wrap">
                     <CardTitle className="font-display text-xl text-charcoal flex items-center gap-2">

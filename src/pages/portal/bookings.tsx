@@ -74,7 +74,7 @@ const BookingCard = memo(function BookingCard({
   formatDate,
 }: BookingCardProps) {
   return (
-    <div className="bg-white rounded-xl shadow-xs border border-sage/10 p-4 sm:p-6 hover:shadow-md transition-all duration-300">
+    <div className="bg-white-warm rounded-xl shadow-xs border border-sage/10 p-4 sm:p-6 hover:shadow-md transition-all duration-300">
       <div className="flex items-start justify-between gap-3 mb-2 sm:mb-3">
         <div className="flex-1 min-w-0">
           <h3 className="font-display text-lg sm:text-2xl text-charcoal truncate">{booking.class_name}</h3>
@@ -137,7 +137,7 @@ const BookingCard = memo(function BookingCard({
 
 function BookingRowSkeleton() {
   return (
-    <div className="bg-white rounded-xl shadow-xs border border-sage/10 p-6">
+    <div className="bg-white-warm rounded-xl shadow-xs border border-sage/10 p-6">
       <div className="flex items-center justify-between gap-6">
         <div className="flex-1">
           <div className="flex items-center gap-3 mb-2">
@@ -395,7 +395,7 @@ export default function MyBookingsPage() {
 
       {/* Cancel Confirmation Dialog */}
       <ResponsiveDialog open={showCancelDialog} onOpenChange={setShowCancelDialog}>
-        <ResponsiveDialogContent className="sm:max-w-md bg-white">
+        <ResponsiveDialogContent className="sm:max-w-md bg-white-warm">
           <ResponsiveDialogHeader>
             <ResponsiveDialogTitle className="font-display text-2xl text-charcoal">
               Cancel Booking

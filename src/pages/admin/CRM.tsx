@@ -593,7 +593,7 @@ export default function CRMPage() {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-linear-to-br from-cream via-white to-cream">
+      <div className="min-h-screen bg-linear-to-br from-cream via-[#fafaf8] to-cream">
         <main className="min-h-screen">
           <div className="max-w-7xl mx-auto p-6 lg:p-8 space-y-8">
             <CrmHubLoadingSkeleton />
@@ -604,7 +604,7 @@ export default function CRMPage() {
   }
 
   return (
-    <div className="min-h-screen bg-linear-to-br from-cream via-white to-cream">
+    <div className="min-h-screen bg-linear-to-br from-cream via-[#fafaf8] to-cream">
       
       <main className="min-h-screen">
         <div className="max-w-7xl mx-auto p-6 lg:p-8 space-y-8">
@@ -833,7 +833,7 @@ export default function CRMPage() {
                         </div>
                       )}
                       
-                      <div className="rounded-lg overflow-hidden border border-sage/10 mb-4 bg-white" style={{ height: 180 }}>
+                      <div className="rounded-lg overflow-hidden border border-sage/10 mb-4 bg-white-warm" style={{ height: 180 }}>
                         <iframe
                           title={`preview-${template.id}`}
                           srcDoc={renderPreview(template.message_body, template.subject || "")}
@@ -1100,7 +1100,7 @@ export default function CRMPage() {
                                 {item.sent} sent · {item.converted} converted
                               </p>
                             </div>
-                            <Badge className="bg-sage text-white">
+                            <Badge className="bg-sage text-cream">
                               {item.sent > 0 ? Math.round((item.converted / item.sent) * 100) : 0}% conversion
                             </Badge>
                           </div>
@@ -1211,7 +1211,7 @@ export default function CRMPage() {
                       type="button"
                       onClick={() => setEditMode("preview")}
                       className={`font-body text-xs px-3 py-1 rounded-full transition-colors ${
-                        editMode === "preview" ? "bg-sage text-white" : "text-sage hover:bg-sage/20"
+                        editMode === "preview" ? "bg-sage text-cream" : "text-sage hover:bg-sage/20"
                       }`}
                     >
                       Visual
@@ -1220,7 +1220,7 @@ export default function CRMPage() {
                       type="button"
                       onClick={() => setEditMode("html")}
                       className={`font-body text-xs px-3 py-1 rounded-full transition-colors ${
-                        editMode === "html" ? "bg-sage text-white" : "text-sage hover:bg-sage/20"
+                        editMode === "html" ? "bg-sage text-cream" : "text-sage hover:bg-sage/20"
                       }`}
                     >
                       HTML
@@ -1250,7 +1250,7 @@ export default function CRMPage() {
                 </div>
 
                 {editMode === "preview" ? (
-                  <div className="border border-sage/20 rounded-lg overflow-hidden bg-white" style={{ height: 600 }}>
+                  <div className="border border-sage/20 rounded-lg overflow-hidden bg-white-warm" style={{ height: 600 }}>
                     <iframe
                       ref={previewIframeRef}
                       title="visual-editor"
@@ -1363,7 +1363,7 @@ export default function CRMPage() {
       {sendDialog && (
         <div className="fixed inset-0 z-[60] flex items-center justify-center p-4">
           <div className="absolute inset-0 bg-charcoal/70 backdrop-blur-xs" onClick={() => setSendDialog(null)} />
-          <div className="relative bg-white rounded-2xl shadow-2xl w-full max-w-xl max-h-[90vh] flex flex-col overflow-hidden">
+          <div className="relative bg-white-warm rounded-2xl shadow-2xl w-full max-w-xl max-h-[90vh] flex flex-col overflow-hidden">
             <div className="flex items-center justify-between px-6 py-4 border-b border-sage/10">
               <div>
                 <h3 className="font-display text-2xl text-charcoal">Send template</h3>
@@ -1397,7 +1397,7 @@ export default function CRMPage() {
                       className="font-body"
                     />
                     {sendResults.length > 0 && (
-                      <div className="mt-2 border border-sage/20 rounded-lg max-h-48 overflow-y-auto bg-white">
+                      <div className="mt-2 border border-sage/20 rounded-lg max-h-48 overflow-y-auto bg-white-warm">
                         {sendResults.map((m) => (
                           <button
                             key={m.id}
@@ -1473,7 +1473,7 @@ export default function CRMPage() {
       {showPreview && (
         <div className="fixed inset-0 z-[60] flex items-center justify-center p-4">
           <div className="absolute inset-0 bg-charcoal/70 backdrop-blur-xs" onClick={() => setShowPreview(false)} />
-          <div className="relative bg-white rounded-2xl shadow-2xl w-full max-w-3xl max-h-[90vh] flex flex-col">
+          <div className="relative bg-white-warm rounded-2xl shadow-2xl w-full max-w-3xl max-h-[90vh] flex flex-col">
             <div className="flex items-center justify-between px-6 py-4 border-b border-sage/10">
               <div>
                 <h3 className="font-display text-2xl text-charcoal">Preview</h3>
@@ -1497,7 +1497,7 @@ export default function CRMPage() {
               title="template-preview"
               srcDoc={renderPreview(templateForm.message_body, templateForm.subject)}
               sandbox=""
-              className="flex-1 w-full min-h-[500px] bg-white rounded-b-2xl"
+              className="flex-1 w-full min-h-[500px] bg-white-warm rounded-b-2xl"
             />
           </div>
         </div>

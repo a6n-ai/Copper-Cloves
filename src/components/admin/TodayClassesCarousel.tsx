@@ -65,14 +65,14 @@ const CARD_TONE: Record<string, string> = {
   live: "border-terracotta/30 bg-terracotta/10 shadow-[0_8px_24px_-12px_rgba(193,120,86,0.45)] ring-1 ring-terracotta/30 hover:shadow-[0_16px_40px_-16px_rgba(193,120,86,0.55)]",
   started: "border-terracotta/30 bg-terracotta/10 shadow-[0_8px_24px_-12px_rgba(193,120,86,0.45)] ring-1 ring-terracotta/30 hover:shadow-[0_16px_40px_-16px_rgba(193,120,86,0.55)]",
   completed: "border-charcoal/15 bg-charcoal/[0.04] opacity-80 hover:opacity-100 hover:shadow-[0_12px_32px_-16px_rgba(0,0,0,0.2)]",
-  cancelled: "border-terracotta/30 bg-linear-to-br from-terracotta/15 via-white to-terracotta/5 ring-1 ring-terracotta/20 hover:shadow-[0_12px_32px_-16px_rgba(192,86,64,0.35)]",
-  abandoned: "border-terracotta/30 bg-linear-to-br from-terracotta/15 via-white to-terracotta/5 ring-1 ring-terracotta/20 hover:shadow-[0_12px_32px_-16px_rgba(192,86,64,0.35)]",
+  cancelled: "border-terracotta/30 bg-linear-to-br from-terracotta/15 via-[#fafaf8] to-terracotta/5 ring-1 ring-terracotta/20 hover:shadow-[0_12px_32px_-16px_rgba(192,86,64,0.35)]",
+  abandoned: "border-terracotta/30 bg-linear-to-br from-terracotta/15 via-[#fafaf8] to-terracotta/5 ring-1 ring-terracotta/20 hover:shadow-[0_12px_32px_-16px_rgba(192,86,64,0.35)]",
   inactive: "border-charcoal/10 bg-charcoal/[0.03] opacity-70 hover:opacity-90",
 };
 
 // Single tint for all "available" cards — consistent strip, more color than plain white.
 const AVAILABLE_TONE =
-  "border-sage/30 bg-linear-to-br from-sage/15 via-white to-cream/40 hover:shadow-[0_12px_32px_-16px_rgba(143,151,121,0.45)] hover:border-sage/50";
+  "border-sage/30 bg-linear-to-br from-sage/15 via-[#fafaf8] to-cream/40 hover:shadow-[0_12px_32px_-16px_rgba(143,151,121,0.45)] hover:border-sage/50";
 
 function parseTimeToMinutes(t: string): number {
   // Accepts "07:00", "7:00 AM", "10:30 PM" — best-effort.
@@ -272,7 +272,7 @@ export function TodayClassesCarousel({
                           "font-body h-8 w-8 p-0 transition-all hover:scale-110 active:scale-95",
                           isActive
                             ? "border-terracotta/40 text-terracotta bg-white-warm hover:!bg-terracotta hover:!text-cream hover:!border-terracotta"
-                            : "border-sage/60 text-sage bg-white hover:!bg-sage hover:!text-white hover:!border-sage",
+                            : "border-sage/60 text-sage bg-white-warm hover:!bg-sage hover:!text-cream hover:!border-sage",
                         )}
                       >
                         <AnimatedIcon icon={isActive ? PowerOff : Power} size={14} animateOnMount={false} hover="wiggle" />
@@ -318,7 +318,7 @@ export function TodayClassesCarousel({
 
       {items.length > 1 && (
         <div className="mt-5 flex justify-center">
-          <div className="inline-flex items-center gap-1 bg-white/80 border border-sage/20 p-1 rounded-full shadow-xs">
+          <div className="inline-flex items-center gap-1 bg-[#fafaf8]/80 border border-sage/20 p-1 rounded-full shadow-xs">
             <button
               type="button"
               onClick={() => scroll("left")}

@@ -85,7 +85,7 @@ function CreditsLoadingSkeleton() {
           <Skeleton className="h-4 w-72" />
         </CardHeader>
         <CardContent>
-          <div className="rounded-xl border border-sage/15 bg-white overflow-hidden">
+          <div className="rounded-xl border border-sage/15 bg-white-warm overflow-hidden">
             <div className="flex items-center gap-4 bg-sage/5 px-5 py-3 border-b border-sage/10">
               <Skeleton className="h-3 w-12" />
               <Skeleton className="h-3 w-14" />
@@ -377,7 +377,7 @@ export default function AdminCredits() {
                 ) : (
                   <>
                     <ResponsiveTable>
-                      <div className="rounded-xl border border-sage/15 bg-white overflow-hidden">
+                      <div className="rounded-xl border border-sage/15 bg-white-warm overflow-hidden">
                         <Table>
                           <TableHeader>
                             <TableRow className="bg-sage/5 hover:bg-sage/5 border-sage/10">

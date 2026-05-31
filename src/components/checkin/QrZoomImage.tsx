@@ -22,7 +22,7 @@ export function QrZoomImage({
       <button type="button" onClick={() => setZoom(true)} className="group flex flex-col items-center gap-2">
         <div className="relative">
           <Image src={url} alt={label} width={size} height={size} className="rounded-lg" unoptimized />
-          <span className="absolute right-2 top-2 rounded-full bg-charcoal/60 p-1.5 text-white opacity-0 transition-opacity group-hover:opacity-100">
+          <span className="absolute right-2 top-2 rounded-full bg-charcoal/60 p-1.5 text-cream opacity-0 transition-opacity group-hover:opacity-100">
             <Maximize2 size={16} />
           </span>
         </div>
@@ -31,7 +31,7 @@ export function QrZoomImage({
 
       {zoom ? (
         <div
-          className="fixed inset-0 z-[70] flex flex-col items-center justify-center gap-6 bg-white p-6"
+          className="fixed inset-0 z-[70] flex flex-col items-center justify-center gap-6 bg-white-warm p-6"
           onClick={() => setZoom(false)}
           role="dialog"
           aria-label={label}

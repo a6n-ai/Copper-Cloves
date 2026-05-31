@@ -473,7 +473,7 @@ export default function AdminBadgesPage() {
                 key={p.hex}
                 title={p.label}
                 onClick={() => setForm((f) => ({ ...f, color: p.hex }))}
-                className="w-6 h-6 rounded-full border-2 border-white shadow-sm transition-transform hover:scale-110"
+                className="w-6 h-6 rounded-full border-2 border-cream shadow-sm transition-transform hover:scale-110"
                 style={{ backgroundColor: p.hex, outline: form.color === p.hex ? `2px solid ${p.hex}` : "none" }}
               />
             ))}
@@ -548,14 +548,14 @@ export default function AdminBadgesPage() {
           </div>
 
           {/* Tabs */}
-          <div className="flex gap-1 bg-white/60 p-1 rounded-xl shadow-xs border border-sage/10 w-fit mb-8">
+          <div className="flex gap-1 bg-[#fafaf8]/60 p-1 rounded-xl shadow-xs border border-sage/10 w-fit mb-8">
             {(["ptm", "custom"] as Tab[]).map((t) => (
               <button
                 key={t}
                 onClick={() => setTab(t)}
                 className={`px-5 py-2 rounded-lg font-body text-sm transition-all duration-300 ${
                   tab === t
-                    ? "bg-sage text-white shadow-md"
+                    ? "bg-sage text-cream shadow-md"
                     : "text-charcoal/60 hover:text-charcoal hover:bg-sage/10"
                 }`}
               >
@@ -638,7 +638,7 @@ export default function AdminBadgesPage() {
                 ) : (
                   <>
                     <ResponsiveTable>
-                      <div className="rounded-xl border border-sage/15 bg-white overflow-hidden">
+                      <div className="rounded-xl border border-sage/15 bg-white-warm overflow-hidden">
                         <Table>
                           <TableHeader>
                             <TableRow className="bg-sage/5 hover:bg-sage/5 border-sage/10">
@@ -681,7 +681,7 @@ export default function AdminBadgesPage() {
                                   <TableCell className="px-5 py-4">
                                     <div className="flex items-center gap-2">
                                       <span
-                                        className="w-4 h-4 rounded-full border border-white shadow-xs shrink-0"
+                                        className="w-4 h-4 rounded-full border border-cream shadow-xs shrink-0"
                                         style={{ backgroundColor: template.color }}
                                       />
                                       <span className="font-body text-xs text-charcoal/60 tabular-nums">{template.color}</span>

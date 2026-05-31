@@ -36,6 +36,7 @@ import {
   UtensilsCrossed,
   Tags,
   ClipboardList,
+  Clock,
 } from "lucide-react";
 import {
   Select,
@@ -63,6 +64,7 @@ const CafeStats = dynamic(
   { ssr: false },
 );
 import { OrderStatusTimeline } from "@/components/cafe/OrderStatusTimeline";
+import { SpinningText } from "@/components/shadcn-space/spinning-text/spinning-text-02";
 import type { CafeMenuItem } from "@/components/cafe/types";
 interface MenuItem {
   id?: string;
@@ -167,6 +169,7 @@ export default function AdminCafe() {
   const [activeTab, setActiveTab] = useState<"overview" | "menu" | "categories" | "orders">("menu");
   const [menuSearch, setMenuSearch] = useState("");
   const [orderHistoryTab, setOrderHistoryTab] = useState<"active" | "history">("active");
+  const [orderStatusFilter, setOrderStatusFilter] = useState<"all" | "pending" | "preparing" | "ready">("all");
   
   // Orders state
   const [orders, setOrders] = useState<any[]>([]);
@@ -212,7 +215,7 @@ export default function AdminCafe() {
     const timeInterval = setInterval(() => setCurrentTime(new Date()), 1000);
     const pollingInterval = setInterval(() => {
       if (typeof document !== "undefined" && document.hidden) return;
-      fetchAllOrders();
+      fetchAllOrders(true);
     }, 10000);
     return () => {
       clearInterval(timeInterval);
@@ -233,9 +236,13 @@ export default function AdminCafe() {
   };
 
   // Single fetch — derive active/history client-side. Replaces two duplicate calls.
-  const fetchAllOrders = async () => {
-    setLoadingOrders(true);
-    setLoadingHistory(true);
+  // `silent` skips the loading flags so background polls/refreshes update the list
+  // in place without flashing the panel header, filter, or spinner.
+  const fetchAllOrders = async (silent = false) => {
+    if (!silent) {
+      setLoadingOrders(true);
+      setLoadingHistory(true);
+    }
     try {
       const res = await fetch("/api/cafe/orders");
       const data: any[] = res.ok ? await res.json() : [];
@@ -256,8 +263,10 @@ export default function AdminCafe() {
     } catch (err) {
       console.error("Error fetching orders:", err);
     } finally {
-      setLoadingOrders(false);
-      setLoadingHistory(false);
+      if (!silent) {
+        setLoadingOrders(false);
+        setLoadingHistory(false);
+      }
     }
   };
 
@@ -269,7 +278,7 @@ export default function AdminCafe() {
         body: JSON.stringify({ id: orderId, status: newStatus }),
       });
       if (!res.ok) throw new Error("Update failed");
-      await fetchAllOrders();
+      await fetchAllOrders(true);
     } catch (err) {
       console.error("Error updating order status:", err);
       toast.error("Failed to update order status. Please try again.");
@@ -677,56 +686,30 @@ export default function AdminCafe() {
         title="Café Management - Admin"
         description="Manage café orders and menu items"
       />
-      
+
       <style jsx global>{`
-        @keyframes pulse-red {
-          0%, 100% {
-            border-color: rgb(160, 94, 56);
-            box-shadow: 0 0 0 0 rgba(160, 94, 56, 0.9);
-            transform: scale(1);
+        @keyframes card-blink {
+          0%,
+          100% {
+            box-shadow: 0 0 0 0 var(--blink-c, transparent), 0 0 0 0 transparent;
           }
           50% {
-            border-color: rgb(193, 120, 86);
-            box-shadow: 0 0 0 12px rgba(160, 94, 56, 0);
-            transform: scale(1.02);
+            box-shadow: 0 0 0 3px var(--blink-c, transparent),
+              0 0 26px 3px var(--blink-c, transparent),
+              inset 0 0 44px -14px var(--blink-c, transparent);
           }
         }
-        
-        @keyframes pulse-orange {
-          0%, 100% {
-            border-color: rgb(193, 120, 86);
-            box-shadow: 0 0 0 0 rgba(193, 120, 86, 0.5);
+        @media (prefers-reduced-motion: reduce) {
+          .animate-ping {
+            animation: none;
           }
-          50% {
-            border-color: rgb(210, 150, 120);
-            box-shadow: 0 0 0 6px rgba(193, 120, 86, 0);
-          }
-        }
-        
-        @keyframes pulse-red-urgent {
-          0%, 100% {
-            border-color: rgb(160, 94, 56);
-            box-shadow: 0 0 0 0 rgba(160, 94, 56, 1), 0 0 20px rgba(160, 94, 56, 0.6);
-            transform: scale(1);
-          }
-          25% {
-            border-color: rgb(193, 120, 86);
-            box-shadow: 0 0 0 8px rgba(160, 94, 56, 0.3), 0 0 30px rgba(160, 94, 56, 0.8);
-            transform: scale(1.03);
-          }
-          50% {
-            border-color: rgb(160, 94, 56);
-            box-shadow: 0 0 0 16px rgba(160, 94, 56, 0), 0 0 40px rgba(160, 94, 56, 1);
-            transform: scale(1.01);
-          }
-          75% {
-            border-color: rgb(193, 120, 86);
-            box-shadow: 0 0 0 8px rgba(160, 94, 56, 0.3), 0 0 30px rgba(160, 94, 56, 0.8);
-            transform: scale(1.03);
+          [style*="card-blink"] {
+            animation: none !important;
+            box-shadow: 0 0 0 2px var(--blink-c, transparent) !important;
           }
         }
       `}</style>
-      
+
       <div className="min-h-screen bg-linear-to-br from-cream via-cream to-sage/10">
         
         <main className="min-h-screen">
@@ -781,7 +764,7 @@ export default function AdminCafe() {
                       aria-pressed={active}
                       className={`inline-flex items-center gap-2 rounded-md px-3 py-1.5 font-body text-sm transition-colors outline-none focus-visible:ring-2 focus-visible:ring-sage ${
                         active
-                          ? "bg-sage text-white shadow-xs"
+                          ? "bg-sage text-cream shadow-xs"
                           : "text-charcoal/60 hover:text-charcoal"
                       }`}
                     >
@@ -790,7 +773,7 @@ export default function AdminCafe() {
                       {t.v === "orders" && pendingCount > 0 && (
                         <span
                           className={`rounded-full px-1.5 text-xs ${
-                            active ? "bg-white/20 text-white" : "bg-terracotta text-white"
+                            active ? "bg-[#fafaf8]/20 text-cream" : "bg-terracotta text-cream"
                           }`}
                         >
                           {pendingCount}
@@ -930,46 +913,93 @@ export default function AdminCafe() {
 
             {/* Orders Section */}
             {activeTab === "orders" && (
-              <div className="space-y-4">
-                {/* Sub-tabs for Active vs History — pill segmented control */}
-                <div className="mb-6 inline-flex items-center gap-1 rounded-full border border-border bg-white-warm p-1">
-                  <button
-                    onClick={() => setOrderHistoryTab("active")}
-                    aria-pressed={orderHistoryTab === "active"}
-                    className={`flex items-center gap-2 whitespace-nowrap rounded-full px-5 py-2 font-body text-sm transition-colors duration-200 outline-none focus-visible:ring-2 focus-visible:ring-sage ${
-                      orderHistoryTab === "active"
-                        ? "bg-sage text-white-warm"
-                        : "text-charcoal/60 hover:text-charcoal"
-                    }`}
-                  >
-                    Active Orders
-                    {orders.length > 0 && (
-                      <span
-                        className={`rounded-full px-1.5 text-xs ${
-                          orderHistoryTab === "active"
-                            ? "bg-white-warm/20 text-white-warm"
-                            : "bg-terracotta text-white-warm"
-                        }`}
-                      >
-                        {orders.length}
-                      </span>
-                    )}
-                  </button>
-                  <button
-                    onClick={() => setOrderHistoryTab("history")}
-                    aria-pressed={orderHistoryTab === "history"}
-                    className={`whitespace-nowrap rounded-full px-5 py-2 font-body text-sm transition-colors duration-200 outline-none focus-visible:ring-2 focus-visible:ring-sage ${
-                      orderHistoryTab === "history"
-                        ? "bg-sage text-white-warm"
-                        : "text-charcoal/60 hover:text-charcoal"
-                    }`}
-                  >
-                    Order History
-                  </button>
-                </div>
+              <Card className="border-sage/20 bg-white-warm">
+                <CardHeader>
+                  {/* Sub-tabs (left) + status filter (right) */}
+                  <div className="flex items-center justify-between gap-3">
+                  <div className="inline-flex shrink-0 items-center gap-1 rounded-full border border-border bg-sand/30 p-1">
+                    <button
+                      onClick={() => setOrderHistoryTab("active")}
+                      aria-pressed={orderHistoryTab === "active"}
+                      className={`flex items-center gap-2 whitespace-nowrap rounded-full px-5 py-2 font-body text-sm transition-colors duration-200 outline-none focus-visible:ring-2 focus-visible:ring-sage ${
+                        orderHistoryTab === "active"
+                          ? "bg-sage text-white-warm"
+                          : "text-charcoal/60 hover:text-charcoal"
+                      }`}
+                    >
+                      Active Orders
+                      {orders.length > 0 && (
+                        <span
+                          className={`rounded-full px-1.5 text-xs ${
+                            orderHistoryTab === "active"
+                              ? "bg-white-warm/20 text-white-warm"
+                              : "bg-terracotta text-white-warm"
+                          }`}
+                        >
+                          {orders.length}
+                        </span>
+                      )}
+                    </button>
+                    <button
+                      onClick={() => setOrderHistoryTab("history")}
+                      aria-pressed={orderHistoryTab === "history"}
+                      className={`whitespace-nowrap rounded-full px-5 py-2 font-body text-sm transition-colors duration-200 outline-none focus-visible:ring-2 focus-visible:ring-sage ${
+                        orderHistoryTab === "history"
+                          ? "bg-sage text-white-warm"
+                          : "text-charcoal/60 hover:text-charcoal"
+                      }`}
+                    >
+                      Order History
+                    </button>
+                  </div>
+
+                  {/* Status filter — same row as the tabs, scrolls if cramped */}
+                  {orderHistoryTab === "active" && !loadingOrders && orders.length > 0 && (
+                    <div className="flex min-w-0 flex-1 justify-end overflow-x-auto [-webkit-overflow-scrolling:touch]">
+                      <div className="inline-flex w-max items-center gap-1 rounded-full border border-border bg-sand/30 p-1">
+                        {([
+                          { id: "all", label: "All" },
+                          { id: "pending", label: "Pending" },
+                          { id: "preparing", label: "Preparing" },
+                          { id: "ready", label: "Ready" },
+                        ] as const).map((f) => {
+                          const count =
+                            f.id === "all" ? orders.length : orders.filter((o) => o.status === f.id).length;
+                          const active = orderStatusFilter === f.id;
+                          return (
+                            <button
+                              key={f.id}
+                              onClick={() => setOrderStatusFilter(f.id)}
+                              aria-pressed={active}
+                              className={`flex shrink-0 items-center gap-2 whitespace-nowrap rounded-full px-4 py-2 font-body text-sm transition-colors outline-none focus-visible:ring-2 focus-visible:ring-sage ${
+                                active ? "bg-sage text-white-warm" : "text-charcoal/60 hover:text-charcoal"
+                              }`}
+                            >
+                              {f.label}
+                              <span
+                                className={`rounded-full px-1.5 text-xs ${
+                                  active ? "bg-white-warm/20 text-white-warm" : "bg-sand text-charcoal/70"
+                                }`}
+                              >
+                                {count}
+                              </span>
+                            </button>
+                          );
+                        })}
+                      </div>
+                    </div>
+                  )}
+                  </div>
+                </CardHeader>
+                <CardContent className="space-y-4">
 
                 {/* Active Orders */}
-                {orderHistoryTab === "active" && (
+                {orderHistoryTab === "active" && (() => {
+                  const filteredOrders =
+                    orderStatusFilter === "all"
+                      ? orders
+                      : orders.filter((o) => o.status === orderStatusFilter);
+                  return (
                   <>
                     {loadingOrders ? (
                       <div className="text-center py-12">
@@ -984,213 +1014,190 @@ export default function AdminCafe() {
                           <p className="font-body text-charcoal/60">New food orders will appear here</p>
                         </CardContent>
                       </Card>
+                    ) : filteredOrders.length === 0 ? (
+                      <Card className="border border-border bg-white-warm shadow-none ring-0">
+                        <CardContent className="flex flex-col items-center justify-center py-16">
+                          <ImageIcon className="text-sage/40 mb-4" size={56} />
+                          <h3 className="font-display text-xl text-charcoal mb-1 capitalize">No {orderStatusFilter} orders</h3>
+                          <p className="font-body text-charcoal/60">Try a different filter</p>
+                        </CardContent>
+                      </Card>
                     ) : (
-                      orders.map(order => {
-                        const alertLevel = getOrderAlertLevel(order);
-                        const cafeItem = order.cafe_item;
-                        const userProfile = order.profile;
-                        const booking = order.booking;
-                        const schedule = booking?.class_schedule;
-                        // Define animation classes based on urgency
-                        let borderClass = "";
-                        let animationClass = "";
-                        
-                        if (order.status === "pending" || order.status === "preparing") {
-                          if (alertLevel.level === "red" && alertLevel.blink) {
-                            borderClass = "border-4 border-[#a05e38]";
-                            animationClass = alertLevel.critical 
-                              ? "animate-[pulse-red-urgent_0.5s_ease-in-out_infinite]"
-                              : "animate-[pulse-red_1s_ease-in-out_infinite]";
-                          } else if (alertLevel.level === "orange") {
-                            borderClass = "border-2 border-terracotta";
-                            animationClass = "animate-[pulse-orange_2s_ease-in-out_infinite]";
-                          } else if (alertLevel.level === "yellow") {
-                            borderClass = "border-2 border-terracotta/60";
-                            animationClass = "";
-                          }
-                        }
-                        
-                        const classTime = schedule?.start_time ?? booking?.class_time ?? null;
-                        const statusPill =
-                          order.status === "pending" ? "bg-sand text-charcoal" :
-                          order.status === "preparing" ? "bg-terracotta/15 text-terracotta" :
-                          order.status === "ready" ? "bg-sage/15 text-sage" :
-                          "bg-sand text-charcoal/60";
-                        const urgencyText =
-                          alertLevel.level === "red" ? "text-[#a05e38]" :
-                          alertLevel.level === "orange" ? "text-terracotta" :
-                          alertLevel.level === "yellow" ? "text-terracotta/80" :
-                          "text-sage";
+                      <div className="grid gap-5 xl:grid-cols-2">
+                        {filteredOrders.map(order => {
+                          const alertLevel = getOrderAlertLevel(order);
+                          const cafeItem = order.cafe_item;
+                          const userProfile = order.profile;
+                          const booking = order.booking;
+                          const schedule = booking?.class_schedule;
+                          const classTime = schedule?.start_time ?? booking?.class_time ?? null;
 
-                        return (
-                          <Card
-                            key={order.id}
-                            className={`overflow-hidden bg-white-warm shadow-none ring-0 transition-all duration-300 ${borderClass || "border border-border"} ${animationClass}`}
-                          >
-                            <CardContent className="p-5 sm:p-6">
-                              {/* Header: thumb · name/meta · status */}
-                              <div className="flex gap-4">
-                                <div className="size-16 shrink-0 overflow-hidden rounded-xl bg-sand/40 sm:size-20">
-                                  {cafeItem?.image_url ? (
-                                    <Image
-                                      src={cafeItem.image_url}
-                                      alt={cafeItem.name}
-                                      width={160}
-                                      height={160}
-                                      className="h-full w-full object-cover"
-                                      unoptimized
-                                    />
-                                  ) : (
-                                    <div className="flex h-full w-full items-center justify-center">
-                                      <ImageIcon className="text-sage/40" size={28} />
+                          const isActive = order.status === "pending" || order.status === "preparing";
+                          const blinking = isActive && alertLevel.level !== "normal";
+
+                          // Urgency palette — colour + blink pace shift with how long the order has waited.
+                          const palette =
+                            alertLevel.level === "red"
+                              ? { text: "text-[#a05e38]", border: "border-[#a05e38]", glow: "rgba(160,94,56,0.9)", dur: "0.8s" }
+                              : alertLevel.level === "orange"
+                              ? { text: "text-terracotta", border: "border-terracotta", glow: "rgba(193,120,86,0.8)", dur: "1.3s" }
+                              : alertLevel.level === "yellow"
+                              ? { text: "text-terracotta/80", border: "border-terracotta/50", glow: "rgba(193,120,86,0.45)", dur: "2s" }
+                              : { text: "text-sage", border: "border-border", glow: "transparent", dur: "0s" };
+
+                          const statusPill =
+                            order.status === "pending" ? "bg-sand text-charcoal" :
+                            order.status === "preparing" ? "bg-terracotta/15 text-terracotta" :
+                            order.status === "ready" ? "bg-sage/15 text-sage" :
+                            "bg-sand text-charcoal/60";
+
+                          // Spin faster the more urgent the order (seconds per rotation).
+                          const spinSpeed =
+                            alertLevel.level === "red" ? 4 :
+                            alertLevel.level === "orange" ? 7 :
+                            alertLevel.level === "yellow" ? 10 : 16;
+
+                          // Live clock in the spinner centre: class countdown if linked, else minutes since the order landed.
+                          const elapsedMin = Math.max(0, Math.floor((currentTime.getTime() - new Date(order.order_date).getTime()) / 60000));
+                          const centerClock = classTime ? formatTimeRemaining(classTime) : `${elapsedMin}m`;
+
+                          const cardStyle = blinking
+                            ? ({ ["--blink-c"]: palette.glow, animation: `card-blink ${palette.dur} ease-in-out infinite` } as React.CSSProperties)
+                            : undefined;
+
+                          return (
+                            <Card
+                              key={order.id}
+                              style={cardStyle}
+                              className={`overflow-hidden border-2 bg-white-warm shadow-none ring-0 transition-colors ${palette.border}`}
+                            >
+                              <CardContent className="p-6 sm:p-7">
+                                <div className="flex flex-col gap-6 lg:flex-row lg:items-start lg:justify-between">
+                                  {/* Left: item / customer / class */}
+                                  <div className="flex min-w-0 flex-1 gap-4">
+                                    <div className="size-24 shrink-0 overflow-hidden rounded-2xl bg-sand/40">
+                                      {cafeItem?.image_url ? (
+                                        <Image
+                                          src={cafeItem.image_url}
+                                          alt={cafeItem.name}
+                                          width={192}
+                                          height={192}
+                                          className="h-full w-full object-cover"
+                                          unoptimized
+                                        />
+                                      ) : (
+                                        <div className="flex h-full w-full items-center justify-center">
+                                          <ImageIcon className="text-sage/40" size={36} />
+                                        </div>
+                                      )}
                                     </div>
-                                  )}
-                                </div>
-
-                                <div className="flex min-w-0 flex-1 items-start justify-between gap-3">
-                                  <div className="min-w-0">
-                                    <h3 className="truncate font-display text-xl leading-snug text-charcoal">
-                                      {cafeItem?.name}
-                                    </h3>
-                                    <p className="mt-0.5 font-body text-sm text-charcoal/60">
-                                      Qty {order.quantity}
-                                      <span className="mx-1.5 text-charcoal/30">·</span>
-                                      <span className="font-medium text-charcoal">
-                                        ₹{(Number(cafeItem?.price ?? 0) * order.quantity).toLocaleString("en-IN")}
-                                      </span>
-                                    </p>
-                                  </div>
-                                  <span className={`shrink-0 rounded-full px-3 py-1 font-body text-[0.7rem] font-semibold uppercase tracking-[0.06em] ${statusPill}`}>
-                                    {order.status}
-                                  </span>
-                                </div>
-                              </div>
-
-                              <OrderStatusTimeline status={order.status} className="mt-5 max-w-md" />
-
-                              {/* Linked class strip */}
-                              {booking && (
-                                <div className="mt-5 rounded-xl border border-border bg-sand/30 p-4">
-                                  <div className="flex items-start justify-between gap-4">
                                     <div className="min-w-0">
-                                      <p className="font-body text-[0.7rem] font-semibold uppercase tracking-[0.06em] text-terracotta">
-                                        Linked class
+                                      <h3 className="font-display text-2xl leading-snug text-charcoal">{cafeItem?.name}</h3>
+                                      <p className="mt-1 font-body text-sm text-charcoal/60">
+                                        Qty {order.quantity}
+                                        <span className="mx-1.5 text-charcoal/30">·</span>
+                                        <span className="font-semibold text-charcoal">
+                                          ₹{(Number(cafeItem?.price ?? 0) * order.quantity).toLocaleString("en-IN")}
+                                        </span>
                                       </p>
-                                      <p className="mt-1 font-display text-lg leading-snug text-charcoal">
-                                        {schedule?.class_model?.name || booking?.class_name || "—"}
+                                      <p className="mt-3 font-body text-sm text-charcoal">
+                                        <span className="text-charcoal/45">Customer · </span>
+                                        {userProfile?.full_name || "Unknown"}
                                       </p>
-                                      <p className="mt-0.5 font-body text-sm text-charcoal/60">
-                                        {classTime
-                                          ? new Date(classTime).toLocaleString("en-US", {
-                                              month: "short",
-                                              day: "numeric",
-                                              hour: "2-digit",
-                                              minute: "2-digit",
-                                            })
-                                          : "Time pending"}
-                                      </p>
+                                      {booking ? (
+                                        <p className="mt-1 font-body text-sm text-charcoal">
+                                          <span className="text-charcoal/45">Class · </span>
+                                          {schedule?.class_model?.name || booking?.class_name || "—"}
+                                          {classTime && (
+                                            <span className="text-charcoal/45">
+                                              {" "}
+                                              ({new Date(classTime).toLocaleString("en-US", { hour: "2-digit", minute: "2-digit" })})
+                                            </span>
+                                          )}
+                                        </p>
+                                      ) : (
+                                        <p className="mt-1 font-body text-sm text-charcoal/40">Walk-in order</p>
+                                      )}
                                     </div>
-                                    {classTime && (
-                                      <div className="shrink-0 text-right">
-                                        <p className="font-body text-[0.7rem] font-semibold uppercase tracking-[0.06em] text-charcoal/45">
-                                          Countdown
-                                        </p>
-                                        <p className={`font-mono text-2xl font-bold tabular-nums ${urgencyText}`}>
-                                          {formatTimeRemaining(classTime)}
-                                        </p>
-                                      </div>
-                                    )}
                                   </div>
-                                  {alertLevel.readyBy && (
-                                    <p className="mt-3 border-t border-border pt-2 font-body text-sm font-semibold text-sage">
-                                      Ready by {alertLevel.readyBy}
-                                    </p>
-                                  )}
-                                </div>
-                              )}
 
-                              {/* Customer · order time */}
-                              <div className="mt-5 grid gap-4 sm:grid-cols-2">
-                                <div>
-                                  <p className="font-body text-[0.7rem] font-semibold uppercase tracking-[0.06em] text-charcoal/45">
-                                    Customer
-                                  </p>
-                                  <p className="mt-1 font-body text-sm text-charcoal">
-                                    {userProfile?.full_name || "Unknown"}
-                                  </p>
-                                  {userProfile?.email && (
-                                    <p className="font-body text-xs text-charcoal/50">
-                                      {userProfile.email}
-                                    </p>
-                                  )}
+                                  {/* Right: spinning status ring around a live clock */}
+                                  <div className="flex shrink-0 items-center gap-6 lg:flex-col lg:gap-4">
+                                    <SpinningText
+                                      text={` ${order.status} • ${order.status} • `}
+                                      radius={80}
+                                      fontSize={12}
+                                      speed={spinSpeed}
+                                      className={`${palette.text} font-semibold`}
+                                    >
+                                      <div className={`flex size-24 flex-col items-center justify-center rounded-full border px-2 text-center ${palette.border} bg-white-warm`}>
+                                        <Clock className={`mb-0.5 ${palette.text}`} size={16} />
+                                        <span className={`font-mono text-base font-bold leading-tight tabular-nums ${palette.text}`}>
+                                          {centerClock}
+                                        </span>
+                                      </div>
+                                    </SpinningText>
+                                    <div className="text-center">
+                                      <span className={`inline-block rounded-full px-3 py-1 font-body text-[0.65rem] font-semibold uppercase tracking-[0.08em] ${statusPill}`}>
+                                        {order.status}
+                                      </span>
+                                      {alertLevel.readyBy && (
+                                        <p className="mt-1 font-body text-xs font-semibold text-sage">Ready by {alertLevel.readyBy}</p>
+                                      )}
+                                    </div>
+                                  </div>
                                 </div>
-                                <div>
-                                  <p className="font-body text-[0.7rem] font-semibold uppercase tracking-[0.06em] text-charcoal/45">
-                                    Ordered
-                                  </p>
-                                  <p className="mt-1 font-body text-sm text-charcoal">
-                                    {new Date(order.order_date).toLocaleString("en-US", {
-                                      month: "short",
-                                      day: "numeric",
-                                      hour: "2-digit",
-                                      minute: "2-digit",
-                                    })}
-                                  </p>
-                                  {alertLevel.level !== "normal" && alertLevel.message && (
-                                    <p className={`font-body text-xs font-semibold ${urgencyText}`}>
-                                      ⚠️ {alertLevel.message}
-                                    </p>
-                                  )}
-                                </div>
-                              </div>
 
-                              {/* Actions */}
-                              <div className="mt-5 flex flex-wrap gap-2 border-t border-border pt-4">
-                                {order.status === "pending" && (
-                                  <Button
-                                    onClick={() => updateOrderStatus(order.id, "preparing")}
-                                    size="sm"
-                                    variant="terracotta"
-                                  >
-                                    Start preparing
-                                  </Button>
+                                {/* Food-prep stage timeline */}
+                                <OrderStatusTimeline status={order.status} className="mt-6" />
+
+                                {/* Urgency banner */}
+                                {blinking && alertLevel.message && (
+                                  <div className={`mt-5 flex items-center gap-2 rounded-xl border ${palette.border} bg-sand/30 px-4 py-2.5 font-body text-sm font-semibold ${palette.text}`}>
+                                    <span className="relative flex size-2">
+                                      <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-current opacity-60" />
+                                      <span className="relative inline-flex size-2 rounded-full bg-current" />
+                                    </span>
+                                    {alertLevel.message}
+                                  </div>
                                 )}
-                                {order.status === "preparing" && (
-                                  <Button
-                                    onClick={() => updateOrderStatus(order.id, "ready")}
-                                    size="sm"
-                                    variant="sage"
-                                  >
-                                    Mark ready
-                                  </Button>
-                                )}
-                                {order.status === "ready" && (
-                                  <Button
-                                    onClick={() => updateOrderStatus(order.id, "completed")}
-                                    size="sm"
-                                    variant="sage"
-                                  >
-                                    Complete order
-                                  </Button>
-                                )}
-                                {order.status !== "completed" && order.status !== "cancelled" && (
-                                  <Button
-                                    onClick={() => updateOrderStatus(order.id, "cancelled")}
-                                    size="sm"
-                                    variant="outline"
-                                    className="border-[#a05e38]/60 text-[#a05e38] hover:bg-[#a05e38]/10 hover:text-[#a05e38] font-body"
-                                  >
-                                    Cancel
-                                  </Button>
-                                )}
-                              </div>
-                            </CardContent>
-                          </Card>
-                        );
-                      })
+
+                                {/* Actions */}
+                                <div className="mt-6 flex flex-col gap-2 border-t border-border pt-4 sm:flex-row sm:items-center">
+                                  {order.status === "pending" && (
+                                    <Button onClick={() => updateOrderStatus(order.id, "preparing")} variant="terracotta" className="w-full sm:w-auto">
+                                      Start preparing
+                                    </Button>
+                                  )}
+                                  {order.status === "preparing" && (
+                                    <Button onClick={() => updateOrderStatus(order.id, "ready")} variant="sage" className="w-full sm:w-auto">
+                                      Mark ready
+                                    </Button>
+                                  )}
+                                  {order.status === "ready" && (
+                                    <Button onClick={() => updateOrderStatus(order.id, "completed")} variant="sage" className="w-full sm:w-auto">
+                                      Complete order
+                                    </Button>
+                                  )}
+                                  {order.status !== "completed" && order.status !== "cancelled" && (
+                                    <Button
+                                      onClick={() => updateOrderStatus(order.id, "cancelled")}
+                                      variant="outline"
+                                      className="w-full border-[#a05e38]/60 text-[#a05e38] hover:bg-[#a05e38]/10 hover:text-[#a05e38] font-body sm:ml-auto sm:w-auto"
+                                    >
+                                      Cancel
+                                    </Button>
+                                  )}
+                                </div>
+                              </CardContent>
+                            </Card>
+                          );
+                        })}
+                      </div>
                     )}
                   </>
-                )}
+                  );
+                })()}
 
                 {/* Order History */}
                 {orderHistoryTab === "history" && (
@@ -1290,7 +1297,8 @@ export default function AdminCafe() {
                     )}
                   </>
                 )}
-              </div>
+              </CardContent>
+            </Card>
             )}
 
           </div>

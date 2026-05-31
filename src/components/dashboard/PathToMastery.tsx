@@ -155,7 +155,7 @@ export function PathToMastery({
                         {/* Earned tick — anchored outside the circle, no overlap */}
                         {earned && !isCurrent ? (
                           <motion.span
-                            className="absolute -bottom-1 -right-1 flex h-6 w-6 items-center justify-center rounded-full border-2 border-card text-white shadow"
+                            className="absolute -bottom-1 -right-1 flex h-6 w-6 items-center justify-center rounded-full border-2 border-card text-cream shadow"
                             style={{ backgroundColor: color }}
                             initial={{ scale: 0 }}
                             animate={{ scale: 1 }}
@@ -168,7 +168,7 @@ export function PathToMastery({
                         {/* Current sparkle — top-right, outside the ring */}
                         {isCurrent ? (
                           <motion.span
-                            className="absolute -right-2 -top-2 flex h-7 w-7 items-center justify-center rounded-full border-2 border-card text-white shadow-lg"
+                            className="absolute -right-2 -top-2 flex h-7 w-7 items-center justify-center rounded-full border-2 border-card text-cream shadow-lg"
                             style={{ backgroundColor: color }}
                             initial={{ scale: 0 }}
                             animate={{ scale: 1 }}

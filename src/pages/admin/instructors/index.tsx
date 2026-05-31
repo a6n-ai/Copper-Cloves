@@ -221,8 +221,8 @@ export default function AdminInstructorsPage() {
                       className={cn(
                         "rounded-full border px-3 py-1 font-body text-xs capitalize transition-colors",
                         statusFilter === opt
-                          ? "bg-sage text-white border-sage shadow-sm"
-                          : "bg-white text-charcoal/65 border-sage/20 hover:bg-sage/10 hover:text-sage",
+                          ? "bg-sage text-cream border-sage shadow-sm"
+                          : "bg-white-warm text-charcoal/65 border-sage/20 hover:bg-sage/10 hover:text-sage",
                       )}
                     >
                       {opt === "all" ? `All (${instructors.length})` : opt === "active" ? `Active (${stats.active})` : `Inactive (${stats.inactive})`}
@@ -232,7 +232,7 @@ export default function AdminInstructorsPage() {
               </CardHeader>
 
               <CardContent>
-                <div className="rounded-xl border border-sage/15 bg-white overflow-hidden">
+                <div className="rounded-xl border border-sage/15 bg-white-warm overflow-hidden">
                   <ResponsiveTable>
                     <Table>
                       <TableHeader>
@@ -361,8 +361,8 @@ export default function AdminInstructorsPage() {
                                       className={cn(
                                         "h-8 w-8 p-0 font-body transition-all hover:scale-110 active:scale-95",
                                         active
-                                          ? "border-terracotta/40 text-terracotta bg-white hover:!bg-terracotta hover:!text-white hover:!border-terracotta"
-                                          : "border-sage/60 text-sage bg-white hover:!bg-sage hover:!text-white hover:!border-sage",
+                                          ? "border-terracotta/40 text-terracotta bg-white-warm hover:!bg-terracotta hover:!text-cream hover:!border-terracotta"
+                                          : "border-sage/60 text-sage bg-white-warm hover:!bg-sage hover:!text-cream hover:!border-sage",
                                       )}
                                     >
                                       <AnimatedIcon icon={active ? PowerOff : Power} size={14} animateOnMount={false} hover="wiggle" />
@@ -393,7 +393,7 @@ export default function AdminInstructorsPage() {
 
       {/* Add dialog — minimal; full edit lives on the profile page */}
       <ResponsiveDialog open={addOpen} onOpenChange={setAddOpen}>
-        <ResponsiveDialogContent className="sm:max-w-md bg-white border-sage/20">
+        <ResponsiveDialogContent className="sm:max-w-md bg-white-warm border-sage/20">
           <ResponsiveDialogHeader>
             <ResponsiveDialogTitle className="font-display text-charcoal">Add instructor</ResponsiveDialogTitle>
           </ResponsiveDialogHeader>

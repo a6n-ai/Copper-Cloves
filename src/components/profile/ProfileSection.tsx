@@ -58,13 +58,13 @@ function CheckboxGroup({ options, selected, onChange }: {
             type="button"
             onClick={() => onChange(checked ? selected.filter((x) => x !== opt) : [...selected, opt])}
             className={`flex items-center gap-2 px-3 py-2 rounded-lg border text-left text-sm font-body transition-all ${
-              checked ? "border-sage bg-sage/10 text-charcoal" : "border-sage/20 bg-white text-charcoal/70 hover:border-sage/40"
+              checked ? "border-sage bg-sage/10 text-charcoal" : "border-sage/20 bg-white-warm text-charcoal/70 hover:border-sage/40"
             }`}
           >
             <div className={`w-4 h-4 rounded border shrink-0 flex items-center justify-center ${
               checked ? "bg-sage border-sage" : "border-charcoal/30"
             }`}>
-              {checked && <CheckCircle2 size={10} className="text-white" />}
+              {checked && <CheckCircle2 size={10} className="text-cream" />}
             </div>
             {opt}
           </button>
@@ -77,8 +77,8 @@ function CheckboxGroup({ options, selected, onChange }: {
 function ProfileSkeleton({ memberExtras }: { memberExtras: boolean }) {
   return (
     <div className="space-y-6">
-      <Card className="border-sage/20 bg-white/90 shadow-lg">
-        <CardHeader className="p-6 border-b border-sage/10 bg-linear-to-r from-cream/50 to-white">
+      <Card className="border-sage/20 bg-[#fafaf8]/90 shadow-lg">
+        <CardHeader className="p-6 border-b border-sage/10 bg-linear-to-r from-cream/50 to-[#fafaf8]">
           <div className="flex items-center gap-3">
             <Skeleton className="w-10 h-10 rounded-full" />
             <Skeleton className="h-7 w-44" />
@@ -445,8 +445,8 @@ export function ProfileSection({ role, title, subtitle }: ProfileSectionProps) {
         <div className="max-w-2xl mx-auto space-y-6 px-4 sm:px-6 lg:px-8">
 
           {/* ── Personal Details ──────────────────────────────────── */}
-          <Card className="border-sage/20 bg-white/90 shadow-lg">
-            <CardHeader className="p-6 border-b border-sage/10 bg-linear-to-r from-cream/50 to-white">
+          <Card className="border-sage/20 bg-[#fafaf8]/90 shadow-lg">
+            <CardHeader className="p-6 border-b border-sage/10 bg-linear-to-r from-cream/50 to-[#fafaf8]">
               <CardTitle className="font-display text-2xl text-charcoal flex items-center gap-3">
                 <div className="w-10 h-10 rounded-full bg-sage/10 flex items-center justify-center">
                   <User className="text-sage" size={20} />
@@ -475,7 +475,7 @@ export function ProfileSection({ role, title, subtitle }: ProfileSectionProps) {
                       disabled={avatarUploading} onChange={(ev) => void onAvatarSelected(ev)} className="hidden" />
                     <Button type="button" variant="outline" size="sm"
                       disabled={avatarUploading} onClick={() => fileInputRef.current?.click()}
-                      className="border-sage/30 text-sage hover:bg-sage hover:text-white font-body text-xs h-8">
+                      className="border-sage/30 text-sage hover:bg-sage hover:text-cream font-body text-xs h-8">
                       {avatarUploading ? "Uploading…" : "Change photo"}
                     </Button>
                     <p className="text-xs text-charcoal/40 font-body">JPEG, PNG or WebP</p>
@@ -511,7 +511,7 @@ export function ProfileSection({ role, title, subtitle }: ProfileSectionProps) {
                       <Label className="font-body text-sm text-charcoal">Gender</Label>
                       <div className="relative">
                         <select value={gender} onChange={(e) => setGender(e.target.value)}
-                          className="w-full h-11 pl-3 pr-8 rounded-md border border-sage/20 bg-white font-body text-sm text-charcoal focus:outline-hidden focus:ring-1 focus:ring-sage appearance-none">
+                          className="w-full h-11 pl-3 pr-8 rounded-md border border-sage/20 bg-white-warm font-body text-sm text-charcoal focus:outline-hidden focus:ring-1 focus:ring-sage appearance-none">
                           <option value="">Select</option>
                           <option value="male">Male</option>
                           <option value="female">Female</option>
@@ -555,8 +555,8 @@ export function ProfileSection({ role, title, subtitle }: ProfileSectionProps) {
 
           {/* ── Health & Fitness (member only) ────────────────────── */}
           {isMember && (
-            <Card className="border-sage/20 bg-white/90 shadow-lg">
-              <CardHeader className="p-6 border-b border-sage/10 bg-linear-to-r from-cream/50 to-white">
+            <Card className="border-sage/20 bg-[#fafaf8]/90 shadow-lg">
+              <CardHeader className="p-6 border-b border-sage/10 bg-linear-to-r from-cream/50 to-[#fafaf8]">
                 <CardTitle className="font-display text-2xl text-charcoal flex items-center gap-3">
                   <div className="w-10 h-10 rounded-full bg-sage/10 flex items-center justify-center">
                     <Heart className="text-sage" size={20} />
@@ -611,7 +611,7 @@ export function ProfileSection({ role, title, subtitle }: ProfileSectionProps) {
           )}
 
           {/* ── Change Password (everyone) ────────────────────────── */}
-          <Card id="reset-password" className="border-sage/20 bg-white/90 shadow-lg scroll-mt-28">
+          <Card id="reset-password" className="border-sage/20 bg-[#fafaf8]/90 shadow-lg scroll-mt-28">
             <CardHeader className="p-6 border-b border-sage/10">
               <CardTitle className="font-display text-xl text-charcoal flex items-center gap-3">
                 <Lock className="text-sage" size={20} /> Reset Password
@@ -642,8 +642,8 @@ export function ProfileSection({ role, title, subtitle }: ProfileSectionProps) {
 
           {/* ── Pause Subscription (member only) ─────────────────── */}
           {isMember && (
-            <Card className="border-sage/20 bg-white/90 shadow-lg">
-              <CardHeader className="p-6 border-b border-sage/10 bg-linear-to-r from-cream/50 to-white">
+            <Card className="border-sage/20 bg-[#fafaf8]/90 shadow-lg">
+              <CardHeader className="p-6 border-b border-sage/10 bg-linear-to-r from-cream/50 to-[#fafaf8]">
                 <CardTitle className="font-display text-xl text-charcoal flex items-center gap-3">
                   <div className="w-10 h-10 rounded-full bg-terracotta/10 flex items-center justify-center">
                     <PauseCircle className="text-terracotta" size={20} />
@@ -719,7 +719,7 @@ export function ProfileSection({ role, title, subtitle }: ProfileSectionProps) {
                         <Button type="button" variant="outline" size="sm"
                           disabled={attachmentUploading}
                           onClick={() => attachmentRef.current?.click()}
-                          className="border-sage/30 text-sage hover:bg-sage hover:text-white font-body text-xs h-9">
+                          className="border-sage/30 text-sage hover:bg-sage hover:text-cream font-body text-xs h-9">
                           {attachmentUploading ? "Uploading…" : "Upload file"}
                         </Button>
                         {attachmentName && (

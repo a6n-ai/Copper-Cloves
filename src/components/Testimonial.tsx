@@ -65,14 +65,14 @@ export function Testimonial() {
   const currentTestimonial = testimonials[currentIndex];
 
   return (
-    <section className="py-16 md:py-20 bg-sage text-white relative overflow-hidden">
+    <section className="py-16 md:py-20 bg-sage text-cream relative overflow-hidden">
       <div className="relative z-10 max-w-4xl mx-auto px-6 lg:px-8">
         {/* Header */}
         <div className="text-center mb-12">
           <h2 className="font-display text-4xl md:text-5xl mb-4">
             What Our Community Says
           </h2>
-          <p className="font-body text-white/80 text-lg">
+          <p className="font-body text-cream/80 text-lg">
             In their own words, from {testimonials.length} members of the studio
           </p>
         </div>
@@ -84,7 +84,7 @@ export function Testimonial() {
           </blockquote>
           
           <div className="flex items-center justify-center">
-            <div className="w-16 h-16 rounded-full overflow-hidden mr-4 border-2 border-white/30">
+            <div className="w-16 h-16 rounded-full overflow-hidden mr-4 border-2 border-cream/30">
               <Image
                 src={currentTestimonial.image}
                 alt={currentTestimonial.author}
@@ -95,7 +95,7 @@ export function Testimonial() {
             </div>
             <div className="text-left">
               <div className="font-display font-semibold text-xl">{currentTestimonial.author}</div>
-              <div className="font-body text-sm text-white/80">{currentTestimonial.role}</div>
+              <div className="font-body text-sm text-cream/80">{currentTestimonial.role}</div>
             </div>
           </div>
         </div>
@@ -114,8 +114,8 @@ export function Testimonial() {
               }}
               className={`transition-all duration-300 rounded-full ${
                 index === currentIndex
-                  ? 'w-8 h-2 bg-white'
-                  : 'w-2 h-2 bg-white/40 hover:bg-white/60'
+                  ? 'w-8 h-2 bg-white-warm'
+                  : 'w-2 h-2 bg-[#fafaf8]/40 hover:bg-[#fafaf8]/60'
               }`}
               aria-label={`Go to testimonial ${index + 1}`}
             />

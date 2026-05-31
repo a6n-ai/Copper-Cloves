@@ -108,7 +108,7 @@ export function Navigation({ variant = "default" }: NavigationProps) {
             <Link href="/portal/login">
               <Button
                 className={cn(
-                  "rounded-full border-0 px-7 py-2.5 h-auto text-[15px] font-body font-medium text-white shadow-xs",
+                  "rounded-full border-0 px-7 py-2.5 h-auto text-[15px] font-body font-medium text-cream shadow-xs",
                   HEADER_SAGE
                 )}
               >
@@ -174,7 +174,7 @@ export function Navigation({ variant = "default" }: NavigationProps) {
             <Link href="/portal/login" onClick={() => setMobileMenuOpen(false)} className="block pt-2">
               <Button
                 className={cn(
-                  "w-full rounded-full border-0 py-3 h-auto font-body font-medium text-white",
+                  "w-full rounded-full border-0 py-3 h-auto font-body font-medium text-cream",
                   HEADER_SAGE
                 )}
               >

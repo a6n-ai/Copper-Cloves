@@ -324,7 +324,7 @@ function MembersTabImpl({
           </div>
         </CardHeader>
         <CardContent>
-          <div className="flex flex-wrap items-center gap-6 p-6 rounded-xl bg-white border border-sage/20">
+          <div className="flex flex-wrap items-center gap-6 p-6 rounded-xl bg-white-warm border border-sage/20">
             <div className="h-20 w-20 rounded-full bg-sage/10 flex items-center justify-center">
               <Star className="h-10 w-10 text-sage" />
             </div>
@@ -397,7 +397,7 @@ function MembersTabImpl({
             <div>
               <div className="flex items-center justify-between mb-2">
                 <div className="flex items-center gap-2">
-                  <Badge className="bg-sage text-white">Studio Pass</Badge>
+                  <Badge className="bg-sage text-cream">Studio Pass</Badge>
                   <span className="font-body text-charcoal/60">{displayedMemberStats.studioPassActive} members</span>
                 </div>
                 <span className="font-body font-medium text-charcoal">
@@ -457,7 +457,7 @@ function MembersTabImpl({
           </div>
         </CardHeader>
         <CardContent>
-          <div className="rounded-xl border border-sage/15 bg-white overflow-hidden">
+          <div className="rounded-xl border border-sage/15 bg-white-warm overflow-hidden">
             <ResponsiveTable>
               <Table>
                 <TableHeader>

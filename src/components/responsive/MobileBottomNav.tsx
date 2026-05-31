@@ -95,7 +95,7 @@ export function MobileBottomNav({ config }: { config: PortalConfig }) {
                 type="button"
                 onClick={() => setScanOpen(true)}
                 aria-label="Scan to check in"
-                className="absolute -top-5 flex h-16 w-16 flex-col items-center justify-center gap-0.5 rounded-full border-4 border-white bg-terracotta text-white shadow-lg shadow-terracotta/30 transition-transform active:scale-95"
+                className="absolute -top-5 flex h-16 w-16 flex-col items-center justify-center gap-0.5 rounded-full border-4 border-cream bg-terracotta text-cream shadow-lg shadow-terracotta/30 transition-transform active:scale-95"
               >
                 <QrCode className="h-6 w-6" />
                 <span className="text-[9px] font-body leading-none">Check in</span>

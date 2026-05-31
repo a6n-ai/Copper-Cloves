@@ -38,8 +38,8 @@ function ClassCatalogSkeleton({ count = 3 }: { count?: number }) {
           <Skeleton className="absolute inset-0 w-full h-full rounded-2xl" />
           {/* Name placeholder anchored to bottom, matching the default overlay */}
           <div className="absolute inset-x-0 bottom-0 p-6 space-y-2">
-            <Skeleton className="h-9 w-3/4 bg-white/30" />
-            <Skeleton className="h-4 w-1/2 bg-white/20" />
+            <Skeleton className="h-9 w-3/4 bg-[#fafaf8]/30" />
+            <Skeleton className="h-4 w-1/2 bg-[#fafaf8]/20" />
           </div>
         </div>
       ))}
@@ -157,23 +157,23 @@ export function ClassCatalog() {
 
                   {/* Default State - Dark gradient with class name */}
                   <div className="absolute inset-0 bg-linear-to-t from-charcoal/80 via-charcoal/40 to-transparent transition-opacity duration-600 ease-in-out group-hover:opacity-0 flex items-end p-6">
-                    <h3 className="font-display text-3xl md:text-4xl text-white drop-shadow-lg leading-tight">
+                    <h3 className="font-display text-3xl md:text-4xl text-cream drop-shadow-lg leading-tight">
                       {classItem.name}
                     </h3>
                   </div>
 
                   {/* Hover State - Glassmorphism overlay with details */}
                   <div className="absolute inset-0 bg-charcoal/70 opacity-0 group-hover:opacity-100 transition-all duration-600 ease-in-out flex flex-col items-center justify-center p-8 text-center">
-                    <h3 className="font-display text-3xl md:text-4xl text-white mb-4 drop-shadow-lg">
+                    <h3 className="font-display text-3xl md:text-4xl text-cream mb-4 drop-shadow-lg">
                       {classItem.name}
                     </h3>
                     
-                    <div className="flex items-center gap-2 text-white/90 mb-4">
+                    <div className="flex items-center gap-2 text-cream/90 mb-4">
                       <Clock size={18} />
                       <span className="font-body">{classItem.duration}</span>
                     </div>
 
-                    <p className="font-body text-lg text-white/90 leading-relaxed">
+                    <p className="font-body text-lg text-cream/90 leading-relaxed">
                       {classItem.benefit}
                     </p>
                   </div>
@@ -189,7 +189,7 @@ export function ClassCatalog() {
             onClick={() => router.push("/classes")}
             size="lg"
             variant="outline"
-            className="border-2 border-sage text-sage hover:bg-sage hover:text-white bg-cream transition-all duration-600 ease-in-out px-8 group"
+            className="border-2 border-sage text-sage hover:bg-sage hover:text-cream bg-cream transition-all duration-600 ease-in-out px-8 group"
           >
             Explore All Classes
             <ArrowRight className="ml-2 group-hover:translate-x-1 transition-transform duration-600 ease-in-out" size={18} />

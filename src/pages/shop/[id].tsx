@@ -231,7 +231,7 @@ export default function ProductDetail({ product, catalog }: ProductDetailProps) 
 
       <Navigation />
 
-      <main className="min-h-screen bg-linear-to-br from-cream via-white to-sage/5 pt-24 pb-16">
+      <main className="min-h-screen bg-linear-to-br from-cream via-[#fafaf8] to-sage/5 pt-24 pb-16">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <Link href="/shop">
             <Button
@@ -275,7 +275,7 @@ export default function ProductDetail({ product, catalog }: ProductDetailProps) 
                 )}
 
                 {product.featured && (
-                  <div className="absolute top-4 left-4 z-10 px-3 py-1 rounded-full bg-terracotta text-white text-xs font-body font-medium">
+                  <div className="absolute top-4 left-4 z-10 px-3 py-1 rounded-full bg-terracotta text-cream text-xs font-body font-medium">
                     Featured
                   </div>
                 )}
@@ -396,7 +396,7 @@ export default function ProductDetail({ product, catalog }: ProductDetailProps) 
                           sizes="(max-width: 640px) 100vw, 25vw"
                         />
                         {rp.featured && (
-                          <div className="absolute top-3 left-3 px-2 py-1 rounded-full bg-terracotta text-white text-xs font-body">
+                          <div className="absolute top-3 left-3 px-2 py-1 rounded-full bg-terracotta text-cream text-xs font-body">
                             Featured
                           </div>
                         )}

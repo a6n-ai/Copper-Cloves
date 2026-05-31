@@ -18,7 +18,7 @@ export default function FounderPage() {
       <Navigation />
 
       {/* Background */}
-      <div className="fixed inset-0 -z-10 bg-linear-to-br from-cream via-white to-sage/5" />
+      <div className="fixed inset-0 -z-10 bg-linear-to-br from-cream via-[#fafaf8] to-sage/5" />
 
       {/* Hero Section */}
       <section className="relative pt-32 pb-20 px-6 lg:px-8">

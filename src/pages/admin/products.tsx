@@ -447,7 +447,7 @@ export default function AdminProducts() {
     <>
       <SEO title="Boutique Management - Admin" />
       
-      <div className="flex min-h-screen bg-linear-to-br from-cream via-white to-sage/5">
+      <div className="flex min-h-screen bg-linear-to-br from-cream via-[#fafaf8] to-sage/5">
         
         <main className="min-h-screen">
           <div className="max-w-7xl mx-auto p-6 lg:p-8 space-y-8">
@@ -512,7 +512,7 @@ export default function AdminProducts() {
                     onClick={() => setActiveTab("products")}
                     className={`px-6 py-2 rounded-full font-body text-sm transition-all duration-300 ${
                       activeTab === "products"
-                        ? "bg-sage text-white shadow-lg"
+                        ? "bg-sage text-cream shadow-lg"
                         : "text-charcoal/60 hover:text-charcoal"
                     }`}
                   >
@@ -522,7 +522,7 @@ export default function AdminProducts() {
                     onClick={() => setActiveTab("orders")}
                     className={`px-6 py-2 rounded-full font-body text-sm transition-all duration-300 ${
                       activeTab === "orders"
-                        ? "bg-sage text-white shadow-lg"
+                        ? "bg-sage text-cream shadow-lg"
                         : "text-charcoal/60 hover:text-charcoal"
                     }`}
                   >
@@ -532,7 +532,7 @@ export default function AdminProducts() {
                     onClick={() => setActiveTab("categories")}
                     className={`px-6 py-2 rounded-full font-body text-sm transition-all duration-300 ${
                       activeTab === "categories"
-                        ? "bg-sage text-white shadow-lg"
+                        ? "bg-sage text-cream shadow-lg"
                         : "text-charcoal/60 hover:text-charcoal"
                     }`}
                   >
@@ -586,7 +586,7 @@ export default function AdminProducts() {
                       aria-pressed={featuredOnly}
                       className={`rounded-full border px-4 py-2.5 font-body text-sm transition-colors outline-none focus-visible:ring-2 focus-visible:ring-sage/30 ${
                         featuredOnly
-                          ? "border-sage bg-sage text-white"
+                          ? "border-sage bg-sage text-cream"
                           : "border-sage/20 bg-white-warm text-charcoal/70 hover:text-charcoal"
                       }`}
                     >

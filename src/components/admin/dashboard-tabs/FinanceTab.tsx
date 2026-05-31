@@ -1,13 +1,19 @@
 import { memo, useCallback, useMemo, useState } from "react";
 import { SortableHeader, useTableSort } from "@/components/admin/sortable-table";
 import {
+  ArrowDownRight,
+  ArrowUpRight,
+  Banknote,
   DollarSign,
   Download,
   FileText,
   Filter,
+  PieChart,
   Search,
+  Smartphone,
   TrendingDown,
   TrendingUp,
+  Trophy,
 } from "lucide-react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
@@ -38,11 +44,79 @@ import { transactionInExportPeriod, type FinanceReportPeriod } from "@/lib/finan
 // Recharts MUST be static (see InstructorsTab.tsx comment). Tab itself is dynamic-loaded.
 import { Bar, CartesianGrid, ComposedChart, Line, XAxis, YAxis } from "recharts";
 
-// Placeholder bar heights for the "Revenue Trend" mock chart. Hoisted so the
-// 26-element array isn't re-allocated on every parent rerender.
-const REVENUE_TREND_PLACEHOLDER: readonly number[] = [
-  45, 52, 48, 61, 55, 58, 63, 59, 67, 64, 71, 68, 75, 72, 78, 82, 79, 85, 88, 84, 91, 87, 94, 92, 98, 99,
-];
+// Compact rupee for insight readouts (₹1.24L / ₹12.5k / ₹940).
+function compactInr(n: number): string {
+  const abs = Math.abs(Math.round(n));
+  if (abs >= 100000) return `₹${(abs / 100000).toFixed(2)}L`;
+  if (abs >= 1000) return `₹${(abs / 1000).toFixed(1)}k`;
+  return `₹${abs.toLocaleString("en-IN")}`;
+}
+
+type RevenueSourceSlice = { key: string; label: string; amount: number; color: string };
+
+// Bucket ledger revenue by what the row actually is. Buckets are mutually
+// exclusive per row (one transaction, one source), so the rupee split is honest
+// rather than guessed. Café shows as a count, not a rupee slice, because café
+// add-ons ride inside a package/booking total and can't be cleanly separated here.
+function summarizeRevenueBySource(txns: DashboardTxn[]): {
+  slices: RevenueSourceSlice[];
+  total: number;
+  cafeCount: number;
+} {
+  let pkg = 0;
+  let cls = 0;
+  let other = 0;
+  let cafeCount = 0;
+  for (const t of txns) {
+    if (t.type !== "revenue") continue;
+    const amt = Math.abs(t.amount);
+    const id = String(t.id);
+    const cat = t.category.toLowerCase();
+    const isPackage = cat.includes("(package)") || id.startsWith("package-") || id.startsWith("demo-finance-package");
+    const isClass = id.startsWith("booking-") || id.startsWith("demo-finance-booking");
+    if (isPackage) pkg += amt;
+    else if (isClass) cls += amt;
+    else other += amt;
+    const food = t.foodOrderedLabel?.toLowerCase() ?? "";
+    if (food && food !== "—" && food.includes("food")) cafeCount += 1;
+  }
+  const slices = [
+    { key: "package", label: "Package purchases", amount: pkg, color: "#8f9779" },
+    { key: "class", label: "Class checkouts", amount: cls, color: "#c17856" },
+    { key: "other", label: "Other revenue", amount: other, color: "#a8a296" },
+  ]
+    .filter((s) => s.amount > 0)
+    .sort((a, b) => b.amount - a.amount);
+  return { slices, total: pkg + cls + other, cafeCount };
+}
+
+// Online (Razorpay) vs everything else (cash, Pine Lab, direct UPI) across the
+// ledger's revenue rows.
+function summarizePaymentMix(txns: DashboardTxn[]): { online: number; offline: number; total: number } {
+  let online = 0;
+  let offline = 0;
+  for (const t of txns) {
+    if (t.type !== "revenue") continue;
+    const amt = Math.abs(t.amount);
+    if (t.method.toLowerCase().includes("razorpay")) online += amt;
+    else offline += amt;
+  }
+  return { online, offline, total: online + offline };
+}
+
+// Month-over-month and best-month read from the authoritative finance trend.
+function summarizeTrend(trend: FinanceTrendRow[]): {
+  current: FinanceTrendRow;
+  momPct: number | null;
+  best: FinanceTrendRow;
+} | null {
+  if (trend.length === 0) return null;
+  const current = trend[trend.length - 1];
+  const prev = trend.length > 1 ? trend[trend.length - 2] : null;
+  const momPct = prev && prev.revenue > 0 ? ((current.revenue - prev.revenue) / prev.revenue) * 100 : null;
+  const best = trend.reduce((a, b) => (b.revenue > a.revenue ? b : a), trend[0]);
+  return { current, momPct, best };
+}
 
 export type FinanceBreakdownDetail = {
   packageListInr?: number;
@@ -203,6 +277,22 @@ function FinanceOverviewSectionImpl({
     [financeLedgerTransactions, onExport],
   );
 
+  const sources = useMemo(() => summarizeRevenueBySource(financeLedgerTransactions), [financeLedgerTransactions]);
+  const methods = useMemo(() => summarizePaymentMix(financeLedgerTransactions), [financeLedgerTransactions]);
+  const trend = useMemo(() => summarizeTrend(financeTrend), [financeTrend]);
+  const revenueTxnCount = useMemo(
+    () => financeLedgerTransactions.filter((t) => t.type === "revenue").length,
+    [financeLedgerTransactions],
+  );
+
+  // Real month-over-month from the trend; replaces the old hardcoded growth hint.
+  const momHint =
+    trend?.momPct == null
+      ? trend
+        ? "first month tracked"
+        : "—"
+      : `${trend.momPct >= 0 ? "▲" : "▼"} ${Math.abs(trend.momPct).toFixed(0)}% vs last month`;
+
   return (
     <div className="space-y-6">
       <div className="grid grid-cols-2 md:grid-cols-3 gap-3 sm:gap-4">
@@ -213,7 +303,7 @@ function FinanceOverviewSectionImpl({
           icon={TrendingUp}
           tone="sage"
           loading={!overviewLoaded}
-          hint={`+${financeStats.growthRate}% growth`}
+          hint={momHint}
         />
         <MetricCard
           label="Total Expenses"
@@ -237,6 +327,177 @@ function FinanceOverviewSectionImpl({
         />
       </div>
 
+      {/* Hero: the authoritative monthly trend with a plain-language readout. */}
+      <Card className="border-sage/20 bg-white-warm">
+        <CardHeader>
+          <div className="flex flex-wrap items-start justify-between gap-3">
+            <div>
+              <CardTitle className="font-display text-xl text-charcoal">Revenue, expenses &amp; profit</CardTitle>
+              <CardDescription className="font-body text-charcoal/60">Last 6 months, from recorded payments and instructor payouts</CardDescription>
+            </div>
+            {trend ? (
+              <span
+                className={`inline-flex items-center gap-1 rounded-full px-2.5 py-1 font-body text-xs font-medium ${
+                  trend.momPct == null
+                    ? "bg-charcoal/5 text-charcoal/60"
+                    : trend.momPct >= 0
+                      ? "bg-sage/15 text-sage"
+                      : "bg-terracotta/15 text-terracotta"
+                }`}
+              >
+                {trend.momPct == null ? null : trend.momPct >= 0 ? <ArrowUpRight className="h-3.5 w-3.5" /> : <ArrowDownRight className="h-3.5 w-3.5" />}
+                {trend.momPct == null ? "First month tracked" : `${Math.abs(trend.momPct).toFixed(0)}% vs last month`}
+              </span>
+            ) : null}
+          </div>
+        </CardHeader>
+        <CardContent>
+          {financeTrend.length === 0 || !trend ? (
+            <div className="h-[300px] flex flex-col items-center justify-center gap-2 font-body text-sm text-charcoal/40">
+              <TrendingUp className="h-8 w-8 text-charcoal/15" />
+              No revenue recorded yet.
+            </div>
+          ) : (
+            <>
+              <div className="mb-5 grid grid-cols-2 sm:grid-cols-3 gap-3">
+                <div className="rounded-xl border border-sage/15 bg-sage/5 px-4 py-3">
+                  <div className="font-body text-xs uppercase tracking-wide text-charcoal/50">This month</div>
+                  <div className="font-display text-2xl text-charcoal tabular-nums">{compactInr(trend.current.revenue)}</div>
+                </div>
+                <div className="rounded-xl border border-charcoal/10 bg-white px-4 py-3">
+                  <div className="font-body text-xs uppercase tracking-wide text-charcoal/50">This month profit</div>
+                  <div className={`font-display text-2xl tabular-nums ${trend.current.profit >= 0 ? "text-sage" : "text-terracotta"}`}>{compactInr(trend.current.profit)}</div>
+                </div>
+                <div className="col-span-2 sm:col-span-1 rounded-xl border border-charcoal/10 bg-white px-4 py-3">
+                  <div className="font-body text-xs uppercase tracking-wide text-charcoal/50 flex items-center gap-1"><Trophy className="h-3.5 w-3.5 text-sage" /> Best month</div>
+                  <div className="font-display text-2xl text-charcoal tabular-nums">
+                    {compactInr(trend.best.revenue)} <span className="font-body text-sm text-charcoal/50">{trend.best.month}</span>
+                  </div>
+                </div>
+              </div>
+              <ChartContainer
+                config={{
+                  revenue: { label: "Revenue", color: "#8F9779" },
+                  expenses: { label: "Expenses", color: "#C17856" },
+                  profit: { label: "Profit", color: "#6B8E73" },
+                }}
+                className="h-[280px] w-full"
+              >
+                <ComposedChart data={financeTrend} margin={{ top: 8, right: 12, left: 0, bottom: 0 }}>
+                  <CartesianGrid vertical={false} strokeDasharray="3 3" stroke="#E5E5E0" />
+                  <XAxis dataKey="month" tickLine={false} axisLine={false} tick={{ fontSize: 12, fill: "#6B6B6B" }} />
+                  <YAxis
+                    tickLine={false}
+                    axisLine={false}
+                    tick={{ fontSize: 12, fill: "#6B6B6B" }}
+                    tickFormatter={(v: number) => `₹${(v / 1000).toFixed(0)}k`}
+                    width={48}
+                  />
+                  <ChartTooltip
+                    cursor={{ fill: "rgba(143,151,121,0.05)" }}
+                    content={<ChartTooltipContent formatter={(v) => `₹${Number(v).toLocaleString("en-IN")}`} />}
+                  />
+                  <ChartLegend content={<ChartLegendContent />} />
+                  <Bar dataKey="revenue" fill="var(--color-revenue)" radius={[6, 6, 0, 0]} maxBarSize={36} />
+                  <Bar dataKey="expenses" fill="var(--color-expenses)" radius={[6, 6, 0, 0]} maxBarSize={36} />
+                  <Line type="monotone" dataKey="profit" stroke="var(--color-profit)" strokeWidth={2.5} dot={{ r: 4, fill: "var(--color-profit)" }} activeDot={{ r: 6 }} />
+                </ComposedChart>
+              </ChartContainer>
+            </>
+          )}
+        </CardContent>
+      </Card>
+
+      {/* Real revenue mix + payment split, both computed from the ledger. */}
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        <Card className="border-sage/20 bg-white-warm">
+          <CardHeader>
+            <div className="flex items-start justify-between gap-2">
+              <div>
+                <CardTitle className="font-display text-xl text-charcoal">Where revenue comes from</CardTitle>
+                <CardDescription className="font-body text-charcoal/60">
+                  Across {revenueTxnCount} transaction{revenueTxnCount === 1 ? "" : "s"} in view
+                </CardDescription>
+              </div>
+              <PieChart className="h-5 w-5 text-sage/40 shrink-0" />
+            </div>
+          </CardHeader>
+          <CardContent>
+            {sources.total === 0 ? (
+              <div className="py-10 text-center font-body text-sm text-charcoal/40">No revenue to break down yet.</div>
+            ) : (
+              <div className="space-y-4">
+                {sources.slices.map((s) => {
+                  const pct = (s.amount / sources.total) * 100;
+                  return (
+                    <div key={s.key}>
+                      <div className="mb-1.5 flex items-baseline justify-between gap-2">
+                        <span className="flex items-center gap-2 font-body text-sm text-charcoal">
+                          <span className="h-2.5 w-2.5 rounded-full" style={{ backgroundColor: s.color }} />
+                          {s.label}
+                        </span>
+                        <span className="font-body text-sm tabular-nums text-charcoal/60">
+                          <span className="font-medium text-charcoal">{compactInr(s.amount)}</span> · {pct.toFixed(0)}%
+                        </span>
+                      </div>
+                      <div className="h-2 overflow-hidden rounded-full bg-charcoal/5">
+                        <div className="h-full rounded-full" style={{ width: `${Math.max(pct, 2)}%`, backgroundColor: s.color }} />
+                      </div>
+                    </div>
+                  );
+                })}
+                {sources.cafeCount > 0 ? (
+                  <p className="pt-1 font-body text-xs text-charcoal/45">
+                    {sources.cafeCount} included café items, counted inside their parent sale.
+                  </p>
+                ) : null}
+              </div>
+            )}
+          </CardContent>
+        </Card>
+
+        <Card className="border-sage/20 bg-white-warm">
+          <CardHeader>
+            <div className="flex items-start justify-between gap-2">
+              <div>
+                <CardTitle className="font-display text-xl text-charcoal">How members pay</CardTitle>
+                <CardDescription className="font-body text-charcoal/60">Online vs in-studio, by amount collected</CardDescription>
+              </div>
+              <Banknote className="h-5 w-5 text-sage/40 shrink-0" />
+            </div>
+          </CardHeader>
+          <CardContent>
+            {methods.total === 0 ? (
+              <div className="py-10 text-center font-body text-sm text-charcoal/40">No payments to split yet.</div>
+            ) : (
+              <div className="space-y-5">
+                <div className="flex h-3 w-full overflow-hidden rounded-full bg-charcoal/5">
+                  <div className="h-full bg-sage" style={{ width: `${(methods.online / methods.total) * 100}%` }} />
+                  <div className="h-full bg-terracotta" style={{ width: `${(methods.offline / methods.total) * 100}%` }} />
+                </div>
+                <div className="grid grid-cols-2 gap-3">
+                  <div className="rounded-xl border border-sage/15 bg-sage/5 px-4 py-3">
+                    <div className="flex items-center gap-1 font-body text-xs uppercase tracking-wide text-charcoal/50">
+                      <Smartphone className="h-3.5 w-3.5 text-sage" /> Online
+                    </div>
+                    <div className="font-display text-xl text-charcoal tabular-nums">{compactInr(methods.online)}</div>
+                    <div className="font-body text-xs text-charcoal/50">{((methods.online / methods.total) * 100).toFixed(0)}% · Razorpay</div>
+                  </div>
+                  <div className="rounded-xl border border-terracotta/15 bg-terracotta/5 px-4 py-3">
+                    <div className="flex items-center gap-1 font-body text-xs uppercase tracking-wide text-charcoal/50">
+                      <Banknote className="h-3.5 w-3.5 text-terracotta" /> In-studio
+                    </div>
+                    <div className="font-display text-xl text-charcoal tabular-nums">{compactInr(methods.offline)}</div>
+                    <div className="font-body text-xs text-charcoal/50">{((methods.offline / methods.total) * 100).toFixed(0)}% · cash / card / UPI</div>
+                  </div>
+                </div>
+              </div>
+            )}
+          </CardContent>
+        </Card>
+      </div>
+
+      {/* Reports last: an action surface, not an insight. */}
       <Card className="border-sage/20 bg-white-warm">
         <CardHeader>
           <div className="flex items-center justify-between">
@@ -270,111 +531,6 @@ function FinanceOverviewSectionImpl({
           </div>
         </CardContent>
       </Card>
-
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        <Card className="border-sage/20 bg-white-warm">
-          <CardHeader>
-            <CardTitle className="font-display text-xl text-charcoal">Revenue Trend</CardTitle>
-            <CardDescription className="font-body text-charcoal/60">Daily revenue over the past 30 days</CardDescription>
-          </CardHeader>
-          <CardContent>
-            <div className="space-y-4">
-              <div className="h-64 flex items-end justify-between gap-2">
-                {REVENUE_TREND_PLACEHOLDER.map((value, idx) => (
-                  <div key={idx} className="flex-1 flex flex-col items-center gap-1">
-                    <div
-                      className="w-full bg-linear-to-t from-sage to-sage/40 rounded-t-sm hover:from-sage/90 hover:to-sage/60 transition-all duration-300 cursor-pointer relative group"
-                      style={{ height: `${value}%` }}
-                    >
-                      <div className="absolute -top-8 left-1/2 -translate-x-1/2 bg-charcoal text-white text-xs rounded opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap">
-                        ₹{(15 + idx * 2).toFixed(1)}k
-                      </div>
-                    </div>
-                  </div>
-                ))}
-              </div>
-              <div className="flex items-center justify-between text-xs text-charcoal/50 font-body">
-                <span>30 days ago</span>
-                <span>Today</span>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
-
-        <Card className="border-sage/20 bg-white-warm">
-          <CardHeader>
-            <CardTitle className="font-display text-xl text-charcoal">Revenue Sources</CardTitle>
-            <CardDescription className="font-body text-charcoal/60">Breakdown by revenue type</CardDescription>
-          </CardHeader>
-          <CardContent>
-            <div className="flex items-center justify-center py-8">
-              <div className="relative w-48 h-48">
-                <svg viewBox="0 0 100 100" className="transform -rotate-90">
-                  <circle cx="50" cy="50" r="40" fill="transparent" stroke="#8F9779" strokeWidth="20" strokeDasharray="213 251" className="hover:opacity-80 transition-opacity cursor-pointer" />
-                  <circle cx="50" cy="50" r="40" fill="transparent" stroke="#D4A574" strokeWidth="20" strokeDasharray="38 226" strokeDashoffset="-213" className="hover:opacity-80 transition-opacity cursor-pointer" />
-                </svg>
-              </div>
-            </div>
-            <div className="grid grid-cols-1 gap-2 mt-4">
-              <div className="flex items-center justify-between p-2 rounded-lg hover:bg-sage/5 transition-colors">
-                <div className="flex items-center gap-2">
-                  <div className="w-3 h-3 rounded-full bg-sage" />
-                  <span className="font-body text-sm text-charcoal">Premium Packages</span>
-                </div>
-                <span className="font-body font-medium text-charcoal">85%</span>
-              </div>
-              <div className="flex items-center justify-between p-2 rounded-lg hover:bg-sage/5 transition-colors">
-                <div className="flex items-center gap-2">
-                  <div className="w-3 h-3 rounded-full bg-[#D4A574]" />
-                  <span className="font-body text-sm text-charcoal">Aerial Specialty</span>
-                </div>
-                <span className="font-body font-medium text-charcoal">15%</span>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
-
-        <Card className="border-sage/20 bg-white-warm lg:col-span-2">
-          <CardHeader>
-            <CardTitle className="font-display text-xl text-charcoal">Monthly P&amp;L</CardTitle>
-            <CardDescription className="font-body text-charcoal/60">Revenue vs expenses over the past 6 months</CardDescription>
-          </CardHeader>
-          <CardContent>
-            {financeTrend.length === 0 ? (
-              <div className="h-[280px] flex items-center justify-center font-body text-sm text-charcoal/40">No data yet.</div>
-            ) : (
-              <ChartContainer
-                config={{
-                  revenue: { label: "Revenue", color: "#8F9779" },
-                  expenses: { label: "Expenses", color: "#C17856" },
-                  profit: { label: "Profit", color: "#6B8E73" },
-                }}
-                className="h-[300px] w-full"
-              >
-                <ComposedChart data={financeTrend} margin={{ top: 8, right: 12, left: 0, bottom: 0 }}>
-                  <CartesianGrid vertical={false} strokeDasharray="3 3" stroke="#E5E5E0" />
-                  <XAxis dataKey="month" tickLine={false} axisLine={false} tick={{ fontSize: 12, fill: "#6B6B6B" }} />
-                  <YAxis
-                    tickLine={false}
-                    axisLine={false}
-                    tick={{ fontSize: 12, fill: "#6B6B6B" }}
-                    tickFormatter={(v: number) => `₹${(v / 1000).toFixed(0)}k`}
-                    width={48}
-                  />
-                  <ChartTooltip
-                    cursor={{ fill: "rgba(143,151,121,0.05)" }}
-                    content={<ChartTooltipContent formatter={(v) => `₹${Number(v).toLocaleString("en-IN")}`} />}
-                  />
-                  <ChartLegend content={<ChartLegendContent />} />
-                  <Bar dataKey="revenue" fill="var(--color-revenue)" radius={[6, 6, 0, 0]} maxBarSize={36} />
-                  <Bar dataKey="expenses" fill="var(--color-expenses)" radius={[6, 6, 0, 0]} maxBarSize={36} />
-                  <Line type="monotone" dataKey="profit" stroke="var(--color-profit)" strokeWidth={2.5} dot={{ r: 4, fill: "var(--color-profit)" }} activeDot={{ r: 6 }} />
-                </ComposedChart>
-              </ChartContainer>
-            )}
-          </CardContent>
-        </Card>
-      </div>
     </div>
   );
 }
@@ -496,7 +652,7 @@ function FinanceTransactionsSectionImpl({
             <div className="space-y-2">
               <Label className="font-body text-xs text-charcoal/60">Filter by Type</Label>
               <Select value={transactionFilter} onValueChange={setTransactionFilter}>
-                <SelectTrigger className="border-sage/20 bg-white"><SelectValue /></SelectTrigger>
+                <SelectTrigger className="border-sage/20 bg-white-warm"><SelectValue /></SelectTrigger>
                 <SelectContent>
                   <SelectItem value="all">All Transactions</SelectItem>
                   <SelectItem value="credit">💰 Credits Only</SelectItem>
@@ -507,7 +663,7 @@ function FinanceTransactionsSectionImpl({
             <div className="space-y-2">
               <Label className="font-body text-xs text-charcoal/60">Date Range</Label>
               <Select value={transactionDateRange} onValueChange={setTransactionDateRange}>
-                <SelectTrigger className="border-sage/20 bg-white"><SelectValue /></SelectTrigger>
+                <SelectTrigger className="border-sage/20 bg-white-warm"><SelectValue /></SelectTrigger>
                 <SelectContent>
                   <SelectItem value="all">All Time</SelectItem>
                   <SelectItem value="today">Today</SelectItem>
@@ -520,7 +676,7 @@ function FinanceTransactionsSectionImpl({
             <div className="space-y-2">
               <Label className="font-body text-xs text-charcoal/60">Category</Label>
               <Select value={transactionType} onValueChange={setTransactionType}>
-                <SelectTrigger className="border-sage/20 bg-white"><SelectValue /></SelectTrigger>
+                <SelectTrigger className="border-sage/20 bg-white-warm"><SelectValue /></SelectTrigger>
                 <SelectContent>
                   <SelectItem value="all">All Categories</SelectItem>
                   <SelectItem value="packages">Package Purchases</SelectItem>
@@ -539,7 +695,7 @@ function FinanceTransactionsSectionImpl({
                   placeholder="Search transactions..."
                   value={transactionSearch}
                   onChange={(e) => setTransactionSearch(e.target.value)}
-                  className="border-sage/20 bg-white pl-9"
+                  className="border-sage/20 bg-white-warm pl-9"
                 />
               </div>
             </div>
@@ -552,7 +708,7 @@ function FinanceTransactionsSectionImpl({
               (+N guests, food labels, detail dialog). Real payments appear without that badge.
             </p>
           ) : null}
-          <div className="rounded-xl border border-sage/15 bg-white overflow-hidden">
+          <div className="rounded-xl border border-sage/15 bg-white-warm overflow-hidden">
             <ResponsiveTable>
               <Table>
                 <TableHeader>
@@ -604,7 +760,7 @@ function FinanceTransactionsSectionImpl({
           if (!open) setSelectedFinanceDetail(null);
         }}
       >
-        <ResponsiveDialogContent className="max-h-[85vh] overflow-y-auto border-sage/20 bg-white sm:max-w-lg">
+        <ResponsiveDialogContent className="max-h-[85vh] overflow-y-auto border-sage/20 bg-white-warm sm:max-w-lg">
           <ResponsiveDialogHeader>
             <ResponsiveDialogTitle className="font-display text-charcoal">Finance-1 — transaction detail</ResponsiveDialogTitle>
             <ResponsiveDialogDescription className="font-body text-charcoal/70">

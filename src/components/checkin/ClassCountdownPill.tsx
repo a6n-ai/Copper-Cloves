@@ -60,7 +60,7 @@ export function ClassCountdownPill({ startIso, endIso, fallbackTime, className, 
 
   if (!startIso) {
     return (
-      <div className={cn("inline-flex items-center gap-2 rounded-full bg-sage text-white border border-sage shadow-sm font-display tabular-nums font-medium", padding, className)}>
+      <div className={cn("inline-flex items-center gap-2 rounded-full bg-sage text-cream border border-sage shadow-sm font-display tabular-nums font-medium", padding, className)}>
         <Clock className="h-4 w-4 shrink-0" />
         {fallbackTime ?? ""}
       </div>
@@ -69,32 +69,32 @@ export function ClassCountdownPill({ startIso, endIso, fallbackTime, className, 
   const untilStart = startMs - now;
   const untilEnd = endMs - now;
 
-  let tone = "bg-sage text-white border-sage shadow-sm";
-  let metaTone = "text-white/75";
+  let tone = "bg-sage text-cream border-sage shadow-sm";
+  let metaTone = "text-cream/75";
   let label = "";
   let pulse = false;
 
   if (untilEnd <= 0) {
-    tone = "bg-charcoal/70 text-white border-charcoal/70 shadow-sm";
-    metaTone = "text-white/70";
+    tone = "bg-charcoal/70 text-cream border-charcoal/70 shadow-sm";
+    metaTone = "text-cream/70";
     label = "Ended";
   } else if (untilStart <= 0) {
-    tone = "bg-terracotta text-white border-terracotta/50 shadow-sm";
-    metaTone = "text-white/85";
+    tone = "bg-terracotta text-cream border-terracotta/50 shadow-sm";
+    metaTone = "text-cream/85";
     label = `Live · ${formatDuration(untilEnd)} left`;
     pulse = true;
   } else if (untilStart <= 60_000) {
-    tone = "bg-accent text-white border-accent shadow-sm";
-    metaTone = "text-white/85";
+    tone = "bg-accent text-cream border-accent shadow-sm";
+    metaTone = "text-cream/85";
     label = "Starting now";
     pulse = true;
   } else if (untilStart <= 30 * 60_000) {
-    tone = "bg-accent text-white border-accent shadow-sm";
-    metaTone = "text-white/85";
+    tone = "bg-accent text-cream border-accent shadow-sm";
+    metaTone = "text-cream/85";
     label = `in ${formatDuration(untilStart)}`;
   } else {
-    tone = "bg-sage text-white border-sage shadow-sm";
-    metaTone = "text-white/75";
+    tone = "bg-sage text-cream border-sage shadow-sm";
+    metaTone = "text-cream/75";
     label = `in ${formatDuration(untilStart)}`;
   }
 
@@ -109,8 +109,8 @@ export function ClassCountdownPill({ startIso, endIso, fallbackTime, className, 
     >
       {pulse ? (
         <span className="relative flex h-2 w-2 shrink-0">
-          <span className="absolute inset-0 rounded-full bg-white opacity-70 animate-ping" />
-          <span className="relative inline-flex h-2 w-2 rounded-full bg-white" />
+          <span className="absolute inset-0 rounded-full bg-white-warm opacity-70 animate-ping" />
+          <span className="relative inline-flex h-2 w-2 rounded-full bg-white-warm" />
         </span>
       ) : (
         <Clock className="h-4 w-4 shrink-0" />

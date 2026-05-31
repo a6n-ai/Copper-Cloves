@@ -219,14 +219,14 @@ export default function InstructorProfilePage() {
                         <img
                           src={instructor.image_url}
                           alt={instructor.name}
-                          className="size-24 rounded-full object-cover ring-4 ring-white shadow-md"
+                          className="size-24 rounded-full object-cover ring-4 ring-cream shadow-md"
                         />
                       ) : (
-                        <div className="size-24 rounded-full bg-linear-to-br from-sage to-sage/70 text-white font-display text-3xl flex items-center justify-center ring-4 ring-white shadow-md">
+                        <div className="size-24 rounded-full bg-linear-to-br from-sage to-sage/70 text-cream font-display text-3xl flex items-center justify-center ring-4 ring-cream shadow-md">
                           {(instructor.name ?? "I").slice(0, 1).toUpperCase()}
                         </div>
                       )}
-                      <div className="absolute -bottom-1 -right-1 size-7 rounded-full bg-white shadow-sm flex items-center justify-center">
+                      <div className="absolute -bottom-1 -right-1 size-7 rounded-full bg-white-warm shadow-sm flex items-center justify-center">
                         <UserIcon className="h-3.5 w-3.5 text-sage" />
                       </div>
                     </div>
@@ -468,7 +468,7 @@ function SocialLine({ icon: Icon, label, value }: { icon: React.ComponentType<{ 
 function ProfileSkeleton() {
   return (
     <>
-      <div className="rounded-2xl border border-sage/15 bg-white p-6">
+      <div className="rounded-2xl border border-sage/15 bg-white-warm p-6">
         <div className="grid grid-cols-1 gap-6 md:grid-cols-[auto_1fr_auto] md:items-center">
           <Skeleton className="size-24 rounded-full bg-sage/10" />
           <div className="space-y-2 min-w-0">

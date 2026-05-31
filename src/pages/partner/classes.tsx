@@ -229,7 +229,7 @@ export default function PartnerClasses() {
         </div>
         <div className="flex items-center gap-1 rounded-full bg-cream/60 p-1 border border-sage/15">
           {(["week", "month"] as const).map((m) => (
-            <button key={m} type="button" onClick={() => setViewMode(m)} className={`px-4 h-8 rounded-full font-body text-sm capitalize transition-colors ${viewMode === m ? "bg-sage text-white shadow-xs" : "text-charcoal/60 hover:text-charcoal"}`}>{m}</button>
+            <button key={m} type="button" onClick={() => setViewMode(m)} className={`px-4 h-8 rounded-full font-body text-sm capitalize transition-colors ${viewMode === m ? "bg-sage text-cream shadow-xs" : "text-charcoal/60 hover:text-charcoal"}`}>{m}</button>
           ))}
         </div>
       </div>
@@ -241,10 +241,10 @@ export default function PartnerClasses() {
             const count = (byDay.get(k) ?? []).length;
             const active = k === selectedDay;
             return (
-              <button key={k} type="button" onClick={() => setSelectedDay(k)} className={`flex flex-col items-center py-2 rounded-xl border transition-colors min-w-[3.25rem] snap-start shrink-0 md:min-w-0 ${active ? "bg-sage text-white border-sage" : "bg-white/70 border-sage/15 text-charcoal hover:bg-sage/5"}`}>
+              <button key={k} type="button" onClick={() => setSelectedDay(k)} className={`flex flex-col items-center py-2 rounded-xl border transition-colors min-w-[3.25rem] snap-start shrink-0 md:min-w-0 ${active ? "bg-sage text-cream border-sage" : "bg-[#fafaf8]/70 border-sage/15 text-charcoal hover:bg-sage/5"}`}>
                 <span className="font-body text-[10px] uppercase tracking-wide opacity-80">{DAY_SHORT[d.getDay()]}</span>
                 <span className="font-display text-lg leading-tight">{d.getDate()}</span>
-                <span className={`font-body text-[10px] ${active ? "text-white/80" : k === todayKey ? "text-sage" : "text-charcoal/50"}`}>{k === todayKey ? "Today" : count ? `${count} cls` : "—"}</span>
+                <span className={`font-body text-[10px] ${active ? "text-cream/80" : k === todayKey ? "text-sage" : "text-charcoal/50"}`}>{k === todayKey ? "Today" : count ? `${count} cls` : "—"}</span>
               </button>
             );
           })}
@@ -265,9 +265,9 @@ export default function PartnerClasses() {
               const inMonth = d.getMonth() === anchor.getMonth();
               const active = k === selectedDay;
               return (
-                <button key={k} type="button" onClick={() => setSelectedDay(k)} className={`aspect-square sm:aspect-auto sm:h-16 flex flex-col items-center justify-center rounded-lg border text-sm transition-colors ${active ? "bg-sage text-white border-sage" : inMonth ? "bg-white/70 border-sage/15 text-charcoal hover:bg-sage/5" : "bg-transparent border-transparent text-charcoal/30"}`}>
+                <button key={k} type="button" onClick={() => setSelectedDay(k)} className={`aspect-square sm:aspect-auto sm:h-16 flex flex-col items-center justify-center rounded-lg border text-sm transition-colors ${active ? "bg-sage text-cream border-sage" : inMonth ? "bg-[#fafaf8]/70 border-sage/15 text-charcoal hover:bg-sage/5" : "bg-transparent border-transparent text-charcoal/30"}`}>
                   <span className={`font-display ${k === todayKey && !active ? "text-sage font-semibold" : ""}`}>{d.getDate()}</span>
-                  {count > 0 && <span className={`font-body text-[9px] mt-0.5 ${active ? "text-white/80" : "text-sage"}`}>{count} cls</span>}
+                  {count > 0 && <span className={`font-body text-[9px] mt-0.5 ${active ? "text-cream/80" : "text-sage"}`}>{count} cls</span>}
                 </button>
               );
             })}
@@ -285,7 +285,7 @@ export default function PartnerClasses() {
         ) : error ? (
           <Card className="border-terracotta/30 bg-terracotta/5"><CardContent className="p-4 font-body text-charcoal">{error}</CardContent></Card>
         ) : activeClasses.length === 0 ? (
-          <Card className="border-sage/15 bg-white/80"><CardContent className="p-8 text-center font-body text-charcoal/50">No classes scheduled this day.</CardContent></Card>
+          <Card className="border-sage/15 bg-[#fafaf8]/80"><CardContent className="p-8 text-center font-body text-charcoal/50">No classes scheduled this day.</CardContent></Card>
         ) : (
           <div className="space-y-4">
             {activeClasses.map((c) => (

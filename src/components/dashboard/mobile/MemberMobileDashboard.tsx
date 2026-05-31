@@ -127,11 +127,11 @@ export function MemberMobileDashboard({
   return (
     <div className="space-y-5 px-4 py-5">
       {/* Hero */}
-      <section className="rounded-3xl bg-linear-to-br from-sage to-sage/80 p-5 text-white shadow-lg">
+      <section className="rounded-3xl bg-linear-to-br from-sage to-sage/80 p-5 text-cream shadow-lg">
         <h1 className="font-display text-2xl leading-tight">
           Welcome home, {userName || "Member"}
         </h1>
-        <p className="mt-1 flex flex-wrap items-center gap-x-2 gap-y-0.5 font-body text-sm text-white/85">
+        <p className="mt-1 flex flex-wrap items-center gap-x-2 gap-y-0.5 font-body text-sm text-cream/85">
           <span>{userClassesCompleted} classes</span>
           {currentStreak > 0 && (
             <span className="inline-flex items-center gap-1">
@@ -143,7 +143,7 @@ export function MemberMobileDashboard({
 
         {/* Today's intention */}
         <div className="mt-4 rounded-2xl bg-white-warm/15 p-3">
-          <div className="mb-1.5 flex items-center gap-1.5 font-body text-xs uppercase tracking-wide text-white/70">
+          <div className="mb-1.5 flex items-center gap-1.5 font-body text-xs uppercase tracking-wide text-cream/70">
             <Target size={13} /> Today's intention
           </div>
           {isEditingIntention ? (
@@ -151,24 +151,24 @@ export function MemberMobileDashboard({
               <Input
                 value={dailyIntention}
                 onChange={(e) => onIntentionChange(e.target.value)}
-                className="h-9 flex-1 border-white/30 bg-white/90 text-charcoal font-body text-sm"
+                className="h-9 flex-1 border-cream/30 bg-[#fafaf8]/90 text-charcoal font-body text-sm"
                 placeholder="Set your focus for today..."
               />
               <Button
                 size="sm"
                 onClick={() => onToggleEditIntention(false)}
-                className="bg-white text-sage hover:bg-white/90 font-body"
+                className="bg-white-warm text-sage hover:bg-[#fafaf8]/90 font-body"
               >
                 Save
               </Button>
             </div>
           ) : (
             <div className="flex items-center justify-between gap-2">
-              <p className="font-body text-sm italic text-white/90">{dailyIntention}</p>
+              <p className="font-body text-sm italic text-cream/90">{dailyIntention}</p>
               <button
                 type="button"
                 onClick={() => onToggleEditIntention(true)}
-                className="shrink-0 font-body text-xs text-white/80 underline-offset-2 hover:underline"
+                className="shrink-0 font-body text-xs text-cream/80 underline-offset-2 hover:underline"
               >
                 Edit
               </button>
@@ -182,17 +182,17 @@ export function MemberMobileDashboard({
         <button
           type="button"
           onClick={nextClass.onClick}
-          className="flex w-full items-center gap-3 rounded-2xl bg-terracotta p-4 text-left text-white shadow-md active:scale-[0.98] transition-transform"
+          className="flex w-full items-center gap-3 rounded-2xl bg-terracotta p-4 text-left text-cream shadow-md active:scale-[0.98] transition-transform"
         >
-          <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full bg-white/20">
+          <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full bg-[#fafaf8]/20">
             <Calendar size={20} />
           </span>
           <span className="min-w-0 flex-1">
-            <span className="block font-body text-xs uppercase tracking-wide text-white/75">
+            <span className="block font-body text-xs uppercase tracking-wide text-cream/75">
               Next class · tap to check in
             </span>
             <span className="block truncate font-display text-base leading-tight">{nextClass.title}</span>
-            <span className="block font-body text-xs text-white/85">
+            <span className="block font-body text-xs text-cream/85">
               {nextClass.whenISO
                 ? new Date(nextClass.whenISO).toLocaleString("en-US", {
                     weekday: "short",
@@ -202,12 +202,12 @@ export function MemberMobileDashboard({
                 : ""}
             </span>
           </span>
-          <ChevronRight size={20} className="shrink-0 text-white/80" />
+          <ChevronRight size={20} className="shrink-0 text-cream/80" />
         </button>
       ) : (
         <Button
           onClick={() => router.push("/portal/book")}
-          className="w-full bg-terracotta py-6 text-white hover:bg-terracotta/90 font-body"
+          className="w-full bg-terracotta py-6 text-cream hover:bg-terracotta/90 font-body"
         >
           Book your next class
         </Button>
@@ -222,7 +222,7 @@ export function MemberMobileDashboard({
               key={label}
               type="button"
               onClick={action}
-              className="flex min-h-16 flex-col items-center justify-center gap-1.5 rounded-xl border border-sage/15 bg-white px-1 py-2 active:scale-95 transition-transform"
+              className="flex min-h-16 flex-col items-center justify-center gap-1.5 rounded-xl border border-sage/15 bg-white-warm px-1 py-2 active:scale-95 transition-transform"
             >
               <AnimatedIcon icon={Icon} size={20} className="text-sage" />
               <span className="text-center text-[10px] font-body leading-tight text-charcoal/70">{label}</span>

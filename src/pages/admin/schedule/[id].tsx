@@ -493,10 +493,10 @@ export default function AdminClassPage() {
                           const inner = (
                             <>
                               <div className="relative shrink-0">
-                                <div className="size-16 rounded-full bg-linear-to-br from-sage to-sage/70 text-white font-display text-2xl flex items-center justify-center ring-4 ring-white shadow-md">
+                                <div className="size-16 rounded-full bg-linear-to-br from-sage to-sage/70 text-cream font-display text-2xl flex items-center justify-center ring-4 ring-cream shadow-md">
                                   {initial}
                                 </div>
-                                <div className="absolute -bottom-1 -right-1 size-6 rounded-full bg-white shadow-sm flex items-center justify-center">
+                                <div className="absolute -bottom-1 -right-1 size-6 rounded-full bg-white-warm shadow-sm flex items-center justify-center">
                                   <UserIcon className="h-3 w-3 text-sage" />
                                 </div>
                               </div>
@@ -603,7 +603,7 @@ export default function AdminClassPage() {
                         variant="outline"
                         onClick={() => refreshQr(true)}
                         disabled={qrRefreshing}
-                        className="border-sage/40 text-sage bg-white hover:!bg-sage hover:!text-white hover:!border-sage font-body"
+                        className="border-sage/40 text-sage bg-white-warm hover:!bg-sage hover:!text-cream hover:!border-sage font-body"
                       >
                         {qrRefreshing ? "Refreshing…" : "Refresh QR"}
                       </Button>
@@ -638,7 +638,7 @@ export default function AdminClassPage() {
                               variant="outline"
                               onClick={() => refreshQr(true)}
                               disabled={qrRefreshing}
-                              className="border-sage/40 text-sage bg-white hover:!bg-sage hover:!text-white hover:!border-sage font-body"
+                              className="border-sage/40 text-sage bg-white-warm hover:!bg-sage hover:!text-cream hover:!border-sage font-body"
                             >
                               {qrRefreshing ? "Generating…" : qr?.windowOpensAt ? "Generate now" : "Try again"}
                             </Button>
@@ -667,7 +667,7 @@ export default function AdminClassPage() {
                         />
                       </div>
                       {results.length > 0 ? (
-                        <div className="absolute z-10 mt-1 w-full rounded-lg border border-sage/20 bg-white shadow-lg">
+                        <div className="absolute z-10 mt-1 w-full rounded-lg border border-sage/20 bg-white-warm shadow-lg">
                           {results.map((m) => (
                             <button
                               key={m.id}
@@ -742,7 +742,7 @@ export default function AdminClassPage() {
           still pays for the dozens of Select/Input expressions otherwise. */}
       {editOpen && (
       <Dialog open={editOpen} onOpenChange={setEditOpen}>
-        <DialogContent className="max-w-lg max-h-[90vh] overflow-y-auto bg-white">
+        <DialogContent className="max-w-lg max-h-[90vh] overflow-y-auto bg-white-warm">
           <DialogHeader>
             <DialogTitle className="font-display text-2xl text-charcoal">Edit class</DialogTitle>
           </DialogHeader>
@@ -827,11 +827,11 @@ export default function AdminClassPage() {
           <div className="space-y-3 py-2">
             <div className="grid grid-cols-1 gap-2">
               {([
-                { value: "available", label: "Available", desc: "Bookable. Members see it on the schedule.", tone: "bg-sage/10 text-sage border-sage/30", active: "bg-sage text-white border-sage" },
-                { value: "inactive", label: "Inactive", desc: "Hidden from members. Existing bookings keep their seat.", tone: "bg-terracotta/10 text-terracotta border-terracotta/20", active: "bg-terracotta text-white border-terracotta/50" },
-                { value: "started", label: "Started", desc: "Check-in window is open.", tone: "bg-terracotta/10 text-terracotta border-terracotta/20", active: "bg-terracotta text-white border-terracotta/50" },
-                { value: "completed", label: "Completed", desc: "Class ended. Roster archived.", tone: "bg-charcoal/5 text-charcoal/70 border-charcoal/15", active: "bg-charcoal text-white border-charcoal" },
-                { value: "cancelled", label: "Cancelled", desc: "Blocks all bookings. Members notified.", tone: "bg-terracotta/10 text-terracotta border-terracotta/30", active: "bg-terracotta text-white border-terracotta" },
+                { value: "available", label: "Available", desc: "Bookable. Members see it on the schedule.", tone: "bg-sage/10 text-sage border-sage/30", active: "bg-sage text-cream border-sage" },
+                { value: "inactive", label: "Inactive", desc: "Hidden from members. Existing bookings keep their seat.", tone: "bg-terracotta/10 text-terracotta border-terracotta/20", active: "bg-terracotta text-cream border-terracotta/50" },
+                { value: "started", label: "Started", desc: "Check-in window is open.", tone: "bg-terracotta/10 text-terracotta border-terracotta/20", active: "bg-terracotta text-cream border-terracotta/50" },
+                { value: "completed", label: "Completed", desc: "Class ended. Roster archived.", tone: "bg-charcoal/5 text-charcoal/70 border-charcoal/15", active: "bg-charcoal text-cream border-charcoal" },
+                { value: "cancelled", label: "Cancelled", desc: "Blocks all bookings. Members notified.", tone: "bg-terracotta/10 text-terracotta border-terracotta/30", active: "bg-terracotta text-cream border-terracotta" },
               ] as const).map((opt) => {
                 const selected = statusDraft === opt.value;
                 return (
@@ -846,7 +846,7 @@ export default function AdminClassPage() {
                   >
                     <span className={cn(
                       "inline-flex items-center justify-center size-5 rounded-full border-2 shrink-0 transition-colors",
-                      selected ? "bg-white/95 border-white/95" : "bg-white border-current/40",
+                      selected ? "bg-[#fafaf8]/95 border-cream/95" : "bg-white-warm border-current/40",
                     )}>
                       {selected && <span className="size-2 rounded-full bg-current opacity-80" style={{ color: "var(--color-sage)" }} />}
                     </span>

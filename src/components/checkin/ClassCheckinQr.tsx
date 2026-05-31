@@ -103,7 +103,7 @@ function BlurredFakeQr({ caption, size }: { caption: string; size: number }) {
   return (
     <div className="relative flex items-center justify-center" style={{ width: size, height: size }}>
       <div
-        className="grid h-full w-full gap-[2px] rounded-md bg-white p-2 blur-[3px]"
+        className="grid h-full w-full gap-[2px] rounded-md bg-white-warm p-2 blur-[3px]"
         style={{ gridTemplateColumns: `repeat(${FAKE_QR_GRID}, minmax(0, 1fr))` }}
         aria-hidden
       >

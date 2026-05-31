@@ -183,7 +183,7 @@ export function SignInForm({ onSwitchToSignup }: { onSwitchToSignup: () => void 
                       type="button"
                       disabled={loading}
                       onClick={() => { setRole(r); setError(null); }}
-                      className="w-full flex items-center gap-3 rounded-xl border border-sage/20 bg-white px-4 py-3 text-left transition-colors hover:border-sage hover:bg-sage/5 disabled:opacity-60"
+                      className="w-full flex items-center gap-3 rounded-xl border border-sage/20 bg-white-warm px-4 py-3 text-left transition-colors hover:border-sage hover:bg-sage/5 disabled:opacity-60"
                     >
                       <div className="h-9 w-9 rounded-full bg-sage/10 flex items-center justify-center text-sage shrink-0">
                         <p.icon className="h-4 w-4" />

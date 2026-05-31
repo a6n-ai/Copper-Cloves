@@ -142,7 +142,7 @@ export default function RentalPage() {
         </section>
 
         {/* What's Included + Booking Form - Side by Side */}
-        <section className="py-16 px-6 lg:px-8 bg-white">
+        <section className="py-16 px-6 lg:px-8 bg-white-warm">
           <div className="max-w-7xl mx-auto">
             <div className="grid lg:grid-cols-2 gap-16">
               
@@ -222,7 +222,7 @@ export default function RentalPage() {
                     </div>
                   ) : (
                     <form onSubmit={handleSubmit} className="space-y-6">
-                      <div className="bg-white rounded-2xl p-4 sm:p-8 shadow-xl border border-sage/10">
+                      <div className="bg-white-warm rounded-2xl p-4 sm:p-8 shadow-xl border border-sage/10">
                         {/* Name */}
                         <div className="mb-6">
                           <label className="flex items-center gap-2 font-body text-sm text-charcoal/70 mb-2">
@@ -365,7 +365,7 @@ export default function RentalPage() {
                           type="submit"
                           size="lg"
                           disabled={isSubmitting}
-                          className="w-full bg-sage text-white hover:bg-sage/90 py-6 text-base rounded-full shadow-xl"
+                          className="w-full bg-sage text-cream hover:bg-sage/90 py-6 text-base rounded-full shadow-xl"
                         >
                           {isSubmitting ? "Submitting..." : "Submit Booking Request"}
                         </Button>

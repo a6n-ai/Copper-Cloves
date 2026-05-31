@@ -88,7 +88,7 @@ export default function KitchenMembers() {
               />
             </div>
 
-            <div className="rounded-xl border border-sage/15 bg-white overflow-hidden">
+            <div className="rounded-xl border border-sage/15 bg-white-warm overflow-hidden">
               <ResponsiveTable>
                 <Table>
                   <TableHeader>

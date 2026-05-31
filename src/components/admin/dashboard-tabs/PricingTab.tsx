@@ -251,7 +251,7 @@ function PricingTabImpl({
                 <p className="font-body text-sm text-charcoal/50">No coupons yet. Create one on the left.</p>
               </div>
             ) : (
-              <div className="rounded-xl border border-sage/15 bg-white overflow-hidden">
+              <div className="rounded-xl border border-sage/15 bg-white-warm overflow-hidden">
                 <ResponsiveTable>
                   <Table>
                     <TableHeader>
@@ -279,7 +279,7 @@ function PricingTabImpl({
                             {c.max_redemptions != null ? ` / ${c.max_redemptions}` : ""}
                           </TableCell>
                           <TableCell className="px-5 py-3">
-                            <Badge className={c.is_active ? "bg-sage text-white font-body" : "bg-charcoal/15 text-charcoal/70 font-body"}>
+                            <Badge className={c.is_active ? "bg-sage text-cream font-body" : "bg-charcoal/15 text-charcoal/70 font-body"}>
                               {c.is_active ? "Active" : "Off"}
                             </Badge>
                           </TableCell>

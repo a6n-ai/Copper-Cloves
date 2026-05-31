@@ -201,7 +201,7 @@ export function Pricing() {
               onClick={() => setSelectedTier("studio")}
               className={`px-8 py-3 rounded-full font-body text-sm transition-all duration-300 ${
                 selectedTier === "studio"
-                  ? "bg-sage text-white shadow-md"
+                  ? "bg-sage text-cream shadow-md"
                   : "text-charcoal hover:text-sage"
               }`}
             >
@@ -211,7 +211,7 @@ export function Pricing() {
               onClick={() => setSelectedTier("class")}
               className={`px-8 py-3 rounded-full font-body text-sm transition-all duration-300 ${
                 selectedTier === "class"
-                  ? "bg-sage text-white shadow-md"
+                  ? "bg-sage text-cream shadow-md"
                   : "text-charcoal hover:text-sage"
               }`}
             >
@@ -254,7 +254,7 @@ export function Pricing() {
                 {/* Badge */}
                 {pkg.badge && (
                   <div className="absolute -top-4 left-1/2 -translate-x-1/2">
-                    <span className="bg-sage text-white px-4 py-1.5 rounded-full text-xs font-body font-semibold shadow-md">
+                    <span className="bg-sage text-cream px-4 py-1.5 rounded-full text-xs font-body font-semibold shadow-md">
                       {pkg.badge}
                     </span>
                   </div>

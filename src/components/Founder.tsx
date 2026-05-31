@@ -22,7 +22,7 @@ export function Founder() {
   return (
     <section className="relative py-16 md:py-20 px-6 lg:px-8 overflow-hidden">
       {/* Subtle Background */}
-      <div className="absolute inset-0 bg-linear-to-br from-cream via-white to-sage/5 -z-10" />
+      <div className="absolute inset-0 bg-linear-to-br from-cream via-[#fafaf8] to-sage/5 -z-10" />
       
       <div className="max-w-7xl mx-auto">
         {/* Section Badge */}
@@ -83,7 +83,7 @@ export function Founder() {
               >
                 <span>Meet the Founder</span>
                 <ArrowRight
-                  className="text-sage transition-transform duration-300 group-hover:translate-x-1 group-hover:text-white"
+                  className="text-sage transition-transform duration-300 group-hover:translate-x-1 group-hover:text-cream"
                   size={18}
                 />
               </Link>
@@ -171,7 +171,7 @@ export function Founder() {
                 <div className="relative bg-white-warm rounded-3xl p-8 shadow-[0_8px_48px_-8px_rgba(51,51,51,0.14)] border border-[#e5e4dc]">
                   {/* Sage Quotation Mark Icon */}
                   <div className="absolute -top-4 left-8 w-12 h-12 rounded-full bg-sage flex items-center justify-center shadow-lg">
-                    <span className="text-white text-3xl font-serif leading-none">"</span>
+                    <span className="text-cream text-3xl font-serif leading-none">"</span>
                   </div>
                   
                   {/* Testimonial Content */}

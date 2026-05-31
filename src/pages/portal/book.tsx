@@ -1124,7 +1124,7 @@ export default function BookClass() {
                     onClick={() => setSelectedDayIndex(isSelected ? null : i)}
                     className={`flex flex-col items-center py-2 px-0.5 rounded-xl transition-all min-w-0 text-[11px] sm:text-sm ${
                       isSelected
-                        ? "bg-sage text-white"
+                        ? "bg-sage text-cream"
                         : isPast
                         ? "opacity-40 cursor-default"
                         : isToday
@@ -1136,7 +1136,7 @@ export default function BookClass() {
                       {dayNames[i]}
                     </span>
                     <span className={`text-base font-display leading-none ${
-                      isSelected ? "text-white" : isPast ? "text-charcoal/40" : isToday ? "text-sage" : "text-charcoal"
+                      isSelected ? "text-cream" : isPast ? "text-charcoal/40" : isToday ? "text-sage" : "text-charcoal"
                     }`}>
                       {day.getDate()}
                     </span>
@@ -1153,7 +1153,7 @@ export default function BookClass() {
                 onClick={() => setFilterClassName("all")}
                 className={`shrink-0 px-4 py-2 rounded-full text-sm font-body transition-all border ${
                   filterClassName === "all"
-                    ? "bg-sage text-white border-sage"
+                    ? "bg-sage text-cream border-sage"
                     : "border-sage/30 text-charcoal hover:border-sage hover:bg-sage/5"
                 }`}
               >
@@ -1165,7 +1165,7 @@ export default function BookClass() {
                   onClick={() => setFilterClassName(filterClassName === name ? "all" : name)}
                   className={`shrink-0 px-4 py-2 rounded-full text-sm font-body transition-all border ${
                     filterClassName === name
-                      ? "bg-sage text-white border-sage"
+                      ? "bg-sage text-cream border-sage"
                       : "border-sage/30 text-charcoal hover:border-sage hover:bg-sage/5"
                   }`}
                 >
@@ -1210,7 +1210,7 @@ export default function BookClass() {
                 <Button
                   onClick={() => { setFilterClassName("all"); setSelectedDayIndex(null); }}
                   variant="outline"
-                  className="border-sage text-sage hover:bg-sage hover:text-white transition-all duration-600"
+                  className="border-sage text-sage hover:bg-sage hover:text-cream transition-all duration-600"
                 >
                   Clear Filters
                 </Button>
@@ -1916,7 +1916,7 @@ export default function BookClass() {
               Close
             </AlertDialogCancel>
             <AlertDialogAction
-              className="bg-sage hover:bg-sage/90 text-white"
+              className="bg-sage hover:bg-sage/90 text-cream"
               onClick={() => {
                 setPaymentRecovery(null);
                 void handleConfirmBooking();

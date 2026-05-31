@@ -183,7 +183,7 @@ const HISTORY_PAGE_SIZE = 6;
 /** Mirrors a purchase-history row skeleton. */
 function PurchaseHistoryRowSkeleton() {
   return (
-    <div className="p-4 rounded-xl bg-white/80 border border-sage/10">
+    <div className="p-4 rounded-xl bg-[#fafaf8]/80 border border-sage/10">
       <div className="flex items-start justify-between gap-3 mb-3">
         <div className="flex-1">
           <Skeleton className="h-5 w-40 mb-2" />
@@ -239,7 +239,7 @@ function PackageTierCard({
       {isRecommended && (
         <div className="absolute -inset-0.5 rounded-2xl overflow-hidden pointer-events-none">
           <div className="absolute inset-0 rounded-2xl bg-gradient-to-br from-sage via-terracotta/60 to-sand opacity-70" />
-          <div className="absolute inset-0.5 rounded-2xl bg-white" />
+          <div className="absolute inset-0.5 rounded-2xl bg-white-warm" />
         </div>
       )}
 
@@ -257,7 +257,7 @@ function PackageTierCard({
               {pkg.name}
             </CardTitle>
             {isRecommended && (
-              <Badge className="bg-sage text-white text-xs font-body font-semibold px-2.5 py-1 flex items-center gap-1 shrink-0">
+              <Badge className="bg-sage text-cream text-xs font-body font-semibold px-2.5 py-1 flex items-center gap-1 shrink-0">
                 <Flame size={12} />
                 {pkg.badge ?? "Popular"}
               </Badge>
@@ -744,7 +744,7 @@ export default function PackagesPage() {
   );
 
   return (
-    <div className="min-h-screen bg-linear-to-b from-cream via-white to-cream">
+    <div className="min-h-screen bg-linear-to-b from-cream via-[#fafaf8] to-cream">
       <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 pt-8 pb-12">
         {/* Header */}
         <div className="mb-6">
@@ -761,7 +761,7 @@ export default function PackagesPage() {
               onClick={() => setSelectedCategory("class")}
               className={`flex-1 sm:flex-none px-5 py-2.5 rounded-full font-body text-sm font-medium transition-all duration-300 ${
                 selectedCategory === "class"
-                  ? "bg-sage text-white shadow-md"
+                  ? "bg-sage text-cream shadow-md"
                   : "text-charcoal/70 hover:text-charcoal"
               }`}
             >
@@ -771,7 +771,7 @@ export default function PackagesPage() {
               onClick={() => setSelectedCategory("studio")}
               className={`flex-1 sm:flex-none px-5 py-2.5 rounded-full font-body text-sm font-medium transition-all duration-300 ${
                 selectedCategory === "studio"
-                  ? "bg-sage text-white shadow-md"
+                  ? "bg-sage text-cream shadow-md"
                   : "text-charcoal/70 hover:text-charcoal"
               }`}
             >
@@ -962,7 +962,7 @@ export default function PackagesPage() {
       {showCheckout && selectedPackage && (
         <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center sm:p-4 bg-charcoal/60 animate-in fade-in duration-300">
           {success ? (
-            <div className="bg-white rounded-3xl max-w-md w-full p-8 shadow-2xl animate-in zoom-in-95 duration-500 text-center">
+            <div className="bg-white-warm rounded-3xl max-w-md w-full p-8 shadow-2xl animate-in zoom-in-95 duration-500 text-center">
               <div className="w-14 h-14 rounded-full bg-sage/20 flex items-center justify-center mx-auto mb-3">
                 <Check className="text-sage" size={28} />
               </div>
@@ -977,14 +977,14 @@ export default function PackagesPage() {
             </div>
           ) : (
             // Compact checkout: max-h-[100dvh] so it never overflows the phone screen
-            <div className="bg-white rounded-t-3xl sm:rounded-3xl max-w-lg w-full max-h-[100dvh] sm:max-h-[90vh] overflow-y-auto shadow-2xl animate-in slide-in-from-bottom sm:zoom-in-95 duration-400 relative">
+            <div className="bg-white-warm rounded-t-3xl sm:rounded-3xl max-w-lg w-full max-h-[100dvh] sm:max-h-[90vh] overflow-y-auto shadow-2xl animate-in slide-in-from-bottom sm:zoom-in-95 duration-400 relative">
               {/* Drag handle — mobile only */}
               <div className="sm:hidden flex justify-center pt-2.5 pb-0">
                 <div className="w-9 h-1 rounded-full bg-charcoal/20" />
               </div>
 
               {/* Compact header */}
-              <div className="sticky top-0 z-20 bg-white pt-2 sm:pt-4 px-4 sm:px-5 pb-3 border-b border-sage/10">
+              <div className="sticky top-0 z-20 bg-white-warm pt-2 sm:pt-4 px-4 sm:px-5 pb-3 border-b border-sage/10">
                 <div className="flex items-center justify-between">
                   <div>
                     <h2 className="font-display text-lg sm:text-2xl text-charcoal leading-tight">Complete Your Purchase</h2>
@@ -1148,7 +1148,7 @@ export default function PackagesPage() {
           if (!open) setPaymentRecovery(null);
         }}
       >
-        <AlertDialogContent className="border-sage/20 bg-white text-charcoal">
+        <AlertDialogContent className="border-sage/20 bg-white-warm text-charcoal">
           <AlertDialogHeader>
             <AlertDialogTitle>
               {paymentRecovery?.variant === "failed" ? "Payment didn't go through" : "Payment cancelled"}

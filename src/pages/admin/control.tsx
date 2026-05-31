@@ -231,7 +231,7 @@ function ControlPanelShellSkeleton() {
         <Skeleton className="h-4 w-80 max-w-full bg-sage/10" />
       </div>
       {/* Tab bar */}
-      <div className="flex gap-1 rounded-lg border border-sage/20 bg-white/80 p-1 w-fit max-w-full overflow-hidden">
+      <div className="flex gap-1 rounded-lg border border-sage/20 bg-[#fafaf8]/80 p-1 w-fit max-w-full overflow-hidden">
         {Array.from({ length: 5 }).map((_, i) => (
           <Skeleton key={i} className="h-9 w-32 rounded-md bg-sage/10" />
         ))}
@@ -1410,11 +1410,11 @@ async function fetchPayoutData(opts?: { window?: "week" | "month" | "quarter" | 
             {/* Tabs */}
             <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">
               <TabsList className="bg-white-warm border border-sage/20 p-1">
-                <TabsTrigger value="users" className="data-[state=active]:bg-sage data-[state=active]:text-white font-body">
+                <TabsTrigger value="users" className="data-[state=active]:bg-sage data-[state=active]:text-cream font-body">
                   <Users className="h-4 w-4 mr-2" />
                   User Management
                 </TabsTrigger>
-                <TabsTrigger value="pauses" className="data-[state=active]:bg-sage data-[state=active]:text-white font-body">
+                <TabsTrigger value="pauses" className="data-[state=active]:bg-sage data-[state=active]:text-cream font-body">
                   <Clock className="h-4 w-4 mr-2" />
                   Pause Requests
                   {pauseTickets.filter((t) => t.status === "open").length > 0 && (
@@ -1423,19 +1423,19 @@ async function fetchPayoutData(opts?: { window?: "week" | "month" | "quarter" | 
                     </Badge>
                   )}
                 </TabsTrigger>
-                <TabsTrigger value="classes" className="data-[state=active]:bg-sage data-[state=active]:text-white font-body">
+                <TabsTrigger value="classes" className="data-[state=active]:bg-sage data-[state=active]:text-cream font-body">
                   <Calendar className="h-4 w-4 mr-2" />
                   Class Management
                 </TabsTrigger>
-                <TabsTrigger value="payouts" className="data-[state=active]:bg-sage data-[state=active]:text-white font-body">
+                <TabsTrigger value="payouts" className="data-[state=active]:bg-sage data-[state=active]:text-cream font-body">
                   <CreditCard className="h-4 w-4 mr-2" />
                   Payouts
                 </TabsTrigger>
-                <TabsTrigger value="instructors" className="data-[state=active]:bg-sage data-[state=active]:text-white font-body">
+                <TabsTrigger value="instructors" className="data-[state=active]:bg-sage data-[state=active]:text-cream font-body">
                   <Users className="h-4 w-4 mr-2" />
                   Instructor Mgmt
                 </TabsTrigger>
-                <TabsTrigger value="analytics" className="data-[state=active]:bg-sage data-[state=active]:text-white font-body">
+                <TabsTrigger value="analytics" className="data-[state=active]:bg-sage data-[state=active]:text-cream font-body">
                   <BarChart3 className="h-4 w-4 mr-2" />
                   Analytics
                 </TabsTrigger>
@@ -1532,7 +1532,7 @@ async function fetchPayoutData(opts?: { window?: "week" | "month" | "quarter" | 
                     ) : (
                       <>
                         <ResponsiveTable>
-                          <div className="rounded-xl border border-sage/15 bg-white overflow-hidden">
+                          <div className="rounded-xl border border-sage/15 bg-white-warm overflow-hidden">
                             <Table>
                               <TableHeader>
                                 <TableRow className="bg-sage/5 hover:bg-sage/5 border-sage/10">
@@ -1697,7 +1697,7 @@ async function fetchPayoutData(opts?: { window?: "week" | "month" | "quarter" | 
                             };
                             const draft = pauseNoteDrafts[t.id] ?? t.admin_note ?? "";
                             return (
-                              <Card key={t.id} className="border-sage/15 bg-white">
+                              <Card key={t.id} className="border-sage/15 bg-white-warm">
                                 <CardContent className="p-5 space-y-3">
                                   <div className="flex items-start justify-between gap-4 flex-wrap">
                                     <div className="space-y-0.5">
@@ -1746,14 +1746,14 @@ async function fetchPayoutData(opts?: { window?: "week" | "month" | "quarter" | 
                                     <Button size="sm" variant="outline"
                                       disabled={pauseSavingId === t.id || draft === (t.admin_note ?? "")}
                                       onClick={() => updatePauseTicket(t.id, { admin_note: draft })}
-                                      className="border-sage/30 text-sage hover:bg-sage hover:text-white font-body">
+                                      className="border-sage/30 text-sage hover:bg-sage hover:text-cream font-body">
                                       Save note
                                     </Button>
                                     {t.status !== "in_review" && t.status !== "resolved" && (
                                       <Button size="sm" variant="outline"
                                         disabled={pauseSavingId === t.id}
                                         onClick={() => updatePauseTicket(t.id, { status: "in_review", admin_note: draft })}
-                                        className="border-charcoal/30 text-charcoal hover:bg-charcoal hover:text-white font-body">
+                                        className="border-charcoal/30 text-charcoal hover:bg-charcoal hover:text-cream font-body">
                                         Mark In Review
                                       </Button>
                                     )}
@@ -1769,7 +1769,7 @@ async function fetchPayoutData(opts?: { window?: "week" | "month" | "quarter" | 
                                       <Button size="sm" variant="outline"
                                         disabled={pauseSavingId === t.id}
                                         onClick={() => updatePauseTicket(t.id, { status: "rejected", admin_note: draft })}
-                                        className="border-terracotta/40 text-terracotta hover:bg-terracotta hover:text-white font-body">
+                                        className="border-terracotta/40 text-terracotta hover:bg-terracotta hover:text-cream font-body">
                                         Reject
                                       </Button>
                                     )}
@@ -1838,7 +1838,7 @@ async function fetchPayoutData(opts?: { window?: "week" | "month" | "quarter" | 
                     ) : (
                       <>
                         <ResponsiveTable>
-                          <div className="rounded-xl border border-sage/15 bg-white overflow-hidden">
+                          <div className="rounded-xl border border-sage/15 bg-white-warm overflow-hidden">
                             <Table>
                               <TableHeader>
                                 <TableRow className="bg-sage/5 hover:bg-sage/5 border-sage/10">
@@ -2019,7 +2019,7 @@ async function fetchPayoutData(opts?: { window?: "week" | "month" | "quarter" | 
                     ) : (
                       <>
                         <ResponsiveTable>
-                          <div className="rounded-xl border border-sage/15 bg-white overflow-hidden">
+                          <div className="rounded-xl border border-sage/15 bg-white-warm overflow-hidden">
                             <Table>
                               <TableHeader>
                                 <TableRow className="bg-sage/5 hover:bg-sage/5 border-sage/10">
@@ -2127,7 +2127,7 @@ async function fetchPayoutData(opts?: { window?: "week" | "month" | "quarter" | 
                                           aria-label="Download CSV"
                                           title="Download CSV"
                                           onClick={() => downloadPayoutCsv([instructor], instructor.name.replace(/\s+/g, "-"))}
-                                          className="h-8 w-8 p-0 border-sage/40 text-sage bg-white hover:!bg-sage hover:!text-white hover:!border-sage transition-all hover:scale-110 active:scale-95"
+                                          className="h-8 w-8 p-0 border-sage/40 text-sage bg-white-warm hover:!bg-sage hover:!text-cream hover:!border-sage transition-all hover:scale-110 active:scale-95"
                                         >
                                           <Download className="h-3.5 w-3.5" />
                                         </Button>
@@ -2222,7 +2222,7 @@ async function fetchPayoutData(opts?: { window?: "week" | "month" | "quarter" | 
                     ) : (
                       <>
                         <ResponsiveTable>
-                          <div className="rounded-xl border border-sage/15 bg-white overflow-hidden">
+                          <div className="rounded-xl border border-sage/15 bg-white-warm overflow-hidden">
                             <Table>
                               <TableHeader>
                                 <TableRow className="bg-sage/5 hover:bg-sage/5 border-sage/10">
@@ -2324,8 +2324,8 @@ async function fetchPayoutData(opts?: { window?: "week" | "month" | "quarter" | 
                                             className={cn(
                                               "h-8 w-8 p-0 font-body transition-all hover:scale-110 active:scale-95",
                                               active
-                                                ? "border-terracotta/40 text-terracotta bg-white hover:!bg-terracotta hover:!text-white hover:!border-terracotta"
-                                                : "border-sage/60 text-sage bg-white hover:!bg-sage hover:!text-white hover:!border-sage",
+                                                ? "border-terracotta/40 text-terracotta bg-white-warm hover:!bg-terracotta hover:!text-cream hover:!border-terracotta"
+                                                : "border-sage/60 text-sage bg-white-warm hover:!bg-sage hover:!text-cream hover:!border-sage",
                                             )}
                                           >
                                             <AnimatedIcon icon={active ? PowerOff : Power} size={14} animateOnMount={false} hover="wiggle" />
@@ -2499,7 +2499,7 @@ async function fetchPayoutData(opts?: { window?: "week" | "month" | "quarter" | 
                 <div className="flex flex-wrap items-center justify-between gap-2">
                   <div className="flex items-center gap-2">
                     <span className="font-body text-xs uppercase tracking-wide text-charcoal/50">Current Pass</span>
-                    <Badge className="bg-sage text-white">
+                    <Badge className="bg-sage text-cream">
                       {selectedUser.passType === "studio_pass" ? "Studio Pass" : selectedUser.passType === "class_pass" ? "Class Pass" : "No Pass"}
                     </Badge>
                     {(() => {
@@ -3001,7 +3001,7 @@ async function fetchPayoutData(opts?: { window?: "week" | "month" | "quarter" | 
 
       {/* Payout Edit Dialog */}
       <ResponsiveDialog open={!!payoutEditRow} onOpenChange={(o) => { if (!o) setPayoutEditRow(null); }}>
-        <ResponsiveDialogContent className="max-w-lg bg-white">
+        <ResponsiveDialogContent className="max-w-lg bg-white-warm">
           <ResponsiveDialogHeader>
             <ResponsiveDialogTitle className="font-display text-2xl text-charcoal">
               Edit payout — {payoutEditRow?.name}
@@ -3077,7 +3077,7 @@ async function fetchPayoutData(opts?: { window?: "week" | "month" | "quarter" | 
 
       {/* Add Instructor Dialog */}
       <ResponsiveDialog open={showAddInstructorDialog} onOpenChange={setShowAddInstructorDialog}>
-        <ResponsiveDialogContent className="max-w-3xl max-h-[90vh] overflow-y-auto bg-white">
+        <ResponsiveDialogContent className="max-w-3xl max-h-[90vh] overflow-y-auto bg-white-warm">
           <ResponsiveDialogHeader>
             <ResponsiveDialogTitle className="font-display text-2xl text-charcoal">Add New Instructor</ResponsiveDialogTitle>
             <ResponsiveDialogDescription className="font-body text-charcoal/60">
@@ -3245,7 +3245,7 @@ async function fetchPayoutData(opts?: { window?: "week" | "month" | "quarter" | 
 
       {/* Edit Instructor Dialog */}
       <ResponsiveDialog open={showEditInstructorDialog} onOpenChange={setShowEditInstructorDialog}>
-        <ResponsiveDialogContent className="max-w-3xl max-h-[90vh] overflow-y-auto bg-white">
+        <ResponsiveDialogContent className="max-w-3xl max-h-[90vh] overflow-y-auto bg-white-warm">
           <ResponsiveDialogHeader>
             <ResponsiveDialogTitle className="font-display text-2xl text-charcoal">Edit Instructor</ResponsiveDialogTitle>
             <ResponsiveDialogDescription className="font-body text-charcoal/60">

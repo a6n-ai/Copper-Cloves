@@ -113,7 +113,7 @@ export function Rental() {
             <Link href="/rental" className="inline-block">
               <Button 
                 size="lg"
-                className="bg-sage text-white hover:bg-sage/90 px-10 py-6 text-base rounded-full shadow-xl mt-4"
+                className="bg-sage text-cream hover:bg-sage/90 px-10 py-6 text-base rounded-full shadow-xl mt-4"
               >
                 Explore Space & Book
               </Button>
