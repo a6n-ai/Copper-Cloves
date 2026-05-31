@@ -214,6 +214,13 @@ export type File = Prisma.FileModel
  */
 export type InstructorPayoutAdjustment = Prisma.InstructorPayoutAdjustmentModel
 /**
+ * Model Expense
+ * Unified expense ledger — the source of truth for the expense side of finance.
+ * Manual rows (café free meals, rent, ad-hoc costs) plus auto-recorded instructor
+ * payouts. Amounts in paise, like every other money field.
+ */
+export type Expense = Prisma.ExpenseModel
+/**
  * Model QrCode
  * One stored QR per (schedule, kind). Image lives in S3 via `file`; `token` is the
  * signed HMAC encoded in that image (verified statelessly at scan time).

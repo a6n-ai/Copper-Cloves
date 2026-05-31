@@ -422,6 +422,7 @@ export const ModelName = {
   PasswordResetToken: 'PasswordResetToken',
   File: 'File',
   InstructorPayoutAdjustment: 'InstructorPayoutAdjustment',
+  Expense: 'Expense',
   QrCode: 'QrCode'
 } as const
 
@@ -438,7 +439,7 @@ export type TypeMap<ExtArgs extends runtime.Types.Extensions.InternalArgs = runt
     omit: GlobalOmitOptions
   }
   meta: {
-    modelProps: "profile" | "userSession" | "coupon" | "couponRedemption" | "retailProduct" | "retailOrder" | "instructor" | "classModel" | "partner" | "partnerMember" | "classSchedule" | "packageType" | "package" | "userPackage" | "booking" | "razorpayOrder" | "razorpayPayment" | "payment" | "cafeItem" | "cafeOrder" | "mealSubscription" | "mealSubscriptionInquiry" | "rentalInquiry" | "signupLead" | "userStats" | "userStreak" | "badgeTemplate" | "userBadge" | "waiver" | "crmTemplate" | "crmMessage" | "crmTrigger" | "userActivitySession" | "userActivityEvent" | "memberTicket" | "passwordResetToken" | "file" | "instructorPayoutAdjustment" | "qrCode"
+    modelProps: "profile" | "userSession" | "coupon" | "couponRedemption" | "retailProduct" | "retailOrder" | "instructor" | "classModel" | "partner" | "partnerMember" | "classSchedule" | "packageType" | "package" | "userPackage" | "booking" | "razorpayOrder" | "razorpayPayment" | "payment" | "cafeItem" | "cafeOrder" | "mealSubscription" | "mealSubscriptionInquiry" | "rentalInquiry" | "signupLead" | "userStats" | "userStreak" | "badgeTemplate" | "userBadge" | "waiver" | "crmTemplate" | "crmMessage" | "crmTrigger" | "userActivitySession" | "userActivityEvent" | "memberTicket" | "passwordResetToken" | "file" | "instructorPayoutAdjustment" | "expense" | "qrCode"
     txIsolationLevel: TransactionIsolationLevel
   }
   model: {
@@ -3254,6 +3255,80 @@ export type TypeMap<ExtArgs extends runtime.Types.Extensions.InternalArgs = runt
         }
       }
     }
+    Expense: {
+      payload: Prisma.$ExpensePayload<ExtArgs>
+      fields: Prisma.ExpenseFieldRefs
+      operations: {
+        findUnique: {
+          args: Prisma.ExpenseFindUniqueArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ExpensePayload> | null
+        }
+        findUniqueOrThrow: {
+          args: Prisma.ExpenseFindUniqueOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ExpensePayload>
+        }
+        findFirst: {
+          args: Prisma.ExpenseFindFirstArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ExpensePayload> | null
+        }
+        findFirstOrThrow: {
+          args: Prisma.ExpenseFindFirstOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ExpensePayload>
+        }
+        findMany: {
+          args: Prisma.ExpenseFindManyArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ExpensePayload>[]
+        }
+        create: {
+          args: Prisma.ExpenseCreateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ExpensePayload>
+        }
+        createMany: {
+          args: Prisma.ExpenseCreateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        createManyAndReturn: {
+          args: Prisma.ExpenseCreateManyAndReturnArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ExpensePayload>[]
+        }
+        delete: {
+          args: Prisma.ExpenseDeleteArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ExpensePayload>
+        }
+        update: {
+          args: Prisma.ExpenseUpdateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ExpensePayload>
+        }
+        deleteMany: {
+          args: Prisma.ExpenseDeleteManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateMany: {
+          args: Prisma.ExpenseUpdateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateManyAndReturn: {
+          args: Prisma.ExpenseUpdateManyAndReturnArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ExpensePayload>[]
+        }
+        upsert: {
+          args: Prisma.ExpenseUpsertArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ExpensePayload>
+        }
+        aggregate: {
+          args: Prisma.ExpenseAggregateArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.AggregateExpense>
+        }
+        groupBy: {
+          args: Prisma.ExpenseGroupByArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.ExpenseGroupByOutputType>[]
+        }
+        count: {
+          args: Prisma.ExpenseCountArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.ExpenseCountAggregateOutputType> | number
+        }
+      }
+    }
     QrCode: {
       payload: Prisma.$QrCodePayload<ExtArgs>
       fields: Prisma.QrCodeFieldRefs
@@ -4049,6 +4124,26 @@ export const InstructorPayoutAdjustmentScalarFieldEnum = {
 export type InstructorPayoutAdjustmentScalarFieldEnum = (typeof InstructorPayoutAdjustmentScalarFieldEnum)[keyof typeof InstructorPayoutAdjustmentScalarFieldEnum]
 
 
+export const ExpenseScalarFieldEnum = {
+  id: 'id',
+  category: 'category',
+  amount_paise: 'amount_paise',
+  incurred_at: 'incurred_at',
+  description: 'description',
+  payee: 'payee',
+  method: 'method',
+  proof_url: 'proof_url',
+  notes: 'notes',
+  recorded_by: 'recorded_by',
+  instructor_id: 'instructor_id',
+  payout_period_key: 'payout_period_key',
+  created_at: 'created_at',
+  updated_at: 'updated_at'
+} as const
+
+export type ExpenseScalarFieldEnum = (typeof ExpenseScalarFieldEnum)[keyof typeof ExpenseScalarFieldEnum]
+
+
 export const QrCodeScalarFieldEnum = {
   id: 'id',
   class_schedule_id: 'class_schedule_id',
@@ -4238,6 +4333,20 @@ export type ListEnumPaymentStatusFieldRefInput<$PrismaModel> = FieldRefInputType
 
 
 /**
+ * Reference to a field of type 'ExpenseCategory'
+ */
+export type EnumExpenseCategoryFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'ExpenseCategory'>
+    
+
+
+/**
+ * Reference to a field of type 'ExpenseCategory[]'
+ */
+export type ListEnumExpenseCategoryFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'ExpenseCategory[]'>
+    
+
+
+/**
  * Reference to a field of type 'Float'
  */
 export type FloatFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'Float'>
@@ -4398,6 +4507,7 @@ export type GlobalOmitConfig = {
   passwordResetToken?: Prisma.PasswordResetTokenOmit
   file?: Prisma.FileOmit
   instructorPayoutAdjustment?: Prisma.InstructorPayoutAdjustmentOmit
+  expense?: Prisma.ExpenseOmit
   qrCode?: Prisma.QrCodeOmit
 }
 

@@ -3,11 +3,53 @@ import { useSession } from "next-auth/react";
 import { toast } from "sonner";
 import { financeDemoTransactionsForUi } from "@/lib/adminFinanceDemoTransactions";
 import { downloadFinanceReportExcel, type FinanceReportPeriod } from "@/lib/financeReportExport";
+import { EXPENSE_CATEGORY_LABELS } from "@/lib/expenseConstants";
 import type {
   DashboardTxn,
   FinanceStats,
   FinanceTrendRow,
 } from "@/components/admin/dashboard-tabs/FinanceTab";
+
+type ExpenseRow = {
+  id: string;
+  category: string;
+  amountPaise: number;
+  incurredAtISO: string;
+  payee: string | null;
+  method: string | null;
+  isPayout: boolean;
+};
+
+const EXPENSE_METHOD_LABEL: Record<string, string> = {
+  cash: "Cash",
+  direct_upi: "UPI",
+  pine_lab_card: "Card",
+  pine_lab_upi: "UPI",
+  razorpay_online: "Razorpay",
+  razorpay_completed: "Razorpay",
+};
+
+function pad2(n: number): string {
+  return String(n).padStart(2, "0");
+}
+
+// Map an expense row onto the shared ledger shape so it shows as a debit in the
+// Transactions tab and flows through the export, alongside revenue rows.
+function expenseToTxn(e: ExpenseRow): DashboardTxn {
+  const d = new Date(e.incurredAtISO);
+  return {
+    id: `expense-${e.id}`,
+    sortKey: e.incurredAtISO,
+    date: `${d.getFullYear()}-${pad2(d.getMonth() + 1)}-${pad2(d.getDate())}`,
+    member: e.payee ?? "Studio",
+    memberFull: e.payee ?? undefined,
+    type: "expense",
+    amount: e.amountPaise / 100,
+    category: EXPENSE_CATEGORY_LABELS[e.category as keyof typeof EXPENSE_CATEGORY_LABELS] ?? "Expense",
+    method: (e.method && EXPENSE_METHOD_LABEL[e.method]) || "Offline",
+    isFinanceDemo: false,
+  };
+}
 
 /**
  * Shared finance export. Both the dashboard Finance tab and the standalone
@@ -51,6 +93,7 @@ export function useAdminFinanceData(): AdminFinanceData {
   const userRole = (session?.user as { role?: string })?.role;
 
   const [transactions, setTransactions] = useState<DashboardTxn[]>([]);
+  const [expenses, setExpenses] = useState<ExpenseRow[]>([]);
   const [financeTrend, setFinanceTrend] = useState<FinanceTrendRow[]>([]);
   const [stats, setStats] = useState<FinanceStats>(EMPTY_STATS);
   const [loaded, setLoaded] = useState(false);
@@ -68,12 +111,12 @@ export function useAdminFinanceData(): AdminFinanceData {
         return Number(d.overviewStats?.monthRevenue ?? 0);
       })();
 
-      // Coach payouts (month) drive the expense side.
-      const payoutsP = (async () => {
-        const r = await fetch("/api/admin/instructor-payouts?window=month");
-        if (!r.ok || cancelled) return 0;
+      // Recorded expenses are the source of truth for the expense side.
+      const expensesP = (async (): Promise<ExpenseRow[]> => {
+        const r = await fetch("/api/admin/expenses");
+        if (!r.ok || cancelled) return [];
         const d = await r.json();
-        return Number(d.summary?.totalPayouts ?? 0);
+        return Array.isArray(d.expenses) ? (d.expenses as ExpenseRow[]) : [];
       })();
 
       const txnsP = (async () => {
@@ -90,17 +133,28 @@ export function useAdminFinanceData(): AdminFinanceData {
         if (!cancelled && Array.isArray(d.trend)) setFinanceTrend(d.trend);
       })();
 
-      const [monthRevenue, coachPayments] = await Promise.all([overviewP, payoutsP, txnsP, trendP]);
+      const [monthRevenue, expenseRows] = await Promise.all([overviewP, expensesP, txnsP, trendP]);
       if (cancelled) return;
+      setExpenses(expenseRows);
 
-      const studioExpenses = EMPTY_STATS.studioExpenses;
-      const totalExpenses = coachPayments + studioExpenses;
+      // This-month expense totals (matches the month revenue figure).
+      const now = new Date();
+      const inThisMonth = (iso: string) => {
+        const d = new Date(iso);
+        return d.getFullYear() === now.getFullYear() && d.getMonth() === now.getMonth();
+      };
+      const monthExpenseRows = expenseRows.filter((e) => inThisMonth(e.incurredAtISO));
+      const totalExpenses = monthExpenseRows.reduce((s, e) => s + e.amountPaise / 100, 0);
+      const coachPayments = monthExpenseRows
+        .filter((e) => e.isPayout)
+        .reduce((s, e) => s + e.amountPaise / 100, 0);
+
       setStats({
         ...EMPTY_STATS,
         totalRevenue: monthRevenue,
         memberPayments: monthRevenue,
         coachPayments,
-        studioExpenses,
+        studioExpenses: totalExpenses - coachPayments,
         totalExpenses,
         profit: monthRevenue - totalExpenses,
       });
@@ -112,18 +166,22 @@ export function useAdminFinanceData(): AdminFinanceData {
     };
   }, [status, userRole]);
 
-  // Demo rows merged + de-duped by id, newest first — identical to the dashboard.
+  // Revenue (demo + live) merged with expense debits, de-duped by id, newest first.
   const financeLedgerTransactions = useMemo(() => {
     const demos = financeDemoTransactionsForUi() as DashboardTxn[];
     const byId = new Map<string, DashboardTxn>();
     for (const row of demos) byId.set(row.id, row);
     for (const row of transactions) byId.set(row.id, row);
+    for (const e of expenses) {
+      const t = expenseToTxn(e);
+      byId.set(t.id, t);
+    }
     return Array.from(byId.values()).sort((a, b) => {
       const ak = a.sortKey ?? a.date;
       const bk = b.sortKey ?? b.date;
       return ak < bk ? 1 : ak > bk ? -1 : 0;
     });
-  }, [transactions]);
+  }, [transactions, expenses]);
 
   return { financeStats: stats, financeLedgerTransactions, financeTrend, loaded };
 }

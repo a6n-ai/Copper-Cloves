@@ -41,3 +41,18 @@ export const ClassScheduleStatus = {
 } as const
 
 export type ClassScheduleStatus = (typeof ClassScheduleStatus)[keyof typeof ClassScheduleStatus]
+
+
+export const ExpenseCategory = {
+  instructor_payout: 'instructor_payout',
+  cafe_free_meal: 'cafe_free_meal',
+  rent: 'rent',
+  utilities: 'utilities',
+  supplies: 'supplies',
+  marketing: 'marketing',
+  maintenance: 'maintenance',
+  refund: 'refund',
+  other: 'other'
+} as const
+
+export type ExpenseCategory = (typeof ExpenseCategory)[keyof typeof ExpenseCategory]

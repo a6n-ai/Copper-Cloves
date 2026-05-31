@@ -49,6 +49,7 @@ model Profile {
   member_tickets    MemberTicket[]
   payments          Payment[]
   recorded_payments Payment[] @relation("PaymentRecordedBy")
+  recorded_expenses Expense[] @relation("ExpenseRecordedBy")
   sessions          UserSession[]
 
   @@unique([email, role])
@@ -191,6 +192,7 @@ model Instructor {
   class_schedules            ClassSchedule[] @relation("ScheduledInstructor")
   actual_class_schedules     ClassSchedule[] @relation("ActualInstructor")
   profile                    Profile? @relation(fields: [profile_id], references: [id], onDelete: SetNull)
+  expenses                   Expense[]
 
   @@map("instructors")
 }
@@ -929,6 +931,58 @@ model InstructorPayoutAdjustment {
   @@index([instructor_id])
   @@index([period_key])
   @@map("instructor_payout_adjustments")
+}
+
+/// Expense categories. `instructor_payout` rows are created (idempotently) when a
+/// payout is marked paid; the rest are recorded manually by an admin.
+enum ExpenseCategory {
+  instructor_payout
+  cafe_free_meal
+  rent
+  utilities
+  supplies
+  marketing
+  maintenance
+  refund
+  other
+}
+
+/// Unified expense ledger — the source of truth for the expense side of finance.
+/// Manual rows (café free meals, rent, ad-hoc costs) plus auto-recorded instructor
+/// payouts. Amounts in paise, like every other money field.
+model Expense {
+  id           String          @id @default(uuid())
+  category     ExpenseCategory
+  amount_paise Int
+  /// When the cost was incurred (admin-set; defaults to now). Drives finance period bucketing.
+  incurred_at  DateTime        @default(now())
+  description  String?
+  /// Free-text payee / vendor / recipient (instructor name auto-filled for payouts).
+  payee        String?
+  /// How it was paid out — reuses the income PaymentMethod enum (cash, UPI, etc.).
+  method       PaymentMethod?
+  proof_url    String?
+  notes        String?
+  /// Admin profile id who recorded it.
+  recorded_by  String?
+
+  /// Payout linkage (only for category instructor_payout). `payout_period_key`
+  /// ties to InstructorPayoutAdjustment.period_key so a payout maps to one expense.
+  instructor_id     String?
+  payout_period_key String?
+
+  created_at DateTime @default(now())
+  updated_at DateTime @default(now()) @updatedAt
+
+  recorded_by_admin Profile?    @relation("ExpenseRecordedBy", fields: [recorded_by], references: [id], onDelete: SetNull)
+  instructor        Instructor? @relation(fields: [instructor_id], references: [id], onDelete: SetNull)
+
+  /// One auto-expense per instructor per payout period (idempotent; NULLs don't collide in Postgres).
+  @@unique([instructor_id, payout_period_key])
+  @@index([category])
+  @@index([incurred_at])
+  @@index([instructor_id])
+  @@map("expenses")
 }
 
 /// One stored QR per (schedule, kind). Image lives in S3 via `file`; `token` is the

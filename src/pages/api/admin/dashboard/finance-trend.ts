@@ -3,8 +3,6 @@ import prisma from "@/lib/prisma";
 import { getStudioServerSession } from "@/lib/getStudioServerSession";
 import logger from "@/lib/logger";
 
-const CHECKIN_RATE_INR = 150;
-const DEFAULT_STUDIO_CUT_PERCENT = 40;
 const MONTHS_BACK = 6;
 
 const MONTH_LABELS = [
@@ -28,25 +26,16 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     const now = new Date();
     const rangeStart = new Date(now.getFullYear(), now.getMonth() - (MONTHS_BACK - 1), 1, 0, 0, 0, 0);
 
-    const [payments, checkInBookings] = await Promise.all([
+    const [payments, expenses] = await Promise.all([
       prisma.payment.findMany({
         where: { status: "succeeded", created_at: { gte: rangeStart } },
         select: { amount_paise: true, created_at: true },
       }),
-      prisma.booking.findMany({
-        where: {
-          checked_in: true,
-          booking_date: { gte: rangeStart },
-          class_schedule: { instructor_id: { not: null } },
-        },
-        select: {
-          booking_date: true,
-          class_schedule: {
-            select: {
-              instructor: { select: { studio_payout_cut_percent: true } },
-            },
-          },
-        },
+      // Recorded expenses are the source of truth for the expense side
+      // (instructor payouts land here once marked paid).
+      prisma.expense.findMany({
+        where: { incurred_at: { gte: rangeStart } },
+        select: { amount_paise: true, incurred_at: true },
       }),
     ]);
 
@@ -57,14 +46,11 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       revBuckets.set(key, (revBuckets.get(key) ?? 0) + p.amount_paise / 100);
     }
 
-    // Bucket expenses (instructor share) by month
+    // Bucket recorded expenses by month (incurred_at)
     const expBuckets = new Map<string, number>();
-    for (const b of checkInBookings) {
-      const ins = b.class_schedule?.instructor;
-      const studioCut = Number(ins?.studio_payout_cut_percent ?? DEFAULT_STUDIO_CUT_PERCENT);
-      const instructorShare = CHECKIN_RATE_INR * (1 - studioCut / 100);
-      const key = `${b.booking_date.getFullYear()}-${String(b.booking_date.getMonth() + 1).padStart(2, "0")}`;
-      expBuckets.set(key, (expBuckets.get(key) ?? 0) + instructorShare);
+    for (const e of expenses) {
+      const key = `${e.incurred_at.getFullYear()}-${String(e.incurred_at.getMonth() + 1).padStart(2, "0")}`;
+      expBuckets.set(key, (expBuckets.get(key) ?? 0) + e.amount_paise / 100);
     }
 
     // Build the last N months in order

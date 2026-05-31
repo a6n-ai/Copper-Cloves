@@ -9,7 +9,7 @@ import { AdminPageHeader } from "@/components/admin/AdminPageHeader";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { BarChart3, Receipt } from "lucide-react";
+import { BarChart3, Receipt, Wallet } from "lucide-react";
 import { exportFinanceReport, useAdminFinanceData } from "@/hooks/useAdminFinanceData";
 
 function SectionLoadingSkeleton() {
@@ -34,10 +34,15 @@ const FinanceTransactionsSection = dynamic(
   () => import("@/components/admin/dashboard-tabs/FinanceTab").then((m) => m.FinanceTransactionsSection),
   { ssr: false, loading: () => <SectionLoadingSkeleton /> },
 );
+const ExpensesSection = dynamic(
+  () => import("@/components/admin/dashboard-tabs/ExpensesSection").then((m) => m.ExpensesSection),
+  { ssr: false, loading: () => <SectionLoadingSkeleton /> },
+);
 
 const FINANCE_TABS = [
   { v: "overview", l: "Overview", I: BarChart3 },
   { v: "transactions", l: "Transactions", I: Receipt },
+  { v: "expenses", l: "Expenses", I: Wallet },
 ] as const;
 
 export default function AdminFinances() {
@@ -100,6 +105,10 @@ export default function AdminFinances() {
                   financeLedgerTransactions={financeLedgerTransactions}
                   onExport={exportFinanceReport}
                 />
+              </TabsContent>
+
+              <TabsContent value="expenses" className="space-y-6">
+                <ExpensesSection />
               </TabsContent>
             </Tabs>
           </div>

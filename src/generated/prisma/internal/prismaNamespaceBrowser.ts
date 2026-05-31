@@ -89,6 +89,7 @@ export const ModelName = {
   PasswordResetToken: 'PasswordResetToken',
   File: 'File',
   InstructorPayoutAdjustment: 'InstructorPayoutAdjustment',
+  Expense: 'Expense',
   QrCode: 'QrCode'
 } as const
 
@@ -788,6 +789,26 @@ export const InstructorPayoutAdjustmentScalarFieldEnum = {
 } as const
 
 export type InstructorPayoutAdjustmentScalarFieldEnum = (typeof InstructorPayoutAdjustmentScalarFieldEnum)[keyof typeof InstructorPayoutAdjustmentScalarFieldEnum]
+
+
+export const ExpenseScalarFieldEnum = {
+  id: 'id',
+  category: 'category',
+  amount_paise: 'amount_paise',
+  incurred_at: 'incurred_at',
+  description: 'description',
+  payee: 'payee',
+  method: 'method',
+  proof_url: 'proof_url',
+  notes: 'notes',
+  recorded_by: 'recorded_by',
+  instructor_id: 'instructor_id',
+  payout_period_key: 'payout_period_key',
+  created_at: 'created_at',
+  updated_at: 'updated_at'
+} as const
+
+export type ExpenseScalarFieldEnum = (typeof ExpenseScalarFieldEnum)[keyof typeof ExpenseScalarFieldEnum]
 
 
 export const QrCodeScalarFieldEnum = {

@@ -2,6 +2,20 @@ import type { NextApiRequest, NextApiResponse } from "next";
 import prisma from "@/lib/prisma";
 import { getStudioServerSession } from "@/lib/getStudioServerSession";
 import { periodKeyFor, periodBoundsFor, type PayoutWindow } from "@/lib/payoutCalc";
+import { recordPayoutExpense, removePayoutExpense } from "@/lib/expenses";
+import type { PaymentMethod } from "@/generated/prisma/client";
+
+// Best-effort map a free-text payout method onto the PaymentMethod enum used by
+// the expense ledger. Unknown values record with no method rather than failing.
+function coercePaymentMethod(raw: string | null | undefined): PaymentMethod | null {
+  const m = (raw ?? "").toLowerCase();
+  if (!m) return null;
+  if (m.includes("cash")) return "cash";
+  if (m.includes("card")) return "pine_lab_card";
+  if (m.includes("upi")) return "direct_upi";
+  if (m.includes("razorpay") || m.includes("online")) return "razorpay_online";
+  return null;
+}
 
 /**
  * Admin overrides + paid state per (instructor, period).
@@ -91,7 +105,34 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       },
       update: data,
     });
-    return res.json({ adjustment: row, periodKey });
+
+    // Payout → expense automation. Opt-in via `recordExpense` (defaults true).
+    // Marking paid records the payout as an expense (idempotent per period);
+    // un-marking paid removes it. Best-effort: never blocks the paid-state write.
+    let expenseRecorded: boolean | null = null;
+    try {
+      const recordExpense = body.recordExpense !== false; // default on
+      const payoutPaise = Number(body.payout_paise);
+      if (body.paid === true && recordExpense && Number.isFinite(payoutPaise) && payoutPaise > 0) {
+        await recordPayoutExpense({
+          instructorId,
+          periodKey,
+          amountPaise: payoutPaise,
+          incurredAt: now,
+          method: coercePaymentMethod(data.paid_method),
+          notes: data.notes ?? null,
+          recordedBy: adminId,
+        });
+        expenseRecorded = true;
+      } else if (body.paid === false) {
+        await removePayoutExpense(instructorId, periodKey);
+        expenseRecorded = false;
+      }
+    } catch (err) {
+      console.error("payout→expense sync failed", err);
+    }
+
+    return res.json({ adjustment: row, periodKey, expenseRecorded });
   }
 
   res.status(405).end();

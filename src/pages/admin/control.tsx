@@ -23,6 +23,7 @@ import { StatusPill } from "@/components/ui/status-pill";
 import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Switch } from "@/components/ui/switch";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import {
@@ -396,6 +397,12 @@ export default function ControlPanel() {
     gstPercent: 5,
   });
   const [payoutWindow, setPayoutWindow] = useState<"week" | "month" | "quarter" | "all">("month");
+  // When on, marking a payout paid also records it as an expense (idempotent).
+  const [recordPayoutsAsExpense, setRecordPayoutsAsExpense] = useState(true);
+  // Confirmation popup for the mark-paid / move-to-expense action.
+  const [payoutConfirm, setPayoutConfirm] = useState<{ row: PayoutRow; paid: boolean } | null>(null);
+  const [confirmRecordExpense, setConfirmRecordExpense] = useState(true);
+  const [confirmSaving, setConfirmSaving] = useState(false);
   const [payoutInstructorFilter, setPayoutInstructorFilter] = useState<string>("all");
   const [payoutEditRow, setPayoutEditRow] = useState<PayoutRow | null>(null);
   const [payoutEditForm, setPayoutEditForm] = useState({
@@ -526,7 +533,8 @@ async function fetchPayoutData(opts?: { window?: "week" | "month" | "quarter" | 
     }
   }
 
-  async function togglePayoutPaid(row: PayoutRow, paid: boolean) {
+  async function togglePayoutPaid(row: PayoutRow, paid: boolean, recordExpenseOverride?: boolean) {
+    const recordExpense = recordExpenseOverride ?? recordPayoutsAsExpense;
     try {
       const res = await fetch("/api/admin/instructor-payout-adjustment", {
         method: "PUT",
@@ -535,6 +543,8 @@ async function fetchPayoutData(opts?: { window?: "week" | "month" | "quarter" | 
           instructorId: row.instructorId,
           window: payoutWindow,
           paid,
+          recordExpense,
+          payout_paise: Math.round(row.total * 100),
         }),
       });
       if (!res.ok) {
@@ -542,7 +552,13 @@ async function fetchPayoutData(opts?: { window?: "week" | "month" | "quarter" | 
         toast.error(d.error ?? "Save failed");
         return;
       }
-      toast.success(paid ? "Marked paid" : "Marked unpaid");
+      toast.success(
+        paid
+          ? recordExpense
+            ? "Marked paid · recorded as expense"
+            : "Marked paid"
+          : "Marked unpaid",
+      );
       await fetchPayoutData();
     } catch {
       toast.error("Save failed");
@@ -2005,6 +2021,12 @@ async function fetchPayoutData(opts?: { window?: "week" | "month" | "quarter" | 
                             <SelectItem value="all">All Time</SelectItem>
                           </SelectContent>
                         </Select>
+                        <label className="flex items-center gap-2 cursor-pointer select-none">
+                          <Switch checked={recordPayoutsAsExpense} onCheckedChange={setRecordPayoutsAsExpense} />
+                          <span className="font-body text-xs text-charcoal/60 whitespace-nowrap">
+                            Record paid payouts as expenses
+                          </span>
+                        </label>
                       </div>
                     </div>
                   </CardHeader>
@@ -2107,9 +2129,13 @@ async function fetchPayoutData(opts?: { window?: "week" | "month" | "quarter" | 
                                     <TableCell className="px-5 py-4">
                                       <button
                                         type="button"
-                                        onClick={() => togglePayoutPaid(instructor, instructor.status !== "paid")}
+                                        onClick={() => {
+                                          const paid = instructor.status !== "paid";
+                                          setConfirmRecordExpense(recordPayoutsAsExpense);
+                                          setPayoutConfirm({ row: instructor, paid });
+                                        }}
                                         className="cursor-pointer focus:outline-none focus-visible:ring-2 focus-visible:ring-sage/40 rounded-full"
-                                        title={instructor.status === "paid" ? "Mark unpaid" : "Mark paid"}
+                                        title={instructor.status === "paid" ? "Mark unpaid" : "Mark paid · move to expense"}
                                       >
                                         {instructor.status === "paid" ? (
                                           <StatusPill tone="sage" dot>Paid</StatusPill>
@@ -2362,6 +2388,87 @@ async function fetchPayoutData(opts?: { window?: "week" | "month" | "quarter" | 
           </div>
         </main>
       </div>
+
+      {/* Payout mark-paid / move-to-expense confirmation */}
+      <ResponsiveDialog
+        open={payoutConfirm != null}
+        onOpenChange={(o) => { if (!o) setPayoutConfirm(null); }}
+      >
+        <ResponsiveDialogContent className="bg-white-warm border-sage/20 sm:max-w-md">
+          <ResponsiveDialogHeader>
+            <ResponsiveDialogTitle className="font-display text-charcoal">
+              {payoutConfirm?.paid ? "Mark payout paid?" : "Mark payout unpaid?"}
+            </ResponsiveDialogTitle>
+            <ResponsiveDialogDescription className="font-body text-charcoal/70">
+              {payoutConfirm?.paid ? (
+                <>
+                  {payoutConfirm?.row.name}&apos;s payout of{" "}
+                  <span className="font-semibold text-charcoal">
+                    ₹{payoutConfirm?.row.total.toLocaleString("en-IN")}
+                  </span>{" "}
+                  will be marked paid for this period.
+                </>
+              ) : (
+                <>
+                  {payoutConfirm?.row.name}&apos;s payout will be set back to pending. Any expense
+                  recorded for this period will be removed.
+                </>
+              )}
+            </ResponsiveDialogDescription>
+          </ResponsiveDialogHeader>
+
+          {payoutConfirm?.paid ? (
+            <label className="flex items-center gap-3 rounded-xl border border-sage/20 bg-cream/40 p-3 cursor-pointer select-none">
+              <Switch checked={confirmRecordExpense} onCheckedChange={setConfirmRecordExpense} />
+              <span className="font-body text-sm text-charcoal">
+                Move ₹{payoutConfirm?.row.total.toLocaleString("en-IN")} to expenses
+                <span className="block text-xs text-charcoal/55">
+                  Records this payout in the finance expense ledger
+                </span>
+              </span>
+            </label>
+          ) : null}
+
+          <ResponsiveDialogFooter>
+            <Button
+              type="button"
+              variant="outline"
+              className="border-sage/20"
+              disabled={confirmSaving}
+              onClick={() => setPayoutConfirm(null)}
+            >
+              Cancel
+            </Button>
+            <Button
+              type="button"
+              variant="sage"
+              disabled={confirmSaving}
+              onClick={async () => {
+                if (!payoutConfirm) return;
+                setConfirmSaving(true);
+                try {
+                  await togglePayoutPaid(
+                    payoutConfirm.row,
+                    payoutConfirm.paid,
+                    payoutConfirm.paid ? confirmRecordExpense : undefined,
+                  );
+                  setPayoutConfirm(null);
+                } finally {
+                  setConfirmSaving(false);
+                }
+              }}
+            >
+              {confirmSaving
+                ? "Saving…"
+                : payoutConfirm?.paid
+                  ? confirmRecordExpense
+                    ? "Mark paid & move to expense"
+                    : "Mark paid"
+                  : "Mark unpaid"}
+            </Button>
+          </ResponsiveDialogFooter>
+        </ResponsiveDialogContent>
+      </ResponsiveDialog>
 
       {/* Dialogs - same as in dashboard */}
       {/* Add User Dialog */}
