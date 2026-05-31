@@ -86,6 +86,8 @@ async function main() {
     const rel = relative(PUBLIC_DIR, filePath).split(/[/\\]/).join("/");
     // Skip stray local-dev upload artifacts (we keep these in repo per user pref but never CDN them).
     if (rel.startsWith("uploads/")) continue;
+    // Never CDN the optimizer's full-res originals backup (gitignored, large).
+    if (rel.startsWith("_originals/")) continue;
 
     const key = `${KEY_PREFIX}/${rel}`;
     const buf = readFileSync(filePath);

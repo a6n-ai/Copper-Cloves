@@ -1,5 +1,7 @@
 import { useState, useEffect } from "react";
+import Image from "next/image";
 import { cdnUrl } from "@/lib/cdnUrl";
+import { BLUR_DATA_URL } from "@/lib/imageBlur";
 
 const moveMedia = [cdnUrl("/Move-1.mp4"), cdnUrl("/Move-2.mp4")];
 const refuelMedia = [cdnUrl("/Refuel-1.mp4"), cdnUrl("/refuel-2.jpeg"), cdnUrl("/refuel-3.mp4")];
@@ -40,6 +42,7 @@ export function Hero() {
               >
                 <video
                   src={media}
+                  poster={media.replace(/\.mp4$/, ".poster.jpg")}
                   autoPlay
                   loop
                   muted
@@ -67,6 +70,7 @@ export function Hero() {
                 {media.endsWith(".mp4") ? (
                   <video
                     src={media}
+                    poster={media.replace(/\.mp4$/, ".poster.jpg")}
                     autoPlay
                     loop
                     muted
@@ -75,10 +79,14 @@ export function Hero() {
                     className="w-full h-full object-cover animate-floatAndZoom19"
                   />
                 ) : (
-                  <img
+                  <Image
                     src={media}
                     alt="Refuel"
-                    className="w-full h-full object-cover animate-floatAndZoom19"
+                    fill
+                    sizes="(max-width: 1024px) 100vw, 33vw"
+                    placeholder="blur"
+                    blurDataURL={BLUR_DATA_URL}
+                    className="object-cover animate-floatAndZoom19"
                   />
                 )}
               </div>
@@ -93,6 +101,7 @@ export function Hero() {
           <div className="relative flex-1 min-h-0 overflow-hidden lg:flex-none lg:h-full group">
             <video
               src={cdnUrl("/Connect-1.mp4")}
+              poster={cdnUrl("/Connect-1.poster.jpg")}
               autoPlay
               loop
               muted

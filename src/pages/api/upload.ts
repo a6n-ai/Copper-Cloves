@@ -70,6 +70,43 @@ function resolveImageMime(file: {
 }
 
 const MAX_DATA_URL_IMAGE_BYTES = 4 * 1024 * 1024;
+const COMPRESS_MAX_EDGE = 2000;
+
+/**
+ * Shrink raster uploads before they hit storage: cap the longest edge and
+ * re-encode to webp (q82). The in-app cropper used to ship full-resolution
+ * camera JPEGs (seen: 2.5MB+ per avatar) straight to S3 unmodified.
+ *
+ * `sharp` is imported dynamically and the whole thing is best-effort — if the
+ * native binary is unavailable (e.g. a stripped serverless runtime) or the
+ * buffer is undecodable, we fall back to the original bytes rather than failing
+ * the upload. SVG/GIF pass through untouched (sharp would rasterize/flatten).
+ */
+async function compressImageForUpload(
+  buf: Buffer,
+  mime: string,
+): Promise<{ buf: Buffer; mime: string }> {
+  if (mime === "image/svg+xml" || mime === "image/gif") return { buf, mime };
+  try {
+    const sharp = (await import("sharp")).default;
+    const img = sharp(buf, { failOn: "none" }).rotate();
+    const meta = await img.metadata();
+    const longest = Math.max(meta.width ?? 0, meta.height ?? 0);
+    if (longest > COMPRESS_MAX_EDGE) {
+      img.resize({
+        width: (meta.width ?? 0) >= (meta.height ?? 0) ? COMPRESS_MAX_EDGE : undefined,
+        height: (meta.height ?? 0) > (meta.width ?? 0) ? COMPRESS_MAX_EDGE : undefined,
+        withoutEnlargement: true,
+      });
+    }
+    const out = await img.webp({ quality: 82 }).toBuffer();
+    // Don't ship a larger file than we received (e.g. already-optimized small webp).
+    if (out.length >= buf.length && longest <= COMPRESS_MAX_EDGE) return { buf, mime };
+    return { buf: out, mime: "image/webp" };
+  } catch {
+    return { buf, mime };
+  }
+}
 
 async function uploadToS3(
   buf: Buffer,
@@ -133,19 +170,21 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     const adminId = (session!.user as { id?: string }).id ?? null;
 
     try {
-      const buf = fs.readFileSync(file.filepath);
+      const rawBuf = fs.readFileSync(file.filepath);
       try { fs.unlinkSync(file.filepath); } catch { /* ignore */ }
+
+      const { buf, mime: outMime } = await compressImageForUpload(rawBuf, mime);
 
       // S3 — preferred when configured (works on all environments)
       if (s3) {
         try {
-          const up = await uploadToS3(buf, mime, purpose, ownerId);
+          const up = await uploadToS3(buf, outMime, purpose, ownerId);
           const fileRow = await prisma.file.create({
             data: {
               bucket: up.bucket,
               s3_key: up.key,
               url: up.url,
-              content_type: mime,
+              content_type: outMime,
               size_bytes: buf.length,
               purpose,
               created_by: adminId,
@@ -164,13 +203,13 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
             error: `Image too large (max ${MAX_DATA_URL_IMAGE_BYTES / (1024 * 1024)}MB). Configure S3 for larger uploads.`,
           });
         }
-        return res.json({ url: `data:${mime};base64,${buf.toString("base64")}`, fileId: null });
+        return res.json({ url: `data:${outMime};base64,${buf.toString("base64")}`, fileId: null });
       }
 
       // Local dev — save to public/uploads/. No File row (local path, not S3-backed).
       const localDir = path.join(process.cwd(), "public", "uploads");
       if (!fs.existsSync(localDir)) fs.mkdirSync(localDir, { recursive: true });
-      const ext = mime === "image/jpeg" ? "jpg" : (mime.split("/")[1] ?? "jpg");
+      const ext = outMime === "image/jpeg" ? "jpg" : (outMime.split("/")[1] ?? "jpg");
       const filename = `${Date.now()}-${Math.random().toString(36).slice(2)}.${ext}`;
       fs.writeFileSync(path.join(localDir, filename), buf);
       return res.json({ url: `/uploads/${filename}`, fileId: null });

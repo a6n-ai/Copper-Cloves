@@ -49,6 +49,9 @@ firebase-service-account.json
 # but never commit — production uploads go to S3.
 /public/uploads/
 
+# originals backed up by scripts/optimize-images.ts before in-place re-encode.
+/public/_originals/
+
 # IDE / agent tooling (local only)
 /.idea/
 /.vscode/
@@ -58,6 +61,7 @@ firebase-service-account.json
 /.llm/
 /.softgen/
 /.superpowers/
+/.impeccable/
 /skills-lock.json
 
 # One-off ops / backfill scripts (keep reusable scripts in repo)
