@@ -310,7 +310,7 @@ function InstructorPayoutsPanelImpl() {
                         <SortableHeader sortKey="percentage" active={sortKey} dir={sortDir} onToggle={toggle} className="w-[90px]">Share</SortableHeader>
                         <SortableHeader sortKey="total" active={sortKey} dir={sortDir} onToggle={toggle} className="w-[130px] text-right" align="right">Payout</SortableHeader>
                         <SortableHeader sortKey="status" active={sortKey} dir={sortDir} onToggle={toggle} className="w-[110px]">Status</SortableHeader>
-                        <TableHead className="font-body text-xs uppercase tracking-wide text-charcoal/60 px-5 py-3 w-[80px] text-right">Edit</TableHead>
+                        <TableHead className="font-body text-xs uppercase tracking-wide text-charcoal/60 px-5 py-3 w-[230px] text-right">Actions</TableHead>
                       </TableRow>
                     </TableHeader>
                     <TableBody>
@@ -340,19 +340,36 @@ function InstructorPayoutsPanelImpl() {
                             {r.overrideTotal != null ? <span className="ml-1 font-body text-[10px] uppercase tracking-wide text-[#a05e38]">ovr</span> : null}
                           </TableCell>
                           <TableCell className="px-5 py-4">
-                            <button
-                              type="button"
-                              onClick={() => { setConfirmRecord(true); setConfirm({ row: r, paid: r.status !== "paid" }); }}
-                              className="cursor-pointer rounded-full focus:outline-none focus-visible:ring-2 focus-visible:ring-sage/40"
-                              title={r.status === "paid" ? "Mark unpaid" : "Mark paid · move to expense"}
-                            >
-                              {r.status === "paid" ? <StatusPill tone="sage" dot>Paid</StatusPill> : <StatusPill tone="amber" dot>Pending</StatusPill>}
-                            </button>
+                            {r.status === "paid" ? <StatusPill tone="sage" dot>Paid</StatusPill> : <StatusPill tone="amber" dot>Pending</StatusPill>}
                           </TableCell>
-                          <TableCell className="px-5 py-4 text-right">
-                            <Button type="button" variant="ghost" size="sm" className="h-8 w-8 p-0 text-charcoal/40 hover:text-sage hover:bg-sage/10" onClick={() => openEdit(r)} aria-label="Edit adjustment">
-                              <Pencil className="h-4 w-4" />
-                            </Button>
+                          <TableCell className="px-5 py-4">
+                            <div className="flex items-center justify-end gap-2">
+                              {r.status === "paid" ? (
+                                <Button
+                                  type="button"
+                                  variant="outline"
+                                  size="sm"
+                                  className="border-sage/25 text-charcoal/60 hover:bg-sage/5 font-body"
+                                  onClick={() => { setConfirmRecord(true); setConfirm({ row: r, paid: false }); }}
+                                >
+                                  Mark unpaid
+                                </Button>
+                              ) : (
+                                <Button
+                                  type="button"
+                                  variant="outline"
+                                  size="sm"
+                                  className="border-terracotta/30 text-[#a05e38] hover:bg-terracotta/10 font-body"
+                                  onClick={() => { setConfirmRecord(true); setConfirm({ row: r, paid: true }); }}
+                                >
+                                  <Wallet className="h-4 w-4 mr-1.5" />
+                                  Move to expense
+                                </Button>
+                              )}
+                              <Button type="button" variant="ghost" size="sm" className="h-8 w-8 p-0 text-charcoal/40 hover:text-sage hover:bg-sage/10" onClick={() => openEdit(r)} aria-label="Edit adjustment">
+                                <Pencil className="h-4 w-4" />
+                              </Button>
+                            </div>
                           </TableCell>
                         </TableRow>
                       ))}
