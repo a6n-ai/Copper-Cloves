@@ -4,6 +4,8 @@ import {
   ArrowDownRight,
   ArrowUpRight,
   Banknote,
+  Check,
+  ChevronsUpDown,
   DollarSign,
   Download,
   FileText,
@@ -19,6 +21,16 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { ResponsiveTable } from "@/components/responsive/ResponsiveTable";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import {
+  Command,
+  CommandEmpty,
+  CommandGroup,
+  CommandInput,
+  CommandItem,
+  CommandList,
+} from "@/components/ui/command";
+import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
@@ -236,6 +248,71 @@ function formatTxnAmountRupee(amount: number, type: string): string {
 function formatInrDetail(n?: number): string {
   if (n == null || !Number.isFinite(Number(n))) return "—";
   return `₹${Math.round(Number(n)).toLocaleString("en-IN")}`;
+}
+
+type PillStyle = { bg: string; fg: string; border: string };
+
+// Categorical tag for what a transaction is. Four earthy hues so the table reads
+// at a glance: packages (sage), classes (terracotta), café (ochre), expenses (slate).
+function txnKind(txn: DashboardTxn): { label: string } & PillStyle {
+  const id = String(txn.id);
+  const cat = txn.category.toLowerCase();
+  const food = txn.foodOrderedLabel?.toLowerCase() ?? "";
+  const hasCafe = (food.includes("food") && !food.includes("no food")) || cat.includes("café") || cat.includes("cafe");
+
+  if (txn.type === "expense") {
+    const label = cat.includes("coach") ? "Coach payout" : cat.includes("rent") || cat.includes("studio") ? "Studio" : "Expense";
+    return { label, bg: "rgba(51,51,51,0.06)", fg: "#5b5b5b", border: "rgba(51,51,51,0.15)" };
+  }
+  const isPackage = cat.includes("(package)") || id.startsWith("pkg-") || id.startsWith("demo-finance-package");
+  const isClass = id.startsWith("booking-") || id.startsWith("demo-finance-booking");
+  if (isPackage) return { label: "Package", bg: "rgba(143,151,121,0.14)", fg: "#5f6b4f", border: "rgba(143,151,121,0.32)" };
+  if (isClass) {
+    return hasCafe
+      ? { label: "Class + Café", bg: "rgba(176,138,62,0.16)", fg: "#866223", border: "rgba(176,138,62,0.34)" }
+      : { label: "Class", bg: "rgba(193,120,86,0.14)", fg: "#a05e38", border: "rgba(193,120,86,0.32)" };
+  }
+  if (hasCafe) return { label: "Café", bg: "rgba(176,138,62,0.16)", fg: "#866223", border: "rgba(176,138,62,0.34)" };
+  return { label: "Revenue", bg: "rgba(143,151,121,0.12)", fg: "#5f6b4f", border: "rgba(143,151,121,0.28)" };
+}
+
+// A distinct colour per payment channel. `tint(h)` builds a low-chroma pill from
+// one hue so the family stays cohesive while every method still reads apart.
+function tint(h: number, s = 62, l = 42): PillStyle {
+  return {
+    bg: `hsl(${h} ${s}% ${l}% / 0.12)`,
+    fg: `hsl(${h} ${Math.min(s + 6, 80)}% ${Math.max(l - 6, 30)}%)`,
+    border: `hsl(${h} ${s}% ${l}% / 0.34)`,
+  };
+}
+
+// Hues spread around the wheel for any method not explicitly mapped, so unknown
+// channels (new PaymentMethod values) still get a stable, distinct colour.
+const METHOD_FALLBACK_HUES = [210, 28, 152, 268, 340, 48, 188, 122];
+
+// Method pill colour by channel. Razorpay carries its brand blue; each other
+// channel gets its own hue. Unknown methods hash to a stable fallback hue.
+function methodPillStyle(method: string): PillStyle {
+  const m = method.toLowerCase().trim();
+  if (m.includes("razorpay")) return { bg: "rgba(51,149,255,0.12)", fg: "#1f6feb", border: "rgba(51,149,255,0.34)" }; // brand blue
+  if (m === "online") return tint(200); // cyan-blue, distinct from Razorpay
+  if (m.includes("pine") && m.includes("upi")) return tint(280); // violet
+  if (m.includes("pine") || m.includes("card")) return tint(35); // amber/gold
+  if (m.includes("upi")) return tint(268); // violet
+  if (m.includes("studio")) return tint(18); // terracotta
+  if (m.includes("cash")) return tint(140); // sage green
+  if (m === "—" || m === "") return { bg: "rgba(51,51,51,0.05)", fg: "#6b6b6b", border: "rgba(51,51,51,0.14)" };
+  let hash = 0;
+  for (let i = 0; i < m.length; i++) hash = (hash * 31 + m.charCodeAt(i)) >>> 0;
+  return tint(METHOD_FALLBACK_HUES[hash % METHOD_FALLBACK_HUES.length]);
+}
+
+// Time-of-day from the row's ISO sort key (the date column only shows the day).
+function formatTxnTime(sortKey?: string): string | null {
+  if (!sortKey) return null;
+  const d = new Date(sortKey);
+  if (Number.isNaN(d.getTime())) return null;
+  return d.toLocaleTimeString("en-IN", { hour: "numeric", minute: "2-digit" });
 }
 
 // Resolve which rows to hand to the export, shared by both sections so the
@@ -537,6 +614,79 @@ function FinanceOverviewSectionImpl({
 
 export const FinanceOverviewSection = memo(FinanceOverviewSectionImpl);
 
+// Searchable single-select for the long, dynamic filters (member, method).
+// shadcn Select has no search, so this pairs Popover + cmdk Command like the
+// schedule page's class/instructor pickers.
+function FilterCombobox({
+  value,
+  onValueChange,
+  options,
+  allLabel,
+  searchPlaceholder,
+  emptyText,
+}: {
+  value: string;
+  onValueChange: (v: string) => void;
+  options: string[];
+  allLabel: string;
+  searchPlaceholder: string;
+  emptyText: string;
+}) {
+  const [open, setOpen] = useState(false);
+  const label = value === "all" ? allLabel : value;
+  return (
+    <Popover open={open} onOpenChange={setOpen}>
+      <PopoverTrigger asChild>
+        <Button
+          type="button"
+          variant="outline"
+          role="combobox"
+          aria-expanded={open}
+          className="w-full justify-between border-sage/20 bg-white-warm font-body font-normal text-charcoal hover:bg-white-warm"
+        >
+          <span className="truncate">{label}</span>
+          <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
+        </Button>
+      </PopoverTrigger>
+      <PopoverContent className="p-0 w-[--radix-popover-trigger-width]" align="start">
+        <Command>
+          <CommandInput placeholder={searchPlaceholder} className="font-body" />
+          <CommandList>
+            <CommandEmpty>{emptyText}</CommandEmpty>
+            <CommandGroup>
+              <CommandItem
+                value={allLabel}
+                onSelect={() => {
+                  onValueChange("all");
+                  setOpen(false);
+                }}
+                className="font-body"
+              >
+                <Check className={cn("mr-2 h-4 w-4", value === "all" ? "opacity-100" : "opacity-0")} />
+                {allLabel}
+              </CommandItem>
+              {options.map((opt) => (
+                <CommandItem
+                  key={opt}
+                  value={opt}
+                  onSelect={() => {
+                    onValueChange(opt);
+                    setOpen(false);
+                  }}
+                  className="font-body"
+                >
+                  <Check className={cn("mr-2 h-4 w-4", value === opt ? "opacity-100" : "opacity-0")} />
+                  <span className="truncate">{opt}</span>
+                </CommandItem>
+              ))}
+            </CommandGroup>
+          </CommandList>
+        </Command>
+      </PopoverContent>
+    </Popover>
+  );
+}
+
 // ──────────────────────────────────────────────────────────────────────────
 // Transactions section: filters, the ledger table, and the Finance-1 detail
 // dialog. Owns its own filter / sort / pagination state.
@@ -554,6 +704,8 @@ function FinanceTransactionsSectionImpl({
   const [transactionFilter, setTransactionFilter] = useState("all");
   const [transactionDateRange, setTransactionDateRange] = useState("all");
   const [transactionType, setTransactionType] = useState("all");
+  const [transactionMember, setTransactionMember] = useState("all");
+  const [transactionMethod, setTransactionMethod] = useState("all");
   const [transactionSearch, setTransactionSearch] = useState("");
   const [financeDetailOpen, setFinanceDetailOpen] = useState(false);
   const [selectedFinanceDetail, setSelectedFinanceDetail] = useState<DashboardFinanceDetail | null>(null);
@@ -563,12 +715,45 @@ function FinanceTransactionsSectionImpl({
     setFinanceDetailOpen(true);
   }, []);
 
+  // Distinct members and methods present in the ledger, for the dropdown filters.
+  const memberOptions = useMemo(() => {
+    const set = new Set<string>();
+    for (const t of financeLedgerTransactions) {
+      const name = t.memberFull ?? t.member ?? t.instructor;
+      if (name && name.trim()) set.add(name.trim());
+    }
+    return Array.from(set).sort((a, b) => a.localeCompare(b));
+  }, [financeLedgerTransactions]);
+
+  const methodOptions = useMemo(() => {
+    const set = new Set<string>();
+    for (const t of financeLedgerTransactions) {
+      if (t.method && t.method.trim() && t.method !== "—") set.add(t.method.trim());
+    }
+    return Array.from(set).sort((a, b) => a.localeCompare(b));
+  }, [financeLedgerTransactions]);
+
+  const resetFilters = useCallback(() => {
+    setTransactionFilter("all");
+    setTransactionDateRange("all");
+    setTransactionType("all");
+    setTransactionMember("all");
+    setTransactionMethod("all");
+    setTransactionSearch("");
+  }, []);
+
   const filteredFinanceTransactions = useMemo(() => {
     const q = transactionSearch.trim().toLowerCase();
     return financeLedgerTransactions.filter((txn) => {
       if (!txnPassesDateRange(txn.date, transactionDateRange)) return false;
       if (transactionFilter === "credit" && txn.type !== "revenue") return false;
       if (transactionFilter === "debit" && txn.type !== "expense") return false;
+
+      if (transactionMember !== "all") {
+        const name = txn.memberFull ?? txn.member ?? txn.instructor ?? "";
+        if (name.trim() !== transactionMember) return false;
+      }
+      if (transactionMethod !== "all" && txn.method !== transactionMethod) return false;
 
       const catLow = txn.category.toLowerCase();
       if (transactionType === "packages" && !catLow.includes("(package)")) return false;
@@ -601,6 +786,8 @@ function FinanceTransactionsSectionImpl({
     transactionFilter,
     transactionDateRange,
     transactionType,
+    transactionMember,
+    transactionMethod,
     transactionSearch,
   ]);
 
@@ -626,7 +813,7 @@ function FinanceTransactionsSectionImpl({
   const financeTxnPg = usePagination(
     sortedFinanceTxns,
     10,
-    `${transactionFilter}|${transactionDateRange}|${transactionType}|${transactionSearch}|${txnSortKey}|${txnSortDir}`,
+    `${transactionFilter}|${transactionDateRange}|${transactionType}|${transactionMember}|${transactionMethod}|${transactionSearch}|${txnSortKey}|${txnSortDir}`,
   );
 
   const handleExport = (period: FinanceReportPeriod) => {
@@ -648,7 +835,7 @@ function FinanceTransactionsSectionImpl({
             </Button>
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-4 gap-3 p-4 rounded-xl bg-cream/30 border border-sage/20">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 p-4 rounded-xl bg-cream/30 border border-sage/20">
             <div className="space-y-2">
               <Label className="font-body text-xs text-charcoal/60">Filter by Type</Label>
               <Select value={transactionFilter} onValueChange={setTransactionFilter}>
@@ -688,6 +875,28 @@ function FinanceTransactionsSectionImpl({
               </Select>
             </div>
             <div className="space-y-2">
+              <Label className="font-body text-xs text-charcoal/60">Member</Label>
+              <FilterCombobox
+                value={transactionMember}
+                onValueChange={setTransactionMember}
+                options={memberOptions}
+                allLabel="All Members"
+                searchPlaceholder="Search members…"
+                emptyText="No members found."
+              />
+            </div>
+            <div className="space-y-2">
+              <Label className="font-body text-xs text-charcoal/60">Payment Method</Label>
+              <FilterCombobox
+                value={transactionMethod}
+                onValueChange={setTransactionMethod}
+                options={methodOptions}
+                allLabel="All Methods"
+                searchPlaceholder="Search methods…"
+                emptyText="No methods found."
+              />
+            </div>
+            <div className="space-y-2">
               <Label className="font-body text-xs text-charcoal/60">Search</Label>
               <div className="relative">
                 <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-charcoal/40" />
@@ -713,12 +922,13 @@ function FinanceTransactionsSectionImpl({
               <Table>
                 <TableHeader>
                   <TableRow className="bg-sage/5 hover:bg-sage/5 border-sage/10">
-                    <TableHead className="font-body text-xs uppercase tracking-wide text-charcoal/60 px-5 py-3 w-[40px]" />
+                    <TableHead className="font-body text-xs uppercase tracking-wide text-charcoal/60 px-5 py-3 w-[44px]" />
+                    <TableHead className="font-body text-xs uppercase tracking-wide text-charcoal/60 px-5 py-3 w-[132px]">Type</TableHead>
                     <SortableHeader sortKey="category" active={txnSortKey} dir={txnSortDir} onToggle={toggleTxn}>Category</SortableHeader>
-                    <SortableHeader sortKey="member" active={txnSortKey} dir={txnSortDir} onToggle={toggleTxn}>Member</SortableHeader>
-                    <SortableHeader sortKey="date" active={txnSortKey} dir={txnSortDir} onToggle={toggleTxn} className="w-[120px]">Date</SortableHeader>
-                    <SortableHeader sortKey="method" active={txnSortKey} dir={txnSortDir} onToggle={toggleTxn} className="w-[120px]">Method</SortableHeader>
-                    <SortableHeader sortKey="amount" active={txnSortKey} dir={txnSortDir} onToggle={toggleTxn} className="w-[140px] text-right" align="right">Amount</SortableHeader>
+                    <SortableHeader sortKey="member" active={txnSortKey} dir={txnSortDir} onToggle={toggleTxn} className="w-[180px]">Member</SortableHeader>
+                    <SortableHeader sortKey="date" active={txnSortKey} dir={txnSortDir} onToggle={toggleTxn} className="w-[150px]">Date</SortableHeader>
+                    <SortableHeader sortKey="method" active={txnSortKey} dir={txnSortDir} onToggle={toggleTxn} className="w-[150px]">Method</SortableHeader>
+                    <SortableHeader sortKey="amount" active={txnSortKey} dir={txnSortDir} onToggle={toggleTxn} className="w-[130px] text-right" align="right">Amount</SortableHeader>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
@@ -739,12 +949,7 @@ function FinanceTransactionsSectionImpl({
                 variant="outline"
                 size="sm"
                 className="mt-4 border-sage/20 text-sage hover:bg-sage/5"
-                onClick={() => {
-                  setTransactionFilter("all");
-                  setTransactionDateRange("all");
-                  setTransactionType("all");
-                  setTransactionSearch("");
-                }}
+                onClick={resetFilters}
               >
                 Clear Filters
               </Button>
@@ -944,6 +1149,9 @@ const FinanceRowView = memo(function FinanceRowView({
   const displayMember = txn.memberFull ?? txn.member ?? txn.instructor ?? "Studio";
   const plus = txn.memberPlusLabel?.trim() ? ` ${txn.memberPlusLabel.trim()}` : "";
   const handleClick = openFinance ? () => onSelect(txn.financeDetail) : undefined;
+  const kind = txnKind(txn);
+  const method = methodPillStyle(txn.method);
+  const time = formatTxnTime(txn.sortKey);
 
   return (
     <TableRow
@@ -958,25 +1166,38 @@ const FinanceRowView = memo(function FinanceRowView({
         </div>
       </TableCell>
       <TableCell className="px-5 py-3">
-        <div className="flex items-center gap-2 flex-wrap">
-          <span className="font-body font-medium text-charcoal">{txn.category}</span>
+        <span
+          className="inline-flex w-full max-w-[108px] items-center justify-center rounded-full border px-2.5 py-0.5 font-body text-[11px] font-medium whitespace-nowrap"
+          style={{ backgroundColor: kind.bg, color: kind.fg, borderColor: kind.border }}
+        >
+          {kind.label}
+        </span>
+      </TableCell>
+      <TableCell className="px-5 py-3 min-w-[200px]">
+        <div className="flex items-start gap-2">
+          <span className="font-body font-medium text-charcoal line-clamp-2 [overflow-wrap:anywhere]" title={txn.category}>{txn.category}</span>
           {txn.isFinanceDemo && (
-            <Badge variant="outline" className="border-terracotta/30 bg-terracotta/10 text-[#a05e38] text-[10px] uppercase tracking-wide font-body">Sample</Badge>
+            <Badge variant="outline" className="mt-0.5 shrink-0 border-terracotta/30 bg-terracotta/10 text-[#a05e38] text-[10px] uppercase tracking-wide font-body">Sample</Badge>
           )}
         </div>
-        {txn.foodOrderedLabel && txn.foodOrderedLabel !== "—" && (
-          <div className="font-body text-xs text-charcoal/50 mt-0.5 truncate" title={txn.foodOrderedLabel}>{txn.foodOrderedLabel}</div>
-        )}
       </TableCell>
       <TableCell className="px-5 py-3">
-        <div className="font-body text-sm text-charcoal truncate">
+        <div className="font-body text-sm text-charcoal truncate max-w-[180px]">
           {displayMember}
           {plus && <span className="text-sage font-medium">{plus}</span>}
         </div>
       </TableCell>
-      <TableCell className="px-5 py-3 font-body text-sm text-charcoal/60 whitespace-nowrap">{txn.date}</TableCell>
+      <TableCell className="px-5 py-3 whitespace-nowrap">
+        <div className="font-body text-sm text-charcoal/70">{txn.date}</div>
+        {time && <div className="font-body text-xs text-charcoal/40 tabular-nums">{time}</div>}
+      </TableCell>
       <TableCell className="px-5 py-3">
-        <Badge variant="outline" className="border-charcoal/15 text-charcoal/60 font-body whitespace-nowrap">{txn.method}</Badge>
+        <span
+          className="inline-flex w-full max-w-[120px] items-center justify-center rounded-full border px-2.5 py-0.5 font-body text-xs font-medium whitespace-nowrap"
+          style={{ backgroundColor: method.bg, color: method.fg, borderColor: method.border }}
+        >
+          {txn.method}
+        </span>
       </TableCell>
       <TableCell className="px-5 py-3 text-right">
         <span className={`font-display text-base tabular-nums ${txn.type === "revenue" ? "text-sage" : "text-[#a05e38]"}`}>

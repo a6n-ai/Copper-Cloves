@@ -7,6 +7,7 @@ import {
   Award,
   MessageSquare,
   Coffee,
+  DollarSign,
   Package,
   Settings,
   User,
@@ -67,6 +68,12 @@ export const PORTAL_CONFIGS: Record<PortalKind, PortalConfig> = {
           { href: "/admin/credits", label: "Credits", icon: CreditCard },
           { href: "/admin/badges", label: "Badges", icon: Award },
           { href: "/admin/CRM", label: "CRM", icon: MessageSquare },
+        ],
+      },
+      {
+        label: "Finance",
+        items: [
+          { href: "/admin/finances", label: "Finances", icon: DollarSign },
         ],
       },
       {
