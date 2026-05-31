@@ -149,7 +149,7 @@ export default function AdminPartners() {
                 <Label className="font-body text-sm text-charcoal">Manager password</Label>
                 <Input value={managerPassword} onChange={(e) => setManagerPassword(e.target.value)} placeholder="min 6 characters" required className="border-sage/20" />
               </div>
-              {error && <div className="sm:col-span-2 text-sm text-red-600 font-body">{error}</div>}
+              {error && <div className="sm:col-span-2 text-sm text-[#a05e38] font-body">{error}</div>}
               <div className="sm:col-span-2">
                 <Button type="submit" disabled={busy} variant="sage">
                   {busy ? <Spinner className="size-4" /> : "Create partner + login"}

@@ -315,7 +315,7 @@ function MembersTabImpl({
           <div className="flex items-center justify-between">
             <div>
               <CardTitle className="font-display text-2xl text-charcoal flex items-center gap-2">
-                <Trophy className="h-6 w-6 text-amber-500" />
+                <Trophy className="h-6 w-6 text-terracotta" />
                 Member of the Month
               </CardTitle>
               <CardDescription className="font-body text-charcoal/60 mt-1">Top performer this month</CardDescription>
@@ -351,12 +351,12 @@ function MembersTabImpl({
           <CardHeader className="pb-3">
             <div className="flex items-center justify-between">
               <CardTitle className="font-body text-sm text-charcoal/60 font-medium">Expiring in 7 Days</CardTitle>
-              <AlertTriangle className="h-5 w-5 text-amber-500" />
+              <AlertTriangle className="h-5 w-5 text-terracotta" />
             </div>
           </CardHeader>
           <CardContent>
             <div className="font-display text-5xl text-charcoal mb-3">{memberStats.expiring7Days}</div>
-            <Button variant="outline" size="sm" className="w-full border-amber-500/20 text-amber-600 hover:bg-amber-50 font-body">Add to CRM</Button>
+            <Button variant="outline" size="sm" className="w-full border-terracotta/20 text-terracotta hover:bg-terracotta/10 font-body">Add to CRM</Button>
           </CardContent>
         </Card>
 
@@ -364,12 +364,12 @@ function MembersTabImpl({
           <CardHeader className="pb-3">
             <div className="flex items-center justify-between">
               <CardTitle className="font-body text-sm text-charcoal/60 font-medium">Expiring in 15 Days</CardTitle>
-              <Clock className="h-5 w-5 text-amber-500" />
+              <Clock className="h-5 w-5 text-terracotta" />
             </div>
           </CardHeader>
           <CardContent>
             <div className="font-display text-5xl text-charcoal mb-3">{memberStats.expiring15Days}</div>
-            <Button variant="outline" size="sm" className="w-full border-amber-500/20 text-amber-600 hover:bg-amber-50 font-body">Add to CRM</Button>
+            <Button variant="outline" size="sm" className="w-full border-terracotta/20 text-terracotta hover:bg-terracotta/10 font-body">Add to CRM</Button>
           </CardContent>
         </Card>
 
@@ -512,8 +512,8 @@ function MembersTabImpl({
                         </TableCell>
                         <TableCell className="px-5 py-3 font-display text-base text-sage tabular-nums">{m.streak as number}</TableCell>
                         <TableCell className="px-5 py-3 font-display text-base text-charcoal tabular-nums">{m.onTime as number}</TableCell>
-                        <TableCell className="px-5 py-3 font-display text-base text-amber-600 tabular-nums">{m.late as number}</TableCell>
-                        <TableCell className="px-5 py-3 font-display text-base text-red-500 tabular-nums">{m.noShow as number}</TableCell>
+                        <TableCell className="px-5 py-3 font-display text-base text-terracotta tabular-nums">{m.late as number}</TableCell>
+                        <TableCell className="px-5 py-3 font-display text-base text-[#a05e38] tabular-nums">{m.noShow as number}</TableCell>
                         <TableCell className="px-5 py-3 text-right">
                           <Button variant="sage-outline" size="sm" onClick={() => onViewProfile(m)} className="h-8">View</Button>
                         </TableCell>

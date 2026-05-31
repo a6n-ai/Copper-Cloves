@@ -79,7 +79,7 @@ export function ClassCountdownPill({ startIso, endIso, fallbackTime, className, 
     metaTone = "text-white/70";
     label = "Ended";
   } else if (untilStart <= 0) {
-    tone = "bg-amber-500 text-white border-amber-600 shadow-sm";
+    tone = "bg-terracotta text-white border-terracotta/50 shadow-sm";
     metaTone = "text-white/85";
     label = `Live · ${formatDuration(untilEnd)} left`;
     pulse = true;

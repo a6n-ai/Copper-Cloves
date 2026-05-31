@@ -577,7 +577,7 @@ export function Instructors() {
               )}
 
               {/* Philosophy */}
-              <div className="mb-6 p-4 bg-sage/5 rounded-xl border-l-4 border-sage">
+              <div className="mb-6 p-4 bg-sage/5 rounded-xl border border-sage/15">
                 <div className="flex items-center gap-2 mb-2">
                   <Heart className="text-sage" size={18} />
                   <h3 className="font-display text-lg font-semibold text-charcoal">Philosophy</h3>

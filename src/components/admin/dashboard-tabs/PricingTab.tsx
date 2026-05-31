@@ -288,7 +288,7 @@ function PricingTabImpl({
                               <Button type="button" size="sm" variant="sage-outline" className="h-8" onClick={() => onEdit(c)}>
                                 Edit
                               </Button>
-                              <Button type="button" size="sm" variant="outline" className="border-red-200 text-red-600 hover:bg-red-50 font-body h-8" onClick={() => onDelete(c.id)}>
+                              <Button type="button" size="sm" variant="outline" className="border-[#a05e38]/25 text-[#a05e38] hover:bg-[#a05e38]/10 font-body h-8" onClick={() => onDelete(c.id)}>
                                 Delete
                               </Button>
                             </div>

@@ -300,7 +300,7 @@ function OverviewTabImpl({
           <div className="flex items-center justify-between">
             <div>
               <CardTitle className="font-display text-2xl text-charcoal flex items-center gap-2">
-                <AlertTriangle className="h-6 w-6 text-amber-500" />
+                <AlertTriangle className="h-6 w-6 text-terracotta" />
                 Members Expiring Soon
               </CardTitle>
               <CardDescription className="font-body text-charcoal/60 mt-1">
@@ -347,7 +347,7 @@ function OverviewTabImpl({
             {expiringPg.pageItems.map((member) => (
               <div
                 key={member.id}
-                className="rounded-xl border border-amber-500/20 bg-white p-4 hover:shadow-md transition-all duration-600"
+                className="rounded-xl border border-terracotta/20 bg-white p-4 hover:shadow-md transition-all duration-600"
               >
                 <div className="flex items-start gap-3">
                   <input
@@ -360,7 +360,7 @@ function OverviewTabImpl({
                   <div className="flex-1 min-w-0">
                     <div className="flex items-start justify-between gap-2">
                       <p className="font-body font-medium text-charcoal truncate">{member.name}</p>
-                      <span className="shrink-0 rounded-full bg-amber-50 border border-amber-500/20 px-2.5 py-0.5 font-body text-xs font-medium text-amber-600 whitespace-nowrap">
+                      <span className="shrink-0 rounded-full bg-terracotta/10 border border-terracotta/20 px-2.5 py-0.5 font-body text-xs font-medium text-terracotta whitespace-nowrap">
                         Expires in {member.expires}
                       </span>
                     </div>
@@ -383,7 +383,7 @@ function OverviewTabImpl({
                   <Button
                     variant="outline"
                     size="sm"
-                    className="flex-1 sm:flex-none border-amber-500/20 text-amber-600 hover:bg-amber-50 font-body transition-all"
+                    className="flex-1 sm:flex-none border-terracotta/20 text-terracotta hover:bg-terracotta/10 font-body transition-all"
                     onClick={() => {
                       toast.success(`"The Ritual Renewal" CRM template instantly queued for ${member.name} via WhatsApp/Email!`);
                     }}

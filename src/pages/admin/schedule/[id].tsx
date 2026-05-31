@@ -462,16 +462,16 @@ export default function AdminClassPage() {
                     : roster.status === "abandoned" ? "Cancelled & past"
                     : roster.status || "—";
                   const statusTone =
-                    roster.status === "inactive" ? "bg-amber-100 text-amber-700 border-amber-200"
+                    roster.status === "inactive" ? "bg-terracotta/10 text-terracotta border-terracotta/20"
                     : roster.status === "cancelled" || roster.status === "abandoned" ? "bg-terracotta/10 text-terracotta border-terracotta/30"
                     : roster.status === "completed" ? "bg-charcoal/10 text-charcoal/60 border-charcoal/15"
-                    : roster.status === "started" ? "bg-amber-100 text-amber-700 border-amber-300"
+                    : roster.status === "started" ? "bg-terracotta/10 text-terracotta border-terracotta/30"
                     : "bg-sage/15 text-sage border-sage/30";
                   const statusDot =
-                    roster.status === "inactive" ? "bg-amber-500"
+                    roster.status === "inactive" ? "bg-terracotta"
                     : roster.status === "cancelled" || roster.status === "abandoned" ? "bg-terracotta"
                     : roster.status === "completed" ? "bg-charcoal/40"
-                    : roster.status === "started" ? "bg-amber-500"
+                    : roster.status === "started" ? "bg-terracotta"
                     : "bg-sage";
                   const statusHint =
                     roster.status === "available" ? "Members can book and check in."
@@ -504,8 +504,8 @@ export default function AdminClassPage() {
                                 <p className="font-body text-[11px] uppercase tracking-[0.18em] text-charcoal/50">Teaching today</p>
                                 <p className="font-display text-2xl text-charcoal truncate mt-0.5 group-hover:text-sage transition-colors">{taught}</p>
                                 {isSub ? (
-                                  <p className="font-body text-xs text-amber-700 mt-1 inline-flex items-center gap-1.5">
-                                    <span className="size-1.5 rounded-full bg-amber-500" />
+                                  <p className="font-body text-xs text-terracotta mt-1 inline-flex items-center gap-1.5">
+                                    <span className="size-1.5 rounded-full bg-terracotta" />
                                     Substituting for {roster.instructor}
                                   </p>
                                 ) : (
@@ -828,8 +828,8 @@ export default function AdminClassPage() {
             <div className="grid grid-cols-1 gap-2">
               {([
                 { value: "available", label: "Available", desc: "Bookable. Members see it on the schedule.", tone: "bg-sage/10 text-sage border-sage/30", active: "bg-sage text-white border-sage" },
-                { value: "inactive", label: "Inactive", desc: "Hidden from members. Existing bookings keep their seat.", tone: "bg-amber-50 text-amber-700 border-amber-200", active: "bg-amber-500 text-white border-amber-600" },
-                { value: "started", label: "Started", desc: "Check-in window is open.", tone: "bg-amber-50 text-amber-700 border-amber-200", active: "bg-amber-500 text-white border-amber-600" },
+                { value: "inactive", label: "Inactive", desc: "Hidden from members. Existing bookings keep their seat.", tone: "bg-terracotta/10 text-terracotta border-terracotta/20", active: "bg-terracotta text-white border-terracotta/50" },
+                { value: "started", label: "Started", desc: "Check-in window is open.", tone: "bg-terracotta/10 text-terracotta border-terracotta/20", active: "bg-terracotta text-white border-terracotta/50" },
                 { value: "completed", label: "Completed", desc: "Class ended. Roster archived.", tone: "bg-charcoal/5 text-charcoal/70 border-charcoal/15", active: "bg-charcoal text-white border-charcoal" },
                 { value: "cancelled", label: "Cancelled", desc: "Blocks all bookings. Members notified.", tone: "bg-terracotta/10 text-terracotta border-terracotta/30", active: "bg-terracotta text-white border-terracotta" },
               ] as const).map((opt) => {

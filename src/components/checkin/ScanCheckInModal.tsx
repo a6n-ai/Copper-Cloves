@@ -55,7 +55,7 @@ export function ScanCheckInModal({
         {msg ? (
           <div
             className={`rounded-lg p-4 text-center font-body text-sm ${
-              msg.ok ? "bg-sage/10 text-sage" : "bg-red-50 text-red-700"
+              msg.ok ? "bg-sage/10 text-sage" : "bg-[#a05e38]/10 text-[#a05e38]"
             }`}
           >
             {msg.text}

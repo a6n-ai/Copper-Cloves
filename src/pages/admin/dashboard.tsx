@@ -1,4 +1,4 @@
-import { Fragment, useCallback, useState, useEffect, useMemo, useRef } from "react";
+import { Fragment, useCallback, useState, useEffect, useRef } from "react";
 import dynamic from "next/dynamic";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -62,12 +62,7 @@ import { requireSessionSSP } from "@/lib/requireSessionSSP";
 // inside the component still returns the live session for downstream effects
 // that key on `status`/`session?.user?.role`.
 export const getServerSideProps = requireSessionSSP({ roles: ["admin"] });
-import { financeDemoTransactionsForUi } from "@/lib/adminFinanceDemoTransactions";
 import { passCategoryForPackageType } from "@/lib/couponHelpers";
-import {
-  downloadFinanceReportExcel,
-  type FinanceReportPeriod,
-} from "@/lib/financeReportExport";
 import { usePagination } from "@/components/Pagination";
 import { refreshInstructors } from "@/hooks/useInstructors";
 import { toast } from "sonner";
@@ -105,8 +100,11 @@ const MembersTab = dynamic(
   () => import("@/components/admin/dashboard-tabs/MembersTab").then((m) => m.MembersTab),
   { ssr: false, loading: () => <TabLoadingSkeleton /> },
 );
-const FinanceTab = dynamic(
-  () => import("@/components/admin/dashboard-tabs/FinanceTab").then((m) => m.FinanceTab),
+// Self-fetching: pulls from the shared `useAdminFinanceData` hook (same source
+// of truth as the standalone /admin/finances page), so this tab owns no finance
+// state of its own.
+const FinanceTabConnected = dynamic(
+  () => import("@/components/admin/dashboard-tabs/FinanceTabConnected").then((m) => m.FinanceTabConnected),
   { ssr: false, loading: () => <TabLoadingSkeleton /> },
 );
 const OverviewTab = dynamic(
@@ -123,61 +121,6 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
-
-type FinanceBreakdownDetail = {
-  packageListInr?: number;
-  couponDiscountInr?: number;
-  classOrStudioPassInr?: number;
-  cafeNetInr?: number;
-  taxInr?: number;
-  totalInr?: number;
-};
-
-type FinanceDetailLine = {
-  role: string;
-  name: string;
-  email?: string;
-  phone?: string;
-  notes?: string;
-};
-
-type DashboardFinanceDetail = {
-  finance1?: boolean;
-  source: "package" | "booking";
-  memberName?: string;
-  memberEmail?: string;
-  memberPhone?: string;
-  purchasedAtISO?: string;
-  bookedAtISO?: string;
-  transactionKinds?: string[];
-  razorpayOrderId?: string | null;
-  razorpayPaymentIds?: string[];
-  breakdown?: FinanceBreakdownDetail;
-  attendeeLines?: FinanceDetailLine[];
-  cafeLines?: { name: string; quantity: number }[];
-  paymentMethodSummary?: string;
-  classSummary?: string;
-  groupHeadcount?: number;
-};
-
-type DashboardTxn = {
-  id: string;
-  rawId?: string;
-  sortKey?: string;
-  memberPlusLabel?: string;
-  foodOrderedLabel?: string;
-  finance1Tag?: boolean;
-  isFinanceDemo?: boolean;
-  financeDetail?: DashboardFinanceDetail;
-  date: string;
-  member?: string;
-  memberFull?: string;
-  instructor?: string;
-  type: string;
-  amount: number;
-  category: string;
-  method: string;
-};
 
 const instructorSchema = z.object({
   name: z.string().min(1, "Name is required"),
@@ -306,7 +249,6 @@ export default function AdminDashboard() {
   const [rentalInquiriesLoading, setRentalInquiriesLoading] = useState(false);
 
   const [overviewLoaded, setOverviewLoaded] = useState(false);
-  const [financeTrend, setFinanceTrend] = useState<Array<{ month: string; monthIso: string; revenue: number; expenses: number; profit: number }>>([]);
   const [peakHours, setPeakHours] = useState<{ slots: string[]; days: string[]; grid: number[][]; max: number }>({ slots: [], days: [], grid: [], max: 0 });
   const [classesLoaded, setClassesLoaded] = useState(false);
   const [overviewStats, setOverviewStats] = useState({
@@ -331,15 +273,6 @@ export default function AdminDashboard() {
   const [scheduleDate, setScheduleDate] = useState<string>(() => {
     const d = new Date();
     return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`;
-  });
-  const [financeStats, setFinanceStats] = useState({
-    totalRevenue: 0,
-    totalExpenses: 0,
-    profit: 0,
-    coachPayments: 0,
-    studioExpenses: 0,
-    memberPayments: 0,
-    growthRate: 0,
   });
   const [memberStats, setMemberStats] = useState({
     memberOfMonth: { name: "—", classes: 0, streak: 0 },
@@ -382,35 +315,12 @@ export default function AdminDashboard() {
   const [disciplineSplit, setDisciplineSplit] = useState<{ name: string; count: number; percentage: number }[]>(
     []
   );
-  const [transactions, setTransactions] = useState<DashboardTxn[]>([]);
   const [memberList, setMemberList] = useState<any[]>([]);
   const [expiringMembers, setExpiringMembers] = useState<
     { id: string; name: string; email: string; package: string; expires: string; credits: number }[]
   >([]);
   const [dashboardInstructors, setDashboardInstructors] = useState<any[]>([]);
   const [instructorPayouts, setInstructorPayouts] = useState<any[]>([]);
-
-  /** Dev-only sample rows; production uses live API data only. */
-  const financeLedgerTransactions = useMemo(() => {
-    const demos = financeDemoTransactionsForUi() as DashboardTxn[];
-    const byId = new Map<string, DashboardTxn>();
-    for (const row of demos) byId.set(row.id, row);
-    for (const row of transactions) byId.set(row.id, row);
-    return Array.from(byId.values()).sort((a, b) => {
-      const ak = a.sortKey ?? a.date;
-      const bk = b.sortKey ?? b.date;
-      return ak < bk ? 1 : ak > bk ? -1 : 0;
-    });
-  }, [transactions]);
-
-  // FinanceTab now owns filter state — it pre-computes the filtered rows and hands them back.
-  const handleExportFinance = useCallback((mode: FinanceReportPeriod, rows: DashboardTxn[]) => {
-    if (rows.length === 0) {
-      toast.error("No transactions to export for this selection.");
-      return;
-    }
-    void downloadFinanceReportExcel(rows, `copper-cloves-finance-${mode}`);
-  }, []);
 
   // Auth enforced server-side (see `getServerSideProps` above). Client-side
   // `useSession()` is kept so existing effects that key on `status`/`session`
@@ -434,13 +344,6 @@ export default function AdminDashboard() {
       setOverviewStats(d.overviewStats);
       setOverviewMeta(d.meta ?? { classesTodayCount: 0, newMembersThisMonth: 0 });
       setUpcomingClasses(Array.isArray(d.upcomingClasses) ? d.upcomingClasses : []);
-      const mr = Number(d.overviewStats?.monthRevenue ?? 0);
-      setFinanceStats((prev) => ({
-        ...prev,
-        totalRevenue: mr,
-        memberPayments: mr,
-        profit: mr - prev.coachPayments,
-      }));
       setOverviewLoaded(true);
     })();
     return () => {
@@ -520,12 +423,7 @@ export default function AdminDashboard() {
       if (!r.ok || cancelled) return;
       const pay = await r.json();
       if (cancelled) return;
-      const coachPayments = Number(pay.summary?.totalPayouts ?? 0);
       setInstructorPayouts(Array.isArray(pay.instructors) ? pay.instructors : []);
-      setFinanceStats((prev) => {
-        const totalExpenses = coachPayments + prev.studioExpenses;
-        return { ...prev, coachPayments, totalExpenses, profit: prev.totalRevenue - totalExpenses };
-      });
     });
 
     return () => { cancelled = true; };
@@ -647,29 +545,8 @@ export default function AdminDashboard() {
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [status, userRole, activeTab]);
 
-  /** Finance tab. */
-  useEffect(() => {
-    if (status !== "authenticated") return;
-    if (userRole !== "admin" || activeTab !== "finance") return;
-    let cancelled = false;
-
-    void loadSection("transactions", async () => {
-      const r = await fetch("/api/admin/dashboard/transactions");
-      if (!r.ok || cancelled) return;
-      const d = await r.json();
-      if (!cancelled && Array.isArray(d.transactions)) setTransactions(d.transactions);
-    });
-
-    void loadSection("finance-trend", async () => {
-      const r = await fetch("/api/admin/dashboard/finance-trend");
-      if (!r.ok || cancelled) return;
-      const d = await r.json();
-      if (!cancelled && Array.isArray(d.trend)) setFinanceTrend(d.trend);
-    });
-
-    return () => { cancelled = true; };
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [status, userRole, activeTab]);
+  // Finance tab data now lives in `FinanceTabConnected` via `useAdminFinanceData`
+  // (shared with /admin/finances). The dashboard no longer fetches it here.
 
   useEffect(() => {
     if (status !== "authenticated") return;
@@ -1276,13 +1153,7 @@ export default function AdminDashboard() {
 
               {/* FINANCE TAB */}
               <TabsContent value="finance" className="space-y-6">
-                <FinanceTab
-                  financeStats={financeStats}
-                  overviewLoaded={overviewLoaded}
-                  financeLedgerTransactions={financeLedgerTransactions}
-                  financeTrend={financeTrend}
-                  onExport={handleExportFinance}
-                />
+                <FinanceTabConnected />
               </TabsContent>
 
               {/* PRICING & COUPONS */}
@@ -1765,7 +1636,7 @@ export default function AdminDashboard() {
                           <div className="font-body font-medium text-charcoal truncate flex items-center gap-2">
                             {attendee.name}
                             {attendee.confirmationStatus === "pending" && (
-                              <span className="inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-body bg-amber-100 text-amber-700 whitespace-nowrap">
+                              <span className="inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-body bg-terracotta/10 text-terracotta whitespace-nowrap">
                                 Pending confirmation
                               </span>
                             )}
@@ -2188,7 +2059,7 @@ export default function AdminDashboard() {
                   </div>
                   <div className="flex justify-between">
                     <span className="font-body text-sm text-charcoal/60">Expires</span>
-                    <span className="font-body text-sm font-medium text-amber-600">
+                    <span className="font-body text-sm font-medium text-terracotta">
                       {selectedMemberProfile.passExpiryISO
                         ? new Date(selectedMemberProfile.passExpiryISO).toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" })
                         : "—"}
@@ -2291,10 +2162,10 @@ export default function AdminDashboard() {
                     selectedMemberProfile.attendanceHistory.map((a: { class: string; date: string; outcome: string }, idx: number) => {
                       const meta =
                         a.outcome === "on_time"
-                          ? { label: "On time", cls: "border-green-200 bg-green-50 text-green-700" }
+                          ? { label: "On time", cls: "border-sage/20 bg-sage/10 text-sage" }
                           : a.outcome === "late"
-                            ? { label: "Late", cls: "border-amber-200 bg-amber-50 text-amber-700" }
-                            : { label: "No-show", cls: "border-red-200 bg-red-50 text-red-600" };
+                            ? { label: "Late", cls: "border-terracotta/20 bg-terracotta/10 text-terracotta" }
+                            : { label: "No-show", cls: "border-[#a05e38]/25 bg-[#a05e38]/10 text-[#a05e38]" };
                       return (
                         <div key={idx} className="flex items-center justify-between p-3 rounded-lg bg-cream/30">
                           <div className="min-w-0">

@@ -203,7 +203,7 @@ function InstructorsTabImpl({
                         </TableCell>
                         <TableCell className="px-5 py-3">
                           <div className="flex items-center gap-1">
-                            <Star className="h-3.5 w-3.5 text-amber-500 fill-amber-500" />
+                            <Star className="h-3.5 w-3.5 text-terracotta fill-terracotta" />
                             <span className="font-body text-sm text-charcoal tabular-nums">{instructor.rating}</span>
                           </div>
                         </TableCell>

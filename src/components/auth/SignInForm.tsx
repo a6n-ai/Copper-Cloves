@@ -260,7 +260,7 @@ export function SignInForm({ onSwitchToSignup }: { onSwitchToSignup: () => void 
         </AnimatePresence>
 
         {error && (
-          <div className="bg-red-50 border border-red-200 rounded-lg px-4 py-3 text-sm text-red-700 font-body">{error}</div>
+          <div className="bg-[#a05e38]/10 border border-[#a05e38]/25 rounded-lg px-4 py-3 text-sm text-[#a05e38] font-body">{error}</div>
         )}
 
         {/* Hide the primary button while the picker is the active choice */}

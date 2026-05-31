@@ -97,7 +97,7 @@ export function CheckinBeacon({ className }: { className?: string }) {
   const orbGradient = active
     ? "bg-linear-to-br from-sage to-sage/80 ring-white/60"
     : next
-    ? "bg-linear-to-br from-terracotta to-amber-500 ring-white/40"
+    ? "bg-linear-to-br from-terracotta to-[#a05e38] ring-white/40"
     : "bg-linear-to-br from-charcoal/80 to-charcoal ring-white/30";
 
   const aria = active
@@ -139,7 +139,7 @@ export function CheckinBeacon({ className }: { className?: string }) {
         {/* Live indicator dot */}
         {active && (
           <span
-            className="absolute -top-0.5 -right-0.5 z-20 flex h-4 w-4 items-center justify-center rounded-full bg-red-500 ring-2 ring-white animate-pulse"
+            className="absolute -top-0.5 -right-0.5 z-20 flex h-4 w-4 items-center justify-center rounded-full bg-[#a05e38] ring-2 ring-white animate-pulse"
             aria-label="Live"
             aria-hidden
           />

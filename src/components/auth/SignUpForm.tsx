@@ -210,7 +210,7 @@ export function SignUpForm({ onSwitchToSignin }: { onSwitchToSignin: () => void 
                   className={inputCls}
                 />
                 {errors.fullName && (
-                  <p className="text-xs text-red-600 font-body mt-1">{errors.fullName.message}</p>
+                  <p className="text-xs text-[#a05e38] font-body mt-1">{errors.fullName.message}</p>
                 )}
               </div>
 
@@ -226,7 +226,7 @@ export function SignUpForm({ onSwitchToSignin }: { onSwitchToSignin: () => void 
                   className="border-sage/25 bg-cream placeholder:text-charcoal/40 h-11 rounded-xl"
                 />
                 {errors.email && (
-                  <p className="text-xs text-red-600 font-body mt-1">{errors.email.message}</p>
+                  <p className="text-xs text-[#a05e38] font-body mt-1">{errors.email.message}</p>
                 )}
               </div>
 
@@ -248,7 +248,7 @@ export function SignUpForm({ onSwitchToSignin }: { onSwitchToSignin: () => void 
                   )}
                 />
                 {errors.phone && (
-                  <p className="text-xs text-red-600 font-body mt-1">{errors.phone.message}</p>
+                  <p className="text-xs text-[#a05e38] font-body mt-1">{errors.phone.message}</p>
                 )}
               </div>
 
@@ -306,7 +306,7 @@ export function SignUpForm({ onSwitchToSignin }: { onSwitchToSignin: () => void 
                   className={inputCls}
                 />
                 {errors.password ? (
-                  <p className="text-xs text-red-600 font-body mt-1">{errors.password.message}</p>
+                  <p className="text-xs text-[#a05e38] font-body mt-1">{errors.password.message}</p>
                 ) : generated ? (
                   <p className="text-xs text-charcoal/70 font-body mt-1">
                     Suggested: <span className="font-medium text-charcoal">{generated}</span> — save it somewhere safe.
@@ -329,7 +329,7 @@ export function SignUpForm({ onSwitchToSignin }: { onSwitchToSignin: () => void 
                   className={inputCls}
                 />
                 {errors.confirmPassword && (
-                  <p className="text-xs text-red-600 font-body mt-1">{errors.confirmPassword.message}</p>
+                  <p className="text-xs text-[#a05e38] font-body mt-1">{errors.confirmPassword.message}</p>
                 )}
               </div>
 
@@ -396,7 +396,7 @@ export function SignUpForm({ onSwitchToSignin }: { onSwitchToSignin: () => void 
                     </label>
                   </div>
                   {errors.acceptAll && (
-                    <p className="text-xs text-red-600 font-body ml-7">{errors.acceptAll.message}</p>
+                    <p className="text-xs text-[#a05e38] font-body ml-7">{errors.acceptAll.message}</p>
                   )}
                 </div>
               </div>

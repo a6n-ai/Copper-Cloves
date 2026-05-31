@@ -2324,7 +2324,7 @@ async function fetchPayoutData(opts?: { window?: "week" | "month" | "quarter" | 
                                             className={cn(
                                               "h-8 w-8 p-0 font-body transition-all hover:scale-110 active:scale-95",
                                               active
-                                                ? "border-amber-400 text-amber-700 bg-white hover:!bg-amber-500 hover:!text-white hover:!border-amber-500"
+                                                ? "border-terracotta/40 text-terracotta bg-white hover:!bg-terracotta hover:!text-white hover:!border-terracotta"
                                                 : "border-sage/60 text-sage bg-white hover:!bg-sage hover:!text-white hover:!border-sage",
                                             )}
                                           >
@@ -2506,10 +2506,10 @@ async function fetchPayoutData(opts?: { window?: "week" | "month" | "quarter" | 
                       const expired = selectedUser.expiry === "N/A" || (selectedUser.expiry && new Date(selectedUser.expiry).getTime() < Date.now());
                       const label = selectedUser.isPaused ? "Paused" : selectedUser.passType === "none" ? "None" : expired ? "Expired" : "Active";
                       const cls = selectedUser.isPaused
-                        ? "border-amber-200 bg-amber-50 text-amber-700"
+                        ? "border-terracotta/20 bg-terracotta/10 text-terracotta"
                         : label === "Active"
-                          ? "border-green-200 bg-green-50 text-green-700"
-                          : "border-red-200 bg-red-50 text-red-600";
+                          ? "border-sage/20 bg-sage/10 text-sage"
+                          : "border-[#a05e38]/25 bg-[#a05e38]/10 text-[#a05e38]";
                       return <Badge variant="outline" className={`font-body ${cls}`}>{label}</Badge>;
                     })()}
                   </div>
@@ -2896,7 +2896,7 @@ async function fetchPayoutData(opts?: { window?: "week" | "month" | "quarter" | 
                   type="button"
                   variant="outline"
                   onClick={() => handleDeleteClass(selectedClass.id, selectedClass.name)}
-                  className="border-red-200 text-red-600 hover:bg-red-50 font-body sm:mr-auto"
+                  className="border-[#a05e38]/25 text-[#a05e38] hover:bg-[#a05e38]/10 font-body sm:mr-auto"
                 >
                   <Trash2 className="h-4 w-4 mr-2" />
                   Delete Class

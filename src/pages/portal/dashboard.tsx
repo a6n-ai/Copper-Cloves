@@ -551,7 +551,7 @@ export default function Dashboard() {
                 <p className="font-body text-sm text-charcoal/60">
                   {userClassesCompleted} classes completed
                   {currentStreak > 0 && (
-                    <span className="inline-flex items-center gap-1 ml-2 text-orange-500">
+                    <span className="inline-flex items-center gap-1 ml-2 text-terracotta">
                       <Flame size={13} /> {currentStreak}-day streak
                     </span>
                   )}
@@ -984,8 +984,8 @@ export default function Dashboard() {
             </div>
 
             {selectedBookingForCheckIn.checked_in ? (
-              <div className="bg-green-50 border border-green-200 rounded-lg p-4 mb-4">
-                <p className="font-body text-sm text-green-800 text-center">
+              <div className="bg-sage/10 border border-sage/20 rounded-lg p-4 mb-4">
+                <p className="font-body text-sm text-sage text-center">
                   ✅ You're already checked in!
                 </p>
               </div>
@@ -1004,8 +1004,8 @@ export default function Dashboard() {
                   Check In Now
                 </Button>
               ) : (
-                <div className="bg-orange-50 border border-orange-200 rounded-lg p-4">
-                  <p className="font-body text-sm text-orange-800 text-center">
+                <div className="bg-terracotta/10 border border-terracotta/20 rounded-lg p-4">
+                  <p className="font-body text-sm text-terracotta text-center">
                     Check-in opens 10 minutes before class and closes 15 minutes after start time.
                   </p>
                 </div>

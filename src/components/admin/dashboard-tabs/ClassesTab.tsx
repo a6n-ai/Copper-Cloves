@@ -145,12 +145,12 @@ function ClassesTabImpl({ classPerformance, disciplineSplit, peakHours, classesL
                     const util = cls.utilization;
                     const statusColor =
                       util >= 75 ? "border-sage/30 text-sage bg-sage/5" :
-                      util >= 50 ? "border-amber-500/20 text-amber-600 bg-amber-50" :
-                      "border-red-500/30 text-red-600 bg-red-50";
+                      util >= 50 ? "border-terracotta/20 text-terracotta bg-terracotta/10" :
+                      "border-[#a05e38]/30 text-[#a05e38] bg-[#a05e38]/10";
                     const barColor =
                       util >= 75 ? "bg-sage" :
-                      util >= 50 ? "bg-amber-500" :
-                      "bg-red-500";
+                      util >= 50 ? "bg-terracotta" :
+                      "bg-[#a05e38]";
                     const status = util >= 75 ? "Strong" : util >= 50 ? "Steady" : "Low";
                     return (
                       <TableRow key={cls.name} className="border-sage/10">
@@ -299,10 +299,10 @@ function ClassesTabImpl({ classPerformance, disciplineSplit, peakHours, classesL
       </Card>
 
       {stats.underperforming.length > 0 && (
-        <Card className="border-red-500/20 bg-red-50">
+        <Card className="border-[#a05e38]/25 bg-[#a05e38]/10">
           <CardHeader>
             <CardTitle className="font-display text-xl text-charcoal flex items-center gap-2">
-              <AlertTriangle className="h-5 w-5 text-red-500" />
+              <AlertTriangle className="h-5 w-5 text-[#a05e38]" />
               Needs Attention
             </CardTitle>
             <CardDescription className="font-body text-charcoal/60">
@@ -312,9 +312,9 @@ function ClassesTabImpl({ classPerformance, disciplineSplit, peakHours, classesL
           <CardContent>
             <div className="flex flex-wrap gap-2">
               {stats.underperforming.map((cls) => (
-                <div key={cls.name} className="flex items-center gap-2 rounded-full bg-white border border-red-500/20 px-3 py-1.5">
+                <div key={cls.name} className="flex items-center gap-2 rounded-full bg-white border border-[#a05e38]/25 px-3 py-1.5">
                   <span className="font-body text-sm text-charcoal">{cls.name}</span>
-                  <Badge className="bg-red-500/10 text-red-600 border-red-500/20 font-body">
+                  <Badge className="bg-[#a05e38]/10 text-[#a05e38] border-[#a05e38]/25 font-body">
                     {cls.utilization}%
                   </Badge>
                 </div>

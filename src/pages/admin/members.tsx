@@ -620,7 +620,7 @@ export default function AdminMembers() {
       case "active":
         return <Badge className="bg-sage/10 text-sage border-sage/20 whitespace-nowrap font-body">Active</Badge>;
       case "expiring":
-        return <Badge variant="outline" className="border-amber-500/20 text-amber-600 bg-amber-50 whitespace-nowrap font-body">Expiring</Badge>;
+        return <Badge variant="outline" className="border-terracotta/20 text-terracotta bg-terracotta/10 whitespace-nowrap font-body">Expiring</Badge>;
       case "expired":
         return <Badge variant="destructive" className="whitespace-nowrap font-body">Expired</Badge>;
       default:
@@ -1023,7 +1023,7 @@ export default function AdminMembers() {
                                 ? "text-sage"
                                 : member.accountFilter === "inactive"
                                 ? "text-charcoal/40"
-                                : "text-amber-600"
+                                : "text-terracotta"
                             }`}>
                               {member.accountFilter === "active"
                                 ? "Active"

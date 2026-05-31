@@ -676,7 +676,7 @@ export default function Shop({ initialProducts }: ShopProps) {
                     </Button>
                   </div>
                   {couponError && (
-                    <p className="text-sm text-red-600 font-body">{couponError}</p>
+                    <p className="text-sm text-[#a05e38] font-body">{couponError}</p>
                   )}
                 </div>
 
@@ -702,7 +702,7 @@ export default function Shop({ initialProducts }: ShopProps) {
                 </div>
 
                 {checkoutError && (
-                  <p className="text-sm text-red-600 font-body mb-4">{checkoutError}</p>
+                  <p className="text-sm text-[#a05e38] font-body mb-4">{checkoutError}</p>
                 )}
 
                 <Button

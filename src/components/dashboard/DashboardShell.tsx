@@ -300,7 +300,7 @@ export function DashboardShell({ config, user, children }: DashboardShellProps) 
                           {user.logoUrl ? <AvatarImage src={user.logoUrl} alt={user.name} /> : null}
                           <AvatarFallback className="bg-sage/10 text-sage font-display">{initials}</AvatarFallback>
                         </Avatar>
-                        <span className="ring-card absolute right-0 bottom-0 size-2 rounded-full bg-green-600 ring-2" />
+                        <span className="ring-card absolute right-0 bottom-0 size-2 rounded-full bg-sage ring-2" />
                       </div>
                       <div className="flex flex-col min-w-0">
                         <span className="text-charcoal font-body font-semibold truncate">{user.name}</span>

@@ -968,9 +968,9 @@ export default function AdminSchedule() {
             />
 
             {loadError && (
-              <Alert variant="default" className="border-amber-300 bg-amber-50 text-amber-950">
-                <AlertCircle className="h-4 w-4 text-amber-700" />
-                <AlertDescription className="font-body text-amber-900">{loadError}</AlertDescription>
+              <Alert variant="default" className="border-terracotta/30 bg-terracotta/10 text-[#a05e38]">
+                <AlertCircle className="h-4 w-4 text-terracotta" />
+                <AlertDescription className="font-body text-[#a05e38]">{loadError}</AlertDescription>
               </Alert>
             )}
             {successMessage && (
@@ -1148,7 +1148,7 @@ export default function AdminSchedule() {
                               onClick={(e) => { e.stopPropagation(); handleToggleStatus(sc); }}
                               className={`font-body h-8 w-8 p-0 transition-all hover:scale-110 active:scale-95 ${
                                 isActive
-                                  ? "border-amber-400 text-amber-700 bg-white hover:!bg-amber-500 hover:!text-white hover:!border-amber-500"
+                                  ? "border-terracotta/40 text-terracotta bg-white hover:!bg-terracotta hover:!text-white hover:!border-terracotta"
                                   : "border-sage/60 text-sage bg-white hover:!bg-sage hover:!text-white hover:!border-sage"
                               }`}
                               title={
@@ -1201,7 +1201,7 @@ export default function AdminSchedule() {
               className="py-4 space-y-0"
             >
               {usingPlaceholderCatalog && (
-                <div className="rounded-lg border border-amber-200 bg-amber-50 px-4 py-3 font-body text-sm text-amber-950 mb-4">
+                <div className="rounded-lg border border-terracotta/20 bg-terracotta/10 px-4 py-3 font-body text-sm text-[#a05e38] mb-4">
                   <strong className="font-medium">Sample list:</strong> no class types or instructors in the database yet. Add them in Admin → Settings, then schedule live sessions.
                 </div>
               )}
@@ -1411,9 +1411,9 @@ export default function AdminSchedule() {
                                     onClick={() => field.onChange(active ? undefined : v)}
                                     className={`flex-1 h-10 rounded-lg border font-body text-sm font-medium transition-colors ${
                                       v === "absent"
-                                        ? active ? "bg-red-500 border-red-500 text-white" : "border-charcoal/20 text-charcoal/60 hover:bg-red-50"
+                                        ? active ? "bg-[#a05e38] border-[#a05e38] text-white" : "border-charcoal/20 text-charcoal/60 hover:bg-[#a05e38]/10"
                                         : v === "late"
-                                          ? active ? "bg-amber-500 border-amber-500 text-white" : "border-charcoal/20 text-charcoal/60 hover:bg-amber-50"
+                                          ? active ? "bg-terracotta border-terracotta text-white" : "border-charcoal/20 text-charcoal/60 hover:bg-terracotta/10"
                                           : active ? "bg-sage border-sage text-white" : "border-charcoal/20 text-charcoal/60 hover:bg-sage/10"
                                     }`}
                                   >
@@ -1762,9 +1762,9 @@ export default function AdminSchedule() {
                   {rosterData.instructorCheckInOutcome && (
                     <span className={`text-xs px-1.5 py-0.5 rounded-full font-medium ${
                       rosterData.instructorCheckInOutcome === "absent"
-                        ? "bg-red-100 text-red-600"
+                        ? "bg-[#a05e38]/10 text-[#a05e38]"
                         : rosterData.instructorCheckInOutcome === "late"
-                          ? "bg-amber-100 text-amber-700"
+                          ? "bg-terracotta/10 text-terracotta"
                           : "bg-sage/10 text-sage"
                     }`}>
                       {rosterData.instructorCheckInOutcome.replace("_", " ")}
@@ -1819,7 +1819,7 @@ export default function AdminSchedule() {
                         {b.checkedIn && b.checkInTime && (
                           <p className="font-body text-xs text-sage mt-0.5">
                             Checked in {new Date(b.checkInTime).toLocaleTimeString("en-IN", { hour: "2-digit", minute: "2-digit", timeZone: "Asia/Kolkata" })}
-                            {b.checkInOutcome === "late" && <span className="ml-1 text-amber-600">(late)</span>}
+                            {b.checkInOutcome === "late" && <span className="ml-1 text-terracotta">(late)</span>}
                           </p>
                         )}
                       </div>
@@ -1863,9 +1863,9 @@ export default function AdminSchedule() {
                       disabled={savingInstructorOutcome}
                       className={`flex-1 h-9 rounded-lg border font-body text-xs font-medium transition-colors disabled:opacity-50 ${
                         v === "absent"
-                          ? active ? "bg-red-500 border-red-500 text-white" : "border-charcoal/20 text-charcoal/60 hover:bg-red-50"
+                          ? active ? "bg-[#a05e38] border-[#a05e38] text-white" : "border-charcoal/20 text-charcoal/60 hover:bg-[#a05e38]/10"
                           : v === "late"
-                            ? active ? "bg-amber-500 border-amber-500 text-white" : "border-charcoal/20 text-charcoal/60 hover:bg-amber-50"
+                            ? active ? "bg-terracotta border-terracotta text-white" : "border-charcoal/20 text-charcoal/60 hover:bg-terracotta/10"
                             : active ? "bg-sage border-sage text-white" : "border-charcoal/20 text-charcoal/60 hover:bg-sage/10"
                       }`}
                     >

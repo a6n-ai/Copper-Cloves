@@ -93,17 +93,17 @@ function statusClasses(status: string) {
     case "good":
       return "bg-sage/60 text-white";
     case "moderate":
-      return "bg-amber-500 text-white";
+      return "bg-terracotta text-white";
     default:
-      return "bg-red-500 text-white";
+      return "bg-[#a05e38] text-white";
   }
 }
 
 function barFillClasses(status: string) {
   if (status === "full" || status === "high") return "bg-sage";
   if (status === "good") return "bg-sage/70";
-  if (status === "moderate") return "bg-amber-500";
-  return "bg-red-500";
+  if (status === "moderate") return "bg-terracotta";
+  return "bg-[#a05e38]";
 }
 
 export function ControlAnalyticsPanel() {
@@ -274,9 +274,9 @@ export function ControlAnalyticsPanel() {
                             style={{ flexGrow: Math.max(data.revenue, 0.1), flexBasis: 0 }}
                           />
                         </div>
-                        <div className="flex-1 bg-red-100 rounded overflow-hidden flex min-h-[8px]">
+                        <div className="flex-1 bg-[#a05e38]/10 rounded overflow-hidden flex min-h-[8px]">
                           <div
-                            className="bg-red-400 h-full rounded-l transition-all min-w-[2px]"
+                            className="bg-[#a05e38] h-full rounded-l transition-all min-w-[2px]"
                             style={{ flexGrow: Math.max(data.expense, 0.1), flexBasis: 0 }}
                           />
                         </div>
@@ -291,7 +291,7 @@ export function ControlAnalyticsPanel() {
                   <span className="font-body text-sm text-charcoal/60">Revenue ₹k</span>
                 </div>
                 <div className="flex items-center gap-2">
-                  <div className="w-4 h-4 bg-red-400 rounded" />
+                  <div className="w-4 h-4 bg-[#a05e38] rounded" />
                   <span className="font-body text-sm text-charcoal/60">Est. payouts ₹k</span>
                 </div>
               </div>
@@ -408,7 +408,7 @@ export function ControlAnalyticsPanel() {
                 <div>
                   <div className="flex justify-between mb-2">
                     <span className="font-body text-sm">No recent check-in (approx.)</span>
-                    <span className="font-body text-sm font-medium text-amber-600">{d.members.atRiskCount}</span>
+                    <span className="font-body text-sm font-medium text-terracotta">{d.members.atRiskCount}</span>
                   </div>
                 </div>
               </div>
@@ -417,9 +417,9 @@ export function ControlAnalyticsPanel() {
                   <div className="font-body text-xs text-charcoal/60 mb-1">Active rate</div>
                   <div className="font-display text-2xl text-sage">{d.members.activeRatePct}%</div>
                 </div>
-                <div className="p-3 bg-amber-50 rounded-lg border border-amber-200">
+                <div className="p-3 bg-terracotta/10 rounded-lg border border-terracotta/20">
                   <div className="font-body text-xs text-charcoal/60 mb-1">Quiet members</div>
-                  <div className="font-display text-2xl text-amber-600">{d.members.atRiskCount}</div>
+                  <div className="font-display text-2xl text-terracotta">{d.members.atRiskCount}</div>
                 </div>
               </div>
             </CardContent>

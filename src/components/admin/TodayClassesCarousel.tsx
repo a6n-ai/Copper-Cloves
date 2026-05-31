@@ -52,8 +52,8 @@ interface TodayClassesCarouselProps {
 
 const STATUS_TONE: Record<string, string> = {
   available: "bg-sage/10 text-sage border-sage/20",
-  started: "bg-amber-100 text-amber-700 border-amber-300",
-  live: "bg-amber-100 text-amber-700 border-amber-300",
+  started: "bg-terracotta/10 text-terracotta border-terracotta/30",
+  live: "bg-terracotta/10 text-terracotta border-terracotta/30",
   completed: "bg-charcoal/10 text-charcoal/60 border-charcoal/15",
   cancelled: "bg-terracotta/10 text-terracotta border-terracotta/20",
   inactive: "bg-charcoal/5 text-charcoal/50 border-charcoal/10",
@@ -62,8 +62,8 @@ const STATUS_TONE: Record<string, string> = {
 
 // Whole-card tint by status. Falls back to PALETTE rotation for available.
 const CARD_TONE: Record<string, string> = {
-  live: "border-amber-300 bg-linear-to-br from-amber-100 via-amber-50 to-white shadow-[0_8px_24px_-12px_rgba(217,119,6,0.45)] ring-1 ring-amber-300 hover:shadow-[0_16px_40px_-16px_rgba(217,119,6,0.55)]",
-  started: "border-amber-300 bg-linear-to-br from-amber-100 via-amber-50 to-white shadow-[0_8px_24px_-12px_rgba(217,119,6,0.45)] ring-1 ring-amber-300 hover:shadow-[0_16px_40px_-16px_rgba(217,119,6,0.55)]",
+  live: "border-terracotta/30 bg-terracotta/10 shadow-[0_8px_24px_-12px_rgba(193,120,86,0.45)] ring-1 ring-terracotta/30 hover:shadow-[0_16px_40px_-16px_rgba(193,120,86,0.55)]",
+  started: "border-terracotta/30 bg-terracotta/10 shadow-[0_8px_24px_-12px_rgba(193,120,86,0.45)] ring-1 ring-terracotta/30 hover:shadow-[0_16px_40px_-16px_rgba(193,120,86,0.55)]",
   completed: "border-charcoal/15 bg-charcoal/[0.04] opacity-80 hover:opacity-100 hover:shadow-[0_12px_32px_-16px_rgba(0,0,0,0.2)]",
   cancelled: "border-terracotta/30 bg-linear-to-br from-terracotta/15 via-white to-terracotta/5 ring-1 ring-terracotta/20 hover:shadow-[0_12px_32px_-16px_rgba(192,86,64,0.35)]",
   abandoned: "border-terracotta/30 bg-linear-to-br from-terracotta/15 via-white to-terracotta/5 ring-1 ring-terracotta/20 hover:shadow-[0_12px_32px_-16px_rgba(192,86,64,0.35)]",
@@ -271,7 +271,7 @@ export function TodayClassesCarousel({
                         className={cn(
                           "font-body h-8 w-8 p-0 transition-all hover:scale-110 active:scale-95",
                           isActive
-                            ? "border-amber-400 text-amber-700 bg-white hover:!bg-amber-500 hover:!text-white hover:!border-amber-500"
+                            ? "border-terracotta/40 text-terracotta bg-white-warm hover:!bg-terracotta hover:!text-cream hover:!border-terracotta"
                             : "border-sage/60 text-sage bg-white hover:!bg-sage hover:!text-white hover:!border-sage",
                         )}
                       >

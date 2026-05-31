@@ -361,7 +361,7 @@ export default function AdminInstructorsPage() {
                                       className={cn(
                                         "h-8 w-8 p-0 font-body transition-all hover:scale-110 active:scale-95",
                                         active
-                                          ? "border-amber-400 text-amber-700 bg-white hover:!bg-amber-500 hover:!text-white hover:!border-amber-500"
+                                          ? "border-terracotta/40 text-terracotta bg-white hover:!bg-terracotta hover:!text-white hover:!border-terracotta"
                                           : "border-sage/60 text-sage bg-white hover:!bg-sage hover:!text-white hover:!border-sage",
                                       )}
                                     >

@@ -164,21 +164,237 @@ function formatInrDetail(n?: number): string {
   return `₹${Math.round(Number(n)).toLocaleString("en-IN")}`;
 }
 
-interface Props {
+// Resolve which rows to hand to the export, shared by both sections so the
+// Overview "Generate Reports" buttons and the Transactions "Export" button
+// can't drift on what each period means.
+function buildExportRows(
+  period: FinanceReportPeriod,
+  ledger: DashboardTxn[],
+  filtered: DashboardTxn[],
+): DashboardTxn[] {
+  if (period === "filtered") return filtered;
+  if (period === "all") return ledger;
+  return ledger.filter((t) => transactionInExportPeriod(t.date, period));
+}
+
+// ──────────────────────────────────────────────────────────────────────────
+// Overview section: headline metrics, report downloads, P&L / trend charts.
+// ──────────────────────────────────────────────────────────────────────────
+
+export interface FinanceOverviewSectionProps {
   financeStats: FinanceStats;
   overviewLoaded: boolean;
   financeLedgerTransactions: DashboardTxn[];
   financeTrend: FinanceTrendRow[];
-  onExport: (period: FinanceReportPeriod, filtered: DashboardTxn[]) => void;
+  onExport: (period: FinanceReportPeriod, rows: DashboardTxn[]) => void;
 }
 
-function FinanceTabImpl({
+function FinanceOverviewSectionImpl({
   financeStats,
   overviewLoaded,
   financeLedgerTransactions,
   financeTrend,
   onExport,
-}: Props) {
+}: FinanceOverviewSectionProps) {
+  const handleExport = useCallback(
+    (period: FinanceReportPeriod) => {
+      onExport(period, buildExportRows(period, financeLedgerTransactions, financeLedgerTransactions));
+    },
+    [financeLedgerTransactions, onExport],
+  );
+
+  return (
+    <div className="space-y-6">
+      <div className="grid grid-cols-2 md:grid-cols-3 gap-3 sm:gap-4">
+        <MetricCard
+          label="Total Revenue"
+          value={Math.round(financeStats.totalRevenue)}
+          prefix="₹"
+          icon={TrendingUp}
+          tone="sage"
+          loading={!overviewLoaded}
+          hint={`+${financeStats.growthRate}% growth`}
+        />
+        <MetricCard
+          label="Total Expenses"
+          value={Math.round(financeStats.totalExpenses)}
+          prefix="₹"
+          icon={TrendingDown}
+          tone="terracotta"
+          loading={!overviewLoaded}
+          hint={`Coach ₹${Math.round(financeStats.coachPayments).toLocaleString("en-IN")} · Studio ₹${Math.round(financeStats.studioExpenses).toLocaleString("en-IN")}`}
+        />
+        <MetricCard
+          label="Net Profit"
+          value={Math.round(financeStats.profit)}
+          prefix="₹"
+          icon={DollarSign}
+          tone="sage"
+          loading={!overviewLoaded}
+          hint={financeStats.totalRevenue > 0
+            ? `${((financeStats.profit / financeStats.totalRevenue) * 100).toFixed(0)}% margin`
+            : "—"}
+        />
+      </div>
+
+      <Card className="border-sage/20 bg-white-warm">
+        <CardHeader>
+          <div className="flex items-center justify-between">
+            <div>
+              <CardTitle className="font-display text-2xl text-charcoal">Generate Reports</CardTitle>
+              <CardDescription className="font-body text-charcoal/60 mt-1">
+                Download financial reports for any time period
+              </CardDescription>
+            </div>
+            <FileText className="h-8 w-8 text-sage/40" />
+          </div>
+        </CardHeader>
+        <CardContent>
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+            <Button type="button" variant="sage" className="h-12" onClick={() => handleExport("week")}>
+              <Download className="h-4 w-4 mr-2" />
+              Weekly Report
+            </Button>
+            <Button type="button" variant="sage" className="h-12" onClick={() => handleExport("month")}>
+              <Download className="h-4 w-4 mr-2" />
+              Monthly Report
+            </Button>
+            <Button type="button" variant="sage" className="h-12" onClick={() => handleExport("quarter")}>
+              <Download className="h-4 w-4 mr-2" />
+              Quarterly Report
+            </Button>
+            <Button type="button" variant="sage" className="h-12" onClick={() => handleExport("year")}>
+              <Download className="h-4 w-4 mr-2" />
+              Annual Report
+            </Button>
+          </div>
+        </CardContent>
+      </Card>
+
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        <Card className="border-sage/20 bg-white-warm">
+          <CardHeader>
+            <CardTitle className="font-display text-xl text-charcoal">Revenue Trend</CardTitle>
+            <CardDescription className="font-body text-charcoal/60">Daily revenue over the past 30 days</CardDescription>
+          </CardHeader>
+          <CardContent>
+            <div className="space-y-4">
+              <div className="h-64 flex items-end justify-between gap-2">
+                {REVENUE_TREND_PLACEHOLDER.map((value, idx) => (
+                  <div key={idx} className="flex-1 flex flex-col items-center gap-1">
+                    <div
+                      className="w-full bg-linear-to-t from-sage to-sage/40 rounded-t-sm hover:from-sage/90 hover:to-sage/60 transition-all duration-300 cursor-pointer relative group"
+                      style={{ height: `${value}%` }}
+                    >
+                      <div className="absolute -top-8 left-1/2 -translate-x-1/2 bg-charcoal text-white text-xs rounded opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap">
+                        ₹{(15 + idx * 2).toFixed(1)}k
+                      </div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+              <div className="flex items-center justify-between text-xs text-charcoal/50 font-body">
+                <span>30 days ago</span>
+                <span>Today</span>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+
+        <Card className="border-sage/20 bg-white-warm">
+          <CardHeader>
+            <CardTitle className="font-display text-xl text-charcoal">Revenue Sources</CardTitle>
+            <CardDescription className="font-body text-charcoal/60">Breakdown by revenue type</CardDescription>
+          </CardHeader>
+          <CardContent>
+            <div className="flex items-center justify-center py-8">
+              <div className="relative w-48 h-48">
+                <svg viewBox="0 0 100 100" className="transform -rotate-90">
+                  <circle cx="50" cy="50" r="40" fill="transparent" stroke="#8F9779" strokeWidth="20" strokeDasharray="213 251" className="hover:opacity-80 transition-opacity cursor-pointer" />
+                  <circle cx="50" cy="50" r="40" fill="transparent" stroke="#D4A574" strokeWidth="20" strokeDasharray="38 226" strokeDashoffset="-213" className="hover:opacity-80 transition-opacity cursor-pointer" />
+                </svg>
+              </div>
+            </div>
+            <div className="grid grid-cols-1 gap-2 mt-4">
+              <div className="flex items-center justify-between p-2 rounded-lg hover:bg-sage/5 transition-colors">
+                <div className="flex items-center gap-2">
+                  <div className="w-3 h-3 rounded-full bg-sage" />
+                  <span className="font-body text-sm text-charcoal">Premium Packages</span>
+                </div>
+                <span className="font-body font-medium text-charcoal">85%</span>
+              </div>
+              <div className="flex items-center justify-between p-2 rounded-lg hover:bg-sage/5 transition-colors">
+                <div className="flex items-center gap-2">
+                  <div className="w-3 h-3 rounded-full bg-[#D4A574]" />
+                  <span className="font-body text-sm text-charcoal">Aerial Specialty</span>
+                </div>
+                <span className="font-body font-medium text-charcoal">15%</span>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+
+        <Card className="border-sage/20 bg-white-warm lg:col-span-2">
+          <CardHeader>
+            <CardTitle className="font-display text-xl text-charcoal">Monthly P&amp;L</CardTitle>
+            <CardDescription className="font-body text-charcoal/60">Revenue vs expenses over the past 6 months</CardDescription>
+          </CardHeader>
+          <CardContent>
+            {financeTrend.length === 0 ? (
+              <div className="h-[280px] flex items-center justify-center font-body text-sm text-charcoal/40">No data yet.</div>
+            ) : (
+              <ChartContainer
+                config={{
+                  revenue: { label: "Revenue", color: "#8F9779" },
+                  expenses: { label: "Expenses", color: "#C17856" },
+                  profit: { label: "Profit", color: "#6B8E73" },
+                }}
+                className="h-[300px] w-full"
+              >
+                <ComposedChart data={financeTrend} margin={{ top: 8, right: 12, left: 0, bottom: 0 }}>
+                  <CartesianGrid vertical={false} strokeDasharray="3 3" stroke="#E5E5E0" />
+                  <XAxis dataKey="month" tickLine={false} axisLine={false} tick={{ fontSize: 12, fill: "#6B6B6B" }} />
+                  <YAxis
+                    tickLine={false}
+                    axisLine={false}
+                    tick={{ fontSize: 12, fill: "#6B6B6B" }}
+                    tickFormatter={(v: number) => `₹${(v / 1000).toFixed(0)}k`}
+                    width={48}
+                  />
+                  <ChartTooltip
+                    cursor={{ fill: "rgba(143,151,121,0.05)" }}
+                    content={<ChartTooltipContent formatter={(v) => `₹${Number(v).toLocaleString("en-IN")}`} />}
+                  />
+                  <ChartLegend content={<ChartLegendContent />} />
+                  <Bar dataKey="revenue" fill="var(--color-revenue)" radius={[6, 6, 0, 0]} maxBarSize={36} />
+                  <Bar dataKey="expenses" fill="var(--color-expenses)" radius={[6, 6, 0, 0]} maxBarSize={36} />
+                  <Line type="monotone" dataKey="profit" stroke="var(--color-profit)" strokeWidth={2.5} dot={{ r: 4, fill: "var(--color-profit)" }} activeDot={{ r: 6 }} />
+                </ComposedChart>
+              </ChartContainer>
+            )}
+          </CardContent>
+        </Card>
+      </div>
+    </div>
+  );
+}
+
+export const FinanceOverviewSection = memo(FinanceOverviewSectionImpl);
+
+// ──────────────────────────────────────────────────────────────────────────
+// Transactions section: filters, the ledger table, and the Finance-1 detail
+// dialog. Owns its own filter / sort / pagination state.
+// ──────────────────────────────────────────────────────────────────────────
+
+export interface FinanceTransactionsSectionProps {
+  financeLedgerTransactions: DashboardTxn[];
+  onExport: (period: FinanceReportPeriod, rows: DashboardTxn[]) => void;
+}
+
+function FinanceTransactionsSectionImpl({
+  financeLedgerTransactions,
+  onExport,
+}: FinanceTransactionsSectionProps) {
   const [transactionFilter, setTransactionFilter] = useState("all");
   const [transactionDateRange, setTransactionDateRange] = useState("all");
   const [transactionType, setTransactionType] = useState("all");
@@ -258,81 +474,11 @@ function FinanceTabImpl({
   );
 
   const handleExport = (period: FinanceReportPeriod) => {
-    let rows: DashboardTxn[];
-    if (period === "filtered") rows = filteredFinanceTransactions;
-    else if (period === "all") rows = financeLedgerTransactions;
-    else rows = financeLedgerTransactions.filter((t) => transactionInExportPeriod(t.date, period));
-    onExport(period, rows);
+    onExport(period, buildExportRows(period, financeLedgerTransactions, filteredFinanceTransactions));
   };
 
   return (
     <>
-      <div className="grid grid-cols-2 md:grid-cols-3 gap-3 sm:gap-4">
-        <MetricCard
-          label="Total Revenue"
-          value={Math.round(financeStats.totalRevenue)}
-          prefix="₹"
-          icon={TrendingUp}
-          tone="sage"
-          loading={!overviewLoaded}
-          hint={`+${financeStats.growthRate}% growth`}
-        />
-        <MetricCard
-          label="Total Expenses"
-          value={Math.round(financeStats.totalExpenses)}
-          prefix="₹"
-          icon={TrendingDown}
-          tone="terracotta"
-          loading={!overviewLoaded}
-          hint={`Coach ₹${Math.round(financeStats.coachPayments).toLocaleString("en-IN")} · Studio ₹${Math.round(financeStats.studioExpenses).toLocaleString("en-IN")}`}
-        />
-        <MetricCard
-          label="Net Profit"
-          value={Math.round(financeStats.profit)}
-          prefix="₹"
-          icon={DollarSign}
-          tone="sage"
-          loading={!overviewLoaded}
-          hint={financeStats.totalRevenue > 0
-            ? `${((financeStats.profit / financeStats.totalRevenue) * 100).toFixed(0)}% margin`
-            : "—"}
-        />
-      </div>
-
-      <Card className="border-sage/20 bg-white-warm">
-        <CardHeader>
-          <div className="flex items-center justify-between">
-            <div>
-              <CardTitle className="font-display text-2xl text-charcoal">Generate Reports</CardTitle>
-              <CardDescription className="font-body text-charcoal/60 mt-1">
-                Download financial reports for any time period
-              </CardDescription>
-            </div>
-            <FileText className="h-8 w-8 text-sage/40" />
-          </div>
-        </CardHeader>
-        <CardContent>
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-            <Button type="button" variant="sage" className="h-12" onClick={() => handleExport("week")}>
-              <Download className="h-4 w-4 mr-2" />
-              Weekly Report
-            </Button>
-            <Button type="button" variant="sage" className="h-12" onClick={() => handleExport("month")}>
-              <Download className="h-4 w-4 mr-2" />
-              Monthly Report
-            </Button>
-            <Button type="button" variant="sage" className="h-12" onClick={() => handleExport("quarter")}>
-              <Download className="h-4 w-4 mr-2" />
-              Quarterly Report
-            </Button>
-            <Button type="button" variant="sage" className="h-12" onClick={() => handleExport("year")}>
-              <Download className="h-4 w-4 mr-2" />
-              Annual Report
-            </Button>
-          </div>
-        </CardContent>
-      </Card>
-
       <Card className="border-sage/20 bg-white-warm">
         <CardHeader>
           <div className="flex items-center justify-between mb-4">
@@ -401,7 +547,7 @@ function FinanceTabImpl({
         </CardHeader>
         <CardContent>
           {financeLedgerTransactions.some((t) => t.isFinanceDemo) ? (
-            <p className="mb-4 rounded-lg border border-amber-200 bg-amber-50 px-3 py-2 font-body text-sm text-amber-950">
+            <p className="mb-4 rounded-lg border border-terracotta/20 bg-terracotta/10 px-3 py-2 font-body text-sm text-[#a05e38]">
               Rows marked <strong>Sample</strong> are preview data so you can see Finance-1 layout
               (+N guests, food labels, detail dialog). Real payments appear without that badge.
             </p>
@@ -585,111 +731,46 @@ function FinanceTabImpl({
           ) : null}
         </ResponsiveDialogContent>
       </ResponsiveDialog>
+    </>
+  );
+}
 
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        <Card className="border-sage/20 bg-white-warm">
-          <CardHeader>
-            <CardTitle className="font-display text-xl text-charcoal">Revenue Trend</CardTitle>
-            <CardDescription className="font-body text-charcoal/60">Daily revenue over the past 30 days</CardDescription>
-          </CardHeader>
-          <CardContent>
-            <div className="space-y-4">
-              <div className="h-64 flex items-end justify-between gap-2">
-                {REVENUE_TREND_PLACEHOLDER.map((value, idx) => (
-                  <div key={idx} className="flex-1 flex flex-col items-center gap-1">
-                    <div
-                      className="w-full bg-linear-to-t from-sage to-sage/40 rounded-t-sm hover:from-sage/90 hover:to-sage/60 transition-all duration-300 cursor-pointer relative group"
-                      style={{ height: `${value}%` }}
-                    >
-                      <div className="absolute -top-8 left-1/2 -translate-x-1/2 bg-charcoal text-white text-xs rounded opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap">
-                        ₹{(15 + idx * 2).toFixed(1)}k
-                      </div>
-                    </div>
-                  </div>
-                ))}
-              </div>
-              <div className="flex items-center justify-between text-xs text-charcoal/50 font-body">
-                <span>30 days ago</span>
-                <span>Today</span>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
+export const FinanceTransactionsSection = memo(FinanceTransactionsSectionImpl);
 
-        <Card className="border-sage/20 bg-white-warm">
-          <CardHeader>
-            <CardTitle className="font-display text-xl text-charcoal">Revenue Sources</CardTitle>
-            <CardDescription className="font-body text-charcoal/60">Breakdown by revenue type</CardDescription>
-          </CardHeader>
-          <CardContent>
-            <div className="flex items-center justify-center py-8">
-              <div className="relative w-48 h-48">
-                <svg viewBox="0 0 100 100" className="transform -rotate-90">
-                  <circle cx="50" cy="50" r="40" fill="transparent" stroke="#8F9779" strokeWidth="20" strokeDasharray="213 251" className="hover:opacity-80 transition-opacity cursor-pointer" />
-                  <circle cx="50" cy="50" r="40" fill="transparent" stroke="#D4A574" strokeWidth="20" strokeDasharray="38 226" strokeDashoffset="-213" className="hover:opacity-80 transition-opacity cursor-pointer" />
-                </svg>
-              </div>
-            </div>
-            <div className="grid grid-cols-1 gap-2 mt-4">
-              <div className="flex items-center justify-between p-2 rounded-lg hover:bg-sage/5 transition-colors">
-                <div className="flex items-center gap-2">
-                  <div className="w-3 h-3 rounded-full bg-sage" />
-                  <span className="font-body text-sm text-charcoal">Premium Packages</span>
-                </div>
-                <span className="font-body font-medium text-charcoal">85%</span>
-              </div>
-              <div className="flex items-center justify-between p-2 rounded-lg hover:bg-sage/5 transition-colors">
-                <div className="flex items-center gap-2">
-                  <div className="w-3 h-3 rounded-full bg-[#D4A574]" />
-                  <span className="font-body text-sm text-charcoal">Aerial Specialty</span>
-                </div>
-                <span className="font-body font-medium text-charcoal">15%</span>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
+// ──────────────────────────────────────────────────────────────────────────
+// Combined tab: overview + transactions stacked. Used by the admin dashboard
+// "Finance" tab so its layout is unchanged. The standalone /admin/finances
+// page composes the same two sections under sub-tabs instead.
+// ──────────────────────────────────────────────────────────────────────────
 
-        <Card className="border-sage/20 bg-white-warm lg:col-span-2">
-          <CardHeader>
-            <CardTitle className="font-display text-xl text-charcoal">Monthly P&amp;L</CardTitle>
-            <CardDescription className="font-body text-charcoal/60">Revenue vs expenses over the past 6 months</CardDescription>
-          </CardHeader>
-          <CardContent>
-            {financeTrend.length === 0 ? (
-              <div className="h-[280px] flex items-center justify-center font-body text-sm text-charcoal/40">No data yet.</div>
-            ) : (
-              <ChartContainer
-                config={{
-                  revenue: { label: "Revenue", color: "#8F9779" },
-                  expenses: { label: "Expenses", color: "#C17856" },
-                  profit: { label: "Profit", color: "#6B8E73" },
-                }}
-                className="h-[300px] w-full"
-              >
-                <ComposedChart data={financeTrend} margin={{ top: 8, right: 12, left: 0, bottom: 0 }}>
-                  <CartesianGrid vertical={false} strokeDasharray="3 3" stroke="#E5E5E0" />
-                  <XAxis dataKey="month" tickLine={false} axisLine={false} tick={{ fontSize: 12, fill: "#6B6B6B" }} />
-                  <YAxis
-                    tickLine={false}
-                    axisLine={false}
-                    tick={{ fontSize: 12, fill: "#6B6B6B" }}
-                    tickFormatter={(v: number) => `₹${(v / 1000).toFixed(0)}k`}
-                    width={48}
-                  />
-                  <ChartTooltip
-                    cursor={{ fill: "rgba(143,151,121,0.05)" }}
-                    content={<ChartTooltipContent formatter={(v) => `₹${Number(v).toLocaleString("en-IN")}`} />}
-                  />
-                  <ChartLegend content={<ChartLegendContent />} />
-                  <Bar dataKey="revenue" fill="var(--color-revenue)" radius={[6, 6, 0, 0]} maxBarSize={36} />
-                  <Bar dataKey="expenses" fill="var(--color-expenses)" radius={[6, 6, 0, 0]} maxBarSize={36} />
-                  <Line type="monotone" dataKey="profit" stroke="var(--color-profit)" strokeWidth={2.5} dot={{ r: 4, fill: "var(--color-profit)" }} activeDot={{ r: 6 }} />
-                </ComposedChart>
-              </ChartContainer>
-            )}
-          </CardContent>
-        </Card>
-      </div>
+interface Props {
+  financeStats: FinanceStats;
+  overviewLoaded: boolean;
+  financeLedgerTransactions: DashboardTxn[];
+  financeTrend: FinanceTrendRow[];
+  onExport: (period: FinanceReportPeriod, filtered: DashboardTxn[]) => void;
+}
+
+function FinanceTabImpl({
+  financeStats,
+  overviewLoaded,
+  financeLedgerTransactions,
+  financeTrend,
+  onExport,
+}: Props) {
+  return (
+    <>
+      <FinanceOverviewSection
+        financeStats={financeStats}
+        overviewLoaded={overviewLoaded}
+        financeLedgerTransactions={financeLedgerTransactions}
+        financeTrend={financeTrend}
+        onExport={onExport}
+      />
+      <FinanceTransactionsSection
+        financeLedgerTransactions={financeLedgerTransactions}
+        onExport={onExport}
+      />
     </>
   );
 }
@@ -714,17 +795,17 @@ const FinanceRowView = memo(function FinanceRowView({
       onClick={handleClick}
     >
       <TableCell className="px-5 py-3">
-        <div className={`p-2 rounded-lg w-fit ${txn.type === "revenue" ? "bg-sage/10" : "bg-red-50"}`}>
+        <div className={`p-2 rounded-lg w-fit ${txn.type === "revenue" ? "bg-sage/10" : "bg-[#a05e38]/10"}`}>
           {txn.type === "revenue"
             ? <TrendingUp className="h-4 w-4 text-sage" />
-            : <TrendingDown className="h-4 w-4 text-red-500" />}
+            : <TrendingDown className="h-4 w-4 text-[#a05e38]" />}
         </div>
       </TableCell>
       <TableCell className="px-5 py-3">
         <div className="flex items-center gap-2 flex-wrap">
           <span className="font-body font-medium text-charcoal">{txn.category}</span>
           {txn.isFinanceDemo && (
-            <Badge variant="outline" className="border-amber-300 bg-amber-50 text-amber-900 text-[10px] uppercase tracking-wide font-body">Sample</Badge>
+            <Badge variant="outline" className="border-terracotta/30 bg-terracotta/10 text-[#a05e38] text-[10px] uppercase tracking-wide font-body">Sample</Badge>
           )}
         </div>
         {txn.foodOrderedLabel && txn.foodOrderedLabel !== "—" && (
@@ -742,7 +823,7 @@ const FinanceRowView = memo(function FinanceRowView({
         <Badge variant="outline" className="border-charcoal/15 text-charcoal/60 font-body whitespace-nowrap">{txn.method}</Badge>
       </TableCell>
       <TableCell className="px-5 py-3 text-right">
-        <span className={`font-display text-base tabular-nums ${txn.type === "revenue" ? "text-sage" : "text-red-500"}`}>
+        <span className={`font-display text-base tabular-nums ${txn.type === "revenue" ? "text-sage" : "text-[#a05e38]"}`}>
           {formatTxnAmountRupee(txn.amount, txn.type)}
         </span>
       </TableCell>
