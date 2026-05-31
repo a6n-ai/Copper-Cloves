@@ -19,6 +19,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Badge } from "@/components/ui/badge";
+import { StatusPill } from "@/components/ui/status-pill";
 import { MetricCard } from "@/components/admin/MetricCard";
 import { Pagination, usePagination } from "@/components/Pagination";
 import {
@@ -153,6 +154,28 @@ function ExpensesSectionImpl() {
     },
   );
   const expensePg = usePagination(sortedExpenses, 10, `${expenses.length}|${expSortKey}|${expSortDir}`);
+
+  const positivePayouts = useMemo(() => payouts.filter((p) => p.total > 0), [payouts]);
+  type PaySortKey = "name" | "classes" | "checkIns" | "total" | "status";
+  const getPaySortValue = useCallback((p: PayoutDTO, key: PaySortKey): number | string => {
+    switch (key) {
+      case "name": return p.name.toLowerCase();
+      case "classes": return p.classes;
+      case "checkIns": return p.checkIns;
+      case "total": return p.total;
+      case "status": return p.status;
+    }
+  }, []);
+  const { sorted: sortedPayouts, sortKey: paySortKey, sortDir: paySortDir, toggle: togglePay } = useTableSort(
+    positivePayouts,
+    {
+      initialKey: "total",
+      initialDir: "desc",
+      getValue: getPaySortValue,
+      defaultDirFor: (k) => (k === "name" || k === "status" ? "asc" : "desc"),
+    },
+  );
+  const payoutsPg = usePagination(sortedPayouts, 10, `${positivePayouts.length}|${paySortKey}|${paySortDir}`);
 
   const submitExpense = useCallback(async () => {
     const amount = Number(form.amount);
@@ -357,37 +380,66 @@ function ExpensesSectionImpl() {
         <CardContent>
           {payoutsLoading ? (
             <div className="py-8 text-center font-body text-sm text-charcoal/40">Loading payouts…</div>
-          ) : payouts.length === 0 ? (
+          ) : positivePayouts.length === 0 ? (
             <div className="py-8 text-center font-body text-sm text-charcoal/40">No payouts this month.</div>
           ) : (
-            <div className="space-y-2">
-              {payouts.filter((p) => p.total > 0).map((p) => (
-                <div key={p.instructorId} className="flex flex-wrap items-center justify-between gap-3 rounded-xl border border-sage/15 bg-white p-3">
-                  <div className="min-w-0">
-                    <div className="font-body font-medium text-charcoal truncate">{p.name}</div>
-                    <div className="font-body text-xs text-charcoal/50">{p.classes} classes · {p.checkIns} check-ins</div>
-                  </div>
-                  <div className="flex items-center gap-3">
-                    <span className="font-display text-base tabular-nums text-charcoal">{rupees(p.total)}</span>
-                    {p.status === "paid" ? (
-                      <Badge variant="outline" className="border-sage/30 bg-sage/10 text-sage font-body whitespace-nowrap">Recorded · paid</Badge>
-                    ) : (
-                      <Button
-                        type="button"
-                        variant="outline"
-                        size="sm"
-                        className="border-terracotta/30 text-[#a05e38] hover:bg-terracotta/10 font-body"
-                        disabled={recordingId === p.instructorId}
-                        onClick={() => recordPayout(p)}
-                      >
-                        {recordingId === p.instructorId ? <Loader2 className="h-4 w-4 mr-1.5 animate-spin" /> : <Wallet className="h-4 w-4 mr-1.5" />}
-                        Record as expense
-                      </Button>
-                    )}
-                  </div>
-                </div>
-              ))}
-            </div>
+            <>
+              <div className="rounded-xl border border-sage/15 bg-white-warm overflow-hidden">
+                <ResponsiveTable>
+                  <Table>
+                    <TableHeader>
+                      <TableRow className="bg-sage/5 hover:bg-sage/5 border-sage/10">
+                        <SortableHeader sortKey="name" active={paySortKey} dir={paySortDir} onToggle={togglePay}>Instructor</SortableHeader>
+                        <SortableHeader sortKey="classes" active={paySortKey} dir={paySortDir} onToggle={togglePay} className="w-[90px]">Classes</SortableHeader>
+                        <SortableHeader sortKey="checkIns" active={paySortKey} dir={paySortDir} onToggle={togglePay} className="w-[100px]">Check-ins</SortableHeader>
+                        <SortableHeader sortKey="total" active={paySortKey} dir={paySortDir} onToggle={togglePay} className="w-[120px] text-right" align="right">Payout</SortableHeader>
+                        <SortableHeader sortKey="status" active={paySortKey} dir={paySortDir} onToggle={togglePay} className="w-[110px]">Status</SortableHeader>
+                        <TableHead className="font-body text-xs uppercase tracking-wide text-charcoal/60 px-5 py-3 w-[170px] text-right">Action</TableHead>
+                      </TableRow>
+                    </TableHeader>
+                    <TableBody>
+                      {payoutsPg.pageItems.map((p) => (
+                        <TableRow key={p.instructorId} className="border-sage/10 hover:bg-sage/5">
+                          <TableCell className="px-5 py-4">
+                            <div className="font-body font-medium text-charcoal truncate max-w-[240px]">{p.name}</div>
+                          </TableCell>
+                          <TableCell className="px-5 py-4 font-body text-sm text-charcoal/70 tabular-nums">{p.classes}</TableCell>
+                          <TableCell className="px-5 py-4 font-body text-sm text-charcoal/70 tabular-nums">{p.checkIns}</TableCell>
+                          <TableCell className="px-5 py-4 text-right">
+                            <span className="font-display text-base tabular-nums text-charcoal">{rupees(p.total)}</span>
+                          </TableCell>
+                          <TableCell className="px-5 py-4">
+                            {p.status === "paid" ? (
+                              <StatusPill tone="sage" dot>Paid</StatusPill>
+                            ) : (
+                              <StatusPill tone="amber" dot>Pending</StatusPill>
+                            )}
+                          </TableCell>
+                          <TableCell className="px-5 py-4 text-right">
+                            {p.status === "paid" ? (
+                              <span className="font-body text-xs text-sage whitespace-nowrap">Recorded ✓</span>
+                            ) : (
+                              <Button
+                                type="button"
+                                variant="outline"
+                                size="sm"
+                                className="border-terracotta/30 text-[#a05e38] hover:bg-terracotta/10 font-body"
+                                disabled={recordingId === p.instructorId}
+                                onClick={() => recordPayout(p)}
+                              >
+                                {recordingId === p.instructorId ? <Loader2 className="h-4 w-4 mr-1.5 animate-spin" /> : <Wallet className="h-4 w-4 mr-1.5" />}
+                                Record as expense
+                              </Button>
+                            )}
+                          </TableCell>
+                        </TableRow>
+                      ))}
+                    </TableBody>
+                  </Table>
+                </ResponsiveTable>
+              </div>
+              <Pagination page={payoutsPg.page} total={payoutsPg.total} onChange={payoutsPg.setPage} />
+            </>
           )}
         </CardContent>
       </Card>
