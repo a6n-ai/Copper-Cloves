@@ -254,14 +254,15 @@ export function Instructors() {
     }
   };
 
+  // Must bail out (return prev) once an index is recorded. next/image re-fires
+  // onLoad on every re-render where img.complete is true; returning a NEW Set
+  // each time would re-render → re-fire onLoad → infinite reload loop.
   const handleImageLoad = (index: number) => {
-    setLoadedImages(prev => new Set([...prev, index]));
+    setLoadedImages(prev => (prev.has(index) ? prev : new Set(prev).add(index)));
   };
 
   const handleImageError = (index: number) => {
-    console.error(`Failed to load image for instructor at index ${index}`);
-    // Still mark as "loaded" to hide skeleton
-    setLoadedImages(prev => new Set([...prev, index]));
+    setLoadedImages(prev => (prev.has(index) ? prev : new Set(prev).add(index)));
   };
 
   const openModal = (instructor: Instructor) => {

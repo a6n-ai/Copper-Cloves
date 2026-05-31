@@ -278,3 +278,9 @@ STILL OPEN after Round 4:
 - UX copy / empty-state / error-state polish.
 - `shadcn-space/blocks/*` vendor (unused) still has blue + a pre-existing TS error.
 - `DESIGN.md` typo: `fontSize: "1rem"I`.
+
+---
+
+## Backlog
+
+- [ ] Cart: replace popup with a dedicated cart page; allow editing the cart and resuming from the last state.

@@ -5,7 +5,7 @@
  * fade-in reads as "loading", not "broken". Tiny 8×8 webp, inlined.
  */
 export const BLUR_DATA_URL =
-  "data:image/webp;base64,UklGRkIAAABXRUJQVlA4IDYAAADwAQCdASoIAAgAAkA4JaQAA3AA/v9hAAA=";
+  "data:image/webp;base64,UklGRigAAABXRUJQVlA4IBwAAABwAQCdASoIAAgAA4BaJZwCdAFAAAD+8kPf7wAA";
 
 /** True when a src can't go through the Next optimizer (data: URLs aren't supported). */
 export function isUnoptimizableSrc(src: string | null | undefined): boolean {

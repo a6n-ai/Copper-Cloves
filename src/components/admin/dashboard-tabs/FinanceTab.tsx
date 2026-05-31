@@ -660,7 +660,7 @@ function FilterCombobox({
                   onValueChange("all");
                   setOpen(false);
                 }}
-                className="font-body"
+                className="font-body text-charcoal data-[selected=true]:bg-sage/10 data-[selected=true]:text-charcoal"
               >
                 <Check className={cn("mr-2 h-4 w-4", value === "all" ? "opacity-100" : "opacity-0")} />
                 {allLabel}
@@ -673,7 +673,7 @@ function FilterCombobox({
                     onValueChange(opt);
                     setOpen(false);
                   }}
-                  className="font-body"
+                  className="font-body text-charcoal data-[selected=true]:bg-sage/10 data-[selected=true]:text-charcoal"
                 >
                   <Check className={cn("mr-2 h-4 w-4", value === opt ? "opacity-100" : "opacity-0")} />
                   <span className="truncate">{opt}</span>
