@@ -9,7 +9,7 @@ import { AdminPageHeader } from "@/components/admin/AdminPageHeader";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { BarChart3, Receipt, Wallet } from "lucide-react";
+import { BarChart3, Receipt, ScanSearch, Wallet } from "lucide-react";
 import { exportFinanceReport, useAdminFinanceData } from "@/hooks/useAdminFinanceData";
 
 function SectionLoadingSkeleton() {
@@ -38,11 +38,16 @@ const ExpensesSection = dynamic(
   () => import("@/components/admin/dashboard-tabs/ExpensesSection").then((m) => m.ExpensesSection),
   { ssr: false, loading: () => <SectionLoadingSkeleton /> },
 );
+const ReconcileSection = dynamic(
+  () => import("@/components/admin/dashboard-tabs/ReconcileSection").then((m) => m.ReconcileSection),
+  { ssr: false, loading: () => <SectionLoadingSkeleton /> },
+);
 
 const FINANCE_TABS = [
   { v: "overview", l: "Overview", I: BarChart3 },
   { v: "transactions", l: "Transactions", I: Receipt },
   { v: "expenses", l: "Expenses", I: Wallet },
+  { v: "reconcile", l: "Reconcile", I: ScanSearch },
 ] as const;
 
 export default function AdminFinances() {
@@ -109,6 +114,10 @@ export default function AdminFinances() {
 
               <TabsContent value="expenses" className="space-y-6">
                 <ExpensesSection />
+              </TabsContent>
+
+              <TabsContent value="reconcile" className="space-y-6">
+                <ReconcileSection />
               </TabsContent>
             </Tabs>
           </div>
