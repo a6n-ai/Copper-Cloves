@@ -89,7 +89,6 @@ function InstructorPayoutsPanelImpl() {
   const [window, setWindow] = useState<PayoutWindow>("month");
   const [search, setSearch] = useState("");
   const [instructorFilter, setInstructorFilter] = useState("all");
-  const [recordAsExpense, setRecordAsExpense] = useState(true);
 
   // mark-paid / move-to-expense confirmation
   const [confirm, setConfirm] = useState<{ row: PayoutRow; paid: boolean } | null>(null);
@@ -289,10 +288,6 @@ function InstructorPayoutsPanelImpl() {
               </Button>
             </div>
           </div>
-          <label className="flex items-center gap-2 cursor-pointer select-none w-fit">
-            <Switch checked={recordAsExpense} onCheckedChange={setRecordAsExpense} />
-            <span className="font-body text-xs text-charcoal/60 whitespace-nowrap">Record paid payouts as expenses</span>
-          </label>
         </CardHeader>
         <CardContent>
           {loading ? (
@@ -347,7 +342,7 @@ function InstructorPayoutsPanelImpl() {
                           <TableCell className="px-5 py-4">
                             <button
                               type="button"
-                              onClick={() => { setConfirmRecord(recordAsExpense); setConfirm({ row: r, paid: r.status !== "paid" }); }}
+                              onClick={() => { setConfirmRecord(true); setConfirm({ row: r, paid: r.status !== "paid" }); }}
                               className="cursor-pointer rounded-full focus:outline-none focus-visible:ring-2 focus-visible:ring-sage/40"
                               title={r.status === "paid" ? "Mark unpaid" : "Mark paid · move to expense"}
                             >
