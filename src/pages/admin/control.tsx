@@ -23,7 +23,6 @@ import { StatusPill } from "@/components/ui/status-pill";
 import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Switch } from "@/components/ui/switch";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import {
@@ -45,17 +44,9 @@ import {
   Phone, 
   Clock, 
   Save,
-  Upload,
   CheckCircle2,
-  DollarSign,
-  Download,
   CreditCard,
-  Check,
   BarChart3,
-  TrendingUp,
-  TrendingDown,
-  PieChart,
-  Coffee,
   Trash2,
   ChevronUp,
   ChevronDown,
@@ -303,7 +294,6 @@ export default function ControlPanel() {
   const [showEditUserDialog, setShowEditUserDialog] = useState(false);
   const [showAddClassDialog, setShowAddClassDialog] = useState(false);
   const [showClassDetailsDialog, setShowClassDetailsDialog] = useState(false);
-  const [showPayoutDialog, setShowPayoutDialog] = useState(false);
   const [showAddInstructorDialog, setShowAddInstructorDialog] = useState(false);
   const [showEditInstructorDialog, setShowEditInstructorDialog] = useState(false);
 
@@ -311,7 +301,6 @@ export default function ControlPanel() {
   const [selectedUser, setSelectedUser] = useState<any>(null);
   const [selectedClass, setSelectedClass] = useState<any>(null);
   const [selectedInstructorData, setSelectedInstructorData] = useState<any>(null);
-  const [selectedPayoutData, setSelectedPayoutData] = useState<any>(null);
 
   // Classes state
   const [classes, setClasses] = useState<any[]>([]);
@@ -356,63 +345,6 @@ export default function ControlPanel() {
   const [imagePreview, setImagePreview] = useState<string>("");
   const [classImagePreview, setClassImagePreview] = useState<string>("");
 
-  type PayoutRow = {
-    id: number;
-    instructorId: string;
-    name: string;
-    imageUrl: string | null;
-    specialties: string;
-    classes: number;
-    computedClasses: number;
-    extraClasses: number;
-    checkIns: number;
-    payableUnits: number;
-    computedPayableUnits: number;
-    extraPayableUnits: number;
-    netPerUnit: number;
-    rate: number;
-    gstPercent: number;
-    percentage: number;
-    studioCutPercent: number;
-    total: number;
-    overrideTotal: number | null;
-    paidAt: string | null;
-    paidMethod: string | null;
-    notes: string | null;
-    status: "pending" | "paid";
-  };
-  const [instructorPayouts, setInstructorPayouts] = useState<PayoutRow[]>([]);
-  const [payoutSummary, setPayoutSummary] = useState({
-    totalPayouts: 0,
-    pendingPayments: 0,
-    completedPayments: 0,
-    totalCheckIns: 0,
-    totalPayableUnits: 0,
-    pendingCount: 0,
-    instructorsCount: 0,
-    window: "month" as "week" | "month" | "quarter" | "all",
-    periodKey: "",
-    netPerUnit: 897.75,
-    classRate: 945,
-    gstPercent: 5,
-  });
-  const [payoutWindow, setPayoutWindow] = useState<"week" | "month" | "quarter" | "all">("month");
-  // When on, marking a payout paid also records it as an expense (idempotent).
-  const [recordPayoutsAsExpense, setRecordPayoutsAsExpense] = useState(true);
-  // Confirmation popup for the mark-paid / move-to-expense action.
-  const [payoutConfirm, setPayoutConfirm] = useState<{ row: PayoutRow; paid: boolean } | null>(null);
-  const [confirmRecordExpense, setConfirmRecordExpense] = useState(true);
-  const [confirmSaving, setConfirmSaving] = useState(false);
-  const [payoutInstructorFilter, setPayoutInstructorFilter] = useState<string>("all");
-  const [payoutEditRow, setPayoutEditRow] = useState<PayoutRow | null>(null);
-  const [payoutEditForm, setPayoutEditForm] = useState({
-    extra_payable_units: "0",
-    extra_classes: "0",
-    override_payout: "",
-    notes: "",
-    paid_method: "",
-  });
-  const [payoutEditSaving, setPayoutEditSaving] = useState(false);
 
   const { data: session, status } = useSession();
   const userRole = (session?.user as { role?: string })?.role;
@@ -423,7 +355,6 @@ export default function ControlPanel() {
     if (status === "authenticated") {
       fetchClasses();
       fetchUsers();
-      void fetchPayoutData();
       void fetchPauseTickets();
       setLoading(false);
     }
@@ -465,158 +396,6 @@ export default function ControlPanel() {
     }
   }
 
-async function fetchPayoutData(opts?: { window?: "week" | "month" | "quarter" | "all" }) {
-    try {
-      const w = opts?.window ?? payoutWindow;
-      const res = await fetch(`/api/admin/instructor-payouts?window=${encodeURIComponent(w)}`);
-      if (!res.ok) {
-        setInstructorPayouts([]);
-        return;
-      }
-      const data = await res.json();
-      setPayoutSummary(data.summary ?? {});
-      setInstructorPayouts(Array.isArray(data.instructors) ? data.instructors : []);
-    } catch {
-      setInstructorPayouts([]);
-    }
-  }
-
-  function openPayoutEdit(row: PayoutRow) {
-    setPayoutEditRow(row);
-    setPayoutEditForm({
-      extra_payable_units: String(row.extraPayableUnits ?? 0),
-      extra_classes: String(row.extraClasses ?? 0),
-      override_payout: row.overrideTotal != null ? String(row.overrideTotal) : "",
-      notes: row.notes ?? "",
-      paid_method: row.paidMethod ?? "",
-    });
-  }
-
-  async function savePayoutEdit() {
-    if (!payoutEditRow) return;
-    setPayoutEditSaving(true);
-    try {
-      const body: Record<string, unknown> = {
-        instructorId: payoutEditRow.instructorId,
-        window: payoutWindow,
-        extra_payable_units: Number(payoutEditForm.extra_payable_units) || 0,
-        extra_classes: Number(payoutEditForm.extra_classes) || 0,
-        notes: payoutEditForm.notes,
-        paid_method: payoutEditForm.paid_method || null,
-      };
-      if (payoutEditForm.override_payout.trim() === "") {
-        body.override_payout_paise = null;
-      } else {
-        const rupees = Number(payoutEditForm.override_payout);
-        if (!Number.isFinite(rupees)) {
-          toast.error("Override payout must be a number");
-          setPayoutEditSaving(false);
-          return;
-        }
-        body.override_payout_paise = Math.round(rupees * 100);
-      }
-      const res = await fetch("/api/admin/instructor-payout-adjustment", {
-        method: "PUT",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(body),
-      });
-      if (!res.ok) {
-        const d = await res.json().catch(() => ({}));
-        toast.error(d.error ?? "Save failed");
-        return;
-      }
-      toast.success("Adjustment saved");
-      setPayoutEditRow(null);
-      await fetchPayoutData();
-    } finally {
-      setPayoutEditSaving(false);
-    }
-  }
-
-  async function togglePayoutPaid(row: PayoutRow, paid: boolean, recordExpenseOverride?: boolean) {
-    const recordExpense = recordExpenseOverride ?? recordPayoutsAsExpense;
-    try {
-      const res = await fetch("/api/admin/instructor-payout-adjustment", {
-        method: "PUT",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          instructorId: row.instructorId,
-          window: payoutWindow,
-          paid,
-          recordExpense,
-          payout_paise: Math.round(row.total * 100),
-        }),
-      });
-      if (!res.ok) {
-        const d = await res.json().catch(() => ({}));
-        toast.error(d.error ?? "Save failed");
-        return;
-      }
-      toast.success(
-        paid
-          ? recordExpense
-            ? "Marked paid · recorded as expense"
-            : "Marked paid"
-          : "Marked unpaid",
-      );
-      await fetchPayoutData();
-    } catch {
-      toast.error("Save failed");
-    }
-  }
-
-  function downloadPayoutCsv(rows: PayoutRow[], filenameSuffix: string) {
-    const header = [
-      "Instructor",
-      "Specialties",
-      "Classes",
-      "Check-ins",
-      "Payable Units",
-      "Net per Unit",
-      "Studio %",
-      "Instructor %",
-      "Total Payout INR",
-      "Override",
-      "Paid At",
-      "Paid Method",
-      "Notes",
-    ];
-    const esc = (v: unknown) => {
-      const s = v == null ? "" : String(v);
-      return /[",\n]/.test(s) ? `"${s.replace(/"/g, '""')}"` : s;
-    };
-    const lines = [header.join(",")];
-    for (const r of rows) {
-      lines.push(
-        [
-          r.name,
-          r.specialties,
-          r.classes,
-          r.checkIns,
-          r.payableUnits,
-          r.netPerUnit,
-          r.studioCutPercent,
-          r.percentage,
-          r.total.toFixed(2),
-          r.overrideTotal != null ? "yes" : "no",
-          r.paidAt ?? "",
-          r.paidMethod ?? "",
-          r.notes ?? "",
-        ]
-          .map(esc)
-          .join(","),
-      );
-    }
-    const blob = new Blob([lines.join("\n")], { type: "text/csv;charset=utf-8" });
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement("a");
-    a.href = url;
-    a.download = `instructor-payouts-${payoutSummary.periodKey || payoutWindow}-${filenameSuffix}.csv`;
-    document.body.appendChild(a);
-    a.click();
-    document.body.removeChild(a);
-    URL.revokeObjectURL(url);
-  }
 
   async function fetchClasses() {
     try {
@@ -1216,14 +995,10 @@ async function fetchPayoutData(opts?: { window?: "week" | "month" | "quarter" | 
 
   // ---- Tab search + sort ----
   const [classSearch, setClassSearch] = useState("");
-  const [payoutSearch, setPayoutSearch] = useState("");
   const [instructorSearch, setInstructorSearch] = useState("");
 
   const userSort = useSort<"name" | "pass" | "remaining" | "start" | "end" | "status">();
   const classSort = useSort<"name" | "category" | "duration" | "capacity">();
-  const payoutSort = useSort<
-    "name" | "classes" | "checkIns" | "payable" | "share" | "total" | "status"
-  >();
   const instructorSort = useSort<"name" | "status">();
 
   const filteredUsers = useMemo(() => {
@@ -1296,42 +1071,6 @@ async function fetchPayoutData(opts?: { window?: "week" | "month" | "quarter" | 
     return list;
   }, [classes, classSearch, classSort.key, classSort.dir]);
 
-  const filteredPayouts = useMemo(() => {
-    let list = instructorPayouts;
-    if (payoutInstructorFilter !== "all") {
-      list = list.filter((p) => p.instructorId === payoutInstructorFilter);
-    }
-    const q = payoutSearch.trim().toLowerCase();
-    if (q)
-      list = list.filter(
-        (p) =>
-          p.name.toLowerCase().includes(q) || String(p.specialties ?? "").toLowerCase().includes(q),
-      );
-    if (payoutSort.key) {
-      const dir = payoutSort.dir === "asc" ? 1 : -1;
-      list = [...list].sort((a, b) => {
-        switch (payoutSort.key) {
-          case "name":
-            return a.name.localeCompare(b.name) * dir;
-          case "classes":
-            return (a.classes - b.classes) * dir;
-          case "checkIns":
-            return (a.checkIns - b.checkIns) * dir;
-          case "payable":
-            return (a.payableUnits - b.payableUnits) * dir;
-          case "share":
-            return ((Number(a.percentage ?? 0)) - (Number(b.percentage ?? 0))) * dir;
-          case "total":
-            return (a.total - b.total) * dir;
-          case "status":
-            return a.status.localeCompare(b.status) * dir;
-          default:
-            return 0;
-        }
-      });
-    }
-    return list;
-  }, [instructorPayouts, payoutSearch, payoutSort.key, payoutSort.dir, payoutInstructorFilter]);
 
   const filteredInstructors = useMemo(() => {
     let list = instructors;
@@ -1393,7 +1132,6 @@ async function fetchPayoutData(opts?: { window?: "week" | "month" | "quarter" | 
 
   const usersPg = usePagination(filteredUsers, 10, `${userSearch}|${userFilter}|${userSort.key}|${userSort.dir}`);
   const classesPg = usePagination(filteredClasses, 10, `${classSearch}|${classSort.key}|${classSort.dir}`);
-  const payoutsPg = usePagination(filteredPayouts, 10, `${payoutSearch}|${payoutSort.key}|${payoutSort.dir}`);
   const instructorsPg = usePagination(filteredInstructors, 10, `${instructorSearch}|${instructorSort.key}|${instructorSort.dir}`);
 
   if (loading) {
@@ -1420,7 +1158,7 @@ async function fetchPayoutData(opts?: { window?: "week" | "month" | "quarter" | 
           <div className="max-w-7xl mx-auto p-6 lg:p-8 space-y-8">
             <AdminPageHeader
               title="Control Panel"
-              subtitle="Manage users, classes, payouts, and instructors."
+              subtitle="Manage users, classes, and instructors."
             />
 
             {/* Tabs */}
@@ -1442,10 +1180,6 @@ async function fetchPayoutData(opts?: { window?: "week" | "month" | "quarter" | 
                 <TabsTrigger value="classes" className="data-[state=active]:bg-sage data-[state=active]:text-cream font-body">
                   <Calendar className="h-4 w-4 mr-2" />
                   Class Management
-                </TabsTrigger>
-                <TabsTrigger value="payouts" className="data-[state=active]:bg-sage data-[state=active]:text-cream font-body">
-                  <CreditCard className="h-4 w-4 mr-2" />
-                  Payouts
                 </TabsTrigger>
                 <TabsTrigger value="instructors" className="data-[state=active]:bg-sage data-[state=active]:text-cream font-body">
                   <Users className="h-4 w-4 mr-2" />
@@ -1934,268 +1668,6 @@ async function fetchPayoutData(opts?: { window?: "week" | "month" | "quarter" | 
                 </Card>
               </TabsContent>
 
-              {/* PAYOUT MANAGEMENT TAB */}
-              <TabsContent value="payouts" className="space-y-6">
-                {/* Stats */}
-                <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-                  <MetricCard
-                    label="Total Payouts"
-                    value={payoutSummary.totalPayouts}
-                    icon={DollarSign}
-                    tone="sage"
-                    prefix="₹"
-                    hint={`${payoutSummary.instructorsCount ?? instructorPayouts.length} instructors`}
-                  />
-                  <MetricCard
-                    label="Pending"
-                    value={payoutSummary.pendingPayments}
-                    icon={Clock}
-                    tone="amber"
-                    prefix="₹"
-                    hint={`${payoutSummary.pendingCount} pending`}
-                  />
-                  <MetricCard
-                    label="Completed"
-                    value={payoutSummary.completedPayments}
-                    icon={CheckCircle2}
-                    tone="sage"
-                    prefix="₹"
-                  />
-                  <MetricCard
-                    label="Total Check-ins"
-                    value={payoutSummary.totalCheckIns}
-                    icon={TrendingUp}
-                    tone="charcoal"
-                  />
-                </div>
-
-                <Card className="border-sage/20 bg-white-warm">
-                  <CardHeader className="space-y-4">
-                    <div className="flex flex-wrap items-start justify-between gap-3">
-                      <div>
-                        <CardTitle className="font-display text-2xl text-charcoal">
-                          Instructor Payouts <span className="font-body text-base text-charcoal/40">({filteredPayouts.length})</span>
-                        </CardTitle>
-                        <CardDescription className="font-body text-charcoal/60">
-                          Calculate and manage instructor payments based on check-ins
-                        </CardDescription>
-                      </div>
-                      <div className="flex flex-wrap items-center gap-2 w-full sm:w-auto">
-                        <Input
-                          value={payoutSearch}
-                          onChange={(e) => setPayoutSearch(e.target.value)}
-                          placeholder="Search instructor…"
-                          className="h-9 flex-1 sm:w-56 border-sage/20 focus:border-sage font-body"
-                        />
-                        <Select
-                          value={payoutInstructorFilter}
-                          onValueChange={setPayoutInstructorFilter}
-                        >
-                          <SelectTrigger className="h-9 w-44 border-sage/20 shrink-0">
-                            <SelectValue placeholder="All instructors" />
-                          </SelectTrigger>
-                          <SelectContent>
-                            <SelectItem value="all">All instructors</SelectItem>
-                            {instructorPayouts.map((p) => (
-                              <SelectItem key={p.instructorId} value={p.instructorId}>
-                                {p.name}
-                              </SelectItem>
-                            ))}
-                          </SelectContent>
-                        </Select>
-                        <Select
-                          value={payoutWindow}
-                          onValueChange={(v) => {
-                            const next = v as "week" | "month" | "quarter" | "all";
-                            setPayoutWindow(next);
-                            void fetchPayoutData({ window: next });
-                          }}
-                        >
-                          <SelectTrigger className="h-9 w-36 border-sage/20 shrink-0">
-                            <SelectValue />
-                          </SelectTrigger>
-                          <SelectContent>
-                            <SelectItem value="week">This Week</SelectItem>
-                            <SelectItem value="month">This Month</SelectItem>
-                            <SelectItem value="quarter">This Quarter</SelectItem>
-                            <SelectItem value="all">All Time</SelectItem>
-                          </SelectContent>
-                        </Select>
-                        <label className="flex items-center gap-2 cursor-pointer select-none">
-                          <Switch checked={recordPayoutsAsExpense} onCheckedChange={setRecordPayoutsAsExpense} />
-                          <span className="font-body text-xs text-charcoal/60 whitespace-nowrap">
-                            Record paid payouts as expenses
-                          </span>
-                        </label>
-                      </div>
-                    </div>
-                  </CardHeader>
-                  <CardContent>
-                    {filteredPayouts.length === 0 ? (
-                      <div className="text-center py-12">
-                        <DollarSign className="h-12 w-12 text-charcoal/20 mx-auto mb-3" />
-                        <p className="font-body text-charcoal/40">
-                          {instructorPayouts.length === 0 ? "No payout data yet." : "No instructors match your search."}
-                        </p>
-                      </div>
-                    ) : (
-                      <>
-                        <ResponsiveTable>
-                          <div className="rounded-xl border border-sage/15 bg-white-warm overflow-hidden">
-                            <Table>
-                              <TableHeader>
-                                <TableRow className="bg-sage/5 hover:bg-sage/5 border-sage/10">
-                                  <TableHead className={thBase}>
-                                    <button type="button" onClick={() => payoutSort.toggle("name")} className={thBtn}>
-                                      Instructor {sortArrow(payoutSort.key === "name", payoutSort.dir)}
-                                    </button>
-                                  </TableHead>
-                                  <TableHead className={`${thBase} w-[90px]`}>
-                                    <button type="button" onClick={() => payoutSort.toggle("classes", "desc")} className={thBtn}>
-                                      Classes {sortArrow(payoutSort.key === "classes", payoutSort.dir)}
-                                    </button>
-                                  </TableHead>
-                                  <TableHead className={`${thBase} w-[100px]`}>
-                                    <button type="button" onClick={() => payoutSort.toggle("checkIns", "desc")} className={thBtn}>
-                                      Check-ins {sortArrow(payoutSort.key === "checkIns", payoutSort.dir)}
-                                    </button>
-                                  </TableHead>
-                                  <TableHead className={`${thBase} w-[100px]`}>
-                                    <button type="button" onClick={() => payoutSort.toggle("payable", "desc")} className={thBtn}>
-                                      Payable {sortArrow(payoutSort.key === "payable", payoutSort.dir)}
-                                    </button>
-                                  </TableHead>
-                                  <TableHead className={`${thBase} w-[90px]`}>
-                                    <button type="button" onClick={() => payoutSort.toggle("share", "desc")} className={thBtn}>
-                                      Share {sortArrow(payoutSort.key === "share", payoutSort.dir)}
-                                    </button>
-                                  </TableHead>
-                                  <TableHead className={`${thBase} w-[130px]`}>
-                                    <button type="button" onClick={() => payoutSort.toggle("total", "desc")} className={thBtn}>
-                                      Payout {sortArrow(payoutSort.key === "total", payoutSort.dir)}
-                                    </button>
-                                  </TableHead>
-                                  <TableHead className={`${thBase} w-[110px]`}>
-                                    <button type="button" onClick={() => payoutSort.toggle("status")} className={thBtn}>
-                                      Status {sortArrow(payoutSort.key === "status", payoutSort.dir)}
-                                    </button>
-                                  </TableHead>
-                                  <TableHead className={`${thBase} w-[110px] text-right`}>Actions</TableHead>
-                                </TableRow>
-                              </TableHeader>
-                              <TableBody>
-                                {payoutsPg.pageItems.map((instructor) => (
-                                  <TableRow key={instructor.instructorId} className="border-sage/10 hover:bg-sage/5">
-                                    <TableCell className="px-5 py-4">
-                                      <div className="flex items-center gap-3 min-w-0">
-                                        <ListAvatar src={instructor.imageUrl} name={instructor.name} size="md" />
-                                        <div className="min-w-0">
-                                          <div className="font-body font-medium text-charcoal truncate">{instructor.name}</div>
-                                          <div className="font-body text-xs text-charcoal/50 truncate">
-                                            {normalizeSpecialties(instructor.specialties).join(", ") || "—"}
-                                          </div>
-                                        </div>
-                                      </div>
-                                    </TableCell>
-                                    <TableCell className="px-5 py-4">
-                                      <span className="font-body text-sm text-charcoal/70 tabular-nums">{instructor.classes}</span>
-                                    </TableCell>
-                                    <TableCell className="px-5 py-4">
-                                      <Badge variant="outline" className="border-sage/20 text-sage bg-sage/5 font-body tabular-nums">
-                                        {instructor.checkIns}
-                                      </Badge>
-                                    </TableCell>
-                                    <TableCell className="px-5 py-4">
-                                      <div className="flex items-center gap-1.5">
-                                        <span className="font-body text-sm text-charcoal/80 tabular-nums">{instructor.payableUnits}</span>
-                                        {instructor.extraPayableUnits ? (
-                                          <StatusPill tone="amber">
-                                            {instructor.extraPayableUnits > 0 ? "+" : ""}{instructor.extraPayableUnits}
-                                          </StatusPill>
-                                        ) : null}
-                                      </div>
-                                    </TableCell>
-                                    <TableCell className="px-5 py-4">
-                                      <span className="font-body text-sm text-charcoal/60 tabular-nums">{instructor.percentage}%</span>
-                                    </TableCell>
-                                    <TableCell className="px-5 py-4">
-                                      <div className="flex items-baseline gap-1.5">
-                                        <span className="font-display text-xl text-sage tabular-nums">₹{instructor.total.toLocaleString("en-IN")}</span>
-                                        {instructor.overrideTotal != null ? (
-                                          <StatusPill tone="amber">override</StatusPill>
-                                        ) : null}
-                                      </div>
-                                    </TableCell>
-                                    <TableCell className="px-5 py-4">
-                                      <button
-                                        type="button"
-                                        onClick={() => {
-                                          const paid = instructor.status !== "paid";
-                                          setConfirmRecordExpense(recordPayoutsAsExpense);
-                                          setPayoutConfirm({ row: instructor, paid });
-                                        }}
-                                        className="cursor-pointer focus:outline-none focus-visible:ring-2 focus-visible:ring-sage/40 rounded-full"
-                                        title={instructor.status === "paid" ? "Mark unpaid" : "Mark paid · move to expense"}
-                                      >
-                                        {instructor.status === "paid" ? (
-                                          <StatusPill tone="sage" dot>Paid</StatusPill>
-                                        ) : (
-                                          <StatusPill tone="amber" dot>Pending</StatusPill>
-                                        )}
-                                      </button>
-                                    </TableCell>
-                                    <TableCell className="px-5 py-4">
-                                      <div className="flex gap-2 justify-end">
-                                        <Button
-                                          type="button"
-                                          variant="outline"
-                                          size="sm"
-                                          aria-label="Download CSV"
-                                          title="Download CSV"
-                                          onClick={() => downloadPayoutCsv([instructor], instructor.name.replace(/\s+/g, "-"))}
-                                          className="h-8 w-8 p-0 border-sage/40 text-sage bg-white-warm hover:!bg-sage hover:!text-cream hover:!border-sage transition-all hover:scale-110 active:scale-95"
-                                        >
-                                          <Download className="h-3.5 w-3.5" />
-                                        </Button>
-                                        <EditButton onClick={() => openPayoutEdit(instructor)} label="Edit payout" />
-                                      </div>
-                                    </TableCell>
-                                  </TableRow>
-                                ))}
-                              </TableBody>
-                            </Table>
-                          </div>
-                        </ResponsiveTable>
-                        <Pagination page={payoutsPg.page} total={payoutsPg.total} onChange={payoutsPg.setPage} />
-                      </>
-                    )}
-                  </CardContent>
-                </Card>
-
-                {/* Bulk Actions */}
-                <Card className="border-sage/20 bg-white-warm">
-                  <CardContent className="p-6">
-                    <div className="flex items-center justify-between flex-wrap gap-3">
-                      <div>
-                        <div className="font-body font-medium text-charcoal mb-1">
-                          Bulk Export
-                        </div>
-                        <div className="font-body text-sm text-charcoal/60">
-                          Download CSV of currently visible instructors ({filteredPayouts.length}).
-                          Class rate ₹{payoutSummary.classRate} − {payoutSummary.gstPercent}% GST = ₹{payoutSummary.netPerUnit}/unit.
-                        </div>
-                      </div>
-                      <div className="flex gap-3">
-                        <Button variant="sage-outline" onClick={() => downloadPayoutCsv(filteredPayouts, "all")}>
-                          <Download className="h-4 w-4 mr-2" />
-                          Download CSV
-                        </Button>
-                      </div>
-                    </div>
-                  </CardContent>
-                </Card>
-              </TabsContent>
-
               {/* INSTRUCTOR MANAGEMENT TAB */}
               <TabsContent value="instructors" className="space-y-6">
                 {/* Stats */}
@@ -2388,87 +1860,6 @@ async function fetchPayoutData(opts?: { window?: "week" | "month" | "quarter" | 
           </div>
         </main>
       </div>
-
-      {/* Payout mark-paid / move-to-expense confirmation */}
-      <ResponsiveDialog
-        open={payoutConfirm != null}
-        onOpenChange={(o) => { if (!o) setPayoutConfirm(null); }}
-      >
-        <ResponsiveDialogContent className="bg-white-warm border-sage/20 sm:max-w-md">
-          <ResponsiveDialogHeader>
-            <ResponsiveDialogTitle className="font-display text-charcoal">
-              {payoutConfirm?.paid ? "Mark payout paid?" : "Mark payout unpaid?"}
-            </ResponsiveDialogTitle>
-            <ResponsiveDialogDescription className="font-body text-charcoal/70">
-              {payoutConfirm?.paid ? (
-                <>
-                  {payoutConfirm?.row.name}&apos;s payout of{" "}
-                  <span className="font-semibold text-charcoal">
-                    ₹{payoutConfirm?.row.total.toLocaleString("en-IN")}
-                  </span>{" "}
-                  will be marked paid for this period.
-                </>
-              ) : (
-                <>
-                  {payoutConfirm?.row.name}&apos;s payout will be set back to pending. Any expense
-                  recorded for this period will be removed.
-                </>
-              )}
-            </ResponsiveDialogDescription>
-          </ResponsiveDialogHeader>
-
-          {payoutConfirm?.paid ? (
-            <label className="flex items-center gap-3 rounded-xl border border-sage/20 bg-cream/40 p-3 cursor-pointer select-none">
-              <Switch checked={confirmRecordExpense} onCheckedChange={setConfirmRecordExpense} />
-              <span className="font-body text-sm text-charcoal">
-                Move ₹{payoutConfirm?.row.total.toLocaleString("en-IN")} to expenses
-                <span className="block text-xs text-charcoal/55">
-                  Records this payout in the finance expense ledger
-                </span>
-              </span>
-            </label>
-          ) : null}
-
-          <ResponsiveDialogFooter>
-            <Button
-              type="button"
-              variant="outline"
-              className="border-sage/20"
-              disabled={confirmSaving}
-              onClick={() => setPayoutConfirm(null)}
-            >
-              Cancel
-            </Button>
-            <Button
-              type="button"
-              variant="sage"
-              disabled={confirmSaving}
-              onClick={async () => {
-                if (!payoutConfirm) return;
-                setConfirmSaving(true);
-                try {
-                  await togglePayoutPaid(
-                    payoutConfirm.row,
-                    payoutConfirm.paid,
-                    payoutConfirm.paid ? confirmRecordExpense : undefined,
-                  );
-                  setPayoutConfirm(null);
-                } finally {
-                  setConfirmSaving(false);
-                }
-              }}
-            >
-              {confirmSaving
-                ? "Saving…"
-                : payoutConfirm?.paid
-                  ? confirmRecordExpense
-                    ? "Mark paid & move to expense"
-                    : "Mark paid"
-                  : "Mark unpaid"}
-            </Button>
-          </ResponsiveDialogFooter>
-        </ResponsiveDialogContent>
-      </ResponsiveDialog>
 
       {/* Dialogs - same as in dashboard */}
       {/* Add User Dialog */}
@@ -3020,165 +2411,6 @@ async function fetchPayoutData(opts?: { window?: "week" | "month" | "quarter" | 
               </ResponsiveDialogFooter>
             </form>
           )}
-        </ResponsiveDialogContent>
-      </ResponsiveDialog>
-
-      {/* Payout Dialog */}
-      <ResponsiveDialog open={showPayoutDialog} onOpenChange={setShowPayoutDialog}>
-        <ResponsiveDialogContent className="max-w-lg bg-white-warm border-sage/20">
-          <ResponsiveDialogHeader>
-            <ResponsiveDialogTitle className="font-display text-2xl text-charcoal">Process Payment</ResponsiveDialogTitle>
-            <ResponsiveDialogDescription className="font-body text-charcoal/60">
-              Confirm instructor payout details
-            </ResponsiveDialogDescription>
-          </ResponsiveDialogHeader>
-          {selectedPayoutData && (
-            <div className="space-y-4 py-4">
-              <div className="p-4 rounded-lg bg-sage/5 border border-sage/20">
-                <div className="font-body font-medium text-charcoal mb-2">
-                  {selectedPayoutData.name}
-                </div>
-                <div className="font-body text-sm text-charcoal/60 mb-4">
-                  {normalizeSpecialties(selectedPayoutData.specialties).join(", ") || "—"}
-                </div>
-                
-                <div className="grid grid-cols-2 gap-4 mb-4">
-                  <div>
-                    <div className="font-body text-xs text-charcoal/50 mb-1">Check-ins</div>
-                    <div className="font-display text-2xl text-charcoal">
-                      {selectedPayoutData.checkIns}
-                    </div>
-                  </div>
-                  <div>
-                    <div className="font-body text-xs text-charcoal/50 mb-1">Rate per Check-in</div>
-                    <div className="font-display text-2xl text-charcoal">
-                      ₹{selectedPayoutData.rate}
-                    </div>
-                  </div>
-                </div>
-
-                <div className="pt-4 border-t border-sage/20">
-                  <div className="flex items-center justify-between">
-                    <div className="font-body font-medium text-charcoal">
-                      Total Payout:
-                    </div>
-                    <div className="font-display text-4xl text-sage">
-                      ₹{selectedPayoutData.total.toLocaleString()}
-                    </div>
-                  </div>
-                </div>
-              </div>
-
-              <div className="space-y-2">
-                <Label htmlFor="payment-method" className="font-body text-charcoal">Payment Method</Label>
-                <Select defaultValue="transfer">
-                  <SelectTrigger className="border-sage/20">
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="transfer">Bank Transfer</SelectItem>
-                    <SelectItem value="upi">UPI</SelectItem>
-                    <SelectItem value="cash">Cash</SelectItem>
-                    <SelectItem value="cheque">Cheque</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
-
-              <div className="space-y-2">
-                <Label htmlFor="payment-notes" className="font-body text-charcoal">Notes (Optional)</Label>
-                <Textarea 
-                  id="payment-notes" 
-                  placeholder="Add any payment notes..."
-                  className="border-sage/20 focus:ring-sage"
-                />
-              </div>
-            </div>
-          )}
-          <ResponsiveDialogFooter>
-            <Button variant="outline" onClick={() => setShowPayoutDialog(false)} className="border-sage/20 font-body">
-              Cancel
-            </Button>
-            <Button variant="sage">
-              <DollarSign className="h-4 w-4 mr-2" />
-              Confirm Payment
-            </Button>
-          </ResponsiveDialogFooter>
-        </ResponsiveDialogContent>
-      </ResponsiveDialog>
-
-      {/* Payout Edit Dialog */}
-      <ResponsiveDialog open={!!payoutEditRow} onOpenChange={(o) => { if (!o) setPayoutEditRow(null); }}>
-        <ResponsiveDialogContent className="max-w-lg bg-white-warm">
-          <ResponsiveDialogHeader>
-            <ResponsiveDialogTitle className="font-display text-2xl text-charcoal">
-              Edit payout — {payoutEditRow?.name}
-            </ResponsiveDialogTitle>
-            <ResponsiveDialogDescription className="font-body text-charcoal/60">
-              Period {payoutSummary.periodKey || payoutWindow}. Adjustments saved to this period only.
-            </ResponsiveDialogDescription>
-          </ResponsiveDialogHeader>
-          {payoutEditRow ? (
-            <div className="space-y-4">
-              <div className="rounded-lg border border-sage/15 bg-sage/5 p-3 text-sm font-body text-charcoal/70">
-                <div>Computed payable: <strong>{payoutEditRow.computedPayableUnits}</strong></div>
-                <div>Computed classes: <strong>{payoutEditRow.computedClasses}</strong></div>
-                <div>Net per unit: <strong>₹{payoutEditRow.netPerUnit}</strong></div>
-                <div>Instructor share: <strong>{payoutEditRow.percentage}%</strong> (studio cut {payoutEditRow.studioCutPercent}%)</div>
-              </div>
-              <div className="grid grid-cols-2 gap-3">
-                <div>
-                  <label className="font-body text-xs text-charcoal/60 mb-1 block">Extra payable units</label>
-                  <Input
-                    type="number"
-                    value={payoutEditForm.extra_payable_units}
-                    onChange={(e) => setPayoutEditForm((f) => ({ ...f, extra_payable_units: e.target.value }))}
-                  />
-                </div>
-                <div>
-                  <label className="font-body text-xs text-charcoal/60 mb-1 block">Extra classes (cosmetic)</label>
-                  <Input
-                    type="number"
-                    value={payoutEditForm.extra_classes}
-                    onChange={(e) => setPayoutEditForm((f) => ({ ...f, extra_classes: e.target.value }))}
-                  />
-                </div>
-              </div>
-              <div>
-                <label className="font-body text-xs text-charcoal/60 mb-1 block">
-                  Override total payout (₹) — leave blank to use computed
-                </label>
-                <Input
-                  type="number"
-                  step="0.01"
-                  placeholder={`Computed: ₹${payoutEditRow.total}`}
-                  value={payoutEditForm.override_payout}
-                  onChange={(e) => setPayoutEditForm((f) => ({ ...f, override_payout: e.target.value }))}
-                />
-              </div>
-              <div>
-                <label className="font-body text-xs text-charcoal/60 mb-1 block">Paid method (when marking paid)</label>
-                <Input
-                  placeholder="cash | bank transfer | UPI…"
-                  value={payoutEditForm.paid_method}
-                  onChange={(e) => setPayoutEditForm((f) => ({ ...f, paid_method: e.target.value }))}
-                />
-              </div>
-              <div>
-                <label className="font-body text-xs text-charcoal/60 mb-1 block">Notes</label>
-                <Input
-                  placeholder="optional"
-                  value={payoutEditForm.notes}
-                  onChange={(e) => setPayoutEditForm((f) => ({ ...f, notes: e.target.value }))}
-                />
-              </div>
-            </div>
-          ) : null}
-          <ResponsiveDialogFooter>
-            <Button variant="outline" onClick={() => setPayoutEditRow(null)}>Cancel</Button>
-            <Button variant="sage" onClick={savePayoutEdit} disabled={payoutEditSaving}>
-              {payoutEditSaving ? "Saving…" : "Save adjustment"}
-            </Button>
-          </ResponsiveDialogFooter>
         </ResponsiveDialogContent>
       </ResponsiveDialog>
 

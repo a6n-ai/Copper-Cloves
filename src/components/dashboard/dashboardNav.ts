@@ -14,6 +14,7 @@ import {
   ChefHat,
   ClipboardList,
   GraduationCap,
+  Wallet,
   type LucideIcon,
 } from "lucide-react";
 
@@ -74,6 +75,7 @@ export const PORTAL_CONFIGS: Record<PortalKind, PortalConfig> = {
         label: "Finance",
         items: [
           { href: "/admin/finances", label: "Finances", icon: DollarSign },
+          { href: "/admin/expenses", label: "Expenses", icon: Wallet },
         ],
       },
       {

@@ -9,8 +9,7 @@ import { AdminPageHeader } from "@/components/admin/AdminPageHeader";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { BarChart3, Receipt, ScanSearch } from "lucide-react";
-import { exportFinanceReport, useAdminFinanceData } from "@/hooks/useAdminFinanceData";
+import { BarChart3, Receipt, Wallet } from "lucide-react";
 
 function SectionLoadingSkeleton() {
   return (
@@ -25,50 +24,48 @@ function SectionLoadingSkeleton() {
   );
 }
 
-// Defer the recharts-laden Overview and the table-heavy Transactions sections.
-const FinanceOverviewSection = dynamic(
-  () => import("@/components/admin/dashboard-tabs/FinanceTab").then((m) => m.FinanceOverviewSection),
+const ExpenseOverviewSection = dynamic(
+  () => import("@/components/admin/dashboard-tabs/ExpenseOverviewSection").then((m) => m.ExpenseOverviewSection),
   { ssr: false, loading: () => <SectionLoadingSkeleton /> },
 );
-const FinanceTransactionsSection = dynamic(
-  () => import("@/components/admin/dashboard-tabs/FinanceTab").then((m) => m.FinanceTransactionsSection),
+const ExpensesSection = dynamic(
+  () => import("@/components/admin/dashboard-tabs/ExpensesSection").then((m) => m.ExpensesSection),
   { ssr: false, loading: () => <SectionLoadingSkeleton /> },
 );
-const ReconcileSection = dynamic(
-  () => import("@/components/admin/dashboard-tabs/ReconcileSection").then((m) => m.ReconcileSection),
+const InstructorPayoutsPanel = dynamic(
+  () => import("@/components/admin/dashboard-tabs/InstructorPayoutsPanel").then((m) => m.InstructorPayoutsPanel),
   { ssr: false, loading: () => <SectionLoadingSkeleton /> },
 );
 
-const FINANCE_TABS = [
+const EXPENSE_TABS = [
   { v: "overview", l: "Overview", I: BarChart3 },
-  { v: "transactions", l: "Transactions", I: Receipt },
-  { v: "reconcile", l: "Reconcile", I: ScanSearch },
+  { v: "expenses", l: "Expenses", I: Receipt },
+  { v: "payouts", l: "Payouts", I: Wallet },
 ] as const;
 
-export default function AdminFinances() {
+export default function AdminExpenses() {
   const [activeTab, setActiveTab] = useState("overview");
-  const { financeStats, financeLedgerTransactions, financeTrend, loaded } = useAdminFinanceData();
 
   return (
     <>
-      <SEO title="Finances - Admin" description="Studio revenue, expenses, and transactions" />
+      <SEO title="Expenses - Admin" description="Studio expenses and instructor payouts" />
 
       <div className="min-h-screen bg-linear-to-br from-cream via-cream to-sage/10">
         <main className="min-h-screen">
           <div className="max-w-7xl mx-auto p-6 lg:p-8 space-y-8">
             <AdminPageHeader
-              title="Finances"
-              subtitle="Revenue, expenses, reports, and the full transaction ledger"
+              title="Expenses"
+              subtitle="Costs, café meals, and instructor payouts"
             />
 
             <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">
-              {/* Mobile: dropdown picker (no horizontal scroll) */}
+              {/* Mobile: dropdown picker */}
               <Select value={activeTab} onValueChange={setActiveTab}>
                 <SelectTrigger className="md:hidden w-full border-sage/20 font-body">
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
-                  {FINANCE_TABS.map((t) => (
+                  {EXPENSE_TABS.map((t) => (
                     <SelectItem key={t.v} value={t.v} className="font-body">
                       {t.l}
                     </SelectItem>
@@ -78,7 +75,7 @@ export default function AdminFinances() {
 
               {/* Desktop: tab row */}
               <TabsList className="hidden md:flex bg-cream/50 border border-sage/15 p-1 gap-1 h-auto justify-start w-auto">
-                {FINANCE_TABS.map((t) => (
+                {EXPENSE_TABS.map((t) => (
                   <TabsTrigger
                     key={t.v}
                     value={t.v}
@@ -91,24 +88,15 @@ export default function AdminFinances() {
               </TabsList>
 
               <TabsContent value="overview" className="space-y-6">
-                <FinanceOverviewSection
-                  financeStats={financeStats}
-                  overviewLoaded={loaded}
-                  financeLedgerTransactions={financeLedgerTransactions}
-                  financeTrend={financeTrend}
-                  onExport={exportFinanceReport}
-                />
+                <ExpenseOverviewSection />
               </TabsContent>
 
-              <TabsContent value="transactions" className="space-y-6">
-                <FinanceTransactionsSection
-                  financeLedgerTransactions={financeLedgerTransactions}
-                  onExport={exportFinanceReport}
-                />
+              <TabsContent value="expenses" className="space-y-6">
+                <ExpensesSection />
               </TabsContent>
 
-              <TabsContent value="reconcile" className="space-y-6">
-                <ReconcileSection />
+              <TabsContent value="payouts" className="space-y-6">
+                <InstructorPayoutsPanel />
               </TabsContent>
             </Tabs>
           </div>

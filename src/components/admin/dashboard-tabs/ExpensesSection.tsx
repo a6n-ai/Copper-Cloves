@@ -1,13 +1,5 @@
-import { memo, useCallback, useEffect, useMemo, useState } from "react";
-import {
-  BadgeIndianRupee,
-  Loader2,
-  Plus,
-  Receipt,
-  Trash2,
-  TrendingDown,
-  Wallet,
-} from "lucide-react";
+import { memo, useCallback, useEffect, useState } from "react";
+import { Loader2, Plus, Receipt, Trash2 } from "lucide-react";
 import { toast } from "sonner";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
@@ -19,8 +11,6 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Badge } from "@/components/ui/badge";
-import { StatusPill } from "@/components/ui/status-pill";
-import { MetricCard } from "@/components/admin/MetricCard";
 import { Pagination, usePagination } from "@/components/Pagination";
 import {
   ResponsiveDialog,
@@ -52,16 +42,6 @@ type ExpenseDTO = {
   recordedBy: string | null;
 };
 
-type PayoutDTO = {
-  instructorId: string;
-  name: string;
-  classes: number;
-  checkIns: number;
-  total: number; // rupees
-  status: "paid" | "pending";
-  paidAt: string | null;
-};
-
 const METHOD_OPTIONS: { value: string; label: string }[] = [
   { value: "cash", label: "Cash" },
   { value: "direct_upi", label: "UPI" },
@@ -73,9 +53,6 @@ const METHOD_LABEL: Record<string, string> = Object.fromEntries(METHOD_OPTIONS.m
 
 function rupeesFromPaise(p: number): string {
   return `₹${Math.round(p / 100).toLocaleString("en-IN")}`;
-}
-function rupees(n: number): string {
-  return `₹${Math.round(n).toLocaleString("en-IN")}`;
 }
 function todayISODate(): string {
   const d = new Date();
@@ -95,11 +72,7 @@ const EMPTY_FORM = {
 function ExpensesSectionImpl() {
   const [expenses, setExpenses] = useState<ExpenseDTO[]>([]);
   const [loading, setLoading] = useState(true);
-  const [payouts, setPayouts] = useState<PayoutDTO[]>([]);
-  const [payoutsLoading, setPayoutsLoading] = useState(true);
-  const [recordingId, setRecordingId] = useState<string | null>(null);
   const [deletingId, setDeletingId] = useState<string | null>(null);
-
   const [addOpen, setAddOpen] = useState(false);
   const [form, setForm] = useState(EMPTY_FORM);
   const [saving, setSaving] = useState(false);
@@ -111,29 +84,13 @@ function ExpensesSectionImpl() {
     if (Array.isArray(d.expenses)) setExpenses(d.expenses);
   }, []);
 
-  const fetchPayouts = useCallback(async () => {
-    const r = await fetch("/api/admin/instructor-payouts?window=month");
-    if (!r.ok) return;
-    const d = await r.json();
-    if (Array.isArray(d.instructors)) setPayouts(d.instructors);
-  }, []);
-
   useEffect(() => {
     void (async () => {
       setLoading(true);
       await fetchExpenses();
       setLoading(false);
     })();
-    void (async () => {
-      setPayoutsLoading(true);
-      await fetchPayouts();
-      setPayoutsLoading(false);
-    })();
-  }, [fetchExpenses, fetchPayouts]);
-
-  const totalPaise = useMemo(() => expenses.reduce((s, e) => s + e.amountPaise, 0), [expenses]);
-  const pendingPayouts = useMemo(() => payouts.filter((p) => p.status !== "paid" && p.total > 0), [payouts]);
-  const pendingPayoutTotal = useMemo(() => pendingPayouts.reduce((s, p) => s + p.total, 0), [pendingPayouts]);
+  }, [fetchExpenses]);
 
   type ExpSortKey = "category" | "details" | "date" | "amount";
   const getExpSortValue = useCallback((e: ExpenseDTO, key: ExpSortKey): number | string => {
@@ -153,29 +110,7 @@ function ExpensesSectionImpl() {
       defaultDirFor: (k) => (k === "category" || k === "details" ? "asc" : "desc"),
     },
   );
-  const expensePg = usePagination(sortedExpenses, 10, `${expenses.length}|${expSortKey}|${expSortDir}`);
-
-  const positivePayouts = useMemo(() => payouts.filter((p) => p.total > 0), [payouts]);
-  type PaySortKey = "name" | "classes" | "checkIns" | "total" | "status";
-  const getPaySortValue = useCallback((p: PayoutDTO, key: PaySortKey): number | string => {
-    switch (key) {
-      case "name": return p.name.toLowerCase();
-      case "classes": return p.classes;
-      case "checkIns": return p.checkIns;
-      case "total": return p.total;
-      case "status": return p.status;
-    }
-  }, []);
-  const { sorted: sortedPayouts, sortKey: paySortKey, sortDir: paySortDir, toggle: togglePay } = useTableSort(
-    positivePayouts,
-    {
-      initialKey: "total",
-      initialDir: "desc",
-      getValue: getPaySortValue,
-      defaultDirFor: (k) => (k === "name" || k === "status" ? "asc" : "desc"),
-    },
-  );
-  const payoutsPg = usePagination(sortedPayouts, 10, `${positivePayouts.length}|${paySortKey}|${paySortDir}`);
+  const expensePg = usePagination(sortedExpenses, 12, `${expenses.length}|${expSortKey}|${expSortDir}`);
 
   const submitExpense = useCallback(async () => {
     const amount = Number(form.amount);
@@ -222,52 +157,15 @@ function ExpensesSectionImpl() {
           return;
         }
         await fetchExpenses();
-        await fetchPayouts();
       } finally {
         setDeletingId(null);
       }
     },
-    [fetchExpenses, fetchPayouts],
-  );
-
-  const recordPayout = useCallback(
-    async (p: PayoutDTO) => {
-      setRecordingId(p.instructorId);
-      try {
-        const r = await fetch("/api/admin/instructor-payout-adjustment", {
-          method: "PUT",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({
-            instructorId: p.instructorId,
-            window: "month",
-            paid: true,
-            recordExpense: true,
-            payout_paise: Math.round(p.total * 100),
-          }),
-        });
-        if (!r.ok) {
-          toast.error("Could not record payout.");
-          return;
-        }
-        toast.success(`${p.name}'s payout recorded as an expense and marked paid.`);
-        await fetchExpenses();
-        await fetchPayouts();
-      } finally {
-        setRecordingId(null);
-      }
-    },
-    [fetchExpenses, fetchPayouts],
+    [fetchExpenses],
   );
 
   return (
     <div className="space-y-6">
-      <div className="grid grid-cols-2 md:grid-cols-3 gap-3 sm:gap-4">
-        <MetricCard label="Total Expenses" value={Math.round(totalPaise / 100)} prefix="₹" icon={TrendingDown} tone="terracotta" loading={loading} hint={`${expenses.length} recorded`} />
-        <MetricCard label="Payouts Pending" value={Math.round(pendingPayoutTotal)} prefix="₹" icon={Wallet} tone="amber" loading={payoutsLoading} hint={`${pendingPayouts.length} this month`} />
-        <MetricCard label="Recorded Payouts" value={expenses.filter((e) => e.isPayout).length} icon={BadgeIndianRupee} tone="sage" loading={loading} hint="moved to expenses" />
-      </div>
-
-      {/* Expense ledger */}
       <Card className="border-sage/20 bg-white-warm">
         <CardHeader>
           <div className="flex flex-wrap items-center justify-between gap-3">
@@ -294,151 +192,76 @@ function ExpensesSectionImpl() {
             </div>
           ) : (
             <>
-          <div className="rounded-xl border border-sage/15 bg-white-warm overflow-hidden">
-            <ResponsiveTable>
-              <Table>
-                <TableHeader>
-                  <TableRow className="bg-sage/5 hover:bg-sage/5 border-sage/10">
-                    <SortableHeader sortKey="category" active={expSortKey} dir={expSortDir} onToggle={toggleExp} className="w-[132px]">Type</SortableHeader>
-                    <SortableHeader sortKey="details" active={expSortKey} dir={expSortDir} onToggle={toggleExp}>Details</SortableHeader>
-                    <SortableHeader sortKey="date" active={expSortKey} dir={expSortDir} onToggle={toggleExp} className="w-[120px]">Date</SortableHeader>
-                    <TableHead className="font-body text-xs uppercase tracking-wide text-charcoal/60 px-5 py-3 w-[120px]">Method</TableHead>
-                    <SortableHeader sortKey="amount" active={expSortKey} dir={expSortDir} onToggle={toggleExp} className="w-[120px] text-right" align="right">Amount</SortableHeader>
-                    <TableHead className="font-body text-xs uppercase tracking-wide text-charcoal/60 px-5 py-3 w-[56px]" />
-                  </TableRow>
-                </TableHeader>
-                <TableBody>
-                  {expensePg.pageItems.map((e) => {
-                    const ks = expenseCategoryStyle(e.category);
-                    return (
-                      <TableRow key={e.id} className="border-sage/10">
-                        <TableCell className="px-5 py-4">
-                          <span
-                            className="inline-flex w-full max-w-[112px] items-center justify-center rounded-full border px-2.5 py-0.5 font-body text-[11px] font-medium whitespace-nowrap"
-                            style={{ backgroundColor: ks.bg, color: ks.fg, borderColor: ks.border }}
-                          >
-                            {EXPENSE_CATEGORY_LABELS[e.category]}
-                          </span>
-                        </TableCell>
-                        <TableCell className="px-5 py-4">
-                          <div className="font-body text-sm text-charcoal line-clamp-2 [overflow-wrap:anywhere]">
-                            {e.payee || e.description || EXPENSE_CATEGORY_LABELS[e.category]}
-                          </div>
-                          {e.description && e.payee ? (
-                            <div className="font-body text-xs text-charcoal/45 line-clamp-1">{e.description}</div>
-                          ) : null}
-                        </TableCell>
-                        <TableCell className="px-5 py-4 font-body text-sm text-charcoal/60 whitespace-nowrap">
-                          {new Date(e.incurredAtISO).toLocaleDateString("en-IN", { day: "numeric", month: "short", year: "2-digit" })}
-                        </TableCell>
-                        <TableCell className="px-5 py-4">
-                          {e.method ? (
-                            <Badge variant="outline" className="border-charcoal/15 text-charcoal/60 font-body whitespace-nowrap">
-                              {METHOD_LABEL[e.method] ?? e.method}
-                            </Badge>
-                          ) : (
-                            <span className="font-body text-xs text-charcoal/30">—</span>
-                          )}
-                        </TableCell>
-                        <TableCell className="px-5 py-4 text-right">
-                          <span className="font-display text-base tabular-nums text-[#a05e38]">−{rupeesFromPaise(e.amountPaise)}</span>
-                        </TableCell>
-                        <TableCell className="px-5 py-4 text-right">
-                          <Button
-                            type="button"
-                            variant="ghost"
-                            size="sm"
-                            className="h-8 w-8 p-0 text-charcoal/40 hover:text-[#a05e38] hover:bg-[#a05e38]/10"
-                            disabled={deletingId === e.id}
-                            onClick={() => removeExpense(e.id)}
-                            aria-label="Delete expense"
-                          >
-                            {deletingId === e.id ? <Loader2 className="h-4 w-4 animate-spin" /> : <Trash2 className="h-4 w-4" />}
-                          </Button>
-                        </TableCell>
-                      </TableRow>
-                    );
-                  })}
-                </TableBody>
-              </Table>
-            </ResponsiveTable>
-          </div>
-          <Pagination page={expensePg.page} total={expensePg.total} onChange={expensePg.setPage} />
-            </>
-          )}
-        </CardContent>
-      </Card>
-
-      {/* This month's instructor payouts → record as expense */}
-      <Card className="border-sage/20 bg-white-warm">
-        <CardHeader>
-          <CardTitle className="font-display text-xl text-charcoal">Instructor payouts · this month</CardTitle>
-          <CardDescription className="font-body text-charcoal/60">
-            Recording a payout marks it paid and moves it into expenses (one step, idempotent)
-          </CardDescription>
-        </CardHeader>
-        <CardContent>
-          {payoutsLoading ? (
-            <div className="py-8 text-center font-body text-sm text-charcoal/40">Loading payouts…</div>
-          ) : positivePayouts.length === 0 ? (
-            <div className="py-8 text-center font-body text-sm text-charcoal/40">No payouts this month.</div>
-          ) : (
-            <>
               <div className="rounded-xl border border-sage/15 bg-white-warm overflow-hidden">
                 <ResponsiveTable>
                   <Table>
                     <TableHeader>
                       <TableRow className="bg-sage/5 hover:bg-sage/5 border-sage/10">
-                        <SortableHeader sortKey="name" active={paySortKey} dir={paySortDir} onToggle={togglePay}>Instructor</SortableHeader>
-                        <SortableHeader sortKey="classes" active={paySortKey} dir={paySortDir} onToggle={togglePay} className="w-[90px]">Classes</SortableHeader>
-                        <SortableHeader sortKey="checkIns" active={paySortKey} dir={paySortDir} onToggle={togglePay} className="w-[100px]">Check-ins</SortableHeader>
-                        <SortableHeader sortKey="total" active={paySortKey} dir={paySortDir} onToggle={togglePay} className="w-[120px] text-right" align="right">Payout</SortableHeader>
-                        <SortableHeader sortKey="status" active={paySortKey} dir={paySortDir} onToggle={togglePay} className="w-[110px]">Status</SortableHeader>
-                        <TableHead className="font-body text-xs uppercase tracking-wide text-charcoal/60 px-5 py-3 w-[170px] text-right">Action</TableHead>
+                        <SortableHeader sortKey="category" active={expSortKey} dir={expSortDir} onToggle={toggleExp} className="w-[132px]">Type</SortableHeader>
+                        <SortableHeader sortKey="details" active={expSortKey} dir={expSortDir} onToggle={toggleExp}>Details</SortableHeader>
+                        <SortableHeader sortKey="date" active={expSortKey} dir={expSortDir} onToggle={toggleExp} className="w-[120px]">Date</SortableHeader>
+                        <TableHead className="font-body text-xs uppercase tracking-wide text-charcoal/60 px-5 py-3 w-[120px]">Method</TableHead>
+                        <SortableHeader sortKey="amount" active={expSortKey} dir={expSortDir} onToggle={toggleExp} className="w-[120px] text-right" align="right">Amount</SortableHeader>
+                        <TableHead className="font-body text-xs uppercase tracking-wide text-charcoal/60 px-5 py-3 w-[56px]" />
                       </TableRow>
                     </TableHeader>
                     <TableBody>
-                      {payoutsPg.pageItems.map((p) => (
-                        <TableRow key={p.instructorId} className="border-sage/10 hover:bg-sage/5">
-                          <TableCell className="px-5 py-4">
-                            <div className="font-body font-medium text-charcoal truncate max-w-[240px]">{p.name}</div>
-                          </TableCell>
-                          <TableCell className="px-5 py-4 font-body text-sm text-charcoal/70 tabular-nums">{p.classes}</TableCell>
-                          <TableCell className="px-5 py-4 font-body text-sm text-charcoal/70 tabular-nums">{p.checkIns}</TableCell>
-                          <TableCell className="px-5 py-4 text-right">
-                            <span className="font-display text-base tabular-nums text-charcoal">{rupees(p.total)}</span>
-                          </TableCell>
-                          <TableCell className="px-5 py-4">
-                            {p.status === "paid" ? (
-                              <StatusPill tone="sage" dot>Paid</StatusPill>
-                            ) : (
-                              <StatusPill tone="amber" dot>Pending</StatusPill>
-                            )}
-                          </TableCell>
-                          <TableCell className="px-5 py-4 text-right">
-                            {p.status === "paid" ? (
-                              <span className="font-body text-xs text-sage whitespace-nowrap">Recorded ✓</span>
-                            ) : (
+                      {expensePg.pageItems.map((e) => {
+                        const ks = expenseCategoryStyle(e.category);
+                        return (
+                          <TableRow key={e.id} className="border-sage/10">
+                            <TableCell className="px-5 py-4">
+                              <span
+                                className="inline-flex w-full max-w-[112px] items-center justify-center rounded-full border px-2.5 py-0.5 font-body text-[11px] font-medium whitespace-nowrap"
+                                style={{ backgroundColor: ks.bg, color: ks.fg, borderColor: ks.border }}
+                              >
+                                {EXPENSE_CATEGORY_LABELS[e.category]}
+                              </span>
+                            </TableCell>
+                            <TableCell className="px-5 py-4">
+                              <div className="font-body text-sm text-charcoal line-clamp-2 [overflow-wrap:anywhere]">
+                                {e.payee || e.description || EXPENSE_CATEGORY_LABELS[e.category]}
+                              </div>
+                              {e.description && e.payee ? (
+                                <div className="font-body text-xs text-charcoal/45 line-clamp-1">{e.description}</div>
+                              ) : null}
+                            </TableCell>
+                            <TableCell className="px-5 py-4 font-body text-sm text-charcoal/60 whitespace-nowrap">
+                              {new Date(e.incurredAtISO).toLocaleDateString("en-IN", { day: "numeric", month: "short", year: "2-digit" })}
+                            </TableCell>
+                            <TableCell className="px-5 py-4">
+                              {e.method ? (
+                                <Badge variant="outline" className="border-charcoal/15 text-charcoal/60 font-body whitespace-nowrap">
+                                  {METHOD_LABEL[e.method] ?? e.method}
+                                </Badge>
+                              ) : (
+                                <span className="font-body text-xs text-charcoal/30">—</span>
+                              )}
+                            </TableCell>
+                            <TableCell className="px-5 py-4 text-right">
+                              <span className="font-display text-base tabular-nums text-[#a05e38]">−{rupeesFromPaise(e.amountPaise)}</span>
+                            </TableCell>
+                            <TableCell className="px-5 py-4 text-right">
                               <Button
                                 type="button"
-                                variant="outline"
+                                variant="ghost"
                                 size="sm"
-                                className="border-terracotta/30 text-[#a05e38] hover:bg-terracotta/10 font-body"
-                                disabled={recordingId === p.instructorId}
-                                onClick={() => recordPayout(p)}
+                                className="h-8 w-8 p-0 text-charcoal/40 hover:text-[#a05e38] hover:bg-[#a05e38]/10"
+                                disabled={deletingId === e.id}
+                                onClick={() => removeExpense(e.id)}
+                                aria-label="Delete expense"
                               >
-                                {recordingId === p.instructorId ? <Loader2 className="h-4 w-4 mr-1.5 animate-spin" /> : <Wallet className="h-4 w-4 mr-1.5" />}
-                                Record as expense
+                                {deletingId === e.id ? <Loader2 className="h-4 w-4 animate-spin" /> : <Trash2 className="h-4 w-4" />}
                               </Button>
-                            )}
-                          </TableCell>
-                        </TableRow>
-                      ))}
+                            </TableCell>
+                          </TableRow>
+                        );
+                      })}
                     </TableBody>
                   </Table>
                 </ResponsiveTable>
               </div>
-              <Pagination page={payoutsPg.page} total={payoutsPg.total} onChange={payoutsPg.setPage} />
+              <Pagination page={expensePg.page} total={expensePg.total} onChange={expensePg.setPage} />
             </>
           )}
         </CardContent>
