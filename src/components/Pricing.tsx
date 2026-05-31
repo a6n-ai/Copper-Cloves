@@ -183,20 +183,15 @@ export function Pricing() {
 
   return (
     <section id="pricing" className="py-16 md:py-20 bg-cream relative overflow-hidden">
-      <div className="absolute inset-0 opacity-30">
-        <div className="absolute top-20 left-10 w-72 h-72 bg-sage/20 rounded-full blur-3xl" />
-        <div className="absolute bottom-20 right-10 w-96 h-96 bg-terracotta/20 rounded-full blur-3xl" />
-      </div>
-
       <div className="relative z-10 max-w-7xl mx-auto px-6 lg:px-8">
-        {/* Header */}
-        <div className="text-center mb-16">
-          <h2 className="font-display text-5xl md:text-6xl text-charcoal mb-6">
+        {/* Header — label above a tight heading (no trailing paragraph) */}
+        <div className="text-center mb-12">
+          <span className="font-body text-xs font-semibold tracking-[0.18em] uppercase text-terracotta">
+            Memberships &amp; passes
+          </span>
+          <h2 className="font-display text-5xl md:text-6xl text-charcoal mt-3">
             Invest in Yourself
           </h2>
-          <p className="font-body text-lg text-charcoal/70 max-w-2xl mx-auto leading-relaxed">
-            Choose the package that fits your wellness journey. From flexible class packs to unlimited access, we have options for every commitment level.
-          </p>
         </div>
 
         {/* Tier Selector */}

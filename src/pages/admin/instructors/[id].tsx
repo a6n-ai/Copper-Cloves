@@ -211,10 +211,7 @@ export default function InstructorProfilePage() {
             ) : (
               <>
                 {/* Hero card */}
-                <div className="relative overflow-hidden rounded-2xl border border-sage/20 bg-linear-to-br from-sage/8 via-white to-cream/30 shadow-xs">
-                  <div className="absolute -top-12 -right-12 size-48 rounded-full bg-sage/10 blur-3xl pointer-events-none" />
-                  <div className="absolute -bottom-16 -left-16 size-56 rounded-full bg-cream/40 blur-3xl pointer-events-none" />
-
+                <div className="relative overflow-hidden rounded-2xl border border-sage/20 bg-linear-to-br from-sage/8 via-[#fafaf8] to-cream/30 shadow-xs">
                   <div className="relative grid grid-cols-1 gap-6 p-6 md:grid-cols-[auto_1fr_auto] md:items-center">
                     <div className="relative shrink-0">
                       {instructor.image_url ? (

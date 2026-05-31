@@ -54,21 +54,17 @@ export function Boutique() {
 
   return (
     <section className="relative py-16 md:py-20 bg-cream overflow-hidden">
-      <div className="absolute top-20 left-10 w-64 h-64 bg-sage/5 rounded-full blur-3xl" />
-      <div className="absolute bottom-20 right-10 w-64 h-64 bg-terracotta/5 rounded-full blur-3xl" />
-
       <div className="relative z-10 max-w-7xl mx-auto px-6 lg:px-8">
-        <div className="text-center mb-16 animate-fade-in">
+        <div className="text-right mb-10 animate-fade-in">
           <h2 className="font-display text-5xl md:text-6xl text-charcoal mb-3">the boutique</h2>
           <p className="font-display text-2xl md:text-3xl text-sage/80 italic lowercase">
             curated rituals for your home
           </p>
         </div>
 
-        <div className="max-w-3xl mx-auto text-center mb-12">
+        <div className="max-w-xl ml-auto text-right mb-12">
           <p className="font-body text-lg text-charcoal/80 leading-relaxed">
-            Featured retail from the studio — synced with what you manage in admin. Shop the full catalog
-            online.
+            Featured retail from the studio, shop the full catalog online.
           </p>
         </div>
 

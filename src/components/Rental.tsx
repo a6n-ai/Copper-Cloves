@@ -31,7 +31,7 @@ export function Rental() {
         <div className="grid lg:grid-cols-2 gap-12 items-center mb-16">
           {/* Left: Image Showcase */}
           <div className="relative">
-            <div className="relative h-[500px] rounded-3xl overflow-hidden shadow-2xl">
+            <div className="relative h-[500px] rounded-3xl overflow-hidden shadow-[0_8px_48px_-8px_rgba(51,51,51,0.14)]">
               <Image
                 src={cdnUrl("/cafe-studio.jpg")}
                 alt="The Studio by Copper + Cloves - Event Space"
@@ -44,7 +44,7 @@ export function Rental() {
               
               {/* Floating Badge */}
               <div className="absolute bottom-8 left-8 right-8">
-                <div className="bg-white-warm rounded-2xl p-6 shadow-2xl">
+                <div className="bg-white-warm rounded-2xl p-6 shadow-[0_4px_24px_rgba(51,51,51,0.08)]">
                   <div className="flex items-center justify-between">
                     <div>
                       <p className="font-body text-sm text-charcoal/70 mb-1">Capacity</p>

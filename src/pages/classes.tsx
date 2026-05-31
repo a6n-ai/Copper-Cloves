@@ -736,11 +736,6 @@ export default function ClassesPage({ initialClasses }: ClassesPageProps) {
 
       {/* CTA Section */}
       <section className="py-24 bg-sage text-white relative overflow-hidden">
-        <div className="absolute inset-0 opacity-10">
-          <div className="absolute top-0 right-0 w-96 h-96 rounded-full bg-white blur-3xl" />
-          <div className="absolute bottom-0 left-0 w-80 h-80 rounded-full bg-white blur-3xl" />
-        </div>
-
         <div className="relative z-10 max-w-4xl mx-auto px-6 lg:px-8 text-center">
           <h2 className="font-display text-4xl md:text-5xl mb-6">
             Ready to Begin?

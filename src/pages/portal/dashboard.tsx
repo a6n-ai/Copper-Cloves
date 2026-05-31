@@ -97,9 +97,9 @@ const MILESTONES = [
     classes: 75,
     icon: Sun,
     description: "Movement meets mindfulness",
-    color: "text-amber-600",
-    bgColor: "bg-amber-50",
-    borderColor: "border-amber-200"
+    color: "text-[#a05e38]",
+    bgColor: "bg-[#a05e38]/10",
+    borderColor: "border-[#a05e38]/25"
   },
   {
     id: "immortal",
@@ -107,9 +107,9 @@ const MILESTONES = [
     classes: 150,
     icon: Crown,
     description: "Legendary status achieved",
-    color: "text-yellow-600",
-    bgColor: "bg-linear-to-br from-yellow-50 to-amber-50",
-    borderColor: "border-yellow-400"
+    color: "text-[#7a4327]",
+    bgColor: "bg-linear-to-br from-[#a05e38]/12 to-terracotta/10",
+    borderColor: "border-[#a05e38]/30"
   }
 ];
 

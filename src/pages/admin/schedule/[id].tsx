@@ -101,8 +101,7 @@ function ClassDetailSkeleton() {
       </div>
 
       {/* Instructor hero card */}
-      <div className="relative overflow-hidden rounded-2xl border border-sage/15 bg-linear-to-br from-sage/8 via-white to-cream/30 shadow-xs">
-        <div className="absolute -top-12 -right-12 size-44 rounded-full bg-sage/10 blur-3xl pointer-events-none" />
+      <div className="relative overflow-hidden rounded-2xl border border-sage/15 bg-linear-to-br from-sage/8 via-[#fafaf8] to-cream/30 shadow-xs">
         <div className="grid grid-cols-1 gap-6 p-6 md:grid-cols-[1fr_auto_1fr] md:items-center relative">
           <div className="flex items-center gap-5">
             <Skeleton className="size-16 rounded-full bg-sage/15" />
@@ -486,11 +485,7 @@ export default function AdminClassPage() {
                   const taught = roster.actualInstructor ?? roster.instructor;
                   const initial = (taught ?? "I").slice(0, 1).toUpperCase();
                   return (
-                    <div className="relative overflow-hidden rounded-2xl border border-sage/20 bg-linear-to-br from-sage/8 via-white to-cream/30 shadow-xs">
-                      {/* Decorative accent */}
-                      <div className="absolute -top-12 -right-12 size-44 rounded-full bg-sage/10 blur-3xl pointer-events-none" />
-                      <div className="absolute -bottom-16 -left-16 size-48 rounded-full bg-cream/40 blur-3xl pointer-events-none" />
-
+                    <div className="relative overflow-hidden rounded-2xl border border-sage/20 bg-linear-to-br from-sage/8 via-[#fafaf8] to-cream/30 shadow-xs">
                       <div className="relative grid grid-cols-1 gap-6 p-6 md:grid-cols-[1fr_auto_1fr] md:items-center">
                         {/* Instructor identity — clickable to profile */}
                         {(() => {

@@ -1,5 +1,4 @@
 import Image from "next/image";
-import { Star } from "lucide-react";
 import { useState, useEffect } from "react";
 
 const testimonials = [
@@ -67,24 +66,14 @@ export function Testimonial() {
 
   return (
     <section className="py-16 md:py-20 bg-sage text-white relative overflow-hidden">
-      <div className="absolute inset-0 opacity-10">
-        <div className="absolute top-0 right-0 w-96 h-96 rounded-full bg-white blur-3xl" />
-        <div className="absolute bottom-0 left-0 w-96 h-96 rounded-full bg-white blur-3xl" />
-      </div>
-
       <div className="relative z-10 max-w-4xl mx-auto px-6 lg:px-8">
         {/* Header */}
         <div className="text-center mb-12">
           <h2 className="font-display text-4xl md:text-5xl mb-4">
             What Our Community Says
           </h2>
-          <div className="flex justify-center gap-1 mb-2">
-            {[1, 2, 3, 4, 5].map((star) => (
-              <Star key={star} className="fill-white text-white" size={24} />
-            ))}
-          </div>
           <p className="font-body text-white/80 text-lg">
-            5.0 Rating • {testimonials.length} Happy Members
+            In their own words, from {testimonials.length} members of the studio
           </p>
         </div>
 
