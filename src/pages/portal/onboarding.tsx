@@ -221,7 +221,6 @@ export default function OnboardingPage() {
               width={160}
               height={60}
               className="h-14 w-auto"
-              style={{ filter: "brightness(0)" }}
             />
           </div>
 
@@ -231,8 +230,8 @@ export default function OnboardingPage() {
               <div key={i} className="flex items-center gap-2">
                 <div className={`flex items-center gap-1.5 text-xs font-body transition-colors ${i === step ? "text-charcoal font-medium" : i < step ? "text-sage" : "text-charcoal/30"}`}>
                   <div className={`h-6 w-6 rounded-full flex items-center justify-center text-xs border transition-colors ${
-                    i < step ? "bg-sage border-sage text-white" :
-                    i === step ? "bg-charcoal border-charcoal text-white" :
+                    i < step ? "bg-sage border-sage text-cream" :
+                    i === step ? "bg-charcoal border-charcoal text-cream" :
                     "border-charcoal/20 text-charcoal/30"
                   }`}>
                     {i < step ? <CheckCircle2 className="h-3.5 w-3.5" /> : i + 1}
@@ -246,7 +245,7 @@ export default function OnboardingPage() {
             ))}
           </div>
 
-          <Card className="border-sage/20 bg-white/95 backdrop-blur-xl shadow-2xl">
+          <Card className="border-sage/20 bg-white-warm shadow-[0_4px_24px_rgba(51,51,51,0.08)]">
             <CardHeader className="pb-4">
               <CardTitle className="font-display text-2xl text-charcoal">
                 {step === 0 && "Tell us about yourself"}
@@ -306,7 +305,7 @@ export default function OnboardingPage() {
                                 onClick={() => field.onChange(g)}
                                 className={`py-3 px-4 rounded-xl border text-sm font-body capitalize transition-all ${
                                   field.value === g
-                                    ? "bg-charcoal text-white border-charcoal"
+                                    ? "bg-charcoal text-cream border-charcoal"
                                     : "border-sage/20 text-charcoal/70 hover:border-sage/50"
                                 }`}
                               >
@@ -426,7 +425,7 @@ export default function OnboardingPage() {
                     <Button
                       type="button"
                       onClick={goNext}
-                      className="flex-1 bg-charcoal hover:bg-charcoal/90 text-white font-body h-11 rounded-full"
+                      className="flex-1 bg-charcoal hover:bg-charcoal/90 text-cream font-body h-11 rounded-full"
                     >
                       Continue
                       <ChevronRight className="h-4 w-4 ml-1" />

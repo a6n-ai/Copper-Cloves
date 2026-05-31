@@ -260,7 +260,7 @@ export function DashboardShell({ config, user, children }: DashboardShellProps) 
       </Sidebar>
 
       <SidebarInset>
-        <header className="sticky top-0 z-40 bg-white/80 backdrop-blur-xl border-b border-sage/10 h-16 md:rounded-t-xl">
+        <header className="sticky top-0 z-40 bg-white-warm border-b border-sage/10 h-16 md:rounded-t-xl">
           <div className="flex items-center justify-between h-full px-4 gap-3">
             <div className="flex items-center gap-3 flex-1 min-w-0">
               <SidebarTrigger className="text-charcoal hover:text-sage shrink-0 hidden md:inline-flex" />

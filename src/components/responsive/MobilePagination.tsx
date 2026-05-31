@@ -37,7 +37,7 @@ export function MobilePagination({
   return (
     <div
       className={cn(
-        "flex items-center justify-between gap-3 rounded-xl border border-sage/20 bg-white/80 p-3 backdrop-blur-xs sm:p-4",
+        "flex items-center justify-between gap-3 rounded-xl border border-sage/20 bg-white-warm p-3 sm:p-4",
         className,
       )}
     >

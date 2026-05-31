@@ -58,14 +58,14 @@ export function Navigation({ variant = "default" }: NavigationProps) {
     isOverlay && [
       "fixed top-0 left-0 right-0 z-50",
       scrolled
-        ? "bg-white/90 backdrop-blur-md border-b border-charcoal/10 shadow-xs"
+        ? "bg-[#fafaf8]/90 backdrop-blur-md border-b border-charcoal/10 shadow-xs"
         : "bg-transparent border-b border-transparent shadow-none",
     ],
     !isOverlay && [
       "sticky top-0 z-50 border-b",
       scrolled
-        ? "bg-white/92 backdrop-blur-md border-charcoal/10 shadow-xs"
-        : "bg-white/78 backdrop-blur-xl border-sage/10",
+        ? "bg-[#fafaf8]/92 backdrop-blur-md border-charcoal/10 shadow-xs"
+        : "bg-[#fafaf8]/85 backdrop-blur-xl border-sage/10",
     ]
   );
 
@@ -140,7 +140,7 @@ export function Navigation({ variant = "default" }: NavigationProps) {
           <div
             className={cn(
               "md:hidden pb-5 pt-1 space-y-1 rounded-b-2xl border-t border-charcoal/5 mt-1",
-              isOverlay ? "bg-white/96 backdrop-blur-lg" : "bg-white/95"
+              isOverlay ? "bg-[#fafaf8]/96 backdrop-blur-lg" : "bg-[#fafaf8]/95"
             )}
           >
             <Link

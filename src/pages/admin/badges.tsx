@@ -566,7 +566,7 @@ export default function AdminBadgesPage() {
 
           {/* ============ PATH TO MASTERY TAB ============ */}
           {tab === "ptm" && (
-            <Card className="border-sage/20 bg-white/95 backdrop-blur-xl">
+            <Card className="border-sage/20 bg-white-warm">
               <CardHeader className="space-y-4">
                 <div className="flex flex-wrap items-start justify-between gap-3">
                   <div>
@@ -749,7 +749,7 @@ export default function AdminBadgesPage() {
                 </div>
 
                 {showCreateCustom && (
-                  <Card className="border-0 bg-white/80 backdrop-blur-xl shadow-xs">
+                  <Card className="border-0 bg-white-warm shadow-xs">
                     <CardContent className="p-5">
                       <h3 className="font-display text-lg text-charcoal mb-2">New Custom Badge</h3>
                       {renderBadgeForm(customForm, setCustomForm, createCustom, () => {
@@ -769,7 +769,7 @@ export default function AdminBadgesPage() {
                 {customTemplates.map((template) => (
                   <Card
                     key={template.id}
-                    className={`border-0 bg-white/80 backdrop-blur-xl shadow-xs cursor-pointer transition-all duration-200 ${
+                    className={`border-0 bg-white-warm shadow-xs cursor-pointer transition-all duration-200 ${
                       selectedCustomTemplate?.id === template.id
                         ? "ring-2 ring-sage/50 shadow-md"
                         : "hover:shadow-md"
@@ -869,7 +869,7 @@ export default function AdminBadgesPage() {
               {/* Right: Allocation panel */}
               <div>
                 {selectedCustomTemplate ? (
-                  <Card className="border-0 bg-white/80 backdrop-blur-xl shadow-xs sticky top-24">
+                  <Card className="border-0 bg-white-warm shadow-xs sticky top-24">
                     <CardHeader className="pb-2">
                       <CardTitle className="font-display text-lg text-charcoal flex items-center gap-3">
                         <span className="text-2xl">{selectedCustomTemplate.icon}</span>

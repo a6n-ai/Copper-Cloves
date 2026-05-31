@@ -105,7 +105,7 @@ export function ResetPasswordForm({ token }: { token: string | undefined }) {
       </p>
 
       {!token && (
-        <div className="mb-5 bg-amber-50 border border-amber-200 rounded-lg px-4 py-3 text-sm text-amber-800 font-body">
+        <div className="mb-5 bg-terracotta/10 border border-terracotta/20 rounded-lg px-4 py-3 text-sm text-terracotta font-body">
           This reset link is missing a token. Please use the link from your email.
         </div>
       )}
@@ -120,11 +120,11 @@ export function ResetPasswordForm({ token }: { token: string | undefined }) {
             id="password"
             autoComplete="new-password"
             placeholder="••••••••"
-            className="border-sage/25 bg-white/60 focus:ring-sage placeholder:text-charcoal/40 h-12 rounded-xl"
+            className="border-sage/25 bg-cream focus:ring-sage placeholder:text-charcoal/40 h-12 rounded-xl"
             autoFocus
           />
           {errors.password && (
-            <p className="text-xs text-red-600 font-body mt-1">{errors.password.message}</p>
+            <p className="text-xs text-[#a05e38] font-body mt-1">{errors.password.message}</p>
           )}
         </div>
 
@@ -137,15 +137,15 @@ export function ResetPasswordForm({ token }: { token: string | undefined }) {
             id="confirmPassword"
             autoComplete="new-password"
             placeholder="••••••••"
-            className="border-sage/25 bg-white/60 focus:ring-sage placeholder:text-charcoal/40 h-12 rounded-xl"
+            className="border-sage/25 bg-cream focus:ring-sage placeholder:text-charcoal/40 h-12 rounded-xl"
           />
           {errors.confirmPassword && (
-            <p className="text-xs text-red-600 font-body mt-1">{errors.confirmPassword.message}</p>
+            <p className="text-xs text-[#a05e38] font-body mt-1">{errors.confirmPassword.message}</p>
           )}
         </div>
 
         {apiError && (
-          <div className="bg-red-50 border border-red-200 rounded-lg px-4 py-3 text-sm text-red-700 font-body">
+          <div className="bg-[#a05e38]/10 border border-[#a05e38]/25 rounded-lg px-4 py-3 text-sm text-[#a05e38] font-body">
             {apiError}
           </div>
         )}

@@ -59,7 +59,7 @@ export default function FounderPage() {
             {/* Left: Photo */}
             <div className="relative">
               {/* Main Photo */}
-              <div className="relative rounded-3xl overflow-hidden shadow-2xl">
+              <div className="relative rounded-3xl overflow-hidden shadow-[0_8px_48px_-8px_rgba(51,51,51,0.14)]">
                 <Image
                   src={cdnUrl("/founder.jpg")}
                   alt="Founder of Copper + Cloves"
@@ -92,15 +92,15 @@ export default function FounderPage() {
 
               {/* Stats Grid */}
               <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 pt-8">
-                <div className="text-center p-6 rounded-2xl bg-white/60 backdrop-blur-xs border border-sage/10">
+                <div className="text-center p-6 rounded-2xl bg-white-warm border border-sage/10">
                   <p className="font-display text-3xl text-sage mb-1">2018</p>
                   <p className="font-body text-xs text-charcoal/70">Founded</p>
                 </div>
-                <div className="text-center p-6 rounded-2xl bg-white/60 backdrop-blur-xs border border-sage/10">
+                <div className="text-center p-6 rounded-2xl bg-white-warm border border-sage/10">
                   <p className="font-display text-3xl text-sage mb-1">3</p>
                   <p className="font-body text-xs text-charcoal/70">Locations</p>
                 </div>
-                <div className="text-center p-6 rounded-2xl bg-white/60 backdrop-blur-xs border border-sage/10">
+                <div className="text-center p-6 rounded-2xl bg-white-warm border border-sage/10">
                   <p className="font-display text-3xl text-sage mb-1">20+</p>
                   <p className="font-body text-xs text-charcoal/70">Team Members</p>
                 </div>

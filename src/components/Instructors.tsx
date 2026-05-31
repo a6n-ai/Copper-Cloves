@@ -5,7 +5,9 @@ import { Button } from "@/components/ui/button";
 import { CloseButton } from "@/components/ui/quick-actions";
 import { ChevronLeft, ChevronRight, X, Award, Calendar, Heart, Share2, Facebook, Twitter, Linkedin, MessageCircle } from "lucide-react";
 import Link from "next/link";
+import Image from "next/image";
 import { supportsResponsivePicture } from "@/lib/imageDelivery";
+import { BLUR_DATA_URL, isUnoptimizableSrc } from "@/lib/imageBlur";
 import { dedupeInstructorRows } from "@/lib/instructorIdentity";
 
 import { cdnUrl } from "@/lib/cdnUrl";
@@ -73,10 +75,15 @@ function InstructorCarouselPhoto({
   }
 
   return (
-    <img
+    <Image
       src={src}
       alt={name}
-      loading={index < 4 ? "eager" : "lazy"}
+      fill
+      sizes="260px"
+      priority={index < 4}
+      placeholder="blur"
+      blurDataURL={BLUR_DATA_URL}
+      unoptimized={isUnoptimizableSrc(src)}
       onLoad={onLoad}
       onError={onError}
       className={imgClass}
@@ -106,7 +113,19 @@ function InstructorModalPhoto({ src, name }: { src: string; name: string }) {
     );
   }
 
-  return <img src={src} alt={name} className={imgClass} />;
+  return (
+    <Image
+      src={src}
+      alt={name}
+      width={128}
+      height={128}
+      sizes="128px"
+      placeholder="blur"
+      blurDataURL={BLUR_DATA_URL}
+      unoptimized={isUnoptimizableSrc(src)}
+      className={imgClass}
+    />
+  );
 }
 
 /** Mirrors the horizontal row of instructor cards (photo + name/title/experience/about). */
@@ -269,9 +288,6 @@ export function Instructors() {
         ref={parallaxRef}
         className="absolute inset-0 opacity-[0.04] transition-transform duration-100 ease-out will-change-transform"
       >
-        <div className="absolute top-20 left-20 w-96 h-96 rounded-full bg-linear-to-br from-sage to-terracotta blur-3xl animate-pulse" style={{ animationDuration: "8s" }} />
-        <div className="absolute bottom-20 right-20 w-[500px] h-[500px] rounded-full bg-linear-to-tl from-sage via-terracotta/30 to-sage blur-3xl animate-pulse" style={{ animationDuration: "12s", animationDelay: "2s" }} />
-        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[600px] rounded-full bg-gradient-radial from-sage/10 to-transparent blur-2xl" />
       </div>
 
       {/* Subtle Gold Accent Lines */}
@@ -326,7 +342,7 @@ export function Instructors() {
                 size="icon-lg"
                 onClick={() => scroll("left")}
                 disabled={isScrolling}
-                className="absolute left-4 top-1/2 -translate-y-1/2 z-20 rounded-full bg-white/80 backdrop-blur-xl border border-sage/20 opacity-0 group-hover:opacity-100"
+                className="absolute left-4 top-1/2 -translate-y-1/2 z-20 rounded-full bg-white-warm border border-sage/20 opacity-0 group-hover:opacity-100"
                 aria-label="Scroll left"
               >
                 <ChevronLeft className="text-sage" size={28} strokeWidth={2} />
@@ -338,7 +354,7 @@ export function Instructors() {
                 size="icon-lg"
                 onClick={() => scroll("right")}
                 disabled={isScrolling}
-                className="absolute right-4 top-1/2 -translate-y-1/2 z-20 rounded-full bg-white/80 backdrop-blur-xl border border-sage/20 opacity-0 group-hover:opacity-100"
+                className="absolute right-4 top-1/2 -translate-y-1/2 z-20 rounded-full bg-white-warm border border-sage/20 opacity-0 group-hover:opacity-100"
                 aria-label="Scroll right"
               >
                 <ChevronRight className="text-sage" size={28} strokeWidth={2} />
@@ -480,7 +496,7 @@ export function Instructors() {
               <CloseButton
                 onClick={closeModal}
                 label="Close modal"
-                className="absolute top-4 right-4 rounded-full bg-white/80 backdrop-blur-xl border border-sage/20 z-10"
+                className="absolute top-4 right-4 rounded-full bg-white-warm border border-sage/20 z-10"
               />
 
               <div className="absolute inset-0 flex items-end justify-center pb-6">
@@ -515,10 +531,10 @@ export function Instructors() {
                       href={selectedInstructor.social_facebook}
                       target="_blank"
                       rel="noopener noreferrer"
-                      className="w-8 h-8 rounded-full bg-[#1877F2]/10 hover:bg-[#1877F2]/20 flex items-center justify-center transition-all duration-200 hover:scale-110"
+                      className="w-8 h-8 rounded-full bg-sage/10 hover:bg-sage/20 flex items-center justify-center transition-all duration-200 hover:scale-110"
                       aria-label="Facebook Profile"
                     >
-                      <Facebook className="text-[#1877F2]" size={16} />
+                      <Facebook className="text-charcoal/70" size={16} />
                     </a>
                   )}
                   
@@ -527,10 +543,10 @@ export function Instructors() {
                       href={selectedInstructor.social_twitter}
                       target="_blank"
                       rel="noopener noreferrer"
-                      className="w-8 h-8 rounded-full bg-[#1DA1F2]/10 hover:bg-[#1DA1F2]/20 flex items-center justify-center transition-all duration-200 hover:scale-110"
+                      className="w-8 h-8 rounded-full bg-sage/10 hover:bg-sage/20 flex items-center justify-center transition-all duration-200 hover:scale-110"
                       aria-label="Twitter Profile"
                     >
-                      <Twitter className="text-[#1DA1F2]" size={16} />
+                      <Twitter className="text-charcoal/70" size={16} />
                     </a>
                   )}
                   
@@ -539,10 +555,10 @@ export function Instructors() {
                       href={selectedInstructor.social_linkedin}
                       target="_blank"
                       rel="noopener noreferrer"
-                      className="w-8 h-8 rounded-full bg-[#0A66C2]/10 hover:bg-[#0A66C2]/20 flex items-center justify-center transition-all duration-200 hover:scale-110"
+                      className="w-8 h-8 rounded-full bg-sage/10 hover:bg-sage/20 flex items-center justify-center transition-all duration-200 hover:scale-110"
                       aria-label="LinkedIn Profile"
                     >
-                      <Linkedin className="text-[#0A66C2]" size={16} />
+                      <Linkedin className="text-charcoal/70" size={16} />
                     </a>
                   )}
                   
@@ -551,10 +567,10 @@ export function Instructors() {
                       href={`https://wa.me/${selectedInstructor.social_whatsapp.replace(/[^0-9]/g, '')}`}
                       target="_blank"
                       rel="noopener noreferrer"
-                      className="w-8 h-8 rounded-full bg-[#25D366]/10 hover:bg-[#25D366]/20 flex items-center justify-center transition-all duration-200 hover:scale-110"
+                      className="w-8 h-8 rounded-full bg-sage/10 hover:bg-sage/20 flex items-center justify-center transition-all duration-200 hover:scale-110"
                       aria-label="WhatsApp"
                     >
-                      <MessageCircle className="text-[#25D366]" size={16} />
+                      <MessageCircle className="text-charcoal/70" size={16} />
                     </a>
                   )}
                 </div>

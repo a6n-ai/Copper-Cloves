@@ -75,12 +75,12 @@ export function Boutique() {
         <div className="relative">
           <NavPrevButton
             onClick={() => scroll("left")}
-            className="hidden lg:flex absolute left-0 top-1/2 -translate-y-1/2 -translate-x-4 z-20 rounded-full bg-white/90 backdrop-blur-xs border border-sage/20"
+            className="hidden lg:flex absolute left-0 top-1/2 -translate-y-1/2 -translate-x-4 z-20 rounded-full bg-white-warm border border-sage/20"
             label="Previous products"
           />
           <NavNextButton
             onClick={() => scroll("right")}
-            className="hidden lg:flex absolute right-0 top-1/2 -translate-y-1/2 translate-x-4 z-20 rounded-full bg-white/90 backdrop-blur-xs border border-sage/20"
+            className="hidden lg:flex absolute right-0 top-1/2 -translate-y-1/2 translate-x-4 z-20 rounded-full bg-white-warm border border-sage/20"
             label="Next products"
           />
 
@@ -95,7 +95,7 @@ export function Boutique() {
             ) : (
               products.map((product) => (
                 <div key={product.id} className="group shrink-0 w-80 lg:w-auto snap-start">
-                  <div className="relative h-full bg-white/80 backdrop-blur-xs rounded-2xl border border-sage/10 overflow-hidden transition-all duration-500 hover:border-sage/30 hover:shadow-xl hover:bg-sage/5">
+                  <div className="relative h-full bg-white-warm rounded-2xl border border-sage/10 overflow-hidden transition-all duration-500 hover:border-sage/30 hover:shadow-xl hover:bg-sage/5">
                     <div className="relative h-80 overflow-hidden bg-linear-to-br from-sage/20 via-cream/50 to-terracotta/20">
                       <Image
                         src={product.image_url || PLACEHOLDER_IMAGE}
@@ -106,7 +106,7 @@ export function Boutique() {
                       />
                       <div className="absolute inset-0 bg-linear-to-t from-charcoal/40 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
                       <div className="absolute top-4 right-4">
-                        <span className="bg-white/90 backdrop-blur-xs px-3 py-1 rounded-full text-xs font-body text-charcoal/70 border border-sage/20">
+                        <span className="bg-white-warm px-3 py-1 rounded-full text-xs font-body text-charcoal/70 border border-sage/20">
                           {product.category}
                         </span>
                       </div>

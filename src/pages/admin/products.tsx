@@ -2,6 +2,7 @@ import { useState, useEffect, useMemo, useCallback } from "react";
 import { useRouter } from "next/router";
 import { useSession } from "next-auth/react";
 import { requireSessionSSP } from "@/lib/requireSessionSSP";
+import { statusTone } from "@/lib/statusTone";
 
 export const getServerSideProps = requireSessionSSP({ roles: ["admin"] });
 import { SEO } from "@/components/SEO";
@@ -417,12 +418,12 @@ export default function AdminProducts() {
 
   const getStatusColor = (status: Order["status"]) => {
     switch (status) {
-      case "pending": return "bg-yellow-100 text-yellow-800 border-yellow-200";
-      case "processing": return "bg-blue-100 text-blue-800 border-blue-200";
-      case "shipped": return "bg-purple-100 text-purple-800 border-purple-200";
-      case "delivered": return "bg-sage/10 text-sage border-sage/20";
-      case "cancelled": return "bg-red-100 text-red-800 border-red-200";
-      default: return "bg-gray-100 text-gray-800 border-gray-200";
+      case "pending": return statusTone("pending");
+      case "processing": return statusTone("pending");
+      case "shipped": return statusTone("neutral");
+      case "delivered": return statusTone("success");
+      case "cancelled": return statusTone("error");
+      default: return statusTone("neutral");
     }
   };
 
@@ -467,7 +468,7 @@ export default function AdminProducts() {
             <div className="p-6 lg:p-8">
               {/* Stats Grid */}
               <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
-                <div className="p-6 rounded-2xl bg-white/60 backdrop-blur-xl border border-sage/10 hover:border-sage/30 transition-all duration-300">
+                <div className="p-6 rounded-2xl bg-white-warm border border-sage/10 hover:border-sage/30 transition-all duration-300">
                   <div className="flex items-center justify-between mb-2">
                     <Package className="text-sage/60" size={24} />
                     <TrendingUp className="text-sage" size={20} />
@@ -476,7 +477,7 @@ export default function AdminProducts() {
                   <p className="font-body text-sm text-charcoal/60">Total Products</p>
                 </div>
 
-                <div className="p-6 rounded-2xl bg-white/60 backdrop-blur-xl border border-sage/10 hover:border-sage/30 transition-all duration-300">
+                <div className="p-6 rounded-2xl bg-white-warm border border-sage/10 hover:border-sage/30 transition-all duration-300">
                   <div className="flex items-center justify-between mb-2">
                     <DollarSign className="text-sage/60" size={24} />
                     <TrendingUp className="text-sage" size={20} />
@@ -485,7 +486,7 @@ export default function AdminProducts() {
                   <p className="font-body text-sm text-charcoal/60">Total Revenue</p>
                 </div>
 
-                <div className="p-6 rounded-2xl bg-white/60 backdrop-blur-xl border border-sage/10 hover:border-sage/30 transition-all duration-300">
+                <div className="p-6 rounded-2xl bg-white-warm border border-sage/10 hover:border-sage/30 transition-all duration-300">
                   <div className="flex items-center justify-between mb-2">
                     <ShoppingCart className="text-sage/60" size={24} />
                     <TrendingUp className="text-terracotta" size={20} />
@@ -494,7 +495,7 @@ export default function AdminProducts() {
                   <p className="font-body text-sm text-charcoal/60">Pending Orders</p>
                 </div>
 
-                <div className="p-6 rounded-2xl bg-white/60 backdrop-blur-xl border border-sage/10 hover:border-sage/30 transition-all duration-300">
+                <div className="p-6 rounded-2xl bg-white-warm border border-sage/10 hover:border-sage/30 transition-all duration-300">
                   <div className="flex items-center justify-between mb-2">
                     <TrendingUp className="text-sage/60" size={24} />
                     <TrendingUp className="text-sage" size={20} />
@@ -506,7 +507,7 @@ export default function AdminProducts() {
 
               {/* Tabs */}
               <div className="mb-6">
-                <div className="inline-flex items-center gap-2 p-1 rounded-full bg-white/60 backdrop-blur-xl border border-sage/10">
+                <div className="inline-flex items-center gap-2 p-1 rounded-full bg-white-warm border border-sage/10">
                   <button
                     onClick={() => setActiveTab("products")}
                     className={`px-6 py-2 rounded-full font-body text-sm transition-all duration-300 ${
@@ -610,7 +611,7 @@ export default function AdminProducts() {
                   </div>
 
                   {/* Products Table */}
-                  <div className="rounded-2xl bg-white/60 backdrop-blur-xl border border-sage/10 overflow-hidden">
+                  <div className="rounded-2xl bg-white-warm border border-sage/10 overflow-hidden">
                     <ResponsiveTable>
                       <table className="w-full">
                         <thead>
@@ -725,7 +726,7 @@ export default function AdminProducts() {
                       return (
                         <div
                           key={category.id}
-                          className="p-6 rounded-2xl bg-white/60 backdrop-blur-xl border border-sage/10 hover:border-sage/30 transition-all duration-300 group"
+                          className="p-6 rounded-2xl bg-white-warm border border-sage/10 hover:border-sage/30 transition-all duration-300 group"
                         >
                           <div className="flex items-start justify-between mb-4">
                             <div className="flex-1">
@@ -752,7 +753,7 @@ export default function AdminProducts() {
                             <button
                               onClick={() => handleDeleteCategory(category.id)}
                               disabled={productCount > 0}
-                              className="flex-1 px-4 py-2 rounded-lg bg-red-50 hover:bg-red-100 text-red-600 font-body text-sm transition-colors flex items-center justify-center gap-2 disabled:opacity-30 disabled:cursor-not-allowed"
+                              className="flex-1 px-4 py-2 rounded-lg bg-[#a05e38]/10 hover:bg-[#a05e38]/20 text-[#a05e38] font-body text-sm transition-colors flex items-center justify-center gap-2 disabled:opacity-30 disabled:cursor-not-allowed"
                             >
                               <Trash2 size={16} />
                               Delete
@@ -765,7 +766,7 @@ export default function AdminProducts() {
 
                   {/* Empty State */}
                   {categoryRows.length === 0 && (
-                    <div className="text-center py-20 px-6 rounded-2xl bg-white/60 backdrop-blur-xl border border-sage/10">
+                    <div className="text-center py-20 px-6 rounded-2xl bg-white-warm border border-sage/10">
                       <Package className="mx-auto mb-4 text-charcoal/20" size={64} />
                       <h3 className="font-display text-2xl text-charcoal mb-2">No categories yet</h3>
                       <p className="font-body text-charcoal/60 mb-6">
@@ -789,7 +790,7 @@ export default function AdminProducts() {
                   {paginatedOrders.map((order) => (
                     <div
                       key={order.id}
-                      className="p-6 rounded-2xl bg-white/60 backdrop-blur-xl border border-sage/10 hover:border-sage/30 transition-all duration-300"
+                      className="p-6 rounded-2xl bg-white-warm border border-sage/10 hover:border-sage/30 transition-all duration-300"
                     >
                       {/* Order Header */}
                       <div className="flex items-start justify-between mb-4 pb-4 border-b border-sage/10">
@@ -1008,7 +1009,7 @@ export default function AdminProducts() {
                               newImages[index] = "";
                               setFormData({ ...formData, images: newImages });
                             }}
-                            className="p-2 rounded-lg hover:bg-red-50 text-red-600 transition-colors"
+                            className="p-2 rounded-lg hover:bg-[#a05e38]/10 text-[#a05e38] transition-colors"
                           >
                             <X size={16} />
                           </button>

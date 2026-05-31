@@ -124,7 +124,7 @@ interface BookClassCardProps {
 const BookClassCard = memo(function BookClassCard({ cls, onSelect }: BookClassCardProps) {
   const bookable = cls.isBookable !== false;
   return (
-    <Card className="border-sage/20 bg-white/80 backdrop-blur-xs hover:border-sage hover:shadow-xl transition-all duration-600 overflow-hidden group">
+    <Card className="border-sage/20 bg-white-warm hover:border-sage hover:shadow-xl transition-all duration-600 overflow-hidden group">
       <CardContent className="p-0">
         <div className="flex flex-col">
           <div className="relative w-full h-48 overflow-hidden">
@@ -181,7 +181,7 @@ const FoodRow = memo(function FoodRow({ item, onAdjust }: FoodRowProps) {
   return (
     <div
       key={item.id}
-      className="p-4 rounded-xl bg-white border border-sage/10 hover:border-sage/30 transition-all"
+      className="p-4 rounded-xl bg-white-warm border border-sage/10 hover:border-sage/30 transition-all"
     >
       <div className="flex gap-4">
         {/* eslint-disable-next-line @next/next/no-img-element */}
@@ -227,7 +227,7 @@ const FoodRow = memo(function FoodRow({ item, onAdjust }: FoodRowProps) {
 
 function BookClassCardSkeleton() {
   return (
-    <Card className="border-sage/20 bg-white/80 backdrop-blur-xs overflow-hidden">
+    <Card className="border-sage/20 bg-white-warm overflow-hidden">
       <CardContent className="p-0">
         <div className="flex flex-col">
           <div className="relative w-full h-48 overflow-hidden">
@@ -269,7 +269,7 @@ function BookPageSkeleton() {
       </div>
 
       {/* Week Navigation */}
-      <div className="mb-6 bg-white/80 backdrop-blur-xs rounded-2xl border border-sage/20 p-4">
+      <div className="mb-6 bg-white-warm rounded-2xl border border-sage/20 p-4">
         <div className="flex items-center justify-between mb-3">
           <Skeleton className="h-9 w-9 rounded-full" />
           <Skeleton className="h-4 w-56" />
@@ -1091,7 +1091,7 @@ export default function BookClass() {
           </div>
 
           {/* Week Navigation */}
-          <div className="mb-6 bg-white/80 backdrop-blur-xs rounded-2xl border border-sage/20 p-4">
+          <div className="mb-6 bg-white-warm rounded-2xl border border-sage/20 p-4">
             <div className="flex items-center justify-between mb-3">
               <NavPrevButton
                 onClick={() => setWeekOffset(o => o - 1)}
@@ -1202,7 +1202,7 @@ export default function BookClass() {
 
           {/* Empty State */}
           {paginatedClasses.length === 0 && (
-            <Card className="border-sage/20 bg-white/80 backdrop-blur-xs">
+            <Card className="border-sage/20 bg-white-warm">
               <CardContent className="flex flex-col items-center justify-center py-16 text-center">
                 <Calendar className="w-16 h-16 text-sage/40 mb-4" />
                 <h3 className="font-display text-2xl text-charcoal mb-2">No Classes Available</h3>
@@ -1222,13 +1222,13 @@ export default function BookClass() {
 
       {/* Booking Panel - Multi-Step Flow */}
       <div 
-        className={`fixed inset-y-0 right-0 w-full max-w-2xl bg-white shadow-2xl transform transition-all duration-600 ease-in-out z-50 overflow-y-auto ${
+        className={`fixed inset-y-0 right-0 w-full max-w-2xl bg-white-warm shadow-[0_8px_48px_-8px_rgba(51,51,51,0.14)] transform transition-all duration-600 ease-in-out z-50 overflow-y-auto ${
           showBookingPanel ? 'translate-x-0' : 'translate-x-full'
         }`}
       >
         <div className="h-full flex flex-col">
           {/* Panel Header */}
-          <div className="sticky top-0 z-10 px-4 sm:px-6 py-4 flex items-center justify-between border-b border-sage/10 bg-linear-to-r from-cream/80 to-white/80 backdrop-blur-xl">
+          <div className="sticky top-0 z-10 px-4 sm:px-6 py-4 flex items-center justify-between border-b border-sage/10 bg-white-warm">
             <div>
               <h2 className="font-display text-xl sm:text-3xl text-charcoal mb-0.5">
                 {bookingStep === 1 && "Who's Coming?"}
@@ -1272,7 +1272,7 @@ export default function BookClass() {
                     </h3>
                     <div className="space-y-3">
                       {friendsFamily.map((person, index) => (
-                        <div key={index} className="p-4 rounded-xl bg-white border border-sage/10 flex items-center justify-between">
+                        <div key={index} className="p-4 rounded-xl bg-white-warm border border-sage/10 flex items-center justify-between">
                           <div>
                             <p className="font-body text-charcoal font-medium">{person.name}</p>
                             <p className="font-body text-sm text-charcoal/60">{person.email}</p>
@@ -1431,7 +1431,7 @@ export default function BookClass() {
                     >
                       <div className="flex items-start gap-3">
                         <div className="w-5 h-5 rounded-full border-2 border-sage bg-sage mt-0.5 flex items-center justify-center">
-                          <div className="w-2.5 h-2.5 rounded-full bg-white" />
+                          <div className="w-2.5 h-2.5 rounded-full bg-white-warm" />
                         </div>
                         <div className="flex-1">
                           <p className="font-body text-charcoal font-medium mb-1">
@@ -1451,7 +1451,7 @@ export default function BookClass() {
                         className={`p-5 rounded-xl border-2 cursor-pointer transition-all ${
                           useCredits
                             ? "border-sage bg-sage/5"
-                            : "border-sage/20 bg-white hover:border-sage/40"
+                            : "border-sage/20 bg-white-warm hover:border-sage/40"
                         }`}
                         onClick={() => setUseCredits(true)}
                       >
@@ -1459,7 +1459,7 @@ export default function BookClass() {
                           <div className={`w-5 h-5 rounded-full border-2 mt-0.5 flex items-center justify-center ${
                             useCredits ? "border-sage bg-sage" : "border-sage/30"
                           }`}>
-                            {useCredits && <div className="w-2.5 h-2.5 rounded-full bg-white" />}
+                            {useCredits && <div className="w-2.5 h-2.5 rounded-full bg-white-warm" />}
                           </div>
                           <div className="flex-1">
                             <p className="font-body text-charcoal font-medium mb-1">
@@ -1490,7 +1490,7 @@ export default function BookClass() {
                         className={`p-5 rounded-xl border-2 cursor-pointer transition-all ${
                           !useCredits
                             ? "border-sage bg-sage/5"
-                            : "border-sage/20 bg-white hover:border-sage/40"
+                            : "border-sage/20 bg-white-warm hover:border-sage/40"
                         }`}
                         onClick={() => setUseCredits(false)}
                       >
@@ -1498,7 +1498,7 @@ export default function BookClass() {
                           <div className={`w-5 h-5 rounded-full border-2 mt-0.5 flex items-center justify-center ${
                             !useCredits ? "border-sage bg-sage" : "border-sage/30"
                           }`}>
-                            {!useCredits && <div className="w-2.5 h-2.5 rounded-full bg-white" />}
+                            {!useCredits && <div className="w-2.5 h-2.5 rounded-full bg-white-warm" />}
                           </div>
                           <div className="flex-1">
                             <p className="font-body text-charcoal font-medium mb-1">
@@ -1608,7 +1608,7 @@ export default function BookClass() {
                     </p>
                   ) : null}
                   {!loadingFoodItems && foodItemsLoadError ? (
-                    <p className="font-body text-sm text-amber-800 bg-amber-50 border border-amber-200 rounded-lg p-3">
+                    <p className="font-body text-sm text-[#a05e38] bg-[#a05e38]/10 border border-[#a05e38]/25 rounded-lg p-3">
                       {foodItemsLoadError}
                     </p>
                   ) : null}
@@ -1664,7 +1664,7 @@ export default function BookClass() {
 
                 {/* Coupon Code */}
                 {totals.finalTotal > 0 && (
-                  <div className="p-3 sm:p-5 rounded-xl bg-white border border-sage/10">
+                  <div className="p-3 sm:p-5 rounded-xl bg-white-warm border border-sage/10">
                     <p className="font-body text-sm font-medium text-charcoal mb-2">Have a coupon code?</p>
                     {appliedCoupon ? (
                       <div className="flex items-center justify-between">
@@ -1685,7 +1685,7 @@ export default function BookClass() {
                           value={couponCode}
                           onChange={(e) => { setCouponCode(e.target.value.toUpperCase()); setCouponError(null); }}
                           placeholder="Enter code"
-                          className="flex-1 font-body text-sm px-3 py-2 rounded-lg border border-sage/30 focus:outline-hidden focus:ring-1 focus:ring-sage bg-white text-charcoal placeholder:text-charcoal/30 uppercase"
+                          className="flex-1 font-body text-sm px-3 py-2 rounded-lg border border-sage/30 focus:outline-hidden focus:ring-1 focus:ring-sage bg-white-warm text-charcoal placeholder:text-charcoal/30 uppercase"
                         />
                         <Button
                           disabled={!couponCode.trim() || couponLoading}
@@ -1727,7 +1727,7 @@ export default function BookClass() {
                 )}
 
                 {/* Payment Breakdown */}
-                <div className="p-3 sm:p-6 rounded-xl bg-white border border-sage/10 space-y-2 sm:space-y-3">
+                <div className="p-3 sm:p-6 rounded-xl bg-white-warm border border-sage/10 space-y-2 sm:space-y-3">
                   <h4 className="font-display text-base sm:text-lg text-charcoal">Payment Breakdown</h4>
 
                   {totals.classTotal > 0 && (
@@ -1797,7 +1797,7 @@ export default function BookClass() {
 
                 {/* Payment method — online only */}
                 {totals.finalTotal > 0 && (
-                  <div className="flex items-center gap-3 p-3 sm:p-4 rounded-xl border border-sage/20 bg-white/95">
+                  <div className="flex items-center gap-3 p-3 sm:p-4 rounded-xl border border-sage/20 bg-white-warm">
                     <div className="h-8 w-8 rounded-full bg-sage/10 flex items-center justify-center shrink-0">
                       <CreditCard className="h-4 w-4 text-sage" />
                     </div>
@@ -1824,7 +1824,7 @@ export default function BookClass() {
           </div>
 
           {/* Panel Footer - Navigation */}
-          <div className="sticky bottom-0 p-3 sm:p-6 bg-linear-to-t from-cream/50 to-white border-t border-sage/10 backdrop-blur-xs">
+          <div className="sticky bottom-0 p-3 sm:p-6 bg-white-warm border-t border-sage/10">
             <div className="flex gap-3">
               {bookingStep > 1 && (
                 <Button
@@ -1890,7 +1890,7 @@ export default function BookClass() {
           if (!open) setPaymentRecovery(null);
         }}
       >
-        <AlertDialogContent className="border-sage/20 bg-white font-body">
+        <AlertDialogContent className="border-sage/20 bg-white-warm font-body">
           <AlertDialogHeader>
             <AlertDialogTitle className="font-display text-charcoal">
               {paymentRecovery?.variant === "failed" ? "Payment didn’t go through" : "Payment cancelled"}

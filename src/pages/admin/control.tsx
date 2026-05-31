@@ -85,7 +85,7 @@ function UserListSkeleton({ rows = 6 }: { rows?: number }) {
   return (
     <div className="space-y-3">
       {Array.from({ length: rows }).map((_, i) => (
-        <Card key={i} className="border-sage/20 bg-white/95 backdrop-blur-xl">
+        <Card key={i} className="border-sage/20 bg-white-warm">
           <CardContent className="p-6">
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-4 flex-1">
@@ -125,7 +125,7 @@ function ClassGridSkeleton({ count = 4 }: { count?: number }) {
   return (
     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
       {Array.from({ length: count }).map((_, i) => (
-        <Card key={i} className="border-sage/20 bg-white/95 backdrop-blur-xl">
+        <Card key={i} className="border-sage/20 bg-white-warm">
           <CardContent className="p-6">
             <div className="flex gap-4">
               <Skeleton className="h-24 w-24 rounded-lg bg-sage/10 shrink-0" />
@@ -186,7 +186,7 @@ function InstructorGridSkeleton({ count = 4 }: { count?: number }) {
   return (
     <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
       {Array.from({ length: count }).map((_, i) => (
-        <Card key={i} className="border-sage/20 bg-white/95 backdrop-blur-xl">
+        <Card key={i} className="border-sage/20 bg-white-warm">
           <CardContent className="p-6">
             <div className="flex gap-4">
               <Skeleton className="h-24 w-24 rounded-lg bg-sage/10 shrink-0" />
@@ -245,7 +245,7 @@ function ControlPanelShellSkeleton() {
         <Skeleton className="h-10 w-28 rounded-md bg-sage/10" />
       </div>
       {/* Search/filter bar */}
-      <Card className="border-sage/20 bg-white/95 backdrop-blur-xl">
+      <Card className="border-sage/20 bg-white-warm">
         <CardContent className="p-6">
           <div className="flex gap-4">
             <Skeleton className="h-10 flex-1 rounded-md bg-sage/10" />
@@ -1414,7 +1414,7 @@ async function fetchPayoutData(opts?: { window?: "week" | "month" | "quarter" | 
 
             {/* Tabs */}
             <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">
-              <TabsList className="bg-white/80 backdrop-blur-xl border border-sage/20 p-1">
+              <TabsList className="bg-white-warm border border-sage/20 p-1">
                 <TabsTrigger value="users" className="data-[state=active]:bg-sage data-[state=active]:text-white font-body">
                   <Users className="h-4 w-4 mr-2" />
                   User Management
@@ -1456,7 +1456,7 @@ async function fetchPayoutData(opts?: { window?: "week" | "month" | "quarter" | 
                   <MetricCard label="Class Pass" value={userStats.classPass} icon={CreditCard} tone="charcoal" />
                 </div>
 
-                <Card className="border-sage/20 bg-white/95 backdrop-blur-xl">
+                <Card className="border-sage/20 bg-white-warm">
                   <CardHeader className="space-y-4">
                     <div className="flex flex-wrap items-start justify-between gap-3">
                       <div>
@@ -1657,7 +1657,7 @@ async function fetchPayoutData(opts?: { window?: "week" | "month" | "quarter" | 
                   <MetricCard label="Resolved" value={pauseTickets.filter((t) => t.status === "resolved").length} icon={CheckCircle2} tone="sage" />
                 </div>
 
-                <Card className="border-sage/20 bg-white/95 backdrop-blur-xl">
+                <Card className="border-sage/20 bg-white-warm">
                   <CardHeader className="flex flex-row items-center justify-between gap-4 flex-wrap">
                     <div>
                       <CardTitle className="font-display text-xl">Pause Subscription Requests</CardTitle>
@@ -1801,7 +1801,7 @@ async function fetchPayoutData(opts?: { window?: "week" | "month" | "quarter" | 
                   <MetricCard label="Total Capacity" value={classStats.capacity} icon={Users} tone="sage" />
                 </div>
 
-                <Card className="border-sage/20 bg-white/95 backdrop-blur-xl">
+                <Card className="border-sage/20 bg-white-warm">
                   <CardHeader className="space-y-4">
                     <div className="flex flex-wrap items-start justify-between gap-3">
                       <div>
@@ -1958,7 +1958,7 @@ async function fetchPayoutData(opts?: { window?: "week" | "month" | "quarter" | 
                   />
                 </div>
 
-                <Card className="border-sage/20 bg-white/95 backdrop-blur-xl">
+                <Card className="border-sage/20 bg-white-warm">
                   <CardHeader className="space-y-4">
                     <div className="flex flex-wrap items-start justify-between gap-3">
                       <div>
@@ -2152,7 +2152,7 @@ async function fetchPayoutData(opts?: { window?: "week" | "month" | "quarter" | 
                 </Card>
 
                 {/* Bulk Actions */}
-                <Card className="border-sage/20 bg-linear-to-br from-sage/5 to-white backdrop-blur-xl">
+                <Card className="border-sage/20 bg-white-warm">
                   <CardContent className="p-6">
                     <div className="flex items-center justify-between flex-wrap gap-3">
                       <div>
@@ -2185,7 +2185,7 @@ async function fetchPayoutData(opts?: { window?: "week" | "month" | "quarter" | 
                   <MetricCard label="Avg Experience" value={instructorStats.avgYears} icon={Award} tone="terracotta" suffix=" yrs" />
                 </div>
 
-                <Card className="border-sage/20 bg-white/95 backdrop-blur-xl">
+                <Card className="border-sage/20 bg-white-warm">
                   <CardHeader className="space-y-4">
                     <div className="flex flex-wrap items-start justify-between gap-3">
                       <div>
@@ -2371,7 +2371,7 @@ async function fetchPayoutData(opts?: { window?: "week" | "month" | "quarter" | 
       {/* Dialogs - same as in dashboard */}
       {/* Add User Dialog */}
       <ResponsiveDialog open={showAddUserDialog} onOpenChange={setShowAddUserDialog}>
-        <ResponsiveDialogContent className="max-w-2xl bg-white/95 backdrop-blur-xl border-sage/20">
+        <ResponsiveDialogContent className="max-w-2xl bg-white-warm border-sage/20">
           <ResponsiveDialogHeader>
             <ResponsiveDialogTitle className="font-display text-2xl text-charcoal">Add New User</ResponsiveDialogTitle>
             <ResponsiveDialogDescription className="font-body text-charcoal/60">
@@ -2490,7 +2490,7 @@ async function fetchPayoutData(opts?: { window?: "week" | "month" | "quarter" | 
 
       {/* Edit User Dialog */}
       <ResponsiveDialog open={showEditUserDialog} onOpenChange={setShowEditUserDialog}>
-        <ResponsiveDialogContent className="max-w-2xl bg-white/95 backdrop-blur-xl border-sage/20">
+        <ResponsiveDialogContent className="max-w-2xl bg-white-warm border-sage/20">
           <ResponsiveDialogHeader>
             <ResponsiveDialogTitle className="font-display text-2xl text-charcoal">Edit User</ResponsiveDialogTitle>
             <ResponsiveDialogDescription className="font-body text-charcoal/60">
@@ -2656,7 +2656,7 @@ async function fetchPayoutData(opts?: { window?: "week" | "month" | "quarter" | 
 
       {/* Add Class Dialog */}
       <ResponsiveDialog open={showAddClassDialog} onOpenChange={setShowAddClassDialog}>
-        <ResponsiveDialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto bg-white/95 backdrop-blur-xl border-sage/20">
+        <ResponsiveDialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto bg-white-warm border-sage/20">
           <ResponsiveDialogHeader>
             <ResponsiveDialogTitle className="font-display text-2xl text-charcoal">Create New Class</ResponsiveDialogTitle>
             <ResponsiveDialogDescription className="font-body text-charcoal/60">
@@ -2764,7 +2764,7 @@ async function fetchPayoutData(opts?: { window?: "week" | "month" | "quarter" | 
                 )}
               </div>
             </div>
-            <ResponsiveDialogFooter className="sticky bottom-0 bg-white/95 backdrop-blur-xl pt-4 border-t border-sage/10">
+            <ResponsiveDialogFooter className="sticky bottom-0 bg-white-warm pt-4 border-t border-sage/10">
               <Button type="button" variant="outline" onClick={() => setShowAddClassDialog(false)} className="border-sage/20 font-body">
                 Cancel
               </Button>
@@ -2779,7 +2779,7 @@ async function fetchPayoutData(opts?: { window?: "week" | "month" | "quarter" | 
 
       {/* Class Details Dialog */}
       <ResponsiveDialog open={showClassDetailsDialog} onOpenChange={setShowClassDetailsDialog}>
-        <ResponsiveDialogContent className="max-w-3xl max-h-[90vh] overflow-y-auto bg-white/95 backdrop-blur-xl border-sage/20">
+        <ResponsiveDialogContent className="max-w-3xl max-h-[90vh] overflow-y-auto bg-white-warm border-sage/20">
           <ResponsiveDialogHeader>
             <ResponsiveDialogTitle className="font-display text-2xl text-charcoal">
               {selectedClass?.name}
@@ -2896,7 +2896,7 @@ async function fetchPayoutData(opts?: { window?: "week" | "month" | "quarter" | 
                   </div>
                 </div>
               </div>
-              <ResponsiveDialogFooter className="sticky bottom-0 bg-white/95 backdrop-blur-xl pt-4 border-t border-sage/10 flex-col sm:flex-row gap-2">
+              <ResponsiveDialogFooter className="sticky bottom-0 bg-white-warm pt-4 border-t border-sage/10 flex-col sm:flex-row gap-2">
                 <Button
                   type="button"
                   variant="outline"
@@ -2923,7 +2923,7 @@ async function fetchPayoutData(opts?: { window?: "week" | "month" | "quarter" | 
 
       {/* Payout Dialog */}
       <ResponsiveDialog open={showPayoutDialog} onOpenChange={setShowPayoutDialog}>
-        <ResponsiveDialogContent className="max-w-lg bg-white/95 backdrop-blur-xl border-sage/20">
+        <ResponsiveDialogContent className="max-w-lg bg-white-warm border-sage/20">
           <ResponsiveDialogHeader>
             <ResponsiveDialogTitle className="font-display text-2xl text-charcoal">Process Payment</ResponsiveDialogTitle>
             <ResponsiveDialogDescription className="font-body text-charcoal/60">

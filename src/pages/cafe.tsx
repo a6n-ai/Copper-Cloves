@@ -69,7 +69,7 @@ const galleryImages = [
 function getBackgroundColor(scrollY: number) {
   const transitionStart = 800;
   const transitionEnd = 1400;
-  if (scrollY < transitionStart) return "rgb(255, 255, 255)";
+  if (scrollY < transitionStart) return "rgb(250, 250, 248)";
   if (scrollY > transitionEnd) return "rgb(245, 235, 220)";
   const progress = (scrollY - transitionStart) / (transitionEnd - transitionStart);
   const r = Math.round(255 + (245 - 255) * progress);
@@ -277,7 +277,7 @@ export default function CafePage() {
         <div className="relative z-20 max-w-7xl mx-auto px-6 lg:px-8 py-32">
           {/* Badge - Far Left */}
           <div className="mb-8">
-            <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-sage/30 backdrop-blur-2xl border border-sage/40">
+            <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-sage/30 border border-sage/40">
               <Leaf className="text-sage" size={14} />
               <span className="font-body text-xs text-white font-semibold tracking-wide">100% PLANT-BASED DAILY RITUAL</span>
             </div>
@@ -445,7 +445,7 @@ export default function CafePage() {
               </div>
               
               {/* Floating Stats Badge */}
-              <div className="absolute -bottom-6 -right-6 bg-white/95 backdrop-blur-xl rounded-2xl p-6 shadow-2xl border border-sage/10">
+              <div className="absolute -bottom-6 -right-6 bg-white-warm rounded-2xl p-6 shadow-2xl border border-sage/10">
                 <div className="flex items-center gap-4">
                   <div className="w-14 h-14 rounded-full bg-sage/10 flex items-center justify-center">
                     <Wifi className="text-sage" size={28} />
@@ -466,7 +466,7 @@ export default function CafePage() {
         <div className="max-w-7xl mx-auto">
           <div className="grid md:grid-cols-3 gap-8">
             {/* Feature 1: Fast Wi-Fi */}
-            <div className="group text-center p-8 rounded-3xl bg-white/60 backdrop-blur-xs border border-sage/10 hover:border-sage/30 transition-all duration-300 hover:shadow-lg">
+            <div className="group text-center p-8 rounded-3xl bg-white-warm border border-sage/10 hover:border-sage/30 transition-all duration-300 hover:shadow-lg">
               <div className="w-16 h-16 rounded-full bg-sage/10 flex items-center justify-center mx-auto mb-6 group-hover:bg-sage/20 transition-colors">
                 <Wifi className="text-sage" size={32} />
               </div>
@@ -477,7 +477,7 @@ export default function CafePage() {
             </div>
             
             {/* Feature 2: Power & Comfort */}
-            <div className="group text-center p-8 rounded-3xl bg-white/60 backdrop-blur-xs border border-sage/10 hover:border-sage/30 transition-all duration-300 hover:shadow-lg">
+            <div className="group text-center p-8 rounded-3xl bg-white-warm border border-sage/10 hover:border-sage/30 transition-all duration-300 hover:shadow-lg">
               <div className="w-16 h-16 rounded-full bg-sage/10 flex items-center justify-center mx-auto mb-6 group-hover:bg-sage/20 transition-colors">
                 <Zap className="text-sage" size={32} />
               </div>
@@ -488,7 +488,7 @@ export default function CafePage() {
             </div>
             
             {/* Feature 3: Quiet Zones */}
-            <div className="group text-center p-8 rounded-3xl bg-white/60 backdrop-blur-xs border border-sage/10 hover:border-sage/30 transition-all duration-300 hover:shadow-lg">
+            <div className="group text-center p-8 rounded-3xl bg-white-warm border border-sage/10 hover:border-sage/30 transition-all duration-300 hover:shadow-lg">
               <div className="w-16 h-16 rounded-full bg-sage/10 flex items-center justify-center mx-auto mb-6 group-hover:bg-sage/20 transition-colors">
                 <Volume2 className="text-sage" size={32} />
               </div>
@@ -614,7 +614,7 @@ export default function CafePage() {
       </section>
 
       {/* ===== NOURISH GALLERY — horizontal marquee on all viewports (same as mobile) ===== */}
-      <section className="relative w-full min-h-[50vh] md:min-h-[60vh] bg-white overflow-hidden">
+      <section className="relative w-full min-h-[50vh] md:min-h-[60vh] bg-white-warm overflow-hidden">
         {/* Watermark — behind scrolling strip */}
         <div className="absolute inset-0 flex items-center justify-center pointer-events-none z-1">
           <h2 className="font-display text-7xl sm:text-8xl md:text-9xl text-charcoal select-none tracking-wider italic opacity-[0.12] md:opacity-80">
@@ -696,7 +696,7 @@ export default function CafePage() {
         >
           <defs>
             <linearGradient id="waveGradient" x1="0%" y1="0%" x2="100%" y2="0%">
-              <stop offset="0%" style={{ stopColor: "rgb(255, 255, 255)", stopOpacity: 1 }} />
+              <stop offset="0%" style={{ stopColor: "rgb(250, 250, 248)", stopOpacity: 1 }} />
               <stop offset="100%" style={{ stopColor: "rgb(245, 235, 220)", stopOpacity: 1 }} />
             </linearGradient>
           </defs>
@@ -766,7 +766,7 @@ export default function CafePage() {
                 
                 {/* Content */}
                 <div className="absolute bottom-0 left-0 right-0 p-6 z-20">
-                  <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-sage/30 backdrop-blur-xl border border-sage/40 mb-3">
+                  <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-sage/30 border border-sage/40 mb-3">
                     <Users className="text-white" size={14} />
                     <span className="font-body text-xs text-white font-medium">Weekly Gathering</span>
                   </div>
@@ -786,7 +786,7 @@ export default function CafePage() {
                   >
                     <Button 
                       size="sm"
-                      className="bg-white hover:bg-white/90 text-charcoal shadow-xl w-full text-sm"
+                      className="bg-white-warm hover:bg-cream text-charcoal shadow-xl w-full text-sm"
                     >
                       RSVP to The Analog Club
                       <ArrowRight className="ml-2" size={16} />
@@ -815,7 +815,7 @@ export default function CafePage() {
                 
                 {/* Content */}
                 <div className="absolute bottom-0 left-0 right-0 p-6">
-                  <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-terracotta/30 backdrop-blur-xl border border-terracotta/40 mb-3">
+                  <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-terracotta/30 border border-terracotta/40 mb-3">
                     <Sparkles className="text-white" size={14} />
                     <span className="font-body text-xs text-white font-medium">Weekend Vibes</span>
                   </div>
@@ -835,7 +835,7 @@ export default function CafePage() {
                   >
                     <Button 
                       size="sm"
-                      className="bg-white hover:bg-white/90 text-charcoal shadow-xl w-full text-sm"
+                      className="bg-white-warm hover:bg-cream text-charcoal shadow-xl w-full text-sm"
                     >
                       RSVP to Sundowners
                       <ArrowRight className="ml-2" size={16} />
@@ -864,7 +864,7 @@ export default function CafePage() {
                 
                 {/* Content */}
                 <div className="absolute bottom-0 left-0 right-0 p-6">
-                  <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-sage/30 backdrop-blur-xl border border-sage/40 mb-3">
+                  <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-sage/30 border border-sage/40 mb-3">
                     <Calendar className="text-white" size={14} />
                     <span className="font-body text-xs text-white font-medium">Monthly Haven</span>
                   </div>
@@ -884,7 +884,7 @@ export default function CafePage() {
                   >
                     <Button 
                       size="sm"
-                      className="bg-white hover:bg-white/90 text-charcoal shadow-xl w-full text-sm"
+                      className="bg-white-warm hover:bg-cream text-charcoal shadow-xl w-full text-sm"
                     >
                       RSVP to The Reading Social
                       <ArrowRight className="ml-2" size={16} />
@@ -913,7 +913,7 @@ export default function CafePage() {
                 
                 {/* Content */}
                 <div className="absolute bottom-0 left-0 right-0 p-6">
-                  <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-sage/30 backdrop-blur-xl border border-sage/40 mb-3">
+                  <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-sage/30 border border-sage/40 mb-3">
                     <Sparkles className="text-white" size={14} />
                     <span className="font-body text-xs text-white font-medium">Weekly Friday</span>
                   </div>
@@ -933,7 +933,7 @@ export default function CafePage() {
                   >
                     <Button 
                       size="sm"
-                      className="bg-white hover:bg-white/90 text-charcoal shadow-xl w-full text-sm"
+                      className="bg-white-warm hover:bg-cream text-charcoal shadow-xl w-full text-sm"
                     >
                       RSVP to Friday Work Deli
                       <ArrowRight className="ml-2" size={16} />
@@ -946,7 +946,7 @@ export default function CafePage() {
 
           {/* Community Calendar CTA */}
           <div className="mt-20 text-center">
-            <div className="inline-flex items-center gap-3 px-6 py-3 rounded-full bg-sage/10 backdrop-blur-xl border border-sage/20 mb-6">
+            <div className="inline-flex items-center gap-3 px-6 py-3 rounded-full bg-sage/10 border border-sage/20 mb-6">
               <Calendar className="text-sage" size={20} />
               <span className="font-body text-charcoal">New events added monthly</span>
             </div>

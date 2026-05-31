@@ -793,7 +793,7 @@ export default function Dashboard() {
             />
 
             {/* Nourish Quick-Order Café Widget */}
-            <Card className="border-0 bg-linear-to-br from-sage/5 to-white/80 backdrop-blur-xl shadow-lg">
+            <Card className="border-0 bg-white-warm shadow-lg">
               <CardContent className="p-5 sm:p-8">
                 <div className="flex items-start gap-4 mb-6">
                   <div className="w-14 h-14 rounded-full bg-sage/10 flex items-center justify-center shrink-0">

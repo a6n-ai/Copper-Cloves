@@ -16,7 +16,7 @@ import { toast } from "sonner";
 
 function PartnerSettingsSkeleton() {
   return (
-    <Card className="border-sage/20 bg-white/95">
+    <Card className="border-sage/20 bg-white-warm">
       <CardHeader>
         <Skeleton className="h-6 w-40" />
         <Skeleton className="h-4 w-64 mt-2" />
@@ -132,7 +132,7 @@ export default function PartnerSettings() {
       ) : !profile ? (
         <Card className="border-terracotta/30 bg-terracotta/5"><CardContent className="p-4 font-body text-charcoal">Could not load your profile.</CardContent></Card>
       ) : (
-        <Card className="border-sage/20 bg-white/95">
+        <Card className="border-sage/20 bg-white-warm">
           <CardHeader>
             <CardTitle className="font-display text-xl text-charcoal">Partner profile</CardTitle>
             <CardDescription className="font-body text-charcoal/60">Your brand details shown across the studio.</CardDescription>

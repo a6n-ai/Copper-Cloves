@@ -89,7 +89,7 @@ export default function PartnerMembersPage() {
         }
       />
 
-      <Card className="border-sage/20 bg-white/95">
+      <Card className="border-sage/20 bg-white-warm">
         <CardContent className="p-0">
           {loading ? (
             <PartnerMembersSkeleton />

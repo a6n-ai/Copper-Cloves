@@ -54,7 +54,7 @@ function CreditsLoadingSkeleton() {
       {/* Stats grid — 4 credit summary cards */}
       <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
         {Array.from({ length: 4 }).map((_, i) => (
-          <Card key={i} className="border-sage/20 bg-white/95 backdrop-blur-xl">
+          <Card key={i} className="border-sage/20 bg-white-warm">
             <CardHeader className="pb-3">
               <div className="flex items-center justify-between">
                 <Skeleton className="h-4 w-28" />
@@ -69,7 +69,7 @@ function CreditsLoadingSkeleton() {
       </div>
 
       {/* Filters bar — search + type select */}
-      <Card className="border-sage/20 bg-white/95 backdrop-blur-xl">
+      <Card className="border-sage/20 bg-white-warm">
         <CardContent className="p-6">
           <div className="grid md:grid-cols-2 gap-4">
             <Skeleton className="h-12 w-full rounded-md" />
@@ -79,7 +79,7 @@ function CreditsLoadingSkeleton() {
       </Card>
 
       {/* Transaction history table */}
-      <Card className="border-sage/20 bg-white/95 backdrop-blur-xl">
+      <Card className="border-sage/20 bg-white-warm">
         <CardHeader className="space-y-2">
           <Skeleton className="h-7 w-56" />
           <Skeleton className="h-4 w-72" />
@@ -213,11 +213,11 @@ export default function AdminCredits() {
       case "added":
         return <TrendingUp className="h-4 w-4 text-sage" />;
       case "deducted":
-        return <TrendingDown className="h-4 w-4 text-red-500" />;
+        return <TrendingDown className="h-4 w-4 text-[#a05e38]" />;
       case "used":
         return <CheckCircle2 className="h-4 w-4 text-charcoal" />;
       case "expired":
-        return <AlertCircle className="h-4 w-4 text-amber-500" />;
+        return <AlertCircle className="h-4 w-4 text-charcoal/50" />;
       default:
         return null;
     }
@@ -232,7 +232,7 @@ export default function AdminCredits() {
       case "used":
         return <Badge variant="outline" className="border-charcoal/20 text-charcoal">Used</Badge>;
       case "expired":
-        return <Badge variant="outline" className="border-amber-500/20 text-amber-600 bg-amber-50">Expired</Badge>;
+        return <Badge variant="outline" className="border-charcoal/15 text-charcoal/60 bg-charcoal/5">Expired</Badge>;
       default:
         return null;
     }
@@ -281,7 +281,7 @@ export default function AdminCredits() {
 
             {/* Success Message */}
             {successMessage && (
-              <Card className="border-sage/20 bg-sage/10 backdrop-blur-xl animate-in slide-in-from-top duration-600">
+              <Card className="border-sage/20 bg-sage/10 animate-in slide-in-from-top duration-600">
                 <CardContent className="p-4">
                   <div className="flex items-center gap-3 text-sage">
                     <CheckCircle2 className="h-5 w-5" />
@@ -300,7 +300,7 @@ export default function AdminCredits() {
             </div>
 
             {/* Transactions Table */}
-            <Card className="border-sage/20 bg-white/95 backdrop-blur-xl">
+            <Card className="border-sage/20 bg-white-warm">
               <CardHeader className="space-y-4">
                 <div className="flex flex-wrap items-start justify-between gap-3">
                   <div>
@@ -395,9 +395,9 @@ export default function AdminCredits() {
                                   <div className="flex items-center gap-2.5">
                                     <div className={`p-2 rounded-lg shrink-0 ${
                                       transaction.type === "added" ? "bg-sage/10" :
-                                      transaction.type === "deducted" ? "bg-red-50" :
+                                      transaction.type === "deducted" ? "bg-[#a05e38]/10" :
                                       transaction.type === "used" ? "bg-charcoal/5" :
-                                      "bg-amber-50"
+                                      "bg-charcoal/5"
                                     }`}>
                                       {getTypeIcon(transaction.type)}
                                     </div>
@@ -407,7 +407,7 @@ export default function AdminCredits() {
                                 <TableCell className="px-5 py-4">
                                   <span className={`font-display text-2xl tabular-nums ${
                                     transaction.type === "added" ? "text-sage" :
-                                    transaction.type === "expired" ? "text-amber-600" :
+                                    transaction.type === "expired" ? "text-charcoal/50" :
                                     "text-charcoal"
                                   }`}>
                                     {transaction.type === "added" ? "+" : "-"}{transaction.amount}

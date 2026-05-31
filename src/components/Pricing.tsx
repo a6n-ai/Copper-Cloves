@@ -201,7 +201,7 @@ export function Pricing() {
 
         {/* Tier Selector */}
         <div className="flex justify-center mb-12">
-          <div className="inline-flex bg-white/80 backdrop-blur-xs rounded-full p-1.5 border border-sage/20 shadow-xs">
+          <div className="inline-flex bg-white-warm rounded-full p-1.5 border border-sage/20 shadow-xs">
             <button
               onClick={() => setSelectedTier("studio")}
               className={`px-8 py-3 rounded-full font-body text-sm transition-all duration-300 ${
@@ -229,11 +229,11 @@ export function Pricing() {
         <div className="flex justify-center gap-4 mb-6 lg:hidden">
           <NavPrevButton
             onClick={() => scroll("left")}
-            className="rounded-full bg-white/80 backdrop-blur-xl"
+            className="rounded-full bg-white-warm"
           />
           <NavNextButton
             onClick={() => scroll("right")}
-            className="rounded-full bg-white/80 backdrop-blur-xl"
+            className="rounded-full bg-white-warm"
           />
         </div>
 
@@ -252,8 +252,8 @@ export function Pricing() {
               <div
                 className={`relative h-full rounded-3xl p-8 transition-all duration-500 hover:shadow-2xl ${
                   pkg.featured
-                    ? "bg-white/90 backdrop-blur-xl border-2 border-sage shadow-xl"
-                    : "bg-white/80 backdrop-blur-xl border border-sage/10 shadow-lg hover:border-sage/30"
+                    ? "bg-white-warm border-2 border-sage shadow-xl"
+                    : "bg-white-warm border border-sage/10 shadow-lg hover:border-sage/30"
                 }`}
               >
                 {/* Badge */}

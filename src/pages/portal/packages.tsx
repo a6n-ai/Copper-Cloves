@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import { useStudioSWR } from "@/lib/swr";
+import { statusTone } from "@/lib/statusTone";
 import { PageHeader } from "@/components/dashboard/PageHeader";
 import { useRouter } from "next/router";
 import { requireSessionSSP } from "@/lib/requireSessionSSP";
@@ -755,7 +756,7 @@ export default function PackagesPage() {
 
         {/* Tab Switcher */}
         <div className="flex justify-center mb-10">
-          <div className="inline-flex bg-white/80 backdrop-blur-xl rounded-full p-1.5 shadow-lg border border-sage/10 w-full max-w-xs sm:w-auto">
+          <div className="inline-flex bg-white-warm rounded-full p-1.5 shadow-lg border border-sage/10 w-full max-w-xs sm:w-auto">
             <button
               onClick={() => setSelectedCategory("class")}
               className={`flex-1 sm:flex-none px-5 py-2.5 rounded-full font-body text-sm font-medium transition-all duration-300 ${
@@ -804,7 +805,7 @@ export default function PackagesPage() {
         {loadingHistory ? (
           <PurchaseHistorySkeleton rows={4} />
         ) : purchaseHistory.length === 0 ? (
-          <div className="text-center py-16 px-6 rounded-2xl bg-white/60 backdrop-blur-xl border border-sage/10">
+          <div className="text-center py-16 px-6 rounded-2xl bg-white-warm border border-sage/10">
             <CreditCard className="mx-auto mb-4 text-charcoal/20" size={48} />
             <h3 className="font-display text-xl text-charcoal mb-1">No purchases yet</h3>
             <p className="font-body text-sm text-charcoal/60">
@@ -822,7 +823,7 @@ export default function PackagesPage() {
                 return (
                   <div
                     key={purchase.id}
-                    className="p-4 rounded-xl bg-white/80 backdrop-blur-xl border border-sage/10 hover:border-sage/30 transition-all duration-200"
+                    className="p-4 rounded-xl bg-white-warm border border-sage/10 hover:border-sage/30 transition-all duration-200"
                   >
                     <div className="flex items-start justify-between gap-3 mb-3">
                       <div className="flex-1 min-w-0">
@@ -831,9 +832,9 @@ export default function PackagesPage() {
                         </h3>
                         <span className={cn(
                           "inline-block mt-1 px-2 py-0.5 rounded-full text-xs font-body font-semibold",
-                          isActive ? "bg-green-100 text-green-700"
-                            : isExpired ? "bg-gray-100 text-gray-600"
-                            : "bg-yellow-100 text-yellow-700"
+                          isActive ? statusTone("success")
+                            : isExpired ? statusTone("neutral")
+                            : statusTone("pending")
                         )}>
                           {isActive ? "Active" : isExpired ? "Expired" : purchase.status}
                         </span>
@@ -894,7 +895,7 @@ export default function PackagesPage() {
                     return (
                       <div
                         key={purchase.id}
-                        className="p-4 rounded-xl bg-white/80 backdrop-blur-xl border border-sage/10 hover:border-sage/30 transition-all duration-200"
+                        className="p-4 rounded-xl bg-white-warm border border-sage/10 hover:border-sage/30 transition-all duration-200"
                       >
                         <div className="flex items-center gap-4">
                           <div className="flex-1 min-w-0">
@@ -903,9 +904,9 @@ export default function PackagesPage() {
                             </h3>
                             <span className={cn(
                               "inline-block mt-1 px-2 py-0.5 rounded-full text-xs font-body font-semibold",
-                              isActive ? "bg-green-100 text-green-700"
-                                : isExpired ? "bg-gray-100 text-gray-600"
-                                : "bg-yellow-100 text-yellow-700"
+                              isActive ? statusTone("success")
+                                : isExpired ? statusTone("neutral")
+                                : statusTone("pending")
                             )}>
                               {isActive ? "Active" : isExpired ? "Expired" : purchase.status}
                             </span>
@@ -959,7 +960,7 @@ export default function PackagesPage() {
 
       {/* Checkout Modal — bottom sheet on phones, centered dialog on md+ */}
       {showCheckout && selectedPackage && (
-        <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center sm:p-4 bg-charcoal/60 backdrop-blur-md animate-in fade-in duration-300">
+        <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center sm:p-4 bg-charcoal/60 animate-in fade-in duration-300">
           {success ? (
             <div className="bg-white rounded-3xl max-w-md w-full p-8 shadow-2xl animate-in zoom-in-95 duration-500 text-center">
               <div className="w-14 h-14 rounded-full bg-sage/20 flex items-center justify-center mx-auto mb-3">
@@ -1042,7 +1043,7 @@ export default function PackagesPage() {
                   </Button>
                 </div>
                 {couponError && (
-                  <p className="text-xs text-red-600 font-body mt-1">{couponError}</p>
+                  <p className="text-xs text-[#a05e38] font-body mt-1">{couponError}</p>
                 )}
               </div>
 

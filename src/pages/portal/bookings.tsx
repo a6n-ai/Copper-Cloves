@@ -83,7 +83,7 @@ const BookingCard = memo(function BookingCard({
               {booking.status === "confirmed" ? "Confirmed" : "Pending"}
             </span>
             {booking.confirmation_status === "pending" && booking.status !== "cancelled" && (
-              <span className="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-body bg-amber-100 text-amber-700">Awaiting confirmation</span>
+              <span className="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-body bg-terracotta/10 text-terracotta">Awaiting confirmation</span>
             )}
             {booking.checked_in && (
               <span className="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-body bg-sage/10 text-sage">

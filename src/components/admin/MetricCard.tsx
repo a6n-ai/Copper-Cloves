@@ -12,7 +12,7 @@ interface MetricCardProps {
   icon: LucideIcon;
   /** Optional small sub-text under the number (e.g. "+5 this month"). */
   hint?: string;
-  /** Accent color theme. */
+  /** Accent color theme. ("amber" maps to deep terracotta — kept for call-site compat.) */
   tone?: "sage" | "terracotta" | "amber" | "charcoal";
   prefix?: string;
   suffix?: string;
@@ -37,11 +37,12 @@ const tones = {
     glow: "group-hover:shadow-[0_10px_30px_-12px_rgba(196,107,82,0.45)]",
     border: "group-hover:border-terracotta/40",
   },
+  // "amber" intent kept by name but mapped to deep terracotta so it stays on-brand.
   amber: {
-    chip: "bg-amber-100 text-amber-600 group-hover:bg-amber-200 group-hover:text-amber-700",
-    ring: "ring-amber-200 group-hover:ring-amber-400",
-    glow: "group-hover:shadow-[0_10px_30px_-12px_rgba(245,158,11,0.5)]",
-    border: "group-hover:border-amber-300",
+    chip: "bg-[#a05e38]/10 text-[#a05e38] group-hover:bg-[#a05e38]/20 group-hover:text-[#a05e38]",
+    ring: "ring-[#a05e38]/15 group-hover:ring-[#a05e38]/40",
+    glow: "group-hover:shadow-[0_10px_30px_-12px_rgba(160,94,56,0.45)]",
+    border: "group-hover:border-[#a05e38]/40",
   },
   charcoal: {
     chip: "bg-charcoal/10 text-charcoal/70 group-hover:bg-charcoal/20 group-hover:text-charcoal",
@@ -68,9 +69,9 @@ function MetricCardImpl({
   return (
     <Card
       className={cn(
-        "group relative border-sage/15 bg-white h-full overflow-hidden cursor-default",
+        "group relative border-sage/15 bg-white-warm h-full overflow-hidden cursor-default",
         "transition-all duration-300 ease-out transform-gpu will-change-transform",
-        "hover:-translate-y-1 hover:bg-white hover:brightness-[1.02]",
+        "hover:-translate-y-1 hover:bg-white-warm hover:brightness-[1.02]",
         t.glow,
         t.border,
         className,
@@ -81,7 +82,7 @@ function MetricCardImpl({
         className={cn(
           "pointer-events-none absolute inset-0 opacity-0 transition-opacity duration-300",
           "group-hover:opacity-100",
-          "bg-[radial-gradient(circle_at_top_right,rgba(255,255,255,0.9),transparent_60%)]",
+          "bg-[radial-gradient(circle_at_top_right,rgba(250,250,248,0.9),transparent_60%)]",
         )}
       />
       <CardContent className="relative p-4 sm:p-5 flex flex-col h-full">

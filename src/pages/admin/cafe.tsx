@@ -681,47 +681,47 @@ export default function AdminCafe() {
       <style jsx global>{`
         @keyframes pulse-red {
           0%, 100% {
-            border-color: rgb(220, 38, 38);
-            box-shadow: 0 0 0 0 rgba(220, 38, 38, 0.9);
+            border-color: rgb(160, 94, 56);
+            box-shadow: 0 0 0 0 rgba(160, 94, 56, 0.9);
             transform: scale(1);
           }
           50% {
-            border-color: rgb(239, 68, 68);
-            box-shadow: 0 0 0 12px rgba(220, 38, 38, 0);
+            border-color: rgb(193, 120, 86);
+            box-shadow: 0 0 0 12px rgba(160, 94, 56, 0);
             transform: scale(1.02);
           }
         }
         
         @keyframes pulse-orange {
           0%, 100% {
-            border-color: rgb(249, 115, 22);
-            box-shadow: 0 0 0 0 rgba(249, 115, 22, 0.5);
+            border-color: rgb(193, 120, 86);
+            box-shadow: 0 0 0 0 rgba(193, 120, 86, 0.5);
           }
           50% {
-            border-color: rgb(251, 146, 60);
-            box-shadow: 0 0 0 6px rgba(249, 115, 22, 0);
+            border-color: rgb(210, 150, 120);
+            box-shadow: 0 0 0 6px rgba(193, 120, 86, 0);
           }
         }
         
         @keyframes pulse-red-urgent {
           0%, 100% {
-            border-color: rgb(220, 38, 38);
-            box-shadow: 0 0 0 0 rgba(220, 38, 38, 1), 0 0 20px rgba(220, 38, 38, 0.6);
+            border-color: rgb(160, 94, 56);
+            box-shadow: 0 0 0 0 rgba(160, 94, 56, 1), 0 0 20px rgba(160, 94, 56, 0.6);
             transform: scale(1);
           }
           25% {
-            border-color: rgb(239, 68, 68);
-            box-shadow: 0 0 0 8px rgba(220, 38, 38, 0.3), 0 0 30px rgba(220, 38, 38, 0.8);
+            border-color: rgb(193, 120, 86);
+            box-shadow: 0 0 0 8px rgba(160, 94, 56, 0.3), 0 0 30px rgba(160, 94, 56, 0.8);
             transform: scale(1.03);
           }
           50% {
-            border-color: rgb(220, 38, 38);
-            box-shadow: 0 0 0 16px rgba(220, 38, 38, 0), 0 0 40px rgba(220, 38, 38, 1);
+            border-color: rgb(160, 94, 56);
+            box-shadow: 0 0 0 16px rgba(160, 94, 56, 0), 0 0 40px rgba(160, 94, 56, 1);
             transform: scale(1.01);
           }
           75% {
-            border-color: rgb(239, 68, 68);
-            box-shadow: 0 0 0 8px rgba(220, 38, 38, 0.3), 0 0 30px rgba(220, 38, 38, 0.8);
+            border-color: rgb(193, 120, 86);
+            box-shadow: 0 0 0 8px rgba(160, 94, 56, 0.3), 0 0 30px rgba(160, 94, 56, 0.8);
             transform: scale(1.03);
           }
         }
@@ -997,15 +997,15 @@ export default function AdminCafe() {
                         
                         if (order.status === "pending" || order.status === "preparing") {
                           if (alertLevel.level === "red" && alertLevel.blink) {
-                            borderClass = "border-4 border-red-600";
+                            borderClass = "border-4 border-[#a05e38]";
                             animationClass = alertLevel.critical 
                               ? "animate-[pulse-red-urgent_0.5s_ease-in-out_infinite]"
                               : "animate-[pulse-red_1s_ease-in-out_infinite]";
                           } else if (alertLevel.level === "orange") {
-                            borderClass = "border-2 border-orange-500";
+                            borderClass = "border-2 border-terracotta";
                             animationClass = "animate-[pulse-orange_2s_ease-in-out_infinite]";
                           } else if (alertLevel.level === "yellow") {
-                            borderClass = "border-2 border-yellow-500";
+                            borderClass = "border-2 border-terracotta/60";
                             animationClass = "";
                           }
                         }
@@ -1017,9 +1017,9 @@ export default function AdminCafe() {
                           order.status === "ready" ? "bg-sage/15 text-sage" :
                           "bg-sand text-charcoal/60";
                         const urgencyText =
-                          alertLevel.level === "red" ? "text-red-600" :
-                          alertLevel.level === "orange" ? "text-orange-600" :
-                          alertLevel.level === "yellow" ? "text-yellow-600" :
+                          alertLevel.level === "red" ? "text-[#a05e38]" :
+                          alertLevel.level === "orange" ? "text-terracotta" :
+                          alertLevel.level === "yellow" ? "text-terracotta/80" :
                           "text-sage";
 
                         return (
@@ -1178,7 +1178,7 @@ export default function AdminCafe() {
                                     onClick={() => updateOrderStatus(order.id, "cancelled")}
                                     size="sm"
                                     variant="outline"
-                                    className="border-red-500/60 text-red-600 hover:bg-red-50 hover:text-red-700 font-body"
+                                    className="border-[#a05e38]/60 text-[#a05e38] hover:bg-[#a05e38]/10 hover:text-[#a05e38] font-body"
                                   >
                                     Cancel
                                   </Button>
@@ -1253,7 +1253,7 @@ export default function AdminCafe() {
                                     </p>
                                   </div>
                                   <span className={`shrink-0 rounded-full px-3 py-1 font-body text-[0.7rem] font-semibold uppercase tracking-[0.06em] ${
-                                    order.status === "completed" ? "bg-sand text-charcoal/60" : "bg-red-500/10 text-red-600"
+                                    order.status === "completed" ? "bg-sand text-charcoal/60" : "bg-[#a05e38]/10 text-[#a05e38]"
                                   }`}>
                                     {order.status}
                                   </span>
@@ -1418,7 +1418,7 @@ export default function AdminCafe() {
                       ) : null}
                     </div>
                     {imageUploadError ? (
-                      <p className="text-sm text-red-600 font-body">{imageUploadError}</p>
+                      <p className="text-sm text-[#a05e38] font-body">{imageUploadError}</p>
                     ) : null}
                     <p className="text-xs text-charcoal/50 font-body">
                       Pick a photo from your device. JPEG, PNG, WebP, or GIF up to 10&nbsp;MB. Files are stored in{" "}

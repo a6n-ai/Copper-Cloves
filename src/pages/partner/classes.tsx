@@ -18,7 +18,7 @@ function PartnerClassesSkeleton() {
   return (
     <div className="space-y-4">
       {Array.from({ length: 2 }).map((_, ci) => (
-        <Card key={ci} className="border-sage/15 bg-white/95">
+        <Card key={ci} className="border-sage/15 bg-white-warm">
           <CardContent className="p-5">
             {/* Header: title/time + capacity badges */}
             <div className="flex flex-wrap items-start justify-between gap-3 mb-4">
@@ -289,7 +289,7 @@ export default function PartnerClasses() {
         ) : (
           <div className="space-y-4">
             {activeClasses.map((c) => (
-              <Card key={c.id} className="border-sage/15 bg-white/95">
+              <Card key={c.id} className="border-sage/15 bg-white-warm">
                 <CardContent className="p-5">
                   <div className="flex flex-wrap items-start justify-between gap-3 mb-4">
                     <div>
@@ -344,7 +344,7 @@ export default function PartnerClasses() {
                             </Badge>
                             {b.confirmationStatus === "pending" ? (
                               <>
-                                <Badge variant="outline" className="border-amber-500/30 text-amber-600 bg-amber-50 font-body whitespace-nowrap">Pending</Badge>
+                                <Badge variant="outline" className="border-terracotta/30 text-terracotta bg-terracotta/10 font-body whitespace-nowrap">Pending</Badge>
                                 <Button size="sm" variant="sage" disabled={actioningId === b.id} onClick={() => actionBooking(c.id, b.id, "confirm")} className="h-7 px-3 text-xs rounded-full">Confirm</Button>
                                 <Button size="sm" variant="outline" disabled={actioningId === b.id} onClick={() => actionBooking(c.id, b.id, "reject")} className="border-terracotta/30 text-terracotta hover:bg-terracotta/5 h-7 px-3 text-xs rounded-full font-body">Reject</Button>
                               </>

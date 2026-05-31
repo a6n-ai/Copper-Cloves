@@ -210,7 +210,7 @@ const classDetails: ClassDetail[] = [
 /** Mirrors the class catalog Card: tall image with a badge, title, two-line copy, info row, benefit chips, button. */
 function ClassCardSkeleton() {
   return (
-    <Card className="border-0 bg-white/95 backdrop-blur-xl shadow-lg overflow-hidden">
+    <Card className="border-0 bg-white-warm shadow-lg overflow-hidden">
       <div className="relative h-64 overflow-hidden bg-sage/5">
         <Skeleton className="h-full w-full rounded-none" />
         <Skeleton className="absolute top-4 right-4 h-6 w-20 rounded-full" />
@@ -481,7 +481,7 @@ export default function ClassesPage({ initialClasses }: ClassesPageProps) {
       <section className="py-8 bg-cream">
         <div className="max-w-7xl mx-auto px-6 lg:px-8">
           <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-            <TabsList className="grid w-full max-w-md mx-auto grid-cols-2 bg-white/80 backdrop-blur-xs border border-sage/20 p-1 rounded-full">
+            <TabsList className="grid w-full max-w-md mx-auto grid-cols-2 bg-white-warm border border-sage/20 p-1 rounded-full">
               <TabsTrigger 
                 value="classes" 
                 className="rounded-full data-[state=active]:bg-sage data-[state=active]:text-white transition-all duration-300"
@@ -511,7 +511,7 @@ export default function ClassesPage({ initialClasses }: ClassesPageProps) {
                   {filteredClasses.map((classItem) => (
                     <Card 
                       key={classItem.id}
-                      className="border-0 bg-white/95 backdrop-blur-xl shadow-lg hover:shadow-xl transition-all duration-600 group overflow-hidden"
+                      className="border-0 bg-white-warm shadow-lg hover:shadow-xl transition-all duration-600 group overflow-hidden"
                     >
                       <div className="relative h-64 overflow-hidden bg-sage/5">
                         <img
@@ -519,7 +519,7 @@ export default function ClassesPage({ initialClasses }: ClassesPageProps) {
                           alt={classItem.name}
                           className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-600"
                         />
-                        <Badge className="absolute top-4 right-4 bg-sage/90 text-white border-0 backdrop-blur-xs">
+                        <Badge className="absolute top-4 right-4 bg-sage text-cream border-0">
                           {classItem.category}
                         </Badge>
                       </div>

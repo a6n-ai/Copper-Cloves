@@ -25,9 +25,9 @@ const NEXT_STATUS: Record<string, { next: string; label: string }> = {
 };
 
 const STATUS_STYLES: Record<string, string> = {
-  pending: "bg-yellow-100 text-yellow-700 border-yellow-200",
-  preparing: "bg-blue-100 text-blue-700 border-blue-200",
-  ready: "bg-green-100 text-green-700 border-green-200",
+  pending: "bg-terracotta/10 text-terracotta border border-terracotta/20",
+  preparing: "bg-sand/40 text-charcoal/70 border border-charcoal/15",
+  ready: "bg-sage/10 text-sage border border-sage/20",
 };
 
 function minsAgo(iso: string) {

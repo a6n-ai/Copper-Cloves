@@ -32,7 +32,7 @@ export function AuthShell({
         <Link href="/" className="font-body text-sm text-charcoal/60 hover:text-sage transition-colors">← Home</Link>
       </div>
 
-      {/* Centered glass card */}
+      {/* Centered card */}
       <motion.div
         className="relative z-10 w-full max-w-md"
         initial={{ opacity: 0, y: 16 }}
@@ -45,10 +45,7 @@ export function AuthShell({
           </p>
         )}
 
-        <div className="relative isolate overflow-hidden rounded-3xl border border-white/50 bg-linear-to-br from-white/80 to-white/60 backdrop-blur-3xl backdrop-saturate-150 ring-1 ring-inset ring-white/50 shadow-[inset_0_1px_1px_0_rgba(255,255,255,0.7),0_12px_48px_-8px_rgba(51,51,51,0.20)] p-8 sm:p-10">
-          {/* specular sheen */}
-          <div aria-hidden className="pointer-events-none absolute -top-1/2 -left-1/4 -z-10 h-[120%] w-[80%] rotate-12 bg-linear-to-b from-white/40 to-transparent blur-2xl" />
-
+        <div className="relative isolate overflow-hidden rounded-3xl border border-[#e5e4dc] bg-white-warm shadow-[0_8px_48px_-8px_rgba(51,51,51,0.14)] p-8 sm:p-10">
           {/* Brand header — shared across modes */}
           <div>
             <p className="mb-4 text-center font-body text-[10px] tracking-[0.4em] uppercase text-terracotta/80">

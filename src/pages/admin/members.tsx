@@ -150,7 +150,7 @@ function MembersLoadingSkeleton() {
       {/* Stats grid — mirrors MetricCard row */}
       <div className="grid grid-cols-2 md:grid-cols-4 xl:grid-cols-7 gap-4">
         {Array.from({ length: 7 }).map((_, i) => (
-          <Card key={i} className="border-sage/20 bg-white/95 backdrop-blur-xl">
+          <Card key={i} className="border-sage/20 bg-white-warm">
             <CardContent className="p-4 space-y-3">
               <div className="flex items-center justify-between">
                 <Skeleton className="h-3 w-20" />
@@ -163,7 +163,7 @@ function MembersLoadingSkeleton() {
       </div>
 
       {/* Members table card */}
-      <Card className="border-sage/20 bg-white/95 backdrop-blur-xl">
+      <Card className="border-sage/20 bg-white-warm">
         <CardHeader className="space-y-4">
           <div className="flex flex-wrap items-start justify-between gap-3">
             <div className="space-y-2">
@@ -827,7 +827,7 @@ export default function AdminMembers() {
             />
 
             {loadError && (
-              <Card className="border-terracotta/30 bg-terracotta/5 backdrop-blur-xl">
+              <Card className="border-terracotta/30 bg-terracotta/5">
                 <CardContent className="p-4">
                   <div className="flex items-center gap-3 text-terracotta">
                     <AlertTriangle className="h-5 w-5 shrink-0" />
@@ -839,7 +839,7 @@ export default function AdminMembers() {
 
             {/* Success Message */}
             {successMessage && (
-              <Card className="border-sage/20 bg-sage/10 backdrop-blur-xl animate-in slide-in-from-top duration-600">
+              <Card className="border-sage/20 bg-sage/10 animate-in slide-in-from-top duration-600">
                 <CardContent className="p-4">
                   <div className="flex items-center gap-3 text-sage">
                     <CheckCircle2 className="h-5 w-5" />
@@ -861,7 +861,7 @@ export default function AdminMembers() {
             </div>
 
             {/* Members Table */}
-            <Card className="border-sage/20 bg-white/95 backdrop-blur-xl">
+            <Card className="border-sage/20 bg-white-warm">
               <CardHeader className="space-y-4">
                 <div className="flex flex-wrap items-start justify-between gap-3">
                   <div>

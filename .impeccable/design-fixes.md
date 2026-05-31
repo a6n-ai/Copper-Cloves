@@ -85,6 +85,102 @@ Status key: `[ ]` todo · `[~]` in progress · `[x]` done
 
 ---
 
+---
+
+# Round 2 — full-site audit (2026-05-31)
+
+Round 1 covered the public landing components + globals + portal dashboard milestones. Round 2 sweeps every other surface: auth flow, member portal, admin, partner/instructor portals, remaining public pages. New findings continue the numbering (10+).
+
+## Critical — Absolute ban violations
+
+### 10. Auth shell: glassmorphism on every login page [x]
+- **File:** `src/components/auth/AuthShell.tsx` (line 48)
+- **Issue:** The shared card wrapping ALL sign-in/sign-up/reset forms uses `backdrop-blur-3xl backdrop-saturate-150` over a `from-white/80 to-white/60` gradient with `border-white/50`, `ring-white/50`, and a custom inset white-highlight shadow `shadow-[inset_0_1px_1px_0_rgba(255,255,255,0.7),...]`. Decorative glassmorphism + pure-white surfaces, on the highest-trust screen in the product. Every portal entry inherits it.
+- **Fix:** Drop the blur and the white gradient. Use a solid `bg-white-warm` (`#fafaf8`) card with `border border-[#e5e4dc]` (warm border) and the system Lifted shadow (`0 4px 24px rgba(51,51,51,0.08)`) only. No `backdrop-blur`, no `ring-white`, no inset white highlight.
+- **Acceptance:** No `backdrop-blur*` or `white/NN` opacity surfaces in AuthShell; card sits on cream with warm border.
+
+### 11. Blue status badges (outright blue ban) [x]
+- **Files:** `src/pages/instructor/dashboard.tsx:86` (`text-blue-700 bg-blue-50 border-blue-200` "Upcoming"), `src/components/admin/DayScheduleList.tsx:39` (`text-blue-700 bg-blue-50` "started"), `src/pages/admin/products.tsx:421` (`bg-blue-100 text-blue-800` "processing"), `src/pages/admin/CRM.tsx:554` (`text-blue-600` "scheduled").
+- **Issue:** Blue is the SaaS-default the brand explicitly rejects. It appears as a status color in four places. No blue belongs on any surface.
+- **Fix:** Remap to brand: informational/upcoming → `sage` tones; scheduled → `terracotta` or sand. Fold into the shared status-tone map (see #13).
+- **Acceptance:** Zero `blue-*` Tailwind utilities anywhere in the app.
+
+### 12. blur-3xl decorative blobs beyond Pricing/Boutique [x]
+- **Files:** `src/components/Instructors.tsx:272-273`, `src/components/ClassCatalog.tsx:99`, `src/pages/shop.tsx:259-260`, `src/pages/admin/dashboard.tsx:1206-1207`.
+- **Issue:** Round 1 (#3) only removed blobs from Pricing + Boutique. The same `rounded-full blur-3xl` background-texture move survives on four more surfaces, including the admin dashboard. Confirms the template smell #3 called out.
+- **Fix:** Remove the blob divs. Use tonal background shifts (cream → sand) or photography. Same rule as #3, now applied site-wide.
+- **Acceptance:** Zero `rounded-full blur-3xl` decorative elements anywhere in `src/` (extends #3 acceptance to the whole codebase).
+
+---
+
+## High impact
+
+### 13. Status-badge colors are off-palette and ad-hoc (SYSTEMIC) [x]
+- **Files:** `src/pages/portal/packages.tsx:834-836,906-908` (`green-100`/`gray-100`/`yellow-100`), `src/pages/portal/bookings.tsx:86` (`amber-100`), `src/pages/portal/book.tsx:1611` (`amber-50`), `src/pages/admin/products.tsx:420-422` (`yellow`/`blue`/`purple`), `src/pages/admin/credits.tsx:216,220` (`red-500`/`amber-500`), `src/pages/admin/CRM.tsx:549,553,554` (`green`/`red`/`blue`), `src/pages/partner/classes.tsx:364,372` (`red`), `src/components/admin/DayScheduleList.tsx:39,43,45` (`blue`/`red`), `src/pages/instructor/dashboard.tsx:86,372` (`blue`/`red`).
+- **Issue:** Every status badge invents its own raw-Tailwind palette. Eight+ files, no shared abstraction. This is one missing token, not ten bugs. Several use banned blue (#11); the rest drift to amber/yellow/green/purple/gray that the brand forbids.
+- **Fix:** Add one shared helper, e.g. `statusTone(state)` in `src/lib/` (or a `<StatusBadge>` component) returning brand classes: success/active → `bg-sage/10 text-sage`; pending/awaiting → `bg-terracotta/10 text-terracotta`; expired/inactive → `bg-charcoal/10 text-charcoal/60`; error/failed → `bg-[#a05e38]/10 text-[#a05e38]` (deep terracotta). Point every call site at it.
+- **Acceptance:** No `green-*`/`yellow-*`/`amber-*`/`blue-*`/`purple-*`/`gray-*` Tailwind utilities in status/badge code; all route through one map.
+
+### 14. MetricCard ships a hardcoded amber tone (shared admin component) [x]
+- **File:** `src/components/admin/MetricCard.tsx:40-44` (and `tone` union line 16); consumed by `admin/dashboard.tsx`, `admin/credits.tsx`, `admin/members.tsx`.
+- **Issue:** The reusable metric card offers a `tone="amber"` variant wired to `bg-amber-100 text-amber-600 ring-amber-200 ...` — raw Tailwind amber baked into a shared primitive, so every consumer that picks `amber` inherits an off-brand color. Round 1 #6 fixed amber only in the portal dashboard; the admin component still propagates it.
+- **Fix:** Replace the `amber` tone's classes with a brand warm tone (terracotta-family: `bg-terracotta/10 text-terracotta ring-terracotta/20 group-hover:...`), or rename the tone to `terracotta` and update call sites. No Tailwind `amber-*` in the component.
+- **Acceptance:** `MetricCard.tsx` contains no `amber-*`/`yellow-*` utilities.
+
+### 15. Pure-white surfaces across portals and utility pages [x]
+- **Files:** `src/pages/partner/dashboard.tsx:96`, `src/pages/partner/members.tsx:92`, `src/pages/partner/settings.tsx:135` (`bg-white/95`); `src/pages/portal/book.tsx:1434,1462,1501` (`bg-white` radio indicators); `src/pages/cafe.tsx:72` (`rgb(255,255,255)`); `src/components/responsive/ResponsiveTable.tsx:10` (`from-white/80` fade); `src/pages/404.tsx:17` (`bg-gray-100`).
+- **Issue:** The No-Pure-White rule is broken in scattered spots. Partner portal cards are literally white; the 404 page is Tailwind gray, fully outside the palette.
+- **Fix:** `bg-white*` → `bg-white-warm` (`#fafaf8`); the cafe `rgb(255,255,255)` → `#fafaf8`; ResponsiveTable fade → `from-[#fafaf8]/90`; 404 → cream bg + charcoal text (see #18).
+- **Acceptance:** No `bg-white`, `white/NN`, `rgb(255,255,255)`, or `gray-*` background/text on these surfaces.
+
+---
+
+## Medium impact
+
+### 16. Decorative backdrop-blur sprawl (30+ instances) [x]
+- **Files (representative):** `src/components/Navigation.tsx:61,67-68,143` (frosted nav), `src/pages/admin/members.tsx:153,166`, `src/pages/admin/products.tsx:470-509`, `src/pages/admin/control.tsx`, `src/pages/portal/book.tsx:127,230,272,1094,1205`, `src/pages/cafe.tsx:280`, `src/pages/shop.tsx:370`, `src/pages/classes.tsx:484`, `src/pages/founder.tsx:171`, `src/components/ClassCatalog.tsx:118,164`, `src/components/Instructors.tsx:329,341,471`.
+- **Issue:** `backdrop-blur-{xs,md,lg,xl,2xl}` used as default card/overlay decoration throughout. Glassmorphism-as-default is banned. (Nuance: the sticky `Navigation` frosted bar is the one arguably-purposeful case — a translucent nav over scrolling content. Decide deliberately: keep it as the single sanctioned exception, or make it solid `bg-cream`. Everything else should lose the blur.)
+- **Fix:** Remove `backdrop-blur*` from cards and badges; replace with solid `bg-white-warm` + warm border. Keep blur (if at all) only on true modal scrims and the nav, as an explicit choice.
+- **Acceptance:** `backdrop-blur*` count drops to ≤2 deliberate uses (nav + modal scrim), documented as intentional.
+
+### 17. shadow-2xl on resting (non-interactive) surfaces [x]
+- **Files:** `src/components/Footer.tsx:183` (map iframe), `src/pages/founder.tsx:99` (image), `src/pages/shop/[id].tsx:249` (product image), `src/pages/portal/book.tsx:1225` (panel).
+- **Issue:** Flat-by-default rule: shadow is earned by hover/elevation, not applied at rest. These four apply `shadow-2xl` statically.
+- **Fix:** Drop to the system Deep shadow (`0 8px 48px rgba(51,51,51,0.14)`) only for hero/full-bleed images; the book panel and map should use Lifted (`0 4px 24px rgba(51,51,51,0.08)`) or border-only.
+- **Acceptance:** No `shadow-2xl` on resting cards/panels; full-bleed images use the Deep token.
+
+### 18. 404 page is fully off-palette [x]
+- **File:** `src/pages/404.tsx:17-20`
+- **Issue:** `bg-gray-100`, `text-gray-900`, `text-gray-600` — generic Tailwind gray, zero brand. A real (if rare) member touchpoint that looks like an unstyled default.
+- **Fix:** `bg-gray-100` → `bg-cream`; `text-gray-900` → `text-charcoal`; `text-gray-600` → `text-[#6b6b6b]` (muted-text). Set the 404 heading in Playfair Display to match brand voice.
+- **Acceptance:** No `gray-*` utilities; page reads as branded.
+
+### 19. Onboarding screen: filter hack + glass + pure white [x]
+- **File:** `src/pages/portal/onboarding.tsx:224,249,234-235,309,429`
+- **Issue:** `style={{ filter: "brightness(0)" }}` to recolor an asset (line 224); `backdrop-blur-xl shadow-2xl` card (line 249); multiple `text-white` (pure white). First-run flow should be exemplary, not hacky.
+- **Fix:** Recolor the asset properly (SVG `currentColor`/mask, or a correctly-tinted source) instead of `brightness(0)`. Card → `bg-white-warm` + warm border, no blur, Lifted shadow. `text-white` → `text-white-warm`.
+- **Acceptance:** No `filter: brightness(0)`, no `backdrop-blur`, no `text-white` in onboarding.
+
+### 20. Admin cafe: inline keyframe RGB reds/oranges [x]
+- **File:** `src/pages/admin/cafe.tsx:681-727` (inline `<style>` block)
+- **Issue:** Hardcoded `rgb(220,38,38)` / `rgb(249,115,22)` / `rgb(239,68,68)` (Tailwind red/orange) inside an inline keyframe block for an attention pulse. Off-palette and inline.
+- **Fix:** Drive the pulse with terracotta (`#c17856`) / deep-terracotta (`#a05e38`). Move keyframes into the Tailwind/globals layer rather than an inline `<style>`.
+- **Acceptance:** No raw red/orange RGB in cafe; animation uses brand hues from a stylesheet.
+
+---
+
+## Low / intentional (document the decision)
+
+### 21. Instructors social-share buttons use real brand hex [x]
+- **File:** `src/components/Instructors.tsx:518-521`
+- **Issue:** `bg-[#1877F2]` (Facebook), `bg-[#1DA1F2]` (Twitter), `bg-[#0A66C2]` (LinkedIn), `bg-[#25D366]` (WhatsApp) — off-palette, but these are the platforms' official brand colors.
+- **Decision needed:** Either (a) accept as a sanctioned exception (recognizable social colors aid scanability) and add a code comment marking it intentional, or (b) neutralize to charcoal/sage icon buttons for full brand consistency. Recommend (b) for a warm-register studio site; the colored chips read as borrowed.
+- **Acceptance:** Decision recorded; if (b), no social brand hex remains.
+
+> Note on hero overlays: `Hero.tsx:52,86,103` and a few image overlays use `from-black/50`. DESIGN.md's Video Hero spec explicitly sanctions `from-black/50`, so this is allowed. For strict consistency you may switch to `charcoal`-alpha (`rgba(51,51,51,...)`), but it is P3 at most. Not tracked as a fix.
+
+---
+
 ## Implementation order
 
 Recommended sequence to minimize merge complexity:
@@ -114,3 +210,24 @@ Recommended sequence to minimize merge complexity:
 | 7 | Bricolage unused import | [ ] |
 | 8 | Sidebar CSS vars duplicated | [ ] |
 | 9 | prefers-reduced-motion guard | [ ] |
+| 10 | Auth shell glassmorphism (all logins) | [x] |
+| 11 | Blue status badges (blue ban) | [x] |
+| 12 | blur-3xl blobs beyond Pricing/Boutique | [x] |
+| 13 | Status-badge colors off-palette (systemic) | [x] |
+| 14 | MetricCard hardcoded amber tone | [x] |
+| 15 | Pure-white surfaces across portals + 404 | [x] |
+| 16 | Decorative backdrop-blur sprawl (30+) | [x] |
+| 17 | shadow-2xl on resting surfaces | [x] |
+| 18 | 404 page off-palette gray | [x] |
+| 19 | Onboarding filter hack + glass + white | [x] |
+| 20 | Admin cafe inline RGB reds/oranges | [x] |
+| 21 | Instructors social-share brand hex | [x] |
+
+### Round 2 implementation notes (2026-05-31)
+
+- **#13** introduced `src/lib/statusTone.ts` — `statusTone(intent)` / `statusIntent(state)` / `statusToneFor(state)`. All status pills across portals + admin now route through it (4 intents: success=sage, pending=terracotta, neutral=muted charcoal, error=deep terracotta `#a05e38`). New status UI should import this, never raw Tailwind colors.
+- **#11** blue is now zero across live UI (instructor dashboard, DayScheduleList, products, CRM, kitchen). Only remaining `blue-*` live in unused `src/components/shadcn-space/blocks/*` vendor demo scaffolding (not imported by any route) — delete those blocks or ignore.
+- **#14** the `amber` tone on `MetricCard` was remapped to deep terracotta but the prop name `"amber"` was kept so call sites compile unchanged.
+- **#16 (partial `[~]`)** decorative frosted cards/badges across marketing + admin were made solid (`97 → 2` blurs in the targeted set). Intentionally **kept**: the sticky frosted `Navigation` bar (sanctioned over-content nav), modal/sheet scrims, `components/ui/*` primitives, mobile nav, and two hero CTA outline buttons over the café video (legibility over moving footage). Full elimination to "≤2" sitewide needs visual iteration (`/impeccable live` or `quieter`) since the remaining uses are deliberate.
+- Occupancy/heat bars (DayScheduleList, instructor CapacityBar) were remapped sage → terracotta → deep-terracotta so the low/med/high signal survives on-palette.
+- Verified: `tsc --noEmit` adds no new type errors (pre-existing errors only, in seed scripts / phone-input / zod schema / razorpay — unrelated).

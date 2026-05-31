@@ -7,7 +7,7 @@ export function ResponsiveTable({ className, children }: { className?: string; c
       <div className={cn("w-full overflow-x-auto [-webkit-overflow-scrolling:touch]", className)}>
         {children}
       </div>
-      <div className="pointer-events-none absolute inset-y-0 right-0 w-6 bg-gradient-to-l from-white/80 to-transparent md:hidden" />
+      <div className="pointer-events-none absolute inset-y-0 right-0 w-6 bg-gradient-to-l from-[#fafaf8]/90 to-transparent md:hidden" />
     </div>
   );
 }

@@ -255,10 +255,8 @@ export default function Shop({ initialProducts }: ShopProps) {
       
       {/* Hero Section */}
       <section className="relative pt-32 pb-16 px-6 lg:px-8 overflow-hidden">
-        <div className="absolute inset-0 bg-linear-to-br from-cream via-white to-sage/5 -z-10" />
-        <div className="absolute top-20 left-20 w-96 h-96 bg-sage/5 rounded-full blur-3xl" />
-        <div className="absolute bottom-20 right-20 w-96 h-96 bg-terracotta/5 rounded-full blur-3xl" />
-        
+        <div className="absolute inset-0 bg-linear-to-br from-cream via-[#fafaf8] to-sage/5 -z-10" />
+
         <div className="max-w-7xl mx-auto text-center">
           <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-sage/10 border border-sage/20 mb-6">
             <ShoppingCart className="text-sage" size={16} />
@@ -276,7 +274,7 @@ export default function Shop({ initialProducts }: ShopProps) {
       </section>
 
       {/* Filters & Cart Button */}
-      <section className="sticky top-0 z-40 bg-white/80 backdrop-blur-xl border-b border-sage/10 shadow-xs">
+      <section className="sticky top-0 z-40 bg-white-warm border-b border-sage/10 shadow-xs">
         <div className="max-w-7xl mx-auto px-6 lg:px-8 py-4">
           {/* Search Bar */}
           <div className="mb-4">
@@ -287,7 +285,7 @@ export default function Shop({ initialProducts }: ShopProps) {
                 placeholder="Search products by name or category..."
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
-                className="w-full pl-12 pr-4 py-3 rounded-full bg-white/60 border border-sage/10 font-body text-sm text-charcoal placeholder:text-charcoal/40 focus:outline-hidden focus:ring-2 focus:ring-sage/30 focus:border-sage transition-all"
+                className="w-full pl-12 pr-4 py-3 rounded-full bg-white-warm border border-sage/10 font-body text-sm text-charcoal placeholder:text-charcoal/40 focus:outline-hidden focus:ring-2 focus:ring-sage/30 focus:border-sage transition-all"
               />
               {searchQuery && (
                 <Button
@@ -315,7 +313,7 @@ export default function Shop({ initialProducts }: ShopProps) {
                     className={`flex items-center gap-2 px-4 py-2 rounded-full font-body text-sm whitespace-nowrap transition-all duration-300 ${
                       selectedCategory === cat.id
                         ? "bg-sage text-white shadow-lg"
-                        : "bg-white/60 text-charcoal/70 hover:bg-sage/10 border border-sage/10"
+                        : "bg-white-warm text-charcoal/70 hover:bg-sage/10 border border-sage/10"
                     }`}
                   >
                     <Icon size={16} />
@@ -330,7 +328,7 @@ export default function Shop({ initialProducts }: ShopProps) {
               <select
                 value={sortBy}
                 onChange={(e) => setSortBy(toSortBy(e.target.value))}
-                className="px-4 py-2 rounded-full bg-white/60 border border-sage/10 font-body text-sm text-charcoal focus:outline-hidden focus:ring-2 focus:ring-sage/30"
+                className="px-4 py-2 rounded-full bg-white-warm border border-sage/10 font-body text-sm text-charcoal focus:outline-hidden focus:ring-2 focus:ring-sage/30"
               >
                 <option value="featured">Featured</option>
                 <option value="price-low">Price: Low to High</option>
@@ -367,7 +365,7 @@ export default function Shop({ initialProducts }: ShopProps) {
             ) : (
             filteredProducts.map((product) => (
               <Link key={product.id} href={`/shop/${product.id}`}>
-                <div className="group relative bg-white/60 backdrop-blur-xs rounded-3xl border border-sage/10 overflow-hidden transition-all duration-500 hover:border-sage/30 hover:shadow-2xl hover:bg-sage/5 cursor-pointer">
+                <div className="group relative bg-white-warm rounded-3xl border border-sage/10 overflow-hidden transition-all duration-500 hover:border-sage/30 hover:shadow-2xl hover:bg-sage/5 cursor-pointer">
                   {/* Image */}
                   <div className="relative h-80 overflow-hidden">
                     <div className="absolute inset-0 bg-linear-to-br from-sage/20 via-cream/50 to-terracotta/20" />
@@ -385,7 +383,7 @@ export default function Shop({ initialProducts }: ShopProps) {
                         <Badge className="bg-sage text-white">Featured</Badge>
                       )}
                       {product.stock <= 0 && (
-                        <Badge variant="outline" className="bg-white/90">Out of Stock</Badge>
+                        <Badge variant="outline" className="bg-white-warm">Out of Stock</Badge>
                       )}
                     </div>
 
@@ -394,7 +392,7 @@ export default function Shop({ initialProducts }: ShopProps) {
                     
                     {/* View Details Hint */}
                     <div className="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity duration-500">
-                      <span className="px-4 py-2 rounded-full bg-white/90 backdrop-blur-xs text-charcoal font-body text-sm">
+                      <span className="px-4 py-2 rounded-full bg-white-warm text-charcoal font-body text-sm">
                         View Details
                       </span>
                     </div>
@@ -471,7 +469,7 @@ export default function Shop({ initialProducts }: ShopProps) {
             {checkoutStep === "cart" && (
               <>
                 {/* Header */}
-                <div className="sticky top-0 bg-white/95 backdrop-blur-xl border-b border-sage/10 p-6 z-10">
+                <div className="sticky top-0 bg-white-warm border-b border-sage/10 p-6 z-10">
                   <div className="flex items-center justify-between mb-2">
                     <h2 className="font-display text-3xl text-charcoal">Your Cart</h2>
                     <CloseButton onClick={() => setShowCart(false)} />
@@ -508,14 +506,14 @@ export default function Shop({ initialProducts }: ShopProps) {
                             <div className="flex items-center gap-3">
                               <QtyMinusButton
                                 onClick={() => cart.updateQuantity(item.id, item.quantity - 1)}
-                                className="rounded-full bg-white border border-sage/20 text-charcoal"
+                                className="rounded-full bg-white-warm border border-sage/20 text-charcoal"
                               />
                               <span className="font-body text-sm text-charcoal w-8 text-center">
                                 {item.quantity}
                               </span>
                               <QtyPlusButton
                                 onClick={() => cart.updateQuantity(item.id, item.quantity + 1)}
-                                className="rounded-full bg-white border border-sage/20 text-charcoal"
+                                className="rounded-full bg-white-warm border border-sage/20 text-charcoal"
                               />
 
                               <Button
@@ -537,7 +535,7 @@ export default function Shop({ initialProducts }: ShopProps) {
 
                 {/* Footer */}
                 {cart.items.length > 0 && (
-                  <div className="sticky bottom-0 bg-white/95 backdrop-blur-xl border-t border-sage/10 p-6">
+                  <div className="sticky bottom-0 bg-white-warm border-t border-sage/10 p-6">
                     <div className="flex items-center justify-between mb-6">
                       <span className="font-display text-xl text-charcoal">Subtotal</span>
                       <span className="font-display text-3xl text-sage">₹{cart.subtotal}</span>
@@ -641,7 +639,7 @@ export default function Shop({ initialProducts }: ShopProps) {
                   <div className="p-4 rounded-xl border-2 border-sage bg-sage/5">
                     <div className="flex items-center gap-3">
                       <div className="w-5 h-5 rounded-full border-2 border-sage bg-sage flex items-center justify-center">
-                        <div className="w-2 h-2 rounded-full bg-white" />
+                        <div className="w-2 h-2 rounded-full bg-white-warm" />
                       </div>
                       <span className="font-body text-charcoal">Pay Online (UPI/Cards)</span>
                     </div>

@@ -246,7 +246,7 @@ export default function ProductDetail({ product, catalog }: ProductDetailProps) 
 
           <div className="grid lg:grid-cols-2 gap-12 mb-20">
             <div className="space-y-4">
-              <div className="relative aspect-square rounded-3xl overflow-hidden bg-white/60 backdrop-blur-xl border border-sage/10 shadow-2xl group">
+              <div className="relative aspect-square rounded-3xl overflow-hidden bg-white-warm border border-sage/10 shadow-[0_8px_48px_-8px_rgba(51,51,51,0.14)] group">
                 <div className="absolute inset-0 bg-linear-to-br from-sage/20 via-transparent to-terracotta/20 pointer-events-none z-1" />
                 <Image
                   src={images[currentImageIndex]}
@@ -263,19 +263,19 @@ export default function ProductDetail({ product, catalog }: ProductDetailProps) 
                       onClick={() =>
                         setCurrentImageIndex((prev) => (prev - 1 + images.length) % images.length)
                       }
-                      className="absolute left-4 top-1/2 -translate-y-1/2 z-10 rounded-full bg-white/80 backdrop-blur-xs opacity-0 group-hover:opacity-100 text-charcoal"
+                      className="absolute left-4 top-1/2 -translate-y-1/2 z-10 rounded-full bg-white-warm opacity-0 group-hover:opacity-100 text-charcoal"
                       label="Previous image"
                     />
                     <NavNextButton
                       onClick={() => setCurrentImageIndex((prev) => (prev + 1) % images.length)}
-                      className="absolute right-4 top-1/2 -translate-y-1/2 z-10 rounded-full bg-white/80 backdrop-blur-xs opacity-0 group-hover:opacity-100 text-charcoal"
+                      className="absolute right-4 top-1/2 -translate-y-1/2 z-10 rounded-full bg-white-warm opacity-0 group-hover:opacity-100 text-charcoal"
                       label="Next image"
                     />
                   </>
                 )}
 
                 {product.featured && (
-                  <div className="absolute top-4 left-4 z-10 px-3 py-1 rounded-full bg-terracotta/90 backdrop-blur-xs text-white text-xs font-body font-medium">
+                  <div className="absolute top-4 left-4 z-10 px-3 py-1 rounded-full bg-terracotta text-white text-xs font-body font-medium">
                     Featured
                   </div>
                 )}
@@ -305,7 +305,7 @@ export default function ProductDetail({ product, catalog }: ProductDetailProps) 
               </p>
 
               <div className="flex flex-wrap items-center gap-4 pt-4">
-                <div className="flex items-center gap-3 px-4 py-2 rounded-full bg-white/60 backdrop-blur-xl border border-sage/10">
+                <div className="flex items-center gap-3 px-4 py-2 rounded-full bg-white-warm border border-sage/10">
                   <QtyMinusButton
                     onClick={() => setQuantity(Math.max(1, quantity - 1))}
                     className="rounded-full bg-sage/10 text-sage"
@@ -335,7 +335,7 @@ export default function ProductDetail({ product, catalog }: ProductDetailProps) 
                   variant={isWishlisted ? "terracotta" : "terracotta-ghost"}
                   size="icon-lg"
                   onClick={() => setIsWishlisted(!isWishlisted)}
-                  className={`rounded-full ${isWishlisted ? "" : "bg-white/60 backdrop-blur-xl border border-sage/10"}`}
+                  className={`rounded-full ${isWishlisted ? "" : "bg-white-warm border border-sage/10"}`}
                   aria-label="Wishlist"
                 >
                   <Heart size={20} className={isWishlisted ? "fill-current" : ""} />
@@ -346,7 +346,7 @@ export default function ProductDetail({ product, catalog }: ProductDetailProps) 
                   variant="ghost"
                   size="icon-lg"
                   onClick={handleShare}
-                  className="rounded-full bg-white/60 backdrop-blur-xl border border-sage/10 text-charcoal/60"
+                  className="rounded-full bg-white-warm border border-sage/10 text-charcoal/60"
                   aria-label="Copy link"
                 >
                   <Share2 size={20} />
@@ -385,7 +385,7 @@ export default function ProductDetail({ product, catalog }: ProductDetailProps) 
               <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-6">
                 {relatedProducts.map((rp) => (
                   <Link key={rp.id} href={`/shop/${rp.id}`}>
-                    <div className="group relative rounded-2xl overflow-hidden bg-white/60 backdrop-blur-xl border border-sage/10 hover:border-sage/30 transition-all duration-300 hover:shadow-xl hover:scale-105 cursor-pointer">
+                    <div className="group relative rounded-2xl overflow-hidden bg-white-warm border border-sage/10 hover:border-sage/30 transition-all duration-300 hover:shadow-xl hover:scale-105 cursor-pointer">
                       <div className="relative aspect-square overflow-hidden">
                         <div className="absolute inset-0 bg-linear-to-br from-sage/20 via-transparent to-terracotta/20" />
                         <Image
@@ -396,7 +396,7 @@ export default function ProductDetail({ product, catalog }: ProductDetailProps) 
                           sizes="(max-width: 640px) 100vw, 25vw"
                         />
                         {rp.featured && (
-                          <div className="absolute top-3 left-3 px-2 py-1 rounded-full bg-terracotta/90 backdrop-blur-xs text-white text-xs font-body">
+                          <div className="absolute top-3 left-3 px-2 py-1 rounded-full bg-terracotta text-white text-xs font-body">
                             Featured
                           </div>
                         )}

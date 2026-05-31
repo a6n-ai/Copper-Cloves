@@ -134,7 +134,7 @@ export default function MealSubscriptionPage() {
           <div className="relative z-20 max-w-7xl mx-auto px-6 lg:px-8 py-32">
             {/* Badge - Far Left */}
             <div className="mb-8">
-              <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-sage/30 backdrop-blur-2xl border border-sage/40">
+              <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-sage/30 border border-sage/40">
                 <Leaf className="text-sage" size={14} />
                 <span className="font-body text-xs text-white font-semibold tracking-wide">100% PLANT-BASED DAILY RITUAL</span>
               </div>

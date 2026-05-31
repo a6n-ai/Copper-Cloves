@@ -142,7 +142,7 @@ export function MemberMobileDashboard({
         </p>
 
         {/* Today's intention */}
-        <div className="mt-4 rounded-2xl bg-white/15 p-3 backdrop-blur-xs">
+        <div className="mt-4 rounded-2xl bg-white-warm/15 p-3">
           <div className="mb-1.5 flex items-center gap-1.5 font-body text-xs uppercase tracking-wide text-white/70">
             <Target size={13} /> Today's intention
           </div>

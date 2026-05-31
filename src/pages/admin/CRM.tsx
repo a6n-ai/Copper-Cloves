@@ -175,7 +175,7 @@ function CrmHubLoadingSkeleton() {
       {/* Communication hub message cards */}
       <div className="space-y-4">
         {Array.from({ length: 5 }).map((_, i) => (
-          <Card key={i} className="border-0 bg-white/80 backdrop-blur-xl shadow-lg">
+          <Card key={i} className="border-0 bg-white-warm shadow-lg">
             <CardContent className="p-6">
               {/* Header: channel avatar + name/email, status icon + badge */}
               <div className="flex items-start justify-between mb-4">
@@ -546,13 +546,13 @@ export default function CRMPage() {
   const getStatusIcon = (status: string) => {
     switch (status) {
       case "sent":
-        return <CheckCircle2 className="text-green-600" size={16} />;
+        return <CheckCircle2 className="text-sage" size={16} />;
       case "failed":
-        return <XCircle className="text-red-600" size={16} />;
+        return <XCircle className="text-[#a05e38]" size={16} />;
       case "scheduled":
-        return <Clock className="text-blue-600" size={16} />;
+        return <Clock className="text-terracotta" size={16} />;
       default:
-        return <Clock className="text-yellow-600" size={16} />;
+        return <Clock className="text-charcoal/50" size={16} />;
     }
   };
 
@@ -654,7 +654,7 @@ export default function CRMPage() {
               <Zap size={16} />
               Automated Triggers
               {triggers.filter(t => t.is_active).length > 0 && (
-                <Badge className="bg-green-100 text-green-700">
+                <Badge className="bg-sage/10 text-sage">
                   {triggers.filter(t => t.is_active).length} Active
                 </Badge>
               )}
@@ -676,7 +676,7 @@ export default function CRMPage() {
           {activeTab === "hub" && (
             <div className="space-y-4">
               {messages.length === 0 ? (
-                <Card className="border-0 bg-white/80 backdrop-blur-xl shadow-lg">
+                <Card className="border-0 bg-white-warm shadow-lg">
                   <CardContent className="flex flex-col items-center justify-center py-20">
                     <Send className="text-sage/40 mb-4" size={64} />
                     <h3 className="font-display text-2xl text-charcoal mb-2">No Messages Yet</h3>
@@ -685,7 +685,7 @@ export default function CRMPage() {
                 </Card>
               ) : (
                 messages.map(msg => (
-                  <Card key={msg.id} className="border-0 bg-white/80 backdrop-blur-xl shadow-lg hover:shadow-xl transition-all duration-300 [content-visibility:auto] [contain-intrinsic-size:0_180px]">
+                  <Card key={msg.id} className="border-0 bg-white-warm shadow-lg hover:shadow-xl transition-all duration-300 [content-visibility:auto] [contain-intrinsic-size:0_180px]">
                     <CardContent className="p-6">
                       <div className="flex items-start justify-between mb-4">
                         <div className="flex items-center gap-3">
@@ -704,10 +704,10 @@ export default function CRMPage() {
                         <div className="flex items-center gap-2">
                           {getStatusIcon(msg.status)}
                           <Badge className={
-                            msg.status === "sent" ? "bg-green-100 text-green-700" :
-                            msg.status === "failed" ? "bg-red-100 text-red-700" :
-                            msg.status === "scheduled" ? "bg-blue-100 text-blue-700" :
-                            "bg-yellow-100 text-yellow-700"
+                            msg.status === "sent" ? "bg-sage/10 text-sage" :
+                            msg.status === "failed" ? "bg-[#a05e38]/10 text-[#a05e38]" :
+                            msg.status === "scheduled" ? "bg-terracotta/10 text-terracotta" :
+                            "bg-charcoal/10 text-charcoal/60"
                           }>
                             {msg.status.toUpperCase()}
                           </Badge>
@@ -744,8 +744,8 @@ export default function CRMPage() {
                       </div>
 
                       {msg.error_message && (
-                        <div className="mt-3 p-3 bg-red-50 border border-red-200 rounded-lg">
-                          <p className="font-body text-xs text-red-700">
+                        <div className="mt-3 p-3 bg-[#a05e38]/10 border border-[#a05e38]/25 rounded-lg">
+                          <p className="font-body text-xs text-[#a05e38]">
                             <strong>Error:</strong> {msg.error_message}
                           </p>
                         </div>
@@ -777,7 +777,7 @@ export default function CRMPage() {
 
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 {templates.map(template => (
-                  <Card key={template.id} className="border-0 bg-white/80 backdrop-blur-xl shadow-lg hover:shadow-xl transition-all duration-300">
+                  <Card key={template.id} className="border-0 bg-white-warm shadow-lg hover:shadow-xl transition-all duration-300">
                     <CardHeader className="border-b border-sage/10">
                       <div className="flex items-start justify-between">
                         <div>
@@ -803,7 +803,7 @@ export default function CRMPage() {
                             onClick={() => openSendDialog(template)}
                             size="sm"
                             variant="ghost"
-                            className="text-green-700 hover:bg-green-50"
+                            className="text-sage hover:bg-sage/10"
                             title="Send to member"
                             disabled={!template.channel_email}
                           >
@@ -814,7 +814,7 @@ export default function CRMPage() {
                             onClick={() => duplicateTemplate(template)}
                             size="sm"
                             variant="ghost"
-                            className="text-blue-600 hover:bg-blue-50"
+                            className="text-terracotta hover:bg-terracotta/10"
                             title="Duplicate"
                           >
                             <Copy size={14} />
@@ -845,13 +845,13 @@ export default function CRMPage() {
 
                       <div className="flex items-center gap-2 mb-3">
                         {template.channel_email && (
-                          <Badge className="bg-blue-100 text-blue-700 flex items-center gap-1">
+                          <Badge className="bg-terracotta/10 text-terracotta flex items-center gap-1">
                             <Mail size={12} />
                             Email
                           </Badge>
                         )}
                         {template.channel_whatsapp && (
-                          <Badge className="bg-green-100 text-green-700 flex items-center gap-1">
+                          <Badge className="bg-sage/10 text-sage flex items-center gap-1">
                             <MessageCircle size={12} />
                             WhatsApp
                           </Badge>
@@ -895,14 +895,14 @@ export default function CRMPage() {
 
               <div className="space-y-4">
                 {triggers.map(trigger => (
-                  <Card key={trigger.id} className="border-0 bg-white/80 backdrop-blur-xl shadow-lg">
+                  <Card key={trigger.id} className="border-0 bg-white-warm shadow-lg">
                     <CardContent className="p-6">
                       <div className="flex items-center justify-between">
                         <div className="flex items-center gap-4 flex-1">
                           <div className={`w-12 h-12 rounded-full flex items-center justify-center ${
-                            trigger.is_active ? "bg-green-100" : "bg-gray-100"
+                            trigger.is_active ? "bg-sage/10" : "bg-charcoal/10"
                           }`}>
-                            <Zap className={trigger.is_active ? "text-green-600" : "text-gray-400"} size={24} />
+                            <Zap className={trigger.is_active ? "text-sage" : "text-charcoal/40"} size={24} />
                           </div>
                           
                           <div className="flex-1">
@@ -917,13 +917,13 @@ export default function CRMPage() {
                             </div>
                             <div className="flex items-center gap-2 mt-2">
                               {trigger.channel_email && (
-                                <Badge className="bg-blue-100 text-blue-700 flex items-center gap-1">
+                                <Badge className="bg-terracotta/10 text-terracotta flex items-center gap-1">
                                   <Mail size={12} />
                                   Email
                                 </Badge>
                               )}
                               {trigger.channel_whatsapp && (
-                                <Badge className="bg-green-100 text-green-700 flex items-center gap-1">
+                                <Badge className="bg-sage/10 text-sage flex items-center gap-1">
                                   <MessageCircle size={12} />
                                   WhatsApp
                                 </Badge>
@@ -950,7 +950,7 @@ export default function CRMPage() {
                 ))}
 
                 {triggers.length === 0 && (
-                  <Card className="border-0 bg-white/80 backdrop-blur-xl shadow-lg">
+                  <Card className="border-0 bg-white-warm shadow-lg">
                     <CardContent className="flex flex-col items-center justify-center py-20">
                       <Zap className="text-sage/40 mb-4" size={64} />
                       <h3 className="font-display text-2xl text-charcoal mb-2">No Triggers Set</h3>
@@ -974,7 +974,7 @@ export default function CRMPage() {
             <div className="space-y-6">
               {/* Key Metrics */}
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-                <Card className="border-0 bg-white/80 backdrop-blur-xl shadow-lg">
+                <Card className="border-0 bg-white-warm shadow-lg">
                   <CardContent className="p-6">
                     <div className="flex items-center justify-between mb-3">
                       <p className="font-body text-sm text-charcoal/60">Total Nudges Sent</p>
@@ -987,20 +987,20 @@ export default function CRMPage() {
                   </CardContent>
                 </Card>
 
-                <Card className="border-0 bg-white/80 backdrop-blur-xl shadow-lg">
+                <Card className="border-0 bg-white-warm shadow-lg">
                   <CardContent className="p-6">
                     <div className="flex items-center justify-between mb-3">
                       <p className="font-body text-sm text-charcoal/60">Renewals</p>
-                      <CheckCircle2 className="text-green-600" size={20} />
+                      <CheckCircle2 className="text-sage" size={20} />
                     </div>
                     <p className="font-display text-4xl text-charcoal mb-1">
                       {analyticsData.renewalsAfterNudge}
                     </p>
-                    <p className="font-body text-xs text-green-600">After nudges</p>
+                    <p className="font-body text-xs text-sage">After nudges</p>
                   </CardContent>
                 </Card>
 
-                <Card className="border-0 bg-linear-to-br from-sage/5 to-white backdrop-blur-xl shadow-lg">
+                <Card className="border-0 bg-white-warm shadow-lg">
                   <CardContent className="p-6">
                     <div className="flex items-center justify-between mb-3">
                       <p className="font-body text-sm text-charcoal/60">Conversion Rate</p>
@@ -1013,7 +1013,7 @@ export default function CRMPage() {
                   </CardContent>
                 </Card>
 
-                <Card className="border-0 bg-white/80 backdrop-blur-xl shadow-lg">
+                <Card className="border-0 bg-white-warm shadow-lg">
                   <CardContent className="p-6">
                     <div className="flex items-center justify-between mb-3">
                       <p className="font-body text-sm text-charcoal/60">Revenue Impact</p>
@@ -1028,7 +1028,7 @@ export default function CRMPage() {
               </div>
 
               {/* Weekly Trend Chart */}
-              <Card className="border-0 bg-white/80 backdrop-blur-xl shadow-lg">
+              <Card className="border-0 bg-white-warm shadow-lg">
                 <CardHeader>
                   <CardTitle className="font-display text-2xl text-charcoal">Weekly Performance</CardTitle>
                   <CardDescription className="font-body text-charcoal/60">
@@ -1056,7 +1056,7 @@ export default function CRMPage() {
                             style={{ width: `${(week.nudges / 50) * 100}%` }}
                           />
                           <div 
-                            className="bg-linear-to-r from-green-500 to-green-400 rounded-lg hover:shadow-lg transition-all duration-300"
+                            className="bg-sage hover:bg-[#7A8B7C] rounded-lg transition-colors duration-300"
                             style={{ width: `${(week.conversions / 50) * 100}%` }}
                           />
                         </div>
@@ -1069,7 +1069,7 @@ export default function CRMPage() {
                       <span className="font-body text-xs text-charcoal/60">Nudges Sent</span>
                     </div>
                     <div className="flex items-center gap-2">
-                      <div className="w-4 h-4 rounded bg-green-500" />
+                      <div className="w-4 h-4 rounded bg-sage" />
                       <span className="font-body text-xs text-charcoal/60">Conversions</span>
                     </div>
                   </div>
@@ -1077,7 +1077,7 @@ export default function CRMPage() {
               </Card>
 
               {/* Template Performance */}
-              <Card className="border-0 bg-white/80 backdrop-blur-xl shadow-lg">
+              <Card className="border-0 bg-white-warm shadow-lg">
                 <CardHeader>
                   <CardTitle className="font-display text-2xl text-charcoal">Template Performance</CardTitle>
                   <CardDescription className="font-body text-charcoal/60">
@@ -1129,7 +1129,7 @@ export default function CRMPage() {
         onOpenChange={(o) => { if (!o) { setShowTemplateForm(false); setEditingTemplate(null); } }}
       >
         <DrawerContent direction="right" className="max-w-3xl overflow-y-auto">
-            <div className="sticky top-0 bg-white-warm/95 backdrop-blur-xl border-b border-sage/10 p-6 z-10">
+            <div className="sticky top-0 bg-white-warm border-b border-sage/10 p-6 z-10">
               <div className="flex items-center justify-between">
                 <div>
                   <DrawerTitle className="font-display text-3xl text-charcoal">
@@ -1309,7 +1309,7 @@ export default function CRMPage() {
                       onChange={(e) => setTemplateForm({ ...templateForm, channel_email: e.target.checked })}
                       className="w-5 h-5 accent-sage"
                     />
-                    <Mail size={16} className="text-blue-600" />
+                    <Mail size={16} className="text-terracotta" />
                     <span className="font-body text-sm text-charcoal">Email</span>
                   </label>
                   <label className="flex items-center gap-2 cursor-pointer">
@@ -1319,7 +1319,7 @@ export default function CRMPage() {
                       onChange={(e) => setTemplateForm({ ...templateForm, channel_whatsapp: e.target.checked })}
                       className="w-5 h-5 accent-sage"
                     />
-                    <MessageCircle size={16} className="text-green-600" />
+                    <MessageCircle size={16} className="text-sage" />
                     <span className="font-body text-sm text-charcoal">WhatsApp</span>
                   </label>
                 </div>
@@ -1440,7 +1440,7 @@ export default function CRMPage() {
               )}
 
               {sendResult && (
-                <div className={`rounded-lg p-3 ${sendResult.ok ? "bg-green-50 border border-green-200 text-green-800" : "bg-red-50 border border-red-200 text-red-800"}`}>
+                <div className={`rounded-lg p-3 ${sendResult.ok ? "bg-sage/10 border border-sage/20 text-sage" : "bg-[#a05e38]/10 border border-[#a05e38]/25 text-[#a05e38]"}`}>
                   <p className="font-body text-sm">{sendResult.msg}</p>
                 </div>
               )}
@@ -1510,7 +1510,7 @@ export default function CRMPage() {
         onOpenChange={(o) => { if (!o) setShowTriggerForm(false); }}
       >
         <DrawerContent direction="right" className="max-w-2xl overflow-y-auto">
-            <div className="sticky top-0 bg-white-warm/95 backdrop-blur-xl border-b border-sage/10 p-6 z-10">
+            <div className="sticky top-0 bg-white-warm border-b border-sage/10 p-6 z-10">
               <div className="flex items-center justify-between">
                 <DrawerTitle className="font-display text-3xl text-charcoal">Create Automation Trigger</DrawerTitle>
                 <DrawerDescription className="sr-only">Automation trigger editor</DrawerDescription>
@@ -1566,7 +1566,7 @@ export default function CRMPage() {
                       onChange={(e) => setTriggerForm({ ...triggerForm, channel_email: e.target.checked })}
                       className="w-5 h-5 accent-sage"
                     />
-                    <Mail size={16} className="text-blue-600" />
+                    <Mail size={16} className="text-terracotta" />
                     <span className="font-body text-sm text-charcoal">Email</span>
                   </label>
                   <label className="flex items-center gap-2 cursor-pointer">
@@ -1576,7 +1576,7 @@ export default function CRMPage() {
                       onChange={(e) => setTriggerForm({ ...triggerForm, channel_whatsapp: e.target.checked })}
                       className="w-5 h-5 accent-sage"
                     />
-                    <MessageCircle size={16} className="text-green-600" />
+                    <MessageCircle size={16} className="text-sage" />
                     <span className="font-body text-sm text-charcoal">WhatsApp</span>
                   </label>
                 </div>

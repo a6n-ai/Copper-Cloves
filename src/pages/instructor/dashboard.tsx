@@ -83,14 +83,14 @@ function classStatusBadge(cls: ClassRow) {
   const now = new Date();
   const start = new Date(cls.startTime);
   const end = new Date(cls.endTime);
-  if (isBefore(now, start)) return { label: "Upcoming", color: "bg-blue-50 text-blue-700 border-blue-200" };
+  if (isBefore(now, start)) return { label: "Upcoming", color: "bg-terracotta/10 text-terracotta border-terracotta/20" };
   if (isAfter(now, end)) return { label: "Completed", color: "bg-charcoal/10 text-charcoal/60 border-charcoal/20" };
   return { label: "In Progress", color: "bg-sage/10 text-sage border-sage/30" };
 }
 
 function CapacityBar({ enrolled, capacity }: { enrolled: number; capacity: number }) {
   const pct = capacity > 0 ? Math.min(100, Math.round((enrolled / capacity) * 100)) : 0;
-  const color = pct >= 90 ? "bg-terracotta" : pct >= 60 ? "bg-amber-400" : "bg-sage";
+  const color = pct >= 90 ? "bg-[#a05e38]" : pct >= 60 ? "bg-terracotta" : "bg-sage";
   return (
     <div className="mt-3">
       <div className="flex justify-between text-xs font-body text-charcoal/60 mb-1">
@@ -361,7 +361,7 @@ export default function InstructorDashboard() {
                                 <span className="xs:hidden">Checked in</span>
                               </span>
                             ) : winStatus === "open" ? (
-                              <span className="font-body text-xs px-2.5 py-0.5 rounded-full bg-amber-50 text-amber-700 border border-amber-200">
+                              <span className="font-body text-xs px-2.5 py-0.5 rounded-full bg-terracotta/10 text-terracotta border border-terracotta/20">
                                 Window open
                               </span>
                             ) : winStatus === "too_early" ? (
@@ -369,7 +369,7 @@ export default function InstructorDashboard() {
                                 Opens {minutesUntilOpen(cls.startTime)} min before class
                               </span>
                             ) : (
-                              <span className="font-body text-xs px-2.5 py-0.5 rounded-full bg-red-50 text-red-600 border border-red-200 hidden sm:inline-flex">
+                              <span className="font-body text-xs px-2.5 py-0.5 rounded-full bg-charcoal/5 text-charcoal/50 border border-charcoal/15 hidden sm:inline-flex">
                                 Window closed
                               </span>
                             )}
@@ -420,7 +420,7 @@ export default function InstructorDashboard() {
                       </div>
 
                       {errMsg && (
-                        <p className="mt-2 font-body text-xs text-red-600 bg-red-50 rounded-lg px-3 py-2">{errMsg}</p>
+                        <p className="mt-2 font-body text-xs text-[#a05e38] bg-[#a05e38]/10 rounded-lg px-3 py-2">{errMsg}</p>
                       )}
 
                       {/* Member previews */}
@@ -564,7 +564,7 @@ export default function InstructorDashboard() {
                                 <p className="font-body text-xs text-charcoal/40 mt-0.5">
                                   {format(new Date(b.checkInTime), "h:mm a")}
                                   {b.checkInOutcome === "late" && (
-                                    <span className="ml-1 text-amber-600">(late)</span>
+                                    <span className="ml-1 text-terracotta">(late)</span>
                                   )}
                                 </p>
                               )}

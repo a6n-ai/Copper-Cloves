@@ -34,17 +34,17 @@ function statusBadgeClass(status: string): string {
     case "available":
       return "border-sage/30 text-sage bg-sage/10";
     case "inactive":
-      return "border-amber-400/40 text-amber-700 bg-amber-50";
+      return "border-terracotta/30 text-terracotta bg-terracotta/10";
     case "started":
-      return "border-blue-400/40 text-blue-700 bg-blue-50";
+      return "border-sage/30 text-sage bg-sage/10";
     case "completed":
       return "border-charcoal/20 text-charcoal/70 bg-charcoal/5";
     case "cancelled":
-      return "border-red-400/40 text-red-700 bg-red-50";
+      return "border-[#a05e38]/25 text-[#a05e38] bg-[#a05e38]/10";
     case "abandoned":
-      return "border-red-300/40 text-red-600/80 bg-red-50/60";
+      return "border-[#a05e38]/20 text-[#a05e38]/80 bg-[#a05e38]/5";
     default:
-      return "border-charcoal/20 text-charcoal/60 bg-white";
+      return "border-charcoal/20 text-charcoal/60 bg-white-warm";
   }
 }
 
@@ -59,14 +59,14 @@ interface Props {
 }
 
 function occupancyColor(pct: number): string {
-  if (pct >= 90) return "bg-red-500";
-  if (pct >= 70) return "bg-amber-500";
+  if (pct >= 90) return "bg-[#a05e38]";
+  if (pct >= 70) return "bg-terracotta";
   return "bg-sage";
 }
 
 function occupancyBadge(pct: number): string {
-  if (pct >= 90) return "border-red-500/30 text-red-600 bg-red-50";
-  if (pct >= 70) return "border-amber-500/20 text-amber-600 bg-amber-50";
+  if (pct >= 90) return "border-[#a05e38]/25 text-[#a05e38] bg-[#a05e38]/10";
+  if (pct >= 70) return "border-terracotta/20 text-terracotta bg-terracotta/10";
   return "border-sage/20 text-sage bg-sage/5";
 }
 

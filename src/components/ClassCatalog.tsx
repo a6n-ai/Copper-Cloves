@@ -3,9 +3,11 @@ import { NavPrevButton, NavNextButton } from "@/components/ui/quick-actions";
 import { Skeleton } from "@/components/ui/skeleton";
 import { ArrowRight, Clock } from "lucide-react";
 import { useRouter } from "next/router";
+import Image from "next/image";
 import { useRef, useState, useEffect } from "react";
 
 import { cdnUrl } from "@/lib/cdnUrl";
+import { BLUR_DATA_URL, isUnoptimizableSrc } from "@/lib/imageBlur";
 interface ClassData {
   id?: string;
   name: string;
@@ -94,11 +96,6 @@ export function ClassCatalog() {
 
   return (
     <section id="classes" className="py-14 md:py-16 bg-cream relative overflow-hidden">
-      {/* Background Texture */}
-      <div className="absolute inset-0 opacity-5">
-        <div className="absolute top-1/4 right-1/4 w-96 h-96 rounded-full bg-sage blur-3xl" />
-      </div>
-
       <div className="relative z-10 max-w-7xl mx-auto px-6 lg:px-8">
         {/* Section Header */}
         <div className="text-center mb-12">
@@ -115,14 +112,14 @@ export function ClassCatalog() {
           {/* Left Scroll Button */}
           <NavPrevButton
             onClick={() => scroll("left")}
-            className="hidden md:flex absolute left-0 top-1/2 -translate-y-1/2 -translate-x-4 z-20 rounded-full bg-white/80 backdrop-blur-md border border-sage/20"
+            className="hidden md:flex absolute left-0 top-1/2 -translate-y-1/2 -translate-x-4 z-20 rounded-full bg-white-warm border border-sage/20"
             label="Scroll left"
           />
 
           {/* Right Scroll Button */}
           <NavNextButton
             onClick={() => scroll("right")}
-            className="hidden md:flex absolute right-0 top-1/2 -translate-y-1/2 translate-x-4 z-20 rounded-full bg-white/80 backdrop-blur-md border border-sage/20"
+            className="hidden md:flex absolute right-0 top-1/2 -translate-y-1/2 translate-x-4 z-20 rounded-full bg-white-warm border border-sage/20"
             label="Scroll right"
           />
 
@@ -147,10 +144,15 @@ export function ClassCatalog() {
                   className="group relative shrink-0 snap-start w-[82vw] sm:w-96 h-104 md:h-128 rounded-2xl overflow-hidden cursor-pointer"
                 >
                   {/* Background Image */}
-                  <img
+                  <Image
                     src={classItem.image}
                     alt={classItem.name}
-                    className="absolute inset-0 w-full h-full object-cover transition-transform duration-600 ease-in-out group-hover:scale-110"
+                    fill
+                    sizes="(max-width: 640px) 82vw, 384px"
+                    placeholder="blur"
+                    blurDataURL={BLUR_DATA_URL}
+                    unoptimized={isUnoptimizableSrc(classItem.image)}
+                    className="object-cover transition-transform duration-600 ease-in-out group-hover:scale-110"
                   />
 
                   {/* Default State - Dark gradient with class name */}
@@ -161,7 +163,7 @@ export function ClassCatalog() {
                   </div>
 
                   {/* Hover State - Glassmorphism overlay with details */}
-                  <div className="absolute inset-0 bg-white/10 backdrop-blur-[10px] opacity-0 group-hover:opacity-100 transition-all duration-600 ease-in-out flex flex-col items-center justify-center p-8 text-center">
+                  <div className="absolute inset-0 bg-charcoal/70 opacity-0 group-hover:opacity-100 transition-all duration-600 ease-in-out flex flex-col items-center justify-center p-8 text-center">
                     <h3 className="font-display text-3xl md:text-4xl text-white mb-4 drop-shadow-lg">
                       {classItem.name}
                     </h3>

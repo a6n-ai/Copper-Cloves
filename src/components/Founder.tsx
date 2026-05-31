@@ -79,7 +79,7 @@ export function Founder() {
             <div className="pt-8">
               <Link
                 href="/founder"
-                className="group inline-flex items-center gap-3 rounded-xl border-2 border-charcoal/15 bg-white/80 px-6 py-4 font-body text-sm text-charcoal uppercase tracking-widest transition-all duration-300 hover:border-sage hover:bg-sage hover:text-white hover:shadow-lg"
+                className="group inline-flex items-center gap-3 rounded-xl border-2 border-charcoal/15 bg-white-warm px-6 py-4 font-body text-sm text-charcoal uppercase tracking-widest transition-all duration-300 hover:border-sage hover:bg-sage hover:text-cream hover:shadow-lg"
               >
                 <span>Meet the Founder</span>
                 <ArrowRight
@@ -96,7 +96,7 @@ export function Founder() {
             <div className="relative h-[600px] lg:h-[700px]">
               
               {/* Main Wide Image - Studio Interior */}
-              <div className="absolute top-0 left-0 right-0 h-[65%] rounded-3xl overflow-hidden shadow-2xl">
+              <div className="absolute top-0 left-0 right-0 h-[65%] rounded-3xl overflow-hidden shadow-[0_8px_48px_-8px_rgba(51,51,51,0.14)]">
                 <Image
                   src={cdnUrl("/cafe-studio.jpg")}
                   alt="Light-filled studio with tropical plants"
@@ -110,7 +110,7 @@ export function Founder() {
                 {stats.slice(0, 2).map((stat, index) => (
                   <div 
                     key={index}
-                    className={`absolute ${stat.position} bg-white/95 backdrop-blur-xs px-4 py-3 rounded-2xl shadow-lg border border-white/40`}
+                    className={`absolute ${stat.position} bg-white-warm px-4 py-3 rounded-2xl shadow-lg border border-[#e5e4dc]`}
                   >
                     <p className="font-display text-3xl text-charcoal leading-none mb-1">
                       {stat.value}
@@ -123,7 +123,7 @@ export function Founder() {
               </div>
 
               {/* Inset Image 1 - Smoothie Bowl (Bottom Left) */}
-              <div className="absolute bottom-0 left-0 w-[45%] h-[32%] rounded-3xl overflow-hidden shadow-2xl">
+              <div className="absolute bottom-0 left-0 w-[45%] h-[32%] rounded-3xl overflow-hidden shadow-[0_8px_48px_-8px_rgba(51,51,51,0.14)]">
                 <Image
                   src={cdnUrl("/food/A7401864.jpg")}
                   alt="Vibrant smoothie bowl"
@@ -134,7 +134,7 @@ export function Founder() {
                 />
                 
                 {/* Stat Overlay */}
-                <div className={`absolute ${stats[2].position} bg-white/95 backdrop-blur-xs px-4 py-3 rounded-2xl shadow-lg border border-white/40`}>
+                <div className={`absolute ${stats[2].position} bg-white-warm px-4 py-3 rounded-2xl shadow-lg border border-[#e5e4dc]`}>
                   <p className="font-display text-3xl text-charcoal leading-none mb-1">
                     {stats[2].value}
                   </p>
@@ -145,7 +145,7 @@ export function Founder() {
               </div>
 
               {/* Inset Image 2 - Community Space (Bottom Right) */}
-              <div className="absolute bottom-0 right-0 w-[50%] h-[32%] rounded-3xl overflow-hidden shadow-2xl">
+              <div className="absolute bottom-0 right-0 w-[50%] h-[32%] rounded-3xl overflow-hidden shadow-[0_8px_48px_-8px_rgba(51,51,51,0.14)]">
                 <Image
                   src={cdnUrl("/cafe-hero-shelves.jpg")}
                   alt="Community space with people connecting"
@@ -156,7 +156,7 @@ export function Founder() {
                 />
                 
                 {/* Stat Overlay */}
-                <div className={`absolute ${stats[3].position} bg-white/95 backdrop-blur-xs px-4 py-3 rounded-2xl shadow-lg border border-white/40`}>
+                <div className={`absolute ${stats[3].position} bg-white-warm px-4 py-3 rounded-2xl shadow-lg border border-[#e5e4dc]`}>
                   <p className="font-display text-3xl text-charcoal leading-none mb-1">
                     {stats[3].value}
                   </p>
@@ -168,7 +168,7 @@ export function Founder() {
 
               {/* Floating Testimonial - Glassmorphism */}
               <div className="absolute -bottom-12 left-1/2 -translate-x-1/2 w-[90%] max-w-md">
-                <div className="relative bg-white/80 backdrop-blur-xl rounded-3xl p-8 shadow-2xl border border-white/40">
+                <div className="relative bg-white-warm rounded-3xl p-8 shadow-[0_8px_48px_-8px_rgba(51,51,51,0.14)] border border-[#e5e4dc]">
                   {/* Sage Quotation Mark Icon */}
                   <div className="absolute -top-4 left-8 w-12 h-12 rounded-full bg-sage flex items-center justify-center shadow-lg">
                     <span className="text-white text-3xl font-serif leading-none">"</span>

@@ -84,7 +84,7 @@ export function MobileBottomNav({ config }: { config: PortalConfig }) {
   return (
     <>
       <nav
-        className="fixed inset-x-0 bottom-0 z-40 border-t border-sage/15 bg-white/90 backdrop-blur-xl md:hidden"
+        className="fixed inset-x-0 bottom-0 z-40 border-t border-sage/15 bg-white-warm md:hidden"
         style={{ paddingBottom: "env(safe-area-inset-bottom)" }}
       >
         {showScanner ? (

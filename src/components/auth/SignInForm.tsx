@@ -157,7 +157,7 @@ export function SignInForm({ onSwitchToSignup }: { onSwitchToSignup: () => void 
             value={email}
             onChange={(e) => onEmailChange(e.target.value)}
             placeholder="you@email.com"
-            className="border-sage/25 bg-white/60 focus:ring-sage placeholder:text-charcoal/40 h-12 rounded-xl"
+            className="border-sage/25 bg-cream focus:ring-sage placeholder:text-charcoal/40 h-12 rounded-xl"
             required
             autoFocus
           />
@@ -229,7 +229,7 @@ export function SignInForm({ onSwitchToSignup }: { onSwitchToSignup: () => void 
                     value={password}
                     onChange={(e) => setPassword(e.target.value)}
                     placeholder="••••••••"
-                    className="border-sage/25 bg-white/60 focus:ring-sage placeholder:text-charcoal/40 h-12 rounded-xl"
+                    className="border-sage/25 bg-cream focus:ring-sage placeholder:text-charcoal/40 h-12 rounded-xl"
                     required
                     autoFocus
                   />

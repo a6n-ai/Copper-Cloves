@@ -183,7 +183,7 @@ export default function AdminInstructorsPage() {
               <MetricCard label="Certified" value={stats.certified} icon={Award} tone="sage" loading={loading} hint="Has certifications" />
             </div>
 
-            <Card className="border-sage/20 bg-white/95 backdrop-blur-xl">
+            <Card className="border-sage/20 bg-white-warm">
               <CardHeader className="space-y-4">
                 <div className="flex flex-wrap items-start justify-between gap-3">
                   <div>

@@ -39,7 +39,7 @@ const signupSchema = z
 type SignupFormValues = z.infer<typeof signupSchema>;
 
 const labelCls = "font-body text-charcoal/70 text-[11px] uppercase tracking-[0.15em]";
-const inputCls = "border-sage/25 bg-white/60 focus:ring-sage font-body placeholder:text-charcoal/40 h-11 rounded-xl";
+const inputCls = "border-sage/25 bg-cream focus:ring-sage font-body placeholder:text-charcoal/40 h-11 rounded-xl";
 
 // Brand-themed, readable passphrase generator (botanical words + number + symbol).
 const PW_WORDS = ["Lotus", "Cedar", "Sage", "Willow", "Aloe", "Maple", "Jasmine", "Bloom", "Ginger", "Mint", "Olive", "Fern", "Saffron", "Meadow", "River", "Honey", "Pebble", "Clove"];
@@ -223,7 +223,7 @@ export function SignUpForm({ onSwitchToSignin }: { onSwitchToSignin: () => void 
                   {...register("email")}
                   id="email"
                   placeholder="you@example.com"
-                  className="border-sage/25 bg-white/60 placeholder:text-charcoal/40 h-11 rounded-xl"
+                  className="border-sage/25 bg-cream placeholder:text-charcoal/40 h-11 rounded-xl"
                 />
                 {errors.email && (
                   <p className="text-xs text-red-600 font-body mt-1">{errors.email.message}</p>
@@ -243,7 +243,7 @@ export function SignUpForm({ onSwitchToSignin }: { onSwitchToSignin: () => void 
                       id="phone"
                       value={field.value as PhoneValue}
                       onChange={field.onChange}
-                      className="[&_input]:border-sage/25 [&_input]:bg-white/60 [&_input]:font-body [&_input]:h-11 [&_input]:rounded-xl [&_button]:border-sage/25 [&_button]:bg-white/60 [&_button]:rounded-xl"
+                      className="[&_input]:border-sage/25 [&_input]:bg-cream [&_input]:font-body [&_input]:h-11 [&_input]:rounded-xl [&_button]:border-sage/25 [&_button]:bg-cream [&_button]:rounded-xl"
                     />
                   )}
                 />
@@ -351,7 +351,7 @@ export function SignUpForm({ onSwitchToSignin }: { onSwitchToSignin: () => void 
                     />
                   </button>
                   {waiverExpanded && (
-                    <div className="px-4 py-3 bg-white/70 text-xs font-body text-charcoal/70 space-y-1.5 leading-relaxed">
+                    <div className="px-4 py-3 bg-cream text-xs font-body text-charcoal/70 space-y-1.5 leading-relaxed">
                       <p>• Physical activity carries inherent risk of injury. You participate voluntarily.</p>
                       <p>• You confirm you are medically fit to participate in studio classes.</p>
                       <p>• The Studio by Copper + Cloves is not liable for injury, illness, or loss of personal property.</p>

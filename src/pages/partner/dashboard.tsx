@@ -93,7 +93,7 @@ export default function PartnerDashboard() {
             <MetricCard label="Checked in" value={stats.checkedIn} icon={CheckCircle2} tone="sage" />
           </div>
 
-          <Card className="border-sage/20 bg-white/95">
+          <Card className="border-sage/20 bg-white-warm">
             <CardHeader>
               <CardTitle className="font-display text-xl text-charcoal">Today&apos;s classes</CardTitle>
               <CardDescription className="font-body text-charcoal/60">Your sessions scheduled for today</CardDescription>

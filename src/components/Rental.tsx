@@ -44,7 +44,7 @@ export function Rental() {
               
               {/* Floating Badge */}
               <div className="absolute bottom-8 left-8 right-8">
-                <div className="bg-white/95 backdrop-blur-xl rounded-2xl p-6 shadow-2xl">
+                <div className="bg-white-warm rounded-2xl p-6 shadow-2xl">
                   <div className="flex items-center justify-between">
                     <div>
                       <p className="font-body text-sm text-charcoal/70 mb-1">Capacity</p>
@@ -123,19 +123,19 @@ export function Rental() {
 
         {/* Stats Bar */}
         <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
-          <div className="text-center p-6 rounded-2xl bg-white/50 backdrop-blur-xs border border-sage/10">
+          <div className="text-center p-6 rounded-2xl bg-white-warm border border-sage/10">
             <p className="font-display text-4xl text-sage mb-2">40+</p>
             <p className="font-body text-sm text-charcoal/70">Events Hosted</p>
           </div>
-          <div className="text-center p-6 rounded-2xl bg-white/50 backdrop-blur-xs border border-sage/10">
+          <div className="text-center p-6 rounded-2xl bg-white-warm border border-sage/10">
             <p className="font-display text-4xl text-sage mb-2">1,000 sq ft +</p>
             <p className="font-body text-sm text-charcoal/70">Open Space</p>
           </div>
-          <div className="text-center p-6 rounded-2xl bg-white/50 backdrop-blur-xs border border-sage/10">
+          <div className="text-center p-6 rounded-2xl bg-white-warm border border-sage/10">
             <p className="font-display text-4xl text-sage mb-2">Natural</p>
             <p className="font-body text-sm text-charcoal/70">Lighting</p>
           </div>
-          <div className="text-center p-6 rounded-2xl bg-white/50 backdrop-blur-xs border border-sage/10">
+          <div className="text-center p-6 rounded-2xl bg-white-warm border border-sage/10">
             <p className="font-display text-4xl text-sage mb-2">Premium</p>
             <p className="font-body text-sm text-charcoal/70">Amenities</p>
           </div>

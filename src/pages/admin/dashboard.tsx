@@ -1202,10 +1202,6 @@ export default function AdminDashboard() {
       {/* overflow-x-hidden: prevents horizontal page scrollbar during dynamic-tab
           chunk fetches in production (server-rendered empty → client expands → layout shift). */}
       <div className="min-h-screen overflow-x-hidden bg-linear-to-br from-cream via-cream to-sage/10">
-        {/* Decorative Elements */}
-        <div className="fixed top-20 right-20 w-72 h-72 bg-sage/10 rounded-full blur-3xl pointer-events-none" />
-        <div className="fixed bottom-20 left-20 w-96 h-96 bg-cream/50 rounded-full blur-3xl pointer-events-none" />
-
         <main className="min-h-screen overflow-x-hidden">
           <div className="max-w-7xl mx-auto p-6 lg:p-8 space-y-8">
             <div className="flex items-center justify-between flex-wrap gap-3">

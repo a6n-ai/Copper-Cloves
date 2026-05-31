@@ -171,7 +171,7 @@ export function ControlAnalyticsPanel() {
           Financial Analytics
         </h3>
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-          <Card className="border-sage/20 bg-white/95 backdrop-blur-xl">
+          <Card className="border-sage/20 bg-white-warm">
             <CardHeader>
               <CardTitle className="font-display text-xl text-charcoal flex items-center gap-2">
                 <TrendingUp className="h-5 w-5 text-sage" />
@@ -213,7 +213,7 @@ export function ControlAnalyticsPanel() {
             </CardContent>
           </Card>
 
-          <Card className="border-sage/20 bg-white/95 backdrop-blur-xl">
+          <Card className="border-sage/20 bg-white-warm">
             <CardHeader>
               <CardTitle className="font-display text-xl text-charcoal flex items-center gap-2">
                 <PieChart className="h-5 w-5 text-sage" />
@@ -244,7 +244,7 @@ export function ControlAnalyticsPanel() {
             </CardContent>
           </Card>
 
-          <Card className="border-sage/20 bg-white/95 backdrop-blur-xl lg:col-span-2">
+          <Card className="border-sage/20 bg-white-warm lg:col-span-2">
             <CardHeader>
               <CardTitle className="font-display text-xl text-charcoal flex items-center gap-2">
                 <BarChart3 className="h-5 w-5 text-sage" />
@@ -306,7 +306,7 @@ export function ControlAnalyticsPanel() {
           Member Analytics
         </h3>
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-          <Card className="border-sage/20 bg-white/95 backdrop-blur-xl">
+          <Card className="border-sage/20 bg-white-warm">
             <CardHeader>
               <CardTitle className="font-display text-xl text-charcoal flex items-center gap-2">
                 <TrendingUp className="h-5 w-5 text-sage" />
@@ -348,7 +348,7 @@ export function ControlAnalyticsPanel() {
             </CardContent>
           </Card>
 
-          <Card className="border-sage/20 bg-white/95 backdrop-blur-xl">
+          <Card className="border-sage/20 bg-white-warm">
             <CardHeader>
               <CardTitle className="font-display text-xl text-charcoal flex items-center gap-2">
                 <PieChart className="h-5 w-5 text-sage" />
@@ -383,7 +383,7 @@ export function ControlAnalyticsPanel() {
             </CardContent>
           </Card>
 
-          <Card className="border-sage/20 bg-white/95 backdrop-blur-xl">
+          <Card className="border-sage/20 bg-white-warm">
             <CardHeader>
               <CardTitle className="font-display text-xl text-charcoal flex items-center gap-2">
                 <CheckCircle2 className="h-5 w-5 text-sage" />
@@ -425,7 +425,7 @@ export function ControlAnalyticsPanel() {
             </CardContent>
           </Card>
 
-          <Card className="border-sage/20 bg-white/95 backdrop-blur-xl">
+          <Card className="border-sage/20 bg-white-warm">
             <CardHeader>
               <CardTitle className="font-display text-xl text-charcoal flex items-center gap-2">
                 🔥 Streak leaders
@@ -464,7 +464,7 @@ export function ControlAnalyticsPanel() {
       <div>
         <h3 className="font-display text-2xl text-charcoal mb-4">Instructors (this month)</h3>
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-          <Card className="border-sage/20 bg-white/95 backdrop-blur-xl lg:col-span-2">
+          <Card className="border-sage/20 bg-white-warm lg:col-span-2">
             <CardHeader>
               <CardTitle className="font-display text-xl text-charcoal flex items-center gap-2">
                 <BarChart3 className="h-5 w-5 text-sage" />
@@ -495,7 +495,7 @@ export function ControlAnalyticsPanel() {
             </CardContent>
           </Card>
 
-          <Card className="border-sage/20 bg-white/95 backdrop-blur-xl">
+          <Card className="border-sage/20 bg-white-warm">
             <CardHeader>
               <CardTitle className="font-display text-xl text-charcoal flex items-center gap-2">
                 <DollarSign className="h-5 w-5 text-sage" />
@@ -525,7 +525,7 @@ export function ControlAnalyticsPanel() {
             </CardContent>
           </Card>
 
-          <Card className="border-sage/20 bg-white/95 backdrop-blur-xl">
+          <Card className="border-sage/20 bg-white-warm">
             <CardHeader>
               <CardTitle className="font-display text-xl text-charcoal flex items-center gap-2">
                 <Calendar className="h-5 w-5 text-sage" />
@@ -564,7 +564,7 @@ export function ControlAnalyticsPanel() {
           Classes (this month)
         </h3>
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-          <Card className="border-sage/20 bg-white/95 backdrop-blur-xl lg:col-span-2">
+          <Card className="border-sage/20 bg-white-warm lg:col-span-2">
             <CardHeader>
               <CardTitle className="font-display text-xl text-charcoal flex items-center gap-2">
                 <TrendingUp className="h-5 w-5 text-sage" />
@@ -595,7 +595,7 @@ export function ControlAnalyticsPanel() {
             </CardContent>
           </Card>
 
-          <Card className="border-sage/20 bg-white/95 backdrop-blur-xl">
+          <Card className="border-sage/20 bg-white-warm">
             <CardHeader>
               <CardTitle className="font-display text-xl text-charcoal flex items-center gap-2">
                 <BarChart3 className="h-5 w-5 text-sage" />
@@ -626,7 +626,7 @@ export function ControlAnalyticsPanel() {
             </CardContent>
           </Card>
 
-          <Card className="border-sage/20 bg-white/95 backdrop-blur-xl">
+          <Card className="border-sage/20 bg-white-warm">
             <CardHeader>
               <CardTitle className="font-display text-xl text-charcoal flex items-center gap-2">
                 <Clock className="h-5 w-5 text-sage" />
@@ -662,7 +662,7 @@ export function ControlAnalyticsPanel() {
       <div>
         <h3 className="font-display text-2xl text-charcoal mb-4">🎯 KPIs</h3>
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-          <Card className="border-sage/20 bg-linear-to-br from-sage/5 to-white backdrop-blur-xl">
+          <Card className="border-sage/20 bg-white-warm">
             <CardContent className="p-6">
               <div className="flex items-center justify-between mb-2">
                 <div className="font-body text-sm text-charcoal/60">Revenue / member (prev month)</div>
@@ -677,7 +677,7 @@ export function ControlAnalyticsPanel() {
             </CardContent>
           </Card>
 
-          <Card className="border-sage/20 bg-linear-to-br from-sage/5 to-white backdrop-blur-xl">
+          <Card className="border-sage/20 bg-white-warm">
             <CardContent className="p-6">
               <div className="flex items-center justify-between mb-2">
                 <div className="font-body text-sm text-charcoal/60">Utilization (30d)</div>
@@ -688,7 +688,7 @@ export function ControlAnalyticsPanel() {
             </CardContent>
           </Card>
 
-          <Card className="border-sage/20 bg-linear-to-br from-sage/5 to-white backdrop-blur-xl">
+          <Card className="border-sage/20 bg-white-warm">
             <CardContent className="p-6">
               <div className="flex items-center justify-between mb-2">
                 <div className="font-body text-sm text-charcoal/60">Surveys</div>
@@ -699,7 +699,7 @@ export function ControlAnalyticsPanel() {
             </CardContent>
           </Card>
 
-          <Card className="border-sage/20 bg-linear-to-br from-sage/5 to-white backdrop-blur-xl">
+          <Card className="border-sage/20 bg-white-warm">
             <CardContent className="p-6">
               <div className="flex items-center justify-between mb-2">
                 <div className="font-body text-sm text-charcoal/60">Café overlap 30d</div>

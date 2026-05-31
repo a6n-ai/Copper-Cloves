@@ -14,14 +14,15 @@ export default function NotFound() {
         <link rel="icon" href={cdnUrl("/favicon.ico")} sizes="any" />
       </Head>
       
-      <main className="min-h-screen bg-gray-100 flex items-center justify-center">
-        <div className="text-center space-y-4">
-          <h1 className="text-4xl font-bold text-gray-900">404</h1>
-          <p className="text-lg text-gray-600">Sorry, we couldn't find the page you requested. This page may have been moved, deleted, or never existed.</p>
-          <Button asChild>
-            <Link href="/">
-              Return to home page
-            </Link>
+      <main className="min-h-screen bg-cream flex items-center justify-center px-6">
+        <div className="text-center max-w-md space-y-5">
+          <p className="font-body text-xs uppercase tracking-[0.25em] text-terracotta/80">Lost your way?</p>
+          <h1 className="font-display text-6xl sm:text-7xl text-charcoal leading-none">404</h1>
+          <p className="font-body text-base text-[#6b6b6b] leading-relaxed">
+            We couldn't find that page. It may have moved, been retired, or never existed. Let's get you back home.
+          </p>
+          <Button asChild variant="sage">
+            <Link href="/">Return home</Link>
           </Button>
         </div>
       </main>
