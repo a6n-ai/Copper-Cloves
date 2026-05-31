@@ -8,19 +8,19 @@ Status key: `[ ]` todo · `[~]` in progress · `[x]` done
 
 ## Critical — Absolute ban violations
 
-### 1. Experience section: Identical card grid [ ]
+### 1. Experience section: Identical card grid [x]
 - **File:** `src/components/Experience.tsx`
 - **Issue:** Three white cards, each with a large Lucide icon (Dumbbell, Coffee, Users) above a heading above body text. Same size, same background, same radius. Identical card grid + icon-above-heading = double ban.
 - **Fix:** Replace with an asymmetric editorial layout. Options: full-width image-backed row for each pillar, a single large typographic block with smaller image insets, or a horizontal strip with image left + text right alternating. No icon grids.
 - **Acceptance:** No identical card repeated more than once. No Lucide icon as the primary visual anchor above a heading.
 
-### 2. Rental section: Glassmorphism floating badge [ ]
+### 2. Rental section: Glassmorphism floating badge [x]
 - **File:** `src/components/Rental.tsx`
 - **Issue:** Floating "Up to 40 Guests" badge inside hero image uses `bg-white/95 backdrop-blur-xl rounded-2xl shadow-2xl` — decorative glassmorphism. Also: features below the image repeat the icon+heading+text grid (Calendar, Users, Sparkles).
 - **Fix:** Replace the floating badge with a solid white-warm panel (`bg-[#fafaf8]`) with warm border, no blur. Restructure the three features as a text list or a split layout, not a card grid.
 - **Acceptance:** No `backdrop-blur` on the badge. No icon card grid below the image.
 
-### 3. Pricing + Boutique: Decorative blur blobs [ ]
+### 3. Pricing + Boutique: Decorative blur blobs [x]
 - **Files:** `src/components/Pricing.tsx` (lines 186-188), `src/components/Boutique.tsx` (lines 57-58)
 - **Issue:** Each section independently drops two `rounded-full blur-3xl` blobs as background "texture." Same visual move used on 3+ consecutive sections — signals template, not design.
 - **Fix:** Remove the blob divs entirely. Use tonal background color shifts between sections (cream → sand → cream) to create separation without decoration. If a section needs visual energy, use photography or the typography itself.
@@ -30,13 +30,13 @@ Status key: `[ ]` todo · `[~]` in progress · `[x]` done
 
 ## High impact
 
-### 4. Testimonials: All 5-star ratings [ ]
+### 4. Testimonials: All 5-star ratings [x]
 - **File:** `src/components/Testimonial.tsx`
 - **Issue:** All 6 testimonials hard-coded as 5/5 stars. Uniform perfect ratings signal fabrication to any discerning visitor and undermine the warm/authentic brand.
 - **Fix:** Either (a) remove the star rating display entirely and let the quote speak, or (b) use realistic ratings (4–5 stars with at least one 4-star). Option (a) is cleaner and more authentic-feeling.
 - **Acceptance:** No uniform all-5-star display.
 
-### 5. Landing page: Identical section header structure [ ]
+### 5. Landing page: Identical section header structure [x]
 - **Files:** `Experience.tsx`, `Pricing.tsx`, `Rental.tsx`, `Boutique.tsx`, `Testimonial.tsx`
 - **Issue:** Every section uses the same pattern: centered display heading 5-6xl + charcoal + paragraph subtext below. Zero variation in alignment, scale, or structure across the entire scroll.
 - **Fix:** Break the pattern on at least 3 sections. Examples: make Rental heading left-aligned and oversized (7xl), make Testimonial heading italic-only with no subtext, make Boutique heading right-aligned, give Pricing a tight heading with a small descriptor label above it instead of a full paragraph below.
@@ -46,7 +46,7 @@ Status key: `[ ]` todo · `[~]` in progress · `[x]` done
 
 ## Medium impact
 
-### 6. Portal milestones: Off-brand colors [ ]
+### 6. Portal milestones: Off-brand colors [x]
 - **File:** `src/pages/portal/dashboard.tsx` (lines ~70-82)
 - **Issue:** Alchemist milestone uses `text-amber-600 bg-amber-50 border-amber-200`; Immortal uses `text-yellow-600 bg-yellow-50 border-yellow-200`. These Tailwind amber/yellow tokens are completely outside the brand palette.
 - **Fix:** Map both to brand palette:
@@ -54,19 +54,19 @@ Status key: `[ ]` todo · `[~]` in progress · `[x]` done
   - Immortal: use a richer terracotta (`text-[#a05e38]`) or a deep sand tone
 - **Acceptance:** No `amber-*` or `yellow-*` Tailwind utilities in milestone definitions.
 
-### 7. Globals: Bricolage Grotesque unused import [ ]
+### 7. Globals: Bricolage Grotesque unused import [x]
 - **File:** `src/app/globals.css` (line 1)
 - **Issue:** `family=Bricolage+Grotesque:wght@200;300;400;500;600;700;800` in the Google Fonts URL. Never assigned to any CSS variable or Tailwind utility. Costs ~25KB per page load for zero visual return.
 - **Fix:** Remove `Bricolage+Grotesque:wght@200;300;400;500;600;700;800&` from the import URL.
 - **Acceptance:** Bricolage Grotesque absent from all CSS/HTML after fix.
 
-### 8. Globals: Sidebar CSS variables duplicated 3× [ ]
+### 8. Globals: Sidebar CSS variables duplicated 3× [x]
 - **File:** `src/app/globals.css` (lines 183-202, 279-287, 291-299)
 - **Issue:** `--sidebar-*` variables defined three separate times, mixing HSL triplet and `hsl()` expression formats. Triple definition for the same set of tokens.
 - **Fix:** Keep one canonical block in the `@layer base :root` at lines 183-202. Remove the duplicate raw-value blocks at 279-287 and 291-299. Verify sidebar still renders correctly.
 - **Acceptance:** `--sidebar-background` (and all sidebar tokens) defined once only in globals.css.
 
-### 9. Globals: No prefers-reduced-motion guard [ ]
+### 9. Globals: No prefers-reduced-motion guard [x]
 - **File:** `src/app/globals.css`
 - **Issue:** `animateFloatAndZoom17` and `animateFloatAndZoom19` keyframes run continuously on hero video backgrounds. Hero crossfades use `transition-opacity duration-2000`. No `@media (prefers-reduced-motion: reduce)` guard anywhere.
 - **Fix:** Add to globals.css:
@@ -201,15 +201,15 @@ Recommended sequence to minimize merge complexity:
 
 | # | Title | Status |
 |---|---|---|
-| 1 | Experience: identical card grid | [ ] |
-| 2 | Rental: glassmorphism badge | [ ] |
-| 3 | Pricing/Boutique: blur blobs | [ ] |
-| 4 | Testimonials: all 5 stars | [ ] |
-| 5 | Section headers: zero variation | [ ] |
-| 6 | Portal milestones: amber/yellow | [ ] |
-| 7 | Bricolage unused import | [ ] |
-| 8 | Sidebar CSS vars duplicated | [ ] |
-| 9 | prefers-reduced-motion guard | [ ] |
+| 1 | Experience: identical card grid | [x] |
+| 2 | Rental: glassmorphism badge | [x] |
+| 3 | Pricing/Boutique: blur blobs | [x] |
+| 4 | Testimonials: all 5 stars | [x] |
+| 5 | Section headers: zero variation | [x] |
+| 6 | Portal milestones: amber/yellow | [x] |
+| 7 | Bricolage unused import | [x] |
+| 8 | Sidebar CSS vars duplicated | [x] |
+| 9 | prefers-reduced-motion guard | [x] |
 | 10 | Auth shell glassmorphism (all logins) | [x] |
 | 11 | Blue status badges (blue ban) | [x] |
 | 12 | blur-3xl blobs beyond Pricing/Boutique | [x] |
@@ -231,3 +231,50 @@ Recommended sequence to minimize merge complexity:
 - **#16 (partial `[~]`)** decorative frosted cards/badges across marketing + admin were made solid (`97 → 2` blurs in the targeted set). Intentionally **kept**: the sticky frosted `Navigation` bar (sanctioned over-content nav), modal/sheet scrims, `components/ui/*` primitives, mobile nav, and two hero CTA outline buttons over the café video (legibility over moving footage). Full elimination to "≤2" sitewide needs visual iteration (`/impeccable live` or `quieter`) since the remaining uses are deliberate.
 - Occupancy/heat bars (DayScheduleList, instructor CapacityBar) were remapped sage → terracotta → deep-terracotta so the low/med/high signal survives on-palette.
 - Verified: `tsc --noEmit` adds no new type errors (pre-existing errors only, in seed scripts / phone-input / zod schema / razorpay — unrelated).
+
+### Round 1 implementation notes (2026-05-31, same session as Round 2)
+
+- **#1** Experience rebuilt as an asymmetric editorial layout (12-col 7/5 split + a full-width horizontal block), anchored by serif numerals 01/02/03 instead of Lucide icons. No identical card grid, no pure white, on-brand tints (sand / sage / terracotta).
+- **#2** Rental glassmorphism badge was already solidified in Round 2; the right-side features are a vertical split-list (not an icon grid). Remaining `shadow-2xl` on the image + badge swapped to Deep / Lifted tokens.
+- **#3** Extended beyond Pricing/Boutique: removed every `rounded-full blur-3xl` blob site-wide (Testimonial, classes CTA, admin/control, admin/instructors/[id], admin/schedule/[id]); pure-white gradient `via-white` fills swapped to `via-[#fafaf8]`.
+- **#4** Testimonial star rating removed entirely (the authentic option); dropped the fabricated "5.0 Rating" header and the unused `Star` import.
+- **#5** Three headers now break the centered default: Experience (left + kicker), Pricing (kicker label above a tight heading, no paragraph), Boutique (right-aligned). Rental + Testimonial stay centered for variety.
+- **#6** Milestone tiers rebranded to a warm progression: seeker=sage, warrior=terracotta, alchemist=deep terracotta `#a05e38`, immortal=bronze `#7a4327` (fits the Copper & Clay north star; keeps 4 tiers distinguishable on-palette).
+- **#7** Already resolved in current code: fonts load via `next/font/google` (Playfair + Montserrat) in `_app.tsx`; no Bricolage import anywhere. The doc referenced a stale `src/app/globals.css` that does not exist (real path is `src/styles/globals.css`).
+- **#8** The sidebar dup was a two-system `@theme` collision from a second shadcn init (the `---break---` blocks). System B used raw `var(--sidebar-foreground)` without the `hsl()` wrapper that DashboardShell's triplet `SIDEBAR_THEME` depends on, silently breaking the intended sage sidebar. Removed System B; System A is now the single source and DashboardShell's sage theme works again.
+- **#9** Added a global `@media (prefers-reduced-motion: reduce)` reset in `src/styles/globals.css` (Hero's float/zoom keyframes are component-scoped, so a blanket reset is the reliable fix; framer-motion self-respects the preference too).
+
+### Round 3 — exhaustive palette sweep (2026-05-31)
+
+Beyond the enumerated audit items, swept ALL remaining off-palette color
+utilities in live code to zero (was 101).
+
+- red → deep terracotta `#a05e38` (error/destructive); amber/yellow → terracotta
+  (warning/pending); green → sage (success); orange → terracotta.
+- Heat/occupancy tiers keep their two-level signal (moderate=terracotta, high=deep terracotta).
+- TodayClassesCarousel "live" highlight: amber gradient + amber rgba shadow → solid terracotta.
+- Instructors philosophy callout: `border-l-4` side-stripe → full border (absolute-ban fix).
+- Files: auth forms, admin dashboard/control/schedule/members/partners/instructors,
+  all dashboard-tabs, checkin components, portal onboarding/dashboard, shop.
+- Verified: 0 off-palette utilities + 0 blue + 0 blur-3xl + 0 side-stripes in live code; tsc adds no new errors.
+
+STILL OPEN (not yet addressed):
+- Pure-white: ~163 `bg-white` + ~241 `text-white` (no-pure-white rule only partially enforced).
+- Whole dimensions untouched: accessibility (aria/focus/headings), responsive/touch-targets, UX copy/empty states.
+- `shadcn-space/blocks/*` vendor demos still contain blue (unused, not routed).
+- DESIGN.md typo: `fontSize: "1rem"I` in body typography.
+
+### Round 4 — pure-white sweep (2026-05-31)
+
+Eliminated pure-white tokens in live code (~754 → 0):
+- `bg-white` → `bg-white-warm`; `bg-white/N` → `bg-[#fafaf8]/N`
+- `text-white` → `text-cream`; `border/from/via/to/fill/stroke/ring-white` → cream / `#fafaf8`
+- 65 files. Excluded: `components/ui/*` primitives, `shadcn-space/*` vendor, `Hero.tsx` (image-opt workstream).
+- Verified 0 residual pure-white in live code; tsc adds no new errors (the one shadcn-space framer-motion error is pre-existing vendor).
+
+STILL OPEN after Round 4:
+- Accessibility pass (aria-labels on icon-only buttons, focus order, heading hierarchy, form-label coverage).
+- Responsive / touch-target audit.
+- UX copy / empty-state / error-state polish.
+- `shadcn-space/blocks/*` vendor (unused) still has blue + a pre-existing TS error.
+- `DESIGN.md` typo: `fontSize: "1rem"I`.
