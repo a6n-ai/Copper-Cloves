@@ -359,11 +359,12 @@ function InstructorPayoutsPanelImpl() {
                                   type="button"
                                   variant="outline"
                                   size="sm"
-                                  className="border-terracotta/30 text-[#a05e38] hover:bg-terracotta/10 font-body"
+                                  className="h-8 w-8 p-0 border-terracotta/30 text-[#a05e38] hover:bg-terracotta/10"
                                   onClick={() => { setConfirmRecord(true); setConfirm({ row: r, paid: true }); }}
+                                  title="Move to expense"
+                                  aria-label="Move to expense"
                                 >
-                                  <Wallet className="h-4 w-4 mr-1.5" />
-                                  Move to expense
+                                  <Wallet className="h-4 w-4" />
                                 </Button>
                               )}
                               <Button type="button" variant="ghost" size="sm" className="h-8 w-8 p-0 text-charcoal/40 hover:text-sage hover:bg-sage/10" onClick={() => openEdit(r)} aria-label="Edit adjustment">
