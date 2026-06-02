@@ -45,7 +45,7 @@ export function ClassCard({
                 className="h-full w-full object-cover"
               />
             ) : (
-              <span className="flex h-full w-full items-center justify-center font-display text-sm text-white-warm">
+              <span aria-hidden="true" className="flex h-full w-full items-center justify-center font-display text-sm text-white-warm">
                 {instructorInitial}
               </span>
             )}
