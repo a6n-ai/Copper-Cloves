@@ -55,7 +55,7 @@ export function ScheduleDayFilter({
                 {d.count}
               </span>
             ) : (
-              <span className="ml-1 text-[10px] text-charcoal/30">—</span>
+              <span className="ml-1 rounded-full bg-charcoal/5 px-1.5 py-0.5 text-[10px] font-semibold text-charcoal/35">0</span>
             )}
           </button>
         );
