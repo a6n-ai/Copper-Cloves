@@ -10,6 +10,7 @@ import { Clock, Calendar, ChevronLeft, ChevronRight } from "lucide-react";
 import { ClassCard } from "@/components/classes/ClassCard";
 import { ClassDetailDialog } from "@/components/classes/ClassDetailDialog";
 import { CategoryFilter } from "@/components/classes/CategoryFilter";
+import { ScheduleDayFilter } from "@/components/classes/ScheduleDayFilter";
 import type { GetStaticProps } from "next";
 import prisma from "@/lib/prisma";
 import { cdnUrl } from "@/lib/cdnUrl";
@@ -53,6 +54,7 @@ interface ScheduleClass {
 interface DaySchedule {
   day: string;
   date: string;
+  isToday: boolean;
   classes: ScheduleClass[];
 }
 
@@ -200,6 +202,7 @@ export default function ClassesPage({ initialClasses }: ClassesPageProps) {
   const [selectedMonth, setSelectedMonth] = useState(initialCalendar.monthIndex);
   const [scheduleData, setScheduleData] = useState<DaySchedule[]>([]);
   const [scheduleLoading, setScheduleLoading] = useState(false);
+  const [selectedDay, setSelectedDay] = useState<number | "all">("all");
 
   const fetchScheduleData = useCallback(async (isStale?: () => boolean) => {
     try {
@@ -226,13 +229,15 @@ export default function ClassesPage({ initialClasses }: ClassesPageProps) {
 
       // Group by day in a single bucket pass (was 7 × N filter scans).
       const daysOfWeek = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"];
-      const buckets: { day: string; date: string; classes: DaySchedule["classes"] }[] = [];
+      const todayStr = new Date().toDateString();
+      const buckets: { day: string; date: string; isToday: boolean; classes: DaySchedule["classes"] }[] = [];
       for (let i = 0; i < 7; i++) {
         const currentDay = new Date(weekStart);
         currentDay.setDate(currentDay.getDate() + i);
         buckets.push({
           day: daysOfWeek[i],
           date: currentDay.toLocaleDateString("en-US", { day: "numeric", month: "short" }),
+          isToday: currentDay.toDateString() === todayStr,
           classes: [],
         });
       }
@@ -326,6 +331,26 @@ export default function ClassesPage({ initialClasses }: ClassesPageProps) {
     () => selectedFilter === "all" ? classes : classes.filter((c) => c.category === selectedFilter),
     [classes, selectedFilter],
   );
+
+  const dayOptions = useMemo(
+    () => scheduleData.map((d, i) => ({ index: i, day: d.day, date: d.date, count: d.classes.length })),
+    [scheduleData],
+  );
+  const todayIndex = useMemo(() => {
+    const i = scheduleData.findIndex((d) => d.isToday);
+    return i >= 0 ? i : null;
+  }, [scheduleData]);
+
+  useEffect(() => {
+    if (scheduleData.length === 0) return;
+    const todayIdx = scheduleData.findIndex((d) => d.isToday);
+    if (todayIdx >= 0) {
+      setSelectedDay(todayIdx);
+      return;
+    }
+    const firstWithClasses = scheduleData.findIndex((d) => d.classes.length > 0);
+    setSelectedDay(firstWithClasses >= 0 ? firstWithClasses : "all");
+  }, [scheduleData]);
 
   // Helper function to determine if time is morning (before 12:00 PM)
   function isMorningClass(timeString: string): boolean {
@@ -506,78 +531,139 @@ export default function ClassesPage({ initialClasses }: ClassesPageProps) {
                 </div>
 
                 {/* Schedule Grid */}
-                <div className="grid md:grid-cols-2 divide-y md:divide-y-0 md:divide-x divide-[#e5e4dc]">
-                  {scheduleLoading ? (
-                    <div className="col-span-2">
-                      <ScheduleGridSkeleton count={4} />
+                {scheduleLoading ? (
+                  <ScheduleGridSkeleton count={4} />
+                ) : scheduleData.length === 0 ? (
+                  <div className="text-center py-12">
+                    <p className="font-body text-charcoal/60">No classes scheduled for this week</p>
+                  </div>
+                ) : (
+                  <>
+                    {/* Day filter chips */}
+                    <div className="p-4 border-b border-[#e5e4dc]">
+                      <ScheduleDayFilter
+                        days={dayOptions}
+                        value={selectedDay}
+                        todayIndex={todayIndex}
+                        onChange={setSelectedDay}
+                      />
                     </div>
-                  ) : scheduleData.length === 0 ? (
-                    <div className="col-span-2 text-center py-12">
-                      <p className="font-body text-charcoal/60">No classes scheduled for this week</p>
-                    </div>
-                  ) : (
-                    scheduleData.map((daySchedule, index) => (
-                      <div 
-                        key={index} 
-                        className="p-6 hover:bg-sage/5 transition-colors duration-300"
-                      >
-                        {/* Day Header */}
-                        <div className="mb-4 pb-3 border-b border-[#e5e4dc]">
-                          <h3 className="font-display text-xl text-charcoal capitalize">
-                            {daySchedule.day}
-                          </h3>
-                          <p className="font-body text-charcoal/50 text-sm">
-                            {daySchedule.date}
-                          </p>
-                        </div>
 
-                        {/* Classes List */}
-                        <div className="space-y-3">
-                          {daySchedule.classes.length === 0 ? (
-                            <p className="font-body text-sm text-charcoal/40 italic">No classes scheduled</p>
-                          ) : (
-                            daySchedule.classes.map((classItem, classIndex) => (
-                              <div 
-                                key={classIndex}
-                                className={`flex gap-3 ${
-                                  classItem.name === "Class Cancelled" 
-                                    ? "opacity-50" 
-                                    : ""
-                                }`}
-                              >
-                                <div className="shrink-0">
-                                  <p className={`font-body text-xs whitespace-nowrap ${
-                                    classItem.name === "Class Cancelled"
-                                      ? "text-charcoal/70"
-                                      : isMorningClass(classItem.time)
-                                      ? "text-sage font-medium"
-                                      : "text-charcoal/70"
-                                  }`}>
-                                    {classItem.time}
-                                  </p>
-                                </div>
-                                <div className="flex-1 min-w-0">
-                                  <p className={`font-body text-sm ${
-                                    classItem.name === "Class Cancelled"
-                                      ? "text-charcoal/50 line-through"
-                                      : isMorningClass(classItem.time)
-                                      ? "text-sage font-medium"
-                                      : "text-charcoal"
-                                  }`}>
-                                    {classItem.name}
-                                    {classItem.instructor && (
-                                      <span className={classItem.name === "Class Cancelled" ? "text-charcoal/50" : isMorningClass(classItem.time) ? "text-sage/80" : "text-charcoal/60"}> - {classItem.instructor}</span>
-                                    )}
-                                  </p>
-                                </div>
-                              </div>
-                            ))
-                          )}
-                        </div>
+                    {/* All-week grid or single-day panel */}
+                    {selectedDay === "all" ? (
+                      <div className="grid md:grid-cols-2 divide-y md:divide-y-0 md:divide-x divide-[#e5e4dc]">
+                        {scheduleData.map((daySchedule, index) => (
+                          <div
+                            key={index}
+                            className="p-6 hover:bg-sage/5 transition-colors duration-300"
+                          >
+                            <div className="mb-4 pb-3 border-b border-[#e5e4dc]">
+                              <h3 className="font-display text-xl text-charcoal capitalize">
+                                {daySchedule.day}
+                              </h3>
+                              <p className="font-body text-charcoal/50 text-sm">
+                                {daySchedule.date}
+                              </p>
+                            </div>
+                            <div className="space-y-3">
+                              {daySchedule.classes.length === 0 ? (
+                                <p className="font-body text-sm text-charcoal/40 italic">No classes scheduled</p>
+                              ) : (
+                                daySchedule.classes.map((classItem, classIndex) => (
+                                  <div
+                                    key={classIndex}
+                                    className={`flex gap-3 ${
+                                      classItem.name === "Class Cancelled" ? "opacity-50" : ""
+                                    }`}
+                                  >
+                                    <div className="shrink-0">
+                                      <p className={`font-body text-xs whitespace-nowrap ${
+                                        classItem.name === "Class Cancelled"
+                                          ? "text-charcoal/70"
+                                          : isMorningClass(classItem.time)
+                                          ? "text-sage font-medium"
+                                          : "text-charcoal/70"
+                                      }`}>
+                                        {classItem.time}
+                                      </p>
+                                    </div>
+                                    <div className="flex-1 min-w-0">
+                                      <p className={`font-body text-sm ${
+                                        classItem.name === "Class Cancelled"
+                                          ? "text-charcoal/50 line-through"
+                                          : isMorningClass(classItem.time)
+                                          ? "text-sage font-medium"
+                                          : "text-charcoal"
+                                      }`}>
+                                        {classItem.name}
+                                        {classItem.instructor && (
+                                          <span className={classItem.name === "Class Cancelled" ? "text-charcoal/50" : isMorningClass(classItem.time) ? "text-sage/80" : "text-charcoal/60"}> - {classItem.instructor}</span>
+                                        )}
+                                      </p>
+                                    </div>
+                                  </div>
+                                ))
+                              )}
+                            </div>
+                          </div>
+                        ))}
                       </div>
-                    ))
-                  )}
-                </div>
+                    ) : (
+                      (() => {
+                        const day = scheduleData[selectedDay];
+                        if (!day) return null;
+                        return (
+                          <div className="p-6">
+                            <div className="mb-4 pb-3 border-b border-[#e5e4dc]">
+                              <h3 className="font-display text-2xl text-charcoal capitalize">{day.day}</h3>
+                              <p className="font-body text-charcoal/50 text-sm">{day.date}</p>
+                            </div>
+                            {day.classes.length === 0 ? (
+                              <p className="font-body text-sm text-charcoal/40 italic">No classes scheduled this day.</p>
+                            ) : (
+                              <div className="space-y-3">
+                                {day.classes.map((classItem, classIndex) => (
+                                  <div
+                                    key={classIndex}
+                                    className={`flex gap-3 ${
+                                      classItem.name === "Class Cancelled" ? "opacity-50" : ""
+                                    }`}
+                                  >
+                                    <div className="shrink-0">
+                                      <p className={`font-body text-xs whitespace-nowrap ${
+                                        classItem.name === "Class Cancelled"
+                                          ? "text-charcoal/70"
+                                          : isMorningClass(classItem.time)
+                                          ? "text-sage font-medium"
+                                          : "text-charcoal/70"
+                                      }`}>
+                                        {classItem.time}
+                                      </p>
+                                    </div>
+                                    <div className="flex-1 min-w-0">
+                                      <p className={`font-body text-sm ${
+                                        classItem.name === "Class Cancelled"
+                                          ? "text-charcoal/50 line-through"
+                                          : isMorningClass(classItem.time)
+                                          ? "text-sage font-medium"
+                                          : "text-charcoal"
+                                      }`}>
+                                        {classItem.name}
+                                        {classItem.instructor && (
+                                          <span className={classItem.name === "Class Cancelled" ? "text-charcoal/50" : isMorningClass(classItem.time) ? "text-sage/80" : "text-charcoal/60"}> - {classItem.instructor}</span>
+                                        )}
+                                      </p>
+                                    </div>
+                                  </div>
+                                ))}
+                              </div>
+                            )}
+                          </div>
+                        );
+                      })()
+                    )}
+                  </>
+                )}
               </div>
             </TabsContent>
           </Tabs>
