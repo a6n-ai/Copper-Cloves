@@ -25,7 +25,7 @@ export function ClassDetailDialog({
 }) {
   return (
     <ResponsiveDialog open={!!classItem} onOpenChange={(o) => { if (!o) onClose(); }}>
-      <ResponsiveDialogContent className="max-w-lg overflow-hidden bg-white-warm p-0 sm:max-h-[90vh] sm:overflow-y-auto">
+      <ResponsiveDialogContent className="max-w-lg overflow-hidden bg-white-warm p-0 sm:max-h-[90vh] sm:overflow-y-auto [&>button]:right-4 [&>button]:top-4 [&>button]:z-20 [&>button]:flex [&>button]:size-8 [&>button]:items-center [&>button]:justify-center [&>button]:rounded-full [&>button]:bg-white-warm/90 [&>button]:text-charcoal [&>button]:opacity-100 [&>button]:shadow-md hover:[&>button]:bg-white-warm">
         {classItem && (
           <>
             <div className="relative h-44">
