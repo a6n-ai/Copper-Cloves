@@ -297,6 +297,10 @@ export default function ClassesPage({ initialClasses }: ClassesPageProps) {
     }
   }, [authStatus, router]);
 
+  function handleSignupToBook() {
+    router.push("/portal/signup?redirect=/portal/book");
+  }
+
   function handleViewPackages() {
     if (authStatus !== "authenticated") {
       router.push("/portal/login?redirect=/portal/packages");
@@ -613,7 +617,7 @@ export default function ClassesPage({ initialClasses }: ClassesPageProps) {
         classItem={selectedClass}
         authed={authStatus === "authenticated"}
         onClose={() => setSelectedClass(null)}
-        onBook={handleBookClass}
+        onBook={authStatus === "authenticated" ? handleBookClass : handleSignupToBook}
       />
 
       <Footer />

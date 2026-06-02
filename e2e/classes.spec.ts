@@ -22,12 +22,13 @@ test.describe("/classes catalog", () => {
     await page.goto("/classes");
     await page.waitForLoadState("networkidle");
 
-    const chips = page.getByRole("button", { pressed: false });
-    const chipCount = await chips.count();
-    test.skip(chipCount === 0, "no category chips (no classes seeded)");
+    const filter = page.getByTestId("category-filter");
+    const inactiveChips = filter.getByRole("button", { pressed: false });
+    const chipCount = await inactiveChips.count();
+    test.skip(chipCount === 0, "no inactive category chips (no classes seeded)");
 
     const allCount = await page.getByRole("button", { name: /View details for/ }).count();
-    await chips.first().click();
+    await inactiveChips.first().click();
     const filtered = await page.getByRole("button", { name: /View details for/ }).count();
     expect(filtered).toBeLessThanOrEqual(allCount);
   });

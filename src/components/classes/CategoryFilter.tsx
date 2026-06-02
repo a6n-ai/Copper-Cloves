@@ -9,7 +9,7 @@ export function CategoryFilter({
 }) {
   const options = ["all", ...categories];
   return (
-    <div className="flex flex-wrap justify-center gap-2">
+    <div data-testid="category-filter" className="flex flex-wrap justify-center gap-2">
       {options.map((opt) => {
         const active = value === opt;
         return (
