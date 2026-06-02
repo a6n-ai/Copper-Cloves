@@ -276,36 +276,56 @@ function ScheduleGridSkeleton({ count = 4 }: { count?: number }) {
   );
 }
 
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-type TransformedClass = any;
+export interface PublicInstructor {
+  name: string;
+  title: string | null;
+  imageUrl: string | null;
+  specialties: string[];
+}
+
+export interface PublicClass {
+  id: string;
+  name: string;
+  category: string;
+  description: string;
+  benefits: string[];
+  duration: number;
+  maxCapacity: number;
+  imageUrl: string | null;
+  instructor: PublicInstructor | null;
+}
 
 interface ClassesPageProps {
-  initialClasses: TransformedClass[];
+  initialClasses: PublicClass[];
 }
 
 export const getStaticProps: GetStaticProps<ClassesPageProps> = async () => {
   try {
     const rows = await prisma.classModel.findMany({
-      orderBy: { name: "asc" },
+      orderBy: [{ display_order: "asc" }, { name: "asc" }],
       include: {
         instructor: {
           omit: { studio_payout_cut_percent: true, hashed_password: true },
         },
       },
     });
-    const initialClasses: TransformedClass[] = rows.map((cls) => ({
+    const initialClasses: PublicClass[] = rows.map((cls) => ({
       id: cls.id,
       name: cls.name || "Class",
-      description: cls.description || "",
-      // ClassModel uses `duration_minutes` in schema; the public mapping keeps
-      // the legacy `duration` field expected by the JSX.
-      duration: (cls as unknown as { duration_minutes?: number }).duration_minutes || 60,
-      intensity: (cls.category || "general").toLowerCase(),
       category: cls.category || "General",
-      image_url: cls.image_url || cdnUrl("/placeholder.jpg"),
-      benefits: (cls as unknown as { benefits?: string[] }).benefits || [],
-      instructor: cls.instructor?.name || "Instructor",
-      max_capacity: (cls as unknown as { capacity?: number }).capacity ?? 15,
+      description: cls.description || "",
+      benefits: cls.benefits ?? [],
+      duration: cls.duration ?? 60,
+      maxCapacity: cls.max_capacity ?? 15,
+      imageUrl: cls.image_url ?? null,
+      instructor: cls.instructor
+        ? {
+            name: cls.instructor.name,
+            title: cls.instructor.title ?? null,
+            imageUrl: cls.instructor.image_url ?? null,
+            specialties: cls.instructor.specialties ?? [],
+          }
+        : null,
     }));
     return { props: { initialClasses }, revalidate: 300 };
   } catch {
@@ -318,7 +338,7 @@ export default function ClassesPage({ initialClasses }: ClassesPageProps) {
   const initialCalendar = defaultPortalWeekSelection();
   const [activeTab, setActiveTab] = useState("classes");
   const [selectedFilter, setSelectedFilter] = useState("all");
-  const [classes] = useState<TransformedClass[]>(initialClasses);
+  const [classes] = useState<PublicClass[]>(initialClasses);
   // Catalog is SSG'd via `getStaticProps` (5-min ISR); no client fetch.
   const loading = false;
   const [viewYear, setViewYear] = useState(initialCalendar.year);
