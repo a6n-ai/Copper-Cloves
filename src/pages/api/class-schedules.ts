@@ -73,8 +73,12 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
             where,
             include: {
               class_model: true,
-              instructor: true,
-              actual_instructor: true,
+              instructor: {
+                omit: { hashed_password: true, studio_payout_cut_percent: true },
+              },
+              actual_instructor: {
+                omit: { hashed_password: true, studio_payout_cut_percent: true },
+              },
             },
             orderBy: { start_time: "asc" },
           });
