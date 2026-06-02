@@ -3,9 +3,10 @@ import type { PrismaClient } from "@/generated/prisma/client";
 /**
  * Advance class_schedules.status based on wall clock.
  *  available → completed   when end_time < now (class happened normally)
+ *  started   → completed   when end_time < now (in-session class has now ended)
  *  cancelled → abandoned   when end_time < now (cancelled class is now history)
  *
- * Skips rows already at: completed, abandoned, inactive (admin intent), started.
+ * Skips rows already at: completed, abandoned, inactive (admin intent).
  * Idempotent — safe to run repeatedly. Returns counts per transition.
  */
 export async function advanceCompletedSchedules(
@@ -14,7 +15,7 @@ export async function advanceCompletedSchedules(
   const now = new Date();
   const [completed, abandoned] = await Promise.all([
     prisma.classSchedule.updateMany({
-      where: { end_time: { lt: now }, status: "available" },
+      where: { end_time: { lt: now }, status: { in: ["available", "started"] } },
       data: { status: "completed" },
     }),
     prisma.classSchedule.updateMany({

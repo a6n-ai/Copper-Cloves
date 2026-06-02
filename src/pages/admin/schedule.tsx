@@ -162,6 +162,7 @@ interface ScheduledClass {
   day: string;
   dateIso: string;
   startTimeIso: string;
+  endTimeIso?: string | null;
   time: string;
   classId: string;
   instructorId: string;
@@ -534,6 +535,7 @@ export default function AdminSchedule() {
       const data = (await res.json()) as Array<{
         id: string;
         start_time: string;
+        end_time?: string | null;
         class_id: string;
         instructor_id?: string;
         actual_instructor_id?: string | null;
@@ -556,6 +558,7 @@ export default function AdminSchedule() {
           day: dayName,
           dateIso: `${y}-${mo}-${d}`,
           startTimeIso: item.start_time,
+          endTimeIso: item.end_time ?? null,
           time: startTime.toLocaleTimeString("en-US", { hour: "2-digit", minute: "2-digit" }),
           classId: item.class_id.toString(),
           instructorId: item.instructor_id?.toString() || "",
@@ -625,7 +628,15 @@ export default function AdminSchedule() {
     if (typeof editId !== "string" || schedule.length === 0) return;
     const sc = schedule.find((c) => c.id === editId);
     if (!sc) return;
-    handleEditClass(sc);
+    const locked =
+      sc.status === "completed" ||
+      sc.status === "abandoned" ||
+      (!!sc.endTimeIso && new Date(sc.endTimeIso).getTime() < Date.now());
+    if (locked) {
+      toast.error("This class is over and can no longer be edited.");
+    } else {
+      handleEditClass(sc);
+    }
     const rest = { ...router.query };
     delete rest.edit;
     void router.replace({ pathname: router.pathname, query: rest }, undefined, { shallow: true });
@@ -1137,7 +1148,10 @@ export default function AdminSchedule() {
                       const isActive = (sc.status ?? "available") === "available";
                       const isInactive = sc.status === "inactive";
                       const isCancelled = sc.status === "cancelled";
-                      const isLockedRow = sc.status === "completed" || sc.status === "abandoned";
+                      const isLockedRow =
+                        sc.status === "completed" ||
+                        sc.status === "abandoned" ||
+                        (!!sc.endTimeIso && new Date(sc.endTimeIso).getTime() < Date.now());
                       const toggleable = !isLockedRow && (isActive || isInactive || isCancelled);
                       return (
                         <>

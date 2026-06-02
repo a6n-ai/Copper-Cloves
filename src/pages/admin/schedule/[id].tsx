@@ -414,7 +414,13 @@ export default function AdminClassPage() {
     }
     return { enrolled: e, checkedIn: c };
   }, [roster]);
-  const isLocked = roster?.status === "completed" || roster?.status === "abandoned";
+  // Locked for edits once terminal OR the scheduled end has passed (the class
+  // is over). Roster check-in/add stays available below — only class details
+  // and status/delete are gated.
+  const isLocked =
+    roster?.status === "completed" ||
+    roster?.status === "abandoned" ||
+    (!!roster && new Date(roster.endTime).getTime() < Date.now());
 
   return (
     <>

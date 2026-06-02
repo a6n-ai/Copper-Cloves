@@ -6,6 +6,19 @@ import { apiError } from "@/lib/apiError";
 
 const VALID_STATUS = new Set<string>(Object.values(ClassScheduleStatus));
 const LOCKED_STATUSES = new Set<string>(["completed", "abandoned"]);
+
+/**
+ * Authoritative edit/delete lock. A class is locked once it is terminal
+ * (completed/abandoned) OR its scheduled end_time has passed — the latter
+ * guards against a lagged enum (cron not yet run). Returns the lock reason
+ * for the error message, or null if the class is still editable.
+ */
+function scheduleEditLock(s: { status: string; end_time: Date | null }): string | null {
+  if (LOCKED_STATUSES.has(s.status)) return s.status;
+  if (s.end_time != null && s.end_time.getTime() < Date.now()) return "complete";
+  return null;
+}
+
 function parseStatus(v: unknown): ClassScheduleStatus | undefined {
   if (typeof v !== "string") return undefined;
   return VALID_STATUS.has(v) ? (v as ClassScheduleStatus) : undefined;
@@ -208,11 +221,12 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       }
       const existing = await prisma.classSchedule.findUnique({
         where: { id: String(id) },
-        select: { status: true },
+        select: { status: true, end_time: true },
       });
       if (!existing) return res.status(404).json({ error: "Schedule not found" });
-      if (LOCKED_STATUSES.has(existing.status)) {
-        return res.status(409).json({ error: `Class is ${existing.status} and cannot be edited.` });
+      const editLock = scheduleEditLock(existing);
+      if (editLock) {
+        return res.status(409).json({ error: `Class is ${editLock} and cannot be edited.` });
       }
       const schedule = await prisma.classSchedule.update({
         where: { id: String(id) },
@@ -225,11 +239,12 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       const { id } = req.query;
       const existing = await prisma.classSchedule.findUnique({
         where: { id: String(id) },
-        select: { status: true },
+        select: { status: true, end_time: true },
       });
       if (!existing) return res.status(404).json({ error: "Schedule not found" });
-      if (LOCKED_STATUSES.has(existing.status)) {
-        return res.status(409).json({ error: `Class is ${existing.status} and cannot be deleted.` });
+      const deleteLock = scheduleEditLock(existing);
+      if (deleteLock) {
+        return res.status(409).json({ error: `Class is ${deleteLock} and cannot be deleted.` });
       }
       await prisma.classSchedule.delete({ where: { id: String(id) } });
       return res.status(204).end();
