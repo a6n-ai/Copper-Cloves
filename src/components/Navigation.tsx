@@ -86,7 +86,14 @@ export function Navigation({ variant = "default" }: NavigationProps) {
               alt="The STUDIO"
               width={320}
               height={84}
-              className="h-10 w-auto max-w-[min(85vw,260px)] object-contain object-left brightness-0 transition-[filter] duration-300"
+              className={cn(
+                "h-12 w-auto max-w-[min(85vw,300px)] object-contain object-left transition-[filter] duration-300 md:h-14",
+                // Black lockup: keep dark on the light/blurred bar, invert to
+                // light (with a soft shadow) when the bar is transparent over the hero.
+                isOverlay && !scrolled
+                  ? "brightness-0 invert drop-shadow-[0_1px_8px_rgba(0,0,0,0.35)]"
+                  : "brightness-0",
+              )}
               priority={isOverlay}
             />
           </Link>
