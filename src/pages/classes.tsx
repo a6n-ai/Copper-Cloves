@@ -3,11 +3,13 @@ import { Navigation } from "@/components/Navigation";
 import { Footer } from "@/components/Footer";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Skeleton } from "@/components/ui/skeleton";
-import { Clock, CheckCircle, Calendar, Sparkles, ChevronLeft, ChevronRight } from "lucide-react";
+import { Clock, Calendar, ChevronLeft, ChevronRight } from "lucide-react";
+import { ClassCard } from "@/components/classes/ClassCard";
+import { ClassDetailDialog } from "@/components/classes/ClassDetailDialog";
+import { CategoryFilter } from "@/components/classes/CategoryFilter";
 import type { GetStaticProps } from "next";
 import prisma from "@/lib/prisma";
 import { useRouter } from "next/router";
@@ -15,11 +17,9 @@ import { useCallback, useEffect, useMemo, useState } from "react";
 import { useSession } from "next-auth/react";
 import {
   mondayBasedWeekBoundsInMonth,
-  isSameLocalCalendarDay,
   defaultPortalWeekSelection,
 } from "@/lib/calendarWeek";
 
-import { cdnUrl } from "@/lib/cdnUrl";
 // Class catalog moved to `getStaticProps` + 5-min ISR — `fetchClassesList` is
 // no longer needed. The schedule fetcher below still dedupes in-flight requests
 // (Strict Mode + tab refetch) without AbortController.
@@ -43,15 +43,6 @@ function fetchScheduleList(fromMs: number, toMs: number): Promise<unknown[]> {
   return promise;
 }
 
-interface ClassDetail {
-  name: string;
-  duration: string;
-  image: string;
-  description: string;
-  benefits: string[];
-  intensity: "High" | "Moderate" | "Gentle";
-}
-
 interface ScheduleClass {
   time: string;
   name: string;
@@ -63,149 +54,6 @@ interface DaySchedule {
   date: string;
   classes: ScheduleClass[];
 }
-
-const classDetails: ClassDetail[] = [
-  {
-    name: "Muay Thai Circuit Training",
-    duration: "55 min",
-    image: cdnUrl("/muaythaicircuittraining.jpg"),
-    description: "Experience the ultimate full-body workout that blends the art of eight limbs with modern circuit training. This high-energy class combines traditional Muay Thai techniques with weights, HIIT intervals, and intensive pad work to build power, speed, and conditioning.",
-    benefits: [
-      "Develops explosive power and speed",
-      "Burns 600+ calories per session",
-      "Builds functional strength and coordination",
-      "Improves cardiovascular endurance",
-      "Teaches authentic self-defense skills"
-    ],
-    intensity: "High"
-  },
-  {
-    name: "Aerial Yoga",
-    duration: "55 min",
-    image: cdnUrl("/aerialyoga.jpg"),
-    description: "Suspend your practice and explore a new dimension of movement. Using a fabric hammock to support your body weight, this playful yet therapeutic class decompresses the spine, builds core strength, and challenges your balance in ways traditional yoga cannot.",
-    benefits: [
-      "Decompresses and elongates the spine",
-      "Improves flexibility and range of motion",
-      "Builds deep core strength",
-      "Reduces joint compression",
-      "Enhances body awareness and balance"
-    ],
-    intensity: "Moderate"
-  },
-  {
-    name: "WARRIOR Rhythm",
-    duration: "55 min",
-    image: cdnUrl("/warriorrythm.jpg"),
-    description: "Move to the beat in this music-driven fusion experience. WARRIOR Rhythm seamlessly blends yoga flows, strength sequences, and high-intensity intervals into one cohesive, dance-inspired practice that leaves you energized and empowered.",
-    benefits: [
-      "Combines cardio with mindful movement",
-      "Improves coordination and rhythm",
-      "Builds mental focus and presence",
-      "Full-body toning and conditioning",
-      "Reduces stress through movement meditation"
-    ],
-    intensity: "High"
-  },
-  {
-    name: "WARRIOR Strength",
-    duration: "55 min",
-    image: cdnUrl("/warriorstrength.jpg"),
-    description: "Power up with this high-energy strength and cardio workout set to killer playlists. Using weights, resistance bands, and bodyweight exercises, this class builds lean muscle, increases metabolism, and develops functional fitness for everyday life.",
-    benefits: [
-      "Builds lean muscle mass",
-      "Increases metabolic rate",
-      "Develops functional strength patterns",
-      "Improves bone density",
-      "Boosts energy and confidence"
-    ],
-    intensity: "High"
-  },
-  {
-    name: "Hatha Yoga",
-    duration: "55 min",
-    image: cdnUrl("/hathayoga.jpg"),
-    description: "Return to the roots of yoga with this traditional, grounding practice. Hatha Yoga focuses on breath awareness, proper alignment, and holding postures to build strength, flexibility, and inner calm. Perfect for beginners and experienced practitioners seeking a mindful practice.",
-    benefits: [
-      "Improves flexibility and joint mobility",
-      "Builds foundational strength",
-      "Enhances breath control and lung capacity",
-      "Reduces stress and anxiety",
-      "Promotes better sleep and recovery"
-    ],
-    intensity: "Gentle"
-  },
-  {
-    name: "Mat Pilates",
-    duration: "55 min",
-    image: cdnUrl("/matpilates.jpg"),
-    description: "Discover the transformative power of low-impact, core-focused movement. This classical Mat Pilates practice emphasizes precision, control, and breath to sculpt long, lean muscles, improve posture, and develop a strong, stable core foundation.",
-    benefits: [
-      "Strengthens deep core muscles",
-      "Improves posture and alignment",
-      "Increases flexibility and mobility",
-      "Reduces back pain",
-      "Enhances body awareness and control"
-    ],
-    intensity: "Moderate"
-  },
-  {
-    name: "Animal Flow",
-    duration: "55 min",
-    image: cdnUrl("/animalflow.jpg"),
-    description: "Reconnect with primal movement patterns through this ground-based practice inspired by animal locomotion. Animal Flow combines elements of yoga, gymnastics, and breakdancing to improve mobility, build functional strength, and ignite creativity in your movement practice.",
-    benefits: [
-      "Enhances full-body mobility",
-      "Develops functional strength patterns",
-      "Improves coordination and body control",
-      "Increases joint stability",
-      "Builds mind-body connection"
-    ],
-    intensity: "Moderate"
-  },
-  {
-    name: "Mat Pilates by Physique 57",
-    duration: "57 min",
-    image: cdnUrl("/matpilates57.jpg"),
-    description: "Experience Physique 57's signature sculpting techniques in a mat-based format. This class brings the best of barre to the floor with targeted exercises that lengthen, tone, and define every muscle group through isometric holds and small, controlled movements.",
-    benefits: [
-      "Sculpts long, lean muscles",
-      "Targets hard-to-tone areas",
-      "Improves muscle definition",
-      "Increases core stability",
-      "Enhances flexibility and range of motion"
-    ],
-    intensity: "Moderate"
-  },
-  {
-    name: "Barre by Physique 57",
-    duration: "57 min",
-    image: cdnUrl("/Barre57.jpg"),
-    description: "The iconic Physique 57 experience. This 57-minute signature class combines ballet-inspired movements, interval training, and orthopedic stretches to create a full-body transformation. Expect isometric holds that burn, cardio bursts that challenge, and results that show.",
-    benefits: [
-      "Creates long, lean muscle definition",
-      "Burns fat while building strength",
-      "Improves posture and alignment",
-      "Increases flexibility",
-      "Boosts metabolism for hours post-workout"
-    ],
-    intensity: "High"
-  },
-  {
-    name: "Fit by Physique 57",
-    duration: "57 min",
-    image: cdnUrl("/fit57.jpg"),
-    description: "Take your strength to the next level with high-intensity functional training. Fit by Physique 57 incorporates heavy weights, plyometrics, and athletic conditioning drills to build power, endurance, and total-body strength that translates to real-life performance.",
-    benefits: [
-      "Builds functional strength and power",
-      "Increases athletic performance",
-      "Burns maximum calories",
-      "Develops muscular endurance",
-      "Improves coordination and agility"
-    ],
-    intensity: "High"
-  }
-];
 
 /** Mirrors the class catalog Card: tall image with a badge, title, two-line copy, info row, benefit chips, button. */
 function ClassCardSkeleton() {
@@ -338,7 +186,12 @@ export default function ClassesPage({ initialClasses }: ClassesPageProps) {
   const initialCalendar = defaultPortalWeekSelection();
   const [activeTab, setActiveTab] = useState("classes");
   const [selectedFilter, setSelectedFilter] = useState("all");
+  const [selectedClass, setSelectedClass] = useState<PublicClass | null>(null);
   const [classes] = useState<PublicClass[]>(initialClasses);
+  const categories = useMemo(
+    () => Array.from(new Set(classes.map((c) => c.category))).sort((a, b) => a.localeCompare(b)),
+    [classes],
+  );
   // Catalog is SSG'd via `getStaticProps` (5-min ISR); no client fetch.
   const loading = false;
   const [viewYear, setViewYear] = useState(initialCalendar.year);
@@ -437,10 +290,19 @@ export default function ClassesPage({ initialClasses }: ClassesPageProps) {
   useEffect(() => {
     if (authStatus === "authenticated") {
       void router.prefetch("/portal/book");
+      void router.prefetch("/portal/packages");
     } else if (authStatus === "unauthenticated") {
       void router.prefetch("/portal/login?redirect=/portal/book");
     }
   }, [authStatus, router]);
+
+  function handleViewPackages() {
+    if (authStatus !== "authenticated") {
+      router.push("/portal/login?redirect=/portal/packages");
+      return;
+    }
+    router.push("/portal/packages");
+  }
 
   async function handleBookClass() {
     try {
@@ -527,66 +389,16 @@ export default function ClassesPage({ initialClasses }: ClassesPageProps) {
                   <p className="font-body text-charcoal/60">No classes found for this category.</p>
                 </div>
               ) : (
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-                  {filteredClasses.map((classItem) => (
-                    <Card 
-                      key={classItem.id}
-                      className="border-0 bg-white-warm shadow-lg hover:shadow-xl transition-all duration-600 group overflow-hidden"
-                    >
-                      <div className="relative h-64 overflow-hidden bg-sage/5">
-                        <img
-                          src={classItem.image_url}
-                          alt={classItem.name}
-                          className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-600"
-                        />
-                        <Badge className="absolute top-4 right-4 bg-sage text-cream border-0">
-                          {classItem.category}
-                        </Badge>
-                      </div>
-                      <CardContent className="p-6">
-                        <h3 className="font-display text-2xl text-charcoal mb-3">
-                          {classItem.name}
-                        </h3>
-                        <p className="font-body text-charcoal/70 text-sm mb-4 line-clamp-2">
-                          {classItem.description}
-                        </p>
-                        
-                        {/* Class Info */}
-                        <div className="flex items-center gap-4 mb-4 text-sm text-charcoal/60">
-                          <div className="flex items-center gap-1.5">
-                            <Clock className="h-4 w-4" />
-                            <span>{classItem.duration} min</span>
-                          </div>
-                        </div>
-
-                        {/* Key Benefits */}
-                        {classItem.benefits && classItem.benefits.length > 0 && (
-                          <div className="mb-4">
-                            <div className="flex items-center gap-1.5 mb-2">
-                              <Sparkles className="h-4 w-4 text-sage" />
-                              <span className="font-body text-xs font-medium text-charcoal/70">Key Benefits:</span>
-                            </div>
-                            <div className="flex flex-wrap gap-2">
-                              {classItem.benefits.slice(0, 3).map((benefit: string, idx: number) => (
-                                <Badge key={idx} variant="outline" className="border-sage/30 bg-sage/5 text-sage text-xs">
-                                  {benefit}
-                                </Badge>
-                              ))}
-                            </div>
-                          </div>
-                        )}
-
-                        <Button
-                          onClick={handleBookClass}
-                          variant="sage"
-                          className="w-full"
-                        >
-                          Book This Class
-                        </Button>
-                      </CardContent>
-                    </Card>
-                  ))}
-                </div>
+                <>
+                  <div className="mb-8">
+                    <CategoryFilter categories={categories} value={selectedFilter} onChange={setSelectedFilter} />
+                  </div>
+                  <div className="grid grid-cols-1 gap-8 md:grid-cols-2 lg:grid-cols-3">
+                    {filteredClasses.map((classItem) => (
+                      <ClassCard key={classItem.id} classItem={classItem} onOpen={setSelectedClass} />
+                    ))}
+                  </div>
+                </>
               )}
             </TabsContent>
 
@@ -764,8 +576,8 @@ export default function ClassesPage({ initialClasses }: ClassesPageProps) {
             Choose your package, book your first class, and step into your wellness journey today.
           </p>
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
-            <Button 
-              onClick={handleBookClass}
+            <Button
+              onClick={handleViewPackages}
               size="lg"
               className="bg-white-warm text-sage hover:bg-[#fafaf8]/90 px-8 transition-all duration-600 ease-in-out"
             >
@@ -782,6 +594,13 @@ export default function ClassesPage({ initialClasses }: ClassesPageProps) {
           </div>
         </div>
       </section>
+
+      <ClassDetailDialog
+        classItem={selectedClass}
+        authed={authStatus === "authenticated"}
+        onClose={() => setSelectedClass(null)}
+        onBook={handleBookClass}
+      />
 
       <Footer />
     </>
