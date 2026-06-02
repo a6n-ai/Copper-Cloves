@@ -50,6 +50,7 @@ interface ScheduleClass {
   time: string;
   name: string;
   instructor: string;
+  instructorImageUrl: string | null;
 }
 
 interface DaySchedule {
@@ -263,6 +264,7 @@ export default function ClassesPage({ initialClasses }: ClassesPageProps) {
           time: `${itemDate.toLocaleTimeString("en-US", { hour: "2-digit", minute: "2-digit" })} - ${endTime.toLocaleTimeString("en-US", { hour: "2-digit", minute: "2-digit" })}`,
           name: item.class_model?.name || "Class",
           instructor: item.instructor?.name || instructorMap.get(item.class_model?.instructor_id ?? "") || "",
+          instructorImageUrl: item.instructor?.image_url ?? null,
         });
       }
       const daySchedules: DaySchedule[] = buckets;
@@ -554,7 +556,7 @@ export default function ClassesPage({ initialClasses }: ClassesPageProps) {
                     {selectedDay === "all" ? (
                       <div className="grid divide-y divide-[#e5e4dc] md:grid-cols-2 md:divide-y-0 md:[&>*:nth-child(odd)]:border-r md:[&>*]:border-[#e5e4dc]">
                         {scheduleData.map((daySchedule, index) => (
-                          <div key={index} className="p-6">
+                          <div key={index} className="p-4 sm:p-6">
                             <div className="mb-4 flex items-end justify-between gap-3 border-b border-[#e5e4dc] pb-3">
                               <div>
                                 <h3 className="font-display text-xl capitalize text-charcoal">{daySchedule.day}</h3>
@@ -576,7 +578,9 @@ export default function ClassesPage({ initialClasses }: ClassesPageProps) {
                                     time={classItem.time}
                                     name={classItem.name}
                                     instructor={classItem.instructor}
+                                    instructorImageUrl={classItem.instructorImageUrl}
                                     morning={isMorningClass(classItem.time)}
+                                    onBook={authStatus === "authenticated" ? handleBookClass : handleSignupToBook}
                                   />
                                 ))}
                               </div>
@@ -589,7 +593,7 @@ export default function ClassesPage({ initialClasses }: ClassesPageProps) {
                         const day = scheduleData[selectedDay];
                         if (!day) return null;
                         return (
-                          <div className="p-6">
+                          <div className="p-4 sm:p-6">
                             <div className="mb-5 flex items-end justify-between gap-3 border-b border-[#e5e4dc] pb-4">
                               <div>
                                 <h3 className="font-display text-3xl capitalize text-charcoal">{day.day}</h3>
@@ -612,7 +616,9 @@ export default function ClassesPage({ initialClasses }: ClassesPageProps) {
                                     time={classItem.time}
                                     name={classItem.name}
                                     instructor={classItem.instructor}
+                                    instructorImageUrl={classItem.instructorImageUrl}
                                     morning={isMorningClass(classItem.time)}
+                                    onBook={authStatus === "authenticated" ? handleBookClass : handleSignupToBook}
                                   />
                                 ))}
                               </div>
