@@ -382,6 +382,11 @@ export default function ClassesPage({ initialClasses }: ClassesPageProps) {
 
             {/* Classes Tab Content */}
             <TabsContent value="classes" className="mt-8">
+              {categories.length > 0 && (
+                <div className="mb-8">
+                  <CategoryFilter categories={categories} value={selectedFilter} onChange={setSelectedFilter} />
+                </div>
+              )}
               {loading ? (
                 <ClassesGridSkeleton count={6} />
               ) : filteredClasses.length === 0 ? (
@@ -389,16 +394,11 @@ export default function ClassesPage({ initialClasses }: ClassesPageProps) {
                   <p className="font-body text-charcoal/60">No classes found for this category.</p>
                 </div>
               ) : (
-                <>
-                  <div className="mb-8">
-                    <CategoryFilter categories={categories} value={selectedFilter} onChange={setSelectedFilter} />
-                  </div>
-                  <div className="grid grid-cols-1 gap-8 md:grid-cols-2 lg:grid-cols-3">
-                    {filteredClasses.map((classItem) => (
-                      <ClassCard key={classItem.id} classItem={classItem} onOpen={setSelectedClass} />
-                    ))}
-                  </div>
-                </>
+                <div className="grid grid-cols-1 gap-8 md:grid-cols-2 lg:grid-cols-3">
+                  {filteredClasses.map((classItem) => (
+                    <ClassCard key={classItem.id} classItem={classItem} onOpen={setSelectedClass} />
+                  ))}
+                </div>
               )}
             </TabsContent>
 
