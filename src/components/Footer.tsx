@@ -73,13 +73,18 @@ export function Footer() {
                 </Link>
               </li>
               <li>
-                <Link href="/#pricing" className="font-body text-cream/70 hover:text-cream transition-colors duration-300">
+                <Link href="/pricing" className="font-body text-cream/70 hover:text-cream transition-colors duration-300">
                   Pricing & Packages
                 </Link>
               </li>
               <li>
-                <Link href="/#instructors" className="font-body text-cream/70 hover:text-cream transition-colors duration-300">
+                <Link href="/instructors" className="font-body text-cream/70 hover:text-cream transition-colors duration-300">
                   Our Instructors
+                </Link>
+              </li>
+              <li>
+                <Link href="/story" className="font-body text-cream/70 hover:text-cream transition-colors duration-300">
+                  Our Story
                 </Link>
               </li>
               <li>

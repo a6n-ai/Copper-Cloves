@@ -1,6 +1,5 @@
 import Link from "next/link";
 import { SEO } from "@/components/SEO";
-import { Navigation } from "@/components/Navigation";
 import { Footer } from "@/components/Footer";
 import { Button } from "@/components/ui/button";
 import { ArrowLeft, ShieldCheck } from "lucide-react";
@@ -15,7 +14,6 @@ export default function PrivacyPolicyPage() {
         description="Privacy Policy for The Studio by Copper + Cloves, explaining how we collect, use, protect, and manage personal information for website visitors, members, bookings, café, boutique, and studio services."
       />
 
-      <Navigation />
 
       <div className="min-h-screen bg-linear-to-b from-cream via-[#fafaf8] to-cream">
         <section className="relative pt-28 pb-12 px-6 lg:px-8">

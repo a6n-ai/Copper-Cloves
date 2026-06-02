@@ -1,144 +1,119 @@
-import { Button } from "@/components/ui/button";
-import { Calendar, Users, Sparkles } from "lucide-react";
+import { Calendar, Users, Sparkles, ArrowRight } from "lucide-react";
 import Link from "next/link";
 import Image from "next/image";
 
 import { cdnUrl } from "@/lib/cdnUrl";
+
+const features = [
+  {
+    icon: Sparkles,
+    title: "Curated ambiance",
+    description:
+      "Thoughtfully designed interiors with natural light, tropical plants, and a warm aesthetic that turns any gathering into something memorable.",
+  },
+  {
+    icon: Calendar,
+    title: "Flexible scheduling",
+    description:
+      "Half-day or full-day bookings for workshops, team offsites, birthdays, launches, or intimate gatherings.",
+  },
+  {
+    icon: Users,
+    title: "Full-service experience",
+    description:
+      "Add catering from our plant-based café, sound setup, yoga mats, or custom arrangements. We handle the details so you can focus on your guests.",
+  },
+];
+
+const stats = [
+  { value: "40+", label: "Events hosted" },
+  { value: "1,000 sq ft+", label: "Open space" },
+  { value: "Natural", label: "Lighting" },
+  { value: "Premium", label: "Amenities" },
+];
+
 export function Rental() {
   return (
-    <section className="relative py-16 px-6 lg:px-8 overflow-hidden bg-cream">
-      {/* Background Pattern */}
-      <div className="absolute inset-0 opacity-5">
-        <div className="absolute inset-0" style={{
-          backgroundImage: `radial-gradient(circle at 2px 2px, currentColor 1px, transparent 0)`,
-          backgroundSize: '40px 40px'
-        }} />
-      </div>
-
-      <div className="relative z-10 max-w-7xl mx-auto">
-        {/* Section Header */}
-        <div className="text-center mb-10 md:mb-12">
-          <h2 className="font-display text-5xl md:text-6xl lg:text-7xl text-charcoal mb-4">
-            <span className="italic text-sage">Host</span> Your Event
-          </h2>
-          <p className="font-body text-xl text-charcoal/80 max-w-3xl mx-auto leading-relaxed">
-            Transform our sanctuary into your canvas. Host workshops, celebrations, 
-            gatherings, or corporate events in a space designed for connection.
-          </p>
-        </div>
-
-        {/* Content Grid */}
-        <div className="grid lg:grid-cols-2 gap-12 items-center mb-16">
-          {/* Left: Image Showcase */}
-          <div className="relative">
-            <div className="relative h-[500px] rounded-3xl overflow-hidden shadow-[0_8px_48px_-8px_rgba(51,51,51,0.14)]">
-              <Image
-                src={cdnUrl("/cafe-studio.jpg")}
-                alt="The Studio by Copper + Cloves - Event Space"
-                fill
-                sizes="(max-width: 1024px) 100vw, 50vw"
-                className="object-cover"
-                quality={90}
-              />
-              <div className="absolute inset-0 bg-linear-to-t from-charcoal/60 via-transparent to-transparent" />
-              
-              {/* Floating Badge */}
-              <div className="absolute bottom-8 left-8 right-8">
-                <div className="bg-white-warm rounded-2xl p-6 shadow-[0_4px_24px_rgba(51,51,51,0.08)]">
-                  <div className="flex items-center justify-between">
-                    <div>
-                      <p className="font-body text-sm text-charcoal/70 mb-1">Capacity</p>
-                      <p className="font-display text-3xl text-charcoal">Up to 40 Guests</p>
-                    </div>
-                    <div className="w-16 h-16 rounded-full bg-sage/10 flex items-center justify-center">
-                      <Users className="text-sage" size={32} />
-                    </div>
-                  </div>
+    <section className="bg-cream py-16 md:py-20">
+      <div className="mx-auto max-w-7xl px-6 lg:px-8">
+        {/* Image + content — image stretches to the full height of the heading + features column */}
+        <div className="grid items-stretch gap-12 lg:min-h-[600px] lg:grid-cols-2">
+          {/* Showcase image */}
+          <div className="group relative min-h-[420px] overflow-hidden rounded-3xl shadow-[0_8px_48px_-8px_rgba(51,51,51,0.14)] md:min-h-[520px] lg:min-h-full">
+            <Image
+              src={cdnUrl("/cafe-studio.jpg")}
+              alt="The event space at The Studio by Copper + Cloves"
+              fill
+              sizes="(max-width: 1024px) 100vw, 50vw"
+              className="object-cover transition-transform duration-700 ease-out group-hover:scale-105 motion-reduce:transform-none motion-reduce:transition-none"
+              quality={90}
+            />
+            <div className="absolute inset-0 bg-linear-to-t from-charcoal/55 via-transparent to-transparent" />
+            <div className="absolute bottom-6 left-6 right-6 sm:right-auto">
+              <div className="inline-flex items-center gap-4 rounded-2xl bg-white-warm p-5 shadow-[0_4px_24px_rgba(51,51,51,0.08)]">
+                <span className="flex h-14 w-14 shrink-0 items-center justify-center rounded-full bg-sage/10">
+                  <Users className="text-sage" size={28} />
+                </span>
+                <div>
+                  <p className="font-body text-xs uppercase tracking-[0.1em] text-charcoal/55">
+                    Capacity
+                  </p>
+                  <p className="font-display text-2xl text-charcoal md:text-3xl">Up to 40 guests</p>
                 </div>
               </div>
             </div>
           </div>
 
-          {/* Right: Features */}
-          <div className="space-y-8">
-            {/* Feature 1 */}
-            <div className="flex gap-4">
-              <div className="shrink-0 w-14 h-14 rounded-full bg-sage/10 flex items-center justify-center">
-                <Sparkles className="text-sage" size={24} />
-              </div>
-              <div>
-                <h3 className="font-display text-2xl text-charcoal mb-2">
-                  Curated Ambiance
-                </h3>
-                <p className="font-body text-charcoal/70 leading-relaxed">
-                  Thoughtfully designed interiors with natural light, tropical plants, 
-                  and a warm aesthetic that elevates any gathering into something memorable.
-                </p>
-              </div>
-            </div>
+          {/* Content: heading + feature list + cta */}
+          <div className="flex flex-col justify-center">
+            <p className="font-body text-xs font-semibold uppercase tracking-[0.18em] text-terracotta">
+              Private hire · Events
+            </p>
+            <h2 className="mt-3 font-display text-4xl leading-[1.05] text-charcoal md:text-6xl">
+              <span className="italic text-sage">Host</span> your event.
+            </h2>
+            <p className="mt-5 max-w-[52ch] font-body text-lg leading-relaxed text-charcoal/70">
+              Transform our sanctuary into your canvas. Host workshops, celebrations, gatherings, or
+              corporate events in a space designed for connection.
+            </p>
 
-            {/* Feature 2 */}
-            <div className="flex gap-4">
-              <div className="shrink-0 w-14 h-14 rounded-full bg-sage/10 flex items-center justify-center">
-                <Calendar className="text-sage" size={24} />
-              </div>
-              <div>
-                <h3 className="font-display text-2xl text-charcoal mb-2">
-                  Flexible Scheduling
-                </h3>
-                <p className="font-body text-charcoal/70 leading-relaxed">
-                  Available for half-day or full-day bookings. Perfect for workshops, 
-                  team offsites, birthday celebrations, product launches, or intimate gatherings.
-                </p>
-              </div>
-            </div>
+            <ul className="mt-8 space-y-6">
+              {features.map(({ icon: Icon, title, description }) => (
+                <li key={title} className="flex gap-4">
+                  <span className="flex h-12 w-12 shrink-0 items-center justify-center rounded-full bg-sage/10">
+                    <Icon className="text-sage" size={22} />
+                  </span>
+                  <div>
+                    <h3 className="font-display text-2xl leading-tight text-charcoal">{title}</h3>
+                    <p className="mt-2 font-body leading-relaxed text-charcoal/70">{description}</p>
+                  </div>
+                </li>
+              ))}
+            </ul>
 
-            {/* Feature 3 */}
-            <div className="flex gap-4">
-              <div className="shrink-0 w-14 h-14 rounded-full bg-sage/10 flex items-center justify-center">
-                <Users className="text-sage" size={24} />
-              </div>
-              <div>
-                <h3 className="font-display text-2xl text-charcoal mb-2">
-                  Full-Service Experience
-                </h3>
-                <p className="font-body text-charcoal/70 leading-relaxed">
-                  Add catering from our plant-based café, sound system setup, yoga mats, 
-                  or custom arrangements. We'll handle the details so you can focus on your guests.
-                </p>
-              </div>
-            </div>
-
-            {/* CTA Button */}
-            <Link href="/rental" className="inline-block">
-              <Button 
-                size="lg"
-                className="bg-sage text-cream hover:bg-sage/90 px-10 py-6 text-base rounded-full shadow-xl mt-4"
-              >
-                Explore Space & Book
-              </Button>
+            <Link
+              href="/rental"
+              className="group mt-10 inline-flex items-center gap-1.5 self-start font-body text-sm font-semibold text-sage transition-colors duration-200 hover:text-[#7A8B7C]"
+            >
+              Explore space & book
+              <ArrowRight
+                size={16}
+                className="transition-transform duration-300 ease-out group-hover:translate-x-0.5 motion-reduce:transition-none"
+              />
             </Link>
           </div>
         </div>
 
-        {/* Stats Bar */}
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
-          <div className="text-center p-6 rounded-2xl bg-white-warm border border-sage/10">
-            <p className="font-display text-4xl text-sage mb-2">40+</p>
-            <p className="font-body text-sm text-charcoal/70">Events Hosted</p>
-          </div>
-          <div className="text-center p-6 rounded-2xl bg-white-warm border border-sage/10">
-            <p className="font-display text-4xl text-sage mb-2">1,000 sq ft +</p>
-            <p className="font-body text-sm text-charcoal/70">Open Space</p>
-          </div>
-          <div className="text-center p-6 rounded-2xl bg-white-warm border border-sage/10">
-            <p className="font-display text-4xl text-sage mb-2">Natural</p>
-            <p className="font-body text-sm text-charcoal/70">Lighting</p>
-          </div>
-          <div className="text-center p-6 rounded-2xl bg-white-warm border border-sage/10">
-            <p className="font-display text-4xl text-sage mb-2">Premium</p>
-            <p className="font-body text-sm text-charcoal/70">Amenities</p>
-          </div>
+        {/* Stats */}
+        <div className="mt-14 flex flex-wrap justify-center divide-y divide-[#e5e4dc] border-t border-[#e5e4dc] pt-10 sm:divide-x sm:divide-y-0 sm:border-t-0 sm:pt-12">
+          {stats.map((stat) => (
+            <div key={stat.label} className="w-1/2 px-6 py-4 text-center sm:w-auto sm:px-10">
+              <p className="font-display text-3xl text-charcoal md:text-4xl">{stat.value}</p>
+              <p className="mt-1 font-body text-xs uppercase tracking-[0.1em] text-charcoal/55">
+                {stat.label}
+              </p>
+            </div>
+          ))}
         </div>
       </div>
     </section>

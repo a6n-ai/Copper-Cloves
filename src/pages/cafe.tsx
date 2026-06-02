@@ -2,7 +2,6 @@ import { useState, useEffect, useRef } from "react";
 import Image from "next/image";
 import Link from "next/link";
 import { SEO } from "@/components/SEO";
-import { Navigation } from "@/components/Navigation";
 import { Footer } from "@/components/Footer";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
@@ -144,7 +143,6 @@ export default function CafePage() {
         description="Nourish your body with plant-based meals and belong to a vibrant community. Join us for The Analog Club and Sober Sundowners."
       />
       
-      <Navigation />
 
       {/* Dynamic Background with Lime-Plaster Texture */}
       <div

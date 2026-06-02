@@ -1,6 +1,5 @@
 import Link from "next/link";
 import { SEO } from "@/components/SEO";
-import { Navigation } from "@/components/Navigation";
 import { Footer } from "@/components/Footer";
 import { Button } from "@/components/ui/button";
 import { ArrowLeft, FileText } from "lucide-react";
@@ -15,7 +14,6 @@ export default function TermsPage() {
         description="Terms and conditions for using our website, booking classes, café, boutique, and member services at The Studio by Copper + Cloves, Bengaluru."
       />
 
-      <Navigation />
 
       <div className="min-h-screen bg-linear-to-b from-cream via-[#fafaf8] to-cream">
         <section className="relative pt-28 pb-12 px-6 lg:px-8">

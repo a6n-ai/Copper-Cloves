@@ -1,14 +1,14 @@
 import Link from "next/link";
+import { ArrowRight } from "lucide-react";
 
 export function Experience() {
   return (
     <section
       id="experience"
-      className="py-14 md:py-16 px-6 lg:px-8 bg-linear-to-br from-cream via-[#fafaf8] to-sage/5"
+      className="py-16 md:py-20 px-6 lg:px-8 bg-linear-to-br from-cream via-[#fafaf8] to-sage/5"
     >
       <div className="max-w-6xl mx-auto">
-        {/* Left-aligned editorial header */}
-        <div className="max-w-2xl mb-10 md:mb-14">
+        <div className="mx-auto max-w-2xl text-center mb-10 md:mb-14">
           <span className="font-body text-xs font-semibold tracking-[0.18em] uppercase text-terracotta">
             What you&apos;ll find here
           </span>
@@ -31,8 +31,9 @@ export function Experience() {
               From Muay Thai to Hatha Yoga, certified instructors guide you through
               transformative movement designed for every level.
             </p>
-            <span className="inline-block font-body text-sm font-medium text-sage mt-6 transition-transform duration-300 group-hover:translate-x-1">
-              See the schedule &rarr;
+            <span className="mt-6 inline-flex items-center gap-1.5 font-body text-sm font-semibold text-sage transition-transform duration-300 group-hover:translate-x-1">
+              See the schedule
+              <ArrowRight size={16} className="motion-reduce:transition-none" />
             </span>
           </Link>
 
@@ -49,8 +50,9 @@ export function Experience() {
               Refuel with chef-crafted, nutrient-dense bowls and smoothies. Every
               ingredient supports the work you just did.
             </p>
-            <span className="inline-block font-body text-sm font-medium text-terracotta mt-6 transition-transform duration-300 group-hover:translate-x-1">
-              Browse the menu &rarr;
+            <span className="mt-6 inline-flex items-center gap-1.5 font-body text-sm font-semibold text-terracotta transition-transform duration-300 group-hover:translate-x-1">
+              Browse the menu
+              <ArrowRight size={16} className="motion-reduce:transition-none" />
             </span>
           </Link>
 
@@ -70,8 +72,9 @@ export function Experience() {
                 More than a studio, it is a community. Find like-minded people in our
                 sun-drenched gathering spaces, between classes and over coffee.
               </p>
-              <span className="inline-block font-body text-sm font-medium text-sage mt-6 transition-transform duration-300 group-hover:translate-x-1">
-                Visit the sanctuary &rarr;
+              <span className="mt-6 inline-flex items-center gap-1.5 font-body text-sm font-semibold text-sage transition-transform duration-300 group-hover:translate-x-1">
+                Visit the sanctuary
+                <ArrowRight size={16} className="motion-reduce:transition-none" />
               </span>
             </div>
           </Link>

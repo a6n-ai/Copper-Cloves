@@ -1,13 +1,15 @@
-import { Button } from "@/components/ui/button";
-import { NavPrevButton, NavNextButton } from "@/components/ui/quick-actions";
 import { Skeleton } from "@/components/ui/skeleton";
 import { ArrowRight, Clock } from "lucide-react";
-import { useRouter } from "next/router";
+import Link from "next/link";
 import Image from "next/image";
-import { useRef, useState, useEffect } from "react";
+import { useState, useEffect } from "react";
 
 import { cdnUrl } from "@/lib/cdnUrl";
 import { BLUR_DATA_URL, isUnoptimizableSrc } from "@/lib/imageBlur";
+import { SectionHeading } from "@/components/SectionHeading";
+import { CarouselControls } from "@/components/CarouselControls";
+import { useCarouselScroll } from "@/hooks/useCarouselScroll";
+
 interface ClassData {
   id?: string;
   name: string;
@@ -26,19 +28,18 @@ const STATIC_CATALOG_FALLBACK: ClassData[] = [
   { name: "Mat Pilates", duration: "55 min", image: cdnUrl("/matpilates.jpg"), benefit: "Core-focused classical Pilates" },
 ];
 
-/** Mirrors the horizontal row of full-bleed class cards in the carousel. */
+/** Mirrors the horizontal row of class cards in the carousel. */
 function ClassCatalogSkeleton({ count = 3 }: { count?: number }) {
   return (
     <div className="flex gap-6 overflow-hidden pb-4 px-2">
       {Array.from({ length: count }).map((_, i) => (
         <div
           key={i}
-          className="relative shrink-0 w-[82vw] sm:w-96 h-104 md:h-128 rounded-2xl overflow-hidden"
+          className="relative h-80 w-[82vw] shrink-0 overflow-hidden rounded-2xl sm:w-80 md:h-96 md:w-96"
         >
-          <Skeleton className="absolute inset-0 w-full h-full rounded-2xl" />
-          {/* Name placeholder anchored to bottom, matching the default overlay */}
-          <div className="absolute inset-x-0 bottom-0 p-6 space-y-2">
-            <Skeleton className="h-9 w-3/4 bg-[#fafaf8]/30" />
+          <Skeleton className="absolute inset-0 h-full w-full rounded-2xl" />
+          <div className="absolute inset-x-0 bottom-0 space-y-2 p-6">
+            <Skeleton className="h-8 w-3/4 bg-[#fafaf8]/30" />
             <Skeleton className="h-4 w-1/2 bg-[#fafaf8]/20" />
           </div>
         </div>
@@ -48,14 +49,18 @@ function ClassCatalogSkeleton({ count = 3 }: { count?: number }) {
 }
 
 export function ClassCatalog() {
-  const router = useRouter();
-  const scrollContainerRef = useRef<HTMLDivElement>(null);
+  const { ref: scrollContainerRef, scrollBy, measure, atStart, atEnd, progress } = useCarouselScroll();
   const [classes, setClasses] = useState<ClassData[]>([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     fetchClasses();
   }, []);
+
+  // Re-sync control state once cards render (track size is child-driven).
+  useEffect(() => {
+    measure();
+  }, [classes, measure]);
 
   async function fetchClasses() {
     try {
@@ -82,118 +87,105 @@ export function ClassCatalog() {
     }
   }
 
-  const scroll = (direction: "left" | "right") => {
-    if (scrollContainerRef.current) {
-      const scrollAmount = 400;
-      const newScrollPosition = 
-        scrollContainerRef.current.scrollLeft + (direction === "left" ? -scrollAmount : scrollAmount);
-      scrollContainerRef.current.scrollTo({
-        left: newScrollPosition,
-        behavior: "smooth"
-      });
-    }
-  };
-
   return (
-    <section id="classes" className="py-14 md:py-16 bg-cream relative overflow-hidden">
-      <div className="relative z-10 max-w-7xl mx-auto px-6 lg:px-8">
-        {/* Section Header */}
-        <div className="text-center mb-12">
-          <h2 className="font-display text-4xl md:text-5xl text-charcoal mb-4">
-            Our Classes
-          </h2>
-          <p className="font-body text-lg text-charcoal/60 max-w-2xl mx-auto">
-            Discover movement practices designed to challenge, restore, and transform
-          </p>
-        </div>
+    <section id="classes" className="relative overflow-hidden bg-cream py-16 md:py-20">
+      <div className="relative z-10 mx-auto max-w-7xl px-6 lg:px-8">
+        <SectionHeading
+          eyebrow="The Studio · Classes"
+          title="Our Classes"
+          subtitle="Discover movement practices designed to challenge, restore, and transform."
+          accent="terracotta"
+        />
 
-        {/* Carousel Container */}
-        <div className="relative">
-          {/* Left Scroll Button */}
-          <NavPrevButton
-            onClick={() => scroll("left")}
-            className="hidden md:flex absolute left-0 top-1/2 -translate-y-1/2 -translate-x-4 z-20 rounded-full bg-white-warm border border-sage/20"
-            label="Scroll left"
-          />
-
-          {/* Right Scroll Button */}
-          <NavNextButton
-            onClick={() => scroll("right")}
-            className="hidden md:flex absolute right-0 top-1/2 -translate-y-1/2 translate-x-4 z-20 rounded-full bg-white-warm border border-sage/20"
-            label="Scroll right"
-          />
-
-          {/* Carousel Scroll Container */}
+        {/* Carousel */}
+        <div className="mt-10 md:mt-12">
           {loading ? (
-            <div className="w-full py-4">
-              <ClassCatalogSkeleton count={3} />
-            </div>
+            <ClassCatalogSkeleton count={3} />
           ) : classes.length === 0 ? (
-            <div className="text-center py-12">
+            <div className="py-12 text-center">
               <p className="font-body text-charcoal/60">No classes available at the moment.</p>
             </div>
           ) : (
-            <div 
-              ref={scrollContainerRef}
-              className="flex gap-6 overflow-x-auto scrollbar-hide scroll-smooth snap-x snap-mandatory scroll-px-2 pb-4 px-2"
-              style={{ scrollbarWidth: "none", msOverflowStyle: "none" }}
-            >
-              {classes.map((classItem, index) => (
-                <div
-                  key={classItem.id || index}
-                  className="group relative shrink-0 snap-start w-[82vw] sm:w-96 h-104 md:h-128 rounded-2xl overflow-hidden cursor-pointer"
-                >
-                  {/* Background Image */}
-                  <Image
-                    src={classItem.image}
-                    alt={classItem.name}
-                    fill
-                    sizes="(max-width: 640px) 82vw, 384px"
-                    placeholder="blur"
-                    blurDataURL={BLUR_DATA_URL}
-                    unoptimized={isUnoptimizableSrc(classItem.image)}
-                    className="object-cover transition-transform duration-600 ease-in-out group-hover:scale-110"
-                  />
+            <div className="relative">
+              {/* Edge fades hint more content and vanish at the boundaries */}
+              <div
+                className={`pointer-events-none absolute inset-y-0 left-0 z-10 w-10 bg-linear-to-r from-cream to-transparent transition-opacity duration-300 md:w-16 ${atStart ? "opacity-0" : "opacity-100"}`}
+              />
+              <div
+                className={`pointer-events-none absolute inset-y-0 right-0 z-10 w-10 bg-linear-to-l from-cream to-transparent transition-opacity duration-300 md:w-16 ${atEnd ? "opacity-0" : "opacity-100"}`}
+              />
 
-                  {/* Default State - Dark gradient with class name */}
-                  <div className="absolute inset-0 bg-linear-to-t from-charcoal/80 via-charcoal/40 to-transparent transition-opacity duration-600 ease-in-out group-hover:opacity-0 flex items-end p-6">
-                    <h3 className="font-display text-3xl md:text-4xl text-cream drop-shadow-lg leading-tight">
-                      {classItem.name}
-                    </h3>
-                  </div>
+              <div
+                ref={scrollContainerRef}
+                className="scrollbar-hide flex snap-x snap-mandatory gap-6 overflow-x-auto scroll-px-2 px-2 pb-4"
+                style={{ scrollbarWidth: "none", msOverflowStyle: "none", WebkitOverflowScrolling: "touch" }}
+              >
+                {classes.map((classItem, index) => (
+                  <div
+                    key={classItem.id || index}
+                    className="group/card relative h-80 w-[82vw] shrink-0 cursor-pointer snap-start overflow-hidden rounded-2xl sm:w-80 md:h-96 md:w-96"
+                  >
+                    <Image
+                      src={classItem.image}
+                      alt={classItem.name}
+                      fill
+                      sizes="(max-width: 640px) 82vw, 384px"
+                      placeholder="blur"
+                      blurDataURL={BLUR_DATA_URL}
+                      unoptimized={isUnoptimizableSrc(classItem.image)}
+                      className="object-cover transition-transform duration-500 ease-out group-hover/card:scale-105"
+                    />
 
-                  {/* Hover State - Glassmorphism overlay with details */}
-                  <div className="absolute inset-0 bg-charcoal/70 opacity-0 group-hover:opacity-100 transition-all duration-600 ease-in-out flex flex-col items-center justify-center p-8 text-center">
-                    <h3 className="font-display text-3xl md:text-4xl text-cream mb-4 drop-shadow-lg">
-                      {classItem.name}
-                    </h3>
-                    
-                    <div className="flex items-center gap-2 text-cream/90 mb-4">
-                      <Clock size={18} />
-                      <span className="font-body">{classItem.duration}</span>
+                    {/* Default state: gradient + class name */}
+                    <div className="absolute inset-0 flex items-end bg-linear-to-t from-charcoal/80 via-charcoal/40 to-transparent p-6 transition-opacity duration-500 ease-out group-hover/card:opacity-0">
+                      <h3 className="font-display text-2xl leading-tight text-cream drop-shadow-lg md:text-3xl">
+                        {classItem.name}
+                      </h3>
                     </div>
 
-                    <p className="font-body text-lg text-cream/90 leading-relaxed">
-                      {classItem.benefit}
-                    </p>
+                    {/* Hover state: details */}
+                    <div className="absolute inset-0 flex flex-col items-center justify-center bg-charcoal/70 p-8 text-center opacity-0 transition-opacity duration-500 ease-out group-hover/card:opacity-100">
+                      <h3 className="mb-3 font-display text-2xl text-cream drop-shadow-lg md:text-3xl">
+                        {classItem.name}
+                      </h3>
+                      <div className="mb-3 flex items-center gap-2 text-cream/90">
+                        <Clock size={18} />
+                        <span className="font-body">{classItem.duration}</span>
+                      </div>
+                      <p className="font-body text-base leading-relaxed text-cream/90">
+                        {classItem.benefit}
+                      </p>
+                    </div>
                   </div>
-                </div>
-              ))}
+                ))}
+              </div>
             </div>
           )}
         </div>
 
-        {/* CTA Button */}
-        <div className="text-center mt-8 md:mt-10">
-          <Button
-            onClick={() => router.push("/classes")}
-            size="lg"
-            variant="outline"
-            className="border-2 border-sage text-sage hover:bg-sage hover:text-cream bg-cream transition-all duration-600 ease-in-out px-8 group"
+        {!loading && classes.length > 0 && (
+          <CarouselControls
+            className="mt-8"
+            label="classes"
+            atStart={atStart}
+            atEnd={atEnd}
+            progress={progress}
+            onPrev={() => scrollBy("left", 420)}
+            onNext={() => scrollBy("right", 420)}
+          />
+        )}
+
+        <div className="mt-10 text-center">
+          <Link
+            href="/classes"
+            className="group inline-flex items-center gap-1.5 font-body text-sm font-semibold text-sage transition-colors duration-200 hover:text-[#7A8B7C]"
           >
-            Explore All Classes
-            <ArrowRight className="ml-2 group-hover:translate-x-1 transition-transform duration-600 ease-in-out" size={18} />
-          </Button>
+            See all classes
+            <ArrowRight
+              size={16}
+              className="transition-transform duration-300 ease-out group-hover:translate-x-0.5 motion-reduce:transition-none"
+            />
+          </Link>
         </div>
       </div>
 

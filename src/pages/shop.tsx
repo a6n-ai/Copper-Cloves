@@ -3,7 +3,6 @@ import type { GetStaticProps } from "next";
 import prisma from "@/lib/prisma";
 import type { LucideIcon } from "lucide-react";
 import { SEO } from "@/components/SEO";
-import { Navigation } from "@/components/Navigation";
 import { Footer } from "@/components/Footer";
 import { Button } from "@/components/ui/button";
 import {
@@ -251,7 +250,6 @@ export default function Shop({ initialProducts }: ShopProps) {
         description="Curated wellness products for your home sanctuary. Aromatherapy, mindfulness tools, personal care, and more."
       />
       
-      <Navigation />
       
       {/* Hero Section */}
       <section className="relative pt-32 pb-16 px-6 lg:px-8 overflow-hidden">

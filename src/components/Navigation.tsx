@@ -96,14 +96,20 @@ export function Navigation({ variant = "default" }: NavigationProps) {
             <Link href="/classes" className={linkClass}>
               Classes
             </Link>
-            <Link href="/#instructors" className={linkClass}>
+            <Link href="/instructors" className={linkClass}>
               Instructors
             </Link>
-            <Link href="/#pricing" className={linkClass}>
+            <Link href="/pricing" className={linkClass}>
               Pricing
             </Link>
             <Link href="/cafe" className={linkClass}>
               Café
+            </Link>
+            <Link href="/rental" className={linkClass}>
+              Events
+            </Link>
+            <Link href="/story" className={linkClass}>
+              Story
             </Link>
             <Link href="/portal/login">
               <Button
@@ -151,14 +157,14 @@ export function Navigation({ variant = "default" }: NavigationProps) {
               Classes
             </Link>
             <Link
-              href="/#instructors"
+              href="/instructors"
               className="block font-body font-medium text-charcoal py-3 px-1 hover:text-[#7A8B7C]"
               onClick={() => setMobileMenuOpen(false)}
             >
               Instructors
             </Link>
             <Link
-              href="/#pricing"
+              href="/pricing"
               className="block font-body font-medium text-charcoal py-3 px-1 hover:text-[#7A8B7C]"
               onClick={() => setMobileMenuOpen(false)}
             >
@@ -170,6 +176,20 @@ export function Navigation({ variant = "default" }: NavigationProps) {
               onClick={() => setMobileMenuOpen(false)}
             >
               Café
+            </Link>
+            <Link
+              href="/rental"
+              className="block font-body font-medium text-charcoal py-3 px-1 hover:text-[#7A8B7C]"
+              onClick={() => setMobileMenuOpen(false)}
+            >
+              Events
+            </Link>
+            <Link
+              href="/story"
+              className="block font-body font-medium text-charcoal py-3 px-1 hover:text-[#7A8B7C]"
+              onClick={() => setMobileMenuOpen(false)}
+            >
+              Story
             </Link>
             <Link href="/portal/login" onClick={() => setMobileMenuOpen(false)} className="block pt-2">
               <Button

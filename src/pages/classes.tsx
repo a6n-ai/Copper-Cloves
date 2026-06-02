@@ -1,5 +1,4 @@
 import { SEO } from "@/components/SEO";
-import { Navigation } from "@/components/Navigation";
 import { Footer } from "@/components/Footer";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
@@ -462,7 +461,6 @@ export default function ClassesPage({ initialClasses }: ClassesPageProps) {
         description="Explore our complete range of expert-led wellness classes. From Muay Thai to Aerial Yoga, find the perfect practice for your journey."
       />
       
-      <Navigation />
 
       {/* Hero Section */}
       <section className="relative pt-32 pb-16 bg-linear-to-br from-sage/10 via-cream to-terracotta/5">

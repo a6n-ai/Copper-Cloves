@@ -1,5 +1,4 @@
 import dynamic from "next/dynamic";
-import { Navigation } from "@/components/Navigation";
 import { Hero } from "@/components/Hero";
 import { Experience } from "@/components/Experience";
 import { ClassCatalog } from "@/components/ClassCatalog";
@@ -27,7 +26,6 @@ export default function Home() {
         image={cdnUrl("/og-image.png")}
       />
       <div className="min-h-screen bg-cream">
-        <Navigation variant="overlay" />
         <Hero />
         <Experience />
         <ClassCatalog />

@@ -6,7 +6,7 @@ import Head from "next/head";
 import Script from "next/script";
 import { Playfair_Display, Montserrat } from "next/font/google";
 import { useRouter } from "next/router";
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo } from "react";
 
 const playfair = Playfair_Display({
   subsets: ["latin"],
@@ -31,6 +31,10 @@ import { useActivityTracking } from "@/hooks/useActivityTracking";
 import { DashboardShell } from "@/components/dashboard/DashboardShell";
 import { PORTAL_CONFIGS, type PortalKind } from "@/components/dashboard/dashboardNav";
 import { BuildVersionWatcher } from "@/components/BuildVersionWatcher";
+import { Navigation } from "@/components/Navigation";
+import { PageTransition } from "@/components/transitions/PageTransition";
+import { RouteProgress } from "@/components/transitions/RouteProgress";
+import { isPublicSite, PUBLIC_NAV_ROUTES } from "@/lib/isPublicSite";
 
 import { cdnUrl } from "@/lib/cdnUrl";
 
@@ -119,6 +123,27 @@ function DashboardChrome({ children }: { children: React.ReactNode }) {
     <DashboardShell config={PORTAL_CONFIGS[kind]} user={shellUser}>
       {children}
     </DashboardShell>
+  );
+}
+
+/**
+ * Public marketing chrome. Dashboards are handled by DashboardChrome above, so
+ * here we only act on public routes: the shared <Navigation> is mounted ONCE
+ * (outside the transition) so it stays put across route changes, and the page
+ * body fades/lifts via PageTransition. Routes without a nav entry render just
+ * the transition (login, signup, meal-subscription, checkin, 404).
+ */
+function PublicChrome({ children }: { children: React.ReactNode }) {
+  const router = useRouter();
+  if (!isPublicSite(router.pathname)) return <>{children}</>;
+  const variant = PUBLIC_NAV_ROUTES[router.pathname];
+  // Cream backdrop sits BELOW the transition wrapper (it never fades), so the
+  // crossfade gap reveals the site's cream — not the white document background.
+  return (
+    <div className="min-h-screen bg-cream">
+      {variant && <Navigation variant={variant} />}
+      <PageTransition>{children}</PageTransition>
+    </div>
   );
 }
 
@@ -225,9 +250,12 @@ export default function App({ Component, pageProps: { session, ...pageProps } }:
         <BuildVersionWatcher />
         <ActivityTrackingSubscriber />
         <OnboardingGate />
+        <RouteProgress />
         <CartProvider>
           <DashboardChrome>
-            <Component {...pageProps} />
+            <PublicChrome>
+              <Component {...pageProps} />
+            </PublicChrome>
           </DashboardChrome>
           <Toaster richColors closeButton position="top-center" />
         </CartProvider>

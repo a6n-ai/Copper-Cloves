@@ -3,7 +3,6 @@ import type { GetStaticPaths, GetStaticProps } from "next";
 import prisma from "@/lib/prisma";
 import { useRouter } from "next/router";
 import { SEO } from "@/components/SEO";
-import { Navigation } from "@/components/Navigation";
 import { Footer } from "@/components/Footer";
 import { Button } from "@/components/ui/button";
 import { useCart } from "@/contexts/CartContext";
@@ -149,7 +148,6 @@ export default function ProductDetail({ product, catalog }: ProductDetailProps) 
     return (
       <>
         <SEO title="Loading… | The Boutique" />
-        <Navigation />
         <div className="min-h-screen bg-cream flex items-center justify-center pt-24">
           <p className="font-body text-charcoal/60">Loading product…</p>
         </div>
@@ -162,7 +160,6 @@ export default function ProductDetail({ product, catalog }: ProductDetailProps) 
     return (
       <>
         <SEO title="Product Not Found | The Boutique" />
-        <Navigation />
         <div className="min-h-screen flex items-center justify-center bg-cream">
           <div className="text-center px-4">
             <h1 className="font-display text-4xl text-charcoal mb-4">Product Not Found</h1>
@@ -229,7 +226,6 @@ export default function ProductDetail({ product, catalog }: ProductDetailProps) 
         image={thumbSrc}
       />
 
-      <Navigation />
 
       <main className="min-h-screen bg-linear-to-br from-cream via-[#fafaf8] to-sage/5 pt-24 pb-16">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">

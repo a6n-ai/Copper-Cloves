@@ -1,316 +1,99 @@
 import { useRef, useState } from "react";
-import { Check, Sparkles } from "lucide-react";
-import { NavPrevButton, NavNextButton } from "@/components/ui/quick-actions";
+import { ArrowRight } from "lucide-react";
 import Link from "next/link";
 import { useRouter } from "next/router";
 import { useSession } from "next-auth/react";
-import { Button } from "@/components/ui/button";
-import { Card, CardContent } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
-
-interface Package {
-  name: string;
-  price: string;
-  classes: number | string;
-  validity: string;
-  benefits: string[];
-  featured?: boolean;
-  badge?: string;
-}
-
-const premiumPackages: Package[] = [
-  {
-    name: "1 Day Class Pass",
-    price: "₹945",
-    classes: 1,
-    validity: "1 day",
-    benefits: [
-      "Access Any Class",
-      "Flexible Scheduling",
-      "Shower Facilities",
-      "Cafe Credits"
-    ],
-  },
-  {
-    name: "4 Class Pass",
-    price: "₹3,700",
-    classes: 4,
-    validity: "30 days",
-    benefits: [
-      "Access Any Class",
-      "Flexible Scheduling",
-      "Shower Facilities",
-      "Cafe Credits"
-    ],
-  },
-  {
-    name: "8 Class Pass",
-    price: "₹7,200",
-    classes: 8,
-    validity: "40 days",
-    benefits: [
-      "Access Any Class",
-      "Flexible Scheduling",
-      "Shower Facilities",
-      "Cafe Credits"
-    ],
-  },
-  {
-    name: "12 Class Pass",
-    price: "₹10,500",
-    classes: 12,
-    validity: "60 days",
-    benefits: [
-      "Access Any Class",
-      "Flexible Scheduling",
-      "Shower Facilities",
-      "Cafe Credits"
-    ],
-  },
-  {
-    name: "1 Month Unlimited",
-    price: "₹12,500",
-    classes: "Unlimited",
-    validity: "30 days",
-    benefits: [
-      "Access Any Class",
-      "Flexible Scheduling",
-      "Shower Facilities",
-      "Flat 10% Off on Cafe",
-      "Tote Bag",
-      "1 Complimentary Aerial Class"
-    ],
-  },
-  {
-    name: "3 Month Unlimited",
-    price: "₹36,000",
-    classes: "Unlimited",
-    validity: "90 days",
-    benefits: [
-      "Access Any Class",
-      "Flexible Scheduling",
-      "Shower Facilities",
-      "Flat 12% Off on Cafe",
-      "C+C Tote Bag + C+C Bottle",
-      "2 Complimentary Aerial Class"
-    ],
-    featured: true,
-    badge: "Most Popular",
-  },
-  {
-    name: "6 Month Unlimited",
-    price: "₹42,500",
-    classes: "Unlimited",
-    validity: "180 days",
-    benefits: [
-      "Access Any Class",
-      "Flexible Scheduling",
-      "Shower Facilities",
-      "Flat 15% Off on Cafe",
-      "C+C Tote Bag & C+C Bottle",
-      "3 Complimentary Aerial Class",
-      "Access to AI Features"
-    ],
-  },
-  {
-    name: "12 Month Unlimited",
-    price: "₹51,000",
-    classes: "Unlimited",
-    validity: "365 days",
-    benefits: [
-      "Access Any Class",
-      "Flexible Scheduling",
-      "Shower Facilities",
-      "Flat 20% Off on Cafe",
-      "C+C Tote Bag & C+C Bottle",
-      "4 Complimentary Aerial Class",
-      "Access to AI Features"
-    ],
-  },
-];
-
-const aerialPackage: Package = {
-  name: "Aerial Yoga",
-  price: "₹5,500",
-  classes: 4,
-  validity: "30 days",
-  benefits: [
-    "4 Aerial Yoga sessions",
-    "Hammock orientation",
-    "Valid for 1 month",
-    "Specialty experience"
-  ],
-  badge: "Specialty",
-};
-
-const classPassPackages = premiumPackages.filter((pkg) => typeof pkg.classes === "number");
-const studioPassPackages = premiumPackages.filter((pkg) => pkg.classes === "Unlimited");
+import { NavPrevButton, NavNextButton } from "@/components/ui/quick-actions";
+import { PricingCard } from "@/components/pricing/PricingCard";
+import { SectionHeading } from "@/components/SectionHeading";
+import { studioPassPlans, classPassPlans, type PricingPlan } from "@/lib/pricingPlans";
 
 export function Pricing() {
   const router = useRouter();
   const { data: session } = useSession();
-  const [selectedTier, setSelectedTier] = useState("studio");
+  const [selectedTier, setSelectedTier] = useState<"studio" | "class">("studio");
   const scrollContainerRef = useRef<HTMLDivElement>(null);
 
-  function handleSelectPackage() {
-    if (!session) {
-      router.push("/portal/login?redirect=/portal/packages");
-      return;
-    }
-    router.push("/portal/packages");
-  }
-
-  const handleChoosePlan = (pkg: typeof premiumPackages[0] | typeof aerialPackage) => {
-    if (!session) {
-      router.push(`/portal/login?redirect=/portal/packages&package=${encodeURIComponent(pkg.name)}`);
-      return;
-    }
-    router.push(`/portal/packages?selected=${encodeURIComponent(pkg.name)}`);
+  const handleSelect = (plan: PricingPlan) => {
+    const base = session ? "/portal/packages" : "/portal/login?redirect=/portal/packages";
+    router.push(`${base}${session ? "?" : "&"}selected=${encodeURIComponent(plan.name)}`);
   };
 
   const scroll = (direction: "left" | "right") => {
-    if (scrollContainerRef.current) {
-      const scrollAmount = 350;
-      scrollContainerRef.current.scrollBy({
-        left: direction === "left" ? -scrollAmount : scrollAmount,
-        behavior: "smooth",
-      });
-    }
+    scrollContainerRef.current?.scrollBy({
+      left: direction === "left" ? -350 : 350,
+      behavior: "smooth",
+    });
   };
 
-  // premiumPackages is module-scope constant → these slices are stable; compute once
-  const currentPackages = selectedTier === "class" ? classPassPackages : studioPassPackages;
+  const currentPlans = selectedTier === "class" ? classPassPlans : studioPassPlans;
 
   return (
-    <section id="pricing" className="py-16 md:py-20 bg-cream relative overflow-hidden">
-      <div className="relative z-10 max-w-7xl mx-auto px-6 lg:px-8">
-        {/* Header — label above a tight heading (no trailing paragraph) */}
-        <div className="text-center mb-12">
-          <span className="font-body text-xs font-semibold tracking-[0.18em] uppercase text-terracotta">
-            Memberships &amp; passes
-          </span>
-          <h2 className="font-display text-5xl md:text-6xl text-charcoal mt-3">
-            Invest in Yourself
-          </h2>
-        </div>
+    <section id="pricing" className="bg-cream py-16 md:py-20">
+      <div className="mx-auto max-w-7xl px-6 lg:px-8">
+        <SectionHeading
+          eyebrow="Memberships & passes"
+          title="Invest in yourself."
+          subtitle="Unlimited memberships or pay-as-you-go passes. Every plan opens the whole studio, the café, and the community."
+          accent="terracotta"
+        />
 
-        {/* Tier Selector */}
-        <div className="flex justify-center mb-12">
-          <div className="inline-flex bg-white-warm rounded-full p-1.5 border border-sage/20 shadow-xs">
-            <button
-              onClick={() => setSelectedTier("studio")}
-              className={`px-8 py-3 rounded-full font-body text-sm transition-all duration-300 ${
-                selectedTier === "studio"
-                  ? "bg-sage text-cream shadow-md"
-                  : "text-charcoal hover:text-sage"
-              }`}
-            >
-              Studio Pass
-            </button>
-            <button
-              onClick={() => setSelectedTier("class")}
-              className={`px-8 py-3 rounded-full font-body text-sm transition-all duration-300 ${
-                selectedTier === "class"
-                  ? "bg-sage text-cream shadow-md"
-                  : "text-charcoal hover:text-sage"
-              }`}
-            >
-              Class Pass
-            </button>
+        {/* Tier selector */}
+        <div className="mt-10 flex justify-center">
+          <div
+            role="tablist"
+            aria-label="Pass type"
+            className="inline-flex rounded-full border border-sage/20 bg-white-warm p-1.5 shadow-xs"
+          >
+            {(["studio", "class"] as const).map((tier) => (
+              <button
+                key={tier}
+                role="tab"
+                aria-selected={selectedTier === tier}
+                onClick={() => setSelectedTier(tier)}
+                className={`rounded-full px-8 py-2.5 font-body text-sm transition-colors duration-300 ${
+                  selectedTier === tier
+                    ? "bg-sage text-cream shadow-sm"
+                    : "text-charcoal hover:text-sage"
+                }`}
+              >
+                {tier === "studio" ? "Studio Pass" : "Class Pass"}
+              </button>
+            ))}
           </div>
         </div>
 
-        {/* Mobile Scroll Buttons */}
-        <div className="flex justify-center gap-4 mb-6 lg:hidden">
-          <NavPrevButton
-            onClick={() => scroll("left")}
-            className="rounded-full bg-white-warm"
-          />
-          <NavNextButton
-            onClick={() => scroll("right")}
-            className="rounded-full bg-white-warm"
-          />
+        {/* Mobile scroll controls */}
+        <div className="mt-8 flex justify-center gap-4 lg:hidden">
+          <NavPrevButton onClick={() => scroll("left")} className="rounded-full bg-white-warm" />
+          <NavNextButton onClick={() => scroll("right")} className="rounded-full bg-white-warm" />
         </div>
 
-        {/* Packages Container */}
+        {/* Plans */}
         <div
           ref={scrollContainerRef}
-          className="flex gap-6 overflow-x-auto pb-8 snap-x snap-mandatory scrollbar-hide lg:grid lg:grid-cols-4 lg:gap-8 lg:overflow-visible"
+          className="scrollbar-hide mt-8 flex snap-x snap-mandatory gap-6 overflow-x-auto pb-4 lg:grid lg:grid-cols-4 lg:gap-8 lg:overflow-visible lg:pb-0"
         >
-          {currentPackages.map((pkg, index) => (
-            <div
-              key={index}
-              className={`shrink-0 w-80 lg:w-auto snap-center ${
-                pkg.featured ? "lg:scale-105" : ""
-              }`}
-            >
-              <div
-                className={`relative h-full rounded-3xl p-8 transition-all duration-500 hover:shadow-2xl ${
-                  pkg.featured
-                    ? "bg-white-warm border-2 border-sage shadow-xl"
-                    : "bg-white-warm border border-sage/10 shadow-lg hover:border-sage/30"
-                }`}
-              >
-                {/* Badge */}
-                {pkg.badge && (
-                  <div className="absolute -top-4 left-1/2 -translate-x-1/2">
-                    <span className="bg-sage text-cream px-4 py-1.5 rounded-full text-xs font-body font-semibold shadow-md">
-                      {pkg.badge}
-                    </span>
-                  </div>
-                )}
-
-                {/* Package Name */}
-                <h3 className="font-display text-2xl text-charcoal mb-2 mt-2">
-                  {pkg.name}
-                </h3>
-
-                {/* Classes Count */}
-                <div className="text-charcoal/60 font-body text-sm mb-6">
-                  {typeof pkg.classes === "number" ? `${pkg.classes} ${pkg.classes === 1 ? "class" : "classes"}` : pkg.classes}
-                </div>
-
-                {/* Price */}
-                <div className="mb-8">
-                  <div className="font-display text-3xl text-charcoal mb-2">
-                    {pkg.price}
-                  </div>
-                  <div className="text-charcoal/50 font-body text-sm">
-                    Valid for {pkg.validity}
-                  </div>
-                </div>
-
-                {/* Benefits */}
-                <ul className="space-y-4 mb-8">
-                  {pkg.benefits.map((benefit, i) => (
-                    <li key={i} className="flex items-start gap-3">
-                      <div className="shrink-0 w-5 h-5 rounded-full bg-sage/10 flex items-center justify-center mt-0.5">
-                        <Check className="text-sage" size={14} />
-                      </div>
-                      <span className="font-body text-sm text-charcoal/80 leading-relaxed">
-                        {benefit}
-                      </span>
-                    </li>
-                  ))}
-                </ul>
-
-                {/* CTA Button */}
-                <Button
-                  onClick={handleSelectPackage}
-                  variant={pkg.featured ? "sage" : "sage-outline"}
-                  className="w-full"
-                >
-                  Select Package
-                </Button>
-              </div>
+          {currentPlans.map((plan, i) => (
+            <div key={plan.name} className="w-80 shrink-0 snap-center lg:w-auto">
+              <PricingCard plan={plan} onSelect={handleSelect} index={i} />
             </div>
           ))}
         </div>
 
-        {/* Bottom Note */}
-        <div className="text-center mt-12">
-          <p className="font-body text-sm text-charcoal/50">
-            All packages include access to our beautiful studio space and community
+        <div className="mt-10 flex flex-col items-center gap-4">
+          <Link
+            href="/pricing"
+            className="group inline-flex items-center gap-1.5 font-body text-sm font-semibold text-sage transition-colors duration-200 hover:text-[#7A8B7C]"
+          >
+            Compare all plans
+            <ArrowRight
+              size={16}
+              className="transition-transform duration-300 ease-out group-hover:translate-x-0.5 motion-reduce:transition-none"
+            />
+          </Link>
+          <p className="text-center font-body text-sm text-charcoal/50">
+            All packages include access to our studio space and community.
           </p>
         </div>
       </div>
