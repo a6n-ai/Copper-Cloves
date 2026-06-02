@@ -11,6 +11,7 @@ import { ClassCard } from "@/components/classes/ClassCard";
 import { ClassDetailDialog } from "@/components/classes/ClassDetailDialog";
 import { CategoryFilter } from "@/components/classes/CategoryFilter";
 import { ScheduleDayFilter } from "@/components/classes/ScheduleDayFilter";
+import { ScheduleClassRow } from "@/components/classes/ScheduleClassRow";
 import type { GetStaticProps } from "next";
 import prisma from "@/lib/prisma";
 import { cdnUrl } from "@/lib/cdnUrl";
@@ -454,7 +455,7 @@ export default function ClassesPage({ initialClasses }: ClassesPageProps) {
                     Weekly Schedule
                   </h2>
                   <p className="font-body text-charcoal/60 text-center text-sm">
-                    Check our ticketed events on the page
+                    Browse classes by day, or switch to the full week.
                   </p>
                 </div>
 
@@ -551,60 +552,35 @@ export default function ClassesPage({ initialClasses }: ClassesPageProps) {
 
                     {/* All-week grid or single-day panel */}
                     {selectedDay === "all" ? (
-                      <div className="grid md:grid-cols-2 divide-y md:divide-y-0 md:divide-x divide-[#e5e4dc]">
+                      <div className="grid divide-y divide-[#e5e4dc] md:grid-cols-2 md:divide-y-0 md:[&>*:nth-child(odd)]:border-r md:[&>*]:border-[#e5e4dc]">
                         {scheduleData.map((daySchedule, index) => (
-                          <div
-                            key={index}
-                            className="p-6 hover:bg-sage/5 transition-colors duration-300"
-                          >
-                            <div className="mb-4 pb-3 border-b border-[#e5e4dc]">
-                              <h3 className="font-display text-xl text-charcoal capitalize">
-                                {daySchedule.day}
-                              </h3>
-                              <p className="font-body text-charcoal/50 text-sm">
-                                {daySchedule.date}
-                              </p>
-                            </div>
-                            <div className="space-y-3">
-                              {daySchedule.classes.length === 0 ? (
-                                <p className="font-body text-sm text-charcoal/40 italic">No classes scheduled</p>
-                              ) : (
-                                daySchedule.classes.map((classItem, classIndex) => (
-                                  <div
-                                    key={classIndex}
-                                    className={`flex gap-3 ${
-                                      classItem.name === "Class Cancelled" ? "opacity-50" : ""
-                                    }`}
-                                  >
-                                    <div className="shrink-0">
-                                      <p className={`font-body text-xs whitespace-nowrap ${
-                                        classItem.name === "Class Cancelled"
-                                          ? "text-charcoal/70"
-                                          : isMorningClass(classItem.time)
-                                          ? "text-sage font-medium"
-                                          : "text-charcoal/70"
-                                      }`}>
-                                        {classItem.time}
-                                      </p>
-                                    </div>
-                                    <div className="flex-1 min-w-0">
-                                      <p className={`font-body text-sm ${
-                                        classItem.name === "Class Cancelled"
-                                          ? "text-charcoal/50 line-through"
-                                          : isMorningClass(classItem.time)
-                                          ? "text-sage font-medium"
-                                          : "text-charcoal"
-                                      }`}>
-                                        {classItem.name}
-                                        {classItem.instructor && (
-                                          <span className={classItem.name === "Class Cancelled" ? "text-charcoal/50" : isMorningClass(classItem.time) ? "text-sage/80" : "text-charcoal/60"}> - {classItem.instructor}</span>
-                                        )}
-                                      </p>
-                                    </div>
-                                  </div>
-                                ))
+                          <div key={index} className="p-6">
+                            <div className="mb-4 flex items-end justify-between gap-3 border-b border-[#e5e4dc] pb-3">
+                              <div>
+                                <h3 className="font-display text-xl capitalize text-charcoal">{daySchedule.day}</h3>
+                                <p className="font-body text-sm text-charcoal/50">{daySchedule.date}</p>
+                              </div>
+                              {daySchedule.classes.length > 0 && (
+                                <span className="font-body text-xs text-charcoal/45">
+                                  {daySchedule.classes.length} {daySchedule.classes.length === 1 ? "class" : "classes"}
+                                </span>
                               )}
                             </div>
+                            {daySchedule.classes.length === 0 ? (
+                              <p className="font-body text-sm italic text-charcoal/40">No classes scheduled</p>
+                            ) : (
+                              <div className="space-y-2.5">
+                                {daySchedule.classes.map((classItem, classIndex) => (
+                                  <ScheduleClassRow
+                                    key={classIndex}
+                                    time={classItem.time}
+                                    name={classItem.name}
+                                    instructor={classItem.instructor}
+                                    morning={isMorningClass(classItem.time)}
+                                  />
+                                ))}
+                              </div>
+                            )}
                           </div>
                         ))}
                       </div>
@@ -614,47 +590,30 @@ export default function ClassesPage({ initialClasses }: ClassesPageProps) {
                         if (!day) return null;
                         return (
                           <div className="p-6">
-                            <div className="mb-4 pb-3 border-b border-[#e5e4dc]">
-                              <h3 className="font-display text-2xl text-charcoal capitalize">{day.day}</h3>
-                              <p className="font-body text-charcoal/50 text-sm">{day.date}</p>
+                            <div className="mb-5 flex items-end justify-between gap-3 border-b border-[#e5e4dc] pb-4">
+                              <div>
+                                <h3 className="font-display text-3xl capitalize text-charcoal">{day.day}</h3>
+                                <p className="font-body text-sm text-charcoal/50">{day.date}</p>
+                              </div>
+                              <span className="font-body text-xs text-charcoal/50">
+                                {day.classes.length} {day.classes.length === 1 ? "class" : "classes"}
+                              </span>
                             </div>
                             {day.classes.length === 0 ? (
-                              <p className="font-body text-sm text-charcoal/40 italic">No classes scheduled this day.</p>
+                              <div className="flex flex-col items-center gap-2 py-12 text-center">
+                                <Calendar className="size-8 text-charcoal/25" aria-hidden="true" />
+                                <p className="font-body text-sm text-charcoal/45">No classes scheduled this day.</p>
+                              </div>
                             ) : (
-                              <div className="space-y-3">
+                              <div className="mx-auto grid max-w-2xl gap-2.5">
                                 {day.classes.map((classItem, classIndex) => (
-                                  <div
+                                  <ScheduleClassRow
                                     key={classIndex}
-                                    className={`flex gap-3 ${
-                                      classItem.name === "Class Cancelled" ? "opacity-50" : ""
-                                    }`}
-                                  >
-                                    <div className="shrink-0">
-                                      <p className={`font-body text-xs whitespace-nowrap ${
-                                        classItem.name === "Class Cancelled"
-                                          ? "text-charcoal/70"
-                                          : isMorningClass(classItem.time)
-                                          ? "text-sage font-medium"
-                                          : "text-charcoal/70"
-                                      }`}>
-                                        {classItem.time}
-                                      </p>
-                                    </div>
-                                    <div className="flex-1 min-w-0">
-                                      <p className={`font-body text-sm ${
-                                        classItem.name === "Class Cancelled"
-                                          ? "text-charcoal/50 line-through"
-                                          : isMorningClass(classItem.time)
-                                          ? "text-sage font-medium"
-                                          : "text-charcoal"
-                                      }`}>
-                                        {classItem.name}
-                                        {classItem.instructor && (
-                                          <span className={classItem.name === "Class Cancelled" ? "text-charcoal/50" : isMorningClass(classItem.time) ? "text-sage/80" : "text-charcoal/60"}> - {classItem.instructor}</span>
-                                        )}
-                                      </p>
-                                    </div>
-                                  </div>
+                                    time={classItem.time}
+                                    name={classItem.name}
+                                    instructor={classItem.instructor}
+                                    morning={isMorningClass(classItem.time)}
+                                  />
                                 ))}
                               </div>
                             )}
