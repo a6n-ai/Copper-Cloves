@@ -99,7 +99,7 @@ function ClassesGridSkeleton({ count = 6 }: { count?: number }) {
 function ScheduleDaySkeleton() {
   return (
     <div className="p-6">
-      <div className="mb-4 pb-3 border-b border-sage/10">
+      <div className="mb-4 pb-3 border-b border-[#e5e4dc]">
         <Skeleton className="h-6 w-28 mb-2" />
         <Skeleton className="h-3.5 w-16" />
       </div>
@@ -418,9 +418,9 @@ export default function ClassesPage({ initialClasses }: ClassesPageProps) {
 
             {/* Schedule Tab Content */}
             <TabsContent value="schedule" className="mt-8">
-              <div className="bg-white-warm rounded-2xl shadow-lg border border-sage/10 overflow-hidden">
+              <div className="bg-white-warm rounded-2xl shadow-[0_4px_24px_rgba(51,51,51,0.08)] border border-[#e5e4dc] overflow-hidden">
                 {/* Schedule Header */}
-                <div className="bg-linear-to-r from-sage/10 via-cream to-terracotta/5 p-6 border-b border-sage/10">
+                <div className="bg-cream p-6 border-b border-[#e5e4dc]">
                   <h2 className="font-display text-3xl text-charcoal text-center mb-2">
                     Weekly Schedule
                   </h2>
@@ -430,7 +430,7 @@ export default function ClassesPage({ initialClasses }: ClassesPageProps) {
                 </div>
 
                 {/* Week/Month Navigation */}
-                <div className="bg-cream/30 border-b border-sage/10 p-4">
+                <div className="bg-cream/30 border-b border-[#e5e4dc] p-4">
                   <div className="flex flex-wrap items-center justify-center gap-4">
                     <Button
                       variant="outline"
@@ -502,7 +502,7 @@ export default function ClassesPage({ initialClasses }: ClassesPageProps) {
                 </div>
 
                 {/* Schedule Grid */}
-                <div className="grid md:grid-cols-2 divide-y md:divide-y-0 md:divide-x divide-sage/10">
+                <div className="grid md:grid-cols-2 divide-y md:divide-y-0 md:divide-x divide-[#e5e4dc]">
                   {scheduleLoading ? (
                     <div className="col-span-2">
                       <ScheduleGridSkeleton count={4} />
@@ -518,7 +518,7 @@ export default function ClassesPage({ initialClasses }: ClassesPageProps) {
                         className="p-6 hover:bg-sage/5 transition-colors duration-300"
                       >
                         {/* Day Header */}
-                        <div className="mb-4 pb-3 border-b border-sage/10">
+                        <div className="mb-4 pb-3 border-b border-[#e5e4dc]">
                           <h3 className="font-display text-xl text-charcoal capitalize">
                             {daySchedule.day}
                           </h3>
