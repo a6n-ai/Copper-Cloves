@@ -2,23 +2,26 @@ import { SEO } from "@/components/SEO";
 import { Footer } from "@/components/Footer";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Skeleton } from "@/components/ui/skeleton";
-import { Clock, CheckCircle, Calendar, Sparkles, ChevronLeft, ChevronRight } from "lucide-react";
+import { Clock, Calendar, ChevronLeft, ChevronRight } from "lucide-react";
+import { ClassCard } from "@/components/classes/ClassCard";
+import { ClassDetailDialog } from "@/components/classes/ClassDetailDialog";
+import { CategoryFilter } from "@/components/classes/CategoryFilter";
+import { ScheduleDayFilter } from "@/components/classes/ScheduleDayFilter";
+import { ScheduleClassRow } from "@/components/classes/ScheduleClassRow";
 import type { GetStaticProps } from "next";
 import prisma from "@/lib/prisma";
+import { cdnUrl } from "@/lib/cdnUrl";
 import { useRouter } from "next/router";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { useSession } from "next-auth/react";
 import {
   mondayBasedWeekBoundsInMonth,
-  isSameLocalCalendarDay,
   defaultPortalWeekSelection,
 } from "@/lib/calendarWeek";
 
-import { cdnUrl } from "@/lib/cdnUrl";
 // Class catalog moved to `getStaticProps` + 5-min ISR — `fetchClassesList` is
 // no longer needed. The schedule fetcher below still dedupes in-flight requests
 // (Strict Mode + tab refetch) without AbortController.
@@ -42,169 +45,19 @@ function fetchScheduleList(fromMs: number, toMs: number): Promise<unknown[]> {
   return promise;
 }
 
-interface ClassDetail {
-  name: string;
-  duration: string;
-  image: string;
-  description: string;
-  benefits: string[];
-  intensity: "High" | "Moderate" | "Gentle";
-}
-
 interface ScheduleClass {
   time: string;
   name: string;
   instructor: string;
+  instructorImageUrl: string | null;
 }
 
 interface DaySchedule {
   day: string;
   date: string;
+  isToday: boolean;
   classes: ScheduleClass[];
 }
-
-const classDetails: ClassDetail[] = [
-  {
-    name: "Muay Thai Circuit Training",
-    duration: "55 min",
-    image: cdnUrl("/muaythaicircuittraining.jpg"),
-    description: "Experience the ultimate full-body workout that blends the art of eight limbs with modern circuit training. This high-energy class combines traditional Muay Thai techniques with weights, HIIT intervals, and intensive pad work to build power, speed, and conditioning.",
-    benefits: [
-      "Develops explosive power and speed",
-      "Burns 600+ calories per session",
-      "Builds functional strength and coordination",
-      "Improves cardiovascular endurance",
-      "Teaches authentic self-defense skills"
-    ],
-    intensity: "High"
-  },
-  {
-    name: "Aerial Yoga",
-    duration: "55 min",
-    image: cdnUrl("/aerialyoga.jpg"),
-    description: "Suspend your practice and explore a new dimension of movement. Using a fabric hammock to support your body weight, this playful yet therapeutic class decompresses the spine, builds core strength, and challenges your balance in ways traditional yoga cannot.",
-    benefits: [
-      "Decompresses and elongates the spine",
-      "Improves flexibility and range of motion",
-      "Builds deep core strength",
-      "Reduces joint compression",
-      "Enhances body awareness and balance"
-    ],
-    intensity: "Moderate"
-  },
-  {
-    name: "WARRIOR Rhythm",
-    duration: "55 min",
-    image: cdnUrl("/warriorrythm.jpg"),
-    description: "Move to the beat in this music-driven fusion experience. WARRIOR Rhythm seamlessly blends yoga flows, strength sequences, and high-intensity intervals into one cohesive, dance-inspired practice that leaves you energized and empowered.",
-    benefits: [
-      "Combines cardio with mindful movement",
-      "Improves coordination and rhythm",
-      "Builds mental focus and presence",
-      "Full-body toning and conditioning",
-      "Reduces stress through movement meditation"
-    ],
-    intensity: "High"
-  },
-  {
-    name: "WARRIOR Strength",
-    duration: "55 min",
-    image: cdnUrl("/warriorstrength.jpg"),
-    description: "Power up with this high-energy strength and cardio workout set to killer playlists. Using weights, resistance bands, and bodyweight exercises, this class builds lean muscle, increases metabolism, and develops functional fitness for everyday life.",
-    benefits: [
-      "Builds lean muscle mass",
-      "Increases metabolic rate",
-      "Develops functional strength patterns",
-      "Improves bone density",
-      "Boosts energy and confidence"
-    ],
-    intensity: "High"
-  },
-  {
-    name: "Hatha Yoga",
-    duration: "55 min",
-    image: cdnUrl("/hathayoga.jpg"),
-    description: "Return to the roots of yoga with this traditional, grounding practice. Hatha Yoga focuses on breath awareness, proper alignment, and holding postures to build strength, flexibility, and inner calm. Perfect for beginners and experienced practitioners seeking a mindful practice.",
-    benefits: [
-      "Improves flexibility and joint mobility",
-      "Builds foundational strength",
-      "Enhances breath control and lung capacity",
-      "Reduces stress and anxiety",
-      "Promotes better sleep and recovery"
-    ],
-    intensity: "Gentle"
-  },
-  {
-    name: "Mat Pilates",
-    duration: "55 min",
-    image: cdnUrl("/matpilates.jpg"),
-    description: "Discover the transformative power of low-impact, core-focused movement. This classical Mat Pilates practice emphasizes precision, control, and breath to sculpt long, lean muscles, improve posture, and develop a strong, stable core foundation.",
-    benefits: [
-      "Strengthens deep core muscles",
-      "Improves posture and alignment",
-      "Increases flexibility and mobility",
-      "Reduces back pain",
-      "Enhances body awareness and control"
-    ],
-    intensity: "Moderate"
-  },
-  {
-    name: "Animal Flow",
-    duration: "55 min",
-    image: cdnUrl("/animalflow.jpg"),
-    description: "Reconnect with primal movement patterns through this ground-based practice inspired by animal locomotion. Animal Flow combines elements of yoga, gymnastics, and breakdancing to improve mobility, build functional strength, and ignite creativity in your movement practice.",
-    benefits: [
-      "Enhances full-body mobility",
-      "Develops functional strength patterns",
-      "Improves coordination and body control",
-      "Increases joint stability",
-      "Builds mind-body connection"
-    ],
-    intensity: "Moderate"
-  },
-  {
-    name: "Mat Pilates by Physique 57",
-    duration: "57 min",
-    image: cdnUrl("/matpilates57.jpg"),
-    description: "Experience Physique 57's signature sculpting techniques in a mat-based format. This class brings the best of barre to the floor with targeted exercises that lengthen, tone, and define every muscle group through isometric holds and small, controlled movements.",
-    benefits: [
-      "Sculpts long, lean muscles",
-      "Targets hard-to-tone areas",
-      "Improves muscle definition",
-      "Increases core stability",
-      "Enhances flexibility and range of motion"
-    ],
-    intensity: "Moderate"
-  },
-  {
-    name: "Barre by Physique 57",
-    duration: "57 min",
-    image: cdnUrl("/Barre57.jpg"),
-    description: "The iconic Physique 57 experience. This 57-minute signature class combines ballet-inspired movements, interval training, and orthopedic stretches to create a full-body transformation. Expect isometric holds that burn, cardio bursts that challenge, and results that show.",
-    benefits: [
-      "Creates long, lean muscle definition",
-      "Burns fat while building strength",
-      "Improves posture and alignment",
-      "Increases flexibility",
-      "Boosts metabolism for hours post-workout"
-    ],
-    intensity: "High"
-  },
-  {
-    name: "Fit by Physique 57",
-    duration: "57 min",
-    image: cdnUrl("/fit57.jpg"),
-    description: "Take your strength to the next level with high-intensity functional training. Fit by Physique 57 incorporates heavy weights, plyometrics, and athletic conditioning drills to build power, endurance, and total-body strength that translates to real-life performance.",
-    benefits: [
-      "Builds functional strength and power",
-      "Increases athletic performance",
-      "Burns maximum calories",
-      "Develops muscular endurance",
-      "Improves coordination and agility"
-    ],
-    intensity: "High"
-  }
-];
 
 /** Mirrors the class catalog Card: tall image with a badge, title, two-line copy, info row, benefit chips, button. */
 function ClassCardSkeleton() {
@@ -249,7 +102,7 @@ function ClassesGridSkeleton({ count = 6 }: { count?: number }) {
 function ScheduleDaySkeleton() {
   return (
     <div className="p-6">
-      <div className="mb-4 pb-3 border-b border-sage/10">
+      <div className="mb-4 pb-3 border-b border-[#e5e4dc]">
         <Skeleton className="h-6 w-28 mb-2" />
         <Skeleton className="h-3.5 w-16" />
       </div>
@@ -275,36 +128,56 @@ function ScheduleGridSkeleton({ count = 4 }: { count?: number }) {
   );
 }
 
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-type TransformedClass = any;
+export interface PublicInstructor {
+  name: string;
+  title: string | null;
+  imageUrl: string | null;
+  specialties: string[];
+}
+
+export interface PublicClass {
+  id: string;
+  name: string;
+  category: string;
+  description: string;
+  benefits: string[];
+  duration: number;
+  maxCapacity: number;
+  imageUrl: string | null;
+  instructor: PublicInstructor | null;
+}
 
 interface ClassesPageProps {
-  initialClasses: TransformedClass[];
+  initialClasses: PublicClass[];
 }
 
 export const getStaticProps: GetStaticProps<ClassesPageProps> = async () => {
   try {
     const rows = await prisma.classModel.findMany({
-      orderBy: { name: "asc" },
+      orderBy: [{ display_order: "asc" }, { name: "asc" }],
       include: {
         instructor: {
           omit: { studio_payout_cut_percent: true, hashed_password: true },
         },
       },
     });
-    const initialClasses: TransformedClass[] = rows.map((cls) => ({
+    const initialClasses: PublicClass[] = rows.map((cls) => ({
       id: cls.id,
       name: cls.name || "Class",
-      description: cls.description || "",
-      // ClassModel uses `duration_minutes` in schema; the public mapping keeps
-      // the legacy `duration` field expected by the JSX.
-      duration: (cls as unknown as { duration_minutes?: number }).duration_minutes || 60,
-      intensity: (cls.category || "general").toLowerCase(),
       category: cls.category || "General",
-      image_url: cls.image_url || cdnUrl("/placeholder.jpg"),
-      benefits: (cls as unknown as { benefits?: string[] }).benefits || [],
-      instructor: cls.instructor?.name || "Instructor",
-      max_capacity: (cls as unknown as { capacity?: number }).capacity ?? 15,
+      description: cls.description || "",
+      benefits: cls.benefits ?? [],
+      duration: cls.duration ?? 60,
+      maxCapacity: cls.max_capacity ?? 15,
+      imageUrl: cls.image_url ?? null,
+      instructor: cls.instructor
+        ? {
+            name: cls.instructor.name,
+            title: cls.instructor.title ?? null,
+            imageUrl: cls.instructor.image_url ?? null,
+            specialties: cls.instructor.specialties ?? [],
+          }
+        : null,
     }));
     return { props: { initialClasses }, revalidate: 300 };
   } catch {
@@ -317,7 +190,12 @@ export default function ClassesPage({ initialClasses }: ClassesPageProps) {
   const initialCalendar = defaultPortalWeekSelection();
   const [activeTab, setActiveTab] = useState("classes");
   const [selectedFilter, setSelectedFilter] = useState("all");
-  const [classes] = useState<TransformedClass[]>(initialClasses);
+  const [selectedClass, setSelectedClass] = useState<PublicClass | null>(null);
+  const [classes] = useState<PublicClass[]>(initialClasses);
+  const categories = useMemo(
+    () => Array.from(new Set(classes.map((c) => c.category))).sort((a, b) => a.localeCompare(b)),
+    [classes],
+  );
   // Catalog is SSG'd via `getStaticProps` (5-min ISR); no client fetch.
   const loading = false;
   const [viewYear, setViewYear] = useState(initialCalendar.year);
@@ -325,6 +203,7 @@ export default function ClassesPage({ initialClasses }: ClassesPageProps) {
   const [selectedMonth, setSelectedMonth] = useState(initialCalendar.monthIndex);
   const [scheduleData, setScheduleData] = useState<DaySchedule[]>([]);
   const [scheduleLoading, setScheduleLoading] = useState(false);
+  const [selectedDay, setSelectedDay] = useState<number | "all">("all");
 
   const fetchScheduleData = useCallback(async (isStale?: () => boolean) => {
     try {
@@ -351,13 +230,15 @@ export default function ClassesPage({ initialClasses }: ClassesPageProps) {
 
       // Group by day in a single bucket pass (was 7 × N filter scans).
       const daysOfWeek = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"];
-      const buckets: { day: string; date: string; classes: DaySchedule["classes"] }[] = [];
+      const todayStr = new Date().toDateString();
+      const buckets: { day: string; date: string; isToday: boolean; classes: DaySchedule["classes"] }[] = [];
       for (let i = 0; i < 7; i++) {
         const currentDay = new Date(weekStart);
         currentDay.setDate(currentDay.getDate() + i);
         buckets.push({
           day: daysOfWeek[i],
           date: currentDay.toLocaleDateString("en-US", { day: "numeric", month: "short" }),
+          isToday: currentDay.toDateString() === todayStr,
           classes: [],
         });
       }
@@ -382,6 +263,7 @@ export default function ClassesPage({ initialClasses }: ClassesPageProps) {
           time: `${itemDate.toLocaleTimeString("en-US", { hour: "2-digit", minute: "2-digit" })} - ${endTime.toLocaleTimeString("en-US", { hour: "2-digit", minute: "2-digit" })}`,
           name: item.class_model?.name || "Class",
           instructor: item.instructor?.name || instructorMap.get(item.class_model?.instructor_id ?? "") || "",
+          instructorImageUrl: item.instructor?.image_url ?? null,
         });
       }
       const daySchedules: DaySchedule[] = buckets;
@@ -416,10 +298,23 @@ export default function ClassesPage({ initialClasses }: ClassesPageProps) {
   useEffect(() => {
     if (authStatus === "authenticated") {
       void router.prefetch("/portal/book");
+      void router.prefetch("/portal/packages");
     } else if (authStatus === "unauthenticated") {
       void router.prefetch("/portal/login?redirect=/portal/book");
     }
   }, [authStatus, router]);
+
+  function handleSignupToBook() {
+    router.push("/portal/signup?redirect=/portal/book");
+  }
+
+  function handleViewPackages() {
+    if (authStatus !== "authenticated") {
+      router.push("/portal/login?redirect=/portal/packages");
+      return;
+    }
+    router.push("/portal/packages");
+  }
 
   async function handleBookClass() {
     try {
@@ -438,6 +333,26 @@ export default function ClassesPage({ initialClasses }: ClassesPageProps) {
     () => selectedFilter === "all" ? classes : classes.filter((c) => c.category === selectedFilter),
     [classes, selectedFilter],
   );
+
+  const dayOptions = useMemo(
+    () => scheduleData.map((d, i) => ({ index: i, day: d.day, date: d.date, count: d.classes.length })),
+    [scheduleData],
+  );
+  const todayIndex = useMemo(() => {
+    const i = scheduleData.findIndex((d) => d.isToday);
+    return i >= 0 ? i : null;
+  }, [scheduleData]);
+
+  useEffect(() => {
+    if (scheduleData.length === 0) return;
+    const todayIdx = scheduleData.findIndex((d) => d.isToday);
+    if (todayIdx >= 0) {
+      setSelectedDay(todayIdx);
+      return;
+    }
+    const firstWithClasses = scheduleData.findIndex((d) => d.classes.length > 0);
+    setSelectedDay(firstWithClasses >= 0 ? firstWithClasses : "all");
+  }, [scheduleData]);
 
   // Helper function to determine if time is morning (before 12:00 PM)
   function isMorningClass(timeString: string): boolean {
@@ -463,15 +378,28 @@ export default function ClassesPage({ initialClasses }: ClassesPageProps) {
       
 
       {/* Hero Section */}
-      <section className="relative pt-32 pb-16 bg-linear-to-br from-sage/10 via-cream to-terracotta/5">
-        <div className="max-w-7xl mx-auto px-6 lg:px-8 text-center">
-          <h1 className="font-display text-5xl md:text-6xl text-charcoal mb-6">
-            Our Classes
-          </h1>
-          <p className="font-body text-lg text-charcoal/70 max-w-2xl mx-auto leading-relaxed">
-            From high-intensity circuits to restorative flows, discover the class that speaks to your body and soul. 
-            Each practice is designed to meet you where you are and elevate you to where you want to be.
-          </p>
+      <section className="bg-cream pt-32 pb-12">
+        <div className="mx-auto grid max-w-7xl items-center gap-10 px-6 lg:grid-cols-[1.3fr_1fr] lg:px-8">
+          <div>
+            <p className="font-body text-xs font-semibold uppercase tracking-[0.18em] text-sage">
+              The Studio · Classes
+            </p>
+            <h1 className="mt-3 font-display text-5xl leading-[1.05] text-charcoal md:text-6xl">
+              Find the practice that <em className="italic text-sage">moves</em> you.
+            </h1>
+            <p className="mt-5 max-w-[60ch] font-body text-lg leading-relaxed text-charcoal/70">
+              From high-intensity circuits to restorative flows, every class is led by a real
+              instructor and built to meet you where you are. Browse the studio, then book your first.
+            </p>
+          </div>
+          <div className="relative h-64 overflow-hidden rounded-2xl shadow-[0_8px_48px_rgba(51,51,51,0.14)] lg:h-80">
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img
+              src={cdnUrl("/warriorrythm.jpg")}
+              alt="A class in session at The Studio by Copper and Cloves"
+              className="h-full w-full object-cover"
+            />
+          </div>
         </div>
       </section>
 
@@ -498,6 +426,11 @@ export default function ClassesPage({ initialClasses }: ClassesPageProps) {
 
             {/* Classes Tab Content */}
             <TabsContent value="classes" className="mt-8">
+              {categories.length > 0 && (
+                <div className="mb-8">
+                  <CategoryFilter categories={categories} value={selectedFilter} onChange={setSelectedFilter} />
+                </div>
+              )}
               {loading ? (
                 <ClassesGridSkeleton count={6} />
               ) : filteredClasses.length === 0 ? (
@@ -505,64 +438,9 @@ export default function ClassesPage({ initialClasses }: ClassesPageProps) {
                   <p className="font-body text-charcoal/60">No classes found for this category.</p>
                 </div>
               ) : (
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+                <div className="grid grid-cols-1 gap-8 md:grid-cols-2 lg:grid-cols-3">
                   {filteredClasses.map((classItem) => (
-                    <Card 
-                      key={classItem.id}
-                      className="border-0 bg-white-warm shadow-lg hover:shadow-xl transition-all duration-600 group overflow-hidden"
-                    >
-                      <div className="relative h-64 overflow-hidden bg-sage/5">
-                        <img
-                          src={classItem.image_url}
-                          alt={classItem.name}
-                          className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-600"
-                        />
-                        <Badge className="absolute top-4 right-4 bg-sage text-cream border-0">
-                          {classItem.category}
-                        </Badge>
-                      </div>
-                      <CardContent className="p-6">
-                        <h3 className="font-display text-2xl text-charcoal mb-3">
-                          {classItem.name}
-                        </h3>
-                        <p className="font-body text-charcoal/70 text-sm mb-4 line-clamp-2">
-                          {classItem.description}
-                        </p>
-                        
-                        {/* Class Info */}
-                        <div className="flex items-center gap-4 mb-4 text-sm text-charcoal/60">
-                          <div className="flex items-center gap-1.5">
-                            <Clock className="h-4 w-4" />
-                            <span>{classItem.duration} min</span>
-                          </div>
-                        </div>
-
-                        {/* Key Benefits */}
-                        {classItem.benefits && classItem.benefits.length > 0 && (
-                          <div className="mb-4">
-                            <div className="flex items-center gap-1.5 mb-2">
-                              <Sparkles className="h-4 w-4 text-sage" />
-                              <span className="font-body text-xs font-medium text-charcoal/70">Key Benefits:</span>
-                            </div>
-                            <div className="flex flex-wrap gap-2">
-                              {classItem.benefits.slice(0, 3).map((benefit: string, idx: number) => (
-                                <Badge key={idx} variant="outline" className="border-sage/30 bg-sage/5 text-sage text-xs">
-                                  {benefit}
-                                </Badge>
-                              ))}
-                            </div>
-                          </div>
-                        )}
-
-                        <Button
-                          onClick={handleBookClass}
-                          variant="sage"
-                          className="w-full"
-                        >
-                          Book This Class
-                        </Button>
-                      </CardContent>
-                    </Card>
+                    <ClassCard key={classItem.id} classItem={classItem} onOpen={setSelectedClass} />
                   ))}
                 </div>
               )}
@@ -570,19 +448,19 @@ export default function ClassesPage({ initialClasses }: ClassesPageProps) {
 
             {/* Schedule Tab Content */}
             <TabsContent value="schedule" className="mt-8">
-              <div className="bg-white-warm rounded-2xl shadow-lg border border-sage/10 overflow-hidden">
+              <div className="bg-white-warm rounded-2xl shadow-[0_4px_24px_rgba(51,51,51,0.08)] border border-[#e5e4dc] overflow-hidden">
                 {/* Schedule Header */}
-                <div className="bg-linear-to-r from-sage/10 via-cream to-terracotta/5 p-6 border-b border-sage/10">
+                <div className="bg-cream p-6 border-b border-[#e5e4dc]">
                   <h2 className="font-display text-3xl text-charcoal text-center mb-2">
                     Weekly Schedule
                   </h2>
                   <p className="font-body text-charcoal/60 text-center text-sm">
-                    Check our ticketed events on the page
+                    Browse classes by day, or switch to the full week.
                   </p>
                 </div>
 
                 {/* Week/Month Navigation */}
-                <div className="bg-cream/30 border-b border-sage/10 p-4">
+                <div className="bg-cream/30 border-b border-[#e5e4dc] p-4">
                   <div className="flex flex-wrap items-center justify-center gap-4">
                     <Button
                       variant="outline"
@@ -654,78 +532,101 @@ export default function ClassesPage({ initialClasses }: ClassesPageProps) {
                 </div>
 
                 {/* Schedule Grid */}
-                <div className="grid md:grid-cols-2 divide-y md:divide-y-0 md:divide-x divide-sage/10">
-                  {scheduleLoading ? (
-                    <div className="col-span-2">
-                      <ScheduleGridSkeleton count={4} />
+                {scheduleLoading ? (
+                  <ScheduleGridSkeleton count={4} />
+                ) : scheduleData.length === 0 ? (
+                  <div className="text-center py-12">
+                    <p className="font-body text-charcoal/60">No classes scheduled for this week</p>
+                  </div>
+                ) : (
+                  <>
+                    {/* Day filter chips */}
+                    <div className="p-4 border-b border-[#e5e4dc]">
+                      <ScheduleDayFilter
+                        days={dayOptions}
+                        value={selectedDay}
+                        todayIndex={todayIndex}
+                        onChange={setSelectedDay}
+                      />
                     </div>
-                  ) : scheduleData.length === 0 ? (
-                    <div className="col-span-2 text-center py-12">
-                      <p className="font-body text-charcoal/60">No classes scheduled for this week</p>
-                    </div>
-                  ) : (
-                    scheduleData.map((daySchedule, index) => (
-                      <div 
-                        key={index} 
-                        className="p-6 hover:bg-sage/5 transition-colors duration-300"
-                      >
-                        {/* Day Header */}
-                        <div className="mb-4 pb-3 border-b border-sage/10">
-                          <h3 className="font-display text-xl text-charcoal capitalize">
-                            {daySchedule.day}
-                          </h3>
-                          <p className="font-body text-charcoal/50 text-sm">
-                            {daySchedule.date}
-                          </p>
-                        </div>
 
-                        {/* Classes List */}
-                        <div className="space-y-3">
-                          {daySchedule.classes.length === 0 ? (
-                            <p className="font-body text-sm text-charcoal/40 italic">No classes scheduled</p>
-                          ) : (
-                            daySchedule.classes.map((classItem, classIndex) => (
-                              <div 
-                                key={classIndex}
-                                className={`flex gap-3 ${
-                                  classItem.name === "Class Cancelled" 
-                                    ? "opacity-50" 
-                                    : ""
-                                }`}
-                              >
-                                <div className="shrink-0">
-                                  <p className={`font-body text-xs whitespace-nowrap ${
-                                    classItem.name === "Class Cancelled"
-                                      ? "text-charcoal/70"
-                                      : isMorningClass(classItem.time)
-                                      ? "text-sage font-medium"
-                                      : "text-charcoal/70"
-                                  }`}>
-                                    {classItem.time}
-                                  </p>
-                                </div>
-                                <div className="flex-1 min-w-0">
-                                  <p className={`font-body text-sm ${
-                                    classItem.name === "Class Cancelled"
-                                      ? "text-charcoal/50 line-through"
-                                      : isMorningClass(classItem.time)
-                                      ? "text-sage font-medium"
-                                      : "text-charcoal"
-                                  }`}>
-                                    {classItem.name}
-                                    {classItem.instructor && (
-                                      <span className={classItem.name === "Class Cancelled" ? "text-charcoal/50" : isMorningClass(classItem.time) ? "text-sage/80" : "text-charcoal/60"}> - {classItem.instructor}</span>
-                                    )}
-                                  </p>
-                                </div>
+                    {/* All-week grid or single-day panel */}
+                    {selectedDay === "all" ? (
+                      <div className="grid divide-y divide-[#e5e4dc] md:grid-cols-2 md:divide-y-0 md:[&>*:nth-child(odd)]:border-r md:[&>*]:border-[#e5e4dc]">
+                        {scheduleData.map((daySchedule, index) => (
+                          <div key={index} className="p-4 sm:p-6">
+                            <div className="mb-4 flex items-end justify-between gap-3 border-b border-[#e5e4dc] pb-3">
+                              <div>
+                                <h3 className="font-display text-xl capitalize text-charcoal">{daySchedule.day}</h3>
+                                <p className="font-body text-sm text-charcoal/50">{daySchedule.date}</p>
                               </div>
-                            ))
-                          )}
-                        </div>
+                              {daySchedule.classes.length > 0 && (
+                                <span className="font-body text-xs text-charcoal/45">
+                                  {daySchedule.classes.length} {daySchedule.classes.length === 1 ? "class" : "classes"}
+                                </span>
+                              )}
+                            </div>
+                            {daySchedule.classes.length === 0 ? (
+                              <p className="font-body text-sm italic text-charcoal/40">No classes scheduled</p>
+                            ) : (
+                              <div className="space-y-2.5">
+                                {daySchedule.classes.map((classItem, classIndex) => (
+                                  <ScheduleClassRow
+                                    key={classIndex}
+                                    time={classItem.time}
+                                    name={classItem.name}
+                                    instructor={classItem.instructor}
+                                    instructorImageUrl={classItem.instructorImageUrl}
+                                    morning={isMorningClass(classItem.time)}
+                                    onBook={authStatus === "authenticated" ? handleBookClass : handleSignupToBook}
+                                  />
+                                ))}
+                              </div>
+                            )}
+                          </div>
+                        ))}
                       </div>
-                    ))
-                  )}
-                </div>
+                    ) : (
+                      (() => {
+                        const day = scheduleData[selectedDay];
+                        if (!day) return null;
+                        return (
+                          <div className="p-4 sm:p-6">
+                            <div className="mb-5 flex items-end justify-between gap-3 border-b border-[#e5e4dc] pb-4">
+                              <div>
+                                <h3 className="font-display text-3xl capitalize text-charcoal">{day.day}</h3>
+                                <p className="font-body text-sm text-charcoal/50">{day.date}</p>
+                              </div>
+                              <span className="font-body text-xs text-charcoal/50">
+                                {day.classes.length} {day.classes.length === 1 ? "class" : "classes"}
+                              </span>
+                            </div>
+                            {day.classes.length === 0 ? (
+                              <div className="flex flex-col items-center gap-2 py-12 text-center">
+                                <Calendar className="size-8 text-charcoal/25" aria-hidden="true" />
+                                <p className="font-body text-sm text-charcoal/45">No classes scheduled this day.</p>
+                              </div>
+                            ) : (
+                              <div className="mx-auto grid max-w-2xl gap-2.5">
+                                {day.classes.map((classItem, classIndex) => (
+                                  <ScheduleClassRow
+                                    key={classIndex}
+                                    time={classItem.time}
+                                    name={classItem.name}
+                                    instructor={classItem.instructor}
+                                    instructorImageUrl={classItem.instructorImageUrl}
+                                    morning={isMorningClass(classItem.time)}
+                                    onBook={authStatus === "authenticated" ? handleBookClass : handleSignupToBook}
+                                  />
+                                ))}
+                              </div>
+                            )}
+                          </div>
+                        );
+                      })()
+                    )}
+                  </>
+                )}
               </div>
             </TabsContent>
           </Tabs>
@@ -742,8 +643,8 @@ export default function ClassesPage({ initialClasses }: ClassesPageProps) {
             Choose your package, book your first class, and step into your wellness journey today.
           </p>
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
-            <Button 
-              onClick={handleBookClass}
+            <Button
+              onClick={handleViewPackages}
               size="lg"
               className="bg-white-warm text-sage hover:bg-[#fafaf8]/90 px-8 transition-all duration-600 ease-in-out"
             >
@@ -760,6 +661,13 @@ export default function ClassesPage({ initialClasses }: ClassesPageProps) {
           </div>
         </div>
       </section>
+
+      <ClassDetailDialog
+        classItem={selectedClass}
+        authed={authStatus === "authenticated"}
+        onClose={() => setSelectedClass(null)}
+        onBook={authStatus === "authenticated" ? handleBookClass : handleSignupToBook}
+      />
 
       <Footer />
     </>
