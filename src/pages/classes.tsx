@@ -12,6 +12,7 @@ import { ClassDetailDialog } from "@/components/classes/ClassDetailDialog";
 import { CategoryFilter } from "@/components/classes/CategoryFilter";
 import type { GetStaticProps } from "next";
 import prisma from "@/lib/prisma";
+import { cdnUrl } from "@/lib/cdnUrl";
 import { useRouter } from "next/router";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { useSession } from "next-auth/react";
@@ -347,15 +348,28 @@ export default function ClassesPage({ initialClasses }: ClassesPageProps) {
       <Navigation />
 
       {/* Hero Section */}
-      <section className="relative pt-32 pb-16 bg-linear-to-br from-sage/10 via-cream to-terracotta/5">
-        <div className="max-w-7xl mx-auto px-6 lg:px-8 text-center">
-          <h1 className="font-display text-5xl md:text-6xl text-charcoal mb-6">
-            Our Classes
-          </h1>
-          <p className="font-body text-lg text-charcoal/70 max-w-2xl mx-auto leading-relaxed">
-            From high-intensity circuits to restorative flows, discover the class that speaks to your body and soul. 
-            Each practice is designed to meet you where you are and elevate you to where you want to be.
-          </p>
+      <section className="bg-cream pt-32 pb-12">
+        <div className="mx-auto grid max-w-7xl items-center gap-10 px-6 lg:grid-cols-[1.3fr_1fr] lg:px-8">
+          <div>
+            <p className="font-body text-xs font-semibold uppercase tracking-[0.18em] text-sage">
+              The Studio · Classes
+            </p>
+            <h1 className="mt-3 font-display text-5xl leading-[1.05] text-charcoal md:text-6xl">
+              Find the practice that <em className="italic text-sage">moves</em> you.
+            </h1>
+            <p className="mt-5 max-w-[60ch] font-body text-lg leading-relaxed text-charcoal/70">
+              From high-intensity circuits to restorative flows, every class is led by a real
+              instructor and built to meet you where you are. Browse the studio, then book your first.
+            </p>
+          </div>
+          <div className="relative h-64 overflow-hidden rounded-2xl shadow-[0_8px_48px_rgba(51,51,51,0.14)] lg:h-80">
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img
+              src={cdnUrl("/warriorrythm.jpg")}
+              alt="A class in session at The Studio by Copper and Cloves"
+              className="h-full w-full object-cover"
+            />
+          </div>
         </div>
       </section>
 
