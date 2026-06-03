@@ -134,7 +134,8 @@ export function Navigation({ variant = "default" }: NavigationProps) {
       "fixed top-0 left-0 right-0 z-50",
       scrolled
         ? "bg-[#fafaf8]/90 backdrop-blur-md border-b border-charcoal/10 shadow-xs"
-        : "bg-transparent border-b border-transparent shadow-none",
+        // Solid on mobile (transparent reads as "no navbar"); transparent over the hero on md+.
+        : "bg-[#fafaf8]/90 backdrop-blur-md border-b border-charcoal/10 shadow-xs md:border-transparent md:bg-transparent md:shadow-none md:backdrop-blur-none",
     ],
     !isOverlay && [
       "sticky top-0 z-50 border-b",
@@ -163,8 +164,10 @@ export function Navigation({ variant = "default" }: NavigationProps) {
                 "h-12 w-auto max-w-[min(85vw,300px)] object-contain object-left transition-[filter] duration-300 md:h-14",
                 // Black lockup: keep dark on the light/blurred bar, invert to
                 // light (with a soft shadow) when the bar is transparent over the hero.
+                // Dark on the solid bar (incl. mobile overlay); white only over the
+                // transparent hero on md+.
                 onHero
-                  ? "brightness-0 invert drop-shadow-[0_1px_8px_rgba(0,0,0,0.35)]"
+                  ? "brightness-0 md:invert md:drop-shadow-[0_1px_8px_rgba(0,0,0,0.35)]"
                   : "brightness-0",
               )}
               priority={isOverlay}
@@ -259,7 +262,7 @@ export function Navigation({ variant = "default" }: NavigationProps) {
             aria-controls="mobile-nav"
             aria-label="Open menu"
           >
-            <Menu size={24} className={onHero ? "text-cream drop-shadow-[0_1px_4px_rgba(0,0,0,0.4)]" : "text-charcoal"} />
+            <Menu size={24} className="text-charcoal" />
           </Button>
         </div>
       </div>
