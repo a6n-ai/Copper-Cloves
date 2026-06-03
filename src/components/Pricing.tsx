@@ -43,7 +43,7 @@ export function Pricing() {
           <div
             role="tablist"
             aria-label="Pass type"
-            className="inline-flex rounded-full border border-sage/20 bg-white-warm p-1.5 shadow-xs"
+            className="inline-flex rounded-lg border border-sage/20 bg-white-warm p-1.5 shadow-xs"
           >
             {(["studio", "class"] as const).map((tier) => (
               <button
@@ -51,7 +51,7 @@ export function Pricing() {
                 role="tab"
                 aria-selected={selectedTier === tier}
                 onClick={() => setSelectedTier(tier)}
-                className={`rounded-full px-8 py-2.5 font-body text-sm transition-colors duration-300 ${
+                className={`rounded-md px-8 py-2.5 font-body text-sm transition-colors duration-300 ${
                   selectedTier === tier
                     ? "bg-sage text-cream shadow-sm"
                     : "text-charcoal hover:text-sage"

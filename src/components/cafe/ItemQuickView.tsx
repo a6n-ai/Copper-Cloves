@@ -78,7 +78,7 @@ export function ItemQuickView({
                       type="button"
                       variant="sage-outline"
                       size="icon-sm"
-                      className="rounded-full"
+                      className="rounded-md"
                       aria-label="Decrease quantity"
                       onClick={() => setQty((q) => Math.max(1, q - 1))}
                     >
@@ -89,7 +89,7 @@ export function ItemQuickView({
                       type="button"
                       variant="sage-outline"
                       size="icon-sm"
-                      className="rounded-full"
+                      className="rounded-md"
                       aria-label="Increase quantity"
                       onClick={() => setQty((q) => q + 1)}
                     >

@@ -82,7 +82,7 @@ export function PricingCard({
       <Button
         onClick={() => onSelect(plan)}
         variant={featured ? "secondary" : "sage"}
-        className={`mt-8 w-full rounded-full ${
+        className={`mt-8 w-full rounded-md ${
           featured ? "bg-cream text-charcoal hover:bg-white-warm" : ""
         }`}
       >

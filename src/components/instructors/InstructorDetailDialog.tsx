@@ -175,7 +175,7 @@ export function InstructorDetailDialog({
             </div>
           )}
 
-          <Button type="button" variant="sage" onClick={onClose} className="w-full rounded-full sm:w-auto">
+          <Button type="button" variant="sage" onClick={onClose} className="w-full rounded-md sm:w-auto">
             Close
           </Button>
         </div>

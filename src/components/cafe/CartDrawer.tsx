@@ -197,7 +197,7 @@ export function CartDrawer({
                   <Button
                     variant="sage-outline"
                     size="icon-sm"
-                    className="rounded-full"
+                    className="rounded-md"
                     aria-label="Decrease quantity"
                     onClick={() => onUpdateQuantity(item.id, -1)}
                   >
@@ -209,7 +209,7 @@ export function CartDrawer({
                   <Button
                     variant="sage-outline"
                     size="icon-sm"
-                    className="rounded-full"
+                    className="rounded-md"
                     aria-label="Increase quantity"
                     onClick={() => onUpdateQuantity(item.id, 1)}
                   >
@@ -271,7 +271,7 @@ export function CartDrawer({
                 <Button
                   variant="sage-outline"
                   size="icon-sm"
-                  className="rounded-full"
+                  className="rounded-md"
                   aria-label="Decrease guests"
                   onClick={() => handleGuestCountChange(guestCount - 1)}
                 >
@@ -281,7 +281,7 @@ export function CartDrawer({
                 <Button
                   variant="sage-outline"
                   size="icon-sm"
-                  className="rounded-full"
+                  className="rounded-md"
                   aria-label="Increase guests"
                   onClick={() => handleGuestCountChange(guestCount + 1)}
                 >

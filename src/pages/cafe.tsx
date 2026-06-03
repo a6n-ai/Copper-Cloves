@@ -1,13 +1,11 @@
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect } from "react";
 import Image from "next/image";
 import Link from "next/link";
 import { SEO } from "@/components/SEO";
 import { Footer } from "@/components/Footer";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent } from "@/components/ui/card";
-import { 
-  Leaf, 
-  Heart, 
+import {
+  Leaf,
   Coffee,
   Apple,
   Droplets,
@@ -65,41 +63,31 @@ const galleryImages = [
   cdnUrl("/food/BAG09574.jpg")
 ];
 
-function getBackgroundColor(scrollY: number) {
-  const transitionStart = 800;
-  const transitionEnd = 1400;
-  if (scrollY < transitionStart) return "rgb(250, 250, 248)";
-  if (scrollY > transitionEnd) return "rgb(245, 235, 220)";
-  const progress = (scrollY - transitionStart) / (transitionEnd - transitionStart);
-  const r = Math.round(255 + (245 - 255) * progress);
-  const g = Math.round(255 + (235 - 255) * progress);
-  const b = Math.round(255 + (220 - 255) * progress);
-  return `rgb(${r}, ${g}, ${b})`;
-}
+// Captions for the gallery marquee — drawn from the café's advertised menu so
+// each frame reads as an item, not just a photo. Cycled by position so the same
+// frame keeps the same label across the duplicated (looping) pass.
+const galleryCaptions = [
+  { name: "Smoothie Bowl", note: "Post-workout fuel" },
+  { name: "Sourdough Toastie", note: "The daily pause" },
+  { name: "Matcha Latte", note: "Liquid energy" },
+  { name: "Nourish Bowl", note: "Plant-based" },
+  { name: "Bliss Balls", note: "Sweet, guilt-free" },
+  { name: "Seasonal Salad", note: "Garden-fresh" },
+  { name: "Specialty Coffee", note: "Small-batch" },
+  { name: "Protein Shake", note: "Recovery" },
+  { name: "Kombucha", note: "Gut-friendly" },
+  { name: "Açaí Bowl", note: "Antioxidant-rich" },
+];
+
+const sanctuaryFeatures = [
+  { icon: Wifi, title: "Fast Wi-Fi", desc: "High-speed connectivity for those who need reliable internet to focus." },
+  { icon: Zap, title: "Power & Comfort", desc: "Plentiful charging points and ergonomic seating amidst tropical greenery." },
+  { icon: Volume2, title: "Quiet Zones", desc: "A retreat from the city bustle, designed for deep focus and calm." },
+];
 
 export default function CafePage() {
   const [analogImageIndex, setAnalogImageIndex] = useState(0);
   const [heroMediaIndex, setHeroMediaIndex] = useState(0);
-  const bgRef = useRef<HTMLDivElement>(null);
-
-  // rAF-throttled scroll. The scroll position drives only the fixed background
-  // color, so write it straight to the DOM node instead of routing through
-  // React state — that previously re-rendered this entire ~1000-line page on
-  // every scroll frame.
-  useEffect(() => {
-    let ticking = false;
-    const handleScroll = () => {
-      if (ticking) return;
-      ticking = true;
-      requestAnimationFrame(() => {
-        const el = bgRef.current;
-        if (el) el.style.backgroundColor = getBackgroundColor(window.scrollY);
-        ticking = false;
-      });
-    };
-    window.addEventListener("scroll", handleScroll, { passive: true });
-    return () => window.removeEventListener("scroll", handleScroll);
-  }, []);
 
   useEffect(() => {
     const interval = setInterval(() => {
@@ -142,18 +130,8 @@ export default function CafePage() {
         title="Café & Community | The Studio by Copper + Cloves"
         description="Nourish your body with plant-based meals and belong to a vibrant community. Join us for The Analog Club and Sober Sundowners."
       />
-      
 
-      {/* Dynamic Background with Lime-Plaster Texture */}
-      <div
-        ref={bgRef}
-        className="fixed inset-0 -z-10 transition-colors duration-1000"
-        style={{
-          backgroundColor: getBackgroundColor(0),
-          backgroundImage: `url("data:image/svg+xml,%3Csvg width='100' height='100' viewBox='0 0 100 100' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' /%3E%3C/filter%3E%3Crect width='100' height='100' filter='url(%23noise)' opacity='0.08'/%3E%3C/svg%3E")`,
-          backgroundBlendMode: "multiply"
-        }}
-      />
+      {/* Cream base matches the home page; sections layer their own warmth on top. */}
 
       {/* ===== SECTION 1: THE CAFÉ (NOURISH) ===== */}
       
@@ -171,7 +149,7 @@ export default function CafePage() {
             {heroMedia.map((media, index) => (
               <div
                 key={`left-${index}`}
-                className="absolute inset-0 transition-opacity duration-2000"
+                className="absolute inset-0 transition-opacity duration-[2000ms]"
                 style={{
                   opacity: index === heroMediaIndex ? 1 : 0,
                   zIndex: index === heroMediaIndex ? 1 : 0
@@ -195,7 +173,8 @@ export default function CafePage() {
                 ) : (
                   <Image
                     src={media.src}
-                    alt="Nourishment"
+                    alt=""
+                    aria-hidden="true"
                     fill
                     sizes="100vw"
                     className="animate-subtle-float"
@@ -226,7 +205,7 @@ export default function CafePage() {
               return (
                 <div
                   key={`right-${index}`}
-                  className="absolute inset-0 transition-opacity duration-2000"
+                  className="absolute inset-0 transition-opacity duration-[2000ms]"
                   style={{
                     opacity: isVisible ? 1 : 0,
                     zIndex: isVisible ? 1 : 0
@@ -250,7 +229,8 @@ export default function CafePage() {
                   ) : isVisible && rightMedia.type === "image" ? (
                     <Image
                       src={rightMedia.src}
-                      alt="Nourishment"
+                      alt=""
+                      aria-hidden="true"
                       fill
                       sizes="100vw"
                       className="animate-subtle-float-reverse"
@@ -272,7 +252,7 @@ export default function CafePage() {
         </div>
 
         {/* Hero Content */}
-        <div className="relative z-20 max-w-7xl mx-auto px-6 lg:px-8 py-32">
+        <div className="relative z-20 max-w-7xl mx-auto px-6 lg:px-8 py-16 md:py-20">
           {/* Badge - Far Left */}
           <div className="mb-8">
             <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-sage/30 border border-sage/40">
@@ -303,19 +283,10 @@ export default function CafePage() {
                 <Button
                   size="lg"
                   variant="sage"
-                  className="px-10 py-6 text-base rounded-full shadow-2xl"
+                  className="w-full sm:w-auto px-10 py-6 text-base rounded-md shadow-lg shadow-charcoal/20"
                 >
                   Explore the Menu
                   <ArrowRight className="ml-2" size={20} />
-                </Button>
-              </Link>
-              <Link href="/cafe/meal-subscription">
-                <Button 
-                  size="lg"
-                  variant="outline"
-                  className="border-2 border-cream/40 hover:bg-[#fafaf8]/10 text-cream backdrop-blur-xs px-10 py-6 text-base rounded-full transition-all duration-300"
-                >
-                  Subscribe to Meal Subscription
                 </Button>
               </Link>
               <a
@@ -323,10 +294,10 @@ export default function CafePage() {
                 target="_blank"
                 rel="noopener noreferrer"
               >
-                <Button 
+                <Button
                   size="lg"
                   variant="outline"
-                  className="border-2 border-cream/40 hover:bg-[#fafaf8]/10 text-cream backdrop-blur-xs px-10 py-6 text-base rounded-full transition-all duration-300"
+                  className="w-full sm:w-auto border-2 border-cream/40 hover:bg-[#fafaf8]/10 text-cream hover:text-cream backdrop-blur-xs px-10 py-6 text-base rounded-md transition-all duration-300"
                 >
                   <MapPin className="mr-2" size={20} />
                   Find Our Location
@@ -375,82 +346,97 @@ export default function CafePage() {
           .animate-subtle-float-reverse {
             animation: subtle-float-reverse 20s ease-in-out infinite;
           }
+
+          @media (prefers-reduced-motion: reduce) {
+            .animate-subtle-float,
+            .animate-subtle-float-reverse {
+              animation: none;
+            }
+          }
         `}</style>
       </section>
 
-      {/* Open Invitation Section - Public Welcome */}
-      <section className="relative py-20 px-6 lg:px-8 overflow-hidden">
+      {/* Open Invitation Section - Public Welcome (co-working pitch + features) */}
+      <section className="relative py-14 md:py-20 px-6 lg:px-8 overflow-hidden">
         {/* Decorative Background */}
         <div className="absolute inset-0 bg-linear-to-br from-sage/5 via-cream to-[#fafaf8] -z-10" />
         
         <div className="max-w-7xl mx-auto">
-          <div className="grid lg:grid-cols-2 gap-12 items-center">
-            {/* Left: Content */}
-            <div>
-              <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-sage/10 border border-sage/20 mb-6">
-                <Coffee className="text-sage" size={16} />
-                <span className="font-body text-xs text-charcoal font-medium tracking-wide">OPEN TO ALL</span>
-              </div>
-              
-              <h2 className="font-display text-4xl md:text-5xl lg:text-6xl text-charcoal mb-6 leading-tight">
+          <div className="grid items-stretch gap-10 lg:grid-cols-2 lg:gap-14">
+            {/* Left: Content + integrated feature list */}
+            <div className="flex flex-col">
+              <span className="font-body text-xs font-semibold tracking-[0.18em] uppercase text-terracotta">
+                Open To All
+              </span>
+
+              <h2 className="mt-3 mb-6 font-display text-4xl leading-tight text-charcoal md:text-5xl lg:text-6xl">
                 A Sanctuary for Your Best Work.
               </h2>
-              
-              <p className="font-body text-lg text-charcoal/80 leading-relaxed mb-8">
+
+              <p className="mb-8 max-w-prose font-body text-lg leading-relaxed text-charcoal/80">
                 No membership? No problem. Our doors are open to everyone—whether you're here for a post-class refuel or looking for a sun-drenched space to focus. With high-speed Wi-Fi, premium coffee, and a lush rooftop vibe, consider this your home away from home for the day.
               </p>
-              
-              <div className="flex flex-col sm:flex-row gap-4">
+
+              <div className="flex flex-col gap-4 sm:flex-row">
                 <a
                   href="https://www.google.com/maps/search/?api=1&query=The+Studio+by+Copper+and+Cloves"
                   target="_blank"
                   rel="noopener noreferrer"
                 >
-                  <Button
-                    size="lg"
-                    variant="sage"
-                    className="px-8 py-6 text-base rounded-full w-full sm:w-auto"
-                  >
+                  <Button size="lg" variant="sage" className="w-full rounded-md px-8 py-6 text-base sm:w-auto">
                     <MapPin className="mr-2" size={20} />
                     Find Our Location
                   </Button>
                 </a>
                 <Link href="/cafe/meal-subscription">
-                  <Button 
-                    size="lg"
-                    variant="outline"
-                    className="border-2 border-sage/30 hover:bg-sage/5 text-charcoal px-8 py-6 text-base rounded-full w-full sm:w-auto"
-                  >
+                  <Button size="lg" variant="sage-outline" className="w-full rounded-md px-8 py-6 text-base sm:w-auto">
                     View Full Menu
                   </Button>
                 </Link>
               </div>
+
+              {/* Feature list — stacked editorial rows, not a card grid */}
+              <div className="mt-10 space-y-5 border-t border-sage/15 pt-8">
+                {sanctuaryFeatures.map((f) => {
+                  const Icon = f.icon;
+                  return (
+                    <div key={f.title} className="flex items-start gap-4">
+                      <div className="flex size-11 shrink-0 items-center justify-center rounded-xl bg-sage/10 text-sage">
+                        <Icon size={22} />
+                      </div>
+                      <div>
+                        <h3 className="font-display text-xl text-charcoal">{f.title}</h3>
+                        <p className="font-body text-sm leading-relaxed text-charcoal/70">{f.desc}</p>
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
             </div>
-            
-            {/* Right: Lifestyle Image */}
+
+            {/* Right: Lifestyle image, fills the column height */}
             <div className="relative">
-              <div className="relative rounded-3xl overflow-hidden shadow-2xl">
+              <div className="relative h-full min-h-[420px] overflow-hidden rounded-3xl shadow-[0_8px_48px_rgba(51,51,51,0.14)]">
                 <Image
                   src={cdnUrl("/coworking.jpg")}
-                  alt="Co-working at The Studio - Laptop, coffee, and community"
-                  width={600}
-                  height={450}
-                  className="w-full h-auto object-cover"
+                  alt="Co-working at The Studio: laptop, coffee, and community on the rooftop"
+                  fill
+                  sizes="(max-width: 1024px) 100vw, 50vw"
+                  className="object-cover"
                   quality={90}
                 />
-                {/* Gradient Overlay */}
-                <div className="absolute inset-0 bg-linear-to-t from-charcoal/20 to-transparent" />
+                <div className="absolute inset-0 bg-linear-to-t from-charcoal/25 to-transparent" />
               </div>
-              
-              {/* Floating Stats Badge */}
-              <div className="absolute -bottom-6 -right-6 bg-white-warm rounded-2xl p-6 shadow-2xl border border-sage/10">
+
+              {/* Floating stat panel — solid white-warm, soft lifted shadow */}
+              <div className="absolute -bottom-6 -right-6 rounded-2xl border border-sage/10 bg-white-warm p-6 shadow-[0_4px_24px_rgba(51,51,51,0.08)]">
                 <div className="flex items-center gap-4">
-                  <div className="w-14 h-14 rounded-full bg-sage/10 flex items-center justify-center">
+                  <div className="flex size-14 items-center justify-center rounded-full bg-sage/10">
                     <Wifi className="text-sage" size={28} />
                   </div>
                   <div>
                     <p className="font-display text-2xl text-charcoal">High-Speed</p>
-                    <p className="font-body text-sm text-charcoal/60">Wi-Fi & Power</p>
+                    <p className="font-body text-sm text-charcoal/60">Wi-Fi &amp; Power</p>
                   </div>
                 </div>
               </div>
@@ -459,51 +445,14 @@ export default function CafePage() {
         </div>
       </section>
 
-      {/* Co-working Features Grid */}
-      <section className="relative py-16 px-6 lg:px-8">
-        <div className="max-w-7xl mx-auto">
-          <div className="grid md:grid-cols-3 gap-8">
-            {/* Feature 1: Fast Wi-Fi */}
-            <div className="group text-center p-8 rounded-3xl bg-white-warm border border-sage/10 hover:border-sage/30 transition-all duration-300 hover:shadow-lg">
-              <div className="w-16 h-16 rounded-full bg-sage/10 flex items-center justify-center mx-auto mb-6 group-hover:bg-sage/20 transition-colors">
-                <Wifi className="text-sage" size={32} />
-              </div>
-              <h3 className="font-display text-2xl text-charcoal mb-3">Fast Wi-Fi</h3>
-              <p className="font-body text-charcoal/70 leading-relaxed">
-                High-speed connectivity for global citizens who need reliable internet.
-              </p>
-            </div>
-            
-            {/* Feature 2: Power & Comfort */}
-            <div className="group text-center p-8 rounded-3xl bg-white-warm border border-sage/10 hover:border-sage/30 transition-all duration-300 hover:shadow-lg">
-              <div className="w-16 h-16 rounded-full bg-sage/10 flex items-center justify-center mx-auto mb-6 group-hover:bg-sage/20 transition-colors">
-                <Zap className="text-sage" size={32} />
-              </div>
-              <h3 className="font-display text-2xl text-charcoal mb-3">Power & Comfort</h3>
-              <p className="font-body text-charcoal/70 leading-relaxed">
-                Plentiful charging points and ergonomic seating amidst tropical greenery.
-              </p>
-            </div>
-            
-            {/* Feature 3: Quiet Zones */}
-            <div className="group text-center p-8 rounded-3xl bg-white-warm border border-sage/10 hover:border-sage/30 transition-all duration-300 hover:shadow-lg">
-              <div className="w-16 h-16 rounded-full bg-sage/10 flex items-center justify-center mx-auto mb-6 group-hover:bg-sage/20 transition-colors">
-                <Volume2 className="text-sage" size={32} />
-              </div>
-              <h3 className="font-display text-2xl text-charcoal mb-3">Quiet Zones</h3>
-              <p className="font-body text-charcoal/70 leading-relaxed">
-                A sanctuary from the city bustle, designed for deep focus and productivity.
-              </p>
-            </div>
-          </div>
-        </div>
-      </section>
-
       {/* The Digital Menu - Glassmorphism Cards */}
-      <section className="relative py-24 px-6 lg:px-8">
+      <section className="relative pt-12 md:pt-16 pb-20 md:pb-28 px-6 lg:px-8">
         <div className="max-w-7xl mx-auto">
-          <div className="text-center mb-16">
-            <h2 className="font-display text-4xl md:text-5xl text-charcoal mb-4">
+          <div className="text-center mb-12">
+            <span className="font-body text-xs font-semibold tracking-[0.18em] uppercase text-terracotta">
+              Café &amp; Kitchen
+            </span>
+            <h2 className="font-display text-4xl md:text-5xl text-charcoal mt-3 mb-4">
               Our Cafe Offerings
             </h2>
             <p className="font-body text-lg text-charcoal/70 max-w-2xl mx-auto mb-4">
@@ -519,7 +468,7 @@ export default function CafePage() {
 
           {/* Menu Promo-Banner Grid — re-skin of shadcn-space product-listing-04.
               Image-led, read-only (public page has no cart). */}
-          <div className="grid md:grid-cols-3 gap-6 mb-16">
+          <div className="grid md:grid-cols-3 gap-6 mb-12">
             {menuCategories.map((category, i) => {
               const Icon = category.icon;
               return (
@@ -563,84 +512,52 @@ export default function CafePage() {
             })}
           </div>
 
-          {/* The Daily Ritual — meal-subscription CTA. Flat white-warm card,
-              terracotta-accented icon (food context), sage owns the CTA. */}
-          <div className="max-w-4xl mx-auto">
-            <Card className="overflow-hidden rounded-2xl border border-border bg-white-warm shadow-none transition-shadow duration-300 hover:shadow-[0_4px_24px_rgba(51,51,51,0.08)]">
-              <CardContent className="p-8 md:p-12">
-                <div className="flex flex-col items-start gap-6 sm:flex-row">
-                  <div className="flex size-16 shrink-0 items-center justify-center rounded-full bg-terracotta/15 text-terracotta">
-                    <Heart size={30} />
-                  </div>
-
-                  <div className="flex-1">
-                    <h3 className="mb-4 font-display text-3xl font-semibold text-charcoal md:text-4xl">
-                      <span className="italic text-charcoal/60">The</span> Daily Ritual
-                    </h3>
-                    <p className="mb-6 max-w-prose font-body text-lg leading-relaxed text-charcoal/80">
-                      Struggling to eat clean? Guarantee yourself chef-prepared, plant-based meals
-                      every day with our Studio Meal Subscription. Make wellness effortless.
-                    </p>
-
-                    <div className="flex flex-col gap-4 sm:flex-row">
-                      <Link href="/cafe/meal-subscription">
-                        <Button size="lg" variant="sage" className="w-full sm:w-auto rounded-full">
-                          Subscribe to Intentful Eating
-                        </Button>
-                      </Link>
-                      <Link href="/cafe/meal-subscription">
-                        <Button size="lg" variant="sage-outline" className="w-full sm:w-auto rounded-full">
-                          Learn More
-                        </Button>
-                      </Link>
-                    </div>
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
-          </div>
         </div>
       </section>
 
-      {/* Nutritionist CTA Section */}
-      <section className="relative py-16 px-6 lg:px-8 bg-linear-to-br from-sage/5 to-cream">
-        <div className="max-w-4xl mx-auto text-center">
-          <p className="font-body text-xl text-charcoal/80 leading-relaxed">
-            Not sure what your body needs? <Link href="/cafe/meal-subscription" className="text-sage font-semibold underline hover:text-sage/80 transition-colors">Connect with our in-house nutritionist</Link> for personalized guidance.
+      {/* ===== NOURISH GALLERY — community marquee with section header ===== */}
+      <section className="relative w-full bg-white-warm overflow-hidden py-20 md:py-28">
+        {/* Section header — left-aligned, asymmetric. Terracotta leads (food/community context). */}
+        <div className="max-w-7xl mx-auto px-6 lg:px-8 mb-12">
+          <span className="font-body text-xs font-semibold tracking-[0.18em] uppercase text-terracotta">
+            Gather · The Table
+          </span>
+          <h2 className="font-display text-4xl md:text-5xl lg:text-6xl text-charcoal leading-tight mt-3 mb-5 max-w-2xl">
+            Where strangers <span className="italic text-charcoal/70">become regulars.</span>
+          </h2>
+          <p className="font-body text-lg text-charcoal/70 leading-relaxed max-w-xl">
+            Real food, real faces, shared at our communal table every day.
           </p>
         </div>
-      </section>
 
-      {/* ===== NOURISH GALLERY — horizontal marquee on all viewports (same as mobile) ===== */}
-      <section className="relative w-full min-h-[50vh] md:min-h-[60vh] bg-white-warm overflow-hidden">
-        {/* Watermark — behind scrolling strip */}
-        <div className="absolute inset-0 flex items-center justify-center pointer-events-none z-1">
-          <h2 className="font-display text-7xl sm:text-8xl md:text-9xl text-charcoal select-none tracking-wider italic opacity-[0.12] md:opacity-80">
-            GATHER
-          </h2>
-        </div>
-
-        <div className="relative z-10 py-16 md:py-24 overflow-x-auto overflow-y-hidden scrollbar-hide">
+        <div className="relative z-10 overflow-x-auto overflow-y-hidden scrollbar-hide">
           <div className="flex gap-6 md:gap-8 px-6 md:px-10 w-max max-w-none animate-scroll-smooth">
-            {[...galleryImages, ...galleryImages].map((image, index) => (
-              <div
-                key={`${image}-${index}`}
-                className="relative shrink-0 w-[260px] h-[320px] sm:w-[280px] sm:h-[350px] md:w-[300px] md:h-[380px] rounded-2xl md:rounded-3xl overflow-hidden shadow-2xl transition-transform duration-500 hover:scale-[1.02] hover:shadow-sage/25"
-                style={{
-                  animation: `float-gentle ${3 + (index % 3)}s ease-in-out infinite`,
-                  animationDelay: `${index * 0.15}s`,
-                }}
-              >
-                <Image
-                  src={image}
-                  alt={`Nourishment ${index + 1}`}
-                  fill
-                  sizes="(max-width: 768px) 280px, 300px"
-                  className="object-cover transition-transform duration-700"
-                  quality={85}
-                />
-              </div>
-            ))}
+            {[...galleryImages, ...galleryImages].map((image, index) => {
+              const caption = galleryCaptions[(index % galleryImages.length) % galleryCaptions.length];
+              return (
+                <div
+                  key={`${image}-${index}`}
+                  className="group relative shrink-0 w-[260px] h-[320px] sm:w-[280px] sm:h-[350px] md:w-[300px] md:h-[380px] rounded-2xl md:rounded-3xl overflow-hidden shadow-xl shadow-charcoal/10 transition-transform duration-500 hover:scale-[1.02]"
+                >
+                  <Image
+                    src={image}
+                    alt={caption.name}
+                    fill
+                    sizes="(max-width: 768px) 280px, 300px"
+                    className="object-cover transition-transform duration-700 group-hover:scale-105"
+                    quality={85}
+                  />
+                  {/* Legibility scrim + item caption */}
+                  <div className="absolute inset-0 bg-linear-to-t from-charcoal/85 via-charcoal/15 to-transparent" />
+                  <div className="absolute inset-x-0 bottom-0 p-5">
+                    <p className="font-display text-xl text-white-warm leading-tight">{caption.name}</p>
+                    <p className="mt-1 font-body text-[11px] font-semibold uppercase tracking-[0.14em] text-white-warm/80">
+                      {caption.note}
+                    </p>
+                  </div>
+                </div>
+              );
+            })}
           </div>
         </div>
 
@@ -654,15 +571,6 @@ export default function CafePage() {
             }
           }
 
-          @keyframes float-gentle {
-            0%, 100% {
-              transform: translateY(0) scale(1);
-            }
-            50% {
-              transform: translateY(-10px) scale(1.02);
-            }
-          }
-
           .animate-scroll-smooth {
             animation: scroll-smooth 55s linear infinite;
           }
@@ -670,6 +578,12 @@ export default function CafePage() {
           .animate-scroll-smooth:hover,
           .animate-scroll-smooth:active {
             animation-play-state: paused;
+          }
+
+          @media (prefers-reduced-motion: reduce) {
+            .animate-scroll-smooth {
+              animation: none;
+            }
           }
 
           .scrollbar-hide::-webkit-scrollbar {
@@ -684,10 +598,10 @@ export default function CafePage() {
       </section>
 
       {/* ===== ORGANIC WAVE DIVIDER ===== */}
-      <div className="relative h-32 overflow-hidden">
+      <div className="relative h-16 overflow-hidden">
         {/* SVG Wave with Tropical Leaf Pattern */}
-        <svg 
-          className="absolute bottom-0 w-full h-32" 
+        <svg
+          className="absolute bottom-0 w-full h-16"
           viewBox="0 0 1440 120" 
           preserveAspectRatio="none"
           style={{ transform: "scaleY(-1)" }}
@@ -709,25 +623,26 @@ export default function CafePage() {
             opacity="0.6"
           />
         </svg>
-        
-        {/* Fading Tropical Leaf Accent */}
-        <div className="absolute inset-0 flex items-center justify-center opacity-10">
-          <Leaf className="text-sage" size={80} style={{ transform: "rotate(-15deg)" }} />
-        </div>
       </div>
 
       {/* ===== SECTION 2: THE COMMUNITY (BELONG) ===== */}
-      <section className="relative py-24 px-6 lg:px-8">
+      <section className="relative pt-2 md:pt-4 pb-20 md:pb-28 px-6 lg:px-8">
         <div className="max-w-7xl mx-auto">
           {/* Section Header */}
-          <div className="text-center mb-20">
-            <h2 className="font-display text-5xl md:text-6xl text-charcoal mb-4">
+          <div className="text-center mb-10">
+            <div className="mx-auto mb-4 flex size-14 items-center justify-center rounded-2xl bg-sage/10">
+              <Leaf className="text-sage" size={26} style={{ transform: "rotate(-12deg)" }} />
+            </div>
+            <span className="font-body text-xs font-semibold tracking-[0.18em] uppercase text-terracotta">
+              The Community
+            </span>
+            <h2 className="font-display text-5xl md:text-6xl text-charcoal mt-3 mb-4">
               <span className="italic text-charcoal/70">Beyond the Mat:</span><br />
               Find Your People.
             </h2>
-            <p className="font-body text-xl text-charcoal/80 max-w-3xl mx-auto leading-relaxed">
-              True wellness isn't just physical. It's belonging, connection, and shared experiences 
-              that remind us what it means to be fully present.
+            <p className="mx-auto max-w-2xl font-body text-lg md:text-xl text-charcoal/80 leading-relaxed">
+              True wellness isn't just physical. It's belonging, connection, and shared
+              experiences that remind us what it means to be fully present.
             </p>
           </div>
 
@@ -736,7 +651,7 @@ export default function CafePage() {
             
             {/* Event Card 1: Analog Club */}
             <div className="group relative">
-              <div className="relative overflow-hidden rounded-3xl shadow-2xl transition-all duration-500 hover:scale-[1.02] hover:shadow-sage/30">
+              <div className="relative overflow-hidden rounded-3xl shadow-md shadow-charcoal/10 transition-all duration-500 hover:scale-[1.02] hover:shadow-2xl hover:shadow-sage/25">
                 {/* Image Carousel */}
                 <div className="relative h-[400px]">
                   {analogImages.map((image, index) => (
@@ -784,7 +699,7 @@ export default function CafePage() {
                   >
                     <Button 
                       size="sm"
-                      className="bg-white-warm hover:bg-cream text-charcoal shadow-xl w-full text-sm"
+                      className="bg-white-warm hover:bg-cream text-charcoal shadow-lg shadow-charcoal/20 rounded-md w-full text-sm"
                     >
                       RSVP to The Analog Club
                       <ArrowRight className="ml-2" size={16} />
@@ -796,7 +711,7 @@ export default function CafePage() {
 
             {/* Event Card 2: Sober Sundowners */}
             <div className="group relative">
-              <div className="relative overflow-hidden rounded-3xl shadow-2xl transition-all duration-500 hover:scale-[1.02] hover:shadow-terracotta/30">
+              <div className="relative overflow-hidden rounded-3xl shadow-md shadow-charcoal/10 transition-all duration-500 hover:scale-[1.02] hover:shadow-2xl hover:shadow-terracotta/25">
                 {/* Image */}
                 <div className="relative h-[400px]">
                   <Image
@@ -833,7 +748,7 @@ export default function CafePage() {
                   >
                     <Button 
                       size="sm"
-                      className="bg-white-warm hover:bg-cream text-charcoal shadow-xl w-full text-sm"
+                      className="bg-white-warm hover:bg-cream text-charcoal shadow-lg shadow-charcoal/20 rounded-md w-full text-sm"
                     >
                       RSVP to Sundowners
                       <ArrowRight className="ml-2" size={16} />
@@ -845,7 +760,7 @@ export default function CafePage() {
 
             {/* Event Card 3: The Reading Social */}
             <div className="group relative">
-              <div className="relative overflow-hidden rounded-3xl shadow-2xl transition-all duration-500 hover:scale-[1.02] hover:shadow-sage/30">
+              <div className="relative overflow-hidden rounded-3xl shadow-md shadow-charcoal/10 transition-all duration-500 hover:scale-[1.02] hover:shadow-2xl hover:shadow-sage/25">
                 {/* Image */}
                 <div className="relative h-[400px]">
                   <Image
@@ -882,7 +797,7 @@ export default function CafePage() {
                   >
                     <Button 
                       size="sm"
-                      className="bg-white-warm hover:bg-cream text-charcoal shadow-xl w-full text-sm"
+                      className="bg-white-warm hover:bg-cream text-charcoal shadow-lg shadow-charcoal/20 rounded-md w-full text-sm"
                     >
                       RSVP to The Reading Social
                       <ArrowRight className="ml-2" size={16} />
@@ -894,7 +809,7 @@ export default function CafePage() {
 
             {/* Event Card 4: Friday Work Deli */}
             <div className="group relative">
-              <div className="relative overflow-hidden rounded-3xl shadow-2xl transition-all duration-500 hover:scale-[1.02] hover:shadow-sage/30">
+              <div className="relative overflow-hidden rounded-3xl shadow-md shadow-charcoal/10 transition-all duration-500 hover:scale-[1.02] hover:shadow-2xl hover:shadow-sage/25">
                 {/* Image */}
                 <div className="relative h-[400px]">
                   <Image
@@ -931,7 +846,7 @@ export default function CafePage() {
                   >
                     <Button 
                       size="sm"
-                      className="bg-white-warm hover:bg-cream text-charcoal shadow-xl w-full text-sm"
+                      className="bg-white-warm hover:bg-cream text-charcoal shadow-lg shadow-charcoal/20 rounded-md w-full text-sm"
                     >
                       RSVP to Friday Work Deli
                       <ArrowRight className="ml-2" size={16} />
@@ -943,7 +858,7 @@ export default function CafePage() {
           </div>
 
           {/* Community Calendar CTA */}
-          <div className="mt-20 text-center">
+          <div className="mt-16 text-center">
             <div className="inline-flex items-center gap-3 px-6 py-3 rounded-full bg-sage/10 border border-sage/20 mb-6">
               <Calendar className="text-sage" size={20} />
               <span className="font-body text-charcoal">New events added monthly</span>
@@ -962,10 +877,10 @@ export default function CafePage() {
               rel="noopener noreferrer"
               className="inline-block"
             >
-              <Button 
+              <Button
                 size="lg"
-                variant="outline"
-                className="border-2 border-sage/40 hover:bg-sage/5 text-charcoal px-10 py-6 text-base rounded-full"
+                variant="sage-outline"
+                className="px-10 py-6 text-base rounded-md"
               >
                 Join WhatsApp Community
               </Button>
@@ -974,40 +889,33 @@ export default function CafePage() {
         </div>
       </section>
 
-      {/* Final CTA Section */}
-      <section className="relative py-24 px-6 lg:px-8 overflow-hidden">
-        <div className="absolute inset-0 bg-linear-to-br from-sage/20 to-terracotta/20" />
-        
-        <div className="relative z-10 max-w-4xl mx-auto text-center">
-          <h2 className="font-display text-4xl md:text-5xl text-charcoal mb-6">
-            Your Sanctuary Awaits
-          </h2>
-          <p className="font-body text-xl text-charcoal/80 mb-10 leading-relaxed">
-            Move your body. Nourish your soul. Find your people.<br />
-            All under one roof.
-          </p>
-          
-          <div className="flex flex-col sm:flex-row gap-4 justify-center">
-            <Button 
-              size="lg"
-              className="bg-sage text-cream hover:bg-sage/90 px-10 py-6 text-base rounded-full shadow-2xl"
-            >
-              Book Your First Class
-            </Button>
-            <Link href="/cafe/meal-subscription">
-              <Button 
-                size="lg"
-                variant="outline"
-                className="border-2 border-sage/40 hover:bg-sage/5 text-charcoal px-10 py-6 text-base rounded-full"
+      <Footer
+        cta={{
+          kicker: "The Studio by Copper + Cloves",
+          heading: "Your Sanctuary Awaits",
+          body: [
+            "Move your body. Nourish your soul. Find your people. All under one roof.",
+            "And when you need to refuel, guarantee yourself chef-prepared, plant-based meals every day with our Studio Meal Subscription. Wellness, made effortless.",
+          ],
+          primary: { label: "Book Your First Class", href: "/classes" },
+          secondary: {
+            label: "Subscribe to Intentful Eating",
+            href: "/cafe/meal-subscription",
+          },
+          note: (
+            <>
+              Not sure what your body needs?{" "}
+              <Link
+                href="/cafe/meal-subscription"
+                className="font-semibold text-white-warm underline underline-offset-2 transition-colors hover:text-cream"
               >
-                Subscribe to Intentful Eating
-              </Button>
-            </Link>
-          </div>
-        </div>
-      </section>
-
-      <Footer />
+                Connect with our in-house nutritionist
+              </Link>{" "}
+              for personalized guidance.
+            </>
+          ),
+        }}
+      />
     </>
   );
 }

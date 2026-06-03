@@ -337,7 +337,7 @@ export default function Shop({ initialProducts }: ShopProps) {
                 type="button"
                 variant="sage"
                 onClick={() => setShowCart(true)}
-                className="relative rounded-full px-6"
+                className="relative rounded-md px-6"
               >
                 <ShoppingCart size={18} />
                 Cart
@@ -444,7 +444,7 @@ export default function Shop({ initialProducts }: ShopProps) {
                   setSearchQuery("");
                   setSelectedCategory("all");
                 }}
-                className="rounded-full px-6"
+                className="rounded-md px-6"
               >
                 Clear Filters
               </Button>
@@ -543,7 +543,7 @@ export default function Shop({ initialProducts }: ShopProps) {
                       variant="sage"
                       size="lg"
                       onClick={() => setCheckoutStep("details")}
-                      className="w-full rounded-full"
+                      className="w-full rounded-md"
                     >
                       Proceed to Checkout
                       <ArrowRight className="ml-2" size={18} />
@@ -614,7 +614,7 @@ export default function Shop({ initialProducts }: ShopProps) {
                   variant="sage"
                   size="lg"
                   onClick={() => setCheckoutStep("payment")}
-                  className="w-full mt-6 rounded-full"
+                  className="w-full mt-6 rounded-md"
                 >
                   Continue to Payment
                   <ArrowRight className="ml-2" size={18} />
@@ -666,8 +666,8 @@ export default function Shop({ initialProducts }: ShopProps) {
                     />
                     <Button
                       type="button"
-                      variant="outline"
-                      className="border-sage/30 shrink-0"
+                      variant="sage-outline"
+                      className="shrink-0"
                       onClick={() => void validateShopCoupon()}
                     >
                       Apply
@@ -708,7 +708,7 @@ export default function Shop({ initialProducts }: ShopProps) {
                   size="lg"
                   onClick={() => void completeRetailOrder()}
                   disabled={checkoutLoading}
-                  className="w-full rounded-full"
+                  className="w-full rounded-md"
                 >
                   {checkoutLoading ? "Processing…" : "Complete Order"}
                   <Check className="ml-2" size={18} />
@@ -728,7 +728,7 @@ export default function Shop({ initialProducts }: ShopProps) {
                   Thank you for your purchase. We'll send you a confirmation email shortly.
                 </p>
                 <Link href="/">
-                  <Button variant="sage" className="rounded-full px-8">
+                  <Button variant="sage" className="rounded-md px-8">
                     Back to Home
                   </Button>
                 </Link>

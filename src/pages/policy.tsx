@@ -20,8 +20,8 @@ export default function PrivacyPolicyPage() {
           <div className="max-w-3xl mx-auto">
             <Link href="/">
               <Button
-                variant="outline"
-                className="mb-8 rounded-full border-sage/30 hover:bg-sage/5 text-charcoal"
+                variant="sage-outline"
+                className="mb-8 rounded-md"
               >
                 <ArrowLeft className="mr-2" size={20} />
                 Back to Home

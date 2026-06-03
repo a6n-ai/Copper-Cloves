@@ -167,7 +167,7 @@ export default function ProductDetail({ product, catalog }: ProductDetailProps) 
               This item may no longer be available. Browse the boutique for current products.
             </p>
             <Link href="/shop">
-              <Button variant="outline" className="mt-4">
+              <Button variant="sage-outline" className="mt-4">
                 <ArrowLeft size={16} className="mr-2" />
                 Back to Shop
               </Button>
@@ -320,7 +320,7 @@ export default function ProductDetail({ product, catalog }: ProductDetailProps) 
                   size="lg"
                   onClick={handleAddToCart}
                   disabled={!inStock}
-                  className="flex-1 min-w-[200px] rounded-full"
+                  className="flex-1 min-w-[200px] rounded-md"
                 >
                   <ShoppingCart size={20} />
                   Add to Cart
@@ -331,7 +331,7 @@ export default function ProductDetail({ product, catalog }: ProductDetailProps) 
                   variant={isWishlisted ? "terracotta" : "terracotta-ghost"}
                   size="icon-lg"
                   onClick={() => setIsWishlisted(!isWishlisted)}
-                  className={`rounded-full ${isWishlisted ? "" : "bg-white-warm border border-sage/10"}`}
+                  className={`rounded-md ${isWishlisted ? "" : "bg-white-warm border border-sage/10"}`}
                   aria-label="Wishlist"
                 >
                   <Heart size={20} className={isWishlisted ? "fill-current" : ""} />
@@ -342,7 +342,7 @@ export default function ProductDetail({ product, catalog }: ProductDetailProps) 
                   variant="ghost"
                   size="icon-lg"
                   onClick={handleShare}
-                  className="rounded-full bg-white-warm border border-sage/10 text-charcoal/60"
+                  className="rounded-md bg-white-warm border border-sage/10 text-charcoal/60"
                   aria-label="Copy link"
                 >
                   <Share2 size={20} />

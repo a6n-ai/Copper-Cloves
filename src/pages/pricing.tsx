@@ -1,10 +1,8 @@
 import { useRouter } from "next/router";
 import { useSession } from "next-auth/react";
-import Link from "next/link";
 import { Droplets, CalendarCheck, Coffee, Users } from "lucide-react";
 import { SEO } from "@/components/SEO";
 import { Footer } from "@/components/Footer";
-import { Button } from "@/components/ui/button";
 import { PricingCard } from "@/components/pricing/PricingCard";
 import { studioPassPlans, classPassPlans, type PricingPlan } from "@/lib/pricingPlans";
 
@@ -138,29 +136,14 @@ export default function PricingPage() {
         </div>
       </section>
 
-      {/* Closing CTA */}
-      <section className="bg-[#f4f3ec] py-16">
-        <div className="mx-auto max-w-3xl px-6 text-center lg:px-8">
-          <h2 className="font-display text-3xl text-charcoal md:text-4xl">Ready to begin?</h2>
-          <p className="mx-auto mt-4 max-w-[52ch] font-body text-charcoal/70">
-            Create an account to buy a pass, or browse the classes you will unlock first.
-          </p>
-          <div className="mt-8 flex flex-wrap items-center justify-center gap-3">
-            <Link href="/portal/signup">
-              <Button variant="sage" size="lg" className="rounded-full">
-                Create your account
-              </Button>
-            </Link>
-            <Link href="/classes">
-              <Button variant="sage-outline" size="lg" className="rounded-full">
-                Explore classes
-              </Button>
-            </Link>
-          </div>
-        </div>
-      </section>
-
-      <Footer />
+      <Footer
+        cta={{
+          heading: "Ready to begin?",
+          body: "Create an account to buy a pass, or browse the classes you will unlock first.",
+          primary: { label: "Create your account", href: "/portal/signup" },
+          secondary: { label: "Explore classes", href: "/classes" },
+        }}
+      />
     </>
   );
 }

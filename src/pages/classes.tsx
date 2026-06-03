@@ -407,16 +407,16 @@ export default function ClassesPage({ initialClasses }: ClassesPageProps) {
       <section className="py-8 bg-cream">
         <div className="max-w-7xl mx-auto px-6 lg:px-8">
           <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-            <TabsList className="mx-auto flex h-auto w-fit rounded-full border border-sage/20 bg-white-warm p-1.5 shadow-xs">
+            <TabsList className="mx-auto flex h-auto w-fit rounded-lg border border-sage/20 bg-white-warm p-1.5 shadow-xs">
               <TabsTrigger
                 value="classes"
-                className="rounded-full px-8 py-2.5 font-body text-sm font-normal text-charcoal transition-colors duration-300 hover:text-sage data-[state=active]:bg-sage data-[state=active]:text-cream data-[state=active]:shadow-sm"
+                className="rounded-md px-8 py-2.5 font-body text-sm font-normal text-charcoal transition-colors duration-300 hover:text-sage data-[state=active]:bg-sage data-[state=active]:text-cream data-[state=active]:shadow-sm"
               >
                 Classes
               </TabsTrigger>
               <TabsTrigger
                 value="schedule"
-                className="rounded-full px-8 py-2.5 font-body text-sm font-normal text-charcoal transition-colors duration-300 hover:text-sage data-[state=active]:bg-sage data-[state=active]:text-cream data-[state=active]:shadow-sm"
+                className="rounded-md px-8 py-2.5 font-body text-sm font-normal text-charcoal transition-colors duration-300 hover:text-sage data-[state=active]:bg-sage data-[state=active]:text-cream data-[state=active]:shadow-sm"
               >
                 Schedule
               </TabsTrigger>
@@ -461,11 +461,11 @@ export default function ClassesPage({ initialClasses }: ClassesPageProps) {
                 <div className="bg-cream/30 border-b border-[#e5e4dc] p-4">
                   <div className="flex flex-wrap items-center justify-center gap-4">
                     <Button
-                      variant="outline"
+                      variant="sage-outline"
                       size="sm"
                       onClick={() => setSelectedWeek(Math.max(1, selectedWeek - 1))}
                       disabled={selectedWeek === 1}
-                      className="border-sage/20 text-sage hover:bg-sage/5 disabled:opacity-30"
+                      className="disabled:opacity-30"
                     >
                       <ChevronLeft className="h-4 w-4" />
                     </Button>
@@ -518,11 +518,11 @@ export default function ClassesPage({ initialClasses }: ClassesPageProps) {
                     </div>
 
                     <Button
-                      variant="outline"
+                      variant="sage-outline"
                       size="sm"
                       onClick={() => setSelectedWeek(Math.min(5, selectedWeek + 1))}
                       disabled={selectedWeek === 5}
-                      className="border-sage/20 text-sage hover:bg-sage/5 disabled:opacity-30"
+                      className="disabled:opacity-30"
                     >
                       <ChevronRight className="h-4 w-4" />
                     </Button>
@@ -631,24 +631,6 @@ export default function ClassesPage({ initialClasses }: ClassesPageProps) {
         </div>
       </section>
 
-      {/* Closing CTA */}
-      <section className="bg-[#f4f3ec] py-16">
-        <div className="mx-auto max-w-3xl px-6 text-center lg:px-8">
-          <h2 className="font-display text-3xl text-charcoal md:text-4xl">Ready to begin?</h2>
-          <p className="mx-auto mt-4 max-w-[52ch] font-body text-charcoal/70">
-            Choose your package, book your first class, and step into your wellness journey today.
-          </p>
-          <div className="mt-8 flex flex-wrap items-center justify-center gap-3">
-            <Button onClick={handleViewPackages} variant="sage" size="lg" className="rounded-full">
-              View Packages
-            </Button>
-            <Button onClick={handleBookClass} variant="sage-outline" size="lg" className="rounded-full">
-              Book Your First Class
-            </Button>
-          </div>
-        </div>
-      </section>
-
       <ClassDetailDialog
         classItem={selectedClass}
         authed={authStatus === "authenticated"}
@@ -656,7 +638,14 @@ export default function ClassesPage({ initialClasses }: ClassesPageProps) {
         onBook={authStatus === "authenticated" ? handleBookClass : handleSignupToBook}
       />
 
-      <Footer />
+      <Footer
+        cta={{
+          heading: "Ready to begin?",
+          body: "Choose your package, book your first class, and step into your wellness journey today.",
+          primary: { label: "View Packages", onClick: handleViewPackages },
+          secondary: { label: "Book Your First Class", onClick: handleBookClass },
+        }}
+      />
     </>
   );
 }

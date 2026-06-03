@@ -84,7 +84,7 @@ export function Boutique() {
             size="icon-lg"
             onClick={() => scroll("left")}
             disabled={isScrolling}
-            className="absolute left-2 top-1/2 z-20 hidden -translate-y-1/2 rounded-full border-sage/20 bg-white-warm opacity-0 transition-opacity duration-200 group-hover:opacity-100 lg:flex"
+            className="absolute left-2 top-1/2 z-20 hidden -translate-y-1/2 rounded-md border-sage/20 bg-white-warm opacity-0 transition-opacity duration-200 group-hover:opacity-100 lg:flex"
             aria-label="Previous products"
           >
             <ChevronLeft className="text-sage" size={24} />
@@ -95,7 +95,7 @@ export function Boutique() {
             size="icon-lg"
             onClick={() => scroll("right")}
             disabled={isScrolling}
-            className="absolute right-2 top-1/2 z-20 hidden -translate-y-1/2 rounded-full border-sage/20 bg-white-warm opacity-0 transition-opacity duration-200 group-hover:opacity-100 lg:flex"
+            className="absolute right-2 top-1/2 z-20 hidden -translate-y-1/2 rounded-md border-sage/20 bg-white-warm opacity-0 transition-opacity duration-200 group-hover:opacity-100 lg:flex"
             aria-label="Next products"
           >
             <ChevronRight className="text-sage" size={24} />

@@ -165,7 +165,7 @@ export function Navigation({ variant = "default" }: NavigationProps) {
                 <Link href="/portal/book">
                   <Button
                     className={cn(
-                      "h-auto gap-2 rounded-full border-0 px-6 py-2.5 text-[15px] font-body font-medium text-cream shadow-xs",
+                      "h-auto gap-2 rounded-md border-0 px-6 py-2.5 text-[15px] font-body font-medium text-cream shadow-xs",
                       BOOK_CTA,
                     )}
                   >
@@ -205,7 +205,7 @@ export function Navigation({ variant = "default" }: NavigationProps) {
                 <Link href="/login">
                   <Button
                     className={cn(
-                      "h-auto gap-2 rounded-full border-0 px-6 py-2.5 text-[15px] font-body font-medium text-cream shadow-xs",
+                      "h-auto gap-2 rounded-md border-0 px-6 py-2.5 text-[15px] font-body font-medium text-cream shadow-xs",
                       BOOK_CTA,
                     )}
                   >
@@ -216,7 +216,7 @@ export function Navigation({ variant = "default" }: NavigationProps) {
                   <Button
                     variant="ghost"
                     className={cn(
-                      "h-auto gap-2 rounded-full px-5 py-2.5 text-[15px] font-body font-medium",
+                      "h-auto gap-2 rounded-md px-5 py-2.5 text-[15px] font-body font-medium",
                       onHero
                         ? "text-cream hover:bg-cream/10 hover:text-cream"
                         : "text-charcoal hover:bg-charcoal/5 hover:text-charcoal",
@@ -268,7 +268,7 @@ export function Navigation({ variant = "default" }: NavigationProps) {
               <Link href="/login">
                 <Button
                   className={cn(
-                    "h-auto gap-1.5 rounded-full border-0 px-5 py-2 text-sm font-body font-medium text-cream shadow-xs",
+                    "h-auto gap-1.5 rounded-md border-0 px-5 py-2 text-sm font-body font-medium text-cream shadow-xs",
                     BOOK_CTA,
                   )}
                 >

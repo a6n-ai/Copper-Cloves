@@ -1,10 +1,8 @@
-import Link from "next/link";
 import Image from "next/image";
 import { motion, useReducedMotion } from "framer-motion";
 import { Sprout, UtensilsCrossed, Users } from "lucide-react";
 import { SEO } from "@/components/SEO";
 import { Footer } from "@/components/Footer";
-import { Button } from "@/components/ui/button";
 import { cdnUrl } from "@/lib/cdnUrl";
 
 const VALUES = [
@@ -284,29 +282,14 @@ export default function StoryPage() {
         </div>
       </section>
 
-      {/* Closing CTA */}
-      <section className="bg-cream py-16">
-        <div className="mx-auto max-w-3xl px-6 text-center lg:px-8">
-          <h2 className="font-display text-3xl text-charcoal md:text-4xl">Come be part of it.</h2>
-          <p className="mx-auto mt-4 max-w-[52ch] font-body text-charcoal/70">
-            The studio is open, the kettle is on, and there is a class with your name on it.
-          </p>
-          <div className="mt-8 flex flex-wrap items-center justify-center gap-3">
-            <Link href="/classes">
-              <Button variant="sage" size="lg" className="rounded-full">
-                Explore classes
-              </Button>
-            </Link>
-            <Link href="/pricing">
-              <Button variant="sage-outline" size="lg" className="rounded-full">
-                View pricing
-              </Button>
-            </Link>
-          </div>
-        </div>
-      </section>
-
-      <Footer />
+      <Footer
+        cta={{
+          heading: "Come be part of it.",
+          body: "The studio is open, the kettle is on, and there is a class with your name on it.",
+          primary: { label: "Explore classes", href: "/classes" },
+          secondary: { label: "View pricing", href: "/pricing" },
+        }}
+      />
     </>
   );
 }

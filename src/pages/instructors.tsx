@@ -1,9 +1,7 @@
 import { useState } from "react";
-import Link from "next/link";
 import type { GetStaticProps } from "next";
 import { SEO } from "@/components/SEO";
 import { Footer } from "@/components/Footer";
-import { Button } from "@/components/ui/button";
 import { InstructorCard } from "@/components/instructors/InstructorCard";
 import { InstructorDetailDialog } from "@/components/instructors/InstructorDetailDialog";
 import prisma from "@/lib/prisma";
@@ -93,32 +91,14 @@ export default function InstructorsPage({ instructors }: InstructorsPageProps) {
         </div>
       </section>
 
-      {/* Closing CTA */}
-      <section className="bg-[#f4f3ec] py-16">
-        <div className="mx-auto max-w-3xl px-6 text-center lg:px-8">
-          <h2 className="font-display text-3xl text-charcoal md:text-4xl">
-            Find them on the schedule.
-          </h2>
-          <p className="mx-auto mt-4 max-w-[52ch] font-body text-charcoal/70">
-            Every instructor leads classes through the week. Browse the timetable and book the
-            one that fits your practice.
-          </p>
-          <div className="mt-8 flex flex-wrap items-center justify-center gap-3">
-            <Link href="/classes?tab=schedule">
-              <Button variant="sage" size="lg" className="rounded-full">
-                View weekly schedule
-              </Button>
-            </Link>
-            <Link href="/classes">
-              <Button variant="sage-outline" size="lg" className="rounded-full">
-                Explore classes
-              </Button>
-            </Link>
-          </div>
-        </div>
-      </section>
-
-      <Footer />
+      <Footer
+        cta={{
+          heading: "Find them on the schedule.",
+          body: "Every instructor leads classes through the week. Browse the timetable and book the one that fits your practice.",
+          primary: { label: "View weekly schedule", href: "/classes?tab=schedule" },
+          secondary: { label: "Explore classes", href: "/classes" },
+        }}
+      />
 
       {selected && (
         <InstructorDetailDialog instructor={selected} onClose={() => setSelected(null)} />

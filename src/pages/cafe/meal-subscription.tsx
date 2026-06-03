@@ -161,7 +161,7 @@ export default function MealSubscriptionPage() {
               <Button
                 size="lg"
                 variant="sage"
-                className="px-12 py-7 text-lg rounded-full shadow-2xl"
+                className="px-12 py-7 text-lg rounded-md shadow-lg shadow-charcoal/20"
                 onClick={() => document.getElementById('waitlist-form')?.scrollIntoView({ behavior: 'smooth', block: 'start' })}
               >
                 Join the Waitlist
