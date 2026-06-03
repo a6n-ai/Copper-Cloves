@@ -19,11 +19,46 @@ import { cdnUrl } from "@/lib/cdnUrl";
 /** Muted sage for CTA (reference ~#7A8B7C) */
 const HEADER_SAGE = "bg-[#7A8B7C] hover:bg-[#6d7c6e] active:bg-[#637069]";
 
+const NAV_LINKS = [
+  { href: "/classes", label: "Classes" },
+  { href: "/instructors", label: "Instructors" },
+  { href: "/pricing", label: "Pricing" },
+  { href: "/cafe", label: "Café" },
+  { href: "/rental", label: "Events" },
+  { href: "/story", label: "Story" },
+] as const;
+
 export type NavigationVariant = "default" | "overlay";
 
 interface NavigationProps {
   /** `overlay`: fixed on top of full-bleed hero (transparent until scroll). */
   variant?: NavigationVariant;
+}
+
+/** Desktop nav link with a sage (or cream, over the hero) active/hover underline. */
+function NavLink({ href, label, active, onHero }: { href: string; label: string; active: boolean; onHero: boolean }) {
+  return (
+    <Link
+      href={href}
+      aria-current={active ? "page" : undefined}
+      className={cn(
+        "group relative rounded-sm py-1 font-body text-[15px] font-medium tracking-wide transition-colors focus:outline-hidden focus-visible:ring-2 focus-visible:ring-offset-2",
+        onHero
+          ? "text-cream/85 hover:text-cream focus-visible:ring-cream/50 focus-visible:ring-offset-transparent"
+          : "text-charcoal hover:text-[#7A8B7C] focus-visible:ring-[#7A8B7C]/40 focus-visible:ring-offset-[#fafaf8]",
+      )}
+    >
+      {label}
+      <span
+        aria-hidden="true"
+        className={cn(
+          "pointer-events-none absolute -bottom-0.5 left-0 h-0.5 rounded-full transition-[width] duration-300 ease-out",
+          onHero ? "bg-cream" : "bg-[#7A8B7C]",
+          active ? "w-full" : "w-0 group-hover:w-full",
+        )}
+      />
+    </Link>
+  );
 }
 
 export function Navigation({ variant = "default" }: NavigationProps) {
@@ -40,6 +75,9 @@ export function Navigation({ variant = "default" }: NavigationProps) {
     : "/portal/dashboard";
   const accountName = session?.user?.name || session?.user?.email || "Account";
   const accountInitial = accountName.slice(0, 1).toUpperCase();
+
+  const isActive = (href: string) =>
+    router.pathname === href || router.pathname.startsWith(`${href}/`);
 
   // rAF-throttled + compare-and-skip — only calls setState when the boolean
   // actually flips, so scrolling past the 24px threshold doesn't trigger a
@@ -70,7 +108,25 @@ export function Navigation({ variant = "default" }: NavigationProps) {
     return () => router.events.off("routeChangeComplete", close);
   }, [router.events]);
 
+  // Lock body scroll + close on Escape while the full-screen mobile sheet is open.
+  useEffect(() => {
+    if (!mobileMenuOpen) return;
+    const prevOverflow = document.body.style.overflow;
+    document.body.style.overflow = "hidden";
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === "Escape") setMobileMenuOpen(false);
+    };
+    window.addEventListener("keydown", onKey);
+    return () => {
+      document.body.style.overflow = prevOverflow;
+      window.removeEventListener("keydown", onKey);
+    };
+  }, [mobileMenuOpen]);
+
   const isOverlay = variant === "overlay";
+  // "On hero": transparent overlay bar sitting over the dark hero — use light
+  // ink so the logo, links and actions stay legible (DESIGN.md nav spec).
+  const onHero = isOverlay && !scrolled;
 
   const shellClass = cn(
     "w-full transition-all duration-300 ease-out",
@@ -85,11 +141,8 @@ export function Navigation({ variant = "default" }: NavigationProps) {
       scrolled
         ? "bg-[#fafaf8]/92 backdrop-blur-md border-charcoal/10 shadow-xs"
         : "bg-[#fafaf8]/85 backdrop-blur-xl border-sage/10",
-    ]
+    ],
   );
-
-  const linkClass =
-    "font-body text-[15px] font-medium text-charcoal hover:text-[#7A8B7C] transition-colors tracking-wide";
 
   return (
     <nav className={shellClass}>
@@ -98,6 +151,7 @@ export function Navigation({ variant = "default" }: NavigationProps) {
           {/* Full lockup: THE STUDIO + byline (see /public/the_studio_by_C_C_og.png) */}
           <Link
             href="/"
+            aria-label="The Studio by Copper and Cloves — home"
             className="block select-none outline-hidden focus-visible:ring-2 focus-visible:ring-[#7A8B7C]/40 focus-visible:rounded-sm"
           >
             <Image
@@ -109,7 +163,7 @@ export function Navigation({ variant = "default" }: NavigationProps) {
                 "h-12 w-auto max-w-[min(85vw,300px)] object-contain object-left transition-[filter] duration-300 md:h-14",
                 // Black lockup: keep dark on the light/blurred bar, invert to
                 // light (with a soft shadow) when the bar is transparent over the hero.
-                isOverlay && !scrolled
+                onHero
                   ? "brightness-0 invert drop-shadow-[0_1px_8px_rgba(0,0,0,0.35)]"
                   : "brightness-0",
               )}
@@ -118,25 +172,13 @@ export function Navigation({ variant = "default" }: NavigationProps) {
           </Link>
 
           {/* Desktop */}
-          <div className="hidden md:flex items-center gap-8 lg:gap-10">
-            <Link href="/classes" className={linkClass}>
-              Classes
-            </Link>
-            <Link href="/instructors" className={linkClass}>
-              Instructors
-            </Link>
-            <Link href="/pricing" className={linkClass}>
-              Pricing
-            </Link>
-            <Link href="/cafe" className={linkClass}>
-              Café
-            </Link>
-            <Link href="/rental" className={linkClass}>
-              Events
-            </Link>
-            <Link href="/story" className={linkClass}>
-              Story
-            </Link>
+          <div className="hidden md:flex items-center gap-7 lg:gap-9">
+            {NAV_LINKS.map((l) => (
+              <NavLink key={l.href} href={l.href} label={l.label} active={isActive(l.href)} onHero={onHero} />
+            ))}
+
+            <span className={cn("h-5 w-px", onHero ? "bg-cream/30" : "bg-charcoal/15")} aria-hidden="true" />
+
             {authed ? (
               <div className="flex items-center gap-3">
                 <Link href="/portal/book">
@@ -154,12 +196,17 @@ export function Navigation({ variant = "default" }: NavigationProps) {
                     <button
                       type="button"
                       aria-label="Account menu"
-                      className="flex items-center gap-1.5 rounded-full border border-charcoal/15 bg-[#fafaf8]/80 py-1 pl-1 pr-2.5 transition-colors hover:bg-[#fafaf8] focus:outline-hidden focus-visible:ring-2 focus-visible:ring-[#7A8B7C]/40"
+                      className={cn(
+                        "flex items-center gap-1.5 rounded-full border py-1 pl-1 pr-2.5 transition-colors focus:outline-hidden focus-visible:ring-2 focus-visible:ring-[#7A8B7C]/40",
+                        onHero
+                          ? "border-cream/30 bg-cream/10 hover:bg-cream/20"
+                          : "border-charcoal/15 bg-[#fafaf8]/80 hover:bg-[#fafaf8]",
+                      )}
                     >
                       <span className="flex size-7 items-center justify-center rounded-full bg-[#7A8B7C] font-display text-sm text-cream">
                         {accountInitial}
                       </span>
-                      <ChevronDown size={15} className="text-charcoal/60" />
+                      <ChevronDown size={15} className={onHero ? "text-cream/80" : "text-charcoal/60"} />
                     </button>
                   </DropdownMenuTrigger>
                   <DropdownMenuContent align="end" className="w-52">
@@ -185,7 +232,12 @@ export function Navigation({ variant = "default" }: NavigationProps) {
                 <Link href="/login">
                   <Button
                     variant="ghost"
-                    className="h-auto gap-2 rounded-full px-5 py-2.5 text-[15px] font-body font-medium text-charcoal hover:text-[#7A8B7C]"
+                    className={cn(
+                      "h-auto gap-2 rounded-full px-5 py-2.5 text-[15px] font-body font-medium",
+                      onHero
+                        ? "text-cream hover:bg-cream/10 hover:text-cream"
+                        : "text-charcoal hover:text-[#7A8B7C]",
+                    )}
                   >
                     <LogIn size={17} /> Login
                   </Button>
@@ -209,108 +261,108 @@ export function Navigation({ variant = "default" }: NavigationProps) {
             type="button"
             variant="ghost"
             size="icon"
-            onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
+            onClick={() => setMobileMenuOpen(true)}
             className="md:hidden rounded-full"
             aria-expanded={mobileMenuOpen}
-            aria-label={mobileMenuOpen ? "Close menu" : "Open menu"}
+            aria-controls="mobile-nav"
+            aria-label="Open menu"
           >
-            {mobileMenuOpen ? (
-              <X size={22} className="text-charcoal" />
-            ) : (
-              <Menu size={22} className="text-charcoal" />
-            )}
+            <Menu size={24} className={onHero ? "text-cream drop-shadow-[0_1px_4px_rgba(0,0,0,0.4)]" : "text-charcoal"} />
           </Button>
         </div>
+      </div>
 
-        {/* Mobile menu */}
-        {mobileMenuOpen && (
-          <div
-            className={cn(
-              "md:hidden pb-5 pt-1 space-y-1 rounded-b-2xl border-t border-charcoal/5 mt-1",
-              isOverlay ? "bg-[#fafaf8]/96 backdrop-blur-lg" : "bg-[#fafaf8]/95"
-            )}
-          >
-            <Link
-              href="/classes"
-              className="block font-body font-medium text-charcoal py-3 px-1 hover:text-[#7A8B7C]"
+      {/* Mobile full-screen sheet — centered Playfair links (DESIGN.md nav spec) */}
+      {mobileMenuOpen && (
+        <div
+          id="mobile-nav"
+          role="dialog"
+          aria-modal="true"
+          aria-label="Site menu"
+          className="fixed inset-0 z-[60] flex flex-col bg-cream md:hidden animate-in fade-in duration-200"
+        >
+          <div className="flex min-h-17 items-center justify-between px-5">
+            <Image
+              src={cdnUrl("/the_studio_by_C_C_og.png")}
+              alt="The STUDIO"
+              width={320}
+              height={84}
+              className="h-11 w-auto max-w-[60vw] object-contain object-left brightness-0"
+            />
+            <Button
+              type="button"
+              variant="ghost"
+              size="icon"
               onClick={() => setMobileMenuOpen(false)}
+              className="rounded-full"
+              aria-label="Close menu"
             >
-              Classes
-            </Link>
-            <Link
-              href="/instructors"
-              className="block font-body font-medium text-charcoal py-3 px-1 hover:text-[#7A8B7C]"
-              onClick={() => setMobileMenuOpen(false)}
-            >
-              Instructors
-            </Link>
-            <Link
-              href="/pricing"
-              className="block font-body font-medium text-charcoal py-3 px-1 hover:text-[#7A8B7C]"
-              onClick={() => setMobileMenuOpen(false)}
-            >
-              Pricing
-            </Link>
-            <Link
-              href="/cafe"
-              className="block font-body font-medium text-charcoal py-3 px-1 hover:text-[#7A8B7C]"
-              onClick={() => setMobileMenuOpen(false)}
-            >
-              Café
-            </Link>
-            <Link
-              href="/rental"
-              className="block font-body font-medium text-charcoal py-3 px-1 hover:text-[#7A8B7C]"
-              onClick={() => setMobileMenuOpen(false)}
-            >
-              Events
-            </Link>
-            <Link
-              href="/story"
-              className="block font-body font-medium text-charcoal py-3 px-1 hover:text-[#7A8B7C]"
-              onClick={() => setMobileMenuOpen(false)}
-            >
-              Story
-            </Link>
-            {authed ? (
-              <div className="space-y-1 pt-2">
-                <Link href="/portal/book" onClick={() => setMobileMenuOpen(false)} className="block">
-                  <Button className={cn("h-auto w-full gap-2 rounded-full border-0 py-3 font-body font-medium text-cream", HEADER_SAGE)}>
-                    <Ticket size={18} /> Book
-                  </Button>
-                </Link>
+              <X size={24} className="text-charcoal" />
+            </Button>
+          </div>
+
+          <nav className="flex flex-1 flex-col items-center justify-center gap-1" aria-label="Primary">
+            {NAV_LINKS.map((l) => {
+              const active = isActive(l.href);
+              return (
                 <Link
-                  href={dashHref}
+                  key={l.href}
+                  href={l.href}
                   onClick={() => setMobileMenuOpen(false)}
-                  className="flex items-center gap-2 px-1 py-3 font-body font-medium text-charcoal hover:text-[#7A8B7C]"
+                  aria-current={active ? "page" : undefined}
+                  className={cn(
+                    "rounded-md px-6 py-2.5 font-display text-3xl transition-colors focus:outline-hidden focus-visible:ring-2 focus-visible:ring-[#7A8B7C]/40",
+                    active ? "text-[#7A8B7C]" : "text-charcoal hover:text-[#7A8B7C]",
+                  )}
                 >
-                  <LayoutDashboard size={18} /> Dashboard
+                  {l.label}
                 </Link>
-                <button
-                  type="button"
-                  onClick={() => { setMobileMenuOpen(false); signOut({ callbackUrl: "/" }); }}
-                  className="flex w-full items-center gap-2 px-1 py-3 font-body font-medium text-terracotta"
-                >
-                  <LogOut size={18} /> Log out
-                </button>
-              </div>
-            ) : (
-              <div className="space-y-2 pt-2">
-                <Link href="/login" onClick={() => setMobileMenuOpen(false)} className="block">
-                  <Button variant="outline" className="h-auto w-full gap-2 rounded-full border-sage/40 py-3 font-body font-medium text-sage">
-                    <LogIn size={18} /> Login
+              );
+            })}
+          </nav>
+
+          <div className="space-y-2.5 px-6 pb-[calc(env(safe-area-inset-bottom)+1.75rem)] pt-2">
+            {authed ? (
+              <>
+                <Link href="/portal/book" onClick={() => setMobileMenuOpen(false)} className="block">
+                  <Button className={cn("h-auto w-full gap-2 rounded-full border-0 py-3.5 text-base font-body font-medium text-cream", HEADER_SAGE)}>
+                    <Ticket size={18} /> Book a class
                   </Button>
                 </Link>
+                <div className="flex gap-2.5">
+                  <Link href={dashHref} onClick={() => setMobileMenuOpen(false)} className="flex-1">
+                    <Button variant="outline" className="h-auto w-full gap-2 rounded-full border-sage/40 py-3.5 text-base font-body font-medium text-sage">
+                      <LayoutDashboard size={18} /> Dashboard
+                    </Button>
+                  </Link>
+                  <Button
+                    type="button"
+                    variant="outline"
+                    onClick={() => { setMobileMenuOpen(false); signOut({ callbackUrl: "/" }); }}
+                    className="h-auto gap-2 rounded-full border-terracotta/40 px-5 py-3.5 text-base font-body font-medium text-terracotta hover:bg-terracotta/5"
+                    aria-label="Log out"
+                  >
+                    <LogOut size={18} />
+                  </Button>
+                </div>
+              </>
+            ) : (
+              <>
                 <Link href="/login" onClick={() => setMobileMenuOpen(false)} className="block">
-                  <Button className={cn("h-auto w-full gap-2 rounded-full border-0 py-3 font-body font-medium text-cream", HEADER_SAGE)}>
+                  <Button className={cn("h-auto w-full gap-2 rounded-full border-0 py-3.5 text-base font-body font-medium text-cream", HEADER_SAGE)}>
                     <Ticket size={18} /> Book Now
                   </Button>
                 </Link>
-              </div>
+                <Link href="/login" onClick={() => setMobileMenuOpen(false)} className="block">
+                  <Button variant="outline" className="h-auto w-full gap-2 rounded-full border-sage/40 py-3.5 text-base font-body font-medium text-sage">
+                    <LogIn size={18} /> Login
+                  </Button>
+                </Link>
+              </>
             )}
           </div>
-        )}
-      </div>
+        </div>
+      )}
     </nav>
   );
 }
