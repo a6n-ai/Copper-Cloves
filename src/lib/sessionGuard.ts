@@ -8,9 +8,10 @@ type Headers = Record<string, string | string[] | undefined>;
 type ReqLike = NextApiRequest | IncomingMessage | { headers: Headers };
 
 // Absolute lifetime — also wired into NextAuth session/jwt maxAge in auth.ts.
-export const SESSION_MAX_AGE_SECONDS = 7 * 24 * 60 * 60; // 7 days
+export const SESSION_MAX_AGE_SECONDS = 2 * 24 * 60 * 60; // 2 days
 // Idle window: a session unused for this long is killed on the next request.
-export const SESSION_IDLE_MS = 12 * 60 * 60 * 1000; // 12 hours
+// Matched to the 2-day absolute lifetime so inactivity doesn't sign users out early.
+export const SESSION_IDLE_MS = 2 * 24 * 60 * 60 * 1000; // 2 days
 // Don't write last_seen_at on every request — at most this often.
 const LAST_SEEN_THROTTLE_MS = 5 * 60 * 1000;
 
