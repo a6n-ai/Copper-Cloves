@@ -1,7 +1,16 @@
 import Link from "next/link";
 import Image from "next/image";
 import { Button } from "@/components/ui/button";
-import { Menu, X } from "lucide-react";
+import { Menu, X, LogIn, Ticket, LayoutDashboard, LogOut, ChevronDown } from "lucide-react";
+import { useSession, signOut } from "next-auth/react";
+import {
+  DropdownMenu,
+  DropdownMenuTrigger,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
+} from "@/components/ui/dropdown-menu";
 import { useState, useEffect } from "react";
 import { useRouter } from "next/router";
 import { cn } from "@/lib/utils";
@@ -21,6 +30,16 @@ export function Navigation({ variant = "default" }: NavigationProps) {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [scrolled, setScrolled] = useState(false);
   const router = useRouter();
+  const { data: session, status } = useSession();
+  const authed = status === "authenticated";
+  const role = (session?.user as { role?: string } | undefined)?.role;
+  const dashHref =
+    role === "admin" ? "/admin/dashboard"
+    : role === "partner" ? "/partner/dashboard"
+    : role === "instructor" ? "/instructor/dashboard"
+    : "/portal/dashboard";
+  const accountName = session?.user?.name || session?.user?.email || "Account";
+  const accountInitial = accountName.slice(0, 1).toUpperCase();
 
   // rAF-throttled + compare-and-skip — only calls setState when the boolean
   // actually flips, so scrolling past the 24px threshold doesn't trigger a
@@ -118,16 +137,71 @@ export function Navigation({ variant = "default" }: NavigationProps) {
             <Link href="/story" className={linkClass}>
               Story
             </Link>
-            <Link href="/portal/login">
-              <Button
-                className={cn(
-                  "rounded-full border-0 px-7 py-2.5 h-auto text-[15px] font-body font-medium text-cream shadow-xs",
-                  HEADER_SAGE
-                )}
-              >
-                Book Now
-              </Button>
-            </Link>
+            {authed ? (
+              <div className="flex items-center gap-3">
+                <Link href="/portal/book">
+                  <Button
+                    className={cn(
+                      "h-auto gap-2 rounded-full border-0 px-6 py-2.5 text-[15px] font-body font-medium text-cream shadow-xs",
+                      HEADER_SAGE,
+                    )}
+                  >
+                    <Ticket size={17} /> Book
+                  </Button>
+                </Link>
+                <DropdownMenu>
+                  <DropdownMenuTrigger asChild>
+                    <button
+                      type="button"
+                      aria-label="Account menu"
+                      className="flex items-center gap-1.5 rounded-full border border-charcoal/15 bg-[#fafaf8]/80 py-1 pl-1 pr-2.5 transition-colors hover:bg-[#fafaf8] focus:outline-hidden focus-visible:ring-2 focus-visible:ring-[#7A8B7C]/40"
+                    >
+                      <span className="flex size-7 items-center justify-center rounded-full bg-[#7A8B7C] font-display text-sm text-cream">
+                        {accountInitial}
+                      </span>
+                      <ChevronDown size={15} className="text-charcoal/60" />
+                    </button>
+                  </DropdownMenuTrigger>
+                  <DropdownMenuContent align="end" className="w-52">
+                    <DropdownMenuLabel className="truncate font-body">{accountName}</DropdownMenuLabel>
+                    <DropdownMenuSeparator />
+                    <DropdownMenuItem asChild>
+                      <Link href={dashHref} className="cursor-pointer">
+                        <LayoutDashboard size={16} className="mr-2" /> Dashboard
+                      </Link>
+                    </DropdownMenuItem>
+                    <DropdownMenuSeparator />
+                    <DropdownMenuItem
+                      onClick={() => signOut({ callbackUrl: "/" })}
+                      className="cursor-pointer text-terracotta focus:text-terracotta"
+                    >
+                      <LogOut size={16} className="mr-2" /> Log out
+                    </DropdownMenuItem>
+                  </DropdownMenuContent>
+                </DropdownMenu>
+              </div>
+            ) : (
+              <div className="flex items-center gap-2">
+                <Link href="/login">
+                  <Button
+                    variant="ghost"
+                    className="h-auto gap-2 rounded-full px-5 py-2.5 text-[15px] font-body font-medium text-charcoal hover:text-[#7A8B7C]"
+                  >
+                    <LogIn size={17} /> Login
+                  </Button>
+                </Link>
+                <Link href="/login">
+                  <Button
+                    className={cn(
+                      "h-auto gap-2 rounded-full border-0 px-6 py-2.5 text-[15px] font-body font-medium text-cream shadow-xs",
+                      HEADER_SAGE,
+                    )}
+                  >
+                    <Ticket size={17} /> Book Now
+                  </Button>
+                </Link>
+              </div>
+            )}
           </div>
 
           {/* Mobile toggle */}
@@ -198,16 +272,42 @@ export function Navigation({ variant = "default" }: NavigationProps) {
             >
               Story
             </Link>
-            <Link href="/portal/login" onClick={() => setMobileMenuOpen(false)} className="block pt-2">
-              <Button
-                className={cn(
-                  "w-full rounded-full border-0 py-3 h-auto font-body font-medium text-cream",
-                  HEADER_SAGE
-                )}
-              >
-                Book Now
-              </Button>
-            </Link>
+            {authed ? (
+              <div className="space-y-1 pt-2">
+                <Link href="/portal/book" onClick={() => setMobileMenuOpen(false)} className="block">
+                  <Button className={cn("h-auto w-full gap-2 rounded-full border-0 py-3 font-body font-medium text-cream", HEADER_SAGE)}>
+                    <Ticket size={18} /> Book
+                  </Button>
+                </Link>
+                <Link
+                  href={dashHref}
+                  onClick={() => setMobileMenuOpen(false)}
+                  className="flex items-center gap-2 px-1 py-3 font-body font-medium text-charcoal hover:text-[#7A8B7C]"
+                >
+                  <LayoutDashboard size={18} /> Dashboard
+                </Link>
+                <button
+                  type="button"
+                  onClick={() => { setMobileMenuOpen(false); signOut({ callbackUrl: "/" }); }}
+                  className="flex w-full items-center gap-2 px-1 py-3 font-body font-medium text-terracotta"
+                >
+                  <LogOut size={18} /> Log out
+                </button>
+              </div>
+            ) : (
+              <div className="space-y-2 pt-2">
+                <Link href="/login" onClick={() => setMobileMenuOpen(false)} className="block">
+                  <Button variant="outline" className="h-auto w-full gap-2 rounded-full border-sage/40 py-3 font-body font-medium text-sage">
+                    <LogIn size={18} /> Login
+                  </Button>
+                </Link>
+                <Link href="/login" onClick={() => setMobileMenuOpen(false)} className="block">
+                  <Button className={cn("h-auto w-full gap-2 rounded-full border-0 py-3 font-body font-medium text-cream", HEADER_SAGE)}>
+                    <Ticket size={18} /> Book Now
+                  </Button>
+                </Link>
+              </div>
+            )}
           </div>
         )}
       </div>
