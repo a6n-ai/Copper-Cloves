@@ -2,16 +2,16 @@ import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
 import { cn } from "@/lib/utils";
 
-/** A single stat tile placeholder — mirrors StatCard. */
+/** A single stat tile placeholder — mirrors the MetricCard layout StatCard now uses. */
 export function StatCardSkeleton() {
   return (
-    <Card className="rounded-2xl shadow-xs">
-      <CardContent className="flex items-center gap-3 p-4">
-        <Skeleton className="h-10 w-10 shrink-0 rounded-full" />
-        <div className="flex-1 space-y-2">
-          <Skeleton className="h-6 w-12" />
-          <Skeleton className="h-3 w-16" />
+    <Card className="h-full border-sage/15 bg-white-warm shadow-none">
+      <CardContent className="flex h-full flex-col p-4 sm:p-5">
+        <div className="flex items-start justify-between gap-3">
+          <Skeleton className="h-4 w-20" />
+          <Skeleton className="h-9 w-9 shrink-0 rounded-xl" />
         </div>
+        <Skeleton className="mt-3 h-8 w-24" />
       </CardContent>
     </Card>
   );
@@ -105,8 +105,16 @@ export function MemberDashboardSkeleton() {
     <main className="min-h-screen">
       <div className="mx-auto max-w-7xl space-y-8 p-6 lg:p-8">
         <GreetingSkeleton />
-        <StatRowSkeleton />
-        <CardBlockSkeleton bodyClassName="h-32" />
+        {/* Quick Book */}
+        <Skeleton className="h-20 w-full rounded-2xl" />
+        {/* Bento: Path-to-Mastery medal stepper + 4 metric squares */}
+        <div className="grid grid-cols-2 gap-4 lg:grid-cols-4 lg:auto-rows-[176px]">
+          <Skeleton className="col-span-2 h-[340px] rounded-2xl lg:row-span-2 lg:h-full" />
+          {Array.from({ length: 4 }).map((_, i) => (
+            <Skeleton key={i} className="h-[150px] rounded-2xl lg:h-full" />
+          ))}
+        </div>
+        {/* Movement Vitality + sidebar */}
         <div className="grid grid-cols-1 gap-8 lg:grid-cols-3">
           <div className="lg:col-span-2">
             <CardBlockSkeleton />
@@ -139,8 +147,8 @@ export function MemberMobileDashboardSkeleton() {
         </div>
         {/* Stat mini-grid */}
         <StatRowSkeleton />
-        {/* Your journey */}
-        <Skeleton className="h-28 w-full rounded-2xl" />
+        {/* Your journey — medal stepper card */}
+        <Skeleton className="h-[360px] w-full rounded-2xl" />
         {/* Upcoming */}
         <ListSkeleton rows={2} />
         {/* Explore peek tiles */}

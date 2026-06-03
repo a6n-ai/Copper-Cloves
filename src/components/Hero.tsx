@@ -1,5 +1,8 @@
 import { useState, useEffect } from "react";
 import Image from "next/image";
+import Link from "next/link";
+import { useSession } from "next-auth/react";
+import { Ticket, ArrowRight } from "lucide-react";
 import { cdnUrl } from "@/lib/cdnUrl";
 import { BLUR_DATA_URL } from "@/lib/imageBlur";
 
@@ -7,6 +10,8 @@ const moveMedia = [cdnUrl("/Move-1.mp4"), cdnUrl("/Move-2.mp4")];
 const refuelMedia = [cdnUrl("/Refuel-1.mp4"), cdnUrl("/refuel-2.jpeg"), cdnUrl("/refuel-3.mp4")];
 
 export function Hero() {
+  const { status } = useSession();
+  const bookHref = status === "authenticated" ? "/portal/book" : "/login";
   const [moveIndex, setMoveIndex] = useState(0);
   const [refuelIndex, setRefuelIndex] = useState(0);
 
@@ -29,7 +34,7 @@ export function Hero() {
   return (
     <>
       {/* Hero: three columns on lg+, stacked on smaller screens */}
-      <section className="relative h-screen w-full overflow-hidden">
+      <section className="relative hidden h-screen w-full overflow-hidden lg:block">
         <div className="flex h-full min-h-0 flex-col lg:grid lg:grid-cols-3 lg:h-full">
           {/* Panel 1: Move */}
           <div className="relative flex-1 min-h-0 overflow-hidden lg:flex-none lg:h-full group">
@@ -195,20 +200,65 @@ export function Hero() {
         `}</style>
       </section>
 
-      {/* Headline — mobile / tablet only (under hero stack) */}
-      <section className="bg-white py-8 sm:py-10 lg:hidden px-6">
-        <div className="max-w-3xl mx-auto text-center">
-          <h1 className="font-display text-5xl sm:text-6xl md:text-7xl text-charcoal mb-6 leading-[1.05]">
-            <span className="italic text-charcoal/70">We're more than a studio,</span><br />
-            We're your home away from home
+      {/* Mobile / tablet hero — full-bleed video background (move/refuel/connect
+          stacked top→bottom) with the headline + CTAs overlaid (< lg). */}
+      <section className="relative min-h-[100svh] w-full overflow-hidden lg:hidden">
+        {/* Stacked video panels fill the screen as the background */}
+        <div className="absolute inset-0 flex flex-col">
+          {[
+            { src: moveMedia[0], anim: "animate-floatAndZoom17" },
+            { src: refuelMedia[0], anim: "animate-floatAndZoom19" },
+            { src: cdnUrl("/Connect-1.mp4"), anim: "animate-floatAndZoom23" },
+          ].map((panel) => (
+            <div key={panel.src} className="relative flex-1 overflow-hidden">
+              <video
+                src={panel.src}
+                poster={panel.src.replace(/\.mp4$/, ".poster.jpg")}
+                autoPlay
+                loop
+                muted
+                playsInline
+                preload="metadata"
+                className={`h-full w-full object-cover ${panel.anim}`}
+              />
+            </div>
+          ))}
+        </div>
+
+        {/* Single dark scrim across all panels for headline legibility */}
+        <div className="absolute inset-0 bg-black/45" />
+
+        {/* Overlaid content */}
+        <div className="relative z-10 flex min-h-[100svh] flex-col items-center justify-center px-6 pb-14 pt-24 text-center">
+          <h1 className="font-display text-[clamp(2.25rem,8.5vw,3.5rem)] leading-[1.05] text-cream drop-shadow-2xl">
+            <span className="italic text-cream/90">We&apos;re more than a studio,</span>
+            <br />
+            We&apos;re your home away from home
           </h1>
-          <p className="font-body text-lg sm:text-xl md:text-2xl text-charcoal/80 font-light leading-relaxed max-w-2xl mx-auto">
-            <span className="italic">move</span> your body,{" "}
-            <span className="italic">refuel</span> with a coffee and a smoothie bowl,
-            <br className="hidden sm:block" />
-            work from our cafe and find your{" "}
-            <span className="italic">community</span>
+
+          <p className="mt-4 font-script text-2xl tracking-wider text-cream/90 [text-shadow:0_1px_8px_rgba(0,0,0,0.5)]">
+            move · refuel · connect
           </p>
+
+          <p className="mx-auto mt-3 max-w-md font-body text-base leading-relaxed text-cream/85 [text-shadow:0_1px_2px_rgba(0,0,0,0.8)]">
+            <span className="italic">Move</span> your body, <span className="italic">refuel</span> with a coffee and a smoothie bowl, and find your <span className="italic">community</span>.
+          </p>
+
+          <div className="mt-8 flex w-full max-w-xs flex-col gap-3">
+            <Link
+              href={bookHref}
+              className="inline-flex items-center justify-center gap-2 rounded-full bg-sage px-6 py-3.5 font-body text-base font-medium text-cream shadow-sm transition-colors hover:bg-sage/90 active:bg-sage/80"
+            >
+              <Ticket size={18} /> Book a class
+            </Link>
+            <Link
+              href="/classes"
+              className="inline-flex items-center justify-center gap-1.5 rounded-full border border-cream/50 px-6 py-3.5 font-body text-base font-medium text-cream transition-colors hover:bg-cream/10"
+            >
+              Explore classes
+              <ArrowRight size={16} className="motion-reduce:transition-none" />
+            </Link>
+          </div>
         </div>
       </section>
     </>

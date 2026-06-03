@@ -284,3 +284,12 @@ body > #__next {
     scroll-behavior: auto !important;
   }
 }
+
+/* Suppress the native iOS/Chrome "start playback" overlay button that mobile
+   browsers paint over muted autoplay videos (decorative hero/background clips). */
+video::-webkit-media-controls-start-playback-button,
+video::-webkit-media-controls-play-button,
+video::-webkit-media-controls {
+  display: none !important;
+  -webkit-appearance: none;
+}

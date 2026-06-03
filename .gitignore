@@ -38,6 +38,9 @@ yarn-error.log*
 # vercel
 .vercel
 
+# mobile-revamp visual audit scratch (screenshots only, never committed)
+/.audit/
+
 # typescript
 *.tsbuildinfo
 next-env.d.ts

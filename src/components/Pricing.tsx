@@ -1,4 +1,4 @@
-import { useRef, useState } from "react";
+import { useState, useEffect } from "react";
 import { ArrowRight } from "lucide-react";
 import Link from "next/link";
 import { useRouter } from "next/router";
@@ -7,29 +7,29 @@ import { NavPrevButton, NavNextButton } from "@/components/ui/quick-actions";
 import { PricingCard } from "@/components/pricing/PricingCard";
 import { SectionHeading } from "@/components/SectionHeading";
 import { studioPassPlans, classPassPlans, type PricingPlan } from "@/lib/pricingPlans";
+import { useCarouselScroll } from "@/hooks/useCarouselScroll";
 
 export function Pricing() {
   const router = useRouter();
   const { data: session } = useSession();
   const [selectedTier, setSelectedTier] = useState<"studio" | "class">("studio");
-  const scrollContainerRef = useRef<HTMLDivElement>(null);
+  const { ref: scrollContainerRef, scrollBy, measure, progress } = useCarouselScroll();
 
   const handleSelect = (plan: PricingPlan) => {
     const base = session ? "/portal/packages" : "/portal/login?redirect=/portal/packages";
     router.push(`${base}${session ? "?" : "&"}selected=${encodeURIComponent(plan.name)}`);
   };
 
-  const scroll = (direction: "left" | "right") => {
-    scrollContainerRef.current?.scrollBy({
-      left: direction === "left" ? -350 : 350,
-      behavior: "smooth",
-    });
-  };
+  const scroll = (direction: "left" | "right") => scrollBy(direction, 350);
 
   const currentPlans = selectedTier === "class" ? classPassPlans : studioPassPlans;
 
+  useEffect(() => {
+    measure();
+  }, [selectedTier, measure]);
+
   return (
-    <section id="pricing" className="bg-cream py-16 md:py-20">
+    <section id="pricing" className="bg-cream py-14 md:py-20">
       <div className="mx-auto max-w-7xl px-6 lg:px-8">
         <SectionHeading
           eyebrow="Memberships & passes"
@@ -63,10 +63,20 @@ export function Pricing() {
           </div>
         </div>
 
-        {/* Mobile scroll controls */}
-        <div className="mt-8 flex justify-center gap-4 lg:hidden">
+        {/* Tablet scroll controls (md–lg): arrows hidden on phones */}
+        <div className="mt-8 hidden justify-center gap-4 md:flex lg:hidden">
           <NavPrevButton onClick={() => scroll("left")} className="rounded-full bg-white-warm" />
           <NavNextButton onClick={() => scroll("right")} className="rounded-full bg-white-warm" />
+        </div>
+
+        {/* Phone position indicator (< md) */}
+        <div className="mt-8 flex justify-center md:hidden">
+          <div className="h-1 w-24 overflow-hidden rounded-full bg-sage/15" aria-hidden="true">
+            <div
+              className="h-full rounded-full bg-sage transition-[width] duration-300 ease-out"
+              style={{ width: `${Math.max(14, progress * 100)}%` }}
+            />
+          </div>
         </div>
 
         {/* Plans */}
@@ -84,7 +94,7 @@ export function Pricing() {
         <div className="mt-10 flex flex-col items-center gap-4">
           <Link
             href="/pricing"
-            className="group inline-flex items-center gap-1.5 font-body text-sm font-semibold text-sage transition-colors duration-200 hover:text-[#7A8B7C]"
+            className="group inline-flex items-center gap-1.5 font-body text-sm font-semibold text-sage transition-colors duration-200"
           >
             Compare all plans
             <ArrowRight

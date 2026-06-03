@@ -7,7 +7,6 @@ import {
   History,
   Lock,
   Target,
-  Award,
   BarChart3,
   Coffee,
   Activity as ActivityIcon,
@@ -18,7 +17,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { AnimatedIcon } from "@/components/dashboard/AnimatedIcon";
 import { StatCardRow, type StatCardProps } from "@/components/dashboard/StatCard";
-import { PathToMastery } from "@/components/dashboard/PathToMastery";
+import { MedalJourney } from "@/components/dashboard/MedalJourney";
 import { UpcomingScheduleCard, type ScheduleEntry } from "@/components/dashboard/UpcomingScheduleCard";
 // recharts only loads when the member taps open the vitality dialog.
 const VitalityAreaChart = dynamic(
@@ -56,9 +55,6 @@ export interface MemberMobileDashboardProps {
   statItems: StatCardProps[];
 
   milestones: any[];
-  currentMilestoneId: string;
-  nextMilestone: any;
-  ptmLoading: boolean;
 
   upcomingEntries: ScheduleEntry[];
   userBadges: any[];
@@ -88,9 +84,6 @@ export function MemberMobileDashboard({
   onToggleEditIntention,
   statItems,
   milestones,
-  currentMilestoneId,
-  nextMilestone,
-  ptmLoading,
   upcomingEntries,
   userBadges,
   recentActivities,
@@ -237,12 +230,10 @@ export function MemberMobileDashboard({
       {/* Your journey */}
       <section>
         <h2 className="mb-2 px-1 font-body text-xs uppercase tracking-wide text-charcoal/45">Your journey</h2>
-        <PathToMastery
+        <MedalJourney
           milestones={milestones}
           classesCompleted={userClassesCompleted}
-          currentId={currentMilestoneId}
-          nextMilestone={nextMilestone}
-          loading={ptmLoading}
+          earnedCustom={userBadges.filter((b: { badge_type?: string }) => b.badge_type === "custom")}
         />
       </section>
 
@@ -258,14 +249,6 @@ export function MemberMobileDashboard({
       <section>
         <h2 className="mb-2 px-1 font-body text-xs uppercase tracking-wide text-charcoal/45">Explore</h2>
         <div className="space-y-2">
-          {userBadges.length > 0 && (
-            <PeekTile
-              icon={Award}
-              label="Achievements"
-              hint={`${userBadges.length} earned`}
-              onClick={() => setPeek("badges")}
-            />
-          )}
           <PeekTile
             icon={BarChart3}
             label="Movement Vitality"
@@ -312,37 +295,6 @@ export function MemberMobileDashboard({
                 vsLabel={vitality.vsLabel}
                 vsTone={vitality.vsTone}
               />
-            )}
-
-            {peek === "badges" && (
-              <div className="grid grid-cols-1 gap-3">
-                {userBadges.map((badge) => {
-                  const badgeColor = badge.color ?? "#7C9070";
-                  return (
-                    <div
-                      key={badge.id}
-                      className="flex items-center gap-3 rounded-2xl border p-4 shadow-xs"
-                      style={{
-                        background: `linear-gradient(135deg, ${badgeColor}18, ${badgeColor}08)`,
-                        borderColor: badgeColor + "44",
-                      }}
-                    >
-                      <span className="text-3xl">{badge.icon ?? "🏆"}</span>
-                      <div className="min-w-0">
-                        <p className="font-display text-sm leading-tight text-charcoal">{badge.badge_name}</p>
-                        {badge.badge_description && (
-                          <p className="font-body text-xs leading-tight text-charcoal/50">
-                            {badge.badge_description}
-                          </p>
-                        )}
-                        {badge.milestone_value > 0 ? (
-                          <p className="font-body text-xs text-charcoal/40">{badge.milestone_value} classes</p>
-                        ) : null}
-                      </div>
-                    </div>
-                  );
-                })}
-              </div>
             )}
 
             {peek === "activity" && (

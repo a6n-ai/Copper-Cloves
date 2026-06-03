@@ -58,15 +58,19 @@ export function Pagination({
   pageSize = DEFAULT_PAGE_SIZE,
   onChange,
   className,
+  alwaysShow = false,
 }: {
   page: number;
   total: number;
   pageSize?: number;
   onChange: (page: number) => void;
   className?: string;
+  /** Render the control even when everything fits on one page (shows a lone page 1). Still hidden when there are no results. */
+  alwaysShow?: boolean;
 }) {
   const totalPages = Math.max(1, Math.ceil(total / pageSize));
-  if (total <= pageSize) return null;
+  if (total === 0) return null;
+  if (total <= pageSize && !alwaysShow) return null;
   const start = (page - 1) * pageSize + 1;
   const end = Math.min(page * pageSize, total);
   const items = buildPageWindow(page, totalPages);

@@ -170,14 +170,14 @@ export function Footer() {
                   href="https://maps.google.com/maps?ll=12.963915,77.638424&z=15&t=m&hl=en&gl=IN&mapclient=embed&cid=8196377345979611458"
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="inline-flex items-center gap-2 bg-white-warm hover:bg-[#fafaf8]/90 text-sage px-6 py-3 rounded-lg transition-colors duration-300 font-body justify-center"
+                  className="inline-flex items-center gap-2 bg-white-warm hover:bg-[#fafaf8]/90 text-sage px-6 py-3 rounded-full transition-colors duration-300 font-body justify-center"
                 >
                   <MapPin size={18} />
                   Get Directions
                 </a>
                 <Link
                   href="/portal/book"
-                  className="inline-flex items-center gap-2 bg-[#fafaf8]/10 hover:bg-[#fafaf8]/20 text-cream px-6 py-3 rounded-lg transition-colors duration-300 font-body justify-center"
+                  className="inline-flex items-center gap-2 bg-[#fafaf8]/10 hover:bg-[#fafaf8]/20 text-cream px-6 py-3 rounded-full transition-colors duration-300 font-body justify-center"
                 >
                   Book a Visit
                 </Link>

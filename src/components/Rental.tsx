@@ -34,12 +34,12 @@ const stats = [
 
 export function Rental() {
   return (
-    <section className="bg-cream py-16 md:py-20">
+    <section className="bg-cream py-14 md:py-20">
       <div className="mx-auto max-w-7xl px-6 lg:px-8">
         {/* Image + content — image stretches to the full height of the heading + features column */}
         <div className="grid items-stretch gap-12 lg:min-h-[600px] lg:grid-cols-2">
-          {/* Showcase image */}
-          <div className="group relative min-h-[420px] overflow-hidden rounded-3xl shadow-[0_8px_48px_-8px_rgba(51,51,51,0.14)] md:min-h-[520px] lg:min-h-full">
+          {/* Showcase image — below the text on mobile, left column on desktop */}
+          <div className="group relative order-2 min-h-[420px] overflow-hidden rounded-3xl shadow-[0_8px_48px_-8px_rgba(51,51,51,0.14)] md:min-h-[520px] lg:order-1 lg:min-h-full">
             <Image
               src={cdnUrl("/cafe-studio.jpg")}
               alt="The event space at The Studio by Copper + Cloves"
@@ -64,8 +64,8 @@ export function Rental() {
             </div>
           </div>
 
-          {/* Content: heading + feature list + cta */}
-          <div className="flex flex-col justify-center">
+          {/* Content: heading + feature list + cta — first on mobile, right column on desktop */}
+          <div className="order-1 flex flex-col justify-center lg:order-2">
             <p className="font-body text-xs font-semibold uppercase tracking-[0.18em] text-terracotta">
               Private hire · Events
             </p>
@@ -93,7 +93,7 @@ export function Rental() {
 
             <Link
               href="/rental"
-              className="group mt-10 inline-flex items-center gap-1.5 self-start font-body text-sm font-semibold text-sage transition-colors duration-200 hover:text-[#7A8B7C]"
+              className="group mt-10 inline-flex items-center gap-1.5 self-start font-body text-sm font-semibold text-sage transition-colors duration-200"
             >
               Explore space & book
               <ArrowRight

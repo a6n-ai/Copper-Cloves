@@ -13,7 +13,7 @@ import {
   linkRazorpayOrderToUserPackageTx,
   persistVerifiedRazorpayPayment,
 } from "@/lib/razorpayPersistence";
-import { getRazorpay, razorpayConfigured } from "@/lib/razorpayServer";
+import { captureAuthorizedPayment, getRazorpay, razorpayConfigured } from "@/lib/razorpayServer";
 import {
   incrementCouponAndRecordRedemption,
   passCategoryForPackageType,
@@ -70,6 +70,24 @@ export async function syncCapturedPaymentForOrder(params: {
   });
   if (!paid?.id) {
     throw new Error("PAYMENT_NOT_FOUND");
+  }
+
+  // Capture authorized funds so they settle to the studio. This path runs on
+  // redirect/pg_router returns (no browser signature) — the common netbanking/UPI
+  // case where the payment is `authorized` and would otherwise auto-void.
+  const paidStatus = paid.status != null ? String(paid.status).toLowerCase() : "";
+  if (paidStatus === "authorized") {
+    try {
+      const result = await captureAuthorizedPayment({
+        razorpay,
+        paymentId: paid.id,
+        amountPaise: Math.round(Number(paid.amount ?? 0)),
+        currency: paid.currency != null ? String(paid.currency) : "INR",
+      });
+      paid.status = result.status;
+    } catch (capErr) {
+      logger.error({ err: capErr, razorpayOrderId: params.razorpayOrderId, paymentId: paid.id }, "razorpay capture failed (sync)");
+    }
   }
 
   await persistVerifiedRazorpayPayment({

@@ -32,6 +32,7 @@ import { DashboardShell } from "@/components/dashboard/DashboardShell";
 import { PORTAL_CONFIGS, type PortalKind } from "@/components/dashboard/dashboardNav";
 import { BuildVersionWatcher } from "@/components/BuildVersionWatcher";
 import { Navigation } from "@/components/Navigation";
+import { PublicMobileNav } from "@/components/PublicMobileNav";
 import { PageTransition } from "@/components/transitions/PageTransition";
 import { RouteProgress } from "@/components/transitions/RouteProgress";
 import { isPublicSite, PUBLIC_NAV_ROUTES } from "@/lib/isPublicSite";
@@ -140,9 +141,10 @@ function PublicChrome({ children }: { children: React.ReactNode }) {
   // Cream backdrop sits BELOW the transition wrapper (it never fades), so the
   // crossfade gap reveals the site's cream — not the white document background.
   return (
-    <div className="min-h-screen bg-cream">
+    <div className={`min-h-screen bg-cream${variant ? " pb-[76px] md:pb-0" : ""}`}>
       {variant && <Navigation variant={variant} />}
       <PageTransition>{children}</PageTransition>
+      {variant && <PublicMobileNav />}
     </div>
   );
 }

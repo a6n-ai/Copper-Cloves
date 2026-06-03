@@ -254,7 +254,7 @@ export default function StoryPage() {
                   {/* Node */}
                   <span className="absolute left-0 top-1 z-10 block h-[18px] w-[18px] rounded-full border-2 border-sage bg-cream transition-transform duration-300 ease-out group-hover:scale-125 motion-reduce:transform-none sm:relative sm:left-auto sm:top-auto" />
 
-                  <p className="font-display text-3xl text-sage transition-colors duration-300 group-hover:text-[#7A8B7C] sm:mt-5">
+                  <p className="font-display text-3xl text-sage sm:mt-5">
                     {item.year}
                   </p>
                   <p className="mt-2 font-body leading-relaxed text-charcoal/80">{item.text}</p>

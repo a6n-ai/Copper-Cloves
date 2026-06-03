@@ -1,6 +1,5 @@
-import type { LucideIcon } from "lucide-react";
-import { Card, CardContent } from "@/components/ui/card";
-import { AnimatedIcon } from "@/components/dashboard/AnimatedIcon";
+import { Activity, type LucideIcon } from "lucide-react";
+import { MetricCard } from "@/components/admin/MetricCard";
 import { cn } from "@/lib/utils";
 
 export type StatTone = "default" | "up" | "down" | "warn";
@@ -11,37 +10,24 @@ export interface StatCardProps {
   icon?: LucideIcon;
   hint?: string;
   tone?: StatTone;
+  /** Square tile for the Apple-Fitness-style bento. */
+  square?: boolean;
 }
 
-const toneRing: Record<StatTone, string> = {
-  default: "bg-muted text-muted-foreground",
-  up: "bg-primary/10 text-primary",
-  down: "bg-destructive/10 text-destructive",
-  warn: "bg-accent/10 text-accent",
+/** Member-facing tones map onto the admin MetricCard's brand tones so both
+ *  dashboards render the exact same tile. */
+const TONE_MAP: Record<StatTone, "sage" | "terracotta" | "amber" | "charcoal"> = {
+  default: "charcoal",
+  up: "sage",
+  down: "amber", // deep terracotta — negative/alert
+  warn: "terracotta",
 };
 
-export function StatCard({ label, value, icon: Icon, hint, tone = "default" }: StatCardProps) {
-  return (
-    <Card className="rounded-2xl shadow-xs">
-      <CardContent className="flex items-center gap-3 p-4">
-        {Icon ? (
-          <div
-            className={cn(
-              "flex h-10 w-10 shrink-0 items-center justify-center rounded-full",
-              toneRing[tone],
-            )}
-          >
-            <AnimatedIcon icon={Icon} size={20} />
-          </div>
-        ) : null}
-        <div className="min-w-0">
-          <p className="font-display text-2xl leading-none text-card-foreground">{value}</p>
-          <p className="mt-1 text-xs text-muted-foreground">{label}</p>
-          {hint ? <p className="text-[10px] text-muted-foreground/70">{hint}</p> : null}
-        </div>
-      </CardContent>
-    </Card>
-  );
+/** Thin wrapper over the admin MetricCard so the member dashboard stat strip is
+ *  visually identical to the admin dashboard (animated number, tinted icon chip,
+ *  hover lift). Keeps the StatCardProps API its existing callers rely on. */
+export function StatCard({ label, value, icon, hint, tone = "default", square }: StatCardProps) {
+  return <MetricCard label={label} value={value} icon={icon ?? Activity} hint={hint} tone={TONE_MAP[tone]} square={square} />;
 }
 
 export interface StatCardRowProps {

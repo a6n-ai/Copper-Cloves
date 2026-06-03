@@ -21,7 +21,7 @@ export default function TermsPage() {
             <Link href="/">
               <Button
                 variant="outline"
-                className="mb-8 border-sage/30 hover:bg-sage/5 text-charcoal"
+                className="mb-8 rounded-full border-sage/30 hover:bg-sage/5 text-charcoal"
               >
                 <ArrowLeft className="mr-2" size={20} />
                 Back to Home

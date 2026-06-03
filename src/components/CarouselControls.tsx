@@ -23,7 +23,7 @@ export function CarouselControls({
   className?: string;
 }) {
   const btn =
-    "flex h-11 w-11 items-center justify-center rounded-full border border-sage/25 bg-white-warm text-sage transition-all duration-200 ease-out hover:border-sage/50 hover:bg-sage/10 hover:text-[#7A8B7C] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sage/40 disabled:cursor-not-allowed disabled:opacity-30 disabled:hover:border-sage/25 disabled:hover:bg-white-warm";
+    "hidden h-11 w-11 items-center justify-center rounded-full border border-sage/25 bg-white-warm text-sage transition-all duration-200 ease-out hover:border-sage/50 hover:bg-sage/10 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sage/40 disabled:cursor-not-allowed disabled:opacity-30 disabled:hover:border-sage/25 disabled:hover:bg-white-warm md:flex";
 
   return (
     <div className={`flex items-center justify-center gap-5 ${className}`}>

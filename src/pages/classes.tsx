@@ -5,7 +5,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Skeleton } from "@/components/ui/skeleton";
-import { Clock, Calendar, ChevronLeft, ChevronRight } from "lucide-react";
+import { Calendar, ChevronLeft, ChevronRight } from "lucide-react";
 import { ClassCard } from "@/components/classes/ClassCard";
 import { ClassDetailDialog } from "@/components/classes/ClassDetailDialog";
 import { CategoryFilter } from "@/components/classes/CategoryFilter";
@@ -407,19 +407,17 @@ export default function ClassesPage({ initialClasses }: ClassesPageProps) {
       <section className="py-8 bg-cream">
         <div className="max-w-7xl mx-auto px-6 lg:px-8">
           <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-            <TabsList className="grid w-full max-w-md mx-auto grid-cols-2 bg-white-warm border border-sage/20 p-1 rounded-full">
-              <TabsTrigger 
-                value="classes" 
-                className="rounded-full data-[state=active]:bg-sage data-[state=active]:text-cream transition-all duration-300"
+            <TabsList className="mx-auto flex h-auto w-fit rounded-full border border-sage/20 bg-white-warm p-1.5 shadow-xs">
+              <TabsTrigger
+                value="classes"
+                className="rounded-full px-8 py-2.5 font-body text-sm font-normal text-charcoal transition-colors duration-300 hover:text-sage data-[state=active]:bg-sage data-[state=active]:text-cream data-[state=active]:shadow-sm"
               >
-                <Calendar className="mr-2" size={16} />
                 Classes
               </TabsTrigger>
-              <TabsTrigger 
-                value="schedule" 
-                className="rounded-full data-[state=active]:bg-sage data-[state=active]:text-cream transition-all duration-300"
+              <TabsTrigger
+                value="schedule"
+                className="rounded-full px-8 py-2.5 font-body text-sm font-normal text-charcoal transition-colors duration-300 hover:text-sage data-[state=active]:bg-sage data-[state=active]:text-cream data-[state=active]:shadow-sm"
               >
-                <Clock className="mr-2" size={16} />
                 Schedule
               </TabsTrigger>
             </TabsList>
@@ -633,29 +631,18 @@ export default function ClassesPage({ initialClasses }: ClassesPageProps) {
         </div>
       </section>
 
-      {/* CTA Section */}
-      <section className="py-24 bg-sage text-cream relative overflow-hidden">
-        <div className="relative z-10 max-w-4xl mx-auto px-6 lg:px-8 text-center">
-          <h2 className="font-display text-4xl md:text-5xl mb-6">
-            Ready to Begin?
-          </h2>
-          <p className="font-body text-lg text-cream/90 mb-8 leading-relaxed">
+      {/* Closing CTA */}
+      <section className="bg-[#f4f3ec] py-16">
+        <div className="mx-auto max-w-3xl px-6 text-center lg:px-8">
+          <h2 className="font-display text-3xl text-charcoal md:text-4xl">Ready to begin?</h2>
+          <p className="mx-auto mt-4 max-w-[52ch] font-body text-charcoal/70">
             Choose your package, book your first class, and step into your wellness journey today.
           </p>
-          <div className="flex flex-col sm:flex-row gap-4 justify-center">
-            <Button
-              onClick={handleViewPackages}
-              size="lg"
-              className="bg-white-warm text-sage hover:bg-[#fafaf8]/90 px-8 transition-all duration-600 ease-in-out"
-            >
+          <div className="mt-8 flex flex-wrap items-center justify-center gap-3">
+            <Button onClick={handleViewPackages} variant="sage" size="lg" className="rounded-full">
               View Packages
             </Button>
-            <Button 
-              onClick={handleBookClass}
-              size="lg"
-              variant="outline"
-              className="border-cream/40 text-cream hover:bg-[#fafaf8]/10 transition-all duration-600 ease-in-out"
-            >
+            <Button onClick={handleBookClass} variant="sage-outline" size="lg" className="rounded-full">
               Book Your First Class
             </Button>
           </div>

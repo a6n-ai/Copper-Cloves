@@ -5,7 +5,7 @@ import {
   ensureRazorpayOrderRowForUser,
   persistVerifiedRazorpayPayment,
 } from "@/lib/razorpayPersistence";
-import { getRazorpay, razorpayConfigured } from "@/lib/razorpayServer";
+import { captureAuthorizedPayment, getRazorpay, razorpayConfigured } from "@/lib/razorpayServer";
 import { requestLogger } from "@/lib/logger";
 
 /**
@@ -86,6 +86,23 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       return res.status(400).json({
         error: `Payment is not complete (status: ${payment.status ?? "unknown"}).`,
       });
+    }
+
+    // Authorized funds are only blocked, not debited — capture so they settle to the
+    // studio. Without this, netbanking/UPI payments auto-void after the capture window.
+    if (status === "authorized") {
+      try {
+        const result = await captureAuthorizedPayment({
+          razorpay,
+          paymentId,
+          amountPaise: Math.round(Number(payment.amount ?? 0)),
+          currency: payment.currency != null ? String(payment.currency) : "INR",
+        });
+        payment.status = result.status;
+      } catch (capErr) {
+        // Dashboard auto-capture is the backstop; surface so it can be reconciled.
+        log.error({ err: capErr, userId, orderId, paymentId }, "razorpay capture failed");
+      }
     }
 
     await persistVerifiedRazorpayPayment({

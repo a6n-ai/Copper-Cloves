@@ -1,4 +1,4 @@
-import { memo, useCallback, useEffect, useMemo, useState } from "react";
+import { memo, useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useStudioSWR } from "@/lib/swr";
 import { PageHeader } from "@/components/dashboard/PageHeader";
 import { requireSessionSSP } from "@/lib/requireSessionSSP";
@@ -19,18 +19,27 @@ import {
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
 import { Button } from "@/components/ui/button";
-import { MobilePagination } from "@/components/responsive/MobilePagination";
+import { Pagination } from "@/components/Pagination";
+import {
+  ResponsiveDialog,
+  ResponsiveDialogContent,
+  ResponsiveDialogHeader,
+  ResponsiveDialogTitle,
+  ResponsiveDialogDescription,
+} from "@/components/responsive/ResponsiveDialog";
+import { classInitials, classFallbackGradient } from "@/components/classes/classFallback";
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { 
-  X, 
-  Clock, 
-  User, 
-  Calendar, 
-  Zap, 
-  Heart, 
-  ChevronLeft, 
+  X,
+  Clock,
+  Users,
+  CheckCircle,
+  Calendar,
+  Ticket,
+  Heart,
+  ChevronLeft,
   ChevronRight,
   Plus,
   Minus,
@@ -98,8 +107,19 @@ export interface Class {
   name: string;
   time: string;
   instructor: string;
+  instructorImageUrl?: string | null;
   duration: string;
   image: string;
+  category: string;
+  description?: string;
+  benefits?: string[];
+  maxCapacity?: number;
+  /** Effective capacity for this dated instance (schedule override ?? class default). */
+  capacity?: number;
+  /** Remaining bookable seats (schedule.available_spots, already net of bookings). */
+  spotsLeft?: number;
+  /** Raw schedule lifecycle status (available | started | completed | ...). */
+  status?: string;
   /** ISO datetime for this scheduled instance (for booking + sorting). */
   startTimeIso: string;
   /** ISO time as epoch ms — precomputed once so sort compares don't build Date per call. */
@@ -117,57 +137,242 @@ export interface Class {
  * Combined with `useCallback` on the parent's `handleSelectClass`, this lets
  * `React.memo` actually skip rerenders.
  */
+/** Instructor avatar (photo or initials) used in the card image strip + detail dialog. */
+function InstructorAvatar({ name, imageUrl, className = "" }: { name: string; imageUrl?: string | null; className?: string }) {
+  const initial = (name || "").slice(0, 1).toUpperCase();
+  return (
+    <div className={`shrink-0 overflow-hidden rounded-full border-2 border-white-warm/90 bg-linear-to-br from-terracotta/80 to-terracotta ${className}`}>
+      {imageUrl ? (
+        // eslint-disable-next-line @next/next/no-img-element
+        <img src={imageUrl} alt={name} className="h-full w-full object-cover" />
+      ) : (
+        <span aria-hidden="true" className="flex h-full w-full items-center justify-center font-display text-sm text-white-warm">
+          {initial}
+        </span>
+      )}
+    </div>
+  );
+}
+
+type StatusTone = "available" | "low" | "full" | "past";
+const STATUS_DOT: Record<StatusTone, string> = {
+  available: "bg-sage",
+  low: "bg-terracotta",
+  full: "bg-terracotta",
+  past: "bg-charcoal/30",
+};
+const STATUS_TEXT: Record<StatusTone, string> = {
+  available: "text-sage",
+  low: "text-terracotta",
+  full: "text-terracotta",
+  past: "text-charcoal/40",
+};
+/** Tinted pill backgrounds — gives status real presence vs a bare dot+text. */
+const STATUS_PILL: Record<StatusTone, string> = {
+  available: "bg-sage/10 text-sage",
+  low: "bg-terracotta/10 text-terracotta",
+  full: "bg-terracotta/10 text-terracotta",
+  past: "bg-charcoal/[0.06] text-charcoal/45",
+};
+/** Friendly labels for the schedule lifecycle status (past / non-bookable classes). */
+const LIFECYCLE_LABEL: Record<string, string> = {
+  started: "In progress",
+  completed: "Completed",
+  abandoned: "Cancelled",
+  cancelled: "Cancelled",
+  // Past start time but the lifecycle enum hasn't flipped yet (cron-driven, can lag).
+  // To the member the class is over, so read it as Completed rather than a vague "Ended".
+  available: "Completed",
+};
+/** Derive the booking status (label + tone + whether it can still be booked). */
+function classStatus(cls: Class): { label: string; tone: StatusTone; canBook: boolean } {
+  if (cls.isBookable === false) {
+    return { label: LIFECYCLE_LABEL[cls.status ?? ""] ?? "Completed", tone: "past", canBook: false };
+  }
+  const spots = cls.spotsLeft;
+  if (typeof spots === "number") {
+    if (spots <= 0) return { label: "Class full", tone: "full", canBook: false };
+    if (spots <= 3) return { label: `${spots} spot${spots === 1 ? "" : "s"} left`, tone: "low", canBook: true };
+    return { label: `${spots} spots left`, tone: "available", canBook: true };
+  }
+  return { label: "Spots available", tone: "available", canBook: true };
+}
+
 interface BookClassCardProps {
   cls: Class;
   onSelect: (cls: Class) => void;
+  onOpenDetails: (cls: Class) => void;
 }
-const BookClassCard = memo(function BookClassCard({ cls, onSelect }: BookClassCardProps) {
-  const bookable = cls.isBookable !== false;
+/** Member booking card — mirrors the public ClassCard look. Clicking anywhere on
+ *  the card opens the details dialog (the title stays a real button for keyboard /
+ *  screen-reader users); the Book CTA stops propagation and runs the booking flow. */
+const BookClassCard = memo(function BookClassCard({ cls, onSelect, onOpenDetails }: BookClassCardProps) {
+  const status = classStatus(cls);
+  // Calendar chip surfaces the day — the time-only badge couldn't. Past/future
+  // weeks default to "all days", so without it a list reads as an
+  // undifferentiated stack. Cheap to parse: the card is memoized.
+  const startDate = new Date(cls.startTimeIso);
+  const weekday = startDate.toLocaleDateString("en-US", { weekday: "short" });
+  const dayNum = startDate.getDate();
+  const seats = cls.capacity ?? cls.maxCapacity;
+  const dimmed = !status.canBook;
   return (
-    <Card className="border-sage/20 bg-white-warm hover:border-sage hover:shadow-xl transition-all duration-600 overflow-hidden group">
-      <CardContent className="p-0">
-        <div className="flex flex-col">
-          <div className="relative w-full h-48 overflow-hidden">
-            {/* eslint-disable-next-line @next/next/no-img-element */}
-            <img
-              src={cls.image}
-              alt={cls.name}
-              className="w-full h-full object-cover transition-transform duration-600 group-hover:scale-110"
-            />
-            <div className="absolute inset-0 bg-linear-to-t from-charcoal/60 via-charcoal/20 to-transparent" />
-          </div>
-          <div className="p-4 sm:p-6">
-            <h3 className="font-display text-xl sm:text-2xl text-charcoal mb-2 sm:mb-3 group-hover:text-sage transition-colors duration-600">
-              {cls.name}
-            </h3>
-            <div className="flex flex-wrap items-center gap-3 sm:gap-4 text-sm font-body text-charcoal/70 mb-3 sm:mb-4">
-              <span className="flex items-center gap-2">
-                <Clock size={16} className="text-sage" />
-                {cls.time}
-              </span>
-              <span className="flex items-center gap-2">
-                <Zap size={16} className="text-terracotta" />
-                {cls.duration}
-              </span>
-              <span className="flex items-center gap-2">
-                <User size={16} className="text-sage" />
-                {cls.instructor}
-              </span>
-            </div>
-            <Button
-              onClick={() => bookable && onSelect(cls)}
-              disabled={!bookable}
-              variant="sage"
-              className="w-full"
-            >
-              {bookable ? "Reserve Your Spot" : "Session started"}
-            </Button>
-          </div>
+    <div
+      onClick={() => onOpenDetails(cls)}
+      className="group flex w-full cursor-pointer flex-col overflow-hidden rounded-2xl border border-[#e5e4dc] bg-white-warm transition-[border-color,box-shadow,transform] duration-[250ms] ease-out hover:-translate-y-0.5 hover:border-[#c8c6be] hover:shadow-[0_4px_24px_rgba(51,51,51,0.08)] focus-within:ring-2 focus-within:ring-sage"
+    >
+      <div className="relative h-52 shrink-0 overflow-hidden sm:h-56">
+        {/* eslint-disable-next-line @next/next/no-img-element */}
+        <img
+          src={cls.image}
+          alt={cls.name}
+          className="h-full w-full object-cover transition-transform duration-500 ease-out motion-safe:group-hover:scale-105"
+        />
+        {/* Past / full → warm tonal scrim (not a grayscale filter — keeps the palette warm). */}
+        {dimmed && <div className="pointer-events-none absolute inset-0 bg-cream/40" aria-hidden="true" />}
+        {/* Solid white-warm panels over the photo — per the design system, no glass/blur over images. */}
+        <span className="absolute left-3 top-3 flex flex-col items-center rounded-xl border border-[#e5e4dc] bg-white-warm px-2.5 py-1 text-center shadow-sm">
+          <span className="font-body text-[10px] font-semibold uppercase leading-none tracking-[0.08em] text-terracotta">{weekday}</span>
+          <span className="font-display text-lg leading-tight text-charcoal">{dayNum}</span>
+        </span>
+        <span className="absolute right-3 top-3 inline-flex items-center rounded-full border border-[#e5e4dc] bg-white-warm px-2.5 py-1 font-body text-xs font-medium text-sage shadow-sm">
+          {cls.category}
+        </span>
+        <div
+          className="pointer-events-none absolute inset-x-0 bottom-0 h-24 bg-linear-to-t from-charcoal/85 via-charcoal/35 to-transparent"
+          aria-hidden="true"
+        />
+        <div className="absolute inset-x-0 bottom-0 flex items-center justify-between gap-2 p-3">
+          <span className="flex min-w-0 items-center gap-2.5">
+            <InstructorAvatar name={cls.instructor} imageUrl={cls.instructorImageUrl} className="size-9" />
+            <span className="truncate font-body text-sm font-medium text-white-warm">{cls.instructor}</span>
+          </span>
+          <span className="inline-flex shrink-0 items-center gap-1 rounded-full border border-[#e5e4dc] bg-white-warm px-2.5 py-1 font-body text-xs font-medium text-charcoal">
+            <Clock className="size-3 text-sage" />
+            {cls.time}
+          </span>
         </div>
-      </CardContent>
-    </Card>
+      </div>
+      <div className="flex flex-col p-5">
+        <button
+          type="button"
+          onClick={(e) => { e.stopPropagation(); onOpenDetails(cls); }}
+          aria-label={`View details for ${cls.name}, ${weekday} ${dayNum} at ${cls.time}`}
+          className="rounded-sm text-left focus:outline-none focus-visible:ring-2 focus-visible:ring-sage"
+        >
+          <h3 className="font-display text-2xl leading-tight text-charcoal transition-colors group-hover:text-sage">{cls.name}</h3>
+        </button>
+        <div className="mt-2 flex flex-wrap items-center gap-x-4 gap-y-1 font-body text-xs text-charcoal/55">
+          <span className="inline-flex items-center gap-1.5">
+            <Clock className="size-3.5 text-sage" />
+            {cls.duration}
+          </span>
+          {typeof seats === "number" && (
+            <span className="inline-flex items-center gap-1.5">
+              <Users className="size-3.5 text-sage" />
+              {seats} spots
+            </span>
+          )}
+        </div>
+        <div className="mt-4 flex items-center justify-between gap-3">
+          <span className={`inline-flex items-center gap-1.5 rounded-full px-2.5 py-1 font-body text-xs font-medium ${STATUS_PILL[status.tone]}`}>
+            <span className={`size-1.5 rounded-full ${STATUS_DOT[status.tone]}`} aria-hidden="true" />
+            {status.label}
+          </span>
+          <Button
+            onClick={(e) => { e.stopPropagation(); onSelect(cls); }}
+            disabled={!status.canBook}
+            variant="sage"
+            size="sm"
+            className="gap-1.5 rounded-full px-4"
+          >
+            <Ticket size={15} /> Book
+          </Button>
+        </div>
+      </div>
+    </div>
   );
 });
+
+/** Class details (member view) — mirrors the public ClassDetailDialog, with the
+ *  schedule time + a Reserve action that hands off to the booking flow. */
+function BookClassDetailDialog({
+  cls,
+  onClose,
+  onReserve,
+}: {
+  cls: Class | null;
+  onClose: () => void;
+  onReserve: (cls: Class) => void;
+}) {
+  const status = cls ? classStatus(cls) : null;
+  return (
+    <ResponsiveDialog open={!!cls} onOpenChange={(o) => { if (!o) onClose(); }}>
+      <ResponsiveDialogContent className="max-w-lg overflow-hidden bg-white-warm p-0 sm:max-h-[90vh] sm:overflow-y-auto [&>button]:right-4 [&>button]:top-4 [&>button]:z-20 [&>button]:flex [&>button]:size-8 [&>button]:items-center [&>button]:justify-center [&>button]:rounded-full [&>button]:bg-white-warm/90 [&>button]:text-charcoal [&>button]:opacity-100 [&>button]:shadow-md hover:[&>button]:bg-white-warm">
+        {cls && (
+          <>
+            <div className="relative h-44">
+              {cls.image ? (
+                // eslint-disable-next-line @next/next/no-img-element
+                <img src={cls.image} alt={cls.name} className="h-full w-full object-cover" />
+              ) : (
+                <div className={`h-full w-full ${classFallbackGradient}`} aria-hidden="true">
+                  <span className="font-display text-5xl text-white-warm/55">{classInitials(cls.name)}</span>
+                </div>
+              )}
+              <Badge className="absolute left-4 top-4 border-0 bg-white-warm/90 text-xs text-sage">{cls.category}</Badge>
+            </div>
+            <div className="space-y-4 p-5 sm:p-6">
+              <ResponsiveDialogHeader className="space-y-1 text-left">
+                <ResponsiveDialogTitle className="font-display text-3xl text-charcoal">{cls.name}</ResponsiveDialogTitle>
+                <ResponsiveDialogDescription className="flex flex-wrap items-center gap-x-3 gap-y-1 font-body text-sm text-charcoal/55">
+                  <span className="inline-flex items-center gap-1.5"><Clock className="size-4" />{cls.time} · {cls.duration}</span>
+                  <span className="inline-flex items-center gap-1.5"><Users className="size-4" />up to {cls.capacity ?? cls.maxCapacity ?? 15} spots</span>
+                  {status && (
+                    <span className={`inline-flex items-center gap-1.5 font-medium ${STATUS_TEXT[status.tone]}`}>
+                      <span className={`size-1.5 rounded-full ${STATUS_DOT[status.tone]}`} aria-hidden="true" />
+                      {status.label}
+                    </span>
+                  )}
+                </ResponsiveDialogDescription>
+              </ResponsiveDialogHeader>
+
+              {cls.description && (
+                <p className="font-body text-sm leading-relaxed text-charcoal/75">{cls.description}</p>
+              )}
+
+              {cls.benefits && cls.benefits.length > 0 && (
+                <div>
+                  <p className="mb-2 font-body text-xs font-semibold uppercase tracking-[0.12em] text-sage">What you&apos;ll gain</p>
+                  <ul className="space-y-1.5">
+                    {cls.benefits.map((b) => (
+                      <li key={b} className="flex items-start gap-2 font-body text-sm text-charcoal/75">
+                        <CheckCircle className="mt-0.5 size-4 shrink-0 text-sage" />
+                        <span>{b}</span>
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+              )}
+
+              <div className="flex items-center gap-2.5 rounded-xl border border-sage/15 bg-sage/5 p-3">
+                <InstructorAvatar name={cls.instructor} imageUrl={cls.instructorImageUrl} className="size-10" />
+                <div className="min-w-0">
+                  <p className="font-body text-xs text-charcoal/55">Instructor</p>
+                  <p className="truncate font-body text-sm font-medium text-charcoal">{cls.instructor}</p>
+                </div>
+              </div>
+
+              <Button variant="sage" className="w-full" disabled={!status?.canBook} onClick={() => onReserve(cls)}>
+                {status?.canBook ? "Reserve Your Spot" : status?.label ?? "Unavailable"}
+              </Button>
+            </div>
+          </>
+        )}
+      </ResponsiveDialogContent>
+    </ResponsiveDialog>
+  );
+}
 
 interface FoodRowProps {
   item: FoodItem;
@@ -227,30 +432,30 @@ const FoodRow = memo(function FoodRow({ item, onAdjust }: FoodRowProps) {
 
 function BookClassCardSkeleton() {
   return (
-    <Card className="border-sage/20 bg-white-warm overflow-hidden">
-      <CardContent className="p-0">
-        <div className="flex flex-col">
-          <div className="relative w-full h-48 overflow-hidden">
-            <Skeleton className="h-full w-full rounded-none" />
-          </div>
-          <div className="p-6">
-            <Skeleton className="h-7 w-3/5 mb-3" />
-            <div className="flex flex-wrap items-center gap-4 mb-4">
-              <Skeleton className="h-4 w-20" />
-              <Skeleton className="h-4 w-16" />
-              <Skeleton className="h-4 w-24" />
-            </div>
-            <Skeleton className="h-10 w-full rounded-md" />
-          </div>
+    <div className="flex flex-col overflow-hidden rounded-2xl border border-[#e5e4dc] bg-white-warm">
+      <div className="relative h-52 w-full overflow-hidden sm:h-56">
+        <Skeleton className="h-full w-full rounded-none" />
+        <Skeleton className="absolute left-3 top-3 h-11 w-11 rounded-xl" />
+        <Skeleton className="absolute right-3 top-3 h-6 w-20 rounded-full" />
+      </div>
+      <div className="flex flex-col p-5">
+        <Skeleton className="h-7 w-3/5" />
+        <div className="mt-3 flex items-center gap-4">
+          <Skeleton className="h-4 w-16" />
+          <Skeleton className="h-4 w-20" />
         </div>
-      </CardContent>
-    </Card>
+        <div className="mt-4 flex items-center justify-between">
+          <Skeleton className="h-6 w-24 rounded-full" />
+          <Skeleton className="h-8 w-20 rounded-full" />
+        </div>
+      </div>
+    </div>
   );
 }
 
 function BookClassGridSkeleton({ count = 6 }: { count?: number }) {
   return (
-    <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 items-start gap-6">
       {Array.from({ length: count }).map((_, i) => (
         <BookClassCardSkeleton key={i} />
       ))}
@@ -376,6 +581,7 @@ export default function BookClass() {
   
   // Pagination & filters
   const [currentPage, setCurrentPage] = useState(1);
+  const [detailClass, setDetailClass] = useState<Class | null>(null);
   const [filterClassName, setFilterClassName] = useState<string>("all");
   const [dateSort, setDateSort] = useState<"asc" | "desc">("asc");
   const [weekOffset, setWeekOffset] = useState(0);
@@ -419,7 +625,6 @@ export default function BookClass() {
     return list.sort((a, b) => (a.startTimeMs - b.startTimeMs) * dir);
   }, [allClasses, filterClassName, selectedDayIndex, weekDays, dateSort]);
 
-  const totalPages = Math.ceil(filteredClasses.length / classesPerPage);
   const startIndex = (currentPage - 1) * classesPerPage;
   const paginatedClasses = filteredClasses.slice(startIndex, startIndex + classesPerPage);
 
@@ -434,15 +639,40 @@ export default function BookClass() {
     }
   }, [status]);
 
+  // Guards the one-shot auto-advance below so it can't fight a manual day pick.
+  const didAutoAdvanceDay = useRef(false);
+
   useEffect(() => {
     if (status === "authenticated") {
       // Current week → preselect today; other weeks → show all days.
       setSelectedDayIndex(weekOffset === 0 ? mondayWeekIndex(new Date()) : null);
       setFilterClassName("all");
+      didAutoAdvanceDay.current = false;
       fetchClasses(weekOffset);
     }
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [status, weekOffset]);
+
+  // Current week only: once classes load, if every class today is already done,
+  // jump to the next day that still has a bookable class so the member doesn't
+  // land on a list of "Completed". One-shot per week load; never overrides a manual pick.
+  useEffect(() => {
+    if (status !== "authenticated" || weekOffset !== 0) return;
+    if (loadingClasses || didAutoAdvanceDay.current || allClasses.length === 0) return;
+    didAutoAdvanceDay.current = true;
+    const today = mondayWeekIndex(new Date());
+    const dayHasBookable = (idx: number) =>
+      allClasses.some(
+        (c) => c.isBookable !== false && isSameLocalCalendarDay(new Date(c.startTimeIso), weekDays[idx]),
+      );
+    if (dayHasBookable(today)) return;
+    for (let i = today + 1; i <= 6; i++) {
+      if (dayHasBookable(i)) {
+        setSelectedDayIndex(i);
+        return;
+      }
+    }
+  }, [status, weekOffset, loadingClasses, allClasses, weekDays]);
 
   async function fetchClasses(offset = 0) {
     try {
@@ -478,16 +708,36 @@ export default function BookClass() {
         .map((schedule: {
           id: string;
           start_time: string;
-          class_model?: { name?: string; duration?: number; category?: string; image_url?: string };
-          instructor?: { name?: string };
+          status?: string;
+          capacity?: number | null;
+          available_spots?: number | null;
+          class_model?: {
+            name?: string;
+            duration?: number;
+            category?: string;
+            image_url?: string;
+            description?: string | null;
+            benefits?: string[];
+            max_capacity?: number;
+          };
+          instructor?: { name?: string; image_url?: string | null };
         }) => {
           const startMs = new Date(schedule.start_time).getTime();
+          const cap = schedule.capacity ?? schedule.class_model?.max_capacity ?? 15;
           return {
             id: schedule.id,
             name: schedule.class_model?.name || "Unknown Class",
             time: new Date(schedule.start_time).toLocaleTimeString("en-US", { hour: "2-digit", minute: "2-digit", hour12: true }),
             instructor: schedule.instructor?.name || "Instructor",
+            instructorImageUrl: schedule.instructor?.image_url ?? null,
             duration: `${schedule.class_model?.duration || 60} min`,
+            category: schedule.class_model?.category || "General",
+            description: schedule.class_model?.description ?? "",
+            benefits: schedule.class_model?.benefits ?? [],
+            maxCapacity: schedule.class_model?.max_capacity ?? 15,
+            capacity: cap,
+            spotsLeft: typeof schedule.available_spots === "number" ? schedule.available_spots : undefined,
+            status: schedule.status,
             image: schedule.class_model?.image_url || cdnUrl("/placeholder.jpg"),
             startTimeIso:
               typeof schedule.start_time === "string"
@@ -1187,17 +1437,28 @@ export default function BookClass() {
           </div>
 
           {/* Class Cards Grid */}
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 items-start gap-6 mb-8">
             {paginatedClasses.map((cls) => (
-              <BookClassCard key={cls.id} cls={cls} onSelect={handleSelectClass} />
+              <BookClassCard key={cls.id} cls={cls} onSelect={handleSelectClass} onOpenDetails={setDetailClass} />
             ))}
           </div>
 
-          {/* Pagination — compact on phones, windowed numbers on desktop */}
-          <MobilePagination
-            currentPage={currentPage}
-            totalPages={totalPages}
-            onPageChange={setCurrentPage}
+          {/* Pagination — windowed numbers + range label (same as admin) */}
+          <Pagination
+            page={currentPage}
+            total={filteredClasses.length}
+            pageSize={classesPerPage}
+            onChange={setCurrentPage}
+            alwaysShow
+          />
+
+          <BookClassDetailDialog
+            cls={detailClass}
+            onClose={() => setDetailClass(null)}
+            onReserve={(c) => {
+              setDetailClass(null);
+              handleSelectClass(c);
+            }}
           />
 
           {/* Empty State */}

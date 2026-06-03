@@ -154,7 +154,7 @@ export default function RentalPage() {
                 room built for connection. You bring the people. We hold the space.
               </p>
               <div className="mt-8 flex flex-wrap items-center gap-4">
-                <Button asChild variant="sage" size="lg">
+                <Button asChild variant="sage" size="lg" className="rounded-full">
                   <Link href="#enquire">
                     Enquire about a date
                     <ArrowRight size={18} />
@@ -162,7 +162,7 @@ export default function RentalPage() {
                 </Button>
                 <Link
                   href="#gallery"
-                  className="group inline-flex items-center gap-1.5 font-body text-sm font-semibold text-sage transition-colors duration-200 hover:text-[#7A8B7C]"
+                  className="group inline-flex items-center gap-1.5 font-body text-sm font-semibold text-sage transition-colors duration-200"
                 >
                   See the space
                   <ArrowRight
@@ -348,7 +348,7 @@ export default function RentalPage() {
                   <p className="mx-auto mt-3 max-w-[42ch] font-body text-lg leading-relaxed text-charcoal/70">
                     Thank you. Our team will review your event and reach out within 24 hours.
                   </p>
-                  <Button variant="sage-outline" size="lg" className="mt-8" onClick={() => setIsSuccess(false)}>
+                  <Button variant="sage-outline" size="lg" className="mt-8 rounded-full" onClick={() => setIsSuccess(false)}>
                     Send another enquiry
                   </Button>
                 </div>
@@ -409,7 +409,7 @@ export default function RentalPage() {
                     </Field>
                   </div>
 
-                  <Button type="submit" size="lg" variant="sage" disabled={isSubmitting} className="mt-8 w-full">
+                  <Button type="submit" size="lg" variant="sage" disabled={isSubmitting} className="mt-8 w-full rounded-full">
                     {isSubmitting ? "Sending..." : "Send enquiry"}
                   </Button>
                   <p className="mt-3 text-center font-body text-xs text-charcoal/50">

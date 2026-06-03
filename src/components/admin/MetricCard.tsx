@@ -22,6 +22,8 @@ interface MetricCardProps {
   loading?: boolean;
   /** Optional trailing slot below the number (e.g. a small badge or button). */
   footer?: ReactNode;
+  /** Square tile (Apple-Fitness bento): forces a 1:1 aspect and drops the number to the bottom. */
+  square?: boolean;
 }
 
 const tones = {
@@ -64,6 +66,7 @@ function MetricCardImpl({
   className,
   loading = false,
   footer,
+  square = false,
 }: MetricCardProps) {
   const t = tones[tone];
   return (
@@ -72,6 +75,7 @@ function MetricCardImpl({
         "group relative border-sage/15 bg-white-warm h-full overflow-hidden cursor-default",
         "transition-all duration-300 ease-out transform-gpu will-change-transform",
         "hover:-translate-y-1 hover:bg-white-warm hover:brightness-[1.02]",
+        square && "min-h-[140px]",
         t.glow,
         t.border,
         className,
@@ -102,16 +106,24 @@ function MetricCardImpl({
             <Icon className="h-4 w-4 transition-transform duration-300 group-hover:scale-110 group-hover:rotate-12" />
           </div>
         </div>
-        <div className="mt-3">
+        <div className={cn("mt-3", square && "mt-auto")}>
           {loading ? (
             <Skeleton className="h-8 w-24 bg-sage/10" />
           ) : typeof value === "number" ? (
-            <div className="font-display text-3xl text-charcoal leading-none tabular-nums truncate">
+            <div
+              className={cn(
+                "font-display text-charcoal leading-none tabular-nums truncate",
+                square ? "text-5xl sm:text-6xl" : "text-3xl",
+              )}
+            >
               <NumberTicker end={value} prefix={prefix} suffix={suffix} decimals={decimals} />
             </div>
           ) : (
             <div
-              className="font-display text-lg text-charcoal leading-tight wrap-break-word"
+              className={cn(
+                "font-display text-charcoal leading-tight wrap-break-word",
+                square ? "text-2xl sm:text-3xl" : "text-lg",
+              )}
               title={`${prefix ?? ""}${value}${suffix ?? ""}`}
             >
               {prefix}{value}{suffix}

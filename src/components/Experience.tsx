@@ -5,7 +5,7 @@ export function Experience() {
   return (
     <section
       id="experience"
-      className="py-16 md:py-20 px-6 lg:px-8 bg-linear-to-br from-cream via-[#fafaf8] to-sage/5"
+      className="py-14 md:py-20 px-6 lg:px-8 bg-linear-to-br from-cream via-[#fafaf8] to-sage/5"
     >
       <div className="max-w-6xl mx-auto">
         <div className="mx-auto max-w-2xl text-center mb-10 md:mb-14">

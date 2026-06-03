@@ -88,7 +88,7 @@ export function ClassCatalog() {
   }
 
   return (
-    <section id="classes" className="relative overflow-hidden bg-cream py-16 md:py-20">
+    <section id="classes" className="relative overflow-hidden bg-cream py-14 md:py-20">
       <div className="relative z-10 mx-auto max-w-7xl px-6 lg:px-8">
         <SectionHeading
           eyebrow="The Studio · Classes"
@@ -178,7 +178,7 @@ export function ClassCatalog() {
         <div className="mt-10 text-center">
           <Link
             href="/classes"
-            className="group inline-flex items-center gap-1.5 font-body text-sm font-semibold text-sage transition-colors duration-200 hover:text-[#7A8B7C]"
+            className="group inline-flex items-center gap-1.5 font-body text-sm font-semibold text-sage transition-colors duration-200"
           >
             See all classes
             <ArrowRight

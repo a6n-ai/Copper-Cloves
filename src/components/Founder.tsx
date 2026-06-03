@@ -13,7 +13,7 @@ const stats = [
 
 export function Founder() {
   return (
-    <section className="bg-cream py-16 md:py-20">
+    <section className="bg-cream py-14 md:py-20">
       <div className="mx-auto grid max-w-7xl items-stretch gap-12 px-6 lg:min-h-[600px] lg:grid-cols-2 lg:gap-16 lg:px-8">
         {/* Narrative */}
         <div className="flex flex-col justify-center">
@@ -52,7 +52,7 @@ export function Founder() {
 
           <Link
             href="/story"
-            className="group mt-8 inline-flex items-center gap-1.5 font-body text-sm font-semibold text-sage transition-colors duration-200 hover:text-[#7A8B7C]"
+            className="group mt-8 inline-flex items-center gap-1.5 font-body text-sm font-semibold text-sage transition-colors duration-200"
           >
             Read our story
             <ArrowRight

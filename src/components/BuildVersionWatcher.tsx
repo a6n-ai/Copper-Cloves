@@ -17,6 +17,10 @@ export function BuildVersionWatcher() {
   const reloadingRef = useRef(false);
 
   useEffect(() => {
+    // Production only. In `next dev` the page bundle and the /api/version route
+    // are compiled at different times, so each bakes a different Date.now()
+    // fallback build id — the mismatch would trigger an endless reload loop.
+    if (process.env.NODE_ENV !== "production") return;
     const baked = process.env.NEXT_PUBLIC_BUILD_ID ?? "";
     if (!baked || baked === "dev") return; // only watch in real builds
 

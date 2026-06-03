@@ -63,8 +63,12 @@ export function Boutique() {
     requestAnimationFrame(stepFn);
   };
 
+  // No products → render nothing on the public landing page (was a dead
+  // "added in admin" placeholder). Stays hidden during the initial fetch too.
+  if (products.length === 0) return null;
+
   return (
-    <section className="relative py-16 md:py-20 bg-cream overflow-hidden">
+    <section className="relative py-14 md:py-20 bg-cream overflow-hidden">
       <div className="relative z-10 max-w-7xl mx-auto px-6 lg:px-8">
         <SectionHeading
           eyebrow="The Studio · Boutique"
@@ -102,12 +106,7 @@ export function Boutique() {
             className="scrollbar-hide flex snap-x snap-mandatory gap-6 overflow-x-auto scroll-px-2 scroll-smooth px-2 pb-4"
             style={{ WebkitOverflowScrolling: "touch" }}
           >
-            {products.length === 0 ? (
-              <p className="w-full py-12 text-center font-body text-charcoal/60">
-                Products will appear here once added in admin.
-              </p>
-            ) : (
-              products.map((product) => (
+            {products.map((product) => (
                 <div key={product.id} className="group/card w-80 shrink-0 snap-start">
                   <div className="relative h-full bg-white-warm rounded-2xl border border-sage/10 overflow-hidden transition-all duration-500 hover:border-sage/30 hover:shadow-xl hover:bg-sage/5">
                     <div className="relative h-80 overflow-hidden bg-linear-to-br from-sage/20 via-cream/50 to-terracotta/20">
@@ -143,8 +142,7 @@ export function Boutique() {
                     </div>
                   </div>
                 </div>
-              ))
-            )}
+            ))}
           </div>
         </div>
 
@@ -152,7 +150,7 @@ export function Boutique() {
           <p className="mb-4 font-body text-sm italic text-charcoal/50">bring the sanctuary home</p>
           <Link
             href="/shop"
-            className="group inline-flex items-center gap-1.5 font-body text-sm font-semibold text-sage transition-colors duration-200 hover:text-[#7A8B7C]"
+            className="group inline-flex items-center gap-1.5 font-body text-sm font-semibold text-sage transition-colors duration-200"
           >
             Explore all products
             <ArrowRight

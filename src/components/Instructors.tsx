@@ -53,7 +53,7 @@ export function Instructors() {
   }, [instructors, measure]);
 
   return (
-    <section id="instructors" className="bg-cream py-16 md:py-20">
+    <section id="instructors" className="bg-cream py-14 md:py-20">
       <div className="mx-auto max-w-7xl px-6 lg:px-8">
         <SectionHeading
           eyebrow="The Studio · People"
@@ -118,7 +118,7 @@ export function Instructors() {
         <div className="mt-10 text-center">
           <Link
             href="/instructors"
-            className="group inline-flex items-center gap-1.5 font-body text-sm font-semibold text-sage transition-colors duration-200 hover:text-[#7A8B7C]"
+            className="group inline-flex items-center gap-1.5 font-body text-sm font-semibold text-sage transition-colors duration-200"
           >
             Meet all instructors
             <ArrowRight

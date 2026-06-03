@@ -11,11 +11,11 @@ import {
   DrawerTitle,
   DrawerDescription,
 } from "@/components/ui/drawer";
-import { StatCardRow, type StatCardProps } from "@/components/dashboard/StatCard";
+import { StatCard, type StatCardProps } from "@/components/dashboard/StatCard";
 import { ActivityTimeline } from "@/components/dashboard/ActivityTimeline";
 import { UpcomingScheduleCard, type ScheduleEntry } from "@/components/dashboard/UpcomingScheduleCard";
 import { OrderHistoryTable } from "@/components/dashboard/OrderHistoryTable";
-import { PathToMastery } from "@/components/dashboard/PathToMastery";
+import { MedalJourney } from "@/components/dashboard/MedalJourney";
 import dynamic from "next/dynamic";
 import { MemberDashboardSkeleton, MemberMobileDashboardSkeleton } from "@/components/dashboard/skeletons";
 import { AnimatedIcon } from "@/components/dashboard/AnimatedIcon";
@@ -48,6 +48,7 @@ import { requireSessionSSP } from "@/lib/requireSessionSSP";
 export const getServerSideProps = requireSessionSSP();
 import {
   Calendar,
+  ArrowRight,
   CheckCircle,
   Leaf,
   Shield,
@@ -55,7 +56,6 @@ import {
   Crown,
   Coffee,
   Target,
-  Award,
   Package,
   X,
   Zap,
@@ -220,11 +220,10 @@ export default function Dashboard() {
   // copy app-wide (the templates are global/static) instead of refetching on
   // every dashboard mount. `/api/admin/badges` is also read by admin/badges.tsx.
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const { data: badgeTplData, isLoading: ptmIsLoading } = useStudioSWR<{ path_to_mastery?: any[] }>("/api/admin/badges");
+  const { data: badgeTplData } = useStudioSWR<{ path_to_mastery?: any[] }>("/api/admin/badges");
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const { data: userBadgesData } = useStudioSWR<any[]>("/api/user/badges");
   const ptmDbTemplates = badgeTplData?.path_to_mastery ?? null;
-  const ptmLoading = ptmIsLoading && !badgeTplData;
   const userBadges = Array.isArray(userBadgesData) ? userBadgesData : [];
 
   // Profile shared across the member portal (one cached copy, deduped with
@@ -270,23 +269,6 @@ export default function Dashboard() {
         : MILESTONES,
     [ptmDbTemplates],
   );
-
-  // Walk milestones in reverse once to find earned + next. Avoids two scans per render.
-  const { currentMilestone, nextMilestone } = useMemo(() => {
-    let earned: typeof activeMilestones[number] | undefined;
-    let next: typeof activeMilestones[number] | undefined;
-    for (let i = activeMilestones.length - 1; i >= 0; i--) {
-      const m = activeMilestones[i];
-      if (!earned && userClassesCompleted >= m.classes) earned = m;
-    }
-    for (const m of activeMilestones) {
-      if (m.classes > userClassesCompleted) { next = m; break; }
-    }
-    return {
-      currentMilestone: earned ?? activeMilestones[0],
-      nextMilestone: next,
-    };
-  }, [activeMilestones, userClassesCompleted]);
 
   // Auth enforced server-side via `getServerSideProps` → `requireSessionSSP`.
   // No client-side redirect needed; just kick off the data load once we have
@@ -520,9 +502,6 @@ export default function Dashboard() {
             onToggleEditIntention={setIsEditingIntention}
             statItems={statItems}
             milestones={activeMilestones}
-            currentMilestoneId={currentMilestone.id}
-            nextMilestone={nextMilestone}
-            ptmLoading={ptmLoading}
             upcomingEntries={upcomingEntries}
             userBadges={userBadges}
             recentActivities={recentActivities}
@@ -604,155 +583,104 @@ export default function Dashboard() {
               </div>
             </div>
 
-            {/* Quick Book — primary actions, kept up top for fast access */}
-            <Card className="mb-6 rounded-2xl shadow-xs">
-              <CardContent className="flex flex-col gap-4 p-5 sm:flex-row sm:items-center sm:justify-between">
-                <div className="flex items-center gap-2">
-                  <AnimatedIcon icon={Zap} size={20} className="text-primary" />
-                  <div>
-                    <h2 className="font-display text-lg text-card-foreground">Quick Book</h2>
-                    <p className="text-xs text-muted-foreground">Fast access to your favorites</p>
+            {/* Quick Book — primary booking actions */}
+            <Card className="mb-6 rounded-2xl border-[#e5e4dc] bg-white-warm shadow-none">
+              <CardContent className="p-5">
+                <div className="mb-4 flex items-center justify-between gap-3">
+                  <div className="flex items-center gap-2.5">
+                    <span className="flex h-9 w-9 items-center justify-center rounded-full bg-sage/10">
+                      <AnimatedIcon icon={Zap} size={18} className="text-sage" />
+                    </span>
+                    <div>
+                      <h2 className="font-display text-lg text-charcoal">Quick Book</h2>
+                      <p className="font-body text-xs text-charcoal/55">Fast access to your favourites</p>
+                    </div>
                   </div>
+                  <button
+                    type="button"
+                    onClick={() => void router.push("/account#reset-password")}
+                    className="hidden items-center gap-1.5 font-body text-xs text-charcoal/55 transition-colors hover:text-sage lg:inline-flex"
+                  >
+                    <Lock className="h-3.5 w-3.5" /> Reset password
+                  </button>
                 </div>
+
                 {/* Mobile icon grid — 4 tiles, no scroll, no Scan (bottom-nav FAB handles it) */}
-                <div className="grid grid-cols-4 gap-2 sm:hidden w-full">
+                <div className="grid grid-cols-4 gap-2 sm:hidden">
                   {mobileQuickActions.map(({ icon: Icon, label, action }) => (
                     <button
                       key={label}
                       type="button"
                       onClick={action}
-                      className="flex flex-col items-center justify-center gap-1.5 min-h-16 rounded-xl border border-sage/15 bg-white-warm active:scale-95 transition-transform px-1 py-2"
+                      className="flex min-h-16 flex-col items-center justify-center gap-1.5 rounded-xl border border-sage/15 bg-white-warm px-1 py-2 transition-transform active:scale-95"
                     >
                       <AnimatedIcon icon={Icon} size={20} className="text-sage" />
-                      <span className="text-[10px] font-body text-charcoal/70 leading-tight text-center">{label}</span>
+                      <span className="text-center font-body text-[10px] leading-tight text-charcoal/70">{label}</span>
                     </button>
                   ))}
                 </div>
 
-                {/* Desktop button row — unchanged */}
-                <div className="hidden sm:flex sm:flex-wrap sm:justify-end w-full sm:w-auto gap-2">
-                  <Button
+                {/* Desktop action tiles — primary CTA + secondary tiles */}
+                <div className="hidden gap-3 sm:grid sm:grid-cols-2 lg:grid-cols-4">
+                  <button
                     type="button"
                     onClick={() => void router.push("/portal/book")}
-                    variant="sage"
-                    className="justify-start"
+                    className="group flex items-center gap-3 rounded-xl bg-sage px-4 py-3.5 text-left text-cream transition-[transform,background-color] duration-200 hover:-translate-y-0.5 hover:bg-[#7A8B7C] focus:outline-none focus-visible:ring-2 focus-visible:ring-sage focus-visible:ring-offset-2"
                   >
-                    <span className="mr-2"><AnimatedIcon icon={Calendar} size={16} /></span>
-                    Book a Class
-                  </Button>
-                  <Button
+                    <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-cream/20">
+                      <Calendar className="h-5 w-5" />
+                    </span>
+                    <span className="min-w-0 flex-1">
+                      <span className="block font-body text-sm font-semibold leading-tight">Book a Class</span>
+                      <span className="block font-body text-xs text-cream/75">Find your next session</span>
+                    </span>
+                    <ArrowRight className="h-4 w-4 shrink-0 transition-transform group-hover:translate-x-0.5" />
+                  </button>
+
+                  <button
                     type="button"
-                    variant="outline"
                     onClick={() => router.push("/portal/packages")}
-                    className="border-sage/20 text-charcoal hover:bg-cream font-body justify-start"
+                    className="group flex items-center gap-3 rounded-xl border border-[#e5e4dc] bg-white-warm px-4 py-3.5 text-left transition-[border-color,box-shadow,transform] duration-200 hover:-translate-y-0.5 hover:border-[#c8c6be] hover:shadow-[0_4px_24px_rgba(51,51,51,0.08)] focus:outline-none focus-visible:ring-2 focus-visible:ring-sage"
                   >
-                    <span className="mr-2"><AnimatedIcon icon={Package} size={16} /></span>
-                    Buy Packages
-                  </Button>
-                  <Button
+                    <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-sage/10 text-sage">
+                      <Package className="h-4 w-4" />
+                    </span>
+                    <span className="font-body text-sm font-medium text-charcoal">Buy Packages</span>
+                  </button>
+
+                  <button
                     type="button"
-                    variant="outline"
                     onClick={() => setShowOrderHistory(true)}
-                    className="border-sage/20 text-charcoal hover:bg-cream font-body justify-start"
+                    className="group flex items-center gap-3 rounded-xl border border-[#e5e4dc] bg-white-warm px-4 py-3.5 text-left transition-[border-color,box-shadow,transform] duration-200 hover:-translate-y-0.5 hover:border-[#c8c6be] hover:shadow-[0_4px_24px_rgba(51,51,51,0.08)] focus:outline-none focus-visible:ring-2 focus-visible:ring-sage"
                   >
-                    <span className="mr-2"><AnimatedIcon icon={History} size={16} /></span>
-                    Order History
-                  </Button>
-                  <Button
-                    type="button"
-                    variant="outline"
-                    onClick={() => void router.push("/account#reset-password")}
-                    className="border-sage/20 text-charcoal hover:bg-cream font-body justify-start"
-                  >
-                    <span className="mr-2"><AnimatedIcon icon={Lock} size={16} /></span>
-                    Reset password
-                  </Button>
+                    <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-sage/10 text-sage">
+                      <History className="h-4 w-4" />
+                    </span>
+                    <span className="font-body text-sm font-medium text-charcoal">Order History</span>
+                  </button>
+
                   <CheckInScanButton
                     label="Scan check-in"
                     variant="outline"
-                    className="border-sage/20 text-charcoal hover:bg-cream font-body justify-start"
+                    className="h-auto justify-start gap-3 rounded-xl border-[#e5e4dc] bg-white-warm px-4 py-3.5 font-body text-sm font-medium text-charcoal transition-[border-color,box-shadow,transform] duration-200 hover:-translate-y-0.5 hover:border-[#c8c6be] hover:bg-white-warm hover:text-charcoal hover:shadow-[0_4px_24px_rgba(51,51,51,0.08)]"
                   />
                 </div>
               </CardContent>
             </Card>
 
-            {/* Streak & Attendance Strip */}
-            <StatCardRow items={statItems} className="mb-6" />
-
-            {/* Path to Mastery - Horizontal Milestone Track */}
-            <PathToMastery
-              milestones={activeMilestones}
-              classesCompleted={userClassesCompleted}
-              currentId={currentMilestone.id}
-              nextMilestone={nextMilestone}
-              loading={ptmLoading}
-            />
-          </div>
-
-          {/* Achievements */}
-          {userBadges.length > 0 && (
-            <div className="mb-8">
-              <div className="flex items-center gap-3 mb-4">
-                <div className="w-10 h-10 rounded-full bg-terracotta/10 flex items-center justify-center">
-                  <AnimatedIcon icon={Award} size={20} className="text-terracotta" />
-                </div>
-                <h2 className="font-display text-2xl text-charcoal">Achievements</h2>
-              </div>
-
-              <div className="flex gap-4 overflow-x-auto scrollbar-hide scroll-smooth snap-x snap-mandatory scroll-px-1 pb-2">
-                {userBadges.map((badge) => {
-                  const isCustom = badge.badge_type === "custom";
-                  const badgeColor = badge.color ?? "#7C9070";
-                  if (isCustom) {
-                    return (
-                      <div
-                        key={badge.id}
-                        className="shrink-0 snap-start w-44 rounded-2xl p-4 border shadow-md text-center transition-transform hover:scale-105"
-                        style={{
-                          background: `linear-gradient(135deg, ${badgeColor}18, ${badgeColor}08)`,
-                          borderColor: badgeColor + "44",
-                          boxShadow: `0 0 16px ${badgeColor}22`,
-                        }}
-                      >
-                        <div className="text-4xl mb-2">{badge.icon ?? "🏆"}</div>
-                        <p className="font-display text-sm text-charcoal leading-tight">
-                          {badge.badge_name}
-                        </p>
-                        {badge.badge_description && (
-                          <p className="font-body text-xs text-charcoal/50 mt-1 leading-tight">
-                            {badge.badge_description}
-                          </p>
-                        )}
-                        <p className="font-body text-xs mt-2" style={{ color: badgeColor }}>
-                          Special Award
-                        </p>
-                      </div>
-                    );
-                  }
-                  // PTM badge as a compact chip
-                  return (
-                    <div
-                      key={badge.id}
-                      className="shrink-0 snap-start flex items-center gap-2 px-4 py-2.5 rounded-full border bg-[#fafaf8]/80 shadow-xs transition-transform hover:scale-105"
-                      style={{ borderColor: (badge.color ?? "#7C9070") + "55" }}
-                    >
-                      <span className="text-xl">{badge.icon ?? "🏆"}</span>
-                      <div>
-                        <p className="font-body text-sm font-medium text-charcoal leading-tight">
-                          {badge.badge_name}
-                        </p>
-                        {badge.milestone_value && (
-                          <p className="font-body text-xs text-charcoal/40">
-                            {badge.milestone_value} classes
-                          </p>
-                        )}
-                      </div>
-                    </div>
-                  );
-                })}
-              </div>
+            {/* Bento: Path-to-Mastery medal stepper + metric squares (Apple-Fitness style) */}
+            <div className="grid grid-cols-2 gap-4 lg:grid-cols-4 lg:auto-rows-[176px]">
+              <MedalJourney
+                className="col-span-2 lg:col-span-2 lg:row-span-2"
+                milestones={activeMilestones}
+                classesCompleted={userClassesCompleted}
+                earnedCustom={userBadges.filter((b: { badge_type?: string }) => b.badge_type === "custom")}
+              />
+              {statItems.map((s) => (
+                <StatCard key={s.label} {...s} square />
+              ))}
             </div>
-          )}
+          </div>
 
           {/* MIDDLE ROW: Movement Vitality (2/3) + Sidebar (1/3) */}
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-5 lg:gap-8 mb-5 lg:mb-8">

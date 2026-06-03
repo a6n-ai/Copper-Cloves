@@ -65,7 +65,7 @@ export function Testimonial() {
   const currentTestimonial = testimonials[currentIndex];
 
   return (
-    <section className="py-16 md:py-20 bg-sage text-cream relative overflow-hidden">
+    <section className="py-14 md:py-20 bg-sage text-cream relative overflow-hidden">
       <div className="relative z-10 max-w-4xl mx-auto px-6 lg:px-8">
         {/* Header */}
         <div className="text-center mb-12">

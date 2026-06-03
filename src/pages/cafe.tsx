@@ -584,12 +584,12 @@ export default function CafePage() {
 
                     <div className="flex flex-col gap-4 sm:flex-row">
                       <Link href="/cafe/meal-subscription">
-                        <Button size="lg" variant="sage" className="w-full sm:w-auto">
+                        <Button size="lg" variant="sage" className="w-full sm:w-auto rounded-full">
                           Subscribe to Intentful Eating
                         </Button>
                       </Link>
                       <Link href="/cafe/meal-subscription">
-                        <Button size="lg" variant="sage-outline" className="w-full sm:w-auto">
+                        <Button size="lg" variant="sage-outline" className="w-full sm:w-auto rounded-full">
                           Learn More
                         </Button>
                       </Link>

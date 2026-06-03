@@ -1,6 +1,7 @@
 import prisma from "@/lib/prisma";
 import type { Prisma } from "@/generated/prisma/client";
 import { logger } from "@/lib/logger";
+import { captureAuthorizedPayment, getRazorpay, razorpayConfigured } from "@/lib/razorpayServer";
 
 const log = logger.child({ module: "razorpayPersistence" });
 
@@ -297,6 +298,24 @@ export async function reconcileRazorpayPaymentFromWebhook(body: {
     failureReason = nestedDesc || event || statusNorm || null;
   }
 
+  // Capture authorized funds so they settle to the studio. This is the only path
+  // that runs for netbanking/UPI when the member closes the tab before the browser
+  // verify call — an uncaptured authorization auto-voids after the capture window.
+  let effectiveStatus = statusNorm;
+  if (!failed && statusNorm === "authorized" && razorpayConfigured() && amountPaise != null) {
+    try {
+      const result = await captureAuthorizedPayment({
+        razorpay: getRazorpay(),
+        paymentId: payId,
+        amountPaise,
+        currency,
+      });
+      effectiveStatus = result.status;
+    } catch (capErr) {
+      log.error({ err: capErr, razorpayOrderId: ordId, paymentId: payId }, "razorpay capture failed (webhook)");
+    }
+  }
+
   await prisma.razorpayPayment.upsert({
     where: { razorpay_payment_id: payId },
     create: {
@@ -304,7 +323,7 @@ export async function reconcileRazorpayPaymentFromWebhook(body: {
       razorpay_order_id: ordId,
       amount_paise: amountPaise,
       currency,
-      status: statusNorm,
+      status: effectiveStatus,
       method,
       signature_verified: false,
       failure_reason: failureReason,
@@ -312,14 +331,14 @@ export async function reconcileRazorpayPaymentFromWebhook(body: {
     update: {
       amount_paise: amountPaise ?? undefined,
       currency,
-      status: statusNorm,
+      status: effectiveStatus,
       method: method ?? undefined,
       failure_reason: failed ? failureReason : null,
     },
   });
 
   // Mirror to unified Payment ledger (status pending until verified).
-  const paymentStatus = failed ? "failed" : ["captured", "authorized"].includes(statusNorm) ? "succeeded" : "pending";
+  const paymentStatus = failed ? "failed" : ["captured", "authorized"].includes(effectiveStatus) ? "succeeded" : "pending";
   await prisma.payment.upsert({
     where: { razorpay_payment_id: payId },
     create: {
@@ -343,7 +362,7 @@ export async function reconcileRazorpayPaymentFromWebhook(body: {
     },
   });
 
-  if (["captured", "authorized"].includes(statusNorm)) {
+  if (["captured", "authorized"].includes(effectiveStatus)) {
     await prisma.razorpayPayment.updateMany({
       where: { razorpay_payment_id: payId },
       data: { signature_verified: true, verified_at: new Date() },
