@@ -1,7 +1,7 @@
 import Link from "next/link";
 import Image from "next/image";
 import { Button } from "@/components/ui/button";
-import { Menu, X, LogIn, Ticket, LayoutDashboard, LogOut, ChevronDown } from "lucide-react";
+import { Menu, X, LogIn, Ticket, LayoutDashboard, LogOut } from "lucide-react";
 import { useSession, signOut } from "next-auth/react";
 import {
   DropdownMenu,
@@ -196,17 +196,9 @@ export function Navigation({ variant = "default" }: NavigationProps) {
                     <button
                       type="button"
                       aria-label="Account menu"
-                      className={cn(
-                        "flex items-center gap-1.5 rounded-full border py-1 pl-1 pr-2.5 transition-colors focus:outline-hidden focus-visible:ring-2 focus-visible:ring-[#7A8B7C]/40",
-                        onHero
-                          ? "border-cream/30 bg-cream/10 hover:bg-cream/20"
-                          : "border-charcoal/15 bg-[#fafaf8]/80 hover:bg-[#fafaf8]",
-                      )}
+                      className="flex size-11 items-center justify-center rounded-full bg-[#7A8B7C] font-display text-base text-cream shadow-xs transition-colors hover:bg-[#6d7c6e] focus:outline-hidden focus-visible:ring-2 focus-visible:ring-[#7A8B7C]/40"
                     >
-                      <span className="flex size-7 items-center justify-center rounded-full bg-[#7A8B7C] font-display text-sm text-cream">
-                        {accountInitial}
-                      </span>
-                      <ChevronDown size={15} className={onHero ? "text-cream/80" : "text-charcoal/60"} />
+                      {accountInitial}
                     </button>
                   </DropdownMenuTrigger>
                   <DropdownMenuContent align="end" className="w-52">
