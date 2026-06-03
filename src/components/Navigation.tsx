@@ -45,7 +45,7 @@ function NavLink({ href, label, active, onHero }: { href: string; label: string;
         "group relative rounded-sm py-1 font-body text-[15px] font-medium tracking-wide transition-colors focus:outline-hidden focus-visible:ring-2 focus-visible:ring-offset-2",
         onHero
           ? "text-cream/85 hover:text-cream focus-visible:ring-cream/50 focus-visible:ring-offset-transparent"
-          : "text-charcoal hover:text-[#7A8B7C] focus-visible:ring-[#7A8B7C]/40 focus-visible:ring-offset-[#fafaf8]",
+          : "text-charcoal hover:text-charcoal focus-visible:ring-[#7A8B7C]/40 focus-visible:ring-offset-[#fafaf8]",
       )}
     >
       {label}
@@ -231,25 +231,25 @@ export function Navigation({ variant = "default" }: NavigationProps) {
               <div className="flex items-center gap-2">
                 <Link href="/login">
                   <Button
-                    variant="ghost"
-                    className={cn(
-                      "h-auto gap-2 rounded-full px-5 py-2.5 text-[15px] font-body font-medium",
-                      onHero
-                        ? "text-cream hover:bg-cream/10 hover:text-cream"
-                        : "text-charcoal hover:text-[#7A8B7C]",
-                    )}
-                  >
-                    <LogIn size={17} /> Login
-                  </Button>
-                </Link>
-                <Link href="/login">
-                  <Button
                     className={cn(
                       "h-auto gap-2 rounded-full border-0 px-6 py-2.5 text-[15px] font-body font-medium text-cream shadow-xs",
                       HEADER_SAGE,
                     )}
                   >
                     <Ticket size={17} /> Book Now
+                  </Button>
+                </Link>
+                <Link href="/login">
+                  <Button
+                    variant="ghost"
+                    className={cn(
+                      "h-auto gap-2 rounded-full px-5 py-2.5 text-[15px] font-body font-medium",
+                      onHero
+                        ? "text-cream hover:bg-cream/10 hover:text-cream"
+                        : "text-charcoal hover:bg-charcoal/5 hover:text-charcoal",
+                    )}
+                  >
+                    <LogIn size={17} /> Login
                   </Button>
                 </Link>
               </div>
@@ -312,7 +312,9 @@ export function Navigation({ variant = "default" }: NavigationProps) {
                   aria-current={active ? "page" : undefined}
                   className={cn(
                     "rounded-md px-6 py-2.5 font-display text-3xl transition-colors focus:outline-hidden focus-visible:ring-2 focus-visible:ring-[#7A8B7C]/40",
-                    active ? "text-[#7A8B7C]" : "text-charcoal hover:text-[#7A8B7C]",
+                    active
+                      ? "text-charcoal underline decoration-2 decoration-[#7A8B7C] underline-offset-[6px]"
+                      : "text-charcoal hover:opacity-70",
                   )}
                 >
                   {l.label}
