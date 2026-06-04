@@ -3,6 +3,7 @@ import { Hero } from "@/components/Hero";
 import { Experience } from "@/components/Experience";
 import { ClassCatalog } from "@/components/ClassCatalog";
 import { Footer } from "@/components/Footer";
+import { Reveal } from "@/components/Reveal";
 import { SEO } from "@/components/SEO";
 
 import { cdnUrl } from "@/lib/cdnUrl";
@@ -23,18 +24,20 @@ export default function Home() {
       <SEO
         title="The Studio by Copper + Cloves | Your Home Away From Home"
         description="Move your body, refuel with a café bowl, and find your community. Expert-led wellness classes, plant-based café, and a sanctuary in the city."
-        image={cdnUrl("/og-image.png")}
+        image={cdnUrl("/the_studio_by_C_C_og.png")}
       />
       <div className="min-h-screen bg-cream">
+        {/* Above / near the fold — paint immediately, no reveal (keeps LCP fast). */}
         <Hero />
         <Experience />
         <ClassCatalog />
-        <Instructors />
-        <Testimonial />
-        <Pricing />
-        <Founder />
-        <Rental />
-        <Boutique />
+        {/* Below the fold — fade + lift in on scroll. */}
+        <Reveal><Instructors /></Reveal>
+        <Reveal><Testimonial /></Reveal>
+        <Reveal><Pricing /></Reveal>
+        <Reveal><Founder /></Reveal>
+        <Reveal><Rental /></Reveal>
+        <Reveal><Boutique /></Reveal>
         <Footer />
       </div>
     </>

@@ -1,4 +1,5 @@
 import { useState, useEffect } from "react";
+import Head from "next/head";
 import Image from "next/image";
 import Link from "next/link";
 import { useSession } from "next-auth/react";
@@ -14,6 +15,19 @@ export function Hero() {
   const bookHref = status === "authenticated" ? "/portal/book" : "/login";
   const [moveIndex, setMoveIndex] = useState(0);
   const [refuelIndex, setRefuelIndex] = useState(0);
+  // Which hero layout is actually on screen. `null` until mount → both heroes
+  // render posters only (no <video>), so the off-screen layout never downloads
+  // its videos and there's no SSR/client hydration mismatch. The matching
+  // layout swaps posters → videos after mount.
+  const [view, setView] = useState<"desktop" | "mobile" | null>(null);
+
+  useEffect(() => {
+    const mq = window.matchMedia("(min-width: 1024px)");
+    const update = () => setView(mq.matches ? "desktop" : "mobile");
+    update();
+    mq.addEventListener("change", update);
+    return () => mq.removeEventListener("change", update);
+  }, []);
 
   useEffect(() => {
     const moveInterval = setInterval(() => {
@@ -33,30 +47,49 @@ export function Hero() {
 
   return (
     <>
+      <Head>
+        {/* Preload the first visible hero poster as the LCP image. The <video>
+            poster attribute alone gets default priority; this hints the browser
+            to fetch it ahead of the deferred video bytes. */}
+        <link rel="preload" as="image" href={cdnUrl("/Move-1.poster.jpg")} fetchPriority="high" />
+        <link rel="preload" as="image" href={cdnUrl("/Refuel-1.poster.jpg")} />
+        <link rel="preload" as="image" href={cdnUrl("/Connect-1.poster.jpg")} />
+      </Head>
       {/* Hero: three columns on lg+, stacked on smaller screens */}
       <section className="relative hidden h-screen w-full overflow-hidden lg:block">
         <div className="flex h-full min-h-0 flex-col lg:grid lg:grid-cols-3 lg:h-full">
           {/* Panel 1: Move */}
           <div className="relative flex-1 min-h-0 overflow-hidden lg:flex-none lg:h-full group">
-            {moveMedia.map((media, index) => (
-              <div
-                key={media}
-                className={`absolute inset-0 transition-opacity duration-2000 ease-in-out ${
-                  index === moveIndex ? "opacity-100" : "opacity-0"
-                }`}
-              >
-                <video
-                  src={media}
-                  poster={media.replace(/\.mp4$/, ".poster.jpg")}
-                  autoPlay
-                  loop
-                  muted
-                  playsInline
-                  preload="metadata"
-                  className="w-full h-full object-cover animate-floatAndZoom17"
-                />
-              </div>
-            ))}
+            {moveMedia.map((media, index) => {
+              const active = index === moveIndex;
+              const poster = media.replace(/\.mp4$/, ".poster.jpg");
+              return (
+                <div
+                  key={media}
+                  className={`absolute inset-0 transition-opacity duration-2000 ease-in-out ${
+                    active ? "opacity-100" : "opacity-0"
+                  }`}
+                >
+                  {active && view === "desktop" ? (
+                    <video
+                      src={media}
+                      poster={poster}
+                      autoPlay
+                      loop
+                      muted
+                      playsInline
+                      preload="metadata"
+                      className="hero-video w-full h-full object-cover animate-floatAndZoom17"
+                    />
+                  ) : (
+                    // Inactive carousel frame: show the poster only so the video
+                    // bytes aren't downloaded until this panel rotates in.
+                    // eslint-disable-next-line @next/next/no-img-element
+                    <img src={poster} alt="" aria-hidden className="h-full w-full object-cover" />
+                  )}
+                </div>
+              );
+            })}
             <div className="absolute inset-0 bg-linear-to-t from-black/50 via-transparent to-transparent" />
             <div className="absolute bottom-8 left-1/2 -translate-x-1/2 z-10">
               <span className="font-script text-white/90 text-2xl sm:text-3xl md:text-4xl tracking-wider">move</span>
@@ -65,37 +98,47 @@ export function Hero() {
 
           {/* Panel 2: Refuel — vertical rules only here (flanks middle image) */}
           <div className="relative flex-1 min-h-0 overflow-hidden lg:flex-none lg:h-full lg:border-x lg:border-black group">
-            {refuelMedia.map((media, index) => (
-              <div
-                key={media}
-                className={`absolute inset-0 transition-opacity duration-2000 ease-in-out ${
-                  index === refuelIndex ? "opacity-100" : "opacity-0"
-                }`}
-              >
-                {media.endsWith(".mp4") ? (
-                  <video
-                    src={media}
-                    poster={media.replace(/\.mp4$/, ".poster.jpg")}
-                    autoPlay
-                    loop
-                    muted
-                    playsInline
-                    preload="metadata"
-                    className="w-full h-full object-cover animate-floatAndZoom19"
-                  />
-                ) : (
-                  <Image
-                    src={media}
-                    alt="Refuel"
-                    fill
-                    sizes="(max-width: 1024px) 100vw, 33vw"
-                    placeholder="blur"
-                    blurDataURL={BLUR_DATA_URL}
-                    className="object-cover animate-floatAndZoom19"
-                  />
-                )}
-              </div>
-            ))}
+            {refuelMedia.map((media, index) => {
+              const active = index === refuelIndex;
+              const isVideo = media.endsWith(".mp4");
+              const poster = media.replace(/\.mp4$/, ".poster.jpg");
+              return (
+                <div
+                  key={media}
+                  className={`absolute inset-0 transition-opacity duration-2000 ease-in-out ${
+                    active ? "opacity-100" : "opacity-0"
+                  }`}
+                >
+                  {isVideo ? (
+                    active && view === "desktop" ? (
+                      <video
+                        src={media}
+                        poster={poster}
+                        autoPlay
+                        loop
+                        muted
+                        playsInline
+                        preload="metadata"
+                        className="hero-video w-full h-full object-cover animate-floatAndZoom19"
+                      />
+                    ) : (
+                      // eslint-disable-next-line @next/next/no-img-element
+                      <img src={poster} alt="" aria-hidden className="h-full w-full object-cover" />
+                    )
+                  ) : (
+                    <Image
+                      src={media}
+                      alt="Refuel"
+                      fill
+                      sizes="(max-width: 1024px) 100vw, 33vw"
+                      placeholder="blur"
+                      blurDataURL={BLUR_DATA_URL}
+                      className="object-cover animate-floatAndZoom19"
+                    />
+                  )}
+                </div>
+              );
+            })}
             <div className="absolute inset-0 bg-linear-to-t from-black/50 via-transparent to-transparent" />
             <div className="absolute bottom-8 left-1/2 -translate-x-1/2 z-10">
               <span className="font-script text-white/90 text-2xl sm:text-3xl md:text-4xl tracking-wider">refuel</span>
@@ -104,16 +147,21 @@ export function Hero() {
 
           {/* Panel 3: Connect */}
           <div className="relative flex-1 min-h-0 overflow-hidden lg:flex-none lg:h-full group">
-            <video
-              src={cdnUrl("/Connect-1.mp4")}
-              poster={cdnUrl("/Connect-1.poster.jpg")}
-              autoPlay
-              loop
-              muted
-              playsInline
-              preload="metadata"
-              className="w-full h-full object-cover animate-floatAndZoom23"
-            />
+            {view === "desktop" ? (
+              <video
+                src={cdnUrl("/Connect-1.mp4")}
+                poster={cdnUrl("/Connect-1.poster.jpg")}
+                autoPlay
+                loop
+                muted
+                playsInline
+                preload="metadata"
+                className="hero-video w-full h-full object-cover animate-floatAndZoom23"
+              />
+            ) : (
+              // eslint-disable-next-line @next/next/no-img-element
+              <img src={cdnUrl("/Connect-1.poster.jpg")} alt="" aria-hidden className="h-full w-full object-cover" />
+            )}
             <div className="absolute inset-0 bg-linear-to-t from-black/50 via-transparent to-transparent" />
             <div className="absolute bottom-8 left-1/2 -translate-x-1/2 z-10">
               <span className="font-script text-white/90 text-2xl sm:text-3xl md:text-4xl tracking-wider">connect</span>
@@ -198,6 +246,16 @@ export function Hero() {
             animation: floatAndZoom23 23s ease-in-out infinite;
           }
         `}</style>
+        <style jsx global>{`
+          /* iOS Safari overlays a large play button on inline videos. These are
+             decorative muted autoplay backgrounds, so suppress it. */
+          .hero-video::-webkit-media-controls-start-playback-button,
+          .hero-video::-webkit-media-controls-play-button,
+          .hero-video::-webkit-media-controls {
+            display: none !important;
+            -webkit-appearance: none;
+          }
+        `}</style>
       </section>
 
       {/* Mobile / tablet hero — full-bleed video background (move/refuel/connect
@@ -209,20 +267,28 @@ export function Hero() {
             { src: moveMedia[0], anim: "animate-floatAndZoom17" },
             { src: refuelMedia[0], anim: "animate-floatAndZoom19" },
             { src: cdnUrl("/Connect-1.mp4"), anim: "animate-floatAndZoom23" },
-          ].map((panel) => (
-            <div key={panel.src} className="relative flex-1 overflow-hidden">
-              <video
-                src={panel.src}
-                poster={panel.src.replace(/\.mp4$/, ".poster.jpg")}
-                autoPlay
-                loop
-                muted
-                playsInline
-                preload="metadata"
-                className={`h-full w-full object-cover ${panel.anim}`}
-              />
-            </div>
-          ))}
+          ].map((panel) => {
+            const poster = panel.src.replace(/\.mp4$/, ".poster.jpg");
+            return (
+              <div key={panel.src} className="relative flex-1 overflow-hidden">
+                {view === "mobile" ? (
+                  <video
+                    src={panel.src}
+                    poster={poster}
+                    autoPlay
+                    loop
+                    muted
+                    playsInline
+                    preload="metadata"
+                    className={`hero-video h-full w-full object-cover ${panel.anim}`}
+                  />
+                ) : (
+                  // eslint-disable-next-line @next/next/no-img-element
+                  <img src={poster} alt="" aria-hidden className={`h-full w-full object-cover ${panel.anim}`} />
+                )}
+              </div>
+            );
+          })}
         </div>
 
         {/* Single dark scrim across all panels for headline legibility */}

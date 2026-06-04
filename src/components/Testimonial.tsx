@@ -101,10 +101,11 @@ export function Testimonial() {
         </div>
 
         {/* Pagination Dots */}
-        <div className="flex justify-center gap-2 mt-12">
+        <div className="flex justify-center gap-1 mt-12">
           {testimonials.map((_, index) => (
             <button
               key={index}
+              type="button"
               onClick={() => {
                 setIsAnimating(true);
                 setTimeout(() => {
@@ -112,13 +113,18 @@ export function Testimonial() {
                   setIsAnimating(false);
                 }, 500);
               }}
-              className={`transition-all duration-300 rounded-full ${
-                index === currentIndex
-                  ? 'w-8 h-2 bg-white-warm'
-                  : 'w-2 h-2 bg-[#fafaf8]/40 hover:bg-[#fafaf8]/60'
-              }`}
+              className="group grid min-h-[24px] min-w-[24px] place-items-center"
               aria-label={`Go to testimonial ${index + 1}`}
-            />
+              aria-current={index === currentIndex}
+            >
+              <span
+                className={`block transition-all duration-300 rounded-full ${
+                  index === currentIndex
+                    ? 'w-8 h-2 bg-white-warm'
+                    : 'w-2 h-2 bg-[#fafaf8]/40 group-hover:bg-[#fafaf8]/60'
+                }`}
+              />
+            </button>
           ))}
         </div>
       </div>

@@ -1227,21 +1227,34 @@ export default function AdminMembers() {
               <div>
                 <Label className="font-body text-charcoal/80 mb-3 block">Pass Type</Label>
                 <div className="flex gap-2">
-                  {(["class_pass", "studio_pass"] as const).map((pt) => (
-                    <button
-                      key={pt}
-                      type="button"
-                      onClick={() => { setDialogPassType(pt); setSelectedCredits(null); setSelectedDays(null); }}
-                      className={`flex-1 py-2.5 rounded-full text-sm font-body font-medium border transition-colors ${
-                        dialogPassType === pt
-                          ? "bg-sage text-cream border-sage"
-                          : "bg-white-warm text-charcoal/70 border-charcoal/20 hover:border-sage/40"
-                      }`}
-                    >
-                      {pt === "class_pass" ? "Class Pass" : "Studio Pass"}
-                    </button>
-                  ))}
+                  {(["class_pass", "studio_pass"] as const).map((pt) => {
+                    const blocked = pt === "class_pass"
+                      && selectedMember?.passCategory === "studio_pass"
+                      && selectedMember?.accountFilter === "active";
+                    return (
+                      <button
+                        key={pt}
+                        type="button"
+                        disabled={blocked}
+                        onClick={() => { setDialogPassType(pt); setSelectedCredits(null); setSelectedDays(null); }}
+                        className={`flex-1 py-2.5 rounded-full text-sm font-body font-medium border transition-colors ${
+                          blocked
+                            ? "bg-charcoal/5 text-charcoal/35 border-charcoal/10 cursor-not-allowed"
+                            : dialogPassType === pt
+                              ? "bg-sage text-cream border-sage"
+                              : "bg-white-warm text-charcoal/70 border-charcoal/20 hover:border-sage/40"
+                        }`}
+                      >
+                        {pt === "class_pass" ? "Class Pass" : "Studio Pass"}
+                      </button>
+                    );
+                  })}
                 </div>
+                {selectedMember?.passCategory === "studio_pass" && selectedMember?.accountFilter === "active" && (
+                  <p className="font-body text-xs text-charcoal/50 mt-2">
+                    Studio pass is unlimited — a class pass can&apos;t be added until it expires.
+                  </p>
+                )}
               </div>
 
               {dialogPassType === "class_pass" && (

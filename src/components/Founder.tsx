@@ -40,12 +40,11 @@ export function Founder() {
 
           <dl className="mt-8 grid grid-cols-2 gap-4 border-y border-[#e5e4dc] py-6 sm:grid-cols-4">
             {stats.map((stat) => (
-              <div key={stat.label}>
-                <dt className="sr-only">{stat.label}</dt>
-                <dd className="font-display text-3xl text-charcoal md:text-4xl">{stat.value}</dd>
-                <p className="mt-1 font-body text-[11px] uppercase tracking-[0.1em] text-charcoal/55">
+              <div key={stat.label} className="flex flex-col-reverse">
+                <dt className="mt-1 font-body text-[11px] uppercase tracking-[0.1em] text-charcoal/55">
                   {stat.label}
-                </p>
+                </dt>
+                <dd className="font-display text-3xl text-charcoal md:text-4xl">{stat.value}</dd>
               </div>
             ))}
           </dl>

@@ -134,7 +134,7 @@ export default function RentalPage() {
       <SEO
         title="Host Your Event | The Studio by Copper + Cloves"
         description="Host your next workshop, celebration, or corporate offsite in our plant-filled, light-filled sanctuary. Flexible bookings, café catering, and up to 50 guests."
-        image={cdnUrl("/og-image.png")}
+        image={cdnUrl("/the_studio_by_C_C_og.png")}
       />
 
       <div className="min-h-screen bg-cream">

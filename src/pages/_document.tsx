@@ -42,15 +42,6 @@ export default function Document() {
       >
         <Main />
         <NextScript />
-
-        {/* Visual Editor Script */}
-        {process.env.NODE_ENV === "development" && (
-          <script
-            src="https://cdn.softgen.dev/visual-editor.min.js"
-            async
-            data-softgen-visual-editor="true"
-          />
-        )}
       </body>
     </Html>
   );

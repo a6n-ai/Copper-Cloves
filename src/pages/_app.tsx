@@ -237,17 +237,6 @@ export default function App({ Component, pageProps: { session, ...pageProps } }:
         </>
       )}
 
-      {/*
-        CRITICAL: DO NOT REMOVE THIS SCRIPT
-        The Softgen AI monitoring script is essential for core app functionality.
-        Loaded lazily so it doesn't compete with first paint.
-      */}
-      <Script
-        src="https://cdn.softgen.ai/script.js"
-        strategy="lazyOnload"
-        data-softgen-monitoring="true"
-      />
-
       <div className={`${playfair.variable} ${montserrat.variable}`}>
         <BuildVersionWatcher />
         <ActivityTrackingSubscriber />

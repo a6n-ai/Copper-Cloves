@@ -1,5 +1,5 @@
 {
-  "name": "softgen-starter",
+  "name": "copper-cloves",
   "version": "2.4.4",
   "private": true,
   "browserslist": [
@@ -77,7 +77,6 @@
     "formidable": "^3.5.4",
     "framer-motion": "^12.39.0",
     "lucide-react": "^0.577.0",
-    "motion": "^12.40.0",
     "next": "15.5.16",
     "next-auth": "^4.24.14",
     "node-schedule": "^2.1.1",

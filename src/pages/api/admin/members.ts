@@ -103,6 +103,24 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       return res.status(404).json({ error: "Member not found" });
     }
 
+    // A studio (unlimited) pass already covers unlimited classes — block adding a
+    // class pass on top of an active, unexpired studio pass.
+    if (pass_type === "class_pass") {
+      const activeStudio = await prisma.userPackage.findFirst({
+        where: {
+          user_id: profile_id,
+          is_active: true,
+          expiration_date: { gt: new Date() },
+          OR: [{ pass_type: "studio_pass" }, { package_type: { is_unlimited: true } }],
+        },
+      });
+      if (activeStudio) {
+        return res.status(409).json({
+          error: "Member has an active studio (unlimited) pass — a class pass can't be added until it expires.",
+        });
+      }
+    }
+
     let pkgId: string | undefined = typeof user_package_id === "string" ? user_package_id : undefined;
     if (!pkgId) {
       const latest = await prisma.userPackage.findFirst({

@@ -8,14 +8,16 @@ interface SEOProps {
   url?: string;
 }
 
-const DEFAULT_OG_IMAGE = cdnUrl("/og-image.png");
+const DEFAULT_OG_IMAGE = cdnUrl("/the_studio_by_C_C_og.png");
+const DEFAULT_TITLE = "The Studio by Copper + Cloves | Your Home Away From Home";
+const DEFAULT_DESCRIPTION = "Move your body, refuel with a café bowl, and find your community. Expert-led wellness classes, plant-based café, and a sanctuary in the city.";
 const FAVICON_SVG = cdnUrl("/favicon.svg");
 const FAVICON_ICO = cdnUrl("/favicon.ico");
 
 // SEO elements that can be used in _document.tsx (returns JSX without Head wrapper)
 export function SEOElements({
-  title = "Hello World",
-  description = "Welcome to my app",
+  title = DEFAULT_TITLE,
+  description = DEFAULT_DESCRIPTION,
   image = DEFAULT_OG_IMAGE,
   url,
 }: SEOProps) {
@@ -45,8 +47,8 @@ export function SEOElements({
 // SEO component for use in pages/_app.tsx or individual pages (uses next/head)
 // Note: Flattened structure (no fragment) for better Next.js Head compatibility during hot reload
 export function SEO({
-  title = "Hello World",
-  description = "Welcome to my app",
+  title = DEFAULT_TITLE,
+  description = DEFAULT_DESCRIPTION,
   image = DEFAULT_OG_IMAGE,
   url,
 }: SEOProps) {

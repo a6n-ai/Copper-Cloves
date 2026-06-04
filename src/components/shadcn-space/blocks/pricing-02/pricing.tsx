@@ -6,7 +6,7 @@ import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
 import { cn } from "@/lib/utils";
 import { Check, Flame } from "lucide-react";
-import { motion } from "motion/react";
+import { motion } from "framer-motion";
 
 type PricingPlan = {
   plan_name: string;
