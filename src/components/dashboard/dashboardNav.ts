@@ -15,6 +15,7 @@ import {
   ClipboardList,
   GraduationCap,
   Wallet,
+  PauseCircle,
   type LucideIcon,
 } from "lucide-react";
 
@@ -140,7 +141,13 @@ export const PORTAL_CONFIGS: Record<PortalKind, PortalConfig> = {
           { href: "/portal/menu", label: "Café", icon: Coffee },
         ],
       },
-      { label: "Account", items: [{ href: "/account", label: "Profile", icon: User }] },
+      {
+        label: "Account",
+        items: [
+          { href: "/portal/pause", label: "Pause Pass", icon: PauseCircle },
+          { href: "/account", label: "Profile", icon: User },
+        ],
+      },
     ],
   },
   instructor: {

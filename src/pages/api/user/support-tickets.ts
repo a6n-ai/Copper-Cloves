@@ -14,17 +14,19 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     const tickets = await prisma.memberTicket.findMany({
       where: { user_id: userId },
       orderBy: { created_at: "desc" },
+      include: { user_package: { include: { package_type: true } } },
     });
     return res.json(tickets);
   }
 
   if (req.method === "POST") {
-    const { type = "pause_subscription", reason, attachment_url, pause_from, pause_to } = req.body as {
+    const { type = "pause_subscription", reason, attachment_url, pause_from, pause_to, user_package_id } = req.body as {
       type?: string;
       reason?: string;
       attachment_url?: string;
       pause_from?: string;
       pause_to?: string;
+      user_package_id?: string;
     };
 
     if (!reason?.trim()) {
@@ -33,6 +35,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
     let pauseFromDate: Date | null = null;
     let pauseToDate: Date | null = null;
+    let pausePackageId: string | null = null;
 
     if (type === "pause_subscription") {
       if (!pause_from || !pause_to) {
@@ -51,11 +54,30 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         return res.status(400).json({ error: "Start date must be at least 72 hours from now" });
       }
 
+      if (!user_package_id?.trim()) {
+        return res.status(400).json({ error: "Select which pass to pause" });
+      }
+      const pkg = await prisma.userPackage.findFirst({
+        where: { id: user_package_id.trim(), user_id: userId, is_active: true },
+        select: { id: true },
+      });
+      if (!pkg) {
+        return res.status(400).json({ error: "That pass is not active on your account" });
+      }
+      pausePackageId = pkg.id;
+
+      // One pending request per pass — a member with multiple active passes can
+      // still raise a separate request for each.
       const existing = await prisma.memberTicket.findFirst({
-        where: { user_id: userId, type: "pause_subscription", status: { in: ["open", "in_review"] } },
+        where: {
+          user_id: userId,
+          type: "pause_subscription",
+          user_package_id: pausePackageId,
+          status: { in: ["open", "in_review"] },
+        },
       });
       if (existing) {
-        return res.status(409).json({ error: "You already have a pending pause request. We'll reach out soon." });
+        return res.status(409).json({ error: "You already have a pending pause request for this pass. We'll reach out soon." });
       }
     }
 
@@ -67,6 +89,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         attachment_url: attachment_url?.trim() || null,
         pause_from: pauseFromDate,
         pause_to: pauseToDate,
+        user_package_id: pausePackageId,
       },
     });
 

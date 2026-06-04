@@ -1406,7 +1406,7 @@ export default function ControlPanel() {
                   <CardHeader className="flex flex-row items-center justify-between gap-4 flex-wrap">
                     <div>
                       <CardTitle className="font-display text-xl">Pause Subscription Requests</CardTitle>
-                      <CardDescription>Approving extends the member&apos;s most recent active package expiry by the pause duration.</CardDescription>
+                      <CardDescription>Approving freezes the pass shown on each request and extends its expiry by the pause duration.</CardDescription>
                     </div>
                     <Select value={pauseStatusFilter} onValueChange={(v: any) => setPauseStatusFilter(v)}>
                       <SelectTrigger className="w-40 border-sage/30">
@@ -1458,7 +1458,25 @@ export default function ControlPanel() {
                                       {t.status?.replace("_", " ")}
                                     </Badge>
                                   </div>
-                                  <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 text-sm font-body">
+                                  <div className="grid grid-cols-1 sm:grid-cols-4 gap-3 text-sm font-body">
+                                    <div>
+                                      <p className="text-xs text-charcoal/50 uppercase tracking-wide">Pass</p>
+                                      {(() => {
+                                        const up = t.user_package;
+                                        if (!up) return <p className="text-charcoal/50 italic">Most recent active (legacy)</p>;
+                                        const name = up.package_type?.name?.trim()
+                                          || (up.pass_type === "studio_pass" ? "Studio Pass" : "Class Pass");
+                                        const detail = up.pass_type === "studio_pass"
+                                          ? "Unlimited"
+                                          : up.credits_remaining != null ? `${up.credits_remaining} left` : null;
+                                        return (
+                                          <p className="text-charcoal">
+                                            {name}{detail && <span className="text-charcoal/50"> · {detail}</span>}
+                                            {up.is_active === false && <span className="text-terracotta"> · inactive</span>}
+                                          </p>
+                                        );
+                                      })()}
+                                    </div>
                                     <div>
                                       <p className="text-xs text-charcoal/50 uppercase tracking-wide">From</p>
                                       <p className="text-charcoal">{from ? from.toLocaleDateString("en-IN", { day: "2-digit", month: "short", year: "numeric" }) : "—"}</p>

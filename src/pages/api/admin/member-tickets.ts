@@ -13,7 +13,18 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   if (req.method === "GET") {
     const tickets = await prisma.memberTicket.findMany({
       orderBy: { created_at: "desc" },
-      include: { profile: { select: { email: true, full_name: true, phone: true } } },
+      include: {
+        profile: { select: { email: true, full_name: true, phone: true } },
+        user_package: {
+          select: {
+            pass_type: true,
+            credits_remaining: true,
+            expiration_date: true,
+            is_active: true,
+            package_type: { select: { name: true } },
+          },
+        },
+      },
     });
     return res.json(tickets);
   }
@@ -43,10 +54,16 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
       if (!willResolvePause) return { ticket: updated, packageUpdated: null };
 
-      const pkg = await tx.userPackage.findFirst({
-        where: { user_id: existing.user_id, is_active: true },
-        orderBy: { purchase_date: "desc" },
-      });
+      // Target the pass the member chose. Pre-selection tickets (null) fall back
+      // to the most-recently-purchased active pass for backward compatibility.
+      const pkg = existing.user_package_id
+        ? await tx.userPackage.findFirst({
+            where: { id: existing.user_package_id, user_id: existing.user_id },
+          })
+        : await tx.userPackage.findFirst({
+            where: { user_id: existing.user_id, is_active: true },
+            orderBy: { purchase_date: "desc" },
+          });
       if (!pkg) return { ticket: updated, packageUpdated: null };
 
       const days = Math.max(

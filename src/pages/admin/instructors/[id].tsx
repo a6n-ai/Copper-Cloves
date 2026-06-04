@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { useRouter } from "next/router";
 import { useSession } from "next-auth/react";
 import {
@@ -406,7 +406,7 @@ export default function InstructorProfilePage() {
               <Field label="Title" value={form.title} onChange={(v) => setForm({ ...form, title: v })} />
               <Field label="Email" type="email" value={form.email} onChange={(v) => setForm({ ...form, email: v })} />
               <Field label="Phone" value={form.phone} onChange={(v) => setForm({ ...form, phone: v })} />
-              <Field label="Image URL" value={form.image_url} onChange={(v) => setForm({ ...form, image_url: v })} className="sm:col-span-2" />
+              <ImageField label="Photo" value={form.image_url} onChange={(v) => setForm({ ...form, image_url: v })} ownerId={instructor.id} name={form.name} className="sm:col-span-2" />
               <Field label="Years of experience" value={form.years_of_experience} onChange={(v) => setForm({ ...form, years_of_experience: v })} />
               <Field label="Studio cut (%)" type="number" value={form.studio_payout_cut_percent} onChange={(v) => setForm({ ...form, studio_payout_cut_percent: v })} />
               <TextField label="About" value={form.about} onChange={(v) => setForm({ ...form, about: v })} className="sm:col-span-2" />
@@ -436,6 +436,77 @@ function Field({ label, value, onChange, type = "text", className }: { label: st
     <div className={cn("space-y-1.5", className)}>
       <Label className="font-body text-xs text-charcoal/65">{label}</Label>
       <Input type={type} value={value} onChange={(e) => onChange(e.target.value)} />
+    </div>
+  );
+}
+
+function ImageField({ label, value, onChange, ownerId, name, className }: {
+  label: string;
+  value: string;
+  onChange: (v: string) => void;
+  ownerId: string;
+  name?: string;
+  className?: string;
+}) {
+  const [uploading, setUploading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const inputRef = useRef<HTMLInputElement>(null);
+
+  async function onFileSelected(e: React.ChangeEvent<HTMLInputElement>) {
+    const file = e.target.files?.[0];
+    e.target.value = "";
+    if (!file) return;
+    if (!file.type.startsWith("image/")) { setError("Please choose an image file."); return; }
+    setError(null);
+    setUploading(true);
+    try {
+      const fd = new FormData();
+      fd.append("file", file);
+      fd.append("purpose", "instructor_photo");
+      fd.append("ownerId", ownerId);
+      const res = await fetch("/api/upload", { method: "POST", credentials: "include", body: fd });
+      const data = await res.json().catch(() => ({}));
+      if (!res.ok || !data?.url) { setError(data?.error ?? "Upload failed. Try again."); return; }
+      onChange(data.url);
+    } catch {
+      setError("Network error during upload.");
+    } finally {
+      setUploading(false);
+    }
+  }
+
+  return (
+    <div className={cn("space-y-1.5", className)}>
+      <Label className="font-body text-xs text-charcoal/65">{label}</Label>
+      <div className="flex items-center gap-4">
+        {value ? (
+          // eslint-disable-next-line @next/next/no-img-element
+          <img src={value} alt={name || "Instructor"} className="size-16 rounded-full object-cover ring-2 ring-sage/20 shrink-0" />
+        ) : (
+          <div className="size-16 rounded-full bg-sage/10 text-sage font-display text-xl flex items-center justify-center ring-2 ring-sage/20 shrink-0">
+            {(name || "I").slice(0, 1).toUpperCase()}
+          </div>
+        )}
+        <div className="space-y-1.5">
+          <input ref={inputRef} type="file" accept="image/*" className="hidden" disabled={uploading}
+            onChange={(e) => void onFileSelected(e)} />
+          <div className="flex items-center gap-2">
+            <Button type="button" variant="outline" size="sm" disabled={uploading}
+              onClick={() => inputRef.current?.click()}
+              className="border-sage/30 text-sage hover:bg-sage hover:text-cream font-body">
+              {uploading ? "Uploading…" : value ? "Change photo" : "Upload photo"}
+            </Button>
+            {value && (
+              <Button type="button" variant="ghost" size="sm" disabled={uploading}
+                onClick={() => onChange("")} className="text-charcoal/50 hover:text-terracotta font-body">
+                Remove
+              </Button>
+            )}
+          </div>
+          <p className="text-xs text-charcoal/40 font-body">JPEG, PNG, or WebP</p>
+        </div>
+      </div>
+      {error && <p className="text-xs text-terracotta font-body">{error}</p>}
     </div>
   );
 }

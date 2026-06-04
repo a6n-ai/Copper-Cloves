@@ -4068,6 +4068,7 @@ export const MemberTicketScalarFieldEnum = {
   admin_note: 'admin_note',
   pause_from: 'pause_from',
   pause_to: 'pause_to',
+  user_package_id: 'user_package_id',
   created_at: 'created_at',
   updated_at: 'updated_at'
 } as const

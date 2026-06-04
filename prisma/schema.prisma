@@ -359,6 +359,7 @@ model UserPackage {
   bookings     Booking[]
   razorpay_order   RazorpayOrder?
   payments         Payment[]
+  member_tickets   MemberTicket[]
 
   @@index([user_id])
   @@index([package_type_id])
@@ -852,22 +853,25 @@ model UserActivityEvent {
 }
 
 model MemberTicket {
-  id             String   @id @default(uuid())
-  user_id        String
-  type           String   @default("pause_subscription")
-  reason         String
-  attachment_url String?
-  status         String   @default("open")
-  admin_note     String?
-  pause_from     DateTime?
-  pause_to       DateTime?
-  created_at     DateTime @default(now())
-  updated_at     DateTime @default(now()) @updatedAt
+  id              String   @id @default(uuid())
+  user_id         String
+  type            String   @default("pause_subscription")
+  reason          String
+  attachment_url  String?
+  status          String   @default("open")
+  admin_note      String?
+  pause_from      DateTime?
+  pause_to        DateTime?
+  user_package_id String?
+  created_at      DateTime @default(now())
+  updated_at      DateTime @default(now()) @updatedAt
 
-  profile Profile @relation(fields: [user_id], references: [id], onDelete: Cascade)
+  profile      Profile      @relation(fields: [user_id], references: [id], onDelete: Cascade)
+  user_package UserPackage? @relation(fields: [user_package_id], references: [id], onDelete: SetNull)
 
   @@index([user_id])
   @@index([status])
+  @@index([user_package_id])
   @@map("member_tickets")
 }
 

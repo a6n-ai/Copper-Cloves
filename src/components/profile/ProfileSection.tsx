@@ -8,18 +8,13 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
-import { Alert, AlertDescription } from "@/components/ui/alert";
 import { useToast } from "@/hooks/use-toast";
 import { Spinner } from "@/components/ui/spinner";
 import { Skeleton } from "@/components/ui/skeleton";
 import {
   User, Save, CheckCircle2, Mail, Phone, Camera, Lock,
-  MessageCircle, Calendar as CalendarIcon, Heart, PauseCircle, Paperclip, ChevronDown,
+  MessageCircle, Calendar as CalendarIcon, Heart, ChevronDown,
 } from "lucide-react";
-import { Calendar } from "@/components/ui/calendar";
-import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
-import { addHours, differenceInCalendarDays, format } from "date-fns";
-import type { DateRange } from "react-day-picker";
 
 export type ProfileRole = "user" | "admin" | "partner" | "instructor";
 
@@ -126,21 +121,16 @@ interface ProfileData {
   questionnaire?: Record<string, unknown> | null;
 }
 
-interface SupportTicket {
-  type: string;
-  status: string;
-}
-
 /**
  * Unified profile editor shared across all four portals.
  * - All roles get: avatar + name + email + phone + whatsapp + change password.
- * - Member role additionally gets: DOB, gender, health questionnaire, pause-subscription request.
+ * - Member role additionally gets: DOB, gender, health questionnaire.
+ *   (Pause-subscription requests live on their own /portal/pause page.)
  */
 export function ProfileSection({ role, title, subtitle }: ProfileSectionProps) {
   const isMember = role === "user";
   const { toast } = useToast();
   const fileInputRef = useRef<HTMLInputElement>(null);
-  const attachmentRef = useRef<HTMLInputElement>(null);
 
   const [avatarUrl, setAvatarUrl] = useState<string | null>(null);
   const [avatarUploading, setAvatarUploading] = useState(false);
@@ -164,15 +154,6 @@ export function ProfileSection({ role, title, subtitle }: ProfileSectionProps) {
   const [newPassword, setNewPassword] = useState("");
   const [passwordSaving, setPasswordSaving] = useState(false);
 
-  const [pauseReason, setPauseReason] = useState("");
-  const [pauseRange, setPauseRange] = useState<DateRange | undefined>(undefined);
-  const minPauseStart = (() => { const d = addHours(new Date(), 72); d.setHours(0, 0, 0, 0); return d; })();
-  const [attachmentUrl, setAttachmentUrl] = useState("");
-  const [attachmentUploading, setAttachmentUploading] = useState(false);
-  const [attachmentName, setAttachmentName] = useState("");
-  const [submittingTicket, setSubmittingTicket] = useState(false);
-  const [ticketSubmitted, setTicketSubmitted] = useState(false);
-
   const isFemale = gender === "female";
 
   // Shares the in-flight request + cache with the `/api/user/profile` key
@@ -180,9 +161,6 @@ export function ProfileSection({ role, title, subtitle }: ProfileSectionProps) {
   // so visiting the profile page no longer fires a duplicate concurrent GET.
   const { data: profileData, error: profileError, isLoading: profileLoading } =
     useStudioSWR<ProfileData>("/api/user/profile");
-  const { data: ticketData } = useStudioSWR<SupportTicket[]>(
-    isMember ? "/api/user/support-tickets" : null,
-  );
   const loading = profileLoading && !profileData;
 
   useEffect(() => {
@@ -212,14 +190,6 @@ export function ProfileSection({ role, title, subtitle }: ProfileSectionProps) {
       setInjuries(typeof q.injuries === "string" ? q.injuries : "");
     }
   }, [profileData]);
-
-  useEffect(() => {
-    if (!ticketData) return;
-    const openPause = Array.isArray(ticketData) && ticketData.some(
-      (t) => t.type === "pause_subscription" && ["open", "in_review"].includes(t.status),
-    );
-    setTicketSubmitted(openPause);
-  }, [ticketData]);
 
   useEffect(() => {
     if (loading || typeof window === "undefined") return;
@@ -333,35 +303,6 @@ export function ProfileSection({ role, title, subtitle }: ProfileSectionProps) {
     }
   }
 
-  async function onAttachmentSelected(e: React.ChangeEvent<HTMLInputElement>) {
-    const file = e.target.files?.[0];
-    e.target.value = "";
-    if (!file) return;
-    setAttachmentUploading(true);
-    try {
-      const presignRes = await fetch("/api/user/avatar-presign", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ contentType: file.type, purpose: "doc" }),
-      });
-      const presignJson = await presignRes.json().catch(() => ({}));
-      if (!presignRes.ok) {
-        toast({ title: "Upload unavailable", description: presignJson.error ?? "Try again later.", variant: "destructive" });
-        return;
-      }
-      const { uploadUrl, publicUrl } = presignJson as { uploadUrl?: string; publicUrl?: string };
-      if (!uploadUrl || !publicUrl) { toast({ title: "Upload error", variant: "destructive" }); return; }
-      await fetch(uploadUrl, { method: "PUT", body: file, headers: { "Content-Type": file.type } });
-      setAttachmentUrl(publicUrl);
-      setAttachmentName(file.name);
-      toast({ title: "Document uploaded" });
-    } catch {
-      toast({ title: "Upload failed", variant: "destructive" });
-    } finally {
-      setAttachmentUploading(false);
-    }
-  }
-
   async function onChangePassword(e: React.FormEvent) {
     e.preventDefault();
     if (!currentPassword) { toast({ title: "Current password required", variant: "destructive" }); return; }
@@ -382,42 +323,6 @@ export function ProfileSection({ role, title, subtitle }: ProfileSectionProps) {
       toast({ title: "Network error", variant: "destructive" });
     } finally {
       setPasswordSaving(false);
-    }
-  }
-
-  async function submitPauseTicket(e: React.FormEvent) {
-    e.preventDefault();
-    if (!pauseReason.trim()) { toast({ title: "Please describe your reason", variant: "destructive" }); return; }
-    if (!pauseRange?.from || !pauseRange?.to) { toast({ title: "Please select pause dates", variant: "destructive" }); return; }
-    if (pauseRange.from < minPauseStart) {
-      toast({ title: "Start date must be at least 72 hours from now", variant: "destructive" });
-      return;
-    }
-    setSubmittingTicket(true);
-    try {
-      const res = await fetch("/api/user/support-tickets", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          type: "pause_subscription",
-          reason: pauseReason,
-          attachment_url: attachmentUrl || undefined,
-          pause_from: pauseRange.from.toISOString(),
-          pause_to: pauseRange.to.toISOString(),
-        }),
-      });
-      const data = await res.json().catch(() => ({}));
-      if (!res.ok) { toast({ title: "Submission failed", description: data.error ?? "Try again.", variant: "destructive" }); return; }
-      setTicketSubmitted(true);
-      setPauseReason("");
-      setPauseRange(undefined);
-      setAttachmentUrl("");
-      setAttachmentName("");
-      toast({ title: "Request submitted", description: "We'll review and get back to you soon." });
-    } catch {
-      toast({ title: "Network error", variant: "destructive" });
-    } finally {
-      setSubmittingTicket(false);
     }
   }
 
@@ -640,106 +545,6 @@ export function ProfileSection({ role, title, subtitle }: ProfileSectionProps) {
             </CardContent>
           </Card>
 
-          {/* ── Pause Subscription (member only) ─────────────────── */}
-          {isMember && (
-            <Card className="border-sage/20 bg-[#fafaf8]/90 shadow-lg">
-              <CardHeader className="p-6 border-b border-sage/10 bg-linear-to-r from-cream/50 to-[#fafaf8]">
-                <CardTitle className="font-display text-xl text-charcoal flex items-center gap-3">
-                  <div className="w-10 h-10 rounded-full bg-terracotta/10 flex items-center justify-center">
-                    <PauseCircle className="text-terracotta" size={20} />
-                  </div>
-                  Pause Subscription
-                </CardTitle>
-                <CardDescription className="font-body text-charcoal/60 mt-1">
-                  Raise a request to pause your active pass — we&apos;ll review and respond within 24 hours
-                </CardDescription>
-              </CardHeader>
-              <CardContent className="p-6">
-                {ticketSubmitted ? (
-                  <Alert className="border-sage/30 bg-sage/5">
-                    <CheckCircle2 className="h-5 w-5 text-sage" />
-                    <AlertDescription className="font-body text-charcoal ml-2">
-                      Your pause request has been received. Our team will reach out to you soon.
-                    </AlertDescription>
-                  </Alert>
-                ) : (
-                  <form onSubmit={submitPauseTicket} className="space-y-4" noValidate>
-                    <div className="space-y-1.5">
-                      <Label className="font-body text-sm text-charcoal flex items-center gap-2">
-                        <CalendarIcon size={13} className="text-sage" />
-                        Pause dates <span className="text-terracotta">*</span>
-                      </Label>
-                      <Popover>
-                        <PopoverTrigger asChild>
-                          <Button type="button" variant="outline"
-                            className="w-full justify-start text-left font-body text-sm border-sage/20 hover:bg-sage/5 h-11">
-                            {pauseRange?.from && pauseRange?.to ? (
-                              <>
-                                {format(pauseRange.from, "d MMM yyyy")} → {format(pauseRange.to, "d MMM yyyy")}
-                                <span className="ml-auto text-xs text-charcoal/50">
-                                  {differenceInCalendarDays(pauseRange.to, pauseRange.from) + 1} day{differenceInCalendarDays(pauseRange.to, pauseRange.from) === 0 ? "" : "s"}
-                                </span>
-                              </>
-                            ) : (
-                              <span className="text-charcoal/50">Select start and end dates</span>
-                            )}
-                          </Button>
-                        </PopoverTrigger>
-                        <PopoverContent className="w-auto p-0" align="start">
-                          <Calendar
-                            mode="range"
-                            numberOfMonths={2}
-                            selected={pauseRange}
-                            onSelect={setPauseRange}
-                            disabled={{ before: minPauseStart }}
-                            defaultMonth={minPauseStart}
-                          />
-                        </PopoverContent>
-                      </Popover>
-                      <p className="text-xs text-charcoal/50 font-body">
-                        Start date must be at least 72 hours from now. Earliest available: {format(minPauseStart, "d MMM yyyy")}.
-                      </p>
-                    </div>
-                    <div className="space-y-1.5">
-                      <Label className="font-body text-sm text-charcoal">Reason for pausing <span className="text-terracotta">*</span></Label>
-                      <Textarea value={pauseReason} onChange={(e) => setPauseReason(e.target.value)}
-                        placeholder="E.g. travelling for 3 weeks, recovering from injury, etc. The more detail, the faster we can help…"
-                        className="border-sage/20 focus:border-sage font-body text-sm resize-none" rows={4} required />
-                    </div>
-                    <div className="space-y-1.5">
-                      <Label className="font-body text-sm text-charcoal flex items-center gap-2">
-                        <Paperclip size={13} className="text-sage" /> Supporting Document
-                        <span className="text-xs text-charcoal/40 font-normal">(optional)</span>
-                      </Label>
-                      <input ref={attachmentRef} type="file"
-                        accept="image/*,application/pdf,.doc,.docx"
-                        disabled={attachmentUploading}
-                        onChange={(ev) => void onAttachmentSelected(ev)} className="hidden" />
-                      <div className="flex items-center gap-2">
-                        <Button type="button" variant="outline" size="sm"
-                          disabled={attachmentUploading}
-                          onClick={() => attachmentRef.current?.click()}
-                          className="border-sage/30 text-sage hover:bg-sage hover:text-cream font-body text-xs h-9">
-                          {attachmentUploading ? "Uploading…" : "Upload file"}
-                        </Button>
-                        {attachmentName && (
-                          <span className="font-body text-xs text-charcoal/60 truncate max-w-[200px]">
-                            ✓ {attachmentName}
-                          </span>
-                        )}
-                      </div>
-                      <p className="text-xs text-charcoal/40 font-body">Doctor&apos;s note, travel itinerary, etc. PDF, image, or Word doc.</p>
-                    </div>
-                    <Button type="submit"
-                      disabled={submittingTicket || !pauseReason.trim() || !pauseRange?.from || !pauseRange?.to}
-                      variant="terracotta" className="w-full h-12">
-                      {submittingTicket ? <><Spinner className="mr-2 size-4" />Submitting…</> : "Submit Pause Request"}
-                    </Button>
-                  </form>
-                )}
-              </CardContent>
-            </Card>
-          )}
         </div>
       </main>
     </div>

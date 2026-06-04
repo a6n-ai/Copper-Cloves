@@ -34,6 +34,7 @@ export type MemberTicketMinAggregateOutputType = {
   admin_note: string | null
   pause_from: Date | null
   pause_to: Date | null
+  user_package_id: string | null
   created_at: Date | null
   updated_at: Date | null
 }
@@ -48,6 +49,7 @@ export type MemberTicketMaxAggregateOutputType = {
   admin_note: string | null
   pause_from: Date | null
   pause_to: Date | null
+  user_package_id: string | null
   created_at: Date | null
   updated_at: Date | null
 }
@@ -62,6 +64,7 @@ export type MemberTicketCountAggregateOutputType = {
   admin_note: number
   pause_from: number
   pause_to: number
+  user_package_id: number
   created_at: number
   updated_at: number
   _all: number
@@ -78,6 +81,7 @@ export type MemberTicketMinAggregateInputType = {
   admin_note?: true
   pause_from?: true
   pause_to?: true
+  user_package_id?: true
   created_at?: true
   updated_at?: true
 }
@@ -92,6 +96,7 @@ export type MemberTicketMaxAggregateInputType = {
   admin_note?: true
   pause_from?: true
   pause_to?: true
+  user_package_id?: true
   created_at?: true
   updated_at?: true
 }
@@ -106,6 +111,7 @@ export type MemberTicketCountAggregateInputType = {
   admin_note?: true
   pause_from?: true
   pause_to?: true
+  user_package_id?: true
   created_at?: true
   updated_at?: true
   _all?: true
@@ -193,6 +199,7 @@ export type MemberTicketGroupByOutputType = {
   admin_note: string | null
   pause_from: Date | null
   pause_to: Date | null
+  user_package_id: string | null
   created_at: Date
   updated_at: Date
   _count: MemberTicketCountAggregateOutputType | null
@@ -228,9 +235,11 @@ export type MemberTicketWhereInput = {
   admin_note?: Prisma.StringNullableFilter<"MemberTicket"> | string | null
   pause_from?: Prisma.DateTimeNullableFilter<"MemberTicket"> | Date | string | null
   pause_to?: Prisma.DateTimeNullableFilter<"MemberTicket"> | Date | string | null
+  user_package_id?: Prisma.StringNullableFilter<"MemberTicket"> | string | null
   created_at?: Prisma.DateTimeFilter<"MemberTicket"> | Date | string
   updated_at?: Prisma.DateTimeFilter<"MemberTicket"> | Date | string
   profile?: Prisma.XOR<Prisma.ProfileScalarRelationFilter, Prisma.ProfileWhereInput>
+  user_package?: Prisma.XOR<Prisma.UserPackageNullableScalarRelationFilter, Prisma.UserPackageWhereInput> | null
 }
 
 export type MemberTicketOrderByWithRelationInput = {
@@ -243,9 +252,11 @@ export type MemberTicketOrderByWithRelationInput = {
   admin_note?: Prisma.SortOrderInput | Prisma.SortOrder
   pause_from?: Prisma.SortOrderInput | Prisma.SortOrder
   pause_to?: Prisma.SortOrderInput | Prisma.SortOrder
+  user_package_id?: Prisma.SortOrderInput | Prisma.SortOrder
   created_at?: Prisma.SortOrder
   updated_at?: Prisma.SortOrder
   profile?: Prisma.ProfileOrderByWithRelationInput
+  user_package?: Prisma.UserPackageOrderByWithRelationInput
 }
 
 export type MemberTicketWhereUniqueInput = Prisma.AtLeast<{
@@ -261,9 +272,11 @@ export type MemberTicketWhereUniqueInput = Prisma.AtLeast<{
   admin_note?: Prisma.StringNullableFilter<"MemberTicket"> | string | null
   pause_from?: Prisma.DateTimeNullableFilter<"MemberTicket"> | Date | string | null
   pause_to?: Prisma.DateTimeNullableFilter<"MemberTicket"> | Date | string | null
+  user_package_id?: Prisma.StringNullableFilter<"MemberTicket"> | string | null
   created_at?: Prisma.DateTimeFilter<"MemberTicket"> | Date | string
   updated_at?: Prisma.DateTimeFilter<"MemberTicket"> | Date | string
   profile?: Prisma.XOR<Prisma.ProfileScalarRelationFilter, Prisma.ProfileWhereInput>
+  user_package?: Prisma.XOR<Prisma.UserPackageNullableScalarRelationFilter, Prisma.UserPackageWhereInput> | null
 }, "id">
 
 export type MemberTicketOrderByWithAggregationInput = {
@@ -276,6 +289,7 @@ export type MemberTicketOrderByWithAggregationInput = {
   admin_note?: Prisma.SortOrderInput | Prisma.SortOrder
   pause_from?: Prisma.SortOrderInput | Prisma.SortOrder
   pause_to?: Prisma.SortOrderInput | Prisma.SortOrder
+  user_package_id?: Prisma.SortOrderInput | Prisma.SortOrder
   created_at?: Prisma.SortOrder
   updated_at?: Prisma.SortOrder
   _count?: Prisma.MemberTicketCountOrderByAggregateInput
@@ -296,6 +310,7 @@ export type MemberTicketScalarWhereWithAggregatesInput = {
   admin_note?: Prisma.StringNullableWithAggregatesFilter<"MemberTicket"> | string | null
   pause_from?: Prisma.DateTimeNullableWithAggregatesFilter<"MemberTicket"> | Date | string | null
   pause_to?: Prisma.DateTimeNullableWithAggregatesFilter<"MemberTicket"> | Date | string | null
+  user_package_id?: Prisma.StringNullableWithAggregatesFilter<"MemberTicket"> | string | null
   created_at?: Prisma.DateTimeWithAggregatesFilter<"MemberTicket"> | Date | string
   updated_at?: Prisma.DateTimeWithAggregatesFilter<"MemberTicket"> | Date | string
 }
@@ -312,6 +327,7 @@ export type MemberTicketCreateInput = {
   created_at?: Date | string
   updated_at?: Date | string
   profile: Prisma.ProfileCreateNestedOneWithoutMember_ticketsInput
+  user_package?: Prisma.UserPackageCreateNestedOneWithoutMember_ticketsInput
 }
 
 export type MemberTicketUncheckedCreateInput = {
@@ -324,6 +340,7 @@ export type MemberTicketUncheckedCreateInput = {
   admin_note?: string | null
   pause_from?: Date | string | null
   pause_to?: Date | string | null
+  user_package_id?: string | null
   created_at?: Date | string
   updated_at?: Date | string
 }
@@ -340,6 +357,7 @@ export type MemberTicketUpdateInput = {
   created_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updated_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   profile?: Prisma.ProfileUpdateOneRequiredWithoutMember_ticketsNestedInput
+  user_package?: Prisma.UserPackageUpdateOneWithoutMember_ticketsNestedInput
 }
 
 export type MemberTicketUncheckedUpdateInput = {
@@ -352,6 +370,7 @@ export type MemberTicketUncheckedUpdateInput = {
   admin_note?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   pause_from?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   pause_to?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  user_package_id?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   created_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updated_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
 }
@@ -366,6 +385,7 @@ export type MemberTicketCreateManyInput = {
   admin_note?: string | null
   pause_from?: Date | string | null
   pause_to?: Date | string | null
+  user_package_id?: string | null
   created_at?: Date | string
   updated_at?: Date | string
 }
@@ -393,6 +413,7 @@ export type MemberTicketUncheckedUpdateManyInput = {
   admin_note?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   pause_from?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   pause_to?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  user_package_id?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   created_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updated_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
 }
@@ -417,6 +438,7 @@ export type MemberTicketCountOrderByAggregateInput = {
   admin_note?: Prisma.SortOrder
   pause_from?: Prisma.SortOrder
   pause_to?: Prisma.SortOrder
+  user_package_id?: Prisma.SortOrder
   created_at?: Prisma.SortOrder
   updated_at?: Prisma.SortOrder
 }
@@ -431,6 +453,7 @@ export type MemberTicketMaxOrderByAggregateInput = {
   admin_note?: Prisma.SortOrder
   pause_from?: Prisma.SortOrder
   pause_to?: Prisma.SortOrder
+  user_package_id?: Prisma.SortOrder
   created_at?: Prisma.SortOrder
   updated_at?: Prisma.SortOrder
 }
@@ -445,6 +468,7 @@ export type MemberTicketMinOrderByAggregateInput = {
   admin_note?: Prisma.SortOrder
   pause_from?: Prisma.SortOrder
   pause_to?: Prisma.SortOrder
+  user_package_id?: Prisma.SortOrder
   created_at?: Prisma.SortOrder
   updated_at?: Prisma.SortOrder
 }
@@ -491,6 +515,48 @@ export type MemberTicketUncheckedUpdateManyWithoutProfileNestedInput = {
   deleteMany?: Prisma.MemberTicketScalarWhereInput | Prisma.MemberTicketScalarWhereInput[]
 }
 
+export type MemberTicketCreateNestedManyWithoutUser_packageInput = {
+  create?: Prisma.XOR<Prisma.MemberTicketCreateWithoutUser_packageInput, Prisma.MemberTicketUncheckedCreateWithoutUser_packageInput> | Prisma.MemberTicketCreateWithoutUser_packageInput[] | Prisma.MemberTicketUncheckedCreateWithoutUser_packageInput[]
+  connectOrCreate?: Prisma.MemberTicketCreateOrConnectWithoutUser_packageInput | Prisma.MemberTicketCreateOrConnectWithoutUser_packageInput[]
+  createMany?: Prisma.MemberTicketCreateManyUser_packageInputEnvelope
+  connect?: Prisma.MemberTicketWhereUniqueInput | Prisma.MemberTicketWhereUniqueInput[]
+}
+
+export type MemberTicketUncheckedCreateNestedManyWithoutUser_packageInput = {
+  create?: Prisma.XOR<Prisma.MemberTicketCreateWithoutUser_packageInput, Prisma.MemberTicketUncheckedCreateWithoutUser_packageInput> | Prisma.MemberTicketCreateWithoutUser_packageInput[] | Prisma.MemberTicketUncheckedCreateWithoutUser_packageInput[]
+  connectOrCreate?: Prisma.MemberTicketCreateOrConnectWithoutUser_packageInput | Prisma.MemberTicketCreateOrConnectWithoutUser_packageInput[]
+  createMany?: Prisma.MemberTicketCreateManyUser_packageInputEnvelope
+  connect?: Prisma.MemberTicketWhereUniqueInput | Prisma.MemberTicketWhereUniqueInput[]
+}
+
+export type MemberTicketUpdateManyWithoutUser_packageNestedInput = {
+  create?: Prisma.XOR<Prisma.MemberTicketCreateWithoutUser_packageInput, Prisma.MemberTicketUncheckedCreateWithoutUser_packageInput> | Prisma.MemberTicketCreateWithoutUser_packageInput[] | Prisma.MemberTicketUncheckedCreateWithoutUser_packageInput[]
+  connectOrCreate?: Prisma.MemberTicketCreateOrConnectWithoutUser_packageInput | Prisma.MemberTicketCreateOrConnectWithoutUser_packageInput[]
+  upsert?: Prisma.MemberTicketUpsertWithWhereUniqueWithoutUser_packageInput | Prisma.MemberTicketUpsertWithWhereUniqueWithoutUser_packageInput[]
+  createMany?: Prisma.MemberTicketCreateManyUser_packageInputEnvelope
+  set?: Prisma.MemberTicketWhereUniqueInput | Prisma.MemberTicketWhereUniqueInput[]
+  disconnect?: Prisma.MemberTicketWhereUniqueInput | Prisma.MemberTicketWhereUniqueInput[]
+  delete?: Prisma.MemberTicketWhereUniqueInput | Prisma.MemberTicketWhereUniqueInput[]
+  connect?: Prisma.MemberTicketWhereUniqueInput | Prisma.MemberTicketWhereUniqueInput[]
+  update?: Prisma.MemberTicketUpdateWithWhereUniqueWithoutUser_packageInput | Prisma.MemberTicketUpdateWithWhereUniqueWithoutUser_packageInput[]
+  updateMany?: Prisma.MemberTicketUpdateManyWithWhereWithoutUser_packageInput | Prisma.MemberTicketUpdateManyWithWhereWithoutUser_packageInput[]
+  deleteMany?: Prisma.MemberTicketScalarWhereInput | Prisma.MemberTicketScalarWhereInput[]
+}
+
+export type MemberTicketUncheckedUpdateManyWithoutUser_packageNestedInput = {
+  create?: Prisma.XOR<Prisma.MemberTicketCreateWithoutUser_packageInput, Prisma.MemberTicketUncheckedCreateWithoutUser_packageInput> | Prisma.MemberTicketCreateWithoutUser_packageInput[] | Prisma.MemberTicketUncheckedCreateWithoutUser_packageInput[]
+  connectOrCreate?: Prisma.MemberTicketCreateOrConnectWithoutUser_packageInput | Prisma.MemberTicketCreateOrConnectWithoutUser_packageInput[]
+  upsert?: Prisma.MemberTicketUpsertWithWhereUniqueWithoutUser_packageInput | Prisma.MemberTicketUpsertWithWhereUniqueWithoutUser_packageInput[]
+  createMany?: Prisma.MemberTicketCreateManyUser_packageInputEnvelope
+  set?: Prisma.MemberTicketWhereUniqueInput | Prisma.MemberTicketWhereUniqueInput[]
+  disconnect?: Prisma.MemberTicketWhereUniqueInput | Prisma.MemberTicketWhereUniqueInput[]
+  delete?: Prisma.MemberTicketWhereUniqueInput | Prisma.MemberTicketWhereUniqueInput[]
+  connect?: Prisma.MemberTicketWhereUniqueInput | Prisma.MemberTicketWhereUniqueInput[]
+  update?: Prisma.MemberTicketUpdateWithWhereUniqueWithoutUser_packageInput | Prisma.MemberTicketUpdateWithWhereUniqueWithoutUser_packageInput[]
+  updateMany?: Prisma.MemberTicketUpdateManyWithWhereWithoutUser_packageInput | Prisma.MemberTicketUpdateManyWithWhereWithoutUser_packageInput[]
+  deleteMany?: Prisma.MemberTicketScalarWhereInput | Prisma.MemberTicketScalarWhereInput[]
+}
+
 export type MemberTicketCreateWithoutProfileInput = {
   id?: string
   type?: string
@@ -502,6 +568,7 @@ export type MemberTicketCreateWithoutProfileInput = {
   pause_to?: Date | string | null
   created_at?: Date | string
   updated_at?: Date | string
+  user_package?: Prisma.UserPackageCreateNestedOneWithoutMember_ticketsInput
 }
 
 export type MemberTicketUncheckedCreateWithoutProfileInput = {
@@ -513,6 +580,7 @@ export type MemberTicketUncheckedCreateWithoutProfileInput = {
   admin_note?: string | null
   pause_from?: Date | string | null
   pause_to?: Date | string | null
+  user_package_id?: string | null
   created_at?: Date | string
   updated_at?: Date | string
 }
@@ -556,8 +624,63 @@ export type MemberTicketScalarWhereInput = {
   admin_note?: Prisma.StringNullableFilter<"MemberTicket"> | string | null
   pause_from?: Prisma.DateTimeNullableFilter<"MemberTicket"> | Date | string | null
   pause_to?: Prisma.DateTimeNullableFilter<"MemberTicket"> | Date | string | null
+  user_package_id?: Prisma.StringNullableFilter<"MemberTicket"> | string | null
   created_at?: Prisma.DateTimeFilter<"MemberTicket"> | Date | string
   updated_at?: Prisma.DateTimeFilter<"MemberTicket"> | Date | string
+}
+
+export type MemberTicketCreateWithoutUser_packageInput = {
+  id?: string
+  type?: string
+  reason: string
+  attachment_url?: string | null
+  status?: string
+  admin_note?: string | null
+  pause_from?: Date | string | null
+  pause_to?: Date | string | null
+  created_at?: Date | string
+  updated_at?: Date | string
+  profile: Prisma.ProfileCreateNestedOneWithoutMember_ticketsInput
+}
+
+export type MemberTicketUncheckedCreateWithoutUser_packageInput = {
+  id?: string
+  user_id: string
+  type?: string
+  reason: string
+  attachment_url?: string | null
+  status?: string
+  admin_note?: string | null
+  pause_from?: Date | string | null
+  pause_to?: Date | string | null
+  created_at?: Date | string
+  updated_at?: Date | string
+}
+
+export type MemberTicketCreateOrConnectWithoutUser_packageInput = {
+  where: Prisma.MemberTicketWhereUniqueInput
+  create: Prisma.XOR<Prisma.MemberTicketCreateWithoutUser_packageInput, Prisma.MemberTicketUncheckedCreateWithoutUser_packageInput>
+}
+
+export type MemberTicketCreateManyUser_packageInputEnvelope = {
+  data: Prisma.MemberTicketCreateManyUser_packageInput | Prisma.MemberTicketCreateManyUser_packageInput[]
+  skipDuplicates?: boolean
+}
+
+export type MemberTicketUpsertWithWhereUniqueWithoutUser_packageInput = {
+  where: Prisma.MemberTicketWhereUniqueInput
+  update: Prisma.XOR<Prisma.MemberTicketUpdateWithoutUser_packageInput, Prisma.MemberTicketUncheckedUpdateWithoutUser_packageInput>
+  create: Prisma.XOR<Prisma.MemberTicketCreateWithoutUser_packageInput, Prisma.MemberTicketUncheckedCreateWithoutUser_packageInput>
+}
+
+export type MemberTicketUpdateWithWhereUniqueWithoutUser_packageInput = {
+  where: Prisma.MemberTicketWhereUniqueInput
+  data: Prisma.XOR<Prisma.MemberTicketUpdateWithoutUser_packageInput, Prisma.MemberTicketUncheckedUpdateWithoutUser_packageInput>
+}
+
+export type MemberTicketUpdateManyWithWhereWithoutUser_packageInput = {
+  where: Prisma.MemberTicketScalarWhereInput
+  data: Prisma.XOR<Prisma.MemberTicketUpdateManyMutationInput, Prisma.MemberTicketUncheckedUpdateManyWithoutUser_packageInput>
 }
 
 export type MemberTicketCreateManyProfileInput = {
@@ -569,6 +692,7 @@ export type MemberTicketCreateManyProfileInput = {
   admin_note?: string | null
   pause_from?: Date | string | null
   pause_to?: Date | string | null
+  user_package_id?: string | null
   created_at?: Date | string
   updated_at?: Date | string
 }
@@ -584,6 +708,7 @@ export type MemberTicketUpdateWithoutProfileInput = {
   pause_to?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   created_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updated_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  user_package?: Prisma.UserPackageUpdateOneWithoutMember_ticketsNestedInput
 }
 
 export type MemberTicketUncheckedUpdateWithoutProfileInput = {
@@ -595,12 +720,70 @@ export type MemberTicketUncheckedUpdateWithoutProfileInput = {
   admin_note?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   pause_from?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   pause_to?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  user_package_id?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   created_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updated_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
 }
 
 export type MemberTicketUncheckedUpdateManyWithoutProfileInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
+  type?: Prisma.StringFieldUpdateOperationsInput | string
+  reason?: Prisma.StringFieldUpdateOperationsInput | string
+  attachment_url?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  status?: Prisma.StringFieldUpdateOperationsInput | string
+  admin_note?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  pause_from?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  pause_to?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  user_package_id?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  created_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updated_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+}
+
+export type MemberTicketCreateManyUser_packageInput = {
+  id?: string
+  user_id: string
+  type?: string
+  reason: string
+  attachment_url?: string | null
+  status?: string
+  admin_note?: string | null
+  pause_from?: Date | string | null
+  pause_to?: Date | string | null
+  created_at?: Date | string
+  updated_at?: Date | string
+}
+
+export type MemberTicketUpdateWithoutUser_packageInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  type?: Prisma.StringFieldUpdateOperationsInput | string
+  reason?: Prisma.StringFieldUpdateOperationsInput | string
+  attachment_url?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  status?: Prisma.StringFieldUpdateOperationsInput | string
+  admin_note?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  pause_from?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  pause_to?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  created_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updated_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  profile?: Prisma.ProfileUpdateOneRequiredWithoutMember_ticketsNestedInput
+}
+
+export type MemberTicketUncheckedUpdateWithoutUser_packageInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  user_id?: Prisma.StringFieldUpdateOperationsInput | string
+  type?: Prisma.StringFieldUpdateOperationsInput | string
+  reason?: Prisma.StringFieldUpdateOperationsInput | string
+  attachment_url?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  status?: Prisma.StringFieldUpdateOperationsInput | string
+  admin_note?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  pause_from?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  pause_to?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  created_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updated_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+}
+
+export type MemberTicketUncheckedUpdateManyWithoutUser_packageInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  user_id?: Prisma.StringFieldUpdateOperationsInput | string
   type?: Prisma.StringFieldUpdateOperationsInput | string
   reason?: Prisma.StringFieldUpdateOperationsInput | string
   attachment_url?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -624,9 +807,11 @@ export type MemberTicketSelect<ExtArgs extends runtime.Types.Extensions.Internal
   admin_note?: boolean
   pause_from?: boolean
   pause_to?: boolean
+  user_package_id?: boolean
   created_at?: boolean
   updated_at?: boolean
   profile?: boolean | Prisma.ProfileDefaultArgs<ExtArgs>
+  user_package?: boolean | Prisma.MemberTicket$user_packageArgs<ExtArgs>
 }, ExtArgs["result"]["memberTicket"]>
 
 export type MemberTicketSelectCreateManyAndReturn<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetSelect<{
@@ -639,9 +824,11 @@ export type MemberTicketSelectCreateManyAndReturn<ExtArgs extends runtime.Types.
   admin_note?: boolean
   pause_from?: boolean
   pause_to?: boolean
+  user_package_id?: boolean
   created_at?: boolean
   updated_at?: boolean
   profile?: boolean | Prisma.ProfileDefaultArgs<ExtArgs>
+  user_package?: boolean | Prisma.MemberTicket$user_packageArgs<ExtArgs>
 }, ExtArgs["result"]["memberTicket"]>
 
 export type MemberTicketSelectUpdateManyAndReturn<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetSelect<{
@@ -654,9 +841,11 @@ export type MemberTicketSelectUpdateManyAndReturn<ExtArgs extends runtime.Types.
   admin_note?: boolean
   pause_from?: boolean
   pause_to?: boolean
+  user_package_id?: boolean
   created_at?: boolean
   updated_at?: boolean
   profile?: boolean | Prisma.ProfileDefaultArgs<ExtArgs>
+  user_package?: boolean | Prisma.MemberTicket$user_packageArgs<ExtArgs>
 }, ExtArgs["result"]["memberTicket"]>
 
 export type MemberTicketSelectScalar = {
@@ -669,25 +858,30 @@ export type MemberTicketSelectScalar = {
   admin_note?: boolean
   pause_from?: boolean
   pause_to?: boolean
+  user_package_id?: boolean
   created_at?: boolean
   updated_at?: boolean
 }
 
-export type MemberTicketOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "user_id" | "type" | "reason" | "attachment_url" | "status" | "admin_note" | "pause_from" | "pause_to" | "created_at" | "updated_at", ExtArgs["result"]["memberTicket"]>
+export type MemberTicketOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "user_id" | "type" | "reason" | "attachment_url" | "status" | "admin_note" | "pause_from" | "pause_to" | "user_package_id" | "created_at" | "updated_at", ExtArgs["result"]["memberTicket"]>
 export type MemberTicketInclude<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   profile?: boolean | Prisma.ProfileDefaultArgs<ExtArgs>
+  user_package?: boolean | Prisma.MemberTicket$user_packageArgs<ExtArgs>
 }
 export type MemberTicketIncludeCreateManyAndReturn<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   profile?: boolean | Prisma.ProfileDefaultArgs<ExtArgs>
+  user_package?: boolean | Prisma.MemberTicket$user_packageArgs<ExtArgs>
 }
 export type MemberTicketIncludeUpdateManyAndReturn<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   profile?: boolean | Prisma.ProfileDefaultArgs<ExtArgs>
+  user_package?: boolean | Prisma.MemberTicket$user_packageArgs<ExtArgs>
 }
 
 export type $MemberTicketPayload<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   name: "MemberTicket"
   objects: {
     profile: Prisma.$ProfilePayload<ExtArgs>
+    user_package: Prisma.$UserPackagePayload<ExtArgs> | null
   }
   scalars: runtime.Types.Extensions.GetPayloadResult<{
     id: string
@@ -699,6 +893,7 @@ export type $MemberTicketPayload<ExtArgs extends runtime.Types.Extensions.Intern
     admin_note: string | null
     pause_from: Date | null
     pause_to: Date | null
+    user_package_id: string | null
     created_at: Date
     updated_at: Date
   }, ExtArgs["result"]["memberTicket"]>
@@ -1096,6 +1291,7 @@ readonly fields: MemberTicketFieldRefs;
 export interface Prisma__MemberTicketClient<T, Null = never, ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs, GlobalOmitOptions = {}> extends Prisma.PrismaPromise<T> {
   readonly [Symbol.toStringTag]: "PrismaPromise"
   profile<T extends Prisma.ProfileDefaultArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.ProfileDefaultArgs<ExtArgs>>): Prisma.Prisma__ProfileClient<runtime.Types.Result.GetResult<Prisma.$ProfilePayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | Null, Null, ExtArgs, GlobalOmitOptions>
+  user_package<T extends Prisma.MemberTicket$user_packageArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.MemberTicket$user_packageArgs<ExtArgs>>): Prisma.Prisma__UserPackageClient<runtime.Types.Result.GetResult<Prisma.$UserPackagePayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | null, null, ExtArgs, GlobalOmitOptions>
   /**
    * Attaches callbacks for the resolution and/or rejection of the Promise.
    * @param onfulfilled The callback to execute when the Promise is resolved.
@@ -1134,6 +1330,7 @@ export interface MemberTicketFieldRefs {
   readonly admin_note: Prisma.FieldRef<"MemberTicket", 'String'>
   readonly pause_from: Prisma.FieldRef<"MemberTicket", 'DateTime'>
   readonly pause_to: Prisma.FieldRef<"MemberTicket", 'DateTime'>
+  readonly user_package_id: Prisma.FieldRef<"MemberTicket", 'String'>
   readonly created_at: Prisma.FieldRef<"MemberTicket", 'DateTime'>
   readonly updated_at: Prisma.FieldRef<"MemberTicket", 'DateTime'>
 }
@@ -1534,6 +1731,25 @@ export type MemberTicketDeleteManyArgs<ExtArgs extends runtime.Types.Extensions.
    * Limit how many MemberTickets to delete.
    */
   limit?: number
+}
+
+/**
+ * MemberTicket.user_package
+ */
+export type MemberTicket$user_packageArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  /**
+   * Select specific fields to fetch from the UserPackage
+   */
+  select?: Prisma.UserPackageSelect<ExtArgs> | null
+  /**
+   * Omit specific fields from the UserPackage
+   */
+  omit?: Prisma.UserPackageOmit<ExtArgs> | null
+  /**
+   * Choose, which related nodes to fetch as well
+   */
+  include?: Prisma.UserPackageInclude<ExtArgs> | null
+  where?: Prisma.UserPackageWhereInput
 }
 
 /**
