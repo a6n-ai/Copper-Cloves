@@ -16,8 +16,6 @@ import { useRouter } from "next/router";
 import { cn } from "@/lib/utils";
 
 import { cdnUrl } from "@/lib/cdnUrl";
-/** Terracotta fill for the primary "Book" CTA (the one button we want to pop). */
-const BOOK_CTA = "bg-terracotta hover:bg-terracotta/90 active:bg-terracotta/80";
 
 const NAV_LINKS = [
   { href: "/classes", label: "Classes" },
@@ -61,17 +59,43 @@ function NavLink({ href, label, active, onHero }: { href: string; label: string;
   );
 }
 
+/** Per-role dashboard landing path; falls back to the shared member portal. */
+const DASH_HREF_BY_ROLE: Record<string, string> = {
+  admin: "/admin/dashboard",
+  partner: "/partner/dashboard",
+  instructor: "/instructor/dashboard",
+};
+function dashHrefForRole(role?: string) {
+  return (role && DASH_HREF_BY_ROLE[role]) || "/portal/dashboard";
+}
+
+/** Nav shell classes: overlay (fixed over hero) vs default (sticky), each with a scrolled state. */
+function navShellClass(isOverlay: boolean, scrolled: boolean) {
+  return cn(
+    "w-full transition-all duration-300 ease-out",
+    isOverlay && [
+      "fixed top-0 left-0 right-0 z-50",
+      scrolled
+        ? "bg-[#fafaf8]/90 backdrop-blur-md border-b border-charcoal/10 shadow-xs"
+        // Solid on mobile (transparent reads as "no navbar"); transparent over the hero on md+.
+        : "bg-[#fafaf8]/90 backdrop-blur-md border-b border-charcoal/10 shadow-xs md:border-transparent md:bg-transparent md:shadow-none md:backdrop-blur-none",
+    ],
+    !isOverlay && [
+      "sticky top-0 z-50 border-b",
+      scrolled
+        ? "bg-[#fafaf8]/92 backdrop-blur-md border-charcoal/10 shadow-xs"
+        : "bg-[#fafaf8]/85 backdrop-blur-xl border-sage/10",
+    ],
+  );
+}
+
 export function Navigation({ variant = "default" }: NavigationProps) {
   const [scrolled, setScrolled] = useState(false);
   const router = useRouter();
   const { data: session, status } = useSession();
   const authed = status === "authenticated";
   const role = (session?.user as { role?: string } | undefined)?.role;
-  const dashHref =
-    role === "admin" ? "/admin/dashboard"
-    : role === "partner" ? "/partner/dashboard"
-    : role === "instructor" ? "/instructor/dashboard"
-    : "/portal/dashboard";
+  const dashHref = dashHrefForRole(role);
   const accountName = session?.user?.name || session?.user?.email || "Account";
   const accountInitial = accountName.slice(0, 1).toUpperCase();
 
@@ -106,22 +130,7 @@ export function Navigation({ variant = "default" }: NavigationProps) {
   // ink so the logo, links and actions stay legible (DESIGN.md nav spec).
   const onHero = isOverlay && !scrolled;
 
-  const shellClass = cn(
-    "w-full transition-all duration-300 ease-out",
-    isOverlay && [
-      "fixed top-0 left-0 right-0 z-50",
-      scrolled
-        ? "bg-[#fafaf8]/90 backdrop-blur-md border-b border-charcoal/10 shadow-xs"
-        // Solid on mobile (transparent reads as "no navbar"); transparent over the hero on md+.
-        : "bg-[#fafaf8]/90 backdrop-blur-md border-b border-charcoal/10 shadow-xs md:border-transparent md:bg-transparent md:shadow-none md:backdrop-blur-none",
-    ],
-    !isOverlay && [
-      "sticky top-0 z-50 border-b",
-      scrolled
-        ? "bg-[#fafaf8]/92 backdrop-blur-md border-charcoal/10 shadow-xs"
-        : "bg-[#fafaf8]/85 backdrop-blur-xl border-sage/10",
-    ],
-  );
+  const shellClass = navShellClass(isOverlay, scrolled);
 
   return (
     <nav className={shellClass}>
@@ -162,16 +171,11 @@ export function Navigation({ variant = "default" }: NavigationProps) {
 
             {authed ? (
               <div className="flex items-center gap-3">
-                <Link href="/portal/book">
-                  <Button
-                    className={cn(
-                      "h-auto gap-2 rounded-md border-0 px-6 py-2.5 text-[15px] font-body font-medium text-cream shadow-xs",
-                      BOOK_CTA,
-                    )}
-                  >
+                <Button asChild variant="terracotta" size="lg">
+                  <Link href="/portal/book">
                     <Ticket size={17} /> Book
-                  </Button>
-                </Link>
+                  </Link>
+                </Button>
                 <DropdownMenu>
                   <DropdownMenuTrigger asChild>
                     <button
@@ -202,29 +206,25 @@ export function Navigation({ variant = "default" }: NavigationProps) {
               </div>
             ) : (
               <div className="flex items-center gap-2">
-                <Link href="/login">
-                  <Button
-                    className={cn(
-                      "h-auto gap-2 rounded-md border-0 px-6 py-2.5 text-[15px] font-body font-medium text-cream shadow-xs",
-                      BOOK_CTA,
-                    )}
-                  >
+                <Button asChild variant="terracotta" size="lg">
+                  <Link href="/login">
                     <Ticket size={17} /> Book Now
-                  </Button>
-                </Link>
-                <Link href="/login">
-                  <Button
-                    variant="ghost"
-                    className={cn(
-                      "h-auto gap-2 rounded-md px-5 py-2.5 text-[15px] font-body font-medium",
-                      onHero
-                        ? "text-cream hover:bg-cream/10 hover:text-cream"
-                        : "text-charcoal hover:bg-charcoal/5 hover:text-charcoal",
-                    )}
-                  >
+                  </Link>
+                </Button>
+                <Button
+                  asChild
+                  variant="ghost"
+                  size="lg"
+                  className={cn(
+                    onHero
+                      ? "text-cream hover:bg-cream/10 hover:text-cream"
+                      : "text-charcoal hover:bg-charcoal/5 hover:text-charcoal",
+                  )}
+                >
+                  <Link href="/login">
                     <LogIn size={17} /> Login
-                  </Button>
-                </Link>
+                  </Link>
+                </Button>
               </div>
             )}
           </div>
@@ -265,16 +265,11 @@ export function Navigation({ variant = "default" }: NavigationProps) {
                 </DropdownMenuContent>
               </DropdownMenu>
             ) : (
-              <Link href="/login">
-                <Button
-                  className={cn(
-                    "h-auto gap-1.5 rounded-md border-0 px-5 py-2 text-sm font-body font-medium text-cream shadow-xs",
-                    BOOK_CTA,
-                  )}
-                >
+              <Button asChild variant="terracotta">
+                <Link href="/login">
                   <LogIn size={16} /> Login
-                </Button>
-              </Link>
+                </Link>
+              </Button>
             )}
           </div>
         </div>

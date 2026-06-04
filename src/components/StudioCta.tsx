@@ -1,7 +1,15 @@
-import type { ReactNode } from "react";
+import { useRef, type ReactNode } from "react";
 import Link from "next/link";
 import { MapPin, ArrowRight } from "lucide-react";
-import { motion, useReducedMotion, type Variants } from "framer-motion";
+import {
+  LazyMotion,
+  domAnimation,
+  m,
+  useInView,
+  useReducedMotion,
+  type Variants,
+} from "framer-motion";
+import { Button } from "@/components/ui/button";
 
 type CtaAction = {
   label: string;
@@ -50,53 +58,43 @@ function ActionLink({
   action: CtaAction;
   variant: "primary" | "ghost";
 }) {
-  const base =
-    "inline-flex items-center justify-center gap-2 rounded-lg px-7 py-3 font-body transition-all duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-cream focus-visible:ring-offset-2 focus-visible:ring-offset-sage";
+  // On-sage inverted CTAs — keep their brand-specific cream/white-warm colours
+  // (no standard Button variant matches), but adopt Button's structure + sizing.
   const styles =
     variant === "primary"
-      ? "group bg-white-warm font-medium text-charcoal hover:-translate-y-0.5 hover:bg-cream hover:shadow-[0_4px_24px_rgba(51,51,51,0.18)]"
-      : "border border-cream/40 text-cream hover:bg-cream/10";
+      ? "bg-white-warm text-charcoal hover:bg-cream hover:shadow-[0_4px_24px_rgba(51,51,51,0.18)] focus-visible:ring-cream focus-visible:ring-offset-sage"
+      : "border border-cream/40 bg-transparent text-cream hover:bg-cream/10 focus-visible:ring-cream focus-visible:ring-offset-sage";
 
   const inner = (
     <>
       {action.pin && <MapPin size={18} />}
       {action.label}
       {variant === "primary" && !action.pin && (
-        <ArrowRight
-          size={18}
-          className="transition-transform duration-200 group-hover:translate-x-1"
-        />
+        <ArrowRight size={18} className="group-hover/btn:translate-x-1" />
       )}
     </>
   );
 
   if (action.onClick && !action.href) {
     return (
-      <button
-        type="button"
-        onClick={action.onClick}
-        className={`${base} ${styles}`}
-      >
+      <Button type="button" size="lg" onClick={action.onClick} className={styles}>
         {inner}
-      </button>
+      </Button>
     );
   }
   if (action.external) {
     return (
-      <a
-        href={action.href}
-        target="_blank"
-        rel="noopener noreferrer"
-        className={`${base} ${styles}`}
-      >
-        {inner}
-      </a>
+      <Button asChild size="lg" className={styles}>
+        <a href={action.href} target="_blank" rel="noopener noreferrer">
+          {inner}
+        </a>
+      </Button>
     );
   }
   return (
-    <Link href={action.href ?? "#"} className={`${base} ${styles}`}>
-      {inner}
-    </Link>
+    <Button asChild size="lg" className={styles}>
+      <Link href={action.href ?? "#"}>{inner}</Link>
+    </Button>
   );
 }
 
@@ -116,6 +114,11 @@ export function StudioCta({
   className = "",
 }: StudioCtaProps) {
   const reduce = useReducedMotion();
+  // useInView (IntersectionObserver) instead of declarative `whileInView`, which
+  // requires framer's viewport feature — absent from the `domAnimation` LazyMotion
+  // bundle. Keeps this CTA on the minimal feature set across every public page.
+  const cardRef = useRef<HTMLDivElement>(null);
+  const cardInView = useInView(cardRef, { once: true, margin: "-80px" });
 
   const rise: Variants = {
     hidden: reduce ? { opacity: 1, y: 0 } : { opacity: 0, y: 24 },
@@ -127,11 +130,12 @@ export function StudioCta({
   };
 
   const card = (
-    <motion.div
+    <LazyMotion features={domAnimation}>
+    <m.div
+      ref={cardRef}
       variants={rise}
       initial="hidden"
-      whileInView="show"
-      viewport={{ once: true, margin: "-80px" }}
+      animate={cardInView ? "show" : "hidden"}
       className={`relative overflow-hidden rounded-2xl bg-sage px-6 py-16 text-center sm:px-10 md:py-20 ${className}`}
     >
       {/* tonal depth: cream light from top, deeper sage settling at the base */}
@@ -168,7 +172,8 @@ export function StudioCta({
           </p>
         )}
       </div>
-    </motion.div>
+    </m.div>
+    </LazyMotion>
   );
 
   if (withSection) {

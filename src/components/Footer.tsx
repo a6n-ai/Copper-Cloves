@@ -1,10 +1,19 @@
 import Image from "next/image";
 import Link from "next/link";
+import { useRef } from "react";
 import { MapPin, Phone, Mail, Instagram, Facebook, Youtube } from "lucide-react";
-import { motion, useReducedMotion, type Variants } from "framer-motion";
+import {
+  LazyMotion,
+  domAnimation,
+  m,
+  useInView,
+  useReducedMotion,
+  type Variants,
+} from "framer-motion";
 
 import { cdnUrl } from "@/lib/cdnUrl";
 import { StudioCta, type StudioCtaProps } from "@/components/StudioCta";
+import { Button } from "@/components/ui/button";
 
 const DEFAULT_CTA: StudioCtaProps = {
   heading: "Your home away from home.",
@@ -68,6 +77,12 @@ export function Footer({ cta }: FooterProps) {
   const ctaProps = cta === null ? null : cta ?? DEFAULT_CTA;
   const currentYear = new Date().getFullYear();
   const reduce = useReducedMotion();
+  // `whileInView` lives in framer's viewport feature, which is NOT in the
+  // `domAnimation` LazyMotion bundle. Drive the reveal off the standalone
+  // `useInView` hook (IntersectionObserver) instead so we keep the minimal
+  // feature set and never ship the full `motion` feature bundle here.
+  const cardRef = useRef<HTMLDivElement>(null);
+  const cardInView = useInView(cardRef, { once: true, margin: "-80px" });
 
   const rise: Variants = {
     hidden: reduce ? { opacity: 1, y: 0 } : { opacity: 0, y: 24 },
@@ -79,17 +94,18 @@ export function Footer({ cta }: FooterProps) {
   };
 
   return (
+    <LazyMotion features={domAnimation}>
     <footer className="relative overflow-hidden bg-cream">
       <div className="relative z-10 mx-auto max-w-7xl px-4 pb-10 pt-16 sm:px-6 lg:px-8">
         {/* ── Sage CTA card (shared component) ───────────────────── */}
         {ctaProps && <StudioCta {...ctaProps} />}
 
         {/* ── Light footer card ──────────────────────────────────── */}
-        <motion.div
+        <m.div
+          ref={cardRef}
           variants={rise}
           initial="hidden"
-          whileInView="show"
-          viewport={{ once: true, margin: "-80px" }}
+          animate={cardInView ? "show" : "hidden"}
           transition={{ delay: reduce ? 0 : 0.08 }}
           className="relative mt-5 rounded-2xl border border-[#e5e4dc] bg-white-warm px-6 py-10 sm:px-10 sm:py-12"
         >
@@ -106,21 +122,19 @@ export function Footer({ cta }: FooterProps) {
                 class.
               </p>
               <div className="mt-6 flex flex-col gap-3 sm:flex-row">
-                <a
-                  href={MAPS_URL}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="inline-flex items-center justify-center gap-2 rounded-lg bg-sage px-6 py-3 font-body font-medium text-white-warm transition-all duration-200 hover:-translate-y-0.5 hover:bg-[#7a8b7c] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sage focus-visible:ring-offset-2 focus-visible:ring-offset-white-warm"
+                <Button asChild variant="sage" size="lg">
+                  <a href={MAPS_URL} target="_blank" rel="noopener noreferrer">
+                    <MapPin size={18} />
+                    Get Directions
+                  </a>
+                </Button>
+                <Button
+                  asChild
+                  size="lg"
+                  className="bg-sand text-charcoal shadow-none hover:bg-[#dcd8cc] focus-visible:ring-sage focus-visible:ring-offset-white-warm"
                 >
-                  <MapPin size={18} />
-                  Get Directions
-                </a>
-                <Link
-                  href="/portal/book"
-                  className="inline-flex items-center justify-center gap-2 rounded-lg bg-sand px-6 py-3 font-body text-charcoal transition-colors duration-200 hover:bg-[#dcd8cc] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sage focus-visible:ring-offset-2 focus-visible:ring-offset-white-warm"
-                >
-                  Book a Visit
-                </Link>
+                  <Link href="/portal/book">Book a Visit</Link>
+                </Button>
               </div>
             </div>
 
@@ -159,7 +173,7 @@ export function Footer({ cta }: FooterProps) {
               </p>
               <div className="mt-6 flex items-center gap-2.5">
                 {SOCIALS.map(({ href, label, Icon }) => (
-                  <motion.a
+                  <m.a
                     key={label}
                     href={href}
                     target="_blank"
@@ -170,7 +184,7 @@ export function Footer({ cta }: FooterProps) {
                     className="flex h-10 w-10 items-center justify-center rounded-full border border-[#e5e4dc] text-charcoal/70 transition-colors duration-200 hover:border-sage hover:bg-sage hover:text-white-warm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sage focus-visible:ring-offset-2 focus-visible:ring-offset-white-warm"
                   >
                     <Icon size={17} />
-                  </motion.a>
+                  </m.a>
                 ))}
               </div>
             </div>
@@ -257,7 +271,7 @@ export function Footer({ cta }: FooterProps) {
               </Link>
             </div>
           </div>
-        </motion.div>
+        </m.div>
       </div>
 
       {/* ── Oversized brand watermark ──────────────────────────────── */}
@@ -268,5 +282,6 @@ export function Footer({ cta }: FooterProps) {
         Copper &amp; Cloves
       </span>
     </footer>
+    </LazyMotion>
   );
 }

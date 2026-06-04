@@ -279,30 +279,27 @@ export default function CafePage() {
             </p>
 
             <div className="flex flex-col sm:flex-row gap-4 justify-center">
-              <Link href="/cafe/meal-subscription">
-                <Button
-                  size="lg"
-                  variant="sage"
-                  className="w-full sm:w-auto px-10 py-6 text-base rounded-md shadow-lg shadow-charcoal/20"
-                >
+              <Button asChild size="lg" variant="sage" className="w-full sm:w-auto">
+                <Link href="/cafe/meal-subscription">
                   Explore the Menu
                   <ArrowRight className="ml-2" size={20} />
-                </Button>
-              </Link>
-              <a
-                href="https://www.google.com/maps/search/?api=1&query=The+Studio+by+Copper+and+Cloves"
-                target="_blank"
-                rel="noopener noreferrer"
+                </Link>
+              </Button>
+              <Button
+                asChild
+                size="lg"
+                variant="outline"
+                className="w-full sm:w-auto border-2 border-cream/40 hover:bg-[#fafaf8]/10 text-cream hover:text-cream backdrop-blur-xs"
               >
-                <Button
-                  size="lg"
-                  variant="outline"
-                  className="w-full sm:w-auto border-2 border-cream/40 hover:bg-[#fafaf8]/10 text-cream hover:text-cream backdrop-blur-xs px-10 py-6 text-base rounded-md transition-all duration-300"
+                <a
+                  href="https://www.google.com/maps/search/?api=1&query=The+Studio+by+Copper+and+Cloves"
+                  target="_blank"
+                  rel="noopener noreferrer"
                 >
                   <MapPin className="mr-2" size={20} />
                   Find Our Location
-                </Button>
-              </a>
+                </a>
+              </Button>
             </div>
           </div>
         </div>
@@ -378,21 +375,19 @@ export default function CafePage() {
               </p>
 
               <div className="flex flex-col gap-4 sm:flex-row">
-                <a
-                  href="https://www.google.com/maps/search/?api=1&query=The+Studio+by+Copper+and+Cloves"
-                  target="_blank"
-                  rel="noopener noreferrer"
-                >
-                  <Button size="lg" variant="sage" className="w-full rounded-md px-8 py-6 text-base sm:w-auto">
+                <Button asChild size="lg" variant="sage" className="w-full sm:w-auto">
+                  <a
+                    href="https://www.google.com/maps/search/?api=1&query=The+Studio+by+Copper+and+Cloves"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                  >
                     <MapPin className="mr-2" size={20} />
                     Find Our Location
-                  </Button>
-                </a>
-                <Link href="/cafe/meal-subscription">
-                  <Button size="lg" variant="sage-outline" className="w-full rounded-md px-8 py-6 text-base sm:w-auto">
-                    View Full Menu
-                  </Button>
-                </Link>
+                  </a>
+                </Button>
+                <Button asChild size="lg" variant="sage-outline" className="w-full sm:w-auto">
+                  <Link href="/cafe/meal-subscription">View Full Menu</Link>
+                </Button>
               </div>
 
               {/* Feature list — stacked editorial rows, not a card grid */}
@@ -692,19 +687,21 @@ export default function CafePage() {
                     Turn back the clock, for real. Leave your phone outside and let the minutes slow down.
                   </p>
                   
-                  <a
-                    href="https://urbanaut.app/about-copperandcloves?utm_source=ig&utm_medium=social&utm_content=link_in_bio&fbclid=PAb21jcAQ8fCFleHRuA2FlbQIxMQBzcnRjBmFwcF9pZA81NjcwNjczNDMzNTI0MjcAAadKmUR2R4J6oca_ccyAyvovQDgZa6FelOTS1v4tE-D3C3cI5invBxc1kECpfQ_aem_b549X4g_EtmAdigMamL50g"
-                    target="_blank"
-                    rel="noopener noreferrer"
+                  <Button
+                    asChild
+                    size="sm"
+                    variant="secondary"
+                    className="w-full bg-white-warm hover:bg-cream text-charcoal"
                   >
-                    <Button 
-                      size="sm"
-                      className="bg-white-warm hover:bg-cream text-charcoal shadow-lg shadow-charcoal/20 rounded-md w-full text-sm"
+                    <a
+                      href="https://urbanaut.app/about-copperandcloves?utm_source=ig&utm_medium=social&utm_content=link_in_bio&fbclid=PAb21jcAQ8fCFleHRuA2FlbQIxMQBzcnRjBmFwcF9pZA81NjcwNjczNDMzNTI0MjcAAadKmUR2R4J6oca_ccyAyvovQDgZa6FelOTS1v4tE-D3C3cI5invBxc1kECpfQ_aem_b549X4g_EtmAdigMamL50g"
+                      target="_blank"
+                      rel="noopener noreferrer"
                     >
                       RSVP to The Analog Club
                       <ArrowRight className="ml-2" size={16} />
-                    </Button>
-                  </a>
+                    </a>
+                  </Button>
                 </div>
               </div>
             </div>
@@ -741,19 +738,21 @@ export default function CafePage() {
                     A welcoming space to celebrate life without alcohol and find joy in real connections.
                   </p>
                   
-                  <a
-                    href="https://urbanaut.app/about-copperandcloves?utm_source=ig&utm_medium=social&utm_content=link_in_bio&fbclid=PAb21jcAQ8fCFleHRuA2FlbQIxMQBzcnRjBmFwcF9pZA81NjcwNjczNDMzNTI0MjcAAadKmUR2R4J6oca_ccyAyvovQDgZa6FelOTS1v4tE-D3C3cI5invBxc1kECpfQ_aem_b549X4g_EtmAdigMamL50g"
-                    target="_blank"
-                    rel="noopener noreferrer"
+                  <Button
+                    asChild
+                    size="sm"
+                    variant="secondary"
+                    className="w-full bg-white-warm hover:bg-cream text-charcoal"
                   >
-                    <Button 
-                      size="sm"
-                      className="bg-white-warm hover:bg-cream text-charcoal shadow-lg shadow-charcoal/20 rounded-md w-full text-sm"
+                    <a
+                      href="https://urbanaut.app/about-copperandcloves?utm_source=ig&utm_medium=social&utm_content=link_in_bio&fbclid=PAb21jcAQ8fCFleHRuA2FlbQIxMQBzcnRjBmFwcF9pZA81NjcwNjczNDMzNTI0MjcAAadKmUR2R4J6oca_ccyAyvovQDgZa6FelOTS1v4tE-D3C3cI5invBxc1kECpfQ_aem_b549X4g_EtmAdigMamL50g"
+                      target="_blank"
+                      rel="noopener noreferrer"
                     >
                       RSVP to Sundowners
                       <ArrowRight className="ml-2" size={16} />
-                    </Button>
-                  </a>
+                    </a>
+                  </Button>
                 </div>
               </div>
             </div>
@@ -790,19 +789,21 @@ export default function CafePage() {
                     90 minutes of silent reading with coffee and breakfast, then a sharing circle.
                   </p>
                   
-                  <a
-                    href="https://urbanaut.app/about-copperandcloves?utm_source=ig&utm_medium=social&utm_content=link_in_bio&fbclid=PAb21jcAQ8fCFleHRuA2FlbQIxMQBzcnRjBmFwcF9pZA81NjcwNjczNDMzNTI0MjcAAadKmUR2R4J6oca_ccyAyvovQDgZa6FelOTS1v4tE-D3C3cI5invBxc1kECpfQ_aem_b549X4g_EtmAdigMamL50g"
-                    target="_blank"
-                    rel="noopener noreferrer"
+                  <Button
+                    asChild
+                    size="sm"
+                    variant="secondary"
+                    className="w-full bg-white-warm hover:bg-cream text-charcoal"
                   >
-                    <Button 
-                      size="sm"
-                      className="bg-white-warm hover:bg-cream text-charcoal shadow-lg shadow-charcoal/20 rounded-md w-full text-sm"
+                    <a
+                      href="https://urbanaut.app/about-copperandcloves?utm_source=ig&utm_medium=social&utm_content=link_in_bio&fbclid=PAb21jcAQ8fCFleHRuA2FlbQIxMQBzcnRjBmFwcF9pZA81NjcwNjczNDMzNTI0MjcAAadKmUR2R4J6oca_ccyAyvovQDgZa6FelOTS1v4tE-D3C3cI5invBxc1kECpfQ_aem_b549X4g_EtmAdigMamL50g"
+                      target="_blank"
+                      rel="noopener noreferrer"
                     >
                       RSVP to The Reading Social
                       <ArrowRight className="ml-2" size={16} />
-                    </Button>
-                  </a>
+                    </a>
+                  </Button>
                 </div>
               </div>
             </div>
@@ -839,19 +840,21 @@ export default function CafePage() {
                     Focus, Create, Nourish. Work doesn't feel like work when you're part of the community.
                   </p>
                   
-                  <a
-                    href="https://urbanaut.app/about-copperandcloves?utm_source=ig&utm_medium=social&utm_content=link_in_bio&fbclid=PAb21jcAQ8fCFleHRuA2FlbQIxMQBzcnRjBmFwcF9pZA81NjcwNjczNDMzNTI0MjcAAadKmUR2R4J6oca_ccyAyvovQDgZa6FelOTS1v4tE-D3C3cI5invBxc1kECpfQ_aem_b549X4g_EtmAdigMamL50g"
-                    target="_blank"
-                    rel="noopener noreferrer"
+                  <Button
+                    asChild
+                    size="sm"
+                    variant="secondary"
+                    className="w-full bg-white-warm hover:bg-cream text-charcoal"
                   >
-                    <Button 
-                      size="sm"
-                      className="bg-white-warm hover:bg-cream text-charcoal shadow-lg shadow-charcoal/20 rounded-md w-full text-sm"
+                    <a
+                      href="https://urbanaut.app/about-copperandcloves?utm_source=ig&utm_medium=social&utm_content=link_in_bio&fbclid=PAb21jcAQ8fCFleHRuA2FlbQIxMQBzcnRjBmFwcF9pZA81NjcwNjczNDMzNTI0MjcAAadKmUR2R4J6oca_ccyAyvovQDgZa6FelOTS1v4tE-D3C3cI5invBxc1kECpfQ_aem_b549X4g_EtmAdigMamL50g"
+                      target="_blank"
+                      rel="noopener noreferrer"
                     >
                       RSVP to Friday Work Deli
                       <ArrowRight className="ml-2" size={16} />
-                    </Button>
-                  </a>
+                    </a>
+                  </Button>
                 </div>
               </div>
             </div>
@@ -871,20 +874,15 @@ export default function CafePage() {
               Join the WhatsApp Community to stay updated on all upcoming events, workshops, and gatherings.
             </p>
             
-            <a
-              href="https://chat.whatsapp.com/CAyYCFIKqJX1g6pUOjfPYW?utm_source=ig&utm_medium=social&utm_content=link_in_bio&fbclid=PAb21jcAQ8U75leHRuA2FlbQIxMQBzcnRjBmFwcF9pZA81NjcwNjczNDMzNTI0MjcAAaf_Ir-MGzqoJbp1XiKxsstXupmej8How2XcRmSYke70rdbJIhsewCX1IOaIJQ_aem_Opa_8N-PocOjlfkmvaeqXg"
-              target="_blank"
-              rel="noopener noreferrer"
-              className="inline-block"
-            >
-              <Button
-                size="lg"
-                variant="sage-outline"
-                className="px-10 py-6 text-base rounded-md"
+            <Button asChild size="lg" variant="sage-outline">
+              <a
+                href="https://chat.whatsapp.com/CAyYCFIKqJX1g6pUOjfPYW?utm_source=ig&utm_medium=social&utm_content=link_in_bio&fbclid=PAb21jcAQ8U75leHRuA2FlbQIxMQBzcnRjBmFwcF9pZA81NjcwNjczNDMzNTI0MjcAAaf_Ir-MGzqoJbp1XiKxsstXupmej8How2XcRmSYke70rdbJIhsewCX1IOaIJQ_aem_Opa_8N-PocOjlfkmvaeqXg"
+                target="_blank"
+                rel="noopener noreferrer"
               >
                 Join WhatsApp Community
-              </Button>
-            </a>
+              </a>
+            </Button>
           </div>
         </div>
       </section>

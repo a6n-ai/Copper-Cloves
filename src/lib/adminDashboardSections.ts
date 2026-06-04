@@ -309,6 +309,89 @@ export async function getInstructorsSummary(db: Db = prisma) {
   }));
 }
 
+function buildMemberGrowth(now: Date, signupRows: { created_at: Date }[]) {
+  const monthNames = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
+  const growthBuckets: { key: string; month: string; growth: number }[] = [];
+  for (let i = 11; i >= 0; i--) {
+    const d = new Date(now.getFullYear(), now.getMonth() - i, 1);
+    growthBuckets.push({ key: `${d.getFullYear()}-${d.getMonth()}`, month: monthNames[d.getMonth()], growth: 0 });
+  }
+  const growthIndex = new Map(growthBuckets.map((b, idx) => [b.key, idx]));
+  for (const row of signupRows) {
+    const d = new Date(row.created_at);
+    const idx = growthIndex.get(`${d.getFullYear()}-${d.getMonth()}`);
+    if (idx != null) growthBuckets[idx].growth += 1;
+  }
+  return growthBuckets.map(({ month, growth }) => ({ month, growth }));
+}
+
+function computeCheckInPunctuality(
+  checkInsRecent: { check_in_time: Date | null; class_schedule: { start_time: Date } | null }[]
+) {
+  let lateCheckIns = 0;
+  for (const b of checkInsRecent) {
+    const st = b.class_schedule?.start_time;
+    const ct = b.check_in_time;
+    if (!st || !ct) continue;
+    if (new Date(ct).getTime() > new Date(st).getTime()) lateCheckIns++;
+  }
+  const checkInSample = checkInsRecent.length;
+  const onTimeApprox = Math.max(0, checkInSample - lateCheckIns);
+  const onTimeCheckInPct = checkInSample > 0 ? Math.round((onTimeApprox / checkInSample) * 100) : 0;
+  const lateCheckInPct = checkInSample > 0 ? Math.round((lateCheckIns / checkInSample) * 100) : 0;
+  return { lateCheckIns, checkInSample, onTimeApprox, onTimeCheckInPct, lateCheckInPct };
+}
+
+function computeActivePackageBreakdown(
+  activePackages: { user_id: string; package_type: { type: string | null; is_unlimited: boolean } | null }[]
+) {
+  let specialtyActive = 0;
+  const activeMemberIds = new Set<string>();
+  const studioMemberIds = new Set<string>();
+  for (const up of activePackages) {
+    const isStudio = passCategoryForPackageType(up.package_type ?? {}) === "studio_pass";
+    if (isStudio) specialtyActive++;
+    activeMemberIds.add(up.user_id);
+    if (isStudio) studioMemberIds.add(up.user_id);
+  }
+  // Members whose only active pass(es) are non-studio class passes.
+  const classPassActive = Array.from(activeMemberIds).filter((id) => !studioMemberIds.has(id)).length;
+  return {
+    specialtyActive,
+    activeMembers: activeMemberIds.size,
+    studioPassActive: studioMemberIds.size,
+    classPassActive,
+  };
+}
+
+function computeExpiryBuckets(now: Date, expBucketRows: { expiration_date: Date }[]) {
+  let exp7 = 0, exp15 = 0;
+  for (const r of expBucketRows) {
+    const d = Math.ceil((r.expiration_date.getTime() - now.getTime()) / 86400000);
+    if (d <= 7) exp7++;
+    else if (d <= 15) exp15++;
+  }
+  return { exp7, exp15 };
+}
+
+async function resolveMemberOfMonth(db: Db, topBooker: { user_id: string; c: bigint } | undefined) {
+  const fallback = { name: "—", classes: 0, streak: 0 };
+  if (!topBooker?.user_id) return fallback;
+  const [profile, streak] = await Promise.all([
+    db.profile.findUnique({
+      where: { id: topBooker.user_id },
+      select: { full_name: true, email: true },
+    }),
+    getDynamicStats(topBooker.user_id),
+  ]);
+  if (!profile) return fallback;
+  return {
+    name: profile.full_name || profile.email || "Member",
+    classes: Number(topBooker.c) || 0,
+    streak: streak.current_streak,
+  };
+}
+
 export async function getMemberStats(db: Db = prisma) {
   const now = new Date();
   const mAgo = monthAgo();
@@ -401,74 +484,20 @@ export async function getMemberStats(db: Db = prisma) {
   ]);
 
   // New-member signups bucketed by month for the last 12 months.
-  const monthNames = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
-  const growthBuckets: { key: string; month: string; growth: number }[] = [];
-  for (let i = 11; i >= 0; i--) {
-    const d = new Date(now.getFullYear(), now.getMonth() - i, 1);
-    growthBuckets.push({ key: `${d.getFullYear()}-${d.getMonth()}`, month: monthNames[d.getMonth()], growth: 0 });
-  }
-  const growthIndex = new Map(growthBuckets.map((b, idx) => [b.key, idx]));
-  for (const row of signupRows) {
-    const d = new Date(row.created_at);
-    const idx = growthIndex.get(`${d.getFullYear()}-${d.getMonth()}`);
-    if (idx != null) growthBuckets[idx].growth += 1;
-  }
-  const memberGrowth = growthBuckets.map(({ month, growth }) => ({ month, growth }));
+  const memberGrowth = buildMemberGrowth(now, signupRows);
 
-  let lateCheckIns = 0;
-  for (const b of checkInsRecent) {
-    const st = b.class_schedule?.start_time;
-    const ct = b.check_in_time;
-    if (!st || !ct) continue;
-    if (new Date(ct).getTime() > new Date(st).getTime()) lateCheckIns++;
-  }
-  const onTimeApprox = Math.max(0, checkInsRecent.length - lateCheckIns);
-  const checkInSample = checkInsRecent.length;
-  const onTimeCheckInPct = checkInSample > 0 ? Math.round((onTimeApprox / checkInSample) * 100) : 0;
-  const lateCheckInPct = checkInSample > 0 ? Math.round((lateCheckIns / checkInSample) * 100) : 0;
+  const { lateCheckIns, checkInSample, onTimeApprox, onTimeCheckInPct, lateCheckInPct } =
+    computeCheckInPunctuality(checkInsRecent);
 
-  let specialtyActive = 0;
-  const activeMemberIds = new Set<string>();
-  const studioMemberIds = new Set<string>();
-  for (const up of activePackages) {
-    const isStudio = passCategoryForPackageType(up.package_type ?? {}) === "studio_pass";
-    if (isStudio) specialtyActive++;
-    activeMemberIds.add(up.user_id);
-    if (isStudio) studioMemberIds.add(up.user_id);
-  }
-  const activeMembers = activeMemberIds.size;
-  const studioPassActive = studioMemberIds.size;
-  // Members whose only active pass(es) are non-studio class passes.
-  const classPassActive = Array.from(activeMemberIds).filter((id) => !studioMemberIds.has(id)).length;
+  const { specialtyActive, activeMembers, studioPassActive, classPassActive } =
+    computeActivePackageBreakdown(activePackages);
 
   const inactiveUsers = Number(inactiveRow[0]?.c ?? 0);
 
-  let exp7 = 0, exp15 = 0;
-  for (const r of expBucketRows) {
-    const d = Math.ceil((r.expiration_date.getTime() - now.getTime()) / 86400000);
-    if (d <= 7) exp7++;
-    else if (d <= 15) exp15++;
-  }
+  const { exp7, exp15 } = computeExpiryBuckets(now, expBucketRows);
 
   // Member of month — top booker + profile fetch.
-  let memberOfMonth = { name: "—", classes: 0, streak: 0 };
-  const topBooker = topBookerRows[0];
-  if (topBooker?.user_id) {
-    const [profile, streak] = await Promise.all([
-      db.profile.findUnique({
-        where: { id: topBooker.user_id },
-        select: { full_name: true, email: true },
-      }),
-      getDynamicStats(topBooker.user_id),
-    ]);
-    if (profile) {
-      memberOfMonth = {
-        name: profile.full_name || profile.email || "Member",
-        classes: Number(topBooker.c) || 0,
-        streak: streak.current_streak,
-      };
-    }
-  }
+  const memberOfMonth = await resolveMemberOfMonth(db, topBookerRows[0]);
 
   const topClassRow = topClassRows[0];
   const lead = topLeaderStats[0]?.stats;

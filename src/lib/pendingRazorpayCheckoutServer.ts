@@ -12,6 +12,36 @@ export function parsePendingBookingBody(raw: unknown): Omit<
   return rest;
 }
 
+/** Clamp guest count to a valid non-negative integer ≤ 20, defaulting out-of-range to 0. */
+function normalizeExtraGuestCount(raw: unknown): number {
+  const n = Number(raw);
+  if (!Number.isInteger(n) || n < 0 || n > 20) return 0;
+  return n;
+}
+
+/** Parse a single cafe_items row; returns null when the row is invalid or has zero quantity. */
+function parseCafeItemRow(row: unknown): { id: string; quantity: number } | null {
+  if (!row || typeof row !== "object") return null;
+  const r = row as Record<string, unknown>;
+  const id = typeof r.id === "string" ? r.id.trim() : "";
+  const quantity = Number(r.quantity);
+  if (!id || !Number.isInteger(quantity) || quantity < 0) return null;
+  if (quantity <= 0) return null;
+  return { id, quantity };
+}
+
+/** Collect valid, positive-quantity cafe items from a raw payload field. */
+function parseCafeItems(raw: unknown): { id: string; quantity: number }[] {
+  const cafe_items: { id: string; quantity: number }[] = [];
+  if (Array.isArray(raw)) {
+    for (const row of raw) {
+      const item = parseCafeItemRow(row);
+      if (item) cafe_items.push(item);
+    }
+  }
+  return cafe_items;
+}
+
 /** Validate booking checkout payload from create-order (before Razorpay order id exists). */
 export function parsePendingBookingPayload(
   raw: unknown,
@@ -26,26 +56,13 @@ export function parsePendingBookingPayload(
     typeof o.class_schedule_id === "string" ? o.class_schedule_id.trim() : "";
   if (!class_schedule_id) return null;
 
-  let extra_guest_count = Number(o.extra_guest_count);
-  if (!Number.isInteger(extra_guest_count) || extra_guest_count < 0 || extra_guest_count > 20) {
-    extra_guest_count = 0;
-  }
+  const extra_guest_count = normalizeExtraGuestCount(o.extra_guest_count);
 
   const guests = parseGuestAttendees(o.guest_attendees);
   if (guests === null) return null;
   if (guests.length !== extra_guest_count) return null;
 
-  const cafe_items: { id: string; quantity: number }[] = [];
-  if (Array.isArray(o.cafe_items)) {
-    for (const row of o.cafe_items) {
-      if (!row || typeof row !== "object") continue;
-      const r = row as Record<string, unknown>;
-      const id = typeof r.id === "string" ? r.id.trim() : "";
-      const quantity = Number(r.quantity);
-      if (!id || !Number.isInteger(quantity) || quantity < 0) continue;
-      if (quantity > 0) cafe_items.push({ id, quantity });
-    }
-  }
+  const cafe_items = parseCafeItems(o.cafe_items);
 
   return {
     purpose: "booking",

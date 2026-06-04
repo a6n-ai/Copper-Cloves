@@ -31,6 +31,35 @@ function isPendingPackage(raw: unknown): raw is PendingPackageCheckout {
   );
 }
 
+function checkoutErrorResponse(msg: string): { status: number; error: string } {
+  if (msg === "PAYMENT_NOT_FOUND") {
+    return {
+      status: 400,
+      error:
+        "Payment was not found on Razorpay yet. Wait a few seconds and refresh this page, or try booking again.",
+    };
+  }
+  if (msg === "RAZORPAY_NOT_CONFIGURED") {
+    return { status: 503, error: "Razorpay is not configured on the server." };
+  }
+  if (msg === "ALREADY_BOOKED") {
+    return { status: 409, error: "You are already booked for this class." };
+  }
+  if (msg === "CLASS_FULL") {
+    return { status: 409, error: "This class is full." };
+  }
+  if (msg === "PAYMENT_ALREADY_USED" || msg === "RAZORPAY_ORDER_USED") {
+    return { status: 409, error: "This payment was already used." };
+  }
+  if (msg.startsWith("COUPON:")) {
+    return { status: 400, error: msg.replace(/^COUPON:/, "") };
+  }
+  return {
+    status: 502,
+    error: "Could not complete checkout after payment. Try again or contact support.",
+  };
+}
+
 /**
  * POST { pending: PendingRazorpayCheckout }
  * Completes booking/package after Razorpay test redirect when browser signature params are missing.
@@ -63,30 +92,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     const msg = e instanceof Error ? e.message : String(e);
     log.error({ err: e, userId, purpose: pending.purpose, razorpayOrderId: pending.razorpayOrderId }, "finish-checkout failed");
 
-    if (msg === "PAYMENT_NOT_FOUND") {
-      return res.status(400).json({
-        error:
-          "Payment was not found on Razorpay yet. Wait a few seconds and refresh this page, or try booking again.",
-      });
-    }
-    if (msg === "RAZORPAY_NOT_CONFIGURED") {
-      return res.status(503).json({ error: "Razorpay is not configured on the server." });
-    }
-    if (msg === "ALREADY_BOOKED") {
-      return res.status(409).json({ error: "You are already booked for this class." });
-    }
-    if (msg === "CLASS_FULL") {
-      return res.status(409).json({ error: "This class is full." });
-    }
-    if (msg === "PAYMENT_ALREADY_USED" || msg === "RAZORPAY_ORDER_USED") {
-      return res.status(409).json({ error: "This payment was already used." });
-    }
-    if (msg.startsWith("COUPON:")) {
-      return res.status(400).json({ error: msg.replace(/^COUPON:/, "") });
-    }
-
-    return res.status(502).json({
-      error: "Could not complete checkout after payment. Try again or contact support.",
-    });
+    const { status, error } = checkoutErrorResponse(msg);
+    return res.status(status).json({ error });
   }
 }

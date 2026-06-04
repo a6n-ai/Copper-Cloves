@@ -159,9 +159,8 @@ export default function MealSubscriptionPage() {
 
               {/* CTA */}
               <Button
-                size="lg"
+                size="xl"
                 variant="sage"
-                className="px-12 py-7 text-lg rounded-md shadow-lg shadow-charcoal/20"
                 onClick={() => document.getElementById('waitlist-form')?.scrollIntoView({ behavior: 'smooth', block: 'start' })}
               >
                 Join the Waitlist
@@ -458,9 +457,9 @@ export default function MealSubscriptionPage() {
                           <Button
                             type="submit"
                             disabled={isSubmitting}
-                            size="lg"
+                            size="xl"
                             variant="sage"
-                            className="w-full h-14 text-lg"
+                            className="w-full"
                           >
                             {isSubmitting ? "Submitting..." : "Join the Waitlist"}
                           </Button>

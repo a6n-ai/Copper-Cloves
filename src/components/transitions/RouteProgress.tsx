@@ -1,6 +1,6 @@
 import { useRouter } from "next/router";
 import { useEffect, useState } from "react";
-import { AnimatePresence, motion, useReducedMotion } from "framer-motion";
+import { AnimatePresence, LazyMotion, domAnimation, m, useReducedMotion } from "framer-motion";
 import { isPublicSite } from "@/lib/isPublicSite";
 import { resolveSkeleton } from "@/components/transitions/skeletons";
 
@@ -71,10 +71,10 @@ export function RouteProgress() {
   }, [router.events]);
 
   return (
-    <>
+    <LazyMotion features={domAnimation}>
       <AnimatePresence>
         {active && (
-          <motion.div
+          <m.div
             key="route-progress-bar"
             className="fixed top-0 left-0 z-[100] h-[3px] bg-primary"
             initial={{ width: "0%", opacity: 1 }}
@@ -90,7 +90,7 @@ export function RouteProgress() {
 
       <AnimatePresence>
         {skeletonVisible && (
-          <motion.div
+          <m.div
             key="route-skeleton"
             // z-40 keeps the skeleton BELOW the persistent nav (z-50) so the
             // navbar stays visible while the next page loads.
@@ -102,9 +102,9 @@ export function RouteProgress() {
             aria-hidden
           >
             {resolveSkeleton(skeletonPath)}
-          </motion.div>
+          </m.div>
         )}
       </AnimatePresence>
-    </>
+    </LazyMotion>
   );
 }

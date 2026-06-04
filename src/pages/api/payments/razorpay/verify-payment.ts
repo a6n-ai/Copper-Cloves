@@ -8,6 +8,86 @@ import {
 import { captureAuthorizedPayment, getRazorpay, razorpayConfigured } from "@/lib/razorpayServer";
 import { requestLogger } from "@/lib/logger";
 
+type VerifyLog = ReturnType<typeof requestLogger>;
+
+function isValidSignature(secret: string, orderId: string, paymentId: string, signature: string): boolean {
+  const expected = crypto
+    .createHmac("sha256", secret)
+    .update(`${orderId}|${paymentId}`)
+    .digest("hex");
+
+  if (expected.length !== signature.length) return false;
+  try {
+    return crypto.timingSafeEqual(Buffer.from(expected, "utf8"), Buffer.from(signature, "utf8"));
+  } catch {
+    return false;
+  }
+}
+
+async function settleVerifiedPayment(
+  args: { userId: string; orderId: string; paymentId: string },
+  log: VerifyLog,
+): Promise<{ status: number; error: string } | null> {
+  const { userId, orderId, paymentId } = args;
+  try {
+    const razorpay = getRazorpay();
+    await ensureRazorpayOrderRowForUser({ userId, razorpayOrderId: orderId, razorpay });
+
+    const payment = (await razorpay.payments.fetch(paymentId)) as {
+      order_id?: string | null;
+      status?: string | null;
+      amount?: number | string | null;
+      currency?: string | null;
+      method?: string | null;
+    };
+
+    const paymentOrderId = payment.order_id != null ? String(payment.order_id).trim() : "";
+    if (!paymentOrderId || paymentOrderId !== orderId) {
+      return { status: 400, error: "Payment does not belong to this order." };
+    }
+
+    const status = payment.status != null ? String(payment.status).toLowerCase() : "";
+    if (!["captured", "authorized"].includes(status)) {
+      return {
+        status: 400,
+        error: `Payment is not complete (status: ${payment.status ?? "unknown"}).`,
+      };
+    }
+
+    // Authorized funds are only blocked, not debited — capture so they settle to the
+    // studio. Without this, netbanking/UPI payments auto-void after the capture window.
+    if (status === "authorized") {
+      try {
+        const result = await captureAuthorizedPayment({
+          razorpay,
+          paymentId,
+          amountPaise: Math.round(Number(payment.amount ?? 0)),
+          currency: payment.currency != null ? String(payment.currency) : "INR",
+        });
+        payment.status = result.status;
+      } catch (capErr) {
+        // Dashboard auto-capture is the backstop; surface so it can be reconciled.
+        log.error({ err: capErr, userId, orderId, paymentId }, "razorpay capture failed");
+      }
+    }
+
+    await persistVerifiedRazorpayPayment({
+      userId,
+      razorpayOrderId: orderId,
+      razorpayPaymentId: paymentId,
+      payment,
+    });
+    return null;
+  } catch (e) {
+    const msg = e instanceof Error ? e.message : String(e);
+    if (msg === "ORDER_USER_MISMATCH") {
+      return { status: 403, error: "Order does not belong to this account." };
+    }
+    log.error({ err: e, userId, orderId, paymentId }, "razorpay verify-payment failed");
+    return { status: 502, error: "Could not confirm payment with Razorpay." };
+  }
+}
+
 /**
  * POST { razorpay_order_id, razorpay_payment_id, razorpay_signature }
  * Validates HMAC from Razorpay Checkout success callback.
@@ -45,79 +125,14 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     return res.status(400).json({ error: "Missing payment verification fields." });
   }
 
-  const expected = crypto
-    .createHmac("sha256", secret)
-    .update(`${orderId}|${paymentId}`)
-    .digest("hex");
-
-  if (expected.length !== signature.length) {
-    return res.status(400).json({ error: "Invalid signature." });
-  }
-  let ok = false;
-  try {
-    ok = crypto.timingSafeEqual(Buffer.from(expected, "utf8"), Buffer.from(signature, "utf8"));
-  } catch {
-    ok = false;
-  }
-  if (!ok) {
+  if (!isValidSignature(secret, orderId, paymentId, signature)) {
     log.warn({ userId, orderId, paymentId }, "razorpay verify invalid signature");
     return res.status(400).json({ error: "Invalid signature." });
   }
 
-  try {
-    const razorpay = getRazorpay();
-    await ensureRazorpayOrderRowForUser({ userId, razorpayOrderId: orderId, razorpay });
-
-    const payment = (await razorpay.payments.fetch(paymentId)) as {
-      order_id?: string | null;
-      status?: string | null;
-      amount?: number | string | null;
-      currency?: string | null;
-      method?: string | null;
-    };
-
-    const paymentOrderId = payment.order_id != null ? String(payment.order_id).trim() : "";
-    if (!paymentOrderId || paymentOrderId !== orderId) {
-      return res.status(400).json({ error: "Payment does not belong to this order." });
-    }
-
-    const status = payment.status != null ? String(payment.status).toLowerCase() : "";
-    if (!["captured", "authorized"].includes(status)) {
-      return res.status(400).json({
-        error: `Payment is not complete (status: ${payment.status ?? "unknown"}).`,
-      });
-    }
-
-    // Authorized funds are only blocked, not debited — capture so they settle to the
-    // studio. Without this, netbanking/UPI payments auto-void after the capture window.
-    if (status === "authorized") {
-      try {
-        const result = await captureAuthorizedPayment({
-          razorpay,
-          paymentId,
-          amountPaise: Math.round(Number(payment.amount ?? 0)),
-          currency: payment.currency != null ? String(payment.currency) : "INR",
-        });
-        payment.status = result.status;
-      } catch (capErr) {
-        // Dashboard auto-capture is the backstop; surface so it can be reconciled.
-        log.error({ err: capErr, userId, orderId, paymentId }, "razorpay capture failed");
-      }
-    }
-
-    await persistVerifiedRazorpayPayment({
-      userId,
-      razorpayOrderId: orderId,
-      razorpayPaymentId: paymentId,
-      payment,
-    });
-  } catch (e) {
-    const msg = e instanceof Error ? e.message : String(e);
-    if (msg === "ORDER_USER_MISMATCH") {
-      return res.status(403).json({ error: "Order does not belong to this account." });
-    }
-    log.error({ err: e, userId, orderId, paymentId }, "razorpay verify-payment failed");
-    return res.status(502).json({ error: "Could not confirm payment with Razorpay." });
+  const failure = await settleVerifiedPayment({ userId, orderId, paymentId }, log);
+  if (failure) {
+    return res.status(failure.status).json({ error: failure.error });
   }
 
   log.info({ userId, orderId, paymentId }, "razorpay payment verified");

@@ -28,6 +28,28 @@ declare global {
   }
 }
 
+/** Trimmed string if the value is a non-empty string, else null. */
+function trimmedString(value: unknown): string | null {
+  if (typeof value === "string" && value.trim()) return value.trim();
+  return null;
+}
+
+/** Build human-readable bits from a Razorpay `error` object (order preserved). */
+function razorpayErrorBits(err: Record<string, unknown>): string[] {
+  const bits: string[] = [];
+  const d = trimmedString(err.description);
+  if (d) bits.push(d);
+  const reason = trimmedString(err.reason);
+  if (reason) bits.push(reason);
+  const code = err.code;
+  if (code !== undefined && code !== null && String(code).trim()) bits.push(`(${String(code)})`);
+  const step = trimmedString(err.step);
+  if (step) bits.push(`step: ${step}`);
+  const source = trimmedString(err.source);
+  if (source) bits.push(`source: ${source}`);
+  return bits;
+}
+
 /** Razorpay `payment.failed` payloads vary; extract everything useful for support/debug. */
 function formatRazorpayPaymentFailure(raw: unknown): string {
   if (raw == null) return "Payment failed.";
@@ -36,17 +58,7 @@ function formatRazorpayPaymentFailure(raw: unknown): string {
   const r = raw as Record<string, unknown>;
   const err = r.error as Record<string, unknown> | undefined;
   if (err && typeof err === "object") {
-    const bits: string[] = [];
-    const d = err.description;
-    const reason = err.reason;
-    const code = err.code;
-    const step = err.step;
-    const source = err.source;
-    if (typeof d === "string" && d.trim()) bits.push(d.trim());
-    if (typeof reason === "string" && reason.trim()) bits.push(reason.trim());
-    if (code !== undefined && code !== null && String(code).trim()) bits.push(`(${String(code)})`);
-    if (typeof step === "string" && step.trim()) bits.push(`step: ${step.trim()}`);
-    if (typeof source === "string" && source.trim()) bits.push(`source: ${source.trim()}`);
+    const bits = razorpayErrorBits(err);
     if (bits.length) return bits.join(" ");
   }
 

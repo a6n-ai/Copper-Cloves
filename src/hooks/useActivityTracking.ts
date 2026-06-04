@@ -9,6 +9,11 @@ import {
 } from "@/lib/activity-client";
 import { installGlobalSelectionTracking } from "@/lib/selection-tracking";
 
+/** Fire-and-forget queue flush; swallows rejection so timers/handlers stay quiet. */
+const safeFlush = () => {
+  flushActivityQueue().catch(() => {});
+};
+
 /**
  * Captures route changes as `page_view` events and flushes the queue periodically.
  * Call once from `_app.tsx` inside the Next.js tree (with SessionProvider).
@@ -57,7 +62,7 @@ export function useActivityTracking() {
     let id: number | null = null;
     const start = () => {
       if (id !== null) return;
-      id = window.setInterval(() => void flushActivityQueue(), 15_000);
+      id = window.setInterval(safeFlush, 15_000);
     };
     const stop = () => {
       if (id === null) return;
@@ -67,7 +72,7 @@ export function useActivityTracking() {
     const onVis = () => {
       if (document.hidden) stop();
       else {
-        void flushActivityQueue();
+        safeFlush();
         start();
       }
     };

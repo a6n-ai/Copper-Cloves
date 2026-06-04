@@ -1,6 +1,18 @@
 import type { RazorpaySuccessPayload } from "@/lib/razorpayCheckout";
 import type { PendingBookingCheckout, PendingPackageCheckout } from "@/lib/pendingRazorpayCheckout";
 
+/** Throw an Error using `error` from the response JSON body when present, else `fallbackMsg`. */
+async function throwResponseError(res: Response, fallbackMsg: string): Promise<never> {
+  let msg = fallbackMsg;
+  try {
+    const errBody = await res.json();
+    if (typeof errBody?.error === "string") msg = errBody.error;
+  } catch {
+    /* ignore */
+  }
+  throw new Error(msg);
+}
+
 export async function verifyRazorpayPayment(payload: RazorpaySuccessPayload): Promise<void> {
   const verifyRes = await fetch("/api/payments/razorpay/verify-payment", {
     method: "POST",
@@ -13,15 +25,41 @@ export async function verifyRazorpayPayment(payload: RazorpaySuccessPayload): Pr
     }),
   });
   if (!verifyRes.ok) {
-    let msg =
-      "Payment could not be verified. If money was debited, contact support with your payment reference.";
-    try {
-      const errBody = await verifyRes.json();
-      if (typeof errBody?.error === "string") msg = errBody.error;
-    } catch {
-      /* ignore */
+    await throwResponseError(
+      verifyRes,
+      "Payment could not be verified. If money was debited, contact support with your payment reference.",
+    );
+  }
+}
+
+/** Order paid-for café items against a saved booking; throws if any item fails. */
+async function orderCafeItemsForBooking(
+  cafeItems: PendingBookingCheckout["cafe_items"],
+  bookingId: string,
+): Promise<void> {
+  for (const item of cafeItems) {
+    if (item.quantity <= 0) continue;
+    const foodRes = await fetch("/api/cafe/orders", {
+      method: "POST",
+      credentials: "include",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        cafe_item_id: item.id,
+        booking_id: bookingId,
+        quantity: item.quantity,
+        payment_method: "razorpay",
+      }),
+    });
+    if (!foodRes.ok) {
+      let msg = "Booking saved but a café item could not be added.";
+      try {
+        const errBody = await foodRes.json();
+        if (errBody?.error) msg = String(errBody.error);
+      } catch {
+        /* ignore */
+      }
+      throw new Error(msg);
     }
-    throw new Error(msg);
   }
 }
 
@@ -51,42 +89,15 @@ export async function completePendingBookingCheckout(
     }),
   });
   if (!bookingRes.ok) {
-    let msg = "Failed to save class booking after payment. Please contact support.";
-    try {
-      const errBody = await bookingRes.json();
-      if (typeof errBody?.error === "string") msg = errBody.error;
-    } catch {
-      /* ignore */
-    }
-    throw new Error(msg);
+    await throwResponseError(
+      bookingRes,
+      "Failed to save class booking after payment. Please contact support.",
+    );
   }
   const bookingData = (await bookingRes.json()) as { id: string };
   const bookingId = bookingData.id;
 
-  for (const item of pending.cafe_items) {
-    if (item.quantity <= 0) continue;
-    const foodRes = await fetch("/api/cafe/orders", {
-      method: "POST",
-      credentials: "include",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        cafe_item_id: item.id,
-        booking_id: bookingId,
-        quantity: item.quantity,
-        payment_method: "razorpay",
-      }),
-    });
-    if (!foodRes.ok) {
-      let msg = "Booking saved but a café item could not be added.";
-      try {
-        const errBody = await foodRes.json();
-        if (errBody?.error) msg = String(errBody.error);
-      } catch {
-        /* ignore */
-      }
-      throw new Error(msg);
-    }
-  }
+  await orderCafeItemsForBooking(pending.cafe_items, bookingId);
 
   return { bookingId };
 }
@@ -113,14 +124,10 @@ export async function completePendingPackageCheckout(
     }),
   });
   if (!purchaseRes.ok) {
-    let msg = "Payment received but package could not be activated. Please contact support.";
-    try {
-      const errBody = await purchaseRes.json();
-      if (typeof errBody?.error === "string") msg = errBody.error;
-    } catch {
-      /* ignore */
-    }
-    throw new Error(msg);
+    await throwResponseError(
+      purchaseRes,
+      "Payment received but package could not be activated. Please contact support.",
+    );
   }
 }
 

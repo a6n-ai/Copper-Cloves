@@ -18,15 +18,12 @@ export default function PrivacyPolicyPage() {
       <div className="min-h-screen bg-linear-to-b from-cream via-[#fafaf8] to-cream">
         <section className="relative pt-28 pb-12 px-6 lg:px-8">
           <div className="max-w-3xl mx-auto">
-            <Link href="/">
-              <Button
-                variant="sage-outline"
-                className="mb-8 rounded-md"
-              >
+            <Button asChild variant="sage-outline" className="mb-8">
+              <Link href="/">
                 <ArrowLeft className="mr-2" size={20} />
                 Back to Home
-              </Button>
-            </Link>
+              </Link>
+            </Button>
 
             <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-sage/10 border border-sage/20 mb-6">
               <ShieldCheck className="text-sage" size={16} />

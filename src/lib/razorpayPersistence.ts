@@ -254,17 +254,20 @@ function paymentEntityFromWebhookPayload(payload: unknown): Record<string, unkno
   return entity as Record<string, unknown>;
 }
 
-/** Idempotent webhook reconciliation (signature already verified on the route). */
-export async function reconcileRazorpayPaymentFromWebhook(body: {
-  event?: string;
-  payload?: unknown;
-}): Promise<void> {
-  const entity = paymentEntityFromWebhookPayload(body.payload);
-  if (!entity) return;
+type WebhookEntityFields = {
+  payId: string;
+  ordId: string;
+  amountPaise: number | null;
+  statusNorm: string;
+  currency: string;
+  method: string | null;
+};
 
+/** Extract the normalized fields we care about from a webhook payment entity. */
+function parseWebhookEntityFields(entity: Record<string, unknown>): WebhookEntityFields | null {
   const payId = typeof entity.id === "string" ? entity.id : null;
   const ordId = typeof entity.order_id === "string" ? entity.order_id : null;
-  if (!payId || !ordId) return;
+  if (!payId || !ordId) return null;
 
   const amountRaw = entity.amount;
   const amountPaise =
@@ -276,6 +279,73 @@ export async function reconcileRazorpayPaymentFromWebhook(body: {
   );
   const currency = entity.currency != null ? String(entity.currency) : "INR";
   const method = entity.method != null ? String(entity.method) : null;
+  return { payId, ordId, amountPaise, statusNorm, currency, method };
+}
+
+/** Derive a failure reason string from the entity error / event / status (failed path only). */
+function deriveFailureReason(
+  entity: Record<string, unknown>,
+  event: string,
+  statusNorm: string,
+): string | null {
+  const err = entity.error;
+  const nestedDesc =
+    err && typeof err === "object" && err !== null && "description" in err
+      ? String((err as { description?: unknown }).description ?? "")
+      : "";
+  return nestedDesc || event || statusNorm || null;
+}
+
+/**
+ * Capture authorized funds so they settle to the studio. This is the only path
+ * that runs for netbanking/UPI when the member closes the tab before the browser
+ * verify call — an uncaptured authorization auto-voids after the capture window.
+ * Returns the effective status (captured status on success, unchanged on no-op/error).
+ */
+async function captureAuthorizedForWebhook(args: {
+  failed: boolean;
+  statusNorm: string;
+  amountPaise: number | null;
+  payId: string;
+  ordId: string;
+  currency: string;
+}): Promise<string> {
+  const { failed, statusNorm, amountPaise, payId, ordId, currency } = args;
+  if (failed || statusNorm !== "authorized" || !razorpayConfigured() || amountPaise == null) {
+    return statusNorm;
+  }
+  try {
+    const result = await captureAuthorizedPayment({
+      razorpay: getRazorpay(),
+      paymentId: payId,
+      amountPaise,
+      currency,
+    });
+    return result.status;
+  } catch (capErr) {
+    log.error({ err: capErr, razorpayOrderId: ordId, paymentId: payId }, "razorpay capture failed (webhook)");
+    return statusNorm;
+  }
+}
+
+/** Resolve the unified Payment ledger status from the gateway-effective status. */
+function paymentLedgerStatus(failed: boolean, effectiveStatus: string): "failed" | "succeeded" | "pending" {
+  if (failed) return "failed";
+  if (["captured", "authorized"].includes(effectiveStatus)) return "succeeded";
+  return "pending";
+}
+
+/** Idempotent webhook reconciliation (signature already verified on the route). */
+export async function reconcileRazorpayPaymentFromWebhook(body: {
+  event?: string;
+  payload?: unknown;
+}): Promise<void> {
+  const entity = paymentEntityFromWebhookPayload(body.payload);
+  if (!entity) return;
+
+  const fields = parseWebhookEntityFields(entity);
+  if (!fields) return;
+  const { payId, ordId, amountPaise, statusNorm, currency, method } = fields;
 
   const orderRow = await prisma.razorpayOrder.findUnique({
     where: { razorpay_order_id: ordId },
@@ -288,33 +358,16 @@ export async function reconcileRazorpayPaymentFromWebhook(body: {
   const event = body.event ?? "";
   const failed = event === "payment.failed" || statusNorm === "failed";
 
-  let failureReason: string | null = null;
-  if (failed) {
-    const err = entity.error;
-    const nestedDesc =
-      err && typeof err === "object" && err !== null && "description" in err
-        ? String((err as { description?: unknown }).description ?? "")
-        : "";
-    failureReason = nestedDesc || event || statusNorm || null;
-  }
+  const failureReason = failed ? deriveFailureReason(entity, event, statusNorm) : null;
 
-  // Capture authorized funds so they settle to the studio. This is the only path
-  // that runs for netbanking/UPI when the member closes the tab before the browser
-  // verify call — an uncaptured authorization auto-voids after the capture window.
-  let effectiveStatus = statusNorm;
-  if (!failed && statusNorm === "authorized" && razorpayConfigured() && amountPaise != null) {
-    try {
-      const result = await captureAuthorizedPayment({
-        razorpay: getRazorpay(),
-        paymentId: payId,
-        amountPaise,
-        currency,
-      });
-      effectiveStatus = result.status;
-    } catch (capErr) {
-      log.error({ err: capErr, razorpayOrderId: ordId, paymentId: payId }, "razorpay capture failed (webhook)");
-    }
-  }
+  const effectiveStatus = await captureAuthorizedForWebhook({
+    failed,
+    statusNorm,
+    amountPaise,
+    payId,
+    ordId,
+    currency,
+  });
 
   await prisma.razorpayPayment.upsert({
     where: { razorpay_payment_id: payId },
@@ -338,7 +391,7 @@ export async function reconcileRazorpayPaymentFromWebhook(body: {
   });
 
   // Mirror to unified Payment ledger (status pending until verified).
-  const paymentStatus = failed ? "failed" : ["captured", "authorized"].includes(effectiveStatus) ? "succeeded" : "pending";
+  const paymentStatus = paymentLedgerStatus(failed, effectiveStatus);
   await prisma.payment.upsert({
     where: { razorpay_payment_id: payId },
     create: {

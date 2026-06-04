@@ -28,22 +28,140 @@ function buildOrderReceipt(userId: string): string {
   return `${prefix}${suffix}`.slice(0, maxTotal);
 }
 
+function firstNonEmptyString(...values: unknown[]): string | null {
+  for (const v of values) {
+    if (typeof v === "string" && v.trim()) return v.trim();
+  }
+  return null;
+}
+
 function razorpayFailureMessage(e: unknown): string {
   if (e instanceof Error && e.message) return e.message;
   if (e && typeof e === "object") {
     const o = e as Record<string, unknown>;
     const nested = o.error as Record<string, unknown> | undefined;
-    const desc = nested?.description ?? o.description;
-    if (typeof desc === "string" && desc.trim()) return desc.trim();
-    const msg = nested?.message ?? o.message;
-    if (typeof msg === "string" && msg.trim()) return msg.trim();
-    const reason = nested?.reason ?? o.reason;
-    if (typeof reason === "string" && reason.trim()) return reason.trim();
+    const text = firstNonEmptyString(
+      nested?.description ?? o.description,
+      nested?.message ?? o.message,
+      nested?.reason ?? o.reason,
+    );
+    if (text) return text;
     const code = nested?.code ?? o.code;
     if (code !== undefined && String(code).trim())
       return `Razorpay error (code ${typeof code === "object" ? JSON.stringify(code) : String(code)})`;
   }
   return "Razorpay error";
+}
+
+type OrderPlan = {
+  amount_inr: number;
+  orderNotes: Record<string, string>;
+  dbNotes: Record<string, unknown>;
+};
+type PlanResult = { ok: boolean; plan?: OrderPlan; status?: number; error?: string };
+
+async function planPackageOrder(userId: string, raw: Record<string, unknown>): Promise<PlanResult> {
+  const packageTypeId =
+    typeof raw.package_type_id === "string" ? raw.package_type_id.trim() : "";
+  if (!packageTypeId) {
+    return { ok: false, status: 400, error: "package_type_id is required for package checkout" };
+  }
+  const packageType = await prisma.packageType.findUnique({ where: { id: packageTypeId } });
+  if (!packageType) {
+    return { ok: false, status: 404, error: "Package not found" };
+  }
+
+  // Authoritative pass category from the package itself (type column, then
+  // is_unlimited) — not the client-sent hint — so a studio/class coupon is
+  // matched correctly regardless of how the client labelled the package.
+  const pass = passCategoryForPackageType(packageType);
+  const couponContext: CouponContext = pass;
+
+  const subtotal = toFiniteNumber(packageType.price);
+  if (!Number.isFinite(subtotal) || subtotal <= 0) {
+    return { ok: false, status: 400, error: "Invalid package price" };
+  }
+
+  let discountInr = 0;
+  if (raw.coupon_code != null && String(raw.coupon_code).trim()) {
+    const v = await validateAndComputeCoupon(
+      prisma,
+      String(raw.coupon_code),
+      couponContext,
+      subtotal,
+      { userId, guestEmail: null },
+    );
+    if ("error" in v) {
+      return { ok: false, status: 400, error: v.error };
+    }
+    discountInr = v.discountInr;
+  }
+
+  const payableInr = Math.max(0, subtotal - discountInr);
+  if (payableInr <= 0) {
+    return {
+      ok: false,
+      status: 400,
+      error: "No payment due for this cart. Complete purchase without checkout.",
+    };
+  }
+
+  const amount_inr = Math.min(Math.max(Math.round(payableInr), 1), 100_000);
+  const orderNotes: Record<string, string> = {
+    user_id: userId,
+    purpose: "package",
+    package_type_id: packageTypeId,
+    pass_type: pass,
+  };
+  if (raw.coupon_code != null && String(raw.coupon_code).trim()) {
+    orderNotes.coupon_code = String(raw.coupon_code).trim();
+  }
+  return { ok: true, plan: { amount_inr, orderNotes, dbNotes: { ...orderNotes } } };
+}
+
+function planBookingOrder(userId: string, raw: Record<string, unknown>): PlanResult {
+  const pendingBody = parsePendingBookingBody(raw.pending_checkout ?? raw);
+  if (!pendingBody) {
+    return { ok: false, status: 400, error: "Invalid booking checkout payload" };
+  }
+  const financeSnap = parseFinanceSnapshot(pendingBody.finance_snapshot);
+  if (!financeSnap || !snapshotTotalsConsistent(financeSnap)) {
+    return { ok: false, status: 400, error: "Invalid finance snapshot" };
+  }
+  const amount_paise = expectedBookingCheckoutPaise(financeSnap.totalInr);
+  return {
+    ok: true,
+    plan: {
+      amount_inr: amount_paise / 100,
+      orderNotes: { user_id: userId, purpose: "booking" },
+      dbNotes: { user_id: userId, purpose: "booking", pending_checkout: pendingBody },
+    },
+  };
+}
+
+function planGenericOrder(userId: string, raw: Record<string, unknown>): PlanResult {
+  const bodyAmount = raw.amount_inr;
+  if (bodyAmount === undefined || bodyAmount === null || bodyAmount === "") {
+    return { ok: false, status: 400, error: "amount_inr is required" };
+  }
+  const ra = Number(bodyAmount);
+  if (!Number.isFinite(ra) || ra <= 0) {
+    return { ok: false, status: 400, error: "Invalid amount_inr" };
+  }
+  return {
+    ok: true,
+    plan: {
+      amount_inr: Math.min(Math.max(ra, 1), 100_000),
+      orderNotes: { user_id: userId },
+      dbNotes: { user_id: userId },
+    },
+  };
+}
+
+async function planOrder(userId: string, raw: Record<string, unknown>): Promise<PlanResult> {
+  if (raw.purpose === "package") return planPackageOrder(userId, raw);
+  if (raw.purpose === "booking" || raw.pending_checkout != null) return planBookingOrder(userId, raw);
+  return planGenericOrder(userId, raw);
 }
 
 /**
@@ -70,96 +188,11 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   const userId = (session.user as { id: string }).id;
   const raw = req.body as Record<string, unknown>;
 
-  let amount_inr: number;
-  let orderNotes: Record<string, string> = { user_id: userId };
-  let dbNotes!: Record<string, unknown>;
-
-  if (raw.purpose === "package") {
-    const packageTypeId =
-      typeof raw.package_type_id === "string" ? raw.package_type_id.trim() : "";
-    if (!packageTypeId) {
-      return res.status(400).json({ error: "package_type_id is required for package checkout" });
-    }
-    const packageType = await prisma.packageType.findUnique({
-      where: { id: packageTypeId },
-    });
-    if (!packageType) {
-      return res.status(404).json({ error: "Package not found" });
-    }
-
-    // Authoritative pass category from the package itself (type column, then
-    // is_unlimited) — not the client-sent hint — so a studio/class coupon is
-    // matched correctly regardless of how the client labelled the package.
-    const pass = passCategoryForPackageType(packageType);
-    const couponContext: CouponContext = pass;
-
-    const subtotal = toFiniteNumber(packageType.price);
-    if (!Number.isFinite(subtotal) || subtotal <= 0) {
-      return res.status(400).json({ error: "Invalid package price" });
-    }
-
-    let discountInr = 0;
-    if (raw.coupon_code != null && String(raw.coupon_code).trim()) {
-      const v = await validateAndComputeCoupon(
-        prisma,
-        String(raw.coupon_code),
-        couponContext,
-        subtotal,
-        { userId, guestEmail: null },
-      );
-      if ("error" in v) {
-        return res.status(400).json({ error: v.error });
-      }
-      discountInr = v.discountInr;
-    }
-
-    const payableInr = Math.max(0, subtotal - discountInr);
-    if (payableInr <= 0) {
-      return res.status(400).json({
-        error: "No payment due for this cart. Complete purchase without checkout.",
-      });
-    }
-
-    amount_inr = Math.min(Math.max(Math.round(payableInr), 1), 100_000);
-    orderNotes = {
-      ...orderNotes,
-      purpose: "package",
-      package_type_id: packageTypeId,
-      pass_type: pass,
-    };
-    if (raw.coupon_code != null && String(raw.coupon_code).trim()) {
-      orderNotes.coupon_code = String(raw.coupon_code).trim();
-    }
-    dbNotes = { ...orderNotes };
-  } else if (raw.purpose === "booking" || raw.pending_checkout != null) {
-    const pendingBody = parsePendingBookingBody(raw.pending_checkout ?? raw);
-    if (!pendingBody) {
-      return res.status(400).json({ error: "Invalid booking checkout payload" });
-    }
-    const financeSnap = parseFinanceSnapshot(pendingBody.finance_snapshot);
-    if (!financeSnap || !snapshotTotalsConsistent(financeSnap)) {
-      return res.status(400).json({ error: "Invalid finance snapshot" });
-    }
-    const amount_paise = expectedBookingCheckoutPaise(financeSnap.totalInr);
-    amount_inr = amount_paise / 100;
-    orderNotes = { ...orderNotes, purpose: "booking" };
-    dbNotes = {
-      user_id: userId,
-      purpose: "booking",
-      pending_checkout: pendingBody,
-    };
-  } else {
-    const bodyAmount = raw.amount_inr;
-    if (bodyAmount === undefined || bodyAmount === null || bodyAmount === "") {
-      return res.status(400).json({ error: "amount_inr is required" });
-    }
-    const ra = Number(bodyAmount);
-    if (!Number.isFinite(ra) || ra <= 0) {
-      return res.status(400).json({ error: "Invalid amount_inr" });
-    }
-    amount_inr = Math.min(Math.max(ra, 1), 100_000);
-    dbNotes = { user_id: userId };
+  const planned = await planOrder(userId, raw);
+  if (!planned.ok) {
+    return res.status(planned.status).json({ error: planned.error });
   }
+  const { amount_inr, orderNotes, dbNotes } = planned.plan;
 
   const amount_paise = Math.round(amount_inr * 100);
 

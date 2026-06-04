@@ -25,6 +25,73 @@ function parseCookieHeader(header?: string | null): Record<string, string> {
   return out;
 }
 
+// Seamless role switch: no password. Requires a valid existing session for the
+// SAME email, and only user <-> instructor. Returns the built user (+sid) or null.
+async function authorizeRoleSwitch(
+  email: string,
+  wantRole: string | undefined,
+  req: { headers?: unknown } | undefined
+) {
+  if (!wantRole || !SWITCHABLE_ROLES.has(wantRole)) return null;
+
+  const cookies = parseCookieHeader(
+    (req?.headers as Record<string, string | undefined> | undefined)?.cookie
+  );
+  const sessionToken =
+    cookies["__Secure-next-auth.session-token"] ?? cookies["next-auth.session-token"];
+  if (!sessionToken) return null;
+
+  const existing = await decode({ token: sessionToken, secret: process.env.NEXTAUTH_SECRET! });
+  const currentEmail = existing?.email ? normalizeLoginEmail(String(existing.email)) : null;
+  const currentRole = String((existing as { role?: string } | null)?.role ?? "");
+  if (!currentEmail || currentEmail !== email) return null;
+  if (!SWITCHABLE_ROLES.has(currentRole)) return null;
+
+  const target = await prisma.profile.findFirst({ where: { email, role: wantRole } });
+  if (!target) return null;
+  const switched = await buildUserFromProfile(target);
+  const { sid: switchSid } = await startSession(target.id, (req?.headers ?? {}) as Headers);
+  return { ...switched, sid: switchSid };
+}
+
+// Password sign-in: find the role-scoped profile, bcrypt-compare, build user (+sid).
+async function authorizePassword(
+  email: string,
+  password: string | undefined,
+  wantRole: string | undefined,
+  req: { headers?: unknown } | undefined
+) {
+  if (!password) {
+    logger.warn("[next-auth] credentials sign-in rejected: missing password");
+    return null;
+  }
+
+  // Email is unique per role now — pick the row for the chosen portal.
+  const profile = wantRole
+    ? await prisma.profile.findFirst({ where: { email, role: wantRole } })
+    : await prisma.profile.findFirst({ where: { email } });
+
+  if (!profile) {
+    logger.warn({ email }, "[next-auth] CredentialsSignin: no profile row (run bootstrap-admin or ensure-admin for this email)");
+    return null;
+  }
+
+  if (!profile.hashedPassword) {
+    logger.warn({ email }, "[next-auth] CredentialsSignin: profile has no hashedPassword");
+    return null;
+  }
+
+  const isValid = await bcrypt.compare(password, profile.hashedPassword);
+  if (!isValid) {
+    logger.warn({ email }, "[next-auth] CredentialsSignin: password does not match stored hash");
+    return null;
+  }
+
+  const built = await buildUserFromProfile(profile);
+  const { sid } = await startSession(profile.id, (req?.headers ?? {}) as Headers);
+  return { ...built, sid };
+}
+
 // Build the NextAuth user object for a profile, including scope ids and the set
 // of roles this email can sign in as (powers the in-app role switcher).
 async function buildUserFromProfile(profile: Profile) {
@@ -76,59 +143,10 @@ export const authOptions: NextAuthOptions = {
 
         try {
           if (isSwitch) {
-            // Seamless role switch: no password. Requires a valid existing
-            // session for the SAME email, and only user <-> instructor.
-            if (!wantRole || !SWITCHABLE_ROLES.has(wantRole)) return null;
-
-            const cookies = parseCookieHeader(
-              (req?.headers as Record<string, string | undefined> | undefined)?.cookie
-            );
-            const sessionToken =
-              cookies["__Secure-next-auth.session-token"] ?? cookies["next-auth.session-token"];
-            if (!sessionToken) return null;
-
-            const existing = await decode({ token: sessionToken, secret: process.env.NEXTAUTH_SECRET! });
-            const currentEmail = existing?.email ? normalizeLoginEmail(String(existing.email)) : null;
-            const currentRole = String((existing as { role?: string } | null)?.role ?? "");
-            if (!currentEmail || currentEmail !== email) return null;
-            if (!SWITCHABLE_ROLES.has(currentRole)) return null;
-
-            const target = await prisma.profile.findFirst({ where: { email, role: wantRole } });
-            if (!target) return null;
-            const switched = await buildUserFromProfile(target);
-            const { sid: switchSid } = await startSession(target.id, (req?.headers ?? {}) as Headers);
-            return { ...switched, sid: switchSid };
+            return await authorizeRoleSwitch(email, wantRole, req);
           }
 
-          if (!credentials.password) {
-            logger.warn("[next-auth] credentials sign-in rejected: missing password");
-            return null;
-          }
-
-          // Email is unique per role now — pick the row for the chosen portal.
-          const profile = wantRole
-            ? await prisma.profile.findFirst({ where: { email, role: wantRole } })
-            : await prisma.profile.findFirst({ where: { email } });
-
-          if (!profile) {
-            logger.warn({ email }, "[next-auth] CredentialsSignin: no profile row (run bootstrap-admin or ensure-admin for this email)");
-            return null;
-          }
-
-          if (!profile.hashedPassword) {
-            logger.warn({ email }, "[next-auth] CredentialsSignin: profile has no hashedPassword");
-            return null;
-          }
-
-          const isValid = await bcrypt.compare(credentials.password, profile.hashedPassword);
-          if (!isValid) {
-            logger.warn({ email }, "[next-auth] CredentialsSignin: password does not match stored hash");
-            return null;
-          }
-
-          const built = await buildUserFromProfile(profile);
-          const { sid } = await startSession(profile.id, (req?.headers ?? {}) as Headers);
-          return { ...built, sid };
+          return await authorizePassword(email, credentials.password, wantRole, req);
         } catch (e) {
           logger.error({ err: e }, "[next-auth] authorize error (DB or unexpected)");
           return null;

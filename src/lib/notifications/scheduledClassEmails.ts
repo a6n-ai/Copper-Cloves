@@ -123,6 +123,74 @@ export async function sendDueClassReminders(): Promise<{ sent: number; skipped: 
   return { sent, skipped };
 }
 
+type RosterBooking = {
+  user_id: string;
+  extra_guest_count?: number | null;
+  profile?: { id?: string; full_name?: string | null; email?: string | null; phone?: string | null } | null;
+};
+
+function displayName(b: RosterBooking): string {
+  return b.profile?.full_name?.trim() || b.profile?.email?.split("@")[0] || "";
+}
+
+/** First-timers: members whose earliest confirmed class is this schedule. */
+async function computeFirstTimers(bookings: RosterBooking[], start: Date): Promise<string[]> {
+  const firstTimers: string[] = [];
+  for (const b of bookings) {
+    const prior = await prisma.booking.count({
+      where: { user_id: b.user_id, status: "confirmed", class_schedule: { is: { start_time: { lt: start } } } },
+    });
+    if (prior === 0) firstTimers.push(displayName(b) || "A new student");
+  }
+  return firstTimers;
+}
+
+function guestTag(count: number): string {
+  if (count <= 0) return "";
+  const plural = count > 1 ? "s" : "";
+  return ` <span class="roster-tag">+${count} guest${plural}</span>`;
+}
+
+function buildRosterRow(
+  b: RosterBooking,
+  idx: number,
+  total: number,
+  firstTimers: string[]
+): string {
+  const name = esc(displayName(b) || "Member");
+  const isNew = firstTimers.includes(displayName(b));
+  const tag = isNew ? ' <span class="roster-tag">new</span>' : "";
+  const email = esc(b.profile?.email || "");
+  const phone = b.profile?.phone ? esc(b.profile.phone) : "";
+  const guests = guestTag(b.extra_guest_count ?? 0);
+  const contact = [
+    email ? `<span class="roster-contact">${email}</span>` : "",
+    email && phone ? '<span class="roster-contact" style="color:#a8a497;">&nbsp;·&nbsp;</span>' : "",
+    phone ? `<span class="roster-contact roster-phone">${phone}</span>` : "",
+  ].join("");
+  const last = idx === total - 1;
+  const roman = ROMAN[idx] ?? idx + 1;
+  return `<tr class="roster-row"><td valign="top" style="padding: 16px 0;${last ? "" : " border-bottom: 1px solid #e5dfd2;"}"><table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0"><tr><td valign="top" width="30" style="padding-right: 12px;"><p class="roster-num" style="margin: 0;">${roman}.</p></td><td valign="top"><p class="roster-name" style="margin: 0;">${name}${tag}${guests}</p><p class="roster-email" style="margin: 4px 0 0 0;">${contact}</p></td></tr></table></td></tr>`;
+}
+
+function buildRosterRows(bookings: RosterBooking[], firstTimers: string[]): string {
+  if (!bookings.length) {
+    return `<tr><td style="padding: 16px 0;"><p class="roster-name" style="margin:0; color:#8e8a7e; font-style:italic;">No bookings yet — anyone who books will be added automatically.</p></td></tr>`;
+  }
+  return bookings
+    .map((b, idx) => buildRosterRow(b, idx, bookings.length, firstTimers))
+    .join("");
+}
+
+function buildFirstTimerNote(firstTimers: string[]): string {
+  if (!firstTimers.length) return "";
+  const names = firstTimers
+    .map((n) => `<em style="font-family:'Cormorant Garamond',serif; font-style:italic; color:#4a5d3a;">${esc(n)}</em>`)
+    .join(", ");
+  const verb = firstTimers.length > 1 ? "are" : "is";
+  return `<table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="margin-bottom: 18px;"><tr><td style="border-left: 2px solid #b87333; padding: 4px 0 4px 18px;"><p class="note-name" style="margin: 0 0 6px 0;">first-timers</p><p class="note-text" style="margin: 0;">${names} ${verb} joining their first class with us — a quick welcome and intro to the studio flow would be lovely.</p></td></tr></table>`;
+}
+
 /** Send the ~6h pre-class roster to each instructor. Idempotent via roster_sent_at. */
 export async function sendDueInstructorRosters(): Promise<{ sent: number; skipped: number }> {
   const template = await activeTriggerTemplate(CrmTriggerType.InstructorRoster);
@@ -166,39 +234,9 @@ export async function sendDueInstructorRosters(): Promise<{ sent: number; skippe
     const capacity = sch.capacity ?? sch.available_spots + sch.current_bookings;
 
     // First-timers: members whose earliest confirmed class is this one.
-    const firstTimers: string[] = [];
-    for (const b of sch.bookings) {
-      const prior = await prisma.booking.count({
-        where: { user_id: b.user_id, status: "confirmed", class_schedule: { is: { start_time: { lt: start } } } },
-      });
-      if (prior === 0) firstTimers.push(b.profile?.full_name?.trim() || b.profile?.email?.split("@")[0] || "A new student");
-    }
-
-    const rosterRows = sch.bookings.length
-      ? sch.bookings
-          .map((b, idx) => {
-            const name = esc(b.profile?.full_name?.trim() || b.profile?.email?.split("@")[0] || "Member");
-            const isNew = (() => firstTimers.includes(b.profile?.full_name?.trim() || b.profile?.email?.split("@")[0] || ""))();
-            const tag = isNew ? ' <span class="roster-tag">new</span>' : "";
-            const email = esc(b.profile?.email || "");
-            const phone = b.profile?.phone ? esc(b.profile.phone) : "";
-            const guests = (b.extra_guest_count ?? 0) > 0 ? ` <span class="roster-tag">+${b.extra_guest_count} guest${b.extra_guest_count > 1 ? "s" : ""}</span>` : "";
-            const contact = [
-              email ? `<span class="roster-contact">${email}</span>` : "",
-              email && phone ? '<span class="roster-contact" style="color:#a8a497;">&nbsp;·&nbsp;</span>' : "",
-              phone ? `<span class="roster-contact roster-phone">${phone}</span>` : "",
-            ].join("");
-            const last = idx === sch.bookings.length - 1;
-            return `<tr class="roster-row"><td valign="top" style="padding: 16px 0;${last ? "" : " border-bottom: 1px solid #e5dfd2;"}"><table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0"><tr><td valign="top" width="30" style="padding-right: 12px;"><p class="roster-num" style="margin: 0;">${ROMAN[idx] ?? idx + 1}.</p></td><td valign="top"><p class="roster-name" style="margin: 0;">${name}${tag}${guests}</p><p class="roster-email" style="margin: 4px 0 0 0;">${contact}</p></td></tr></table></td></tr>`;
-          })
-          .join("")
-      : `<tr><td style="padding: 16px 0;"><p class="roster-name" style="margin:0; color:#8e8a7e; font-style:italic;">No bookings yet — anyone who books will be added automatically.</p></td></tr>`;
-
-    const firstTimerNote = firstTimers.length
-      ? `<table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="margin-bottom: 18px;"><tr><td style="border-left: 2px solid #b87333; padding: 4px 0 4px 18px;"><p class="note-name" style="margin: 0 0 6px 0;">first-timers</p><p class="note-text" style="margin: 0;">${firstTimers
-          .map((n) => `<em style="font-family:'Cormorant Garamond',serif; font-style:italic; color:#4a5d3a;">${esc(n)}</em>`)
-          .join(", ")} ${firstTimers.length > 1 ? "are" : "is"} joining their first class with us — a quick welcome and intro to the studio flow would be lovely.</p></td></tr></table>`
-      : "";
+    const firstTimers = await computeFirstTimers(sch.bookings, start);
+    const rosterRows = buildRosterRows(sch.bookings, firstTimers);
+    const firstTimerNote = buildFirstTimerNote(firstTimers);
 
     const vars: Record<string, string> = {
       Instructor_Name: esc(sch.instructor?.name?.trim() || "there"),

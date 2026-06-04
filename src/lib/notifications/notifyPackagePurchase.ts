@@ -23,6 +23,34 @@ function packageSummary(pt: {
   return parts.join(" · ") || "Package";
 }
 
+type SendOutcome = { status: string; err: string | null };
+
+// Classify a send result (email or whatsapp) into a CRM status + error string.
+// `reasonSlice` controls whether the skipped `reason` is truncated (whatsapp) or not (email).
+function classifySendResult(
+  result:
+    | { ok: true }
+    | { ok: false; skipped?: boolean; reason?: string; error?: string },
+  unknownLabel: string,
+  reasonSlice: boolean
+): SendOutcome {
+  if (result.ok) return { status: "sent", err: null };
+  if ("skipped" in result && result.skipped) {
+    const reason = result.reason ?? "";
+    return { status: "skipped", err: reasonSlice ? reason.slice(0, 500) : reason };
+  }
+  if ("error" in result && result.error != null) {
+    return { status: "failed", err: result.error.slice(0, 500) };
+  }
+  return { status: "failed", err: unknownLabel };
+}
+
+// Resolve the WhatsApp body parameter count from env (clamped 0..10, default 4).
+function resolveWhatsAppParamCount(): number {
+  const raw = Number(process.env.WHATSAPP_TEMPLATE_BODY_VARIABLES ?? "4");
+  return Number.isFinite(raw) && raw >= 0 && raw <= 10 ? Math.floor(raw) : 4;
+}
+
 /**
  * Sends purchase confirmation via email (Resend) and WhatsApp (Cloud API template).
  * Loads profile + logs each attempt on `crm_messages`. Does not throw — callers should fire-and-forget.
@@ -69,19 +97,11 @@ export async function notifyPackagePurchase(args: {
     html: emailHtml,
   });
 
-  let emailStatus: string;
-  let emailErr: string | null = null;
-  if (emailResult.ok) emailStatus = "sent";
-  else if ("skipped" in emailResult && emailResult.skipped) {
-    emailStatus = "skipped";
-    emailErr = emailResult.reason;
-  } else if ("error" in emailResult) {
-    emailStatus = "failed";
-    emailErr = emailResult.error.slice(0, 500);
-  } else {
-    emailStatus = "failed";
-    emailErr = "unknown email error";
-  }
+  const { status: emailStatus, err: emailErr } = classifySendResult(
+    emailResult,
+    "unknown email error",
+    false
+  );
 
   await prisma.crmMessage.create({
     data: {
@@ -114,11 +134,7 @@ export async function notifyPackagePurchase(args: {
     waStatus = "skipped";
     waError = "No normalizable phone on profile";
   } else {
-    const paramCountRaw = Number(process.env.WHATSAPP_TEMPLATE_BODY_VARIABLES ?? "4");
-    const paramCount =
-      Number.isFinite(paramCountRaw) && paramCountRaw >= 0 && paramCountRaw <= 10
-        ? Math.floor(paramCountRaw)
-        : 4;
+    const paramCount = resolveWhatsAppParamCount();
 
     const allParams = [
       memberName,
@@ -137,17 +153,9 @@ export async function notifyPackagePurchase(args: {
       bodyParameters,
     });
 
-    if (wa.ok) waStatus = "sent";
-    else if ("skipped" in wa && wa.skipped) {
-      waStatus = "skipped";
-      waError = wa.reason.slice(0, 500);
-    } else if ("error" in wa) {
-      waStatus = "failed";
-      waError = wa.error.slice(0, 500);
-    } else {
-      waStatus = "failed";
-      waError = "unknown whatsapp error";
-    }
+    const outcome = classifySendResult(wa, "unknown whatsapp error", true);
+    waStatus = outcome.status;
+    waError = outcome.err;
   }
 
   await prisma.crmMessage.create({

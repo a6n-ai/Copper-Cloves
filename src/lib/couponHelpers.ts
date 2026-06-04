@@ -38,28 +38,28 @@ export function normalizeCouponCode(code: unknown): string {
   return code.trim().toUpperCase();
 }
 
+function finiteOrNaN(n: number): number {
+  return Number.isFinite(n) ? n : NaN;
+}
+
+function objectToFiniteNumber(value: object): number {
+  const withToNumber = value as { toNumber?: () => number };
+  if (typeof withToNumber.toNumber === "function") {
+    try {
+      return finiteOrNaN(withToNumber.toNumber());
+    } catch {
+      /* fall through */
+    }
+  }
+  return finiteOrNaN(Number(String(value)));
+}
+
 /** Coerce Prisma Decimal, string, or number to a finite number (avoids NaN from `Number(Decimal)` in some runtimes). */
 export function toFiniteNumber(value: unknown): number {
-  if (typeof value === "number") return Number.isFinite(value) ? value : NaN;
+  if (typeof value === "number") return finiteOrNaN(value);
   if (value == null) return NaN;
-  if (typeof value === "string") {
-    const n = Number(value.trim());
-    return Number.isFinite(n) ? n : NaN;
-  }
-  if (typeof value === "object") {
-    const withToNumber = value as { toNumber?: () => number };
-    if (typeof withToNumber.toNumber === "function") {
-      try {
-        const n = withToNumber.toNumber();
-        return Number.isFinite(n) ? n : NaN;
-      } catch {
-        /* fall through */
-      }
-    }
-    const s = String(value);
-    const n = Number(s);
-    return Number.isFinite(n) ? n : NaN;
-  }
+  if (typeof value === "string") return finiteOrNaN(Number(value.trim()));
+  if (typeof value === "object") return objectToFiniteNumber(value);
   return NaN;
 }
 
@@ -104,6 +104,32 @@ export function isCouponActiveNow(c: {
   return true;
 }
 
+async function checkCouponPerUserLimit(
+  db: DbClient,
+  coupon: Coupon,
+  opts: { userId: string | null; guestEmail: string | null }
+): Promise<{ error: string } | null> {
+  if (coupon.max_uses_per_user == null) return null;
+
+  let used = 0;
+  if (opts.userId) {
+    used = await db.couponRedemption.count({
+      where: { coupon_id: coupon.id, user_id: opts.userId },
+    });
+  } else if (opts.guestEmail && opts.guestEmail.trim()) {
+    used = await db.couponRedemption.count({
+      where: {
+        coupon_id: coupon.id,
+        guest_email: opts.guestEmail.trim().toLowerCase(),
+      },
+    });
+  } else {
+    return { error: "Sign in or provide an email to use this coupon" };
+  }
+  if (used >= coupon.max_uses_per_user) return { error: "You have already used this coupon" };
+  return null;
+}
+
 export async function validateAndComputeCoupon(
   db: DbClient,
   rawCode: string,
@@ -128,24 +154,8 @@ export async function validateAndComputeCoupon(
   const discountInr = computeDiscountInr(subtotalInr, dtype, coupon.discount_value);
   if (discountInr <= 0) return { error: "This coupon does not reduce this order" };
 
-  if (coupon.max_uses_per_user != null) {
-    let used = 0;
-    if (opts.userId) {
-      used = await db.couponRedemption.count({
-        where: { coupon_id: coupon.id, user_id: opts.userId },
-      });
-    } else if (opts.guestEmail && opts.guestEmail.trim()) {
-      used = await db.couponRedemption.count({
-        where: {
-          coupon_id: coupon.id,
-          guest_email: opts.guestEmail.trim().toLowerCase(),
-        },
-      });
-    } else {
-      return { error: "Sign in or provide an email to use this coupon" };
-    }
-    if (used >= coupon.max_uses_per_user) return { error: "You have already used this coupon" };
-  }
+  const perUserError = await checkCouponPerUserLimit(db, coupon, opts);
+  if (perUserError) return perUserError;
 
   return { coupon, discountInr };
 }

@@ -100,6 +100,52 @@ export async function syncCapturedPaymentForOrder(params: {
   return { razorpayPaymentId: paid.id };
 }
 
+type TxClient = Parameters<Parameters<typeof prisma.$transaction>[0]>[0];
+
+async function loadBookableSchedule(tx: TxClient, scheduleId: string) {
+  const schedule = await tx.classSchedule.findUnique({
+    where: { id: scheduleId },
+    include: { class_model: { select: { max_capacity: true, name: true, partner_id: true } } },
+  });
+  if (!schedule) throw new Error("SCHEDULE_NOT_FOUND");
+  if (schedule.status === "cancelled") throw new Error("CLASS_CANCELLED");
+  if (schedule.status === "inactive") throw new Error("CLASS_INACTIVE");
+  return schedule;
+}
+
+async function assertNotAlreadyBooked(tx: TxClient, userId: string, scheduleId: string) {
+  const duplicate = await tx.booking.findFirst({
+    where: {
+      user_id: userId,
+      class_schedule_id: scheduleId,
+      status: { in: ["confirmed", "pending"] },
+    },
+  });
+  if (duplicate) throw new Error("ALREADY_BOOKED");
+}
+
+async function computeSeatsTaken(tx: TxClient, scheduleId: string): Promise<number> {
+  const occupancyRows = await tx.booking.findMany({
+    where: { class_schedule_id: scheduleId, status: { in: ["confirmed", "pending"] } },
+    select: { extra_guest_count: true },
+  });
+  return occupancyRows.reduce(
+    (sum, row) => sum + 1 + Math.max(0, row.extra_guest_count ?? 0),
+    0,
+  );
+}
+
+async function assertPackageBookable(tx: TxClient, packageId: string, userId: string) {
+  const pkg = await tx.userPackage.findFirst({
+    where: { id: packageId, user_id: userId },
+    include: { package_type: true },
+  });
+  if (!pkg?.is_active || pkg.expiration_date <= new Date()) {
+    throw new Error("PACKAGE_NOT_ALLOWED");
+  }
+  if (pkg.package_type?.is_unlimited) throw new Error("PACKAGE_WRONG_TYPE");
+}
+
 export async function finishBookingCheckoutOnServer(
   userId: string,
   pending: PendingBookingCheckout,
@@ -149,32 +195,12 @@ export async function finishBookingCheckoutOnServer(
   const packageId = pending.user_package_id;
 
   const booking = await prisma.$transaction(async (tx) => {
-    const schedule = await tx.classSchedule.findUnique({
-      where: { id: scheduleId },
-      include: { class_model: { select: { max_capacity: true, name: true, partner_id: true } } },
-    });
-    if (!schedule) throw new Error("SCHEDULE_NOT_FOUND");
-    if (schedule.status === "cancelled") throw new Error("CLASS_CANCELLED");
-    if (schedule.status === "inactive") throw new Error("CLASS_INACTIVE");
+    const schedule = await loadBookableSchedule(tx, scheduleId);
 
-    const duplicate = await tx.booking.findFirst({
-      where: {
-        user_id: userId,
-        class_schedule_id: scheduleId,
-        status: { in: ["confirmed", "pending"] },
-      },
-    });
-    if (duplicate) throw new Error("ALREADY_BOOKED");
+    await assertNotAlreadyBooked(tx, userId, scheduleId);
 
     const cap = schedule.capacity ?? schedule.class_model?.max_capacity ?? 0;
-    const occupancyRows = await tx.booking.findMany({
-      where: { class_schedule_id: scheduleId, status: { in: ["confirmed", "pending"] } },
-      select: { extra_guest_count: true },
-    });
-    const seatsTaken = occupancyRows.reduce(
-      (sum, row) => sum + 1 + Math.max(0, row.extra_guest_count ?? 0),
-      0,
-    );
+    const seatsTaken = await computeSeatsTaken(tx, scheduleId);
     const spotsToConsume = 1 + extraGuests;
     if (cap > 0 && seatsTaken + spotsToConsume > cap) throw new Error("CLASS_FULL");
 
@@ -184,14 +210,7 @@ export async function finishBookingCheckoutOnServer(
       pending.class_name?.trim() || schedule.class_model?.name || null;
 
     if (packageId) {
-      const pkg = await tx.userPackage.findFirst({
-        where: { id: packageId, user_id: userId },
-        include: { package_type: true },
-      });
-      if (!pkg?.is_active || pkg.expiration_date <= new Date()) {
-        throw new Error("PACKAGE_NOT_ALLOWED");
-      }
-      if (pkg.package_type?.is_unlimited) throw new Error("PACKAGE_WRONG_TYPE");
+      await assertPackageBookable(tx, packageId, userId);
     }
 
     const booker = await tx.profile.findUnique({ where: { id: userId }, select: { email: true } });
@@ -278,6 +297,42 @@ export async function finishBookingCheckoutOnServer(
   return { bookingId: booking.id };
 }
 
+async function resolvePackageCoupon(
+  tx: TxClient,
+  couponCode: string | null | undefined,
+  couponContext: CouponContext,
+  subtotal: number,
+  userId: string,
+): Promise<{ coupon: Coupon | null; discountInr: number }> {
+  if (!couponCode?.trim()) {
+    return { coupon: null, discountInr: 0 };
+  }
+  const v = await validateAndComputeCoupon(
+    tx,
+    couponCode,
+    couponContext,
+    subtotal,
+    { userId, guestEmail: null },
+  );
+  if ("error" in v) throw new Error(`COUPON:${v.error}`);
+  return { coupon: v.coupon, discountInr: v.discountInr };
+}
+
+async function assertPaidRazorpayOrderUnused(
+  tx: TxClient,
+  razorpayOrderId: string,
+  userId: string,
+) {
+  const rpOrder = await tx.razorpayOrder.findFirst({
+    where: { razorpay_order_id: razorpayOrderId, user_id: userId },
+  });
+  if (!rpOrder) throw new Error("RAZORPAY_ORDER_NOT_FOUND");
+  if (rpOrder.status !== "paid") throw new Error("PAYMENT_NOT_CONFIRMED");
+  if (rpOrder.booking_id != null || rpOrder.user_package_id != null) {
+    throw new Error("RAZORPAY_ORDER_USED");
+  }
+}
+
 export async function finishPackageCheckoutOnServer(
   userId: string,
   pending: PendingPackageCheckout,
@@ -304,31 +359,17 @@ export async function finishPackageCheckoutOnServer(
     const subtotal = toFiniteNumber(packageType.price);
     if (!Number.isFinite(subtotal) || subtotal <= 0) throw new Error("BAD_PRICE");
 
-    let coupon: Coupon | null = null;
-    let discountInr = 0;
-    if (pending.coupon_code?.trim()) {
-      const v = await validateAndComputeCoupon(
-        tx,
-        pending.coupon_code,
-        couponContext,
-        subtotal,
-        { userId, guestEmail: null },
-      );
-      if ("error" in v) throw new Error(`COUPON:${v.error}`);
-      coupon = v.coupon;
-      discountInr = v.discountInr;
-    }
+    const { coupon, discountInr } = await resolvePackageCoupon(
+      tx,
+      pending.coupon_code,
+      couponContext,
+      subtotal,
+      userId,
+    );
 
     const payableInr = Math.max(0, subtotal - discountInr);
     if (payableInr > 0) {
-      const rpOrder = await tx.razorpayOrder.findFirst({
-        where: { razorpay_order_id: pending.razorpayOrderId, user_id: userId },
-      });
-      if (!rpOrder) throw new Error("RAZORPAY_ORDER_NOT_FOUND");
-      if (rpOrder.status !== "paid") throw new Error("PAYMENT_NOT_CONFIRMED");
-      if (rpOrder.booking_id != null || rpOrder.user_package_id != null) {
-        throw new Error("RAZORPAY_ORDER_USED");
-      }
+      await assertPaidRazorpayOrderUnused(tx, pending.razorpayOrderId, userId);
     }
 
     const expirationDate = new Date();

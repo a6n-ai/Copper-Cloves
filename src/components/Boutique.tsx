@@ -133,12 +133,11 @@ export function Boutique() {
                         {product.description || "Studio retail."}
                       </p>
                       <p className="font-body text-sage font-medium mb-6">₹{product.price.toLocaleString("en-IN")}</p>
-                      <Link
-                        href={`/shop/${product.id}`}
-                        className="block w-full py-3 rounded-full border border-sage/30 text-sage font-body text-sm text-center hover:bg-sage hover:text-cream transition-all duration-300 group-hover/card:border-sage"
-                      >
-                        view details
-                      </Link>
+                      <Button asChild variant="sage-outline" size="lg" className="w-full">
+                        <Link href={`/shop/${product.id}`}>
+                          view details
+                        </Link>
+                      </Button>
                     </div>
                   </div>
                 </div>

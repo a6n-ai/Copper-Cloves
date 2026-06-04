@@ -7,6 +7,25 @@ import logger from "@/lib/logger";
 const TOKEN_TTL_MS = 60 * 60 * 1000; // 1 hour
 const VALID_ROLES = new Set(["user", "instructor", "partner", "admin"]);
 
+// Resolve which portal login to reset. Unified login passes the picked role;
+// if absent, fall back to the email's sole login, else the member ("user") one.
+async function resolveTargetRole(normalised: string, wantRole: string | undefined): Promise<string | null> {
+  if (wantRole && VALID_ROLES.has(wantRole)) {
+    return wantRole;
+  }
+  const rows = await prisma.profile.findMany({ where: { email: normalised }, select: { role: true } });
+  const roles = Array.from(new Set(rows.map((r) => r.role)));
+  if (roles.length === 1) return roles[0];
+  if (roles.includes("user")) return "user";
+  return roles[0] ?? null;
+}
+
+function extractFailureReason(result: Awaited<ReturnType<typeof sendHtmlEmail>>): string {
+  if ("error" in result) return result.error as string;
+  if ("reason" in result) return result.reason as string;
+  return "unknown";
+}
+
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
   if (req.method !== "POST") return res.status(405).end();
 
@@ -16,16 +35,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   const normalised = email.trim().toLowerCase();
   const wantRole = role?.trim();
 
-  // Resolve which portal login to reset. Unified login passes the picked role;
-  // if absent, fall back to the email's sole login, else the member ("user") one.
-  let targetRole: string | null = null;
-  if (wantRole && VALID_ROLES.has(wantRole)) {
-    targetRole = wantRole;
-  } else {
-    const rows = await prisma.profile.findMany({ where: { email: normalised }, select: { role: true } });
-    const roles = Array.from(new Set(rows.map((r) => r.role)));
-    targetRole = roles.length === 1 ? roles[0] : roles.includes("user") ? "user" : roles[0] ?? null;
-  }
+  const targetRole = await resolveTargetRole(normalised, wantRole);
 
   // Always return 200 — never reveal whether the email/role exists.
   if (!targetRole) return res.status(200).json({ ok: true });
@@ -72,7 +82,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   });
 
   if (!result.ok) {
-    const reason = "error" in result ? result.error : ("reason" in result ? result.reason : "unknown");
+    const reason = extractFailureReason(result);
     logger.error({ reason, emailUserSet: Boolean(process.env.EMAIL_USER), emailPassSet: Boolean(process.env.EMAIL_PASS) }, "[forgot-password] email send failed");
     return res.status(500).json({ error: "Could not send reset email. Please try again later." });
   }

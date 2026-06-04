@@ -61,7 +61,9 @@ export function exportFinanceReport(mode: FinanceReportPeriod, rows: DashboardTx
     toast.error("No transactions to export for this selection.");
     return;
   }
-  void downloadFinanceReportExcel(rows, `copper-cloves-finance-${mode}`);
+  downloadFinanceReportExcel(rows, `copper-cloves-finance-${mode}`).catch(() => {
+    toast.error("Could not generate the finance report. Please try again.");
+  });
 }
 
 const EMPTY_STATS: FinanceStats = {

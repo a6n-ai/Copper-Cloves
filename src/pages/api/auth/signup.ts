@@ -84,22 +84,74 @@ function userFacingDbMessage(code: string, message: string): string {
   return "";
 }
 
+function parseSignupBody(
+  body: unknown,
+): { ok: boolean; raw?: Record<string, unknown>; error?: string } {
+  let raw: Record<string, unknown>;
+  try {
+    raw =
+      typeof body === "string"
+        ? (JSON.parse(body) as Record<string, unknown>)
+        : (body as Record<string, unknown>);
+  } catch {
+    return { ok: false, error: "Invalid JSON body." };
+  }
+  if (!raw || typeof raw !== "object") {
+    return { ok: false, error: "Invalid request body." };
+  }
+  return { ok: true, raw };
+}
+
+function respondWithSignupError(res: NextApiResponse, e: unknown): void {
+  const { code, message } = prismaMeta(e);
+
+  logger.error({ code: code || undefined }, "[signup] " + message);
+
+  if (code === "P2002") {
+    res.status(409).json({ error: "An account with this email already exists." });
+    return;
+  }
+
+  const msgLower = message.toLowerCase();
+  if (msgLower.includes("72 bytes") || msgLower.includes("data must be utf-8")) {
+    res.status(400).json({
+      error: "Password is too long for our system. Use a shorter password (max 72 characters).",
+    });
+    return;
+  }
+
+  const friendly = userFacingDbMessage(code, message);
+  if (friendly) {
+    res.status(503).json({
+      error: friendly,
+      ...(code && /^P[0-9]+$/.test(code) ? { code } : {}),
+      ...(process.env.NODE_ENV === "development" ? { detail: message } : {}),
+    });
+    return;
+  }
+
+  res.status(500).json({
+    error:
+      "Something went wrong while creating your account. Please try again later or contact the studio.",
+    ...(code && /^P[0-9]+$/.test(code) ? { code } : {}),
+    ...(process.env.NODE_ENV === "development"
+      ? {
+          detail: message,
+          hint: "Use STUDIO_DATABASE_URL in .env.local (and on Amplify) if DATABASE_URL is wrong on Windows.",
+        }
+      : {}),
+  });
+}
+
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
   if (req.method !== "POST") return res.status(405).end();
 
   try {
-    let raw: Record<string, unknown>;
-    try {
-      raw =
-        typeof req.body === "string"
-          ? (JSON.parse(req.body) as Record<string, unknown>)
-          : (req.body as Record<string, unknown>);
-    } catch {
-      return res.status(400).json({ error: "Invalid JSON body." });
+    const parsed = parseSignupBody(req.body);
+    if (!parsed.ok) {
+      return res.status(400).json({ error: parsed.error });
     }
-    if (!raw || typeof raw !== "object") {
-      return res.status(400).json({ error: "Invalid request body." });
-    }
+    const raw = parsed.raw;
     const email = typeof raw.email === "string" ? normalizeLoginEmail(raw.email) : "";
     const password = typeof raw.password === "string" ? raw.password : "";
     const full_name =
@@ -144,40 +196,6 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
     return res.status(201).json({ message: "Account created successfully." });
   } catch (e: unknown) {
-    const { code, message } = prismaMeta(e);
-
-    logger.error({ code: code || undefined }, "[signup] " + message);
-
-    if (code === "P2002") {
-      return res.status(409).json({ error: "An account with this email already exists." });
-    }
-
-    const msgLower = message.toLowerCase();
-    if (msgLower.includes("72 bytes") || msgLower.includes("data must be utf-8")) {
-      return res.status(400).json({
-        error: "Password is too long for our system. Use a shorter password (max 72 characters).",
-      });
-    }
-
-    const friendly = userFacingDbMessage(code, message);
-    if (friendly) {
-      return res.status(503).json({
-        error: friendly,
-        ...(code && /^P[0-9]+$/.test(code) ? { code } : {}),
-        ...(process.env.NODE_ENV === "development" ? { detail: message } : {}),
-      });
-    }
-
-    return res.status(500).json({
-      error:
-        "Something went wrong while creating your account. Please try again later or contact the studio.",
-      ...(code && /^P[0-9]+$/.test(code) ? { code } : {}),
-      ...(process.env.NODE_ENV === "development"
-        ? {
-            detail: message,
-            hint: "Use STUDIO_DATABASE_URL in .env.local (and on Amplify) if DATABASE_URL is wrong on Windows.",
-          }
-        : {}),
-    });
+    return respondWithSignupError(res, e);
   }
 }

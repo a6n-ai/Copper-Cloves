@@ -16,6 +16,51 @@ function controlLabel(el: HTMLElement): string {
 
 let selectionDelegationInstalled = false;
 
+const SKIPPED_INPUT_TYPES = new Set(["password", "hidden", "file"]);
+
+function handleSelectChange(el: HTMLSelectElement) {
+  const value = el.multiple
+    ? Array.from(el.selectedOptions)
+        .map((o) => o.value)
+        .slice(0, 50)
+    : el.value;
+  logUserSelection({
+    control: "native_select",
+    label: controlLabel(el),
+    value,
+  });
+}
+
+function handleInputChange(el: HTMLInputElement) {
+  const t = el.type.toLowerCase();
+  if (SKIPPED_INPUT_TYPES.has(t)) return;
+  if (t === "radio") {
+    if (!el.checked) return;
+    logUserSelection({ control: "native_radio", label: controlLabel(el), value: el.value });
+    return;
+  }
+  if (t === "checkbox") {
+    logUserSelection({ control: "native_checkbox", label: controlLabel(el), value: el.checked });
+    return;
+  }
+  if (t === "range" || t === "color") {
+    logUserSelection({ control: `native_${t}`, label: controlLabel(el), value: el.value });
+  }
+}
+
+function handleSelectionChange(event: Event) {
+  const raw = event.target;
+  if (!(raw instanceof HTMLElement)) return;
+  if (isInsideNoActivity(raw)) return;
+  if (raw instanceof HTMLSelectElement) {
+    handleSelectChange(raw);
+    return;
+  }
+  if (raw instanceof HTMLInputElement) {
+    handleInputChange(raw);
+  }
+}
+
 /**
  * Captures native `<select>`, `<input type="radio|checkbox">` changes via delegation.
  * Skips password and hidden inputs. Add `data-no-activity` on a subtree to opt out.
@@ -24,56 +69,5 @@ export function installGlobalSelectionTracking() {
   if (typeof document === "undefined" || selectionDelegationInstalled) return;
   selectionDelegationInstalled = true;
 
-  document.addEventListener(
-    "change",
-    (event) => {
-      const raw = event.target;
-      if (!(raw instanceof HTMLElement)) return;
-      if (isInsideNoActivity(raw)) return;
-
-      if (raw instanceof HTMLSelectElement) {
-        const value = raw.multiple
-          ? Array.from(raw.selectedOptions)
-              .map((o) => o.value)
-              .slice(0, 50)
-          : raw.value;
-        logUserSelection({
-          control: "native_select",
-          label: controlLabel(raw),
-          value,
-        });
-        return;
-      }
-
-      if (raw instanceof HTMLInputElement) {
-        const t = raw.type.toLowerCase();
-        if (t === "password" || t === "hidden" || t === "file") return;
-        if (t === "radio") {
-          if (!raw.checked) return;
-          logUserSelection({
-            control: "native_radio",
-            label: controlLabel(raw),
-            value: raw.value,
-          });
-          return;
-        }
-        if (t === "checkbox") {
-          logUserSelection({
-            control: "native_checkbox",
-            label: controlLabel(raw),
-            value: raw.checked,
-          });
-          return;
-        }
-        if (t === "range" || t === "color") {
-          logUserSelection({
-            control: `native_${t}`,
-            label: controlLabel(raw),
-            value: raw.value,
-          });
-        }
-      }
-    },
-    true
-  );
+  document.addEventListener("change", handleSelectionChange, true);
 }

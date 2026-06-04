@@ -28,7 +28,16 @@ import { SessionProvider, useSession } from "next-auth/react";
 import { useStudioSWR } from "@/lib/swr";
 import { getSessionRole, getSessionOnboardingCompleted } from "@/lib/sessionScalars";
 import { useActivityTracking } from "@/hooks/useActivityTracking";
-import { DashboardShell } from "@/components/dashboard/DashboardShell";
+import dynamic from "next/dynamic";
+// Dashboard chrome (cmdk/Command, sidebar, radix dropdown/popover, RoleSwitcher)
+// only ever renders for authenticated portal routes (kind !== null). Loading it
+// via next/dynamic splits it into its own chunk so public marketing pages — the
+// bulk of first-load traffic — never download it. SSR stays on (default) so the
+// authed pages still server-render the shell.
+const DashboardShell = dynamic(
+  () => import("@/components/dashboard/DashboardShell").then((m) => m.DashboardShell),
+  { ssr: true },
+);
 import { PORTAL_CONFIGS, type PortalKind } from "@/components/dashboard/dashboardNav";
 import { BuildVersionWatcher } from "@/components/BuildVersionWatcher";
 import { Navigation } from "@/components/Navigation";
@@ -49,6 +58,17 @@ const CHROME_EXEMPT = [
   "/portal/payment/razorpay-return",
 ];
 
+// Unified /account: every signed-in role keeps its own portal chrome here.
+const ACCOUNT_KIND_BY_ROLE: Record<string, PortalKind> = {
+  admin: "admin",
+  partner: "partner",
+  instructor: "instructor",
+  chef: "kitchen",
+};
+function accountPortalKind(role?: string): PortalKind {
+  return (role && ACCOUNT_KIND_BY_ROLE[role]) || "member";
+}
+
 function resolvePortalKind(pathname: string, role?: string): PortalKind | null {
   if (pathname.startsWith("/admin") && role === "admin") return "admin";
   // Chef lives under /admin (café + kitchen) but gets its own scoped chrome.
@@ -59,14 +79,7 @@ function resolvePortalKind(pathname: string, role?: string): PortalKind | null {
   // Role-specific portals above stay strict (server-guarded); /portal is the
   // shared fallback so non-"user" roles previewing it still get sidebar+topbar.
   if (pathname.startsWith("/portal")) return "member";
-  // Unified /account: every signed-in role keeps its own portal chrome here.
-  if (pathname === "/account") {
-    if (role === "admin") return "admin";
-    if (role === "partner") return "partner";
-    if (role === "instructor") return "instructor";
-    if (role === "chef") return "kitchen";
-    return "member";
-  }
+  if (pathname === "/account") return accountPortalKind(role);
   return null;
 }
 

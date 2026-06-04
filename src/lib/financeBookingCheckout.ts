@@ -82,21 +82,27 @@ export function snapshotTotalsConsistent(snap: FinanceSnapshotV1): boolean {
   );
 }
 
+function parseGuestAttendeeRow(row: unknown): GuestAttendee | null {
+  if (!row || typeof row !== "object") return null;
+  const g = row as Record<string, unknown>;
+  const name = g.name != null ? String(g.name).trim().slice(0, 120) : "";
+  const email = g.email != null ? String(g.email).trim().slice(0, 120) : "";
+  const phone = g.phone != null ? String(g.phone).trim().slice(0, 40) : "";
+  return {
+    ...(name ? { name } : {}),
+    ...(email ? { email } : {}),
+    ...(phone ? { phone } : {}),
+  };
+}
+
 export function parseGuestAttendees(raw: unknown): GuestAttendee[] | null {
   if (raw === undefined || raw === null) return [];
   if (!Array.isArray(raw)) return null;
   const out: GuestAttendee[] = [];
   for (const row of raw) {
-    if (!row || typeof row !== "object") return null;
-    const g = row as Record<string, unknown>;
-    const name = g.name != null ? String(g.name).trim().slice(0, 120) : "";
-    const email = g.email != null ? String(g.email).trim().slice(0, 120) : "";
-    const phone = g.phone != null ? String(g.phone).trim().slice(0, 40) : "";
-    out.push({
-      ...(name ? { name } : {}),
-      ...(email ? { email } : {}),
-      ...(phone ? { phone } : {}),
-    });
+    const parsed = parseGuestAttendeeRow(row);
+    if (parsed === null) return null;
+    out.push(parsed);
   }
   return out;
 }

@@ -4,6 +4,7 @@ import Image from "next/image";
 import Link from "next/link";
 import { useSession } from "next-auth/react";
 import { Ticket, ArrowRight } from "lucide-react";
+import { Button } from "@/components/ui/button";
 import { cdnUrl } from "@/lib/cdnUrl";
 import { BLUR_DATA_URL } from "@/lib/imageBlur";
 
@@ -311,19 +312,22 @@ export function Hero() {
           </p>
 
           <div className="mt-8 flex w-full max-w-xs flex-col gap-3">
-            <Link
-              href={bookHref}
-              className="inline-flex items-center justify-center gap-2 rounded-full bg-sage px-6 py-3.5 font-body text-base font-medium text-cream shadow-sm transition-colors hover:bg-sage/90 active:bg-sage/80"
+            <Button asChild variant="sage" size="lg" className="w-full">
+              <Link href={bookHref}>
+                <Ticket size={18} /> Book a class
+              </Link>
+            </Button>
+            <Button
+              asChild
+              variant="outline"
+              size="lg"
+              className="w-full border-cream/50 bg-transparent text-cream hover:bg-cream/10 hover:text-cream"
             >
-              <Ticket size={18} /> Book a class
-            </Link>
-            <Link
-              href="/classes"
-              className="inline-flex items-center justify-center gap-1.5 rounded-full border border-cream/50 px-6 py-3.5 font-body text-base font-medium text-cream transition-colors hover:bg-cream/10"
-            >
-              Explore classes
-              <ArrowRight size={16} className="motion-reduce:transition-none" />
-            </Link>
+              <Link href="/classes">
+                Explore classes
+                <ArrowRight size={16} className="motion-reduce:transition-none" />
+              </Link>
+            </Button>
           </div>
         </div>
       </section>
