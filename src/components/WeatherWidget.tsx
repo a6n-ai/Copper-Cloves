@@ -31,7 +31,7 @@ const TOD_META: Record<TimeOfDay, { label: string; icon: LucideIcon }> = {
   night: { label: "Night", icon: Moon },
 };
 
-export function WeatherWidget({ weather }: { weather: AuthWeather | null }) {
+export function WeatherWidget({ weather }: Readonly<{ weather: AuthWeather | null }>) {
   // Time-of-day comes from the viewer's clock; computed after mount to avoid SSR mismatch.
   const [tod, setTod] = useState<TimeOfDay | null>(null);
   useEffect(() => {

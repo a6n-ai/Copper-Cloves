@@ -146,14 +146,22 @@ export function ControlAnalyticsPanel() {
     [d.members.newMembersMonthly],
   );
 
+  const revenueGrowthSign = (d.financial.revenueGrowthPct ?? 0) > 0 ? "+" : "";
   const growthLabel =
     d.financial.revenueGrowthPct !== null
-      ? `${d.financial.revenueGrowthPct > 0 ? "+" : ""}${d.financial.revenueGrowthPct}% Growth`
+      ? `${revenueGrowthSign}${d.financial.revenueGrowthPct}% Growth`
       : "—";
 
+  const memberGrowthSign = (d.members.memberGrowthPct ?? 0) > 0 ? "+" : "";
   const memberGrowthLabel =
     d.members.memberGrowthPct !== null
-      ? `${d.members.memberGrowthPct > 0 ? "+" : ""}${d.members.memberGrowthPct}% Growth Rate`
+      ? `${memberGrowthSign}${d.members.memberGrowthPct}% Growth Rate`
+      : "—";
+
+  const revPerMemberSign = (d.kpis.revenuePerMemberGrowthPct ?? 0) > 0 ? "+" : "";
+  const revPerMemberLabel =
+    d.kpis.revenuePerMemberGrowthPct !== null
+      ? `${revPerMemberSign}${d.kpis.revenuePerMemberGrowthPct}%`
       : "—";
 
   return (
@@ -184,8 +192,8 @@ export function ControlAnalyticsPanel() {
                 {d.financial.monthlyRevenue.length === 0 ? (
                   <p className="font-body text-sm text-charcoal/50 w-full text-center py-16">No revenue in range</p>
                 ) : (
-                  d.financial.monthlyRevenue.map((cell, idx) => (
-                    <div key={idx} className="flex-1 flex flex-col items-center gap-2 min-w-0">
+                  d.financial.monthlyRevenue.map((cell) => (
+                    <div key={cell.label} className="flex-1 flex flex-col items-center gap-2 min-w-0">
                       <div
                         className="w-full bg-linear-to-t from-sage to-sage/40 rounded-t-lg hover:from-sage/90 transition-all cursor-pointer relative group"
                         style={{
@@ -257,8 +265,8 @@ export function ControlAnalyticsPanel() {
                 {d.monthlyProfitLoss.length === 0 ? (
                   <p className="text-center text-charcoal/50 font-body py-8">No data</p>
                 ) : (
-                  d.monthlyProfitLoss.map((data, idx) => (
-                    <div key={idx}>
+                  d.monthlyProfitLoss.map((data) => (
+                    <div key={data.label}>
                       <div className="flex justify-between mb-1">
                         <span className="font-body text-sm">{data.label}</span>
                         <span
@@ -319,8 +327,8 @@ export function ControlAnalyticsPanel() {
                 {d.members.newMembersMonthly.length === 0 ? (
                   <p className="w-full text-center text-charcoal/50 font-body py-12">No signups</p>
                 ) : (
-                  d.members.newMembersMonthly.map((cell, idx) => (
-                    <div key={idx} className="flex-1 flex flex-col items-center gap-2">
+                  d.members.newMembersMonthly.map((cell) => (
+                    <div key={cell.label} className="flex-1 flex flex-col items-center gap-2">
                       <div
                         className="w-full bg-linear-to-t from-sage to-sage/40 rounded-t-lg hover:from-sage/90 transition-all cursor-pointer relative group"
                         style={{
@@ -438,7 +446,7 @@ export function ControlAnalyticsPanel() {
               ) : (
                 <div className="space-y-3">
                   {d.members.leaderboard.map((member, idx) => (
-                    <div key={idx} className="flex items-center gap-3">
+                    <div key={`${member.name}-${member.streak}`} className="flex items-center gap-3">
                       <div className="shrink-0 w-8 h-8 rounded-full bg-sage/10 flex items-center justify-center">
                         <span className="font-display text-sm text-sage">#{idx + 1}</span>
                       </div>
@@ -670,9 +678,7 @@ export function ControlAnalyticsPanel() {
               </div>
               <div className="font-display text-3xl text-charcoal mb-1">₹{d.kpis.revenuePerMember}</div>
               <Badge className="bg-sage/10 text-sage border-sage/20">
-                {d.kpis.revenuePerMemberGrowthPct !== null
-                  ? `${d.kpis.revenuePerMemberGrowthPct > 0 ? "+" : ""}${d.kpis.revenuePerMemberGrowthPct}%`
-                  : "—"}
+                {revPerMemberLabel}
               </Badge>
             </CardContent>
           </Card>

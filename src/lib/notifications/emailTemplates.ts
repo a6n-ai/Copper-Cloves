@@ -11,8 +11,14 @@ const MUTED = "#888888";
 const BORDER = "#E8E4DC";
 const TERRACOTTA = "#C17B5C";
 
+function toRawString(s: unknown): string {
+  if (s == null) return "";
+  if (typeof s === "object") return JSON.stringify(s);
+  return String(s as string | number | boolean);
+}
+
 function h(s: unknown): string {
-  return String(s ?? "")
+  return toRawString(s)
     .replace(/&/g, "&amp;")
     .replace(/</g, "&lt;")
     .replace(/>/g, "&gt;")
@@ -364,6 +370,9 @@ export interface CancellationEmailOpts {
 
 export function cancellationEmail(opts: CancellationEmailOpts): string {
   const portal = opts.portalUrl ?? BASE_URL;
+  const creditReturnedText = opts.creditsCount
+    ? `${opts.creditsCount} class credit has`
+    : "Your class credit has";
   return emailWrapper(`
     ${logoHeader("booking cancelled")}
     <div style="padding:32px 32px 0">
@@ -382,7 +391,7 @@ export function cancellationEmail(opts: CancellationEmailOpts): string {
         ? `<div style="background:#F0FAF0;border:1px solid #A3D9A5;border-radius:12px;padding:20px;margin-bottom:20px;text-align:center">
             <p style="font-family:Georgia,serif;font-size:14px;font-weight:700;color:#2D6A2F;margin:0 0 6px">✓ credit returned to your account</p>
             <p style="font-family:Georgia,serif;font-size:14px;color:#2D6A2F;margin:0">
-              ${opts.creditsCount ? `${opts.creditsCount} class credit has` : "Your class credit has"} been returned. You can use it to book another session.
+              ${creditReturnedText} been returned. You can use it to book another session.
             </p>
           </div>`
         : `<div style="background:#FFF7ED;border:1px solid #FED7AA;border-radius:12px;padding:20px;margin-bottom:20px;text-align:center">

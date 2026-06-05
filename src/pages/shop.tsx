@@ -2,7 +2,7 @@ import { useState, useEffect, useMemo } from "react";
 import type { GetStaticProps } from "next";
 import prisma from "@/lib/prisma";
 import type { LucideIcon } from "lucide-react";
-import { SEO } from "@/components/SEO";
+import { SEO as Seo } from "@/components/SEO";
 import { Footer } from "@/components/Footer";
 import { Button } from "@/components/ui/button";
 import {
@@ -15,8 +15,6 @@ import { Badge } from "@/components/ui/badge";
 import {
   ShoppingCart,
   X,
-  Plus,
-  Minus,
   ArrowRight,
   Leaf,
   Sparkles,
@@ -100,7 +98,7 @@ export const getStaticProps: GetStaticProps<ShopProps> = async () => {
   }
 };
 
-export default function Shop({ initialProducts }: ShopProps) {
+export default function Shop({ initialProducts }: Readonly<ShopProps>) {
   const { data: session } = useSession();
   const [products] = useState<RetailProduct[]>(initialProducts);
   // Always false — products are SSG'd via `getStaticProps`. Kept as a local
@@ -245,7 +243,7 @@ export default function Shop({ initialProducts }: ShopProps) {
 
   return (
     <>
-      <SEO 
+      <Seo
         title="Shop | The Studio by Copper + Cloves"
         description="Curated wellness products for your home sanctuary. Aromatherapy, mindfulness tools, personal care, and more."
       />
@@ -566,8 +564,9 @@ export default function Shop({ initialProducts }: ShopProps) {
                 
                 <div className="space-y-4">
                   <div>
-                    <label className="font-body text-sm text-charcoal/70 mb-2 block">Full Name</label>
+                    <label htmlFor="shop-customer-name" className="font-body text-sm text-charcoal/70 mb-2 block">Full Name</label>
                     <input
+                      id="shop-customer-name"
                       type="text"
                       className="w-full px-4 py-3 rounded-xl border border-sage/20 focus:border-sage focus:outline-hidden font-body"
                       placeholder="Enter your name"
@@ -577,8 +576,9 @@ export default function Shop({ initialProducts }: ShopProps) {
                   </div>
                   
                   <div>
-                    <label className="font-body text-sm text-charcoal/70 mb-2 block">Email</label>
+                    <label htmlFor="shop-customer-email" className="font-body text-sm text-charcoal/70 mb-2 block">Email</label>
                     <input
+                      id="shop-customer-email"
                       type="email"
                       className="w-full px-4 py-3 rounded-xl border border-sage/20 focus:border-sage focus:outline-hidden font-body"
                       placeholder="your@email.com"
@@ -588,8 +588,9 @@ export default function Shop({ initialProducts }: ShopProps) {
                   </div>
                   
                   <div>
-                    <label className="font-body text-sm text-charcoal/70 mb-2 block">Phone</label>
+                    <label htmlFor="shop-customer-phone" className="font-body text-sm text-charcoal/70 mb-2 block">Phone</label>
                     <input
+                      id="shop-customer-phone"
                       type="tel"
                       className="w-full px-4 py-3 rounded-xl border border-sage/20 focus:border-sage focus:outline-hidden font-body"
                       placeholder="Phone number"
@@ -599,8 +600,9 @@ export default function Shop({ initialProducts }: ShopProps) {
                   </div>
                   
                   <div>
-                    <label className="font-body text-sm text-charcoal/70 mb-2 block">Address</label>
+                    <label htmlFor="shop-shipping-address" className="font-body text-sm text-charcoal/70 mb-2 block">Address</label>
                     <textarea
+                      id="shop-shipping-address"
                       className="w-full px-4 py-3 rounded-xl border border-sage/20 focus:border-sage focus:outline-hidden font-body resize-none"
                       rows={3}
                       placeholder="Delivery address"
@@ -652,9 +654,10 @@ export default function Shop({ initialProducts }: ShopProps) {
                 </div>
                 
                 <div className="p-4 rounded-xl bg-cream/50 mb-4 space-y-3">
-                  <label className="font-body text-sm text-charcoal/70 block">Promo code</label>
+                  <label htmlFor="shop-promo-code" className="font-body text-sm text-charcoal/70 block">Promo code</label>
                   <div className="flex gap-2 flex-col sm:flex-row">
                     <Input
+                      id="shop-promo-code"
                       className="font-mono uppercase border-sage/20"
                       placeholder="Code"
                       value={couponCode}

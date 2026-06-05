@@ -94,7 +94,9 @@ export function logUserSelection(meta: Record<string, unknown>) {
         )
         .slice(0, MAX_SELECTION_ARRAY_LEN);
     } else {
-      safe[k] = String(v).slice(0, MAX_SELECTION_STRING);
+      const serialized =
+        typeof v === "object" ? JSON.stringify(v) : String(v as string | symbol | bigint);
+      safe[k] = serialized.slice(0, MAX_SELECTION_STRING);
     }
   }
   logClientActivity("user_selection", "interaction", safe);

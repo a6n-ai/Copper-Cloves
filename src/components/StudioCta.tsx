@@ -54,10 +54,10 @@ const DEFAULT_SECONDARY: CtaAction = {
 function ActionLink({
   action,
   variant,
-}: {
+}: Readonly<{
   action: CtaAction;
   variant: "primary" | "ghost";
-}) {
+}>) {
   // On-sage inverted CTAs — keep their brand-specific cream/white-warm colours
   // (no standard Button variant matches), but adopt Button's structure + sizing.
   const styles =
@@ -112,7 +112,7 @@ export function StudioCta({
   secondary = DEFAULT_SECONDARY,
   withSection = false,
   className = "",
-}: StudioCtaProps) {
+}: Readonly<StudioCtaProps>) {
   const reduce = useReducedMotion();
   // useInView (IntersectionObserver) instead of declarative `whileInView`, which
   // requires framer's viewport feature — absent from the `domAnimation` LazyMotion
@@ -140,7 +140,7 @@ export function StudioCta({
     >
       {/* tonal depth: cream light from top, deeper sage settling at the base */}
       <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(90%_130%_at_50%_-20%,rgba(245,242,234,0.22),transparent_60%)]" />
-      <div className="pointer-events-none absolute inset-x-0 bottom-0 h-2/3 bg-gradient-to-t from-[#7a8b7c]/45 to-transparent" />
+      <div className="pointer-events-none absolute inset-x-0 bottom-0 h-2/3 bg-linear-to-t from-[#7a8b7c]/45 to-transparent" />
 
       <div className="relative mx-auto max-w-2xl">
         {kicker && (
@@ -152,9 +152,9 @@ export function StudioCta({
           {heading}
         </h2>
         {body &&
-          (Array.isArray(body) ? body : [body]).map((para, i) => (
+          (Array.isArray(body) ? body : [body]).map((para) => (
             <p
-              key={i}
+              key={para}
               className="mx-auto mt-5 max-w-md font-body leading-relaxed text-cream/80"
             >
               {para}

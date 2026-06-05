@@ -78,7 +78,7 @@ async function createOrderRows(
   },
 ): Promise<void> {
   for (let i = 0; i < lines.length; i++) {
-    const line = lines[i]!;
+    const line = lines[i];
     await tx.cafeOrder.create({
       data: {
         user_id: ctx.userId,
@@ -96,7 +96,12 @@ async function createOrderRows(
 }
 
 function checkoutErrorResponse(e: unknown): { status: number; error: string } | null {
-  const msg = e instanceof Error ? e.message : String(e);
+  let msg = "";
+  if (e instanceof Error) {
+    msg = e.message;
+  } else if (typeof e === "string") {
+    msg = e;
+  }
   if (msg.startsWith("UNAVAILABLE:")) {
     return { status: 400, error: "One or more menu items are unavailable" };
   }
@@ -186,7 +191,7 @@ function splitDiscountAcrossLines(lineSubtotals: number[], discountTotal: number
   const out: number[] = [];
   let assigned = 0;
   for (let i = 0; i < lineSubtotals.length; i++) {
-    const line = lineSubtotals[i]!;
+    const line = lineSubtotals[i];
     if (i === lineSubtotals.length - 1) {
       out.push(Math.min(line, Math.round((cap - assigned) * 100) / 100));
     } else {

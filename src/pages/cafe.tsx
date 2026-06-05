@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 import Image from "next/image";
 import Link from "next/link";
-import { SEO } from "@/components/SEO";
+import { SEO as Seo } from "@/components/SEO";
 import { Footer } from "@/components/Footer";
 import { Button } from "@/components/ui/button";
 import {
@@ -126,7 +126,7 @@ export default function CafePage() {
 
   return (
     <>
-      <SEO 
+      <Seo
         title="Café & Community | The Studio by Copper + Cloves"
         description="Nourish your body with plant-based meals and belong to a vibrant community. Join us for The Analog Club and Sober Sundowners."
       />
@@ -148,7 +148,7 @@ export default function CafePage() {
           >
             {heroMedia.map((media, index) => (
               <div
-                key={`left-${index}`}
+                key={`left-${media.src}`}
                 className="absolute inset-0 transition-opacity duration-[2000ms]"
                 style={{
                   opacity: index === heroMediaIndex ? 1 : 0,
@@ -201,47 +201,54 @@ export default function CafePage() {
               const rightIndex = (heroMediaIndex + 3) % heroMedia.length;
               const isVisible = index === rightIndex;
               const rightMedia = heroMedia[rightIndex];
-              
+
+              let rightEl = null;
+              if (isVisible && rightMedia.type === "video") {
+                rightEl = (
+                  <video
+                    autoPlay
+                    loop
+                    muted
+                    playsInline
+                    className="w-full h-full animate-subtle-float-reverse"
+                    style={{
+                      objectFit: 'cover',
+                      objectPosition: 'center center',
+                      filter: 'contrast(1.1) saturate(1.15)'
+                    }}
+                  >
+                    <source src={rightMedia.src} type="video/mp4" />
+                  </video>
+                );
+              } else if (isVisible && rightMedia.type === "image") {
+                rightEl = (
+                  <Image
+                    src={rightMedia.src}
+                    alt=""
+                    aria-hidden="true"
+                    fill
+                    sizes="100vw"
+                    className="animate-subtle-float-reverse"
+                    style={{
+                      objectFit: 'cover',
+                      objectPosition: 'center center',
+                      filter: 'contrast(1.1) saturate(1.15)'
+                    }}
+                    quality={95}
+                  />
+                );
+              }
+
               return (
                 <div
-                  key={`right-${index}`}
+                  key={`right-${media.src}`}
                   className="absolute inset-0 transition-opacity duration-[2000ms]"
                   style={{
                     opacity: isVisible ? 1 : 0,
                     zIndex: isVisible ? 1 : 0
                   }}
                 >
-                  {isVisible && rightMedia.type === "video" ? (
-                    <video
-                      autoPlay
-                      loop
-                      muted
-                      playsInline
-                      className="w-full h-full animate-subtle-float-reverse"
-                      style={{ 
-                        objectFit: 'cover',
-                        objectPosition: 'center center',
-                        filter: 'contrast(1.1) saturate(1.15)'
-                      }}
-                    >
-                      <source src={rightMedia.src} type="video/mp4" />
-                    </video>
-                  ) : isVisible && rightMedia.type === "image" ? (
-                    <Image
-                      src={rightMedia.src}
-                      alt=""
-                      aria-hidden="true"
-                      fill
-                      sizes="100vw"
-                      className="animate-subtle-float-reverse"
-                      style={{ 
-                        objectFit: 'cover',
-                        objectPosition: 'center center',
-                        filter: 'contrast(1.1) saturate(1.15)'
-                      }}
-                      quality={95}
-                    />
-                  ) : null}
+                  {rightEl}
                 </div>
               );
             })}

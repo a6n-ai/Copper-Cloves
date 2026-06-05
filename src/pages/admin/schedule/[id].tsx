@@ -2,7 +2,7 @@ import { useCallback, useEffect, useMemo, useState } from "react";
 import { useRouter } from "next/router";
 import { UserPlus, UserMinus, CheckCircle2, User as UserIcon, Users } from "lucide-react";
 import { MetricCard } from "@/components/admin/MetricCard";
-import { SEO } from "@/components/SEO";
+import { SEO as Seo } from "@/components/SEO";
 import { Skeleton } from "@/components/ui/skeleton";
 import { PageHeader } from "@/components/dashboard/PageHeader";
 import { ClassCheckinQr } from "@/components/checkin/ClassCheckinQr";
@@ -71,6 +71,35 @@ interface NamedRow {
 
 const NONE = "__none__";
 
+function getQrRefreshLabel(refreshing: boolean, windowOpensAt?: string) {
+  if (refreshing) return "Generating…";
+  return windowOpensAt ? "Generate now" : "Try again";
+}
+
+function QrWindowBanner({ qr }: Readonly<{ qr: QrData | null }>) {
+  if (qr?.historical) {
+    return (
+      <p className="mb-4 rounded-lg bg-cream/60 px-4 py-2 text-sm text-charcoal/60">
+        Class is closed. Showing the historical QR for reference — scans no longer check in.
+      </p>
+    );
+  }
+  if (!qr?.withinWindow) {
+    return (
+      <p className="mb-4 rounded-lg bg-cream/60 px-4 py-2 text-sm text-charcoal/60">
+        QR scanning is active from 30 minutes before until 30 minutes after class start.
+        {qr?.windowOpensAt
+          ? ` Opens at ${new Date(qr.windowOpensAt).toLocaleString(undefined, {
+              dateStyle: "medium",
+              timeStyle: "short",
+            })}.`
+          : null}
+      </p>
+    );
+  }
+  return null;
+}
+
 /** Shape-matched loading state mirroring the class header, info stats, QR card, and roster list. */
 function ClassDetailSkeleton() {
   return (
@@ -90,8 +119,8 @@ function ClassDetailSkeleton() {
 
       {/* Metric cards — capacity / enrolled / spots / checked-in */}
       <div className="grid grid-cols-2 gap-3 sm:gap-4 lg:grid-cols-4">
-        {Array.from({ length: 4 }).map((_, i) => (
-          <Card key={i} className="rounded-2xl shadow-xs">
+        {["m1", "m2", "m3", "m4"].map((sk) => (
+          <Card key={sk} className="rounded-2xl shadow-xs">
             <CardContent className="p-4 space-y-2">
               <Skeleton className="h-7 w-16 bg-sage/10" />
               <Skeleton className="h-3 w-20 bg-sage/10" />
@@ -131,8 +160,8 @@ function ClassDetailSkeleton() {
         </CardHeader>
         <CardContent>
           <div className="grid grid-cols-1 gap-6 sm:grid-cols-2">
-            {Array.from({ length: 2 }).map((_, i) => (
-              <div key={i} className="flex flex-col items-center gap-3 rounded-xl border border-sage/15 p-6">
+            {["qr1", "qr2"].map((sk) => (
+              <div key={sk} className="flex flex-col items-center gap-3 rounded-xl border border-sage/15 p-6">
                 <Skeleton className="h-5 w-24 bg-sage/10" />
                 <Skeleton className="h-40 w-40 rounded-lg bg-sage/10" />
               </div>
@@ -154,8 +183,8 @@ function ClassDetailSkeleton() {
           </div>
           {/* Roster rows */}
           <ul className="divide-y divide-sage/10">
-            {Array.from({ length: 6 }).map((_, i) => (
-              <li key={i} className="flex items-center justify-between gap-3 py-2.5">
+            {["r1", "r2", "r3", "r4", "r5", "r6"].map((sk) => (
+              <li key={sk} className="flex items-center justify-between gap-3 py-2.5">
                 <div className="min-w-0 space-y-1.5">
                   <Skeleton className="h-4 w-40 bg-sage/10" />
                   <Skeleton className="h-3 w-52 bg-sage/10" />
@@ -424,7 +453,7 @@ export default function AdminClassPage() {
 
   return (
     <>
-      <SEO title="Class — Admin" description="Class details, check-in and roster" />
+      <Seo title="Class — Admin" description="Class details, check-in and roster" />
       <div className="min-h-screen bg-linear-to-br from-cream via-cream to-sage/10">
         <main className="min-h-screen">
           <div className="max-w-7xl mx-auto p-6 lg:p-8 space-y-6">
@@ -616,21 +645,7 @@ export default function AdminClassPage() {
                     )}
                   </CardHeader>
                   <CardContent>
-                    {qr?.historical ? (
-                      <p className="mb-4 rounded-lg bg-cream/60 px-4 py-2 text-sm text-charcoal/60">
-                        Class is closed. Showing the historical QR for reference — scans no longer check in.
-                      </p>
-                    ) : !qr?.withinWindow ? (
-                      <p className="mb-4 rounded-lg bg-cream/60 px-4 py-2 text-sm text-charcoal/60">
-                        QR scanning is active from 30 minutes before until 30 minutes after class start.
-                        {qr?.windowOpensAt
-                          ? ` Opens at ${new Date(qr.windowOpensAt).toLocaleString(undefined, {
-                              dateStyle: "medium",
-                              timeStyle: "short",
-                            })}.`
-                          : null}
-                      </p>
-                    ) : null}
+                    <QrWindowBanner qr={qr} />
                     <div className="grid grid-cols-1 gap-6 sm:grid-cols-2">
                       {(["instructor", "member"] as const).map((kind) => (
                         <div
@@ -646,7 +661,7 @@ export default function AdminClassPage() {
                               disabled={qrRefreshing}
                               className="border-sage/40 text-sage bg-white-warm hover:!bg-sage hover:!text-cream hover:!border-sage font-body"
                             >
-                              {qrRefreshing ? "Generating…" : qr?.windowOpensAt ? "Generate now" : "Try again"}
+                              {getQrRefreshLabel(qrRefreshing, qr?.windowOpensAt)}
                             </Button>
                           )}
                         </div>

@@ -212,8 +212,10 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   }));
   const ngPrev = newMembersMonthly[newMembersMonthly.length - 2]?.count ?? 0;
   const ngCurr = newMembersMonthly[newMembersMonthly.length - 1]?.count ?? 0;
-  const memberGrowthPct: number | null =
-    ngPrev > 0 ? Math.round(((ngCurr - ngPrev) / ngPrev) * 100) : ngCurr > 0 ? 100 : 0;
+  let memberGrowthPct: number | null;
+  if (ngPrev > 0) memberGrowthPct = Math.round(((ngCurr - ngPrev) / ngPrev) * 100);
+  else if (ngCurr > 0) memberGrowthPct = 100;
+  else memberGrowthPct = 0;
 
   const passCounts = new Map<string, number>();
   for (const up of activePkgsNow) {
@@ -308,7 +310,10 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     const slots = slotByClassId.get(cid) ?? Math.max(1, Math.ceil(row.bookings));
     const cap = Math.max(capByClassId.get(cid) ?? 12, 1);
     const seats = slots * cap;
-    const u = seats > 0 ? Math.min(100, Math.round((row.bookings / seats) * 100)) : row.bookings > 0 ? 50 : 0;
+    let u: number;
+    if (seats > 0) u = Math.min(100, Math.round((row.bookings / seats) * 100));
+    else if (row.bookings > 0) u = 50;
+    else u = 0;
     let status: "full" | "high" | "good" | "moderate" | "low";
     if (u >= 92) status = "full";
     else if (u >= 78) status = "high";
@@ -349,8 +354,8 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   const revLastMonth = packagesPrevMonthOnly.reduce((s, r) => s + money(r.package_type.price), 0);
   const rpmPrev = revLastMonthPrev > 0 && allMembersCount > 0 ? revLastMonthPrev / allMembersCount : 0;
   const rpmCurr = revLastMonth > 0 && allMembersCount > 0 ? revLastMonth / allMembersCount : 0;
-  const rpmGrowth =
-    rpmPrev > 0 ? Math.round(((rpmCurr - rpmPrev) / rpmPrev) * 100) : rpmCurr > 0 ? null : null;
+  const rpmGrowth: number | null =
+    rpmPrev > 0 ? Math.round(((rpmCurr - rpmPrev) / rpmPrev) * 100) : null;
 
   const slotOfferedApprox = schedules30dBookings.length * 14;
   const utilAvg =

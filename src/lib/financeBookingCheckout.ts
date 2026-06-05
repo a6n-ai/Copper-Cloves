@@ -85,9 +85,11 @@ export function snapshotTotalsConsistent(snap: FinanceSnapshotV1): boolean {
 function parseGuestAttendeeRow(row: unknown): GuestAttendee | null {
   if (!row || typeof row !== "object") return null;
   const g = row as Record<string, unknown>;
-  const name = g.name != null ? String(g.name).trim().slice(0, 120) : "";
-  const email = g.email != null ? String(g.email).trim().slice(0, 120) : "";
-  const phone = g.phone != null ? String(g.phone).trim().slice(0, 40) : "";
+  const coerce = (v: unknown, max: number) =>
+    typeof v === "object" || v == null ? "" : String(v as string | number | boolean).trim().slice(0, max);
+  const name = coerce(g.name, 120);
+  const email = coerce(g.email, 120);
+  const phone = coerce(g.phone, 40);
   return {
     ...(name ? { name } : {}),
     ...(email ? { email } : {}),

@@ -14,7 +14,7 @@ import {
   Star,
   Users,
 } from "lucide-react";
-import { SEO } from "@/components/SEO";
+import { SEO as Seo } from "@/components/SEO";
 import { AdminPageHeader } from "@/components/admin/AdminPageHeader";
 import { MetricCard } from "@/components/admin/MetricCard";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -163,9 +163,148 @@ export default function AdminInstructorsPage() {
     }
   }
 
+  let tableBody: React.ReactNode;
+  if (loading) {
+    tableBody = ["s1", "s2", "s3", "s4", "s5"].map((sk) => (
+      <TableRow key={sk} className="border-sage/10">
+        <TableCell className="px-5 py-4">
+          <div className="flex items-center gap-3">
+            <Skeleton className="h-11 w-11 rounded-lg bg-sage/10" />
+            <div className="space-y-1.5">
+              <Skeleton className="h-4 w-32 bg-sage/10" />
+              <Skeleton className="h-3 w-24 bg-sage/10" />
+            </div>
+          </div>
+        </TableCell>
+        <TableCell className="px-5 py-4"><Skeleton className="h-4 w-40 bg-sage/10" /></TableCell>
+        <TableCell className="px-5 py-4"><Skeleton className="h-5 w-32 bg-sage/10 rounded-full" /></TableCell>
+        <TableCell className="px-5 py-4"><Skeleton className="h-6 w-20 bg-sage/10 rounded-full" /></TableCell>
+        <TableCell className="px-5 py-4"><Skeleton className="h-8 w-24 bg-sage/10 ml-auto" /></TableCell>
+      </TableRow>
+    ));
+  } else if (pg.pageItems.length === 0) {
+    tableBody = (
+      <TableRow>
+        <TableCell colSpan={5} className="px-5 py-12 text-center">
+          <div className="flex flex-col items-center gap-3">
+            <GraduationCap className="h-10 w-10 text-charcoal/25" />
+            <p className="font-body text-sm text-charcoal/55">
+              {search ? "No instructors match your search." : "No instructors yet — add your first one."}
+            </p>
+          </div>
+        </TableCell>
+      </TableRow>
+    );
+  } else {
+    tableBody = pg.pageItems.map((instructor) => {
+      const active = instructor.is_active !== false;
+      return (
+        <TableRow
+          key={instructor.id}
+          className="border-sage/10 hover:bg-sage/5 cursor-pointer"
+          onClick={() => router.push(`/admin/instructors/${instructor.id}`)}
+        >
+          <TableCell className="px-5 py-4">
+            <div className="flex items-center gap-3 min-w-0">
+              <ListAvatar src={instructor.image_url} name={instructor.name} size="md" ringClassName="ring-sage/20" />
+              <div className="min-w-0">
+                <div className="font-body font-medium text-charcoal truncate">{instructor.name}</div>
+                {instructor.title && (
+                  <div className="font-body text-xs text-sage uppercase tracking-wide truncate">{instructor.title}</div>
+                )}
+                {instructor.years_of_experience && (
+                  <div className="font-body text-xs text-charcoal/50 truncate">{instructor.years_of_experience} yrs exp</div>
+                )}
+              </div>
+            </div>
+          </TableCell>
+          <TableCell className="px-5 py-4">
+            <div className="space-y-1 min-w-0">
+              {instructor.email && (
+                <div className="flex items-center gap-1.5 text-xs text-charcoal/60 truncate">
+                  <Mail className="h-3 w-3 shrink-0" /> <span className="truncate">{instructor.email}</span>
+                </div>
+              )}
+              {instructor.phone && (
+                <div className="flex items-center gap-1.5 text-xs text-charcoal/60 truncate">
+                  <Phone className="h-3 w-3 shrink-0" /> <span className="truncate">{instructor.phone}</span>
+                </div>
+              )}
+              {!instructor.email && !instructor.phone && (
+                <span className="font-body text-xs text-charcoal/40 italic">—</span>
+              )}
+            </div>
+          </TableCell>
+          <TableCell className="px-5 py-4">
+            {instructor.specialties && instructor.specialties.length > 0 ? (
+              <div className="flex items-center gap-1 max-w-[180px]">
+                <Badge
+                  variant="outline"
+                  className="border-sage/20 text-sage bg-sage/5 text-xs font-body truncate max-w-[120px]"
+                >
+                  {instructor.specialties[0]}
+                </Badge>
+                {instructor.specialties.length > 1 && (
+                  <TooltipProvider delayDuration={100}>
+                    <Tooltip>
+                      <TooltipTrigger asChild>
+                        <span className="inline-flex shrink-0 cursor-default items-center rounded-md border border-charcoal/15 bg-cream/30 px-2 py-0.5 font-body text-xs text-charcoal/50">
+                          +{instructor.specialties.length - 1}
+                        </span>
+                      </TooltipTrigger>
+                      <TooltipContent className="max-w-xs font-body">
+                        {instructor.specialties.slice(1).join(", ")}
+                      </TooltipContent>
+                    </Tooltip>
+                  </TooltipProvider>
+                )}
+              </div>
+            ) : (
+              <span className="font-body text-sm text-charcoal/40">—</span>
+            )}
+          </TableCell>
+          <TableCell className="px-5 py-4">
+            {active ? (
+              <StatusPill tone="sage" variant="solid" dot pulse>Active</StatusPill>
+            ) : (
+              <StatusPill tone="red" variant="solid" dot>Inactive</StatusPill>
+            )}
+          </TableCell>
+          <TableCell className="px-5 py-4" onClick={(e) => e.stopPropagation()}>
+            <div className="flex gap-1.5 justify-end">
+              <Button
+                type="button"
+                variant="outline"
+                size="sm"
+                onClick={() => handleToggle(instructor.id, active)}
+                aria-label={active ? "Deactivate instructor" : "Activate instructor"}
+                title={active ? "Deactivate instructor" : "Activate instructor"}
+                className={cn(
+                  "h-8 w-8 p-0 font-body transition-all hover:scale-110 active:scale-95",
+                  active
+                    ? "border-terracotta/40 text-terracotta bg-white-warm hover:!bg-terracotta hover:!text-cream hover:!border-terracotta"
+                    : "border-sage/60 text-sage bg-white-warm hover:!bg-sage hover:!text-cream hover:!border-sage",
+                )}
+              >
+                <AnimatedIcon icon={active ? PowerOff : Power} size={14} animateOnMount={false} hover="wiggle" />
+              </Button>
+              <ManageButton onClick={() => router.push(`/admin/instructors/${instructor.id}`)} label="Open profile" />
+              <DeleteButton
+                onClick={() => handleDelete(instructor.id)}
+                label="Delete instructor"
+                confirmTitle={`Delete ${instructor.name}?`}
+                confirmDescription="The instructor will be permanently removed. Past class history is preserved."
+              />
+            </div>
+          </TableCell>
+        </TableRow>
+      );
+    });
+  }
+
   return (
     <>
-      <SEO title="Instructors — Admin" description="Instructor roster management" />
+      <Seo title="Instructors — Admin" description="Instructor roster management" />
       <div className="min-h-screen bg-linear-to-br from-cream via-cream to-sage/10">
         <main className="min-h-screen">
           <div className="max-w-7xl mx-auto p-6 lg:p-8 space-y-8">
@@ -213,21 +352,29 @@ export default function AdminInstructorsPage() {
 
                 {/* Status filter chips */}
                 <div className="flex items-center gap-1.5">
-                  {(["all", "active", "inactive"] as const).map((opt) => (
-                    <button
-                      key={opt}
-                      type="button"
-                      onClick={() => setStatusFilter(opt)}
-                      className={cn(
-                        "rounded-full border px-3 py-1 font-body text-xs capitalize transition-colors",
-                        statusFilter === opt
-                          ? "bg-sage text-cream border-sage shadow-sm"
-                          : "bg-white-warm text-charcoal/65 border-sage/20 hover:bg-sage/10 hover:text-sage",
-                      )}
-                    >
-                      {opt === "all" ? `All (${instructors.length})` : opt === "active" ? `Active (${stats.active})` : `Inactive (${stats.inactive})`}
-                    </button>
-                  ))}
+                  {(["all", "active", "inactive"] as const).map((opt) => {
+                    const chipCounts = {
+                      all: instructors.length,
+                      active: stats.active,
+                      inactive: stats.inactive,
+                    } as const;
+                    const chipLabel = `${opt[0].toUpperCase()}${opt.slice(1)} (${chipCounts[opt]})`;
+                    return (
+                      <button
+                        key={opt}
+                        type="button"
+                        onClick={() => setStatusFilter(opt)}
+                        className={cn(
+                          "rounded-full border px-3 py-1 font-body text-xs capitalize transition-colors",
+                          statusFilter === opt
+                            ? "bg-sage text-cream border-sage shadow-sm"
+                            : "bg-white-warm text-charcoal/65 border-sage/20 hover:bg-sage/10 hover:text-sage",
+                        )}
+                      >
+                        {chipLabel}
+                      </button>
+                    );
+                  })}
                 </div>
               </CardHeader>
 
@@ -245,141 +392,7 @@ export default function AdminInstructorsPage() {
                         </TableRow>
                       </TableHeader>
                       <TableBody>
-                        {loading ? (
-                          Array.from({ length: 5 }).map((_, i) => (
-                            <TableRow key={i} className="border-sage/10">
-                              <TableCell className="px-5 py-4">
-                                <div className="flex items-center gap-3">
-                                  <Skeleton className="h-11 w-11 rounded-lg bg-sage/10" />
-                                  <div className="space-y-1.5">
-                                    <Skeleton className="h-4 w-32 bg-sage/10" />
-                                    <Skeleton className="h-3 w-24 bg-sage/10" />
-                                  </div>
-                                </div>
-                              </TableCell>
-                              <TableCell className="px-5 py-4"><Skeleton className="h-4 w-40 bg-sage/10" /></TableCell>
-                              <TableCell className="px-5 py-4"><Skeleton className="h-5 w-32 bg-sage/10 rounded-full" /></TableCell>
-                              <TableCell className="px-5 py-4"><Skeleton className="h-6 w-20 bg-sage/10 rounded-full" /></TableCell>
-                              <TableCell className="px-5 py-4"><Skeleton className="h-8 w-24 bg-sage/10 ml-auto" /></TableCell>
-                            </TableRow>
-                          ))
-                        ) : pg.pageItems.length === 0 ? (
-                          <TableRow>
-                            <TableCell colSpan={5} className="px-5 py-12 text-center">
-                              <div className="flex flex-col items-center gap-3">
-                                <GraduationCap className="h-10 w-10 text-charcoal/25" />
-                                <p className="font-body text-sm text-charcoal/55">
-                                  {search ? "No instructors match your search." : "No instructors yet — add your first one."}
-                                </p>
-                              </div>
-                            </TableCell>
-                          </TableRow>
-                        ) : (
-                          pg.pageItems.map((instructor) => {
-                            const active = instructor.is_active !== false;
-                            return (
-                              <TableRow
-                                key={instructor.id}
-                                className="border-sage/10 hover:bg-sage/5 cursor-pointer"
-                                onClick={() => router.push(`/admin/instructors/${instructor.id}`)}
-                              >
-                                <TableCell className="px-5 py-4">
-                                  <div className="flex items-center gap-3 min-w-0">
-                                    <ListAvatar src={instructor.image_url} name={instructor.name} size="md" ringClassName="ring-sage/20" />
-                                    <div className="min-w-0">
-                                      <div className="font-body font-medium text-charcoal truncate">{instructor.name}</div>
-                                      {instructor.title && (
-                                        <div className="font-body text-xs text-sage uppercase tracking-wide truncate">{instructor.title}</div>
-                                      )}
-                                      {instructor.years_of_experience && (
-                                        <div className="font-body text-xs text-charcoal/50 truncate">{instructor.years_of_experience} yrs exp</div>
-                                      )}
-                                    </div>
-                                  </div>
-                                </TableCell>
-                                <TableCell className="px-5 py-4">
-                                  <div className="space-y-1 min-w-0">
-                                    {instructor.email && (
-                                      <div className="flex items-center gap-1.5 text-xs text-charcoal/60 truncate">
-                                        <Mail className="h-3 w-3 shrink-0" /> <span className="truncate">{instructor.email}</span>
-                                      </div>
-                                    )}
-                                    {instructor.phone && (
-                                      <div className="flex items-center gap-1.5 text-xs text-charcoal/60 truncate">
-                                        <Phone className="h-3 w-3 shrink-0" /> <span className="truncate">{instructor.phone}</span>
-                                      </div>
-                                    )}
-                                    {!instructor.email && !instructor.phone && (
-                                      <span className="font-body text-xs text-charcoal/40 italic">—</span>
-                                    )}
-                                  </div>
-                                </TableCell>
-                                <TableCell className="px-5 py-4">
-                                  {instructor.specialties && instructor.specialties.length > 0 ? (
-                                    <div className="flex items-center gap-1 max-w-[180px]">
-                                      <Badge
-                                        variant="outline"
-                                        className="border-sage/20 text-sage bg-sage/5 text-xs font-body truncate max-w-[120px]"
-                                      >
-                                        {instructor.specialties[0]}
-                                      </Badge>
-                                      {instructor.specialties.length > 1 && (
-                                        <TooltipProvider delayDuration={100}>
-                                          <Tooltip>
-                                            <TooltipTrigger asChild>
-                                              <span className="inline-flex shrink-0 cursor-default items-center rounded-md border border-charcoal/15 bg-cream/30 px-2 py-0.5 font-body text-xs text-charcoal/50">
-                                                +{instructor.specialties.length - 1}
-                                              </span>
-                                            </TooltipTrigger>
-                                            <TooltipContent className="max-w-xs font-body">
-                                              {instructor.specialties.slice(1).join(", ")}
-                                            </TooltipContent>
-                                          </Tooltip>
-                                        </TooltipProvider>
-                                      )}
-                                    </div>
-                                  ) : (
-                                    <span className="font-body text-sm text-charcoal/40">—</span>
-                                  )}
-                                </TableCell>
-                                <TableCell className="px-5 py-4">
-                                  {active ? (
-                                    <StatusPill tone="sage" variant="solid" dot pulse>Active</StatusPill>
-                                  ) : (
-                                    <StatusPill tone="red" variant="solid" dot>Inactive</StatusPill>
-                                  )}
-                                </TableCell>
-                                <TableCell className="px-5 py-4" onClick={(e) => e.stopPropagation()}>
-                                  <div className="flex gap-1.5 justify-end">
-                                    <Button
-                                      type="button"
-                                      variant="outline"
-                                      size="sm"
-                                      onClick={() => handleToggle(instructor.id, active)}
-                                      aria-label={active ? "Deactivate instructor" : "Activate instructor"}
-                                      title={active ? "Deactivate instructor" : "Activate instructor"}
-                                      className={cn(
-                                        "h-8 w-8 p-0 font-body transition-all hover:scale-110 active:scale-95",
-                                        active
-                                          ? "border-terracotta/40 text-terracotta bg-white-warm hover:!bg-terracotta hover:!text-cream hover:!border-terracotta"
-                                          : "border-sage/60 text-sage bg-white-warm hover:!bg-sage hover:!text-cream hover:!border-sage",
-                                      )}
-                                    >
-                                      <AnimatedIcon icon={active ? PowerOff : Power} size={14} animateOnMount={false} hover="wiggle" />
-                                    </Button>
-                                    <ManageButton onClick={() => router.push(`/admin/instructors/${instructor.id}`)} label="Open profile" />
-                                    <DeleteButton
-                                      onClick={() => handleDelete(instructor.id)}
-                                      label="Delete instructor"
-                                      confirmTitle={`Delete ${instructor.name}?`}
-                                      confirmDescription="The instructor will be permanently removed. Past class history is preserved."
-                                    />
-                                  </div>
-                                </TableCell>
-                              </TableRow>
-                            );
-                          })
-                        )}
+                        {tableBody}
                       </TableBody>
                     </Table>
                   </ResponsiveTable>

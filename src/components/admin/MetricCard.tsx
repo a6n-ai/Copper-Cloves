@@ -67,8 +67,35 @@ function MetricCardImpl({
   loading = false,
   footer,
   square = false,
-}: MetricCardProps) {
+}: Readonly<MetricCardProps>) {
   const t = tones[tone];
+  let valueBody: ReactNode;
+  if (loading) {
+    valueBody = <Skeleton className="h-8 w-24 bg-sage/10" />;
+  } else if (typeof value === "number") {
+    valueBody = (
+      <div
+        className={cn(
+          "font-display text-charcoal leading-none tabular-nums truncate",
+          square ? "text-5xl sm:text-6xl" : "text-3xl",
+        )}
+      >
+        <NumberTicker end={value} prefix={prefix} suffix={suffix} decimals={decimals} />
+      </div>
+    );
+  } else {
+    valueBody = (
+      <div
+        className={cn(
+          "font-display text-charcoal leading-tight wrap-break-word",
+          square ? "text-2xl sm:text-3xl" : "text-lg",
+        )}
+        title={`${prefix ?? ""}${value}${suffix ?? ""}`}
+      >
+        {prefix}{value}{suffix}
+      </div>
+    );
+  }
   return (
     <Card
       className={cn(
@@ -106,30 +133,7 @@ function MetricCardImpl({
             <Icon className="h-4 w-4 transition-transform duration-300 group-hover:scale-110 group-hover:rotate-12" />
           </div>
         </div>
-        <div className={cn("mt-3", square && "mt-auto")}>
-          {loading ? (
-            <Skeleton className="h-8 w-24 bg-sage/10" />
-          ) : typeof value === "number" ? (
-            <div
-              className={cn(
-                "font-display text-charcoal leading-none tabular-nums truncate",
-                square ? "text-5xl sm:text-6xl" : "text-3xl",
-              )}
-            >
-              <NumberTicker end={value} prefix={prefix} suffix={suffix} decimals={decimals} />
-            </div>
-          ) : (
-            <div
-              className={cn(
-                "font-display text-charcoal leading-tight wrap-break-word",
-                square ? "text-2xl sm:text-3xl" : "text-lg",
-              )}
-              title={`${prefix ?? ""}${value}${suffix ?? ""}`}
-            >
-              {prefix}{value}{suffix}
-            </div>
-          )}
-        </div>
+        <div className={cn("mt-3", square && "mt-auto")}>{valueBody}</div>
         {hint && !loading && (
           <div className="font-body text-xs text-charcoal/50 mt-1.5">{hint}</div>
         )}

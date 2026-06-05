@@ -21,7 +21,7 @@ interface RevealProps {
  * - Movement is gated behind `motion-safe:` — reduced-motion users see the
  *   content with no transform and no fade-in.
  */
-export function Reveal({ children, className = "", delay = 0 }: RevealProps) {
+export function Reveal({ children, className = "", delay = 0 }: Readonly<RevealProps>) {
   const ref = useRef<HTMLDivElement>(null);
   const [revealed, setRevealed] = useState(false);
 
@@ -54,7 +54,7 @@ export function Reveal({ children, className = "", delay = 0 }: RevealProps) {
       data-revealed={revealed}
       style={delay ? { transitionDelay: `${delay}ms` } : undefined}
       className={
-        "motion-safe:transition-[opacity,transform] motion-safe:duration-[600ms] motion-safe:ease-[cubic-bezier(0.23,1,0.32,1)] " +
+        "motion-safe:transition-[opacity,transform] motion-safe:duration-600 motion-safe:ease-[cubic-bezier(0.23,1,0.32,1)] " +
         "motion-safe:data-[revealed=false]:translate-y-4 motion-safe:data-[revealed=false]:opacity-0 " +
         "data-[revealed=true]:translate-y-0 data-[revealed=true]:opacity-100 " +
         className

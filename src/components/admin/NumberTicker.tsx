@@ -20,7 +20,7 @@ export function NumberTicker({
   prefix = "",
   suffix = "",
   className,
-}: NumberTickerProps) {
+}: Readonly<NumberTickerProps>) {
   const [value, setValue] = useState(start);
   const startTimeRef = useRef<number | null>(null);
   const fromRef = useRef(start);
@@ -34,7 +34,7 @@ export function NumberTicker({
     startTimeRef.current = null;
 
     const animate = (timestamp: number) => {
-      if (startTimeRef.current === null) startTimeRef.current = timestamp;
+      startTimeRef.current ??= timestamp;
       const progress = timestamp - startTimeRef.current;
       const percent = Math.min(progress / (duration * 1000), 1);
       const eased = 1 - Math.pow(1 - percent, 3);

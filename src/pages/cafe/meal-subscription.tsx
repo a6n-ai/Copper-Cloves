@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 import { Navigation } from "@/components/Navigation";
 import { Footer } from "@/components/Footer";
-import { SEO } from "@/components/SEO";
+import { SEO as Seo } from "@/components/SEO";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -49,7 +49,7 @@ export default function MealSubscriptionPage() {
     return () => clearInterval(interval);
   }, []);
 
-  const handleSubmit = async (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.SyntheticEvent<HTMLFormElement>) => {
     e.preventDefault();
     setIsSubmitting(true);
     try {
@@ -91,7 +91,7 @@ export default function MealSubscriptionPage() {
 
   return (
     <>
-      <SEO 
+      <Seo
         title="Intentful Eating - Daily Meal Subscription | The Studio by Copper + Cloves"
         description="Make wellness effortless with our chef-prepared, plant-based meal subscription. One nourishing meal delivered to you daily."
       />
@@ -171,9 +171,9 @@ export default function MealSubscriptionPage() {
 
           {/* Image Counter Dots */}
           <div className="absolute bottom-12 left-1/2 transform -translate-x-1/2 z-30 flex gap-3">
-            {heroImages.map((_, index) => (
+            {heroImages.map((img, index) => (
               <button
-                key={index}
+                key={img}
                 onClick={() => setCurrentImageIndex(index)}
                 className={`w-3 h-3 rounded-full transition-all duration-300 ${
                   index === currentImageIndex 
@@ -302,8 +302,8 @@ export default function MealSubscriptionPage() {
                   title: "Flexible & Convenient",
                   description: "Pickup at the café or opt for delivery. Pause, skip, or adjust your subscription anytime."
                 }
-              ].map((benefit, index) => (
-                <Card key={index} className="border-2 border-sage/30 hover:border-sage transition-all duration-300 hover:shadow-xl bg-white-warm">
+              ].map((benefit) => (
+                <Card key={benefit.title} className="border-2 border-sage/30 hover:border-sage transition-all duration-300 hover:shadow-xl bg-white-warm">
                   <CardContent className="p-8">
                     <div className="flex items-start gap-4">
                       <div className="w-14 h-14 rounded-full bg-sage/20 flex items-center justify-center shrink-0">

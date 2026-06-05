@@ -59,7 +59,7 @@ export function Pagination({
   onChange,
   className,
   alwaysShow = false,
-}: {
+}: Readonly<{
   page: number;
   total: number;
   pageSize?: number;
@@ -67,7 +67,7 @@ export function Pagination({
   className?: string;
   /** Render the control even when everything fits on one page (shows a lone page 1). Still hidden when there are no results. */
   alwaysShow?: boolean;
-}) {
+}>) {
   const totalPages = Math.max(1, Math.ceil(total / pageSize));
   if (total === 0) return null;
   if (total <= pageSize && !alwaysShow) return null;
@@ -81,7 +81,7 @@ export function Pagination({
         Showing {start}–{end} of {total}
       </p>
       <ShadPagination className="mx-0 w-auto">
-        <PaginationContent className="bg-[#fafaf8]/80 border border-sage/20 p-1 rounded-full shadow-xs">
+        <PaginationContent className="bg-white-warm/80 border border-sage/20 p-1 rounded-full shadow-xs">
           <PaginationItem>
             <PaginationPrevious
               href="#"
@@ -100,7 +100,7 @@ export function Pagination({
           <div className="relative flex items-center mx-1">
             {items.map((it, idx) =>
               it === "ellipsis" ? (
-                <PaginationItem key={`e-${idx}`}>
+                <PaginationItem key={`ellipsis-after-${items[idx - 1] ?? "start"}`}>
                   <PaginationEllipsis className="text-charcoal/40" />
                 </PaginationItem>
               ) : (

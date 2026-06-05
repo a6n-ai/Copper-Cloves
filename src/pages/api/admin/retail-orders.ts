@@ -122,7 +122,7 @@ function serializeOrder(o: {
     items: o.items as OrderItem[],
     total: num(o.total),
     status: o.status as "pending" | "processing" | "shipped" | "delivered" | "cancelled",
-    paymentMethod: (o.payment_method === "online" ? "online" : "studio") as "online" | "studio",
+    paymentMethod: o.payment_method === "online" ? "online" : "studio",
     orderDate: o.order_date.toISOString().slice(0, 10),
     shippingAddress: o.shipping_address ?? "",
   };

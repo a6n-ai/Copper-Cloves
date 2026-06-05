@@ -46,12 +46,14 @@ export async function sendHtmlEmailViaResend(options: {
     name?: string;
   };
   if (!res.ok) {
-    const msg =
-      typeof json.message === "string"
-        ? json.message
-        : typeof json.name === "string"
-          ? json.name
-          : `HTTP ${res.status}`;
+    let msg: string;
+    if (typeof json.message === "string") {
+      msg = json.message;
+    } else if (typeof json.name === "string") {
+      msg = json.name;
+    } else {
+      msg = `HTTP ${res.status}`;
+    }
     return { ok: false, error: msg };
   }
   return { ok: true };

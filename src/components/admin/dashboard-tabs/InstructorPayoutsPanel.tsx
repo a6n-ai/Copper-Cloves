@@ -77,7 +77,7 @@ function rupees(n: number): string {
   return `₹${Math.round(n).toLocaleString("en-IN")}`;
 }
 
-function csvEsc(v: unknown): string {
+function csvEsc(v: string | number | null | undefined): string {
   const s = v == null ? "" : String(v);
   return /[",\n]/.test(s) ? `"${s.replace(/"/g, '""')}"` : s;
 }
@@ -175,7 +175,15 @@ function InstructorPayoutsPanelImpl() {
         toast.error(d.error ?? "Save failed");
         return;
       }
-      toast.success(paid ? (recordExpense ? "Marked paid · recorded as expense" : "Marked paid") : "Marked unpaid");
+      let savedMsg: string;
+      if (!paid) {
+        savedMsg = "Marked unpaid";
+      } else if (recordExpense) {
+        savedMsg = "Marked paid · recorded as expense";
+      } else {
+        savedMsg = "Marked paid";
+      }
+      toast.success(savedMsg);
       await fetchData(window);
     },
     [window, fetchData],
@@ -248,6 +256,17 @@ function InstructorPayoutsPanelImpl() {
     URL.revokeObjectURL(url);
   }, [sorted, summary.periodKey, window]);
 
+  let confirmActionLabel: string;
+  if (confirmSaving) {
+    confirmActionLabel = "Saving…";
+  } else if (!confirm?.paid) {
+    confirmActionLabel = "Mark unpaid";
+  } else if (confirmRecord) {
+    confirmActionLabel = "Mark paid & move to expense";
+  } else {
+    confirmActionLabel = "Mark paid";
+  }
+
   return (
     <div className="space-y-6">
       <div className="grid grid-cols-2 md:grid-cols-4 gap-3 sm:gap-4">
@@ -290,13 +309,15 @@ function InstructorPayoutsPanelImpl() {
           </div>
         </CardHeader>
         <CardContent>
-          {loading ? (
+          {loading && (
             <div className="py-12 text-center font-body text-sm text-charcoal/40">Loading payouts…</div>
-          ) : filtered.length === 0 ? (
+          )}
+          {!loading && filtered.length === 0 && (
             <div className="py-12 text-center font-body text-sm text-charcoal/40">
               {rows.length === 0 ? "No payout data for this period." : "No instructors match your filters."}
             </div>
-          ) : (
+          )}
+          {!loading && filtered.length > 0 && (
             <>
               <div className="rounded-xl border border-sage/15 bg-white-warm overflow-hidden">
                 <ResponsiveTable>
@@ -425,7 +446,7 @@ function InstructorPayoutsPanelImpl() {
                 }
               }}
             >
-              {confirmSaving ? "Saving…" : confirm?.paid ? (confirmRecord ? "Mark paid & move to expense" : "Mark paid") : "Mark unpaid"}
+              {confirmActionLabel}
             </Button>
           </ResponsiveDialogFooter>
         </ResponsiveDialogContent>

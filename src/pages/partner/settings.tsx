@@ -99,7 +99,7 @@ export default function PartnerSettings() {
     })();
   }, [router]);
 
-  async function save(e: React.FormEvent) {
+  async function save(e: React.SyntheticEvent<HTMLFormElement>) {
     e.preventDefault();
     if (!profile) return;
     setSaving(true);
@@ -123,15 +123,15 @@ export default function PartnerSettings() {
     }
   }
 
-  return (
-    <main className="max-w-2xl mx-auto p-4 lg:p-6 space-y-6">
-      <PageHeader title="Settings" subtitle="Manage your brand and login" />
-
-      {loading ? (
-        <PartnerSettingsSkeleton />
-      ) : !profile ? (
-        <Card className="border-terracotta/30 bg-terracotta/5"><CardContent className="p-4 font-body text-charcoal">Could not load your profile.</CardContent></Card>
-      ) : (
+  let content: React.ReactNode;
+  if (loading) {
+    content = <PartnerSettingsSkeleton />;
+  } else if (!profile) {
+    content = (
+      <Card className="border-terracotta/30 bg-terracotta/5"><CardContent className="p-4 font-body text-charcoal">Could not load your profile.</CardContent></Card>
+    );
+  } else {
+    content = (
         <Card className="border-sage/20 bg-white-warm">
           <CardHeader>
             <CardTitle className="font-display text-xl text-charcoal">Partner profile</CardTitle>
@@ -190,7 +190,13 @@ export default function PartnerSettings() {
             </form>
           </CardContent>
         </Card>
-      )}
+    );
+  }
+
+  return (
+    <main className="max-w-2xl mx-auto p-4 lg:p-6 space-y-6">
+      <PageHeader title="Settings" subtitle="Manage your brand and login" />
+      {content}
     </main>
   );
 }

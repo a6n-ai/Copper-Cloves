@@ -51,7 +51,10 @@ function objectToFiniteNumber(value: object): number {
       /* fall through */
     }
   }
-  return finiteOrNaN(Number(String(value)));
+  if (typeof (value as { valueOf?: () => unknown }).valueOf === "function") {
+    return finiteOrNaN(Number((value as { valueOf: () => unknown }).valueOf()));
+  }
+  return NaN;
 }
 
 /** Coerce Prisma Decimal, string, or number to a finite number (avoids NaN from `Number(Decimal)` in some runtimes). */

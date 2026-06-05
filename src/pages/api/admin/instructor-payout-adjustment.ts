@@ -5,6 +5,12 @@ import { periodKeyFor, periodBoundsFor, type PayoutWindow } from "@/lib/payoutCa
 import { recordPayoutExpense, removePayoutExpense } from "@/lib/expenses";
 import type { PaymentMethod } from "@/generated/prisma/client";
 
+function asString(v: unknown): string {
+  if (typeof v === "string") return v;
+  if (typeof v === "number" || typeof v === "boolean" || typeof v === "bigint") return v.toString();
+  return "";
+}
+
 // Best-effort map a free-text payout method onto the PaymentMethod enum used by
 // the expense ledger. Unknown values record with no method rather than failing.
 function coercePaymentMethod(raw: string | null | undefined): PaymentMethod | null {
@@ -47,7 +53,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
   if (req.method === "PUT") {
     const body = (req.body ?? {}) as Record<string, unknown>;
-    const instructorId = String(body.instructorId ?? "").trim();
+    const instructorId = asString(body.instructorId).trim();
     const window = parseWindow(body.window);
     if (!instructorId) return res.status(400).json({ error: "instructorId required" });
 
@@ -70,9 +76,9 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     if (body.override_payout_paise === null) data.override_payout_paise = null;
     else if (body.override_payout_paise != null)
       data.override_payout_paise = Number(body.override_payout_paise);
-    if (body.notes !== undefined) data.notes = body.notes ? String(body.notes) : null;
+    if (body.notes !== undefined) data.notes = body.notes ? asString(body.notes) : null;
     if (body.paid_method !== undefined)
-      data.paid_method = body.paid_method ? String(body.paid_method) : null;
+      data.paid_method = body.paid_method ? asString(body.paid_method) : null;
     if (body.paid === true) data.paid_at = now;
     if (body.paid === false) data.paid_at = null;
     data.recorded_by = adminId;

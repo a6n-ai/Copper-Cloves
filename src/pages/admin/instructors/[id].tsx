@@ -7,13 +7,11 @@ import {
   Award,
   Sparkles,
   Briefcase,
-  Linkedin,
-  Twitter,
-  Facebook,
   MessageCircle,
   User as UserIcon,
 } from "lucide-react";
-import { SEO } from "@/components/SEO";
+import { LinkedinIcon, TwitterIcon, FacebookIcon } from "@/components/icons/SocialIcons";
+import { SEO as Seo } from "@/components/SEO";
 import { PageHeader } from "@/components/dashboard/PageHeader";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -192,7 +190,7 @@ export default function InstructorProfilePage() {
 
   return (
     <>
-      <SEO title="Instructor — Admin" description="Instructor profile management" />
+      <Seo title="Instructor — Admin" description="Instructor profile management" />
       <div className="min-h-screen bg-linear-to-br from-cream via-cream to-sage/10">
         <main className="min-h-screen">
           <div className="max-w-7xl mx-auto p-6 lg:p-8 space-y-6">
@@ -362,9 +360,9 @@ export default function InstructorProfilePage() {
                       <CardTitle className="font-display text-lg text-charcoal">Social</CardTitle>
                     </CardHeader>
                     <CardContent className="space-y-2">
-                      <SocialLine icon={Linkedin} label="LinkedIn" value={instructor.social_linkedin} />
-                      <SocialLine icon={Twitter} label="Twitter / X" value={instructor.social_twitter} />
-                      <SocialLine icon={Facebook} label="Facebook" value={instructor.social_facebook} />
+                      <SocialLine icon={LinkedinIcon} label="LinkedIn" value={instructor.social_linkedin} />
+                      <SocialLine icon={TwitterIcon} label="Twitter / X" value={instructor.social_twitter} />
+                      <SocialLine icon={FacebookIcon} label="Facebook" value={instructor.social_facebook} />
                       <SocialLine icon={MessageCircle} label="WhatsApp" value={instructor.social_whatsapp} />
                     </CardContent>
                   </Card>
@@ -475,6 +473,15 @@ function ImageField({ label, value, onChange, ownerId, name, className }: {
     }
   }
 
+  let uploadButtonLabel: string;
+  if (uploading) {
+    uploadButtonLabel = "Uploading…";
+  } else if (value) {
+    uploadButtonLabel = "Change photo";
+  } else {
+    uploadButtonLabel = "Upload photo";
+  }
+
   return (
     <div className={cn("space-y-1.5", className)}>
       <Label className="font-body text-xs text-charcoal/65">{label}</Label>
@@ -494,7 +501,7 @@ function ImageField({ label, value, onChange, ownerId, name, className }: {
             <Button type="button" variant="outline" size="sm" disabled={uploading}
               onClick={() => inputRef.current?.click()}
               className="border-sage/30 text-sage hover:bg-sage hover:text-cream font-body">
-              {uploading ? "Uploading…" : value ? "Change photo" : "Upload photo"}
+              {uploadButtonLabel}
             </Button>
             {value && (
               <Button type="button" variant="ghost" size="sm" disabled={uploading}
@@ -555,8 +562,8 @@ function ProfileSkeleton() {
         </div>
       </div>
       <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
-        {Array.from({ length: 4 }).map((_, i) => (
-          <Card key={i} className="rounded-2xl shadow-xs">
+        {["c1", "c2", "c3", "c4"].map((sk) => (
+          <Card key={sk} className="rounded-2xl shadow-xs">
             <CardHeader><Skeleton className="h-5 w-32 bg-sage/10" /></CardHeader>
             <CardContent className="space-y-2">
               <Skeleton className="h-4 w-full bg-sage/10" />

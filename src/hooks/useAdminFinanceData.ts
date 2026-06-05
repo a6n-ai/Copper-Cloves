@@ -181,7 +181,9 @@ export function useAdminFinanceData(): AdminFinanceData {
     return Array.from(byId.values()).sort((a, b) => {
       const ak = a.sortKey ?? a.date;
       const bk = b.sortKey ?? b.date;
-      return ak < bk ? 1 : ak > bk ? -1 : 0;
+      if (ak < bk) return 1;
+      if (ak > bk) return -1;
+      return 0;
     });
   }, [transactions, expenses]);
 

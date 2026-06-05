@@ -76,7 +76,7 @@ const AVAILABLE_TONE =
 
 function parseTimeToMinutes(t: string): number {
   // Accepts "07:00", "7:00 AM", "10:30 PM" — best-effort.
-  const m = t.trim().match(/^(\d{1,2}):(\d{2})(?:\s*(AM|PM))?/i);
+  const m = /^(\d{1,2}):(\d{2})(?:\s*(AM|PM))?/i.exec(t.trim());
   if (!m) return Number.POSITIVE_INFINITY;
   let h = Number(m[1]);
   const min = Number(m[2]);
@@ -94,7 +94,7 @@ export function TodayClassesCarousel({
   onStatusChange,
   emptyText = "No classes scheduled.",
   isToday = true,
-}: TodayClassesCarouselProps) {
+}: Readonly<TodayClassesCarouselProps>) {
   const scrollRef = useRef<HTMLDivElement>(null);
   // Re-evaluate "next class" every minute so the highlight tracks the wall clock
   // even if the dashboard stays open.
@@ -195,7 +195,7 @@ export function TodayClassesCarousel({
                 {isNext && (
                   <div className="inline-flex items-center gap-1.5 rounded-full bg-accent/15 text-accent border border-accent/30 px-2.5 py-0.5 font-body text-[10px] uppercase tracking-[0.12em] whitespace-nowrap">
                     <span className="size-1.5 rounded-full bg-accent animate-pulse" />
-                    Up next
+                    <span>Up next</span>
                   </div>
                 )}
               </div>

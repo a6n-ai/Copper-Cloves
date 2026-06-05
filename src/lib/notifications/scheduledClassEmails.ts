@@ -14,8 +14,14 @@ function mapResult(result: EmailSendResult): { status: string; err: string | nul
 const TZ = "Asia/Kolkata";
 const HOUR_MS = 60 * 60 * 1000;
 
+function toRawString(s: unknown): string {
+  if (s == null) return "";
+  if (typeof s === "object") return JSON.stringify(s);
+  return String(s as string | number | boolean);
+}
+
 function esc(s: unknown): string {
-  return String(s ?? "")
+  return toRawString(s)
     .replace(/&/g, "&amp;")
     .replace(/</g, "&lt;")
     .replace(/>/g, "&gt;")

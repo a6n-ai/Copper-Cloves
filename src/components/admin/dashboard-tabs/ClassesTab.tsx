@@ -56,7 +56,21 @@ interface Props {
   classesLoaded: boolean;
 }
 
-function ClassesTabImpl({ classPerformance, disciplineSplit, peakHours, classesLoaded }: Props) {
+function classUtilStyle(util: number): { statusColor: string; barColor: string; status: string } {
+  if (util >= 75) {
+    return { statusColor: "border-sage/30 text-sage bg-sage/5", barColor: "bg-sage", status: "Strong" };
+  }
+  if (util >= 50) {
+    return {
+      statusColor: "border-terracotta/20 text-terracotta bg-terracotta/10",
+      barColor: "bg-terracotta",
+      status: "Steady",
+    };
+  }
+  return { statusColor: "border-[#a05e38]/30 text-[#a05e38] bg-[#a05e38]/10", barColor: "bg-[#a05e38]", status: "Low" };
+}
+
+function ClassesTabImpl({ classPerformance, disciplineSplit, peakHours, classesLoaded }: Readonly<Props>) {
   const stats = useMemo(() => {
     const total = classPerformance.length;
     const avgUtil = total > 0
@@ -143,15 +157,7 @@ function ClassesTabImpl({ classPerformance, disciplineSplit, peakHours, classesL
                 <TableBody>
                   {classesPerfPg.pageItems.map((cls) => {
                     const util = cls.utilization;
-                    const statusColor =
-                      util >= 75 ? "border-sage/30 text-sage bg-sage/5" :
-                      util >= 50 ? "border-terracotta/20 text-terracotta bg-terracotta/10" :
-                      "border-[#a05e38]/30 text-[#a05e38] bg-[#a05e38]/10";
-                    const barColor =
-                      util >= 75 ? "bg-sage" :
-                      util >= 50 ? "bg-terracotta" :
-                      "bg-[#a05e38]";
-                    const status = util >= 75 ? "Strong" : util >= 50 ? "Steady" : "Low";
+                    const { statusColor, barColor, status } = classUtilStyle(util);
                     return (
                       <TableRow key={cls.name} className="border-sage/10">
                         <TableCell className="px-5 py-3 font-body font-medium text-charcoal">{cls.name}</TableCell>
@@ -197,8 +203,8 @@ function ClassesTabImpl({ classPerformance, disciplineSplit, peakHours, classesL
                 <RechartsPieChart>
                   <ChartTooltip content={<ChartTooltipContent hideLabel />} />
                   <Pie data={disciplinePieData} dataKey="value" nameKey="name" innerRadius={55} outerRadius={85} strokeWidth={2} stroke="#FFFFFF">
-                    {disciplineSplit.map((_, idx) => (
-                      <Cell key={idx} fill={PIE_COLORS[idx % PIE_COLORS.length]} />
+                    {disciplineSplit.map((d, idx) => (
+                      <Cell key={d.name} fill={PIE_COLORS[idx % PIE_COLORS.length]} />
                     ))}
                     <RechartsLabel
                       position="center"

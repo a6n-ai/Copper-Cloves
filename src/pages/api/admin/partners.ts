@@ -4,7 +4,7 @@ import bcrypt from "bcryptjs";
 import { getStudioServerSession } from "@/lib/getStudioServerSession";
 
 function slugify(s: string): string {
-  return s.trim().toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-+|-+$/g, "");
+  return s.trim().toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/(?:^-+)|(?:-+$)/g, "");
 }
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {

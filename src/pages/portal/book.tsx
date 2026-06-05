@@ -41,8 +41,6 @@ import {
   Heart,
   ChevronLeft,
   ChevronRight,
-  Plus,
-  Minus,
   UserPlus,
   CreditCard,
   AlertCircle,
@@ -57,7 +55,6 @@ import {
   endOfSundayWeekLocal,
   isSameLocalCalendarDay,
 } from "@/lib/calendarWeek";
-import { expectedBookingCheckoutPaise } from "@/lib/financeBookingCheckout";
 // Razorpay client helpers are loaded lazily inside payment handlers — they pull
 // in the razorpay SDK loader and several KB of helper code that's only needed
 // at checkout time. Keeping them out of the initial page bundle improves TTI
@@ -138,7 +135,7 @@ export interface Class {
  * `React.memo` actually skip rerenders.
  */
 /** Instructor avatar (photo or initials) used in the card image strip + detail dialog. */
-function InstructorAvatar({ name, imageUrl, className = "" }: { name: string; imageUrl?: string | null; className?: string }) {
+function InstructorAvatar({ name, imageUrl, className = "" }: Readonly<{ name: string; imageUrl?: string | null; className?: string }>) {
   const initial = (name || "").slice(0, 1).toUpperCase();
   return (
     <div className={`shrink-0 overflow-hidden rounded-full border-2 border-white-warm/90 bg-linear-to-br from-terracotta/80 to-terracotta ${className}`}>
@@ -218,10 +215,17 @@ const BookClassCard = memo(function BookClassCard({ cls, onSelect, onOpenDetails
   const dimmed = !status.canBook;
   return (
     <div
-      onClick={() => onOpenDetails(cls)}
-      className="group flex w-full cursor-pointer flex-col overflow-hidden rounded-2xl border border-[#e5e4dc] bg-white-warm transition-[border-color,box-shadow,transform] duration-[250ms] ease-out hover:-translate-y-0.5 hover:border-[#c8c6be] hover:shadow-[0_4px_24px_rgba(51,51,51,0.08)] focus-within:ring-2 focus-within:ring-sage"
+      className="group relative flex w-full cursor-pointer flex-col overflow-hidden rounded-2xl border border-[#e5e4dc] bg-white-warm transition-[border-color,box-shadow,transform] duration-[250ms] ease-out hover:-translate-y-0.5 hover:border-[#c8c6be] hover:shadow-[0_4px_24px_rgba(51,51,51,0.08)] focus-within:ring-2 focus-within:ring-sage"
     >
-      <div className="relative h-52 shrink-0 overflow-hidden sm:h-56">
+      {/* Whole-card click target for opening details — keyboard accessible. Sits
+          below the interactive Book button (which stops propagation + higher z). */}
+      <button
+        type="button"
+        onClick={() => onOpenDetails(cls)}
+        aria-label={`View details for ${cls.name}, ${weekday} ${dayNum} at ${cls.time}`}
+        className="absolute inset-0 z-0 cursor-pointer"
+      />
+      <div className="pointer-events-none relative z-10 h-52 shrink-0 overflow-hidden sm:h-56">
         {/* eslint-disable-next-line @next/next/no-img-element */}
         <img
           src={cls.image}
@@ -253,12 +257,12 @@ const BookClassCard = memo(function BookClassCard({ cls, onSelect, onOpenDetails
           </span>
         </div>
       </div>
-      <div className="flex flex-col p-5">
+      <div className="relative z-10 flex flex-col p-5">
         <button
           type="button"
           onClick={(e) => { e.stopPropagation(); onOpenDetails(cls); }}
           aria-label={`View details for ${cls.name}, ${weekday} ${dayNum} at ${cls.time}`}
-          className="rounded-sm text-left focus:outline-none focus-visible:ring-2 focus-visible:ring-sage"
+          className="self-start rounded-sm text-left focus:outline-none focus-visible:ring-2 focus-visible:ring-sage"
         >
           <h3 className="font-display text-2xl leading-tight text-charcoal transition-colors group-hover:text-sage">{cls.name}</h3>
         </button>
@@ -300,11 +304,11 @@ function BookClassDetailDialog({
   cls,
   onClose,
   onReserve,
-}: {
+}: Readonly<{
   cls: Class | null;
   onClose: () => void;
   onReserve: (cls: Class) => void;
-}) {
+}>) {
   const status = cls ? classStatus(cls) : null;
   return (
     <ResponsiveDialog open={!!cls} onOpenChange={(o) => { if (!o) onClose(); }}>
@@ -453,11 +457,11 @@ function BookClassCardSkeleton() {
   );
 }
 
-function BookClassGridSkeleton({ count = 6 }: { count?: number }) {
+function BookClassGridSkeleton({ count = 6 }: Readonly<{ count?: number }>) {
   return (
     <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 items-start gap-6">
-      {Array.from({ length: count }).map((_, i) => (
-        <BookClassCardSkeleton key={i} />
+      {Array.from({ length: count }, (_, i) => `book-card-skeleton-${i}`).map((key) => (
+        <BookClassCardSkeleton key={key} />
       ))}
     </div>
   );
@@ -481,8 +485,8 @@ function BookPageSkeleton() {
           <Skeleton className="h-9 w-9 rounded-full" />
         </div>
         <div className="grid grid-cols-7 gap-1">
-          {Array.from({ length: 7 }).map((_, i) => (
-            <div key={i} className="flex flex-col items-center py-2 px-0.5 gap-1">
+          {Array.from({ length: 7 }, (_, i) => `week-day-skeleton-${i}`).map((key) => (
+            <div key={key} className="flex flex-col items-center py-2 px-0.5 gap-1">
               <Skeleton className="h-2.5 w-6 rounded-sm" />
               <Skeleton className="h-4 w-5 rounded-sm" />
             </div>
@@ -523,7 +527,6 @@ export default function BookClass() {
   const [paymentRecovery, setPaymentRecovery] = useState<
     null | { variant: "cancelled" | "failed"; detail?: string }
   >(null);
-  const [selectedDate, setSelectedDate] = useState(new Date());
   const [selectedClass, setSelectedClass] = useState<Class | null>(null);
 
   // User data states
@@ -542,7 +545,6 @@ export default function BookClass() {
   const [showBookingPanel, setShowBookingPanel] = useState(false);
   const [bookingStep, setBookingStep] = useState(1);
   const [friendsFamily, setFriendsFamily] = useState<{ name: string; email: string; phone: string }[]>([]);
-  const [tempFriend, setTempFriend] = useState({ name: "", phone: "" });
   const [showAddPersonForm, setShowAddPersonForm] = useState(false);
   const [newPerson, setNewPerson] = useState({ name: "", email: "", phone: "" });
   
@@ -561,8 +563,7 @@ export default function BookClass() {
   
   // Credits & payment
   const [useCredits, setUseCredits] = useState(true);
-  const [pendingAmount, setPendingAmount] = useState(0);
-  
+
   // Food ordering
   const [foodItems, setFoodItems] = useState<FoodItem[]>([]);
   const [loadingFoodItems, setLoadingFoodItems] = useState(false);
@@ -856,7 +857,6 @@ export default function BookClass() {
     setFriendsFamily([]);
     setFoodItems(prev => prev.map(item => ({ ...item, quantity: 0 })));
     setUseCredits(true);
-    setPendingAmount(0);
     setAppliedCoupon(null);
     setCouponCode("");
     setCouponError(null);
@@ -884,14 +884,6 @@ export default function BookClass() {
       setBookingStep(2);
     } else if (bookingStep === 2) {
       // Step 2 -> 3: Credits -> Food
-      if (userPackage.type === "class_pass" && !useCredits) {
-        // Calculate pending amount
-        const totalPeople = 1 + friendsFamily.length;
-        const classPrice = 945; // Price per class
-        const creditsToUse = Math.min(userPackage.classesRemaining || 0, totalPeople);
-        const shortfall = totalPeople - creditsToUse;
-        setPendingAmount(shortfall * classPrice);
-      }
       setBookingStep(3);
     } else if (bookingStep === 3) {
       // Step 3 -> 4: Food -> Checkout
@@ -969,7 +961,6 @@ export default function BookClass() {
     if (!featuredPackage) return;
     setAddingPass(true);
     try {
-      const amountPaise = featuredPackage.price * 100;
       const createRes = await fetch("/api/payments/razorpay/create-order", {
         method: "POST",
         credentials: "include",
@@ -1098,12 +1089,10 @@ export default function BookClass() {
         paymentMethod: "online" as const,
       };
 
-      let paidViaRazorpay = false;
       let razorpayOrderIdForBooking: string | null = null;
       const oweOnline = finalTotal > 0;
 
       if (oweOnline) {
-        const amountPaiseExpected = expectedBookingCheckoutPaise(finalTotal);
         const createRes = await fetch("/api/payments/razorpay/create-order", {
           method: "POST",
           credentials: "include",
@@ -1219,7 +1208,6 @@ export default function BookClass() {
         const { completePendingBookingCheckout } = await import("@/lib/completeRazorpayCheckout");
         await completePendingBookingCheckout(pending, checkoutResult.payload);
         clearPendingRazorpayCheckout();
-        paidViaRazorpay = true;
         // Guest onboarding now happens server-side during fulfillment (see
         // /api/bookings + razorpayServerCheckout) so it survives redirect flows.
         toast({ title: "Payment successful", description: `Booking confirmed for ₹${finalTotal.toFixed(0)}.`, variant: "success" });
@@ -1258,7 +1246,7 @@ export default function BookClass() {
       const bookingData = await bookingRes.json();
       const bookingId = bookingData.id;
 
-      const cafePaymentMethod = paidViaRazorpay ? "razorpay" : "pay_at_studio";
+      const cafePaymentMethod = "pay_at_studio";
       const orderedFoodItems = foodItems.filter((item) => item.quantity > 0);
       // Fire all café orders concurrently (was sequential — N round-trips serialized).
       const foodResults = await Promise.all(
@@ -1324,6 +1312,14 @@ export default function BookClass() {
 
   // `totals` defined above as a useMemo over the same inputs.
 
+  let bookSubtitle: string;
+  if (filteredClasses.length > 0) {
+    const classWord = filteredClasses.length !== 1 ? "classes" : "class";
+    bookSubtitle = `${filteredClasses.length} ${classWord} found`;
+  } else {
+    bookSubtitle = "No classes match your filters";
+  }
+
   return (
     <div className="min-h-screen bg-linear-to-br from-cream via-cream to-sage/5">
       <main className="pt-8 pb-12 min-h-screen">
@@ -1332,11 +1328,7 @@ export default function BookClass() {
           <div className="mb-6">
             <PageHeader
               title="Book Your Next Session"
-              subtitle={
-                filteredClasses.length > 0
-                  ? `${filteredClasses.length} class${filteredClasses.length !== 1 ? "es" : ""} found`
-                  : "No classes match your filters"
-              }
+              subtitle={bookSubtitle}
             />
           </div>
 
@@ -1368,26 +1360,29 @@ export default function BookClass() {
                 const isPast = !isToday && day < new Date(today.getFullYear(), today.getMonth(), today.getDate());
                 const isSelected = selectedDayIndex === i;
                 const dayNames = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"];
+
+                let buttonStateClass: string;
+                if (isSelected) buttonStateClass = "bg-sage text-cream";
+                else if (isPast) buttonStateClass = "opacity-40 cursor-default";
+                else if (isToday) buttonStateClass = "bg-sage/15 text-sage border border-sage/30";
+                else buttonStateClass = "hover:bg-sage/10 text-charcoal/70";
+
+                let dateTextClass: string;
+                if (isSelected) dateTextClass = "text-cream";
+                else if (isPast) dateTextClass = "text-charcoal/40";
+                else if (isToday) dateTextClass = "text-sage";
+                else dateTextClass = "text-charcoal";
+
                 return (
                   <button
-                    key={i}
+                    key={day.toISOString()}
                     onClick={() => setSelectedDayIndex(isSelected ? null : i)}
-                    className={`flex flex-col items-center py-2 px-0.5 rounded-xl transition-all min-w-0 text-[11px] sm:text-sm ${
-                      isSelected
-                        ? "bg-sage text-cream"
-                        : isPast
-                        ? "opacity-40 cursor-default"
-                        : isToday
-                        ? "bg-sage/15 text-sage border border-sage/30"
-                        : "hover:bg-sage/10 text-charcoal/70"
-                    }`}
+                    className={`flex flex-col items-center py-2 px-0.5 rounded-xl transition-all min-w-0 text-[11px] sm:text-sm ${buttonStateClass}`}
                   >
                     <span className="text-[10px] font-body uppercase tracking-wide leading-none mb-1">
                       {dayNames[i]}
                     </span>
-                    <span className={`text-base font-display leading-none ${
-                      isSelected ? "text-cream" : isPast ? "text-charcoal/40" : isToday ? "text-sage" : "text-charcoal"
-                    }`}>
+                    <span className={`text-base font-display leading-none ${dateTextClass}`}>
                       {day.getDate()}
                     </span>
                   </button>
@@ -1533,7 +1528,7 @@ export default function BookClass() {
                     </h3>
                     <div className="space-y-3">
                       {friendsFamily.map((person, index) => (
-                        <div key={index} className="p-4 rounded-xl bg-white-warm border border-sage/10 flex items-center justify-between">
+                        <div key={`${person.email}-${person.phone}-${index}`} className="p-4 rounded-xl bg-white-warm border border-sage/10 flex items-center justify-between">
                           <div>
                             <p className="font-body text-charcoal font-medium">{person.name}</p>
                             <p className="font-body text-sm text-charcoal/60">{person.email}</p>
@@ -1708,8 +1703,9 @@ export default function BookClass() {
 
                   {userPackage.type === "class_pass" && (
                     <>
-                      <div 
-                        className={`p-5 rounded-xl border-2 cursor-pointer transition-all ${
+                      <button
+                        type="button"
+                        className={`w-full text-left p-5 rounded-xl border-2 cursor-pointer transition-all ${
                           useCredits
                             ? "border-sage bg-sage/5"
                             : "border-sage/20 bg-white-warm hover:border-sage/40"
@@ -1729,7 +1725,7 @@ export default function BookClass() {
                             <p className="font-body text-sm text-charcoal/60">
                               {(() => {
                                 const classesAvailable = userPackage.classesRemaining || 0;
-                                
+
                                 if (classesAvailable < 1) {
                                   return (
                                     <span className="text-terracotta">
@@ -1745,10 +1741,11 @@ export default function BookClass() {
                             </p>
                           </div>
                         </div>
-                      </div>
+                      </button>
 
-                      <div 
-                        className={`p-5 rounded-xl border-2 cursor-pointer transition-all ${
+                      <button
+                        type="button"
+                        className={`w-full text-left p-5 rounded-xl border-2 cursor-pointer transition-all ${
                           !useCredits
                             ? "border-sage bg-sage/5"
                             : "border-sage/20 bg-white-warm hover:border-sage/40"
@@ -1770,7 +1767,7 @@ export default function BookClass() {
                             </p>
                           </div>
                         </div>
-                      </div>
+                      </button>
                     </>
                   )}
 
@@ -1955,9 +1952,10 @@ export default function BookClass() {
                             setCouponLoading(true);
                             setCouponError(null);
                             try {
-                              const ctx = totals.classTotal > 0
-                                ? (userPackage.type === "studio_pass" ? "studio_pass" : "class_pass")
-                                : "food";
+                              let ctx: "studio_pass" | "class_pass" | "food";
+                              if (totals.classTotal <= 0) ctx = "food";
+                              else if (userPackage.type === "studio_pass") ctx = "studio_pass";
+                              else ctx = "class_pass";
                               const r = await fetch("/api/coupons/validate", {
                                 method: "POST",
                                 credentials: "include",
@@ -1994,12 +1992,11 @@ export default function BookClass() {
                   {totals.classTotal > 0 && (
                     <div className="flex justify-between font-body text-sm">
                       <span className="text-charcoal/70">
-                        {userPackage.type === "class_pass" && useCredits
-                          ? `Guests (${friendsFamily.length} × ₹945)`
-                          : userPackage.type === "studio_pass"
-                          ? `Guests (${friendsFamily.length} × ₹945)`
-                          : `Class (${1 + friendsFamily.length} × ₹945)`
-                        }
+                        {(() => {
+                          if (userPackage.type === "class_pass" && useCredits) return `Guests (${friendsFamily.length} × ₹945)`;
+                          if (userPackage.type === "studio_pass") return `Guests (${friendsFamily.length} × ₹945)`;
+                          return `Class (${1 + friendsFamily.length} × ₹945)`;
+                        })()}
                       </span>
                       <span className="text-charcoal">₹{totals.classTotal}</span>
                     </div>
@@ -2116,11 +2113,11 @@ export default function BookClass() {
                   variant="sage"
                   className="flex-1 text-base py-3 sm:py-6 min-h-[44px]"
                 >
-                  {isSubmittingBooking
-                    ? "Working…"
-                    : totals.finalTotal > 0
-                      ? `Confirm & Pay ₹${totals.finalTotal.toFixed(0)}`
-                      : "Confirm Booking"}
+                  {(() => {
+                    if (isSubmittingBooking) return "Working…";
+                    if (totals.finalTotal > 0) return `Confirm & Pay ₹${totals.finalTotal.toFixed(0)}`;
+                    return "Confirm Booking";
+                  })()}
                 </Button>
               )}
             </div>
@@ -2139,7 +2136,9 @@ export default function BookClass() {
       
       {/* Overlay */}
       {showBookingPanel && (
-        <div 
+        <button
+          type="button"
+          aria-label="Close booking panel"
           className="fixed inset-0 bg-charcoal/40 backdrop-blur-xs z-40 transition-opacity duration-600 animate-in fade-in"
           onClick={() => setShowBookingPanel(false)}
         />

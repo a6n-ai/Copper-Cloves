@@ -32,7 +32,7 @@ export function ListAvatar({
   fallbackClassName,
   overlay,
   className,
-}: ListAvatarProps) {
+}: Readonly<ListAvatarProps>) {
   const usableSrc = src && !src.includes("placeholder") ? src : undefined;
   return (
     <div className={cn("relative w-fit", className)}>

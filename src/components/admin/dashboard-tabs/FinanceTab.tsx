@@ -1,4 +1,4 @@
-import { memo, useCallback, useMemo, useState } from "react";
+import { memo, useCallback, useMemo, useState, type ReactNode } from "react";
 import { SortableHeader, useTableSort } from "@/components/admin/sortable-table";
 import {
   ArrowDownRight,
@@ -237,7 +237,9 @@ function txnPassesDateRange(displayDateYYYYMMDD: string, range: string): boolean
 function formatTxnAmountRupee(amount: number, type: string): string {
   const rounded = Math.round(amount);
   const abs = Math.abs(rounded);
-  const prefix = type === "revenue" ? "+" : type === "expense" ? "-" : "";
+  let prefix = "";
+  if (type === "revenue") prefix = "+";
+  else if (type === "expense") prefix = "-";
   let body: string;
   if (abs >= 100000) body = `₹${(abs / 100000).toFixed(2)} L`;
   else if (abs >= 10000) body = `₹${(abs / 1000).toFixed(1)}k`;
@@ -248,6 +250,12 @@ function formatTxnAmountRupee(amount: number, type: string): string {
 function formatInrDetail(n?: number): string {
   if (n == null || !Number.isFinite(Number(n))) return "—";
   return `₹${Math.round(Number(n)).toLocaleString("en-IN")}`;
+}
+
+function formatFinanceDetailWhen(detail: DashboardFinanceDetail): string {
+  const iso = detail.source === "package" ? detail.purchasedAtISO : detail.bookedAtISO;
+  if (!iso) return "—";
+  return new Date(iso).toLocaleString("en-IN", { dateStyle: "medium", timeStyle: "short" });
 }
 
 type PillStyle = { bg: string; fg: string; border: string };
@@ -261,7 +269,9 @@ function txnKind(txn: DashboardTxn): { label: string } & PillStyle {
   const hasCafe = (food.includes("food") && !food.includes("no food")) || cat.includes("café") || cat.includes("cafe");
 
   if (txn.type === "expense") {
-    const label = cat.includes("coach") ? "Coach payout" : cat.includes("rent") || cat.includes("studio") ? "Studio" : "Expense";
+    let label = "Expense";
+    if (cat.includes("coach")) label = "Coach payout";
+    else if (cat.includes("rent") || cat.includes("studio")) label = "Studio";
     return { label, bg: "rgba(51,51,51,0.06)", fg: "#5b5b5b", border: "rgba(51,51,51,0.15)" };
   }
   const isPackage = cat.includes("(package)") || id.startsWith("pkg-") || id.startsWith("demo-finance-package");
@@ -346,7 +356,7 @@ function FinanceOverviewSectionImpl({
   financeLedgerTransactions,
   financeTrend,
   onExport,
-}: FinanceOverviewSectionProps) {
+}: Readonly<FinanceOverviewSectionProps>) {
   const handleExport = useCallback(
     (period: FinanceReportPeriod) => {
       onExport(period, buildExportRows(period, financeLedgerTransactions, financeLedgerTransactions));
@@ -363,12 +373,27 @@ function FinanceOverviewSectionImpl({
   );
 
   // Real month-over-month from the trend; replaces the old hardcoded growth hint.
-  const momHint =
-    trend?.momPct == null
-      ? trend
-        ? "first month tracked"
-        : "—"
-      : `${trend.momPct >= 0 ? "▲" : "▼"} ${Math.abs(trend.momPct).toFixed(0)}% vs last month`;
+  let momHint: string;
+  if (trend?.momPct == null) {
+    momHint = trend ? "first month tracked" : "—";
+  } else {
+    const momArrow = trend.momPct >= 0 ? "▲" : "▼";
+    momHint = `${momArrow} ${Math.abs(trend.momPct).toFixed(0)}% vs last month`;
+  }
+
+  let momPillClass = "bg-charcoal/5 text-charcoal/60";
+  let momPillIcon: ReactNode = null;
+  let momPillText = "First month tracked";
+  if (trend?.momPct != null) {
+    if (trend.momPct >= 0) {
+      momPillClass = "bg-sage/15 text-sage";
+      momPillIcon = <ArrowUpRight className="h-3.5 w-3.5" />;
+    } else {
+      momPillClass = "bg-terracotta/15 text-terracotta";
+      momPillIcon = <ArrowDownRight className="h-3.5 w-3.5" />;
+    }
+    momPillText = `${Math.abs(trend.momPct).toFixed(0)}% vs last month`;
+  }
 
   return (
     <div className="space-y-6">
@@ -414,16 +439,10 @@ function FinanceOverviewSectionImpl({
             </div>
             {trend ? (
               <span
-                className={`inline-flex items-center gap-1 rounded-full px-2.5 py-1 font-body text-xs font-medium ${
-                  trend.momPct == null
-                    ? "bg-charcoal/5 text-charcoal/60"
-                    : trend.momPct >= 0
-                      ? "bg-sage/15 text-sage"
-                      : "bg-terracotta/15 text-terracotta"
-                }`}
+                className={`inline-flex items-center gap-1 rounded-full px-2.5 py-1 font-body text-xs font-medium ${momPillClass}`}
               >
-                {trend.momPct == null ? null : trend.momPct >= 0 ? <ArrowUpRight className="h-3.5 w-3.5" /> : <ArrowDownRight className="h-3.5 w-3.5" />}
-                {trend.momPct == null ? "First month tracked" : `${Math.abs(trend.momPct).toFixed(0)}% vs last month`}
+                {momPillIcon}
+                {momPillText}
               </span>
             ) : null}
           </div>
@@ -624,14 +643,14 @@ function FilterCombobox({
   allLabel,
   searchPlaceholder,
   emptyText,
-}: {
+}: Readonly<{
   value: string;
   onValueChange: (v: string) => void;
   options: string[];
   allLabel: string;
   searchPlaceholder: string;
   emptyText: string;
-}) {
+}>) {
   const [open, setOpen] = useState(false);
   const label = value === "all" ? allLabel : value;
   return (
@@ -700,7 +719,7 @@ export interface FinanceTransactionsSectionProps {
 function FinanceTransactionsSectionImpl({
   financeLedgerTransactions,
   onExport,
-}: FinanceTransactionsSectionProps) {
+}: Readonly<FinanceTransactionsSectionProps>) {
   const [transactionFilter, setTransactionFilter] = useState("all");
   const [transactionDateRange, setTransactionDateRange] = useState("all");
   const [transactionType, setTransactionType] = useState("all");
@@ -720,7 +739,7 @@ function FinanceTransactionsSectionImpl({
     const set = new Set<string>();
     for (const t of financeLedgerTransactions) {
       const name = t.memberFull ?? t.member ?? t.instructor;
-      if (name && name.trim()) set.add(name.trim());
+      if (name?.trim()) set.add(name.trim());
     }
     return Array.from(set).sort((a, b) => a.localeCompare(b));
   }, [financeLedgerTransactions]);
@@ -728,7 +747,7 @@ function FinanceTransactionsSectionImpl({
   const methodOptions = useMemo(() => {
     const set = new Set<string>();
     for (const t of financeLedgerTransactions) {
-      if (t.method && t.method.trim() && t.method !== "—") set.add(t.method.trim());
+      if (t.method?.trim() && t.method !== "—") set.add(t.method.trim());
     }
     return Array.from(set).sort((a, b) => a.localeCompare(b));
   }, [financeLedgerTransactions]);
@@ -978,7 +997,7 @@ function FinanceTransactionsSectionImpl({
               <div>
                 <div className="text-xs uppercase tracking-wide text-charcoal/50 mb-1">Transaction type</div>
                 <ul className="list-disc pl-5 space-y-1">
-                  {(selectedFinanceDetail.transactionKinds ?? ["—"]).map((k, i) => (<li key={i}>{k}</li>))}
+                  {(selectedFinanceDetail.transactionKinds ?? ["—"]).map((k) => (<li key={k}>{k}</li>))}
                 </ul>
               </div>
 
@@ -986,13 +1005,7 @@ function FinanceTransactionsSectionImpl({
                 <div>
                   <div className="text-xs uppercase tracking-wide text-charcoal/50 mb-0.5">When</div>
                   <div>
-                    {selectedFinanceDetail.source === "package"
-                      ? selectedFinanceDetail.purchasedAtISO
-                        ? new Date(selectedFinanceDetail.purchasedAtISO).toLocaleString("en-IN", { dateStyle: "medium", timeStyle: "short" })
-                        : "—"
-                      : selectedFinanceDetail.bookedAtISO
-                        ? new Date(selectedFinanceDetail.bookedAtISO).toLocaleString("en-IN", { dateStyle: "medium", timeStyle: "short" })
-                        : "—"}
+                    {formatFinanceDetailWhen(selectedFinanceDetail)}
                   </div>
                 </div>
                 <div>
@@ -1021,7 +1034,7 @@ function FinanceTransactionsSectionImpl({
                   <div>
                     Payment ID(s):{" "}
                     {(selectedFinanceDetail.razorpayPaymentIds?.length ?? 0) > 0
-                      ? selectedFinanceDetail.razorpayPaymentIds!.map((pid) => (
+                      ? selectedFinanceDetail.razorpayPaymentIds?.map((pid) => (
                           <span key={pid} className="font-mono text-xs block">{pid}</span>
                         ))
                       : "—"}
@@ -1069,7 +1082,7 @@ function FinanceTransactionsSectionImpl({
                 <div>
                   <div className="font-medium text-charcoal mb-2">Café items</div>
                   <ul className="list-disc pl-5 space-y-1 text-charcoal/80">
-                    {selectedFinanceDetail.cafeLines!.map((ln, idx) => (<li key={idx}>{ln.name} × {ln.quantity}</li>))}
+                    {selectedFinanceDetail.cafeLines?.map((ln) => (<li key={`${ln.name}-${ln.quantity}`}>{ln.name} × {ln.quantity}</li>))}
                   </ul>
                 </div>
               ) : null}
@@ -1118,7 +1131,7 @@ function FinanceTabImpl({
   financeLedgerTransactions,
   financeTrend,
   onExport,
-}: Props) {
+}: Readonly<Props>) {
   return (
     <>
       <FinanceOverviewSection

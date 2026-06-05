@@ -25,6 +25,11 @@ function money(v: unknown) {
   return Number.isFinite(n) ? n : 0;
 }
 
+function bookingPaymentMethodLabel(paymentMethod: string, payIdCount: number) {
+  if (paymentMethod !== "online") return "Pay at studio";
+  return payIdCount > 0 ? "Razorpay" : "Online";
+}
+
 function guestListFromJson(raw: unknown): { name?: string; email?: string; phone?: string }[] {
   if (!Array.isArray(raw)) return [];
   const out: { name?: string; email?: string; phone?: string }[] = [];
@@ -201,11 +206,16 @@ async function aggregateClassPerformance(db: Db) {
   for (const sl of scheduleSlots30) slotCountByClass.set(sl.class_id, (slotCountByClass.get(sl.class_id) ?? 0) + 1);
 
   const classPerformance = [...classMap.values()].map((v) => {
-    const slots = slotCountByClass.has(v.id) ? slotCountByClass.get(v.id)! : Math.max(1, Math.ceil(v.bookings / 10));
+    const slots = slotCountByClass.get(v.id) ?? Math.max(1, Math.ceil(v.bookings / 10));
     const seatOffered = slots * v.capacity;
-    const utilization = seatOffered > 0
-      ? Math.min(100, Math.round((v.bookings / seatOffered) * 100))
-      : v.bookings > 0 ? 33 : 0;
+    let utilization: number;
+    if (seatOffered > 0) {
+      utilization = Math.min(100, Math.round((v.bookings / seatOffered) * 100));
+    } else if (v.bookings > 0) {
+      utilization = 33;
+    } else {
+      utilization = 0;
+    }
     return {
       name: v.name,
       bookings: v.bookings,
@@ -779,17 +789,16 @@ export async function getTransactions(db: Db = prisma, opts: { includeFinanceDem
       type: "revenue" as const,
       amount: snap.totalInr,
       category,
-      method:
-        snap.paymentMethod === "online" && payIds.length > 0
-          ? "Razorpay"
-          : snap.paymentMethod === "online" ? "Online" : "Pay at studio",
+      method: bookingPaymentMethodLabel(snap.paymentMethod, payIds.length),
       financeDetail,
     }];
   });
 
-  const liveTransactions = [...packageTransactions, ...bookingFinanceTransactions].sort((a, b) =>
-    a.sortKey < b.sortKey ? 1 : a.sortKey > b.sortKey ? -1 : 0,
-  );
+  const liveTransactions = [...packageTransactions, ...bookingFinanceTransactions].sort((a, b) => {
+    if (a.sortKey < b.sortKey) return 1;
+    if (a.sortKey > b.sortKey) return -1;
+    return 0;
+  });
 
   return includeFinanceDemo ? [...financeDemoRows, ...liveTransactions] : liveTransactions;
 }

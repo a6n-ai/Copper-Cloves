@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { SEO } from "@/components/SEO";
+import { SEO as Seo } from "@/components/SEO";
 import { Footer } from "@/components/Footer";
 import { Button } from "@/components/ui/button";
 import { ArrowLeft, FileText } from "lucide-react";
@@ -9,7 +9,7 @@ const LAST_UPDATED = "12 May 2026";
 export default function TermsPage() {
   return (
     <>
-      <SEO
+      <Seo
         title="Terms & Conditions | The Studio by Copper + Cloves"
         description="Terms and conditions for using our website, booking classes, café, boutique, and member services at The Studio by Copper + Cloves, Bengaluru."
       />

@@ -20,7 +20,7 @@ export function SEOElements({
   description = DEFAULT_DESCRIPTION,
   image = DEFAULT_OG_IMAGE,
   url,
-}: SEOProps) {
+}: Readonly<SEOProps>) {
   return (
     <>
       <title>{title}</title>
@@ -51,7 +51,7 @@ export function SEO({
   description = DEFAULT_DESCRIPTION,
   image = DEFAULT_OG_IMAGE,
   url,
-}: SEOProps) {
+}: Readonly<SEOProps>) {
   return (
     <Head>
       <title>{title}</title>

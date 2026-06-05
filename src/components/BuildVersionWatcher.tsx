@@ -38,7 +38,7 @@ export function BuildVersionWatcher() {
         // Defer the reload a tick so any in-flight click handler can complete
         // its UI feedback before we navigate.
         setTimeout(() => {
-          window.location.reload();
+          globalThis.location.reload();
         }, RELOAD_GRACE_MS);
       } catch {
         /* ignore — transient network errors aren't worth reloading over */

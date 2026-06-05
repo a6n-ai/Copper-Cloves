@@ -161,7 +161,7 @@ export async function onboardGuestsForBooking(opts: {
   classScheduleId: string;
   bookerId: string;
 }): Promise<{ processed: number; results: OnboardResult[] }> {
-  const guests = (opts.guests ?? []).filter((g) => g.email && g.email.trim());
+  const guests = (opts.guests ?? []).filter((g) => g.email?.trim());
   if (guests.length === 0) return { processed: 0, results: [] };
 
   const schedule = await prisma.classSchedule.findUnique({

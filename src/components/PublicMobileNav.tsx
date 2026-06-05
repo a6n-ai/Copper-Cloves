@@ -103,6 +103,12 @@ export function PublicMobileNav() {
 
   const renderMoreRow = (l: Tab, muted = false) => {
     const Icon = l.icon;
+    let inactiveClass: string;
+    if (muted) {
+      inactiveClass = "text-charcoal/70 hover:bg-sage/5";
+    } else {
+      inactiveClass = "text-charcoal hover:bg-sage/5";
+    }
     return (
       <Link
         key={l.href}
@@ -110,11 +116,7 @@ export function PublicMobileNav() {
         onClick={() => setMoreOpen(false)}
         className={cn(
           "flex min-h-12 items-center gap-3 rounded-xl px-3 font-body text-sm transition-colors",
-          isActive(l.href)
-            ? "bg-terracotta/10 text-terracotta"
-            : muted
-              ? "text-charcoal/70 hover:bg-sage/5"
-              : "text-charcoal hover:bg-sage/5",
+          isActive(l.href) ? "bg-terracotta/10 text-terracotta" : inactiveClass,
         )}
       >
         <Icon className="h-5 w-5 shrink-0" />

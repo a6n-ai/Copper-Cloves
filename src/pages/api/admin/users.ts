@@ -120,12 +120,13 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         expirationDate.setMonth(expirationDate.getMonth() + (pt.duration_months ?? 1));
       }
 
-      const creditsForClass =
-        pass_type === "class_pass"
-          ? Number.isFinite(class_or_days_count) && class_or_days_count > 0
+      let creditsForClass: number | null = null;
+      if (pass_type === "class_pass") {
+        creditsForClass =
+          Number.isFinite(class_or_days_count) && class_or_days_count > 0
             ? Math.floor(class_or_days_count)
-            : pt.class_count ?? 10
-          : null;
+            : pt.class_count ?? 10;
+      }
 
       await tx.userPackage.create({
         data: {

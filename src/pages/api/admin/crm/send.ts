@@ -12,6 +12,12 @@ interface SendBody {
   variables?: Record<string, unknown>;
 }
 
+function asString(v: unknown): string {
+  if (typeof v === "string") return v;
+  if (typeof v === "number" || typeof v === "boolean" || typeof v === "bigint") return v.toString();
+  return "";
+}
+
 function siteBaseUrl(): string {
   return (process.env.NEXTAUTH_URL?.trim() || process.env.NEXT_PUBLIC_SITE_URL?.trim() || "").replace(/\/$/, "");
 }
@@ -63,7 +69,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     portalUrl: base,
     email: profile.email,
     ...Object.fromEntries(
-      Object.entries(overrides ?? {}).map(([k, v]) => [k, v == null ? "" : String(v)])
+      Object.entries(overrides ?? {}).map(([k, v]) => [k, asString(v)])
     ),
   };
 

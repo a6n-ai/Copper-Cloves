@@ -8,7 +8,7 @@ import { useRouter } from "next/router";
 import { useSession } from "next-auth/react";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
-import { Calendar, Clock, MapPin, User, AlertCircle, X } from "lucide-react";
+import { Calendar, Clock, AlertCircle, X } from "lucide-react";
 import {
   ResponsiveDialog,
   ResponsiveDialogContent,
@@ -164,11 +164,11 @@ function BookingRowSkeleton() {
   );
 }
 
-function BookingsListSkeleton({ rows = 5 }: { rows?: number }) {
+function BookingsListSkeleton({ rows = 5 }: Readonly<{ rows?: number }>) {
   return (
     <div className="space-y-4">
-      {Array.from({ length: rows }).map((_, i) => (
-        <BookingRowSkeleton key={i} />
+      {Array.from({ length: rows }, (_, i) => `booking-skeleton-${i}`).map((key) => (
+        <BookingRowSkeleton key={key} />
       ))}
     </div>
   );

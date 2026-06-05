@@ -57,7 +57,6 @@ import {
   Coffee,
   Target,
   Package,
-  X,
   Zap,
   History,
   Lock,
@@ -161,7 +160,7 @@ function computeMovementVitalityFromBookings(bookings: VitalityBookingRow[], now
     }
   }
 
-  let vsText = "—";
+  let vsText: string;
   let vsTone: "neutral" | "up" | "down" = "neutral";
   if (currentWindowMinutes === 0 && prevWindowMinutes === 0) {
     vsText = "—";
@@ -171,7 +170,8 @@ function computeMovementVitalityFromBookings(bookings: VitalityBookingRow[], now
   } else {
     const pct = Math.round(((currentWindowMinutes - prevWindowMinutes) / prevWindowMinutes) * 100);
     vsText = `${pct > 0 ? "+" : ""}${pct}%`;
-    vsTone = pct > 0 ? "up" : pct < 0 ? "down" : "neutral";
+    if (pct > 0) vsTone = "up";
+    else if (pct < 0) vsTone = "down";
   }
 
   return { dailyActivity, vsText, vsTone };
@@ -191,7 +191,6 @@ export default function Dashboard() {
   
   // Real user data states
   const [userName, setUserName] = useState<string>("");
-  const [userEmail, setUserEmail] = useState<string>("");
   const [userClassesCompleted, setUserClassesCompleted] = useState<number>(0);
   const [creditsRemaining, setCreditsRemaining] = useState<number>(0);
   const [packageDetails, setPackageDetails] = useState<{
@@ -199,11 +198,6 @@ export default function Dashboard() {
     isUnlimited: boolean;
     classCount: number | null;
   } | null>(null);
-  const [currentBadge, setCurrentBadge] = useState<string>("The Seeker");
-  const [nextBadge, setNextBadge] = useState<string>("The Warrior");
-  const [classesUntilNext, setClassesUntilNext] = useState<number>(25);
-  const [upcomingClasses, setUpcomingClasses] = useState<any[]>([]);
-  const [userIntention, setUserIntention] = useState<string>("Deep breathing and presence");
   const [upcomingBookings, setUpcomingBookings] = useState<any[]>([]);
   const [recentActivities, setRecentActivities] = useState<any[]>([]);
   const [lastCafeOrder, setLastCafeOrder] = useState<string | null>(null);
@@ -233,7 +227,6 @@ export default function Dashboard() {
   useEffect(() => {
     if (!profileData) return;
     setUserName((profileData.full_name || "Member").split(" ")[0]);
-    setUserEmail(profileData.email || "");
   }, [profileData]);
 
   /** Always length 30 for chart; zeros until hydrated from API check-ins */
@@ -485,6 +478,15 @@ export default function Dashboard() {
     return isMobile ? <MemberMobileDashboardSkeleton /> : <MemberDashboardSkeleton />;
   }
 
+  let packageSummary: string;
+  if (!packageDetails) {
+    packageSummary = "No active package";
+  } else if (packageDetails.isUnlimited) {
+    packageSummary = packageDetails.name;
+  } else {
+    packageSummary = `${packageDetails.classCount || 0} classes remaining`;
+  }
+
   return (
     <div className="min-h-screen bg-linear-to-br from-cream via-cream to-sage/5">
       {/* Main Content */}
@@ -535,11 +537,7 @@ export default function Dashboard() {
                     </span>
                   )}
                   {" • "}
-                  {packageDetails
-                    ? packageDetails.isUnlimited
-                      ? packageDetails.name
-                      : `${packageDetails.classCount || 0} classes remaining`
-                    : "No active package"}
+                  {packageSummary}
                 </p>
               </div>
 

@@ -21,12 +21,12 @@ import {
   type CafeMenuItem,
 } from "@/components/cafe/types";
 
-function MenuGridSkeleton({ count = 6 }: { count?: number }) {
+function MenuGridSkeleton({ count = 6 }: Readonly<{ count?: number }>) {
   return (
     <div className="grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-3">
-      {Array.from({ length: count }).map((_, i) => (
+      {Array.from({ length: count }, (_, i) => `menu-skeleton-${i}`).map((key) => (
         <Card
-          key={i}
+          key={key}
           className="overflow-hidden rounded-2xl border border-border bg-white-warm p-0"
         >
           <Skeleton className="aspect-video w-full rounded-none" />
@@ -58,8 +58,8 @@ export default function MenuPage() {
       const r = item as Record<string, unknown>;
       return {
         ...(r as unknown as CafeMenuItem),
-        description: String(r.description ?? ""),
-        image_url: String(r.image_url ?? ""),
+        description: typeof r.description === "string" ? r.description : "",
+        image_url: typeof r.image_url === "string" ? r.image_url : "",
         price: Number(r.price),
       };
     });

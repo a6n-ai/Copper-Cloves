@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { useRouter } from "next/router";
 import { useSession } from "next-auth/react";
-import { SEO } from "@/components/SEO";
+import { SEO as Seo } from "@/components/SEO";
 import { PageHeader } from "@/components/dashboard/PageHeader";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
@@ -128,9 +128,86 @@ export default function KitchenDashboard() {
     };
   }, [orders]);
 
+  let orderQueue: React.ReactNode;
+  if (loading) {
+    orderQueue = (
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+        {["k1", "k2", "k3", "k4", "k5", "k6"].map((sk) => (
+          <Skeleton key={sk} className="h-36 rounded-2xl" />
+        ))}
+      </div>
+    );
+  } else if (active.length === 0) {
+    orderQueue = (
+      <Card className="rounded-2xl border-sage/15">
+        <CardContent className="flex flex-col items-center gap-3 py-16 text-center">
+          <CheckCircle2 className="h-10 w-10 text-sage/50" />
+          <p className="font-display text-lg text-charcoal">All caught up</p>
+          <p className="font-body text-sm text-charcoal/55">No open orders right now.</p>
+        </CardContent>
+      </Card>
+    );
+  } else {
+    orderQueue = (
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+        {active.map((o) => {
+          const step = NEXT_STATUS[o.status];
+          return (
+            <Card key={o.id} className="rounded-2xl border-sage/15 hover:shadow-md transition-shadow">
+              <CardContent className="p-5 space-y-3">
+                <div className="flex items-start justify-between gap-2">
+                  <div className="min-w-0">
+                    <p className="font-display text-lg text-charcoal truncate">
+                      {o.cafe_item?.name ?? "Item"}{" "}
+                      {o.quantity > 1 ? <span className="text-charcoal/50">×{o.quantity}</span> : null}
+                    </p>
+                    <p className="font-body text-sm text-charcoal/55 truncate">
+                      {o.profile?.full_name ?? o.profile?.email ?? "Member"}
+                    </p>
+                  </div>
+                  <span
+                    className={`shrink-0 rounded-full border px-2.5 py-0.5 font-body text-xs font-medium capitalize ${
+                      STATUS_STYLES[o.status] ?? "bg-charcoal/5 text-charcoal/60 border-charcoal/10"
+                    }`}
+                  >
+                    {o.status}
+                  </span>
+                </div>
+                <p className="font-body text-xs text-charcoal/45">{minsAgo(o.order_date)}</p>
+                <div className="flex gap-2 pt-1">
+                  {step ? (
+                    <Button
+                      size="sm"
+                      disabled={updating === o.id}
+                      onClick={() => updateStatus(o.id, step.next)}
+                      variant="sage"
+                      className="flex-1"
+                    >
+                      {step.label}
+                    </Button>
+                  ) : null}
+                  <Button
+                    size="sm"
+                    variant="outline"
+                    disabled={updating === o.id}
+                    onClick={() => updateStatus(o.id, "cancelled")}
+                    className="border-terracotta/30 text-terracotta hover:bg-terracotta/5 font-body"
+                    aria-label="Cancel order"
+                  >
+                    <X className="h-4 w-4" />
+                  </Button>
+                </div>
+              </CardContent>
+            </Card>
+          );
+        })}
+      </div>
+    );
+  }
+
   return (
     <>
-      <SEO title="Live Orders - Kitchen" description="Live café order queue" />
+      <Seo title="Live Orders - Kitchen" description="Live café order queue" />
       <div className="min-h-screen bg-linear-to-br from-cream via-cream to-sage/10">
         <main className="min-h-screen">
           <div className="max-w-7xl mx-auto p-6 lg:p-8 space-y-8">
@@ -155,75 +232,7 @@ export default function KitchenDashboard() {
               <MetricCard label="Completed today" value={String(completedToday)} icon={CheckCircle2} />
             </div>
 
-            {loading ? (
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                {Array.from({ length: 6 }).map((_, i) => (
-                  <Skeleton key={i} className="h-36 rounded-2xl" />
-                ))}
-              </div>
-            ) : active.length === 0 ? (
-              <Card className="rounded-2xl border-sage/15">
-                <CardContent className="flex flex-col items-center gap-3 py-16 text-center">
-                  <CheckCircle2 className="h-10 w-10 text-sage/50" />
-                  <p className="font-display text-lg text-charcoal">All caught up</p>
-                  <p className="font-body text-sm text-charcoal/55">No open orders right now.</p>
-                </CardContent>
-              </Card>
-            ) : (
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                {active.map((o) => {
-                  const step = NEXT_STATUS[o.status];
-                  return (
-                    <Card key={o.id} className="rounded-2xl border-sage/15 hover:shadow-md transition-shadow">
-                      <CardContent className="p-5 space-y-3">
-                        <div className="flex items-start justify-between gap-2">
-                          <div className="min-w-0">
-                            <p className="font-display text-lg text-charcoal truncate">
-                              {o.cafe_item?.name ?? "Item"}{" "}
-                              {o.quantity > 1 ? <span className="text-charcoal/50">×{o.quantity}</span> : null}
-                            </p>
-                            <p className="font-body text-sm text-charcoal/55 truncate">
-                              {o.profile?.full_name ?? o.profile?.email ?? "Member"}
-                            </p>
-                          </div>
-                          <span
-                            className={`shrink-0 rounded-full border px-2.5 py-0.5 font-body text-xs font-medium capitalize ${
-                              STATUS_STYLES[o.status] ?? "bg-charcoal/5 text-charcoal/60 border-charcoal/10"
-                            }`}
-                          >
-                            {o.status}
-                          </span>
-                        </div>
-                        <p className="font-body text-xs text-charcoal/45">{minsAgo(o.order_date)}</p>
-                        <div className="flex gap-2 pt-1">
-                          {step ? (
-                            <Button
-                              size="sm"
-                              disabled={updating === o.id}
-                              onClick={() => updateStatus(o.id, step.next)}
-                              variant="sage"
-                              className="flex-1"
-                            >
-                              {step.label}
-                            </Button>
-                          ) : null}
-                          <Button
-                            size="sm"
-                            variant="outline"
-                            disabled={updating === o.id}
-                            onClick={() => updateStatus(o.id, "cancelled")}
-                            className="border-terracotta/30 text-terracotta hover:bg-terracotta/5 font-body"
-                            aria-label="Cancel order"
-                          >
-                            <X className="h-4 w-4" />
-                          </Button>
-                        </div>
-                      </CardContent>
-                    </Card>
-                  );
-                })}
-              </div>
-            )}
+            {orderQueue}
           </div>
         </main>
       </div>

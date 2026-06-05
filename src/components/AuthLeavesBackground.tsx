@@ -11,7 +11,7 @@ import { DEFAULT_PALETTE, type MeshPalette } from "@/lib/weatherPalette";
  */
 
 function rgb(color: string): [number, number, number] {
-  const m = color.match(/(\d+)\s*,\s*(\d+)\s*,\s*(\d+)/);
+  const m = /(\d+)\s*,\s*(\d+)\s*,\s*(\d+)/.exec(color);
   return m ? [Number(m[1]), Number(m[2]), Number(m[3])] : [143, 151, 121];
 }
 
@@ -32,10 +32,10 @@ interface Leaf {
 export function AuthLeavesBackground({
   className = "",
   palette = DEFAULT_PALETTE,
-}: {
+}: Readonly<{
   className?: string;
   palette?: MeshPalette;
-}) {
+}>) {
   const canvasRef = useRef<HTMLCanvasElement>(null);
 
   useEffect(() => {
@@ -45,7 +45,7 @@ export function AuthLeavesBackground({
     if (!ctx) return;
 
     const colors = [rgb(palette.c1), rgb(palette.c2), rgb(palette.c3)];
-    const reduced = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+    const reduced = globalThis.matchMedia("(prefers-reduced-motion: reduce)").matches;
 
     let leaves: Leaf[] = [];
     let raf = 0;
@@ -71,39 +71,39 @@ export function AuthLeavesBackground({
 
     function seed() {
       const dpr = Math.min(window.devicePixelRatio || 1, 2);
-      w = canvas!.clientWidth;
-      h = canvas!.clientHeight;
-      canvas!.width = w * dpr;
-      canvas!.height = h * dpr;
-      ctx!.setTransform(dpr, 0, 0, dpr, 0, 0);
+      w = canvas.clientWidth;
+      h = canvas.clientHeight;
+      canvas.width = w * dpr;
+      canvas.height = h * dpr;
+      ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
       const count = Math.min(46, Math.max(16, Math.round((w * h) / 36000)));
       leaves = Array.from({ length: count }, () => makeLeaf(true));
     }
 
     function drawLeaf(l: Leaf, drawX: number) {
       const s = l.size;
-      ctx!.save();
-      ctx!.translate(drawX, l.y);
-      ctx!.rotate(l.rot);
-      ctx!.fillStyle = `rgba(${l.c[0]}, ${l.c[1]}, ${l.c[2]}, ${l.alpha})`;
-      ctx!.beginPath();
-      ctx!.moveTo(0, -s);
-      ctx!.quadraticCurveTo(s * 0.62, -s * 0.1, 0, s);
-      ctx!.quadraticCurveTo(-s * 0.62, -s * 0.1, 0, -s);
-      ctx!.closePath();
-      ctx!.fill();
+      ctx.save();
+      ctx.translate(drawX, l.y);
+      ctx.rotate(l.rot);
+      ctx.fillStyle = `rgba(${l.c[0]}, ${l.c[1]}, ${l.c[2]}, ${l.alpha})`;
+      ctx.beginPath();
+      ctx.moveTo(0, -s);
+      ctx.quadraticCurveTo(s * 0.62, -s * 0.1, 0, s);
+      ctx.quadraticCurveTo(-s * 0.62, -s * 0.1, 0, -s);
+      ctx.closePath();
+      ctx.fill();
       // central vein
-      ctx!.strokeStyle = `rgba(${l.c[0]}, ${l.c[1]}, ${l.c[2]}, ${Math.min(1, l.alpha + 0.2)})`;
-      ctx!.lineWidth = 0.8;
-      ctx!.beginPath();
-      ctx!.moveTo(0, -s * 0.85);
-      ctx!.lineTo(0, s * 0.85);
-      ctx!.stroke();
-      ctx!.restore();
+      ctx.strokeStyle = `rgba(${l.c[0]}, ${l.c[1]}, ${l.c[2]}, ${Math.min(1, l.alpha + 0.2)})`;
+      ctx.lineWidth = 0.8;
+      ctx.beginPath();
+      ctx.moveTo(0, -s * 0.85);
+      ctx.lineTo(0, s * 0.85);
+      ctx.stroke();
+      ctx.restore();
     }
 
     function frame() {
-      ctx!.clearRect(0, 0, w, h);
+      ctx.clearRect(0, 0, w, h);
       for (const l of leaves) {
         l.y += l.fall;
         l.sway += l.swaySpeed;
@@ -116,7 +116,7 @@ export function AuthLeavesBackground({
     }
 
     function drawStatic() {
-      ctx!.clearRect(0, 0, w, h);
+      ctx.clearRect(0, 0, w, h);
       for (const l of leaves) drawLeaf(l, l.x);
     }
 

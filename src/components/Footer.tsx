@@ -1,7 +1,8 @@
 import Image from "next/image";
 import Link from "next/link";
 import { useRef } from "react";
-import { MapPin, Phone, Mail, Instagram, Facebook, Youtube } from "lucide-react";
+import { MapPin, Phone, Mail } from "lucide-react";
+import { InstagramIcon, FacebookIcon, YoutubeIcon } from "@/components/icons/SocialIcons";
 import {
   LazyMotion,
   domAnimation,
@@ -50,17 +51,17 @@ const SOCIALS = [
   {
     href: "https://www.instagram.com/thestudiobycopperandcloves/",
     label: "Instagram",
-    Icon: Instagram,
+    Icon: InstagramIcon,
   },
   {
     href: "https://www.facebook.com/people/The-Studio-by-Copper-Cloves/61564386191595/",
     label: "Facebook",
-    Icon: Facebook,
+    Icon: FacebookIcon,
   },
   {
     href: "https://www.youtube.com/@CopperandCloves",
     label: "YouTube",
-    Icon: Youtube,
+    Icon: YoutubeIcon,
   },
 ] as const;
 
@@ -73,7 +74,7 @@ type FooterProps = {
   cta?: StudioCtaProps | null;
 };
 
-export function Footer({ cta }: FooterProps) {
+export function Footer({ cta }: Readonly<FooterProps>) {
   const ctaProps = cta === null ? null : cta ?? DEFAULT_CTA;
   const currentYear = new Date().getFullYear();
   const reduce = useReducedMotion();
@@ -142,7 +143,7 @@ export function Footer({ cta }: FooterProps) {
             <div className="group overflow-hidden rounded-xl border border-[#e5e4dc] transition-shadow duration-300 hover:shadow-[0_4px_24px_rgba(51,51,51,0.08)]">
               <iframe
                 src="https://maps.google.com/maps?ll=12.963915,77.638424&z=15&t=m&hl=en&gl=IN&mapclient=embed&output=embed&cid=8196377345979611458"
-                className="h-[200px] w-full border-0 grayscale-[0.3] transition-all duration-500 group-hover:grayscale-0 md:h-[220px]"
+                className="h-50 w-full border-0 grayscale-[0.3] transition-all duration-500 group-hover:grayscale-0 md:h-55"
                 allowFullScreen
                 loading="lazy"
                 referrerPolicy="no-referrer-when-downgrade"
@@ -277,7 +278,7 @@ export function Footer({ cta }: FooterProps) {
       {/* ── Oversized brand watermark ──────────────────────────────── */}
       <span
         aria-hidden
-        className="pointer-events-none absolute inset-x-0 bottom-0 translate-y-[22%] select-none whitespace-nowrap text-center font-display text-[11vw] leading-[0.8] text-sage/[0.08]"
+        className="pointer-events-none absolute inset-x-0 bottom-0 translate-y-[22%] select-none whitespace-nowrap text-center font-display text-[11vw] leading-[0.8] text-sage/8"
       >
         Copper &amp; Cloves
       </span>

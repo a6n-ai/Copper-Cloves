@@ -34,7 +34,7 @@ interface NavigationProps {
 }
 
 /** Desktop nav link with a sage (or cream, over the hero) active/hover underline. */
-function NavLink({ href, label, active, onHero }: { href: string; label: string; active: boolean; onHero: boolean }) {
+function NavLink({ href, label, active, onHero }: Readonly<{ href: string; label: string; active: boolean; onHero: boolean }>) {
   return (
     <Link
       href={href}
@@ -43,7 +43,7 @@ function NavLink({ href, label, active, onHero }: { href: string; label: string;
         "group relative rounded-sm py-1 font-body text-[15px] font-medium tracking-wide transition-colors focus:outline-hidden focus-visible:ring-2 focus-visible:ring-offset-2",
         onHero
           ? "text-cream/85 hover:text-cream focus-visible:ring-cream/50 focus-visible:ring-offset-transparent"
-          : "text-charcoal hover:text-charcoal focus-visible:ring-sage/40 focus-visible:ring-offset-[#fafaf8]",
+          : "text-charcoal hover:text-charcoal focus-visible:ring-sage/40 focus-visible:ring-offset-white-warm",
       )}
     >
       {label}
@@ -89,7 +89,7 @@ function navShellClass(isOverlay: boolean, scrolled: boolean) {
   );
 }
 
-export function Navigation({ variant = "default" }: NavigationProps) {
+export function Navigation({ variant = "default" }: Readonly<NavigationProps>) {
   const [scrolled, setScrolled] = useState(false);
   const router = useRouter();
   const { data: session, status } = useSession();

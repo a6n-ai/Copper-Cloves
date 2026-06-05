@@ -33,7 +33,12 @@ function prismaMeta(e: unknown): { code: string; message: string } {
       return { code: "VALIDATION", message: item.message };
     }
   }
-  const msg = e instanceof Error ? e.message : String(e);
+  let msg = "Unknown error";
+  if (e instanceof Error) {
+    msg = e.message;
+  } else if (typeof e === "string") {
+    msg = e;
+  }
   if (typeof e === "object" && e !== null && "code" in e && typeof (e as { code: unknown }).code === "string") {
     return { code: (e as { code: string }).code, message: msg };
   }
@@ -124,7 +129,7 @@ function respondWithSignupError(res: NextApiResponse, e: unknown): void {
   if (friendly) {
     res.status(503).json({
       error: friendly,
-      ...(code && /^P[0-9]+$/.test(code) ? { code } : {}),
+      ...(code && /^P\d+$/.test(code) ? { code } : {}),
       ...(process.env.NODE_ENV === "development" ? { detail: message } : {}),
     });
     return;
@@ -133,7 +138,7 @@ function respondWithSignupError(res: NextApiResponse, e: unknown): void {
   res.status(500).json({
     error:
       "Something went wrong while creating your account. Please try again later or contact the studio.",
-    ...(code && /^P[0-9]+$/.test(code) ? { code } : {}),
+    ...(code && /^P\d+$/.test(code) ? { code } : {}),
     ...(process.env.NODE_ENV === "development"
       ? {
           detail: message,

@@ -14,7 +14,7 @@ const stats = [
 export function Founder() {
   return (
     <section className="bg-cream py-14 md:py-20">
-      <div className="mx-auto grid max-w-7xl items-stretch gap-12 px-6 lg:min-h-[600px] lg:grid-cols-2 lg:gap-16 lg:px-8">
+      <div className="mx-auto grid max-w-7xl items-stretch gap-12 px-6 lg:min-h-150 lg:grid-cols-2 lg:gap-16 lg:px-8">
         {/* Narrative */}
         <div className="flex flex-col justify-center">
           <p className="font-body text-xs font-semibold uppercase tracking-[0.18em] text-terracotta">
@@ -41,7 +41,7 @@ export function Founder() {
           <dl className="mt-8 grid grid-cols-2 gap-4 border-y border-[#e5e4dc] py-6 sm:grid-cols-4">
             {stats.map((stat) => (
               <div key={stat.label} className="flex flex-col-reverse">
-                <dt className="mt-1 font-body text-[11px] uppercase tracking-[0.1em] text-charcoal/55">
+                <dt className="mt-1 font-body text-[11px] uppercase tracking-widest text-charcoal/55">
                   {stat.label}
                 </dt>
                 <dd className="font-display text-3xl text-charcoal md:text-4xl">{stat.value}</dd>
@@ -63,7 +63,7 @@ export function Founder() {
 
         {/* Visual */}
         <div className="group relative">
-          <div className="relative h-full min-h-[420px] overflow-hidden rounded-3xl shadow-[0_8px_48px_-8px_rgba(51,51,51,0.14)]">
+          <div className="relative h-full min-h-105 overflow-hidden rounded-3xl shadow-[0_8px_48px_-8px_rgba(51,51,51,0.14)]">
             <Image
               src={cdnUrl("/coworking.jpg")}
               alt="Members gathered in the sun-drenched studio social space"

@@ -13,7 +13,7 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/com
 import { FormAlert } from "@/components/ui/form-alert";
 import { ChevronRight, ChevronLeft, CheckCircle2 } from "lucide-react";
 import { Spinner, PageLoader } from "@/components/ui/spinner";
-import { SEO } from "@/components/SEO";
+import { SEO as Seo } from "@/components/SEO";
 
 import { cdnUrl } from "@/lib/cdnUrl";
 // ── Fitness goals (shared) ────────────────────────────────────────────────────
@@ -84,11 +84,11 @@ function MultiCheckbox({
   options,
   value,
   onChange,
-}: {
+}: Readonly<{
   options: string[];
   value: string[];
   onChange: (v: string[]) => void;
-}) {
+}>) {
   function toggle(opt: string) {
     if (opt === "None") {
       onChange(value.includes("None") ? [] : ["None"]);
@@ -122,6 +122,11 @@ function MultiCheckbox({
 
 // ── Steps ─────────────────────────────────────────────────────────────────────
 const STEP_LABELS = ["About You", "Your Goals", "Health Info"];
+const GENDER_LABELS: Record<"male" | "female" | "other", string> = {
+  male: "Male",
+  female: "Female",
+  other: "Other",
+};
 
 export default function OnboardingPage() {
   const router = useRouter();
@@ -209,7 +214,7 @@ export default function OnboardingPage() {
 
   return (
     <>
-      <SEO title="Welcome — The Studio" description="Tell us a little about yourself" />
+      <Seo title="Welcome — The Studio" description="Tell us a little about yourself" />
 
       <div className="min-h-screen bg-linear-to-br from-cream via-cream to-sage/10 flex items-center justify-center py-12 px-4">
         <div className="w-full max-w-lg">
@@ -226,14 +231,21 @@ export default function OnboardingPage() {
 
           {/* Step indicator */}
           <div className="flex items-center justify-center gap-2 mb-8">
-            {STEP_LABELS.map((label, i) => (
-              <div key={i} className="flex items-center gap-2">
-                <div className={`flex items-center gap-1.5 text-xs font-body transition-colors ${i === step ? "text-charcoal font-medium" : i < step ? "text-sage" : "text-charcoal/30"}`}>
-                  <div className={`h-6 w-6 rounded-full flex items-center justify-center text-xs border transition-colors ${
-                    i < step ? "bg-sage border-sage text-cream" :
-                    i === step ? "bg-charcoal border-charcoal text-cream" :
-                    "border-charcoal/20 text-charcoal/30"
-                  }`}>
+            {STEP_LABELS.map((label, i) => {
+              let labelColor: string;
+              if (i === step) labelColor = "text-charcoal font-medium";
+              else if (i < step) labelColor = "text-sage";
+              else labelColor = "text-charcoal/30";
+
+              let bubbleColor: string;
+              if (i < step) bubbleColor = "bg-sage border-sage text-cream";
+              else if (i === step) bubbleColor = "bg-charcoal border-charcoal text-cream";
+              else bubbleColor = "border-charcoal/20 text-charcoal/30";
+
+              return (
+              <div key={label} className="flex items-center gap-2">
+                <div className={`flex items-center gap-1.5 text-xs font-body transition-colors ${labelColor}`}>
+                  <div className={`h-6 w-6 rounded-full flex items-center justify-center text-xs border transition-colors ${bubbleColor}`}>
                     {i < step ? <CheckCircle2 className="h-3.5 w-3.5" /> : i + 1}
                   </div>
                   <span className="hidden sm:inline">{label}</span>
@@ -242,7 +254,8 @@ export default function OnboardingPage() {
                   <div className={`h-px w-8 transition-colors ${i < step ? "bg-sage" : "bg-charcoal/15"}`} />
                 )}
               </div>
-            ))}
+              );
+            })}
           </div>
 
           <Card className="border-sage/20 bg-white-warm shadow-[0_4px_24px_rgba(51,51,51,0.08)]">
@@ -309,7 +322,7 @@ export default function OnboardingPage() {
                                     : "border-sage/20 text-charcoal/70 hover:border-sage/50"
                                 }`}
                               >
-                                {g === "male" ? "Male" : g === "female" ? "Female" : "Other"}
+                                {GENDER_LABELS[g]}
                               </button>
                             ))}
                           </div>

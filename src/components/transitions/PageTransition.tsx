@@ -14,7 +14,7 @@ import { useRef } from "react";
  * at rest, and any lingering transform would still create a containing block for
  * descendant `position: fixed`/`sticky` elements (e.g. a page-local sticky CTA).
  */
-export function PageTransition({ children }: { children: React.ReactNode }) {
+export function PageTransition({ children }: Readonly<{ children: React.ReactNode }>) {
   const router = useRouter();
   const reduce = useReducedMotion();
   const nodeRef = useRef<HTMLDivElement>(null);

@@ -180,9 +180,10 @@ function ExpensesSectionImpl() {
           </div>
         </CardHeader>
         <CardContent>
-          {loading ? (
+          {loading && (
             <div className="py-12 text-center font-body text-sm text-charcoal/40">Loading expenses…</div>
-          ) : expenses.length === 0 ? (
+          )}
+          {!loading && expenses.length === 0 && (
             <div className="text-center py-12">
               <Receipt className="h-12 w-12 text-charcoal/20 mx-auto mb-3" />
               <div className="font-body text-charcoal/60">No expenses recorded yet</div>
@@ -190,7 +191,8 @@ function ExpensesSectionImpl() {
                 Add your first expense
               </Button>
             </div>
-          ) : (
+          )}
+          {!loading && expenses.length > 0 && (
             <>
               <div className="rounded-xl border border-sage/15 bg-white-warm overflow-hidden">
                 <ResponsiveTable>

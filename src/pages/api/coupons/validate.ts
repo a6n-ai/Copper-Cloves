@@ -10,7 +10,7 @@ import {
 } from "@/lib/couponHelpers";
 
 function parseContext(v: unknown): CouponContext | null {
-  const s = String(v ?? "");
+  const s = typeof v === "string" ? v : "";
   return COUPON_CONTEXTS.some((c) => c.value === s) ? (s as CouponContext) : null;
 }
 

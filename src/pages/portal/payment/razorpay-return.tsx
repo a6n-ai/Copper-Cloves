@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import { useRouter } from "next/router";
 import Link from "next/link";
-import { SEO } from "@/components/SEO";
+import { SEO as Seo } from "@/components/SEO";
 import { Button } from "@/components/ui/button";
 import { Spinner } from "@/components/ui/spinner";
 import {
@@ -97,7 +97,7 @@ export default function RazorpayReturnPage() {
 
   return (
     <>
-      <SEO title="Payment — The Studio" description="Completing your payment" />
+      <Seo title="Payment — The Studio" description="Completing your payment" />
       <div className="min-h-screen bg-linear-to-br from-cream via-cream to-sage/5 flex items-center justify-center px-4">
         <div className="max-w-md w-full rounded-xl border border-sage/20 bg-[#fafaf8]/95 p-8 text-center shadow-xl">
           {status === "working" ? (

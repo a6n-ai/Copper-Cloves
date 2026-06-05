@@ -84,7 +84,7 @@ function resolvePortalKind(pathname: string, role?: string): PortalKind | null {
 }
 
 /** Single chrome for every authenticated dashboard (admin/partner/member/instructor). */
-function DashboardChrome({ children }: { children: React.ReactNode }) {
+function DashboardChrome({ children }: Readonly<{ children: React.ReactNode }>) {
   const { data: session, status } = useSession();
   const router = useRouter();
   // Pull scalar fields out of `session` once. Every 4-min `refetchInterval`
@@ -147,7 +147,7 @@ function DashboardChrome({ children }: { children: React.ReactNode }) {
  * body fades/lifts via PageTransition. Routes without a nav entry render just
  * the transition (login, signup, meal-subscription, checkin, 404).
  */
-function PublicChrome({ children }: { children: React.ReactNode }) {
+function PublicChrome({ children }: Readonly<{ children: React.ReactNode }>) {
   const router = useRouter();
   if (!isPublicSite(router.pathname)) return <>{children}</>;
   const variant = PUBLIC_NAV_ROUTES[router.pathname];

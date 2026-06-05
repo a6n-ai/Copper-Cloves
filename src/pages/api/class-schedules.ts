@@ -7,6 +7,14 @@ import { apiError } from "@/lib/apiError";
 const VALID_STATUS = new Set<string>(Object.values(ClassScheduleStatus));
 const LOCKED_STATUSES = new Set<string>(["completed", "abandoned"]);
 
+// Coerce a JSON scalar to string. Guards against object stringification
+// ([object Object]) by only stringifying primitive values.
+function toScalarString(v: unknown): string {
+  if (typeof v === "string") return v;
+  if (typeof v === "number" || typeof v === "boolean") return String(v);
+  return "";
+}
+
 /**
  * Authoritative edit/delete lock. A class is locked once it is terminal
  * (completed/abandoned) OR its scheduled end_time has passed — the latter
@@ -57,8 +65,8 @@ function normalizeScheduleInput(
   if (!raw.start_time || !raw.end_time || !raw.class_id) {
     return { error: `Item ${idx}: class_id, start_time, and end_time are required.` };
   }
-  const start = new Date(String(raw.start_time));
-  const end = new Date(String(raw.end_time));
+  const start = new Date(toScalarString(raw.start_time));
+  const end = new Date(toScalarString(raw.end_time));
   const spots = Number(raw.available_spots);
   if (Number.isNaN(start.getTime()) || Number.isNaN(end.getTime())) {
     return { error: `Item ${idx}: invalid start_time or end_time.` };
@@ -68,9 +76,9 @@ function normalizeScheduleInput(
   }
   return {
     data: {
-      class_id: String(raw.class_id),
+      class_id: toScalarString(raw.class_id),
       instructor_id:
-        raw.instructor_id != null && raw.instructor_id !== "" ? String(raw.instructor_id) : null,
+        raw.instructor_id != null && raw.instructor_id !== "" ? toScalarString(raw.instructor_id) : null,
       start_time: start,
       end_time: end,
       available_spots: spots,
@@ -195,13 +203,13 @@ function handlePost(req: NextApiRequest, res: NextApiResponse) {
 }
 
 function nullableString(v: unknown): string | null {
-  return v != null && v !== "" ? String(v) : null;
+  return v != null && v !== "" ? toScalarString(v) : null;
 }
 
 function applyScalarScheduleFields(rest: Record<string, unknown>, data: Record<string, unknown>): void {
-  if (rest.class_id != null) data.class_id = String(rest.class_id);
-  if (rest.start_time != null) data.start_time = new Date(String(rest.start_time));
-  if (rest.end_time != null) data.end_time = new Date(String(rest.end_time));
+  if (rest.class_id != null) data.class_id = toScalarString(rest.class_id);
+  if (rest.start_time != null) data.start_time = new Date(toScalarString(rest.start_time));
+  if (rest.end_time != null) data.end_time = new Date(toScalarString(rest.end_time));
   if (rest.available_spots != null) data.available_spots = Number(rest.available_spots);
   if (rest.current_bookings != null) data.current_bookings = Number(rest.current_bookings);
   if (rest.capacity !== undefined) {

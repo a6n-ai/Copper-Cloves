@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { SEO } from "@/components/SEO";
+import { SEO as Seo } from "@/components/SEO";
 import { Footer } from "@/components/Footer";
 import { Button } from "@/components/ui/button";
 import { ArrowLeft, ShieldCheck } from "lucide-react";
@@ -9,7 +9,7 @@ const LAST_UPDATED = "12 May 2026";
 export default function PrivacyPolicyPage() {
   return (
     <>
-      <SEO
+      <Seo
         title="Privacy Policy | The Studio by Copper + Cloves"
         description="Privacy Policy for The Studio by Copper + Cloves, explaining how we collect, use, protect, and manage personal information for website visitors, members, bookings, café, boutique, and studio services."
       />

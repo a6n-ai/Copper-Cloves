@@ -37,9 +37,9 @@ export function Rental() {
     <section className="bg-cream py-14 md:py-20">
       <div className="mx-auto max-w-7xl px-6 lg:px-8">
         {/* Image + content — image stretches to the full height of the heading + features column */}
-        <div className="grid items-stretch gap-12 lg:min-h-[600px] lg:grid-cols-2">
+        <div className="grid items-stretch gap-12 lg:min-h-150 lg:grid-cols-2">
           {/* Showcase image — below the text on mobile, left column on desktop */}
-          <div className="group relative order-2 min-h-[420px] overflow-hidden rounded-3xl shadow-[0_8px_48px_-8px_rgba(51,51,51,0.14)] md:min-h-[520px] lg:order-1 lg:min-h-full">
+          <div className="group relative order-2 min-h-105 overflow-hidden rounded-3xl shadow-[0_8px_48px_-8px_rgba(51,51,51,0.14)] md:min-h-130 lg:order-1 lg:min-h-full">
             <Image
               src={cdnUrl("/cafe-studio.jpg")}
               alt="The event space at The Studio by Copper + Cloves"
@@ -55,7 +55,7 @@ export function Rental() {
                   <Users className="text-sage" size={28} />
                 </span>
                 <div>
-                  <p className="font-body text-xs uppercase tracking-[0.1em] text-charcoal/55">
+                  <p className="font-body text-xs uppercase tracking-widest text-charcoal/55">
                     Capacity
                   </p>
                   <p className="font-display text-2xl text-charcoal md:text-3xl">Up to 40 guests</p>
@@ -109,7 +109,7 @@ export function Rental() {
           {stats.map((stat) => (
             <div key={stat.label} className="w-1/2 px-6 py-4 text-center sm:w-auto sm:px-10">
               <p className="font-display text-3xl text-charcoal md:text-4xl">{stat.value}</p>
-              <p className="mt-1 font-body text-xs uppercase tracking-[0.1em] text-charcoal/55">
+              <p className="mt-1 font-body text-xs uppercase tracking-widest text-charcoal/55">
                 {stat.label}
               </p>
             </div>

@@ -55,7 +55,12 @@ export default function AdminPartners() {
       if (pRes.ok) setPartners(await pRes.json());
       if (cRes.ok) {
         const raw = await cRes.json();
-        const list = Array.isArray(raw) ? raw : Array.isArray(raw?.classes) ? raw.classes : [];
+        let list: { id: string; name: string }[] = [];
+        if (Array.isArray(raw)) {
+          list = raw;
+        } else if (Array.isArray(raw?.classes)) {
+          list = raw.classes;
+        }
         setAllClasses(list.map((c: { id: string; name: string }) => ({ id: c.id, name: c.name })));
       }
     } finally {
@@ -68,7 +73,7 @@ export default function AdminPartners() {
     if (status === "authenticated") void load();
   }, [status, load, router]);
 
-  async function createPartner(e: React.FormEvent) {
+  async function createPartner(e: React.SyntheticEvent<HTMLFormElement>) {
     e.preventDefault();
     setError(null);
     setBusy(true);

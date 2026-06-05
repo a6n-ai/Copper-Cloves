@@ -84,7 +84,7 @@ type SortDir = "asc" | "desc";
 
 /** Parse "07:00 AM" / "01:30 PM" / "14:05" into minutes-of-day for correct ordering. */
 function timeToMinutes(t: string): number {
-  const m = t.trim().match(/^(\d{1,2}):(\d{2})\s*(AM|PM)?$/i);
+  const m = /^(\d{1,2}):(\d{2})\s*(AM|PM)?$/i.exec(t.trim());
   if (!m) return Number.MAX_SAFE_INTEGER;
   let h = parseInt(m[1], 10);
   const min = parseInt(m[2], 10);
@@ -125,15 +125,23 @@ function SortHead({
   dir,
   onSort,
   className,
-}: {
+}: Readonly<{
   label: string;
   sortKey: SortKey;
   active: SortKey;
   dir: SortDir;
   onSort: (k: SortKey) => void;
   className?: string;
-}) {
+}>) {
   const isActive = active === sortKey;
+  let sortIcon: ReactNode;
+  if (!isActive) {
+    sortIcon = <ChevronsUpDown className="h-3 w-3 opacity-40" />;
+  } else if (dir === "asc") {
+    sortIcon = <ArrowUp className="h-3 w-3" />;
+  } else {
+    sortIcon = <ArrowDown className="h-3 w-3" />;
+  }
   return (
     <TableHead className={cn("font-body text-xs uppercase tracking-wide text-charcoal/60 px-5 py-3", className)}>
       <button
@@ -145,11 +153,7 @@ function SortHead({
         )}
       >
         {label}
-        {isActive ? (
-          dir === "asc" ? <ArrowUp className="h-3 w-3" /> : <ArrowDown className="h-3 w-3" />
-        ) : (
-          <ChevronsUpDown className="h-3 w-3 opacity-40" />
-        )}
+        {sortIcon}
       </button>
     </TableHead>
   );
@@ -162,7 +166,7 @@ export function DayScheduleList({
   emptyText = "No classes scheduled",
   variant = "compact",
   pageSize = 8,
-}: Props) {
+}: Readonly<Props>) {
   const router = useRouter();
   const [sortKey, setSortKey] = useState<SortKey>("time");
   const [sortDir, setSortDir] = useState<SortDir>("asc");

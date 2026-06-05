@@ -13,13 +13,13 @@ export function SectionHeading({
   subtitle,
   accent = "sage",
   className = "",
-}: {
+}: Readonly<{
   eyebrow: string;
   title: ReactNode;
   subtitle?: ReactNode;
   accent?: "sage" | "terracotta";
   className?: string;
-}) {
+}>) {
   return (
     <div className={`mx-auto max-w-2xl text-center ${className}`}>
       <p

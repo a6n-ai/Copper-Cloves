@@ -41,7 +41,7 @@ async function authorizeRoleSwitch(
     cookies["__Secure-next-auth.session-token"] ?? cookies["next-auth.session-token"];
   if (!sessionToken) return null;
 
-  const existing = await decode({ token: sessionToken, secret: process.env.NEXTAUTH_SECRET! });
+  const existing = await decode({ token: sessionToken, secret: process.env.NEXTAUTH_SECRET });
   const currentEmail = existing?.email ? normalizeLoginEmail(String(existing.email)) : null;
   const currentRole = String((existing as { role?: string } | null)?.role ?? "");
   if (!currentEmail || currentEmail !== email) return null;

@@ -6,7 +6,7 @@ import { useRouter } from "next/router";
 import { requireSessionSSP } from "@/lib/requireSessionSSP";
 
 export const getServerSideProps = requireSessionSSP();
-import { Check, X, CreditCard, AlertCircle, Download, Flame } from "lucide-react";
+import { Check, CreditCard, Download, Flame } from "lucide-react";
 import { Spinner } from "@/components/ui/spinner";
 import { Skeleton } from "@/components/ui/skeleton";
 import { FormAlert } from "@/components/ui/form-alert";
@@ -192,8 +192,8 @@ function PurchaseHistoryRowSkeleton() {
         <Skeleton className="h-7 w-20" />
       </div>
       <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
-        {Array.from({ length: 3 }).map((_, i) => (
-          <div key={i}>
+        {Array.from({ length: 3 }, (_, i) => `stat-skeleton-${i}`).map((key) => (
+          <div key={key}>
             <Skeleton className="h-3 w-20 mb-1" />
             <Skeleton className="h-4 w-24" />
           </div>
@@ -203,11 +203,11 @@ function PurchaseHistoryRowSkeleton() {
   );
 }
 
-function PurchaseHistorySkeleton({ rows = 4 }: { rows?: number }) {
+function PurchaseHistorySkeleton({ rows = 4 }: Readonly<{ rows?: number }>) {
   return (
     <div className="space-y-3">
-      {Array.from({ length: rows }).map((_, i) => (
-        <PurchaseHistoryRowSkeleton key={i} />
+      {Array.from({ length: rows }, (_, i) => `purchase-skeleton-${i}`).map((key) => (
+        <PurchaseHistoryRowSkeleton key={key} />
       ))}
     </div>
   );
@@ -218,15 +218,17 @@ function PackageTierCard({
   pkg,
   isRecommended,
   onChoose,
-}: {
+}: Readonly<{
   pkg: Package;
   isRecommended: boolean;
   onChoose: (pkg: Package) => void;
-}) {
-  const classesLabel =
-    typeof pkg.classes === "number"
-      ? `${pkg.classes} ${pkg.classes === 1 ? "class" : "classes"}`
-      : pkg.classes;
+}>) {
+  let classesLabel: string | number;
+  if (typeof pkg.classes === "number") {
+    classesLabel = `${pkg.classes} ${pkg.classes === 1 ? "class" : "classes"}`;
+  } else {
+    classesLabel = pkg.classes;
+  }
 
   return (
     <div
@@ -278,8 +280,8 @@ function PackageTierCard({
 
           {/* Feature checklist */}
           <ul className="flex flex-col gap-2.5 sm:gap-3 flex-1">
-            {pkg.benefits.map((benefit, i) => (
-              <li key={i} className="flex items-center gap-3 font-body text-sm text-charcoal/70">
+            {pkg.benefits.map((benefit) => (
+              <li key={benefit} className="flex items-center gap-3 font-body text-sm text-charcoal/70">
                 <Check className="size-4 text-sage shrink-0" />
                 {benefit}
               </li>
@@ -476,14 +478,16 @@ export default function PackagesPage() {
       </html>
     `;
 
-    const printWindow = window.open('', '_blank');
+    const blobUrl = URL.createObjectURL(new Blob([invoiceHTML], { type: "text/html" }));
+    const printWindow = window.open(blobUrl, '_blank');
     if (printWindow) {
-      printWindow.document.write(invoiceHTML);
-      printWindow.document.close();
       printWindow.focus();
       setTimeout(() => {
         printWindow.print();
+        URL.revokeObjectURL(blobUrl);
       }, 250);
+    } else {
+      URL.revokeObjectURL(blobUrl);
     }
   };
 
@@ -505,7 +509,7 @@ export default function PackagesPage() {
 
   const packageSubtotalInr = (pkg: typeof selectedPackage) => {
     if (!pkg?.price) return 0;
-    return parseInt(String(pkg.price).replace(/[^0-9]/g, ""), 10) || 0;
+    return parseInt(String(pkg.price).replace(/\D/g, ""), 10) || 0;
   };
 
   async function validatePackageCoupon(pkg: NonNullable<typeof selectedPackage>) {
@@ -538,7 +542,7 @@ export default function PackagesPage() {
     setCouponDiscount(Number(d.discountInr) || 0);
   }
 
-  const handlePurchase = async (e: React.FormEvent) => {
+  const handlePurchase = async (e: React.SyntheticEvent<HTMLFormElement>) => {
     e.preventDefault();
     setError(null);
     if (!formData.fullName || !formData.email || !formData.phone) {
@@ -557,11 +561,14 @@ export default function PackagesPage() {
       let packageType = allPkgs.find((p: { name: string }) => p.name === selectedPackage.name);
 
       if (!packageType) {
-        const durationMonths = selectedPackage.validity.includes("days")
-          ? Math.round(parseInt(selectedPackage.validity) / 30)
-          : selectedPackage.validity.includes("Month")
-            ? parseInt(selectedPackage.validity)
-            : null;
+        let durationMonths: number | null;
+        if (selectedPackage.validity.includes("days")) {
+          durationMonths = Math.round(parseInt(selectedPackage.validity) / 30);
+        } else if (selectedPackage.validity.includes("Month")) {
+          durationMonths = parseInt(selectedPackage.validity);
+        } else {
+          durationMonths = null;
+        }
         const createRes = await fetch("/api/packages", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
@@ -570,7 +577,7 @@ export default function PackagesPage() {
             type: "standard",
             class_count: typeof selectedPackage.classes === "number" ? selectedPackage.classes : null,
             duration_months: durationMonths,
-            price: parseInt(selectedPackage.price.replace(/[^0-9]/g, "")) || 0,
+            price: parseInt(selectedPackage.price.replace(/\D/g, "")) || 0,
             includes_physique_57: true,
             is_unlimited: selectedPackage.classes === "Unlimited",
             description: `Package: ${selectedPackage.name}`,
@@ -802,9 +809,8 @@ export default function PackagesPage() {
           </p>
         </div>
 
-        {loadingHistory ? (
-          <PurchaseHistorySkeleton rows={4} />
-        ) : purchaseHistory.length === 0 ? (
+        {loadingHistory && <PurchaseHistorySkeleton rows={4} />}
+        {!loadingHistory && purchaseHistory.length === 0 && (
           <div className="text-center py-16 px-6 rounded-2xl bg-white-warm border border-sage/10">
             <CreditCard className="mx-auto mb-4 text-charcoal/20" size={48} />
             <h3 className="font-display text-xl text-charcoal mb-1">No purchases yet</h3>
@@ -812,7 +818,8 @@ export default function PackagesPage() {
               Your purchase history will appear here once you buy a package
             </p>
           </div>
-        ) : (
+        )}
+        {!loadingHistory && purchaseHistory.length > 0 && (
           <>
             <ResponsiveCards
               data={pagedHistory}
@@ -820,6 +827,14 @@ export default function PackagesPage() {
                 const packageType = purchase.package_types;
                 const isActive = purchase.status === "active" && new Date(purchase.expires_at) > new Date();
                 const isExpired = new Date(purchase.expires_at) < new Date();
+                let cardStatusTone: string;
+                if (isActive) cardStatusTone = statusTone("success");
+                else if (isExpired) cardStatusTone = statusTone("neutral");
+                else cardStatusTone = statusTone("pending");
+                let cardStatusLabel: string;
+                if (isActive) cardStatusLabel = "Active";
+                else if (isExpired) cardStatusLabel = "Expired";
+                else cardStatusLabel = purchase.status;
                 return (
                   <div
                     key={purchase.id}
@@ -832,11 +847,9 @@ export default function PackagesPage() {
                         </h3>
                         <span className={cn(
                           "inline-block mt-1 px-2 py-0.5 rounded-full text-xs font-body font-semibold",
-                          isActive ? statusTone("success")
-                            : isExpired ? statusTone("neutral")
-                            : statusTone("pending")
+                          cardStatusTone
                         )}>
-                          {isActive ? "Active" : isExpired ? "Expired" : purchase.status}
+                          {cardStatusLabel}
                         </span>
                       </div>
                       <div className="shrink-0 text-right">
@@ -892,6 +905,14 @@ export default function PackagesPage() {
                     const packageType = purchase.package_types;
                     const isActive = purchase.status === "active" && new Date(purchase.expires_at) > new Date();
                     const isExpired = new Date(purchase.expires_at) < new Date();
+                    let rowStatusTone: string;
+                    if (isActive) rowStatusTone = statusTone("success");
+                    else if (isExpired) rowStatusTone = statusTone("neutral");
+                    else rowStatusTone = statusTone("pending");
+                    let rowStatusLabel: string;
+                    if (isActive) rowStatusLabel = "Active";
+                    else if (isExpired) rowStatusLabel = "Expired";
+                    else rowStatusLabel = purchase.status;
                     return (
                       <div
                         key={purchase.id}
@@ -904,11 +925,9 @@ export default function PackagesPage() {
                             </h3>
                             <span className={cn(
                               "inline-block mt-1 px-2 py-0.5 rounded-full text-xs font-body font-semibold",
-                              isActive ? statusTone("success")
-                                : isExpired ? statusTone("neutral")
-                                : statusTone("pending")
+                              rowStatusTone
                             )}>
-                              {isActive ? "Active" : isExpired ? "Expired" : purchase.status}
+                              {rowStatusLabel}
                             </span>
                           </div>
                           <div className="text-sm text-charcoal/70 font-body shrink-0">

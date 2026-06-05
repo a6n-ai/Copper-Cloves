@@ -23,7 +23,7 @@ export function Hero() {
   const [view, setView] = useState<"desktop" | "mobile" | null>(null);
 
   useEffect(() => {
-    const mq = window.matchMedia("(min-width: 1024px)");
+    const mq = globalThis.matchMedia("(min-width: 1024px)");
     const update = () => setView(mq.matches ? "desktop" : "mobile");
     update();
     mq.addEventListener("change", update);
@@ -103,6 +103,36 @@ export function Hero() {
               const active = index === refuelIndex;
               const isVideo = media.endsWith(".mp4");
               const poster = media.replace(/\.mp4$/, ".poster.jpg");
+              let mediaEl;
+              if (isVideo && active && view === "desktop") {
+                mediaEl = (
+                  <video
+                    src={media}
+                    poster={poster}
+                    autoPlay
+                    loop
+                    muted
+                    playsInline
+                    preload="metadata"
+                    className="hero-video w-full h-full object-cover animate-floatAndZoom19"
+                  />
+                );
+              } else if (isVideo) {
+                // eslint-disable-next-line @next/next/no-img-element
+                mediaEl = <img src={poster} alt="" aria-hidden className="h-full w-full object-cover" />;
+              } else {
+                mediaEl = (
+                  <Image
+                    src={media}
+                    alt="Refuel"
+                    fill
+                    sizes="(max-width: 1024px) 100vw, 33vw"
+                    placeholder="blur"
+                    blurDataURL={BLUR_DATA_URL}
+                    className="object-cover animate-floatAndZoom19"
+                  />
+                );
+              }
               return (
                 <div
                   key={media}
@@ -110,33 +140,7 @@ export function Hero() {
                     active ? "opacity-100" : "opacity-0"
                   }`}
                 >
-                  {isVideo ? (
-                    active && view === "desktop" ? (
-                      <video
-                        src={media}
-                        poster={poster}
-                        autoPlay
-                        loop
-                        muted
-                        playsInline
-                        preload="metadata"
-                        className="hero-video w-full h-full object-cover animate-floatAndZoom19"
-                      />
-                    ) : (
-                      // eslint-disable-next-line @next/next/no-img-element
-                      <img src={poster} alt="" aria-hidden className="h-full w-full object-cover" />
-                    )
-                  ) : (
-                    <Image
-                      src={media}
-                      alt="Refuel"
-                      fill
-                      sizes="(max-width: 1024px) 100vw, 33vw"
-                      placeholder="blur"
-                      blurDataURL={BLUR_DATA_URL}
-                      className="object-cover animate-floatAndZoom19"
-                    />
-                  )}
+                  {mediaEl}
                 </div>
               );
             })}
@@ -261,7 +265,7 @@ export function Hero() {
 
       {/* Mobile / tablet hero — full-bleed video background (move/refuel/connect
           stacked top→bottom) with the headline + CTAs overlaid (< lg). */}
-      <section className="relative min-h-[100svh] w-full overflow-hidden lg:hidden">
+      <section className="relative min-h-svh w-full overflow-hidden lg:hidden">
         {/* Stacked video panels fill the screen as the background */}
         <div className="absolute inset-0 flex flex-col">
           {[
@@ -296,7 +300,7 @@ export function Hero() {
         <div className="absolute inset-0 bg-black/45" />
 
         {/* Overlaid content */}
-        <div className="relative z-10 flex min-h-[100svh] flex-col items-center justify-center px-6 pb-14 pt-24 text-center">
+        <div className="relative z-10 flex min-h-svh flex-col items-center justify-center px-6 pb-14 pt-24 text-center">
           <h1 className="font-display text-[clamp(2.25rem,8.5vw,3.5rem)] leading-[1.05] text-cream drop-shadow-2xl">
             <span className="italic text-cream/90">We&apos;re more than a studio,</span>
             <br />

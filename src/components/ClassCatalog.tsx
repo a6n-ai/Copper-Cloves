@@ -2,7 +2,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { ArrowRight, Clock } from "lucide-react";
 import Link from "next/link";
 import Image from "next/image";
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo, type ReactNode } from "react";
 
 import { cdnUrl } from "@/lib/cdnUrl";
 import { BLUR_DATA_URL, isUnoptimizableSrc } from "@/lib/imageBlur";
@@ -29,12 +29,13 @@ const STATIC_CATALOG_FALLBACK: ClassData[] = [
 ];
 
 /** Mirrors the horizontal row of class cards in the carousel. */
-function ClassCatalogSkeleton({ count = 3 }: { count?: number }) {
+function ClassCatalogSkeleton({ count = 3 }: Readonly<{ count?: number }>) {
+  const keys = useMemo(() => Array.from({ length: count }, () => crypto.randomUUID()), [count]);
   return (
     <div className="flex gap-6 overflow-hidden pb-4 px-2">
-      {Array.from({ length: count }).map((_, i) => (
+      {keys.map((key) => (
         <div
-          key={i}
+          key={key}
           className="relative h-80 w-[82vw] shrink-0 overflow-hidden rounded-2xl sm:w-80 md:h-96 md:w-96"
         >
           <Skeleton className="absolute inset-0 h-full w-full rounded-2xl" />
@@ -87,6 +88,74 @@ export function ClassCatalog() {
     }
   }
 
+  let carouselBody: ReactNode;
+  if (loading) {
+    carouselBody = <ClassCatalogSkeleton count={3} />;
+  } else if (classes.length === 0) {
+    carouselBody = (
+      <div className="py-12 text-center">
+        <p className="font-body text-charcoal/60">No classes available at the moment.</p>
+      </div>
+    );
+  } else {
+    carouselBody = (
+      <div className="relative">
+        {/* Edge fades hint more content and vanish at the boundaries */}
+        <div
+          className={`pointer-events-none absolute inset-y-0 left-0 z-10 w-10 bg-linear-to-r from-cream to-transparent transition-opacity duration-300 md:w-16 ${atStart ? "opacity-0" : "opacity-100"}`}
+        />
+        <div
+          className={`pointer-events-none absolute inset-y-0 right-0 z-10 w-10 bg-linear-to-l from-cream to-transparent transition-opacity duration-300 md:w-16 ${atEnd ? "opacity-0" : "opacity-100"}`}
+        />
+
+        <div
+          ref={scrollContainerRef}
+          className="scrollbar-hide flex snap-x snap-mandatory gap-6 overflow-x-auto scroll-px-2 px-2 pb-4"
+          style={{ scrollbarWidth: "none", msOverflowStyle: "none", WebkitOverflowScrolling: "touch" }}
+        >
+          {classes.map((classItem, index) => (
+            <div
+              key={classItem.id || index}
+              className="group/card relative h-80 w-[82vw] shrink-0 cursor-pointer snap-start overflow-hidden rounded-2xl sm:w-80 md:h-96 md:w-96"
+            >
+              <Image
+                src={classItem.image}
+                alt={classItem.name}
+                fill
+                sizes="(max-width: 640px) 82vw, 384px"
+                placeholder="blur"
+                blurDataURL={BLUR_DATA_URL}
+                unoptimized={isUnoptimizableSrc(classItem.image)}
+                className="object-cover transition-transform duration-500 ease-out group-hover/card:scale-105"
+              />
+
+              {/* Default state: gradient + class name */}
+              <div className="absolute inset-0 flex items-end bg-linear-to-t from-charcoal/80 via-charcoal/40 to-transparent p-6 transition-opacity duration-500 ease-out group-hover/card:opacity-0">
+                <h3 className="font-display text-2xl leading-tight text-cream drop-shadow-lg md:text-3xl">
+                  {classItem.name}
+                </h3>
+              </div>
+
+              {/* Hover state: details */}
+              <div className="absolute inset-0 flex flex-col items-center justify-center bg-charcoal/70 p-8 text-center opacity-0 transition-opacity duration-500 ease-out group-hover/card:opacity-100">
+                <h3 className="mb-3 font-display text-2xl text-cream drop-shadow-lg md:text-3xl">
+                  {classItem.name}
+                </h3>
+                <div className="mb-3 flex items-center gap-2 text-cream/90">
+                  <Clock size={18} />
+                  <span className="font-body">{classItem.duration}</span>
+                </div>
+                <p className="font-body text-base leading-relaxed text-cream/90">
+                  {classItem.benefit}
+                </p>
+              </div>
+            </div>
+          ))}
+        </div>
+      </div>
+    );
+  }
+
   return (
     <section id="classes" className="relative overflow-hidden bg-cream py-14 md:py-20">
       <div className="relative z-10 mx-auto max-w-7xl px-6 lg:px-8">
@@ -98,70 +167,7 @@ export function ClassCatalog() {
         />
 
         {/* Carousel */}
-        <div className="mt-10 md:mt-12">
-          {loading ? (
-            <ClassCatalogSkeleton count={3} />
-          ) : classes.length === 0 ? (
-            <div className="py-12 text-center">
-              <p className="font-body text-charcoal/60">No classes available at the moment.</p>
-            </div>
-          ) : (
-            <div className="relative">
-              {/* Edge fades hint more content and vanish at the boundaries */}
-              <div
-                className={`pointer-events-none absolute inset-y-0 left-0 z-10 w-10 bg-linear-to-r from-cream to-transparent transition-opacity duration-300 md:w-16 ${atStart ? "opacity-0" : "opacity-100"}`}
-              />
-              <div
-                className={`pointer-events-none absolute inset-y-0 right-0 z-10 w-10 bg-linear-to-l from-cream to-transparent transition-opacity duration-300 md:w-16 ${atEnd ? "opacity-0" : "opacity-100"}`}
-              />
-
-              <div
-                ref={scrollContainerRef}
-                className="scrollbar-hide flex snap-x snap-mandatory gap-6 overflow-x-auto scroll-px-2 px-2 pb-4"
-                style={{ scrollbarWidth: "none", msOverflowStyle: "none", WebkitOverflowScrolling: "touch" }}
-              >
-                {classes.map((classItem, index) => (
-                  <div
-                    key={classItem.id || index}
-                    className="group/card relative h-80 w-[82vw] shrink-0 cursor-pointer snap-start overflow-hidden rounded-2xl sm:w-80 md:h-96 md:w-96"
-                  >
-                    <Image
-                      src={classItem.image}
-                      alt={classItem.name}
-                      fill
-                      sizes="(max-width: 640px) 82vw, 384px"
-                      placeholder="blur"
-                      blurDataURL={BLUR_DATA_URL}
-                      unoptimized={isUnoptimizableSrc(classItem.image)}
-                      className="object-cover transition-transform duration-500 ease-out group-hover/card:scale-105"
-                    />
-
-                    {/* Default state: gradient + class name */}
-                    <div className="absolute inset-0 flex items-end bg-linear-to-t from-charcoal/80 via-charcoal/40 to-transparent p-6 transition-opacity duration-500 ease-out group-hover/card:opacity-0">
-                      <h3 className="font-display text-2xl leading-tight text-cream drop-shadow-lg md:text-3xl">
-                        {classItem.name}
-                      </h3>
-                    </div>
-
-                    {/* Hover state: details */}
-                    <div className="absolute inset-0 flex flex-col items-center justify-center bg-charcoal/70 p-8 text-center opacity-0 transition-opacity duration-500 ease-out group-hover/card:opacity-100">
-                      <h3 className="mb-3 font-display text-2xl text-cream drop-shadow-lg md:text-3xl">
-                        {classItem.name}
-                      </h3>
-                      <div className="mb-3 flex items-center gap-2 text-cream/90">
-                        <Clock size={18} />
-                        <span className="font-body">{classItem.duration}</span>
-                      </div>
-                      <p className="font-body text-base leading-relaxed text-cream/90">
-                        {classItem.benefit}
-                      </p>
-                    </div>
-                  </div>
-                ))}
-              </div>
-            </div>
-          )}
-        </div>
+        <div className="mt-10 md:mt-12">{carouselBody}</div>
 
         {!loading && classes.length > 0 && (
           <CarouselControls

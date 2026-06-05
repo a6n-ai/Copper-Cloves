@@ -18,6 +18,12 @@ const PAYMENT_METHODS: PaymentMethod[] = [
   "cash",
 ];
 
+function asString(v: unknown): string {
+  if (typeof v === "string") return v;
+  if (typeof v === "number" || typeof v === "boolean" || typeof v === "bigint") return v.toString();
+  return "";
+}
+
 function serialize(e: ExpenseWithRelations) {
   return {
     id: e.id,
@@ -57,7 +63,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
   if (req.method === "POST") {
     const body = (req.body ?? {}) as Record<string, unknown>;
-    const category = String(body.category ?? "") as ExpenseCategory;
+    const category = asString(body.category) as ExpenseCategory;
     if (!EXPENSE_CATEGORIES.includes(category)) {
       return res.status(400).json({ error: "Invalid category" });
     }
@@ -66,13 +72,13 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     if (!Number.isFinite(rupees) || rupees <= 0) {
       return res.status(400).json({ error: "Amount must be a positive number" });
     }
-    const method = body.method ? (String(body.method) as PaymentMethod) : null;
+    const method = body.method ? (asString(body.method) as PaymentMethod) : null;
     if (method && !PAYMENT_METHODS.includes(method)) {
       return res.status(400).json({ error: "Invalid method" });
     }
     let incurredAt: Date | undefined;
     if (body.incurredAt) {
-      const d = new Date(String(body.incurredAt));
+      const d = new Date(asString(body.incurredAt));
       if (Number.isNaN(d.getTime())) return res.status(400).json({ error: "Invalid date" });
       incurredAt = d;
     }
@@ -81,11 +87,11 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       category,
       amountPaise: Math.round(rupees * 100),
       incurredAt,
-      description: body.description ? String(body.description) : null,
-      payee: body.payee ? String(body.payee) : null,
+      description: body.description ? asString(body.description) : null,
+      payee: body.payee ? asString(body.payee) : null,
       method,
-      proofUrl: body.proofUrl ? String(body.proofUrl) : null,
-      notes: body.notes ? String(body.notes) : null,
+      proofUrl: body.proofUrl ? asString(body.proofUrl) : null,
+      notes: body.notes ? asString(body.notes) : null,
       recordedBy: adminId,
     });
     return res.status(201).json({ expense: serialize(created) });

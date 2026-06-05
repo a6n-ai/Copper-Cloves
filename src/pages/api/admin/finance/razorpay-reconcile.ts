@@ -50,7 +50,7 @@ export type ReconRow = {
 // Razorpay returns `[]` for empty notes and an object when present.
 function notesToString(notes: RzpPayment["notes"]): { str: string; hasWebsiteKeys: boolean } {
   if (!notes || Array.isArray(notes)) return { str: "", hasWebsiteKeys: false };
-  const obj = notes as Record<string, string>;
+  const obj = notes;
   const hasWebsiteKeys = "purpose" in obj || "user_id" in obj;
   const str = Object.entries(obj)
     .map(([k, v]) => `${k}=${v}`)
@@ -109,7 +109,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     }
 
     const paymentIds = rzpPayments.map((p) => p.id);
-    const orderIds = Array.from(new Set(rzpPayments.map((p) => p.order_id).filter(Boolean))) as string[];
+    const orderIds = Array.from(new Set(rzpPayments.map((p) => p.order_id).filter(Boolean)));
 
     // 2. Website-side rows for the month + any referenced by the gateway payments.
     const [dbPayments, dbOrders] = await Promise.all([
@@ -200,7 +200,11 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       });
     }
 
-    rows.sort((a, b) => (a.createdAtISO < b.createdAtISO ? 1 : a.createdAtISO > b.createdAtISO ? -1 : 0));
+    rows.sort((a, b) => {
+      if (a.createdAtISO < b.createdAtISO) return 1;
+      if (a.createdAtISO > b.createdAtISO) return -1;
+      return 0;
+    });
 
     // 5. Summary.
     const counts: Record<ReconMatch, number> = {

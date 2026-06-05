@@ -11,7 +11,7 @@ import { Button } from "@/components/ui/button";
  * server verifies the existing session — see authOptions `mode:"switch"`).
  * Renders nothing for single-role accounts.
  */
-export function RoleSwitcher({ className = "" }: { className?: string }) {
+export function RoleSwitcher({ className = "" }: Readonly<{ className?: string }>) {
   const { data: session } = useSession();
   const router = useRouter();
   const [busy, setBusy] = useState(false);

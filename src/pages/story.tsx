@@ -1,7 +1,7 @@
 import Image from "next/image";
 import { motion, useReducedMotion } from "framer-motion";
 import { Sprout, UtensilsCrossed, Users } from "lucide-react";
-import { SEO } from "@/components/SEO";
+import { SEO as Seo } from "@/components/SEO";
 import { Footer } from "@/components/Footer";
 import { cdnUrl } from "@/lib/cdnUrl";
 
@@ -67,7 +67,7 @@ export default function StoryPage() {
 
   return (
     <>
-      <SEO
+      <Seo
         title="Our Story | The Studio by Copper + Cloves"
         description="From a London kitchen to a Bangalore wellness sanctuary. The story behind The Studio by Copper + Cloves: movement, plant-based food, and a community built around living well."
       />
