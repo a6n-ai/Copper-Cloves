@@ -241,8 +241,8 @@ function InstructorsTabImpl({
                 <RechartsPieChart>
                   <ChartTooltip content={<ChartTooltipContent hideLabel />} />
                   <Pie data={pieData} dataKey="value" nameKey="name" innerRadius={50} outerRadius={80} strokeWidth={2} stroke="#FFFFFF">
-                    {filtered.map((_, idx) => (
-                      <Cell key={idx} fill={PIE_COLORS[idx % PIE_COLORS.length]} />
+                    {filtered.map((inst, idx) => (
+                      <Cell key={inst.name} fill={PIE_COLORS[idx % PIE_COLORS.length]} />
                     ))}
                     <RechartsLabel
                       position="center"

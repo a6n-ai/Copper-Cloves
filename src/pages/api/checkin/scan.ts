@@ -10,6 +10,9 @@ import { requestLogger } from "@/lib/logger";
 type ScanLog = ReturnType<typeof requestLogger>;
 type ScanSchedule = NonNullable<Awaited<ReturnType<typeof loadSchedule>>>;
 
+const KIND_INSTRUCTOR = "instructor" as const;
+const KIND_MEMBER = "member" as const;
+
 function loadSchedule(scheduleId: string) {
   return prisma.classSchedule.findUnique({
     where: { id: scheduleId },
@@ -38,13 +41,13 @@ async function handleInstructorScan(
     return res.status(403).json({ error: "This is not your class" });
   }
   if (schedule.instructor_check_in_time)
-    return res.json({ ok: true, kind: "instructor", status: "already" });
+    return res.json({ ok: true, kind: KIND_INSTRUCTOR, status: "already" });
   await prisma.classSchedule.update({
     where: { id: schedule.id },
     data: { instructor_check_in_time: new Date() },
   });
   log.info({ instructorId: inst.instructorId, scheduleId: schedule.id }, "instructor checked in");
-  return res.json({ ok: true, kind: "instructor", status: "checked_in" });
+  return res.json({ ok: true, kind: KIND_INSTRUCTOR, status: "checked_in" });
 }
 
 // Walk-in: need an active, non-expired pass. Unlimited → book without decrement;
@@ -68,54 +71,46 @@ async function findWalkInPackageId(
     log.warn({ userId, scheduleId }, "walk-in blocked no pass");
     return { blocked: true };
   }
-  return { blocked: false, usePackageId: unlimited ? null : creditPass!.id };
+  return { blocked: false, usePackageId: unlimited ? null : (creditPass?.id ?? null) };
 }
 
-async function commitWalkIn(
-  args: {
-    userId: string;
-    schedule: ScanSchedule;
-    now: Date;
-    cap: number;
-    seatsTaken: number;
-    usePackageId: string | null;
-  },
-  log: ScanLog,
-) {
+async function commitWalkIn(args: {
+  userId: string;
+  schedule: ScanSchedule;
+  now: Date;
+  cap: number;
+  seatsTaken: number;
+  usePackageId: string | null;
+}) {
   const { userId, schedule, now, cap, seatsTaken, usePackageId } = args;
-  try {
-    await prisma.$transaction(async (tx) => {
-      if (usePackageId) {
-        const upd = await tx.userPackage.updateMany({
-          where: { id: usePackageId, user_id: userId, credits_remaining: { gte: 1 } },
-          data: { credits_remaining: { decrement: 1 } },
-        });
-        if (upd.count !== 1) throw new Error("NO_CREDITS");
-      }
-      await tx.booking.create({
-        data: {
-          user_id: userId,
-          class_schedule_id: schedule.id,
-          user_package_id: usePackageId,
-          status: "confirmed",
-          booking_date: now,
-          checked_in: true,
-          check_in_time: now,
-          check_in_outcome: checkInOutcomeFromTimes(schedule.start_time, now),
-        },
+  await prisma.$transaction(async (tx) => {
+    if (usePackageId) {
+      const upd = await tx.userPackage.updateMany({
+        where: { id: usePackageId, user_id: userId, credits_remaining: { gte: 1 } },
+        data: { credits_remaining: { decrement: 1 } },
       });
-      if (cap > 0) {
-        const occupied = seatsTaken + 1;
-        await tx.classSchedule.update({
-          where: { id: schedule.id },
-          data: { current_bookings: occupied, available_spots: Math.max(0, cap - occupied) },
-        });
-      }
+      if (upd.count !== 1) throw new Error("NO_CREDITS");
+    }
+    await tx.booking.create({
+      data: {
+        user_id: userId,
+        class_schedule_id: schedule.id,
+        user_package_id: usePackageId,
+        status: "confirmed",
+        booking_date: now,
+        checked_in: true,
+        check_in_time: now,
+        check_in_outcome: checkInOutcomeFromTimes(schedule.start_time, now),
+      },
     });
-  } catch (err) {
-    log.error({ err, userId, scheduleId: schedule.id }, "walk-in checkin tx failed");
-    throw err;
-  }
+    if (cap > 0) {
+      const occupied = seatsTaken + 1;
+      await tx.classSchedule.update({
+        where: { id: schedule.id },
+        data: { current_bookings: occupied, available_spots: Math.max(0, cap - occupied) },
+      });
+    }
+  });
 }
 
 async function handleMemberScan(
@@ -137,7 +132,7 @@ async function handleMemberScan(
   });
 
   if (existing) {
-    if (existing.checked_in) return res.json({ ok: true, kind: "member", status: "already" });
+    if (existing.checked_in) return res.json({ ok: true, kind: KIND_MEMBER, status: "already" });
     await prisma.booking.update({
       where: { id: existing.id },
       data: {
@@ -147,7 +142,7 @@ async function handleMemberScan(
       },
     });
     log.info({ userId, bookingId: existing.id, scheduleId: schedule.id }, "member checked in");
-    return res.json({ ok: true, kind: "member", status: "checked_in" });
+    return res.json({ ok: true, kind: KIND_MEMBER, status: "checked_in" });
   }
 
   const pass = await findWalkInPackageId(userId, schedule.id, now, log);
@@ -167,13 +162,10 @@ async function handleMemberScan(
     return res.status(400).json({ error: "Class is full" });
   }
 
-  await commitWalkIn(
-    { userId, schedule, now, cap, seatsTaken, usePackageId: pass.usePackageId },
-    log,
-  );
+  await commitWalkIn({ userId, schedule, now, cap, seatsTaken, usePackageId: pass.usePackageId });
 
   log.info({ userId, scheduleId: schedule.id, usedPackageId: pass.usePackageId }, "walk-in checked in");
-  return res.json({ ok: true, kind: "member", status: "walk_in_checked_in" });
+  return res.json({ ok: true, kind: KIND_MEMBER, status: "walk_in_checked_in" });
 }
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
@@ -200,7 +192,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   if (!withinCheckinWindow(schedule.start_time))
     return res.status(400).json({ error: "Check-in window is closed for this class." });
 
-  if (payload.kind === "instructor") {
+  if (payload.kind === KIND_INSTRUCTOR) {
     return handleInstructorScan(req, res, schedule, log);
   }
 

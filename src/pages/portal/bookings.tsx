@@ -194,6 +194,7 @@ export default function MyBookingsPage() {
       setIsAuthenticated(true);
       fetchBookings().finally(() => setIsLoading(false));
     }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [status]);
 
   async function fetchBookings() {

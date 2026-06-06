@@ -38,11 +38,13 @@ function isServerlessUploadRuntime(): boolean {
   return Boolean(process.env.AWS_LAMBDA_FUNCTION_NAME || process.env.AWS_EXECUTION_ENV);
 }
 
+const MIME_JPEG = "image/jpeg";
+
 function inferImageMimeFromName(name: string | null | undefined): string | null {
   if (!name) return null;
   const ext = name.toLowerCase().split(".").pop() ?? "";
   const map: Record<string, string> = {
-    jpg: "image/jpeg", jpeg: "image/jpeg",
+    jpg: MIME_JPEG, jpeg: MIME_JPEG,
     png: "image/png", webp: "image/webp",
     gif: "image/gif", avif: "image/avif",
     heic: "image/heic", heif: "image/heif",
@@ -60,13 +62,13 @@ function resolveImageMime(file: {
 }): string {
   const fromMime = (file.mimetype || "").trim().toLowerCase();
   if (fromMime.startsWith("image/") && fromMime !== "image/jpg") return fromMime;
-  if (fromMime === "image/jpg") return "image/jpeg";
+  if (fromMime === "image/jpg") return MIME_JPEG;
   const fromName =
     inferImageMimeFromName(file.originalFilename ?? undefined) ??
     inferImageMimeFromName(file.filepath ? path.basename(file.filepath) : undefined) ??
     inferImageMimeFromName(file.newFilename ?? undefined);
   if (fromName) return fromName;
-  return "image/jpeg";
+  return MIME_JPEG;
 }
 
 const MAX_DATA_URL_IMAGE_BYTES = 4 * 1024 * 1024;
@@ -167,7 +169,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
     const purpose = resolvePurpose(firstField(fields.purpose));
     const ownerId = firstField(fields.ownerId)?.trim() || undefined;
-    const adminId = (session!.user as { id?: string }).id ?? null;
+    const adminId = (session?.user as { id?: string } | undefined)?.id ?? null;
 
     try {
       const rawBuf = fs.readFileSync(file.filepath);
@@ -209,7 +211,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       // Local dev — save to public/uploads/. No File row (local path, not S3-backed).
       const localDir = path.join(process.cwd(), "public", "uploads");
       if (!fs.existsSync(localDir)) fs.mkdirSync(localDir, { recursive: true });
-      const ext = outMime === "image/jpeg" ? "jpg" : (outMime.split("/")[1] ?? "jpg");
+      const ext = outMime === MIME_JPEG ? "jpg" : (outMime.split("/")[1] ?? "jpg");
       const filename = `${Date.now()}-${Math.random().toString(36).slice(2)}.${ext}`;
       fs.writeFileSync(path.join(localDir, filename), buf);
       return res.json({ url: `/uploads/${filename}`, fileId: null });

@@ -27,14 +27,9 @@ import {
   AlertTriangle,
   CreditCard,
   Calendar,
-  Mail,
-  Phone,
   Trophy,
   Search,
   Plus,
-  ArrowUpDown,
-  ChevronUp,
-  ChevronDown,
 } from "lucide-react";
 import { SEO } from "@/components/SEO";
 import { Spinner } from "@/components/ui/spinner";
@@ -599,19 +594,6 @@ export default function AdminMembers() {
       setTimeout(() => setSuccessMessage(""), 3000);
     } catch (e) {
       toast.error(e instanceof Error ? e.message : "Could not update member");
-    }
-  };
-
-  const handleUpdateStartDate = async () => {
-    if (!selectedMember || !newStartDate) return;
-    try {
-      await patchMember({ profile_id: selectedMember.id, start_date: newStartDate });
-      await loadMembers();
-      setSuccessMessage(`Updated start date for ${selectedMember.name}`);
-      setDialogOpen(false);
-      setTimeout(() => setSuccessMessage(""), 3000);
-    } catch (e) {
-      toast.error(e instanceof Error ? e.message : "Could not update start date");
     }
   };
 

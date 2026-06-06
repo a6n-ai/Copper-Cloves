@@ -34,7 +34,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     if (questionnaire !== undefined) data.questionnaire = questionnaire;
     if (dob !== undefined) {
       const d = dob ? new Date(dob) : null;
-      data.dob = d && !isNaN(d.getTime()) ? d : null;
+      data.dob = d && !Number.isNaN(d.getTime()) ? d : null;
     }
 
     const profile = await prisma.profile.update({

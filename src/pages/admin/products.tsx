@@ -126,8 +126,6 @@ export default function AdminProducts() {
   const [showCategoryForm, setShowCategoryForm] = useState(false);
   const [editingProduct, setEditingProduct] = useState<Product | null>(null);
   const [editingCategory, setEditingCategory] = useState<CategoryRow | null>(null);
-  const [selectedOrder, setSelectedOrder] = useState<Order | null>(null);
-  
   // Pagination
   const [productPage, setProductPage] = useState(1);
   const [orderPage, setOrderPage] = useState(1);
@@ -854,7 +852,6 @@ export default function AdminProducts() {
                         </select>
                         <Button
                           size="sm"
-                          onClick={() => setSelectedOrder(order)}
                           variant="outline"
                           className="ml-auto border-sage/30 text-sage hover:bg-sage/10"
                         >

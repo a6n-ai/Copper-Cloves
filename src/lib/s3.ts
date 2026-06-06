@@ -51,8 +51,8 @@ function buildClient(): S3Client {
   return new S3Client({
     region,
     credentials: {
-      accessKeyId: process.env.S3_ACCESS_KEY_ID!,
-      secretAccessKey: process.env.S3_SECRET_ACCESS_KEY!,
+      accessKeyId: process.env.S3_ACCESS_KEY_ID ?? "",
+      secretAccessKey: process.env.S3_SECRET_ACCESS_KEY ?? "",
     },
   });
 }
@@ -107,13 +107,7 @@ export async function presignAvatarUpload(params: {
     throw new Error("S3_NOT_CONFIGURED");
   }
 
-  const client = new S3Client({
-    region,
-    credentials: {
-      accessKeyId: process.env.S3_ACCESS_KEY_ID!,
-      secretAccessKey: process.env.S3_SECRET_ACCESS_KEY!,
-    },
-  });
+  const client = buildClient();
 
   const cmd = new PutObjectCommand({
     Bucket: bucket,
@@ -137,13 +131,7 @@ export async function putObject(params: {
     throw new Error("S3_NOT_CONFIGURED");
   }
 
-  const client = new S3Client({
-    region,
-    credentials: {
-      accessKeyId: process.env.S3_ACCESS_KEY_ID!,
-      secretAccessKey: process.env.S3_SECRET_ACCESS_KEY!,
-    },
-  });
+  const client = buildClient();
 
   await client.send(
     new PutObjectCommand({

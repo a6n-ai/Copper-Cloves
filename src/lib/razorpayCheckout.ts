@@ -127,7 +127,7 @@ export async function payWithRazorpayOrder(options: {
   const callbackUrl = options.callbackUrl?.trim() || undefined;
   const isTestKey = razorpayKeyMode(options.keyId) === "test";
 
-  return new Promise((resolve, reject) => {
+  return new Promise((resolve, _reject) => {
     let settled = false;
 
     // With `order_id`, amount is taken from the Order — omit `amount` to avoid mismatch errors.

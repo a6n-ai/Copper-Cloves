@@ -178,7 +178,7 @@ export async function incrementCouponAndRecordRedemption(
         {
           AND: [
             { max_redemptions: { not: null } },
-            { redemption_count: { lt: coupon.max_redemptions! } },
+            { redemption_count: { lt: coupon.max_redemptions ?? 0 } },
           ],
         },
       ],

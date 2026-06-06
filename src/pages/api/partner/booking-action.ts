@@ -6,6 +6,9 @@ import { buildBookingCrmVariables, dispatchCrmEmailTriggers } from "@/lib/notifi
 import { CrmTriggerType } from "@/lib/crmTriggerTypes";
 import logger from "@/lib/logger";
 
+const CONFIRMATION_CONFIRMED = "confirmed" as const;
+const CONFIRMATION_PENDING = "pending" as const;
+
 /**
  * Partner manager confirms or rejects a pending booking for one of THEIR classes.
  * - confirm → confirmation_status = "confirmed" + send the booking confirmation email.
@@ -42,14 +45,14 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   if (booking.class_schedule?.class_model?.partner_id !== partnerId) {
     return res.status(403).json({ error: "This booking is not for your classes" });
   }
-  if (booking.confirmation_status !== "pending") {
+  if (booking.confirmation_status !== CONFIRMATION_PENDING) {
     return res.json({ ok: true, already: true, status: booking.confirmation_status });
   }
 
   if (action === "confirm") {
     await prisma.booking.update({
       where: { id: booking.id },
-      data: { confirmation_status: "confirmed" },
+      data: { confirmation_status: CONFIRMATION_CONFIRMED },
     });
     await sendBookingConfirmationEmail(booking.id).catch((e) => logger.error({ err: e }, "[partner confirm email]"));
     await buildBookingCrmVariables(booking.id)
@@ -61,7 +64,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         }),
       )
       .catch((e) => logger.error({ err: e }, "[partner confirm CRM]"));
-    return res.json({ ok: true, status: "confirmed" });
+    return res.json({ ok: true, status: CONFIRMATION_CONFIRMED });
   }
 
   await prisma.$transaction(async (tx) => {
@@ -91,7 +94,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         const cap = sched.capacity ?? sched.class_model?.max_capacity ?? 0;
         if (cap > 0) {
           const remaining = await tx.booking.findMany({
-            where: { class_schedule_id: booking.class_schedule_id, status: { in: ["confirmed", "pending"] } },
+            where: { class_schedule_id: booking.class_schedule_id, status: { in: [CONFIRMATION_CONFIRMED, CONFIRMATION_PENDING] } },
             select: { extra_guest_count: true },
           });
           const occupied = remaining.reduce((s, r) => s + 1 + Math.max(0, r.extra_guest_count ?? 0), 0);

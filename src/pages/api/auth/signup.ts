@@ -110,7 +110,7 @@ function parseSignupBody(
 function respondWithSignupError(res: NextApiResponse, e: unknown): void {
   const { code, message } = prismaMeta(e);
 
-  logger.error({ code: code || undefined }, "[signup] " + message);
+  logger.error({ code: code || undefined }, `[signup] ${message}`);
 
   if (code === "P2002") {
     res.status(409).json({ error: "An account with this email already exists." });

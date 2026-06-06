@@ -18,10 +18,9 @@ import { AdminPageHeader } from "@/components/admin/AdminPageHeader";
 import { Badge } from "@/components/ui/badge";
 import { useSession } from "next-auth/react";
 import { CrmTriggerType } from "@/lib/crmTriggerTypes";
-import { 
-  Plus, 
-  Edit, 
-  Trash2, 
+import {
+  Plus,
+  Edit,
   X,
   Save,
   Send,
@@ -31,7 +30,6 @@ import {
   Mail,
   MessageCircle,
   Zap,
-  Eye,
   Copy,
   Target,
   DollarSign,
@@ -212,6 +210,519 @@ function CrmHubLoadingSkeleton() {
   );
 }
 
+// Analytics derived from `messages`. `Math.random()` calls preserved for
+// visual parity — these are demo numbers. Pure: depends only on `messages`.
+function computeCrmAnalyticsData(messages: CRMMessage[]) {
+  const totalNudges = messages.length;
+  const renewals = Math.floor(totalNudges * 0.38);
+  const avgPackagePrice = 15000;
+  type Stats = Record<string, { template: string; sent: number; converted: number }>;
+  const templateStats = (messages as Array<{ template?: { name: string } }>).reduce<Stats>((acc, msg) => {
+    const templateName = msg.template?.name || "Unknown";
+    if (!acc[templateName]) acc[templateName] = { template: templateName, sent: 0, converted: 0 };
+    acc[templateName].sent++;
+    if (Math.random() < 0.38) acc[templateName].converted++;
+    return acc;
+  }, {});
+  const weeklyTrend = [];
+  for (let i = 3; i >= 0; i--) {
+    const nudgesThisWeek = Math.floor(totalNudges / 4) + Math.floor(Math.random() * 10);
+    weeklyTrend.push({ week: `Week ${4 - i}`, nudges: nudgesThisWeek, conversions: Math.floor(nudgesThisWeek * 0.38) });
+  }
+  return {
+    totalNudgesSent: totalNudges,
+    renewalsAfterNudge: renewals,
+    conversionRate: totalNudges > 0 ? Math.round((renewals / totalNudges) * 100) : 0,
+    revenueFromNudges: renewals * avgPackagePrice,
+    nudgesByTemplate: Object.values(templateStats),
+    weeklyTrend,
+  };
+}
+
+type CrmAnalyticsData = ReturnType<typeof computeCrmAnalyticsData>;
+
+function renderCrmAnalyticsTab(analyticsData: CrmAnalyticsData) {
+  return (
+    <div className="space-y-6">
+      {/* Key Metrics */}
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+        <Card className="border-0 bg-white-warm shadow-lg">
+          <CardContent className="p-6">
+            <div className="flex items-center justify-between mb-3">
+              <p className="font-body text-sm text-charcoal/60">Total Nudges Sent</p>
+              <Send className="text-sage" size={20} />
+            </div>
+            <p className="font-display text-4xl text-charcoal mb-1">
+              {analyticsData.totalNudgesSent}
+            </p>
+            <p className="font-body text-xs text-charcoal/50">Last 30 days</p>
+          </CardContent>
+        </Card>
+
+        <Card className="border-0 bg-white-warm shadow-lg">
+          <CardContent className="p-6">
+            <div className="flex items-center justify-between mb-3">
+              <p className="font-body text-sm text-charcoal/60">Renewals</p>
+              <CheckCircle2 className="text-sage" size={20} />
+            </div>
+            <p className="font-display text-4xl text-charcoal mb-1">
+              {analyticsData.renewalsAfterNudge}
+            </p>
+            <p className="font-body text-xs text-sage">After nudges</p>
+          </CardContent>
+        </Card>
+
+        <Card className="border-0 bg-white-warm shadow-lg">
+          <CardContent className="p-6">
+            <div className="flex items-center justify-between mb-3">
+              <p className="font-body text-sm text-charcoal/60">Conversion Rate</p>
+              <Target className="text-sage" size={20} />
+            </div>
+            <p className="font-display text-4xl text-sage mb-1">
+              {analyticsData.conversionRate}%
+            </p>
+            <p className="font-body text-xs text-charcoal/50">Nudge to renewal</p>
+          </CardContent>
+        </Card>
+
+        <Card className="border-0 bg-white-warm shadow-lg">
+          <CardContent className="p-6">
+            <div className="flex items-center justify-between mb-3">
+              <p className="font-body text-sm text-charcoal/60">Revenue Impact</p>
+              <DollarSign className="text-sage" size={20} />
+            </div>
+            <p className="font-display text-4xl text-charcoal mb-1">
+              ₹{(analyticsData.revenueFromNudges / 1000).toFixed(0)}k
+            </p>
+            <p className="font-body text-xs text-charcoal/50">From nudges</p>
+          </CardContent>
+        </Card>
+      </div>
+
+      {/* Weekly Trend Chart */}
+      <Card className="border-0 bg-white-warm shadow-lg">
+        <CardHeader>
+          <CardTitle className="font-display text-2xl text-charcoal">Weekly Performance</CardTitle>
+          <CardDescription className="font-body text-charcoal/60">
+            Nudges sent vs conversions over time
+          </CardDescription>
+        </CardHeader>
+        <CardContent>
+          <div className="space-y-4">
+            {analyticsData.weeklyTrend.map((week, idx) => (
+              <div key={idx} className="space-y-2">
+                <div className="flex items-center justify-between">
+                  <span className="font-body text-sm text-charcoal/60">{week.week}</span>
+                  <div className="flex items-center gap-4">
+                    <span className="font-body text-xs text-charcoal/50">
+                      {week.nudges} nudges → {week.conversions} renewals
+                    </span>
+                    <span className="font-body text-xs font-semibold text-sage">
+                      {Math.round((week.conversions / week.nudges) * 100)}%
+                    </span>
+                  </div>
+                </div>
+                <div className="flex gap-2 h-8">
+                  <div
+                    className="bg-linear-to-r from-sage to-sage/60 rounded-lg hover:shadow-lg transition-all duration-300"
+                    style={{ width: `${(week.nudges / 50) * 100}%` }}
+                  />
+                  <div
+                    className="bg-sage hover:bg-[#7A8B7C] rounded-lg transition-colors duration-300"
+                    style={{ width: `${(week.conversions / 50) * 100}%` }}
+                  />
+                </div>
+              </div>
+            ))}
+          </div>
+          <div className="flex items-center justify-center gap-6 mt-6 pt-4 border-t border-sage/20">
+            <div className="flex items-center gap-2">
+              <div className="w-4 h-4 rounded bg-sage" />
+              <span className="font-body text-xs text-charcoal/60">Nudges Sent</span>
+            </div>
+            <div className="flex items-center gap-2">
+              <div className="w-4 h-4 rounded bg-sage" />
+              <span className="font-body text-xs text-charcoal/60">Conversions</span>
+            </div>
+          </div>
+        </CardContent>
+      </Card>
+
+      {/* Template Performance */}
+      <Card className="border-0 bg-white-warm shadow-lg">
+        <CardHeader>
+          <CardTitle className="font-display text-2xl text-charcoal">Template Performance</CardTitle>
+          <CardDescription className="font-body text-charcoal/60">
+            Conversion rates by message template
+          </CardDescription>
+        </CardHeader>
+        <CardContent>
+          <div className="space-y-4">
+            {analyticsData.nudgesByTemplate.length === 0 ? (
+              <div className="text-center py-8">
+                <p className="font-body text-charcoal/60">No template data yet</p>
+              </div>
+            ) : (
+              analyticsData.nudgesByTemplate.map((item, idx) => (
+                <div key={idx} className="p-4 rounded-xl bg-cream/30 border border-sage/10">
+                  <div className="flex items-center justify-between mb-3">
+                    <div>
+                      <p className="font-body font-medium text-charcoal">{item.template}</p>
+                      <p className="font-body text-xs text-charcoal/50">
+                        {item.sent} sent · {item.converted} converted
+                      </p>
+                    </div>
+                    <Badge className="bg-sage text-cream">
+                      {item.sent > 0 ? Math.round((item.converted / item.sent) * 100) : 0}% conversion
+                    </Badge>
+                  </div>
+                  <div className="h-2 bg-charcoal/5 rounded-full overflow-hidden">
+                    <div
+                      className="h-full bg-sage rounded-full transition-all duration-500"
+                      style={{ width: `${item.sent > 0 ? (item.converted / item.sent) * 100 : 0}%` }}
+                    />
+                  </div>
+                </div>
+              ))
+            )}
+          </div>
+        </CardContent>
+      </Card>
+    </div>
+  );
+}
+
+function getCrmStatusIcon(status: string) {
+  switch (status) {
+    case "sent":
+      return <CheckCircle2 className="text-sage" size={16} />;
+    case "failed":
+      return <XCircle className="text-[#a05e38]" size={16} />;
+    case "scheduled":
+      return <Clock className="text-terracotta" size={16} />;
+    default:
+      return <Clock className="text-charcoal/50" size={16} />;
+  }
+}
+
+function getCrmChannelIcon(channel: string) {
+  return channel === "email" ? <Mail size={16} /> : <MessageCircle size={16} />;
+}
+
+function renderCrmMessageTimestamp(msg: CRMMessage) {
+  if (msg.sent_at) return <span>Sent: {new Date(msg.sent_at).toLocaleString()}</span>;
+  if (msg.scheduled_for) return <span>Scheduled: {new Date(msg.scheduled_for).toLocaleString()}</span>;
+  return <span>Created: {new Date(msg.created_at).toLocaleString()}</span>;
+}
+
+function crmStatusBadgeClass(status: string) {
+  if (status === "sent") return "bg-sage/10 text-sage";
+  if (status === "failed") return "bg-[#a05e38]/10 text-[#a05e38]";
+  if (status === "scheduled") return "bg-terracotta/10 text-terracotta";
+  return "bg-charcoal/10 text-charcoal/60";
+}
+
+function renderCrmHubTab(messages: CRMMessage[]) {
+  return (
+    <div className="space-y-4">
+      {messages.length === 0 ? (
+        <Card className="border-0 bg-white-warm shadow-lg">
+          <CardContent className="flex flex-col items-center justify-center py-20">
+            <Send className="text-sage/40 mb-4" size={64} />
+            <h3 className="font-display text-2xl text-charcoal mb-2">No Messages Yet</h3>
+            <p className="font-body text-charcoal/60">Sent and scheduled messages will appear here</p>
+          </CardContent>
+        </Card>
+      ) : (
+        messages.map(msg => (
+          <Card key={msg.id} className="border-0 bg-white-warm shadow-lg hover:shadow-xl transition-all duration-300 [content-visibility:auto] [contain-intrinsic-size:0_180px]">
+            <CardContent className="p-6">
+              <div className="flex items-start justify-between mb-4">
+                <div className="flex items-center gap-3">
+                  <div className="w-10 h-10 rounded-full bg-sage/10 flex items-center justify-center">
+                    {getCrmChannelIcon(msg.channel)}
+                  </div>
+                  <div>
+                    <h3 className="font-display text-lg text-charcoal">
+                      {msg.profiles?.full_name || "Unknown User"}
+                    </h3>
+                    <p className="font-body text-xs text-charcoal/50">
+                      {msg.profiles?.email}
+                    </p>
+                  </div>
+                </div>
+                <div className="flex items-center gap-2">
+                  {getCrmStatusIcon(msg.status)}
+                  <Badge className={crmStatusBadgeClass(msg.status)}>
+                    {msg.status.toUpperCase()}
+                  </Badge>
+                </div>
+              </div>
+
+              {msg.subject && (
+                <p className="font-display text-sm text-charcoal mb-2">
+                  <strong>Subject:</strong> {msg.subject}
+                </p>
+              )}
+
+              <div className="bg-cream/30 rounded-lg p-4 mb-4">
+                <p className="font-body text-sm text-charcoal whitespace-pre-wrap">
+                  {msg.message_body}
+                </p>
+              </div>
+
+              <div className="flex items-center justify-between text-xs text-charcoal/50 font-body">
+                <div>
+                  {msg.crm_templates?.name && (
+                    <span>Template: {msg.crm_templates.name}</span>
+                  )}
+                </div>
+                <div>
+                  {renderCrmMessageTimestamp(msg)}
+                </div>
+              </div>
+
+              {msg.error_message && (
+                <div className="mt-3 p-3 bg-[#a05e38]/10 border border-[#a05e38]/25 rounded-lg">
+                  <p className="font-body text-xs text-[#a05e38]">
+                    <strong>Error:</strong> {msg.error_message}
+                  </p>
+                </div>
+              )}
+            </CardContent>
+          </Card>
+        ))
+      )}
+    </div>
+  );
+}
+
+interface CrmTriggersTabProps {
+  triggers: CRMTrigger[];
+  triggerLabelById: Map<string, string>;
+  onCreate: () => void;
+  onCreateEmpty: () => void;
+  onToggle: (id: string, current: boolean) => void;
+  onDelete: (id: string) => void;
+}
+
+function renderCrmTriggersTab(props: CrmTriggersTabProps) {
+  const { triggers, triggerLabelById, onCreate, onCreateEmpty, onToggle, onDelete } = props;
+  return (
+    <>
+      <div className="mb-6 flex justify-end">
+        <Button onClick={onCreate} variant="sage">
+          <Plus size={20} className="mr-2" />
+          Create Trigger
+        </Button>
+      </div>
+
+      <div className="space-y-4">
+        {triggers.map(trigger => (
+          <Card key={trigger.id} className="border-0 bg-white-warm shadow-lg">
+            <CardContent className="p-6">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-4 flex-1">
+                  <div className={`w-12 h-12 rounded-full flex items-center justify-center ${
+                    trigger.is_active ? "bg-sage/10" : "bg-charcoal/10"
+                  }`}>
+                    <Zap className={trigger.is_active ? "text-sage" : "text-charcoal/40"} size={24} />
+                  </div>
+
+                  <div className="flex-1">
+                    <h3 className="font-display text-lg text-charcoal mb-1">{trigger.name}</h3>
+                    <div className="flex items-center gap-3">
+                      <Badge className="bg-sage/10 text-sage">
+                        {triggerLabelById.get(String(trigger.trigger_type))}
+                      </Badge>
+                      <p className="font-body text-sm text-charcoal/60">
+                        → {trigger.crm_templates?.name}
+                      </p>
+                    </div>
+                    <div className="flex items-center gap-2 mt-2">
+                      {trigger.channel_email && (
+                        <Badge className="bg-terracotta/10 text-terracotta flex items-center gap-1">
+                          <Mail size={12} />
+                          Email
+                        </Badge>
+                      )}
+                      {trigger.channel_whatsapp && (
+                        <Badge className="bg-sage/10 text-sage flex items-center gap-1">
+                          <MessageCircle size={12} />
+                          WhatsApp
+                        </Badge>
+                      )}
+                    </div>
+                  </div>
+                </div>
+
+                <div className="flex items-center gap-3">
+                  <label className="flex items-center gap-2 cursor-pointer">
+                    <input
+                      type="checkbox"
+                      checked={trigger.is_active}
+                      onChange={() => onToggle(trigger.id, trigger.is_active)}
+                      className="w-5 h-5 accent-sage"
+                    />
+                    <span className="font-body text-sm text-charcoal">Active</span>
+                  </label>
+                  <DeleteButton onClick={() => onDelete(trigger.id)} />
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+        ))}
+
+        {triggers.length === 0 && (
+          <Card className="border-0 bg-white-warm shadow-lg">
+            <CardContent className="flex flex-col items-center justify-center py-20">
+              <Zap className="text-sage/40 mb-4" size={64} />
+              <h3 className="font-display text-2xl text-charcoal mb-2">No Triggers Set</h3>
+              <p className="font-body text-charcoal/60 mb-6">Create automated triggers to engage members at the right moment</p>
+              <Button onClick={onCreateEmpty} variant="sage">
+                <Plus size={20} className="mr-2" />
+                Create First Trigger
+              </Button>
+            </CardContent>
+          </Card>
+        )}
+      </div>
+    </>
+  );
+}
+
+type CrmSendMember = { id: string; full_name: string | null; email: string };
+
+interface CrmSendDialogProps {
+  sendDialog: CRMTemplate;
+  sendTarget: CrmSendMember | null;
+  sendQuery: string;
+  sendResults: CrmSendMember[];
+  sendOverrides: Record<string, string>;
+  sendResult: { ok: boolean; msg: string } | null;
+  sending: boolean;
+  setSendDialog: (v: CRMTemplate | null) => void;
+  setSendTarget: (v: CrmSendMember | null) => void;
+  setSendQuery: (v: string) => void;
+  setSendOverrides: (v: Record<string, string>) => void;
+  onSend: () => void;
+}
+
+function renderCrmSendDialog(props: CrmSendDialogProps) {
+  const {
+    sendDialog, sendTarget, sendQuery, sendResults, sendOverrides, sendResult, sending,
+    setSendDialog, setSendTarget, setSendQuery, setSendOverrides, onSend,
+  } = props;
+  return (
+    <div className="fixed inset-0 z-[60] flex items-center justify-center p-4">
+      <div className="absolute inset-0 bg-charcoal/70 backdrop-blur-xs" onClick={() => setSendDialog(null)} />
+      <div className="relative bg-white-warm rounded-2xl shadow-2xl w-full max-w-xl max-h-[90vh] flex flex-col overflow-hidden">
+        <div className="flex items-center justify-between px-6 py-4 border-b border-sage/10">
+          <div>
+            <h3 className="font-display text-2xl text-charcoal">Send template</h3>
+            <p className="font-body text-xs text-charcoal/60 mt-0.5">{sendDialog.name}</p>
+          </div>
+          <CloseButton onClick={() => setSendDialog(null)} className="rounded-full" />
+        </div>
+
+        <div className="p-6 space-y-5 overflow-y-auto">
+          <div>
+            <label className="font-body text-sm text-charcoal/70 mb-2 block">Recipient member</label>
+            {sendTarget ? (
+              <div className="flex items-center justify-between bg-sage/5 border border-sage/20 rounded-lg px-3 py-2">
+                <div>
+                  <p className="font-body text-sm text-charcoal">{sendTarget.full_name || "(no name)"}</p>
+                  <p className="font-body text-xs text-charcoal/60">{sendTarget.email}</p>
+                </div>
+                <CloseButton
+                  onClick={() => setSendTarget(null)}
+                  label="Remove recipient"
+                  className="h-8 w-8"
+                />
+              </div>
+            ) : (
+              <>
+                <Input
+                  autoFocus
+                  placeholder="Search by name or email…"
+                  value={sendQuery}
+                  onChange={(e) => setSendQuery(e.target.value)}
+                  className="font-body"
+                />
+                {sendResults.length > 0 && (
+                  <div className="mt-2 border border-sage/20 rounded-lg max-h-48 overflow-y-auto bg-white-warm">
+                    {sendResults.map((m) => (
+                      <button
+                        key={m.id}
+                        type="button"
+                        onClick={() => setSendTarget(m)}
+                        className="w-full text-left px-3 py-2 hover:bg-sage/5 border-b border-sage/10 last:border-0"
+                      >
+                        <p className="font-body text-sm text-charcoal">{m.full_name || "(no name)"}</p>
+                        <p className="font-body text-xs text-charcoal/60">{m.email}</p>
+                      </button>
+                    ))}
+                  </div>
+                )}
+              </>
+            )}
+          </div>
+
+          {sendDialog.variables?.length > 0 && (
+            <div>
+              <label className="font-body text-sm text-charcoal/70 mb-2 block">
+                Variables <span className="text-charcoal/40">(optional — leave blank to use defaults)</span>
+              </label>
+              <div className="space-y-2">
+                {sendDialog.variables.map((v) => (
+                  <div key={v} className="flex items-center gap-2">
+                    <code className="font-mono text-xs bg-sage/10 text-sage px-2 py-1 rounded min-w-[140px]">{`{{${v}}}`}</code>
+                    <Input
+                      placeholder={`Override ${v}`}
+                      value={sendOverrides[v] ?? ""}
+                      onChange={(e) => setSendOverrides({ ...sendOverrides, [v]: e.target.value })}
+                      className="font-body text-sm"
+                    />
+                  </div>
+                ))}
+              </div>
+              <p className="font-body text-xs text-charcoal/50 mt-2">
+                Defaults used when blank: <code>memberName</code>, <code>email</code>, <code>portalUrl</code>, <code>loginUrl</code> auto-filled from the member's profile and site config.
+              </p>
+            </div>
+          )}
+
+          {sendResult && (
+            <div className={`rounded-lg p-3 ${sendResult.ok ? "bg-sage/10 border border-sage/20 text-sage" : "bg-[#a05e38]/10 border border-[#a05e38]/25 text-[#a05e38]"}`}>
+              <p className="font-body text-sm">{sendResult.msg}</p>
+            </div>
+          )}
+        </div>
+
+        <div className="px-6 py-4 border-t border-sage/10 flex justify-end gap-2">
+          <Button
+            variant="outline"
+            onClick={() => setSendDialog(null)}
+          >
+            Close
+          </Button>
+          <Button
+            onClick={onSend}
+            disabled={sending || !sendTarget}
+            variant="sage"
+          >
+            {sending ? (
+              <><Spinner className="mr-2 size-4" />Sending…</>
+            ) : (
+              <><Send size={14} className="mr-2" />Send email</>
+            )}
+          </Button>
+        </div>
+      </div>
+    </div>
+  );
+}
+
 export default function CRMPage() {
   const router = useRouter();
   const [loading, setLoading] = useState(true);
@@ -357,33 +868,7 @@ export default function CRMPage() {
   };
 
   // Analytics derived from `messages` (was duplicating /api/admin/crm/messages fetch).
-  // `Math.random()` calls preserved for visual parity — these are demo numbers.
-  const analyticsData = useMemo(() => {
-    const totalNudges = messages.length;
-    const renewals = Math.floor(totalNudges * 0.38);
-    const avgPackagePrice = 15000;
-    type Stats = Record<string, { template: string; sent: number; converted: number }>;
-    const templateStats = (messages as Array<{ template?: { name: string } }>).reduce<Stats>((acc, msg) => {
-      const templateName = msg.template?.name || "Unknown";
-      if (!acc[templateName]) acc[templateName] = { template: templateName, sent: 0, converted: 0 };
-      acc[templateName].sent++;
-      if (Math.random() < 0.38) acc[templateName].converted++;
-      return acc;
-    }, {});
-    const weeklyTrend = [];
-    for (let i = 3; i >= 0; i--) {
-      const nudgesThisWeek = Math.floor(totalNudges / 4) + Math.floor(Math.random() * 10);
-      weeklyTrend.push({ week: `Week ${4 - i}`, nudges: nudgesThisWeek, conversions: Math.floor(nudgesThisWeek * 0.38) });
-    }
-    return {
-      totalNudgesSent: totalNudges,
-      renewalsAfterNudge: renewals,
-      conversionRate: totalNudges > 0 ? Math.round((renewals / totalNudges) * 100) : 0,
-      revenueFromNudges: renewals * avgPackagePrice,
-      nudgesByTemplate: Object.values(templateStats),
-      weeklyTrend,
-    };
-  }, [messages]);
+  const analyticsData = useMemo(() => computeCrmAnalyticsData(messages), [messages]);
 
   const handleSaveTemplate = async () => {
     setIsSaving(true);
@@ -543,23 +1028,6 @@ export default function CRMPage() {
     }
   };
 
-  const getStatusIcon = (status: string) => {
-    switch (status) {
-      case "sent":
-        return <CheckCircle2 className="text-sage" size={16} />;
-      case "failed":
-        return <XCircle className="text-[#a05e38]" size={16} />;
-      case "scheduled":
-        return <Clock className="text-terracotta" size={16} />;
-      default:
-        return <Clock className="text-charcoal/50" size={16} />;
-    }
-  };
-
-  const getChannelIcon = (channel: string) => {
-    return channel === "email" ? <Mail size={16} /> : <MessageCircle size={16} />;
-  };
-
   // Lookup id → label once per render. Avoids `.find()` per row in the
   // templates + triggers tables (was O(rows × types)).
   const templateLabelById = useMemo(() => {
@@ -673,89 +1141,7 @@ export default function CRMPage() {
           </div>
 
           {/* COMMUNICATION HUB TAB */}
-          {activeTab === "hub" && (
-            <div className="space-y-4">
-              {messages.length === 0 ? (
-                <Card className="border-0 bg-white-warm shadow-lg">
-                  <CardContent className="flex flex-col items-center justify-center py-20">
-                    <Send className="text-sage/40 mb-4" size={64} />
-                    <h3 className="font-display text-2xl text-charcoal mb-2">No Messages Yet</h3>
-                    <p className="font-body text-charcoal/60">Sent and scheduled messages will appear here</p>
-                  </CardContent>
-                </Card>
-              ) : (
-                messages.map(msg => (
-                  <Card key={msg.id} className="border-0 bg-white-warm shadow-lg hover:shadow-xl transition-all duration-300 [content-visibility:auto] [contain-intrinsic-size:0_180px]">
-                    <CardContent className="p-6">
-                      <div className="flex items-start justify-between mb-4">
-                        <div className="flex items-center gap-3">
-                          <div className="w-10 h-10 rounded-full bg-sage/10 flex items-center justify-center">
-                            {getChannelIcon(msg.channel)}
-                          </div>
-                          <div>
-                            <h3 className="font-display text-lg text-charcoal">
-                              {msg.profiles?.full_name || "Unknown User"}
-                            </h3>
-                            <p className="font-body text-xs text-charcoal/50">
-                              {msg.profiles?.email}
-                            </p>
-                          </div>
-                        </div>
-                        <div className="flex items-center gap-2">
-                          {getStatusIcon(msg.status)}
-                          <Badge className={
-                            msg.status === "sent" ? "bg-sage/10 text-sage" :
-                            msg.status === "failed" ? "bg-[#a05e38]/10 text-[#a05e38]" :
-                            msg.status === "scheduled" ? "bg-terracotta/10 text-terracotta" :
-                            "bg-charcoal/10 text-charcoal/60"
-                          }>
-                            {msg.status.toUpperCase()}
-                          </Badge>
-                        </div>
-                      </div>
-
-                      {msg.subject && (
-                        <p className="font-display text-sm text-charcoal mb-2">
-                          <strong>Subject:</strong> {msg.subject}
-                        </p>
-                      )}
-
-                      <div className="bg-cream/30 rounded-lg p-4 mb-4">
-                        <p className="font-body text-sm text-charcoal whitespace-pre-wrap">
-                          {msg.message_body}
-                        </p>
-                      </div>
-
-                      <div className="flex items-center justify-between text-xs text-charcoal/50 font-body">
-                        <div>
-                          {msg.crm_templates?.name && (
-                            <span>Template: {msg.crm_templates.name}</span>
-                          )}
-                        </div>
-                        <div>
-                          {msg.sent_at ? (
-                            <span>Sent: {new Date(msg.sent_at).toLocaleString()}</span>
-                          ) : msg.scheduled_for ? (
-                            <span>Scheduled: {new Date(msg.scheduled_for).toLocaleString()}</span>
-                          ) : (
-                            <span>Created: {new Date(msg.created_at).toLocaleString()}</span>
-                          )}
-                        </div>
-                      </div>
-
-                      {msg.error_message && (
-                        <div className="mt-3 p-3 bg-[#a05e38]/10 border border-[#a05e38]/25 rounded-lg">
-                          <p className="font-body text-xs text-[#a05e38]">
-                            <strong>Error:</strong> {msg.error_message}
-                          </p>
-                        </div>
-                      )}
-                    </CardContent>
-                  </Card>
-                ))
-              )}
-            </div>
-          )}
+          {activeTab === "hub" && renderCrmHubTab(messages)}
 
           {/* TEMPLATE ARCHITECT TAB */}
           {activeTab === "templates" && (
@@ -878,246 +1264,17 @@ export default function CRMPage() {
           )}
 
           {/* AUTOMATED TRIGGERS TAB */}
-          {activeTab === "triggers" && (
-            <>
-              <div className="mb-6 flex justify-end">
-                <Button
-                  onClick={() => {
-                    resetTriggerForm();
-                    setShowTriggerForm(true);
-                  }}
-                  variant="sage"
-                >
-                  <Plus size={20} className="mr-2" />
-                  Create Trigger
-                </Button>
-              </div>
-
-              <div className="space-y-4">
-                {triggers.map(trigger => (
-                  <Card key={trigger.id} className="border-0 bg-white-warm shadow-lg">
-                    <CardContent className="p-6">
-                      <div className="flex items-center justify-between">
-                        <div className="flex items-center gap-4 flex-1">
-                          <div className={`w-12 h-12 rounded-full flex items-center justify-center ${
-                            trigger.is_active ? "bg-sage/10" : "bg-charcoal/10"
-                          }`}>
-                            <Zap className={trigger.is_active ? "text-sage" : "text-charcoal/40"} size={24} />
-                          </div>
-                          
-                          <div className="flex-1">
-                            <h3 className="font-display text-lg text-charcoal mb-1">{trigger.name}</h3>
-                            <div className="flex items-center gap-3">
-                              <Badge className="bg-sage/10 text-sage">
-                                {triggerLabelById.get(String(trigger.trigger_type))}
-                              </Badge>
-                              <p className="font-body text-sm text-charcoal/60">
-                                → {trigger.crm_templates?.name}
-                              </p>
-                            </div>
-                            <div className="flex items-center gap-2 mt-2">
-                              {trigger.channel_email && (
-                                <Badge className="bg-terracotta/10 text-terracotta flex items-center gap-1">
-                                  <Mail size={12} />
-                                  Email
-                                </Badge>
-                              )}
-                              {trigger.channel_whatsapp && (
-                                <Badge className="bg-sage/10 text-sage flex items-center gap-1">
-                                  <MessageCircle size={12} />
-                                  WhatsApp
-                                </Badge>
-                              )}
-                            </div>
-                          </div>
-                        </div>
-
-                        <div className="flex items-center gap-3">
-                          <label className="flex items-center gap-2 cursor-pointer">
-                            <input
-                              type="checkbox"
-                              checked={trigger.is_active}
-                              onChange={() => handleToggleTrigger(trigger.id, trigger.is_active)}
-                              className="w-5 h-5 accent-sage"
-                            />
-                            <span className="font-body text-sm text-charcoal">Active</span>
-                          </label>
-                          <DeleteButton onClick={() => handleDeleteTrigger(trigger.id)} />
-                        </div>
-                      </div>
-                    </CardContent>
-                  </Card>
-                ))}
-
-                {triggers.length === 0 && (
-                  <Card className="border-0 bg-white-warm shadow-lg">
-                    <CardContent className="flex flex-col items-center justify-center py-20">
-                      <Zap className="text-sage/40 mb-4" size={64} />
-                      <h3 className="font-display text-2xl text-charcoal mb-2">No Triggers Set</h3>
-                      <p className="font-body text-charcoal/60 mb-6">Create automated triggers to engage members at the right moment</p>
-                      <Button
-                        onClick={() => setShowTriggerForm(true)}
-                        variant="sage"
-                      >
-                        <Plus size={20} className="mr-2" />
-                        Create First Trigger
-                      </Button>
-                    </CardContent>
-                  </Card>
-                )}
-              </div>
-            </>
-          )}
+          {activeTab === "triggers" && renderCrmTriggersTab({
+            triggers,
+            triggerLabelById,
+            onCreate: () => { resetTriggerForm(); setShowTriggerForm(true); },
+            onCreateEmpty: () => setShowTriggerForm(true),
+            onToggle: handleToggleTrigger,
+            onDelete: handleDeleteTrigger,
+          })}
 
           {/* ANALYTICS TAB */}
-          {activeTab === "analytics" && (
-            <div className="space-y-6">
-              {/* Key Metrics */}
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-                <Card className="border-0 bg-white-warm shadow-lg">
-                  <CardContent className="p-6">
-                    <div className="flex items-center justify-between mb-3">
-                      <p className="font-body text-sm text-charcoal/60">Total Nudges Sent</p>
-                      <Send className="text-sage" size={20} />
-                    </div>
-                    <p className="font-display text-4xl text-charcoal mb-1">
-                      {analyticsData.totalNudgesSent}
-                    </p>
-                    <p className="font-body text-xs text-charcoal/50">Last 30 days</p>
-                  </CardContent>
-                </Card>
-
-                <Card className="border-0 bg-white-warm shadow-lg">
-                  <CardContent className="p-6">
-                    <div className="flex items-center justify-between mb-3">
-                      <p className="font-body text-sm text-charcoal/60">Renewals</p>
-                      <CheckCircle2 className="text-sage" size={20} />
-                    </div>
-                    <p className="font-display text-4xl text-charcoal mb-1">
-                      {analyticsData.renewalsAfterNudge}
-                    </p>
-                    <p className="font-body text-xs text-sage">After nudges</p>
-                  </CardContent>
-                </Card>
-
-                <Card className="border-0 bg-white-warm shadow-lg">
-                  <CardContent className="p-6">
-                    <div className="flex items-center justify-between mb-3">
-                      <p className="font-body text-sm text-charcoal/60">Conversion Rate</p>
-                      <Target className="text-sage" size={20} />
-                    </div>
-                    <p className="font-display text-4xl text-sage mb-1">
-                      {analyticsData.conversionRate}%
-                    </p>
-                    <p className="font-body text-xs text-charcoal/50">Nudge to renewal</p>
-                  </CardContent>
-                </Card>
-
-                <Card className="border-0 bg-white-warm shadow-lg">
-                  <CardContent className="p-6">
-                    <div className="flex items-center justify-between mb-3">
-                      <p className="font-body text-sm text-charcoal/60">Revenue Impact</p>
-                      <DollarSign className="text-sage" size={20} />
-                    </div>
-                    <p className="font-display text-4xl text-charcoal mb-1">
-                      ₹{(analyticsData.revenueFromNudges / 1000).toFixed(0)}k
-                    </p>
-                    <p className="font-body text-xs text-charcoal/50">From nudges</p>
-                  </CardContent>
-                </Card>
-              </div>
-
-              {/* Weekly Trend Chart */}
-              <Card className="border-0 bg-white-warm shadow-lg">
-                <CardHeader>
-                  <CardTitle className="font-display text-2xl text-charcoal">Weekly Performance</CardTitle>
-                  <CardDescription className="font-body text-charcoal/60">
-                    Nudges sent vs conversions over time
-                  </CardDescription>
-                </CardHeader>
-                <CardContent>
-                  <div className="space-y-4">
-                    {analyticsData.weeklyTrend.map((week, idx) => (
-                      <div key={idx} className="space-y-2">
-                        <div className="flex items-center justify-between">
-                          <span className="font-body text-sm text-charcoal/60">{week.week}</span>
-                          <div className="flex items-center gap-4">
-                            <span className="font-body text-xs text-charcoal/50">
-                              {week.nudges} nudges → {week.conversions} renewals
-                            </span>
-                            <span className="font-body text-xs font-semibold text-sage">
-                              {Math.round((week.conversions / week.nudges) * 100)}%
-                            </span>
-                          </div>
-                        </div>
-                        <div className="flex gap-2 h-8">
-                          <div 
-                            className="bg-linear-to-r from-sage to-sage/60 rounded-lg hover:shadow-lg transition-all duration-300"
-                            style={{ width: `${(week.nudges / 50) * 100}%` }}
-                          />
-                          <div 
-                            className="bg-sage hover:bg-[#7A8B7C] rounded-lg transition-colors duration-300"
-                            style={{ width: `${(week.conversions / 50) * 100}%` }}
-                          />
-                        </div>
-                      </div>
-                    ))}
-                  </div>
-                  <div className="flex items-center justify-center gap-6 mt-6 pt-4 border-t border-sage/20">
-                    <div className="flex items-center gap-2">
-                      <div className="w-4 h-4 rounded bg-sage" />
-                      <span className="font-body text-xs text-charcoal/60">Nudges Sent</span>
-                    </div>
-                    <div className="flex items-center gap-2">
-                      <div className="w-4 h-4 rounded bg-sage" />
-                      <span className="font-body text-xs text-charcoal/60">Conversions</span>
-                    </div>
-                  </div>
-                </CardContent>
-              </Card>
-
-              {/* Template Performance */}
-              <Card className="border-0 bg-white-warm shadow-lg">
-                <CardHeader>
-                  <CardTitle className="font-display text-2xl text-charcoal">Template Performance</CardTitle>
-                  <CardDescription className="font-body text-charcoal/60">
-                    Conversion rates by message template
-                  </CardDescription>
-                </CardHeader>
-                <CardContent>
-                  <div className="space-y-4">
-                    {analyticsData.nudgesByTemplate.length === 0 ? (
-                      <div className="text-center py-8">
-                        <p className="font-body text-charcoal/60">No template data yet</p>
-                      </div>
-                    ) : (
-                      analyticsData.nudgesByTemplate.map((item, idx) => (
-                        <div key={idx} className="p-4 rounded-xl bg-cream/30 border border-sage/10">
-                          <div className="flex items-center justify-between mb-3">
-                            <div>
-                              <p className="font-body font-medium text-charcoal">{item.template}</p>
-                              <p className="font-body text-xs text-charcoal/50">
-                                {item.sent} sent · {item.converted} converted
-                              </p>
-                            </div>
-                            <Badge className="bg-sage text-cream">
-                              {item.sent > 0 ? Math.round((item.converted / item.sent) * 100) : 0}% conversion
-                            </Badge>
-                          </div>
-                          <div className="h-2 bg-charcoal/5 rounded-full overflow-hidden">
-                            <div 
-                              className="h-full bg-sage rounded-full transition-all duration-500"
-                              style={{ width: `${item.sent > 0 ? (item.converted / item.sent) * 100 : 0}%` }}
-                            />
-                          </div>
-                        </div>
-                      ))
-                    )}
-                  </div>
-                </CardContent>
-              </Card>
-            </div>
-          )}
+          {activeTab === "analytics" && renderCrmAnalyticsTab(analyticsData)}
 
         </div>
       </main>
@@ -1360,114 +1517,20 @@ export default function CRMPage() {
       </Drawer>
 
       {/* Manual Send Modal */}
-      {sendDialog && (
-        <div className="fixed inset-0 z-[60] flex items-center justify-center p-4">
-          <div className="absolute inset-0 bg-charcoal/70 backdrop-blur-xs" onClick={() => setSendDialog(null)} />
-          <div className="relative bg-white-warm rounded-2xl shadow-2xl w-full max-w-xl max-h-[90vh] flex flex-col overflow-hidden">
-            <div className="flex items-center justify-between px-6 py-4 border-b border-sage/10">
-              <div>
-                <h3 className="font-display text-2xl text-charcoal">Send template</h3>
-                <p className="font-body text-xs text-charcoal/60 mt-0.5">{sendDialog.name}</p>
-              </div>
-              <CloseButton onClick={() => setSendDialog(null)} className="rounded-full" />
-            </div>
-
-            <div className="p-6 space-y-5 overflow-y-auto">
-              <div>
-                <label className="font-body text-sm text-charcoal/70 mb-2 block">Recipient member</label>
-                {sendTarget ? (
-                  <div className="flex items-center justify-between bg-sage/5 border border-sage/20 rounded-lg px-3 py-2">
-                    <div>
-                      <p className="font-body text-sm text-charcoal">{sendTarget.full_name || "(no name)"}</p>
-                      <p className="font-body text-xs text-charcoal/60">{sendTarget.email}</p>
-                    </div>
-                    <CloseButton
-                      onClick={() => setSendTarget(null)}
-                      label="Remove recipient"
-                      className="h-8 w-8"
-                    />
-                  </div>
-                ) : (
-                  <>
-                    <Input
-                      autoFocus
-                      placeholder="Search by name or email…"
-                      value={sendQuery}
-                      onChange={(e) => setSendQuery(e.target.value)}
-                      className="font-body"
-                    />
-                    {sendResults.length > 0 && (
-                      <div className="mt-2 border border-sage/20 rounded-lg max-h-48 overflow-y-auto bg-white-warm">
-                        {sendResults.map((m) => (
-                          <button
-                            key={m.id}
-                            type="button"
-                            onClick={() => setSendTarget(m)}
-                            className="w-full text-left px-3 py-2 hover:bg-sage/5 border-b border-sage/10 last:border-0"
-                          >
-                            <p className="font-body text-sm text-charcoal">{m.full_name || "(no name)"}</p>
-                            <p className="font-body text-xs text-charcoal/60">{m.email}</p>
-                          </button>
-                        ))}
-                      </div>
-                    )}
-                  </>
-                )}
-              </div>
-
-              {sendDialog.variables?.length > 0 && (
-                <div>
-                  <label className="font-body text-sm text-charcoal/70 mb-2 block">
-                    Variables <span className="text-charcoal/40">(optional — leave blank to use defaults)</span>
-                  </label>
-                  <div className="space-y-2">
-                    {sendDialog.variables.map((v) => (
-                      <div key={v} className="flex items-center gap-2">
-                        <code className="font-mono text-xs bg-sage/10 text-sage px-2 py-1 rounded min-w-[140px]">{`{{${v}}}`}</code>
-                        <Input
-                          placeholder={`Override ${v}`}
-                          value={sendOverrides[v] ?? ""}
-                          onChange={(e) => setSendOverrides({ ...sendOverrides, [v]: e.target.value })}
-                          className="font-body text-sm"
-                        />
-                      </div>
-                    ))}
-                  </div>
-                  <p className="font-body text-xs text-charcoal/50 mt-2">
-                    Defaults used when blank: <code>memberName</code>, <code>email</code>, <code>portalUrl</code>, <code>loginUrl</code> auto-filled from the member's profile and site config.
-                  </p>
-                </div>
-              )}
-
-              {sendResult && (
-                <div className={`rounded-lg p-3 ${sendResult.ok ? "bg-sage/10 border border-sage/20 text-sage" : "bg-[#a05e38]/10 border border-[#a05e38]/25 text-[#a05e38]"}`}>
-                  <p className="font-body text-sm">{sendResult.msg}</p>
-                </div>
-              )}
-            </div>
-
-            <div className="px-6 py-4 border-t border-sage/10 flex justify-end gap-2">
-              <Button
-                variant="outline"
-                onClick={() => setSendDialog(null)}
-              >
-                Close
-              </Button>
-              <Button
-                onClick={handleManualSend}
-                disabled={sending || !sendTarget}
-                variant="sage"
-              >
-                {sending ? (
-                  <><Spinner className="mr-2 size-4" />Sending…</>
-                ) : (
-                  <><Send size={14} className="mr-2" />Send email</>
-                )}
-              </Button>
-            </div>
-          </div>
-        </div>
-      )}
+      {sendDialog && renderCrmSendDialog({
+        sendDialog,
+        sendTarget,
+        sendQuery,
+        sendResults,
+        sendOverrides,
+        sendResult,
+        sending,
+        setSendDialog,
+        setSendTarget,
+        setSendQuery,
+        setSendOverrides,
+        onSend: handleManualSend,
+      })}
 
       {/* Template Preview Modal */}
       {showPreview && (

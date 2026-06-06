@@ -30,7 +30,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   if (req.method !== "GET") return res.status(405).end();
 
   const windowRaw = typeof req.query.window === "string" ? req.query.window : "month";
-  const window: PayoutWindow = (["week", "month", "quarter", "all"] as const).includes(
+  const payoutWindow: PayoutWindow = (["week", "month", "quarter", "all"] as const).includes(
     windowRaw as PayoutWindow,
   )
     ? (windowRaw as PayoutWindow)
@@ -41,8 +41,8 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       : null;
 
   const now = new Date();
-  const { start, end } = periodBoundsFor(window, now);
-  const periodKey = periodKeyFor(window, now);
+  const { start, end } = periodBoundsFor(payoutWindow, now);
+  const periodKey = periodKeyFor(payoutWindow, now);
 
   // Only schedules that have already started (no payout for future classes).
   const scheduleStart: Record<string, Date> = { lte: now };
@@ -191,7 +191,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       totalPayableUnits: instructors.reduce((s, i) => s + i.payableUnits, 0),
       instructorsCount: instructors.length,
       pendingCount,
-      window,
+      window: payoutWindow,
       periodKey,
       periodStart: start?.toISOString() ?? null,
       periodEnd: end?.toISOString() ?? null,

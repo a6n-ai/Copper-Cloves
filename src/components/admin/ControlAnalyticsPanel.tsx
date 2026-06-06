@@ -106,6 +106,13 @@ function barFillClasses(status: string) {
   return "bg-[#a05e38]";
 }
 
+// Signed percentage label ("+12% Growth") or em-dash when the pct is null.
+function growthPctLabel(pct: number | null, suffix: string) {
+  if (pct === null) return "—";
+  const sign = pct > 0 ? "+" : "";
+  return `${sign}${pct}${suffix}`;
+}
+
 export function ControlAnalyticsPanel() {
   const [d, setD] = useState<ControlAnalyticsPayload>(emptyAnalytics);
   const [loading, setLoading] = useState(true);
@@ -129,14 +136,6 @@ export function ControlAnalyticsPanel() {
     };
   }, []);
 
-  if (loading) {
-    return (
-      <div className="rounded-xl border border-sage/20 bg-[#fafaf8]/80 p-12 text-center font-body text-charcoal/60">
-        Loading analytics…
-      </div>
-    );
-  }
-
   const maxRev = useMemo(
     () => Math.max(...d.financial.monthlyRevenue.map((x) => x.amount), 1),
     [d.financial.monthlyRevenue],
@@ -146,23 +145,17 @@ export function ControlAnalyticsPanel() {
     [d.members.newMembersMonthly],
   );
 
-  const revenueGrowthSign = (d.financial.revenueGrowthPct ?? 0) > 0 ? "+" : "";
-  const growthLabel =
-    d.financial.revenueGrowthPct !== null
-      ? `${revenueGrowthSign}${d.financial.revenueGrowthPct}% Growth`
-      : "—";
+  if (loading) {
+    return (
+      <div className="rounded-xl border border-sage/20 bg-[#fafaf8]/80 p-12 text-center font-body text-charcoal/60">
+        Loading analytics…
+      </div>
+    );
+  }
 
-  const memberGrowthSign = (d.members.memberGrowthPct ?? 0) > 0 ? "+" : "";
-  const memberGrowthLabel =
-    d.members.memberGrowthPct !== null
-      ? `${memberGrowthSign}${d.members.memberGrowthPct}% Growth Rate`
-      : "—";
-
-  const revPerMemberSign = (d.kpis.revenuePerMemberGrowthPct ?? 0) > 0 ? "+" : "";
-  const revPerMemberLabel =
-    d.kpis.revenuePerMemberGrowthPct !== null
-      ? `${revPerMemberSign}${d.kpis.revenuePerMemberGrowthPct}%`
-      : "—";
+  const growthLabel = growthPctLabel(d.financial.revenueGrowthPct, "% Growth");
+  const memberGrowthLabel = growthPctLabel(d.members.memberGrowthPct, "% Growth Rate");
+  const revPerMemberLabel = growthPctLabel(d.kpis.revenuePerMemberGrowthPct, "%");
 
   return (
     <div className="space-y-6">

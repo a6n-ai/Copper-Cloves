@@ -22,13 +22,18 @@ import { requestLogger } from "@/lib/logger";
 type BookingsLog = ReturnType<typeof requestLogger>;
 type TxClient = Parameters<Parameters<typeof prisma.$transaction>[0]>[0];
 
+const STATUS_CONFIRMED = "confirmed" as const;
+const STATUS_PENDING = "pending" as const;
+const STATUS_CANCELLED = "cancelled" as const;
+const BADGE_TYPE_PTM = "path_to_mastery" as const;
+
 async function handleGet(req: NextApiRequest, res: NextApiResponse, userId: string) {
   const { status, limit, days } = req.query;
   await reconcileNoShowsGlobally(prisma);
   const where: Record<string, unknown> = { user_id: userId };
   if (status) {
     where.status = String(status) === "active"
-      ? { in: ["confirmed", "pending"] }
+      ? { in: [STATUS_CONFIRMED, STATUS_PENDING] }
       : String(status);
   }
   if (days) {
@@ -119,14 +124,14 @@ function createBookingTx(args: CreateBookingArgs) {
     });
 
     if (!schedule) throw new Error("SCHEDULE_NOT_FOUND");
-    if (schedule.status === "cancelled") throw new Error("CLASS_CANCELLED");
+    if (schedule.status === STATUS_CANCELLED) throw new Error("CLASS_CANCELLED");
     if (schedule.status === "inactive") throw new Error("CLASS_INACTIVE");
 
     const duplicate = await tx.booking.findFirst({
       where: {
         user_id: args.userId,
         class_schedule_id: args.scheduleId,
-        status: { in: ["confirmed", "pending"] },
+        status: { in: [STATUS_CONFIRMED, STATUS_PENDING] },
       },
     });
     if (duplicate) throw new Error("ALREADY_BOOKED");
@@ -135,7 +140,7 @@ function createBookingTx(args: CreateBookingArgs) {
     const occupancyRows = await tx.booking.findMany({
       where: {
         class_schedule_id: args.scheduleId,
-        status: { in: ["confirmed", "pending"] },
+        status: { in: [STATUS_CONFIRMED, STATUS_PENDING] },
       },
       select: { extra_guest_count: true },
     });
@@ -162,10 +167,10 @@ function createBookingTx(args: CreateBookingArgs) {
         class_name: resolvedClassName,
         class_time: resolvedClassTime,
         email: args.userEmail,
-        status: "confirmed",
+        status: STATUS_CONFIRMED,
         // Partner-run classes need the partner to sign off before the
         // member's booking is confirmed (and the confirmation email sent).
-        confirmation_status: schedule.class_model?.partner_id ? "pending" : null,
+        confirmation_status: schedule.class_model?.partner_id ? STATUS_PENDING : null,
         // Guests get their own roster rows (see /api/bookings/process-guests),
         // so the booker counts as one seat here. The capacity check below
         // still reserves 1 + guests up front so the group is guaranteed.
@@ -357,7 +362,7 @@ async function handlePost(
 
     // Physique 57 bookings stay pending until the instructor confirms — the
     // confirmation email fires on confirm, not now. Non-57 bookings notify now.
-    if (booking.confirmation_status !== "pending") {
+    if (booking.confirmation_status !== STATUS_PENDING) {
       // Single source of truth for the confirmation email. The CRM
       // class_booking_confirmed email trigger was removed here — it duplicated
       // this send and rendered blank (template used {{className}}-style keys
@@ -397,7 +402,7 @@ async function reconcileScheduleSeatsAfterCancel(tx: TxClient, schedId: string) 
   const cap = schedule.capacity ?? schedule.class_model?.max_capacity ?? 0;
   if (cap <= 0) return;
   const remaining = await tx.booking.findMany({
-    where: { class_schedule_id: schedId, status: { in: ["confirmed", "pending"] } },
+    where: { class_schedule_id: schedId, status: { in: [STATUS_CONFIRMED, STATUS_PENDING] } },
     select: { extra_guest_count: true },
   });
   const occupiedSeats = remaining.reduce(
@@ -426,7 +431,7 @@ async function refundCreditIfEligible(
   const refundEligible =
     !!classStartForRefund && Date.now() <= classStartForRefund.getTime() - REFUND_CUTOFF_MS;
   if (
-    status !== "cancelled" ||
+    status !== STATUS_CANCELLED ||
     !wasActiveSeat ||
     !refundEligible ||
     !existing.user_package_id ||
@@ -448,40 +453,49 @@ async function refundCreditIfEligible(
 
 async function awardPtmBadges(userId: string, log: BookingsLog) {
   try {
-    const totalClasses = await prisma.booking.count({
-      where: { user_id: userId, checked_in: true },
+    const [totalClasses, ptmTemplates] = await Promise.all([
+      prisma.booking.count({ where: { user_id: userId, checked_in: true } }),
+      prisma.badgeTemplate.findMany({ where: { badge_type: BADGE_TYPE_PTM, is_active: true } }),
+    ]);
+
+    const eligible = ptmTemplates.filter(
+      (t) => t.threshold_classes !== null && totalClasses >= t.threshold_classes,
+    );
+    if (eligible.length === 0) return;
+
+    // Check which badges are already earned in a single batch query.
+    const earned = await prisma.userBadge.findMany({
+      where: {
+        user_id: userId,
+        OR: eligible.flatMap((t) => [
+          { badge_template_id: t.id },
+          { badge_name: t.name, badge_type: BADGE_TYPE_PTM },
+        ]),
+      },
+      select: { badge_template_id: true, badge_name: true },
     });
-    const ptmTemplates = await prisma.badgeTemplate.findMany({
-      where: { badge_type: "path_to_mastery", is_active: true },
+    const earnedTemplateIds = new Set(earned.map((e) => e.badge_template_id));
+    const earnedNames = new Set(earned.map((e) => e.badge_name));
+
+    const toCreate = eligible.filter(
+      (t) => !earnedTemplateIds.has(t.id) && !earnedNames.has(t.name),
+    );
+    if (toCreate.length === 0) return;
+
+    await prisma.userBadge.createMany({
+      data: toCreate.map((template) => ({
+        user_id: userId,
+        badge_template_id: template.id,
+        badge_name: template.name,
+        badge_description: template.description ?? null,
+        badge_type: BADGE_TYPE_PTM,
+        icon: template.icon,
+        color: template.color,
+        milestone_value: template.threshold_classes,
+        total_classes: totalClasses,
+      })),
+      skipDuplicates: true,
     });
-    for (const template of ptmTemplates) {
-      if (template.threshold_classes === null || totalClasses < template.threshold_classes) {
-        continue;
-      }
-      const alreadyEarned = await prisma.userBadge.findFirst({
-        where: {
-          user_id: userId,
-          OR: [
-            { badge_template_id: template.id },
-            { badge_name: template.name, badge_type: "path_to_mastery" },
-          ],
-        },
-      });
-      if (alreadyEarned) continue;
-      await prisma.userBadge.create({
-        data: {
-          user_id: userId,
-          badge_template_id: template.id,
-          badge_name: template.name,
-          badge_description: template.description ?? null,
-          badge_type: "path_to_mastery",
-          icon: template.icon,
-          color: template.color,
-          milestone_value: template.threshold_classes,
-          total_classes: totalClasses,
-        },
-      });
-    }
   } catch (e) {
     log.error({ err: e }, "check-in badge auto-award failed");
   }
@@ -510,11 +524,11 @@ async function handlePatch(
   if (!existing) return res.status(404).json({ error: "Booking not found" });
 
   const wasActiveSeat =
-    ["confirmed", "pending"].includes(existing.status) && Boolean(existing.class_schedule_id);
+    (existing.status === STATUS_CONFIRMED || existing.status === STATUS_PENDING) && Boolean(existing.class_schedule_id);
 
   const data: Record<string, unknown> = {};
   if (status) data.status = status;
-  if (status === "cancelled") data.cancellation_date = new Date();
+  if (status === STATUS_CANCELLED) data.cancellation_date = new Date();
 
   if (checked_in === true) {
     if (existing.checked_in) {
@@ -538,7 +552,7 @@ async function handlePatch(
   const booking = await prisma.$transaction(async (tx) => {
     const updated = await tx.booking.update({ where: { id }, data });
 
-    if (status === "cancelled" && wasActiveSeat && existing.class_schedule_id) {
+    if (status === STATUS_CANCELLED && wasActiveSeat && existing.class_schedule_id) {
       await reconcileScheduleSeatsAfterCancel(tx, existing.class_schedule_id);
     }
 
@@ -547,7 +561,7 @@ async function handlePatch(
     return updated;
   });
 
-  if (status === "cancelled") {
+  if (status === STATUS_CANCELLED) {
     // Awaited so the cancellation email/CRM actually sends on serverless.
     await buildBookingCrmVariables(booking.id)
       .then((variables) =>

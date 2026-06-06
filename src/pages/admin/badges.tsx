@@ -26,8 +26,6 @@ import { toast } from "sonner";
 import {
   Award,
   Plus,
-  Edit2,
-  Trash2,
   Save,
   X,
   Search,
@@ -35,9 +33,6 @@ import {
   Star,
   Layers,
   CheckCircle2,
-  ChevronUp,
-  ChevronDown,
-  ArrowUpDown,
 } from "lucide-react";
 
 const COLOR_PRESETS = [
@@ -526,8 +521,6 @@ export default function AdminBadgesPage() {
       </div>
     );
   }
-
-  const adminUser = session?.user as { name?: string; email?: string } | undefined;
 
   return (
     <div className="min-h-screen bg-linear-to-br from-cream via-cream to-sage/5">

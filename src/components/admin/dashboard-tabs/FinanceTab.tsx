@@ -350,6 +350,33 @@ export interface FinanceOverviewSectionProps {
   onExport: (period: FinanceReportPeriod, rows: DashboardTxn[]) => void;
 }
 
+interface MomPresentation {
+  hint: string;
+  pillClass: string;
+  pillIcon: ReactNode;
+  pillText: string;
+}
+
+// Plain-language month-over-month readout + pill styling from the trend's momPct.
+function deriveMomPresentation(hasTrend: boolean, momPct: number | null | undefined): MomPresentation {
+  if (momPct == null) {
+    return {
+      hint: hasTrend ? "first month tracked" : "—",
+      pillClass: "bg-charcoal/5 text-charcoal/60",
+      pillIcon: null,
+      pillText: "First month tracked",
+    };
+  }
+  const up = momPct >= 0;
+  const magnitude = Math.abs(momPct).toFixed(0);
+  return {
+    hint: `${up ? "▲" : "▼"} ${magnitude}% vs last month`,
+    pillClass: up ? "bg-sage/15 text-sage" : "bg-terracotta/15 text-terracotta",
+    pillIcon: up ? <ArrowUpRight className="h-3.5 w-3.5" /> : <ArrowDownRight className="h-3.5 w-3.5" />,
+    pillText: `${magnitude}% vs last month`,
+  };
+}
+
 function FinanceOverviewSectionImpl({
   financeStats,
   overviewLoaded,
@@ -373,27 +400,8 @@ function FinanceOverviewSectionImpl({
   );
 
   // Real month-over-month from the trend; replaces the old hardcoded growth hint.
-  let momHint: string;
-  if (trend?.momPct == null) {
-    momHint = trend ? "first month tracked" : "—";
-  } else {
-    const momArrow = trend.momPct >= 0 ? "▲" : "▼";
-    momHint = `${momArrow} ${Math.abs(trend.momPct).toFixed(0)}% vs last month`;
-  }
-
-  let momPillClass = "bg-charcoal/5 text-charcoal/60";
-  let momPillIcon: ReactNode = null;
-  let momPillText = "First month tracked";
-  if (trend?.momPct != null) {
-    if (trend.momPct >= 0) {
-      momPillClass = "bg-sage/15 text-sage";
-      momPillIcon = <ArrowUpRight className="h-3.5 w-3.5" />;
-    } else {
-      momPillClass = "bg-terracotta/15 text-terracotta";
-      momPillIcon = <ArrowDownRight className="h-3.5 w-3.5" />;
-    }
-    momPillText = `${Math.abs(trend.momPct).toFixed(0)}% vs last month`;
-  }
+  const { hint: momHint, pillClass: momPillClass, pillIcon: momPillIcon, pillText: momPillText } =
+    deriveMomPresentation(!!trend, trend?.momPct);
 
   return (
     <div className="space-y-6">
@@ -716,6 +724,187 @@ export interface FinanceTransactionsSectionProps {
   onExport: (period: FinanceReportPeriod, rows: DashboardTxn[]) => void;
 }
 
+interface TxnFilterCriteria {
+  filter: string;
+  dateRange: string;
+  type: string;
+  member: string;
+  method: string;
+  query: string;
+}
+
+function txnMatchesType(txn: DashboardTxn, type: string): boolean {
+  if (type === "all") return true;
+  const catLow = txn.category.toLowerCase();
+  if (type === "packages") return catLow.includes("(package)");
+  if (type === "coach") return txn.category === "Coach Payment";
+  if (type === "studio") return txn.category === "Studio Rent";
+  if (type === "class_bookings") {
+    return String(txn.id).startsWith("booking-") || String(txn.id).startsWith("demo-finance-booking");
+  }
+  if (type === "cafe") {
+    const foodLbl = txn.foodOrderedLabel?.toLowerCase() ?? "";
+    return foodLbl.includes("food ordered") || catLow.includes("café") || catLow.includes("cafe");
+  }
+  return true;
+}
+
+// Single predicate for the ledger filters. Pure — no component state captured.
+function txnMatchesFilters(txn: DashboardTxn, c: TxnFilterCriteria): boolean {
+  if (!txnPassesDateRange(txn.date, c.dateRange)) return false;
+  if (c.filter === "credit" && txn.type !== "revenue") return false;
+  if (c.filter === "debit" && txn.type !== "expense") return false;
+
+  if (c.member !== "all") {
+    const name = txn.memberFull ?? txn.member ?? txn.instructor ?? "";
+    if (name.trim() !== c.member) return false;
+  }
+  if (c.method !== "all" && txn.method !== c.method) return false;
+
+  if (!txnMatchesType(txn, c.type)) return false;
+
+  if (c.query) {
+    const hay = `${txn.member ?? ""} ${txn.memberFull ?? ""} ${txn.instructor ?? ""} ${txn.category} ${txn.method} ${txn.foodOrderedLabel ?? ""} ${txn.memberPlusLabel ?? ""} ${txn.id}`.toLowerCase();
+    if (!hay.includes(c.query)) return false;
+  }
+
+  return true;
+}
+
+function FinanceDetailRazorpay({ detail }: Readonly<{ detail: DashboardFinanceDetail }>) {
+  const hasPaymentIds = (detail.razorpayPaymentIds?.length ?? 0) > 0;
+  return (
+    <div>
+      <div className="font-medium text-charcoal mb-2">Razorpay</div>
+      <div className="space-y-1 text-charcoal/80">
+        <div>Order ID: <span className="font-mono text-xs text-charcoal">{detail.razorpayOrderId ?? "—"}</span></div>
+        <div>
+          Payment ID(s):{" "}
+          {hasPaymentIds
+            ? detail.razorpayPaymentIds?.map((pid) => (
+                <span key={pid} className="font-mono text-xs block">{pid}</span>
+              ))
+            : "—"}
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function FinanceDetailAmounts({ detail }: Readonly<{ detail: DashboardFinanceDetail }>) {
+  const b = detail.breakdown;
+  const showCoupon = b?.couponDiscountInr != null && b.couponDiscountInr > 0;
+  return (
+    <div>
+      <div className="font-medium text-charcoal mb-2">Amounts (INR)</div>
+      <div className="rounded-xl border border-charcoal/10 divide-y divide-charcoal/10">
+        {b?.packageListInr != null ? (
+          <div className="flex justify-between px-3 py-2">
+            <span className="text-charcoal/70">Package list</span>
+            <span>{formatInrDetail(b.packageListInr)}</span>
+          </div>
+        ) : null}
+        {showCoupon ? (
+          <div className="flex justify-between px-3 py-2">
+            <span className="text-charcoal/70">Coupon / discount</span>
+            <span>−{formatInrDetail(b?.couponDiscountInr)}</span>
+          </div>
+        ) : null}
+        <div className="flex justify-between px-3 py-2">
+          <span className="text-charcoal/70">
+            {detail.source === "package" ? "Studio pass / package" : "Class / pass (checkout)"}
+          </span>
+          <span>{formatInrDetail(b?.classOrStudioPassInr)}</span>
+        </div>
+        <div className="flex justify-between px-3 py-2">
+          <span className="text-charcoal/70">Café (food &amp; add-ons, net)</span>
+          <span>{formatInrDetail(b?.cafeNetInr)}</span>
+        </div>
+        <div className="flex justify-between px-3 py-2">
+          <span className="text-charcoal/70">Tax</span>
+          <span>{formatInrDetail(b?.taxInr)}</span>
+        </div>
+        <div className="flex justify-between px-3 py-2 font-semibold">
+          <span>Total charged</span>
+          <span>{formatInrDetail(b?.totalInr)}</span>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function FinanceDetailAttendees({ detail }: Readonly<{ detail: DashboardFinanceDetail }>) {
+  return (
+    <div>
+      <div className="font-medium text-charcoal mb-2">Members &amp; guests (same checkout)</div>
+      <div className="space-y-3">
+        {(detail.attendeeLines ?? []).map((row, idx) => (
+          <div key={`${row.role}-${row.name}-${idx}`} className="rounded-lg border border-charcoal/10 p-3 text-charcoal/80 space-y-1">
+            <div className="text-xs uppercase tracking-wide text-charcoal/50">{row.role}</div>
+            <div className="font-medium text-charcoal">{row.name}</div>
+            {row.email ? <div>Email: {row.email}</div> : null}
+            {row.phone ? <div>Phone: {row.phone}</div> : null}
+            {row.notes ? <div className="text-xs italic text-charcoal/60">{row.notes}</div> : null}
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+}
+
+// Full transaction detail dialog body. Pure presentation of the selected detail.
+function FinanceDetailBody({ detail }: Readonly<{ detail: DashboardFinanceDetail }>) {
+  const hasCafeLines = (detail.cafeLines?.length ?? 0) > 0;
+  return (
+    <div className="space-y-4 font-body text-sm text-charcoal">
+      <div>
+        <div className="text-xs uppercase tracking-wide text-charcoal/50 mb-1">Transaction type</div>
+        <ul className="list-disc pl-5 space-y-1">
+          {(detail.transactionKinds ?? ["—"]).map((k) => (<li key={k}>{k}</li>))}
+        </ul>
+      </div>
+
+      <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
+        <div>
+          <div className="text-xs uppercase tracking-wide text-charcoal/50 mb-0.5">When</div>
+          <div>{formatFinanceDetailWhen(detail)}</div>
+        </div>
+        <div>
+          <div className="text-xs uppercase tracking-wide text-charcoal/50 mb-0.5">Payment</div>
+          <div>{detail.paymentMethodSummary ?? "—"}</div>
+        </div>
+      </div>
+
+      <div className="rounded-xl border border-charcoal/10 bg-sage/5 p-3 space-y-2">
+        <div className="font-medium text-charcoal">Billing member</div>
+        <div>Name: {detail.memberName ?? "—"}</div>
+        <div>Email: {detail.memberEmail ?? "—"}</div>
+        <div>Phone: {detail.memberPhone ?? "—"}</div>
+        {detail.classSummary ? (
+          <div className="pt-1 text-charcoal/80">{detail.classSummary}</div>
+        ) : null}
+        {detail.groupHeadcount != null ? (
+          <div className="text-charcoal/70">Seats (member + guests): {detail.groupHeadcount}</div>
+        ) : null}
+      </div>
+
+      <FinanceDetailRazorpay detail={detail} />
+      <FinanceDetailAmounts detail={detail} />
+
+      {hasCafeLines ? (
+        <div>
+          <div className="font-medium text-charcoal mb-2">Café items</div>
+          <ul className="list-disc pl-5 space-y-1 text-charcoal/80">
+            {detail.cafeLines?.map((ln) => (<li key={`${ln.name}-${ln.quantity}`}>{ln.name} × {ln.quantity}</li>))}
+          </ul>
+        </div>
+      ) : null}
+
+      <FinanceDetailAttendees detail={detail} />
+    </div>
+  );
+}
+
 function FinanceTransactionsSectionImpl({
   financeLedgerTransactions,
   onExport,
@@ -762,44 +951,15 @@ function FinanceTransactionsSectionImpl({
   }, []);
 
   const filteredFinanceTransactions = useMemo(() => {
-    const q = transactionSearch.trim().toLowerCase();
-    return financeLedgerTransactions.filter((txn) => {
-      if (!txnPassesDateRange(txn.date, transactionDateRange)) return false;
-      if (transactionFilter === "credit" && txn.type !== "revenue") return false;
-      if (transactionFilter === "debit" && txn.type !== "expense") return false;
-
-      if (transactionMember !== "all") {
-        const name = txn.memberFull ?? txn.member ?? txn.instructor ?? "";
-        if (name.trim() !== transactionMember) return false;
-      }
-      if (transactionMethod !== "all" && txn.method !== transactionMethod) return false;
-
-      const catLow = txn.category.toLowerCase();
-      if (transactionType === "packages" && !catLow.includes("(package)")) return false;
-      if (transactionType === "coach" && txn.category !== "Coach Payment") return false;
-      if (transactionType === "studio" && txn.category !== "Studio Rent") return false;
-      if (
-        transactionType === "class_bookings" &&
-        !String(txn.id).startsWith("booking-") &&
-        !String(txn.id).startsWith("demo-finance-booking")
-      ) {
-        return false;
-      }
-
-      if (transactionType === "cafe") {
-        const foodLbl = txn.foodOrderedLabel?.toLowerCase() ?? "";
-        const hasCafe =
-          foodLbl.includes("food ordered") || catLow.includes("café") || catLow.includes("cafe");
-        if (!hasCafe) return false;
-      }
-
-      if (q) {
-        const hay = `${txn.member ?? ""} ${txn.memberFull ?? ""} ${txn.instructor ?? ""} ${txn.category} ${txn.method} ${txn.foodOrderedLabel ?? ""} ${txn.memberPlusLabel ?? ""} ${txn.id}`.toLowerCase();
-        if (!hay.includes(q)) return false;
-      }
-
-      return true;
-    });
+    const criteria: TxnFilterCriteria = {
+      filter: transactionFilter,
+      dateRange: transactionDateRange,
+      type: transactionType,
+      member: transactionMember,
+      method: transactionMethod,
+      query: transactionSearch.trim().toLowerCase(),
+    };
+    return financeLedgerTransactions.filter((txn) => txnMatchesFilters(txn, criteria));
   }, [
     financeLedgerTransactions,
     transactionFilter,
@@ -992,117 +1152,7 @@ function FinanceTransactionsSectionImpl({
             </ResponsiveDialogDescription>
           </ResponsiveDialogHeader>
 
-          {selectedFinanceDetail ? (
-            <div className="space-y-4 font-body text-sm text-charcoal">
-              <div>
-                <div className="text-xs uppercase tracking-wide text-charcoal/50 mb-1">Transaction type</div>
-                <ul className="list-disc pl-5 space-y-1">
-                  {(selectedFinanceDetail.transactionKinds ?? ["—"]).map((k) => (<li key={k}>{k}</li>))}
-                </ul>
-              </div>
-
-              <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
-                <div>
-                  <div className="text-xs uppercase tracking-wide text-charcoal/50 mb-0.5">When</div>
-                  <div>
-                    {formatFinanceDetailWhen(selectedFinanceDetail)}
-                  </div>
-                </div>
-                <div>
-                  <div className="text-xs uppercase tracking-wide text-charcoal/50 mb-0.5">Payment</div>
-                  <div>{selectedFinanceDetail.paymentMethodSummary ?? "—"}</div>
-                </div>
-              </div>
-
-              <div className="rounded-xl border border-charcoal/10 bg-sage/5 p-3 space-y-2">
-                <div className="font-medium text-charcoal">Billing member</div>
-                <div>Name: {selectedFinanceDetail.memberName ?? "—"}</div>
-                <div>Email: {selectedFinanceDetail.memberEmail ?? "—"}</div>
-                <div>Phone: {selectedFinanceDetail.memberPhone ?? "—"}</div>
-                {selectedFinanceDetail.classSummary ? (
-                  <div className="pt-1 text-charcoal/80">{selectedFinanceDetail.classSummary}</div>
-                ) : null}
-                {selectedFinanceDetail.groupHeadcount != null ? (
-                  <div className="text-charcoal/70">Seats (member + guests): {selectedFinanceDetail.groupHeadcount}</div>
-                ) : null}
-              </div>
-
-              <div>
-                <div className="font-medium text-charcoal mb-2">Razorpay</div>
-                <div className="space-y-1 text-charcoal/80">
-                  <div>Order ID: <span className="font-mono text-xs text-charcoal">{selectedFinanceDetail.razorpayOrderId ?? "—"}</span></div>
-                  <div>
-                    Payment ID(s):{" "}
-                    {(selectedFinanceDetail.razorpayPaymentIds?.length ?? 0) > 0
-                      ? selectedFinanceDetail.razorpayPaymentIds?.map((pid) => (
-                          <span key={pid} className="font-mono text-xs block">{pid}</span>
-                        ))
-                      : "—"}
-                  </div>
-                </div>
-              </div>
-
-              <div>
-                <div className="font-medium text-charcoal mb-2">Amounts (INR)</div>
-                <div className="rounded-xl border border-charcoal/10 divide-y divide-charcoal/10">
-                  {selectedFinanceDetail.breakdown?.packageListInr != null ? (
-                    <div className="flex justify-between px-3 py-2">
-                      <span className="text-charcoal/70">Package list</span>
-                      <span>{formatInrDetail(selectedFinanceDetail.breakdown.packageListInr)}</span>
-                    </div>
-                  ) : null}
-                  {selectedFinanceDetail.breakdown?.couponDiscountInr != null && selectedFinanceDetail.breakdown.couponDiscountInr > 0 ? (
-                    <div className="flex justify-between px-3 py-2">
-                      <span className="text-charcoal/70">Coupon / discount</span>
-                      <span>−{formatInrDetail(selectedFinanceDetail.breakdown.couponDiscountInr)}</span>
-                    </div>
-                  ) : null}
-                  <div className="flex justify-between px-3 py-2">
-                    <span className="text-charcoal/70">
-                      {selectedFinanceDetail.source === "package" ? "Studio pass / package" : "Class / pass (checkout)"}
-                    </span>
-                    <span>{formatInrDetail(selectedFinanceDetail.breakdown?.classOrStudioPassInr)}</span>
-                  </div>
-                  <div className="flex justify-between px-3 py-2">
-                    <span className="text-charcoal/70">Café (food &amp; add-ons, net)</span>
-                    <span>{formatInrDetail(selectedFinanceDetail.breakdown?.cafeNetInr)}</span>
-                  </div>
-                  <div className="flex justify-between px-3 py-2">
-                    <span className="text-charcoal/70">Tax</span>
-                    <span>{formatInrDetail(selectedFinanceDetail.breakdown?.taxInr)}</span>
-                  </div>
-                  <div className="flex justify-between px-3 py-2 font-semibold">
-                    <span>Total charged</span>
-                    <span>{formatInrDetail(selectedFinanceDetail.breakdown?.totalInr)}</span>
-                  </div>
-                </div>
-              </div>
-
-              {(selectedFinanceDetail.cafeLines?.length ?? 0) > 0 ? (
-                <div>
-                  <div className="font-medium text-charcoal mb-2">Café items</div>
-                  <ul className="list-disc pl-5 space-y-1 text-charcoal/80">
-                    {selectedFinanceDetail.cafeLines?.map((ln) => (<li key={`${ln.name}-${ln.quantity}`}>{ln.name} × {ln.quantity}</li>))}
-                  </ul>
-                </div>
-              ) : null}
-
-              <div>
-                <div className="font-medium text-charcoal mb-2">Members &amp; guests (same checkout)</div>
-                <div className="space-y-3">
-                  {(selectedFinanceDetail.attendeeLines ?? []).map((row, idx) => (
-                    <div key={`${row.role}-${row.name}-${idx}`} className="rounded-lg border border-charcoal/10 p-3 text-charcoal/80 space-y-1">
-                      <div className="text-xs uppercase tracking-wide text-charcoal/50">{row.role}</div>
-                      <div className="font-medium text-charcoal">{row.name}</div>
-                      {row.email ? <div>Email: {row.email}</div> : null}
-                      {row.phone ? <div>Phone: {row.phone}</div> : null}
-                      {row.notes ? <div className="text-xs italic text-charcoal/60">{row.notes}</div> : null}
-                    </div>
-                  ))}
-                </div>
-              </div>
-            </div>
-          ) : null}
+          {selectedFinanceDetail ? <FinanceDetailBody detail={selectedFinanceDetail} /> : null}
         </ResponsiveDialogContent>
       </ResponsiveDialog>
     </>

@@ -22,7 +22,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   }
 
   const dobDate = new Date(dob);
-  if (isNaN(dobDate.getTime())) {
+  if (Number.isNaN(dobDate.getTime())) {
     return res.status(400).json({ error: "Invalid date of birth" });
   }
 

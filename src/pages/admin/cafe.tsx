@@ -285,13 +285,6 @@ export default function AdminCafe() {
     }
   };
 
-  const isOrderUrgent = (orderDate: string) => {
-    const now = new Date();
-    const ordered = new Date(orderDate);
-    const minutesSinceOrder = Math.floor((now.getTime() - ordered.getTime()) / (1000 * 60));
-    return minutesSinceOrder > 15;
-  };
-
   const getOrderAlertLevel = (order: any) => {
     const now = new Date();
     const orderDate = new Date(order.order_date);
@@ -309,7 +302,6 @@ export default function AdminCafe() {
       const classDuration = 60;
       const classEndTime = new Date(classStartTime.getTime() + classDuration * 60 * 1000);
       const targetReadyTime = new Date(classEndTime.getTime() - 10 * 60 * 1000); // 10 min before class ends
-      const minutesUntilTargetReady = Math.floor((targetReadyTime.getTime() - now.getTime()) / (1000 * 60));
       
       // Format target ready time
       const readyTimeStr = targetReadyTime.toLocaleTimeString("en-US", {
@@ -664,7 +656,7 @@ export default function AdminCafe() {
       }
       fetchMenuItems();
       void swrMutate("/api/cafe/items?available=true");
-    } catch (e) {}
+    } catch {}
     setIsSaving(false);
   };
 
@@ -900,7 +892,7 @@ export default function AdminCafe() {
                                 <Edit size={16} className="mr-2" />
                                 Edit
                               </Button>
-                              <DeleteButton onClick={() => handleDelete(item.id!)} />
+                              {item.id && <DeleteButton onClick={() => handleDelete(item.id as string)} />}
                             </div>
                           </MenuItemCard>
                         ))}

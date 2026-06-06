@@ -1,3 +1,4 @@
+import fs from "node:fs";
 import type { NextApiRequest, NextApiResponse } from "next";
 import { getStudioServerSession } from "@/lib/getStudioServerSession";
 import { ensureAdmin } from "@/lib/requireAdmin";
@@ -78,7 +79,6 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
 function tryReadable(p: string): boolean {
   try {
-    const fs = require("node:fs");
     return fs.existsSync(p);
   } catch {
     return false;

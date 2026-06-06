@@ -58,6 +58,9 @@ type OrderPlan = {
   orderNotes: Record<string, string>;
   dbNotes: Record<string, unknown>;
 };
+
+const PURPOSE_BOOKING = "booking" as const;
+const PURPOSE_PACKAGE = "package" as const;
 type PlanResult = { ok: boolean; plan?: OrderPlan; status?: number; error?: string };
 
 async function planPackageOrder(userId: string, raw: Record<string, unknown>): Promise<PlanResult> {
@@ -109,7 +112,7 @@ async function planPackageOrder(userId: string, raw: Record<string, unknown>): P
   const amount_inr = Math.min(Math.max(Math.round(payableInr), 1), 100_000);
   const orderNotes: Record<string, string> = {
     user_id: userId,
-    purpose: "package",
+    purpose: PURPOSE_PACKAGE,
     package_type_id: packageTypeId,
     pass_type: pass,
   };
@@ -133,8 +136,8 @@ function planBookingOrder(userId: string, raw: Record<string, unknown>): PlanRes
     ok: true,
     plan: {
       amount_inr: amount_paise / 100,
-      orderNotes: { user_id: userId, purpose: "booking" },
-      dbNotes: { user_id: userId, purpose: "booking", pending_checkout: pendingBody },
+      orderNotes: { user_id: userId, purpose: PURPOSE_BOOKING },
+      dbNotes: { user_id: userId, purpose: PURPOSE_BOOKING, pending_checkout: pendingBody },
     },
   };
 }
@@ -159,8 +162,8 @@ function planGenericOrder(userId: string, raw: Record<string, unknown>): PlanRes
 }
 
 async function planOrder(userId: string, raw: Record<string, unknown>): Promise<PlanResult> {
-  if (raw.purpose === "package") return planPackageOrder(userId, raw);
-  if (raw.purpose === "booking" || raw.pending_checkout != null) return planBookingOrder(userId, raw);
+  if (raw.purpose === PURPOSE_PACKAGE) return planPackageOrder(userId, raw);
+  if (raw.purpose === PURPOSE_BOOKING || raw.pending_checkout != null) return planBookingOrder(userId, raw);
   return planGenericOrder(userId, raw);
 }
 

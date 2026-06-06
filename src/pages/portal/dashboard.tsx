@@ -272,7 +272,6 @@ export default function Dashboard() {
       setCurrentUserId(sessionUserId);
       fetchUserData(sessionUserId).then(() => setLoading(false));
     }
-  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [status, sessionUserId]);
 
   async function fetchUserData(_userId: string) {

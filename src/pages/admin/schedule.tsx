@@ -38,9 +38,6 @@ import {
 import {
   Calendar as CalendarIcon,
   Plus,
-  Edit2,
-  Trash2,
-  Copy,
   Users,
   Clock,
   Repeat,
@@ -49,7 +46,6 @@ import {
   ChevronLeft,
   ChevronRight,
   UserCheck,
-  Settings2,
   Power,
   PowerOff,
   ChevronsUpDown,
@@ -351,7 +347,7 @@ export default function AdminSchedule() {
       checkInOutcome: string | null; extraGuests: number; }[];
   } | null>(null);
   const [savingInstructorOutcome, setSavingInstructorOutcome] = useState(false);
-  const [rosterLoading, setRosterLoading] = useState(false);
+  const [rosterLoading] = useState(false);
   const [checkingInMap, setCheckingInMap] = useState<Record<string, boolean>>({});
 
   // Add-member search state
@@ -439,7 +435,6 @@ export default function AdminSchedule() {
     })();
     const todayCount = schedule.filter((c) => c.dateIso === todayIso).length;
     return { total, avgOccupancy, busiestLabel, busiestCount, todayCount };
-  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [schedule, dbClasses]);
 
   const { data: session, status } = useSession();
@@ -819,29 +814,6 @@ export default function AdminSchedule() {
   const handleToggleStatus = (sc: ScheduledClass) => {
     setStatusToggleTarget(sc);
   };
-
-  const handleDuplicateClass = (scheduledClass: ScheduledClass) => {
-    const newClass: ScheduledClass = {
-      ...scheduledClass,
-      id: `temp-${Date.now()}`,
-      booked: 0
-    };
-    setSchedule([...schedule, newClass]);
-    setSuccessMessage("Class duplicated successfully!");
-    setTimeout(() => setSuccessMessage(""), 3000);
-  };
-
-  async function loadRoster(scheduleId: string) {
-    setRosterScheduleId(scheduleId);
-    setRosterLoading(true);
-    setRosterData(null);
-    try {
-      const res = await fetch(`/api/admin/class-roster?scheduleId=${scheduleId}`);
-      if (res.ok) setRosterData(await res.json());
-    } finally {
-      setRosterLoading(false);
-    }
-  }
 
   async function handleAdminCheckIn(bookingId: string) {
     setCheckingInMap(prev => ({ ...prev, [bookingId]: true }));

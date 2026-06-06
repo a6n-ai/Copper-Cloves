@@ -77,22 +77,23 @@ async function createOrderRows(
     batchId: string;
   },
 ): Promise<void> {
-  for (let i = 0; i < lines.length; i++) {
-    const line = lines[i];
-    await tx.cafeOrder.create({
-      data: {
-        user_id: ctx.userId,
-        cafe_item_id: line.cafe_item_id,
-        booking_id: ctx.resolvedBookingId,
-        quantity: line.quantity,
-        payment_method: ctx.paymentMethod,
-        status: "pending",
-        coupon_id: ctx.couponId,
-        discount_inr: discounts[i] ?? 0,
-        batch_id: ctx.batchId,
-      },
-    });
-  }
+  await Promise.all(
+    lines.map((line, i) =>
+      tx.cafeOrder.create({
+        data: {
+          user_id: ctx.userId,
+          cafe_item_id: line.cafe_item_id,
+          booking_id: ctx.resolvedBookingId,
+          quantity: line.quantity,
+          payment_method: ctx.paymentMethod,
+          status: "pending",
+          coupon_id: ctx.couponId,
+          discount_inr: discounts[i] ?? 0,
+          batch_id: ctx.batchId,
+        },
+      }),
+    ),
+  );
 }
 
 function checkoutErrorResponse(e: unknown): { status: number; error: string } | null {

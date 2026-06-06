@@ -300,7 +300,7 @@ export default function ControlPanel() {
   // Selected items
   const [selectedUser, setSelectedUser] = useState<any>(null);
   const [selectedClass, setSelectedClass] = useState<any>(null);
-  const [selectedInstructorData, setSelectedInstructorData] = useState<any>(null);
+  const [selectedInstructorData, _setSelectedInstructorData] = useState<any>(null);
 
   // Classes state
   const [classes, setClasses] = useState<any[]>([]);
@@ -315,7 +315,8 @@ export default function ControlPanel() {
   // Instructors roster — shared SWR key (one cached copy across admin pages).
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const { data: instructorsData, isLoading: instructorsLoading, mutate: mutateInstructors } = useInstructors<any[]>();
-  const instructors = instructorsData ?? [];
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const instructors = useMemo<any[]>(() => instructorsData ?? [], [instructorsData]);
   const loadingInstructors = instructorsLoading && !instructorsData;
 
   // Pause request tickets state
@@ -811,8 +812,6 @@ export default function ControlPanel() {
     const confirmed = confirm(`Are you sure you want to delete "${className}"? This action cannot be undone.`);
     
     if (!confirmed) return;
-    
-    console.log("Attempting to delete class:", classId, className);
     
     try {
       const res = await fetch(`/api/admin/classes?id=${classId}`, { method: "DELETE" });

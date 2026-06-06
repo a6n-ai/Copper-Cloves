@@ -192,7 +192,7 @@ export async function onboardGuestsForBooking(opts: {
   const results: OnboardResult[] = [];
 
   for (const guest of guests) {
-    const email = guest.email!.trim().toLowerCase();
+    const email = (guest.email as string).trim().toLowerCase();
     if (!email) continue;
 
     try {

@@ -16,11 +16,6 @@ export type CarouselClassStatus =
   | "completed"
   | "abandoned";
 
-const STATUS_OPTIONS: { value: CarouselClassStatus; label: string }[] = [
-  { value: "available", label: "Available" },
-  { value: "inactive", label: "Inactive" },
-  { value: "cancelled", label: "Cancelled" },
-];
 
 export interface CarouselClassRow {
   id: string;
@@ -49,6 +44,8 @@ interface TodayClassesCarouselProps {
   /** Only highlight "Up next" when the displayed day is today. */
   isToday?: boolean;
 }
+
+const TERMINAL_STATUSES = new Set(["completed", "abandoned", "live", "started"]);
 
 const STATUS_TONE: Record<string, string> = {
   available: "bg-sage/10 text-sage border-sage/20",
@@ -103,7 +100,6 @@ export function TodayClassesCarousel({
     const id = setInterval(() => setTick((t) => t + 1), 60_000);
     return () => clearInterval(id);
   }, []);
-  void tick;
 
   function scroll(dir: "left" | "right") {
     if (!scrollRef.current) return;
@@ -254,7 +250,7 @@ export function TodayClassesCarousel({
                     </Badge>
                   ) : <span />}
                   <div className="flex items-center gap-1.5">
-                  {onStatusChange && cls.status !== "completed" && cls.status !== "abandoned" && cls.status !== "live" && cls.status !== "started" && (() => {
+                  {onStatusChange && !TERMINAL_STATUSES.has(cls.status ?? "") && (() => {
                     const isActive = (cls.status ?? "available") === "available";
                     const next: CarouselClassStatus = isActive ? "inactive" : "available";
                     return (

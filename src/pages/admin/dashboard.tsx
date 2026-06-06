@@ -169,11 +169,11 @@ export default function AdminDashboard() {
   const [showPayoutDialog, setShowPayoutDialog] = useState(false);
   const [showAddInstructorDialog, setShowAddInstructorDialog] = useState(false);
   const [showEditInstructorDialog, setShowEditInstructorDialog] = useState(false);
-  const [selectedUser, setSelectedUser] = useState<any>(null);
+  const [selectedUser, _setSelectedUser] = useState<any>(null);
   const [selectedClass, setSelectedClass] = useState<any>(null);
   const [rosterCheckingIn, setRosterCheckingIn] = useState<Record<string, boolean>>({});
   const [instructorCheckingIn, setInstructorCheckingIn] = useState(false);
-  const [selectedInstructorData, setSelectedInstructorData] = useState<any>(null);
+  const [selectedInstructorData, _setSelectedInstructorData] = useState<any>(null);
   const instructorForm = useForm<z.infer<typeof instructorSchema>>({
     resolver: zodResolver(instructorSchema),
     defaultValues: { name: "", email: "", phone: "", studio_payout_cut_percent: "", specialties: "", philosophy: "" },
@@ -320,7 +320,6 @@ export default function AdminDashboard() {
     { id: string; name: string; email: string; package: string; expires: string; credits: number }[]
   >([]);
   const [dashboardInstructors, setDashboardInstructors] = useState<any[]>([]);
-  const [instructorPayouts, setInstructorPayouts] = useState<any[]>([]);
 
   // Auth enforced server-side (see `getServerSideProps` above). Client-side
   // `useSession()` is kept so existing effects that key on `status`/`session`
@@ -349,7 +348,6 @@ export default function AdminDashboard() {
     return () => {
       cancelled = true;
     };
-  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [status, userRole]);
 
   /**
@@ -418,16 +416,7 @@ export default function AdminDashboard() {
       if (d.memberStats) setMemberStats(d.memberStats);
       return true;
     });
-    void loadSection("instructor-payouts", async () => {
-      const r = await fetch("/api/admin/instructor-payouts?window=month");
-      if (!r.ok || cancelled) return;
-      const pay = await r.json();
-      if (cancelled) return;
-      setInstructorPayouts(Array.isArray(pay.instructors) ? pay.instructors : []);
-    });
-
     return () => { cancelled = true; };
-  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [status, userRole, activeTab, scheduleDate]);
 
   /** Fetch check-in QR when the class-details dialog opens for a class. */
@@ -456,7 +445,6 @@ export default function AdminDashboard() {
   useEffect(() => {
     if (status !== "authenticated") return;
     if (userRole !== "admin" || activeTab !== "members") return;
-    let cancelled = false;
 
     void loadSection("member-stats", async () => {
       const r = await fetch("/api/admin/dashboard/member-stats");
@@ -479,9 +467,6 @@ export default function AdminDashboard() {
       if (Array.isArray(d.expiringMembers)) setExpiringMembers(d.expiringMembers);
       return true;
     });
-
-    return () => { cancelled = true; };
-  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [status, userRole, activeTab]);
 
   /** Instructors tab. */
@@ -502,17 +487,7 @@ export default function AdminDashboard() {
       const d = await r.json();
       if (!cancelled && Array.isArray(d.instructors)) setDashboardInstructors(d.instructors);
     });
-    void loadSection("instructor-payouts", async () => {
-      const r = await fetch("/api/admin/instructor-payouts?window=month");
-      if (!r.ok || cancelled) return;
-      const pay = await r.json();
-      if (cancelled) return;
-      const coachPayments = Number(pay.summary?.totalPayouts ?? 0);
-      setInstructorPayouts(Array.isArray(pay.instructors) ? pay.instructors : []);
-    });
-
     return () => { cancelled = true; };
-  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [status, userRole, activeTab]);
 
   /** Classes tab. */
@@ -542,7 +517,6 @@ export default function AdminDashboard() {
     });
 
     return () => { cancelled = true; };
-  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [status, userRole, activeTab]);
 
   // Finance tab data now lives in `FinanceTabConnected` via `useAdminFinanceData`
@@ -921,8 +895,8 @@ export default function AdminDashboard() {
               a: { class_schedule?: { start_time?: string } },
               b: { class_schedule?: { start_time?: string } }
             ) =>
-              new Date(a.class_schedule!.start_time!).getTime() -
-              new Date(b.class_schedule!.start_time!).getTime()
+              new Date(a.class_schedule?.start_time ?? 0).getTime() -
+              new Date(b.class_schedule?.start_time ?? 0).getTime()
           )
           .slice(0, 8)
           .map((b: Record<string, unknown>) => {

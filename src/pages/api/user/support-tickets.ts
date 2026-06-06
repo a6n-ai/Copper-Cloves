@@ -3,6 +3,7 @@ import prisma from "@/lib/prisma";
 import { getStudioServerSession } from "@/lib/getStudioServerSession";
 
 const MIN_LEAD_MS = 72 * 60 * 60 * 1000;
+const TICKET_TYPE_PAUSE = "pause_subscription";
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
   const session = await getStudioServerSession(req, res);
@@ -20,7 +21,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   }
 
   if (req.method === "POST") {
-    const { type = "pause_subscription", reason, attachment_url, pause_from, pause_to, user_package_id } = req.body as {
+    const { type = TICKET_TYPE_PAUSE, reason, attachment_url, pause_from, pause_to, user_package_id } = req.body as {
       type?: string;
       reason?: string;
       attachment_url?: string;
@@ -37,7 +38,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     let pauseToDate: Date | null = null;
     let pausePackageId: string | null = null;
 
-    if (type === "pause_subscription") {
+    if (type === TICKET_TYPE_PAUSE) {
       if (!pause_from || !pause_to) {
         return res.status(400).json({ error: "Pause start and end dates are required" });
       }
@@ -71,7 +72,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       const existing = await prisma.memberTicket.findFirst({
         where: {
           user_id: userId,
-          type: "pause_subscription",
+          type: TICKET_TYPE_PAUSE,
           user_package_id: pausePackageId,
           status: { in: ["open", "in_review"] },
         },

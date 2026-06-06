@@ -2,7 +2,7 @@ import type { NextApiRequest, NextApiResponse } from "next";
 import prisma from "@/lib/prisma";
 
 function num(v: unknown) {
-  if (v == null) return 0;
+  if (v === null || v === undefined) return 0;
   const n = Number(v as number | string);
   return Number.isFinite(n) ? n : 0;
 }

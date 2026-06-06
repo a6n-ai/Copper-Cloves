@@ -13,7 +13,7 @@ const DELIVERY_FEE_INR = 50;
 type ItemIn = { productId?: string; quantity?: number };
 
 function num(v: unknown) {
-  if (v == null) return 0;
+  if (v === null || v === undefined) return 0;
   const n = Number(v as number | string);
   return Number.isFinite(n) ? n : 0;
 }
@@ -100,15 +100,17 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         },
       });
 
-      for (const row of safeItems) {
-        await tx.retailProduct.update({
-          where: { id: row.productId },
-          data: {
-            sales_count: { increment: row.quantity },
-            stock: { decrement: row.quantity },
-          },
-        });
-      }
+      await Promise.all(
+        safeItems.map((row) =>
+          tx.retailProduct.update({
+            where: { id: row.productId },
+            data: {
+              sales_count: { increment: row.quantity },
+              stock: { decrement: row.quantity },
+            },
+          }),
+        ),
+      );
 
       if (coupon && discountInr > 0) {
         await incrementCouponAndRecordRedemption(tx, coupon, discountInr, "ecommerce", {

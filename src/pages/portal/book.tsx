@@ -6,6 +6,7 @@ import { requireSessionSSP } from "@/lib/requireSessionSSP";
 export const getServerSideProps = requireSessionSSP();
 import { useToast } from "@/hooks/use-toast";
 import { useRouter } from "next/router";
+import Link from "next/link";
 import { Card, CardContent } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
 import {
@@ -76,12 +77,6 @@ import { cdnUrl } from "@/lib/cdnUrl";
 // Tax rate (adjust as needed)
 const TAX_RATE = 0.05; // 5% tax
 
-interface FriendFamily {
-  name: string;
-  email: string;
-  phone: string;
-}
-
 interface FoodItem {
   id: string;
   name: string;
@@ -97,6 +92,194 @@ function formatCafeCategory(category: string): string {
     .trim()
     .replace(/_/g, " ")
     .replace(/\b\w/g, (c) => c.toUpperCase());
+}
+
+/** Pull an `error` string out of a non-OK fetch Response, falling back to a default. */
+async function parseApiError(res: Response, fallback: string): Promise<string> {
+  try {
+    const body = await res.json();
+    if (typeof body?.error === "string" && body.error) return body.error;
+  } catch {
+    /* ignore */
+  }
+  return fallback;
+}
+
+type PackageKind = "studio_pass" | "class_pass" | null;
+
+/** Number of day-pass equivalents owed (primary + guests, minus whatever the pass covers). */
+function computeDayPassEquivalentCount(
+  packageType: PackageKind,
+  guestCount: number,
+  useCredits: boolean,
+): number {
+  const totalPeople = 1 + guestCount;
+  if (packageType === "studio_pass") return guestCount;
+  if (packageType === "class_pass") return useCredits ? guestCount : totalPeople;
+  return totalPeople;
+}
+
+type CafeOrderLine = { id: string; quantity: number };
+
+type OnlineBookingResult = {
+  status: "success" | "cancelled" | "failed" | "aborted";
+  failureDetail?: string;
+};
+
+/** Throws a member-facing error if a class-pass credit booking can't proceed. */
+function assertClassPassUsable(
+  usingClassPassCredit: boolean,
+  pkg: { credits_remaining?: number | null } | null,
+): void {
+  if (!usingClassPassCredit) return;
+  if (!pkg) throw new Error("No active package found. Please purchase a package first.");
+  if ((pkg.credits_remaining ?? 0) < 1) throw new Error("You don't have any classes remaining.");
+}
+
+/** Fetch the member's active packages and return the first non-expired one (or null). */
+async function fetchActivePackage(): Promise<{ id?: string; credits_remaining?: number | null } | null> {
+  const res = await fetch("/api/user-packages?active=true", { credentials: "include" });
+  const packages = res.ok ? await res.json() : [];
+  const now = new Date();
+  return (
+    (Array.isArray(packages)
+      ? packages.find(
+          (p: { expiration_date: string; is_active: boolean }) =>
+            p.is_active && new Date(p.expiration_date) > now,
+        )
+      : null) || null
+  );
+}
+
+/** Save a free (no-payment-owed) booking and any café add-ons; returns the booking id. */
+async function runFreeBooking(bookingBody: unknown, cafeLines: CafeOrderLine[]): Promise<void> {
+  const bookingRes = await fetch("/api/bookings", {
+    method: "POST",
+    credentials: "include",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(bookingBody),
+  });
+  if (!bookingRes.ok) {
+    throw new Error(
+      await parseApiError(bookingRes, "Failed to save class booking. Please contact support."),
+    );
+  }
+  const bookingData = await bookingRes.json();
+  await submitCafeOrders(bookingData.id, cafeLines);
+}
+
+/**
+ * Runs the online (Razorpay) booking checkout end-to-end: create order, open
+ * checkout, complete the verified payment. Returns a single-shape result so the
+ * caller can drive UI side-effects without React in this module.
+ */
+async function runOnlineBookingCheckout(args: {
+  orderRequestBody: unknown;
+  pendingBase: Record<string, unknown>;
+  checkoutDescription: string;
+  prefill: { email?: string; name?: string };
+}): Promise<OnlineBookingResult> {
+  const createRes = await fetch("/api/payments/razorpay/create-order", {
+    method: "POST",
+    credentials: "include",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(args.orderRequestBody),
+  });
+  if (!createRes.ok) {
+    throw new Error(await parseApiError(createRes, "Could not start Razorpay checkout."));
+  }
+
+  const orderPayload = (await createRes.json()) as {
+    order_id?: string;
+    amount?: number | string;
+    currency?: string;
+    key_id?: string;
+    razorpay_mode?: "test" | "live" | "unknown";
+  };
+
+  if (
+    !orderPayload.order_id ||
+    orderPayload.key_id === null ||
+    orderPayload.key_id === undefined ||
+    String(orderPayload.key_id).trim() === "" ||
+    orderPayload.amount === null ||
+    orderPayload.amount === undefined
+  ) {
+    throw new Error("Invalid payment setup from server.");
+  }
+
+  const amountPaise = Number(orderPayload.amount);
+  if (!Number.isFinite(amountPaise)) {
+    throw new Error("Invalid order amount from Razorpay.");
+  }
+
+  savePendingRazorpayCheckout({
+    ...args.pendingBase,
+    purpose: "booking",
+    razorpayOrderId: orderPayload.order_id,
+    savedAt: Date.now(),
+  } as Parameters<typeof savePendingRazorpayCheckout>[0]);
+
+  const { payWithRazorpayOrder } = await import("@/lib/razorpayCheckout");
+  const checkoutResult = await payWithRazorpayOrder({
+    keyId: String(orderPayload.key_id).trim(),
+    amountPaise,
+    currency: orderPayload.currency ?? "INR",
+    orderId: orderPayload.order_id,
+    name: "Copper Cloves",
+    description: args.checkoutDescription,
+    prefill: { email: args.prefill.email, name: args.prefill.name },
+    callbackUrl: buildRazorpayReturnUrl("booking"),
+    redirect: false,
+  });
+  if (checkoutResult.kind === "cancelled") {
+    clearPendingRazorpayCheckout();
+    return { status: "cancelled" };
+  }
+  if (checkoutResult.kind === "failed") {
+    clearPendingRazorpayCheckout();
+    const { razorpayPaymentErrorHelp } = await import("@/lib/razorpayClientHints");
+    return {
+      status: "failed",
+      failureDetail: razorpayPaymentErrorHelp(
+        checkoutResult.message,
+        String(orderPayload.key_id).trim(),
+        orderPayload.razorpay_mode,
+      ),
+    };
+  }
+
+  const pending = loadPendingRazorpayCheckout();
+  if (!pending || pending.purpose !== "booking") {
+    throw new Error("Checkout session lost. Please try again.");
+  }
+  if (checkoutResult.kind !== "success") throw new Error("Unexpected checkout state.");
+  const { completePendingBookingCheckout } = await import("@/lib/completeRazorpayCheckout");
+  await completePendingBookingCheckout(pending, checkoutResult.payload);
+  clearPendingRazorpayCheckout();
+  return { status: "success" };
+}
+
+/** Fire all café orders concurrently for a booking; throws on the first failure. */
+async function submitCafeOrders(bookingId: string, lines: CafeOrderLine[]): Promise<void> {
+  const results = await Promise.all(
+    lines.map((item) =>
+      fetch("/api/cafe/orders", {
+        method: "POST",
+        credentials: "include",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          cafe_item_id: item.id,
+          booking_id: bookingId,
+          quantity: item.quantity,
+          payment_method: "pay_at_studio",
+        }),
+      }),
+    ),
+  );
+  for (const res of results) {
+    if (!res.ok) throw new Error(await parseApiError(res, "Could not add café order."));
+  }
 }
 
 export interface Class {
@@ -613,7 +796,7 @@ export default function BookClass() {
 
   const uniqueClassNames = useMemo(() => {
     const names = new Set(allClasses.map(c => c.name));
-    return Array.from(names).sort();
+    return Array.from(names).sort((a, b) => a.localeCompare(b));
   }, [allClasses]);
 
   const filteredClasses = useMemo(() => {
@@ -638,6 +821,7 @@ export default function BookClass() {
       setIsAuthenticated(true);
       checkAuthAndLoadData();
     }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [status]);
 
   // Guards the one-shot auto-advance below so it can't fight a manual day pick.
@@ -651,7 +835,6 @@ export default function BookClass() {
       didAutoAdvanceDay.current = false;
       fetchClasses(weekOffset);
     }
-  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [status, weekOffset]);
 
   // Current week only: once classes load, if every class today is already done,
@@ -863,7 +1046,6 @@ export default function BookClass() {
 
     // Fetch cafe items for Step 3
     fetchCafeItems();
-  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   function handleAddPerson() {
@@ -972,12 +1154,10 @@ export default function BookClass() {
         }),
       });
       if (!createRes.ok) {
-        let msg = "Could not start checkout.";
-        try { const e = await createRes.json(); if (e?.error) msg = e.error; } catch { /* ignore */ }
-        throw new Error(msg);
+        throw new Error(await parseApiError(createRes, "Could not start checkout."));
       }
       const orderPayload = await createRes.json() as { order_id?: string; amount?: number | string; currency?: string; key_id?: string; razorpay_mode?: "test" | "live" | "unknown" };
-      if (!orderPayload.order_id || orderPayload.key_id == null || orderPayload.amount == null) {
+      if (!orderPayload.order_id || orderPayload.key_id === null || orderPayload.key_id === undefined || orderPayload.amount === null || orderPayload.amount === undefined) {
         throw new Error("Invalid payment setup from server.");
       }
       const amountPaiseServer = Number(orderPayload.amount);
@@ -1046,29 +1226,17 @@ export default function BookClass() {
     try {
       setIsSubmittingBooking(true);
 
-      const packagesRes = await fetch("/api/user-packages?active=true", { credentials: "include" });
-      const packages = packagesRes.ok ? await packagesRes.json() : [];
-      const now = new Date();
-      const packageToUse =
-        packages.find(
-          (p: { expiration_date: string; is_active: boolean }) =>
-            p.is_active && new Date(p.expiration_date) > now,
-        ) || null;
-
-      if (userPackage.type === "class_pass" && useCredits) {
-        if (!packageToUse) throw new Error("No active package found. Please purchase a package first.");
-        if ((packageToUse.credits_remaining ?? 0) < 1) throw new Error("You don't have any classes remaining.");
-      }
+      const usingClassPassCredit = userPackage.type === "class_pass" && useCredits;
+      const packageToUse = await fetchActivePackage();
+      assertClassPassUsable(usingClassPassCredit, packageToUse);
 
       const owedTotals = calculateTotals();
       const { classTotal, foodTotal, discount, taxIncluded, finalTotal } = owedTotals;
-      const totalPeople = 1 + friendsFamily.length;
-      let dayPassEquivalentCount = totalPeople;
-      if (userPackage.type === null) dayPassEquivalentCount = totalPeople;
-      else if (userPackage.type === "studio_pass") dayPassEquivalentCount = friendsFamily.length;
-      else if (userPackage.type === "class_pass") {
-        dayPassEquivalentCount = useCredits ? friendsFamily.length : totalPeople;
-      }
+      const dayPassEquivalentCount = computeDayPassEquivalentCount(
+        userPackage.type,
+        friendsFamily.length,
+        useCredits,
+      );
 
       const guestAttendeesPayload = friendsFamily.map((p) => ({
         name: p.name || "",
@@ -1089,125 +1257,48 @@ export default function BookClass() {
         paymentMethod: "online" as const,
       };
 
-      let razorpayOrderIdForBooking: string | null = null;
-      const oweOnline = finalTotal > 0;
+      const classTimeISO = selectedClass?.startTimeIso ?? null;
+      const userPackageIdForBooking = usingClassPassCredit ? packageToUse?.id ?? null : null;
+      const cafeLines = foodItems
+        .filter((item) => item.quantity > 0)
+        .map((item) => ({ id: item.id, quantity: item.quantity }));
 
-      if (oweOnline) {
-        const createRes = await fetch("/api/payments/razorpay/create-order", {
-          method: "POST",
-          credentials: "include",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({
+      if (finalTotal > 0) {
+        const result = await runOnlineBookingCheckout({
+          orderRequestBody: {
             purpose: "booking",
             pending_checkout: {
               class_schedule_id: selectedClass?.id ?? "",
               class_name: selectedClass?.name ?? null,
-              class_time: selectedClass?.startTimeIso ?? null,
-              user_package_id:
-                userPackage.type === "class_pass" && useCredits
-                  ? packageToUse?.id ?? null
-                  : null,
+              class_time: classTimeISO,
+              user_package_id: userPackageIdForBooking,
               extra_guest_count: friendsFamily.length,
               guest_attendees: guestAttendeesPayload,
               finance_snapshot: financeSnapshotPayload,
-              cafe_items: foodItems
-                .filter((item) => item.quantity > 0)
-                .map((item) => ({ id: item.id, quantity: item.quantity })),
+              cafe_items: cafeLines,
             },
-          }),
-        });
-        if (!createRes.ok) {
-          let msg = "Could not start Razorpay checkout.";
-          try {
-            const errBody = await createRes.json();
-            if (typeof errBody?.error === "string") msg = errBody.error;
-          } catch {
-            /* ignore */
-          }
-          throw new Error(msg);
-        }
-
-        const orderPayload = (await createRes.json()) as {
-          order_id?: string;
-          amount?: number | string;
-          currency?: string;
-          key_id?: string;
-          razorpay_mode?: "test" | "live" | "unknown";
-        };
-
-        if (
-          !orderPayload.order_id ||
-          orderPayload.key_id == null ||
-          String(orderPayload.key_id).trim() === "" ||
-          orderPayload.amount == null
-        ) {
-          throw new Error("Invalid payment setup from server.");
-        }
-
-        const amountPaise = Number(orderPayload.amount);
-        if (!Number.isFinite(amountPaise)) {
-          throw new Error("Invalid order amount from Razorpay.");
-        }
-
-        const classTimeISO = selectedClass?.startTimeIso ?? null;
-        const userPackageIdForBooking =
-          userPackage.type === "class_pass" && useCredits ? packageToUse?.id ?? null : null;
-
-        savePendingRazorpayCheckout({
-          purpose: "booking",
-          razorpayOrderId: orderPayload.order_id,
-          class_schedule_id: selectedClass?.id ?? "",
-          class_name: selectedClass?.name ?? null,
-          class_time: classTimeISO,
-          user_package_id: userPackageIdForBooking,
-          extra_guest_count: friendsFamily.length,
-          guest_attendees: guestAttendeesPayload,
-          finance_snapshot: financeSnapshotPayload,
-          cafe_items: foodItems
-            .filter((item) => item.quantity > 0)
-            .map((item) => ({ id: item.id, quantity: item.quantity })),
-          savedAt: Date.now(),
-        });
-
-        const { payWithRazorpayOrder } = await import("@/lib/razorpayCheckout");
-        const checkoutResult = await payWithRazorpayOrder({
-          keyId: String(orderPayload.key_id).trim(),
-          amountPaise,
-          currency: orderPayload.currency ?? "INR",
-          orderId: orderPayload.order_id,
-          name: "Copper Cloves",
-          description: selectedClass?.name ? `Class — ${selectedClass.name}` : "Studio booking",
+          },
+          pendingBase: {
+            class_schedule_id: selectedClass?.id ?? "",
+            class_name: selectedClass?.name ?? null,
+            class_time: classTimeISO,
+            user_package_id: userPackageIdForBooking,
+            extra_guest_count: friendsFamily.length,
+            guest_attendees: guestAttendeesPayload,
+            finance_snapshot: financeSnapshotPayload,
+            cafe_items: cafeLines,
+          },
+          checkoutDescription: selectedClass?.name ? `Class — ${selectedClass.name}` : "Studio booking",
           prefill: { email: userEmail || undefined, name: userName || undefined },
-          callbackUrl: buildRazorpayReturnUrl("booking"),
-          redirect: false,
         });
-        if (checkoutResult.kind === "cancelled") {
-          clearPendingRazorpayCheckout();
-          setPaymentRecovery({ variant: "cancelled" });
+        if (result.status === "cancelled" || result.status === "failed") {
+          setPaymentRecovery(
+            result.status === "cancelled"
+              ? { variant: "cancelled" }
+              : { variant: "failed", detail: result.failureDetail },
+          );
           return;
         }
-        if (checkoutResult.kind === "failed") {
-          clearPendingRazorpayCheckout();
-          const { razorpayPaymentErrorHelp } = await import("@/lib/razorpayClientHints");
-          setPaymentRecovery({
-            variant: "failed",
-            detail: razorpayPaymentErrorHelp(
-              checkoutResult.message,
-              String(orderPayload.key_id).trim(),
-              orderPayload.razorpay_mode,
-            ),
-          });
-          return;
-        }
-
-        const pending = loadPendingRazorpayCheckout();
-        if (!pending || pending.purpose !== "booking") {
-          throw new Error("Checkout session lost. Please try again.");
-        }
-        if (checkoutResult.kind !== "success") throw new Error("Unexpected checkout state.");
-        const { completePendingBookingCheckout } = await import("@/lib/completeRazorpayCheckout");
-        await completePendingBookingCheckout(pending, checkoutResult.payload);
-        clearPendingRazorpayCheckout();
         // Guest onboarding now happens server-side during fulfillment (see
         // /api/bookings + razorpayServerCheckout) so it survives redirect flows.
         toast({ title: "Payment successful", description: `Booking confirmed for ₹${finalTotal.toFixed(0)}.`, variant: "success" });
@@ -1216,73 +1307,21 @@ export default function BookClass() {
         return;
       }
 
-      const classTimeISO = selectedClass?.startTimeIso ?? null;
-
-      const bookingRes = await fetch("/api/bookings", {
-        method: "POST",
-        credentials: "include",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
+      await runFreeBooking(
+        {
           class_schedule_id: selectedClass?.id ?? null,
           class_name: selectedClass?.name,
           class_time: classTimeISO,
-          user_package_id: userPackage.type === "class_pass" && useCredits ? packageToUse?.id : null,
-          razorpay_order_id: razorpayOrderIdForBooking,
+          user_package_id: userPackageIdForBooking,
+          razorpay_order_id: null,
           extra_guest_count: friendsFamily.length,
           guest_attendees: guestAttendeesPayload,
           finance_snapshot: financeSnapshotPayload,
-        }),
-      });
-      if (!bookingRes.ok) {
-        let msg = "Failed to save class booking. Please contact support.";
-        try {
-          const errBody = await bookingRes.json();
-          if (typeof errBody?.error === "string") msg = errBody.error;
-        } catch {
-          /* ignore */
-        }
-        throw new Error(msg);
-      }
-      const bookingData = await bookingRes.json();
-      const bookingId = bookingData.id;
-
-      const cafePaymentMethod = "pay_at_studio";
-      const orderedFoodItems = foodItems.filter((item) => item.quantity > 0);
-      // Fire all café orders concurrently (was sequential — N round-trips serialized).
-      const foodResults = await Promise.all(
-        orderedFoodItems.map((item) =>
-          fetch("/api/cafe/orders", {
-            method: "POST",
-            credentials: "include",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({
-              cafe_item_id: item.id,
-              booking_id: bookingId,
-              quantity: item.quantity,
-              payment_method: cafePaymentMethod,
-            }),
-          }),
-        ),
+        },
+        cafeLines,
       );
-      for (const foodRes of foodResults) {
-        if (!foodRes.ok) {
-          let msg = "Could not add café order.";
-          try {
-            const errBody = await foodRes.json();
-            if (errBody?.error) msg = String(errBody.error);
-          } catch {
-            /* ignore */
-          }
-          throw new Error(msg);
-        }
-      }
 
-      if (finalTotal > 0) {
-        toast({ title: "Booking confirmed", description: `Payment of ₹${finalTotal.toFixed(0)} processed.`, variant: "success" });
-      } else {
-        toast({ title: "Booking confirmed", description: "No payment required.", variant: "success" });
-      }
-
+      toast({ title: "Booking confirmed", description: "No payment required.", variant: "success" });
       setShowBookingPanel(false);
       router.push("/portal/dashboard");
     } catch (err: unknown) {
@@ -1800,12 +1839,12 @@ export default function BookClass() {
                         >
                           {addingPass ? "Processing…" : "Add this Pass →"}
                         </Button>
-                        <a
+                        <Link
                           href="/portal/packages"
                           className="font-body text-xs text-sage hover:text-sage/80 underline underline-offset-2 transition-colors whitespace-nowrap"
                         >
                           Explore all Packages
-                        </a>
+                        </Link>
                       </div>
                     </div>
                   )}

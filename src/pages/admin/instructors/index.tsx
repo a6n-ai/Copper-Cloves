@@ -59,7 +59,7 @@ export default function AdminInstructorsPage() {
   // Roster shared through SWR (one cached copy across admin pages). Optimistic
   // toggle/delete write straight to the cache via `mutateInstructors`.
   const { data, isLoading, mutate: mutateInstructors } = useInstructors<Instructor[]>();
-  const instructors = data ?? [];
+  const instructors = useMemo(() => data ?? [], [data]);
   const loading = isLoading && !data;
   const [search, setSearch] = useState("");
   const [statusFilter, setStatusFilter] = useState<"all" | "active" | "inactive">("all");

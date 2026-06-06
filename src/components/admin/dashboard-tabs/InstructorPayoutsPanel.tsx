@@ -86,7 +86,7 @@ function InstructorPayoutsPanelImpl() {
   const [rows, setRows] = useState<PayoutRow[]>([]);
   const [summary, setSummary] = useState<PayoutSummary>(EMPTY_SUMMARY);
   const [loading, setLoading] = useState(true);
-  const [window, setWindow] = useState<PayoutWindow>("month");
+  const [payoutWindow, setPayoutWindow] = useState<PayoutWindow>("month");
   const [search, setSearch] = useState("");
   const [instructorFilter, setInstructorFilter] = useState("all");
 
@@ -120,8 +120,8 @@ function InstructorPayoutsPanelImpl() {
   }, []);
 
   useEffect(() => {
-    void fetchData(window);
-  }, [fetchData, window]);
+    void fetchData(payoutWindow);
+  }, [fetchData, payoutWindow]);
 
   const instructorOptions = useMemo(
     () => Array.from(new Set(rows.map((r) => r.name))).sort((a, b) => a.localeCompare(b)),
@@ -155,7 +155,7 @@ function InstructorPayoutsPanelImpl() {
     getValue,
     defaultDirFor: (k) => (k === "name" || k === "status" ? "asc" : "desc"),
   });
-  const pg = usePagination(sorted, 10, `${search}|${instructorFilter}|${window}|${sortKey}|${sortDir}`);
+  const pg = usePagination(sorted, 10, `${search}|${instructorFilter}|${payoutWindow}|${sortKey}|${sortDir}`);
 
   const togglePaid = useCallback(
     async (row: PayoutRow, paid: boolean, recordExpense: boolean) => {
@@ -164,7 +164,7 @@ function InstructorPayoutsPanelImpl() {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           instructorId: row.instructorId,
-          window,
+          window: payoutWindow,
           paid,
           recordExpense,
           payout_paise: Math.round(row.total * 100),
@@ -184,9 +184,9 @@ function InstructorPayoutsPanelImpl() {
         savedMsg = "Marked paid";
       }
       toast.success(savedMsg);
-      await fetchData(window);
+      await fetchData(payoutWindow);
     },
-    [window, fetchData],
+    [payoutWindow, fetchData],
   );
 
   const openEdit = useCallback((row: PayoutRow) => {
@@ -206,7 +206,7 @@ function InstructorPayoutsPanelImpl() {
     try {
       const body: Record<string, unknown> = {
         instructorId: editRow.instructorId,
-        window,
+        window: payoutWindow,
         extra_payable_units: Number(editForm.extra_payable_units) || 0,
         extra_classes: Number(editForm.extra_classes) || 0,
         notes: editForm.notes,
@@ -235,11 +235,11 @@ function InstructorPayoutsPanelImpl() {
       }
       toast.success("Adjustment saved");
       setEditRow(null);
-      await fetchData(window);
+      await fetchData(payoutWindow);
     } finally {
       setEditSaving(false);
     }
-  }, [editRow, editForm, window, fetchData]);
+  }, [editRow, editForm, payoutWindow, fetchData]);
 
   const downloadCsv = useCallback(() => {
     const header = ["Instructor", "Specialties", "Classes", "Check-ins", "Payable Units", "Net per Unit", "Studio %", "Instructor %", "Total Payout INR", "Override", "Paid At", "Paid Method", "Notes"];
@@ -251,10 +251,10 @@ function InstructorPayoutsPanelImpl() {
     const url = URL.createObjectURL(blob);
     const a = document.createElement("a");
     a.href = url;
-    a.download = `instructor-payouts-${summary.periodKey || window}.csv`;
+    a.download = `instructor-payouts-${summary.periodKey || payoutWindow}.csv`;
     a.click();
     URL.revokeObjectURL(url);
-  }, [sorted, summary.periodKey, window]);
+  }, [sorted, summary.periodKey, payoutWindow]);
 
   let confirmActionLabel: string;
   if (confirmSaving) {
@@ -296,7 +296,7 @@ function InstructorPayoutsPanelImpl() {
                   {instructorOptions.map((n) => (<SelectItem key={n} value={n}>{n}</SelectItem>))}
                 </SelectContent>
               </Select>
-              <Select value={window} onValueChange={(v) => setWindow(v as PayoutWindow)}>
+              <Select value={payoutWindow} onValueChange={(v) => setPayoutWindow(v as PayoutWindow)}>
                 <SelectTrigger className="h-9 w-36 border-sage/20 shrink-0"><SelectValue /></SelectTrigger>
                 <SelectContent>
                   {WINDOWS.map((w) => (<SelectItem key={w.value} value={w.value}>{w.label}</SelectItem>))}

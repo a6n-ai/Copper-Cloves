@@ -17,9 +17,6 @@ import {
   Calendar,
   User,
   Activity,
-  ChevronUp,
-  ChevronDown,
-  ArrowUpDown,
 } from "lucide-react";
 import { SEO } from "@/components/SEO";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -123,8 +120,6 @@ export default function AdminCredits() {
   const [filterType, setFilterType] = useState("all");
   const [sortKey, setSortKey] = useState<SortKey | null>(null);
   const [sortDir, setSortDir] = useState<"asc" | "desc">("desc");
-  const [successMessage, setSuccessMessage] = useState("");
-
   const { data: session, status } = useSession();
 
   const userRole = (session?.user as { role?: string })?.role;
@@ -278,18 +273,6 @@ export default function AdminCredits() {
                 </Button>
               }
             />
-
-            {/* Success Message */}
-            {successMessage && (
-              <Card className="border-sage/20 bg-sage/10 animate-in slide-in-from-top duration-600">
-                <CardContent className="p-4">
-                  <div className="flex items-center gap-3 text-sage">
-                    <CheckCircle2 className="h-5 w-5" />
-                    <p className="font-body">{successMessage}</p>
-                  </div>
-                </CardContent>
-              </Card>
-            )}
 
             {/* Stats Grid */}
             <div className="grid grid-cols-2 md:grid-cols-4 gap-4">

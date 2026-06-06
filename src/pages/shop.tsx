@@ -130,7 +130,7 @@ export default function Shop({ initialProducts }: Readonly<ShopProps>) {
   }, [sessionEmail]);
 
   const categoryTabs = useMemo(() => {
-    const uniq = [...new Set(products.map((p) => p.category))].sort();
+    const uniq = [...new Set(products.map((p) => p.category))].sort((a, b) => a.localeCompare(b));
     return [
       { id: "all", name: "All Products", icon: Sparkles },
       ...uniq.map((id) => ({ id, name: formatCategoryLabel(id), icon: categoryIcon(id) })),
@@ -686,7 +686,7 @@ export default function Shop({ initialProducts }: Readonly<ShopProps>) {
                     <span className="text-charcoal/70">Subtotal</span>
                     <span className="text-charcoal">₹{cart.subtotal}</span>
                   </div>
-                  {couponDiscount != null && couponDiscount > 0 && (
+                  {couponDiscount !== null && couponDiscount !== undefined && couponDiscount > 0 && (
                     <div className="flex justify-between font-body text-sm mb-2 text-sage">
                       <span>Discount</span>
                       <span>−₹{couponDiscount}</span>

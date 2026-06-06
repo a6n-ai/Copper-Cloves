@@ -4,6 +4,7 @@ import { getStudioServerSession } from "@/lib/getStudioServerSession";
 import { periodKeyFor, periodBoundsFor, type PayoutWindow } from "@/lib/payoutCalc";
 import { recordPayoutExpense, removePayoutExpense } from "@/lib/expenses";
 import type { PaymentMethod } from "@/generated/prisma/client";
+import logger from "@/lib/logger";
 
 function asString(v: unknown): string {
   if (typeof v === "string") return v;
@@ -42,24 +43,24 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
   if (req.method === "GET") {
     const instructorId = String(req.query.instructorId ?? "").trim();
-    const window = parseWindow(req.query.window);
+    const payoutWindow = parseWindow(req.query.window);
     if (!instructorId) return res.status(400).json({ error: "instructorId required" });
-    const periodKey = periodKeyFor(window, new Date());
+    const periodKey = periodKeyFor(payoutWindow, new Date());
     const row = await prisma.instructorPayoutAdjustment.findUnique({
       where: { instructor_id_period_key: { instructor_id: instructorId, period_key: periodKey } },
     });
-    return res.json({ adjustment: row, periodKey, window });
+    return res.json({ adjustment: row, periodKey, window: payoutWindow });
   }
 
   if (req.method === "PUT") {
     const body = (req.body ?? {}) as Record<string, unknown>;
     const instructorId = asString(body.instructorId).trim();
-    const window = parseWindow(body.window);
+    const payoutWindow = parseWindow(body.window);
     if (!instructorId) return res.status(400).json({ error: "instructorId required" });
 
     const now = new Date();
-    const periodKey = periodKeyFor(window, now);
-    const bounds = periodBoundsFor(window, now);
+    const periodKey = periodKeyFor(payoutWindow, now);
+    const bounds = periodBoundsFor(payoutWindow, now);
 
     const data: {
       extra_payable_units?: number;
@@ -135,7 +136,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         expenseRecorded = false;
       }
     } catch (err) {
-      console.error("payout→expense sync failed", err);
+      logger.error({ err }, "payout→expense sync failed");
     }
 
     return res.json({ adjustment: row, periodKey, expenseRecorded });

@@ -554,7 +554,7 @@ export default function PackagesPage() {
       return;
     }
     setIsProcessing(true);
-    let razorpayOrderIdForPackage: string | null = null;
+    const razorpayOrderIdForPackage: string | null = null;
     try {
       const allPkgsRes = await fetch("/api/packages");
       const allPkgs = allPkgsRes.ok ? await allPkgsRes.json() : [];
@@ -625,9 +625,11 @@ export default function PackagesPage() {
 
         if (
           !orderPayload.order_id ||
-          orderPayload.key_id == null ||
+          orderPayload.key_id === null ||
+          orderPayload.key_id === undefined ||
           String(orderPayload.key_id).trim() === "" ||
-          orderPayload.amount == null
+          orderPayload.amount === null ||
+          orderPayload.amount === undefined
         ) {
           throw new Error("Invalid payment setup from server.");
         }
@@ -823,7 +825,7 @@ export default function PackagesPage() {
           <>
             <ResponsiveCards
               data={pagedHistory}
-              renderCard={(purchase, i) => {
+              renderCard={(purchase, _i) => {
                 const packageType = purchase.package_types;
                 const isActive = purchase.status === "active" && new Date(purchase.expires_at) > new Date();
                 const isExpired = new Date(purchase.expires_at) < new Date();
@@ -1031,7 +1033,7 @@ export default function PackagesPage() {
                   <div className="col-span-2 flex items-baseline gap-2">
                     <span className="font-body text-xs text-charcoal/50 shrink-0">Total</span>
                     <span className="font-display text-xl text-sage">{selectedPackage.price}</span>
-                    {couponDiscount != null && couponDiscount > 0 && (
+                    {couponDiscount !== null && couponDiscount !== undefined && couponDiscount > 0 && (
                       <span className="font-body text-sm text-sage">
                         → ₹{Math.max(0, packageSubtotalInr(selectedPackage) - couponDiscount).toLocaleString("en-IN")}
                       </span>

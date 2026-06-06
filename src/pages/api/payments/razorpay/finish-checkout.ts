@@ -11,11 +11,13 @@ import type {
 } from "@/lib/pendingRazorpayCheckout";
 import { requestLogger } from "@/lib/logger";
 
+const PURPOSE_BOOKING = "booking" as const;
+
 function isPendingBooking(raw: unknown): raw is PendingBookingCheckout {
   if (!raw || typeof raw !== "object") return false;
   const o = raw as PendingBookingCheckout;
   return (
-    o.purpose === "booking" &&
+    o.purpose === PURPOSE_BOOKING &&
     typeof o.razorpayOrderId === "string" &&
     typeof o.class_schedule_id === "string"
   );
@@ -79,10 +81,10 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   }
 
   try {
-    if (pending.purpose === "booking") {
+    if (pending.purpose === PURPOSE_BOOKING) {
       const { bookingId } = await finishBookingCheckoutOnServer(userId, pending);
       log.info({ userId, bookingId, razorpayOrderId: pending.razorpayOrderId }, "booking checkout finished");
-      return res.json({ ok: true, purpose: "booking", bookingId });
+      return res.json({ ok: true, purpose: PURPOSE_BOOKING, bookingId });
     }
 
     await finishPackageCheckoutOnServer(userId, pending);
