@@ -3,6 +3,7 @@ import { mutate } from "swr";
 import { useStudioSWR } from "@/lib/swr";
 import Image from "next/image";
 import { PageHeader } from "@/components/dashboard/PageHeader";
+import { ActivityLogList } from "@/components/activity/ActivityLogList";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -542,6 +543,21 @@ export function ProfileSection({ role, title, subtitle }: ProfileSectionProps) {
                   {passwordSaving ? "Updating…" : "Reset Password"}
                 </Button>
               </form>
+            </CardContent>
+          </Card>
+
+          {/* ── Activity Log ──────────────────────────────────────── */}
+          <Card className="border-sage/20 bg-[#fafaf8]/90 shadow-lg">
+            <CardHeader className="p-6 border-b border-sage/10 bg-linear-to-r from-cream/50 to-[#fafaf8]">
+              <CardTitle className="font-display text-xl text-charcoal flex items-center gap-3">
+                Activity Log
+              </CardTitle>
+              <CardDescription className="font-body text-charcoal/60 mt-1">
+                Recent actions on your account
+              </CardDescription>
+            </CardHeader>
+            <CardContent className="p-6">
+              <ActivityLogList endpoint="/api/user/activity-log" />
             </CardContent>
           </Card>
 
