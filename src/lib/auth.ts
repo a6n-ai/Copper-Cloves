@@ -7,6 +7,7 @@ import prisma from "./prisma";
 import { normalizeLoginEmail } from "./loginEmail";
 import { startSession, endSession, SESSION_MAX_AGE_SECONDS } from "./sessionGuard";
 import logger from "@/lib/logger";
+import { logActivity } from "@/lib/activityLog";
 
 type Headers = Record<string, string | string[] | undefined>;
 
@@ -86,6 +87,11 @@ async function authorizePassword(
     logger.warn({ email }, "[next-auth] CredentialsSignin: password does not match stored hash");
     return null;
   }
+
+  await logActivity({
+    action: "auth.login",
+    actor: { id: profile.id, role: profile.role, name: profile.full_name },
+  });
 
   const built = await buildUserFromProfile(profile);
   const { sid } = await startSession(profile.id, (req?.headers ?? {}) as Headers);

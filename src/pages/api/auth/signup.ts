@@ -6,6 +6,7 @@ import { normalizeLoginEmail } from "@/lib/loginEmail";
 import { sendHtmlEmail } from "@/lib/notifications/sendEmail";
 import { welcomeEmail } from "@/lib/notifications/emailTemplates";
 import logger from "@/lib/logger";
+import { logActivity } from "@/lib/activityLog";
 
 function walkErrorChain(e: unknown): unknown[] {
   const list: unknown[] = [];
@@ -175,7 +176,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
     const hashedPassword = await bcrypt.hash(password, 12);
 
-    await prisma.profile.create({
+    const createdProfile = await prisma.profile.create({
       data: {
         email,
         full_name: full_name ?? null,
@@ -183,6 +184,12 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         hashedPassword,
         role: "user",
       },
+    });
+
+    await logActivity({
+      req,
+      action: "auth.signup",
+      actor: { id: createdProfile.id, role: createdProfile.role, name: createdProfile.full_name },
     });
 
     const portalUrl = process.env.NEXTAUTH_URL?.replace(/\/$/, "") ?? "";

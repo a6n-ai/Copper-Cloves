@@ -2,6 +2,7 @@ import type { NextApiRequest, NextApiResponse } from "next";
 import bcrypt from "bcryptjs";
 import prisma from "@/lib/prisma";
 import { getStudioServerSession } from "@/lib/getStudioServerSession";
+import { logActivity } from "@/lib/activityLog";
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
   const session = await getStudioServerSession(req, res);
@@ -39,6 +40,8 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     where: { id: userId },
     data: { hashedPassword },
   });
+
+  await logActivity({ req, action: "auth.password_changed" });
 
   return res.json({ ok: true });
 }
