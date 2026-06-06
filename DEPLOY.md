@@ -55,3 +55,22 @@ npm run db:seed:crm-system     # templates (incl. class_reminder, instructor_ros
 npm run db:seed:crm-triggers   # triggers
 ```
 (both already run against prod; re-running preserves admin edits to template bodies.)
+
+## Vercel Deployment
+
+Unlike Amplify, Vercel injects environment variables at runtime — no build-time inlining needed.
+
+**Required:** Configure all vars from `.env.example` in the Vercel dashboard under
+Project Settings → Environment Variables before the first deploy.
+
+Key vars that MUST be set:
+- `DATABASE_URL`
+- `NEXTAUTH_SECRET`
+- `NEXTAUTH_URL` (set to your production domain, e.g. `https://yourdomain.com`)
+- `RAZORPAY_KEY_ID` / `RAZORPAY_KEY_SECRET` / `RAZORPAY_WEBHOOK_SECRET`
+- `NEXT_PUBLIC_RAZORPAY_KEY_ID`
+- `S3_BUCKET` / `S3_ACCESS_KEY_ID` / `S3_SECRET_ACCESS_KEY` / `S3_REGION`
+- `CRON_SECRET`
+
+`NEXT_PUBLIC_BUILD_ID` is optional — Vercel auto-sets `VERCEL_GIT_COMMIT_SHA`
+which `next.config.mjs` already uses as a fallback.

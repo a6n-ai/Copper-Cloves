@@ -43,10 +43,15 @@ const inlineEnv = {
     String(Date.now()),
 };
 
+// Only inline secrets on Amplify — Amplify SSR Lambdas don't get Console env
+// vars injected at runtime, so we bake them in at build time. On Vercel and
+// local dev, runtime env works correctly; inlining is a security liability.
+const IS_AMPLIFY = Boolean(process.env.AWS_APP_ID || process.env.AWS_BRANCH);
+
 const nextConfig = {
   reactStrictMode: true,
   poweredByHeader: false,
-  env: inlineEnv,
+  env: IS_AMPLIFY ? inlineEnv : {},
   // Transform barrel imports (`import { X } from "lucide-react"`) into direct
   // per-module imports so only the icons/charts actually used land in the
   // bundle. Without listing them here Next does NOT auto-optimize these — the
