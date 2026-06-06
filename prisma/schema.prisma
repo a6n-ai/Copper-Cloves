@@ -43,6 +43,8 @@ model Profile {
   crm_messages      CrmMessage[]
   activity_sessions UserActivitySession[]
   activity_events   UserActivityEvent[]
+  activity_actions ActivityLog[] @relation("ActivityActor")
+  activity_targets ActivityLog[] @relation("ActivityTarget")
   retail_orders     RetailOrder[]
   coupon_redemptions CouponRedemption[]
   razorpay_orders   RazorpayOrder[]
@@ -1009,4 +1011,33 @@ model QrCode {
   @@unique([class_schedule_id, kind])
   @@index([class_schedule_id])
   @@map("qr_codes")
+}
+
+/// Server-written audit log of major actions (auth/member/admin/instructor/partner).
+/// Insert-only. Distinct from UserActivityEvent (client behavioural analytics).
+model ActivityLog {
+  id                String   @id @default(uuid())
+  actor_profile_id  String?
+  actor_role        String?
+  actor_name        String?
+  target_profile_id String?
+  action            String
+  category          String
+  summary           String
+  entity_type       String?
+  entity_id         String?
+  metadata          Json?
+  ip                String?
+  user_agent        String?
+  created_at        DateTime @default(now())
+
+  actor  Profile? @relation("ActivityActor", fields: [actor_profile_id], references: [id], onDelete: SetNull)
+  target Profile? @relation("ActivityTarget", fields: [target_profile_id], references: [id], onDelete: SetNull)
+
+  @@index([target_profile_id])
+  @@index([actor_profile_id])
+  @@index([action])
+  @@index([category])
+  @@index([created_at])
+  @@map("activity_logs")
 }
