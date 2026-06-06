@@ -39,6 +39,17 @@ const memberDetailInclude = {
     orderBy: { order_date: "desc" as const },
     take: 50,
   },
+  payments: {
+    orderBy: { created_at: "desc" as const },
+    take: 100,
+    include: {
+      recorded_by_admin: { select: { full_name: true, email: true } },
+    },
+  },
+  member_tickets: {
+    orderBy: { created_at: "desc" as const },
+    take: 50,
+  },
 } as const;
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {

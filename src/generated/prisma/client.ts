@@ -250,3 +250,9 @@ export type Expense = Prisma.ExpenseModel
  * signed HMAC encoded in that image (verified statelessly at scan time).
  */
 export type QrCode = Prisma.QrCodeModel
+/**
+ * Model ActivityLog
+ * Server-written audit log of major actions (auth/member/admin/instructor/partner).
+ * Insert-only. Distinct from UserActivityEvent (client behavioural analytics).
+ */
+export type ActivityLog = Prisma.ActivityLogModel

@@ -90,7 +90,8 @@ export const ModelName = {
   File: 'File',
   InstructorPayoutAdjustment: 'InstructorPayoutAdjustment',
   Expense: 'Expense',
-  QrCode: 'QrCode'
+  QrCode: 'QrCode',
+  ActivityLog: 'ActivityLog'
 } as const
 
 export type ModelName = (typeof ModelName)[keyof typeof ModelName]
@@ -825,6 +826,26 @@ export const QrCodeScalarFieldEnum = {
 } as const
 
 export type QrCodeScalarFieldEnum = (typeof QrCodeScalarFieldEnum)[keyof typeof QrCodeScalarFieldEnum]
+
+
+export const ActivityLogScalarFieldEnum = {
+  id: 'id',
+  actor_profile_id: 'actor_profile_id',
+  actor_role: 'actor_role',
+  actor_name: 'actor_name',
+  target_profile_id: 'target_profile_id',
+  action: 'action',
+  category: 'category',
+  summary: 'summary',
+  entity_type: 'entity_type',
+  entity_id: 'entity_id',
+  metadata: 'metadata',
+  ip: 'ip',
+  user_agent: 'user_agent',
+  created_at: 'created_at'
+} as const
+
+export type ActivityLogScalarFieldEnum = (typeof ActivityLogScalarFieldEnum)[keyof typeof ActivityLogScalarFieldEnum]
 
 
 export const SortOrder = {
