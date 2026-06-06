@@ -1,3 +1,4 @@
+import Image from "next/image";
 import {
   ResponsiveDialog,
   ResponsiveDialogContent,
@@ -30,8 +31,7 @@ export function ClassDetailDialog({
           <>
             <div className="relative h-44">
               {classItem.imageUrl ? (
-                // eslint-disable-next-line @next/next/no-img-element
-                <img src={classItem.imageUrl} alt={classItem.name} className="h-full w-full object-cover" />
+                <Image src={classItem.imageUrl} alt={classItem.name} fill sizes="(max-width: 768px) 100vw, 50vw" className="object-cover" />
               ) : (
                 <div className={`h-full w-full ${classFallbackGradient}`} aria-hidden="true">
                   <span className="font-display text-5xl text-white-warm/55">{classInitials(classItem.name)}</span>
