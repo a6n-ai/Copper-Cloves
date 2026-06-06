@@ -85,8 +85,7 @@ export function Hero() {
                   ) : (
                     // Inactive carousel frame: show the poster only so the video
                     // bytes aren't downloaded until this panel rotates in.
-                    // eslint-disable-next-line @next/next/no-img-element
-                    <img src={poster} alt="" aria-hidden className="h-full w-full object-cover" />
+                    <Image src={poster} alt="" aria-hidden fill sizes="100vw" className="object-cover" />
                   )}
                 </div>
               );
@@ -118,8 +117,7 @@ export function Hero() {
                   />
                 );
               } else if (isVideo) {
-                // eslint-disable-next-line @next/next/no-img-element
-                mediaEl = <img src={poster} alt="" aria-hidden className="h-full w-full object-cover" />;
+                mediaEl = <Image src={poster} alt="" aria-hidden fill sizes="100vw" className="object-cover" />;
               } else {
                 mediaEl = (
                   <Image
@@ -164,8 +162,7 @@ export function Hero() {
                 className="hero-video w-full h-full object-cover animate-floatAndZoom23"
               />
             ) : (
-              // eslint-disable-next-line @next/next/no-img-element
-              <img src={cdnUrl("/Connect-1.poster.jpg")} alt="" aria-hidden className="h-full w-full object-cover" />
+              <Image src={cdnUrl("/Connect-1.poster.jpg")} alt="" aria-hidden fill sizes="100vw" className="object-cover" />
             )}
             <div className="absolute inset-0 bg-linear-to-t from-black/50 via-transparent to-transparent" />
             <div className="absolute bottom-8 left-1/2 -translate-x-1/2 z-10">
@@ -288,8 +285,7 @@ export function Hero() {
                     className={`hero-video h-full w-full object-cover ${panel.anim}`}
                   />
                 ) : (
-                  // eslint-disable-next-line @next/next/no-img-element
-                  <img src={poster} alt="" aria-hidden className={`h-full w-full object-cover ${panel.anim}`} />
+                  <Image src={poster} alt="" aria-hidden fill sizes="100vw" className={`object-cover ${panel.anim}`} />
                 )}
               </div>
             );
