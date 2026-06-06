@@ -176,8 +176,8 @@ export default function AdminInstructorsPage() {
             </div>
           </div>
         </TableCell>
-        <TableCell className="px-5 py-4"><Skeleton className="h-4 w-40 bg-sage/10" /></TableCell>
-        <TableCell className="px-5 py-4"><Skeleton className="h-5 w-32 bg-sage/10 rounded-full" /></TableCell>
+        <TableCell className="hidden lg:table-cell px-5 py-4"><Skeleton className="h-4 w-40 bg-sage/10" /></TableCell>
+        <TableCell className="hidden md:table-cell px-5 py-4"><Skeleton className="h-5 w-32 bg-sage/10 rounded-full" /></TableCell>
         <TableCell className="px-5 py-4"><Skeleton className="h-6 w-20 bg-sage/10 rounded-full" /></TableCell>
         <TableCell className="px-5 py-4"><Skeleton className="h-8 w-24 bg-sage/10 ml-auto" /></TableCell>
       </TableRow>
@@ -215,10 +215,15 @@ export default function AdminInstructorsPage() {
                 {instructor.years_of_experience && (
                   <div className="font-body text-xs text-charcoal/50 truncate">{instructor.years_of_experience} yrs exp</div>
                 )}
+                {(instructor.email || instructor.phone) && (
+                  <div className="lg:hidden font-body text-xs text-charcoal/50 truncate">
+                    {instructor.email || instructor.phone}
+                  </div>
+                )}
               </div>
             </div>
           </TableCell>
-          <TableCell className="px-5 py-4">
+          <TableCell className="hidden lg:table-cell px-5 py-4">
             <div className="space-y-1 min-w-0 max-w-[200px]">
               {instructor.email && (
                 <div className="flex items-center gap-1.5 text-xs text-charcoal/60 min-w-0">
@@ -235,7 +240,7 @@ export default function AdminInstructorsPage() {
               )}
             </div>
           </TableCell>
-          <TableCell className="px-5 py-4">
+          <TableCell className="hidden md:table-cell px-5 py-4">
             {instructor.specialties && instructor.specialties.length > 0 ? (
               <div className="flex items-center gap-1 max-w-[180px]">
                 <Badge
@@ -381,14 +386,14 @@ export default function AdminInstructorsPage() {
               <CardContent>
                 <ResponsiveTable>
                   <div className="rounded-xl border border-sage/15 bg-white-warm overflow-hidden">
-                    <Table>
+                    <Table className="w-full table-fixed">
                       <TableHeader>
                         <TableRow className="bg-sage/5 hover:bg-sage/5 border-sage/10">
                           <TableHead className="font-body text-xs uppercase tracking-wide text-charcoal/60 px-5 py-3">Instructor</TableHead>
-                          <TableHead className="font-body text-xs uppercase tracking-wide text-charcoal/60 px-5 py-3 w-[220px]">Contact</TableHead>
-                          <TableHead className="font-body text-xs uppercase tracking-wide text-charcoal/60 px-5 py-3 w-[220px]">Specialties</TableHead>
-                          <TableHead className="font-body text-xs uppercase tracking-wide text-charcoal/60 px-5 py-3 w-[120px]">Status</TableHead>
-                          <TableHead className="font-body text-xs uppercase tracking-wide text-charcoal/60 px-5 py-3 w-[160px] text-right">Actions</TableHead>
+                          <TableHead className="hidden lg:table-cell font-body text-xs uppercase tracking-wide text-charcoal/60 px-5 py-3 w-[200px]">Contact</TableHead>
+                          <TableHead className="hidden md:table-cell font-body text-xs uppercase tracking-wide text-charcoal/60 px-5 py-3 w-[180px]">Specialties</TableHead>
+                          <TableHead className="font-body text-xs uppercase tracking-wide text-charcoal/60 px-5 py-3 w-[110px]">Status</TableHead>
+                          <TableHead className="font-body text-xs uppercase tracking-wide text-charcoal/60 px-5 py-3 w-[150px] text-right">Actions</TableHead>
                         </TableRow>
                       </TableHeader>
                       <TableBody>

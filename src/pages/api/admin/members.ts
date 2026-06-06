@@ -103,7 +103,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   }
 
   if (req.method === "PATCH") {
-    const { profile_id, user_package_id, credits_delta, expiration_date, pass_type, start_date, action } = req.body ?? {};
+    const { profile_id, user_package_id, credits_delta, expiration_date, pass_type, start_date, action, profile_fields } = req.body ?? {};
     if (!profile_id || typeof profile_id !== "string") {
       return res.status(400).json({ error: "profile_id required" });
     }
@@ -247,6 +247,44 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         where: { id: profile_id },
         data: { start_date: d },
       });
+    }
+
+    // Admin edit of core member profile fields (name, phone, whatsapp, dob, gender).
+    if (profile_fields && typeof profile_fields === "object") {
+      const pf = profile_fields as Record<string, unknown>;
+      const data: Record<string, unknown> = {};
+
+      if ("full_name" in pf) {
+        const v = typeof pf.full_name === "string" ? pf.full_name.trim() : "";
+        if (!v) return res.status(400).json({ error: "Name cannot be empty" });
+        data.full_name = v;
+      }
+      if ("phone" in pf) {
+        const v = typeof pf.phone === "string" ? pf.phone.trim() : "";
+        data.phone = v || null;
+      }
+      if ("whatsapp_phone" in pf) {
+        const v = typeof pf.whatsapp_phone === "string" ? pf.whatsapp_phone.trim() : "";
+        data.whatsapp_phone = v || null;
+      }
+      if ("gender" in pf) {
+        const v = typeof pf.gender === "string" ? pf.gender.trim() : "";
+        data.gender = v || null;
+      }
+      if ("dob" in pf) {
+        const raw = typeof pf.dob === "string" ? pf.dob.trim() : "";
+        if (!raw) {
+          data.dob = null;
+        } else {
+          const d = new Date(raw);
+          if (Number.isNaN(d.getTime())) return res.status(400).json({ error: "Invalid date of birth" });
+          data.dob = d;
+        }
+      }
+
+      if (Object.keys(data).length > 0) {
+        await prisma.profile.update({ where: { id: profile_id }, data });
+      }
     }
 
     return res.json({ ok: true });
