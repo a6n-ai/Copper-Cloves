@@ -3,6 +3,7 @@ import { Prisma, ClassScheduleStatus } from "@/generated/prisma/client";
 import prisma from "@/lib/prisma";
 import { getStudioServerSession } from "@/lib/getStudioServerSession";
 import { apiError } from "@/lib/apiError";
+import { logActivity } from "@/lib/activityLog";
 
 const VALID_STATUS = new Set<string>(Object.values(ClassScheduleStatus));
 const LOCKED_STATUSES = new Set<string>(["completed", "abandoned"]);
@@ -265,6 +266,7 @@ async function handlePut(req: NextApiRequest, res: NextApiResponse) {
     where: { id: String(id) },
     data: data as Prisma.ClassScheduleUpdateInput,
   });
+  await logActivity({ req, action: "admin.schedule_edited", entity: { type: "class_schedule", id: schedule.id } });
   return res.json(schedule);
 }
 

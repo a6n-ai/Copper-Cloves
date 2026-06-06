@@ -2,6 +2,7 @@ import type { NextApiRequest, NextApiResponse } from "next";
 import prisma from "@/lib/prisma";
 import { getStudioServerSession } from "@/lib/getStudioServerSession";
 import { ensureAdmin } from "@/lib/requireAdmin";
+import { logActivity } from "@/lib/activityLog";
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
   const session = await getStudioServerSession(req, res);
@@ -61,6 +62,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         allocated_by: adminId,
       },
     });
+    await logActivity({ req, action: "admin.badge_allocated", targetProfileId: user_id, metadata: { badge_name: template.name } });
     return res.status(201).json(badge);
   }
 

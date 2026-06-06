@@ -18,6 +18,7 @@ import {
   snapshotTotalsConsistent,
 } from "@/lib/financeBookingCheckout";
 import { requestLogger } from "@/lib/logger";
+import { logActivity } from "@/lib/activityLog";
 
 type BookingsLog = ReturnType<typeof requestLogger>;
 type TxClient = Parameters<Parameters<typeof prisma.$transaction>[0]>[0];
@@ -381,6 +382,7 @@ async function handlePost(
       }).catch((e) => log.error({ err: e, bookingId: booking.id }, "onboardGuestsForBooking failed"));
     }
 
+    await logActivity({ req, action: "booking.created", entity: { type: "booking", id: booking.id }, metadata: { class_name: booking.class_name ?? undefined } });
     return res.status(201).json(booking);
   } catch (e) {
     const msg = e instanceof Error ? e.message : String(e);
@@ -572,6 +574,7 @@ async function handlePatch(
         })
       )
       .catch((e) => log.error({ err: e }, "CRM class_booking_cancelled failed"));
+    await logActivity({ req, action: "booking.cancelled", entity: { type: "booking", id: booking.id }, metadata: { class_name: booking.class_name ?? undefined } });
   }
 
   if (checked_in === true && booking.checked_in) {

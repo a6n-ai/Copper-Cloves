@@ -1,6 +1,7 @@
 import type { NextApiRequest, NextApiResponse } from "next";
 import prisma from "@/lib/prisma";
 import { getStudioServerSession } from "@/lib/getStudioServerSession";
+import { logActivity } from "@/lib/activityLog";
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
   const session = await getStudioServerSession(req, res);
@@ -47,6 +48,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         created_at: true, updated_at: true,
       },
     });
+    await logActivity({ req, action: "profile.updated" });
     return res.json(profile);
   }
 

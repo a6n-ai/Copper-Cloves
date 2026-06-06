@@ -3,6 +3,7 @@ import prisma from "@/lib/prisma";
 import { isStudioAdminProfileRole } from "@/lib/isStudioAdminProfile";
 import { getStudioServerSession } from "@/lib/getStudioServerSession";
 import { getDynamicStats, getDynamicStatsForUsers } from "@/lib/attendanceStats";
+import { logActivity } from "@/lib/activityLog";
 
 // Member Management lists real members only — never staff/partner/instructor logins.
 function isNonMemberRole(role?: string | null): boolean {
@@ -190,6 +191,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         },
       });
       pkgId = created.id;
+      await logActivity({ req, action: "admin.package_assigned", targetProfileId: profile_id, metadata: { package_name: pt.name } });
     }
 
     if (typeof credits_delta === "number" && credits_delta !== 0) {

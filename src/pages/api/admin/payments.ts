@@ -2,6 +2,7 @@ import type { NextApiRequest, NextApiResponse } from "next";
 import prisma from "@/lib/prisma";
 import { getStudioServerSession } from "@/lib/getStudioServerSession";
 import { PaymentMethod, PaymentStatus } from "@/generated/prisma/client";
+import { logActivity } from "@/lib/activityLog";
 
 const ALLOWED_METHODS: PaymentMethod[] = [
   PaymentMethod.razorpay_online,
@@ -94,6 +95,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         recorded_by: adminId,
       },
     });
+    await logActivity({ req, action: "admin.payment_recorded", targetProfileId: payment.user_id, entity: { type: "payment", id: payment.id }, metadata: { method: payment.method, amount_paise: payment.amount_paise } });
     return res.status(201).json(payment);
   }
 

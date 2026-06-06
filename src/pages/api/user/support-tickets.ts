@@ -1,6 +1,7 @@
 import type { NextApiRequest, NextApiResponse } from "next";
 import prisma from "@/lib/prisma";
 import { getStudioServerSession } from "@/lib/getStudioServerSession";
+import { logActivity } from "@/lib/activityLog";
 
 const MIN_LEAD_MS = 72 * 60 * 60 * 1000;
 const TICKET_TYPE_PAUSE = "pause_subscription";
@@ -94,6 +95,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       },
     });
 
+    await logActivity({ req, action: "ticket.raised", entity: { type: "ticket", id: ticket.id } });
     return res.status(201).json(ticket);
   }
 

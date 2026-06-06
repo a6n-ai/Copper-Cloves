@@ -10,6 +10,7 @@ import type {
   PendingRazorpayCheckout,
 } from "@/lib/pendingRazorpayCheckout";
 import { requestLogger } from "@/lib/logger";
+import { logActivity } from "@/lib/activityLog";
 
 const PURPOSE_BOOKING = "booking" as const;
 
@@ -89,6 +90,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
     await finishPackageCheckoutOnServer(userId, pending);
     log.info({ userId, razorpayOrderId: pending.razorpayOrderId }, "package checkout finished");
+    await logActivity({ req, action: "package.purchased", targetProfileId: userId });
     return res.json({ ok: true, purpose: "package" });
   } catch (e) {
     const msg = e instanceof Error ? e.message : String(e);
