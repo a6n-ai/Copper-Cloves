@@ -72,6 +72,7 @@ import {
   CLASS_PASS_FOOD_DISCOUNT,
 } from "@/lib/cafeDiscount";
 
+import Image from "next/image";
 import { cdnUrl } from "@/lib/cdnUrl";
 
 // Tax rate (adjust as needed)
@@ -321,10 +322,9 @@ export interface Class {
 function InstructorAvatar({ name, imageUrl, className = "" }: Readonly<{ name: string; imageUrl?: string | null; className?: string }>) {
   const initial = (name || "").slice(0, 1).toUpperCase();
   return (
-    <div className={`shrink-0 overflow-hidden rounded-full border-2 border-white-warm/90 bg-linear-to-br from-terracotta/80 to-terracotta ${className}`}>
+    <div className={`relative shrink-0 overflow-hidden rounded-full border-2 border-white-warm/90 bg-linear-to-br from-terracotta/80 to-terracotta ${className}`}>
       {imageUrl ? (
-        // eslint-disable-next-line @next/next/no-img-element
-        <img src={imageUrl} alt={name} className="h-full w-full object-cover" />
+        <Image src={imageUrl} alt={name} fill sizes="64px" className="object-cover" />
       ) : (
         <span aria-hidden="true" className="flex h-full w-full items-center justify-center font-display text-sm text-white-warm">
           {initial}
@@ -500,8 +500,7 @@ function BookClassDetailDialog({
           <>
             <div className="relative h-44">
               {cls.image ? (
-                // eslint-disable-next-line @next/next/no-img-element
-                <img src={cls.image} alt={cls.name} className="h-full w-full object-cover" />
+                <Image src={cls.image} alt={cls.name} fill sizes="(max-width: 768px) 100vw, 50vw" className="object-cover" />
               ) : (
                 <div className={`h-full w-full ${classFallbackGradient}`} aria-hidden="true">
                   <span className="font-display text-5xl text-white-warm/55">{classInitials(cls.name)}</span>
