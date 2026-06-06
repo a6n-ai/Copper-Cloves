@@ -4,12 +4,11 @@
  *  • schedule-lifecycle every 30 min — flip past-due classes to completed/abandoned
  * All jobs are idempotent (sent-flag / status guarded), so overlapping runs are safe.
  *
- * Run under a persistent process (PM2 — see ecosystem.config.js):
+ * Run on a persistent host:
  *   npm run scheduler
  *
- * On serverless (Amplify/Lambda) where a persistent process isn't available,
- * point an external scheduler at GET /api/cron/class-emails and
- * GET /api/cron/reconcile-no-shows instead.
+ * On Amplify (serverless/ephemeral), use external cron (EventBridge, cron-job.org, etc.)
+ * hitting GET /api/cron/class-emails and GET /api/cron/reconcile-no-shows instead.
  */
 import schedule from "node-schedule";
 import {
