@@ -7,6 +7,9 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 @.llm/conventions.md
 @.llm/known-issues.md
 @.llm/modules/copper-cloves.md
+@.llm/deploy.md
+@.llm/design.md
+@.llm/product.md
 
 ## Available Skills
 
@@ -19,7 +22,7 @@ Two slash commands are available in this repo (`.claude/skills/`). Use them proa
 
 At session start: briefly mention `/llm` is available for docs if the user seems unfamiliar with the codebase.
 
-Topics: `architecture` · `conventions` · `commands` · `known-issues` · `module`
+Topics: `architecture` · `conventions` · `commands` · `known-issues` · `module` · `deploy` · `design` · `product`
 
 ## .llm Folder Convention
 
