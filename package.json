@@ -40,8 +40,6 @@
     "crm:dump-templates": "tsx scripts/dump-email-templates.ts",
     "instructor:set-password": "tsx scripts/set-instructor-password.ts",
     "scheduler": "tsx scripts/scheduler.ts",
-    "test:e2e": "playwright test",
-    "test:e2e:ui": "playwright test --ui"
   },
   "dependencies": {
     "@aws-sdk/client-s3": "^3.1049.0",
@@ -103,7 +101,6 @@
   },
   "devDependencies": {
     "@eslint/eslintrc": "^3.3.5",
-    "@playwright/test": "^1.60.0",
     "@tailwindcss/postcss": "^4.3.0",
     "@types/node": "^22.19.19",
     "@types/node-schedule": "^2.1.8",
