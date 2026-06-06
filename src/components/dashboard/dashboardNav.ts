@@ -9,6 +9,7 @@ import {
   Coffee,
   DollarSign,
   Package,
+  ScrollText,
   Settings,
   User,
   ChefHat,
@@ -89,6 +90,7 @@ export const PORTAL_CONFIGS: Record<PortalKind, PortalConfig> = {
       {
         label: "System",
         items: [
+          { href: "/admin/activity", label: "Activity Log", icon: ScrollText },
           { href: "/admin/control", label: "Settings", icon: Settings },
           { href: "/account", label: "Profile", icon: User },
         ],
