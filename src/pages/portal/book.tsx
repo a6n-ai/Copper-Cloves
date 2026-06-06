@@ -409,11 +409,12 @@ const BookClassCard = memo(function BookClassCard({ cls, onSelect, onOpenDetails
         className="absolute inset-0 z-0 cursor-pointer"
       />
       <div className="pointer-events-none relative z-10 h-52 shrink-0 overflow-hidden sm:h-56">
-        {/* eslint-disable-next-line @next/next/no-img-element */}
-        <img
+        <Image
           src={cls.image}
           alt={cls.name}
-          className="h-full w-full object-cover transition-transform duration-500 ease-out motion-safe:group-hover:scale-105"
+          fill
+          sizes="(max-width: 640px) 100vw, 50vw"
+          className="object-cover transition-transform duration-500 ease-out motion-safe:group-hover:scale-105"
         />
         {/* Past / full → warm tonal scrim (not a grayscale filter — keeps the palette warm). */}
         {dimmed && <div className="pointer-events-none absolute inset-0 bg-cream/40" aria-hidden="true" />}
@@ -575,11 +576,12 @@ const FoodRow = memo(function FoodRow({ item, onAdjust }: FoodRowProps) {
       className="p-4 rounded-xl bg-white-warm border border-sage/10 hover:border-sage/30 transition-all"
     >
       <div className="flex gap-4">
-        {/* eslint-disable-next-line @next/next/no-img-element */}
-        <img
+        <Image
           src={item.image}
           alt={item.name}
-          className="w-24 h-24 rounded-lg object-cover bg-sage/10"
+          width={96}
+          height={96}
+          className="rounded-lg object-cover bg-sage/10"
         />
         <div className="flex-1">
           <div className="flex flex-wrap items-center gap-2 mb-1">

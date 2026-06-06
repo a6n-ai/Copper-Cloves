@@ -214,10 +214,11 @@ export default function InstructorProfilePage() {
                   <div className="relative grid grid-cols-1 gap-6 p-6 md:grid-cols-[auto_1fr_auto] md:items-center">
                     <div className="relative shrink-0">
                       {instructor.image_url ? (
-                        // eslint-disable-next-line @next/next/no-img-element
-                        <img
+                        <Image
                           src={instructor.image_url}
                           alt={instructor.name}
+                          width={96}
+                          height={96}
                           className="size-24 rounded-full object-cover ring-4 ring-cream shadow-md"
                         />
                       ) : (
