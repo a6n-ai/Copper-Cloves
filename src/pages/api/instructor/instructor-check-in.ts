@@ -2,6 +2,7 @@ import type { NextApiRequest, NextApiResponse } from "next";
 import prisma from "@/lib/prisma";
 import { getInstructorSession } from "@/lib/instructorAuth";
 import { requestLogger } from "@/lib/logger";
+import { logActivity } from "@/lib/activityLog";
 
 // Window: 15 min before class start → 5 min after class start
 const OPEN_BEFORE_MS = 15 * 60 * 1000;
@@ -56,5 +57,6 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   });
 
   log.info({ instructorId: session.instructorId, scheduleId }, "instructor self checked in");
+  await logActivity({ req, action: "instructor.self_check_in", entity: { type: "class_schedule", id: scheduleId } });
   return res.json({ ok: true, checkInTime: updated.instructor_check_in_time });
 }

@@ -3,6 +3,7 @@ import prisma from "@/lib/prisma";
 import { getInstructorSession } from "@/lib/instructorAuth";
 import { checkInOutcomeFromTimes } from "@/lib/bookingAttendance";
 import { requestLogger } from "@/lib/logger";
+import { logActivity } from "@/lib/activityLog";
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
   const log = requestLogger(req, res);
@@ -47,5 +48,6 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     { instructorId: session.instructorId, bookingId, scheduleId: booking.class_schedule_id },
     "instructor checked in member"
   );
+  await logActivity({ req, action: "instructor.member_checked_in", targetProfileId: booking.user_id, entity: { type: "booking", id: bookingId } });
   return res.json({ ok: true, booking: updated });
 }

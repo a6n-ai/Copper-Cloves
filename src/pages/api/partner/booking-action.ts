@@ -5,6 +5,7 @@ import { sendBookingConfirmationEmail } from "@/lib/notifications/sendBookingEma
 import { buildBookingCrmVariables, dispatchCrmEmailTriggers } from "@/lib/notifications/crmTemplatedDispatch";
 import { CrmTriggerType } from "@/lib/crmTriggerTypes";
 import logger from "@/lib/logger";
+import { logActivity } from "@/lib/activityLog";
 
 const CONFIRMATION_CONFIRMED = "confirmed" as const;
 const CONFIRMATION_PENDING = "pending" as const;
@@ -64,6 +65,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         }),
       )
       .catch((e) => logger.error({ err: e }, "[partner confirm CRM]"));
+    await logActivity({ req, action: "partner.booking_confirmed", entity: { type: "booking", id: booking.id } });
     return res.json({ ok: true, status: CONFIRMATION_CONFIRMED });
   }
 
@@ -116,6 +118,6 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       }),
     )
     .catch((e) => logger.error({ err: e }, "[partner reject CRM]"));
-
+  await logActivity({ req, action: "partner.booking_rejected", entity: { type: "booking", id: booking.id } });
   return res.json({ ok: true, status: "rejected" });
 }
