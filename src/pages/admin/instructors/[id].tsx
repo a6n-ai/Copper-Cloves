@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useRef, useState } from "react";
+import Image from "next/image";
 import { useRouter } from "next/router";
 import { useSession } from "next-auth/react";
 import {
@@ -487,8 +488,7 @@ function ImageField({ label, value, onChange, ownerId, name, className }: {
       <Label className="font-body text-xs text-charcoal/65">{label}</Label>
       <div className="flex items-center gap-4">
         {value ? (
-          // eslint-disable-next-line @next/next/no-img-element
-          <img src={value} alt={name || "Instructor"} className="size-16 rounded-full object-cover ring-2 ring-sage/20 shrink-0" />
+          <Image src={value} alt={name || "Instructor"} width={64} height={64} className="size-16 rounded-full object-cover ring-2 ring-sage/20 shrink-0" />
         ) : (
           <div className="size-16 rounded-full bg-sage/10 text-sage font-display text-xl flex items-center justify-center ring-2 ring-sage/20 shrink-0">
             {(name || "I").slice(0, 1).toUpperCase()}
