@@ -219,14 +219,14 @@ export default function AdminInstructorsPage() {
             </div>
           </TableCell>
           <TableCell className="px-5 py-4">
-            <div className="space-y-1 min-w-0">
+            <div className="space-y-1 min-w-0 max-w-[200px]">
               {instructor.email && (
-                <div className="flex items-center gap-1.5 text-xs text-charcoal/60 truncate">
+                <div className="flex items-center gap-1.5 text-xs text-charcoal/60 min-w-0">
                   <Mail className="h-3 w-3 shrink-0" /> <span className="truncate">{instructor.email}</span>
                 </div>
               )}
               {instructor.phone && (
-                <div className="flex items-center gap-1.5 text-xs text-charcoal/60 truncate">
+                <div className="flex items-center gap-1.5 text-xs text-charcoal/60 min-w-0">
                   <Phone className="h-3 w-3 shrink-0" /> <span className="truncate">{instructor.phone}</span>
                 </div>
               )}
@@ -305,9 +305,9 @@ export default function AdminInstructorsPage() {
   return (
     <>
       <Seo title="Instructors — Admin" description="Instructor roster management" />
-      <div className="min-h-screen bg-linear-to-br from-cream via-cream to-sage/10">
-        <main className="min-h-screen">
-          <div className="max-w-7xl mx-auto p-6 lg:p-8 space-y-8">
+      <div className="min-h-screen overflow-x-hidden bg-linear-to-br from-cream via-cream to-sage/10">
+        <main className="min-h-screen overflow-x-hidden">
+          <div className="max-w-7xl mx-auto p-6 lg:p-8 space-y-8 min-w-0">
             <AdminPageHeader
               title="Instructor Management"
               subtitle="Manage your instructor roster, profiles, and activation status"
@@ -379,8 +379,8 @@ export default function AdminInstructorsPage() {
               </CardHeader>
 
               <CardContent>
-                <div className="rounded-xl border border-sage/15 bg-white-warm overflow-hidden">
-                  <ResponsiveTable>
+                <ResponsiveTable>
+                  <div className="rounded-xl border border-sage/15 bg-white-warm overflow-hidden">
                     <Table>
                       <TableHeader>
                         <TableRow className="bg-sage/5 hover:bg-sage/5 border-sage/10">
@@ -395,8 +395,8 @@ export default function AdminInstructorsPage() {
                         {tableBody}
                       </TableBody>
                     </Table>
-                  </ResponsiveTable>
-                </div>
+                  </div>
+                </ResponsiveTable>
                 <Pagination page={pg.page} total={pg.total} onChange={pg.setPage} />
               </CardContent>
             </Card>
