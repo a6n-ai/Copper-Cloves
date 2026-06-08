@@ -18,6 +18,7 @@ import {
   Cake,
   Pencil,
   User as UserIcon,
+  Banknote,
 } from "lucide-react";
 import { requireSessionSSP } from "@/lib/requireSessionSSP";
 import { passCategoryForPackageType } from "@/lib/couponHelpers";
@@ -26,7 +27,8 @@ import { PageHeader } from "@/components/dashboard/PageHeader";
 import { MetricCard } from "@/components/admin/MetricCard";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
+import { Pill } from "@/components/ui/pill";
+import { paymentMethodPill, ticketStatusPill, memberStatusPill } from "@/lib/pillMaps";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -146,7 +148,6 @@ const PAYMENT_METHODS = [
   { v: "cash", l: "Cash" },
 ] as const;
 
-const methodLabel = (v: string) => PAYMENT_METHODS.find((m) => m.v === v)?.l ?? v.replace(/_/g, " ");
 
 function rupees(paise: number): string {
   return `₹${(paise / 100).toLocaleString("en-IN", { minimumFractionDigits: 0, maximumFractionDigits: 2 })}`;
@@ -564,7 +565,7 @@ function MemberBody({
                 <div className="flex items-center gap-2">
                   <span className="font-display text-2xl text-charcoal">{passLabel}</span>
                   {member.activePaused && (
-                    <Badge variant="outline" className="border-terracotta/30 text-terracotta bg-terracotta/10 font-body">Paused</Badge>
+                    <Pill tone="warning" className="font-body">Paused</Pill>
                   )}
                 </div>
                 <p className="font-body text-sm text-charcoal/70">
@@ -588,17 +589,17 @@ function MemberBody({
             <ResponsiveTable>
               <Table>
                 <TableHeader>
-                  <TableRow className="bg-sage/5 hover:bg-sage/5">
-                    <TableHead className="font-body text-xs uppercase text-charcoal/60">Class</TableHead>
-                    <TableHead className="font-body text-xs uppercase text-charcoal/60">When</TableHead>
-                    <TableHead className="font-body text-xs uppercase text-charcoal/60 text-right">Check-in</TableHead>
+                  <TableRow>
+                    <TableHead>Class</TableHead>
+                    <TableHead>When</TableHead>
+                    <TableHead className="text-right">Check-in</TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
                   {member.bookings.map((row) => (
-                    <TableRow key={row.id} className="border-sage/10">
+                    <TableRow key={row.id}>
                       <TableCell className="font-body text-charcoal">{row.name}</TableCell>
-                      <TableCell className="font-body text-xs text-charcoal/60">{fmtDateTime(row.when)}</TableCell>
+                      <TableCell className="font-body text-charcoal/60">{fmtDateTime(row.when)}</TableCell>
                       <TableCell className="text-right">
                         <div className="flex items-center justify-end gap-2">
                           {savingBookingId === row.id && <Spinner className="size-3" />}
@@ -649,12 +650,12 @@ function MemberBody({
                     <span className="font-body text-xs text-charcoal/60">
                       {p.isUnlimited ? "Unlimited" : `${p.creditsRemaining ?? 0} left`}
                     </span>
-                    <Badge
-                      variant="outline"
-                      className={p.isActive ? "border-sage/30 text-sage bg-sage/5 font-body" : "border-charcoal/15 text-charcoal/40 bg-cream/30 font-body"}
+                    <Pill
+                      {...memberStatusPill(p.isActive ? "active" : "expired")}
+                      className="font-body"
                     >
                       {p.isActive ? "Active" : "Expired"}
-                    </Badge>
+                    </Pill>
                   </div>
                 </li>
               ))}
@@ -671,26 +672,36 @@ function MemberBody({
           <ResponsiveTable>
             <Table>
               <TableHeader>
-                <TableRow className="bg-sage/5 hover:bg-sage/5">
-                  <TableHead className="font-body text-xs uppercase text-charcoal/60">Method</TableHead>
-                  <TableHead className="font-body text-xs uppercase text-charcoal/60 text-right">Amount</TableHead>
-                  <TableHead className="font-body text-xs uppercase text-charcoal/60">Date</TableHead>
-                  <TableHead className="font-body text-xs uppercase text-charcoal/60">Recorded by</TableHead>
-                  <TableHead className="font-body text-xs uppercase text-charcoal/60 text-right">Proof</TableHead>
+                <TableRow>
+                  <TableHead>Method</TableHead>
+                  <TableHead className="text-right">Amount</TableHead>
+                  <TableHead>Date</TableHead>
+                  <TableHead>Recorded by</TableHead>
+                  <TableHead className="text-right">Proof</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
                 {member.payments.map((p) => (
-                  <TableRow key={p.id} className="border-sage/10">
+                  <TableRow key={p.id}>
                     <TableCell>
-                      <Badge variant="outline" className="border-sage/30 text-sage bg-sage/5 font-body capitalize">
-                        {methodLabel(p.method)}
-                      </Badge>
+                      {(() => {
+                        const pm = paymentMethodPill(p.method);
+                        return (
+                          <Pill
+                            tone={pm.tone}
+                            brand={pm.brand}
+                            icon={pm.label === "Cash" ? <Banknote className="h-3 w-3" /> : undefined}
+                            className="font-body"
+                          >
+                            {pm.label}
+                          </Pill>
+                        );
+                      })()}
                       {p.reference && <div className="font-body text-xs text-charcoal/50 mt-1">{p.reference}</div>}
                     </TableCell>
-                    <TableCell className="text-right font-body font-medium text-charcoal tabular-nums">{rupees(p.amountPaise)}</TableCell>
-                    <TableCell className="font-body text-xs text-charcoal/60">{fmtDate(p.createdAt)}</TableCell>
-                    <TableCell className="font-body text-xs text-charcoal/60">{p.recordedBy ?? "—"}</TableCell>
+                    <TableCell className="text-right font-body text-charcoal tabular-nums">{rupees(p.amountPaise)}</TableCell>
+                    <TableCell className="font-body text-charcoal/60">{fmtDate(p.createdAt)}</TableCell>
+                    <TableCell className="font-body text-charcoal/60">{p.recordedBy ?? "—"}</TableCell>
                     <TableCell className="text-right">
                       {p.proofUrl ? (
                         <a href={p.proofUrl} target="_blank" rel="noreferrer" className="font-body text-xs text-sage underline">view</a>
@@ -721,7 +732,7 @@ function MemberBody({
                     </div>
                     <div className="font-body text-xs text-charcoal/50">{fmtDate(o.orderedAt)}</div>
                   </div>
-                  <Badge variant="outline" className="border-charcoal/15 text-charcoal/60 font-body capitalize">{o.status}</Badge>
+                  <Pill tone="neutral" className="font-body capitalize">{o.status}</Pill>
                 </li>
               ))}
             </ul>
@@ -1300,15 +1311,11 @@ function EmptyNote({ text }: { text: string }) {
 }
 
 function TicketStatusBadge({ status }: { status: string }) {
-  const map: Record<string, string> = {
-    open: "border-terracotta/30 text-terracotta bg-terracotta/10",
-    in_review: "border-amber-400/40 text-amber-600 bg-amber-50",
-    resolved: "border-sage/30 text-sage bg-sage/5",
-  };
+  const tp = ticketStatusPill(status);
   return (
-    <Badge variant="outline" className={`font-body capitalize shrink-0 ${map[status] ?? "border-charcoal/15 text-charcoal/60"}`}>
+    <Pill tone={tp.tone} className="font-body capitalize shrink-0">
       {status.replace(/_/g, " ")}
-    </Badge>
+    </Pill>
   );
 }
 

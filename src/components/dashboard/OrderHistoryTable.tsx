@@ -8,8 +8,7 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import { Badge } from "@/components/ui/badge";
-import { cn } from "@/lib/utils";
+import { Pill, type PillProps } from "@/components/ui/pill";
 import { ResponsiveTable } from "@/components/responsive/ResponsiveTable";
 
 export interface OrderRow {
@@ -25,19 +24,18 @@ export interface OrderHistoryTableProps {
   rows: OrderRow[];
 }
 
-function statusClass(status: string) {
+function statusTone(status: string): PillProps["tone"] {
   switch ((status || "").toLowerCase()) {
     case "pending":
-      return "bg-accent/10 text-accent";
+      return "warning";
     case "preparing":
-      return "bg-primary/10 text-primary";
     case "ready":
     case "completed":
-      return "bg-primary/10 text-primary";
+      return "success";
     case "cancelled":
-      return "bg-destructive/10 text-destructive";
+      return "danger";
     default:
-      return "bg-muted text-muted-foreground";
+      return "neutral";
   }
 }
 
@@ -57,7 +55,7 @@ interface RowViewProps {
   dateLabel: string;
   amount: number;
   statusBadge: string;
-  statusBadgeClass: string;
+  statusTone: PillProps["tone"];
   methodLabel: string;
 }
 
@@ -67,7 +65,7 @@ const OrderRowView = memo(function OrderRowView({
   dateLabel,
   amount,
   statusBadge,
-  statusBadgeClass,
+  statusTone,
   methodLabel,
 }: RowViewProps) {
   return (
@@ -76,9 +74,9 @@ const OrderRowView = memo(function OrderRowView({
         <p className="text-sm font-medium text-card-foreground">{item}</p>
         <p className="font-mono text-xs text-muted-foreground">#{id.slice(0, 8)}…</p>
       </TableCell>
-      <TableCell className="whitespace-nowrap text-sm text-muted-foreground">{dateLabel}</TableCell>
+      <TableCell className="whitespace-nowrap text-muted-foreground">{dateLabel}</TableCell>
       <TableCell>
-        <Badge className={cn("font-normal", statusBadgeClass)}>{statusBadge}</Badge>
+        <Pill tone={statusTone} className="font-normal">{statusBadge}</Pill>
       </TableCell>
       <TableCell>
         <span className="inline-flex items-center gap-1 text-xs text-muted-foreground">
@@ -109,7 +107,7 @@ export function OrderHistoryTable({ rows }: OrderHistoryTableProps) {
           year: "numeric",
         }),
         statusBadge: formatStatus(row.status),
-        statusBadgeClass: statusClass(row.status),
+        statusTone: statusTone(row.status),
         methodLabel: formatMethod(row.method),
       })),
     [rows],
@@ -119,7 +117,7 @@ export function OrderHistoryTable({ rows }: OrderHistoryTableProps) {
     <ResponsiveTable>
       <Table>
         <TableHeader>
-          <TableRow className="hover:bg-transparent">
+          <TableRow>
             <TableHead>Order</TableHead>
             <TableHead>Date</TableHead>
             <TableHead>Status</TableHead>

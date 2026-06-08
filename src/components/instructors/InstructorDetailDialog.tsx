@@ -1,6 +1,7 @@
 import { useEffect, useRef } from "react";
 import { Award, Heart, Sparkles, Facebook, Twitter, Linkedin, MessageCircle } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { Pill } from "@/components/ui/pill";
 import { CloseButton } from "@/components/ui/quick-actions";
 import { InstructorPhoto } from "@/components/instructors/InstructorPhoto";
 import { InstructorMonogram } from "@/components/instructors/InstructorMonogram";
@@ -80,10 +81,9 @@ export function InstructorDetailDialog({
         {/* Detail */}
         <div className="overflow-y-auto p-6 md:p-8">
           {instructor.experience && (
-            <div className="mb-5 inline-flex items-center gap-1.5 rounded-full border border-terracotta/25 bg-terracotta/10 px-3 py-1 font-body text-xs font-medium text-terracotta">
-              <Sparkles size={13} />
+            <Pill tone="warning" size="md" icon={<Sparkles size={13} />} className="mb-5">
               {instructor.experience}
-            </div>
+            </Pill>
           )}
 
           {instructorHasSocials(instructor) && (
@@ -145,12 +145,9 @@ export function InstructorDetailDialog({
               </h3>
               <div className="flex flex-wrap gap-2">
                 {instructor.specialties.map((s) => (
-                  <span
-                    key={s}
-                    className="rounded-full border border-sage/20 bg-sage/10 px-3 py-1.5 font-body text-sm font-medium text-sage"
-                  >
+                  <Pill key={s} tone="success" size="md">
                     {s}
-                  </span>
+                  </Pill>
                 ))}
               </div>
             </div>

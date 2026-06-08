@@ -9,6 +9,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { MetricCard } from "@/components/admin/MetricCard";
 import { Pagination, usePagination } from "@/components/Pagination";
+import { Pill, type PillProps } from "@/components/ui/pill";
 
 type ReconMatch =
   | "matched"
@@ -48,13 +49,13 @@ type ReconResponse = {
   };
 };
 
-const MATCH_META: Record<ReconMatch, { label: string; bg: string; fg: string; border: string; bad?: boolean }> = {
-  matched: { label: "Matched", bg: "rgba(143,151,121,0.14)", fg: "#5f6b4f", border: "rgba(143,151,121,0.32)" },
-  external: { label: "External · Page", bg: "rgba(51,149,255,0.10)", fg: "#1f6feb", border: "rgba(51,149,255,0.30)" },
-  amount_mismatch: { label: "Amount mismatch", bg: "rgba(178,74,58,0.12)", fg: "#9c4a36", border: "rgba(178,74,58,0.32)", bad: true },
-  status_mismatch: { label: "Status mismatch", bg: "rgba(178,74,58,0.12)", fg: "#9c4a36", border: "rgba(178,74,58,0.32)", bad: true },
-  missing_from_website: { label: "Missing from site", bg: "rgba(214,69,52,0.15)", fg: "#b3402c", border: "rgba(214,69,52,0.38)", bad: true },
-  website_only: { label: "Not in Razorpay", bg: "rgba(176,138,62,0.16)", fg: "#866223", border: "rgba(176,138,62,0.34)", bad: true },
+const MATCH_META: Record<ReconMatch, { label: string; tone: PillProps["tone"]; bad?: boolean }> = {
+  matched: { label: "Matched", tone: "success" },
+  external: { label: "External · Page", tone: "neutral" },
+  amount_mismatch: { label: "Amount mismatch", tone: "warning", bad: true },
+  status_mismatch: { label: "Status mismatch", tone: "warning", bad: true },
+  missing_from_website: { label: "Missing from site", tone: "danger", bad: true },
+  website_only: { label: "Not in Razorpay", tone: "danger", bad: true },
 };
 
 function inr(paise: number): string {
@@ -228,46 +229,47 @@ function ReconcileSectionImpl() {
                 <ResponsiveTable>
                   <Table>
                     <TableHeader>
-                      <TableRow className="bg-sage/5 hover:bg-sage/5 border-sage/10">
-                        <TableHead className="font-body text-xs uppercase tracking-wide text-charcoal/60 px-5 py-3 w-[140px]">Match</TableHead>
-                        <TableHead className="font-body text-xs uppercase tracking-wide text-charcoal/60 px-5 py-3">Payment</TableHead>
-                        <TableHead className="font-body text-xs uppercase tracking-wide text-charcoal/60 px-5 py-3 w-[140px]">Date</TableHead>
-                        <TableHead className="font-body text-xs uppercase tracking-wide text-charcoal/60 px-5 py-3 w-[120px]">Method</TableHead>
-                        <TableHead className="font-body text-xs uppercase tracking-wide text-charcoal/60 px-5 py-3 w-[120px]">Status</TableHead>
-                        <TableHead className="font-body text-xs uppercase tracking-wide text-charcoal/60 px-5 py-3 w-[120px] text-right">Amount</TableHead>
+                      <TableRow>
+                        <TableHead className="w-[140px]">Match</TableHead>
+                        <TableHead>Payment</TableHead>
+                        <TableHead className="w-[140px]">Date</TableHead>
+                        <TableHead className="w-[120px]">Method</TableHead>
+                        <TableHead className="w-[120px]">Status</TableHead>
+                        <TableHead className="w-[120px] text-right">Amount</TableHead>
                       </TableRow>
                     </TableHeader>
                     <TableBody>
                       {pg.pageItems.map((r) => {
                         const meta = MATCH_META[r.match];
                         return (
-                          <TableRow key={r.paymentId} className={`border-sage/10 ${meta.bad ? "bg-[#b3402c]/[0.03]" : ""}`}>
-                            <TableCell className="px-5 py-4">
-                              <span
-                                className="inline-flex w-full max-w-[128px] items-center justify-center gap-1 rounded-full border px-2.5 py-0.5 font-body text-[11px] font-medium whitespace-nowrap"
-                                style={{ backgroundColor: meta.bg, color: meta.fg, borderColor: meta.border }}
+                          <TableRow key={r.paymentId} className={meta.bad ? "bg-[#b3402c]/[0.03]" : undefined}>
+                            <TableCell>
+                              <Pill
+                                tone={meta.tone}
+                                size="sm"
+                                icon={meta.bad ? <AlertTriangle className="h-3 w-3" /> : r.match === "matched" ? <Check className="h-3 w-3" /> : undefined}
+                                className="w-full max-w-[128px] justify-center"
                               >
-                                {meta.bad ? <AlertTriangle className="h-3 w-3" /> : r.match === "matched" ? <Check className="h-3 w-3" /> : null}
                                 {meta.label}
-                              </span>
+                              </Pill>
                             </TableCell>
-                            <TableCell className="px-5 py-4">
+                            <TableCell>
                               <div className="font-mono text-xs text-charcoal">{r.paymentId}</div>
                               <div className="font-body text-xs text-charcoal/45 line-clamp-1 [overflow-wrap:anywhere]">
                                 {r.description || r.notes || r.email || (r.source === "external" ? "External payment page" : "—")}
                               </div>
                             </TableCell>
-                            <TableCell className="px-5 py-4 font-body text-sm text-charcoal/60 whitespace-nowrap">
+                            <TableCell className="font-body text-sm text-charcoal/60 whitespace-nowrap">
                               {r.razorpayStatus
                                 ? new Date(r.createdAtISO).toLocaleString("en-IN", { day: "numeric", month: "short", hour: "numeric", minute: "2-digit" })
                                 : "—"}
                             </TableCell>
-                            <TableCell className="px-5 py-4 font-body text-sm text-charcoal/70 whitespace-nowrap">{r.method ?? "—"}</TableCell>
-                            <TableCell className="px-5 py-4">
+                            <TableCell className="font-body text-sm text-charcoal/70 whitespace-nowrap">{r.method ?? "—"}</TableCell>
+                            <TableCell>
                               <div className="font-body text-xs text-charcoal/70">RZP: {r.razorpayStatus ?? "—"}</div>
                               <div className="font-body text-xs text-charcoal/45">Site: {r.websiteStatus ?? "—"}</div>
                             </TableCell>
-                            <TableCell className="px-5 py-4 text-right">
+                            <TableCell className="text-right">
                               <span className="font-display text-base tabular-nums text-charcoal">{inr(r.amountPaise)}</span>
                               {r.amountRefundedPaise > 0 ? (
                                 <div className="font-body text-xs text-[#a05e38]">−{inr(r.amountRefundedPaise)} refunded</div>

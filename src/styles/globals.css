@@ -48,6 +48,39 @@
   --color-chart-4: hsl(var(--chart-4));
   --color-chart-5: hsl(var(--chart-5));
 
+  /* Pill — semantic tones */
+  --color-pill-success-bg: hsl(var(--pill-success-bg));
+  --color-pill-success-fg: hsl(var(--pill-success-fg));
+  --color-pill-success-dot: hsl(var(--pill-success-dot));
+  --color-pill-warning-bg: hsl(var(--pill-warning-bg));
+  --color-pill-warning-fg: hsl(var(--pill-warning-fg));
+  --color-pill-warning-dot: hsl(var(--pill-warning-dot));
+  --color-pill-danger-bg: hsl(var(--pill-danger-bg));
+  --color-pill-danger-fg: hsl(var(--pill-danger-fg));
+  --color-pill-danger-dot: hsl(var(--pill-danger-dot));
+  --color-pill-info-bg: hsl(var(--pill-info-bg));
+  --color-pill-info-fg: hsl(var(--pill-info-fg));
+  --color-pill-info-dot: hsl(var(--pill-info-dot));
+  --color-pill-neutral-bg: hsl(var(--pill-neutral-bg));
+  --color-pill-neutral-fg: hsl(var(--pill-neutral-fg));
+  --color-pill-neutral-dot: hsl(var(--pill-neutral-dot));
+  /* Pill — brand soft tints */
+  --color-pill-razorpay-bg: hsl(var(--pill-razorpay-bg));
+  --color-pill-razorpay-fg: hsl(var(--pill-razorpay-fg));
+  --color-pill-razorpay-dot: hsl(var(--pill-razorpay-dot));
+  --color-pill-whatsapp-bg: hsl(var(--pill-whatsapp-bg));
+  --color-pill-whatsapp-fg: hsl(var(--pill-whatsapp-fg));
+  --color-pill-whatsapp-dot: hsl(var(--pill-whatsapp-dot));
+  --color-pill-upi-bg: hsl(var(--pill-upi-bg));
+  --color-pill-upi-fg: hsl(var(--pill-upi-fg));
+  --color-pill-upi-dot: hsl(var(--pill-upi-dot));
+  --color-pill-pinelabs-bg: hsl(var(--pill-pinelabs-bg));
+  --color-pill-pinelabs-fg: hsl(var(--pill-pinelabs-fg));
+  --color-pill-pinelabs-dot: hsl(var(--pill-pinelabs-dot));
+  --color-pill-gmail-bg: hsl(var(--pill-gmail-bg));
+  --color-pill-gmail-fg: hsl(var(--pill-gmail-fg));
+  --color-pill-gmail-dot: hsl(var(--pill-gmail-dot));
+
   --color-sidebar: hsl(var(--sidebar-background));
   --color-sidebar-foreground: hsl(var(--sidebar-foreground));
   --color-sidebar-primary: hsl(var(--sidebar-primary));
@@ -122,6 +155,37 @@
     --chart-3: 43 24% 88%;
     --chart-4: 130 14% 49%;
     --chart-5: 31 53% 64%;
+    /* Pill tokens — light */
+    --pill-success-bg: 80 25% 90%;
+    --pill-success-fg: 80 22% 30%;
+    --pill-success-dot: 80 12% 47%;
+    --pill-warning-bg: 17 55% 91%;
+    --pill-warning-fg: 17 50% 36%;
+    --pill-warning-dot: 17 47% 55%;
+    --pill-danger-bg: 8 70% 92%;
+    --pill-danger-fg: 8 60% 41%;
+    --pill-danger-dot: 8 62% 58%;
+    --pill-info-bg: 203 30% 90%;
+    --pill-info-fg: 203 30% 33%;
+    --pill-info-dot: 203 23% 46%;
+    --pill-neutral-bg: 43 24% 88%;
+    --pill-neutral-fg: 0 0% 28%;
+    --pill-neutral-dot: 43 12% 50%;
+    --pill-razorpay-bg: 207 90% 92%;
+    --pill-razorpay-fg: 207 80% 38%;
+    --pill-razorpay-dot: 207 96% 51%;
+    --pill-whatsapp-bg: 142 55% 89%;
+    --pill-whatsapp-fg: 142 65% 26%;
+    --pill-whatsapp-dot: 142 70% 42%;
+    --pill-upi-bg: 28 88% 91%;
+    --pill-upi-fg: 28 85% 37%;
+    --pill-upi-dot: 28 98% 47%;
+    --pill-pinelabs-bg: 175 35% 87%;
+    --pill-pinelabs-fg: 175 90% 20%;
+    --pill-pinelabs-dot: 175 98% 24%;
+    --pill-gmail-bg: 6 78% 92%;
+    --pill-gmail-fg: 6 70% 43%;
+    --pill-gmail-dot: 6 81% 56%;
   }
 
   .dark {
@@ -149,6 +213,37 @@
     --chart-3: 0 0% 29%;
     --chart-4: 130 14% 56%;
     --chart-5: 27 67% 75%;
+    /* Pill tokens — dark */
+    --pill-success-bg: 80 15% 22%;
+    --pill-success-fg: 80 25% 78%;
+    --pill-success-dot: 80 20% 58%;
+    --pill-warning-bg: 17 30% 24%;
+    --pill-warning-fg: 17 55% 78%;
+    --pill-warning-dot: 17 50% 62%;
+    --pill-danger-bg: 8 40% 26%;
+    --pill-danger-fg: 8 72% 80%;
+    --pill-danger-dot: 8 60% 64%;
+    --pill-info-bg: 203 25% 24%;
+    --pill-info-fg: 203 35% 78%;
+    --pill-info-dot: 203 30% 60%;
+    --pill-neutral-bg: 0 0% 24%;
+    --pill-neutral-fg: 43 20% 78%;
+    --pill-neutral-dot: 43 10% 55%;
+    --pill-razorpay-bg: 207 55% 24%;
+    --pill-razorpay-fg: 207 85% 80%;
+    --pill-razorpay-dot: 207 90% 62%;
+    --pill-whatsapp-bg: 142 38% 22%;
+    --pill-whatsapp-fg: 142 50% 74%;
+    --pill-whatsapp-dot: 142 60% 56%;
+    --pill-upi-bg: 28 50% 24%;
+    --pill-upi-fg: 28 85% 76%;
+    --pill-upi-dot: 28 90% 58%;
+    --pill-pinelabs-bg: 175 45% 18%;
+    --pill-pinelabs-fg: 175 45% 70%;
+    --pill-pinelabs-dot: 175 65% 42%;
+    --pill-gmail-bg: 6 45% 26%;
+    --pill-gmail-fg: 6 78% 80%;
+    --pill-gmail-dot: 6 72% 64%;
   }
 
   * {

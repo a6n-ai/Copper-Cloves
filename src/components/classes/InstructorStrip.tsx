@@ -1,4 +1,4 @@
-import { Badge } from "@/components/ui/badge";
+import { Pill } from "@/components/ui/pill";
 import type { PublicInstructor } from "@/pages/classes";
 
 export function InstructorStrip({ instructor }: { instructor: PublicInstructor }) {
@@ -25,13 +25,9 @@ export function InstructorStrip({ instructor }: { instructor: PublicInstructor }
         {instructor.specialties.length > 0 && (
           <div className="mt-1.5 flex flex-wrap gap-1.5">
             {instructor.specialties.slice(0, 4).map((s) => (
-              <Badge
-                key={s}
-                variant="outline"
-                className="border-sage/30 bg-sage/10 text-[10px] font-medium text-sage"
-              >
+              <Pill key={s} tone="success" size="sm">
                 {s}
-              </Badge>
+              </Pill>
             ))}
           </div>
         )}

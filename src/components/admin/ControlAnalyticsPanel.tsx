@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useState } from "react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
+import { Pill } from "@/components/ui/pill";
 import {
   BarChart3,
   TrendingUp,
@@ -84,18 +84,16 @@ function barPct(value: number, max: number) {
   return Math.round((value / m) * 100);
 }
 
-function statusClasses(status: string) {
+function statusTone(status: string): "success" | "warning" | "danger" | "info" | "neutral" {
   switch (status) {
     case "full":
-      return "bg-sage text-cream";
     case "high":
-      return "bg-sage/80 text-cream";
     case "good":
-      return "bg-sage/60 text-cream";
+      return "success";
     case "moderate":
-      return "bg-terracotta text-cream";
+      return "warning";
     default:
-      return "bg-[#a05e38] text-cream";
+      return "warning";
   }
 }
 
@@ -206,10 +204,9 @@ export function ControlAnalyticsPanel() {
                 )}
               </div>
               <div className="mt-4 flex items-center justify-center gap-2">
-                <Badge className="bg-sage/10 text-sage border-sage/20">
-                  <TrendingUp className="h-3 w-3 mr-1" />
+                <Pill tone="success" icon={<TrendingUp className="h-3 w-3" />}>
                   {growthLabel}
-                </Badge>
+                </Pill>
               </div>
             </CardContent>
           </Card>
@@ -341,10 +338,9 @@ export function ControlAnalyticsPanel() {
                 )}
               </div>
               <div className="mt-4 flex items-center justify-center">
-                <Badge className="bg-sage/10 text-sage border-sage/20">
-                  <TrendingUp className="h-3 w-3 mr-1" />
+                <Pill tone="success" icon={<TrendingUp className="h-3 w-3" />}>
                   {memberGrowthLabel}
-                </Badge>
+                </Pill>
               </div>
             </CardContent>
           </Card>
@@ -452,7 +448,7 @@ export function ControlAnalyticsPanel() {
                           />
                         </div>
                       </div>
-                      <Badge className="bg-sage text-cream shrink-0">{member.streak}</Badge>
+                      <Pill tone="success" appearance="solid" className="shrink-0">{member.streak}</Pill>
                     </div>
                   ))}
                 </div>
@@ -512,9 +508,9 @@ export function ControlAnalyticsPanel() {
                     <div key={`${inst.name}-${idx}`} className="p-3 bg-sage/5 rounded-lg border border-sage/20">
                       <div className="flex items-center justify-between mb-2">
                         <div className="font-body text-sm font-medium text-charcoal">{inst.name}</div>
-                        <Badge variant="outline" className="border-sage/20 text-sage bg-sage/5">
+                        <Pill tone="success">
                           {inst.sharePct}%
-                        </Badge>
+                        </Pill>
                       </div>
                       <div className="font-display text-2xl text-sage">
                         ₹{inst.earnings.toLocaleString("en-IN")}
@@ -612,7 +608,7 @@ export function ControlAnalyticsPanel() {
                     <div key={`${cls.name}-${idx}`}>
                       <div className="flex justify-between mb-1">
                         <span className="font-body text-sm">{cls.name}</span>
-                        <Badge className={statusClasses(cls.status)}>{cls.occupancy}%</Badge>
+                        <Pill tone={statusTone(cls.status)} appearance="solid">{cls.occupancy}%</Pill>
                       </div>
                       <div className="h-2 bg-sage/10 rounded-full overflow-hidden">
                         <div
@@ -670,9 +666,9 @@ export function ControlAnalyticsPanel() {
                 <TrendingUp className="h-4 w-4 text-sage" />
               </div>
               <div className="font-display text-3xl text-charcoal mb-1">₹{d.kpis.revenuePerMember}</div>
-              <Badge className="bg-sage/10 text-sage border-sage/20">
+              <Pill tone="success">
                 {revPerMemberLabel}
-              </Badge>
+              </Pill>
             </CardContent>
           </Card>
 
@@ -683,7 +679,7 @@ export function ControlAnalyticsPanel() {
                 <BarChart3 className="h-4 w-4 text-sage" />
               </div>
               <div className="font-display text-3xl text-charcoal mb-1">{d.kpis.classUtilization}%</div>
-              <Badge className="bg-sage/10 text-sage border-sage/20">estimate</Badge>
+              <Pill tone="success">estimate</Pill>
             </CardContent>
           </Card>
 
@@ -694,7 +690,7 @@ export function ControlAnalyticsPanel() {
                 <CheckCircle2 className="h-4 w-4 text-sage" />
               </div>
               <div className="font-display text-3xl text-charcoal mb-1">—</div>
-              <Badge className="bg-sage/10 text-sage border-sage/20">not in app</Badge>
+              <Pill tone="success">not in app</Pill>
             </CardContent>
           </Card>
 
@@ -705,7 +701,7 @@ export function ControlAnalyticsPanel() {
                 <Coffee className="h-4 w-4 text-sage" />
               </div>
               <div className="font-display text-3xl text-charcoal mb-1">{d.kpis.cafeAttachPct}%</div>
-              <Badge className="bg-sage/10 text-sage border-sage/20">unique buyers vs active members</Badge>
+              <Pill tone="success">unique buyers vs active members</Pill>
             </CardContent>
           </Card>
         </div>

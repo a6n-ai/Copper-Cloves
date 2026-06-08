@@ -1,7 +1,7 @@
 "use client";
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
 import { ChartContainer, ChartTooltip, ChartTooltipContent, type ChartConfig } from "@/components/ui/chart"
-import { Badge } from "@/components/ui/badge";
+import { Pill } from "@/components/ui/pill";
 import { cn } from "@/lib/utils";
 import { Bar, BarChart, CartesianGrid, XAxis, YAxis } from "recharts"
 
@@ -61,13 +61,9 @@ export default function Chart01() {
                     <CardTitle className="text-lg font-medium">Sales Overview</CardTitle>
                     <div className="flex items-center gap-2">
                         <h3 className="text-3xl font-medium text-card-foreground">$386.53K</h3>
-                        <Badge
-                            className={cn(
-                                "bg-teal-400/10 text-muted-foreground shadow-none"
-                            )}
-                        >
+                        <Pill tone="success" className="shadow-none">
                             +18%
-                        </Badge>
+                        </Pill>
                         <span className="text-xs text-muted-foreground">
                             than last year
                         </span>

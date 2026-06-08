@@ -1,9 +1,8 @@
-import { Badge } from "@/components/ui/badge";
+import { Pill } from "@/components/ui/pill";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
 import { ArrowRight, CalendarDays, LucideIcon, ShoppingBag } from "lucide-react";
-import { cn } from "@/lib/utils";
 
 type DashboardMetric = {
   label: string;
@@ -101,16 +100,12 @@ const Statistics = ({
                             <p className="text-2xl font-medium text-card-foreground">
                               {metric.value}
                             </p>
-                            <Badge
-                              className={cn(
-                                "font-normal text-muted-foreground",
-                                metric.isPositive
-                                  ? "bg-teal-400/10 "
-                                  : "bg-red-500/10"
-                              )}
+                            <Pill
+                              tone={metric.isPositive ? "success" : "danger"}
+                              className="font-normal"
                             >
                               {metric.percentage}
-                            </Badge>
+                            </Pill>
                           </div>
                         </div>
                         {index < mainDashboard.metrics.length - 1 && (
@@ -152,16 +147,12 @@ const Statistics = ({
                         <p className="text-2xl font-medium text-card-foreground">
                           {stat.value}
                         </p>
-                        <Badge
-                          className={cn(
-                            "font-normal text-muted-foreground",
-                            stat.isPositive !== false
-                              ? "bg-teal-400/10"
-                              : "bg-red-500/10"
-                          )}
+                        <Pill
+                          tone={stat.isPositive !== false ? "success" : "danger"}
+                          className="font-normal"
                         >
                           {stat.percentage}
-                        </Badge>
+                        </Pill>
                       </div>
                     </div>
                     {/* button */}

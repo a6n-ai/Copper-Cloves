@@ -195,6 +195,22 @@ Three equal-width panels, each a full-height video or image crossfade. Text labe
 ### Pricing Cards (Horizontal Carousel)
 Horizontal scroll carousel of package cards. Featured card (`featured: true`) renders with sage background and white text. All others: white-warm background, charcoal text, warm border. Benefits list uses Check icons in sage. Scroll controlled by prev/next arrow buttons. Tabs toggle between "Class Pass" and "Studio Pass" tier groups.
 
+### Pills & Badges
+Canonical component: `Pill` (`src/components/ui/pill.tsx`). Replaces the old shadcn `Badge`. `rounded-md`, Montserrat `font-medium`, `text-xs`. Flat at rest (no shadow). Covers status, category tags, brand/payment labels, and count pills. Interactive filter/toggle chips are a SEPARATE idiom — do not use `Pill` for them.
+
+**Tones (semantic, warm — no amber/yellow):**
+- `success` sage — confirmed, active, paid, cash
+- `warning` terracotta — pending, expiring, in-review
+- `danger` warm-red (`#cf5b48`) — no-show, cancelled, failed
+- `info` slate-blue (`#5b7a91`) — completed, scheduled
+- `neutral` sand — default, draft
+
+**Brand pills (soft tint):** `brand="razorpay|whatsapp|upi|pinelabs|gmail"`. Brand hue at ~12% background + brand-colored text + a solid brand dot. NEVER full-color brand fill on a surface (`appearance="solid"` is reserved for a single hero CTA context). Upholds the Two-Voice Rule — brand color accents, never dominates the warm field. Brand hex refs: Razorpay `#0D94FB`, WhatsApp `#25D366`, UPI `#EF7102`, Pine Labs `#01796F`, Gmail `#EA4335`.
+
+**Dark mode:** every tone/brand has `.dark` token overrides — tints drop to ~20–24% lightness, text lightens. Tokens live in `globals.css` (`--pill-<name>-bg/fg/dot`); the component references `bg-pill-*` / `text-pill-*` utilities only, never raw hex.
+
+**Status/method mapping:** use `src/lib/pillMaps.ts` (`bookingStatusPill`, `classStatusPill`, `ticketStatusPill`, `paymentMethodPill`) instead of re-deriving colors per page.
+
 ## 6. Do's and Don'ts
 
 ### Do:

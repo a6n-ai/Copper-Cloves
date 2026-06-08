@@ -5,7 +5,8 @@ import type { GetServerSideProps } from "next";
 import { getStudioServerSession } from "@/lib/getStudioServerSession";
 import { startOfMondayWeekLocal, endOfSundayWeekLocal } from "@/lib/calendarWeek";
 import { Card, CardContent } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
+import { Pill } from "@/components/ui/pill";
+import { bookingStatusPill } from "@/lib/pillMaps";
 import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { MetricCard } from "@/components/admin/MetricCard";
@@ -300,8 +301,8 @@ export default function PartnerClasses() {
                       </div>
                     </div>
                     <div className="flex items-center gap-2">
-                      <Badge className="bg-sage/10 text-sage border-sage/20 font-body"><Users className="h-3.5 w-3.5 mr-1" /> {c.signups}/{c.capacity} signed up</Badge>
-                      <Badge variant="outline" className="border-charcoal/15 text-charcoal/60 font-body">{c.openSpots} open</Badge>
+                      <Pill tone="success" className="font-body" icon={<Users className="h-3.5 w-3.5" />}>{c.signups}/{c.capacity} signed up</Pill>
+                      <Pill tone="neutral" className="font-body">{c.openSpots} open</Pill>
                     </div>
                   </div>
 
@@ -332,26 +333,23 @@ export default function PartnerClasses() {
                             </div>
                           </div>
                           <div className="flex items-center gap-2 shrink-0">
-                            <Badge
-                              variant="outline"
-                              className={
-                                b.hasWaiver
-                                  ? "border-sage/30 text-sage bg-sage/5 font-body whitespace-nowrap"
-                                  : "border-terracotta/30 text-terracotta bg-terracotta/5 font-body whitespace-nowrap"
-                              }
+                            <Pill
+                              tone={b.hasWaiver ? "success" : "warning"}
+
+                              className="font-body whitespace-nowrap"
                             >
                               {b.hasWaiver ? "Waiver ✓" : "No waiver"}
-                            </Badge>
+                            </Pill>
                             {b.confirmationStatus === "pending" ? (
                               <>
-                                <Badge variant="outline" className="border-terracotta/30 text-terracotta bg-terracotta/10 font-body whitespace-nowrap">Pending</Badge>
+                                <Pill {...bookingStatusPill("pending")} className="font-body whitespace-nowrap">Pending</Pill>
                                 <Button size="sm" variant="sage" disabled={actioningId === b.id} onClick={() => actionBooking(c.id, b.id, "confirm")} className="h-7 px-3 text-xs rounded-full">Confirm</Button>
                                 <Button size="sm" variant="outline" disabled={actioningId === b.id} onClick={() => actionBooking(c.id, b.id, "reject")} className="border-terracotta/30 text-terracotta hover:bg-terracotta/5 h-7 px-3 text-xs rounded-full font-body">Reject</Button>
                               </>
                             ) : b.checkedIn ? (
-                              <Badge className="bg-sage/10 text-sage border-sage/20 font-body whitespace-nowrap"><CheckCircle2 className="h-3.5 w-3.5 mr-1" /> Checked in</Badge>
+                              <Pill tone="success" className="font-body whitespace-nowrap" icon={<CheckCircle2 className="h-3.5 w-3.5" />}>Checked in</Pill>
                             ) : (
-                              <Badge variant="outline" className="border-charcoal/15 text-charcoal/50 font-body whitespace-nowrap">Not checked in</Badge>
+                              <Pill tone="neutral" className="font-body whitespace-nowrap">Not checked in</Pill>
                             )}
                           </div>
                         </li>

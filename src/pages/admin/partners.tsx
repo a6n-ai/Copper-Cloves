@@ -9,7 +9,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Badge } from "@/components/ui/badge";
+import { Pill } from "@/components/ui/pill";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Building2, Plus, X } from "lucide-react";
 import { Spinner, PageLoader } from "@/components/ui/spinner";
@@ -178,13 +178,14 @@ export default function AdminPartners() {
                       <Building2 className="h-5 w-5 text-sage" /> {p.name}
                       <span className="font-body text-xs text-charcoal/40">/{p.slug}</span>
                     </CardTitle>
-                    <Badge
-                      variant="outline"
-                      className={p.is_active ? "border-sage/30 text-sage bg-sage/5 cursor-pointer font-body" : "border-charcoal/15 text-charcoal/40 cursor-pointer font-body"}
+                    <Pill
+                      tone={p.is_active ? "success" : "neutral"}
+
+                      className="cursor-pointer font-body"
                       onClick={() => patch({ id: p.id, is_active: !p.is_active })}
                     >
                       {p.is_active ? "Active" : "Inactive"}
-                    </Badge>
+                    </Pill>
                   </div>
                 </CardHeader>
                 <CardContent className="space-y-4">

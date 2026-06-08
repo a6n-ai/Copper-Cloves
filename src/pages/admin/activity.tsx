@@ -1,4 +1,6 @@
 import { useMemo, useState } from "react";
+import { startOfDay, endOfDay } from "date-fns";
+import type { DateRange } from "react-day-picker";
 import { requireSessionSSP } from "@/lib/requireSessionSSP";
 import { AdminPageHeader } from "@/components/admin/AdminPageHeader";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -7,6 +9,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Search } from "lucide-react";
 import { ActivityLogList } from "@/components/activity/ActivityLogList";
 import { ActivityInsights } from "@/components/activity/ActivityInsights";
+import { DateRangeFilter } from "@/components/admin/DateRangeFilter";
 
 export const getServerSideProps = requireSessionSSP({ roles: ["admin"] });
 
@@ -17,14 +20,17 @@ export default function AdminActivityPage() {
   const [q, setQ] = useState("");
   const [category, setCategory] = useState<string>("");
   const [role, setRole] = useState<string>("");
+  const [range, setRange] = useState<DateRange | undefined>();
 
   const query = useMemo(() => {
     const p = new URLSearchParams();
     if (q.trim()) p.set("q", q.trim());
     if (category) p.set("category", category);
     if (role) p.set("role", role);
+    if (range?.from) p.set("from", startOfDay(range.from).toISOString());
+    if (range?.to) p.set("to", endOfDay(range.to).toISOString());
     return p.toString();
-  }, [q, category, role]);
+  }, [q, category, role, range]);
 
   return (
     <div className="min-h-screen overflow-x-hidden bg-linear-to-br from-cream via-cream to-sage/10">
@@ -71,6 +77,9 @@ export default function AdminActivityPage() {
                       {ROLES.map((r) => <SelectItem key={r} value={r} className="capitalize">{r}</SelectItem>)}
                     </SelectContent>
                   </Select>
+                </div>
+                <div className="w-full sm:w-56">
+                  <DateRangeFilter value={range} onChange={setRange} />
                 </div>
               </div>
             </CardHeader>

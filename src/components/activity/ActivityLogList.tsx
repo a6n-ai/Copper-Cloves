@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useState } from "react";
-import { Badge } from "@/components/ui/badge";
+import { Pill, type PillProps } from "@/components/ui/pill";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { ResponsiveTable } from "@/components/responsive/ResponsiveTable";
 import { Pagination } from "@/components/Pagination";
@@ -33,19 +33,19 @@ export interface ActivityLogItem {
   createdAt: string;
 }
 
-// Distinct-but-on-brand pill per category (sage / terracotta / deep-clay / charcoal
-// / sand / muted — no off-palette Tailwind hues, per the design system).
-const CATEGORY_CLASS: Record<string, string> = {
-  auth: "bg-sage/15 text-sage border-sage/30",
-  member: "bg-terracotta/15 text-terracotta border-terracotta/30",
-  admin: "bg-[#a05e38]/15 text-[#a05e38] border-[#a05e38]/30",
-  instructor: "bg-charcoal/10 text-charcoal/70 border-charcoal/20",
-  partner: "bg-[#e8e4d9] text-charcoal/70 border-[#c8c6be]",
-  system: "bg-[#f4f3ec] text-[#6b6b6b] border-[#e5e4dc]",
+// Pill tone per category, inferred from the prior palette: sage→success,
+// terracotta/deep-clay→warning, charcoal/sand/muted→neutral.
+const CATEGORY_TONE: Record<string, NonNullable<PillProps["tone"]>> = {
+  auth: "success",
+  member: "warning",
+  admin: "warning",
+  instructor: "neutral",
+  partner: "neutral",
+  system: "neutral",
 };
 
-function categoryClass(category: string): string {
-  return CATEGORY_CLASS[category] ?? CATEGORY_CLASS.system;
+function categoryTone(category: string): NonNullable<PillProps["tone"]> {
+  return CATEGORY_TONE[category] ?? "neutral";
 }
 
 function timeAgo(iso: string): string {
@@ -97,7 +97,7 @@ function SortHead({
   const Icon = active ? (sortDir === "asc" ? ArrowUp : ArrowDown) : ChevronsUpDown;
   return (
     <TableHead
-      className={`font-body text-xs uppercase tracking-wide text-charcoal/60 px-5 py-3 ${className ?? ""}`}
+      className={`font-body ${className ?? ""}`}
       aria-sort={active ? (sortDir === "asc" ? "ascending" : "descending") : "none"}
     >
       <button
@@ -142,9 +142,9 @@ function ActivityDetailDialog({
             <ResponsiveDialogHeader>
               <ResponsiveDialogTitle className="font-display text-xl text-charcoal flex items-center gap-2">
                 {item.summary}
-                <Badge variant="outline" className={categoryClass(item.category)}>
+                <Pill tone={categoryTone(item.category)}>
                   {item.category}
-                </Badge>
+                </Pill>
               </ResponsiveDialogTitle>
               <ResponsiveDialogDescription className="font-body text-charcoal/60">
                 {fullTimestamp(item.createdAt)}
@@ -269,7 +269,7 @@ export function ActivityLogList({
         <div className="rounded-xl border border-sage/15 bg-white-warm overflow-hidden">
         <Table>
           <TableHeader>
-            <TableRow className="bg-sage/5 hover:bg-sage/5 border-sage/10">
+            <TableRow>
               <SortHead label="Action" field="summary" sortField={sortField} sortDir={sortDir} onSort={toggleSort} />
               <SortHead label="Category" field="category" sortField={sortField} sortDir={sortDir} onSort={toggleSort} />
               <SortHead label="Actor" field="actor_name" sortField={sortField} sortDir={sortDir} onSort={toggleSort} />
@@ -280,26 +280,26 @@ export function ActivityLogList({
             {items.map((it) => (
               <TableRow
                 key={it.id}
-                className="border-sage/10 hover:bg-sage/5 cursor-pointer"
+                className="cursor-pointer"
                 onClick={() => setSelected(it)}
               >
-                <TableCell className="px-5 py-4 font-body text-sm text-charcoal">
+                <TableCell className="font-body">
                   {it.summary}
                   {it.actorIsSelf === false && it.actorName ? (
                     <span className="block text-xs text-charcoal/45">by {it.actorName}</span>
                   ) : null}
                 </TableCell>
-                <TableCell className="px-5 py-4">
-                  <Badge variant="outline" className={categoryClass(it.category)}>
+                <TableCell>
+                  <Pill tone={categoryTone(it.category)}>
                     {it.category}
-                  </Badge>
+                  </Pill>
                 </TableCell>
-                <TableCell className="px-5 py-4 font-body text-sm text-charcoal/70 whitespace-nowrap">
+                <TableCell className="font-body text-charcoal/70 whitespace-nowrap">
                   {actorLabel(it)}
                   {it.actorRole ? <span className="text-charcoal/40"> · {it.actorRole}</span> : null}
                 </TableCell>
                 <TableCell
-                  className="px-5 py-4 font-body text-sm text-charcoal/60 whitespace-nowrap"
+                  className="font-body text-charcoal/60 whitespace-nowrap"
                   title={fullTimestamp(it.createdAt)}
                 >
                   {timeAgo(it.createdAt)}

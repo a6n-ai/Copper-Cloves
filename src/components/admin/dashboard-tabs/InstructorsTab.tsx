@@ -176,44 +176,44 @@ function InstructorsTabImpl({
             <ResponsiveTable>
               <Table>
                 <TableHeader>
-                  <TableRow className="bg-sage/5 hover:bg-sage/5 border-sage/10">
-                    <TableHead className="font-body text-xs uppercase tracking-wide text-charcoal/60 px-5 py-3 w-[60px]">Rank</TableHead>
+                  <TableRow>
+                    <TableHead className="w-[60px]">Rank</TableHead>
                     <SortableHeader sortKey="name" active={sortKey} dir={sortDir} onToggle={toggle}>Instructor</SortableHeader>
                     <SortableHeader sortKey="rating" active={sortKey} dir={sortDir} onToggle={toggle} className="w-[110px]">Rating</SortableHeader>
                     <SortableHeader sortKey="classes" active={sortKey} dir={sortDir} onToggle={toggle} className="w-[100px]">Classes</SortableHeader>
                     <SortableHeader sortKey="totalCheckIns" active={sortKey} dir={sortDir} onToggle={toggle} className="w-[110px]">Check-Ins</SortableHeader>
                     <SortableHeader sortKey="avgAttendance" active={sortKey} dir={sortDir} onToggle={toggle} className="w-[130px]">Avg Attendance</SortableHeader>
                     <SortableHeader sortKey="earnings" active={sortKey} dir={sortDir} onToggle={toggle} className="w-[130px]">Earnings</SortableHeader>
-                    <TableHead className="font-body text-xs uppercase tracking-wide text-charcoal/60 px-5 py-3 w-[90px] text-right">Action</TableHead>
+                    <TableHead className="w-[90px] text-right">Action</TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
                   {perfPg.pageItems.map((instructor, index) => {
                     const rank = (perfPg.page - 1) * perfPg.pageSize + index + 1;
                     return (
-                      <TableRow key={instructor.name} className="border-sage/10">
-                        <TableCell className="px-5 py-3">
+                      <TableRow key={instructor.name}>
+                        <TableCell>
                           <span className="inline-flex h-7 w-7 items-center justify-center rounded-full bg-sage/10 text-sage font-display text-xs">#{rank}</span>
                         </TableCell>
-                        <TableCell className="px-5 py-3">
+                        <TableCell>
                           <div className="flex items-center gap-3 min-w-0">
                             <ListAvatar name={instructor.name} src={instructor.photo ?? null} size="md" ringClassName="ring-sage/20" />
                             <div className="font-body font-medium text-charcoal truncate">{instructor.name}</div>
                           </div>
                         </TableCell>
-                        <TableCell className="px-5 py-3">
+                        <TableCell>
                           <div className="flex items-center gap-1">
                             <Star className="h-3.5 w-3.5 text-terracotta fill-terracotta" />
                             <span className="font-body text-sm text-charcoal tabular-nums">{instructor.rating}</span>
                           </div>
                         </TableCell>
-                        <TableCell className="px-5 py-3 font-body text-sm text-charcoal tabular-nums">{instructor.classes}</TableCell>
-                        <TableCell className="px-5 py-3 font-display text-base text-sage tabular-nums">{instructor.totalCheckIns}</TableCell>
-                        <TableCell className="px-5 py-3 font-display text-base text-charcoal tabular-nums">{instructor.avgAttendance}</TableCell>
-                        <TableCell className="px-5 py-3 font-display text-sm text-terracotta tabular-nums whitespace-nowrap">
+                        <TableCell className="font-body text-sm text-charcoal tabular-nums">{instructor.classes}</TableCell>
+                        <TableCell className="font-display text-base text-sage tabular-nums">{instructor.totalCheckIns}</TableCell>
+                        <TableCell className="font-display text-base text-charcoal tabular-nums">{instructor.avgAttendance}</TableCell>
+                        <TableCell className="font-display text-sm text-terracotta tabular-nums whitespace-nowrap">
                           ₹{(instructor.totalCheckIns * 150).toLocaleString("en-IN")}
                         </TableCell>
-                        <TableCell className="px-5 py-3 text-right">
+                        <TableCell className="text-right">
                           <Button variant="sage-outline" size="sm" className="h-8">View</Button>
                         </TableCell>
                       </TableRow>

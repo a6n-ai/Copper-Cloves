@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useState } from "react";
-import { Badge } from "@/components/ui/badge";
+import { Pill, type PillProps } from "@/components/ui/pill";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { ResponsiveTable } from "@/components/responsive/ResponsiveTable";
 import { Pagination } from "@/components/Pagination";
@@ -30,16 +30,17 @@ export interface CrmMessageItem {
 type SortField = "recipient" | "channel" | "status" | "created_at";
 type SortDir = "asc" | "desc";
 
-// Distinct-but-on-brand status pills (sage / terracotta / deep-clay / charcoal).
-const STATUS_CLASS: Record<string, string> = {
-  sent: "bg-sage/15 text-sage border-sage/30",
-  failed: "bg-[#a05e38]/15 text-[#a05e38] border-[#a05e38]/30",
-  scheduled: "bg-terracotta/15 text-terracotta border-terracotta/30",
-  pending: "bg-[#f4f3ec] text-[#6b6b6b] border-[#e5e4dc]",
+// Pill tone per message status, inferred from the prior palette + semantics:
+// sent→success, failed→danger, scheduled→warning (terracotta), pending→neutral.
+const STATUS_TONE: Record<string, NonNullable<PillProps["tone"]>> = {
+  sent: "success",
+  failed: "danger",
+  scheduled: "warning",
+  pending: "neutral",
 };
 
-function statusClass(status: string): string {
-  return STATUS_CLASS[status] ?? STATUS_CLASS.pending;
+function statusTone(status: string): NonNullable<PillProps["tone"]> {
+  return STATUS_TONE[status] ?? "neutral";
 }
 
 function timeAgo(iso: string): string {
@@ -85,7 +86,7 @@ function SortHead({
   const Icon = active ? (sortDir === "asc" ? ArrowUp : ArrowDown) : ChevronsUpDown;
   return (
     <TableHead
-      className={`font-body text-xs uppercase tracking-wide text-charcoal/60 px-5 py-3 ${className ?? ""}`}
+      className={`font-body ${className ?? ""}`}
       aria-sort={active ? (sortDir === "asc" ? "ascending" : "descending") : "none"}
     >
       <button
@@ -155,9 +156,9 @@ function CrmMessageDetailDialog({ item, onClose }: { item: CrmMessageItem | null
             <ResponsiveDialogHeader>
               <ResponsiveDialogTitle className="font-display text-xl text-charcoal flex items-center gap-2">
                 {item.recipientName || "Unknown recipient"}
-                <Badge variant="outline" className={statusClass(item.status)}>
+                <Pill tone={statusTone(item.status)}>
                   {item.status}
-                </Badge>
+                </Pill>
               </ResponsiveDialogTitle>
               <ResponsiveDialogDescription className="font-body text-charcoal/60">
                 {item.recipientEmail ?? "—"}
@@ -260,10 +261,10 @@ export function CrmMessageList({
         <div className="rounded-xl border border-sage/15 bg-white-warm overflow-hidden">
           <Table>
             <TableHeader>
-              <TableRow className="bg-sage/5 hover:bg-sage/5 border-sage/10">
+              <TableRow>
                 <SortHead label="Recipient" field="recipient" sortField={sortField} sortDir={sortDir} onSort={toggleSort} />
                 <SortHead label="Channel" field="channel" sortField={sortField} sortDir={sortDir} onSort={toggleSort} />
-                <TableHead className="font-body text-xs uppercase tracking-wide text-charcoal/60 px-5 py-3">
+                <TableHead className="font-body">
                   Template
                 </TableHead>
                 <SortHead label="Status" field="status" sortField={sortField} sortDir={sortDir} onSort={toggleSort} />
@@ -274,28 +275,28 @@ export function CrmMessageList({
               {items.map((it) => (
                 <TableRow
                   key={it.id}
-                  className="border-sage/10 hover:bg-sage/5 cursor-pointer"
+                  className="cursor-pointer"
                   onClick={() => setSelected(it)}
                 >
-                  <TableCell className="px-5 py-4 font-body text-sm text-charcoal">
+                  <TableCell className="font-body">
                     {it.recipientName || "Unknown"}
                     {it.recipientEmail ? (
                       <span className="block text-xs text-charcoal/45">{it.recipientEmail}</span>
                     ) : null}
                   </TableCell>
-                  <TableCell className="px-5 py-4">
+                  <TableCell>
                     <ChannelCell channel={it.channel} />
                   </TableCell>
-                  <TableCell className="px-5 py-4 font-body text-sm text-charcoal/70">
+                  <TableCell className="font-body text-charcoal/70">
                     {it.templateName ?? <span className="text-charcoal/40">—</span>}
                   </TableCell>
-                  <TableCell className="px-5 py-4">
-                    <Badge variant="outline" className={statusClass(it.status)}>
+                  <TableCell>
+                    <Pill tone={statusTone(it.status)}>
                       {it.status}
-                    </Badge>
+                    </Pill>
                   </TableCell>
                   <TableCell
-                    className="px-5 py-4 font-body text-sm text-charcoal/60 whitespace-nowrap"
+                    className="font-body text-charcoal/60 whitespace-nowrap"
                     title={fullTimestamp(it.created_at)}
                   >
                     {timeAgo(it.created_at)}

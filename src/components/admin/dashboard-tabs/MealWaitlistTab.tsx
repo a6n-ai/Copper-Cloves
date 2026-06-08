@@ -72,31 +72,31 @@ function MealWaitlistTabImpl({ inquiries, loading, onUpdateStatus }: Props) {
               <ResponsiveTable>
                 <Table>
                   <TableHeader>
-                    <TableRow className="bg-sage/5 hover:bg-sage/5 border-sage/10">
+                    <TableRow>
                       <SortableHeader sortKey="date" active={sortKey} dir={sortDir} onToggle={toggle} className="w-[160px]">Date</SortableHeader>
                       <SortableHeader sortKey="name" active={sortKey} dir={sortDir} onToggle={toggle}>Name</SortableHeader>
-                      <TableHead className="font-body text-xs uppercase tracking-wide text-charcoal/60 px-5 py-3">Contact</TableHead>
-                      <TableHead className="font-body text-xs uppercase tracking-wide text-charcoal/60 px-5 py-3 min-w-[200px]">Message</TableHead>
+                      <TableHead>Contact</TableHead>
+                      <TableHead className="min-w-[200px]">Message</TableHead>
                       <SortableHeader sortKey="status" active={sortKey} dir={sortDir} onToggle={toggle} className="w-[160px]">Status</SortableHeader>
                     </TableRow>
                   </TableHeader>
                   <TableBody>
                     {pagination.pageItems.map((row) => (
-                      <TableRow key={row.id} className="border-sage/10 align-top">
-                        <TableCell className="px-5 py-3 font-body text-sm text-charcoal/70 whitespace-nowrap">
+                      <TableRow key={row.id} className="align-top">
+                        <TableCell className="font-body text-sm text-charcoal/70 whitespace-nowrap">
                           {new Date(row.created_at).toLocaleString("en-IN", { dateStyle: "medium", timeStyle: "short" })}
                         </TableCell>
-                        <TableCell className="px-5 py-3 font-body font-medium text-charcoal">{row.full_name}</TableCell>
-                        <TableCell className="px-5 py-3">
+                        <TableCell className="font-body font-medium text-charcoal">{row.full_name}</TableCell>
+                        <TableCell>
                           <div className="space-y-0.5">
                             <a href={`mailto:${row.email}`} className="block font-body text-sm text-sage hover:underline break-all">{row.email}</a>
                             <a href={`tel:${row.phone}`} className="block font-body text-xs text-charcoal/60 hover:text-sage whitespace-nowrap">{row.phone}</a>
                           </div>
                         </TableCell>
-                        <TableCell className="px-5 py-3 font-body text-sm text-charcoal/70 max-w-md whitespace-pre-wrap">
+                        <TableCell className="font-body text-sm text-charcoal/70 max-w-md whitespace-pre-wrap">
                           {row.message?.trim() ? row.message : "—"}
                         </TableCell>
-                        <TableCell className="px-5 py-3">
+                        <TableCell>
                           <Select value={row.status} onValueChange={(v) => onUpdateStatus(row.id, v)}>
                             <SelectTrigger className="w-[140px] border-sage/20 h-9 text-xs">
                               <SelectValue />

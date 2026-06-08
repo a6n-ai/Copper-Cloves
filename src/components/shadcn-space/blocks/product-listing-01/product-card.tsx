@@ -3,7 +3,7 @@
 import { useState } from "react";
 import { Heart, Star } from "lucide-react";
 import { cn } from "@/lib/utils";
-import { Badge } from "@/components/ui/badge";
+import { Pill, type PillProps } from "@/components/ui/pill";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 
@@ -38,33 +38,30 @@ export function ProductCard({
 }: ProductCardProps) {
   const [isWishlisted, setIsWishlisted] = useState(false);
 
-  const getBadgeStyles = (text: string) => {
+  const getBadgeTone = (text: string): PillProps["tone"] => {
     const lowercaseText = text.toLowerCase();
     if (lowercaseText.includes("%") || lowercaseText === "sale") {
-      return "bg-red-500/10 text-red-500";
+      return "danger";
     }
     if (lowercaseText === "new") {
-      return "bg-blue-500/10 text-blue-500";
+      return "info";
     }
     if (lowercaseText === "hot") {
-      return "bg-orange-400/10 text-orange-400";
+      return "warning";
     }
-    return "bg-primary/10 text-primary";
+    return "neutral";
   };
 
   return (
     <Card className={cn("group flex flex-col gap-0 rounded-2xl bg-card p-0 transition-all overflow-hidden ring-0 border", className,)}>
       <div className="relative overflow-hidden bg-muted/50 min-h-55 h-full">
         {badge && (
-          <Badge
-            variant="outline"
-            className={cn(
-              "absolute left-4 top-5.5 z-10 rounded-full border-0 px-2 py-0.5 text-xs capitalize",
-              getBadgeStyles(badge.text),
-            )}
+          <Pill
+            tone={getBadgeTone(badge.text)}
+            className="absolute left-4 top-5.5 z-10 rounded-full px-2 py-0.5 text-xs capitalize"
           >
             {badge.text}
-          </Badge>
+          </Pill>
         )}
         <Button
           size="icon-sm"

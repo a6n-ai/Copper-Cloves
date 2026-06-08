@@ -9,7 +9,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
 import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
+import { Pill } from "@/components/ui/pill";
 import { MetricCard } from "@/components/admin/MetricCard";
 import { Pagination, usePagination } from "@/components/Pagination";
 import { COUPON_CONTEXTS } from "@/lib/couponHelpers";
@@ -255,35 +255,35 @@ function PricingTabImpl({
                 <ResponsiveTable>
                   <Table>
                     <TableHeader>
-                      <TableRow className="bg-sage/5 hover:bg-sage/5 border-sage/10">
+                      <TableRow>
                         <SortableHeader sortKey="code" active={sortKey} dir={sortDir} onToggle={toggle}>Code</SortableHeader>
                         <SortableHeader sortKey="scope" active={sortKey} dir={sortDir} onToggle={toggle}>Scope</SortableHeader>
                         <SortableHeader sortKey="discount" active={sortKey} dir={sortDir} onToggle={toggle}>Discount</SortableHeader>
                         <SortableHeader sortKey="uses" active={sortKey} dir={sortDir} onToggle={toggle}>Uses</SortableHeader>
                         <SortableHeader sortKey="status" active={sortKey} dir={sortDir} onToggle={toggle}>Status</SortableHeader>
-                        <TableHead className="font-body text-xs uppercase tracking-wide text-charcoal/60 px-5 py-3 w-[180px]">Actions</TableHead>
+                        <TableHead className="w-[180px]">Actions</TableHead>
                       </TableRow>
                     </TableHeader>
                     <TableBody>
                       {pagination.pageItems.map((c) => (
-                        <TableRow key={c.id} className="border-sage/10">
-                          <TableCell className="px-5 py-3 font-mono font-semibold text-charcoal">{c.code}</TableCell>
-                          <TableCell className="px-5 py-3 font-body text-sm text-charcoal/80">
+                        <TableRow key={c.id}>
+                          <TableCell className="font-mono font-semibold text-charcoal">{c.code}</TableCell>
+                          <TableCell className="font-body text-sm text-charcoal/80">
                             {COUPON_CONTEXTS.find((x) => x.value === c.applies_to)?.label ?? c.applies_to}
                           </TableCell>
-                          <TableCell className="px-5 py-3 font-body text-sm text-charcoal">
+                          <TableCell className="font-body text-sm text-charcoal">
                             {c.discount_type === "percent" ? `${c.discount_value}%` : `₹${c.discount_value}`}
                           </TableCell>
-                          <TableCell className="px-5 py-3 font-body text-sm text-charcoal/80 tabular-nums">
+                          <TableCell className="font-body text-sm text-charcoal/80 tabular-nums">
                             {c.redemption_count}
                             {c.max_redemptions != null ? ` / ${c.max_redemptions}` : ""}
                           </TableCell>
-                          <TableCell className="px-5 py-3">
-                            <Badge className={c.is_active ? "bg-sage text-cream font-body" : "bg-charcoal/15 text-charcoal/70 font-body"}>
+                          <TableCell>
+                            <Pill tone={c.is_active ? "success" : "neutral"} appearance={c.is_active ? "solid" : "soft"} className="font-body">
                               {c.is_active ? "Active" : "Off"}
-                            </Badge>
+                            </Pill>
                           </TableCell>
-                          <TableCell className="px-5 py-3">
+                          <TableCell>
                             <div className="flex items-center gap-1.5">
                               <Button type="button" size="sm" variant="sage-outline" className="h-8" onClick={() => onEdit(c)}>
                                 Edit

@@ -9,6 +9,7 @@ import { SEO } from "@/components/SEO";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
+import { Pill } from "@/components/ui/pill";
 import {
   Select,
   SelectContent,
@@ -262,12 +263,14 @@ export default function RentalPage() {
 
               <div className="mt-8 flex flex-wrap gap-2.5">
                 {EVENT_TAGS.map((tag) => (
-                  <span
+                  <Pill
                     key={tag}
-                    className="rounded-full border border-sage/20 bg-sand px-4 py-1.5 font-body text-sm text-charcoal/75"
+                    tone="neutral"
+
+                    className="border-sage/20 bg-sand px-4 py-1.5 font-body text-sm text-charcoal/75"
                   >
                     {tag}
-                  </span>
+                  </Pill>
                 ))}
               </div>
             </div>

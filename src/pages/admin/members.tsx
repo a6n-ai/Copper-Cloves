@@ -5,12 +5,10 @@ import { passCategoryForPackageType } from "@/lib/couponHelpers";
 
 export const getServerSideProps = requireSessionSSP({ roles: ["admin"] });
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Table, TableBody, TableCell, TableHeader, TableRow } from "@/components/ui/table";
 import { MetricCard } from "@/components/admin/MetricCard";
-import { SortableHeader } from "@/components/admin/sortable-table";
+import { MemberTable, type MemberTableMember } from "@/components/admin/MemberTable";
 import { AdminPageHeader } from "@/components/admin/AdminPageHeader";
 import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import {
@@ -26,7 +24,6 @@ import {
 import { SEO } from "@/components/SEO";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Pagination, usePagination } from "@/components/Pagination";
-import { ListAvatar } from "@/components/admin/ListAvatar";
 import { useSession } from "next-auth/react";
 import {
   ResponsiveDialog,
@@ -36,7 +33,6 @@ import {
   ResponsiveDialogTitle,
   ResponsiveDialogFooter,
 } from "@/components/responsive/ResponsiveDialog";
-import { ResponsiveTable } from "@/components/responsive/ResponsiveTable";
 
 interface Member {
   id: string;
@@ -384,19 +380,6 @@ export default function AdminMembers() {
     }
   };
 
-  const getStatusBadge = (status: string) => {
-    switch (status) {
-      case "active":
-        return <Badge className="bg-sage/10 text-sage border-sage/20 whitespace-nowrap font-body">Active</Badge>;
-      case "expiring":
-        return <Badge variant="outline" className="border-terracotta/20 text-terracotta bg-terracotta/10 whitespace-nowrap font-body">Expiring</Badge>;
-      case "expired":
-        return <Badge variant="destructive" className="whitespace-nowrap font-body">Expired</Badge>;
-      default:
-        return null;
-    }
-  };
-
   const stats = {
     totalMembers: members.length,
     activeMembers: members.filter((m) => m.accountFilter === "active").length,
@@ -422,6 +405,25 @@ export default function AdminMembers() {
     10,
     `${searchQuery}|${packageFilter}|${accountStatusFilter}|${sortKey}|${sortDir}`,
   );
+
+  const accountLabelFor = (f: Member["accountFilter"]) =>
+    f === "active" ? "Active" : f === "inactive" ? "Inactive" : "Lapsed";
+
+  const tableMembers: MemberTableMember[] = membersPg.pageItems.map((m) => ({
+    id: m.id,
+    name: m.name,
+    email: m.email,
+    phone: m.phone,
+    avatarUrl: m.avatarUrl,
+    passLabel: m.package,
+    passCategory: m.passCategory,
+    unlimited: m.unlimited,
+    credits: m.credits,
+    totalClasses: m.totalClasses,
+    lastVisit: m.lastVisit,
+    status: m.status,
+    accountLabel: accountLabelFor(m.accountFilter),
+  }));
 
   if (loading) {
     return (
@@ -590,97 +592,19 @@ export default function AdminMembers() {
                 </div>
               </CardHeader>
               <CardContent>
-                <ResponsiveTable>
                 <div className="rounded-xl border border-sage/15 bg-white-warm overflow-hidden">
-                  <Table>
-                    <TableHeader>
-                      <TableRow className="bg-sage/5 hover:bg-sage/5 border-sage/10">
-                        <SortableHeader sortKey="name" active={sortKey} dir={sortDir} onToggle={toggleSort}>Member</SortableHeader>
-                        <SortableHeader sortKey="pass" active={sortKey} dir={sortDir} onToggle={toggleSort} className="w-[180px]">Pass</SortableHeader>
-                        <SortableHeader sortKey="account" active={sortKey} dir={sortDir} onToggle={toggleSort} className="w-[100px]">Account</SortableHeader>
-                        <SortableHeader sortKey="classes" active={sortKey} dir={sortDir} onToggle={toggleSort} className="w-[100px]">Classes</SortableHeader>
-                        <SortableHeader sortKey="lastVisit" active={sortKey} dir={sortDir} onToggle={toggleSort} className="w-[120px]">Last Visit</SortableHeader>
-                        <SortableHeader sortKey="status" active={sortKey} dir={sortDir} onToggle={toggleSort} className="w-[140px]">Status</SortableHeader>
-                      </TableRow>
-                    </TableHeader>
-                    <TableBody>
-                      {membersPg.pageItems.map((member) => (
-                        <TableRow
-                          key={member.id}
-                          onClick={() => router.push(`/admin/members/${member.id}`)}
-                          className="border-sage/10 hover:bg-sage/5 cursor-pointer"
-                        >
-                          <TableCell className="px-5 py-4">
-                            <div className="flex items-center gap-3 min-w-0">
-                              <ListAvatar name={member.name} src={member.avatarUrl} size="md" />
-                              <div className="min-w-0">
-                                <div className="font-body font-medium text-charcoal truncate">{member.name}</div>
-                                <div className="font-body text-xs text-charcoal/60 truncate">{member.email}</div>
-                                <div className="font-body text-xs text-charcoal/50 truncate">{member.phone}</div>
-                              </div>
-                            </div>
-                          </TableCell>
-                          <TableCell className="px-5 py-4">
-                            <div className="flex flex-wrap items-center gap-1.5">
-                              {member.passCategory === "studio_pass" ? (
-                                <Badge className="bg-sage text-cream border-transparent font-body">
-                                  Studio
-                                </Badge>
-                              ) : member.passCategory === "class_pass" ? (
-                                <Badge variant="outline" className="border-sage/30 text-sage bg-sage/5 font-body">
-                                  Class pass
-                                </Badge>
-                              ) : (
-                                <Badge variant="outline" className="border-charcoal/15 text-charcoal/40 bg-cream/30 font-body">
-                                  No pass
-                                </Badge>
-                              )}
-                              {member.unlimited && (
-                                <Badge className="bg-terracotta/10 text-terracotta border-terracotta/30 font-body">
-                                  ∞ Unlimited
-                                </Badge>
-                              )}
-                            </div>
-                            <div className="font-body text-xs text-charcoal/50 mt-1 truncate" title={member.package}>
-                              {member.package}
-                            </div>
-                          </TableCell>
-                          <TableCell className="px-5 py-4">
-                            <span className={`font-body text-sm font-medium ${
-                              member.accountFilter === "active"
-                                ? "text-sage"
-                                : member.accountFilter === "inactive"
-                                ? "text-charcoal/40"
-                                : "text-terracotta"
-                            }`}>
-                              {member.accountFilter === "active"
-                                ? "Active"
-                                : member.accountFilter === "inactive"
-                                ? "Inactive"
-                                : "Lapsed"}
-                            </span>
-                          </TableCell>
-                          <TableCell className="px-5 py-4">
-                            <div className="flex items-center gap-1.5">
-                              <Trophy className="h-3.5 w-3.5 text-sage/60" />
-                              <span className="font-body font-medium text-charcoal tabular-nums">{member.totalClasses}</span>
-                            </div>
-                          </TableCell>
-                          <TableCell className="px-5 py-4">
-                            <span className="font-body text-sm text-charcoal/70">{member.lastVisit}</span>
-                          </TableCell>
-                          <TableCell className="px-5 py-4">
-                            {getStatusBadge(member.status)}
-                            <div className="font-body text-xs text-charcoal/50 mt-1">
-                              Exp {new Date(member.expiryDate).toLocaleDateString("en-IN", { day: "numeric", month: "short" })}
-                            </div>
-                          </TableCell>
-                        </TableRow>
-                      ))}
-                    </TableBody>
-                  </Table>
+                  <MemberTable
+                    members={tableMembers}
+                    columns={["member", "pass", "account", "classes", "lastVisit", "status"]}
+                    sort={{
+                      sortKey,
+                      sortDir,
+                      onToggle: (key) => toggleSort(key as MemberSortKey),
+                      sortableKeys: ["name", "pass", "account", "classes", "lastVisit", "status"],
+                    }}
+                    onRowClick={(m) => router.push(`/admin/members/${m.id}`)}
+                  />
                 </div>
-                </ResponsiveTable>
                 <Pagination
                   page={membersPg.page}
                   total={membersPg.total}

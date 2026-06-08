@@ -34,10 +34,20 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     const q = String(req.query.q ?? "").trim();
     const channel = String(req.query.channel ?? "").trim();
     const status = String(req.query.status ?? "").trim();
+    const from = String(req.query.from ?? "").trim();
+    const to = String(req.query.to ?? "").trim();
 
     const where: Prisma.CrmMessageWhereInput = {
       ...(channel ? { channel } : {}),
       ...(status ? { status } : {}),
+      ...(from || to
+        ? {
+            created_at: {
+              ...(from ? { gte: new Date(from) } : {}),
+              ...(to ? { lte: new Date(to) } : {}),
+            },
+          }
+        : {}),
       ...(q
         ? {
             OR: [

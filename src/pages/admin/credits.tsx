@@ -6,7 +6,7 @@ export const getServerSideProps = requireSessionSSP({ roles: ["admin"] });
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { AdminPageHeader } from "@/components/admin/AdminPageHeader";
 import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
+import { Pill } from "@/components/ui/pill";
 import { Input } from "@/components/ui/input";
 import {
   Search,
@@ -221,13 +221,13 @@ export default function AdminCredits() {
   const getTypeBadge = (type: string) => {
     switch (type) {
       case "added":
-        return <Badge className="bg-sage/10 text-sage border-sage/20">Added</Badge>;
+        return <Pill tone="success">Added</Pill>;
       case "deducted":
-        return <Badge variant="destructive">Deducted</Badge>;
+        return <Pill tone="danger">Deducted</Pill>;
       case "used":
-        return <Badge variant="outline" className="border-charcoal/20 text-charcoal">Used</Badge>;
+        return <Pill tone="neutral">Used</Pill>;
       case "expired":
-        return <Badge variant="outline" className="border-charcoal/15 text-charcoal/60 bg-charcoal/5">Expired</Badge>;
+        return <Pill tone="neutral">Expired</Pill>;
       default:
         return null;
     }
@@ -363,18 +363,18 @@ export default function AdminCredits() {
                       <div className="rounded-xl border border-sage/15 bg-white-warm overflow-hidden">
                         <Table>
                           <TableHeader>
-                            <TableRow className="bg-sage/5 hover:bg-sage/5 border-sage/10">
+                            <TableRow>
                               <SortableHeader sortKey="type" active={sortKey} dir={sortDir} onToggle={toggleSort} className="w-[130px]">Type</SortableHeader>
                               <SortableHeader sortKey="amount" active={sortKey} dir={sortDir} onToggle={toggleSort} className="w-[110px]">Amount</SortableHeader>
                               <SortableHeader sortKey="member" active={sortKey} dir={sortDir} onToggle={toggleSort} className="w-[180px]">Member</SortableHeader>
-                              <TableHead className="font-body text-xs uppercase tracking-wide text-charcoal/60 px-5 py-3">Reason</TableHead>
+                              <TableHead>Reason</TableHead>
                               <SortableHeader sortKey="date" active={sortKey} dir={sortDir} onToggle={toggleSort} className="w-[200px]">Date &amp; Admin</SortableHeader>
                             </TableRow>
                           </TableHeader>
                           <TableBody>
                             {txPg.pageItems.map((transaction) => (
-                              <TableRow key={transaction.id} className="border-sage/10 hover:bg-sage/5">
-                                <TableCell className="px-5 py-4">
+                              <TableRow key={transaction.id}>
+                                <TableCell>
                                   <div className="flex items-center gap-2.5">
                                     <div className={`p-2 rounded-lg shrink-0 ${
                                       transaction.type === "added" ? "bg-sage/10" :
@@ -387,7 +387,7 @@ export default function AdminCredits() {
                                     {getTypeBadge(transaction.type)}
                                   </div>
                                 </TableCell>
-                                <TableCell className="px-5 py-4">
+                                <TableCell>
                                   <span className={`font-display text-2xl tabular-nums ${
                                     transaction.type === "added" ? "text-sage" :
                                     transaction.type === "expired" ? "text-charcoal/50" :
@@ -397,13 +397,13 @@ export default function AdminCredits() {
                                   </span>
                                   <span className="font-body text-xs text-charcoal/50 ml-1">cr</span>
                                 </TableCell>
-                                <TableCell className="px-5 py-4">
+                                <TableCell>
                                   <span className="font-body font-medium text-charcoal">{transaction.memberName}</span>
                                 </TableCell>
-                                <TableCell className="px-5 py-4">
+                                <TableCell>
                                   <span className="font-body text-sm text-charcoal/80">{transaction.reason}</span>
                                 </TableCell>
-                                <TableCell className="px-5 py-4">
+                                <TableCell>
                                   <div className="flex items-center gap-2 text-sm">
                                     <Calendar className="h-3.5 w-3.5 text-charcoal/40 shrink-0" />
                                     <span className="font-body text-charcoal">

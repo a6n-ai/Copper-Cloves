@@ -11,7 +11,7 @@ import {
   DrawerTitle,
   DrawerDescription,
 } from "@/components/ui/drawer";
-import { Badge } from "@/components/ui/badge";
+import { Pill } from "@/components/ui/pill";
 import {
   ShoppingCart,
   X,
@@ -376,10 +376,10 @@ export default function Shop({ initialProducts }: Readonly<ShopProps>) {
                     {/* Badges */}
                     <div className="absolute top-4 right-4 flex flex-col gap-2 z-10">
                       {product.featured && (
-                        <Badge className="bg-sage text-cream">Featured</Badge>
+                        <Pill tone="success" appearance="solid">Featured</Pill>
                       )}
                       {product.stock <= 0 && (
-                        <Badge variant="outline" className="bg-white-warm">Out of Stock</Badge>
+                        <Pill tone="danger" className="bg-white-warm">Out of Stock</Pill>
                       )}
                     </div>
 

@@ -4,7 +4,7 @@ import { SortableHeader, useTableSort } from "@/components/admin/sortable-table"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { ResponsiveTable } from "@/components/responsive/ResponsiveTable";
-import { Badge } from "@/components/ui/badge";
+import { Pill } from "@/components/ui/pill";
 import { MetricCard } from "@/components/admin/MetricCard";
 import { Pagination, usePagination } from "@/components/Pagination";
 
@@ -76,29 +76,29 @@ function RentalInquiriesTabImpl({ inquiries, loading }: Props) {
               <ResponsiveTable>
                 <Table>
                   <TableHeader>
-                    <TableRow className="bg-sage/5 hover:bg-sage/5 border-sage/10">
+                    <TableRow>
                       <SortableHeader sortKey="date" active={sortKey} dir={sortDir} onToggle={toggle} className="w-[160px]">Date</SortableHeader>
                       <SortableHeader sortKey="name" active={sortKey} dir={sortDir} onToggle={toggle}>Name</SortableHeader>
-                      <TableHead className="font-body text-xs uppercase tracking-wide text-charcoal/60 px-5 py-3">Contact</TableHead>
+                      <TableHead>Contact</TableHead>
                       <SortableHeader sortKey="event" active={sortKey} dir={sortDir} onToggle={toggle}>Event</SortableHeader>
-                      <TableHead className="font-body text-xs uppercase tracking-wide text-charcoal/60 px-5 py-3 min-w-[180px]">Notes</TableHead>
+                      <TableHead className="min-w-[180px]">Notes</TableHead>
                       <SortableHeader sortKey="status" active={sortKey} dir={sortDir} onToggle={toggle} className="w-[120px]">Status</SortableHeader>
                     </TableRow>
                   </TableHeader>
                   <TableBody>
                     {pagination.pageItems.map((row) => (
-                      <TableRow key={row.id} className="border-sage/10 align-top">
-                        <TableCell className="px-5 py-3 font-body text-sm text-charcoal/70 whitespace-nowrap">
+                      <TableRow key={row.id} className="align-top">
+                        <TableCell className="font-body text-sm text-charcoal/70 whitespace-nowrap">
                           {new Date(row.created_at).toLocaleString("en-IN", { dateStyle: "medium", timeStyle: "short" })}
                         </TableCell>
-                        <TableCell className="px-5 py-3 font-body font-medium text-charcoal">{row.name}</TableCell>
-                        <TableCell className="px-5 py-3">
+                        <TableCell className="font-body font-medium text-charcoal">{row.name}</TableCell>
+                        <TableCell>
                           <div className="space-y-0.5">
                             <a href={`mailto:${row.email}`} className="block font-body text-sm text-sage hover:underline break-all">{row.email}</a>
                             <a href={`tel:${row.phone}`} className="block font-body text-xs text-charcoal/60 hover:text-sage whitespace-nowrap">{row.phone}</a>
                           </div>
                         </TableCell>
-                        <TableCell className="px-5 py-3">
+                        <TableCell>
                           <div className="font-body text-sm text-charcoal">{row.event_type?.trim() ? row.event_type : "—"}</div>
                           <div className="font-body text-xs text-charcoal/50 mt-0.5">
                             {row.event_date?.trim() ? row.event_date : ""}
@@ -106,13 +106,13 @@ function RentalInquiriesTabImpl({ inquiries, loading }: Props) {
                             {row.duration?.trim() ? ` · ${row.duration}` : ""}
                           </div>
                         </TableCell>
-                        <TableCell className="px-5 py-3 font-body text-sm text-charcoal/70 max-w-md whitespace-pre-wrap">
+                        <TableCell className="font-body text-sm text-charcoal/70 max-w-md whitespace-pre-wrap">
                           {row.message?.trim() ? row.message : "—"}
                         </TableCell>
-                        <TableCell className="px-5 py-3">
-                          <Badge variant="outline" className="border-sage/20 text-sage bg-sage/5 capitalize font-body whitespace-nowrap">
+                        <TableCell>
+                          <Pill tone="success" className="capitalize font-body whitespace-nowrap">
                             {row.status.replace(/_/g, " ")}
-                          </Badge>
+                          </Pill>
                         </TableCell>
                       </TableRow>
                     ))}

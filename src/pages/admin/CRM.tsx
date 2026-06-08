@@ -25,12 +25,15 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/com
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { AdminPageHeader } from "@/components/admin/AdminPageHeader";
-import { Badge } from "@/components/ui/badge";
+import { Pill } from "@/components/ui/pill";
 import { useSession } from "next-auth/react";
 import { CrmTriggerType } from "@/lib/crmTriggerTypes";
 import { CrmInsights, CrmAnalytics } from "@/components/crm/CrmInsights";
 import { CrmMessageList } from "@/components/crm/CrmMessageList";
+import { DateRangeFilter } from "@/components/admin/DateRangeFilter";
 import { Pagination, usePagination } from "@/components/Pagination";
+import { startOfDay, endOfDay } from "date-fns";
+import type { DateRange } from "react-day-picker";
 import {
   Plus,
   Edit,
@@ -352,11 +355,11 @@ function TriggersTab(props: TriggersTabProps) {
                 <div className="flex flex-wrap items-center gap-2">
                   <h3 className="font-display text-lg text-charcoal truncate">{trigger.name}</h3>
                   {!trigger.is_active && (
-                    <Badge variant="outline" className="bg-charcoal/5 text-charcoal/50 border-charcoal/10">Paused</Badge>
+                    <Pill tone="neutral">Paused</Pill>
                   )}
                 </div>
                 <div className="flex flex-wrap items-center gap-x-3 gap-y-1 mt-1">
-                  <Badge variant="outline" className="bg-sage/10 text-sage border-sage/20">{triggerLabelById.get(String(trigger.trigger_type)) ?? trigger.trigger_type}</Badge>
+                  <Pill tone="success">{triggerLabelById.get(String(trigger.trigger_type)) ?? trigger.trigger_type}</Pill>
                   <span className="font-body text-sm text-charcoal/60 truncate">→ {trigger.template?.name ?? "(no template)"}</span>
                   {trigger.channel_email && (
                     <span className="inline-flex items-center gap-1 font-body text-xs text-terracotta"><Mail size={12} />Email</span>
@@ -507,11 +510,11 @@ function TemplatesTab(props: TemplatesTabProps) {
                         {template.name}
                       </CardTitle>
                       <div className="flex flex-wrap items-center gap-2">
-                        <Badge variant="outline" className="bg-sage/10 text-sage border-sage/20">
+                        <Pill tone="success">
                           {templateLabelById.get(template.template_type) || template.template_type}
-                        </Badge>
+                        </Pill>
                         {template.is_system && (
-                          <Badge variant="outline" className="bg-terracotta/15 text-terracotta border-terracotta/20">System</Badge>
+                          <Pill tone="warning">System</Pill>
                         )}
                         {template.template_key && (
                           <code className="font-mono text-[10px] bg-charcoal/5 text-charcoal/60 px-1.5 py-0.5 rounded">
@@ -567,16 +570,14 @@ function TemplatesTab(props: TemplatesTabProps) {
 
                   <div className="flex items-center gap-2 mb-3">
                     {template.channel_email && (
-                      <Badge variant="outline" className="bg-terracotta/10 text-terracotta border-terracotta/20 flex items-center gap-1">
-                        <Mail size={12} />
+                      <Pill brand="gmail" icon={<Mail size={12} />}>
                         Email
-                      </Badge>
+                      </Pill>
                     )}
                     {template.channel_whatsapp && (
-                      <Badge variant="outline" className="bg-sage/10 text-sage border-sage/20 flex items-center gap-1">
-                        <MessageCircle size={12} />
+                      <Pill brand="whatsapp" icon={<MessageCircle size={12} />}>
                         WhatsApp
-                      </Badge>
+                      </Pill>
                     )}
                   </div>
 
@@ -585,9 +586,9 @@ function TemplatesTab(props: TemplatesTabProps) {
                       <p className="font-body text-xs text-charcoal/50 mb-2">Variables:</p>
                       <div className="flex flex-wrap gap-1">
                         {template.variables.map((variable, idx) => (
-                          <Badge key={idx} variant="outline" className="bg-sage/10 text-sage border-sage/20 font-mono text-xs">
+                          <Pill key={idx} tone="success" size="sm" className="font-mono">
                             {`{{${variable}}}`}
-                          </Badge>
+                          </Pill>
                         ))}
                       </div>
                     </div>
@@ -747,13 +748,16 @@ export default function CRMPage() {
   const [msgSearch, setMsgSearch] = useState("");
   const [msgChannel, setMsgChannel] = useState("");
   const [msgStatus, setMsgStatus] = useState("");
+  const [msgRange, setMsgRange] = useState<DateRange | undefined>();
   const msgQuery = useMemo(() => {
     const p = new URLSearchParams();
     if (msgSearch.trim()) p.set("q", msgSearch.trim());
     if (msgChannel) p.set("channel", msgChannel);
     if (msgStatus) p.set("status", msgStatus);
+    if (msgRange?.from) p.set("from", startOfDay(msgRange.from).toISOString());
+    if (msgRange?.to) p.set("to", endOfDay(msgRange.to).toISOString());
     return p.toString();
-  }, [msgSearch, msgChannel, msgStatus]);
+  }, [msgSearch, msgChannel, msgStatus, msgRange]);
 
   // Templates state
   const [templates, setTemplates] = useState<CRMTemplate[]>([]);
@@ -1141,9 +1145,9 @@ export default function CRMPage() {
                   <t.I className="h-4 w-4" />
                   {t.l}
                   {t.v === "triggers" && activeTriggerCount > 0 && (
-                    <Badge className="bg-sage/10 text-sage data-[state=active]:bg-cream/20 data-[state=active]:text-cream">
+                    <Pill tone="success" className="data-[state=active]:bg-cream/20 data-[state=active]:text-cream">
                       {activeTriggerCount}
-                    </Badge>
+                    </Pill>
                   )}
                 </TabsTrigger>
               ))}
@@ -1192,6 +1196,9 @@ export default function CRMPage() {
                         <SelectItem value="pending">Pending</SelectItem>
                       </SelectContent>
                     </Select>
+                  </div>
+                  <div className="w-full sm:w-56">
+                    <DateRangeFilter value={msgRange} onChange={setMsgRange} />
                   </div>
                 </div>
               </CardHeader>
@@ -1262,7 +1269,7 @@ export default function CRMPage() {
                   <DrawerDescription className="sr-only">Email and WhatsApp message template editor</DrawerDescription>
                   {templateForm.is_system && templateForm.template_key && (
                     <div className="flex items-center gap-2 mt-1">
-                      <Badge className="bg-terracotta/15 text-terracotta">System</Badge>
+                      <Pill tone="warning">System</Pill>
                       <code className="font-mono text-xs bg-charcoal/5 text-charcoal/60 px-1.5 py-0.5 rounded">
                         {templateForm.template_key}
                       </code>

@@ -10,6 +10,7 @@ export const getServerSideProps = requireSessionSSP({ roles: ["instructor"] });
 import { format, isAfter, isBefore, isToday, isTomorrow } from "date-fns";
 import { Button } from "@/components/ui/button";
 import { Spinner } from "@/components/ui/spinner";
+import { Pill } from "@/components/ui/pill";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { InstructorDashboardSkeleton } from "@/components/dashboard/skeletons";
 import { PageHeader } from "@/components/dashboard/PageHeader";
@@ -79,13 +80,13 @@ function dayLabel(dateStr: string): string {
   return format(d, "EEEE, MMM d");
 }
 
-function classStatusBadge(cls: ClassRow) {
+function classStatusBadge(cls: ClassRow): { label: string; tone: "info" | "neutral" | "success" } {
   const now = new Date();
   const start = new Date(cls.startTime);
   const end = new Date(cls.endTime);
-  if (isBefore(now, start)) return { label: "Upcoming", color: "bg-terracotta/10 text-terracotta border-terracotta/20" };
-  if (isAfter(now, end)) return { label: "Completed", color: "bg-charcoal/10 text-charcoal/60 border-charcoal/20" };
-  return { label: "In Progress", color: "bg-sage/10 text-sage border-sage/30" };
+  if (isBefore(now, start)) return { label: "Upcoming", tone: "info" };
+  if (isAfter(now, end)) return { label: "Completed", tone: "neutral" };
+  return { label: "In Progress", tone: "success" };
 }
 
 function CapacityBar({ enrolled, capacity }: { enrolled: number; capacity: number }) {
@@ -345,9 +346,9 @@ export default function InstructorDashboard() {
                         <div className="flex-1 min-w-0">
                           <div className="flex items-center gap-2 flex-wrap">
                             <h2 className="font-display text-base sm:text-lg text-charcoal">{cls.className}</h2>
-                            <span className={`font-body text-xs px-2.5 py-0.5 rounded-full border ${statusInfo.color}`}>
+                            <Pill tone={statusInfo.tone} size="sm" className="font-body">
                               {statusInfo.label}
-                            </span>
+                            </Pill>
                             {cls.category && (
                               <span className="font-body text-xs text-charcoal/40 uppercase tracking-wider hidden sm:inline">
                                 {cls.category}
@@ -355,23 +356,22 @@ export default function InstructorDashboard() {
                             )}
                             {/* Instructor check-in badge */}
                             {cls.instructorCheckedIn ? (
-                              <span className="flex items-center gap-1 font-body text-xs px-2.5 py-0.5 rounded-full bg-sage/10 text-sage border border-sage/30">
-                                <CheckCircle2 className="h-3 w-3" />
+                              <Pill tone="success" size="sm" className="font-body" icon={<CheckCircle2 className="h-3 w-3" />}>
                                 <span className="hidden xs:inline">You checked in {cls.instructorCheckInTime ? format(new Date(cls.instructorCheckInTime), "h:mm a") : ""}</span>
                                 <span className="xs:hidden">Checked in</span>
-                              </span>
+                              </Pill>
                             ) : winStatus === "open" ? (
-                              <span className="font-body text-xs px-2.5 py-0.5 rounded-full bg-terracotta/10 text-terracotta border border-terracotta/20">
+                              <Pill tone="warning" size="sm" className="font-body">
                                 Window open
-                              </span>
+                              </Pill>
                             ) : winStatus === "too_early" ? (
-                              <span className="font-body text-xs px-2.5 py-0.5 rounded-full bg-charcoal/5 text-charcoal/50 border border-charcoal/10 hidden sm:inline-flex">
+                              <Pill tone="neutral" size="sm" className="font-body hidden sm:inline-flex">
                                 Opens {minutesUntilOpen(cls.startTime)} min before class
-                              </span>
+                              </Pill>
                             ) : (
-                              <span className="font-body text-xs px-2.5 py-0.5 rounded-full bg-charcoal/5 text-charcoal/50 border border-charcoal/15 hidden sm:inline-flex">
+                              <Pill tone="neutral" size="sm" className="font-body hidden sm:inline-flex">
                                 Window closed
-                              </span>
+                              </Pill>
                             )}
                           </div>
 

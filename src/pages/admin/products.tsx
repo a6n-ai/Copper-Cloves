@@ -2,7 +2,6 @@ import { useState, useEffect, useMemo, useCallback } from "react";
 import { useRouter } from "next/router";
 import { useSession } from "next-auth/react";
 import { requireSessionSSP } from "@/lib/requireSessionSSP";
-import { statusTone } from "@/lib/statusTone";
 
 export const getServerSideProps = requireSessionSSP({ roles: ["admin"] });
 import { SEO } from "@/components/SEO";
@@ -15,7 +14,7 @@ import {
   DrawerDescription,
 } from "@/components/ui/drawer";
 import { EditButton, DeleteButton } from "@/components/ui/quick-actions";
-import { Badge } from "@/components/ui/badge";
+import { Pill } from "@/components/ui/pill";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { 
@@ -414,14 +413,13 @@ export default function AdminProducts() {
     }
   };
 
-  const getStatusColor = (status: Order["status"]) => {
+  const getStatusPillTone = (status: Order["status"]): "success" | "warning" | "danger" | "neutral" => {
     switch (status) {
-      case "pending": return statusTone("pending");
-      case "processing": return statusTone("pending");
-      case "shipped": return statusTone("neutral");
-      case "delivered": return statusTone("success");
-      case "cancelled": return statusTone("error");
-      default: return statusTone("neutral");
+      case "pending":
+      case "processing": return "warning";
+      case "delivered": return "success";
+      case "cancelled": return "danger";
+      default: return "neutral";
     }
   };
 
@@ -632,7 +630,7 @@ export default function AdminProducts() {
                                   <div>
                                     <p className="font-body text-sm font-medium text-charcoal">{product.name}</p>
                                     {product.featured && (
-                                      <Badge className="bg-sage/10 text-sage border-sage/20 text-xs mt-1">Featured</Badge>
+                                      <Pill tone="success" size="sm" className="mt-1">Featured</Pill>
                                     )}
                                   </div>
                                 </div>
@@ -656,9 +654,9 @@ export default function AdminProducts() {
                               </td>
                               <td className="p-4">
                                 {product.inStock ? (
-                                  <Badge className="bg-sage/10 text-sage border-sage/20">In Stock</Badge>
+                                  <Pill tone="success">In Stock</Pill>
                                 ) : (
-                                  <Badge variant="outline">Out of Stock</Badge>
+                                  <Pill tone="neutral">Out of Stock</Pill>
                                 )}
                               </td>
                               <td className="p-4">
@@ -795,9 +793,9 @@ export default function AdminProducts() {
                         <div>
                           <div className="flex items-center gap-3 mb-2">
                             <h3 className="font-display text-xl text-charcoal">{order.id}</h3>
-                            <Badge className={getStatusColor(order.status)}>
+                            <Pill tone={getStatusPillTone(order.status)}>
                               {order.status.charAt(0).toUpperCase() + order.status.slice(1)}
-                            </Badge>
+                            </Pill>
                           </div>
                           <p className="font-body text-sm text-charcoal/60 mb-1">
                             {order.customerName} • {order.customerEmail}

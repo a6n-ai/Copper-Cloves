@@ -22,7 +22,7 @@ import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { AdminPageHeader } from "@/components/admin/AdminPageHeader";
-import { Badge } from "@/components/ui/badge";
+import { Pill } from "@/components/ui/pill";
 import { useSession } from "next-auth/react";
 import { SEO } from "@/components/SEO";
 import {
@@ -876,9 +876,9 @@ export default function AdminCafe() {
                             categoryLabel={categoryLabelById.get(item.category) || item.category}
                             badge={
                               !item.is_available ? (
-                                <Badge className="bg-terracotta text-white-warm">
+                                <Pill tone="warning" appearance="solid">
                                   Unavailable
-                                </Badge>
+                                </Pill>
                               ) : undefined
                             }
                           >
@@ -1037,11 +1037,11 @@ export default function AdminCafe() {
                               ? { text: "text-terracotta/80", border: "border-terracotta/50", glow: "rgba(193,120,86,0.45)", dur: "2s" }
                               : { text: "text-sage", border: "border-border", glow: "transparent", dur: "0s" };
 
-                          const statusPill =
-                            order.status === "pending" ? "bg-sand text-charcoal" :
-                            order.status === "preparing" ? "bg-terracotta/15 text-terracotta" :
-                            order.status === "ready" ? "bg-sage/15 text-sage" :
-                            "bg-sand text-charcoal/60";
+                          const statusTone =
+                            order.status === "pending" ? "neutral" :
+                            order.status === "preparing" ? "warning" :
+                            order.status === "ready" ? "success" :
+                            "neutral";
 
                           // Spin faster the more urgent the order (seconds per rotation).
                           const spinSpeed =
@@ -1130,9 +1130,9 @@ export default function AdminCafe() {
                                       </div>
                                     </SpinningText>
                                     <div className="text-center">
-                                      <span className={`inline-block rounded-full px-3 py-1 font-body text-[0.65rem] font-semibold uppercase tracking-[0.08em] ${statusPill}`}>
+                                      <Pill tone={statusTone} size="md" className="px-3 py-1 font-body text-[0.65rem] font-semibold uppercase tracking-[0.08em]">
                                         {order.status}
-                                      </span>
+                                      </Pill>
                                       {alertLevel.readyBy && (
                                         <p className="mt-1 font-body text-xs font-semibold text-sage">Ready by {alertLevel.readyBy}</p>
                                       )}
@@ -1251,11 +1251,13 @@ export default function AdminCafe() {
                                       </span>
                                     </p>
                                   </div>
-                                  <span className={`shrink-0 rounded-full px-3 py-1 font-body text-[0.7rem] font-semibold uppercase tracking-[0.06em] ${
-                                    order.status === "completed" ? "bg-sand text-charcoal/60" : "bg-[#a05e38]/10 text-[#a05e38]"
-                                  }`}>
+                                  <Pill
+                                    tone={order.status === "completed" ? "neutral" : "warning"}
+                                    size="md"
+                                    className="shrink-0 px-3 py-1 font-body text-[0.7rem] font-semibold uppercase tracking-[0.06em]"
+                                  >
                                     {order.status}
-                                  </span>
+                                  </Pill>
                                 </div>
                               </div>
 

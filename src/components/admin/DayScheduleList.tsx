@@ -1,7 +1,7 @@
 import { useCallback, useMemo, useRef, useState, type ReactNode } from "react";
 import { useRouter } from "next/router";
 import { Repeat, CalendarIcon, ChevronRight, ArrowUp, ArrowDown, ChevronsUpDown } from "lucide-react";
-import { Badge } from "@/components/ui/badge";
+import { Pill } from "@/components/ui/pill";
 import {
   Table,
   TableBody,
@@ -29,22 +29,22 @@ export interface ScheduleRow {
   status?: string;
 }
 
-function statusBadgeClass(status: string): string {
+type PillTone = "success" | "warning" | "danger" | "info" | "neutral";
+
+function statusTone(status: string): PillTone {
   switch (status) {
     case "available":
-      return "border-sage/30 text-sage bg-sage/10";
-    case "inactive":
-      return "border-terracotta/30 text-terracotta bg-terracotta/10";
     case "started":
-      return "border-sage/30 text-sage bg-sage/10";
+      return "success";
+    case "inactive":
+      return "warning";
     case "completed":
-      return "border-charcoal/20 text-charcoal/70 bg-charcoal/5";
+      return "neutral";
     case "cancelled":
-      return "border-[#a05e38]/25 text-[#a05e38] bg-[#a05e38]/10";
     case "abandoned":
-      return "border-[#a05e38]/20 text-[#a05e38]/80 bg-[#a05e38]/5";
+      return "warning";
     default:
-      return "border-charcoal/20 text-charcoal/60 bg-white-warm";
+      return "neutral";
   }
 }
 
@@ -64,10 +64,10 @@ function occupancyColor(pct: number): string {
   return "bg-sage";
 }
 
-function occupancyBadge(pct: number): string {
-  if (pct >= 90) return "border-[#a05e38]/25 text-[#a05e38] bg-[#a05e38]/10";
-  if (pct >= 70) return "border-terracotta/20 text-terracotta bg-terracotta/10";
-  return "border-sage/20 text-sage bg-sage/5";
+function occupancyTone(pct: number): PillTone {
+  if (pct >= 90) return "warning";
+  if (pct >= 70) return "warning";
+  return "success";
 }
 
 type SortKey = "time" | "name" | "instructor" | "capacity" | "fill" | "status";
@@ -143,7 +143,7 @@ function SortHead({
     sortIcon = <ArrowDown className="h-3 w-3" />;
   }
   return (
-    <TableHead className={cn("font-body text-xs uppercase tracking-wide text-charcoal/60 px-5 py-3", className)}>
+    <TableHead className={cn("font-body", className)}>
       <button
         type="button"
         onClick={() => onSort(sortKey)}
@@ -209,7 +209,7 @@ export function DayScheduleList({
         <ResponsiveTable>
         <Table className="w-full table-fixed min-w-[640px]">
           <TableHeader>
-            <TableRow className="bg-sage/5 hover:bg-sage/5 border-sage/10">
+            <TableRow>
               <SortHead label="Class & Time" sortKey="time" active={sortKey} dir={sortDir} onSort={toggleSort} />
               <SortHead label="Instructor" sortKey="instructor" active={sortKey} dir={sortDir} onSort={toggleSort} className="w-[22%]" />
               <SortHead label="Capacity" sortKey="capacity" active={sortKey} dir={sortDir} onSort={toggleSort} className="w-[180px] hidden md:table-cell" />
@@ -217,10 +217,10 @@ export function DayScheduleList({
               {variant === "expanded" && (
                 <>
                   <SortHead label="Status" sortKey="status" active={sortKey} dir={sortDir} onSort={toggleSort} className="w-[110px] hidden lg:table-cell" />
-                  <TableHead className="font-body text-xs uppercase tracking-wide text-charcoal/60 w-[150px] px-3 py-3 text-right">Actions</TableHead>
+                  <TableHead className="font-body w-[150px] text-right">Actions</TableHead>
                 </>
               )}
-              {variant === "compact" && interactive && <TableHead className="w-[40px] px-3" />}
+              {variant === "compact" && interactive && <TableHead className="w-[40px]" />}
             </TableRow>
           </TableHeader>
           <TableBody>
@@ -231,12 +231,12 @@ export function DayScheduleList({
                 <TableRow
                   key={row.id}
                   className={cn(
-                    "border-sage/10 transition-colors",
-                    interactive && "cursor-pointer hover:bg-sage/10",
+                    "transition-colors",
+                    interactive && "cursor-pointer",
                   )}
                   onClick={interactive ? () => onSelect?.(row) : undefined}
                 >
-                  <TableCell className="px-3 py-4">
+                  <TableCell>
                     <div className="flex flex-col gap-0.5 min-w-0">
                       <div className="font-body font-medium text-charcoal truncate">
                         {row.name}
@@ -248,16 +248,16 @@ export function DayScheduleList({
                         )}
                         {variant === "expanded" && row.status && row.status !== "available" && (
                           <span className="lg:hidden">
-                            <Badge variant="outline" className={cn("font-body capitalize text-[10px] py-0", statusBadgeClass(row.status))}>
+                            <Pill tone={statusTone(row.status)} className="font-body capitalize text-[10px] py-0">
                               {row.status}
-                            </Badge>
+                            </Pill>
                           </span>
                         )}
                         <span className="md:hidden tabular-nums">· {row.enrolled}/{row.capacity}</span>
                       </div>
                     </div>
                   </TableCell>
-                  <TableCell className="px-3 py-4" onClick={(e) => e.stopPropagation()}>
+                  <TableCell onClick={(e) => e.stopPropagation()}>
                     {row.instructorId ? (
                       <button
                         type="button"
@@ -289,7 +289,7 @@ export function DayScheduleList({
                       </div>
                     )}
                   </TableCell>
-                  <TableCell className="px-3 py-4 hidden md:table-cell">
+                  <TableCell className="hidden md:table-cell">
                     <div className="flex items-center gap-3">
                       <div className="h-1.5 flex-1 max-w-[120px] rounded-full bg-sage/10 overflow-hidden">
                         <div
@@ -302,25 +302,25 @@ export function DayScheduleList({
                       </span>
                     </div>
                   </TableCell>
-                  <TableCell className="px-3 py-4 hidden md:table-cell">
-                    <Badge variant="outline" className={cn("font-body", occupancyBadge(pct))}>
+                  <TableCell className="hidden md:table-cell">
+                    <Pill tone={occupancyTone(pct)} className="font-body">
                       {pct}%
-                    </Badge>
+                    </Pill>
                   </TableCell>
                   {variant === "expanded" && (
                     <>
-                      <TableCell className="px-3 py-4 hidden lg:table-cell">
-                        <Badge variant="outline" className={cn("font-body capitalize", statusBadgeClass(row.status ?? "available"))}>
+                      <TableCell className="hidden lg:table-cell">
+                        <Pill tone={statusTone(row.status ?? "available")} className="font-body capitalize">
                           {row.status ?? "available"}
-                        </Badge>
+                        </Pill>
                       </TableCell>
-                      <TableCell onClick={(e) => e.stopPropagation()} className="px-3 py-4 text-right">
+                      <TableCell onClick={(e) => e.stopPropagation()} className="text-right">
                         <div className="flex items-center gap-1.5 justify-end">{actions?.(row)}</div>
                       </TableCell>
                     </>
                   )}
                   {variant === "compact" && interactive && (
-                    <TableCell className="text-charcoal/30 px-3 py-4">
+                    <TableCell className="text-charcoal/30">
                       <ChevronRight className="h-4 w-4" />
                     </TableCell>
                   )}

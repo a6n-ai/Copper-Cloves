@@ -4,7 +4,7 @@ import { SortableHeader, useTableSort } from "@/components/admin/sortable-table"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { ResponsiveTable } from "@/components/responsive/ResponsiveTable";
-import { Badge } from "@/components/ui/badge";
+import { Pill } from "@/components/ui/pill";
 import {
   ChartContainer,
   ChartTooltip,
@@ -56,18 +56,18 @@ interface Props {
   classesLoaded: boolean;
 }
 
-function classUtilStyle(util: number): { statusColor: string; barColor: string; status: string } {
+function classUtilStyle(util: number): { tone: "success" | "warning"; barColor: string; status: string } {
   if (util >= 75) {
-    return { statusColor: "border-sage/30 text-sage bg-sage/5", barColor: "bg-sage", status: "Strong" };
+    return { tone: "success", barColor: "bg-sage", status: "Strong" };
   }
   if (util >= 50) {
     return {
-      statusColor: "border-terracotta/20 text-terracotta bg-terracotta/10",
+      tone: "warning",
       barColor: "bg-terracotta",
       status: "Steady",
     };
   }
-  return { statusColor: "border-[#a05e38]/30 text-[#a05e38] bg-[#a05e38]/10", barColor: "bg-[#a05e38]", status: "Low" };
+  return { tone: "warning", barColor: "bg-[#a05e38]", status: "Low" };
 }
 
 function ClassesTabImpl({ classPerformance, disciplineSplit, peakHours, classesLoaded }: Readonly<Props>) {
@@ -146,28 +146,28 @@ function ClassesTabImpl({ classPerformance, disciplineSplit, peakHours, classesL
             <ResponsiveTable>
               <Table>
                 <TableHeader>
-                  <TableRow className="bg-sage/5 hover:bg-sage/5 border-sage/10">
+                  <TableRow>
                     <SortableHeader sortKey="name" active={sortKey} dir={sortDir} onToggle={toggle}>Class</SortableHeader>
                     <SortableHeader sortKey="discipline" active={sortKey} dir={sortDir} onToggle={toggle} className="w-[160px]">Discipline</SortableHeader>
                     <SortableHeader sortKey="spots" active={sortKey} dir={sortDir} onToggle={toggle} className="w-[120px]">Spots</SortableHeader>
                     <SortableHeader sortKey="utilization" active={sortKey} dir={sortDir} onToggle={toggle} className="w-[220px]">Utilization</SortableHeader>
-                    <TableHead className="font-body text-xs uppercase tracking-wide text-charcoal/60 px-5 py-3 w-[120px]">Status</TableHead>
+                    <TableHead className="w-[120px]">Status</TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
                   {classesPerfPg.pageItems.map((cls) => {
                     const util = cls.utilization;
-                    const { statusColor, barColor, status } = classUtilStyle(util);
+                    const { tone, barColor, status } = classUtilStyle(util);
                     return (
-                      <TableRow key={cls.name} className="border-sage/10">
-                        <TableCell className="px-5 py-3 font-body font-medium text-charcoal">{cls.name}</TableCell>
-                        <TableCell className="px-5 py-3">
-                          <Badge variant="outline" className="border-sage/20 text-sage bg-sage/5 font-body whitespace-nowrap">{cls.discipline}</Badge>
+                      <TableRow key={cls.name}>
+                        <TableCell className="font-body font-medium text-charcoal">{cls.name}</TableCell>
+                        <TableCell>
+                          <Pill tone="success" className="font-body whitespace-nowrap">{cls.discipline}</Pill>
                         </TableCell>
-                        <TableCell className="px-5 py-3 font-body text-sm text-charcoal/70 tabular-nums whitespace-nowrap">
+                        <TableCell className="font-body text-sm text-charcoal/70 tabular-nums whitespace-nowrap">
                           {cls.bookings} / {cls.capacity}
                         </TableCell>
-                        <TableCell className="px-5 py-3">
+                        <TableCell>
                           <div className="flex items-center gap-3">
                             <div className="h-1.5 flex-1 max-w-[160px] rounded-full bg-sage/10 overflow-hidden">
                               <div className={`h-full transition-all ${barColor}`} style={{ width: `${util}%` }} />
@@ -175,8 +175,8 @@ function ClassesTabImpl({ classPerformance, disciplineSplit, peakHours, classesL
                             <span className="font-display text-sm text-charcoal tabular-nums whitespace-nowrap">{util}%</span>
                           </div>
                         </TableCell>
-                        <TableCell className="px-5 py-3">
-                          <Badge variant="outline" className={`font-body whitespace-nowrap ${statusColor}`}>{status}</Badge>
+                        <TableCell>
+                          <Pill tone={tone} className="font-body whitespace-nowrap">{status}</Pill>
                         </TableCell>
                       </TableRow>
                     );
@@ -320,9 +320,9 @@ function ClassesTabImpl({ classPerformance, disciplineSplit, peakHours, classesL
               {stats.underperforming.map((cls) => (
                 <div key={cls.name} className="flex items-center gap-2 rounded-full bg-white-warm border border-[#a05e38]/25 px-3 py-1.5">
                   <span className="font-body text-sm text-charcoal">{cls.name}</span>
-                  <Badge className="bg-[#a05e38]/10 text-[#a05e38] border-[#a05e38]/25 font-body">
+                  <Pill tone="warning" className="font-body">
                     {cls.utilization}%
-                  </Badge>
+                  </Pill>
                 </div>
               ))}
             </div>

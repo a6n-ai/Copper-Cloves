@@ -29,7 +29,7 @@ import {
   ResponsiveDialogDescription,
 } from "@/components/responsive/ResponsiveDialog";
 import { classInitials, classFallbackGradient } from "@/components/classes/classFallback";
-import { Badge } from "@/components/ui/badge";
+import { Pill } from "@/components/ui/pill";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { 
@@ -347,12 +347,12 @@ const STATUS_TEXT: Record<StatusTone, string> = {
   full: "text-terracotta",
   past: "text-charcoal/40",
 };
-/** Tinted pill backgrounds — gives status real presence vs a bare dot+text. */
-const STATUS_PILL: Record<StatusTone, string> = {
-  available: "bg-sage/10 text-sage",
-  low: "bg-terracotta/10 text-terracotta",
-  full: "bg-terracotta/10 text-terracotta",
-  past: "bg-charcoal/[0.06] text-charcoal/45",
+/** Maps the booking status tone to the shared Pill component tone. */
+const STATUS_PILL_TONE: Record<StatusTone, "success" | "warning" | "neutral"> = {
+  available: "success",
+  low: "warning",
+  full: "warning",
+  past: "neutral",
 };
 /** Friendly labels for the schedule lifecycle status (past / non-bookable classes). */
 const LIFECYCLE_LABEL: Record<string, string> = {
@@ -463,10 +463,9 @@ const BookClassCard = memo(function BookClassCard({ cls, onSelect, onOpenDetails
           )}
         </div>
         <div className="mt-4 flex items-center justify-between gap-3">
-          <span className={`inline-flex items-center gap-1.5 rounded-full px-2.5 py-1 font-body text-xs font-medium ${STATUS_PILL[status.tone]}`}>
-            <span className={`size-1.5 rounded-full ${STATUS_DOT[status.tone]}`} aria-hidden="true" />
+          <Pill tone={STATUS_PILL_TONE[status.tone]} size="md" dot className="font-body font-medium">
             {status.label}
-          </span>
+          </Pill>
           <Button
             onClick={(e) => { e.stopPropagation(); onSelect(cls); }}
             disabled={!status.canBook}
@@ -507,7 +506,7 @@ function BookClassDetailDialog({
                   <span className="font-display text-5xl text-white-warm/55">{classInitials(cls.name)}</span>
                 </div>
               )}
-              <Badge className="absolute left-4 top-4 border-0 bg-white-warm/90 text-xs text-sage">{cls.category}</Badge>
+              <Pill size="sm" className="absolute left-4 top-4 border-0 bg-white-warm/90 text-sage">{cls.category}</Pill>
             </div>
             <div className="space-y-4 p-5 sm:p-6">
               <ResponsiveDialogHeader className="space-y-1 text-left">
@@ -586,9 +585,9 @@ const FoodRow = memo(function FoodRow({ item, onAdjust }: FoodRowProps) {
         <div className="flex-1">
           <div className="flex flex-wrap items-center gap-2 mb-1">
             <h4 className="font-display text-lg text-charcoal">{item.name}</h4>
-            <Badge variant="outline" className="border-sage/30 text-charcoal/70 text-[10px]">
+            <Pill tone="neutral" className="text-[10px]">
               {formatCafeCategory(item.category)}
-            </Badge>
+            </Pill>
           </div>
           {item.description ? (
             <p className="font-body text-xs text-charcoal/60 mb-2">{item.description}</p>
@@ -1382,10 +1381,10 @@ export default function BookClass() {
               />
               <span className="font-body text-xs sm:text-sm text-charcoal/70 font-medium flex items-center gap-1.5 sm:gap-2">
                 {weekSummary || "Loading…"}
-                {weekOffset === 0 && <span className="text-xs text-sage bg-sage/10 px-2 py-0.5 rounded-full">This Week</span>}
-                {weekOffset === 1 && <span className="text-xs text-sage bg-sage/10 px-2 py-0.5 rounded-full">Next Week</span>}
-                {weekOffset < 0 && <span className="text-xs text-terracotta/80 bg-terracotta/10 px-2 py-0.5 rounded-full">Past</span>}
-                {weekOffset > 1 && <span className="text-xs text-sage bg-sage/10 px-2 py-0.5 rounded-full">Upcoming</span>}
+                {weekOffset === 0 && <Pill tone="success" size="sm">This Week</Pill>}
+                {weekOffset === 1 && <Pill tone="success" size="sm">Next Week</Pill>}
+                {weekOffset < 0 && <Pill tone="warning" size="sm">Past</Pill>}
+                {weekOffset > 1 && <Pill tone="success" size="sm">Upcoming</Pill>}
               </span>
               <NavNextButton
                 onClick={() => setWeekOffset(o => o + 1)}

@@ -1,4 +1,4 @@
-import { Badge } from "@/components/ui/badge";
+import { Pill } from "@/components/ui/pill";
 import { classInitials, classFallbackGradient } from "./classFallback";
 import type { PublicClass } from "@/pages/classes";
 
@@ -32,9 +32,9 @@ export function ClassCard({
             </span>
           </div>
         )}
-        <Badge className="absolute left-3 top-3 border-0 bg-white-warm/90 text-xs text-sage">
+        <Pill tone="success" size="sm" className="absolute left-3 top-3 bg-white-warm/90">
           {classItem.category}
-        </Badge>
+        </Pill>
         {classItem.instructor && (
           <>
             <div

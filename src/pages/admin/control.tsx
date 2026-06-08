@@ -10,17 +10,17 @@ import dynamic from "next/dynamic";
 import { useRouter } from "next/router";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { ResponsiveTable } from "@/components/responsive/ResponsiveTable";
 import { MetricCard } from "@/components/admin/MetricCard";
 import { ListAvatar } from "@/components/admin/ListAvatar";
 import { AdminPageHeader } from "@/components/admin/AdminPageHeader";
 import { Button } from "@/components/ui/button";
 import { EditButton, DeleteButton, ManageButton } from "@/components/ui/quick-actions";
+import { MemberTable, type MemberTableMember } from "@/components/admin/MemberTable";
+import { InstructorTable, type InstructorTableInstructor } from "@/components/admin/InstructorTable";
 import { AnimatedIcon } from "@/components/dashboard/AnimatedIcon";
 import { cn } from "@/lib/utils";
-import { StatusPill } from "@/components/ui/status-pill";
-import { Badge } from "@/components/ui/badge";
+import { Pill } from "@/components/ui/pill";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Input } from "@/components/ui/input";
@@ -38,11 +38,9 @@ import {
   Users, 
   Calendar, 
   Plus, 
-  Edit, 
-  Ban, 
-  Mail, 
-  Phone, 
-  Clock, 
+  Edit,
+  Ban,
+  Clock,
   Save,
   CheckCircle2,
   CreditCard,
@@ -274,8 +272,7 @@ const isUserExpired = (u: any) =>
   u.expiry === "N/A" || (u.expiry && new Date(u.expiry).getTime() < Date.now());
 const isUserActive = (u: any) => u.passType !== "none" && !isUserExpired(u);
 
-const thBtn = "inline-flex items-center gap-1 uppercase hover:text-charcoal transition-colors";
-const thBase = "font-body text-xs uppercase tracking-wide text-charcoal/60 px-5 py-3";
+const thBtn = "inline-flex items-center gap-1 hover:text-charcoal transition-colors";
 
 export default function ControlPanel() {
   const router = useRouter();
@@ -1133,6 +1130,86 @@ export default function ControlPanel() {
   const classesPg = usePagination(filteredClasses, 10, `${classSearch}|${classSort.key}|${classSort.dir}`);
   const instructorsPg = usePagination(filteredInstructors, 10, `${instructorSearch}|${instructorSort.key}|${instructorSort.dir}`);
 
+  // Map paged users → MemberTable rows; carry the original user object on `_raw`
+  // so renderActions can call the existing edit/delete handlers unchanged.
+  const memberRows: (MemberTableMember & { _raw: any })[] = usersPg.pageItems.map((user) => {
+    const passCategory: "studio_pass" | "class_pass" | "none" =
+      user.passType === "studio_pass" ? "studio_pass" : user.passType === "class_pass" ? "class_pass" : "none";
+    const status: "active" | "expired" | undefined =
+      passCategory === "none" ? undefined : isUserActive(user) ? "active" : "expired";
+    return {
+      id: user.id,
+      name: user.name || user.full_name || user.email,
+      email: user.email,
+      phone: user.phone,
+      avatarUrl: user.avatar_url ?? null,
+      passLabel: user.pass_type ?? undefined,
+      passCategory,
+      unlimited: passCategory === "studio_pass",
+      credits: typeof user.classesRemaining === "number" ? user.classesRemaining : null,
+      status,
+      _raw: user,
+    };
+  });
+
+  function renderMemberActions(m: MemberTableMember & { _raw: any }) {
+    const user = m._raw;
+    return (
+      <div className="flex gap-2 justify-end">
+        <EditButton onClick={() => openEditUser(user)} label="Edit user" />
+        <DeleteButton
+          onClick={() => handleDeleteUser(user.id, user.name || user.full_name || user.email)}
+          label="Delete user"
+        />
+      </div>
+    );
+  }
+
+  // Map paged instructors → InstructorTable rows; carry original on `_raw`.
+  const instructorRows: (InstructorTableInstructor & { _raw: any })[] = instructorsPg.pageItems.map((instructor) => ({
+    id: instructor.id,
+    name: instructor.name,
+    title: instructor.title,
+    email: instructor.email,
+    phone: instructor.phone,
+    imageUrl: instructor.image_url,
+    specialties: normalizeSpecialties(instructor.specialties),
+    isActive: instructor.is_active,
+    _raw: instructor,
+  }));
+
+  function renderInstructorActions(i: InstructorTableInstructor & { _raw: any }) {
+    const instructor = i._raw;
+    const active = instructor.is_active !== false;
+    return (
+      <div className="flex gap-1.5 justify-end">
+        <Button
+          type="button"
+          variant="outline"
+          size="sm"
+          onClick={() => handleToggleInstructorActive(instructor.id, active)}
+          aria-label={active ? "Deactivate instructor" : "Activate instructor"}
+          title={active ? "Deactivate instructor" : "Activate instructor"}
+          className={cn(
+            "h-8 w-8 p-0 font-body transition-all hover:scale-110 active:scale-95",
+            active
+              ? "border-terracotta/40 text-terracotta bg-white-warm hover:!bg-terracotta hover:!text-cream hover:!border-terracotta"
+              : "border-sage/60 text-sage bg-white-warm hover:!bg-sage hover:!text-cream hover:!border-sage",
+          )}
+        >
+          <AnimatedIcon icon={active ? PowerOff : Power} size={14} animateOnMount={false} hover="wiggle" />
+        </Button>
+        <ManageButton onClick={() => router.push(`/admin/instructors/${instructor.id}`)} label="Open profile" />
+        <DeleteButton
+          onClick={() => handleDeleteInstructor(instructor.id, instructor.name)}
+          label="Delete instructor"
+          confirmTitle={`Delete ${instructor.name}?`}
+          confirmDescription="The instructor will be permanently removed. Past class history is preserved."
+        />
+      </div>
+    );
+  }
+
   if (loading) {
     return (
       <div className="min-h-screen bg-linear-to-br from-cream via-cream to-sage/10">
@@ -1171,9 +1248,9 @@ export default function ControlPanel() {
                   <Clock className="h-4 w-4 mr-2" />
                   Pause Requests
                   {pauseTickets.filter((t) => t.status === "open").length > 0 && (
-                    <Badge variant="secondary" className="ml-2 bg-terracotta/15 text-terracotta px-1.5 py-0 text-xs">
+                    <Pill tone="warning" size="sm" className="ml-2">
                       {pauseTickets.filter((t) => t.status === "open").length}
-                    </Badge>
+                    </Pill>
                   )}
                 </TabsTrigger>
                 <TabsTrigger value="classes" className="data-[state=active]:bg-sage data-[state=active]:text-cream font-body">
@@ -1280,111 +1357,20 @@ export default function ControlPanel() {
                       </div>
                     ) : (
                       <>
-                        <ResponsiveTable>
-                          <div className="rounded-xl border border-sage/15 bg-white-warm overflow-hidden">
-                            <Table>
-                              <TableHeader>
-                                <TableRow className="bg-sage/5 hover:bg-sage/5 border-sage/10">
-                                  <TableHead className={thBase}>
-                                    <button type="button" onClick={() => userSort.toggle("name")} className={thBtn}>
-                                      Member {sortArrow(userSort.key === "name", userSort.dir)}
-                                    </button>
-                                  </TableHead>
-                                  <TableHead className={`${thBase} w-[150px]`}>
-                                    <button type="button" onClick={() => userSort.toggle("pass")} className={thBtn}>
-                                      Pass {sortArrow(userSort.key === "pass", userSort.dir)}
-                                    </button>
-                                  </TableHead>
-                                  <TableHead className={`${thBase} w-[110px]`}>
-                                    <button type="button" onClick={() => userSort.toggle("remaining", "desc")} className={thBtn}>
-                                      Remaining {sortArrow(userSort.key === "remaining", userSort.dir)}
-                                    </button>
-                                  </TableHead>
-                                  <TableHead className={`${thBase} w-[120px]`}>
-                                    <button type="button" onClick={() => userSort.toggle("start", "desc")} className={thBtn}>
-                                      Start {sortArrow(userSort.key === "start", userSort.dir)}
-                                    </button>
-                                  </TableHead>
-                                  <TableHead className={`${thBase} w-[120px]`}>
-                                    <button type="button" onClick={() => userSort.toggle("end", "desc")} className={thBtn}>
-                                      End {sortArrow(userSort.key === "end", userSort.dir)}
-                                    </button>
-                                  </TableHead>
-                                  <TableHead className={`${thBase} w-[110px]`}>
-                                    <button type="button" onClick={() => userSort.toggle("status")} className={thBtn}>
-                                      Status {sortArrow(userSort.key === "status", userSort.dir)}
-                                    </button>
-                                  </TableHead>
-                                  <TableHead className={`${thBase} w-[120px] text-right`}>Actions</TableHead>
-                                </TableRow>
-                              </TableHeader>
-                              <TableBody>
-                                {usersPg.pageItems.map((user) => {
-                                  const active = isUserActive(user);
-                                  return (
-                                    <TableRow key={user.id} className="border-sage/10 hover:bg-sage/5">
-                                      <TableCell className="px-5 py-4">
-                                        <div className="flex items-center gap-3 min-w-0">
-                                          <ListAvatar name={user.name || user.email} size="md" />
-                                          <div className="min-w-0">
-                                            <div className="font-body font-medium text-charcoal truncate">{user.name || user.full_name || user.email}</div>
-                                            <div className="font-body text-xs text-charcoal/60 truncate">{user.email}</div>
-                                            <div className="font-body text-xs text-charcoal/50 truncate">{user.phone}</div>
-                                          </div>
-                                        </div>
-                                      </TableCell>
-                                      <TableCell className="px-5 py-4">
-                                        {user.passType === "none" ? (
-                                          <StatusPill tone="neutral">No pass</StatusPill>
-                                        ) : user.passType === "class_pass" ? (
-                                          <StatusPill tone="sage">Class pass</StatusPill>
-                                        ) : (
-                                          <StatusPill tone={user.isPaused ? "amber" : "sage"} variant="solid" dot pulse={!user.isPaused}>
-                                            Studio{user.isPaused ? " (Paused)" : ""}
-                                          </StatusPill>
-                                        )}
-                                      </TableCell>
-                                      <TableCell className="px-5 py-4">
-                                        {user.passType === "none" ? (
-                                          <span className="font-body text-sm text-charcoal/40">—</span>
-                                        ) : user.passType === "class_pass" ? (
-                                          <span className="font-body text-sm text-charcoal tabular-nums">{user.classesRemaining} left</span>
-                                        ) : (
-                                          <span className="font-body text-sm text-charcoal tabular-nums">{user.daysRemaining}d left</span>
-                                        )}
-                                      </TableCell>
-                                      <TableCell className="px-5 py-4">
-                                        <span className="font-body text-sm text-charcoal/70">
-                                          {user.start_date ? new Date(user.start_date).toLocaleDateString("en-IN", { day: "2-digit", month: "short", year: "numeric" }) : "—"}
-                                        </span>
-                                      </TableCell>
-                                      <TableCell className="px-5 py-4">
-                                        <span className="font-body text-sm text-charcoal/70">
-                                          {user.expiry && user.expiry !== "N/A" ? new Date(user.expiry).toLocaleDateString("en-IN", { day: "2-digit", month: "short", year: "numeric" }) : "N/A"}
-                                        </span>
-                                      </TableCell>
-                                      <TableCell className="px-5 py-4">
-                                        {user.passType === "none" ? (
-                                          <StatusPill tone="neutral">No pass</StatusPill>
-                                        ) : active ? (
-                                          <StatusPill tone="sage" dot pulse>Active</StatusPill>
-                                        ) : (
-                                          <StatusPill tone="red" dot>Expired</StatusPill>
-                                        )}
-                                      </TableCell>
-                                      <TableCell className="px-5 py-4">
-                                        <div className="flex gap-2 justify-end">
-                                          <EditButton onClick={() => openEditUser(user)} label="Edit user" />
-                                          <DeleteButton onClick={() => handleDeleteUser(user.id, user.name || user.full_name || user.email)} label="Delete user" />
-                                        </div>
-                                      </TableCell>
-                                    </TableRow>
-                                  );
-                                })}
-                              </TableBody>
-                            </Table>
-                          </div>
-                        </ResponsiveTable>
+                        <div className="rounded-xl border border-sage/15 bg-white-warm overflow-hidden">
+                          <MemberTable
+                            members={memberRows}
+                            columns={["member", "pass", "status"]}
+                            sort={{
+                              sortKey: userSort.key,
+                              sortDir: userSort.dir,
+                              onToggle: (key) => userSort.toggle(key as "name" | "pass" | "status"),
+                              sortableKeys: ["name", "pass", "status"],
+                            }}
+                            onRowClick={(m) => openEditUser(m._raw)}
+                            renderActions={renderMemberActions}
+                          />
+                        </div>
                         <Pagination page={usersPg.page} total={usersPg.total} onChange={usersPg.setPage} />
                       </>
                     )}
@@ -1438,11 +1424,11 @@ export default function ControlPanel() {
                             const days = from && to
                               ? Math.max(1, Math.ceil((to.getTime() - from.getTime()) / (24 * 60 * 60 * 1000)))
                               : null;
-                            const statusColor: Record<string, string> = {
-                              open: "bg-terracotta/15 text-terracotta border-terracotta/30",
-                              in_review: "bg-charcoal/10 text-charcoal border-charcoal/20",
-                              resolved: "bg-sage/15 text-sage border-sage/30",
-                              rejected: "bg-charcoal/10 text-charcoal/60 border-charcoal/20",
+                            const statusTone: Record<string, "success" | "warning" | "neutral"> = {
+                              open: "warning",
+                              in_review: "neutral",
+                              resolved: "success",
+                              rejected: "neutral",
                             };
                             const draft = pauseNoteDrafts[t.id] ?? t.admin_note ?? "";
                             return (
@@ -1453,9 +1439,9 @@ export default function ControlPanel() {
                                       <p className="font-body font-medium text-charcoal">{t.profile?.full_name || "Unknown"}</p>
                                       <p className="font-body text-xs text-charcoal/60">{t.profile?.email}{t.profile?.phone && ` · ${t.profile.phone}`}</p>
                                     </div>
-                                    <Badge variant="outline" className={`font-body text-xs uppercase ${statusColor[t.status] ?? ""}`}>
+                                    <Pill tone={statusTone[t.status] ?? "neutral"} size="sm" className="font-body uppercase">
                                       {t.status?.replace("_", " ")}
-                                    </Badge>
+                                    </Pill>
                                   </div>
                                   <div className="grid grid-cols-1 sm:grid-cols-4 gap-3 text-sm font-body">
                                     <div>
@@ -1608,34 +1594,34 @@ export default function ControlPanel() {
                           <div className="rounded-xl border border-sage/15 bg-white-warm overflow-hidden">
                             <Table>
                               <TableHeader>
-                                <TableRow className="bg-sage/5 hover:bg-sage/5 border-sage/10">
-                                  <TableHead className={thBase}>
+                                <TableRow>
+                                  <TableHead>
                                     <button type="button" onClick={() => classSort.toggle("name")} className={thBtn}>
                                       Class {sortArrow(classSort.key === "name", classSort.dir)}
                                     </button>
                                   </TableHead>
-                                  <TableHead className={`${thBase} w-[150px]`}>
+                                  <TableHead className="w-[150px]">
                                     <button type="button" onClick={() => classSort.toggle("category")} className={thBtn}>
                                       Category {sortArrow(classSort.key === "category", classSort.dir)}
                                     </button>
                                   </TableHead>
-                                  <TableHead className={`${thBase} w-[120px]`}>
+                                  <TableHead className="w-[120px]">
                                     <button type="button" onClick={() => classSort.toggle("duration", "desc")} className={thBtn}>
                                       Duration {sortArrow(classSort.key === "duration", classSort.dir)}
                                     </button>
                                   </TableHead>
-                                  <TableHead className={`${thBase} w-[110px]`}>
+                                  <TableHead className="w-[110px]">
                                     <button type="button" onClick={() => classSort.toggle("capacity", "desc")} className={thBtn}>
                                       Capacity {sortArrow(classSort.key === "capacity", classSort.dir)}
                                     </button>
                                   </TableHead>
-                                  <TableHead className={`${thBase} w-[110px] text-right`}>Actions</TableHead>
+                                  <TableHead className="w-[110px] text-right">Actions</TableHead>
                                 </TableRow>
                               </TableHeader>
                               <TableBody>
                                 {classesPg.pageItems.map((cls) => (
-                                  <TableRow key={cls.id} className="border-sage/10 hover:bg-sage/5">
-                                    <TableCell className="px-5 py-4">
+                                  <TableRow key={cls.id}>
+                                    <TableCell>
                                       <div className="flex items-center gap-3 min-w-0">
                                         <ListAvatar
                                           name={cls.name}
@@ -1657,16 +1643,16 @@ export default function ControlPanel() {
                                         </div>
                                       </div>
                                     </TableCell>
-                                    <TableCell className="px-5 py-4">
-                                      <Badge className="bg-sage/10 text-sage border-sage/20 font-body">{cls.category}</Badge>
+                                    <TableCell>
+                                      <Pill tone="success" className="font-body">{cls.category}</Pill>
                                     </TableCell>
-                                    <TableCell className="px-5 py-4">
+                                    <TableCell>
                                       <span className="font-body text-sm text-charcoal/70 tabular-nums">{cls.duration} min</span>
                                     </TableCell>
-                                    <TableCell className="px-5 py-4">
+                                    <TableCell>
                                       <span className="font-body text-sm text-charcoal/70 tabular-nums">Max {cls.max_capacity}</span>
                                     </TableCell>
-                                    <TableCell className="px-5 py-4">
+                                    <TableCell>
                                       <div className="flex gap-2 justify-end">
                                         <EditButton onClick={() => { setSelectedClass(cls); setShowClassDetailsDialog(true); }} label="Edit class" />
                                         <DeleteButton onClick={() => handleDeleteClass(cls.id, cls.name)} label="Delete class" />
@@ -1736,131 +1722,20 @@ export default function ControlPanel() {
                       </div>
                     ) : (
                       <>
-                        <ResponsiveTable>
-                          <div className="rounded-xl border border-sage/15 bg-white-warm overflow-hidden">
-                            <Table>
-                              <TableHeader>
-                                <TableRow className="bg-sage/5 hover:bg-sage/5 border-sage/10">
-                                  <TableHead className={thBase}>
-                                    <button type="button" onClick={() => instructorSort.toggle("name")} className={thBtn}>
-                                      Instructor {sortArrow(instructorSort.key === "name", instructorSort.dir)}
-                                    </button>
-                                  </TableHead>
-                                  <TableHead className={`${thBase} w-[200px]`}>Contact</TableHead>
-                                  <TableHead className={`${thBase} w-[300px]`}>Specialties</TableHead>
-                                  <TableHead className={`${thBase} w-[110px]`}>
-                                    <button type="button" onClick={() => instructorSort.toggle("status")} className={thBtn}>
-                                      Status {sortArrow(instructorSort.key === "status", instructorSort.dir)}
-                                    </button>
-                                  </TableHead>
-                                  <TableHead className={`${thBase} w-[160px] text-right`}>Actions</TableHead>
-                                </TableRow>
-                              </TableHeader>
-                              <TableBody>
-                                {instructorsPg.pageItems.map((instructor) => {
-                                  const active = instructor.is_active !== false;
-                                  return (
-                                    <TableRow key={instructor.id} className="border-sage/10 hover:bg-sage/5">
-                                      <TableCell className="px-5 py-4">
-                                        <div className="flex items-center gap-3 min-w-0">
-                                          <ListAvatar name={instructor.name} src={instructor.image_url} size="md" className="shrink-0" />
-                                          <div className="min-w-0">
-                                            <div className="font-body font-medium text-charcoal truncate">{instructor.name}</div>
-                                            {instructor.title && (
-                                              <div className="font-body text-xs text-sage uppercase tracking-wide truncate">{instructor.title}</div>
-                                            )}
-                                            {instructor.years_of_experience && (
-                                              <div className="font-body text-xs text-charcoal/50 truncate">{instructor.years_of_experience} yrs exp</div>
-                                            )}
-                                          </div>
-                                        </div>
-                                      </TableCell>
-                                      <TableCell className="px-5 py-4">
-                                        <div className="space-y-1 min-w-0">
-                                          <div className="flex items-center gap-1.5 text-xs text-charcoal/60 truncate">
-                                            <Mail className="h-3 w-3 shrink-0" /> <span className="truncate">{instructor.email}</span>
-                                          </div>
-                                          <div className="flex items-center gap-1.5 text-xs text-charcoal/60 truncate">
-                                            <Phone className="h-3 w-3 shrink-0" /> <span className="truncate">{instructor.phone}</span>
-                                          </div>
-                                        </div>
-                                      </TableCell>
-                                      <TableCell className="px-5 py-4">
-                                        {(() => {
-                                          // Normalize defensively — legacy rows may store the array
-                                          // entries as one comma-joined string, which would otherwise
-                                          // render as a single chip with all specialties mashed together.
-                                          const list = normalizeSpecialties(instructor.specialties);
-                                          if (list.length === 0) {
-                                            return <span className="font-body text-sm text-charcoal/40">—</span>;
-                                          }
-                                          return (
-                                            <div className="flex items-center gap-1 max-w-[180px]">
-                                              <Badge
-                                                variant="outline"
-                                                className="border-sage/20 text-sage bg-sage/5 text-xs font-body truncate max-w-[120px]"
-                                              >
-                                                {list[0]}
-                                              </Badge>
-                                              {list.length > 1 && (
-                                                <TooltipProvider delayDuration={100}>
-                                                  <Tooltip>
-                                                    <TooltipTrigger asChild>
-                                                      <span className="inline-flex shrink-0 cursor-default items-center rounded-md border border-charcoal/15 bg-cream/30 px-2 py-0.5 font-body text-xs text-charcoal/50">
-                                                        +{list.length - 1}
-                                                      </span>
-                                                    </TooltipTrigger>
-                                                    <TooltipContent className="max-w-xs font-body">
-                                                      {list.slice(1).join(", ")}
-                                                    </TooltipContent>
-                                                  </Tooltip>
-                                                </TooltipProvider>
-                                              )}
-                                            </div>
-                                          );
-                                        })()}
-                                      </TableCell>
-                                      <TableCell className="px-5 py-4">
-                                        {active ? (
-                                          <StatusPill tone="sage" variant="solid" dot pulse>Active</StatusPill>
-                                        ) : (
-                                          <StatusPill tone="red" variant="solid" dot>Inactive</StatusPill>
-                                        )}
-                                      </TableCell>
-                                      <TableCell className="px-5 py-4">
-                                        <div className="flex gap-1.5 justify-end">
-                                          <Button
-                                            type="button"
-                                            variant="outline"
-                                            size="sm"
-                                            onClick={() => handleToggleInstructorActive(instructor.id, active)}
-                                            aria-label={active ? "Deactivate instructor" : "Activate instructor"}
-                                            title={active ? "Deactivate instructor" : "Activate instructor"}
-                                            className={cn(
-                                              "h-8 w-8 p-0 font-body transition-all hover:scale-110 active:scale-95",
-                                              active
-                                                ? "border-terracotta/40 text-terracotta bg-white-warm hover:!bg-terracotta hover:!text-cream hover:!border-terracotta"
-                                                : "border-sage/60 text-sage bg-white-warm hover:!bg-sage hover:!text-cream hover:!border-sage",
-                                            )}
-                                          >
-                                            <AnimatedIcon icon={active ? PowerOff : Power} size={14} animateOnMount={false} hover="wiggle" />
-                                          </Button>
-                                          <ManageButton onClick={() => router.push(`/admin/instructors/${instructor.id}`)} label="Open profile" />
-                                          <DeleteButton
-                                            onClick={() => handleDeleteInstructor(instructor.id, instructor.name)}
-                                            label="Delete instructor"
-                                            confirmTitle={`Delete ${instructor.name}?`}
-                                            confirmDescription="The instructor will be permanently removed. Past class history is preserved."
-                                          />
-                                        </div>
-                                      </TableCell>
-                                    </TableRow>
-                                  );
-                                })}
-                              </TableBody>
-                            </Table>
-                          </div>
-                        </ResponsiveTable>
+                        <div className="rounded-xl border border-sage/15 bg-white-warm overflow-hidden">
+                          <InstructorTable
+                            instructors={instructorRows}
+                            columns={["instructor", "contact", "specialties", "status"]}
+                            sort={{
+                              sortKey: instructorSort.key,
+                              sortDir: instructorSort.dir,
+                              onToggle: (key) => instructorSort.toggle(key as "name" | "status"),
+                              sortableKeys: ["instructor", "status"],
+                            }}
+                            onRowClick={(i) => router.push(`/admin/instructors/${i.id}`)}
+                            renderActions={renderInstructorActions}
+                          />
+                        </div>
                         <Pagination page={instructorsPg.page} total={instructorsPg.total} onChange={instructorsPg.setPage} />
                       </>
                     )}
@@ -2014,18 +1889,18 @@ export default function ControlPanel() {
                 <div className="flex flex-wrap items-center justify-between gap-2">
                   <div className="flex items-center gap-2">
                     <span className="font-body text-xs uppercase tracking-wide text-charcoal/50">Current Pass</span>
-                    <Badge className="bg-sage text-cream">
+                    <Pill tone="success" appearance="solid">
                       {selectedUser.passType === "studio_pass" ? "Studio Pass" : selectedUser.passType === "class_pass" ? "Class Pass" : "No Pass"}
-                    </Badge>
+                    </Pill>
                     {(() => {
                       const expired = selectedUser.expiry === "N/A" || (selectedUser.expiry && new Date(selectedUser.expiry).getTime() < Date.now());
                       const label = selectedUser.isPaused ? "Paused" : selectedUser.passType === "none" ? "None" : expired ? "Expired" : "Active";
-                      const cls = selectedUser.isPaused
-                        ? "border-terracotta/20 bg-terracotta/10 text-terracotta"
+                      const tone: "success" | "warning" | "danger" = selectedUser.isPaused
+                        ? "warning"
                         : label === "Active"
-                          ? "border-sage/20 bg-sage/10 text-sage"
-                          : "border-[#a05e38]/25 bg-[#a05e38]/10 text-[#a05e38]";
-                      return <Badge variant="outline" className={`font-body ${cls}`}>{label}</Badge>;
+                          ? "success"
+                          : "danger";
+                      return <Pill tone={tone} className="font-body">{label}</Pill>;
                     })()}
                   </div>
                   {selectedUser.userPackageId && (

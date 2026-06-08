@@ -32,7 +32,8 @@ import {
 } from "@/components/ui/command";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
+import { Pill, type PillProps } from "@/components/ui/pill";
+import { financeKindPill } from "@/lib/pillMaps";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import {
@@ -258,11 +259,9 @@ function formatFinanceDetailWhen(detail: DashboardFinanceDetail): string {
   return new Date(iso).toLocaleString("en-IN", { dateStyle: "medium", timeStyle: "short" });
 }
 
-type PillStyle = { bg: string; fg: string; border: string };
-
-// Categorical tag for what a transaction is. Four earthy hues so the table reads
-// at a glance: packages (sage), classes (terracotta), café (ochre), expenses (slate).
-function txnKind(txn: DashboardTxn): { label: string } & PillStyle {
+// Categorical tag for what a transaction is. Returns a stable label; the pill
+// tone is derived from the label via `financeKindPill`.
+function txnKind(txn: DashboardTxn): { label: string } {
   const id = String(txn.id);
   const cat = txn.category.toLowerCase();
   const food = txn.foodOrderedLabel?.toLowerCase() ?? "";
@@ -272,49 +271,26 @@ function txnKind(txn: DashboardTxn): { label: string } & PillStyle {
     let label = "Expense";
     if (cat.includes("coach")) label = "Coach payout";
     else if (cat.includes("rent") || cat.includes("studio")) label = "Studio";
-    return { label, bg: "rgba(51,51,51,0.06)", fg: "#5b5b5b", border: "rgba(51,51,51,0.15)" };
+    return { label };
   }
   const isPackage = cat.includes("(package)") || id.startsWith("pkg-") || id.startsWith("demo-finance-package");
   const isClass = id.startsWith("booking-") || id.startsWith("demo-finance-booking");
-  if (isPackage) return { label: "Package", bg: "rgba(143,151,121,0.14)", fg: "#5f6b4f", border: "rgba(143,151,121,0.32)" };
-  if (isClass) {
-    return hasCafe
-      ? { label: "Class + Café", bg: "rgba(176,138,62,0.16)", fg: "#866223", border: "rgba(176,138,62,0.34)" }
-      : { label: "Class", bg: "rgba(193,120,86,0.14)", fg: "#a05e38", border: "rgba(193,120,86,0.32)" };
-  }
-  if (hasCafe) return { label: "Café", bg: "rgba(176,138,62,0.16)", fg: "#866223", border: "rgba(176,138,62,0.34)" };
-  return { label: "Revenue", bg: "rgba(143,151,121,0.12)", fg: "#5f6b4f", border: "rgba(143,151,121,0.28)" };
+  if (isPackage) return { label: "Package" };
+  if (isClass) return { label: hasCafe ? "Class + Café" : "Class" };
+  if (hasCafe) return { label: "Café" };
+  return { label: "Revenue" };
 }
 
-// A distinct colour per payment channel. `tint(h)` builds a low-chroma pill from
-// one hue so the family stays cohesive while every method still reads apart.
-function tint(h: number, s = 62, l = 42): PillStyle {
-  return {
-    bg: `hsl(${h} ${s}% ${l}% / 0.12)`,
-    fg: `hsl(${h} ${Math.min(s + 6, 80)}% ${Math.max(l - 6, 30)}%)`,
-    border: `hsl(${h} ${s}% ${l}% / 0.34)`,
-  };
-}
-
-// Hues spread around the wheel for any method not explicitly mapped, so unknown
-// channels (new PaymentMethod values) still get a stable, distinct colour.
-const METHOD_FALLBACK_HUES = [210, 28, 152, 268, 340, 48, 188, 122];
-
-// Method pill colour by channel. Razorpay carries its brand blue; each other
-// channel gets its own hue. Unknown methods hash to a stable fallback hue.
-function methodPillStyle(method: string): PillStyle {
+// Resolve a payment-method pill (tone + brand tint) from the row's display
+// label. `txn.method` is a human label ("Razorpay", "Pine Labs UPI", "Cash",
+// "—"), not the enum, so we match on the string rather than `paymentMethodPill`.
+function methodPill(method: string): { tone?: PillProps["tone"]; brand?: PillProps["brand"]; isCash: boolean } {
   const m = method.toLowerCase().trim();
-  if (m.includes("razorpay")) return { bg: "rgba(51,149,255,0.12)", fg: "#1f6feb", border: "rgba(51,149,255,0.34)" }; // brand blue
-  if (m === "online") return tint(200); // cyan-blue, distinct from Razorpay
-  if (m.includes("pine") && m.includes("upi")) return tint(280); // violet
-  if (m.includes("pine") || m.includes("card")) return tint(35); // amber/gold
-  if (m.includes("upi")) return tint(268); // violet
-  if (m.includes("studio")) return tint(18); // terracotta
-  if (m.includes("cash")) return tint(140); // sage green
-  if (m === "—" || m === "") return { bg: "rgba(51,51,51,0.05)", fg: "#6b6b6b", border: "rgba(51,51,51,0.14)" };
-  let hash = 0;
-  for (let i = 0; i < m.length; i++) hash = (hash * 31 + m.charCodeAt(i)) >>> 0;
-  return tint(METHOD_FALLBACK_HUES[hash % METHOD_FALLBACK_HUES.length]);
+  if (m.includes("razorpay") || m === "online") return { brand: "razorpay", isCash: false };
+  if (m.includes("pine")) return { brand: "pinelabs", isCash: false };
+  if (m.includes("upi")) return { brand: "upi", isCash: false };
+  if (m.includes("cash")) return { tone: "success", isCash: true };
+  return { tone: "neutral", isCash: false };
 }
 
 // Time-of-day from the row's ISO sort key (the date column only shows the day).
@@ -352,7 +328,7 @@ export interface FinanceOverviewSectionProps {
 
 interface MomPresentation {
   hint: string;
-  pillClass: string;
+  pillTone: "success" | "danger" | "neutral";
   pillIcon: ReactNode;
   pillText: string;
 }
@@ -362,7 +338,7 @@ function deriveMomPresentation(hasTrend: boolean, momPct: number | null | undefi
   if (momPct == null) {
     return {
       hint: hasTrend ? "first month tracked" : "—",
-      pillClass: "bg-charcoal/5 text-charcoal/60",
+      pillTone: "neutral",
       pillIcon: null,
       pillText: "First month tracked",
     };
@@ -371,7 +347,7 @@ function deriveMomPresentation(hasTrend: boolean, momPct: number | null | undefi
   const magnitude = Math.abs(momPct).toFixed(0);
   return {
     hint: `${up ? "▲" : "▼"} ${magnitude}% vs last month`,
-    pillClass: up ? "bg-sage/15 text-sage" : "bg-terracotta/15 text-terracotta",
+    pillTone: up ? "success" : "danger",
     pillIcon: up ? <ArrowUpRight className="h-3.5 w-3.5" /> : <ArrowDownRight className="h-3.5 w-3.5" />,
     pillText: `${magnitude}% vs last month`,
   };
@@ -400,7 +376,7 @@ function FinanceOverviewSectionImpl({
   );
 
   // Real month-over-month from the trend; replaces the old hardcoded growth hint.
-  const { hint: momHint, pillClass: momPillClass, pillIcon: momPillIcon, pillText: momPillText } =
+  const { hint: momHint, pillTone: momPillTone, pillIcon: momPillIcon, pillText: momPillText } =
     deriveMomPresentation(!!trend, trend?.momPct);
 
   return (
@@ -446,12 +422,9 @@ function FinanceOverviewSectionImpl({
               <CardDescription className="font-body text-charcoal/60">Last 6 months, from recorded payments and instructor payouts</CardDescription>
             </div>
             {trend ? (
-              <span
-                className={`inline-flex items-center gap-1 rounded-full px-2.5 py-1 font-body text-xs font-medium ${momPillClass}`}
-              >
-                {momPillIcon}
+              <Pill tone={momPillTone} size="md" icon={momPillIcon}>
                 {momPillText}
-              </span>
+              </Pill>
             ) : null}
           </div>
         </CardHeader>
@@ -1100,9 +1073,9 @@ function FinanceTransactionsSectionImpl({
             <ResponsiveTable>
               <Table>
                 <TableHeader>
-                  <TableRow className="bg-sage/5 hover:bg-sage/5 border-sage/10">
-                    <TableHead className="font-body text-xs uppercase tracking-wide text-charcoal/60 px-5 py-3 w-[44px]" />
-                    <TableHead className="font-body text-xs uppercase tracking-wide text-charcoal/60 px-5 py-3 w-[132px]">Type</TableHead>
+                  <TableRow>
+                    <TableHead className="w-[44px]" />
+                    <TableHead className="w-[132px]">Type</TableHead>
                     <SortableHeader sortKey="category" active={txnSortKey} dir={txnSortDir} onToggle={toggleTxn}>Category</SortableHeader>
                     <SortableHeader sortKey="member" active={txnSortKey} dir={txnSortDir} onToggle={toggleTxn} className="w-[180px]">Member</SortableHeader>
                     <SortableHeader sortKey="date" active={txnSortKey} dir={txnSortDir} onToggle={toggleTxn} className="w-[150px]">Date</SortableHeader>
@@ -1213,56 +1186,57 @@ const FinanceRowView = memo(function FinanceRowView({
   const plus = txn.memberPlusLabel?.trim() ? ` ${txn.memberPlusLabel.trim()}` : "";
   const handleClick = openFinance ? () => onSelect(txn.financeDetail) : undefined;
   const kind = txnKind(txn);
-  const method = methodPillStyle(txn.method);
+  const method = methodPill(txn.method);
   const time = formatTxnTime(txn.sortKey);
 
   return (
     <TableRow
-      className={`border-sage/10 ${openFinance ? "cursor-pointer hover:bg-sage/5" : ""}`}
+      className={openFinance ? "cursor-pointer" : undefined}
       onClick={handleClick}
     >
-      <TableCell className="px-5 py-3">
+      <TableCell>
         <div className={`p-2 rounded-lg w-fit ${txn.type === "revenue" ? "bg-sage/10" : "bg-[#a05e38]/10"}`}>
           {txn.type === "revenue"
             ? <TrendingUp className="h-4 w-4 text-sage" />
             : <TrendingDown className="h-4 w-4 text-[#a05e38]" />}
         </div>
       </TableCell>
-      <TableCell className="px-5 py-3">
-        <span
-          className="inline-flex w-full max-w-[108px] items-center justify-center rounded-full border px-2.5 py-0.5 font-body text-[11px] font-medium whitespace-nowrap"
-          style={{ backgroundColor: kind.bg, color: kind.fg, borderColor: kind.border }}
-        >
+      <TableCell>
+        <Pill {...financeKindPill(kind.label)} size="sm" className="w-full max-w-[108px] justify-center">
           {kind.label}
-        </span>
+        </Pill>
       </TableCell>
-      <TableCell className="px-5 py-3 min-w-[200px]">
+      <TableCell className="min-w-[200px]">
         <div className="flex items-start gap-2">
           <span className="font-body font-medium text-charcoal line-clamp-2 [overflow-wrap:anywhere]" title={txn.category}>{txn.category}</span>
           {txn.isFinanceDemo && (
-            <Badge variant="outline" className="mt-0.5 shrink-0 border-terracotta/30 bg-terracotta/10 text-[#a05e38] text-[10px] uppercase tracking-wide font-body">Sample</Badge>
+            <Pill tone="warning" className="mt-0.5 shrink-0 text-[10px] uppercase tracking-wide font-body">Sample</Pill>
           )}
         </div>
       </TableCell>
-      <TableCell className="px-5 py-3">
+      <TableCell>
         <div className="font-body text-sm text-charcoal truncate max-w-[180px]">
           {displayMember}
           {plus && <span className="text-sage font-medium">{plus}</span>}
         </div>
       </TableCell>
-      <TableCell className="px-5 py-3 whitespace-nowrap">
+      <TableCell className="whitespace-nowrap">
         <div className="font-body text-sm text-charcoal/70">{txn.date}</div>
         {time && <div className="font-body text-xs text-charcoal/40 tabular-nums">{time}</div>}
       </TableCell>
-      <TableCell className="px-5 py-3">
-        <span
-          className="inline-flex w-full max-w-[120px] items-center justify-center rounded-full border px-2.5 py-0.5 font-body text-xs font-medium whitespace-nowrap"
-          style={{ backgroundColor: method.bg, color: method.fg, borderColor: method.border }}
+      <TableCell>
+        <Pill
+          tone={method.tone}
+          brand={method.brand}
+          size="sm"
+          icon={method.brand ? undefined : method.isCash ? <Banknote className="h-3 w-3" /> : undefined}
+          noIcon={!method.brand && !method.isCash}
+          className="w-full max-w-[120px] justify-center"
         >
           {txn.method}
-        </span>
+        </Pill>
       </TableCell>
-      <TableCell className="px-5 py-3 text-right">
+      <TableCell className="text-right">
         <span className={`font-display text-base tabular-nums ${txn.type === "revenue" ? "text-sage" : "text-[#a05e38]"}`}>
           {formatTxnAmountRupee(txn.amount, txn.type)}
         </span>

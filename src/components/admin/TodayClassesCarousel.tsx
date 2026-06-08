@@ -3,7 +3,7 @@ import { Users, Clock, Repeat, ChevronLeft, ChevronRight, Power, PowerOff } from
 import { Button } from "@/components/ui/button";
 import { AnimatedIcon } from "@/components/dashboard/AnimatedIcon";
 import { ListAvatar } from "@/components/admin/ListAvatar";
-import { Badge } from "@/components/ui/badge";
+import { Pill } from "@/components/ui/pill";
 import { ManageButton, DeleteButton } from "@/components/ui/quick-actions";
 import { cn } from "@/lib/utils";
 import { ShineBorder } from "@/components/ui/shine-border";
@@ -47,14 +47,14 @@ interface TodayClassesCarouselProps {
 
 const TERMINAL_STATUSES = new Set(["completed", "abandoned", "live", "started"]);
 
-const STATUS_TONE: Record<string, string> = {
-  available: "bg-sage/10 text-sage border-sage/20",
-  started: "bg-terracotta/10 text-terracotta border-terracotta/30",
-  live: "bg-terracotta/10 text-terracotta border-terracotta/30",
-  completed: "bg-charcoal/10 text-charcoal/60 border-charcoal/15",
-  cancelled: "bg-terracotta/10 text-terracotta border-terracotta/20",
-  inactive: "bg-charcoal/5 text-charcoal/50 border-charcoal/10",
-  abandoned: "bg-terracotta/10 text-terracotta border-terracotta/20",
+const STATUS_TONE: Record<string, "success" | "warning" | "danger" | "info" | "neutral"> = {
+  available: "success",
+  started: "warning",
+  live: "warning",
+  completed: "neutral",
+  cancelled: "warning",
+  inactive: "neutral",
+  abandoned: "warning",
 };
 
 // Whole-card tint by status. Falls back to PALETTE rotation for available.
@@ -239,15 +239,13 @@ export function TodayClassesCarousel({
               {(onManage || onDelete || onStatusChange || cls.status) && (
                 <div className="mt-4 flex items-center justify-between gap-2">
                   {cls.status ? (
-                    <Badge
-                      variant="outline"
-                      className={cn(
-                        "capitalize font-body text-xs whitespace-nowrap",
-                        tone,
-                      )}
+                    <Pill
+                      tone={tone}
+
+                      className="capitalize font-body text-xs whitespace-nowrap"
                     >
                       {cls.status}
-                    </Badge>
+                    </Pill>
                   ) : <span />}
                   <div className="flex items-center gap-1.5">
                   {onStatusChange && !TERMINAL_STATUSES.has(cls.status ?? "") && (() => {

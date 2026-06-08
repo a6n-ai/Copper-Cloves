@@ -7,7 +7,7 @@ import {
   ResponsiveDialogDescription,
 } from "@/components/responsive/ResponsiveDialog";
 import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
+import { Pill } from "@/components/ui/pill";
 import { CheckCircle, Clock, Users } from "lucide-react";
 import { InstructorStrip } from "./InstructorStrip";
 import { classInitials, classFallbackGradient } from "./classFallback";
@@ -37,9 +37,9 @@ export function ClassDetailDialog({
                   <span className="font-display text-5xl text-white-warm/55">{classInitials(classItem.name)}</span>
                 </div>
               )}
-              <Badge className="absolute left-4 top-4 border-0 bg-white-warm/90 text-xs text-sage">
+              <Pill tone="success" size="sm" className="absolute left-4 top-4 bg-white-warm/90">
                 {classItem.category}
-              </Badge>
+              </Pill>
             </div>
             <div className="space-y-4 p-5 sm:p-6">
               <ResponsiveDialogHeader className="space-y-1 text-left">

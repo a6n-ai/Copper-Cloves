@@ -1,4 +1,5 @@
 import { ArrowRight } from "lucide-react";
+import { Pill } from "@/components/ui/pill";
 import { InstructorPhoto } from "@/components/instructors/InstructorPhoto";
 import { InstructorMonogram } from "@/components/instructors/InstructorMonogram";
 import type { InstructorView } from "@/lib/instructorView";
@@ -54,12 +55,9 @@ export function InstructorCard({
         <div className="mt-3 flex min-h-[28px] flex-wrap gap-1.5">
           {instructor.specialties.length > 0
             ? instructor.specialties.slice(0, 3).map((s) => (
-                <span
-                  key={s}
-                  className="rounded-full border border-sage/25 bg-sage/10 px-2.5 py-1 font-body text-[11px] font-medium text-sage"
-                >
+                <Pill key={s} tone="success" size="sm">
                   {s}
-                </span>
+                </Pill>
               ))
             : instructor.experience && (
                 <span className="font-body text-sm italic text-charcoal/55">
