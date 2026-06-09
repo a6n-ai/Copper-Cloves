@@ -20,21 +20,31 @@ export function FilterSearch({
   "aria-label"?: string;
 }) {
   const [local, setLocal] = useState(value);
-  const first = useRef(true);
+  const valueRef = useRef(value);
+  const onChangeRef = useRef(onChange);
+  const mounted = useRef(false);
 
+  // keep refs current every render
+  useEffect(() => {
+    valueRef.current = value;
+    onChangeRef.current = onChange;
+  });
+
+  // mirror parent value into the box (e.g. external reset)
   useEffect(() => {
     setLocal(value);
   }, [value]);
 
+  // debounce: emit only when local diverges from the latest parent value
   useEffect(() => {
-    if (first.current) {
-      first.current = false;
+    if (!mounted.current) {
+      mounted.current = true;
       return;
     }
-    if (local === value) return;
-    const id = setTimeout(() => onChange(local), debounceMs);
+    if (local === valueRef.current) return;
+    const id = setTimeout(() => onChangeRef.current(local), debounceMs);
     return () => clearTimeout(id);
-  }, [local]); // eslint-disable-line react-hooks/exhaustive-deps
+  }, [local, debounceMs]);
 
   return (
     <div className={cn("relative flex-1 min-w-[180px]", className)}>
@@ -58,7 +68,7 @@ export function FilterSearch({
           aria-label="Clear search"
           onClick={() => {
             setLocal("");
-            onChange("");
+            onChangeRef.current("");
           }}
           className="absolute right-2 top-1/2 -translate-y-1/2 rounded p-0.5 hover:bg-sage/10 cursor-pointer focus-visible:outline-hidden focus-visible:ring-2 focus-visible:ring-sage/30"
         >

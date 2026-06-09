@@ -18,7 +18,7 @@ export function FilterChips({
     <div
       role="radiogroup"
       aria-label={ariaLabel ?? "Filter"}
-      className={cn("flex items-center gap-1.5 overflow-x-auto", className)}
+      className={cn("flex items-center gap-1.5 overflow-x-auto [scrollbar-width:none] [&::-webkit-scrollbar]:hidden", className)}
     >
       {options.map((opt) => {
         const active = opt.value === value;
