@@ -1,4 +1,5 @@
 // scripts/test-filter-codec.ts
+import { format } from "date-fns";
 import {
   stringCodec,
   dateRangeCodec,
@@ -42,8 +43,8 @@ eq("serialize range", serializeFilters({ search: "", status: "all", range }, cod
 const back = deserializeFilters({ search: "amy", status: "active", from: "2026-01-05", to: "2026-01-09" }, codecs, defaults);
 eq("deserialize search", back.search, "amy");
 eq("deserialize status", back.status, "active");
-eq("deserialize range from", (back.range as any)?.from?.toISOString().slice(0, 10), "2026-01-05");
-eq("deserialize range to", (back.range as any)?.to?.toISOString().slice(0, 10), "2026-01-09");
+eq("deserialize range from", format((back.range as any).from, "yyyy-MM-dd"), "2026-01-05");
+eq("deserialize range to", format((back.range as any).to, "yyyy-MM-dd"), "2026-01-09");
 
 const empty = deserializeFilters({}, codecs, defaults);
 eq("empty → default status", empty.status, "all");

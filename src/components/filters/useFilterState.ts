@@ -41,8 +41,9 @@ export function useFilterState<T extends Record<string, any>>(
 ): FilterState<T> {
   const { urlSync = false, codecs: provided, debounceUrlMs = 300 } = options;
   const router = useRouter();
-  const codecs = useMemo(() => resolveCodecs(defaults, provided), []); // eslint-disable-line react-hooks/exhaustive-deps
   const defaultsRef = useRef(defaults);
+  const providedRef = useRef(provided);
+  const codecs = useMemo(() => resolveCodecs(defaultsRef.current, providedRef.current), []); // eslint-disable-line react-hooks/exhaustive-deps
 
   const [values, setValues] = useState<T>(() => {
     if (urlSync && router.isReady) {
@@ -54,10 +55,10 @@ export function useFilterState<T extends Record<string, any>>(
   // hydrate once the router is ready (query is empty on first SSR pass)
   const hydrated = useRef(false);
   useEffect(() => {
-    if (!urlSync || hydrated.current || !router.isReady) return;
+    if (!urlSync || !router.isReady || hydrated.current) return;
     hydrated.current = true;
     setValues(deserializeFilters(router.query, codecs, defaultsRef.current) as T);
-  }, [urlSync, router.isReady, router.query, codecs]);
+  }, [urlSync, router.isReady, codecs]); // eslint-disable-line react-hooks/exhaustive-deps
 
   // push values → URL (debounced, shallow, only when the serialized query changes)
   const lastQuery = useRef<string>("");
@@ -66,14 +67,14 @@ export function useFilterState<T extends Record<string, any>>(
     const next = serializeFilters(values, codecs);
     const nextStr = JSON.stringify(next);
     if (nextStr === lastQuery.current) return;
+    // capture unrelated keys synchronously (not inside the timeout)
+    const owned = new Set(Object.values(codecs).flatMap((c) => c.keys));
+    const preserved: Record<string, any> = {};
+    for (const k of Object.keys(router.query)) {
+      if (!owned.has(k)) preserved[k] = router.query[k];
+    }
     const id = setTimeout(() => {
       lastQuery.current = nextStr;
-      // preserve unrelated query keys (e.g. tab) not owned by any codec
-      const owned = new Set(Object.values(codecs).flatMap((c) => c.keys));
-      const preserved: Record<string, any> = {};
-      for (const k of Object.keys(router.query)) {
-        if (!owned.has(k)) preserved[k] = router.query[k];
-      }
       router.replace({ query: { ...preserved, ...next } }, undefined, { shallow: true });
     }, debounceUrlMs);
     return () => clearTimeout(id);

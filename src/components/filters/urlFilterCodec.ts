@@ -33,8 +33,12 @@ export function dateRangeCodec(fromKey = "from", toKey = "to"): FilterCodec<Date
       const f = str(q, fromKey);
       const t = str(q, toKey);
       if (!f) return undefined;
-      const from = new Date(f + "T00:00:00Z");
-      const to = t ? new Date(t + "T00:00:00Z") : undefined;
+      const parseLocal = (s: string) => {
+        const [y, m, d] = s.split("-").map(Number);
+        return new Date(y, m - 1, d); // local midnight
+      };
+      const from = parseLocal(f);
+      const to = t ? parseLocal(t) : undefined;
       return { from, to };
     },
   };
