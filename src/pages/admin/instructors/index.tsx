@@ -8,10 +8,11 @@ import {
   Plus,
   Power,
   PowerOff,
-  Search,
   Star,
   Users,
 } from "lucide-react";
+
+import { FilterBar, FilterSearch, FilterChips, useFilterState } from "@/components/filters";
 import { SEO as Seo } from "@/components/SEO";
 import { AdminPageHeader } from "@/components/admin/AdminPageHeader";
 import { MetricCard } from "@/components/admin/MetricCard";
@@ -21,6 +22,7 @@ import { ResponsiveTable } from "@/components/responsive/ResponsiveTable";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+
 import { Skeleton } from "@/components/ui/skeleton";
 import { useTableSort } from "@/components/admin/sortable-table";
 import { ManageButton, DeleteButton } from "@/components/ui/quick-actions";
@@ -60,8 +62,7 @@ export default function AdminInstructorsPage() {
   const { data, isLoading, mutate: mutateInstructors } = useInstructors<Instructor[]>();
   const instructors = useMemo(() => data ?? [], [data]);
   const loading = isLoading && !data;
-  const [search, setSearch] = useState("");
-  const [statusFilter, setStatusFilter] = useState<"all" | "active" | "inactive">("all");
+  const f = useFilterState({ search: "", status: "all" }, { urlSync: true });
 
   // Add dialog
   const [addOpen, setAddOpen] = useState(false);
@@ -70,18 +71,18 @@ export default function AdminInstructorsPage() {
 
   const filtered = useMemo(() => {
     let list = instructors;
-    if (statusFilter !== "all") {
-      const want = statusFilter === "active";
+    if (f.values.status !== "all") {
+      const want = f.values.status === "active";
       list = list.filter((i) => i.is_active !== false === want);
     }
-    const q = search.trim().toLowerCase();
+    const q = f.values.search.trim().toLowerCase();
     if (q) {
       list = list.filter((i) =>
-        [i.name, i.email, i.title].some((f) => String(f ?? "").toLowerCase().includes(q)),
+        [i.name, i.email, i.title].some((field) => String(field ?? "").toLowerCase().includes(q)),
       );
     }
     return list;
-  }, [instructors, search, statusFilter]);
+  }, [instructors, f.values.search, f.values.status]);
 
   const {
     sorted,
@@ -104,7 +105,7 @@ export default function AdminInstructorsPage() {
     defaultDirFor: (key) => (key === "name" ? "asc" : "desc"),
   });
 
-  const pg = usePagination(sorted, 10, `${search}|${statusFilter}|${sortKey}|${sortDir}`);
+  const pg = usePagination(sorted, 10, `${f.values.search}|${f.values.status}|${sortKey}|${sortDir}`);
 
   const stats = useMemo(() => {
     const active = instructors.filter((i) => i.is_active !== false).length;
@@ -259,49 +260,30 @@ export default function AdminInstructorsPage() {
                       Click Manage to open a profile and edit details
                     </CardDescription>
                   </div>
-                  <div className="flex items-center gap-2 w-full sm:w-auto">
-                    <div className="relative flex-1 sm:w-64">
-                      <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-charcoal/40" />
-                      <Input
-                        value={search}
-                        onChange={(e) => setSearch(e.target.value)}
-                        placeholder="Search name, email, title…"
-                        className="h-9 pl-9 border-sage/20 focus:border-sage font-body"
-                      />
-                    </div>
-                    <Button onClick={() => setAddOpen(true)} variant="sage" className="h-9 shrink-0">
-                      <Plus className="h-4 w-4 mr-1.5" />
-                      Add Instructor
-                    </Button>
-                  </div>
+                  <Button onClick={() => setAddOpen(true)} variant="sage" className="h-9 shrink-0">
+                    <Plus className="h-4 w-4 mr-1.5" />
+                    Add Instructor
+                  </Button>
                 </div>
 
-                {/* Status filter chips */}
-                <div className="flex items-center gap-1.5">
-                  {(["all", "active", "inactive"] as const).map((opt) => {
-                    const chipCounts = {
-                      all: instructors.length,
-                      active: stats.active,
-                      inactive: stats.inactive,
-                    } as const;
-                    const chipLabel = `${opt[0].toUpperCase()}${opt.slice(1)} (${chipCounts[opt]})`;
-                    return (
-                      <button
-                        key={opt}
-                        type="button"
-                        onClick={() => setStatusFilter(opt)}
-                        className={cn(
-                          "rounded-full border px-3 py-1 font-body text-xs capitalize transition-colors",
-                          statusFilter === opt
-                            ? "bg-sage text-cream border-sage shadow-sm"
-                            : "bg-white-warm text-charcoal/65 border-sage/20 hover:bg-sage/10 hover:text-sage",
-                        )}
-                      >
-                        {chipLabel}
-                      </button>
-                    );
-                  })}
-                </div>
+                <FilterBar reset={f.isActive ? f.reset : undefined} className="mb-4">
+                  <FilterSearch
+                    value={f.values.search}
+                    onChange={(v) => f.set("search", v)}
+                    placeholder="Search name, email, title…"
+                    aria-label="Search instructors"
+                  />
+                  <FilterChips
+                    aria-label="Status"
+                    value={f.values.status}
+                    onChange={(v) => f.set("status", v)}
+                    options={[
+                      { value: "all", label: "All", count: instructors.length },
+                      { value: "active", label: "Active", count: stats.active },
+                      { value: "inactive", label: "Inactive", count: stats.inactive },
+                    ]}
+                  />
+                </FilterBar>
               </CardHeader>
 
               <CardContent>
@@ -345,7 +327,7 @@ export default function AdminInstructorsPage() {
                       <div className="flex flex-col items-center gap-3 py-2">
                         <GraduationCap className="h-10 w-10 text-charcoal/25" />
                         <p className="font-body text-sm text-charcoal/55">
-                          {search ? "No instructors match your search." : "No instructors yet — add your first one."}
+                          {f.values.search ? "No instructors match your search." : "No instructors yet — add your first one."}
                         </p>
                       </div>
                     }
