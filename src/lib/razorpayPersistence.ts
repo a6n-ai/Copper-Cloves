@@ -143,6 +143,7 @@ export async function persistVerifiedRazorpayPayment(params: {
     await tx.payment.upsert({
       where: { razorpay_payment_id: params.razorpayPaymentId },
       create: {
+        direction: "credit",
         user_id: params.userId,
         method: "razorpay_online",
         status: paid ? "succeeded" : "failed",
@@ -395,6 +396,7 @@ export async function reconcileRazorpayPaymentFromWebhook(body: {
   await prisma.payment.upsert({
     where: { razorpay_payment_id: payId },
     create: {
+      direction: "credit",
       user_id: orderRow.user_id,
       booking_id: orderRow.booking_id,
       user_package_id: orderRow.user_package_id,

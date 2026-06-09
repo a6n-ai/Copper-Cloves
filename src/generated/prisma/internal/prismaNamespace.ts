@@ -3529,6 +3529,7 @@ export const ProfileScalarFieldEnum = {
   pass_type: 'pass_type',
   hashedPassword: 'hashedPassword',
   role: 'role',
+  is_system: 'is_system',
   dob: 'dob',
   gender: 'gender',
   onboarding_completed: 'onboarding_completed',
@@ -3857,6 +3858,14 @@ export const PaymentScalarFieldEnum = {
   reference: 'reference',
   proof_url: 'proof_url',
   notes: 'notes',
+  direction: 'direction',
+  category: 'category',
+  payee: 'payee',
+  description: 'description',
+  incurred_at: 'incurred_at',
+  is_manual_expense: 'is_manual_expense',
+  instructor_id: 'instructor_id',
+  payout_period_key: 'payout_period_key',
   recorded_by: 'recorded_by',
   razorpay_payment_id: 'razorpay_payment_id',
   razorpay_order_id: 'razorpay_order_id',
@@ -4338,6 +4347,13 @@ export type ListIntFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel,
 
 
 /**
+ * Reference to a field of type 'Boolean'
+ */
+export type BooleanFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'Boolean'>
+    
+
+
+/**
  * Reference to a field of type 'DateTime'
  */
 export type DateTimeFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'DateTime'>
@@ -4348,13 +4364,6 @@ export type DateTimeFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel
  * Reference to a field of type 'DateTime[]'
  */
 export type ListDateTimeFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'DateTime[]'>
-    
-
-
-/**
- * Reference to a field of type 'Boolean'
- */
-export type BooleanFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'Boolean'>
     
 
 
@@ -4425,6 +4434,20 @@ export type EnumPaymentStatusFieldRefInput<$PrismaModel> = FieldRefInputType<$Pr
  * Reference to a field of type 'PaymentStatus[]'
  */
 export type ListEnumPaymentStatusFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'PaymentStatus[]'>
+    
+
+
+/**
+ * Reference to a field of type 'PaymentDirection'
+ */
+export type EnumPaymentDirectionFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'PaymentDirection'>
+    
+
+
+/**
+ * Reference to a field of type 'PaymentDirection[]'
+ */
+export type ListEnumPaymentDirectionFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'PaymentDirection[]'>
     
 
 

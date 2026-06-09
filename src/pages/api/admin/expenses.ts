@@ -29,7 +29,7 @@ function serialize(e: ExpenseWithRelations) {
     id: e.id,
     category: e.category,
     amountPaise: e.amount_paise,
-    incurredAtISO: e.incurred_at.toISOString(),
+    incurredAtISO: (e.incurred_at ?? e.created_at).toISOString(),
     description: e.description,
     payee: e.payee ?? e.instructor?.name ?? null,
     method: e.method,

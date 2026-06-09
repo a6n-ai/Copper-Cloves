@@ -43,6 +43,14 @@ export const ClassScheduleStatus = {
 export type ClassScheduleStatus = (typeof ClassScheduleStatus)[keyof typeof ClassScheduleStatus]
 
 
+export const PaymentDirection = {
+  credit: 'credit',
+  debit: 'debit'
+} as const
+
+export type PaymentDirection = (typeof PaymentDirection)[keyof typeof PaymentDirection]
+
+
 export const ExpenseCategory = {
   instructor_payout: 'instructor_payout',
   cafe_free_meal: 'cafe_free_meal',

@@ -1,8 +1,12 @@
 import prisma from "@/lib/prisma";
+import { getSystemProfileId } from "@/lib/systemProfile";
 import type { ExpenseCategory, PaymentMethod } from "@/generated/prisma/client";
 
 export { EXPENSE_CATEGORIES, EXPENSE_CATEGORY_LABELS } from "@/lib/expenseConstants";
 
+// Expenses are now Payment rows with direction "debit". This module is the one
+// seam the rest of the app uses for expense reads/writes — repointing it onto
+// Payment keeps every expense-consuming caller unchanged.
 const expenseInclude = {
   instructor: { select: { name: true } },
   recorded_by_admin: { select: { full_name: true, email: true } },
@@ -10,29 +14,29 @@ const expenseInclude = {
 
 export type ExpenseWithRelations = Awaited<ReturnType<typeof listExpenses>>[number];
 
-/** List expenses, newest first. Optional half-open [start, end) window on incurred_at. */
+/** List expense (debit) rows, newest first. Optional half-open [start, end) window on incurred_at. */
 export function listExpenses(opts?: { start?: Date; end?: Date }) {
   const incurred =
     opts?.start || opts?.end ? { gte: opts?.start, lt: opts?.end } : undefined;
-  return prisma.expense.findMany({
-    where: incurred ? { incurred_at: incurred } : undefined,
+  return prisma.payment.findMany({
+    where: { direction: "debit", ...(incurred ? { incurred_at: incurred } : {}) },
     orderBy: { incurred_at: "desc" },
     include: expenseInclude,
   });
 }
 
-/** Sum of expense amounts (paise) in an optional [start, end) window. */
+/** Sum of expense (debit) amounts (paise) in an optional [start, end) window. */
 export async function sumExpensesPaise(opts?: { start?: Date; end?: Date }): Promise<number> {
   const incurred = opts?.start || opts?.end ? { gte: opts?.start, lt: opts?.end } : undefined;
-  const agg = await prisma.expense.aggregate({
+  const agg = await prisma.payment.aggregate({
     _sum: { amount_paise: true },
-    where: incurred ? { incurred_at: incurred } : undefined,
+    where: { direction: "debit", ...(incurred ? { incurred_at: incurred } : {}) },
   });
   return agg._sum.amount_paise ?? 0;
 }
 
 /** Create a manually-entered expense (café free meal, rent, ad-hoc cost, etc.). */
-export function createManualExpense(input: {
+export async function createManualExpense(input: {
   category: ExpenseCategory;
   amountPaise: number;
   incurredAt?: Date;
@@ -43,8 +47,14 @@ export function createManualExpense(input: {
   notes?: string | null;
   recordedBy?: string | null;
 }) {
-  return prisma.expense.create({
+  const systemId = await getSystemProfileId();
+  return prisma.payment.create({
     data: {
+      user_id: systemId,
+      direction: "debit",
+      status: "succeeded",
+      currency: "INR",
+      is_manual_expense: true,
       category: input.category,
       amount_paise: Math.round(input.amountPaise),
       incurred_at: input.incurredAt ?? new Date(),
@@ -60,16 +70,17 @@ export function createManualExpense(input: {
 }
 
 export function deleteExpense(id: string) {
-  return prisma.expense.delete({ where: { id } });
+  // Guard on direction so this can only ever remove an expense (debit) row,
+  // never a credit/income payment, even if an arbitrary id is passed.
+  return prisma.payment.deleteMany({ where: { id, direction: "debit" } });
 }
 
 /**
- * Idempotently record an instructor payout as an expense, keyed on
- * (instructor, period). Calling it again for the same period updates the amount
- * rather than creating a duplicate — so the payout screen and the expense tab
- * share one process and a payout can never be double-counted.
+ * Idempotently record an instructor payout as a debit row, keyed on
+ * (instructor, period). user_id points at the instructor's login profile when
+ * one exists, else the system Studio profile.
  */
-export function recordPayoutExpense(input: {
+export async function recordPayoutExpense(input: {
   instructorId: string;
   periodKey: string;
   amountPaise: number;
@@ -80,7 +91,12 @@ export function recordPayoutExpense(input: {
   recordedBy?: string | null;
 }) {
   const amount = Math.round(input.amountPaise);
-  return prisma.expense.upsert({
+  const instructor = await prisma.instructor.findUnique({
+    where: { id: input.instructorId },
+    select: { profile_id: true },
+  });
+  const userId = instructor?.profile_id ?? (await getSystemProfileId());
+  return prisma.payment.upsert({
     where: {
       instructor_id_payout_period_key: {
         instructor_id: input.instructorId,
@@ -88,6 +104,11 @@ export function recordPayoutExpense(input: {
       },
     },
     create: {
+      user_id: userId,
+      direction: "debit",
+      status: "succeeded",
+      currency: "INR",
+      is_manual_expense: false,
       category: "instructor_payout",
       amount_paise: amount,
       incurred_at: input.incurredAt ?? new Date(),
@@ -108,9 +129,9 @@ export function recordPayoutExpense(input: {
   });
 }
 
-/** Remove the auto-recorded payout expense (e.g. when a payout is un-marked paid). */
+/** Remove the auto-recorded payout debit row (e.g. when a payout is un-marked paid). */
 export function removePayoutExpense(instructorId: string, periodKey: string) {
-  return prisma.expense.deleteMany({
-    where: { instructor_id: instructorId, payout_period_key: periodKey },
+  return prisma.payment.deleteMany({
+    where: { direction: "debit", instructor_id: instructorId, payout_period_key: periodKey },
   });
 }

@@ -28,13 +28,12 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
     const [payments, expenses] = await Promise.all([
       prisma.payment.findMany({
-        where: { status: "succeeded", created_at: { gte: rangeStart } },
+        where: { direction: "credit", status: "succeeded", created_at: { gte: rangeStart } },
         select: { amount_paise: true, created_at: true },
       }),
-      // Recorded expenses are the source of truth for the expense side
-      // (instructor payouts land here once marked paid).
-      prisma.expense.findMany({
-        where: { incurred_at: { gte: rangeStart } },
+      // Expenses are Payment debit rows; bucket by incurred_at.
+      prisma.payment.findMany({
+        where: { direction: "debit", incurred_at: { gte: rangeStart } },
         select: { amount_paise: true, incurred_at: true },
       }),
     ]);

@@ -46,6 +46,7 @@ export type ProfileMinAggregateOutputType = {
   pass_type: string | null
   hashedPassword: string | null
   role: string | null
+  is_system: boolean | null
   dob: Date | null
   gender: string | null
   onboarding_completed: boolean | null
@@ -67,6 +68,7 @@ export type ProfileMaxAggregateOutputType = {
   pass_type: string | null
   hashedPassword: string | null
   role: string | null
+  is_system: boolean | null
   dob: Date | null
   gender: string | null
   onboarding_completed: boolean | null
@@ -88,6 +90,7 @@ export type ProfileCountAggregateOutputType = {
   pass_type: number
   hashedPassword: number
   role: number
+  is_system: number
   dob: number
   gender: number
   onboarding_completed: number
@@ -120,6 +123,7 @@ export type ProfileMinAggregateInputType = {
   pass_type?: true
   hashedPassword?: true
   role?: true
+  is_system?: true
   dob?: true
   gender?: true
   onboarding_completed?: true
@@ -141,6 +145,7 @@ export type ProfileMaxAggregateInputType = {
   pass_type?: true
   hashedPassword?: true
   role?: true
+  is_system?: true
   dob?: true
   gender?: true
   onboarding_completed?: true
@@ -162,6 +167,7 @@ export type ProfileCountAggregateInputType = {
   pass_type?: true
   hashedPassword?: true
   role?: true
+  is_system?: true
   dob?: true
   gender?: true
   onboarding_completed?: true
@@ -271,6 +277,7 @@ export type ProfileGroupByOutputType = {
   pass_type: string | null
   hashedPassword: string | null
   role: string
+  is_system: boolean
   dob: Date | null
   gender: string | null
   onboarding_completed: boolean
@@ -316,6 +323,7 @@ export type ProfileWhereInput = {
   pass_type?: Prisma.StringNullableFilter<"Profile"> | string | null
   hashedPassword?: Prisma.StringNullableFilter<"Profile"> | string | null
   role?: Prisma.StringFilter<"Profile"> | string
+  is_system?: Prisma.BoolFilter<"Profile"> | boolean
   dob?: Prisma.DateTimeNullableFilter<"Profile"> | Date | string | null
   gender?: Prisma.StringNullableFilter<"Profile"> | string | null
   onboarding_completed?: Prisma.BoolFilter<"Profile"> | boolean
@@ -361,6 +369,7 @@ export type ProfileOrderByWithRelationInput = {
   pass_type?: Prisma.SortOrderInput | Prisma.SortOrder
   hashedPassword?: Prisma.SortOrderInput | Prisma.SortOrder
   role?: Prisma.SortOrder
+  is_system?: Prisma.SortOrder
   dob?: Prisma.SortOrderInput | Prisma.SortOrder
   gender?: Prisma.SortOrderInput | Prisma.SortOrder
   onboarding_completed?: Prisma.SortOrder
@@ -410,6 +419,7 @@ export type ProfileWhereUniqueInput = Prisma.AtLeast<{
   pass_type?: Prisma.StringNullableFilter<"Profile"> | string | null
   hashedPassword?: Prisma.StringNullableFilter<"Profile"> | string | null
   role?: Prisma.StringFilter<"Profile"> | string
+  is_system?: Prisma.BoolFilter<"Profile"> | boolean
   dob?: Prisma.DateTimeNullableFilter<"Profile"> | Date | string | null
   gender?: Prisma.StringNullableFilter<"Profile"> | string | null
   onboarding_completed?: Prisma.BoolFilter<"Profile"> | boolean
@@ -455,6 +465,7 @@ export type ProfileOrderByWithAggregationInput = {
   pass_type?: Prisma.SortOrderInput | Prisma.SortOrder
   hashedPassword?: Prisma.SortOrderInput | Prisma.SortOrder
   role?: Prisma.SortOrder
+  is_system?: Prisma.SortOrder
   dob?: Prisma.SortOrderInput | Prisma.SortOrder
   gender?: Prisma.SortOrderInput | Prisma.SortOrder
   onboarding_completed?: Prisma.SortOrder
@@ -485,6 +496,7 @@ export type ProfileScalarWhereWithAggregatesInput = {
   pass_type?: Prisma.StringNullableWithAggregatesFilter<"Profile"> | string | null
   hashedPassword?: Prisma.StringNullableWithAggregatesFilter<"Profile"> | string | null
   role?: Prisma.StringWithAggregatesFilter<"Profile"> | string
+  is_system?: Prisma.BoolWithAggregatesFilter<"Profile"> | boolean
   dob?: Prisma.DateTimeNullableWithAggregatesFilter<"Profile"> | Date | string | null
   gender?: Prisma.StringNullableWithAggregatesFilter<"Profile"> | string | null
   onboarding_completed?: Prisma.BoolWithAggregatesFilter<"Profile"> | boolean
@@ -507,6 +519,7 @@ export type ProfileCreateInput = {
   pass_type?: string | null
   hashedPassword?: string | null
   role?: string
+  is_system?: boolean
   dob?: Date | string | null
   gender?: string | null
   onboarding_completed?: boolean
@@ -552,6 +565,7 @@ export type ProfileUncheckedCreateInput = {
   pass_type?: string | null
   hashedPassword?: string | null
   role?: string
+  is_system?: boolean
   dob?: Date | string | null
   gender?: string | null
   onboarding_completed?: boolean
@@ -597,6 +611,7 @@ export type ProfileUpdateInput = {
   pass_type?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   hashedPassword?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   role?: Prisma.StringFieldUpdateOperationsInput | string
+  is_system?: Prisma.BoolFieldUpdateOperationsInput | boolean
   dob?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   gender?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   onboarding_completed?: Prisma.BoolFieldUpdateOperationsInput | boolean
@@ -642,6 +657,7 @@ export type ProfileUncheckedUpdateInput = {
   pass_type?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   hashedPassword?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   role?: Prisma.StringFieldUpdateOperationsInput | string
+  is_system?: Prisma.BoolFieldUpdateOperationsInput | boolean
   dob?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   gender?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   onboarding_completed?: Prisma.BoolFieldUpdateOperationsInput | boolean
@@ -687,6 +703,7 @@ export type ProfileCreateManyInput = {
   pass_type?: string | null
   hashedPassword?: string | null
   role?: string
+  is_system?: boolean
   dob?: Date | string | null
   gender?: string | null
   onboarding_completed?: boolean
@@ -709,6 +726,7 @@ export type ProfileUpdateManyMutationInput = {
   pass_type?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   hashedPassword?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   role?: Prisma.StringFieldUpdateOperationsInput | string
+  is_system?: Prisma.BoolFieldUpdateOperationsInput | boolean
   dob?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   gender?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   onboarding_completed?: Prisma.BoolFieldUpdateOperationsInput | boolean
@@ -731,6 +749,7 @@ export type ProfileUncheckedUpdateManyInput = {
   pass_type?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   hashedPassword?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   role?: Prisma.StringFieldUpdateOperationsInput | string
+  is_system?: Prisma.BoolFieldUpdateOperationsInput | boolean
   dob?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   gender?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   onboarding_completed?: Prisma.BoolFieldUpdateOperationsInput | boolean
@@ -758,6 +777,7 @@ export type ProfileCountOrderByAggregateInput = {
   pass_type?: Prisma.SortOrder
   hashedPassword?: Prisma.SortOrder
   role?: Prisma.SortOrder
+  is_system?: Prisma.SortOrder
   dob?: Prisma.SortOrder
   gender?: Prisma.SortOrder
   onboarding_completed?: Prisma.SortOrder
@@ -784,6 +804,7 @@ export type ProfileMaxOrderByAggregateInput = {
   pass_type?: Prisma.SortOrder
   hashedPassword?: Prisma.SortOrder
   role?: Prisma.SortOrder
+  is_system?: Prisma.SortOrder
   dob?: Prisma.SortOrder
   gender?: Prisma.SortOrder
   onboarding_completed?: Prisma.SortOrder
@@ -805,6 +826,7 @@ export type ProfileMinOrderByAggregateInput = {
   pass_type?: Prisma.SortOrder
   hashedPassword?: Prisma.SortOrder
   role?: Prisma.SortOrder
+  is_system?: Prisma.SortOrder
   dob?: Prisma.SortOrder
   gender?: Prisma.SortOrder
   onboarding_completed?: Prisma.SortOrder
@@ -844,12 +866,12 @@ export type IntFieldUpdateOperationsInput = {
   divide?: number
 }
 
-export type NullableDateTimeFieldUpdateOperationsInput = {
-  set?: Date | string | null
-}
-
 export type BoolFieldUpdateOperationsInput = {
   set?: boolean
+}
+
+export type NullableDateTimeFieldUpdateOperationsInput = {
+  set?: Date | string | null
 }
 
 export type DateTimeFieldUpdateOperationsInput = {
@@ -1210,6 +1232,7 @@ export type ProfileCreateWithoutSessionsInput = {
   pass_type?: string | null
   hashedPassword?: string | null
   role?: string
+  is_system?: boolean
   dob?: Date | string | null
   gender?: string | null
   onboarding_completed?: boolean
@@ -1254,6 +1277,7 @@ export type ProfileUncheckedCreateWithoutSessionsInput = {
   pass_type?: string | null
   hashedPassword?: string | null
   role?: string
+  is_system?: boolean
   dob?: Date | string | null
   gender?: string | null
   onboarding_completed?: boolean
@@ -1314,6 +1338,7 @@ export type ProfileUpdateWithoutSessionsInput = {
   pass_type?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   hashedPassword?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   role?: Prisma.StringFieldUpdateOperationsInput | string
+  is_system?: Prisma.BoolFieldUpdateOperationsInput | boolean
   dob?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   gender?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   onboarding_completed?: Prisma.BoolFieldUpdateOperationsInput | boolean
@@ -1358,6 +1383,7 @@ export type ProfileUncheckedUpdateWithoutSessionsInput = {
   pass_type?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   hashedPassword?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   role?: Prisma.StringFieldUpdateOperationsInput | string
+  is_system?: Prisma.BoolFieldUpdateOperationsInput | boolean
   dob?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   gender?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   onboarding_completed?: Prisma.BoolFieldUpdateOperationsInput | boolean
@@ -1402,6 +1428,7 @@ export type ProfileCreateWithoutCoupon_redemptionsInput = {
   pass_type?: string | null
   hashedPassword?: string | null
   role?: string
+  is_system?: boolean
   dob?: Date | string | null
   gender?: string | null
   onboarding_completed?: boolean
@@ -1446,6 +1473,7 @@ export type ProfileUncheckedCreateWithoutCoupon_redemptionsInput = {
   pass_type?: string | null
   hashedPassword?: string | null
   role?: string
+  is_system?: boolean
   dob?: Date | string | null
   gender?: string | null
   onboarding_completed?: boolean
@@ -1506,6 +1534,7 @@ export type ProfileUpdateWithoutCoupon_redemptionsInput = {
   pass_type?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   hashedPassword?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   role?: Prisma.StringFieldUpdateOperationsInput | string
+  is_system?: Prisma.BoolFieldUpdateOperationsInput | boolean
   dob?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   gender?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   onboarding_completed?: Prisma.BoolFieldUpdateOperationsInput | boolean
@@ -1550,6 +1579,7 @@ export type ProfileUncheckedUpdateWithoutCoupon_redemptionsInput = {
   pass_type?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   hashedPassword?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   role?: Prisma.StringFieldUpdateOperationsInput | string
+  is_system?: Prisma.BoolFieldUpdateOperationsInput | boolean
   dob?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   gender?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   onboarding_completed?: Prisma.BoolFieldUpdateOperationsInput | boolean
@@ -1594,6 +1624,7 @@ export type ProfileCreateWithoutRetail_ordersInput = {
   pass_type?: string | null
   hashedPassword?: string | null
   role?: string
+  is_system?: boolean
   dob?: Date | string | null
   gender?: string | null
   onboarding_completed?: boolean
@@ -1638,6 +1669,7 @@ export type ProfileUncheckedCreateWithoutRetail_ordersInput = {
   pass_type?: string | null
   hashedPassword?: string | null
   role?: string
+  is_system?: boolean
   dob?: Date | string | null
   gender?: string | null
   onboarding_completed?: boolean
@@ -1698,6 +1730,7 @@ export type ProfileUpdateWithoutRetail_ordersInput = {
   pass_type?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   hashedPassword?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   role?: Prisma.StringFieldUpdateOperationsInput | string
+  is_system?: Prisma.BoolFieldUpdateOperationsInput | boolean
   dob?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   gender?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   onboarding_completed?: Prisma.BoolFieldUpdateOperationsInput | boolean
@@ -1742,6 +1775,7 @@ export type ProfileUncheckedUpdateWithoutRetail_ordersInput = {
   pass_type?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   hashedPassword?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   role?: Prisma.StringFieldUpdateOperationsInput | string
+  is_system?: Prisma.BoolFieldUpdateOperationsInput | boolean
   dob?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   gender?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   onboarding_completed?: Prisma.BoolFieldUpdateOperationsInput | boolean
@@ -1786,6 +1820,7 @@ export type ProfileCreateWithoutInstructor_accountInput = {
   pass_type?: string | null
   hashedPassword?: string | null
   role?: string
+  is_system?: boolean
   dob?: Date | string | null
   gender?: string | null
   onboarding_completed?: boolean
@@ -1830,6 +1865,7 @@ export type ProfileUncheckedCreateWithoutInstructor_accountInput = {
   pass_type?: string | null
   hashedPassword?: string | null
   role?: string
+  is_system?: boolean
   dob?: Date | string | null
   gender?: string | null
   onboarding_completed?: boolean
@@ -1890,6 +1926,7 @@ export type ProfileUpdateWithoutInstructor_accountInput = {
   pass_type?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   hashedPassword?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   role?: Prisma.StringFieldUpdateOperationsInput | string
+  is_system?: Prisma.BoolFieldUpdateOperationsInput | boolean
   dob?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   gender?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   onboarding_completed?: Prisma.BoolFieldUpdateOperationsInput | boolean
@@ -1934,6 +1971,7 @@ export type ProfileUncheckedUpdateWithoutInstructor_accountInput = {
   pass_type?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   hashedPassword?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   role?: Prisma.StringFieldUpdateOperationsInput | string
+  is_system?: Prisma.BoolFieldUpdateOperationsInput | boolean
   dob?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   gender?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   onboarding_completed?: Prisma.BoolFieldUpdateOperationsInput | boolean
@@ -1978,6 +2016,7 @@ export type ProfileCreateWithoutPartner_membershipsInput = {
   pass_type?: string | null
   hashedPassword?: string | null
   role?: string
+  is_system?: boolean
   dob?: Date | string | null
   gender?: string | null
   onboarding_completed?: boolean
@@ -2022,6 +2061,7 @@ export type ProfileUncheckedCreateWithoutPartner_membershipsInput = {
   pass_type?: string | null
   hashedPassword?: string | null
   role?: string
+  is_system?: boolean
   dob?: Date | string | null
   gender?: string | null
   onboarding_completed?: boolean
@@ -2082,6 +2122,7 @@ export type ProfileUpdateWithoutPartner_membershipsInput = {
   pass_type?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   hashedPassword?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   role?: Prisma.StringFieldUpdateOperationsInput | string
+  is_system?: Prisma.BoolFieldUpdateOperationsInput | boolean
   dob?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   gender?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   onboarding_completed?: Prisma.BoolFieldUpdateOperationsInput | boolean
@@ -2126,6 +2167,7 @@ export type ProfileUncheckedUpdateWithoutPartner_membershipsInput = {
   pass_type?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   hashedPassword?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   role?: Prisma.StringFieldUpdateOperationsInput | string
+  is_system?: Prisma.BoolFieldUpdateOperationsInput | boolean
   dob?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   gender?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   onboarding_completed?: Prisma.BoolFieldUpdateOperationsInput | boolean
@@ -2170,6 +2212,7 @@ export type ProfileCreateWithoutUser_packagesInput = {
   pass_type?: string | null
   hashedPassword?: string | null
   role?: string
+  is_system?: boolean
   dob?: Date | string | null
   gender?: string | null
   onboarding_completed?: boolean
@@ -2214,6 +2257,7 @@ export type ProfileUncheckedCreateWithoutUser_packagesInput = {
   pass_type?: string | null
   hashedPassword?: string | null
   role?: string
+  is_system?: boolean
   dob?: Date | string | null
   gender?: string | null
   onboarding_completed?: boolean
@@ -2274,6 +2318,7 @@ export type ProfileUpdateWithoutUser_packagesInput = {
   pass_type?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   hashedPassword?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   role?: Prisma.StringFieldUpdateOperationsInput | string
+  is_system?: Prisma.BoolFieldUpdateOperationsInput | boolean
   dob?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   gender?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   onboarding_completed?: Prisma.BoolFieldUpdateOperationsInput | boolean
@@ -2318,6 +2363,7 @@ export type ProfileUncheckedUpdateWithoutUser_packagesInput = {
   pass_type?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   hashedPassword?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   role?: Prisma.StringFieldUpdateOperationsInput | string
+  is_system?: Prisma.BoolFieldUpdateOperationsInput | boolean
   dob?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   gender?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   onboarding_completed?: Prisma.BoolFieldUpdateOperationsInput | boolean
@@ -2362,6 +2408,7 @@ export type ProfileCreateWithoutBookingsInput = {
   pass_type?: string | null
   hashedPassword?: string | null
   role?: string
+  is_system?: boolean
   dob?: Date | string | null
   gender?: string | null
   onboarding_completed?: boolean
@@ -2406,6 +2453,7 @@ export type ProfileUncheckedCreateWithoutBookingsInput = {
   pass_type?: string | null
   hashedPassword?: string | null
   role?: string
+  is_system?: boolean
   dob?: Date | string | null
   gender?: string | null
   onboarding_completed?: boolean
@@ -2466,6 +2514,7 @@ export type ProfileUpdateWithoutBookingsInput = {
   pass_type?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   hashedPassword?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   role?: Prisma.StringFieldUpdateOperationsInput | string
+  is_system?: Prisma.BoolFieldUpdateOperationsInput | boolean
   dob?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   gender?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   onboarding_completed?: Prisma.BoolFieldUpdateOperationsInput | boolean
@@ -2510,6 +2559,7 @@ export type ProfileUncheckedUpdateWithoutBookingsInput = {
   pass_type?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   hashedPassword?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   role?: Prisma.StringFieldUpdateOperationsInput | string
+  is_system?: Prisma.BoolFieldUpdateOperationsInput | boolean
   dob?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   gender?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   onboarding_completed?: Prisma.BoolFieldUpdateOperationsInput | boolean
@@ -2554,6 +2604,7 @@ export type ProfileCreateWithoutRazorpay_ordersInput = {
   pass_type?: string | null
   hashedPassword?: string | null
   role?: string
+  is_system?: boolean
   dob?: Date | string | null
   gender?: string | null
   onboarding_completed?: boolean
@@ -2598,6 +2649,7 @@ export type ProfileUncheckedCreateWithoutRazorpay_ordersInput = {
   pass_type?: string | null
   hashedPassword?: string | null
   role?: string
+  is_system?: boolean
   dob?: Date | string | null
   gender?: string | null
   onboarding_completed?: boolean
@@ -2658,6 +2710,7 @@ export type ProfileUpdateWithoutRazorpay_ordersInput = {
   pass_type?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   hashedPassword?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   role?: Prisma.StringFieldUpdateOperationsInput | string
+  is_system?: Prisma.BoolFieldUpdateOperationsInput | boolean
   dob?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   gender?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   onboarding_completed?: Prisma.BoolFieldUpdateOperationsInput | boolean
@@ -2702,6 +2755,7 @@ export type ProfileUncheckedUpdateWithoutRazorpay_ordersInput = {
   pass_type?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   hashedPassword?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   role?: Prisma.StringFieldUpdateOperationsInput | string
+  is_system?: Prisma.BoolFieldUpdateOperationsInput | boolean
   dob?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   gender?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   onboarding_completed?: Prisma.BoolFieldUpdateOperationsInput | boolean
@@ -2746,6 +2800,7 @@ export type ProfileCreateWithoutPaymentsInput = {
   pass_type?: string | null
   hashedPassword?: string | null
   role?: string
+  is_system?: boolean
   dob?: Date | string | null
   gender?: string | null
   onboarding_completed?: boolean
@@ -2790,6 +2845,7 @@ export type ProfileUncheckedCreateWithoutPaymentsInput = {
   pass_type?: string | null
   hashedPassword?: string | null
   role?: string
+  is_system?: boolean
   dob?: Date | string | null
   gender?: string | null
   onboarding_completed?: boolean
@@ -2839,6 +2895,7 @@ export type ProfileCreateWithoutRecorded_paymentsInput = {
   pass_type?: string | null
   hashedPassword?: string | null
   role?: string
+  is_system?: boolean
   dob?: Date | string | null
   gender?: string | null
   onboarding_completed?: boolean
@@ -2883,6 +2940,7 @@ export type ProfileUncheckedCreateWithoutRecorded_paymentsInput = {
   pass_type?: string | null
   hashedPassword?: string | null
   role?: string
+  is_system?: boolean
   dob?: Date | string | null
   gender?: string | null
   onboarding_completed?: boolean
@@ -2943,6 +3001,7 @@ export type ProfileUpdateWithoutPaymentsInput = {
   pass_type?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   hashedPassword?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   role?: Prisma.StringFieldUpdateOperationsInput | string
+  is_system?: Prisma.BoolFieldUpdateOperationsInput | boolean
   dob?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   gender?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   onboarding_completed?: Prisma.BoolFieldUpdateOperationsInput | boolean
@@ -2987,6 +3046,7 @@ export type ProfileUncheckedUpdateWithoutPaymentsInput = {
   pass_type?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   hashedPassword?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   role?: Prisma.StringFieldUpdateOperationsInput | string
+  is_system?: Prisma.BoolFieldUpdateOperationsInput | boolean
   dob?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   gender?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   onboarding_completed?: Prisma.BoolFieldUpdateOperationsInput | boolean
@@ -3042,6 +3102,7 @@ export type ProfileUpdateWithoutRecorded_paymentsInput = {
   pass_type?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   hashedPassword?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   role?: Prisma.StringFieldUpdateOperationsInput | string
+  is_system?: Prisma.BoolFieldUpdateOperationsInput | boolean
   dob?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   gender?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   onboarding_completed?: Prisma.BoolFieldUpdateOperationsInput | boolean
@@ -3086,6 +3147,7 @@ export type ProfileUncheckedUpdateWithoutRecorded_paymentsInput = {
   pass_type?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   hashedPassword?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   role?: Prisma.StringFieldUpdateOperationsInput | string
+  is_system?: Prisma.BoolFieldUpdateOperationsInput | boolean
   dob?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   gender?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   onboarding_completed?: Prisma.BoolFieldUpdateOperationsInput | boolean
@@ -3130,6 +3192,7 @@ export type ProfileCreateWithoutCafe_ordersInput = {
   pass_type?: string | null
   hashedPassword?: string | null
   role?: string
+  is_system?: boolean
   dob?: Date | string | null
   gender?: string | null
   onboarding_completed?: boolean
@@ -3174,6 +3237,7 @@ export type ProfileUncheckedCreateWithoutCafe_ordersInput = {
   pass_type?: string | null
   hashedPassword?: string | null
   role?: string
+  is_system?: boolean
   dob?: Date | string | null
   gender?: string | null
   onboarding_completed?: boolean
@@ -3234,6 +3298,7 @@ export type ProfileUpdateWithoutCafe_ordersInput = {
   pass_type?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   hashedPassword?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   role?: Prisma.StringFieldUpdateOperationsInput | string
+  is_system?: Prisma.BoolFieldUpdateOperationsInput | boolean
   dob?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   gender?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   onboarding_completed?: Prisma.BoolFieldUpdateOperationsInput | boolean
@@ -3278,6 +3343,7 @@ export type ProfileUncheckedUpdateWithoutCafe_ordersInput = {
   pass_type?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   hashedPassword?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   role?: Prisma.StringFieldUpdateOperationsInput | string
+  is_system?: Prisma.BoolFieldUpdateOperationsInput | boolean
   dob?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   gender?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   onboarding_completed?: Prisma.BoolFieldUpdateOperationsInput | boolean
@@ -3322,6 +3388,7 @@ export type ProfileCreateWithoutMeal_subscriptionsInput = {
   pass_type?: string | null
   hashedPassword?: string | null
   role?: string
+  is_system?: boolean
   dob?: Date | string | null
   gender?: string | null
   onboarding_completed?: boolean
@@ -3366,6 +3433,7 @@ export type ProfileUncheckedCreateWithoutMeal_subscriptionsInput = {
   pass_type?: string | null
   hashedPassword?: string | null
   role?: string
+  is_system?: boolean
   dob?: Date | string | null
   gender?: string | null
   onboarding_completed?: boolean
@@ -3426,6 +3494,7 @@ export type ProfileUpdateWithoutMeal_subscriptionsInput = {
   pass_type?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   hashedPassword?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   role?: Prisma.StringFieldUpdateOperationsInput | string
+  is_system?: Prisma.BoolFieldUpdateOperationsInput | boolean
   dob?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   gender?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   onboarding_completed?: Prisma.BoolFieldUpdateOperationsInput | boolean
@@ -3470,6 +3539,7 @@ export type ProfileUncheckedUpdateWithoutMeal_subscriptionsInput = {
   pass_type?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   hashedPassword?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   role?: Prisma.StringFieldUpdateOperationsInput | string
+  is_system?: Prisma.BoolFieldUpdateOperationsInput | boolean
   dob?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   gender?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   onboarding_completed?: Prisma.BoolFieldUpdateOperationsInput | boolean
@@ -3514,6 +3584,7 @@ export type ProfileCreateWithoutUser_statsInput = {
   pass_type?: string | null
   hashedPassword?: string | null
   role?: string
+  is_system?: boolean
   dob?: Date | string | null
   gender?: string | null
   onboarding_completed?: boolean
@@ -3558,6 +3629,7 @@ export type ProfileUncheckedCreateWithoutUser_statsInput = {
   pass_type?: string | null
   hashedPassword?: string | null
   role?: string
+  is_system?: boolean
   dob?: Date | string | null
   gender?: string | null
   onboarding_completed?: boolean
@@ -3618,6 +3690,7 @@ export type ProfileUpdateWithoutUser_statsInput = {
   pass_type?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   hashedPassword?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   role?: Prisma.StringFieldUpdateOperationsInput | string
+  is_system?: Prisma.BoolFieldUpdateOperationsInput | boolean
   dob?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   gender?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   onboarding_completed?: Prisma.BoolFieldUpdateOperationsInput | boolean
@@ -3662,6 +3735,7 @@ export type ProfileUncheckedUpdateWithoutUser_statsInput = {
   pass_type?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   hashedPassword?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   role?: Prisma.StringFieldUpdateOperationsInput | string
+  is_system?: Prisma.BoolFieldUpdateOperationsInput | boolean
   dob?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   gender?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   onboarding_completed?: Prisma.BoolFieldUpdateOperationsInput | boolean
@@ -3706,6 +3780,7 @@ export type ProfileCreateWithoutUser_streaksInput = {
   pass_type?: string | null
   hashedPassword?: string | null
   role?: string
+  is_system?: boolean
   dob?: Date | string | null
   gender?: string | null
   onboarding_completed?: boolean
@@ -3750,6 +3825,7 @@ export type ProfileUncheckedCreateWithoutUser_streaksInput = {
   pass_type?: string | null
   hashedPassword?: string | null
   role?: string
+  is_system?: boolean
   dob?: Date | string | null
   gender?: string | null
   onboarding_completed?: boolean
@@ -3810,6 +3886,7 @@ export type ProfileUpdateWithoutUser_streaksInput = {
   pass_type?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   hashedPassword?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   role?: Prisma.StringFieldUpdateOperationsInput | string
+  is_system?: Prisma.BoolFieldUpdateOperationsInput | boolean
   dob?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   gender?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   onboarding_completed?: Prisma.BoolFieldUpdateOperationsInput | boolean
@@ -3854,6 +3931,7 @@ export type ProfileUncheckedUpdateWithoutUser_streaksInput = {
   pass_type?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   hashedPassword?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   role?: Prisma.StringFieldUpdateOperationsInput | string
+  is_system?: Prisma.BoolFieldUpdateOperationsInput | boolean
   dob?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   gender?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   onboarding_completed?: Prisma.BoolFieldUpdateOperationsInput | boolean
@@ -3898,6 +3976,7 @@ export type ProfileCreateWithoutUser_badgesInput = {
   pass_type?: string | null
   hashedPassword?: string | null
   role?: string
+  is_system?: boolean
   dob?: Date | string | null
   gender?: string | null
   onboarding_completed?: boolean
@@ -3942,6 +4021,7 @@ export type ProfileUncheckedCreateWithoutUser_badgesInput = {
   pass_type?: string | null
   hashedPassword?: string | null
   role?: string
+  is_system?: boolean
   dob?: Date | string | null
   gender?: string | null
   onboarding_completed?: boolean
@@ -4002,6 +4082,7 @@ export type ProfileUpdateWithoutUser_badgesInput = {
   pass_type?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   hashedPassword?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   role?: Prisma.StringFieldUpdateOperationsInput | string
+  is_system?: Prisma.BoolFieldUpdateOperationsInput | boolean
   dob?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   gender?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   onboarding_completed?: Prisma.BoolFieldUpdateOperationsInput | boolean
@@ -4046,6 +4127,7 @@ export type ProfileUncheckedUpdateWithoutUser_badgesInput = {
   pass_type?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   hashedPassword?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   role?: Prisma.StringFieldUpdateOperationsInput | string
+  is_system?: Prisma.BoolFieldUpdateOperationsInput | boolean
   dob?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   gender?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   onboarding_completed?: Prisma.BoolFieldUpdateOperationsInput | boolean
@@ -4090,6 +4172,7 @@ export type ProfileCreateWithoutWaiversInput = {
   pass_type?: string | null
   hashedPassword?: string | null
   role?: string
+  is_system?: boolean
   dob?: Date | string | null
   gender?: string | null
   onboarding_completed?: boolean
@@ -4134,6 +4217,7 @@ export type ProfileUncheckedCreateWithoutWaiversInput = {
   pass_type?: string | null
   hashedPassword?: string | null
   role?: string
+  is_system?: boolean
   dob?: Date | string | null
   gender?: string | null
   onboarding_completed?: boolean
@@ -4194,6 +4278,7 @@ export type ProfileUpdateWithoutWaiversInput = {
   pass_type?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   hashedPassword?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   role?: Prisma.StringFieldUpdateOperationsInput | string
+  is_system?: Prisma.BoolFieldUpdateOperationsInput | boolean
   dob?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   gender?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   onboarding_completed?: Prisma.BoolFieldUpdateOperationsInput | boolean
@@ -4238,6 +4323,7 @@ export type ProfileUncheckedUpdateWithoutWaiversInput = {
   pass_type?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   hashedPassword?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   role?: Prisma.StringFieldUpdateOperationsInput | string
+  is_system?: Prisma.BoolFieldUpdateOperationsInput | boolean
   dob?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   gender?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   onboarding_completed?: Prisma.BoolFieldUpdateOperationsInput | boolean
@@ -4282,6 +4368,7 @@ export type ProfileCreateWithoutCrm_messagesInput = {
   pass_type?: string | null
   hashedPassword?: string | null
   role?: string
+  is_system?: boolean
   dob?: Date | string | null
   gender?: string | null
   onboarding_completed?: boolean
@@ -4326,6 +4413,7 @@ export type ProfileUncheckedCreateWithoutCrm_messagesInput = {
   pass_type?: string | null
   hashedPassword?: string | null
   role?: string
+  is_system?: boolean
   dob?: Date | string | null
   gender?: string | null
   onboarding_completed?: boolean
@@ -4386,6 +4474,7 @@ export type ProfileUpdateWithoutCrm_messagesInput = {
   pass_type?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   hashedPassword?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   role?: Prisma.StringFieldUpdateOperationsInput | string
+  is_system?: Prisma.BoolFieldUpdateOperationsInput | boolean
   dob?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   gender?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   onboarding_completed?: Prisma.BoolFieldUpdateOperationsInput | boolean
@@ -4430,6 +4519,7 @@ export type ProfileUncheckedUpdateWithoutCrm_messagesInput = {
   pass_type?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   hashedPassword?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   role?: Prisma.StringFieldUpdateOperationsInput | string
+  is_system?: Prisma.BoolFieldUpdateOperationsInput | boolean
   dob?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   gender?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   onboarding_completed?: Prisma.BoolFieldUpdateOperationsInput | boolean
@@ -4474,6 +4564,7 @@ export type ProfileCreateWithoutActivity_sessionsInput = {
   pass_type?: string | null
   hashedPassword?: string | null
   role?: string
+  is_system?: boolean
   dob?: Date | string | null
   gender?: string | null
   onboarding_completed?: boolean
@@ -4518,6 +4609,7 @@ export type ProfileUncheckedCreateWithoutActivity_sessionsInput = {
   pass_type?: string | null
   hashedPassword?: string | null
   role?: string
+  is_system?: boolean
   dob?: Date | string | null
   gender?: string | null
   onboarding_completed?: boolean
@@ -4578,6 +4670,7 @@ export type ProfileUpdateWithoutActivity_sessionsInput = {
   pass_type?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   hashedPassword?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   role?: Prisma.StringFieldUpdateOperationsInput | string
+  is_system?: Prisma.BoolFieldUpdateOperationsInput | boolean
   dob?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   gender?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   onboarding_completed?: Prisma.BoolFieldUpdateOperationsInput | boolean
@@ -4622,6 +4715,7 @@ export type ProfileUncheckedUpdateWithoutActivity_sessionsInput = {
   pass_type?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   hashedPassword?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   role?: Prisma.StringFieldUpdateOperationsInput | string
+  is_system?: Prisma.BoolFieldUpdateOperationsInput | boolean
   dob?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   gender?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   onboarding_completed?: Prisma.BoolFieldUpdateOperationsInput | boolean
@@ -4666,6 +4760,7 @@ export type ProfileCreateWithoutActivity_eventsInput = {
   pass_type?: string | null
   hashedPassword?: string | null
   role?: string
+  is_system?: boolean
   dob?: Date | string | null
   gender?: string | null
   onboarding_completed?: boolean
@@ -4710,6 +4805,7 @@ export type ProfileUncheckedCreateWithoutActivity_eventsInput = {
   pass_type?: string | null
   hashedPassword?: string | null
   role?: string
+  is_system?: boolean
   dob?: Date | string | null
   gender?: string | null
   onboarding_completed?: boolean
@@ -4770,6 +4866,7 @@ export type ProfileUpdateWithoutActivity_eventsInput = {
   pass_type?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   hashedPassword?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   role?: Prisma.StringFieldUpdateOperationsInput | string
+  is_system?: Prisma.BoolFieldUpdateOperationsInput | boolean
   dob?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   gender?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   onboarding_completed?: Prisma.BoolFieldUpdateOperationsInput | boolean
@@ -4814,6 +4911,7 @@ export type ProfileUncheckedUpdateWithoutActivity_eventsInput = {
   pass_type?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   hashedPassword?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   role?: Prisma.StringFieldUpdateOperationsInput | string
+  is_system?: Prisma.BoolFieldUpdateOperationsInput | boolean
   dob?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   gender?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   onboarding_completed?: Prisma.BoolFieldUpdateOperationsInput | boolean
@@ -4858,6 +4956,7 @@ export type ProfileCreateWithoutMember_ticketsInput = {
   pass_type?: string | null
   hashedPassword?: string | null
   role?: string
+  is_system?: boolean
   dob?: Date | string | null
   gender?: string | null
   onboarding_completed?: boolean
@@ -4902,6 +5001,7 @@ export type ProfileUncheckedCreateWithoutMember_ticketsInput = {
   pass_type?: string | null
   hashedPassword?: string | null
   role?: string
+  is_system?: boolean
   dob?: Date | string | null
   gender?: string | null
   onboarding_completed?: boolean
@@ -4962,6 +5062,7 @@ export type ProfileUpdateWithoutMember_ticketsInput = {
   pass_type?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   hashedPassword?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   role?: Prisma.StringFieldUpdateOperationsInput | string
+  is_system?: Prisma.BoolFieldUpdateOperationsInput | boolean
   dob?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   gender?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   onboarding_completed?: Prisma.BoolFieldUpdateOperationsInput | boolean
@@ -5006,6 +5107,7 @@ export type ProfileUncheckedUpdateWithoutMember_ticketsInput = {
   pass_type?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   hashedPassword?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   role?: Prisma.StringFieldUpdateOperationsInput | string
+  is_system?: Prisma.BoolFieldUpdateOperationsInput | boolean
   dob?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   gender?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   onboarding_completed?: Prisma.BoolFieldUpdateOperationsInput | boolean
@@ -5050,6 +5152,7 @@ export type ProfileCreateWithoutRecorded_expensesInput = {
   pass_type?: string | null
   hashedPassword?: string | null
   role?: string
+  is_system?: boolean
   dob?: Date | string | null
   gender?: string | null
   onboarding_completed?: boolean
@@ -5094,6 +5197,7 @@ export type ProfileUncheckedCreateWithoutRecorded_expensesInput = {
   pass_type?: string | null
   hashedPassword?: string | null
   role?: string
+  is_system?: boolean
   dob?: Date | string | null
   gender?: string | null
   onboarding_completed?: boolean
@@ -5154,6 +5258,7 @@ export type ProfileUpdateWithoutRecorded_expensesInput = {
   pass_type?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   hashedPassword?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   role?: Prisma.StringFieldUpdateOperationsInput | string
+  is_system?: Prisma.BoolFieldUpdateOperationsInput | boolean
   dob?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   gender?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   onboarding_completed?: Prisma.BoolFieldUpdateOperationsInput | boolean
@@ -5198,6 +5303,7 @@ export type ProfileUncheckedUpdateWithoutRecorded_expensesInput = {
   pass_type?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   hashedPassword?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   role?: Prisma.StringFieldUpdateOperationsInput | string
+  is_system?: Prisma.BoolFieldUpdateOperationsInput | boolean
   dob?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   gender?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   onboarding_completed?: Prisma.BoolFieldUpdateOperationsInput | boolean
@@ -5242,6 +5348,7 @@ export type ProfileCreateWithoutActivity_actionsInput = {
   pass_type?: string | null
   hashedPassword?: string | null
   role?: string
+  is_system?: boolean
   dob?: Date | string | null
   gender?: string | null
   onboarding_completed?: boolean
@@ -5286,6 +5393,7 @@ export type ProfileUncheckedCreateWithoutActivity_actionsInput = {
   pass_type?: string | null
   hashedPassword?: string | null
   role?: string
+  is_system?: boolean
   dob?: Date | string | null
   gender?: string | null
   onboarding_completed?: boolean
@@ -5335,6 +5443,7 @@ export type ProfileCreateWithoutActivity_targetsInput = {
   pass_type?: string | null
   hashedPassword?: string | null
   role?: string
+  is_system?: boolean
   dob?: Date | string | null
   gender?: string | null
   onboarding_completed?: boolean
@@ -5379,6 +5488,7 @@ export type ProfileUncheckedCreateWithoutActivity_targetsInput = {
   pass_type?: string | null
   hashedPassword?: string | null
   role?: string
+  is_system?: boolean
   dob?: Date | string | null
   gender?: string | null
   onboarding_completed?: boolean
@@ -5439,6 +5549,7 @@ export type ProfileUpdateWithoutActivity_actionsInput = {
   pass_type?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   hashedPassword?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   role?: Prisma.StringFieldUpdateOperationsInput | string
+  is_system?: Prisma.BoolFieldUpdateOperationsInput | boolean
   dob?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   gender?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   onboarding_completed?: Prisma.BoolFieldUpdateOperationsInput | boolean
@@ -5483,6 +5594,7 @@ export type ProfileUncheckedUpdateWithoutActivity_actionsInput = {
   pass_type?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   hashedPassword?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   role?: Prisma.StringFieldUpdateOperationsInput | string
+  is_system?: Prisma.BoolFieldUpdateOperationsInput | boolean
   dob?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   gender?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   onboarding_completed?: Prisma.BoolFieldUpdateOperationsInput | boolean
@@ -5538,6 +5650,7 @@ export type ProfileUpdateWithoutActivity_targetsInput = {
   pass_type?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   hashedPassword?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   role?: Prisma.StringFieldUpdateOperationsInput | string
+  is_system?: Prisma.BoolFieldUpdateOperationsInput | boolean
   dob?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   gender?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   onboarding_completed?: Prisma.BoolFieldUpdateOperationsInput | boolean
@@ -5582,6 +5695,7 @@ export type ProfileUncheckedUpdateWithoutActivity_targetsInput = {
   pass_type?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   hashedPassword?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   role?: Prisma.StringFieldUpdateOperationsInput | string
+  is_system?: Prisma.BoolFieldUpdateOperationsInput | boolean
   dob?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   gender?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   onboarding_completed?: Prisma.BoolFieldUpdateOperationsInput | boolean
@@ -5828,6 +5942,7 @@ export type ProfileSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs 
   pass_type?: boolean
   hashedPassword?: boolean
   role?: boolean
+  is_system?: boolean
   dob?: boolean
   gender?: boolean
   onboarding_completed?: boolean
@@ -5874,6 +5989,7 @@ export type ProfileSelectCreateManyAndReturn<ExtArgs extends runtime.Types.Exten
   pass_type?: boolean
   hashedPassword?: boolean
   role?: boolean
+  is_system?: boolean
   dob?: boolean
   gender?: boolean
   onboarding_completed?: boolean
@@ -5896,6 +6012,7 @@ export type ProfileSelectUpdateManyAndReturn<ExtArgs extends runtime.Types.Exten
   pass_type?: boolean
   hashedPassword?: boolean
   role?: boolean
+  is_system?: boolean
   dob?: boolean
   gender?: boolean
   onboarding_completed?: boolean
@@ -5918,6 +6035,7 @@ export type ProfileSelectScalar = {
   pass_type?: boolean
   hashedPassword?: boolean
   role?: boolean
+  is_system?: boolean
   dob?: boolean
   gender?: boolean
   onboarding_completed?: boolean
@@ -5928,7 +6046,7 @@ export type ProfileSelectScalar = {
   updated_at?: boolean
 }
 
-export type ProfileOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "email" | "full_name" | "phone" | "whatsapp_phone" | "avatar_url" | "avatar_file_id" | "movement_streak" | "pass_type" | "hashedPassword" | "role" | "dob" | "gender" | "onboarding_completed" | "questionnaire" | "terms_accepted_at" | "start_date" | "created_at" | "updated_at", ExtArgs["result"]["profile"]>
+export type ProfileOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "email" | "full_name" | "phone" | "whatsapp_phone" | "avatar_url" | "avatar_file_id" | "movement_streak" | "pass_type" | "hashedPassword" | "role" | "is_system" | "dob" | "gender" | "onboarding_completed" | "questionnaire" | "terms_accepted_at" | "start_date" | "created_at" | "updated_at", ExtArgs["result"]["profile"]>
 export type ProfileInclude<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   instructor_account?: boolean | Prisma.Profile$instructor_accountArgs<ExtArgs>
   partner_memberships?: boolean | Prisma.Profile$partner_membershipsArgs<ExtArgs>
@@ -5997,6 +6115,7 @@ export type $ProfilePayload<ExtArgs extends runtime.Types.Extensions.InternalArg
     pass_type: string | null
     hashedPassword: string | null
     role: string
+    is_system: boolean
     dob: Date | null
     gender: string | null
     onboarding_completed: boolean
@@ -6462,6 +6581,7 @@ export interface ProfileFieldRefs {
   readonly pass_type: Prisma.FieldRef<"Profile", 'String'>
   readonly hashedPassword: Prisma.FieldRef<"Profile", 'String'>
   readonly role: Prisma.FieldRef<"Profile", 'String'>
+  readonly is_system: Prisma.FieldRef<"Profile", 'Boolean'>
   readonly dob: Prisma.FieldRef<"Profile", 'DateTime'>
   readonly gender: Prisma.FieldRef<"Profile", 'String'>
   readonly onboarding_completed: Prisma.FieldRef<"Profile", 'Boolean'>
