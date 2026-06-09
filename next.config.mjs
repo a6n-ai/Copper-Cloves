@@ -80,6 +80,10 @@ const nextConfig = {
   },
   images: {
     formats: ["image/avif", "image/webp"],
+    // Explicit allowlist of <Image quality> values used across the app
+    // (75 default + 85/88/90/95 in use). Required starting Next.js 16 —
+    // unlisted qualities log a warning now and will 400 later.
+    qualities: [75, 85, 88, 90, 95],
     // CDN-cache optimized variants for a year; image URLs are content-addressed
     // by S3 key so a new upload changes the URL.
     minimumCacheTTL: 31536000,
