@@ -75,7 +75,5 @@ firebase-service-account.json
 /scripts/migrate-images-*.ts
 /scripts/test-s3.ts
 /graphify-out
-/.impeccable
-/.idea
 /docs
 .superpowers/
