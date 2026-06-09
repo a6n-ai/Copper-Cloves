@@ -22,8 +22,11 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   if (!session) return res.status(401).json({ error: "Unauthorized" });
 
   const u = session.user as { id?: string; role?: string; partner_id?: string | null; instructor_id?: string | null };
+  if (!u.id) return res.status(403).json({ error: "Forbidden" });
   const role = toSearchRole(u.role);
-  if (!role || !u.id) return res.status(403).json({ error: "Forbidden" });
+  // Authenticated role without data search (e.g. kitchen/chef): return empty so the
+  // client falls back to page-only search instead of showing an error banner.
+  if (!role) return res.status(200).json({ groups: [] });
 
   const q = typeof req.query.q === "string" ? req.query.q : "";
   try {

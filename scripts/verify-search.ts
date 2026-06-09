@@ -19,9 +19,9 @@ async function main() {
     console.error(`FAIL: member search leaked admin type "${leak.type}"`);
     process.exit(1);
   }
-  // Min-char guard.
+  // Min-char guard: a 1-char query must always return empty, regardless of CLI arg.
   const tooShort = await runSearch("admin", "a", scope);
-  if (q.length < 2 && tooShort.length !== 0) {
+  if (tooShort.length !== 0) {
     console.error("FAIL: min-char guard did not return empty");
     process.exit(1);
   }

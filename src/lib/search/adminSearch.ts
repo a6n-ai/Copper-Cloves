@@ -118,7 +118,7 @@ async function instructors(q: string): Promise<SearchItem[]> {
     take: SEARCH_TAKE,
   });
   return rows.map((r) => ({
-    id: r.id, type: "instructor", title: r.name, subtitle: r.title ?? "Instructor", href: `/admin/control`,
+    id: r.id, type: "instructor", title: r.name, subtitle: r.title ?? "Instructor", href: `/admin/instructors/${r.id}`,
   }));
 }
 
