@@ -31,13 +31,13 @@ import {
   Save,
   Image as ImageIcon,
   Upload,
-  Search,
   LayoutGrid,
   UtensilsCrossed,
   Tags,
   ClipboardList,
   Clock,
 } from "lucide-react";
+import { FilterBar, FilterSearch } from "@/components/filters";
 import {
   Select,
   SelectContent,
@@ -843,22 +843,19 @@ export default function AdminCafe() {
                   </Card>
                 ) : (
                   <div className="space-y-6">
-                    <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-                      <div className="relative w-full sm:max-w-md">
-                        <Search className="pointer-events-none absolute left-3 top-1/2 size-4 -translate-y-1/2 text-charcoal/40" />
-                        <Input
-                          value={menuSearch}
-                          onChange={(e) => setMenuSearch(e.target.value)}
-                          placeholder="Search menu items…"
-                          className="h-11 rounded-full border-border bg-white-warm pl-10 font-body"
-                          aria-label="Search menu items"
-                        />
-                      </div>
+                    <FilterBar className="sm:flex-row sm:items-center sm:justify-between">
+                      <FilterSearch
+                        value={menuSearch}
+                        onChange={setMenuSearch}
+                        placeholder="Search menu items…"
+                        aria-label="Search menu items"
+                        className="sm:max-w-md"
+                      />
                       <Button onClick={openAddMenuForm} variant="sage" className="shrink-0">
                         <Plus size={18} className="mr-2" />
                         Add Menu Item
                       </Button>
-                    </div>
+                    </FilterBar>
 
                     {filteredMenuItems.length === 0 ? (
                       <div className="rounded-2xl border border-border bg-white-warm py-16 text-center">
