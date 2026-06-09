@@ -33,7 +33,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       instructorId: u.instructor_id ?? null,
     });
     return res.status(200).json({ groups });
-  } catch (err) {
+  } catch {
     // No PII in logs.
     console.error("search failed", { role, len: q.trim().length });
     return res.status(500).json({ error: "Search failed" });
