@@ -30,10 +30,17 @@ import { useSession } from "next-auth/react";
 import { CrmTriggerType } from "@/lib/crmTriggerTypes";
 import { CrmInsights, CrmAnalytics } from "@/components/crm/CrmInsights";
 import { CrmMessageList } from "@/components/crm/CrmMessageList";
-import { DateRangeFilter } from "@/components/admin/DateRangeFilter";
 import { Pagination, usePagination } from "@/components/Pagination";
 import { startOfDay, endOfDay } from "date-fns";
 import type { DateRange } from "react-day-picker";
+import {
+  FilterBar,
+  FilterSearch,
+  FilterSelect,
+  FilterDateRange,
+  useFilterState,
+  dateRangeCodec,
+} from "@/components/filters";
 import {
   Plus,
   Edit,
@@ -45,7 +52,6 @@ import {
   Zap,
   Copy,
   Search,
-  FilterX,
 } from "lucide-react";
 import { Spinner } from "@/components/ui/spinner";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -191,46 +197,16 @@ function CrmHubLoadingSkeleton() {
   );
 }
 
-// Shared "All X" sentinel for shadcn Selects (they reject empty-string values).
-const ALL = "all";
-
-// Compact filter <Select> styled to match the Message Log filter bar.
-function FilterSelect({
-  value,
-  onValueChange,
-  placeholder,
-  options,
-  className,
-}: {
-  value: string;
-  onValueChange: (v: string) => void;
-  placeholder: string;
-  options: Array<{ id: string; label: string }>;
-  className?: string;
-}) {
-  return (
-    <Select value={value} onValueChange={onValueChange}>
-      <SelectTrigger className={`border-sage/20 font-body ${className ?? ""}`}>
-        <SelectValue placeholder={placeholder} />
-      </SelectTrigger>
-      <SelectContent>
-        <SelectItem value={ALL} className="font-body">{placeholder}</SelectItem>
-        {options.map((o) => (
-          <SelectItem key={o.id} value={o.id} className="font-body">{o.label}</SelectItem>
-        ))}
-      </SelectContent>
-    </Select>
-  );
-}
-
 const CHANNEL_OPTIONS = [
-  { id: "email", label: "Email" },
-  { id: "whatsapp", label: "WhatsApp" },
+  { value: "all", label: "All channels" },
+  { value: "email", label: "Email" },
+  { value: "whatsapp", label: "WhatsApp" },
 ];
 
 const TRIGGER_STATUS_OPTIONS = [
-  { id: "active", label: "Active" },
-  { id: "inactive", label: "Paused" },
+  { value: "all", label: "All statuses" },
+  { value: "active", label: "Active" },
+  { value: "inactive", label: "Paused" },
 ];
 
 interface TriggersTabProps {
@@ -246,9 +222,9 @@ interface TriggersTabProps {
 function TriggersTab(props: TriggersTabProps) {
   const { triggers, triggerLabelById, triggerTypes, onCreate, onEdit, onToggle, onDelete } = props;
   const [search, setSearch] = useState("");
-  const [type, setType] = useState(ALL);
-  const [status, setStatus] = useState(ALL);
-  const [channel, setChannel] = useState(ALL);
+  const [type, setType] = useState("all");
+  const [status, setStatus] = useState("all");
+  const [channel, setChannel] = useState("all");
 
   const filtered = useMemo(() => {
     const q = search.trim().toLowerCase();
@@ -257,7 +233,7 @@ function TriggersTab(props: TriggersTabProps) {
         const hay = `${t.name} ${t.template?.name ?? ""} ${triggerLabelById.get(String(t.trigger_type)) ?? ""}`.toLowerCase();
         if (!hay.includes(q)) return false;
       }
-      if (type !== ALL && String(t.trigger_type) !== type) return false;
+      if (type !== "all" && String(t.trigger_type) !== type) return false;
       if (status === "active" && !t.is_active) return false;
       if (status === "inactive" && t.is_active) return false;
       if (channel === "email" && !t.channel_email) return false;
@@ -266,8 +242,8 @@ function TriggersTab(props: TriggersTabProps) {
     });
   }, [triggers, search, type, status, channel, triggerLabelById]);
 
-  const filtersDirty = !!search.trim() || type !== ALL || status !== ALL || channel !== ALL;
-  const resetFilters = () => { setSearch(""); setType(ALL); setStatus(ALL); setChannel(ALL); };
+  const filtersDirty = !!search.trim() || type !== "all" || status !== "all" || channel !== "all";
+  const resetFilters = () => { setSearch(""); setType("all"); setStatus("all"); setChannel("all"); };
   const resetKey = `${search}|${type}|${status}|${channel}`;
   const { page, setPage, pageItems, total, pageSize } = usePagination(filtered, 8, resetKey);
 
@@ -315,21 +291,17 @@ function TriggersTab(props: TriggersTabProps) {
             </Button>
           </div>
         </div>
-        <div className="flex flex-col gap-3 sm:flex-row sm:items-center border-b border-sage/10 pb-4">
-          <FilterSelect value={type} onValueChange={setType} placeholder="All event types" options={triggerTypes} className="w-full sm:w-64" />
-          <FilterSelect value={status} onValueChange={setStatus} placeholder="All statuses" options={TRIGGER_STATUS_OPTIONS} className="w-full sm:w-40" />
-          <FilterSelect value={channel} onValueChange={setChannel} placeholder="All channels" options={CHANNEL_OPTIONS} className="w-full sm:w-40" />
-          {filtersDirty && (
-            <button
-              type="button"
-              onClick={resetFilters}
-              className="inline-flex items-center gap-1.5 font-body text-sm text-charcoal/60 hover:text-charcoal transition-colors sm:ml-auto"
-            >
-              <FilterX className="h-4 w-4" />
-              Clear
-            </button>
-          )}
-        </div>
+        <FilterBar reset={filtersDirty ? resetFilters : undefined} className="border-0 p-0 bg-transparent rounded-none border-b border-sage/10 pb-4">
+          <FilterSelect
+            value={type}
+            onChange={setType}
+            options={[{ value: "all", label: "All event types" }, ...triggerTypes.map((t) => ({ value: t.id, label: t.label }))]}
+            placeholder="All event types"
+            className="w-full sm:w-64"
+          />
+          <FilterSelect value={status} onChange={setStatus} options={TRIGGER_STATUS_OPTIONS} placeholder="All statuses" className="w-full sm:w-40" />
+          <FilterSelect value={channel} onChange={setChannel} options={CHANNEL_OPTIONS} placeholder="All channels" className="w-full sm:w-40" />
+        </FilterBar>
       </CardHeader>
 
       <CardContent className="space-y-3">
@@ -405,16 +377,17 @@ interface TemplatesTabProps {
 }
 
 const TEMPLATE_SOURCE_OPTIONS = [
-  { id: "system", label: "System" },
-  { id: "custom", label: "Custom" },
+  { value: "all", label: "All sources" },
+  { value: "system", label: "System" },
+  { value: "custom", label: "Custom" },
 ];
 
 function TemplatesTab(props: TemplatesTabProps) {
   const { templates, templateLabelById, templateTypes, onCreate, onSend, onEdit, onDuplicate, onDelete } = props;
-  const [search, setSearch] = useState("");
-  const [type, setType] = useState(ALL);
-  const [channel, setChannel] = useState(ALL);
-  const [source, setSource] = useState(ALL);
+  const tplF = useFilterState(
+    { search: "", type: "all", channel: "all", source: "all" },
+  );
+  const { search, type, channel, source } = tplF.values;
 
   const filtered = useMemo(() => {
     const q = search.trim().toLowerCase();
@@ -423,7 +396,7 @@ function TemplatesTab(props: TemplatesTabProps) {
         const hay = `${t.name} ${t.subject ?? ""} ${t.template_key ?? ""}`.toLowerCase();
         if (!hay.includes(q)) return false;
       }
-      if (type !== ALL && t.template_type !== type) return false;
+      if (type !== "all" && t.template_type !== type) return false;
       if (channel === "email" && !t.channel_email) return false;
       if (channel === "whatsapp" && !t.channel_whatsapp) return false;
       if (source === "system" && !t.is_system) return false;
@@ -432,8 +405,6 @@ function TemplatesTab(props: TemplatesTabProps) {
     });
   }, [templates, search, type, channel, source]);
 
-  const filtersDirty = !!search.trim() || type !== ALL || channel !== ALL || source !== ALL;
-  const resetFilters = () => { setSearch(""); setType(ALL); setChannel(ALL); setSource(ALL); };
   const resetKey = `${search}|${type}|${channel}|${source}`;
   const { page, setPage, pageItems, total, pageSize } = usePagination(filtered, 6, resetKey);
 
@@ -445,40 +416,33 @@ function TemplatesTab(props: TemplatesTabProps) {
             <CardTitle className="font-display text-2xl text-charcoal">Message Templates</CardTitle>
             <CardDescription className="font-body text-charcoal/60">
               {total} of {templates.length} {templates.length === 1 ? "template" : "templates"}
-              {filtersDirty ? " match your filters" : " — reusable email & WhatsApp content"}
+              {tplF.isActive ? " match your filters" : " — reusable email & WhatsApp content"}
             </CardDescription>
           </div>
           <div className="flex items-center gap-2">
-            <div className="relative w-full sm:w-64">
-              <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-charcoal/40" />
-              <Input
-                value={search}
-                onChange={(e) => setSearch(e.target.value)}
-                placeholder="Search name, subject, key…"
-                className="pl-9"
-              />
-            </div>
             <Button onClick={onCreate} variant="sage" className="shrink-0">
               <Plus size={18} className="mr-2" />
               Create
             </Button>
           </div>
         </div>
-        <div className="flex flex-col gap-3 sm:flex-row sm:items-center border-b border-sage/10 pb-4">
-          <FilterSelect value={type} onValueChange={setType} placeholder="All types" options={templateTypes} className="w-full sm:w-52" />
-          <FilterSelect value={channel} onValueChange={setChannel} placeholder="All channels" options={CHANNEL_OPTIONS} className="w-full sm:w-40" />
-          <FilterSelect value={source} onValueChange={setSource} placeholder="All sources" options={TEMPLATE_SOURCE_OPTIONS} className="w-full sm:w-40" />
-          {filtersDirty && (
-            <button
-              type="button"
-              onClick={resetFilters}
-              className="inline-flex items-center gap-1.5 font-body text-sm text-charcoal/60 hover:text-charcoal transition-colors sm:ml-auto"
-            >
-              <FilterX className="h-4 w-4" />
-              Clear
-            </button>
-          )}
-        </div>
+        <FilterBar reset={tplF.isActive ? tplF.reset : undefined} className="border-0 p-0 bg-transparent rounded-none border-b border-sage/10 pb-4">
+          <FilterSearch
+            value={search}
+            onChange={(v) => tplF.set("search", v)}
+            placeholder="Search name, subject, key…"
+            aria-label="Search templates"
+          />
+          <FilterSelect
+            value={type}
+            onChange={(v) => tplF.set("type", v)}
+            options={[{ value: "all", label: "All types" }, ...templateTypes.map((t) => ({ value: t.id, label: t.label }))]}
+            placeholder="All types"
+            className="w-full sm:w-52"
+          />
+          <FilterSelect value={channel} onChange={(v) => tplF.set("channel", v)} options={CHANNEL_OPTIONS} placeholder="All channels" className="w-full sm:w-40" />
+          <FilterSelect value={source} onChange={(v) => tplF.set("source", v)} options={TEMPLATE_SOURCE_OPTIONS} placeholder="All sources" className="w-full sm:w-40" />
+        </FilterBar>
       </CardHeader>
 
       <CardContent className="space-y-4">
@@ -494,7 +458,7 @@ function TemplatesTab(props: TemplatesTabProps) {
                 Create First Template
               </Button>
             ) : (
-              <button type="button" onClick={resetFilters} className="mt-2 font-body text-sm text-sage hover:underline">
+              <button type="button" onClick={tplF.reset} className="mt-2 font-body text-sm text-sage hover:underline">
                 Clear filters
               </button>
             )}
@@ -744,20 +708,21 @@ export default function CRMPage() {
   // Bumped after a manual send so the message table + insights refetch.
   const [crmRefresh, setCrmRefresh] = useState(0);
 
-  // Message-log filters.
-  const [msgSearch, setMsgSearch] = useState("");
-  const [msgChannel, setMsgChannel] = useState("");
-  const [msgStatus, setMsgStatus] = useState("");
-  const [msgRange, setMsgRange] = useState<DateRange | undefined>();
+  // Message-log filters (URL-synced — owns "from"/"to"/"q"/"channel"/"status" keys).
+  const logF = useFilterState(
+    { search: "", channel: "all", status: "all", range: undefined as DateRange | undefined },
+    { urlSync: true, codecs: { range: dateRangeCodec("from", "to") } },
+  );
   const msgQuery = useMemo(() => {
+    const { search, channel, status, range } = logF.values;
     const p = new URLSearchParams();
-    if (msgSearch.trim()) p.set("q", msgSearch.trim());
-    if (msgChannel) p.set("channel", msgChannel);
-    if (msgStatus) p.set("status", msgStatus);
-    if (msgRange?.from) p.set("from", startOfDay(msgRange.from).toISOString());
-    if (msgRange?.to) p.set("to", endOfDay(msgRange.to).toISOString());
+    if (search.trim()) p.set("q", search.trim());
+    if (channel && channel !== "all") p.set("channel", channel);
+    if (status && status !== "all") p.set("status", status);
+    if (range?.from) p.set("from", startOfDay(range.from).toISOString());
+    if (range?.to) p.set("to", endOfDay(range.to).toISOString());
     return p.toString();
-  }, [msgSearch, msgChannel, msgStatus, msgRange]);
+  }, [logF.values]);
 
   // Templates state
   const [templates, setTemplates] = useState<CRMTemplate[]>([]);
@@ -1164,43 +1129,40 @@ export default function CRMPage() {
                       Every message sent or scheduled to members
                     </CardDescription>
                   </div>
-                  <div className="relative w-full sm:w-72">
-                    <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-charcoal/40" />
-                    <Input
-                      value={msgSearch}
-                      onChange={(e) => setMsgSearch(e.target.value)}
-                      placeholder="Search recipient, email, subject…"
-                      className="pl-9"
-                    />
-                  </div>
                 </div>
-                <div className="flex flex-col gap-3 sm:flex-row sm:items-center border-b border-sage/10 pb-4">
-                  <div className="w-full sm:w-44">
-                    <Select value={msgChannel || "all"} onValueChange={(v) => setMsgChannel(v === "all" ? "" : v)}>
-                      <SelectTrigger><SelectValue placeholder="All channels" /></SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="all">All channels</SelectItem>
-                        <SelectItem value="email">Email</SelectItem>
-                        <SelectItem value="whatsapp">WhatsApp</SelectItem>
-                      </SelectContent>
-                    </Select>
-                  </div>
-                  <div className="w-full sm:w-44">
-                    <Select value={msgStatus || "all"} onValueChange={(v) => setMsgStatus(v === "all" ? "" : v)}>
-                      <SelectTrigger><SelectValue placeholder="All statuses" /></SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="all">All statuses</SelectItem>
-                        <SelectItem value="sent">Sent</SelectItem>
-                        <SelectItem value="failed">Failed</SelectItem>
-                        <SelectItem value="scheduled">Scheduled</SelectItem>
-                        <SelectItem value="pending">Pending</SelectItem>
-                      </SelectContent>
-                    </Select>
-                  </div>
-                  <div className="w-full sm:w-56">
-                    <DateRangeFilter value={msgRange} onChange={setMsgRange} />
-                  </div>
-                </div>
+                <FilterBar reset={logF.isActive ? logF.reset : undefined} className="border-0 p-0 bg-transparent rounded-none border-b border-sage/10 pb-4">
+                  <FilterSearch
+                    value={logF.values.search}
+                    onChange={(v) => logF.set("search", v)}
+                    placeholder="Search recipient, email, subject…"
+                    aria-label="Search messages"
+                  />
+                  <FilterSelect
+                    value={logF.values.channel}
+                    onChange={(v) => logF.set("channel", v)}
+                    options={CHANNEL_OPTIONS}
+                    placeholder="All channels"
+                    className="w-full sm:w-44"
+                  />
+                  <FilterSelect
+                    value={logF.values.status}
+                    onChange={(v) => logF.set("status", v)}
+                    options={[
+                      { value: "all", label: "All statuses" },
+                      { value: "sent", label: "Sent" },
+                      { value: "failed", label: "Failed" },
+                      { value: "scheduled", label: "Scheduled" },
+                      { value: "pending", label: "Pending" },
+                    ]}
+                    placeholder="All statuses"
+                    className="w-full sm:w-44"
+                  />
+                  <FilterDateRange
+                    value={logF.values.range}
+                    onChange={(v) => logF.set("range", v)}
+                    className="w-full sm:w-56"
+                  />
+                </FilterBar>
               </CardHeader>
               <CardContent>
                 <CrmMessageList
