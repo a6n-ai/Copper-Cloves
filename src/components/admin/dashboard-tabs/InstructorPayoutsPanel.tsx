@@ -10,7 +10,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
-import { StatusPill } from "@/components/ui/status-pill";
+import { Pill } from "@/components/ui/pill";
 import { ListAvatar } from "@/components/admin/ListAvatar";
 import { MetricCard } from "@/components/admin/MetricCard";
 import { Pagination, usePagination } from "@/components/Pagination";
@@ -323,7 +323,7 @@ function InstructorPayoutsPanelImpl() {
                 <ResponsiveTable>
                   <Table>
                     <TableHeader>
-                      <TableRow className="bg-sage/5 hover:bg-sage/5 border-sage/10">
+                      <TableRow>
                         <SortableHeader sortKey="name" active={sortKey} dir={sortDir} onToggle={toggle}>Instructor</SortableHeader>
                         <SortableHeader sortKey="classes" active={sortKey} dir={sortDir} onToggle={toggle} className="w-[90px]">Classes</SortableHeader>
                         <SortableHeader sortKey="checkIns" active={sortKey} dir={sortDir} onToggle={toggle} className="w-[100px]">Check-ins</SortableHeader>
@@ -331,13 +331,13 @@ function InstructorPayoutsPanelImpl() {
                         <SortableHeader sortKey="percentage" active={sortKey} dir={sortDir} onToggle={toggle} className="w-[90px]">Share</SortableHeader>
                         <SortableHeader sortKey="total" active={sortKey} dir={sortDir} onToggle={toggle} className="w-[130px] text-right" align="right">Payout</SortableHeader>
                         <SortableHeader sortKey="status" active={sortKey} dir={sortDir} onToggle={toggle} className="w-[110px]">Status</SortableHeader>
-                        <TableHead className="font-body text-xs uppercase tracking-wide text-charcoal/60 px-5 py-3 w-[230px] text-right">Actions</TableHead>
+                        <TableHead className="w-[230px] text-right">Actions</TableHead>
                       </TableRow>
                     </TableHeader>
                     <TableBody>
                       {pg.pageItems.map((r) => (
-                        <TableRow key={r.instructorId} className="border-sage/10 hover:bg-sage/5">
-                          <TableCell className="px-5 py-4">
+                        <TableRow key={r.instructorId}>
+                          <TableCell>
                             <div className="flex items-center gap-3 min-w-0">
                               <ListAvatar src={r.imageUrl} name={r.name} size="md" />
                               <div className="min-w-0">
@@ -346,24 +346,24 @@ function InstructorPayoutsPanelImpl() {
                               </div>
                             </div>
                           </TableCell>
-                          <TableCell className="px-5 py-4">
+                          <TableCell>
                             <span className="font-body text-sm text-charcoal/80 tabular-nums">{r.classes}</span>
                             {r.extraClasses ? <span className="ml-1 font-body text-xs text-[#a05e38]">({r.extraClasses > 0 ? "+" : ""}{r.extraClasses})</span> : null}
                           </TableCell>
-                          <TableCell className="px-5 py-4 font-body text-sm text-charcoal/70 tabular-nums">{r.checkIns}</TableCell>
-                          <TableCell className="px-5 py-4">
+                          <TableCell className="font-body text-sm text-charcoal/70 tabular-nums">{r.checkIns}</TableCell>
+                          <TableCell>
                             <span className="font-body text-sm text-charcoal/80 tabular-nums">{r.payableUnits}</span>
                             {r.extraPayableUnits ? <span className="ml-1 font-body text-xs text-[#a05e38]">({r.extraPayableUnits > 0 ? "+" : ""}{r.extraPayableUnits})</span> : null}
                           </TableCell>
-                          <TableCell className="px-5 py-4 font-body text-sm text-charcoal/60 tabular-nums">{r.percentage}%</TableCell>
-                          <TableCell className="px-5 py-4 text-right">
+                          <TableCell className="font-body text-sm text-charcoal/60 tabular-nums">{r.percentage}%</TableCell>
+                          <TableCell className="text-right">
                             <span className="font-display text-base tabular-nums text-charcoal">{rupees(r.total)}</span>
                             {r.overrideTotal != null ? <span className="ml-1 font-body text-[10px] uppercase tracking-wide text-[#a05e38]">ovr</span> : null}
                           </TableCell>
-                          <TableCell className="px-5 py-4">
-                            {r.status === "paid" ? <StatusPill tone="sage" dot>Paid</StatusPill> : <StatusPill tone="amber" dot>Pending</StatusPill>}
+                          <TableCell>
+                            {r.status === "paid" ? <Pill tone="success" dot>Paid</Pill> : <Pill tone="warning" dot>Pending</Pill>}
                           </TableCell>
-                          <TableCell className="px-5 py-4">
+                          <TableCell>
                             <div className="flex items-center justify-end gap-2">
                               {r.status === "paid" ? (
                                 <Button

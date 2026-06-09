@@ -29,6 +29,7 @@
     "db:seed:weekend-may-2026": "tsx scripts/seed-weekend-schedule-may-2026.ts",
     "db:seed:members": "tsx scripts/seed-member-users.ts",
     "db:seed:chef": "tsx scripts/seed-chef.ts",
+    "db:seed:system-profile": "tsx scripts/seed-system-profile.ts",
     "db:seed:crm-system": "tsx scripts/seed-crm-system-templates.ts",
     "db:seed:crm-triggers": "tsx scripts/seed-crm-system-triggers.ts",
     "sync:public": "tsx scripts/sync-public-to-s3.ts",

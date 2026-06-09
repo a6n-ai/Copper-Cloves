@@ -6,6 +6,7 @@ import { PageHeader } from "@/components/dashboard/PageHeader";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
+import { Pill } from "@/components/ui/pill";
 import { MetricCard } from "@/components/admin/MetricCard";
 import { ClipboardList, Clock, CheckCircle2, ChefHat, X } from "lucide-react";
 
@@ -24,10 +25,10 @@ const NEXT_STATUS: Record<string, { next: string; label: string }> = {
   ready: { next: "completed", label: "Complete" },
 };
 
-const STATUS_STYLES: Record<string, string> = {
-  pending: "bg-terracotta/10 text-terracotta border border-terracotta/20",
-  preparing: "bg-sand/40 text-charcoal/70 border border-charcoal/15",
-  ready: "bg-sage/10 text-sage border border-sage/20",
+const STATUS_TONES: Record<string, "warning" | "neutral" | "success"> = {
+  pending: "warning",
+  preparing: "neutral",
+  ready: "success",
 };
 
 function minsAgo(iso: string) {
@@ -165,13 +166,14 @@ export default function KitchenDashboard() {
                       {o.profile?.full_name ?? o.profile?.email ?? "Member"}
                     </p>
                   </div>
-                  <span
-                    className={`shrink-0 rounded-full border px-2.5 py-0.5 font-body text-xs font-medium capitalize ${
-                      STATUS_STYLES[o.status] ?? "bg-charcoal/5 text-charcoal/60 border-charcoal/10"
-                    }`}
+                  <Pill
+                    tone={STATUS_TONES[o.status] ?? "neutral"}
+
+                    size="sm"
+                    className="shrink-0 font-body font-medium capitalize"
                   >
                     {o.status}
-                  </span>
+                  </Pill>
                 </div>
                 <p className="font-body text-xs text-charcoal/45">{minsAgo(o.order_date)}</p>
                 <div className="flex gap-2 pt-1">

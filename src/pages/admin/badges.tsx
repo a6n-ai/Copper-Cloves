@@ -16,7 +16,7 @@ import { Button } from "@/components/ui/button";
 import { EditButton, DeleteButton } from "@/components/ui/quick-actions";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Badge } from "@/components/ui/badge";
+import { Pill } from "@/components/ui/pill";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { SortableHeader } from "@/components/admin/sortable-table";
 import { ResponsiveTable } from "@/components/responsive/ResponsiveTable";
@@ -634,19 +634,19 @@ export default function AdminBadgesPage() {
                       <div className="rounded-xl border border-sage/15 bg-white-warm overflow-hidden">
                         <Table>
                           <TableHeader>
-                            <TableRow className="bg-sage/5 hover:bg-sage/5 border-sage/10">
+                            <TableRow>
                               <SortableHeader sortKey="name" active={ptmSortKey} dir={ptmSortDir} onToggle={togglePtmSort}>Badge</SortableHeader>
                               <SortableHeader sortKey="threshold" active={ptmSortKey} dir={ptmSortDir} onToggle={togglePtmSort} className="w-[150px]">Threshold</SortableHeader>
-                              <TableHead className="font-body text-xs uppercase tracking-wide text-charcoal/60 px-5 py-3 w-[130px]">Color</TableHead>
+                              <TableHead className="w-[130px]">Color</TableHead>
                               <SortableHeader sortKey="status" active={ptmSortKey} dir={ptmSortDir} onToggle={togglePtmSort} className="w-[110px]">Status</SortableHeader>
-                              <TableHead className="font-body text-xs uppercase tracking-wide text-charcoal/60 px-5 py-3 w-[110px] text-right">Actions</TableHead>
+                              <TableHead className="w-[110px] text-right">Actions</TableHead>
                             </TableRow>
                           </TableHeader>
                           <TableBody>
                             {ptmPg.pageItems.map((template) => (
                               <Fragment key={template.id}>
-                                <TableRow className="border-sage/10 hover:bg-sage/5">
-                                  <TableCell className="px-5 py-4">
+                                <TableRow>
+                                  <TableCell>
                                     <div className="flex items-center gap-3 min-w-0">
                                       <div
                                         className="w-11 h-11 rounded-xl flex items-center justify-center text-xl shadow-xs shrink-0"
@@ -662,16 +662,16 @@ export default function AdminBadgesPage() {
                                       </div>
                                     </div>
                                   </TableCell>
-                                  <TableCell className="px-5 py-4">
+                                  <TableCell>
                                     {template.threshold_classes !== null ? (
-                                      <Badge variant="outline" className="text-xs border-charcoal/20 font-body">
+                                      <Pill tone="neutral" size="sm" className="font-body">
                                         At {template.threshold_classes} classes
-                                      </Badge>
+                                      </Pill>
                                     ) : (
                                       <span className="font-body text-sm text-charcoal/40">—</span>
                                     )}
                                   </TableCell>
-                                  <TableCell className="px-5 py-4">
+                                  <TableCell>
                                     <div className="flex items-center gap-2">
                                       <span
                                         className="w-4 h-4 rounded-full border border-cream shadow-xs shrink-0"
@@ -680,14 +680,14 @@ export default function AdminBadgesPage() {
                                       <span className="font-body text-xs text-charcoal/60 tabular-nums">{template.color}</span>
                                     </div>
                                   </TableCell>
-                                  <TableCell className="px-5 py-4">
+                                  <TableCell>
                                     {template.is_active ? (
-                                      <Badge className="bg-sage/10 text-sage border-sage/20 font-body">Active</Badge>
+                                      <Pill tone="success" className="font-body">Active</Pill>
                                     ) : (
-                                      <Badge variant="outline" className="border-charcoal/15 text-charcoal/40 font-body">Inactive</Badge>
+                                      <Pill tone="neutral" className="font-body">Inactive</Pill>
                                     )}
                                   </TableCell>
-                                  <TableCell className="px-5 py-4">
+                                  <TableCell>
                                     <div className="flex gap-2 justify-end">
                                       <EditButton onClick={() => startEditPtm(template)} label="Edit milestone" />
                                       <DeleteButton onClick={() => deletePtm(template.id)} label="Delete milestone" />
@@ -695,8 +695,8 @@ export default function AdminBadgesPage() {
                                   </TableCell>
                                 </TableRow>
                                 {editingPtmId === template.id && (
-                                  <TableRow className="border-sage/10 hover:bg-transparent">
-                                    <TableCell colSpan={5} className="px-5 pb-5 pt-0">
+                                  <TableRow>
+                                    <TableCell colSpan={5} className="pb-5 pt-0">
                                       {renderBadgeForm(
                                         ptmForm,
                                         setPtmForm,
@@ -911,9 +911,9 @@ export default function AdminBadgesPage() {
                                     <p className="font-body text-xs text-charcoal/50">{m.email}</p>
                                   </div>
                                   {alreadyHas ? (
-                                    <Badge className="bg-sage/10 text-sage border-0 font-body text-xs">
+                                    <Pill tone="success" size="sm" className="font-body">
                                       Earned
-                                    </Badge>
+                                    </Pill>
                                   ) : (
                                     <UserCheck size={16} className="text-sage" />
                                   )}

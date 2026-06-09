@@ -13,7 +13,7 @@ import {
 } from "@/components/ui/command";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { Badge } from "@/components/ui/badge";
+import { Pill } from "@/components/ui/pill";
 import { Separator } from "@/components/ui/separator";
 import {
   DropdownMenu,
@@ -270,7 +270,7 @@ export function DashboardShell({ config, user, children }: DashboardShellProps) 
             </div>
             <div className="flex items-center gap-2.5 shrink-0">
               <RoleSwitcher className="hidden sm:inline-flex" />
-              <Badge className={cn("hidden lg:inline-flex font-body", config.badgeClass)}>{config.badgeLabel}</Badge>
+              <Pill appearance="solid" className={cn("hidden lg:inline-flex font-body", config.badgeClass)}>{config.badgeLabel}</Pill>
               <Separator orientation="vertical" className="hidden lg:block h-6" />
               <button
                 type="button"

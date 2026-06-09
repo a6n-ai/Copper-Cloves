@@ -10,7 +10,7 @@ import { AdminDashboardSkeleton } from "@/components/dashboard/skeletons";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
+import { Pill } from "@/components/ui/pill";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import {
   Drawer,
@@ -2029,7 +2029,7 @@ export default function AdminDashboard() {
                 <CardContent className="p-6 space-y-3">
                   <div className="flex justify-between">
                     <span className="font-body text-sm text-charcoal/60">Package</span>
-                    <Badge className="bg-sage text-cream">{selectedMemberProfile.package}</Badge>
+                    <Pill tone="success" appearance="solid">{selectedMemberProfile.package}</Pill>
                   </div>
                   <div className="flex justify-between">
                     <span className="font-body text-sm text-charcoal/60">Expires</span>
@@ -2063,10 +2063,9 @@ export default function AdminDashboard() {
                       <p className="font-body text-sm text-charcoal/50">No badges yet</p>
                     ) : (
                       selectedMemberProfile.badges.map((badge: string, idx: number) => (
-                        <Badge key={idx} className="bg-sage/10 text-sage border border-sage/20">
-                          <Trophy size={12} className="mr-1" />
+                        <Pill key={idx} tone="success" icon={<Trophy size={12} />}>
                           {badge}
-                        </Badge>
+                        </Pill>
                       ))
                     )}
                   </div>
@@ -2112,9 +2111,9 @@ export default function AdminDashboard() {
                             {booking.time}
                           </p>
                         </div>
-                        <Badge variant="outline" className="border-sage/20 text-sage">
+                        <Pill tone="success">
                           Confirmed
-                        </Badge>
+                        </Pill>
                       </div>
                     ))
                   )}
@@ -2136,10 +2135,10 @@ export default function AdminDashboard() {
                     selectedMemberProfile.attendanceHistory.map((a: { class: string; date: string; outcome: string }, idx: number) => {
                       const meta =
                         a.outcome === "on_time"
-                          ? { label: "On time", cls: "border-sage/20 bg-sage/10 text-sage" }
+                          ? { label: "On time", tone: "success" as const }
                           : a.outcome === "late"
-                            ? { label: "Late", cls: "border-terracotta/20 bg-terracotta/10 text-terracotta" }
-                            : { label: "No-show", cls: "border-[#a05e38]/25 bg-[#a05e38]/10 text-[#a05e38]" };
+                            ? { label: "Late", tone: "warning" as const }
+                            : { label: "No-show", tone: "danger" as const };
                       return (
                         <div key={idx} className="flex items-center justify-between p-3 rounded-lg bg-cream/30">
                           <div className="min-w-0">
@@ -2148,9 +2147,9 @@ export default function AdminDashboard() {
                               {new Date(a.date).toLocaleDateString("en-US", { weekday: "short", month: "short", day: "numeric", year: "numeric" })}
                             </p>
                           </div>
-                          <Badge variant="outline" className={`font-body whitespace-nowrap ${meta.cls}`}>
+                          <Pill tone={meta.tone} className="font-body whitespace-nowrap">
                             {meta.label}
-                          </Badge>
+                          </Pill>
                         </div>
                       );
                     })

@@ -11,7 +11,7 @@ import {
   DrawerTitle,
   DrawerDescription,
 } from "@/components/ui/drawer";
-import { Badge } from "@/components/ui/badge";
+import { Pill } from "@/components/ui/pill";
 import {
   ShoppingCart,
   X,
@@ -29,6 +29,8 @@ import Link from "next/link";
 import { useSession } from "next-auth/react";
 import { Input } from "@/components/ui/input";
 import { CloseButton, QtyMinusButton, QtyPlusButton } from "@/components/ui/quick-actions";
+import { FilterSearch, FilterSelect } from "@/components/filters";
+import type { SelectOption } from "@/components/filters";
 
 import { cdnUrl } from "@/lib/cdnUrl";
 interface RetailProduct {
@@ -273,63 +275,51 @@ export default function Shop({ initialProducts }: Readonly<ShopProps>) {
       <section className="sticky top-0 z-40 bg-white-warm border-b border-sage/10 shadow-xs">
         <div className="max-w-7xl mx-auto px-6 lg:px-8 py-4">
           {/* Search Bar */}
-          <div className="mb-4">
-            <div className="relative max-w-md">
-              <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-charcoal/40" size={20} />
-              <input
-                type="text"
-                placeholder="Search products by name or category..."
-                value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
-                className="w-full pl-12 pr-4 py-3 rounded-full bg-white-warm border border-sage/10 font-body text-sm text-charcoal placeholder:text-charcoal/40 focus:outline-hidden focus:ring-2 focus:ring-sage/30 focus:border-sage transition-all"
-              />
-              {searchQuery && (
-                <Button
-                  type="button"
-                  variant="ghost"
-                  size="icon-sm"
-                  onClick={() => setSearchQuery("")}
-                  className="absolute right-4 top-1/2 -translate-y-1/2 text-charcoal/40"
-                >
-                  <X size={16} />
-                </Button>
-              )}
-            </div>
+          <div className="mb-4 max-w-md">
+            <FilterSearch
+              value={searchQuery}
+              onChange={setSearchQuery}
+              placeholder="Search products by name or category..."
+              aria-label="Search products"
+            />
           </div>
 
           <div className="flex items-center justify-between gap-4">
             {/* Category Filter */}
-            <div className="flex items-center gap-2 overflow-x-auto scrollbar-hide">
-              {categoryTabs.map((cat) => {
-                const Icon = cat.icon;
-                return (
-                  <button
-                    key={cat.id}
-                    onClick={() => setSelectedCategory(cat.id)}
-                    className={`flex items-center gap-2 px-4 py-2 rounded-full font-body text-sm whitespace-nowrap transition-all duration-300 ${
-                      selectedCategory === cat.id
-                        ? "bg-sage text-cream shadow-lg"
-                        : "bg-white-warm text-charcoal/70 hover:bg-sage/10 border border-sage/10"
-                    }`}
-                  >
-                    <Icon size={16} />
-                    {cat.name}
-                  </button>
-                );
-              })}
-            </div>
+            {(() => {
+              const categoryOptions: SelectOption[] = categoryTabs.map((cat) => ({
+                value: cat.id,
+                label: cat.name,
+              }));
+              return (
+                <FilterSelect
+                  value={selectedCategory}
+                  onChange={setSelectedCategory}
+                  options={categoryOptions}
+                  ariaLabel="Filter by category"
+                  placeholder="All Products"
+                />
+              );
+            })()}
 
             {/* Sort & Cart */}
-            <div className="flex items-center gap-3">
-              <select
-                value={sortBy}
-                onChange={(e) => setSortBy(toSortBy(e.target.value))}
-                className="px-4 py-2 rounded-full bg-white-warm border border-sage/10 font-body text-sm text-charcoal focus:outline-hidden focus:ring-2 focus:ring-sage/30"
-              >
-                <option value="featured">Featured</option>
-                <option value="price-low">Price: Low to High</option>
-                <option value="price-high">Price: High to Low</option>
-              </select>
+            <div className="flex shrink-0 items-center gap-3">
+              {(() => {
+                const sortOptions: SelectOption[] = [
+                  { value: "featured", label: "Featured" },
+                  { value: "price-low", label: "Price: Low to High" },
+                  { value: "price-high", label: "Price: High to Low" },
+                ];
+                return (
+                  <FilterSelect
+                    value={sortBy}
+                    onChange={(v) => setSortBy(toSortBy(v))}
+                    options={sortOptions}
+                    placeholder="Sort"
+                    ariaLabel="Sort products"
+                  />
+                );
+              })()}
 
               <Button
                 type="button"
@@ -376,10 +366,10 @@ export default function Shop({ initialProducts }: Readonly<ShopProps>) {
                     {/* Badges */}
                     <div className="absolute top-4 right-4 flex flex-col gap-2 z-10">
                       {product.featured && (
-                        <Badge className="bg-sage text-cream">Featured</Badge>
+                        <Pill tone="success" appearance="solid">Featured</Pill>
                       )}
                       {product.stock <= 0 && (
-                        <Badge variant="outline" className="bg-white-warm">Out of Stock</Badge>
+                        <Pill tone="danger" className="bg-white-warm">Out of Stock</Pill>
                       )}
                     </div>
 

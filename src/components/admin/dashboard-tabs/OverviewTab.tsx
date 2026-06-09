@@ -16,6 +16,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Skeleton } from "@/components/ui/skeleton";
 import { MetricCard } from "@/components/admin/MetricCard";
+import { Pill } from "@/components/ui/pill";
 import { TodayClassesCarousel } from "@/components/admin/TodayClassesCarousel";
 import { Pagination } from "@/components/Pagination";
 import { cn } from "@/lib/utils";
@@ -360,9 +361,9 @@ function OverviewTabImpl({
                   <div className="flex-1 min-w-0">
                     <div className="flex items-start justify-between gap-2">
                       <p className="font-body font-medium text-charcoal truncate">{member.name}</p>
-                      <span className="shrink-0 rounded-full bg-terracotta/10 border border-terracotta/20 px-2.5 py-0.5 font-body text-xs font-medium text-terracotta whitespace-nowrap">
+                      <Pill tone="warning" size="md" className="shrink-0">
                         Expires in {member.expires}
-                      </span>
+                      </Pill>
                     </div>
                     <p className="font-body text-sm text-charcoal/55 truncate">{member.email}</p>
                     <p className="font-body text-xs text-charcoal/45 mt-0.5">

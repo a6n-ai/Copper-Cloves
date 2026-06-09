@@ -22,7 +22,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
   if (req.method === "GET") {
     const userId = typeof req.query.user_id === "string" ? req.query.user_id : "";
-    const where = userId ? { user_id: userId } : {};
+    const where = { direction: "credit" as const, ...(userId ? { user_id: userId } : {}) };
     const rows = await prisma.payment.findMany({
       where,
       orderBy: { created_at: "desc" },
@@ -82,6 +82,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
     const payment = await prisma.payment.create({
       data: {
+        direction: "credit",
         user_id,
         user_package_id: upkgId,
         booking_id: bkId,

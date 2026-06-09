@@ -2,7 +2,6 @@ import { useState, useEffect, useMemo, useCallback } from "react";
 import { useRouter } from "next/router";
 import { useSession } from "next-auth/react";
 import { requireSessionSSP } from "@/lib/requireSessionSSP";
-import { statusTone } from "@/lib/statusTone";
 
 export const getServerSideProps = requireSessionSSP({ roles: ["admin"] });
 import { SEO } from "@/components/SEO";
@@ -15,15 +14,15 @@ import {
   DrawerDescription,
 } from "@/components/ui/drawer";
 import { EditButton, DeleteButton } from "@/components/ui/quick-actions";
-import { Badge } from "@/components/ui/badge";
+import { Pill } from "@/components/ui/pill";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
-import { 
-  Package, 
-  Plus, 
-  Edit, 
-  Trash2, 
-  Search, 
+import { FilterBar, FilterSearch, FilterSelect, useFilterState } from "@/components/filters";
+import {
+  Package,
+  Plus,
+  Edit,
+  Trash2,
   X,
   Check,
   TrendingUp,
@@ -118,10 +117,10 @@ export default function AdminProducts() {
   const [products, setProducts] = useState<Product[]>([]);
   const [orders, setOrders] = useState<Order[]>([]);
   const [categories, setCategories] = useState<CategoryRow[]>(DEFAULT_CATEGORY_PRESETS);
-  const [searchQuery, setSearchQuery] = useState("");
-  const [categoryFilter, setCategoryFilter] = useState("all");
-  const [stockFilter, setStockFilter] = useState<"all" | "in" | "out">("all");
-  const [featuredOnly, setFeaturedOnly] = useState(false);
+  const f = useFilterState(
+    { search: "", category: "all", stock: "all", featured: "all" },
+    { urlSync: true }
+  );
   const [showProductForm, setShowProductForm] = useState(false);
   const [showCategoryForm, setShowCategoryForm] = useState(false);
   const [editingProduct, setEditingProduct] = useState<Product | null>(null);
@@ -163,6 +162,14 @@ export default function AdminProducts() {
       .sort((a, b) => a.name.localeCompare(b.name));
   }, [categoryById]);
 
+  const categoryOptions = useMemo(
+    () => [
+      { value: "all", label: "All categories" },
+      ...categoryRows.map((c) => ({ value: c.id, label: c.name })),
+    ],
+    [categoryRows]
+  );
+
   const loadRetail = useCallback(async () => {
     const [prRes, ordRes] = await Promise.all([
       fetch("/api/admin/retail-products?all=true"),
@@ -193,20 +200,20 @@ export default function AdminProducts() {
 
   // Filter products — toLowerCase the haystack once, not twice per product.
   const filteredProducts = useMemo(() => {
-    const q = searchQuery.trim().toLowerCase();
+    const q = f.values.search.trim().toLowerCase();
     return products.filter((p) => {
       const matchSearch =
         !q ||
         p.name.toLowerCase().includes(q) ||
         p.category.toLowerCase().includes(q);
-      const matchCategory = categoryFilter === "all" || p.category === categoryFilter;
+      const matchCategory = f.values.category === "all" || p.category === f.values.category;
       const matchStock =
-        stockFilter === "all" ||
-        (stockFilter === "in" ? p.inStock : !p.inStock);
-      const matchFeatured = !featuredOnly || p.featured;
+        f.values.stock === "all" ||
+        (f.values.stock === "in" ? p.inStock : !p.inStock);
+      const matchFeatured = f.values.featured === "all" || p.featured;
       return matchSearch && matchCategory && matchStock && matchFeatured;
     });
-  }, [products, searchQuery, categoryFilter, stockFilter, featuredOnly]);
+  }, [products, f.values]);
 
   const paginatedProducts = useMemo(
     () => filteredProducts.slice((productPage - 1) * itemsPerPage, productPage * itemsPerPage),
@@ -414,14 +421,13 @@ export default function AdminProducts() {
     }
   };
 
-  const getStatusColor = (status: Order["status"]) => {
+  const getStatusPillTone = (status: Order["status"]): "success" | "warning" | "danger" | "neutral" => {
     switch (status) {
-      case "pending": return statusTone("pending");
-      case "processing": return statusTone("pending");
-      case "shipped": return statusTone("neutral");
-      case "delivered": return statusTone("success");
-      case "cancelled": return statusTone("error");
-      default: return statusTone("neutral");
+      case "pending":
+      case "processing": return "warning";
+      case "delivered": return "success";
+      case "cancelled": return "danger";
+      default: return "neutral";
     }
   };
 
@@ -543,70 +549,42 @@ export default function AdminProducts() {
               {activeTab === "products" && (
                 <div className="space-y-6">
                   {/* Search + filters */}
-                  <div className="flex flex-col gap-3 lg:flex-row lg:flex-wrap lg:items-center">
-                    <div className="relative w-full lg:max-w-xs">
-                      <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-charcoal/40" size={20} />
-                      <input
-                        type="text"
-                        placeholder="Search products..."
-                        value={searchQuery}
-                        onChange={(e) => { setSearchQuery(e.target.value); setProductPage(1); }}
-                        className="w-full pl-12 pr-4 py-2.5 rounded-full bg-white-warm border border-sage/20 font-body text-sm text-charcoal placeholder:text-charcoal/40 focus:outline-hidden focus:ring-2 focus:ring-sage/30"
-                      />
-                    </div>
-
-                    <select
-                      value={categoryFilter}
-                      onChange={(e) => { setCategoryFilter(e.target.value); setProductPage(1); }}
-                      className="rounded-full border border-sage/20 bg-white-warm px-4 py-2.5 font-body text-sm text-charcoal outline-none focus:ring-2 focus:ring-sage/30"
-                      aria-label="Filter by category"
-                    >
-                      <option value="all">All categories</option>
-                      {categoryRows.map((c) => (
-                        <option key={c.id} value={c.id}>{c.name}</option>
-                      ))}
-                    </select>
-
-                    <select
-                      value={stockFilter}
-                      onChange={(e) => { setStockFilter(e.target.value as "all" | "in" | "out"); setProductPage(1); }}
-                      className="rounded-full border border-sage/20 bg-white-warm px-4 py-2.5 font-body text-sm text-charcoal outline-none focus:ring-2 focus:ring-sage/30"
-                      aria-label="Filter by stock"
-                    >
-                      <option value="all">All stock</option>
-                      <option value="in">In stock</option>
-                      <option value="out">Out of stock</option>
-                    </select>
-
-                    <button
-                      type="button"
-                      onClick={() => { setFeaturedOnly((v) => !v); setProductPage(1); }}
-                      aria-pressed={featuredOnly}
-                      className={`rounded-full border px-4 py-2.5 font-body text-sm transition-colors outline-none focus-visible:ring-2 focus-visible:ring-sage/30 ${
-                        featuredOnly
-                          ? "border-sage bg-sage text-cream"
-                          : "border-sage/20 bg-white-warm text-charcoal/70 hover:text-charcoal"
-                      }`}
-                    >
-                      Featured only
-                    </button>
-
-                    {(categoryFilter !== "all" || stockFilter !== "all" || featuredOnly || searchQuery) && (
-                      <button
-                        type="button"
-                        onClick={() => {
-                          setSearchQuery("");
-                          setCategoryFilter("all");
-                          setStockFilter("all");
-                          setFeaturedOnly(false);
-                          setProductPage(1);
-                        }}
-                        className="font-body text-sm text-terracotta hover:underline"
-                      >
-                        Clear
-                      </button>
-                    )}
-                  </div>
+                  <FilterBar reset={f.isActive ? f.reset : undefined} className="mb-4">
+                    <FilterSearch
+                      value={f.values.search}
+                      onChange={(v) => { f.set("search", v); setProductPage(1); }}
+                      placeholder="Search products..."
+                      aria-label="Search products"
+                    />
+                    <FilterSelect
+                      ariaLabel="Category"
+                      value={f.values.category}
+                      onChange={(v) => { f.set("category", v); setProductPage(1); }}
+                      placeholder="All categories"
+                      options={categoryOptions}
+                    />
+                    <FilterSelect
+                      ariaLabel="Stock"
+                      value={f.values.stock}
+                      onChange={(v) => { f.set("stock", v); setProductPage(1); }}
+                      placeholder="All stock"
+                      options={[
+                        { value: "all", label: "All stock" },
+                        { value: "in", label: "In stock" },
+                        { value: "out", label: "Out of stock" },
+                      ]}
+                    />
+                    <FilterSelect
+                      ariaLabel="Featured"
+                      placeholder="Featured"
+                      value={f.values.featured}
+                      onChange={(v) => { f.set("featured", v); setProductPage(1); }}
+                      options={[
+                        { value: "all", label: "All products" },
+                        { value: "featured", label: "Featured only" },
+                      ]}
+                    />
+                  </FilterBar>
 
                   {/* Products Table */}
                   <div className="rounded-2xl bg-white-warm border border-sage/10 overflow-hidden">
@@ -632,7 +610,7 @@ export default function AdminProducts() {
                                   <div>
                                     <p className="font-body text-sm font-medium text-charcoal">{product.name}</p>
                                     {product.featured && (
-                                      <Badge className="bg-sage/10 text-sage border-sage/20 text-xs mt-1">Featured</Badge>
+                                      <Pill tone="success" size="sm" className="mt-1">Featured</Pill>
                                     )}
                                   </div>
                                 </div>
@@ -656,9 +634,9 @@ export default function AdminProducts() {
                               </td>
                               <td className="p-4">
                                 {product.inStock ? (
-                                  <Badge className="bg-sage/10 text-sage border-sage/20">In Stock</Badge>
+                                  <Pill tone="success">In Stock</Pill>
                                 ) : (
-                                  <Badge variant="outline">Out of Stock</Badge>
+                                  <Pill tone="neutral">Out of Stock</Pill>
                                 )}
                               </td>
                               <td className="p-4">
@@ -795,9 +773,9 @@ export default function AdminProducts() {
                         <div>
                           <div className="flex items-center gap-3 mb-2">
                             <h3 className="font-display text-xl text-charcoal">{order.id}</h3>
-                            <Badge className={getStatusColor(order.status)}>
+                            <Pill tone={getStatusPillTone(order.status)}>
                               {order.status.charAt(0).toUpperCase() + order.status.slice(1)}
-                            </Badge>
+                            </Pill>
                           </div>
                           <p className="font-body text-sm text-charcoal/60 mb-1">
                             {order.customerName} • {order.customerEmail}

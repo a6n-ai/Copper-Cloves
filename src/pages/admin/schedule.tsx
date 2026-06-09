@@ -55,6 +55,7 @@ import {
 import { SEO } from "@/components/SEO";
 import { Spinner } from "@/components/ui/spinner";
 import { Skeleton } from "@/components/ui/skeleton";
+import { Pill } from "@/components/ui/pill";
 import { AnimatedIcon } from "@/components/dashboard/AnimatedIcon";
 import { ManageButton, DeleteButton } from "@/components/ui/quick-actions";
 import { useSession } from "next-auth/react";
@@ -1739,22 +1740,26 @@ export default function AdminSchedule() {
                         <span className="line-through text-charcoal/40">{rosterData.instructor}</span>
                         {" "}
                         <span className="text-terracotta font-medium">{rosterData.actualInstructor}</span>
-                        <span className="ml-1 text-xs bg-terracotta/10 text-terracotta px-1.5 py-0.5 rounded-full">sub</span>
+                        <Pill tone="warning" size="sm" className="ml-1">sub</Pill>
                       </>
                     ) : (
                       <span>{rosterData.instructor}</span>
                     )}
                   </span>
                   {rosterData.instructorCheckInOutcome && (
-                    <span className={`text-xs px-1.5 py-0.5 rounded-full font-medium ${
-                      rosterData.instructorCheckInOutcome === "absent"
-                        ? "bg-[#a05e38]/10 text-[#a05e38]"
-                        : rosterData.instructorCheckInOutcome === "late"
-                          ? "bg-terracotta/10 text-terracotta"
-                          : "bg-sage/10 text-sage"
-                    }`}>
+                    <Pill
+                      tone={
+                        rosterData.instructorCheckInOutcome === "absent"
+                          ? "danger"
+                          : rosterData.instructorCheckInOutcome === "late"
+                            ? "warning"
+                            : "success"
+                      }
+                      size="sm"
+                      className="font-medium"
+                    >
                       {rosterData.instructorCheckInOutcome.replace("_", " ")}
-                    </span>
+                    </Pill>
                   )}
                 </div>
                 {rosterData.classNotes && (

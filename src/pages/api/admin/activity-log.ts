@@ -19,7 +19,8 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   const { q, role, category, action, targetProfileId, from, to } = req.query;
   const limitRaw = Number(req.query.limit);
   const limit = Number.isFinite(limitRaw) ? Math.min(Math.max(1, limitRaw), MAX_LIMIT) : DEFAULT_LIMIT;
-  const cursor = typeof req.query.cursor === "string" ? req.query.cursor : undefined;
+  const pageRaw = Number(req.query.page);
+  const page = Number.isFinite(pageRaw) && pageRaw >= 1 ? Math.floor(pageRaw) : 1;
 
   const where: Prisma.ActivityLogWhereInput = {};
   if (typeof role === "string" && role) where.actor_role = role;
@@ -42,22 +43,29 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     ];
   }
 
-  const rows = await prisma.activityLog.findMany({
-    where,
-    orderBy: { created_at: "desc" },
-    take: limit + 1,
-    ...(cursor ? { skip: 1, cursor: { id: cursor } } : {}),
-    include: {
-      actor: { select: { id: true, full_name: true, email: true, role: true } },
-      target: { select: { id: true, full_name: true, email: true, role: true } },
-    },
-  });
+  const SORTABLE = new Set(["created_at", "category", "summary", "actor_name"]);
+  const sortField =
+    typeof req.query.sort === "string" && SORTABLE.has(req.query.sort) ? req.query.sort : "created_at";
+  const sortDir = req.query.dir === "asc" ? "asc" : "desc";
 
-  const hasMore = rows.length > limit;
-  const page = hasMore ? rows.slice(0, limit) : rows;
+  const [total, rows] = await prisma.$transaction([
+    prisma.activityLog.count({ where }),
+    prisma.activityLog.findMany({
+      where,
+      orderBy: { [sortField]: sortDir },
+      skip: (page - 1) * limit,
+      take: limit,
+      include: {
+        actor: { select: { id: true, full_name: true, email: true, role: true } },
+        target: { select: { id: true, full_name: true, email: true, role: true } },
+      },
+    }),
+  ]);
+
+  const pageCount = Math.max(1, Math.ceil(total / limit));
 
   return res.status(200).json({
-    items: page.map((r) => ({
+    items: rows.map((r) => ({
       id: r.id,
       action: r.action,
       category: r.category,
@@ -73,6 +81,8 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       userAgent: r.user_agent ?? null,
       createdAt: r.created_at,
     })),
-    nextCursor: hasMore ? page[page.length - 1].id : null,
+    page,
+    pageCount,
+    total,
   });
 }

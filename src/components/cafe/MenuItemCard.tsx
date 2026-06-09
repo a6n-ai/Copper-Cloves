@@ -1,6 +1,7 @@
 import type { ReactNode } from "react";
 import Image from "next/image";
 import { Card, CardContent } from "@/components/ui/card";
+import { Pill } from "@/components/ui/pill";
 import { cn } from "@/lib/utils";
 import { cdnUrl } from "@/lib/cdnUrl";
 import { cafeCategoryLabel, type CafeMenuItem } from "./types";
@@ -93,9 +94,9 @@ export function MenuItemCard({
         {badge ? <div className="absolute left-3 top-3 z-10">{badge}</div> : null}
 
         <div className="absolute inset-x-3 bottom-3 z-10 flex items-end justify-between gap-2">
-          <span className="rounded-full border border-border bg-white-warm px-2.5 py-1 font-body text-[0.65rem] font-semibold uppercase tracking-[0.08em] text-terracotta">
+          <Pill tone="warning" size="sm" className="bg-white-warm font-semibold uppercase tracking-[0.08em]">
             {categoryLabel ?? cafeCategoryLabel(item.category)}
-          </span>
+          </Pill>
           <span className="rounded-full border border-border bg-white-warm px-3 py-1 font-display text-base leading-none text-charcoal">
             {priceLabel}
           </span>

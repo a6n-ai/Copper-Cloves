@@ -2,7 +2,7 @@ import { useMemo } from "react";
 import Image from "next/image";
 import { CalendarDays, ChevronRight } from "lucide-react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
+import { Pill } from "@/components/ui/pill";
 import { AnimatedIcon } from "@/components/dashboard/AnimatedIcon";
 import { cdnUrl } from "@/lib/cdnUrl";
 
@@ -78,7 +78,7 @@ export function UpcomingScheduleCard({
                       <p className="truncate text-xs text-muted-foreground">{entry.subtitle}</p>
                     ) : null}
                     {entry.status === "pending" ? (
-                      <Badge className="mt-1 bg-accent/10 text-accent">Pending confirmation</Badge>
+                      <Pill tone="warning" className="mt-1">Pending confirmation</Pill>
                     ) : null}
                     {when ? <p className="mt-1 text-xs font-semibold text-primary">{when}</p> : null}
                   </div>

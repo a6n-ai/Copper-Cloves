@@ -657,10 +657,6 @@ export type EnumExpenseCategoryFieldUpdateOperationsInput = {
   set?: $Enums.ExpenseCategory
 }
 
-export type NullableEnumPaymentMethodFieldUpdateOperationsInput = {
-  set?: $Enums.PaymentMethod | null
-}
-
 export type ExpenseCreateWithoutRecorded_by_adminInput = {
   id?: string
   category: $Enums.ExpenseCategory

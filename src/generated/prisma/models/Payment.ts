@@ -46,6 +46,14 @@ export type PaymentMinAggregateOutputType = {
   reference: string | null
   proof_url: string | null
   notes: string | null
+  direction: $Enums.PaymentDirection | null
+  category: $Enums.ExpenseCategory | null
+  payee: string | null
+  description: string | null
+  incurred_at: Date | null
+  is_manual_expense: boolean | null
+  instructor_id: string | null
+  payout_period_key: string | null
   recorded_by: string | null
   razorpay_payment_id: string | null
   razorpay_order_id: string | null
@@ -65,6 +73,14 @@ export type PaymentMaxAggregateOutputType = {
   reference: string | null
   proof_url: string | null
   notes: string | null
+  direction: $Enums.PaymentDirection | null
+  category: $Enums.ExpenseCategory | null
+  payee: string | null
+  description: string | null
+  incurred_at: Date | null
+  is_manual_expense: boolean | null
+  instructor_id: string | null
+  payout_period_key: string | null
   recorded_by: string | null
   razorpay_payment_id: string | null
   razorpay_order_id: string | null
@@ -84,6 +100,14 @@ export type PaymentCountAggregateOutputType = {
   reference: number
   proof_url: number
   notes: number
+  direction: number
+  category: number
+  payee: number
+  description: number
+  incurred_at: number
+  is_manual_expense: number
+  instructor_id: number
+  payout_period_key: number
   recorded_by: number
   razorpay_payment_id: number
   razorpay_order_id: number
@@ -113,6 +137,14 @@ export type PaymentMinAggregateInputType = {
   reference?: true
   proof_url?: true
   notes?: true
+  direction?: true
+  category?: true
+  payee?: true
+  description?: true
+  incurred_at?: true
+  is_manual_expense?: true
+  instructor_id?: true
+  payout_period_key?: true
   recorded_by?: true
   razorpay_payment_id?: true
   razorpay_order_id?: true
@@ -132,6 +164,14 @@ export type PaymentMaxAggregateInputType = {
   reference?: true
   proof_url?: true
   notes?: true
+  direction?: true
+  category?: true
+  payee?: true
+  description?: true
+  incurred_at?: true
+  is_manual_expense?: true
+  instructor_id?: true
+  payout_period_key?: true
   recorded_by?: true
   razorpay_payment_id?: true
   razorpay_order_id?: true
@@ -151,6 +191,14 @@ export type PaymentCountAggregateInputType = {
   reference?: true
   proof_url?: true
   notes?: true
+  direction?: true
+  category?: true
+  payee?: true
+  description?: true
+  incurred_at?: true
+  is_manual_expense?: true
+  instructor_id?: true
+  payout_period_key?: true
   recorded_by?: true
   razorpay_payment_id?: true
   razorpay_order_id?: true
@@ -250,13 +298,21 @@ export type PaymentGroupByOutputType = {
   user_id: string
   user_package_id: string | null
   booking_id: string | null
-  method: $Enums.PaymentMethod
+  method: $Enums.PaymentMethod | null
   status: $Enums.PaymentStatus
   amount_paise: number
   currency: string
   reference: string | null
   proof_url: string | null
   notes: string | null
+  direction: $Enums.PaymentDirection
+  category: $Enums.ExpenseCategory | null
+  payee: string | null
+  description: string | null
+  incurred_at: Date | null
+  is_manual_expense: boolean
+  instructor_id: string | null
+  payout_period_key: string | null
   recorded_by: string | null
   razorpay_payment_id: string | null
   razorpay_order_id: string | null
@@ -292,13 +348,21 @@ export type PaymentWhereInput = {
   user_id?: Prisma.StringFilter<"Payment"> | string
   user_package_id?: Prisma.StringNullableFilter<"Payment"> | string | null
   booking_id?: Prisma.StringNullableFilter<"Payment"> | string | null
-  method?: Prisma.EnumPaymentMethodFilter<"Payment"> | $Enums.PaymentMethod
+  method?: Prisma.EnumPaymentMethodNullableFilter<"Payment"> | $Enums.PaymentMethod | null
   status?: Prisma.EnumPaymentStatusFilter<"Payment"> | $Enums.PaymentStatus
   amount_paise?: Prisma.IntFilter<"Payment"> | number
   currency?: Prisma.StringFilter<"Payment"> | string
   reference?: Prisma.StringNullableFilter<"Payment"> | string | null
   proof_url?: Prisma.StringNullableFilter<"Payment"> | string | null
   notes?: Prisma.StringNullableFilter<"Payment"> | string | null
+  direction?: Prisma.EnumPaymentDirectionFilter<"Payment"> | $Enums.PaymentDirection
+  category?: Prisma.EnumExpenseCategoryNullableFilter<"Payment"> | $Enums.ExpenseCategory | null
+  payee?: Prisma.StringNullableFilter<"Payment"> | string | null
+  description?: Prisma.StringNullableFilter<"Payment"> | string | null
+  incurred_at?: Prisma.DateTimeNullableFilter<"Payment"> | Date | string | null
+  is_manual_expense?: Prisma.BoolFilter<"Payment"> | boolean
+  instructor_id?: Prisma.StringNullableFilter<"Payment"> | string | null
+  payout_period_key?: Prisma.StringNullableFilter<"Payment"> | string | null
   recorded_by?: Prisma.StringNullableFilter<"Payment"> | string | null
   razorpay_payment_id?: Prisma.StringNullableFilter<"Payment"> | string | null
   razorpay_order_id?: Prisma.StringNullableFilter<"Payment"> | string | null
@@ -308,6 +372,7 @@ export type PaymentWhereInput = {
   user_package?: Prisma.XOR<Prisma.UserPackageNullableScalarRelationFilter, Prisma.UserPackageWhereInput> | null
   booking?: Prisma.XOR<Prisma.BookingNullableScalarRelationFilter, Prisma.BookingWhereInput> | null
   recorded_by_admin?: Prisma.XOR<Prisma.ProfileNullableScalarRelationFilter, Prisma.ProfileWhereInput> | null
+  instructor?: Prisma.XOR<Prisma.InstructorNullableScalarRelationFilter, Prisma.InstructorWhereInput> | null
   razorpay_payment?: Prisma.XOR<Prisma.RazorpayPaymentNullableScalarRelationFilter, Prisma.RazorpayPaymentWhereInput> | null
 }
 
@@ -316,13 +381,21 @@ export type PaymentOrderByWithRelationInput = {
   user_id?: Prisma.SortOrder
   user_package_id?: Prisma.SortOrderInput | Prisma.SortOrder
   booking_id?: Prisma.SortOrderInput | Prisma.SortOrder
-  method?: Prisma.SortOrder
+  method?: Prisma.SortOrderInput | Prisma.SortOrder
   status?: Prisma.SortOrder
   amount_paise?: Prisma.SortOrder
   currency?: Prisma.SortOrder
   reference?: Prisma.SortOrderInput | Prisma.SortOrder
   proof_url?: Prisma.SortOrderInput | Prisma.SortOrder
   notes?: Prisma.SortOrderInput | Prisma.SortOrder
+  direction?: Prisma.SortOrder
+  category?: Prisma.SortOrderInput | Prisma.SortOrder
+  payee?: Prisma.SortOrderInput | Prisma.SortOrder
+  description?: Prisma.SortOrderInput | Prisma.SortOrder
+  incurred_at?: Prisma.SortOrderInput | Prisma.SortOrder
+  is_manual_expense?: Prisma.SortOrder
+  instructor_id?: Prisma.SortOrderInput | Prisma.SortOrder
+  payout_period_key?: Prisma.SortOrderInput | Prisma.SortOrder
   recorded_by?: Prisma.SortOrderInput | Prisma.SortOrder
   razorpay_payment_id?: Prisma.SortOrderInput | Prisma.SortOrder
   razorpay_order_id?: Prisma.SortOrderInput | Prisma.SortOrder
@@ -332,25 +405,35 @@ export type PaymentOrderByWithRelationInput = {
   user_package?: Prisma.UserPackageOrderByWithRelationInput
   booking?: Prisma.BookingOrderByWithRelationInput
   recorded_by_admin?: Prisma.ProfileOrderByWithRelationInput
+  instructor?: Prisma.InstructorOrderByWithRelationInput
   razorpay_payment?: Prisma.RazorpayPaymentOrderByWithRelationInput
 }
 
 export type PaymentWhereUniqueInput = Prisma.AtLeast<{
   id?: string
   razorpay_payment_id?: string
+  instructor_id_payout_period_key?: Prisma.PaymentInstructor_idPayout_period_keyCompoundUniqueInput
   AND?: Prisma.PaymentWhereInput | Prisma.PaymentWhereInput[]
   OR?: Prisma.PaymentWhereInput[]
   NOT?: Prisma.PaymentWhereInput | Prisma.PaymentWhereInput[]
   user_id?: Prisma.StringFilter<"Payment"> | string
   user_package_id?: Prisma.StringNullableFilter<"Payment"> | string | null
   booking_id?: Prisma.StringNullableFilter<"Payment"> | string | null
-  method?: Prisma.EnumPaymentMethodFilter<"Payment"> | $Enums.PaymentMethod
+  method?: Prisma.EnumPaymentMethodNullableFilter<"Payment"> | $Enums.PaymentMethod | null
   status?: Prisma.EnumPaymentStatusFilter<"Payment"> | $Enums.PaymentStatus
   amount_paise?: Prisma.IntFilter<"Payment"> | number
   currency?: Prisma.StringFilter<"Payment"> | string
   reference?: Prisma.StringNullableFilter<"Payment"> | string | null
   proof_url?: Prisma.StringNullableFilter<"Payment"> | string | null
   notes?: Prisma.StringNullableFilter<"Payment"> | string | null
+  direction?: Prisma.EnumPaymentDirectionFilter<"Payment"> | $Enums.PaymentDirection
+  category?: Prisma.EnumExpenseCategoryNullableFilter<"Payment"> | $Enums.ExpenseCategory | null
+  payee?: Prisma.StringNullableFilter<"Payment"> | string | null
+  description?: Prisma.StringNullableFilter<"Payment"> | string | null
+  incurred_at?: Prisma.DateTimeNullableFilter<"Payment"> | Date | string | null
+  is_manual_expense?: Prisma.BoolFilter<"Payment"> | boolean
+  instructor_id?: Prisma.StringNullableFilter<"Payment"> | string | null
+  payout_period_key?: Prisma.StringNullableFilter<"Payment"> | string | null
   recorded_by?: Prisma.StringNullableFilter<"Payment"> | string | null
   razorpay_order_id?: Prisma.StringNullableFilter<"Payment"> | string | null
   created_at?: Prisma.DateTimeFilter<"Payment"> | Date | string
@@ -359,21 +442,30 @@ export type PaymentWhereUniqueInput = Prisma.AtLeast<{
   user_package?: Prisma.XOR<Prisma.UserPackageNullableScalarRelationFilter, Prisma.UserPackageWhereInput> | null
   booking?: Prisma.XOR<Prisma.BookingNullableScalarRelationFilter, Prisma.BookingWhereInput> | null
   recorded_by_admin?: Prisma.XOR<Prisma.ProfileNullableScalarRelationFilter, Prisma.ProfileWhereInput> | null
+  instructor?: Prisma.XOR<Prisma.InstructorNullableScalarRelationFilter, Prisma.InstructorWhereInput> | null
   razorpay_payment?: Prisma.XOR<Prisma.RazorpayPaymentNullableScalarRelationFilter, Prisma.RazorpayPaymentWhereInput> | null
-}, "id" | "razorpay_payment_id">
+}, "id" | "razorpay_payment_id" | "instructor_id_payout_period_key">
 
 export type PaymentOrderByWithAggregationInput = {
   id?: Prisma.SortOrder
   user_id?: Prisma.SortOrder
   user_package_id?: Prisma.SortOrderInput | Prisma.SortOrder
   booking_id?: Prisma.SortOrderInput | Prisma.SortOrder
-  method?: Prisma.SortOrder
+  method?: Prisma.SortOrderInput | Prisma.SortOrder
   status?: Prisma.SortOrder
   amount_paise?: Prisma.SortOrder
   currency?: Prisma.SortOrder
   reference?: Prisma.SortOrderInput | Prisma.SortOrder
   proof_url?: Prisma.SortOrderInput | Prisma.SortOrder
   notes?: Prisma.SortOrderInput | Prisma.SortOrder
+  direction?: Prisma.SortOrder
+  category?: Prisma.SortOrderInput | Prisma.SortOrder
+  payee?: Prisma.SortOrderInput | Prisma.SortOrder
+  description?: Prisma.SortOrderInput | Prisma.SortOrder
+  incurred_at?: Prisma.SortOrderInput | Prisma.SortOrder
+  is_manual_expense?: Prisma.SortOrder
+  instructor_id?: Prisma.SortOrderInput | Prisma.SortOrder
+  payout_period_key?: Prisma.SortOrderInput | Prisma.SortOrder
   recorded_by?: Prisma.SortOrderInput | Prisma.SortOrder
   razorpay_payment_id?: Prisma.SortOrderInput | Prisma.SortOrder
   razorpay_order_id?: Prisma.SortOrderInput | Prisma.SortOrder
@@ -394,13 +486,21 @@ export type PaymentScalarWhereWithAggregatesInput = {
   user_id?: Prisma.StringWithAggregatesFilter<"Payment"> | string
   user_package_id?: Prisma.StringNullableWithAggregatesFilter<"Payment"> | string | null
   booking_id?: Prisma.StringNullableWithAggregatesFilter<"Payment"> | string | null
-  method?: Prisma.EnumPaymentMethodWithAggregatesFilter<"Payment"> | $Enums.PaymentMethod
+  method?: Prisma.EnumPaymentMethodNullableWithAggregatesFilter<"Payment"> | $Enums.PaymentMethod | null
   status?: Prisma.EnumPaymentStatusWithAggregatesFilter<"Payment"> | $Enums.PaymentStatus
   amount_paise?: Prisma.IntWithAggregatesFilter<"Payment"> | number
   currency?: Prisma.StringWithAggregatesFilter<"Payment"> | string
   reference?: Prisma.StringNullableWithAggregatesFilter<"Payment"> | string | null
   proof_url?: Prisma.StringNullableWithAggregatesFilter<"Payment"> | string | null
   notes?: Prisma.StringNullableWithAggregatesFilter<"Payment"> | string | null
+  direction?: Prisma.EnumPaymentDirectionWithAggregatesFilter<"Payment"> | $Enums.PaymentDirection
+  category?: Prisma.EnumExpenseCategoryNullableWithAggregatesFilter<"Payment"> | $Enums.ExpenseCategory | null
+  payee?: Prisma.StringNullableWithAggregatesFilter<"Payment"> | string | null
+  description?: Prisma.StringNullableWithAggregatesFilter<"Payment"> | string | null
+  incurred_at?: Prisma.DateTimeNullableWithAggregatesFilter<"Payment"> | Date | string | null
+  is_manual_expense?: Prisma.BoolWithAggregatesFilter<"Payment"> | boolean
+  instructor_id?: Prisma.StringNullableWithAggregatesFilter<"Payment"> | string | null
+  payout_period_key?: Prisma.StringNullableWithAggregatesFilter<"Payment"> | string | null
   recorded_by?: Prisma.StringNullableWithAggregatesFilter<"Payment"> | string | null
   razorpay_payment_id?: Prisma.StringNullableWithAggregatesFilter<"Payment"> | string | null
   razorpay_order_id?: Prisma.StringNullableWithAggregatesFilter<"Payment"> | string | null
@@ -410,13 +510,20 @@ export type PaymentScalarWhereWithAggregatesInput = {
 
 export type PaymentCreateInput = {
   id?: string
-  method: $Enums.PaymentMethod
+  method?: $Enums.PaymentMethod | null
   status?: $Enums.PaymentStatus
   amount_paise: number
   currency?: string
   reference?: string | null
   proof_url?: string | null
   notes?: string | null
+  direction?: $Enums.PaymentDirection
+  category?: $Enums.ExpenseCategory | null
+  payee?: string | null
+  description?: string | null
+  incurred_at?: Date | string | null
+  is_manual_expense?: boolean
+  payout_period_key?: string | null
   razorpay_order_id?: string | null
   created_at?: Date | string
   updated_at?: Date | string
@@ -424,6 +531,7 @@ export type PaymentCreateInput = {
   user_package?: Prisma.UserPackageCreateNestedOneWithoutPaymentsInput
   booking?: Prisma.BookingCreateNestedOneWithoutPaymentsInput
   recorded_by_admin?: Prisma.ProfileCreateNestedOneWithoutRecorded_paymentsInput
+  instructor?: Prisma.InstructorCreateNestedOneWithoutPaymentsInput
   razorpay_payment?: Prisma.RazorpayPaymentCreateNestedOneWithoutPaymentsInput
 }
 
@@ -432,13 +540,21 @@ export type PaymentUncheckedCreateInput = {
   user_id: string
   user_package_id?: string | null
   booking_id?: string | null
-  method: $Enums.PaymentMethod
+  method?: $Enums.PaymentMethod | null
   status?: $Enums.PaymentStatus
   amount_paise: number
   currency?: string
   reference?: string | null
   proof_url?: string | null
   notes?: string | null
+  direction?: $Enums.PaymentDirection
+  category?: $Enums.ExpenseCategory | null
+  payee?: string | null
+  description?: string | null
+  incurred_at?: Date | string | null
+  is_manual_expense?: boolean
+  instructor_id?: string | null
+  payout_period_key?: string | null
   recorded_by?: string | null
   razorpay_payment_id?: string | null
   razorpay_order_id?: string | null
@@ -448,13 +564,20 @@ export type PaymentUncheckedCreateInput = {
 
 export type PaymentUpdateInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
-  method?: Prisma.EnumPaymentMethodFieldUpdateOperationsInput | $Enums.PaymentMethod
+  method?: Prisma.NullableEnumPaymentMethodFieldUpdateOperationsInput | $Enums.PaymentMethod | null
   status?: Prisma.EnumPaymentStatusFieldUpdateOperationsInput | $Enums.PaymentStatus
   amount_paise?: Prisma.IntFieldUpdateOperationsInput | number
   currency?: Prisma.StringFieldUpdateOperationsInput | string
   reference?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   proof_url?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   notes?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  direction?: Prisma.EnumPaymentDirectionFieldUpdateOperationsInput | $Enums.PaymentDirection
+  category?: Prisma.NullableEnumExpenseCategoryFieldUpdateOperationsInput | $Enums.ExpenseCategory | null
+  payee?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  description?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  incurred_at?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  is_manual_expense?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  payout_period_key?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   razorpay_order_id?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   created_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updated_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -462,6 +585,7 @@ export type PaymentUpdateInput = {
   user_package?: Prisma.UserPackageUpdateOneWithoutPaymentsNestedInput
   booking?: Prisma.BookingUpdateOneWithoutPaymentsNestedInput
   recorded_by_admin?: Prisma.ProfileUpdateOneWithoutRecorded_paymentsNestedInput
+  instructor?: Prisma.InstructorUpdateOneWithoutPaymentsNestedInput
   razorpay_payment?: Prisma.RazorpayPaymentUpdateOneWithoutPaymentsNestedInput
 }
 
@@ -470,13 +594,21 @@ export type PaymentUncheckedUpdateInput = {
   user_id?: Prisma.StringFieldUpdateOperationsInput | string
   user_package_id?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   booking_id?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  method?: Prisma.EnumPaymentMethodFieldUpdateOperationsInput | $Enums.PaymentMethod
+  method?: Prisma.NullableEnumPaymentMethodFieldUpdateOperationsInput | $Enums.PaymentMethod | null
   status?: Prisma.EnumPaymentStatusFieldUpdateOperationsInput | $Enums.PaymentStatus
   amount_paise?: Prisma.IntFieldUpdateOperationsInput | number
   currency?: Prisma.StringFieldUpdateOperationsInput | string
   reference?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   proof_url?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   notes?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  direction?: Prisma.EnumPaymentDirectionFieldUpdateOperationsInput | $Enums.PaymentDirection
+  category?: Prisma.NullableEnumExpenseCategoryFieldUpdateOperationsInput | $Enums.ExpenseCategory | null
+  payee?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  description?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  incurred_at?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  is_manual_expense?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  instructor_id?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  payout_period_key?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   recorded_by?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   razorpay_payment_id?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   razorpay_order_id?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -489,13 +621,21 @@ export type PaymentCreateManyInput = {
   user_id: string
   user_package_id?: string | null
   booking_id?: string | null
-  method: $Enums.PaymentMethod
+  method?: $Enums.PaymentMethod | null
   status?: $Enums.PaymentStatus
   amount_paise: number
   currency?: string
   reference?: string | null
   proof_url?: string | null
   notes?: string | null
+  direction?: $Enums.PaymentDirection
+  category?: $Enums.ExpenseCategory | null
+  payee?: string | null
+  description?: string | null
+  incurred_at?: Date | string | null
+  is_manual_expense?: boolean
+  instructor_id?: string | null
+  payout_period_key?: string | null
   recorded_by?: string | null
   razorpay_payment_id?: string | null
   razorpay_order_id?: string | null
@@ -505,13 +645,20 @@ export type PaymentCreateManyInput = {
 
 export type PaymentUpdateManyMutationInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
-  method?: Prisma.EnumPaymentMethodFieldUpdateOperationsInput | $Enums.PaymentMethod
+  method?: Prisma.NullableEnumPaymentMethodFieldUpdateOperationsInput | $Enums.PaymentMethod | null
   status?: Prisma.EnumPaymentStatusFieldUpdateOperationsInput | $Enums.PaymentStatus
   amount_paise?: Prisma.IntFieldUpdateOperationsInput | number
   currency?: Prisma.StringFieldUpdateOperationsInput | string
   reference?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   proof_url?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   notes?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  direction?: Prisma.EnumPaymentDirectionFieldUpdateOperationsInput | $Enums.PaymentDirection
+  category?: Prisma.NullableEnumExpenseCategoryFieldUpdateOperationsInput | $Enums.ExpenseCategory | null
+  payee?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  description?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  incurred_at?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  is_manual_expense?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  payout_period_key?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   razorpay_order_id?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   created_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updated_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -522,13 +669,21 @@ export type PaymentUncheckedUpdateManyInput = {
   user_id?: Prisma.StringFieldUpdateOperationsInput | string
   user_package_id?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   booking_id?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  method?: Prisma.EnumPaymentMethodFieldUpdateOperationsInput | $Enums.PaymentMethod
+  method?: Prisma.NullableEnumPaymentMethodFieldUpdateOperationsInput | $Enums.PaymentMethod | null
   status?: Prisma.EnumPaymentStatusFieldUpdateOperationsInput | $Enums.PaymentStatus
   amount_paise?: Prisma.IntFieldUpdateOperationsInput | number
   currency?: Prisma.StringFieldUpdateOperationsInput | string
   reference?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   proof_url?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   notes?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  direction?: Prisma.EnumPaymentDirectionFieldUpdateOperationsInput | $Enums.PaymentDirection
+  category?: Prisma.NullableEnumExpenseCategoryFieldUpdateOperationsInput | $Enums.ExpenseCategory | null
+  payee?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  description?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  incurred_at?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  is_manual_expense?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  instructor_id?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  payout_period_key?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   recorded_by?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   razorpay_payment_id?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   razorpay_order_id?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -546,6 +701,11 @@ export type PaymentOrderByRelationAggregateInput = {
   _count?: Prisma.SortOrder
 }
 
+export type PaymentInstructor_idPayout_period_keyCompoundUniqueInput = {
+  instructor_id: string
+  payout_period_key: string
+}
+
 export type PaymentCountOrderByAggregateInput = {
   id?: Prisma.SortOrder
   user_id?: Prisma.SortOrder
@@ -558,6 +718,14 @@ export type PaymentCountOrderByAggregateInput = {
   reference?: Prisma.SortOrder
   proof_url?: Prisma.SortOrder
   notes?: Prisma.SortOrder
+  direction?: Prisma.SortOrder
+  category?: Prisma.SortOrder
+  payee?: Prisma.SortOrder
+  description?: Prisma.SortOrder
+  incurred_at?: Prisma.SortOrder
+  is_manual_expense?: Prisma.SortOrder
+  instructor_id?: Prisma.SortOrder
+  payout_period_key?: Prisma.SortOrder
   recorded_by?: Prisma.SortOrder
   razorpay_payment_id?: Prisma.SortOrder
   razorpay_order_id?: Prisma.SortOrder
@@ -581,6 +749,14 @@ export type PaymentMaxOrderByAggregateInput = {
   reference?: Prisma.SortOrder
   proof_url?: Prisma.SortOrder
   notes?: Prisma.SortOrder
+  direction?: Prisma.SortOrder
+  category?: Prisma.SortOrder
+  payee?: Prisma.SortOrder
+  description?: Prisma.SortOrder
+  incurred_at?: Prisma.SortOrder
+  is_manual_expense?: Prisma.SortOrder
+  instructor_id?: Prisma.SortOrder
+  payout_period_key?: Prisma.SortOrder
   recorded_by?: Prisma.SortOrder
   razorpay_payment_id?: Prisma.SortOrder
   razorpay_order_id?: Prisma.SortOrder
@@ -600,6 +776,14 @@ export type PaymentMinOrderByAggregateInput = {
   reference?: Prisma.SortOrder
   proof_url?: Prisma.SortOrder
   notes?: Prisma.SortOrder
+  direction?: Prisma.SortOrder
+  category?: Prisma.SortOrder
+  payee?: Prisma.SortOrder
+  description?: Prisma.SortOrder
+  incurred_at?: Prisma.SortOrder
+  is_manual_expense?: Prisma.SortOrder
+  instructor_id?: Prisma.SortOrder
+  payout_period_key?: Prisma.SortOrder
   recorded_by?: Prisma.SortOrder
   razorpay_payment_id?: Prisma.SortOrder
   razorpay_order_id?: Prisma.SortOrder
@@ -692,6 +876,48 @@ export type PaymentUncheckedUpdateManyWithoutRecorded_by_adminNestedInput = {
   connect?: Prisma.PaymentWhereUniqueInput | Prisma.PaymentWhereUniqueInput[]
   update?: Prisma.PaymentUpdateWithWhereUniqueWithoutRecorded_by_adminInput | Prisma.PaymentUpdateWithWhereUniqueWithoutRecorded_by_adminInput[]
   updateMany?: Prisma.PaymentUpdateManyWithWhereWithoutRecorded_by_adminInput | Prisma.PaymentUpdateManyWithWhereWithoutRecorded_by_adminInput[]
+  deleteMany?: Prisma.PaymentScalarWhereInput | Prisma.PaymentScalarWhereInput[]
+}
+
+export type PaymentCreateNestedManyWithoutInstructorInput = {
+  create?: Prisma.XOR<Prisma.PaymentCreateWithoutInstructorInput, Prisma.PaymentUncheckedCreateWithoutInstructorInput> | Prisma.PaymentCreateWithoutInstructorInput[] | Prisma.PaymentUncheckedCreateWithoutInstructorInput[]
+  connectOrCreate?: Prisma.PaymentCreateOrConnectWithoutInstructorInput | Prisma.PaymentCreateOrConnectWithoutInstructorInput[]
+  createMany?: Prisma.PaymentCreateManyInstructorInputEnvelope
+  connect?: Prisma.PaymentWhereUniqueInput | Prisma.PaymentWhereUniqueInput[]
+}
+
+export type PaymentUncheckedCreateNestedManyWithoutInstructorInput = {
+  create?: Prisma.XOR<Prisma.PaymentCreateWithoutInstructorInput, Prisma.PaymentUncheckedCreateWithoutInstructorInput> | Prisma.PaymentCreateWithoutInstructorInput[] | Prisma.PaymentUncheckedCreateWithoutInstructorInput[]
+  connectOrCreate?: Prisma.PaymentCreateOrConnectWithoutInstructorInput | Prisma.PaymentCreateOrConnectWithoutInstructorInput[]
+  createMany?: Prisma.PaymentCreateManyInstructorInputEnvelope
+  connect?: Prisma.PaymentWhereUniqueInput | Prisma.PaymentWhereUniqueInput[]
+}
+
+export type PaymentUpdateManyWithoutInstructorNestedInput = {
+  create?: Prisma.XOR<Prisma.PaymentCreateWithoutInstructorInput, Prisma.PaymentUncheckedCreateWithoutInstructorInput> | Prisma.PaymentCreateWithoutInstructorInput[] | Prisma.PaymentUncheckedCreateWithoutInstructorInput[]
+  connectOrCreate?: Prisma.PaymentCreateOrConnectWithoutInstructorInput | Prisma.PaymentCreateOrConnectWithoutInstructorInput[]
+  upsert?: Prisma.PaymentUpsertWithWhereUniqueWithoutInstructorInput | Prisma.PaymentUpsertWithWhereUniqueWithoutInstructorInput[]
+  createMany?: Prisma.PaymentCreateManyInstructorInputEnvelope
+  set?: Prisma.PaymentWhereUniqueInput | Prisma.PaymentWhereUniqueInput[]
+  disconnect?: Prisma.PaymentWhereUniqueInput | Prisma.PaymentWhereUniqueInput[]
+  delete?: Prisma.PaymentWhereUniqueInput | Prisma.PaymentWhereUniqueInput[]
+  connect?: Prisma.PaymentWhereUniqueInput | Prisma.PaymentWhereUniqueInput[]
+  update?: Prisma.PaymentUpdateWithWhereUniqueWithoutInstructorInput | Prisma.PaymentUpdateWithWhereUniqueWithoutInstructorInput[]
+  updateMany?: Prisma.PaymentUpdateManyWithWhereWithoutInstructorInput | Prisma.PaymentUpdateManyWithWhereWithoutInstructorInput[]
+  deleteMany?: Prisma.PaymentScalarWhereInput | Prisma.PaymentScalarWhereInput[]
+}
+
+export type PaymentUncheckedUpdateManyWithoutInstructorNestedInput = {
+  create?: Prisma.XOR<Prisma.PaymentCreateWithoutInstructorInput, Prisma.PaymentUncheckedCreateWithoutInstructorInput> | Prisma.PaymentCreateWithoutInstructorInput[] | Prisma.PaymentUncheckedCreateWithoutInstructorInput[]
+  connectOrCreate?: Prisma.PaymentCreateOrConnectWithoutInstructorInput | Prisma.PaymentCreateOrConnectWithoutInstructorInput[]
+  upsert?: Prisma.PaymentUpsertWithWhereUniqueWithoutInstructorInput | Prisma.PaymentUpsertWithWhereUniqueWithoutInstructorInput[]
+  createMany?: Prisma.PaymentCreateManyInstructorInputEnvelope
+  set?: Prisma.PaymentWhereUniqueInput | Prisma.PaymentWhereUniqueInput[]
+  disconnect?: Prisma.PaymentWhereUniqueInput | Prisma.PaymentWhereUniqueInput[]
+  delete?: Prisma.PaymentWhereUniqueInput | Prisma.PaymentWhereUniqueInput[]
+  connect?: Prisma.PaymentWhereUniqueInput | Prisma.PaymentWhereUniqueInput[]
+  update?: Prisma.PaymentUpdateWithWhereUniqueWithoutInstructorInput | Prisma.PaymentUpdateWithWhereUniqueWithoutInstructorInput[]
+  updateMany?: Prisma.PaymentUpdateManyWithWhereWithoutInstructorInput | Prisma.PaymentUpdateManyWithWhereWithoutInstructorInput[]
   deleteMany?: Prisma.PaymentScalarWhereInput | Prisma.PaymentScalarWhereInput[]
 }
 
@@ -821,29 +1047,45 @@ export type PaymentUncheckedUpdateManyWithoutRazorpay_paymentNestedInput = {
   deleteMany?: Prisma.PaymentScalarWhereInput | Prisma.PaymentScalarWhereInput[]
 }
 
-export type EnumPaymentMethodFieldUpdateOperationsInput = {
-  set?: $Enums.PaymentMethod
+export type NullableEnumPaymentMethodFieldUpdateOperationsInput = {
+  set?: $Enums.PaymentMethod | null
 }
 
 export type EnumPaymentStatusFieldUpdateOperationsInput = {
   set?: $Enums.PaymentStatus
 }
 
+export type EnumPaymentDirectionFieldUpdateOperationsInput = {
+  set?: $Enums.PaymentDirection
+}
+
+export type NullableEnumExpenseCategoryFieldUpdateOperationsInput = {
+  set?: $Enums.ExpenseCategory | null
+}
+
 export type PaymentCreateWithoutProfileInput = {
   id?: string
-  method: $Enums.PaymentMethod
+  method?: $Enums.PaymentMethod | null
   status?: $Enums.PaymentStatus
   amount_paise: number
   currency?: string
   reference?: string | null
   proof_url?: string | null
   notes?: string | null
+  direction?: $Enums.PaymentDirection
+  category?: $Enums.ExpenseCategory | null
+  payee?: string | null
+  description?: string | null
+  incurred_at?: Date | string | null
+  is_manual_expense?: boolean
+  payout_period_key?: string | null
   razorpay_order_id?: string | null
   created_at?: Date | string
   updated_at?: Date | string
   user_package?: Prisma.UserPackageCreateNestedOneWithoutPaymentsInput
   booking?: Prisma.BookingCreateNestedOneWithoutPaymentsInput
   recorded_by_admin?: Prisma.ProfileCreateNestedOneWithoutRecorded_paymentsInput
+  instructor?: Prisma.InstructorCreateNestedOneWithoutPaymentsInput
   razorpay_payment?: Prisma.RazorpayPaymentCreateNestedOneWithoutPaymentsInput
 }
 
@@ -851,13 +1093,21 @@ export type PaymentUncheckedCreateWithoutProfileInput = {
   id?: string
   user_package_id?: string | null
   booking_id?: string | null
-  method: $Enums.PaymentMethod
+  method?: $Enums.PaymentMethod | null
   status?: $Enums.PaymentStatus
   amount_paise: number
   currency?: string
   reference?: string | null
   proof_url?: string | null
   notes?: string | null
+  direction?: $Enums.PaymentDirection
+  category?: $Enums.ExpenseCategory | null
+  payee?: string | null
+  description?: string | null
+  incurred_at?: Date | string | null
+  is_manual_expense?: boolean
+  instructor_id?: string | null
+  payout_period_key?: string | null
   recorded_by?: string | null
   razorpay_payment_id?: string | null
   razorpay_order_id?: string | null
@@ -877,19 +1127,27 @@ export type PaymentCreateManyProfileInputEnvelope = {
 
 export type PaymentCreateWithoutRecorded_by_adminInput = {
   id?: string
-  method: $Enums.PaymentMethod
+  method?: $Enums.PaymentMethod | null
   status?: $Enums.PaymentStatus
   amount_paise: number
   currency?: string
   reference?: string | null
   proof_url?: string | null
   notes?: string | null
+  direction?: $Enums.PaymentDirection
+  category?: $Enums.ExpenseCategory | null
+  payee?: string | null
+  description?: string | null
+  incurred_at?: Date | string | null
+  is_manual_expense?: boolean
+  payout_period_key?: string | null
   razorpay_order_id?: string | null
   created_at?: Date | string
   updated_at?: Date | string
   profile: Prisma.ProfileCreateNestedOneWithoutPaymentsInput
   user_package?: Prisma.UserPackageCreateNestedOneWithoutPaymentsInput
   booking?: Prisma.BookingCreateNestedOneWithoutPaymentsInput
+  instructor?: Prisma.InstructorCreateNestedOneWithoutPaymentsInput
   razorpay_payment?: Prisma.RazorpayPaymentCreateNestedOneWithoutPaymentsInput
 }
 
@@ -898,13 +1156,21 @@ export type PaymentUncheckedCreateWithoutRecorded_by_adminInput = {
   user_id: string
   user_package_id?: string | null
   booking_id?: string | null
-  method: $Enums.PaymentMethod
+  method?: $Enums.PaymentMethod | null
   status?: $Enums.PaymentStatus
   amount_paise: number
   currency?: string
   reference?: string | null
   proof_url?: string | null
   notes?: string | null
+  direction?: $Enums.PaymentDirection
+  category?: $Enums.ExpenseCategory | null
+  payee?: string | null
+  description?: string | null
+  incurred_at?: Date | string | null
+  is_manual_expense?: boolean
+  instructor_id?: string | null
+  payout_period_key?: string | null
   razorpay_payment_id?: string | null
   razorpay_order_id?: string | null
   created_at?: Date | string
@@ -945,13 +1211,21 @@ export type PaymentScalarWhereInput = {
   user_id?: Prisma.StringFilter<"Payment"> | string
   user_package_id?: Prisma.StringNullableFilter<"Payment"> | string | null
   booking_id?: Prisma.StringNullableFilter<"Payment"> | string | null
-  method?: Prisma.EnumPaymentMethodFilter<"Payment"> | $Enums.PaymentMethod
+  method?: Prisma.EnumPaymentMethodNullableFilter<"Payment"> | $Enums.PaymentMethod | null
   status?: Prisma.EnumPaymentStatusFilter<"Payment"> | $Enums.PaymentStatus
   amount_paise?: Prisma.IntFilter<"Payment"> | number
   currency?: Prisma.StringFilter<"Payment"> | string
   reference?: Prisma.StringNullableFilter<"Payment"> | string | null
   proof_url?: Prisma.StringNullableFilter<"Payment"> | string | null
   notes?: Prisma.StringNullableFilter<"Payment"> | string | null
+  direction?: Prisma.EnumPaymentDirectionFilter<"Payment"> | $Enums.PaymentDirection
+  category?: Prisma.EnumExpenseCategoryNullableFilter<"Payment"> | $Enums.ExpenseCategory | null
+  payee?: Prisma.StringNullableFilter<"Payment"> | string | null
+  description?: Prisma.StringNullableFilter<"Payment"> | string | null
+  incurred_at?: Prisma.DateTimeNullableFilter<"Payment"> | Date | string | null
+  is_manual_expense?: Prisma.BoolFilter<"Payment"> | boolean
+  instructor_id?: Prisma.StringNullableFilter<"Payment"> | string | null
+  payout_period_key?: Prisma.StringNullableFilter<"Payment"> | string | null
   recorded_by?: Prisma.StringNullableFilter<"Payment"> | string | null
   razorpay_payment_id?: Prisma.StringNullableFilter<"Payment"> | string | null
   razorpay_order_id?: Prisma.StringNullableFilter<"Payment"> | string | null
@@ -975,21 +1249,107 @@ export type PaymentUpdateManyWithWhereWithoutRecorded_by_adminInput = {
   data: Prisma.XOR<Prisma.PaymentUpdateManyMutationInput, Prisma.PaymentUncheckedUpdateManyWithoutRecorded_by_adminInput>
 }
 
-export type PaymentCreateWithoutUser_packageInput = {
+export type PaymentCreateWithoutInstructorInput = {
   id?: string
-  method: $Enums.PaymentMethod
+  method?: $Enums.PaymentMethod | null
   status?: $Enums.PaymentStatus
   amount_paise: number
   currency?: string
   reference?: string | null
   proof_url?: string | null
   notes?: string | null
+  direction?: $Enums.PaymentDirection
+  category?: $Enums.ExpenseCategory | null
+  payee?: string | null
+  description?: string | null
+  incurred_at?: Date | string | null
+  is_manual_expense?: boolean
+  payout_period_key?: string | null
+  razorpay_order_id?: string | null
+  created_at?: Date | string
+  updated_at?: Date | string
+  profile: Prisma.ProfileCreateNestedOneWithoutPaymentsInput
+  user_package?: Prisma.UserPackageCreateNestedOneWithoutPaymentsInput
+  booking?: Prisma.BookingCreateNestedOneWithoutPaymentsInput
+  recorded_by_admin?: Prisma.ProfileCreateNestedOneWithoutRecorded_paymentsInput
+  razorpay_payment?: Prisma.RazorpayPaymentCreateNestedOneWithoutPaymentsInput
+}
+
+export type PaymentUncheckedCreateWithoutInstructorInput = {
+  id?: string
+  user_id: string
+  user_package_id?: string | null
+  booking_id?: string | null
+  method?: $Enums.PaymentMethod | null
+  status?: $Enums.PaymentStatus
+  amount_paise: number
+  currency?: string
+  reference?: string | null
+  proof_url?: string | null
+  notes?: string | null
+  direction?: $Enums.PaymentDirection
+  category?: $Enums.ExpenseCategory | null
+  payee?: string | null
+  description?: string | null
+  incurred_at?: Date | string | null
+  is_manual_expense?: boolean
+  payout_period_key?: string | null
+  recorded_by?: string | null
+  razorpay_payment_id?: string | null
+  razorpay_order_id?: string | null
+  created_at?: Date | string
+  updated_at?: Date | string
+}
+
+export type PaymentCreateOrConnectWithoutInstructorInput = {
+  where: Prisma.PaymentWhereUniqueInput
+  create: Prisma.XOR<Prisma.PaymentCreateWithoutInstructorInput, Prisma.PaymentUncheckedCreateWithoutInstructorInput>
+}
+
+export type PaymentCreateManyInstructorInputEnvelope = {
+  data: Prisma.PaymentCreateManyInstructorInput | Prisma.PaymentCreateManyInstructorInput[]
+  skipDuplicates?: boolean
+}
+
+export type PaymentUpsertWithWhereUniqueWithoutInstructorInput = {
+  where: Prisma.PaymentWhereUniqueInput
+  update: Prisma.XOR<Prisma.PaymentUpdateWithoutInstructorInput, Prisma.PaymentUncheckedUpdateWithoutInstructorInput>
+  create: Prisma.XOR<Prisma.PaymentCreateWithoutInstructorInput, Prisma.PaymentUncheckedCreateWithoutInstructorInput>
+}
+
+export type PaymentUpdateWithWhereUniqueWithoutInstructorInput = {
+  where: Prisma.PaymentWhereUniqueInput
+  data: Prisma.XOR<Prisma.PaymentUpdateWithoutInstructorInput, Prisma.PaymentUncheckedUpdateWithoutInstructorInput>
+}
+
+export type PaymentUpdateManyWithWhereWithoutInstructorInput = {
+  where: Prisma.PaymentScalarWhereInput
+  data: Prisma.XOR<Prisma.PaymentUpdateManyMutationInput, Prisma.PaymentUncheckedUpdateManyWithoutInstructorInput>
+}
+
+export type PaymentCreateWithoutUser_packageInput = {
+  id?: string
+  method?: $Enums.PaymentMethod | null
+  status?: $Enums.PaymentStatus
+  amount_paise: number
+  currency?: string
+  reference?: string | null
+  proof_url?: string | null
+  notes?: string | null
+  direction?: $Enums.PaymentDirection
+  category?: $Enums.ExpenseCategory | null
+  payee?: string | null
+  description?: string | null
+  incurred_at?: Date | string | null
+  is_manual_expense?: boolean
+  payout_period_key?: string | null
   razorpay_order_id?: string | null
   created_at?: Date | string
   updated_at?: Date | string
   profile: Prisma.ProfileCreateNestedOneWithoutPaymentsInput
   booking?: Prisma.BookingCreateNestedOneWithoutPaymentsInput
   recorded_by_admin?: Prisma.ProfileCreateNestedOneWithoutRecorded_paymentsInput
+  instructor?: Prisma.InstructorCreateNestedOneWithoutPaymentsInput
   razorpay_payment?: Prisma.RazorpayPaymentCreateNestedOneWithoutPaymentsInput
 }
 
@@ -997,13 +1357,21 @@ export type PaymentUncheckedCreateWithoutUser_packageInput = {
   id?: string
   user_id: string
   booking_id?: string | null
-  method: $Enums.PaymentMethod
+  method?: $Enums.PaymentMethod | null
   status?: $Enums.PaymentStatus
   amount_paise: number
   currency?: string
   reference?: string | null
   proof_url?: string | null
   notes?: string | null
+  direction?: $Enums.PaymentDirection
+  category?: $Enums.ExpenseCategory | null
+  payee?: string | null
+  description?: string | null
+  incurred_at?: Date | string | null
+  is_manual_expense?: boolean
+  instructor_id?: string | null
+  payout_period_key?: string | null
   recorded_by?: string | null
   razorpay_payment_id?: string | null
   razorpay_order_id?: string | null
@@ -1039,19 +1407,27 @@ export type PaymentUpdateManyWithWhereWithoutUser_packageInput = {
 
 export type PaymentCreateWithoutBookingInput = {
   id?: string
-  method: $Enums.PaymentMethod
+  method?: $Enums.PaymentMethod | null
   status?: $Enums.PaymentStatus
   amount_paise: number
   currency?: string
   reference?: string | null
   proof_url?: string | null
   notes?: string | null
+  direction?: $Enums.PaymentDirection
+  category?: $Enums.ExpenseCategory | null
+  payee?: string | null
+  description?: string | null
+  incurred_at?: Date | string | null
+  is_manual_expense?: boolean
+  payout_period_key?: string | null
   razorpay_order_id?: string | null
   created_at?: Date | string
   updated_at?: Date | string
   profile: Prisma.ProfileCreateNestedOneWithoutPaymentsInput
   user_package?: Prisma.UserPackageCreateNestedOneWithoutPaymentsInput
   recorded_by_admin?: Prisma.ProfileCreateNestedOneWithoutRecorded_paymentsInput
+  instructor?: Prisma.InstructorCreateNestedOneWithoutPaymentsInput
   razorpay_payment?: Prisma.RazorpayPaymentCreateNestedOneWithoutPaymentsInput
 }
 
@@ -1059,13 +1435,21 @@ export type PaymentUncheckedCreateWithoutBookingInput = {
   id?: string
   user_id: string
   user_package_id?: string | null
-  method: $Enums.PaymentMethod
+  method?: $Enums.PaymentMethod | null
   status?: $Enums.PaymentStatus
   amount_paise: number
   currency?: string
   reference?: string | null
   proof_url?: string | null
   notes?: string | null
+  direction?: $Enums.PaymentDirection
+  category?: $Enums.ExpenseCategory | null
+  payee?: string | null
+  description?: string | null
+  incurred_at?: Date | string | null
+  is_manual_expense?: boolean
+  instructor_id?: string | null
+  payout_period_key?: string | null
   recorded_by?: string | null
   razorpay_payment_id?: string | null
   razorpay_order_id?: string | null
@@ -1101,13 +1485,20 @@ export type PaymentUpdateManyWithWhereWithoutBookingInput = {
 
 export type PaymentCreateWithoutRazorpay_paymentInput = {
   id?: string
-  method: $Enums.PaymentMethod
+  method?: $Enums.PaymentMethod | null
   status?: $Enums.PaymentStatus
   amount_paise: number
   currency?: string
   reference?: string | null
   proof_url?: string | null
   notes?: string | null
+  direction?: $Enums.PaymentDirection
+  category?: $Enums.ExpenseCategory | null
+  payee?: string | null
+  description?: string | null
+  incurred_at?: Date | string | null
+  is_manual_expense?: boolean
+  payout_period_key?: string | null
   razorpay_order_id?: string | null
   created_at?: Date | string
   updated_at?: Date | string
@@ -1115,6 +1506,7 @@ export type PaymentCreateWithoutRazorpay_paymentInput = {
   user_package?: Prisma.UserPackageCreateNestedOneWithoutPaymentsInput
   booking?: Prisma.BookingCreateNestedOneWithoutPaymentsInput
   recorded_by_admin?: Prisma.ProfileCreateNestedOneWithoutRecorded_paymentsInput
+  instructor?: Prisma.InstructorCreateNestedOneWithoutPaymentsInput
 }
 
 export type PaymentUncheckedCreateWithoutRazorpay_paymentInput = {
@@ -1122,13 +1514,21 @@ export type PaymentUncheckedCreateWithoutRazorpay_paymentInput = {
   user_id: string
   user_package_id?: string | null
   booking_id?: string | null
-  method: $Enums.PaymentMethod
+  method?: $Enums.PaymentMethod | null
   status?: $Enums.PaymentStatus
   amount_paise: number
   currency?: string
   reference?: string | null
   proof_url?: string | null
   notes?: string | null
+  direction?: $Enums.PaymentDirection
+  category?: $Enums.ExpenseCategory | null
+  payee?: string | null
+  description?: string | null
+  incurred_at?: Date | string | null
+  is_manual_expense?: boolean
+  instructor_id?: string | null
+  payout_period_key?: string | null
   recorded_by?: string | null
   razorpay_order_id?: string | null
   created_at?: Date | string
@@ -1165,13 +1565,21 @@ export type PaymentCreateManyProfileInput = {
   id?: string
   user_package_id?: string | null
   booking_id?: string | null
-  method: $Enums.PaymentMethod
+  method?: $Enums.PaymentMethod | null
   status?: $Enums.PaymentStatus
   amount_paise: number
   currency?: string
   reference?: string | null
   proof_url?: string | null
   notes?: string | null
+  direction?: $Enums.PaymentDirection
+  category?: $Enums.ExpenseCategory | null
+  payee?: string | null
+  description?: string | null
+  incurred_at?: Date | string | null
+  is_manual_expense?: boolean
+  instructor_id?: string | null
+  payout_period_key?: string | null
   recorded_by?: string | null
   razorpay_payment_id?: string | null
   razorpay_order_id?: string | null
@@ -1184,13 +1592,21 @@ export type PaymentCreateManyRecorded_by_adminInput = {
   user_id: string
   user_package_id?: string | null
   booking_id?: string | null
-  method: $Enums.PaymentMethod
+  method?: $Enums.PaymentMethod | null
   status?: $Enums.PaymentStatus
   amount_paise: number
   currency?: string
   reference?: string | null
   proof_url?: string | null
   notes?: string | null
+  direction?: $Enums.PaymentDirection
+  category?: $Enums.ExpenseCategory | null
+  payee?: string | null
+  description?: string | null
+  incurred_at?: Date | string | null
+  is_manual_expense?: boolean
+  instructor_id?: string | null
+  payout_period_key?: string | null
   razorpay_payment_id?: string | null
   razorpay_order_id?: string | null
   created_at?: Date | string
@@ -1199,19 +1615,27 @@ export type PaymentCreateManyRecorded_by_adminInput = {
 
 export type PaymentUpdateWithoutProfileInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
-  method?: Prisma.EnumPaymentMethodFieldUpdateOperationsInput | $Enums.PaymentMethod
+  method?: Prisma.NullableEnumPaymentMethodFieldUpdateOperationsInput | $Enums.PaymentMethod | null
   status?: Prisma.EnumPaymentStatusFieldUpdateOperationsInput | $Enums.PaymentStatus
   amount_paise?: Prisma.IntFieldUpdateOperationsInput | number
   currency?: Prisma.StringFieldUpdateOperationsInput | string
   reference?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   proof_url?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   notes?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  direction?: Prisma.EnumPaymentDirectionFieldUpdateOperationsInput | $Enums.PaymentDirection
+  category?: Prisma.NullableEnumExpenseCategoryFieldUpdateOperationsInput | $Enums.ExpenseCategory | null
+  payee?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  description?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  incurred_at?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  is_manual_expense?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  payout_period_key?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   razorpay_order_id?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   created_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updated_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   user_package?: Prisma.UserPackageUpdateOneWithoutPaymentsNestedInput
   booking?: Prisma.BookingUpdateOneWithoutPaymentsNestedInput
   recorded_by_admin?: Prisma.ProfileUpdateOneWithoutRecorded_paymentsNestedInput
+  instructor?: Prisma.InstructorUpdateOneWithoutPaymentsNestedInput
   razorpay_payment?: Prisma.RazorpayPaymentUpdateOneWithoutPaymentsNestedInput
 }
 
@@ -1219,13 +1643,21 @@ export type PaymentUncheckedUpdateWithoutProfileInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   user_package_id?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   booking_id?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  method?: Prisma.EnumPaymentMethodFieldUpdateOperationsInput | $Enums.PaymentMethod
+  method?: Prisma.NullableEnumPaymentMethodFieldUpdateOperationsInput | $Enums.PaymentMethod | null
   status?: Prisma.EnumPaymentStatusFieldUpdateOperationsInput | $Enums.PaymentStatus
   amount_paise?: Prisma.IntFieldUpdateOperationsInput | number
   currency?: Prisma.StringFieldUpdateOperationsInput | string
   reference?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   proof_url?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   notes?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  direction?: Prisma.EnumPaymentDirectionFieldUpdateOperationsInput | $Enums.PaymentDirection
+  category?: Prisma.NullableEnumExpenseCategoryFieldUpdateOperationsInput | $Enums.ExpenseCategory | null
+  payee?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  description?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  incurred_at?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  is_manual_expense?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  instructor_id?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  payout_period_key?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   recorded_by?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   razorpay_payment_id?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   razorpay_order_id?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -1237,13 +1669,21 @@ export type PaymentUncheckedUpdateManyWithoutProfileInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   user_package_id?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   booking_id?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  method?: Prisma.EnumPaymentMethodFieldUpdateOperationsInput | $Enums.PaymentMethod
+  method?: Prisma.NullableEnumPaymentMethodFieldUpdateOperationsInput | $Enums.PaymentMethod | null
   status?: Prisma.EnumPaymentStatusFieldUpdateOperationsInput | $Enums.PaymentStatus
   amount_paise?: Prisma.IntFieldUpdateOperationsInput | number
   currency?: Prisma.StringFieldUpdateOperationsInput | string
   reference?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   proof_url?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   notes?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  direction?: Prisma.EnumPaymentDirectionFieldUpdateOperationsInput | $Enums.PaymentDirection
+  category?: Prisma.NullableEnumExpenseCategoryFieldUpdateOperationsInput | $Enums.ExpenseCategory | null
+  payee?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  description?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  incurred_at?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  is_manual_expense?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  instructor_id?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  payout_period_key?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   recorded_by?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   razorpay_payment_id?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   razorpay_order_id?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -1253,19 +1693,27 @@ export type PaymentUncheckedUpdateManyWithoutProfileInput = {
 
 export type PaymentUpdateWithoutRecorded_by_adminInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
-  method?: Prisma.EnumPaymentMethodFieldUpdateOperationsInput | $Enums.PaymentMethod
+  method?: Prisma.NullableEnumPaymentMethodFieldUpdateOperationsInput | $Enums.PaymentMethod | null
   status?: Prisma.EnumPaymentStatusFieldUpdateOperationsInput | $Enums.PaymentStatus
   amount_paise?: Prisma.IntFieldUpdateOperationsInput | number
   currency?: Prisma.StringFieldUpdateOperationsInput | string
   reference?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   proof_url?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   notes?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  direction?: Prisma.EnumPaymentDirectionFieldUpdateOperationsInput | $Enums.PaymentDirection
+  category?: Prisma.NullableEnumExpenseCategoryFieldUpdateOperationsInput | $Enums.ExpenseCategory | null
+  payee?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  description?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  incurred_at?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  is_manual_expense?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  payout_period_key?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   razorpay_order_id?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   created_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updated_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   profile?: Prisma.ProfileUpdateOneRequiredWithoutPaymentsNestedInput
   user_package?: Prisma.UserPackageUpdateOneWithoutPaymentsNestedInput
   booking?: Prisma.BookingUpdateOneWithoutPaymentsNestedInput
+  instructor?: Prisma.InstructorUpdateOneWithoutPaymentsNestedInput
   razorpay_payment?: Prisma.RazorpayPaymentUpdateOneWithoutPaymentsNestedInput
 }
 
@@ -1274,13 +1722,21 @@ export type PaymentUncheckedUpdateWithoutRecorded_by_adminInput = {
   user_id?: Prisma.StringFieldUpdateOperationsInput | string
   user_package_id?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   booking_id?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  method?: Prisma.EnumPaymentMethodFieldUpdateOperationsInput | $Enums.PaymentMethod
+  method?: Prisma.NullableEnumPaymentMethodFieldUpdateOperationsInput | $Enums.PaymentMethod | null
   status?: Prisma.EnumPaymentStatusFieldUpdateOperationsInput | $Enums.PaymentStatus
   amount_paise?: Prisma.IntFieldUpdateOperationsInput | number
   currency?: Prisma.StringFieldUpdateOperationsInput | string
   reference?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   proof_url?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   notes?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  direction?: Prisma.EnumPaymentDirectionFieldUpdateOperationsInput | $Enums.PaymentDirection
+  category?: Prisma.NullableEnumExpenseCategoryFieldUpdateOperationsInput | $Enums.ExpenseCategory | null
+  payee?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  description?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  incurred_at?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  is_manual_expense?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  instructor_id?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  payout_period_key?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   razorpay_payment_id?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   razorpay_order_id?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   created_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -1292,13 +1748,125 @@ export type PaymentUncheckedUpdateManyWithoutRecorded_by_adminInput = {
   user_id?: Prisma.StringFieldUpdateOperationsInput | string
   user_package_id?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   booking_id?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  method?: Prisma.EnumPaymentMethodFieldUpdateOperationsInput | $Enums.PaymentMethod
+  method?: Prisma.NullableEnumPaymentMethodFieldUpdateOperationsInput | $Enums.PaymentMethod | null
   status?: Prisma.EnumPaymentStatusFieldUpdateOperationsInput | $Enums.PaymentStatus
   amount_paise?: Prisma.IntFieldUpdateOperationsInput | number
   currency?: Prisma.StringFieldUpdateOperationsInput | string
   reference?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   proof_url?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   notes?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  direction?: Prisma.EnumPaymentDirectionFieldUpdateOperationsInput | $Enums.PaymentDirection
+  category?: Prisma.NullableEnumExpenseCategoryFieldUpdateOperationsInput | $Enums.ExpenseCategory | null
+  payee?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  description?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  incurred_at?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  is_manual_expense?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  instructor_id?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  payout_period_key?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  razorpay_payment_id?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  razorpay_order_id?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  created_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updated_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+}
+
+export type PaymentCreateManyInstructorInput = {
+  id?: string
+  user_id: string
+  user_package_id?: string | null
+  booking_id?: string | null
+  method?: $Enums.PaymentMethod | null
+  status?: $Enums.PaymentStatus
+  amount_paise: number
+  currency?: string
+  reference?: string | null
+  proof_url?: string | null
+  notes?: string | null
+  direction?: $Enums.PaymentDirection
+  category?: $Enums.ExpenseCategory | null
+  payee?: string | null
+  description?: string | null
+  incurred_at?: Date | string | null
+  is_manual_expense?: boolean
+  payout_period_key?: string | null
+  recorded_by?: string | null
+  razorpay_payment_id?: string | null
+  razorpay_order_id?: string | null
+  created_at?: Date | string
+  updated_at?: Date | string
+}
+
+export type PaymentUpdateWithoutInstructorInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  method?: Prisma.NullableEnumPaymentMethodFieldUpdateOperationsInput | $Enums.PaymentMethod | null
+  status?: Prisma.EnumPaymentStatusFieldUpdateOperationsInput | $Enums.PaymentStatus
+  amount_paise?: Prisma.IntFieldUpdateOperationsInput | number
+  currency?: Prisma.StringFieldUpdateOperationsInput | string
+  reference?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  proof_url?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  notes?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  direction?: Prisma.EnumPaymentDirectionFieldUpdateOperationsInput | $Enums.PaymentDirection
+  category?: Prisma.NullableEnumExpenseCategoryFieldUpdateOperationsInput | $Enums.ExpenseCategory | null
+  payee?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  description?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  incurred_at?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  is_manual_expense?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  payout_period_key?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  razorpay_order_id?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  created_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updated_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  profile?: Prisma.ProfileUpdateOneRequiredWithoutPaymentsNestedInput
+  user_package?: Prisma.UserPackageUpdateOneWithoutPaymentsNestedInput
+  booking?: Prisma.BookingUpdateOneWithoutPaymentsNestedInput
+  recorded_by_admin?: Prisma.ProfileUpdateOneWithoutRecorded_paymentsNestedInput
+  razorpay_payment?: Prisma.RazorpayPaymentUpdateOneWithoutPaymentsNestedInput
+}
+
+export type PaymentUncheckedUpdateWithoutInstructorInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  user_id?: Prisma.StringFieldUpdateOperationsInput | string
+  user_package_id?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  booking_id?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  method?: Prisma.NullableEnumPaymentMethodFieldUpdateOperationsInput | $Enums.PaymentMethod | null
+  status?: Prisma.EnumPaymentStatusFieldUpdateOperationsInput | $Enums.PaymentStatus
+  amount_paise?: Prisma.IntFieldUpdateOperationsInput | number
+  currency?: Prisma.StringFieldUpdateOperationsInput | string
+  reference?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  proof_url?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  notes?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  direction?: Prisma.EnumPaymentDirectionFieldUpdateOperationsInput | $Enums.PaymentDirection
+  category?: Prisma.NullableEnumExpenseCategoryFieldUpdateOperationsInput | $Enums.ExpenseCategory | null
+  payee?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  description?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  incurred_at?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  is_manual_expense?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  payout_period_key?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  recorded_by?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  razorpay_payment_id?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  razorpay_order_id?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  created_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updated_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+}
+
+export type PaymentUncheckedUpdateManyWithoutInstructorInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  user_id?: Prisma.StringFieldUpdateOperationsInput | string
+  user_package_id?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  booking_id?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  method?: Prisma.NullableEnumPaymentMethodFieldUpdateOperationsInput | $Enums.PaymentMethod | null
+  status?: Prisma.EnumPaymentStatusFieldUpdateOperationsInput | $Enums.PaymentStatus
+  amount_paise?: Prisma.IntFieldUpdateOperationsInput | number
+  currency?: Prisma.StringFieldUpdateOperationsInput | string
+  reference?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  proof_url?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  notes?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  direction?: Prisma.EnumPaymentDirectionFieldUpdateOperationsInput | $Enums.PaymentDirection
+  category?: Prisma.NullableEnumExpenseCategoryFieldUpdateOperationsInput | $Enums.ExpenseCategory | null
+  payee?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  description?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  incurred_at?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  is_manual_expense?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  payout_period_key?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  recorded_by?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   razorpay_payment_id?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   razorpay_order_id?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   created_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -1309,13 +1877,21 @@ export type PaymentCreateManyUser_packageInput = {
   id?: string
   user_id: string
   booking_id?: string | null
-  method: $Enums.PaymentMethod
+  method?: $Enums.PaymentMethod | null
   status?: $Enums.PaymentStatus
   amount_paise: number
   currency?: string
   reference?: string | null
   proof_url?: string | null
   notes?: string | null
+  direction?: $Enums.PaymentDirection
+  category?: $Enums.ExpenseCategory | null
+  payee?: string | null
+  description?: string | null
+  incurred_at?: Date | string | null
+  is_manual_expense?: boolean
+  instructor_id?: string | null
+  payout_period_key?: string | null
   recorded_by?: string | null
   razorpay_payment_id?: string | null
   razorpay_order_id?: string | null
@@ -1325,19 +1901,27 @@ export type PaymentCreateManyUser_packageInput = {
 
 export type PaymentUpdateWithoutUser_packageInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
-  method?: Prisma.EnumPaymentMethodFieldUpdateOperationsInput | $Enums.PaymentMethod
+  method?: Prisma.NullableEnumPaymentMethodFieldUpdateOperationsInput | $Enums.PaymentMethod | null
   status?: Prisma.EnumPaymentStatusFieldUpdateOperationsInput | $Enums.PaymentStatus
   amount_paise?: Prisma.IntFieldUpdateOperationsInput | number
   currency?: Prisma.StringFieldUpdateOperationsInput | string
   reference?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   proof_url?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   notes?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  direction?: Prisma.EnumPaymentDirectionFieldUpdateOperationsInput | $Enums.PaymentDirection
+  category?: Prisma.NullableEnumExpenseCategoryFieldUpdateOperationsInput | $Enums.ExpenseCategory | null
+  payee?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  description?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  incurred_at?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  is_manual_expense?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  payout_period_key?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   razorpay_order_id?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   created_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updated_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   profile?: Prisma.ProfileUpdateOneRequiredWithoutPaymentsNestedInput
   booking?: Prisma.BookingUpdateOneWithoutPaymentsNestedInput
   recorded_by_admin?: Prisma.ProfileUpdateOneWithoutRecorded_paymentsNestedInput
+  instructor?: Prisma.InstructorUpdateOneWithoutPaymentsNestedInput
   razorpay_payment?: Prisma.RazorpayPaymentUpdateOneWithoutPaymentsNestedInput
 }
 
@@ -1345,13 +1929,21 @@ export type PaymentUncheckedUpdateWithoutUser_packageInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   user_id?: Prisma.StringFieldUpdateOperationsInput | string
   booking_id?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  method?: Prisma.EnumPaymentMethodFieldUpdateOperationsInput | $Enums.PaymentMethod
+  method?: Prisma.NullableEnumPaymentMethodFieldUpdateOperationsInput | $Enums.PaymentMethod | null
   status?: Prisma.EnumPaymentStatusFieldUpdateOperationsInput | $Enums.PaymentStatus
   amount_paise?: Prisma.IntFieldUpdateOperationsInput | number
   currency?: Prisma.StringFieldUpdateOperationsInput | string
   reference?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   proof_url?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   notes?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  direction?: Prisma.EnumPaymentDirectionFieldUpdateOperationsInput | $Enums.PaymentDirection
+  category?: Prisma.NullableEnumExpenseCategoryFieldUpdateOperationsInput | $Enums.ExpenseCategory | null
+  payee?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  description?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  incurred_at?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  is_manual_expense?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  instructor_id?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  payout_period_key?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   recorded_by?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   razorpay_payment_id?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   razorpay_order_id?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -1363,13 +1955,21 @@ export type PaymentUncheckedUpdateManyWithoutUser_packageInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   user_id?: Prisma.StringFieldUpdateOperationsInput | string
   booking_id?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  method?: Prisma.EnumPaymentMethodFieldUpdateOperationsInput | $Enums.PaymentMethod
+  method?: Prisma.NullableEnumPaymentMethodFieldUpdateOperationsInput | $Enums.PaymentMethod | null
   status?: Prisma.EnumPaymentStatusFieldUpdateOperationsInput | $Enums.PaymentStatus
   amount_paise?: Prisma.IntFieldUpdateOperationsInput | number
   currency?: Prisma.StringFieldUpdateOperationsInput | string
   reference?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   proof_url?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   notes?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  direction?: Prisma.EnumPaymentDirectionFieldUpdateOperationsInput | $Enums.PaymentDirection
+  category?: Prisma.NullableEnumExpenseCategoryFieldUpdateOperationsInput | $Enums.ExpenseCategory | null
+  payee?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  description?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  incurred_at?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  is_manual_expense?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  instructor_id?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  payout_period_key?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   recorded_by?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   razorpay_payment_id?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   razorpay_order_id?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -1381,13 +1981,21 @@ export type PaymentCreateManyBookingInput = {
   id?: string
   user_id: string
   user_package_id?: string | null
-  method: $Enums.PaymentMethod
+  method?: $Enums.PaymentMethod | null
   status?: $Enums.PaymentStatus
   amount_paise: number
   currency?: string
   reference?: string | null
   proof_url?: string | null
   notes?: string | null
+  direction?: $Enums.PaymentDirection
+  category?: $Enums.ExpenseCategory | null
+  payee?: string | null
+  description?: string | null
+  incurred_at?: Date | string | null
+  is_manual_expense?: boolean
+  instructor_id?: string | null
+  payout_period_key?: string | null
   recorded_by?: string | null
   razorpay_payment_id?: string | null
   razorpay_order_id?: string | null
@@ -1397,19 +2005,27 @@ export type PaymentCreateManyBookingInput = {
 
 export type PaymentUpdateWithoutBookingInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
-  method?: Prisma.EnumPaymentMethodFieldUpdateOperationsInput | $Enums.PaymentMethod
+  method?: Prisma.NullableEnumPaymentMethodFieldUpdateOperationsInput | $Enums.PaymentMethod | null
   status?: Prisma.EnumPaymentStatusFieldUpdateOperationsInput | $Enums.PaymentStatus
   amount_paise?: Prisma.IntFieldUpdateOperationsInput | number
   currency?: Prisma.StringFieldUpdateOperationsInput | string
   reference?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   proof_url?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   notes?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  direction?: Prisma.EnumPaymentDirectionFieldUpdateOperationsInput | $Enums.PaymentDirection
+  category?: Prisma.NullableEnumExpenseCategoryFieldUpdateOperationsInput | $Enums.ExpenseCategory | null
+  payee?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  description?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  incurred_at?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  is_manual_expense?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  payout_period_key?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   razorpay_order_id?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   created_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updated_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   profile?: Prisma.ProfileUpdateOneRequiredWithoutPaymentsNestedInput
   user_package?: Prisma.UserPackageUpdateOneWithoutPaymentsNestedInput
   recorded_by_admin?: Prisma.ProfileUpdateOneWithoutRecorded_paymentsNestedInput
+  instructor?: Prisma.InstructorUpdateOneWithoutPaymentsNestedInput
   razorpay_payment?: Prisma.RazorpayPaymentUpdateOneWithoutPaymentsNestedInput
 }
 
@@ -1417,13 +2033,21 @@ export type PaymentUncheckedUpdateWithoutBookingInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   user_id?: Prisma.StringFieldUpdateOperationsInput | string
   user_package_id?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  method?: Prisma.EnumPaymentMethodFieldUpdateOperationsInput | $Enums.PaymentMethod
+  method?: Prisma.NullableEnumPaymentMethodFieldUpdateOperationsInput | $Enums.PaymentMethod | null
   status?: Prisma.EnumPaymentStatusFieldUpdateOperationsInput | $Enums.PaymentStatus
   amount_paise?: Prisma.IntFieldUpdateOperationsInput | number
   currency?: Prisma.StringFieldUpdateOperationsInput | string
   reference?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   proof_url?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   notes?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  direction?: Prisma.EnumPaymentDirectionFieldUpdateOperationsInput | $Enums.PaymentDirection
+  category?: Prisma.NullableEnumExpenseCategoryFieldUpdateOperationsInput | $Enums.ExpenseCategory | null
+  payee?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  description?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  incurred_at?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  is_manual_expense?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  instructor_id?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  payout_period_key?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   recorded_by?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   razorpay_payment_id?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   razorpay_order_id?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -1435,13 +2059,21 @@ export type PaymentUncheckedUpdateManyWithoutBookingInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   user_id?: Prisma.StringFieldUpdateOperationsInput | string
   user_package_id?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  method?: Prisma.EnumPaymentMethodFieldUpdateOperationsInput | $Enums.PaymentMethod
+  method?: Prisma.NullableEnumPaymentMethodFieldUpdateOperationsInput | $Enums.PaymentMethod | null
   status?: Prisma.EnumPaymentStatusFieldUpdateOperationsInput | $Enums.PaymentStatus
   amount_paise?: Prisma.IntFieldUpdateOperationsInput | number
   currency?: Prisma.StringFieldUpdateOperationsInput | string
   reference?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   proof_url?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   notes?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  direction?: Prisma.EnumPaymentDirectionFieldUpdateOperationsInput | $Enums.PaymentDirection
+  category?: Prisma.NullableEnumExpenseCategoryFieldUpdateOperationsInput | $Enums.ExpenseCategory | null
+  payee?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  description?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  incurred_at?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  is_manual_expense?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  instructor_id?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  payout_period_key?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   recorded_by?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   razorpay_payment_id?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   razorpay_order_id?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -1454,13 +2086,21 @@ export type PaymentCreateManyRazorpay_paymentInput = {
   user_id: string
   user_package_id?: string | null
   booking_id?: string | null
-  method: $Enums.PaymentMethod
+  method?: $Enums.PaymentMethod | null
   status?: $Enums.PaymentStatus
   amount_paise: number
   currency?: string
   reference?: string | null
   proof_url?: string | null
   notes?: string | null
+  direction?: $Enums.PaymentDirection
+  category?: $Enums.ExpenseCategory | null
+  payee?: string | null
+  description?: string | null
+  incurred_at?: Date | string | null
+  is_manual_expense?: boolean
+  instructor_id?: string | null
+  payout_period_key?: string | null
   recorded_by?: string | null
   razorpay_order_id?: string | null
   created_at?: Date | string
@@ -1469,13 +2109,20 @@ export type PaymentCreateManyRazorpay_paymentInput = {
 
 export type PaymentUpdateWithoutRazorpay_paymentInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
-  method?: Prisma.EnumPaymentMethodFieldUpdateOperationsInput | $Enums.PaymentMethod
+  method?: Prisma.NullableEnumPaymentMethodFieldUpdateOperationsInput | $Enums.PaymentMethod | null
   status?: Prisma.EnumPaymentStatusFieldUpdateOperationsInput | $Enums.PaymentStatus
   amount_paise?: Prisma.IntFieldUpdateOperationsInput | number
   currency?: Prisma.StringFieldUpdateOperationsInput | string
   reference?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   proof_url?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   notes?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  direction?: Prisma.EnumPaymentDirectionFieldUpdateOperationsInput | $Enums.PaymentDirection
+  category?: Prisma.NullableEnumExpenseCategoryFieldUpdateOperationsInput | $Enums.ExpenseCategory | null
+  payee?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  description?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  incurred_at?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  is_manual_expense?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  payout_period_key?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   razorpay_order_id?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   created_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updated_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -1483,6 +2130,7 @@ export type PaymentUpdateWithoutRazorpay_paymentInput = {
   user_package?: Prisma.UserPackageUpdateOneWithoutPaymentsNestedInput
   booking?: Prisma.BookingUpdateOneWithoutPaymentsNestedInput
   recorded_by_admin?: Prisma.ProfileUpdateOneWithoutRecorded_paymentsNestedInput
+  instructor?: Prisma.InstructorUpdateOneWithoutPaymentsNestedInput
 }
 
 export type PaymentUncheckedUpdateWithoutRazorpay_paymentInput = {
@@ -1490,13 +2138,21 @@ export type PaymentUncheckedUpdateWithoutRazorpay_paymentInput = {
   user_id?: Prisma.StringFieldUpdateOperationsInput | string
   user_package_id?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   booking_id?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  method?: Prisma.EnumPaymentMethodFieldUpdateOperationsInput | $Enums.PaymentMethod
+  method?: Prisma.NullableEnumPaymentMethodFieldUpdateOperationsInput | $Enums.PaymentMethod | null
   status?: Prisma.EnumPaymentStatusFieldUpdateOperationsInput | $Enums.PaymentStatus
   amount_paise?: Prisma.IntFieldUpdateOperationsInput | number
   currency?: Prisma.StringFieldUpdateOperationsInput | string
   reference?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   proof_url?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   notes?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  direction?: Prisma.EnumPaymentDirectionFieldUpdateOperationsInput | $Enums.PaymentDirection
+  category?: Prisma.NullableEnumExpenseCategoryFieldUpdateOperationsInput | $Enums.ExpenseCategory | null
+  payee?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  description?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  incurred_at?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  is_manual_expense?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  instructor_id?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  payout_period_key?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   recorded_by?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   razorpay_order_id?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   created_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -1508,13 +2164,21 @@ export type PaymentUncheckedUpdateManyWithoutRazorpay_paymentInput = {
   user_id?: Prisma.StringFieldUpdateOperationsInput | string
   user_package_id?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   booking_id?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  method?: Prisma.EnumPaymentMethodFieldUpdateOperationsInput | $Enums.PaymentMethod
+  method?: Prisma.NullableEnumPaymentMethodFieldUpdateOperationsInput | $Enums.PaymentMethod | null
   status?: Prisma.EnumPaymentStatusFieldUpdateOperationsInput | $Enums.PaymentStatus
   amount_paise?: Prisma.IntFieldUpdateOperationsInput | number
   currency?: Prisma.StringFieldUpdateOperationsInput | string
   reference?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   proof_url?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   notes?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  direction?: Prisma.EnumPaymentDirectionFieldUpdateOperationsInput | $Enums.PaymentDirection
+  category?: Prisma.NullableEnumExpenseCategoryFieldUpdateOperationsInput | $Enums.ExpenseCategory | null
+  payee?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  description?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  incurred_at?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  is_manual_expense?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  instructor_id?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  payout_period_key?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   recorded_by?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   razorpay_order_id?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   created_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -1535,6 +2199,14 @@ export type PaymentSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs 
   reference?: boolean
   proof_url?: boolean
   notes?: boolean
+  direction?: boolean
+  category?: boolean
+  payee?: boolean
+  description?: boolean
+  incurred_at?: boolean
+  is_manual_expense?: boolean
+  instructor_id?: boolean
+  payout_period_key?: boolean
   recorded_by?: boolean
   razorpay_payment_id?: boolean
   razorpay_order_id?: boolean
@@ -1544,6 +2216,7 @@ export type PaymentSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs 
   user_package?: boolean | Prisma.Payment$user_packageArgs<ExtArgs>
   booking?: boolean | Prisma.Payment$bookingArgs<ExtArgs>
   recorded_by_admin?: boolean | Prisma.Payment$recorded_by_adminArgs<ExtArgs>
+  instructor?: boolean | Prisma.Payment$instructorArgs<ExtArgs>
   razorpay_payment?: boolean | Prisma.Payment$razorpay_paymentArgs<ExtArgs>
 }, ExtArgs["result"]["payment"]>
 
@@ -1559,6 +2232,14 @@ export type PaymentSelectCreateManyAndReturn<ExtArgs extends runtime.Types.Exten
   reference?: boolean
   proof_url?: boolean
   notes?: boolean
+  direction?: boolean
+  category?: boolean
+  payee?: boolean
+  description?: boolean
+  incurred_at?: boolean
+  is_manual_expense?: boolean
+  instructor_id?: boolean
+  payout_period_key?: boolean
   recorded_by?: boolean
   razorpay_payment_id?: boolean
   razorpay_order_id?: boolean
@@ -1568,6 +2249,7 @@ export type PaymentSelectCreateManyAndReturn<ExtArgs extends runtime.Types.Exten
   user_package?: boolean | Prisma.Payment$user_packageArgs<ExtArgs>
   booking?: boolean | Prisma.Payment$bookingArgs<ExtArgs>
   recorded_by_admin?: boolean | Prisma.Payment$recorded_by_adminArgs<ExtArgs>
+  instructor?: boolean | Prisma.Payment$instructorArgs<ExtArgs>
   razorpay_payment?: boolean | Prisma.Payment$razorpay_paymentArgs<ExtArgs>
 }, ExtArgs["result"]["payment"]>
 
@@ -1583,6 +2265,14 @@ export type PaymentSelectUpdateManyAndReturn<ExtArgs extends runtime.Types.Exten
   reference?: boolean
   proof_url?: boolean
   notes?: boolean
+  direction?: boolean
+  category?: boolean
+  payee?: boolean
+  description?: boolean
+  incurred_at?: boolean
+  is_manual_expense?: boolean
+  instructor_id?: boolean
+  payout_period_key?: boolean
   recorded_by?: boolean
   razorpay_payment_id?: boolean
   razorpay_order_id?: boolean
@@ -1592,6 +2282,7 @@ export type PaymentSelectUpdateManyAndReturn<ExtArgs extends runtime.Types.Exten
   user_package?: boolean | Prisma.Payment$user_packageArgs<ExtArgs>
   booking?: boolean | Prisma.Payment$bookingArgs<ExtArgs>
   recorded_by_admin?: boolean | Prisma.Payment$recorded_by_adminArgs<ExtArgs>
+  instructor?: boolean | Prisma.Payment$instructorArgs<ExtArgs>
   razorpay_payment?: boolean | Prisma.Payment$razorpay_paymentArgs<ExtArgs>
 }, ExtArgs["result"]["payment"]>
 
@@ -1607,6 +2298,14 @@ export type PaymentSelectScalar = {
   reference?: boolean
   proof_url?: boolean
   notes?: boolean
+  direction?: boolean
+  category?: boolean
+  payee?: boolean
+  description?: boolean
+  incurred_at?: boolean
+  is_manual_expense?: boolean
+  instructor_id?: boolean
+  payout_period_key?: boolean
   recorded_by?: boolean
   razorpay_payment_id?: boolean
   razorpay_order_id?: boolean
@@ -1614,12 +2313,13 @@ export type PaymentSelectScalar = {
   updated_at?: boolean
 }
 
-export type PaymentOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "user_id" | "user_package_id" | "booking_id" | "method" | "status" | "amount_paise" | "currency" | "reference" | "proof_url" | "notes" | "recorded_by" | "razorpay_payment_id" | "razorpay_order_id" | "created_at" | "updated_at", ExtArgs["result"]["payment"]>
+export type PaymentOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "user_id" | "user_package_id" | "booking_id" | "method" | "status" | "amount_paise" | "currency" | "reference" | "proof_url" | "notes" | "direction" | "category" | "payee" | "description" | "incurred_at" | "is_manual_expense" | "instructor_id" | "payout_period_key" | "recorded_by" | "razorpay_payment_id" | "razorpay_order_id" | "created_at" | "updated_at", ExtArgs["result"]["payment"]>
 export type PaymentInclude<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   profile?: boolean | Prisma.ProfileDefaultArgs<ExtArgs>
   user_package?: boolean | Prisma.Payment$user_packageArgs<ExtArgs>
   booking?: boolean | Prisma.Payment$bookingArgs<ExtArgs>
   recorded_by_admin?: boolean | Prisma.Payment$recorded_by_adminArgs<ExtArgs>
+  instructor?: boolean | Prisma.Payment$instructorArgs<ExtArgs>
   razorpay_payment?: boolean | Prisma.Payment$razorpay_paymentArgs<ExtArgs>
 }
 export type PaymentIncludeCreateManyAndReturn<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
@@ -1627,6 +2327,7 @@ export type PaymentIncludeCreateManyAndReturn<ExtArgs extends runtime.Types.Exte
   user_package?: boolean | Prisma.Payment$user_packageArgs<ExtArgs>
   booking?: boolean | Prisma.Payment$bookingArgs<ExtArgs>
   recorded_by_admin?: boolean | Prisma.Payment$recorded_by_adminArgs<ExtArgs>
+  instructor?: boolean | Prisma.Payment$instructorArgs<ExtArgs>
   razorpay_payment?: boolean | Prisma.Payment$razorpay_paymentArgs<ExtArgs>
 }
 export type PaymentIncludeUpdateManyAndReturn<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
@@ -1634,6 +2335,7 @@ export type PaymentIncludeUpdateManyAndReturn<ExtArgs extends runtime.Types.Exte
   user_package?: boolean | Prisma.Payment$user_packageArgs<ExtArgs>
   booking?: boolean | Prisma.Payment$bookingArgs<ExtArgs>
   recorded_by_admin?: boolean | Prisma.Payment$recorded_by_adminArgs<ExtArgs>
+  instructor?: boolean | Prisma.Payment$instructorArgs<ExtArgs>
   razorpay_payment?: boolean | Prisma.Payment$razorpay_paymentArgs<ExtArgs>
 }
 
@@ -1644,6 +2346,7 @@ export type $PaymentPayload<ExtArgs extends runtime.Types.Extensions.InternalArg
     user_package: Prisma.$UserPackagePayload<ExtArgs> | null
     booking: Prisma.$BookingPayload<ExtArgs> | null
     recorded_by_admin: Prisma.$ProfilePayload<ExtArgs> | null
+    instructor: Prisma.$InstructorPayload<ExtArgs> | null
     razorpay_payment: Prisma.$RazorpayPaymentPayload<ExtArgs> | null
   }
   scalars: runtime.Types.Extensions.GetPayloadResult<{
@@ -1651,7 +2354,7 @@ export type $PaymentPayload<ExtArgs extends runtime.Types.Extensions.InternalArg
     user_id: string
     user_package_id: string | null
     booking_id: string | null
-    method: $Enums.PaymentMethod
+    method: $Enums.PaymentMethod | null
     status: $Enums.PaymentStatus
     amount_paise: number
     currency: string
@@ -1664,6 +2367,14 @@ export type $PaymentPayload<ExtArgs extends runtime.Types.Extensions.InternalArg
      */
     proof_url: string | null
     notes: string | null
+    direction: $Enums.PaymentDirection
+    category: $Enums.ExpenseCategory | null
+    payee: string | null
+    description: string | null
+    incurred_at: Date | null
+    is_manual_expense: boolean
+    instructor_id: string | null
+    payout_period_key: string | null
     /**
      * Admin profile id who recorded this payment (null for system/online flows).
      */
@@ -2076,6 +2787,7 @@ export interface Prisma__PaymentClient<T, Null = never, ExtArgs extends runtime.
   user_package<T extends Prisma.Payment$user_packageArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.Payment$user_packageArgs<ExtArgs>>): Prisma.Prisma__UserPackageClient<runtime.Types.Result.GetResult<Prisma.$UserPackagePayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | null, null, ExtArgs, GlobalOmitOptions>
   booking<T extends Prisma.Payment$bookingArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.Payment$bookingArgs<ExtArgs>>): Prisma.Prisma__BookingClient<runtime.Types.Result.GetResult<Prisma.$BookingPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | null, null, ExtArgs, GlobalOmitOptions>
   recorded_by_admin<T extends Prisma.Payment$recorded_by_adminArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.Payment$recorded_by_adminArgs<ExtArgs>>): Prisma.Prisma__ProfileClient<runtime.Types.Result.GetResult<Prisma.$ProfilePayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | null, null, ExtArgs, GlobalOmitOptions>
+  instructor<T extends Prisma.Payment$instructorArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.Payment$instructorArgs<ExtArgs>>): Prisma.Prisma__InstructorClient<runtime.Types.Result.GetResult<Prisma.$InstructorPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | null, null, ExtArgs, GlobalOmitOptions>
   razorpay_payment<T extends Prisma.Payment$razorpay_paymentArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.Payment$razorpay_paymentArgs<ExtArgs>>): Prisma.Prisma__RazorpayPaymentClient<runtime.Types.Result.GetResult<Prisma.$RazorpayPaymentPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | null, null, ExtArgs, GlobalOmitOptions>
   /**
    * Attaches callbacks for the resolution and/or rejection of the Promise.
@@ -2117,6 +2829,14 @@ export interface PaymentFieldRefs {
   readonly reference: Prisma.FieldRef<"Payment", 'String'>
   readonly proof_url: Prisma.FieldRef<"Payment", 'String'>
   readonly notes: Prisma.FieldRef<"Payment", 'String'>
+  readonly direction: Prisma.FieldRef<"Payment", 'PaymentDirection'>
+  readonly category: Prisma.FieldRef<"Payment", 'ExpenseCategory'>
+  readonly payee: Prisma.FieldRef<"Payment", 'String'>
+  readonly description: Prisma.FieldRef<"Payment", 'String'>
+  readonly incurred_at: Prisma.FieldRef<"Payment", 'DateTime'>
+  readonly is_manual_expense: Prisma.FieldRef<"Payment", 'Boolean'>
+  readonly instructor_id: Prisma.FieldRef<"Payment", 'String'>
+  readonly payout_period_key: Prisma.FieldRef<"Payment", 'String'>
   readonly recorded_by: Prisma.FieldRef<"Payment", 'String'>
   readonly razorpay_payment_id: Prisma.FieldRef<"Payment", 'String'>
   readonly razorpay_order_id: Prisma.FieldRef<"Payment", 'String'>
@@ -2577,6 +3297,25 @@ export type Payment$recorded_by_adminArgs<ExtArgs extends runtime.Types.Extensio
    */
   include?: Prisma.ProfileInclude<ExtArgs> | null
   where?: Prisma.ProfileWhereInput
+}
+
+/**
+ * Payment.instructor
+ */
+export type Payment$instructorArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  /**
+   * Select specific fields to fetch from the Instructor
+   */
+  select?: Prisma.InstructorSelect<ExtArgs> | null
+  /**
+   * Omit specific fields from the Instructor
+   */
+  omit?: Prisma.InstructorOmit<ExtArgs> | null
+  /**
+   * Choose, which related nodes to fetch as well
+   */
+  include?: Prisma.InstructorInclude<ExtArgs> | null
+  where?: Prisma.InstructorWhereInput
 }
 
 /**

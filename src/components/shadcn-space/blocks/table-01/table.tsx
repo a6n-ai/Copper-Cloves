@@ -115,13 +115,13 @@ const TableComp = () => {
                     <div className="overflow-x-auto">
                         <Table className="min-w-2xl">
                             <TableHeader>
-                                <TableRow className="hover:bg-transparent!">
-                                    <TableHead className="p-3 ps-6">#</TableHead>
-                                    <TableHead className="p-2">Project Name</TableHead>
-                                    <TableHead className="p-2">Budget</TableHead>
-                                    <TableHead className="p-2">Manager</TableHead>
-                                    <TableHead className="p-2">Progress</TableHead>
-                                    <TableHead className="p-3 pe-6 flex justify-end">Action</TableHead>
+                                <TableRow>
+                                    <TableHead>#</TableHead>
+                                    <TableHead>Project Name</TableHead>
+                                    <TableHead>Budget</TableHead>
+                                    <TableHead>Manager</TableHead>
+                                    <TableHead>Progress</TableHead>
+                                    <TableHead className="flex justify-end">Action</TableHead>
                                 </TableRow>
                             </TableHeader>
 
@@ -129,7 +129,7 @@ const TableComp = () => {
                                 {checkboxTableData.map((item, index) => (
                                     <TableRow key={index}>
                                         {/* Checkbox */}
-                                        <TableCell className="whitespace-nowrap p-3 ps-6">
+                                        <TableCell className="whitespace-nowrap">
                                             <Checkbox className="data-[state=checked]:bg-blue-500 dark:data-[state=checked]:bg-blue-500 data-[state=checked]:border-blue-500 dark:data-[state=checked]:border-blue-500 cursor-pointer" />
                                         </TableCell>
 
@@ -179,7 +179,7 @@ const TableComp = () => {
                                         </TableCell>
 
                                         {/* Dropdown Menu */}
-                                        <TableCell className="whitespace-nowrap p-3 pe-6">
+                                        <TableCell className="whitespace-nowrap">
                                             <div className="flex items-center justify-end">
                                                 <DropdownMenu>
                                                     <DropdownMenuTrigger>

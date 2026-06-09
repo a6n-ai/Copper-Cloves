@@ -9,6 +9,7 @@ import {
   Clock,
   CreditCard,
   Flame,
+  Infinity as InfinityIcon,
   Star,
   Trophy,
   UserCheck,
@@ -19,7 +20,8 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { ResponsiveTable } from "@/components/responsive/ResponsiveTable";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
+import { Pill } from "@/components/ui/pill";
+import { passTypePill } from "@/lib/pillMaps";
 import { Progress } from "@/components/ui/progress";
 import {
   ChartContainer,
@@ -397,7 +399,7 @@ function MembersTabImpl({
             <div>
               <div className="flex items-center justify-between mb-2">
                 <div className="flex items-center gap-2">
-                  <Badge className="bg-sage text-cream">Studio Pass</Badge>
+                  <Pill {...passTypePill("studio")} icon={<InfinityIcon className="h-3 w-3" />}>Studio Pass</Pill>
                   <span className="font-body text-charcoal/60">{displayedMemberStats.studioPassActive} members</span>
                 </div>
                 <span className="font-body font-medium text-charcoal">
@@ -416,7 +418,7 @@ function MembersTabImpl({
             <div>
               <div className="flex items-center justify-between mb-2">
                 <div className="flex items-center gap-2">
-                  <Badge variant="outline" className="border-terracotta/20 text-terracotta">Class Pass</Badge>
+                  <Pill {...passTypePill("class")}>Class Pass</Pill>
                   <span className="font-body text-charcoal/60">{displayedMemberStats.classPassActive} members</span>
                 </div>
                 <span className="font-body font-medium text-charcoal">
@@ -461,42 +463,42 @@ function MembersTabImpl({
             <ResponsiveTable>
               <Table>
                 <TableHeader>
-                  <TableRow className="bg-sage/5 hover:bg-sage/5 border-sage/10">
-                    <TableHead className="font-body text-xs uppercase tracking-wide text-charcoal/60 px-5 py-3">
+                  <TableRow>
+                    <TableHead>
                       <button type="button" onClick={() => togglePerfSort("name")} className="inline-flex items-center gap-1 uppercase hover:text-charcoal transition-colors">
                         Member {perfSortIcon("name")}
                       </button>
                     </TableHead>
-                    <TableHead className="font-body text-xs uppercase tracking-wide text-charcoal/60 px-5 py-3 w-[160px]">Package</TableHead>
-                    <TableHead className="font-body text-xs uppercase tracking-wide text-charcoal/60 px-5 py-3 w-[80px]">
+                    <TableHead className="w-[160px]">Package</TableHead>
+                    <TableHead className="w-[80px]">
                       <button type="button" onClick={() => togglePerfSort("streak")} className="inline-flex items-center gap-1 uppercase hover:text-charcoal transition-colors">
                         Streak {perfSortIcon("streak")}
                       </button>
                     </TableHead>
-                    <TableHead className="font-body text-xs uppercase tracking-wide text-charcoal/60 px-5 py-3 w-[80px]">
+                    <TableHead className="w-[80px]">
                       <button type="button" onClick={() => togglePerfSort("onTime")} className="inline-flex items-center gap-1 uppercase hover:text-charcoal transition-colors">
                         On Time {perfSortIcon("onTime")}
                       </button>
                     </TableHead>
-                    <TableHead className="font-body text-xs uppercase tracking-wide text-charcoal/60 px-5 py-3 w-[70px]">
+                    <TableHead className="w-[70px]">
                       <button type="button" onClick={() => togglePerfSort("late")} className="inline-flex items-center gap-1 uppercase hover:text-charcoal transition-colors">
                         Late {perfSortIcon("late")}
                       </button>
                     </TableHead>
-                    <TableHead className="font-body text-xs uppercase tracking-wide text-charcoal/60 px-5 py-3 w-[90px]">
+                    <TableHead className="w-[90px]">
                       <button type="button" onClick={() => togglePerfSort("noShow")} className="inline-flex items-center gap-1 uppercase hover:text-charcoal transition-colors">
                         No-Show {perfSortIcon("noShow")}
                       </button>
                     </TableHead>
-                    <TableHead className="font-body text-xs uppercase tracking-wide text-charcoal/60 px-5 py-3 w-[80px] text-right">Action</TableHead>
+                    <TableHead className="w-[80px] text-right">Action</TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
                   {membersPg.pageItems.map((member) => {
                     const m = member as Record<string, unknown>;
                     return (
-                      <TableRow key={`${(m.profileId as string) ?? "p"}-${m.id}`} className="border-sage/10">
-                        <TableCell className="px-5 py-3">
+                      <TableRow key={`${(m.profileId as string) ?? "p"}-${m.id}`}>
+                        <TableCell>
                           <div className="flex items-center gap-3">
                             <ListAvatar name={String(m.name ?? "?")} src={(m.avatarUrl as string) ?? null} size="sm" ringClassName="ring-sage/20" />
                             <div className="min-w-0">
@@ -505,16 +507,25 @@ function MembersTabImpl({
                             </div>
                           </div>
                         </TableCell>
-                        <TableCell className="px-5 py-3">
-                          <Badge variant="outline" className="border-sage/20 text-sage bg-sage/5 font-body whitespace-nowrap">
-                            {m.package as string}
-                          </Badge>
+                        <TableCell>
+                          {(() => {
+                            const studio = isStudioPkg(String(m.package ?? "").toLowerCase());
+                            return (
+                              <Pill
+                                {...passTypePill(studio ? "studio" : "class")}
+                                icon={studio ? <InfinityIcon className="h-3 w-3" /> : undefined}
+                                className="font-body whitespace-nowrap"
+                              >
+                                {studio ? "Studio Pass" : "Class Pass"}
+                              </Pill>
+                            );
+                          })()}
                         </TableCell>
-                        <TableCell className="px-5 py-3 font-display text-base text-sage tabular-nums">{m.streak as number}</TableCell>
-                        <TableCell className="px-5 py-3 font-display text-base text-charcoal tabular-nums">{m.onTime as number}</TableCell>
-                        <TableCell className="px-5 py-3 font-display text-base text-terracotta tabular-nums">{m.late as number}</TableCell>
-                        <TableCell className="px-5 py-3 font-display text-base text-[#a05e38] tabular-nums">{m.noShow as number}</TableCell>
-                        <TableCell className="px-5 py-3 text-right">
+                        <TableCell className="font-display text-base text-sage tabular-nums">{m.streak as number}</TableCell>
+                        <TableCell className="font-display text-base text-charcoal tabular-nums">{m.onTime as number}</TableCell>
+                        <TableCell className="font-display text-base text-terracotta tabular-nums">{m.late as number}</TableCell>
+                        <TableCell className="font-display text-base text-[#a05e38] tabular-nums">{m.noShow as number}</TableCell>
+                        <TableCell className="text-right">
                           <Button variant="sage-outline" size="sm" onClick={() => onViewProfile(m)} className="h-8">View</Button>
                         </TableCell>
                       </TableRow>

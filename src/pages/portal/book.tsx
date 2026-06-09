@@ -29,7 +29,7 @@ import {
   ResponsiveDialogDescription,
 } from "@/components/responsive/ResponsiveDialog";
 import { classInitials, classFallbackGradient } from "@/components/classes/classFallback";
-import { Badge } from "@/components/ui/badge";
+import { Pill } from "@/components/ui/pill";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { 
@@ -50,6 +50,7 @@ import {
   ArrowDown,
 } from "lucide-react";
 import { NavPrevButton, NavNextButton, QtyMinusButton, QtyPlusButton } from "@/components/ui/quick-actions";
+import { FilterSelect, useFilterState } from "@/components/filters";
 import { useSession } from "next-auth/react";
 import {
   startOfMondayWeekLocal,
@@ -347,12 +348,12 @@ const STATUS_TEXT: Record<StatusTone, string> = {
   full: "text-terracotta",
   past: "text-charcoal/40",
 };
-/** Tinted pill backgrounds — gives status real presence vs a bare dot+text. */
-const STATUS_PILL: Record<StatusTone, string> = {
-  available: "bg-sage/10 text-sage",
-  low: "bg-terracotta/10 text-terracotta",
-  full: "bg-terracotta/10 text-terracotta",
-  past: "bg-charcoal/[0.06] text-charcoal/45",
+/** Maps the booking status tone to the shared Pill component tone. */
+const STATUS_PILL_TONE: Record<StatusTone, "success" | "warning" | "neutral"> = {
+  available: "success",
+  low: "warning",
+  full: "warning",
+  past: "neutral",
 };
 /** Friendly labels for the schedule lifecycle status (past / non-bookable classes). */
 const LIFECYCLE_LABEL: Record<string, string> = {
@@ -463,10 +464,9 @@ const BookClassCard = memo(function BookClassCard({ cls, onSelect, onOpenDetails
           )}
         </div>
         <div className="mt-4 flex items-center justify-between gap-3">
-          <span className={`inline-flex items-center gap-1.5 rounded-full px-2.5 py-1 font-body text-xs font-medium ${STATUS_PILL[status.tone]}`}>
-            <span className={`size-1.5 rounded-full ${STATUS_DOT[status.tone]}`} aria-hidden="true" />
+          <Pill tone={STATUS_PILL_TONE[status.tone]} size="md" dot className="font-body font-medium">
             {status.label}
-          </span>
+          </Pill>
           <Button
             onClick={(e) => { e.stopPropagation(); onSelect(cls); }}
             disabled={!status.canBook}
@@ -507,7 +507,7 @@ function BookClassDetailDialog({
                   <span className="font-display text-5xl text-white-warm/55">{classInitials(cls.name)}</span>
                 </div>
               )}
-              <Badge className="absolute left-4 top-4 border-0 bg-white-warm/90 text-xs text-sage">{cls.category}</Badge>
+              <Pill size="sm" className="absolute left-4 top-4 border-0 bg-white-warm/90 text-sage">{cls.category}</Pill>
             </div>
             <div className="space-y-4 p-5 sm:p-6">
               <ResponsiveDialogHeader className="space-y-1 text-left">
@@ -586,9 +586,9 @@ const FoodRow = memo(function FoodRow({ item, onAdjust }: FoodRowProps) {
         <div className="flex-1">
           <div className="flex flex-wrap items-center gap-2 mb-1">
             <h4 className="font-display text-lg text-charcoal">{item.name}</h4>
-            <Badge variant="outline" className="border-sage/30 text-charcoal/70 text-[10px]">
+            <Pill tone="neutral" className="text-[10px]">
               {formatCafeCategory(item.category)}
-            </Badge>
+            </Pill>
           </div>
           {item.description ? (
             <p className="font-body text-xs text-charcoal/60 mb-2">{item.description}</p>
@@ -767,7 +767,7 @@ export default function BookClass() {
   // Pagination & filters
   const [currentPage, setCurrentPage] = useState(1);
   const [detailClass, setDetailClass] = useState<Class | null>(null);
-  const [filterClassName, setFilterClassName] = useState<string>("all");
+  const f = useFilterState({ className: "all" });
   const [dateSort, setDateSort] = useState<"asc" | "desc">("asc");
   const [weekOffset, setWeekOffset] = useState(0);
   const [selectedDayIndex, setSelectedDayIndex] = useState<number | null>(() => mondayWeekIndex(new Date()));
@@ -802,13 +802,13 @@ export default function BookClass() {
 
   const filteredClasses = useMemo(() => {
     const list = allClasses.filter(cls => {
-      const nameMatch = filterClassName === "all" || cls.name === filterClassName;
+      const nameMatch = f.values.className === "all" || cls.name === f.values.className;
       const dayMatch = selectedDayIndex === null || isSameLocalCalendarDay(new Date(cls.startTimeIso), weekDays[selectedDayIndex]);
       return nameMatch && dayMatch;
     });
     const dir = dateSort === "asc" ? 1 : -1;
     return list.sort((a, b) => (a.startTimeMs - b.startTimeMs) * dir);
-  }, [allClasses, filterClassName, selectedDayIndex, weekDays, dateSort]);
+  }, [allClasses, f.values.className, selectedDayIndex, weekDays, dateSort]);
 
   const startIndex = (currentPage - 1) * classesPerPage;
   const paginatedClasses = filteredClasses.slice(startIndex, startIndex + classesPerPage);
@@ -832,7 +832,7 @@ export default function BookClass() {
     if (status === "authenticated") {
       // Current week → preselect today; other weeks → show all days.
       setSelectedDayIndex(weekOffset === 0 ? mondayWeekIndex(new Date()) : null);
-      setFilterClassName("all");
+      f.reset();
       didAutoAdvanceDay.current = false;
       fetchClasses(weekOffset);
     }
@@ -1029,7 +1029,7 @@ export default function BookClass() {
 
   useEffect(() => {
     setCurrentPage(1);
-  }, [filterClassName, selectedDayIndex, dateSort]);
+  }, [f.values.className, selectedDayIndex, dateSort]);
 
   // Handlers — useCallback so the memoized BookClassCard skips rerender when
   // only unrelated parent state changes (typing in friends/family, etc).
@@ -1382,10 +1382,10 @@ export default function BookClass() {
               />
               <span className="font-body text-xs sm:text-sm text-charcoal/70 font-medium flex items-center gap-1.5 sm:gap-2">
                 {weekSummary || "Loading…"}
-                {weekOffset === 0 && <span className="text-xs text-sage bg-sage/10 px-2 py-0.5 rounded-full">This Week</span>}
-                {weekOffset === 1 && <span className="text-xs text-sage bg-sage/10 px-2 py-0.5 rounded-full">Next Week</span>}
-                {weekOffset < 0 && <span className="text-xs text-terracotta/80 bg-terracotta/10 px-2 py-0.5 rounded-full">Past</span>}
-                {weekOffset > 1 && <span className="text-xs text-sage bg-sage/10 px-2 py-0.5 rounded-full">Upcoming</span>}
+                {weekOffset === 0 && <Pill tone="success" size="sm">This Week</Pill>}
+                {weekOffset === 1 && <Pill tone="success" size="sm">Next Week</Pill>}
+                {weekOffset < 0 && <Pill tone="warning" size="sm">Past</Pill>}
+                {weekOffset > 1 && <Pill tone="success" size="sm">Upcoming</Pill>}
               </span>
               <NavNextButton
                 onClick={() => setWeekOffset(o => o + 1)}
@@ -1433,31 +1433,17 @@ export default function BookClass() {
 
           {/* Class Filter + Date sort */}
           <div className="flex items-center gap-3 mb-8">
-            <div className="flex gap-2 overflow-x-auto pb-2 scrollbar-hide flex-1 min-w-0">
-              <button
-                onClick={() => setFilterClassName("all")}
-                className={`shrink-0 px-4 py-2 rounded-full text-sm font-body transition-all border ${
-                  filterClassName === "all"
-                    ? "bg-sage text-cream border-sage"
-                    : "border-sage/30 text-charcoal hover:border-sage hover:bg-sage/5"
-                }`}
-              >
-                All Classes
-              </button>
-              {uniqueClassNames.map(name => (
-                <button
-                  key={name}
-                  onClick={() => setFilterClassName(filterClassName === name ? "all" : name)}
-                  className={`shrink-0 px-4 py-2 rounded-full text-sm font-body transition-all border ${
-                    filterClassName === name
-                      ? "bg-sage text-cream border-sage"
-                      : "border-sage/30 text-charcoal hover:border-sage hover:bg-sage/5"
-                  }`}
-                >
-                  {name}
-                </button>
-              ))}
-            </div>
+            <FilterSelect
+              value={f.values.className}
+              onChange={(v) => f.set("className", v)}
+              options={[
+                { value: "all", label: "All Classes" },
+                ...uniqueClassNames.map((name) => ({ value: name, label: name })),
+              ]}
+              ariaLabel="Filter by class name"
+              placeholder="All Classes"
+              className="flex-1 min-w-0 sm:w-auto"
+            />
             <button
               type="button"
               onClick={() => setDateSort(d => (d === "asc" ? "desc" : "asc"))}
@@ -1504,7 +1490,7 @@ export default function BookClass() {
                 <h3 className="font-display text-2xl text-charcoal mb-2">No Classes Available</h3>
                 <p className="font-body text-charcoal/60 mb-6">Try adjusting your filters or check back soon.</p>
                 <Button
-                  onClick={() => { setFilterClassName("all"); setSelectedDayIndex(null); }}
+                  onClick={() => { f.reset(); setSelectedDayIndex(null); }}
                   variant="outline"
                   className="border-sage text-sage hover:bg-sage hover:text-cream transition-all duration-600"
                 >

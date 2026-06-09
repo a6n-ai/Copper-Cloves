@@ -6,10 +6,9 @@ export const getServerSideProps = requireSessionSSP({ roles: ["admin"] });
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { AdminPageHeader } from "@/components/admin/AdminPageHeader";
 import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
-import { Input } from "@/components/ui/input";
+import { Pill } from "@/components/ui/pill";
+import { FilterBar, FilterSearch, FilterSelect, useFilterState } from "@/components/filters";
 import {
-  Search,
   TrendingUp,
   TrendingDown,
   CheckCircle2,
@@ -115,9 +114,8 @@ function CreditsLoadingSkeleton() {
 export default function AdminCredits() {
   const router = useRouter();
   const [loading, setLoading] = useState(true);
-  const [searchQuery, setSearchQuery] = useState("");
   const [transactions, setTransactions] = useState<CreditTransaction[]>([]);
-  const [filterType, setFilterType] = useState("all");
+  const f = useFilterState({ search: "", type: "all" }, { urlSync: true });
   const [sortKey, setSortKey] = useState<SortKey | null>(null);
   const [sortDir, setSortDir] = useState<"asc" | "desc">("desc");
   const { data: session, status } = useSession();
@@ -143,12 +141,12 @@ export default function AdminCredits() {
   const filteredTransactions = useMemo(() => {
     let filtered: CreditTransaction[] = transactions;
 
-    if (filterType !== "all") {
-      filtered = filtered.filter((t) => t.type === filterType);
+    if (f.values.type !== "all") {
+      filtered = filtered.filter((t) => t.type === f.values.type);
     }
 
-    if (searchQuery) {
-      const q = searchQuery.toLowerCase();
+    if (f.values.search) {
+      const q = f.values.search.toLowerCase();
       filtered = filtered.filter(
         (t) =>
           t.memberName.toLowerCase().includes(q) ||
@@ -175,7 +173,7 @@ export default function AdminCredits() {
     }
 
     return filtered;
-  }, [searchQuery, filterType, transactions, sortKey, sortDir]);
+  }, [f.values.search, f.values.type, transactions, sortKey, sortDir]);
 
   const toggleSort = (key: SortKey) => {
     if (sortKey === key) {
@@ -189,7 +187,7 @@ export default function AdminCredits() {
   const txPg = usePagination(
     filteredTransactions,
     10,
-    `${searchQuery}|${filterType}|${sortKey}|${sortDir}`,
+    `${f.values.search}|${f.values.type}|${sortKey}|${sortDir}`,
   );
 
   const loadTransactions = async () => {
@@ -221,13 +219,13 @@ export default function AdminCredits() {
   const getTypeBadge = (type: string) => {
     switch (type) {
       case "added":
-        return <Badge className="bg-sage/10 text-sage border-sage/20">Added</Badge>;
+        return <Pill tone="success">Added</Pill>;
       case "deducted":
-        return <Badge variant="destructive">Deducted</Badge>;
+        return <Pill tone="danger">Deducted</Pill>;
       case "used":
-        return <Badge variant="outline" className="border-charcoal/20 text-charcoal">Used</Badge>;
+        return <Pill tone="neutral">Used</Pill>;
       case "expired":
-        return <Badge variant="outline" className="border-charcoal/15 text-charcoal/60 bg-charcoal/5">Expired</Badge>;
+        return <Pill tone="neutral">Expired</Pill>;
       default:
         return null;
     }
@@ -285,64 +283,36 @@ export default function AdminCredits() {
             {/* Transactions Table */}
             <Card className="border-sage/20 bg-white-warm">
               <CardHeader className="space-y-4">
-                <div className="flex flex-wrap items-start justify-between gap-3">
-                  <div>
-                    <CardTitle className="font-display text-2xl text-charcoal">
-                      Transaction History <span className="font-body text-base text-charcoal/40">({filteredTransactions.length})</span>
-                    </CardTitle>
-                    <CardDescription className="font-body text-charcoal/60">
-                      Complete audit trail of all class movements
-                    </CardDescription>
-                  </div>
-                  <div className="relative w-full sm:w-72">
-                    <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-charcoal/40" />
-                    <Input
-                      value={searchQuery}
-                      onChange={(e) => setSearchQuery(e.target.value)}
-                      placeholder="Search member or reason…"
-                      className="h-9 pl-9 border-sage/20 focus:border-sage font-body"
-                    />
-                  </div>
+                <div>
+                  <CardTitle className="font-display text-2xl text-charcoal">
+                    Transaction History <span className="font-body text-base text-charcoal/40">({filteredTransactions.length})</span>
+                  </CardTitle>
+                  <CardDescription className="font-body text-charcoal/60">
+                    Complete audit trail of all class movements
+                  </CardDescription>
                 </div>
 
-                {/* Type filter: tab strip */}
-                <div className="flex items-center justify-between flex-wrap gap-3 border-b border-sage/10">
-                  <div className="flex items-center gap-1 -mb-px overflow-x-auto">
-                    {[
-                      { v: "all", l: "All" },
-                      { v: "added", l: "Added" },
-                      { v: "used", l: "Used" },
-                      { v: "deducted", l: "Deducted" },
-                      { v: "expired", l: "Expired" },
-                    ].map((o) => {
-                      const active = filterType === o.v;
-                      return (
-                        <button
-                          key={o.v}
-                          type="button"
-                          onClick={() => setFilterType(o.v)}
-                          className={`relative px-4 py-2 font-body text-sm whitespace-nowrap transition-colors ${
-                            active ? "text-sage" : "text-charcoal/60 hover:text-charcoal"
-                          }`}
-                        >
-                          {o.l}
-                          {active && (
-                            <span className="absolute left-0 right-0 -bottom-px h-0.5 bg-sage rounded-full" />
-                          )}
-                        </button>
-                      );
-                    })}
-                  </div>
-                  {(filterType !== "all" || searchQuery) && (
-                    <button
-                      type="button"
-                      onClick={() => { setFilterType("all"); setSearchQuery(""); }}
-                      className="font-body text-xs text-terracotta hover:underline pb-2"
-                    >
-                      Reset
-                    </button>
-                  )}
-                </div>
+                <FilterBar reset={f.isActive ? f.reset : undefined} className="mb-4">
+                  <FilterSearch
+                    value={f.values.search}
+                    onChange={(v) => f.set("search", v)}
+                    placeholder="Search member or reason…"
+                    aria-label="Search transactions"
+                  />
+                  <FilterSelect
+                    ariaLabel="Type"
+                    placeholder="Type"
+                    value={f.values.type}
+                    onChange={(v) => f.set("type", v)}
+                    options={[
+                      { value: "all", label: "All types" },
+                      { value: "added", label: "Added" },
+                      { value: "used", label: "Used" },
+                      { value: "deducted", label: "Deducted" },
+                      { value: "expired", label: "Expired" },
+                    ]}
+                  />
+                </FilterBar>
               </CardHeader>
               <CardContent>
                 {filteredTransactions.length === 0 ? (
@@ -350,7 +320,7 @@ export default function AdminCredits() {
                     <Activity className="h-12 w-12 text-charcoal/20 mx-auto mb-3" />
                     <p className="font-body text-charcoal/40">No transactions found</p>
                     <Button
-                      onClick={() => { setSearchQuery(""); setFilterType("all"); }}
+                      onClick={f.reset}
                       variant="outline"
                       className="mt-4 border-sage/20 text-sage hover:bg-sage/10 font-body"
                     >
@@ -363,18 +333,18 @@ export default function AdminCredits() {
                       <div className="rounded-xl border border-sage/15 bg-white-warm overflow-hidden">
                         <Table>
                           <TableHeader>
-                            <TableRow className="bg-sage/5 hover:bg-sage/5 border-sage/10">
+                            <TableRow>
                               <SortableHeader sortKey="type" active={sortKey} dir={sortDir} onToggle={toggleSort} className="w-[130px]">Type</SortableHeader>
                               <SortableHeader sortKey="amount" active={sortKey} dir={sortDir} onToggle={toggleSort} className="w-[110px]">Amount</SortableHeader>
                               <SortableHeader sortKey="member" active={sortKey} dir={sortDir} onToggle={toggleSort} className="w-[180px]">Member</SortableHeader>
-                              <TableHead className="font-body text-xs uppercase tracking-wide text-charcoal/60 px-5 py-3">Reason</TableHead>
+                              <TableHead>Reason</TableHead>
                               <SortableHeader sortKey="date" active={sortKey} dir={sortDir} onToggle={toggleSort} className="w-[200px]">Date &amp; Admin</SortableHeader>
                             </TableRow>
                           </TableHeader>
                           <TableBody>
                             {txPg.pageItems.map((transaction) => (
-                              <TableRow key={transaction.id} className="border-sage/10 hover:bg-sage/5">
-                                <TableCell className="px-5 py-4">
+                              <TableRow key={transaction.id}>
+                                <TableCell>
                                   <div className="flex items-center gap-2.5">
                                     <div className={`p-2 rounded-lg shrink-0 ${
                                       transaction.type === "added" ? "bg-sage/10" :
@@ -387,7 +357,7 @@ export default function AdminCredits() {
                                     {getTypeBadge(transaction.type)}
                                   </div>
                                 </TableCell>
-                                <TableCell className="px-5 py-4">
+                                <TableCell>
                                   <span className={`font-display text-2xl tabular-nums ${
                                     transaction.type === "added" ? "text-sage" :
                                     transaction.type === "expired" ? "text-charcoal/50" :
@@ -397,13 +367,13 @@ export default function AdminCredits() {
                                   </span>
                                   <span className="font-body text-xs text-charcoal/50 ml-1">cr</span>
                                 </TableCell>
-                                <TableCell className="px-5 py-4">
+                                <TableCell>
                                   <span className="font-body font-medium text-charcoal">{transaction.memberName}</span>
                                 </TableCell>
-                                <TableCell className="px-5 py-4">
+                                <TableCell>
                                   <span className="font-body text-sm text-charcoal/80">{transaction.reason}</span>
                                 </TableCell>
-                                <TableCell className="px-5 py-4">
+                                <TableCell>
                                   <div className="flex items-center gap-2 text-sm">
                                     <Calendar className="h-3.5 w-3.5 text-charcoal/40 shrink-0" />
                                     <span className="font-body text-charcoal">

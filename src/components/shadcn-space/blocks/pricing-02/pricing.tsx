@@ -1,7 +1,7 @@
 "use client";
 
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
+import { Pill } from "@/components/ui/pill";
 import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
 import { cn } from "@/lib/utils";
@@ -85,12 +85,13 @@ const Pricing = () => {
           {/* Heading */}
           <div className="flex flex-col gap-4 justify-center items-center">
             {/* Badge */}
-            <Badge
-              variant={"outline"}
+            <Pill
+              tone="neutral"
+
               className="py-1 px-3 text-sm font-normal leading-5 w-fit h-7"
             >
               Pricing
-            </Badge>
+            </Pill>
             {/* Heading */}
             <div className="max-w-3xs sm:max-w-md mx-auto text-center">
               <h2 className="text-foreground text-3xl sm:text-5xl font-medium">
@@ -141,9 +142,9 @@ const Pricing = () => {
                             {plan.plan_name}
                           </CardTitle>
                           {isFeatured && (
-                            <Badge className="py-1 px-3 text-sm font-medium leading-5 w-fit h-7 flex items-center gap-1.5 [&>svg]:size-4!">
+                            <Pill tone="success" className="py-1 px-3 text-sm font-medium leading-5 w-fit h-7 flex items-center gap-1.5 [&>svg]:size-4!">
                               <Flame size={16} /> Recommend
-                            </Badge>
+                            </Pill>
                           )}
                         </div>
                         <CardDescription className="text-base font-normal max-w-2x">

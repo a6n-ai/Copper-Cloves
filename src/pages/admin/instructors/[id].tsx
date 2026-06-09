@@ -16,7 +16,7 @@ import { SEO as Seo } from "@/components/SEO";
 import { PageHeader } from "@/components/dashboard/PageHeader";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
+import { Pill } from "@/components/ui/pill";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
@@ -323,9 +323,9 @@ export default function InstructorProfilePage() {
                       ) : (
                         <div className="flex flex-wrap gap-1.5">
                           {instructor.specialties.map((s) => (
-                            <Badge key={s} variant="outline" className="capitalize font-body bg-sage/10 text-sage border-sage/30">
+                            <Pill key={s} tone="success" className="capitalize font-body">
                               {s}
-                            </Badge>
+                            </Pill>
                           ))}
                         </div>
                       )}

@@ -1,5 +1,5 @@
 import { memo, useCallback, useEffect, useState } from "react";
-import { Loader2, Plus, Receipt, Trash2 } from "lucide-react";
+import { Loader2, Plus, Receipt, Trash2, Banknote } from "lucide-react";
 import { toast } from "sonner";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
@@ -10,7 +10,8 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
-import { Badge } from "@/components/ui/badge";
+import { Pill } from "@/components/ui/pill";
+import { paymentMethodPill } from "@/lib/pillMaps";
 import { Pagination, usePagination } from "@/components/Pagination";
 import {
   ResponsiveDialog,
@@ -49,7 +50,6 @@ const METHOD_OPTIONS: { value: string; label: string }[] = [
   { value: "pine_lab_upi", label: "UPI (Pine Lab)" },
   { value: "razorpay_online", label: "Razorpay" },
 ];
-const METHOD_LABEL: Record<string, string> = Object.fromEntries(METHOD_OPTIONS.map((m) => [m.value, m.label]));
 
 function rupeesFromPaise(p: number): string {
   return `₹${Math.round(p / 100).toLocaleString("en-IN")}`;
@@ -198,21 +198,21 @@ function ExpensesSectionImpl() {
                 <ResponsiveTable>
                   <Table>
                     <TableHeader>
-                      <TableRow className="bg-sage/5 hover:bg-sage/5 border-sage/10">
+                      <TableRow>
                         <SortableHeader sortKey="category" active={expSortKey} dir={expSortDir} onToggle={toggleExp} className="w-[132px]">Type</SortableHeader>
                         <SortableHeader sortKey="details" active={expSortKey} dir={expSortDir} onToggle={toggleExp}>Details</SortableHeader>
                         <SortableHeader sortKey="date" active={expSortKey} dir={expSortDir} onToggle={toggleExp} className="w-[120px]">Date</SortableHeader>
-                        <TableHead className="font-body text-xs uppercase tracking-wide text-charcoal/60 px-5 py-3 w-[120px]">Method</TableHead>
+                        <TableHead className="w-[120px]">Method</TableHead>
                         <SortableHeader sortKey="amount" active={expSortKey} dir={expSortDir} onToggle={toggleExp} className="w-[120px] text-right" align="right">Amount</SortableHeader>
-                        <TableHead className="font-body text-xs uppercase tracking-wide text-charcoal/60 px-5 py-3 w-[56px]" />
+                        <TableHead className="w-[56px]" />
                       </TableRow>
                     </TableHeader>
                     <TableBody>
                       {expensePg.pageItems.map((e) => {
                         const ks = expenseCategoryStyle(e.category);
                         return (
-                          <TableRow key={e.id} className="border-sage/10">
-                            <TableCell className="px-5 py-4">
+                          <TableRow key={e.id}>
+                            <TableCell>
                               <span
                                 className="inline-flex w-full max-w-[112px] items-center justify-center rounded-full border px-2.5 py-0.5 font-body text-[11px] font-medium whitespace-nowrap"
                                 style={{ backgroundColor: ks.bg, color: ks.fg, borderColor: ks.border }}
@@ -220,7 +220,7 @@ function ExpensesSectionImpl() {
                                 {EXPENSE_CATEGORY_LABELS[e.category]}
                               </span>
                             </TableCell>
-                            <TableCell className="px-5 py-4">
+                            <TableCell>
                               <div className="font-body text-sm text-charcoal line-clamp-2 [overflow-wrap:anywhere]">
                                 {e.payee || e.description || EXPENSE_CATEGORY_LABELS[e.category]}
                               </div>
@@ -228,22 +228,30 @@ function ExpensesSectionImpl() {
                                 <div className="font-body text-xs text-charcoal/45 line-clamp-1">{e.description}</div>
                               ) : null}
                             </TableCell>
-                            <TableCell className="px-5 py-4 font-body text-sm text-charcoal/60 whitespace-nowrap">
+                            <TableCell className="font-body text-sm text-charcoal/60 whitespace-nowrap">
                               {new Date(e.incurredAtISO).toLocaleDateString("en-IN", { day: "numeric", month: "short", year: "2-digit" })}
                             </TableCell>
-                            <TableCell className="px-5 py-4">
-                              {e.method ? (
-                                <Badge variant="outline" className="border-charcoal/15 text-charcoal/60 font-body whitespace-nowrap">
-                                  {METHOD_LABEL[e.method] ?? e.method}
-                                </Badge>
-                              ) : (
+                            <TableCell>
+                              {e.method ? (() => {
+                                const pm = paymentMethodPill(e.method);
+                                return (
+                                  <Pill
+                                    tone={pm.tone}
+                                    brand={pm.brand}
+                                    icon={pm.label === "Cash" ? <Banknote className="h-3 w-3" /> : undefined}
+                                    className="font-body whitespace-nowrap"
+                                  >
+                                    {pm.label}
+                                  </Pill>
+                                );
+                              })() : (
                                 <span className="font-body text-xs text-charcoal/30">—</span>
                               )}
                             </TableCell>
-                            <TableCell className="px-5 py-4 text-right">
+                            <TableCell className="text-right">
                               <span className="font-display text-base tabular-nums text-[#a05e38]">−{rupeesFromPaise(e.amountPaise)}</span>
                             </TableCell>
-                            <TableCell className="px-5 py-4 text-right">
+                            <TableCell className="text-right">
                               <Button
                                 type="button"
                                 variant="ghost"

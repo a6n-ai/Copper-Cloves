@@ -1,8 +1,12 @@
 import { useCallback, useEffect, useState } from "react";
-import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
+import { Pill, type PillProps } from "@/components/ui/pill";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { ResponsiveTable } from "@/components/responsive/ResponsiveTable";
+import { Pagination } from "@/components/Pagination";
+import { ArrowDown, ArrowUp, ChevronsUpDown } from "lucide-react";
+
+type SortField = "summary" | "category" | "actor_name" | "created_at";
+type SortDir = "asc" | "desc";
 import {
   ResponsiveDialog,
   ResponsiveDialogContent,
@@ -29,17 +33,19 @@ export interface ActivityLogItem {
   createdAt: string;
 }
 
-const CATEGORY_CLASS: Record<string, string> = {
-  auth: "bg-sage/10 text-sage border-sage/20",
-  member: "bg-sage/10 text-sage border-sage/20",
-  admin: "bg-terracotta/10 text-terracotta border-terracotta/20",
-  instructor: "bg-cream/40 text-charcoal border-sage/20",
-  partner: "bg-cream/40 text-charcoal border-sage/20",
-  system: "bg-charcoal/5 text-charcoal/60 border-charcoal/10",
+// Pill tone per category, inferred from the prior palette: sage→success,
+// terracotta/deep-clay→warning, charcoal/sand/muted→neutral.
+const CATEGORY_TONE: Record<string, NonNullable<PillProps["tone"]>> = {
+  auth: "success",
+  member: "warning",
+  admin: "warning",
+  instructor: "neutral",
+  partner: "neutral",
+  system: "neutral",
 };
 
-function categoryClass(category: string): string {
-  return CATEGORY_CLASS[category] ?? CATEGORY_CLASS.system;
+function categoryTone(category: string): NonNullable<PillProps["tone"]> {
+  return CATEGORY_TONE[category] ?? "neutral";
 }
 
 function timeAgo(iso: string): string {
@@ -72,6 +78,40 @@ function actorLabel(it: ActivityLogItem): string {
   return it.actorName ?? "—";
 }
 
+function SortHead({
+  label,
+  field,
+  sortField,
+  sortDir,
+  onSort,
+  className,
+}: {
+  label: string;
+  field: SortField;
+  sortField: SortField;
+  sortDir: SortDir;
+  onSort: (f: SortField) => void;
+  className?: string;
+}) {
+  const active = sortField === field;
+  const Icon = active ? (sortDir === "asc" ? ArrowUp : ArrowDown) : ChevronsUpDown;
+  return (
+    <TableHead
+      className={`font-body ${className ?? ""}`}
+      aria-sort={active ? (sortDir === "asc" ? "ascending" : "descending") : "none"}
+    >
+      <button
+        type="button"
+        onClick={() => onSort(field)}
+        className={`inline-flex items-center gap-1.5 transition-colors hover:text-charcoal ${active ? "text-charcoal" : ""}`}
+      >
+        {label}
+        <Icon className={`h-3.5 w-3.5 ${active ? "text-sage" : "text-charcoal/30"}`} />
+      </button>
+    </TableHead>
+  );
+}
+
 /** One labelled row in the detail dialog. Renders nothing when the value is empty. */
 function DetailRow({ label, value }: { label: string; value: React.ReactNode }) {
   if (value === null || value === undefined || value === "") return null;
@@ -102,9 +142,9 @@ function ActivityDetailDialog({
             <ResponsiveDialogHeader>
               <ResponsiveDialogTitle className="font-display text-xl text-charcoal flex items-center gap-2">
                 {item.summary}
-                <Badge variant="outline" className={categoryClass(item.category)}>
+                <Pill tone={categoryTone(item.category)}>
                   {item.category}
-                </Badge>
+                </Pill>
               </ResponsiveDialogTitle>
               <ResponsiveDialogDescription className="font-body text-charcoal/60">
                 {fullTimestamp(item.createdAt)}
@@ -159,47 +199,65 @@ export function ActivityLogList({
   endpoint = "/api/user/activity-log",
   query = "",
   emptyLabel = "No activity yet.",
+  pageSize = 10,
 }: {
   endpoint?: string;
   query?: string;
   emptyLabel?: string;
+  pageSize?: number;
 }) {
   const [items, setItems] = useState<ActivityLogItem[]>([]);
-  const [cursor, setCursor] = useState<string | null>(null);
-  const [loading, setLoading] = useState(false);
+  const [page, setPage] = useState(1);
+  const [total, setTotal] = useState(0);
   const [loaded, setLoaded] = useState(false);
   const [selected, setSelected] = useState<ActivityLogItem | null>(null);
+  const [sortField, setSortField] = useState<SortField>("created_at");
+  const [sortDir, setSortDir] = useState<SortDir>("desc");
 
   const load = useCallback(
-    async (reset: boolean) => {
-      setLoading(true);
+    async (targetPage: number) => {
       try {
         const params = new URLSearchParams(query);
-        if (!reset && cursor) params.set("cursor", cursor);
-        const sep = params.toString() ? "?" : "";
-        const res = await fetch(`${endpoint}${sep}${params.toString()}`);
+        params.set("page", String(targetPage));
+        params.set("limit", String(pageSize));
+        params.set("sort", sortField);
+        params.set("dir", sortDir);
+        const res = await fetch(`${endpoint}?${params.toString()}`);
         if (!res.ok) throw new Error(String(res.status));
-        const json = (await res.json()) as { items: ActivityLogItem[]; nextCursor: string | null };
-        setItems((prev) => (reset ? json.items : [...prev, ...json.items]));
-        setCursor(json.nextCursor);
+        const json = (await res.json()) as {
+          items: ActivityLogItem[];
+          page: number;
+          total: number;
+        };
+        setItems(json.items);
+        setPage(json.page);
+        setTotal(json.total);
       } catch {
         if (!loaded) setItems([]);
       } finally {
-        setLoading(false);
         setLoaded(true);
       }
     },
-    [endpoint, query, cursor, loaded],
+    [endpoint, query, pageSize, sortField, sortDir, loaded],
   );
 
-  // Reset + reload whenever endpoint/query change.
+  // Reset to page 1 + reload whenever endpoint/query/sort change.
   useEffect(() => {
     setItems([]);
-    setCursor(null);
-    setLoaded(false);
-    void load(true);
+    setPage(1);
+    void load(1);
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [endpoint, query]);
+  }, [endpoint, query, sortField, sortDir]);
+
+  // New column → sort that column (desc for time, asc for text); same column → flip.
+  const toggleSort = (field: SortField) => {
+    if (field === sortField) {
+      setSortDir((d) => (d === "asc" ? "desc" : "asc"));
+    } else {
+      setSortField(field);
+      setSortDir(field === "created_at" ? "desc" : "asc");
+    }
+  };
 
   if (loaded && items.length === 0) {
     return <p className="font-body text-sm text-charcoal/50 py-6 text-center">{emptyLabel}</p>;
@@ -208,39 +266,40 @@ export function ActivityLogList({
   return (
     <div className="space-y-4">
       <ResponsiveTable>
+        <div className="rounded-xl border border-sage/15 bg-white-warm overflow-hidden">
         <Table>
           <TableHeader>
-            <TableRow className="bg-sage/5 hover:bg-sage/5 border-sage/10">
-              <TableHead className="font-body text-xs uppercase tracking-wide text-charcoal/60 px-5 py-3">Action</TableHead>
-              <TableHead className="font-body text-xs uppercase tracking-wide text-charcoal/60 px-5 py-3">Category</TableHead>
-              <TableHead className="font-body text-xs uppercase tracking-wide text-charcoal/60 px-5 py-3">Actor</TableHead>
-              <TableHead className="font-body text-xs uppercase tracking-wide text-charcoal/60 px-5 py-3 whitespace-nowrap">When</TableHead>
+            <TableRow>
+              <SortHead label="Action" field="summary" sortField={sortField} sortDir={sortDir} onSort={toggleSort} />
+              <SortHead label="Category" field="category" sortField={sortField} sortDir={sortDir} onSort={toggleSort} />
+              <SortHead label="Actor" field="actor_name" sortField={sortField} sortDir={sortDir} onSort={toggleSort} />
+              <SortHead label="When" field="created_at" sortField={sortField} sortDir={sortDir} onSort={toggleSort} className="whitespace-nowrap" />
             </TableRow>
           </TableHeader>
           <TableBody>
             {items.map((it) => (
               <TableRow
                 key={it.id}
-                className="border-sage/10 hover:bg-sage/5 cursor-pointer"
+                className="cursor-pointer"
                 onClick={() => setSelected(it)}
               >
-                <TableCell className="px-5 py-4 font-body text-sm text-charcoal">
+                <TableCell className="font-body">
                   {it.summary}
                   {it.actorIsSelf === false && it.actorName ? (
                     <span className="block text-xs text-charcoal/45">by {it.actorName}</span>
                   ) : null}
                 </TableCell>
-                <TableCell className="px-5 py-4">
-                  <Badge variant="outline" className={categoryClass(it.category)}>
+                <TableCell>
+                  <Pill tone={categoryTone(it.category)}>
                     {it.category}
-                  </Badge>
+                  </Pill>
                 </TableCell>
-                <TableCell className="px-5 py-4 font-body text-sm text-charcoal/70 whitespace-nowrap">
+                <TableCell className="font-body text-charcoal/70 whitespace-nowrap">
                   {actorLabel(it)}
                   {it.actorRole ? <span className="text-charcoal/40"> · {it.actorRole}</span> : null}
                 </TableCell>
                 <TableCell
-                  className="px-5 py-4 font-body text-sm text-charcoal/60 whitespace-nowrap"
+                  className="font-body text-charcoal/60 whitespace-nowrap"
                   title={fullTimestamp(it.createdAt)}
                 >
                   {timeAgo(it.createdAt)}
@@ -249,15 +308,10 @@ export function ActivityLogList({
             ))}
           </TableBody>
         </Table>
+        </div>
       </ResponsiveTable>
 
-      {cursor ? (
-        <div className="flex justify-center">
-          <Button variant="outline" size="sm" disabled={loading} onClick={() => void load(false)}>
-            {loading ? "Loading…" : "Load more"}
-          </Button>
-        </div>
-      ) : null}
+      <Pagination page={page} total={total} pageSize={pageSize} onChange={(p) => void load(p)} />
 
       <ActivityDetailDialog item={selected} onClose={() => setSelected(null)} />
     </div>

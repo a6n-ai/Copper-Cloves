@@ -5,14 +5,13 @@ import { passCategoryForPackageType } from "@/lib/couponHelpers";
 
 export const getServerSideProps = requireSessionSSP({ roles: ["admin"] });
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Table, TableBody, TableCell, TableHeader, TableRow } from "@/components/ui/table";
 import { MetricCard } from "@/components/admin/MetricCard";
-import { SortableHeader } from "@/components/admin/sortable-table";
+import { MemberTable, type MemberTableMember } from "@/components/admin/MemberTable";
 import { AdminPageHeader } from "@/components/admin/AdminPageHeader";
 import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { FilterBar, FilterSearch, FilterSelect, useFilterState } from "@/components/filters";
 import {
   Users,
   CheckCircle2,
@@ -20,13 +19,11 @@ import {
   CreditCard,
   Calendar,
   Trophy,
-  Search,
   Plus,
 } from "lucide-react";
 import { SEO } from "@/components/SEO";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Pagination, usePagination } from "@/components/Pagination";
-import { ListAvatar } from "@/components/admin/ListAvatar";
 import { useSession } from "next-auth/react";
 import {
   ResponsiveDialog,
@@ -36,7 +33,6 @@ import {
   ResponsiveDialogTitle,
   ResponsiveDialogFooter,
 } from "@/components/responsive/ResponsiveDialog";
-import { ResponsiveTable } from "@/components/responsive/ResponsiveTable";
 
 interface Member {
   id: string;
@@ -185,9 +181,10 @@ function MembersLoadingSkeleton() {
 export default function AdminMembers() {
   const router = useRouter();
   const [loading, setLoading] = useState(true);
-  const [searchQuery, setSearchQuery] = useState("");
-  const [packageFilter, setPackageFilter] = useState<"all" | "studio" | "class" | "none">("all");
-  const [accountStatusFilter, setAccountStatusFilter] = useState<"all" | "active" | "inactive">("all");
+  const f = useFilterState(
+    { search: "", pkg: "all", account: "all" },
+    { urlSync: true },
+  );
   const [members, setMembers] = useState<Member[]>([]);
   const [checkInsThisMonth, setCheckInsThisMonth] = useState(0);
   const [sortKey, setSortKey] = useState<"name" | "pass" | "account" | "classes" | "lastVisit" | "status" | null>(null);
@@ -225,7 +222,7 @@ export default function AdminMembers() {
   }, [status, userRole]);
 
   const filteredMembers = useMemo(() => {
-    const qRaw = searchQuery.trim();
+    const qRaw = f.values.search.trim();
     const q = qRaw.toLowerCase();
     const filtered = members.filter((member) => {
       const matchesSearch =
@@ -234,11 +231,11 @@ export default function AdminMembers() {
         (member.email ?? "").toLowerCase().includes(q) ||
         (member.phone ?? "").toLowerCase().includes(qRaw);
       if (!matchesSearch) return false;
-      if (packageFilter === "studio" && member.passCategory !== "studio_pass") return false;
-      if (packageFilter === "class" && member.passCategory !== "class_pass") return false;
-      if (packageFilter === "none" && member.passCategory !== "none") return false;
-      if (accountStatusFilter === "active" && member.accountFilter !== "active") return false;
-      if (accountStatusFilter === "inactive" && member.accountFilter !== "inactive") return false;
+      if (f.values.pkg === "studio" && member.passCategory !== "studio_pass") return false;
+      if (f.values.pkg === "class" && member.passCategory !== "class_pass") return false;
+      if (f.values.pkg === "none" && member.passCategory !== "none") return false;
+      if (f.values.account === "active" && member.accountFilter !== "active") return false;
+      if (f.values.account === "inactive" && member.accountFilter !== "inactive") return false;
       return true;
     });
 
@@ -274,7 +271,7 @@ export default function AdminMembers() {
     }
 
     return filtered;
-  }, [searchQuery, members, packageFilter, accountStatusFilter, sortKey, sortDir]);
+  }, [f.values.search, f.values.pkg, f.values.account, members, sortKey, sortDir]);
 
   const loadMembers = async () => {
     setLoadError(null);
@@ -384,19 +381,6 @@ export default function AdminMembers() {
     }
   };
 
-  const getStatusBadge = (status: string) => {
-    switch (status) {
-      case "active":
-        return <Badge className="bg-sage/10 text-sage border-sage/20 whitespace-nowrap font-body">Active</Badge>;
-      case "expiring":
-        return <Badge variant="outline" className="border-terracotta/20 text-terracotta bg-terracotta/10 whitespace-nowrap font-body">Expiring</Badge>;
-      case "expired":
-        return <Badge variant="destructive" className="whitespace-nowrap font-body">Expired</Badge>;
-      default:
-        return null;
-    }
-  };
-
   const stats = {
     totalMembers: members.length,
     activeMembers: members.filter((m) => m.accountFilter === "active").length,
@@ -420,8 +404,27 @@ export default function AdminMembers() {
   const membersPg = usePagination(
     filteredMembers,
     10,
-    `${searchQuery}|${packageFilter}|${accountStatusFilter}|${sortKey}|${sortDir}`,
+    `${f.values.search}|${f.values.pkg}|${f.values.account}|${sortKey}|${sortDir}`,
   );
+
+  const accountLabelFor = (f: Member["accountFilter"]) =>
+    f === "active" ? "Active" : f === "inactive" ? "Inactive" : "Lapsed";
+
+  const tableMembers: MemberTableMember[] = membersPg.pageItems.map((m) => ({
+    id: m.id,
+    name: m.name,
+    email: m.email,
+    phone: m.phone,
+    avatarUrl: m.avatarUrl,
+    passLabel: m.package,
+    passCategory: m.passCategory,
+    unlimited: m.unlimited,
+    credits: m.credits,
+    totalClasses: m.totalClasses,
+    lastVisit: m.lastVisit,
+    status: m.status,
+    accountLabel: accountLabelFor(m.accountFilter),
+  }));
 
   if (loading) {
     return (
@@ -497,190 +500,68 @@ export default function AdminMembers() {
                       Click a member to view their full profile and manage their pass
                     </CardDescription>
                   </div>
-                  <div className="flex items-center gap-2 w-full sm:w-auto">
-                    <div className="relative flex-1 sm:w-72">
-                      <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-charcoal/40" />
-                      <Input
-                        value={searchQuery}
-                        onChange={(e) => setSearchQuery(e.target.value)}
-                        placeholder="Search name, email, phone…"
-                        className="h-9 pl-9 border-sage/20 focus:border-sage font-body"
-                      />
-                    </div>
-                    <Button
-                      onClick={() => {
-                        setAddName("");
-                        setAddEmail("");
-                        setAddPhone("");
-                        setAddPassword("");
-                        setAddError(null);
-                        setAddOpen(true);
-                      }}
-                      variant="sage"
-                      className="h-9 shrink-0"
-                    >
-                      <Plus className="h-4 w-4 mr-1.5" />
-                      Add Member
-                    </Button>
-                  </div>
+                  <Button
+                    onClick={() => {
+                      setAddName("");
+                      setAddEmail("");
+                      setAddPhone("");
+                      setAddPassword("");
+                      setAddError(null);
+                      setAddOpen(true);
+                    }}
+                    variant="sage"
+                    className="h-9 shrink-0"
+                  >
+                    <Plus className="h-4 w-4 mr-1.5" />
+                    Add Member
+                  </Button>
                 </div>
 
-                {/* Primary filter: tab strip with underline */}
-                <div className="flex items-center justify-between flex-wrap gap-3 border-b border-sage/10">
-                  <div className="flex items-center gap-1 -mb-px overflow-x-auto">
-                    {[
-                      { v: "all", l: "All" },
-                      { v: "studio", l: "Studio" },
-                      { v: "class", l: "Class pass" },
-                      { v: "none", l: "No pass" },
-                    ].map((o) => {
-                      const active = packageFilter === o.v;
-                      return (
-                        <button
-                          key={o.v}
-                          type="button"
-                          onClick={() => setPackageFilter(o.v as typeof packageFilter)}
-                          className={`relative px-4 py-2 font-body text-sm whitespace-nowrap transition-colors ${
-                            active ? "text-sage" : "text-charcoal/60 hover:text-charcoal"
-                          }`}
-                        >
-                          {o.l}
-                          {active && (
-                            <span className="absolute left-0 right-0 -bottom-px h-0.5 bg-sage rounded-full" />
-                          )}
-                        </button>
-                      );
-                    })}
-                  </div>
-                  <div className="flex items-center gap-2 pb-2 flex-wrap">
-                    <div className="flex items-center gap-1 rounded-full bg-cream/50 p-1 border border-sage/15">
-                      {[
-                        { v: "all", l: "All" },
-                        { v: "active", l: "Active" },
-                        { v: "inactive", l: "Inactive" },
-                      ].map((o) => (
-                        <button
-                          key={o.v}
-                          type="button"
-                          onClick={() => setAccountStatusFilter(o.v as typeof accountStatusFilter)}
-                          className={`px-3 h-7 rounded-full font-body text-xs transition-colors ${
-                            accountStatusFilter === o.v
-                              ? "bg-sage text-cream shadow-xs"
-                              : "text-charcoal/60 hover:text-charcoal hover:bg-sage/10"
-                          }`}
-                        >
-                          {o.l}
-                        </button>
-                      ))}
-                    </div>
-                    {(packageFilter !== "all" || accountStatusFilter !== "all" || searchQuery) && (
-                      <button
-                        type="button"
-                        onClick={() => {
-                          setPackageFilter("all");
-                          setAccountStatusFilter("all");
-                          setSearchQuery("");
-                        }}
-                        className="font-body text-xs text-terracotta hover:underline"
-                      >
-                        Reset
-                      </button>
-                    )}
-                  </div>
-                </div>
+                <FilterBar reset={f.isActive ? f.reset : undefined} className="mb-4">
+                  <FilterSearch
+                    value={f.values.search}
+                    onChange={(v) => f.set("search", v)}
+                    placeholder="Search name, email, phone…"
+                  />
+                  <FilterSelect
+                    ariaLabel="Package"
+                    placeholder="Package"
+                    value={f.values.pkg}
+                    onChange={(v) => f.set("pkg", v)}
+                    options={[
+                      { value: "all", label: "All packages" },
+                      { value: "studio", label: "Studio" },
+                      { value: "class", label: "Class pass" },
+                      { value: "none", label: "No pass" },
+                    ]}
+                  />
+                  <FilterSelect
+                    ariaLabel="Account status"
+                    placeholder="Account"
+                    value={f.values.account}
+                    onChange={(v) => f.set("account", v)}
+                    options={[
+                      { value: "all", label: "All accounts" },
+                      { value: "active", label: "Active" },
+                      { value: "inactive", label: "Inactive" },
+                    ]}
+                  />
+                </FilterBar>
               </CardHeader>
               <CardContent>
-                <ResponsiveTable>
                 <div className="rounded-xl border border-sage/15 bg-white-warm overflow-hidden">
-                  <Table>
-                    <TableHeader>
-                      <TableRow className="bg-sage/5 hover:bg-sage/5 border-sage/10">
-                        <SortableHeader sortKey="name" active={sortKey} dir={sortDir} onToggle={toggleSort}>Member</SortableHeader>
-                        <SortableHeader sortKey="pass" active={sortKey} dir={sortDir} onToggle={toggleSort} className="w-[180px]">Pass</SortableHeader>
-                        <SortableHeader sortKey="account" active={sortKey} dir={sortDir} onToggle={toggleSort} className="w-[100px]">Account</SortableHeader>
-                        <SortableHeader sortKey="classes" active={sortKey} dir={sortDir} onToggle={toggleSort} className="w-[100px]">Classes</SortableHeader>
-                        <SortableHeader sortKey="lastVisit" active={sortKey} dir={sortDir} onToggle={toggleSort} className="w-[120px]">Last Visit</SortableHeader>
-                        <SortableHeader sortKey="status" active={sortKey} dir={sortDir} onToggle={toggleSort} className="w-[140px]">Status</SortableHeader>
-                      </TableRow>
-                    </TableHeader>
-                    <TableBody>
-                      {membersPg.pageItems.map((member) => (
-                        <TableRow
-                          key={member.id}
-                          onClick={() => router.push(`/admin/members/${member.id}`)}
-                          className="border-sage/10 hover:bg-sage/5 cursor-pointer"
-                        >
-                          <TableCell className="px-5 py-4">
-                            <div className="flex items-center gap-3 min-w-0">
-                              <ListAvatar name={member.name} src={member.avatarUrl} size="md" />
-                              <div className="min-w-0">
-                                <div className="font-body font-medium text-charcoal truncate">{member.name}</div>
-                                <div className="font-body text-xs text-charcoal/60 truncate">{member.email}</div>
-                                <div className="font-body text-xs text-charcoal/50 truncate">{member.phone}</div>
-                              </div>
-                            </div>
-                          </TableCell>
-                          <TableCell className="px-5 py-4">
-                            <div className="flex flex-wrap items-center gap-1.5">
-                              {member.passCategory === "studio_pass" ? (
-                                <Badge className="bg-sage text-cream border-transparent font-body">
-                                  Studio
-                                </Badge>
-                              ) : member.passCategory === "class_pass" ? (
-                                <Badge variant="outline" className="border-sage/30 text-sage bg-sage/5 font-body">
-                                  Class pass
-                                </Badge>
-                              ) : (
-                                <Badge variant="outline" className="border-charcoal/15 text-charcoal/40 bg-cream/30 font-body">
-                                  No pass
-                                </Badge>
-                              )}
-                              {member.unlimited && (
-                                <Badge className="bg-terracotta/10 text-terracotta border-terracotta/30 font-body">
-                                  ∞ Unlimited
-                                </Badge>
-                              )}
-                            </div>
-                            <div className="font-body text-xs text-charcoal/50 mt-1 truncate" title={member.package}>
-                              {member.package}
-                            </div>
-                          </TableCell>
-                          <TableCell className="px-5 py-4">
-                            <span className={`font-body text-sm font-medium ${
-                              member.accountFilter === "active"
-                                ? "text-sage"
-                                : member.accountFilter === "inactive"
-                                ? "text-charcoal/40"
-                                : "text-terracotta"
-                            }`}>
-                              {member.accountFilter === "active"
-                                ? "Active"
-                                : member.accountFilter === "inactive"
-                                ? "Inactive"
-                                : "Lapsed"}
-                            </span>
-                          </TableCell>
-                          <TableCell className="px-5 py-4">
-                            <div className="flex items-center gap-1.5">
-                              <Trophy className="h-3.5 w-3.5 text-sage/60" />
-                              <span className="font-body font-medium text-charcoal tabular-nums">{member.totalClasses}</span>
-                            </div>
-                          </TableCell>
-                          <TableCell className="px-5 py-4">
-                            <span className="font-body text-sm text-charcoal/70">{member.lastVisit}</span>
-                          </TableCell>
-                          <TableCell className="px-5 py-4">
-                            {getStatusBadge(member.status)}
-                            <div className="font-body text-xs text-charcoal/50 mt-1">
-                              Exp {new Date(member.expiryDate).toLocaleDateString("en-IN", { day: "numeric", month: "short" })}
-                            </div>
-                          </TableCell>
-                        </TableRow>
-                      ))}
-                    </TableBody>
-                  </Table>
+                  <MemberTable
+                    members={tableMembers}
+                    columns={["member", "pass", "account", "classes", "lastVisit", "status"]}
+                    sort={{
+                      sortKey,
+                      sortDir,
+                      onToggle: (key) => toggleSort(key as MemberSortKey),
+                      sortableKeys: ["name", "pass", "account", "classes", "lastVisit", "status"],
+                    }}
+                    onRowClick={(m) => router.push(`/admin/members/${m.id}`)}
+                  />
                 </div>
-                </ResponsiveTable>
                 <Pagination
                   page={membersPg.page}
                   total={membersPg.total}

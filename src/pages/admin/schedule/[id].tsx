@@ -14,7 +14,7 @@ import { cn } from "@/lib/utils";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
-import { Badge } from "@/components/ui/badge";
+import { Pill } from "@/components/ui/pill";
 import {
   Dialog,
   DialogContent,
@@ -496,18 +496,18 @@ export default function AdminClassPage() {
                     : roster.status === "cancelled" ? "Cancelled"
                     : roster.status === "abandoned" ? "Cancelled & past"
                     : roster.status || "—";
-                  const statusTone =
-                    roster.status === "inactive" ? "bg-terracotta/10 text-terracotta border-terracotta/20"
-                    : roster.status === "cancelled" || roster.status === "abandoned" ? "bg-terracotta/10 text-terracotta border-terracotta/30"
-                    : roster.status === "completed" ? "bg-charcoal/10 text-charcoal/60 border-charcoal/15"
-                    : roster.status === "started" ? "bg-terracotta/10 text-terracotta border-terracotta/30"
-                    : "bg-sage/15 text-sage border-sage/30";
+                  const statusPillTone =
+                    roster.status === "inactive" ? "warning"
+                    : roster.status === "cancelled" || roster.status === "abandoned" ? "danger"
+                    : roster.status === "completed" ? "neutral"
+                    : roster.status === "started" ? "warning"
+                    : ("success" as const);
                   const statusDot =
-                    roster.status === "inactive" ? "bg-terracotta"
-                    : roster.status === "cancelled" || roster.status === "abandoned" ? "bg-terracotta"
-                    : roster.status === "completed" ? "bg-charcoal/40"
-                    : roster.status === "started" ? "bg-terracotta"
-                    : "bg-sage";
+                    statusPillTone === "warning" ? "bg-pill-warning-dot"
+                    : statusPillTone === "danger" ? "bg-pill-danger-dot"
+                    : statusPillTone === "neutral" ? "bg-pill-neutral-dot"
+                    : "bg-pill-success-dot";
+                  const statusPulsing = roster.status === "available" || roster.status === "started";
                   const statusHint =
                     roster.status === "available" ? "Members can book and check in."
                     : roster.status === "inactive" ? "Hidden from members. Existing bookings keep their seat."
@@ -587,10 +587,16 @@ export default function AdminClassPage() {
                         <div className="flex flex-col gap-2 md:items-end md:min-w-[200px]">
                           <p className="font-body text-[11px] uppercase tracking-[0.18em] text-charcoal/50">Class status</p>
                           <div className="flex items-center gap-2 flex-wrap md:justify-end">
-                            <span className={cn("inline-flex items-center gap-2 rounded-full border px-3 py-1.5 font-body text-sm font-medium", statusTone)}>
-                              <span className={cn("size-1.5 rounded-full", statusDot, (roster.status === "available" || roster.status === "started") && "animate-pulse")} />
+                            <Pill
+                              tone={statusPillTone}
+                              size="md"
+                              className="font-body"
+                              icon={
+                                <span className={cn("size-1.5 rounded-full", statusDot, statusPulsing && "animate-pulse")} />
+                              }
+                            >
                               {statusLabel}
-                            </span>
+                            </Pill>
                           </div>
                           {statusHint && (
                             <p className="font-body text-xs text-charcoal/55 max-w-xs md:text-right">{statusHint}</p>
@@ -720,10 +726,9 @@ export default function AdminClassPage() {
                             </div>
                             <div className="flex shrink-0 items-center gap-1.5">
                               {b.checkedIn ? (
-                                <Badge className="bg-sage/10 text-sage border-sage/20 font-body">
-                                  <CheckCircle2 className="mr-1 h-3.5 w-3.5" />
+                                <Pill tone="success" icon={<CheckCircle2 className="h-3.5 w-3.5" />} className="font-body">
                                   {b.checkInOutcome === "late" ? "Late" : "In"}
-                                </Badge>
+                                </Pill>
                               ) : null}
                               <Button
                                 size="sm"

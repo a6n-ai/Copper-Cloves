@@ -14,7 +14,7 @@ import { useSession } from "next-auth/react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Badge } from "@/components/ui/badge";
+import { Pill } from "@/components/ui/pill";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
 import { CloseButton } from "@/components/ui/quick-actions";
@@ -259,10 +259,9 @@ function PackageTierCard({
               {pkg.name}
             </CardTitle>
             {isRecommended && (
-              <Badge className="bg-sage text-cream text-xs font-body font-semibold px-2.5 py-1 flex items-center gap-1 shrink-0">
-                <Flame size={12} />
+              <Pill tone="success" appearance="solid" className="font-body font-semibold shrink-0" icon={<Flame size={12} />}>
                 {pkg.badge ?? "Popular"}
-              </Badge>
+              </Pill>
             )}
           </div>
           <CardDescription className="font-body text-sm text-charcoal/60">

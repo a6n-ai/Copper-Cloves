@@ -21,6 +21,7 @@ model Profile {
   pass_type            String?
   hashedPassword       String?
   role                 String   @default("user")
+  is_system            Boolean  @default(false)
   dob                  DateTime?
   gender               String?
   onboarding_completed Boolean  @default(false)
@@ -54,6 +55,7 @@ model Profile {
   recorded_expenses Expense[] @relation("ExpenseRecordedBy")
   sessions          UserSession[]
 
+  @@index([is_system])
   @@unique([email, role])
   @@map("profiles")
 }
@@ -195,6 +197,7 @@ model Instructor {
   actual_class_schedules     ClassSchedule[] @relation("ActualInstructor")
   profile                    Profile? @relation(fields: [profile_id], references: [id], onDelete: SetNull)
   expenses                   Expense[]
+  payments                   Payment[]
 
   @@map("instructors")
 }
@@ -497,12 +500,17 @@ enum ClassScheduleStatus {
   abandoned
 }
 
+enum PaymentDirection {
+  credit // money IN  — member payments, Razorpay, offline income
+  debit  // money OUT — expenses, payouts, refunds
+}
+
 model Payment {
   id                  String        @id @default(uuid())
   user_id             String
   user_package_id     String?
   booking_id          String?
-  method              PaymentMethod
+  method              PaymentMethod?
   status              PaymentStatus @default(succeeded)
   amount_paise        Int
   currency            String        @default("INR")
@@ -511,6 +519,14 @@ model Payment {
   /// URL to uploaded proof (receipt/screenshot). Required by policy for offline methods when admin has it.
   proof_url           String?
   notes               String?
+  direction         PaymentDirection @default(credit)
+  category          ExpenseCategory?
+  payee             String?
+  description       String?
+  incurred_at       DateTime?
+  is_manual_expense Boolean          @default(false)
+  instructor_id     String?
+  payout_period_key String?
   /// Admin profile id who recorded this payment (null for system/online flows).
   recorded_by         String?
   /// Optional FK to razorpay_payments.razorpay_payment_id when this payment was captured via Razorpay (online or completed-via-link).
@@ -525,14 +541,19 @@ model Payment {
   user_package      UserPackage?     @relation(fields: [user_package_id], references: [id], onDelete: SetNull)
   booking           Booking?         @relation(fields: [booking_id], references: [id], onDelete: SetNull)
   recorded_by_admin Profile?         @relation("PaymentRecordedBy", fields: [recorded_by], references: [id], onDelete: SetNull)
+  instructor        Instructor?      @relation(fields: [instructor_id], references: [id], onDelete: SetNull)
   razorpay_payment  RazorpayPayment? @relation(fields: [razorpay_payment_id], references: [razorpay_payment_id], onDelete: SetNull)
 
+  @@unique([instructor_id, payout_period_key])
   @@index([user_id])
   @@index([user_package_id])
   @@index([booking_id])
   @@index([method])
   @@index([status])
   @@index([razorpay_order_id])
+  @@index([direction])
+  @@index([category])
+  @@index([instructor_id])
   @@map("payments")
 }
 

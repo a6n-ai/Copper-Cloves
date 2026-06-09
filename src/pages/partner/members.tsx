@@ -3,7 +3,7 @@ import { UserX } from "lucide-react";
 import { PageHeader } from "@/components/dashboard/PageHeader";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Card, CardContent } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
+import { Pill } from "@/components/ui/pill";
 import {
   Table,
   TableBody,
@@ -19,7 +19,7 @@ function PartnerMembersSkeleton() {
     <ResponsiveTable>
       <Table>
         <TableHeader>
-          <TableRow className="hover:bg-transparent">
+          <TableRow>
             <TableHead>Member</TableHead>
             <TableHead>Contact</TableHead>
             <TableHead className="text-center">Sessions</TableHead>
@@ -101,7 +101,7 @@ export default function PartnerMembersPage() {
             <ResponsiveTable>
               <Table>
                 <TableHeader>
-                  <TableRow className="hover:bg-transparent">
+                  <TableRow>
                     <TableHead>Member</TableHead>
                     <TableHead>Contact</TableHead>
                     <TableHead className="text-center">Sessions</TableHead>
@@ -112,7 +112,7 @@ export default function PartnerMembersPage() {
                 <TableBody className="divide-y divide-sage/10">
                   {rows.map((m) => (
                     <TableRow key={m.id}>
-                      <TableCell className="font-body font-medium text-charcoal">{m.name}</TableCell>
+                      <TableCell className="font-body text-charcoal">{m.name}</TableCell>
                       <TableCell className="font-body text-sm text-charcoal/70">
                         <div className="truncate">{m.email}</div>
                         {m.phone ? <div className="text-charcoal/50">{m.phone}</div> : null}
@@ -128,16 +128,13 @@ export default function PartnerMembersPage() {
                           : "—"}
                       </TableCell>
                       <TableCell className="text-right">
-                        <Badge
-                          variant="outline"
-                          className={
-                            m.hasWaiver
-                              ? "border-sage/30 text-sage bg-sage/5 font-body"
-                              : "border-terracotta/30 text-terracotta bg-terracotta/5 font-body"
-                          }
+                        <Pill
+                          tone={m.hasWaiver ? "success" : "warning"}
+
+                          className="font-body"
                         >
                           {m.hasWaiver ? "Signed ✓" : "Not signed"}
-                        </Badge>
+                        </Pill>
                       </TableCell>
                     </TableRow>
                   ))}

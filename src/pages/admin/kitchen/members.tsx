@@ -3,11 +3,9 @@ import { useRouter } from "next/router";
 import { useSession } from "next-auth/react";
 import { SEO as Seo } from "@/components/SEO";
 import { PageHeader } from "@/components/dashboard/PageHeader";
-import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
 import { Skeleton } from "@/components/ui/skeleton";
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { ResponsiveTable } from "@/components/responsive/ResponsiveTable";
+import { MemberTable, type MemberTableMember } from "@/components/admin/MemberTable";
 import { Search } from "lucide-react";
 
 interface KitchenMember {
@@ -67,50 +65,19 @@ export default function KitchenMembers() {
     );
   });
 
-  let tableBody: React.ReactNode;
-  if (loading) {
-    tableBody = ["k1", "k2", "k3", "k4", "k5", "k6"].map((sk) => (
-      <TableRow key={sk} className="border-sage/10">
-        <TableCell className="px-5 py-3"><Skeleton className="h-4 w-32" /></TableCell>
-        <TableCell className="px-5 py-3"><Skeleton className="h-4 w-48" /></TableCell>
-        <TableCell className="px-5 py-3"><Skeleton className="h-4 w-28" /></TableCell>
-        <TableCell className="px-5 py-3 text-right"><Skeleton className="h-4 w-12 ml-auto" /></TableCell>
-      </TableRow>
-    ));
-  } else if (filtered.length === 0) {
-    tableBody = (
-      <TableRow className="border-sage/10">
-        <TableCell colSpan={4} className="px-5 py-10 text-center font-body text-charcoal/50">
-          No members found.
-        </TableCell>
-      </TableRow>
-    );
-  } else {
-    tableBody = filtered.map((m) => (
-      <TableRow key={m.id} className="border-sage/10 hover:bg-sage/5">
-        <TableCell className="px-5 py-3 font-body font-medium text-charcoal">{m.name}</TableCell>
-        <TableCell className="px-5 py-3 font-body text-sm text-charcoal/60">{m.email}</TableCell>
-        <TableCell className="px-5 py-3">
-          {m.passType === "—" ? (
-            <span className="font-body text-sm text-charcoal/40">—</span>
-          ) : (
-            <span className="font-body text-sm text-charcoal">{m.passType}</span>
-          )}
-        </TableCell>
-        <TableCell className="px-5 py-3 text-right">
-          <Badge
-            className={
-              m.cafeDiscountPercent > 0
-                ? "bg-terracotta/10 text-terracotta border-terracotta/20 font-body"
-                : "bg-charcoal/5 text-charcoal/40 border-charcoal/10 font-body"
-            }
-          >
-            {m.cafeDiscountPercent}%
-          </Badge>
-        </TableCell>
-      </TableRow>
-    ));
-  }
+  const tableMembers: MemberTableMember[] = filtered.map((m) => ({
+    id: m.id,
+    name: m.name,
+    email: m.email,
+    passLabel: m.passType === "—" ? "No pass" : m.passType,
+    passCategory:
+      m.passCategory === "studio_pass"
+        ? "studio_pass"
+        : m.passCategory === "class_pass"
+          ? "class_pass"
+          : "none",
+    cafeDiscountPct: m.cafeDiscountPercent,
+  }));
 
   return (
     <>
@@ -134,21 +101,27 @@ export default function KitchenMembers() {
             </div>
 
             <div className="rounded-xl border border-sage/15 bg-white-warm overflow-hidden">
-              <ResponsiveTable>
-                <Table>
-                  <TableHeader>
-                    <TableRow className="bg-sage/5 hover:bg-sage/5 border-sage/10">
-                      <TableHead className="font-body text-xs uppercase tracking-wide text-charcoal/60 px-5 py-3">Member</TableHead>
-                      <TableHead className="font-body text-xs uppercase tracking-wide text-charcoal/60 px-5 py-3">Email</TableHead>
-                      <TableHead className="font-body text-xs uppercase tracking-wide text-charcoal/60 px-5 py-3">Pass type</TableHead>
-                      <TableHead className="font-body text-xs uppercase tracking-wide text-charcoal/60 px-5 py-3 text-right">Café discount</TableHead>
-                    </TableRow>
-                  </TableHeader>
-                  <TableBody>
-                    {tableBody}
-                  </TableBody>
-                </Table>
-              </ResponsiveTable>
+              {loading ? (
+                <div className="divide-y divide-sage/10">
+                  {["k1", "k2", "k3", "k4", "k5", "k6"].map((sk) => (
+                    <div key={sk} className="flex items-center gap-4 px-4 py-4">
+                      <Skeleton className="h-12 w-12 shrink-0 rounded-full" />
+                      <div className="flex-1 space-y-2">
+                        <Skeleton className="h-4 w-32" />
+                        <Skeleton className="h-3 w-48" />
+                      </div>
+                      <Skeleton className="h-5 w-24 rounded-md" />
+                      <Skeleton className="h-5 w-12 rounded-md ml-auto" />
+                    </div>
+                  ))}
+                </div>
+              ) : (
+                <MemberTable
+                  members={tableMembers}
+                  columns={["member", "pass", "cafeDiscount"]}
+                  emptyState="No members found."
+                />
+              )}
             </div>
           </div>
         </main>
