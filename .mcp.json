@@ -2,7 +2,17 @@
   "mcpServers": {
     "shadcnspace-mcp": {
       "command": "npx",
-      "args": ["-y", "shadcnspace-mcp@latest"]
+      "args": [
+        "-y",
+        "shadcnspace-mcp@latest"
+      ]
+    },
+    "shadcn": {
+      "command": "npx",
+      "args": [
+        "shadcn@latest",
+        "mcp"
+      ]
     }
   }
 }

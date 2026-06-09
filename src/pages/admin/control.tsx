@@ -1,6 +1,7 @@
 ﻿import { useState, useEffect, useMemo } from "react";
 import Image from "next/image";
 import { requireSessionSSP } from "@/lib/requireSessionSSP";
+import { useTabQuery } from "@/hooks/useTabQuery";
 
 // Server-side auth gate — eliminates flash-of-unauth before the in-page
 // useSession redirect can fire. Existing client-side checks remain as a
@@ -277,7 +278,7 @@ const thBtn = "inline-flex items-center gap-1 hover:text-charcoal transition-col
 export default function ControlPanel() {
   const router = useRouter();
   const [loading, setLoading] = useState(true);
-  const [activeTab, setActiveTab] = useState("users");
+  const [activeTab, setActiveTab] = useTabQuery(["users", "pauses", "classes", "instructors", "analytics"], "users");
 
   // Sync activeTab with ?tab= query so sidebar links can deep-link into a tab.
   useEffect(() => {

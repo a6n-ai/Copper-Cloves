@@ -1,6 +1,6 @@
-import { useState } from "react";
 import dynamic from "next/dynamic";
 import { requireSessionSSP } from "@/lib/requireSessionSSP";
+import { useTabQuery } from "@/hooks/useTabQuery";
 
 export const getServerSideProps = requireSessionSSP({ roles: ["admin"] });
 
@@ -44,7 +44,7 @@ const EXPENSE_TABS = [
 ] as const;
 
 export default function AdminExpenses() {
-  const [activeTab, setActiveTab] = useState("overview");
+  const [activeTab, setActiveTab] = useTabQuery(["overview", "expenses", "payouts"], "overview");
 
   return (
     <>

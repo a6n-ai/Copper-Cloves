@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import { useRouter } from "next/router";
 import { requireSessionSSP } from "@/lib/requireSessionSSP";
+import { useTabQuery } from "@/hooks/useTabQuery";
 
 export const getServerSideProps = requireSessionSSP({ roles: ["admin"] });
 import { Button } from "@/components/ui/button";
@@ -704,7 +705,7 @@ function renderCrmSendDialog(props: CrmSendDialogProps) {
 export default function CRMPage() {
   const router = useRouter();
   const [loading, setLoading] = useState(true);
-  const [activeTab, setActiveTab] = useState<"hub" | "templates" | "triggers">("hub");
+  const [activeTab, setActiveTab] = useTabQuery(["hub", "templates", "triggers"], "hub");
   // Bumped after a manual send so the message table + insights refetch.
   const [crmRefresh, setCrmRefresh] = useState(0);
 

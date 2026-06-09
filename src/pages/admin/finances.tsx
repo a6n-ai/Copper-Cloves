@@ -1,6 +1,6 @@
-import { useState } from "react";
 import dynamic from "next/dynamic";
 import { requireSessionSSP } from "@/lib/requireSessionSSP";
+import { useTabQuery } from "@/hooks/useTabQuery";
 
 export const getServerSideProps = requireSessionSSP({ roles: ["admin"] });
 
@@ -51,7 +51,8 @@ const FINANCE_TABS = [
 ] as const;
 
 export default function AdminFinances() {
-  const [activeTab, setActiveTab] = useState("overview");
+  // Deep-link the active tab via ?tab= so global search can land on Ledger, Reconcile, etc.
+  const [activeTab, changeTab] = useTabQuery(FINANCE_TABS.map((t) => t.v), "overview");
   const { financeStats, financeLedgerTransactions, financeTrend, loaded } = useAdminFinanceData();
 
   return (
@@ -66,9 +67,9 @@ export default function AdminFinances() {
               subtitle="Revenue, expenses, reports, and the full transaction ledger"
             />
 
-            <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">
+            <Tabs value={activeTab} onValueChange={changeTab} className="space-y-6">
               {/* Mobile: dropdown picker (no horizontal scroll) */}
-              <Select value={activeTab} onValueChange={setActiveTab}>
+              <Select value={activeTab} onValueChange={changeTab}>
                 <SelectTrigger className="md:hidden w-full border-sage/20 font-body">
                   <SelectValue />
                 </SelectTrigger>

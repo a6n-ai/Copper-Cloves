@@ -1,5 +1,6 @@
 import { Fragment, useCallback, useState, useEffect, useRef } from "react";
 import dynamic from "next/dynamic";
+import { useTabQuery } from "@/hooks/useTabQuery";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
@@ -145,7 +146,10 @@ const ADMIN_TABS = [
 export default function AdminDashboard() {
   const router = useRouter();
   const [loading, setLoading] = useState(true);
-  const [activeTab, setActiveTab] = useState("overview");
+  const [activeTab, setActiveTab] = useTabQuery(
+    ["overview", "finance", "pricing", "meal-waitlist", "rental-inquiries", "members", "instructors", "classes"],
+    "overview"
+  );
   const [dateRange, setDateRange] = useState("month");
   const [selectedMember, setSelectedMember] = useState("all");
   const [selectedInstructor, setSelectedInstructor] = useState("all");
