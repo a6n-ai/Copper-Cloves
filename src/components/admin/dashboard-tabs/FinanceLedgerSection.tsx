@@ -2,6 +2,7 @@ import { memo, useCallback, useEffect, useMemo, useState } from "react";
 import {
   ArrowDownLeft,
   ArrowUpRight,
+  Download,
   ExternalLink,
   Filter,
   Loader2,
@@ -43,6 +44,46 @@ function fmtDate(iso: string): string {
 
 function methodLabel(method: string | null): string {
   return method ? paymentMethodPill(method).label : "—";
+}
+
+// Wrap a field for CSV: quote and escape embedded quotes; "—" placeholders blanked.
+function csvCell(v: string | number): string {
+  const s = String(v);
+  if (s === "—") return "";
+  return `"${s.replace(/"/g, '""')}"`;
+}
+
+function ledgerToCsv(rows: LedgerEntry[]): string {
+  const header = ["Date", "Party", "Category", "Method", "Direction", "Amount (INR)", "Status", "Reference", "ID"];
+  const lines = rows.map((e) => {
+    const rupees = Math.round(Math.abs(e.amountPaise)) / 100;
+    const signed = e.direction === "debit" ? -rupees : rupees;
+    return [
+      fmtDate(e.occurredAtISO),
+      e.party,
+      e.category,
+      methodLabel(e.method),
+      e.direction,
+      signed,
+      e.status,
+      e.reference ?? "",
+      e.id,
+    ].map(csvCell).join(",");
+  });
+  return [header.map(csvCell).join(","), ...lines].join("\r\n");
+}
+
+function downloadCsv(filename: string, csv: string): void {
+  // Prepend BOM so Excel reads UTF-8 (₹, names) correctly.
+  const blob = new Blob(["﻿", csv], { type: "text/csv;charset=utf-8;" });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement("a");
+  a.href = url;
+  a.download = filename;
+  document.body.appendChild(a);
+  a.click();
+  a.remove();
+  URL.revokeObjectURL(url);
 }
 
 // Same date-range semantics as the Transactions tab (today / this week / month),
@@ -187,6 +228,15 @@ function FinanceLedgerSectionImpl() {
     `${dir}|${dateRange}|${customRange?.from?.toDateString() ?? ""}-${customRange?.to?.toDateString() ?? ""}|${category}|${party}|${method}|${source}|${search}|${sortKey}|${sortDir}`,
   );
 
+  const exportCsv = useCallback(() => {
+    if (sorted.length === 0) {
+      toast.error("No rows to export.");
+      return;
+    }
+    const today = fmtDate(new Date().toISOString());
+    downloadCsv(`ledger-${today}.csv`, ledgerToCsv(sorted));
+  }, [sorted]);
+
   // Summary reflects the current filter selection.
   const totals = useMemo(() => {
     let creditPaise = 0;
@@ -216,11 +266,23 @@ function FinanceLedgerSectionImpl() {
 
       <Card className="border-sage/20 bg-white-warm">
         <CardHeader>
-          <div className="mb-4">
-            <CardTitle className="font-display text-2xl text-charcoal">Ledger</CardTitle>
-            <CardDescription className="font-body text-charcoal/60">
-              Every transaction — payments, expenses, payouts, refunds — in one place
-            </CardDescription>
+          <div className="mb-4 flex items-start justify-between gap-4">
+            <div>
+              <CardTitle className="font-display text-2xl text-charcoal">Ledger</CardTitle>
+              <CardDescription className="font-body text-charcoal/60">
+                Every transaction — payments, expenses, payouts, refunds — in one place
+              </CardDescription>
+            </div>
+            <Button
+              type="button"
+              variant="outline"
+              className="border-sage/20 text-sage hover:bg-sage/5 font-body shrink-0"
+              onClick={exportCsv}
+              disabled={sorted.length === 0}
+            >
+              <Download className="h-4 w-4 mr-2" />
+              Export CSV
+            </Button>
           </div>
 
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 p-4 rounded-xl bg-cream/30 border border-sage/20">
