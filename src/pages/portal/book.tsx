@@ -50,6 +50,7 @@ import {
   ArrowDown,
 } from "lucide-react";
 import { NavPrevButton, NavNextButton, QtyMinusButton, QtyPlusButton } from "@/components/ui/quick-actions";
+import { FilterChips, useFilterState } from "@/components/filters";
 import { useSession } from "next-auth/react";
 import {
   startOfMondayWeekLocal,
@@ -766,7 +767,7 @@ export default function BookClass() {
   // Pagination & filters
   const [currentPage, setCurrentPage] = useState(1);
   const [detailClass, setDetailClass] = useState<Class | null>(null);
-  const [filterClassName, setFilterClassName] = useState<string>("all");
+  const f = useFilterState({ className: "all" });
   const [dateSort, setDateSort] = useState<"asc" | "desc">("asc");
   const [weekOffset, setWeekOffset] = useState(0);
   const [selectedDayIndex, setSelectedDayIndex] = useState<number | null>(() => mondayWeekIndex(new Date()));
@@ -801,13 +802,13 @@ export default function BookClass() {
 
   const filteredClasses = useMemo(() => {
     const list = allClasses.filter(cls => {
-      const nameMatch = filterClassName === "all" || cls.name === filterClassName;
+      const nameMatch = f.values.className === "all" || cls.name === f.values.className;
       const dayMatch = selectedDayIndex === null || isSameLocalCalendarDay(new Date(cls.startTimeIso), weekDays[selectedDayIndex]);
       return nameMatch && dayMatch;
     });
     const dir = dateSort === "asc" ? 1 : -1;
     return list.sort((a, b) => (a.startTimeMs - b.startTimeMs) * dir);
-  }, [allClasses, filterClassName, selectedDayIndex, weekDays, dateSort]);
+  }, [allClasses, f.values.className, selectedDayIndex, weekDays, dateSort]);
 
   const startIndex = (currentPage - 1) * classesPerPage;
   const paginatedClasses = filteredClasses.slice(startIndex, startIndex + classesPerPage);
@@ -831,7 +832,7 @@ export default function BookClass() {
     if (status === "authenticated") {
       // Current week → preselect today; other weeks → show all days.
       setSelectedDayIndex(weekOffset === 0 ? mondayWeekIndex(new Date()) : null);
-      setFilterClassName("all");
+      f.reset();
       didAutoAdvanceDay.current = false;
       fetchClasses(weekOffset);
     }
@@ -1028,7 +1029,7 @@ export default function BookClass() {
 
   useEffect(() => {
     setCurrentPage(1);
-  }, [filterClassName, selectedDayIndex, dateSort]);
+  }, [f.values.className, selectedDayIndex, dateSort]);
 
   // Handlers — useCallback so the memoized BookClassCard skips rerender when
   // only unrelated parent state changes (typing in friends/family, etc).
@@ -1432,31 +1433,16 @@ export default function BookClass() {
 
           {/* Class Filter + Date sort */}
           <div className="flex items-center gap-3 mb-8">
-            <div className="flex gap-2 overflow-x-auto pb-2 scrollbar-hide flex-1 min-w-0">
-              <button
-                onClick={() => setFilterClassName("all")}
-                className={`shrink-0 px-4 py-2 rounded-full text-sm font-body transition-all border ${
-                  filterClassName === "all"
-                    ? "bg-sage text-cream border-sage"
-                    : "border-sage/30 text-charcoal hover:border-sage hover:bg-sage/5"
-                }`}
-              >
-                All Classes
-              </button>
-              {uniqueClassNames.map(name => (
-                <button
-                  key={name}
-                  onClick={() => setFilterClassName(filterClassName === name ? "all" : name)}
-                  className={`shrink-0 px-4 py-2 rounded-full text-sm font-body transition-all border ${
-                    filterClassName === name
-                      ? "bg-sage text-cream border-sage"
-                      : "border-sage/30 text-charcoal hover:border-sage hover:bg-sage/5"
-                  }`}
-                >
-                  {name}
-                </button>
-              ))}
-            </div>
+            <FilterChips
+              value={f.values.className}
+              onChange={(v) => f.set("className", v)}
+              options={[
+                { value: "all", label: "All Classes" },
+                ...uniqueClassNames.map((name) => ({ value: name, label: name })),
+              ]}
+              aria-label="Filter by class name"
+              className="flex-1 min-w-0"
+            />
             <button
               type="button"
               onClick={() => setDateSort(d => (d === "asc" ? "desc" : "asc"))}
@@ -1503,7 +1489,7 @@ export default function BookClass() {
                 <h3 className="font-display text-2xl text-charcoal mb-2">No Classes Available</h3>
                 <p className="font-body text-charcoal/60 mb-6">Try adjusting your filters or check back soon.</p>
                 <Button
-                  onClick={() => { setFilterClassName("all"); setSelectedDayIndex(null); }}
+                  onClick={() => { f.reset(); setSelectedDayIndex(null); }}
                   variant="outline"
                   className="border-sage text-sage hover:bg-sage hover:text-cream transition-all duration-600"
                 >
