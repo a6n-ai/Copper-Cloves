@@ -843,7 +843,10 @@ export default function AdminCafe() {
                   </Card>
                 ) : (
                   <div className="space-y-6">
-                    <FilterBar className="sm:flex-row sm:items-center sm:justify-between">
+                    <FilterBar
+                      reset={menuSearch ? () => setMenuSearch("") : undefined}
+                      className="sm:flex-row sm:items-center sm:justify-between"
+                    >
                       <FilterSearch
                         value={menuSearch}
                         onChange={setMenuSearch}

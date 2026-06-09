@@ -161,7 +161,7 @@ function ReconcileSectionImpl() {
                 {loading ? "Correlating…" : "Correlate"}
               </Button>
               {data && (
-                <Button type="button" variant="outline" className="h-10 border-sage/20 text-sage hover:bg-sage/5" onClick={() => downloadCsv(data.rows, month)}>
+                <Button type="button" variant="outline" className="h-10 border-sage/20 text-sage hover:bg-sage/5 hover:text-sage!" onClick={() => downloadCsv(data.rows, month)}>
                   <Download className="h-4 w-4 mr-2" />
                   CSV
                 </Button>

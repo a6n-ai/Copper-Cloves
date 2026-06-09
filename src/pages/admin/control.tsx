@@ -25,6 +25,7 @@ import { Pill } from "@/components/ui/pill";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Input } from "@/components/ui/input";
+import { FilterReset, DatePicker } from "@/components/filters";
 import { Textarea } from "@/components/ui/textarea";
 import {
   ResponsiveDialog,
@@ -1194,8 +1195,8 @@ export default function ControlPanel() {
           className={cn(
             "h-8 w-8 p-0 font-body transition-all hover:scale-110 active:scale-95",
             active
-              ? "border-terracotta/40 text-terracotta bg-white-warm hover:!bg-terracotta hover:!text-cream hover:!border-terracotta"
-              : "border-sage/60 text-sage bg-white-warm hover:!bg-sage hover:!text-cream hover:!border-sage",
+              ? "border-terracotta/40 text-terracotta bg-white-warm hover:bg-terracotta! hover:text-cream! hover:border-terracotta!"
+              : "border-sage/60 text-sage bg-white-warm hover:bg-sage! hover:text-cream! hover:border-sage!",
           )}
         >
           <AnimatedIcon icon={active ? PowerOff : Power} size={14} animateOnMount={false} hover="wiggle" />
@@ -1298,6 +1299,13 @@ export default function ControlPanel() {
                             className="h-9 border-sage/20 focus:border-sage font-body"
                           />
                         </div>
+                        {(userSearch || userFilter !== "all") && (
+                          <FilterReset
+                            onReset={() => { setUserSearch(""); setUserFilter("all"); }}
+                            label="Clear"
+                            className="shrink-0"
+                          />
+                        )}
                         <Button
                           onClick={() => setShowAddUserDialog(true)}
                           variant="sage"
@@ -1568,6 +1576,9 @@ export default function ControlPanel() {
                           placeholder="Search class or category…"
                           className="h-9 flex-1 sm:w-64 border-sage/20 focus:border-sage font-body"
                         />
+                        {classSearch && (
+                          <FilterReset onReset={() => setClassSearch("")} label="Clear" className="shrink-0" />
+                        )}
                         <Button
                           onClick={() => setShowAddClassDialog(true)}
                           variant="sage"
@@ -1700,6 +1711,9 @@ export default function ControlPanel() {
                           placeholder="Search name, email, title…"
                           className="h-9 flex-1 sm:w-64 border-sage/20 focus:border-sage font-body"
                         />
+                        {instructorSearch && (
+                          <FilterReset onReset={() => setInstructorSearch("")} label="Clear" className="shrink-0" />
+                        )}
                         <Button
                           onClick={() => setShowAddInstructorDialog(true)}
                           variant="sage"
@@ -1849,11 +1863,9 @@ export default function ControlPanel() {
             </div>
             <div className="space-y-2">
               <Label className="font-body text-charcoal">Start Date</Label>
-              <Input
-                type="date"
+              <DatePicker
                 value={newUserForm.start_date}
-                onChange={(e) => setNewUserForm((s) => ({ ...s, start_date: e.target.value }))}
-                className="border-sage/20 focus:ring-sage placeholder:text-charcoal/40"
+                onChange={(v) => setNewUserForm((s) => ({ ...s, start_date: v }))}
               />
             </div>
 
@@ -1910,7 +1922,7 @@ export default function ControlPanel() {
                       variant="outline"
                       size="sm"
                       onClick={() => void handlePauseToggle()}
-                      className="border-sage/30 text-charcoal hover:bg-sage/10 font-body h-8"
+                      className="border-sage/30 text-charcoal hover:bg-sage/10 font-body h-8 hover:text-charcoal!"
                     >
                       {selectedUser.isPaused ? "Resume pass" : "Pause pass"}
                     </Button>
@@ -2010,21 +2022,11 @@ export default function ControlPanel() {
               )}
               <div className="space-y-2">
                 <Label className="font-body text-charcoal">Start Date</Label>
-                <Input
-                  type="date"
-                  value={editStartDate}
-                  onChange={(e) => setEditStartDate(e.target.value)}
-                  className="border-sage/20 focus:ring-sage"
-                />
+                <DatePicker value={editStartDate} onChange={setEditStartDate} />
               </div>
               <div className="space-y-2">
                 <Label className="font-body text-charcoal">End Date</Label>
-                <Input
-                  type="date"
-                  value={editEndDate}
-                  onChange={(e) => setEditEndDate(e.target.value)}
-                  className="border-sage/20 focus:ring-sage"
-                />
+                <DatePicker value={editEndDate} onChange={setEditEndDate} />
               </div>
             </div>
           )}

@@ -1488,7 +1488,7 @@ export default function AdminDashboard() {
                   size="sm"
                   variant="outline"
                   onClick={() => router.push(`/admin/schedule/${selectedClass.id}`)}
-                  className="shrink-0 mr-8 border-sage/40 text-sage bg-white-warm hover:!bg-sage hover:!text-cream hover:!border-sage font-body"
+                  className="shrink-0 mr-8 border-sage/40 text-sage bg-white-warm hover:bg-sage! hover:text-cream! hover:border-sage! font-body"
                 >
                   <ExternalLink className="h-4 w-4 mr-1.5" />
                   Open full page
@@ -2197,7 +2197,7 @@ export default function AdminDashboard() {
                     const pid = String(selectedMemberProfile.profileId ?? selectedMemberProfile.id ?? "");
                     if (pid) void router.push(`/admin/control?editUser=${encodeURIComponent(pid)}`);
                   }}
-                  className="border-sage/30 text-charcoal hover:bg-sage/5 font-body h-12"
+                  className="border-sage/30 text-charcoal hover:bg-sage/5 font-body h-12 hover:text-charcoal!"
                 >
                   <CreditCard size={16} className="mr-2" />
                   Manage Packages

@@ -322,7 +322,7 @@ export default function AdminCredits() {
                     <Button
                       onClick={f.reset}
                       variant="outline"
-                      className="mt-4 border-sage/20 text-sage hover:bg-sage/10 font-body"
+                      className="mt-4 border-sage/20 text-sage hover:bg-sage/10 font-body hover:text-sage!"
                     >
                       Clear Filters
                     </Button>

@@ -14,6 +14,7 @@ import { FormAlert } from "@/components/ui/form-alert";
 import { ChevronRight, ChevronLeft, CheckCircle2 } from "lucide-react";
 import { Spinner, PageLoader } from "@/components/ui/spinner";
 import { SEO as Seo } from "@/components/SEO";
+import { DatePicker } from "@/components/filters";
 
 import { cdnUrl } from "@/lib/cdnUrl";
 // ── Fitness goals (shared) ────────────────────────────────────────────────────
@@ -288,12 +289,12 @@ export default function OnboardingPage() {
                         name="dob"
                         control={control}
                         render={({ field }) => (
-                          <input
-                            {...field}
+                          <DatePicker
                             id="dob"
-                            type="date"
+                            value={field.value ?? ""}
+                            onChange={field.onChange}
+                            placeholder="Select date"
                             max={new Date().toISOString().split("T")[0]}
-                            className="flex h-10 w-full rounded-md border border-sage/20 bg-transparent px-3 py-1 text-sm font-body shadow-2xs focus-visible:outline-hidden focus-visible:ring-1 focus-visible:ring-sage"
                           />
                         )}
                       />
@@ -427,7 +428,7 @@ export default function OnboardingPage() {
                       type="button"
                       variant="outline"
                       onClick={() => setStep((s) => s - 1)}
-                      className="flex-1 border-sage/20 text-charcoal hover:bg-sage/5 font-body"
+                      className="flex-1 border-sage/20 text-charcoal hover:bg-sage/5 font-body hover:text-charcoal!"
                     >
                       <ChevronLeft className="h-4 w-4 mr-1" />
                       Back

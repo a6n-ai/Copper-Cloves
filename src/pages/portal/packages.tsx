@@ -1128,7 +1128,7 @@ export default function PackagesPage() {
                     type="button"
                     onClick={closeCheckout}
                     variant="outline"
-                    className="flex-1 border-sage/30 text-charcoal hover:bg-sage/10 h-11"
+                    className="flex-1 border-sage/30 text-charcoal hover:bg-sage/10 h-11 hover:text-charcoal!"
                     disabled={isProcessing}
                   >
                     Cancel

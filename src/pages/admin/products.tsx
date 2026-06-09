@@ -831,7 +831,7 @@ export default function AdminProducts() {
                         <Button
                           size="sm"
                           variant="outline"
-                          className="ml-auto border-sage/30 text-sage hover:bg-sage/10"
+                          className="ml-auto border-sage/30 text-sage hover:bg-sage/10 hover:text-sage!"
                         >
                           <Eye size={16} className="mr-2" />
                           View Details

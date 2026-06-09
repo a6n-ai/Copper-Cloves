@@ -8,6 +8,7 @@ import { ResponsiveTable } from "@/components/responsive/ResponsiveTable";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { DatePicker } from "@/components/filters";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Pill } from "@/components/ui/pill";
@@ -187,7 +188,7 @@ function ExpensesSectionImpl() {
             <div className="text-center py-12">
               <Receipt className="h-12 w-12 text-charcoal/20 mx-auto mb-3" />
               <div className="font-body text-charcoal/60">No expenses recorded yet</div>
-              <Button variant="outline" size="sm" className="mt-4 border-sage/20 text-sage hover:bg-sage/5" onClick={() => setAddOpen(true)}>
+              <Button variant="outline" size="sm" className="mt-4 border-sage/20 text-sage hover:bg-sage/5 hover:text-sage!" onClick={() => setAddOpen(true)}>
                 Add your first expense
               </Button>
             </div>
@@ -317,11 +318,9 @@ function ExpensesSectionImpl() {
             <div className="grid grid-cols-2 gap-3">
               <div className="space-y-1.5">
                 <Label className="font-body text-xs text-charcoal/60">Date</Label>
-                <Input
-                  type="date"
+                <DatePicker
                   value={form.incurredAt}
-                  onChange={(e) => setForm((f) => ({ ...f, incurredAt: e.target.value }))}
-                  className="border-sage/20 bg-white"
+                  onChange={(v) => setForm((f) => ({ ...f, incurredAt: v }))}
                 />
               </div>
               <div className="space-y-1.5">

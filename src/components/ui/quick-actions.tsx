@@ -64,7 +64,7 @@ export const CloseButton = makeAction(
 // White card + colored border, fills on hover with inverted text, animated icon.
 
 const ROW_ACTION_BASE =
-  "h-8 w-8 p-0 font-body transition-all hover:scale-110 active:scale-95 disabled:opacity-40 disabled:cursor-not-allowed disabled:hover:scale-100 [&_svg]:!scale-100 [&_svg]:!rotate-0";
+  "h-8 w-8 p-0 font-body transition-all hover:scale-110 active:scale-95 disabled:opacity-40 disabled:cursor-not-allowed disabled:hover:scale-100 [&_svg]:scale-100! [&_svg]:rotate-0!";
 
 type RowActionProps = Omit<ButtonProps, "variant" | "size" | "children"> & {
   label?: string;
@@ -82,7 +82,7 @@ export const EditButton = React.forwardRef<HTMLButtonElement, RowActionProps>(
       title={label ?? "Edit"}
       className={cn(
         ROW_ACTION_BASE,
-        "border-sage/40 text-sage bg-white hover:!bg-sage hover:!text-white hover:!border-sage",
+        "border-sage/40 text-sage bg-white hover:bg-sage! hover:text-white! hover:border-sage!",
         className,
       )}
       {...props}
@@ -105,7 +105,7 @@ export const ManageButton = React.forwardRef<HTMLButtonElement, RowActionProps>(
       title={label ?? "Manage"}
       className={cn(
         ROW_ACTION_BASE,
-        "border-sage/40 text-sage bg-white hover:!bg-sage hover:!text-white hover:!border-sage",
+        "border-sage/40 text-sage bg-white hover:bg-sage! hover:text-white! hover:border-sage!",
         className,
       )}
       {...props}
@@ -142,7 +142,7 @@ export const DeleteButton = React.forwardRef<HTMLButtonElement, DeleteButtonProp
         title={label ?? "Delete"}
         className={cn(
           ROW_ACTION_BASE,
-          "border-terracotta/40 text-terracotta bg-white hover:!bg-terracotta hover:!text-white hover:!border-terracotta",
+          "border-terracotta/40 text-terracotta bg-white hover:bg-terracotta! hover:text-white! hover:border-terracotta!",
           className,
         )}
         {...(skipConfirm ? { onClick } : {})}

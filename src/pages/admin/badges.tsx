@@ -622,7 +622,7 @@ export default function AdminBadgesPage() {
                       <Button
                         onClick={() => setPtmSearch("")}
                         variant="outline"
-                        className="mt-4 border-sage/20 text-sage hover:bg-sage/10 font-body"
+                        className="mt-4 border-sage/20 text-sage hover:bg-sage/10 font-body hover:text-sage!"
                       >
                         Clear search
                       </Button>
@@ -955,7 +955,7 @@ export default function AdminBadgesPage() {
                                 <Button
                                   size="sm"
                                   variant="outline"
-                                  className="h-7 text-xs font-body border-terracotta/30 text-terracotta hover:bg-terracotta/10"
+                                  className="h-7 text-xs font-body border-terracotta/30 text-terracotta hover:bg-terracotta/10 hover:text-terracotta!"
                                   onClick={() => revokeBadge(a.id)}
                                 >
                                   Revoke

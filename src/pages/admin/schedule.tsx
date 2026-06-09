@@ -25,6 +25,7 @@ import { DayScheduleList } from "@/components/admin/DayScheduleList";
 import { MetricCard } from "@/components/admin/MetricCard";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { DatePicker } from "@/components/filters";
 import { Textarea } from "@/components/ui/textarea";
 import {
   Form,
@@ -992,19 +993,8 @@ export default function AdminSchedule() {
                     modifiersClassNames={{
                       hasClass: "relative after:content-[''] after:absolute after:bottom-1 after:left-1/2 after:-translate-x-1/2 after:h-1 after:w-1 after:rounded-full after:bg-sage",
                     }}
-                    classNames={{
-                      months: "w-full",
-                      month: "w-full space-y-4",
-                      table: "w-full border-collapse",
-                      head_row: "flex w-full",
-                      head_cell: "text-muted-foreground rounded-md flex-1 font-normal text-[0.8rem] text-center",
-                      row: "flex w-full mt-2",
-                      cell: "relative p-0 text-center text-sm flex-1 focus-within:relative focus-within:z-20 has-aria-[selected]:bg-accent has-aria-[selected]:rounded-md",
-                      day: "h-9 w-full p-0 font-normal aria-selected:opacity-100 hover:bg-sage/10 rounded-md transition-colors",
-                      day_selected: "bg-sage text-cream hover:bg-sage hover:text-cream focus:bg-sage focus:text-cream",
-                      day_today: "bg-sage/10 text-sage font-medium",
-                    }}
-                    className="w-full p-0"
+                    classNames={{ root: "w-full", months: "w-full", month: "w-full" }}
+                    className="w-full p-0 [--cell-size:--spacing(9)]"
                   />
                 </CardContent>
               </Card>
@@ -1135,8 +1125,8 @@ export default function AdminSchedule() {
                               onClick={(e) => { e.stopPropagation(); handleToggleStatus(sc); }}
                               className={`font-body h-8 w-8 p-0 transition-all hover:scale-110 active:scale-95 ${
                                 isActive
-                                  ? "border-terracotta/40 text-terracotta bg-white-warm hover:!bg-terracotta hover:!text-cream hover:!border-terracotta"
-                                  : "border-sage/60 text-sage bg-white-warm hover:!bg-sage hover:!text-cream hover:!border-sage"
+                                  ? "border-terracotta/40 text-terracotta bg-white-warm hover:bg-terracotta! hover:text-cream! hover:border-terracotta!"
+                                  : "border-sage/60 text-sage bg-white-warm hover:bg-sage! hover:text-cream! hover:border-sage!"
                               }`}
                               title={
                                 isActive
@@ -1221,7 +1211,7 @@ export default function AdminSchedule() {
                                   variant="outline"
                                   role="combobox"
                                   className={cn(
-                                    "h-12 justify-between font-body border-charcoal/20 hover:bg-white-warm",
+                                    "h-12 justify-between font-body border-charcoal/20 hover:bg-white-warm hover:text-charcoal!",
                                     !field.value && "text-charcoal/40",
                                   )}
                                 >
@@ -1284,7 +1274,7 @@ export default function AdminSchedule() {
                                   variant="outline"
                                   role="combobox"
                                   className={cn(
-                                    "h-12 justify-between font-body border-charcoal/20 hover:bg-white-warm",
+                                    "h-12 justify-between font-body border-charcoal/20 hover:bg-white-warm hover:text-charcoal!",
                                     !field.value && "text-charcoal/40",
                                   )}
                                 >
@@ -1516,11 +1506,11 @@ export default function AdminSchedule() {
                         <FormItem>
                           <FormLabel className="font-body text-charcoal/80">Date</FormLabel>
                           <FormControl>
-                            <Input
-                              type="date"
-                              {...field}
+                            <DatePicker
+                              value={field.value}
+                              onChange={field.onChange}
                               disabled={!!editingClass}
-                              className="h-12 font-body text-lg border-charcoal/20 focus:border-sage"
+                              className="h-12 text-lg"
                             />
                           </FormControl>
                           {editingClass && (
@@ -1545,11 +1535,7 @@ export default function AdminSchedule() {
                             <FormItem>
                               <FormLabel className="font-body text-charcoal/80">From</FormLabel>
                               <FormControl>
-                                <Input
-                                  type="date"
-                                  {...field}
-                                  className="h-12 font-body border-charcoal/20 focus:border-sage"
-                                />
+                                <DatePicker value={field.value} onChange={field.onChange} className="h-12" />
                               </FormControl>
                               <FormMessage />
                             </FormItem>
@@ -1562,11 +1548,7 @@ export default function AdminSchedule() {
                             <FormItem>
                               <FormLabel className="font-body text-charcoal/80">To</FormLabel>
                               <FormControl>
-                                <Input
-                                  type="date"
-                                  {...field}
-                                  className="h-12 font-body border-charcoal/20 focus:border-sage"
-                                />
+                                <DatePicker value={field.value} onChange={field.onChange} className="h-12" />
                               </FormControl>
                               <FormMessage />
                             </FormItem>
@@ -1648,11 +1630,10 @@ export default function AdminSchedule() {
                         <FormItem>
                           <FormLabel className="font-body text-charcoal/80">Pick dates</FormLabel>
                           <div className="flex gap-2">
-                            <Input
-                              type="date"
+                            <DatePicker
                               value={multiDateInput}
-                              onChange={e => setMultiDateInput(e.target.value)}
-                              className="h-11 font-body border-charcoal/20 focus:border-sage"
+                              onChange={setMultiDateInput}
+                              className="h-11"
                             />
                             <Button
                               type="button"

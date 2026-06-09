@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Check, ChevronsUpDown } from "lucide-react";
+import { Check, ChevronsUpDown, ListFilter, type LucideIcon } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import {
@@ -11,6 +11,7 @@ import {
   CommandList,
 } from "@/components/ui/command";
 import { cn } from "@/lib/utils";
+import { FILTER_TRIGGER } from "@/components/filters";
 
 // Searchable single-select for long, dynamic filters (member, method). shadcn
 // Select has no search, so this pairs Popover + cmdk Command. Shared across the
@@ -22,6 +23,7 @@ export function FilterCombobox({
   allLabel,
   searchPlaceholder,
   emptyText,
+  icon: Icon = ListFilter,
 }: Readonly<{
   value: string;
   onValueChange: (v: string) => void;
@@ -29,6 +31,7 @@ export function FilterCombobox({
   allLabel: string;
   searchPlaceholder: string;
   emptyText: string;
+  icon?: LucideIcon;
 }>) {
   const [open, setOpen] = useState(false);
   const label = value === "all" ? allLabel : value;
@@ -40,15 +43,18 @@ export function FilterCombobox({
           variant="outline"
           role="combobox"
           aria-expanded={open}
-          className="w-full justify-between border-sage/20 bg-white-warm font-body font-normal text-charcoal hover:bg-white-warm"
+          className={cn(FILTER_TRIGGER, "justify-between")}
         >
-          <span className="truncate">{label}</span>
+          <span className="flex min-w-0 items-center">
+            {Icon && <Icon className="mr-2 h-4 w-4 shrink-0 text-charcoal/40" aria-hidden />}
+            <span className="truncate">{label}</span>
+          </span>
           <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
         </Button>
       </PopoverTrigger>
       <PopoverContent className="p-0 w-[--radix-popover-trigger-width]" align="start">
         <Command>
-          <CommandInput placeholder={searchPlaceholder} className="font-body" />
+          <CommandInput placeholder={searchPlaceholder} className="font-body text-popover-foreground" />
           <CommandList>
             <CommandEmpty>{emptyText}</CommandEmpty>
             <CommandGroup>
@@ -58,7 +64,7 @@ export function FilterCombobox({
                   onValueChange("all");
                   setOpen(false);
                 }}
-                className="font-body text-popover-foreground data-[selected=true]:bg-sage/10 data-[selected=true]:text-sage"
+                className="font-body text-popover-foreground data-[selected=true]:bg-sage/10 data-[selected=true]:text-sage!"
               >
                 <Check className={cn("mr-2 h-4 w-4", value === "all" ? "opacity-100" : "opacity-0")} />
                 {allLabel}
@@ -71,7 +77,7 @@ export function FilterCombobox({
                     onValueChange(opt);
                     setOpen(false);
                   }}
-                  className="font-body text-popover-foreground data-[selected=true]:bg-sage/10 data-[selected=true]:text-sage"
+                  className="font-body text-popover-foreground data-[selected=true]:bg-sage/10 data-[selected=true]:text-sage!"
                 >
                   <Check className={cn("mr-2 h-4 w-4", value === opt ? "opacity-100" : "opacity-0")} />
                   <span className="truncate">{opt}</span>

@@ -45,7 +45,7 @@ export function MobilePagination({
         variant="outline"
         onClick={() => go(currentPage - 1)}
         disabled={currentPage === 1}
-        className="shrink-0 border-sage/30 font-body text-sage hover:bg-sage/10 disabled:opacity-30"
+        className="shrink-0 border-sage/30 font-body text-sage hover:bg-sage/10 disabled:opacity-30 hover:text-sage!"
       >
         <ChevronLeft size={16} className="sm:mr-1" />
         <span className="hidden sm:inline">Previous</span>
@@ -81,7 +81,7 @@ export function MobilePagination({
         variant="outline"
         onClick={() => go(currentPage + 1)}
         disabled={currentPage === totalPages}
-        className="shrink-0 border-sage/30 font-body text-sage hover:bg-sage/10 disabled:opacity-30"
+        className="shrink-0 border-sage/30 font-body text-sage hover:bg-sage/10 disabled:opacity-30 hover:text-sage!"
       >
         <span className="hidden sm:inline">Next</span>
         <ChevronRight size={16} className="sm:ml-1" />

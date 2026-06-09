@@ -193,7 +193,7 @@ export default function KitchenDashboard() {
                     variant="outline"
                     disabled={updating === o.id}
                     onClick={() => updateStatus(o.id, "cancelled")}
-                    className="border-terracotta/30 text-terracotta hover:bg-terracotta/5 font-body"
+                    className="border-terracotta/30 text-terracotta hover:bg-terracotta/5 font-body hover:text-terracotta!"
                     aria-label="Cancel order"
                   >
                     <X className="h-4 w-4" />
@@ -220,7 +220,7 @@ export default function KitchenDashboard() {
                 <Button
                   variant="outline"
                   onClick={() => router.push("/admin/cafe")}
-                  className="border-sage/30 text-sage hover:bg-sage/5 font-body"
+                  className="border-sage/30 text-sage hover:bg-sage/5 font-body hover:text-sage!"
                 >
                   <ChefHat className="h-4 w-4 mr-2" />
                   Manage Café

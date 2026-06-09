@@ -2,39 +2,27 @@ import { memo, useCallback, useMemo, useState, type ReactNode } from "react";
 import { SortableHeader, useTableSort } from "@/components/admin/sortable-table";
 import {
   ArrowDownRight,
+  ArrowUpDown,
   ArrowUpRight,
   Banknote,
-  Check,
-  ChevronsUpDown,
+  CreditCard,
   DollarSign,
   Download,
   FileText,
   Filter,
   PieChart,
-  Search,
   Smartphone,
   TrendingDown,
   TrendingUp,
   Trophy,
+  User,
 } from "lucide-react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { ResponsiveTable } from "@/components/responsive/ResponsiveTable";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
-import {
-  Command,
-  CommandEmpty,
-  CommandGroup,
-  CommandInput,
-  CommandItem,
-  CommandList,
-} from "@/components/ui/command";
-import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import { Pill, type PillProps } from "@/components/ui/pill";
 import { financeKindPill } from "@/lib/pillMaps";
-import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import {
   ResponsiveDialog,
@@ -51,7 +39,8 @@ import {
   ChartTooltipContent,
 } from "@/components/ui/chart";
 import { MetricCard } from "@/components/admin/MetricCard";
-import { FilterDateRange } from "@/components/filters";
+import { FilterCombobox } from "@/components/admin/FilterCombobox";
+import { FilterDateRange, FilterReset, FilterSelect, FilterSearch } from "@/components/filters";
 import type { DateRange } from "react-day-picker";
 import { Pagination, usePagination } from "@/components/Pagination";
 import { transactionInExportPeriod, type FinanceReportPeriod } from "@/lib/financeReportExport";
@@ -217,31 +206,14 @@ function parseYYYYMMDDLocal(dateStr: string): Date | null {
   return d;
 }
 
-function txnPassesDateRange(displayDateYYYYMMDD: string, range: string, custom?: DateRange): boolean {
-  if (range === "all") return true;
+function txnPassesDateRange(displayDateYYYYMMDD: string, range?: DateRange): boolean {
+  if (!range?.from) return true;
   const txnDay = parseYYYYMMDDLocal(displayDateYYYYMMDD);
   if (!txnDay) return true;
-  const now = new Date();
-  const startToday = new Date(now.getFullYear(), now.getMonth(), now.getDate());
-  const endToday = new Date(startToday);
-  endToday.setDate(endToday.getDate() + 1);
-  if (range === "today") return txnDay >= startToday && txnDay < endToday;
-  if (range === "week") {
-    const cutoff = new Date(startToday);
-    cutoff.setDate(cutoff.getDate() - 7);
-    return txnDay >= cutoff && txnDay < endToday;
-  }
-  if (range === "month") {
-    return txnDay.getFullYear() === now.getFullYear() && txnDay.getMonth() === now.getMonth();
-  }
-  if (range === "custom") {
-    if (!custom?.from) return true;
-    const from = new Date(custom.from.getFullYear(), custom.from.getMonth(), custom.from.getDate());
-    const toSrc = custom.to ?? custom.from;
-    const to = new Date(toSrc.getFullYear(), toSrc.getMonth(), toSrc.getDate());
-    return txnDay >= from && txnDay <= to; // `to` inclusive (whole selected end day)
-  }
-  return true;
+  const from = new Date(range.from.getFullYear(), range.from.getMonth(), range.from.getDate());
+  const toSrc = range.to ?? range.from;
+  const to = new Date(toSrc.getFullYear(), toSrc.getMonth(), toSrc.getDate());
+  return txnDay >= from && txnDay <= to; // `to` inclusive (whole selected end day)
 }
 
 function formatTxnAmountRupee(amount: number, type: string): string {
@@ -623,79 +595,6 @@ function FinanceOverviewSectionImpl({
 
 export const FinanceOverviewSection = memo(FinanceOverviewSectionImpl);
 
-// Searchable single-select for the long, dynamic filters (member, method).
-// shadcn Select has no search, so this pairs Popover + cmdk Command like the
-// schedule page's class/instructor pickers.
-function FilterCombobox({
-  value,
-  onValueChange,
-  options,
-  allLabel,
-  searchPlaceholder,
-  emptyText,
-}: Readonly<{
-  value: string;
-  onValueChange: (v: string) => void;
-  options: string[];
-  allLabel: string;
-  searchPlaceholder: string;
-  emptyText: string;
-}>) {
-  const [open, setOpen] = useState(false);
-  const label = value === "all" ? allLabel : value;
-  return (
-    <Popover open={open} onOpenChange={setOpen}>
-      <PopoverTrigger asChild>
-        <Button
-          type="button"
-          variant="outline"
-          role="combobox"
-          aria-expanded={open}
-          className="w-full justify-between border-sage/20 bg-white-warm font-body font-normal text-charcoal hover:bg-white-warm"
-        >
-          <span className="truncate">{label}</span>
-          <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
-        </Button>
-      </PopoverTrigger>
-      <PopoverContent className="p-0 w-[--radix-popover-trigger-width]" align="start">
-        <Command>
-          <CommandInput placeholder={searchPlaceholder} className="font-body" />
-          <CommandList>
-            <CommandEmpty>{emptyText}</CommandEmpty>
-            <CommandGroup>
-              <CommandItem
-                value={allLabel}
-                onSelect={() => {
-                  onValueChange("all");
-                  setOpen(false);
-                }}
-                className="font-body text-charcoal data-[selected=true]:bg-sage/10 data-[selected=true]:text-charcoal"
-              >
-                <Check className={cn("mr-2 h-4 w-4", value === "all" ? "opacity-100" : "opacity-0")} />
-                {allLabel}
-              </CommandItem>
-              {options.map((opt) => (
-                <CommandItem
-                  key={opt}
-                  value={opt}
-                  onSelect={() => {
-                    onValueChange(opt);
-                    setOpen(false);
-                  }}
-                  className="font-body text-charcoal data-[selected=true]:bg-sage/10 data-[selected=true]:text-charcoal"
-                >
-                  <Check className={cn("mr-2 h-4 w-4", value === opt ? "opacity-100" : "opacity-0")} />
-                  <span className="truncate">{opt}</span>
-                </CommandItem>
-              ))}
-            </CommandGroup>
-          </CommandList>
-        </Command>
-      </PopoverContent>
-    </Popover>
-  );
-}
-
 // ──────────────────────────────────────────────────────────────────────────
 // Transactions section: filters, the ledger table, and the Finance-1 detail
 // dialog. Owns its own filter / sort / pagination state.
@@ -708,8 +607,7 @@ export interface FinanceTransactionsSectionProps {
 
 interface TxnFilterCriteria {
   filter: string;
-  dateRange: string;
-  customRange?: DateRange;
+  dateRange?: DateRange;
   type: string;
   member: string;
   method: string;
@@ -734,7 +632,7 @@ function txnMatchesType(txn: DashboardTxn, type: string): boolean {
 
 // Single predicate for the ledger filters. Pure — no component state captured.
 function txnMatchesFilters(txn: DashboardTxn, c: TxnFilterCriteria): boolean {
-  if (!txnPassesDateRange(txn.date, c.dateRange, c.customRange)) return false;
+  if (!txnPassesDateRange(txn.date, c.dateRange)) return false;
   if (c.filter === "credit" && txn.type !== "revenue") return false;
   if (c.filter === "debit" && txn.type !== "expense") return false;
 
@@ -893,8 +791,7 @@ function FinanceTransactionsSectionImpl({
   onExport,
 }: Readonly<FinanceTransactionsSectionProps>) {
   const [transactionFilter, setTransactionFilter] = useState("all");
-  const [transactionDateRange, setTransactionDateRange] = useState("all");
-  const [transactionCustomRange, setTransactionCustomRange] = useState<DateRange | undefined>(undefined);
+  const [transactionDateRange, setTransactionDateRange] = useState<DateRange | undefined>(undefined);
   const [transactionType, setTransactionType] = useState("all");
   const [transactionMember, setTransactionMember] = useState("all");
   const [transactionMethod, setTransactionMethod] = useState("all");
@@ -925,21 +822,10 @@ function FinanceTransactionsSectionImpl({
     return Array.from(set).sort((a, b) => a.localeCompare(b));
   }, [financeLedgerTransactions]);
 
-  const resetFilters = useCallback(() => {
-    setTransactionFilter("all");
-    setTransactionDateRange("all");
-    setTransactionCustomRange(undefined);
-    setTransactionType("all");
-    setTransactionMember("all");
-    setTransactionMethod("all");
-    setTransactionSearch("");
-  }, []);
-
   const filteredFinanceTransactions = useMemo(() => {
     const criteria: TxnFilterCriteria = {
       filter: transactionFilter,
       dateRange: transactionDateRange,
-      customRange: transactionCustomRange,
       type: transactionType,
       member: transactionMember,
       method: transactionMethod,
@@ -950,7 +836,6 @@ function FinanceTransactionsSectionImpl({
     financeLedgerTransactions,
     transactionFilter,
     transactionDateRange,
-    transactionCustomRange,
     transactionType,
     transactionMember,
     transactionMethod,
@@ -979,11 +864,28 @@ function FinanceTransactionsSectionImpl({
   const financeTxnPg = usePagination(
     sortedFinanceTxns,
     10,
-    `${transactionFilter}|${transactionDateRange}|${transactionCustomRange?.from?.toDateString() ?? ""}-${transactionCustomRange?.to?.toDateString() ?? ""}|${transactionType}|${transactionMember}|${transactionMethod}|${transactionSearch}|${txnSortKey}|${txnSortDir}`,
+    `${transactionFilter}|${transactionDateRange?.from?.toDateString() ?? ""}-${transactionDateRange?.to?.toDateString() ?? ""}|${transactionType}|${transactionMember}|${transactionMethod}|${transactionSearch}|${txnSortKey}|${txnSortDir}`,
   );
 
   const handleExport = (period: FinanceReportPeriod) => {
     onExport(period, buildExportRows(period, financeLedgerTransactions, filteredFinanceTransactions));
+  };
+
+  const transactionFiltersDirty =
+    transactionFilter !== "all" ||
+    transactionDateRange !== undefined ||
+    transactionType !== "all" ||
+    transactionMember !== "all" ||
+    transactionMethod !== "all" ||
+    transactionSearch !== "";
+
+  const resetTransactionFilters = () => {
+    setTransactionFilter("all");
+    setTransactionDateRange(undefined);
+    setTransactionType("all");
+    setTransactionMember("all");
+    setTransactionMethod("all");
+    setTransactionSearch("");
   };
 
   return (
@@ -995,63 +897,52 @@ function FinanceTransactionsSectionImpl({
               <CardTitle className="font-display text-2xl text-charcoal">Recent Transactions</CardTitle>
               <CardDescription className="font-body text-charcoal/60">All financial activities tracked</CardDescription>
             </div>
-            <Button type="button" variant="outline" className="border-sage/20 text-sage hover:bg-sage/5 font-body" onClick={() => handleExport("filtered")}>
-              <Download className="h-4 w-4 mr-2" />
-              Export All
-            </Button>
+            <div className="flex items-center gap-2">
+              {transactionFiltersDirty && <FilterReset onReset={resetTransactionFilters} label="Clear filters" />}
+              <Button type="button" variant="sage-outline" className="font-body" onClick={() => handleExport("filtered")}>
+                <Download className="h-4 w-4 mr-2" />
+                Export All
+              </Button>
+            </div>
           </div>
 
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 p-4 rounded-xl bg-cream/30 border border-sage/20">
             <div className="space-y-2">
               <Label className="font-body text-xs text-charcoal/60">Filter by Type</Label>
-              <Select value={transactionFilter} onValueChange={setTransactionFilter}>
-                <SelectTrigger className="border-sage/20 bg-white-warm"><SelectValue /></SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="all">All Transactions</SelectItem>
-                  <SelectItem value="credit">💰 Credits Only</SelectItem>
-                  <SelectItem value="debit">💸 Debits Only</SelectItem>
-                </SelectContent>
-              </Select>
+              <FilterSelect
+                value={transactionFilter}
+                onChange={setTransactionFilter}
+                icon={ArrowUpDown}
+                options={[
+                  { value: "all", label: "All Transactions" },
+                  { value: "credit", label: "💰 Credits Only" },
+                  { value: "debit", label: "💸 Debits Only" },
+                ]}
+              />
             </div>
             <div className="space-y-2">
               <Label className="font-body text-xs text-charcoal/60">Date Range</Label>
-              <Select
+              <FilterDateRange
                 value={transactionDateRange}
-                onValueChange={(v) => {
-                  setTransactionDateRange(v);
-                  if (v !== "custom") setTransactionCustomRange(undefined);
-                }}
-              >
-                <SelectTrigger className="border-sage/20 bg-white-warm"><SelectValue /></SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="all">All Time</SelectItem>
-                  <SelectItem value="today">Today</SelectItem>
-                  <SelectItem value="week">This Week</SelectItem>
-                  <SelectItem value="month">This Month</SelectItem>
-                  <SelectItem value="custom">Custom Range</SelectItem>
-                </SelectContent>
-              </Select>
-              {transactionDateRange === "custom" && (
-                <FilterDateRange
-                  value={transactionCustomRange}
-                  onChange={setTransactionCustomRange}
-                  placeholder="Pick dates"
-                />
-              )}
+                onChange={setTransactionDateRange}
+                placeholder="All time"
+              />
             </div>
             <div className="space-y-2">
               <Label className="font-body text-xs text-charcoal/60">Category</Label>
-              <Select value={transactionType} onValueChange={setTransactionType}>
-                <SelectTrigger className="border-sage/20 bg-white-warm"><SelectValue /></SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="all">All Categories</SelectItem>
-                  <SelectItem value="packages">Package Purchases</SelectItem>
-                  <SelectItem value="coach">Coach Payments</SelectItem>
-                  <SelectItem value="studio">Studio Expenses</SelectItem>
-                  <SelectItem value="class_bookings">Class checkouts</SelectItem>
-                  <SelectItem value="cafe">Café Revenue</SelectItem>
-                </SelectContent>
-              </Select>
+              <FilterSelect
+                value={transactionType}
+                onChange={setTransactionType}
+                icon={Filter}
+                options={[
+                  { value: "all", label: "All Categories" },
+                  { value: "packages", label: "Package Purchases" },
+                  { value: "coach", label: "Coach Payments" },
+                  { value: "studio", label: "Studio Expenses" },
+                  { value: "class_bookings", label: "Class checkouts" },
+                  { value: "cafe", label: "Café Revenue" },
+                ]}
+              />
             </div>
             <div className="space-y-2">
               <Label className="font-body text-xs text-charcoal/60">Member</Label>
@@ -1062,6 +953,7 @@ function FinanceTransactionsSectionImpl({
                 allLabel="All Members"
                 searchPlaceholder="Search members…"
                 emptyText="No members found."
+                icon={User}
               />
             </div>
             <div className="space-y-2">
@@ -1073,19 +965,17 @@ function FinanceTransactionsSectionImpl({
                 allLabel="All Methods"
                 searchPlaceholder="Search methods…"
                 emptyText="No methods found."
+                icon={CreditCard}
               />
             </div>
             <div className="space-y-2">
               <Label className="font-body text-xs text-charcoal/60">Search</Label>
-              <div className="relative">
-                <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-charcoal/40" />
-                <Input
-                  placeholder="Search transactions..."
-                  value={transactionSearch}
-                  onChange={(e) => setTransactionSearch(e.target.value)}
-                  className="border-sage/20 bg-white-warm pl-9"
-                />
-              </div>
+              <FilterSearch
+                value={transactionSearch}
+                onChange={setTransactionSearch}
+                placeholder="Search transactions…"
+                aria-label="Search transactions"
+              />
             </div>
           </div>
         </CardHeader>
@@ -1127,8 +1017,8 @@ function FinanceTransactionsSectionImpl({
               <Button
                 variant="outline"
                 size="sm"
-                className="mt-4 border-sage/20 text-sage hover:bg-sage/5"
-                onClick={resetFilters}
+                className="mt-4 border-sage/20 text-sage hover:bg-sage/5 hover:text-sage!"
+                onClick={resetTransactionFilters}
               >
                 Clear Filters
               </Button>

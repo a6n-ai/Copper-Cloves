@@ -14,6 +14,7 @@ import { toast } from "sonner";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { DatePicker } from "@/components/filters";
 import { Skeleton } from "@/components/ui/skeleton";
 import { MetricCard } from "@/components/admin/MetricCard";
 import { Pill } from "@/components/ui/pill";
@@ -179,7 +180,7 @@ function OverviewTabImpl({
           tone="sage"
           loading={!overviewLoaded}
           footer={
-            <Button variant="outline" size="sm" className="border-sage/20 text-sage hover:bg-sage/5 h-7 text-xs font-body" onClick={onOpenCafe}>
+            <Button variant="outline" size="sm" className="border-sage/20 text-sage hover:bg-sage/5 h-7 text-xs font-body hover:text-sage!" onClick={onOpenCafe}>
               View Queue
             </Button>
           }
@@ -202,7 +203,7 @@ function OverviewTabImpl({
               <Button
                 variant="outline"
                 size="sm"
-                className="border-sage/40 text-sage bg-white-warm hover:!bg-sage hover:!text-cream hover:!border-sage h-9 w-9 p-0 transition-all"
+                className="border-sage/40 text-sage bg-white-warm hover:bg-sage! hover:text-cream! hover:border-sage! h-9 w-9 p-0 transition-all"
                 onClick={() => {
                   const prev = new Date(y, m - 1, d - 1);
                   onScheduleDateChange(iso(prev));
@@ -211,16 +212,15 @@ function OverviewTabImpl({
               >
                 <ChevronLeft className="h-4 w-4" />
               </Button>
-              <Input
-                type="date"
+              <DatePicker
                 value={scheduleDate}
-                onChange={(e) => onScheduleDateChange(e.target.value)}
-                className="h-9 w-40 border-sage/40 font-body"
+                onChange={onScheduleDateChange}
+                className="h-9 w-40"
               />
               <Button
                 variant="outline"
                 size="sm"
-                className="border-sage/40 text-sage bg-white-warm hover:!bg-sage hover:!text-cream hover:!border-sage h-9 w-9 p-0 transition-all"
+                className="border-sage/40 text-sage bg-white-warm hover:bg-sage! hover:text-cream! hover:border-sage! h-9 w-9 p-0 transition-all"
                 onClick={() => {
                   const next = new Date(y, m - 1, d + 1);
                   onScheduleDateChange(iso(next));
@@ -232,7 +232,7 @@ function OverviewTabImpl({
               <Button
                 variant="outline"
                 size="sm"
-                className="border-sage/40 text-sage bg-white-warm hover:!bg-sage hover:!text-cream hover:!border-sage h-9 font-body transition-all"
+                className="border-sage/40 text-sage bg-white-warm hover:bg-sage! hover:text-cream! hover:border-sage! h-9 font-body transition-all"
                 onClick={() => onScheduleDateChange(todayIso)}
               >
                 Today
@@ -326,7 +326,7 @@ function OverviewTabImpl({
                   onClick={() => setSelectedMembers(new Set())}
                   size="sm"
                   variant="outline"
-                  className="border-sage/30 text-charcoal hover:bg-sage/5"
+                  className="border-sage/30 text-charcoal hover:bg-sage/5 hover:text-charcoal!"
                 >
                   Clear
                 </Button>
@@ -376,7 +376,7 @@ function OverviewTabImpl({
                     onClick={() => onViewProfile(member as unknown as Record<string, unknown>)}
                     variant="outline"
                     size="sm"
-                    className="flex-1 sm:flex-none border-sage/30 text-sage hover:bg-sage/5 font-body"
+                    className="flex-1 sm:flex-none border-sage/30 text-sage hover:bg-sage/5 font-body hover:text-sage!"
                   >
                     <Eye size={14} className="mr-1" />
                     View
@@ -384,7 +384,7 @@ function OverviewTabImpl({
                   <Button
                     variant="outline"
                     size="sm"
-                    className="flex-1 sm:flex-none border-terracotta/20 text-terracotta hover:bg-terracotta/10 font-body transition-all"
+                    className="flex-1 sm:flex-none border-terracotta/20 text-terracotta hover:bg-terracotta/10 font-body transition-all hover:text-terracotta!"
                     onClick={() => {
                       toast.success(`"The Ritual Renewal" CRM template instantly queued for ${member.name} via WhatsApp/Email!`);
                     }}

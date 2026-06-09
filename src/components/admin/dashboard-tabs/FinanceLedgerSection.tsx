@@ -1,13 +1,16 @@
 import { memo, useCallback, useEffect, useMemo, useState } from "react";
 import {
   ArrowDownLeft,
+  ArrowUpDown,
   ArrowUpRight,
+  CreditCard,
+  Database,
   Download,
   ExternalLink,
   Filter,
   Loader2,
   Scale,
-  Search,
+  Users,
 } from "lucide-react";
 import { toast } from "sonner";
 import {
@@ -19,14 +22,12 @@ import {
 } from "@/components/ui/card";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { ResponsiveTable } from "@/components/responsive/ResponsiveTable";
-import { Input } from "@/components/ui/input";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
 import { Pill } from "@/components/ui/pill";
 import { MetricCard } from "@/components/admin/MetricCard";
 import { FilterCombobox } from "@/components/admin/FilterCombobox";
-import { FilterDateRange } from "@/components/filters";
+import { FilterDateRange, FilterReset, FilterSelect, FilterSearch } from "@/components/filters";
 import type { DateRange } from "react-day-picker";
 import { SortableHeader, useTableSort } from "@/components/admin/sortable-table";
 import { Pagination, usePagination } from "@/components/Pagination";
@@ -86,34 +87,16 @@ function downloadCsv(filename: string, csv: string): void {
   URL.revokeObjectURL(url);
 }
 
-// Same date-range semantics as the Transactions tab (today / this week / month),
-// plus a "custom" branch driven by the kit's FilterDateRange (from/to, inclusive).
-function passesDateRange(iso: string, range: string, custom?: DateRange): boolean {
-  if (range === "all") return true;
+// Inclusive [from, to] day-range check driven by the shared FilterDateRange.
+function passesDateRange(iso: string, range?: DateRange): boolean {
+  if (!range?.from) return true;
   const d = new Date(iso);
   if (Number.isNaN(d.getTime())) return true;
   const day = new Date(d.getFullYear(), d.getMonth(), d.getDate());
-  const now = new Date();
-  const startToday = new Date(now.getFullYear(), now.getMonth(), now.getDate());
-  const endToday = new Date(startToday);
-  endToday.setDate(endToday.getDate() + 1);
-  if (range === "today") return day >= startToday && day < endToday;
-  if (range === "week") {
-    const cutoff = new Date(startToday);
-    cutoff.setDate(cutoff.getDate() - 7);
-    return day >= cutoff && day < endToday;
-  }
-  if (range === "month") {
-    return day.getFullYear() === now.getFullYear() && day.getMonth() === now.getMonth();
-  }
-  if (range === "custom") {
-    if (!custom?.from) return true;
-    const from = new Date(custom.from.getFullYear(), custom.from.getMonth(), custom.from.getDate());
-    const toSrc = custom.to ?? custom.from;
-    const to = new Date(toSrc.getFullYear(), toSrc.getMonth(), toSrc.getDate());
-    return day >= from && day <= to; // `to` is inclusive (the whole selected end day)
-  }
-  return true;
+  const from = new Date(range.from.getFullYear(), range.from.getMonth(), range.from.getDate());
+  const toSrc = range.to ?? range.from;
+  const to = new Date(toSrc.getFullYear(), toSrc.getMonth(), toSrc.getDate());
+  return day >= from && day <= to; // `to` is inclusive (the whole selected end day)
 }
 
 type DirFilter = "all" | "credit" | "debit";
@@ -125,8 +108,7 @@ function FinanceLedgerSectionImpl() {
   const [loading, setLoading] = useState(true);
 
   const [dir, setDir] = useState<DirFilter>("all");
-  const [dateRange, setDateRange] = useState("all");
-  const [customRange, setCustomRange] = useState<DateRange | undefined>(undefined);
+  const [dateRange, setDateRange] = useState<DateRange | undefined>(undefined);
   const [category, setCategory] = useState("all");
   const [party, setParty] = useState("all");
   const [method, setMethod] = useState("all");
@@ -178,8 +160,7 @@ function FinanceLedgerSectionImpl() {
 
   const resetFilters = useCallback(() => {
     setDir("all");
-    setDateRange("all");
-    setCustomRange(undefined);
+    setDateRange(undefined);
     setCategory("all");
     setParty("all");
     setMethod("all");
@@ -187,12 +168,21 @@ function FinanceLedgerSectionImpl() {
     setSearch("");
   }, []);
 
+  const ledgerFiltersDirty =
+    dir !== "all" ||
+    dateRange !== undefined ||
+    category !== "all" ||
+    party !== "all" ||
+    method !== "all" ||
+    source !== "all" ||
+    search !== "";
+
   const filtered = useMemo(() => {
     const q = search.trim().toLowerCase();
     return entries.filter((e) => {
       if (dir !== "all" && e.direction !== dir) return false;
       if (source === "manual" && !e.isManualExpense) return false;
-      if (!passesDateRange(e.occurredAtISO, dateRange, customRange)) return false;
+      if (!passesDateRange(e.occurredAtISO, dateRange)) return false;
       if (category !== "all" && e.category !== category) return false;
       if (party !== "all" && e.party !== party) return false;
       if (method !== "all" && methodLabel(e.method) !== method) return false;
@@ -202,7 +192,7 @@ function FinanceLedgerSectionImpl() {
       }
       return true;
     });
-  }, [entries, dir, source, dateRange, customRange, category, party, method, search]);
+  }, [entries, dir, source, dateRange, category, party, method, search]);
 
   const getSortValue = useCallback((row: LedgerEntry, key: LedgerSortKey): number | string => {
     switch (key) {
@@ -225,7 +215,7 @@ function FinanceLedgerSectionImpl() {
   const pg = usePagination(
     sorted,
     10,
-    `${dir}|${dateRange}|${customRange?.from?.toDateString() ?? ""}-${customRange?.to?.toDateString() ?? ""}|${category}|${party}|${method}|${source}|${search}|${sortKey}|${sortDir}`,
+    `${dir}|${dateRange?.from?.toDateString() ?? ""}-${dateRange?.to?.toDateString() ?? ""}|${category}|${party}|${method}|${source}|${search}|${sortKey}|${sortDir}`,
   );
 
   const exportCsv = useCallback(() => {
@@ -273,67 +263,50 @@ function FinanceLedgerSectionImpl() {
                 Every transaction — payments, expenses, payouts, refunds — in one place
               </CardDescription>
             </div>
-            <Button
-              type="button"
-              variant="outline"
-              className="border-sage/20 text-sage hover:bg-sage/5 font-body shrink-0"
-              onClick={exportCsv}
-              disabled={sorted.length === 0}
-            >
-              <Download className="h-4 w-4 mr-2" />
-              Export CSV
-            </Button>
+            <div className="flex items-center gap-2 shrink-0">
+              {ledgerFiltersDirty && <FilterReset onReset={resetFilters} label="Clear filters" />}
+              <Button
+                type="button"
+                variant="sage-outline"
+                className="font-body"
+                onClick={exportCsv}
+                disabled={sorted.length === 0}
+              >
+                <Download className="h-4 w-4 mr-2" />
+                Export CSV
+              </Button>
+            </div>
           </div>
 
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 p-4 rounded-xl bg-cream/30 border border-sage/20">
             <div className="space-y-2">
               <Label className="font-body text-xs text-charcoal/60">Direction</Label>
-              <Select value={dir} onValueChange={(v) => setDir(v as DirFilter)}>
-                <SelectTrigger className="border-sage/20 bg-white-warm"><SelectValue /></SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="all">All</SelectItem>
-                  <SelectItem value="credit">💰 Credit (in)</SelectItem>
-                  <SelectItem value="debit">💸 Debit (out)</SelectItem>
-                </SelectContent>
-              </Select>
+              <FilterSelect
+                value={dir}
+                onChange={(v) => setDir(v as DirFilter)}
+                icon={ArrowUpDown}
+                options={[
+                  { value: "all", label: "All" },
+                  { value: "credit", label: "💰 Credit (in)" },
+                  { value: "debit", label: "💸 Debit (out)" },
+                ]}
+              />
             </div>
             <div className="space-y-2">
               <Label className="font-body text-xs text-charcoal/60">Date Range</Label>
-              <Select
-                value={dateRange}
-                onValueChange={(v) => {
-                  setDateRange(v);
-                  if (v !== "custom") setCustomRange(undefined);
-                }}
-              >
-                <SelectTrigger className="border-sage/20 bg-white-warm"><SelectValue /></SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="all">All Time</SelectItem>
-                  <SelectItem value="today">Today</SelectItem>
-                  <SelectItem value="week">This Week</SelectItem>
-                  <SelectItem value="month">This Month</SelectItem>
-                  <SelectItem value="custom">Custom…</SelectItem>
-                </SelectContent>
-              </Select>
-              {dateRange === "custom" && (
-                <FilterDateRange
-                  value={customRange}
-                  onChange={setCustomRange}
-                  placeholder="Pick dates"
-                />
-              )}
+              <FilterDateRange value={dateRange} onChange={setDateRange} placeholder="All time" />
             </div>
             <div className="space-y-2">
               <Label className="font-body text-xs text-charcoal/60">Category</Label>
-              <Select value={category} onValueChange={setCategory}>
-                <SelectTrigger className="border-sage/20 bg-white-warm"><SelectValue /></SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="all">All Categories</SelectItem>
-                  {categoryOptions.map((c) => (
-                    <SelectItem key={c} value={c}>{c}</SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
+              <FilterSelect
+                value={category}
+                onChange={setCategory}
+                icon={Filter}
+                options={[
+                  { value: "all", label: "All Categories" },
+                  ...categoryOptions.map((c) => ({ value: c, label: c })),
+                ]}
+              />
             </div>
             <div className="space-y-2">
               <Label className="font-body text-xs text-charcoal/60">Party</Label>
@@ -344,6 +317,7 @@ function FinanceLedgerSectionImpl() {
                 allLabel="All Parties"
                 searchPlaceholder="Search parties…"
                 emptyText="No parties found."
+                icon={Users}
               />
             </div>
             <div className="space-y-2">
@@ -355,29 +329,29 @@ function FinanceLedgerSectionImpl() {
                 allLabel="All Methods"
                 searchPlaceholder="Search methods…"
                 emptyText="No methods found."
+                icon={CreditCard}
               />
             </div>
             <div className="space-y-2">
               <Label className="font-body text-xs text-charcoal/60">Source</Label>
-              <Select value={source} onValueChange={(v) => setSource(v as SourceFilter)}>
-                <SelectTrigger className="border-sage/20 bg-white-warm"><SelectValue /></SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="all">All Sources</SelectItem>
-                  <SelectItem value="manual">Manual expenses only</SelectItem>
-                </SelectContent>
-              </Select>
+              <FilterSelect
+                value={source}
+                onChange={(v) => setSource(v as SourceFilter)}
+                icon={Database}
+                options={[
+                  { value: "all", label: "All Sources" },
+                  { value: "manual", label: "Manual expenses only" },
+                ]}
+              />
             </div>
             <div className="space-y-2 sm:col-span-2 lg:col-span-3">
               <Label className="font-body text-xs text-charcoal/60">Search</Label>
-              <div className="relative">
-                <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-charcoal/40" />
-                <Input
-                  placeholder="Party, category, method, reference…"
-                  value={search}
-                  onChange={(e) => setSearch(e.target.value)}
-                  className="border-sage/20 bg-white-warm pl-9"
-                />
-              </div>
+              <FilterSearch
+                value={search}
+                onChange={setSearch}
+                placeholder="Party, category, method, reference…"
+                aria-label="Search ledger"
+              />
             </div>
           </div>
         </CardHeader>
@@ -448,7 +422,7 @@ function FinanceLedgerSectionImpl() {
               <Button
                 variant="outline"
                 size="sm"
-                className="mt-4 border-sage/20 text-sage hover:bg-sage/5"
+                className="mt-4 border-sage/20 text-sage hover:bg-sage/5 hover:text-sage!"
                 onClick={resetFilters}
               >
                 Clear Filters

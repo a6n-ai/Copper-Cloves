@@ -7,6 +7,7 @@ import { ActivityLogList } from "@/components/activity/ActivityLogList";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { DatePicker } from "@/components/filters";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { useToast } from "@/hooks/use-toast";
@@ -410,8 +411,7 @@ export function ProfileSection({ role, title, subtitle }: ProfileSectionProps) {
                       <Label className="font-body text-sm text-charcoal flex items-center gap-2">
                         <CalendarIcon size={14} className="text-sage" /> Date of Birth
                       </Label>
-                      <Input type="date" value={dob} onChange={(e) => setDob(e.target.value)}
-                        className="border-sage/20 focus:border-sage h-11 font-body" />
+                      <DatePicker value={dob} onChange={setDob} className="h-11" placeholder="Select date" />
                     </div>
                     <div className="space-y-1.5">
                       <Label className="font-body text-sm text-charcoal">Gender</Label>

@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from "react";
-import { Search, X } from "lucide-react";
+import { Search, X, type LucideIcon } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 export function FilterSearch({
@@ -9,6 +9,7 @@ export function FilterSearch({
   debounceMs = 250,
   className,
   autoFocus,
+  icon: Icon = Search,
   "aria-label": ariaLabel,
 }: {
   value: string;
@@ -17,6 +18,7 @@ export function FilterSearch({
   debounceMs?: number;
   className?: string;
   autoFocus?: boolean;
+  icon?: LucideIcon;
   "aria-label"?: string;
 }) {
   const [local, setLocal] = useState(value);
@@ -48,7 +50,7 @@ export function FilterSearch({
 
   return (
     <div className={cn("relative flex-1 min-w-[180px]", className)}>
-      <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-charcoal/40" aria-hidden />
+      <Icon className="pointer-events-none absolute left-3 top-1/2 z-10 h-4 w-4 -translate-y-1/2 text-charcoal/40" aria-hidden />
       <input
         type="text"
         value={local}
@@ -58,7 +60,8 @@ export function FilterSearch({
         placeholder={placeholder}
         className={cn(
           "h-9 w-full rounded-md border border-sage/20 bg-white-warm pl-9 pr-9 font-body text-sm text-charcoal",
-          "placeholder:text-charcoal/40 transition-colors",
+          "placeholder:text-charcoal/40 transition-all duration-200 ease-out",
+          "hover:border-sage/40 hover:shadow-[0_4px_24px_rgba(51,51,51,0.08)]",
           "focus:border-sage focus:outline-hidden focus-visible:ring-2 focus-visible:ring-sage/30",
         )}
       />

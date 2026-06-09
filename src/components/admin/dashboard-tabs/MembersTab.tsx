@@ -358,7 +358,7 @@ function MembersTabImpl({
           </CardHeader>
           <CardContent>
             <div className="font-display text-5xl text-charcoal mb-3">{memberStats.expiring7Days}</div>
-            <Button variant="outline" size="sm" className="w-full border-terracotta/20 text-terracotta hover:bg-terracotta/10 font-body">Add to CRM</Button>
+            <Button variant="outline" size="sm" className="w-full border-terracotta/20 text-terracotta hover:bg-terracotta/10 font-body hover:text-terracotta!">Add to CRM</Button>
           </CardContent>
         </Card>
 
@@ -371,7 +371,7 @@ function MembersTabImpl({
           </CardHeader>
           <CardContent>
             <div className="font-display text-5xl text-charcoal mb-3">{memberStats.expiring15Days}</div>
-            <Button variant="outline" size="sm" className="w-full border-terracotta/20 text-terracotta hover:bg-terracotta/10 font-body">Add to CRM</Button>
+            <Button variant="outline" size="sm" className="w-full border-terracotta/20 text-terracotta hover:bg-terracotta/10 font-body hover:text-terracotta!">Add to CRM</Button>
           </CardContent>
         </Card>
 
@@ -384,7 +384,7 @@ function MembersTabImpl({
           </CardHeader>
           <CardContent>
             <div className="font-display text-5xl text-charcoal mb-3">{memberStats.expiring30Days}</div>
-            <Button variant="outline" size="sm" className="w-full border-sage/20 text-sage hover:bg-sage/5 font-body">View List</Button>
+            <Button variant="outline" size="sm" className="w-full border-sage/20 text-sage hover:bg-sage/5 font-body hover:text-sage!">View List</Button>
           </CardContent>
         </Card>
       </div>

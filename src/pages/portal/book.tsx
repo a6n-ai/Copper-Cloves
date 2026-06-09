@@ -1641,7 +1641,7 @@ export default function BookClass() {
                   <Button
                     onClick={() => setShowAddPersonForm(true)}
                     variant="outline"
-                    className="w-full border-2 border-dashed border-sage/30 hover:border-sage hover:bg-sage/5 text-sage"
+                    className="w-full border-2 border-dashed border-sage/30 hover:border-sage hover:bg-sage/5 text-sage hover:text-sage!"
                   >
                     <UserPlus size={18} className="mr-2" />
                     Add Friend or Family Member
@@ -2115,7 +2115,7 @@ export default function BookClass() {
                   onClick={handleBackStep}
                   variant="outline"
                   disabled={isSubmittingBooking}
-                  className="border-sage/30 text-charcoal hover:bg-sage/5"
+                  className="border-sage/30 text-charcoal hover:bg-sage/5 hover:text-charcoal!"
                 >
                   <ChevronLeft size={18} className="mr-2" />
                   Back

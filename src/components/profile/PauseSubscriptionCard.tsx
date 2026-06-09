@@ -228,7 +228,7 @@ export function PauseSubscriptionCard() {
               <Popover>
                 <PopoverTrigger asChild>
                   <Button type="button" variant="outline"
-                    className="w-full justify-start text-left font-body text-sm border-sage/20 hover:bg-sage/5 h-11">
+                    className="w-full justify-start text-left font-body text-sm border-sage/20 hover:bg-sage/5 h-11 hover:text-sage!">
                     {pauseRange?.from && pauseRange?.to ? (
                       <>
                         {format(pauseRange.from, "d MMM yyyy")} → {format(pauseRange.to, "d MMM yyyy")}

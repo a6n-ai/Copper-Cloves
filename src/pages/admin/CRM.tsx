@@ -493,7 +493,7 @@ function TemplatesTab(props: TemplatesTabProps) {
                         onClick={() => onSend(template)}
                         size="sm"
                         variant="ghost"
-                        className="text-sage hover:bg-sage/10"
+                        className="text-sage hover:bg-sage/10 hover:text-sage!"
                         title="Send to member"
                         disabled={!template.channel_email}
                       >
@@ -504,7 +504,7 @@ function TemplatesTab(props: TemplatesTabProps) {
                         onClick={() => onDuplicate(template)}
                         size="sm"
                         variant="ghost"
-                        className="text-terracotta hover:bg-terracotta/10"
+                        className="text-terracotta hover:bg-terracotta/10 hover:text-terracotta!"
                         title="Duplicate"
                       >
                         <Copy size={14} />

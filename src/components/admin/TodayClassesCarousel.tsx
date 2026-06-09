@@ -265,8 +265,8 @@ export function TodayClassesCarousel({
                         className={cn(
                           "font-body h-8 w-8 p-0 transition-all hover:scale-110 active:scale-95",
                           isActive
-                            ? "border-terracotta/40 text-terracotta bg-white-warm hover:!bg-terracotta hover:!text-cream hover:!border-terracotta"
-                            : "border-sage/60 text-sage bg-white-warm hover:!bg-sage hover:!text-cream hover:!border-sage",
+                            ? "border-terracotta/40 text-terracotta bg-white-warm hover:bg-terracotta! hover:text-cream! hover:border-terracotta!"
+                            : "border-sage/60 text-sage bg-white-warm hover:bg-sage! hover:text-cream! hover:border-sage!",
                         )}
                       >
                         <AnimatedIcon icon={isActive ? PowerOff : Power} size={14} animateOnMount={false} hover="wiggle" />

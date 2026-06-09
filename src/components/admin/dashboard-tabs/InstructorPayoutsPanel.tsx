@@ -1,5 +1,5 @@
 import { memo, useCallback, useEffect, useMemo, useState } from "react";
-import { CheckCircle2, Clock, DollarSign, Download, Loader2, Pencil, TrendingUp, Wallet } from "lucide-react";
+import { CalendarDays, CheckCircle2, Clock, DollarSign, Download, Loader2, Pencil, TrendingUp, User, Wallet } from "lucide-react";
 import { toast } from "sonner";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
@@ -14,6 +14,7 @@ import { Pill } from "@/components/ui/pill";
 import { ListAvatar } from "@/components/admin/ListAvatar";
 import { MetricCard } from "@/components/admin/MetricCard";
 import { Pagination, usePagination } from "@/components/Pagination";
+import { FilterReset, FilterSearch, FilterSelect } from "@/components/filters";
 import {
   ResponsiveDialog,
   ResponsiveDialogContent,
@@ -288,21 +289,28 @@ function InstructorPayoutsPanelImpl() {
               </CardDescription>
             </div>
             <div className="flex flex-wrap items-center gap-2 w-full sm:w-auto">
-              <Input value={search} onChange={(e) => setSearch(e.target.value)} placeholder="Search instructor…" className="h-9 flex-1 sm:w-48 border-sage/20 font-body" />
-              <Select value={instructorFilter} onValueChange={setInstructorFilter}>
-                <SelectTrigger className="h-9 w-40 border-sage/20 shrink-0"><SelectValue /></SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="all">All instructors</SelectItem>
-                  {instructorOptions.map((n) => (<SelectItem key={n} value={n}>{n}</SelectItem>))}
-                </SelectContent>
-              </Select>
-              <Select value={payoutWindow} onValueChange={(v) => setPayoutWindow(v as PayoutWindow)}>
-                <SelectTrigger className="h-9 w-36 border-sage/20 shrink-0"><SelectValue /></SelectTrigger>
-                <SelectContent>
-                  {WINDOWS.map((w) => (<SelectItem key={w.value} value={w.value}>{w.label}</SelectItem>))}
-                </SelectContent>
-              </Select>
-              <Button type="button" variant="outline" size="sm" className="h-9 border-sage/20 text-sage hover:bg-sage/5" onClick={downloadCsv} disabled={sorted.length === 0}>
+              <FilterSearch value={search} onChange={setSearch} placeholder="Search instructor…" aria-label="Search instructor" className="flex-1 sm:w-48 sm:flex-none" />
+              <FilterSelect
+                value={instructorFilter}
+                onChange={setInstructorFilter}
+                icon={User}
+                className="sm:w-40 shrink-0"
+                options={[
+                  { value: "all", label: "All instructors" },
+                  ...instructorOptions.map((n) => ({ value: n, label: n })),
+                ]}
+              />
+              <FilterSelect
+                value={payoutWindow}
+                onChange={(v) => setPayoutWindow(v as PayoutWindow)}
+                icon={CalendarDays}
+                className="sm:w-36 shrink-0"
+                options={WINDOWS.map((w) => ({ value: w.value, label: w.label }))}
+              />
+              {(search || instructorFilter !== "all") && (
+                <FilterReset onReset={() => { setSearch(""); setInstructorFilter("all"); }} label="Clear" />
+              )}
+              <Button type="button" variant="outline" size="sm" className="h-9 border-sage/20 text-sage hover:bg-sage/5 hover:text-sage!" onClick={downloadCsv} disabled={sorted.length === 0}>
                 <Download className="h-4 w-4 mr-1.5" />CSV
               </Button>
             </div>
@@ -370,7 +378,7 @@ function InstructorPayoutsPanelImpl() {
                                   type="button"
                                   variant="outline"
                                   size="sm"
-                                  className="border-sage/25 text-charcoal/60 hover:bg-sage/5 font-body"
+                                  className="border-sage/25 text-charcoal/60 hover:bg-sage/5 font-body hover:text-charcoal!"
                                   onClick={() => { setConfirmRecord(true); setConfirm({ row: r, paid: false }); }}
                                 >
                                   Mark unpaid
@@ -380,7 +388,7 @@ function InstructorPayoutsPanelImpl() {
                                   type="button"
                                   variant="outline"
                                   size="sm"
-                                  className="h-8 w-8 p-0 border-terracotta/30 text-[#a05e38] hover:bg-terracotta/10"
+                                  className="h-8 w-8 p-0 border-terracotta/30 text-[#a05e38] hover:bg-terracotta/10 hover:text-[#a05e38]!"
                                   onClick={() => { setConfirmRecord(true); setConfirm({ row: r, paid: true }); }}
                                   title="Move to expense"
                                   aria-label="Move to expense"

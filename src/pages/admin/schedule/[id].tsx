@@ -644,7 +644,7 @@ export default function AdminClassPage() {
                         variant="outline"
                         onClick={() => refreshQr(true)}
                         disabled={qrRefreshing}
-                        className="border-sage/40 text-sage bg-white-warm hover:!bg-sage hover:!text-cream hover:!border-sage font-body"
+                        className="border-sage/40 text-sage bg-white-warm hover:bg-sage! hover:text-cream! hover:border-sage! font-body"
                       >
                         {qrRefreshing ? "Refreshing…" : "Refresh QR"}
                       </Button>
@@ -665,7 +665,7 @@ export default function AdminClassPage() {
                               variant="outline"
                               onClick={() => refreshQr(true)}
                               disabled={qrRefreshing}
-                              className="border-sage/40 text-sage bg-white-warm hover:!bg-sage hover:!text-cream hover:!border-sage font-body"
+                              className="border-sage/40 text-sage bg-white-warm hover:bg-sage! hover:text-cream! hover:border-sage! font-body"
                             >
                               {getQrRefreshLabel(qrRefreshing, qr?.windowOpensAt)}
                             </Button>
@@ -735,7 +735,7 @@ export default function AdminClassPage() {
                                 variant="outline"
                                 disabled={busyId === b.id}
                                 onClick={() => applyOutcome(b.id, b.checkedIn ? "not_checked_in" : "on_time")}
-                                className="h-8 border-sage/20 text-sage hover:bg-sage/10 font-body text-xs"
+                                className="h-8 border-sage/20 text-sage hover:bg-sage/10 font-body text-xs hover:text-sage!"
                               >
                                 {b.checkedIn ? "Undo" : "Check in"}
                               </Button>
@@ -745,7 +745,7 @@ export default function AdminClassPage() {
                                   variant="outline"
                                   disabled={busyId === b.id}
                                   onClick={() => applyOutcome(b.id, "no_show")}
-                                  className="h-8 border-terracotta/30 text-terracotta hover:bg-terracotta/5 font-body text-xs"
+                                  className="h-8 border-terracotta/30 text-terracotta hover:bg-terracotta/5 font-body text-xs hover:text-terracotta!"
                                 >
                                   No-show
                                 </Button>

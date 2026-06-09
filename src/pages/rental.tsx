@@ -8,6 +8,7 @@ import { Footer } from "@/components/Footer";
 import { SEO } from "@/components/SEO";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { DatePicker } from "@/components/filters";
 import { Textarea } from "@/components/ui/textarea";
 import { Pill } from "@/components/ui/pill";
 import {
@@ -383,7 +384,11 @@ export default function RentalPage() {
                       </Select>
                     </Field>
                     <Field label="Preferred date">
-                      <Input type="date" name="eventDate" value={formData.eventDate} onChange={handleChange} />
+                      <DatePicker
+                        value={formData.eventDate}
+                        onChange={(v) => setFormData((prev) => ({ ...prev, eventDate: v }))}
+                        placeholder="Select date"
+                      />
                     </Field>
                     <Field label="Guest count">
                       <Input type="number" name="guestCount" value={formData.guestCount} onChange={handleChange} min="1" max="50" placeholder="e.g. 20" />

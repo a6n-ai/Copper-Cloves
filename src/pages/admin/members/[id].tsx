@@ -30,6 +30,7 @@ import { Button } from "@/components/ui/button";
 import { Pill } from "@/components/ui/pill";
 import { paymentMethodPill, ticketStatusPill, memberStatusPill } from "@/lib/pillMaps";
 import { Input } from "@/components/ui/input";
+import { DatePicker } from "@/components/filters";
 import { Label } from "@/components/ui/label";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Spinner } from "@/components/ui/spinner";
@@ -896,7 +897,7 @@ function EditProfileDialog({
             </div>
             <div>
               <Label className="font-body text-charcoal/80 mb-1.5 block text-sm">Date of birth</Label>
-              <Input type="date" value={dob} onChange={(e) => setDob(e.target.value)} className="border-sage/20 focus:border-sage font-body" />
+              <DatePicker value={dob} onChange={setDob} placeholder="Select date" />
             </div>
           </div>
         </div>
@@ -1158,12 +1159,7 @@ function ManagePassDialog({
 
             <div className="border-t border-sage/10 pt-4">
               <Label className="font-body text-charcoal/80 mb-2 block">Member start date</Label>
-              <Input
-                type="date"
-                value={startDate}
-                onChange={(e) => setStartDate(e.target.value)}
-                className="h-11 border-charcoal/20 focus:border-sage font-body w-full"
-              />
+              <DatePicker value={startDate} onChange={setStartDate} className="h-11" />
               <p className="font-body text-xs text-charcoal/50 mt-1">Saved together with payment at the next step.</p>
             </div>
           </div>

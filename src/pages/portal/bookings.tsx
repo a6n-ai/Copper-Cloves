@@ -125,7 +125,7 @@ const BookingCard = memo(function BookingCard({
             {canCheck && (
               <Button onClick={() => onCheckIn(booking)} size="sm" variant="sage" className="flex-1 sm:flex-none h-11 px-4 sm:px-6">Check in</Button>
             )}
-            <Button onClick={() => onCancel(booking)} size="sm" variant="outline" className="flex-1 sm:flex-none border-terracotta/30 text-terracotta hover:bg-terracotta/5 h-11 px-4 sm:px-6">
+            <Button onClick={() => onCancel(booking)} size="sm" variant="outline" className="flex-1 sm:flex-none border-terracotta/30 text-terracotta hover:bg-terracotta/5 h-11 px-4 sm:px-6 hover:text-terracotta!">
               <X size={16} className="mr-1.5" />Cancel
             </Button>
           </div>
@@ -450,7 +450,7 @@ export default function MyBookingsPage() {
               variant="outline"
               onClick={() => setShowCancelDialog(false)}
               disabled={canceling}
-              className="border-sage/20 text-charcoal hover:bg-sage/5"
+              className="border-sage/20 text-charcoal hover:bg-sage/5 hover:text-charcoal!"
             >
               Keep Booking
             </Button>
