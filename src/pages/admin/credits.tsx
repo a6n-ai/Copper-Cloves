@@ -7,7 +7,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { AdminPageHeader } from "@/components/admin/AdminPageHeader";
 import { Button } from "@/components/ui/button";
 import { Pill } from "@/components/ui/pill";
-import { FilterBar, FilterSearch, FilterChips, useFilterState } from "@/components/filters";
+import { FilterBar, FilterSearch, FilterSelect, useFilterState } from "@/components/filters";
 import {
   TrendingUp,
   TrendingDown,
@@ -299,12 +299,13 @@ export default function AdminCredits() {
                     placeholder="Search member or reason…"
                     aria-label="Search transactions"
                   />
-                  <FilterChips
-                    aria-label="Type"
+                  <FilterSelect
+                    ariaLabel="Type"
+                    placeholder="Type"
                     value={f.values.type}
                     onChange={(v) => f.set("type", v)}
                     options={[
-                      { value: "all", label: "All" },
+                      { value: "all", label: "All types" },
                       { value: "added", label: "Added" },
                       { value: "used", label: "Used" },
                       { value: "deducted", label: "Deducted" },

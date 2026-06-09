@@ -50,7 +50,7 @@ import {
   ArrowDown,
 } from "lucide-react";
 import { NavPrevButton, NavNextButton, QtyMinusButton, QtyPlusButton } from "@/components/ui/quick-actions";
-import { FilterChips, useFilterState } from "@/components/filters";
+import { FilterSelect, useFilterState } from "@/components/filters";
 import { useSession } from "next-auth/react";
 import {
   startOfMondayWeekLocal,
@@ -1433,15 +1433,16 @@ export default function BookClass() {
 
           {/* Class Filter + Date sort */}
           <div className="flex items-center gap-3 mb-8">
-            <FilterChips
+            <FilterSelect
               value={f.values.className}
               onChange={(v) => f.set("className", v)}
               options={[
                 { value: "all", label: "All Classes" },
                 ...uniqueClassNames.map((name) => ({ value: name, label: name })),
               ]}
-              aria-label="Filter by class name"
-              className="flex-1 min-w-0"
+              ariaLabel="Filter by class name"
+              placeholder="All Classes"
+              className="flex-1 min-w-0 sm:w-auto"
             />
             <button
               type="button"

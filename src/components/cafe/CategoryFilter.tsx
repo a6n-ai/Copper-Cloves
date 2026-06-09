@@ -1,6 +1,6 @@
 import { cn } from "@/lib/utils";
-import { FilterSearch, FilterChips } from "@/components/filters";
-import type { ChipOption } from "@/components/filters";
+import { FilterSearch, FilterSelect } from "@/components/filters";
+import type { SelectOption } from "@/components/filters";
 import { CAFE_CATEGORIES } from "./types";
 
 interface CategoryFilterProps {
@@ -8,14 +8,14 @@ interface CategoryFilterProps {
   onSelect: (id: string) => void;
   search: string;
   onSearch: (value: string) => void;
-  /** Optional counts keyed by category id (shown as a small number on the pill). */
+  /** Optional counts keyed by category id (folded into the option label). */
   counts?: Record<string, number>;
   className?: string;
 }
 
 /**
- * Café category pills + search. Sage owns the active pill (the action/selection
- * voice); inactive pills are sand-on-warm-border.
+ * Café category dropdown + search. One dropdown idiom for category selection —
+ * no chip/pill rows.
  */
 export function CategoryFilter({
   selected,
@@ -25,14 +25,16 @@ export function CategoryFilter({
   counts,
   className,
 }: CategoryFilterProps) {
-  const options: ChipOption[] = CAFE_CATEGORIES.map((cat) => ({
-    value: cat.id,
-    label: cat.label,
-    count: counts?.[cat.id],
-  }));
+  const options: SelectOption[] = CAFE_CATEGORIES.map((cat) => {
+    const count = counts?.[cat.id];
+    return {
+      value: cat.id,
+      label: count != null ? `${cat.label} (${count})` : cat.label,
+    };
+  });
 
   return (
-    <div className={cn("flex flex-col gap-4", className)}>
+    <div className={cn("flex flex-col gap-4 sm:flex-row sm:items-center", className)}>
       <FilterSearch
         value={search}
         onChange={onSearch}
@@ -40,11 +42,12 @@ export function CategoryFilter({
         aria-label="Search menu"
         className="max-w-md"
       />
-      <FilterChips
+      <FilterSelect
         value={selected}
         onChange={onSelect}
         options={options}
-        aria-label="Filter by category"
+        ariaLabel="Filter by category"
+        placeholder="All categories"
       />
     </div>
   );

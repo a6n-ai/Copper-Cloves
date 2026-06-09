@@ -12,7 +12,7 @@ import {
   Users,
 } from "lucide-react";
 
-import { FilterBar, FilterSearch, FilterChips, useFilterState } from "@/components/filters";
+import { FilterBar, FilterSearch, FilterSelect, useFilterState } from "@/components/filters";
 import { SEO as Seo } from "@/components/SEO";
 import { AdminPageHeader } from "@/components/admin/AdminPageHeader";
 import { MetricCard } from "@/components/admin/MetricCard";
@@ -273,14 +273,15 @@ export default function AdminInstructorsPage() {
                     placeholder="Search name, email, title…"
                     aria-label="Search instructors"
                   />
-                  <FilterChips
-                    aria-label="Status"
+                  <FilterSelect
+                    ariaLabel="Status"
+                    placeholder="Status"
                     value={f.values.status}
                     onChange={(v) => f.set("status", v)}
                     options={[
-                      { value: "all", label: "All", count: instructors.length },
-                      { value: "active", label: "Active", count: stats.active },
-                      { value: "inactive", label: "Inactive", count: stats.inactive },
+                      { value: "all", label: `All (${instructors.length})` },
+                      { value: "active", label: `Active (${stats.active})` },
+                      { value: "inactive", label: `Inactive (${stats.inactive})` },
                     ]}
                   />
                 </FilterBar>

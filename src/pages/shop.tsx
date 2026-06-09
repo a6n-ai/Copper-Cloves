@@ -29,8 +29,8 @@ import Link from "next/link";
 import { useSession } from "next-auth/react";
 import { Input } from "@/components/ui/input";
 import { CloseButton, QtyMinusButton, QtyPlusButton } from "@/components/ui/quick-actions";
-import { FilterSearch, FilterChips, FilterSelect } from "@/components/filters";
-import type { ChipOption, SelectOption } from "@/components/filters";
+import { FilterSearch, FilterSelect } from "@/components/filters";
+import type { SelectOption } from "@/components/filters";
 
 import { cdnUrl } from "@/lib/cdnUrl";
 interface RetailProduct {
@@ -287,17 +287,17 @@ export default function Shop({ initialProducts }: Readonly<ShopProps>) {
           <div className="flex items-center justify-between gap-4">
             {/* Category Filter */}
             {(() => {
-              const chipOptions: ChipOption[] = categoryTabs.map((cat) => ({
+              const categoryOptions: SelectOption[] = categoryTabs.map((cat) => ({
                 value: cat.id,
                 label: cat.name,
               }));
               return (
-                <FilterChips
+                <FilterSelect
                   value={selectedCategory}
                   onChange={setSelectedCategory}
-                  options={chipOptions}
-                  aria-label="Filter by category"
-                  className="scrollbar-hide"
+                  options={categoryOptions}
+                  ariaLabel="Filter by category"
+                  placeholder="All Products"
                 />
               );
             })()}

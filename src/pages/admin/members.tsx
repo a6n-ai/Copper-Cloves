@@ -11,7 +11,7 @@ import { AdminPageHeader } from "@/components/admin/AdminPageHeader";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { FilterBar, FilterSearch, FilterChips, useFilterState } from "@/components/filters";
+import { FilterBar, FilterSearch, FilterSelect, useFilterState } from "@/components/filters";
 import {
   Users,
   CheckCircle2,
@@ -523,23 +523,25 @@ export default function AdminMembers() {
                     onChange={(v) => f.set("search", v)}
                     placeholder="Search name, email, phone…"
                   />
-                  <FilterChips
-                    aria-label="Package"
+                  <FilterSelect
+                    ariaLabel="Package"
+                    placeholder="Package"
                     value={f.values.pkg}
                     onChange={(v) => f.set("pkg", v)}
                     options={[
-                      { value: "all", label: "All" },
+                      { value: "all", label: "All packages" },
                       { value: "studio", label: "Studio" },
                       { value: "class", label: "Class pass" },
                       { value: "none", label: "No pass" },
                     ]}
                   />
-                  <FilterChips
-                    aria-label="Account status"
+                  <FilterSelect
+                    ariaLabel="Account status"
+                    placeholder="Account"
                     value={f.values.account}
                     onChange={(v) => f.set("account", v)}
                     options={[
-                      { value: "all", label: "All" },
+                      { value: "all", label: "All accounts" },
                       { value: "active", label: "Active" },
                       { value: "inactive", label: "Inactive" },
                     ]}

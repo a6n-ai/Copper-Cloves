@@ -1,6 +1,5 @@
 import type { ParsedUrlQuery } from "querystring";
 
-export type ChipOption = { value: string; label: string; count?: number };
 export type SelectOption = { value: string; label: string };
 
 /**

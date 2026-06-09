@@ -1,5 +1,5 @@
-import { FilterChips } from "@/components/filters";
-import type { ChipOption } from "@/components/filters";
+import { FilterSelect } from "@/components/filters";
+import type { SelectOption } from "@/components/filters";
 
 export function CategoryFilter({
   categories,
@@ -10,17 +10,18 @@ export function CategoryFilter({
   value: string;
   onChange: (v: string) => void;
 }) {
-  const options: ChipOption[] = [
-    { value: "all", label: "All" },
+  const options: SelectOption[] = [
+    { value: "all", label: "All categories" },
     ...categories.map((c) => ({ value: c, label: c })),
   ];
   return (
-    <div data-testid="category-filter" className="flex flex-wrap justify-center">
-      <FilterChips
+    <div data-testid="category-filter" className="flex justify-center">
+      <FilterSelect
         value={value}
         onChange={onChange}
         options={options}
-        aria-label="Filter by category"
+        ariaLabel="Filter by category"
+        placeholder="All categories"
       />
     </div>
   );

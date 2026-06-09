@@ -8,18 +8,17 @@ Shared, brand-consistent filter components. One idiom for search / status / date
 |---|---|
 | `FilterBar` | Layout shell. Flex-wrap row, optional `sticky`. Pass `reset` to render the Reset link at row end. |
 | `FilterSearch` | Debounced text input (250ms) with leading icon + clear. |
-| `FilterChips` | Single-select toggle row — the ONE chip idiom (replaces tabs/underline/pills). Active = sage/cream. Optional per-chip `count`. |
-| `FilterSelect` | Brand-skinned shadcn `Select` wrapper. Use instead of native `<select>` for filters. |
+| `FilterSelect` | Brand-skinned shadcn `Select` wrapper — the ONE idiom for status / category / type filtering. Use instead of native `<select>`, chip rows, or tab bars. Fold counts into the option label (`Active (42)`). |
 | `FilterDateRange` | Popover + range Calendar (sage/terracotta). `admin/DateRangeFilter` is a back-compat re-export of this. |
 | `FilterReset` | Terracotta reset link (rendered by `FilterBar` via its `reset` prop). |
 | `useFilterState` | State engine + opt-in URL sync. |
 
-> `FilterChips` is a filter idiom, NOT a status `Pill` (see `design.md`). Don't use `Pill` for interactive chips, or `FilterChips` for status display.
+> **No chips, pills, or tab rows for filtering.** Every discrete-choice filter is a `FilterSelect` dropdown — keeps multi-filter rows compact and uniform. The status `Pill` (see `design.md`) is for display only, never an interactive filter.
 
 ## Pattern
 
 ```tsx
-import { FilterBar, FilterSearch, FilterChips, useFilterState } from "@/components/filters";
+import { FilterBar, FilterSearch, FilterSelect, useFilterState } from "@/components/filters";
 
 const f = useFilterState(
   { search: "", status: "all" },
@@ -28,13 +27,14 @@ const f = useFilterState(
 
 <FilterBar reset={f.isActive ? f.reset : undefined} className="mb-4">
   <FilterSearch value={f.values.search} onChange={(v) => f.set("search", v)} placeholder="Search…" />
-  <FilterChips
-    aria-label="Status"
+  <FilterSelect
+    ariaLabel="Status"
+    placeholder="Status"
     value={f.values.status}
     onChange={(v) => f.set("status", v)}
     options={[
       { value: "all", label: "All" },
-      { value: "active", label: "Active", count: 42 },
+      { value: "active", label: "Active (42)" },
     ]}
   />
 </FilterBar>
@@ -46,7 +46,7 @@ const rows = all.filter((r) =>
 );
 ```
 
-**Match option `value` strings to whatever your predicate compares against.** A chip `value: "studio"` against a predicate checking `"studio_pass"` silently breaks filtering unless the predicate maps it.
+**Match option `value` strings to whatever your predicate compares against.** An option `value: "studio"` against a predicate checking `"studio_pass"` silently breaks filtering unless the predicate maps it.
 
 ## useFilterState
 

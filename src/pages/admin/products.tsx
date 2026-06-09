@@ -17,7 +17,7 @@ import { EditButton, DeleteButton } from "@/components/ui/quick-actions";
 import { Pill } from "@/components/ui/pill";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
-import { FilterBar, FilterSearch, FilterSelect, FilterChips, useFilterState } from "@/components/filters";
+import { FilterBar, FilterSearch, FilterSelect, useFilterState } from "@/components/filters";
 import {
   Package,
   Plus,
@@ -574,13 +574,14 @@ export default function AdminProducts() {
                         { value: "out", label: "Out of stock" },
                       ]}
                     />
-                    <FilterChips
-                      aria-label="Featured"
+                    <FilterSelect
+                      ariaLabel="Featured"
+                      placeholder="Featured"
                       value={f.values.featured}
                       onChange={(v) => { f.set("featured", v); setProductPage(1); }}
                       options={[
-                        { value: "all", label: "All" },
-                        { value: "featured", label: "Featured" },
+                        { value: "all", label: "All products" },
+                        { value: "featured", label: "Featured only" },
                       ]}
                     />
                   </FilterBar>
