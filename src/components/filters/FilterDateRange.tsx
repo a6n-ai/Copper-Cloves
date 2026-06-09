@@ -65,7 +65,7 @@ export function FilterDateRange({
           )}
         </Button>
       </PopoverTrigger>
-      <PopoverContent align="start" className="w-auto p-0 border-sage/20 bg-white-warm">
+      <PopoverContent align="start" className="w-auto p-0 border-sage/20 bg-popover">
         <Calendar
           mode="range"
           selected={value}

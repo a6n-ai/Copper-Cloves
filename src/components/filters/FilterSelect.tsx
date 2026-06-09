@@ -29,7 +29,7 @@ export function FilterSelect({
       >
         <SelectValue placeholder={placeholder} />
       </SelectTrigger>
-      <SelectContent className="border-sage/20 bg-white-warm font-body">
+      <SelectContent className="border-sage/20 font-body">
         {options.map((opt) => (
           <SelectItem key={opt.value} value={opt.value}>
             {opt.label}
