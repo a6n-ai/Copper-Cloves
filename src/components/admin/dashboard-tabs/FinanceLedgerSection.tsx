@@ -25,6 +25,8 @@ import { Button } from "@/components/ui/button";
 import { Pill } from "@/components/ui/pill";
 import { MetricCard } from "@/components/admin/MetricCard";
 import { FilterCombobox } from "@/components/admin/FilterCombobox";
+import { FilterDateRange } from "@/components/filters";
+import type { DateRange } from "react-day-picker";
 import { SortableHeader, useTableSort } from "@/components/admin/sortable-table";
 import { Pagination, usePagination } from "@/components/Pagination";
 import { paymentMethodPill } from "@/lib/pillMaps";
@@ -43,8 +45,9 @@ function methodLabel(method: string | null): string {
   return method ? paymentMethodPill(method).label : "—";
 }
 
-// Same date-range semantics as the Transactions tab (today / this week / month).
-function passesDateRange(iso: string, range: string): boolean {
+// Same date-range semantics as the Transactions tab (today / this week / month),
+// plus a "custom" branch driven by the kit's FilterDateRange (from/to, inclusive).
+function passesDateRange(iso: string, range: string, custom?: DateRange): boolean {
   if (range === "all") return true;
   const d = new Date(iso);
   if (Number.isNaN(d.getTime())) return true;
@@ -62,6 +65,13 @@ function passesDateRange(iso: string, range: string): boolean {
   if (range === "month") {
     return day.getFullYear() === now.getFullYear() && day.getMonth() === now.getMonth();
   }
+  if (range === "custom") {
+    if (!custom?.from) return true;
+    const from = new Date(custom.from.getFullYear(), custom.from.getMonth(), custom.from.getDate());
+    const toSrc = custom.to ?? custom.from;
+    const to = new Date(toSrc.getFullYear(), toSrc.getMonth(), toSrc.getDate());
+    return day >= from && day <= to; // `to` is inclusive (the whole selected end day)
+  }
   return true;
 }
 
@@ -75,6 +85,7 @@ function FinanceLedgerSectionImpl() {
 
   const [dir, setDir] = useState<DirFilter>("all");
   const [dateRange, setDateRange] = useState("all");
+  const [customRange, setCustomRange] = useState<DateRange | undefined>(undefined);
   const [category, setCategory] = useState("all");
   const [party, setParty] = useState("all");
   const [method, setMethod] = useState("all");
@@ -127,6 +138,7 @@ function FinanceLedgerSectionImpl() {
   const resetFilters = useCallback(() => {
     setDir("all");
     setDateRange("all");
+    setCustomRange(undefined);
     setCategory("all");
     setParty("all");
     setMethod("all");
@@ -139,7 +151,7 @@ function FinanceLedgerSectionImpl() {
     return entries.filter((e) => {
       if (dir !== "all" && e.direction !== dir) return false;
       if (source === "manual" && !e.isManualExpense) return false;
-      if (!passesDateRange(e.occurredAtISO, dateRange)) return false;
+      if (!passesDateRange(e.occurredAtISO, dateRange, customRange)) return false;
       if (category !== "all" && e.category !== category) return false;
       if (party !== "all" && e.party !== party) return false;
       if (method !== "all" && methodLabel(e.method) !== method) return false;
@@ -149,7 +161,7 @@ function FinanceLedgerSectionImpl() {
       }
       return true;
     });
-  }, [entries, dir, source, dateRange, category, party, method, search]);
+  }, [entries, dir, source, dateRange, customRange, category, party, method, search]);
 
   const getSortValue = useCallback((row: LedgerEntry, key: LedgerSortKey): number | string => {
     switch (key) {
@@ -172,7 +184,7 @@ function FinanceLedgerSectionImpl() {
   const pg = usePagination(
     sorted,
     10,
-    `${dir}|${dateRange}|${category}|${party}|${method}|${source}|${search}|${sortKey}|${sortDir}`,
+    `${dir}|${dateRange}|${customRange?.from?.toDateString() ?? ""}-${customRange?.to?.toDateString() ?? ""}|${category}|${party}|${method}|${source}|${search}|${sortKey}|${sortDir}`,
   );
 
   // Summary reflects the current filter selection.
@@ -225,15 +237,29 @@ function FinanceLedgerSectionImpl() {
             </div>
             <div className="space-y-2">
               <Label className="font-body text-xs text-charcoal/60">Date Range</Label>
-              <Select value={dateRange} onValueChange={setDateRange}>
+              <Select
+                value={dateRange}
+                onValueChange={(v) => {
+                  setDateRange(v);
+                  if (v !== "custom") setCustomRange(undefined);
+                }}
+              >
                 <SelectTrigger className="border-sage/20 bg-white-warm"><SelectValue /></SelectTrigger>
                 <SelectContent>
                   <SelectItem value="all">All Time</SelectItem>
                   <SelectItem value="today">Today</SelectItem>
                   <SelectItem value="week">This Week</SelectItem>
                   <SelectItem value="month">This Month</SelectItem>
+                  <SelectItem value="custom">Custom…</SelectItem>
                 </SelectContent>
               </Select>
+              {dateRange === "custom" && (
+                <FilterDateRange
+                  value={customRange}
+                  onChange={setCustomRange}
+                  placeholder="Pick dates"
+                />
+              )}
             </div>
             <div className="space-y-2">
               <Label className="font-body text-xs text-charcoal/60">Category</Label>
