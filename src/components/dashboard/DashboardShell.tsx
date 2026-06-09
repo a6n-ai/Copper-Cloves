@@ -1,17 +1,8 @@
-import { useEffect, useRef, useState } from "react";
+import type React from "react";
 import { useRouter } from "next/router";
 import { signOut } from "next-auth/react";
 import Link from "next/link";
-import { LogOut, BellRing, User as UserIcon, Search } from "lucide-react";
-import {
-  Command,
-  CommandEmpty,
-  CommandGroup,
-  CommandInput,
-  CommandItem,
-  CommandList,
-} from "@/components/ui/command";
-import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import { LogOut, BellRing, User as UserIcon } from "lucide-react";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Pill } from "@/components/ui/pill";
 import { Separator } from "@/components/ui/separator";
@@ -43,7 +34,8 @@ import { cn } from "@/lib/utils";
 import { cdnUrl } from "@/lib/cdnUrl";
 import { RoleSwitcher } from "@/components/RoleSwitcher";
 import { CheckinBeacon } from "@/components/checkin/CheckinBeacon";
-import { SIGN_OUT_HREF, type NavSection, type PortalConfig } from "@/components/dashboard/dashboardNav";
+import { SIGN_OUT_HREF, type PortalConfig } from "@/components/dashboard/dashboardNav";
+import { GlobalSearch } from "@/components/dashboard/GlobalSearch";
 import { MobileBottomNav } from "@/components/responsive/MobileBottomNav";
 
 export interface DashboardUser {
@@ -75,74 +67,6 @@ function getInitials(name: string) {
   return name.split(" ").map((n) => n[0]).join("").toUpperCase().slice(0, 2) || "?";
 }
 
-function SearchCommand({ sections }: { sections: NavSection[] }) {
-  const router = useRouter();
-  const [open, setOpen] = useState(false);
-  const [query, setQuery] = useState("");
-  const inputRef = useRef<HTMLInputElement | null>(null);
-
-  useEffect(() => {
-    const onKey = (e: KeyboardEvent) => {
-      if ((e.metaKey || e.ctrlKey) && e.key.toLowerCase() === "k") {
-        e.preventDefault();
-        setOpen(true);
-        setTimeout(() => inputRef.current?.focus(), 30);
-      }
-    };
-    window.addEventListener("keydown", onKey);
-    return () => window.removeEventListener("keydown", onKey);
-  }, []);
-
-  const go = (href: string) => {
-    setOpen(false);
-    setQuery("");
-    void router.push(href);
-  };
-
-  return (
-    <Popover open={open} onOpenChange={setOpen}>
-      <PopoverTrigger asChild>
-        <button
-          type="button"
-          onClick={() => setOpen(true)}
-          className="flex items-center gap-2 w-full max-w-xs rounded-full border border-sage/20 bg-[#fafaf8]/70 px-3 py-1.5 text-left text-sm text-charcoal/50 hover:border-sage/40 transition-colors"
-        >
-          <Search className="h-4 w-4" />
-          <span className="flex-1 truncate font-body">Search pages…</span>
-          <kbd className="hidden sm:inline rounded border border-sage/20 bg-cream/50 px-1.5 text-[10px] font-body text-charcoal/50">
-            ⌘K
-          </kbd>
-        </button>
-      </PopoverTrigger>
-      <PopoverContent align="start" className="w-[min(380px,calc(100vw-2rem))] p-0">
-        <Command>
-          <CommandInput ref={inputRef} placeholder="Search pages…" value={query} onValueChange={setQuery} />
-          <CommandList>
-            <CommandEmpty>No pages found.</CommandEmpty>
-            {sections.map((section) => (
-              <CommandGroup key={section.label} heading={section.label}>
-                {section.items.map((item) => (
-                  <CommandItem
-                    key={item.href}
-                    value={`${item.label} ${item.href}`}
-                    onSelect={() => go(item.href)}
-                    className="cursor-pointer"
-                  >
-                    <item.icon className="mr-2 h-4 w-4 text-sage" />
-                    <div className="flex flex-col">
-                      <span className="font-body text-sm text-charcoal">{item.label}</span>
-                      <span className="font-body text-xs text-charcoal/50">{item.href}</span>
-                    </div>
-                  </CommandItem>
-                ))}
-              </CommandGroup>
-            ))}
-          </CommandList>
-        </Command>
-      </PopoverContent>
-    </Popover>
-  );
-}
 
 export function DashboardShell({ config, user, children }: DashboardShellProps) {
   const router = useRouter();
@@ -265,7 +189,7 @@ export function DashboardShell({ config, user, children }: DashboardShellProps) 
             <div className="flex items-center gap-3 flex-1 min-w-0">
               <SidebarTrigger className="text-charcoal hover:text-sage shrink-0 hidden md:inline-flex" />
               <div className="flex-1 max-w-md">
-                <SearchCommand sections={config.sections} />
+                <GlobalSearch config={config} />
               </div>
             </div>
             <div className="flex items-center gap-2.5 shrink-0">
