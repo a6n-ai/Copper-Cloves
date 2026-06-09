@@ -11,6 +11,7 @@ import { AdminPageHeader } from "@/components/admin/AdminPageHeader";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { FilterBar, FilterSearch, FilterChips, useFilterState } from "@/components/filters";
 import {
   Users,
   CheckCircle2,
@@ -18,7 +19,6 @@ import {
   CreditCard,
   Calendar,
   Trophy,
-  Search,
   Plus,
 } from "lucide-react";
 import { SEO } from "@/components/SEO";
@@ -181,9 +181,10 @@ function MembersLoadingSkeleton() {
 export default function AdminMembers() {
   const router = useRouter();
   const [loading, setLoading] = useState(true);
-  const [searchQuery, setSearchQuery] = useState("");
-  const [packageFilter, setPackageFilter] = useState<"all" | "studio" | "class" | "none">("all");
-  const [accountStatusFilter, setAccountStatusFilter] = useState<"all" | "active" | "inactive">("all");
+  const f = useFilterState(
+    { search: "", pkg: "all", account: "all" },
+    { urlSync: true },
+  );
   const [members, setMembers] = useState<Member[]>([]);
   const [checkInsThisMonth, setCheckInsThisMonth] = useState(0);
   const [sortKey, setSortKey] = useState<"name" | "pass" | "account" | "classes" | "lastVisit" | "status" | null>(null);
@@ -221,7 +222,7 @@ export default function AdminMembers() {
   }, [status, userRole]);
 
   const filteredMembers = useMemo(() => {
-    const qRaw = searchQuery.trim();
+    const qRaw = f.values.search.trim();
     const q = qRaw.toLowerCase();
     const filtered = members.filter((member) => {
       const matchesSearch =
@@ -230,11 +231,11 @@ export default function AdminMembers() {
         (member.email ?? "").toLowerCase().includes(q) ||
         (member.phone ?? "").toLowerCase().includes(qRaw);
       if (!matchesSearch) return false;
-      if (packageFilter === "studio" && member.passCategory !== "studio_pass") return false;
-      if (packageFilter === "class" && member.passCategory !== "class_pass") return false;
-      if (packageFilter === "none" && member.passCategory !== "none") return false;
-      if (accountStatusFilter === "active" && member.accountFilter !== "active") return false;
-      if (accountStatusFilter === "inactive" && member.accountFilter !== "inactive") return false;
+      if (f.values.pkg === "studio" && member.passCategory !== "studio_pass") return false;
+      if (f.values.pkg === "class" && member.passCategory !== "class_pass") return false;
+      if (f.values.pkg === "none" && member.passCategory !== "none") return false;
+      if (f.values.account === "active" && member.accountFilter !== "active") return false;
+      if (f.values.account === "inactive" && member.accountFilter !== "inactive") return false;
       return true;
     });
 
@@ -270,7 +271,7 @@ export default function AdminMembers() {
     }
 
     return filtered;
-  }, [searchQuery, members, packageFilter, accountStatusFilter, sortKey, sortDir]);
+  }, [f.values.search, f.values.pkg, f.values.account, members, sortKey, sortDir]);
 
   const loadMembers = async () => {
     setLoadError(null);
@@ -403,7 +404,7 @@ export default function AdminMembers() {
   const membersPg = usePagination(
     filteredMembers,
     10,
-    `${searchQuery}|${packageFilter}|${accountStatusFilter}|${sortKey}|${sortDir}`,
+    `${f.values.search}|${f.values.pkg}|${f.values.account}|${sortKey}|${sortDir}`,
   );
 
   const accountLabelFor = (f: Member["accountFilter"]) =>
@@ -499,97 +500,51 @@ export default function AdminMembers() {
                       Click a member to view their full profile and manage their pass
                     </CardDescription>
                   </div>
-                  <div className="flex items-center gap-2 w-full sm:w-auto">
-                    <div className="relative flex-1 sm:w-72">
-                      <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-charcoal/40" />
-                      <Input
-                        value={searchQuery}
-                        onChange={(e) => setSearchQuery(e.target.value)}
-                        placeholder="Search name, email, phone…"
-                        className="h-9 pl-9 border-sage/20 focus:border-sage font-body"
-                      />
-                    </div>
-                    <Button
-                      onClick={() => {
-                        setAddName("");
-                        setAddEmail("");
-                        setAddPhone("");
-                        setAddPassword("");
-                        setAddError(null);
-                        setAddOpen(true);
-                      }}
-                      variant="sage"
-                      className="h-9 shrink-0"
-                    >
-                      <Plus className="h-4 w-4 mr-1.5" />
-                      Add Member
-                    </Button>
-                  </div>
+                  <Button
+                    onClick={() => {
+                      setAddName("");
+                      setAddEmail("");
+                      setAddPhone("");
+                      setAddPassword("");
+                      setAddError(null);
+                      setAddOpen(true);
+                    }}
+                    variant="sage"
+                    className="h-9 shrink-0"
+                  >
+                    <Plus className="h-4 w-4 mr-1.5" />
+                    Add Member
+                  </Button>
                 </div>
 
-                {/* Primary filter: tab strip with underline */}
-                <div className="flex items-center justify-between flex-wrap gap-3 border-b border-sage/10">
-                  <div className="flex items-center gap-1 -mb-px overflow-x-auto">
-                    {[
-                      { v: "all", l: "All" },
-                      { v: "studio", l: "Studio" },
-                      { v: "class", l: "Class pass" },
-                      { v: "none", l: "No pass" },
-                    ].map((o) => {
-                      const active = packageFilter === o.v;
-                      return (
-                        <button
-                          key={o.v}
-                          type="button"
-                          onClick={() => setPackageFilter(o.v as typeof packageFilter)}
-                          className={`relative px-4 py-2 font-body text-sm whitespace-nowrap transition-colors ${
-                            active ? "text-sage" : "text-charcoal/60 hover:text-charcoal"
-                          }`}
-                        >
-                          {o.l}
-                          {active && (
-                            <span className="absolute left-0 right-0 -bottom-px h-0.5 bg-sage rounded-full" />
-                          )}
-                        </button>
-                      );
-                    })}
-                  </div>
-                  <div className="flex items-center gap-2 pb-2 flex-wrap">
-                    <div className="flex items-center gap-1 rounded-full bg-cream/50 p-1 border border-sage/15">
-                      {[
-                        { v: "all", l: "All" },
-                        { v: "active", l: "Active" },
-                        { v: "inactive", l: "Inactive" },
-                      ].map((o) => (
-                        <button
-                          key={o.v}
-                          type="button"
-                          onClick={() => setAccountStatusFilter(o.v as typeof accountStatusFilter)}
-                          className={`px-3 h-7 rounded-full font-body text-xs transition-colors ${
-                            accountStatusFilter === o.v
-                              ? "bg-sage text-cream shadow-xs"
-                              : "text-charcoal/60 hover:text-charcoal hover:bg-sage/10"
-                          }`}
-                        >
-                          {o.l}
-                        </button>
-                      ))}
-                    </div>
-                    {(packageFilter !== "all" || accountStatusFilter !== "all" || searchQuery) && (
-                      <button
-                        type="button"
-                        onClick={() => {
-                          setPackageFilter("all");
-                          setAccountStatusFilter("all");
-                          setSearchQuery("");
-                        }}
-                        className="font-body text-xs text-terracotta hover:underline"
-                      >
-                        Reset
-                      </button>
-                    )}
-                  </div>
-                </div>
+                <FilterBar reset={f.isActive ? f.reset : undefined} className="mb-4">
+                  <FilterSearch
+                    value={f.values.search}
+                    onChange={(v) => f.set("search", v)}
+                    placeholder="Search name, email, phone…"
+                  />
+                  <FilterChips
+                    aria-label="Package"
+                    value={f.values.pkg}
+                    onChange={(v) => f.set("pkg", v)}
+                    options={[
+                      { value: "all", label: "All" },
+                      { value: "studio", label: "Studio" },
+                      { value: "class", label: "Class pass" },
+                      { value: "none", label: "No pass" },
+                    ]}
+                  />
+                  <FilterChips
+                    aria-label="Account status"
+                    value={f.values.account}
+                    onChange={(v) => f.set("account", v)}
+                    options={[
+                      { value: "all", label: "All" },
+                      { value: "active", label: "Active" },
+                      { value: "inactive", label: "Inactive" },
+                    ]}
+                  />
+                </FilterBar>
               </CardHeader>
               <CardContent>
                 <div className="rounded-xl border border-sage/15 bg-white-warm overflow-hidden">
