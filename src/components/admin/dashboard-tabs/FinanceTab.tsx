@@ -51,6 +51,8 @@ import {
   ChartTooltipContent,
 } from "@/components/ui/chart";
 import { MetricCard } from "@/components/admin/MetricCard";
+import { FilterDateRange } from "@/components/filters";
+import type { DateRange } from "react-day-picker";
 import { Pagination, usePagination } from "@/components/Pagination";
 import { transactionInExportPeriod, type FinanceReportPeriod } from "@/lib/financeReportExport";
 
@@ -215,8 +217,8 @@ function parseYYYYMMDDLocal(dateStr: string): Date | null {
   return d;
 }
 
-function txnPassesDateRange(displayDateYYYYMMDD: string, range: string): boolean {
-  if (range === "all" || range === "custom") return true;
+function txnPassesDateRange(displayDateYYYYMMDD: string, range: string, custom?: DateRange): boolean {
+  if (range === "all") return true;
   const txnDay = parseYYYYMMDDLocal(displayDateYYYYMMDD);
   if (!txnDay) return true;
   const now = new Date();
@@ -231,6 +233,13 @@ function txnPassesDateRange(displayDateYYYYMMDD: string, range: string): boolean
   }
   if (range === "month") {
     return txnDay.getFullYear() === now.getFullYear() && txnDay.getMonth() === now.getMonth();
+  }
+  if (range === "custom") {
+    if (!custom?.from) return true;
+    const from = new Date(custom.from.getFullYear(), custom.from.getMonth(), custom.from.getDate());
+    const toSrc = custom.to ?? custom.from;
+    const to = new Date(toSrc.getFullYear(), toSrc.getMonth(), toSrc.getDate());
+    return txnDay >= from && txnDay <= to; // `to` inclusive (whole selected end day)
   }
   return true;
 }
@@ -700,6 +709,7 @@ export interface FinanceTransactionsSectionProps {
 interface TxnFilterCriteria {
   filter: string;
   dateRange: string;
+  customRange?: DateRange;
   type: string;
   member: string;
   method: string;
@@ -724,7 +734,7 @@ function txnMatchesType(txn: DashboardTxn, type: string): boolean {
 
 // Single predicate for the ledger filters. Pure — no component state captured.
 function txnMatchesFilters(txn: DashboardTxn, c: TxnFilterCriteria): boolean {
-  if (!txnPassesDateRange(txn.date, c.dateRange)) return false;
+  if (!txnPassesDateRange(txn.date, c.dateRange, c.customRange)) return false;
   if (c.filter === "credit" && txn.type !== "revenue") return false;
   if (c.filter === "debit" && txn.type !== "expense") return false;
 
@@ -884,6 +894,7 @@ function FinanceTransactionsSectionImpl({
 }: Readonly<FinanceTransactionsSectionProps>) {
   const [transactionFilter, setTransactionFilter] = useState("all");
   const [transactionDateRange, setTransactionDateRange] = useState("all");
+  const [transactionCustomRange, setTransactionCustomRange] = useState<DateRange | undefined>(undefined);
   const [transactionType, setTransactionType] = useState("all");
   const [transactionMember, setTransactionMember] = useState("all");
   const [transactionMethod, setTransactionMethod] = useState("all");
@@ -917,6 +928,7 @@ function FinanceTransactionsSectionImpl({
   const resetFilters = useCallback(() => {
     setTransactionFilter("all");
     setTransactionDateRange("all");
+    setTransactionCustomRange(undefined);
     setTransactionType("all");
     setTransactionMember("all");
     setTransactionMethod("all");
@@ -927,6 +939,7 @@ function FinanceTransactionsSectionImpl({
     const criteria: TxnFilterCriteria = {
       filter: transactionFilter,
       dateRange: transactionDateRange,
+      customRange: transactionCustomRange,
       type: transactionType,
       member: transactionMember,
       method: transactionMethod,
@@ -937,6 +950,7 @@ function FinanceTransactionsSectionImpl({
     financeLedgerTransactions,
     transactionFilter,
     transactionDateRange,
+    transactionCustomRange,
     transactionType,
     transactionMember,
     transactionMethod,
@@ -965,7 +979,7 @@ function FinanceTransactionsSectionImpl({
   const financeTxnPg = usePagination(
     sortedFinanceTxns,
     10,
-    `${transactionFilter}|${transactionDateRange}|${transactionType}|${transactionMember}|${transactionMethod}|${transactionSearch}|${txnSortKey}|${txnSortDir}`,
+    `${transactionFilter}|${transactionDateRange}|${transactionCustomRange?.from?.toDateString() ?? ""}-${transactionCustomRange?.to?.toDateString() ?? ""}|${transactionType}|${transactionMember}|${transactionMethod}|${transactionSearch}|${txnSortKey}|${txnSortDir}`,
   );
 
   const handleExport = (period: FinanceReportPeriod) => {
@@ -1001,7 +1015,13 @@ function FinanceTransactionsSectionImpl({
             </div>
             <div className="space-y-2">
               <Label className="font-body text-xs text-charcoal/60">Date Range</Label>
-              <Select value={transactionDateRange} onValueChange={setTransactionDateRange}>
+              <Select
+                value={transactionDateRange}
+                onValueChange={(v) => {
+                  setTransactionDateRange(v);
+                  if (v !== "custom") setTransactionCustomRange(undefined);
+                }}
+              >
                 <SelectTrigger className="border-sage/20 bg-white-warm"><SelectValue /></SelectTrigger>
                 <SelectContent>
                   <SelectItem value="all">All Time</SelectItem>
@@ -1011,6 +1031,13 @@ function FinanceTransactionsSectionImpl({
                   <SelectItem value="custom">Custom Range</SelectItem>
                 </SelectContent>
               </Select>
+              {transactionDateRange === "custom" && (
+                <FilterDateRange
+                  value={transactionCustomRange}
+                  onChange={setTransactionCustomRange}
+                  placeholder="Pick dates"
+                />
+              )}
             </div>
             <div className="space-y-2">
               <Label className="font-body text-xs text-charcoal/60">Category</Label>

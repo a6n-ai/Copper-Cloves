@@ -2,6 +2,7 @@ import { memo, useCallback, useEffect, useMemo, useState } from "react";
 import {
   ArrowDownLeft,
   ArrowUpRight,
+  Download,
   ExternalLink,
   Filter,
   Loader2,
@@ -25,6 +26,8 @@ import { Button } from "@/components/ui/button";
 import { Pill } from "@/components/ui/pill";
 import { MetricCard } from "@/components/admin/MetricCard";
 import { FilterCombobox } from "@/components/admin/FilterCombobox";
+import { FilterDateRange } from "@/components/filters";
+import type { DateRange } from "react-day-picker";
 import { SortableHeader, useTableSort } from "@/components/admin/sortable-table";
 import { Pagination, usePagination } from "@/components/Pagination";
 import { paymentMethodPill } from "@/lib/pillMaps";
@@ -43,8 +46,49 @@ function methodLabel(method: string | null): string {
   return method ? paymentMethodPill(method).label : "—";
 }
 
-// Same date-range semantics as the Transactions tab (today / this week / month).
-function passesDateRange(iso: string, range: string): boolean {
+// Wrap a field for CSV: quote and escape embedded quotes; "—" placeholders blanked.
+function csvCell(v: string | number): string {
+  const s = String(v);
+  if (s === "—") return "";
+  return `"${s.replace(/"/g, '""')}"`;
+}
+
+function ledgerToCsv(rows: LedgerEntry[]): string {
+  const header = ["Date", "Party", "Category", "Method", "Direction", "Amount (INR)", "Status", "Reference", "ID"];
+  const lines = rows.map((e) => {
+    const rupees = Math.round(Math.abs(e.amountPaise)) / 100;
+    const signed = e.direction === "debit" ? -rupees : rupees;
+    return [
+      fmtDate(e.occurredAtISO),
+      e.party,
+      e.category,
+      methodLabel(e.method),
+      e.direction,
+      signed,
+      e.status,
+      e.reference ?? "",
+      e.id,
+    ].map(csvCell).join(",");
+  });
+  return [header.map(csvCell).join(","), ...lines].join("\r\n");
+}
+
+function downloadCsv(filename: string, csv: string): void {
+  // Prepend BOM so Excel reads UTF-8 (₹, names) correctly.
+  const blob = new Blob(["﻿", csv], { type: "text/csv;charset=utf-8;" });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement("a");
+  a.href = url;
+  a.download = filename;
+  document.body.appendChild(a);
+  a.click();
+  a.remove();
+  URL.revokeObjectURL(url);
+}
+
+// Same date-range semantics as the Transactions tab (today / this week / month),
+// plus a "custom" branch driven by the kit's FilterDateRange (from/to, inclusive).
+function passesDateRange(iso: string, range: string, custom?: DateRange): boolean {
   if (range === "all") return true;
   const d = new Date(iso);
   if (Number.isNaN(d.getTime())) return true;
@@ -62,6 +106,13 @@ function passesDateRange(iso: string, range: string): boolean {
   if (range === "month") {
     return day.getFullYear() === now.getFullYear() && day.getMonth() === now.getMonth();
   }
+  if (range === "custom") {
+    if (!custom?.from) return true;
+    const from = new Date(custom.from.getFullYear(), custom.from.getMonth(), custom.from.getDate());
+    const toSrc = custom.to ?? custom.from;
+    const to = new Date(toSrc.getFullYear(), toSrc.getMonth(), toSrc.getDate());
+    return day >= from && day <= to; // `to` is inclusive (the whole selected end day)
+  }
   return true;
 }
 
@@ -75,6 +126,7 @@ function FinanceLedgerSectionImpl() {
 
   const [dir, setDir] = useState<DirFilter>("all");
   const [dateRange, setDateRange] = useState("all");
+  const [customRange, setCustomRange] = useState<DateRange | undefined>(undefined);
   const [category, setCategory] = useState("all");
   const [party, setParty] = useState("all");
   const [method, setMethod] = useState("all");
@@ -127,6 +179,7 @@ function FinanceLedgerSectionImpl() {
   const resetFilters = useCallback(() => {
     setDir("all");
     setDateRange("all");
+    setCustomRange(undefined);
     setCategory("all");
     setParty("all");
     setMethod("all");
@@ -139,7 +192,7 @@ function FinanceLedgerSectionImpl() {
     return entries.filter((e) => {
       if (dir !== "all" && e.direction !== dir) return false;
       if (source === "manual" && !e.isManualExpense) return false;
-      if (!passesDateRange(e.occurredAtISO, dateRange)) return false;
+      if (!passesDateRange(e.occurredAtISO, dateRange, customRange)) return false;
       if (category !== "all" && e.category !== category) return false;
       if (party !== "all" && e.party !== party) return false;
       if (method !== "all" && methodLabel(e.method) !== method) return false;
@@ -149,7 +202,7 @@ function FinanceLedgerSectionImpl() {
       }
       return true;
     });
-  }, [entries, dir, source, dateRange, category, party, method, search]);
+  }, [entries, dir, source, dateRange, customRange, category, party, method, search]);
 
   const getSortValue = useCallback((row: LedgerEntry, key: LedgerSortKey): number | string => {
     switch (key) {
@@ -172,8 +225,17 @@ function FinanceLedgerSectionImpl() {
   const pg = usePagination(
     sorted,
     10,
-    `${dir}|${dateRange}|${category}|${party}|${method}|${source}|${search}|${sortKey}|${sortDir}`,
+    `${dir}|${dateRange}|${customRange?.from?.toDateString() ?? ""}-${customRange?.to?.toDateString() ?? ""}|${category}|${party}|${method}|${source}|${search}|${sortKey}|${sortDir}`,
   );
+
+  const exportCsv = useCallback(() => {
+    if (sorted.length === 0) {
+      toast.error("No rows to export.");
+      return;
+    }
+    const today = fmtDate(new Date().toISOString());
+    downloadCsv(`ledger-${today}.csv`, ledgerToCsv(sorted));
+  }, [sorted]);
 
   // Summary reflects the current filter selection.
   const totals = useMemo(() => {
@@ -204,11 +266,23 @@ function FinanceLedgerSectionImpl() {
 
       <Card className="border-sage/20 bg-white-warm">
         <CardHeader>
-          <div className="mb-4">
-            <CardTitle className="font-display text-2xl text-charcoal">Ledger</CardTitle>
-            <CardDescription className="font-body text-charcoal/60">
-              Every transaction — payments, expenses, payouts, refunds — in one place
-            </CardDescription>
+          <div className="mb-4 flex items-start justify-between gap-4">
+            <div>
+              <CardTitle className="font-display text-2xl text-charcoal">Ledger</CardTitle>
+              <CardDescription className="font-body text-charcoal/60">
+                Every transaction — payments, expenses, payouts, refunds — in one place
+              </CardDescription>
+            </div>
+            <Button
+              type="button"
+              variant="outline"
+              className="border-sage/20 text-sage hover:bg-sage/5 font-body shrink-0"
+              onClick={exportCsv}
+              disabled={sorted.length === 0}
+            >
+              <Download className="h-4 w-4 mr-2" />
+              Export CSV
+            </Button>
           </div>
 
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 p-4 rounded-xl bg-cream/30 border border-sage/20">
@@ -225,15 +299,29 @@ function FinanceLedgerSectionImpl() {
             </div>
             <div className="space-y-2">
               <Label className="font-body text-xs text-charcoal/60">Date Range</Label>
-              <Select value={dateRange} onValueChange={setDateRange}>
+              <Select
+                value={dateRange}
+                onValueChange={(v) => {
+                  setDateRange(v);
+                  if (v !== "custom") setCustomRange(undefined);
+                }}
+              >
                 <SelectTrigger className="border-sage/20 bg-white-warm"><SelectValue /></SelectTrigger>
                 <SelectContent>
                   <SelectItem value="all">All Time</SelectItem>
                   <SelectItem value="today">Today</SelectItem>
                   <SelectItem value="week">This Week</SelectItem>
                   <SelectItem value="month">This Month</SelectItem>
+                  <SelectItem value="custom">Custom…</SelectItem>
                 </SelectContent>
               </Select>
+              {dateRange === "custom" && (
+                <FilterDateRange
+                  value={customRange}
+                  onChange={setCustomRange}
+                  placeholder="Pick dates"
+                />
+              )}
             </div>
             <div className="space-y-2">
               <Label className="font-body text-xs text-charcoal/60">Category</Label>
