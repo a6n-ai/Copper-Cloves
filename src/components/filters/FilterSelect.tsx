@@ -1,7 +1,7 @@
 import { ListFilter, type LucideIcon } from "lucide-react";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { cn } from "@/lib/utils";
-import { FILTER_TRIGGER } from "./styles";
+import { FILTER_TRIGGER, FILTER_ICON } from "./styles";
 import type { SelectOption } from "./types";
 
 export function FilterSelect({
@@ -25,9 +25,9 @@ export function FilterSelect({
     <Select value={value} onValueChange={onChange} activityLabel={ariaLabel}>
       <SelectTrigger
         aria-label={ariaLabel ?? placeholder}
-        className={cn(FILTER_TRIGGER, "text-sm data-[placeholder]:text-charcoal/40", className)}
+        className={cn(FILTER_TRIGGER, "text-sm sm:w-[180px] data-[placeholder]:text-charcoal/40", className)}
       >
-        {Icon && <Icon className="mr-2 h-4 w-4 shrink-0 text-charcoal/40" aria-hidden />}
+        {Icon && <Icon className={FILTER_ICON} aria-hidden />}
         <SelectValue placeholder={placeholder} />
       </SelectTrigger>
       <SelectContent className="border-sage/20 font-body">

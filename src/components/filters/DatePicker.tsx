@@ -6,7 +6,7 @@ import { Calendar } from "@/components/ui/calendar";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
-import { FILTER_TRIGGER } from "./styles";
+import { FILTER_TRIGGER, FILTER_ICON } from "./styles";
 
 // Drop-in replacement for native <input type="date">: same string contract
 // (value/onChange are "yyyy-MM-dd"), but renders the brand sage Calendar in a
@@ -58,7 +58,7 @@ export function DatePicker({
             className,
           )}
         >
-          <Icon className="mr-2 h-4 w-4 text-charcoal/40 shrink-0" aria-hidden />
+          <Icon className={FILTER_ICON} aria-hidden />
           <span className="truncate">{valid ? format(valid, "d MMM yyyy") : placeholder}</span>
         </Button>
       </PopoverTrigger>

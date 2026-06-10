@@ -49,8 +49,8 @@ export function FilterSearch({
   }, [local, debounceMs]);
 
   return (
-    <div className={cn("relative flex-1 min-w-[180px]", className)}>
-      <Icon className="pointer-events-none absolute left-3 top-1/2 z-10 h-4 w-4 -translate-y-1/2 text-charcoal/40" aria-hidden />
+    <div className={cn("group relative flex-1 min-w-[180px]", className)}>
+      <Icon className="pointer-events-none absolute left-3 top-1/2 z-10 h-4 w-4 -translate-y-1/2 text-charcoal/40 transition-colors duration-200 group-hover:text-sage" aria-hidden />
       <input
         type="text"
         value={local}

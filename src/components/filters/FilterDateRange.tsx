@@ -14,7 +14,7 @@ import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover
 import { Button } from "@/components/ui/button";
 import { CalendarDays, X, type LucideIcon } from "lucide-react";
 import { cn } from "@/lib/utils";
-import { FILTER_TRIGGER } from "./styles";
+import { FILTER_TRIGGER, FILTER_ICON } from "./styles";
 
 // Quick-range presets (right column). Each returns a {from,to} range; the order
 // here is the order shown. "All time" clears the filter.
@@ -75,7 +75,7 @@ export function FilterDateRange({
             className,
           )}
         >
-          <Icon className="mr-2 h-4 w-4 text-charcoal/40 shrink-0" aria-hidden />
+          <Icon className={FILTER_ICON} aria-hidden />
           <span className="truncate">{label}</span>
           {active && (
             <span

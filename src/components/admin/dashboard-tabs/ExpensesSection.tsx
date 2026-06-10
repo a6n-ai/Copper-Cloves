@@ -1,4 +1,4 @@
-import { memo, useCallback, useEffect, useState } from "react";
+import { memo, useCallback, useEffect, useMemo, useState } from "react";
 import { Loader2, Plus, Receipt, Trash2, Banknote } from "lucide-react";
 import { toast } from "sonner";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -8,7 +8,9 @@ import { ResponsiveTable } from "@/components/responsive/ResponsiveTable";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { DatePicker } from "@/components/filters";
+import { DatePicker, FilterBar, FilterSearch, FilterSelect, FilterDateRange } from "@/components/filters";
+import type { DateRange } from "react-day-picker";
+import { Filter } from "lucide-react";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Pill } from "@/components/ui/pill";
@@ -78,6 +80,16 @@ function ExpensesSectionImpl() {
   const [form, setForm] = useState(EMPTY_FORM);
   const [saving, setSaving] = useState(false);
 
+  const [search, setSearch] = useState("");
+  const [categoryFilter, setCategoryFilter] = useState("all");
+  const [dateRange, setDateRange] = useState<DateRange | undefined>(undefined);
+  const filtersDirty = search !== "" || categoryFilter !== "all" || dateRange !== undefined;
+  const resetFilters = () => {
+    setSearch("");
+    setCategoryFilter("all");
+    setDateRange(undefined);
+  };
+
   const fetchExpenses = useCallback(async () => {
     const r = await fetch("/api/admin/expenses");
     if (!r.ok) return;
@@ -102,8 +114,27 @@ function ExpensesSectionImpl() {
       case "amount": return e.amountPaise;
     }
   }, []);
+  const filteredExpenses = useMemo(() => {
+    const q = search.trim().toLowerCase();
+    return expenses.filter((e) => {
+      if (categoryFilter !== "all" && e.category !== categoryFilter) return false;
+      if (dateRange?.from) {
+        const day = e.incurredAtISO.slice(0, 10);
+        const from = `${dateRange.from.getFullYear()}-${String(dateRange.from.getMonth() + 1).padStart(2, "0")}-${String(dateRange.from.getDate()).padStart(2, "0")}`;
+        const toSrc = dateRange.to ?? dateRange.from;
+        const to = `${toSrc.getFullYear()}-${String(toSrc.getMonth() + 1).padStart(2, "0")}-${String(toSrc.getDate()).padStart(2, "0")}`;
+        if (day < from || day > to) return false;
+      }
+      if (q) {
+        const hay = `${e.payee ?? ""} ${e.description ?? ""} ${e.notes ?? ""} ${EXPENSE_CATEGORY_LABELS[e.category] ?? e.category}`.toLowerCase();
+        if (!hay.includes(q)) return false;
+      }
+      return true;
+    });
+  }, [expenses, search, categoryFilter, dateRange]);
+
   const { sorted: sortedExpenses, sortKey: expSortKey, sortDir: expSortDir, toggle: toggleExp } = useTableSort(
-    expenses,
+    filteredExpenses,
     {
       initialKey: "date",
       initialDir: "desc",
@@ -111,7 +142,7 @@ function ExpensesSectionImpl() {
       defaultDirFor: (k) => (k === "category" || k === "details" ? "asc" : "desc"),
     },
   );
-  const expensePg = usePagination(sortedExpenses, 12, `${expenses.length}|${expSortKey}|${expSortDir}`);
+  const expensePg = usePagination(sortedExpenses, 12, `${search}|${categoryFilter}|${dateRange?.from?.toDateString() ?? ""}-${dateRange?.to?.toDateString() ?? ""}|${expSortKey}|${expSortDir}`);
 
   const submitExpense = useCallback(async () => {
     const amount = Number(form.amount);
@@ -195,6 +226,30 @@ function ExpensesSectionImpl() {
           )}
           {!loading && expenses.length > 0 && (
             <>
+              <FilterBar reset={filtersDirty ? resetFilters : undefined} className="mb-4">
+                <FilterSearch
+                  value={search}
+                  onChange={setSearch}
+                  placeholder="Search payee, note, category…"
+                  aria-label="Search expenses"
+                />
+                <FilterSelect
+                  value={categoryFilter}
+                  onChange={setCategoryFilter}
+                  icon={Filter}
+                  className="w-full sm:w-48"
+                  options={[
+                    { value: "all", label: "All categories" },
+                    ...Object.entries(EXPENSE_CATEGORY_LABELS).map(([value, label]) => ({ value, label })),
+                  ]}
+                />
+                <FilterDateRange value={dateRange} onChange={setDateRange} className="w-full sm:w-56" />
+              </FilterBar>
+              {sortedExpenses.length === 0 ? (
+                <div className="text-center py-10 border border-dashed border-sage/20 rounded-xl bg-cream/20">
+                  <p className="font-body text-sm text-charcoal/50">No expenses match your filters.</p>
+                </div>
+              ) : (
               <div className="rounded-xl border border-sage/15 bg-white-warm overflow-hidden">
                 <ResponsiveTable>
                   <Table>
@@ -272,6 +327,7 @@ function ExpensesSectionImpl() {
                   </Table>
                 </ResponsiveTable>
               </div>
+              )}
               <Pagination page={expensePg.page} total={expensePg.total} onChange={expensePg.setPage} />
             </>
           )}

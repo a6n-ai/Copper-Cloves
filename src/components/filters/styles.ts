@@ -6,8 +6,13 @@
 // The `!` on text/bg overrides the shadcn outline Button variant, which would
 // otherwise force terracotta bg + white text on hover.
 export const FILTER_TRIGGER =
-  "h-9 w-full font-body font-normal border-sage/20 bg-white-warm text-charcoal " +
+  "group h-9 w-full font-body font-normal border-sage/20 bg-white-warm text-charcoal " +
   "transition-all duration-200 ease-out " +
   "hover:bg-sage/5! hover:text-charcoal! hover:border-sage/40 hover:-translate-y-0.5 " +
   "hover:shadow-[0_4px_24px_rgba(51,51,51,0.08)] " +
   "focus-visible:ring-2 focus-visible:ring-sage/30 focus-visible:ring-offset-0";
+
+// Leading-icon class shared by all filter controls. Pairs with FILTER_TRIGGER's
+// `group`: icon tints sage on hover, matching the date picker's icon feel.
+export const FILTER_ICON =
+  "mr-2 h-4 w-4 shrink-0 text-charcoal/40 transition-colors duration-200 group-hover:text-sage";

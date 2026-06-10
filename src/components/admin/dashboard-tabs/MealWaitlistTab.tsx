@@ -1,5 +1,5 @@
-import { memo, useCallback } from "react";
-import { AlertTriangle, CheckCircle2, ChefHat } from "lucide-react";
+import { memo, useCallback, useMemo, useState } from "react";
+import { AlertTriangle, CheckCircle2, ChefHat, CircleDot } from "lucide-react";
 import { SortableHeader, useTableSort } from "@/components/admin/sortable-table";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
@@ -7,6 +7,7 @@ import { ResponsiveTable } from "@/components/responsive/ResponsiveTable";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { MetricCard } from "@/components/admin/MetricCard";
 import { Pagination, usePagination } from "@/components/Pagination";
+import { FilterBar, FilterSearch, FilterSelect } from "@/components/filters";
 
 export interface MealInquiry {
   id: string;
@@ -29,6 +30,26 @@ function MealWaitlistTabImpl({ inquiries, loading, onUpdateStatus }: Props) {
   const total = inquiries.length;
   const byStatus = (s: string) => inquiries.filter((r) => r.status === s).length;
 
+  const [search, setSearch] = useState("");
+  const [statusFilter, setStatusFilter] = useState("all");
+  const filtersDirty = search !== "" || statusFilter !== "all";
+  const resetFilters = () => {
+    setSearch("");
+    setStatusFilter("all");
+  };
+
+  const filtered = useMemo(() => {
+    const q = search.trim().toLowerCase();
+    return inquiries.filter((r) => {
+      if (statusFilter !== "all" && r.status !== statusFilter) return false;
+      if (q) {
+        const hay = `${r.full_name} ${r.email} ${r.phone} ${r.message ?? ""}`.toLowerCase();
+        if (!hay.includes(q)) return false;
+      }
+      return true;
+    });
+  }, [inquiries, search, statusFilter]);
+
   type MealSortKey = "date" | "name" | "status";
   const getValue = useCallback((row: MealInquiry, key: MealSortKey): number | string => {
     switch (key) {
@@ -37,13 +58,13 @@ function MealWaitlistTabImpl({ inquiries, loading, onUpdateStatus }: Props) {
       case "status": return row.status;
     }
   }, []);
-  const { sorted, sortKey, sortDir, toggle } = useTableSort(inquiries, {
+  const { sorted, sortKey, sortDir, toggle } = useTableSort(filtered, {
     initialKey: "date",
     initialDir: "desc",
     getValue,
     defaultDirFor: (k) => (k === "name" || k === "status" ? "asc" : "desc"),
   });
-  const pagination = usePagination(sorted, 10, `${sortKey}|${sortDir}`);
+  const pagination = usePagination(sorted, 10, `${search}|${statusFilter}|${sortKey}|${sortDir}`);
 
   return (
     <>
@@ -59,13 +80,35 @@ function MealWaitlistTabImpl({ inquiries, loading, onUpdateStatus }: Props) {
           <CardDescription className="font-body text-charcoal/60">
             Submissions from the &ldquo;Join the Waitlist&rdquo; form on the meal subscription page. Newest first.
           </CardDescription>
+          <FilterBar reset={filtersDirty ? resetFilters : undefined} className="mt-4">
+            <FilterSearch
+              value={search}
+              onChange={setSearch}
+              placeholder="Search name, email, phone…"
+              aria-label="Search waitlist"
+            />
+            <FilterSelect
+              value={statusFilter}
+              onChange={setStatusFilter}
+              icon={CircleDot}
+              className="w-full sm:w-44"
+              options={[
+                { value: "all", label: "All statuses" },
+                { value: "new", label: "New" },
+                { value: "contacted", label: "Contacted" },
+                { value: "closed", label: "Closed" },
+              ]}
+            />
+          </FilterBar>
         </CardHeader>
         <CardContent>
           {loading ? (
             <p className="font-body text-charcoal/60 py-8">Loading…</p>
-          ) : inquiries.length === 0 ? (
+          ) : sorted.length === 0 ? (
             <div className="text-center py-10 border border-dashed border-sage/20 rounded-xl bg-cream/20">
-              <p className="font-body text-sm text-charcoal/50">No enquiries yet.</p>
+              <p className="font-body text-sm text-charcoal/50">
+                {filtersDirty ? "No enquiries match your filters." : "No enquiries yet."}
+              </p>
             </div>
           ) : (
             <div className="rounded-xl border border-sage/15 bg-white-warm overflow-hidden">

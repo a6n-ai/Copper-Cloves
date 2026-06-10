@@ -11,7 +11,7 @@ import {
   CommandList,
 } from "@/components/ui/command";
 import { cn } from "@/lib/utils";
-import { FILTER_TRIGGER } from "@/components/filters";
+import { FILTER_TRIGGER, FILTER_ICON } from "@/components/filters";
 
 // Searchable single-select for long, dynamic filters (member, method). shadcn
 // Select has no search, so this pairs Popover + cmdk Command. Shared across the
@@ -46,7 +46,7 @@ export function FilterCombobox({
           className={cn(FILTER_TRIGGER, "justify-between")}
         >
           <span className="flex min-w-0 items-center">
-            {Icon && <Icon className="mr-2 h-4 w-4 shrink-0 text-charcoal/40" aria-hidden />}
+            {Icon && <Icon className={FILTER_ICON} aria-hidden />}
             <span className="truncate">{label}</span>
           </span>
           <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />

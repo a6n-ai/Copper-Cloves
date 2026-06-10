@@ -1,5 +1,5 @@
-import { memo, useCallback } from "react";
-import { AlertTriangle, Building2, Clock, Users } from "lucide-react";
+import { memo, useCallback, useMemo, useState } from "react";
+import { AlertTriangle, Building2, CircleDot, Clock, Users } from "lucide-react";
 import { SortableHeader, useTableSort } from "@/components/admin/sortable-table";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
@@ -7,6 +7,7 @@ import { ResponsiveTable } from "@/components/responsive/ResponsiveTable";
 import { Pill } from "@/components/ui/pill";
 import { MetricCard } from "@/components/admin/MetricCard";
 import { Pagination, usePagination } from "@/components/Pagination";
+import { FilterBar, FilterSearch, FilterSelect } from "@/components/filters";
 
 export interface RentalInquiry {
   id: string;
@@ -32,6 +33,26 @@ function RentalInquiriesTabImpl({ inquiries, loading }: Props) {
   const byStatus = (s: string) => inquiries.filter((r) => r.status === s).length;
   const totalGuests = inquiries.reduce((sum, r) => sum + (Number(r.guest_count) || 0), 0);
 
+  const [search, setSearch] = useState("");
+  const [statusFilter, setStatusFilter] = useState("all");
+  const filtersDirty = search !== "" || statusFilter !== "all";
+  const resetFilters = () => {
+    setSearch("");
+    setStatusFilter("all");
+  };
+
+  const filtered = useMemo(() => {
+    const q = search.trim().toLowerCase();
+    return inquiries.filter((r) => {
+      if (statusFilter !== "all" && r.status !== statusFilter) return false;
+      if (q) {
+        const hay = `${r.name} ${r.email} ${r.phone} ${r.event_type ?? ""} ${r.message ?? ""}`.toLowerCase();
+        if (!hay.includes(q)) return false;
+      }
+      return true;
+    });
+  }, [inquiries, search, statusFilter]);
+
   type RentalSortKey = "date" | "name" | "event" | "status";
   const getValue = useCallback((row: RentalInquiry, key: RentalSortKey): number | string => {
     switch (key) {
@@ -41,13 +62,13 @@ function RentalInquiriesTabImpl({ inquiries, loading }: Props) {
       case "status": return row.status;
     }
   }, []);
-  const { sorted, sortKey, sortDir, toggle } = useTableSort(inquiries, {
+  const { sorted, sortKey, sortDir, toggle } = useTableSort(filtered, {
     initialKey: "date",
     initialDir: "desc",
     getValue,
     defaultDirFor: (k) => (k === "date" ? "desc" : "asc"),
   });
-  const pagination = usePagination(sorted, 10, `${sortKey}|${sortDir}`);
+  const pagination = usePagination(sorted, 10, `${search}|${statusFilter}|${sortKey}|${sortDir}`);
 
   return (
     <>
@@ -63,13 +84,35 @@ function RentalInquiriesTabImpl({ inquiries, loading }: Props) {
           <CardDescription className="font-body text-charcoal/60">
             Submissions from the public rental page. Newest first.
           </CardDescription>
+          <FilterBar reset={filtersDirty ? resetFilters : undefined} className="mt-4">
+            <FilterSearch
+              value={search}
+              onChange={setSearch}
+              placeholder="Search name, email, event…"
+              aria-label="Search rental inquiries"
+            />
+            <FilterSelect
+              value={statusFilter}
+              onChange={setStatusFilter}
+              icon={CircleDot}
+              className="w-full sm:w-44"
+              options={[
+                { value: "all", label: "All statuses" },
+                { value: "new", label: "New" },
+                { value: "in_review", label: "In review" },
+                { value: "closed", label: "Closed" },
+              ]}
+            />
+          </FilterBar>
         </CardHeader>
         <CardContent>
           {loading ? (
             <p className="font-body text-charcoal/60 py-8">Loading…</p>
-          ) : inquiries.length === 0 ? (
+          ) : sorted.length === 0 ? (
             <div className="text-center py-10 border border-dashed border-sage/20 rounded-xl bg-cream/20">
-              <p className="font-body text-sm text-charcoal/50">No inquiries yet.</p>
+              <p className="font-body text-sm text-charcoal/50">
+                {filtersDirty ? "No inquiries match your filters." : "No inquiries yet."}
+              </p>
             </div>
           ) : (
             <div className="rounded-xl border border-sage/15 bg-white-warm overflow-hidden">
