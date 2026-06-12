@@ -1,10 +1,10 @@
 import { memo, useCallback, useMemo } from "react";
-import { Award, Calendar, CreditCard, Star, TrendingUp, UserCheck } from "lucide-react";
+import { Award, Calendar, CreditCard, Star, TrendingUp, User, UserCheck } from "lucide-react";
 import { SortableHeader, useTableSort } from "@/components/admin/sortable-table";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { ResponsiveTable } from "@/components/responsive/ResponsiveTable";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { FilterSelect } from "@/components/filters";
 import { Button } from "@/components/ui/button";
 import {
   ChartContainer,
@@ -158,17 +158,16 @@ function InstructorsTabImpl({
         <CardHeader>
           <div className="flex items-center justify-between">
             <CardTitle className="font-display text-2xl text-charcoal">Instructor Performance</CardTitle>
-            <Select value={selectedInstructor} onValueChange={onSelectInstructor}>
-              <SelectTrigger className="w-48 border-sage/20">
-                <SelectValue />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="all">All Instructors</SelectItem>
-                {dashboardInstructors.map((ins) => (
-                  <SelectItem key={ins.id} value={ins.name}>{ins.name}</SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
+            <FilterSelect
+              value={selectedInstructor}
+              onChange={onSelectInstructor}
+              icon={User}
+              className="w-full sm:w-48"
+              options={[
+                { value: "all", label: "All Instructors" },
+                ...dashboardInstructors.map((ins) => ({ value: ins.name, label: ins.name })),
+              ]}
+            />
           </div>
         </CardHeader>
         <CardContent>

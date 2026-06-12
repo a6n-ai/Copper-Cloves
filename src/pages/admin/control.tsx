@@ -25,7 +25,7 @@ import { Pill } from "@/components/ui/pill";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Input } from "@/components/ui/input";
-import { FilterReset, DatePicker } from "@/components/filters";
+import { FilterReset, DatePicker, FilterBar, FilterSearch, FilterSelect } from "@/components/filters";
 import { Textarea } from "@/components/ui/textarea";
 import {
   ResponsiveDialog,
@@ -53,6 +53,7 @@ import {
   ArrowUpDown,
   Layers,
   Award,
+  ListFilter,
   Power,
   PowerOff,
 } from "lucide-react";
@@ -1259,10 +1260,6 @@ export default function ControlPanel() {
                   <Calendar className="h-4 w-4 mr-2" />
                   Class Management
                 </TabsTrigger>
-                <TabsTrigger value="instructors" className="data-[state=active]:bg-sage data-[state=active]:text-cream font-body">
-                  <Users className="h-4 w-4 mr-2" />
-                  Instructor Mgmt
-                </TabsTrigger>
                 <TabsTrigger value="analytics" className="data-[state=active]:bg-sage data-[state=active]:text-cream font-body">
                   <BarChart3 className="h-4 w-4 mr-2" />
                   Analytics
@@ -1290,69 +1287,39 @@ export default function ControlPanel() {
                           Add, edit, or remove members from the system
                         </CardDescription>
                       </div>
-                      <div className="flex items-center gap-2 w-full sm:w-auto">
-                        <div className="relative flex-1 sm:w-64">
-                          <Input
-                            value={userSearch}
-                            onChange={(e) => setUserSearch(e.target.value)}
-                            placeholder="Search name, email, phone…"
-                            className="h-9 border-sage/20 focus:border-sage font-body"
-                          />
-                        </div>
-                        {(userSearch || userFilter !== "all") && (
-                          <FilterReset
-                            onReset={() => { setUserSearch(""); setUserFilter("all"); }}
-                            label="Clear"
-                            className="shrink-0"
-                          />
-                        )}
-                        <Button
-                          onClick={() => setShowAddUserDialog(true)}
-                          variant="sage"
-                          className="h-9 shrink-0"
-                        >
-                          <Plus className="h-4 w-4 mr-1.5" />
-                          Add User
-                        </Button>
-                      </div>
+                      <Button
+                        onClick={() => setShowAddUserDialog(true)}
+                        variant="sage"
+                        className="h-9 shrink-0"
+                      >
+                        <Plus className="h-4 w-4 mr-1.5" />
+                        Add User
+                      </Button>
                     </div>
 
-                    {/* Filter tab strip */}
-                    <div className="flex items-center justify-between flex-wrap gap-3 border-b border-sage/10">
-                      <div className="flex items-center gap-1 -mb-px overflow-x-auto">
-                        {[
-                          { v: "all", l: "All" },
-                          { v: "studio_pass", l: "Studio" },
-                          { v: "class_pass", l: "Class pass" },
-                          { v: "active", l: "Active" },
-                          { v: "inactive", l: "Inactive" },
-                        ].map((o) => {
-                          const active = userFilter === o.v;
-                          return (
-                            <button
-                              key={o.v}
-                              type="button"
-                              onClick={() => setUserFilter(o.v)}
-                              className={`relative px-4 py-2 font-body text-sm whitespace-nowrap transition-colors ${
-                                active ? "text-sage" : "text-charcoal/60 hover:text-charcoal"
-                              }`}
-                            >
-                              {o.l}
-                              {active && <span className="absolute left-0 right-0 -bottom-px h-0.5 bg-sage rounded-full" />}
-                            </button>
-                          );
-                        })}
-                      </div>
-                      {(userFilter !== "all" || userSearch) && (
-                        <button
-                          type="button"
-                          onClick={() => { setUserFilter("all"); setUserSearch(""); }}
-                          className="font-body text-xs text-terracotta hover:underline pb-2"
-                        >
-                          Reset
-                        </button>
-                      )}
-                    </div>
+                    <FilterBar
+                      reset={(userSearch || userFilter !== "all") ? () => { setUserSearch(""); setUserFilter("all"); } : undefined}
+                    >
+                      <FilterSearch
+                        value={userSearch}
+                        onChange={setUserSearch}
+                        placeholder="Search name, email, phone…"
+                        aria-label="Search users"
+                      />
+                      <FilterSelect
+                        value={userFilter}
+                        onChange={setUserFilter}
+                        icon={ListFilter}
+                        className="w-full sm:w-44"
+                        options={[
+                          { value: "all", label: "All members" },
+                          { value: "studio_pass", label: "Studio pass" },
+                          { value: "class_pass", label: "Class pass" },
+                          { value: "active", label: "Active" },
+                          { value: "inactive", label: "Inactive" },
+                        ]}
+                      />
+                    </FilterBar>
                   </CardHeader>
                   <CardContent>
                     {loadingUsers ? (
@@ -1569,17 +1536,7 @@ export default function ControlPanel() {
                           Manage class types, descriptions, and settings
                         </CardDescription>
                       </div>
-                      <div className="flex items-center gap-2 w-full sm:w-auto">
-                        <Input
-                          value={classSearch}
-                          onChange={(e) => setClassSearch(e.target.value)}
-                          placeholder="Search class or category…"
-                          className="h-9 flex-1 sm:w-64 border-sage/20 focus:border-sage font-body"
-                        />
-                        {classSearch && (
-                          <FilterReset onReset={() => setClassSearch("")} label="Clear" className="shrink-0" />
-                        )}
-                        <Button
+                      <Button
                           onClick={() => setShowAddClassDialog(true)}
                           variant="sage"
                           className="h-9 shrink-0"
@@ -1587,8 +1544,15 @@ export default function ControlPanel() {
                           <Plus className="h-4 w-4 mr-1.5" />
                           Create Class
                         </Button>
-                      </div>
                     </div>
+                    <FilterBar reset={classSearch ? () => setClassSearch("") : undefined}>
+                      <FilterSearch
+                        value={classSearch}
+                        onChange={setClassSearch}
+                        placeholder="Search class or category…"
+                        aria-label="Search classes"
+                      />
+                    </FilterBar>
                   </CardHeader>
                   <CardContent>
                     {loadingClasses ? (
@@ -1677,81 +1641,6 @@ export default function ControlPanel() {
                           </div>
                         </ResponsiveTable>
                         <Pagination page={classesPg.page} total={classesPg.total} onChange={classesPg.setPage} />
-                      </>
-                    )}
-                  </CardContent>
-                </Card>
-              </TabsContent>
-
-              {/* INSTRUCTOR MANAGEMENT TAB */}
-              <TabsContent value="instructors" className="space-y-6">
-                {/* Stats */}
-                <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-                  <MetricCard label="Instructors" value={instructorStats.total} icon={Users} tone="sage" />
-                  <MetricCard label="Active" value={instructorStats.active} icon={CheckCircle2} tone="sage" />
-                  <MetricCard label="Inactive" value={instructorStats.inactive} icon={Ban} tone="charcoal" />
-                  <MetricCard label="Avg Experience" value={instructorStats.avgYears} icon={Award} tone="terracotta" suffix=" yrs" />
-                </div>
-
-                <Card className="border-sage/20 bg-white-warm">
-                  <CardHeader className="space-y-4">
-                    <div className="flex flex-wrap items-start justify-between gap-3">
-                      <div>
-                        <CardTitle className="font-display text-2xl text-charcoal">
-                          Instructor Management <span className="font-body text-base text-charcoal/40">({filteredInstructors.length})</span>
-                        </CardTitle>
-                        <CardDescription className="font-body text-charcoal/60">
-                          Profiles, payment settings, and status. Full bio lives in Edit.
-                        </CardDescription>
-                      </div>
-                      <div className="flex items-center gap-2 w-full sm:w-auto">
-                        <Input
-                          value={instructorSearch}
-                          onChange={(e) => setInstructorSearch(e.target.value)}
-                          placeholder="Search name, email, title…"
-                          className="h-9 flex-1 sm:w-64 border-sage/20 focus:border-sage font-body"
-                        />
-                        {instructorSearch && (
-                          <FilterReset onReset={() => setInstructorSearch("")} label="Clear" className="shrink-0" />
-                        )}
-                        <Button
-                          onClick={() => setShowAddInstructorDialog(true)}
-                          variant="sage"
-                          className="h-9 shrink-0"
-                        >
-                          <Plus className="h-4 w-4 mr-1.5" />
-                          Add Instructor
-                        </Button>
-                      </div>
-                    </div>
-                  </CardHeader>
-                  <CardContent>
-                    {loadingInstructors ? (
-                      <InstructorGridSkeleton count={4} />
-                    ) : filteredInstructors.length === 0 ? (
-                      <div className="text-center py-12">
-                        <Users className="h-12 w-12 text-charcoal/20 mx-auto mb-3" />
-                        <p className="font-body text-charcoal/40">
-                          {instructors.length === 0 ? "No instructors yet. Add one to get started." : "No instructors match your search."}
-                        </p>
-                      </div>
-                    ) : (
-                      <>
-                        <div className="rounded-xl border border-sage/15 bg-white-warm overflow-hidden">
-                          <InstructorTable
-                            instructors={instructorRows}
-                            columns={["instructor", "contact", "specialties", "status"]}
-                            sort={{
-                              sortKey: instructorSort.key,
-                              sortDir: instructorSort.dir,
-                              onToggle: (key) => instructorSort.toggle(key as "name" | "status"),
-                              sortableKeys: ["instructor", "status"],
-                            }}
-                            onRowClick={(i) => router.push(`/admin/instructors/${i.id}`)}
-                            renderActions={renderInstructorActions}
-                          />
-                        </div>
-                        <Pagination page={instructorsPg.page} total={instructorsPg.total} onChange={instructorsPg.setPage} />
                       </>
                     )}
                   </CardContent>

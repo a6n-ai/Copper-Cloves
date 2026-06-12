@@ -89,6 +89,10 @@ function TabLoadingSkeleton() {
     </div>
   );
 }
+const InstructorsTab = dynamic(
+  () => import("@/components/admin/dashboard-tabs/InstructorsTab").then((m) => m.InstructorsTab),
+  { ssr: false, loading: () => <TabLoadingSkeleton /> },
+);
 const ClassesTab = dynamic(
   () => import("@/components/admin/dashboard-tabs/ClassesTab").then((m) => m.ClassesTab),
   { ssr: false, loading: () => <TabLoadingSkeleton /> },
@@ -135,6 +139,7 @@ const ADMIN_TABS = [
   { v: "meal-waitlist", l: "Meal waitlist", I: ChefHat },
   { v: "rental-inquiries", l: "Rentals", I: Building2 },
   { v: "members", l: "Members", I: Users },
+  { v: "instructors", l: "Instructors", I: Award },
   { v: "classes", l: "Classes", I: Target },
 ] as const;
 
@@ -1170,6 +1175,16 @@ export default function AdminDashboard() {
                   selectedMember={selectedMember}
                   onSelectMember={setSelectedMember}
                   onViewProfile={handleViewProfile}
+                />
+              </TabsContent>
+
+              {/* INSTRUCTORS TAB */}
+              <TabsContent value="instructors" className="space-y-6">
+                <InstructorsTab
+                  dashboardInstructors={dashboardInstructors}
+                  instructorPerformance={instructorPerformance}
+                  selectedInstructor={selectedInstructor}
+                  onSelectInstructor={setSelectedInstructor}
                 />
               </TabsContent>
 
