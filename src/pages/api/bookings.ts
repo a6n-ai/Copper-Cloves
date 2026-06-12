@@ -189,6 +189,16 @@ function createBookingTx(args: CreateBookingArgs) {
 
     // Create one Booking row per added member (invited by the primary booker)
     for (const profileId of args.addedMemberProfileIds) {
+      const alreadyBooked = await tx.booking.findFirst({
+        where: {
+          user_id: profileId,
+          class_schedule_id: args.scheduleId,
+          status: { in: [STATUS_CONFIRMED, STATUS_PENDING] },
+        },
+        select: { id: true },
+      });
+      if (alreadyBooked) continue;
+
       await tx.booking.create({
         data: {
           user_id: profileId,
@@ -554,6 +564,11 @@ async function handlePatch(
     include: { class_schedule: { select: { start_time: true } } },
   });
   if (!existing) return res.status(404).json({ error: "Booking not found" });
+
+  // Invited bookings can only be cancelled by the person who created the invite, not the invitee.
+  if (status === STATUS_CANCELLED && existing.invited_by_user_id !== null) {
+    return res.status(403).json({ error: "Invited bookings can only be cancelled by the person who added you" });
+  }
 
   const wasActiveSeat =
     (existing.status === STATUS_CONFIRMED || existing.status === STATUS_PENDING) && Boolean(existing.class_schedule_id);
