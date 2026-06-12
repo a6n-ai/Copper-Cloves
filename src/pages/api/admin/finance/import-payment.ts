@@ -5,6 +5,7 @@ import { ensureAdmin } from "@/lib/requireAdmin";
 import { sendBookingConfirmationEmail } from "@/lib/notifications/sendBookingEmail";
 import { notifyPackagePurchase } from "@/lib/notifications/notifyPackagePurchase";
 import logger from "@/lib/logger";
+import { logActivity } from "@/lib/activityLog";
 import { addMonths } from "date-fns";
 
 export type ImportPaymentBody = {
@@ -145,12 +146,29 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         .catch((e) => logger.error({ err: e }, "[import-payment] package notify failed"));
     }
 
-    return res.status(201).json({
+    res.status(201).json({
       paymentId: result.payment.id,
       bookingId: result.bookingId,
       userPackageId: result.userPackageId,
       linkedExistingBooking: result.bookingId != null && !result.newBooking,
     });
+
+    logActivity({
+      req,
+      action: "admin.payment_imported",
+      targetProfileId: userId,
+      entity: { type: "payment", id: result.payment.id },
+      metadata: {
+        payment_id: paymentId,
+        amount_paise: amountPaise,
+        method: razorpayMethod,
+        intent,
+        booking_id: result.bookingId ?? undefined,
+        user_package_id: result.userPackageId ?? undefined,
+      },
+    });
+
+    return;
   } catch (e: unknown) {
     const status = (e as { status?: number }).status;
     if (status) return res.status(status).json({ error: (e as Error).message });
