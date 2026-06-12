@@ -13,6 +13,7 @@ export type PendingBookingCheckout = {
   user_package_id: string | null;
   extra_guest_count: number;
   guest_attendees: GuestAttendee[];
+  added_member_profile_ids: string[];
   finance_snapshot: FinanceSnapshotV1;
   cafe_items: { id: string; quantity: number }[];
   savedAt: number;

@@ -64,6 +64,15 @@ export function parsePendingBookingPayload(
 
   const cafe_items = parseCafeItems(o.cafe_items);
 
+  const added_member_profile_ids: string[] = [];
+  if (Array.isArray(o.added_member_profile_ids)) {
+    for (const id of o.added_member_profile_ids) {
+      if (typeof id === "string" && id.trim()) {
+        added_member_profile_ids.push(id.trim());
+      }
+    }
+  }
+
   return {
     purpose: "booking",
     razorpayOrderId,
@@ -76,6 +85,7 @@ export function parsePendingBookingPayload(
         : null,
     extra_guest_count,
     guest_attendees: guests,
+    added_member_profile_ids,
     finance_snapshot,
     cafe_items,
     savedAt: Date.now(),

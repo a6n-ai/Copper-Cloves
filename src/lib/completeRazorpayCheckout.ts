@@ -85,6 +85,7 @@ export async function completePendingBookingCheckout(
       razorpay_order_id: payload.razorpay_order_id,
       extra_guest_count: pending.extra_guest_count,
       guest_attendees: pending.guest_attendees,
+      added_member_profile_ids: pending.added_member_profile_ids ?? [],
       finance_snapshot: pending.finance_snapshot,
     }),
   });
