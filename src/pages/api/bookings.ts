@@ -115,6 +115,7 @@ type CreateBookingArgs = {
   extraGuests: number;
   guestList: NonNullable<ReturnType<typeof parseGuestAttendees>>;
   financeSnap: ReturnType<typeof parseFinanceSnapshot>;
+  addedMemberProfileIds: string[];
 };
 
 function createBookingTx(args: CreateBookingArgs) {
@@ -150,7 +151,7 @@ function createBookingTx(args: CreateBookingArgs) {
       0,
     );
 
-    const spotsToConsume = 1 + args.extraGuests;
+    const spotsToConsume = 1 + args.extraGuests + args.addedMemberProfileIds.length;
     if (cap > 0 && seatsTaken + spotsToConsume > cap) throw new Error("CLASS_FULL");
 
     const resolvedClassTime = args.classTime ?? schedule.start_time.toISOString();
@@ -180,6 +181,20 @@ function createBookingTx(args: CreateBookingArgs) {
         finance_snapshot: args.financeSnap ?? undefined,
       },
     });
+
+    // Create one Booking row per added member (invited by the primary booker)
+    for (const profileId of args.addedMemberProfileIds) {
+      await tx.booking.create({
+        data: {
+          user_id: profileId,
+          class_schedule_id: args.scheduleId,
+          status: STATUS_CONFIRMED,
+          class_name: resolvedClassName,
+          class_time: resolvedClassTime,
+          invited_by_user_id: args.userId,
+        },
+      });
+    }
 
     if (args.rpOrderId) {
       await linkRazorpayOrderToBookingTx(tx, {
@@ -246,6 +261,7 @@ type ParsedBooking = {
   extraGuests: number;
   guestList: NonNullable<ReturnType<typeof parseGuestAttendees>>;
   financeSnap: ReturnType<typeof parseFinanceSnapshot>;
+  addedMemberProfileIds: string[];
 };
 
 function parseBookingRequest(
@@ -311,6 +327,13 @@ function parseBookingRequest(
     return { ok: false, error: "Invalid finance_snapshot" };
   }
 
+  const rawAddedProfileIds = (body as Record<string, unknown>).added_member_profile_ids;
+  const addedMemberProfileIds: string[] = Array.isArray(rawAddedProfileIds)
+    ? (rawAddedProfileIds as unknown[]).filter(
+        (id): id is string => typeof id === "string" && id.trim().length > 0,
+      )
+    : [];
+
   return {
     ok: true,
     value: {
@@ -322,6 +345,7 @@ function parseBookingRequest(
       extraGuests,
       guestList,
       financeSnap,
+      addedMemberProfileIds,
     },
   };
 }
@@ -337,7 +361,7 @@ async function handlePost(
   if (!parsed.ok) {
     return res.status(400).json({ error: parsed.error });
   }
-  const { scheduleId, packageId, rpOrderId, className, classTime, extraGuests, guestList, financeSnap } =
+  const { scheduleId, packageId, rpOrderId, className, classTime, extraGuests, guestList, financeSnap, addedMemberProfileIds } =
     parsed.value;
 
   try {
@@ -359,6 +383,7 @@ async function handlePost(
       extraGuests,
       guestList,
       financeSnap,
+      addedMemberProfileIds,
     });
 
     // Physique 57 bookings stay pending until the instructor confirms — the
