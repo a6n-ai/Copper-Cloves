@@ -1,0 +1,124 @@
+// src/pages/api/members/resolve-invites.ts
+import type { NextApiRequest, NextApiResponse } from "next";
+import crypto from "crypto";
+import prisma from "@/lib/prisma";
+import { getStudioServerSession } from "@/lib/getStudioServerSession";
+import { sendHtmlEmail } from "@/lib/notifications/sendEmail";
+
+const INVITE_TOKEN_TTL_MS = 72 * 60 * 60 * 1000; // 72 hours
+
+type AddedMember = { profile_id?: string; name: string; email: string };
+
+export default async function handler(req: NextApiRequest, res: NextApiResponse) {
+  if (req.method !== "POST") return res.status(405).end();
+
+  const session = await getStudioServerSession(req, res);
+  if (!session?.user?.id) return res.status(401).json({ error: "Unauthorized" });
+
+  const { added_members, class_name, class_time } = req.body as {
+    added_members?: AddedMember[];
+    class_name?: string;
+    class_time?: string;
+  };
+
+  if (!Array.isArray(added_members) || added_members.length === 0) {
+    return res.status(200).json({ profile_ids: [] });
+  }
+  if (added_members.length > 5) {
+    return res.status(400).json({ error: "Maximum 5 additional members per booking" });
+  }
+
+  const inviterName = session.user.name ?? "A studio member";
+  const baseUrl = process.env.NEXTAUTH_URL ?? `https://${req.headers.host}`;
+  const resolved: string[] = [];
+
+  for (const member of added_members) {
+    // If caller already resolved a profile_id, verify it exists and use it
+    if (member.profile_id) {
+      const exists = await prisma.profile.findFirst({
+        where: { id: member.profile_id, role: "user" },
+        select: { id: true },
+      });
+      if (exists) {
+        resolved.push(exists.id);
+        continue;
+      }
+    }
+
+    const email = member.email.trim().toLowerCase();
+    if (!email) return res.status(400).json({ error: "Invalid email in added_members" });
+
+    // Find or create the profile
+    let profile = await prisma.profile.findFirst({
+      where: { email, role: "user" },
+      select: { id: true, hashedPassword: true },
+    });
+
+    const isNew = !profile;
+    if (!profile) {
+      // Create minimal account (no password — invite email sets it)
+      profile = await prisma.profile.create({
+        data: {
+          email,
+          full_name: member.name.trim() || email,
+          role: "user",
+          hashedPassword: null,
+        },
+        select: { id: true, hashedPassword: true },
+      });
+    }
+
+    resolved.push(profile.id);
+
+    // Send invite email only to new (passwordless) accounts
+    if (isNew) {
+      // Invalidate prior unused invite tokens for this email
+      await prisma.passwordResetToken.updateMany({
+        where: { email, role: "user", used: false },
+        data: { used: true },
+      });
+
+      const token = crypto.randomBytes(32).toString("hex");
+      await prisma.passwordResetToken.create({
+        data: {
+          email,
+          role: "user",
+          token,
+          expires_at: new Date(Date.now() + INVITE_TOKEN_TTL_MS),
+        },
+      });
+
+      const setPasswordUrl = `${baseUrl}/portal/set-password?token=${token}`;
+      const classLabel = class_name
+        ? `<strong>${class_name}</strong>${class_time ? ` on ${class_time}` : ""}`
+        : "a class";
+
+      await sendHtmlEmail({
+        to: email,
+        subject: "You've been added to a class at The Studio",
+        html: `
+          <div style="font-family:Georgia,serif;max-width:480px;margin:0 auto;padding:40px 24px;color:#2C2C2C">
+            <h2 style="font-size:22px;margin-bottom:8px">You've been added to a class</h2>
+            <p style="color:#666;margin-bottom:8px">
+              ${inviterName} added you to ${classLabel} at The Studio by Copper + Cloves.
+            </p>
+            <p style="color:#666;margin-bottom:24px">
+              Your account has been created. Set your password to see your booking:
+            </p>
+            <a href="${setPasswordUrl}"
+               style="display:inline-block;background:#8f9779;color:#fff;padding:14px 32px;border-radius:8px;text-decoration:none;font-size:15px;font-family:Arial,sans-serif">
+              Set Password →
+            </a>
+            <p style="color:#999;font-size:13px;margin-top:24px">
+              This link expires in 72 hours.
+            </p>
+            <hr style="border:none;border-top:1px solid #eee;margin:32px 0" />
+            <p style="color:#bbb;font-size:12px">The Studio by Copper + Cloves</p>
+          </div>
+        `,
+      });
+    }
+  }
+
+  return res.status(200).json({ profile_ids: resolved });
+}
