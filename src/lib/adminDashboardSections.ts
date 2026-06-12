@@ -598,7 +598,7 @@ export async function getTransactions(db: Db = prisma, opts: { includeFinanceDem
   const includeFinanceDemo = opts.includeFinanceDemo ?? isFinanceDemoEnabled();
   const financeDemoRows = includeFinanceDemo ? financeDemoTransactionsForUi() : [];
 
-  const [recentPackages, financeBookingCandidates] = await Promise.all([
+  const [recentPackages, financeBookingCandidates, linkedManualPayments] = await Promise.all([
     db.userPackage.findMany({
       take: 40,
       orderBy: { purchase_date: "desc" },
@@ -636,9 +636,28 @@ export async function getTransactions(db: Db = prisma, opts: { includeFinanceDem
         cafe_orders: { select: { quantity: true, cafe_item: { select: { name: true, price: true } } } },
       },
     }),
+    db.payment.findMany({
+      where: {
+        direction: "credit",
+        AND: [
+          { OR: [{ method: null }, { method: { notIn: ["razorpay_online", "razorpay_completed"] } }] },
+          { OR: [{ user_package_id: { not: null } }, { booking_id: { not: null } }] },
+        ],
+      },
+      select: { user_package_id: true, booking_id: true },
+    }),
   ]);
 
-  const packageTransactions = recentPackages.map((up) => {
+  const movedPackageIds = new Set(
+    linkedManualPayments.map((p) => p.user_package_id).filter(Boolean) as string[],
+  );
+  const movedBookingIds = new Set(
+    linkedManualPayments.map((p) => p.booking_id).filter(Boolean) as string[],
+  );
+
+  const packageTransactions = recentPackages
+    .filter((up) => !movedPackageIds.has(up.id))
+    .map((up) => {
     const gross = money(up.package_type.price);
     const disc = money(up.purchase_discount_inr);
     const net = Math.max(0, gross - disc);
@@ -702,6 +721,8 @@ export async function getTransactions(db: Db = prisma, opts: { includeFinanceDem
   const bookingFinanceTransactions = financeBookingCandidates.flatMap((b) => {
     const snap = parseFinanceSnapshot(b.finance_snapshot);
     if (!snap) return [];
+    if (movedBookingIds.has(b.id)) return [];
+    if (!(snap.totalInr > 0.009)) return [];
     const profile = b.profile;
     const fullName = profile.full_name || profile.email || "Member";
     // Guests are stored on the booker's guest_attendees (their own roster rows
