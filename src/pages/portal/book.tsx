@@ -75,6 +75,7 @@ import {
 
 import Image from "next/image";
 import { cdnUrl } from "@/lib/cdnUrl";
+import { MemberSearch, type AddedMember } from "@/components/portal/MemberSearch";
 
 // Tax rate (adjust as needed)
 const TAX_RATE = 0.05; // 5% tax
@@ -728,9 +729,7 @@ export default function BookClass() {
   // Booking panel states
   const [showBookingPanel, setShowBookingPanel] = useState(false);
   const [bookingStep, setBookingStep] = useState(1);
-  const [friendsFamily, setFriendsFamily] = useState<{ name: string; email: string; phone: string }[]>([]);
-  const [showAddPersonForm, setShowAddPersonForm] = useState(false);
-  const [newPerson, setNewPerson] = useState({ name: "", email: "", phone: "" });
+  const [addedMembers, setAddedMembers] = useState<AddedMember[]>([]);
   
   // User package states - fetch from database
   const [userPackage, setUserPackage] = useState<{
@@ -1038,7 +1037,7 @@ export default function BookClass() {
     setShowBookingPanel(true);
     setBookingStep(1);
     // Reset state
-    setFriendsFamily([]);
+    setAddedMembers([]);
     setFoodItems(prev => prev.map(item => ({ ...item, quantity: 0 })));
     setUseCredits(true);
     setAppliedCoupon(null);
@@ -1048,18 +1047,6 @@ export default function BookClass() {
     // Fetch cafe items for Step 3
     fetchCafeItems();
   }, []);
-
-  function handleAddPerson() {
-    if (newPerson.name && newPerson.email && newPerson.phone) {
-      setFriendsFamily([...friendsFamily, newPerson]);
-      setNewPerson({ name: "", email: "", phone: "" });
-      setShowAddPersonForm(false);
-    }
-  }
-
-  function handleRemovePerson(index: number) {
-    setFriendsFamily(friendsFamily.filter((_, i) => i !== index));
-  }
 
   function handleNextStep() {
     if (bookingStep === 1) {
@@ -1089,23 +1076,23 @@ export default function BookClass() {
   }, []);
 
   const calculateTotals = useCallback(() => {
-    const totalPeople = 1 + friendsFamily.length;
+    const totalPeople = 1 + addedMembers.length;
     const classPrice = 945;
-    
+
     // Class cost
     let classTotal = 0;
     if (userPackage.type === "class_pass") {
       if (useCredits) {
         // Class Pass holder: Primary user's class is deducted (free)
-        // Friends/family pay separately (NOT deducted from user's classes)
-        classTotal = friendsFamily.length * classPrice;
+        // Added members pay separately (NOT deducted from user's classes)
+        classTotal = addedMembers.length * classPrice;
       } else {
         // User chose not to use their classes - pay for everyone
         classTotal = totalPeople * classPrice;
       }
     } else if (userPackage.type === "studio_pass") {
-      // Unlimited - primary user covered, charge for friends/family
-      classTotal = friendsFamily.length * classPrice;
+      // Unlimited - primary user covered, charge for added members
+      classTotal = addedMembers.length * classPrice;
     } else {
       // No package - charge everyone
       classTotal = totalPeople * classPrice;
@@ -1135,7 +1122,7 @@ export default function BookClass() {
     const taxIncluded = Math.round((finalTotal * TAX_RATE / (1 + TAX_RATE)) * 100) / 100;
 
     return { classTotal, foodTotal, discount, couponDiscount, subtotal, taxIncluded, finalTotal };
-  }, [friendsFamily, userPackage, useCredits, foodItems, appliedCoupon]);
+  }, [addedMembers, userPackage, useCredits, foodItems, appliedCoupon]);
 
   // Single memoized total used by both the submit handler and JSX (was called twice).
   const totals = useMemo(() => calculateTotals(), [calculateTotals]);
@@ -1235,15 +1222,9 @@ export default function BookClass() {
       const { classTotal, foodTotal, discount, taxIncluded, finalTotal } = owedTotals;
       const dayPassEquivalentCount = computeDayPassEquivalentCount(
         userPackage.type,
-        friendsFamily.length,
+        addedMembers.length,
         useCredits,
       );
-
-      const guestAttendeesPayload = friendsFamily.map((p) => ({
-        name: p.name || "",
-        email: p.email || "",
-        phone: p.phone || "",
-      }));
 
       const financeSnapshotPayload = {
         version: 1 as const,
@@ -1264,6 +1245,28 @@ export default function BookClass() {
         .filter((item) => item.quantity > 0)
         .map((item) => ({ id: item.id, quantity: item.quantity }));
 
+      // Resolve added members → get profile IDs (creates accounts for new people, sends emails)
+      let addedMemberProfileIds: string[] = [];
+      if (addedMembers.length > 0) {
+        const resolveRes = await fetch("/api/members/resolve-invites", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            added_members: addedMembers,
+            class_name: selectedClass?.name ?? null,
+            class_time: selectedClass?.startTimeIso ?? null,
+          }),
+        });
+        if (!resolveRes.ok) {
+          const err = await parseApiError(resolveRes, "Could not add members to booking");
+          toast({ title: "Error", description: err, variant: "error" });
+          setIsSubmittingBooking(false);
+          return;
+        }
+        const resolveData = await resolveRes.json() as { profile_ids: string[] };
+        addedMemberProfileIds = resolveData.profile_ids ?? [];
+      }
+
       if (finalTotal > 0) {
         const result = await runOnlineBookingCheckout({
           orderRequestBody: {
@@ -1273,8 +1276,9 @@ export default function BookClass() {
               class_name: selectedClass?.name ?? null,
               class_time: classTimeISO,
               user_package_id: userPackageIdForBooking,
-              extra_guest_count: friendsFamily.length,
-              guest_attendees: guestAttendeesPayload,
+              extra_guest_count: 0,
+              guest_attendees: [],
+              added_member_profile_ids: addedMemberProfileIds,
               finance_snapshot: financeSnapshotPayload,
               cafe_items: cafeLines,
             },
@@ -1284,8 +1288,9 @@ export default function BookClass() {
             class_name: selectedClass?.name ?? null,
             class_time: classTimeISO,
             user_package_id: userPackageIdForBooking,
-            extra_guest_count: friendsFamily.length,
-            guest_attendees: guestAttendeesPayload,
+            extra_guest_count: 0,
+            guest_attendees: [],
+            added_member_profile_ids: addedMemberProfileIds,
             finance_snapshot: financeSnapshotPayload,
             cafe_items: cafeLines,
           },
@@ -1315,8 +1320,9 @@ export default function BookClass() {
           class_time: classTimeISO,
           user_package_id: userPackageIdForBooking,
           razorpay_order_id: null,
-          extra_guest_count: friendsFamily.length,
-          guest_attendees: guestAttendeesPayload,
+          extra_guest_count: 0,
+          guest_attendees: [],
+          added_member_profile_ids: addedMemberProfileIds,
           finance_snapshot: financeSnapshotPayload,
         },
         cafeLines,
@@ -1546,111 +1552,18 @@ export default function BookClass() {
                   </div>
                 </div>
 
-                {/* Friends & Family List */}
-                {friendsFamily.length > 0 && (
-                  <div>
-                    <h3 className="font-display text-xl text-charcoal mb-3">
-                      Friends & Family ({friendsFamily.length})
-                    </h3>
-                    <div className="space-y-3">
-                      {friendsFamily.map((person, index) => (
-                        <div key={`${person.email}-${person.phone}-${index}`} className="p-4 rounded-xl bg-white-warm border border-sage/10 flex items-center justify-between">
-                          <div>
-                            <p className="font-body text-charcoal font-medium">{person.name}</p>
-                            <p className="font-body text-sm text-charcoal/60">{person.email}</p>
-                            <p className="font-body text-xs text-charcoal/50">{person.phone}</p>
-                          </div>
-                          <Button
-                            onClick={() => handleRemovePerson(index)}
-                            variant="terracotta-ghost"
-                            size="icon-sm"
-                            className="rounded-full"
-                            aria-label="Remove"
-                          >
-                            <X size={18} />
-                          </Button>
-                        </div>
-                      ))}
-                    </div>
-                  </div>
-                )}
-
-                {/* Add Person Form */}
-                {showAddPersonForm ? (
-                  <div className="p-6 rounded-xl bg-cream/30 border border-sage/20 space-y-4">
-                    <h3 className="font-display text-lg text-charcoal mb-3">Add Friend or Family Member</h3>
-                    <div>
-                      <Label htmlFor="person-name" className="font-body text-sm text-charcoal/70 mb-2 block">
-                        Full Name *
-                      </Label>
-                      <Input
-                        id="person-name"
-                        value={newPerson.name}
-                        onChange={(e) => setNewPerson({ ...newPerson, name: e.target.value })}
-                        placeholder="Enter name"
-                        className="border-sage/20 focus:border-sage"
-                      />
-                    </div>
-                    <div>
-                      <Label htmlFor="person-email" className="font-body text-sm text-charcoal/70 mb-2 block">
-                        Email Address *
-                      </Label>
-                      <Input
-                        id="person-email"
-                        type="email"
-                        value={newPerson.email}
-                        onChange={(e) => setNewPerson({ ...newPerson, email: e.target.value })}
-                        placeholder="email@example.com"
-                        className="border-sage/20 focus:border-sage"
-                      />
-                    </div>
-                    <div>
-                      <Label htmlFor="person-phone" className="font-body text-sm text-charcoal/70 mb-2 block">
-                        Phone Number *
-                      </Label>
-                      <Input
-                        id="person-phone"
-                        type="tel"
-                        value={newPerson.phone}
-                        onChange={(e) => setNewPerson({ ...newPerson, phone: e.target.value })}
-                        placeholder="+91 98765 43210"
-                        className="border-sage/20 focus:border-sage"
-                      />
-                    </div>
-                    <div className="flex gap-3">
-                      <Button
-                        onClick={handleAddPerson}
-                        variant="sage"
-                        className="flex-1"
-                      >
-                        Add Person
-                      </Button>
-                      <Button
-                        onClick={() => {
-                          setShowAddPersonForm(false);
-                          setNewPerson({ name: "", email: "", phone: "" });
-                        }}
-                        variant="outline"
-                        className="flex-1 border-sage/30 text-charcoal"
-                      >
-                        Cancel
-                      </Button>
-                    </div>
-                  </div>
-                ) : (
-                  <Button
-                    onClick={() => setShowAddPersonForm(true)}
-                    variant="outline"
-                    className="w-full border-2 border-dashed border-sage/30 hover:border-sage hover:bg-sage/5 text-sage hover:text-sage!"
-                  >
-                    <UserPlus size={18} className="mr-2" />
-                    Add Friend or Family Member
-                  </Button>
-                )}
+                {/* Add Studio Members */}
+                <div className="mt-2">
+                  <h3 className="font-display text-lg text-charcoal mb-2">Add People</h3>
+                  <p className="font-body text-sm text-charcoal/60 mb-3">
+                    Search for studio members or add someone new. You&apos;ll pay for their class.
+                  </p>
+                  <MemberSearch value={addedMembers} onChange={setAddedMembers} />
+                </div>
 
                 <div className="pt-4 border-t border-sage/10">
                   <p className="font-body text-sm text-charcoal/60 mb-2">
-                    Total Attendees: <span className="font-semibold text-charcoal">{1 + friendsFamily.length}</span>
+                    Total Attendees: <span className="font-semibold text-charcoal">{1 + addedMembers.length}</span>
                   </p>
                 </div>
               </div>
@@ -1755,11 +1668,11 @@ export default function BookClass() {
                                 if (classesAvailable < 1) {
                                   return (
                                     <span className="text-terracotta">
-                                      ⚠️ No classes remaining. Pay ₹{(1 + friendsFamily.length) * 945} for all attendees.
+                                      ⚠️ No classes remaining. Pay ₹{(1 + addedMembers.length) * 945} for all attendees.
                                     </span>
                                   );
-                                } else if (friendsFamily.length > 0) {
-                                  return `1 class deducted for you. Pay ₹${friendsFamily.length * 945} for ${friendsFamily.length} guest${friendsFamily.length > 1 ? 's' : ''}.`;
+                                } else if (addedMembers.length > 0) {
+                                  return `1 class deducted for you. Pay ₹${addedMembers.length * 945} for ${addedMembers.length} guest${addedMembers.length > 1 ? 's' : ''}.`;
                                 } else {
                                   return "1 class will be deducted for your spot.";
                                 }
@@ -1789,7 +1702,7 @@ export default function BookClass() {
                               Pay for This Class
                             </p>
                             <p className="font-body text-sm text-charcoal/60">
-                              Save your classes. Pay ₹{(1 + friendsFamily.length) * 945} at checkout.
+                              Save your classes. Pay ₹{(1 + addedMembers.length) * 945} at checkout.
                             </p>
                           </div>
                         </div>
@@ -1812,7 +1725,7 @@ export default function BookClass() {
                             {featuredPackage.duration_months ? ` · Valid ${featuredPackage.duration_months} months` : ""}
                           </p>
                           <p className="font-body text-xs text-charcoal/50">
-                            No active package — you&apos;re paying ₹{(1 + friendsFamily.length) * 945} per class. Pass pays off after {Math.ceil(featuredPackage.price / 945)} visits.
+                            No active package — you&apos;re paying ₹{(1 + addedMembers.length) * 945} per class. Pass pays off after {Math.ceil(featuredPackage.price / 945)} visits.
                           </p>
                         </div>
                       </div>
@@ -1848,13 +1761,13 @@ export default function BookClass() {
                     <p className="font-body text-sm text-charcoal/70 mb-3">
                       Your unlimited package covers <strong>1 person</strong> (you).
                     </p>
-                    {friendsFamily.length > 0 && (
+                    {addedMembers.length > 0 && (
                       <div className="pt-3 border-t border-sage/10">
                         <p className="font-body text-sm text-charcoal/70 mb-2">
-                          <strong>Additional Guests:</strong> {friendsFamily.length} × ₹945 = ₹{friendsFamily.length * 945}
+                          <strong>Additional Members:</strong> {addedMembers.length} × ₹945 = ₹{addedMembers.length * 945}
                         </p>
                         <p className="font-body text-xs text-charcoal/60 italic">
-                          Friends and family will be charged at the class rate (₹945 per person).
+                          Added members will be charged at the class rate (₹945 per person).
                         </p>
                       </div>
                     )}
@@ -1934,7 +1847,7 @@ export default function BookClass() {
                     </div>
                     <div className="text-right shrink-0">
                       <p className="font-body text-xs text-charcoal/60 uppercase tracking-wide mb-0.5">Attendees</p>
-                      <p className="font-body text-sm text-charcoal font-medium">{1 + friendsFamily.length}</p>
+                      <p className="font-body text-sm text-charcoal font-medium">{1 + addedMembers.length}</p>
                     </div>
                   </div>
                   {foodItems.filter(item => item.quantity > 0).length > 0 && (
@@ -2019,9 +1932,9 @@ export default function BookClass() {
                     <div className="flex justify-between font-body text-sm">
                       <span className="text-charcoal/70">
                         {(() => {
-                          if (userPackage.type === "class_pass" && useCredits) return `Guests (${friendsFamily.length} × ₹945)`;
-                          if (userPackage.type === "studio_pass") return `Guests (${friendsFamily.length} × ₹945)`;
-                          return `Class (${1 + friendsFamily.length} × ₹945)`;
+                          if (userPackage.type === "class_pass" && useCredits) return `Guests (${addedMembers.length} × ₹945)`;
+                          if (userPackage.type === "studio_pass") return `Guests (${addedMembers.length} × ₹945)`;
+                          return `Class (${1 + addedMembers.length} × ₹945)`;
                         })()}
                       </span>
                       <span className="text-charcoal">₹{totals.classTotal}</span>
