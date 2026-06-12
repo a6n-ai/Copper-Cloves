@@ -207,17 +207,16 @@ export function DayScheduleList({
     <div className="space-y-3 min-w-0">
       <div className="rounded-xl border border-sage/15 bg-white-warm overflow-hidden">
         <ResponsiveTable>
-        <Table className="w-full table-fixed min-w-[640px]">
+        <Table className="w-full table-fixed min-w-[560px]">
           <TableHeader>
             <TableRow>
-              <SortHead label="Class & Time" sortKey="time" active={sortKey} dir={sortDir} onSort={toggleSort} />
+              <SortHead label="Class & Time" sortKey="time" active={sortKey} dir={sortDir} onSort={toggleSort} className="w-[34%]" />
               <SortHead label="Instructor" sortKey="instructor" active={sortKey} dir={sortDir} onSort={toggleSort} className="w-[22%]" />
-              <SortHead label="Capacity" sortKey="capacity" active={sortKey} dir={sortDir} onSort={toggleSort} className="w-[180px] hidden md:table-cell" />
-              <SortHead label="Fill" sortKey="fill" active={sortKey} dir={sortDir} onSort={toggleSort} className="w-[72px] hidden md:table-cell" />
+              <SortHead label="Capacity" sortKey="capacity" active={sortKey} dir={sortDir} onSort={toggleSort} className="w-[164px] hidden md:table-cell" />
               {variant === "expanded" && (
                 <>
-                  <SortHead label="Status" sortKey="status" active={sortKey} dir={sortDir} onSort={toggleSort} className="w-[110px] hidden lg:table-cell" />
-                  <TableHead className="font-body w-[150px] text-right">Actions</TableHead>
+                  <SortHead label="Status" sortKey="status" active={sortKey} dir={sortDir} onSort={toggleSort} className="w-[96px] hidden lg:table-cell" />
+                  <TableHead className="font-body w-[124px] text-right">Actions</TableHead>
                 </>
               )}
               {variant === "compact" && interactive && <TableHead className="w-[40px]" />}
@@ -290,8 +289,8 @@ export function DayScheduleList({
                     )}
                   </TableCell>
                   <TableCell className="hidden md:table-cell">
-                    <div className="flex items-center gap-3">
-                      <div className="h-1.5 flex-1 max-w-[120px] rounded-full bg-sage/10 overflow-hidden">
+                    <div className="flex items-center gap-2.5">
+                      <div className="h-1.5 w-14 shrink-0 rounded-full bg-sage/10 overflow-hidden">
                         <div
                           className={cn("h-full transition-all", occupancyColor(pct))}
                           style={{ width: `${pct}%` }}
@@ -300,12 +299,10 @@ export function DayScheduleList({
                       <span className="text-xs font-body text-charcoal/60 tabular-nums whitespace-nowrap">
                         {row.enrolled}/{row.capacity}
                       </span>
+                      <Pill tone={occupancyTone(pct)} className="ml-auto font-body text-[10px] px-1.5 py-0 tabular-nums">
+                        {pct}%
+                      </Pill>
                     </div>
-                  </TableCell>
-                  <TableCell className="hidden md:table-cell">
-                    <Pill tone={occupancyTone(pct)} className="font-body">
-                      {pct}%
-                    </Pill>
                   </TableCell>
                   {variant === "expanded" && (
                     <>

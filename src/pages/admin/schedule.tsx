@@ -324,6 +324,7 @@ export default function AdminSchedule() {
   // Combobox open state per field.
   const [classPickerOpen, setClassPickerOpen] = useState(false);
   const [instructorPickerOpen, setInstructorPickerOpen] = useState(false);
+  const [datePickerOpen, setDatePickerOpen] = useState(false);
   const [multiDateInput, setMultiDateInput] = useState("");
   
   // Month/year are pure derivations of the selected calendar date — compute
@@ -973,9 +974,11 @@ export default function AdminSchedule() {
               <MetricCard label="Busiest day" value={stats.busiestLabel} icon={Repeat} tone="amber" hint={`${stats.busiestCount} classes`} />
             </div>
 
-            {/* 2-column: calendar + day list */}
-            <div className="grid lg:grid-cols-[280px_1fr] gap-6 items-stretch">
-              <Card className="border-sage/20 bg-[#fafaf8]/95 flex flex-col">
+            {/* 2-column: calendar + day list. Inline calendar only at xl+ where the
+                table has room; below xl it collapses into the date-picker popover in
+                the day header so the schedule table gets the full width. */}
+            <div className="grid xl:grid-cols-[280px_1fr] gap-6 items-stretch">
+              <Card className="border-sage/20 bg-[#fafaf8]/95 hidden xl:flex flex-col">
                 <CardHeader className="pb-2">
                   <CardTitle className="font-display text-lg text-charcoal">Calendar</CardTitle>
                   <CardDescription className="font-body text-xs text-charcoal/60">
@@ -1024,6 +1027,37 @@ export default function AdminSchedule() {
                       </CardDescription>
                     </div>
                     <div className="flex items-center gap-2">
+                      <Popover open={datePickerOpen} onOpenChange={setDatePickerOpen}>
+                        <PopoverTrigger asChild>
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            className="xl:hidden border-sage/40 text-sage hover:bg-sage hover:text-cream hover:border-sage h-9 w-9 p-0 transition-colors"
+                            aria-label="Pick date"
+                          >
+                            <CalendarIcon className="h-4 w-4" />
+                          </Button>
+                        </PopoverTrigger>
+                        <PopoverContent className="w-auto p-2" align="start">
+                          <Calendar
+                            mode="single"
+                            selected={selectedDate}
+                            onSelect={(d) => {
+                              if (d) {
+                                setSelectedDate(d);
+                                setDatePickerOpen(false);
+                              }
+                            }}
+                            showOutsideDays
+                            modifiers={{ hasClass: datesWithClasses }}
+                            modifiersClassNames={{
+                              hasClass:
+                                "relative after:content-[''] after:absolute after:bottom-1 after:left-1/2 after:-translate-x-1/2 after:h-1 after:w-1 after:rounded-full after:bg-sage",
+                            }}
+                            className="p-0 [--cell-size:--spacing(8)]"
+                          />
+                        </PopoverContent>
+                      </Popover>
                       <Button
                         variant="outline"
                         size="sm"
