@@ -49,6 +49,7 @@ async function handleGet(req: NextApiRequest, res: NextApiResponse, userId: stri
         include: { class_model: true, instructor: true },
       },
       user_package: { include: { package_type: true } },
+      invited_by: { select: { full_name: true } },
     },
     ...(limit ? { take: Number(limit) } : {}),
   });
@@ -65,7 +66,11 @@ async function handleGet(req: NextApiRequest, res: NextApiResponse, userId: stri
 
   bookings.sort((a, b) => startMs(a) - startMs(b));
 
-  return res.json(bookings);
+  const mapped = bookings.map((b) => ({
+    ...b,
+    invited_by_name: b.invited_by?.full_name ?? null,
+  }));
+  return res.json(mapped);
 }
 
 // Pre-flight validation of the paid Razorpay order before the booking tx runs.

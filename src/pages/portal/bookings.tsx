@@ -31,6 +31,7 @@ interface Booking {
   created_at: string;
   checked_in: boolean;
   check_in_outcome: string | null;
+  invited_by_name?: string | null;
   class_schedule?: {
     start_time: string;
     instructor?: { name?: string | null };
@@ -93,6 +94,11 @@ const BookingCard = memo(function BookingCard({
             {booking.check_in_outcome === "no_show" && (
               <span className="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-body bg-charcoal/10 text-charcoal/70">No-show</span>
             )}
+            {booking.invited_by_name && (
+              <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-body bg-sage/10 text-sage">
+                Invited by {booking.invited_by_name}
+              </span>
+            )}
           </div>
         </div>
         {!isPast && (
@@ -125,9 +131,11 @@ const BookingCard = memo(function BookingCard({
             {canCheck && (
               <Button onClick={() => onCheckIn(booking)} size="sm" variant="sage" className="flex-1 sm:flex-none h-11 px-4 sm:px-6">Check in</Button>
             )}
-            <Button onClick={() => onCancel(booking)} size="sm" variant="outline" className="flex-1 sm:flex-none border-terracotta/30 text-terracotta hover:bg-terracotta/5 h-11 px-4 sm:px-6 hover:text-terracotta!">
-              <X size={16} className="mr-1.5" />Cancel
-            </Button>
+            {!booking.invited_by_name && (
+              <Button onClick={() => onCancel(booking)} size="sm" variant="outline" className="flex-1 sm:flex-none border-terracotta/30 text-terracotta hover:bg-terracotta/5 h-11 px-4 sm:px-6 hover:text-terracotta!">
+                <X size={16} className="mr-1.5" />Cancel
+              </Button>
+            )}
           </div>
         </div>
       )}
