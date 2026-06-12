@@ -411,6 +411,7 @@ export type PaymentOrderByWithRelationInput = {
 
 export type PaymentWhereUniqueInput = Prisma.AtLeast<{
   id?: string
+  reference?: string
   razorpay_payment_id?: string
   instructor_id_payout_period_key?: Prisma.PaymentInstructor_idPayout_period_keyCompoundUniqueInput
   AND?: Prisma.PaymentWhereInput | Prisma.PaymentWhereInput[]
@@ -423,7 +424,6 @@ export type PaymentWhereUniqueInput = Prisma.AtLeast<{
   status?: Prisma.EnumPaymentStatusFilter<"Payment"> | $Enums.PaymentStatus
   amount_paise?: Prisma.IntFilter<"Payment"> | number
   currency?: Prisma.StringFilter<"Payment"> | string
-  reference?: Prisma.StringNullableFilter<"Payment"> | string | null
   proof_url?: Prisma.StringNullableFilter<"Payment"> | string | null
   notes?: Prisma.StringNullableFilter<"Payment"> | string | null
   direction?: Prisma.EnumPaymentDirectionFilter<"Payment"> | $Enums.PaymentDirection
@@ -444,7 +444,7 @@ export type PaymentWhereUniqueInput = Prisma.AtLeast<{
   recorded_by_admin?: Prisma.XOR<Prisma.ProfileNullableScalarRelationFilter, Prisma.ProfileWhereInput> | null
   instructor?: Prisma.XOR<Prisma.InstructorNullableScalarRelationFilter, Prisma.InstructorWhereInput> | null
   razorpay_payment?: Prisma.XOR<Prisma.RazorpayPaymentNullableScalarRelationFilter, Prisma.RazorpayPaymentWhereInput> | null
-}, "id" | "razorpay_payment_id" | "instructor_id_payout_period_key">
+}, "id" | "reference" | "razorpay_payment_id" | "instructor_id_payout_period_key">
 
 export type PaymentOrderByWithAggregationInput = {
   id?: Prisma.SortOrder
@@ -2359,7 +2359,7 @@ export type $PaymentPayload<ExtArgs extends runtime.Types.Extensions.InternalArg
     amount_paise: number
     currency: string
     /**
-     * Free-text reference: txn id, last-4, terminal slip number, etc.
+     * Free-text reference: txn id, last-4, terminal slip number, etc. @unique guards against double-import of the same Razorpay pay_* id. NULL values are exempt (offline payments without a reference can share null).
      */
     reference: string | null
     /**

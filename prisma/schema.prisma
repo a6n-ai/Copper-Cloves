@@ -413,7 +413,7 @@ model RazorpayOrder {
   razorpay_order_id String   @unique
   amount_paise      Int
   currency          String   @default("INR")
-  receipt           String?
+  receipt           String?   @unique
   /// created → paid | failed | expired (approximate lifecycle)
   status            String   @default("created")
   notes             Json?
@@ -494,8 +494,8 @@ model Payment {
   status              PaymentStatus @default(succeeded)
   amount_paise        Int
   currency            String        @default("INR")
-  /// Free-text reference: txn id, last-4, terminal slip number, etc.
-  reference           String?
+  /// Free-text reference: txn id, last-4, terminal slip number, etc. @unique guards against double-import of the same Razorpay pay_* id. NULL values are exempt (offline payments without a reference can share null).
+  reference           String?   @unique
   /// URL to uploaded proof (receipt/screenshot). Required by policy for offline methods when admin has it.
   proof_url           String?
   notes               String?

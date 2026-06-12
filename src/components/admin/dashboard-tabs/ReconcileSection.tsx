@@ -1,15 +1,25 @@
-import { memo, useCallback, useMemo, useState } from "react";
-import { AlertTriangle, ArrowLeftRight, Check, Download, Globe, Landmark, Loader2, RefreshCw, ScanSearch } from "lucide-react";
+import { memo, useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { AlertTriangle, ArrowLeftRight, BookOpen, Check, Download, Globe, Import, Landmark, Loader2, Package, RefreshCw, ScanSearch, User } from "lucide-react";
 import { toast } from "sonner";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { ResponsiveTable } from "@/components/responsive/ResponsiveTable";
+import {
+  ResponsiveDialog,
+  ResponsiveDialogContent,
+  ResponsiveDialogHeader,
+  ResponsiveDialogTitle,
+  ResponsiveDialogDescription,
+  ResponsiveDialogFooter,
+} from "@/components/responsive/ResponsiveDialog";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { MetricCard } from "@/components/admin/MetricCard";
 import { Pagination, usePagination } from "@/components/Pagination";
 import { Pill, type PillProps } from "@/components/ui/pill";
+import type { ImportPaymentBody } from "@/pages/api/admin/finance/import-payment";
+import type { RazorpayPaymentDetail } from "@/pages/api/admin/finance/razorpay-payment-detail";
 
 type ReconMatch =
   | "matched"
@@ -94,11 +104,474 @@ function downloadCsv(rows: ReconRow[], month: string) {
   URL.revokeObjectURL(url);
 }
 
+// ─── Import dialog ────────────────────────────────────────────────────────────
+
+type MemberResult = { id: string; full_name: string | null; email: string };
+type PackageTypeResult = { id: string; name: string; type: string; class_count: number | null; duration_months: number | null; price: string; is_unlimited: boolean };
+type ScheduleResult = { id: string; start_time: string; class_model: { name: string } | null; available_spots: number; status: string };
+
+type ImportStep = 1 | 2 | 3;
+
+function ImportDialog({ row, onClose, onImported }: { row: ReconRow; onClose: () => void; onImported: (paymentId: string) => void }) {
+  const [step, setStep] = useState<ImportStep>(1);
+  const [memberQuery, setMemberQuery] = useState(row.email ?? "");
+  const [memberResults, setMemberResults] = useState<MemberResult[]>([]);
+  const [selectedMember, setSelectedMember] = useState<MemberResult | null>(null);
+  const [intent, setIntent] = useState<"none" | "booking" | "package">("none");
+  const [schedules, setSchedules] = useState<ScheduleResult[]>([]);
+  const [schedulesLoaded, setSchedulesLoaded] = useState(false);
+  const [scheduleQuery, setScheduleQuery] = useState("");
+  const [selectedSchedule, setSelectedSchedule] = useState<ScheduleResult | null>(null);
+  const [packages, setPackages] = useState<PackageTypeResult[]>([]);
+  const [selectedPackage, setSelectedPackage] = useState<PackageTypeResult | null>(null);
+  const [submitting, setSubmitting] = useState(false);
+  const [rzpDetail, setRzpDetail] = useState<RazorpayPaymentDetail | null>(null);
+  const [detailLoading, setDetailLoading] = useState(true);
+  const [detailError, setDetailError] = useState<string | null>(null);
+  const memberDebounce = useRef<ReturnType<typeof setTimeout> | undefined>(undefined);
+
+  useEffect(() => {
+    fetch(`/api/admin/finance/razorpay-payment-detail?paymentId=${encodeURIComponent(row.paymentId)}`)
+      .then((r) => r.json())
+      .then((d: RazorpayPaymentDetail & { error?: string }) => {
+        if (d.error) { setDetailError(d.error); return; }
+        setRzpDetail(d);
+        if (d.email && d.email !== memberQuery) setMemberQuery(d.email);
+      })
+      .catch(() => setDetailError("Could not reach Razorpay."))
+      .finally(() => setDetailLoading(false));
+  }, []); // eslint-disable-line react-hooks/exhaustive-deps
+
+  // Member typeahead
+  useEffect(() => {
+    clearTimeout(memberDebounce.current);
+    if (!memberQuery.trim()) { setMemberResults([]); return; }
+    memberDebounce.current = setTimeout(async () => {
+      const r = await fetch(`/api/admin/members-search?q=${encodeURIComponent(memberQuery)}`);
+      if (r.ok) setMemberResults(await r.json());
+    }, 250);
+    return () => clearTimeout(memberDebounce.current);
+  }, [memberQuery]);
+
+  // Load schedules + packages when reaching step 3
+  useEffect(() => {
+    if (step !== 3) return;
+    const now = Date.now();
+    const thirtyDays = now + 30 * 24 * 60 * 60 * 1000;
+    fetch(`/api/class-schedules?fromMs=${now}&toMs=${thirtyDays}`)
+      .then((r) => r.ok ? r.json() : [])
+      .then((rows) => { setSchedules(rows); setSchedulesLoaded(true); })
+      .catch(() => setSchedulesLoaded(true));
+    fetch("/api/packages")
+      .then((r) => r.ok ? r.json() : [])
+      .then(setPackages)
+      .catch(() => {});
+  }, [step]);
+
+  const filteredSchedules = useMemo(() => {
+    const q = scheduleQuery.toLowerCase();
+    return schedules.filter(
+      (s) => !q || s.class_model?.name.toLowerCase().includes(q) || new Date(s.start_time).toLocaleDateString("en-IN").includes(q),
+    );
+  }, [schedules, scheduleQuery]);
+
+  async function handleConfirm() {
+    if (!selectedMember) return;
+    setSubmitting(true);
+    try {
+      const body: ImportPaymentBody = {
+        paymentId: row.paymentId,
+        amountPaise: rzpDetail?.amount ?? row.amountPaise,
+        razorpayMethod: rzpDetail?.method ?? row.method,
+        createdAtISO: rzpDetail
+          ? new Date(rzpDetail.created_at * 1000).toISOString()
+          : row.createdAtISO,
+        userId: selectedMember.id,
+        intent,
+        classScheduleId: intent === "booking" ? selectedSchedule?.id : undefined,
+        packageTypeId: intent === "package" ? selectedPackage?.id : undefined,
+      };
+      const res = await fetch("/api/admin/finance/import-payment", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(body),
+      });
+      const data = await res.json();
+      if (!res.ok) {
+        toast.error(data.error ?? "Import failed.");
+        return;
+      }
+      toast.success("Payment imported successfully.");
+      onImported(row.paymentId);
+      onClose();
+    } finally {
+      setSubmitting(false);
+    }
+  }
+
+  const canAdvanceStep2 = !!selectedMember;
+  const canConfirm =
+    selectedMember &&
+    (intent === "none" || (intent === "booking" && selectedSchedule) || (intent === "package" && selectedPackage));
+
+  return (
+    <ResponsiveDialog open onOpenChange={(o) => { if (!o) onClose(); }}>
+      <ResponsiveDialogContent className="max-w-lg">
+        <ResponsiveDialogHeader>
+          <ResponsiveDialogTitle className="font-display text-xl text-charcoal">
+            Import payment
+          </ResponsiveDialogTitle>
+          <ResponsiveDialogDescription className="font-body text-charcoal/60">
+            Step {step} of 3 — {step === 1 ? "Confirm details" : step === 2 ? "Find member" : "What for?"}
+          </ResponsiveDialogDescription>
+        </ResponsiveDialogHeader>
+
+        {/* Step indicators */}
+        <div className="flex items-center gap-2 px-6 pb-2">
+          {([1, 2, 3] as ImportStep[]).map((s) => (
+            <div key={s} className={`h-1.5 flex-1 rounded-full transition-colors ${step >= s ? "bg-sage" : "bg-sage/15"}`} />
+          ))}
+        </div>
+
+        <div className="px-6 pb-2 space-y-4">
+          {/* ── Step 1: Payment info ── */}
+          {step === 1 && (
+            <div className="space-y-3">
+              {detailLoading && (
+                <div className="flex items-center justify-center gap-2 py-10 text-charcoal/40">
+                  <Loader2 className="h-4 w-4 animate-spin" />
+                  <span className="font-body text-sm">Fetching from Razorpay…</span>
+                </div>
+              )}
+
+              {detailError && !detailLoading && (
+                <div className="rounded-xl border border-[#cf5b48]/30 bg-[#cf5b48]/5 px-4 py-3">
+                  <p className="font-body text-sm text-[#cf5b48]">{detailError}</p>
+                  <p className="font-body text-xs text-charcoal/50 mt-1">Showing cached data from last reconcile run.</p>
+                </div>
+              )}
+
+              {!detailLoading && (
+                <div className="rounded-xl border border-sage/15 bg-sand/40 p-4 space-y-2.5">
+                  <div className="flex justify-between items-center">
+                    <span className="font-body text-xs text-charcoal/50 uppercase tracking-wide">Amount</span>
+                    <span className="font-display text-xl tabular-nums text-charcoal">
+                      {inr(rzpDetail?.amount ?? row.amountPaise)}
+                    </span>
+                  </div>
+
+                  <div className="flex justify-between items-center">
+                    <span className="font-body text-xs text-charcoal/50 uppercase tracking-wide">Status</span>
+                    <span className="font-body text-sm text-charcoal/80 capitalize">
+                      {rzpDetail?.status ?? row.razorpayStatus ?? "—"}
+                    </span>
+                  </div>
+
+                  <div className="flex justify-between items-center">
+                    <span className="font-body text-xs text-charcoal/50 uppercase tracking-wide">Date</span>
+                    <span className="font-body text-sm text-charcoal/80">
+                      {rzpDetail
+                        ? new Date(rzpDetail.created_at * 1000).toLocaleString("en-IN", { day: "numeric", month: "short", year: "numeric", hour: "numeric", minute: "2-digit" })
+                        : new Date(row.createdAtISO).toLocaleString("en-IN", { day: "numeric", month: "short", year: "numeric", hour: "numeric", minute: "2-digit" })}
+                    </span>
+                  </div>
+
+                  {(rzpDetail?.method ?? row.method) && (
+                    <div className="flex justify-between items-center">
+                      <span className="font-body text-xs text-charcoal/50 uppercase tracking-wide">Method</span>
+                      <span className="font-body text-sm text-charcoal/80 capitalize">{rzpDetail?.method ?? row.method}</span>
+                    </div>
+                  )}
+
+                  {(rzpDetail?.email ?? row.email) && (
+                    <div className="flex justify-between items-center">
+                      <span className="font-body text-xs text-charcoal/50 uppercase tracking-wide">Email</span>
+                      <span className="font-body text-sm text-charcoal/80">{rzpDetail?.email ?? row.email}</span>
+                    </div>
+                  )}
+
+                  {(rzpDetail?.contact ?? row.contact) && (
+                    <div className="flex justify-between items-center">
+                      <span className="font-body text-xs text-charcoal/50 uppercase tracking-wide">Phone</span>
+                      <span className="font-body text-sm text-charcoal/80">{rzpDetail?.contact ?? row.contact}</span>
+                    </div>
+                  )}
+
+                  {(rzpDetail?.amount_refunded ?? 0) > 0 && (
+                    <div className="flex justify-between items-center">
+                      <span className="font-body text-xs text-charcoal/50 uppercase tracking-wide">Refunded</span>
+                      <span className="font-body text-sm text-[#a05e38]">−{inr(rzpDetail!.amount_refunded)}</span>
+                    </div>
+                  )}
+
+                  {(rzpDetail?.description ?? row.description) && (
+                    <div className="flex justify-between items-start gap-4">
+                      <span className="font-body text-xs text-charcoal/50 uppercase tracking-wide shrink-0">Desc</span>
+                      <span className="font-body text-sm text-charcoal/70 text-right line-clamp-2">
+                        {rzpDetail?.description ?? row.description}
+                      </span>
+                    </div>
+                  )}
+
+                  {rzpDetail?.order_id && (
+                    <div className="pt-2 border-t border-sage/10 space-y-1.5">
+                      <span className="font-body text-xs text-charcoal/40 uppercase tracking-wide">Order</span>
+                      {rzpDetail.order_receipt && (
+                        <div className="flex justify-between items-center">
+                          <span className="font-body text-xs text-charcoal/50 uppercase tracking-wide">Receipt</span>
+                          <span className="font-body text-sm text-charcoal/80">{rzpDetail.order_receipt}</span>
+                        </div>
+                      )}
+                      {rzpDetail.order_status && (
+                        <div className="flex justify-between items-center">
+                          <span className="font-body text-xs text-charcoal/50 uppercase tracking-wide">Order status</span>
+                          <span className="font-body text-sm text-charcoal/80 capitalize">{rzpDetail.order_status}</span>
+                        </div>
+                      )}
+                    </div>
+                  )}
+
+                  {rzpDetail?.notes && Object.keys(rzpDetail.notes).length > 0 && (
+                    <div className="pt-2 border-t border-sage/10 space-y-1">
+                      <span className="font-body text-xs text-charcoal/40 uppercase tracking-wide">Notes</span>
+                      {Object.entries(rzpDetail.notes).map(([k, v]) => (
+                        <div key={k} className="flex justify-between items-start gap-4">
+                          <span className="font-mono text-xs text-charcoal/40 shrink-0">{k}</span>
+                          <span className="font-body text-xs text-charcoal/60 text-right break-all">{v}</span>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+
+                  {rzpDetail?.order_notes && Object.keys(rzpDetail.order_notes).length > 0 && (
+                    <div className="pt-2 border-t border-sage/10 space-y-1">
+                      <span className="font-body text-xs text-charcoal/40 uppercase tracking-wide">Order notes</span>
+                      {Object.entries(rzpDetail.order_notes).map(([k, v]) => (
+                        <div key={k} className="flex justify-between items-start gap-4">
+                          <span className="font-mono text-xs text-charcoal/40 shrink-0">{k}</span>
+                          <span className="font-body text-xs text-charcoal/60 text-right break-all">{v}</span>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+
+                  <div className="pt-2 border-t border-sage/10 flex flex-wrap gap-x-4 gap-y-1">
+                    <span className="font-mono text-xs text-charcoal/35">{row.paymentId}</span>
+                    {rzpDetail?.order_id && (
+                      <span className="font-mono text-xs text-charcoal/25">{rzpDetail.order_id}</span>
+                    )}
+                  </div>
+                </div>
+              )}
+
+              <p className="font-body text-xs text-charcoal/50">
+                This payment was captured by Razorpay but never saved on our side. Importing records it in the payment ledger and can optionally book a class or assign a package.
+              </p>
+            </div>
+          )}
+
+          {/* ── Step 2: Member search ── */}
+          {step === 2 && (
+            <div className="space-y-3">
+              <div className="space-y-1.5">
+                <Label className="font-body text-xs text-charcoal/60">Search member by name or email</Label>
+                <Input
+                  autoFocus
+                  value={memberQuery}
+                  onChange={(e) => { setMemberQuery(e.target.value); setSelectedMember(null); }}
+                  placeholder="e.g. Priya or priya@example.com"
+                  className="border-sage/20 bg-white font-body"
+                />
+              </div>
+              {memberResults.length > 0 && !selectedMember && (
+                <div className="rounded-xl border border-sage/15 bg-white-warm divide-y divide-sage/10 max-h-48 overflow-y-auto">
+                  {memberResults.map((m) => (
+                    <button
+                      key={m.id}
+                      type="button"
+                      onClick={() => { setSelectedMember(m); setMemberResults([]); }}
+                      className="w-full flex items-center gap-3 px-4 py-2.5 text-left hover:bg-sage/5 transition-colors"
+                    >
+                      <User className="h-4 w-4 text-charcoal/30 shrink-0" />
+                      <div>
+                        <div className="font-body text-sm text-charcoal">{m.full_name || "—"}</div>
+                        <div className="font-body text-xs text-charcoal/50">{m.email}</div>
+                      </div>
+                    </button>
+                  ))}
+                </div>
+              )}
+              {selectedMember && (
+                <div className="flex items-center justify-between rounded-xl border border-sage/30 bg-sage/5 px-4 py-3">
+                  <div>
+                    <div className="font-body text-sm font-medium text-charcoal">{selectedMember.full_name || "—"}</div>
+                    <div className="font-body text-xs text-charcoal/50">{selectedMember.email}</div>
+                  </div>
+                  <button
+                    type="button"
+                    onClick={() => { setSelectedMember(null); setMemberQuery(""); }}
+                    className="font-body text-xs text-charcoal/40 hover:text-charcoal/70 transition-colors"
+                  >
+                    Change
+                  </button>
+                </div>
+              )}
+              {memberQuery.trim() && memberResults.length === 0 && !selectedMember && (
+                <p className="font-body text-xs text-charcoal/45">No members found. Check spelling or ask the member to sign up first.</p>
+              )}
+            </div>
+          )}
+
+          {/* ── Step 3: Intent ── */}
+          {step === 3 && (
+            <div className="space-y-4">
+              <div className="space-y-2">
+                <Label className="font-body text-xs text-charcoal/60">What is this payment for?</Label>
+                <div className="grid grid-cols-3 gap-2">
+                  {(["none", "booking", "package"] as const).map((opt) => {
+                    const icons = { none: <Check className="h-4 w-4" />, booking: <BookOpen className="h-4 w-4" />, package: <Package className="h-4 w-4" /> };
+                    const labels = { none: "Just record", booking: "Book a class", package: "Assign package" };
+                    return (
+                      <button
+                        key={opt}
+                        type="button"
+                        onClick={() => { setIntent(opt); setSelectedSchedule(null); setSelectedPackage(null); }}
+                        className={`flex flex-col items-center gap-1.5 rounded-xl border px-3 py-3 text-center transition-colors ${
+                          intent === opt
+                            ? "border-sage bg-sage/10 text-sage"
+                            : "border-sage/20 bg-white-warm text-charcoal/60 hover:bg-sage/5"
+                        }`}
+                      >
+                        {icons[opt]}
+                        <span className="font-body text-xs font-medium leading-tight">{labels[opt]}</span>
+                      </button>
+                    );
+                  })}
+                </div>
+              </div>
+
+              {intent === "booking" && (
+                <div className="space-y-2">
+                  <Label className="font-body text-xs text-charcoal/60">Search upcoming class</Label>
+                  <Input
+                    value={scheduleQuery}
+                    onChange={(e) => { setScheduleQuery(e.target.value); setSelectedSchedule(null); }}
+                    placeholder="Filter by class name or date…"
+                    className="border-sage/20 bg-white font-body"
+                  />
+                  {!schedulesLoaded && schedules.length === 0 && (
+                    <p className="font-body text-xs text-charcoal/40">Loading schedules…</p>
+                  )}
+                  {schedulesLoaded && schedules.length === 0 && (
+                    <p className="font-body text-xs text-charcoal/40">No upcoming classes in the next 30 days.</p>
+                  )}
+                  {filteredSchedules.length > 0 && !selectedSchedule && (
+                    <div className="rounded-xl border border-sage/15 bg-white-warm divide-y divide-sage/10 max-h-44 overflow-y-auto">
+                      {filteredSchedules.slice(0, 20).map((s) => (
+                        <button
+                          key={s.id}
+                          type="button"
+                          onClick={() => setSelectedSchedule(s)}
+                          className="w-full flex items-center justify-between gap-3 px-4 py-2.5 text-left hover:bg-sage/5 transition-colors"
+                        >
+                          <div>
+                            <div className="font-body text-sm text-charcoal">{s.class_model?.name ?? "—"}</div>
+                            <div className="font-body text-xs text-charcoal/50">
+                              {new Date(s.start_time).toLocaleString("en-IN", { day: "numeric", month: "short", hour: "numeric", minute: "2-digit" })}
+                            </div>
+                          </div>
+                          <span className="font-body text-xs text-charcoal/40 shrink-0">{s.available_spots} spots</span>
+                        </button>
+                      ))}
+                    </div>
+                  )}
+                  {selectedSchedule && (
+                    <div className="flex items-center justify-between rounded-xl border border-sage/30 bg-sage/5 px-4 py-3">
+                      <div>
+                        <div className="font-body text-sm font-medium text-charcoal">{selectedSchedule.class_model?.name ?? "—"}</div>
+                        <div className="font-body text-xs text-charcoal/50">
+                          {new Date(selectedSchedule.start_time).toLocaleString("en-IN", { day: "numeric", month: "short", year: "numeric", hour: "numeric", minute: "2-digit" })}
+                        </div>
+                      </div>
+                      <button type="button" onClick={() => setSelectedSchedule(null)} className="font-body text-xs text-charcoal/40 hover:text-charcoal/70 transition-colors">Change</button>
+                    </div>
+                  )}
+                </div>
+              )}
+
+              {intent === "package" && (
+                <div className="space-y-2">
+                  <Label className="font-body text-xs text-charcoal/60">Select package</Label>
+                  {packages.length === 0 && <p className="font-body text-xs text-charcoal/40">Loading packages…</p>}
+                  <div className="rounded-xl border border-sage/15 bg-white-warm divide-y divide-sage/10 max-h-44 overflow-y-auto">
+                    {packages.map((p) => (
+                      <button
+                        key={p.id}
+                        type="button"
+                        onClick={() => setSelectedPackage(p)}
+                        className={`w-full flex items-center justify-between gap-3 px-4 py-2.5 text-left transition-colors ${
+                          selectedPackage?.id === p.id ? "bg-sage/10" : "hover:bg-sage/5"
+                        }`}
+                      >
+                        <div>
+                          <div className="font-body text-sm text-charcoal">{p.name}</div>
+                          <div className="font-body text-xs text-charcoal/50">
+                            {p.is_unlimited ? "Unlimited" : `${p.class_count ?? "?"} classes`}
+                            {p.duration_months ? ` · ${p.duration_months}mo` : ""}
+                          </div>
+                        </div>
+                        <div className="flex items-center gap-2 shrink-0">
+                          <span className="font-body text-sm text-charcoal/70">₹{Number(p.price).toLocaleString("en-IN")}</span>
+                          {selectedPackage?.id === p.id && <Check className="h-4 w-4 text-sage" />}
+                        </div>
+                      </button>
+                    ))}
+                  </div>
+                </div>
+              )}
+            </div>
+          )}
+        </div>
+
+        <ResponsiveDialogFooter className="px-6 pb-6 gap-2">
+          {step > 1 && (
+            <Button type="button" variant="outline" className="border-sage/20 text-charcoal/60" onClick={() => setStep((s) => (s - 1) as ImportStep)} disabled={submitting}>
+              Back
+            </Button>
+          )}
+          <Button type="button" variant="ghost" className="text-charcoal/50 mr-auto" onClick={onClose} disabled={submitting}>
+            Cancel
+          </Button>
+          {step < 3 ? (
+            <Button
+              type="button"
+              variant="sage"
+              onClick={() => setStep((s) => (s + 1) as ImportStep)}
+              disabled={(step === 1 && detailLoading) || (step === 2 && !canAdvanceStep2)}
+            >
+              Next
+            </Button>
+          ) : (
+            <Button type="button" variant="sage" onClick={handleConfirm} disabled={!canConfirm || submitting}>
+              {submitting ? <Loader2 className="h-4 w-4 mr-2 animate-spin" /> : <Import className="h-4 w-4 mr-2" />}
+              {submitting ? "Importing…" : "Import"}
+            </Button>
+          )}
+        </ResponsiveDialogFooter>
+      </ResponsiveDialogContent>
+    </ResponsiveDialog>
+  );
+}
+
+// ─── Main section ─────────────────────────────────────────────────────────────
+
 function ReconcileSectionImpl() {
   const [month, setMonth] = useState(currentMonth());
   const [loading, setLoading] = useState(false);
   const [data, setData] = useState<ReconResponse | null>(null);
   const [matchFilter, setMatchFilter] = useState<ReconMatch | "all" | "issues">("all");
+  const [importTarget, setImportTarget] = useState<ReconRow | null>(null);
+  const [importedIds, setImportedIds] = useState<Set<string>>(new Set());
 
   const runCorrelation = useCallback(async () => {
     setLoading(true);
@@ -236,21 +709,23 @@ function ReconcileSectionImpl() {
                         <TableHead className="w-[120px]">Method</TableHead>
                         <TableHead className="w-[120px]">Status</TableHead>
                         <TableHead className="w-[120px] text-right">Amount</TableHead>
+                        <TableHead className="w-[80px]" />
                       </TableRow>
                     </TableHeader>
                     <TableBody>
                       {pg.pageItems.map((r) => {
                         const meta = MATCH_META[r.match];
+                        const alreadyImported = importedIds.has(r.paymentId);
                         return (
                           <TableRow key={r.paymentId} className={meta.bad ? "bg-[#b3402c]/[0.03]" : undefined}>
                             <TableCell>
                               <Pill
-                                tone={meta.tone}
+                                tone={alreadyImported ? "success" : meta.tone}
                                 size="sm"
-                                icon={meta.bad ? <AlertTriangle className="h-3 w-3" /> : r.match === "matched" ? <Check className="h-3 w-3" /> : undefined}
+                                icon={alreadyImported ? <Check className="h-3 w-3" /> : meta.bad ? <AlertTriangle className="h-3 w-3" /> : r.match === "matched" ? <Check className="h-3 w-3" /> : undefined}
                                 className="w-full max-w-[128px] justify-center"
                               >
-                                {meta.label}
+                                {alreadyImported ? "Imported" : meta.label}
                               </Pill>
                             </TableCell>
                             <TableCell>
@@ -275,6 +750,20 @@ function ReconcileSectionImpl() {
                                 <div className="font-body text-xs text-[#a05e38]">−{inr(r.amountRefundedPaise)} refunded</div>
                               ) : null}
                             </TableCell>
+                            <TableCell>
+                              {r.match === "missing_from_website" && !alreadyImported && (
+                                <Button
+                                  type="button"
+                                  size="sm"
+                                  variant="outline"
+                                  className="h-7 px-2 text-xs border-sage/25 text-sage hover:bg-sage/5 hover:text-sage!"
+                                  onClick={() => setImportTarget(r)}
+                                >
+                                  <Import className="h-3 w-3 mr-1" />
+                                  Import
+                                </Button>
+                              )}
+                            </TableCell>
                           </TableRow>
                         );
                       })}
@@ -289,6 +778,14 @@ function ReconcileSectionImpl() {
             </CardContent>
           </Card>
         </>
+      )}
+
+      {importTarget && (
+        <ImportDialog
+          row={importTarget}
+          onClose={() => setImportTarget(null)}
+          onImported={(id) => setImportedIds((prev) => new Set([...prev, id]))}
+        />
       )}
     </div>
   );

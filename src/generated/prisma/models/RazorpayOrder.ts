@@ -298,13 +298,13 @@ export type RazorpayOrderWhereUniqueInput = Prisma.AtLeast<{
   booking_id?: string
   user_package_id?: string
   razorpay_order_id?: string
+  receipt?: string
   AND?: Prisma.RazorpayOrderWhereInput | Prisma.RazorpayOrderWhereInput[]
   OR?: Prisma.RazorpayOrderWhereInput[]
   NOT?: Prisma.RazorpayOrderWhereInput | Prisma.RazorpayOrderWhereInput[]
   user_id?: Prisma.StringFilter<"RazorpayOrder"> | string
   amount_paise?: Prisma.IntFilter<"RazorpayOrder"> | number
   currency?: Prisma.StringFilter<"RazorpayOrder"> | string
-  receipt?: Prisma.StringNullableFilter<"RazorpayOrder"> | string | null
   status?: Prisma.StringFilter<"RazorpayOrder"> | string
   notes?: Prisma.JsonNullableFilter<"RazorpayOrder">
   created_at?: Prisma.DateTimeFilter<"RazorpayOrder"> | Date | string
@@ -313,7 +313,7 @@ export type RazorpayOrderWhereUniqueInput = Prisma.AtLeast<{
   booking?: Prisma.XOR<Prisma.BookingNullableScalarRelationFilter, Prisma.BookingWhereInput> | null
   user_package?: Prisma.XOR<Prisma.UserPackageNullableScalarRelationFilter, Prisma.UserPackageWhereInput> | null
   payments?: Prisma.RazorpayPaymentListRelationFilter
-}, "id" | "booking_id" | "user_package_id" | "razorpay_order_id">
+}, "id" | "booking_id" | "user_package_id" | "razorpay_order_id" | "receipt">
 
 export type RazorpayOrderOrderByWithAggregationInput = {
   id?: Prisma.SortOrder
