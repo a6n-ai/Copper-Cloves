@@ -360,7 +360,6 @@ export type InstructorWhereInput = {
   class_schedules?: Prisma.ClassScheduleListRelationFilter
   actual_class_schedules?: Prisma.ClassScheduleListRelationFilter
   profile?: Prisma.XOR<Prisma.ProfileNullableScalarRelationFilter, Prisma.ProfileWhereInput> | null
-  expenses?: Prisma.ExpenseListRelationFilter
   payments?: Prisma.PaymentListRelationFilter
 }
 
@@ -392,7 +391,6 @@ export type InstructorOrderByWithRelationInput = {
   class_schedules?: Prisma.ClassScheduleOrderByRelationAggregateInput
   actual_class_schedules?: Prisma.ClassScheduleOrderByRelationAggregateInput
   profile?: Prisma.ProfileOrderByWithRelationInput
-  expenses?: Prisma.ExpenseOrderByRelationAggregateInput
   payments?: Prisma.PaymentOrderByRelationAggregateInput
 }
 
@@ -427,7 +425,6 @@ export type InstructorWhereUniqueInput = Prisma.AtLeast<{
   class_schedules?: Prisma.ClassScheduleListRelationFilter
   actual_class_schedules?: Prisma.ClassScheduleListRelationFilter
   profile?: Prisma.XOR<Prisma.ProfileNullableScalarRelationFilter, Prisma.ProfileWhereInput> | null
-  expenses?: Prisma.ExpenseListRelationFilter
   payments?: Prisma.PaymentListRelationFilter
 }, "id" | "image_file_id" | "profile_id">
 
@@ -518,7 +515,6 @@ export type InstructorCreateInput = {
   class_schedules?: Prisma.ClassScheduleCreateNestedManyWithoutInstructorInput
   actual_class_schedules?: Prisma.ClassScheduleCreateNestedManyWithoutActual_instructorInput
   profile?: Prisma.ProfileCreateNestedOneWithoutInstructor_accountInput
-  expenses?: Prisma.ExpenseCreateNestedManyWithoutInstructorInput
   payments?: Prisma.PaymentCreateNestedManyWithoutInstructorInput
 }
 
@@ -549,7 +545,6 @@ export type InstructorUncheckedCreateInput = {
   classes?: Prisma.ClassModelUncheckedCreateNestedManyWithoutInstructorInput
   class_schedules?: Prisma.ClassScheduleUncheckedCreateNestedManyWithoutInstructorInput
   actual_class_schedules?: Prisma.ClassScheduleUncheckedCreateNestedManyWithoutActual_instructorInput
-  expenses?: Prisma.ExpenseUncheckedCreateNestedManyWithoutInstructorInput
   payments?: Prisma.PaymentUncheckedCreateNestedManyWithoutInstructorInput
 }
 
@@ -580,7 +575,6 @@ export type InstructorUpdateInput = {
   class_schedules?: Prisma.ClassScheduleUpdateManyWithoutInstructorNestedInput
   actual_class_schedules?: Prisma.ClassScheduleUpdateManyWithoutActual_instructorNestedInput
   profile?: Prisma.ProfileUpdateOneWithoutInstructor_accountNestedInput
-  expenses?: Prisma.ExpenseUpdateManyWithoutInstructorNestedInput
   payments?: Prisma.PaymentUpdateManyWithoutInstructorNestedInput
 }
 
@@ -611,7 +605,6 @@ export type InstructorUncheckedUpdateInput = {
   classes?: Prisma.ClassModelUncheckedUpdateManyWithoutInstructorNestedInput
   class_schedules?: Prisma.ClassScheduleUncheckedUpdateManyWithoutInstructorNestedInput
   actual_class_schedules?: Prisma.ClassScheduleUncheckedUpdateManyWithoutActual_instructorNestedInput
-  expenses?: Prisma.ExpenseUncheckedUpdateManyWithoutInstructorNestedInput
   payments?: Prisma.PaymentUncheckedUpdateManyWithoutInstructorNestedInput
 }
 
@@ -911,22 +904,6 @@ export type InstructorUpdateOneWithoutPaymentsNestedInput = {
   update?: Prisma.XOR<Prisma.XOR<Prisma.InstructorUpdateToOneWithWhereWithoutPaymentsInput, Prisma.InstructorUpdateWithoutPaymentsInput>, Prisma.InstructorUncheckedUpdateWithoutPaymentsInput>
 }
 
-export type InstructorCreateNestedOneWithoutExpensesInput = {
-  create?: Prisma.XOR<Prisma.InstructorCreateWithoutExpensesInput, Prisma.InstructorUncheckedCreateWithoutExpensesInput>
-  connectOrCreate?: Prisma.InstructorCreateOrConnectWithoutExpensesInput
-  connect?: Prisma.InstructorWhereUniqueInput
-}
-
-export type InstructorUpdateOneWithoutExpensesNestedInput = {
-  create?: Prisma.XOR<Prisma.InstructorCreateWithoutExpensesInput, Prisma.InstructorUncheckedCreateWithoutExpensesInput>
-  connectOrCreate?: Prisma.InstructorCreateOrConnectWithoutExpensesInput
-  upsert?: Prisma.InstructorUpsertWithoutExpensesInput
-  disconnect?: Prisma.InstructorWhereInput | boolean
-  delete?: Prisma.InstructorWhereInput | boolean
-  connect?: Prisma.InstructorWhereUniqueInput
-  update?: Prisma.XOR<Prisma.XOR<Prisma.InstructorUpdateToOneWithWhereWithoutExpensesInput, Prisma.InstructorUpdateWithoutExpensesInput>, Prisma.InstructorUncheckedUpdateWithoutExpensesInput>
-}
-
 export type InstructorCreateWithoutProfileInput = {
   id?: string
   name: string
@@ -953,7 +930,6 @@ export type InstructorCreateWithoutProfileInput = {
   classes?: Prisma.ClassModelCreateNestedManyWithoutInstructorInput
   class_schedules?: Prisma.ClassScheduleCreateNestedManyWithoutInstructorInput
   actual_class_schedules?: Prisma.ClassScheduleCreateNestedManyWithoutActual_instructorInput
-  expenses?: Prisma.ExpenseCreateNestedManyWithoutInstructorInput
   payments?: Prisma.PaymentCreateNestedManyWithoutInstructorInput
 }
 
@@ -983,7 +959,6 @@ export type InstructorUncheckedCreateWithoutProfileInput = {
   classes?: Prisma.ClassModelUncheckedCreateNestedManyWithoutInstructorInput
   class_schedules?: Prisma.ClassScheduleUncheckedCreateNestedManyWithoutInstructorInput
   actual_class_schedules?: Prisma.ClassScheduleUncheckedCreateNestedManyWithoutActual_instructorInput
-  expenses?: Prisma.ExpenseUncheckedCreateNestedManyWithoutInstructorInput
   payments?: Prisma.PaymentUncheckedCreateNestedManyWithoutInstructorInput
 }
 
@@ -1029,7 +1004,6 @@ export type InstructorUpdateWithoutProfileInput = {
   classes?: Prisma.ClassModelUpdateManyWithoutInstructorNestedInput
   class_schedules?: Prisma.ClassScheduleUpdateManyWithoutInstructorNestedInput
   actual_class_schedules?: Prisma.ClassScheduleUpdateManyWithoutActual_instructorNestedInput
-  expenses?: Prisma.ExpenseUpdateManyWithoutInstructorNestedInput
   payments?: Prisma.PaymentUpdateManyWithoutInstructorNestedInput
 }
 
@@ -1059,7 +1033,6 @@ export type InstructorUncheckedUpdateWithoutProfileInput = {
   classes?: Prisma.ClassModelUncheckedUpdateManyWithoutInstructorNestedInput
   class_schedules?: Prisma.ClassScheduleUncheckedUpdateManyWithoutInstructorNestedInput
   actual_class_schedules?: Prisma.ClassScheduleUncheckedUpdateManyWithoutActual_instructorNestedInput
-  expenses?: Prisma.ExpenseUncheckedUpdateManyWithoutInstructorNestedInput
   payments?: Prisma.PaymentUncheckedUpdateManyWithoutInstructorNestedInput
 }
 
@@ -1089,7 +1062,6 @@ export type InstructorCreateWithoutClassesInput = {
   class_schedules?: Prisma.ClassScheduleCreateNestedManyWithoutInstructorInput
   actual_class_schedules?: Prisma.ClassScheduleCreateNestedManyWithoutActual_instructorInput
   profile?: Prisma.ProfileCreateNestedOneWithoutInstructor_accountInput
-  expenses?: Prisma.ExpenseCreateNestedManyWithoutInstructorInput
   payments?: Prisma.PaymentCreateNestedManyWithoutInstructorInput
 }
 
@@ -1119,7 +1091,6 @@ export type InstructorUncheckedCreateWithoutClassesInput = {
   updated_at?: Date | string
   class_schedules?: Prisma.ClassScheduleUncheckedCreateNestedManyWithoutInstructorInput
   actual_class_schedules?: Prisma.ClassScheduleUncheckedCreateNestedManyWithoutActual_instructorInput
-  expenses?: Prisma.ExpenseUncheckedCreateNestedManyWithoutInstructorInput
   payments?: Prisma.PaymentUncheckedCreateNestedManyWithoutInstructorInput
 }
 
@@ -1165,7 +1136,6 @@ export type InstructorUpdateWithoutClassesInput = {
   class_schedules?: Prisma.ClassScheduleUpdateManyWithoutInstructorNestedInput
   actual_class_schedules?: Prisma.ClassScheduleUpdateManyWithoutActual_instructorNestedInput
   profile?: Prisma.ProfileUpdateOneWithoutInstructor_accountNestedInput
-  expenses?: Prisma.ExpenseUpdateManyWithoutInstructorNestedInput
   payments?: Prisma.PaymentUpdateManyWithoutInstructorNestedInput
 }
 
@@ -1195,7 +1165,6 @@ export type InstructorUncheckedUpdateWithoutClassesInput = {
   updated_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   class_schedules?: Prisma.ClassScheduleUncheckedUpdateManyWithoutInstructorNestedInput
   actual_class_schedules?: Prisma.ClassScheduleUncheckedUpdateManyWithoutActual_instructorNestedInput
-  expenses?: Prisma.ExpenseUncheckedUpdateManyWithoutInstructorNestedInput
   payments?: Prisma.PaymentUncheckedUpdateManyWithoutInstructorNestedInput
 }
 
@@ -1225,7 +1194,6 @@ export type InstructorCreateWithoutClass_schedulesInput = {
   classes?: Prisma.ClassModelCreateNestedManyWithoutInstructorInput
   actual_class_schedules?: Prisma.ClassScheduleCreateNestedManyWithoutActual_instructorInput
   profile?: Prisma.ProfileCreateNestedOneWithoutInstructor_accountInput
-  expenses?: Prisma.ExpenseCreateNestedManyWithoutInstructorInput
   payments?: Prisma.PaymentCreateNestedManyWithoutInstructorInput
 }
 
@@ -1255,7 +1223,6 @@ export type InstructorUncheckedCreateWithoutClass_schedulesInput = {
   updated_at?: Date | string
   classes?: Prisma.ClassModelUncheckedCreateNestedManyWithoutInstructorInput
   actual_class_schedules?: Prisma.ClassScheduleUncheckedCreateNestedManyWithoutActual_instructorInput
-  expenses?: Prisma.ExpenseUncheckedCreateNestedManyWithoutInstructorInput
   payments?: Prisma.PaymentUncheckedCreateNestedManyWithoutInstructorInput
 }
 
@@ -1290,7 +1257,6 @@ export type InstructorCreateWithoutActual_class_schedulesInput = {
   classes?: Prisma.ClassModelCreateNestedManyWithoutInstructorInput
   class_schedules?: Prisma.ClassScheduleCreateNestedManyWithoutInstructorInput
   profile?: Prisma.ProfileCreateNestedOneWithoutInstructor_accountInput
-  expenses?: Prisma.ExpenseCreateNestedManyWithoutInstructorInput
   payments?: Prisma.PaymentCreateNestedManyWithoutInstructorInput
 }
 
@@ -1320,7 +1286,6 @@ export type InstructorUncheckedCreateWithoutActual_class_schedulesInput = {
   updated_at?: Date | string
   classes?: Prisma.ClassModelUncheckedCreateNestedManyWithoutInstructorInput
   class_schedules?: Prisma.ClassScheduleUncheckedCreateNestedManyWithoutInstructorInput
-  expenses?: Prisma.ExpenseUncheckedCreateNestedManyWithoutInstructorInput
   payments?: Prisma.PaymentUncheckedCreateNestedManyWithoutInstructorInput
 }
 
@@ -1366,7 +1331,6 @@ export type InstructorUpdateWithoutClass_schedulesInput = {
   classes?: Prisma.ClassModelUpdateManyWithoutInstructorNestedInput
   actual_class_schedules?: Prisma.ClassScheduleUpdateManyWithoutActual_instructorNestedInput
   profile?: Prisma.ProfileUpdateOneWithoutInstructor_accountNestedInput
-  expenses?: Prisma.ExpenseUpdateManyWithoutInstructorNestedInput
   payments?: Prisma.PaymentUpdateManyWithoutInstructorNestedInput
 }
 
@@ -1396,7 +1360,6 @@ export type InstructorUncheckedUpdateWithoutClass_schedulesInput = {
   updated_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   classes?: Prisma.ClassModelUncheckedUpdateManyWithoutInstructorNestedInput
   actual_class_schedules?: Prisma.ClassScheduleUncheckedUpdateManyWithoutActual_instructorNestedInput
-  expenses?: Prisma.ExpenseUncheckedUpdateManyWithoutInstructorNestedInput
   payments?: Prisma.PaymentUncheckedUpdateManyWithoutInstructorNestedInput
 }
 
@@ -1437,7 +1400,6 @@ export type InstructorUpdateWithoutActual_class_schedulesInput = {
   classes?: Prisma.ClassModelUpdateManyWithoutInstructorNestedInput
   class_schedules?: Prisma.ClassScheduleUpdateManyWithoutInstructorNestedInput
   profile?: Prisma.ProfileUpdateOneWithoutInstructor_accountNestedInput
-  expenses?: Prisma.ExpenseUpdateManyWithoutInstructorNestedInput
   payments?: Prisma.PaymentUpdateManyWithoutInstructorNestedInput
 }
 
@@ -1467,7 +1429,6 @@ export type InstructorUncheckedUpdateWithoutActual_class_schedulesInput = {
   updated_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   classes?: Prisma.ClassModelUncheckedUpdateManyWithoutInstructorNestedInput
   class_schedules?: Prisma.ClassScheduleUncheckedUpdateManyWithoutInstructorNestedInput
-  expenses?: Prisma.ExpenseUncheckedUpdateManyWithoutInstructorNestedInput
   payments?: Prisma.PaymentUncheckedUpdateManyWithoutInstructorNestedInput
 }
 
@@ -1498,7 +1459,6 @@ export type InstructorCreateWithoutPaymentsInput = {
   class_schedules?: Prisma.ClassScheduleCreateNestedManyWithoutInstructorInput
   actual_class_schedules?: Prisma.ClassScheduleCreateNestedManyWithoutActual_instructorInput
   profile?: Prisma.ProfileCreateNestedOneWithoutInstructor_accountInput
-  expenses?: Prisma.ExpenseCreateNestedManyWithoutInstructorInput
 }
 
 export type InstructorUncheckedCreateWithoutPaymentsInput = {
@@ -1528,7 +1488,6 @@ export type InstructorUncheckedCreateWithoutPaymentsInput = {
   classes?: Prisma.ClassModelUncheckedCreateNestedManyWithoutInstructorInput
   class_schedules?: Prisma.ClassScheduleUncheckedCreateNestedManyWithoutInstructorInput
   actual_class_schedules?: Prisma.ClassScheduleUncheckedCreateNestedManyWithoutActual_instructorInput
-  expenses?: Prisma.ExpenseUncheckedCreateNestedManyWithoutInstructorInput
 }
 
 export type InstructorCreateOrConnectWithoutPaymentsInput = {
@@ -1574,7 +1533,6 @@ export type InstructorUpdateWithoutPaymentsInput = {
   class_schedules?: Prisma.ClassScheduleUpdateManyWithoutInstructorNestedInput
   actual_class_schedules?: Prisma.ClassScheduleUpdateManyWithoutActual_instructorNestedInput
   profile?: Prisma.ProfileUpdateOneWithoutInstructor_accountNestedInput
-  expenses?: Prisma.ExpenseUpdateManyWithoutInstructorNestedInput
 }
 
 export type InstructorUncheckedUpdateWithoutPaymentsInput = {
@@ -1604,143 +1562,6 @@ export type InstructorUncheckedUpdateWithoutPaymentsInput = {
   classes?: Prisma.ClassModelUncheckedUpdateManyWithoutInstructorNestedInput
   class_schedules?: Prisma.ClassScheduleUncheckedUpdateManyWithoutInstructorNestedInput
   actual_class_schedules?: Prisma.ClassScheduleUncheckedUpdateManyWithoutActual_instructorNestedInput
-  expenses?: Prisma.ExpenseUncheckedUpdateManyWithoutInstructorNestedInput
-}
-
-export type InstructorCreateWithoutExpensesInput = {
-  id?: string
-  name: string
-  title?: string | null
-  email?: string | null
-  phone?: string | null
-  studio_payout_cut_percent?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
-  image_url?: string | null
-  image_file_id?: string | null
-  about?: string | null
-  philosophy?: string | null
-  specialties?: Prisma.InstructorCreatespecialtiesInput | string[]
-  certifications?: Prisma.InstructorCreatecertificationsInput | string[]
-  years_of_experience?: string | null
-  display_order?: number | null
-  social_facebook?: string | null
-  social_twitter?: string | null
-  social_linkedin?: string | null
-  social_whatsapp?: string | null
-  hashed_password?: string | null
-  is_active?: boolean
-  created_at?: Date | string
-  updated_at?: Date | string
-  classes?: Prisma.ClassModelCreateNestedManyWithoutInstructorInput
-  class_schedules?: Prisma.ClassScheduleCreateNestedManyWithoutInstructorInput
-  actual_class_schedules?: Prisma.ClassScheduleCreateNestedManyWithoutActual_instructorInput
-  profile?: Prisma.ProfileCreateNestedOneWithoutInstructor_accountInput
-  payments?: Prisma.PaymentCreateNestedManyWithoutInstructorInput
-}
-
-export type InstructorUncheckedCreateWithoutExpensesInput = {
-  id?: string
-  name: string
-  title?: string | null
-  email?: string | null
-  phone?: string | null
-  studio_payout_cut_percent?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
-  image_url?: string | null
-  image_file_id?: string | null
-  about?: string | null
-  philosophy?: string | null
-  specialties?: Prisma.InstructorCreatespecialtiesInput | string[]
-  certifications?: Prisma.InstructorCreatecertificationsInput | string[]
-  years_of_experience?: string | null
-  display_order?: number | null
-  social_facebook?: string | null
-  social_twitter?: string | null
-  social_linkedin?: string | null
-  social_whatsapp?: string | null
-  hashed_password?: string | null
-  is_active?: boolean
-  profile_id?: string | null
-  created_at?: Date | string
-  updated_at?: Date | string
-  classes?: Prisma.ClassModelUncheckedCreateNestedManyWithoutInstructorInput
-  class_schedules?: Prisma.ClassScheduleUncheckedCreateNestedManyWithoutInstructorInput
-  actual_class_schedules?: Prisma.ClassScheduleUncheckedCreateNestedManyWithoutActual_instructorInput
-  payments?: Prisma.PaymentUncheckedCreateNestedManyWithoutInstructorInput
-}
-
-export type InstructorCreateOrConnectWithoutExpensesInput = {
-  where: Prisma.InstructorWhereUniqueInput
-  create: Prisma.XOR<Prisma.InstructorCreateWithoutExpensesInput, Prisma.InstructorUncheckedCreateWithoutExpensesInput>
-}
-
-export type InstructorUpsertWithoutExpensesInput = {
-  update: Prisma.XOR<Prisma.InstructorUpdateWithoutExpensesInput, Prisma.InstructorUncheckedUpdateWithoutExpensesInput>
-  create: Prisma.XOR<Prisma.InstructorCreateWithoutExpensesInput, Prisma.InstructorUncheckedCreateWithoutExpensesInput>
-  where?: Prisma.InstructorWhereInput
-}
-
-export type InstructorUpdateToOneWithWhereWithoutExpensesInput = {
-  where?: Prisma.InstructorWhereInput
-  data: Prisma.XOR<Prisma.InstructorUpdateWithoutExpensesInput, Prisma.InstructorUncheckedUpdateWithoutExpensesInput>
-}
-
-export type InstructorUpdateWithoutExpensesInput = {
-  id?: Prisma.StringFieldUpdateOperationsInput | string
-  name?: Prisma.StringFieldUpdateOperationsInput | string
-  title?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  email?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  phone?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  studio_payout_cut_percent?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
-  image_url?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  image_file_id?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  about?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  philosophy?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  specialties?: Prisma.InstructorUpdatespecialtiesInput | string[]
-  certifications?: Prisma.InstructorUpdatecertificationsInput | string[]
-  years_of_experience?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  display_order?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
-  social_facebook?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  social_twitter?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  social_linkedin?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  social_whatsapp?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  hashed_password?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  is_active?: Prisma.BoolFieldUpdateOperationsInput | boolean
-  created_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
-  updated_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
-  classes?: Prisma.ClassModelUpdateManyWithoutInstructorNestedInput
-  class_schedules?: Prisma.ClassScheduleUpdateManyWithoutInstructorNestedInput
-  actual_class_schedules?: Prisma.ClassScheduleUpdateManyWithoutActual_instructorNestedInput
-  profile?: Prisma.ProfileUpdateOneWithoutInstructor_accountNestedInput
-  payments?: Prisma.PaymentUpdateManyWithoutInstructorNestedInput
-}
-
-export type InstructorUncheckedUpdateWithoutExpensesInput = {
-  id?: Prisma.StringFieldUpdateOperationsInput | string
-  name?: Prisma.StringFieldUpdateOperationsInput | string
-  title?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  email?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  phone?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  studio_payout_cut_percent?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
-  image_url?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  image_file_id?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  about?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  philosophy?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  specialties?: Prisma.InstructorUpdatespecialtiesInput | string[]
-  certifications?: Prisma.InstructorUpdatecertificationsInput | string[]
-  years_of_experience?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  display_order?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
-  social_facebook?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  social_twitter?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  social_linkedin?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  social_whatsapp?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  hashed_password?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  is_active?: Prisma.BoolFieldUpdateOperationsInput | boolean
-  profile_id?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  created_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
-  updated_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
-  classes?: Prisma.ClassModelUncheckedUpdateManyWithoutInstructorNestedInput
-  class_schedules?: Prisma.ClassScheduleUncheckedUpdateManyWithoutInstructorNestedInput
-  actual_class_schedules?: Prisma.ClassScheduleUncheckedUpdateManyWithoutActual_instructorNestedInput
-  payments?: Prisma.PaymentUncheckedUpdateManyWithoutInstructorNestedInput
 }
 
 
@@ -1752,7 +1573,6 @@ export type InstructorCountOutputType = {
   classes: number
   class_schedules: number
   actual_class_schedules: number
-  expenses: number
   payments: number
 }
 
@@ -1760,7 +1580,6 @@ export type InstructorCountOutputTypeSelect<ExtArgs extends runtime.Types.Extens
   classes?: boolean | InstructorCountOutputTypeCountClassesArgs
   class_schedules?: boolean | InstructorCountOutputTypeCountClass_schedulesArgs
   actual_class_schedules?: boolean | InstructorCountOutputTypeCountActual_class_schedulesArgs
-  expenses?: boolean | InstructorCountOutputTypeCountExpensesArgs
   payments?: boolean | InstructorCountOutputTypeCountPaymentsArgs
 }
 
@@ -1793,13 +1612,6 @@ export type InstructorCountOutputTypeCountClass_schedulesArgs<ExtArgs extends ru
  */
 export type InstructorCountOutputTypeCountActual_class_schedulesArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   where?: Prisma.ClassScheduleWhereInput
-}
-
-/**
- * InstructorCountOutputType without action
- */
-export type InstructorCountOutputTypeCountExpensesArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
-  where?: Prisma.ExpenseWhereInput
 }
 
 /**
@@ -1838,7 +1650,6 @@ export type InstructorSelect<ExtArgs extends runtime.Types.Extensions.InternalAr
   class_schedules?: boolean | Prisma.Instructor$class_schedulesArgs<ExtArgs>
   actual_class_schedules?: boolean | Prisma.Instructor$actual_class_schedulesArgs<ExtArgs>
   profile?: boolean | Prisma.Instructor$profileArgs<ExtArgs>
-  expenses?: boolean | Prisma.Instructor$expensesArgs<ExtArgs>
   payments?: boolean | Prisma.Instructor$paymentsArgs<ExtArgs>
   _count?: boolean | Prisma.InstructorCountOutputTypeDefaultArgs<ExtArgs>
 }, ExtArgs["result"]["instructor"]>
@@ -1929,7 +1740,6 @@ export type InstructorInclude<ExtArgs extends runtime.Types.Extensions.InternalA
   class_schedules?: boolean | Prisma.Instructor$class_schedulesArgs<ExtArgs>
   actual_class_schedules?: boolean | Prisma.Instructor$actual_class_schedulesArgs<ExtArgs>
   profile?: boolean | Prisma.Instructor$profileArgs<ExtArgs>
-  expenses?: boolean | Prisma.Instructor$expensesArgs<ExtArgs>
   payments?: boolean | Prisma.Instructor$paymentsArgs<ExtArgs>
   _count?: boolean | Prisma.InstructorCountOutputTypeDefaultArgs<ExtArgs>
 }
@@ -1947,7 +1757,6 @@ export type $InstructorPayload<ExtArgs extends runtime.Types.Extensions.Internal
     class_schedules: Prisma.$ClassSchedulePayload<ExtArgs>[]
     actual_class_schedules: Prisma.$ClassSchedulePayload<ExtArgs>[]
     profile: Prisma.$ProfilePayload<ExtArgs> | null
-    expenses: Prisma.$ExpensePayload<ExtArgs>[]
     payments: Prisma.$PaymentPayload<ExtArgs>[]
   }
   scalars: runtime.Types.Extensions.GetPayloadResult<{
@@ -2378,7 +2187,6 @@ export interface Prisma__InstructorClient<T, Null = never, ExtArgs extends runti
   class_schedules<T extends Prisma.Instructor$class_schedulesArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.Instructor$class_schedulesArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$ClassSchedulePayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
   actual_class_schedules<T extends Prisma.Instructor$actual_class_schedulesArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.Instructor$actual_class_schedulesArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$ClassSchedulePayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
   profile<T extends Prisma.Instructor$profileArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.Instructor$profileArgs<ExtArgs>>): Prisma.Prisma__ProfileClient<runtime.Types.Result.GetResult<Prisma.$ProfilePayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | null, null, ExtArgs, GlobalOmitOptions>
-  expenses<T extends Prisma.Instructor$expensesArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.Instructor$expensesArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$ExpensePayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
   payments<T extends Prisma.Instructor$paymentsArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.Instructor$paymentsArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$PaymentPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
   /**
    * Attaches callbacks for the resolution and/or rejection of the Promise.
@@ -2921,30 +2729,6 @@ export type Instructor$profileArgs<ExtArgs extends runtime.Types.Extensions.Inte
    */
   include?: Prisma.ProfileInclude<ExtArgs> | null
   where?: Prisma.ProfileWhereInput
-}
-
-/**
- * Instructor.expenses
- */
-export type Instructor$expensesArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
-  /**
-   * Select specific fields to fetch from the Expense
-   */
-  select?: Prisma.ExpenseSelect<ExtArgs> | null
-  /**
-   * Omit specific fields from the Expense
-   */
-  omit?: Prisma.ExpenseOmit<ExtArgs> | null
-  /**
-   * Choose, which related nodes to fetch as well
-   */
-  include?: Prisma.ExpenseInclude<ExtArgs> | null
-  where?: Prisma.ExpenseWhereInput
-  orderBy?: Prisma.ExpenseOrderByWithRelationInput | Prisma.ExpenseOrderByWithRelationInput[]
-  cursor?: Prisma.ExpenseWhereUniqueInput
-  take?: number
-  skip?: number
-  distinct?: Prisma.ExpenseScalarFieldEnum | Prisma.ExpenseScalarFieldEnum[]
 }
 
 /**

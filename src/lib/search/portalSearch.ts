@@ -19,9 +19,9 @@ export async function memberSearch(q: string, scope: SearchScope): Promise<Searc
       select: { id: true, start_time: true, class_model: { select: { name: true } } },
       take: SEARCH_TAKE, orderBy: { start_time: "asc" },
     }),
-    prisma.package.findMany({
-      where: { is_active: true, name: ci(q) },
-      select: { id: true, name: true, tier: true }, take: SEARCH_TAKE,
+    prisma.packageType.findMany({
+      where: { name: ci(q) },
+      select: { id: true, name: true, type: true }, take: SEARCH_TAKE,
     }),
     prisma.cafeItem.findMany({
       where: { is_available: true, OR: [{ name: ci(q) }, { category: ci(q) }] },
@@ -39,7 +39,7 @@ export async function memberSearch(q: string, scope: SearchScope): Promise<Searc
       subtitle: fmtDate(r.start_time), href: "/portal/book",
     }))),
     ...group("package", "Packages", packages.map((r) => ({
-      id: r.id, type: "package", title: r.name, subtitle: r.tier ?? "Pass", href: "/portal/packages",
+      id: r.id, type: "package", title: r.name, subtitle: r.type ?? "Pass", href: "/portal/packages",
     }))),
     ...group("cafe", "Café", cafe.map((r) => ({
       id: r.id, type: "cafe", title: r.name, subtitle: r.category, href: "/portal/menu",

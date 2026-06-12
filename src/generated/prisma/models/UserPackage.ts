@@ -42,7 +42,6 @@ export type UserPackageMinAggregateOutputType = {
   id: string | null
   user_id: string | null
   package_type_id: string | null
-  package_id: string | null
   credits_remaining: number | null
   credits_total: number | null
   expiration_date: Date | null
@@ -62,7 +61,6 @@ export type UserPackageMaxAggregateOutputType = {
   id: string | null
   user_id: string | null
   package_type_id: string | null
-  package_id: string | null
   credits_remaining: number | null
   credits_total: number | null
   expiration_date: Date | null
@@ -82,7 +80,6 @@ export type UserPackageCountAggregateOutputType = {
   id: number
   user_id: number
   package_type_id: number
-  package_id: number
   credits_remaining: number
   credits_total: number
   expiration_date: number
@@ -116,7 +113,6 @@ export type UserPackageMinAggregateInputType = {
   id?: true
   user_id?: true
   package_type_id?: true
-  package_id?: true
   credits_remaining?: true
   credits_total?: true
   expiration_date?: true
@@ -136,7 +132,6 @@ export type UserPackageMaxAggregateInputType = {
   id?: true
   user_id?: true
   package_type_id?: true
-  package_id?: true
   credits_remaining?: true
   credits_total?: true
   expiration_date?: true
@@ -156,7 +151,6 @@ export type UserPackageCountAggregateInputType = {
   id?: true
   user_id?: true
   package_type_id?: true
-  package_id?: true
   credits_remaining?: true
   credits_total?: true
   expiration_date?: true
@@ -263,7 +257,6 @@ export type UserPackageGroupByOutputType = {
   id: string
   user_id: string
   package_type_id: string
-  package_id: string | null
   credits_remaining: number | null
   credits_total: number | null
   expiration_date: Date
@@ -306,7 +299,6 @@ export type UserPackageWhereInput = {
   id?: Prisma.StringFilter<"UserPackage"> | string
   user_id?: Prisma.StringFilter<"UserPackage"> | string
   package_type_id?: Prisma.StringFilter<"UserPackage"> | string
-  package_id?: Prisma.StringNullableFilter<"UserPackage"> | string | null
   credits_remaining?: Prisma.IntNullableFilter<"UserPackage"> | number | null
   credits_total?: Prisma.IntNullableFilter<"UserPackage"> | number | null
   expiration_date?: Prisma.DateTimeFilter<"UserPackage"> | Date | string
@@ -322,7 +314,6 @@ export type UserPackageWhereInput = {
   updated_at?: Prisma.DateTimeFilter<"UserPackage"> | Date | string
   profile?: Prisma.XOR<Prisma.ProfileScalarRelationFilter, Prisma.ProfileWhereInput>
   package_type?: Prisma.XOR<Prisma.PackageTypeScalarRelationFilter, Prisma.PackageTypeWhereInput>
-  package?: Prisma.XOR<Prisma.PackageNullableScalarRelationFilter, Prisma.PackageWhereInput> | null
   coupon?: Prisma.XOR<Prisma.CouponNullableScalarRelationFilter, Prisma.CouponWhereInput> | null
   bookings?: Prisma.BookingListRelationFilter
   razorpay_order?: Prisma.XOR<Prisma.RazorpayOrderNullableScalarRelationFilter, Prisma.RazorpayOrderWhereInput> | null
@@ -334,7 +325,6 @@ export type UserPackageOrderByWithRelationInput = {
   id?: Prisma.SortOrder
   user_id?: Prisma.SortOrder
   package_type_id?: Prisma.SortOrder
-  package_id?: Prisma.SortOrderInput | Prisma.SortOrder
   credits_remaining?: Prisma.SortOrderInput | Prisma.SortOrder
   credits_total?: Prisma.SortOrderInput | Prisma.SortOrder
   expiration_date?: Prisma.SortOrder
@@ -350,7 +340,6 @@ export type UserPackageOrderByWithRelationInput = {
   updated_at?: Prisma.SortOrder
   profile?: Prisma.ProfileOrderByWithRelationInput
   package_type?: Prisma.PackageTypeOrderByWithRelationInput
-  package?: Prisma.PackageOrderByWithRelationInput
   coupon?: Prisma.CouponOrderByWithRelationInput
   bookings?: Prisma.BookingOrderByRelationAggregateInput
   razorpay_order?: Prisma.RazorpayOrderOrderByWithRelationInput
@@ -365,7 +354,6 @@ export type UserPackageWhereUniqueInput = Prisma.AtLeast<{
   NOT?: Prisma.UserPackageWhereInput | Prisma.UserPackageWhereInput[]
   user_id?: Prisma.StringFilter<"UserPackage"> | string
   package_type_id?: Prisma.StringFilter<"UserPackage"> | string
-  package_id?: Prisma.StringNullableFilter<"UserPackage"> | string | null
   credits_remaining?: Prisma.IntNullableFilter<"UserPackage"> | number | null
   credits_total?: Prisma.IntNullableFilter<"UserPackage"> | number | null
   expiration_date?: Prisma.DateTimeFilter<"UserPackage"> | Date | string
@@ -381,7 +369,6 @@ export type UserPackageWhereUniqueInput = Prisma.AtLeast<{
   updated_at?: Prisma.DateTimeFilter<"UserPackage"> | Date | string
   profile?: Prisma.XOR<Prisma.ProfileScalarRelationFilter, Prisma.ProfileWhereInput>
   package_type?: Prisma.XOR<Prisma.PackageTypeScalarRelationFilter, Prisma.PackageTypeWhereInput>
-  package?: Prisma.XOR<Prisma.PackageNullableScalarRelationFilter, Prisma.PackageWhereInput> | null
   coupon?: Prisma.XOR<Prisma.CouponNullableScalarRelationFilter, Prisma.CouponWhereInput> | null
   bookings?: Prisma.BookingListRelationFilter
   razorpay_order?: Prisma.XOR<Prisma.RazorpayOrderNullableScalarRelationFilter, Prisma.RazorpayOrderWhereInput> | null
@@ -393,7 +380,6 @@ export type UserPackageOrderByWithAggregationInput = {
   id?: Prisma.SortOrder
   user_id?: Prisma.SortOrder
   package_type_id?: Prisma.SortOrder
-  package_id?: Prisma.SortOrderInput | Prisma.SortOrder
   credits_remaining?: Prisma.SortOrderInput | Prisma.SortOrder
   credits_total?: Prisma.SortOrderInput | Prisma.SortOrder
   expiration_date?: Prisma.SortOrder
@@ -421,7 +407,6 @@ export type UserPackageScalarWhereWithAggregatesInput = {
   id?: Prisma.StringWithAggregatesFilter<"UserPackage"> | string
   user_id?: Prisma.StringWithAggregatesFilter<"UserPackage"> | string
   package_type_id?: Prisma.StringWithAggregatesFilter<"UserPackage"> | string
-  package_id?: Prisma.StringNullableWithAggregatesFilter<"UserPackage"> | string | null
   credits_remaining?: Prisma.IntNullableWithAggregatesFilter<"UserPackage"> | number | null
   credits_total?: Prisma.IntNullableWithAggregatesFilter<"UserPackage"> | number | null
   expiration_date?: Prisma.DateTimeWithAggregatesFilter<"UserPackage"> | Date | string
@@ -453,7 +438,6 @@ export type UserPackageCreateInput = {
   updated_at?: Date | string
   profile: Prisma.ProfileCreateNestedOneWithoutUser_packagesInput
   package_type: Prisma.PackageTypeCreateNestedOneWithoutUser_packagesInput
-  package?: Prisma.PackageCreateNestedOneWithoutUser_packagesInput
   coupon?: Prisma.CouponCreateNestedOneWithoutUser_packagesInput
   bookings?: Prisma.BookingCreateNestedManyWithoutUser_packageInput
   razorpay_order?: Prisma.RazorpayOrderCreateNestedOneWithoutUser_packageInput
@@ -465,7 +449,6 @@ export type UserPackageUncheckedCreateInput = {
   id?: string
   user_id: string
   package_type_id: string
-  package_id?: string | null
   credits_remaining?: number | null
   credits_total?: number | null
   expiration_date: Date | string
@@ -501,7 +484,6 @@ export type UserPackageUpdateInput = {
   updated_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   profile?: Prisma.ProfileUpdateOneRequiredWithoutUser_packagesNestedInput
   package_type?: Prisma.PackageTypeUpdateOneRequiredWithoutUser_packagesNestedInput
-  package?: Prisma.PackageUpdateOneWithoutUser_packagesNestedInput
   coupon?: Prisma.CouponUpdateOneWithoutUser_packagesNestedInput
   bookings?: Prisma.BookingUpdateManyWithoutUser_packageNestedInput
   razorpay_order?: Prisma.RazorpayOrderUpdateOneWithoutUser_packageNestedInput
@@ -513,7 +495,6 @@ export type UserPackageUncheckedUpdateInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   user_id?: Prisma.StringFieldUpdateOperationsInput | string
   package_type_id?: Prisma.StringFieldUpdateOperationsInput | string
-  package_id?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   credits_remaining?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   credits_total?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   expiration_date?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -537,7 +518,6 @@ export type UserPackageCreateManyInput = {
   id?: string
   user_id: string
   package_type_id: string
-  package_id?: string | null
   credits_remaining?: number | null
   credits_total?: number | null
   expiration_date: Date | string
@@ -573,7 +553,6 @@ export type UserPackageUncheckedUpdateManyInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   user_id?: Prisma.StringFieldUpdateOperationsInput | string
   package_type_id?: Prisma.StringFieldUpdateOperationsInput | string
-  package_id?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   credits_remaining?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   credits_total?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   expiration_date?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -603,7 +582,6 @@ export type UserPackageCountOrderByAggregateInput = {
   id?: Prisma.SortOrder
   user_id?: Prisma.SortOrder
   package_type_id?: Prisma.SortOrder
-  package_id?: Prisma.SortOrder
   credits_remaining?: Prisma.SortOrder
   credits_total?: Prisma.SortOrder
   expiration_date?: Prisma.SortOrder
@@ -629,7 +607,6 @@ export type UserPackageMaxOrderByAggregateInput = {
   id?: Prisma.SortOrder
   user_id?: Prisma.SortOrder
   package_type_id?: Prisma.SortOrder
-  package_id?: Prisma.SortOrder
   credits_remaining?: Prisma.SortOrder
   credits_total?: Prisma.SortOrder
   expiration_date?: Prisma.SortOrder
@@ -649,7 +626,6 @@ export type UserPackageMinOrderByAggregateInput = {
   id?: Prisma.SortOrder
   user_id?: Prisma.SortOrder
   package_type_id?: Prisma.SortOrder
-  package_id?: Prisma.SortOrder
   credits_remaining?: Prisma.SortOrder
   credits_total?: Prisma.SortOrder
   expiration_date?: Prisma.SortOrder
@@ -802,48 +778,6 @@ export type UserPackageUncheckedUpdateManyWithoutPackage_typeNestedInput = {
   deleteMany?: Prisma.UserPackageScalarWhereInput | Prisma.UserPackageScalarWhereInput[]
 }
 
-export type UserPackageCreateNestedManyWithoutPackageInput = {
-  create?: Prisma.XOR<Prisma.UserPackageCreateWithoutPackageInput, Prisma.UserPackageUncheckedCreateWithoutPackageInput> | Prisma.UserPackageCreateWithoutPackageInput[] | Prisma.UserPackageUncheckedCreateWithoutPackageInput[]
-  connectOrCreate?: Prisma.UserPackageCreateOrConnectWithoutPackageInput | Prisma.UserPackageCreateOrConnectWithoutPackageInput[]
-  createMany?: Prisma.UserPackageCreateManyPackageInputEnvelope
-  connect?: Prisma.UserPackageWhereUniqueInput | Prisma.UserPackageWhereUniqueInput[]
-}
-
-export type UserPackageUncheckedCreateNestedManyWithoutPackageInput = {
-  create?: Prisma.XOR<Prisma.UserPackageCreateWithoutPackageInput, Prisma.UserPackageUncheckedCreateWithoutPackageInput> | Prisma.UserPackageCreateWithoutPackageInput[] | Prisma.UserPackageUncheckedCreateWithoutPackageInput[]
-  connectOrCreate?: Prisma.UserPackageCreateOrConnectWithoutPackageInput | Prisma.UserPackageCreateOrConnectWithoutPackageInput[]
-  createMany?: Prisma.UserPackageCreateManyPackageInputEnvelope
-  connect?: Prisma.UserPackageWhereUniqueInput | Prisma.UserPackageWhereUniqueInput[]
-}
-
-export type UserPackageUpdateManyWithoutPackageNestedInput = {
-  create?: Prisma.XOR<Prisma.UserPackageCreateWithoutPackageInput, Prisma.UserPackageUncheckedCreateWithoutPackageInput> | Prisma.UserPackageCreateWithoutPackageInput[] | Prisma.UserPackageUncheckedCreateWithoutPackageInput[]
-  connectOrCreate?: Prisma.UserPackageCreateOrConnectWithoutPackageInput | Prisma.UserPackageCreateOrConnectWithoutPackageInput[]
-  upsert?: Prisma.UserPackageUpsertWithWhereUniqueWithoutPackageInput | Prisma.UserPackageUpsertWithWhereUniqueWithoutPackageInput[]
-  createMany?: Prisma.UserPackageCreateManyPackageInputEnvelope
-  set?: Prisma.UserPackageWhereUniqueInput | Prisma.UserPackageWhereUniqueInput[]
-  disconnect?: Prisma.UserPackageWhereUniqueInput | Prisma.UserPackageWhereUniqueInput[]
-  delete?: Prisma.UserPackageWhereUniqueInput | Prisma.UserPackageWhereUniqueInput[]
-  connect?: Prisma.UserPackageWhereUniqueInput | Prisma.UserPackageWhereUniqueInput[]
-  update?: Prisma.UserPackageUpdateWithWhereUniqueWithoutPackageInput | Prisma.UserPackageUpdateWithWhereUniqueWithoutPackageInput[]
-  updateMany?: Prisma.UserPackageUpdateManyWithWhereWithoutPackageInput | Prisma.UserPackageUpdateManyWithWhereWithoutPackageInput[]
-  deleteMany?: Prisma.UserPackageScalarWhereInput | Prisma.UserPackageScalarWhereInput[]
-}
-
-export type UserPackageUncheckedUpdateManyWithoutPackageNestedInput = {
-  create?: Prisma.XOR<Prisma.UserPackageCreateWithoutPackageInput, Prisma.UserPackageUncheckedCreateWithoutPackageInput> | Prisma.UserPackageCreateWithoutPackageInput[] | Prisma.UserPackageUncheckedCreateWithoutPackageInput[]
-  connectOrCreate?: Prisma.UserPackageCreateOrConnectWithoutPackageInput | Prisma.UserPackageCreateOrConnectWithoutPackageInput[]
-  upsert?: Prisma.UserPackageUpsertWithWhereUniqueWithoutPackageInput | Prisma.UserPackageUpsertWithWhereUniqueWithoutPackageInput[]
-  createMany?: Prisma.UserPackageCreateManyPackageInputEnvelope
-  set?: Prisma.UserPackageWhereUniqueInput | Prisma.UserPackageWhereUniqueInput[]
-  disconnect?: Prisma.UserPackageWhereUniqueInput | Prisma.UserPackageWhereUniqueInput[]
-  delete?: Prisma.UserPackageWhereUniqueInput | Prisma.UserPackageWhereUniqueInput[]
-  connect?: Prisma.UserPackageWhereUniqueInput | Prisma.UserPackageWhereUniqueInput[]
-  update?: Prisma.UserPackageUpdateWithWhereUniqueWithoutPackageInput | Prisma.UserPackageUpdateWithWhereUniqueWithoutPackageInput[]
-  updateMany?: Prisma.UserPackageUpdateManyWithWhereWithoutPackageInput | Prisma.UserPackageUpdateManyWithWhereWithoutPackageInput[]
-  deleteMany?: Prisma.UserPackageScalarWhereInput | Prisma.UserPackageScalarWhereInput[]
-}
-
 export type UserPackageCreateNestedOneWithoutBookingsInput = {
   create?: Prisma.XOR<Prisma.UserPackageCreateWithoutBookingsInput, Prisma.UserPackageUncheckedCreateWithoutBookingsInput>
   connectOrCreate?: Prisma.UserPackageCreateOrConnectWithoutBookingsInput
@@ -923,7 +857,6 @@ export type UserPackageCreateWithoutProfileInput = {
   created_at?: Date | string
   updated_at?: Date | string
   package_type: Prisma.PackageTypeCreateNestedOneWithoutUser_packagesInput
-  package?: Prisma.PackageCreateNestedOneWithoutUser_packagesInput
   coupon?: Prisma.CouponCreateNestedOneWithoutUser_packagesInput
   bookings?: Prisma.BookingCreateNestedManyWithoutUser_packageInput
   razorpay_order?: Prisma.RazorpayOrderCreateNestedOneWithoutUser_packageInput
@@ -934,7 +867,6 @@ export type UserPackageCreateWithoutProfileInput = {
 export type UserPackageUncheckedCreateWithoutProfileInput = {
   id?: string
   package_type_id: string
-  package_id?: string | null
   credits_remaining?: number | null
   credits_total?: number | null
   expiration_date: Date | string
@@ -987,7 +919,6 @@ export type UserPackageScalarWhereInput = {
   id?: Prisma.StringFilter<"UserPackage"> | string
   user_id?: Prisma.StringFilter<"UserPackage"> | string
   package_type_id?: Prisma.StringFilter<"UserPackage"> | string
-  package_id?: Prisma.StringNullableFilter<"UserPackage"> | string | null
   credits_remaining?: Prisma.IntNullableFilter<"UserPackage"> | number | null
   credits_total?: Prisma.IntNullableFilter<"UserPackage"> | number | null
   expiration_date?: Prisma.DateTimeFilter<"UserPackage"> | Date | string
@@ -1019,7 +950,6 @@ export type UserPackageCreateWithoutCouponInput = {
   updated_at?: Date | string
   profile: Prisma.ProfileCreateNestedOneWithoutUser_packagesInput
   package_type: Prisma.PackageTypeCreateNestedOneWithoutUser_packagesInput
-  package?: Prisma.PackageCreateNestedOneWithoutUser_packagesInput
   bookings?: Prisma.BookingCreateNestedManyWithoutUser_packageInput
   razorpay_order?: Prisma.RazorpayOrderCreateNestedOneWithoutUser_packageInput
   payments?: Prisma.PaymentCreateNestedManyWithoutUser_packageInput
@@ -1030,7 +960,6 @@ export type UserPackageUncheckedCreateWithoutCouponInput = {
   id?: string
   user_id: string
   package_type_id: string
-  package_id?: string | null
   credits_remaining?: number | null
   credits_total?: number | null
   expiration_date: Date | string
@@ -1090,7 +1019,6 @@ export type UserPackageCreateWithoutPackage_typeInput = {
   created_at?: Date | string
   updated_at?: Date | string
   profile: Prisma.ProfileCreateNestedOneWithoutUser_packagesInput
-  package?: Prisma.PackageCreateNestedOneWithoutUser_packagesInput
   coupon?: Prisma.CouponCreateNestedOneWithoutUser_packagesInput
   bookings?: Prisma.BookingCreateNestedManyWithoutUser_packageInput
   razorpay_order?: Prisma.RazorpayOrderCreateNestedOneWithoutUser_packageInput
@@ -1101,7 +1029,6 @@ export type UserPackageCreateWithoutPackage_typeInput = {
 export type UserPackageUncheckedCreateWithoutPackage_typeInput = {
   id?: string
   user_id: string
-  package_id?: string | null
   credits_remaining?: number | null
   credits_total?: number | null
   expiration_date: Date | string
@@ -1147,78 +1074,6 @@ export type UserPackageUpdateManyWithWhereWithoutPackage_typeInput = {
   data: Prisma.XOR<Prisma.UserPackageUpdateManyMutationInput, Prisma.UserPackageUncheckedUpdateManyWithoutPackage_typeInput>
 }
 
-export type UserPackageCreateWithoutPackageInput = {
-  id?: string
-  credits_remaining?: number | null
-  credits_total?: number | null
-  expiration_date: Date | string
-  purchase_date?: Date | string
-  is_active?: boolean
-  is_paused?: boolean
-  pause_start_date?: Date | string | null
-  pause_end_date?: Date | string | null
-  pass_type?: string | null
-  purchase_discount_inr?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
-  created_at?: Date | string
-  updated_at?: Date | string
-  profile: Prisma.ProfileCreateNestedOneWithoutUser_packagesInput
-  package_type: Prisma.PackageTypeCreateNestedOneWithoutUser_packagesInput
-  coupon?: Prisma.CouponCreateNestedOneWithoutUser_packagesInput
-  bookings?: Prisma.BookingCreateNestedManyWithoutUser_packageInput
-  razorpay_order?: Prisma.RazorpayOrderCreateNestedOneWithoutUser_packageInput
-  payments?: Prisma.PaymentCreateNestedManyWithoutUser_packageInput
-  member_tickets?: Prisma.MemberTicketCreateNestedManyWithoutUser_packageInput
-}
-
-export type UserPackageUncheckedCreateWithoutPackageInput = {
-  id?: string
-  user_id: string
-  package_type_id: string
-  credits_remaining?: number | null
-  credits_total?: number | null
-  expiration_date: Date | string
-  purchase_date?: Date | string
-  is_active?: boolean
-  is_paused?: boolean
-  pause_start_date?: Date | string | null
-  pause_end_date?: Date | string | null
-  pass_type?: string | null
-  coupon_id?: string | null
-  purchase_discount_inr?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
-  created_at?: Date | string
-  updated_at?: Date | string
-  bookings?: Prisma.BookingUncheckedCreateNestedManyWithoutUser_packageInput
-  razorpay_order?: Prisma.RazorpayOrderUncheckedCreateNestedOneWithoutUser_packageInput
-  payments?: Prisma.PaymentUncheckedCreateNestedManyWithoutUser_packageInput
-  member_tickets?: Prisma.MemberTicketUncheckedCreateNestedManyWithoutUser_packageInput
-}
-
-export type UserPackageCreateOrConnectWithoutPackageInput = {
-  where: Prisma.UserPackageWhereUniqueInput
-  create: Prisma.XOR<Prisma.UserPackageCreateWithoutPackageInput, Prisma.UserPackageUncheckedCreateWithoutPackageInput>
-}
-
-export type UserPackageCreateManyPackageInputEnvelope = {
-  data: Prisma.UserPackageCreateManyPackageInput | Prisma.UserPackageCreateManyPackageInput[]
-  skipDuplicates?: boolean
-}
-
-export type UserPackageUpsertWithWhereUniqueWithoutPackageInput = {
-  where: Prisma.UserPackageWhereUniqueInput
-  update: Prisma.XOR<Prisma.UserPackageUpdateWithoutPackageInput, Prisma.UserPackageUncheckedUpdateWithoutPackageInput>
-  create: Prisma.XOR<Prisma.UserPackageCreateWithoutPackageInput, Prisma.UserPackageUncheckedCreateWithoutPackageInput>
-}
-
-export type UserPackageUpdateWithWhereUniqueWithoutPackageInput = {
-  where: Prisma.UserPackageWhereUniqueInput
-  data: Prisma.XOR<Prisma.UserPackageUpdateWithoutPackageInput, Prisma.UserPackageUncheckedUpdateWithoutPackageInput>
-}
-
-export type UserPackageUpdateManyWithWhereWithoutPackageInput = {
-  where: Prisma.UserPackageScalarWhereInput
-  data: Prisma.XOR<Prisma.UserPackageUpdateManyMutationInput, Prisma.UserPackageUncheckedUpdateManyWithoutPackageInput>
-}
-
 export type UserPackageCreateWithoutBookingsInput = {
   id?: string
   credits_remaining?: number | null
@@ -1235,7 +1090,6 @@ export type UserPackageCreateWithoutBookingsInput = {
   updated_at?: Date | string
   profile: Prisma.ProfileCreateNestedOneWithoutUser_packagesInput
   package_type: Prisma.PackageTypeCreateNestedOneWithoutUser_packagesInput
-  package?: Prisma.PackageCreateNestedOneWithoutUser_packagesInput
   coupon?: Prisma.CouponCreateNestedOneWithoutUser_packagesInput
   razorpay_order?: Prisma.RazorpayOrderCreateNestedOneWithoutUser_packageInput
   payments?: Prisma.PaymentCreateNestedManyWithoutUser_packageInput
@@ -1246,7 +1100,6 @@ export type UserPackageUncheckedCreateWithoutBookingsInput = {
   id?: string
   user_id: string
   package_type_id: string
-  package_id?: string | null
   credits_remaining?: number | null
   credits_total?: number | null
   expiration_date: Date | string
@@ -1297,7 +1150,6 @@ export type UserPackageUpdateWithoutBookingsInput = {
   updated_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   profile?: Prisma.ProfileUpdateOneRequiredWithoutUser_packagesNestedInput
   package_type?: Prisma.PackageTypeUpdateOneRequiredWithoutUser_packagesNestedInput
-  package?: Prisma.PackageUpdateOneWithoutUser_packagesNestedInput
   coupon?: Prisma.CouponUpdateOneWithoutUser_packagesNestedInput
   razorpay_order?: Prisma.RazorpayOrderUpdateOneWithoutUser_packageNestedInput
   payments?: Prisma.PaymentUpdateManyWithoutUser_packageNestedInput
@@ -1308,7 +1160,6 @@ export type UserPackageUncheckedUpdateWithoutBookingsInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   user_id?: Prisma.StringFieldUpdateOperationsInput | string
   package_type_id?: Prisma.StringFieldUpdateOperationsInput | string
-  package_id?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   credits_remaining?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   credits_total?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   expiration_date?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -1343,7 +1194,6 @@ export type UserPackageCreateWithoutRazorpay_orderInput = {
   updated_at?: Date | string
   profile: Prisma.ProfileCreateNestedOneWithoutUser_packagesInput
   package_type: Prisma.PackageTypeCreateNestedOneWithoutUser_packagesInput
-  package?: Prisma.PackageCreateNestedOneWithoutUser_packagesInput
   coupon?: Prisma.CouponCreateNestedOneWithoutUser_packagesInput
   bookings?: Prisma.BookingCreateNestedManyWithoutUser_packageInput
   payments?: Prisma.PaymentCreateNestedManyWithoutUser_packageInput
@@ -1354,7 +1204,6 @@ export type UserPackageUncheckedCreateWithoutRazorpay_orderInput = {
   id?: string
   user_id: string
   package_type_id: string
-  package_id?: string | null
   credits_remaining?: number | null
   credits_total?: number | null
   expiration_date: Date | string
@@ -1405,7 +1254,6 @@ export type UserPackageUpdateWithoutRazorpay_orderInput = {
   updated_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   profile?: Prisma.ProfileUpdateOneRequiredWithoutUser_packagesNestedInput
   package_type?: Prisma.PackageTypeUpdateOneRequiredWithoutUser_packagesNestedInput
-  package?: Prisma.PackageUpdateOneWithoutUser_packagesNestedInput
   coupon?: Prisma.CouponUpdateOneWithoutUser_packagesNestedInput
   bookings?: Prisma.BookingUpdateManyWithoutUser_packageNestedInput
   payments?: Prisma.PaymentUpdateManyWithoutUser_packageNestedInput
@@ -1416,7 +1264,6 @@ export type UserPackageUncheckedUpdateWithoutRazorpay_orderInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   user_id?: Prisma.StringFieldUpdateOperationsInput | string
   package_type_id?: Prisma.StringFieldUpdateOperationsInput | string
-  package_id?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   credits_remaining?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   credits_total?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   expiration_date?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -1451,7 +1298,6 @@ export type UserPackageCreateWithoutPaymentsInput = {
   updated_at?: Date | string
   profile: Prisma.ProfileCreateNestedOneWithoutUser_packagesInput
   package_type: Prisma.PackageTypeCreateNestedOneWithoutUser_packagesInput
-  package?: Prisma.PackageCreateNestedOneWithoutUser_packagesInput
   coupon?: Prisma.CouponCreateNestedOneWithoutUser_packagesInput
   bookings?: Prisma.BookingCreateNestedManyWithoutUser_packageInput
   razorpay_order?: Prisma.RazorpayOrderCreateNestedOneWithoutUser_packageInput
@@ -1462,7 +1308,6 @@ export type UserPackageUncheckedCreateWithoutPaymentsInput = {
   id?: string
   user_id: string
   package_type_id: string
-  package_id?: string | null
   credits_remaining?: number | null
   credits_total?: number | null
   expiration_date: Date | string
@@ -1513,7 +1358,6 @@ export type UserPackageUpdateWithoutPaymentsInput = {
   updated_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   profile?: Prisma.ProfileUpdateOneRequiredWithoutUser_packagesNestedInput
   package_type?: Prisma.PackageTypeUpdateOneRequiredWithoutUser_packagesNestedInput
-  package?: Prisma.PackageUpdateOneWithoutUser_packagesNestedInput
   coupon?: Prisma.CouponUpdateOneWithoutUser_packagesNestedInput
   bookings?: Prisma.BookingUpdateManyWithoutUser_packageNestedInput
   razorpay_order?: Prisma.RazorpayOrderUpdateOneWithoutUser_packageNestedInput
@@ -1524,7 +1368,6 @@ export type UserPackageUncheckedUpdateWithoutPaymentsInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   user_id?: Prisma.StringFieldUpdateOperationsInput | string
   package_type_id?: Prisma.StringFieldUpdateOperationsInput | string
-  package_id?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   credits_remaining?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   credits_total?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   expiration_date?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -1559,7 +1402,6 @@ export type UserPackageCreateWithoutMember_ticketsInput = {
   updated_at?: Date | string
   profile: Prisma.ProfileCreateNestedOneWithoutUser_packagesInput
   package_type: Prisma.PackageTypeCreateNestedOneWithoutUser_packagesInput
-  package?: Prisma.PackageCreateNestedOneWithoutUser_packagesInput
   coupon?: Prisma.CouponCreateNestedOneWithoutUser_packagesInput
   bookings?: Prisma.BookingCreateNestedManyWithoutUser_packageInput
   razorpay_order?: Prisma.RazorpayOrderCreateNestedOneWithoutUser_packageInput
@@ -1570,7 +1412,6 @@ export type UserPackageUncheckedCreateWithoutMember_ticketsInput = {
   id?: string
   user_id: string
   package_type_id: string
-  package_id?: string | null
   credits_remaining?: number | null
   credits_total?: number | null
   expiration_date: Date | string
@@ -1621,7 +1462,6 @@ export type UserPackageUpdateWithoutMember_ticketsInput = {
   updated_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   profile?: Prisma.ProfileUpdateOneRequiredWithoutUser_packagesNestedInput
   package_type?: Prisma.PackageTypeUpdateOneRequiredWithoutUser_packagesNestedInput
-  package?: Prisma.PackageUpdateOneWithoutUser_packagesNestedInput
   coupon?: Prisma.CouponUpdateOneWithoutUser_packagesNestedInput
   bookings?: Prisma.BookingUpdateManyWithoutUser_packageNestedInput
   razorpay_order?: Prisma.RazorpayOrderUpdateOneWithoutUser_packageNestedInput
@@ -1632,7 +1472,6 @@ export type UserPackageUncheckedUpdateWithoutMember_ticketsInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   user_id?: Prisma.StringFieldUpdateOperationsInput | string
   package_type_id?: Prisma.StringFieldUpdateOperationsInput | string
-  package_id?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   credits_remaining?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   credits_total?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   expiration_date?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -1654,7 +1493,6 @@ export type UserPackageUncheckedUpdateWithoutMember_ticketsInput = {
 export type UserPackageCreateManyProfileInput = {
   id?: string
   package_type_id: string
-  package_id?: string | null
   credits_remaining?: number | null
   credits_total?: number | null
   expiration_date: Date | string
@@ -1685,7 +1523,6 @@ export type UserPackageUpdateWithoutProfileInput = {
   created_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updated_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   package_type?: Prisma.PackageTypeUpdateOneRequiredWithoutUser_packagesNestedInput
-  package?: Prisma.PackageUpdateOneWithoutUser_packagesNestedInput
   coupon?: Prisma.CouponUpdateOneWithoutUser_packagesNestedInput
   bookings?: Prisma.BookingUpdateManyWithoutUser_packageNestedInput
   razorpay_order?: Prisma.RazorpayOrderUpdateOneWithoutUser_packageNestedInput
@@ -1696,7 +1533,6 @@ export type UserPackageUpdateWithoutProfileInput = {
 export type UserPackageUncheckedUpdateWithoutProfileInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   package_type_id?: Prisma.StringFieldUpdateOperationsInput | string
-  package_id?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   credits_remaining?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   credits_total?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   expiration_date?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -1719,7 +1555,6 @@ export type UserPackageUncheckedUpdateWithoutProfileInput = {
 export type UserPackageUncheckedUpdateManyWithoutProfileInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   package_type_id?: Prisma.StringFieldUpdateOperationsInput | string
-  package_id?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   credits_remaining?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   credits_total?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   expiration_date?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -1739,7 +1574,6 @@ export type UserPackageCreateManyCouponInput = {
   id?: string
   user_id: string
   package_type_id: string
-  package_id?: string | null
   credits_remaining?: number | null
   credits_total?: number | null
   expiration_date: Date | string
@@ -1770,7 +1604,6 @@ export type UserPackageUpdateWithoutCouponInput = {
   updated_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   profile?: Prisma.ProfileUpdateOneRequiredWithoutUser_packagesNestedInput
   package_type?: Prisma.PackageTypeUpdateOneRequiredWithoutUser_packagesNestedInput
-  package?: Prisma.PackageUpdateOneWithoutUser_packagesNestedInput
   bookings?: Prisma.BookingUpdateManyWithoutUser_packageNestedInput
   razorpay_order?: Prisma.RazorpayOrderUpdateOneWithoutUser_packageNestedInput
   payments?: Prisma.PaymentUpdateManyWithoutUser_packageNestedInput
@@ -1781,7 +1614,6 @@ export type UserPackageUncheckedUpdateWithoutCouponInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   user_id?: Prisma.StringFieldUpdateOperationsInput | string
   package_type_id?: Prisma.StringFieldUpdateOperationsInput | string
-  package_id?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   credits_remaining?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   credits_total?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   expiration_date?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -1804,7 +1636,6 @@ export type UserPackageUncheckedUpdateManyWithoutCouponInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   user_id?: Prisma.StringFieldUpdateOperationsInput | string
   package_type_id?: Prisma.StringFieldUpdateOperationsInput | string
-  package_id?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   credits_remaining?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   credits_total?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   expiration_date?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -1822,7 +1653,6 @@ export type UserPackageUncheckedUpdateManyWithoutCouponInput = {
 export type UserPackageCreateManyPackage_typeInput = {
   id?: string
   user_id: string
-  package_id?: string | null
   credits_remaining?: number | null
   credits_total?: number | null
   expiration_date: Date | string
@@ -1853,7 +1683,6 @@ export type UserPackageUpdateWithoutPackage_typeInput = {
   created_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updated_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   profile?: Prisma.ProfileUpdateOneRequiredWithoutUser_packagesNestedInput
-  package?: Prisma.PackageUpdateOneWithoutUser_packagesNestedInput
   coupon?: Prisma.CouponUpdateOneWithoutUser_packagesNestedInput
   bookings?: Prisma.BookingUpdateManyWithoutUser_packageNestedInput
   razorpay_order?: Prisma.RazorpayOrderUpdateOneWithoutUser_packageNestedInput
@@ -1864,7 +1693,6 @@ export type UserPackageUpdateWithoutPackage_typeInput = {
 export type UserPackageUncheckedUpdateWithoutPackage_typeInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   user_id?: Prisma.StringFieldUpdateOperationsInput | string
-  package_id?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   credits_remaining?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   credits_total?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   expiration_date?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -1887,91 +1715,6 @@ export type UserPackageUncheckedUpdateWithoutPackage_typeInput = {
 export type UserPackageUncheckedUpdateManyWithoutPackage_typeInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   user_id?: Prisma.StringFieldUpdateOperationsInput | string
-  package_id?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  credits_remaining?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
-  credits_total?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
-  expiration_date?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
-  purchase_date?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
-  is_active?: Prisma.BoolFieldUpdateOperationsInput | boolean
-  is_paused?: Prisma.BoolFieldUpdateOperationsInput | boolean
-  pause_start_date?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
-  pause_end_date?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
-  pass_type?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  coupon_id?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  purchase_discount_inr?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
-  created_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
-  updated_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
-}
-
-export type UserPackageCreateManyPackageInput = {
-  id?: string
-  user_id: string
-  package_type_id: string
-  credits_remaining?: number | null
-  credits_total?: number | null
-  expiration_date: Date | string
-  purchase_date?: Date | string
-  is_active?: boolean
-  is_paused?: boolean
-  pause_start_date?: Date | string | null
-  pause_end_date?: Date | string | null
-  pass_type?: string | null
-  coupon_id?: string | null
-  purchase_discount_inr?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
-  created_at?: Date | string
-  updated_at?: Date | string
-}
-
-export type UserPackageUpdateWithoutPackageInput = {
-  id?: Prisma.StringFieldUpdateOperationsInput | string
-  credits_remaining?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
-  credits_total?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
-  expiration_date?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
-  purchase_date?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
-  is_active?: Prisma.BoolFieldUpdateOperationsInput | boolean
-  is_paused?: Prisma.BoolFieldUpdateOperationsInput | boolean
-  pause_start_date?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
-  pause_end_date?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
-  pass_type?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  purchase_discount_inr?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
-  created_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
-  updated_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
-  profile?: Prisma.ProfileUpdateOneRequiredWithoutUser_packagesNestedInput
-  package_type?: Prisma.PackageTypeUpdateOneRequiredWithoutUser_packagesNestedInput
-  coupon?: Prisma.CouponUpdateOneWithoutUser_packagesNestedInput
-  bookings?: Prisma.BookingUpdateManyWithoutUser_packageNestedInput
-  razorpay_order?: Prisma.RazorpayOrderUpdateOneWithoutUser_packageNestedInput
-  payments?: Prisma.PaymentUpdateManyWithoutUser_packageNestedInput
-  member_tickets?: Prisma.MemberTicketUpdateManyWithoutUser_packageNestedInput
-}
-
-export type UserPackageUncheckedUpdateWithoutPackageInput = {
-  id?: Prisma.StringFieldUpdateOperationsInput | string
-  user_id?: Prisma.StringFieldUpdateOperationsInput | string
-  package_type_id?: Prisma.StringFieldUpdateOperationsInput | string
-  credits_remaining?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
-  credits_total?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
-  expiration_date?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
-  purchase_date?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
-  is_active?: Prisma.BoolFieldUpdateOperationsInput | boolean
-  is_paused?: Prisma.BoolFieldUpdateOperationsInput | boolean
-  pause_start_date?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
-  pause_end_date?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
-  pass_type?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  coupon_id?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  purchase_discount_inr?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
-  created_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
-  updated_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
-  bookings?: Prisma.BookingUncheckedUpdateManyWithoutUser_packageNestedInput
-  razorpay_order?: Prisma.RazorpayOrderUncheckedUpdateOneWithoutUser_packageNestedInput
-  payments?: Prisma.PaymentUncheckedUpdateManyWithoutUser_packageNestedInput
-  member_tickets?: Prisma.MemberTicketUncheckedUpdateManyWithoutUser_packageNestedInput
-}
-
-export type UserPackageUncheckedUpdateManyWithoutPackageInput = {
-  id?: Prisma.StringFieldUpdateOperationsInput | string
-  user_id?: Prisma.StringFieldUpdateOperationsInput | string
-  package_type_id?: Prisma.StringFieldUpdateOperationsInput | string
   credits_remaining?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   credits_total?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   expiration_date?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -2040,7 +1783,6 @@ export type UserPackageSelect<ExtArgs extends runtime.Types.Extensions.InternalA
   id?: boolean
   user_id?: boolean
   package_type_id?: boolean
-  package_id?: boolean
   credits_remaining?: boolean
   credits_total?: boolean
   expiration_date?: boolean
@@ -2056,7 +1798,6 @@ export type UserPackageSelect<ExtArgs extends runtime.Types.Extensions.InternalA
   updated_at?: boolean
   profile?: boolean | Prisma.ProfileDefaultArgs<ExtArgs>
   package_type?: boolean | Prisma.PackageTypeDefaultArgs<ExtArgs>
-  package?: boolean | Prisma.UserPackage$packageArgs<ExtArgs>
   coupon?: boolean | Prisma.UserPackage$couponArgs<ExtArgs>
   bookings?: boolean | Prisma.UserPackage$bookingsArgs<ExtArgs>
   razorpay_order?: boolean | Prisma.UserPackage$razorpay_orderArgs<ExtArgs>
@@ -2069,7 +1810,6 @@ export type UserPackageSelectCreateManyAndReturn<ExtArgs extends runtime.Types.E
   id?: boolean
   user_id?: boolean
   package_type_id?: boolean
-  package_id?: boolean
   credits_remaining?: boolean
   credits_total?: boolean
   expiration_date?: boolean
@@ -2085,7 +1825,6 @@ export type UserPackageSelectCreateManyAndReturn<ExtArgs extends runtime.Types.E
   updated_at?: boolean
   profile?: boolean | Prisma.ProfileDefaultArgs<ExtArgs>
   package_type?: boolean | Prisma.PackageTypeDefaultArgs<ExtArgs>
-  package?: boolean | Prisma.UserPackage$packageArgs<ExtArgs>
   coupon?: boolean | Prisma.UserPackage$couponArgs<ExtArgs>
 }, ExtArgs["result"]["userPackage"]>
 
@@ -2093,7 +1832,6 @@ export type UserPackageSelectUpdateManyAndReturn<ExtArgs extends runtime.Types.E
   id?: boolean
   user_id?: boolean
   package_type_id?: boolean
-  package_id?: boolean
   credits_remaining?: boolean
   credits_total?: boolean
   expiration_date?: boolean
@@ -2109,7 +1847,6 @@ export type UserPackageSelectUpdateManyAndReturn<ExtArgs extends runtime.Types.E
   updated_at?: boolean
   profile?: boolean | Prisma.ProfileDefaultArgs<ExtArgs>
   package_type?: boolean | Prisma.PackageTypeDefaultArgs<ExtArgs>
-  package?: boolean | Prisma.UserPackage$packageArgs<ExtArgs>
   coupon?: boolean | Prisma.UserPackage$couponArgs<ExtArgs>
 }, ExtArgs["result"]["userPackage"]>
 
@@ -2117,7 +1854,6 @@ export type UserPackageSelectScalar = {
   id?: boolean
   user_id?: boolean
   package_type_id?: boolean
-  package_id?: boolean
   credits_remaining?: boolean
   credits_total?: boolean
   expiration_date?: boolean
@@ -2133,11 +1869,10 @@ export type UserPackageSelectScalar = {
   updated_at?: boolean
 }
 
-export type UserPackageOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "user_id" | "package_type_id" | "package_id" | "credits_remaining" | "credits_total" | "expiration_date" | "purchase_date" | "is_active" | "is_paused" | "pause_start_date" | "pause_end_date" | "pass_type" | "coupon_id" | "purchase_discount_inr" | "created_at" | "updated_at", ExtArgs["result"]["userPackage"]>
+export type UserPackageOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "user_id" | "package_type_id" | "credits_remaining" | "credits_total" | "expiration_date" | "purchase_date" | "is_active" | "is_paused" | "pause_start_date" | "pause_end_date" | "pass_type" | "coupon_id" | "purchase_discount_inr" | "created_at" | "updated_at", ExtArgs["result"]["userPackage"]>
 export type UserPackageInclude<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   profile?: boolean | Prisma.ProfileDefaultArgs<ExtArgs>
   package_type?: boolean | Prisma.PackageTypeDefaultArgs<ExtArgs>
-  package?: boolean | Prisma.UserPackage$packageArgs<ExtArgs>
   coupon?: boolean | Prisma.UserPackage$couponArgs<ExtArgs>
   bookings?: boolean | Prisma.UserPackage$bookingsArgs<ExtArgs>
   razorpay_order?: boolean | Prisma.UserPackage$razorpay_orderArgs<ExtArgs>
@@ -2148,13 +1883,11 @@ export type UserPackageInclude<ExtArgs extends runtime.Types.Extensions.Internal
 export type UserPackageIncludeCreateManyAndReturn<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   profile?: boolean | Prisma.ProfileDefaultArgs<ExtArgs>
   package_type?: boolean | Prisma.PackageTypeDefaultArgs<ExtArgs>
-  package?: boolean | Prisma.UserPackage$packageArgs<ExtArgs>
   coupon?: boolean | Prisma.UserPackage$couponArgs<ExtArgs>
 }
 export type UserPackageIncludeUpdateManyAndReturn<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   profile?: boolean | Prisma.ProfileDefaultArgs<ExtArgs>
   package_type?: boolean | Prisma.PackageTypeDefaultArgs<ExtArgs>
-  package?: boolean | Prisma.UserPackage$packageArgs<ExtArgs>
   coupon?: boolean | Prisma.UserPackage$couponArgs<ExtArgs>
 }
 
@@ -2163,7 +1896,6 @@ export type $UserPackagePayload<ExtArgs extends runtime.Types.Extensions.Interna
   objects: {
     profile: Prisma.$ProfilePayload<ExtArgs>
     package_type: Prisma.$PackageTypePayload<ExtArgs>
-    package: Prisma.$PackagePayload<ExtArgs> | null
     coupon: Prisma.$CouponPayload<ExtArgs> | null
     bookings: Prisma.$BookingPayload<ExtArgs>[]
     razorpay_order: Prisma.$RazorpayOrderPayload<ExtArgs> | null
@@ -2174,7 +1906,6 @@ export type $UserPackagePayload<ExtArgs extends runtime.Types.Extensions.Interna
     id: string
     user_id: string
     package_type_id: string
-    package_id: string | null
     credits_remaining: number | null
     credits_total: number | null
     expiration_date: Date
@@ -2584,7 +2315,6 @@ export interface Prisma__UserPackageClient<T, Null = never, ExtArgs extends runt
   readonly [Symbol.toStringTag]: "PrismaPromise"
   profile<T extends Prisma.ProfileDefaultArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.ProfileDefaultArgs<ExtArgs>>): Prisma.Prisma__ProfileClient<runtime.Types.Result.GetResult<Prisma.$ProfilePayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | Null, Null, ExtArgs, GlobalOmitOptions>
   package_type<T extends Prisma.PackageTypeDefaultArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.PackageTypeDefaultArgs<ExtArgs>>): Prisma.Prisma__PackageTypeClient<runtime.Types.Result.GetResult<Prisma.$PackageTypePayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | Null, Null, ExtArgs, GlobalOmitOptions>
-  package<T extends Prisma.UserPackage$packageArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.UserPackage$packageArgs<ExtArgs>>): Prisma.Prisma__PackageClient<runtime.Types.Result.GetResult<Prisma.$PackagePayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | null, null, ExtArgs, GlobalOmitOptions>
   coupon<T extends Prisma.UserPackage$couponArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.UserPackage$couponArgs<ExtArgs>>): Prisma.Prisma__CouponClient<runtime.Types.Result.GetResult<Prisma.$CouponPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | null, null, ExtArgs, GlobalOmitOptions>
   bookings<T extends Prisma.UserPackage$bookingsArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.UserPackage$bookingsArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$BookingPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
   razorpay_order<T extends Prisma.UserPackage$razorpay_orderArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.UserPackage$razorpay_orderArgs<ExtArgs>>): Prisma.Prisma__RazorpayOrderClient<runtime.Types.Result.GetResult<Prisma.$RazorpayOrderPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | null, null, ExtArgs, GlobalOmitOptions>
@@ -2622,7 +2352,6 @@ export interface UserPackageFieldRefs {
   readonly id: Prisma.FieldRef<"UserPackage", 'String'>
   readonly user_id: Prisma.FieldRef<"UserPackage", 'String'>
   readonly package_type_id: Prisma.FieldRef<"UserPackage", 'String'>
-  readonly package_id: Prisma.FieldRef<"UserPackage", 'String'>
   readonly credits_remaining: Prisma.FieldRef<"UserPackage", 'Int'>
   readonly credits_total: Prisma.FieldRef<"UserPackage", 'Int'>
   readonly expiration_date: Prisma.FieldRef<"UserPackage", 'DateTime'>
@@ -3034,25 +2763,6 @@ export type UserPackageDeleteManyArgs<ExtArgs extends runtime.Types.Extensions.I
    * Limit how many UserPackages to delete.
    */
   limit?: number
-}
-
-/**
- * UserPackage.package
- */
-export type UserPackage$packageArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
-  /**
-   * Select specific fields to fetch from the Package
-   */
-  select?: Prisma.PackageSelect<ExtArgs> | null
-  /**
-   * Omit specific fields from the Package
-   */
-  omit?: Prisma.PackageOmit<ExtArgs> | null
-  /**
-   * Choose, which related nodes to fetch as well
-   */
-  include?: Prisma.PackageInclude<ExtArgs> | null
-  where?: Prisma.PackageWhereInput
 }
 
 /**

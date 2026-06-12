@@ -396,7 +396,6 @@ export const ModelName = {
   PartnerMember: 'PartnerMember',
   ClassSchedule: 'ClassSchedule',
   PackageType: 'PackageType',
-  Package: 'Package',
   UserPackage: 'UserPackage',
   Booking: 'Booking',
   RazorpayOrder: 'RazorpayOrder',
@@ -422,7 +421,6 @@ export const ModelName = {
   PasswordResetToken: 'PasswordResetToken',
   File: 'File',
   InstructorPayoutAdjustment: 'InstructorPayoutAdjustment',
-  Expense: 'Expense',
   QrCode: 'QrCode',
   ActivityLog: 'ActivityLog'
 } as const
@@ -440,7 +438,7 @@ export type TypeMap<ExtArgs extends runtime.Types.Extensions.InternalArgs = runt
     omit: GlobalOmitOptions
   }
   meta: {
-    modelProps: "profile" | "userSession" | "coupon" | "couponRedemption" | "retailProduct" | "retailOrder" | "instructor" | "classModel" | "partner" | "partnerMember" | "classSchedule" | "packageType" | "package" | "userPackage" | "booking" | "razorpayOrder" | "razorpayPayment" | "payment" | "cafeItem" | "cafeOrder" | "mealSubscription" | "mealSubscriptionInquiry" | "rentalInquiry" | "signupLead" | "userStats" | "userStreak" | "badgeTemplate" | "userBadge" | "waiver" | "crmTemplate" | "crmMessage" | "crmTrigger" | "userActivitySession" | "userActivityEvent" | "memberTicket" | "passwordResetToken" | "file" | "instructorPayoutAdjustment" | "expense" | "qrCode" | "activityLog"
+    modelProps: "profile" | "userSession" | "coupon" | "couponRedemption" | "retailProduct" | "retailOrder" | "instructor" | "classModel" | "partner" | "partnerMember" | "classSchedule" | "packageType" | "userPackage" | "booking" | "razorpayOrder" | "razorpayPayment" | "payment" | "cafeItem" | "cafeOrder" | "mealSubscription" | "mealSubscriptionInquiry" | "rentalInquiry" | "signupLead" | "userStats" | "userStreak" | "badgeTemplate" | "userBadge" | "waiver" | "crmTemplate" | "crmMessage" | "crmTrigger" | "userActivitySession" | "userActivityEvent" | "memberTicket" | "passwordResetToken" | "file" | "instructorPayoutAdjustment" | "qrCode" | "activityLog"
     txIsolationLevel: TransactionIsolationLevel
   }
   model: {
@@ -1329,80 +1327,6 @@ export type TypeMap<ExtArgs extends runtime.Types.Extensions.InternalArgs = runt
         count: {
           args: Prisma.PackageTypeCountArgs<ExtArgs>
           result: runtime.Types.Utils.Optional<Prisma.PackageTypeCountAggregateOutputType> | number
-        }
-      }
-    }
-    Package: {
-      payload: Prisma.$PackagePayload<ExtArgs>
-      fields: Prisma.PackageFieldRefs
-      operations: {
-        findUnique: {
-          args: Prisma.PackageFindUniqueArgs<ExtArgs>
-          result: runtime.Types.Utils.PayloadToResult<Prisma.$PackagePayload> | null
-        }
-        findUniqueOrThrow: {
-          args: Prisma.PackageFindUniqueOrThrowArgs<ExtArgs>
-          result: runtime.Types.Utils.PayloadToResult<Prisma.$PackagePayload>
-        }
-        findFirst: {
-          args: Prisma.PackageFindFirstArgs<ExtArgs>
-          result: runtime.Types.Utils.PayloadToResult<Prisma.$PackagePayload> | null
-        }
-        findFirstOrThrow: {
-          args: Prisma.PackageFindFirstOrThrowArgs<ExtArgs>
-          result: runtime.Types.Utils.PayloadToResult<Prisma.$PackagePayload>
-        }
-        findMany: {
-          args: Prisma.PackageFindManyArgs<ExtArgs>
-          result: runtime.Types.Utils.PayloadToResult<Prisma.$PackagePayload>[]
-        }
-        create: {
-          args: Prisma.PackageCreateArgs<ExtArgs>
-          result: runtime.Types.Utils.PayloadToResult<Prisma.$PackagePayload>
-        }
-        createMany: {
-          args: Prisma.PackageCreateManyArgs<ExtArgs>
-          result: BatchPayload
-        }
-        createManyAndReturn: {
-          args: Prisma.PackageCreateManyAndReturnArgs<ExtArgs>
-          result: runtime.Types.Utils.PayloadToResult<Prisma.$PackagePayload>[]
-        }
-        delete: {
-          args: Prisma.PackageDeleteArgs<ExtArgs>
-          result: runtime.Types.Utils.PayloadToResult<Prisma.$PackagePayload>
-        }
-        update: {
-          args: Prisma.PackageUpdateArgs<ExtArgs>
-          result: runtime.Types.Utils.PayloadToResult<Prisma.$PackagePayload>
-        }
-        deleteMany: {
-          args: Prisma.PackageDeleteManyArgs<ExtArgs>
-          result: BatchPayload
-        }
-        updateMany: {
-          args: Prisma.PackageUpdateManyArgs<ExtArgs>
-          result: BatchPayload
-        }
-        updateManyAndReturn: {
-          args: Prisma.PackageUpdateManyAndReturnArgs<ExtArgs>
-          result: runtime.Types.Utils.PayloadToResult<Prisma.$PackagePayload>[]
-        }
-        upsert: {
-          args: Prisma.PackageUpsertArgs<ExtArgs>
-          result: runtime.Types.Utils.PayloadToResult<Prisma.$PackagePayload>
-        }
-        aggregate: {
-          args: Prisma.PackageAggregateArgs<ExtArgs>
-          result: runtime.Types.Utils.Optional<Prisma.AggregatePackage>
-        }
-        groupBy: {
-          args: Prisma.PackageGroupByArgs<ExtArgs>
-          result: runtime.Types.Utils.Optional<Prisma.PackageGroupByOutputType>[]
-        }
-        count: {
-          args: Prisma.PackageCountArgs<ExtArgs>
-          result: runtime.Types.Utils.Optional<Prisma.PackageCountAggregateOutputType> | number
         }
       }
     }
@@ -3256,80 +3180,6 @@ export type TypeMap<ExtArgs extends runtime.Types.Extensions.InternalArgs = runt
         }
       }
     }
-    Expense: {
-      payload: Prisma.$ExpensePayload<ExtArgs>
-      fields: Prisma.ExpenseFieldRefs
-      operations: {
-        findUnique: {
-          args: Prisma.ExpenseFindUniqueArgs<ExtArgs>
-          result: runtime.Types.Utils.PayloadToResult<Prisma.$ExpensePayload> | null
-        }
-        findUniqueOrThrow: {
-          args: Prisma.ExpenseFindUniqueOrThrowArgs<ExtArgs>
-          result: runtime.Types.Utils.PayloadToResult<Prisma.$ExpensePayload>
-        }
-        findFirst: {
-          args: Prisma.ExpenseFindFirstArgs<ExtArgs>
-          result: runtime.Types.Utils.PayloadToResult<Prisma.$ExpensePayload> | null
-        }
-        findFirstOrThrow: {
-          args: Prisma.ExpenseFindFirstOrThrowArgs<ExtArgs>
-          result: runtime.Types.Utils.PayloadToResult<Prisma.$ExpensePayload>
-        }
-        findMany: {
-          args: Prisma.ExpenseFindManyArgs<ExtArgs>
-          result: runtime.Types.Utils.PayloadToResult<Prisma.$ExpensePayload>[]
-        }
-        create: {
-          args: Prisma.ExpenseCreateArgs<ExtArgs>
-          result: runtime.Types.Utils.PayloadToResult<Prisma.$ExpensePayload>
-        }
-        createMany: {
-          args: Prisma.ExpenseCreateManyArgs<ExtArgs>
-          result: BatchPayload
-        }
-        createManyAndReturn: {
-          args: Prisma.ExpenseCreateManyAndReturnArgs<ExtArgs>
-          result: runtime.Types.Utils.PayloadToResult<Prisma.$ExpensePayload>[]
-        }
-        delete: {
-          args: Prisma.ExpenseDeleteArgs<ExtArgs>
-          result: runtime.Types.Utils.PayloadToResult<Prisma.$ExpensePayload>
-        }
-        update: {
-          args: Prisma.ExpenseUpdateArgs<ExtArgs>
-          result: runtime.Types.Utils.PayloadToResult<Prisma.$ExpensePayload>
-        }
-        deleteMany: {
-          args: Prisma.ExpenseDeleteManyArgs<ExtArgs>
-          result: BatchPayload
-        }
-        updateMany: {
-          args: Prisma.ExpenseUpdateManyArgs<ExtArgs>
-          result: BatchPayload
-        }
-        updateManyAndReturn: {
-          args: Prisma.ExpenseUpdateManyAndReturnArgs<ExtArgs>
-          result: runtime.Types.Utils.PayloadToResult<Prisma.$ExpensePayload>[]
-        }
-        upsert: {
-          args: Prisma.ExpenseUpsertArgs<ExtArgs>
-          result: runtime.Types.Utils.PayloadToResult<Prisma.$ExpensePayload>
-        }
-        aggregate: {
-          args: Prisma.ExpenseAggregateArgs<ExtArgs>
-          result: runtime.Types.Utils.Optional<Prisma.AggregateExpense>
-        }
-        groupBy: {
-          args: Prisma.ExpenseGroupByArgs<ExtArgs>
-          result: runtime.Types.Utils.Optional<Prisma.ExpenseGroupByOutputType>[]
-        }
-        count: {
-          args: Prisma.ExpenseCountArgs<ExtArgs>
-          result: runtime.Types.Utils.Optional<Prisma.ExpenseCountAggregateOutputType> | number
-        }
-      }
-    }
     QrCode: {
       payload: Prisma.$QrCodePayload<ExtArgs>
       fields: Prisma.QrCodeFieldRefs
@@ -3743,29 +3593,10 @@ export const PackageTypeScalarFieldEnum = {
 export type PackageTypeScalarFieldEnum = (typeof PackageTypeScalarFieldEnum)[keyof typeof PackageTypeScalarFieldEnum]
 
 
-export const PackageScalarFieldEnum = {
-  id: 'id',
-  name: 'name',
-  tier: 'tier',
-  price: 'price',
-  validity_days: 'validity_days',
-  credits_total: 'credits_total',
-  includes_physique57: 'includes_physique57',
-  description: 'description',
-  display_order: 'display_order',
-  is_active: 'is_active',
-  created_at: 'created_at',
-  updated_at: 'updated_at'
-} as const
-
-export type PackageScalarFieldEnum = (typeof PackageScalarFieldEnum)[keyof typeof PackageScalarFieldEnum]
-
-
 export const UserPackageScalarFieldEnum = {
   id: 'id',
   user_id: 'user_id',
   package_type_id: 'package_type_id',
-  package_id: 'package_id',
   credits_remaining: 'credits_remaining',
   credits_total: 'credits_total',
   expiration_date: 'expiration_date',
@@ -4209,26 +4040,6 @@ export const InstructorPayoutAdjustmentScalarFieldEnum = {
 export type InstructorPayoutAdjustmentScalarFieldEnum = (typeof InstructorPayoutAdjustmentScalarFieldEnum)[keyof typeof InstructorPayoutAdjustmentScalarFieldEnum]
 
 
-export const ExpenseScalarFieldEnum = {
-  id: 'id',
-  category: 'category',
-  amount_paise: 'amount_paise',
-  incurred_at: 'incurred_at',
-  description: 'description',
-  payee: 'payee',
-  method: 'method',
-  proof_url: 'proof_url',
-  notes: 'notes',
-  recorded_by: 'recorded_by',
-  instructor_id: 'instructor_id',
-  payout_period_key: 'payout_period_key',
-  created_at: 'created_at',
-  updated_at: 'updated_at'
-} as const
-
-export type ExpenseScalarFieldEnum = (typeof ExpenseScalarFieldEnum)[keyof typeof ExpenseScalarFieldEnum]
-
-
 export const QrCodeScalarFieldEnum = {
   id: 'id',
   class_schedule_id: 'class_schedule_id',
@@ -4600,7 +4411,6 @@ export type GlobalOmitConfig = {
   partnerMember?: Prisma.PartnerMemberOmit
   classSchedule?: Prisma.ClassScheduleOmit
   packageType?: Prisma.PackageTypeOmit
-  package?: Prisma.PackageOmit
   userPackage?: Prisma.UserPackageOmit
   booking?: Prisma.BookingOmit
   razorpayOrder?: Prisma.RazorpayOrderOmit
@@ -4626,7 +4436,6 @@ export type GlobalOmitConfig = {
   passwordResetToken?: Prisma.PasswordResetTokenOmit
   file?: Prisma.FileOmit
   instructorPayoutAdjustment?: Prisma.InstructorPayoutAdjustmentOmit
-  expense?: Prisma.ExpenseOmit
   qrCode?: Prisma.QrCodeOmit
   activityLog?: Prisma.ActivityLogOmit
 }

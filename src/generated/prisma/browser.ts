@@ -82,11 +82,6 @@ export type ClassSchedule = Prisma.ClassScheduleModel
  */
 export type PackageType = Prisma.PackageTypeModel
 /**
- * Model Package
- * 
- */
-export type Package = Prisma.PackageModel
-/**
  * Model UserPackage
  * 
  */
@@ -213,13 +208,6 @@ export type File = Prisma.FileModel
  * Endpoint merges these onto the computed totals.
  */
 export type InstructorPayoutAdjustment = Prisma.InstructorPayoutAdjustmentModel
-/**
- * Model Expense
- * Unified expense ledger — the source of truth for the expense side of finance.
- * Manual rows (café free meals, rent, ad-hoc costs) plus auto-recorded instructor
- * payouts. Amounts in paise, like every other money field.
- */
-export type Expense = Prisma.ExpenseModel
 /**
  * Model QrCode
  * One stored QR per (schedule, kind). Image lives in S3 via `file`; `token` is the

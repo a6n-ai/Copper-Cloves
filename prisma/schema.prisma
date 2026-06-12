@@ -52,7 +52,6 @@ model Profile {
   member_tickets    MemberTicket[]
   payments          Payment[]
   recorded_payments Payment[] @relation("PaymentRecordedBy")
-  recorded_expenses Expense[] @relation("ExpenseRecordedBy")
   sessions          UserSession[]
 
   @@index([is_system])
@@ -196,7 +195,6 @@ model Instructor {
   class_schedules            ClassSchedule[] @relation("ScheduledInstructor")
   actual_class_schedules     ClassSchedule[] @relation("ActualInstructor")
   profile                    Profile? @relation(fields: [profile_id], references: [id], onDelete: SetNull)
-  expenses                   Expense[]
   payments                   Payment[]
 
   @@map("instructors")
@@ -319,30 +317,10 @@ model PackageType {
   @@map("package_types")
 }
 
-model Package {
-  id               String   @id @default(uuid())
-  name             String
-  tier             String?
-  price            Decimal  @db.Decimal(10, 2)
-  validity_days    Int?
-  credits_total    Int?
-  includes_physique57 Boolean @default(false)
-  description      String?
-  display_order    Int?
-  is_active        Boolean  @default(true)
-  created_at       DateTime @default(now())
-  updated_at       DateTime @default(now()) @updatedAt
-
-  user_packages UserPackage[]
-
-  @@map("packages")
-}
-
 model UserPackage {
   id                String    @id @default(uuid())
   user_id           String
   package_type_id   String
-  package_id        String?
   credits_remaining Int?
   credits_total     Int?
   expiration_date   DateTime
@@ -359,7 +337,6 @@ model UserPackage {
 
   profile      Profile     @relation(fields: [user_id], references: [id], onDelete: Cascade)
   package_type PackageType @relation(fields: [package_type_id], references: [id], onDelete: Restrict)
-  package      Package?    @relation(fields: [package_id], references: [id], onDelete: SetNull)
   coupon       Coupon?     @relation(fields: [coupon_id], references: [id], onDelete: SetNull)
   bookings     Booking[]
   razorpay_order   RazorpayOrder?
@@ -368,7 +345,6 @@ model UserPackage {
 
   @@index([user_id])
   @@index([package_type_id])
-  @@index([package_id])
   @@index([coupon_id])
   @@index([expiration_date])
   @@index([is_active, expiration_date])
@@ -972,44 +948,6 @@ enum ExpenseCategory {
   maintenance
   refund
   other
-}
-
-/// Unified expense ledger — the source of truth for the expense side of finance.
-/// Manual rows (café free meals, rent, ad-hoc costs) plus auto-recorded instructor
-/// payouts. Amounts in paise, like every other money field.
-model Expense {
-  id           String          @id @default(uuid())
-  category     ExpenseCategory
-  amount_paise Int
-  /// When the cost was incurred (admin-set; defaults to now). Drives finance period bucketing.
-  incurred_at  DateTime        @default(now())
-  description  String?
-  /// Free-text payee / vendor / recipient (instructor name auto-filled for payouts).
-  payee        String?
-  /// How it was paid out — reuses the income PaymentMethod enum (cash, UPI, etc.).
-  method       PaymentMethod?
-  proof_url    String?
-  notes        String?
-  /// Admin profile id who recorded it.
-  recorded_by  String?
-
-  /// Payout linkage (only for category instructor_payout). `payout_period_key`
-  /// ties to InstructorPayoutAdjustment.period_key so a payout maps to one expense.
-  instructor_id     String?
-  payout_period_key String?
-
-  created_at DateTime @default(now())
-  updated_at DateTime @default(now()) @updatedAt
-
-  recorded_by_admin Profile?    @relation("ExpenseRecordedBy", fields: [recorded_by], references: [id], onDelete: SetNull)
-  instructor        Instructor? @relation(fields: [instructor_id], references: [id], onDelete: SetNull)
-
-  /// One auto-expense per instructor per payout period (idempotent; NULLs don't collide in Postgres).
-  @@unique([instructor_id, payout_period_key])
-  @@index([category])
-  @@index([incurred_at])
-  @@index([instructor_id])
-  @@map("expenses")
 }
 
 /// One stored QR per (schedule, kind). Image lives in S3 via `file`; `token` is the

@@ -63,7 +63,6 @@ export const ModelName = {
   PartnerMember: 'PartnerMember',
   ClassSchedule: 'ClassSchedule',
   PackageType: 'PackageType',
-  Package: 'Package',
   UserPackage: 'UserPackage',
   Booking: 'Booking',
   RazorpayOrder: 'RazorpayOrder',
@@ -89,7 +88,6 @@ export const ModelName = {
   PasswordResetToken: 'PasswordResetToken',
   File: 'File',
   InstructorPayoutAdjustment: 'InstructorPayoutAdjustment',
-  Expense: 'Expense',
   QrCode: 'QrCode',
   ActivityLog: 'ActivityLog'
 } as const
@@ -336,29 +334,10 @@ export const PackageTypeScalarFieldEnum = {
 export type PackageTypeScalarFieldEnum = (typeof PackageTypeScalarFieldEnum)[keyof typeof PackageTypeScalarFieldEnum]
 
 
-export const PackageScalarFieldEnum = {
-  id: 'id',
-  name: 'name',
-  tier: 'tier',
-  price: 'price',
-  validity_days: 'validity_days',
-  credits_total: 'credits_total',
-  includes_physique57: 'includes_physique57',
-  description: 'description',
-  display_order: 'display_order',
-  is_active: 'is_active',
-  created_at: 'created_at',
-  updated_at: 'updated_at'
-} as const
-
-export type PackageScalarFieldEnum = (typeof PackageScalarFieldEnum)[keyof typeof PackageScalarFieldEnum]
-
-
 export const UserPackageScalarFieldEnum = {
   id: 'id',
   user_id: 'user_id',
   package_type_id: 'package_type_id',
-  package_id: 'package_id',
   credits_remaining: 'credits_remaining',
   credits_total: 'credits_total',
   expiration_date: 'expiration_date',
@@ -800,26 +779,6 @@ export const InstructorPayoutAdjustmentScalarFieldEnum = {
 } as const
 
 export type InstructorPayoutAdjustmentScalarFieldEnum = (typeof InstructorPayoutAdjustmentScalarFieldEnum)[keyof typeof InstructorPayoutAdjustmentScalarFieldEnum]
-
-
-export const ExpenseScalarFieldEnum = {
-  id: 'id',
-  category: 'category',
-  amount_paise: 'amount_paise',
-  incurred_at: 'incurred_at',
-  description: 'description',
-  payee: 'payee',
-  method: 'method',
-  proof_url: 'proof_url',
-  notes: 'notes',
-  recorded_by: 'recorded_by',
-  instructor_id: 'instructor_id',
-  payout_period_key: 'payout_period_key',
-  created_at: 'created_at',
-  updated_at: 'updated_at'
-} as const
-
-export type ExpenseScalarFieldEnum = (typeof ExpenseScalarFieldEnum)[keyof typeof ExpenseScalarFieldEnum]
 
 
 export const QrCodeScalarFieldEnum = {
