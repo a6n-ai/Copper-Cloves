@@ -16,6 +16,7 @@ import {
   Calendar,
   User,
   Activity,
+  Loader2,
 } from "lucide-react";
 import { SEO } from "@/components/SEO";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -25,6 +26,14 @@ import { ResponsiveTable } from "@/components/responsive/ResponsiveTable";
 import { Pagination, usePagination } from "@/components/Pagination";
 import { MetricCard } from "@/components/admin/MetricCard";
 import { SortableHeader } from "@/components/admin/sortable-table";
+import { toast } from "sonner";
+import { Label } from "@/components/ui/label";
+import { Input } from "@/components/ui/input";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import {
+  ResponsiveDialog, ResponsiveDialogContent, ResponsiveDialogDescription,
+  ResponsiveDialogFooter, ResponsiveDialogHeader, ResponsiveDialogTitle,
+} from "@/components/responsive/ResponsiveDialog";
 
 interface CreditTransaction {
   id: string;
@@ -35,6 +44,9 @@ interface CreditTransaction {
   reason: string;
   date: string;
   adminName: string;
+  userPackageId?: string;
+  packageTypePriceInr?: number;
+  movedToMoneyIn?: boolean;
 }
 
 type SortKey = "type" | "amount" | "member" | "date";
@@ -192,13 +204,48 @@ export default function AdminCredits() {
 
   const loadTransactions = async () => {
     try {
-      const res = await fetch("/api/admin/credit-transactions");
+      const res = await fetch("/api/admin/class-ledger");
       if (!res.ok) throw new Error("failed");
       const rows: CreditTransaction[] = await res.json();
       setTransactions(rows);
     } catch {
       setTransactions([]);
     }
+  };
+
+  const [moveRow, setMoveRow] = useState<CreditTransaction | null>(null);
+  const [moveAmount, setMoveAmount] = useState("");
+  const [moveMethod, setMoveMethod] = useState("cash");
+  const [movingSaving, setMovingSaving] = useState(false);
+
+  const openMove = (t: CreditTransaction) => {
+    setMoveRow(t);
+    setMoveAmount(String(Math.round(t.packageTypePriceInr ?? 0)));
+    setMoveMethod("cash");
+  };
+
+  const submitMove = async () => {
+    if (!moveRow?.userPackageId) return;
+    const amt = Number(moveAmount);
+    if (!Number.isFinite(amt) || amt <= 0) { toast.error("Enter a valid amount."); return; }
+    setMovingSaving(true);
+    try {
+      const r = await fetch("/api/admin/payments", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          user_id: moveRow.memberId,
+          user_package_id: moveRow.userPackageId,
+          method: moveMethod,
+          amount_paise: Math.round(amt * 100),
+          notes: `Moved from class grant: ${moveRow.reason}`,
+        }),
+      });
+      if (!r.ok) { const e = await r.json().catch(() => ({})); toast.error(e.error ?? "Could not move to money in."); return; }
+      toast.success("Moved to money in.");
+      setMoveRow(null);
+      await loadTransactions();
+    } finally { setMovingSaving(false); }
   };
 
   const getTypeIcon = (type: string) => {
@@ -252,8 +299,8 @@ export default function AdminCredits() {
 
   return (
     <>
-      <SEO 
-        title="Class Tracking - Admin"
+      <SEO
+        title="Class Ledger - Admin"
         description="Monitor and manage member classes"
       />
       
@@ -262,8 +309,8 @@ export default function AdminCredits() {
         <main className="min-h-screen">
           <div className="max-w-7xl mx-auto p-6 lg:p-8 space-y-8">
             <AdminPageHeader
-              title="Class Tracking"
-              subtitle="Monitor all class transactions and package purchases"
+              title="Class Ledger"
+              subtitle="Class grants, usage, and moving grants to money-in"
               actions={
                 <Button onClick={() => router.push("/admin/members")} variant="sage">
                   <User className="h-5 w-5 mr-2" />
@@ -339,6 +386,7 @@ export default function AdminCredits() {
                               <SortableHeader sortKey="member" active={sortKey} dir={sortDir} onToggle={toggleSort} className="w-[180px]">Member</SortableHeader>
                               <TableHead>Reason</TableHead>
                               <SortableHeader sortKey="date" active={sortKey} dir={sortDir} onToggle={toggleSort} className="w-[200px]">Date &amp; Admin</SortableHeader>
+                              <TableHead className="w-[140px] text-right">Actions</TableHead>
                             </TableRow>
                           </TableHeader>
                           <TableBody>
@@ -384,6 +432,19 @@ export default function AdminCredits() {
                                     By: {transaction.adminName}
                                   </div>
                                 </TableCell>
+                                <TableCell className="text-right">
+                                  {transaction.type === "added" && transaction.userPackageId ? (
+                                    transaction.movedToMoneyIn ? (
+                                      <Pill tone="success">Moved</Pill>
+                                    ) : (
+                                      <Button type="button" variant="sage-outline" size="sm" onClick={() => openMove(transaction)}>
+                                        Move to money in
+                                      </Button>
+                                    )
+                                  ) : (
+                                    <span className="font-body text-xs text-charcoal/25">—</span>
+                                  )}
+                                </TableCell>
                               </TableRow>
                             ))}
                           </TableBody>
@@ -403,6 +464,45 @@ export default function AdminCredits() {
           </div>
         </main>
       </div>
+
+      <ResponsiveDialog open={moveRow !== null} onOpenChange={(o) => { if (!o) setMoveRow(null); }}>
+        <ResponsiveDialogContent className="border-sage/20 bg-white-warm sm:max-w-md">
+          <ResponsiveDialogHeader>
+            <ResponsiveDialogTitle className="font-display text-charcoal">Move to money in</ResponsiveDialogTitle>
+            <ResponsiveDialogDescription className="font-body text-charcoal/60">
+              {moveRow ? `Record a manual payment for ${moveRow.memberName}'s grant (${moveRow.reason}).` : ""}
+            </ResponsiveDialogDescription>
+          </ResponsiveDialogHeader>
+          <div className="space-y-4 py-2">
+            <div className="grid grid-cols-2 gap-3">
+              <div className="space-y-1.5">
+                <Label className="font-body text-xs text-charcoal/60">Amount (₹)</Label>
+                <Input type="number" min="0" inputMode="decimal" value={moveAmount}
+                  onChange={(e) => setMoveAmount(e.target.value)} className="border-sage/20 bg-white" />
+              </div>
+              <div className="space-y-1.5">
+                <Label className="font-body text-xs text-charcoal/60">Method</Label>
+                <Select value={moveMethod} onValueChange={setMoveMethod}>
+                  <SelectTrigger className="border-sage/20 bg-white"><SelectValue /></SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="cash">Cash</SelectItem>
+                    <SelectItem value="direct_upi">UPI</SelectItem>
+                    <SelectItem value="pine_lab_card">Card (Pine Lab)</SelectItem>
+                    <SelectItem value="pine_lab_upi">UPI (Pine Lab)</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+            </div>
+          </div>
+          <ResponsiveDialogFooter>
+            <Button type="button" variant="outline" className="border-sage/20" onClick={() => setMoveRow(null)} disabled={movingSaving}>Cancel</Button>
+            <Button type="button" variant="sage" onClick={submitMove} disabled={movingSaving}>
+              {movingSaving ? <Loader2 className="h-4 w-4 mr-2 animate-spin" /> : null}
+              Move
+            </Button>
+          </ResponsiveDialogFooter>
+        </ResponsiveDialogContent>
+      </ResponsiveDialog>
     </>
   );
 }

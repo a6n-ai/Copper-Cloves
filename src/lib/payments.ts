@@ -218,6 +218,20 @@ export type ManualPaymentInRow = {
   notes: string | null;
 };
 
+/** True if a manual (non-Razorpay) money-in already exists for this UserPackage. */
+export async function manualCreditExistsForPackage(userPackageId: string): Promise<boolean> {
+  if (!userPackageId) return false;
+  const hit = await prisma.payment.findFirst({
+    where: {
+      user_package_id: userPackageId,
+      direction: "credit",
+      OR: [{ method: null }, { method: { notIn: RAZORPAY_METHODS } }],
+    },
+    select: { id: true },
+  });
+  return hit != null;
+}
+
 /**
  * List manual (non-Razorpay) money-in credits, newest first. "Manual" = any
  * credit row whose method is null OR not a Razorpay method. Drives the
