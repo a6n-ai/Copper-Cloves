@@ -31,6 +31,8 @@ export const ACTIVITY_ACTIONS: Record<string, ActionDef> = {
 
   // admin
   "admin.payment_recorded": { category: "admin", buildSummary: (m) => `Recorded ${str(m.method, "a")} payment` },
+  "admin.payment_updated": { category: "admin", buildSummary: (m) => `Edited payment (${Array.isArray(m.changed_fields) ? (m.changed_fields as string[]).join(", ") : str(m.method, "fields")})` },
+  "admin.payment_deleted": { category: "admin", buildSummary: () => `Deleted a manual payment` },
   "admin.package_assigned": { category: "admin", buildSummary: (m) => `Assigned ${str(m.package_name, "a package")}` },
   "admin.badge_allocated": { category: "admin", buildSummary: (m) => `Allocated badge ${str(m.badge_name, "")}`.trim() },
   "admin.schedule_edited": { category: "admin", buildSummary: () => "Edited a class schedule" },

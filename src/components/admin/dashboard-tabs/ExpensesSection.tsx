@@ -202,7 +202,7 @@ function ExpensesSectionImpl() {
         <CardHeader>
           <div className="flex flex-wrap items-center justify-between gap-3">
             <div>
-              <CardTitle className="font-display text-2xl text-charcoal">Expenses</CardTitle>
+              <CardTitle className="font-display text-2xl text-charcoal">Money Out</CardTitle>
               <CardDescription className="font-body text-charcoal/60">Payouts, café meals, rent, and other costs</CardDescription>
             </div>
             <Button type="button" variant="sage" onClick={() => setAddOpen(true)}>
