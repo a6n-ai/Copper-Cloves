@@ -30,9 +30,7 @@ import {
 } from "@/components/responsive/ResponsiveDialog";
 import { classInitials, classFallbackGradient } from "@/components/classes/classFallback";
 import { Pill } from "@/components/ui/pill";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import { 
+import {
   X,
   Clock,
   Users,
@@ -42,7 +40,6 @@ import {
   Heart,
   ChevronLeft,
   ChevronRight,
-  UserPlus,
   CreditCard,
   AlertCircle,
   ArrowDownUp,

@@ -1,6 +1,7 @@
 // src/pages/portal/set-password.tsx
 import { useState, useEffect } from "react";
 import { useRouter } from "next/router";
+import Link from "next/link";
 import { signIn } from "next-auth/react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -130,7 +131,7 @@ export default function SetPasswordPage() {
         </form>
         <p className="text-xs text-[#6b6b6b] text-center mt-4">
           Already have a password?{" "}
-          <a href="/login" className="text-[#8f9779] underline">Sign in</a>
+          <Link href="/login" className="text-[#8f9779] underline">Sign in</Link>
         </p>
       </div>
     </div>
