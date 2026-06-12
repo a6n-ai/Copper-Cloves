@@ -9,7 +9,7 @@ import { FinanceTab } from "@/components/admin/dashboard-tabs/FinanceTab";
  * never show different finance numbers.
  */
 export function FinanceTabConnected() {
-  const { financeStats, financeLedgerTransactions, financeTrend, loaded } = useAdminFinanceData();
+  const { financeStats, financeLedgerTransactions, financeTrend, loaded, reload } = useAdminFinanceData();
 
   return (
     <FinanceTab
@@ -18,6 +18,7 @@ export function FinanceTabConnected() {
       financeLedgerTransactions={financeLedgerTransactions}
       financeTrend={financeTrend}
       onExport={exportFinanceReport}
+      onReload={reload}
     />
   );
 }

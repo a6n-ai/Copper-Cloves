@@ -8,8 +8,11 @@ import {
   CreditCard,
   DollarSign,
   Download,
+  Eye,
   FileText,
   Filter,
+  Loader2,
+  Pencil,
   PieChart,
   Smartphone,
   TrendingDown,
@@ -17,10 +20,14 @@ import {
   Trophy,
   User,
 } from "lucide-react";
+import { toast } from "sonner";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { ResponsiveTable } from "@/components/responsive/ResponsiveTable";
 import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Textarea } from "@/components/ui/textarea";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Pill, type PillProps } from "@/components/ui/pill";
 import { financeKindPill } from "@/lib/pillMaps";
 import { Label } from "@/components/ui/label";
@@ -28,6 +35,7 @@ import {
   ResponsiveDialog,
   ResponsiveDialogContent,
   ResponsiveDialogDescription,
+  ResponsiveDialogFooter,
   ResponsiveDialogHeader,
   ResponsiveDialogTitle,
 } from "@/components/responsive/ResponsiveDialog";
@@ -175,6 +183,16 @@ export type DashboardTxn = {
   amount: number;
   category: string;
   method: string;
+  // Present only on manual money-in rows (non-Razorpay credit Payment). Carries
+  // the raw values so the Transactions tab can edit it via the same
+  // PATCH /api/admin/payments path the Money In tab uses.
+  manualEdit?: {
+    id: string;
+    amountPaise: number;
+    method: string | null;
+    reference: string | null;
+    notes: string | null;
+  };
 };
 
 export interface FinanceStats {
@@ -603,7 +621,18 @@ export const FinanceOverviewSection = memo(FinanceOverviewSectionImpl);
 export interface FinanceTransactionsSectionProps {
   financeLedgerTransactions: DashboardTxn[];
   onExport: (period: FinanceReportPeriod, rows: DashboardTxn[]) => void;
+  /** Refetch ledger data after a manual-payment edit (so the row reflects the change). */
+  onReload?: () => void | Promise<void>;
 }
+
+type ManualEditForm = { amount: string; method: string; reference: string; notes: string };
+
+const MANUAL_EDIT_METHODS: { value: string; label: string }[] = [
+  { value: "cash", label: "Cash" },
+  { value: "direct_upi", label: "UPI" },
+  { value: "pine_lab_card", label: "Card (Pine Lab)" },
+  { value: "pine_lab_upi", label: "UPI (Pine Lab)" },
+];
 
 interface TxnFilterCriteria {
   filter: string;
@@ -789,6 +818,7 @@ function FinanceDetailBody({ detail }: Readonly<{ detail: DashboardFinanceDetail
 function FinanceTransactionsSectionImpl({
   financeLedgerTransactions,
   onExport,
+  onReload,
 }: Readonly<FinanceTransactionsSectionProps>) {
   const [transactionFilter, setTransactionFilter] = useState("all");
   const [transactionDateRange, setTransactionDateRange] = useState<DateRange | undefined>(undefined);
@@ -798,11 +828,58 @@ function FinanceTransactionsSectionImpl({
   const [transactionSearch, setTransactionSearch] = useState("");
   const [financeDetailOpen, setFinanceDetailOpen] = useState(false);
   const [selectedFinanceDetail, setSelectedFinanceDetail] = useState<DashboardFinanceDetail | null>(null);
+  const [editTxn, setEditTxn] = useState<DashboardTxn | null>(null);
+  const [editForm, setEditForm] = useState<ManualEditForm>({ amount: "", method: "cash", reference: "", notes: "" });
+  const [savingEdit, setSavingEdit] = useState(false);
 
   const handleSelectFinance = useCallback((detail: DashboardFinanceDetail | undefined) => {
     if (detail) setSelectedFinanceDetail(detail);
     setFinanceDetailOpen(true);
   }, []);
+
+  const handleEditManual = useCallback((txn: DashboardTxn) => {
+    if (!txn.manualEdit) return;
+    setEditTxn(txn);
+    setEditForm({
+      amount: String(Math.round(txn.manualEdit.amountPaise / 100)),
+      method: txn.manualEdit.method ?? "cash",
+      reference: txn.manualEdit.reference ?? "",
+      notes: txn.manualEdit.notes ?? "",
+    });
+  }, []);
+
+  const saveManualEdit = useCallback(async () => {
+    if (!editTxn?.manualEdit) return;
+    const amount = Number(editForm.amount);
+    if (!Number.isFinite(amount) || amount <= 0) {
+      toast.error("Enter a valid amount.");
+      return;
+    }
+    setSavingEdit(true);
+    try {
+      const r = await fetch("/api/admin/payments", {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          id: editTxn.manualEdit.id,
+          amount_paise: Math.round(amount * 100),
+          method: editForm.method,
+          reference: editForm.reference || null,
+          notes: editForm.notes || null,
+        }),
+      });
+      if (!r.ok) {
+        const e = await r.json().catch(() => ({}));
+        toast.error(e.error ?? "Could not update payment.");
+        return;
+      }
+      toast.success("Payment updated.");
+      setEditTxn(null);
+      await onReload?.();
+    } finally {
+      setSavingEdit(false);
+    }
+  }, [editTxn, editForm, onReload]);
 
   // Distinct members and methods present in the ledger, for the dropdown filters.
   const memberOptions = useMemo(() => {
@@ -998,11 +1075,12 @@ function FinanceTransactionsSectionImpl({
                     <SortableHeader sortKey="date" active={txnSortKey} dir={txnSortDir} onToggle={toggleTxn} className="w-[150px]">Date</SortableHeader>
                     <SortableHeader sortKey="method" active={txnSortKey} dir={txnSortDir} onToggle={toggleTxn} className="w-[150px]">Method</SortableHeader>
                     <SortableHeader sortKey="amount" active={txnSortKey} dir={txnSortDir} onToggle={toggleTxn} className="w-[130px] text-right" align="right">Amount</SortableHeader>
+                    <TableHead className="w-[72px] text-right">Actions</TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
                   {financeTxnPg.pageItems.map((txn) => (
-                    <FinanceRowView key={txn.id} txn={txn} onSelect={handleSelectFinance} />
+                    <FinanceRowView key={txn.id} txn={txn} onSelect={handleSelectFinance} onEditManual={handleEditManual} />
                   ))}
                 </TableBody>
               </Table>
@@ -1045,6 +1123,73 @@ function FinanceTransactionsSectionImpl({
           {selectedFinanceDetail ? <FinanceDetailBody detail={selectedFinanceDetail} /> : null}
         </ResponsiveDialogContent>
       </ResponsiveDialog>
+
+      <ResponsiveDialog open={editTxn !== null} onOpenChange={(o) => { if (!o) setEditTxn(null); }}>
+        <ResponsiveDialogContent className="border-sage/20 bg-white-warm sm:max-w-md">
+          <ResponsiveDialogHeader>
+            <ResponsiveDialogTitle className="font-display text-charcoal">Edit payment</ResponsiveDialogTitle>
+            <ResponsiveDialogDescription className="font-body text-charcoal/70">
+              {editTxn ? `Manual money-in from ${editTxn.memberFull ?? editTxn.member ?? "member"}` : ""}
+            </ResponsiveDialogDescription>
+          </ResponsiveDialogHeader>
+
+          <div className="space-y-4 py-2">
+            <div className="grid grid-cols-2 gap-3">
+              <div className="space-y-1.5">
+                <Label className="font-body text-xs text-charcoal/60">Amount (₹)</Label>
+                <Input
+                  type="number"
+                  min="0"
+                  inputMode="decimal"
+                  placeholder="0"
+                  value={editForm.amount}
+                  onChange={(e) => setEditForm((f) => ({ ...f, amount: e.target.value }))}
+                  className="border-sage/20 bg-white"
+                />
+              </div>
+              <div className="space-y-1.5">
+                <Label className="font-body text-xs text-charcoal/60">Method</Label>
+                <Select value={editForm.method} onValueChange={(v) => setEditForm((f) => ({ ...f, method: v }))}>
+                  <SelectTrigger className="border-sage/20 bg-white"><SelectValue /></SelectTrigger>
+                  <SelectContent>
+                    {MANUAL_EDIT_METHODS.map((m) => (
+                      <SelectItem key={m.value} value={m.value}>{m.label}</SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+            </div>
+            <div className="space-y-1.5">
+              <Label className="font-body text-xs text-charcoal/60">Reference</Label>
+              <Input
+                placeholder="Txn id, slip number, etc."
+                value={editForm.reference}
+                onChange={(e) => setEditForm((f) => ({ ...f, reference: e.target.value }))}
+                className="border-sage/20 bg-white"
+              />
+            </div>
+            <div className="space-y-1.5">
+              <Label className="font-body text-xs text-charcoal/60">Notes (optional)</Label>
+              <Textarea
+                rows={2}
+                value={editForm.notes}
+                onChange={(e) => setEditForm((f) => ({ ...f, notes: e.target.value }))}
+                className="border-sage/20 bg-white resize-none"
+              />
+            </div>
+          </div>
+
+          <ResponsiveDialogFooter>
+            <Button type="button" variant="outline" className="border-sage/20" onClick={() => setEditTxn(null)} disabled={savingEdit}>
+              Cancel
+            </Button>
+            <Button type="button" variant="sage" onClick={saveManualEdit} disabled={savingEdit}>
+              {savingEdit ? <Loader2 className="h-4 w-4 mr-2 animate-spin" /> : null}
+              Save changes
+            </Button>
+          </ResponsiveDialogFooter>
+        </ResponsiveDialogContent>
+      </ResponsiveDialog>
     </>
   );
 }
@@ -1063,6 +1208,7 @@ interface Props {
   financeLedgerTransactions: DashboardTxn[];
   financeTrend: FinanceTrendRow[];
   onExport: (period: FinanceReportPeriod, filtered: DashboardTxn[]) => void;
+  onReload?: () => void | Promise<void>;
 }
 
 function FinanceTabImpl({
@@ -1071,6 +1217,7 @@ function FinanceTabImpl({
   financeLedgerTransactions,
   financeTrend,
   onExport,
+  onReload,
 }: Readonly<Props>) {
   return (
     <>
@@ -1084,6 +1231,7 @@ function FinanceTabImpl({
       <FinanceTransactionsSection
         financeLedgerTransactions={financeLedgerTransactions}
         onExport={onExport}
+        onReload={onReload}
       />
     </>
   );
@@ -1094,11 +1242,14 @@ export const FinanceTab = memo(FinanceTabImpl);
 const FinanceRowView = memo(function FinanceRowView({
   txn,
   onSelect,
+  onEditManual,
 }: {
   txn: DashboardTxn;
   onSelect: (detail: DashboardFinanceDetail | undefined) => void;
+  onEditManual?: (txn: DashboardTxn) => void;
 }) {
   const openFinance = txn.finance1Tag === true && txn.financeDetail != null;
+  const canEditManual = txn.manualEdit != null;
   const displayMember = txn.memberFull ?? txn.member ?? txn.instructor ?? "Studio";
   const plus = txn.memberPlusLabel?.trim() ? ` ${txn.memberPlusLabel.trim()}` : "";
   const handleClick = openFinance ? () => onSelect(txn.financeDetail) : undefined;
@@ -1157,6 +1308,35 @@ const FinanceRowView = memo(function FinanceRowView({
         <span className={`font-display text-base tabular-nums ${txn.type === "revenue" ? "text-sage" : "text-[#a05e38]"}`}>
           {formatTxnAmountRupee(txn.amount, txn.type)}
         </span>
+      </TableCell>
+      <TableCell className="text-right">
+        {canEditManual ? (
+          <Button
+            type="button"
+            variant="ghost"
+            size="sm"
+            className="h-8 w-8 p-0 text-charcoal/40 hover:text-sage hover:bg-sage/10"
+            onClick={(e) => { e.stopPropagation(); onEditManual?.(txn); }}
+            aria-label="Edit manual payment"
+            title="Edit"
+          >
+            <Pencil className="h-4 w-4" />
+          </Button>
+        ) : openFinance ? (
+          <Button
+            type="button"
+            variant="ghost"
+            size="sm"
+            className="h-8 w-8 p-0 text-charcoal/40 hover:text-charcoal hover:bg-charcoal/5"
+            onClick={(e) => { e.stopPropagation(); onSelect(txn.financeDetail); }}
+            aria-label="View transaction detail"
+            title="View"
+          >
+            <Eye className="h-4 w-4" />
+          </Button>
+        ) : (
+          <span className="font-body text-xs text-charcoal/25">—</span>
+        )}
       </TableCell>
     </TableRow>
   );

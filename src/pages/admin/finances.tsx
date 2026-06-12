@@ -53,7 +53,7 @@ const FINANCE_TABS = [
 export default function AdminFinances() {
   // Deep-link the active tab via ?tab= so global search can land on Ledger, Reconcile, etc.
   const [activeTab, changeTab] = useTabQuery(FINANCE_TABS.map((t) => t.v), "overview");
-  const { financeStats, financeLedgerTransactions, financeTrend, loaded } = useAdminFinanceData();
+  const { financeStats, financeLedgerTransactions, financeTrend, loaded, reload } = useAdminFinanceData();
 
   return (
     <>
@@ -110,6 +110,7 @@ export default function AdminFinances() {
                 <FinanceTransactionsSection
                   financeLedgerTransactions={financeLedgerTransactions}
                   onExport={exportFinanceReport}
+                  onReload={reload}
                 />
               </TabsContent>
 
