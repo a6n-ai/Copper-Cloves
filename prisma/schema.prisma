@@ -34,6 +34,7 @@ model Profile {
   instructor_account Instructor?
   partner_memberships PartnerMember[]
   bookings          Booking[]
+  sent_invites        Booking[]  @relation("BookingInvites")
   cafe_orders       CafeOrder[]
   meal_subscriptions MealSubscription[]
   user_badges       UserBadge[]
@@ -379,6 +380,9 @@ model Booking {
   guest_attendees       Json?
   /// Finance-1: class vs café vs tax totals at checkout (see portal book flow).
   finance_snapshot      Json?
+  /// Set when this booking was created on behalf of this user by another member.
+  invited_by_user_id  String?
+  invited_by          Profile?  @relation("BookingInvites", fields: [invited_by_user_id], references: [id], onDelete: SetNull)
 
   profile        Profile        @relation(fields: [user_id], references: [id], onDelete: Cascade)
   class_schedule ClassSchedule? @relation(fields: [class_schedule_id], references: [id], onDelete: Cascade)

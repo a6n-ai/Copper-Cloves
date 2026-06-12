@@ -376,7 +376,8 @@ export const BookingScalarFieldEnum = {
   reminder_sent_at: 'reminder_sent_at',
   extra_guest_count: 'extra_guest_count',
   guest_attendees: 'guest_attendees',
-  finance_snapshot: 'finance_snapshot'
+  finance_snapshot: 'finance_snapshot',
+  invited_by_user_id: 'invited_by_user_id'
 } as const
 
 export type BookingScalarFieldEnum = (typeof BookingScalarFieldEnum)[keyof typeof BookingScalarFieldEnum]
