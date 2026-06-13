@@ -17,7 +17,8 @@ import {
   parseGuestAttendees,
   snapshotTotalsConsistent,
 } from "@/lib/financeBookingCheckout";
-import { requestLogger } from "@/lib/logger";
+import logger, { requestLogger } from "@/lib/logger";
+import { upsertFriendship } from "@/lib/friendship";
 import { logActivity } from "@/lib/activityLog";
 
 type BookingsLog = ReturnType<typeof requestLogger>;
@@ -209,6 +210,12 @@ function createBookingTx(args: CreateBookingArgs) {
           invited_by_user_id: args.userId,
         },
       });
+
+      try {
+        await upsertFriendship(tx, args.userId, profileId, "invite", "active");
+      } catch (err) {
+        logger.error({ err, booker: args.userId, invitee: profileId }, "[bookings] friendship upsert failed");
+      }
     }
 
     if (args.rpOrderId) {
