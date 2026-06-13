@@ -2,17 +2,20 @@ import type { NextApiRequest, NextApiResponse } from "next";
 import prisma from "@/lib/prisma";
 import { getStudioServerSession } from "@/lib/getStudioServerSession";
 import {
-  CLASS_RATE_INR,
-  GST_PERCENT,
-  NET_PER_UNIT,
   DEFAULT_STUDIO_CUT_PERCENT,
   instructorPctFrom,
   payableForSchedule,
   payoutForUnits,
   periodBoundsFor,
   periodKeyFor,
+  resolveRateCard,
+  autoBlendedRate,
+  netRateBreakdown,
+  effectiveBlendedRate,
   type PayoutWindow,
+  type RateCard,
 } from "@/lib/payoutCalc";
+import { getPayoutSettings } from "@/lib/payoutSettings";
 
 /**
  * Per-instructor payout for the requested calendar window (default current month),
@@ -44,6 +47,14 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   const { start, end } = periodBoundsFor(payoutWindow, now);
   const periodKey = periodKeyFor(payoutWindow, now);
 
+  const settings = await getPayoutSettings();
+  const globalCard: RateCard = {
+    rate12: settings.rate12,
+    rate8: settings.rate8,
+    rate4: settings.rate4,
+    rate1: settings.rate1,
+  };
+
   // Only schedules that have already started (no payout for future classes).
   const scheduleStart: Record<string, Date> = { lte: now };
   if (start) scheduleStart.gte = start;
@@ -64,6 +75,10 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
           image_url: true,
           specialties: true,
           studio_payout_cut_percent: true,
+          rate_12_paise: true,
+          rate_8_paise: true,
+          rate_4_paise: true,
+          rate_1_paise: true,
         },
       },
       actual_instructor: {
@@ -73,6 +88,10 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
           image_url: true,
           specialties: true,
           studio_payout_cut_percent: true,
+          rate_12_paise: true,
+          rate_8_paise: true,
+          rate_4_paise: true,
+          rate_1_paise: true,
         },
       },
       bookings: {
@@ -90,6 +109,12 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     classes: number;
     checkIns: number;
     payableUnits: number;
+    rateOverride: {
+      rate_12_paise: number | null;
+      rate_8_paise: number | null;
+      rate_4_paise: number | null;
+      rate_1_paise: number | null;
+    };
   };
   const tally = new Map<string, Agg>();
 
@@ -123,6 +148,12 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         classes: 1,
         checkIns,
         payableUnits: payable,
+        rateOverride: {
+          rate_12_paise: ins.rate_12_paise ?? null,
+          rate_8_paise: ins.rate_8_paise ?? null,
+          rate_4_paise: ins.rate_4_paise ?? null,
+          rate_1_paise: ins.rate_1_paise ?? null,
+        },
       });
     }
   }
@@ -141,9 +172,24 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     const extraClasses = adj?.extra_classes ?? 0;
     const effectivePayable = Math.max(0, a.payableUnits + extraPayable);
     const instructorPct = instructorPctFrom(a.studioCutPercent);
-    const computedPayout = payoutForUnits(effectivePayable, instructorPct);
+
+    const card = resolveRateCard(a.rateOverride, globalCard);
+    const autoBlended = autoBlendedRate(card, settings.gstPercent, instructorPct);
+    const breakdown = netRateBreakdown(card, settings.gstPercent, instructorPct);
+
+    const isPaid = !!adj?.paid_at;
+    const blendedPaise = isPaid && adj?.paid_blended_rate_paise != null
+      ? adj.paid_blended_rate_paise
+      : effectiveBlendedRate(adj?.override_blended_rate_paise ?? null, autoBlended);
+
+    const computedTotalPaise = payoutForUnits(effectivePayable, blendedPaise);
     const overridePaise = adj?.override_payout_paise ?? null;
-    const total = overridePaise != null ? overridePaise / 100 : computedPayout;
+    const totalPaise = isPaid && adj?.paid_total_paise != null
+      ? adj.paid_total_paise
+      : overridePaise != null
+        ? overridePaise
+        : computedTotalPaise;
+
     return {
       id: idx + 1,
       instructorId: a.instructorId,
@@ -157,12 +203,16 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       payableUnits: effectivePayable,
       computedPayableUnits: a.payableUnits,
       extraPayableUnits: extraPayable,
-      netPerUnit: NET_PER_UNIT,
-      rate: CLASS_RATE_INR,
-      gstPercent: GST_PERCENT,
       percentage: instructorPct,
       studioCutPercent: a.studioCutPercent,
-      total: Math.round(total * 100) / 100,
+      rateCard: card,
+      netBreakdown: breakdown,
+      autoBlendedRatePaise: autoBlended,
+      overrideBlendedRatePaise: adj?.override_blended_rate_paise ?? null,
+      blendedRatePaise: blendedPaise,
+      netPerUnit: blendedPaise / 100,
+      gstPercent: settings.gstPercent,
+      total: Math.round(totalPaise) / 100,
       overrideTotal: overridePaise != null ? overridePaise / 100 : null,
       paidAt: adj?.paid_at ?? null,
       paidMethod: adj?.paid_method ?? null,
@@ -195,9 +245,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       periodKey,
       periodStart: start?.toISOString() ?? null,
       periodEnd: end?.toISOString() ?? null,
-      netPerUnit: NET_PER_UNIT,
-      classRate: CLASS_RATE_INR,
-      gstPercent: GST_PERCENT,
+      gstPercent: settings.gstPercent,
     },
     instructors,
   });
