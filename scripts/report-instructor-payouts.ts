@@ -9,8 +9,8 @@
  *   - Cancelled with no cancellation_date => treated as timely (no pay).
  *   - Guests already have their own rows, so we just count rows (no extra_guest_count).
  *   - Floor: if a class has 0 payable rows but the instructor checked in on_time, N=1.
- *   - netPerUnit = 945 - 5% = 897.75
- *   - payout = N * 897.75 * (100 - studio_cut%) / 100
+ *   - Blended rate = autoBlendedRate(resolvedCard, gstPercent, instructorPct) — paise.
+ *   - payout = payoutForUnits(N, blendedPaise) / 100  (rupees for display).
  */
 import { config as loadEnv } from "dotenv";
 import path from "node:path";
@@ -18,26 +18,27 @@ loadEnv({ path: path.resolve(process.cwd(), ".env.local") });
 loadEnv({ path: path.resolve(process.cwd(), ".env") });
 
 import prisma from "@/lib/prisma";
+import { getPayoutSettings } from "@/lib/payoutSettings";
+import {
+  autoBlendedRate,
+  instructorPctFrom,
+  isPayable,
+  payoutForUnits,
+  resolveRateCard,
+  type RateCard,
+} from "@/lib/payoutCalc";
 
-const CLASS_RATE_INR = 945;
-const GST_PERCENT = 5;
-const NET_PER_UNIT = CLASS_RATE_INR * (1 - GST_PERCENT / 100); // 897.75
-const DEFAULT_STUDIO_CUT_PERCENT = 40;
 const SIX_HOURS_MS = 6 * 60 * 60 * 1000;
 
-function isPayable(
-  b: { status: string; cancellation_date: Date | null },
-  startTime: Date,
-): boolean {
-  if (b.status === "cancelled") {
-    if (!b.cancellation_date) return false; // can't prove late -> treat timely (no pay)
-    const lead = startTime.getTime() - b.cancellation_date.getTime();
-    return lead < SIX_HOURS_MS; // cancelled inside 6h window -> no refund -> paid
-  }
-  return true; // checked-in OR no-show
-}
-
 async function main() {
+  const settings = await getPayoutSettings();
+  const globalCard: RateCard = {
+    rate12: settings.rate12,
+    rate8: settings.rate8,
+    rate4: settings.rate4,
+    rate1: settings.rate1,
+  };
+
   const now = new Date();
 
   const schedules = await prisma.classSchedule.findMany({
@@ -48,8 +49,26 @@ async function main() {
       instructor_id: true,
       actual_instructor_id: true,
       instructor_check_in_outcome: true,
-      instructor: { select: { name: true, studio_payout_cut_percent: true } },
-      actual_instructor: { select: { name: true, studio_payout_cut_percent: true } },
+      instructor: {
+        select: {
+          name: true,
+          studio_payout_cut_percent: true,
+          rate_12_paise: true,
+          rate_8_paise: true,
+          rate_4_paise: true,
+          rate_1_paise: true,
+        },
+      },
+      actual_instructor: {
+        select: {
+          name: true,
+          studio_payout_cut_percent: true,
+          rate_12_paise: true,
+          rate_8_paise: true,
+          rate_4_paise: true,
+          rate_1_paise: true,
+        },
+      },
       bookings: {
         select: { status: true, checked_in: true, cancellation_date: true },
       },
@@ -59,6 +78,7 @@ async function main() {
   type Agg = {
     name: string;
     studioCut: number;
+    blendedRatePaise: number;
     classes: number;
     checkIns: number;
     payableUnits: number;
@@ -75,11 +95,23 @@ async function main() {
     let payable = s.bookings.filter((b) => isPayable(b, s.start_time)).length;
     if (payable === 0 && s.instructor_check_in_outcome === "on_time") payable = 1;
 
-    const studioCutRaw = insRow.studio_payout_cut_percent;
+    const studioCutPct = insRow.studio_payout_cut_percent;
     const studioCut =
-      studioCutRaw != null && Number.isFinite(Number(studioCutRaw))
-        ? Number(studioCutRaw)
-        : DEFAULT_STUDIO_CUT_PERCENT;
+      studioCutPct != null && Number.isFinite(Number(studioCutPct))
+        ? Number(studioCutPct)
+        : settings.defaultStudioCutPercent;
+    const instructorPct = instructorPctFrom(studioCut);
+
+    const card = resolveRateCard(
+      {
+        rate_12_paise: insRow.rate_12_paise ?? null,
+        rate_8_paise: insRow.rate_8_paise ?? null,
+        rate_4_paise: insRow.rate_4_paise ?? null,
+        rate_1_paise: insRow.rate_1_paise ?? null,
+      },
+      globalCard,
+    );
+    const blendedRatePaise = autoBlendedRate(card, settings.gstPercent, instructorPct);
 
     const prev = byInstructor.get(teachId);
     if (prev) {
@@ -90,6 +122,7 @@ async function main() {
       byInstructor.set(teachId, {
         name: insRow.name,
         studioCut,
+        blendedRatePaise,
         classes: 1,
         checkIns,
         payableUnits: payable,
@@ -100,17 +133,18 @@ async function main() {
   const rows = [...byInstructor.values()]
     .map((a) => {
       const instructorPct = Math.max(0, Math.min(100, 100 - a.studioCut));
-      const payout = a.payableUnits * NET_PER_UNIT * (instructorPct / 100);
-      return { ...a, instructorPct, payout };
+      const payoutRupees = payoutForUnits(a.payableUnits, a.blendedRatePaise) / 100;
+      return { ...a, instructorPct, payout: payoutRupees };
     })
     .sort((x, y) => y.payout - x.payout);
 
   const pad = (s: string | number, n: number) => String(s).padEnd(n);
   const padL = (s: string | number, n: number) => String(s).padStart(n);
 
+  const netPerUnitDisplay = (rows[0]?.blendedRatePaise ?? 0) / 100;
   console.log(
     `\nProjected instructor payouts (ALL-TIME, classes started <= now)\n` +
-      `Class rate ₹${CLASS_RATE_INR} − ${GST_PERCENT}% GST = ₹${NET_PER_UNIT}/unit | default studio cut ${DEFAULT_STUDIO_CUT_PERCENT}%\n`,
+      `Blended rate ~₹${netPerUnitDisplay.toFixed(2)}/unit (settings-driven, tiered) | default studio cut ${settings.defaultStudioCutPercent}%\n`,
   );
   console.log(
     `${pad("Instructor", 22)} ${padL("Classes", 8)} ${padL("CheckIns", 9)} ${padL("Payable", 8)} ${padL("Studio%", 8)} ${padL("Instr%", 7)} ${padL("Payout ₹", 12)}`,
