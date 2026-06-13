@@ -126,6 +126,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
           amount_paise: true,
           status: true,
           method: true,
+          created_at: true,
         },
       }),
       prisma.razorpayOrder.findMany({
@@ -185,7 +186,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       rows.push({
         paymentId: d.razorpay_payment_id,
         orderId: d.razorpay_order_id ?? null,
-        createdAtISO: monthStart.toISOString(),
+        createdAtISO: d.created_at.toISOString(),
         amountPaise: d.amount_paise ?? 0,
         amountRefundedPaise: 0,
         method: d.method ?? null,
