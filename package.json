@@ -38,6 +38,7 @@
     "backfill:s3-webp": "tsx scripts/backfill-s3-webp.ts",
     "backfill:completed-schedules": "tsx scripts/backfill-completed-schedules.ts",
     "backfill:guest-bookings": "tsx scripts/backfill-guest-bookings.ts",
+    "backfill:friendships": "tsx scripts/backfill-friendships.ts",
     "check:env": "tsx scripts/check-env.ts",
     "crm:dump-templates": "tsx scripts/dump-email-templates.ts",
     "instructor:set-password": "tsx scripts/set-instructor-password.ts",
