@@ -365,6 +365,10 @@ model Booking {
   booking_date      DateTime  @default(now())
   created_at        DateTime  @default(now())
   updated_at        DateTime  @default(now()) @updatedAt
+  /// Gateway-paid bookings only: when the seat hold lapses (created_at + 60m). Null once confirmed/expired/cancelled or for package bookings.
+  hold_expires_at     DateTime?
+  /// Idempotency guard for the ~30m "complete your payment" recovery email.
+  recovery_email_sent_at DateTime?
   cancellation_date DateTime?
   class_name        String?
   class_time        String?
@@ -399,6 +403,7 @@ model Booking {
   @@index([booking_date])
   @@index([email])
   @@index([status, booking_date])
+  @@index([status, hold_expires_at])
   @@index([checked_in, booking_date])
   @@index([check_in_outcome, booking_date])
   @@map("class_bookings")
