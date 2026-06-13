@@ -29,15 +29,18 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       instructor: { select: { id: true, name: true } },
       actual_instructor: { select: { id: true, name: true } },
       bookings: {
-        where: { status: "confirmed" },
+        // Admin sees confirmed AND payment_pending (so they can remind / reconcile unpaid holds).
+        where: { status: { in: ["confirmed", "payment_pending"] } },
         select: {
           id: true,
           user_id: true,
+          status: true,
           checked_in: true,
           check_in_time: true,
           check_in_outcome: true,
           extra_guest_count: true,
           confirmation_status: true,
+          hold_expires_at: true,
           profile: { select: { full_name: true, email: true, avatar_url: true } },
         },
         orderBy: { created_at: "asc" },
@@ -66,6 +69,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     bookings: schedule.bookings.map(b => ({
       id: b.id,
       userId: b.user_id,
+      status: b.status,
       name: b.profile?.full_name || "Member",
       email: b.profile?.email ?? "",
       avatarUrl: b.profile?.avatar_url ?? null,
@@ -74,6 +78,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       checkInOutcome: b.check_in_outcome ?? null,
       extraGuests: b.extra_guest_count ?? 0,
       confirmationStatus: b.confirmation_status ?? null,
+      holdExpiresAt: b.hold_expires_at?.toISOString() ?? null,
     })),
   });
 }
