@@ -39,6 +39,8 @@ interface RosterBooking {
   checkedIn: boolean;
   checkInOutcome: string | null;
   extraGuests: number;
+  status: string;
+  holdExpiresAt?: string | null;
 }
 interface Roster {
   scheduleId: string;
@@ -392,6 +394,35 @@ export default function AdminClassPage() {
     }
   }
 
+  async function paymentAction(bookingId: string, action: "remind" | "reconcile") {
+    setBusyId(bookingId);
+    try {
+      const res = await fetch("/api/admin/booking-payment-action", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ bookingId, action }),
+      });
+      const d = await res.json().catch(() => ({}));
+      if (!res.ok) {
+        toast.error(d.error ?? "Action failed");
+        return;
+      }
+      if (action === "remind") {
+        toast.success("Reminder sent");
+        return;
+      }
+      // reconcile
+      if (d.reconciled) {
+        toast.success("Payment found — booking confirmed");
+        await loadRoster();
+      } else {
+        toast("No completed payment found yet");
+      }
+    } finally {
+      setBusyId(null);
+    }
+  }
+
   async function searchMembers(q: string) {
     setQuery(q);
     if (q.trim().length < 2) {
@@ -715,44 +746,86 @@ export default function AdminClassPage() {
                       <p className="py-6 text-center text-sm text-charcoal/50">No one booked yet.</p>
                     ) : (
                       <ul className="divide-y divide-sage/10">
-                        {roster.bookings.map((b) => (
+                        {roster.bookings.map((b) => {
+                          const isPending = b.status === "payment_pending";
+                          const heldFuture = !!b.holdExpiresAt && new Date(b.holdExpiresAt).getTime() > Date.now();
+                          return (
                           <li key={b.id} className="flex items-center justify-between gap-3 py-2.5">
                             <div className="min-w-0">
-                              <p className="font-body text-sm font-medium text-charcoal">
-                                {b.name}
-                                {b.extraGuests > 0 ? <span className="font-normal text-charcoal/50"> +{b.extraGuests}</span> : null}
+                              <p className="font-body text-sm font-medium text-charcoal flex items-center gap-2 flex-wrap">
+                                <span className="truncate">
+                                  {b.name}
+                                  {b.extraGuests > 0 ? <span className="font-normal text-charcoal/50"> +{b.extraGuests}</span> : null}
+                                </span>
+                                {isPending ? (
+                                  <Pill tone="warning" className="font-body shrink-0">Payment pending</Pill>
+                                ) : null}
                               </p>
-                              <p className="font-body text-xs text-charcoal/50">{b.email}</p>
+                              <p className="font-body text-xs text-charcoal/50">
+                                {b.email}
+                                {isPending && heldFuture ? (
+                                  <span className="text-charcoal/40">
+                                    {" · held until "}
+                                    {new Date(b.holdExpiresAt as string).toLocaleTimeString("en-US", { hour: "2-digit", minute: "2-digit", timeZone: "Asia/Kolkata" })}
+                                  </span>
+                                ) : null}
+                              </p>
                             </div>
                             <div className="flex shrink-0 items-center gap-1.5">
-                              {b.checkedIn ? (
-                                <Pill tone="success" icon={<CheckCircle2 className="h-3.5 w-3.5" />} className="font-body">
-                                  {b.checkInOutcome === "late" ? "Late" : "In"}
-                                </Pill>
-                              ) : null}
-                              <Button
-                                size="sm"
-                                variant="outline"
-                                disabled={busyId === b.id}
-                                onClick={() => applyOutcome(b.id, b.checkedIn ? "not_checked_in" : "on_time")}
-                                className="h-8 border-sage/20 text-sage hover:bg-sage/10 font-body text-xs hover:text-sage!"
-                              >
-                                {b.checkedIn ? "Undo" : "Check in"}
-                              </Button>
-                              {!b.checkedIn ? (
-                                <Button
-                                  size="sm"
-                                  variant="outline"
-                                  disabled={busyId === b.id}
-                                  onClick={() => applyOutcome(b.id, "no_show")}
-                                  className="h-8 border-terracotta/30 text-terracotta hover:bg-terracotta/5 font-body text-xs hover:text-terracotta!"
-                                >
-                                  No-show
-                                </Button>
-                              ) : null}
+                              {isPending ? (
+                                <>
+                                  <Button
+                                    size="sm"
+                                    variant="outline"
+                                    disabled={busyId === b.id}
+                                    onClick={() => paymentAction(b.id, "remind")}
+                                    className="h-8 border-terracotta/30 text-terracotta hover:bg-terracotta/5 font-body text-xs hover:text-terracotta!"
+                                  >
+                                    Remind
+                                  </Button>
+                                  <Button
+                                    size="sm"
+                                    variant="outline"
+                                    disabled={busyId === b.id}
+                                    onClick={() => paymentAction(b.id, "reconcile")}
+                                    className="h-8 border-sage/20 text-sage hover:bg-sage/10 font-body text-xs hover:text-sage!"
+                                  >
+                                    Reconcile
+                                  </Button>
+                                </>
+                              ) : (
+                                <>
+                                  {b.checkedIn ? (
+                                    <Pill tone="success" icon={<CheckCircle2 className="h-3.5 w-3.5" />} className="font-body">
+                                      {b.checkInOutcome === "late" ? "Late" : "In"}
+                                    </Pill>
+                                  ) : null}
+                                  <Button
+                                    size="sm"
+                                    variant="outline"
+                                    disabled={busyId === b.id}
+                                    onClick={() => applyOutcome(b.id, b.checkedIn ? "not_checked_in" : "on_time")}
+                                    className="h-8 border-sage/20 text-sage hover:bg-sage/10 font-body text-xs hover:text-sage!"
+                                  >
+                                    {b.checkedIn ? "Undo" : "Check in"}
+                                  </Button>
+                                  {!b.checkedIn ? (
+                                    <Button
+                                      size="sm"
+                                      variant="outline"
+                                      disabled={busyId === b.id}
+                                      onClick={() => applyOutcome(b.id, "no_show")}
+                                      className="h-8 border-terracotta/30 text-terracotta hover:bg-terracotta/5 font-body text-xs hover:text-terracotta!"
+                                    >
+                                      No-show
+                                    </Button>
+                                  ) : null}
+                                </>
+                              )}
                             </div>
                           </li>
-                        ))}
+                          );
+                        })}
                       </ul>
                     )}
                   </CardContent>
