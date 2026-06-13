@@ -1,0 +1,44 @@
+export type Friend = { id: string; name: string; email: string; avatar_url: string | null };
+export type Suggestion = Friend & { mutualCount: number };
+export type FriendRequests = { incoming: Friend[]; outgoing: Friend[] };
+
+export async function getFriends(): Promise<Friend[]> {
+  const r = await fetch("/api/friends");
+  return r.ok ? r.json() : [];
+}
+
+export async function getFriendRequests(): Promise<FriendRequests> {
+  const r = await fetch("/api/friends/requests");
+  return r.ok ? r.json() : { incoming: [], outgoing: [] };
+}
+
+export async function getSuggestions(): Promise<Suggestion[]> {
+  const r = await fetch("/api/friends/suggestions");
+  return r.ok ? r.json() : [];
+}
+
+export async function sendFriendRequest(friendId: string): Promise<boolean> {
+  const r = await fetch("/api/friends", {
+    method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ friendId }),
+  });
+  return r.ok;
+}
+
+export async function respondToRequest(friendId: string, action: "accept" | "decline"): Promise<boolean> {
+  const r = await fetch("/api/friends/respond", {
+    method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ friendId, action }),
+  });
+  return r.ok;
+}
+
+export async function removeFriend(friendId: string): Promise<boolean> {
+  const r = await fetch(`/api/friends?friendId=${encodeURIComponent(friendId)}`, { method: "DELETE" });
+  return r.ok;
+}
+
+export async function blockFriend(friendId: string): Promise<boolean> {
+  const r = await fetch("/api/friends/block", {
+    method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ friendId }),
+  });
+  return r.ok;
+}
