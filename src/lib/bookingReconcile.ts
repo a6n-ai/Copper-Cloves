@@ -6,7 +6,7 @@ export async function reconcileNoShowsGlobally(db: PrismaClient) {
   const now = new Date();
   const candidates = await db.booking.findMany({
     where: {
-      status: { in: ["confirmed", "pending"] },
+      status: "confirmed",
       checked_in: false,
       check_in_outcome: null,
       class_schedule_id: { not: null },

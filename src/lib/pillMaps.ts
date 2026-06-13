@@ -54,6 +54,8 @@ export function bookingStatusPill(status: string): PillSpec {
       return { tone: "success" }
     case "pending":
       return { tone: "warning" }
+    case "payment_pending":
+      return { tone: "warning" }
     case "no_show":
     case "cancelled":
       return { tone: "danger" }
