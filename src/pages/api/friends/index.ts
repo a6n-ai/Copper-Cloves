@@ -36,7 +36,16 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     const friendId = typeof req.query.friendId === "string" ? req.query.friendId : "";
     if (!friendId) return res.status(400).json({ error: "friendId required" });
     const [a, b] = me < friendId ? [me, friendId] : [friendId, me];
-    await prisma.friendship.deleteMany({ where: { user_a_id: a, user_b_id: b, status: "active" } });
+    await prisma.friendship.deleteMany({
+      where: {
+        user_a_id: a,
+        user_b_id: b,
+        OR: [
+          { status: "active" },
+          { status: "pending", requested_by_id: me },
+        ],
+      },
+    });
     return res.status(200).json({ ok: true });
   }
 
