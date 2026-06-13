@@ -35,6 +35,8 @@ model Profile {
   partner_memberships PartnerMember[]
   bookings          Booking[]
   sent_invites        Booking[]  @relation("BookingInvites")
+  friendships_a       Friendship[] @relation("FriendshipA")
+  friendships_b       Friendship[] @relation("FriendshipB")
   cafe_orders       CafeOrder[]
   meal_subscriptions MealSubscription[]
   user_badges       UserBadge[]
@@ -451,6 +453,32 @@ model RazorpayPayment {
 
   @@index([razorpay_order_id])
   @@map("razorpay_payments")
+}
+
+model Friendship {
+  id            String   @id @default(uuid())
+  // Canonical unordered pair: always user_a_id < user_b_id (string compare).
+  user_a_id     String
+  user_b_id     String
+  user_a        Profile  @relation("FriendshipA", fields: [user_a_id], references: [id], onDelete: Cascade)
+  user_b        Profile  @relation("FriendshipB", fields: [user_b_id], references: [id], onDelete: Cascade)
+
+  status          FriendshipStatus @default(active)
+  requested_by_id String?
+  blocked_by_id   String?
+  source          String           @default("invite")
+  created_at      DateTime @default(now())
+  updated_at      DateTime @updatedAt
+
+  @@unique([user_a_id, user_b_id])
+  @@index([user_b_id])
+  @@map("friendships")
+}
+
+enum FriendshipStatus {
+  pending
+  active
+  blocked
 }
 
 /// Unified payment ledger. Covers offline (cash, Pine Lab card/UPI, direct UPI) and online (Razorpay) — future-proof for new gateways via the `method` enum.
