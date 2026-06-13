@@ -239,7 +239,6 @@ async function ensureClassTypes(prisma: PrismaClient) {
           max_capacity: DEFAULT_CAPACITY,
           image_url: def.image_url,
           benefits: [...def.benefits],
-          benefit: def.benefits[0],
         },
       });
       console.log(`Created class type: ${def.name}`);
@@ -251,7 +250,6 @@ async function ensureClassTypes(prisma: PrismaClient) {
           duration: def.duration,
           image_url: def.image_url,
           benefits: [...def.benefits],
-          benefit: def.benefits[0],
         },
       });
     }

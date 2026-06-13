@@ -125,7 +125,7 @@ function FlagComponent({ country, countryName }: { country: Country; countryName
   return (
     <span className="flex h-4 w-5 items-center justify-center overflow-hidden rounded-sm">
       {Flag ? (
-        <Flag title={countryName} className="h-full w-full object-cover" />
+        <Flag title={countryName} />
       ) : (
         <GlobeIcon className="h-4 w-4 opacity-60" />
       )}

@@ -86,7 +86,7 @@ export async function ensureRazorpayOrderRowForUser(params: {
       currency: o.currency ?? "INR",
       receipt: typeof o.receipt === "string" ? o.receipt : null,
       status: "created",
-      notes: o.notes ?? undefined,
+      notes: o.notes != null ? (o.notes as Prisma.InputJsonValue) : undefined,
     },
   });
 }

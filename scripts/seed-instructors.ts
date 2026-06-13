@@ -96,7 +96,7 @@ const INSTRUCTORS = [
     specialties: ["Mat Pilates", "Alignment Therapy", "Core Conditioning"],
     certifications: ["STOTT Pilates Certified", "Anatomy & Biomechanics"],
   },
-] as const;
+];
 
 async function reassignInstructorRefs(
   prisma: PrismaClient,

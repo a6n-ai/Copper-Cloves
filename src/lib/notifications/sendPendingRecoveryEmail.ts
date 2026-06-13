@@ -146,6 +146,6 @@ export async function sendPendingRecoveryEmail(bookingId: string): Promise<void>
 
   const result = await sendHtmlEmail({ to: booking.profile.email, subject: `Complete your booking — ${className}`, html });
   if (!result.ok && !("skipped" in result && result.skipped)) {
-    logger.error((result as { error?: string }).error, "[sendPendingRecoveryEmail] failed");
+    logger.error({ err: (result as { error?: string }).error }, "[sendPendingRecoveryEmail] failed");
   }
 }

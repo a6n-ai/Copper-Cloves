@@ -1,6 +1,7 @@
 import type { NextApiRequest, NextApiResponse } from "next";
 import { getStudioServerSession } from "@/lib/getStudioServerSession";
 import prisma from "@/lib/prisma";
+import type { Prisma } from "@/generated/prisma/client";
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
   if (req.method !== "POST") return res.status(405).end();
@@ -31,7 +32,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     data: {
       dob: dobDate,
       gender,
-      questionnaire,
+      questionnaire: questionnaire as Prisma.InputJsonValue,
       onboarding_completed: true,
     },
   });

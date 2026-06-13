@@ -71,7 +71,7 @@ const baseSchema = z.object({
     const age = (Date.now() - d.getTime()) / (1000 * 60 * 60 * 24 * 365.25);
     return age >= 12 && age <= 100;
   }, "Please enter a valid date of birth (must be 12+)"),
-  gender: z.enum(["male", "female", "other"], { required_error: "Please select a gender" }),
+  gender: z.enum(["male", "female", "other"], { message: "Please select a gender" }),
   fitnessGoals: z.array(z.string()).min(1, "Select at least one goal"),
   healthIssuesShort: z.array(z.string()).min(1, "Select at least one option"),
   healthIssuesLong: z.array(z.string()).optional(),

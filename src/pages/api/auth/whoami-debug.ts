@@ -17,18 +17,21 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   const role = (token as { role?: string }).role;
   if (!sid || !profileId) return res.json({ ok: false, reason: "legacy_token_missing_sid_or_id", role });
 
-  const row = await prisma.userSession.findUnique({ where: { profile_id: profileId } });
-  if (!row) return res.json({ ok: false, reason: "no_user_session_row", profileId, jwtSid: sid });
-  if (row.session_id !== sid) {
+  // Mirror isRequestSessionValid (sessionGuard.ts): look the session up by its
+  // unique session_id (the JWT sid), not by profile_id. A missing row means the
+  // session was superseded (a newer login deleted/replaced it) or never created.
+  const row = await prisma.userSession.findUnique({ where: { session_id: sid } });
+  if (!row) {
+    return res.json({ ok: false, reason: "session_superseded_or_missing", profileId, jwtSid: sid });
+  }
+  if (row.profile_id !== profileId) {
     return res.json({
       ok: false,
-      reason: "session_superseded",
+      reason: "session_profile_mismatch",
       jwtSid: sid,
-      dbSid: row.session_id,
+      dbProfileId: row.profile_id,
       dbCreatedAt: row.created_at,
       dbLastSeenAt: row.last_seen_at,
-      dbUserAgent: row.user_agent,
-      dbIp: row.ip,
     });
   }
 

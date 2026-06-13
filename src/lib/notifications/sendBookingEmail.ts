@@ -40,6 +40,6 @@ export async function sendBookingConfirmationEmail(bookingId: string): Promise<v
 
   const result = await sendHtmlEmail({ to: booking.profile.email, subject: `You're booked for ${className}`, html });
   if (!result.ok && !("skipped" in result && result.skipped)) {
-    logger.error((result as { error?: string }).error, "[sendBookingEmail] failed");
+    logger.error({ err: (result as { error?: string }).error }, "[sendBookingEmail] failed");
   }
 }
