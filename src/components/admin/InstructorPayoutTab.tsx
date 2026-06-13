@@ -163,9 +163,15 @@ export function InstructorPayoutTab({ instructorId }: { instructorId: string }) 
 
           <div className="rounded-lg border border-[#e5e4dc] p-4 flex items-center justify-between">
             <div>
-              <p className="text-xs text-muted-foreground">
-                {data.payableUnits} units × {r(data.blendedRatePaise)}
-              </p>
+              {data.overrideTotal != null ? (
+                <p className="text-xs text-muted-foreground">
+                  Manual total override (rate × units not applied)
+                </p>
+              ) : (
+                <p className="text-xs text-muted-foreground">
+                  {data.payableUnits} units × {r(data.blendedRatePaise)}
+                </p>
+              )}
               <p className="text-2xl font-semibold">₹{(data.overrideTotal ?? data.total).toLocaleString("en-IN")}</p>
             </div>
             {data.status === "paid" ? (

@@ -165,7 +165,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     : [];
   const adjByInstructor = new Map(adjustments.map((a) => [a.instructor_id, a]));
 
-  const instructors = [...tally.values()].map((a, idx) => {
+  const instructors = [...tally.values()].map((a) => {
     const adj = adjByInstructor.get(a.instructorId);
     const extraPayable = adj?.extra_payable_units ?? 0;
     const extraClasses = adj?.extra_classes ?? 0;
@@ -190,7 +190,6 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         : computedTotalPaise;
 
     return {
-      id: idx + 1,
       instructorId: a.instructorId,
       name: a.name,
       imageUrl: a.imageUrl,
