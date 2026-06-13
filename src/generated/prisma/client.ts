@@ -238,6 +238,13 @@ export type File = Prisma.FileModel
  */
 export type InstructorPayoutAdjustment = Prisma.InstructorPayoutAdjustmentModel
 /**
+ * Model PayoutSettings
+ * Studio-wide payout configuration. Singleton — exactly one row, id = "default".
+ * Per-class payout = (package_rate / classes) / (1 + gst%) × (instructorPct/100),
+ * blended (averaged) across the four tiers. Per-instructor overrides live on Instructor.
+ */
+export type PayoutSettings = Prisma.PayoutSettingsModel
+/**
  * Model QrCode
  * One stored QR per (schedule, kind). Image lives in S3 via `file`; `token` is the
  * signed HMAC encoded in that image (verified statelessly at scan time).

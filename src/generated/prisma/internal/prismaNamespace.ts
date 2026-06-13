@@ -422,6 +422,7 @@ export const ModelName = {
   PasswordResetToken: 'PasswordResetToken',
   File: 'File',
   InstructorPayoutAdjustment: 'InstructorPayoutAdjustment',
+  PayoutSettings: 'PayoutSettings',
   QrCode: 'QrCode',
   ActivityLog: 'ActivityLog'
 } as const
@@ -439,7 +440,7 @@ export type TypeMap<ExtArgs extends runtime.Types.Extensions.InternalArgs = runt
     omit: GlobalOmitOptions
   }
   meta: {
-    modelProps: "profile" | "userSession" | "coupon" | "couponRedemption" | "retailProduct" | "retailOrder" | "instructor" | "classModel" | "partner" | "partnerMember" | "classSchedule" | "packageType" | "userPackage" | "booking" | "razorpayOrder" | "razorpayPayment" | "friendship" | "payment" | "cafeItem" | "cafeOrder" | "mealSubscription" | "mealSubscriptionInquiry" | "rentalInquiry" | "signupLead" | "userStats" | "userStreak" | "badgeTemplate" | "userBadge" | "waiver" | "crmTemplate" | "crmMessage" | "crmTrigger" | "userActivitySession" | "userActivityEvent" | "memberTicket" | "passwordResetToken" | "file" | "instructorPayoutAdjustment" | "qrCode" | "activityLog"
+    modelProps: "profile" | "userSession" | "coupon" | "couponRedemption" | "retailProduct" | "retailOrder" | "instructor" | "classModel" | "partner" | "partnerMember" | "classSchedule" | "packageType" | "userPackage" | "booking" | "razorpayOrder" | "razorpayPayment" | "friendship" | "payment" | "cafeItem" | "cafeOrder" | "mealSubscription" | "mealSubscriptionInquiry" | "rentalInquiry" | "signupLead" | "userStats" | "userStreak" | "badgeTemplate" | "userBadge" | "waiver" | "crmTemplate" | "crmMessage" | "crmTrigger" | "userActivitySession" | "userActivityEvent" | "memberTicket" | "passwordResetToken" | "file" | "instructorPayoutAdjustment" | "payoutSettings" | "qrCode" | "activityLog"
     txIsolationLevel: TransactionIsolationLevel
   }
   model: {
@@ -3255,6 +3256,80 @@ export type TypeMap<ExtArgs extends runtime.Types.Extensions.InternalArgs = runt
         }
       }
     }
+    PayoutSettings: {
+      payload: Prisma.$PayoutSettingsPayload<ExtArgs>
+      fields: Prisma.PayoutSettingsFieldRefs
+      operations: {
+        findUnique: {
+          args: Prisma.PayoutSettingsFindUniqueArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$PayoutSettingsPayload> | null
+        }
+        findUniqueOrThrow: {
+          args: Prisma.PayoutSettingsFindUniqueOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$PayoutSettingsPayload>
+        }
+        findFirst: {
+          args: Prisma.PayoutSettingsFindFirstArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$PayoutSettingsPayload> | null
+        }
+        findFirstOrThrow: {
+          args: Prisma.PayoutSettingsFindFirstOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$PayoutSettingsPayload>
+        }
+        findMany: {
+          args: Prisma.PayoutSettingsFindManyArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$PayoutSettingsPayload>[]
+        }
+        create: {
+          args: Prisma.PayoutSettingsCreateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$PayoutSettingsPayload>
+        }
+        createMany: {
+          args: Prisma.PayoutSettingsCreateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        createManyAndReturn: {
+          args: Prisma.PayoutSettingsCreateManyAndReturnArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$PayoutSettingsPayload>[]
+        }
+        delete: {
+          args: Prisma.PayoutSettingsDeleteArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$PayoutSettingsPayload>
+        }
+        update: {
+          args: Prisma.PayoutSettingsUpdateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$PayoutSettingsPayload>
+        }
+        deleteMany: {
+          args: Prisma.PayoutSettingsDeleteManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateMany: {
+          args: Prisma.PayoutSettingsUpdateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateManyAndReturn: {
+          args: Prisma.PayoutSettingsUpdateManyAndReturnArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$PayoutSettingsPayload>[]
+        }
+        upsert: {
+          args: Prisma.PayoutSettingsUpsertArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$PayoutSettingsPayload>
+        }
+        aggregate: {
+          args: Prisma.PayoutSettingsAggregateArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.AggregatePayoutSettings>
+        }
+        groupBy: {
+          args: Prisma.PayoutSettingsGroupByArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.PayoutSettingsGroupByOutputType>[]
+        }
+        count: {
+          args: Prisma.PayoutSettingsCountArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.PayoutSettingsCountAggregateOutputType> | number
+        }
+      }
+    }
     QrCode: {
       payload: Prisma.$QrCodePayload<ExtArgs>
       fields: Prisma.QrCodeFieldRefs
@@ -3561,6 +3636,10 @@ export const InstructorScalarFieldEnum = {
   email: 'email',
   phone: 'phone',
   studio_payout_cut_percent: 'studio_payout_cut_percent',
+  rate_12_paise: 'rate_12_paise',
+  rate_8_paise: 'rate_8_paise',
+  rate_4_paise: 'rate_4_paise',
+  rate_1_paise: 'rate_1_paise',
   image_url: 'image_url',
   image_file_id: 'image_file_id',
   about: 'about',
@@ -4122,6 +4201,9 @@ export const InstructorPayoutAdjustmentScalarFieldEnum = {
   extra_payable_units: 'extra_payable_units',
   extra_classes: 'extra_classes',
   override_payout_paise: 'override_payout_paise',
+  override_blended_rate_paise: 'override_blended_rate_paise',
+  paid_blended_rate_paise: 'paid_blended_rate_paise',
+  paid_total_paise: 'paid_total_paise',
   notes: 'notes',
   paid_at: 'paid_at',
   paid_method: 'paid_method',
@@ -4131,6 +4213,21 @@ export const InstructorPayoutAdjustmentScalarFieldEnum = {
 } as const
 
 export type InstructorPayoutAdjustmentScalarFieldEnum = (typeof InstructorPayoutAdjustmentScalarFieldEnum)[keyof typeof InstructorPayoutAdjustmentScalarFieldEnum]
+
+
+export const PayoutSettingsScalarFieldEnum = {
+  id: 'id',
+  rate_12_paise: 'rate_12_paise',
+  rate_8_paise: 'rate_8_paise',
+  rate_4_paise: 'rate_4_paise',
+  rate_1_paise: 'rate_1_paise',
+  gst_percent: 'gst_percent',
+  default_studio_cut_percent: 'default_studio_cut_percent',
+  updated_at: 'updated_at',
+  updated_by: 'updated_by'
+} as const
+
+export type PayoutSettingsScalarFieldEnum = (typeof PayoutSettingsScalarFieldEnum)[keyof typeof PayoutSettingsScalarFieldEnum]
 
 
 export const QrCodeScalarFieldEnum = {
@@ -4544,6 +4641,7 @@ export type GlobalOmitConfig = {
   passwordResetToken?: Prisma.PasswordResetTokenOmit
   file?: Prisma.FileOmit
   instructorPayoutAdjustment?: Prisma.InstructorPayoutAdjustmentOmit
+  payoutSettings?: Prisma.PayoutSettingsOmit
   qrCode?: Prisma.QrCodeOmit
   activityLog?: Prisma.ActivityLogOmit
 }

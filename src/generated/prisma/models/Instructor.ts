@@ -28,11 +28,19 @@ export type AggregateInstructor = {
 
 export type InstructorAvgAggregateOutputType = {
   studio_payout_cut_percent: runtime.Decimal | null
+  rate_12_paise: number | null
+  rate_8_paise: number | null
+  rate_4_paise: number | null
+  rate_1_paise: number | null
   display_order: number | null
 }
 
 export type InstructorSumAggregateOutputType = {
   studio_payout_cut_percent: runtime.Decimal | null
+  rate_12_paise: number | null
+  rate_8_paise: number | null
+  rate_4_paise: number | null
+  rate_1_paise: number | null
   display_order: number | null
 }
 
@@ -43,6 +51,10 @@ export type InstructorMinAggregateOutputType = {
   email: string | null
   phone: string | null
   studio_payout_cut_percent: runtime.Decimal | null
+  rate_12_paise: number | null
+  rate_8_paise: number | null
+  rate_4_paise: number | null
+  rate_1_paise: number | null
   image_url: string | null
   image_file_id: string | null
   about: string | null
@@ -67,6 +79,10 @@ export type InstructorMaxAggregateOutputType = {
   email: string | null
   phone: string | null
   studio_payout_cut_percent: runtime.Decimal | null
+  rate_12_paise: number | null
+  rate_8_paise: number | null
+  rate_4_paise: number | null
+  rate_1_paise: number | null
   image_url: string | null
   image_file_id: string | null
   about: string | null
@@ -91,6 +107,10 @@ export type InstructorCountAggregateOutputType = {
   email: number
   phone: number
   studio_payout_cut_percent: number
+  rate_12_paise: number
+  rate_8_paise: number
+  rate_4_paise: number
+  rate_1_paise: number
   image_url: number
   image_file_id: number
   about: number
@@ -114,11 +134,19 @@ export type InstructorCountAggregateOutputType = {
 
 export type InstructorAvgAggregateInputType = {
   studio_payout_cut_percent?: true
+  rate_12_paise?: true
+  rate_8_paise?: true
+  rate_4_paise?: true
+  rate_1_paise?: true
   display_order?: true
 }
 
 export type InstructorSumAggregateInputType = {
   studio_payout_cut_percent?: true
+  rate_12_paise?: true
+  rate_8_paise?: true
+  rate_4_paise?: true
+  rate_1_paise?: true
   display_order?: true
 }
 
@@ -129,6 +157,10 @@ export type InstructorMinAggregateInputType = {
   email?: true
   phone?: true
   studio_payout_cut_percent?: true
+  rate_12_paise?: true
+  rate_8_paise?: true
+  rate_4_paise?: true
+  rate_1_paise?: true
   image_url?: true
   image_file_id?: true
   about?: true
@@ -153,6 +185,10 @@ export type InstructorMaxAggregateInputType = {
   email?: true
   phone?: true
   studio_payout_cut_percent?: true
+  rate_12_paise?: true
+  rate_8_paise?: true
+  rate_4_paise?: true
+  rate_1_paise?: true
   image_url?: true
   image_file_id?: true
   about?: true
@@ -177,6 +213,10 @@ export type InstructorCountAggregateInputType = {
   email?: true
   phone?: true
   studio_payout_cut_percent?: true
+  rate_12_paise?: true
+  rate_8_paise?: true
+  rate_4_paise?: true
+  rate_1_paise?: true
   image_url?: true
   image_file_id?: true
   about?: true
@@ -290,6 +330,10 @@ export type InstructorGroupByOutputType = {
   email: string | null
   phone: string | null
   studio_payout_cut_percent: runtime.Decimal | null
+  rate_12_paise: number | null
+  rate_8_paise: number | null
+  rate_4_paise: number | null
+  rate_1_paise: number | null
   image_url: string | null
   image_file_id: string | null
   about: string | null
@@ -339,6 +383,10 @@ export type InstructorWhereInput = {
   email?: Prisma.StringNullableFilter<"Instructor"> | string | null
   phone?: Prisma.StringNullableFilter<"Instructor"> | string | null
   studio_payout_cut_percent?: Prisma.DecimalNullableFilter<"Instructor"> | runtime.Decimal | runtime.DecimalJsLike | number | string | null
+  rate_12_paise?: Prisma.IntNullableFilter<"Instructor"> | number | null
+  rate_8_paise?: Prisma.IntNullableFilter<"Instructor"> | number | null
+  rate_4_paise?: Prisma.IntNullableFilter<"Instructor"> | number | null
+  rate_1_paise?: Prisma.IntNullableFilter<"Instructor"> | number | null
   image_url?: Prisma.StringNullableFilter<"Instructor"> | string | null
   image_file_id?: Prisma.StringNullableFilter<"Instructor"> | string | null
   about?: Prisma.StringNullableFilter<"Instructor"> | string | null
@@ -370,6 +418,10 @@ export type InstructorOrderByWithRelationInput = {
   email?: Prisma.SortOrderInput | Prisma.SortOrder
   phone?: Prisma.SortOrderInput | Prisma.SortOrder
   studio_payout_cut_percent?: Prisma.SortOrderInput | Prisma.SortOrder
+  rate_12_paise?: Prisma.SortOrderInput | Prisma.SortOrder
+  rate_8_paise?: Prisma.SortOrderInput | Prisma.SortOrder
+  rate_4_paise?: Prisma.SortOrderInput | Prisma.SortOrder
+  rate_1_paise?: Prisma.SortOrderInput | Prisma.SortOrder
   image_url?: Prisma.SortOrderInput | Prisma.SortOrder
   image_file_id?: Prisma.SortOrderInput | Prisma.SortOrder
   about?: Prisma.SortOrderInput | Prisma.SortOrder
@@ -406,6 +458,10 @@ export type InstructorWhereUniqueInput = Prisma.AtLeast<{
   email?: Prisma.StringNullableFilter<"Instructor"> | string | null
   phone?: Prisma.StringNullableFilter<"Instructor"> | string | null
   studio_payout_cut_percent?: Prisma.DecimalNullableFilter<"Instructor"> | runtime.Decimal | runtime.DecimalJsLike | number | string | null
+  rate_12_paise?: Prisma.IntNullableFilter<"Instructor"> | number | null
+  rate_8_paise?: Prisma.IntNullableFilter<"Instructor"> | number | null
+  rate_4_paise?: Prisma.IntNullableFilter<"Instructor"> | number | null
+  rate_1_paise?: Prisma.IntNullableFilter<"Instructor"> | number | null
   image_url?: Prisma.StringNullableFilter<"Instructor"> | string | null
   about?: Prisma.StringNullableFilter<"Instructor"> | string | null
   philosophy?: Prisma.StringNullableFilter<"Instructor"> | string | null
@@ -435,6 +491,10 @@ export type InstructorOrderByWithAggregationInput = {
   email?: Prisma.SortOrderInput | Prisma.SortOrder
   phone?: Prisma.SortOrderInput | Prisma.SortOrder
   studio_payout_cut_percent?: Prisma.SortOrderInput | Prisma.SortOrder
+  rate_12_paise?: Prisma.SortOrderInput | Prisma.SortOrder
+  rate_8_paise?: Prisma.SortOrderInput | Prisma.SortOrder
+  rate_4_paise?: Prisma.SortOrderInput | Prisma.SortOrder
+  rate_1_paise?: Prisma.SortOrderInput | Prisma.SortOrder
   image_url?: Prisma.SortOrderInput | Prisma.SortOrder
   image_file_id?: Prisma.SortOrderInput | Prisma.SortOrder
   about?: Prisma.SortOrderInput | Prisma.SortOrder
@@ -469,6 +529,10 @@ export type InstructorScalarWhereWithAggregatesInput = {
   email?: Prisma.StringNullableWithAggregatesFilter<"Instructor"> | string | null
   phone?: Prisma.StringNullableWithAggregatesFilter<"Instructor"> | string | null
   studio_payout_cut_percent?: Prisma.DecimalNullableWithAggregatesFilter<"Instructor"> | runtime.Decimal | runtime.DecimalJsLike | number | string | null
+  rate_12_paise?: Prisma.IntNullableWithAggregatesFilter<"Instructor"> | number | null
+  rate_8_paise?: Prisma.IntNullableWithAggregatesFilter<"Instructor"> | number | null
+  rate_4_paise?: Prisma.IntNullableWithAggregatesFilter<"Instructor"> | number | null
+  rate_1_paise?: Prisma.IntNullableWithAggregatesFilter<"Instructor"> | number | null
   image_url?: Prisma.StringNullableWithAggregatesFilter<"Instructor"> | string | null
   image_file_id?: Prisma.StringNullableWithAggregatesFilter<"Instructor"> | string | null
   about?: Prisma.StringNullableWithAggregatesFilter<"Instructor"> | string | null
@@ -495,6 +559,10 @@ export type InstructorCreateInput = {
   email?: string | null
   phone?: string | null
   studio_payout_cut_percent?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
+  rate_12_paise?: number | null
+  rate_8_paise?: number | null
+  rate_4_paise?: number | null
+  rate_1_paise?: number | null
   image_url?: string | null
   image_file_id?: string | null
   about?: string | null
@@ -525,6 +593,10 @@ export type InstructorUncheckedCreateInput = {
   email?: string | null
   phone?: string | null
   studio_payout_cut_percent?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
+  rate_12_paise?: number | null
+  rate_8_paise?: number | null
+  rate_4_paise?: number | null
+  rate_1_paise?: number | null
   image_url?: string | null
   image_file_id?: string | null
   about?: string | null
@@ -555,6 +627,10 @@ export type InstructorUpdateInput = {
   email?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   phone?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   studio_payout_cut_percent?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
+  rate_12_paise?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  rate_8_paise?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  rate_4_paise?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  rate_1_paise?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   image_url?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   image_file_id?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   about?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -585,6 +661,10 @@ export type InstructorUncheckedUpdateInput = {
   email?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   phone?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   studio_payout_cut_percent?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
+  rate_12_paise?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  rate_8_paise?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  rate_4_paise?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  rate_1_paise?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   image_url?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   image_file_id?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   about?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -615,6 +695,10 @@ export type InstructorCreateManyInput = {
   email?: string | null
   phone?: string | null
   studio_payout_cut_percent?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
+  rate_12_paise?: number | null
+  rate_8_paise?: number | null
+  rate_4_paise?: number | null
+  rate_1_paise?: number | null
   image_url?: string | null
   image_file_id?: string | null
   about?: string | null
@@ -641,6 +725,10 @@ export type InstructorUpdateManyMutationInput = {
   email?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   phone?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   studio_payout_cut_percent?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
+  rate_12_paise?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  rate_8_paise?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  rate_4_paise?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  rate_1_paise?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   image_url?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   image_file_id?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   about?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -666,6 +754,10 @@ export type InstructorUncheckedUpdateManyInput = {
   email?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   phone?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   studio_payout_cut_percent?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
+  rate_12_paise?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  rate_8_paise?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  rate_4_paise?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  rate_1_paise?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   image_url?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   image_file_id?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   about?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -705,6 +797,10 @@ export type InstructorCountOrderByAggregateInput = {
   email?: Prisma.SortOrder
   phone?: Prisma.SortOrder
   studio_payout_cut_percent?: Prisma.SortOrder
+  rate_12_paise?: Prisma.SortOrder
+  rate_8_paise?: Prisma.SortOrder
+  rate_4_paise?: Prisma.SortOrder
+  rate_1_paise?: Prisma.SortOrder
   image_url?: Prisma.SortOrder
   image_file_id?: Prisma.SortOrder
   about?: Prisma.SortOrder
@@ -726,6 +822,10 @@ export type InstructorCountOrderByAggregateInput = {
 
 export type InstructorAvgOrderByAggregateInput = {
   studio_payout_cut_percent?: Prisma.SortOrder
+  rate_12_paise?: Prisma.SortOrder
+  rate_8_paise?: Prisma.SortOrder
+  rate_4_paise?: Prisma.SortOrder
+  rate_1_paise?: Prisma.SortOrder
   display_order?: Prisma.SortOrder
 }
 
@@ -736,6 +836,10 @@ export type InstructorMaxOrderByAggregateInput = {
   email?: Prisma.SortOrder
   phone?: Prisma.SortOrder
   studio_payout_cut_percent?: Prisma.SortOrder
+  rate_12_paise?: Prisma.SortOrder
+  rate_8_paise?: Prisma.SortOrder
+  rate_4_paise?: Prisma.SortOrder
+  rate_1_paise?: Prisma.SortOrder
   image_url?: Prisma.SortOrder
   image_file_id?: Prisma.SortOrder
   about?: Prisma.SortOrder
@@ -760,6 +864,10 @@ export type InstructorMinOrderByAggregateInput = {
   email?: Prisma.SortOrder
   phone?: Prisma.SortOrder
   studio_payout_cut_percent?: Prisma.SortOrder
+  rate_12_paise?: Prisma.SortOrder
+  rate_8_paise?: Prisma.SortOrder
+  rate_4_paise?: Prisma.SortOrder
+  rate_1_paise?: Prisma.SortOrder
   image_url?: Prisma.SortOrder
   image_file_id?: Prisma.SortOrder
   about?: Prisma.SortOrder
@@ -779,6 +887,10 @@ export type InstructorMinOrderByAggregateInput = {
 
 export type InstructorSumOrderByAggregateInput = {
   studio_payout_cut_percent?: Prisma.SortOrder
+  rate_12_paise?: Prisma.SortOrder
+  rate_8_paise?: Prisma.SortOrder
+  rate_4_paise?: Prisma.SortOrder
+  rate_1_paise?: Prisma.SortOrder
   display_order?: Prisma.SortOrder
 }
 
@@ -911,6 +1023,10 @@ export type InstructorCreateWithoutProfileInput = {
   email?: string | null
   phone?: string | null
   studio_payout_cut_percent?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
+  rate_12_paise?: number | null
+  rate_8_paise?: number | null
+  rate_4_paise?: number | null
+  rate_1_paise?: number | null
   image_url?: string | null
   image_file_id?: string | null
   about?: string | null
@@ -940,6 +1056,10 @@ export type InstructorUncheckedCreateWithoutProfileInput = {
   email?: string | null
   phone?: string | null
   studio_payout_cut_percent?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
+  rate_12_paise?: number | null
+  rate_8_paise?: number | null
+  rate_4_paise?: number | null
+  rate_1_paise?: number | null
   image_url?: string | null
   image_file_id?: string | null
   about?: string | null
@@ -985,6 +1105,10 @@ export type InstructorUpdateWithoutProfileInput = {
   email?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   phone?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   studio_payout_cut_percent?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
+  rate_12_paise?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  rate_8_paise?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  rate_4_paise?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  rate_1_paise?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   image_url?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   image_file_id?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   about?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -1014,6 +1138,10 @@ export type InstructorUncheckedUpdateWithoutProfileInput = {
   email?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   phone?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   studio_payout_cut_percent?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
+  rate_12_paise?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  rate_8_paise?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  rate_4_paise?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  rate_1_paise?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   image_url?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   image_file_id?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   about?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -1043,6 +1171,10 @@ export type InstructorCreateWithoutClassesInput = {
   email?: string | null
   phone?: string | null
   studio_payout_cut_percent?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
+  rate_12_paise?: number | null
+  rate_8_paise?: number | null
+  rate_4_paise?: number | null
+  rate_1_paise?: number | null
   image_url?: string | null
   image_file_id?: string | null
   about?: string | null
@@ -1072,6 +1204,10 @@ export type InstructorUncheckedCreateWithoutClassesInput = {
   email?: string | null
   phone?: string | null
   studio_payout_cut_percent?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
+  rate_12_paise?: number | null
+  rate_8_paise?: number | null
+  rate_4_paise?: number | null
+  rate_1_paise?: number | null
   image_url?: string | null
   image_file_id?: string | null
   about?: string | null
@@ -1117,6 +1253,10 @@ export type InstructorUpdateWithoutClassesInput = {
   email?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   phone?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   studio_payout_cut_percent?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
+  rate_12_paise?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  rate_8_paise?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  rate_4_paise?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  rate_1_paise?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   image_url?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   image_file_id?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   about?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -1146,6 +1286,10 @@ export type InstructorUncheckedUpdateWithoutClassesInput = {
   email?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   phone?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   studio_payout_cut_percent?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
+  rate_12_paise?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  rate_8_paise?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  rate_4_paise?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  rate_1_paise?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   image_url?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   image_file_id?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   about?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -1175,6 +1319,10 @@ export type InstructorCreateWithoutClass_schedulesInput = {
   email?: string | null
   phone?: string | null
   studio_payout_cut_percent?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
+  rate_12_paise?: number | null
+  rate_8_paise?: number | null
+  rate_4_paise?: number | null
+  rate_1_paise?: number | null
   image_url?: string | null
   image_file_id?: string | null
   about?: string | null
@@ -1204,6 +1352,10 @@ export type InstructorUncheckedCreateWithoutClass_schedulesInput = {
   email?: string | null
   phone?: string | null
   studio_payout_cut_percent?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
+  rate_12_paise?: number | null
+  rate_8_paise?: number | null
+  rate_4_paise?: number | null
+  rate_1_paise?: number | null
   image_url?: string | null
   image_file_id?: string | null
   about?: string | null
@@ -1238,6 +1390,10 @@ export type InstructorCreateWithoutActual_class_schedulesInput = {
   email?: string | null
   phone?: string | null
   studio_payout_cut_percent?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
+  rate_12_paise?: number | null
+  rate_8_paise?: number | null
+  rate_4_paise?: number | null
+  rate_1_paise?: number | null
   image_url?: string | null
   image_file_id?: string | null
   about?: string | null
@@ -1267,6 +1423,10 @@ export type InstructorUncheckedCreateWithoutActual_class_schedulesInput = {
   email?: string | null
   phone?: string | null
   studio_payout_cut_percent?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
+  rate_12_paise?: number | null
+  rate_8_paise?: number | null
+  rate_4_paise?: number | null
+  rate_1_paise?: number | null
   image_url?: string | null
   image_file_id?: string | null
   about?: string | null
@@ -1312,6 +1472,10 @@ export type InstructorUpdateWithoutClass_schedulesInput = {
   email?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   phone?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   studio_payout_cut_percent?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
+  rate_12_paise?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  rate_8_paise?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  rate_4_paise?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  rate_1_paise?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   image_url?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   image_file_id?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   about?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -1341,6 +1505,10 @@ export type InstructorUncheckedUpdateWithoutClass_schedulesInput = {
   email?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   phone?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   studio_payout_cut_percent?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
+  rate_12_paise?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  rate_8_paise?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  rate_4_paise?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  rate_1_paise?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   image_url?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   image_file_id?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   about?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -1381,6 +1549,10 @@ export type InstructorUpdateWithoutActual_class_schedulesInput = {
   email?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   phone?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   studio_payout_cut_percent?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
+  rate_12_paise?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  rate_8_paise?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  rate_4_paise?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  rate_1_paise?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   image_url?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   image_file_id?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   about?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -1410,6 +1582,10 @@ export type InstructorUncheckedUpdateWithoutActual_class_schedulesInput = {
   email?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   phone?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   studio_payout_cut_percent?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
+  rate_12_paise?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  rate_8_paise?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  rate_4_paise?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  rate_1_paise?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   image_url?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   image_file_id?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   about?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -1439,6 +1615,10 @@ export type InstructorCreateWithoutPaymentsInput = {
   email?: string | null
   phone?: string | null
   studio_payout_cut_percent?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
+  rate_12_paise?: number | null
+  rate_8_paise?: number | null
+  rate_4_paise?: number | null
+  rate_1_paise?: number | null
   image_url?: string | null
   image_file_id?: string | null
   about?: string | null
@@ -1468,6 +1648,10 @@ export type InstructorUncheckedCreateWithoutPaymentsInput = {
   email?: string | null
   phone?: string | null
   studio_payout_cut_percent?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
+  rate_12_paise?: number | null
+  rate_8_paise?: number | null
+  rate_4_paise?: number | null
+  rate_1_paise?: number | null
   image_url?: string | null
   image_file_id?: string | null
   about?: string | null
@@ -1513,6 +1697,10 @@ export type InstructorUpdateWithoutPaymentsInput = {
   email?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   phone?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   studio_payout_cut_percent?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
+  rate_12_paise?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  rate_8_paise?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  rate_4_paise?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  rate_1_paise?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   image_url?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   image_file_id?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   about?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -1542,6 +1730,10 @@ export type InstructorUncheckedUpdateWithoutPaymentsInput = {
   email?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   phone?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   studio_payout_cut_percent?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
+  rate_12_paise?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  rate_8_paise?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  rate_4_paise?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  rate_1_paise?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   image_url?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   image_file_id?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   about?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -1629,6 +1821,10 @@ export type InstructorSelect<ExtArgs extends runtime.Types.Extensions.InternalAr
   email?: boolean
   phone?: boolean
   studio_payout_cut_percent?: boolean
+  rate_12_paise?: boolean
+  rate_8_paise?: boolean
+  rate_4_paise?: boolean
+  rate_1_paise?: boolean
   image_url?: boolean
   image_file_id?: boolean
   about?: boolean
@@ -1661,6 +1857,10 @@ export type InstructorSelectCreateManyAndReturn<ExtArgs extends runtime.Types.Ex
   email?: boolean
   phone?: boolean
   studio_payout_cut_percent?: boolean
+  rate_12_paise?: boolean
+  rate_8_paise?: boolean
+  rate_4_paise?: boolean
+  rate_1_paise?: boolean
   image_url?: boolean
   image_file_id?: boolean
   about?: boolean
@@ -1688,6 +1888,10 @@ export type InstructorSelectUpdateManyAndReturn<ExtArgs extends runtime.Types.Ex
   email?: boolean
   phone?: boolean
   studio_payout_cut_percent?: boolean
+  rate_12_paise?: boolean
+  rate_8_paise?: boolean
+  rate_4_paise?: boolean
+  rate_1_paise?: boolean
   image_url?: boolean
   image_file_id?: boolean
   about?: boolean
@@ -1715,6 +1919,10 @@ export type InstructorSelectScalar = {
   email?: boolean
   phone?: boolean
   studio_payout_cut_percent?: boolean
+  rate_12_paise?: boolean
+  rate_8_paise?: boolean
+  rate_4_paise?: boolean
+  rate_1_paise?: boolean
   image_url?: boolean
   image_file_id?: boolean
   about?: boolean
@@ -1734,7 +1942,7 @@ export type InstructorSelectScalar = {
   updated_at?: boolean
 }
 
-export type InstructorOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "name" | "title" | "email" | "phone" | "studio_payout_cut_percent" | "image_url" | "image_file_id" | "about" | "philosophy" | "specialties" | "certifications" | "years_of_experience" | "display_order" | "social_facebook" | "social_twitter" | "social_linkedin" | "social_whatsapp" | "hashed_password" | "is_active" | "profile_id" | "created_at" | "updated_at", ExtArgs["result"]["instructor"]>
+export type InstructorOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "name" | "title" | "email" | "phone" | "studio_payout_cut_percent" | "rate_12_paise" | "rate_8_paise" | "rate_4_paise" | "rate_1_paise" | "image_url" | "image_file_id" | "about" | "philosophy" | "specialties" | "certifications" | "years_of_experience" | "display_order" | "social_facebook" | "social_twitter" | "social_linkedin" | "social_whatsapp" | "hashed_password" | "is_active" | "profile_id" | "created_at" | "updated_at", ExtArgs["result"]["instructor"]>
 export type InstructorInclude<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   classes?: boolean | Prisma.Instructor$classesArgs<ExtArgs>
   class_schedules?: boolean | Prisma.Instructor$class_schedulesArgs<ExtArgs>
@@ -1769,6 +1977,13 @@ export type $InstructorPayload<ExtArgs extends runtime.Types.Extensions.Internal
      * Percent of class check-in revenue retained by the studio (0–100). Instructor share = 100 − this. Not public.
      */
     studio_payout_cut_percent: runtime.Decimal | null
+    /**
+     * Per-instructor rate-card override (paise). Null → inherit PayoutSettings global.
+     */
+    rate_12_paise: number | null
+    rate_8_paise: number | null
+    rate_4_paise: number | null
+    rate_1_paise: number | null
     image_url: string | null
     image_file_id: string | null
     about: string | null
@@ -2223,6 +2438,10 @@ export interface InstructorFieldRefs {
   readonly email: Prisma.FieldRef<"Instructor", 'String'>
   readonly phone: Prisma.FieldRef<"Instructor", 'String'>
   readonly studio_payout_cut_percent: Prisma.FieldRef<"Instructor", 'Decimal'>
+  readonly rate_12_paise: Prisma.FieldRef<"Instructor", 'Int'>
+  readonly rate_8_paise: Prisma.FieldRef<"Instructor", 'Int'>
+  readonly rate_4_paise: Prisma.FieldRef<"Instructor", 'Int'>
+  readonly rate_1_paise: Prisma.FieldRef<"Instructor", 'Int'>
   readonly image_url: Prisma.FieldRef<"Instructor", 'String'>
   readonly image_file_id: Prisma.FieldRef<"Instructor", 'String'>
   readonly about: Prisma.FieldRef<"Instructor", 'String'>

@@ -32,12 +32,18 @@ export type InstructorPayoutAdjustmentAvgAggregateOutputType = {
   extra_payable_units: number | null
   extra_classes: number | null
   override_payout_paise: number | null
+  override_blended_rate_paise: number | null
+  paid_blended_rate_paise: number | null
+  paid_total_paise: number | null
 }
 
 export type InstructorPayoutAdjustmentSumAggregateOutputType = {
   extra_payable_units: number | null
   extra_classes: number | null
   override_payout_paise: number | null
+  override_blended_rate_paise: number | null
+  paid_blended_rate_paise: number | null
+  paid_total_paise: number | null
 }
 
 export type InstructorPayoutAdjustmentMinAggregateOutputType = {
@@ -49,6 +55,9 @@ export type InstructorPayoutAdjustmentMinAggregateOutputType = {
   extra_payable_units: number | null
   extra_classes: number | null
   override_payout_paise: number | null
+  override_blended_rate_paise: number | null
+  paid_blended_rate_paise: number | null
+  paid_total_paise: number | null
   notes: string | null
   paid_at: Date | null
   paid_method: string | null
@@ -66,6 +75,9 @@ export type InstructorPayoutAdjustmentMaxAggregateOutputType = {
   extra_payable_units: number | null
   extra_classes: number | null
   override_payout_paise: number | null
+  override_blended_rate_paise: number | null
+  paid_blended_rate_paise: number | null
+  paid_total_paise: number | null
   notes: string | null
   paid_at: Date | null
   paid_method: string | null
@@ -83,6 +95,9 @@ export type InstructorPayoutAdjustmentCountAggregateOutputType = {
   extra_payable_units: number
   extra_classes: number
   override_payout_paise: number
+  override_blended_rate_paise: number
+  paid_blended_rate_paise: number
+  paid_total_paise: number
   notes: number
   paid_at: number
   paid_method: number
@@ -97,12 +112,18 @@ export type InstructorPayoutAdjustmentAvgAggregateInputType = {
   extra_payable_units?: true
   extra_classes?: true
   override_payout_paise?: true
+  override_blended_rate_paise?: true
+  paid_blended_rate_paise?: true
+  paid_total_paise?: true
 }
 
 export type InstructorPayoutAdjustmentSumAggregateInputType = {
   extra_payable_units?: true
   extra_classes?: true
   override_payout_paise?: true
+  override_blended_rate_paise?: true
+  paid_blended_rate_paise?: true
+  paid_total_paise?: true
 }
 
 export type InstructorPayoutAdjustmentMinAggregateInputType = {
@@ -114,6 +135,9 @@ export type InstructorPayoutAdjustmentMinAggregateInputType = {
   extra_payable_units?: true
   extra_classes?: true
   override_payout_paise?: true
+  override_blended_rate_paise?: true
+  paid_blended_rate_paise?: true
+  paid_total_paise?: true
   notes?: true
   paid_at?: true
   paid_method?: true
@@ -131,6 +155,9 @@ export type InstructorPayoutAdjustmentMaxAggregateInputType = {
   extra_payable_units?: true
   extra_classes?: true
   override_payout_paise?: true
+  override_blended_rate_paise?: true
+  paid_blended_rate_paise?: true
+  paid_total_paise?: true
   notes?: true
   paid_at?: true
   paid_method?: true
@@ -148,6 +175,9 @@ export type InstructorPayoutAdjustmentCountAggregateInputType = {
   extra_payable_units?: true
   extra_classes?: true
   override_payout_paise?: true
+  override_blended_rate_paise?: true
+  paid_blended_rate_paise?: true
+  paid_total_paise?: true
   notes?: true
   paid_at?: true
   paid_method?: true
@@ -252,6 +282,9 @@ export type InstructorPayoutAdjustmentGroupByOutputType = {
   extra_payable_units: number
   extra_classes: number
   override_payout_paise: number | null
+  override_blended_rate_paise: number | null
+  paid_blended_rate_paise: number | null
+  paid_total_paise: number | null
   notes: string | null
   paid_at: Date | null
   paid_method: string | null
@@ -292,6 +325,9 @@ export type InstructorPayoutAdjustmentWhereInput = {
   extra_payable_units?: Prisma.IntFilter<"InstructorPayoutAdjustment"> | number
   extra_classes?: Prisma.IntFilter<"InstructorPayoutAdjustment"> | number
   override_payout_paise?: Prisma.IntNullableFilter<"InstructorPayoutAdjustment"> | number | null
+  override_blended_rate_paise?: Prisma.IntNullableFilter<"InstructorPayoutAdjustment"> | number | null
+  paid_blended_rate_paise?: Prisma.IntNullableFilter<"InstructorPayoutAdjustment"> | number | null
+  paid_total_paise?: Prisma.IntNullableFilter<"InstructorPayoutAdjustment"> | number | null
   notes?: Prisma.StringNullableFilter<"InstructorPayoutAdjustment"> | string | null
   paid_at?: Prisma.DateTimeNullableFilter<"InstructorPayoutAdjustment"> | Date | string | null
   paid_method?: Prisma.StringNullableFilter<"InstructorPayoutAdjustment"> | string | null
@@ -309,6 +345,9 @@ export type InstructorPayoutAdjustmentOrderByWithRelationInput = {
   extra_payable_units?: Prisma.SortOrder
   extra_classes?: Prisma.SortOrder
   override_payout_paise?: Prisma.SortOrderInput | Prisma.SortOrder
+  override_blended_rate_paise?: Prisma.SortOrderInput | Prisma.SortOrder
+  paid_blended_rate_paise?: Prisma.SortOrderInput | Prisma.SortOrder
+  paid_total_paise?: Prisma.SortOrderInput | Prisma.SortOrder
   notes?: Prisma.SortOrderInput | Prisma.SortOrder
   paid_at?: Prisma.SortOrderInput | Prisma.SortOrder
   paid_method?: Prisma.SortOrderInput | Prisma.SortOrder
@@ -330,6 +369,9 @@ export type InstructorPayoutAdjustmentWhereUniqueInput = Prisma.AtLeast<{
   extra_payable_units?: Prisma.IntFilter<"InstructorPayoutAdjustment"> | number
   extra_classes?: Prisma.IntFilter<"InstructorPayoutAdjustment"> | number
   override_payout_paise?: Prisma.IntNullableFilter<"InstructorPayoutAdjustment"> | number | null
+  override_blended_rate_paise?: Prisma.IntNullableFilter<"InstructorPayoutAdjustment"> | number | null
+  paid_blended_rate_paise?: Prisma.IntNullableFilter<"InstructorPayoutAdjustment"> | number | null
+  paid_total_paise?: Prisma.IntNullableFilter<"InstructorPayoutAdjustment"> | number | null
   notes?: Prisma.StringNullableFilter<"InstructorPayoutAdjustment"> | string | null
   paid_at?: Prisma.DateTimeNullableFilter<"InstructorPayoutAdjustment"> | Date | string | null
   paid_method?: Prisma.StringNullableFilter<"InstructorPayoutAdjustment"> | string | null
@@ -347,6 +389,9 @@ export type InstructorPayoutAdjustmentOrderByWithAggregationInput = {
   extra_payable_units?: Prisma.SortOrder
   extra_classes?: Prisma.SortOrder
   override_payout_paise?: Prisma.SortOrderInput | Prisma.SortOrder
+  override_blended_rate_paise?: Prisma.SortOrderInput | Prisma.SortOrder
+  paid_blended_rate_paise?: Prisma.SortOrderInput | Prisma.SortOrder
+  paid_total_paise?: Prisma.SortOrderInput | Prisma.SortOrder
   notes?: Prisma.SortOrderInput | Prisma.SortOrder
   paid_at?: Prisma.SortOrderInput | Prisma.SortOrder
   paid_method?: Prisma.SortOrderInput | Prisma.SortOrder
@@ -372,6 +417,9 @@ export type InstructorPayoutAdjustmentScalarWhereWithAggregatesInput = {
   extra_payable_units?: Prisma.IntWithAggregatesFilter<"InstructorPayoutAdjustment"> | number
   extra_classes?: Prisma.IntWithAggregatesFilter<"InstructorPayoutAdjustment"> | number
   override_payout_paise?: Prisma.IntNullableWithAggregatesFilter<"InstructorPayoutAdjustment"> | number | null
+  override_blended_rate_paise?: Prisma.IntNullableWithAggregatesFilter<"InstructorPayoutAdjustment"> | number | null
+  paid_blended_rate_paise?: Prisma.IntNullableWithAggregatesFilter<"InstructorPayoutAdjustment"> | number | null
+  paid_total_paise?: Prisma.IntNullableWithAggregatesFilter<"InstructorPayoutAdjustment"> | number | null
   notes?: Prisma.StringNullableWithAggregatesFilter<"InstructorPayoutAdjustment"> | string | null
   paid_at?: Prisma.DateTimeNullableWithAggregatesFilter<"InstructorPayoutAdjustment"> | Date | string | null
   paid_method?: Prisma.StringNullableWithAggregatesFilter<"InstructorPayoutAdjustment"> | string | null
@@ -389,6 +437,9 @@ export type InstructorPayoutAdjustmentCreateInput = {
   extra_payable_units?: number
   extra_classes?: number
   override_payout_paise?: number | null
+  override_blended_rate_paise?: number | null
+  paid_blended_rate_paise?: number | null
+  paid_total_paise?: number | null
   notes?: string | null
   paid_at?: Date | string | null
   paid_method?: string | null
@@ -406,6 +457,9 @@ export type InstructorPayoutAdjustmentUncheckedCreateInput = {
   extra_payable_units?: number
   extra_classes?: number
   override_payout_paise?: number | null
+  override_blended_rate_paise?: number | null
+  paid_blended_rate_paise?: number | null
+  paid_total_paise?: number | null
   notes?: string | null
   paid_at?: Date | string | null
   paid_method?: string | null
@@ -423,6 +477,9 @@ export type InstructorPayoutAdjustmentUpdateInput = {
   extra_payable_units?: Prisma.IntFieldUpdateOperationsInput | number
   extra_classes?: Prisma.IntFieldUpdateOperationsInput | number
   override_payout_paise?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  override_blended_rate_paise?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  paid_blended_rate_paise?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  paid_total_paise?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   notes?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   paid_at?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   paid_method?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -440,6 +497,9 @@ export type InstructorPayoutAdjustmentUncheckedUpdateInput = {
   extra_payable_units?: Prisma.IntFieldUpdateOperationsInput | number
   extra_classes?: Prisma.IntFieldUpdateOperationsInput | number
   override_payout_paise?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  override_blended_rate_paise?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  paid_blended_rate_paise?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  paid_total_paise?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   notes?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   paid_at?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   paid_method?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -457,6 +517,9 @@ export type InstructorPayoutAdjustmentCreateManyInput = {
   extra_payable_units?: number
   extra_classes?: number
   override_payout_paise?: number | null
+  override_blended_rate_paise?: number | null
+  paid_blended_rate_paise?: number | null
+  paid_total_paise?: number | null
   notes?: string | null
   paid_at?: Date | string | null
   paid_method?: string | null
@@ -474,6 +537,9 @@ export type InstructorPayoutAdjustmentUpdateManyMutationInput = {
   extra_payable_units?: Prisma.IntFieldUpdateOperationsInput | number
   extra_classes?: Prisma.IntFieldUpdateOperationsInput | number
   override_payout_paise?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  override_blended_rate_paise?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  paid_blended_rate_paise?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  paid_total_paise?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   notes?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   paid_at?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   paid_method?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -491,6 +557,9 @@ export type InstructorPayoutAdjustmentUncheckedUpdateManyInput = {
   extra_payable_units?: Prisma.IntFieldUpdateOperationsInput | number
   extra_classes?: Prisma.IntFieldUpdateOperationsInput | number
   override_payout_paise?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  override_blended_rate_paise?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  paid_blended_rate_paise?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  paid_total_paise?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   notes?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   paid_at?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   paid_method?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -513,6 +582,9 @@ export type InstructorPayoutAdjustmentCountOrderByAggregateInput = {
   extra_payable_units?: Prisma.SortOrder
   extra_classes?: Prisma.SortOrder
   override_payout_paise?: Prisma.SortOrder
+  override_blended_rate_paise?: Prisma.SortOrder
+  paid_blended_rate_paise?: Prisma.SortOrder
+  paid_total_paise?: Prisma.SortOrder
   notes?: Prisma.SortOrder
   paid_at?: Prisma.SortOrder
   paid_method?: Prisma.SortOrder
@@ -525,6 +597,9 @@ export type InstructorPayoutAdjustmentAvgOrderByAggregateInput = {
   extra_payable_units?: Prisma.SortOrder
   extra_classes?: Prisma.SortOrder
   override_payout_paise?: Prisma.SortOrder
+  override_blended_rate_paise?: Prisma.SortOrder
+  paid_blended_rate_paise?: Prisma.SortOrder
+  paid_total_paise?: Prisma.SortOrder
 }
 
 export type InstructorPayoutAdjustmentMaxOrderByAggregateInput = {
@@ -536,6 +611,9 @@ export type InstructorPayoutAdjustmentMaxOrderByAggregateInput = {
   extra_payable_units?: Prisma.SortOrder
   extra_classes?: Prisma.SortOrder
   override_payout_paise?: Prisma.SortOrder
+  override_blended_rate_paise?: Prisma.SortOrder
+  paid_blended_rate_paise?: Prisma.SortOrder
+  paid_total_paise?: Prisma.SortOrder
   notes?: Prisma.SortOrder
   paid_at?: Prisma.SortOrder
   paid_method?: Prisma.SortOrder
@@ -553,6 +631,9 @@ export type InstructorPayoutAdjustmentMinOrderByAggregateInput = {
   extra_payable_units?: Prisma.SortOrder
   extra_classes?: Prisma.SortOrder
   override_payout_paise?: Prisma.SortOrder
+  override_blended_rate_paise?: Prisma.SortOrder
+  paid_blended_rate_paise?: Prisma.SortOrder
+  paid_total_paise?: Prisma.SortOrder
   notes?: Prisma.SortOrder
   paid_at?: Prisma.SortOrder
   paid_method?: Prisma.SortOrder
@@ -565,6 +646,9 @@ export type InstructorPayoutAdjustmentSumOrderByAggregateInput = {
   extra_payable_units?: Prisma.SortOrder
   extra_classes?: Prisma.SortOrder
   override_payout_paise?: Prisma.SortOrder
+  override_blended_rate_paise?: Prisma.SortOrder
+  paid_blended_rate_paise?: Prisma.SortOrder
+  paid_total_paise?: Prisma.SortOrder
 }
 
 
@@ -578,6 +662,9 @@ export type InstructorPayoutAdjustmentSelect<ExtArgs extends runtime.Types.Exten
   extra_payable_units?: boolean
   extra_classes?: boolean
   override_payout_paise?: boolean
+  override_blended_rate_paise?: boolean
+  paid_blended_rate_paise?: boolean
+  paid_total_paise?: boolean
   notes?: boolean
   paid_at?: boolean
   paid_method?: boolean
@@ -595,6 +682,9 @@ export type InstructorPayoutAdjustmentSelectCreateManyAndReturn<ExtArgs extends 
   extra_payable_units?: boolean
   extra_classes?: boolean
   override_payout_paise?: boolean
+  override_blended_rate_paise?: boolean
+  paid_blended_rate_paise?: boolean
+  paid_total_paise?: boolean
   notes?: boolean
   paid_at?: boolean
   paid_method?: boolean
@@ -612,6 +702,9 @@ export type InstructorPayoutAdjustmentSelectUpdateManyAndReturn<ExtArgs extends 
   extra_payable_units?: boolean
   extra_classes?: boolean
   override_payout_paise?: boolean
+  override_blended_rate_paise?: boolean
+  paid_blended_rate_paise?: boolean
+  paid_total_paise?: boolean
   notes?: boolean
   paid_at?: boolean
   paid_method?: boolean
@@ -629,6 +722,9 @@ export type InstructorPayoutAdjustmentSelectScalar = {
   extra_payable_units?: boolean
   extra_classes?: boolean
   override_payout_paise?: boolean
+  override_blended_rate_paise?: boolean
+  paid_blended_rate_paise?: boolean
+  paid_total_paise?: boolean
   notes?: boolean
   paid_at?: boolean
   paid_method?: boolean
@@ -637,7 +733,7 @@ export type InstructorPayoutAdjustmentSelectScalar = {
   updated_at?: boolean
 }
 
-export type InstructorPayoutAdjustmentOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "instructor_id" | "period_key" | "period_start" | "period_end" | "extra_payable_units" | "extra_classes" | "override_payout_paise" | "notes" | "paid_at" | "paid_method" | "recorded_by" | "created_at" | "updated_at", ExtArgs["result"]["instructorPayoutAdjustment"]>
+export type InstructorPayoutAdjustmentOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "instructor_id" | "period_key" | "period_start" | "period_end" | "extra_payable_units" | "extra_classes" | "override_payout_paise" | "override_blended_rate_paise" | "paid_blended_rate_paise" | "paid_total_paise" | "notes" | "paid_at" | "paid_method" | "recorded_by" | "created_at" | "updated_at", ExtArgs["result"]["instructorPayoutAdjustment"]>
 
 export type $InstructorPayoutAdjustmentPayload<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   name: "InstructorPayoutAdjustment"
@@ -660,6 +756,18 @@ export type $InstructorPayoutAdjustmentPayload<ExtArgs extends runtime.Types.Ext
      * Optional final override — if set, replaces computed payout entirely (paise).
      */
     override_payout_paise: number | null
+    /**
+     * Per-period blended-rate override (paise). Null → auto average of the 4 net tier rates.
+     */
+    override_blended_rate_paise: number | null
+    /**
+     * Frozen-on-paid snapshot: blended rate used when this period was marked paid.
+     */
+    paid_blended_rate_paise: number | null
+    /**
+     * Frozen-on-paid snapshot: computed total when marked paid.
+     */
+    paid_total_paise: number | null
     notes: string | null
     paid_at: Date | null
     paid_method: string | null
@@ -1097,6 +1205,9 @@ export interface InstructorPayoutAdjustmentFieldRefs {
   readonly extra_payable_units: Prisma.FieldRef<"InstructorPayoutAdjustment", 'Int'>
   readonly extra_classes: Prisma.FieldRef<"InstructorPayoutAdjustment", 'Int'>
   readonly override_payout_paise: Prisma.FieldRef<"InstructorPayoutAdjustment", 'Int'>
+  readonly override_blended_rate_paise: Prisma.FieldRef<"InstructorPayoutAdjustment", 'Int'>
+  readonly paid_blended_rate_paise: Prisma.FieldRef<"InstructorPayoutAdjustment", 'Int'>
+  readonly paid_total_paise: Prisma.FieldRef<"InstructorPayoutAdjustment", 'Int'>
   readonly notes: Prisma.FieldRef<"InstructorPayoutAdjustment", 'String'>
   readonly paid_at: Prisma.FieldRef<"InstructorPayoutAdjustment", 'DateTime'>
   readonly paid_method: Prisma.FieldRef<"InstructorPayoutAdjustment", 'String'>

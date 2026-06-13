@@ -175,6 +175,11 @@ model Instructor {
   phone              String?
   /// Percent of class check-in revenue retained by the studio (0–100). Instructor share = 100 − this. Not public.
   studio_payout_cut_percent Decimal? @db.Decimal(5, 2)
+  /// Per-instructor rate-card override (paise). Null → inherit PayoutSettings global.
+  rate_12_paise            Int?
+  rate_8_paise             Int?
+  rate_4_paise             Int?
+  rate_1_paise             Int?
   image_url          String?
   image_file_id      String?  @unique
   about              String?
@@ -960,6 +965,12 @@ model InstructorPayoutAdjustment {
   extra_classes        Int      @default(0)
   /// Optional final override — if set, replaces computed payout entirely (paise).
   override_payout_paise Int?
+  /// Per-period blended-rate override (paise). Null → auto average of the 4 net tier rates.
+  override_blended_rate_paise Int?
+  /// Frozen-on-paid snapshot: blended rate used when this period was marked paid.
+  paid_blended_rate_paise     Int?
+  /// Frozen-on-paid snapshot: computed total when marked paid.
+  paid_total_paise            Int?
   notes                String?
   paid_at              DateTime?
   paid_method          String?
@@ -971,6 +982,23 @@ model InstructorPayoutAdjustment {
   @@index([instructor_id])
   @@index([period_key])
   @@map("instructor_payout_adjustments")
+}
+
+/// Studio-wide payout configuration. Singleton — exactly one row, id = "default".
+/// Per-class payout = (package_rate / classes) / (1 + gst%) × (instructorPct/100),
+/// blended (averaged) across the four tiers. Per-instructor overrides live on Instructor.
+model PayoutSettings {
+  id                         String   @id @default("default")
+  rate_12_paise              Int      // 12-class package price (paise)
+  rate_8_paise               Int
+  rate_4_paise               Int
+  rate_1_paise               Int
+  gst_percent                Decimal  @db.Decimal(5, 2)
+  default_studio_cut_percent Decimal  @db.Decimal(5, 2)
+  updated_at                 DateTime @default(now()) @updatedAt
+  updated_by                 String?
+
+  @@map("payout_settings")
 }
 
 /// Expense categories. `instructor_payout` rows are created (idempotently) when a
