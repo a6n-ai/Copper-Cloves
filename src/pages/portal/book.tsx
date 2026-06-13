@@ -1555,7 +1555,7 @@ export default function BookClass() {
                   <p className="font-body text-sm text-charcoal/60 mb-3">
                     Search for studio members or add someone new. You&apos;ll pay for their class.
                   </p>
-                  <MemberSearch value={addedMembers} onChange={setAddedMembers} />
+                  <MemberSearch value={addedMembers} onChange={setAddedMembers} currentEmail={userEmail} />
                 </div>
 
                 <div className="pt-4 border-t border-sage/10">

@@ -30,9 +30,18 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
   const inviterName = session.user.name ?? "A studio member";
   const baseUrl = process.env.NEXTAUTH_URL ?? `https://${req.headers.host}`;
+  const selfId = session.user.id;
+  const selfEmail = (session.user.email ?? "").trim().toLowerCase();
   const resolved: string[] = [];
 
   for (const member of added_members) {
+    // Booker can't be their own guest (would double-book + double-charge).
+    if (member.profile_id && member.profile_id === selfId) {
+      return res.status(400).json({ error: "You can't add yourself as a guest." });
+    }
+    if (selfEmail && member.email.trim().toLowerCase() === selfEmail) {
+      return res.status(400).json({ error: "You can't add yourself as a guest." });
+    }
     // If caller already resolved a profile_id, verify it exists and use it
     if (member.profile_id) {
       const exists = await prisma.profile.findFirst({

@@ -27,6 +27,8 @@ interface MemberSearchProps {
   value: AddedMember[];
   onChange: (members: AddedMember[]) => void;
   maxMembers?: number;
+  /** Booker's own email — they can't add themselves as a guest. */
+  currentEmail?: string;
 }
 
 function Avatar({ name, avatarUrl }: { name: string; avatarUrl: string | null }) {
@@ -56,7 +58,8 @@ function Avatar({ name, avatarUrl }: { name: string; avatarUrl: string | null })
   );
 }
 
-export function MemberSearch({ value, onChange, maxMembers = 5 }: MemberSearchProps) {
+export function MemberSearch({ value, onChange, maxMembers = 5, currentEmail }: MemberSearchProps) {
+  const selfEmail = currentEmail?.trim().toLowerCase() ?? "";
   const [query, setQuery] = useState("");
   const [results, setResults] = useState<SearchResult[]>([]);
   const [showDropdown, setShowDropdown] = useState(false);
@@ -125,6 +128,10 @@ export function MemberSearch({ value, onChange, maxMembers = 5 }: MemberSearchPr
     }
     if (!EMAIL_RE.test(email)) {
       setInviteError("Enter a valid email address.");
+      return;
+    }
+    if (selfEmail && email === selfEmail) {
+      setInviteError("You're already the booker — you can't add yourself as a guest.");
       return;
     }
     if (!name) {
