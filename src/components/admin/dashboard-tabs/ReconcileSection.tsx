@@ -1079,6 +1079,13 @@ function ReconcileSectionImpl() {
       data.summary.counts.website_only
     : 0;
 
+  // Summary metrics default to 0 so the cards are always on screen (even before
+  // the first correlation), then fill in once data loads.
+  const capturedInr = Math.round((data?.summary.razorpayCapturedPaise ?? 0) / 100);
+  const recordedInr = Math.round((data?.summary.websiteRecordedPaise ?? 0) / 100);
+  const gapPaise = data?.summary.gapPaise ?? 0;
+  const totalCount = data?.summary.total ?? 0;
+
   return (
     <div className="space-y-6">
       <LookupCard />
@@ -1100,7 +1107,7 @@ function ReconcileSectionImpl() {
                   value={dateRange}
                   onChange={setDateRange}
                   placeholder="This month"
-                  className="h-10 w-56 border-sage/20 bg-white font-body"
+                  className="h-10 w-full sm:w-56"
                 />
               </div>
               <Button type="button" variant="sage" className="h-10" onClick={runCorrelation} disabled={loading}>
@@ -1127,23 +1134,23 @@ function ReconcileSectionImpl() {
         </Card>
       )}
 
+      {/* Summary — always visible; values are 0 until a correlation runs. */}
+      <div className="grid grid-cols-2 md:grid-cols-4 gap-3 sm:gap-4">
+        <MetricCard label="Razorpay captured" value={capturedInr} prefix="₹" icon={Landmark} tone="sage" />
+        <MetricCard label="Website recorded" value={recordedInr} prefix="₹" icon={Globe} tone="sage" />
+        <MetricCard
+          label="Gap"
+          value={Math.round(Math.abs(gapPaise) / 100)}
+          prefix={gapPaise === 0 ? "₹" : gapPaise > 0 ? "+₹" : "−₹"}
+          icon={ArrowLeftRight}
+          tone={gapPaise === 0 ? "sage" : "terracotta"}
+          hint={gapPaise === 0 ? "fully reconciled" : "captured minus recorded"}
+        />
+        <MetricCard label="Issues" value={issuesCount} icon={AlertTriangle} tone={issuesCount === 0 ? "sage" : "amber"} hint={`${totalCount} payments`} />
+      </div>
+
       {data && (
         <>
-          {/* Summary */}
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-3 sm:gap-4">
-            <MetricCard label="Razorpay captured" value={Math.round(data.summary.razorpayCapturedPaise / 100)} prefix="₹" icon={Landmark} tone="sage" />
-            <MetricCard label="Website recorded" value={Math.round(data.summary.websiteRecordedPaise / 100)} prefix="₹" icon={Globe} tone="sage" />
-            <MetricCard
-              label="Gap"
-              value={Math.round(Math.abs(data.summary.gapPaise) / 100)}
-              prefix={data.summary.gapPaise === 0 ? "₹" : data.summary.gapPaise > 0 ? "+₹" : "−₹"}
-              icon={ArrowLeftRight}
-              tone={data.summary.gapPaise === 0 ? "sage" : "terracotta"}
-              hint={data.summary.gapPaise === 0 ? "fully reconciled" : "captured minus recorded"}
-            />
-            <MetricCard label="Issues" value={issuesCount} icon={AlertTriangle} tone={issuesCount === 0 ? "sage" : "amber"} hint={`${data.summary.total} payments`} />
-          </div>
-
           {/* Filter chips */}
           <div className="flex flex-wrap gap-2">
             {([
