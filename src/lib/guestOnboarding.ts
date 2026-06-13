@@ -4,6 +4,7 @@ import prisma from "@/lib/prisma";
 import { sendHtmlEmail } from "@/lib/notifications/sendEmail";
 import type { GuestAttendee } from "@/lib/financeBookingCheckout";
 import logger from "@/lib/logger";
+import { upsertFriendship } from "@/lib/friendship";
 
 /**
  * Server-side guest onboarding for class bookings.
@@ -240,6 +241,12 @@ export async function onboardGuestsForBooking(opts: {
           }),
         });
 
+        try {
+          await upsertFriendship(prisma, opts.bookerId, existing.id, "invite", "active");
+        } catch (err) {
+          logger.error({ err, booker: opts.bookerId, guest: existing.id }, "[guestOnboarding] friendship upsert failed");
+        }
+
         results.push({ email, status: "existing" });
       } else {
         const password = generatePassword(10);
@@ -284,6 +291,12 @@ export async function onboardGuestsForBooking(opts: {
             loginUrl: `${baseUrl}/login`,
           }),
         });
+
+        try {
+          await upsertFriendship(prisma, opts.bookerId, newProfile.id, "invite", "active");
+        } catch (err) {
+          logger.error({ err, booker: opts.bookerId, guest: newProfile.id }, "[guestOnboarding] friendship upsert failed");
+        }
 
         results.push({ email, status: "new" });
       }
