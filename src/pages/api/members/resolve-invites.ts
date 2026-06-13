@@ -7,7 +7,7 @@ import { sendHtmlEmail } from "@/lib/notifications/sendEmail";
 
 const INVITE_TOKEN_TTL_MS = 72 * 60 * 60 * 1000; // 72 hours
 
-type AddedMember = { profile_id?: string; name: string; email: string };
+type AddedMember = { profile_id?: string; name: string; email: string; phone?: string };
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
   if (req.method !== "POST") return res.status(405).end();
@@ -61,6 +61,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         data: {
           email,
           full_name: member.name.trim() || email,
+          phone: member.phone?.trim() || null,
           role: "user",
           hashedPassword: null,
         },

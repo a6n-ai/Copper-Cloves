@@ -2,13 +2,15 @@
  * The app's own cron — a long-running scheduler using node-schedule.
  *  • class-emails       every 5 min  — ~1h member reminders + ~6h instructor rosters
  *  • schedule-lifecycle every 30 min — flip past-due classes to completed/abandoned
+ *  • razorpay-reconcile every 15 min — fulfill paid-but-stuck Razorpay orders
  * All jobs are idempotent (sent-flag / status guarded), so overlapping runs are safe.
  *
  * Run on a persistent host:
  *   npm run scheduler
  *
  * On Amplify (serverless/ephemeral), use external cron (EventBridge, cron-job.org, etc.)
- * hitting GET /api/cron/class-emails and GET /api/cron/reconcile-no-shows instead.
+ * hitting GET /api/cron/class-emails, /api/cron/reconcile-no-shows and
+ * /api/cron/reconcile-razorpay instead.
  */
 import schedule from "node-schedule";
 import {
@@ -16,6 +18,7 @@ import {
   sendDueInstructorRosters,
 } from "../src/lib/notifications/scheduledClassEmails";
 import { advanceCompletedSchedules } from "../src/lib/scheduleLifecycle";
+import { reconcileStuckRazorpayOrders } from "../src/lib/razorpayPersistence";
 
 /** Wrap a job so overlapping ticks are skipped and failures don't kill the process. */
 function guarded(name: string, fn: () => Promise<void>): () => Promise<void> {
@@ -51,9 +54,20 @@ const lifecycleJob = guarded("schedule-lifecycle", async () => {
   }
 });
 
-console.log("[scheduler] starting · class-emails */5m · schedule-lifecycle */30m");
-// Run both once at boot so a freshly-restarted process doesn't wait a full interval.
+const razorpayReconcileJob = guarded("razorpay-reconcile", async () => {
+  const r = await reconcileStuckRazorpayOrders();
+  if (r.scanned || r.fulfilled || r.errors) {
+    console.log(
+      `[scheduler] ${new Date().toISOString()} razorpay(scanned=${r.scanned},fulfilled=${r.fulfilled},persistedOnly=${r.persistedOnly},unpaid=${r.stillUnpaid},errors=${r.errors})`,
+    );
+  }
+});
+
+console.log("[scheduler] starting · class-emails */5m · schedule-lifecycle */30m · razorpay-reconcile */15m");
+// Run once at boot so a freshly-restarted process doesn't wait a full interval.
 void classEmailsJob();
 void lifecycleJob();
+void razorpayReconcileJob();
 schedule.scheduleJob("*/5 * * * *", classEmailsJob);
 schedule.scheduleJob("*/30 * * * *", lifecycleJob);
+schedule.scheduleJob("*/15 * * * *", razorpayReconcileJob);

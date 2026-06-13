@@ -448,3 +448,115 @@ async function tryFulfillCheckoutAfterWebhook(razorpayOrderId: string): Promise<
     log.error({ err: e, razorpayOrderId }, "webhook fulfill checkout failed — payment captured but not fulfilled");
   }
 }
+
+type RazorpayOrderPaymentsClient = {
+  orders: { fetchPayments: (id: string) => Promise<{ items?: unknown[] }> };
+};
+
+export type StuckOrderReconcileResult = {
+  scanned: number;
+  fulfilled: number;
+  persistedOnly: number;
+  stillUnpaid: number;
+  errors: number;
+  details: Array<{ orderId: string; outcome: "fulfilled" | "persisted_only" | "unpaid" | "error" }>;
+};
+
+/**
+ * Pull-based backstop for the webhook. Polls Razorpay for the authoritative state of
+ * every website order that is still unfulfilled (no booking / no package) and feeds any
+ * captured/authorized payment back through the same webhook reconcile path
+ * (capture-if-authorized → idempotent persist → fulfil).
+ *
+ * Covers the common mobile failure mode: the member pays via UPI then closes the tab
+ * before the browser verify call, AND the webhook never lands (delivery/signature/config).
+ * Idempotent — safe to run on a schedule; already-fulfilled orders are filtered out by the query.
+ */
+export async function reconcileStuckRazorpayOrders(opts?: {
+  lookbackHours?: number;
+  limit?: number;
+}): Promise<StuckOrderReconcileResult> {
+  const result: StuckOrderReconcileResult = {
+    scanned: 0,
+    fulfilled: 0,
+    persistedOnly: 0,
+    stillUnpaid: 0,
+    errors: 0,
+    details: [],
+  };
+  if (!razorpayConfigured()) {
+    log.warn("reconcileStuckRazorpayOrders skipped — razorpay not configured");
+    return result;
+  }
+
+  const lookbackHours = opts?.lookbackHours ?? 72;
+  const limit = opts?.limit ?? 200;
+  const cutoff = new Date(Date.now() - lookbackHours * 3_600_000);
+
+  const orders = await prisma.razorpayOrder.findMany({
+    where: {
+      status: { in: ["created", "attempted"] },
+      booking_id: null,
+      user_package_id: null,
+      created_at: { gte: cutoff },
+    },
+    orderBy: { created_at: "asc" },
+    take: limit,
+  });
+
+  const rzp = getRazorpay() as unknown as RazorpayOrderPaymentsClient;
+
+  for (const order of orders) {
+    // Only website-originated orders carry a `purpose` in notes; skip Payment-Page/external orders.
+    const notes =
+      order.notes != null && typeof order.notes === "object"
+        ? (order.notes as Record<string, unknown>)
+        : null;
+    if (!notes || !("purpose" in notes)) continue;
+
+    result.scanned += 1;
+    try {
+      const resp = await rzp.orders.fetchPayments(order.razorpay_order_id);
+      const items = Array.isArray(resp.items) ? resp.items : [];
+      const entity =
+        items.find((p) => (p as { status?: string }).status === "captured") ??
+        items.find((p) => (p as { status?: string }).status === "authorized");
+
+      if (!entity) {
+        result.stillUnpaid += 1;
+        result.details.push({ orderId: order.razorpay_order_id, outcome: "unpaid" });
+        continue;
+      }
+
+      const status = (entity as { status?: string }).status;
+      // Reuse the webhook path: captures authorized funds, persists rows, flips order → paid, fulfils.
+      await reconcileRazorpayPaymentFromWebhook({
+        event: status === "captured" ? "payment.captured" : "payment.authorized",
+        payload: { payment: { entity } },
+      });
+
+      const after = await prisma.razorpayOrder.findUnique({
+        where: { razorpay_order_id: order.razorpay_order_id },
+        select: { booking_id: true, user_package_id: true },
+      });
+      const fulfilled = Boolean(after?.booking_id || after?.user_package_id);
+      if (fulfilled) {
+        result.fulfilled += 1;
+        result.details.push({ orderId: order.razorpay_order_id, outcome: "fulfilled" });
+      } else {
+        result.persistedOnly += 1;
+        result.details.push({ orderId: order.razorpay_order_id, outcome: "persisted_only" });
+      }
+    } catch (e) {
+      result.errors += 1;
+      result.details.push({ orderId: order.razorpay_order_id, outcome: "error" });
+      log.error({ err: e, razorpayOrderId: order.razorpay_order_id }, "stuck-order reconcile failed");
+    }
+  }
+
+  log.info(
+    { scanned: result.scanned, fulfilled: result.fulfilled, persistedOnly: result.persistedOnly, stillUnpaid: result.stillUnpaid, errors: result.errors },
+    "reconcileStuckRazorpayOrders complete",
+  );
+  return result;
+}

@@ -18,9 +18,11 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       OR: [
         { full_name: { contains: q, mode: "insensitive" } },
         { email: { contains: q, mode: "insensitive" } },
+        { phone: { contains: q, mode: "insensitive" } },
+        { whatsapp_phone: { contains: q, mode: "insensitive" } },
       ],
     },
-    select: { id: true, full_name: true, email: true, avatar_url: true },
+    select: { id: true, full_name: true, email: true, phone: true, avatar_url: true },
     take: 8,
   });
 
@@ -29,6 +31,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       id: r.id,
       name: r.full_name ?? r.email,
       email: r.email,
+      phone: r.phone ?? null,
       avatar_url: r.avatar_url ?? null,
     })),
   );
