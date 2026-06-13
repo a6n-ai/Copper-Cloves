@@ -235,6 +235,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         extraGuestCount,
         financeSnapshot: pending.finance_snapshot,
         email: bookerEmail,
+        guestAttendees: (pending as { guest_attendees?: unknown }).guest_attendees,
       });
     } catch (e: unknown) {
       const code = e instanceof Error ? e.message : "";

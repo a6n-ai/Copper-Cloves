@@ -10,6 +10,8 @@ export type PendingBookingInput = {
   extraGuestCount: number;
   financeSnapshot: unknown;
   email: string | null;
+  /** [{ name, email, phone }] booked alongside the booker; stored for the Finance detail dialog. */
+  guestAttendees?: unknown;
 };
 
 /**
@@ -35,7 +37,7 @@ export async function createPendingBooking(input: PendingBookingInput): Promise<
 
     const schedule = await tx.classSchedule.findUnique({
       where: { id: input.classScheduleId },
-      include: { class_model: { select: { max_capacity: true, name: true } } },
+      include: { class_model: { select: { max_capacity: true, name: true, partner_id: true } } },
     });
     if (!schedule) throw new Error("SCHEDULE_NOT_FOUND");
     if (schedule.status === "cancelled") throw new Error("CLASS_CANCELLED");
@@ -58,7 +60,10 @@ export async function createPendingBooking(input: PendingBookingInput): Promise<
         class_name: input.className ?? schedule.class_model?.name ?? null,
         class_time: input.classTimeISO || schedule.start_time.toISOString(),
         email: input.email,
+        // Partner-run classes await partner sign-off before confirmation (same as legacy create).
+        confirmation_status: schedule.class_model?.partner_id ? "pending" : null,
         extra_guest_count: 0,
+        guest_attendees: input.guestAttendees != null ? (input.guestAttendees as object) : undefined,
         finance_snapshot: input.financeSnapshot as object,
         hold_expires_at: new Date(Date.now() + HOLD_MINUTES * 60_000),
       },

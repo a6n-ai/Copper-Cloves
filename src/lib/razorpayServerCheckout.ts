@@ -147,6 +147,107 @@ async function assertPackageBookable(tx: TxClient, packageId: string, userId: st
   if (pkg.package_type?.is_unlimited) throw new Error("PACKAGE_WRONG_TYPE");
 }
 
+/**
+ * Side-effects that must run whenever a booking becomes confirmed, regardless of
+ * whether it was created fresh (legacy) or transitioned from payment_pending:
+ * café add-on orders, the one confirmation email (skipped for partner sign-off),
+ * and friends/family guest onboarding. Best-effort: never throws.
+ */
+async function runBookingPostFulfillSideEffects(args: {
+  bookingId: string;
+  confirmationStatus: string | null;
+  pending: PendingBookingCheckout;
+  userId: string;
+}): Promise<void> {
+  const { bookingId, confirmationStatus, pending, userId } = args;
+
+  for (const item of pending.cafe_items) {
+    if (item.quantity <= 0) continue;
+    await prisma.cafeOrder.create({
+      data: {
+        user_id: userId,
+        cafe_item_id: item.id,
+        booking_id: bookingId,
+        quantity: item.quantity,
+        payment_method: "razorpay",
+        order_date: new Date(),
+      },
+    });
+  }
+
+  // Physique 57 bookings notify on instructor confirm, not now.
+  if (confirmationStatus !== "pending") {
+    await sendBookingConfirmationEmail(bookingId).catch((e) => logger.error({ err: e }, "[booking email]"));
+  }
+
+  const guestList = parseGuestAttendees(pending.guest_attendees) ?? [];
+  if (guestList.length > 0) {
+    await onboardGuestsForBooking({
+      guests: guestList,
+      classScheduleId: pending.class_schedule_id,
+      bookerId: userId,
+    }).catch((e) => logger.error({ err: e }, "[onboardGuestsForBooking] post-confirm"));
+  }
+}
+
+/**
+ * Confirm a pre-created payment_pending booking (created up front by create-order):
+ * flip to confirmed, link the order, refresh denormalized seat counters, then run the
+ * same post-fulfill side-effects as a fresh booking. Idempotent — if already confirmed,
+ * side-effects are skipped (they ran on the first transition).
+ */
+async function confirmPreCreatedBookingFlow(args: {
+  userId: string;
+  bookingId: string;
+  pending: PendingBookingCheckout;
+  financeSnap?: unknown;
+}): Promise<{ bookingId: string; transitioned: boolean }> {
+  const { userId, bookingId, pending, financeSnap } = args;
+  const { confirmPendingBookingTx } = await import("@/lib/confirmPendingBooking");
+
+  const result = await prisma.$transaction(async (tx) => {
+    const r = await confirmPendingBookingTx(tx, bookingId, financeSnap);
+    if (!r.transitioned) return r;
+
+    await linkRazorpayOrderToBookingTx(tx, {
+      userId,
+      razorpayOrderId: pending.razorpayOrderId,
+      bookingId: r.bookingId,
+    });
+
+    // Refresh denormalized counters (createPendingBooking reserved the seat but didn't update them).
+    const sched = await tx.classSchedule.findUnique({
+      where: { id: pending.class_schedule_id },
+      include: { class_model: { select: { max_capacity: true } } },
+    });
+    if (sched) {
+      const cap = sched.capacity ?? sched.class_model?.max_capacity ?? 0;
+      if (cap > 0) {
+        const seatsTaken = await computeSeatsTaken(tx, pending.class_schedule_id);
+        await tx.classSchedule.update({
+          where: { id: pending.class_schedule_id },
+          data: { current_bookings: seatsTaken, available_spots: Math.max(0, cap - seatsTaken) },
+        });
+      }
+    }
+    return r;
+  });
+
+  if (result.transitioned) {
+    const b = await prisma.booking.findUnique({
+      where: { id: result.bookingId },
+      select: { confirmation_status: true },
+    });
+    await runBookingPostFulfillSideEffects({
+      bookingId: result.bookingId,
+      confirmationStatus: b?.confirmation_status ?? null,
+      pending,
+      userId,
+    });
+  }
+  return result;
+}
+
 export async function finishBookingCheckoutOnServer(
   userId: string,
   pending: PendingBookingCheckout,
@@ -190,17 +291,15 @@ export async function finishBookingCheckoutOnServer(
     throw new Error("PAYMENT_NOT_FOUND");
   }
 
-  // If create-order already reserved a pending booking, confirm it instead of creating a new one.
+  // If create-order already reserved a pending booking, confirm it (with full
+  // side-effects: café orders, email, guest onboarding, seat counters) instead of
+  // creating a new one.
   if (ord.booking_id != null) {
-    const { confirmPendingBookingTx } = await import("@/lib/confirmPendingBooking");
-    const result = await prisma.$transaction(async (tx) => {
-      const r = await confirmPendingBookingTx(tx, ord!.booking_id!, financeSnap);
-      await linkRazorpayOrderToBookingTx(tx, {
-        userId,
-        razorpayOrderId: pending.razorpayOrderId,
-        bookingId: r.bookingId,
-      });
-      return r;
+    const result = await confirmPreCreatedBookingFlow({
+      userId,
+      bookingId: ord.booking_id,
+      pending,
+      financeSnap,
     });
     return { bookingId: result.bookingId };
   }
@@ -278,37 +377,14 @@ export async function finishBookingCheckoutOnServer(
     return created;
   });
 
-  for (const item of pending.cafe_items) {
-    if (item.quantity <= 0) continue;
-    await prisma.cafeOrder.create({
-      data: {
-        user_id: userId,
-        cafe_item_id: item.id,
-        booking_id: booking.id,
-        quantity: item.quantity,
-        payment_method: "razorpay",
-        order_date: new Date(),
-      },
-    });
-  }
-
-  // Physique 57 bookings notify on instructor confirm, not now.
-  // Same dedicated confirmation email as /api/bookings, so redirect/webhook
-  // fulfilled bookings also get exactly one correct email.
-  if (booking.confirmation_status !== "pending") {
-    await sendBookingConfirmationEmail(booking.id).catch((e) => logger.error({ err: e }, "[booking email]"));
-  }
-
-  // Onboard friends & family guests here too: this path runs for finish-checkout
-  // (redirect return with no payload) and the webhook backup — neither of which
-  // execute the client. Idempotent + best-effort so it never fails fulfillment.
-  if (guestList.length > 0) {
-    await onboardGuestsForBooking({
-      guests: guestList,
-      classScheduleId: scheduleId,
-      bookerId: userId,
-    }).catch((e) => logger.error({ err: e }, "[onboardGuestsForBooking] finishBookingCheckoutOnServer"));
-  }
+  // Café orders, confirmation email, and guest onboarding — shared with the
+  // pending-booking confirm path so both flows behave identically.
+  await runBookingPostFulfillSideEffects({
+    bookingId: booking.id,
+    confirmationStatus: booking.confirmation_status,
+    pending,
+    userId,
+  });
 
   return { bookingId: booking.id };
 }
@@ -448,8 +524,30 @@ export async function fulfillCheckoutFromPaidOrder(
   });
   if (!orderRow || orderRow.status !== "paid") return "none";
 
-  // Pre-created pending booking path: confirm it in place.
+  const orderNotes =
+    orderRow.notes != null && typeof orderRow.notes === "object"
+      ? (orderRow.notes as Record<string, unknown>)
+      : null;
+
+  // Pre-created pending booking path: confirm it in place, with full side-effects
+  // (café orders, email, guest onboarding, seat counters) reconstructed from order notes.
   if (orderRow.booking_id != null) {
+    const pendingForBooking = orderNotes
+      ? pendingBookingFromOrderNotes(orderNotes, razorpayOrderId)
+      : null;
+    if (pendingForBooking) {
+      const result = await confirmPreCreatedBookingFlow({
+        userId: orderRow.user_id,
+        bookingId: orderRow.booking_id,
+        pending: pendingForBooking,
+        financeSnap: pendingForBooking.finance_snapshot,
+      }).catch((e) => {
+        if (e instanceof Error && e.message === "PENDING_BOOKING_NOT_FOUND") return null;
+        throw e;
+      });
+      return result?.transitioned ? "booking" : "skipped";
+    }
+    // No usable notes — fall back to a bare status flip + email (degraded, rare).
     const { confirmPendingBookingTx } = await import("@/lib/confirmPendingBooking");
     const result = await prisma
       .$transaction((tx) => confirmPendingBookingTx(tx, orderRow.booking_id!))
@@ -465,10 +563,7 @@ export async function fulfillCheckoutFromPaidOrder(
   }
   if (orderRow.user_package_id != null) return "skipped";
 
-  const notes =
-    orderRow.notes != null && typeof orderRow.notes === "object"
-      ? (orderRow.notes as Record<string, unknown>)
-      : null;
+  const notes = orderNotes;
   if (!notes) return "none";
 
   const userId = orderRow.user_id;
