@@ -189,18 +189,25 @@ async function runBookingPostFulfillSideEffects(args: {
       bookerId: userId,
     }).catch((e) => logger.error({ err: e }, "[onboardGuestsForBooking] post-confirm"));
   }
+}
 
-  // Added members invited by the booker get their own confirmed roster rows.
-  // Runs for BOTH the pre-created confirm path and the fresh-create path.
-  // Idempotent (skip anyone already booked) + best-effort (never throws).
+/**
+ * Create added-member roster rows + auto-friend the booker, then reconcile seat
+ * counters from actual rows. Idempotent + best-effort: safe to call on every
+ * fulfillment attempt (redirect AND webhook), so a partial first run self-heals.
+ * Must run OUTSIDE any booking transaction.
+ */
+async function fulfillAddedMembersAndReconcileSeats(args: {
+  pending: PendingBookingCheckout;
+  userId: string;
+}): Promise<void> {
+  const { pending, userId } = args;
   const addedMemberProfileIds = pending.added_member_profile_ids ?? [];
+
   if (addedMemberProfileIds.length > 0) {
     const schedule = await prisma.classSchedule.findUnique({
       where: { id: pending.class_schedule_id },
-      select: {
-        start_time: true,
-        class_model: { select: { name: true } },
-      },
+      select: { start_time: true, class_model: { select: { name: true } } },
     });
     const resolvedClassTime = pending.class_time?.trim() || schedule?.start_time.toISOString() || "";
     const resolvedClassName = pending.class_name?.trim() || schedule?.class_model?.name || null;
@@ -229,14 +236,12 @@ async function runBookingPostFulfillSideEffects(args: {
         }
         await upsertFriendship(prisma, userId, memberId, "invite", "active");
       } catch (e) {
-        logger.error({ err: e, invitee: memberId }, "[runBookingPostFulfillSideEffects] added member failed");
+        logger.error({ err: e, invitee: memberId }, "[fulfillAddedMembersAndReconcileSeats] member failed");
       }
     }
   }
 
-  // Reconcile denormalized seat counters from ACTUAL rows now that guest +
-  // added-member rows exist (both paths compute counters before these rows are
-  // created). Authoritative + idempotent.
+  // Reconcile denormalized counters from ACTUAL rows (authoritative + idempotent).
   try {
     const sched = await prisma.classSchedule.findUnique({
       where: { id: pending.class_schedule_id },
@@ -253,7 +258,7 @@ async function runBookingPostFulfillSideEffects(args: {
       }
     }
   } catch (e) {
-    logger.error({ err: e }, "[runBookingPostFulfillSideEffects] counter reconcile failed");
+    logger.error({ err: e }, "[fulfillAddedMembersAndReconcileSeats] counter reconcile failed");
   }
 }
 
@@ -312,6 +317,7 @@ async function confirmPreCreatedBookingFlow(args: {
       userId,
     });
   }
+  await fulfillAddedMembersAndReconcileSeats({ pending, userId });
   return result;
 }
 
@@ -453,6 +459,7 @@ export async function finishBookingCheckoutOnServer(
     pending,
     userId,
   });
+  await fulfillAddedMembersAndReconcileSeats({ pending, userId });
 
   return { bookingId: booking.id };
 }
