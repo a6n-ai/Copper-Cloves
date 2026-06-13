@@ -19,6 +19,7 @@ export async function persistRazorpayOrderOnCreate(params: {
   currency: string;
   receipt: string;
   notes?: Record<string, unknown> | null;
+  bookingId?: string | null;
 }): Promise<void> {
   const notesJson =
     params.notes != null ? (params.notes as Prisma.InputJsonValue) : undefined;
@@ -32,12 +33,14 @@ export async function persistRazorpayOrderOnCreate(params: {
       receipt: params.receipt,
       status: "created",
       notes: notesJson,
+      booking_id: params.bookingId ?? null,
     },
     update: {
       amount_paise: params.amountPaise,
       currency: params.currency,
       receipt: params.receipt,
       ...(notesJson != null ? { notes: notesJson } : {}),
+      ...(params.bookingId != null ? { booking_id: params.bookingId } : {}),
     },
   });
 }

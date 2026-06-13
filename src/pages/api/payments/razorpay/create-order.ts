@@ -10,6 +10,7 @@ import { parsePendingBookingBody } from "@/lib/pendingRazorpayCheckoutServer";
 import { razorpayKeyMode, razorpayKeysMismatch } from "@/lib/razorpayClientHints";
 import { persistRazorpayOrderOnCreate } from "@/lib/razorpayPersistence";
 import { getRazorpay, razorpayConfigured } from "@/lib/razorpayServer";
+import { createPendingBooking } from "@/lib/createPendingBooking";
 import prisma from "@/lib/prisma";
 import { validateAndComputeCoupon, toFiniteNumber, passCategoryForPackageType, type CouponContext } from "@/lib/couponHelpers";
 import { requestLogger } from "@/lib/logger";
@@ -199,6 +200,55 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
   const amount_paise = Math.round(amount_inr * 100);
 
+  // BOOKING: reserve a payment_pending seat BEFORE creating the Razorpay order so
+  // capacity is enforced and two members can't both pay for the last seat. If the
+  // reservation fails we never create the gateway order.
+  let pendingBookingId: string | null = null;
+  if (dbNotes.purpose === PURPOSE_BOOKING) {
+    const pending = (dbNotes as { pending_checkout?: Record<string, unknown> }).pending_checkout;
+    if (!pending) {
+      return res.status(400).json({ error: "Invalid booking checkout payload" });
+    }
+    const classScheduleId = String(pending.class_schedule_id ?? "");
+    const extraGuestCount = Number(pending.extra_guest_count ?? 0) || 0;
+    const className = typeof pending.class_name === "string" ? pending.class_name : null;
+    const classTimeISO = typeof pending.class_time === "string" ? pending.class_time : "";
+
+    let bookerEmail =
+      typeof (session.user as { email?: unknown }).email === "string"
+        ? ((session.user as { email: string }).email)
+        : null;
+    if (!bookerEmail) {
+      const profile = await prisma.profile.findUnique({
+        where: { id: userId },
+        select: { email: true },
+      });
+      bookerEmail = profile?.email ?? null;
+    }
+
+    try {
+      pendingBookingId = await createPendingBooking({
+        userId,
+        classScheduleId,
+        className,
+        classTimeISO,
+        extraGuestCount,
+        financeSnapshot: pending.finance_snapshot,
+        email: bookerEmail,
+      });
+    } catch (e: unknown) {
+      const code = e instanceof Error ? e.message : "";
+      if (code === "CLASS_FULL" || code === "ALREADY_BOOKED") {
+        return res.status(409).json({ error: code });
+      }
+      if (code === "CLASS_CANCELLED" || code === "SCHEDULE_NOT_FOUND") {
+        return res.status(400).json({ error: code });
+      }
+      log.error({ err: e, userId, classScheduleId }, "createPendingBooking failed");
+      return res.status(500).json({ error: "Failed to reserve seat" });
+    }
+  }
+
   try {
     const razorpay = getRazorpay();
     const receipt = buildOrderReceipt(userId);
@@ -218,6 +268,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         currency: order.currency ?? "INR",
         receipt,
         notes: dbNotes,
+        bookingId: pendingBookingId,
       });
     } catch (dbErr) {
       log.error({ err: dbErr, razorpayOrderId: order.id, userId }, "persist razorpay order row failed");
