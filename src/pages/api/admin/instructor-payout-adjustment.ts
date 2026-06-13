@@ -66,6 +66,9 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       extra_payable_units?: number;
       extra_classes?: number;
       override_payout_paise?: number | null;
+      override_blended_rate_paise?: number | null;
+      paid_blended_rate_paise?: number | null;
+      paid_total_paise?: number | null;
       notes?: string | null;
       paid_at?: Date | null;
       paid_method?: string | null;
@@ -77,11 +80,24 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     if (body.override_payout_paise === null) data.override_payout_paise = null;
     else if (body.override_payout_paise != null)
       data.override_payout_paise = Number(body.override_payout_paise);
+    if (body.override_blended_rate_paise === null) data.override_blended_rate_paise = null;
+    else if (body.override_blended_rate_paise != null)
+      data.override_blended_rate_paise = Number(body.override_blended_rate_paise);
     if (body.notes !== undefined) data.notes = body.notes ? asString(body.notes) : null;
     if (body.paid_method !== undefined)
       data.paid_method = body.paid_method ? asString(body.paid_method) : null;
-    if (body.paid === true) data.paid_at = now;
-    if (body.paid === false) data.paid_at = null;
+    if (body.paid === true) {
+      data.paid_at = now;
+      const blended = Number(body.blended_rate_paise);
+      if (Number.isFinite(blended)) data.paid_blended_rate_paise = Math.round(blended);
+      const total = Number(body.payout_paise);
+      if (Number.isFinite(total)) data.paid_total_paise = Math.round(total);
+    }
+    if (body.paid === false) {
+      data.paid_at = null;
+      data.paid_blended_rate_paise = null;
+      data.paid_total_paise = null;
+    }
     data.recorded_by = adminId;
 
     // Validate numeric fields.
@@ -94,6 +110,9 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     if (data.override_payout_paise != null && !Number.isFinite(data.override_payout_paise)) {
       return res.status(400).json({ error: "override_payout_paise must be a number" });
     }
+    if (data.override_blended_rate_paise != null && !Number.isFinite(data.override_blended_rate_paise)) {
+      return res.status(400).json({ error: "override_blended_rate_paise must be a number" });
+    }
 
     const row = await prisma.instructorPayoutAdjustment.upsert({
       where: { instructor_id_period_key: { instructor_id: instructorId, period_key: periodKey } },
@@ -105,6 +124,9 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         extra_payable_units: data.extra_payable_units ?? 0,
         extra_classes: data.extra_classes ?? 0,
         override_payout_paise: data.override_payout_paise ?? null,
+        override_blended_rate_paise: data.override_blended_rate_paise ?? null,
+        paid_blended_rate_paise: data.paid_blended_rate_paise ?? null,
+        paid_total_paise: data.paid_total_paise ?? null,
         notes: data.notes ?? null,
         paid_at: data.paid_at ?? null,
         paid_method: data.paid_method ?? null,

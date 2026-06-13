@@ -7,6 +7,13 @@ import { sendHtmlEmail } from "@/lib/notifications/sendEmail";
 import { instructorWelcomeEmail } from "@/lib/notifications/emailTemplates";
 import logger from "@/lib/logger";
 
+function rateOverride(v: unknown): number | null | undefined {
+  if (v === undefined) return undefined; // not provided → leave unchanged
+  if (v === null || v === "") return null; // explicit clear → inherit global
+  const n = Number(v);
+  return Number.isFinite(n) && n >= 0 ? Math.round(n) : undefined;
+}
+
 /** Random URL-safe alphanumeric password. */
 function generateTempPassword(len = 12): string {
   const alphabet = "ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnpqrstuvwxyz23456789";
@@ -49,6 +56,10 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     const tempPassword = generateTempPassword();
     const hashed_password = await bcrypt.hash(tempPassword, 12);
 
+    const r12 = rateOverride(body.rate_12_paise); if (r12 !== undefined) body.rate_12_paise = r12;
+    const r8 = rateOverride(body.rate_8_paise); if (r8 !== undefined) body.rate_8_paise = r8;
+    const r4 = rateOverride(body.rate_4_paise); if (r4 !== undefined) body.rate_4_paise = r4;
+    const r1 = rateOverride(body.rate_1_paise); if (r1 !== undefined) body.rate_1_paise = r1;
     const instructor = await prisma.instructor.create({
       data: { ...body, hashed_password },
     });
@@ -105,6 +116,10 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
   if (req.method === "PUT") {
     const { id, ...data } = req.body;
+    const dr12 = rateOverride(data.rate_12_paise); if (dr12 !== undefined) data.rate_12_paise = dr12;
+    const dr8 = rateOverride(data.rate_8_paise); if (dr8 !== undefined) data.rate_8_paise = dr8;
+    const dr4 = rateOverride(data.rate_4_paise); if (dr4 !== undefined) data.rate_4_paise = dr4;
+    const dr1 = rateOverride(data.rate_1_paise); if (dr1 !== undefined) data.rate_1_paise = dr1;
     const instructor = await prisma.instructor.update({ where: { id }, data });
     return res.json(instructor);
   }
