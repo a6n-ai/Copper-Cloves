@@ -7,7 +7,8 @@ import { notifyPackagePurchase } from "@/lib/notifications/notifyPackagePurchase
 import logger from "@/lib/logger";
 import { logActivity } from "@/lib/activityLog";
 import { addMonths } from "date-fns";
-import { SEAT_HOLDING_STATUSES } from "@/lib/bookingStatus";
+import { SEAT_HOLDING_STATUSES, BOOKING_STATUS } from "@/lib/bookingStatus";
+import { confirmPendingBookingTx } from "@/lib/confirmPendingBooking";
 
 export type FulfillPaymentBody = {
   internalPaymentId: string;   // our Payment.id
@@ -53,34 +54,44 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       let newBooking = false;
 
       if (intent === "booking") {
-        const schedule = await tx.classSchedule.findUnique({
-          where: { id: classScheduleId },
-          include: {
-            class_model: { select: { name: true } },
-            bookings: { where: { status: { in: [...SEAT_HOLDING_STATUSES] } }, select: { id: true, user_id: true } },
-          },
+        const pendingExisting = await tx.booking.findFirst({
+          where: { user_id: userId, class_schedule_id: classScheduleId, status: BOOKING_STATUS.payment_pending },
+          select: { id: true },
         });
-        if (!schedule) throw Object.assign(new Error("Schedule not found"), { status: 404 });
-        if (schedule.status === "cancelled") throw Object.assign(new Error("Class is cancelled"), { status: 400 });
-
-        const existingBooking = schedule.bookings.find((b) => b.user_id === userId);
-        if (existingBooking) {
-          bookingId = existingBooking.id;
+        if (pendingExisting) {
+          const r = await confirmPendingBookingTx(tx, pendingExisting.id);
+          bookingId = r.bookingId;
+          newBooking = r.transitioned;
         } else {
-          if (schedule.capacity != null && schedule.bookings.length >= schedule.capacity) {
-            throw Object.assign(new Error("Class is at full capacity"), { status: 400 });
-          }
-          const booking = await tx.booking.create({
-            data: {
-              user_id: userId,
-              class_schedule_id: classScheduleId!,
-              status: "confirmed",
-              class_name: schedule.class_model?.name ?? null,
-              class_time: schedule.start_time.toISOString(),
+          const schedule = await tx.classSchedule.findUnique({
+            where: { id: classScheduleId },
+            include: {
+              class_model: { select: { name: true } },
+              bookings: { where: { status: { in: [...SEAT_HOLDING_STATUSES] } }, select: { id: true, user_id: true } },
             },
           });
-          bookingId = booking.id;
-          newBooking = true;
+          if (!schedule) throw Object.assign(new Error("Schedule not found"), { status: 404 });
+          if (schedule.status === "cancelled") throw Object.assign(new Error("Class is cancelled"), { status: 400 });
+
+          const existingBooking = schedule.bookings.find((b) => b.user_id === userId);
+          if (existingBooking) {
+            bookingId = existingBooking.id;
+          } else {
+            if (schedule.capacity != null && schedule.bookings.length >= schedule.capacity) {
+              throw Object.assign(new Error("Class is at full capacity"), { status: 400 });
+            }
+            const booking = await tx.booking.create({
+              data: {
+                user_id: userId,
+                class_schedule_id: classScheduleId!,
+                status: "confirmed",
+                class_name: schedule.class_model?.name ?? null,
+                class_time: schedule.start_time.toISOString(),
+              },
+            });
+            bookingId = booking.id;
+            newBooking = true;
+          }
         }
       }
 
