@@ -18,6 +18,8 @@ import { Label } from "@/components/ui/label";
 import { MetricCard } from "@/components/admin/MetricCard";
 import { Pagination, usePagination } from "@/components/Pagination";
 import { Pill, type PillProps } from "@/components/ui/pill";
+import { FilterDateRange } from "@/components/filters";
+import type { DateRange } from "react-day-picker";
 import type { ImportPaymentBody } from "@/pages/api/admin/finance/import-payment";
 import type { RazorpayPaymentDetail } from "@/pages/api/admin/finance/razorpay-payment-detail";
 import type { LookupResult, LookupPayment } from "@/pages/api/admin/finance/razorpay-lookup";
@@ -83,6 +85,20 @@ function inr(paise: number): string {
 function currentMonth(): string {
   const d = new Date();
   return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}`;
+}
+
+/** Local YYYY-MM-DD (no UTC shift) for the reconcile date-range query params. */
+function toYmd(d: Date): string {
+  return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`;
+}
+
+/** Default the picker to the current calendar month so the first pull is bounded. */
+function currentMonthRange(): DateRange {
+  const now = new Date();
+  return {
+    from: new Date(now.getFullYear(), now.getMonth(), 1),
+    to: new Date(now.getFullYear(), now.getMonth() + 1, 0),
+  };
 }
 
 function csvCell(v: unknown): string {
@@ -1014,7 +1030,7 @@ function LookupCard() {
 // ─── Main section ─────────────────────────────────────────────────────────────
 
 function ReconcileSectionImpl() {
-  const [month, setMonth] = useState(currentMonth());
+  const [dateRange, setDateRange] = useState<DateRange | undefined>(currentMonthRange());
   const [loading, setLoading] = useState(false);
   const [data, setData] = useState<ReconResponse | null>(null);
   const [matchFilter, setMatchFilter] = useState<ReconMatch | "all" | "issues">("all");
@@ -1022,22 +1038,31 @@ function ReconcileSectionImpl() {
   const [importedIds, setImportedIds] = useState<Set<string>>(new Set());
 
   const runCorrelation = useCallback(async () => {
+    // Date range powers the query; fall back to the current month if cleared.
+    let query: string;
+    if (dateRange?.from && dateRange?.to) {
+      query = `from=${toYmd(dateRange.from)}&to=${toYmd(dateRange.to)}`;
+    } else if (dateRange?.from) {
+      query = `from=${toYmd(dateRange.from)}&to=${toYmd(dateRange.from)}`;
+    } else {
+      query = `month=${currentMonth()}`;
+    }
     setLoading(true);
     try {
-      const r = await fetch(`/api/admin/finance/razorpay-reconcile?month=${encodeURIComponent(month)}`);
+      const r = await fetch(`/api/admin/finance/razorpay-reconcile?${query}`);
       const d = await r.json();
       if (!r.ok) {
         toast.error(d.error ?? "Correlation failed.");
         return;
       }
       setData(d as ReconResponse);
-      if (d.partial) toast.warning("Hit the page cap — results may be incomplete for this month.");
+      if (d.partial) toast.warning("Hit the page cap — narrow the date range; results may be incomplete.");
     } catch {
       toast.error("Could not reach the reconciliation endpoint.");
     } finally {
       setLoading(false);
     }
-  }, [month]);
+  }, [dateRange]);
 
   const filteredRows = useMemo(() => {
     if (!data) return [];
@@ -1046,7 +1071,7 @@ function ReconcileSectionImpl() {
     return data.rows.filter((r) => r.match === matchFilter);
   }, [data, matchFilter]);
 
-  const pg = usePagination(filteredRows, 12, `${month}|${matchFilter}|${data?.summary.total ?? 0}`);
+  const pg = usePagination(filteredRows, 12, `${data?.month ?? ""}|${matchFilter}|${data?.summary.total ?? 0}`);
   const issuesCount = data
     ? data.summary.counts.amount_mismatch +
       data.summary.counts.status_mismatch +
@@ -1065,18 +1090,17 @@ function ReconcileSectionImpl() {
             <div>
               <CardTitle className="font-display text-2xl text-charcoal">Razorpay reconciliation</CardTitle>
               <CardDescription className="font-body text-charcoal/60">
-                Pull every Razorpay payment for a month and match it against what the website recorded
+                Pull every Razorpay payment for a date range and match it against what the website recorded
               </CardDescription>
             </div>
             <div className="flex flex-wrap items-end gap-3">
               <div className="space-y-1.5">
-                <Label className="font-body text-xs text-charcoal/60">Month</Label>
-                <Input
-                  type="month"
-                  value={month}
-                  max={currentMonth()}
-                  onChange={(e) => setMonth(e.target.value)}
-                  className="h-10 w-44 border-sage/20 bg-white font-body"
+                <Label className="font-body text-xs text-charcoal/60">Date range</Label>
+                <FilterDateRange
+                  value={dateRange}
+                  onChange={setDateRange}
+                  placeholder="This month"
+                  className="h-10 w-56 border-sage/20 bg-white font-body"
                 />
               </div>
               <Button type="button" variant="sage" className="h-10" onClick={runCorrelation} disabled={loading}>
@@ -1084,7 +1108,7 @@ function ReconcileSectionImpl() {
                 {loading ? "Correlating…" : "Correlate"}
               </Button>
               {data && (
-                <Button type="button" variant="outline" className="h-10 border-sage/20 text-sage hover:bg-sage/5 hover:text-sage!" onClick={() => downloadCsv(data.rows, month)}>
+                <Button type="button" variant="outline" className="h-10 border-sage/20 text-sage hover:bg-sage/5 hover:text-sage!" onClick={() => downloadCsv(data.rows, data.month)}>
                   <Download className="h-4 w-4 mr-2" />
                   CSV
                 </Button>

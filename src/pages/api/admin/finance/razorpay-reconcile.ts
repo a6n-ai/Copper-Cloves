@@ -79,15 +79,36 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     return res.status(400).json({ error: "Razorpay is not configured on the server." });
   }
 
-  const monthRaw = typeof req.query.month === "string" ? req.query.month : "";
-  const m = /^(\d{4})-(\d{2})$/.exec(monthRaw.trim());
-  if (!m) return res.status(400).json({ error: "month must be YYYY-MM" });
-  const year = Number(m[1]);
-  const month = Number(m[2]); // 1-12
-  const monthStart = new Date(year, month - 1, 1, 0, 0, 0, 0);
-  const monthEnd = new Date(year, month, 1, 0, 0, 0, 0);
-  const from = Math.floor(monthStart.getTime() / 1000);
-  const to = Math.floor(monthEnd.getTime() / 1000) - 1;
+  // Accept either an explicit day range (?from=YYYY-MM-DD&to=YYYY-MM-DD, inclusive)
+  // or a single month (?month=YYYY-MM). The day range powers the FilterDateRange picker.
+  const fromRaw = typeof req.query.from === "string" ? req.query.from.trim() : "";
+  const toRaw = typeof req.query.to === "string" ? req.query.to.trim() : "";
+  const monthRaw = typeof req.query.month === "string" ? req.query.month.trim() : "";
+  const dayRe = /^(\d{4})-(\d{2})-(\d{2})$/;
+
+  let rangeStart: Date;
+  let rangeEnd: Date; // exclusive upper bound
+  let label: string;
+
+  const fromM = dayRe.exec(fromRaw);
+  const toM = dayRe.exec(toRaw);
+  if (fromM && toM) {
+    rangeStart = new Date(Number(fromM[1]), Number(fromM[2]) - 1, Number(fromM[3]), 0, 0, 0, 0);
+    // inclusive end of the `to` day → start of the next day as exclusive bound
+    rangeEnd = new Date(Number(toM[1]), Number(toM[2]) - 1, Number(toM[3]) + 1, 0, 0, 0, 0);
+    if (rangeEnd <= rangeStart) return res.status(400).json({ error: "`to` must be on or after `from`" });
+    label = `${fromRaw}..${toRaw}`;
+  } else {
+    const m = /^(\d{4})-(\d{2})$/.exec(monthRaw);
+    if (!m) return res.status(400).json({ error: "provide from+to (YYYY-MM-DD) or month (YYYY-MM)" });
+    const year = Number(m[1]);
+    const month = Number(m[2]); // 1-12
+    rangeStart = new Date(year, month - 1, 1, 0, 0, 0, 0);
+    rangeEnd = new Date(year, month, 1, 0, 0, 0, 0);
+    label = monthRaw;
+  }
+  const from = Math.floor(rangeStart.getTime() / 1000);
+  const to = Math.floor(rangeEnd.getTime() / 1000) - 1;
 
   try {
     const razorpay = getRazorpay();
@@ -117,7 +138,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         where: {
           OR: [
             { razorpay_payment_id: { in: paymentIds.length ? paymentIds : ["__none__"] } },
-            { created_at: { gte: monthStart, lt: monthEnd } },
+            { created_at: { gte: rangeStart, lt: rangeEnd } },
           ],
         },
         select: {
@@ -225,7 +246,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     }
 
     return res.json({
-      month: monthRaw,
+      month: label,
       partial,
       rows,
       summary: {
