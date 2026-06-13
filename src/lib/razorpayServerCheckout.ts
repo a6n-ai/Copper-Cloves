@@ -24,6 +24,7 @@ import {
 } from "@/lib/couponHelpers";
 import { notifyPackagePurchase } from "@/lib/notifications/notifyPackagePurchase";
 import { onboardGuestsForBooking } from "@/lib/guestOnboarding";
+import { upsertFriendship } from "@/lib/friendship";
 import type { Coupon } from "@/generated/prisma/client";
 import type { PendingBookingCheckout, PendingPackageCheckout } from "@/lib/pendingRazorpayCheckout";
 import {
@@ -308,6 +309,7 @@ export async function finishBookingCheckoutOnServer(
   const extraGuests = pending.extra_guest_count;
   const scheduleId = pending.class_schedule_id;
   const packageId = pending.user_package_id;
+  const addedMemberProfileIds = pending.added_member_profile_ids ?? [];
 
   const booking = await prisma.$transaction(async (tx) => {
     const schedule = await loadBookableSchedule(tx, scheduleId);
@@ -316,7 +318,7 @@ export async function finishBookingCheckoutOnServer(
 
     const cap = schedule.capacity ?? schedule.class_model?.max_capacity ?? 0;
     const seatsTaken = await computeSeatsTaken(tx, scheduleId);
-    const spotsToConsume = 1 + extraGuests;
+    const spotsToConsume = 1 + extraGuests + addedMemberProfileIds.length;
     if (cap > 0 && seatsTaken + spotsToConsume > cap) throw new Error("CLASS_FULL");
 
     const resolvedClassTime =
@@ -355,6 +357,32 @@ export async function finishBookingCheckoutOnServer(
       bookingId: created.id,
     });
 
+    // Added members invited by the booker get their own confirmed roster rows
+    // (mirrors createBookingTx in /api/bookings). Idempotent: skip anyone who
+    // already has a row for this schedule (handles webhook+redirect double-run).
+    for (const memberId of addedMemberProfileIds) {
+      const alreadyBooked = await tx.booking.findFirst({
+        where: {
+          user_id: memberId,
+          class_schedule_id: scheduleId,
+          status: { in: ["confirmed", "pending"] },
+        },
+        select: { id: true },
+      });
+      if (alreadyBooked) continue;
+
+      await tx.booking.create({
+        data: {
+          user_id: memberId,
+          class_schedule_id: scheduleId,
+          status: "confirmed",
+          class_name: resolvedClassName,
+          class_time: resolvedClassTime,
+          invited_by_user_id: userId,
+        },
+      });
+    }
+
     if (packageId) {
       const upd = await tx.userPackage.updateMany({
         where: { id: packageId, user_id: userId, credits_remaining: { gte: 1 } },
@@ -385,6 +413,16 @@ export async function finishBookingCheckoutOnServer(
     pending,
     userId,
   });
+
+  // Auto-friend booker ↔ each added member. OUTSIDE the tx so a friendship write
+  // error can never roll back the paid booking. Idempotent + best-effort.
+  for (const memberId of addedMemberProfileIds) {
+    try {
+      await upsertFriendship(prisma, userId, memberId, "invite", "active");
+    } catch (e) {
+      logger.error({ err: e, invitee: memberId }, "[finishBookingCheckoutOnServer] friendship upsert failed");
+    }
+  }
 
   return { bookingId: booking.id };
 }
