@@ -65,6 +65,7 @@ import {
   AlertCircle,
 } from "lucide-react";
 import { CheckInScanButton } from "@/components/checkin/CheckInScanButton";
+import { FriendsCard } from "@/components/portal/FriendsCard";
 
 import { cdnUrl } from "@/lib/cdnUrl";
 import { toast } from "sonner";
@@ -697,6 +698,8 @@ export default function Dashboard() {
             <div className="lg:col-span-1 space-y-6">
               {/* Upcoming Classes */}
               <UpcomingScheduleCard entries={upcomingEntries} />
+              {/* Friends */}
+              <FriendsCard />
             </div>
           </div>
 
