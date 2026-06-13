@@ -43,7 +43,14 @@ npm run db:seed:admin             # ensure admin user exists
 npm run db:seed:instructors       # seed instructor roster
 npm run db:seed:weekend-may-2026  # seed May 2026 weekend class schedules (manual; removed from amplify auto-deploy)
 npm run db:seed:members           # seed 6 studio members with packages + login
+npm run db:seed:payout-settings   # seed default instructor payout rate card (idempotent)
 npm run backfill:completed-schedules   # flip past-due class_schedules → completed/abandoned (idempotent)
+```
+
+## Tests
+
+```bash
+npm run test:payout   # assert-based unit tests for payout engine (tsx)
 ```
 
 ## Scheduler (PM2 cron)

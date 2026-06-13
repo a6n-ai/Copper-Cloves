@@ -118,6 +118,9 @@ Gated: session role `instructor` + `instructor_id`. `/instructor/dashboard` — 
 | `/api/admin/dashboard/member-stats` | Member-of-month, top class, no-show + late check-in counts, inactive users |
 | `/api/admin/dashboard/member-list` | Recent package purchasers (24 most recent) |
 | `/api/admin/dashboard/transactions` | Finance ledger (packages + booking checkouts) |
+| `/api/admin/payout-settings` | Global instructor payout rate card (12/8/4/1 package rates, GST, default cut). GET/PUT, admin-only. |
+| `/api/admin/instructor-payouts` | Per-period payout per instructor (tiered blended rate × payable units); ?instructorId= scopes to one. |
+| `/api/admin/instructor-payout-adjustment` | Per-(instructor,period) overrides: blended-rate override, final override, mark-paid (freezes snapshot). |
 | `/api/admin/*` | Other admin-only data endpoints |
 | `/api/cron/reconcile-no-shows` | Header `x-cron-secret: $CRON_SECRET` (or admin session). Marks past-due bookings `no_show`. Schedule externally — no longer on request path. |
 | `/api/cron/reconcile-razorpay` | Header `x-cron-secret: $CRON_SECRET` (or admin session). Backstop: polls Razorpay for paid-but-unfulfilled website orders → captures + fulfils. Covers mobile-closed-tab / missed webhook. Idempotent. `?hours=72&limit=200`. |
@@ -149,7 +152,7 @@ Gated: session role `instructor` + `instructor_id`. `/instructor/dashboard` — 
 | `RetailProduct` / `RetailOrder` | Boutique product catalog + purchase orders |
 | `MealSubscription` | Monthly meal plan; `meals_remaining` decrements per order |
 | `Coupon` / `CouponRedemption` | Promo codes; `applies_to`: `food` \| `ecommerce` \| `class_pass` \| `studio_pass` |
-| `Instructor` | Studio instructors; `studio_payout_cut_percent` not public. `profile_id` (`@unique`) links to the role `instructor` login Profile. Session `instructor_id` resolved from this link. |
+| `Instructor` | Studio instructors; `studio_payout_cut_percent` not public. `profile_id` (`@unique`) links to the role `instructor` login Profile. Session `instructor_id` resolved from this link. Payout = tiered rate card (`PayoutSettings` singleton global + per-instructor `rate_*_paise` override) → per-class net (÷classes ÷(1+GST) ×instructorPct) → blended avg (editable per period) × payable units. Engine: `src/lib/payoutCalc.ts`. Frozen-on-paid snapshot. |
 | `Waiver` | Signed liability waivers |
 | `CrmTemplate` / `CrmMessage` / `CrmTrigger` | Internal CRM — email + WhatsApp |
 | `UserStats` / `UserStreak` / `UserBadge` | Gamification: streak tracking, badges earned |

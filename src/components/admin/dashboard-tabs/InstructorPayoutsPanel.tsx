@@ -37,6 +37,7 @@ type PayoutRow = {
   checkIns: number;
   payableUnits: number;
   extraPayableUnits: number;
+  blendedRatePaise: number;
   netPerUnit: number;
   percentage: number;
   studioCutPercent: number;
@@ -172,6 +173,7 @@ function InstructorPayoutsPanelImpl() {
           paid,
           recordExpense,
           payout_paise: Math.round(row.total * 100),
+          blended_rate_paise: row.blendedRatePaise,
         }),
       });
       if (!res.ok) {

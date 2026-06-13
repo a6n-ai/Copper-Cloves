@@ -2,7 +2,6 @@ import type { NextApiRequest, NextApiResponse } from "next";
 import prisma from "@/lib/prisma";
 import { getStudioServerSession } from "@/lib/getStudioServerSession";
 import {
-  DEFAULT_STUDIO_CUT_PERCENT,
   instructorPctFrom,
   payableForSchedule,
   payoutForUnits,
@@ -131,7 +130,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     const studioCut =
       studioCutRaw != null && Number.isFinite(Number(studioCutRaw))
         ? Number(studioCutRaw)
-        : DEFAULT_STUDIO_CUT_PERCENT;
+        : settings.defaultStudioCutPercent;
 
     const prev = tally.get(teachId);
     if (prev) {
