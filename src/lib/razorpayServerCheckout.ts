@@ -189,6 +189,72 @@ async function runBookingPostFulfillSideEffects(args: {
       bookerId: userId,
     }).catch((e) => logger.error({ err: e }, "[onboardGuestsForBooking] post-confirm"));
   }
+
+  // Added members invited by the booker get their own confirmed roster rows.
+  // Runs for BOTH the pre-created confirm path and the fresh-create path.
+  // Idempotent (skip anyone already booked) + best-effort (never throws).
+  const addedMemberProfileIds = pending.added_member_profile_ids ?? [];
+  if (addedMemberProfileIds.length > 0) {
+    const schedule = await prisma.classSchedule.findUnique({
+      where: { id: pending.class_schedule_id },
+      select: {
+        start_time: true,
+        class_model: { select: { name: true } },
+      },
+    });
+    const resolvedClassTime = pending.class_time?.trim() || schedule?.start_time.toISOString() || "";
+    const resolvedClassName = pending.class_name?.trim() || schedule?.class_model?.name || null;
+
+    for (const memberId of addedMemberProfileIds) {
+      try {
+        const already = await prisma.booking.findFirst({
+          where: {
+            user_id: memberId,
+            class_schedule_id: pending.class_schedule_id,
+            status: { in: ["confirmed", "pending"] },
+          },
+          select: { id: true },
+        });
+        if (!already) {
+          await prisma.booking.create({
+            data: {
+              user_id: memberId,
+              class_schedule_id: pending.class_schedule_id,
+              status: "confirmed",
+              class_name: resolvedClassName,
+              class_time: resolvedClassTime,
+              invited_by_user_id: userId,
+            },
+          });
+        }
+        await upsertFriendship(prisma, userId, memberId, "invite", "active");
+      } catch (e) {
+        logger.error({ err: e, invitee: memberId }, "[runBookingPostFulfillSideEffects] added member failed");
+      }
+    }
+  }
+
+  // Reconcile denormalized seat counters from ACTUAL rows now that guest +
+  // added-member rows exist (both paths compute counters before these rows are
+  // created). Authoritative + idempotent.
+  try {
+    const sched = await prisma.classSchedule.findUnique({
+      where: { id: pending.class_schedule_id },
+      include: { class_model: { select: { max_capacity: true } } },
+    });
+    if (sched) {
+      const cap = sched.capacity ?? sched.class_model?.max_capacity ?? 0;
+      if (cap > 0) {
+        const seatsTaken = await computeSeatsTaken(prisma, pending.class_schedule_id);
+        await prisma.classSchedule.update({
+          where: { id: pending.class_schedule_id },
+          data: { current_bookings: seatsTaken, available_spots: Math.max(0, cap - seatsTaken) },
+        });
+      }
+    }
+  } catch (e) {
+    logger.error({ err: e }, "[runBookingPostFulfillSideEffects] counter reconcile failed");
+  }
 }
 
 /**
@@ -357,32 +423,6 @@ export async function finishBookingCheckoutOnServer(
       bookingId: created.id,
     });
 
-    // Added members invited by the booker get their own confirmed roster rows
-    // (mirrors createBookingTx in /api/bookings). Idempotent: skip anyone who
-    // already has a row for this schedule (handles webhook+redirect double-run).
-    for (const memberId of addedMemberProfileIds) {
-      const alreadyBooked = await tx.booking.findFirst({
-        where: {
-          user_id: memberId,
-          class_schedule_id: scheduleId,
-          status: { in: ["confirmed", "pending"] },
-        },
-        select: { id: true },
-      });
-      if (alreadyBooked) continue;
-
-      await tx.booking.create({
-        data: {
-          user_id: memberId,
-          class_schedule_id: scheduleId,
-          status: "confirmed",
-          class_name: resolvedClassName,
-          class_time: resolvedClassTime,
-          invited_by_user_id: userId,
-        },
-      });
-    }
-
     if (packageId) {
       const upd = await tx.userPackage.updateMany({
         where: { id: packageId, user_id: userId, credits_remaining: { gte: 1 } },
@@ -413,16 +453,6 @@ export async function finishBookingCheckoutOnServer(
     pending,
     userId,
   });
-
-  // Auto-friend booker ↔ each added member. OUTSIDE the tx so a friendship write
-  // error can never roll back the paid booking. Idempotent + best-effort.
-  for (const memberId of addedMemberProfileIds) {
-    try {
-      await upsertFriendship(prisma, userId, memberId, "invite", "active");
-    } catch (e) {
-      logger.error({ err: e, invitee: memberId }, "[finishBookingCheckoutOnServer] friendship upsert failed");
-    }
-  }
 
   return { bookingId: booking.id };
 }

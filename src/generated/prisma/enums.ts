@@ -9,6 +9,15 @@
 * 🟢 You can import this file directly.
 */
 
+export const FriendshipStatus = {
+  pending: 'pending',
+  active: 'active',
+  blocked: 'blocked'
+} as const
+
+export type FriendshipStatus = (typeof FriendshipStatus)[keyof typeof FriendshipStatus]
+
+
 export const PaymentMethod = {
   razorpay_online: 'razorpay_online',
   razorpay_completed: 'razorpay_completed',

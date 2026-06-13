@@ -126,6 +126,11 @@ export type RazorpayOrder = Prisma.RazorpayOrderModel
  */
 export type RazorpayPayment = Prisma.RazorpayPaymentModel
 /**
+ * Model Friendship
+ * 
+ */
+export type Friendship = Prisma.FriendshipModel
+/**
  * Model Payment
  * 
  */

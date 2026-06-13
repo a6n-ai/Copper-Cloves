@@ -67,6 +67,7 @@ export const ModelName = {
   Booking: 'Booking',
   RazorpayOrder: 'RazorpayOrder',
   RazorpayPayment: 'RazorpayPayment',
+  Friendship: 'Friendship',
   Payment: 'Payment',
   CafeItem: 'CafeItem',
   CafeOrder: 'CafeOrder',
@@ -366,6 +367,8 @@ export const BookingScalarFieldEnum = {
   booking_date: 'booking_date',
   created_at: 'created_at',
   updated_at: 'updated_at',
+  hold_expires_at: 'hold_expires_at',
+  recovery_email_sent_at: 'recovery_email_sent_at',
   cancellation_date: 'cancellation_date',
   class_name: 'class_name',
   class_time: 'class_time',
@@ -417,6 +420,21 @@ export const RazorpayPaymentScalarFieldEnum = {
 } as const
 
 export type RazorpayPaymentScalarFieldEnum = (typeof RazorpayPaymentScalarFieldEnum)[keyof typeof RazorpayPaymentScalarFieldEnum]
+
+
+export const FriendshipScalarFieldEnum = {
+  id: 'id',
+  user_a_id: 'user_a_id',
+  user_b_id: 'user_b_id',
+  status: 'status',
+  requested_by_id: 'requested_by_id',
+  blocked_by_id: 'blocked_by_id',
+  source: 'source',
+  created_at: 'created_at',
+  updated_at: 'updated_at'
+} as const
+
+export type FriendshipScalarFieldEnum = (typeof FriendshipScalarFieldEnum)[keyof typeof FriendshipScalarFieldEnum]
 
 
 export const PaymentScalarFieldEnum = {

@@ -336,6 +336,8 @@ export type ProfileWhereInput = {
   partner_memberships?: Prisma.PartnerMemberListRelationFilter
   bookings?: Prisma.BookingListRelationFilter
   sent_invites?: Prisma.BookingListRelationFilter
+  friendships_a?: Prisma.FriendshipListRelationFilter
+  friendships_b?: Prisma.FriendshipListRelationFilter
   cafe_orders?: Prisma.CafeOrderListRelationFilter
   meal_subscriptions?: Prisma.MealSubscriptionListRelationFilter
   user_badges?: Prisma.UserBadgeListRelationFilter
@@ -382,6 +384,8 @@ export type ProfileOrderByWithRelationInput = {
   partner_memberships?: Prisma.PartnerMemberOrderByRelationAggregateInput
   bookings?: Prisma.BookingOrderByRelationAggregateInput
   sent_invites?: Prisma.BookingOrderByRelationAggregateInput
+  friendships_a?: Prisma.FriendshipOrderByRelationAggregateInput
+  friendships_b?: Prisma.FriendshipOrderByRelationAggregateInput
   cafe_orders?: Prisma.CafeOrderOrderByRelationAggregateInput
   meal_subscriptions?: Prisma.MealSubscriptionOrderByRelationAggregateInput
   user_badges?: Prisma.UserBadgeOrderByRelationAggregateInput
@@ -432,6 +436,8 @@ export type ProfileWhereUniqueInput = Prisma.AtLeast<{
   partner_memberships?: Prisma.PartnerMemberListRelationFilter
   bookings?: Prisma.BookingListRelationFilter
   sent_invites?: Prisma.BookingListRelationFilter
+  friendships_a?: Prisma.FriendshipListRelationFilter
+  friendships_b?: Prisma.FriendshipListRelationFilter
   cafe_orders?: Prisma.CafeOrderListRelationFilter
   meal_subscriptions?: Prisma.MealSubscriptionListRelationFilter
   user_badges?: Prisma.UserBadgeListRelationFilter
@@ -532,6 +538,8 @@ export type ProfileCreateInput = {
   partner_memberships?: Prisma.PartnerMemberCreateNestedManyWithoutProfileInput
   bookings?: Prisma.BookingCreateNestedManyWithoutProfileInput
   sent_invites?: Prisma.BookingCreateNestedManyWithoutInvited_byInput
+  friendships_a?: Prisma.FriendshipCreateNestedManyWithoutUser_aInput
+  friendships_b?: Prisma.FriendshipCreateNestedManyWithoutUser_bInput
   cafe_orders?: Prisma.CafeOrderCreateNestedManyWithoutProfileInput
   meal_subscriptions?: Prisma.MealSubscriptionCreateNestedManyWithoutProfileInput
   user_badges?: Prisma.UserBadgeCreateNestedManyWithoutProfileInput
@@ -578,6 +586,8 @@ export type ProfileUncheckedCreateInput = {
   partner_memberships?: Prisma.PartnerMemberUncheckedCreateNestedManyWithoutProfileInput
   bookings?: Prisma.BookingUncheckedCreateNestedManyWithoutProfileInput
   sent_invites?: Prisma.BookingUncheckedCreateNestedManyWithoutInvited_byInput
+  friendships_a?: Prisma.FriendshipUncheckedCreateNestedManyWithoutUser_aInput
+  friendships_b?: Prisma.FriendshipUncheckedCreateNestedManyWithoutUser_bInput
   cafe_orders?: Prisma.CafeOrderUncheckedCreateNestedManyWithoutProfileInput
   meal_subscriptions?: Prisma.MealSubscriptionUncheckedCreateNestedManyWithoutProfileInput
   user_badges?: Prisma.UserBadgeUncheckedCreateNestedManyWithoutProfileInput
@@ -624,6 +634,8 @@ export type ProfileUpdateInput = {
   partner_memberships?: Prisma.PartnerMemberUpdateManyWithoutProfileNestedInput
   bookings?: Prisma.BookingUpdateManyWithoutProfileNestedInput
   sent_invites?: Prisma.BookingUpdateManyWithoutInvited_byNestedInput
+  friendships_a?: Prisma.FriendshipUpdateManyWithoutUser_aNestedInput
+  friendships_b?: Prisma.FriendshipUpdateManyWithoutUser_bNestedInput
   cafe_orders?: Prisma.CafeOrderUpdateManyWithoutProfileNestedInput
   meal_subscriptions?: Prisma.MealSubscriptionUpdateManyWithoutProfileNestedInput
   user_badges?: Prisma.UserBadgeUpdateManyWithoutProfileNestedInput
@@ -670,6 +682,8 @@ export type ProfileUncheckedUpdateInput = {
   partner_memberships?: Prisma.PartnerMemberUncheckedUpdateManyWithoutProfileNestedInput
   bookings?: Prisma.BookingUncheckedUpdateManyWithoutProfileNestedInput
   sent_invites?: Prisma.BookingUncheckedUpdateManyWithoutInvited_byNestedInput
+  friendships_a?: Prisma.FriendshipUncheckedUpdateManyWithoutUser_aNestedInput
+  friendships_b?: Prisma.FriendshipUncheckedUpdateManyWithoutUser_bNestedInput
   cafe_orders?: Prisma.CafeOrderUncheckedUpdateManyWithoutProfileNestedInput
   meal_subscriptions?: Prisma.MealSubscriptionUncheckedUpdateManyWithoutProfileNestedInput
   user_badges?: Prisma.UserBadgeUncheckedUpdateManyWithoutProfileNestedInput
@@ -1012,6 +1026,34 @@ export type ProfileUpdateOneRequiredWithoutRazorpay_ordersNestedInput = {
   update?: Prisma.XOR<Prisma.XOR<Prisma.ProfileUpdateToOneWithWhereWithoutRazorpay_ordersInput, Prisma.ProfileUpdateWithoutRazorpay_ordersInput>, Prisma.ProfileUncheckedUpdateWithoutRazorpay_ordersInput>
 }
 
+export type ProfileCreateNestedOneWithoutFriendships_aInput = {
+  create?: Prisma.XOR<Prisma.ProfileCreateWithoutFriendships_aInput, Prisma.ProfileUncheckedCreateWithoutFriendships_aInput>
+  connectOrCreate?: Prisma.ProfileCreateOrConnectWithoutFriendships_aInput
+  connect?: Prisma.ProfileWhereUniqueInput
+}
+
+export type ProfileCreateNestedOneWithoutFriendships_bInput = {
+  create?: Prisma.XOR<Prisma.ProfileCreateWithoutFriendships_bInput, Prisma.ProfileUncheckedCreateWithoutFriendships_bInput>
+  connectOrCreate?: Prisma.ProfileCreateOrConnectWithoutFriendships_bInput
+  connect?: Prisma.ProfileWhereUniqueInput
+}
+
+export type ProfileUpdateOneRequiredWithoutFriendships_aNestedInput = {
+  create?: Prisma.XOR<Prisma.ProfileCreateWithoutFriendships_aInput, Prisma.ProfileUncheckedCreateWithoutFriendships_aInput>
+  connectOrCreate?: Prisma.ProfileCreateOrConnectWithoutFriendships_aInput
+  upsert?: Prisma.ProfileUpsertWithoutFriendships_aInput
+  connect?: Prisma.ProfileWhereUniqueInput
+  update?: Prisma.XOR<Prisma.XOR<Prisma.ProfileUpdateToOneWithWhereWithoutFriendships_aInput, Prisma.ProfileUpdateWithoutFriendships_aInput>, Prisma.ProfileUncheckedUpdateWithoutFriendships_aInput>
+}
+
+export type ProfileUpdateOneRequiredWithoutFriendships_bNestedInput = {
+  create?: Prisma.XOR<Prisma.ProfileCreateWithoutFriendships_bInput, Prisma.ProfileUncheckedCreateWithoutFriendships_bInput>
+  connectOrCreate?: Prisma.ProfileCreateOrConnectWithoutFriendships_bInput
+  upsert?: Prisma.ProfileUpsertWithoutFriendships_bInput
+  connect?: Prisma.ProfileWhereUniqueInput
+  update?: Prisma.XOR<Prisma.XOR<Prisma.ProfileUpdateToOneWithWhereWithoutFriendships_bInput, Prisma.ProfileUpdateWithoutFriendships_bInput>, Prisma.ProfileUncheckedUpdateWithoutFriendships_bInput>
+}
+
 export type ProfileCreateNestedOneWithoutPaymentsInput = {
   create?: Prisma.XOR<Prisma.ProfileCreateWithoutPaymentsInput, Prisma.ProfileUncheckedCreateWithoutPaymentsInput>
   connectOrCreate?: Prisma.ProfileCreateOrConnectWithoutPaymentsInput
@@ -1245,6 +1287,8 @@ export type ProfileCreateWithoutSessionsInput = {
   partner_memberships?: Prisma.PartnerMemberCreateNestedManyWithoutProfileInput
   bookings?: Prisma.BookingCreateNestedManyWithoutProfileInput
   sent_invites?: Prisma.BookingCreateNestedManyWithoutInvited_byInput
+  friendships_a?: Prisma.FriendshipCreateNestedManyWithoutUser_aInput
+  friendships_b?: Prisma.FriendshipCreateNestedManyWithoutUser_bInput
   cafe_orders?: Prisma.CafeOrderCreateNestedManyWithoutProfileInput
   meal_subscriptions?: Prisma.MealSubscriptionCreateNestedManyWithoutProfileInput
   user_badges?: Prisma.UserBadgeCreateNestedManyWithoutProfileInput
@@ -1290,6 +1334,8 @@ export type ProfileUncheckedCreateWithoutSessionsInput = {
   partner_memberships?: Prisma.PartnerMemberUncheckedCreateNestedManyWithoutProfileInput
   bookings?: Prisma.BookingUncheckedCreateNestedManyWithoutProfileInput
   sent_invites?: Prisma.BookingUncheckedCreateNestedManyWithoutInvited_byInput
+  friendships_a?: Prisma.FriendshipUncheckedCreateNestedManyWithoutUser_aInput
+  friendships_b?: Prisma.FriendshipUncheckedCreateNestedManyWithoutUser_bInput
   cafe_orders?: Prisma.CafeOrderUncheckedCreateNestedManyWithoutProfileInput
   meal_subscriptions?: Prisma.MealSubscriptionUncheckedCreateNestedManyWithoutProfileInput
   user_badges?: Prisma.UserBadgeUncheckedCreateNestedManyWithoutProfileInput
@@ -1351,6 +1397,8 @@ export type ProfileUpdateWithoutSessionsInput = {
   partner_memberships?: Prisma.PartnerMemberUpdateManyWithoutProfileNestedInput
   bookings?: Prisma.BookingUpdateManyWithoutProfileNestedInput
   sent_invites?: Prisma.BookingUpdateManyWithoutInvited_byNestedInput
+  friendships_a?: Prisma.FriendshipUpdateManyWithoutUser_aNestedInput
+  friendships_b?: Prisma.FriendshipUpdateManyWithoutUser_bNestedInput
   cafe_orders?: Prisma.CafeOrderUpdateManyWithoutProfileNestedInput
   meal_subscriptions?: Prisma.MealSubscriptionUpdateManyWithoutProfileNestedInput
   user_badges?: Prisma.UserBadgeUpdateManyWithoutProfileNestedInput
@@ -1396,6 +1444,8 @@ export type ProfileUncheckedUpdateWithoutSessionsInput = {
   partner_memberships?: Prisma.PartnerMemberUncheckedUpdateManyWithoutProfileNestedInput
   bookings?: Prisma.BookingUncheckedUpdateManyWithoutProfileNestedInput
   sent_invites?: Prisma.BookingUncheckedUpdateManyWithoutInvited_byNestedInput
+  friendships_a?: Prisma.FriendshipUncheckedUpdateManyWithoutUser_aNestedInput
+  friendships_b?: Prisma.FriendshipUncheckedUpdateManyWithoutUser_bNestedInput
   cafe_orders?: Prisma.CafeOrderUncheckedUpdateManyWithoutProfileNestedInput
   meal_subscriptions?: Prisma.MealSubscriptionUncheckedUpdateManyWithoutProfileNestedInput
   user_badges?: Prisma.UserBadgeUncheckedUpdateManyWithoutProfileNestedInput
@@ -1441,6 +1491,8 @@ export type ProfileCreateWithoutCoupon_redemptionsInput = {
   partner_memberships?: Prisma.PartnerMemberCreateNestedManyWithoutProfileInput
   bookings?: Prisma.BookingCreateNestedManyWithoutProfileInput
   sent_invites?: Prisma.BookingCreateNestedManyWithoutInvited_byInput
+  friendships_a?: Prisma.FriendshipCreateNestedManyWithoutUser_aInput
+  friendships_b?: Prisma.FriendshipCreateNestedManyWithoutUser_bInput
   cafe_orders?: Prisma.CafeOrderCreateNestedManyWithoutProfileInput
   meal_subscriptions?: Prisma.MealSubscriptionCreateNestedManyWithoutProfileInput
   user_badges?: Prisma.UserBadgeCreateNestedManyWithoutProfileInput
@@ -1486,6 +1538,8 @@ export type ProfileUncheckedCreateWithoutCoupon_redemptionsInput = {
   partner_memberships?: Prisma.PartnerMemberUncheckedCreateNestedManyWithoutProfileInput
   bookings?: Prisma.BookingUncheckedCreateNestedManyWithoutProfileInput
   sent_invites?: Prisma.BookingUncheckedCreateNestedManyWithoutInvited_byInput
+  friendships_a?: Prisma.FriendshipUncheckedCreateNestedManyWithoutUser_aInput
+  friendships_b?: Prisma.FriendshipUncheckedCreateNestedManyWithoutUser_bInput
   cafe_orders?: Prisma.CafeOrderUncheckedCreateNestedManyWithoutProfileInput
   meal_subscriptions?: Prisma.MealSubscriptionUncheckedCreateNestedManyWithoutProfileInput
   user_badges?: Prisma.UserBadgeUncheckedCreateNestedManyWithoutProfileInput
@@ -1547,6 +1601,8 @@ export type ProfileUpdateWithoutCoupon_redemptionsInput = {
   partner_memberships?: Prisma.PartnerMemberUpdateManyWithoutProfileNestedInput
   bookings?: Prisma.BookingUpdateManyWithoutProfileNestedInput
   sent_invites?: Prisma.BookingUpdateManyWithoutInvited_byNestedInput
+  friendships_a?: Prisma.FriendshipUpdateManyWithoutUser_aNestedInput
+  friendships_b?: Prisma.FriendshipUpdateManyWithoutUser_bNestedInput
   cafe_orders?: Prisma.CafeOrderUpdateManyWithoutProfileNestedInput
   meal_subscriptions?: Prisma.MealSubscriptionUpdateManyWithoutProfileNestedInput
   user_badges?: Prisma.UserBadgeUpdateManyWithoutProfileNestedInput
@@ -1592,6 +1648,8 @@ export type ProfileUncheckedUpdateWithoutCoupon_redemptionsInput = {
   partner_memberships?: Prisma.PartnerMemberUncheckedUpdateManyWithoutProfileNestedInput
   bookings?: Prisma.BookingUncheckedUpdateManyWithoutProfileNestedInput
   sent_invites?: Prisma.BookingUncheckedUpdateManyWithoutInvited_byNestedInput
+  friendships_a?: Prisma.FriendshipUncheckedUpdateManyWithoutUser_aNestedInput
+  friendships_b?: Prisma.FriendshipUncheckedUpdateManyWithoutUser_bNestedInput
   cafe_orders?: Prisma.CafeOrderUncheckedUpdateManyWithoutProfileNestedInput
   meal_subscriptions?: Prisma.MealSubscriptionUncheckedUpdateManyWithoutProfileNestedInput
   user_badges?: Prisma.UserBadgeUncheckedUpdateManyWithoutProfileNestedInput
@@ -1637,6 +1695,8 @@ export type ProfileCreateWithoutRetail_ordersInput = {
   partner_memberships?: Prisma.PartnerMemberCreateNestedManyWithoutProfileInput
   bookings?: Prisma.BookingCreateNestedManyWithoutProfileInput
   sent_invites?: Prisma.BookingCreateNestedManyWithoutInvited_byInput
+  friendships_a?: Prisma.FriendshipCreateNestedManyWithoutUser_aInput
+  friendships_b?: Prisma.FriendshipCreateNestedManyWithoutUser_bInput
   cafe_orders?: Prisma.CafeOrderCreateNestedManyWithoutProfileInput
   meal_subscriptions?: Prisma.MealSubscriptionCreateNestedManyWithoutProfileInput
   user_badges?: Prisma.UserBadgeCreateNestedManyWithoutProfileInput
@@ -1682,6 +1742,8 @@ export type ProfileUncheckedCreateWithoutRetail_ordersInput = {
   partner_memberships?: Prisma.PartnerMemberUncheckedCreateNestedManyWithoutProfileInput
   bookings?: Prisma.BookingUncheckedCreateNestedManyWithoutProfileInput
   sent_invites?: Prisma.BookingUncheckedCreateNestedManyWithoutInvited_byInput
+  friendships_a?: Prisma.FriendshipUncheckedCreateNestedManyWithoutUser_aInput
+  friendships_b?: Prisma.FriendshipUncheckedCreateNestedManyWithoutUser_bInput
   cafe_orders?: Prisma.CafeOrderUncheckedCreateNestedManyWithoutProfileInput
   meal_subscriptions?: Prisma.MealSubscriptionUncheckedCreateNestedManyWithoutProfileInput
   user_badges?: Prisma.UserBadgeUncheckedCreateNestedManyWithoutProfileInput
@@ -1743,6 +1805,8 @@ export type ProfileUpdateWithoutRetail_ordersInput = {
   partner_memberships?: Prisma.PartnerMemberUpdateManyWithoutProfileNestedInput
   bookings?: Prisma.BookingUpdateManyWithoutProfileNestedInput
   sent_invites?: Prisma.BookingUpdateManyWithoutInvited_byNestedInput
+  friendships_a?: Prisma.FriendshipUpdateManyWithoutUser_aNestedInput
+  friendships_b?: Prisma.FriendshipUpdateManyWithoutUser_bNestedInput
   cafe_orders?: Prisma.CafeOrderUpdateManyWithoutProfileNestedInput
   meal_subscriptions?: Prisma.MealSubscriptionUpdateManyWithoutProfileNestedInput
   user_badges?: Prisma.UserBadgeUpdateManyWithoutProfileNestedInput
@@ -1788,6 +1852,8 @@ export type ProfileUncheckedUpdateWithoutRetail_ordersInput = {
   partner_memberships?: Prisma.PartnerMemberUncheckedUpdateManyWithoutProfileNestedInput
   bookings?: Prisma.BookingUncheckedUpdateManyWithoutProfileNestedInput
   sent_invites?: Prisma.BookingUncheckedUpdateManyWithoutInvited_byNestedInput
+  friendships_a?: Prisma.FriendshipUncheckedUpdateManyWithoutUser_aNestedInput
+  friendships_b?: Prisma.FriendshipUncheckedUpdateManyWithoutUser_bNestedInput
   cafe_orders?: Prisma.CafeOrderUncheckedUpdateManyWithoutProfileNestedInput
   meal_subscriptions?: Prisma.MealSubscriptionUncheckedUpdateManyWithoutProfileNestedInput
   user_badges?: Prisma.UserBadgeUncheckedUpdateManyWithoutProfileNestedInput
@@ -1832,6 +1898,8 @@ export type ProfileCreateWithoutInstructor_accountInput = {
   partner_memberships?: Prisma.PartnerMemberCreateNestedManyWithoutProfileInput
   bookings?: Prisma.BookingCreateNestedManyWithoutProfileInput
   sent_invites?: Prisma.BookingCreateNestedManyWithoutInvited_byInput
+  friendships_a?: Prisma.FriendshipCreateNestedManyWithoutUser_aInput
+  friendships_b?: Prisma.FriendshipCreateNestedManyWithoutUser_bInput
   cafe_orders?: Prisma.CafeOrderCreateNestedManyWithoutProfileInput
   meal_subscriptions?: Prisma.MealSubscriptionCreateNestedManyWithoutProfileInput
   user_badges?: Prisma.UserBadgeCreateNestedManyWithoutProfileInput
@@ -1877,6 +1945,8 @@ export type ProfileUncheckedCreateWithoutInstructor_accountInput = {
   partner_memberships?: Prisma.PartnerMemberUncheckedCreateNestedManyWithoutProfileInput
   bookings?: Prisma.BookingUncheckedCreateNestedManyWithoutProfileInput
   sent_invites?: Prisma.BookingUncheckedCreateNestedManyWithoutInvited_byInput
+  friendships_a?: Prisma.FriendshipUncheckedCreateNestedManyWithoutUser_aInput
+  friendships_b?: Prisma.FriendshipUncheckedCreateNestedManyWithoutUser_bInput
   cafe_orders?: Prisma.CafeOrderUncheckedCreateNestedManyWithoutProfileInput
   meal_subscriptions?: Prisma.MealSubscriptionUncheckedCreateNestedManyWithoutProfileInput
   user_badges?: Prisma.UserBadgeUncheckedCreateNestedManyWithoutProfileInput
@@ -1938,6 +2008,8 @@ export type ProfileUpdateWithoutInstructor_accountInput = {
   partner_memberships?: Prisma.PartnerMemberUpdateManyWithoutProfileNestedInput
   bookings?: Prisma.BookingUpdateManyWithoutProfileNestedInput
   sent_invites?: Prisma.BookingUpdateManyWithoutInvited_byNestedInput
+  friendships_a?: Prisma.FriendshipUpdateManyWithoutUser_aNestedInput
+  friendships_b?: Prisma.FriendshipUpdateManyWithoutUser_bNestedInput
   cafe_orders?: Prisma.CafeOrderUpdateManyWithoutProfileNestedInput
   meal_subscriptions?: Prisma.MealSubscriptionUpdateManyWithoutProfileNestedInput
   user_badges?: Prisma.UserBadgeUpdateManyWithoutProfileNestedInput
@@ -1983,6 +2055,8 @@ export type ProfileUncheckedUpdateWithoutInstructor_accountInput = {
   partner_memberships?: Prisma.PartnerMemberUncheckedUpdateManyWithoutProfileNestedInput
   bookings?: Prisma.BookingUncheckedUpdateManyWithoutProfileNestedInput
   sent_invites?: Prisma.BookingUncheckedUpdateManyWithoutInvited_byNestedInput
+  friendships_a?: Prisma.FriendshipUncheckedUpdateManyWithoutUser_aNestedInput
+  friendships_b?: Prisma.FriendshipUncheckedUpdateManyWithoutUser_bNestedInput
   cafe_orders?: Prisma.CafeOrderUncheckedUpdateManyWithoutProfileNestedInput
   meal_subscriptions?: Prisma.MealSubscriptionUncheckedUpdateManyWithoutProfileNestedInput
   user_badges?: Prisma.UserBadgeUncheckedUpdateManyWithoutProfileNestedInput
@@ -2028,6 +2102,8 @@ export type ProfileCreateWithoutPartner_membershipsInput = {
   instructor_account?: Prisma.InstructorCreateNestedOneWithoutProfileInput
   bookings?: Prisma.BookingCreateNestedManyWithoutProfileInput
   sent_invites?: Prisma.BookingCreateNestedManyWithoutInvited_byInput
+  friendships_a?: Prisma.FriendshipCreateNestedManyWithoutUser_aInput
+  friendships_b?: Prisma.FriendshipCreateNestedManyWithoutUser_bInput
   cafe_orders?: Prisma.CafeOrderCreateNestedManyWithoutProfileInput
   meal_subscriptions?: Prisma.MealSubscriptionCreateNestedManyWithoutProfileInput
   user_badges?: Prisma.UserBadgeCreateNestedManyWithoutProfileInput
@@ -2073,6 +2149,8 @@ export type ProfileUncheckedCreateWithoutPartner_membershipsInput = {
   instructor_account?: Prisma.InstructorUncheckedCreateNestedOneWithoutProfileInput
   bookings?: Prisma.BookingUncheckedCreateNestedManyWithoutProfileInput
   sent_invites?: Prisma.BookingUncheckedCreateNestedManyWithoutInvited_byInput
+  friendships_a?: Prisma.FriendshipUncheckedCreateNestedManyWithoutUser_aInput
+  friendships_b?: Prisma.FriendshipUncheckedCreateNestedManyWithoutUser_bInput
   cafe_orders?: Prisma.CafeOrderUncheckedCreateNestedManyWithoutProfileInput
   meal_subscriptions?: Prisma.MealSubscriptionUncheckedCreateNestedManyWithoutProfileInput
   user_badges?: Prisma.UserBadgeUncheckedCreateNestedManyWithoutProfileInput
@@ -2134,6 +2212,8 @@ export type ProfileUpdateWithoutPartner_membershipsInput = {
   instructor_account?: Prisma.InstructorUpdateOneWithoutProfileNestedInput
   bookings?: Prisma.BookingUpdateManyWithoutProfileNestedInput
   sent_invites?: Prisma.BookingUpdateManyWithoutInvited_byNestedInput
+  friendships_a?: Prisma.FriendshipUpdateManyWithoutUser_aNestedInput
+  friendships_b?: Prisma.FriendshipUpdateManyWithoutUser_bNestedInput
   cafe_orders?: Prisma.CafeOrderUpdateManyWithoutProfileNestedInput
   meal_subscriptions?: Prisma.MealSubscriptionUpdateManyWithoutProfileNestedInput
   user_badges?: Prisma.UserBadgeUpdateManyWithoutProfileNestedInput
@@ -2179,6 +2259,8 @@ export type ProfileUncheckedUpdateWithoutPartner_membershipsInput = {
   instructor_account?: Prisma.InstructorUncheckedUpdateOneWithoutProfileNestedInput
   bookings?: Prisma.BookingUncheckedUpdateManyWithoutProfileNestedInput
   sent_invites?: Prisma.BookingUncheckedUpdateManyWithoutInvited_byNestedInput
+  friendships_a?: Prisma.FriendshipUncheckedUpdateManyWithoutUser_aNestedInput
+  friendships_b?: Prisma.FriendshipUncheckedUpdateManyWithoutUser_bNestedInput
   cafe_orders?: Prisma.CafeOrderUncheckedUpdateManyWithoutProfileNestedInput
   meal_subscriptions?: Prisma.MealSubscriptionUncheckedUpdateManyWithoutProfileNestedInput
   user_badges?: Prisma.UserBadgeUncheckedUpdateManyWithoutProfileNestedInput
@@ -2225,6 +2307,8 @@ export type ProfileCreateWithoutUser_packagesInput = {
   partner_memberships?: Prisma.PartnerMemberCreateNestedManyWithoutProfileInput
   bookings?: Prisma.BookingCreateNestedManyWithoutProfileInput
   sent_invites?: Prisma.BookingCreateNestedManyWithoutInvited_byInput
+  friendships_a?: Prisma.FriendshipCreateNestedManyWithoutUser_aInput
+  friendships_b?: Prisma.FriendshipCreateNestedManyWithoutUser_bInput
   cafe_orders?: Prisma.CafeOrderCreateNestedManyWithoutProfileInput
   meal_subscriptions?: Prisma.MealSubscriptionCreateNestedManyWithoutProfileInput
   user_badges?: Prisma.UserBadgeCreateNestedManyWithoutProfileInput
@@ -2270,6 +2354,8 @@ export type ProfileUncheckedCreateWithoutUser_packagesInput = {
   partner_memberships?: Prisma.PartnerMemberUncheckedCreateNestedManyWithoutProfileInput
   bookings?: Prisma.BookingUncheckedCreateNestedManyWithoutProfileInput
   sent_invites?: Prisma.BookingUncheckedCreateNestedManyWithoutInvited_byInput
+  friendships_a?: Prisma.FriendshipUncheckedCreateNestedManyWithoutUser_aInput
+  friendships_b?: Prisma.FriendshipUncheckedCreateNestedManyWithoutUser_bInput
   cafe_orders?: Prisma.CafeOrderUncheckedCreateNestedManyWithoutProfileInput
   meal_subscriptions?: Prisma.MealSubscriptionUncheckedCreateNestedManyWithoutProfileInput
   user_badges?: Prisma.UserBadgeUncheckedCreateNestedManyWithoutProfileInput
@@ -2331,6 +2417,8 @@ export type ProfileUpdateWithoutUser_packagesInput = {
   partner_memberships?: Prisma.PartnerMemberUpdateManyWithoutProfileNestedInput
   bookings?: Prisma.BookingUpdateManyWithoutProfileNestedInput
   sent_invites?: Prisma.BookingUpdateManyWithoutInvited_byNestedInput
+  friendships_a?: Prisma.FriendshipUpdateManyWithoutUser_aNestedInput
+  friendships_b?: Prisma.FriendshipUpdateManyWithoutUser_bNestedInput
   cafe_orders?: Prisma.CafeOrderUpdateManyWithoutProfileNestedInput
   meal_subscriptions?: Prisma.MealSubscriptionUpdateManyWithoutProfileNestedInput
   user_badges?: Prisma.UserBadgeUpdateManyWithoutProfileNestedInput
@@ -2376,6 +2464,8 @@ export type ProfileUncheckedUpdateWithoutUser_packagesInput = {
   partner_memberships?: Prisma.PartnerMemberUncheckedUpdateManyWithoutProfileNestedInput
   bookings?: Prisma.BookingUncheckedUpdateManyWithoutProfileNestedInput
   sent_invites?: Prisma.BookingUncheckedUpdateManyWithoutInvited_byNestedInput
+  friendships_a?: Prisma.FriendshipUncheckedUpdateManyWithoutUser_aNestedInput
+  friendships_b?: Prisma.FriendshipUncheckedUpdateManyWithoutUser_bNestedInput
   cafe_orders?: Prisma.CafeOrderUncheckedUpdateManyWithoutProfileNestedInput
   meal_subscriptions?: Prisma.MealSubscriptionUncheckedUpdateManyWithoutProfileNestedInput
   user_badges?: Prisma.UserBadgeUncheckedUpdateManyWithoutProfileNestedInput
@@ -2420,6 +2510,8 @@ export type ProfileCreateWithoutSent_invitesInput = {
   instructor_account?: Prisma.InstructorCreateNestedOneWithoutProfileInput
   partner_memberships?: Prisma.PartnerMemberCreateNestedManyWithoutProfileInput
   bookings?: Prisma.BookingCreateNestedManyWithoutProfileInput
+  friendships_a?: Prisma.FriendshipCreateNestedManyWithoutUser_aInput
+  friendships_b?: Prisma.FriendshipCreateNestedManyWithoutUser_bInput
   cafe_orders?: Prisma.CafeOrderCreateNestedManyWithoutProfileInput
   meal_subscriptions?: Prisma.MealSubscriptionCreateNestedManyWithoutProfileInput
   user_badges?: Prisma.UserBadgeCreateNestedManyWithoutProfileInput
@@ -2465,6 +2557,8 @@ export type ProfileUncheckedCreateWithoutSent_invitesInput = {
   instructor_account?: Prisma.InstructorUncheckedCreateNestedOneWithoutProfileInput
   partner_memberships?: Prisma.PartnerMemberUncheckedCreateNestedManyWithoutProfileInput
   bookings?: Prisma.BookingUncheckedCreateNestedManyWithoutProfileInput
+  friendships_a?: Prisma.FriendshipUncheckedCreateNestedManyWithoutUser_aInput
+  friendships_b?: Prisma.FriendshipUncheckedCreateNestedManyWithoutUser_bInput
   cafe_orders?: Prisma.CafeOrderUncheckedCreateNestedManyWithoutProfileInput
   meal_subscriptions?: Prisma.MealSubscriptionUncheckedCreateNestedManyWithoutProfileInput
   user_badges?: Prisma.UserBadgeUncheckedCreateNestedManyWithoutProfileInput
@@ -2515,6 +2609,8 @@ export type ProfileCreateWithoutBookingsInput = {
   instructor_account?: Prisma.InstructorCreateNestedOneWithoutProfileInput
   partner_memberships?: Prisma.PartnerMemberCreateNestedManyWithoutProfileInput
   sent_invites?: Prisma.BookingCreateNestedManyWithoutInvited_byInput
+  friendships_a?: Prisma.FriendshipCreateNestedManyWithoutUser_aInput
+  friendships_b?: Prisma.FriendshipCreateNestedManyWithoutUser_bInput
   cafe_orders?: Prisma.CafeOrderCreateNestedManyWithoutProfileInput
   meal_subscriptions?: Prisma.MealSubscriptionCreateNestedManyWithoutProfileInput
   user_badges?: Prisma.UserBadgeCreateNestedManyWithoutProfileInput
@@ -2560,6 +2656,8 @@ export type ProfileUncheckedCreateWithoutBookingsInput = {
   instructor_account?: Prisma.InstructorUncheckedCreateNestedOneWithoutProfileInput
   partner_memberships?: Prisma.PartnerMemberUncheckedCreateNestedManyWithoutProfileInput
   sent_invites?: Prisma.BookingUncheckedCreateNestedManyWithoutInvited_byInput
+  friendships_a?: Prisma.FriendshipUncheckedCreateNestedManyWithoutUser_aInput
+  friendships_b?: Prisma.FriendshipUncheckedCreateNestedManyWithoutUser_bInput
   cafe_orders?: Prisma.CafeOrderUncheckedCreateNestedManyWithoutProfileInput
   meal_subscriptions?: Prisma.MealSubscriptionUncheckedCreateNestedManyWithoutProfileInput
   user_badges?: Prisma.UserBadgeUncheckedCreateNestedManyWithoutProfileInput
@@ -2621,6 +2719,8 @@ export type ProfileUpdateWithoutSent_invitesInput = {
   instructor_account?: Prisma.InstructorUpdateOneWithoutProfileNestedInput
   partner_memberships?: Prisma.PartnerMemberUpdateManyWithoutProfileNestedInput
   bookings?: Prisma.BookingUpdateManyWithoutProfileNestedInput
+  friendships_a?: Prisma.FriendshipUpdateManyWithoutUser_aNestedInput
+  friendships_b?: Prisma.FriendshipUpdateManyWithoutUser_bNestedInput
   cafe_orders?: Prisma.CafeOrderUpdateManyWithoutProfileNestedInput
   meal_subscriptions?: Prisma.MealSubscriptionUpdateManyWithoutProfileNestedInput
   user_badges?: Prisma.UserBadgeUpdateManyWithoutProfileNestedInput
@@ -2666,6 +2766,8 @@ export type ProfileUncheckedUpdateWithoutSent_invitesInput = {
   instructor_account?: Prisma.InstructorUncheckedUpdateOneWithoutProfileNestedInput
   partner_memberships?: Prisma.PartnerMemberUncheckedUpdateManyWithoutProfileNestedInput
   bookings?: Prisma.BookingUncheckedUpdateManyWithoutProfileNestedInput
+  friendships_a?: Prisma.FriendshipUncheckedUpdateManyWithoutUser_aNestedInput
+  friendships_b?: Prisma.FriendshipUncheckedUpdateManyWithoutUser_bNestedInput
   cafe_orders?: Prisma.CafeOrderUncheckedUpdateManyWithoutProfileNestedInput
   meal_subscriptions?: Prisma.MealSubscriptionUncheckedUpdateManyWithoutProfileNestedInput
   user_badges?: Prisma.UserBadgeUncheckedUpdateManyWithoutProfileNestedInput
@@ -2722,6 +2824,8 @@ export type ProfileUpdateWithoutBookingsInput = {
   instructor_account?: Prisma.InstructorUpdateOneWithoutProfileNestedInput
   partner_memberships?: Prisma.PartnerMemberUpdateManyWithoutProfileNestedInput
   sent_invites?: Prisma.BookingUpdateManyWithoutInvited_byNestedInput
+  friendships_a?: Prisma.FriendshipUpdateManyWithoutUser_aNestedInput
+  friendships_b?: Prisma.FriendshipUpdateManyWithoutUser_bNestedInput
   cafe_orders?: Prisma.CafeOrderUpdateManyWithoutProfileNestedInput
   meal_subscriptions?: Prisma.MealSubscriptionUpdateManyWithoutProfileNestedInput
   user_badges?: Prisma.UserBadgeUpdateManyWithoutProfileNestedInput
@@ -2767,6 +2871,8 @@ export type ProfileUncheckedUpdateWithoutBookingsInput = {
   instructor_account?: Prisma.InstructorUncheckedUpdateOneWithoutProfileNestedInput
   partner_memberships?: Prisma.PartnerMemberUncheckedUpdateManyWithoutProfileNestedInput
   sent_invites?: Prisma.BookingUncheckedUpdateManyWithoutInvited_byNestedInput
+  friendships_a?: Prisma.FriendshipUncheckedUpdateManyWithoutUser_aNestedInput
+  friendships_b?: Prisma.FriendshipUncheckedUpdateManyWithoutUser_bNestedInput
   cafe_orders?: Prisma.CafeOrderUncheckedUpdateManyWithoutProfileNestedInput
   meal_subscriptions?: Prisma.MealSubscriptionUncheckedUpdateManyWithoutProfileNestedInput
   user_badges?: Prisma.UserBadgeUncheckedUpdateManyWithoutProfileNestedInput
@@ -2813,6 +2919,8 @@ export type ProfileCreateWithoutRazorpay_ordersInput = {
   partner_memberships?: Prisma.PartnerMemberCreateNestedManyWithoutProfileInput
   bookings?: Prisma.BookingCreateNestedManyWithoutProfileInput
   sent_invites?: Prisma.BookingCreateNestedManyWithoutInvited_byInput
+  friendships_a?: Prisma.FriendshipCreateNestedManyWithoutUser_aInput
+  friendships_b?: Prisma.FriendshipCreateNestedManyWithoutUser_bInput
   cafe_orders?: Prisma.CafeOrderCreateNestedManyWithoutProfileInput
   meal_subscriptions?: Prisma.MealSubscriptionCreateNestedManyWithoutProfileInput
   user_badges?: Prisma.UserBadgeCreateNestedManyWithoutProfileInput
@@ -2858,6 +2966,8 @@ export type ProfileUncheckedCreateWithoutRazorpay_ordersInput = {
   partner_memberships?: Prisma.PartnerMemberUncheckedCreateNestedManyWithoutProfileInput
   bookings?: Prisma.BookingUncheckedCreateNestedManyWithoutProfileInput
   sent_invites?: Prisma.BookingUncheckedCreateNestedManyWithoutInvited_byInput
+  friendships_a?: Prisma.FriendshipUncheckedCreateNestedManyWithoutUser_aInput
+  friendships_b?: Prisma.FriendshipUncheckedCreateNestedManyWithoutUser_bInput
   cafe_orders?: Prisma.CafeOrderUncheckedCreateNestedManyWithoutProfileInput
   meal_subscriptions?: Prisma.MealSubscriptionUncheckedCreateNestedManyWithoutProfileInput
   user_badges?: Prisma.UserBadgeUncheckedCreateNestedManyWithoutProfileInput
@@ -2919,6 +3029,8 @@ export type ProfileUpdateWithoutRazorpay_ordersInput = {
   partner_memberships?: Prisma.PartnerMemberUpdateManyWithoutProfileNestedInput
   bookings?: Prisma.BookingUpdateManyWithoutProfileNestedInput
   sent_invites?: Prisma.BookingUpdateManyWithoutInvited_byNestedInput
+  friendships_a?: Prisma.FriendshipUpdateManyWithoutUser_aNestedInput
+  friendships_b?: Prisma.FriendshipUpdateManyWithoutUser_bNestedInput
   cafe_orders?: Prisma.CafeOrderUpdateManyWithoutProfileNestedInput
   meal_subscriptions?: Prisma.MealSubscriptionUpdateManyWithoutProfileNestedInput
   user_badges?: Prisma.UserBadgeUpdateManyWithoutProfileNestedInput
@@ -2964,6 +3076,8 @@ export type ProfileUncheckedUpdateWithoutRazorpay_ordersInput = {
   partner_memberships?: Prisma.PartnerMemberUncheckedUpdateManyWithoutProfileNestedInput
   bookings?: Prisma.BookingUncheckedUpdateManyWithoutProfileNestedInput
   sent_invites?: Prisma.BookingUncheckedUpdateManyWithoutInvited_byNestedInput
+  friendships_a?: Prisma.FriendshipUncheckedUpdateManyWithoutUser_aNestedInput
+  friendships_b?: Prisma.FriendshipUncheckedUpdateManyWithoutUser_bNestedInput
   cafe_orders?: Prisma.CafeOrderUncheckedUpdateManyWithoutProfileNestedInput
   meal_subscriptions?: Prisma.MealSubscriptionUncheckedUpdateManyWithoutProfileNestedInput
   user_badges?: Prisma.UserBadgeUncheckedUpdateManyWithoutProfileNestedInput
@@ -2978,6 +3092,414 @@ export type ProfileUncheckedUpdateWithoutRazorpay_ordersInput = {
   activity_targets?: Prisma.ActivityLogUncheckedUpdateManyWithoutTargetNestedInput
   retail_orders?: Prisma.RetailOrderUncheckedUpdateManyWithoutProfileNestedInput
   coupon_redemptions?: Prisma.CouponRedemptionUncheckedUpdateManyWithoutProfileNestedInput
+  member_tickets?: Prisma.MemberTicketUncheckedUpdateManyWithoutProfileNestedInput
+  payments?: Prisma.PaymentUncheckedUpdateManyWithoutProfileNestedInput
+  recorded_payments?: Prisma.PaymentUncheckedUpdateManyWithoutRecorded_by_adminNestedInput
+  sessions?: Prisma.UserSessionUncheckedUpdateManyWithoutProfileNestedInput
+}
+
+export type ProfileCreateWithoutFriendships_aInput = {
+  id?: string
+  email: string
+  full_name?: string | null
+  phone?: string | null
+  whatsapp_phone?: string | null
+  avatar_url?: string | null
+  avatar_file_id?: string | null
+  movement_streak?: number
+  pass_type?: string | null
+  hashedPassword?: string | null
+  role?: string
+  is_system?: boolean
+  dob?: Date | string | null
+  gender?: string | null
+  onboarding_completed?: boolean
+  questionnaire?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  terms_accepted_at?: Date | string | null
+  start_date?: Date | string | null
+  created_at?: Date | string
+  updated_at?: Date | string
+  instructor_account?: Prisma.InstructorCreateNestedOneWithoutProfileInput
+  partner_memberships?: Prisma.PartnerMemberCreateNestedManyWithoutProfileInput
+  bookings?: Prisma.BookingCreateNestedManyWithoutProfileInput
+  sent_invites?: Prisma.BookingCreateNestedManyWithoutInvited_byInput
+  friendships_b?: Prisma.FriendshipCreateNestedManyWithoutUser_bInput
+  cafe_orders?: Prisma.CafeOrderCreateNestedManyWithoutProfileInput
+  meal_subscriptions?: Prisma.MealSubscriptionCreateNestedManyWithoutProfileInput
+  user_badges?: Prisma.UserBadgeCreateNestedManyWithoutProfileInput
+  user_packages?: Prisma.UserPackageCreateNestedManyWithoutProfileInput
+  user_stats?: Prisma.UserStatsCreateNestedOneWithoutProfileInput
+  user_streaks?: Prisma.UserStreakCreateNestedOneWithoutProfileInput
+  waivers?: Prisma.WaiverCreateNestedManyWithoutProfileInput
+  crm_messages?: Prisma.CrmMessageCreateNestedManyWithoutProfileInput
+  activity_sessions?: Prisma.UserActivitySessionCreateNestedManyWithoutProfileInput
+  activity_events?: Prisma.UserActivityEventCreateNestedManyWithoutProfileInput
+  activity_actions?: Prisma.ActivityLogCreateNestedManyWithoutActorInput
+  activity_targets?: Prisma.ActivityLogCreateNestedManyWithoutTargetInput
+  retail_orders?: Prisma.RetailOrderCreateNestedManyWithoutProfileInput
+  coupon_redemptions?: Prisma.CouponRedemptionCreateNestedManyWithoutProfileInput
+  razorpay_orders?: Prisma.RazorpayOrderCreateNestedManyWithoutProfileInput
+  member_tickets?: Prisma.MemberTicketCreateNestedManyWithoutProfileInput
+  payments?: Prisma.PaymentCreateNestedManyWithoutProfileInput
+  recorded_payments?: Prisma.PaymentCreateNestedManyWithoutRecorded_by_adminInput
+  sessions?: Prisma.UserSessionCreateNestedManyWithoutProfileInput
+}
+
+export type ProfileUncheckedCreateWithoutFriendships_aInput = {
+  id?: string
+  email: string
+  full_name?: string | null
+  phone?: string | null
+  whatsapp_phone?: string | null
+  avatar_url?: string | null
+  avatar_file_id?: string | null
+  movement_streak?: number
+  pass_type?: string | null
+  hashedPassword?: string | null
+  role?: string
+  is_system?: boolean
+  dob?: Date | string | null
+  gender?: string | null
+  onboarding_completed?: boolean
+  questionnaire?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  terms_accepted_at?: Date | string | null
+  start_date?: Date | string | null
+  created_at?: Date | string
+  updated_at?: Date | string
+  instructor_account?: Prisma.InstructorUncheckedCreateNestedOneWithoutProfileInput
+  partner_memberships?: Prisma.PartnerMemberUncheckedCreateNestedManyWithoutProfileInput
+  bookings?: Prisma.BookingUncheckedCreateNestedManyWithoutProfileInput
+  sent_invites?: Prisma.BookingUncheckedCreateNestedManyWithoutInvited_byInput
+  friendships_b?: Prisma.FriendshipUncheckedCreateNestedManyWithoutUser_bInput
+  cafe_orders?: Prisma.CafeOrderUncheckedCreateNestedManyWithoutProfileInput
+  meal_subscriptions?: Prisma.MealSubscriptionUncheckedCreateNestedManyWithoutProfileInput
+  user_badges?: Prisma.UserBadgeUncheckedCreateNestedManyWithoutProfileInput
+  user_packages?: Prisma.UserPackageUncheckedCreateNestedManyWithoutProfileInput
+  user_stats?: Prisma.UserStatsUncheckedCreateNestedOneWithoutProfileInput
+  user_streaks?: Prisma.UserStreakUncheckedCreateNestedOneWithoutProfileInput
+  waivers?: Prisma.WaiverUncheckedCreateNestedManyWithoutProfileInput
+  crm_messages?: Prisma.CrmMessageUncheckedCreateNestedManyWithoutProfileInput
+  activity_sessions?: Prisma.UserActivitySessionUncheckedCreateNestedManyWithoutProfileInput
+  activity_events?: Prisma.UserActivityEventUncheckedCreateNestedManyWithoutProfileInput
+  activity_actions?: Prisma.ActivityLogUncheckedCreateNestedManyWithoutActorInput
+  activity_targets?: Prisma.ActivityLogUncheckedCreateNestedManyWithoutTargetInput
+  retail_orders?: Prisma.RetailOrderUncheckedCreateNestedManyWithoutProfileInput
+  coupon_redemptions?: Prisma.CouponRedemptionUncheckedCreateNestedManyWithoutProfileInput
+  razorpay_orders?: Prisma.RazorpayOrderUncheckedCreateNestedManyWithoutProfileInput
+  member_tickets?: Prisma.MemberTicketUncheckedCreateNestedManyWithoutProfileInput
+  payments?: Prisma.PaymentUncheckedCreateNestedManyWithoutProfileInput
+  recorded_payments?: Prisma.PaymentUncheckedCreateNestedManyWithoutRecorded_by_adminInput
+  sessions?: Prisma.UserSessionUncheckedCreateNestedManyWithoutProfileInput
+}
+
+export type ProfileCreateOrConnectWithoutFriendships_aInput = {
+  where: Prisma.ProfileWhereUniqueInput
+  create: Prisma.XOR<Prisma.ProfileCreateWithoutFriendships_aInput, Prisma.ProfileUncheckedCreateWithoutFriendships_aInput>
+}
+
+export type ProfileCreateWithoutFriendships_bInput = {
+  id?: string
+  email: string
+  full_name?: string | null
+  phone?: string | null
+  whatsapp_phone?: string | null
+  avatar_url?: string | null
+  avatar_file_id?: string | null
+  movement_streak?: number
+  pass_type?: string | null
+  hashedPassword?: string | null
+  role?: string
+  is_system?: boolean
+  dob?: Date | string | null
+  gender?: string | null
+  onboarding_completed?: boolean
+  questionnaire?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  terms_accepted_at?: Date | string | null
+  start_date?: Date | string | null
+  created_at?: Date | string
+  updated_at?: Date | string
+  instructor_account?: Prisma.InstructorCreateNestedOneWithoutProfileInput
+  partner_memberships?: Prisma.PartnerMemberCreateNestedManyWithoutProfileInput
+  bookings?: Prisma.BookingCreateNestedManyWithoutProfileInput
+  sent_invites?: Prisma.BookingCreateNestedManyWithoutInvited_byInput
+  friendships_a?: Prisma.FriendshipCreateNestedManyWithoutUser_aInput
+  cafe_orders?: Prisma.CafeOrderCreateNestedManyWithoutProfileInput
+  meal_subscriptions?: Prisma.MealSubscriptionCreateNestedManyWithoutProfileInput
+  user_badges?: Prisma.UserBadgeCreateNestedManyWithoutProfileInput
+  user_packages?: Prisma.UserPackageCreateNestedManyWithoutProfileInput
+  user_stats?: Prisma.UserStatsCreateNestedOneWithoutProfileInput
+  user_streaks?: Prisma.UserStreakCreateNestedOneWithoutProfileInput
+  waivers?: Prisma.WaiverCreateNestedManyWithoutProfileInput
+  crm_messages?: Prisma.CrmMessageCreateNestedManyWithoutProfileInput
+  activity_sessions?: Prisma.UserActivitySessionCreateNestedManyWithoutProfileInput
+  activity_events?: Prisma.UserActivityEventCreateNestedManyWithoutProfileInput
+  activity_actions?: Prisma.ActivityLogCreateNestedManyWithoutActorInput
+  activity_targets?: Prisma.ActivityLogCreateNestedManyWithoutTargetInput
+  retail_orders?: Prisma.RetailOrderCreateNestedManyWithoutProfileInput
+  coupon_redemptions?: Prisma.CouponRedemptionCreateNestedManyWithoutProfileInput
+  razorpay_orders?: Prisma.RazorpayOrderCreateNestedManyWithoutProfileInput
+  member_tickets?: Prisma.MemberTicketCreateNestedManyWithoutProfileInput
+  payments?: Prisma.PaymentCreateNestedManyWithoutProfileInput
+  recorded_payments?: Prisma.PaymentCreateNestedManyWithoutRecorded_by_adminInput
+  sessions?: Prisma.UserSessionCreateNestedManyWithoutProfileInput
+}
+
+export type ProfileUncheckedCreateWithoutFriendships_bInput = {
+  id?: string
+  email: string
+  full_name?: string | null
+  phone?: string | null
+  whatsapp_phone?: string | null
+  avatar_url?: string | null
+  avatar_file_id?: string | null
+  movement_streak?: number
+  pass_type?: string | null
+  hashedPassword?: string | null
+  role?: string
+  is_system?: boolean
+  dob?: Date | string | null
+  gender?: string | null
+  onboarding_completed?: boolean
+  questionnaire?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  terms_accepted_at?: Date | string | null
+  start_date?: Date | string | null
+  created_at?: Date | string
+  updated_at?: Date | string
+  instructor_account?: Prisma.InstructorUncheckedCreateNestedOneWithoutProfileInput
+  partner_memberships?: Prisma.PartnerMemberUncheckedCreateNestedManyWithoutProfileInput
+  bookings?: Prisma.BookingUncheckedCreateNestedManyWithoutProfileInput
+  sent_invites?: Prisma.BookingUncheckedCreateNestedManyWithoutInvited_byInput
+  friendships_a?: Prisma.FriendshipUncheckedCreateNestedManyWithoutUser_aInput
+  cafe_orders?: Prisma.CafeOrderUncheckedCreateNestedManyWithoutProfileInput
+  meal_subscriptions?: Prisma.MealSubscriptionUncheckedCreateNestedManyWithoutProfileInput
+  user_badges?: Prisma.UserBadgeUncheckedCreateNestedManyWithoutProfileInput
+  user_packages?: Prisma.UserPackageUncheckedCreateNestedManyWithoutProfileInput
+  user_stats?: Prisma.UserStatsUncheckedCreateNestedOneWithoutProfileInput
+  user_streaks?: Prisma.UserStreakUncheckedCreateNestedOneWithoutProfileInput
+  waivers?: Prisma.WaiverUncheckedCreateNestedManyWithoutProfileInput
+  crm_messages?: Prisma.CrmMessageUncheckedCreateNestedManyWithoutProfileInput
+  activity_sessions?: Prisma.UserActivitySessionUncheckedCreateNestedManyWithoutProfileInput
+  activity_events?: Prisma.UserActivityEventUncheckedCreateNestedManyWithoutProfileInput
+  activity_actions?: Prisma.ActivityLogUncheckedCreateNestedManyWithoutActorInput
+  activity_targets?: Prisma.ActivityLogUncheckedCreateNestedManyWithoutTargetInput
+  retail_orders?: Prisma.RetailOrderUncheckedCreateNestedManyWithoutProfileInput
+  coupon_redemptions?: Prisma.CouponRedemptionUncheckedCreateNestedManyWithoutProfileInput
+  razorpay_orders?: Prisma.RazorpayOrderUncheckedCreateNestedManyWithoutProfileInput
+  member_tickets?: Prisma.MemberTicketUncheckedCreateNestedManyWithoutProfileInput
+  payments?: Prisma.PaymentUncheckedCreateNestedManyWithoutProfileInput
+  recorded_payments?: Prisma.PaymentUncheckedCreateNestedManyWithoutRecorded_by_adminInput
+  sessions?: Prisma.UserSessionUncheckedCreateNestedManyWithoutProfileInput
+}
+
+export type ProfileCreateOrConnectWithoutFriendships_bInput = {
+  where: Prisma.ProfileWhereUniqueInput
+  create: Prisma.XOR<Prisma.ProfileCreateWithoutFriendships_bInput, Prisma.ProfileUncheckedCreateWithoutFriendships_bInput>
+}
+
+export type ProfileUpsertWithoutFriendships_aInput = {
+  update: Prisma.XOR<Prisma.ProfileUpdateWithoutFriendships_aInput, Prisma.ProfileUncheckedUpdateWithoutFriendships_aInput>
+  create: Prisma.XOR<Prisma.ProfileCreateWithoutFriendships_aInput, Prisma.ProfileUncheckedCreateWithoutFriendships_aInput>
+  where?: Prisma.ProfileWhereInput
+}
+
+export type ProfileUpdateToOneWithWhereWithoutFriendships_aInput = {
+  where?: Prisma.ProfileWhereInput
+  data: Prisma.XOR<Prisma.ProfileUpdateWithoutFriendships_aInput, Prisma.ProfileUncheckedUpdateWithoutFriendships_aInput>
+}
+
+export type ProfileUpdateWithoutFriendships_aInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  email?: Prisma.StringFieldUpdateOperationsInput | string
+  full_name?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  phone?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  whatsapp_phone?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  avatar_url?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  avatar_file_id?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  movement_streak?: Prisma.IntFieldUpdateOperationsInput | number
+  pass_type?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  hashedPassword?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  role?: Prisma.StringFieldUpdateOperationsInput | string
+  is_system?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  dob?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  gender?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  onboarding_completed?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  questionnaire?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  terms_accepted_at?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  start_date?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  created_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updated_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  instructor_account?: Prisma.InstructorUpdateOneWithoutProfileNestedInput
+  partner_memberships?: Prisma.PartnerMemberUpdateManyWithoutProfileNestedInput
+  bookings?: Prisma.BookingUpdateManyWithoutProfileNestedInput
+  sent_invites?: Prisma.BookingUpdateManyWithoutInvited_byNestedInput
+  friendships_b?: Prisma.FriendshipUpdateManyWithoutUser_bNestedInput
+  cafe_orders?: Prisma.CafeOrderUpdateManyWithoutProfileNestedInput
+  meal_subscriptions?: Prisma.MealSubscriptionUpdateManyWithoutProfileNestedInput
+  user_badges?: Prisma.UserBadgeUpdateManyWithoutProfileNestedInput
+  user_packages?: Prisma.UserPackageUpdateManyWithoutProfileNestedInput
+  user_stats?: Prisma.UserStatsUpdateOneWithoutProfileNestedInput
+  user_streaks?: Prisma.UserStreakUpdateOneWithoutProfileNestedInput
+  waivers?: Prisma.WaiverUpdateManyWithoutProfileNestedInput
+  crm_messages?: Prisma.CrmMessageUpdateManyWithoutProfileNestedInput
+  activity_sessions?: Prisma.UserActivitySessionUpdateManyWithoutProfileNestedInput
+  activity_events?: Prisma.UserActivityEventUpdateManyWithoutProfileNestedInput
+  activity_actions?: Prisma.ActivityLogUpdateManyWithoutActorNestedInput
+  activity_targets?: Prisma.ActivityLogUpdateManyWithoutTargetNestedInput
+  retail_orders?: Prisma.RetailOrderUpdateManyWithoutProfileNestedInput
+  coupon_redemptions?: Prisma.CouponRedemptionUpdateManyWithoutProfileNestedInput
+  razorpay_orders?: Prisma.RazorpayOrderUpdateManyWithoutProfileNestedInput
+  member_tickets?: Prisma.MemberTicketUpdateManyWithoutProfileNestedInput
+  payments?: Prisma.PaymentUpdateManyWithoutProfileNestedInput
+  recorded_payments?: Prisma.PaymentUpdateManyWithoutRecorded_by_adminNestedInput
+  sessions?: Prisma.UserSessionUpdateManyWithoutProfileNestedInput
+}
+
+export type ProfileUncheckedUpdateWithoutFriendships_aInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  email?: Prisma.StringFieldUpdateOperationsInput | string
+  full_name?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  phone?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  whatsapp_phone?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  avatar_url?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  avatar_file_id?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  movement_streak?: Prisma.IntFieldUpdateOperationsInput | number
+  pass_type?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  hashedPassword?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  role?: Prisma.StringFieldUpdateOperationsInput | string
+  is_system?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  dob?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  gender?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  onboarding_completed?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  questionnaire?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  terms_accepted_at?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  start_date?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  created_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updated_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  instructor_account?: Prisma.InstructorUncheckedUpdateOneWithoutProfileNestedInput
+  partner_memberships?: Prisma.PartnerMemberUncheckedUpdateManyWithoutProfileNestedInput
+  bookings?: Prisma.BookingUncheckedUpdateManyWithoutProfileNestedInput
+  sent_invites?: Prisma.BookingUncheckedUpdateManyWithoutInvited_byNestedInput
+  friendships_b?: Prisma.FriendshipUncheckedUpdateManyWithoutUser_bNestedInput
+  cafe_orders?: Prisma.CafeOrderUncheckedUpdateManyWithoutProfileNestedInput
+  meal_subscriptions?: Prisma.MealSubscriptionUncheckedUpdateManyWithoutProfileNestedInput
+  user_badges?: Prisma.UserBadgeUncheckedUpdateManyWithoutProfileNestedInput
+  user_packages?: Prisma.UserPackageUncheckedUpdateManyWithoutProfileNestedInput
+  user_stats?: Prisma.UserStatsUncheckedUpdateOneWithoutProfileNestedInput
+  user_streaks?: Prisma.UserStreakUncheckedUpdateOneWithoutProfileNestedInput
+  waivers?: Prisma.WaiverUncheckedUpdateManyWithoutProfileNestedInput
+  crm_messages?: Prisma.CrmMessageUncheckedUpdateManyWithoutProfileNestedInput
+  activity_sessions?: Prisma.UserActivitySessionUncheckedUpdateManyWithoutProfileNestedInput
+  activity_events?: Prisma.UserActivityEventUncheckedUpdateManyWithoutProfileNestedInput
+  activity_actions?: Prisma.ActivityLogUncheckedUpdateManyWithoutActorNestedInput
+  activity_targets?: Prisma.ActivityLogUncheckedUpdateManyWithoutTargetNestedInput
+  retail_orders?: Prisma.RetailOrderUncheckedUpdateManyWithoutProfileNestedInput
+  coupon_redemptions?: Prisma.CouponRedemptionUncheckedUpdateManyWithoutProfileNestedInput
+  razorpay_orders?: Prisma.RazorpayOrderUncheckedUpdateManyWithoutProfileNestedInput
+  member_tickets?: Prisma.MemberTicketUncheckedUpdateManyWithoutProfileNestedInput
+  payments?: Prisma.PaymentUncheckedUpdateManyWithoutProfileNestedInput
+  recorded_payments?: Prisma.PaymentUncheckedUpdateManyWithoutRecorded_by_adminNestedInput
+  sessions?: Prisma.UserSessionUncheckedUpdateManyWithoutProfileNestedInput
+}
+
+export type ProfileUpsertWithoutFriendships_bInput = {
+  update: Prisma.XOR<Prisma.ProfileUpdateWithoutFriendships_bInput, Prisma.ProfileUncheckedUpdateWithoutFriendships_bInput>
+  create: Prisma.XOR<Prisma.ProfileCreateWithoutFriendships_bInput, Prisma.ProfileUncheckedCreateWithoutFriendships_bInput>
+  where?: Prisma.ProfileWhereInput
+}
+
+export type ProfileUpdateToOneWithWhereWithoutFriendships_bInput = {
+  where?: Prisma.ProfileWhereInput
+  data: Prisma.XOR<Prisma.ProfileUpdateWithoutFriendships_bInput, Prisma.ProfileUncheckedUpdateWithoutFriendships_bInput>
+}
+
+export type ProfileUpdateWithoutFriendships_bInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  email?: Prisma.StringFieldUpdateOperationsInput | string
+  full_name?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  phone?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  whatsapp_phone?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  avatar_url?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  avatar_file_id?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  movement_streak?: Prisma.IntFieldUpdateOperationsInput | number
+  pass_type?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  hashedPassword?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  role?: Prisma.StringFieldUpdateOperationsInput | string
+  is_system?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  dob?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  gender?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  onboarding_completed?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  questionnaire?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  terms_accepted_at?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  start_date?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  created_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updated_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  instructor_account?: Prisma.InstructorUpdateOneWithoutProfileNestedInput
+  partner_memberships?: Prisma.PartnerMemberUpdateManyWithoutProfileNestedInput
+  bookings?: Prisma.BookingUpdateManyWithoutProfileNestedInput
+  sent_invites?: Prisma.BookingUpdateManyWithoutInvited_byNestedInput
+  friendships_a?: Prisma.FriendshipUpdateManyWithoutUser_aNestedInput
+  cafe_orders?: Prisma.CafeOrderUpdateManyWithoutProfileNestedInput
+  meal_subscriptions?: Prisma.MealSubscriptionUpdateManyWithoutProfileNestedInput
+  user_badges?: Prisma.UserBadgeUpdateManyWithoutProfileNestedInput
+  user_packages?: Prisma.UserPackageUpdateManyWithoutProfileNestedInput
+  user_stats?: Prisma.UserStatsUpdateOneWithoutProfileNestedInput
+  user_streaks?: Prisma.UserStreakUpdateOneWithoutProfileNestedInput
+  waivers?: Prisma.WaiverUpdateManyWithoutProfileNestedInput
+  crm_messages?: Prisma.CrmMessageUpdateManyWithoutProfileNestedInput
+  activity_sessions?: Prisma.UserActivitySessionUpdateManyWithoutProfileNestedInput
+  activity_events?: Prisma.UserActivityEventUpdateManyWithoutProfileNestedInput
+  activity_actions?: Prisma.ActivityLogUpdateManyWithoutActorNestedInput
+  activity_targets?: Prisma.ActivityLogUpdateManyWithoutTargetNestedInput
+  retail_orders?: Prisma.RetailOrderUpdateManyWithoutProfileNestedInput
+  coupon_redemptions?: Prisma.CouponRedemptionUpdateManyWithoutProfileNestedInput
+  razorpay_orders?: Prisma.RazorpayOrderUpdateManyWithoutProfileNestedInput
+  member_tickets?: Prisma.MemberTicketUpdateManyWithoutProfileNestedInput
+  payments?: Prisma.PaymentUpdateManyWithoutProfileNestedInput
+  recorded_payments?: Prisma.PaymentUpdateManyWithoutRecorded_by_adminNestedInput
+  sessions?: Prisma.UserSessionUpdateManyWithoutProfileNestedInput
+}
+
+export type ProfileUncheckedUpdateWithoutFriendships_bInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  email?: Prisma.StringFieldUpdateOperationsInput | string
+  full_name?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  phone?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  whatsapp_phone?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  avatar_url?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  avatar_file_id?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  movement_streak?: Prisma.IntFieldUpdateOperationsInput | number
+  pass_type?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  hashedPassword?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  role?: Prisma.StringFieldUpdateOperationsInput | string
+  is_system?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  dob?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  gender?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  onboarding_completed?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  questionnaire?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  terms_accepted_at?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  start_date?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  created_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updated_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  instructor_account?: Prisma.InstructorUncheckedUpdateOneWithoutProfileNestedInput
+  partner_memberships?: Prisma.PartnerMemberUncheckedUpdateManyWithoutProfileNestedInput
+  bookings?: Prisma.BookingUncheckedUpdateManyWithoutProfileNestedInput
+  sent_invites?: Prisma.BookingUncheckedUpdateManyWithoutInvited_byNestedInput
+  friendships_a?: Prisma.FriendshipUncheckedUpdateManyWithoutUser_aNestedInput
+  cafe_orders?: Prisma.CafeOrderUncheckedUpdateManyWithoutProfileNestedInput
+  meal_subscriptions?: Prisma.MealSubscriptionUncheckedUpdateManyWithoutProfileNestedInput
+  user_badges?: Prisma.UserBadgeUncheckedUpdateManyWithoutProfileNestedInput
+  user_packages?: Prisma.UserPackageUncheckedUpdateManyWithoutProfileNestedInput
+  user_stats?: Prisma.UserStatsUncheckedUpdateOneWithoutProfileNestedInput
+  user_streaks?: Prisma.UserStreakUncheckedUpdateOneWithoutProfileNestedInput
+  waivers?: Prisma.WaiverUncheckedUpdateManyWithoutProfileNestedInput
+  crm_messages?: Prisma.CrmMessageUncheckedUpdateManyWithoutProfileNestedInput
+  activity_sessions?: Prisma.UserActivitySessionUncheckedUpdateManyWithoutProfileNestedInput
+  activity_events?: Prisma.UserActivityEventUncheckedUpdateManyWithoutProfileNestedInput
+  activity_actions?: Prisma.ActivityLogUncheckedUpdateManyWithoutActorNestedInput
+  activity_targets?: Prisma.ActivityLogUncheckedUpdateManyWithoutTargetNestedInput
+  retail_orders?: Prisma.RetailOrderUncheckedUpdateManyWithoutProfileNestedInput
+  coupon_redemptions?: Prisma.CouponRedemptionUncheckedUpdateManyWithoutProfileNestedInput
+  razorpay_orders?: Prisma.RazorpayOrderUncheckedUpdateManyWithoutProfileNestedInput
   member_tickets?: Prisma.MemberTicketUncheckedUpdateManyWithoutProfileNestedInput
   payments?: Prisma.PaymentUncheckedUpdateManyWithoutProfileNestedInput
   recorded_payments?: Prisma.PaymentUncheckedUpdateManyWithoutRecorded_by_adminNestedInput
@@ -3009,6 +3531,8 @@ export type ProfileCreateWithoutPaymentsInput = {
   partner_memberships?: Prisma.PartnerMemberCreateNestedManyWithoutProfileInput
   bookings?: Prisma.BookingCreateNestedManyWithoutProfileInput
   sent_invites?: Prisma.BookingCreateNestedManyWithoutInvited_byInput
+  friendships_a?: Prisma.FriendshipCreateNestedManyWithoutUser_aInput
+  friendships_b?: Prisma.FriendshipCreateNestedManyWithoutUser_bInput
   cafe_orders?: Prisma.CafeOrderCreateNestedManyWithoutProfileInput
   meal_subscriptions?: Prisma.MealSubscriptionCreateNestedManyWithoutProfileInput
   user_badges?: Prisma.UserBadgeCreateNestedManyWithoutProfileInput
@@ -3054,6 +3578,8 @@ export type ProfileUncheckedCreateWithoutPaymentsInput = {
   partner_memberships?: Prisma.PartnerMemberUncheckedCreateNestedManyWithoutProfileInput
   bookings?: Prisma.BookingUncheckedCreateNestedManyWithoutProfileInput
   sent_invites?: Prisma.BookingUncheckedCreateNestedManyWithoutInvited_byInput
+  friendships_a?: Prisma.FriendshipUncheckedCreateNestedManyWithoutUser_aInput
+  friendships_b?: Prisma.FriendshipUncheckedCreateNestedManyWithoutUser_bInput
   cafe_orders?: Prisma.CafeOrderUncheckedCreateNestedManyWithoutProfileInput
   meal_subscriptions?: Prisma.MealSubscriptionUncheckedCreateNestedManyWithoutProfileInput
   user_badges?: Prisma.UserBadgeUncheckedCreateNestedManyWithoutProfileInput
@@ -3104,6 +3630,8 @@ export type ProfileCreateWithoutRecorded_paymentsInput = {
   partner_memberships?: Prisma.PartnerMemberCreateNestedManyWithoutProfileInput
   bookings?: Prisma.BookingCreateNestedManyWithoutProfileInput
   sent_invites?: Prisma.BookingCreateNestedManyWithoutInvited_byInput
+  friendships_a?: Prisma.FriendshipCreateNestedManyWithoutUser_aInput
+  friendships_b?: Prisma.FriendshipCreateNestedManyWithoutUser_bInput
   cafe_orders?: Prisma.CafeOrderCreateNestedManyWithoutProfileInput
   meal_subscriptions?: Prisma.MealSubscriptionCreateNestedManyWithoutProfileInput
   user_badges?: Prisma.UserBadgeCreateNestedManyWithoutProfileInput
@@ -3149,6 +3677,8 @@ export type ProfileUncheckedCreateWithoutRecorded_paymentsInput = {
   partner_memberships?: Prisma.PartnerMemberUncheckedCreateNestedManyWithoutProfileInput
   bookings?: Prisma.BookingUncheckedCreateNestedManyWithoutProfileInput
   sent_invites?: Prisma.BookingUncheckedCreateNestedManyWithoutInvited_byInput
+  friendships_a?: Prisma.FriendshipUncheckedCreateNestedManyWithoutUser_aInput
+  friendships_b?: Prisma.FriendshipUncheckedCreateNestedManyWithoutUser_bInput
   cafe_orders?: Prisma.CafeOrderUncheckedCreateNestedManyWithoutProfileInput
   meal_subscriptions?: Prisma.MealSubscriptionUncheckedCreateNestedManyWithoutProfileInput
   user_badges?: Prisma.UserBadgeUncheckedCreateNestedManyWithoutProfileInput
@@ -3210,6 +3740,8 @@ export type ProfileUpdateWithoutPaymentsInput = {
   partner_memberships?: Prisma.PartnerMemberUpdateManyWithoutProfileNestedInput
   bookings?: Prisma.BookingUpdateManyWithoutProfileNestedInput
   sent_invites?: Prisma.BookingUpdateManyWithoutInvited_byNestedInput
+  friendships_a?: Prisma.FriendshipUpdateManyWithoutUser_aNestedInput
+  friendships_b?: Prisma.FriendshipUpdateManyWithoutUser_bNestedInput
   cafe_orders?: Prisma.CafeOrderUpdateManyWithoutProfileNestedInput
   meal_subscriptions?: Prisma.MealSubscriptionUpdateManyWithoutProfileNestedInput
   user_badges?: Prisma.UserBadgeUpdateManyWithoutProfileNestedInput
@@ -3255,6 +3787,8 @@ export type ProfileUncheckedUpdateWithoutPaymentsInput = {
   partner_memberships?: Prisma.PartnerMemberUncheckedUpdateManyWithoutProfileNestedInput
   bookings?: Prisma.BookingUncheckedUpdateManyWithoutProfileNestedInput
   sent_invites?: Prisma.BookingUncheckedUpdateManyWithoutInvited_byNestedInput
+  friendships_a?: Prisma.FriendshipUncheckedUpdateManyWithoutUser_aNestedInput
+  friendships_b?: Prisma.FriendshipUncheckedUpdateManyWithoutUser_bNestedInput
   cafe_orders?: Prisma.CafeOrderUncheckedUpdateManyWithoutProfileNestedInput
   meal_subscriptions?: Prisma.MealSubscriptionUncheckedUpdateManyWithoutProfileNestedInput
   user_badges?: Prisma.UserBadgeUncheckedUpdateManyWithoutProfileNestedInput
@@ -3311,6 +3845,8 @@ export type ProfileUpdateWithoutRecorded_paymentsInput = {
   partner_memberships?: Prisma.PartnerMemberUpdateManyWithoutProfileNestedInput
   bookings?: Prisma.BookingUpdateManyWithoutProfileNestedInput
   sent_invites?: Prisma.BookingUpdateManyWithoutInvited_byNestedInput
+  friendships_a?: Prisma.FriendshipUpdateManyWithoutUser_aNestedInput
+  friendships_b?: Prisma.FriendshipUpdateManyWithoutUser_bNestedInput
   cafe_orders?: Prisma.CafeOrderUpdateManyWithoutProfileNestedInput
   meal_subscriptions?: Prisma.MealSubscriptionUpdateManyWithoutProfileNestedInput
   user_badges?: Prisma.UserBadgeUpdateManyWithoutProfileNestedInput
@@ -3356,6 +3892,8 @@ export type ProfileUncheckedUpdateWithoutRecorded_paymentsInput = {
   partner_memberships?: Prisma.PartnerMemberUncheckedUpdateManyWithoutProfileNestedInput
   bookings?: Prisma.BookingUncheckedUpdateManyWithoutProfileNestedInput
   sent_invites?: Prisma.BookingUncheckedUpdateManyWithoutInvited_byNestedInput
+  friendships_a?: Prisma.FriendshipUncheckedUpdateManyWithoutUser_aNestedInput
+  friendships_b?: Prisma.FriendshipUncheckedUpdateManyWithoutUser_bNestedInput
   cafe_orders?: Prisma.CafeOrderUncheckedUpdateManyWithoutProfileNestedInput
   meal_subscriptions?: Prisma.MealSubscriptionUncheckedUpdateManyWithoutProfileNestedInput
   user_badges?: Prisma.UserBadgeUncheckedUpdateManyWithoutProfileNestedInput
@@ -3401,6 +3939,8 @@ export type ProfileCreateWithoutCafe_ordersInput = {
   partner_memberships?: Prisma.PartnerMemberCreateNestedManyWithoutProfileInput
   bookings?: Prisma.BookingCreateNestedManyWithoutProfileInput
   sent_invites?: Prisma.BookingCreateNestedManyWithoutInvited_byInput
+  friendships_a?: Prisma.FriendshipCreateNestedManyWithoutUser_aInput
+  friendships_b?: Prisma.FriendshipCreateNestedManyWithoutUser_bInput
   meal_subscriptions?: Prisma.MealSubscriptionCreateNestedManyWithoutProfileInput
   user_badges?: Prisma.UserBadgeCreateNestedManyWithoutProfileInput
   user_packages?: Prisma.UserPackageCreateNestedManyWithoutProfileInput
@@ -3446,6 +3986,8 @@ export type ProfileUncheckedCreateWithoutCafe_ordersInput = {
   partner_memberships?: Prisma.PartnerMemberUncheckedCreateNestedManyWithoutProfileInput
   bookings?: Prisma.BookingUncheckedCreateNestedManyWithoutProfileInput
   sent_invites?: Prisma.BookingUncheckedCreateNestedManyWithoutInvited_byInput
+  friendships_a?: Prisma.FriendshipUncheckedCreateNestedManyWithoutUser_aInput
+  friendships_b?: Prisma.FriendshipUncheckedCreateNestedManyWithoutUser_bInput
   meal_subscriptions?: Prisma.MealSubscriptionUncheckedCreateNestedManyWithoutProfileInput
   user_badges?: Prisma.UserBadgeUncheckedCreateNestedManyWithoutProfileInput
   user_packages?: Prisma.UserPackageUncheckedCreateNestedManyWithoutProfileInput
@@ -3507,6 +4049,8 @@ export type ProfileUpdateWithoutCafe_ordersInput = {
   partner_memberships?: Prisma.PartnerMemberUpdateManyWithoutProfileNestedInput
   bookings?: Prisma.BookingUpdateManyWithoutProfileNestedInput
   sent_invites?: Prisma.BookingUpdateManyWithoutInvited_byNestedInput
+  friendships_a?: Prisma.FriendshipUpdateManyWithoutUser_aNestedInput
+  friendships_b?: Prisma.FriendshipUpdateManyWithoutUser_bNestedInput
   meal_subscriptions?: Prisma.MealSubscriptionUpdateManyWithoutProfileNestedInput
   user_badges?: Prisma.UserBadgeUpdateManyWithoutProfileNestedInput
   user_packages?: Prisma.UserPackageUpdateManyWithoutProfileNestedInput
@@ -3552,6 +4096,8 @@ export type ProfileUncheckedUpdateWithoutCafe_ordersInput = {
   partner_memberships?: Prisma.PartnerMemberUncheckedUpdateManyWithoutProfileNestedInput
   bookings?: Prisma.BookingUncheckedUpdateManyWithoutProfileNestedInput
   sent_invites?: Prisma.BookingUncheckedUpdateManyWithoutInvited_byNestedInput
+  friendships_a?: Prisma.FriendshipUncheckedUpdateManyWithoutUser_aNestedInput
+  friendships_b?: Prisma.FriendshipUncheckedUpdateManyWithoutUser_bNestedInput
   meal_subscriptions?: Prisma.MealSubscriptionUncheckedUpdateManyWithoutProfileNestedInput
   user_badges?: Prisma.UserBadgeUncheckedUpdateManyWithoutProfileNestedInput
   user_packages?: Prisma.UserPackageUncheckedUpdateManyWithoutProfileNestedInput
@@ -3597,6 +4143,8 @@ export type ProfileCreateWithoutMeal_subscriptionsInput = {
   partner_memberships?: Prisma.PartnerMemberCreateNestedManyWithoutProfileInput
   bookings?: Prisma.BookingCreateNestedManyWithoutProfileInput
   sent_invites?: Prisma.BookingCreateNestedManyWithoutInvited_byInput
+  friendships_a?: Prisma.FriendshipCreateNestedManyWithoutUser_aInput
+  friendships_b?: Prisma.FriendshipCreateNestedManyWithoutUser_bInput
   cafe_orders?: Prisma.CafeOrderCreateNestedManyWithoutProfileInput
   user_badges?: Prisma.UserBadgeCreateNestedManyWithoutProfileInput
   user_packages?: Prisma.UserPackageCreateNestedManyWithoutProfileInput
@@ -3642,6 +4190,8 @@ export type ProfileUncheckedCreateWithoutMeal_subscriptionsInput = {
   partner_memberships?: Prisma.PartnerMemberUncheckedCreateNestedManyWithoutProfileInput
   bookings?: Prisma.BookingUncheckedCreateNestedManyWithoutProfileInput
   sent_invites?: Prisma.BookingUncheckedCreateNestedManyWithoutInvited_byInput
+  friendships_a?: Prisma.FriendshipUncheckedCreateNestedManyWithoutUser_aInput
+  friendships_b?: Prisma.FriendshipUncheckedCreateNestedManyWithoutUser_bInput
   cafe_orders?: Prisma.CafeOrderUncheckedCreateNestedManyWithoutProfileInput
   user_badges?: Prisma.UserBadgeUncheckedCreateNestedManyWithoutProfileInput
   user_packages?: Prisma.UserPackageUncheckedCreateNestedManyWithoutProfileInput
@@ -3703,6 +4253,8 @@ export type ProfileUpdateWithoutMeal_subscriptionsInput = {
   partner_memberships?: Prisma.PartnerMemberUpdateManyWithoutProfileNestedInput
   bookings?: Prisma.BookingUpdateManyWithoutProfileNestedInput
   sent_invites?: Prisma.BookingUpdateManyWithoutInvited_byNestedInput
+  friendships_a?: Prisma.FriendshipUpdateManyWithoutUser_aNestedInput
+  friendships_b?: Prisma.FriendshipUpdateManyWithoutUser_bNestedInput
   cafe_orders?: Prisma.CafeOrderUpdateManyWithoutProfileNestedInput
   user_badges?: Prisma.UserBadgeUpdateManyWithoutProfileNestedInput
   user_packages?: Prisma.UserPackageUpdateManyWithoutProfileNestedInput
@@ -3748,6 +4300,8 @@ export type ProfileUncheckedUpdateWithoutMeal_subscriptionsInput = {
   partner_memberships?: Prisma.PartnerMemberUncheckedUpdateManyWithoutProfileNestedInput
   bookings?: Prisma.BookingUncheckedUpdateManyWithoutProfileNestedInput
   sent_invites?: Prisma.BookingUncheckedUpdateManyWithoutInvited_byNestedInput
+  friendships_a?: Prisma.FriendshipUncheckedUpdateManyWithoutUser_aNestedInput
+  friendships_b?: Prisma.FriendshipUncheckedUpdateManyWithoutUser_bNestedInput
   cafe_orders?: Prisma.CafeOrderUncheckedUpdateManyWithoutProfileNestedInput
   user_badges?: Prisma.UserBadgeUncheckedUpdateManyWithoutProfileNestedInput
   user_packages?: Prisma.UserPackageUncheckedUpdateManyWithoutProfileNestedInput
@@ -3793,6 +4347,8 @@ export type ProfileCreateWithoutUser_statsInput = {
   partner_memberships?: Prisma.PartnerMemberCreateNestedManyWithoutProfileInput
   bookings?: Prisma.BookingCreateNestedManyWithoutProfileInput
   sent_invites?: Prisma.BookingCreateNestedManyWithoutInvited_byInput
+  friendships_a?: Prisma.FriendshipCreateNestedManyWithoutUser_aInput
+  friendships_b?: Prisma.FriendshipCreateNestedManyWithoutUser_bInput
   cafe_orders?: Prisma.CafeOrderCreateNestedManyWithoutProfileInput
   meal_subscriptions?: Prisma.MealSubscriptionCreateNestedManyWithoutProfileInput
   user_badges?: Prisma.UserBadgeCreateNestedManyWithoutProfileInput
@@ -3838,6 +4394,8 @@ export type ProfileUncheckedCreateWithoutUser_statsInput = {
   partner_memberships?: Prisma.PartnerMemberUncheckedCreateNestedManyWithoutProfileInput
   bookings?: Prisma.BookingUncheckedCreateNestedManyWithoutProfileInput
   sent_invites?: Prisma.BookingUncheckedCreateNestedManyWithoutInvited_byInput
+  friendships_a?: Prisma.FriendshipUncheckedCreateNestedManyWithoutUser_aInput
+  friendships_b?: Prisma.FriendshipUncheckedCreateNestedManyWithoutUser_bInput
   cafe_orders?: Prisma.CafeOrderUncheckedCreateNestedManyWithoutProfileInput
   meal_subscriptions?: Prisma.MealSubscriptionUncheckedCreateNestedManyWithoutProfileInput
   user_badges?: Prisma.UserBadgeUncheckedCreateNestedManyWithoutProfileInput
@@ -3899,6 +4457,8 @@ export type ProfileUpdateWithoutUser_statsInput = {
   partner_memberships?: Prisma.PartnerMemberUpdateManyWithoutProfileNestedInput
   bookings?: Prisma.BookingUpdateManyWithoutProfileNestedInput
   sent_invites?: Prisma.BookingUpdateManyWithoutInvited_byNestedInput
+  friendships_a?: Prisma.FriendshipUpdateManyWithoutUser_aNestedInput
+  friendships_b?: Prisma.FriendshipUpdateManyWithoutUser_bNestedInput
   cafe_orders?: Prisma.CafeOrderUpdateManyWithoutProfileNestedInput
   meal_subscriptions?: Prisma.MealSubscriptionUpdateManyWithoutProfileNestedInput
   user_badges?: Prisma.UserBadgeUpdateManyWithoutProfileNestedInput
@@ -3944,6 +4504,8 @@ export type ProfileUncheckedUpdateWithoutUser_statsInput = {
   partner_memberships?: Prisma.PartnerMemberUncheckedUpdateManyWithoutProfileNestedInput
   bookings?: Prisma.BookingUncheckedUpdateManyWithoutProfileNestedInput
   sent_invites?: Prisma.BookingUncheckedUpdateManyWithoutInvited_byNestedInput
+  friendships_a?: Prisma.FriendshipUncheckedUpdateManyWithoutUser_aNestedInput
+  friendships_b?: Prisma.FriendshipUncheckedUpdateManyWithoutUser_bNestedInput
   cafe_orders?: Prisma.CafeOrderUncheckedUpdateManyWithoutProfileNestedInput
   meal_subscriptions?: Prisma.MealSubscriptionUncheckedUpdateManyWithoutProfileNestedInput
   user_badges?: Prisma.UserBadgeUncheckedUpdateManyWithoutProfileNestedInput
@@ -3989,6 +4551,8 @@ export type ProfileCreateWithoutUser_streaksInput = {
   partner_memberships?: Prisma.PartnerMemberCreateNestedManyWithoutProfileInput
   bookings?: Prisma.BookingCreateNestedManyWithoutProfileInput
   sent_invites?: Prisma.BookingCreateNestedManyWithoutInvited_byInput
+  friendships_a?: Prisma.FriendshipCreateNestedManyWithoutUser_aInput
+  friendships_b?: Prisma.FriendshipCreateNestedManyWithoutUser_bInput
   cafe_orders?: Prisma.CafeOrderCreateNestedManyWithoutProfileInput
   meal_subscriptions?: Prisma.MealSubscriptionCreateNestedManyWithoutProfileInput
   user_badges?: Prisma.UserBadgeCreateNestedManyWithoutProfileInput
@@ -4034,6 +4598,8 @@ export type ProfileUncheckedCreateWithoutUser_streaksInput = {
   partner_memberships?: Prisma.PartnerMemberUncheckedCreateNestedManyWithoutProfileInput
   bookings?: Prisma.BookingUncheckedCreateNestedManyWithoutProfileInput
   sent_invites?: Prisma.BookingUncheckedCreateNestedManyWithoutInvited_byInput
+  friendships_a?: Prisma.FriendshipUncheckedCreateNestedManyWithoutUser_aInput
+  friendships_b?: Prisma.FriendshipUncheckedCreateNestedManyWithoutUser_bInput
   cafe_orders?: Prisma.CafeOrderUncheckedCreateNestedManyWithoutProfileInput
   meal_subscriptions?: Prisma.MealSubscriptionUncheckedCreateNestedManyWithoutProfileInput
   user_badges?: Prisma.UserBadgeUncheckedCreateNestedManyWithoutProfileInput
@@ -4095,6 +4661,8 @@ export type ProfileUpdateWithoutUser_streaksInput = {
   partner_memberships?: Prisma.PartnerMemberUpdateManyWithoutProfileNestedInput
   bookings?: Prisma.BookingUpdateManyWithoutProfileNestedInput
   sent_invites?: Prisma.BookingUpdateManyWithoutInvited_byNestedInput
+  friendships_a?: Prisma.FriendshipUpdateManyWithoutUser_aNestedInput
+  friendships_b?: Prisma.FriendshipUpdateManyWithoutUser_bNestedInput
   cafe_orders?: Prisma.CafeOrderUpdateManyWithoutProfileNestedInput
   meal_subscriptions?: Prisma.MealSubscriptionUpdateManyWithoutProfileNestedInput
   user_badges?: Prisma.UserBadgeUpdateManyWithoutProfileNestedInput
@@ -4140,6 +4708,8 @@ export type ProfileUncheckedUpdateWithoutUser_streaksInput = {
   partner_memberships?: Prisma.PartnerMemberUncheckedUpdateManyWithoutProfileNestedInput
   bookings?: Prisma.BookingUncheckedUpdateManyWithoutProfileNestedInput
   sent_invites?: Prisma.BookingUncheckedUpdateManyWithoutInvited_byNestedInput
+  friendships_a?: Prisma.FriendshipUncheckedUpdateManyWithoutUser_aNestedInput
+  friendships_b?: Prisma.FriendshipUncheckedUpdateManyWithoutUser_bNestedInput
   cafe_orders?: Prisma.CafeOrderUncheckedUpdateManyWithoutProfileNestedInput
   meal_subscriptions?: Prisma.MealSubscriptionUncheckedUpdateManyWithoutProfileNestedInput
   user_badges?: Prisma.UserBadgeUncheckedUpdateManyWithoutProfileNestedInput
@@ -4185,6 +4755,8 @@ export type ProfileCreateWithoutUser_badgesInput = {
   partner_memberships?: Prisma.PartnerMemberCreateNestedManyWithoutProfileInput
   bookings?: Prisma.BookingCreateNestedManyWithoutProfileInput
   sent_invites?: Prisma.BookingCreateNestedManyWithoutInvited_byInput
+  friendships_a?: Prisma.FriendshipCreateNestedManyWithoutUser_aInput
+  friendships_b?: Prisma.FriendshipCreateNestedManyWithoutUser_bInput
   cafe_orders?: Prisma.CafeOrderCreateNestedManyWithoutProfileInput
   meal_subscriptions?: Prisma.MealSubscriptionCreateNestedManyWithoutProfileInput
   user_packages?: Prisma.UserPackageCreateNestedManyWithoutProfileInput
@@ -4230,6 +4802,8 @@ export type ProfileUncheckedCreateWithoutUser_badgesInput = {
   partner_memberships?: Prisma.PartnerMemberUncheckedCreateNestedManyWithoutProfileInput
   bookings?: Prisma.BookingUncheckedCreateNestedManyWithoutProfileInput
   sent_invites?: Prisma.BookingUncheckedCreateNestedManyWithoutInvited_byInput
+  friendships_a?: Prisma.FriendshipUncheckedCreateNestedManyWithoutUser_aInput
+  friendships_b?: Prisma.FriendshipUncheckedCreateNestedManyWithoutUser_bInput
   cafe_orders?: Prisma.CafeOrderUncheckedCreateNestedManyWithoutProfileInput
   meal_subscriptions?: Prisma.MealSubscriptionUncheckedCreateNestedManyWithoutProfileInput
   user_packages?: Prisma.UserPackageUncheckedCreateNestedManyWithoutProfileInput
@@ -4291,6 +4865,8 @@ export type ProfileUpdateWithoutUser_badgesInput = {
   partner_memberships?: Prisma.PartnerMemberUpdateManyWithoutProfileNestedInput
   bookings?: Prisma.BookingUpdateManyWithoutProfileNestedInput
   sent_invites?: Prisma.BookingUpdateManyWithoutInvited_byNestedInput
+  friendships_a?: Prisma.FriendshipUpdateManyWithoutUser_aNestedInput
+  friendships_b?: Prisma.FriendshipUpdateManyWithoutUser_bNestedInput
   cafe_orders?: Prisma.CafeOrderUpdateManyWithoutProfileNestedInput
   meal_subscriptions?: Prisma.MealSubscriptionUpdateManyWithoutProfileNestedInput
   user_packages?: Prisma.UserPackageUpdateManyWithoutProfileNestedInput
@@ -4336,6 +4912,8 @@ export type ProfileUncheckedUpdateWithoutUser_badgesInput = {
   partner_memberships?: Prisma.PartnerMemberUncheckedUpdateManyWithoutProfileNestedInput
   bookings?: Prisma.BookingUncheckedUpdateManyWithoutProfileNestedInput
   sent_invites?: Prisma.BookingUncheckedUpdateManyWithoutInvited_byNestedInput
+  friendships_a?: Prisma.FriendshipUncheckedUpdateManyWithoutUser_aNestedInput
+  friendships_b?: Prisma.FriendshipUncheckedUpdateManyWithoutUser_bNestedInput
   cafe_orders?: Prisma.CafeOrderUncheckedUpdateManyWithoutProfileNestedInput
   meal_subscriptions?: Prisma.MealSubscriptionUncheckedUpdateManyWithoutProfileNestedInput
   user_packages?: Prisma.UserPackageUncheckedUpdateManyWithoutProfileNestedInput
@@ -4381,6 +4959,8 @@ export type ProfileCreateWithoutWaiversInput = {
   partner_memberships?: Prisma.PartnerMemberCreateNestedManyWithoutProfileInput
   bookings?: Prisma.BookingCreateNestedManyWithoutProfileInput
   sent_invites?: Prisma.BookingCreateNestedManyWithoutInvited_byInput
+  friendships_a?: Prisma.FriendshipCreateNestedManyWithoutUser_aInput
+  friendships_b?: Prisma.FriendshipCreateNestedManyWithoutUser_bInput
   cafe_orders?: Prisma.CafeOrderCreateNestedManyWithoutProfileInput
   meal_subscriptions?: Prisma.MealSubscriptionCreateNestedManyWithoutProfileInput
   user_badges?: Prisma.UserBadgeCreateNestedManyWithoutProfileInput
@@ -4426,6 +5006,8 @@ export type ProfileUncheckedCreateWithoutWaiversInput = {
   partner_memberships?: Prisma.PartnerMemberUncheckedCreateNestedManyWithoutProfileInput
   bookings?: Prisma.BookingUncheckedCreateNestedManyWithoutProfileInput
   sent_invites?: Prisma.BookingUncheckedCreateNestedManyWithoutInvited_byInput
+  friendships_a?: Prisma.FriendshipUncheckedCreateNestedManyWithoutUser_aInput
+  friendships_b?: Prisma.FriendshipUncheckedCreateNestedManyWithoutUser_bInput
   cafe_orders?: Prisma.CafeOrderUncheckedCreateNestedManyWithoutProfileInput
   meal_subscriptions?: Prisma.MealSubscriptionUncheckedCreateNestedManyWithoutProfileInput
   user_badges?: Prisma.UserBadgeUncheckedCreateNestedManyWithoutProfileInput
@@ -4487,6 +5069,8 @@ export type ProfileUpdateWithoutWaiversInput = {
   partner_memberships?: Prisma.PartnerMemberUpdateManyWithoutProfileNestedInput
   bookings?: Prisma.BookingUpdateManyWithoutProfileNestedInput
   sent_invites?: Prisma.BookingUpdateManyWithoutInvited_byNestedInput
+  friendships_a?: Prisma.FriendshipUpdateManyWithoutUser_aNestedInput
+  friendships_b?: Prisma.FriendshipUpdateManyWithoutUser_bNestedInput
   cafe_orders?: Prisma.CafeOrderUpdateManyWithoutProfileNestedInput
   meal_subscriptions?: Prisma.MealSubscriptionUpdateManyWithoutProfileNestedInput
   user_badges?: Prisma.UserBadgeUpdateManyWithoutProfileNestedInput
@@ -4532,6 +5116,8 @@ export type ProfileUncheckedUpdateWithoutWaiversInput = {
   partner_memberships?: Prisma.PartnerMemberUncheckedUpdateManyWithoutProfileNestedInput
   bookings?: Prisma.BookingUncheckedUpdateManyWithoutProfileNestedInput
   sent_invites?: Prisma.BookingUncheckedUpdateManyWithoutInvited_byNestedInput
+  friendships_a?: Prisma.FriendshipUncheckedUpdateManyWithoutUser_aNestedInput
+  friendships_b?: Prisma.FriendshipUncheckedUpdateManyWithoutUser_bNestedInput
   cafe_orders?: Prisma.CafeOrderUncheckedUpdateManyWithoutProfileNestedInput
   meal_subscriptions?: Prisma.MealSubscriptionUncheckedUpdateManyWithoutProfileNestedInput
   user_badges?: Prisma.UserBadgeUncheckedUpdateManyWithoutProfileNestedInput
@@ -4577,6 +5163,8 @@ export type ProfileCreateWithoutCrm_messagesInput = {
   partner_memberships?: Prisma.PartnerMemberCreateNestedManyWithoutProfileInput
   bookings?: Prisma.BookingCreateNestedManyWithoutProfileInput
   sent_invites?: Prisma.BookingCreateNestedManyWithoutInvited_byInput
+  friendships_a?: Prisma.FriendshipCreateNestedManyWithoutUser_aInput
+  friendships_b?: Prisma.FriendshipCreateNestedManyWithoutUser_bInput
   cafe_orders?: Prisma.CafeOrderCreateNestedManyWithoutProfileInput
   meal_subscriptions?: Prisma.MealSubscriptionCreateNestedManyWithoutProfileInput
   user_badges?: Prisma.UserBadgeCreateNestedManyWithoutProfileInput
@@ -4622,6 +5210,8 @@ export type ProfileUncheckedCreateWithoutCrm_messagesInput = {
   partner_memberships?: Prisma.PartnerMemberUncheckedCreateNestedManyWithoutProfileInput
   bookings?: Prisma.BookingUncheckedCreateNestedManyWithoutProfileInput
   sent_invites?: Prisma.BookingUncheckedCreateNestedManyWithoutInvited_byInput
+  friendships_a?: Prisma.FriendshipUncheckedCreateNestedManyWithoutUser_aInput
+  friendships_b?: Prisma.FriendshipUncheckedCreateNestedManyWithoutUser_bInput
   cafe_orders?: Prisma.CafeOrderUncheckedCreateNestedManyWithoutProfileInput
   meal_subscriptions?: Prisma.MealSubscriptionUncheckedCreateNestedManyWithoutProfileInput
   user_badges?: Prisma.UserBadgeUncheckedCreateNestedManyWithoutProfileInput
@@ -4683,6 +5273,8 @@ export type ProfileUpdateWithoutCrm_messagesInput = {
   partner_memberships?: Prisma.PartnerMemberUpdateManyWithoutProfileNestedInput
   bookings?: Prisma.BookingUpdateManyWithoutProfileNestedInput
   sent_invites?: Prisma.BookingUpdateManyWithoutInvited_byNestedInput
+  friendships_a?: Prisma.FriendshipUpdateManyWithoutUser_aNestedInput
+  friendships_b?: Prisma.FriendshipUpdateManyWithoutUser_bNestedInput
   cafe_orders?: Prisma.CafeOrderUpdateManyWithoutProfileNestedInput
   meal_subscriptions?: Prisma.MealSubscriptionUpdateManyWithoutProfileNestedInput
   user_badges?: Prisma.UserBadgeUpdateManyWithoutProfileNestedInput
@@ -4728,6 +5320,8 @@ export type ProfileUncheckedUpdateWithoutCrm_messagesInput = {
   partner_memberships?: Prisma.PartnerMemberUncheckedUpdateManyWithoutProfileNestedInput
   bookings?: Prisma.BookingUncheckedUpdateManyWithoutProfileNestedInput
   sent_invites?: Prisma.BookingUncheckedUpdateManyWithoutInvited_byNestedInput
+  friendships_a?: Prisma.FriendshipUncheckedUpdateManyWithoutUser_aNestedInput
+  friendships_b?: Prisma.FriendshipUncheckedUpdateManyWithoutUser_bNestedInput
   cafe_orders?: Prisma.CafeOrderUncheckedUpdateManyWithoutProfileNestedInput
   meal_subscriptions?: Prisma.MealSubscriptionUncheckedUpdateManyWithoutProfileNestedInput
   user_badges?: Prisma.UserBadgeUncheckedUpdateManyWithoutProfileNestedInput
@@ -4773,6 +5367,8 @@ export type ProfileCreateWithoutActivity_sessionsInput = {
   partner_memberships?: Prisma.PartnerMemberCreateNestedManyWithoutProfileInput
   bookings?: Prisma.BookingCreateNestedManyWithoutProfileInput
   sent_invites?: Prisma.BookingCreateNestedManyWithoutInvited_byInput
+  friendships_a?: Prisma.FriendshipCreateNestedManyWithoutUser_aInput
+  friendships_b?: Prisma.FriendshipCreateNestedManyWithoutUser_bInput
   cafe_orders?: Prisma.CafeOrderCreateNestedManyWithoutProfileInput
   meal_subscriptions?: Prisma.MealSubscriptionCreateNestedManyWithoutProfileInput
   user_badges?: Prisma.UserBadgeCreateNestedManyWithoutProfileInput
@@ -4818,6 +5414,8 @@ export type ProfileUncheckedCreateWithoutActivity_sessionsInput = {
   partner_memberships?: Prisma.PartnerMemberUncheckedCreateNestedManyWithoutProfileInput
   bookings?: Prisma.BookingUncheckedCreateNestedManyWithoutProfileInput
   sent_invites?: Prisma.BookingUncheckedCreateNestedManyWithoutInvited_byInput
+  friendships_a?: Prisma.FriendshipUncheckedCreateNestedManyWithoutUser_aInput
+  friendships_b?: Prisma.FriendshipUncheckedCreateNestedManyWithoutUser_bInput
   cafe_orders?: Prisma.CafeOrderUncheckedCreateNestedManyWithoutProfileInput
   meal_subscriptions?: Prisma.MealSubscriptionUncheckedCreateNestedManyWithoutProfileInput
   user_badges?: Prisma.UserBadgeUncheckedCreateNestedManyWithoutProfileInput
@@ -4879,6 +5477,8 @@ export type ProfileUpdateWithoutActivity_sessionsInput = {
   partner_memberships?: Prisma.PartnerMemberUpdateManyWithoutProfileNestedInput
   bookings?: Prisma.BookingUpdateManyWithoutProfileNestedInput
   sent_invites?: Prisma.BookingUpdateManyWithoutInvited_byNestedInput
+  friendships_a?: Prisma.FriendshipUpdateManyWithoutUser_aNestedInput
+  friendships_b?: Prisma.FriendshipUpdateManyWithoutUser_bNestedInput
   cafe_orders?: Prisma.CafeOrderUpdateManyWithoutProfileNestedInput
   meal_subscriptions?: Prisma.MealSubscriptionUpdateManyWithoutProfileNestedInput
   user_badges?: Prisma.UserBadgeUpdateManyWithoutProfileNestedInput
@@ -4924,6 +5524,8 @@ export type ProfileUncheckedUpdateWithoutActivity_sessionsInput = {
   partner_memberships?: Prisma.PartnerMemberUncheckedUpdateManyWithoutProfileNestedInput
   bookings?: Prisma.BookingUncheckedUpdateManyWithoutProfileNestedInput
   sent_invites?: Prisma.BookingUncheckedUpdateManyWithoutInvited_byNestedInput
+  friendships_a?: Prisma.FriendshipUncheckedUpdateManyWithoutUser_aNestedInput
+  friendships_b?: Prisma.FriendshipUncheckedUpdateManyWithoutUser_bNestedInput
   cafe_orders?: Prisma.CafeOrderUncheckedUpdateManyWithoutProfileNestedInput
   meal_subscriptions?: Prisma.MealSubscriptionUncheckedUpdateManyWithoutProfileNestedInput
   user_badges?: Prisma.UserBadgeUncheckedUpdateManyWithoutProfileNestedInput
@@ -4969,6 +5571,8 @@ export type ProfileCreateWithoutActivity_eventsInput = {
   partner_memberships?: Prisma.PartnerMemberCreateNestedManyWithoutProfileInput
   bookings?: Prisma.BookingCreateNestedManyWithoutProfileInput
   sent_invites?: Prisma.BookingCreateNestedManyWithoutInvited_byInput
+  friendships_a?: Prisma.FriendshipCreateNestedManyWithoutUser_aInput
+  friendships_b?: Prisma.FriendshipCreateNestedManyWithoutUser_bInput
   cafe_orders?: Prisma.CafeOrderCreateNestedManyWithoutProfileInput
   meal_subscriptions?: Prisma.MealSubscriptionCreateNestedManyWithoutProfileInput
   user_badges?: Prisma.UserBadgeCreateNestedManyWithoutProfileInput
@@ -5014,6 +5618,8 @@ export type ProfileUncheckedCreateWithoutActivity_eventsInput = {
   partner_memberships?: Prisma.PartnerMemberUncheckedCreateNestedManyWithoutProfileInput
   bookings?: Prisma.BookingUncheckedCreateNestedManyWithoutProfileInput
   sent_invites?: Prisma.BookingUncheckedCreateNestedManyWithoutInvited_byInput
+  friendships_a?: Prisma.FriendshipUncheckedCreateNestedManyWithoutUser_aInput
+  friendships_b?: Prisma.FriendshipUncheckedCreateNestedManyWithoutUser_bInput
   cafe_orders?: Prisma.CafeOrderUncheckedCreateNestedManyWithoutProfileInput
   meal_subscriptions?: Prisma.MealSubscriptionUncheckedCreateNestedManyWithoutProfileInput
   user_badges?: Prisma.UserBadgeUncheckedCreateNestedManyWithoutProfileInput
@@ -5075,6 +5681,8 @@ export type ProfileUpdateWithoutActivity_eventsInput = {
   partner_memberships?: Prisma.PartnerMemberUpdateManyWithoutProfileNestedInput
   bookings?: Prisma.BookingUpdateManyWithoutProfileNestedInput
   sent_invites?: Prisma.BookingUpdateManyWithoutInvited_byNestedInput
+  friendships_a?: Prisma.FriendshipUpdateManyWithoutUser_aNestedInput
+  friendships_b?: Prisma.FriendshipUpdateManyWithoutUser_bNestedInput
   cafe_orders?: Prisma.CafeOrderUpdateManyWithoutProfileNestedInput
   meal_subscriptions?: Prisma.MealSubscriptionUpdateManyWithoutProfileNestedInput
   user_badges?: Prisma.UserBadgeUpdateManyWithoutProfileNestedInput
@@ -5120,6 +5728,8 @@ export type ProfileUncheckedUpdateWithoutActivity_eventsInput = {
   partner_memberships?: Prisma.PartnerMemberUncheckedUpdateManyWithoutProfileNestedInput
   bookings?: Prisma.BookingUncheckedUpdateManyWithoutProfileNestedInput
   sent_invites?: Prisma.BookingUncheckedUpdateManyWithoutInvited_byNestedInput
+  friendships_a?: Prisma.FriendshipUncheckedUpdateManyWithoutUser_aNestedInput
+  friendships_b?: Prisma.FriendshipUncheckedUpdateManyWithoutUser_bNestedInput
   cafe_orders?: Prisma.CafeOrderUncheckedUpdateManyWithoutProfileNestedInput
   meal_subscriptions?: Prisma.MealSubscriptionUncheckedUpdateManyWithoutProfileNestedInput
   user_badges?: Prisma.UserBadgeUncheckedUpdateManyWithoutProfileNestedInput
@@ -5165,6 +5775,8 @@ export type ProfileCreateWithoutMember_ticketsInput = {
   partner_memberships?: Prisma.PartnerMemberCreateNestedManyWithoutProfileInput
   bookings?: Prisma.BookingCreateNestedManyWithoutProfileInput
   sent_invites?: Prisma.BookingCreateNestedManyWithoutInvited_byInput
+  friendships_a?: Prisma.FriendshipCreateNestedManyWithoutUser_aInput
+  friendships_b?: Prisma.FriendshipCreateNestedManyWithoutUser_bInput
   cafe_orders?: Prisma.CafeOrderCreateNestedManyWithoutProfileInput
   meal_subscriptions?: Prisma.MealSubscriptionCreateNestedManyWithoutProfileInput
   user_badges?: Prisma.UserBadgeCreateNestedManyWithoutProfileInput
@@ -5210,6 +5822,8 @@ export type ProfileUncheckedCreateWithoutMember_ticketsInput = {
   partner_memberships?: Prisma.PartnerMemberUncheckedCreateNestedManyWithoutProfileInput
   bookings?: Prisma.BookingUncheckedCreateNestedManyWithoutProfileInput
   sent_invites?: Prisma.BookingUncheckedCreateNestedManyWithoutInvited_byInput
+  friendships_a?: Prisma.FriendshipUncheckedCreateNestedManyWithoutUser_aInput
+  friendships_b?: Prisma.FriendshipUncheckedCreateNestedManyWithoutUser_bInput
   cafe_orders?: Prisma.CafeOrderUncheckedCreateNestedManyWithoutProfileInput
   meal_subscriptions?: Prisma.MealSubscriptionUncheckedCreateNestedManyWithoutProfileInput
   user_badges?: Prisma.UserBadgeUncheckedCreateNestedManyWithoutProfileInput
@@ -5271,6 +5885,8 @@ export type ProfileUpdateWithoutMember_ticketsInput = {
   partner_memberships?: Prisma.PartnerMemberUpdateManyWithoutProfileNestedInput
   bookings?: Prisma.BookingUpdateManyWithoutProfileNestedInput
   sent_invites?: Prisma.BookingUpdateManyWithoutInvited_byNestedInput
+  friendships_a?: Prisma.FriendshipUpdateManyWithoutUser_aNestedInput
+  friendships_b?: Prisma.FriendshipUpdateManyWithoutUser_bNestedInput
   cafe_orders?: Prisma.CafeOrderUpdateManyWithoutProfileNestedInput
   meal_subscriptions?: Prisma.MealSubscriptionUpdateManyWithoutProfileNestedInput
   user_badges?: Prisma.UserBadgeUpdateManyWithoutProfileNestedInput
@@ -5316,6 +5932,8 @@ export type ProfileUncheckedUpdateWithoutMember_ticketsInput = {
   partner_memberships?: Prisma.PartnerMemberUncheckedUpdateManyWithoutProfileNestedInput
   bookings?: Prisma.BookingUncheckedUpdateManyWithoutProfileNestedInput
   sent_invites?: Prisma.BookingUncheckedUpdateManyWithoutInvited_byNestedInput
+  friendships_a?: Prisma.FriendshipUncheckedUpdateManyWithoutUser_aNestedInput
+  friendships_b?: Prisma.FriendshipUncheckedUpdateManyWithoutUser_bNestedInput
   cafe_orders?: Prisma.CafeOrderUncheckedUpdateManyWithoutProfileNestedInput
   meal_subscriptions?: Prisma.MealSubscriptionUncheckedUpdateManyWithoutProfileNestedInput
   user_badges?: Prisma.UserBadgeUncheckedUpdateManyWithoutProfileNestedInput
@@ -5361,6 +5979,8 @@ export type ProfileCreateWithoutActivity_actionsInput = {
   partner_memberships?: Prisma.PartnerMemberCreateNestedManyWithoutProfileInput
   bookings?: Prisma.BookingCreateNestedManyWithoutProfileInput
   sent_invites?: Prisma.BookingCreateNestedManyWithoutInvited_byInput
+  friendships_a?: Prisma.FriendshipCreateNestedManyWithoutUser_aInput
+  friendships_b?: Prisma.FriendshipCreateNestedManyWithoutUser_bInput
   cafe_orders?: Prisma.CafeOrderCreateNestedManyWithoutProfileInput
   meal_subscriptions?: Prisma.MealSubscriptionCreateNestedManyWithoutProfileInput
   user_badges?: Prisma.UserBadgeCreateNestedManyWithoutProfileInput
@@ -5406,6 +6026,8 @@ export type ProfileUncheckedCreateWithoutActivity_actionsInput = {
   partner_memberships?: Prisma.PartnerMemberUncheckedCreateNestedManyWithoutProfileInput
   bookings?: Prisma.BookingUncheckedCreateNestedManyWithoutProfileInput
   sent_invites?: Prisma.BookingUncheckedCreateNestedManyWithoutInvited_byInput
+  friendships_a?: Prisma.FriendshipUncheckedCreateNestedManyWithoutUser_aInput
+  friendships_b?: Prisma.FriendshipUncheckedCreateNestedManyWithoutUser_bInput
   cafe_orders?: Prisma.CafeOrderUncheckedCreateNestedManyWithoutProfileInput
   meal_subscriptions?: Prisma.MealSubscriptionUncheckedCreateNestedManyWithoutProfileInput
   user_badges?: Prisma.UserBadgeUncheckedCreateNestedManyWithoutProfileInput
@@ -5456,6 +6078,8 @@ export type ProfileCreateWithoutActivity_targetsInput = {
   partner_memberships?: Prisma.PartnerMemberCreateNestedManyWithoutProfileInput
   bookings?: Prisma.BookingCreateNestedManyWithoutProfileInput
   sent_invites?: Prisma.BookingCreateNestedManyWithoutInvited_byInput
+  friendships_a?: Prisma.FriendshipCreateNestedManyWithoutUser_aInput
+  friendships_b?: Prisma.FriendshipCreateNestedManyWithoutUser_bInput
   cafe_orders?: Prisma.CafeOrderCreateNestedManyWithoutProfileInput
   meal_subscriptions?: Prisma.MealSubscriptionCreateNestedManyWithoutProfileInput
   user_badges?: Prisma.UserBadgeCreateNestedManyWithoutProfileInput
@@ -5501,6 +6125,8 @@ export type ProfileUncheckedCreateWithoutActivity_targetsInput = {
   partner_memberships?: Prisma.PartnerMemberUncheckedCreateNestedManyWithoutProfileInput
   bookings?: Prisma.BookingUncheckedCreateNestedManyWithoutProfileInput
   sent_invites?: Prisma.BookingUncheckedCreateNestedManyWithoutInvited_byInput
+  friendships_a?: Prisma.FriendshipUncheckedCreateNestedManyWithoutUser_aInput
+  friendships_b?: Prisma.FriendshipUncheckedCreateNestedManyWithoutUser_bInput
   cafe_orders?: Prisma.CafeOrderUncheckedCreateNestedManyWithoutProfileInput
   meal_subscriptions?: Prisma.MealSubscriptionUncheckedCreateNestedManyWithoutProfileInput
   user_badges?: Prisma.UserBadgeUncheckedCreateNestedManyWithoutProfileInput
@@ -5562,6 +6188,8 @@ export type ProfileUpdateWithoutActivity_actionsInput = {
   partner_memberships?: Prisma.PartnerMemberUpdateManyWithoutProfileNestedInput
   bookings?: Prisma.BookingUpdateManyWithoutProfileNestedInput
   sent_invites?: Prisma.BookingUpdateManyWithoutInvited_byNestedInput
+  friendships_a?: Prisma.FriendshipUpdateManyWithoutUser_aNestedInput
+  friendships_b?: Prisma.FriendshipUpdateManyWithoutUser_bNestedInput
   cafe_orders?: Prisma.CafeOrderUpdateManyWithoutProfileNestedInput
   meal_subscriptions?: Prisma.MealSubscriptionUpdateManyWithoutProfileNestedInput
   user_badges?: Prisma.UserBadgeUpdateManyWithoutProfileNestedInput
@@ -5607,6 +6235,8 @@ export type ProfileUncheckedUpdateWithoutActivity_actionsInput = {
   partner_memberships?: Prisma.PartnerMemberUncheckedUpdateManyWithoutProfileNestedInput
   bookings?: Prisma.BookingUncheckedUpdateManyWithoutProfileNestedInput
   sent_invites?: Prisma.BookingUncheckedUpdateManyWithoutInvited_byNestedInput
+  friendships_a?: Prisma.FriendshipUncheckedUpdateManyWithoutUser_aNestedInput
+  friendships_b?: Prisma.FriendshipUncheckedUpdateManyWithoutUser_bNestedInput
   cafe_orders?: Prisma.CafeOrderUncheckedUpdateManyWithoutProfileNestedInput
   meal_subscriptions?: Prisma.MealSubscriptionUncheckedUpdateManyWithoutProfileNestedInput
   user_badges?: Prisma.UserBadgeUncheckedUpdateManyWithoutProfileNestedInput
@@ -5663,6 +6293,8 @@ export type ProfileUpdateWithoutActivity_targetsInput = {
   partner_memberships?: Prisma.PartnerMemberUpdateManyWithoutProfileNestedInput
   bookings?: Prisma.BookingUpdateManyWithoutProfileNestedInput
   sent_invites?: Prisma.BookingUpdateManyWithoutInvited_byNestedInput
+  friendships_a?: Prisma.FriendshipUpdateManyWithoutUser_aNestedInput
+  friendships_b?: Prisma.FriendshipUpdateManyWithoutUser_bNestedInput
   cafe_orders?: Prisma.CafeOrderUpdateManyWithoutProfileNestedInput
   meal_subscriptions?: Prisma.MealSubscriptionUpdateManyWithoutProfileNestedInput
   user_badges?: Prisma.UserBadgeUpdateManyWithoutProfileNestedInput
@@ -5708,6 +6340,8 @@ export type ProfileUncheckedUpdateWithoutActivity_targetsInput = {
   partner_memberships?: Prisma.PartnerMemberUncheckedUpdateManyWithoutProfileNestedInput
   bookings?: Prisma.BookingUncheckedUpdateManyWithoutProfileNestedInput
   sent_invites?: Prisma.BookingUncheckedUpdateManyWithoutInvited_byNestedInput
+  friendships_a?: Prisma.FriendshipUncheckedUpdateManyWithoutUser_aNestedInput
+  friendships_b?: Prisma.FriendshipUncheckedUpdateManyWithoutUser_bNestedInput
   cafe_orders?: Prisma.CafeOrderUncheckedUpdateManyWithoutProfileNestedInput
   meal_subscriptions?: Prisma.MealSubscriptionUncheckedUpdateManyWithoutProfileNestedInput
   user_badges?: Prisma.UserBadgeUncheckedUpdateManyWithoutProfileNestedInput
@@ -5737,6 +6371,8 @@ export type ProfileCountOutputType = {
   partner_memberships: number
   bookings: number
   sent_invites: number
+  friendships_a: number
+  friendships_b: number
   cafe_orders: number
   meal_subscriptions: number
   user_badges: number
@@ -5760,6 +6396,8 @@ export type ProfileCountOutputTypeSelect<ExtArgs extends runtime.Types.Extension
   partner_memberships?: boolean | ProfileCountOutputTypeCountPartner_membershipsArgs
   bookings?: boolean | ProfileCountOutputTypeCountBookingsArgs
   sent_invites?: boolean | ProfileCountOutputTypeCountSent_invitesArgs
+  friendships_a?: boolean | ProfileCountOutputTypeCountFriendships_aArgs
+  friendships_b?: boolean | ProfileCountOutputTypeCountFriendships_bArgs
   cafe_orders?: boolean | ProfileCountOutputTypeCountCafe_ordersArgs
   meal_subscriptions?: boolean | ProfileCountOutputTypeCountMeal_subscriptionsArgs
   user_badges?: boolean | ProfileCountOutputTypeCountUser_badgesArgs
@@ -5808,6 +6446,20 @@ export type ProfileCountOutputTypeCountBookingsArgs<ExtArgs extends runtime.Type
  */
 export type ProfileCountOutputTypeCountSent_invitesArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   where?: Prisma.BookingWhereInput
+}
+
+/**
+ * ProfileCountOutputType without action
+ */
+export type ProfileCountOutputTypeCountFriendships_aArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  where?: Prisma.FriendshipWhereInput
+}
+
+/**
+ * ProfileCountOutputType without action
+ */
+export type ProfileCountOutputTypeCountFriendships_bArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  where?: Prisma.FriendshipWhereInput
 }
 
 /**
@@ -5955,6 +6607,8 @@ export type ProfileSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs 
   partner_memberships?: boolean | Prisma.Profile$partner_membershipsArgs<ExtArgs>
   bookings?: boolean | Prisma.Profile$bookingsArgs<ExtArgs>
   sent_invites?: boolean | Prisma.Profile$sent_invitesArgs<ExtArgs>
+  friendships_a?: boolean | Prisma.Profile$friendships_aArgs<ExtArgs>
+  friendships_b?: boolean | Prisma.Profile$friendships_bArgs<ExtArgs>
   cafe_orders?: boolean | Prisma.Profile$cafe_ordersArgs<ExtArgs>
   meal_subscriptions?: boolean | Prisma.Profile$meal_subscriptionsArgs<ExtArgs>
   user_badges?: boolean | Prisma.Profile$user_badgesArgs<ExtArgs>
@@ -6052,6 +6706,8 @@ export type ProfileInclude<ExtArgs extends runtime.Types.Extensions.InternalArgs
   partner_memberships?: boolean | Prisma.Profile$partner_membershipsArgs<ExtArgs>
   bookings?: boolean | Prisma.Profile$bookingsArgs<ExtArgs>
   sent_invites?: boolean | Prisma.Profile$sent_invitesArgs<ExtArgs>
+  friendships_a?: boolean | Prisma.Profile$friendships_aArgs<ExtArgs>
+  friendships_b?: boolean | Prisma.Profile$friendships_bArgs<ExtArgs>
   cafe_orders?: boolean | Prisma.Profile$cafe_ordersArgs<ExtArgs>
   meal_subscriptions?: boolean | Prisma.Profile$meal_subscriptionsArgs<ExtArgs>
   user_badges?: boolean | Prisma.Profile$user_badgesArgs<ExtArgs>
@@ -6083,6 +6739,8 @@ export type $ProfilePayload<ExtArgs extends runtime.Types.Extensions.InternalArg
     partner_memberships: Prisma.$PartnerMemberPayload<ExtArgs>[]
     bookings: Prisma.$BookingPayload<ExtArgs>[]
     sent_invites: Prisma.$BookingPayload<ExtArgs>[]
+    friendships_a: Prisma.$FriendshipPayload<ExtArgs>[]
+    friendships_b: Prisma.$FriendshipPayload<ExtArgs>[]
     cafe_orders: Prisma.$CafeOrderPayload<ExtArgs>[]
     meal_subscriptions: Prisma.$MealSubscriptionPayload<ExtArgs>[]
     user_badges: Prisma.$UserBadgePayload<ExtArgs>[]
@@ -6522,6 +7180,8 @@ export interface Prisma__ProfileClient<T, Null = never, ExtArgs extends runtime.
   partner_memberships<T extends Prisma.Profile$partner_membershipsArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.Profile$partner_membershipsArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$PartnerMemberPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
   bookings<T extends Prisma.Profile$bookingsArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.Profile$bookingsArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$BookingPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
   sent_invites<T extends Prisma.Profile$sent_invitesArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.Profile$sent_invitesArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$BookingPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
+  friendships_a<T extends Prisma.Profile$friendships_aArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.Profile$friendships_aArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$FriendshipPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
+  friendships_b<T extends Prisma.Profile$friendships_bArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.Profile$friendships_bArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$FriendshipPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
   cafe_orders<T extends Prisma.Profile$cafe_ordersArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.Profile$cafe_ordersArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$CafeOrderPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
   meal_subscriptions<T extends Prisma.Profile$meal_subscriptionsArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.Profile$meal_subscriptionsArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$MealSubscriptionPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
   user_badges<T extends Prisma.Profile$user_badgesArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.Profile$user_badgesArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$UserBadgePayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
@@ -7071,6 +7731,54 @@ export type Profile$sent_invitesArgs<ExtArgs extends runtime.Types.Extensions.In
   take?: number
   skip?: number
   distinct?: Prisma.BookingScalarFieldEnum | Prisma.BookingScalarFieldEnum[]
+}
+
+/**
+ * Profile.friendships_a
+ */
+export type Profile$friendships_aArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  /**
+   * Select specific fields to fetch from the Friendship
+   */
+  select?: Prisma.FriendshipSelect<ExtArgs> | null
+  /**
+   * Omit specific fields from the Friendship
+   */
+  omit?: Prisma.FriendshipOmit<ExtArgs> | null
+  /**
+   * Choose, which related nodes to fetch as well
+   */
+  include?: Prisma.FriendshipInclude<ExtArgs> | null
+  where?: Prisma.FriendshipWhereInput
+  orderBy?: Prisma.FriendshipOrderByWithRelationInput | Prisma.FriendshipOrderByWithRelationInput[]
+  cursor?: Prisma.FriendshipWhereUniqueInput
+  take?: number
+  skip?: number
+  distinct?: Prisma.FriendshipScalarFieldEnum | Prisma.FriendshipScalarFieldEnum[]
+}
+
+/**
+ * Profile.friendships_b
+ */
+export type Profile$friendships_bArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  /**
+   * Select specific fields to fetch from the Friendship
+   */
+  select?: Prisma.FriendshipSelect<ExtArgs> | null
+  /**
+   * Omit specific fields from the Friendship
+   */
+  omit?: Prisma.FriendshipOmit<ExtArgs> | null
+  /**
+   * Choose, which related nodes to fetch as well
+   */
+  include?: Prisma.FriendshipInclude<ExtArgs> | null
+  where?: Prisma.FriendshipWhereInput
+  orderBy?: Prisma.FriendshipOrderByWithRelationInput | Prisma.FriendshipOrderByWithRelationInput[]
+  cursor?: Prisma.FriendshipWhereUniqueInput
+  take?: number
+  skip?: number
+  distinct?: Prisma.FriendshipScalarFieldEnum | Prisma.FriendshipScalarFieldEnum[]
 }
 
 /**
