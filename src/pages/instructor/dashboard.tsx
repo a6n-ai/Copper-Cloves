@@ -137,6 +137,7 @@ export default function InstructorDashboard() {
   // Check-in tab state
   const [selectedClassId, setSelectedClassId] = useState<string | null>(null);
   const [checkingIn, setCheckingIn] = useState<Record<string, boolean>>({});
+  const [reminding, setReminding] = useState<Record<string, boolean>>({});
   const [instructorCheckingIn, setInstructorCheckingIn] = useState<Record<string, boolean>>({});
   const [instructorCheckInError, setInstructorCheckInError] = useState<Record<string, string>>({});
 
@@ -209,6 +210,25 @@ export default function InstructorDashboard() {
       );
     } finally {
       setCheckingIn((prev) => ({ ...prev, [bookingId]: false }));
+    }
+  }
+
+  async function handleRemindPayment(bookingId: string) {
+    setReminding((prev) => ({ ...prev, [bookingId]: true }));
+    try {
+      const res = await fetch("/api/instructor/remind-payment", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ bookingId }),
+      });
+      const data = await res.json().catch(() => ({}));
+      if (!res.ok) {
+        toast.error(data.error ?? "Failed to send reminder");
+        return;
+      }
+      toast.success("Reminder sent");
+    } finally {
+      setReminding((prev) => ({ ...prev, [bookingId]: false }));
     }
   }
 
@@ -552,12 +572,17 @@ export default function InstructorDashboard() {
                             <MemberAvatar name={b.memberName} url={b.avatarUrl} />
 
                             <div className="flex-1 min-w-0">
-                              <p className="font-body text-sm font-medium text-charcoal truncate">
-                                {b.memberName}
+                              <p className="font-body text-sm font-medium text-charcoal truncate flex items-center gap-1.5">
+                                <span className="truncate">{b.memberName}</span>
                                 {b.extraGuests > 0 && (
-                                  <span className="ml-1.5 font-body text-xs text-terracotta">
+                                  <span className="font-body text-xs text-terracotta">
                                     +{b.extraGuests}
                                   </span>
+                                )}
+                                {b.status === "payment_pending" && (
+                                  <Pill tone="warning" size="sm" className="font-body shrink-0">
+                                    Payment pending
+                                  </Pill>
                                 )}
                               </p>
                               {b.checkedIn && b.checkInTime && (
@@ -574,6 +599,23 @@ export default function InstructorDashboard() {
                               <div className="flex items-center gap-1 text-sage font-body text-sm shrink-0">
                                 <CheckCircle2 className="h-5 w-5" />
                               </div>
+                            ) : b.status === "payment_pending" ? (
+                              <Button
+                                size="sm"
+                                variant="terracotta"
+                                onClick={() => void handleRemindPayment(b.id)}
+                                disabled={reminding[b.id]}
+                                className="rounded-full px-3 shrink-0 h-9"
+                              >
+                                {reminding[b.id] ? (
+                                  <Spinner className="size-4" />
+                                ) : (
+                                  <>
+                                    <Clock className="h-3.5 w-3.5 mr-1" />
+                                    Remind
+                                  </>
+                                )}
+                              </Button>
                             ) : (
                               <Button
                                 size="sm"
