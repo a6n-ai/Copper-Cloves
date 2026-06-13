@@ -1245,7 +1245,7 @@ function ReconcileSectionImpl() {
                   </Table>
                 </ResponsiveTable>
               </div>
-              <Pagination page={pg.page} total={pg.total} onChange={pg.setPage} />
+              <Pagination page={pg.page} total={pg.total} pageSize={pg.pageSize} onChange={pg.setPage} />
               {filteredRows.length === 0 && (
                 <div className="py-10 text-center font-body text-sm text-charcoal/40">No payments in this filter.</div>
               )}

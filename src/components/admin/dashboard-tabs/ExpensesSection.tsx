@@ -328,7 +328,7 @@ function ExpensesSectionImpl() {
                 </ResponsiveTable>
               </div>
               )}
-              <Pagination page={expensePg.page} total={expensePg.total} onChange={expensePg.setPage} />
+              <Pagination page={expensePg.page} total={expensePg.total} pageSize={expensePg.pageSize} onChange={expensePg.setPage} />
             </>
           )}
         </CardContent>

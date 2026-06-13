@@ -312,7 +312,7 @@ function PaymentsInSectionImpl() {
                   </ResponsiveTable>
                 </div>
               )}
-              <Pagination page={pg.page} total={pg.total} onChange={pg.setPage} />
+              <Pagination page={pg.page} total={pg.total} pageSize={pg.pageSize} onChange={pg.setPage} />
             </>
           )}
         </CardContent>

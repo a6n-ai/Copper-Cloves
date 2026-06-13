@@ -23,7 +23,8 @@ export function usePagination<T>(
   const totalPages = Math.max(1, Math.ceil(total / pageSize));
 
   useEffect(() => {
-    if (page > totalPages) setPage(1);
+    // Clamp to the last valid page (not back to page 1) when the list shrinks.
+    if (page > totalPages) setPage(totalPages);
   }, [page, totalPages]);
 
   useEffect(() => {
