@@ -175,7 +175,7 @@ export async function finishBookingCheckoutOnServer(
   if (!ord || ord.status !== "paid" || ord.amount_paise !== expectedPaise) {
     throw new Error("PAYMENT_ORDER_INVALID");
   }
-  if (ord.booking_id != null || ord.user_package_id != null) {
+  if (ord.user_package_id != null) {
     throw new Error("PAYMENT_ALREADY_USED");
   }
 
@@ -188,6 +188,21 @@ export async function finishBookingCheckoutOnServer(
   });
   if (!verified) {
     throw new Error("PAYMENT_NOT_FOUND");
+  }
+
+  // If create-order already reserved a pending booking, confirm it instead of creating a new one.
+  if (ord.booking_id != null) {
+    const { confirmPendingBookingTx } = await import("@/lib/confirmPendingBooking");
+    const result = await prisma.$transaction(async (tx) => {
+      const r = await confirmPendingBookingTx(tx, ord!.booking_id!, financeSnap);
+      await linkRazorpayOrderToBookingTx(tx, {
+        userId,
+        razorpayOrderId: pending.razorpayOrderId,
+        bookingId: r.bookingId,
+      });
+      return r;
+    });
+    return { bookingId: result.bookingId };
   }
 
   const guestList = parseGuestAttendees(pending.guest_attendees) ?? [];
@@ -432,7 +447,23 @@ export async function fulfillCheckoutFromPaidOrder(
     where: { razorpay_order_id: razorpayOrderId },
   });
   if (!orderRow || orderRow.status !== "paid") return "none";
-  if (orderRow.booking_id != null || orderRow.user_package_id != null) return "skipped";
+
+  // Pre-created pending booking path: confirm it in place.
+  if (orderRow.booking_id != null) {
+    const { confirmPendingBookingTx } = await import("@/lib/confirmPendingBooking");
+    const result = await prisma
+      .$transaction((tx) => confirmPendingBookingTx(tx, orderRow.booking_id!))
+      .catch((e) => {
+        if (e instanceof Error && e.message === "PENDING_BOOKING_NOT_FOUND") return null;
+        throw e;
+      });
+    if (result?.transitioned) {
+      sendBookingConfirmationEmail(result.bookingId).catch(() => {});
+      return "booking";
+    }
+    return "skipped";
+  }
+  if (orderRow.user_package_id != null) return "skipped";
 
   const notes =
     orderRow.notes != null && typeof orderRow.notes === "object"
