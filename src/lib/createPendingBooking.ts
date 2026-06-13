@@ -64,7 +64,11 @@ export async function createPendingBooking(input: PendingBookingInput): Promise<
         email: input.email,
         // Partner-run classes await partner sign-off before confirmation (same as legacy create).
         confirmation_status: schedule.class_model?.partner_id ? "pending" : null,
-        extra_guest_count: 0,
+        // Hold every group seat on the booker row for the pending window — guests and
+        // added members don't get their own rows until payment confirms, so without this
+        // their seats would be grabbable by others mid-hold. Reset to 0 at confirm
+        // (confirmPreCreatedBookingFlow) when those rows are created.
+        extra_guest_count: input.extraGuestCount + (input.addedMemberCount ?? 0),
         guest_attendees: input.guestAttendees != null ? (input.guestAttendees as object) : undefined,
         finance_snapshot: input.financeSnapshot as object,
         hold_expires_at: new Date(Date.now() + HOLD_MINUTES * 60_000),

@@ -287,6 +287,15 @@ async function confirmPreCreatedBookingFlow(args: {
       bookingId: r.bookingId,
     });
 
+    // The pending row held all group seats via extra_guest_count during the hold window.
+    // Now guests + added members get their own rows (side-effects below), so the booker
+    // drops back to a single seat to avoid double-counting. The final reconcile in
+    // fulfillAddedMembersAndReconcileSeats recomputes counters from the actual rows.
+    await tx.booking.update({
+      where: { id: r.bookingId },
+      data: { extra_guest_count: 0 },
+    });
+
     // Refresh denormalized counters (createPendingBooking reserved the seat but didn't update them).
     const sched = await tx.classSchedule.findUnique({
       where: { id: pending.class_schedule_id },
