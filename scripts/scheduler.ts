@@ -2,7 +2,7 @@
  * The app's own cron — a long-running scheduler using node-schedule.
  *  • class-emails       every 5 min  — ~1h member reminders + ~6h instructor rosters
  *  • schedule-lifecycle every 30 min — flip past-due classes to completed/abandoned
- *  • razorpay-reconcile every 15 min — fulfill paid-but-stuck Razorpay orders
+ *  • razorpay-reconcile hourly       — fulfill paid-but-stuck Razorpay orders (deep backstop)
  * All jobs are idempotent (sent-flag / status guarded), so overlapping runs are safe.
  *
  * Run on a persistent host:
@@ -19,6 +19,7 @@ import {
 } from "../src/lib/notifications/scheduledClassEmails";
 import { advanceCompletedSchedules } from "../src/lib/scheduleLifecycle";
 import { reconcileStuckRazorpayOrders } from "../src/lib/razorpayPersistence";
+import { processPendingBookingLifecycle } from "../src/lib/processPendingBookingLifecycle";
 
 /** Wrap a job so overlapping ticks are skipped and failures don't kill the process. */
 function guarded(name: string, fn: () => Promise<void>): () => Promise<void> {
@@ -63,11 +64,20 @@ const razorpayReconcileJob = guarded("razorpay-reconcile", async () => {
   }
 });
 
-console.log("[scheduler] starting · class-emails */5m · schedule-lifecycle */30m · razorpay-reconcile */15m");
+const lifecycleBookingsJob = guarded("lifecycle-bookings", async () => {
+  const r = await processPendingBookingLifecycle();
+  if (r.scanned || r.confirmed || r.expired || r.errors) {
+    console.log(`[scheduler] ${new Date().toISOString()} lifecycle-bookings(scanned=${r.scanned},emailed=${r.emailed},confirmed=${r.confirmed},expired=${r.expired},errors=${r.errors})`);
+  }
+});
+
+console.log("[scheduler] starting · class-emails */5m · schedule-lifecycle */30m · razorpay-reconcile @hourly · lifecycle-bookings */15m");
 // Run once at boot so a freshly-restarted process doesn't wait a full interval.
 void classEmailsJob();
 void lifecycleJob();
 void razorpayReconcileJob();
+void lifecycleBookingsJob();
 schedule.scheduleJob("*/5 * * * *", classEmailsJob);
 schedule.scheduleJob("*/30 * * * *", lifecycleJob);
-schedule.scheduleJob("*/15 * * * *", razorpayReconcileJob);
+schedule.scheduleJob("0 * * * *", razorpayReconcileJob);
+schedule.scheduleJob("*/15 * * * *", lifecycleBookingsJob);

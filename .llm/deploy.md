@@ -26,7 +26,8 @@ Instead, point an external scheduler at these endpoints on a recurring schedule:
 |---|---|---|
 | `GET /api/cron/class-emails` | every ~5 min | Sends ~1h member class reminders + ~6h instructor rosters (idempotent) |
 | `GET /api/cron/reconcile-no-shows` | every ~15 min | Marks past-due bookings as `no_show` |
-| `GET /api/cron/reconcile-razorpay` | every ~15–30 min | Fulfills paid-but-stuck Razorpay orders (mobile closed tab / webhook missed). Idempotent. `?hours=72&limit=200` |
+| `GET /api/cron/reconcile-razorpay` | hourly | Deep backstop: fulfills paid-but-stuck Razorpay orders (mobile closed tab / webhook missed). Idempotent. `?hours=72&limit=200` |
+| `GET /api/cron/lifecycle-bookings` | every ~15 min | payment_pending booking lifecycle: ~30m recovery email + 60m seat release (after Razorpay confirms no capture). Idempotent. |
 
 Each request must include the header: `x-cron-secret: <CRON_SECRET>`
 
@@ -35,7 +36,8 @@ Each request must include the header: `x-cron-secret: <CRON_SECRET>`
 2. Target = API destination (HTTP) → URL `https://<your-app>/api/cron/class-emails`, method GET,
    header `x-cron-secret: <CRON_SECRET>` (store the secret in a connection).
 3. Repeat for `/api/cron/reconcile-no-shows` at `15 minutes`.
-4. Repeat for `/api/cron/reconcile-razorpay` at `15–30 minutes`.
+4. Repeat for `/api/cron/reconcile-razorpay` at `1 hour`.
+5. Repeat for `/api/cron/lifecycle-bookings` at `15 minutes`.
 
 (Alternatively, a tiny scheduled Lambda that does `fetch(url, { headers: { 'x-cron-secret': secret } })`.)
 
