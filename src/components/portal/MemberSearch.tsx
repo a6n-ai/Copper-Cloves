@@ -71,6 +71,17 @@ export function MemberSearch({ value, onChange, maxMembers = 5, currentEmail }: 
   const debounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const containerRef = useRef<HTMLDivElement>(null);
 
+  const [friends, setFriends] = useState<SearchResult[]>([]);
+  useEffect(() => {
+    let cancelled = false;
+    import("@/services/friends").then(({ getFriends }) =>
+      getFriends().then((fs) => {
+        if (!cancelled) setFriends(fs.map((f) => ({ id: f.id, name: f.name, email: f.email, phone: null, avatar_url: f.avatar_url })));
+      }),
+    );
+    return () => { cancelled = true; };
+  }, []);
+
   const search = useCallback((q: string) => {
     if (q.length < 2) {
       setResults([]);
@@ -172,7 +183,29 @@ export function MemberSearch({ value, onChange, maxMembers = 5, currentEmail }: 
       )}
 
       {!atMax && (
-        <div ref={containerRef} className="relative">
+        <>
+          {query.length < 2 && friends.length > 0 && (
+            <div className="mb-2">
+              <p className="text-xs text-[#6b6b6b] font-medium mb-1.5">Your friends</p>
+              <div className="flex flex-wrap gap-1.5">
+                {friends
+                  .filter((f) => !isAlreadyAdded(f.id, f.email))
+                  .slice(0, 8)
+                  .map((f) => (
+                    <button
+                      key={f.id}
+                      type="button"
+                      onClick={() => addMember({ profile_id: f.id, name: f.name, email: f.email })}
+                      className="flex items-center gap-1.5 bg-[#e8e4d9]/60 hover:bg-[#e8e4d9] rounded-lg px-2.5 py-1 text-sm text-[#333333] transition-colors"
+                    >
+                      <Avatar name={f.name} avatarUrl={f.avatar_url} />
+                      <span>{f.name}</span>
+                    </button>
+                  ))}
+              </div>
+            </div>
+          )}
+          <div ref={containerRef} className="relative">
           <Input
             placeholder="Search members by name, email or mobile…"
             value={query}
@@ -232,7 +265,8 @@ export function MemberSearch({ value, onChange, maxMembers = 5, currentEmail }: 
               ))}
             </div>
           )}
-        </div>
+          </div>
+        </>
       )}
 
       {showInviteForm && (
