@@ -1,5 +1,6 @@
 import prisma from "@/lib/prisma";
 import logger from "@/lib/logger";
+import { SEAT_HOLDING_STATUSES } from "@/lib/bookingStatus";
 import { sendBookingConfirmationEmail } from "@/lib/notifications/sendBookingEmail";
 import {
   expectedBookingCheckoutPaise,
@@ -126,7 +127,7 @@ async function assertNotAlreadyBooked(tx: TxClient, userId: string, scheduleId: 
 
 async function computeSeatsTaken(tx: TxClient, scheduleId: string): Promise<number> {
   const occupancyRows = await tx.booking.findMany({
-    where: { class_schedule_id: scheduleId, status: { in: ["confirmed", "pending"] } },
+    where: { class_schedule_id: scheduleId, status: { in: [...SEAT_HOLDING_STATUSES] } },
     select: { extra_guest_count: true },
   });
   return occupancyRows.reduce(

@@ -7,6 +7,7 @@ import { notifyPackagePurchase } from "@/lib/notifications/notifyPackagePurchase
 import logger from "@/lib/logger";
 import { logActivity } from "@/lib/activityLog";
 import { addMonths } from "date-fns";
+import { SEAT_HOLDING_STATUSES } from "@/lib/bookingStatus";
 
 export type FulfillPaymentBody = {
   internalPaymentId: string;   // our Payment.id
@@ -56,7 +57,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
           where: { id: classScheduleId },
           include: {
             class_model: { select: { name: true } },
-            bookings: { where: { status: "confirmed" }, select: { id: true, user_id: true } },
+            bookings: { where: { status: { in: [...SEAT_HOLDING_STATUSES] } }, select: { id: true, user_id: true } },
           },
         });
         if (!schedule) throw Object.assign(new Error("Schedule not found"), { status: 404 });

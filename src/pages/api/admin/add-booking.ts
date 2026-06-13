@@ -1,4 +1,5 @@
 import prisma from "@/lib/prisma";
+import { SEAT_HOLDING_STATUSES } from "@/lib/bookingStatus";
 import { getStudioServerSession } from "@/lib/getStudioServerSession";
 import { sendBookingConfirmationEmail } from "@/lib/notifications/sendBookingEmail";
 import type { NextApiRequest, NextApiResponse } from "next";
@@ -17,7 +18,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     where: { id: scheduleId },
     include: {
       class_model: { select: { name: true } },
-      bookings: { where: { status: "confirmed" }, select: { id: true, user_id: true } },
+      bookings: { where: { status: { in: [...SEAT_HOLDING_STATUSES] } }, select: { id: true, user_id: true } },
     },
   });
   if (!schedule) return res.status(404).json({ error: "Schedule not found" });
