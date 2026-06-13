@@ -36,6 +36,11 @@ export async function removeFriend(friendId: string): Promise<boolean> {
   return r.ok;
 }
 
+export async function cancelRequest(friendId: string): Promise<boolean> {
+  const r = await fetch(`/api/friends?friendId=${encodeURIComponent(friendId)}`, { method: "DELETE" });
+  return r.ok;
+}
+
 export async function blockFriend(friendId: string): Promise<boolean> {
   const r = await fetch("/api/friends/block", {
     method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ friendId }),

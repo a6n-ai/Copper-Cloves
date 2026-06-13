@@ -4,7 +4,7 @@ import { Button } from "@/components/ui/button";
 import { cdnUrl } from "@/lib/cdnUrl";
 import {
   getFriends, getFriendRequests, getSuggestions,
-  sendFriendRequest, respondToRequest,
+  sendFriendRequest, respondToRequest, cancelRequest,
   type Friend, type Suggestion, type FriendRequests,
 } from "@/services/friends";
 
@@ -33,6 +33,9 @@ export function FriendsCard() {
   async function onRespond(id: string, action: "accept" | "decline") {
     if (await respondToRequest(id, action)) load();
   }
+  async function onCancel(id: string) {
+    if (await cancelRequest(id)) load();
+  }
 
   return (
     <Card className="border-[#e5e4dc] bg-[#fafaf8]">
@@ -53,6 +56,23 @@ export function FriendsCard() {
                   <Button size="sm" className="bg-[#8f9779] text-white hover:bg-[#7a8b6c]" onClick={() => onRespond(r.id, "accept")}>Accept</Button>
                   <Button size="sm" variant="ghost" onClick={() => onRespond(r.id, "decline")}>Decline</Button>
                 </div>
+              </div>
+            ))}
+          </div>
+        )}
+
+        {requests.outgoing.length > 0 && (
+          <div className="space-y-2">
+            <p className="text-xs uppercase tracking-wide text-[#6b6b6b]">Sent requests</p>
+            {requests.outgoing.map((r) => (
+              <div key={r.id} className="flex items-center justify-between gap-2">
+                <div className="flex items-center gap-2 min-w-0">
+                  <Avatar name={r.name} avatarUrl={r.avatar_url} />
+                  <span className="text-sm text-[#333333] truncate">{r.name}</span>
+                </div>
+                <Button size="sm" variant="ghost" className="shrink-0" onClick={() => onCancel(r.id)}>
+                  Cancel
+                </Button>
               </div>
             ))}
           </div>
