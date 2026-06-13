@@ -1,5 +1,5 @@
 import { memo, useCallback, useEffect, useMemo, useState } from "react";
-import { CalendarDays, CheckCircle2, Clock, DollarSign, Download, Loader2, Pencil, TrendingUp, User, Wallet } from "lucide-react";
+import { CalendarDays, CheckCircle2, Clock, DollarSign, Download, Loader2, Pencil, Settings, TrendingUp, User, Wallet } from "lucide-react";
 import { toast } from "sonner";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
@@ -23,6 +23,7 @@ import {
   ResponsiveDialogHeader,
   ResponsiveDialogTitle,
 } from "@/components/responsive/ResponsiveDialog";
+import { PayoutRateSettingsDialog } from "@/components/admin/PayoutRateSettingsDialog";
 
 type PayoutWindow = "week" | "month" | "quarter" | "all";
 
@@ -90,6 +91,8 @@ function InstructorPayoutsPanelImpl() {
   const [payoutWindow, setPayoutWindow] = useState<PayoutWindow>("month");
   const [search, setSearch] = useState("");
   const [instructorFilter, setInstructorFilter] = useState("all");
+
+  const [rateSettingsOpen, setRateSettingsOpen] = useState(false);
 
   // mark-paid / move-to-expense confirmation
   const [confirm, setConfirm] = useState<{ row: PayoutRow; paid: boolean } | null>(null);
@@ -313,6 +316,9 @@ function InstructorPayoutsPanelImpl() {
               <Button type="button" variant="outline" size="sm" className="h-9 border-sage/20 text-sage hover:bg-sage/5 hover:text-sage!" onClick={downloadCsv} disabled={sorted.length === 0}>
                 <Download className="h-4 w-4 mr-1.5" />CSV
               </Button>
+              <Button variant="secondary" size="sm" onClick={() => setRateSettingsOpen(true)}>
+                <Settings className="h-4 w-4 mr-2" /> Rate Settings
+              </Button>
             </div>
           </div>
         </CardHeader>
@@ -459,6 +465,12 @@ function InstructorPayoutsPanelImpl() {
           </ResponsiveDialogFooter>
         </ResponsiveDialogContent>
       </ResponsiveDialog>
+
+      <PayoutRateSettingsDialog
+        open={rateSettingsOpen}
+        onOpenChange={setRateSettingsOpen}
+        onSaved={() => fetchData(payoutWindow)}
+      />
 
       {/* Override / adjustment editor */}
       <ResponsiveDialog open={editRow != null} onOpenChange={(o) => { if (!o) setEditRow(null); }}>
