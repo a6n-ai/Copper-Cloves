@@ -12,6 +12,9 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   if (!friendId) return res.status(400).json({ error: "friendId required" });
   if (friendId === me) return res.status(400).json({ error: "Can't block yourself" });
 
+  const target = await prisma.profile.findFirst({ where: { id: friendId, role: "user" }, select: { id: true } });
+  if (!target) return res.status(404).json({ error: "Member not found" });
+
   const [a, b] = me < friendId ? [me, friendId] : [friendId, me];
   await prisma.friendship.upsert({
     where: { user_a_id_user_b_id: { user_a_id: a, user_b_id: b } },

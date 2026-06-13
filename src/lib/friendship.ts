@@ -43,13 +43,18 @@ export async function upsertFriendship(
     return;
   }
 
-  await db.friendship.create({
-    data: {
-      user_a_id: pair.a,
-      user_b_id: pair.b,
-      status: mode === "request" ? "pending" : "active",
-      requested_by_id: mode === "request" ? (requestedBy ?? id1) : null,
-      source,
-    },
-  });
+  try {
+    await db.friendship.create({
+      data: {
+        user_a_id: pair.a,
+        user_b_id: pair.b,
+        status: mode === "request" ? "pending" : "active",
+        requested_by_id: mode === "request" ? (requestedBy ?? id1) : null,
+        source,
+      },
+    });
+  } catch (e) {
+    // Concurrent insert created the row first — treat as success.
+    if ((e as { code?: string }).code !== "P2002") throw e;
+  }
 }

@@ -210,12 +210,6 @@ function createBookingTx(args: CreateBookingArgs) {
           invited_by_user_id: args.userId,
         },
       });
-
-      try {
-        await upsertFriendship(tx, args.userId, profileId, "invite", "active");
-      } catch (err) {
-        logger.error({ err, booker: args.userId, invitee: profileId }, "[bookings] friendship upsert failed");
-      }
     }
 
     if (args.rpOrderId) {
@@ -407,6 +401,16 @@ async function handlePost(
       financeSnap,
       addedMemberProfileIds,
     });
+
+    // Auto-friend booker ↔ each added member. Best-effort, OUTSIDE the booking tx
+    // so a friendship write error can never roll back the paid booking.
+    for (const memberId of addedMemberProfileIds) {
+      try {
+        await upsertFriendship(prisma, userId, memberId, "invite", "active");
+      } catch (err) {
+        log.error({ err, invitee: memberId }, "[bookings] friendship upsert failed");
+      }
+    }
 
     // Physique 57 bookings stay pending until the instructor confirms — the
     // confirmation email fires on confirm, not now. Non-57 bookings notify now.
