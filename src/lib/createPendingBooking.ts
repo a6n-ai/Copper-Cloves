@@ -12,6 +12,8 @@ export type PendingBookingInput = {
   email: string | null;
   /** [{ name, email, phone }] booked alongside the booker; stored for the Finance detail dialog. */
   guestAttendees?: unknown;
+  /** Count of existing-member profiles invited alongside the booker; each needs a seat. */
+  addedMemberCount?: number;
 };
 
 /**
@@ -49,7 +51,7 @@ export async function createPendingBooking(input: PendingBookingInput): Promise<
         select: { extra_guest_count: true },
       });
       const seatsTaken = held.reduce((s, r) => s + 1 + Math.max(0, r.extra_guest_count ?? 0), 0);
-      if (seatsTaken + 1 + input.extraGuestCount > cap) throw new Error("CLASS_FULL");
+      if (seatsTaken + 1 + input.extraGuestCount + (input.addedMemberCount ?? 0) > cap) throw new Error("CLASS_FULL");
     }
 
     const created = await tx.booking.create({
