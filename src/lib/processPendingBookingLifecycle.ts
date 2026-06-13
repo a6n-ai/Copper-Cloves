@@ -1,6 +1,6 @@
 import prisma from "@/lib/prisma";
 import { getRazorpay, razorpayConfigured } from "@/lib/razorpayServer";
-import { BOOKING_STATUS } from "@/lib/bookingStatus";
+import { BOOKING_STATUS, SEAT_HOLDING_STATUSES } from "@/lib/bookingStatus";
 import { classifyPendingBooking } from "@/lib/bookingLifecycle";
 import { reconcileRazorpayPaymentFromWebhook } from "@/lib/razorpayPersistence";
 import { sendPendingRecoveryEmail } from "@/lib/notifications/sendPendingRecoveryEmail";
@@ -11,6 +11,26 @@ const log = logger.child({ module: "pendingBookingLifecycle" });
 type RazorpayOrderPaymentsClient = {
   orders: { fetchPayments: (id: string) => Promise<{ items?: unknown[] }> };
 };
+
+/** Recompute denormalized seat counters on a schedule from live seat-holding rows. */
+async function refreshScheduleSeatCounters(scheduleId: string): Promise<void> {
+  const sched = await prisma.classSchedule.findUnique({
+    where: { id: scheduleId },
+    include: { class_model: { select: { max_capacity: true } } },
+  });
+  if (!sched) return;
+  const cap = sched.capacity ?? sched.class_model?.max_capacity ?? 0;
+  if (cap <= 0) return;
+  const rows = await prisma.booking.findMany({
+    where: { class_schedule_id: scheduleId, status: { in: [...SEAT_HOLDING_STATUSES] } },
+    select: { extra_guest_count: true },
+  });
+  const seatsTaken = rows.reduce((s, r) => s + 1 + Math.max(0, r.extra_guest_count ?? 0), 0);
+  await prisma.classSchedule.update({
+    where: { id: scheduleId },
+    data: { current_bookings: seatsTaken, available_spots: Math.max(0, cap - seatsTaken) },
+  });
+}
 
 export type LifecycleResult = {
   scanned: number;
@@ -36,6 +56,7 @@ export async function processPendingBookingLifecycle(opts?: { limit?: number }):
     select: {
       id: true,
       created_at: true,
+      class_schedule_id: true,
       hold_expires_at: true,
       recovery_email_sent_at: true,
       razorpay_order: { select: { razorpay_order_id: true } },
@@ -79,7 +100,10 @@ export async function processPendingBookingLifecycle(opts?: { limit?: number }):
             where: { id: b.id, status: BOOKING_STATUS.payment_pending },
             data: { status: BOOKING_STATUS.expired, hold_expires_at: null },
           });
-          if (upd.count > 0) result.expired += 1;
+          if (upd.count > 0) {
+            result.expired += 1;
+            if (b.class_schedule_id) await refreshScheduleSeatCounters(b.class_schedule_id);
+          }
         }
       }
     } catch (e) {

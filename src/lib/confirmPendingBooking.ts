@@ -25,13 +25,19 @@ export async function confirmPendingBookingTx(
   if (booking.status !== BOOKING_STATUS.payment_pending && booking.status !== BOOKING_STATUS.expired) {
     throw new Error("PENDING_BOOKING_BAD_STATE:" + booking.status);
   }
-  await tx.booking.update({
-    where: { id: booking.id },
+  // Conditional write: only the caller that actually flips the row gets transitioned=true.
+  // Guards against concurrent confirms (e.g. client verify + webhook) double-running
+  // post-fulfill side-effects (café orders, confirmation email).
+  const upd = await tx.booking.updateMany({
+    where: {
+      id: booking.id,
+      status: { in: [BOOKING_STATUS.payment_pending, BOOKING_STATUS.expired] },
+    },
     data: {
       status: BOOKING_STATUS.confirmed,
       hold_expires_at: null,
       ...(financeSnapshot != null ? { finance_snapshot: financeSnapshot as object } : {}),
     },
   });
-  return { bookingId: booking.id, transitioned: true };
+  return { bookingId: booking.id, transitioned: upd.count > 0 };
 }

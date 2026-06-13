@@ -1,6 +1,7 @@
 import type { NextApiRequest, NextApiResponse } from "next";
 import { CrmTriggerType } from "@/lib/crmTriggerTypes";
 import prisma from "@/lib/prisma";
+import { SEAT_HOLDING_STATUSES } from "@/lib/bookingStatus";
 import { buildBookingCrmVariables, dispatchCrmEmailTriggers } from "@/lib/notifications/crmTemplatedDispatch";
 import { sendBookingConfirmationEmail } from "@/lib/notifications/sendBookingEmail";
 import { getStudioServerSession } from "@/lib/getStudioServerSession";
@@ -27,6 +28,9 @@ type TxClient = Parameters<Parameters<typeof prisma.$transaction>[0]>[0];
 const STATUS_CONFIRMED = "confirmed" as const;
 const STATUS_PENDING = "pending" as const;
 const STATUS_CANCELLED = "cancelled" as const;
+// Booking statuses that occupy a seat for capacity/duplicate checks: confirmed,
+// gateway holds (payment_pending), and the legacy partner-pending value.
+const OCCUPYING_STATUSES = [...SEAT_HOLDING_STATUSES, STATUS_PENDING] as const;
 const BADGE_TYPE_PTM = "path_to_mastery" as const;
 
 async function handleGet(req: NextApiRequest, res: NextApiResponse, userId: string) {
@@ -139,7 +143,7 @@ function createBookingTx(args: CreateBookingArgs) {
       where: {
         user_id: args.userId,
         class_schedule_id: args.scheduleId,
-        status: { in: [STATUS_CONFIRMED, STATUS_PENDING] },
+        status: { in: [...OCCUPYING_STATUSES] },
       },
     });
     if (duplicate) throw new Error("ALREADY_BOOKED");
@@ -148,7 +152,7 @@ function createBookingTx(args: CreateBookingArgs) {
     const occupancyRows = await tx.booking.findMany({
       where: {
         class_schedule_id: args.scheduleId,
-        status: { in: [STATUS_CONFIRMED, STATUS_PENDING] },
+        status: { in: [...OCCUPYING_STATUSES] },
       },
       select: { extra_guest_count: true },
     });
@@ -194,7 +198,7 @@ function createBookingTx(args: CreateBookingArgs) {
         where: {
           user_id: profileId,
           class_schedule_id: args.scheduleId,
-          status: { in: [STATUS_CONFIRMED, STATUS_PENDING] },
+          status: { in: [...OCCUPYING_STATUSES] },
         },
         select: { id: true },
       });
