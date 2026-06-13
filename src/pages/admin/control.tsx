@@ -19,6 +19,7 @@ import { Button } from "@/components/ui/button";
 import { EditButton, DeleteButton, ManageButton } from "@/components/ui/quick-actions";
 import { MemberTable, type MemberTableMember } from "@/components/admin/MemberTable";
 import { InstructorTable, type InstructorTableInstructor } from "@/components/admin/InstructorTable";
+import { InstructorPayoutTab } from "@/components/admin/InstructorPayoutTab";
 import { AnimatedIcon } from "@/components/dashboard/AnimatedIcon";
 import { cn } from "@/lib/utils";
 import { Pill } from "@/components/ui/pill";
@@ -934,6 +935,10 @@ export default function ControlPanel() {
             String(formData.get("edit-studio-payout-cut")).trim() !== ""
               ? Number(formData.get("edit-studio-payout-cut"))
               : null,
+          rate_12_paise: (() => { const v = String(formData.get("edit-rate-12") ?? "").trim(); return v === "" ? null : Math.round(Number(v) * 100); })(),
+          rate_8_paise: (() => { const v = String(formData.get("edit-rate-8") ?? "").trim(); return v === "" ? null : Math.round(Number(v) * 100); })(),
+          rate_4_paise: (() => { const v = String(formData.get("edit-rate-4") ?? "").trim(); return v === "" ? null : Math.round(Number(v) * 100); })(),
+          rate_1_paise: (() => { const v = String(formData.get("edit-rate-1") ?? "").trim(); return v === "" ? null : Math.round(Number(v) * 100); })(),
           specialties: specialties,
           philosophy: formData.get("edit-philosophy") as string,
           about: formData.get("edit-about") as string,
@@ -2377,6 +2382,12 @@ export default function ControlPanel() {
           </ResponsiveDialogHeader>
           {selectedInstructorData && (
             <form onSubmit={handleUpdateInstructor}>
+              <Tabs defaultValue="profile">
+                <TabsList className="mb-4">
+                  <TabsTrigger value="profile">Profile</TabsTrigger>
+                  <TabsTrigger value="payout">Payout</TabsTrigger>
+                </TabsList>
+                <TabsContent value="profile">
               <div className="grid grid-cols-2 gap-4 py-4">
                 {/* Basic Information */}
                 <div className="col-span-2">
@@ -2463,6 +2474,82 @@ export default function ControlPanel() {
                   <p className="text-xs text-charcoal/50 font-body">Internal only — studio share before instructor payout.</p>
                 </div>
 
+                <div className="space-y-2">
+                  <Label htmlFor="edit-rate-12" className="font-body text-charcoal">12-class rate (₹)</Label>
+                  <Input
+                    id="edit-rate-12"
+                    name="edit-rate-12"
+                    type="number"
+                    min="0"
+                    step="0.01"
+                    defaultValue={
+                      selectedInstructorData.rate_12_paise != null
+                        ? selectedInstructorData.rate_12_paise / 100
+                        : ""
+                    }
+                    placeholder="e.g. 800"
+                    className="border-sage/20 focus:ring-sage"
+                  />
+                  <p className="text-xs text-charcoal/50 font-body">Blank = inherit global rate.</p>
+                </div>
+
+                <div className="space-y-2">
+                  <Label htmlFor="edit-rate-8" className="font-body text-charcoal">8-class rate (₹)</Label>
+                  <Input
+                    id="edit-rate-8"
+                    name="edit-rate-8"
+                    type="number"
+                    min="0"
+                    step="0.01"
+                    defaultValue={
+                      selectedInstructorData.rate_8_paise != null
+                        ? selectedInstructorData.rate_8_paise / 100
+                        : ""
+                    }
+                    placeholder="e.g. 900"
+                    className="border-sage/20 focus:ring-sage"
+                  />
+                  <p className="text-xs text-charcoal/50 font-body">Blank = inherit global rate.</p>
+                </div>
+
+                <div className="space-y-2">
+                  <Label htmlFor="edit-rate-4" className="font-body text-charcoal">4-class rate (₹)</Label>
+                  <Input
+                    id="edit-rate-4"
+                    name="edit-rate-4"
+                    type="number"
+                    min="0"
+                    step="0.01"
+                    defaultValue={
+                      selectedInstructorData.rate_4_paise != null
+                        ? selectedInstructorData.rate_4_paise / 100
+                        : ""
+                    }
+                    placeholder="e.g. 1000"
+                    className="border-sage/20 focus:ring-sage"
+                  />
+                  <p className="text-xs text-charcoal/50 font-body">Blank = inherit global rate.</p>
+                </div>
+
+                <div className="space-y-2">
+                  <Label htmlFor="edit-rate-1" className="font-body text-charcoal">1-class rate (₹)</Label>
+                  <Input
+                    id="edit-rate-1"
+                    name="edit-rate-1"
+                    type="number"
+                    min="0"
+                    step="0.01"
+                    defaultValue={
+                      selectedInstructorData.rate_1_paise != null
+                        ? selectedInstructorData.rate_1_paise / 100
+                        : ""
+                    }
+                    placeholder="e.g. 1200"
+                    className="border-sage/20 focus:ring-sage"
+                  />
+                  <p className="text-xs text-charcoal/50 font-body">Blank = inherit global rate.</p>
+                </div>
+
                 {/* Expertise */}
                 <div className="col-span-2 mt-4">
                   <h3 className="font-display text-lg text-charcoal mb-3">Expertise & Credentials</h3>
@@ -2532,6 +2619,15 @@ export default function ControlPanel() {
                   <Input id="edit-social-whatsapp" name="edit-social-whatsapp" defaultValue={selectedInstructorData.social_whatsapp} className="border-sage/20 focus:ring-sage" />
                 </div>
               </div>
+                </TabsContent>
+                <TabsContent value="payout" className="py-4">
+                  {selectedInstructorData?.id ? (
+                    <InstructorPayoutTab instructorId={selectedInstructorData.id} />
+                  ) : (
+                    <p className="text-sm text-muted-foreground">Save the instructor first to view payouts.</p>
+                  )}
+                </TabsContent>
+              </Tabs>
               <ResponsiveDialogFooter className="mt-6">
                 <Button type="button" variant="outline" onClick={() => setShowEditInstructorDialog(false)} className="border-sage/20 font-body">
                   Cancel
