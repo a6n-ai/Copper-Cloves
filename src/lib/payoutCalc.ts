@@ -1,26 +1,39 @@
 /**
- * Single source of truth for instructor payout math.
+ * Single source of truth for instructor payout math (settings-driven, tiered).
  *
- * Rules:
- *   - Class rate ₹945, minus 5% GST → ₹897.75 net per payable unit.
- *   - Payable unit = every booking row EXCEPT timely cancels (>=6h before start).
- *     Counted: checked-in, no-show, late-cancel (<6h). Refunded timely cancels: not paid.
- *     Cancelled with no cancellation_date → treated as timely (no pay).
- *   - Guests are already separate booking rows (see lib/guestOnboarding.ts), so
- *     we count rows directly — do NOT add extra_guest_count.
- *   - Floor: if a schedule has 0 payable rows but the instructor checked in on_time,
- *     payable for that schedule = 1.
- *   - Attribution: actual_instructor_id (substitute) takes precedence over instructor_id.
- *   - instructorPct = 100 − studio_payout_cut_percent (default cut 40 → instructor 60).
+ * Per-class net rate for a tier:
+ *   net = (package_rate_paise / num_classes) / (1 + gst%/100) × (instructorPct/100)
+ * Blended rate = simple average of the four tier net rates (auto), overridable per period.
+ * Payout = payable_units × blended_rate. All monetary values in PAISE.
+ *
+ * Payable unit = every booking row EXCEPT timely cancels (>=6h before start).
+ *   Counted: checked-in, no-show, late-cancel (<6h). Refunded timely cancels: not paid.
+ *   Cancelled with no cancellation_date → treated as timely (no pay).
+ * Guests are already separate booking rows — count rows directly, no extra_guest_count.
+ * Floor: schedule with 0 payable rows but instructor checked in on_time → payable = 1.
+ * Attribution: actual_instructor_id (substitute) takes precedence over instructor_id.
+ * instructorPct = 100 − studio_payout_cut_percent (default cut 40 → instructor 60).
  */
 
-export const CLASS_RATE_INR = 945;
-export const GST_PERCENT = 5;
-export const NET_PER_UNIT = CLASS_RATE_INR * (1 - GST_PERCENT / 100); // 897.75
 export const DEFAULT_STUDIO_CUT_PERCENT = 40;
 export const SIX_HOURS_MS = 6 * 60 * 60 * 1000;
 
 export type PayoutWindow = "week" | "month" | "quarter" | "all";
+
+export interface RateCard {
+  rate12: number; // paise
+  rate8: number;
+  rate4: number;
+  rate1: number;
+}
+
+/** Nullable per-instructor override columns (null → inherit global). */
+export interface InstructorRateOverride {
+  rate_12_paise: number | null;
+  rate_8_paise: number | null;
+  rate_4_paise: number | null;
+  rate_1_paise: number | null;
+}
 
 export interface BookingRow {
   status: string;
@@ -37,7 +50,6 @@ export function isPayable(b: BookingRow, startTime: Date): boolean {
   return true;
 }
 
-/** Per-schedule payable count, applying floor rule. */
 export function payableForSchedule(
   bookings: BookingRow[],
   startTime: Date,
@@ -49,17 +61,72 @@ export function payableForSchedule(
 }
 
 export function instructorPctFrom(studioCutPct: number | null | undefined): number {
-  const raw = studioCutPct != null && Number.isFinite(Number(studioCutPct))
-    ? Number(studioCutPct)
-    : DEFAULT_STUDIO_CUT_PERCENT;
+  const raw =
+    studioCutPct != null && Number.isFinite(Number(studioCutPct))
+      ? Number(studioCutPct)
+      : DEFAULT_STUDIO_CUT_PERCENT;
   return Math.max(0, Math.min(100, 100 - raw));
 }
 
-export function payoutForUnits(payableUnits: number, instructorPct: number): number {
-  return payableUnits * NET_PER_UNIT * (instructorPct / 100);
+/** Resolve a rate card from instructor overrides + global defaults (per field). */
+export function resolveRateCard(
+  override: InstructorRateOverride | null | undefined,
+  global: RateCard,
+): RateCard {
+  return {
+    rate12: override?.rate_12_paise ?? global.rate12,
+    rate8: override?.rate_8_paise ?? global.rate8,
+    rate4: override?.rate_4_paise ?? global.rate4,
+    rate1: override?.rate_1_paise ?? global.rate1,
+  };
 }
 
-/** Bucket key for adjustment table. `month` → "YYYY-MM", `week` → "YYYY-Www" (ISO), else "all". */
+/** Per-class net rate (paise) for one tier. */
+export function netPerClass(
+  packageRatePaise: number,
+  numClasses: number,
+  gstPct: number,
+  instructorPct: number,
+): number {
+  if (numClasses <= 0) return 0;
+  const grossPerClass = packageRatePaise / numClasses;
+  const exGst = grossPerClass / (1 + gstPct / 100);
+  return Math.round(exGst * (instructorPct / 100));
+}
+
+/** Simple average of the four tier net rates (paise). */
+export function autoBlendedRate(card: RateCard, gstPct: number, instructorPct: number): number {
+  const n12 = netPerClass(card.rate12, 12, gstPct, instructorPct);
+  const n8 = netPerClass(card.rate8, 8, gstPct, instructorPct);
+  const n4 = netPerClass(card.rate4, 4, gstPct, instructorPct);
+  const n1 = netPerClass(card.rate1, 1, gstPct, instructorPct);
+  return Math.round((n12 + n8 + n4 + n1) / 4);
+}
+
+/** Per-tier net breakdown (paise) — for UI display. */
+export function netRateBreakdown(card: RateCard, gstPct: number, instructorPct: number) {
+  return {
+    net12: netPerClass(card.rate12, 12, gstPct, instructorPct),
+    net8: netPerClass(card.rate8, 8, gstPct, instructorPct),
+    net4: netPerClass(card.rate4, 4, gstPct, instructorPct),
+    net1: netPerClass(card.rate1, 1, gstPct, instructorPct),
+  };
+}
+
+export function effectiveBlendedRate(
+  overrideBlendedPaise: number | null | undefined,
+  autoPaise: number,
+): number {
+  return overrideBlendedPaise != null && Number.isFinite(overrideBlendedPaise)
+    ? overrideBlendedPaise
+    : autoPaise;
+}
+
+/** Total payout (paise) = payable units × blended rate. */
+export function payoutForUnits(payableUnits: number, blendedRatePaise: number): number {
+  return Math.round(payableUnits * blendedRatePaise);
+}
+
 export function periodKeyFor(window: PayoutWindow, ref: Date = new Date()): string {
   if (window === "month") {
     return `${ref.getUTCFullYear()}-${String(ref.getUTCMonth() + 1).padStart(2, "0")}`;
@@ -75,10 +142,10 @@ export function periodKeyFor(window: PayoutWindow, ref: Date = new Date()): stri
   return "all";
 }
 
-export function periodBoundsFor(window: PayoutWindow, ref: Date = new Date()): {
-  start: Date | null;
-  end: Date | null;
-} {
+export function periodBoundsFor(
+  window: PayoutWindow,
+  ref: Date = new Date(),
+): { start: Date | null; end: Date | null } {
   if (window === "all") return { start: null, end: null };
   if (window === "month") {
     const start = new Date(Date.UTC(ref.getUTCFullYear(), ref.getUTCMonth(), 1));
@@ -91,9 +158,8 @@ export function periodBoundsFor(window: PayoutWindow, ref: Date = new Date()): {
     const end = new Date(Date.UTC(ref.getUTCFullYear(), qStartMonth + 3, 1));
     return { start, end };
   }
-  // week: ISO week Mon-Sun in UTC
   const d = new Date(Date.UTC(ref.getUTCFullYear(), ref.getUTCMonth(), ref.getUTCDate()));
-  const day = d.getUTCDay() || 7; // Sun=0 → 7
+  const day = d.getUTCDay() || 7;
   const monday = new Date(d);
   monday.setUTCDate(d.getUTCDate() - (day - 1));
   const nextMonday = new Date(monday);
@@ -102,9 +168,7 @@ export function periodBoundsFor(window: PayoutWindow, ref: Date = new Date()): {
 }
 
 function isoWeek(date: Date): { year: number; week: number } {
-  // Copy date so don't modify original.
   const d = new Date(Date.UTC(date.getUTCFullYear(), date.getUTCMonth(), date.getUTCDate()));
-  // Set to nearest Thursday: current date + 4 - current day number (ISO: Mon=1, Sun=7)
   const dayNum = d.getUTCDay() || 7;
   d.setUTCDate(d.getUTCDate() + 4 - dayNum);
   const yearStart = new Date(Date.UTC(d.getUTCFullYear(), 0, 1));
