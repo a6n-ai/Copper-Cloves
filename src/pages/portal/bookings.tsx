@@ -1,4 +1,5 @@
 import { memo, useEffect, useMemo, useState } from "react";
+import Link from "next/link";
 import { PageHeader } from "@/components/dashboard/PageHeader";
 import { requireSessionSSP } from "@/lib/requireSessionSSP";
 
@@ -81,7 +82,13 @@ const BookingCard = memo(function BookingCard({
           <h3 className="font-display text-lg sm:text-2xl text-charcoal truncate">{booking.class_name}</h3>
           <div className="flex flex-wrap gap-1.5 mt-1 sm:mt-1.5">
             <span className={`inline-flex items-center px-2 py-0.5 rounded-full text-xs font-body ${booking.status === "confirmed" ? "bg-sage/10 text-sage" : "bg-terracotta/10 text-terracotta"}`}>
-              {booking.status === "confirmed" ? "Confirmed" : "Pending"}
+              {booking.status === "confirmed"
+                ? "Confirmed"
+                : booking.status === "payment_pending"
+                  ? "Payment pending"
+                  : booking.status === "expired"
+                    ? "Expired"
+                    : "Pending"}
             </span>
             {booking.confirmation_status === "pending" && booking.status !== "cancelled" && (
               <span className="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-body bg-terracotta/10 text-terracotta">Awaiting confirmation</span>
@@ -119,6 +126,14 @@ const BookingCard = memo(function BookingCard({
           <div className="hidden sm:block font-body text-sm text-charcoal/60">{booking.class_schedule.instructor.name}</div>
         )}
       </div>
+      {(booking.status === "payment_pending" || booking.status === "expired") && (
+        <Link
+          href={`/portal/bookings/${booking.id}`}
+          className="inline-flex items-center gap-1 mb-3 font-body text-sm font-medium text-sage hover:underline"
+        >
+          {booking.status === "payment_pending" ? "Complete payment / I've already paid" : "Payment expired — review"} →
+        </Link>
+      )}
       {!isPast && (
         <div className="flex flex-col gap-2">
           {beforeCheckInWindow && (
