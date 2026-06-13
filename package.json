@@ -32,6 +32,7 @@
     "db:seed:system-profile": "tsx scripts/seed-system-profile.ts",
     "db:seed:crm-system": "tsx scripts/seed-crm-system-templates.ts",
     "db:seed:crm-triggers": "tsx scripts/seed-crm-system-triggers.ts",
+    "db:seed:payout-settings": "tsx scripts/seed-payout-settings.ts",
     "sync:public": "tsx scripts/sync-public-to-s3.ts",
     "optimize:images": "tsx scripts/optimize-images.ts",
     "optimize:videos": "tsx scripts/optimize-videos.ts",
