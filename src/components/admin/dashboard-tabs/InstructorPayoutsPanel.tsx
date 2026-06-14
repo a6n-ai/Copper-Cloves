@@ -187,7 +187,7 @@ function InstructorPayoutsPanelImpl() {
       if (!paid) {
         savedMsg = "Marked unpaid";
       } else if (recordExpense) {
-        savedMsg = "Marked paid · recorded as expense";
+        savedMsg = "Marked paid · added to money out";
       } else {
         savedMsg = "Marked paid";
       }
@@ -270,7 +270,7 @@ function InstructorPayoutsPanelImpl() {
   } else if (!confirm?.paid) {
     confirmActionLabel = "Mark unpaid";
   } else if (confirmRecord) {
-    confirmActionLabel = "Mark paid & move to expense";
+    confirmActionLabel = "Mark paid & add to money out";
   } else {
     confirmActionLabel = "Mark paid";
   }
@@ -292,7 +292,7 @@ function InstructorPayoutsPanelImpl() {
                 Instructor Payouts <span className="font-body text-base text-charcoal/40">({filtered.length})</span>
               </CardTitle>
               <CardDescription className="font-body text-charcoal/60">
-                Payable per instructor from check-ins. Marking paid records the payout as an expense.
+                Payable per instructor from check-ins. Marking paid adds the payout to money out.
               </CardDescription>
             </div>
             <div className="flex flex-wrap items-center gap-2 w-full sm:w-auto">
@@ -404,8 +404,8 @@ function InstructorPayoutsPanelImpl() {
                                   size="sm"
                                   className="h-8 w-8 p-0 border-terracotta/30 text-[#a05e38] hover:bg-terracotta/10 hover:text-[#a05e38]!"
                                   onClick={(e) => { e.stopPropagation(); setConfirmRecord(true); setConfirm({ row: r, paid: true }); }}
-                                  title="Move to expense"
-                                  aria-label="Move to expense"
+                                  title="Add to money out"
+                                  aria-label="Add to money out"
                                 >
                                   <Wallet className="h-4 w-4" />
                                 </Button>
@@ -446,7 +446,7 @@ function InstructorPayoutsPanelImpl() {
             <label className="flex items-center gap-3 rounded-xl border border-sage/20 bg-cream/40 p-3 cursor-pointer select-none">
               <Switch checked={confirmRecord} onCheckedChange={setConfirmRecord} />
               <span className="font-body text-sm text-charcoal">
-                Move {rupees(confirm?.row.total ?? 0)} to expenses
+                Add {rupees(confirm?.row.total ?? 0)} to money out
                 <span className="block text-xs text-charcoal/55">Records this payout in the finance expense ledger</span>
               </span>
             </label>

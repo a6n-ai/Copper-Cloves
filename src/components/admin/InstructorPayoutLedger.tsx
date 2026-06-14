@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useState } from "react";
+import { Fragment, useCallback, useEffect, useState } from "react";
 import { format } from "date-fns";
 import { toast } from "sonner";
 import { Loader2, ChevronDown, ChevronUp, ChevronRight, ArrowUp, ArrowDown, ArrowUpDown } from "lucide-react";
@@ -545,10 +545,9 @@ export function InstructorPayoutLedger({ instructorId }: { instructorId: string 
                     groups.map((g) => {
                       const isOpen = expanded.has(g.scheduleId);
                       return (
-                        <>
+                        <Fragment key={g.scheduleId}>
                           {/* Group header row */}
                           <TableRow
-                            key={g.scheduleId}
                             className="cursor-pointer bg-muted/30 hover:bg-muted/50 transition-colors"
                             onClick={() => toggleExpand(g.scheduleId)}
                           >
@@ -613,7 +612,7 @@ export function InstructorPayoutLedger({ instructorId }: { instructorId: string 
                                 <TableCell />
                               </TableRow>
                             ))}
-                        </>
+                        </Fragment>
                       );
                     })
                   )}
