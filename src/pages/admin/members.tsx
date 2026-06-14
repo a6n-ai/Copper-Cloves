@@ -481,11 +481,11 @@ export default function AdminMembers() {
             <div className="grid grid-cols-2 md:grid-cols-4 xl:grid-cols-7 gap-4">
               <MetricCard label="Total Members" value={stats.totalMembers} icon={Users} tone="sage" />
               <MetricCard label="Active" value={stats.activeMembers} icon={CheckCircle2} tone="sage" hint="Holding an active pass" />
-              <MetricCard label="Expiring" value={stats.expiringMembers} icon={AlertTriangle} tone="amber" hint="≤14 days left" />
+              <MetricCard label="Expiring" value={stats.expiringMembers} icon={AlertTriangle} tone="clay" hint="≤14 days left" />
               <MetricCard label="Inactive" value={stats.inactiveLong} icon={AlertTriangle} tone="charcoal" hint="No pass 14d+" />
               <MetricCard label="Studio Pass" value={stats.studioPass} icon={Trophy} tone="sage" hint="Active studio passes" />
               <MetricCard label="Class Pass" value={stats.classPass} icon={CreditCard} tone="sage" hint="Active class passes" />
-              <MetricCard label="Check-ins (mo)" value={stats.checkInsThisMonth} icon={Calendar} tone="amber" hint="This month" />
+              <MetricCard label="Check-ins (mo)" value={stats.checkInsThisMonth} icon={Calendar} tone="clay" hint="This month" />
             </div>
 
             {/* Members Table */}

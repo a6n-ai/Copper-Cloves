@@ -6,7 +6,7 @@ import { getStudioServerSession } from "@/lib/getStudioServerSession";
 import { startOfMondayWeekLocal, endOfSundayWeekLocal } from "@/lib/calendarWeek";
 import { Card, CardContent } from "@/components/ui/card";
 import { Pill } from "@/components/ui/pill";
-import { bookingStatusPill } from "@/lib/pillMaps";
+import { bookingStatusPill, waiverPill } from "@/lib/pillMaps";
 import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { MetricCard } from "@/components/admin/MetricCard";
@@ -216,7 +216,7 @@ export default function PartnerClasses() {
         <MetricCard label="Classes" value={periodStats.count} icon={Calendar} tone="sage" hint="In this view" />
         <MetricCard label="Avg utilization" value={periodStats.avgUtil} suffix="%" icon={TrendingUp} tone="sage" />
         <MetricCard label="Signed up" value={periodStats.signups} icon={Users} tone="sage" />
-        <MetricCard label="Pending" value={periodStats.pending} icon={Hourglass} tone="amber" />
+        <MetricCard label="Pending" value={periodStats.pending} icon={Hourglass} tone="clay" />
       </div>
 
       <div className="flex flex-wrap items-center justify-between gap-3">
@@ -230,7 +230,7 @@ export default function PartnerClasses() {
         </div>
         <div className="flex items-center gap-1 rounded-full bg-cream/60 p-1 border border-sage/15">
           {(["week", "month"] as const).map((m) => (
-            <button key={m} type="button" onClick={() => setViewMode(m)} className={`px-4 h-8 rounded-full font-body text-sm capitalize transition-colors ${viewMode === m ? "bg-sage text-cream shadow-xs" : "text-charcoal/60 hover:text-charcoal"}`}>{m}</button>
+            <button key={m} type="button" onClick={() => setViewMode(m)} className={`px-4 h-8 rounded-full font-body text-sm capitalize transition-colors ${viewMode === m ? "bg-sage text-cream" : "text-charcoal/60 hover:text-charcoal"}`}>{m}</button>
           ))}
         </div>
       </div>
@@ -333,18 +333,15 @@ export default function PartnerClasses() {
                             </div>
                           </div>
                           <div className="flex items-center gap-2 shrink-0">
-                            <Pill
-                              tone={b.hasWaiver ? "success" : "warning"}
-
-                              className="font-body whitespace-nowrap"
-                            >
-                              {b.hasWaiver ? "Waiver ✓" : "No waiver"}
-                            </Pill>
+                            {(() => {
+                              const { label, ...pill } = waiverPill(b.hasWaiver)
+                              return <Pill {...pill} className="font-body whitespace-nowrap">{label}</Pill>
+                            })()}
                             {b.confirmationStatus === "pending" ? (
                               <>
                                 <Pill {...bookingStatusPill("pending")} className="font-body whitespace-nowrap">Pending</Pill>
                                 <Button size="sm" variant="sage" disabled={actioningId === b.id} onClick={() => actionBooking(c.id, b.id, "confirm")} className="h-7 px-3 text-xs rounded-full">Confirm</Button>
-                                <Button size="sm" variant="outline" disabled={actioningId === b.id} onClick={() => actionBooking(c.id, b.id, "reject")} className="border-terracotta/30 text-terracotta hover:bg-terracotta/5 h-7 px-3 text-xs rounded-full font-body hover:text-terracotta!">Reject</Button>
+                                <Button size="sm" variant="ghost" disabled={actioningId === b.id} onClick={() => actionBooking(c.id, b.id, "reject")} className="text-charcoal/70 hover:bg-charcoal/5 hover:text-charcoal h-7 px-3 text-xs rounded-full font-body">Reject</Button>
                               </>
                             ) : b.checkedIn ? (
                               <Pill tone="success" className="font-body whitespace-nowrap" icon={<CheckCircle2 className="h-3.5 w-3.5" />}>Checked in</Pill>

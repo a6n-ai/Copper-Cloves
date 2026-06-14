@@ -65,7 +65,7 @@ export function ItemQuickView({
               </ResponsiveDialogDescription>
             </ResponsiveDialogHeader>
 
-            <p className="font-display text-3xl text-charcoal">₹{item.price}</p>
+            <p className="font-body text-3xl text-charcoal tabular-nums">₹{item.price}</p>
 
             {item.is_available ? (
               <>

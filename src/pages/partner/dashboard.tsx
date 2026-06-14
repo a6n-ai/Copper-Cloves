@@ -89,7 +89,7 @@ export default function PartnerDashboard() {
           <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
             <MetricCard label="Classes this week" value={stats.classes} icon={CalendarDays} tone="sage" />
             <MetricCard label="Signed up" value={stats.signups} icon={Users} tone="sage" hint="Across this week" />
-            <MetricCard label="Pending confirmation" value={stats.pending} icon={Hourglass} tone="amber" />
+            <MetricCard label="Pending confirmation" value={stats.pending} icon={Hourglass} tone="clay" />
             <MetricCard label="Checked in" value={stats.checkedIn} icon={CheckCircle2} tone="sage" />
           </div>
 

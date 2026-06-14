@@ -97,7 +97,7 @@ export function MenuItemCard({
           <Pill tone="warning" size="sm" className="bg-white-warm font-semibold uppercase tracking-[0.08em]">
             {categoryLabel ?? cafeCategoryLabel(item.category)}
           </Pill>
-          <span className="rounded-full border border-border bg-white-warm px-3 py-1 font-display text-base leading-none text-charcoal">
+          <span className="rounded-full border border-border bg-white-warm px-3 py-1 font-body text-base leading-none text-charcoal tabular-nums">
             {priceLabel}
           </span>
         </div>

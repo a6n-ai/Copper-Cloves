@@ -511,7 +511,7 @@ export default function AdminClassPage() {
                     <div className="grid grid-cols-2 gap-3 sm:gap-4 lg:grid-cols-4">
                       <MetricCard label="Capacity" value={roster.capacity ?? "—"} icon={Users} tone="charcoal" />
                       <MetricCard label="Enrolled" value={enrolled} icon={UserPlus} tone="terracotta" />
-                      <MetricCard label="Spots left" value={cap > 0 ? spotsLeft : "—"} icon={UserMinus} tone="amber" hint={cap > 0 ? `${fillPct}% full` : undefined} />
+                      <MetricCard label="Spots left" value={cap > 0 ? spotsLeft : "—"} icon={UserMinus} tone="clay" hint={cap > 0 ? `${fillPct}% full` : undefined} />
                       <MetricCard label="Checked in" value={checkedIn} icon={CheckCircle2} tone="sage" />
                     </div>
                   );

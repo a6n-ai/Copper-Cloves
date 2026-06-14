@@ -990,7 +990,7 @@ export default function AdminSchedule() {
               <MetricCard label="Classes this month" value={stats.total} icon={CalendarIcon} tone="sage" />
               <MetricCard label="Avg occupancy" value={stats.avgOccupancy} suffix="%" icon={Users} tone="sage" />
               <MetricCard label="Today" value={stats.todayCount} icon={Clock} tone="terracotta" hint="classes scheduled" />
-              <MetricCard label="Busiest day" value={stats.busiestLabel} icon={Repeat} tone="amber" hint={`${stats.busiestCount} classes`} />
+              <MetricCard label="Busiest day" value={stats.busiestLabel} icon={Repeat} tone="clay" hint={`${stats.busiestCount} classes`} />
             </div>
 
             {/* 2-column: calendar + day list. Inline calendar only at xl+ where the

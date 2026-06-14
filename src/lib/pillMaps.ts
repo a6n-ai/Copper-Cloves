@@ -82,6 +82,14 @@ export function classStatusPill(status: string): PillSpec {
   }
 }
 
+// Waiver signed? -> pill + label. Pill renders its own tone icon — label carries
+// no glyph.
+export function waiverPill(hasWaiver: boolean): PillSpec & { label: string } {
+  return hasWaiver
+    ? { tone: "success", label: "Waiver" }
+    : { tone: "warning", label: "No waiver" }
+}
+
 // Member ticket status -> pill
 export function ticketStatusPill(status: string): PillSpec {
   switch (status) {

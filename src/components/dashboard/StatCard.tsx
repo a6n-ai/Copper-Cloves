@@ -16,10 +16,10 @@ export interface StatCardProps {
 
 /** Member-facing tones map onto the admin MetricCard's brand tones so both
  *  dashboards render the exact same tile. */
-const TONE_MAP: Record<StatTone, "sage" | "terracotta" | "amber" | "charcoal"> = {
+const TONE_MAP: Record<StatTone, "sage" | "terracotta" | "clay" | "charcoal"> = {
   default: "charcoal",
   up: "sage",
-  down: "amber", // deep terracotta — negative/alert
+  down: "clay", // deep terracotta — negative/alert
   warn: "terracotta",
 };
 

@@ -533,10 +533,10 @@ function MemberBody({
       {/* Stats */}
       <div className="grid grid-cols-2 md:grid-cols-3 xl:grid-cols-5 gap-4">
         <MetricCard label="Classes" value={member.stats.totalClasses} icon={Trophy} tone="sage" hint="Total attended" />
-        <MetricCard label="Streak" value={member.stats.currentStreak} icon={Flame} tone="amber" hint={`Best ${member.stats.longestStreak}`} />
+        <MetricCard label="Streak" value={member.stats.currentStreak} icon={Flame} tone="clay" hint={`Best ${member.stats.longestStreak}`} />
         <MetricCard label="Credits" value={member.unlimited ? "∞" : member.credits} icon={CreditCard} tone="sage" hint="On active pass" />
         <MetricCard label="Expiry" value={member.expiry ? fmtDate(member.expiry) : "—"} icon={CalendarClock} tone="charcoal" hint="Active pass" />
-        <MetricCard label="No-shows" value={noShowCount} icon={UserX} tone="amber" hint="Recent bookings" />
+        <MetricCard label="No-shows" value={noShowCount} icon={UserX} tone="clay" hint="Recent bookings" />
       </div>
 
       {/* About + Current pass */}

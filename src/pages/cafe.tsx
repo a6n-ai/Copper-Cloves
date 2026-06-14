@@ -296,7 +296,7 @@ export default function CafePage() {
                 asChild
                 size="lg"
                 variant="outline"
-                className="w-full sm:w-auto border-2 border-cream/40 hover:bg-[#fafaf8]/10 text-cream hover:text-cream backdrop-blur-xs"
+                className="w-full sm:w-auto border-2 border-cream/40 hover:bg-[#fafaf8]/10 text-cream hover:text-cream"
               >
                 <a
                   href="https://www.google.com/maps/search/?api=1&query=The+Studio+by+Copper+and+Cloves"
@@ -378,7 +378,7 @@ export default function CafePage() {
               </h2>
 
               <p className="mb-8 max-w-prose font-body text-lg leading-relaxed text-charcoal/80">
-                No membership? No problem. Our doors are open to everyone—whether you're here for a post-class refuel or looking for a sun-drenched space to focus. With high-speed Wi-Fi, premium coffee, and a lush rooftop vibe, consider this your home away from home for the day.
+                No membership? No problem. Our doors are open to everyone, whether you're here for a post-class refuel or looking for a sun-drenched space to focus. With high-speed Wi-Fi, premium coffee, and a lush rooftop vibe, consider this your home away from home for the day.
               </p>
 
               <div className="flex flex-col gap-4 sm:flex-row">
@@ -539,7 +539,7 @@ export default function CafePage() {
               return (
                 <div
                   key={`${image}-${index}`}
-                  className="group relative shrink-0 w-[260px] h-[320px] sm:w-[280px] sm:h-[350px] md:w-[300px] md:h-[380px] rounded-2xl md:rounded-3xl overflow-hidden shadow-xl shadow-charcoal/10 transition-transform duration-500 hover:scale-[1.02]"
+                  className="group relative shrink-0 w-[260px] h-[320px] sm:w-[280px] sm:h-[350px] md:w-[300px] md:h-[380px] rounded-2xl md:rounded-3xl overflow-hidden border border-border transition-[transform,box-shadow] duration-500 hover:scale-[1.02] hover:shadow-[0_4px_24px_rgba(51,51,51,0.08)]"
                 >
                   <Image
                     src={image}
@@ -653,7 +653,7 @@ export default function CafePage() {
             
             {/* Event Card 1: Analog Club */}
             <div className="group relative">
-              <div className="relative overflow-hidden rounded-3xl shadow-md shadow-charcoal/10 transition-all duration-500 hover:scale-[1.02] hover:shadow-2xl hover:shadow-sage/25">
+              <div className="relative overflow-hidden rounded-3xl border border-border transition-[transform,box-shadow] duration-500 hover:scale-[1.02] hover:shadow-[0_4px_24px_rgba(51,51,51,0.08)]">
                 {/* Image Carousel */}
                 <div className="relative h-[400px]">
                   {analogImages.map((image, index) => (
@@ -715,7 +715,7 @@ export default function CafePage() {
 
             {/* Event Card 2: Sober Sundowners */}
             <div className="group relative">
-              <div className="relative overflow-hidden rounded-3xl shadow-md shadow-charcoal/10 transition-all duration-500 hover:scale-[1.02] hover:shadow-2xl hover:shadow-terracotta/25">
+              <div className="relative overflow-hidden rounded-3xl border border-border transition-[transform,box-shadow] duration-500 hover:scale-[1.02] hover:shadow-[0_4px_24px_rgba(51,51,51,0.08)]">
                 {/* Image */}
                 <div className="relative h-[400px]">
                   <Image
@@ -766,7 +766,7 @@ export default function CafePage() {
 
             {/* Event Card 3: The Reading Social */}
             <div className="group relative">
-              <div className="relative overflow-hidden rounded-3xl shadow-md shadow-charcoal/10 transition-all duration-500 hover:scale-[1.02] hover:shadow-2xl hover:shadow-sage/25">
+              <div className="relative overflow-hidden rounded-3xl border border-border transition-[transform,box-shadow] duration-500 hover:scale-[1.02] hover:shadow-[0_4px_24px_rgba(51,51,51,0.08)]">
                 {/* Image */}
                 <div className="relative h-[400px]">
                   <Image
@@ -817,7 +817,7 @@ export default function CafePage() {
 
             {/* Event Card 4: Friday Work Deli */}
             <div className="group relative">
-              <div className="relative overflow-hidden rounded-3xl shadow-md shadow-charcoal/10 transition-all duration-500 hover:scale-[1.02] hover:shadow-2xl hover:shadow-sage/25">
+              <div className="relative overflow-hidden rounded-3xl border border-border transition-[transform,box-shadow] duration-500 hover:scale-[1.02] hover:shadow-[0_4px_24px_rgba(51,51,51,0.08)]">
                 {/* Image */}
                 <div className="relative h-[400px]">
                   <Image

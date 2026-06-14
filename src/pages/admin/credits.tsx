@@ -324,7 +324,7 @@ export default function AdminCredits() {
               <MetricCard label="Classes Added" value={stats.totalAdded} icon={TrendingUp} tone="sage" prefix="+" />
               <MetricCard label="Classes Used" value={stats.totalUsed} icon={CheckCircle2} tone="charcoal" prefix="-" />
               <MetricCard label="Classes Deducted" value={stats.totalDeducted} icon={TrendingDown} tone="terracotta" prefix="-" />
-              <MetricCard label="Classes Expired" value={stats.totalExpired} icon={AlertCircle} tone="amber" prefix="-" />
+              <MetricCard label="Classes Expired" value={stats.totalExpired} icon={AlertCircle} tone="clay" prefix="-" />
             </div>
 
             {/* Transactions Table */}

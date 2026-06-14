@@ -241,7 +241,7 @@ export function DayScheduleList({
                         {row.name}
                       </div>
                       <div className="flex items-center gap-2 text-xs font-body text-charcoal/60 whitespace-nowrap">
-                        <span className="font-display text-sm text-charcoal/80">{row.time}</span>
+                        <span className="font-body tabular-nums text-sm text-charcoal/80">{row.time}</span>
                         {row.recurring && (
                           <Repeat className="h-3 w-3 text-sage/60" aria-label="Weekly" />
                         )}

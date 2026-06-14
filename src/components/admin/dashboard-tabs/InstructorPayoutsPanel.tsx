@@ -275,7 +275,7 @@ function InstructorPayoutsPanelImpl() {
     <div className="space-y-6">
       <div className="grid grid-cols-2 md:grid-cols-4 gap-3 sm:gap-4">
         <MetricCard label="Total Payouts" value={Math.round(summary.totalPayouts)} prefix="₹" icon={DollarSign} tone="sage" loading={loading} hint={`${summary.instructorsCount || rows.length} instructors`} />
-        <MetricCard label="Pending" value={Math.round(summary.pendingPayments)} prefix="₹" icon={Clock} tone="amber" loading={loading} hint={`${summary.pendingCount} pending`} />
+        <MetricCard label="Pending" value={Math.round(summary.pendingPayments)} prefix="₹" icon={Clock} tone="clay" loading={loading} hint={`${summary.pendingCount} pending`} />
         <MetricCard label="Completed" value={Math.round(summary.completedPayments)} prefix="₹" icon={CheckCircle2} tone="sage" loading={loading} />
         <MetricCard label="Total Check-ins" value={summary.totalCheckIns} icon={TrendingUp} tone="charcoal" loading={loading} />
       </div>

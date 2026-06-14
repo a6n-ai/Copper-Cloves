@@ -245,7 +245,7 @@ export default function AdminInstructorsPage() {
               <MetricCard label="Total Instructors" value={stats.total} icon={Users} tone="sage" loading={loading} />
               <MetricCard label="Active" value={stats.active} icon={CheckCircle2} tone="sage" loading={loading} hint="Visible to schedule" />
               <MetricCard label="Inactive" value={stats.inactive} icon={PowerOff} tone="terracotta" loading={loading} hint="Hidden from members" />
-              <MetricCard label="Avg Experience" value={stats.avgYears} icon={Star} tone="amber" loading={loading} hint="years" />
+              <MetricCard label="Avg Experience" value={stats.avgYears} icon={Star} tone="clay" loading={loading} hint="years" />
               <MetricCard label="Certified" value={stats.certified} icon={Award} tone="sage" loading={loading} hint="Has certifications" />
             </div>
 

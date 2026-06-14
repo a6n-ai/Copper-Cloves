@@ -71,8 +71,19 @@ import {
 } from "@/lib/cafeDiscount";
 
 import Image from "next/image";
+import dynamic from "next/dynamic";
 import { cdnUrl } from "@/lib/cdnUrl";
-import { MemberSearch, type AddedMember } from "@/components/portal/MemberSearch";
+import type { AddedMember } from "@/components/portal/MemberSearch";
+
+// MemberSearch is only mounted inside Step 1 of the slide-in booking panel
+// (gated behind `showBookingPanel`), never on first paint. It pulls in
+// `react-phone-number-input` (country data) + the PhoneInput component, which
+// are several KB that don't belong in the initial /portal/book bundle. Lazy-load
+// it so the class list/filters/calendar above the fold ship without it.
+const MemberSearch = dynamic(
+  () => import("@/components/portal/MemberSearch").then((m) => m.MemberSearch),
+  { ssr: false, loading: () => null },
+);
 
 // Tax rate (adjust as needed)
 const TAX_RATE = 0.05; // 5% tax

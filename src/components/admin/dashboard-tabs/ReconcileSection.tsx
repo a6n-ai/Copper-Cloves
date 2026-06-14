@@ -1100,7 +1100,7 @@ function ReconcileSectionImpl() {
           tone={gapPaise === 0 ? "sage" : "terracotta"}
           hint={gapPaise === 0 ? "fully reconciled" : "captured minus recorded"}
         />
-        <MetricCard label="Issues" value={issuesCount} icon={AlertTriangle} tone={issuesCount === 0 ? "sage" : "amber"} hint={`${totalCount} payments`} />
+        <MetricCard label="Issues" value={issuesCount} icon={AlertTriangle} tone={issuesCount === 0 ? "sage" : "clay"} hint={`${totalCount} payments`} />
       </div>
 
       <LookupCard />

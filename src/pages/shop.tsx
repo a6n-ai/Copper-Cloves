@@ -351,7 +351,7 @@ export default function Shop({ initialProducts }: Readonly<ShopProps>) {
             ) : (
             filteredProducts.map((product) => (
               <Link key={product.id} href={`/shop/${product.id}`}>
-                <div className="group relative bg-white-warm rounded-3xl border border-sage/10 overflow-hidden transition-all duration-500 hover:border-sage/30 hover:shadow-2xl hover:bg-sage/5 cursor-pointer">
+                <div className="group relative bg-white-warm rounded-3xl border border-sage/10 overflow-hidden transition-all duration-500 hover:border-sage/30 hover:shadow-[0_4px_24px_rgba(51,51,51,0.08)] hover:bg-sage/5 cursor-pointer">
                   {/* Image */}
                   <div className="relative h-80 overflow-hidden">
                     <div className="absolute inset-0 bg-linear-to-br from-sage/20 via-cream/50 to-terracotta/20" />
@@ -401,7 +401,7 @@ export default function Shop({ initialProducts }: Readonly<ShopProps>) {
                     </p>
 
                     <div className="flex items-center justify-between">
-                      <span className="font-display text-3xl text-charcoal">
+                      <span className="font-body text-3xl text-charcoal tabular-nums">
                         ₹{product.price.toLocaleString("en-IN")}
                       </span>
                       
@@ -479,7 +479,19 @@ export default function Shop({ initialProducts }: Readonly<ShopProps>) {
                           key={item.id}
                           className="flex gap-4 p-4 rounded-2xl bg-cream/30 border border-sage/10"
                         >
-                          <div className="w-20 h-20 rounded-xl bg-linear-to-br from-sage/20 via-cream/50 to-terracotta/20 shrink-0" />
+                          {item.image ? (
+                            <div className="relative w-20 h-20 rounded-xl overflow-hidden shrink-0">
+                              <Image
+                                src={item.image}
+                                alt={item.name}
+                                fill
+                                className="object-cover"
+                                sizes="80px"
+                              />
+                            </div>
+                          ) : (
+                            <div className="w-20 h-20 rounded-xl bg-linear-to-br from-sage/20 via-cream/50 to-terracotta/20 shrink-0" />
+                          )}
                           
                           <div className="flex-1">
                             <h4 className="font-display text-lg text-charcoal mb-1">

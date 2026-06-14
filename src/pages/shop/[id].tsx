@@ -290,7 +290,7 @@ export default function ProductDetail({ product, catalog }: ProductDetailProps) 
               </div>
 
               <div className="flex items-baseline gap-3">
-                <span className="font-display text-4xl text-sage">
+                <span className="font-body text-4xl text-sage tabular-nums">
                   ₹{product.price.toLocaleString("en-IN")}
                 </span>
                 <span className="font-body text-sm text-charcoal/60">incl. taxes</span>
@@ -381,7 +381,7 @@ export default function ProductDetail({ product, catalog }: ProductDetailProps) 
               <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-6">
                 {relatedProducts.map((rp) => (
                   <Link key={rp.id} href={`/shop/${rp.id}`}>
-                    <div className="group relative rounded-2xl overflow-hidden bg-white-warm border border-sage/10 hover:border-sage/30 transition-all duration-300 hover:shadow-xl hover:scale-105 cursor-pointer">
+                    <div className="group relative rounded-2xl overflow-hidden bg-white-warm border border-sage/10 hover:border-sage/30 transition-all duration-300 hover:shadow-[0_4px_24px_rgba(51,51,51,0.08)] cursor-pointer">
                       <div className="relative aspect-square overflow-hidden">
                         <div className="absolute inset-0 bg-linear-to-br from-sage/20 via-transparent to-terracotta/20" />
                         <Image
@@ -405,7 +405,7 @@ export default function ProductDetail({ product, catalog }: ProductDetailProps) 
                         <h3 className="font-display text-lg text-charcoal mb-2 group-hover:text-sage transition-colors">
                           {rp.name}
                         </h3>
-                        <p className="font-display text-xl text-sage">
+                        <p className="font-body text-xl text-sage tabular-nums">
                           ₹{rp.price.toLocaleString("en-IN")}
                         </p>
                       </div>

@@ -15,6 +15,7 @@ import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { InstructorDashboardSkeleton } from "@/components/dashboard/skeletons";
 import { PageHeader } from "@/components/dashboard/PageHeader";
 import { InstructorCheckinBeacon } from "@/components/checkin/InstructorCheckinBeacon";
+import { classStatusPill } from "@/lib/pillMaps";
 import { toast } from "sonner";
 import {
   Users,
@@ -80,18 +81,21 @@ function dayLabel(dateStr: string): string {
   return format(d, "EEEE, MMM d");
 }
 
-function classStatusBadge(cls: ClassRow): { label: string; tone: "info" | "neutral" | "success" } {
+// Time-derived display label + canonical schedule-status key. Pill tone comes
+// from classStatusPill (pillMaps) so Upcoming/In-Progress/Completed map the same
+// way the rest of the app renders schedule status.
+function classStatusBadge(cls: ClassRow): { label: string; status: string } {
   const now = new Date();
   const start = new Date(cls.startTime);
   const end = new Date(cls.endTime);
-  if (isBefore(now, start)) return { label: "Upcoming", tone: "info" };
-  if (isAfter(now, end)) return { label: "Completed", tone: "neutral" };
-  return { label: "In Progress", tone: "success" };
+  if (isBefore(now, start)) return { label: "Upcoming", status: "available" };
+  if (isAfter(now, end)) return { label: "Completed", status: "completed" };
+  return { label: "In Progress", status: "started" };
 }
 
 function CapacityBar({ enrolled, capacity }: { enrolled: number; capacity: number }) {
   const pct = capacity > 0 ? Math.min(100, Math.round((enrolled / capacity) * 100)) : 0;
-  const color = pct >= 90 ? "bg-[#a05e38]" : pct >= 60 ? "bg-terracotta" : "bg-sage";
+  const color = pct >= 90 ? "bg-pill-danger-dot" : pct >= 60 ? "bg-terracotta" : "bg-sage";
   return (
     <div className="mt-3">
       <div className="flex justify-between text-xs font-body text-charcoal/60 mb-1">
@@ -325,13 +329,13 @@ export default function InstructorDashboard() {
           <TabsList className="mb-5 bg-sage/10 p-1 rounded-xl">
             <TabsTrigger
               value="today"
-              className="font-body data-[state=active]:bg-white-warm data-[state=active]:text-charcoal data-[state=active]:shadow-xs rounded-lg px-5"
+              className="font-body data-[state=active]:bg-white-warm data-[state=active]:text-charcoal rounded-lg px-5"
             >
               My Schedule
             </TabsTrigger>
             <TabsTrigger
               value="checkin"
-              className="font-body data-[state=active]:bg-white-warm data-[state=active]:text-charcoal data-[state=active]:shadow-xs rounded-lg px-5"
+              className="font-body data-[state=active]:bg-white-warm data-[state=active]:text-charcoal rounded-lg px-5"
             >
               Check In
             </TabsTrigger>
@@ -366,7 +370,7 @@ export default function InstructorDashboard() {
                         <div className="flex-1 min-w-0">
                           <div className="flex items-center gap-2 flex-wrap">
                             <h2 className="font-display text-base sm:text-lg text-charcoal">{cls.className}</h2>
-                            <Pill tone={statusInfo.tone} size="sm" className="font-body">
+                            <Pill {...classStatusPill(statusInfo.status)} size="sm" className="font-body">
                               {statusInfo.label}
                             </Pill>
                             {cls.category && (
@@ -377,8 +381,8 @@ export default function InstructorDashboard() {
                             {/* Instructor check-in badge */}
                             {cls.instructorCheckedIn ? (
                               <Pill tone="success" size="sm" className="font-body" icon={<CheckCircle2 className="h-3 w-3" />}>
-                                <span className="hidden xs:inline">You checked in {cls.instructorCheckInTime ? format(new Date(cls.instructorCheckInTime), "h:mm a") : ""}</span>
-                                <span className="xs:hidden">Checked in</span>
+                                <span className="hidden sm:inline">You checked in {cls.instructorCheckInTime ? format(new Date(cls.instructorCheckInTime), "h:mm a") : ""}</span>
+                                <span className="sm:hidden">Checked in</span>
                               </Pill>
                             ) : winStatus === "open" ? (
                               <Pill tone="warning" size="sm" className="font-body">
@@ -440,7 +444,7 @@ export default function InstructorDashboard() {
                       </div>
 
                       {errMsg && (
-                        <p className="mt-2 font-body text-xs text-[#a05e38] bg-[#a05e38]/10 rounded-lg px-3 py-2">{errMsg}</p>
+                        <p className="mt-2 font-body text-xs text-pill-danger-fg bg-pill-danger-bg rounded-lg px-3 py-2">{errMsg}</p>
                       )}
 
                       {/* Member previews */}
