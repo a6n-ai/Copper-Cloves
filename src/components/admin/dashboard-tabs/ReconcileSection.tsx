@@ -136,6 +136,170 @@ type ScheduleResult = { id: string; start_time: string; class_model: { name: str
 
 type ImportStep = 1 | 2 | 3;
 
+/** Read-only Razorpay payment-detail panel — shared by ImportDialog (step 1) and DetailDialog. */
+function PaymentDetailPanel({
+  detail: rzpDetail,
+  row,
+  loading: detailLoading,
+  error: detailError,
+}: {
+  detail: RazorpayPaymentDetail | null;
+  row: ReconRow;
+  loading: boolean;
+  error: string | null;
+}) {
+  return (
+    <div className="space-y-3">
+      {detailLoading && (
+        <div className="flex items-center justify-center gap-2 py-10 text-charcoal/40">
+          <Loader2 className="h-4 w-4 animate-spin" />
+          <span className="font-body text-sm">Fetching from Razorpay…</span>
+        </div>
+      )}
+
+      {detailError && !detailLoading && (
+        <div className="rounded-xl border border-[#cf5b48]/30 bg-[#cf5b48]/5 px-4 py-3">
+          <p className="font-body text-sm text-[#cf5b48]">{detailError}</p>
+          <p className="font-body text-xs text-charcoal/50 mt-1">Showing cached data from last reconcile run.</p>
+        </div>
+      )}
+
+      {!detailLoading && (
+        <div className="rounded-xl border border-sage/15 bg-sand/40 p-4 space-y-2.5">
+          <div className="flex justify-between items-center">
+            <span className="font-body text-xs text-charcoal/50 uppercase tracking-wide">Amount</span>
+            <span className="font-display text-xl tabular-nums text-charcoal">
+              {inr(rzpDetail?.amount ?? row.amountPaise)}
+            </span>
+          </div>
+
+          <div className="flex justify-between items-center">
+            <span className="font-body text-xs text-charcoal/50 uppercase tracking-wide">Status</span>
+            <span className="font-body text-sm text-charcoal/80 capitalize">
+              {rzpDetail?.status ?? row.razorpayStatus ?? "—"}
+            </span>
+          </div>
+
+          <div className="flex justify-between items-center">
+            <span className="font-body text-xs text-charcoal/50 uppercase tracking-wide">Date</span>
+            <span className="font-body text-sm text-charcoal/80">
+              {rzpDetail
+                ? new Date(rzpDetail.created_at * 1000).toLocaleString("en-IN", { day: "numeric", month: "short", year: "numeric", hour: "numeric", minute: "2-digit" })
+                : new Date(row.createdAtISO).toLocaleString("en-IN", { day: "numeric", month: "short", year: "numeric", hour: "numeric", minute: "2-digit" })}
+            </span>
+          </div>
+
+          {(rzpDetail?.method ?? row.method) && (
+            <div className="flex justify-between items-center">
+              <span className="font-body text-xs text-charcoal/50 uppercase tracking-wide">Method</span>
+              <span className="font-body text-sm text-charcoal/80 capitalize">{rzpDetail?.method ?? row.method}</span>
+            </div>
+          )}
+
+          {(rzpDetail?.email ?? row.email) && (
+            <div className="flex justify-between items-center">
+              <span className="font-body text-xs text-charcoal/50 uppercase tracking-wide">Email</span>
+              <span className="font-body text-sm text-charcoal/80">{rzpDetail?.email ?? row.email}</span>
+            </div>
+          )}
+
+          {(rzpDetail?.contact ?? row.contact) && (
+            <div className="flex justify-between items-center">
+              <span className="font-body text-xs text-charcoal/50 uppercase tracking-wide">Phone</span>
+              <span className="font-body text-sm text-charcoal/80">{rzpDetail?.contact ?? row.contact}</span>
+            </div>
+          )}
+
+          {(rzpDetail?.amount_refunded ?? 0) > 0 && (
+            <div className="flex justify-between items-center">
+              <span className="font-body text-xs text-charcoal/50 uppercase tracking-wide">Refunded</span>
+              <span className="font-body text-sm text-[#a05e38]">−{inr(rzpDetail?.amount_refunded)}</span>
+            </div>
+          )}
+
+          {/* Gateway detail rows — only render the ones Razorpay returned. */}
+          {([
+            ["Bank", rzpDetail?.bank],
+            ["Wallet", rzpDetail?.wallet],
+            ["UPI VPA", rzpDetail?.vpa],
+            ["Card", rzpDetail?.card_last4 ? `${rzpDetail?.card_network ?? "card"} ••${rzpDetail.card_last4}${rzpDetail.card_type ? ` (${rzpDetail.card_type})` : ""}` : null],
+            ["RRN", rzpDetail?.rrn],
+            ["Gateway fee", rzpDetail?.fee != null ? inr(rzpDetail.fee) : null],
+            ["Tax", rzpDetail?.tax != null ? inr(rzpDetail.tax) : null],
+            ["Refund status", rzpDetail?.refund_status],
+            ["Error", rzpDetail?.error_description],
+          ] as const)
+            .filter(([, v]) => v != null && v !== "")
+            .map(([label, v]) => (
+              <div key={label} className="flex justify-between items-start gap-4">
+                <span className="font-body text-xs text-charcoal/50 uppercase tracking-wide shrink-0">{label}</span>
+                <span className="font-body text-sm text-charcoal/70 text-right break-all capitalize">{v}</span>
+              </div>
+            ))}
+
+          {(rzpDetail?.description ?? row.description) && (
+            <div className="flex justify-between items-start gap-4">
+              <span className="font-body text-xs text-charcoal/50 uppercase tracking-wide shrink-0">Desc</span>
+              <span className="font-body text-sm text-charcoal/70 text-right line-clamp-2">
+                {rzpDetail?.description ?? row.description}
+              </span>
+            </div>
+          )}
+
+          {rzpDetail?.order_id && (
+            <div className="pt-2 border-t border-sage/10 space-y-1.5">
+              <span className="font-body text-xs text-charcoal/40 uppercase tracking-wide">Order</span>
+              {rzpDetail.order_receipt && (
+                <div className="flex justify-between items-center">
+                  <span className="font-body text-xs text-charcoal/50 uppercase tracking-wide">Receipt</span>
+                  <span className="font-body text-sm text-charcoal/80">{rzpDetail.order_receipt}</span>
+                </div>
+              )}
+              {rzpDetail.order_status && (
+                <div className="flex justify-between items-center">
+                  <span className="font-body text-xs text-charcoal/50 uppercase tracking-wide">Order status</span>
+                  <span className="font-body text-sm text-charcoal/80 capitalize">{rzpDetail.order_status}</span>
+                </div>
+              )}
+            </div>
+          )}
+
+          {rzpDetail?.notes && Object.keys(rzpDetail.notes).length > 0 && (
+            <div className="pt-2 border-t border-sage/10 space-y-1">
+              <span className="font-body text-xs text-charcoal/40 uppercase tracking-wide">Notes</span>
+              {Object.entries(rzpDetail.notes).map(([k, v]) => (
+                <div key={k} className="flex justify-between items-start gap-4">
+                  <span className="font-mono text-xs text-charcoal/40 shrink-0">{k}</span>
+                  <span className="font-body text-xs text-charcoal/60 text-right break-all">{v}</span>
+                </div>
+              ))}
+            </div>
+          )}
+
+          {rzpDetail?.order_notes && Object.keys(rzpDetail.order_notes).length > 0 && (
+            <div className="pt-2 border-t border-sage/10 space-y-1">
+              <span className="font-body text-xs text-charcoal/40 uppercase tracking-wide">Order notes</span>
+              {Object.entries(rzpDetail.order_notes).map(([k, v]) => (
+                <div key={k} className="flex justify-between items-start gap-4">
+                  <span className="font-mono text-xs text-charcoal/40 shrink-0">{k}</span>
+                  <span className="font-body text-xs text-charcoal/60 text-right break-all">{v}</span>
+                </div>
+              ))}
+            </div>
+          )}
+
+          <div className="pt-2 border-t border-sage/10 flex flex-wrap gap-x-4 gap-y-1">
+            <span className="font-mono text-xs text-charcoal/35">{row.paymentId}</span>
+            {rzpDetail?.order_id && (
+              <span className="font-mono text-xs text-charcoal/25">{rzpDetail.order_id}</span>
+            )}
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}
+
 function ImportDialog({ row, onClose, onImported }: { row: ReconRow; onClose: () => void; onImported: (paymentId: string) => void }) {
   const [step, setStep] = useState<ImportStep>(1);
   const [memberQuery, setMemberQuery] = useState(row.email ?? "");
@@ -262,153 +426,7 @@ function ImportDialog({ row, onClose, onImported }: { row: ReconRow; onClose: ()
           {/* ── Step 1: Payment info ── */}
           {step === 1 && (
             <div className="space-y-3">
-              {detailLoading && (
-                <div className="flex items-center justify-center gap-2 py-10 text-charcoal/40">
-                  <Loader2 className="h-4 w-4 animate-spin" />
-                  <span className="font-body text-sm">Fetching from Razorpay…</span>
-                </div>
-              )}
-
-              {detailError && !detailLoading && (
-                <div className="rounded-xl border border-[#cf5b48]/30 bg-[#cf5b48]/5 px-4 py-3">
-                  <p className="font-body text-sm text-[#cf5b48]">{detailError}</p>
-                  <p className="font-body text-xs text-charcoal/50 mt-1">Showing cached data from last reconcile run.</p>
-                </div>
-              )}
-
-              {!detailLoading && (
-                <div className="rounded-xl border border-sage/15 bg-sand/40 p-4 space-y-2.5">
-                  <div className="flex justify-between items-center">
-                    <span className="font-body text-xs text-charcoal/50 uppercase tracking-wide">Amount</span>
-                    <span className="font-display text-xl tabular-nums text-charcoal">
-                      {inr(rzpDetail?.amount ?? row.amountPaise)}
-                    </span>
-                  </div>
-
-                  <div className="flex justify-between items-center">
-                    <span className="font-body text-xs text-charcoal/50 uppercase tracking-wide">Status</span>
-                    <span className="font-body text-sm text-charcoal/80 capitalize">
-                      {rzpDetail?.status ?? row.razorpayStatus ?? "—"}
-                    </span>
-                  </div>
-
-                  <div className="flex justify-between items-center">
-                    <span className="font-body text-xs text-charcoal/50 uppercase tracking-wide">Date</span>
-                    <span className="font-body text-sm text-charcoal/80">
-                      {rzpDetail
-                        ? new Date(rzpDetail.created_at * 1000).toLocaleString("en-IN", { day: "numeric", month: "short", year: "numeric", hour: "numeric", minute: "2-digit" })
-                        : new Date(row.createdAtISO).toLocaleString("en-IN", { day: "numeric", month: "short", year: "numeric", hour: "numeric", minute: "2-digit" })}
-                    </span>
-                  </div>
-
-                  {(rzpDetail?.method ?? row.method) && (
-                    <div className="flex justify-between items-center">
-                      <span className="font-body text-xs text-charcoal/50 uppercase tracking-wide">Method</span>
-                      <span className="font-body text-sm text-charcoal/80 capitalize">{rzpDetail?.method ?? row.method}</span>
-                    </div>
-                  )}
-
-                  {(rzpDetail?.email ?? row.email) && (
-                    <div className="flex justify-between items-center">
-                      <span className="font-body text-xs text-charcoal/50 uppercase tracking-wide">Email</span>
-                      <span className="font-body text-sm text-charcoal/80">{rzpDetail?.email ?? row.email}</span>
-                    </div>
-                  )}
-
-                  {(rzpDetail?.contact ?? row.contact) && (
-                    <div className="flex justify-between items-center">
-                      <span className="font-body text-xs text-charcoal/50 uppercase tracking-wide">Phone</span>
-                      <span className="font-body text-sm text-charcoal/80">{rzpDetail?.contact ?? row.contact}</span>
-                    </div>
-                  )}
-
-                  {(rzpDetail?.amount_refunded ?? 0) > 0 && (
-                    <div className="flex justify-between items-center">
-                      <span className="font-body text-xs text-charcoal/50 uppercase tracking-wide">Refunded</span>
-                      <span className="font-body text-sm text-[#a05e38]">−{inr(rzpDetail?.amount_refunded)}</span>
-                    </div>
-                  )}
-
-                  {/* Gateway detail rows — only render the ones Razorpay returned. */}
-                  {([
-                    ["Bank", rzpDetail?.bank],
-                    ["Wallet", rzpDetail?.wallet],
-                    ["UPI VPA", rzpDetail?.vpa],
-                    ["Card", rzpDetail?.card_last4 ? `${rzpDetail?.card_network ?? "card"} ••${rzpDetail.card_last4}${rzpDetail.card_type ? ` (${rzpDetail.card_type})` : ""}` : null],
-                    ["RRN", rzpDetail?.rrn],
-                    ["Gateway fee", rzpDetail?.fee != null ? inr(rzpDetail.fee) : null],
-                    ["Tax", rzpDetail?.tax != null ? inr(rzpDetail.tax) : null],
-                    ["Refund status", rzpDetail?.refund_status],
-                    ["Error", rzpDetail?.error_description],
-                  ] as const)
-                    .filter(([, v]) => v != null && v !== "")
-                    .map(([label, v]) => (
-                      <div key={label} className="flex justify-between items-start gap-4">
-                        <span className="font-body text-xs text-charcoal/50 uppercase tracking-wide shrink-0">{label}</span>
-                        <span className="font-body text-sm text-charcoal/70 text-right break-all capitalize">{v}</span>
-                      </div>
-                    ))}
-
-                  {(rzpDetail?.description ?? row.description) && (
-                    <div className="flex justify-between items-start gap-4">
-                      <span className="font-body text-xs text-charcoal/50 uppercase tracking-wide shrink-0">Desc</span>
-                      <span className="font-body text-sm text-charcoal/70 text-right line-clamp-2">
-                        {rzpDetail?.description ?? row.description}
-                      </span>
-                    </div>
-                  )}
-
-                  {rzpDetail?.order_id && (
-                    <div className="pt-2 border-t border-sage/10 space-y-1.5">
-                      <span className="font-body text-xs text-charcoal/40 uppercase tracking-wide">Order</span>
-                      {rzpDetail.order_receipt && (
-                        <div className="flex justify-between items-center">
-                          <span className="font-body text-xs text-charcoal/50 uppercase tracking-wide">Receipt</span>
-                          <span className="font-body text-sm text-charcoal/80">{rzpDetail.order_receipt}</span>
-                        </div>
-                      )}
-                      {rzpDetail.order_status && (
-                        <div className="flex justify-between items-center">
-                          <span className="font-body text-xs text-charcoal/50 uppercase tracking-wide">Order status</span>
-                          <span className="font-body text-sm text-charcoal/80 capitalize">{rzpDetail.order_status}</span>
-                        </div>
-                      )}
-                    </div>
-                  )}
-
-                  {rzpDetail?.notes && Object.keys(rzpDetail.notes).length > 0 && (
-                    <div className="pt-2 border-t border-sage/10 space-y-1">
-                      <span className="font-body text-xs text-charcoal/40 uppercase tracking-wide">Notes</span>
-                      {Object.entries(rzpDetail.notes).map(([k, v]) => (
-                        <div key={k} className="flex justify-between items-start gap-4">
-                          <span className="font-mono text-xs text-charcoal/40 shrink-0">{k}</span>
-                          <span className="font-body text-xs text-charcoal/60 text-right break-all">{v}</span>
-                        </div>
-                      ))}
-                    </div>
-                  )}
-
-                  {rzpDetail?.order_notes && Object.keys(rzpDetail.order_notes).length > 0 && (
-                    <div className="pt-2 border-t border-sage/10 space-y-1">
-                      <span className="font-body text-xs text-charcoal/40 uppercase tracking-wide">Order notes</span>
-                      {Object.entries(rzpDetail.order_notes).map(([k, v]) => (
-                        <div key={k} className="flex justify-between items-start gap-4">
-                          <span className="font-mono text-xs text-charcoal/40 shrink-0">{k}</span>
-                          <span className="font-body text-xs text-charcoal/60 text-right break-all">{v}</span>
-                        </div>
-                      ))}
-                    </div>
-                  )}
-
-                  <div className="pt-2 border-t border-sage/10 flex flex-wrap gap-x-4 gap-y-1">
-                    <span className="font-mono text-xs text-charcoal/35">{row.paymentId}</span>
-                    {rzpDetail?.order_id && (
-                      <span className="font-mono text-xs text-charcoal/25">{rzpDetail.order_id}</span>
-                    )}
-                  </div>
-                </div>
-              )}
-
+              <PaymentDetailPanel detail={rzpDetail} row={row} loading={detailLoading} error={detailError} />
               <p className="font-body text-xs text-charcoal/50">
                 This payment was captured by Razorpay but never saved on our side. Importing records it in the payment ledger and can optionally book a class or assign a package.
               </p>
@@ -600,6 +618,62 @@ function ImportDialog({ row, onClose, onImported }: { row: ReconRow; onClose: ()
             <Button type="button" variant="sage" onClick={handleConfirm} disabled={!canConfirm || submitting}>
               {submitting ? <Loader2 className="h-4 w-4 mr-2 animate-spin" /> : <Import className="h-4 w-4 mr-2" />}
               {submitting ? "Importing…" : "Import"}
+            </Button>
+          )}
+        </ResponsiveDialogFooter>
+      </ResponsiveDialogContent>
+    </ResponsiveDialog>
+  );
+}
+
+// ─── Detail dialog (read-only) ─────────────────────────────────────────────────
+
+function DetailDialog({ row, onClose, onImport }: { row: ReconRow; onClose: () => void; onImport: (row: ReconRow) => void }) {
+  const [detail, setDetail] = useState<RazorpayPaymentDetail | null>(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+
+  useEffect(() => {
+    fetch(`/api/admin/finance/razorpay-payment-detail?paymentId=${encodeURIComponent(row.paymentId)}`)
+      .then((r) => r.json())
+      .then((d: RazorpayPaymentDetail & { error?: string }) => {
+        if (d.error) { setError(d.error); return; }
+        setDetail(d);
+      })
+      .catch(() => setError("Could not reach Razorpay."))
+      .finally(() => setLoading(false));
+  }, []); // eslint-disable-line react-hooks/exhaustive-deps
+
+  const meta = MATCH_META[row.match];
+
+  return (
+    <ResponsiveDialog open onOpenChange={(o) => { if (!o) onClose(); }}>
+      <ResponsiveDialogContent className="max-w-lg">
+        <ResponsiveDialogHeader>
+          <ResponsiveDialogTitle className="font-display text-xl text-charcoal">Payment detail</ResponsiveDialogTitle>
+          <ResponsiveDialogDescription className="font-body text-charcoal/60">
+            <span className="font-mono text-xs">{row.paymentId}</span>
+          </ResponsiveDialogDescription>
+        </ResponsiveDialogHeader>
+
+        <div className="px-6 pb-2 space-y-3">
+          <div className="flex flex-wrap items-center gap-2">
+            <Pill tone={meta.tone} size="sm">{meta.label}</Pill>
+            {row.websiteStatus && (
+              <span className="font-body text-xs text-charcoal/50">Site: {row.websiteStatus}</span>
+            )}
+          </div>
+          <PaymentDetailPanel detail={detail} row={row} loading={loading} error={error} />
+        </div>
+
+        <ResponsiveDialogFooter className="px-6 pb-6 gap-2">
+          <Button type="button" variant="ghost" className="text-charcoal/50 mr-auto" onClick={onClose}>
+            Close
+          </Button>
+          {row.match === "missing_from_website" && (
+            <Button type="button" variant="sage" onClick={() => onImport(row)}>
+              <Import className="h-4 w-4 mr-2" />
+              Import / fulfill
             </Button>
           )}
         </ResponsiveDialogFooter>
@@ -1055,6 +1129,7 @@ function ReconcileSectionImpl() {
   const [data, setData] = useState<ReconResponse | null>(null);
   const [matchFilter, setMatchFilter] = useState<ReconMatch | "all" | "issues">("all");
   const [importTarget, setImportTarget] = useState<ReconRow | null>(null);
+  const [detailRow, setDetailRow] = useState<ReconRow | null>(null);
   const [importedIds, setImportedIds] = useState<Set<string>>(new Set());
 
   const runCorrelation = useCallback(async () => {
@@ -1220,7 +1295,11 @@ function ReconcileSectionImpl() {
                         const meta = MATCH_META[r.match];
                         const alreadyImported = importedIds.has(r.paymentId);
                         return (
-                          <TableRow key={r.paymentId} className={meta.bad ? "bg-[#b3402c]/[0.03]" : undefined}>
+                          <TableRow
+                            key={r.paymentId}
+                            className={`cursor-pointer hover:bg-sage/5 ${meta.bad ? "bg-[#b3402c]/[0.03]" : ""}`}
+                            onClick={() => setDetailRow(r)}
+                          >
                             <TableCell>
                               <Pill
                                 tone={alreadyImported ? "success" : meta.tone}
@@ -1260,7 +1339,7 @@ function ReconcileSectionImpl() {
                                   size="sm"
                                   variant="outline"
                                   className="h-7 px-2 text-xs border-sage/25 text-sage hover:bg-sage/5 hover:text-sage!"
-                                  onClick={() => setImportTarget(r)}
+                                  onClick={(e) => { e.stopPropagation(); setImportTarget(r); }}
                                 >
                                   <Import className="h-3 w-3 mr-1" />
                                   Import
@@ -1281,6 +1360,14 @@ function ReconcileSectionImpl() {
             </CardContent>
           </Card>
         </>
+      )}
+
+      {detailRow && (
+        <DetailDialog
+          row={detailRow}
+          onClose={() => setDetailRow(null)}
+          onImport={(r) => { setDetailRow(null); setImportTarget(r); }}
+        />
       )}
 
       {importTarget && (
