@@ -1,5 +1,7 @@
 import { useState, useRef, useEffect, useCallback } from "react";
+import { isValidPhoneNumber } from "react-phone-number-input";
 import { Input } from "@/components/ui/input";
+import { PhoneInput, type PhoneValue } from "@/components/ui/phone-input";
 import { Button } from "@/components/ui/button";
 import { X, UserPlus } from "lucide-react";
 import { cdnUrl } from "@/lib/cdnUrl";
@@ -66,8 +68,13 @@ export function MemberSearch({ value, onChange, maxMembers = 5, currentEmail }: 
   const [showInviteForm, setShowInviteForm] = useState(false);
   const [inviteEmail, setInviteEmail] = useState("");
   const [inviteName, setInviteName] = useState("");
-  const [invitePhone, setInvitePhone] = useState("");
+  const [invitePhone, setInvitePhone] = useState<PhoneValue>("" as PhoneValue);
   const [inviteError, setInviteError] = useState<string | null>(null);
+  // A member picked from the list/friends who has no phone on file — we collect
+  // one before adding them.
+  const [pendingPhoneMember, setPendingPhoneMember] = useState<AddedMember | null>(null);
+  const [phoneDraft, setPhoneDraft] = useState<PhoneValue>("" as PhoneValue);
+  const [phoneError, setPhoneError] = useState<string | null>(null);
   const debounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const containerRef = useRef<HTMLDivElement>(null);
 
@@ -128,6 +135,37 @@ export function MemberSearch({ value, onChange, maxMembers = 5, currentEmail }: 
     onChange(value.filter((_, i) => i !== idx));
   }
 
+  // Add a member picked from search results / friends. If they have no phone on
+  // file we collect one first (phone is mandatory for every attendee).
+  function addExistingMember(m: { profile_id?: string; name: string; email: string; phone?: string | null }) {
+    if (isAlreadyAdded(m.profile_id, m.email)) return;
+    const phone = m.phone?.trim();
+    if (phone) {
+      addMember({ profile_id: m.profile_id, name: m.name, email: m.email, phone });
+      return;
+    }
+    setShowInviteForm(false);
+    setPendingPhoneMember({ profile_id: m.profile_id, name: m.name, email: m.email });
+    setPhoneDraft("" as PhoneValue);
+    setPhoneError(null);
+    setQuery("");
+    setResults([]);
+    setShowDropdown(false);
+  }
+
+  function handlePendingPhoneSubmit() {
+    if (!pendingPhoneMember) return;
+    const phone = (phoneDraft ?? "").trim();
+    if (!phone || !isValidPhoneNumber(phone)) {
+      setPhoneError("Enter a valid phone number.");
+      return;
+    }
+    addMember({ ...pendingPhoneMember, phone });
+    setPendingPhoneMember(null);
+    setPhoneDraft("" as PhoneValue);
+    setPhoneError(null);
+  }
+
   function handleInviteSubmit() {
     const email = inviteEmail.trim().toLowerCase();
     const name = inviteName.trim();
@@ -149,10 +187,15 @@ export function MemberSearch({ value, onChange, maxMembers = 5, currentEmail }: 
       setInviteError("Add the guest's name.");
       return;
     }
-    addMember({ email, name, phone: invitePhone.trim() || undefined });
+    const phone = (invitePhone ?? "").trim();
+    if (!phone || !isValidPhoneNumber(phone)) {
+      setInviteError("Enter a valid phone number.");
+      return;
+    }
+    addMember({ email, name, phone });
     setInviteEmail("");
     setInviteName("");
-    setInvitePhone("");
+    setInvitePhone("" as PhoneValue);
     setInviteError(null);
     setShowInviteForm(false);
   }
@@ -195,7 +238,7 @@ export function MemberSearch({ value, onChange, maxMembers = 5, currentEmail }: 
                     <button
                       key={f.id}
                       type="button"
-                      onClick={() => addMember({ profile_id: f.id, name: f.name, email: f.email })}
+                      onClick={() => addExistingMember({ profile_id: f.id, name: f.name, email: f.email, phone: f.phone })}
                       className="flex items-center gap-1.5 bg-[#e8e4d9]/60 hover:bg-[#e8e4d9] rounded-lg px-2.5 py-1 text-sm text-[#333333] transition-colors"
                     >
                       <Avatar name={f.name} avatarUrl={f.avatar_url} />
@@ -231,7 +274,7 @@ export function MemberSearch({ value, onChange, maxMembers = 5, currentEmail }: 
                     if (EMAIL_RE.test(q) || q.includes("@")) {
                       setInviteEmail(q);
                     } else if (PHONE_RE.test(q)) {
-                      setInvitePhone(q);
+                      setInvitePhone(q as PhoneValue);
                     } else {
                       setInviteName(q);
                     }
@@ -251,7 +294,7 @@ export function MemberSearch({ value, onChange, maxMembers = 5, currentEmail }: 
                   disabled={isAlreadyAdded(r.id, r.email)}
                   className="w-full flex items-center gap-2.5 px-3 py-2 text-sm hover:bg-[#e8e4d9]/50 transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
                   onClick={() =>
-                    addMember({ profile_id: r.id, name: r.name, email: r.email, phone: r.phone ?? undefined })
+                    addExistingMember({ profile_id: r.id, name: r.name, email: r.email, phone: r.phone })
                   }
                 >
                   <Avatar name={r.name} avatarUrl={r.avatar_url} />
@@ -286,11 +329,10 @@ export function MemberSearch({ value, onChange, maxMembers = 5, currentEmail }: 
             value={inviteEmail}
             onChange={(e) => { setInviteEmail(e.target.value); setInviteError(null); }}
           />
-          <Input
-            placeholder="Mobile number (optional)"
-            type="tel"
+          <PhoneInput
+            placeholder="Mobile number (required)"
             value={invitePhone}
-            onChange={(e) => { setInvitePhone(e.target.value); setInviteError(null); }}
+            onChange={(v) => { setInvitePhone(v); setInviteError(null); }}
           />
           {inviteError && (
             <p className="text-xs text-[#cf5b48]">{inviteError}</p>
@@ -301,7 +343,7 @@ export function MemberSearch({ value, onChange, maxMembers = 5, currentEmail }: 
               size="sm"
               className="bg-[#8f9779] text-white hover:bg-[#7a8b6c]"
               onClick={handleInviteSubmit}
-              disabled={!inviteEmail.trim() || !inviteName.trim()}
+              disabled={!inviteEmail.trim() || !inviteName.trim() || !(invitePhone ?? "").trim()}
             >
               Add
             </Button>
@@ -313,8 +355,48 @@ export function MemberSearch({ value, onChange, maxMembers = 5, currentEmail }: 
                 setShowInviteForm(false);
                 setInviteEmail("");
                 setInviteName("");
-                setInvitePhone("");
+                setInvitePhone("" as PhoneValue);
                 setInviteError(null);
+              }}
+            >
+              Cancel
+            </Button>
+          </div>
+        </div>
+      )}
+
+      {pendingPhoneMember && (
+        <div className="border border-[#e5e4dc] rounded-lg p-3 space-y-2 bg-[#e8e4d9]/30">
+          <p className="text-xs text-[#6b6b6b] font-medium">Add phone for {pendingPhoneMember.name}</p>
+          <p className="text-xs text-[#6b6b6b]">
+            We need a mobile number for every attendee. {pendingPhoneMember.email}
+          </p>
+          <PhoneInput
+            placeholder="Mobile number (required)"
+            value={phoneDraft}
+            onChange={(v) => { setPhoneDraft(v); setPhoneError(null); }}
+          />
+          {phoneError && (
+            <p className="text-xs text-[#cf5b48]">{phoneError}</p>
+          )}
+          <div className="flex gap-2">
+            <Button
+              type="button"
+              size="sm"
+              className="bg-[#8f9779] text-white hover:bg-[#7a8b6c]"
+              onClick={handlePendingPhoneSubmit}
+              disabled={!(phoneDraft ?? "").trim()}
+            >
+              Add
+            </Button>
+            <Button
+              type="button"
+              size="sm"
+              variant="ghost"
+              onClick={() => {
+                setPendingPhoneMember(null);
+                setPhoneDraft("" as PhoneValue);
+                setPhoneError(null);
               }}
             >
               Cancel
