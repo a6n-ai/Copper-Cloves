@@ -29,9 +29,11 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { EditButton, DeleteButton } from "@/components/ui/quick-actions";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
+import { InstructorPayoutLedger } from "@/components/admin/InstructorPayoutLedger";
 
 type Instructor = {
   id: string;
@@ -81,6 +83,11 @@ export default function InstructorProfilePage() {
   const [editOpen, setEditOpen] = useState(false);
   const [saving, setSaving] = useState(false);
   const [form, setForm] = useState<FormState | null>(null);
+
+  const initialTab =
+    typeof router.query.tab === "string" && router.query.tab === "payout"
+      ? "payout"
+      : "profile";
 
   const load = useCallback(async () => {
     if (!id) return;
@@ -278,116 +285,130 @@ export default function InstructorProfilePage() {
                   </div>
                 </div>
 
-                {/* About + Philosophy */}
-                <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
-                  <Card className="rounded-2xl shadow-xs">
-                    <CardHeader>
-                      <CardTitle className="font-display text-lg text-charcoal flex items-center gap-2">
-                        <UserIcon className="h-4 w-4 text-sage" />
-                        About
-                      </CardTitle>
-                    </CardHeader>
-                    <CardContent>
-                      <p className="font-body text-sm text-charcoal/75 whitespace-pre-line">
-                        {instructor.about || <span className="text-charcoal/40 italic">No bio added yet.</span>}
-                      </p>
-                    </CardContent>
-                  </Card>
-                  <Card className="rounded-2xl shadow-xs">
-                    <CardHeader>
-                      <CardTitle className="font-display text-lg text-charcoal flex items-center gap-2">
-                        <Sparkles className="h-4 w-4 text-sage" />
-                        Teaching philosophy
-                      </CardTitle>
-                    </CardHeader>
-                    <CardContent>
-                      <p className="font-body text-sm text-charcoal/75 whitespace-pre-line">
-                        {instructor.philosophy || <span className="text-charcoal/40 italic">No philosophy added yet.</span>}
-                      </p>
-                    </CardContent>
-                  </Card>
-                </div>
+                {/* Profile | Payout tabs */}
+                <Tabs defaultValue={initialTab}>
+                  <TabsList className="mb-4">
+                    <TabsTrigger value="profile" className="font-body">Profile</TabsTrigger>
+                    <TabsTrigger value="payout" className="font-body">Payout</TabsTrigger>
+                  </TabsList>
 
-                {/* Specialties + Certifications */}
-                <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
-                  <Card className="rounded-2xl shadow-xs">
-                    <CardHeader>
-                      <CardTitle className="font-display text-lg text-charcoal flex items-center gap-2">
-                        <Sparkles className="h-4 w-4 text-sage" />
-                        Specialties
-                      </CardTitle>
-                    </CardHeader>
-                    <CardContent>
-                      {(instructor.specialties?.length ?? 0) === 0 ? (
-                        <p className="font-body text-sm text-charcoal/40 italic">None added.</p>
-                      ) : (
-                        <div className="flex flex-wrap gap-1.5">
-                          {instructor.specialties.map((s) => (
-                            <Pill key={s} tone="success" className="capitalize font-body">
-                              {s}
-                            </Pill>
-                          ))}
-                        </div>
-                      )}
-                    </CardContent>
-                  </Card>
-                  <Card className="rounded-2xl shadow-xs">
-                    <CardHeader>
-                      <CardTitle className="font-display text-lg text-charcoal flex items-center gap-2">
-                        <Award className="h-4 w-4 text-sage" />
-                        Certifications
-                      </CardTitle>
-                    </CardHeader>
-                    <CardContent>
-                      {(instructor.certifications?.length ?? 0) === 0 ? (
-                        <p className="font-body text-sm text-charcoal/40 italic">None added.</p>
-                      ) : (
-                        <ul className="space-y-1.5">
-                          {instructor.certifications.map((c) => (
-                            <li key={c} className="font-body text-sm text-charcoal/75 flex items-start gap-2">
-                              <Award className="h-3.5 w-3.5 text-sage shrink-0 mt-0.5" />
-                              {c}
-                            </li>
-                          ))}
-                        </ul>
-                      )}
-                    </CardContent>
-                  </Card>
-                </div>
+                  <TabsContent value="profile" className="space-y-4">
+                    {/* About + Philosophy */}
+                    <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
+                      <Card className="rounded-2xl shadow-xs">
+                        <CardHeader>
+                          <CardTitle className="font-display text-lg text-charcoal flex items-center gap-2">
+                            <UserIcon className="h-4 w-4 text-sage" />
+                            About
+                          </CardTitle>
+                        </CardHeader>
+                        <CardContent>
+                          <p className="font-body text-sm text-charcoal/75 whitespace-pre-line">
+                            {instructor.about || <span className="text-charcoal/40 italic">No bio added yet.</span>}
+                          </p>
+                        </CardContent>
+                      </Card>
+                      <Card className="rounded-2xl shadow-xs">
+                        <CardHeader>
+                          <CardTitle className="font-display text-lg text-charcoal flex items-center gap-2">
+                            <Sparkles className="h-4 w-4 text-sage" />
+                            Teaching philosophy
+                          </CardTitle>
+                        </CardHeader>
+                        <CardContent>
+                          <p className="font-body text-sm text-charcoal/75 whitespace-pre-line">
+                            {instructor.philosophy || <span className="text-charcoal/40 italic">No philosophy added yet.</span>}
+                          </p>
+                        </CardContent>
+                      </Card>
+                    </div>
 
-                {/* Socials + Payout */}
-                <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
-                  <Card className="rounded-2xl shadow-xs">
-                    <CardHeader>
-                      <CardTitle className="font-display text-lg text-charcoal">Social</CardTitle>
-                    </CardHeader>
-                    <CardContent className="space-y-2">
-                      <SocialLine icon={LinkedinIcon} label="LinkedIn" value={instructor.social_linkedin} />
-                      <SocialLine icon={TwitterIcon} label="Twitter / X" value={instructor.social_twitter} />
-                      <SocialLine icon={FacebookIcon} label="Facebook" value={instructor.social_facebook} />
-                      <SocialLine icon={MessageCircle} label="WhatsApp" value={instructor.social_whatsapp} />
-                    </CardContent>
-                  </Card>
-                  <Card className="rounded-2xl shadow-xs">
-                    <CardHeader>
-                      <CardTitle className="font-display text-lg text-charcoal">Payout</CardTitle>
-                    </CardHeader>
-                    <CardContent>
-                      {instructor.studio_payout_cut_percent != null ? (
-                        <div className="space-y-1">
-                          <p className="font-display text-2xl text-charcoal tabular-nums">
-                            {Number(instructor.studio_payout_cut_percent).toFixed(2)}% <span className="font-body text-sm text-charcoal/55">studio cut</span>
-                          </p>
-                          <p className="font-body text-xs text-charcoal/55">
-                            Instructor receives {(100 - Number(instructor.studio_payout_cut_percent)).toFixed(2)}% of check-in revenue.
-                          </p>
-                        </div>
-                      ) : (
-                        <p className="font-body text-sm text-charcoal/40 italic">No payout split configured.</p>
-                      )}
-                    </CardContent>
-                  </Card>
-                </div>
+                    {/* Specialties + Certifications */}
+                    <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
+                      <Card className="rounded-2xl shadow-xs">
+                        <CardHeader>
+                          <CardTitle className="font-display text-lg text-charcoal flex items-center gap-2">
+                            <Sparkles className="h-4 w-4 text-sage" />
+                            Specialties
+                          </CardTitle>
+                        </CardHeader>
+                        <CardContent>
+                          {(instructor.specialties?.length ?? 0) === 0 ? (
+                            <p className="font-body text-sm text-charcoal/40 italic">None added.</p>
+                          ) : (
+                            <div className="flex flex-wrap gap-1.5">
+                              {instructor.specialties.map((s) => (
+                                <Pill key={s} tone="success" className="capitalize font-body">
+                                  {s}
+                                </Pill>
+                              ))}
+                            </div>
+                          )}
+                        </CardContent>
+                      </Card>
+                      <Card className="rounded-2xl shadow-xs">
+                        <CardHeader>
+                          <CardTitle className="font-display text-lg text-charcoal flex items-center gap-2">
+                            <Award className="h-4 w-4 text-sage" />
+                            Certifications
+                          </CardTitle>
+                        </CardHeader>
+                        <CardContent>
+                          {(instructor.certifications?.length ?? 0) === 0 ? (
+                            <p className="font-body text-sm text-charcoal/40 italic">None added.</p>
+                          ) : (
+                            <ul className="space-y-1.5">
+                              {instructor.certifications.map((c) => (
+                                <li key={c} className="font-body text-sm text-charcoal/75 flex items-start gap-2">
+                                  <Award className="h-3.5 w-3.5 text-sage shrink-0 mt-0.5" />
+                                  {c}
+                                </li>
+                              ))}
+                            </ul>
+                          )}
+                        </CardContent>
+                      </Card>
+                    </div>
+
+                    {/* Socials + Payout split */}
+                    <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
+                      <Card className="rounded-2xl shadow-xs">
+                        <CardHeader>
+                          <CardTitle className="font-display text-lg text-charcoal">Social</CardTitle>
+                        </CardHeader>
+                        <CardContent className="space-y-2">
+                          <SocialLine icon={LinkedinIcon} label="LinkedIn" value={instructor.social_linkedin} />
+                          <SocialLine icon={TwitterIcon} label="Twitter / X" value={instructor.social_twitter} />
+                          <SocialLine icon={FacebookIcon} label="Facebook" value={instructor.social_facebook} />
+                          <SocialLine icon={MessageCircle} label="WhatsApp" value={instructor.social_whatsapp} />
+                        </CardContent>
+                      </Card>
+                      <Card className="rounded-2xl shadow-xs">
+                        <CardHeader>
+                          <CardTitle className="font-display text-lg text-charcoal">Payout split</CardTitle>
+                        </CardHeader>
+                        <CardContent>
+                          {instructor.studio_payout_cut_percent != null ? (
+                            <div className="space-y-1">
+                              <p className="font-display text-2xl text-charcoal tabular-nums">
+                                {Number(instructor.studio_payout_cut_percent).toFixed(2)}% <span className="font-body text-sm text-charcoal/55">studio cut</span>
+                              </p>
+                              <p className="font-body text-xs text-charcoal/55">
+                                Instructor receives {(100 - Number(instructor.studio_payout_cut_percent)).toFixed(2)}% of check-in revenue.
+                              </p>
+                            </div>
+                          ) : (
+                            <p className="font-body text-sm text-charcoal/40 italic">No payout split configured.</p>
+                          )}
+                        </CardContent>
+                      </Card>
+                    </div>
+                  </TabsContent>
+
+                  <TabsContent value="payout">
+                    {id ? <InstructorPayoutLedger instructorId={id} /> : null}
+                  </TabsContent>
+                </Tabs>
               </>
             )}
           </div>

@@ -1,0 +1,531 @@
+import { useCallback, useEffect, useState } from "react";
+import { format } from "date-fns";
+import { toast } from "sonner";
+import { Loader2, ChevronDown, ChevronUp } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
+import { Pill } from "@/components/ui/pill";
+import { ResponsiveTable } from "@/components/responsive/ResponsiveTable";
+
+// ── money helpers ─────────────────────────────────────────────────────────────
+const r = (paise: number) =>
+  "₹" + (paise / 100).toLocaleString("en-IN", { maximumFractionDigits: 2 });
+
+const toRupeesStr = (paise: number | null | undefined): string =>
+  paise == null ? "" : String(paise / 100);
+
+const toInt = (rupeesStr: string): number | null => {
+  const v = parseFloat(rupeesStr.trim());
+  if (!Number.isFinite(v)) return null;
+  return Math.round(v * 100);
+};
+
+// ── API shape ─────────────────────────────────────────────────────────────────
+type RateOverride = {
+  rate_12_paise: number | null;
+  rate_8_paise: number | null;
+  rate_4_paise: number | null;
+  rate_1_paise: number | null;
+};
+
+type DetailResponse = {
+  instructor: {
+    id: string;
+    name: string;
+    imageUrl: string | null;
+    specialties: string[];
+    studioCutPercent: number;
+    rateOverride: RateOverride;
+  };
+  window: string;
+  periodKey: string;
+  periodStart: string;
+  periodEnd: string;
+  lineItems: Array<{
+    scheduleId: string;
+    date: string;
+    startTime: string;
+    endTime: string;
+    className: string;
+    member: string;
+    membershipType: string;
+    count: number;
+  }>;
+  footer: {
+    gstPercent: number;
+    instructorPct: number;
+    rateCard: { rate12: number; rate8: number; rate4: number; rate1: number };
+    netBreakdown: { net12: number; net8: number; net4: number; net1: number };
+    averageNetPaise: number;
+    autoBlendedRatePaise: number;
+    overrideBlendedRatePaise: number | null;
+    blendedRatePaise: number;
+    payableUnits: number;
+    computedPayableUnits: number;
+    extraPayableUnits: number;
+    totalPaise: number;
+    overridePayoutPaise: number | null;
+    status: "paid" | "pending";
+    paidAt: string | null;
+  };
+};
+
+type Win = "week" | "month" | "quarter" | "all";
+
+const WIN_OPTIONS: { value: Win; label: string }[] = [
+  { value: "week", label: "This week" },
+  { value: "month", label: "This month" },
+  { value: "quarter", label: "This quarter" },
+  { value: "all", label: "All time" },
+];
+
+// ── small sub-components ──────────────────────────────────────────────────────
+function Metric({ label, value }: { label: string; value: string }) {
+  return (
+    <div className="flex items-center justify-between py-1.5 font-body text-sm">
+      <span className="text-charcoal/60">{label}</span>
+      <span className="tabular-nums text-charcoal font-medium">{value}</span>
+    </div>
+  );
+}
+
+function RateRow({
+  label,
+  rateCardPaise,
+  gstPercent,
+  netPaise,
+}: {
+  label: string;
+  rateCardPaise: number;
+  gstPercent: number;
+  netPaise: number;
+}) {
+  const perClass = rateCardPaise / 100;
+  const withoutGst = perClass / (1 + gstPercent / 100);
+  return (
+    <TableRow>
+      <TableCell className="font-body text-sm text-charcoal/80">{label}</TableCell>
+      <TableCell className="font-body text-sm text-charcoal/80 tabular-nums text-right">
+        {r(rateCardPaise)}
+      </TableCell>
+      <TableCell className="font-body text-sm text-charcoal/60 tabular-nums text-right">
+        ₹{perClass.toLocaleString("en-IN", { maximumFractionDigits: 2 })}
+      </TableCell>
+      <TableCell className="font-body text-sm text-charcoal/60 tabular-nums text-right">
+        ₹{withoutGst.toLocaleString("en-IN", { maximumFractionDigits: 2 })}
+      </TableCell>
+      <TableCell className="font-body text-sm font-medium text-charcoal tabular-nums text-right">
+        {r(netPaise)}
+      </TableCell>
+    </TableRow>
+  );
+}
+
+// ── main component ────────────────────────────────────────────────────────────
+export function InstructorPayoutLedger({ instructorId }: { instructorId: string }) {
+  const [win, setWin] = useState<Win>("month");
+  const [data, setData] = useState<DetailResponse | null>(null);
+  const [loading, setLoading] = useState(false);
+  const [saving, setSaving] = useState(false);
+
+  // blended rate override input (₹ string)
+  const [blendedInput, setBlendedInput] = useState("");
+  // per-instructor rate override inputs (₹ strings)
+  const [rates, setRates] = useState({ r12: "", r8: "", r4: "", r1: "" });
+  // collapse state for rate overrides card
+  const [ratesOpen, setRatesOpen] = useState(false);
+
+  const load = useCallback(async () => {
+    if (!instructorId) return;
+    setLoading(true);
+    try {
+      const res = await fetch(
+        `/api/admin/instructor-payout-detail?instructorId=${encodeURIComponent(instructorId)}&window=${win}`,
+      );
+      if (!res.ok) {
+        toast.error("Failed to load payout detail");
+        return;
+      }
+      const d: DetailResponse = await res.json();
+      setData(d);
+      setBlendedInput(
+        d.footer.overrideBlendedRatePaise != null
+          ? toRupeesStr(d.footer.overrideBlendedRatePaise)
+          : "",
+      );
+      setRates({
+        r12: toRupeesStr(d.instructor.rateOverride.rate_12_paise),
+        r8: toRupeesStr(d.instructor.rateOverride.rate_8_paise),
+        r4: toRupeesStr(d.instructor.rateOverride.rate_4_paise),
+        r1: toRupeesStr(d.instructor.rateOverride.rate_1_paise),
+      });
+    } catch {
+      toast.error("Network error loading payout detail");
+    } finally {
+      setLoading(false);
+    }
+  }, [instructorId, win]);
+
+  useEffect(() => {
+    void load();
+  }, [load]);
+
+  async function saveBlendedRate() {
+    if (!data) return;
+    const override =
+      blendedInput.trim() === "" ? null : toInt(blendedInput);
+    if (blendedInput.trim() !== "" && override === null) {
+      toast.error("Enter a valid ₹ amount");
+      return;
+    }
+    setSaving(true);
+    try {
+      const res = await fetch("/api/admin/instructor-payout-adjustment", {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          instructorId,
+          window: win,
+          override_blended_rate_paise: override,
+        }),
+      });
+      if (!res.ok) {
+        const d = await res.json().catch(() => ({}));
+        toast.error(d.error ?? "Save failed");
+        return;
+      }
+      toast.success(override == null ? "Blended rate override cleared" : "Blended rate saved");
+      await load();
+    } finally {
+      setSaving(false);
+    }
+  }
+
+  async function saveRates() {
+    if (!data) return;
+    setSaving(true);
+    try {
+      const res = await fetch("/api/admin/instructors", {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          id: instructorId,
+          rate_12_paise: toInt(rates.r12),
+          rate_8_paise: toInt(rates.r8),
+          rate_4_paise: toInt(rates.r4),
+          rate_1_paise: toInt(rates.r1),
+        }),
+      });
+      if (!res.ok) {
+        const d = await res.json().catch(() => ({}));
+        toast.error(d.error ?? "Save failed");
+        return;
+      }
+      toast.success("Rate overrides saved");
+      await load();
+    } finally {
+      setSaving(false);
+    }
+  }
+
+  async function markPaid() {
+    if (!data) return;
+    const isPaid = data.footer.status === "paid";
+    setSaving(true);
+    try {
+      const body: Record<string, unknown> = {
+        instructorId,
+        window: win,
+        paid: !isPaid,
+      };
+      if (!isPaid) {
+        body.blended_rate_paise = data.footer.blendedRatePaise;
+        body.payout_paise = data.footer.totalPaise;
+      }
+      const res = await fetch("/api/admin/instructor-payout-adjustment", {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(body),
+      });
+      if (!res.ok) {
+        const d = await res.json().catch(() => ({}));
+        toast.error(d.error ?? "Save failed");
+        return;
+      }
+      toast.success(isPaid ? "Marked unpaid" : "Marked paid");
+      await load();
+    } finally {
+      setSaving(false);
+    }
+  }
+
+  const isPaid = data?.footer.status === "paid";
+
+  return (
+    <div className="space-y-5">
+      {/* Controls row */}
+      <div className="flex flex-wrap items-center gap-3">
+        <Select value={win} onValueChange={(v) => setWin(v as Win)}>
+          <SelectTrigger className="w-40 border-[#e5e4dc] font-body text-sm">
+            <SelectValue />
+          </SelectTrigger>
+          <SelectContent>
+            {WIN_OPTIONS.map((o) => (
+              <SelectItem key={o.value} value={o.value} className="font-body text-sm">
+                {o.label}
+              </SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
+
+        {data && (
+          <Pill tone={isPaid ? "success" : "warning"}>
+            {isPaid
+              ? `Paid${data.footer.paidAt ? " · " + format(new Date(data.footer.paidAt), "dd MMM yyyy") : ""}`
+              : "Pending"}
+          </Pill>
+        )}
+
+        {loading && <Loader2 className="h-4 w-4 animate-spin text-charcoal/40" />}
+      </div>
+
+      {/* Excel table */}
+      {data && (
+        <>
+          <div className="rounded-xl border border-[#e5e4dc] bg-white-warm overflow-hidden">
+            <ResponsiveTable>
+              <Table>
+                <TableHeader>
+                  <TableRow>
+                    <TableHead className="font-body text-xs text-charcoal/60 uppercase tracking-wide">Class</TableHead>
+                    <TableHead className="font-body text-xs text-charcoal/60 uppercase tracking-wide">Date</TableHead>
+                    <TableHead className="font-body text-xs text-charcoal/60 uppercase tracking-wide">Start</TableHead>
+                    <TableHead className="font-body text-xs text-charcoal/60 uppercase tracking-wide">End</TableHead>
+                    <TableHead className="font-body text-xs text-charcoal/60 uppercase tracking-wide">Member</TableHead>
+                    <TableHead className="font-body text-xs text-charcoal/60 uppercase tracking-wide">Membership type</TableHead>
+                    <TableHead className="font-body text-xs text-charcoal/60 uppercase tracking-wide text-right">Count</TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  {data.lineItems.length === 0 ? (
+                    <TableRow>
+                      <TableCell colSpan={7} className="py-10 text-center font-body text-sm text-charcoal/40 italic">
+                        No classes in this period
+                      </TableCell>
+                    </TableRow>
+                  ) : (
+                    data.lineItems.map((item, i) => (
+                      <TableRow key={`${item.scheduleId}-${item.member}-${i}`}>
+                        <TableCell className="font-body text-sm text-charcoal font-medium">{item.className}</TableCell>
+                        <TableCell className="font-body text-sm text-charcoal/70 tabular-nums whitespace-nowrap">
+                          {format(new Date(item.date), "dd MMM")}
+                        </TableCell>
+                        <TableCell className="font-body text-sm text-charcoal/70 tabular-nums whitespace-nowrap">
+                          {format(new Date(item.startTime), "HH:mm")}
+                        </TableCell>
+                        <TableCell className="font-body text-sm text-charcoal/70 tabular-nums whitespace-nowrap">
+                          {format(new Date(item.endTime), "HH:mm")}
+                        </TableCell>
+                        <TableCell className="font-body text-sm text-charcoal/80">{item.member}</TableCell>
+                        <TableCell className="font-body text-sm text-charcoal/60">{item.membershipType}</TableCell>
+                        <TableCell className="font-body text-sm text-charcoal/80 tabular-nums text-right">{item.count}</TableCell>
+                      </TableRow>
+                    ))
+                  )}
+                </TableBody>
+              </Table>
+            </ResponsiveTable>
+          </div>
+
+          {/* Rate-card footer block */}
+          <div className="rounded-xl border border-[#e5e4dc] bg-white-warm overflow-hidden">
+            <div className="px-5 py-3 border-b border-[#e5e4dc]">
+              <h3 className="font-display text-base text-charcoal">Rate card &amp; payout</h3>
+            </div>
+            <div className="p-5 space-y-5">
+              {/* Rate-card table */}
+              <ResponsiveTable>
+                <Table>
+                  <TableHeader>
+                    <TableRow>
+                      <TableHead className="font-body text-xs text-charcoal/60 uppercase tracking-wide">Classes</TableHead>
+                      <TableHead className="font-body text-xs text-charcoal/60 uppercase tracking-wide text-right">Rate (₹)</TableHead>
+                      <TableHead className="font-body text-xs text-charcoal/60 uppercase tracking-wide text-right">Per-class</TableHead>
+                      <TableHead className="font-body text-xs text-charcoal/60 uppercase tracking-wide text-right">Without GST</TableHead>
+                      <TableHead className="font-body text-xs text-charcoal/60 uppercase tracking-wide text-right">
+                        Net @ {data.footer.instructorPct}%
+                      </TableHead>
+                    </TableRow>
+                  </TableHeader>
+                  <TableBody>
+                    <RateRow
+                      label="12-class pack"
+                      rateCardPaise={data.footer.rateCard.rate12}
+                      gstPercent={data.footer.gstPercent}
+                      netPaise={data.footer.netBreakdown.net12}
+                    />
+                    <RateRow
+                      label="8-class pack"
+                      rateCardPaise={data.footer.rateCard.rate8}
+                      gstPercent={data.footer.gstPercent}
+                      netPaise={data.footer.netBreakdown.net8}
+                    />
+                    <RateRow
+                      label="4-class pack"
+                      rateCardPaise={data.footer.rateCard.rate4}
+                      gstPercent={data.footer.gstPercent}
+                      netPaise={data.footer.netBreakdown.net4}
+                    />
+                    <RateRow
+                      label="1-class (drop-in)"
+                      rateCardPaise={data.footer.rateCard.rate1}
+                      gstPercent={data.footer.gstPercent}
+                      netPaise={data.footer.netBreakdown.net1}
+                    />
+                  </TableBody>
+                </Table>
+              </ResponsiveTable>
+
+              {/* Summary lines */}
+              <div className="rounded-lg border border-[#e5e4dc] bg-cream/30 px-4 py-2 divide-y divide-[#e5e4dc]">
+                <Metric label="Average net rate" value={r(data.footer.averageNetPaise)} />
+
+                {/* Blended rate editable row */}
+                <div className="flex flex-wrap items-center gap-3 py-2">
+                  <span className="font-body text-sm text-charcoal/60 shrink-0">
+                    Weighted / blended rate
+                  </span>
+                  <div className="flex items-center gap-2 flex-1 min-w-0">
+                    <Input
+                      type="number"
+                      step="0.01"
+                      value={blendedInput}
+                      onChange={(e) => setBlendedInput(e.target.value)}
+                      placeholder={r(data.footer.autoBlendedRatePaise)}
+                      disabled={isPaid || saving}
+                      className="w-36 border-[#e5e4dc] font-body text-sm h-8"
+                    />
+                    <Button
+                      type="button"
+                      variant="outline"
+                      size="sm"
+                      disabled={isPaid || saving}
+                      onClick={() => void saveBlendedRate()}
+                      className="h-8 border-sage/30 text-sage hover:bg-sage/5 font-body text-xs"
+                    >
+                      Save rate
+                    </Button>
+                    {blendedInput.trim() !== "" && (
+                      <button
+                        type="button"
+                        className="font-body text-xs text-charcoal/40 hover:text-terracotta underline"
+                        disabled={isPaid || saving}
+                        onClick={() => { setBlendedInput(""); void saveBlendedRate(); }}
+                      >
+                        Clear
+                      </button>
+                    )}
+                  </div>
+                </div>
+
+                <Metric
+                  label="Payable units (count)"
+                  value={String(data.footer.payableUnits)}
+                />
+                <div className="flex items-center justify-between py-2">
+                  <span className="font-display text-lg text-charcoal">Total</span>
+                  <span className="font-display text-2xl text-charcoal tabular-nums">
+                    {r(data.footer.totalPaise)}
+                  </span>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          {/* Per-instructor rate overrides */}
+          <div className="rounded-xl border border-[#e5e4dc] bg-white-warm overflow-hidden">
+            <button
+              type="button"
+              className="w-full flex items-center justify-between px-5 py-3 border-b border-[#e5e4dc] hover:bg-cream/40 transition-colors"
+              onClick={() => setRatesOpen((o) => !o)}
+            >
+              <h3 className="font-display text-base text-charcoal">
+                Per-instructor rate overrides
+                <span className="ml-2 font-body text-xs text-charcoal/45 font-normal">— blank = studio default</span>
+              </h3>
+              {ratesOpen ? (
+                <ChevronUp className="h-4 w-4 text-charcoal/40" />
+              ) : (
+                <ChevronDown className="h-4 w-4 text-charcoal/40" />
+              )}
+            </button>
+
+            {ratesOpen && (
+              <div className="p-5 space-y-4">
+                <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+                  {(
+                    [
+                      { key: "r12" as const, label: "12-class (₹)" },
+                      { key: "r8" as const, label: "8-class (₹)" },
+                      { key: "r4" as const, label: "4-class (₹)" },
+                      { key: "r1" as const, label: "1-class / drop-in (₹)" },
+                    ] as const
+                  ).map(({ key, label }) => (
+                    <div key={key} className="space-y-1.5">
+                      <Label className="font-body text-xs text-charcoal/60">{label}</Label>
+                      <Input
+                        type="number"
+                        step="0.01"
+                        placeholder="Studio default"
+                        value={rates[key]}
+                        onChange={(e) => setRates((prev) => ({ ...prev, [key]: e.target.value }))}
+                        disabled={saving}
+                        className="border-[#e5e4dc] font-body text-sm h-9"
+                      />
+                    </div>
+                  ))}
+                </div>
+                <Button
+                  type="button"
+                  variant="outline"
+                  size="sm"
+                  onClick={() => void saveRates()}
+                  disabled={saving}
+                  className="border-sage/30 text-sage hover:bg-sage/5 font-body"
+                >
+                  {saving ? <Loader2 className="h-3.5 w-3.5 mr-1.5 animate-spin" /> : null}
+                  Save overrides
+                </Button>
+              </div>
+            )}
+          </div>
+
+          {/* Mark paid / unpaid */}
+          <div className="flex justify-end">
+            <Button
+              type="button"
+              variant={isPaid ? "outline" : "sage"}
+              disabled={saving}
+              onClick={() => void markPaid()}
+              className={isPaid ? "border-sage/30 text-charcoal/70 font-body" : "font-body"}
+            >
+              {saving && <Loader2 className="h-4 w-4 mr-2 animate-spin" />}
+              {isPaid ? "Mark unpaid" : "Mark paid"}
+            </Button>
+          </div>
+        </>
+      )}
+
+      {!loading && !data && (
+        <div className="py-16 text-center font-body text-sm text-charcoal/40">
+          Could not load payout detail.
+        </div>
+      )}
+    </div>
+  );
+}
+
+export default InstructorPayoutLedger;

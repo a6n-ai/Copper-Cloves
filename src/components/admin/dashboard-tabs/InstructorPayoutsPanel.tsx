@@ -1,4 +1,5 @@
 import { memo, useCallback, useEffect, useMemo, useState } from "react";
+import { useRouter } from "next/router";
 import { CalendarDays, CheckCircle2, Clock, DollarSign, Download, Loader2, Pencil, Settings, TrendingUp, User, Wallet } from "lucide-react";
 import { toast } from "sonner";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -86,6 +87,7 @@ function csvEsc(v: string | number | null | undefined): string {
 }
 
 function InstructorPayoutsPanelImpl() {
+  const router = useRouter();
   const [rows, setRows] = useState<PayoutRow[]>([]);
   const [summary, setSummary] = useState<PayoutSummary>(EMPTY_SUMMARY);
   const [loading, setLoading] = useState(true);
@@ -352,7 +354,11 @@ function InstructorPayoutsPanelImpl() {
                     </TableHeader>
                     <TableBody>
                       {pg.pageItems.map((r) => (
-                        <TableRow key={r.instructorId}>
+                        <TableRow
+                          key={r.instructorId}
+                          className="cursor-pointer hover:bg-sage/5"
+                          onClick={() => void router.push(`/admin/instructors/${r.instructorId}?tab=payout`)}
+                        >
                           <TableCell>
                             <div className="flex items-center gap-3 min-w-0">
                               <ListAvatar src={r.imageUrl} name={r.name} size="md" />
@@ -387,7 +393,7 @@ function InstructorPayoutsPanelImpl() {
                                   variant="outline"
                                   size="sm"
                                   className="border-sage/25 text-charcoal/60 hover:bg-sage/5 font-body hover:text-charcoal!"
-                                  onClick={() => { setConfirmRecord(true); setConfirm({ row: r, paid: false }); }}
+                                  onClick={(e) => { e.stopPropagation(); setConfirmRecord(true); setConfirm({ row: r, paid: false }); }}
                                 >
                                   Mark unpaid
                                 </Button>
@@ -397,14 +403,14 @@ function InstructorPayoutsPanelImpl() {
                                   variant="outline"
                                   size="sm"
                                   className="h-8 w-8 p-0 border-terracotta/30 text-[#a05e38] hover:bg-terracotta/10 hover:text-[#a05e38]!"
-                                  onClick={() => { setConfirmRecord(true); setConfirm({ row: r, paid: true }); }}
+                                  onClick={(e) => { e.stopPropagation(); setConfirmRecord(true); setConfirm({ row: r, paid: true }); }}
                                   title="Move to expense"
                                   aria-label="Move to expense"
                                 >
                                   <Wallet className="h-4 w-4" />
                                 </Button>
                               )}
-                              <Button type="button" variant="ghost" size="sm" className="h-8 w-8 p-0 text-charcoal/40 hover:text-sage hover:bg-sage/10" onClick={() => openEdit(r)} aria-label="Edit adjustment">
+                              <Button type="button" variant="ghost" size="sm" className="h-8 w-8 p-0 text-charcoal/40 hover:text-sage hover:bg-sage/10" onClick={(e) => { e.stopPropagation(); openEdit(r); }} aria-label="Edit adjustment">
                                 <Pencil className="h-4 w-4" />
                               </Button>
                             </div>
