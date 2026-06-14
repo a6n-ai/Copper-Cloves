@@ -38,14 +38,24 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   if (intent === "booking" && !classScheduleId) return res.status(400).json({ error: "classScheduleId required for booking intent" });
   if (intent === "package" && !packageTypeId) return res.status(400).json({ error: "packageTypeId required for package intent" });
 
-  // Idempotent: don't double-import the same Razorpay payment
-  const existing = await prisma.payment.findFirst({ where: { reference: paymentId } });
-  if (existing) return res.status(409).json({ error: "Payment already imported.", existingId: existing.id });
-
-  const existingByRzpId = await prisma.payment.findUnique({ where: { razorpay_payment_id: paymentId } });
-  if (existingByRzpId) return res.status(409).json({ error: "Payment already recorded via online flow.", existingId: existingByRzpId.id });
-
   const adminId = (session.user as { id: string }).id;
+
+  // Already reconciled? Don't re-import — just ensure it's recorded as done in the
+  // saved log (so it drops out of the live tab), then no-op.
+  const already =
+    (await prisma.payment.findFirst({ where: { reference: paymentId } })) ??
+    (await prisma.payment.findUnique({ where: { razorpay_payment_id: paymentId } }));
+  if (already) {
+    await upsertReconcileStatus({
+      razorpayPaymentId: paymentId,
+      status: "done",
+      amountPaise: already.amount_paise,
+      paymentId: already.id,
+      resolvedBy: adminId,
+    }).catch((e) => logger.error({ err: e }, "[import-payment] reconcile-status upsert (already) failed"));
+    return res.status(200).json({ alreadyDone: true, paymentId: already.id, addedToLog: true });
+  }
+
   const paymentCreatedAt = new Date(createdAtISO);
 
   try {

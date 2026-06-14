@@ -405,7 +405,7 @@ function ImportDialog({ row, onClose, onImported }: { row: ReconRow; onClose: ()
         toast.error(data.error ?? "Import failed.");
         return;
       }
-      toast.success("Payment imported successfully.");
+      toast.success(data.alreadyDone ? "Already reconciled — added to log." : "Payment imported successfully.");
       onImported(row.paymentId);
       onClose();
     } finally {
