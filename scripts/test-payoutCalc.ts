@@ -6,7 +6,11 @@ import {
   payoutForUnits,
   instructorPctFrom,
   resolveRateCard,
+  payableForSchedule,
+  PAYABLE_BASES,
+  PAYOUT_ELIGIBLE_STATUSES,
   type RateCard,
+  type PayableBasis,
 } from "../src/lib/payoutCalc";
 
 const near = (got: number, want: number, tol = 1) =>
@@ -36,6 +40,24 @@ const resolved = resolveRateCard(
 );
 assert.equal(resolved.rate12, 900000);
 assert.equal(resolved.rate8, 601500);
+
+// --- payableForSchedule basis tests ---
+const sStart = new Date("2026-06-02T13:00:00Z");
+const sRows = [
+  { status: "confirmed", checked_in: true, cancellation_date: null, check_in_outcome: "on_time" },
+  { status: "confirmed", checked_in: true, cancellation_date: null, check_in_outcome: "late" },
+  { status: "confirmed", checked_in: false, cancellation_date: null, check_in_outcome: "no_show" },
+  { status: "cancelled", checked_in: false, cancellation_date: new Date("2026-06-01T00:00:00Z"), check_in_outcome: null },
+];
+assert.equal(payableForSchedule(sRows, sStart, "on_time", "all_booked"), 3); // 3 non-timely-cancel rows
+assert.equal(payableForSchedule(sRows, sStart, "on_time", "checked_in"), 2); // on_time + late
+assert.equal(payableForSchedule(sRows, sStart, "on_time", "per_class"), 1);
+assert.equal(payableForSchedule([], sStart, "absent", "per_class"), 1);
+assert.equal(payableForSchedule([], sStart, "on_time", "all_booked"), 1); // floor
+assert.equal(payableForSchedule([], sStart, "on_time", "checked_in"), 0); // no floor
+assert.equal(payableForSchedule(sRows, sStart, "on_time"), 3); // default basis = all_booked
+assert.deepEqual(PAYABLE_BASES, ["all_booked", "checked_in", "per_class"]);
+assert.deepEqual([...PAYOUT_ELIGIBLE_STATUSES], ["started", "completed"]);
 
 console.log("payoutCalc tests passed");
 process.exit(0);

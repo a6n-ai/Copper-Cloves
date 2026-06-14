@@ -20,6 +20,10 @@ export const SIX_HOURS_MS = 6 * 60 * 60 * 1000;
 
 export type PayoutWindow = "week" | "month" | "quarter" | "all";
 
+export type PayableBasis = "all_booked" | "checked_in" | "per_class";
+export const PAYABLE_BASES: PayableBasis[] = ["all_booked", "checked_in", "per_class"];
+export const PAYOUT_ELIGIBLE_STATUSES = ["started", "completed"] as const;
+
 export interface RateCard {
   rate12: number; // paise
   rate8: number;
@@ -39,6 +43,7 @@ export interface BookingRow {
   status: string;
   checked_in: boolean;
   cancellation_date: Date | null;
+  check_in_outcome?: string | null;
 }
 
 export function isPayable(b: BookingRow, startTime: Date): boolean {
@@ -50,11 +55,20 @@ export function isPayable(b: BookingRow, startTime: Date): boolean {
   return true;
 }
 
+/** Per-schedule payable count for the configured basis. */
 export function payableForSchedule(
   bookings: BookingRow[],
   startTime: Date,
   instructorCheckInOutcome: string | null | undefined,
+  basis: PayableBasis = "all_booked",
 ): number {
+  if (basis === "per_class") return 1;
+  if (basis === "checked_in") {
+    return bookings.filter(
+      (b) => b.check_in_outcome === "on_time" || b.check_in_outcome === "late",
+    ).length;
+  }
+  // all_booked (default)
   const base = bookings.filter((b) => isPayable(b, startTime)).length;
   if (base === 0 && instructorCheckInOutcome === "on_time") return 1;
   return base;
