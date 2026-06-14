@@ -135,7 +135,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     const idFilter = paymentIds.length ? paymentIds : ["__none__"];
 
     // 2. Website-side rows for the month + any referenced by the gateway payments.
-    const [dbPayments, dbOrders, importedPayments] = await Promise.all([
+    const [dbPayments, dbOrders, importedPayments, reconciles] = await Promise.all([
       prisma.razorpayPayment.findMany({
         where: {
           OR: [
@@ -168,7 +168,14 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         },
         select: { reference: true, razorpay_payment_id: true, status: true, amount_paise: true },
       }),
+      // Saved reconcile decisions — these payments are "handled" and drop out of
+      // the live tab (they show in the saved log instead).
+      prisma.paymentReconcile.findMany({
+        where: { razorpay_payment_id: { in: idFilter } },
+        select: { razorpay_payment_id: true },
+      }),
     ]);
+    const handledPayIds = new Set(reconciles.map((r) => r.razorpay_payment_id));
 
     const dbByPaymentId = new Map(dbPayments.map((d) => [d.razorpay_payment_id, d]));
     const websiteOrderIds = new Set(dbOrders.map((o) => o.razorpay_order_id));
@@ -185,6 +192,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
     // 3. Classify each Razorpay payment.
     for (const p of rzpPayments) {
+      if (handledPayIds.has(p.id)) continue; // handled → lives in the saved log, not here
       const db = dbByPaymentId.get(p.id);
       const imported = importedByPayId.get(p.id);
       const { str: notesStr, hasWebsiteKeys } = notesToString(p.notes);

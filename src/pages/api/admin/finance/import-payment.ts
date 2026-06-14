@@ -1,4 +1,5 @@
 import type { NextApiRequest, NextApiResponse } from "next";
+import { upsertReconcileStatus } from "@/lib/reconcileStatus";
 import prisma from "@/lib/prisma";
 import { getStudioServerSession } from "@/lib/getStudioServerSession";
 import { ensureAdmin } from "@/lib/requireAdmin";
@@ -132,6 +133,15 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
       return { payment, bookingId, userPackageId, newBooking };
     });
+
+    // Persist reconcile status = done so this payment leaves the live reconcile tab.
+    await upsertReconcileStatus({
+      razorpayPaymentId: paymentId,
+      status: "done",
+      amountPaise,
+      paymentId: result.payment.id,
+      resolvedBy: adminId,
+    }).catch((e) => logger.error({ err: e }, "[import-payment] reconcile-status upsert failed"));
 
     // Send booking confirmation only for newly created bookings (not pre-existing ones)
     if (intent === "booking" && result.bookingId && result.newBooking) {
