@@ -8,6 +8,7 @@ export interface ResolvedPayoutSettings {
   rate1: number;
   gstPercent: number;
   defaultStudioCutPercent: number;
+  payableBasis: string;
 }
 
 /** Code-level fallback used only if the singleton row is missing (matches seed). */
@@ -18,6 +19,7 @@ export const PAYOUT_SETTINGS_DEFAULTS: ResolvedPayoutSettings = {
   rate1: 83500,
   gstPercent: 5,
   defaultStudioCutPercent: 40,
+  payableBasis: "all_booked",
 };
 
 export const PAYOUT_SETTINGS_ID = "default";
@@ -33,5 +35,6 @@ export async function getPayoutSettings(): Promise<ResolvedPayoutSettings> {
     rate1: row.rate_1_paise,
     gstPercent: Number(row.gst_percent),
     defaultStudioCutPercent: Number(row.default_studio_cut_percent),
+    payableBasis: row.payable_basis ?? "all_booked",
   };
 }
