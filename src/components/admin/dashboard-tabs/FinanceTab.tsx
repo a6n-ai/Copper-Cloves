@@ -990,6 +990,7 @@ function FinanceTransactionsSectionImpl({
                 value={transactionFilter}
                 onChange={setTransactionFilter}
                 icon={ArrowUpDown}
+                className="sm:w-full"
                 options={[
                   { value: "all", label: "All Transactions" },
                   { value: "credit", label: "💰 Credits Only" },
@@ -1011,6 +1012,7 @@ function FinanceTransactionsSectionImpl({
                 value={transactionType}
                 onChange={setTransactionType}
                 icon={Filter}
+                className="sm:w-full"
                 options={[
                   { value: "all", label: "All Categories" },
                   { value: "packages", label: "Package Purchases" },

@@ -285,6 +285,7 @@ function FinanceLedgerSectionImpl() {
                 value={dir}
                 onChange={(v) => setDir(v as DirFilter)}
                 icon={ArrowUpDown}
+                className="sm:w-full"
                 options={[
                   { value: "all", label: "All" },
                   { value: "credit", label: "💰 Credit (in)" },
@@ -302,6 +303,7 @@ function FinanceLedgerSectionImpl() {
                 value={category}
                 onChange={setCategory}
                 icon={Filter}
+                className="sm:w-full"
                 options={[
                   { value: "all", label: "All Categories" },
                   ...categoryOptions.map((c) => ({ value: c, label: c })),
@@ -338,6 +340,7 @@ function FinanceLedgerSectionImpl() {
                 value={source}
                 onChange={(v) => setSource(v as SourceFilter)}
                 icon={Database}
+                className="sm:w-full"
                 options={[
                   { value: "all", label: "All Sources" },
                   { value: "manual", label: "Manual expenses only" },

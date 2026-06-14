@@ -1088,52 +1088,6 @@ function ReconcileSectionImpl() {
 
   return (
     <div className="space-y-6">
-      <LookupCard />
-
-      {/* Control bar */}
-      <Card className="border-sage/20 bg-white-warm">
-        <CardHeader>
-          <div className="flex flex-wrap items-end justify-between gap-4">
-            <div>
-              <CardTitle className="font-display text-2xl text-charcoal">Razorpay reconciliation</CardTitle>
-              <CardDescription className="font-body text-charcoal/60">
-                Pull every Razorpay payment for a date range and match it against what the website recorded
-              </CardDescription>
-            </div>
-            <div className="flex flex-wrap items-end gap-3">
-              <div className="space-y-1.5">
-                <Label className="font-body text-xs text-charcoal/60">Date range</Label>
-                <FilterDateRange
-                  value={dateRange}
-                  onChange={setDateRange}
-                  placeholder="This month"
-                  className="h-10 w-full sm:w-56"
-                />
-              </div>
-              <Button type="button" variant="sage" className="h-10" onClick={runCorrelation} disabled={loading}>
-                {loading ? <Loader2 className="h-4 w-4 mr-2 animate-spin" /> : <ScanSearch className="h-4 w-4 mr-2" />}
-                {loading ? "Correlating…" : "Correlate"}
-              </Button>
-              {data && (
-                <Button type="button" variant="outline" className="h-10 border-sage/20 text-sage hover:bg-sage/5 hover:text-sage!" onClick={() => downloadCsv(data.rows, data.month)}>
-                  <Download className="h-4 w-4 mr-2" />
-                  CSV
-                </Button>
-              )}
-            </div>
-          </div>
-        </CardHeader>
-      </Card>
-
-      {!data && !loading && (
-        <Card className="border-sage/20 bg-white-warm">
-          <CardContent className="py-16 text-center">
-            <RefreshCw className="h-12 w-12 text-charcoal/15 mx-auto mb-3" />
-            <p className="font-body text-charcoal/60">Pick a month and hit Correlate to pull Razorpay and match it to the website.</p>
-          </CardContent>
-        </Card>
-      )}
-
       {/* Summary — always visible; values are 0 until a correlation runs. */}
       <div className="grid grid-cols-2 md:grid-cols-4 gap-3 sm:gap-4">
         <MetricCard label="Razorpay captured" value={capturedInr} prefix="₹" icon={Landmark} tone="sage" />
@@ -1148,6 +1102,54 @@ function ReconcileSectionImpl() {
         />
         <MetricCard label="Issues" value={issuesCount} icon={AlertTriangle} tone={issuesCount === 0 ? "sage" : "amber"} hint={`${totalCount} payments`} />
       </div>
+
+      <LookupCard />
+
+      {/* Control bar */}
+      <Card className="border-sage/20 bg-white-warm">
+        <CardHeader>
+          <div className="mb-4 flex items-start justify-between gap-4">
+            <div>
+              <CardTitle className="font-display text-2xl text-charcoal">Razorpay reconciliation</CardTitle>
+              <CardDescription className="font-body text-charcoal/60">
+                Pull every Razorpay payment for a date range and match it against what the website recorded
+              </CardDescription>
+            </div>
+            <div className="flex items-center gap-2 shrink-0">
+              <Button type="button" variant="sage" className="h-10" onClick={runCorrelation} disabled={loading}>
+                {loading ? <Loader2 className="h-4 w-4 mr-2 animate-spin" /> : <ScanSearch className="h-4 w-4 mr-2" />}
+                {loading ? "Correlating…" : "Correlate"}
+              </Button>
+              {data && (
+                <Button type="button" variant="outline" className="h-10 border-sage/20 text-sage hover:bg-sage/5 hover:text-sage!" onClick={() => downloadCsv(data.rows, data.month)}>
+                  <Download className="h-4 w-4 mr-2" />
+                  CSV
+                </Button>
+              )}
+            </div>
+          </div>
+
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 p-4 rounded-xl bg-cream/30 border border-sage/20">
+            <div className="space-y-2">
+              <Label className="font-body text-xs text-charcoal/60">Date range</Label>
+              <FilterDateRange
+                value={dateRange}
+                onChange={setDateRange}
+                placeholder="This month"
+              />
+            </div>
+          </div>
+        </CardHeader>
+      </Card>
+
+      {!data && !loading && (
+        <Card className="border-sage/20 bg-white-warm">
+          <CardContent className="py-16 text-center">
+            <RefreshCw className="h-12 w-12 text-charcoal/15 mx-auto mb-3" />
+            <p className="font-body text-charcoal/60">Pick a month and hit Correlate to pull Razorpay and match it to the website.</p>
+          </CardContent>
+        </Card>
+      )}
 
       {data && (
         <>
