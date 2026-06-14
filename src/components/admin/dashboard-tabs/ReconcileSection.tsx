@@ -14,6 +14,7 @@ import {
 } from "@/components/responsive/ResponsiveDialog";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
 import { MetricCard } from "@/components/admin/MetricCard";
 import { Pagination, usePagination } from "@/components/Pagination";
@@ -24,6 +25,20 @@ import type { ImportPaymentBody } from "@/pages/api/admin/finance/import-payment
 import type { RazorpayPaymentDetail } from "@/pages/api/admin/finance/razorpay-payment-detail";
 import type { LookupResult, LookupPayment } from "@/pages/api/admin/finance/razorpay-lookup";
 import type { FulfillPaymentBody } from "@/pages/api/admin/finance/fulfill-payment";
+import type { ReconcileLogRow } from "@/pages/api/admin/finance/reconcile-log";
+
+type SavedStatus = "done" | "in_progress" | "dropped" | "needs_refund";
+
+const SAVED_STATUS_META: Record<SavedStatus, { label: string; tone: PillProps["tone"] }> = {
+  done: { label: "Done", tone: "success" },
+  in_progress: { label: "In progress", tone: "info" },
+  dropped: { label: "Dropped", tone: "neutral" },
+  needs_refund: { label: "Needs refund", tone: "warning" },
+};
+
+function fmtLogDate(iso: string): string {
+  return new Date(iso).toLocaleString("en-IN", { day: "numeric", month: "short", year: "numeric", hour: "numeric", minute: "2-digit" });
+}
 
 type ReconMatch =
   | "matched"
@@ -628,10 +643,76 @@ function ImportDialog({ row, onClose, onImported }: { row: ReconRow; onClose: ()
 
 // ─── Detail dialog (read-only) ─────────────────────────────────────────────────
 
-function DetailDialog({ row, onClose, onImport }: { row: ReconRow; onClose: () => void; onImport: (row: ReconRow) => void }) {
+function DetailDialog({
+  row,
+  onClose,
+  onImport,
+  onChanged,
+  isHandled = false,
+  savedStatus,
+  savedNote,
+}: {
+  row: ReconRow;
+  onClose: () => void;
+  onImport: (row: ReconRow) => void;
+  onChanged?: () => void;
+  isHandled?: boolean;
+  savedStatus?: SavedStatus;
+  savedNote?: string | null;
+}) {
   const [detail, setDetail] = useState<RazorpayPaymentDetail | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [note, setNote] = useState("");
+  const [pendingStatus, setPendingStatus] = useState<SavedStatus | "move_back" | null>(null);
+
+  async function setStatus(status: SavedStatus) {
+    setPendingStatus(status);
+    try {
+      const res = await fetch("/api/admin/finance/reconcile-status", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          paymentId: row.paymentId,
+          orderId: row.orderId ?? undefined,
+          status,
+          amountPaise: row.amountPaise,
+          note: note.trim() || undefined,
+        }),
+      });
+      const data = await res.json();
+      if (!res.ok) { toast.error(data.error ?? "Could not save status."); return; }
+      toast.success(`Marked as ${SAVED_STATUS_META[status].label.toLowerCase()}`);
+      onChanged?.();
+      onClose();
+    } catch {
+      toast.error("Could not reach the server.");
+    } finally {
+      setPendingStatus(null);
+    }
+  }
+
+  async function moveBack() {
+    setPendingStatus("move_back");
+    try {
+      const res = await fetch("/api/admin/finance/reconcile-status", {
+        method: "DELETE",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ paymentId: row.paymentId }),
+      });
+      const data = await res.json();
+      if (!res.ok) { toast.error(data.error ?? "Could not move back."); return; }
+      toast.success("Moved back to reconcile.");
+      onChanged?.();
+      onClose();
+    } catch {
+      toast.error("Could not reach the server.");
+    } finally {
+      setPendingStatus(null);
+    }
+  }
+
+  const busy = pendingStatus !== null;
 
   useEffect(() => {
     fetch(`/api/admin/finance/razorpay-payment-detail?paymentId=${encodeURIComponent(row.paymentId)}`)
@@ -658,20 +739,70 @@ function DetailDialog({ row, onClose, onImport }: { row: ReconRow; onClose: () =
 
         <div className="px-6 pb-2 space-y-3">
           <div className="flex flex-wrap items-center gap-2">
-            <Pill tone={meta.tone} size="sm">{meta.label}</Pill>
-            {row.websiteStatus && (
+            {isHandled && savedStatus ? (
+              <Pill tone={SAVED_STATUS_META[savedStatus].tone} size="sm">{SAVED_STATUS_META[savedStatus].label}</Pill>
+            ) : (
+              <Pill tone={meta.tone} size="sm">{meta.label}</Pill>
+            )}
+            {!isHandled && row.websiteStatus && (
               <span className="font-body text-xs text-charcoal/50">Site: {row.websiteStatus}</span>
             )}
           </div>
           <PaymentDetailPanel detail={detail} row={row} loading={loading} error={error} />
+
+          {!isHandled && (
+            <div className="space-y-3 pt-1">
+              <div className="space-y-1.5">
+                <Label className="font-body text-xs text-charcoal/60">Note (optional — saved with the status)</Label>
+                <Textarea
+                  value={note}
+                  onChange={(e) => setNote(e.target.value)}
+                  placeholder="Reason, e.g. refunded outside the app, duplicate charge…"
+                  rows={2}
+                  className="border-sage/20 bg-white font-body text-sm resize-none"
+                />
+              </div>
+              <div className="space-y-1.5">
+                <Label className="font-body text-xs text-charcoal/60">Mark this payment as</Label>
+                <div className="grid grid-cols-3 gap-2">
+                  {(["in_progress", "dropped", "needs_refund"] as const).map((s) => (
+                    <Button
+                      key={s}
+                      type="button"
+                      variant="outline"
+                      size="sm"
+                      className="h-9 border-sage/25 text-charcoal/70 hover:bg-sage/5"
+                      onClick={() => setStatus(s)}
+                      disabled={busy}
+                    >
+                      {pendingStatus === s ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : SAVED_STATUS_META[s].label}
+                    </Button>
+                  ))}
+                </div>
+              </div>
+            </div>
+          )}
+
+          {isHandled && savedNote && (
+            <div className="rounded-xl border border-sage/15 bg-sand/40 px-4 py-2.5">
+              <span className="font-body text-xs text-charcoal/45 uppercase tracking-wide">Note</span>
+              <p className="font-body text-sm text-charcoal/70 mt-0.5">{savedNote}</p>
+            </div>
+          )}
         </div>
 
         <ResponsiveDialogFooter className="px-6 pb-6 gap-2">
-          <Button type="button" variant="ghost" className="text-charcoal/50 mr-auto" onClick={onClose}>
+          <Button type="button" variant="ghost" className="text-charcoal/50 mr-auto" onClick={onClose} disabled={busy}>
             Close
           </Button>
-          {row.match === "missing_from_website" && (
-            <Button type="button" variant="sage" onClick={() => onImport(row)}>
+          {isHandled && (
+            <Button type="button" variant="outline" className="border-sage/25 text-charcoal/70 hover:bg-sage/5" onClick={moveBack} disabled={busy}>
+              {pendingStatus === "move_back" ? <Loader2 className="h-4 w-4 mr-2 animate-spin" /> : <ArrowLeftRight className="h-4 w-4 mr-2" />}
+              Move back to reconcile
+            </Button>
+          )}
+          {!isHandled && row.match === "missing_from_website" && (
+            <Button type="button" variant="sage" onClick={() => onImport(row)} disabled={busy}>
               <Import className="h-4 w-4 mr-2" />
               Import / fulfill
             </Button>
@@ -1132,6 +1263,32 @@ function ReconcileSectionImpl() {
   const [detailRow, setDetailRow] = useState<ReconRow | null>(null);
   const [importedIds, setImportedIds] = useState<Set<string>>(new Set());
 
+  // ── Live / Handled view ──
+  const [view, setView] = useState<"live" | "handled">("live");
+  const [logStatus, setLogStatus] = useState<SavedStatus | "all">("all");
+  const [logRows, setLogRows] = useState<ReconcileLogRow[]>([]);
+  const [logLoading, setLogLoading] = useState(false);
+  const [handledDetail, setHandledDetail] = useState<ReconcileLogRow | null>(null);
+
+  const loadLog = useCallback(async () => {
+    setLogLoading(true);
+    try {
+      const q = logStatus === "all" ? "" : `?status=${logStatus}`;
+      const r = await fetch(`/api/admin/finance/reconcile-log${q}`);
+      const d = await r.json();
+      if (!r.ok) { toast.error(d.error ?? "Could not load the log."); return; }
+      setLogRows((d.rows ?? []) as ReconcileLogRow[]);
+    } catch {
+      toast.error("Could not reach the reconcile log endpoint.");
+    } finally {
+      setLogLoading(false);
+    }
+  }, [logStatus]);
+
+  useEffect(() => {
+    if (view === "handled") loadLog();
+  }, [view, loadLog]);
+
   const runCorrelation = useCallback(async () => {
     // Date range powers the query; fall back to the current month if cleared.
     let query: string;
@@ -1167,6 +1324,7 @@ function ReconcileSectionImpl() {
   }, [data, matchFilter]);
 
   const pg = usePagination(filteredRows, 12, `${data?.month ?? ""}|${matchFilter}|${data?.summary.total ?? 0}`);
+  const logPg = usePagination(logRows, 12, `${logStatus}|${logRows.length}`);
   const issuesCount = data
     ? data.summary.counts.amount_mismatch +
       data.summary.counts.status_mismatch +
@@ -1180,6 +1338,27 @@ function ReconcileSectionImpl() {
   const recordedInr = Math.round((data?.summary.websiteRecordedPaise ?? 0) / 100);
   const gapPaise = data?.summary.gapPaise ?? 0;
   const totalCount = data?.summary.total ?? 0;
+
+  // DetailDialog/PaymentDetailPanel read: paymentId, orderId, amountPaise, match,
+  // createdAtISO, plus optional email/method/description/etc. (it re-fetches live
+  // Razorpay detail by paymentId, so the cached fields are only a fallback). Build
+  // a minimal ReconRow from a saved-log row.
+  const logRowToReconRow = useCallback((r: ReconcileLogRow): ReconRow => ({
+    paymentId: r.paymentId,
+    orderId: r.orderId,
+    createdAtISO: r.updatedAt,
+    amountPaise: r.amountPaise ?? 0,
+    amountRefundedPaise: 0,
+    method: null,
+    razorpayStatus: null,
+    websiteStatus: null,
+    source: "website",
+    match: "matched",
+    email: r.memberEmail,
+    contact: null,
+    description: null,
+    notes: r.note ?? "",
+  }), []);
 
   return (
     <div className="space-y-6">
@@ -1237,7 +1416,28 @@ function ReconcileSectionImpl() {
         </CardHeader>
       </Card>
 
-      {!data && !loading && (
+      {/* View toggle — Live issues vs saved Handled log */}
+      <div className="flex flex-wrap items-center gap-2">
+        {([
+          ["live", "Live issues"],
+          ["handled", "Handled"],
+        ] as const).map(([key, label]) => (
+          <button
+            key={key}
+            type="button"
+            onClick={() => setView(key)}
+            className={`rounded-full border px-4 py-1.5 font-body text-xs transition-colors ${
+              view === key
+                ? "border-sage bg-sage text-cream"
+                : "border-sage/25 bg-white-warm text-charcoal/60 hover:bg-sage/5"
+            }`}
+          >
+            {label}
+          </button>
+        ))}
+      </div>
+
+      {view === "live" && !data && !loading && (
         <Card className="border-sage/20 bg-white-warm">
           <CardContent className="py-16 text-center">
             <RefreshCw className="h-12 w-12 text-charcoal/15 mx-auto mb-3" />
@@ -1246,7 +1446,7 @@ function ReconcileSectionImpl() {
         </Card>
       )}
 
-      {data && (
+      {view === "live" && data && (
         <>
           {/* Filter chips */}
           <div className="flex flex-wrap gap-2">
@@ -1362,11 +1562,120 @@ function ReconcileSectionImpl() {
         </>
       )}
 
+      {/* ── Handled (saved reconcile log) ── */}
+      {view === "handled" && (
+        <>
+          {/* Status sub-filter */}
+          <div className="flex flex-wrap gap-2">
+            {([
+              ["all", "All"],
+              ["done", "Done"],
+              ["in_progress", "In progress"],
+              ["dropped", "Dropped"],
+              ["needs_refund", "Needs refund"],
+            ] as const).map(([key, label]) => (
+              <button
+                key={key}
+                type="button"
+                onClick={() => setLogStatus(key)}
+                className={`rounded-full border px-3 py-1 font-body text-xs transition-colors ${
+                  logStatus === key
+                    ? "border-sage bg-sage text-cream"
+                    : "border-sage/25 bg-white-warm text-charcoal/60 hover:bg-sage/5"
+                }`}
+              >
+                {label}
+              </button>
+            ))}
+          </div>
+
+          <Card className="border-sage/20 bg-white-warm">
+            <CardContent className="pt-6">
+              {logLoading ? (
+                <div className="flex items-center justify-center gap-2 py-16 text-charcoal/40">
+                  <Loader2 className="h-4 w-4 animate-spin" />
+                  <span className="font-body text-sm">Loading saved log…</span>
+                </div>
+              ) : (
+                <>
+                  <div className="rounded-xl border border-sage/15 bg-white-warm overflow-hidden">
+                    <ResponsiveTable>
+                      <Table>
+                        <TableHeader>
+                          <TableRow>
+                            <TableHead className="w-[130px]">Status</TableHead>
+                            <TableHead>Payment</TableHead>
+                            <TableHead className="w-[120px] text-right">Amount</TableHead>
+                            <TableHead>Member</TableHead>
+                            <TableHead>Note</TableHead>
+                            <TableHead className="w-[150px]">Updated</TableHead>
+                            <TableHead className="w-[120px]">Resolver</TableHead>
+                          </TableRow>
+                        </TableHeader>
+                        <TableBody>
+                          {logPg.pageItems.map((r) => {
+                            const sm = SAVED_STATUS_META[(r.status as SavedStatus) in SAVED_STATUS_META ? (r.status as SavedStatus) : "done"];
+                            return (
+                              <TableRow
+                                key={r.paymentId}
+                                className="cursor-pointer hover:bg-sage/5"
+                                onClick={() => setHandledDetail(r)}
+                              >
+                                <TableCell>
+                                  <Pill tone={sm.tone} size="sm" className="w-full max-w-[118px] justify-center">{sm.label}</Pill>
+                                </TableCell>
+                                <TableCell>
+                                  <div className="font-mono text-xs text-charcoal">{r.paymentId}</div>
+                                  {r.orderId && <div className="font-mono text-xs text-charcoal/35">{r.orderId}</div>}
+                                </TableCell>
+                                <TableCell className="text-right font-display text-base tabular-nums text-charcoal">
+                                  {r.amountPaise != null ? inr(r.amountPaise) : "—"}
+                                </TableCell>
+                                <TableCell>
+                                  <div className="font-body text-sm text-charcoal">{r.memberName ?? "—"}</div>
+                                  {r.memberEmail && <div className="font-body text-xs text-charcoal/45 line-clamp-1">{r.memberEmail}</div>}
+                                </TableCell>
+                                <TableCell className="font-body text-xs text-charcoal/60 max-w-[220px]">
+                                  <span className="line-clamp-2 [overflow-wrap:anywhere]">{r.note || "—"}</span>
+                                </TableCell>
+                                <TableCell className="font-body text-sm text-charcoal/60 whitespace-nowrap">{fmtLogDate(r.updatedAt)}</TableCell>
+                                <TableCell className="font-body text-sm text-charcoal/60">{r.resolvedByName ?? "—"}</TableCell>
+                              </TableRow>
+                            );
+                          })}
+                        </TableBody>
+                      </Table>
+                    </ResponsiveTable>
+                  </div>
+                  <Pagination page={logPg.page} total={logPg.total} pageSize={logPg.pageSize} onChange={logPg.setPage} />
+                  {logRows.length === 0 && (
+                    <div className="py-10 text-center font-body text-sm text-charcoal/40">No handled payments yet.</div>
+                  )}
+                </>
+              )}
+            </CardContent>
+          </Card>
+        </>
+      )}
+
       {detailRow && (
         <DetailDialog
           row={detailRow}
           onClose={() => setDetailRow(null)}
           onImport={(r) => { setDetailRow(null); setImportTarget(r); }}
+          onChanged={runCorrelation}
+        />
+      )}
+
+      {handledDetail && (
+        <DetailDialog
+          row={logRowToReconRow(handledDetail)}
+          isHandled
+          savedStatus={(handledDetail.status as SavedStatus) in SAVED_STATUS_META ? (handledDetail.status as SavedStatus) : "done"}
+          savedNote={handledDetail.note}
+          onClose={() => setHandledDetail(null)}
+          onImport={() => {}}
+          onChanged={loadLog}
         />
       )}
 
