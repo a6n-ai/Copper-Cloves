@@ -95,15 +95,17 @@ function Metric({ label, value }: { label: string; value: string }) {
 function RateRow({
   label,
   rateCardPaise,
+  numClasses,
   gstPercent,
   netPaise,
 }: {
   label: string;
   rateCardPaise: number;
+  numClasses: number;
   gstPercent: number;
   netPaise: number;
 }) {
-  const perClass = rateCardPaise / 100;
+  const perClass = rateCardPaise / numClasses / 100;
   const withoutGst = perClass / (1 + gstPercent / 100);
   return (
     <TableRow>
@@ -173,11 +175,11 @@ export function InstructorPayoutLedger({ instructorId }: { instructorId: string 
     void load();
   }, [load]);
 
-  async function saveBlendedRate() {
+  async function saveBlendedRate(raw: string = blendedInput) {
     if (!data) return;
-    const override =
-      blendedInput.trim() === "" ? null : toInt(blendedInput);
-    if (blendedInput.trim() !== "" && override === null) {
+    const trimmed = raw.trim();
+    const override = trimmed === "" ? null : toInt(trimmed);
+    if (trimmed !== "" && override === null) {
       toast.error("Enter a valid ₹ amount");
       return;
     }
@@ -364,24 +366,28 @@ export function InstructorPayoutLedger({ instructorId }: { instructorId: string 
                     <RateRow
                       label="12-class pack"
                       rateCardPaise={data.footer.rateCard.rate12}
+                      numClasses={12}
                       gstPercent={data.footer.gstPercent}
                       netPaise={data.footer.netBreakdown.net12}
                     />
                     <RateRow
                       label="8-class pack"
                       rateCardPaise={data.footer.rateCard.rate8}
+                      numClasses={8}
                       gstPercent={data.footer.gstPercent}
                       netPaise={data.footer.netBreakdown.net8}
                     />
                     <RateRow
                       label="4-class pack"
                       rateCardPaise={data.footer.rateCard.rate4}
+                      numClasses={4}
                       gstPercent={data.footer.gstPercent}
                       netPaise={data.footer.netBreakdown.net4}
                     />
                     <RateRow
                       label="1-class (drop-in)"
                       rateCardPaise={data.footer.rateCard.rate1}
+                      numClasses={1}
                       gstPercent={data.footer.gstPercent}
                       netPaise={data.footer.netBreakdown.net1}
                     />
@@ -423,7 +429,7 @@ export function InstructorPayoutLedger({ instructorId }: { instructorId: string 
                         type="button"
                         className="font-body text-xs text-charcoal/40 hover:text-terracotta underline"
                         disabled={isPaid || saving}
-                        onClick={() => { setBlendedInput(""); void saveBlendedRate(); }}
+                        onClick={() => { setBlendedInput(""); void saveBlendedRate(""); }}
                       >
                         Clear
                       </button>

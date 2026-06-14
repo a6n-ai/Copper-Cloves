@@ -84,10 +84,12 @@ export default function InstructorProfilePage() {
   const [saving, setSaving] = useState(false);
   const [form, setForm] = useState<FormState | null>(null);
 
-  const initialTab =
-    typeof router.query.tab === "string" && router.query.tab === "payout"
-      ? "payout"
-      : "profile";
+  const [tab, setTab] = useState<"profile" | "payout">("profile");
+  useEffect(() => {
+    if (router.isReady) {
+      setTab(router.query.tab === "payout" ? "payout" : "profile");
+    }
+  }, [router.isReady, router.query.tab]);
 
   const load = useCallback(async () => {
     if (!id) return;
@@ -286,7 +288,7 @@ export default function InstructorProfilePage() {
                 </div>
 
                 {/* Profile | Payout tabs */}
-                <Tabs defaultValue={initialTab}>
+                <Tabs value={tab} onValueChange={(v) => setTab(v as "profile" | "payout")}>
                   <TabsList className="mb-4">
                     <TabsTrigger value="profile" className="font-body">Profile</TabsTrigger>
                     <TabsTrigger value="payout" className="font-body">Payout</TabsTrigger>
