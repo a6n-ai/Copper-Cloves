@@ -4223,6 +4223,7 @@ export const PayoutSettingsScalarFieldEnum = {
   rate_1_paise: 'rate_1_paise',
   gst_percent: 'gst_percent',
   default_studio_cut_percent: 'default_studio_cut_percent',
+  payable_basis: 'payable_basis',
   updated_at: 'updated_at',
   updated_by: 'updated_by'
 } as const

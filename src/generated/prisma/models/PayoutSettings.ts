@@ -54,6 +54,7 @@ export type PayoutSettingsMinAggregateOutputType = {
   rate_1_paise: number | null
   gst_percent: runtime.Decimal | null
   default_studio_cut_percent: runtime.Decimal | null
+  payable_basis: string | null
   updated_at: Date | null
   updated_by: string | null
 }
@@ -66,6 +67,7 @@ export type PayoutSettingsMaxAggregateOutputType = {
   rate_1_paise: number | null
   gst_percent: runtime.Decimal | null
   default_studio_cut_percent: runtime.Decimal | null
+  payable_basis: string | null
   updated_at: Date | null
   updated_by: string | null
 }
@@ -78,6 +80,7 @@ export type PayoutSettingsCountAggregateOutputType = {
   rate_1_paise: number
   gst_percent: number
   default_studio_cut_percent: number
+  payable_basis: number
   updated_at: number
   updated_by: number
   _all: number
@@ -110,6 +113,7 @@ export type PayoutSettingsMinAggregateInputType = {
   rate_1_paise?: true
   gst_percent?: true
   default_studio_cut_percent?: true
+  payable_basis?: true
   updated_at?: true
   updated_by?: true
 }
@@ -122,6 +126,7 @@ export type PayoutSettingsMaxAggregateInputType = {
   rate_1_paise?: true
   gst_percent?: true
   default_studio_cut_percent?: true
+  payable_basis?: true
   updated_at?: true
   updated_by?: true
 }
@@ -134,6 +139,7 @@ export type PayoutSettingsCountAggregateInputType = {
   rate_1_paise?: true
   gst_percent?: true
   default_studio_cut_percent?: true
+  payable_basis?: true
   updated_at?: true
   updated_by?: true
   _all?: true
@@ -233,6 +239,7 @@ export type PayoutSettingsGroupByOutputType = {
   rate_1_paise: number
   gst_percent: runtime.Decimal
   default_studio_cut_percent: runtime.Decimal
+  payable_basis: string
   updated_at: Date
   updated_by: string | null
   _count: PayoutSettingsCountAggregateOutputType | null
@@ -268,6 +275,7 @@ export type PayoutSettingsWhereInput = {
   rate_1_paise?: Prisma.IntFilter<"PayoutSettings"> | number
   gst_percent?: Prisma.DecimalFilter<"PayoutSettings"> | runtime.Decimal | runtime.DecimalJsLike | number | string
   default_studio_cut_percent?: Prisma.DecimalFilter<"PayoutSettings"> | runtime.Decimal | runtime.DecimalJsLike | number | string
+  payable_basis?: Prisma.StringFilter<"PayoutSettings"> | string
   updated_at?: Prisma.DateTimeFilter<"PayoutSettings"> | Date | string
   updated_by?: Prisma.StringNullableFilter<"PayoutSettings"> | string | null
 }
@@ -280,6 +288,7 @@ export type PayoutSettingsOrderByWithRelationInput = {
   rate_1_paise?: Prisma.SortOrder
   gst_percent?: Prisma.SortOrder
   default_studio_cut_percent?: Prisma.SortOrder
+  payable_basis?: Prisma.SortOrder
   updated_at?: Prisma.SortOrder
   updated_by?: Prisma.SortOrderInput | Prisma.SortOrder
 }
@@ -295,6 +304,7 @@ export type PayoutSettingsWhereUniqueInput = Prisma.AtLeast<{
   rate_1_paise?: Prisma.IntFilter<"PayoutSettings"> | number
   gst_percent?: Prisma.DecimalFilter<"PayoutSettings"> | runtime.Decimal | runtime.DecimalJsLike | number | string
   default_studio_cut_percent?: Prisma.DecimalFilter<"PayoutSettings"> | runtime.Decimal | runtime.DecimalJsLike | number | string
+  payable_basis?: Prisma.StringFilter<"PayoutSettings"> | string
   updated_at?: Prisma.DateTimeFilter<"PayoutSettings"> | Date | string
   updated_by?: Prisma.StringNullableFilter<"PayoutSettings"> | string | null
 }, "id">
@@ -307,6 +317,7 @@ export type PayoutSettingsOrderByWithAggregationInput = {
   rate_1_paise?: Prisma.SortOrder
   gst_percent?: Prisma.SortOrder
   default_studio_cut_percent?: Prisma.SortOrder
+  payable_basis?: Prisma.SortOrder
   updated_at?: Prisma.SortOrder
   updated_by?: Prisma.SortOrderInput | Prisma.SortOrder
   _count?: Prisma.PayoutSettingsCountOrderByAggregateInput
@@ -327,6 +338,7 @@ export type PayoutSettingsScalarWhereWithAggregatesInput = {
   rate_1_paise?: Prisma.IntWithAggregatesFilter<"PayoutSettings"> | number
   gst_percent?: Prisma.DecimalWithAggregatesFilter<"PayoutSettings"> | runtime.Decimal | runtime.DecimalJsLike | number | string
   default_studio_cut_percent?: Prisma.DecimalWithAggregatesFilter<"PayoutSettings"> | runtime.Decimal | runtime.DecimalJsLike | number | string
+  payable_basis?: Prisma.StringWithAggregatesFilter<"PayoutSettings"> | string
   updated_at?: Prisma.DateTimeWithAggregatesFilter<"PayoutSettings"> | Date | string
   updated_by?: Prisma.StringNullableWithAggregatesFilter<"PayoutSettings"> | string | null
 }
@@ -339,6 +351,7 @@ export type PayoutSettingsCreateInput = {
   rate_1_paise: number
   gst_percent: runtime.Decimal | runtime.DecimalJsLike | number | string
   default_studio_cut_percent: runtime.Decimal | runtime.DecimalJsLike | number | string
+  payable_basis?: string
   updated_at?: Date | string
   updated_by?: string | null
 }
@@ -351,6 +364,7 @@ export type PayoutSettingsUncheckedCreateInput = {
   rate_1_paise: number
   gst_percent: runtime.Decimal | runtime.DecimalJsLike | number | string
   default_studio_cut_percent: runtime.Decimal | runtime.DecimalJsLike | number | string
+  payable_basis?: string
   updated_at?: Date | string
   updated_by?: string | null
 }
@@ -363,6 +377,7 @@ export type PayoutSettingsUpdateInput = {
   rate_1_paise?: Prisma.IntFieldUpdateOperationsInput | number
   gst_percent?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
   default_studio_cut_percent?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
+  payable_basis?: Prisma.StringFieldUpdateOperationsInput | string
   updated_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updated_by?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
 }
@@ -375,6 +390,7 @@ export type PayoutSettingsUncheckedUpdateInput = {
   rate_1_paise?: Prisma.IntFieldUpdateOperationsInput | number
   gst_percent?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
   default_studio_cut_percent?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
+  payable_basis?: Prisma.StringFieldUpdateOperationsInput | string
   updated_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updated_by?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
 }
@@ -387,6 +403,7 @@ export type PayoutSettingsCreateManyInput = {
   rate_1_paise: number
   gst_percent: runtime.Decimal | runtime.DecimalJsLike | number | string
   default_studio_cut_percent: runtime.Decimal | runtime.DecimalJsLike | number | string
+  payable_basis?: string
   updated_at?: Date | string
   updated_by?: string | null
 }
@@ -399,6 +416,7 @@ export type PayoutSettingsUpdateManyMutationInput = {
   rate_1_paise?: Prisma.IntFieldUpdateOperationsInput | number
   gst_percent?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
   default_studio_cut_percent?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
+  payable_basis?: Prisma.StringFieldUpdateOperationsInput | string
   updated_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updated_by?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
 }
@@ -411,6 +429,7 @@ export type PayoutSettingsUncheckedUpdateManyInput = {
   rate_1_paise?: Prisma.IntFieldUpdateOperationsInput | number
   gst_percent?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
   default_studio_cut_percent?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
+  payable_basis?: Prisma.StringFieldUpdateOperationsInput | string
   updated_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updated_by?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
 }
@@ -423,6 +442,7 @@ export type PayoutSettingsCountOrderByAggregateInput = {
   rate_1_paise?: Prisma.SortOrder
   gst_percent?: Prisma.SortOrder
   default_studio_cut_percent?: Prisma.SortOrder
+  payable_basis?: Prisma.SortOrder
   updated_at?: Prisma.SortOrder
   updated_by?: Prisma.SortOrder
 }
@@ -444,6 +464,7 @@ export type PayoutSettingsMaxOrderByAggregateInput = {
   rate_1_paise?: Prisma.SortOrder
   gst_percent?: Prisma.SortOrder
   default_studio_cut_percent?: Prisma.SortOrder
+  payable_basis?: Prisma.SortOrder
   updated_at?: Prisma.SortOrder
   updated_by?: Prisma.SortOrder
 }
@@ -456,6 +477,7 @@ export type PayoutSettingsMinOrderByAggregateInput = {
   rate_1_paise?: Prisma.SortOrder
   gst_percent?: Prisma.SortOrder
   default_studio_cut_percent?: Prisma.SortOrder
+  payable_basis?: Prisma.SortOrder
   updated_at?: Prisma.SortOrder
   updated_by?: Prisma.SortOrder
 }
@@ -479,6 +501,7 @@ export type PayoutSettingsSelect<ExtArgs extends runtime.Types.Extensions.Intern
   rate_1_paise?: boolean
   gst_percent?: boolean
   default_studio_cut_percent?: boolean
+  payable_basis?: boolean
   updated_at?: boolean
   updated_by?: boolean
 }, ExtArgs["result"]["payoutSettings"]>
@@ -491,6 +514,7 @@ export type PayoutSettingsSelectCreateManyAndReturn<ExtArgs extends runtime.Type
   rate_1_paise?: boolean
   gst_percent?: boolean
   default_studio_cut_percent?: boolean
+  payable_basis?: boolean
   updated_at?: boolean
   updated_by?: boolean
 }, ExtArgs["result"]["payoutSettings"]>
@@ -503,6 +527,7 @@ export type PayoutSettingsSelectUpdateManyAndReturn<ExtArgs extends runtime.Type
   rate_1_paise?: boolean
   gst_percent?: boolean
   default_studio_cut_percent?: boolean
+  payable_basis?: boolean
   updated_at?: boolean
   updated_by?: boolean
 }, ExtArgs["result"]["payoutSettings"]>
@@ -515,11 +540,12 @@ export type PayoutSettingsSelectScalar = {
   rate_1_paise?: boolean
   gst_percent?: boolean
   default_studio_cut_percent?: boolean
+  payable_basis?: boolean
   updated_at?: boolean
   updated_by?: boolean
 }
 
-export type PayoutSettingsOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "rate_12_paise" | "rate_8_paise" | "rate_4_paise" | "rate_1_paise" | "gst_percent" | "default_studio_cut_percent" | "updated_at" | "updated_by", ExtArgs["result"]["payoutSettings"]>
+export type PayoutSettingsOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "rate_12_paise" | "rate_8_paise" | "rate_4_paise" | "rate_1_paise" | "gst_percent" | "default_studio_cut_percent" | "payable_basis" | "updated_at" | "updated_by", ExtArgs["result"]["payoutSettings"]>
 
 export type $PayoutSettingsPayload<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   name: "PayoutSettings"
@@ -532,6 +558,10 @@ export type $PayoutSettingsPayload<ExtArgs extends runtime.Types.Extensions.Inte
     rate_1_paise: number
     gst_percent: runtime.Decimal
     default_studio_cut_percent: runtime.Decimal
+    /**
+     * "all_booked" | "checked_in" | "per_class" — how a payable unit is counted.
+     */
+    payable_basis: string
     updated_at: Date
     updated_by: string | null
   }, ExtArgs["result"]["payoutSettings"]>
@@ -964,6 +994,7 @@ export interface PayoutSettingsFieldRefs {
   readonly rate_1_paise: Prisma.FieldRef<"PayoutSettings", 'Int'>
   readonly gst_percent: Prisma.FieldRef<"PayoutSettings", 'Decimal'>
   readonly default_studio_cut_percent: Prisma.FieldRef<"PayoutSettings", 'Decimal'>
+  readonly payable_basis: Prisma.FieldRef<"PayoutSettings", 'String'>
   readonly updated_at: Prisma.FieldRef<"PayoutSettings", 'DateTime'>
   readonly updated_by: Prisma.FieldRef<"PayoutSettings", 'String'>
 }

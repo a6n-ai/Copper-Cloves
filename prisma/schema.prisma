@@ -995,6 +995,8 @@ model PayoutSettings {
   rate_1_paise               Int
   gst_percent                Decimal  @db.Decimal(5, 2)
   default_studio_cut_percent Decimal  @db.Decimal(5, 2)
+  /// "all_booked" | "checked_in" | "per_class" — how a payable unit is counted.
+  payable_basis              String   @default("all_booked")
   updated_at                 DateTime @default(now()) @updatedAt
   updated_by                 String?
 
