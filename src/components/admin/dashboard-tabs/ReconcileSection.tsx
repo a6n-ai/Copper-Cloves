@@ -329,6 +329,26 @@ function ImportDialog({ row, onClose, onImported }: { row: ReconRow; onClose: ()
                     </div>
                   )}
 
+                  {/* Gateway detail rows — only render the ones Razorpay returned. */}
+                  {([
+                    ["Bank", rzpDetail?.bank],
+                    ["Wallet", rzpDetail?.wallet],
+                    ["UPI VPA", rzpDetail?.vpa],
+                    ["Card", rzpDetail?.card_last4 ? `${rzpDetail?.card_network ?? "card"} ••${rzpDetail.card_last4}${rzpDetail.card_type ? ` (${rzpDetail.card_type})` : ""}` : null],
+                    ["RRN", rzpDetail?.rrn],
+                    ["Gateway fee", rzpDetail?.fee != null ? inr(rzpDetail.fee) : null],
+                    ["Tax", rzpDetail?.tax != null ? inr(rzpDetail.tax) : null],
+                    ["Refund status", rzpDetail?.refund_status],
+                    ["Error", rzpDetail?.error_description],
+                  ] as const)
+                    .filter(([, v]) => v != null && v !== "")
+                    .map(([label, v]) => (
+                      <div key={label} className="flex justify-between items-start gap-4">
+                        <span className="font-body text-xs text-charcoal/50 uppercase tracking-wide shrink-0">{label}</span>
+                        <span className="font-body text-sm text-charcoal/70 text-right break-all capitalize">{v}</span>
+                      </div>
+                    ))}
+
                   {(rzpDetail?.description ?? row.description) && (
                     <div className="flex justify-between items-start gap-4">
                       <span className="font-body text-xs text-charcoal/50 uppercase tracking-wide shrink-0">Desc</span>
