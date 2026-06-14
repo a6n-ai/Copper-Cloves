@@ -2,6 +2,7 @@ import type { NextApiRequest, NextApiResponse } from "next";
 import prisma from "@/lib/prisma";
 import { getStudioServerSession } from "@/lib/getStudioServerSession";
 import { PAYOUT_SETTINGS_ID, PAYOUT_SETTINGS_DEFAULTS } from "@/lib/payoutSettings";
+import { PAYABLE_BASES, type PayableBasis } from "@/lib/payoutCalc";
 
 function num(v: unknown): number | null {
   if (v === null || v === undefined || v === "") return null;
@@ -27,6 +28,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
           rate_1_paise: PAYOUT_SETTINGS_DEFAULTS.rate1,
           gst_percent: PAYOUT_SETTINGS_DEFAULTS.gstPercent,
           default_studio_cut_percent: PAYOUT_SETTINGS_DEFAULTS.defaultStudioCutPercent,
+          payable_basis: PAYOUT_SETTINGS_DEFAULTS.payableBasis,
         },
         seeded: false,
       });
@@ -49,6 +51,11 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     if (cut == null || cut < 0 || cut > 100)
       return res.status(400).json({ error: "default_studio_cut_percent 0–100" });
 
+    const basisRaw = typeof b.payable_basis === "string" ? b.payable_basis : "all_booked";
+    if (!PAYABLE_BASES.includes(basisRaw as PayableBasis)) {
+      return res.status(400).json({ error: "payable_basis invalid" });
+    }
+
     const data = {
       rate_12_paise: Math.round(rate12!),
       rate_8_paise: Math.round(rate8!),
@@ -56,6 +63,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       rate_1_paise: Math.round(rate1!),
       gst_percent: gst,
       default_studio_cut_percent: cut,
+      payable_basis: basisRaw,
       updated_by: adminId,
     };
     const row = await prisma.payoutSettings.upsert({
