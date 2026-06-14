@@ -41,7 +41,6 @@ export function InstructorPhoto({
           srcSet={`${src}?width=320 320w, ${src}?width=640 640w, ${src}?width=1200 1200w`}
           sizes={sizes}
         />
-        {/* eslint-disable-next-line @next/next/no-img-element */}
         <img
           src={src}
           alt={`${name}, instructor at The Studio by Copper + Cloves`}

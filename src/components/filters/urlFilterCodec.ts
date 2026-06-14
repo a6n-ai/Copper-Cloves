@@ -44,10 +44,10 @@ export function dateRangeCodec(fromKey = "from", toKey = "to"): FilterCodec<Date
   };
 }
 
-type CodecMap = Record<string, FilterCodec<any>>;
+type CodecMap = Record<string, FilterCodec<unknown>>;
 
 /** values → flat query record, stripping defaults */
-export function serializeFilters(values: Record<string, any>, codecs: CodecMap): Record<string, string> {
+export function serializeFilters(values: Record<string, unknown>, codecs: CodecMap): Record<string, string> {
   const out: Record<string, string> = {};
   for (const key of Object.keys(codecs)) {
     const codec = codecs[key];
@@ -65,9 +65,9 @@ export function serializeFilters(values: Record<string, any>, codecs: CodecMap):
 export function deserializeFilters(
   query: ParsedUrlQuery,
   codecs: CodecMap,
-  defaults: Record<string, any>,
-): Record<string, any> {
-  const out: Record<string, any> = { ...defaults };
+  defaults: Record<string, unknown>,
+): Record<string, unknown> {
+  const out: Record<string, unknown> = { ...defaults };
   for (const key of Object.keys(codecs)) {
     const codec = codecs[key];
     const present = codec.keys.some((k) => query[k] != null && query[k] !== "");

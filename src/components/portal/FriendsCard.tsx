@@ -1,4 +1,5 @@
 import { useEffect, useState, useCallback } from "react";
+import Image from "next/image";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { cdnUrl } from "@/lib/cdnUrl";
@@ -10,7 +11,7 @@ import {
 
 function Avatar({ name, avatarUrl }: { name: string; avatarUrl: string | null }) {
   const initials = name.split(" ").map((w) => w[0]).join("").slice(0, 2).toUpperCase();
-  if (avatarUrl) return <img src={cdnUrl(avatarUrl)} alt={name} className="w-9 h-9 rounded-full object-cover" />;
+  if (avatarUrl) return <Image src={cdnUrl(avatarUrl)} alt={name} width={36} height={36} unoptimized className="w-9 h-9 rounded-full object-cover" />;
   return <div className="w-9 h-9 rounded-full bg-[#8f9779] text-white flex items-center justify-center text-xs font-semibold">{initials}</div>;
 }
 

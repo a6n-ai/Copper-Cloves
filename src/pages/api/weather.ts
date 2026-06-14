@@ -13,6 +13,28 @@ export interface WeatherResponse {
   quote: { text: string; author: string };
 }
 
+interface JsonObject {
+  [key: string]: JsonValue;
+}
+type JsonValue = string | number | boolean | null | undefined | JsonValue[] | JsonObject;
+
+interface GeoResponse {
+  latitude?: number;
+  longitude?: number;
+  city?: string;
+}
+interface WeatherApiResponse {
+  current?: {
+    temperature_2m?: number;
+    weather_code?: number;
+    is_day?: number;
+  };
+}
+interface ZenQuote {
+  q?: string;
+  a?: string;
+}
+
 function clientIp(req: NextApiRequest): string | null {
   const xff = req.headers["x-forwarded-for"];
   if (typeof xff === "string" && xff.length) return xff.split(",")[0].trim();
@@ -33,7 +55,7 @@ function isPrivateIp(ip: string | null): boolean {
   );
 }
 
-async function fetchJson(url: string, ms = 6000): Promise<any | null> {
+async function fetchJson(url: string, ms = 6000): Promise<JsonValue | null> {
   const ctrl = new AbortController();
   const t = setTimeout(() => ctrl.abort(), ms);
   try {
@@ -64,7 +86,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   // 1. Resolve location from client IP (skip private/localhost → keep fallback).
   const ip = clientIp(req);
   if (!isPrivateIp(ip)) {
-    const geo = await fetchJson(`https://ipapi.co/${ip}/json/`);
+    const geo = (await fetchJson(`https://ipapi.co/${ip}/json/`)) as GeoResponse | null;
     if (geo && typeof geo.latitude === "number" && typeof geo.longitude === "number") {
       lat = geo.latitude;
       lon = geo.longitude;
@@ -73,12 +95,13 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   }
 
   // 2. Weather (Open-Meteo, keyless) + 3. a quote (ZenQuotes, keyless) in parallel.
-  const [weather, quoteData] = await Promise.all([
+  const [weatherRaw, quoteData] = await Promise.all([
     fetchJson(
       `https://api.open-meteo.com/v1/forecast?latitude=${lat}&longitude=${lon}&current=temperature_2m,weather_code,is_day`
     ),
     fetchJson("https://zenquotes.io/api/random"),
   ]);
+  const weather = weatherRaw as WeatherApiResponse | null;
 
   let tempC = 24;
   let condition: WeatherCondition = "clear";
@@ -91,7 +114,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   }
 
   // ZenQuotes returns [{ q, a }]; guard against its rate-limit sentinel.
-  const zq = Array.isArray(quoteData) ? quoteData[0] : null;
+  const zq = (Array.isArray(quoteData) ? quoteData[0] : null) as ZenQuote | null;
   const quote =
     zq && typeof zq.q === "string" && zq.a && zq.a !== "zenquotes.io"
       ? { text: zq.q, author: zq.a }

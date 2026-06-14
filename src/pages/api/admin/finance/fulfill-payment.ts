@@ -83,7 +83,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
             const booking = await tx.booking.create({
               data: {
                 user_id: userId,
-                class_schedule_id: classScheduleId!,
+                class_schedule_id: classScheduleId,
                 status: "confirmed",
                 class_name: schedule.class_model?.name ?? null,
                 class_time: schedule.start_time.toISOString(),
@@ -103,7 +103,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         const userPkg = await tx.userPackage.create({
           data: {
             user_id: userId,
-            package_type_id: packageTypeId!,
+            package_type_id: packageTypeId,
             credits_remaining: pkgType.is_unlimited ? null : (pkgType.class_count ?? null),
             credits_total: pkgType.is_unlimited ? null : (pkgType.class_count ?? null),
             expiration_date,

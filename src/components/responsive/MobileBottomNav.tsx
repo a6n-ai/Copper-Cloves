@@ -32,7 +32,7 @@ export function MobileBottomNav({ config }: { config: PortalConfig }) {
   // Config is the only input that changes the slot layout; recomputing on every
   // route change (the previous behavior, because everything sat in the render
   // body) rebuilt Maps/Sets unnecessarily.
-  const { all, overflow, showMore, showScanner, slots } = useMemo(() => {
+  const { all, overflow, showScanner, slots } = useMemo(() => {
     const all = flattenNavItems(config);
     const byHref = new Map(all.map((i) => [i.href, i]));
     const primary = config.mobilePrimary
@@ -46,7 +46,7 @@ export function MobileBottomNav({ config }: { config: PortalConfig }) {
       ...primary.map((i) => ({ type: "link" as const, href: i.href, label: i.label, icon: i.icon })),
       ...(showMore ? [{ type: "more" as const }] : []),
     ];
-    return { all, overflow, showMore, showScanner, slots };
+    return { all, overflow, showScanner, slots };
   }, [config]);
 
   if (all.length <= 1 && !showScanner) return null;

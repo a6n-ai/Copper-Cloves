@@ -1,8 +1,7 @@
 import { useEffect, useMemo, useState } from "react";
 import Image from "next/image";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
-import { CheckCircle2, Maximize2, X } from "lucide-react";
-import { Button } from "@/components/ui/button";
+import { CheckCircle2, Maximize2 } from "lucide-react";
 import { CloseButton } from "@/components/ui/quick-actions";
 
 interface ActiveSchedule {
@@ -52,7 +51,7 @@ export function CheckinQrDialog({
       hour: "2-digit",
       minute: "2-digit",
     });
-  }, [data?.startTime]);
+  }, [data]);
 
   return (
     <>
@@ -79,7 +78,7 @@ export function CheckinQrDialog({
                   <QrTile
                     url={data.instructorQrUrl}
                     alt="Instructor check-in QR"
-                    onZoom={() => setZoom({ url: data.instructorQrUrl!, label: "Instructor check-in" })}
+                    onZoom={() => setZoom({ url: data.instructorQrUrl, label: "Instructor check-in" })}
                     caption={`${data.instructorName ?? "Instructor"} — tap to enlarge`}
                   />
                 ) : (
@@ -93,7 +92,7 @@ export function CheckinQrDialog({
                   <QrTile
                     url={data.memberQrUrl}
                     alt="Member check-in QR"
-                    onZoom={() => setZoom({ url: data.memberQrUrl!, label: "Member check-in" })}
+                    onZoom={() => setZoom({ url: data.memberQrUrl, label: "Member check-in" })}
                     caption={`Valid until ${validUntil} — tap to enlarge`}
                   />
                 ) : (

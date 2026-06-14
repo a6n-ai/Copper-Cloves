@@ -12,7 +12,7 @@ import {
   DrawerDescription,
 } from "@/components/ui/drawer";
 import { StatCard, type StatCardProps } from "@/components/dashboard/StatCard";
-import { ActivityTimeline } from "@/components/dashboard/ActivityTimeline";
+import { ActivityTimeline, type ActivityItem } from "@/components/dashboard/ActivityTimeline";
 import { UpcomingScheduleCard, type ScheduleEntry } from "@/components/dashboard/UpcomingScheduleCard";
 import { OrderHistoryTable } from "@/components/dashboard/OrderHistoryTable";
 import { MedalJourney } from "@/components/dashboard/MedalJourney";
@@ -178,6 +178,19 @@ function computeMovementVitalityFromBookings(bookings: VitalityBookingRow[], now
   return { dailyActivity, vsText, vsTone };
 }
 
+interface DashboardBooking {
+  id: string;
+  class_name?: string;
+  class_time?: string;
+  confirmation_status?: string;
+  checked_in?: boolean;
+  class_schedule?: {
+    start_time?: string;
+    instructor?: { name?: string } | null;
+    class_model?: { name?: string; image_url?: string | null } | null;
+  } | null;
+}
+
 export default function Dashboard() {
   const router = useRouter();
   const isMobile = useIsMobile();
@@ -187,7 +200,7 @@ export default function Dashboard() {
   const [isEditingIntention, setIsEditingIntention] = useState(false);
   const [showOrderHistory, setShowOrderHistory] = useState(false);
   const [showCheckIn, setShowCheckIn] = useState(false);
-  const [selectedBookingForCheckIn, setSelectedBookingForCheckIn] = useState<any>(null);
+  const [selectedBookingForCheckIn, setSelectedBookingForCheckIn] = useState<DashboardBooking | null>(null);
   const [currentUserId, setCurrentUserId] = useState<string>("");
   
   // Real user data states
@@ -199,8 +212,8 @@ export default function Dashboard() {
     isUnlimited: boolean;
     classCount: number | null;
   } | null>(null);
-  const [upcomingBookings, setUpcomingBookings] = useState<any[]>([]);
-  const [recentActivities, setRecentActivities] = useState<any[]>([]);
+  const [upcomingBookings, setUpcomingBookings] = useState<DashboardBooking[]>([]);
+  const [recentActivities, setRecentActivities] = useState<ActivityItem[]>([]);
   const [lastCafeOrder, setLastCafeOrder] = useState<string | null>(null);
   const [movementVitalityData, setMovementVitalityData] = useState<number[]>([]);
   const [cafeOrdersHistory, setCafeOrdersHistory] = useState<CafeOrderRow[]>([]);

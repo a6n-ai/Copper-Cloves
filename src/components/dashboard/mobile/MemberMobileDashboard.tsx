@@ -17,7 +17,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { AnimatedIcon } from "@/components/dashboard/AnimatedIcon";
 import { StatCardRow, type StatCardProps } from "@/components/dashboard/StatCard";
-import { MedalJourney } from "@/components/dashboard/MedalJourney";
+import { MedalJourney, type JourneyTier, type JourneyCustomBadge } from "@/components/dashboard/MedalJourney";
 import { UpcomingScheduleCard, type ScheduleEntry } from "@/components/dashboard/UpcomingScheduleCard";
 // recharts only loads when the member taps open the vitality dialog.
 const VitalityAreaChart = dynamic(
@@ -54,10 +54,10 @@ export interface MemberMobileDashboardProps {
 
   statItems: StatCardProps[];
 
-  milestones: any[];
+  milestones: JourneyTier[];
 
   upcomingEntries: ScheduleEntry[];
-  userBadges: any[];
+  userBadges: (JourneyCustomBadge & { badge_type?: string })[];
   recentActivities: ActivityItem[];
   lastCafeOrder: string | null;
 
@@ -77,7 +77,7 @@ export function MemberMobileDashboard({
   userClassesCompleted,
   currentStreak,
   packageDetails,
-  creditsRemaining,
+  creditsRemaining: _creditsRemaining,
   dailyIntention,
   isEditingIntention,
   onIntentionChange,

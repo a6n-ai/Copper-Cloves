@@ -1,7 +1,6 @@
 import { useState } from "react";
 import Image from "next/image";
-import { Maximize2, X } from "lucide-react";
-import { Button } from "@/components/ui/button";
+import { Maximize2 } from "lucide-react";
 import { CloseButton } from "@/components/ui/quick-actions";
 
 /** A QR image that opens fullscreen on click for easy scanning across a room. */

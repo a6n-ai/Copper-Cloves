@@ -106,8 +106,8 @@ export function PayoutRateSettingsPanel() {
       });
       if (!res.ok) throw new Error((await res.json()).error || "Save failed");
       toast.success("Payout settings saved");
-    } catch (e: any) {
-      toast.error(e.message || "Save failed");
+    } catch (e: unknown) {
+      toast.error(e instanceof Error ? e.message : "Save failed");
     } finally {
       setSaving(false);
     }

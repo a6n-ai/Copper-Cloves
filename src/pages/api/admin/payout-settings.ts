@@ -44,7 +44,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     const rate1 = num(b.rate_1_paise);
     const gst = num(b.gst_percent);
     const cut = num(b.default_studio_cut_percent);
-    if ([rate12, rate8, rate4, rate1].some((v) => v == null || v! < 0)) {
+    if ([rate12, rate8, rate4, rate1].some((v) => v == null || v < 0)) {
       return res.status(400).json({ error: "All four package rates are required (paise, >= 0)" });
     }
     if (gst == null || gst < 0 || gst > 100) return res.status(400).json({ error: "gst_percent 0–100" });
@@ -57,10 +57,10 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     }
 
     const data = {
-      rate_12_paise: Math.round(rate12!),
-      rate_8_paise: Math.round(rate8!),
-      rate_4_paise: Math.round(rate4!),
-      rate_1_paise: Math.round(rate1!),
+      rate_12_paise: Math.round(rate12),
+      rate_8_paise: Math.round(rate8),
+      rate_4_paise: Math.round(rate4),
+      rate_1_paise: Math.round(rate1),
       gst_percent: gst,
       default_studio_cut_percent: cut,
       payable_basis: basisRaw,

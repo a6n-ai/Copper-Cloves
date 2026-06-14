@@ -236,7 +236,7 @@ export default function BookingDetailPage() {
 
               {holdActive && (
                 <p className="font-body text-sm text-terracotta">
-                  Seat held until {format(new Date(holdMs!), "h:mm a")}
+                  Seat held until {format(new Date(holdMs), "h:mm a")}
                 </p>
               )}
             </div>

@@ -132,6 +132,115 @@ const instructorSchema = z.object({
   philosophy: z.string().optional(),
 });
 
+interface ClassAttendee {
+  id: string;
+  bookingId?: string;
+  name?: string | null;
+  email?: string | null;
+  avatarUrl?: string | null;
+  checkedIn?: boolean;
+  checkInTime?: string | null;
+  checkInOutcome?: string | null;
+  confirmationStatus?: string | null;
+  [key: string]: unknown;
+}
+
+interface SelectedClassDetail {
+  id: string;
+  name?: string;
+  time?: string;
+  instructor?: string;
+  instructorAvatarUrl?: string | null;
+  capacity?: number;
+  enrolled?: number;
+  checkedIn?: number;
+  startIso?: string;
+  endIso?: string;
+  instructorCheckedIn?: boolean;
+  instructorCheckInTime?: string | null;
+  attendees?: ClassAttendee[];
+  [key: string]: unknown;
+}
+
+interface TodayClassDetail {
+  id: string;
+  status?: string;
+  [key: string]: unknown;
+}
+
+interface DashboardInstructorRow {
+  id: string;
+  name: string;
+  [key: string]: unknown;
+}
+
+interface SelectedUser {
+  name?: string;
+  email?: string;
+  phone?: string;
+  package?: string;
+  credits?: number | string;
+  expiry?: string;
+  [key: string]: unknown;
+}
+
+interface SelectedInstructorData {
+  name?: string;
+  email?: string;
+  phone?: string;
+  specialties?: string[];
+  philosophy?: string;
+  checkIns?: number;
+  rate?: number | string;
+  total?: number | string;
+  paymentPercentage?: number | string;
+  [key: string]: unknown;
+}
+
+interface MemberBooking {
+  class?: string;
+  date?: string;
+  time?: string;
+  [key: string]: unknown;
+}
+
+interface MemberOrder {
+  item?: string;
+  date?: string;
+  amount?: number | string;
+  [key: string]: unknown;
+}
+
+interface MemberAttendanceEntry {
+  class: string;
+  date: string;
+  outcome: string;
+  [key: string]: unknown;
+}
+
+interface SelectedMemberProfile {
+  id?: string;
+  profileId?: string;
+  name?: string;
+  email?: string | null;
+  phone?: string | null;
+  joinDate?: string;
+  credits?: number | string;
+  isUnlimited?: boolean;
+  package?: string;
+  passExpiryISO?: string | null;
+  totalClasses?: number;
+  weeklyStreak?: number;
+  favoriteClass?: string;
+  lastClass?: string;
+  lastAttendance?: string;
+  badges?: unknown[];
+  upcomingBookings?: MemberBooking[];
+  orderHistory?: MemberOrder[];
+  attendanceHistory?: MemberAttendanceEntry[];
+  [key: string]: unknown;
+}
+
 const ADMIN_TABS = [
   { v: "overview", l: "Overview", I: BarChart3 },
   { v: "finance", l: "Finance", I: DollarSign },
@@ -154,7 +263,7 @@ export default function AdminDashboard() {
   const [selectedMember, setSelectedMember] = useState("all");
   const [selectedInstructor, setSelectedInstructor] = useState("all");
   const [showMemberProfile, setShowMemberProfile] = useState(false);
-  const [selectedMemberProfile, setSelectedMemberProfile] = useState<any>(null);
+  const [selectedMemberProfile, setSelectedMemberProfile] = useState<SelectedMemberProfile | null>(null);
 
   const [showAddUserDialog, setShowAddUserDialog] = useState(false);
   const [showEditUserDialog, setShowEditUserDialog] = useState(false);
@@ -173,11 +282,11 @@ export default function AdminDashboard() {
   const [showPayoutDialog, setShowPayoutDialog] = useState(false);
   const [showAddInstructorDialog, setShowAddInstructorDialog] = useState(false);
   const [showEditInstructorDialog, setShowEditInstructorDialog] = useState(false);
-  const [selectedUser, _setSelectedUser] = useState<any>(null);
-  const [selectedClass, setSelectedClass] = useState<any>(null);
+  const [selectedUser, _setSelectedUser] = useState<SelectedUser | null>(null);
+  const [selectedClass, setSelectedClass] = useState<SelectedClassDetail | null>(null);
   const [rosterCheckingIn, setRosterCheckingIn] = useState<Record<string, boolean>>({});
   const [instructorCheckingIn, setInstructorCheckingIn] = useState(false);
-  const [selectedInstructorData, _setSelectedInstructorData] = useState<any>(null);
+  const [selectedInstructorData, _setSelectedInstructorData] = useState<SelectedInstructorData | null>(null);
   const instructorForm = useForm<z.infer<typeof instructorSchema>>({
     resolver: zodResolver(instructorSchema),
     defaultValues: { name: "", email: "", phone: "", studio_payout_cut_percent: "", specialties: "", philosophy: "" },
@@ -271,7 +380,7 @@ export default function AdminDashboard() {
     { id: string | number; scheduleId?: string; name: string; time: string; instructor: string; spots: string; status: string }[]
   >([]);
   /** Day rosters with check-in details (from /api/admin/dashboard/today-classes). */
-  const [todayClassesDetail, setTodayClassesDetail] = useState<any[]>([]);
+  const [todayClassesDetail, setTodayClassesDetail] = useState<TodayClassDetail[]>([]);
   const [todayClassesLoading, setTodayClassesLoading] = useState<boolean>(true);
   /** ISO yyyy-mm-dd date for the schedule card; defaults to today. */
   const [scheduleDate, setScheduleDate] = useState<string>(() => {
@@ -319,11 +428,11 @@ export default function AdminDashboard() {
   const [disciplineSplit, setDisciplineSplit] = useState<{ name: string; count: number; percentage: number }[]>(
     []
   );
-  const [memberList, setMemberList] = useState<any[]>([]);
+  const [memberList, setMemberList] = useState<Record<string, unknown>[]>([]);
   const [expiringMembers, setExpiringMembers] = useState<
     { id: string; name: string; email: string; package: string; expires: string; credits: number }[]
   >([]);
-  const [dashboardInstructors, setDashboardInstructors] = useState<any[]>([]);
+  const [dashboardInstructors, setDashboardInstructors] = useState<DashboardInstructorRow[]>([]);
 
   // Auth enforced server-side (see `getServerSideProps` above). Client-side
   // `useSession()` is kept so existing effects that key on `status`/`session`
@@ -787,9 +896,9 @@ export default function AdminDashboard() {
       });
       if (!res.ok) throw new Error();
       const checkedIn = outcome === "on_time" || outcome === "late";
-      setSelectedClass((prev: any) => {
+      setSelectedClass((prev: SelectedClassDetail | null) => {
         if (!prev) return prev;
-        const attendees = (prev.attendees ?? []).map((a: any) =>
+        const attendees = (prev.attendees ?? []).map((a: ClassAttendee) =>
           a.id === attendee.id
             ? {
                 ...a,
@@ -801,7 +910,7 @@ export default function AdminDashboard() {
               }
             : a,
         );
-        return { ...prev, attendees, checkedIn: attendees.filter((a: any) => a.checkedIn).length };
+        return { ...prev, attendees, checkedIn: attendees.filter((a: ClassAttendee) => a.checkedIn).length };
       });
     } catch {
       toast.error("Could not update status");
@@ -821,7 +930,7 @@ export default function AdminDashboard() {
       });
       if (!res.ok) throw new Error();
       const d = await res.json();
-      setSelectedClass((prev: any) =>
+      setSelectedClass((prev: SelectedClassDetail | null) =>
         prev ? { ...prev, instructorCheckedIn: !!d.instructorCheckedIn, instructorCheckInTime: d.instructorCheckInTime } : prev,
       );
     } catch {
@@ -858,7 +967,7 @@ export default function AdminDashboard() {
         return;
       }
       const { booking } = await res.json();
-      setSelectedClass((prev: any) => ({
+      setSelectedClass((prev: SelectedClassDetail | null) => ({
         ...prev,
         enrolled: (prev.enrolled ?? 0) + 1,
         attendees: [
@@ -1445,7 +1554,7 @@ export default function AdminDashboard() {
                   });
                   if (!res.ok) throw new Error(`HTTP ${res.status}`);
                   setTodayClassesDetail((prev) =>
-                    prev.map((c: any) => (c.id === id ? { ...c, status: newStatus } : c)),
+                    prev.map((c: TodayClassDetail) => (c.id === id ? { ...c, status: newStatus } : c)),
                   );
                   toast.success(
                     newStatus === "available"
@@ -1599,7 +1708,7 @@ export default function AdminDashboard() {
                   </div>
                 ) : (
                 <div className="space-y-2 max-h-96 overflow-y-auto">
-                  {(selectedClass.attendees ?? []).map((attendee: any) => {
+                  {(selectedClass.attendees ?? []).map((attendee: ClassAttendee) => {
                     const outcome = attendee.checkInOutcome as string | null | undefined;
                     return (
                     <div key={attendee.id} className="flex items-center justify-between p-3 rounded-lg border border-sage/15 bg-white-warm">
@@ -1688,7 +1797,7 @@ export default function AdminDashboard() {
                 {dashMemberResults.length > 0 && (
                   <div className="mt-1 rounded-lg border border-sage/20 bg-white-warm shadow-sm overflow-hidden max-h-40 overflow-y-auto">
                     {dashMemberResults.map(m => {
-                      const alreadyIn = (selectedClass?.attendees ?? []).some((a: any) => a.id === m.id);
+                      const alreadyIn = (selectedClass?.attendees ?? []).some((a: ClassAttendee) => a.id === m.id);
                       return (
                         <div key={m.id} className="flex items-center justify-between px-3 py-2 hover:bg-cream/30 transition-colors">
                           <div className="min-w-0">
@@ -2106,7 +2215,7 @@ export default function AdminDashboard() {
                   {selectedMemberProfile.upcomingBookings.length === 0 ? (
                     <p className="font-body text-sm text-charcoal/50">No upcoming bookings</p>
                   ) : (
-                    selectedMemberProfile.upcomingBookings.map((booking: any, idx: number) => (
+                    selectedMemberProfile.upcomingBookings.map((booking: MemberBooking, idx: number) => (
                       <div key={idx} className="flex items-center justify-between p-3 rounded-lg bg-cream/30">
                         <div>
                           <p className="font-body text-sm font-medium text-charcoal">{booking.class}</p>
@@ -2170,7 +2279,7 @@ export default function AdminDashboard() {
                   {selectedMemberProfile.orderHistory.length === 0 ? (
                     <p className="font-body text-sm text-charcoal/50">No café orders yet</p>
                   ) : (
-                    selectedMemberProfile.orderHistory.map((order: any, idx: number) => (
+                    selectedMemberProfile.orderHistory.map((order: MemberOrder, idx: number) => (
                       <div key={idx} className="flex items-center justify-between p-3 rounded-lg bg-cream/30">
                         <div>
                           <p className="font-body text-sm font-medium text-charcoal">{order.item}</p>

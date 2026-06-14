@@ -68,7 +68,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
       const days = Math.max(
         1,
-        Math.ceil((existing.pause_to!.getTime() - existing.pause_from!.getTime()) / DAY_MS),
+        Math.ceil((existing.pause_to.getTime() - existing.pause_from.getTime()) / DAY_MS),
       );
       const newExpiry = new Date(pkg.expiration_date.getTime() + days * DAY_MS);
 
@@ -76,8 +76,8 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         where: { id: pkg.id },
         data: {
           is_paused: true,
-          pause_start_date: existing.pause_from!,
-          pause_end_date: existing.pause_to!,
+          pause_start_date: existing.pause_from,
+          pause_end_date: existing.pause_to,
           expiration_date: newExpiry,
         },
       });

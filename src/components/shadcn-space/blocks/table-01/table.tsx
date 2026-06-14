@@ -1,5 +1,6 @@
 "use client";
 
+import Image from "next/image";
 import { LucideIcon, AppWindowMac, HandMetal, Megaphone, Contrast, Brush } from 'lucide-react';
 import { FolderPlus, FolderPen, FolderMinus } from 'lucide-react';
 import { EllipsisVertical } from "lucide-react";
@@ -156,12 +157,13 @@ const TableComp = () => {
                                         {/* Customer */}
                                         <TableCell className="whitespace-nowrap">
                                             <div className="flex gap-3 items-center">
-                                                <img
+                                                <Image
                                                     src={item.avatar}
                                                     alt="icon"
                                                     className="h-9 w-9 rounded-full"
                                                     width={36}
                                                     height={36}
+                                                    unoptimized
                                                 />
                                                 <div className="truncate line-clamp-2 max-w-56">
                                                     <h6 className="text-sm font-medium">{item.name}</h6>

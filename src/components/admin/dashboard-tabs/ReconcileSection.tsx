@@ -325,7 +325,7 @@ function ImportDialog({ row, onClose, onImported }: { row: ReconRow; onClose: ()
                   {(rzpDetail?.amount_refunded ?? 0) > 0 && (
                     <div className="flex justify-between items-center">
                       <span className="font-body text-xs text-charcoal/50 uppercase tracking-wide">Refunded</span>
-                      <span className="font-body text-sm text-[#a05e38]">−{inr(rzpDetail!.amount_refunded)}</span>
+                      <span className="font-body text-sm text-[#a05e38]">−{inr(rzpDetail?.amount_refunded)}</span>
                     </div>
                   )}
 

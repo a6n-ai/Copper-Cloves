@@ -832,6 +832,9 @@ export default function BookClass() {
       didAutoAdvanceDay.current = false;
       fetchClasses(weekOffset);
     }
+    // Intentionally keyed on status/weekOffset only. `f` is a fresh object each render, so depending
+    // on it would re-run every render; f.reset is a stable useCallback that only needs to fire here.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [status, weekOffset]);
 
   // Current week only: once classes load, if every class today is already done,

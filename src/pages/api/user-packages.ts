@@ -117,7 +117,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         const created = await tx.userPackage.create({
           data: {
             user_id: userId,
-            package_type_id: package_type_id!,
+            package_type_id: package_type_id,
             credits_remaining: packageType.is_unlimited ? null : (packageType.class_count ?? null),
             credits_total: packageType.is_unlimited ? null : (packageType.class_count ?? null),
             expiration_date: expirationDate,

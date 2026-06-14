@@ -117,14 +117,14 @@ async function uploadToS3(
   ownerId: string | undefined,
 ): Promise<{ url: string; key: string; bucket: string }> {
   const { S3Client, PutObjectCommand } = await import("@aws-sdk/client-s3");
-  const bucket = process.env.S3_BUCKET!;
-  const region = process.env.S3_REGION!;
+  const bucket = process.env.S3_BUCKET;
+  const region = process.env.S3_REGION;
   const key = buildS3Key({ purpose, ownerId, ext: extFromContentType(mime) });
   const client = new S3Client({
     region,
     credentials: {
-      accessKeyId: process.env.S3_ACCESS_KEY_ID!,
-      secretAccessKey: process.env.S3_SECRET_ACCESS_KEY!,
+      accessKeyId: process.env.S3_ACCESS_KEY_ID,
+      secretAccessKey: process.env.S3_SECRET_ACCESS_KEY,
     },
   });
   await client.send(new PutObjectCommand({

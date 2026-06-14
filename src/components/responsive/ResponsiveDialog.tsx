@@ -65,7 +65,7 @@ export function ResponsiveDialogContent({ className, children, ...props }: React
       <SheetContent
         side="bottom"
         className={cn("max-h-[90dvh] overflow-y-auto rounded-t-2xl pb-[env(safe-area-inset-bottom)]", className)}
-        {...(props as any)}
+        {...(props as React.ComponentProps<typeof SheetContent>)}
       >
         {children}
       </SheetContent>

@@ -6,7 +6,6 @@ const BASE_URL = "https://thestudiobycopperandcloves.in";
 const LOGO_URL = `${BASE_URL}/logo2.png`;
 const CAFE_IMAGE_URL = `${BASE_URL}/cafe-studio.jpg`;
 const INSTAGRAM_URL = "https://www.instagram.com/thestudiobycopperandcloves";
-const MAPS_URL = "https://maps.app.goo.gl/rX8vaweAtB877gYv8";
 
 const SAGE = "#7C9070";
 const CHARCOAL = "#2C2C2C";

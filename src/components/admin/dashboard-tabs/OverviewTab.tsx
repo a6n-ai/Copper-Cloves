@@ -13,7 +13,6 @@ import {
 import { toast } from "sonner";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
 import { DatePicker } from "@/components/filters";
 import { Skeleton } from "@/components/ui/skeleton";
 import { MetricCard } from "@/components/admin/MetricCard";

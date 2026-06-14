@@ -55,7 +55,7 @@ export function ClassCheckinQr({ kind, qr, size = 200, label }: Props) {
     return (
       <div className="flex flex-col items-center gap-2">
         <p className="font-display text-base text-charcoal">{heading}</p>
-        <QrZoomImage url={url!} label={`${heading} check-in`} caption="Tap to enlarge" size={size} />
+        <QrZoomImage url={url} label={`${heading} check-in`} caption="Tap to enlarge" size={size} />
       </div>
     );
   }
@@ -65,7 +65,7 @@ export function ClassCheckinQr({ kind, qr, size = 200, label }: Props) {
       <div className="flex flex-col items-center gap-2">
         <p className="font-display text-base text-charcoal">{heading}</p>
         <QrZoomImage
-          url={url!}
+          url={url}
           label={`${heading} check-in (historical)`}
           caption="Expired — historical record"
           size={size}
@@ -75,8 +75,8 @@ export function ClassCheckinQr({ kind, qr, size = 200, label }: Props) {
   }
 
   if (preWindow) {
-    const opens = qr!.windowOpensAt
-      ? new Date(qr!.windowOpensAt!).toLocaleTimeString(undefined, { timeStyle: "short" })
+    const opens = qr?.windowOpensAt
+      ? new Date(qr.windowOpensAt).toLocaleTimeString(undefined, { timeStyle: "short" })
       : "later";
     return (
       <div className="flex flex-col items-center gap-2">

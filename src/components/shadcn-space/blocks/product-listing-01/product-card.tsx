@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import Image from "next/image";
 import { Heart, Star } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Pill, type PillProps } from "@/components/ui/pill";
@@ -81,10 +82,13 @@ export function ProductCard({
           />
           <span className="sr-only">Add to wishlist</span>
         </Button>
-        <img
+        <Image
           src={image}
           alt={name}
-          className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110"
+          fill
+          sizes="(max-width: 768px) 100vw, 33vw"
+          unoptimized
+          className="object-cover transition-transform duration-500 group-hover:scale-110"
         />
       </div>
       <CardContent className="flex flex-col gap-3 p-5">

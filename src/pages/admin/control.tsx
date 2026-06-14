@@ -16,16 +16,13 @@ import { MetricCard } from "@/components/admin/MetricCard";
 import { ListAvatar } from "@/components/admin/ListAvatar";
 import { AdminPageHeader } from "@/components/admin/AdminPageHeader";
 import { Button } from "@/components/ui/button";
-import { EditButton, DeleteButton, ManageButton } from "@/components/ui/quick-actions";
+import { EditButton, DeleteButton } from "@/components/ui/quick-actions";
 import { MemberTable, type MemberTableMember } from "@/components/admin/MemberTable";
-import { InstructorTable, type InstructorTableInstructor } from "@/components/admin/InstructorTable";
-import { AnimatedIcon } from "@/components/dashboard/AnimatedIcon";
-import { cn } from "@/lib/utils";
 import { Pill } from "@/components/ui/pill";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Input } from "@/components/ui/input";
-import { FilterReset, DatePicker, FilterBar, FilterSearch, FilterSelect } from "@/components/filters";
+import { DatePicker, FilterBar, FilterSearch, FilterSelect } from "@/components/filters";
 import { Textarea } from "@/components/ui/textarea";
 import {
   ResponsiveDialog,
@@ -41,7 +38,6 @@ import {
   Calendar, 
   Plus, 
   Edit,
-  Ban,
   Clock,
   Save,
   CheckCircle2,
@@ -54,8 +50,6 @@ import {
   Layers,
   Award,
   ListFilter,
-  Power,
-  PowerOff,
 } from "lucide-react";
 import { SEO } from "@/components/SEO";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -155,65 +149,6 @@ function ClassGridSkeleton({ count = 4 }: { count?: number }) {
   );
 }
 
-/**
- * Normalize a `specialties` value to a clean `string[]`. Handles three shapes:
- *  - `string[]`  (modern; one entry per specialty)
- *  - `string`    (legacy; comma-separated)
- *  - `string[]` where each entry is itself comma-joined (bad seed data)
- * Returns [] for anything else.
- */
-function normalizeSpecialties(raw: unknown): string[] {
-  if (Array.isArray(raw)) {
-    return raw.flatMap((e) =>
-      typeof e === "string" ? e.split(",").map((s) => s.trim()).filter(Boolean) : [],
-    );
-  }
-  if (typeof raw === "string") {
-    return raw.split(",").map((s) => s.trim()).filter(Boolean);
-  }
-  return [];
-}
-
-/** Instructor profile cards — mirrors avatar + name/title + active badge + contact + specialties. */
-function InstructorGridSkeleton({ count = 4 }: { count?: number }) {
-  return (
-    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-      {Array.from({ length: count }).map((_, i) => (
-        <Card key={i} className="border-sage/20 bg-white-warm">
-          <CardContent className="p-6">
-            <div className="flex gap-4">
-              <Skeleton className="h-24 w-24 rounded-lg bg-sage/10 shrink-0" />
-              <div className="flex-1 space-y-3">
-                <div className="flex items-start justify-between">
-                  <div className="space-y-2">
-                    <Skeleton className="h-6 w-36 bg-sage/10" />
-                    <Skeleton className="h-3.5 w-24 bg-sage/10" />
-                    <Skeleton className="h-3 w-28 bg-sage/10" />
-                    <Skeleton className="h-5 w-16 rounded-full bg-sage/10" />
-                  </div>
-                  <div className="flex gap-2">
-                    <Skeleton className="h-8 w-24 rounded-md bg-sage/10" />
-                    <Skeleton className="h-8 w-16 rounded-md bg-sage/10" />
-                    <Skeleton className="h-8 w-9 rounded-md bg-sage/10" />
-                  </div>
-                </div>
-                <div className="space-y-2">
-                  <Skeleton className="h-3.5 w-40 bg-sage/10" />
-                  <Skeleton className="h-3.5 w-32 bg-sage/10" />
-                </div>
-                <div className="flex flex-wrap gap-1">
-                  <Skeleton className="h-5 w-16 rounded-full bg-sage/10" />
-                  <Skeleton className="h-5 w-20 rounded-full bg-sage/10" />
-                </div>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
-      ))}
-    </div>
-  );
-}
-
 /** Full page shell while session/data initially loads — header + tab bar + user list. */
 function ControlPanelShellSkeleton() {
   return (
@@ -253,6 +188,86 @@ function ControlPanelShellSkeleton() {
 
 type SortDir = "asc" | "desc";
 
+/** A member row after `fetchUsers` post-processing (profile + derived pass fields). */
+interface ProcessedUser {
+  id: string;
+  full_name?: string | null;
+  email?: string;
+  phone?: string | null;
+  avatar_url?: string | null;
+  name: string;
+  pass_type?: string | null;
+  passType: "none" | "class_pass" | "studio_pass";
+  classesRemaining: number | string;
+  daysRemaining: number;
+  expiry: string;
+  isPaused: boolean;
+  pauseStartDate?: string | null;
+  userPackageId: string | null;
+  start_date?: string | null;
+  user_packages?: unknown;
+  [key: string]: unknown;
+}
+
+/** A class catalog row from `/api/admin/classes`. */
+interface ClassRow {
+  id: string;
+  name?: string | null;
+  category?: string | null;
+  description?: string | null;
+  benefits?: string[] | null;
+  duration?: number | null;
+  max_capacity?: number | null;
+  image_url?: string | null;
+  [key: string]: unknown;
+}
+
+/** An instructor row from the shared `useInstructors` cache. */
+interface InstructorRow {
+  id: string;
+  name?: string | null;
+  title?: string | null;
+  email?: string | null;
+  phone?: string | null;
+  image_url?: string | null;
+  specialties?: string[] | null;
+  certifications?: string[] | null;
+  philosophy?: string | null;
+  about?: string | null;
+  years_of_experience?: string | null;
+  studio_payout_cut_percent?: number | null;
+  social_facebook?: string | null;
+  social_twitter?: string | null;
+  social_linkedin?: string | null;
+  social_whatsapp?: string | null;
+  is_active?: boolean;
+  [key: string]: unknown;
+}
+
+/** A member pause-subscription ticket from `/api/admin/member-tickets`. */
+interface PauseTicket {
+  id: string;
+  type?: string;
+  status?: string;
+  admin_note?: string | null;
+  reason?: string | null;
+  attachment_url?: string | null;
+  pause_from?: string | null;
+  pause_to?: string | null;
+  created_at?: string | null;
+  profile?: {
+    full_name?: string | null;
+    email?: string | null;
+    phone?: string | null;
+  } | null;
+  user_package?: {
+    pass_type?: string | null;
+    credits_remaining?: number | null;
+    is_active?: boolean;
+    package_type?: { name?: string | null } | null;
+  } | null;
+}
+
 function useSort<K extends string>() {
   const [key, setKey] = useState<K | null>(null);
   const [dir, setDir] = useState<SortDir>("asc");
@@ -271,9 +286,10 @@ function sortArrow(active: boolean, dir: SortDir) {
   return dir === "asc" ? <ChevronUp className="h-3 w-3" /> : <ChevronDown className="h-3 w-3" />;
 }
 
-const isUserExpired = (u: any) =>
+const isUserExpired = (u: { expiry?: string | null }) =>
   u.expiry === "N/A" || (u.expiry && new Date(u.expiry).getTime() < Date.now());
-const isUserActive = (u: any) => u.passType !== "none" && !isUserExpired(u);
+const isUserActive = (u: { expiry?: string | null; passType?: string }) =>
+  u.passType !== "none" && !isUserExpired(u);
 
 const thBtn = "inline-flex items-center gap-1 hover:text-charcoal transition-colors";
 
@@ -298,29 +314,26 @@ export default function ControlPanel() {
   const [showEditInstructorDialog, setShowEditInstructorDialog] = useState(false);
 
   // Selected items
-  const [selectedUser, setSelectedUser] = useState<any>(null);
-  const [selectedClass, setSelectedClass] = useState<any>(null);
-  const [selectedInstructorData, _setSelectedInstructorData] = useState<any>(null);
+  const [selectedUser, setSelectedUser] = useState<ProcessedUser | null>(null);
+  const [selectedClass, setSelectedClass] = useState<ClassRow | null>(null);
+  const [selectedInstructorData, _setSelectedInstructorData] = useState<InstructorRow | null>(null);
 
   // Classes state
-  const [classes, setClasses] = useState<any[]>([]);
+  const [classes, setClasses] = useState<ClassRow[]>([]);
   const [loadingClasses, setLoadingClasses] = useState(true);
 
   // Users state
-  const [users, setUsers] = useState<any[]>([]);
+  const [users, setUsers] = useState<ProcessedUser[]>([]);
   const [userSearch, setUserSearch] = useState("");
   const [userFilter, setUserFilter] = useState("all");
   const [loadingUsers, setLoadingUsers] = useState(true);
 
   // Instructors roster — shared SWR key (one cached copy across admin pages).
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const { data: instructorsData, isLoading: instructorsLoading, mutate: mutateInstructors } = useInstructors<any[]>();
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const instructors = useMemo<any[]>(() => instructorsData ?? [], [instructorsData]);
-  const loadingInstructors = instructorsLoading && !instructorsData;
+  const { data: instructorsData, mutate: mutateInstructors } = useInstructors<InstructorRow[]>();
+  const instructors = useMemo<InstructorRow[]>(() => instructorsData ?? [], [instructorsData]);
 
   // Pause request tickets state
-  const [pauseTickets, setPauseTickets] = useState<any[]>([]);
+  const [pauseTickets, setPauseTickets] = useState<PauseTicket[]>([]);
   const [loadingPauseTickets, setLoadingPauseTickets] = useState(true);
   const [pauseStatusFilter, setPauseStatusFilter] = useState<"all" | "open" | "in_review" | "resolved" | "rejected">("all");
   const [pauseNoteDrafts, setPauseNoteDrafts] = useState<Record<string, string>>({});
@@ -367,13 +380,13 @@ export default function ControlPanel() {
     try {
       const res = await fetch("/api/admin/member-tickets", { credentials: "same-origin" });
       if (!res.ok) { setPauseTickets([]); return; }
-      const data = await res.json();
-      const onlyPause = Array.isArray(data)
-        ? data.filter((t: any) => t.type === "pause_subscription")
+      const data: unknown = await res.json();
+      const onlyPause: PauseTicket[] = Array.isArray(data)
+        ? (data as PauseTicket[]).filter((t) => t.type === "pause_subscription")
         : [];
       setPauseTickets(onlyPause);
       setPauseNoteDrafts(
-        Object.fromEntries(onlyPause.map((t: any) => [t.id, t.admin_note ?? ""])),
+        Object.fromEntries(onlyPause.map((t) => [t.id, t.admin_note ?? ""])),
       );
     } catch {
       setPauseTickets([]);
@@ -592,7 +605,7 @@ export default function ControlPanel() {
     }
   }
 
-  const openEditUser = (user: any) => {
+  const openEditUser = (user: ProcessedUser) => {
     setSelectedUser(user);
     const pt = user.passType === "studio_pass" ? "studio_pass" : "class_pass";
     setEditPassType(pt);
@@ -958,47 +971,11 @@ export default function ControlPanel() {
     }
   }
 
-  async function handleToggleInstructorActive(instructorId: string, currentActive: boolean) {
-    try {
-      const res = await fetch(`/api/admin/instructors?id=${instructorId}`, {
-        method: "PATCH",
-        headers: { "Content-Type": "application/json" },
-        credentials: "same-origin",
-        body: JSON.stringify({ is_active: !currentActive }),
-      });
-      if (!res.ok) throw new Error("Toggle failed");
-      void mutateInstructors();
-    } catch (err) {
-      console.error("Error:", err);
-      toast.error("Failed to update instructor status.");
-    }
-  }
-
-  async function handleDeleteInstructor(instructorId: string, instructorName: string) {
-    const confirmed = confirm(`Are you sure you want to delete "${instructorName}"? This action cannot be undone.`);
-    
-    if (!confirmed) return;
-    
-    try {
-      const res = await fetch(`/api/admin/instructors?id=${instructorId}`, { method: "DELETE" });
-      if (!res.ok) throw new Error("Delete failed");
-
-      toast.success("Instructor deleted successfully!");
-      setShowEditInstructorDialog(false);
-      void mutateInstructors();
-    } catch (err) {
-      console.error("Error:", err);
-      toast.error("Failed to delete instructor. Please try again.");
-    }
-  }
-
   // ---- Tab search + sort ----
   const [classSearch, setClassSearch] = useState("");
-  const [instructorSearch, setInstructorSearch] = useState("");
 
   const userSort = useSort<"name" | "pass" | "remaining" | "start" | "end" | "status">();
   const classSort = useSort<"name" | "category" | "duration" | "capacity">();
-  const instructorSort = useSort<"name" | "status">();
 
   const filteredUsers = useMemo(() => {
     let list = users.filter((u) => {
@@ -1022,8 +999,8 @@ export default function ControlPanel() {
           case "remaining":
             return ((Number(a.classesRemaining ?? 0)) - (Number(b.classesRemaining ?? 0))) * dir;
           case "start": {
-            const av = a.startDate ? new Date(a.startDate).getTime() : 0;
-            const bv = b.startDate ? new Date(b.startDate).getTime() : 0;
+            const av = a.startDate ? new Date(a.startDate as string).getTime() : 0;
+            const bv = b.startDate ? new Date(b.startDate as string).getTime() : 0;
             return (av - bv) * dir;
           }
           case "end": {
@@ -1070,30 +1047,6 @@ export default function ControlPanel() {
     return list;
   }, [classes, classSearch, classSort.key, classSort.dir]);
 
-
-  const filteredInstructors = useMemo(() => {
-    let list = instructors;
-    const q = instructorSearch.trim().toLowerCase();
-    if (q)
-      list = list.filter((i) =>
-        [i.name, i.email, i.title].some((f) => String(f ?? "").toLowerCase().includes(q)),
-      );
-    if (instructorSort.key) {
-      const dir = instructorSort.dir === "asc" ? 1 : -1;
-      list = [...list].sort((a, b) => {
-        switch (instructorSort.key) {
-          case "name":
-            return String(a.name ?? "").localeCompare(String(b.name ?? "")) * dir;
-          case "status":
-            return (Number(a.is_active !== false) - Number(b.is_active !== false)) * dir;
-          default:
-            return 0;
-        }
-      });
-    }
-    return list;
-  }, [instructors, instructorSearch, instructorSort.key, instructorSort.dir]);
-
   // ---- Stat summaries ----
   const userStats = useMemo(() => {
     const active = users.filter(isUserActive).length;
@@ -1115,27 +1068,12 @@ export default function ControlPanel() {
     return { total: classes.length, categories: cats.size, avgDur, capacity };
   }, [classes]);
 
-  const instructorStats = useMemo(() => {
-    const activeCount = instructors.filter((i) => i.is_active !== false).length;
-    const years = instructors
-      .map((i) => parseInt(i.years_of_experience) || 0)
-      .filter((y) => y > 0);
-    const avgYears = years.length ? Math.round(years.reduce((s, y) => s + y, 0) / years.length) : 0;
-    return {
-      total: instructors.length,
-      active: activeCount,
-      inactive: instructors.length - activeCount,
-      avgYears,
-    };
-  }, [instructors]);
-
   const usersPg = usePagination(filteredUsers, 10, `${userSearch}|${userFilter}|${userSort.key}|${userSort.dir}`);
   const classesPg = usePagination(filteredClasses, 10, `${classSearch}|${classSort.key}|${classSort.dir}`);
-  const instructorsPg = usePagination(filteredInstructors, 10, `${instructorSearch}|${instructorSort.key}|${instructorSort.dir}`);
 
   // Map paged users → MemberTable rows; carry the original user object on `_raw`
   // so renderActions can call the existing edit/delete handlers unchanged.
-  const memberRows: (MemberTableMember & { _raw: any })[] = usersPg.pageItems.map((user) => {
+  const memberRows: (MemberTableMember & { _raw: ProcessedUser })[] = usersPg.pageItems.map((user) => {
     const passCategory: "studio_pass" | "class_pass" | "none" =
       user.passType === "studio_pass" ? "studio_pass" : user.passType === "class_pass" ? "class_pass" : "none";
     const status: "active" | "expired" | undefined =
@@ -1155,7 +1093,7 @@ export default function ControlPanel() {
     };
   });
 
-  function renderMemberActions(m: MemberTableMember & { _raw: any }) {
+  function renderMemberActions(m: MemberTableMember & { _raw: ProcessedUser }) {
     const user = m._raw;
     return (
       <div className="flex gap-2 justify-end">
@@ -1163,51 +1101,6 @@ export default function ControlPanel() {
         <DeleteButton
           onClick={() => handleDeleteUser(user.id, user.name || user.full_name || user.email)}
           label="Delete user"
-        />
-      </div>
-    );
-  }
-
-  // Map paged instructors → InstructorTable rows; carry original on `_raw`.
-  const instructorRows: (InstructorTableInstructor & { _raw: any })[] = instructorsPg.pageItems.map((instructor) => ({
-    id: instructor.id,
-    name: instructor.name,
-    title: instructor.title,
-    email: instructor.email,
-    phone: instructor.phone,
-    imageUrl: instructor.image_url,
-    specialties: normalizeSpecialties(instructor.specialties),
-    isActive: instructor.is_active,
-    _raw: instructor,
-  }));
-
-  function renderInstructorActions(i: InstructorTableInstructor & { _raw: any }) {
-    const instructor = i._raw;
-    const active = instructor.is_active !== false;
-    return (
-      <div className="flex gap-1.5 justify-end">
-        <Button
-          type="button"
-          variant="outline"
-          size="sm"
-          onClick={() => handleToggleInstructorActive(instructor.id, active)}
-          aria-label={active ? "Deactivate instructor" : "Activate instructor"}
-          title={active ? "Deactivate instructor" : "Activate instructor"}
-          className={cn(
-            "h-8 w-8 p-0 font-body transition-all hover:scale-110 active:scale-95",
-            active
-              ? "border-terracotta/40 text-terracotta bg-white-warm hover:bg-terracotta! hover:text-cream! hover:border-terracotta!"
-              : "border-sage/60 text-sage bg-white-warm hover:bg-sage! hover:text-cream! hover:border-sage!",
-          )}
-        >
-          <AnimatedIcon icon={active ? PowerOff : Power} size={14} animateOnMount={false} hover="wiggle" />
-        </Button>
-        <ManageButton onClick={() => router.push(`/admin/instructors/${instructor.id}`)} label="Open profile" />
-        <DeleteButton
-          onClick={() => handleDeleteInstructor(instructor.id, instructor.name)}
-          label="Delete instructor"
-          confirmTitle={`Delete ${instructor.name}?`}
-          confirmDescription="The instructor will be permanently removed. Past class history is preserved."
         />
       </div>
     );
@@ -1369,7 +1262,7 @@ export default function ControlPanel() {
                       <CardTitle className="font-display text-xl">Pause Subscription Requests</CardTitle>
                       <CardDescription>Approving freezes the pass shown on each request and extends its expiry by the pause duration.</CardDescription>
                     </div>
-                    <Select value={pauseStatusFilter} onValueChange={(v: any) => setPauseStatusFilter(v)}>
+                    <Select value={pauseStatusFilter} onValueChange={(v) => setPauseStatusFilter(v as typeof pauseStatusFilter)}>
                       <SelectTrigger className="w-40 border-sage/30">
                         <SelectValue />
                       </SelectTrigger>

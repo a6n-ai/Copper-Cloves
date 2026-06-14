@@ -21,12 +21,12 @@ export interface FilterState<T> {
 }
 
 /** Build a codec map: explicit codecs win; string dimensions get a default stringCodec. */
-function resolveCodecs<T extends Record<string, any>>(defaults: T, provided?: Codecs<T>) {
-  const map: Record<string, FilterCodec<any>> = {};
+function resolveCodecs<T extends Record<string, unknown>>(defaults: T, provided?: Codecs<T>) {
+  const map: Record<string, FilterCodec<unknown>> = {};
   for (const key of Object.keys(defaults)) {
     const explicit = provided?.[key as keyof T];
     if (explicit) {
-      map[key] = explicit as FilterCodec<any>;
+      map[key] = explicit as FilterCodec<unknown>;
     } else if (typeof defaults[key] === "string") {
       map[key] = stringCodec(key, defaults[key]);
     }
@@ -35,7 +35,7 @@ function resolveCodecs<T extends Record<string, any>>(defaults: T, provided?: Co
   return map;
 }
 
-export function useFilterState<T extends Record<string, any>>(
+export function useFilterState<T extends Record<string, unknown>>(
   defaults: T,
   options: Options<T> = {},
 ): FilterState<T> {
@@ -43,7 +43,7 @@ export function useFilterState<T extends Record<string, any>>(
   const router = useRouter();
   const defaultsRef = useRef(defaults);
   const providedRef = useRef(provided);
-  const codecs = useMemo(() => resolveCodecs(defaultsRef.current, providedRef.current), []); // eslint-disable-line react-hooks/exhaustive-deps
+  const codecs = useMemo(() => resolveCodecs(defaultsRef.current, providedRef.current), []);
 
   const [values, setValues] = useState<T>(() => {
     if (urlSync && router.isReady) {
@@ -69,7 +69,7 @@ export function useFilterState<T extends Record<string, any>>(
     if (nextStr === lastQuery.current) return;
     // capture unrelated keys synchronously (not inside the timeout)
     const owned = new Set(Object.values(codecs).flatMap((c) => c.keys));
-    const preserved: Record<string, any> = {};
+    const preserved: Record<string, string | string[] | undefined> = {};
     for (const k of Object.keys(router.query)) {
       if (!owned.has(k)) preserved[k] = router.query[k];
     }

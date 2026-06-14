@@ -175,16 +175,16 @@ async function createScheduleSingle(res: NextApiResponse, body: IncomingSchedule
   const { data, error } = normalizeScheduleInput(body, 0);
   if (error) return res.status(400).json({ error });
   try {
-    const schedule = await prisma.classSchedule.create({ data: data! });
+    const schedule = await prisma.classSchedule.create({ data: data });
     return res.status(201).json(schedule);
   } catch (e) {
     if (e instanceof Prisma.PrismaClientKnownRequestError && e.code === "P2002") {
       // Idempotent re-submit — return the existing row id.
       const existing = await prisma.classSchedule.findFirst({
         where: {
-          start_time: data!.start_time as Date,
-          class_id: data!.class_id,
-          instructor_id: data!.instructor_id ?? null,
+          start_time: data.start_time as Date,
+          class_id: data.class_id,
+          instructor_id: data.instructor_id ?? null,
         },
         select: { id: true },
       });

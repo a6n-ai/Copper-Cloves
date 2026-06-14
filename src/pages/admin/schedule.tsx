@@ -21,7 +21,7 @@ import {
   CommandList,
 } from "@/components/ui/command";
 import { cn } from "@/lib/utils";
-import { DayScheduleList } from "@/components/admin/DayScheduleList";
+import { DayScheduleList, type ScheduleRow } from "@/components/admin/DayScheduleList";
 import { MetricCard } from "@/components/admin/MetricCard";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -188,6 +188,25 @@ type InstructorSelectOption = {
   _isPlaceholder?: boolean;
 };
 
+/** Class row shape from the classes API (loose — only fields the page reads). */
+interface DbClass {
+  id: string | number;
+  name: string;
+  max_capacity?: number;
+  duration?: number;
+}
+
+/** Instructor row shape from the instructors API (loose). */
+interface DbInstructor {
+  id: string | number;
+  name: string;
+  is_active?: boolean;
+  image_url?: string | null;
+}
+
+/** DayScheduleList row plus the raw schedule it was derived from. */
+type DayRow = ScheduleRow & { _raw: ScheduledClass };
+
 /** Shape-matched loading state mirroring the page header, KPI strip, and calendar + day-list layout. */
 function ScheduleLoadingSkeleton() {
   return (
@@ -332,8 +351,8 @@ export default function AdminSchedule() {
   // forced an extra render + refetch on every month change).
   const selectedMonth = selectedDate.getMonth();
   const scheduleViewYear = selectedDate.getFullYear();
-  const [dbClasses, setDbClasses] = useState<any[]>([]);
-  const [dbInstructors, setDbInstructors] = useState<any[]>([]);
+  const [dbClasses, setDbClasses] = useState<DbClass[]>([]);
+  const [dbInstructors, setDbInstructors] = useState<DbInstructor[]>([]);
   const [loadError, setLoadError] = useState<string | null>(null);
 
   // Roster sheet state
@@ -1120,7 +1139,7 @@ export default function AdminSchedule() {
                   <DayScheduleList
                     variant="expanded"
                     emptyText="No classes on this day. Click Schedule Class to add one."
-                    onSelect={(row: any) => router.push(`/admin/schedule/${row.id}`)}
+                    onSelect={(row: ScheduleRow) => router.push(`/admin/schedule/${row.id}`)}
                     items={schedule
                       .filter((c) => c.dateIso === selectedDateIso)
                       .sort((a, b) => a.startTimeIso.localeCompare(b.startTimeIso))
@@ -1139,9 +1158,9 @@ export default function AdminSchedule() {
                           : null,
                         status: sc.status ?? "available",
                         _raw: sc,
-                      } as any))}
-                    actions={(row: any) => {
-                      const sc: ScheduledClass = row._raw;
+                      } as DayRow))}
+                    actions={(row: ScheduleRow) => {
+                      const sc: ScheduledClass = (row as DayRow)._raw;
                       const isActive = (sc.status ?? "available") === "available";
                       const isInactive = sc.status === "inactive";
                       const isCancelled = sc.status === "cancelled";

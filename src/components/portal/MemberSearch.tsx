@@ -1,4 +1,5 @@
 import { useState, useRef, useEffect, useCallback } from "react";
+import Image from "next/image";
 import { isValidPhoneNumber } from "react-phone-number-input";
 import { Input } from "@/components/ui/input";
 import { PhoneInput, type PhoneValue } from "@/components/ui/phone-input";
@@ -43,9 +44,12 @@ function Avatar({ name, avatarUrl }: { name: string; avatarUrl: string | null })
 
   if (avatarUrl) {
     return (
-      <img
+      <Image
         src={cdnUrl(avatarUrl)}
         alt={name}
+        width={28}
+        height={28}
+        unoptimized
         className="w-7 h-7 rounded-full object-cover"
         onError={(e) => {
           (e.target as HTMLImageElement).style.display = "none";

@@ -92,7 +92,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         }
       }
 
-      const pt = await tx.packageType.findUnique({ where: { id: pkgTypeId! } });
+      const pt = await tx.packageType.findUnique({ where: { id: pkgTypeId } });
       if (!pt) throw new Error("BAD_PACKAGE");
 
       const ptType = (pt.type || "").toLowerCase();
@@ -131,7 +131,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       await tx.userPackage.create({
         data: {
           user_id: user.id,
-          package_type_id: pkgTypeId!,
+          package_type_id: pkgTypeId,
           credits_remaining: pass_type === "class_pass" ? creditsForClass : null,
           credits_total: pass_type === "class_pass" ? creditsForClass : null,
           expiration_date: expirationDate,

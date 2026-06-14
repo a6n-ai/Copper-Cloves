@@ -1,3 +1,4 @@
+import Image from "next/image";
 import { Pill } from "@/components/ui/pill";
 import { Card, CardContent } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
@@ -86,11 +87,12 @@ const Widget = ({ mainDashboard = mainDashboardData }: WidgetProps) => {
               </div>
             </div>
             {/* image */}
-            <img
+            <Image
               src="https://images.shadcnspace.com/assets/backgrounds/stats-01.webp"
               alt="user-img"
               width={211}
               height={168}
+              unoptimized
               className="absolute bottom-0 right-0 hidden sm:block"
             />
           </CardContent>

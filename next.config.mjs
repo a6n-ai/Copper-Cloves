@@ -72,11 +72,13 @@ const nextConfig = {
     process.env.VERCEL_GIT_COMMIT_SHA ??
     process.env.AWS_COMMIT_ID ??
     String(Date.now()),
+  // Guards re-enabled: the codebase is lint-clean (0 warnings) and tsc-clean,
+  // so let builds fail on regressions instead of silently shipping them.
   eslint: {
-    ignoreDuringBuilds: true,
+    ignoreDuringBuilds: false,
   },
   typescript: {
-    ignoreBuildErrors: true,
+    ignoreBuildErrors: false,
   },
   images: {
     formats: ["image/avif", "image/webp"],

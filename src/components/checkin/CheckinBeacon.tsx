@@ -13,10 +13,6 @@ import { cn } from "@/lib/utils";
 type Active = { className: string };
 type Next = { className: string; instructorName: string | null; startTime: string };
 
-function timeLabel(iso: string) {
-  return new Date(iso).toLocaleTimeString("en-US", { hour: "2-digit", minute: "2-digit" });
-}
-
 /**
  * Single-unit compact label for the badge overlay (e.g. "45m", "3h").
  *

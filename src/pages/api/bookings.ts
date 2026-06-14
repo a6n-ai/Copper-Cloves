@@ -18,7 +18,7 @@ import {
   parseGuestAttendees,
   snapshotTotalsConsistent,
 } from "@/lib/financeBookingCheckout";
-import logger, { requestLogger } from "@/lib/logger";
+import { requestLogger } from "@/lib/logger";
 import { upsertFriendship } from "@/lib/friendship";
 import { logActivity } from "@/lib/activityLog";
 

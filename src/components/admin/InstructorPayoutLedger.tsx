@@ -122,13 +122,13 @@ function buildGroups(lineItems: LineItem[], blendedRatePaise: number): Group[] {
         lineTotalPaise: 0,
       });
     }
-    const g = map.get(item.scheduleId)!;
+    const g = map.get(item.scheduleId);
     g.members.push(item);
     g.units += item.count;
     if (!item.isPlaceholder) g.attendees += 1;
     if (item.checkedIn) g.checkIns += 1;
   }
-  const groups = order.map((id) => map.get(id)!);
+  const groups = order.map((id) => map.get(id) as Group);
   for (const g of groups) {
     g.lineTotalPaise = g.units * blendedRatePaise;
   }

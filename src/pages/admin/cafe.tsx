@@ -77,6 +77,21 @@ interface MenuItem {
   is_available: boolean;
 }
 
+/** Row shape returned by `/api/cafe/orders` (loose — matches API JSON). */
+interface CafeOrder {
+  id: string;
+  status: string;
+  quantity: number;
+  order_date: string;
+  cafe_item?: { id?: string; name?: string; price?: number | string | null; image_url?: string | null } | null;
+  profile?: { full_name?: string | null } | null;
+  booking?: {
+    class_name?: string | null;
+    class_time?: string | null;
+    class_schedule?: { start_time?: string | null; class_model?: { name?: string | null } | null } | null;
+  } | null;
+}
+
 const CAFE_TABS = [
   { v: "menu", l: "Menu Items", I: UtensilsCrossed },
   { v: "overview", l: "Overview", I: LayoutGrid },
@@ -172,9 +187,9 @@ export default function AdminCafe() {
   const [orderStatusFilter, setOrderStatusFilter] = useState<"all" | "pending" | "preparing" | "ready">("all");
   
   // Orders state
-  const [orders, setOrders] = useState<any[]>([]);
+  const [orders, setOrders] = useState<CafeOrder[]>([]);
   const [loadingOrders, setLoadingOrders] = useState(false);
-  const [orderHistory, setOrderHistory] = useState<any[]>([]);
+  const [orderHistory, setOrderHistory] = useState<CafeOrder[]>([]);
   const [loadingHistory, setLoadingHistory] = useState(false);
   const [currentTime, setCurrentTime] = useState(new Date());
 
@@ -245,7 +260,7 @@ export default function AdminCafe() {
     }
     try {
       const res = await fetch("/api/cafe/orders");
-      const data: any[] = res.ok ? await res.json() : [];
+      const data: CafeOrder[] = res.ok ? await res.json() : [];
       const active = data.filter((o: { status: string }) => !["completed", "cancelled"].includes(o.status));
       const history = data.filter((o: { status: string }) => ["completed", "cancelled"].includes(o.status));
       const classSortKey = (o: { booking?: { class_schedule?: { start_time?: string }; class_time?: string | null } }) =>
@@ -285,7 +300,7 @@ export default function AdminCafe() {
     }
   };
 
-  const getOrderAlertLevel = (order: any) => {
+  const getOrderAlertLevel = (order: CafeOrder) => {
     const now = new Date();
     const orderDate = new Date(order.order_date);
     const minutesSinceOrder = Math.floor((now.getTime() - orderDate.getTime()) / (1000 * 60));

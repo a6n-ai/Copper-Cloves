@@ -44,7 +44,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   const existingByRzpId = await prisma.payment.findUnique({ where: { razorpay_payment_id: paymentId } });
   if (existingByRzpId) return res.status(409).json({ error: "Payment already recorded via online flow.", existingId: existingByRzpId.id });
 
-  const adminId = (session!.user as { id: string }).id;
+  const adminId = (session.user as { id: string }).id;
   const paymentCreatedAt = new Date(createdAtISO);
 
   try {
@@ -84,7 +84,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
             const booking = await tx.booking.create({
               data: {
                 user_id: userId,
-                class_schedule_id: classScheduleId!,
+                class_schedule_id: classScheduleId,
                 status: "confirmed",
                 class_name: schedule.class_model?.name ?? null,
                 class_time: schedule.start_time.toISOString(),
@@ -104,7 +104,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         const userPkg = await tx.userPackage.create({
           data: {
             user_id: userId,
-            package_type_id: packageTypeId!,
+            package_type_id: packageTypeId,
             credits_remaining: pkgType.is_unlimited ? null : (pkgType.class_count ?? null),
             credits_total: pkgType.is_unlimited ? null : (pkgType.class_count ?? null),
             expiration_date,

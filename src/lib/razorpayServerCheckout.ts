@@ -634,7 +634,7 @@ export async function fulfillCheckoutFromPaidOrder(
     // No usable notes — fall back to a bare status flip + email (degraded, rare).
     const { confirmPendingBookingTx } = await import("@/lib/confirmPendingBooking");
     const result = await prisma
-      .$transaction((tx) => confirmPendingBookingTx(tx, orderRow.booking_id!))
+      .$transaction((tx) => confirmPendingBookingTx(tx, orderRow.booking_id))
       .catch((e) => {
         if (e instanceof Error && e.message === "PENDING_BOOKING_NOT_FOUND") return null;
         throw e;
