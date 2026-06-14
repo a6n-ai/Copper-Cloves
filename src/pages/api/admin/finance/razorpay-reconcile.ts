@@ -132,12 +132,14 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     const paymentIds = rzpPayments.map((p) => p.id);
     const orderIds = Array.from(new Set(rzpPayments.map((p) => p.order_id).filter(Boolean)));
 
+    const idFilter = paymentIds.length ? paymentIds : ["__none__"];
+
     // 2. Website-side rows for the month + any referenced by the gateway payments.
-    const [dbPayments, dbOrders] = await Promise.all([
+    const [dbPayments, dbOrders, importedPayments] = await Promise.all([
       prisma.razorpayPayment.findMany({
         where: {
           OR: [
-            { razorpay_payment_id: { in: paymentIds.length ? paymentIds : ["__none__"] } },
+            { razorpay_payment_id: { in: idFilter } },
             { created_at: { gte: rangeStart, lt: rangeEnd } },
           ],
         },
@@ -154,19 +156,39 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         where: { razorpay_order_id: { in: orderIds.length ? orderIds : ["__none__"] } },
         select: { razorpay_order_id: true },
       }),
+      // Imported/offline-recorded payments live in the unified Payment ledger keyed
+      // on `reference` (the pay_* id) — these have NO RazorpayPayment row. Without
+      // this, a reconcile-imported payment keeps showing as "missing from site".
+      prisma.payment.findMany({
+        where: {
+          OR: [
+            { reference: { in: idFilter } },
+            { razorpay_payment_id: { in: idFilter } },
+          ],
+        },
+        select: { reference: true, razorpay_payment_id: true, status: true, amount_paise: true },
+      }),
     ]);
 
     const dbByPaymentId = new Map(dbPayments.map((d) => [d.razorpay_payment_id, d]));
     const websiteOrderIds = new Set(dbOrders.map((o) => o.razorpay_order_id));
     const seenInRazorpay = new Set(paymentIds);
 
+    // Imported ledger rows by the gateway pay id (via reference or the FK column).
+    const importedByPayId = new Map<string, (typeof importedPayments)[number]>();
+    for (const p of importedPayments) {
+      if (p.razorpay_payment_id) importedByPayId.set(p.razorpay_payment_id, p);
+      if (p.reference) importedByPayId.set(p.reference, p);
+    }
+
     const rows: ReconRow[] = [];
 
     // 3. Classify each Razorpay payment.
     for (const p of rzpPayments) {
       const db = dbByPaymentId.get(p.id);
+      const imported = importedByPayId.get(p.id);
       const { str: notesStr, hasWebsiteKeys } = notesToString(p.notes);
-      const isWebsite = !!db || (p.order_id != null && websiteOrderIds.has(p.order_id)) || hasWebsiteKeys;
+      const isWebsite = !!db || !!imported || (p.order_id != null && websiteOrderIds.has(p.order_id)) || hasWebsiteKeys;
 
       let match: ReconMatch;
       let source: ReconRow["source"];
@@ -175,6 +197,10 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         if (db.amount_paise != null && db.amount_paise !== p.amount) match = "amount_mismatch";
         else if (normalizeStatus(p.status) !== normalizeStatus(db.status)) match = "status_mismatch";
         else match = "matched";
+      } else if (imported) {
+        // Recorded in the unified ledger via reconcile import → reconciled/done.
+        source = "website";
+        match = imported.amount_paise != null && imported.amount_paise !== p.amount ? "amount_mismatch" : "matched";
       } else if (isWebsite) {
         source = "website";
         match = "missing_from_website"; // captured at gateway, never persisted by the site
@@ -191,7 +217,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         amountRefundedPaise: p.amount_refunded ?? 0,
         method: p.method ?? null,
         razorpayStatus: p.status,
-        websiteStatus: db?.status ?? null,
+        websiteStatus: db?.status ?? imported?.status ?? null,
         source,
         match,
         email: p.email ?? null,
