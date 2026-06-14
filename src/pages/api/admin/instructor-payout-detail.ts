@@ -128,6 +128,8 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     member: string;
     membershipType: string;
     count: number;
+    checkedIn: boolean;
+    isPlaceholder: boolean;
   };
 
   const lineItems: LineItem[] = [];
@@ -158,6 +160,8 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         member: "No attendees",
         membershipType: "",
         count: schedulePayable,
+        checkedIn: false,
+        isPlaceholder: true,
       });
     } else {
       const basePayable = s.bookings.filter((b) => isPayable(b, s.start_time)).length;
@@ -179,6 +183,8 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
           member: b.profile?.full_name ?? "Unknown",
           membershipType: b.user_package?.package_type?.name ?? "Unknown",
           count: rowPayable + bonus,
+          checkedIn: b.checked_in === true,
+          isPlaceholder: false,
         });
       });
     }
