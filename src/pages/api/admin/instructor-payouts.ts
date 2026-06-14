@@ -11,6 +11,8 @@ import {
   autoBlendedRate,
   netRateBreakdown,
   effectiveBlendedRate,
+  PAYOUT_ELIGIBLE_STATUSES,
+  type PayableBasis,
   type PayoutWindow,
   type RateCard,
 } from "@/lib/payoutCalc";
@@ -60,7 +62,11 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   if (end && end < now) scheduleStart.lt = end;
 
   const schedules = await prisma.classSchedule.findMany({
-    where: { start_time: scheduleStart },
+    where: {
+      start_time: scheduleStart,
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      status: { in: PAYOUT_ELIGIBLE_STATUSES as unknown as any[] },
+    },
     select: {
       id: true,
       start_time: true,
@@ -94,7 +100,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         },
       },
       bookings: {
-        select: { status: true, checked_in: true, cancellation_date: true },
+        select: { status: true, checked_in: true, cancellation_date: true, check_in_outcome: true },
       },
     },
   });
@@ -125,7 +131,12 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     if (!ins) continue;
 
     const checkIns = s.bookings.filter((b) => b.checked_in).length;
-    const payable = payableForSchedule(s.bookings, s.start_time, s.instructor_check_in_outcome);
+    const payable = payableForSchedule(
+      s.bookings,
+      s.start_time,
+      s.instructor_check_in_outcome,
+      settings.payableBasis as PayableBasis,
+    );
     const studioCutRaw = ins.studio_payout_cut_percent;
     const studioCut =
       studioCutRaw != null && Number.isFinite(Number(studioCutRaw))
@@ -244,6 +255,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       periodStart: start?.toISOString() ?? null,
       periodEnd: end?.toISOString() ?? null,
       gstPercent: settings.gstPercent,
+      payableBasis: settings.payableBasis,
     },
     instructors,
   });
