@@ -94,7 +94,7 @@ export function Testimonial() {
               />
             </div>
             <div className="text-left">
-              <div className="font-display font-semibold text-xl">{currentTestimonial.author}</div>
+              <div className="font-body font-semibold text-xl">{currentTestimonial.author}</div>
               <div className="font-body text-sm text-cream/80">{currentTestimonial.role}</div>
             </div>
           </div>

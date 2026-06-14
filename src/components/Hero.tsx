@@ -97,7 +97,7 @@ export function Hero() {
           </div>
 
           {/* Panel 2: Refuel — vertical rules only here (flanks middle image) */}
-          <div className="relative flex-1 min-h-0 overflow-hidden lg:flex-none lg:h-full lg:border-x lg:border-black group">
+          <div className="relative flex-1 min-h-0 overflow-hidden lg:flex-none lg:h-full lg:border-x lg:border-charcoal group">
             {refuelMedia.map((media, index) => {
               const active = index === refuelIndex;
               const isVideo = media.endsWith(".mp4");

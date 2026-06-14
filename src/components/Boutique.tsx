@@ -108,8 +108,8 @@ export function Boutique() {
           >
             {products.map((product) => (
                 <div key={product.id} className="group/card w-80 shrink-0 snap-start">
-                  <div className="relative h-full bg-white-warm rounded-2xl border border-sage/10 overflow-hidden transition-all duration-500 hover:border-sage/30 hover:shadow-xl hover:bg-sage/5">
-                    <div className="relative h-80 overflow-hidden bg-linear-to-br from-sage/20 via-cream/50 to-terracotta/20">
+                  <div className="relative h-full bg-white-warm rounded-2xl border border-sage/10 overflow-hidden transition-all duration-500 hover:border-sage/30 hover:shadow-[0_4px_24px_rgba(51,51,51,0.08)] hover:bg-sage/5">
+                    <div className="relative h-80 overflow-hidden bg-sand">
                       <Image
                         src={product.image_url || PLACEHOLDER_IMAGE}
                         alt={product.name}

@@ -18,7 +18,7 @@ import { Button } from "@/components/ui/button";
 
 const DEFAULT_CTA: StudioCtaProps = {
   heading: "Your home away from home.",
-  body: "Move, refuel, and belong — book a class and step into your sunlit studio in the heart of Indiranagar.",
+  body: "Move, refuel, and belong. Book a class and step into your sunlit studio in the heart of Indiranagar.",
 };
 
 const LOGO_URL = cdnUrl("/the_studio_by_C_C_og.png");
