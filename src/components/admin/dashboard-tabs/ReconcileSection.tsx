@@ -1,5 +1,5 @@
 import { memo, useCallback, useEffect, useMemo, useRef, useState } from "react";
-import { AlertTriangle, ArrowLeftRight, BookOpen, Check, Download, Globe, Import, Landmark, Loader2, Package, RefreshCw, ScanSearch, Search, User } from "lucide-react";
+import { AlertTriangle, ArrowLeftRight, BookOpen, Check, Download, Filter, Globe, Import, Landmark, Loader2, Package, RefreshCw, ScanSearch, Search, User } from "lucide-react";
 import { toast } from "sonner";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
@@ -19,7 +19,7 @@ import { Label } from "@/components/ui/label";
 import { MetricCard } from "@/components/admin/MetricCard";
 import { Pagination, usePagination } from "@/components/Pagination";
 import { Pill, type PillProps } from "@/components/ui/pill";
-import { FilterDateRange } from "@/components/filters";
+import { FilterBar, FilterSearch, FilterSelect, FilterDateRange } from "@/components/filters";
 import type { DateRange } from "react-day-picker";
 import type { ImportPaymentBody } from "@/pages/api/admin/finance/import-payment";
 import type { RazorpayPaymentDetail } from "@/pages/api/admin/finance/razorpay-payment-detail";
@@ -1266,6 +1266,7 @@ function ReconcileSectionImpl() {
   // ── Live / Handled view ──
   const [view, setView] = useState<"live" | "handled">("live");
   const [logStatus, setLogStatus] = useState<SavedStatus | "all">("all");
+  const [logSearch, setLogSearch] = useState("");
   const [logRows, setLogRows] = useState<ReconcileLogRow[]>([]);
   const [logLoading, setLogLoading] = useState(false);
   const [handledDetail, setHandledDetail] = useState<ReconcileLogRow | null>(null);
@@ -1324,7 +1325,18 @@ function ReconcileSectionImpl() {
   }, [data, matchFilter]);
 
   const pg = usePagination(filteredRows, 12, `${data?.month ?? ""}|${matchFilter}|${data?.summary.total ?? 0}`);
-  const logPg = usePagination(logRows, 12, `${logStatus}|${logRows.length}`);
+
+  const filteredLogRows = useMemo(() => {
+    const q = logSearch.trim().toLowerCase();
+    if (!q) return logRows;
+    return logRows.filter((r) =>
+      [r.paymentId, r.orderId, r.memberName, r.memberEmail, r.note]
+        .filter(Boolean)
+        .some((v) => String(v).toLowerCase().includes(q)),
+    );
+  }, [logRows, logSearch]);
+
+  const logPg = usePagination(filteredLogRows, 12, `${logStatus}|${logSearch}|${filteredLogRows.length}`);
   const issuesCount = data
     ? data.summary.counts.amount_mismatch +
       data.summary.counts.status_mismatch +
@@ -1565,29 +1577,27 @@ function ReconcileSectionImpl() {
       {/* ── Handled (saved reconcile log) ── */}
       {view === "handled" && (
         <>
-          {/* Status sub-filter */}
-          <div className="flex flex-wrap gap-2">
-            {([
-              ["all", "All"],
-              ["done", "Done"],
-              ["in_progress", "In progress"],
-              ["dropped", "Dropped"],
-              ["needs_refund", "Needs refund"],
-            ] as const).map(([key, label]) => (
-              <button
-                key={key}
-                type="button"
-                onClick={() => setLogStatus(key)}
-                className={`rounded-full border px-3 py-1 font-body text-xs transition-colors ${
-                  logStatus === key
-                    ? "border-sage bg-sage text-cream"
-                    : "border-sage/25 bg-white-warm text-charcoal/60 hover:bg-sage/5"
-                }`}
-              >
-                {label}
-              </button>
-            ))}
-          </div>
+          {/* Standard filter bar (search + status) — matches other finance tabs */}
+          <FilterBar reset={logStatus !== "all" || logSearch ? () => { setLogStatus("all"); setLogSearch(""); } : undefined}>
+            <FilterSearch
+              value={logSearch}
+              onChange={setLogSearch}
+              placeholder="Search payment, order, member, note…"
+              aria-label="Search handled log"
+            />
+            <FilterSelect
+              value={logStatus}
+              onChange={(v) => setLogStatus(v as SavedStatus | "all")}
+              icon={Filter}
+              options={[
+                { value: "all", label: "All statuses" },
+                { value: "done", label: "Done" },
+                { value: "in_progress", label: "In progress" },
+                { value: "dropped", label: "Dropped" },
+                { value: "needs_refund", label: "Needs refund" },
+              ]}
+            />
+          </FilterBar>
 
           <Card className="border-sage/20 bg-white-warm">
             <CardContent className="pt-6">
@@ -1648,8 +1658,10 @@ function ReconcileSectionImpl() {
                     </ResponsiveTable>
                   </div>
                   <Pagination page={logPg.page} total={logPg.total} pageSize={logPg.pageSize} onChange={logPg.setPage} />
-                  {logRows.length === 0 && (
-                    <div className="py-10 text-center font-body text-sm text-charcoal/40">No handled payments yet.</div>
+                  {filteredLogRows.length === 0 && (
+                    <div className="py-10 text-center font-body text-sm text-charcoal/40">
+                      {logRows.length === 0 ? "No handled payments yet." : "No payments match your filters."}
+                    </div>
                   )}
                 </>
               )}
