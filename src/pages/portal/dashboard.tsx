@@ -68,6 +68,7 @@ import { CheckInScanButton } from "@/components/checkin/CheckInScanButton";
 import { FriendsCard } from "@/components/portal/FriendsCard";
 
 import { cdnUrl } from "@/lib/cdnUrl";
+import { Pill } from "@/components/ui/pill";
 import { toast } from "sonner";
 // Milestone tier definitions
 const MILESTONES = [
@@ -734,7 +735,7 @@ export default function Dashboard() {
             />
 
             {/* Nourish Quick-Order Café Widget */}
-            <Card className="border-0 bg-white-warm shadow-lg">
+            <Card className="border-[#e5e4dc] bg-white-warm shadow-none transition-shadow hover:shadow-[0_4px_24px_rgba(51,51,51,0.08)]">
               <CardContent className="p-5 sm:p-8">
                 <div className="flex items-start gap-4 mb-6">
                   <div className="w-14 h-14 rounded-full bg-sage/10 flex items-center justify-center shrink-0">
@@ -854,8 +855,8 @@ export default function Dashboard() {
 
       {/* Check-In Modal */}
       {showCheckIn && selectedBookingForCheckIn && (
-        <div className="fixed inset-0 bg-black/50 flex items-center justify-center p-4 z-50">
-          <div className="bg-white-warm rounded-lg shadow-xl max-w-md w-full p-6">
+        <div className="fixed inset-0 bg-charcoal/40 flex items-center justify-center p-4 z-50">
+          <div className="bg-white-warm rounded-lg shadow-[0_8px_48px_rgba(51,51,51,0.14)] max-w-md w-full p-6">
             <div className="flex justify-between items-start mb-4">
               <h3 className="font-display text-2xl text-charcoal">Check-In</h3>
               <CloseButton
@@ -925,10 +926,8 @@ export default function Dashboard() {
             </div>
 
             {selectedBookingForCheckIn.checked_in ? (
-              <div className="bg-sage/10 border border-sage/20 rounded-lg p-4 mb-4">
-                <p className="font-body text-sm text-sage text-center">
-                  ✅ You're already checked in!
-                </p>
+              <div className="flex justify-center mb-4">
+                <Pill tone="success">You're already checked in!</Pill>
               </div>
             ) : (() => {
               const isScheduled = !!selectedBookingForCheckIn.class_schedule;
@@ -945,10 +944,10 @@ export default function Dashboard() {
                   Check In Now
                 </Button>
               ) : (
-                <div className="bg-terracotta/10 border border-terracotta/20 rounded-lg p-4">
-                  <p className="font-body text-sm text-terracotta text-center">
+                <div className="flex justify-center">
+                  <Pill tone="warning" className="text-center">
                     Check-in opens 10 minutes before class and closes 15 minutes after start time.
-                  </p>
+                  </Pill>
                 </div>
               );
             })()}

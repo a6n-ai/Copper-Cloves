@@ -12,8 +12,8 @@ interface MetricCardProps {
   icon: LucideIcon;
   /** Optional small sub-text under the number (e.g. "+5 this month"). */
   hint?: string;
-  /** Accent color theme. ("amber" maps to deep terracotta — kept for call-site compat.) */
-  tone?: "sage" | "terracotta" | "amber" | "charcoal";
+  /** Accent color theme. ("clay" is deep terracotta; "amber" is a deprecated alias kept for call-site compat.) */
+  tone?: "sage" | "terracotta" | "clay" | "amber" | "charcoal";
   prefix?: string;
   suffix?: string;
   decimals?: number;
@@ -39,7 +39,14 @@ const tones = {
     glow: "group-hover:shadow-[0_10px_30px_-12px_rgba(196,107,82,0.45)]",
     border: "group-hover:border-terracotta/40",
   },
-  // "amber" intent kept by name but mapped to deep terracotta so it stays on-brand.
+  // Deep terracotta ("clay") — on-brand warm accent.
+  clay: {
+    chip: "bg-[#a05e38]/10 text-[#a05e38] group-hover:bg-[#a05e38]/20 group-hover:text-[#a05e38]",
+    ring: "ring-[#a05e38]/15 group-hover:ring-[#a05e38]/40",
+    glow: "group-hover:shadow-[0_10px_30px_-12px_rgba(160,94,56,0.45)]",
+    border: "group-hover:border-[#a05e38]/40",
+  },
+  // "amber" is a deprecated alias for "clay" — kept so legacy call-sites keep compiling.
   amber: {
     chip: "bg-[#a05e38]/10 text-[#a05e38] group-hover:bg-[#a05e38]/20 group-hover:text-[#a05e38]",
     ring: "ring-[#a05e38]/15 group-hover:ring-[#a05e38]/40",

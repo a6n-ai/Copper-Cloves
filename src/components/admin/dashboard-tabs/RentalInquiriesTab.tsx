@@ -74,7 +74,7 @@ function RentalInquiriesTabImpl({ inquiries, loading }: Props) {
     <>
       <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
         <MetricCard label="Total Inquiries" value={total} icon={Building2} tone="sage" loading={loading} />
-        <MetricCard label="New" value={byStatus("new")} icon={AlertTriangle} tone="amber" loading={loading} hint="Awaiting reply" />
+        <MetricCard label="New" value={byStatus("new")} icon={AlertTriangle} tone="clay" loading={loading} hint="Awaiting reply" />
         <MetricCard label="In Review" value={byStatus("in_review")} icon={Clock} tone="terracotta" loading={loading} />
         <MetricCard label="Total Guests Asked" value={totalGuests} icon={Users} tone="charcoal" loading={loading} />
       </div>

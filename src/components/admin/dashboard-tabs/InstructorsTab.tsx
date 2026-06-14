@@ -149,7 +149,7 @@ function InstructorsTabImpl({
         <MetricCard label="Active Instructors" value={stats.total} icon={Award} tone="sage" />
         <MetricCard label="Check-Ins (30d)" value={stats.checkInsSum} icon={UserCheck} tone="sage" />
         <MetricCard label="Classes (30d)" value={stats.classesSum} icon={Calendar} tone="sage" />
-        <MetricCard label="Avg Rating" value={stats.avgRating} decimals={1} icon={Star} tone="amber" />
+        <MetricCard label="Avg Rating" value={stats.avgRating} decimals={1} icon={Star} tone="clay" />
         <MetricCard label="Total Payout" value={stats.totalPayout} prefix="₹" icon={CreditCard} tone="terracotta" hint={`Avg ₹${stats.avgPerInstructor.toLocaleString("en-IN")} / instructor`} />
         <MetricCard label="Top Performer" value={stats.top?.name ?? "—"} icon={TrendingUp} tone="terracotta" hint={stats.top ? `${stats.top.totalCheckIns} check-ins` : ""} />
       </div>
@@ -192,7 +192,7 @@ function InstructorsTabImpl({
                     return (
                       <TableRow key={instructor.name}>
                         <TableCell>
-                          <span className="inline-flex h-7 w-7 items-center justify-center rounded-full bg-sage/10 text-sage font-display text-xs">#{rank}</span>
+                          <span className="inline-flex h-7 w-7 items-center justify-center rounded-full bg-sage/10 text-sage font-body text-xs">#{rank}</span>
                         </TableCell>
                         <TableCell>
                           <div className="flex items-center gap-3 min-w-0">
@@ -207,9 +207,9 @@ function InstructorsTabImpl({
                           </div>
                         </TableCell>
                         <TableCell className="font-body text-sm text-charcoal tabular-nums">{instructor.classes}</TableCell>
-                        <TableCell className="font-display text-base text-sage tabular-nums">{instructor.totalCheckIns}</TableCell>
-                        <TableCell className="font-display text-base text-charcoal tabular-nums">{instructor.avgAttendance}</TableCell>
-                        <TableCell className="font-display text-sm text-terracotta tabular-nums whitespace-nowrap">
+                        <TableCell className="font-body text-base text-sage tabular-nums">{instructor.totalCheckIns}</TableCell>
+                        <TableCell className="font-body text-base text-charcoal tabular-nums">{instructor.avgAttendance}</TableCell>
+                        <TableCell className="font-body text-sm text-terracotta tabular-nums whitespace-nowrap">
                           ₹{(instructor.totalCheckIns * 150).toLocaleString("en-IN")}
                         </TableCell>
                         <TableCell className="text-right">

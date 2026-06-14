@@ -170,7 +170,7 @@ function OverviewTabImpl({
       <div className="grid grid-cols-2 md:grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-4">
         <MetricCard label="Total Members" value={overviewStats.totalMembers} icon={Users} tone="sage" loading={!overviewLoaded} hint={`+${overviewMeta.newMembersThisMonth} this month`} />
         <MetricCard label="Active Today" value={overviewStats.activeToday} icon={Flame} tone="terracotta" loading={!overviewLoaded} hint={`${overviewMeta.classesTodayCount} classes today`} />
-        <MetricCard label="Expiring This Week" value={overviewStats.expiringWeek} icon={AlertTriangle} tone="amber" loading={!overviewLoaded} />
+        <MetricCard label="Expiring This Week" value={overviewStats.expiringWeek} icon={AlertTriangle} tone="clay" loading={!overviewLoaded} />
         <MetricCard label="Month Revenue" value={Math.round(overviewStats.monthRevenue)} prefix="₹" icon={CreditCard} tone="sage" loading={!overviewLoaded} hint="+23% vs last month" />
         <MetricCard
           label="Café Orders"
@@ -184,7 +184,7 @@ function OverviewTabImpl({
             </Button>
           }
         />
-        <MetricCard label="Pending Waivers" value={overviewStats.pendingWaivers} icon={AlertTriangle} tone="amber" loading={!overviewLoaded} />
+        <MetricCard label="Pending Waivers" value={overviewStats.pendingWaivers} icon={AlertTriangle} tone="clay" loading={!overviewLoaded} />
       </div>
 
       <Card className="border-sage/20 bg-white-warm overflow-x-hidden overflow-y-visible w-full min-w-0 max-w-full">

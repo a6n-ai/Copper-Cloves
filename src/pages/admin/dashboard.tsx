@@ -12,6 +12,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Pill } from "@/components/ui/pill";
+import { attendanceOutcomePill } from "@/lib/pillMaps";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import {
   Drawer,
@@ -1690,13 +1691,13 @@ export default function AdminDashboard() {
                   <div className="font-body font-medium text-charcoal">Enrolled Members</div>
                   <div className="flex items-center gap-3 font-body text-xs">
                     <span className="text-sage">
-                      <span className="font-display text-base mr-1">{selectedClass.checkedIn}</span>checked in
+                      <span className="font-body text-base mr-1 tabular-nums">{selectedClass.checkedIn}</span>checked in
                     </span>
                     <span className="text-charcoal/60">
-                      <span className="font-display text-base mr-1">{selectedClass.enrolled}</span>enrolled
+                      <span className="font-body text-base mr-1 tabular-nums">{selectedClass.enrolled}</span>enrolled
                     </span>
                     <span className="text-charcoal/45">
-                      <span className="font-display text-base mr-1">{selectedClass.capacity}</span>capacity
+                      <span className="font-body text-base mr-1 tabular-nums">{selectedClass.capacity}</span>capacity
                     </span>
                   </div>
                 </div>
@@ -1723,9 +1724,7 @@ export default function AdminDashboard() {
                           <div className="font-body font-medium text-charcoal truncate flex items-center gap-2">
                             {attendee.name}
                             {attendee.confirmationStatus === "pending" && (
-                              <span className="inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-body bg-terracotta/10 text-terracotta whitespace-nowrap">
-                                Pending confirmation
-                              </span>
+                              <Pill tone="warning" className="whitespace-nowrap">Pending confirmation</Pill>
                             )}
                           </div>
                           {attendee.email ? (
@@ -2142,7 +2141,7 @@ export default function AdminDashboard() {
                 <CardContent className="p-6 space-y-3">
                   <div className="flex justify-between">
                     <span className="font-body text-sm text-charcoal/60">Package</span>
-                    <Pill tone="success" appearance="solid">{selectedMemberProfile.package}</Pill>
+                    <Pill tone="success">{selectedMemberProfile.package}</Pill>
                   </div>
                   <div className="flex justify-between">
                     <span className="font-body text-sm text-charcoal/60">Expires</span>
@@ -2246,12 +2245,7 @@ export default function AdminDashboard() {
                     <p className="font-body text-sm text-charcoal/50">No past classes yet</p>
                   ) : (
                     selectedMemberProfile.attendanceHistory.map((a: { class: string; date: string; outcome: string }, idx: number) => {
-                      const meta =
-                        a.outcome === "on_time"
-                          ? { label: "On time", tone: "success" as const }
-                          : a.outcome === "late"
-                            ? { label: "Late", tone: "warning" as const }
-                            : { label: "No-show", tone: "danger" as const };
+                      const meta = attendanceOutcomePill(a.outcome);
                       return (
                         <div key={idx} className="flex items-center justify-between p-3 rounded-lg bg-cream/30">
                           <div className="min-w-0">

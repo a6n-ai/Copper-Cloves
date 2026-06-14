@@ -133,7 +133,7 @@ function ClassesTabImpl({ classPerformance, disciplineSplit, peakHours, classesL
         <MetricCard label="Avg Utilization" value={stats.avgUtil} suffix="%" icon={TrendingUp} tone="sage" loading={!classesLoaded} />
         <MetricCard label="Bookings 30d" value={stats.totalBookings} icon={Users} tone="sage" loading={!classesLoaded} />
         <MetricCard label="Low Util" value={stats.underperforming.length} icon={AlertTriangle} tone="terracotta" loading={!classesLoaded} hint="Below 60% capacity" />
-        <MetricCard label="Top Class" value={stats.topClass?.name ?? "—"} icon={Star} tone="amber" loading={!classesLoaded} hint={stats.topClass ? `${stats.topClass.utilization}% filled` : ""} />
+        <MetricCard label="Top Class" value={stats.topClass?.name ?? "—"} icon={Star} tone="clay" loading={!classesLoaded} hint={stats.topClass ? `${stats.topClass.utilization}% filled` : ""} />
       </div>
 
       <Card className="border-sage/20 bg-white-warm">
@@ -172,7 +172,7 @@ function ClassesTabImpl({ classPerformance, disciplineSplit, peakHours, classesL
                             <div className="h-1.5 flex-1 max-w-[160px] rounded-full bg-sage/10 overflow-hidden">
                               <div className={`h-full transition-all ${barColor}`} style={{ width: `${util}%` }} />
                             </div>
-                            <span className="font-display text-sm text-charcoal tabular-nums whitespace-nowrap">{util}%</span>
+                            <span className="font-body text-sm text-charcoal tabular-nums whitespace-nowrap">{util}%</span>
                           </div>
                         </TableCell>
                         <TableCell>

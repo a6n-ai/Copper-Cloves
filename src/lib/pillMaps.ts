@@ -96,6 +96,20 @@ export function ticketStatusPill(status: string): PillSpec {
   }
 }
 
+// Class attendance outcome -> pill + label
+export function attendanceOutcomePill(outcome: string): PillSpec & { label: string } {
+  switch (outcome) {
+    case "on_time":
+      return { tone: "success", label: "On time" }
+    case "late":
+      return { tone: "warning", label: "Late" }
+    case "no_show":
+      return { tone: "danger", label: "No-show" }
+    default:
+      return { tone: "neutral", label: capitalize(outcome) }
+  }
+}
+
 // Member account status -> pill
 export function memberStatusPill(status: string): PillSpec {
   const s = status.toLowerCase()

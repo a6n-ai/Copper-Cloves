@@ -44,7 +44,7 @@ export function VitalityAreaChart({
   );
 
   return (
-    <Card className="h-full rounded-2xl shadow-xs">
+    <Card className="h-full rounded-2xl shadow-none border-[#e5e4dc] transition-shadow hover:shadow-[0_4px_24px_rgba(51,51,51,0.08)]">
       <CardHeader className="border-b">
         <div className="flex items-center gap-3">
           <div className="flex h-12 w-12 items-center justify-center rounded-full bg-primary/10">

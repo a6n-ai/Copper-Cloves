@@ -223,7 +223,7 @@ function MembersTabImpl({
         <MetricCard label="Active" value={memberStats.activeMembers} icon={UserCheck} tone="sage" hint="Holding an active pass" />
         <MetricCard label="Studio Pass" value={memberStats.studioPassActive} icon={Trophy} tone="sage" hint="Active studio passes" />
         <MetricCard label="Class Pass" value={memberStats.classPassActive} icon={CreditCard} tone="sage" hint="Active class passes" />
-        <MetricCard label="Check-ins (mo)" value={memberStats.checkInsThisMonth} icon={Calendar} tone="amber" hint="This month" />
+        <MetricCard label="Check-ins (mo)" value={memberStats.checkInsThisMonth} icon={Calendar} tone="clay" hint="This month" />
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
@@ -280,14 +280,14 @@ function MembersTabImpl({
                   <div className="w-2 h-2 rounded-full bg-sage" />
                   <span className="font-body text-xs text-charcoal/60">Active</span>
                 </div>
-                <div className="font-display text-2xl text-sage tabular-nums">{activeInactivePieData.active}</div>
+                <div className="font-body text-2xl text-sage tabular-nums">{activeInactivePieData.active}</div>
               </div>
               <div className="p-3 rounded-lg bg-charcoal/5 border border-charcoal/20">
                 <div className="flex items-center gap-2 mb-1">
                   <div className="w-2 h-2 rounded-full bg-charcoal/40" />
                   <span className="font-body text-xs text-charcoal/60">Inactive</span>
                 </div>
-                <div className="font-display text-2xl text-charcoal tabular-nums">{activeInactivePieData.inactive}</div>
+                <div className="font-body text-2xl text-charcoal tabular-nums">{activeInactivePieData.inactive}</div>
               </div>
             </div>
           </CardContent>
@@ -521,10 +521,10 @@ function MembersTabImpl({
                             );
                           })()}
                         </TableCell>
-                        <TableCell className="font-display text-base text-sage tabular-nums">{m.streak as number}</TableCell>
-                        <TableCell className="font-display text-base text-charcoal tabular-nums">{m.onTime as number}</TableCell>
-                        <TableCell className="font-display text-base text-terracotta tabular-nums">{m.late as number}</TableCell>
-                        <TableCell className="font-display text-base text-[#a05e38] tabular-nums">{m.noShow as number}</TableCell>
+                        <TableCell className="font-body text-base text-sage tabular-nums">{m.streak as number}</TableCell>
+                        <TableCell className="font-body text-base text-charcoal tabular-nums">{m.onTime as number}</TableCell>
+                        <TableCell className="font-body text-base text-terracotta tabular-nums">{m.late as number}</TableCell>
+                        <TableCell className="font-body text-base text-[#cf5b48] tabular-nums">{m.noShow as number}</TableCell>
                         <TableCell className="text-right">
                           <Button variant="sage-outline" size="sm" onClick={() => onViewProfile(m)} className="h-8">View</Button>
                         </TableCell>

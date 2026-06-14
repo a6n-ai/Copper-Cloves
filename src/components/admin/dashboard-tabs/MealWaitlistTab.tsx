@@ -70,7 +70,7 @@ function MealWaitlistTabImpl({ inquiries, loading, onUpdateStatus }: Props) {
     <>
       <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
         <MetricCard label="Total Inquiries" value={total} icon={ChefHat} tone="sage" loading={loading} />
-        <MetricCard label="New" value={byStatus("new")} icon={AlertTriangle} tone="amber" loading={loading} hint="Awaiting outreach" />
+        <MetricCard label="New" value={byStatus("new")} icon={AlertTriangle} tone="clay" loading={loading} hint="Awaiting outreach" />
         <MetricCard label="Contacted" value={byStatus("contacted")} icon={CheckCircle2} tone="terracotta" loading={loading} />
         <MetricCard label="Closed" value={byStatus("closed")} icon={CheckCircle2} tone="charcoal" loading={loading} />
       </div>
