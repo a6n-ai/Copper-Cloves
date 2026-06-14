@@ -36,12 +36,12 @@ import {
 } from "lucide-react";
 
 const COLOR_PRESETS = [
-  { label: "Sage", hex: "#7C9070" },
-  { label: "Terracotta", hex: "#C17A5A" },
-  { label: "Gold", hex: "#D4A017" },
-  { label: "Navy", hex: "#2D4B8E" },
-  { label: "Crimson", hex: "#B22222" },
-  { label: "Violet", hex: "#7B2D8B" },
+  { label: "Sage", hex: "#8f9779" },
+  { label: "Light Sage", hex: "#a8b196" },
+  { label: "Terracotta", hex: "#c17856" },
+  { label: "Clay", hex: "#a05e38" },
+  { label: "Sand", hex: "#e8e4d9" },
+  { label: "Charcoal", hex: "#333333" },
 ];
 
 interface BadgeTemplate {
@@ -134,10 +134,10 @@ export default function AdminBadgesPage() {
   // Auth guard
   useEffect(() => {
     if (status === "unauthenticated") {
-      router.replace("/admin/login");
+      router.replace("/login");
     } else if (status === "authenticated") {
       const role = (session?.user as { role?: string })?.role;
-      if (role !== "admin") router.replace("/admin/login");
+      if (role !== "admin") router.replace("/login");
     }
   }, [status, session, router]);
 
@@ -548,7 +548,7 @@ export default function AdminBadgesPage() {
                 onClick={() => setTab(t)}
                 className={`px-5 py-2 rounded-lg font-body text-sm transition-all duration-300 ${
                   tab === t
-                    ? "bg-sage text-cream shadow-md"
+                    ? "bg-sage text-cream"
                     : "text-charcoal/60 hover:text-charcoal hover:bg-sage/10"
                 }`}
               >
@@ -762,10 +762,10 @@ export default function AdminBadgesPage() {
                 {customTemplates.map((template) => (
                   <Card
                     key={template.id}
-                    className={`border-0 bg-white-warm shadow-xs cursor-pointer transition-all duration-200 ${
+                    className={`border-0 bg-white-warm cursor-pointer transition-all duration-200 hover:shadow-[0_4px_24px_rgba(51,51,51,0.08)] ${
                       selectedCustomTemplate?.id === template.id
-                        ? "ring-2 ring-sage/50 shadow-md"
-                        : "hover:shadow-md"
+                        ? "ring-2 ring-sage/50"
+                        : ""
                     }`}
                     onClick={() => {
                       setSelectedCustomTemplate(template);
@@ -782,7 +782,7 @@ export default function AdminBadgesPage() {
                           {template.icon}
                         </div>
                         <div className="flex-1 min-w-0">
-                          <p className="font-display text-base text-charcoal truncate">
+                          <p className="font-body font-medium text-base text-charcoal truncate">
                             {template.name}
                           </p>
                           {template.description && (
@@ -823,7 +823,7 @@ export default function AdminBadgesPage() {
                 ))}
 
                 {/* Member of the Month */}
-                <Card className="border-0 bg-linear-to-br from-terracotta/5 to-sage/5 shadow-xs mt-6">
+                <Card className="border-0 bg-sage/5 shadow-xs mt-6">
                   <CardHeader className="pb-2">
                     <CardTitle className="font-display text-lg text-charcoal flex items-center gap-2">
                       <Star size={18} className="text-terracotta" />

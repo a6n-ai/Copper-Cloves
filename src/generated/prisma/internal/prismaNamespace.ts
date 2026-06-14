@@ -400,6 +400,7 @@ export const ModelName = {
   Booking: 'Booking',
   RazorpayOrder: 'RazorpayOrder',
   RazorpayPayment: 'RazorpayPayment',
+  PaymentReconcile: 'PaymentReconcile',
   Friendship: 'Friendship',
   Payment: 'Payment',
   CafeItem: 'CafeItem',
@@ -440,7 +441,7 @@ export type TypeMap<ExtArgs extends runtime.Types.Extensions.InternalArgs = runt
     omit: GlobalOmitOptions
   }
   meta: {
-    modelProps: "profile" | "userSession" | "coupon" | "couponRedemption" | "retailProduct" | "retailOrder" | "instructor" | "classModel" | "partner" | "partnerMember" | "classSchedule" | "packageType" | "userPackage" | "booking" | "razorpayOrder" | "razorpayPayment" | "friendship" | "payment" | "cafeItem" | "cafeOrder" | "mealSubscription" | "mealSubscriptionInquiry" | "rentalInquiry" | "signupLead" | "userStats" | "userStreak" | "badgeTemplate" | "userBadge" | "waiver" | "crmTemplate" | "crmMessage" | "crmTrigger" | "userActivitySession" | "userActivityEvent" | "memberTicket" | "passwordResetToken" | "file" | "instructorPayoutAdjustment" | "payoutSettings" | "qrCode" | "activityLog"
+    modelProps: "profile" | "userSession" | "coupon" | "couponRedemption" | "retailProduct" | "retailOrder" | "instructor" | "classModel" | "partner" | "partnerMember" | "classSchedule" | "packageType" | "userPackage" | "booking" | "razorpayOrder" | "razorpayPayment" | "paymentReconcile" | "friendship" | "payment" | "cafeItem" | "cafeOrder" | "mealSubscription" | "mealSubscriptionInquiry" | "rentalInquiry" | "signupLead" | "userStats" | "userStreak" | "badgeTemplate" | "userBadge" | "waiver" | "crmTemplate" | "crmMessage" | "crmTrigger" | "userActivitySession" | "userActivityEvent" | "memberTicket" | "passwordResetToken" | "file" | "instructorPayoutAdjustment" | "payoutSettings" | "qrCode" | "activityLog"
     txIsolationLevel: TransactionIsolationLevel
   }
   model: {
@@ -1625,6 +1626,80 @@ export type TypeMap<ExtArgs extends runtime.Types.Extensions.InternalArgs = runt
         count: {
           args: Prisma.RazorpayPaymentCountArgs<ExtArgs>
           result: runtime.Types.Utils.Optional<Prisma.RazorpayPaymentCountAggregateOutputType> | number
+        }
+      }
+    }
+    PaymentReconcile: {
+      payload: Prisma.$PaymentReconcilePayload<ExtArgs>
+      fields: Prisma.PaymentReconcileFieldRefs
+      operations: {
+        findUnique: {
+          args: Prisma.PaymentReconcileFindUniqueArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$PaymentReconcilePayload> | null
+        }
+        findUniqueOrThrow: {
+          args: Prisma.PaymentReconcileFindUniqueOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$PaymentReconcilePayload>
+        }
+        findFirst: {
+          args: Prisma.PaymentReconcileFindFirstArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$PaymentReconcilePayload> | null
+        }
+        findFirstOrThrow: {
+          args: Prisma.PaymentReconcileFindFirstOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$PaymentReconcilePayload>
+        }
+        findMany: {
+          args: Prisma.PaymentReconcileFindManyArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$PaymentReconcilePayload>[]
+        }
+        create: {
+          args: Prisma.PaymentReconcileCreateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$PaymentReconcilePayload>
+        }
+        createMany: {
+          args: Prisma.PaymentReconcileCreateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        createManyAndReturn: {
+          args: Prisma.PaymentReconcileCreateManyAndReturnArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$PaymentReconcilePayload>[]
+        }
+        delete: {
+          args: Prisma.PaymentReconcileDeleteArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$PaymentReconcilePayload>
+        }
+        update: {
+          args: Prisma.PaymentReconcileUpdateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$PaymentReconcilePayload>
+        }
+        deleteMany: {
+          args: Prisma.PaymentReconcileDeleteManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateMany: {
+          args: Prisma.PaymentReconcileUpdateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateManyAndReturn: {
+          args: Prisma.PaymentReconcileUpdateManyAndReturnArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$PaymentReconcilePayload>[]
+        }
+        upsert: {
+          args: Prisma.PaymentReconcileUpsertArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$PaymentReconcilePayload>
+        }
+        aggregate: {
+          args: Prisma.PaymentReconcileAggregateArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.AggregatePaymentReconcile>
+        }
+        groupBy: {
+          args: Prisma.PaymentReconcileGroupByArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.PaymentReconcileGroupByOutputType>[]
+        }
+        count: {
+          args: Prisma.PaymentReconcileCountArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.PaymentReconcileCountAggregateOutputType> | number
         }
       }
     }
@@ -3834,6 +3909,22 @@ export const RazorpayPaymentScalarFieldEnum = {
 export type RazorpayPaymentScalarFieldEnum = (typeof RazorpayPaymentScalarFieldEnum)[keyof typeof RazorpayPaymentScalarFieldEnum]
 
 
+export const PaymentReconcileScalarFieldEnum = {
+  id: 'id',
+  razorpay_payment_id: 'razorpay_payment_id',
+  razorpay_order_id: 'razorpay_order_id',
+  status: 'status',
+  amount_paise: 'amount_paise',
+  note: 'note',
+  payment_id: 'payment_id',
+  resolved_by: 'resolved_by',
+  created_at: 'created_at',
+  updated_at: 'updated_at'
+} as const
+
+export type PaymentReconcileScalarFieldEnum = (typeof PaymentReconcileScalarFieldEnum)[keyof typeof PaymentReconcileScalarFieldEnum]
+
+
 export const FriendshipScalarFieldEnum = {
   id: 'id',
   user_a_id: 'user_a_id',
@@ -4620,6 +4711,7 @@ export type GlobalOmitConfig = {
   booking?: Prisma.BookingOmit
   razorpayOrder?: Prisma.RazorpayOrderOmit
   razorpayPayment?: Prisma.RazorpayPaymentOmit
+  paymentReconcile?: Prisma.PaymentReconcileOmit
   friendship?: Prisma.FriendshipOmit
   payment?: Prisma.PaymentOmit
   cafeItem?: Prisma.CafeItemOmit

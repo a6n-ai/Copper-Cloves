@@ -440,11 +440,11 @@ function FinanceOverviewSectionImpl({
                   <div className="font-body text-xs uppercase tracking-wide text-charcoal/50">This month</div>
                   <div className="font-display text-2xl text-charcoal tabular-nums">{compactInr(trend.current.revenue)}</div>
                 </div>
-                <div className="rounded-xl border border-charcoal/10 bg-white px-4 py-3">
+                <div className="rounded-xl border border-charcoal/10 bg-white-warm px-4 py-3">
                   <div className="font-body text-xs uppercase tracking-wide text-charcoal/50">This month profit</div>
                   <div className={`font-display text-2xl tabular-nums ${trend.current.profit >= 0 ? "text-sage" : "text-terracotta"}`}>{compactInr(trend.current.profit)}</div>
                 </div>
-                <div className="col-span-2 sm:col-span-1 rounded-xl border border-charcoal/10 bg-white px-4 py-3">
+                <div className="col-span-2 sm:col-span-1 rounded-xl border border-charcoal/10 bg-white-warm px-4 py-3">
                   <div className="font-body text-xs uppercase tracking-wide text-charcoal/50 flex items-center gap-1"><Trophy className="h-3.5 w-3.5 text-sage" /> Best month</div>
                   <div className="font-display text-2xl text-charcoal tabular-nums">
                     {compactInr(trend.best.revenue)} <span className="font-body text-sm text-charcoal/50">{trend.best.month}</span>
@@ -993,8 +993,8 @@ function FinanceTransactionsSectionImpl({
                 className="sm:w-full"
                 options={[
                   { value: "all", label: "All Transactions" },
-                  { value: "credit", label: "💰 Credits Only" },
-                  { value: "debit", label: "💸 Debits Only" },
+                  { value: "credit", label: "Credits Only" },
+                  { value: "debit", label: "Debits Only" },
                 ]}
               />
             </div>
@@ -1146,13 +1146,13 @@ function FinanceTransactionsSectionImpl({
                   placeholder="0"
                   value={editForm.amount}
                   onChange={(e) => setEditForm((f) => ({ ...f, amount: e.target.value }))}
-                  className="border-sage/20 bg-white"
+                  className="border-sage/20 bg-white-warm"
                 />
               </div>
               <div className="space-y-1.5">
                 <Label className="font-body text-xs text-charcoal/60">Method</Label>
                 <Select value={editForm.method} onValueChange={(v) => setEditForm((f) => ({ ...f, method: v }))}>
-                  <SelectTrigger className="border-sage/20 bg-white"><SelectValue /></SelectTrigger>
+                  <SelectTrigger className="border-sage/20 bg-white-warm"><SelectValue /></SelectTrigger>
                   <SelectContent>
                     {MANUAL_EDIT_METHODS.map((m) => (
                       <SelectItem key={m.value} value={m.value}>{m.label}</SelectItem>
@@ -1167,7 +1167,7 @@ function FinanceTransactionsSectionImpl({
                 placeholder="Txn id, slip number, etc."
                 value={editForm.reference}
                 onChange={(e) => setEditForm((f) => ({ ...f, reference: e.target.value }))}
-                className="border-sage/20 bg-white"
+                className="border-sage/20 bg-white-warm"
               />
             </div>
             <div className="space-y-1.5">
@@ -1176,7 +1176,7 @@ function FinanceTransactionsSectionImpl({
                 rows={2}
                 value={editForm.notes}
                 onChange={(e) => setEditForm((f) => ({ ...f, notes: e.target.value }))}
-                className="border-sage/20 bg-white resize-none"
+                className="border-sage/20 bg-white-warm resize-none"
               />
             </div>
           </div>
@@ -1307,7 +1307,7 @@ const FinanceRowView = memo(function FinanceRowView({
         </Pill>
       </TableCell>
       <TableCell className="text-right">
-        <span className={`font-display text-base tabular-nums ${txn.type === "revenue" ? "text-sage" : "text-[#a05e38]"}`}>
+        <span className={`font-body font-semibold text-base tabular-nums ${txn.type === "revenue" ? "text-sage" : "text-[#a05e38]"}`}>
           {formatTxnAmountRupee(txn.amount, txn.type)}
         </span>
       </TableCell>

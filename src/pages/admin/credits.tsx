@@ -136,11 +136,11 @@ export default function AdminCredits() {
   useEffect(() => {
     if (status === "loading") return;
     if (status === "unauthenticated") {
-      router.push("/admin/login");
+      router.push("/login");
       return;
     }
     if (status === "authenticated" && userRole !== "admin") {
-      router.push("/admin/login");
+      router.push("/login");
       return;
     }
     if (status === "authenticated") {
@@ -253,7 +253,7 @@ export default function AdminCredits() {
       case "added":
         return <TrendingUp className="h-4 w-4 text-sage" />;
       case "deducted":
-        return <TrendingDown className="h-4 w-4 text-[#a05e38]" />;
+        return <TrendingDown className="h-4 w-4 text-terracotta" />;
       case "used":
         return <CheckCircle2 className="h-4 w-4 text-charcoal" />;
       case "expired":
@@ -396,7 +396,7 @@ export default function AdminCredits() {
                                   <div className="flex items-center gap-2.5">
                                     <div className={`p-2 rounded-lg shrink-0 ${
                                       transaction.type === "added" ? "bg-sage/10" :
-                                      transaction.type === "deducted" ? "bg-[#a05e38]/10" :
+                                      transaction.type === "deducted" ? "bg-terracotta/10" :
                                       transaction.type === "used" ? "bg-charcoal/5" :
                                       "bg-charcoal/5"
                                     }`}>
@@ -406,7 +406,7 @@ export default function AdminCredits() {
                                   </div>
                                 </TableCell>
                                 <TableCell>
-                                  <span className={`font-display text-2xl tabular-nums ${
+                                  <span className={`font-body font-semibold tabular-nums ${
                                     transaction.type === "added" ? "text-sage" :
                                     transaction.type === "expired" ? "text-charcoal/50" :
                                     "text-charcoal"
@@ -478,12 +478,12 @@ export default function AdminCredits() {
               <div className="space-y-1.5">
                 <Label className="font-body text-xs text-charcoal/60">Amount (₹)</Label>
                 <Input type="number" min="0" inputMode="decimal" value={moveAmount}
-                  onChange={(e) => setMoveAmount(e.target.value)} className="border-sage/20 bg-white" />
+                  onChange={(e) => setMoveAmount(e.target.value)} className="border-sage/20 bg-white-warm" />
               </div>
               <div className="space-y-1.5">
                 <Label className="font-body text-xs text-charcoal/60">Method</Label>
                 <Select value={moveMethod} onValueChange={setMoveMethod}>
-                  <SelectTrigger className="border-sage/20 bg-white"><SelectValue /></SelectTrigger>
+                  <SelectTrigger className="border-sage/20 bg-white-warm"><SelectValue /></SelectTrigger>
                   <SelectContent>
                     <SelectItem value="cash">Cash</SelectItem>
                     <SelectItem value="direct_upi">UPI</SelectItem>

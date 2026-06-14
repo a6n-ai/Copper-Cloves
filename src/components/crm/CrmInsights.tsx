@@ -21,7 +21,7 @@ const CHANNEL_BAR: Record<string, string> = {
 };
 const STATUS_BAR: Record<string, string> = {
   sent: "bg-sage",
-  failed: "bg-[#a05e38]",
+  failed: "bg-pill-danger-fg",
   scheduled: "bg-terracotta",
   pending: "bg-charcoal/40",
 };

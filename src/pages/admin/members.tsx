@@ -207,11 +207,11 @@ export default function AdminMembers() {
   useEffect(() => {
     if (status === "loading") return;
     if (status === "unauthenticated") {
-      router.push("/admin/login");
+      router.push("/login");
       return;
     }
     if (status === "authenticated" && userRole !== "admin") {
-      router.push("/admin/login");
+      router.push("/login");
       return;
     }
     if (status === "authenticated") {

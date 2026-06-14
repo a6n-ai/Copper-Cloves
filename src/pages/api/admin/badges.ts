@@ -28,7 +28,7 @@ const PTM_DEFAULTS = [
     name: "The Alchemist",
     description: "Movement meets mindfulness",
     icon: "☀️",
-    color: "#D4A017",
+    color: "#a05e38",
     threshold_classes: 75,
     sort_order: 3,
     badge_type: "path_to_mastery",

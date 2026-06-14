@@ -160,6 +160,35 @@ export function financeKindPill(kind: string): PillSpec {
   return { tone: "neutral" }
 }
 
+// CRM message status -> pill. Hoisted from CrmMessageList's local STATUS_TONE.
+// sent→success, failed→danger, scheduled→info, pending→warning.
+export function crmMessageStatusPill(status: string): PillSpec {
+  switch (status) {
+    case "sent":
+      return { tone: "success" }
+    case "failed":
+      return { tone: "danger" }
+    case "scheduled":
+      return { tone: "info" }
+    case "pending":
+      return { tone: "warning" }
+    default:
+      return { tone: "neutral" }
+  }
+}
+
+// CRM trigger event type -> pill. Categorize neutral/info — not success-for-all.
+// Time-based scheduler triggers read as info; event-driven triggers as neutral.
+export function crmTriggerPill(eventType: string): PillSpec {
+  switch (eventType) {
+    case "class_reminder":
+    case "instructor_roster":
+      return { tone: "info" }
+    default:
+      return { tone: "neutral" }
+  }
+}
+
 // Payment method (PaymentMethod enum) -> pill + label
 export function paymentMethodPill(method: string): PillSpec & { label: string } {
   switch (method) {

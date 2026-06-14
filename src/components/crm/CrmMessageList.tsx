@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useState } from "react";
-import { Pill, type PillProps } from "@/components/ui/pill";
+import { Pill } from "@/components/ui/pill";
+import { crmMessageStatusPill } from "@/lib/pillMaps";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { ResponsiveTable } from "@/components/responsive/ResponsiveTable";
 import { Pagination } from "@/components/Pagination";
@@ -29,19 +30,6 @@ export interface CrmMessageItem {
 
 type SortField = "recipient" | "channel" | "status" | "created_at";
 type SortDir = "asc" | "desc";
-
-// Pill tone per message status, inferred from the prior palette + semantics:
-// sent→success, failed→danger, scheduled→warning (terracotta), pending→neutral.
-const STATUS_TONE: Record<string, NonNullable<PillProps["tone"]>> = {
-  sent: "success",
-  failed: "danger",
-  scheduled: "warning",
-  pending: "neutral",
-};
-
-function statusTone(status: string): NonNullable<PillProps["tone"]> {
-  return STATUS_TONE[status] ?? "neutral";
-}
 
 function timeAgo(iso: string): string {
   const d = new Date(iso);
@@ -156,7 +144,7 @@ function CrmMessageDetailDialog({ item, onClose }: { item: CrmMessageItem | null
             <ResponsiveDialogHeader>
               <ResponsiveDialogTitle className="font-display text-xl text-charcoal flex items-center gap-2">
                 {item.recipientName || "Unknown recipient"}
-                <Pill tone={statusTone(item.status)}>
+                <Pill tone={crmMessageStatusPill(item.status).tone}>
                   {item.status}
                 </Pill>
               </ResponsiveDialogTitle>
@@ -172,7 +160,7 @@ function CrmMessageDetailDialog({ item, onClose }: { item: CrmMessageItem | null
               {item.error_message ? (
                 <DetailRow
                   label="Error"
-                  value={<span className="text-[#a05e38]">{item.error_message}</span>}
+                  value={<span className="text-pill-danger-fg">{item.error_message}</span>}
                 />
               ) : null}
               <DetailRow label="Scheduled" value={item.scheduled_for ? fullTimestamp(item.scheduled_for) : null} />
@@ -291,7 +279,7 @@ export function CrmMessageList({
                     {it.templateName ?? <span className="text-charcoal/40">—</span>}
                   </TableCell>
                   <TableCell>
-                    <Pill tone={statusTone(it.status)}>
+                    <Pill tone={crmMessageStatusPill(it.status).tone}>
                       {it.status}
                     </Pill>
                   </TableCell>

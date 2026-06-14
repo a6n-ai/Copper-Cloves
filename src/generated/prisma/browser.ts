@@ -102,6 +102,12 @@ export type RazorpayOrder = Prisma.RazorpayOrderModel
  */
 export type RazorpayPayment = Prisma.RazorpayPaymentModel
 /**
+ * Model PaymentReconcile
+ * Persistent admin reconciliation state per gateway payment, so handled payments
+ * drop out of the live reconcile tab and show in the saved log instead.
+ */
+export type PaymentReconcile = Prisma.PaymentReconcileModel
+/**
  * Model Friendship
  * 
  */

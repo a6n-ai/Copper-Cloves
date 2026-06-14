@@ -29,6 +29,7 @@ import { AdminPageHeader } from "@/components/admin/AdminPageHeader";
 import { Pill } from "@/components/ui/pill";
 import { useSession } from "next-auth/react";
 import { CrmTriggerType } from "@/lib/crmTriggerTypes";
+import { crmTriggerPill } from "@/lib/pillMaps";
 import { CrmInsights, CrmAnalytics } from "@/components/crm/CrmInsights";
 import { CrmMessageList } from "@/components/crm/CrmMessageList";
 import { Pagination, usePagination } from "@/components/Pagination";
@@ -332,7 +333,7 @@ function TriggersTab(props: TriggersTabProps) {
                   )}
                 </div>
                 <div className="flex flex-wrap items-center gap-x-3 gap-y-1 mt-1">
-                  <Pill tone="success">{triggerLabelById.get(String(trigger.trigger_type)) ?? trigger.trigger_type}</Pill>
+                  <Pill tone={crmTriggerPill(String(trigger.trigger_type)).tone}>{triggerLabelById.get(String(trigger.trigger_type)) ?? trigger.trigger_type}</Pill>
                   <span className="font-body text-sm text-charcoal/60 truncate">→ {trigger.template?.name ?? "(no template)"}</span>
                   {trigger.channel_email && (
                     <span className="inline-flex items-center gap-1 font-body text-xs text-terracotta"><Mail size={12} />Email</span>
@@ -595,7 +596,7 @@ function renderCrmSendDialog(props: CrmSendDialogProps) {
   return (
     <div className="fixed inset-0 z-[60] flex items-center justify-center p-4">
       <div className="absolute inset-0 bg-charcoal/70 backdrop-blur-xs" onClick={() => setSendDialog(null)} />
-      <div className="relative bg-white-warm rounded-2xl shadow-2xl w-full max-w-xl max-h-[90vh] flex flex-col overflow-hidden">
+      <div className="relative bg-white-warm rounded-2xl shadow-[0_8px_48px_rgba(51,51,51,0.14)] w-full max-w-xl max-h-[90vh] flex flex-col overflow-hidden">
         <div className="flex items-center justify-between px-6 py-4 border-b border-sage/10">
           <div>
             <h3 className="font-display text-2xl text-charcoal">Send template</h3>
@@ -672,7 +673,7 @@ function renderCrmSendDialog(props: CrmSendDialogProps) {
           )}
 
           {sendResult && (
-            <div className={`rounded-lg p-3 ${sendResult.ok ? "bg-sage/10 border border-sage/20 text-sage" : "bg-[#a05e38]/10 border border-[#a05e38]/25 text-[#a05e38]"}`}>
+            <div className={`rounded-lg p-3 ${sendResult.ok ? "bg-sage/10 border border-sage/20 text-sage" : "bg-pill-danger-bg border border-pill-danger-fg/25 text-pill-danger-fg"}`}>
               <p className="font-body text-sm">{sendResult.msg}</p>
             </div>
           )}
@@ -822,8 +823,8 @@ export default function CRMPage() {
 
   const userRole = (session?.user as { role?: string })?.role;
   useEffect(() => {
-    if (status === "unauthenticated") { router.push("/admin/login"); return; }
-    if (status === "authenticated" && userRole !== "admin") { router.push("/admin/login"); return; }
+    if (status === "unauthenticated") { router.push("/login"); return; }
+    if (status === "authenticated" && userRole !== "admin") { router.push("/login"); return; }
     if (status === "authenticated") {
       // Messages + insights are self-fetched by their components; the page only
       // needs templates (for cards + trigger picker) and triggers.
@@ -1349,7 +1350,7 @@ export default function CRMPage() {
                       ref={previewIframeRef}
                       title="visual-editor"
                       key={editingTemplate?.id ?? "new"}
-                      srcDoc={`<!DOCTYPE html><html><head><meta charset="UTF-8"><style>body{margin:0;padding:16px;background:#F5F0E8;font-family:Georgia,serif;min-height:100vh}body[contenteditable=true]{outline:2px dashed transparent}body[contenteditable=true]:focus{outline-color:#7C9070}[data-placeholder]{background:#FEF3C7;color:#92400E;padding:1px 4px;border-radius:3px;font-family:monospace;font-size:0.85em}</style></head><body contenteditable="true">${templateForm.message_body
+                      srcDoc={`<!DOCTYPE html><html><head><meta charset="UTF-8"><style>body{margin:0;padding:16px;background:#F5F0E8;font-family:Georgia,serif;min-height:100vh}body[contenteditable=true]{outline:2px dashed transparent}body[contenteditable=true]:focus{outline-color:#7C9070}[data-placeholder]{background:rgba(143,151,121,0.18);color:#5f6a4c;padding:1px 4px;border-radius:3px;font-family:monospace;font-size:0.85em}</style></head><body contenteditable="true">${templateForm.message_body
                         .replace(/<!DOCTYPE[^>]*>/i, "")
                         .replace(/<\/?html[^>]*>/gi, "")
                         .replace(/<head[\s\S]*?<\/head>/gi, "")
@@ -1473,7 +1474,7 @@ export default function CRMPage() {
       {showPreview && (
         <div className="fixed inset-0 z-[60] flex items-center justify-center p-4">
           <div className="absolute inset-0 bg-charcoal/70 backdrop-blur-xs" onClick={() => setShowPreview(false)} />
-          <div className="relative bg-white-warm rounded-2xl shadow-2xl w-full max-w-3xl max-h-[90vh] flex flex-col">
+          <div className="relative bg-white-warm rounded-2xl shadow-[0_8px_48px_rgba(51,51,51,0.14)] w-full max-w-3xl max-h-[90vh] flex flex-col">
             <div className="flex items-center justify-between px-6 py-4 border-b border-sage/10">
               <div>
                 <h3 className="font-display text-2xl text-charcoal">Preview</h3>
