@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useState } from "react";
 import { format } from "date-fns";
 import { toast } from "sonner";
-import { Loader2, ChevronDown, ChevronUp } from "lucide-react";
+import { Loader2, ChevronDown, ChevronUp, ChevronRight, ArrowUp, ArrowDown, ArrowUpDown } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -31,6 +31,19 @@ type RateOverride = {
   rate_1_paise: number | null;
 };
 
+type LineItem = {
+  scheduleId: string;
+  date: string;
+  startTime: string;
+  endTime: string;
+  className: string;
+  member: string;
+  membershipType: string;
+  count: number;
+  checkedIn: boolean;
+  isPlaceholder: boolean;
+};
+
 type DetailResponse = {
   instructor: {
     id: string;
@@ -44,16 +57,7 @@ type DetailResponse = {
   periodKey: string;
   periodStart: string;
   periodEnd: string;
-  lineItems: Array<{
-    scheduleId: string;
-    date: string;
-    startTime: string;
-    endTime: string;
-    className: string;
-    member: string;
-    membershipType: string;
-    count: number;
-  }>;
+  lineItems: LineItem[];
   footer: {
     gstPercent: number;
     instructorPct: number;
@@ -82,6 +86,66 @@ const WIN_OPTIONS: { value: Win; label: string }[] = [
   { value: "all", label: "All time" },
 ];
 
+// ── grouped class type ────────────────────────────────────────────────────────
+type Group = {
+  scheduleId: string;
+  className: string;
+  date: string;
+  startTime: string;
+  endTime: string;
+  members: LineItem[];
+  units: number;
+  attendees: number;
+  checkIns: number;
+  lineTotalPaise: number;
+};
+
+type SortKey = "className" | "date" | "units" | "lineTotalPaise";
+type SortDir = "asc" | "desc";
+
+function buildGroups(lineItems: LineItem[], blendedRatePaise: number): Group[] {
+  const order: string[] = [];
+  const map = new Map<string, Group>();
+  for (const item of lineItems) {
+    if (!map.has(item.scheduleId)) {
+      order.push(item.scheduleId);
+      map.set(item.scheduleId, {
+        scheduleId: item.scheduleId,
+        className: item.className,
+        date: item.date,
+        startTime: item.startTime,
+        endTime: item.endTime,
+        members: [],
+        units: 0,
+        attendees: 0,
+        checkIns: 0,
+        lineTotalPaise: 0,
+      });
+    }
+    const g = map.get(item.scheduleId)!;
+    g.members.push(item);
+    g.units += item.count;
+    if (!item.isPlaceholder) g.attendees += 1;
+    if (item.checkedIn) g.checkIns += 1;
+  }
+  const groups = order.map((id) => map.get(id)!);
+  for (const g of groups) {
+    g.lineTotalPaise = g.units * blendedRatePaise;
+  }
+  return groups;
+}
+
+function sortGroups(groups: Group[], key: SortKey, dir: SortDir): Group[] {
+  return [...groups].sort((a, b) => {
+    let cmp = 0;
+    if (key === "className") cmp = a.className.localeCompare(b.className);
+    else if (key === "date") cmp = a.date.localeCompare(b.date);
+    else if (key === "units") cmp = a.units - b.units;
+    else if (key === "lineTotalPaise") cmp = a.lineTotalPaise - b.lineTotalPaise;
+    return dir === "asc" ? cmp : -cmp;
+  });
+}
+
 // ── small sub-components ──────────────────────────────────────────────────────
 function Metric({ label, value }: { label: string; value: string }) {
   return (
@@ -89,6 +153,62 @@ function Metric({ label, value }: { label: string; value: string }) {
       <span className="text-charcoal/60">{label}</span>
       <span className="tabular-nums text-charcoal font-medium">{value}</span>
     </div>
+  );
+}
+
+function AnalyticsCard({
+  label,
+  value,
+  sub,
+  pill,
+}: {
+  label: string;
+  value: string;
+  sub?: string;
+  pill?: React.ReactNode;
+}) {
+  return (
+    <div className="rounded-lg border border-[#e5e4dc] bg-white-warm p-3 space-y-0.5">
+      <p className="font-body text-xs text-charcoal/50">{label}</p>
+      <p className="font-body text-lg font-semibold text-charcoal tabular-nums leading-tight">{value}</p>
+      {sub && <p className="font-body text-xs text-charcoal/50">{sub}</p>}
+      {pill && <div className="pt-1">{pill}</div>}
+    </div>
+  );
+}
+
+function SortableHead({
+  children,
+  sortKey,
+  currentKey,
+  dir,
+  onSort,
+}: {
+  children: React.ReactNode;
+  sortKey: SortKey;
+  currentKey: SortKey;
+  dir: SortDir;
+  onSort: (key: SortKey) => void;
+}) {
+  const active = currentKey === sortKey;
+  return (
+    <TableHead
+      className="font-body text-xs text-charcoal/60 uppercase tracking-wide cursor-pointer select-none hover:text-charcoal/80 whitespace-nowrap"
+      onClick={() => onSort(sortKey)}
+    >
+      <span className="inline-flex items-center gap-1">
+        {children}
+        {active ? (
+          dir === "asc" ? (
+            <ArrowUp className="h-3 w-3" />
+          ) : (
+            <ArrowDown className="h-3 w-3" />
+          )
+        ) : (
+          <ArrowUpDown className="h-3 w-3 opacity-30" />
+        )}
+      </span>
+    </TableHead>
   );
 }
 
@@ -140,6 +260,11 @@ export function InstructorPayoutLedger({ instructorId }: { instructorId: string 
   // collapse state for rate overrides card
   const [ratesOpen, setRatesOpen] = useState(false);
 
+  // grouped table state
+  const [expanded, setExpanded] = useState<Set<string>>(new Set());
+  const [sortKey, setSortKey] = useState<SortKey>("date");
+  const [sortDir, setSortDir] = useState<SortDir>("asc");
+
   const load = useCallback(async () => {
     if (!instructorId) return;
     setLoading(true);
@@ -174,6 +299,24 @@ export function InstructorPayoutLedger({ instructorId }: { instructorId: string 
   useEffect(() => {
     void load();
   }, [load]);
+
+  function toggleExpand(scheduleId: string) {
+    setExpanded((prev) => {
+      const next = new Set(prev);
+      if (next.has(scheduleId)) next.delete(scheduleId);
+      else next.add(scheduleId);
+      return next;
+    });
+  }
+
+  function handleSort(key: SortKey) {
+    if (sortKey === key) {
+      setSortDir((d) => (d === "asc" ? "desc" : "asc"));
+    } else {
+      setSortKey(key);
+      setSortDir("asc");
+    }
+  }
 
   async function saveBlendedRate(raw: string = blendedInput) {
     if (!data) return;
@@ -266,6 +409,23 @@ export function InstructorPayoutLedger({ instructorId }: { instructorId: string 
 
   const isPaid = data?.footer.status === "paid";
 
+  // ── derived analytics values ─────────────────────────────────────────────────
+  const classesCount = data
+    ? new Set(data.lineItems.map((l) => l.scheduleId)).size
+    : 0;
+  const attendees = data ? data.lineItems.filter((l) => !l.isPlaceholder).length : 0;
+  const checkIns = data ? data.lineItems.filter((l) => l.checkedIn).length : 0;
+
+  // ── derived groups ───────────────────────────────────────────────────────────
+  const groups =
+    data && data.lineItems.length > 0
+      ? sortGroups(
+          buildGroups(data.lineItems, data.footer.blendedRatePaise),
+          sortKey,
+          sortDir,
+        )
+      : [];
+
   return (
     <div className="space-y-5">
       {/* Controls row */}
@@ -294,48 +454,168 @@ export function InstructorPayoutLedger({ instructorId }: { instructorId: string 
         {loading && <Loader2 className="h-4 w-4 animate-spin text-charcoal/40" />}
       </div>
 
-      {/* Excel table */}
       {data && (
         <>
+          {/* Analytics cards */}
+          <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+            <AnalyticsCard
+              label="Total payout"
+              value={r(data.footer.totalPaise)}
+              pill={
+                <Pill tone={isPaid ? "success" : "warning"}>
+                  {isPaid ? "Paid" : "Pending"}
+                </Pill>
+              }
+            />
+            <AnalyticsCard
+              label="Classes & payable units"
+              value={`${classesCount} classes`}
+              sub={`${data.footer.payableUnits} payable units`}
+            />
+            <AnalyticsCard
+              label="Attendees & check-ins"
+              value={`${attendees} attendees`}
+              sub={`${checkIns} checked in`}
+            />
+            <AnalyticsCard
+              label="Blended rate & share"
+              value={`${r(data.footer.blendedRatePaise)}/class`}
+              sub={`${data.footer.instructorPct}% share`}
+            />
+          </div>
+
+          {/* Grouped + expandable class table */}
           <div className="rounded-xl border border-[#e5e4dc] bg-white-warm overflow-hidden">
             <ResponsiveTable>
               <Table>
                 <TableHeader>
                   <TableRow>
-                    <TableHead className="font-body text-xs text-charcoal/60 uppercase tracking-wide">Class</TableHead>
-                    <TableHead className="font-body text-xs text-charcoal/60 uppercase tracking-wide">Date</TableHead>
-                    <TableHead className="font-body text-xs text-charcoal/60 uppercase tracking-wide">Start</TableHead>
-                    <TableHead className="font-body text-xs text-charcoal/60 uppercase tracking-wide">End</TableHead>
-                    <TableHead className="font-body text-xs text-charcoal/60 uppercase tracking-wide">Member</TableHead>
-                    <TableHead className="font-body text-xs text-charcoal/60 uppercase tracking-wide">Membership type</TableHead>
-                    <TableHead className="font-body text-xs text-charcoal/60 uppercase tracking-wide text-right">Count</TableHead>
+                    <TableHead className="w-8" />
+                    <SortableHead
+                      sortKey="className"
+                      currentKey={sortKey}
+                      dir={sortDir}
+                      onSort={handleSort}
+                    >
+                      Class
+                    </SortableHead>
+                    <SortableHead
+                      sortKey="date"
+                      currentKey={sortKey}
+                      dir={sortDir}
+                      onSort={handleSort}
+                    >
+                      Date
+                    </SortableHead>
+                    <TableHead className="font-body text-xs text-charcoal/60 uppercase tracking-wide whitespace-nowrap">
+                      Time
+                    </TableHead>
+                    <TableHead className="font-body text-xs text-charcoal/60 uppercase tracking-wide">
+                      Attendees
+                    </TableHead>
+                    <SortableHead
+                      sortKey="units"
+                      currentKey={sortKey}
+                      dir={sortDir}
+                      onSort={handleSort}
+                    >
+                      Units
+                    </SortableHead>
+                    <SortableHead
+                      sortKey="lineTotalPaise"
+                      currentKey={sortKey}
+                      dir={sortDir}
+                      onSort={handleSort}
+                    >
+                      <span className="ml-auto">Line ₹</span>
+                    </SortableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
-                  {data.lineItems.length === 0 ? (
+                  {groups.length === 0 ? (
                     <TableRow>
-                      <TableCell colSpan={7} className="py-10 text-center font-body text-sm text-charcoal/40 italic">
-                        No classes in this period
+                      <TableCell
+                        colSpan={7}
+                        className="py-10 text-center font-body text-sm text-charcoal/40 italic"
+                      >
+                        No classes in this period.
                       </TableCell>
                     </TableRow>
                   ) : (
-                    data.lineItems.map((item, i) => (
-                      <TableRow key={`${item.scheduleId}-${item.member}-${i}`}>
-                        <TableCell className="font-body text-sm text-charcoal font-medium">{item.className}</TableCell>
-                        <TableCell className="font-body text-sm text-charcoal/70 tabular-nums whitespace-nowrap">
-                          {format(new Date(item.date), "dd MMM")}
-                        </TableCell>
-                        <TableCell className="font-body text-sm text-charcoal/70 tabular-nums whitespace-nowrap">
-                          {format(new Date(item.startTime), "HH:mm")}
-                        </TableCell>
-                        <TableCell className="font-body text-sm text-charcoal/70 tabular-nums whitespace-nowrap">
-                          {format(new Date(item.endTime), "HH:mm")}
-                        </TableCell>
-                        <TableCell className="font-body text-sm text-charcoal/80">{item.member}</TableCell>
-                        <TableCell className="font-body text-sm text-charcoal/60">{item.membershipType}</TableCell>
-                        <TableCell className="font-body text-sm text-charcoal/80 tabular-nums text-right">{item.count}</TableCell>
-                      </TableRow>
-                    ))
+                    groups.map((g) => {
+                      const isOpen = expanded.has(g.scheduleId);
+                      return (
+                        <>
+                          {/* Group header row */}
+                          <TableRow
+                            key={g.scheduleId}
+                            className="cursor-pointer bg-muted/30 hover:bg-muted/50 transition-colors"
+                            onClick={() => toggleExpand(g.scheduleId)}
+                          >
+                            <TableCell className="w-8 pr-0 text-charcoal/40">
+                              {isOpen ? (
+                                <ChevronDown className="h-3.5 w-3.5" />
+                              ) : (
+                                <ChevronRight className="h-3.5 w-3.5" />
+                              )}
+                            </TableCell>
+                            <TableCell className="font-body text-sm text-charcoal font-medium">
+                              {g.className}
+                            </TableCell>
+                            <TableCell className="font-body text-sm text-charcoal/70 tabular-nums whitespace-nowrap">
+                              {format(new Date(g.date), "dd MMM")}
+                            </TableCell>
+                            <TableCell className="font-body text-sm text-charcoal/70 tabular-nums whitespace-nowrap">
+                              {format(new Date(g.startTime), "HH:mm")}–{format(new Date(g.endTime), "HH:mm")}
+                            </TableCell>
+                            <TableCell className="font-body text-sm text-charcoal/70">
+                              {g.attendees}
+                            </TableCell>
+                            <TableCell className="font-body text-sm text-charcoal/80 tabular-nums">
+                              {g.units}
+                            </TableCell>
+                            <TableCell className="font-body text-sm text-charcoal font-medium tabular-nums text-right">
+                              {r(g.lineTotalPaise)}
+                            </TableCell>
+                          </TableRow>
+
+                          {/* Member sub-rows */}
+                          {isOpen &&
+                            g.members.map((m, i) => (
+                              <TableRow
+                                key={`${g.scheduleId}-${i}`}
+                                className="bg-cream/20 border-t-0"
+                              >
+                                <TableCell />
+                                <TableCell
+                                  colSpan={2}
+                                  className={`font-body text-sm pl-6 ${
+                                    m.isPlaceholder
+                                      ? "text-charcoal/35 italic"
+                                      : "text-charcoal/80"
+                                  }`}
+                                >
+                                  {m.isPlaceholder ? "No attendees" : m.member}
+                                </TableCell>
+                                <TableCell className="font-body text-xs text-charcoal/45">
+                                  {m.isPlaceholder ? "—" : m.membershipType}
+                                </TableCell>
+                                <TableCell>
+                                  {m.checkedIn && (
+                                    <Pill tone="success" className="text-[10px] px-1.5 py-0">
+                                      ✓
+                                    </Pill>
+                                  )}
+                                </TableCell>
+                                <TableCell className="font-body text-sm text-charcoal/70 tabular-nums text-right">
+                                  {m.count}
+                                </TableCell>
+                                <TableCell />
+                              </TableRow>
+                            ))}
+                        </>
+                      );
+                    })
                   )}
                 </TableBody>
               </Table>
