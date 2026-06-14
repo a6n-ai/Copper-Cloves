@@ -19,7 +19,7 @@ import { Label } from "@/components/ui/label";
 import { MetricCard } from "@/components/admin/MetricCard";
 import { Pagination, usePagination } from "@/components/Pagination";
 import { Pill, type PillProps } from "@/components/ui/pill";
-import { FilterBar, FilterSearch, FilterSelect, FilterDateRange } from "@/components/filters";
+import { FilterBar, FilterSearch, FilterSelect, FilterDateRange, FilterPills } from "@/components/filters";
 import type { DateRange } from "react-day-picker";
 import type { ImportPaymentBody } from "@/pages/api/admin/finance/import-payment";
 import type { RazorpayPaymentDetail } from "@/pages/api/admin/finance/razorpay-payment-detail";
@@ -1429,25 +1429,14 @@ function ReconcileSectionImpl() {
       </Card>
 
       {/* View toggle — Live issues vs saved Handled log */}
-      <div className="flex flex-wrap items-center gap-2">
-        {([
-          ["live", "Live issues"],
-          ["handled", "Handled"],
-        ] as const).map(([key, label]) => (
-          <button
-            key={key}
-            type="button"
-            onClick={() => setView(key)}
-            className={`rounded-full border px-4 py-1.5 font-body text-xs transition-colors ${
-              view === key
-                ? "border-sage bg-sage text-cream"
-                : "border-sage/25 bg-white-warm text-charcoal/60 hover:bg-sage/5"
-            }`}
-          >
-            {label}
-          </button>
-        ))}
-      </div>
+      <FilterPills<"live" | "handled">
+        value={view}
+        onChange={setView}
+        options={[
+          { value: "live", label: "Live issues" },
+          { value: "handled", label: "Handled" },
+        ]}
+      />
 
       {view === "live" && !data && !loading && (
         <Card className="border-sage/20 bg-white-warm">
@@ -1460,30 +1449,20 @@ function ReconcileSectionImpl() {
 
       {view === "live" && data && (
         <>
-          {/* Filter chips */}
-          <div className="flex flex-wrap gap-2">
-            {([
-              ["all", `All (${data.summary.total})`],
-              ["issues", `Issues (${issuesCount})`],
-              ["matched", `Matched (${data.summary.counts.matched})`],
-              ["external", `External (${data.summary.counts.external})`],
-              ["missing_from_website", `Missing from site (${data.summary.counts.missing_from_website})`],
-              ["website_only", `Not in Razorpay (${data.summary.counts.website_only})`],
-            ] as const).map(([key, label]) => (
-              <button
-                key={key}
-                type="button"
-                onClick={() => setMatchFilter(key)}
-                className={`rounded-full border px-3 py-1 font-body text-xs transition-colors ${
-                  matchFilter === key
-                    ? "border-sage bg-sage text-cream"
-                    : "border-sage/25 bg-white-warm text-charcoal/60 hover:bg-sage/5"
-                }`}
-              >
-                {label}
-              </button>
-            ))}
-          </div>
+          {/* Match filter chips */}
+          <FilterPills<ReconMatch | "all" | "issues">
+            value={matchFilter}
+            onChange={setMatchFilter}
+            size="sm"
+            options={[
+              { value: "all", label: "All", count: data.summary.total },
+              { value: "issues", label: "Issues", count: issuesCount },
+              { value: "matched", label: "Matched", count: data.summary.counts.matched },
+              { value: "external", label: "External", count: data.summary.counts.external },
+              { value: "missing_from_website", label: "Missing from site", count: data.summary.counts.missing_from_website },
+              { value: "website_only", label: "Not in Razorpay", count: data.summary.counts.website_only },
+            ]}
+          />
 
           {/* Table */}
           <Card className="border-sage/20 bg-white-warm">

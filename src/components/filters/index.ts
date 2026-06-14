@@ -5,6 +5,7 @@ export { FilterDateRange } from "./FilterDateRange";
 export { DatePicker } from "./DatePicker";
 export { FILTER_TRIGGER, FILTER_ICON } from "./styles";
 export { FilterReset } from "./FilterReset";
+export { FilterPills, type FilterPillOption } from "./FilterPills";
 export { useFilterState } from "./useFilterState";
 export type { FilterState } from "./useFilterState";
 export type { SelectOption, FilterCodec } from "./types";
