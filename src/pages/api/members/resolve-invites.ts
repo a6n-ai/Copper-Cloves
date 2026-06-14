@@ -42,13 +42,20 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     if (selfEmail && member.email.trim().toLowerCase() === selfEmail) {
       return res.status(400).json({ error: "You can't add yourself as a guest." });
     }
+    const memberPhone = member.phone?.trim();
+
     // If caller already resolved a profile_id, verify it exists and use it
     if (member.profile_id) {
       const exists = await prisma.profile.findFirst({
         where: { id: member.profile_id, role: "user" },
-        select: { id: true },
+        select: { id: true, phone: true },
       });
       if (exists) {
+        // Backfill a missing phone from the one captured at booking time —
+        // never overwrite a phone already on file.
+        if (memberPhone && !exists.phone?.trim()) {
+          await prisma.profile.update({ where: { id: exists.id }, data: { phone: memberPhone } });
+        }
         resolved.push(exists.id);
         continue;
       }
@@ -60,7 +67,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     // Find or create the profile
     let profile = await prisma.profile.findFirst({
       where: { email, role: "user" },
-      select: { id: true, hashedPassword: true },
+      select: { id: true, hashedPassword: true, phone: true },
     });
 
     const isNew = !profile;
@@ -70,12 +77,15 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         data: {
           email,
           full_name: member.name.trim() || email,
-          phone: member.phone?.trim() || null,
+          phone: memberPhone || null,
           role: "user",
           hashedPassword: null,
         },
-        select: { id: true, hashedPassword: true },
+        select: { id: true, hashedPassword: true, phone: true },
       });
+    } else if (memberPhone && !profile.phone?.trim()) {
+      // Existing account found by email but no phone on file — backfill it.
+      await prisma.profile.update({ where: { id: profile.id }, data: { phone: memberPhone } });
     }
 
     resolved.push(profile.id);
