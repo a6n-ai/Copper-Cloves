@@ -159,7 +159,7 @@ export function PauseSubscriptionCard() {
   const allPending = !packagesLoading && activePackages.length > 0 && selectablePackages.length === 0;
 
   return (
-    <Card className="border-sage/20 bg-[#fafaf8]/90 shadow-lg">
+    <Card className="border-sage/20 bg-[#fafaf8]/90">
       <CardHeader className="p-6 border-b border-sage/10 bg-linear-to-r from-cream/50 to-[#fafaf8]">
         <CardTitle className="font-display text-xl text-charcoal flex items-center gap-3">
           <div className="w-10 h-10 rounded-full bg-terracotta/10 flex items-center justify-center">
@@ -260,7 +260,7 @@ export function PauseSubscriptionCard() {
               <Label className="font-body text-sm text-charcoal">Reason for pausing <span className="text-terracotta">*</span></Label>
               <Textarea value={pauseReason} onChange={(e) => setPauseReason(e.target.value)}
                 placeholder="E.g. travelling for 3 weeks, recovering from injury, etc. The more detail, the faster we can help…"
-                className="border-sage/20 focus:border-sage font-body text-sm resize-none" rows={4} required />
+                className="border-sage/20 focus:border-sage focus-visible:ring-2 focus-visible:ring-sage/30 font-body text-sm resize-none" rows={4} required />
             </div>
             <div className="space-y-1.5">
               <Label className="font-body text-sm text-charcoal flex items-center gap-2">
@@ -279,8 +279,9 @@ export function PauseSubscriptionCard() {
                   {attachmentUploading ? "Uploading…" : "Upload file"}
                 </Button>
                 {attachmentName && (
-                  <span className="font-body text-xs text-charcoal/60 truncate max-w-[200px]">
-                    ✓ {attachmentName}
+                  <span className="font-body text-xs text-charcoal/60 truncate max-w-[200px] flex items-center gap-1.5">
+                    <CheckCircle2 size={14} className="text-sage shrink-0" />
+                    {attachmentName}
                   </span>
                 )}
               </div>

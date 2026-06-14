@@ -1,6 +1,7 @@
 import { useStudioSWR } from "@/lib/swr";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Pill } from "@/components/ui/pill";
+import { ticketStatusPill } from "@/lib/pillMaps";
 import { Skeleton } from "@/components/ui/skeleton";
 import { History, MessageSquare } from "lucide-react";
 import { format } from "date-fns";
@@ -27,16 +28,25 @@ function passName(t: PauseTicket): string | null {
     || (up.pass_type === "studio_pass" ? "Studio Pass" : up.pass_type === "class_pass" ? "Class Pass" : null);
 }
 
-/** Member-facing status semantics for a pause request. */
-function statusFor(status: string): { tone: "warning" | "success" | "danger" | "neutral"; label: string; pulse: boolean } {
+// Member-facing label + pulse for a pause request. Status tone comes from the
+// canonical `ticketStatusPill` for open/in_review/resolved; the extra
+// pause-only outcomes (approved/rejected/declined) map to the nearest tone
+// locally at the call-site without touching pillMaps.
+const EXTRA_STATUS_TONE: Record<string, "success" | "danger"> = {
+  approved: "success",
+  rejected: "danger",
+  declined: "danger",
+};
+
+function presentationFor(status: string): { label: string; pulse: boolean } {
   switch (status) {
-    case "open": return { tone: "warning", label: "Pending review", pulse: true };
-    case "in_review": return { tone: "warning", label: "In review", pulse: true };
-    case "approved": return { tone: "success", label: "Approved", pulse: false };
-    case "resolved": return { tone: "success", label: "Resolved", pulse: false };
+    case "open": return { label: "Pending review", pulse: true };
+    case "in_review": return { label: "In review", pulse: true };
+    case "approved": return { label: "Approved", pulse: false };
+    case "resolved": return { label: "Resolved", pulse: false };
     case "rejected":
-    case "declined": return { tone: "danger", label: "Declined", pulse: false };
-    default: return { tone: "neutral", label: status.replace(/_/g, " "), pulse: false };
+    case "declined": return { label: "Declined", pulse: false };
+    default: return { label: status.replace(/_/g, " "), pulse: false };
   }
 }
 
@@ -57,7 +67,7 @@ export function PauseRequestsList() {
     : [];
 
   return (
-    <Card className="border-sage/20 bg-[#fafaf8]/90 shadow-lg">
+    <Card className="border-sage/20 bg-[#fafaf8]/90">
       <CardHeader className="p-6 border-b border-sage/10 bg-linear-to-r from-cream/50 to-[#fafaf8]">
         <CardTitle className="font-display text-xl text-charcoal flex items-center gap-3">
           <div className="w-10 h-10 rounded-full bg-sage/10 flex items-center justify-center">
@@ -83,7 +93,8 @@ export function PauseRequestsList() {
         ) : (
           <ul className="space-y-3">
             {requests.map((t) => {
-              const s = statusFor(t.status);
+              const s = presentationFor(t.status);
+              const tone = EXTRA_STATUS_TONE[t.status] ?? ticketStatusPill(t.status).tone;
               return (
                 <li key={t.id} className="rounded-lg border border-sage/15 bg-white-warm p-4 space-y-2">
                   <div className="flex items-start justify-between gap-3">
@@ -93,7 +104,7 @@ export function PauseRequestsList() {
                         <span className="block text-xs text-charcoal/50 mt-0.5">{passName(t)}</span>
                       )}
                     </div>
-                    <Pill tone={s.tone} dot pulse={s.pulse} size="sm">{s.label}</Pill>
+                    <Pill tone={tone} dot pulse={s.pulse} size="sm">{s.label}</Pill>
                   </div>
                   <p className="font-body text-xs text-charcoal/60 line-clamp-2">{t.reason}</p>
                   {t.admin_note && (

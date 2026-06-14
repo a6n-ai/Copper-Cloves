@@ -283,7 +283,7 @@ export default function OnboardingPage() {
                   <>
                     <div className="space-y-1">
                       <Label htmlFor="dob" className="font-body text-charcoal">
-                        Date of Birth <span className="text-[#a05e38]">*</span>
+                        Date of Birth <span className="text-terracotta">*</span>
                       </Label>
                       <Controller
                         name="dob"
@@ -299,13 +299,13 @@ export default function OnboardingPage() {
                         )}
                       />
                       {errors.dob && (
-                        <p className="text-xs text-[#a05e38] font-body mt-1">{errors.dob.message}</p>
+                        <p className="text-xs text-destructive font-body mt-1">{errors.dob.message}</p>
                       )}
                     </div>
 
                     <div className="space-y-2">
                       <Label className="font-body text-charcoal">
-                        Gender <span className="text-[#a05e38]">*</span>
+                        Gender <span className="text-terracotta">*</span>
                       </Label>
                       <Controller
                         name="gender"
@@ -317,7 +317,7 @@ export default function OnboardingPage() {
                                 key={g}
                                 type="button"
                                 onClick={() => field.onChange(g)}
-                                className={`py-3 px-4 rounded-xl border text-sm font-body capitalize transition-all ${
+                                className={`py-3 px-4 rounded-md border text-sm font-body capitalize transition-all ${
                                   field.value === g
                                     ? "bg-charcoal text-cream border-charcoal"
                                     : "border-sage/20 text-charcoal/70 hover:border-sage/50"
@@ -330,7 +330,7 @@ export default function OnboardingPage() {
                         )}
                       />
                       {errors.gender && (
-                        <p className="text-xs text-[#a05e38] font-body mt-1">{errors.gender.message}</p>
+                        <p className="text-xs text-destructive font-body mt-1">{errors.gender.message}</p>
                       )}
                     </div>
                   </>
@@ -351,7 +351,7 @@ export default function OnboardingPage() {
                       )}
                     />
                     {errors.fitnessGoals && (
-                      <p className="text-xs text-[#a05e38] font-body mt-2">{errors.fitnessGoals.message}</p>
+                      <p className="text-xs text-destructive font-body mt-2">{errors.fitnessGoals.message}</p>
                     )}
                   </div>
                 )}
@@ -362,7 +362,7 @@ export default function OnboardingPage() {
                     <div className="space-y-2">
                       <Label className="font-body text-charcoal font-medium">
                         {isFemale ? "Short-term health considerations" : "Current health conditions"}
-                        <span className="text-[#a05e38] ml-0.5">*</span>
+                        <span className="text-terracotta ml-0.5">*</span>
                       </Label>
                       <p className="text-xs text-charcoal/50 font-body">Select all that apply</p>
                       <Controller
@@ -377,7 +377,7 @@ export default function OnboardingPage() {
                         )}
                       />
                       {errors.healthIssuesShort && (
-                        <p className="text-xs text-[#a05e38] font-body mt-1">{errors.healthIssuesShort.message}</p>
+                        <p className="text-xs text-destructive font-body mt-1">{errors.healthIssuesShort.message}</p>
                       )}
                     </div>
 
@@ -439,7 +439,8 @@ export default function OnboardingPage() {
                     <Button
                       type="button"
                       onClick={goNext}
-                      className="flex-1 bg-charcoal hover:bg-charcoal/90 text-cream font-body h-11 rounded-full"
+                      variant="sage"
+                      className="flex-1 font-body h-11 rounded-full"
                     >
                       Continue
                       <ChevronRight className="h-4 w-4 ml-1" />

@@ -1,6 +1,5 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import { useStudioSWR } from "@/lib/swr";
-import { statusTone } from "@/lib/statusTone";
 import { PageHeader } from "@/components/dashboard/PageHeader";
 import { useRouter } from "next/router";
 import { requireSessionSSP } from "@/lib/requireSessionSSP";
@@ -15,6 +14,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Pill } from "@/components/ui/pill";
+import { memberStatusPill } from "@/lib/pillMaps";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
 import { CloseButton } from "@/components/ui/quick-actions";
@@ -237,20 +237,12 @@ function PackageTierCard({
         isRecommended && "md:scale-105 z-10"
       )}
     >
-      {/* Accent border for recommended */}
-      {isRecommended && (
-        <div className="absolute -inset-0.5 rounded-2xl overflow-hidden pointer-events-none">
-          <div className="absolute inset-0 rounded-2xl bg-gradient-to-br from-sage via-terracotta/60 to-sand opacity-70" />
-          <div className="absolute inset-0.5 rounded-2xl bg-white-warm" />
-        </div>
-      )}
-
       <Card
         className={cn(
-          "relative flex-1 flex flex-col rounded-2xl p-4 gap-4 sm:p-6 sm:gap-6",
+          "relative flex-1 flex flex-col rounded-2xl p-4 gap-4 sm:p-6 sm:gap-6 transition-shadow duration-300",
           isRecommended
-            ? "border-0 shadow-xl ring-0"
-            : "border border-sage/20 shadow-md hover:shadow-lg transition-shadow duration-300"
+            ? "border-2 border-sage hover:shadow-[0_4px_24px_rgba(51,51,51,0.08)]"
+            : "border border-sage/20 hover:shadow-[0_4px_24px_rgba(51,51,51,0.08)]"
         )}
       >
         <CardHeader className="p-0">
@@ -272,7 +264,7 @@ function PackageTierCard({
         <CardContent className="flex flex-col flex-1 gap-4 sm:gap-6 p-0">
           {/* Big price */}
           <div className="flex items-baseline gap-1.5">
-            <span className="font-display text-3xl sm:text-4xl text-charcoal">{pkg.price}</span>
+            <span className="font-body text-3xl sm:text-4xl font-semibold tabular-nums text-charcoal">{pkg.price}</span>
           </div>
 
           <Separator className="bg-sage/10" />
@@ -764,12 +756,12 @@ export default function PackagesPage() {
 
         {/* Tab Switcher */}
         <div className="flex justify-center mb-10">
-          <div className="inline-flex bg-white-warm rounded-full p-1.5 shadow-lg border border-sage/10 w-full max-w-xs sm:w-auto">
+          <div className="inline-flex bg-white-warm rounded-full p-1.5 border border-sage/10 w-full max-w-xs sm:w-auto">
             <button
               onClick={() => setSelectedCategory("class")}
               className={`flex-1 sm:flex-none px-5 py-2.5 rounded-full font-body text-sm font-medium transition-all duration-300 ${
                 selectedCategory === "class"
-                  ? "bg-sage text-cream shadow-md"
+                  ? "bg-sage text-cream"
                   : "text-charcoal/70 hover:text-charcoal"
               }`}
             >
@@ -779,7 +771,7 @@ export default function PackagesPage() {
               onClick={() => setSelectedCategory("studio")}
               className={`flex-1 sm:flex-none px-5 py-2.5 rounded-full font-body text-sm font-medium transition-all duration-300 ${
                 selectedCategory === "studio"
-                  ? "bg-sage text-cream shadow-md"
+                  ? "bg-sage text-cream"
                   : "text-charcoal/70 hover:text-charcoal"
               }`}
             >
@@ -828,10 +820,10 @@ export default function PackagesPage() {
                 const packageType = purchase.package_types;
                 const isActive = purchase.status === "active" && new Date(purchase.expires_at) > new Date();
                 const isExpired = new Date(purchase.expires_at) < new Date();
-                let cardStatusTone: string;
-                if (isActive) cardStatusTone = statusTone("success");
-                else if (isExpired) cardStatusTone = statusTone("neutral");
-                else cardStatusTone = statusTone("pending");
+                let cardStatusKey: string;
+                if (isActive) cardStatusKey = "active";
+                else if (isExpired) cardStatusKey = "expired";
+                else cardStatusKey = purchase.status;
                 let cardStatusLabel: string;
                 if (isActive) cardStatusLabel = "Active";
                 else if (isExpired) cardStatusLabel = "Expired";
@@ -846,16 +838,13 @@ export default function PackagesPage() {
                         <h3 className="font-display text-base text-charcoal truncate">
                           {packageType?.name || "Unknown Package"}
                         </h3>
-                        <span className={cn(
-                          "inline-block mt-1 px-2 py-0.5 rounded-full text-xs font-body font-semibold",
-                          cardStatusTone
-                        )}>
+                        <Pill {...memberStatusPill(cardStatusKey)} className="mt-1">
                           {cardStatusLabel}
-                        </span>
+                        </Pill>
                       </div>
                       <div className="shrink-0 text-right">
                         <p className="font-body text-xs text-charcoal/50 mb-0.5">Amount Paid</p>
-                        <p className="font-display text-lg text-sage">
+                        <p className="font-body text-lg font-semibold tabular-nums text-sage">
                           ₹{packageType?.price?.toLocaleString("en-IN") || "0"}
                         </p>
                       </div>
@@ -906,10 +895,10 @@ export default function PackagesPage() {
                     const packageType = purchase.package_types;
                     const isActive = purchase.status === "active" && new Date(purchase.expires_at) > new Date();
                     const isExpired = new Date(purchase.expires_at) < new Date();
-                    let rowStatusTone: string;
-                    if (isActive) rowStatusTone = statusTone("success");
-                    else if (isExpired) rowStatusTone = statusTone("neutral");
-                    else rowStatusTone = statusTone("pending");
+                    let rowStatusKey: string;
+                    if (isActive) rowStatusKey = "active";
+                    else if (isExpired) rowStatusKey = "expired";
+                    else rowStatusKey = purchase.status;
                     let rowStatusLabel: string;
                     if (isActive) rowStatusLabel = "Active";
                     else if (isExpired) rowStatusLabel = "Expired";
@@ -924,12 +913,9 @@ export default function PackagesPage() {
                             <h3 className="font-display text-base text-charcoal">
                               {packageType?.name || "Unknown Package"}
                             </h3>
-                            <span className={cn(
-                              "inline-block mt-1 px-2 py-0.5 rounded-full text-xs font-body font-semibold",
-                              rowStatusTone
-                            )}>
+                            <Pill {...memberStatusPill(rowStatusKey)} className="mt-1">
                               {rowStatusLabel}
-                            </span>
+                            </Pill>
                           </div>
                           <div className="text-sm text-charcoal/70 font-body shrink-0">
                             {new Date(purchase.created_at).toLocaleDateString("en-US", {
@@ -946,7 +932,7 @@ export default function PackagesPage() {
                               ? "Unlimited"
                               : `${purchase.remaining_credits || 0} / ${packageType?.class_count || 0}`}
                           </div>
-                          <div className="font-display text-lg text-sage shrink-0">
+                          <div className="font-body text-lg font-semibold tabular-nums text-sage shrink-0">
                             ₹{packageType?.price?.toLocaleString("en-IN") || "0"}
                           </div>
                           <Button
@@ -982,7 +968,7 @@ export default function PackagesPage() {
       {showCheckout && selectedPackage && (
         <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center sm:p-4 bg-charcoal/60 animate-in fade-in duration-300">
           {success ? (
-            <div className="bg-white-warm rounded-3xl max-w-md w-full p-8 shadow-2xl animate-in zoom-in-95 duration-500 text-center">
+            <div className="bg-white-warm rounded-3xl max-w-md w-full p-8 shadow-[0_8px_48px_rgba(51,51,51,0.14)] animate-in zoom-in-95 duration-500 text-center">
               <div className="w-14 h-14 rounded-full bg-sage/20 flex items-center justify-center mx-auto mb-3">
                 <Check className="text-sage" size={28} />
               </div>
@@ -997,7 +983,7 @@ export default function PackagesPage() {
             </div>
           ) : (
             // Compact checkout: max-h-[100dvh] so it never overflows the phone screen
-            <div className="bg-white-warm rounded-t-3xl sm:rounded-3xl max-w-lg w-full max-h-[100dvh] sm:max-h-[90vh] overflow-y-auto shadow-2xl animate-in slide-in-from-bottom sm:zoom-in-95 duration-400 relative">
+            <div className="bg-white-warm rounded-t-3xl sm:rounded-3xl max-w-lg w-full max-h-[100dvh] sm:max-h-[90vh] overflow-y-auto shadow-[0_8px_48px_rgba(51,51,51,0.14)] animate-in slide-in-from-bottom sm:zoom-in-95 duration-400 relative">
               {/* Drag handle — mobile only */}
               <div className="sm:hidden flex justify-center pt-2.5 pb-0">
                 <div className="w-9 h-1 rounded-full bg-charcoal/20" />
@@ -1023,15 +1009,15 @@ export default function PackagesPage() {
                 <div className="grid grid-cols-2 gap-x-4 gap-y-2 text-sm">
                   <div className="flex items-baseline gap-2">
                     <span className="font-body text-xs text-charcoal/50 shrink-0">Classes</span>
-                    <span className="font-display text-sm text-charcoal">{selectedPackage.classes}</span>
+                    <span className="font-body text-sm font-semibold text-charcoal">{selectedPackage.classes}</span>
                   </div>
                   <div className="flex items-baseline gap-2">
                     <span className="font-body text-xs text-charcoal/50 shrink-0">Valid</span>
-                    <span className="font-display text-sm text-charcoal">{selectedPackage.validity}</span>
+                    <span className="font-body text-sm font-semibold text-charcoal">{selectedPackage.validity}</span>
                   </div>
                   <div className="col-span-2 flex items-baseline gap-2">
                     <span className="font-body text-xs text-charcoal/50 shrink-0">Total</span>
-                    <span className="font-display text-xl text-sage">{selectedPackage.price}</span>
+                    <span className="font-body text-xl font-semibold tabular-nums text-sage">{selectedPackage.price}</span>
                     {couponDiscount !== null && couponDiscount !== undefined && couponDiscount > 0 && (
                       <span className="font-body text-sm text-sage">
                         → ₹{Math.max(0, packageSubtotalInr(selectedPackage) - couponDiscount).toLocaleString("en-IN")}

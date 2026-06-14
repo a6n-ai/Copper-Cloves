@@ -64,7 +64,7 @@ function classStatusLabel(status: string): string {
 
 function DetailSkeleton() {
   return (
-    <div className="bg-white-warm rounded-xl shadow-xs border border-sage/10 p-6 space-y-4">
+    <div className="bg-white-warm rounded-xl border border-sage/10 p-6 space-y-4">
       <Skeleton className="h-8 w-56" />
       <div className="flex gap-2">
         <Skeleton className="h-6 w-28 rounded-md" />
@@ -200,7 +200,7 @@ export default function BookingDetailPage() {
             </Button>
           </div>
         ) : (
-          <div className="bg-white-warm rounded-xl shadow-xs border border-sage/10 p-5 sm:p-7">
+          <div className="bg-white-warm rounded-xl border border-sage/10 p-5 sm:p-7">
             <h2 className="font-display text-2xl sm:text-3xl text-charcoal">
               {booking.className ?? "Class"}
             </h2>

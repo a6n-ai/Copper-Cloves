@@ -20,6 +20,8 @@ import {
 } from "@/components/responsive/ResponsiveDialog";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { MobilePagination } from "@/components/responsive/MobilePagination";
+import { Pill } from "@/components/ui/pill";
+import { bookingStatusPill, attendanceOutcomePill } from "@/lib/pillMaps";
 
 import { canCheckInNow, checkInWindowBounds } from "@/lib/bookingAttendance";
 
@@ -76,12 +78,12 @@ const BookingCard = memo(function BookingCard({
   formatDate,
 }: BookingCardProps) {
   return (
-    <div className="bg-white-warm rounded-xl shadow-xs border border-sage/10 p-4 sm:p-6 hover:shadow-md transition-all duration-300">
+    <div className="bg-white-warm rounded-xl border border-sage/10 p-4 sm:p-6 hover:shadow-[0_4px_24px_rgba(51,51,51,0.08)] transition-all duration-300">
       <div className="flex items-start justify-between gap-3 mb-2 sm:mb-3">
         <div className="flex-1 min-w-0">
           <h3 className="font-display text-lg sm:text-2xl text-charcoal truncate">{booking.class_name}</h3>
           <div className="flex flex-wrap gap-1.5 mt-1 sm:mt-1.5">
-            <span className={`inline-flex items-center px-2 py-0.5 rounded-full text-xs font-body ${booking.status === "confirmed" ? "bg-sage/10 text-sage" : "bg-terracotta/10 text-terracotta"}`}>
+            <Pill {...bookingStatusPill(booking.status)}>
               {booking.status === "confirmed"
                 ? "Confirmed"
                 : booking.status === "payment_pending"
@@ -89,22 +91,20 @@ const BookingCard = memo(function BookingCard({
                   : booking.status === "expired"
                     ? "Expired"
                     : "Pending"}
-            </span>
+            </Pill>
             {booking.confirmation_status === "pending" && booking.status !== "cancelled" && (
-              <span className="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-body bg-terracotta/10 text-terracotta">Awaiting confirmation</span>
+              <Pill tone="warning">Awaiting confirmation</Pill>
             )}
             {booking.checked_in && (
-              <span className="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-body bg-sage/10 text-sage">
+              <Pill tone="success">
                 Checked in{booking.check_in_outcome === "on_time" ? " · On time" : ""}{booking.check_in_outcome === "late" ? " · Late" : ""}
-              </span>
+              </Pill>
             )}
             {booking.check_in_outcome === "no_show" && (
-              <span className="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-body bg-charcoal/10 text-charcoal/70">No-show</span>
+              <Pill {...attendanceOutcomePill("no_show")}>No-show</Pill>
             )}
             {booking.invited_by_name && (
-              <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-body bg-sage/10 text-sage">
-                Invited by {booking.invited_by_name}
-              </span>
+              <Pill tone="success">Invited by {booking.invited_by_name}</Pill>
             )}
           </div>
         </div>
@@ -160,7 +160,7 @@ const BookingCard = memo(function BookingCard({
 
 function BookingRowSkeleton() {
   return (
-    <div className="bg-white-warm rounded-xl shadow-xs border border-sage/10 p-6">
+    <div className="bg-white-warm rounded-xl border border-sage/10 p-6">
       <div className="flex items-center justify-between gap-6">
         <div className="flex-1">
           <div className="flex items-center gap-3 mb-2">

@@ -1521,7 +1521,7 @@ export default function BookClass() {
 
       {/* Booking Panel - Multi-Step Flow */}
       <div 
-        className={`fixed inset-y-0 right-0 w-full max-w-2xl bg-white-warm shadow-[0_8px_48px_-8px_rgba(51,51,51,0.14)] transform transition-all duration-600 ease-in-out z-50 overflow-y-auto ${
+        className={`fixed inset-y-0 right-0 w-full max-w-2xl bg-white-warm shadow-[0_8px_48px_rgba(51,51,51,0.14)] transform transition-all duration-600 ease-in-out z-50 overflow-y-auto ${
           showBookingPanel ? 'translate-x-0' : 'translate-x-full'
         }`}
       >
@@ -1598,7 +1598,7 @@ export default function BookClass() {
                         <p className="font-body text-sm text-charcoal/60 uppercase tracking-wide mb-1">
                           Classes Remaining
                         </p>
-                        <p className="font-display text-3xl text-sage">
+                        <p className="font-body text-3xl font-semibold tabular-nums text-sage">
                           {userPackage.classesRemaining || 0}
                         </p>
                       </div>
@@ -1608,7 +1608,7 @@ export default function BookClass() {
                         <p className="font-body text-sm text-charcoal/60 uppercase tracking-wide mb-1">
                           Access Type
                         </p>
-                        <p className="font-display text-3xl text-sage">
+                        <p className="font-body text-3xl font-semibold text-sage">
                           Unlimited
                         </p>
                       </div>
@@ -2089,7 +2089,7 @@ export default function BookClass() {
         <button
           type="button"
           aria-label="Close booking panel"
-          className="fixed inset-0 bg-charcoal/40 backdrop-blur-xs z-40 transition-opacity duration-600 animate-in fade-in"
+          className="fixed inset-0 bg-charcoal/40 z-40 transition-opacity duration-600 animate-in fade-in"
           onClick={() => setShowBookingPanel(false)}
         />
       )}
