@@ -24,7 +24,6 @@ import {
   ResponsiveDialogHeader,
   ResponsiveDialogTitle,
 } from "@/components/responsive/ResponsiveDialog";
-import { PayoutRateSettingsDialog } from "@/components/admin/PayoutRateSettingsDialog";
 
 type PayoutWindow = "week" | "month" | "quarter" | "all";
 
@@ -94,8 +93,6 @@ function InstructorPayoutsPanelImpl() {
   const [payoutWindow, setPayoutWindow] = useState<PayoutWindow>("month");
   const [search, setSearch] = useState("");
   const [instructorFilter, setInstructorFilter] = useState("all");
-
-  const [rateSettingsOpen, setRateSettingsOpen] = useState(false);
 
   // mark-paid / move-to-expense confirmation
   const [confirm, setConfirm] = useState<{ row: PayoutRow; paid: boolean } | null>(null);
@@ -320,7 +317,7 @@ function InstructorPayoutsPanelImpl() {
               <Button type="button" variant="outline" size="sm" className="h-9 border-sage/20 text-sage hover:bg-sage/5 hover:text-sage!" onClick={downloadCsv} disabled={sorted.length === 0}>
                 <Download className="h-4 w-4 mr-1.5" />CSV
               </Button>
-              <Button variant="secondary" size="sm" onClick={() => setRateSettingsOpen(true)}>
+              <Button variant="secondary" size="sm" onClick={() => router.push("/admin/manual-entries?tab=rate_settings")}>
                 <Settings className="h-4 w-4 mr-2" /> Rate Settings
               </Button>
             </div>
@@ -473,12 +470,6 @@ function InstructorPayoutsPanelImpl() {
           </ResponsiveDialogFooter>
         </ResponsiveDialogContent>
       </ResponsiveDialog>
-
-      <PayoutRateSettingsDialog
-        open={rateSettingsOpen}
-        onOpenChange={setRateSettingsOpen}
-        onSaved={() => fetchData(payoutWindow)}
-      />
 
       {/* Override / adjustment editor */}
       <ResponsiveDialog open={editRow != null} onOpenChange={(o) => { if (!o) setEditRow(null); }}>

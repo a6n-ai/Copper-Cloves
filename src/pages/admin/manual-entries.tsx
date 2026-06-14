@@ -9,7 +9,7 @@ import { AdminPageHeader } from "@/components/admin/AdminPageHeader";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { ArrowDownLeft, BarChart3, Receipt, Wallet } from "lucide-react";
+import { ArrowDownLeft, BarChart3, Receipt, Settings, Wallet } from "lucide-react";
 
 function SectionLoadingSkeleton() {
   return (
@@ -40,6 +40,10 @@ const InstructorPayoutsPanel = dynamic(
   () => import("@/components/admin/dashboard-tabs/InstructorPayoutsPanel").then((m) => m.InstructorPayoutsPanel),
   { ssr: false, loading: () => <SectionLoadingSkeleton /> },
 );
+const PayoutRateSettingsPanel = dynamic(
+  () => import("@/components/admin/dashboard-tabs/PayoutRateSettingsPanel").then((m) => m.PayoutRateSettingsPanel),
+  { ssr: false },
+);
 
 // Tab values preserve existing deep-links: `expenses` (now labelled "Money Out")
 // and `payouts` stay; `money_in` is new.
@@ -48,6 +52,7 @@ const MANUAL_TABS = [
   { v: "money_in", l: "Money In", I: ArrowDownLeft },
   { v: "expenses", l: "Money Out", I: Receipt },
   { v: "payouts", l: "Payouts", I: Wallet },
+  { v: "rate_settings", l: "Rate Settings", I: Settings },
 ] as const;
 
 export default function AdminManualEntries() {
@@ -111,6 +116,10 @@ export default function AdminManualEntries() {
 
               <TabsContent value="payouts" className="space-y-6">
                 <InstructorPayoutsPanel />
+              </TabsContent>
+
+              <TabsContent value="rate_settings" className="space-y-6">
+                <PayoutRateSettingsPanel />
               </TabsContent>
             </Tabs>
           </div>
