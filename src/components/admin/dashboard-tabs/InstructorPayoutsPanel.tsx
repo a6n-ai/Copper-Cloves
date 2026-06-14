@@ -1,6 +1,6 @@
 import { memo, useCallback, useEffect, useMemo, useState } from "react";
 import { useRouter } from "next/router";
-import { CalendarDays, CheckCircle2, Clock, DollarSign, Download, Loader2, Pencil, Settings, TrendingUp, User, Wallet } from "lucide-react";
+import { CalendarDays, CheckCircle2, Clock, DollarSign, Download, Loader2, Pencil, TrendingUp, User, Wallet } from "lucide-react";
 import { toast } from "sonner";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
@@ -316,9 +316,6 @@ function InstructorPayoutsPanelImpl() {
               )}
               <Button type="button" variant="outline" size="sm" className="h-9 border-sage/20 text-sage hover:bg-sage/5 hover:text-sage!" onClick={downloadCsv} disabled={sorted.length === 0}>
                 <Download className="h-4 w-4 mr-1.5" />CSV
-              </Button>
-              <Button variant="secondary" size="sm" onClick={() => router.push("/admin/manual-entries?tab=rate_settings")}>
-                <Settings className="h-4 w-4 mr-2" /> Rate Settings
               </Button>
             </div>
           </div>

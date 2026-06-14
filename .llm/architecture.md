@@ -118,8 +118,9 @@ Gated: session role `instructor` + `instructor_id`. `/instructor/dashboard` — 
 | `/api/admin/dashboard/member-stats` | Member-of-month, top class, no-show + late check-in counts, inactive users |
 | `/api/admin/dashboard/member-list` | Recent package purchasers (24 most recent) |
 | `/api/admin/dashboard/transactions` | Finance ledger (packages + booking checkouts) |
-| `/api/admin/payout-settings` | Global instructor payout rate card (12/8/4/1 package rates, GST, default cut). GET/PUT, admin-only. |
-| `/api/admin/instructor-payouts` | Per-period payout per instructor (tiered blended rate × payable units); ?instructorId= scopes to one. |
+| `/api/admin/payout-settings` | Global payout rate card (12/8/4/1, GST, default cut) + `payable_basis` (`all_booked`\|`checked_in`\|`per_class`). GET/PUT, admin. UI: `/admin/manual-entries?tab=rate_settings` (live worked example). |
+| `/api/admin/instructor-payouts` | Per-period payout per instructor. Only `started`+`completed` classes count. Payable units per `payable_basis`. ?instructorId= scopes to one. |
+| `/api/admin/instructor-payout-detail` | Per-attendee ledger for one instructor/period (basis-aware row counts reconcile to payable units). Powers the instructor Payout tab. |
 | `/api/admin/instructor-payout-adjustment` | Per-(instructor,period) overrides: blended-rate override, final override, mark-paid (freezes snapshot). |
 | `/api/admin/*` | Other admin-only data endpoints |
 | `/api/cron/reconcile-no-shows` | Header `x-cron-secret: $CRON_SECRET` (or admin session). Marks past-due bookings `no_show`. Schedule externally — no longer on request path. |
