@@ -12,7 +12,9 @@ import {
   payoutForUnits,
   periodBoundsFor,
   periodKeyFor,
+  PAYOUT_ELIGIBLE_STATUSES,
   type PayoutWindow,
+  type PayableBasis,
   type RateCard,
 } from "@/lib/payoutCalc";
 import { getPayoutSettings } from "@/lib/payoutSettings";
@@ -24,15 +26,30 @@ import { getPayoutSettings } from "@/lib/payoutSettings";
  *   instructorId=<id>              (required)
  *   window=week|month|quarter|all  (default month)
  *
- * Line-item count reconciliation:
- *   Per booking row:  count = isPayable(booking, startTime) ? 1 : 0
- *   This counts BOOKING ROWS, consistent with payableForSchedule which also counts rows.
- *   For a schedule where all bookings score 0 but the instructor checked in on_time
- *   (floor=1), the synthetic "No attendees" row carries count=1 to represent that floor.
- *   Summing per-row counts across a schedule therefore equals payableForSchedule(...).
- *   The authoritative period total (footer.payableUnits = computedPayableUnits) is
- *   derived by summing payableForSchedule(...) — identical path to the aggregate endpoint.
+ * Line-item count reconciliation (invariant for every basis):
+ *   sum of a schedule's row counts === payableForSchedule(..., basis)
+ *   so the ledger footer total reconciles with the aggregate endpoint.
+ *
+ *   all_booked: count = isPayable(b, start) ? 1 : 0; floor bonus on first row when base=0 and on_time.
+ *   checked_in: count = check_in_outcome on_time|late ? 1 : 0; no floor.
+ *   per_class:  first member row count=1, rest=0; synthetic row count=1.
+ *   No-bookings synthetic row: count=schedulePayable (0 or 1 for on_time floor / per_class).
  */
+
+/**
+ * Per-row payable count for a single booking row, basis-aware.
+ * Does NOT apply the on_time floor — that is handled at schedule level.
+ */
+function rowCountFor(
+  basis: PayableBasis,
+  b: { status: string; checked_in: boolean; cancellation_date: Date | null; check_in_outcome: string | null },
+  start: Date,
+): number {
+  if (basis === "per_class") return 0; // per-class unit is attached once per schedule, not per row
+  if (basis === "checked_in") return b.check_in_outcome === "on_time" || b.check_in_outcome === "late" ? 1 : 0;
+  return isPayable(b, start) ? 1 : 0; // all_booked
+}
+
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
   if (req.method !== "GET") return res.status(405).end();
 
@@ -87,9 +104,12 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   if (end && end < now) scheduleStart.lt = end;
 
   // Query schedules taught by this instructor (direct or as substitute).
+  // Only payout-eligible statuses are included; ineligible statuses (e.g. cancelled) are excluded.
   const schedules = await prisma.classSchedule.findMany({
     where: {
       start_time: scheduleStart,
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      status: { in: PAYOUT_ELIGIBLE_STATUSES as unknown as any[] },
       OR: [
         { actual_instructor_id: instructorId },
         { actual_instructor_id: null, instructor_id: instructorId },
@@ -107,6 +127,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
           status: true,
           checked_in: true,
           cancellation_date: true,
+          check_in_outcome: true,
           extra_guest_count: true,
           class_name: true,
           profile: { select: { full_name: true } },
@@ -117,6 +138,8 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       },
     },
   });
+
+  const basis = settings.payableBasis as PayableBasis;
 
   // Build line items — one row per booking, or one synthetic row for empty schedules.
   type LineItem = {
@@ -146,11 +169,13 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       s.bookings,
       s.start_time,
       s.instructor_check_in_outcome,
+      basis,
     );
     computedPayableUnits += schedulePayable;
 
     if (s.bookings.length === 0) {
-      // Synthetic row. count=schedulePayable captures the on_time floor (0 or 1).
+      // Synthetic row. count=schedulePayable covers: per_class=1, all_booked on_time floor=1,
+      // checked_in with no attendees=0.
       lineItems.push({
         scheduleId: s.id,
         date: s.start_time.toISOString(),
@@ -164,16 +189,16 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         isPlaceholder: true,
       });
     } else {
-      const basePayable = s.bookings.filter((b) => isPayable(b, s.start_time)).length;
-      // If base=0 but floor kicks in (on_time), emit the extra unit on the first row.
-      const floorBonus = schedulePayable > basePayable ? 1 : 0;
+      // Compute per-row counts; then reconcile with schedulePayable via a bonus on the first row.
+      const rowCounts = s.bookings.map((b) => rowCountFor(basis, b, s.start_time));
+      const rowSum = rowCounts.reduce((a, n) => a + n, 0);
+      // Bonus = gap between schedulePayable and raw row sum:
+      // - all_booked: fires when base=0 and on_time floor gives schedulePayable=1 (bonus=+1 on row 0).
+      // - per_class:  rowCounts are all 0; bonus=1 on row 0 so sum equals schedulePayable=1.
+      // - checked_in: rowSum === schedulePayable always (no floor), so bonus=0.
+      const firstRowBonus = schedulePayable - rowSum;
 
       s.bookings.forEach((b, idx) => {
-        const rowPayable = isPayable(b, s.start_time) ? 1 : 0;
-        // Distribute the floor bonus onto the first row so per-row counts sum to
-        // schedulePayable. This only fires when base=0 and floor=1 (all rows are 0
-        // except the first, which gets the bonus +1).
-        const bonus = idx === 0 ? floorBonus : 0;
         lineItems.push({
           scheduleId: s.id,
           date: s.start_time.toISOString(),
@@ -182,7 +207,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
           className,
           member: b.profile?.full_name ?? "Unknown",
           membershipType: b.user_package?.package_type?.name ?? "Unknown",
-          count: rowPayable + bonus,
+          count: rowCounts[idx] + (idx === 0 ? firstRowBonus : 0),
           checkedIn: b.checked_in === true,
           isPlaceholder: false,
         });
