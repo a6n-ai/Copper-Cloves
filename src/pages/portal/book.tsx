@@ -380,10 +380,11 @@ function classStatus(cls: Class): { label: string; tone: StatusTone; canBook: bo
     return { label: LIFECYCLE_LABEL[cls.status ?? ""] ?? "Completed", tone: "past", canBook: false };
   }
   const spots = cls.spotsLeft;
-  if (typeof spots === "number") {
-    if (spots <= 0) return { label: "Class full", tone: "full", canBook: false };
-    if (spots <= 3) return { label: `${spots} spot${spots === 1 ? "" : "s"} left`, tone: "low", canBook: true };
-    return { label: `${spots} spots left`, tone: "available", canBook: true };
+  // Members no longer see the live remaining-seat count — only whether the class
+  // is bookable. "Class full" stays so the Book button still disables; admin /
+  // instructor views keep the real numbers.
+  if (typeof spots === "number" && spots <= 0) {
+    return { label: "Class full", tone: "full", canBook: false };
   }
   return { label: "Spots available", tone: "available", canBook: true };
 }
