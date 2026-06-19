@@ -270,7 +270,7 @@ function ExpensesSectionImpl() {
                           <TableRow key={e.id}>
                             <TableCell>
                               <span
-                                className="inline-flex w-full max-w-[112px] items-center justify-center rounded-full border px-2.5 py-0.5 font-body text-[11px] font-medium whitespace-nowrap"
+                                className="inline-flex w-full max-w-[112px] items-center justify-center rounded-md border px-2.5 py-0.5 font-body text-[11px] font-medium whitespace-nowrap"
                                 style={{ backgroundColor: ks.bg, color: ks.fg, borderColor: ks.border }}
                               >
                                 {EXPENSE_CATEGORY_LABELS[e.category]}

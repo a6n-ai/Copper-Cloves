@@ -1,4 +1,5 @@
 import { cn } from "@/lib/utils";
+import { pillVariants } from "@/components/ui/pill";
 
 export type FilterPillOption<T extends string> = {
   value: T;
@@ -25,7 +26,6 @@ export function FilterPills<T extends string>({
   size?: "sm" | "md";
   className?: string;
 }) {
-  const pad = size === "sm" ? "px-3 py-1" : "px-4 py-1.5";
   return (
     <div className={cn("flex flex-wrap gap-2", className)}>
       {options.map((opt) => {
@@ -37,11 +37,11 @@ export function FilterPills<T extends string>({
             onClick={() => onChange(opt.value)}
             aria-pressed={active}
             className={cn(
-              "rounded-full border font-body text-xs transition-colors",
-              pad,
-              active
-                ? "border-sage bg-sage text-cream"
-                : "border-sage/25 bg-white-warm text-charcoal/60 hover:bg-sage/5",
+              // Use the canonical `Pill` styles (same cva) so chips are visually
+              // identical to status pills. Inactive = neutral soft; active = solid sage.
+              pillVariants({ tone: "neutral", size, appearance: active ? "solid" : "soft" }),
+              "cursor-pointer font-body",
+              active && "bg-sage text-cream",
             )}
           >
             {opt.label}
