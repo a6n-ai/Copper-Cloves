@@ -182,8 +182,12 @@ export async function linkRazorpayOrderToBookingTx(
     where: {
       razorpay_order_id: params.razorpayOrderId,
       user_id: params.userId,
-      booking_id: null,
       user_package_id: null,
+      // Booking-first checkout pre-links the order to the pending booking at create-order
+      // time, then confirmPreCreatedBookingFlow calls this again to confirm + link the
+      // Payment rows. So accept an order that is unlinked OR already linked to THIS booking
+      // (idempotent); only reject one already bound to a different booking or a package.
+      OR: [{ booking_id: null }, { booking_id: params.bookingId }],
     },
   });
 
@@ -461,8 +465,10 @@ export type StuckOrderReconcileResult = {
   fulfilled: number;
   persistedOnly: number;
   stillUnpaid: number;
+  /** Paid orders whose fulfillment never completed (booking stuck payment_pending), healed in the second sweep. */
+  healedPaid: number;
   errors: number;
-  details: Array<{ orderId: string; outcome: "fulfilled" | "persisted_only" | "unpaid" | "error" }>;
+  details: Array<{ orderId: string; outcome: "fulfilled" | "persisted_only" | "unpaid" | "healed_paid" | "error" }>;
 };
 
 /**
@@ -484,6 +490,7 @@ export async function reconcileStuckRazorpayOrders(opts?: {
     fulfilled: 0,
     persistedOnly: 0,
     stillUnpaid: 0,
+    healedPaid: 0,
     errors: 0,
     details: [],
   };
@@ -557,8 +564,53 @@ export async function reconcileStuckRazorpayOrders(opts?: {
     }
   }
 
+  // ── Second sweep: PAID orders whose fulfillment never completed ──────────────
+  // The scan above only catches created/attempted orders with no booking/package.
+  // The booking-first checkout pre-creates a payment_pending booking, links it to the
+  // order, and flips the order → paid on capture. If the browser finish-checkout never
+  // runs AND the webhook is missed, the booking stays payment_pending forever — and the
+  // order is now status=paid with booking_id set, so the scan above skips it on BOTH
+  // filters. Catch those here. fulfillCheckoutFromPaidOrder is idempotent (no-ops once
+  // the booking is confirmed / package linked), so this is safe to run every cycle.
+  const { fulfillCheckoutFromPaidOrder } = await import("@/lib/razorpayServerCheckout");
+  const paidStuck = await prisma.razorpayOrder.findMany({
+    where: {
+      status: "paid",
+      created_at: { gte: cutoff },
+      OR: [
+        // Pre-created booking that never flipped to confirmed.
+        { booking: { is: { status: { in: ["payment_pending", "expired"] } } } },
+        // Paid but nothing linked yet — finish-checkout never ran (notes carry the context).
+        { booking_id: null, user_package_id: null },
+      ],
+    },
+    orderBy: { created_at: "asc" },
+    take: limit,
+  });
+
+  for (const order of paidStuck) {
+    const notes =
+      order.notes != null && typeof order.notes === "object"
+        ? (order.notes as Record<string, unknown>)
+        : null;
+    if (!notes || !("purpose" in notes)) continue; // skip Payment-Page/external orders
+
+    result.scanned += 1;
+    try {
+      const outcome = await fulfillCheckoutFromPaidOrder(order.razorpay_order_id);
+      if (outcome === "booking" || outcome === "package") {
+        result.healedPaid += 1;
+        result.details.push({ orderId: order.razorpay_order_id, outcome: "healed_paid" });
+      }
+    } catch (e) {
+      result.errors += 1;
+      result.details.push({ orderId: order.razorpay_order_id, outcome: "error" });
+      log.error({ err: e, razorpayOrderId: order.razorpay_order_id }, "paid-stuck order heal failed");
+    }
+  }
+
   log.info(
-    { scanned: result.scanned, fulfilled: result.fulfilled, persistedOnly: result.persistedOnly, stillUnpaid: result.stillUnpaid, errors: result.errors },
+    { scanned: result.scanned, fulfilled: result.fulfilled, persistedOnly: result.persistedOnly, stillUnpaid: result.stillUnpaid, healedPaid: result.healedPaid, errors: result.errors },
     "reconcileStuckRazorpayOrders complete",
   );
   return result;

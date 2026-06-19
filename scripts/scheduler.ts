@@ -57,9 +57,9 @@ const lifecycleJob = guarded("schedule-lifecycle", async () => {
 
 const razorpayReconcileJob = guarded("razorpay-reconcile", async () => {
   const r = await reconcileStuckRazorpayOrders();
-  if (r.scanned || r.fulfilled || r.errors) {
+  if (r.scanned || r.fulfilled || r.healedPaid || r.errors) {
     console.log(
-      `[scheduler] ${new Date().toISOString()} razorpay(scanned=${r.scanned},fulfilled=${r.fulfilled},persistedOnly=${r.persistedOnly},unpaid=${r.stillUnpaid},errors=${r.errors})`,
+      `[scheduler] ${new Date().toISOString()} razorpay(scanned=${r.scanned},fulfilled=${r.fulfilled},persistedOnly=${r.persistedOnly},healedPaid=${r.healedPaid},unpaid=${r.stillUnpaid},errors=${r.errors})`,
     );
   }
 });

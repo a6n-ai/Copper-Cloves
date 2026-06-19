@@ -1,0 +1,63 @@
+name: scheduled-crons
+
+# Amplify SSR runs on Lambda (ephemeral) and cannot run the app's own node-schedule
+# loop, so the cron endpoints must be triggered externally. This workflow pings each
+# endpoint at its own cadence (branching on the trigger cron). Each endpoint is
+# idempotent (sent-flag / status guarded), so a missed or doubled tick is safe.
+#
+# Required repo secrets (Settings → Secrets and variables → Actions):
+#   APP_BASE_URL  — production origin, no trailing slash, e.g. https://app.copperandcloves.in
+#   CRON_SECRET   — must match the CRON_SECRET env var set in Amplify
+#
+# Note: GitHub only runs scheduled workflows from the DEFAULT branch, and timing is
+# best-effort (ticks can be delayed under load). For exact timing use AWS EventBridge
+# Scheduler instead (see .llm/cron-setup.md). Trigger any run manually via "Run workflow".
+
+on:
+  schedule:
+    - cron: "*/5 * * * *"    # class-emails
+    - cron: "*/15 * * * *"   # reconcile-no-shows + lifecycle-bookings
+    - cron: "0 * * * *"      # reconcile-razorpay (hourly)
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: scheduled-crons-${{ github.event.schedule }}
+  cancel-in-progress: false
+
+jobs:
+  ping:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Validate secrets
+        run: |
+          if [ -z "${{ secrets.APP_BASE_URL }}" ] || [ -z "${{ secrets.CRON_SECRET }}" ]; then
+            echo "::error::APP_BASE_URL and CRON_SECRET repo secrets must be set."
+            exit 1
+          fi
+
+      - name: class-emails
+        if: ${{ github.event.schedule == '*/5 * * * *' || github.event_name == 'workflow_dispatch' }}
+        run: |
+          curl -fsS -X GET "${{ secrets.APP_BASE_URL }}/api/cron/class-emails" \
+            -H "x-cron-secret: ${{ secrets.CRON_SECRET }}"
+
+      - name: reconcile-no-shows
+        if: ${{ github.event.schedule == '*/15 * * * *' || github.event_name == 'workflow_dispatch' }}
+        run: |
+          curl -fsS -X GET "${{ secrets.APP_BASE_URL }}/api/cron/reconcile-no-shows" \
+            -H "x-cron-secret: ${{ secrets.CRON_SECRET }}"
+
+      - name: lifecycle-bookings
+        if: ${{ github.event.schedule == '*/15 * * * *' || github.event_name == 'workflow_dispatch' }}
+        run: |
+          curl -fsS -X GET "${{ secrets.APP_BASE_URL }}/api/cron/lifecycle-bookings" \
+            -H "x-cron-secret: ${{ secrets.CRON_SECRET }}"
+
+      - name: reconcile-razorpay
+        if: ${{ github.event.schedule == '0 * * * *' || github.event_name == 'workflow_dispatch' }}
+        run: |
+          curl -fsS -X GET "${{ secrets.APP_BASE_URL }}/api/cron/reconcile-razorpay?hours=72&limit=200" \
+            -H "x-cron-secret: ${{ secrets.CRON_SECRET }}"
