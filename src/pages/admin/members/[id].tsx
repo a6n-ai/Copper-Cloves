@@ -28,7 +28,7 @@ import { MetricCard } from "@/components/admin/MetricCard";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Pill } from "@/components/ui/pill";
-import { paymentMethodPill, ticketStatusPill, memberStatusPill } from "@/lib/pillMaps";
+import { paymentMethodPill, ticketStatusPill, memberStatusPill, bookingStatusPill, bookingPaymentPill } from "@/lib/pillMaps";
 import { Input } from "@/components/ui/input";
 import { DatePicker } from "@/components/filters";
 import { Label } from "@/components/ui/label";
@@ -76,6 +76,7 @@ interface BookingRow {
   name: string;
   when: number | null;
   status: "attended" | "no_show" | "missed" | "upcoming";
+  lifecycle: string;
   checkedIn: boolean;
   checkInOutcome: string | null;
 }
@@ -208,7 +209,8 @@ function mapDetail(data: Record<string, unknown>): MemberDetail {
       else if (outcome === "no_show") status = "no_show";
       else if (when != null && when < now) status = "missed";
       else status = "upcoming";
-      return { id: String(b.id), name, when, status, checkedIn, checkInOutcome: outcome };
+      const lifecycle = b.status ? String(b.status) : "confirmed";
+      return { id: String(b.id), name, when, status, lifecycle, checkedIn, checkInOutcome: outcome };
     })
     .sort((a, b) => (b.when ?? 0) - (a.when ?? 0));
 
@@ -593,6 +595,7 @@ function MemberBody({
                   <TableRow>
                     <TableHead>Class</TableHead>
                     <TableHead>When</TableHead>
+                    <TableHead>Status</TableHead>
                     <TableHead className="text-right">Check-in</TableHead>
                   </TableRow>
                 </TableHeader>
@@ -601,6 +604,14 @@ function MemberBody({
                     <TableRow key={row.id}>
                       <TableCell className="font-body text-charcoal">{row.name}</TableCell>
                       <TableCell className="font-body text-charcoal/60">{fmtDateTime(row.when)}</TableCell>
+                      <TableCell>
+                        <div className="flex flex-wrap items-center gap-1.5">
+                          <Pill {...bookingStatusPill(row.lifecycle)}>{bookingStatusPill(row.lifecycle).label}</Pill>
+                          {(row.lifecycle === "payment_pending" || row.lifecycle === "expired") && (
+                            <Pill {...bookingPaymentPill(row.lifecycle)}>{bookingPaymentPill(row.lifecycle).label}</Pill>
+                          )}
+                        </div>
+                      </TableCell>
                       <TableCell className="text-right">
                         <div className="flex items-center justify-end gap-2">
                           {savingBookingId === row.id && <Spinner className="size-3" />}

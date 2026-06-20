@@ -146,7 +146,7 @@ const BookingCard = memo(function BookingCard({
             {canCheck && (
               <Button onClick={() => onCheckIn(booking)} size="sm" variant="sage" className="flex-1 sm:flex-none h-11 px-4 sm:px-6">Check in</Button>
             )}
-            {!booking.invited_by_name && (
+            {!booking.invited_by_name && (booking.status === "confirmed" || booking.status === "payment_pending") && (
               <Button onClick={() => onCancel(booking)} size="sm" variant="outline" className="flex-1 sm:flex-none border-terracotta/30 text-terracotta hover:bg-terracotta/5 h-11 px-4 sm:px-6 hover:text-terracotta!">
                 <X size={16} className="mr-1.5" />Cancel
               </Button>
@@ -222,7 +222,9 @@ export default function MyBookingsPage() {
 
   async function fetchBookings() {
     try {
-      const res = await fetch("/api/bookings?status=active");
+      // Full class history: every booked class regardless of payment (confirmed,
+      // unpaid holds, expired, cancelled) — each row carries its own status pill.
+      const res = await fetch("/api/bookings?status=history");
       if (!res.ok) throw new Error("Failed");
       setBookings(await res.json());
     } catch (error) {

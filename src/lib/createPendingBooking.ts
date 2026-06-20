@@ -1,5 +1,5 @@
 import prisma from "@/lib/prisma";
-import { BOOKING_STATUS, SEAT_HOLDING_STATUSES } from "@/lib/bookingStatus";
+import { BOOKING_STATUS, OCCUPYING_STATUSES } from "@/lib/bookingStatus";
 import { HOLD_MINUTES } from "@/lib/bookingLifecycle";
 
 export type PendingBookingInput = {
@@ -43,11 +43,12 @@ export async function createPendingBooking(input: PendingBookingInput): Promise<
     });
     if (!schedule) throw new Error("SCHEDULE_NOT_FOUND");
     if (schedule.status === "cancelled") throw new Error("CLASS_CANCELLED");
+    if (schedule.status === "inactive") throw new Error("CLASS_INACTIVE");
 
     const cap = schedule.capacity ?? schedule.class_model?.max_capacity ?? 0;
     if (cap > 0) {
       const held = await tx.booking.findMany({
-        where: { class_schedule_id: input.classScheduleId, status: { in: [...SEAT_HOLDING_STATUSES] } },
+        where: { class_schedule_id: input.classScheduleId, status: { in: [...OCCUPYING_STATUSES] } },
         select: { extra_guest_count: true },
       });
       const seatsTaken = held.reduce((s, r) => s + 1 + Math.max(0, r.extra_guest_count ?? 0), 0);

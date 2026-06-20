@@ -1,7 +1,7 @@
 import type { NextApiRequest, NextApiResponse } from "next";
 import { CrmTriggerType } from "@/lib/crmTriggerTypes";
 import prisma from "@/lib/prisma";
-import { SEAT_HOLDING_STATUSES } from "@/lib/bookingStatus";
+import { OCCUPYING_STATUSES, ROSTER_STATUSES, HISTORY_STATUSES, occupiesSeat } from "@/lib/bookingStatus";
 import { buildBookingCrmVariables, dispatchCrmEmailTriggers } from "@/lib/notifications/crmTemplatedDispatch";
 import { sendBookingConfirmationEmail } from "@/lib/notifications/sendBookingEmail";
 import { getStudioServerSession } from "@/lib/getStudioServerSession";
@@ -28,9 +28,6 @@ type TxClient = Parameters<Parameters<typeof prisma.$transaction>[0]>[0];
 const STATUS_CONFIRMED = "confirmed" as const;
 const STATUS_PENDING = "pending" as const;
 const STATUS_CANCELLED = "cancelled" as const;
-// Booking statuses that occupy a seat for capacity/duplicate checks: confirmed,
-// gateway holds (payment_pending), and the legacy partner-pending value.
-const OCCUPYING_STATUSES = [...SEAT_HOLDING_STATUSES, STATUS_PENDING] as const;
 const BADGE_TYPE_PTM = "path_to_mastery" as const;
 
 async function handleGet(req: NextApiRequest, res: NextApiResponse, userId: string) {
@@ -38,9 +35,19 @@ async function handleGet(req: NextApiRequest, res: NextApiResponse, userId: stri
   await reconcileNoShowsGlobally(prisma);
   const where: Record<string, unknown> = { user_id: userId };
   if (status) {
-    where.status = String(status) === "active"
-      ? { in: [STATUS_CONFIRMED, STATUS_PENDING] }
-      : String(status);
+    const s = String(status);
+    if (s === "active") {
+      // Active/upcoming = seat-holders the member is expected to attend, incl.
+      // unpaid gateway holds (payment_pending) and the legacy partner-pending value.
+      where.status = { in: [...ROSTER_STATUSES, STATUS_PENDING] };
+    } else if (s === "history") {
+      // Class history shows EVERY booked class regardless of payment — confirmed,
+      // payment_pending (unpaid), expired, cancelled. Payment is a display pill,
+      // not a visibility gate.
+      where.status = { in: [...HISTORY_STATUSES, STATUS_PENDING] };
+    } else {
+      where.status = s;
+    }
   }
   if (days) {
     const from = new Date();
@@ -459,7 +466,7 @@ async function reconcileScheduleSeatsAfterCancel(tx: TxClient, schedId: string) 
   const cap = schedule.capacity ?? schedule.class_model?.max_capacity ?? 0;
   if (cap <= 0) return;
   const remaining = await tx.booking.findMany({
-    where: { class_schedule_id: schedId, status: { in: [STATUS_CONFIRMED, STATUS_PENDING] } },
+    where: { class_schedule_id: schedId, status: { in: [...OCCUPYING_STATUSES] } },
     select: { extra_guest_count: true },
   });
   const occupiedSeats = remaining.reduce(
@@ -585,8 +592,7 @@ async function handlePatch(
     return res.status(403).json({ error: "Invited bookings can only be cancelled by the person who added you" });
   }
 
-  const wasActiveSeat =
-    (existing.status === STATUS_CONFIRMED || existing.status === STATUS_PENDING) && Boolean(existing.class_schedule_id);
+  const wasActiveSeat = occupiesSeat(existing.status) && Boolean(existing.class_schedule_id);
 
   const data: Record<string, unknown> = {};
   if (status) data.status = status;

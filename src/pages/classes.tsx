@@ -34,6 +34,7 @@ function fetchScheduleList(fromMs: number, toMs: number): Promise<unknown[]> {
     const params = new URLSearchParams({
       fromMs: String(fromMs),
       toMs: String(toMs),
+      visibleOnly: "1",
     });
     promise = fetch(`/api/class-schedules?${params}`, { credentials: "omit" })
       .then((res) => (res.ok ? res.json() : []))

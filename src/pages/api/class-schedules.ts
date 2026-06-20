@@ -4,9 +4,10 @@ import prisma from "@/lib/prisma";
 import { getStudioServerSession } from "@/lib/getStudioServerSession";
 import { apiError } from "@/lib/apiError";
 import { logActivity } from "@/lib/activityLog";
+import { HIDDEN_SCHEDULE_STATUSES, LOCKED_SCHEDULE_STATUSES } from "@/lib/scheduleStatus";
 
 const VALID_STATUS = new Set<string>(Object.values(ClassScheduleStatus));
-const LOCKED_STATUSES = new Set<string>(["completed", "abandoned"]);
+const LOCKED_STATUSES = new Set<string>(LOCKED_SCHEDULE_STATUSES);
 
 // Coerce a JSON scalar to string. Guards against object stringification
 // ([object Object]) by only stringifying primitive values.
@@ -100,19 +101,26 @@ function isAnonGet(req: NextApiRequest): boolean {
   );
 }
 
-function buildScheduleWhere(query: NextApiRequest["query"]): { start_time?: { gte: Date; lte: Date } } {
-  const { month, year, fromMs, toMs } = query;
+function buildScheduleWhere(query: NextApiRequest["query"]): Prisma.ClassScheduleWhereInput {
+  const { month, year, fromMs, toMs, visibleOnly } = query;
+  // Member/public callers pass `visibleOnly=1` → enforce member visibility on the
+  // server (hide cancelled/inactive) instead of trusting each client to filter.
+  // Admin calendar omits it and still sees every status.
+  const visible = visibleOnly === "1" || visibleOnly === "true";
+  const statusFilter: Prisma.ClassScheduleWhereInput = visible
+    ? { status: { notIn: [...HIDDEN_SCHEDULE_STATUSES] as ClassScheduleStatus[] } }
+    : {};
   const a = typeof fromMs === "string" ? Number(fromMs) : NaN;
   const b = typeof toMs === "string" ? Number(toMs) : NaN;
   if (!Number.isNaN(a) && !Number.isNaN(b)) {
-    return { start_time: { gte: new Date(a), lte: new Date(b) } };
+    return { start_time: { gte: new Date(a), lte: new Date(b) }, ...statusFilter };
   }
   if (month && year) {
     const start = new Date(Number(year), Number(month) - 1, 1);
     const end = new Date(Number(year), Number(month), 0, 23, 59, 59, 999);
-    return { start_time: { gte: start, lte: end } };
+    return { start_time: { gte: start, lte: end }, ...statusFilter };
   }
-  return {};
+  return { ...statusFilter };
 }
 
 async function handleGet(req: NextApiRequest, res: NextApiResponse) {

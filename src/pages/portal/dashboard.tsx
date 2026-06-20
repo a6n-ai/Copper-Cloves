@@ -181,6 +181,7 @@ function computeMovementVitalityFromBookings(bookings: VitalityBookingRow[], now
 
 interface DashboardBooking {
   id: string;
+  status?: string;
   class_name?: string;
   class_time?: string;
   confirmation_status?: string;
@@ -298,7 +299,7 @@ export default function Dashboard() {
         await Promise.all([
           fetch("/api/user-stats"),
           fetch("/api/user-packages?active=true"),
-          fetch("/api/bookings?status=confirmed"),
+          fetch("/api/bookings?status=active"),
           fetch("/api/cafe/orders"),
           fetch("/api/bookings?limit=500"),
         ]);
@@ -453,7 +454,10 @@ export default function Dashboard() {
           subtitle: isScheduled ? booking.class_schedule?.instructor?.name : "Instructor TBD",
           whenISO: isScheduled ? booking.class_schedule?.start_time : booking.class_time,
           imageUrl: isScheduled ? booking.class_schedule?.class_model?.image_url || undefined : undefined,
-          status: booking.confirmation_status === "pending" ? "pending" : "confirmed",
+          status:
+            booking.status === "payment_pending" || booking.confirmation_status === "pending"
+              ? "pending"
+              : "confirmed",
           onClick: () => {
             setSelectedBookingForCheckIn(booking);
             setShowCheckIn(true);

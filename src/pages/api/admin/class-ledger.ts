@@ -2,6 +2,7 @@ import type { NextApiRequest, NextApiResponse } from "next";
 import prisma from "@/lib/prisma";
 import { getStudioServerSession } from "@/lib/getStudioServerSession";
 import { manualCreditExistsForPackage } from "@/lib/payments";
+import { ROSTER_STATUSES } from "@/lib/bookingStatus";
 
 function dt(d: Date) {
   const pad = (n: number) => String(n).padStart(2, "0");
@@ -19,7 +20,9 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
   const [bookings, packages] = await Promise.all([
     prisma.booking.findMany({
-      where: { status: "confirmed" },
+      // Confirmed bookings + unpaid gateway holds so the desk sees classes that
+      // are booked but not yet paid. Unpaid rows are flagged in `reason`.
+      where: { status: { in: [...ROSTER_STATUSES] } },
       include: { profile: { select: { full_name: true, email: true } } },
       orderBy: { booking_date: "desc" },
       take,
@@ -51,7 +54,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     memberName: b.profile?.full_name || b.profile?.email || "Member",
     type: "used" as const,
     amount: 1,
-    reason: b.class_name ? `Booked ${b.class_name}` : "Class booking",
+    reason: `${b.class_name ? `Booked ${b.class_name}` : "Class booking"}${b.status === "payment_pending" ? " (unpaid hold)" : ""}`,
     date: dt(b.booking_date),
     adminName: "System",
   }));

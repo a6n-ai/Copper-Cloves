@@ -2,6 +2,7 @@ import type { NextApiRequest, NextApiResponse } from "next";
 import prisma from "@/lib/prisma";
 import { getStudioServerSession } from "@/lib/getStudioServerSession";
 import { startOfMondayWeekLocal, endOfSundayWeekLocal } from "@/lib/calendarWeek";
+import { ROSTER_STATUSES } from "@/lib/bookingStatus";
 
 function parseDate(v: unknown): Date | null {
   if (typeof v !== "string" || !v.trim()) return null;
@@ -41,7 +42,9 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       class_model: true,
       instructor: { select: { name: true } },
       bookings: {
-        where: { status: { not: "cancelled" } },
+        // Roster = seat-holders (confirmed + unpaid holds); excludes released
+        // (expired) and cancelled. Consistent with admin/instructor rosters.
+        where: { status: { in: [...ROSTER_STATUSES] } },
         include: {
           profile: {
             select: { id: true, full_name: true, email: true, phone: true, avatar_url: true },
@@ -89,6 +92,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         checkedIn: b.checked_in,
         checkInOutcome: b.check_in_outcome,
         extraGuests: b.extra_guest_count ?? 0,
+        status: b.status,
         confirmationStatus: b.confirmation_status ?? null,
         hasWaiver: waiverSignedIds.has(b.profile.id),
       })),

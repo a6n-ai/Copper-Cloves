@@ -1,6 +1,6 @@
 import prisma from "@/lib/prisma";
 import { getRazorpay, razorpayConfigured } from "@/lib/razorpayServer";
-import { BOOKING_STATUS, SEAT_HOLDING_STATUSES } from "@/lib/bookingStatus";
+import { BOOKING_STATUS, OCCUPYING_STATUSES } from "@/lib/bookingStatus";
 import { classifyPendingBooking } from "@/lib/bookingLifecycle";
 import { reconcileRazorpayPaymentFromWebhook } from "@/lib/razorpayPersistence";
 import { sendPendingRecoveryEmail } from "@/lib/notifications/sendPendingRecoveryEmail";
@@ -22,7 +22,7 @@ async function refreshScheduleSeatCounters(scheduleId: string): Promise<void> {
   const cap = sched.capacity ?? sched.class_model?.max_capacity ?? 0;
   if (cap <= 0) return;
   const rows = await prisma.booking.findMany({
-    where: { class_schedule_id: scheduleId, status: { in: [...SEAT_HOLDING_STATUSES] } },
+    where: { class_schedule_id: scheduleId, status: { in: [...OCCUPYING_STATUSES] } },
     select: { extra_guest_count: true },
   });
   const seatsTaken = rows.reduce((s, r) => s + 1 + Math.max(0, r.extra_guest_count ?? 0), 0);

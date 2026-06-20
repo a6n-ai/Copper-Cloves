@@ -64,8 +64,15 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   const schedules = await prisma.classSchedule.findMany({
     where: {
       start_time: scheduleStart,
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      status: { in: PAYOUT_ELIGIBLE_STATUSES as unknown as any[] },
+      OR: [
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        { status: { in: PAYOUT_ELIGIBLE_STATUSES as unknown as any[] } },
+        // Cron-lag guard: an `available` class whose end_time has passed is
+        // effectively completed (mirrors scheduleEditLock) and must be payable
+        // even if the lifecycle cron hasn't flipped it to `completed` yet.
+        // cancelled / abandoned / inactive stay excluded.
+        { status: "available", end_time: { lt: now } },
+      ],
     },
     select: {
       id: true,

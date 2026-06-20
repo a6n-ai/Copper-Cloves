@@ -1,6 +1,6 @@
 import prisma from "@/lib/prisma";
 import logger from "@/lib/logger";
-import { SEAT_HOLDING_STATUSES } from "@/lib/bookingStatus";
+import { OCCUPYING_STATUSES } from "@/lib/bookingStatus";
 import { sendBookingConfirmationEmail } from "@/lib/notifications/sendBookingEmail";
 import {
   expectedBookingCheckoutPaise,
@@ -120,7 +120,7 @@ async function assertNotAlreadyBooked(tx: TxClient, userId: string, scheduleId: 
     where: {
       user_id: userId,
       class_schedule_id: scheduleId,
-      status: { in: ["confirmed", "pending"] },
+      status: { in: [...OCCUPYING_STATUSES] },
     },
   });
   if (duplicate) throw new Error("ALREADY_BOOKED");
@@ -128,7 +128,7 @@ async function assertNotAlreadyBooked(tx: TxClient, userId: string, scheduleId: 
 
 async function computeSeatsTaken(tx: TxClient, scheduleId: string): Promise<number> {
   const occupancyRows = await tx.booking.findMany({
-    where: { class_schedule_id: scheduleId, status: { in: [...SEAT_HOLDING_STATUSES] } },
+    where: { class_schedule_id: scheduleId, status: { in: [...OCCUPYING_STATUSES] } },
     select: { extra_guest_count: true },
   });
   return occupancyRows.reduce(
@@ -218,7 +218,7 @@ async function fulfillAddedMembersAndReconcileSeats(args: {
           where: {
             user_id: memberId,
             class_schedule_id: pending.class_schedule_id,
-            status: { in: ["confirmed", "pending"] },
+            status: { in: [...OCCUPYING_STATUSES] },
           },
           select: { id: true },
         });

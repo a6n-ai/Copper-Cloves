@@ -8,7 +8,7 @@
  *   GET /api/cron/class-emails  with header  x-cron-secret: <secret>
  */
 import type { NextApiRequest, NextApiResponse } from "next";
-import { getStudioServerSession } from "@/lib/getStudioServerSession";
+import { authorizeCron } from "@/lib/cronAuth";
 import { sendDueClassReminders, sendDueInstructorRosters } from "@/lib/notifications/scheduledClassEmails";
 import { requestLogger } from "@/lib/logger";
 
@@ -16,15 +16,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   const log = requestLogger(req, res);
   if (req.method !== "GET" && req.method !== "POST") return res.status(405).end();
 
-  const secret = process.env.CRON_SECRET;
-  const providedSecret = req.headers["x-cron-secret"];
-  const secretMatch = Boolean(secret && providedSecret && providedSecret === secret);
-
-  if (!secretMatch) {
-    const session = await getStudioServerSession(req, res);
-    const role = (session?.user as { role?: string } | undefined)?.role;
-    if (role !== "admin") return res.status(401).json({ error: "Unauthorized" });
-  }
+  if (!(await authorizeCron(req, res))) return;
 
   const startedAt = Date.now();
   try {

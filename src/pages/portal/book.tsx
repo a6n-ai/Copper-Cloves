@@ -885,6 +885,7 @@ export default function BookClass() {
       const params = new URLSearchParams({
         fromMs: String(weekStart.getTime()),
         toMs: String(weekEnd.getTime()),
+        visibleOnly: "1",
       });
       const res = await fetch(`/api/class-schedules?${params}`, { credentials: "omit" });
       const raw = res.ok ? await res.json() : [];

@@ -6,7 +6,7 @@ import { getStudioServerSession } from "@/lib/getStudioServerSession";
 import { startOfMondayWeekLocal, endOfSundayWeekLocal } from "@/lib/calendarWeek";
 import { Card, CardContent } from "@/components/ui/card";
 import { Pill } from "@/components/ui/pill";
-import { bookingStatusPill, waiverPill } from "@/lib/pillMaps";
+import { bookingStatusPill, bookingPaymentPill, waiverPill } from "@/lib/pillMaps";
 import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { MetricCard } from "@/components/admin/MetricCard";
@@ -70,6 +70,7 @@ interface BookingRow {
   checkedIn: boolean;
   checkInOutcome: string | null;
   extraGuests: number;
+  status: string;
   confirmationStatus: string | null;
   hasWaiver: boolean;
 }
@@ -333,6 +334,10 @@ export default function PartnerClasses() {
                             </div>
                           </div>
                           <div className="flex items-center gap-2 shrink-0">
+                            {b.status === "payment_pending" && (() => {
+                              const { label, ...pill } = bookingPaymentPill(b.status)
+                              return <Pill {...pill} className="font-body whitespace-nowrap">{label}</Pill>
+                            })()}
                             {(() => {
                               const { label, ...pill } = waiverPill(b.hasWaiver)
                               return <Pill {...pill} className="font-body whitespace-nowrap">{label}</Pill>

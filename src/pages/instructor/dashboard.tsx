@@ -7,7 +7,8 @@ import { requireSessionSSP } from "@/lib/requireSessionSSP";
 // Server-side gate: instructors only. Unauthenticated / wrong-role callers
 // never see the dashboard JS bundle.
 export const getServerSideProps = requireSessionSSP({ roles: ["instructor"] });
-import { format, isAfter, isBefore, isToday, isTomorrow } from "date-fns";
+import { format, isToday, isTomorrow } from "date-fns";
+import { deriveScheduleState } from "@/lib/scheduleStatus";
 import { Button } from "@/components/ui/button";
 import { Spinner } from "@/components/ui/spinner";
 import { Pill } from "@/components/ui/pill";
@@ -85,12 +86,11 @@ function dayLabel(dateStr: string): string {
 // from classStatusPill (pillMaps) so Upcoming/In-Progress/Completed map the same
 // way the rest of the app renders schedule status.
 function classStatusBadge(cls: ClassRow): { label: string; status: string } {
-  const now = new Date();
-  const start = new Date(cls.startTime);
-  const end = new Date(cls.endTime);
-  if (isBefore(now, start)) return { label: "Upcoming", status: "available" };
-  if (isAfter(now, end)) return { label: "Completed", status: "completed" };
-  return { label: "In Progress", status: "started" };
+  // Single shared time→state derivation (see scheduleStatus.ts). Map the helper's
+  // state to the pill vocabulary this view uses (upcoming→available, live→started).
+  const { state, label } = deriveScheduleState(cls.status ?? "available", cls.startTime, cls.endTime);
+  const status = state === "upcoming" ? "available" : state === "live" ? "started" : state;
+  return { label, status };
 }
 
 function CapacityBar({ enrolled, capacity }: { enrolled: number; capacity: number }) {
@@ -459,6 +459,9 @@ export default function InstructorDashboard() {
                                 <MemberAvatar name={b.memberName} url={b.avatarUrl} />
                                 <span className="font-body text-xs text-charcoal">{b.memberName.split(" ")[0]}</span>
                                 {b.checkedIn && <CheckCircle2 className="h-3 w-3 text-sage ml-0.5" />}
+                                {!b.checkedIn && b.status === "payment_pending" && (
+                                  <span className="font-body text-[10px] font-medium text-terracotta">unpaid</span>
+                                )}
                                 {b.extraGuests > 0 && (
                                   <span className="font-body text-[10px] text-terracotta">+{b.extraGuests}</span>
                                 )}

@@ -1,6 +1,8 @@
 import type { PillProps } from "@/components/ui/pill"
+import { bookingStatusLabel } from "@/lib/bookingStatus"
 
 type PillSpec = Pick<PillProps, "tone" | "brand" | "appearance">
+type PillSpecLabel = PillSpec & { label: string }
 
 // Generic status string -> pill tone + pulse + display label.
 // Replaces the legacy `statusPillProps` from the removed StatusPill component.
@@ -46,26 +48,50 @@ function capitalize(s: string) {
   return s.charAt(0).toUpperCase() + s.slice(1).replace(/_/g, " ")
 }
 
-// Booking status -> pill
-export function bookingStatusPill(status: string): PillSpec {
+// Booking lifecycle status -> pill + canonical label. Lifecycle is ONE axis;
+// payment is a separate pill (bookingPaymentPill). A class always shows in
+// history regardless of payment, so every status here gets a visible label.
+export function bookingStatusPill(status: string): PillSpecLabel {
   switch (status) {
     case "confirmed":
     case "checked_in":
     case "checked-in":
-      return { tone: "success" }
-    case "pending":
-      return { tone: "warning" }
+      return { tone: "success", label: bookingStatusLabel("confirmed") }
+    case "pending": // legacy partner sign-off value
+      return { tone: "warning", label: "Pending" }
     case "payment_pending":
-      return { tone: "warning" }
+      return { tone: "warning", label: bookingStatusLabel("payment_pending") }
     case "expired":
-      return { tone: "neutral" }
+      return { tone: "neutral", label: bookingStatusLabel("expired") }
     case "no_show":
+      return { tone: "danger", label: "No-show" }
     case "cancelled":
-      return { tone: "danger" }
+      return { tone: "danger", label: bookingStatusLabel("cancelled") }
     case "completed":
-      return { tone: "info" }
+      return { tone: "info", label: "Completed" }
     default:
-      return { tone: "neutral" }
+      return { tone: "neutral", label: bookingStatusLabel(status) }
+  }
+}
+
+// Payment axis for a booking, independent of lifecycle status. Use anywhere a
+// class-history / roster row needs to show whether money landed.
+// confirmed => covered (paid or via pass); payment_pending => capture pending;
+// expired => hold lapsed unpaid; cancelled => not applicable.
+export function bookingPaymentPill(status: string): PillSpecLabel {
+  switch (status) {
+    case "confirmed":
+    case "checked_in":
+    case "checked-in":
+    case "completed":
+      return { tone: "success", label: "Paid" }
+    case "payment_pending":
+    case "pending":
+      return { tone: "warning", label: "Awaiting payment" }
+    case "expired":
+      return { tone: "danger", label: "Unpaid" }
+    default:
+      return { tone: "neutral", label: "—" }
   }
 }
 

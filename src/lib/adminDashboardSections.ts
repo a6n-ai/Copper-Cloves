@@ -10,6 +10,8 @@ import {
   isFinanceDemoEnabled,
 } from "@/lib/adminFinanceDemoTransactions";
 import { parseFinanceSnapshot } from "@/lib/financeBookingCheckout";
+import { ROSTER_STATUSES } from "@/lib/bookingStatus";
+import { deriveScheduleState } from "@/lib/scheduleStatus";
 import { getDynamicStats, getDynamicStatsForUsers, getTopStreaks, getStreakDistribution } from "@/lib/attendanceStats";
 
 import { cdnUrl } from "@/lib/cdnUrl";
@@ -82,10 +84,12 @@ export async function getTodayClasses(db: Db = prisma, forDate?: Date) {
       class_model: { select: { name: true, max_capacity: true } },
       instructor: { select: { name: true, image_url: true } },
       bookings: {
-        where: { status: "confirmed" },
+        // Roster shows confirmed attendees + unpaid gateway holds (desk can chase).
+        where: { status: { in: [...ROSTER_STATUSES] } },
         select: {
           id: true,
           user_id: true,
+          status: true,
           checked_in: true,
           check_in_outcome: true,
           check_in_time: true,
@@ -99,14 +103,10 @@ export async function getTodayClasses(db: Db = prisma, forDate?: Date) {
 
   const now = Date.now();
   return todaySchedules.map((s) => {
-    const startMs = new Date(s.start_time).getTime();
-    const endMs = new Date(s.end_time).getTime();
-    // Derive "live" from window when DB says available/started and we're inside the class.
-    let derived: string = String(s.status);
-    if (s.status === "available" || s.status === "started") {
-      if (now >= startMs && now < endMs) derived = "live";
-      else if (now >= endMs) derived = "completed";
-    }
+    // Single shared time→state derivation (see scheduleStatus.ts). Card vocabulary
+    // keeps "available" for a not-yet-started class, so map upcoming→available.
+    const { state } = deriveScheduleState(String(s.status), s.start_time, s.end_time, now);
+    const derived: string = state === "upcoming" ? "available" : state;
     return {
     id: s.id,
     name: s.class_model?.name ?? "Class",
@@ -128,6 +128,7 @@ export async function getTodayClasses(db: Db = prisma, forDate?: Date) {
       email: bk.profile?.email ?? "",
       avatarUrl: bk.profile?.avatar_url ?? null,
       checkedIn: bk.checked_in,
+      status: bk.status ?? "confirmed",
       confirmationStatus: bk.confirmation_status ?? null,
       checkInOutcome: bk.check_in_outcome,
       checkInTime: bk.check_in_time
@@ -619,7 +620,9 @@ export async function getTransactions(db: Db = prisma, opts: { includeFinanceDem
       },
     }),
     db.booking.findMany({
-      where: { booking_date: { gte: mAgo }, status: { in: ["confirmed", "pending"] } },
+      // Money-in ledger = captured revenue only. (Legacy "pending" value was dead —
+      // real holds are "payment_pending" and represent no money in yet.)
+      where: { booking_date: { gte: mAgo }, status: "confirmed" },
       take: 200,
       orderBy: { booking_date: "desc" },
       select: {

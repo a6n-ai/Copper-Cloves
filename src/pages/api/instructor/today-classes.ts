@@ -1,6 +1,7 @@
 import type { NextApiRequest, NextApiResponse } from "next";
 import prisma from "@/lib/prisma";
 import { getInstructorSession } from "@/lib/instructorAuth";
+import { ROSTER_STATUSES } from "@/lib/bookingStatus";
 import { startOfDay } from "date-fns";
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
@@ -10,7 +11,11 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   if (!session) return res.status(401).json({ error: "Not authenticated" });
 
   const now = new Date();
-  // Show today + next 6 days (full rolling week ahead)
+  // SCOPE NOTE (schedule "today" windows are intentionally per-surface, not one shared window):
+  //   • this endpoint = today + next 6 days (rolling week) — the instructor dashboard groups by day.
+  //   • partner/classes = Mon–Sun calendar week.
+  //   • admin dashboard today-card = literally today only.
+  // Despite the filename, this returns a rolling week by design.
   const weekEnd = new Date(startOfDay(now));
   weekEnd.setDate(weekEnd.getDate() + 7);
   weekEnd.setHours(23, 59, 59, 999);
@@ -24,7 +29,9 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     include: {
       class_model: true,
       bookings: {
-        where: { status: { not: "cancelled" } },
+        // Roster = seat-holders (confirmed + unpaid holds); excludes released
+        // (expired) and cancelled. Consistent with admin/partner rosters.
+        where: { status: { in: [...ROSTER_STATUSES] } },
         include: {
           profile: { select: { id: true, full_name: true, email: true, avatar_url: true } },
         },

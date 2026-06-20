@@ -4,6 +4,7 @@ import { isStudioAdminProfileRole } from "@/lib/isStudioAdminProfile";
 import { getStudioServerSession } from "@/lib/getStudioServerSession";
 import { getDynamicStats, getDynamicStatsForUsers } from "@/lib/attendanceStats";
 import { logActivity } from "@/lib/activityLog";
+import { HISTORY_STATUSES } from "@/lib/bookingStatus";
 
 // Member Management lists real members only — never staff/partner/instructor logins.
 function isNonMemberRole(role?: string | null): boolean {
@@ -22,7 +23,11 @@ const memberInclude = {
 const memberDetailInclude = {
   user_badges: { orderBy: { earned_at: "desc" as const }, take: 50 },
   bookings: {
-    where: { status: "confirmed" as const },
+    // Class history shows every booked class regardless of payment — confirmed,
+    // unpaid holds (payment_pending), expired, cancelled. Payment is a pill in the
+    // UI, not a visibility gate. Fixes members with captured payments but an empty
+    // class-history list (paid-but-unconfirmed bookings).
+    where: { status: { in: [...HISTORY_STATUSES] as string[] } },
     orderBy: { booking_date: "desc" as const },
     take: 100,
     include: {
