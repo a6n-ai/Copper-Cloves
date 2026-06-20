@@ -39,6 +39,10 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     const result = await reconcileStuckRazorpayOrders({ lookbackHours, limit });
     const durationMs = Date.now() - startedAt;
     log.info({ durationMs, ...result, details: undefined }, "razorpay reconcile complete");
+    // Greppable one-line heal summary per run.
+    log.info(
+      `[razorpay-reconcile] scanned=${result.scanned} fulfilled=${result.fulfilled} healedPaid=${result.healedPaid} persistedOnly=${result.persistedOnly} stillUnpaid=${result.stillUnpaid} errors=${result.errors} (${durationMs}ms)`,
+    );
     return res.json({ ok: true, durationMs, lookbackHours, limit, ...result });
   } catch (e) {
     log.error({ err: e, durationMs: Date.now() - startedAt }, "razorpay reconcile cron failed");
