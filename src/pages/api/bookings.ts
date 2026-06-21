@@ -173,6 +173,9 @@ type CreateBookingArgs = {
 
 function createBookingTx(args: CreateBookingArgs) {
   return prisma.$transaction(async (tx) => {
+    // Serialize concurrent bookings on this schedule (read-then-insert race).
+    await tx.$queryRaw`SELECT id FROM class_schedules WHERE id = ${args.scheduleId} FOR UPDATE`;
+
     const schedule = await tx.classSchedule.findUnique({
       where: { id: args.scheduleId },
       include: { class_model: { select: { max_capacity: true, name: true, partner_id: true } } },

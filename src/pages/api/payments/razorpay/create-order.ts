@@ -211,9 +211,12 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     }
     const classScheduleId = String(pending.class_schedule_id ?? "");
     const extraGuestCount = Number(pending.extra_guest_count ?? 0) || 0;
-    const addedMemberCount = Array.isArray((pending as { added_member_profile_ids?: unknown }).added_member_profile_ids)
-      ? ((pending as { added_member_profile_ids: unknown[] }).added_member_profile_ids).length
-      : 0;
+    const addedMemberProfileIds = Array.isArray((pending as { added_member_profile_ids?: unknown }).added_member_profile_ids)
+      ? ((pending as { added_member_profile_ids: unknown[] }).added_member_profile_ids).filter(
+          (id): id is string => typeof id === "string" && id.length > 0,
+        )
+      : [];
+    const addedMemberCount = addedMemberProfileIds.length;
     const className = typeof pending.class_name === "string" ? pending.class_name : null;
     const classTimeISO = typeof pending.class_time === "string" ? pending.class_time : "";
 
@@ -237,6 +240,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         classTimeISO,
         extraGuestCount,
         addedMemberCount,
+        addedMemberProfileIds,
         financeSnapshot: pending.finance_snapshot,
         email: bookerEmail,
         guestAttendees: (pending as { guest_attendees?: unknown }).guest_attendees,

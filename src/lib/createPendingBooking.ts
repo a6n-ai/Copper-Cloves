@@ -14,6 +14,10 @@ export type PendingBookingInput = {
   guestAttendees?: unknown;
   /** Count of existing-member profiles invited alongside the booker; each needs a seat. */
   addedMemberCount?: number;
+  /** Profile ids of existing members invited alongside the booker. Each gets its
+   *  own payment_pending booking row up-front (mirrors the booker's status) so the
+   *  group is visible + lifecycle-bound during the hold. */
+  addedMemberProfileIds?: string[];
 };
 
 /**
@@ -24,6 +28,10 @@ export type PendingBookingInput = {
  */
 export async function createPendingBooking(input: PendingBookingInput): Promise<string> {
   return prisma.$transaction(async (tx) => {
+    // Serialize concurrent bookings on this schedule so two members can't both
+    // take the last seat (read-then-insert race). Lock held until tx commit.
+    await tx.$queryRaw`SELECT id FROM class_schedules WHERE id = ${input.classScheduleId} FOR UPDATE`;
+
     const existing = await tx.booking.findFirst({
       where: {
         user_id: input.userId,
@@ -55,6 +63,10 @@ export async function createPendingBooking(input: PendingBookingInput): Promise<
       if (seatsTaken + 1 + input.extraGuestCount + (input.addedMemberCount ?? 0) > cap) throw new Error("CLASS_FULL");
     }
 
+    const addedMemberProfileIds = (input.addedMemberProfileIds ?? []).filter(
+      (id): id is string => typeof id === "string" && id.length > 0 && id !== input.userId,
+    );
+
     const created = await tx.booking.create({
       data: {
         user_id: input.userId,
@@ -66,16 +78,40 @@ export async function createPendingBooking(input: PendingBookingInput): Promise<
         email: input.email,
         // Partner-run classes await partner sign-off before confirmation (same as legacy create).
         confirmation_status: schedule.class_model?.partner_id ? "pending" : null,
-        // Hold every group seat on the booker row for the pending window — guests and
-        // added members don't get their own rows until payment confirms, so without this
-        // their seats would be grabbable by others mid-hold. Reset to 0 at confirm
-        // (confirmPreCreatedBookingFlow) when those rows are created.
-        extra_guest_count: input.extraGuestCount + (input.addedMemberCount ?? 0),
+        // Added members now get their OWN payment_pending rows below, so only
+        // friends/family (guest_attendees, legacy) are still held as a count here.
+        extra_guest_count: input.extraGuestCount,
         guest_attendees: input.guestAttendees != null ? (input.guestAttendees as object) : undefined,
         finance_snapshot: input.financeSnapshot as object,
         hold_expires_at: new Date(Date.now() + HOLD_MINUTES * 60_000),
       },
     });
+
+    // Group bookings: create a payment_pending row per added member up-front,
+    // linked to the booker via invited_by_user_id. They mirror the booker's status
+    // (confirmed on pay, cancelled/expired on cancel/expire) and carry no payment.
+    const className = input.className ?? schedule.class_model?.name ?? null;
+    const classTimeIso = schedule.start_time.toISOString();
+    const confirmationStatus = schedule.class_model?.partner_id ? "pending" : null;
+    for (const memberId of addedMemberProfileIds) {
+      const already = await tx.booking.findFirst({
+        where: { user_id: memberId, class_schedule_id: input.classScheduleId, status: { in: [...OCCUPYING_STATUSES] } },
+        select: { id: true },
+      });
+      if (already) continue;
+      await tx.booking.create({
+        data: {
+          user_id: memberId,
+          class_schedule_id: input.classScheduleId,
+          status: BOOKING_STATUS.payment_pending,
+          class_name: className,
+          class_time: classTimeIso,
+          confirmation_status: confirmationStatus,
+          invited_by_user_id: input.userId,
+          hold_expires_at: new Date(Date.now() + HOLD_MINUTES * 60_000),
+        },
+      });
+    }
     return created.id;
   });
 }

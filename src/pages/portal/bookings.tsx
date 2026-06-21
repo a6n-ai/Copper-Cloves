@@ -139,7 +139,16 @@ const BookingCard = memo(function BookingCard({
           <div className="hidden sm:block font-body text-sm text-charcoal/60">{booking.class_schedule.instructor.name}</div>
         )}
       </div>
-      {(booking.status === "payment_pending" || booking.status === "expired") && (
+      {/* Invited guests don't pay — the booker's payment covers the group. Show a
+          status note instead of a complete-payment link. */}
+      {booking.invited_by_name && (booking.status === "payment_pending" || booking.status === "expired") && (
+        <p className="mb-3 font-body text-sm text-charcoal/55">
+          {booking.status === "payment_pending"
+            ? `Awaiting ${booking.invited_by_name}'s payment to confirm your spot.`
+            : `${booking.invited_by_name}'s payment wasn't completed — this booking expired.`}
+        </p>
+      )}
+      {!booking.invited_by_name && (booking.status === "payment_pending" || booking.status === "expired") && (
         <Link
           href={`/portal/bookings/${booking.id}`}
           className="inline-flex items-center gap-1 mb-3 font-body text-sm font-medium text-sage hover:underline"

@@ -53,7 +53,9 @@ export async function processPendingBookingLifecycle(opts?: { limit?: number }):
   const limit = opts?.limit ?? 500;
 
   const pendings = await prisma.booking.findMany({
-    where: { status: BOOKING_STATUS.payment_pending },
+    // Only booker rows drive the lifecycle — guest rows (invited_by_user_id set)
+    // have no Razorpay order of their own and are cascaded from the booker.
+    where: { status: BOOKING_STATUS.payment_pending, invited_by_user_id: null },
     select: {
       id: true,
       user_id: true,
@@ -105,7 +107,18 @@ export async function processPendingBookingLifecycle(opts?: { limit?: number }):
           });
           if (upd.count > 0) {
             result.expired += 1;
-            if (b.class_schedule_id) await refreshScheduleSeatCounters(b.class_schedule_id);
+            // Cascade: expire the whole group held under this booker.
+            if (b.class_schedule_id) {
+              await prisma.booking.updateMany({
+                where: {
+                  invited_by_user_id: b.user_id,
+                  class_schedule_id: b.class_schedule_id,
+                  status: BOOKING_STATUS.payment_pending,
+                },
+                data: { status: BOOKING_STATUS.expired, hold_expires_at: null },
+              });
+              await refreshScheduleSeatCounters(b.class_schedule_id);
+            }
             await logActivity({
               actor: { role: "system", name: "System" },
               action: "booking.expired",

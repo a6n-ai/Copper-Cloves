@@ -576,7 +576,9 @@ export async function reconcileStuckRazorpayOrders(opts?: {
   const paidStuck = await prisma.razorpayOrder.findMany({
     where: {
       status: "paid",
-      created_at: { gte: cutoff },
+      // NO created_at lookback here: a PAID order that never fulfilled is money
+      // already taken with nothing delivered — it must heal no matter how old.
+      // (These are few; the noisy created/attempted abandonments stay window-bounded above.)
       OR: [
         // Pre-created booking that never flipped to confirmed.
         { booking: { is: { status: { in: ["payment_pending", "expired"] } } } },

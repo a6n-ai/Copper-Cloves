@@ -217,15 +217,25 @@ async function fulfillAddedMembersAndReconcileSeats(args: {
 
     for (const memberId of addedMemberProfileIds) {
       try {
-        const already = await prisma.booking.findFirst({
+        // Up-front model: a payment_pending (or expired) row already exists from
+        // createPendingBooking — flip it to confirmed. Fall back to create for
+        // legacy bookings made before up-front rows existed.
+        const existing = await prisma.booking.findFirst({
           where: {
             user_id: memberId,
             class_schedule_id: pending.class_schedule_id,
             status: { in: [...OCCUPYING_STATUSES] },
           },
-          select: { id: true },
+          select: { id: true, status: true },
         });
-        if (!already) {
+        if (existing) {
+          if (existing.status !== "confirmed") {
+            await prisma.booking.update({
+              where: { id: existing.id },
+              data: { status: "confirmed", hold_expires_at: null },
+            });
+          }
+        } else {
           await prisma.booking.create({
             data: {
               user_id: memberId,
@@ -406,6 +416,9 @@ export async function finishBookingCheckoutOnServer(
   const addedMemberProfileIds = pending.added_member_profile_ids ?? [];
 
   const booking = await prisma.$transaction(async (tx) => {
+    // Serialize concurrent bookings on this schedule (read-then-insert race).
+    await tx.$queryRaw`SELECT id FROM class_schedules WHERE id = ${scheduleId} FOR UPDATE`;
+
     const schedule = await loadBookableSchedule(tx, scheduleId);
 
     await assertNotAlreadyBooked(tx, userId, scheduleId);

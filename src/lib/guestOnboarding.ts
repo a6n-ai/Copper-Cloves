@@ -7,6 +7,7 @@ import logger from "@/lib/logger";
 import { upsertFriendship } from "@/lib/friendship";
 import { logActivity } from "@/lib/activityLog";
 import { reconcileScheduleSeats } from "@/lib/seatCounts";
+import { BOOKING_STATUS } from "@/lib/bookingStatus";
 
 /**
  * Server-side guest onboarding for class bookings.
@@ -346,6 +347,18 @@ export async function reconcileConfirmedBookingSideEffects(
     });
     if (!booking?.class_schedule_id) return;
 
+    // Flip the up-front added-member group rows (held pending under this booker)
+    // to confirmed — they mirror the booker and carry no payment of their own.
+    await prisma.booking.updateMany({
+      where: {
+        invited_by_user_id: userId,
+        class_schedule_id: booking.class_schedule_id,
+        status: { in: [BOOKING_STATUS.payment_pending, BOOKING_STATUS.expired] },
+      },
+      data: { status: BOOKING_STATUS.confirmed, hold_expires_at: null },
+    });
+
+    // Friends/family (legacy guest_attendees snapshot) — onboard accounts + rows.
     const guests = parseGuestAttendees(booking.guest_attendees) ?? [];
     if (guests.length > 0) {
       await onboardGuestsForBooking({
