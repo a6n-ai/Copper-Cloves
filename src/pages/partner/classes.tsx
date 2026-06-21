@@ -73,6 +73,8 @@ interface BookingRow {
   status: string;
   confirmationStatus: string | null;
   hasWaiver: boolean;
+  userId: string;
+  invitedByUserId?: string | null;
 }
 interface ClassRow {
   id: string;
@@ -323,14 +325,31 @@ export default function PartnerClasses() {
                               <AvatarFallback className="bg-sage/10 text-sage text-xs">{initials(b.memberName)}</AvatarFallback>
                             </Avatar>
                             <div className="min-w-0">
-                              <div className="font-body text-sm font-medium text-charcoal truncate">
-                                {b.memberName}
-                                {b.extraGuests > 0 && <span className="text-charcoal/50 font-normal"> +{b.extraGuests} guest{b.extraGuests > 1 ? "s" : ""}</span>}
-                              </div>
-                              <div className="font-body text-xs text-charcoal/50 truncate">
-                                {b.email}
-                                {b.phone ? ` · ${b.phone}` : ""}
-                              </div>
+                              {(() => {
+                                // Derive grouping from ids using the co-present rows — no duplicated names.
+                                const bookerName = b.invitedByUserId
+                                  ? c.bookings.find((x) => x.userId === b.invitedByUserId)?.memberName ?? null
+                                  : null;
+                                const broughtNames = b.invitedByUserId
+                                  ? []
+                                  : c.bookings.filter((x) => x.invitedByUserId === b.userId).map((x) => x.memberName);
+                                return (
+                                  <>
+                                    <div className="font-body text-sm font-medium text-charcoal truncate">
+                                      {b.memberName}
+                                      {b.extraGuests > 0 && <span className="text-charcoal/50 font-normal"> +{b.extraGuests} guest{b.extraGuests > 1 ? "s" : ""}</span>}
+                                      {broughtNames.length > 0 && (
+                                        <span className="text-charcoal/50 font-normal"> · brought {broughtNames.join(", ")}</span>
+                                      )}
+                                    </div>
+                                    <div className="font-body text-xs text-charcoal/50 truncate">
+                                      {bookerName ? `Guest of ${bookerName} · ` : ""}
+                                      {b.email}
+                                      {b.phone ? ` · ${b.phone}` : ""}
+                                    </div>
+                                  </>
+                                );
+                              })()}
                             </div>
                           </div>
                           <div className="flex items-center gap-2 shrink-0">

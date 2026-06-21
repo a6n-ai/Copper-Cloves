@@ -35,6 +35,7 @@ interface Booking {
   checked_in: boolean;
   check_in_outcome: string | null;
   invited_by_name?: string | null;
+  guests?: { name: string; status: string; checked_in: boolean }[];
   class_schedule?: {
     start_time: string;
     instructor?: { name?: string | null };
@@ -115,6 +116,18 @@ const BookingCard = memo(function BookingCard({
           </div>
         )}
       </div>
+      {booking.guests && booking.guests.length > 0 && (
+        <div className="mb-3 rounded-lg bg-sand/40 px-3 py-2">
+          <p className="font-body text-xs font-medium text-charcoal/70">
+            You brought {booking.guests.length} guest{booking.guests.length > 1 ? "s" : ""}
+          </p>
+          <p className="font-body text-xs text-charcoal/55">
+            {booking.guests
+              .map((g) => `${g.name}${g.checked_in ? " · checked in" : g.status === "payment_pending" ? " · unpaid" : ""}`)
+              .join(", ")}
+          </p>
+        </div>
+      )}
       <div className="flex flex-wrap gap-x-4 gap-y-1 mb-3">
         <div className="flex items-center gap-1.5 text-charcoal/60">
           <Clock size={14} />

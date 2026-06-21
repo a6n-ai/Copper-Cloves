@@ -41,6 +41,7 @@ interface RosterBooking {
   extraGuests: number;
   status: string;
   holdExpiresAt?: string | null;
+  invitedByUserId?: string | null;
 }
 interface Roster {
   scheduleId: string;
@@ -763,6 +764,18 @@ export default function AdminClassPage() {
                                 ) : null}
                               </p>
                               <p className="font-body text-xs text-charcoal/50">
+                                {(() => {
+                                  // Derive grouping from ids using the co-present roster rows.
+                                  const bookerName = b.invitedByUserId
+                                    ? roster.bookings.find((x) => x.userId === b.invitedByUserId)?.name ?? null
+                                    : null;
+                                  const brought = b.invitedByUserId
+                                    ? []
+                                    : roster.bookings.filter((x) => x.invitedByUserId === b.userId).map((x) => x.name);
+                                  if (bookerName) return `Guest of ${bookerName} · `;
+                                  if (brought.length > 0) return `Brought ${brought.join(", ")} · `;
+                                  return "";
+                                })()}
                                 {b.email}
                                 {isPending && heldFuture ? (
                                   <span className="text-charcoal/40">

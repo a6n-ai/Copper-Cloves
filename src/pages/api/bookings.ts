@@ -78,9 +78,45 @@ async function handleGet(req: NextApiRequest, res: NextApiResponse, userId: stri
 
   bookings.sort((a, b) => startMs(a) - startMs(b));
 
+  // Group info: the guests THIS user brought, per schedule. Guests are separate
+  // booking rows owned by the guest's account (invited_by_user_id = this booker),
+  // so they aren't in `bookings` (which is scoped to user_id). One extra query,
+  // grouped in memory, attached to the booker's row for each schedule.
+  const scheduleIds = Array.from(
+    new Set(bookings.map((b) => b.class_schedule_id).filter((id): id is string => !!id)),
+  );
+  const guestsBySchedule = new Map<string, { name: string; status: string; checked_in: boolean }[]>();
+  if (scheduleIds.length > 0) {
+    const guestRows = await prisma.booking.findMany({
+      where: {
+        invited_by_user_id: userId,
+        class_schedule_id: { in: scheduleIds },
+        status: { in: [...HISTORY_STATUSES, STATUS_PENDING] },
+      },
+      select: {
+        class_schedule_id: true,
+        status: true,
+        checked_in: true,
+        profile: { select: { full_name: true, email: true } },
+      },
+    });
+    for (const g of guestRows) {
+      if (!g.class_schedule_id) continue;
+      const arr = guestsBySchedule.get(g.class_schedule_id) ?? [];
+      arr.push({
+        name: g.profile?.full_name?.trim() || g.profile?.email?.split("@")[0] || "Guest",
+        status: g.status,
+        checked_in: g.checked_in,
+      });
+      guestsBySchedule.set(g.class_schedule_id, arr);
+    }
+  }
+
   const mapped = bookings.map((b) => ({
     ...b,
     invited_by_name: b.invited_by?.full_name ?? null,
+    // Only the booker's own row (not an invited row) carries the guest list.
+    guests: !b.invited_by_user_id && b.class_schedule_id ? guestsBySchedule.get(b.class_schedule_id) ?? [] : [],
   }));
   return res.json(mapped);
 }

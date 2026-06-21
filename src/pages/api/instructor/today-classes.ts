@@ -63,6 +63,9 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       checkInOutcome: b.check_in_outcome,
       extraGuests: b.extra_guest_count,
       status: b.status,
+      userId: b.user_id,
+      // Group linkage by id only — client derives grouping from co-present rows.
+      invitedByUserId: b.invited_by_user_id ?? null,
     })),
   }));
 

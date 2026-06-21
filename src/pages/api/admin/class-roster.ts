@@ -41,6 +41,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
           extra_guest_count: true,
           confirmation_status: true,
           hold_expires_at: true,
+          invited_by_user_id: true,
           profile: { select: { full_name: true, email: true, avatar_url: true } },
         },
         orderBy: { created_at: "asc" },
@@ -79,6 +80,9 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       extraGuests: b.extra_guest_count ?? 0,
       confirmationStatus: b.confirmation_status ?? null,
       holdExpiresAt: b.hold_expires_at?.toISOString() ?? null,
+      // Group linkage by id only — every attendee is a row in this same list, so
+      // the client derives "guest of X" / "brought Y" without duplicated names.
+      invitedByUserId: b.invited_by_user_id ?? null,
     })),
   });
 }

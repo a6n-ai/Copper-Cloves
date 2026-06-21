@@ -42,6 +42,8 @@ interface BookingRow {
   checkInOutcome: string | null;
   extraGuests: number;
   status: string;
+  userId: string;
+  invitedByUserId?: string | null;
 }
 
 interface ClassRow {
@@ -592,6 +594,21 @@ export default function InstructorDashboard() {
                                   </Pill>
                                 )}
                               </p>
+                              {(() => {
+                                // Derive grouping from ids using the co-present roster rows.
+                                const bookerName = b.invitedByUserId
+                                  ? selectedClass.bookings.find((x) => x.userId === b.invitedByUserId)?.memberName ?? null
+                                  : null;
+                                const brought = b.invitedByUserId
+                                  ? []
+                                  : selectedClass.bookings.filter((x) => x.invitedByUserId === b.userId).map((x) => x.memberName);
+                                if (!bookerName && brought.length === 0) return null;
+                                return (
+                                  <p className="font-body text-xs text-charcoal/45 mt-0.5">
+                                    {bookerName ? `Guest of ${bookerName}` : `Brought ${brought.join(", ")}`}
+                                  </p>
+                                );
+                              })()}
                               {b.checkedIn && b.checkInTime && (
                                 <p className="font-body text-xs text-charcoal/40 mt-0.5">
                                   {format(new Date(b.checkInTime), "h:mm a")}

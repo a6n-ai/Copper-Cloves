@@ -95,6 +95,9 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         status: b.status,
         confirmationStatus: b.confirmation_status ?? null,
         hasWaiver: waiverSignedIds.has(b.profile.id),
+        userId: b.user_id,
+        // Group linkage by id only — client derives grouping from co-present rows.
+        invitedByUserId: b.invited_by_user_id ?? null,
       })),
     };
   });
