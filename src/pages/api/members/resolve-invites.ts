@@ -32,6 +32,18 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   const baseUrl = process.env.NEXTAUTH_URL ?? `https://${req.headers.host}`;
   const selfId = session.user.id;
   const selfEmail = (session.user.email ?? "").trim().toLowerCase();
+  // Booker's own phone — a guest must not be saved with the booker's number
+  // (creates duplicate-contact accounts; see MemberSearch samePhone guard).
+  const selfProfile = await prisma.profile.findFirst({
+    where: { id: selfId },
+    select: { phone: true },
+  });
+  const selfPhoneDigits = (selfProfile?.phone ?? "").replace(/\D/g, "");
+  const sameAsSelfPhone = (p?: string) => {
+    const d = (p ?? "").replace(/\D/g, "");
+    if (d.length < 7 || selfPhoneDigits.length < 7) return false;
+    return d === selfPhoneDigits || d.slice(-10) === selfPhoneDigits.slice(-10);
+  };
   const resolved: string[] = [];
 
   for (const member of added_members) {
@@ -43,6 +55,11 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       return res.status(400).json({ error: "You can't add yourself as a guest." });
     }
     const memberPhone = member.phone?.trim();
+    // Reject a guest carrying the booker's own phone — unless it's an existing
+    // member they picked (profile_id set, real separate account).
+    if (!member.profile_id && sameAsSelfPhone(memberPhone)) {
+      return res.status(400).json({ error: "Each guest needs their own mobile number, not yours." });
+    }
 
     // If caller already resolved a profile_id, verify it exists and use it
     if (member.profile_id) {

@@ -32,6 +32,16 @@ interface MemberSearchProps {
   maxMembers?: number;
   /** Booker's own email — they can't add themselves as a guest. */
   currentEmail?: string;
+  /** Booker's own phone — a guest must have their own number, not the booker's. */
+  currentPhone?: string;
+}
+
+/** Last-10-digit comparison so +91/spacing variants of the same number match. */
+function samePhone(a?: string | null, b?: string | null): boolean {
+  const da = (a ?? "").replace(/\D/g, "");
+  const db = (b ?? "").replace(/\D/g, "");
+  if (da.length < 7 || db.length < 7) return false;
+  return da === db || da.slice(-10) === db.slice(-10);
 }
 
 function Avatar({ name, avatarUrl }: { name: string; avatarUrl: string | null }) {
@@ -64,8 +74,9 @@ function Avatar({ name, avatarUrl }: { name: string; avatarUrl: string | null })
   );
 }
 
-export function MemberSearch({ value, onChange, maxMembers = 5, currentEmail }: MemberSearchProps) {
+export function MemberSearch({ value, onChange, maxMembers = 5, currentEmail, currentPhone }: MemberSearchProps) {
   const selfEmail = currentEmail?.trim().toLowerCase() ?? "";
+  const selfPhone = currentPhone?.trim() ?? "";
   const [query, setQuery] = useState("");
   const [results, setResults] = useState<SearchResult[]>([]);
   const [showDropdown, setShowDropdown] = useState(false);
@@ -143,6 +154,11 @@ export function MemberSearch({ value, onChange, maxMembers = 5, currentEmail }: 
   // file we collect one first (phone is mandatory for every attendee).
   function addExistingMember(m: { profile_id?: string; name: string; email: string; phone?: string | null }) {
     if (isAlreadyAdded(m.profile_id, m.email)) return;
+    // Booker can't add themselves as a guest (search/friends path had no guard).
+    if (selfEmail && m.email.trim().toLowerCase() === selfEmail) {
+      setInviteError("You're the booker — you can't add yourself as a guest.");
+      return;
+    }
     const phone = m.phone?.trim();
     if (phone) {
       addMember({ profile_id: m.profile_id, name: m.name, email: m.email, phone });
@@ -162,6 +178,10 @@ export function MemberSearch({ value, onChange, maxMembers = 5, currentEmail }: 
     const phone = (phoneDraft ?? "").trim();
     if (!phone || !isValidPhoneNumber(phone)) {
       setPhoneError("Enter a valid phone number.");
+      return;
+    }
+    if (samePhone(phone, selfPhone)) {
+      setPhoneError("That's your own number — enter the guest's own mobile.");
       return;
     }
     addMember({ ...pendingPhoneMember, phone });
@@ -194,6 +214,10 @@ export function MemberSearch({ value, onChange, maxMembers = 5, currentEmail }: 
     const phone = (invitePhone ?? "").trim();
     if (!phone || !isValidPhoneNumber(phone)) {
       setInviteError("Enter a valid phone number.");
+      return;
+    }
+    if (samePhone(phone, selfPhone)) {
+      setInviteError("That's your own number — each guest needs their own mobile.");
       return;
     }
     addMember({ email, name, phone });

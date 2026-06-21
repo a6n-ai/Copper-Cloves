@@ -726,13 +726,15 @@ export default function BookClass() {
   // User data states
   const [userName, setUserName] = useState("");
   const [userEmail, setUserEmail] = useState("");
+  const [userPhone, setUserPhone] = useState("");
 
   // Profile via shared SWR (deduped across the portal). Display-only here.
-  const { data: profileData } = useStudioSWR<{ full_name?: string; email?: string }>("/api/user/profile");
+  const { data: profileData } = useStudioSWR<{ full_name?: string; email?: string; phone?: string; whatsapp_phone?: string }>("/api/user/profile");
   useEffect(() => {
     if (!profileData) return;
     setUserName(profileData.full_name || "Member");
     setUserEmail(profileData.email || "");
+    setUserPhone(profileData.phone || profileData.whatsapp_phone || "");
   }, [profileData]);
 
   // Booking panel states
@@ -1571,7 +1573,7 @@ export default function BookClass() {
                   <p className="font-body text-sm text-charcoal/60 mb-3">
                     Search for studio members or add someone new. You&apos;ll pay for their class.
                   </p>
-                  <MemberSearch value={addedMembers} onChange={setAddedMembers} currentEmail={userEmail} />
+                  <MemberSearch value={addedMembers} onChange={setAddedMembers} currentEmail={userEmail} currentPhone={userPhone} />
                 </div>
 
                 <div className="pt-4 border-t border-sage/10">
