@@ -659,6 +659,23 @@ async function handlePatch(
   const booking = await prisma.$transaction(async (tx) => {
     const updated = await tx.booking.update({ where: { id }, data });
 
+    // Group cascade: when the BOOKER (not an invited guest) cancels, cancel the
+    // whole group they brought — guests are tied to the booker's booking.
+    if (
+      status === STATUS_CANCELLED &&
+      existing.invited_by_user_id === null &&
+      existing.class_schedule_id
+    ) {
+      await tx.booking.updateMany({
+        where: {
+          invited_by_user_id: userId,
+          class_schedule_id: existing.class_schedule_id,
+          status: { in: [...OCCUPYING_STATUSES] },
+        },
+        data: { status: STATUS_CANCELLED, cancellation_date: new Date() },
+      });
+    }
+
     if (status === STATUS_CANCELLED && wasActiveSeat && existing.class_schedule_id) {
       await reconcileScheduleSeatsAfterCancel(tx, existing.class_schedule_id);
     }

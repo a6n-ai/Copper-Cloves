@@ -9,6 +9,7 @@ import { logActivity } from "@/lib/activityLog";
 import { addMonths } from "date-fns";
 import { SEAT_HOLDING_STATUSES, BOOKING_STATUS } from "@/lib/bookingStatus";
 import { confirmPendingBookingTx } from "@/lib/confirmPendingBooking";
+import { reconcileConfirmedBookingSideEffects } from "@/lib/guestOnboarding";
 
 export type FulfillPaymentBody = {
   internalPaymentId: string;   // our Payment.id
@@ -128,6 +129,11 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     });
 
     if (intent === "booking" && result.bookingId && result.newBooking) {
+      // Parity with the online confirm: onboard friends/family guests + reconcile
+      // seats (this path only flipped the status via confirmPendingBookingTx).
+      await reconcileConfirmedBookingSideEffects(result.bookingId, userId).catch((e) =>
+        logger.error({ err: e }, "[fulfill-payment] reconcile side-effects failed"),
+      );
       sendBookingConfirmationEmail(result.bookingId).catch((e) =>
         logger.error({ err: e }, "[fulfill-payment] booking email failed"),
       );

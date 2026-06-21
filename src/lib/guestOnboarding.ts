@@ -2,10 +2,11 @@ import crypto from "crypto";
 import bcrypt from "bcryptjs";
 import prisma from "@/lib/prisma";
 import { sendHtmlEmail } from "@/lib/notifications/sendEmail";
-import type { GuestAttendee } from "@/lib/financeBookingCheckout";
+import { parseGuestAttendees, type GuestAttendee } from "@/lib/financeBookingCheckout";
 import logger from "@/lib/logger";
 import { upsertFriendship } from "@/lib/friendship";
 import { logActivity } from "@/lib/activityLog";
+import { reconcileScheduleSeats } from "@/lib/seatCounts";
 
 /**
  * Server-side guest onboarding for class bookings.
@@ -326,4 +327,38 @@ export async function onboardGuestsForBooking(opts: {
   }
 
   return { processed: results.length, results };
+}
+
+/**
+ * Side-effects to run after a booker's booking is confirmed via a path that only
+ * flipped the status (admin import/fulfill reconcile). Brings parity with the
+ * online confirm: onboards friends/family guests from the booker's snapshot,
+ * clears the held guest count, and recomputes seat counters. Best-effort.
+ */
+export async function reconcileConfirmedBookingSideEffects(
+  bookingId: string,
+  userId: string,
+): Promise<void> {
+  try {
+    const booking = await prisma.booking.findUnique({
+      where: { id: bookingId },
+      select: { class_schedule_id: true, guest_attendees: true, extra_guest_count: true },
+    });
+    if (!booking?.class_schedule_id) return;
+
+    const guests = parseGuestAttendees(booking.guest_attendees) ?? [];
+    if (guests.length > 0) {
+      await onboardGuestsForBooking({
+        guests,
+        classScheduleId: booking.class_schedule_id,
+        bookerId: userId,
+      });
+      if ((booking.extra_guest_count ?? 0) > 0) {
+        await prisma.booking.update({ where: { id: bookingId }, data: { extra_guest_count: 0 } });
+      }
+    }
+    await reconcileScheduleSeats(booking.class_schedule_id);
+  } catch (err) {
+    logger.error({ err, bookingId }, "[reconcileConfirmedBookingSideEffects] failed");
+  }
 }

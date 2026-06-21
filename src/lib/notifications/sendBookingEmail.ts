@@ -64,7 +64,7 @@ export async function sendClassRescheduledEmails(
     where: { id: scheduleId },
     include: {
       class_model: { select: { name: true } },
-      instructor: { select: { name: true } },
+      instructor: { select: { name: true, email: true } },
       bookings: {
         where: { status: { in: [...OCCUPYING_STATUSES] } },
         include: { profile: { select: { full_name: true, email: true } } },
@@ -98,5 +98,28 @@ export async function sendClassRescheduledEmails(
       html,
       context: { type: "class_rescheduled", targetProfileId: b.user_id, entity: { type: "booking", id: b.id } },
     }).catch((e) => logger.error({ err: e, bookingId: b.id }, "[sendClassRescheduledEmails] failed"));
+  }
+
+  // Notify the instructor too — the roster re-fire only covers the ~6h window, so
+  // a class moved further out would otherwise leave the instructor uninformed.
+  const instructorEmail = sch.instructor?.email?.trim();
+  if (instructorEmail) {
+    const html = classRescheduledEmail({
+      memberName: instructorName,
+      className,
+      instructorName,
+      oldDateStr: formatDate(oldStart),
+      oldStartTime: formatTime(oldStart),
+      newDateStr: formatDate(sch.start_time),
+      newStartTime: formatTime(sch.start_time),
+      newEndTime: formatTime(sch.end_time),
+      portalUrl: portalUrl ? `${portalUrl}/instructor/dashboard` : undefined,
+    });
+    await sendHtmlEmail({
+      to: instructorEmail,
+      subject: `Class time updated — ${className}`,
+      html,
+      context: { type: "class_rescheduled_instructor", entity: { type: "class_schedule", id: scheduleId } },
+    }).catch((e) => logger.error({ err: e, scheduleId }, "[sendClassRescheduledEmails instructor] failed"));
   }
 }

@@ -10,6 +10,7 @@ import { logActivity } from "@/lib/activityLog";
 import { addMonths } from "date-fns";
 import { SEAT_HOLDING_STATUSES, BOOKING_STATUS } from "@/lib/bookingStatus";
 import { confirmPendingBookingTx } from "@/lib/confirmPendingBooking";
+import { reconcileConfirmedBookingSideEffects } from "@/lib/guestOnboarding";
 
 export type ImportPaymentBody = {
   paymentId: string;
@@ -155,6 +156,9 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
     // Send booking confirmation only for newly created bookings (not pre-existing ones)
     if (intent === "booking" && result.bookingId && result.newBooking) {
+      await reconcileConfirmedBookingSideEffects(result.bookingId, userId).catch((e) =>
+        logger.error({ err: e }, "[import-payment] reconcile side-effects failed"),
+      );
       sendBookingConfirmationEmail(result.bookingId).catch((e) =>
         logger.error({ err: e }, "[import-payment] booking email failed"),
       );
