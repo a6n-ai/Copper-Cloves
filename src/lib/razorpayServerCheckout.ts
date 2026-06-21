@@ -24,7 +24,6 @@ import {
   type CouponContext,
 } from "@/lib/couponHelpers";
 import { notifyPackagePurchase } from "@/lib/notifications/notifyPackagePurchase";
-import { onboardGuestsForBooking } from "@/lib/guestOnboarding";
 import { upsertFriendship } from "@/lib/friendship";
 import type { Coupon } from "@/generated/prisma/client";
 import type { PendingBookingCheckout, PendingPackageCheckout } from "@/lib/pendingRazorpayCheckout";
@@ -180,15 +179,6 @@ async function runBookingPostFulfillSideEffects(args: {
   // Physique 57 bookings notify on instructor confirm, not now.
   if (confirmationStatus !== "pending") {
     await sendBookingConfirmationEmail(bookingId).catch((e) => logger.error({ err: e }, "[booking email]"));
-  }
-
-  const guestList = parseGuestAttendees(pending.guest_attendees) ?? [];
-  if (guestList.length > 0) {
-    await onboardGuestsForBooking({
-      guests: guestList,
-      classScheduleId: pending.class_schedule_id,
-      bookerId: userId,
-    }).catch((e) => logger.error({ err: e }, "[onboardGuestsForBooking] post-confirm"));
   }
 }
 
@@ -450,8 +440,8 @@ export async function finishBookingCheckoutOnServer(
         status: "confirmed",
         // Partner-run classes await partner sign-off before confirmation.
         confirmation_status: schedule.class_model?.partner_id ? "pending" : null,
-        // Guests get their own roster rows (process-guests); booker = one seat.
-        // The capacity check above still reserves 1 + guests up front.
+        // Added members get their own booking rows; booker = one seat.
+        // The capacity check above still reserves the whole group up front.
         extra_guest_count: 0,
         guest_attendees: guestList.length > 0 ? guestList : undefined,
         finance_snapshot: financeSnap,

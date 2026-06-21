@@ -11,7 +11,6 @@ import {
 } from "@/lib/bookingAttendance";
 import { reconcileNoShowsGlobally } from "@/lib/bookingReconcile";
 import { linkRazorpayOrderToBookingTx } from "@/lib/razorpayPersistence";
-import { onboardGuestsForBooking } from "@/lib/guestOnboarding";
 import {
   expectedBookingCheckoutPaise,
   parseFinanceSnapshot,
@@ -232,9 +231,8 @@ function createBookingTx(args: CreateBookingArgs) {
         // Partner-run classes need the partner to sign off before the
         // member's booking is confirmed (and the confirmation email sent).
         confirmation_status: schedule.class_model?.partner_id ? STATUS_PENDING : null,
-        // Guests get their own roster rows (see /api/bookings/process-guests),
-        // so the booker counts as one seat here. The capacity check below
-        // still reserves 1 + guests up front so the group is guaranteed.
+        // Added members get their own booking rows (below), so the booker counts
+        // as one seat here. The capacity check above reserves the whole group.
         extra_guest_count: 0,
         guest_attendees: args.guestList.length > 0 ? args.guestList : undefined,
         finance_snapshot: args.financeSnap ?? undefined,
@@ -473,17 +471,6 @@ async function handlePost(
       // this send and rendered blank (template used {{className}}-style keys
       // that don't match the dispatcher's Snake_Case variables).
       await sendBookingConfirmationEmail(booking.id).catch((e) => log.error({ err: e, bookingId: booking.id }, "booking confirmation email failed"));
-    }
-
-    // Onboard friends & family guests server-side (create accounts + roster
-    // rows + emails). Done here — not on the client — so it also runs when
-    // payment completes via a Razorpay full-page redirect. Idempotent + best-effort.
-    if (guestList.length > 0) {
-      await onboardGuestsForBooking({
-        guests: guestList,
-        classScheduleId: scheduleId,
-        bookerId: userId,
-      }).catch((e) => log.error({ err: e, bookingId: booking.id }, "onboardGuestsForBooking failed"));
     }
 
     await logActivity({ req, action: "booking.created", entity: { type: "booking", id: booking.id }, metadata: { class_name: booking.class_name ?? undefined } });

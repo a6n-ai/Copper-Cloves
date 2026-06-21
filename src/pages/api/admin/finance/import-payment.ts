@@ -10,7 +10,7 @@ import { logActivity } from "@/lib/activityLog";
 import { addMonths } from "date-fns";
 import { SEAT_HOLDING_STATUSES, BOOKING_STATUS } from "@/lib/bookingStatus";
 import { confirmPendingBookingTx } from "@/lib/confirmPendingBooking";
-import { reconcileConfirmedBookingSideEffects } from "@/lib/guestOnboarding";
+import { reconcileConfirmedBookingSideEffects } from "@/lib/seatCounts";
 
 export type ImportPaymentBody = {
   paymentId: string;
