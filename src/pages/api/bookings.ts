@@ -171,7 +171,10 @@ function createBookingTx(args: CreateBookingArgs) {
     const spotsToConsume = 1 + args.extraGuests + args.addedMemberProfileIds.length;
     if (cap > 0 && seatsTaken + spotsToConsume > cap) throw new Error("CLASS_FULL");
 
-    const resolvedClassTime = args.classTime ?? schedule.start_time.toISOString();
+    // Canonical: the booked schedule is the single source of truth for the time.
+    // Never trust a client-supplied classTime — it can point at a different slot
+    // (the V. Shyamala case: snapshot said 6pm while the schedule was 7:30pm).
+    const resolvedClassTime = schedule.start_time.toISOString();
     const resolvedClassName = args.className?.trim() || schedule.class_model?.name || null;
 
     if (args.packageId) {
@@ -644,6 +647,13 @@ async function handlePatch(
   }
 
   if (checked_in === true && booking.checked_in) {
+    await logActivity({
+      req,
+      action: "booking.checked_in",
+      targetProfileId: userId,
+      entity: { type: "booking", id: booking.id },
+      metadata: { class_name: booking.class_name ?? undefined, outcome: booking.check_in_outcome ?? undefined },
+    });
     // Auto-award PTM badges
     void awardPtmBadges(userId, log);
   }

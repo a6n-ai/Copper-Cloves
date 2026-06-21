@@ -5,6 +5,7 @@ import { sendHtmlEmail } from "@/lib/notifications/sendEmail";
 import type { GuestAttendee } from "@/lib/financeBookingCheckout";
 import logger from "@/lib/logger";
 import { upsertFriendship } from "@/lib/friendship";
+import { logActivity } from "@/lib/activityLog";
 
 /**
  * Server-side guest onboarding for class bookings.
@@ -214,7 +215,7 @@ export async function onboardGuestsForBooking(opts: {
           continue;
         }
 
-        await prisma.booking.create({
+        const guestBooking = await prisma.booking.create({
           data: {
             user_id: existing.id,
             class_schedule_id: opts.classScheduleId,
@@ -227,6 +228,13 @@ export async function onboardGuestsForBooking(opts: {
             finance_snapshot: GUEST_FINANCE_SNAPSHOT,
           },
         });
+        await logActivity({
+          actor: { role: "system", name: "System" },
+          action: "booking.guest_added",
+          targetProfileId: existing.id,
+          entity: { type: "booking", id: guestBooking.id },
+          metadata: { class_name: className, booked_by: opts.bookerId },
+        }).catch(() => {});
 
         await sendHtmlEmail({
           to: email,
@@ -239,6 +247,7 @@ export async function onboardGuestsForBooking(opts: {
             instructor,
             portalUrl: `${baseUrl}/portal/bookings`,
           }),
+          context: { type: "guest_booking", targetProfileId: existing.id },
         });
 
         try {
@@ -263,7 +272,7 @@ export async function onboardGuestsForBooking(opts: {
           },
         });
 
-        await prisma.booking.create({
+        const newGuestBooking = await prisma.booking.create({
           data: {
             user_id: newProfile.id,
             class_schedule_id: opts.classScheduleId,
@@ -276,6 +285,13 @@ export async function onboardGuestsForBooking(opts: {
             finance_snapshot: GUEST_FINANCE_SNAPSHOT,
           },
         });
+        await logActivity({
+          actor: { role: "system", name: "System" },
+          action: "booking.guest_added",
+          targetProfileId: newProfile.id,
+          entity: { type: "booking", id: newGuestBooking.id },
+          metadata: { class_name: className, booked_by: opts.bookerId },
+        }).catch(() => {});
 
         await sendHtmlEmail({
           to: email,
@@ -290,6 +306,7 @@ export async function onboardGuestsForBooking(opts: {
             instructor,
             loginUrl: `${baseUrl}/login`,
           }),
+          context: { type: "guest_welcome", targetProfileId: newProfile.id },
         });
 
         try {

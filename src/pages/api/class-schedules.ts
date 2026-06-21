@@ -4,6 +4,8 @@ import prisma from "@/lib/prisma";
 import { getStudioServerSession } from "@/lib/getStudioServerSession";
 import { apiError } from "@/lib/apiError";
 import { logActivity } from "@/lib/activityLog";
+import { sendClassRescheduledEmails } from "@/lib/notifications/sendBookingEmail";
+import { OCCUPYING_STATUSES } from "@/lib/bookingStatus";
 import { HIDDEN_SCHEDULE_STATUSES, LOCKED_SCHEDULE_STATUSES } from "@/lib/scheduleStatus";
 
 const VALID_STATUS = new Set<string>(Object.values(ClassScheduleStatus));
@@ -158,7 +160,7 @@ async function handleGet(req: NextApiRequest, res: NextApiResponse) {
   }
 }
 
-async function createScheduleBatch(res: NextApiResponse, items: unknown[]) {
+async function createScheduleBatch(req: NextApiRequest, res: NextApiResponse, items: unknown[]) {
   if (items.length === 0) {
     return res.status(400).json({ error: "items must be a non-empty array." });
   }
@@ -172,18 +174,28 @@ async function createScheduleBatch(res: NextApiResponse, items: unknown[]) {
     if (row) data.push(row);
   }
   const result = await prisma.classSchedule.createMany({ data, skipDuplicates: true });
+  await logActivity({ req, action: "admin.schedule_created", metadata: { count: result.count } });
   return res.status(201).json({
     created: result.count,
     skipped: data.length - result.count,
   });
 }
 
-async function createScheduleSingle(res: NextApiResponse, body: IncomingSchedule) {
+async function createScheduleSingle(req: NextApiRequest, res: NextApiResponse, body: IncomingSchedule) {
   // Single-item path. Rely on unique index to reject dupes (P2002 → friendly message).
   const { data, error } = normalizeScheduleInput(body, 0);
   if (error) return res.status(400).json({ error });
   try {
     const schedule = await prisma.classSchedule.create({ data: data });
+    const cm = schedule.class_id
+      ? await prisma.classModel.findUnique({ where: { id: schedule.class_id }, select: { name: true } })
+      : null;
+    await logActivity({
+      req,
+      action: "admin.schedule_created",
+      entity: { type: "class_schedule", id: schedule.id },
+      metadata: { class_name: cm?.name ?? null, start_time: fmtIstDateTime(schedule.start_time) },
+    });
     return res.status(201).json(schedule);
   } catch (e) {
     if (e instanceof Prisma.PrismaClientKnownRequestError && e.code === "P2002") {
@@ -206,9 +218,9 @@ function handlePost(req: NextApiRequest, res: NextApiResponse) {
   const body = req.body ?? {};
   // Batch path: { items: [...] } → single createMany. Skips dupes via unique index.
   if (Array.isArray(body.items)) {
-    return createScheduleBatch(res, body.items);
+    return createScheduleBatch(req, res, body.items);
   }
-  return createScheduleSingle(res, body as IncomingSchedule);
+  return createScheduleSingle(req, res, body as IncomingSchedule);
 }
 
 function nullableString(v: unknown): string | null {
@@ -253,6 +265,10 @@ function buildScheduleUpdateData(
   return { data };
 }
 
+function fmtIstDateTime(d: Date): string {
+  return d.toLocaleString("en-IN", { dateStyle: "medium", timeStyle: "short", timeZone: "Asia/Kolkata" });
+}
+
 async function handlePut(req: NextApiRequest, res: NextApiResponse) {
   const { id, ...rest } = req.body ?? {};
   if (!id) return res.status(400).json({ error: "id required" });
@@ -263,18 +279,73 @@ async function handlePut(req: NextApiRequest, res: NextApiResponse) {
   }
   const existing = await prisma.classSchedule.findUnique({
     where: { id: String(id) },
-    select: { status: true, end_time: true },
+    select: {
+      status: true,
+      start_time: true,
+      end_time: true,
+      class_model: { select: { name: true } },
+    },
   });
   if (!existing) return res.status(404).json({ error: "Schedule not found" });
-  const editLock = scheduleEditLock(existing);
+  const editLock = scheduleEditLock({ status: existing.status, end_time: existing.end_time });
   if (editLock) {
     return res.status(409).json({ error: `Class is ${editLock} and cannot be edited.` });
   }
+
+  const oldStart = existing.start_time;
+  const oldEnd = existing.end_time;
+
   const schedule = await prisma.classSchedule.update({
     where: { id: String(id) },
     data: data as Prisma.ClassScheduleUpdateInput,
   });
-  await logActivity({ req, action: "admin.schedule_edited", entity: { type: "class_schedule", id: schedule.id } });
+
+  // Did the time actually move? Compare against the pre-update values.
+  const startChanged =
+    data.start_time != null && (data.start_time as Date).getTime() !== oldStart.getTime();
+  const endChanged =
+    data.end_time != null &&
+    oldEnd != null &&
+    (data.end_time as Date).getTime() !== oldEnd.getTime();
+  const timeChanged = startChanged || endChanged;
+
+  if (timeChanged) {
+    // Keep each booking's snapshot in sync with the canonical schedule so no
+    // surface shows a stale time (the V. Shyamala 6pm-vs-7:30pm bug), then email
+    // every booked customer the corrected time.
+    try {
+      await prisma.booking.updateMany({
+        where: { class_schedule_id: schedule.id, status: { in: [...OCCUPYING_STATUSES] } },
+        data: { class_time: schedule.start_time.toISOString() },
+      });
+    } catch (e) {
+      console.error("[class-schedules PUT] class_time resync failed", e);
+    }
+    await sendClassRescheduledEmails(schedule.id, oldStart).catch((e) =>
+      console.error("[class-schedules PUT] reschedule emails failed", e),
+    );
+  }
+
+  const changedFields = Object.keys(data);
+  await logActivity({
+    req,
+    action: "admin.schedule_edited",
+    entity: { type: "class_schedule", id: schedule.id },
+    metadata: {
+      class_name: existing.class_model?.name ?? null,
+      changed_fields: changedFields,
+      time_changed: timeChanged,
+      ...(timeChanged
+        ? {
+            old_time: fmtIstDateTime(oldStart),
+            new_time: fmtIstDateTime(schedule.start_time),
+            changes: [
+              { field: "start_time", from: fmtIstDateTime(oldStart), to: fmtIstDateTime(schedule.start_time) },
+            ],
+          }
+        : {}),
+    },
+  });
   return res.json(schedule);
 }
 
@@ -282,14 +353,20 @@ async function handleDelete(req: NextApiRequest, res: NextApiResponse) {
   const { id } = req.query;
   const existing = await prisma.classSchedule.findUnique({
     where: { id: String(id) },
-    select: { status: true, end_time: true },
+    select: { status: true, end_time: true, class_model: { select: { name: true } } },
   });
   if (!existing) return res.status(404).json({ error: "Schedule not found" });
-  const deleteLock = scheduleEditLock(existing);
+  const deleteLock = scheduleEditLock({ status: existing.status, end_time: existing.end_time });
   if (deleteLock) {
     return res.status(409).json({ error: `Class is ${deleteLock} and cannot be deleted.` });
   }
   await prisma.classSchedule.delete({ where: { id: String(id) } });
+  await logActivity({
+    req,
+    action: "admin.schedule_deleted",
+    entity: { type: "class_schedule", id: String(id) },
+    metadata: { class_name: existing.class_model?.name ?? null },
+  });
   return res.status(204).end();
 }
 

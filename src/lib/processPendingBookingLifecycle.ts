@@ -4,6 +4,7 @@ import { BOOKING_STATUS, OCCUPYING_STATUSES } from "@/lib/bookingStatus";
 import { classifyPendingBooking } from "@/lib/bookingLifecycle";
 import { reconcileRazorpayPaymentFromWebhook } from "@/lib/razorpayPersistence";
 import { sendPendingRecoveryEmail } from "@/lib/notifications/sendPendingRecoveryEmail";
+import { logActivity } from "@/lib/activityLog";
 import { logger } from "@/lib/logger";
 
 const log = logger.child({ module: "pendingBookingLifecycle" });
@@ -55,6 +56,8 @@ export async function processPendingBookingLifecycle(opts?: { limit?: number }):
     where: { status: BOOKING_STATUS.payment_pending },
     select: {
       id: true,
+      user_id: true,
+      class_name: true,
       created_at: true,
       class_schedule_id: true,
       hold_expires_at: true,
@@ -103,6 +106,16 @@ export async function processPendingBookingLifecycle(opts?: { limit?: number }):
           if (upd.count > 0) {
             result.expired += 1;
             if (b.class_schedule_id) await refreshScheduleSeatCounters(b.class_schedule_id);
+            await logActivity({
+              actor: { role: "system", name: "System" },
+              action: "booking.expired",
+              targetProfileId: b.user_id,
+              entity: { type: "booking", id: b.id },
+              metadata: {
+                class_name: b.class_name ?? undefined,
+                changes: [{ field: "status", from: "payment_pending", to: "expired" }],
+              },
+            }).catch(() => {});
           }
         }
       }

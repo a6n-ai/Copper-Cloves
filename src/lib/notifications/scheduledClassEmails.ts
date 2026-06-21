@@ -108,7 +108,12 @@ export async function sendDueClassReminders(): Promise<{ sent: number; skipped: 
     const subject = interpolateCrmTemplate(template.subject?.trim() || "Your class is coming up — {{Class_Name}}", vars);
     const html = interpolateCrmTemplate(template.message_body, vars);
 
-    const result = await sendHtmlEmail({ to: email, subject, html });
+    const result = await sendHtmlEmail({
+      to: email,
+      subject,
+      html,
+      context: { type: "class_reminder", targetProfileId: b.user_id, entity: { type: "booking", id: b.id } },
+    });
     const { status, err } = mapResult(result);
     await prisma.booking.update({ where: { id: b.id }, data: { reminder_sent_at: new Date() } });
     await prisma.crmMessage.create({
@@ -262,7 +267,12 @@ export async function sendDueInstructorRosters(): Promise<{ sent: number; skippe
     const subject = interpolateCrmTemplate(template.subject?.trim() || "Your class roster — {{Class_Name}}", vars);
     const html = interpolateCrmTemplate(template.message_body, vars);
 
-    const result = await sendHtmlEmail({ to: instructorEmail, subject, html });
+    const result = await sendHtmlEmail({
+      to: instructorEmail,
+      subject,
+      html,
+      context: { type: "instructor_roster", entity: { type: "class_schedule", id: sch.id } },
+    });
     const { status, err } = mapResult(result);
     await prisma.classSchedule.update({ where: { id: sch.id }, data: { roster_sent_at: new Date() } });
     await prisma.crmMessage.create({

@@ -1,5 +1,6 @@
 import prisma from "@/lib/prisma";
 import logger from "@/lib/logger";
+import { logActivity } from "@/lib/activityLog";
 import { OCCUPYING_STATUSES } from "@/lib/bookingStatus";
 import { sendBookingConfirmationEmail } from "@/lib/notifications/sendBookingEmail";
 import {
@@ -209,7 +210,9 @@ async function fulfillAddedMembersAndReconcileSeats(args: {
       where: { id: pending.class_schedule_id },
       select: { start_time: true, class_model: { select: { name: true } } },
     });
-    const resolvedClassTime = pending.class_time?.trim() || schedule?.start_time.toISOString() || "";
+    // Canonical: the schedule wins; only fall back to the pending snapshot if the
+    // schedule somehow can't be loaded.
+    const resolvedClassTime = schedule?.start_time.toISOString() || pending.class_time?.trim() || "";
     const resolvedClassName = pending.class_name?.trim() || schedule?.class_model?.name || null;
 
     for (const memberId of addedMemberProfileIds) {
@@ -325,6 +328,16 @@ async function confirmPreCreatedBookingFlow(args: {
       pending,
       userId,
     });
+    await logActivity({
+      actor: { role: "system", name: "System" },
+      action: "booking.confirmed",
+      targetProfileId: userId,
+      entity: { type: "booking", id: result.bookingId },
+      metadata: {
+        class_name: pending.class_name ?? undefined,
+        changes: [{ field: "status", from: "payment_pending", to: "confirmed" }],
+      },
+    }).catch(() => {});
   }
   await fulfillAddedMembersAndReconcileSeats({ pending, userId });
   return result;
@@ -402,8 +415,8 @@ export async function finishBookingCheckoutOnServer(
     const spotsToConsume = 1 + extraGuests + addedMemberProfileIds.length;
     if (cap > 0 && seatsTaken + spotsToConsume > cap) throw new Error("CLASS_FULL");
 
-    const resolvedClassTime =
-      pending.class_time?.trim() || schedule.start_time.toISOString();
+    // Canonical: derive from the booked schedule, never the client-supplied snapshot.
+    const resolvedClassTime = schedule.start_time.toISOString();
     const resolvedClassName =
       pending.class_name?.trim() || schedule.class_model?.name || null;
 

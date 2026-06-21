@@ -95,6 +95,7 @@ export async function notifyPackagePurchase(args: {
     to: profile.email,
     subject: `Purchase confirmed — ${args.packageType.name}`,
     html: emailHtml,
+    context: { type: "package_purchase", targetProfileId: profile.id },
   });
 
   const { status: emailStatus, err: emailErr } = classifySendResult(

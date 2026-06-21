@@ -40,6 +40,8 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       { actor: { email: { contains: term, mode: "insensitive" } } },
       { target: { email: { contains: term, mode: "insensitive" } } },
       { target: { full_name: { contains: term, mode: "insensitive" } } },
+      // Search by class name stored in the audit metadata (booking + schedule events).
+      { metadata: { path: ["class_name"], string_contains: term } },
     ];
   }
 

@@ -195,6 +195,48 @@ export function bookingConfirmationEmail(opts: BookingConfirmationEmailOpts): st
   `);
 }
 
+// ── Template: Class Time Changed (reschedule notice) ───────────────────────
+
+export interface ClassRescheduledEmailOpts {
+  memberName: string;
+  className: string;
+  instructorName: string;
+  oldDateStr: string;
+  oldStartTime: string;
+  newDateStr: string;
+  newStartTime: string;
+  newEndTime: string;
+  portalUrl?: string;
+}
+
+export function classRescheduledEmail(opts: ClassRescheduledEmailOpts): string {
+  const portal = opts.portalUrl ?? BASE_URL;
+  return emailWrapper(`
+    ${logoHeader("class time updated")}
+    <div style="padding:32px 32px 0">
+      <p style="font-family:Georgia,serif;font-size:17px;color:${CHARCOAL};margin:0 0 12px">hi ${h(opts.memberName)},</p>
+      <p style="font-family:Georgia,serif;font-size:15px;color:${CHARCOAL};margin:0 0 8px;line-height:1.6">
+        The timing for your <strong>${h(opts.className)}</strong> class with ${h(opts.instructorName)} has changed. Please note the new time below.
+      </p>
+
+      <div style="background:#fff;border:1px solid ${BORDER};border-radius:12px;padding:24px;margin:20px 0 16px">
+        <table style="width:100%;border-collapse:collapse">
+          <tr><td style="font-family:Georgia,serif;font-size:14px;color:${MUTED};padding:10px 0;border-bottom:1px solid ${BORDER}">was:</td><td style="font-family:Georgia,serif;font-size:14px;color:${MUTED};padding:10px 0;border-bottom:1px solid ${BORDER};text-align:right;text-decoration:line-through">${h(opts.oldDateStr)} · ${h(opts.oldStartTime)}</td></tr>
+          <tr><td style="font-family:Georgia,serif;font-size:14px;color:${CHARCOAL};padding:10px 0">now:</td><td style="font-family:Georgia,serif;font-size:15px;color:${SAGE};padding:10px 0;text-align:right"><strong>${h(opts.newDateStr)} · ${h(opts.newStartTime)} – ${h(opts.newEndTime)}</strong></td></tr>
+        </table>
+      </div>
+
+      <p style="font-family:Georgia,serif;font-size:14px;color:${MUTED};margin:0 0 28px;line-height:1.6">
+        Your spot is still reserved — only the time has moved. If the new time doesn't work for you, you can cancel from your bookings.
+      </p>
+
+      ${browseClassesCta(portal)}
+      ${needHelpCard()}
+    </div>
+    ${footer()}
+  `);
+}
+
 // ── Template 2: Individual Class Purchase + Booking Confirmation ────────────
 
 export interface IndividualClassBookingEmailOpts extends BookingConfirmationEmailOpts {

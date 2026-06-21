@@ -61,7 +61,8 @@ export async function createPendingBooking(input: PendingBookingInput): Promise<
         class_schedule_id: input.classScheduleId,
         status: BOOKING_STATUS.payment_pending,
         class_name: input.className ?? schedule.class_model?.name ?? null,
-        class_time: input.classTimeISO || schedule.start_time.toISOString(),
+        // Canonical: derive from the schedule, never the client-supplied ISO.
+        class_time: schedule.start_time.toISOString(),
         email: input.email,
         // Partner-run classes await partner sign-off before confirmation (same as legacy create).
         confirmation_status: schedule.class_model?.partner_id ? "pending" : null,

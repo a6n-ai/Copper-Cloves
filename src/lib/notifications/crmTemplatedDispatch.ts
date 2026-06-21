@@ -116,6 +116,7 @@ export async function dispatchCrmEmailTriggers(options: {
       to: profile.email,
       subject,
       html,
+      context: { type: `crm:${options.triggerType}`, targetProfileId: profile.id },
     });
 
     const { status, err } = mapSendResult(result);
@@ -155,18 +156,27 @@ export async function buildBookingCrmVariables(bookingId: string): Promise<Recor
 
   const className = booking.class_name?.trim() || cm?.name?.trim() || "Class";
 
-  let classTime = booking.class_time?.trim() || "";
-  if (!classTime && sch) {
-    classTime = `${sch.start_time.toLocaleString("en-IN", {
-      weekday: "short",
-      dateStyle: "medium",
-      timeStyle: "short",
-    })} – ${sch.end_time.toLocaleTimeString("en-IN", { timeStyle: "short" })}`;
+  // Canonical: render the time from the booked schedule in IST. The old code
+  // preferred the raw `class_time` snapshot (which is an ISO string, so it would
+  // emit "2026-06-20T12:30:00.000Z" verbatim) and omitted the timezone entirely
+  // (server-TZ render). Both are fixed here.
+  const TZ = "Asia/Kolkata";
+  let classTime = "";
+  if (sch) {
+    const start = sch.start_time.toLocaleString("en-IN", { dateStyle: "medium", timeStyle: "short", timeZone: TZ });
+    const end = sch.end_time.toLocaleTimeString("en-IN", { timeStyle: "short", timeZone: TZ });
+    classTime = `${start} – ${end}`;
+  } else if (booking.class_time?.trim()) {
+    const d = new Date(booking.class_time);
+    classTime = Number.isNaN(d.getTime())
+      ? booking.class_time.trim()
+      : d.toLocaleString("en-IN", { dateStyle: "medium", timeStyle: "short", timeZone: TZ });
   }
 
-  const classDate = booking.booking_date.toLocaleString("en-IN", {
+  const classDate = (sch ? sch.start_time : booking.booking_date).toLocaleString("en-IN", {
     dateStyle: "full",
     timeStyle: "short",
+    timeZone: TZ,
   });
 
   return {
