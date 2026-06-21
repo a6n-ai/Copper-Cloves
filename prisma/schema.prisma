@@ -1071,6 +1071,9 @@ model ActivityLog {
   action            String
   category          String
   summary           String
+  /// Human-readable context (class name, what changed, key fields) so the log is
+  /// legible without decoding entity_id/metadata. Built by buildActivityDetails.
+  details           String?
   entity_type       String?
   entity_id         String?
   metadata          Json?

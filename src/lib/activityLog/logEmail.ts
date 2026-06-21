@@ -60,6 +60,10 @@ export async function logEmailSent(opts: LogEmailOpts): Promise<void> {
         action: "notification.email_sent",
         category: "system",
         summary: `Email${opts.type ? ` (${opts.type})` : ""} ${opts.status}: ${opts.subject}`.slice(0, 300),
+        details: [opts.type, `to ${to}`, opts.status, opts.error ? `error: ${opts.error}` : ""]
+          .filter(Boolean)
+          .join(" · ")
+          .slice(0, 500),
         entity_type: opts.entity?.type ?? null,
         entity_id: opts.entity?.id ?? null,
         metadata,

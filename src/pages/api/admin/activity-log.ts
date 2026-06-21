@@ -72,6 +72,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       action: r.action,
       category: r.category,
       summary: r.summary,
+      details: r.details ?? null,
       actorName: r.actor_name ?? r.actor?.full_name ?? null,
       actorRole: r.actor_role,
       actorEmail: r.actor?.email ?? null,

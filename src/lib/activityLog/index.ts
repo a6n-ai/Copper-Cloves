@@ -2,7 +2,7 @@ import type { NextApiRequest } from "next";
 import prisma from "@/lib/prisma";
 import type { Prisma } from "@/generated/prisma/client";
 import { getStudioServerSession } from "@/lib/getStudioServerSession";
-import { resolveAction } from "./actions";
+import { resolveAction, buildActivityDetails } from "./actions";
 
 export interface LogActivityActor {
   id?: string | null;
@@ -49,6 +49,7 @@ export async function logActivity(opts: LogActivityOpts): Promise<void> {
 
     const meta = opts.metadata ?? {};
     const { category, summary } = resolveAction(opts.action, meta);
+    const details = buildActivityDetails(meta) || null;
     const userAgent =
       typeof opts.req?.headers["user-agent"] === "string"
         ? (opts.req?.headers["user-agent"] as string)
@@ -63,6 +64,7 @@ export async function logActivity(opts: LogActivityOpts): Promise<void> {
         action: opts.action,
         category,
         summary,
+        details,
         entity_type: opts.entity?.type ?? null,
         entity_id: opts.entity?.id ?? null,
         metadata: (meta as Prisma.InputJsonValue) ?? undefined,

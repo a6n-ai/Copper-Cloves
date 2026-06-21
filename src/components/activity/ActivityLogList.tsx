@@ -20,6 +20,7 @@ export interface ActivityLogItem {
   action: string;
   category: string;
   summary: string;
+  details?: string | null;
   actorIsSelf?: boolean;
   actorName?: string | null;
   actorRole?: string | null;
@@ -152,6 +153,7 @@ function ActivityDetailDialog({
             </ResponsiveDialogHeader>
 
             <dl className="mt-2">
+              <DetailRow label="Details" value={item.details} />
               <DetailRow label="Action" value={<code className="text-xs">{item.action}</code>} />
               <DetailRow
                 label="Actor"
@@ -177,7 +179,7 @@ function ActivityDetailDialog({
               />
               {hasMetadata(item.metadata) ? (
                 <DetailRow
-                  label="Details"
+                  label="Raw data"
                   value={
                     <pre className="whitespace-pre-wrap break-words rounded-md bg-charcoal/5 p-3 text-xs text-charcoal/80">
                       {JSON.stringify(item.metadata, null, 2)}
@@ -285,6 +287,9 @@ export function ActivityLogList({
               >
                 <TableCell className="font-body">
                   {it.summary}
+                  {it.details ? (
+                    <span className="block text-xs text-charcoal/55">{it.details}</span>
+                  ) : null}
                   {it.actorIsSelf === false && it.actorName ? (
                     <span className="block text-xs text-charcoal/45">by {it.actorName}</span>
                   ) : null}

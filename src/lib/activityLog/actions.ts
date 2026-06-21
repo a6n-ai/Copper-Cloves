@@ -92,6 +92,38 @@ export const ACTIVITY_ACTIONS: Record<string, ActionDef> = {
   },
 };
 
+/**
+ * Build a human-readable one-line context string from an event's metadata, so
+ * the audit log is legible without decoding entity_id / raw JSON. Surfaces only
+ * meaningful fields (names, what changed) — never raw ids.
+ */
+export function buildActivityDetails(meta: Record<string, unknown>): string {
+  const parts: string[] = [];
+  const push = (v: unknown, prefix = "") => {
+    if (typeof v === "string" && v.trim()) parts.push(prefix + v.trim());
+  };
+  push(meta.class_name);
+  push(meta.package_name);
+  push(meta.badge_name, "badge ");
+  push(meta.method, "via ");
+  push(meta.outcome);
+  if (typeof meta.count === "number") parts.push(`${meta.count} item${meta.count === 1 ? "" : "s"}`);
+
+  const c = meta.changes;
+  if (Array.isArray(c) && c.length > 0) {
+    parts.push(
+      (c as FieldChange[]).map((x) => `${x.field}: ${x.from ?? "∅"} → ${x.to ?? "∅"}`).join(", "),
+    );
+  } else if (typeof meta.old_time === "string" && typeof meta.new_time === "string") {
+    parts.push(`${meta.old_time} → ${meta.new_time}`);
+  }
+
+  if (Array.isArray(meta.changed_fields) && meta.changed_fields.length > 0 && parts.length === 0) {
+    parts.push(`changed: ${(meta.changed_fields as string[]).join(", ")}`);
+  }
+  return parts.join(" · ");
+}
+
 export function resolveAction(action: string, meta: Record<string, unknown>): {
   category: ActivityCategory;
   summary: string;

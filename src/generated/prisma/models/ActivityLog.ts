@@ -34,6 +34,7 @@ export type ActivityLogMinAggregateOutputType = {
   action: string | null
   category: string | null
   summary: string | null
+  details: string | null
   entity_type: string | null
   entity_id: string | null
   ip: string | null
@@ -50,6 +51,7 @@ export type ActivityLogMaxAggregateOutputType = {
   action: string | null
   category: string | null
   summary: string | null
+  details: string | null
   entity_type: string | null
   entity_id: string | null
   ip: string | null
@@ -66,6 +68,7 @@ export type ActivityLogCountAggregateOutputType = {
   action: number
   category: number
   summary: number
+  details: number
   entity_type: number
   entity_id: number
   metadata: number
@@ -85,6 +88,7 @@ export type ActivityLogMinAggregateInputType = {
   action?: true
   category?: true
   summary?: true
+  details?: true
   entity_type?: true
   entity_id?: true
   ip?: true
@@ -101,6 +105,7 @@ export type ActivityLogMaxAggregateInputType = {
   action?: true
   category?: true
   summary?: true
+  details?: true
   entity_type?: true
   entity_id?: true
   ip?: true
@@ -117,6 +122,7 @@ export type ActivityLogCountAggregateInputType = {
   action?: true
   category?: true
   summary?: true
+  details?: true
   entity_type?: true
   entity_id?: true
   metadata?: true
@@ -207,6 +213,7 @@ export type ActivityLogGroupByOutputType = {
   action: string
   category: string
   summary: string
+  details: string | null
   entity_type: string | null
   entity_id: string | null
   metadata: runtime.JsonValue | null
@@ -245,6 +252,7 @@ export type ActivityLogWhereInput = {
   action?: Prisma.StringFilter<"ActivityLog"> | string
   category?: Prisma.StringFilter<"ActivityLog"> | string
   summary?: Prisma.StringFilter<"ActivityLog"> | string
+  details?: Prisma.StringNullableFilter<"ActivityLog"> | string | null
   entity_type?: Prisma.StringNullableFilter<"ActivityLog"> | string | null
   entity_id?: Prisma.StringNullableFilter<"ActivityLog"> | string | null
   metadata?: Prisma.JsonNullableFilter<"ActivityLog">
@@ -264,6 +272,7 @@ export type ActivityLogOrderByWithRelationInput = {
   action?: Prisma.SortOrder
   category?: Prisma.SortOrder
   summary?: Prisma.SortOrder
+  details?: Prisma.SortOrderInput | Prisma.SortOrder
   entity_type?: Prisma.SortOrderInput | Prisma.SortOrder
   entity_id?: Prisma.SortOrderInput | Prisma.SortOrder
   metadata?: Prisma.SortOrderInput | Prisma.SortOrder
@@ -286,6 +295,7 @@ export type ActivityLogWhereUniqueInput = Prisma.AtLeast<{
   action?: Prisma.StringFilter<"ActivityLog"> | string
   category?: Prisma.StringFilter<"ActivityLog"> | string
   summary?: Prisma.StringFilter<"ActivityLog"> | string
+  details?: Prisma.StringNullableFilter<"ActivityLog"> | string | null
   entity_type?: Prisma.StringNullableFilter<"ActivityLog"> | string | null
   entity_id?: Prisma.StringNullableFilter<"ActivityLog"> | string | null
   metadata?: Prisma.JsonNullableFilter<"ActivityLog">
@@ -305,6 +315,7 @@ export type ActivityLogOrderByWithAggregationInput = {
   action?: Prisma.SortOrder
   category?: Prisma.SortOrder
   summary?: Prisma.SortOrder
+  details?: Prisma.SortOrderInput | Prisma.SortOrder
   entity_type?: Prisma.SortOrderInput | Prisma.SortOrder
   entity_id?: Prisma.SortOrderInput | Prisma.SortOrder
   metadata?: Prisma.SortOrderInput | Prisma.SortOrder
@@ -328,6 +339,7 @@ export type ActivityLogScalarWhereWithAggregatesInput = {
   action?: Prisma.StringWithAggregatesFilter<"ActivityLog"> | string
   category?: Prisma.StringWithAggregatesFilter<"ActivityLog"> | string
   summary?: Prisma.StringWithAggregatesFilter<"ActivityLog"> | string
+  details?: Prisma.StringNullableWithAggregatesFilter<"ActivityLog"> | string | null
   entity_type?: Prisma.StringNullableWithAggregatesFilter<"ActivityLog"> | string | null
   entity_id?: Prisma.StringNullableWithAggregatesFilter<"ActivityLog"> | string | null
   metadata?: Prisma.JsonNullableWithAggregatesFilter<"ActivityLog">
@@ -343,6 +355,7 @@ export type ActivityLogCreateInput = {
   action: string
   category: string
   summary: string
+  details?: string | null
   entity_type?: string | null
   entity_id?: string | null
   metadata?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
@@ -362,6 +375,7 @@ export type ActivityLogUncheckedCreateInput = {
   action: string
   category: string
   summary: string
+  details?: string | null
   entity_type?: string | null
   entity_id?: string | null
   metadata?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
@@ -377,6 +391,7 @@ export type ActivityLogUpdateInput = {
   action?: Prisma.StringFieldUpdateOperationsInput | string
   category?: Prisma.StringFieldUpdateOperationsInput | string
   summary?: Prisma.StringFieldUpdateOperationsInput | string
+  details?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   entity_type?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   entity_id?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   metadata?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
@@ -396,6 +411,7 @@ export type ActivityLogUncheckedUpdateInput = {
   action?: Prisma.StringFieldUpdateOperationsInput | string
   category?: Prisma.StringFieldUpdateOperationsInput | string
   summary?: Prisma.StringFieldUpdateOperationsInput | string
+  details?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   entity_type?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   entity_id?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   metadata?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
@@ -413,6 +429,7 @@ export type ActivityLogCreateManyInput = {
   action: string
   category: string
   summary: string
+  details?: string | null
   entity_type?: string | null
   entity_id?: string | null
   metadata?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
@@ -428,6 +445,7 @@ export type ActivityLogUpdateManyMutationInput = {
   action?: Prisma.StringFieldUpdateOperationsInput | string
   category?: Prisma.StringFieldUpdateOperationsInput | string
   summary?: Prisma.StringFieldUpdateOperationsInput | string
+  details?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   entity_type?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   entity_id?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   metadata?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
@@ -445,6 +463,7 @@ export type ActivityLogUncheckedUpdateManyInput = {
   action?: Prisma.StringFieldUpdateOperationsInput | string
   category?: Prisma.StringFieldUpdateOperationsInput | string
   summary?: Prisma.StringFieldUpdateOperationsInput | string
+  details?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   entity_type?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   entity_id?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   metadata?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
@@ -472,6 +491,7 @@ export type ActivityLogCountOrderByAggregateInput = {
   action?: Prisma.SortOrder
   category?: Prisma.SortOrder
   summary?: Prisma.SortOrder
+  details?: Prisma.SortOrder
   entity_type?: Prisma.SortOrder
   entity_id?: Prisma.SortOrder
   metadata?: Prisma.SortOrder
@@ -489,6 +509,7 @@ export type ActivityLogMaxOrderByAggregateInput = {
   action?: Prisma.SortOrder
   category?: Prisma.SortOrder
   summary?: Prisma.SortOrder
+  details?: Prisma.SortOrder
   entity_type?: Prisma.SortOrder
   entity_id?: Prisma.SortOrder
   ip?: Prisma.SortOrder
@@ -505,6 +526,7 @@ export type ActivityLogMinOrderByAggregateInput = {
   action?: Prisma.SortOrder
   category?: Prisma.SortOrder
   summary?: Prisma.SortOrder
+  details?: Prisma.SortOrder
   entity_type?: Prisma.SortOrder
   entity_id?: Prisma.SortOrder
   ip?: Prisma.SortOrder
@@ -603,6 +625,7 @@ export type ActivityLogCreateWithoutActorInput = {
   action: string
   category: string
   summary: string
+  details?: string | null
   entity_type?: string | null
   entity_id?: string | null
   metadata?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
@@ -620,6 +643,7 @@ export type ActivityLogUncheckedCreateWithoutActorInput = {
   action: string
   category: string
   summary: string
+  details?: string | null
   entity_type?: string | null
   entity_id?: string | null
   metadata?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
@@ -645,6 +669,7 @@ export type ActivityLogCreateWithoutTargetInput = {
   action: string
   category: string
   summary: string
+  details?: string | null
   entity_type?: string | null
   entity_id?: string | null
   metadata?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
@@ -662,6 +687,7 @@ export type ActivityLogUncheckedCreateWithoutTargetInput = {
   action: string
   category: string
   summary: string
+  details?: string | null
   entity_type?: string | null
   entity_id?: string | null
   metadata?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
@@ -708,6 +734,7 @@ export type ActivityLogScalarWhereInput = {
   action?: Prisma.StringFilter<"ActivityLog"> | string
   category?: Prisma.StringFilter<"ActivityLog"> | string
   summary?: Prisma.StringFilter<"ActivityLog"> | string
+  details?: Prisma.StringNullableFilter<"ActivityLog"> | string | null
   entity_type?: Prisma.StringNullableFilter<"ActivityLog"> | string | null
   entity_id?: Prisma.StringNullableFilter<"ActivityLog"> | string | null
   metadata?: Prisma.JsonNullableFilter<"ActivityLog">
@@ -740,6 +767,7 @@ export type ActivityLogCreateManyActorInput = {
   action: string
   category: string
   summary: string
+  details?: string | null
   entity_type?: string | null
   entity_id?: string | null
   metadata?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
@@ -756,6 +784,7 @@ export type ActivityLogCreateManyTargetInput = {
   action: string
   category: string
   summary: string
+  details?: string | null
   entity_type?: string | null
   entity_id?: string | null
   metadata?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
@@ -771,6 +800,7 @@ export type ActivityLogUpdateWithoutActorInput = {
   action?: Prisma.StringFieldUpdateOperationsInput | string
   category?: Prisma.StringFieldUpdateOperationsInput | string
   summary?: Prisma.StringFieldUpdateOperationsInput | string
+  details?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   entity_type?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   entity_id?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   metadata?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
@@ -788,6 +818,7 @@ export type ActivityLogUncheckedUpdateWithoutActorInput = {
   action?: Prisma.StringFieldUpdateOperationsInput | string
   category?: Prisma.StringFieldUpdateOperationsInput | string
   summary?: Prisma.StringFieldUpdateOperationsInput | string
+  details?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   entity_type?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   entity_id?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   metadata?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
@@ -804,6 +835,7 @@ export type ActivityLogUncheckedUpdateManyWithoutActorInput = {
   action?: Prisma.StringFieldUpdateOperationsInput | string
   category?: Prisma.StringFieldUpdateOperationsInput | string
   summary?: Prisma.StringFieldUpdateOperationsInput | string
+  details?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   entity_type?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   entity_id?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   metadata?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
@@ -819,6 +851,7 @@ export type ActivityLogUpdateWithoutTargetInput = {
   action?: Prisma.StringFieldUpdateOperationsInput | string
   category?: Prisma.StringFieldUpdateOperationsInput | string
   summary?: Prisma.StringFieldUpdateOperationsInput | string
+  details?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   entity_type?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   entity_id?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   metadata?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
@@ -836,6 +869,7 @@ export type ActivityLogUncheckedUpdateWithoutTargetInput = {
   action?: Prisma.StringFieldUpdateOperationsInput | string
   category?: Prisma.StringFieldUpdateOperationsInput | string
   summary?: Prisma.StringFieldUpdateOperationsInput | string
+  details?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   entity_type?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   entity_id?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   metadata?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
@@ -852,6 +886,7 @@ export type ActivityLogUncheckedUpdateManyWithoutTargetInput = {
   action?: Prisma.StringFieldUpdateOperationsInput | string
   category?: Prisma.StringFieldUpdateOperationsInput | string
   summary?: Prisma.StringFieldUpdateOperationsInput | string
+  details?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   entity_type?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   entity_id?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   metadata?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
@@ -871,6 +906,7 @@ export type ActivityLogSelect<ExtArgs extends runtime.Types.Extensions.InternalA
   action?: boolean
   category?: boolean
   summary?: boolean
+  details?: boolean
   entity_type?: boolean
   entity_id?: boolean
   metadata?: boolean
@@ -890,6 +926,7 @@ export type ActivityLogSelectCreateManyAndReturn<ExtArgs extends runtime.Types.E
   action?: boolean
   category?: boolean
   summary?: boolean
+  details?: boolean
   entity_type?: boolean
   entity_id?: boolean
   metadata?: boolean
@@ -909,6 +946,7 @@ export type ActivityLogSelectUpdateManyAndReturn<ExtArgs extends runtime.Types.E
   action?: boolean
   category?: boolean
   summary?: boolean
+  details?: boolean
   entity_type?: boolean
   entity_id?: boolean
   metadata?: boolean
@@ -928,6 +966,7 @@ export type ActivityLogSelectScalar = {
   action?: boolean
   category?: boolean
   summary?: boolean
+  details?: boolean
   entity_type?: boolean
   entity_id?: boolean
   metadata?: boolean
@@ -936,7 +975,7 @@ export type ActivityLogSelectScalar = {
   created_at?: boolean
 }
 
-export type ActivityLogOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "actor_profile_id" | "actor_role" | "actor_name" | "target_profile_id" | "action" | "category" | "summary" | "entity_type" | "entity_id" | "metadata" | "ip" | "user_agent" | "created_at", ExtArgs["result"]["activityLog"]>
+export type ActivityLogOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "actor_profile_id" | "actor_role" | "actor_name" | "target_profile_id" | "action" | "category" | "summary" | "details" | "entity_type" | "entity_id" | "metadata" | "ip" | "user_agent" | "created_at", ExtArgs["result"]["activityLog"]>
 export type ActivityLogInclude<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   actor?: boolean | Prisma.ActivityLog$actorArgs<ExtArgs>
   target?: boolean | Prisma.ActivityLog$targetArgs<ExtArgs>
@@ -965,6 +1004,11 @@ export type $ActivityLogPayload<ExtArgs extends runtime.Types.Extensions.Interna
     action: string
     category: string
     summary: string
+    /**
+     * Human-readable context (class name, what changed, key fields) so the log is
+     * legible without decoding entity_id/metadata. Built by buildActivityDetails.
+     */
+    details: string | null
     entity_type: string | null
     entity_id: string | null
     metadata: runtime.JsonValue | null
@@ -1404,6 +1448,7 @@ export interface ActivityLogFieldRefs {
   readonly action: Prisma.FieldRef<"ActivityLog", 'String'>
   readonly category: Prisma.FieldRef<"ActivityLog", 'String'>
   readonly summary: Prisma.FieldRef<"ActivityLog", 'String'>
+  readonly details: Prisma.FieldRef<"ActivityLog", 'String'>
   readonly entity_type: Prisma.FieldRef<"ActivityLog", 'String'>
   readonly entity_id: Prisma.FieldRef<"ActivityLog", 'String'>
   readonly metadata: Prisma.FieldRef<"ActivityLog", 'Json'>

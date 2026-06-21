@@ -865,6 +865,7 @@ export const ActivityLogScalarFieldEnum = {
   action: 'action',
   category: 'category',
   summary: 'summary',
+  details: 'details',
   entity_type: 'entity_type',
   entity_id: 'entity_id',
   metadata: 'metadata',
