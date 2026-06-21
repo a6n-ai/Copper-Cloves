@@ -314,9 +314,18 @@ async function handlePut(req: NextApiRequest, res: NextApiResponse) {
     // surface shows a stale time (the V. Shyamala 6pm-vs-7:30pm bug), then email
     // every booked customer the corrected time.
     try {
+      // Resync the snapshot AND clear reminder_sent_at so the ~1h pre-class
+      // reminder re-fires with the new time (even if one already went out for the
+      // old time). The reminder query is time-windowed, so it only re-sends if the
+      // new start is still upcoming.
       await prisma.booking.updateMany({
         where: { class_schedule_id: schedule.id, status: { in: [...OCCUPYING_STATUSES] } },
-        data: { class_time: schedule.start_time.toISOString() },
+        data: { class_time: schedule.start_time.toISOString(), reminder_sent_at: null },
+      });
+      // Same for the instructor roster (~6h before): let it re-send with the new time.
+      await prisma.classSchedule.update({
+        where: { id: schedule.id },
+        data: { roster_sent_at: null },
       });
     } catch (e) {
       console.error("[class-schedules PUT] class_time resync failed", e);
