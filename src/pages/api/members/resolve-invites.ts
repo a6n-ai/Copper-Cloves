@@ -1,6 +1,7 @@
 // src/pages/api/members/resolve-invites.ts
 import type { NextApiRequest, NextApiResponse } from "next";
 import crypto from "crypto";
+import { isValidPhoneNumber } from "libphonenumber-js";
 import prisma from "@/lib/prisma";
 import { getStudioServerSession } from "@/lib/getStudioServerSession";
 import { sendHtmlEmail } from "@/lib/notifications/sendEmail";
@@ -59,6 +60,14 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     // member they picked (profile_id set, real separate account).
     if (!member.profile_id && sameAsSelfPhone(memberPhone)) {
       return res.status(400).json({ error: "Each guest needs their own mobile number, not yours." });
+    }
+    // Validate the number with the same library the client uses. Required for a
+    // newly-entered guest (no profile_id) so we never create an account with a
+    // malformed phone.
+    if (!member.profile_id) {
+      if (!memberPhone || !isValidPhoneNumber(memberPhone)) {
+        return res.status(400).json({ error: "Enter a valid mobile number for each guest." });
+      }
     }
 
     // If caller already resolved a profile_id, verify it exists and use it

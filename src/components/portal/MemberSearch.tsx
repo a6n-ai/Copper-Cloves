@@ -6,6 +6,7 @@ import { PhoneInput, type PhoneValue } from "@/components/ui/phone-input";
 import { Button } from "@/components/ui/button";
 import { X, UserPlus } from "lucide-react";
 import { cdnUrl } from "@/lib/cdnUrl";
+import { suggestEmailCorrection } from "@/lib/emailTypo";
 
 export type AddedMember = {
   profile_id?: string;
@@ -85,6 +86,7 @@ export function MemberSearch({ value, onChange, maxMembers = 5, currentEmail, cu
   const [inviteName, setInviteName] = useState("");
   const [invitePhone, setInvitePhone] = useState<PhoneValue>("" as PhoneValue);
   const [inviteError, setInviteError] = useState<string | null>(null);
+  const [emailSuggestion, setEmailSuggestion] = useState<string | null>(null);
   // A member picked from the list/friends who has no phone on file — we collect
   // one before adding them.
   const [pendingPhoneMember, setPendingPhoneMember] = useState<AddedMember | null>(null);
@@ -211,6 +213,15 @@ export function MemberSearch({ value, onChange, maxMembers = 5, currentEmail, cu
       setInviteError("Add the guest's name.");
       return;
     }
+    // Catch likely email typos (gmail.comm, gmial.com…) before we create an
+    // account from a misspelled address. Suggest a fix once; a second submit of
+    // the same address goes through (override for genuinely unusual domains).
+    const suggestion = suggestEmailCorrection(email);
+    if (suggestion && emailSuggestion !== suggestion) {
+      setEmailSuggestion(suggestion);
+      setInviteError(null);
+      return;
+    }
     const phone = (invitePhone ?? "").trim();
     if (!phone || !isValidPhoneNumber(phone)) {
       setInviteError("Enter a valid phone number.");
@@ -225,6 +236,7 @@ export function MemberSearch({ value, onChange, maxMembers = 5, currentEmail, cu
     setInviteName("");
     setInvitePhone("" as PhoneValue);
     setInviteError(null);
+    setEmailSuggestion(null);
     setShowInviteForm(false);
   }
 
@@ -355,8 +367,21 @@ export function MemberSearch({ value, onChange, maxMembers = 5, currentEmail, cu
             placeholder="Email address (required)"
             type="email"
             value={inviteEmail}
-            onChange={(e) => { setInviteEmail(e.target.value); setInviteError(null); }}
+            onChange={(e) => { setInviteEmail(e.target.value); setInviteError(null); setEmailSuggestion(null); }}
           />
+          {emailSuggestion && (
+            <p className="text-xs text-[#6b6b6b]">
+              Did you mean{" "}
+              <button
+                type="button"
+                className="font-medium text-[#8f9779] underline underline-offset-2"
+                onClick={() => { setInviteEmail(emailSuggestion); setEmailSuggestion(null); }}
+              >
+                {emailSuggestion}
+              </button>
+              ? Or tap Add again to keep what you typed.
+            </p>
+          )}
           <PhoneInput
             placeholder="Mobile number (required)"
             value={invitePhone}
@@ -385,6 +410,7 @@ export function MemberSearch({ value, onChange, maxMembers = 5, currentEmail, cu
                 setInviteName("");
                 setInvitePhone("" as PhoneValue);
                 setInviteError(null);
+                setEmailSuggestion(null);
               }}
             >
               Cancel
