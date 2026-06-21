@@ -5,6 +5,7 @@ import { withinCheckinWindow } from "@/lib/checkinWindow";
 import { getInstructorSession } from "@/lib/instructorAuth";
 import { getStudioServerSession } from "@/lib/getStudioServerSession";
 import { checkInOutcomeFromTimes } from "@/lib/bookingAttendance";
+import { OCCUPYING_STATUSES } from "@/lib/bookingStatus";
 import { requestLogger } from "@/lib/logger";
 
 type ScanLog = ReturnType<typeof requestLogger>;
@@ -153,7 +154,9 @@ async function handleMemberScan(
   // Live seat count (booker = 1 seat each, + their extra guests).
   const cap = schedule.capacity ?? schedule.class_model?.max_capacity ?? 0;
   const seatRows = await prisma.booking.findMany({
-    where: { class_schedule_id: schedule.id, status: { in: ["confirmed", "pending"] } },
+    // Count every seat-occupying status (incl. unpaid payment_pending holds) so a
+    // walk-in can't be admitted into a class that's actually full of held seats.
+    where: { class_schedule_id: schedule.id, status: { in: [...OCCUPYING_STATUSES] } },
     select: { extra_guest_count: true },
   });
   const seatsTaken = seatRows.reduce((s, r) => s + 1 + Math.max(0, r.extra_guest_count ?? 0), 0);

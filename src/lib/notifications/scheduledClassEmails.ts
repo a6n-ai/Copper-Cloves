@@ -3,6 +3,8 @@ import type { EmailSendResult } from "@/lib/notifications/sendEmail";
 import { sendHtmlEmail } from "@/lib/notifications/sendEmail";
 import { interpolateCrmTemplate } from "@/lib/notifications/crmTemplatedDispatch";
 import { CrmTriggerType } from "@/lib/crmTriggerTypes";
+import { ROSTER_STATUSES } from "@/lib/bookingStatus";
+import { HIDDEN_SCHEDULE_STATUSES } from "@/lib/scheduleStatus";
 
 function mapResult(result: EmailSendResult): { status: string; err: string | null } {
   if (result.ok) return { status: "sent", err: null };
@@ -68,7 +70,7 @@ export async function sendDueClassReminders(): Promise<{ sent: number; skipped: 
     where: {
       status: "confirmed",
       reminder_sent_at: null,
-      class_schedule: { is: { start_time: { gt: now, lte: horizon }, status: { not: "cancelled" } } },
+      class_schedule: { is: { start_time: { gt: now, lte: horizon }, status: { notIn: [...HIDDEN_SCHEDULE_STATUSES] } } },
     },
     include: {
       profile: { select: { email: true, full_name: true } },
@@ -213,14 +215,16 @@ export async function sendDueInstructorRosters(): Promise<{ sent: number; skippe
   const schedules = await prisma.classSchedule.findMany({
     where: {
       start_time: { gt: now, lte: horizon },
-      status: { not: "cancelled" },
+      status: { notIn: [...HIDDEN_SCHEDULE_STATUSES] },
       roster_sent_at: null,
     },
     include: {
       class_model: true,
       instructor: { select: { name: true, email: true } },
       bookings: {
-        where: { status: "confirmed" },
+        // Match every live roster surface (confirmed + payment_pending holds) so
+        // the emailed roster headcount agrees with the portal roster.
+        where: { status: { in: [...ROSTER_STATUSES] } },
         include: { profile: { select: { id: true, full_name: true, email: true, phone: true } } },
         orderBy: { booking_date: "asc" },
       },

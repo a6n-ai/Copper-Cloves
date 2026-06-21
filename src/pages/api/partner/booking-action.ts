@@ -6,6 +6,7 @@ import { buildBookingCrmVariables, dispatchCrmEmailTriggers } from "@/lib/notifi
 import { CrmTriggerType } from "@/lib/crmTriggerTypes";
 import logger from "@/lib/logger";
 import { logActivity } from "@/lib/activityLog";
+import { OCCUPYING_STATUSES } from "@/lib/bookingStatus";
 
 const CONFIRMATION_CONFIRMED = "confirmed" as const;
 const CONFIRMATION_PENDING = "pending" as const;
@@ -96,7 +97,9 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         const cap = sched.capacity ?? sched.class_model?.max_capacity ?? 0;
         if (cap > 0) {
           const remaining = await tx.booking.findMany({
-            where: { class_schedule_id: booking.class_schedule_id, status: { in: [CONFIRMATION_CONFIRMED, CONFIRMATION_PENDING] } },
+            // Seat-occupying statuses incl. unpaid payment_pending holds — must
+            // match every other roster/seat path or a reject leaks held seats.
+            where: { class_schedule_id: booking.class_schedule_id, status: { in: [...OCCUPYING_STATUSES] } },
             select: { extra_guest_count: true },
           });
           const occupied = remaining.reduce((s, r) => s + 1 + Math.max(0, r.extra_guest_count ?? 0), 0);
