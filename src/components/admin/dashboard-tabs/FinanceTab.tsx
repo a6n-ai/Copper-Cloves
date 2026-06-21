@@ -297,7 +297,7 @@ function formatTxnTime(sortKey?: string): string | null {
   if (!sortKey) return null;
   const d = new Date(sortKey);
   if (Number.isNaN(d.getTime())) return null;
-  return d.toLocaleTimeString("en-IN", { hour: "numeric", minute: "2-digit" });
+  return d.toLocaleTimeString("en-IN", { hour: "numeric", minute: "2-digit", timeZone: "Asia/Kolkata" });
 }
 
 // Resolve which rows to hand to the export, shared by both sections so the

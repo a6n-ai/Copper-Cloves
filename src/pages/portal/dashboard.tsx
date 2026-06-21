@@ -920,6 +920,7 @@ export default function Dashboard() {
                           {new Date(startTime).toLocaleTimeString("en-US", {
                             hour: "2-digit",
                             minute: "2-digit",
+                            timeZone: "Asia/Kolkata",
                           })}
                         </p>
                       </>

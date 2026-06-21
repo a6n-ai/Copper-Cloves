@@ -64,7 +64,7 @@ export default function PartnerDashboard() {
       .map((c) => ({
         id: c.id,
         name: c.className,
-        time: new Date(c.startTime).toLocaleTimeString("en-IN", { hour: "numeric", minute: "2-digit" }),
+        time: new Date(c.startTime).toLocaleTimeString("en-IN", { hour: "numeric", minute: "2-digit", timeZone: "Asia/Kolkata" }),
         instructor: c.instructorName,
         enrolled: c.signups,
         capacity: c.capacity,

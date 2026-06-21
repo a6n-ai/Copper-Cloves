@@ -12,7 +12,7 @@ import {
 import { parseFinanceSnapshot } from "@/lib/financeBookingCheckout";
 import { ROSTER_STATUSES } from "@/lib/bookingStatus";
 import { deriveScheduleState } from "@/lib/scheduleStatus";
-import { getDynamicStats, getDynamicStatsForUsers, getTopStreaks, getStreakDistribution } from "@/lib/attendanceStats";
+import { getDynamicStats, getDynamicStatsForUsers, getStreakLeaderboardAndDistribution } from "@/lib/attendanceStats";
 
 import { cdnUrl } from "@/lib/cdnUrl";
 import { passCategoryForPackageType } from "@/lib/couponHelpers";
@@ -458,7 +458,7 @@ export async function getMemberStats(db: Db = prisma) {
     checkInsRecent,
     noShowsCount,
     activePackages,
-    topLeaderStats,
+    streakData,
     expBucketRows,
     topClassRows,
     topBookerRows,
@@ -466,7 +466,6 @@ export async function getMemberStats(db: Db = prisma) {
     totalMembersCount,
     checkInsThisMonth,
     signupRows,
-    streakDistribution,
   ] = await Promise.all([
     db.booking.findMany({
       where: { checked_in: true, check_in_time: { not: null }, booking_date: { gte: mAgo }, class_schedule_id: { not: null } },
@@ -477,7 +476,8 @@ export async function getMemberStats(db: Db = prisma) {
       where: { is_active: true, expiration_date: { gte: now } },
       select: { user_id: true, pass_type: true, package_type: { select: { type: true, is_unlimited: true } } },
     }),
-    getTopStreaks(1),
+    // Leaderboard + distribution from ONE scan of all check-ins (was two full-table scans).
+    getStreakLeaderboardAndDistribution(1),
     db.userPackage.findMany({
       where: { is_active: true, expiration_date: { gt: now, lte: d30 } },
       select: { expiration_date: true },
@@ -491,8 +491,9 @@ export async function getMemberStats(db: Db = prisma) {
       where: { created_at: { gte: growthStart }, NOT: { role: { equals: "admin", mode: "insensitive" } } },
       select: { created_at: true },
     }),
-    getStreakDistribution(),
   ]);
+  const topLeaderStats = streakData.top;
+  const streakDistribution = streakData.distribution;
 
   // New-member signups bucketed by month for the last 12 months.
   const memberGrowth = buildMemberGrowth(now, signupRows);

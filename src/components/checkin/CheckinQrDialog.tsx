@@ -50,6 +50,7 @@ export function CheckinQrDialog({
     return new Date(new Date(data.startTime).getTime() + 30 * 60000).toLocaleTimeString("en-US", {
       hour: "2-digit",
       minute: "2-digit",
+      timeZone: "Asia/Kolkata",
     });
   }, [data]);
 

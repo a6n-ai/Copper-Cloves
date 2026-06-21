@@ -94,6 +94,7 @@ function QrWindowBanner({ qr }: Readonly<{ qr: QrData | null }>) {
           ? ` Opens at ${new Date(qr.windowOpensAt).toLocaleString(undefined, {
               dateStyle: "medium",
               timeStyle: "short",
+              timeZone: "Asia/Kolkata",
             })}.`
           : null}
       </p>
@@ -494,7 +495,7 @@ export default function AdminClassPage() {
               <>
                 <PageHeader
                   title={roster.className}
-                  subtitle={`${start.toLocaleString("en-US", { weekday: "short", month: "short", day: "numeric", hour: "2-digit", minute: "2-digit" })} · ${roster.instructor}`}
+                  subtitle={`${start.toLocaleString("en-US", { weekday: "short", month: "short", day: "numeric", hour: "2-digit", minute: "2-digit", timeZone: "Asia/Kolkata" })} · ${roster.instructor}`}
                   crumbs={[
                     { label: "Dashboard", href: "/admin/dashboard" },
                     { label: "Schedule", href: "/admin/schedule" },
@@ -642,7 +643,7 @@ export default function AdminClassPage() {
                                 <DeleteButton
                                   onClick={handleDelete}
                                   confirmTitle="Delete this class?"
-                                  confirmDescription={`${roster.className} at ${start.toLocaleString("en-US", { weekday: "short", month: "short", day: "numeric", hour: "2-digit", minute: "2-digit" })} will be removed from the schedule. Bookings will be cancelled.`}
+                                  confirmDescription={`${roster.className} at ${start.toLocaleString("en-US", { weekday: "short", month: "short", day: "numeric", hour: "2-digit", minute: "2-digit", timeZone: "Asia/Kolkata" })} will be removed from the schedule. Bookings will be cancelled.`}
                                 />
                               </>
                             )}

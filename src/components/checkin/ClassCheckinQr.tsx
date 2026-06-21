@@ -76,7 +76,7 @@ export function ClassCheckinQr({ kind, qr, size = 200, label }: Props) {
 
   if (preWindow) {
     const opens = qr?.windowOpensAt
-      ? new Date(qr.windowOpensAt).toLocaleTimeString(undefined, { timeStyle: "short" })
+      ? new Date(qr.windowOpensAt).toLocaleTimeString(undefined, { timeStyle: "short", timeZone: "Asia/Kolkata" })
       : "later";
     return (
       <div className="flex flex-col items-center gap-2">

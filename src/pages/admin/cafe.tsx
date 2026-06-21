@@ -321,14 +321,15 @@ export default function AdminCafe() {
       // Format target ready time
       const readyTimeStr = targetReadyTime.toLocaleTimeString("en-US", {
         hour: "2-digit",
-        minute: "2-digit"
+        minute: "2-digit",
+        timeZone: "Asia/Kolkata"
       });
       
       // Class hasn't started yet
       if (minutesSinceClassStart < 0) {
         return { 
           level: "normal", 
-          message: `Class starts at ${classStartTime.toLocaleTimeString("en-US", { hour: "2-digit", minute: "2-digit" })}`,
+          message: `Class starts at ${classStartTime.toLocaleTimeString("en-US", { hour: "2-digit", minute: "2-digit", timeZone: "Asia/Kolkata" })}`,
           readyBy: readyTimeStr,
           blink: false, 
           critical: false 
@@ -1118,7 +1119,7 @@ export default function AdminCafe() {
                                           {classTime && (
                                             <span className="text-charcoal/45">
                                               {" "}
-                                              ({new Date(classTime).toLocaleString("en-US", { hour: "2-digit", minute: "2-digit" })})
+                                              ({new Date(classTime).toLocaleString("en-US", { hour: "2-digit", minute: "2-digit", timeZone: "Asia/Kolkata" })})
                                             </span>
                                           )}
                                         </p>
@@ -1296,6 +1297,7 @@ export default function AdminCafe() {
                                     day: "numeric",
                                     hour: "2-digit",
                                     minute: "2-digit",
+                                    timeZone: "Asia/Kolkata",
                                   })}
                                 </span>
                               </div>

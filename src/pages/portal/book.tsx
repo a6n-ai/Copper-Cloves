@@ -924,7 +924,7 @@ export default function BookClass() {
           return {
             id: schedule.id,
             name: schedule.class_model?.name || "Unknown Class",
-            time: new Date(schedule.start_time).toLocaleTimeString("en-US", { hour: "2-digit", minute: "2-digit", hour12: true }),
+            time: new Date(schedule.start_time).toLocaleTimeString("en-US", { hour: "2-digit", minute: "2-digit", hour12: true, timeZone: "Asia/Kolkata" }),
             instructor: schedule.instructor?.name || "Instructor",
             instructorImageUrl: schedule.instructor?.image_url ?? null,
             duration: `${schedule.class_model?.duration || 60} min`,

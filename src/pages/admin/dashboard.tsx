@@ -1020,7 +1020,7 @@ export default function AdminDashboard() {
               class: sch?.class_model?.name || (b.class_name as string) || "Class",
               date: st || (b.booking_date as string),
               time: st
-                ? new Date(st).toLocaleTimeString("en-US", { hour: "2-digit", minute: "2-digit" })
+                ? new Date(st).toLocaleTimeString("en-US", { hour: "2-digit", minute: "2-digit", timeZone: "Asia/Kolkata" })
                 : ((b.class_time as string) ?? "—"),
             };
           });

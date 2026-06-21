@@ -131,21 +131,36 @@ async function computeAllUserStats(): Promise<{ user_id: string; stats: DynamicS
   }));
 }
 
+const STREAK_BUCKETS = [
+  { range: "1-2", min: 1, max: 2 },
+  { range: "3-5", min: 3, max: 5 },
+  { range: "6-10", min: 6, max: 10 },
+  { range: "11-20", min: 11, max: 20 },
+  { range: "21+", min: 21, max: Infinity },
+] as const;
+
+function bucketStreaks(all: { stats: DynamicStats }[]): { range: string; count: number }[] {
+  return STREAK_BUCKETS.map((b) => ({
+    range: b.range,
+    count: all.filter(({ stats }) => stats.current_streak >= b.min && stats.current_streak <= b.max).length,
+  }));
+}
+
 // Histogram of members by current-streak length (days). Only counts members
 // with an active streak (>0). Buckets/labels are returned ready for charting.
 export async function getStreakDistribution(): Promise<{ range: string; count: number }[]> {
+  return bucketStreaks(await computeAllUserStats());
+}
+
+/**
+ * Leaderboard + distribution from a SINGLE pass over all check-ins. The dashboard
+ * needs both; computing them separately scanned the entire bookings table twice.
+ */
+export async function getStreakLeaderboardAndDistribution(limit: number): Promise<{
+  top: { user_id: string; stats: DynamicStats }[];
+  distribution: { range: string; count: number }[];
+}> {
   const all = await computeAllUserStats();
-  const buckets = [
-    { range: "1-2", min: 1, max: 2 },
-    { range: "3-5", min: 3, max: 5 },
-    { range: "6-10", min: 6, max: 10 },
-    { range: "11-20", min: 11, max: 20 },
-    { range: "21+", min: 21, max: Infinity },
-  ];
-  return buckets.map((b) => ({
-    range: b.range,
-    count: all.filter(
-      ({ stats }) => stats.current_streak >= b.min && stats.current_streak <= b.max,
-    ).length,
-  }));
+  const top = [...all].sort((a, b) => b.stats.current_streak - a.stats.current_streak).slice(0, limit);
+  return { top, distribution: bucketStreaks(all) };
 }

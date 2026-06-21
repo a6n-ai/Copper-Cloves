@@ -253,6 +253,7 @@ export function CartDrawer({
                     {new Date(cls.start_time).toLocaleTimeString([], {
                       hour: "2-digit",
                       minute: "2-digit",
+                      timeZone: "Asia/Kolkata",
                     })}
                   </option>
                 ))}

@@ -576,7 +576,7 @@ export default function AdminSchedule() {
           dateIso: `${y}-${mo}-${d}`,
           startTimeIso: item.start_time,
           endTimeIso: item.end_time ?? null,
-          time: startTime.toLocaleTimeString("en-US", { hour: "2-digit", minute: "2-digit" }),
+          time: startTime.toLocaleTimeString("en-US", { hour: "2-digit", minute: "2-digit", timeZone: "Asia/Kolkata" }),
           classId: item.class_id.toString(),
           instructorId: item.instructor_id?.toString() || "",
           actualInstructorId: item.actual_instructor_id ?? null,
@@ -1154,7 +1154,7 @@ export default function AdminSchedule() {
                         capacity: sc.capacity ?? getClassCapacity(sc.classId),
                         recurring: sc.recurring,
                         instructorCheckedInAt: sc.instructorCheckInTime
-                          ? new Date(sc.instructorCheckInTime).toLocaleTimeString("en-US", { hour: "2-digit", minute: "2-digit" })
+                          ? new Date(sc.instructorCheckInTime).toLocaleTimeString("en-US", { hour: "2-digit", minute: "2-digit", timeZone: "Asia/Kolkata" })
                           : null,
                         status: sc.status ?? "available",
                         _raw: sc,
