@@ -102,6 +102,14 @@ export type RazorpayOrder = Prisma.RazorpayOrderModel
  */
 export type RazorpayPayment = Prisma.RazorpayPaymentModel
 /**
+ * Model RazorpayWebhookLog
+ * Raw inbound Razorpay webhook capture. Stores the exact raw body + signature so an
+ * event can be replayed through `reconcileRazorpayPaymentFromWebhook` WITHOUT re-calling
+ * Razorpay, and kept as durable delivery history. Written before processing (best-effort)
+ * so a crash mid-reconcile still leaves the event on disk.
+ */
+export type RazorpayWebhookLog = Prisma.RazorpayWebhookLogModel
+/**
  * Model PaymentReconcile
  * Persistent admin reconciliation state per gateway payment, so handled payments
  * drop out of the live reconcile tab and show in the saved log instead.

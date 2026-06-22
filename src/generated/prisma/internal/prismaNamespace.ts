@@ -400,6 +400,7 @@ export const ModelName = {
   Booking: 'Booking',
   RazorpayOrder: 'RazorpayOrder',
   RazorpayPayment: 'RazorpayPayment',
+  RazorpayWebhookLog: 'RazorpayWebhookLog',
   PaymentReconcile: 'PaymentReconcile',
   Friendship: 'Friendship',
   Payment: 'Payment',
@@ -441,7 +442,7 @@ export type TypeMap<ExtArgs extends runtime.Types.Extensions.InternalArgs = runt
     omit: GlobalOmitOptions
   }
   meta: {
-    modelProps: "profile" | "userSession" | "coupon" | "couponRedemption" | "retailProduct" | "retailOrder" | "instructor" | "classModel" | "partner" | "partnerMember" | "classSchedule" | "packageType" | "userPackage" | "booking" | "razorpayOrder" | "razorpayPayment" | "paymentReconcile" | "friendship" | "payment" | "cafeItem" | "cafeOrder" | "mealSubscription" | "mealSubscriptionInquiry" | "rentalInquiry" | "signupLead" | "userStats" | "userStreak" | "badgeTemplate" | "userBadge" | "waiver" | "crmTemplate" | "crmMessage" | "crmTrigger" | "userActivitySession" | "userActivityEvent" | "memberTicket" | "passwordResetToken" | "file" | "instructorPayoutAdjustment" | "payoutSettings" | "qrCode" | "activityLog"
+    modelProps: "profile" | "userSession" | "coupon" | "couponRedemption" | "retailProduct" | "retailOrder" | "instructor" | "classModel" | "partner" | "partnerMember" | "classSchedule" | "packageType" | "userPackage" | "booking" | "razorpayOrder" | "razorpayPayment" | "razorpayWebhookLog" | "paymentReconcile" | "friendship" | "payment" | "cafeItem" | "cafeOrder" | "mealSubscription" | "mealSubscriptionInquiry" | "rentalInquiry" | "signupLead" | "userStats" | "userStreak" | "badgeTemplate" | "userBadge" | "waiver" | "crmTemplate" | "crmMessage" | "crmTrigger" | "userActivitySession" | "userActivityEvent" | "memberTicket" | "passwordResetToken" | "file" | "instructorPayoutAdjustment" | "payoutSettings" | "qrCode" | "activityLog"
     txIsolationLevel: TransactionIsolationLevel
   }
   model: {
@@ -1626,6 +1627,80 @@ export type TypeMap<ExtArgs extends runtime.Types.Extensions.InternalArgs = runt
         count: {
           args: Prisma.RazorpayPaymentCountArgs<ExtArgs>
           result: runtime.Types.Utils.Optional<Prisma.RazorpayPaymentCountAggregateOutputType> | number
+        }
+      }
+    }
+    RazorpayWebhookLog: {
+      payload: Prisma.$RazorpayWebhookLogPayload<ExtArgs>
+      fields: Prisma.RazorpayWebhookLogFieldRefs
+      operations: {
+        findUnique: {
+          args: Prisma.RazorpayWebhookLogFindUniqueArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$RazorpayWebhookLogPayload> | null
+        }
+        findUniqueOrThrow: {
+          args: Prisma.RazorpayWebhookLogFindUniqueOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$RazorpayWebhookLogPayload>
+        }
+        findFirst: {
+          args: Prisma.RazorpayWebhookLogFindFirstArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$RazorpayWebhookLogPayload> | null
+        }
+        findFirstOrThrow: {
+          args: Prisma.RazorpayWebhookLogFindFirstOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$RazorpayWebhookLogPayload>
+        }
+        findMany: {
+          args: Prisma.RazorpayWebhookLogFindManyArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$RazorpayWebhookLogPayload>[]
+        }
+        create: {
+          args: Prisma.RazorpayWebhookLogCreateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$RazorpayWebhookLogPayload>
+        }
+        createMany: {
+          args: Prisma.RazorpayWebhookLogCreateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        createManyAndReturn: {
+          args: Prisma.RazorpayWebhookLogCreateManyAndReturnArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$RazorpayWebhookLogPayload>[]
+        }
+        delete: {
+          args: Prisma.RazorpayWebhookLogDeleteArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$RazorpayWebhookLogPayload>
+        }
+        update: {
+          args: Prisma.RazorpayWebhookLogUpdateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$RazorpayWebhookLogPayload>
+        }
+        deleteMany: {
+          args: Prisma.RazorpayWebhookLogDeleteManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateMany: {
+          args: Prisma.RazorpayWebhookLogUpdateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateManyAndReturn: {
+          args: Prisma.RazorpayWebhookLogUpdateManyAndReturnArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$RazorpayWebhookLogPayload>[]
+        }
+        upsert: {
+          args: Prisma.RazorpayWebhookLogUpsertArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$RazorpayWebhookLogPayload>
+        }
+        aggregate: {
+          args: Prisma.RazorpayWebhookLogAggregateArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.AggregateRazorpayWebhookLog>
+        }
+        groupBy: {
+          args: Prisma.RazorpayWebhookLogGroupByArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.RazorpayWebhookLogGroupByOutputType>[]
+        }
+        count: {
+          args: Prisma.RazorpayWebhookLogCountArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.RazorpayWebhookLogCountAggregateOutputType> | number
         }
       }
     }
@@ -3909,6 +3984,24 @@ export const RazorpayPaymentScalarFieldEnum = {
 export type RazorpayPaymentScalarFieldEnum = (typeof RazorpayPaymentScalarFieldEnum)[keyof typeof RazorpayPaymentScalarFieldEnum]
 
 
+export const RazorpayWebhookLogScalarFieldEnum = {
+  id: 'id',
+  event_id: 'event_id',
+  event: 'event',
+  raw_body: 'raw_body',
+  signature: 'signature',
+  signature_valid: 'signature_valid',
+  razorpay_order_id: 'razorpay_order_id',
+  razorpay_payment_id: 'razorpay_payment_id',
+  status: 'status',
+  error: 'error',
+  processed_at: 'processed_at',
+  created_at: 'created_at'
+} as const
+
+export type RazorpayWebhookLogScalarFieldEnum = (typeof RazorpayWebhookLogScalarFieldEnum)[keyof typeof RazorpayWebhookLogScalarFieldEnum]
+
+
 export const PaymentReconcileScalarFieldEnum = {
   id: 'id',
   razorpay_payment_id: 'razorpay_payment_id',
@@ -4712,6 +4805,7 @@ export type GlobalOmitConfig = {
   booking?: Prisma.BookingOmit
   razorpayOrder?: Prisma.RazorpayOrderOmit
   razorpayPayment?: Prisma.RazorpayPaymentOmit
+  razorpayWebhookLog?: Prisma.RazorpayWebhookLogOmit
   paymentReconcile?: Prisma.PaymentReconcileOmit
   friendship?: Prisma.FriendshipOmit
   payment?: Prisma.PaymentOmit

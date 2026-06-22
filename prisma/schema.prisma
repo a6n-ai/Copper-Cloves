@@ -465,6 +465,38 @@ model RazorpayPayment {
   @@map("razorpay_payments")
 }
 
+/// Raw inbound Razorpay webhook capture. Stores the exact raw body + signature so an
+/// event can be replayed through `reconcileRazorpayPaymentFromWebhook` WITHOUT re-calling
+/// Razorpay, and kept as durable delivery history. Written before processing (best-effort)
+/// so a crash mid-reconcile still leaves the event on disk.
+model RazorpayWebhookLog {
+  id                  String    @id @default(uuid())
+  /// Razorpay `X-Razorpay-Event-Id` header — stable id for dedup/idempotency. Null if header absent.
+  event_id            String?   @unique
+  event               String?
+  /// Exact raw request body (UTF-8) — re-HMAC + replay fidelity. Never parse-then-reserialize.
+  raw_body            String
+  /// `X-Razorpay-Signature` header as received.
+  signature           String?
+  signature_valid     Boolean   @default(false)
+  /// Extracted from payload for querying / replay targeting.
+  razorpay_order_id   String?
+  razorpay_payment_id String?
+  /// received → processed | failed | skipped (invalid_sig / bad_json)
+  status              String    @default("received")
+  /// reconcile error text (failed path).
+  error               String?
+  processed_at        DateTime?
+  created_at          DateTime  @default(now())
+
+  @@index([razorpay_order_id])
+  @@index([razorpay_payment_id])
+  @@index([event])
+  @@index([status])
+  @@index([created_at])
+  @@map("razorpay_webhook_logs")
+}
+
 /// Persistent admin reconciliation state per gateway payment, so handled payments
 /// drop out of the live reconcile tab and show in the saved log instead.
 model PaymentReconcile {

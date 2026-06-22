@@ -67,6 +67,7 @@ export const ModelName = {
   Booking: 'Booking',
   RazorpayOrder: 'RazorpayOrder',
   RazorpayPayment: 'RazorpayPayment',
+  RazorpayWebhookLog: 'RazorpayWebhookLog',
   PaymentReconcile: 'PaymentReconcile',
   Friendship: 'Friendship',
   Payment: 'Payment',
@@ -426,6 +427,24 @@ export const RazorpayPaymentScalarFieldEnum = {
 } as const
 
 export type RazorpayPaymentScalarFieldEnum = (typeof RazorpayPaymentScalarFieldEnum)[keyof typeof RazorpayPaymentScalarFieldEnum]
+
+
+export const RazorpayWebhookLogScalarFieldEnum = {
+  id: 'id',
+  event_id: 'event_id',
+  event: 'event',
+  raw_body: 'raw_body',
+  signature: 'signature',
+  signature_valid: 'signature_valid',
+  razorpay_order_id: 'razorpay_order_id',
+  razorpay_payment_id: 'razorpay_payment_id',
+  status: 'status',
+  error: 'error',
+  processed_at: 'processed_at',
+  created_at: 'created_at'
+} as const
+
+export type RazorpayWebhookLogScalarFieldEnum = (typeof RazorpayWebhookLogScalarFieldEnum)[keyof typeof RazorpayWebhookLogScalarFieldEnum]
 
 
 export const PaymentReconcileScalarFieldEnum = {

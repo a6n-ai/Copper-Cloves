@@ -262,6 +262,51 @@ function paymentEntityFromWebhookPayload(payload: unknown): Record<string, unkno
   return entity as Record<string, unknown>;
 }
 
+function orderEntityFromWebhookPayload(payload: unknown): Record<string, unknown> | null {
+  if (!payload || typeof payload !== "object") return null;
+  const p = payload as Record<string, unknown>;
+  const ord = p.order;
+  if (!ord || typeof ord !== "object") return null;
+  const entity = (ord as Record<string, unknown>).entity;
+  if (!entity || typeof entity !== "object") return null;
+  return entity as Record<string, unknown>;
+}
+
+/**
+ * Reconcile the `razorpay_orders` row from an order-event entity (`order.paid` etc).
+ * UPDATE-ONLY + roll-forward: never creates a row from the gateway's bare notes (that would
+ * lose `pending_checkout` / `booking_id` — see ensureRazorpayOrderRowForUser). If the local
+ * row is missing, the payment-entity path (and the pull-reconciler) handle it instead.
+ */
+async function reconcileRazorpayOrderFromWebhook(payload: unknown): Promise<void> {
+  const entity = orderEntityFromWebhookPayload(payload);
+  if (!entity) return;
+  const ordId = typeof entity.id === "string" ? entity.id : null;
+  if (!ordId) return;
+
+  const existing = await prisma.razorpayOrder.findUnique({
+    where: { razorpay_order_id: ordId },
+    select: { status: true },
+  });
+  if (!existing) {
+    log.warn({ razorpayOrderId: ordId }, "order webhook: no local razorpay_orders row (skipped, update-only)");
+    return;
+  }
+
+  const statusNorm = entity.status != null ? normalizePaymentStatus(String(entity.status)) : "";
+  const amountRaw = entity.amount;
+  const amountPaise =
+    amountRaw !== undefined && Number.isFinite(Number(amountRaw)) ? Math.round(Number(amountRaw)) : null;
+
+  // Only ever advance toward `paid`; never downgrade an already-paid order.
+  const data: { status?: string; amount_paise?: number } = {};
+  if (statusNorm === "paid" && existing.status !== "paid") data.status = "paid";
+  if (amountPaise != null && amountPaise > 0) data.amount_paise = amountPaise;
+  if (Object.keys(data).length === 0) return;
+
+  await prisma.razorpayOrder.update({ where: { razorpay_order_id: ordId }, data });
+}
+
 type WebhookEntityFields = {
   payId: string;
   ordId: string;
@@ -348,6 +393,10 @@ export async function reconcileRazorpayPaymentFromWebhook(body: {
   event?: string;
   payload?: unknown;
 }): Promise<void> {
+  // Order-event entity (e.g. order.paid carries both order + payment entities): advance the
+  // local order row first. Update-only — safe no-op when there's no order entity.
+  await reconcileRazorpayOrderFromWebhook(body.payload);
+
   const entity = paymentEntityFromWebhookPayload(body.payload);
   if (!entity) return;
 
