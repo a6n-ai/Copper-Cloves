@@ -268,6 +268,7 @@ export const ClassModelScalarFieldEnum = {
   image_url: 'image_url',
   image_file_id: 'image_file_id',
   display_order: 'display_order',
+  is_active: 'is_active',
   instructor_id: 'instructor_id',
   partner_id: 'partner_id',
   created_at: 'created_at',

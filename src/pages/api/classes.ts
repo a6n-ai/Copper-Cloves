@@ -4,6 +4,7 @@ import prisma from "@/lib/prisma";
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
   if (req.method === "GET") {
     const classes = await prisma.classModel.findMany({
+      where: { is_active: true },
       orderBy: { name: "asc" },
       include: {
         // `studio_payout_cut_percent` (internal-only) is omitted via `omit`

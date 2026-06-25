@@ -16,6 +16,7 @@ import { MetricCard } from "@/components/admin/MetricCard";
 import { ListAvatar } from "@/components/admin/ListAvatar";
 import { AdminPageHeader } from "@/components/admin/AdminPageHeader";
 import { Button } from "@/components/ui/button";
+import { cn } from "@/lib/utils";
 import { EditButton, DeleteButton } from "@/components/ui/quick-actions";
 import { MemberTable, type MemberTableMember } from "@/components/admin/MemberTable";
 import { Pill } from "@/components/ui/pill";
@@ -50,6 +51,8 @@ import {
   Layers,
   Award,
   ListFilter,
+  Power,
+  PowerOff,
 } from "lucide-react";
 import { SEO } from "@/components/SEO";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -219,6 +222,7 @@ interface ClassRow {
   duration?: number | null;
   max_capacity?: number | null;
   image_url?: string | null;
+  is_active?: boolean | null;
   [key: string]: unknown;
 }
 
@@ -836,6 +840,23 @@ export default function ControlPanel() {
     } catch (err) {
       console.error("Error:", err);
       toast.error("Failed to delete class. Please try again.");
+    }
+  }
+
+  async function handleToggleClassActive(cls: ClassRow) {
+    const nextActive = cls.is_active === false; // currently inactive → reactivate; else set inactive
+    try {
+      const res = await fetch("/api/admin/classes", {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ id: cls.id, is_active: nextActive }),
+      });
+      if (!res.ok) throw new Error("Toggle failed");
+      toast.success(nextActive ? "Class reactivated." : "Class set inactive (hidden from members).");
+      fetchClasses();
+    } catch (err) {
+      console.error("Error:", err);
+      toast.error("Failed to update class status. Please try again.");
     }
   }
 
@@ -1484,6 +1505,7 @@ export default function ControlPanel() {
                                       Capacity {sortArrow(classSort.key === "capacity", classSort.dir)}
                                     </button>
                                   </TableHead>
+                                  <TableHead className="w-[110px]">Status</TableHead>
                                   <TableHead className="w-[110px] text-right">Actions</TableHead>
                                 </TableRow>
                               </TableHeader>
@@ -1522,7 +1544,30 @@ export default function ControlPanel() {
                                       <span className="font-body text-sm text-charcoal/70 tabular-nums">Max {cls.max_capacity}</span>
                                     </TableCell>
                                     <TableCell>
+                                      {cls.is_active === false ? (
+                                        <Pill tone="neutral" className="font-body">Inactive</Pill>
+                                      ) : (
+                                        <Pill tone="success" className="font-body">Active</Pill>
+                                      )}
+                                    </TableCell>
+                                    <TableCell>
                                       <div className="flex gap-2 justify-end">
+                                        <Button
+                                          type="button"
+                                          variant="outline"
+                                          size="sm"
+                                          onClick={() => handleToggleClassActive(cls)}
+                                          aria-label={cls.is_active === false ? "Reactivate class type" : "Set inactive (hide from members)"}
+                                          title={cls.is_active === false ? "Reactivate class type" : "Set inactive (hide from members)"}
+                                          className={cn(
+                                            "h-8 w-8 p-0",
+                                            cls.is_active === false
+                                              ? "border-sage/60 text-sage hover:bg-sage hover:text-cream"
+                                              : "border-terracotta/40 text-terracotta hover:bg-terracotta hover:text-cream",
+                                          )}
+                                        >
+                                          {cls.is_active === false ? <Power className="h-3.5 w-3.5" /> : <PowerOff className="h-3.5 w-3.5" />}
+                                        </Button>
                                         <EditButton onClick={() => { setSelectedClass(cls); setShowClassDetailsDialog(true); }} label="Edit class" />
                                         <DeleteButton onClick={() => handleDeleteClass(cls.id, cls.name)} label="Delete class" />
                                       </div>

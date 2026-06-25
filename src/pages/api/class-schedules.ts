@@ -110,7 +110,11 @@ function buildScheduleWhere(query: NextApiRequest["query"]): Prisma.ClassSchedul
   // Admin calendar omits it and still sees every status.
   const visible = visibleOnly === "1" || visibleOnly === "true";
   const statusFilter: Prisma.ClassScheduleWhereInput = visible
-    ? { status: { notIn: [...HIDDEN_SCHEDULE_STATUSES] as ClassScheduleStatus[] } }
+    ? {
+        status: { notIn: [...HIDDEN_SCHEDULE_STATUSES] as ClassScheduleStatus[] },
+        // Retired class types disappear from member browse/booking too.
+        class_model: { is_active: true },
+      }
     : {};
   const a = typeof fromMs === "string" ? Number(fromMs) : NaN;
   const b = typeof toMs === "string" ? Number(toMs) : NaN;

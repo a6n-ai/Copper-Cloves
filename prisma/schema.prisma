@@ -219,6 +219,8 @@ model ClassModel {
   image_url     String?
   image_file_id String?  @unique
   display_order Int?
+  /// When false, this class type is retired: hidden from member catalog/booking and not selectable for new schedules. Existing schedules keep their own status.
+  is_active     Boolean  @default(true)
   instructor_id String?
   /// When set, this class is run by an external partner/brand (rented slot) — its bookings need partner sign-off.
   partner_id    String?
