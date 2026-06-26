@@ -156,6 +156,7 @@ export function memberStatusPill(status: string): PillSpec {
       return { tone: "success" }
     case "expiring":
     case "expiring_soon":
+    case "paused":
       return { tone: "warning" }
     case "expired":
     case "inactive":

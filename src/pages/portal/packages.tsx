@@ -60,11 +60,20 @@ interface PurchasePackageType {
 
 interface PurchaseRecord {
   id: string;
-  status: string;
+  is_active: boolean;
+  is_paused: boolean;
   created_at: string;
   expires_at: string;
   remaining_credits: number;
   package_types?: PurchasePackageType;
+}
+
+/** Package state derived from is_active/is_paused/expiry (no `status` column exists). */
+function packageState(p: PurchaseRecord): { key: string; label: string } {
+  if (new Date(p.expires_at) < new Date()) return { key: "expired", label: "Expired" };
+  if (p.is_paused) return { key: "paused", label: "Paused" };
+  if (p.is_active) return { key: "active", label: "Active" };
+  return { key: "inactive", label: "Inactive" };
 }
 
 const premiumPackages: Package[] = [
@@ -352,8 +361,22 @@ export default function PackagesPage() {
     try {
       // Profile loads via shared SWR (deduped across the portal); only the
       // page-specific purchase history is fetched here.
+      // /api/user-packages returns raw Prisma userPackage rows (expiration_date,
+      // purchase_date, credits_remaining, is_active, package_type). Map to the
+      // shape this page renders — there is no `status` column, so derive it.
       const historyRes = await fetch("/api/user-packages");
-      const history = historyRes.ok ? await historyRes.json() : [];
+      const raw = historyRes.ok ? await historyRes.json() : [];
+      const history: PurchaseRecord[] = Array.isArray(raw)
+        ? raw.map((p: Record<string, any>) => ({
+            id: p.id,
+            is_active: Boolean(p.is_active),
+            is_paused: Boolean(p.is_paused),
+            created_at: p.purchase_date ?? p.created_at,
+            expires_at: p.expiration_date,
+            remaining_credits: p.credits_remaining ?? 0,
+            package_types: p.package_type ?? undefined,
+          }))
+        : [];
       setPurchaseHistory(history);
     } catch (err) {
       console.error("Error loading data:", err);
@@ -364,6 +387,7 @@ export default function PackagesPage() {
 
   const generateInvoicePDF = async (purchase: PurchaseRecord) => {
     const packageType = purchase.package_types;
+    const state = packageState(purchase);
 
     const invoiceHTML = `
       <!DOCTYPE html>
@@ -413,8 +437,8 @@ export default function PackagesPage() {
           <div class="detail-row">
             <span class="detail-label">Status:</span>
             <span class="detail-value">
-              <span class="status-badge ${purchase.status === 'active' ? 'status-active' : 'status-expired'}">
-                ${purchase.status === 'active' && new Date(purchase.expires_at) > new Date() ? 'ACTIVE' : 'EXPIRED'}
+              <span class="status-badge ${state.key === 'active' ? 'status-active' : 'status-expired'}">
+                ${state.label.toUpperCase()}
               </span>
             </span>
           </div>
@@ -818,16 +842,7 @@ export default function PackagesPage() {
               data={pagedHistory}
               renderCard={(purchase, _i) => {
                 const packageType = purchase.package_types;
-                const isActive = purchase.status === "active" && new Date(purchase.expires_at) > new Date();
-                const isExpired = new Date(purchase.expires_at) < new Date();
-                let cardStatusKey: string;
-                if (isActive) cardStatusKey = "active";
-                else if (isExpired) cardStatusKey = "expired";
-                else cardStatusKey = purchase.status;
-                let cardStatusLabel: string;
-                if (isActive) cardStatusLabel = "Active";
-                else if (isExpired) cardStatusLabel = "Expired";
-                else cardStatusLabel = purchase.status;
+                const { key: cardStatusKey, label: cardStatusLabel } = packageState(purchase);
                 return (
                   <div
                     key={purchase.id}
@@ -893,16 +908,7 @@ export default function PackagesPage() {
                 <div className="space-y-3">
                   {pagedHistory.map((purchase) => {
                     const packageType = purchase.package_types;
-                    const isActive = purchase.status === "active" && new Date(purchase.expires_at) > new Date();
-                    const isExpired = new Date(purchase.expires_at) < new Date();
-                    let rowStatusKey: string;
-                    if (isActive) rowStatusKey = "active";
-                    else if (isExpired) rowStatusKey = "expired";
-                    else rowStatusKey = purchase.status;
-                    let rowStatusLabel: string;
-                    if (isActive) rowStatusLabel = "Active";
-                    else if (isExpired) rowStatusLabel = "Expired";
-                    else rowStatusLabel = purchase.status;
+                    const { key: rowStatusKey, label: rowStatusLabel } = packageState(purchase);
                     return (
                       <div
                         key={purchase.id}

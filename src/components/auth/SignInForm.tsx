@@ -1,5 +1,4 @@
 import { useState } from "react";
-import { useRouter } from "next/router";
 import { signIn } from "next-auth/react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Button } from "@/components/ui/button";
@@ -21,7 +20,6 @@ const PORTALS: Record<Role, { label: string; blurb: string; href: string; icon: 
 };
 
 export function SignInForm({ onSwitchToSignup }: { onSwitchToSignup: () => void }) {
-  const router = useRouter();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [remember, setRemember] = useState(true);
@@ -82,7 +80,10 @@ export function SignInForm({ onSwitchToSignup }: { onSwitchToSignup: () => void 
         setLoading(false);
         return;
       }
-      await router.replace(PORTALS[r].href);
+      // Hard navigation so the new session starts with a clean in-memory SWR
+      // cache — a soft router.replace would reuse a prior user's cached data
+      // (profile/packages/stats) and land you in "someone else's account".
+      window.location.assign(PORTALS[r].href);
     } catch {
       setError("Something went wrong. Please try again.");
       setLoading(false);

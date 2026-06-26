@@ -78,7 +78,10 @@ export function DashboardShell({ config, user, children }: DashboardShellProps) 
 
   const handleSignOut = async () => {
     await signOut({ redirect: false });
-    await router.replace(SIGN_OUT_HREF);
+    // Hard navigation (not router.replace) so the in-memory SWR cache is wiped —
+    // otherwise the next user to log in on this tab sees the previous account's
+    // cached /api/user/profile, packages, and stats.
+    window.location.assign(SIGN_OUT_HREF);
   };
 
   return (
