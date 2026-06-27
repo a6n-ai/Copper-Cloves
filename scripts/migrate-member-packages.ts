@@ -135,7 +135,7 @@ async function main() {
     for (const id of deactivateIds) {
       await tx.userPackage.update({ where: { id }, data: { is_active: false } });
     }
-  });
+  }, { maxWait: 15000, timeout: 180000 }); // ~174 sequential updates over RDS; default 5s is too short
 
   console.log(`\nDone — ${repoints.length} repointed, ${deactivateIds.size} deactivated. Backup: ${BACKUP_TABLE}.`);
   console.log("Legacy types NOT deleted — verify, then retire them separately.\n");
