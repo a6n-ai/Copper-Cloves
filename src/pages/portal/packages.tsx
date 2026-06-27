@@ -88,6 +88,7 @@ interface DbPackage {
   benefits?: string[] | null;
   featured?: boolean;
   badge?: string | null;
+  is_published?: boolean;
 }
 
 /** Human validity label derived from the package duration (no label column exists). */
@@ -285,7 +286,10 @@ export default function PackagesPage() {
       try {
         const res = await fetch("/api/packages");
         const rows: DbPackage[] = res.ok ? await res.json() : [];
-        if (!cancelled) setPremiumPackages(Array.isArray(rows) ? rows.map(toPackage) : []);
+        // Published-only: the admin /api/packages GET returns all rows, so guard
+        // here too — a member-facing buy list must never show hidden packages.
+        const published = Array.isArray(rows) ? rows.filter((r) => r.is_published !== false) : [];
+        if (!cancelled) setPremiumPackages(published.map(toPackage));
       } catch (err) {
         console.error("Error loading packages:", err);
       } finally {
