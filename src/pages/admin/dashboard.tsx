@@ -70,9 +70,6 @@ import { refreshInstructors } from "@/hooks/useInstructors";
 import { toast } from "sonner";
 import { ClassCheckinQr } from "@/components/checkin/ClassCheckinQr";
 import { ClassCountdownPill } from "@/components/checkin/ClassCountdownPill";
-import { MealWaitlistTab } from "@/components/admin/dashboard-tabs/MealWaitlistTab";
-import { RentalInquiriesTab } from "@/components/admin/dashboard-tabs/RentalInquiriesTab";
-import { PricingTab } from "@/components/admin/dashboard-tabs/PricingTab";
 // Heavy chart-laden tabs — defer JS+recharts chunks until opened.
 // `loading: () => <TabLoadingSkeleton />` prevents the production blink/
 // scrollbar flash that happens when SSR renders empty body, then client
@@ -90,6 +87,31 @@ function TabLoadingSkeleton() {
     </div>
   );
 }
+// Lighter skeleton for the table/list-based secondary tabs (no chart blocks).
+function ListTabLoadingSkeleton() {
+  return (
+    <div className="space-y-4 min-h-[50vh]">
+      <div className="h-12 rounded-2xl border border-border bg-white-warm animate-pulse" />
+      {Array.from({ length: 6 }).map((_, i) => (
+        <div key={i} className="h-16 rounded-xl border border-border bg-white-warm animate-pulse" />
+      ))}
+    </div>
+  );
+}
+// Secondary tabs (tables only, no charts) — still kept out of the initial page
+// chunk since they're never the default tab. Lighter skeleton matches a list.
+const MealWaitlistTab = dynamic(
+  () => import("@/components/admin/dashboard-tabs/MealWaitlistTab").then((m) => m.MealWaitlistTab),
+  { ssr: false, loading: () => <ListTabLoadingSkeleton /> },
+);
+const RentalInquiriesTab = dynamic(
+  () => import("@/components/admin/dashboard-tabs/RentalInquiriesTab").then((m) => m.RentalInquiriesTab),
+  { ssr: false, loading: () => <ListTabLoadingSkeleton /> },
+);
+const PricingTab = dynamic(
+  () => import("@/components/admin/dashboard-tabs/PricingTab").then((m) => m.PricingTab),
+  { ssr: false, loading: () => <ListTabLoadingSkeleton /> },
+);
 const InstructorsTab = dynamic(
   () => import("@/components/admin/dashboard-tabs/InstructorsTab").then((m) => m.InstructorsTab),
   { ssr: false, loading: () => <TabLoadingSkeleton /> },

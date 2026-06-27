@@ -125,9 +125,9 @@ export function MemberMobileDashboard({
           Welcome home, {userName || "Member"}
         </h1>
         <p className="mt-1 flex flex-wrap items-center gap-x-2 gap-y-0.5 font-body text-sm text-cream/85">
-          <span>{userClassesCompleted} classes</span>
+          <span className="tabular-nums">{userClassesCompleted} classes</span>
           {currentStreak > 0 && (
-            <span className="inline-flex items-center gap-1">
+            <span className="inline-flex items-center gap-1 tabular-nums">
               <Flame size={13} /> {currentStreak}-day streak
             </span>
           )}
@@ -215,7 +215,7 @@ export function MemberMobileDashboard({
               key={label}
               type="button"
               onClick={action}
-              className="flex min-h-16 flex-col items-center justify-center gap-1.5 rounded-xl border border-sage/15 bg-white-warm px-1 py-2 active:scale-95 transition-transform"
+              className="flex min-h-16 flex-col items-center justify-center gap-1.5 rounded-lg border border-sage/15 bg-white-warm px-1 py-2 active:scale-[0.96] transition-transform"
             >
               <AnimatedIcon icon={Icon} size={20} className="text-sage" />
               <span className="text-center text-[10px] font-body leading-tight text-charcoal/70">{label}</span>

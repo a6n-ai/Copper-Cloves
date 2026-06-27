@@ -1,10 +1,29 @@
 "use client";
 
 import { useMemo, useState } from "react";
+import { motion, useReducedMotion } from "framer-motion";
 import { ChevronLeft, ChevronRight, Trophy } from "lucide-react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Medal } from "@/components/dashboard/Medal";
 import { cn } from "@/lib/utils";
+
+// Brand palette only (.llm/design.md). Metallic stage surface mirrors PassCard's
+// per-tier finish so the medals read as the same card family.
+const CREAM = "#f5f2ea";
+const CHARCOAL = "#333333";
+
+/** Soft brushed-metal surface keyed to the active medal colour. Earned medals get
+ *  a tinted metallic face (like PassCard's class-pass finish); locked ones sit on
+ *  a quiet sand surface. Stays light enough for charcoal ink. */
+function stageSurface(color: string, earned: boolean): string {
+  if (!earned) {
+    return "linear-gradient(160deg, #f4f3ec 0%, #e8e4d9 100%)";
+  }
+  return [
+    "radial-gradient(120% 120% at 22% 14%, rgba(255,255,255,0.55), rgba(255,255,255,0) 46%)",
+    `linear-gradient(150deg, color-mix(in oklab, ${color}, ${CREAM} 72%) 0%, color-mix(in oklab, ${color}, ${CREAM} 48%) 56%, color-mix(in oklab, ${color}, ${CHARCOAL} 8%) 100%)`,
+  ].join(", ");
+}
 
 export interface JourneyTier {
   id: string;
@@ -84,6 +103,7 @@ export function MedalJourney({
   }, [items]);
 
   const [index, setIndex] = useState(startIndex);
+  const reduce = useReducedMotion();
   if (items.length === 0) return null;
 
   const active = items[Math.min(index, items.length - 1)];
@@ -91,16 +111,39 @@ export function MedalJourney({
 
   const body = (
     <div className="flex h-full flex-col">
-      <div className="mb-2 flex items-center gap-2">
+      <div className="mb-3 flex items-center gap-2">
         <Trophy className="size-4 text-sage" />
         <h2 className="font-display text-lg text-charcoal">Path to Mastery</h2>
-        <span className="ml-auto font-body text-xs text-charcoal/45">
+        <span className="ml-auto font-body text-xs tabular-nums text-charcoal/45">
           {Math.min(index, items.length - 1) + 1} / {items.length}
         </span>
       </div>
 
-      {/* Medal stage */}
-      <div className="flex min-h-0 flex-1 flex-col items-center justify-center py-2">
+      {/* Medal stage — metallic card surface (matches PassCard finish vocabulary). */}
+      <div
+        className="relative flex min-h-0 flex-1 flex-col items-center justify-center overflow-hidden rounded-xl px-4 py-5 text-center"
+        style={{
+          background: stageSurface(active.color, active.earned),
+          border: "1px solid color-mix(in oklab, #333333, transparent 90%)",
+          boxShadow: "inset 0 1px 1px rgba(255,255,255,0.45)",
+        }}
+      >
+        {active.earned && !reduce ? (
+          <div className="pointer-events-none absolute inset-0 overflow-hidden rounded-xl">
+            <motion.div
+              className="absolute -inset-y-6 w-1/3"
+              style={{
+                background:
+                  "linear-gradient(90deg, transparent, rgba(255,255,255,0.4), transparent)",
+                rotate: "16deg",
+              }}
+              initial={{ x: "-160%" }}
+              animate={{ x: "320%" }}
+              transition={{ duration: 2.8, ease: "easeInOut", repeat: Infinity, repeatDelay: 4 }}
+            />
+          </div>
+        ) : null}
+
         <Medal
           key={active.key}
           icon={active.icon}
@@ -113,20 +156,20 @@ export function MedalJourney({
           shimmer={active.earned}
           flipLabel={active.earned ? active.name : undefined}
         />
-        <p className="mt-3 font-display text-xl text-charcoal">{active.name}</p>
-        <p className="mt-0.5 font-body text-sm text-charcoal/55">{active.status}</p>
+        <p className="relative mt-3 font-display text-xl text-charcoal">{active.name}</p>
+        <p className="relative mt-0.5 font-body text-sm text-charcoal/60">{active.status}</p>
         {active.earned ? (
-          <p className="mt-0.5 font-body text-[11px] text-charcoal/35">Tap the medal to flip</p>
+          <p className="relative mt-0.5 font-body text-[11px] text-charcoal/40">Tap the medal to flip</p>
         ) : null}
       </div>
 
       {/* Controls */}
-      <div className="mt-2 flex items-center justify-between gap-3">
+      <div className="mt-3 flex items-center justify-between gap-3">
         <button
           type="button"
           onClick={() => go(-1)}
           aria-label="Previous medal"
-          className="flex size-9 items-center justify-center rounded-full border border-[#e5e4dc] text-charcoal/70 transition-colors hover:bg-[#f4f3ec] focus:outline-none focus-visible:ring-2 focus-visible:ring-sage"
+          className="flex size-10 items-center justify-center rounded-full border border-[#e5e4dc] text-charcoal/70 transition-[background-color,transform] duration-200 hover:bg-[#f4f3ec] active:scale-[0.96] focus:outline-none focus-visible:ring-2 focus-visible:ring-sage"
         >
           <ChevronLeft className="size-4" />
         </button>
@@ -138,11 +181,15 @@ export function MedalJourney({
               type="button"
               aria-label={`Show ${it.name}`}
               onClick={() => setIndex(i)}
-              className={cn(
-                "size-1.5 rounded-full transition-all",
-                i === Math.min(index, items.length - 1) ? "w-4 bg-sage" : "bg-charcoal/20 hover:bg-charcoal/40",
-              )}
-            />
+              className="relative flex size-6 items-center justify-center focus:outline-none"
+            >
+              <span
+                className={cn(
+                  "block h-1.5 rounded-full transition-all",
+                  i === Math.min(index, items.length - 1) ? "w-4 bg-sage" : "w-1.5 bg-charcoal/20 hover:bg-charcoal/40",
+                )}
+              />
+            </button>
           ))}
         </div>
 
@@ -150,7 +197,7 @@ export function MedalJourney({
           type="button"
           onClick={() => go(1)}
           aria-label="Next medal"
-          className="flex size-9 items-center justify-center rounded-full border border-[#e5e4dc] text-charcoal/70 transition-colors hover:bg-[#f4f3ec] focus:outline-none focus-visible:ring-2 focus-visible:ring-sage"
+          className="flex size-10 items-center justify-center rounded-full border border-[#e5e4dc] text-charcoal/70 transition-[background-color,transform] duration-200 hover:bg-[#f4f3ec] active:scale-[0.96] focus:outline-none focus-visible:ring-2 focus-visible:ring-sage"
         >
           <ChevronRight className="size-4" />
         </button>

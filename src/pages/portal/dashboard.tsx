@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useState } from "react";
+import { motion, useReducedMotion, type Variants } from "framer-motion";
 import { useRouter } from "next/router";
 import Image from "next/image";
 import { Card, CardContent } from "@/components/ui/card";
@@ -14,13 +15,51 @@ import {
 import { StatCard, type StatCardProps } from "@/components/dashboard/StatCard";
 import { ActivityTimeline, type ActivityItem } from "@/components/dashboard/ActivityTimeline";
 import { UpcomingScheduleCard, type ScheduleEntry } from "@/components/dashboard/UpcomingScheduleCard";
-import { OrderHistoryTable } from "@/components/dashboard/OrderHistoryTable";
 import { MedalJourney } from "@/components/dashboard/MedalJourney";
 import { PassCard } from "@/components/dashboard/PassCard";
 import dynamic from "next/dynamic";
 import { MemberDashboardSkeleton, MemberMobileDashboardSkeleton } from "@/components/dashboard/skeletons";
 import { AnimatedIcon } from "@/components/dashboard/AnimatedIcon";
 import { useIsMobile } from "@/hooks/use-mobile";
+
+// Below-the-fold / drawer-only — kept off the initial chunk. OrderHistoryTable
+// only renders inside the café drawer; FriendsCard fires its own 3 fetches, so
+// deferring it trims both initial JS and on-mount network work.
+// Loading fallbacks reserve the cell's height so the chunk arriving doesn't
+// reflow the layout (FriendsCard sits in the in-flow badges grid). animate-pulse
+// is a CSS-only pulse and respects prefers-reduced-motion via the global guard.
+function FriendsCardSkeleton() {
+  return (
+    <div className="rounded-xl border border-[#e5e4dc] bg-white-warm p-6 space-y-4">
+      <div className="h-6 w-24 rounded-md bg-sage/10 animate-pulse" />
+      <div className="space-y-3">
+        {Array.from({ length: 3 }).map((_, i) => (
+          <div key={i} className="flex items-center gap-2">
+            <div className="size-9 shrink-0 rounded-full bg-sage/10 animate-pulse" />
+            <div className="h-4 w-32 rounded bg-sage/10 animate-pulse" />
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+}
+function OrderHistorySkeleton() {
+  return (
+    <div className="space-y-3">
+      {Array.from({ length: 4 }).map((_, i) => (
+        <div key={i} className="h-16 rounded-xl border border-[#e5e4dc] bg-white-warm animate-pulse" />
+      ))}
+    </div>
+  );
+}
+const OrderHistoryTable = dynamic(
+  () => import("@/components/dashboard/OrderHistoryTable").then((m) => ({ default: m.OrderHistoryTable })),
+  { ssr: false, loading: () => <OrderHistorySkeleton /> },
+);
+const FriendsCard = dynamic(
+  () => import("@/components/portal/FriendsCard").then((m) => ({ default: m.FriendsCard })),
+  { ssr: false, loading: () => <FriendsCardSkeleton /> },
+);
 
 // Mobile-only chunk — desktop visitors never download this. `ssr: false` keeps
 // it client-only (the skeleton renders during hydration on mobile).
@@ -67,7 +106,6 @@ import {
   CreditCard,
 } from "lucide-react";
 import { CheckInScanButton } from "@/components/checkin/CheckInScanButton";
-import { FriendsCard } from "@/components/portal/FriendsCard";
 
 import { cdnUrl } from "@/lib/cdnUrl";
 import { Pill } from "@/components/ui/pill";
@@ -115,6 +153,18 @@ const MILESTONES = [
     borderColor: "border-[#a05e38]/30"
   }
 ];
+
+// Staggered section enter — split + stagger (~70ms) per make-interfaces-feel-better.
+// Hoisted so the literals aren't re-allocated each render; reduced-motion swaps to
+// a no-op container at the call site.
+const SECTION_CONTAINER: Variants = {
+  hidden: {},
+  show: { transition: { staggerChildren: 0.07, delayChildren: 0.04 } },
+};
+const SECTION_ITEM: Variants = {
+  hidden: { opacity: 0, y: 10 },
+  show: { opacity: 1, y: 0, transition: { duration: 0.32, ease: [0.2, 0, 0, 1] } },
+};
 
 type CafeOrderRow = {
   id: string;
@@ -231,6 +281,7 @@ function derivePassStatus(isActive: boolean, isPaused: boolean, expiry?: string 
 export default function Dashboard() {
   const router = useRouter();
   const isMobile = useIsMobile();
+  const reduceMotion = useReducedMotion();
   const { data: session, status } = useSession();
   const [loading, setLoading] = useState(true);
   const [dailyIntention, setDailyIntention] = useState("Deep breathing and presence");
@@ -331,18 +382,19 @@ export default function Dashboard() {
     try {
       // Profile loads via the shared SWR key (see hook below) — deduped across
       // the member portal — so it's no longer fetched here.
-      const [statsRes, packagesRes, bookingsRes, cafeOrdersRes, historyBookingsRes] =
+      // The `?limit=500` history set is a superset of the active/upcoming set
+      // (all statuses), so we derive "upcoming" from it instead of issuing a
+      // separate `?status=active` request — one fewer round-trip on mount.
+      const [statsRes, packagesRes, cafeOrdersRes, historyBookingsRes] =
         await Promise.all([
           fetch("/api/user-stats"),
           fetch("/api/user-packages?active=true"),
-          fetch("/api/bookings?status=active"),
           fetch("/api/cafe/orders"),
           fetch("/api/bookings?limit=500"),
         ]);
 
       const stats = statsRes.ok ? await statsRes.json() : null;
       const packages = packagesRes.ok ? await packagesRes.json() : [];
-      const bookings = bookingsRes.ok ? await bookingsRes.json() : [];
       const cafeOrders = cafeOrdersRes.ok ? await cafeOrdersRes.json() : [];
       const historyBookingsRaw = historyBookingsRes.ok ? await historyBookingsRes.json() : [];
       const historyBookings = Array.isArray(historyBookingsRaw) ? historyBookingsRaw : [];
@@ -396,8 +448,12 @@ export default function Dashboard() {
         setActivePasses([]);
       }
 
-      const upcoming = bookings
-        .filter((b: { class_schedule?: { start_time: string }; class_time?: string }) => {
+      // Upcoming = seat-holding statuses (confirmed / payment_pending / legacy
+      // pending) with a future start time — derived from the history set above.
+      const ACTIVE_BOOKING_STATUSES = new Set(["confirmed", "payment_pending", "pending"]);
+      const upcoming = historyBookings
+        .filter((b: { status?: string; class_schedule?: { start_time?: string }; class_time?: string }) => {
+          if (b.status && !ACTIVE_BOOKING_STATUSES.has(b.status)) return false;
           const startTime = b.class_schedule?.start_time || b.class_time;
           return startTime && new Date(startTime) >= now;
         })
@@ -588,22 +644,27 @@ export default function Dashboard() {
             onShowOrderHistory={() => setShowOrderHistory(true)}
           />
         ) : (
-        <div className="max-w-7xl mx-auto px-4 py-5 sm:px-6 lg:px-8 lg:py-8">
+        <motion.div
+          className="max-w-7xl mx-auto px-4 py-5 sm:px-6 lg:px-8 lg:py-8 space-y-6 lg:space-y-8"
+          variants={SECTION_CONTAINER}
+          initial={reduceMotion ? false : "hidden"}
+          animate={reduceMotion ? false : "show"}
+        >
 
-          {/* TOP SECTION: Greeting & Path to Mastery */}
-          <div className="mb-6 lg:mb-12">
+          {/* GREETING + Today's Intention */}
+          <motion.div variants={SECTION_ITEM}>
             {/* Welcome Header + Today's Intention - Same Row */}
-            <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4 lg:gap-6 mb-6 lg:mb-8">
+            <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4 lg:gap-6">
               {/* Welcome Header */}
               <div>
                 <h1 className="font-display text-2xl md:text-4xl text-charcoal mb-1 leading-tight">
                   Welcome Home, {userName || "Member"}
                 </h1>
                 <p className="font-body text-sm text-charcoal/60">
-                  {userClassesCompleted} classes completed
+                  <span className="tabular-nums">{userClassesCompleted}</span> classes completed
                   {currentStreak > 0 && (
                     <span className="inline-flex items-center gap-1 ml-2 text-terracotta">
-                      <Flame size={13} /> {currentStreak}-day streak
+                      <Flame size={13} /> <span className="tabular-nums">{currentStreak}</span>-day streak
                     </span>
                   )}
                   {" • "}
@@ -650,9 +711,11 @@ export default function Dashboard() {
                 </div>
               </div>
             </div>
+          </motion.div>
 
-            {/* Quick Book — primary booking actions */}
-            <Card className="mb-6 rounded-2xl border-[#e5e4dc] bg-white-warm shadow-none">
+          {/* QUICK BOOK — primary booking actions */}
+          <motion.div variants={SECTION_ITEM}>
+            <Card className="rounded-2xl border-[#e5e4dc] bg-white-warm shadow-none">
               <CardContent className="p-5">
                 <div className="mb-4 flex items-center justify-between gap-3">
                   <div className="flex items-center gap-2.5">
@@ -680,7 +743,7 @@ export default function Dashboard() {
                       key={label}
                       type="button"
                       onClick={action}
-                      className="flex min-h-16 flex-col items-center justify-center gap-1.5 rounded-xl border border-sage/15 bg-white-warm px-1 py-2 transition-transform active:scale-95"
+                      className="flex min-h-16 flex-col items-center justify-center gap-1.5 rounded-lg border border-sage/15 bg-white-warm px-1 py-2 transition-transform active:scale-[0.96]"
                     >
                       <AnimatedIcon icon={Icon} size={20} className="text-sage" />
                       <span className="text-center font-body text-[10px] leading-tight text-charcoal/70">{label}</span>
@@ -735,54 +798,46 @@ export default function Dashboard() {
                 </div>
               </CardContent>
             </Card>
+          </motion.div>
 
-            {/* Your Passes — credit-card-styled active packages */}
-            {activePasses.length > 0 && (
-              <div className="mb-6">
-                <div className="mb-4 flex items-center gap-2.5">
-                  <span className="flex h-9 w-9 items-center justify-center rounded-full bg-sage/10">
-                    <AnimatedIcon icon={CreditCard} size={18} className="text-sage" />
-                  </span>
-                  <div>
-                    <h2 className="font-display text-lg text-charcoal">Your Passes</h2>
-                    <p className="font-body text-xs text-charcoal/55">Active packages on your account</p>
-                  </div>
-                </div>
-                <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-3">
-                  {activePasses.map((pass) => (
-                    <PassCard
-                      key={pass.id}
-                      name={pass.name}
-                      isUnlimited={pass.isUnlimited}
-                      classesRemaining={pass.classesRemaining}
-                      expiry={pass.expiry}
-                      durationMonths={pass.durationMonths}
-                      status={pass.status}
-                      className="w-full"
-                    />
-                  ))}
+          {/* PASSES — credit-card-styled active packages */}
+          {activePasses.length > 0 && (
+            <motion.div variants={SECTION_ITEM}>
+              <div className="mb-4 flex items-center gap-2.5">
+                <span className="flex h-9 w-9 items-center justify-center rounded-full bg-sage/10">
+                  <AnimatedIcon icon={CreditCard} size={18} className="text-sage" />
+                </span>
+                <div>
+                  <h2 className="font-display text-lg text-charcoal">Your Passes</h2>
+                  <p className="font-body text-xs text-charcoal/55">Active packages on your account</p>
                 </div>
               </div>
-            )}
+              <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-3">
+                {activePasses.map((pass) => (
+                  <PassCard
+                    key={pass.id}
+                    name={pass.name}
+                    isUnlimited={pass.isUnlimited}
+                    classesRemaining={pass.classesRemaining}
+                    expiry={pass.expiry}
+                    durationMonths={pass.durationMonths}
+                    status={pass.status}
+                    className="w-full"
+                  />
+                ))}
+              </div>
+            </motion.div>
+          )}
 
-            {/* Bento: Path-to-Mastery medal stepper + metric squares (Apple-Fitness style) */}
-            <div className="grid grid-cols-2 gap-4 lg:grid-cols-4 lg:auto-rows-[176px]">
-              <MedalJourney
-                className="col-span-2 lg:col-span-2 lg:row-span-2"
-                milestones={activeMilestones}
-                classesCompleted={userClassesCompleted}
-                earnedCustom={userBadges.filter((b: { badge_type?: string }) => b.badge_type === "custom")}
-              />
-              {statItems.map((s) => (
-                <StatCard key={s.label} {...s} square />
-              ))}
-            </div>
-          </div>
+          {/* STATS — attendance + streak metrics */}
+          <motion.div variants={SECTION_ITEM} className="grid grid-cols-2 gap-4 lg:grid-cols-4">
+            {statItems.map((s) => (
+              <StatCard key={s.label} {...s} />
+            ))}
+          </motion.div>
 
-          {/* MIDDLE ROW: Movement Vitality (2/3) + Sidebar (1/3) */}
-          <div className="grid grid-cols-1 lg:grid-cols-3 gap-5 lg:gap-8 mb-5 lg:mb-8">
-            
-            {/* LEFT COLUMN (2/3) - Movement Vitality Graph */}
+          {/* SCHEDULE + Movement Vitality */}
+          <motion.div variants={SECTION_ITEM} className="grid grid-cols-1 lg:grid-cols-3 gap-5 lg:gap-8">
             <div className="lg:col-span-2">
               <VitalityAreaChart
                 series={vitalityData}
@@ -792,19 +847,27 @@ export default function Dashboard() {
                 vsTone={vitalityVsPrev.tone}
               />
             </div>
-
-            {/* RIGHT COLUMN (1/3) - Upcoming */}
-            <div className="lg:col-span-1 space-y-6">
-              {/* Upcoming Classes */}
+            <div className="lg:col-span-1">
               <UpcomingScheduleCard entries={upcomingEntries} />
-              {/* Friends */}
+            </div>
+          </motion.div>
+
+          {/* BADGES — Path to Mastery medals + friends */}
+          <motion.div variants={SECTION_ITEM} className="grid grid-cols-1 lg:grid-cols-3 gap-5 lg:gap-8">
+            <MedalJourney
+              className="lg:col-span-2"
+              milestones={activeMilestones}
+              classesCompleted={userClassesCompleted}
+              earnedCustom={userBadges.filter((b: { badge_type?: string }) => b.badge_type === "custom")}
+            />
+            <div className="lg:col-span-1">
               <FriendsCard />
             </div>
-          </div>
+          </motion.div>
 
-          {/* BOTTOM ROW: Recent Activity + Nourish Café */}
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-5 lg:gap-8">
-            
+          {/* ACTIVITY + Nourish Café */}
+          <motion.div variants={SECTION_ITEM} className="grid grid-cols-1 lg:grid-cols-2 gap-5 lg:gap-8">
+
             {/* Recent Activity Feed */}
             <ActivityTimeline
               items={recentActivities}
@@ -869,8 +932,8 @@ export default function Dashboard() {
                 </div>
               </CardContent>
             </Card>
-          </div>
-        </div>
+          </motion.div>
+        </motion.div>
         )}
       </main>
 

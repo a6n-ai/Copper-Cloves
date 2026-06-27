@@ -1,5 +1,5 @@
 import { useState, useEffect, useCallback, useMemo, useRef } from "react";
-import Image from "next/image";
+import dynamic from "next/dynamic";
 import { useRouter } from "next/router";
 import { useSession } from "next-auth/react";
 import { requireSessionSSP } from "@/lib/requireSessionSSP";
@@ -7,130 +7,27 @@ import { requireSessionSSP } from "@/lib/requireSessionSSP";
 // Server-side gate: instructors only. Unauthenticated / wrong-role callers
 // never see the dashboard JS bundle.
 export const getServerSideProps = requireSessionSSP({ roles: ["instructor"] });
-import { format, isToday, isTomorrow } from "date-fns";
-import { deriveScheduleState } from "@/lib/scheduleStatus";
-import { Button } from "@/components/ui/button";
+import { format, isToday } from "date-fns";
 import { Spinner } from "@/components/ui/spinner";
-import { Pill } from "@/components/ui/pill";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { InstructorDashboardSkeleton } from "@/components/dashboard/skeletons";
 import { PageHeader } from "@/components/dashboard/PageHeader";
 import { InstructorCheckinBeacon } from "@/components/checkin/InstructorCheckinBeacon";
-import { classStatusPill } from "@/lib/pillMaps";
+import { ScheduleClassCard } from "@/components/instructor/ScheduleClassCard";
+import { type ClassRow, dayLabel } from "@/components/instructor/shared";
 import { toast } from "sonner";
-import {
-  Users,
-  Clock,
-  CheckCircle2,
-  Circle,
-  ChevronRight,
-  Dumbbell,
-  Calendar,
-  AlertCircle,
-  UserCheck,
-  RefreshCw,
-  ArrowLeft,
-} from "lucide-react";
+import { Users, Dumbbell, Calendar, UserCheck } from "lucide-react";
 
-interface BookingRow {
-  id: string;
-  memberName: string;
-  email: string;
-  avatarUrl: string | null;
-  checkedIn: boolean;
-  checkInTime: string | null;
-  checkInOutcome: string | null;
-  extraGuests: number;
-  status: string;
-  userId: string;
-  invitedByUserId?: string | null;
-}
-
-interface ClassRow {
-  id: string;
-  className: string;
-  category: string;
-  startTime: string;
-  endTime: string;
-  capacity: number;
-  enrolled: number;
-  availableSpots: number;
-  status: string;
-  instructorCheckedIn: boolean;
-  instructorCheckInTime: string | null;
-  bookings: BookingRow[];
-}
-
-const INSTRUCTOR_OPEN_BEFORE_MS = 15 * 60 * 1000;
-const INSTRUCTOR_CLOSE_AFTER_MS = 5 * 60 * 1000;
-
-function instructorCheckInWindowStatus(startTimeStr: string): "open" | "too_early" | "too_late" {
-  const start = new Date(startTimeStr).getTime();
-  const now = Date.now();
-  if (now < start - INSTRUCTOR_OPEN_BEFORE_MS) return "too_early";
-  if (now > start + INSTRUCTOR_CLOSE_AFTER_MS) return "too_late";
-  return "open";
-}
-
-function minutesUntilOpen(startTimeStr: string): number {
-  const start = new Date(startTimeStr).getTime();
-  return Math.ceil((start - INSTRUCTOR_OPEN_BEFORE_MS - Date.now()) / 60000);
-}
-
-function dayLabel(dateStr: string): string {
-  const d = new Date(dateStr);
-  if (isToday(d)) return "Today";
-  if (isTomorrow(d)) return "Tomorrow";
-  return format(d, "EEEE, MMM d");
-}
-
-// Time-derived display label + canonical schedule-status key. Pill tone comes
-// from classStatusPill (pillMaps) so Upcoming/In-Progress/Completed map the same
-// way the rest of the app renders schedule status.
-function classStatusBadge(cls: ClassRow): { label: string; status: string } {
-  // Single shared time→state derivation (see scheduleStatus.ts). Map the helper's
-  // state to the pill vocabulary this view uses (upcoming→available, live→started).
-  const { state, label } = deriveScheduleState(cls.status ?? "available", cls.startTime, cls.endTime);
-  const status = state === "upcoming" ? "available" : state === "live" ? "started" : state;
-  return { label, status };
-}
-
-function CapacityBar({ enrolled, capacity }: { enrolled: number; capacity: number }) {
-  const pct = capacity > 0 ? Math.min(100, Math.round((enrolled / capacity) * 100)) : 0;
-  const color = pct >= 90 ? "bg-pill-danger-dot" : pct >= 60 ? "bg-terracotta" : "bg-sage";
-  return (
-    <div className="mt-3">
-      <div className="flex justify-between text-xs font-body text-charcoal/60 mb-1">
-        <span>{enrolled} signed up</span>
-        <span>{capacity} capacity</span>
-      </div>
-      <div className="h-1.5 bg-sage/10 rounded-full overflow-hidden">
-        <div className={`h-full rounded-full transition-all ${color}`} style={{ width: `${pct}%` }} />
-      </div>
+// Check-in tab is below the fold (default tab = My Schedule) and is the heaviest
+// interactive subtree. Defer its bundle until the instructor actually opens it.
+const CheckInTab = dynamic(() => import("@/components/instructor/CheckInTab"), {
+  ssr: false,
+  loading: () => (
+    <div className="flex justify-center py-16">
+      <Spinner className="size-6 text-sage" />
     </div>
-  );
-}
-
-function MemberAvatar({ name, url }: { name: string; url: string | null }) {
-  if (url) {
-    return (
-      <Image
-        src={url}
-        alt={name}
-        width={36}
-        height={36}
-        className="h-9 w-9 rounded-full object-cover border border-sage/20"
-        unoptimized
-      />
-    );
-  }
-  const initials = name.split(" ").slice(0, 2).map((p) => p[0]).join("").toUpperCase();
-  return (
-    <div className="h-9 w-9 rounded-full bg-sage/10 border border-sage/20 flex items-center justify-center shrink-0">
-      <span className="font-body text-xs font-medium text-sage">{initials}</span>
-    </div>
-  );
-}
+  ),
+});
 
 export default function InstructorDashboard() {
   const router = useRouter();
@@ -146,15 +43,6 @@ export default function InstructorDashboard() {
   const [reminding, setReminding] = useState<Record<string, boolean>>({});
   const [instructorCheckingIn, setInstructorCheckingIn] = useState<Record<string, boolean>>({});
   const [instructorCheckInError, setInstructorCheckInError] = useState<Record<string, string>>({});
-
-  // O(1) id → row lookup; replaces `classes.find()` per render and feeds the
-  // groupedByDay memo below so we only walk `classes` once per data load.
-  const classById = useMemo(() => {
-    const m = new Map<string, ClassRow>();
-    for (const c of classes) m.set(c.id, c);
-    return m;
-  }, [classes]);
-  const selectedClass = selectedClassId ? classById.get(selectedClassId) ?? null : null;
 
   // Use a ref for `selectedClassId` inside loadData so the callback identity is
   // stable — otherwise picking a class refires the auth effect below (which
@@ -190,7 +78,7 @@ export default function InstructorDashboard() {
   }, [status, userName]);
 
 
-  async function handleCheckIn(bookingId: string) {
+  const handleCheckIn = useCallback(async (bookingId: string) => {
     setCheckingIn((prev) => ({ ...prev, [bookingId]: true }));
     try {
       const res = await fetch("/api/instructor/check-in", {
@@ -203,23 +91,25 @@ export default function InstructorDashboard() {
         toast.error(err.error ?? "Check-in failed");
         return;
       }
-      // Optimistic update
+      // Optimistic update — preserve refs for untouched classes/bookings so
+      // memoized roster rows don't all re-render on a single check-in.
       setClasses((prev) =>
-        prev.map((cls) => ({
-          ...cls,
-          bookings: cls.bookings.map((b) =>
-            b.id === bookingId
-              ? { ...b, checkedIn: true, checkInTime: new Date().toISOString(), checkInOutcome: "on_time" }
-              : b,
-          ),
-        })),
+        prev.map((cls) => {
+          let touched = false;
+          const bookings = cls.bookings.map((b) => {
+            if (b.id !== bookingId) return b;
+            touched = true;
+            return { ...b, checkedIn: true, checkInTime: new Date().toISOString(), checkInOutcome: "on_time" };
+          });
+          return touched ? { ...cls, bookings } : cls;
+        }),
       );
     } finally {
       setCheckingIn((prev) => ({ ...prev, [bookingId]: false }));
     }
-  }
+  }, []);
 
-  async function handleRemindPayment(bookingId: string) {
+  const handleRemindPayment = useCallback(async (bookingId: string) => {
     setReminding((prev) => ({ ...prev, [bookingId]: true }));
     try {
       const res = await fetch("/api/instructor/remind-payment", {
@@ -236,9 +126,9 @@ export default function InstructorDashboard() {
     } finally {
       setReminding((prev) => ({ ...prev, [bookingId]: false }));
     }
-  }
+  }, []);
 
-  async function handleInstructorCheckIn(scheduleId: string) {
+  const handleInstructorCheckIn = useCallback(async (scheduleId: string) => {
     setInstructorCheckingIn((prev) => ({ ...prev, [scheduleId]: true }));
     setInstructorCheckInError((prev) => ({ ...prev, [scheduleId]: "" }));
     try {
@@ -263,23 +153,38 @@ export default function InstructorDashboard() {
     } finally {
       setInstructorCheckingIn((prev) => ({ ...prev, [scheduleId]: false }));
     }
-  }
+  }, []);
 
-  // Single pass over `classes` produces totals + day-grouped buckets; both were
-  // previously separate scans (3 total) executed every render.
-  const { totalEnrolled, totalCheckedIn, classesByDay } = useMemo(() => {
+  // Member check-in shortcut from a schedule card → jump to the Check In tab.
+  const handleMemberCheckInShortcut = useCallback((scheduleId: string) => {
+    setSelectedClassId(scheduleId);
+    setActiveTab("checkin");
+  }, []);
+
+  const handleBackToOverview = useCallback(() => setActiveTab("today"), []);
+
+  // Single pass over `classes` produces totals + day-grouped buckets + today
+  // count; all were previously separate scans executed every render.
+  const { totalEnrolled, totalCheckedIn, classesByDay, todayCount } = useMemo(() => {
     let enrolled = 0;
     let checkedIn = 0;
+    let today = 0;
     const byDay = new Map<string, ClassRow[]>();
     for (const c of classes) {
       enrolled += c.enrolled;
       for (const b of c.bookings) if (b.checkedIn) checkedIn += 1;
+      if (isToday(new Date(c.startTime))) today += 1;
       const key = dayLabel(c.startTime);
       const bucket = byDay.get(key);
       if (bucket) bucket.push(c);
       else byDay.set(key, [c]);
     }
-    return { totalEnrolled: enrolled, totalCheckedIn: checkedIn, classesByDay: Array.from(byDay) };
+    return {
+      totalEnrolled: enrolled,
+      totalCheckedIn: checkedIn,
+      classesByDay: Array.from(byDay),
+      todayCount: today,
+    };
   }, [classes]);
 
   if (loading) {
@@ -299,7 +204,7 @@ export default function InstructorDashboard() {
         <div className="mb-6">
           <PageHeader
             title={`Good ${new Date().getHours() < 12 ? "morning" : new Date().getHours() < 17 ? "afternoon" : "evening"}, ${instructorName.split(" ")[0]}`}
-            subtitle={`${format(new Date(), "EEEE, MMMM d")} · ${classes.filter(c => isToday(new Date(c.startTime))).length} class${classes.filter(c => isToday(new Date(c.startTime))).length !== 1 ? "es" : ""} today · ${classes.length} this week`}
+            subtitle={`${format(new Date(), "EEEE, MMMM d")} · ${todayCount} class${todayCount !== 1 ? "es" : ""} today · ${classes.length} this week`}
           />
         </div>
 
@@ -358,128 +263,16 @@ export default function InstructorDashboard() {
                   <div key={label}>
                     <p className="font-body text-xs font-semibold text-charcoal/50 uppercase tracking-widest mb-2 px-1">{label}</p>
                     <div className="space-y-3">
-                {dayCls.map((cls) => {
-                  const statusInfo = classStatusBadge(cls);
-                  const checkedInCount = cls.bookings.filter((b) => b.checkedIn).length;
-                  const winStatus = instructorCheckInWindowStatus(cls.startTime);
-                  const errMsg = instructorCheckInError[cls.id];
-                  return (
-                    <div
-                      key={cls.id}
-                      className="bg-white-warm rounded-2xl border border-sage/10 p-4 sm:p-5 hover:border-sage/30 transition-colors"
-                    >
-                      <div className="flex items-start justify-between gap-3">
-                        <div className="flex-1 min-w-0">
-                          <div className="flex items-center gap-2 flex-wrap">
-                            <h2 className="font-display text-base sm:text-lg text-charcoal">{cls.className}</h2>
-                            <Pill {...classStatusPill(statusInfo.status)} size="sm" className="font-body">
-                              {statusInfo.label}
-                            </Pill>
-                            {cls.category && (
-                              <span className="font-body text-xs text-charcoal/40 uppercase tracking-wider hidden sm:inline">
-                                {cls.category}
-                              </span>
-                            )}
-                            {/* Instructor check-in badge */}
-                            {cls.instructorCheckedIn ? (
-                              <Pill tone="success" size="sm" className="font-body" icon={<CheckCircle2 className="h-3 w-3" />}>
-                                <span className="hidden sm:inline">You checked in {cls.instructorCheckInTime ? format(new Date(cls.instructorCheckInTime), "h:mm a") : ""}</span>
-                                <span className="sm:hidden">Checked in</span>
-                              </Pill>
-                            ) : winStatus === "open" ? (
-                              <Pill tone="warning" size="sm" className="font-body">
-                                Window open
-                              </Pill>
-                            ) : winStatus === "too_early" ? (
-                              <Pill tone="neutral" size="sm" className="font-body hidden sm:inline-flex">
-                                Opens {minutesUntilOpen(cls.startTime)} min before class
-                              </Pill>
-                            ) : (
-                              <Pill tone="neutral" size="sm" className="font-body hidden sm:inline-flex">
-                                Window closed
-                              </Pill>
-                            )}
-                          </div>
-
-                          <div className="flex flex-wrap items-center gap-3 mt-2 text-sm text-charcoal/60 font-body">
-                            <span className="flex items-center gap-1.5">
-                              <Clock className="h-3.5 w-3.5" />
-                              {format(new Date(cls.startTime), "h:mm a")} – {format(new Date(cls.endTime), "h:mm a")}
-                            </span>
-                            <span className="flex items-center gap-1.5">
-                              <UserCheck className="h-3.5 w-3.5 text-sage" />
-                              {checkedInCount}/{cls.enrolled} checked in
-                            </span>
-                          </div>
-
-                          <CapacityBar enrolled={cls.enrolled} capacity={cls.capacity} />
-                        </div>
-
-                        <div className="flex flex-col items-end gap-2 shrink-0">
-                          {/* Instructor self check-in */}
-                          {!cls.instructorCheckedIn && winStatus === "open" && (
-                            <Button
-                              variant="terracotta"
-                              size="sm"
-                              onClick={() => void handleInstructorCheckIn(cls.id)}
-                              disabled={instructorCheckingIn[cls.id]}
-                              className="rounded-full min-w-[80px]"
-                            >
-                              {instructorCheckingIn[cls.id] ? (
-                                <Spinner className="size-4" />
-                              ) : "I'm Here"}
-                            </Button>
-                          )}
-                          {/* Member check-in shortcut */}
-                          {cls.instructorCheckedIn && (
-                            <Button
-                              onClick={() => { setSelectedClassId(cls.id); setActiveTab("checkin"); }}
-                              variant="sage-outline"
-                              size="sm"
-                            >
-                              <span className="hidden sm:inline">Member Check-In</span>
-                              <span className="sm:hidden">Check In</span>
-                              <ChevronRight className="h-4 w-4" />
-                            </Button>
-                          )}
-                        </div>
-                      </div>
-
-                      {errMsg && (
-                        <p className="mt-2 font-body text-xs text-pill-danger-fg bg-pill-danger-bg rounded-lg px-3 py-2">{errMsg}</p>
-                      )}
-
-                      {/* Member previews */}
-                      {cls.bookings.length > 0 && (
-                        <div className="mt-4 pt-4 border-t border-sage/10">
-                          <p className="font-body text-xs text-charcoal/50 uppercase tracking-wider mb-2">
-                            Registered Members
-                          </p>
-                          <div className="flex flex-wrap gap-2">
-                            {cls.bookings.slice(0, 8).map((b) => (
-                              <div key={b.id} className="flex items-center gap-1.5 bg-sage/5 rounded-full pl-1 pr-3 py-1">
-                                <MemberAvatar name={b.memberName} url={b.avatarUrl} />
-                                <span className="font-body text-xs text-charcoal">{b.memberName.split(" ")[0]}</span>
-                                {b.checkedIn && <CheckCircle2 className="h-3 w-3 text-sage ml-0.5" />}
-                                {!b.checkedIn && b.status === "payment_pending" && (
-                                  <span className="font-body text-[10px] font-medium text-terracotta">unpaid</span>
-                                )}
-                                {b.extraGuests > 0 && (
-                                  <span className="font-body text-[10px] text-terracotta">+{b.extraGuests}</span>
-                                )}
-                              </div>
-                            ))}
-                            {cls.bookings.length > 8 && (
-                              <div className="flex items-center bg-sage/5 rounded-full px-3 py-1">
-                                <span className="font-body text-xs text-charcoal/60">+{cls.bookings.length - 8} more</span>
-                              </div>
-                            )}
-                          </div>
-                        </div>
-                      )}
-                    </div>
-                  );
-                })}
+                      {dayCls.map((cls) => (
+                        <ScheduleClassCard
+                          key={cls.id}
+                          cls={cls}
+                          busy={!!instructorCheckingIn[cls.id]}
+                          errMsg={instructorCheckInError[cls.id]}
+                          onInstructorCheckIn={handleInstructorCheckIn}
+                          onMemberCheckIn={handleMemberCheckInShortcut}
+                        />
+                      ))}
                     </div>
                   </div>
                 ))}
@@ -489,192 +282,19 @@ export default function InstructorDashboard() {
 
           {/* === CHECK IN TAB === */}
           <TabsContent value="checkin">
-            {(() => {
-              const todayClasses = classes.filter(c => isToday(new Date(c.startTime)));
-              if (todayClasses.length === 0) return (
-                <div className="bg-white-warm rounded-2xl border border-sage/10 p-10 text-center">
-                  <AlertCircle className="h-10 w-10 text-sage/30 mx-auto mb-3" />
-                  <p className="font-display text-lg text-charcoal">No classes today</p>
-                  <p className="font-body text-sm text-charcoal/50 mt-1">Check-in is only available for today&apos;s classes.</p>
-                </div>
-              );
-              return (
-              <div className="space-y-4">
-                {/* Class selector */}
-                {todayClasses.length > 1 && (
-                  <div className="flex gap-2 flex-wrap">
-                    {todayClasses.map((cls) => (
-                      <button
-                        key={cls.id}
-                        onClick={() => setSelectedClassId(cls.id)}
-                        className={`font-body text-sm px-4 py-2 rounded-full border transition-colors ${
-                          selectedClassId === cls.id
-                            ? "bg-sage text-cream border-sage"
-                            : "bg-white-warm text-charcoal border-sage/20 hover:border-sage/40"
-                        }`}
-                      >
-                        {cls.className} · {format(new Date(cls.startTime), "h:mm a")}
-                      </button>
-                    ))}
-                  </div>
-                )}
-
-                {selectedClass ? (
-                  <div className="bg-white-warm rounded-2xl border border-sage/10 overflow-hidden">
-                    {/* Class header */}
-                    <div className="px-5 py-4 border-b border-sage/10 flex items-center justify-between">
-                      <div>
-                        <h2 className="font-display text-xl text-charcoal">{selectedClass.className}</h2>
-                        <p className="font-body text-sm text-charcoal/60 mt-0.5">
-                          {format(new Date(selectedClass.startTime), "h:mm a")} –{" "}
-                          {format(new Date(selectedClass.endTime), "h:mm a")}
-                          &nbsp;·&nbsp;
-                          <span className="text-sage font-medium">
-                            {selectedClass.bookings.filter((b) => b.checkedIn).length}/{selectedClass.enrolled} checked in
-                          </span>
-                        </p>
-                        {/* Instructor check-in status */}
-                        {selectedClass.instructorCheckedIn && (
-                          <p className="font-body text-xs text-sage mt-1 flex items-center gap-1">
-                            <CheckCircle2 className="h-3.5 w-3.5" />
-                            You checked in at {selectedClass.instructorCheckInTime ? format(new Date(selectedClass.instructorCheckInTime), "h:mm a") : "—"}
-                          </p>
-                        )}
-                      </div>
-                      <div className="flex items-center gap-2">
-                        {!selectedClass.instructorCheckedIn && instructorCheckInWindowStatus(selectedClass.startTime) === "open" && (
-                          <Button
-                            variant="terracotta"
-                            size="sm"
-                            onClick={() => void handleInstructorCheckIn(selectedClass.id)}
-                            disabled={instructorCheckingIn[selectedClass.id]}
-                            className="rounded-full"
-                          >
-                            {instructorCheckingIn[selectedClass.id] ? (
-                              <Spinner className="size-4" />
-                            ) : "I'm Here"}
-                          </Button>
-                        )}
-                        <Button
-                          onClick={() => void loadData()}
-                          variant="sage-outline"
-                          size="icon-sm"
-                          className="rounded-full"
-                          title="Refresh"
-                          aria-label="Refresh"
-                        >
-                          <RefreshCw className="h-4 w-4" />
-                        </Button>
-                      </div>
-                    </div>
-
-                    {/* Booking list */}
-                    {selectedClass.bookings.length === 0 ? (
-                      <div className="p-10 text-center">
-                        <Users className="h-8 w-8 text-sage/20 mx-auto mb-2" />
-                        <p className="font-body text-sm text-charcoal/50">No one has booked this class yet</p>
-                      </div>
-                    ) : (
-                      <ul className="divide-y divide-sage/10">
-                        {selectedClass.bookings.map((b) => (
-                          <li key={b.id} className="px-4 sm:px-5 py-3 flex items-center gap-3">
-                            <MemberAvatar name={b.memberName} url={b.avatarUrl} />
-
-                            <div className="flex-1 min-w-0">
-                              <p className="font-body text-sm font-medium text-charcoal truncate flex items-center gap-1.5">
-                                <span className="truncate">{b.memberName}</span>
-                                {b.extraGuests > 0 && (
-                                  <span className="font-body text-xs text-terracotta">
-                                    +{b.extraGuests}
-                                  </span>
-                                )}
-                                {b.status === "payment_pending" && (
-                                  <Pill tone="warning" size="sm" className="font-body shrink-0">
-                                    Payment pending
-                                  </Pill>
-                                )}
-                              </p>
-                              {(() => {
-                                // Derive grouping from ids using the co-present roster rows.
-                                const bookerName = b.invitedByUserId
-                                  ? selectedClass.bookings.find((x) => x.userId === b.invitedByUserId)?.memberName ?? null
-                                  : null;
-                                const brought = b.invitedByUserId
-                                  ? []
-                                  : selectedClass.bookings.filter((x) => x.invitedByUserId === b.userId).map((x) => x.memberName);
-                                if (!bookerName && brought.length === 0) return null;
-                                return (
-                                  <p className="font-body text-xs text-charcoal/45 mt-0.5">
-                                    {bookerName ? `Guest of ${bookerName}` : `Brought ${brought.join(", ")}`}
-                                  </p>
-                                );
-                              })()}
-                              {b.checkedIn && b.checkInTime && (
-                                <p className="font-body text-xs text-charcoal/40 mt-0.5">
-                                  {format(new Date(b.checkInTime), "h:mm a")}
-                                  {b.checkInOutcome === "late" && (
-                                    <span className="ml-1 text-terracotta">(late)</span>
-                                  )}
-                                </p>
-                              )}
-                            </div>
-
-                            {b.checkedIn ? (
-                              <div className="flex items-center gap-1 text-sage font-body text-sm shrink-0">
-                                <CheckCircle2 className="h-5 w-5" />
-                              </div>
-                            ) : b.status === "payment_pending" ? (
-                              <Button
-                                size="sm"
-                                variant="terracotta"
-                                onClick={() => void handleRemindPayment(b.id)}
-                                disabled={reminding[b.id]}
-                                className="rounded-full px-3 shrink-0 h-9"
-                              >
-                                {reminding[b.id] ? (
-                                  <Spinner className="size-4" />
-                                ) : (
-                                  <>
-                                    <Clock className="h-3.5 w-3.5 mr-1" />
-                                    Remind
-                                  </>
-                                )}
-                              </Button>
-                            ) : (
-                              <Button
-                                size="sm"
-                                variant="sage"
-                                onClick={() => void handleCheckIn(b.id)}
-                                disabled={checkingIn[b.id]}
-                                className="rounded-full px-3 shrink-0 h-9"
-                              >
-                                {checkingIn[b.id] ? (
-                                  <Spinner className="size-4" />
-                                ) : (
-                                  <>
-                                    <Circle className="h-3.5 w-3.5 mr-1" />
-                                    Check In
-                                  </>
-                                )}
-                              </Button>
-                            )}
-                          </li>
-                        ))}
-                      </ul>
-                    )}
-                  </div>
-                ) : null}
-
-                <button
-                  onClick={() => setActiveTab("today")}
-                  className="flex items-center gap-1.5 font-body text-sm text-charcoal/50 hover:text-charcoal transition-colors"
-                >
-                  <ArrowLeft className="h-4 w-4" />
-                  Back to overview
-                </button>
-              </div>
-              );
-            })()}
+            <CheckInTab
+              classes={classes}
+              selectedClassId={selectedClassId}
+              onSelectClass={setSelectedClassId}
+              checkingIn={checkingIn}
+              reminding={reminding}
+              instructorCheckingIn={instructorCheckingIn}
+              onCheckIn={handleCheckIn}
+              onRemindPayment={handleRemindPayment}
+              onInstructorCheckIn={handleInstructorCheckIn}
+              onRefresh={loadData}
+              onBack={handleBackToOverview}
+            />
           </TabsContent>
         </Tabs>
       </div>
