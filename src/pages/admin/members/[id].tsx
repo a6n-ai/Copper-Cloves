@@ -29,7 +29,7 @@ import { MetricCard } from "@/components/admin/MetricCard";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Pill } from "@/components/ui/pill";
-import { paymentMethodPill, ticketStatusPill, memberStatusPill, bookingStatusPill, bookingPaymentPill } from "@/lib/pillMaps";
+import { paymentMethodPill, ticketStatusPill, bookingStatusPill, bookingPaymentPill } from "@/lib/pillMaps";
 import { Input } from "@/components/ui/input";
 import { DatePicker } from "@/components/filters";
 import { Label } from "@/components/ui/label";
