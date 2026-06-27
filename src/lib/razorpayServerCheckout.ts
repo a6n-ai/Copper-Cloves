@@ -280,42 +280,52 @@ async function confirmPreCreatedBookingFlow(args: {
   const { userId, bookingId, pending, financeSnap } = args;
   const { confirmPendingBookingTx } = await import("@/lib/confirmPendingBooking");
 
-  const result = await prisma.$transaction(async (tx) => {
-    const r = await confirmPendingBookingTx(tx, bookingId, financeSnap);
-    if (!r.transitioned) return r;
+  // 1. Commit the status flip on its OWN transaction. Previously the confirm,
+  // order-link, and seat recompute shared one transaction — if linking or the
+  // seat update threw, the whole thing rolled back and the booking reverted to
+  // payment_pending even though the payment had already been captured/persisted
+  // in a separate step (the "payment updated but booking not updated" bug).
+  const result = await prisma.$transaction((tx) =>
+    confirmPendingBookingTx(tx, bookingId, financeSnap),
+  );
 
-    await linkRazorpayOrderToBookingTx(tx, {
-      userId,
-      razorpayOrderId: pending.razorpayOrderId,
-      bookingId: r.bookingId,
-    });
-
-    // The pending row held all group seats via extra_guest_count during the hold window.
-    // Now guests + added members get their own rows (side-effects below), so the booker
-    // drops back to a single seat to avoid double-counting. The final reconcile in
-    // fulfillAddedMembersAndReconcileSeats recomputes counters from the actual rows.
-    await tx.booking.update({
-      where: { id: r.bookingId },
-      data: { extra_guest_count: 0 },
-    });
-
-    // Refresh denormalized counters (createPendingBooking reserved the seat but didn't update them).
-    const sched = await tx.classSchedule.findUnique({
-      where: { id: pending.class_schedule_id },
-      include: { class_model: { select: { max_capacity: true } } },
-    });
-    if (sched) {
-      const cap = sched.capacity ?? sched.class_model?.max_capacity ?? 0;
-      if (cap > 0) {
-        const seatsTaken = await computeSeatsTaken(tx, pending.class_schedule_id);
-        await tx.classSchedule.update({
-          where: { id: pending.class_schedule_id },
-          data: { current_bookings: seatsTaken, available_spots: Math.max(0, cap - seatsTaken) },
+  // 2. Best-effort post-confirm: link the order, drop the booker back to one seat
+  // (guests/added members get their own rows below), and refresh counters. A
+  // failure here leaves the booking CONFIRMED (recoverable) instead of undoing it.
+  if (result.transitioned) {
+    try {
+      await prisma.$transaction(async (tx) => {
+        await linkRazorpayOrderToBookingTx(tx, {
+          userId,
+          razorpayOrderId: pending.razorpayOrderId,
+          bookingId: result.bookingId,
         });
-      }
+        await tx.booking.update({
+          where: { id: result.bookingId },
+          data: { extra_guest_count: 0 },
+        });
+        const sched = await tx.classSchedule.findUnique({
+          where: { id: pending.class_schedule_id },
+          include: { class_model: { select: { max_capacity: true } } },
+        });
+        if (sched) {
+          const cap = sched.capacity ?? sched.class_model?.max_capacity ?? 0;
+          if (cap > 0) {
+            const seatsTaken = await computeSeatsTaken(tx, pending.class_schedule_id);
+            await tx.classSchedule.update({
+              where: { id: pending.class_schedule_id },
+              data: { current_bookings: seatsTaken, available_spots: Math.max(0, cap - seatsTaken) },
+            });
+          }
+        }
+      });
+    } catch (e) {
+      logger.error(
+        { err: e, bookingId: result.bookingId },
+        "[confirmPreCreatedBookingFlow] post-confirm link/seat failed — booking stays confirmed",
+      );
     }
-    return r;
-  });
+  }
 
   if (result.transitioned) {
     const b = await prisma.booking.findUnique({
