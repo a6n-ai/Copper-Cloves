@@ -24,6 +24,7 @@ import { requireSessionSSP } from "@/lib/requireSessionSSP";
 import { passCategoryForPackageType } from "@/lib/couponHelpers";
 import { SEO } from "@/components/SEO";
 import { PageHeader } from "@/components/dashboard/PageHeader";
+import { PassCard } from "@/components/dashboard/PassCard";
 import { MetricCard } from "@/components/admin/MetricCard";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -72,6 +73,7 @@ interface PackageRow {
   isUnlimited: boolean;
   isPaused: boolean;
   passType: string | null;
+  durationMonths: number | null;
 }
 interface BookingRow {
   id: string;
@@ -174,7 +176,7 @@ function mapDetail(data: Record<string, unknown>): MemberDetail {
   const now = Date.now();
   const pkgsRaw = Array.isArray(data.user_packages) ? (data.user_packages as Array<Record<string, unknown>>) : [];
   const packages: PackageRow[] = pkgsRaw.map((p) => {
-    const pt = (p.package_type ?? null) as { name?: string; is_unlimited?: boolean } | null;
+    const pt = (p.package_type ?? null) as { name?: string; is_unlimited?: boolean; duration_months?: number | null } | null;
     const exp = p.expiration_date ? String(p.expiration_date) : null;
     return {
       id: String(p.id),
@@ -186,6 +188,7 @@ function mapDetail(data: Record<string, unknown>): MemberDetail {
       isUnlimited: !!pt?.is_unlimited,
       isPaused: !!p.is_paused,
       passType: p.pass_type ? String(p.pass_type) : null,
+      durationMonths: typeof pt?.duration_months === "number" ? pt.duration_months : null,
     };
   });
   const activePkg = packages.find((p) => p.isActive) ?? packages[0] ?? null;
@@ -650,30 +653,26 @@ function MemberBody({
           {member.packages.length === 0 ? (
             <EmptyNote text="No packages purchased." />
           ) : (
-            <ul className="divide-y divide-sage/10">
-              {member.packages.map((p) => (
-                <li key={p.id} className="flex items-center justify-between gap-3 py-3">
-                  <div className="min-w-0">
-                    <div className="font-body font-medium text-charcoal truncate">{p.name}</div>
-                    <div className="font-body text-xs text-charcoal/50">
-                      Purchased {fmtDate(p.purchasedAt)}
-                      {p.expiresAt ? ` · expires ${fmtDate(p.expiresAt)}` : ""}
-                    </div>
-                  </div>
-                  <div className="flex items-center gap-2 shrink-0">
-                    <span className="font-body text-xs text-charcoal/60">
-                      {p.isUnlimited ? "Unlimited" : `${p.creditsRemaining ?? 0} left`}
-                    </span>
-                    <Pill
-                      {...memberStatusPill(p.isActive ? "active" : "expired")}
-                      className="font-body"
-                    >
-                      {p.isActive ? "Active" : "Expired"}
-                    </Pill>
-                  </div>
-                </li>
-              ))}
-            </ul>
+            <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+              {member.packages.map((p) => {
+                let status: "active" | "expired" | "paused";
+                if (p.isPaused) status = "paused";
+                else if (p.isActive) status = "active";
+                else status = "expired";
+                return (
+                  <PassCard
+                    key={p.id}
+                    name={p.name}
+                    isUnlimited={p.isUnlimited}
+                    classesRemaining={p.creditsRemaining}
+                    expiry={p.expiresAt}
+                    durationMonths={p.durationMonths}
+                    status={status}
+                    className="w-full"
+                  />
+                );
+              })}
+            </div>
           )}
         </SectionCard>
       </div>
