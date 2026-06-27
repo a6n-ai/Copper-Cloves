@@ -241,7 +241,8 @@ async function runOnlineBookingCheckout(args: {
     description: args.checkoutDescription,
     prefill: { email: args.prefill.email, name: args.prefill.name },
     callbackUrl: buildRazorpayReturnUrl("booking"),
-    redirect: false,
+    // Full-page redirect so a closed/backgrounded tab can't drop the capture.
+    redirect: true,
   });
   if (checkoutResult.kind === "cancelled") {
     clearPendingRazorpayCheckout();
@@ -1183,7 +1184,8 @@ export default function BookClass() {
         description: featuredPackage.name,
         prefill: { email: userEmail || undefined, name: userName || undefined },
         callbackUrl: buildRazorpayReturnUrl("package"),
-        redirect: false,
+        // Full-page redirect so a closed/backgrounded tab can't drop the capture.
+        redirect: true,
       });
 
       if (checkoutResult.kind === "cancelled") {
