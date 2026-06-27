@@ -6,7 +6,7 @@ import Head from "next/head";
 import Script from "next/script";
 import { Playfair_Display, Montserrat } from "next/font/google";
 import { useRouter } from "next/router";
-import { useEffect, useMemo } from "react";
+import { useEffect, useMemo, useState } from "react";
 
 const playfair = Playfair_Display({
   subsets: ["latin"],
@@ -87,6 +87,12 @@ function resolvePortalKind(pathname: string, role?: string): PortalKind | null {
 function DashboardChrome({ children }: Readonly<{ children: React.ReactNode }>) {
   const { data: session, status } = useSession();
   const router = useRouter();
+  // The shell decision depends on `status`, which is "loading" on the client's
+  // first paint but resolved on the server — branching the tree on it directly
+  // causes a hydration mismatch. Defer the shell to after mount so SSR and the
+  // first client render agree; the shell then appears once hydrated.
+  const [mounted, setMounted] = useState(false);
+  useEffect(() => setMounted(true), []);
   // Pull scalar fields out of `session` once. Every 4-min `refetchInterval`
   // tick produces a fresh `session` object even when the JWT is unchanged;
   // downstream effects/memos key off these primitives instead so they don't
@@ -97,7 +103,9 @@ function DashboardChrome({ children }: Readonly<{ children: React.ReactNode }>) 
 
   const exempt = CHROME_EXEMPT.some((p) => router.pathname.startsWith(p));
   const kind =
-    !exempt && status === "authenticated" ? resolvePortalKind(router.pathname, userRole) : null;
+    mounted && !exempt && status === "authenticated"
+      ? resolvePortalKind(router.pathname, userRole)
+      : null;
 
   // SWR-shared with any other consumer of `/api/partner/profile` (e.g. the
   // partner settings page) — first paint of either reuses the cached payload.
