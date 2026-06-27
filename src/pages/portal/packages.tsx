@@ -37,6 +37,7 @@ import {
   savePendingRazorpayCheckout,
 } from "@/lib/pendingRazorpayCheckout";
 import { cn } from "@/lib/utils";
+import { PACKAGE_CATALOG, formatInr } from "@/lib/packageCatalog";
 import { ResponsiveCards } from "@/components/responsive/ResponsiveTable";
 import { MobilePagination } from "@/components/responsive/MobilePagination";
 
@@ -76,116 +77,16 @@ function packageState(p: PurchaseRecord): { key: string; label: string } {
   return { key: "inactive", label: "Inactive" };
 }
 
-const premiumPackages: Package[] = [
-  {
-    name: "1 Day Class Pass",
-    price: "₹945",
-    classes: 1,
-    validity: "1 day",
-    benefits: [
-      "Access Any Class",
-      "Flexible Scheduling",
-      "Shower Facilities",
-      "Cafe Credits"
-    ],
-  },
-  {
-    name: "4 Class Pass",
-    price: "₹3,700",
-    classes: 4,
-    validity: "30 days",
-    benefits: [
-      "Access Any Class",
-      "Flexible Scheduling",
-      "Shower Facilities",
-      "Cafe Credits"
-    ],
-  },
-  {
-    name: "8 Class Pass",
-    price: "₹7,200",
-    classes: 8,
-    validity: "40 days",
-    benefits: [
-      "Access Any Class",
-      "Flexible Scheduling",
-      "Shower Facilities",
-      "Cafe Credits"
-    ],
-  },
-  {
-    name: "12 Class Pass",
-    price: "₹10,500",
-    classes: 12,
-    validity: "60 days",
-    benefits: [
-      "Access Any Class",
-      "Flexible Scheduling",
-      "Shower Facilities",
-      "Cafe Credits"
-    ],
-  },
-  {
-    name: "1 Month Unlimited",
-    price: "₹12,500",
-    classes: "Unlimited",
-    validity: "30 days",
-    benefits: [
-      "Access Any Class",
-      "Flexible Scheduling",
-      "Shower Facilities",
-      "Flat 10% Off on Cafe",
-      "Tote Bag",
-      "1 Complimentary Aerial Class"
-    ],
-  },
-  {
-    name: "3 Month Unlimited",
-    price: "₹36,000",
-    classes: "Unlimited",
-    validity: "90 days",
-    benefits: [
-      "Access Any Class",
-      "Flexible Scheduling",
-      "Shower Facilities",
-      "Flat 12% Off on Cafe",
-      "C+C Tote Bag + C+C Bottle",
-      "2 Complimentary Aerial Class"
-    ],
-    featured: true,
-    badge: "Most Popular",
-  },
-  {
-    name: "6 Month Unlimited",
-    price: "₹42,500",
-    classes: "Unlimited",
-    validity: "180 days",
-    benefits: [
-      "Access Any Class",
-      "Flexible Scheduling",
-      "Shower Facilities",
-      "Flat 15% Off on Cafe",
-      "C+C Tote Bag & C+C Bottle",
-      "3 Complimentary Aerial Class",
-      "Access to AI Features"
-    ],
-  },
-  {
-    name: "12 Month Unlimited",
-    price: "₹51,000",
-    classes: "Unlimited",
-    validity: "365 days",
-    benefits: [
-      "Access Any Class",
-      "Flexible Scheduling",
-      "Shower Facilities",
-      "Flat 20% Off on Cafe",
-      "C+C Tote Bag & C+C Bottle",
-      "4 Complimentary Aerial Class",
-      "Access to AI Features"
-    ],
-  },
-];
+// Derived from the shared canonical catalog so the page and the DB never drift.
+const premiumPackages: Package[] = PACKAGE_CATALOG.map((p) => ({
+  name: p.name,
+  price: formatInr(p.priceInr),
+  classes: p.isUnlimited ? "Unlimited" : p.classCount ?? 0,
+  validity: p.validity,
+  benefits: p.benefits,
+  featured: p.featured,
+  badge: p.badge,
+}));
 
 const HISTORY_PAGE_SIZE = 6;
 
@@ -571,37 +472,14 @@ export default function PackagesPage() {
     setIsProcessing(true);
     const razorpayOrderIdForPackage: string | null = null;
     try {
+      // Lookup-only: packages must exist in the canonical catalog. Never create
+      // a PackageType from the member purchase flow — that is what historically
+      // spawned duplicate/legacy types.
       const allPkgsRes = await fetch("/api/packages");
       const allPkgs = allPkgsRes.ok ? await allPkgsRes.json() : [];
-      let packageType = allPkgs.find((p: { name: string }) => p.name === selectedPackage.name);
+      const packageType = allPkgs.find((p: { name: string }) => p.name === selectedPackage.name);
 
-      if (!packageType) {
-        let durationMonths: number | null;
-        if (selectedPackage.validity.includes("days")) {
-          durationMonths = Math.round(parseInt(selectedPackage.validity) / 30);
-        } else if (selectedPackage.validity.includes("Month")) {
-          durationMonths = parseInt(selectedPackage.validity);
-        } else {
-          durationMonths = null;
-        }
-        const createRes = await fetch("/api/packages", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({
-            name: selectedPackage.name,
-            type: "standard",
-            class_count: typeof selectedPackage.classes === "number" ? selectedPackage.classes : null,
-            duration_months: durationMonths,
-            price: parseInt(selectedPackage.price.replace(/\D/g, "")) || 0,
-            includes_physique_57: true,
-            is_unlimited: selectedPackage.classes === "Unlimited",
-            description: `Package: ${selectedPackage.name}`,
-          }),
-        });
-        packageType = createRes.ok ? await createRes.json() : null;
-      }
-
-      if (!packageType) throw new Error("Could not find or create package type");
+      if (!packageType) throw new Error("This package isn't available right now. Please contact the studio.");
 
       const subtotal = packageSubtotalInr(selectedPackage);
       const discount = couponDiscount ?? 0;

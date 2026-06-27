@@ -44,7 +44,9 @@
     "crm:dump-templates": "tsx scripts/dump-email-templates.ts",
     "instructor:set-password": "tsx scripts/set-instructor-password.ts",
     "scheduler": "tsx scripts/scheduler.ts",
-    "test:payout": "tsx scripts/test-payoutCalc.ts"
+    "test:payout": "tsx scripts/test-payoutCalc.ts",
+    "db:catalog:dry": "tsx scripts/migrate-package-catalog.ts",
+    "db:catalog:apply": "tsx scripts/migrate-package-catalog.ts --apply"
   },
   "dependencies": {
     "@aws-sdk/client-s3": "^3.1049.0",
