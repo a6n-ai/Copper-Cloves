@@ -240,7 +240,7 @@ export function PassCard({
   })();
 
   const classesValue = isUnlimited ? "∞" : String(classesRemaining ?? 0);
-  const classesSuffix = isUnlimited ? "Unlimited" : "classes left";
+  const classesSuffix = isUnlimited ? "Unlimited Classes" : "classes left";
 
   const statusPill = memberStatusPill(status);
   const statusLabel = status
