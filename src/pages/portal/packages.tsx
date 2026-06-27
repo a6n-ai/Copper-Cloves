@@ -599,7 +599,10 @@ export default function PackagesPage() {
           description: selectedPackage.name ? `Package — ${selectedPackage.name}` : "Studio package",
           prefill: { email: formData.email || undefined, name: formData.fullName || undefined },
           callbackUrl: buildRazorpayReturnUrl("package"),
-          redirect: false,
+          // Full-page redirect (not modal+handler) so a closed tab / mobile
+          // backgrounding can't drop the capture — Razorpay returns to the
+          // return page, which finalizes and shows the hooray.
+          redirect: true,
         });
         if (checkoutResult.kind === "cancelled") {
           clearPendingRazorpayCheckout();
