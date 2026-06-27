@@ -20,6 +20,8 @@ import {
 import { requestLogger } from "@/lib/logger";
 import { upsertFriendship } from "@/lib/friendship";
 import { logActivity } from "@/lib/activityLog";
+import { getStudioSettings } from "@/lib/studioSettings";
+import { grantRefundForBookingRow } from "@/lib/classCancellation";
 
 type BookingsLog = ReturnType<typeof requestLogger>;
 type TxClient = Parameters<Parameters<typeof prisma.$transaction>[0]>[0];
@@ -508,38 +510,31 @@ async function reconcileScheduleSeatsAfterCancel(tx: TxClient, schedId: string) 
   });
 }
 
-async function refundCreditIfEligible(
+type CancelRefundRow = {
+  user_id: string;
+  user_package_id: string | null;
+  checked_in: boolean;
+  extra_guest_count: number | null;
+  user_package?: { package_type?: { is_unlimited: boolean } | null } | null;
+};
+
+// Refund-as-pass (spec §9): a cancelled non-unlimited seat earns a `1 Class Pass`
+// (origin=cancellation); anonymous extra guests grant their passes to the booker.
+// `wasActiveSeat` guards against double refund on repeated cancel calls (a
+// cancelled row is no longer an active seat). Replaces the old credit increment.
+async function refundCancelledSeatsAsPass(
   tx: TxClient,
-  existing: { class_schedule?: { start_time: Date | null } | null; user_package_id: string | null; checked_in: boolean },
-  status: string | undefined,
+  rows: CancelRefundRow[],
   wasActiveSeat: boolean,
 ) {
-  // Refund the class credit consumed at booking time. Policy: refund only when
-  // cancelled at least 6h before class start; late cancels (<6h) forfeit the credit.
-  // Also only for an active, non-attended credit-pass booking (unlimited never
-  // consumed a credit). `wasActiveSeat` guards against double refund on repeated
-  // cancel calls (a cancelled row is no longer an active seat).
-  const REFUND_CUTOFF_MS = 6 * 60 * 60 * 1000;
-  const classStartForRefund = existing.class_schedule?.start_time;
-  const refundEligible =
-    !!classStartForRefund && Date.now() <= classStartForRefund.getTime() - REFUND_CUTOFF_MS;
-  if (
-    status !== STATUS_CANCELLED ||
-    !wasActiveSeat ||
-    !refundEligible ||
-    !existing.user_package_id ||
-    existing.checked_in
-  ) {
-    return;
-  }
-  const up = await tx.userPackage.findUnique({
-    where: { id: existing.user_package_id },
-    include: { package_type: { select: { is_unlimited: true } } },
-  });
-  if (up && !up.package_type?.is_unlimited && up.credits_remaining != null) {
-    await tx.userPackage.update({
-      where: { id: up.id },
-      data: { credits_remaining: { increment: 1 } },
+  if (!wasActiveSeat) return;
+  for (const row of rows) {
+    await grantRefundForBookingRow(tx, {
+      user_id: row.user_id,
+      user_package_id: row.user_package_id,
+      checked_in: row.checked_in,
+      extra_guest_count: row.extra_guest_count,
+      is_unlimited: row.user_package?.package_type?.is_unlimited ?? false,
     });
   }
 }
@@ -612,13 +607,34 @@ async function handlePatch(
 
   const existing = await prisma.booking.findFirst({
     where: { id, user_id: userId },
-    include: { class_schedule: { select: { start_time: true } } },
+    include: {
+      class_schedule: { select: { start_time: true } },
+      user_package: { select: { package_type: { select: { is_unlimited: true } } } },
+    },
   });
   if (!existing) return res.status(404).json({ error: "Booking not found" });
 
   // Invited bookings can only be cancelled by the person who created the invite, not the invitee.
   if (status === STATUS_CANCELLED && existing.invited_by_user_id !== null) {
     return res.status(403).json({ error: "Invited bookings can only be cancelled by the person who added you" });
+  }
+
+  // Cancellation cutoff (spec §9): self-cancel is only allowed up to
+  // cancellation_cutoff_hours before class start. After the cutoff the member
+  // must file a cancellation request for admin approval.
+  if (status === STATUS_CANCELLED && existing.status !== STATUS_CANCELLED) {
+    const classStart = existing.class_schedule?.start_time;
+    if (classStart) {
+      const { cancellation_cutoff_hours } = await getStudioSettings();
+      const cutoffMs = cancellation_cutoff_hours * 60 * 60 * 1000;
+      if (Date.now() > classStart.getTime() - cutoffMs) {
+        return res.status(409).json({
+          code: "CUTOFF_PASSED",
+          error:
+            "This class is past the cancellation cutoff. Please file a cancellation request for the studio to review.",
+        });
+      }
+    }
   }
 
   const wasActiveSeat = occupiesSeat(existing.status) && Boolean(existing.class_schedule_id);
@@ -651,11 +667,39 @@ async function handlePatch(
 
     // Group cascade: when the BOOKER (not an invited guest) cancels, cancel the
     // whole group they brought — guests are tied to the booker's booking.
+    const refundRows: CancelRefundRow[] = [];
+    if (status === STATUS_CANCELLED) {
+      refundRows.push({
+        user_id: existing.user_id,
+        user_package_id: existing.user_package_id,
+        checked_in: existing.checked_in,
+        extra_guest_count: existing.extra_guest_count,
+        user_package: existing.user_package,
+      });
+    }
+
     if (
       status === STATUS_CANCELLED &&
       existing.invited_by_user_id === null &&
       existing.class_schedule_id
     ) {
+      // Capture the group rows BEFORE cancelling so we can refund each member.
+      const groupRows = await tx.booking.findMany({
+        where: {
+          invited_by_user_id: userId,
+          class_schedule_id: existing.class_schedule_id,
+          status: { in: [...OCCUPYING_STATUSES] },
+        },
+        select: {
+          user_id: true,
+          user_package_id: true,
+          checked_in: true,
+          extra_guest_count: true,
+          user_package: { select: { package_type: { select: { is_unlimited: true } } } },
+        },
+      });
+      refundRows.push(...groupRows);
+
       await tx.booking.updateMany({
         where: {
           invited_by_user_id: userId,
@@ -670,7 +714,9 @@ async function handlePatch(
       await reconcileScheduleSeatsAfterCancel(tx, existing.class_schedule_id);
     }
 
-    await refundCreditIfEligible(tx, existing, status, wasActiveSeat);
+    if (status === STATUS_CANCELLED) {
+      await refundCancelledSeatsAsPass(tx, refundRows, wasActiveSeat);
+    }
 
     return updated;
   });

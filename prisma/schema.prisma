@@ -55,6 +55,7 @@ model Profile {
   member_tickets    MemberTicket[]
   payments          Payment[]
   recorded_payments Payment[] @relation("PaymentRecordedBy")
+  cancellation_requests ClassCancellationRequest[]
   sessions          UserSession[]
 
   @@index([is_system])
@@ -299,6 +300,7 @@ model ClassSchedule {
   actual_instructor Instructor?  @relation("ActualInstructor", fields: [actual_instructor_id], references: [id], onDelete: SetNull)
   bookings          Booking[]
   qr_codes          QrCode[]
+  cancellation_requests ClassCancellationRequest[]
 
   @@index([class_id])
   @@index([instructor_id])
@@ -319,6 +321,16 @@ model PackageType {
   includes_physique_57 Boolean @default(false)
   is_unlimited        Boolean  @default(false)
   description         String?
+  /// Marketing bullet list shown on the portal package card.
+  benefits            String[]
+  /// "Most Popular" highlight on the portal pricing carousel.
+  featured            Boolean  @default(false)
+  /// Optional badge label, e.g. "Most Popular".
+  badge               String?
+  /// Portal ordering (ascending).
+  display_order       Int      @default(0)
+  /// Admin can hide a package without deleting it.
+  is_published        Boolean  @default(true)
   created_at          DateTime @default(now())
   updated_at          DateTime @default(now()) @updatedAt
 
@@ -342,6 +354,12 @@ model UserPackage {
   pass_type         String?
   coupon_id         String?
   purchase_discount_inr Decimal? @db.Decimal(10, 2)
+  /// Comp (₹0) grant: no payment recorded, grant_note required.
+  is_comp           Boolean   @default(false)
+  /// Required when is_comp or for an admin manual grant note.
+  grant_note        String?
+  /// "purchase" | "comp" | "cancellation" | "admin"
+  origin            String?
   created_at        DateTime  @default(now())
   updated_at        DateTime  @default(now()) @updatedAt
 
@@ -403,6 +421,7 @@ model Booking {
   cafe_orders    CafeOrder[]
   razorpay_order RazorpayOrder?
   payments       Payment[]
+  cancellation_requests ClassCancellationRequest[]
 
   @@index([user_id])
   @@index([class_schedule_id])
@@ -1056,6 +1075,44 @@ model PayoutSettings {
   updated_by                 String?
 
   @@map("payout_settings")
+}
+
+/// Studio-wide singleton settings (mirrors PayoutSettings). One row, id "default".
+model StudioSettings {
+  id                            String   @id @default("default")
+  /// Hours before class start before self-serve cancellation is blocked.
+  cancellation_cutoff_hours     Int      @default(6)
+  /// Fallback validity (days) when a package has no own duration.
+  default_package_validity_days Int      @default(30)
+  /// Validity (days) of the 1 Class Pass granted on a cancelled class.
+  cancelled_pass_validity_days  Int      @default(7)
+  created_at                    DateTime @default(now())
+  updated_at                    DateTime @default(now()) @updatedAt
+
+  @@map("studio_settings")
+}
+
+/// Late-cancel (after cutoff) requests. Admin approves/denies in admin UI.
+model ClassCancellationRequest {
+  id                String    @id @default(uuid())
+  booking_id        String
+  user_id           String
+  class_schedule_id String
+  /// "open" | "approved" | "denied"
+  status            String    @default("open")
+  reason            String?
+  decided_by        String?
+  decided_at        DateTime?
+  created_at        DateTime  @default(now())
+
+  booking        Booking       @relation(fields: [booking_id], references: [id], onDelete: Cascade)
+  profile        Profile       @relation(fields: [user_id], references: [id], onDelete: Cascade)
+  class_schedule ClassSchedule @relation(fields: [class_schedule_id], references: [id], onDelete: Cascade)
+
+  @@index([user_id])
+  @@index([status])
+  @@index([booking_id])
+  @@map("class_cancellation_requests")
 }
 
 /// Expense categories. `instructor_payout` rows are created (idempotently) when a

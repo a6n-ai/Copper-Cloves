@@ -29,9 +29,14 @@ type Canonical = {
   duration_months: number;
   price: number;
   validity: string; // human note only
+  benefits: string[];
+  featured: boolean;
+  badge: string | null;
+  display_order: number;
+  is_published: boolean;
 };
 
-const CATALOG: Canonical[] = PACKAGE_CATALOG.map((p) => ({
+const CATALOG: Canonical[] = PACKAGE_CATALOG.map((p, i) => ({
   name: p.name,
   type: catalogPackageType(p),
   is_unlimited: p.isUnlimited,
@@ -39,17 +44,27 @@ const CATALOG: Canonical[] = PACKAGE_CATALOG.map((p) => ({
   duration_months: p.durationMonths,
   price: p.priceInr,
   validity: p.validity,
+  benefits: p.benefits,
+  featured: p.featured ?? false,
+  badge: p.badge ?? null,
+  display_order: p.displayOrder ?? i,
+  is_published: p.isPublished ?? true,
 }));
 
 const APPLY = process.argv.includes("--apply");
 
-function fieldDiffs(existing: { type: string; class_count: number | null; duration_months: number | null; price: Prisma.Decimal; is_unlimited: boolean }, c: Canonical): string[] {
+function fieldDiffs(existing: { type: string; class_count: number | null; duration_months: number | null; price: Prisma.Decimal; is_unlimited: boolean; benefits: string[]; featured: boolean; badge: string | null; display_order: number; is_published: boolean }, c: Canonical): string[] {
   const out: string[] = [];
   if (existing.type !== c.type) out.push(`type ${existing.type} -> ${c.type}`);
   if ((existing.class_count ?? null) !== c.class_count) out.push(`class_count ${existing.class_count} -> ${c.class_count}`);
   if ((existing.duration_months ?? null) !== c.duration_months) out.push(`duration_months ${existing.duration_months} -> ${c.duration_months}`);
   if (Number(existing.price) !== c.price) out.push(`price ${Number(existing.price)} -> ${c.price}`);
   if (existing.is_unlimited !== c.is_unlimited) out.push(`is_unlimited ${existing.is_unlimited} -> ${c.is_unlimited}`);
+  if (JSON.stringify(existing.benefits ?? []) !== JSON.stringify(c.benefits)) out.push(`benefits ${JSON.stringify(existing.benefits ?? [])} -> ${JSON.stringify(c.benefits)}`);
+  if (existing.featured !== c.featured) out.push(`featured ${existing.featured} -> ${c.featured}`);
+  if ((existing.badge ?? null) !== c.badge) out.push(`badge ${existing.badge} -> ${c.badge}`);
+  if (existing.display_order !== c.display_order) out.push(`display_order ${existing.display_order} -> ${c.display_order}`);
+  if (existing.is_published !== c.is_published) out.push(`is_published ${existing.is_published} -> ${c.is_published}`);
   return out;
 }
 
@@ -77,6 +92,11 @@ async function main() {
             is_unlimited: c.is_unlimited,
             includes_physique_57: true,
             description: c.name,
+            benefits: c.benefits,
+            featured: c.featured,
+            badge: c.badge,
+            display_order: c.display_order,
+            is_published: c.is_published,
           },
         });
       }
@@ -102,6 +122,11 @@ async function main() {
           duration_months: c.duration_months,
           price: new Prisma.Decimal(c.price),
           is_unlimited: c.is_unlimited,
+          benefits: c.benefits,
+          featured: c.featured,
+          badge: c.badge,
+          display_order: c.display_order,
+          is_published: c.is_published,
         },
       });
     }

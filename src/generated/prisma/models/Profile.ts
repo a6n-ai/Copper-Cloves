@@ -356,6 +356,7 @@ export type ProfileWhereInput = {
   member_tickets?: Prisma.MemberTicketListRelationFilter
   payments?: Prisma.PaymentListRelationFilter
   recorded_payments?: Prisma.PaymentListRelationFilter
+  cancellation_requests?: Prisma.ClassCancellationRequestListRelationFilter
   sessions?: Prisma.UserSessionListRelationFilter
 }
 
@@ -404,6 +405,7 @@ export type ProfileOrderByWithRelationInput = {
   member_tickets?: Prisma.MemberTicketOrderByRelationAggregateInput
   payments?: Prisma.PaymentOrderByRelationAggregateInput
   recorded_payments?: Prisma.PaymentOrderByRelationAggregateInput
+  cancellation_requests?: Prisma.ClassCancellationRequestOrderByRelationAggregateInput
   sessions?: Prisma.UserSessionOrderByRelationAggregateInput
 }
 
@@ -456,6 +458,7 @@ export type ProfileWhereUniqueInput = Prisma.AtLeast<{
   member_tickets?: Prisma.MemberTicketListRelationFilter
   payments?: Prisma.PaymentListRelationFilter
   recorded_payments?: Prisma.PaymentListRelationFilter
+  cancellation_requests?: Prisma.ClassCancellationRequestListRelationFilter
   sessions?: Prisma.UserSessionListRelationFilter
 }, "id" | "avatar_file_id" | "email_role">
 
@@ -558,6 +561,7 @@ export type ProfileCreateInput = {
   member_tickets?: Prisma.MemberTicketCreateNestedManyWithoutProfileInput
   payments?: Prisma.PaymentCreateNestedManyWithoutProfileInput
   recorded_payments?: Prisma.PaymentCreateNestedManyWithoutRecorded_by_adminInput
+  cancellation_requests?: Prisma.ClassCancellationRequestCreateNestedManyWithoutProfileInput
   sessions?: Prisma.UserSessionCreateNestedManyWithoutProfileInput
 }
 
@@ -606,6 +610,7 @@ export type ProfileUncheckedCreateInput = {
   member_tickets?: Prisma.MemberTicketUncheckedCreateNestedManyWithoutProfileInput
   payments?: Prisma.PaymentUncheckedCreateNestedManyWithoutProfileInput
   recorded_payments?: Prisma.PaymentUncheckedCreateNestedManyWithoutRecorded_by_adminInput
+  cancellation_requests?: Prisma.ClassCancellationRequestUncheckedCreateNestedManyWithoutProfileInput
   sessions?: Prisma.UserSessionUncheckedCreateNestedManyWithoutProfileInput
 }
 
@@ -654,6 +659,7 @@ export type ProfileUpdateInput = {
   member_tickets?: Prisma.MemberTicketUpdateManyWithoutProfileNestedInput
   payments?: Prisma.PaymentUpdateManyWithoutProfileNestedInput
   recorded_payments?: Prisma.PaymentUpdateManyWithoutRecorded_by_adminNestedInput
+  cancellation_requests?: Prisma.ClassCancellationRequestUpdateManyWithoutProfileNestedInput
   sessions?: Prisma.UserSessionUpdateManyWithoutProfileNestedInput
 }
 
@@ -702,6 +708,7 @@ export type ProfileUncheckedUpdateInput = {
   member_tickets?: Prisma.MemberTicketUncheckedUpdateManyWithoutProfileNestedInput
   payments?: Prisma.PaymentUncheckedUpdateManyWithoutProfileNestedInput
   recorded_payments?: Prisma.PaymentUncheckedUpdateManyWithoutRecorded_by_adminNestedInput
+  cancellation_requests?: Prisma.ClassCancellationRequestUncheckedUpdateManyWithoutProfileNestedInput
   sessions?: Prisma.UserSessionUncheckedUpdateManyWithoutProfileNestedInput
 }
 
@@ -1230,6 +1237,20 @@ export type ProfileUpdateOneRequiredWithoutMember_ticketsNestedInput = {
   update?: Prisma.XOR<Prisma.XOR<Prisma.ProfileUpdateToOneWithWhereWithoutMember_ticketsInput, Prisma.ProfileUpdateWithoutMember_ticketsInput>, Prisma.ProfileUncheckedUpdateWithoutMember_ticketsInput>
 }
 
+export type ProfileCreateNestedOneWithoutCancellation_requestsInput = {
+  create?: Prisma.XOR<Prisma.ProfileCreateWithoutCancellation_requestsInput, Prisma.ProfileUncheckedCreateWithoutCancellation_requestsInput>
+  connectOrCreate?: Prisma.ProfileCreateOrConnectWithoutCancellation_requestsInput
+  connect?: Prisma.ProfileWhereUniqueInput
+}
+
+export type ProfileUpdateOneRequiredWithoutCancellation_requestsNestedInput = {
+  create?: Prisma.XOR<Prisma.ProfileCreateWithoutCancellation_requestsInput, Prisma.ProfileUncheckedCreateWithoutCancellation_requestsInput>
+  connectOrCreate?: Prisma.ProfileCreateOrConnectWithoutCancellation_requestsInput
+  upsert?: Prisma.ProfileUpsertWithoutCancellation_requestsInput
+  connect?: Prisma.ProfileWhereUniqueInput
+  update?: Prisma.XOR<Prisma.XOR<Prisma.ProfileUpdateToOneWithWhereWithoutCancellation_requestsInput, Prisma.ProfileUpdateWithoutCancellation_requestsInput>, Prisma.ProfileUncheckedUpdateWithoutCancellation_requestsInput>
+}
+
 export type ProfileCreateNestedOneWithoutActivity_actionsInput = {
   create?: Prisma.XOR<Prisma.ProfileCreateWithoutActivity_actionsInput, Prisma.ProfileUncheckedCreateWithoutActivity_actionsInput>
   connectOrCreate?: Prisma.ProfileCreateOrConnectWithoutActivity_actionsInput
@@ -1307,6 +1328,7 @@ export type ProfileCreateWithoutSessionsInput = {
   member_tickets?: Prisma.MemberTicketCreateNestedManyWithoutProfileInput
   payments?: Prisma.PaymentCreateNestedManyWithoutProfileInput
   recorded_payments?: Prisma.PaymentCreateNestedManyWithoutRecorded_by_adminInput
+  cancellation_requests?: Prisma.ClassCancellationRequestCreateNestedManyWithoutProfileInput
 }
 
 export type ProfileUncheckedCreateWithoutSessionsInput = {
@@ -1354,6 +1376,7 @@ export type ProfileUncheckedCreateWithoutSessionsInput = {
   member_tickets?: Prisma.MemberTicketUncheckedCreateNestedManyWithoutProfileInput
   payments?: Prisma.PaymentUncheckedCreateNestedManyWithoutProfileInput
   recorded_payments?: Prisma.PaymentUncheckedCreateNestedManyWithoutRecorded_by_adminInput
+  cancellation_requests?: Prisma.ClassCancellationRequestUncheckedCreateNestedManyWithoutProfileInput
 }
 
 export type ProfileCreateOrConnectWithoutSessionsInput = {
@@ -1417,6 +1440,7 @@ export type ProfileUpdateWithoutSessionsInput = {
   member_tickets?: Prisma.MemberTicketUpdateManyWithoutProfileNestedInput
   payments?: Prisma.PaymentUpdateManyWithoutProfileNestedInput
   recorded_payments?: Prisma.PaymentUpdateManyWithoutRecorded_by_adminNestedInput
+  cancellation_requests?: Prisma.ClassCancellationRequestUpdateManyWithoutProfileNestedInput
 }
 
 export type ProfileUncheckedUpdateWithoutSessionsInput = {
@@ -1464,6 +1488,7 @@ export type ProfileUncheckedUpdateWithoutSessionsInput = {
   member_tickets?: Prisma.MemberTicketUncheckedUpdateManyWithoutProfileNestedInput
   payments?: Prisma.PaymentUncheckedUpdateManyWithoutProfileNestedInput
   recorded_payments?: Prisma.PaymentUncheckedUpdateManyWithoutRecorded_by_adminNestedInput
+  cancellation_requests?: Prisma.ClassCancellationRequestUncheckedUpdateManyWithoutProfileNestedInput
 }
 
 export type ProfileCreateWithoutCoupon_redemptionsInput = {
@@ -1510,6 +1535,7 @@ export type ProfileCreateWithoutCoupon_redemptionsInput = {
   member_tickets?: Prisma.MemberTicketCreateNestedManyWithoutProfileInput
   payments?: Prisma.PaymentCreateNestedManyWithoutProfileInput
   recorded_payments?: Prisma.PaymentCreateNestedManyWithoutRecorded_by_adminInput
+  cancellation_requests?: Prisma.ClassCancellationRequestCreateNestedManyWithoutProfileInput
   sessions?: Prisma.UserSessionCreateNestedManyWithoutProfileInput
 }
 
@@ -1557,6 +1583,7 @@ export type ProfileUncheckedCreateWithoutCoupon_redemptionsInput = {
   member_tickets?: Prisma.MemberTicketUncheckedCreateNestedManyWithoutProfileInput
   payments?: Prisma.PaymentUncheckedCreateNestedManyWithoutProfileInput
   recorded_payments?: Prisma.PaymentUncheckedCreateNestedManyWithoutRecorded_by_adminInput
+  cancellation_requests?: Prisma.ClassCancellationRequestUncheckedCreateNestedManyWithoutProfileInput
   sessions?: Prisma.UserSessionUncheckedCreateNestedManyWithoutProfileInput
 }
 
@@ -1620,6 +1647,7 @@ export type ProfileUpdateWithoutCoupon_redemptionsInput = {
   member_tickets?: Prisma.MemberTicketUpdateManyWithoutProfileNestedInput
   payments?: Prisma.PaymentUpdateManyWithoutProfileNestedInput
   recorded_payments?: Prisma.PaymentUpdateManyWithoutRecorded_by_adminNestedInput
+  cancellation_requests?: Prisma.ClassCancellationRequestUpdateManyWithoutProfileNestedInput
   sessions?: Prisma.UserSessionUpdateManyWithoutProfileNestedInput
 }
 
@@ -1667,6 +1695,7 @@ export type ProfileUncheckedUpdateWithoutCoupon_redemptionsInput = {
   member_tickets?: Prisma.MemberTicketUncheckedUpdateManyWithoutProfileNestedInput
   payments?: Prisma.PaymentUncheckedUpdateManyWithoutProfileNestedInput
   recorded_payments?: Prisma.PaymentUncheckedUpdateManyWithoutRecorded_by_adminNestedInput
+  cancellation_requests?: Prisma.ClassCancellationRequestUncheckedUpdateManyWithoutProfileNestedInput
   sessions?: Prisma.UserSessionUncheckedUpdateManyWithoutProfileNestedInput
 }
 
@@ -1714,6 +1743,7 @@ export type ProfileCreateWithoutRetail_ordersInput = {
   member_tickets?: Prisma.MemberTicketCreateNestedManyWithoutProfileInput
   payments?: Prisma.PaymentCreateNestedManyWithoutProfileInput
   recorded_payments?: Prisma.PaymentCreateNestedManyWithoutRecorded_by_adminInput
+  cancellation_requests?: Prisma.ClassCancellationRequestCreateNestedManyWithoutProfileInput
   sessions?: Prisma.UserSessionCreateNestedManyWithoutProfileInput
 }
 
@@ -1761,6 +1791,7 @@ export type ProfileUncheckedCreateWithoutRetail_ordersInput = {
   member_tickets?: Prisma.MemberTicketUncheckedCreateNestedManyWithoutProfileInput
   payments?: Prisma.PaymentUncheckedCreateNestedManyWithoutProfileInput
   recorded_payments?: Prisma.PaymentUncheckedCreateNestedManyWithoutRecorded_by_adminInput
+  cancellation_requests?: Prisma.ClassCancellationRequestUncheckedCreateNestedManyWithoutProfileInput
   sessions?: Prisma.UserSessionUncheckedCreateNestedManyWithoutProfileInput
 }
 
@@ -1824,6 +1855,7 @@ export type ProfileUpdateWithoutRetail_ordersInput = {
   member_tickets?: Prisma.MemberTicketUpdateManyWithoutProfileNestedInput
   payments?: Prisma.PaymentUpdateManyWithoutProfileNestedInput
   recorded_payments?: Prisma.PaymentUpdateManyWithoutRecorded_by_adminNestedInput
+  cancellation_requests?: Prisma.ClassCancellationRequestUpdateManyWithoutProfileNestedInput
   sessions?: Prisma.UserSessionUpdateManyWithoutProfileNestedInput
 }
 
@@ -1871,6 +1903,7 @@ export type ProfileUncheckedUpdateWithoutRetail_ordersInput = {
   member_tickets?: Prisma.MemberTicketUncheckedUpdateManyWithoutProfileNestedInput
   payments?: Prisma.PaymentUncheckedUpdateManyWithoutProfileNestedInput
   recorded_payments?: Prisma.PaymentUncheckedUpdateManyWithoutRecorded_by_adminNestedInput
+  cancellation_requests?: Prisma.ClassCancellationRequestUncheckedUpdateManyWithoutProfileNestedInput
   sessions?: Prisma.UserSessionUncheckedUpdateManyWithoutProfileNestedInput
 }
 
@@ -1918,6 +1951,7 @@ export type ProfileCreateWithoutInstructor_accountInput = {
   member_tickets?: Prisma.MemberTicketCreateNestedManyWithoutProfileInput
   payments?: Prisma.PaymentCreateNestedManyWithoutProfileInput
   recorded_payments?: Prisma.PaymentCreateNestedManyWithoutRecorded_by_adminInput
+  cancellation_requests?: Prisma.ClassCancellationRequestCreateNestedManyWithoutProfileInput
   sessions?: Prisma.UserSessionCreateNestedManyWithoutProfileInput
 }
 
@@ -1965,6 +1999,7 @@ export type ProfileUncheckedCreateWithoutInstructor_accountInput = {
   member_tickets?: Prisma.MemberTicketUncheckedCreateNestedManyWithoutProfileInput
   payments?: Prisma.PaymentUncheckedCreateNestedManyWithoutProfileInput
   recorded_payments?: Prisma.PaymentUncheckedCreateNestedManyWithoutRecorded_by_adminInput
+  cancellation_requests?: Prisma.ClassCancellationRequestUncheckedCreateNestedManyWithoutProfileInput
   sessions?: Prisma.UserSessionUncheckedCreateNestedManyWithoutProfileInput
 }
 
@@ -2028,6 +2063,7 @@ export type ProfileUpdateWithoutInstructor_accountInput = {
   member_tickets?: Prisma.MemberTicketUpdateManyWithoutProfileNestedInput
   payments?: Prisma.PaymentUpdateManyWithoutProfileNestedInput
   recorded_payments?: Prisma.PaymentUpdateManyWithoutRecorded_by_adminNestedInput
+  cancellation_requests?: Prisma.ClassCancellationRequestUpdateManyWithoutProfileNestedInput
   sessions?: Prisma.UserSessionUpdateManyWithoutProfileNestedInput
 }
 
@@ -2075,6 +2111,7 @@ export type ProfileUncheckedUpdateWithoutInstructor_accountInput = {
   member_tickets?: Prisma.MemberTicketUncheckedUpdateManyWithoutProfileNestedInput
   payments?: Prisma.PaymentUncheckedUpdateManyWithoutProfileNestedInput
   recorded_payments?: Prisma.PaymentUncheckedUpdateManyWithoutRecorded_by_adminNestedInput
+  cancellation_requests?: Prisma.ClassCancellationRequestUncheckedUpdateManyWithoutProfileNestedInput
   sessions?: Prisma.UserSessionUncheckedUpdateManyWithoutProfileNestedInput
 }
 
@@ -2122,6 +2159,7 @@ export type ProfileCreateWithoutPartner_membershipsInput = {
   member_tickets?: Prisma.MemberTicketCreateNestedManyWithoutProfileInput
   payments?: Prisma.PaymentCreateNestedManyWithoutProfileInput
   recorded_payments?: Prisma.PaymentCreateNestedManyWithoutRecorded_by_adminInput
+  cancellation_requests?: Prisma.ClassCancellationRequestCreateNestedManyWithoutProfileInput
   sessions?: Prisma.UserSessionCreateNestedManyWithoutProfileInput
 }
 
@@ -2169,6 +2207,7 @@ export type ProfileUncheckedCreateWithoutPartner_membershipsInput = {
   member_tickets?: Prisma.MemberTicketUncheckedCreateNestedManyWithoutProfileInput
   payments?: Prisma.PaymentUncheckedCreateNestedManyWithoutProfileInput
   recorded_payments?: Prisma.PaymentUncheckedCreateNestedManyWithoutRecorded_by_adminInput
+  cancellation_requests?: Prisma.ClassCancellationRequestUncheckedCreateNestedManyWithoutProfileInput
   sessions?: Prisma.UserSessionUncheckedCreateNestedManyWithoutProfileInput
 }
 
@@ -2232,6 +2271,7 @@ export type ProfileUpdateWithoutPartner_membershipsInput = {
   member_tickets?: Prisma.MemberTicketUpdateManyWithoutProfileNestedInput
   payments?: Prisma.PaymentUpdateManyWithoutProfileNestedInput
   recorded_payments?: Prisma.PaymentUpdateManyWithoutRecorded_by_adminNestedInput
+  cancellation_requests?: Prisma.ClassCancellationRequestUpdateManyWithoutProfileNestedInput
   sessions?: Prisma.UserSessionUpdateManyWithoutProfileNestedInput
 }
 
@@ -2279,6 +2319,7 @@ export type ProfileUncheckedUpdateWithoutPartner_membershipsInput = {
   member_tickets?: Prisma.MemberTicketUncheckedUpdateManyWithoutProfileNestedInput
   payments?: Prisma.PaymentUncheckedUpdateManyWithoutProfileNestedInput
   recorded_payments?: Prisma.PaymentUncheckedUpdateManyWithoutRecorded_by_adminNestedInput
+  cancellation_requests?: Prisma.ClassCancellationRequestUncheckedUpdateManyWithoutProfileNestedInput
   sessions?: Prisma.UserSessionUncheckedUpdateManyWithoutProfileNestedInput
 }
 
@@ -2326,6 +2367,7 @@ export type ProfileCreateWithoutUser_packagesInput = {
   member_tickets?: Prisma.MemberTicketCreateNestedManyWithoutProfileInput
   payments?: Prisma.PaymentCreateNestedManyWithoutProfileInput
   recorded_payments?: Prisma.PaymentCreateNestedManyWithoutRecorded_by_adminInput
+  cancellation_requests?: Prisma.ClassCancellationRequestCreateNestedManyWithoutProfileInput
   sessions?: Prisma.UserSessionCreateNestedManyWithoutProfileInput
 }
 
@@ -2373,6 +2415,7 @@ export type ProfileUncheckedCreateWithoutUser_packagesInput = {
   member_tickets?: Prisma.MemberTicketUncheckedCreateNestedManyWithoutProfileInput
   payments?: Prisma.PaymentUncheckedCreateNestedManyWithoutProfileInput
   recorded_payments?: Prisma.PaymentUncheckedCreateNestedManyWithoutRecorded_by_adminInput
+  cancellation_requests?: Prisma.ClassCancellationRequestUncheckedCreateNestedManyWithoutProfileInput
   sessions?: Prisma.UserSessionUncheckedCreateNestedManyWithoutProfileInput
 }
 
@@ -2436,6 +2479,7 @@ export type ProfileUpdateWithoutUser_packagesInput = {
   member_tickets?: Prisma.MemberTicketUpdateManyWithoutProfileNestedInput
   payments?: Prisma.PaymentUpdateManyWithoutProfileNestedInput
   recorded_payments?: Prisma.PaymentUpdateManyWithoutRecorded_by_adminNestedInput
+  cancellation_requests?: Prisma.ClassCancellationRequestUpdateManyWithoutProfileNestedInput
   sessions?: Prisma.UserSessionUpdateManyWithoutProfileNestedInput
 }
 
@@ -2483,6 +2527,7 @@ export type ProfileUncheckedUpdateWithoutUser_packagesInput = {
   member_tickets?: Prisma.MemberTicketUncheckedUpdateManyWithoutProfileNestedInput
   payments?: Prisma.PaymentUncheckedUpdateManyWithoutProfileNestedInput
   recorded_payments?: Prisma.PaymentUncheckedUpdateManyWithoutRecorded_by_adminNestedInput
+  cancellation_requests?: Prisma.ClassCancellationRequestUncheckedUpdateManyWithoutProfileNestedInput
   sessions?: Prisma.UserSessionUncheckedUpdateManyWithoutProfileNestedInput
 }
 
@@ -2530,6 +2575,7 @@ export type ProfileCreateWithoutSent_invitesInput = {
   member_tickets?: Prisma.MemberTicketCreateNestedManyWithoutProfileInput
   payments?: Prisma.PaymentCreateNestedManyWithoutProfileInput
   recorded_payments?: Prisma.PaymentCreateNestedManyWithoutRecorded_by_adminInput
+  cancellation_requests?: Prisma.ClassCancellationRequestCreateNestedManyWithoutProfileInput
   sessions?: Prisma.UserSessionCreateNestedManyWithoutProfileInput
 }
 
@@ -2577,6 +2623,7 @@ export type ProfileUncheckedCreateWithoutSent_invitesInput = {
   member_tickets?: Prisma.MemberTicketUncheckedCreateNestedManyWithoutProfileInput
   payments?: Prisma.PaymentUncheckedCreateNestedManyWithoutProfileInput
   recorded_payments?: Prisma.PaymentUncheckedCreateNestedManyWithoutRecorded_by_adminInput
+  cancellation_requests?: Prisma.ClassCancellationRequestUncheckedCreateNestedManyWithoutProfileInput
   sessions?: Prisma.UserSessionUncheckedCreateNestedManyWithoutProfileInput
 }
 
@@ -2629,6 +2676,7 @@ export type ProfileCreateWithoutBookingsInput = {
   member_tickets?: Prisma.MemberTicketCreateNestedManyWithoutProfileInput
   payments?: Prisma.PaymentCreateNestedManyWithoutProfileInput
   recorded_payments?: Prisma.PaymentCreateNestedManyWithoutRecorded_by_adminInput
+  cancellation_requests?: Prisma.ClassCancellationRequestCreateNestedManyWithoutProfileInput
   sessions?: Prisma.UserSessionCreateNestedManyWithoutProfileInput
 }
 
@@ -2676,6 +2724,7 @@ export type ProfileUncheckedCreateWithoutBookingsInput = {
   member_tickets?: Prisma.MemberTicketUncheckedCreateNestedManyWithoutProfileInput
   payments?: Prisma.PaymentUncheckedCreateNestedManyWithoutProfileInput
   recorded_payments?: Prisma.PaymentUncheckedCreateNestedManyWithoutRecorded_by_adminInput
+  cancellation_requests?: Prisma.ClassCancellationRequestUncheckedCreateNestedManyWithoutProfileInput
   sessions?: Prisma.UserSessionUncheckedCreateNestedManyWithoutProfileInput
 }
 
@@ -2739,6 +2788,7 @@ export type ProfileUpdateWithoutSent_invitesInput = {
   member_tickets?: Prisma.MemberTicketUpdateManyWithoutProfileNestedInput
   payments?: Prisma.PaymentUpdateManyWithoutProfileNestedInput
   recorded_payments?: Prisma.PaymentUpdateManyWithoutRecorded_by_adminNestedInput
+  cancellation_requests?: Prisma.ClassCancellationRequestUpdateManyWithoutProfileNestedInput
   sessions?: Prisma.UserSessionUpdateManyWithoutProfileNestedInput
 }
 
@@ -2786,6 +2836,7 @@ export type ProfileUncheckedUpdateWithoutSent_invitesInput = {
   member_tickets?: Prisma.MemberTicketUncheckedUpdateManyWithoutProfileNestedInput
   payments?: Prisma.PaymentUncheckedUpdateManyWithoutProfileNestedInput
   recorded_payments?: Prisma.PaymentUncheckedUpdateManyWithoutRecorded_by_adminNestedInput
+  cancellation_requests?: Prisma.ClassCancellationRequestUncheckedUpdateManyWithoutProfileNestedInput
   sessions?: Prisma.UserSessionUncheckedUpdateManyWithoutProfileNestedInput
 }
 
@@ -2844,6 +2895,7 @@ export type ProfileUpdateWithoutBookingsInput = {
   member_tickets?: Prisma.MemberTicketUpdateManyWithoutProfileNestedInput
   payments?: Prisma.PaymentUpdateManyWithoutProfileNestedInput
   recorded_payments?: Prisma.PaymentUpdateManyWithoutRecorded_by_adminNestedInput
+  cancellation_requests?: Prisma.ClassCancellationRequestUpdateManyWithoutProfileNestedInput
   sessions?: Prisma.UserSessionUpdateManyWithoutProfileNestedInput
 }
 
@@ -2891,6 +2943,7 @@ export type ProfileUncheckedUpdateWithoutBookingsInput = {
   member_tickets?: Prisma.MemberTicketUncheckedUpdateManyWithoutProfileNestedInput
   payments?: Prisma.PaymentUncheckedUpdateManyWithoutProfileNestedInput
   recorded_payments?: Prisma.PaymentUncheckedUpdateManyWithoutRecorded_by_adminNestedInput
+  cancellation_requests?: Prisma.ClassCancellationRequestUncheckedUpdateManyWithoutProfileNestedInput
   sessions?: Prisma.UserSessionUncheckedUpdateManyWithoutProfileNestedInput
 }
 
@@ -2938,6 +2991,7 @@ export type ProfileCreateWithoutRazorpay_ordersInput = {
   member_tickets?: Prisma.MemberTicketCreateNestedManyWithoutProfileInput
   payments?: Prisma.PaymentCreateNestedManyWithoutProfileInput
   recorded_payments?: Prisma.PaymentCreateNestedManyWithoutRecorded_by_adminInput
+  cancellation_requests?: Prisma.ClassCancellationRequestCreateNestedManyWithoutProfileInput
   sessions?: Prisma.UserSessionCreateNestedManyWithoutProfileInput
 }
 
@@ -2985,6 +3039,7 @@ export type ProfileUncheckedCreateWithoutRazorpay_ordersInput = {
   member_tickets?: Prisma.MemberTicketUncheckedCreateNestedManyWithoutProfileInput
   payments?: Prisma.PaymentUncheckedCreateNestedManyWithoutProfileInput
   recorded_payments?: Prisma.PaymentUncheckedCreateNestedManyWithoutRecorded_by_adminInput
+  cancellation_requests?: Prisma.ClassCancellationRequestUncheckedCreateNestedManyWithoutProfileInput
   sessions?: Prisma.UserSessionUncheckedCreateNestedManyWithoutProfileInput
 }
 
@@ -3048,6 +3103,7 @@ export type ProfileUpdateWithoutRazorpay_ordersInput = {
   member_tickets?: Prisma.MemberTicketUpdateManyWithoutProfileNestedInput
   payments?: Prisma.PaymentUpdateManyWithoutProfileNestedInput
   recorded_payments?: Prisma.PaymentUpdateManyWithoutRecorded_by_adminNestedInput
+  cancellation_requests?: Prisma.ClassCancellationRequestUpdateManyWithoutProfileNestedInput
   sessions?: Prisma.UserSessionUpdateManyWithoutProfileNestedInput
 }
 
@@ -3095,6 +3151,7 @@ export type ProfileUncheckedUpdateWithoutRazorpay_ordersInput = {
   member_tickets?: Prisma.MemberTicketUncheckedUpdateManyWithoutProfileNestedInput
   payments?: Prisma.PaymentUncheckedUpdateManyWithoutProfileNestedInput
   recorded_payments?: Prisma.PaymentUncheckedUpdateManyWithoutRecorded_by_adminNestedInput
+  cancellation_requests?: Prisma.ClassCancellationRequestUncheckedUpdateManyWithoutProfileNestedInput
   sessions?: Prisma.UserSessionUncheckedUpdateManyWithoutProfileNestedInput
 }
 
@@ -3142,6 +3199,7 @@ export type ProfileCreateWithoutFriendships_aInput = {
   member_tickets?: Prisma.MemberTicketCreateNestedManyWithoutProfileInput
   payments?: Prisma.PaymentCreateNestedManyWithoutProfileInput
   recorded_payments?: Prisma.PaymentCreateNestedManyWithoutRecorded_by_adminInput
+  cancellation_requests?: Prisma.ClassCancellationRequestCreateNestedManyWithoutProfileInput
   sessions?: Prisma.UserSessionCreateNestedManyWithoutProfileInput
 }
 
@@ -3189,6 +3247,7 @@ export type ProfileUncheckedCreateWithoutFriendships_aInput = {
   member_tickets?: Prisma.MemberTicketUncheckedCreateNestedManyWithoutProfileInput
   payments?: Prisma.PaymentUncheckedCreateNestedManyWithoutProfileInput
   recorded_payments?: Prisma.PaymentUncheckedCreateNestedManyWithoutRecorded_by_adminInput
+  cancellation_requests?: Prisma.ClassCancellationRequestUncheckedCreateNestedManyWithoutProfileInput
   sessions?: Prisma.UserSessionUncheckedCreateNestedManyWithoutProfileInput
 }
 
@@ -3241,6 +3300,7 @@ export type ProfileCreateWithoutFriendships_bInput = {
   member_tickets?: Prisma.MemberTicketCreateNestedManyWithoutProfileInput
   payments?: Prisma.PaymentCreateNestedManyWithoutProfileInput
   recorded_payments?: Prisma.PaymentCreateNestedManyWithoutRecorded_by_adminInput
+  cancellation_requests?: Prisma.ClassCancellationRequestCreateNestedManyWithoutProfileInput
   sessions?: Prisma.UserSessionCreateNestedManyWithoutProfileInput
 }
 
@@ -3288,6 +3348,7 @@ export type ProfileUncheckedCreateWithoutFriendships_bInput = {
   member_tickets?: Prisma.MemberTicketUncheckedCreateNestedManyWithoutProfileInput
   payments?: Prisma.PaymentUncheckedCreateNestedManyWithoutProfileInput
   recorded_payments?: Prisma.PaymentUncheckedCreateNestedManyWithoutRecorded_by_adminInput
+  cancellation_requests?: Prisma.ClassCancellationRequestUncheckedCreateNestedManyWithoutProfileInput
   sessions?: Prisma.UserSessionUncheckedCreateNestedManyWithoutProfileInput
 }
 
@@ -3351,6 +3412,7 @@ export type ProfileUpdateWithoutFriendships_aInput = {
   member_tickets?: Prisma.MemberTicketUpdateManyWithoutProfileNestedInput
   payments?: Prisma.PaymentUpdateManyWithoutProfileNestedInput
   recorded_payments?: Prisma.PaymentUpdateManyWithoutRecorded_by_adminNestedInput
+  cancellation_requests?: Prisma.ClassCancellationRequestUpdateManyWithoutProfileNestedInput
   sessions?: Prisma.UserSessionUpdateManyWithoutProfileNestedInput
 }
 
@@ -3398,6 +3460,7 @@ export type ProfileUncheckedUpdateWithoutFriendships_aInput = {
   member_tickets?: Prisma.MemberTicketUncheckedUpdateManyWithoutProfileNestedInput
   payments?: Prisma.PaymentUncheckedUpdateManyWithoutProfileNestedInput
   recorded_payments?: Prisma.PaymentUncheckedUpdateManyWithoutRecorded_by_adminNestedInput
+  cancellation_requests?: Prisma.ClassCancellationRequestUncheckedUpdateManyWithoutProfileNestedInput
   sessions?: Prisma.UserSessionUncheckedUpdateManyWithoutProfileNestedInput
 }
 
@@ -3456,6 +3519,7 @@ export type ProfileUpdateWithoutFriendships_bInput = {
   member_tickets?: Prisma.MemberTicketUpdateManyWithoutProfileNestedInput
   payments?: Prisma.PaymentUpdateManyWithoutProfileNestedInput
   recorded_payments?: Prisma.PaymentUpdateManyWithoutRecorded_by_adminNestedInput
+  cancellation_requests?: Prisma.ClassCancellationRequestUpdateManyWithoutProfileNestedInput
   sessions?: Prisma.UserSessionUpdateManyWithoutProfileNestedInput
 }
 
@@ -3503,6 +3567,7 @@ export type ProfileUncheckedUpdateWithoutFriendships_bInput = {
   member_tickets?: Prisma.MemberTicketUncheckedUpdateManyWithoutProfileNestedInput
   payments?: Prisma.PaymentUncheckedUpdateManyWithoutProfileNestedInput
   recorded_payments?: Prisma.PaymentUncheckedUpdateManyWithoutRecorded_by_adminNestedInput
+  cancellation_requests?: Prisma.ClassCancellationRequestUncheckedUpdateManyWithoutProfileNestedInput
   sessions?: Prisma.UserSessionUncheckedUpdateManyWithoutProfileNestedInput
 }
 
@@ -3550,6 +3615,7 @@ export type ProfileCreateWithoutPaymentsInput = {
   razorpay_orders?: Prisma.RazorpayOrderCreateNestedManyWithoutProfileInput
   member_tickets?: Prisma.MemberTicketCreateNestedManyWithoutProfileInput
   recorded_payments?: Prisma.PaymentCreateNestedManyWithoutRecorded_by_adminInput
+  cancellation_requests?: Prisma.ClassCancellationRequestCreateNestedManyWithoutProfileInput
   sessions?: Prisma.UserSessionCreateNestedManyWithoutProfileInput
 }
 
@@ -3597,6 +3663,7 @@ export type ProfileUncheckedCreateWithoutPaymentsInput = {
   razorpay_orders?: Prisma.RazorpayOrderUncheckedCreateNestedManyWithoutProfileInput
   member_tickets?: Prisma.MemberTicketUncheckedCreateNestedManyWithoutProfileInput
   recorded_payments?: Prisma.PaymentUncheckedCreateNestedManyWithoutRecorded_by_adminInput
+  cancellation_requests?: Prisma.ClassCancellationRequestUncheckedCreateNestedManyWithoutProfileInput
   sessions?: Prisma.UserSessionUncheckedCreateNestedManyWithoutProfileInput
 }
 
@@ -3649,6 +3716,7 @@ export type ProfileCreateWithoutRecorded_paymentsInput = {
   razorpay_orders?: Prisma.RazorpayOrderCreateNestedManyWithoutProfileInput
   member_tickets?: Prisma.MemberTicketCreateNestedManyWithoutProfileInput
   payments?: Prisma.PaymentCreateNestedManyWithoutProfileInput
+  cancellation_requests?: Prisma.ClassCancellationRequestCreateNestedManyWithoutProfileInput
   sessions?: Prisma.UserSessionCreateNestedManyWithoutProfileInput
 }
 
@@ -3696,6 +3764,7 @@ export type ProfileUncheckedCreateWithoutRecorded_paymentsInput = {
   razorpay_orders?: Prisma.RazorpayOrderUncheckedCreateNestedManyWithoutProfileInput
   member_tickets?: Prisma.MemberTicketUncheckedCreateNestedManyWithoutProfileInput
   payments?: Prisma.PaymentUncheckedCreateNestedManyWithoutProfileInput
+  cancellation_requests?: Prisma.ClassCancellationRequestUncheckedCreateNestedManyWithoutProfileInput
   sessions?: Prisma.UserSessionUncheckedCreateNestedManyWithoutProfileInput
 }
 
@@ -3759,6 +3828,7 @@ export type ProfileUpdateWithoutPaymentsInput = {
   razorpay_orders?: Prisma.RazorpayOrderUpdateManyWithoutProfileNestedInput
   member_tickets?: Prisma.MemberTicketUpdateManyWithoutProfileNestedInput
   recorded_payments?: Prisma.PaymentUpdateManyWithoutRecorded_by_adminNestedInput
+  cancellation_requests?: Prisma.ClassCancellationRequestUpdateManyWithoutProfileNestedInput
   sessions?: Prisma.UserSessionUpdateManyWithoutProfileNestedInput
 }
 
@@ -3806,6 +3876,7 @@ export type ProfileUncheckedUpdateWithoutPaymentsInput = {
   razorpay_orders?: Prisma.RazorpayOrderUncheckedUpdateManyWithoutProfileNestedInput
   member_tickets?: Prisma.MemberTicketUncheckedUpdateManyWithoutProfileNestedInput
   recorded_payments?: Prisma.PaymentUncheckedUpdateManyWithoutRecorded_by_adminNestedInput
+  cancellation_requests?: Prisma.ClassCancellationRequestUncheckedUpdateManyWithoutProfileNestedInput
   sessions?: Prisma.UserSessionUncheckedUpdateManyWithoutProfileNestedInput
 }
 
@@ -3864,6 +3935,7 @@ export type ProfileUpdateWithoutRecorded_paymentsInput = {
   razorpay_orders?: Prisma.RazorpayOrderUpdateManyWithoutProfileNestedInput
   member_tickets?: Prisma.MemberTicketUpdateManyWithoutProfileNestedInput
   payments?: Prisma.PaymentUpdateManyWithoutProfileNestedInput
+  cancellation_requests?: Prisma.ClassCancellationRequestUpdateManyWithoutProfileNestedInput
   sessions?: Prisma.UserSessionUpdateManyWithoutProfileNestedInput
 }
 
@@ -3911,6 +3983,7 @@ export type ProfileUncheckedUpdateWithoutRecorded_paymentsInput = {
   razorpay_orders?: Prisma.RazorpayOrderUncheckedUpdateManyWithoutProfileNestedInput
   member_tickets?: Prisma.MemberTicketUncheckedUpdateManyWithoutProfileNestedInput
   payments?: Prisma.PaymentUncheckedUpdateManyWithoutProfileNestedInput
+  cancellation_requests?: Prisma.ClassCancellationRequestUncheckedUpdateManyWithoutProfileNestedInput
   sessions?: Prisma.UserSessionUncheckedUpdateManyWithoutProfileNestedInput
 }
 
@@ -3958,6 +4031,7 @@ export type ProfileCreateWithoutCafe_ordersInput = {
   member_tickets?: Prisma.MemberTicketCreateNestedManyWithoutProfileInput
   payments?: Prisma.PaymentCreateNestedManyWithoutProfileInput
   recorded_payments?: Prisma.PaymentCreateNestedManyWithoutRecorded_by_adminInput
+  cancellation_requests?: Prisma.ClassCancellationRequestCreateNestedManyWithoutProfileInput
   sessions?: Prisma.UserSessionCreateNestedManyWithoutProfileInput
 }
 
@@ -4005,6 +4079,7 @@ export type ProfileUncheckedCreateWithoutCafe_ordersInput = {
   member_tickets?: Prisma.MemberTicketUncheckedCreateNestedManyWithoutProfileInput
   payments?: Prisma.PaymentUncheckedCreateNestedManyWithoutProfileInput
   recorded_payments?: Prisma.PaymentUncheckedCreateNestedManyWithoutRecorded_by_adminInput
+  cancellation_requests?: Prisma.ClassCancellationRequestUncheckedCreateNestedManyWithoutProfileInput
   sessions?: Prisma.UserSessionUncheckedCreateNestedManyWithoutProfileInput
 }
 
@@ -4068,6 +4143,7 @@ export type ProfileUpdateWithoutCafe_ordersInput = {
   member_tickets?: Prisma.MemberTicketUpdateManyWithoutProfileNestedInput
   payments?: Prisma.PaymentUpdateManyWithoutProfileNestedInput
   recorded_payments?: Prisma.PaymentUpdateManyWithoutRecorded_by_adminNestedInput
+  cancellation_requests?: Prisma.ClassCancellationRequestUpdateManyWithoutProfileNestedInput
   sessions?: Prisma.UserSessionUpdateManyWithoutProfileNestedInput
 }
 
@@ -4115,6 +4191,7 @@ export type ProfileUncheckedUpdateWithoutCafe_ordersInput = {
   member_tickets?: Prisma.MemberTicketUncheckedUpdateManyWithoutProfileNestedInput
   payments?: Prisma.PaymentUncheckedUpdateManyWithoutProfileNestedInput
   recorded_payments?: Prisma.PaymentUncheckedUpdateManyWithoutRecorded_by_adminNestedInput
+  cancellation_requests?: Prisma.ClassCancellationRequestUncheckedUpdateManyWithoutProfileNestedInput
   sessions?: Prisma.UserSessionUncheckedUpdateManyWithoutProfileNestedInput
 }
 
@@ -4162,6 +4239,7 @@ export type ProfileCreateWithoutMeal_subscriptionsInput = {
   member_tickets?: Prisma.MemberTicketCreateNestedManyWithoutProfileInput
   payments?: Prisma.PaymentCreateNestedManyWithoutProfileInput
   recorded_payments?: Prisma.PaymentCreateNestedManyWithoutRecorded_by_adminInput
+  cancellation_requests?: Prisma.ClassCancellationRequestCreateNestedManyWithoutProfileInput
   sessions?: Prisma.UserSessionCreateNestedManyWithoutProfileInput
 }
 
@@ -4209,6 +4287,7 @@ export type ProfileUncheckedCreateWithoutMeal_subscriptionsInput = {
   member_tickets?: Prisma.MemberTicketUncheckedCreateNestedManyWithoutProfileInput
   payments?: Prisma.PaymentUncheckedCreateNestedManyWithoutProfileInput
   recorded_payments?: Prisma.PaymentUncheckedCreateNestedManyWithoutRecorded_by_adminInput
+  cancellation_requests?: Prisma.ClassCancellationRequestUncheckedCreateNestedManyWithoutProfileInput
   sessions?: Prisma.UserSessionUncheckedCreateNestedManyWithoutProfileInput
 }
 
@@ -4272,6 +4351,7 @@ export type ProfileUpdateWithoutMeal_subscriptionsInput = {
   member_tickets?: Prisma.MemberTicketUpdateManyWithoutProfileNestedInput
   payments?: Prisma.PaymentUpdateManyWithoutProfileNestedInput
   recorded_payments?: Prisma.PaymentUpdateManyWithoutRecorded_by_adminNestedInput
+  cancellation_requests?: Prisma.ClassCancellationRequestUpdateManyWithoutProfileNestedInput
   sessions?: Prisma.UserSessionUpdateManyWithoutProfileNestedInput
 }
 
@@ -4319,6 +4399,7 @@ export type ProfileUncheckedUpdateWithoutMeal_subscriptionsInput = {
   member_tickets?: Prisma.MemberTicketUncheckedUpdateManyWithoutProfileNestedInput
   payments?: Prisma.PaymentUncheckedUpdateManyWithoutProfileNestedInput
   recorded_payments?: Prisma.PaymentUncheckedUpdateManyWithoutRecorded_by_adminNestedInput
+  cancellation_requests?: Prisma.ClassCancellationRequestUncheckedUpdateManyWithoutProfileNestedInput
   sessions?: Prisma.UserSessionUncheckedUpdateManyWithoutProfileNestedInput
 }
 
@@ -4366,6 +4447,7 @@ export type ProfileCreateWithoutUser_statsInput = {
   member_tickets?: Prisma.MemberTicketCreateNestedManyWithoutProfileInput
   payments?: Prisma.PaymentCreateNestedManyWithoutProfileInput
   recorded_payments?: Prisma.PaymentCreateNestedManyWithoutRecorded_by_adminInput
+  cancellation_requests?: Prisma.ClassCancellationRequestCreateNestedManyWithoutProfileInput
   sessions?: Prisma.UserSessionCreateNestedManyWithoutProfileInput
 }
 
@@ -4413,6 +4495,7 @@ export type ProfileUncheckedCreateWithoutUser_statsInput = {
   member_tickets?: Prisma.MemberTicketUncheckedCreateNestedManyWithoutProfileInput
   payments?: Prisma.PaymentUncheckedCreateNestedManyWithoutProfileInput
   recorded_payments?: Prisma.PaymentUncheckedCreateNestedManyWithoutRecorded_by_adminInput
+  cancellation_requests?: Prisma.ClassCancellationRequestUncheckedCreateNestedManyWithoutProfileInput
   sessions?: Prisma.UserSessionUncheckedCreateNestedManyWithoutProfileInput
 }
 
@@ -4476,6 +4559,7 @@ export type ProfileUpdateWithoutUser_statsInput = {
   member_tickets?: Prisma.MemberTicketUpdateManyWithoutProfileNestedInput
   payments?: Prisma.PaymentUpdateManyWithoutProfileNestedInput
   recorded_payments?: Prisma.PaymentUpdateManyWithoutRecorded_by_adminNestedInput
+  cancellation_requests?: Prisma.ClassCancellationRequestUpdateManyWithoutProfileNestedInput
   sessions?: Prisma.UserSessionUpdateManyWithoutProfileNestedInput
 }
 
@@ -4523,6 +4607,7 @@ export type ProfileUncheckedUpdateWithoutUser_statsInput = {
   member_tickets?: Prisma.MemberTicketUncheckedUpdateManyWithoutProfileNestedInput
   payments?: Prisma.PaymentUncheckedUpdateManyWithoutProfileNestedInput
   recorded_payments?: Prisma.PaymentUncheckedUpdateManyWithoutRecorded_by_adminNestedInput
+  cancellation_requests?: Prisma.ClassCancellationRequestUncheckedUpdateManyWithoutProfileNestedInput
   sessions?: Prisma.UserSessionUncheckedUpdateManyWithoutProfileNestedInput
 }
 
@@ -4570,6 +4655,7 @@ export type ProfileCreateWithoutUser_streaksInput = {
   member_tickets?: Prisma.MemberTicketCreateNestedManyWithoutProfileInput
   payments?: Prisma.PaymentCreateNestedManyWithoutProfileInput
   recorded_payments?: Prisma.PaymentCreateNestedManyWithoutRecorded_by_adminInput
+  cancellation_requests?: Prisma.ClassCancellationRequestCreateNestedManyWithoutProfileInput
   sessions?: Prisma.UserSessionCreateNestedManyWithoutProfileInput
 }
 
@@ -4617,6 +4703,7 @@ export type ProfileUncheckedCreateWithoutUser_streaksInput = {
   member_tickets?: Prisma.MemberTicketUncheckedCreateNestedManyWithoutProfileInput
   payments?: Prisma.PaymentUncheckedCreateNestedManyWithoutProfileInput
   recorded_payments?: Prisma.PaymentUncheckedCreateNestedManyWithoutRecorded_by_adminInput
+  cancellation_requests?: Prisma.ClassCancellationRequestUncheckedCreateNestedManyWithoutProfileInput
   sessions?: Prisma.UserSessionUncheckedCreateNestedManyWithoutProfileInput
 }
 
@@ -4680,6 +4767,7 @@ export type ProfileUpdateWithoutUser_streaksInput = {
   member_tickets?: Prisma.MemberTicketUpdateManyWithoutProfileNestedInput
   payments?: Prisma.PaymentUpdateManyWithoutProfileNestedInput
   recorded_payments?: Prisma.PaymentUpdateManyWithoutRecorded_by_adminNestedInput
+  cancellation_requests?: Prisma.ClassCancellationRequestUpdateManyWithoutProfileNestedInput
   sessions?: Prisma.UserSessionUpdateManyWithoutProfileNestedInput
 }
 
@@ -4727,6 +4815,7 @@ export type ProfileUncheckedUpdateWithoutUser_streaksInput = {
   member_tickets?: Prisma.MemberTicketUncheckedUpdateManyWithoutProfileNestedInput
   payments?: Prisma.PaymentUncheckedUpdateManyWithoutProfileNestedInput
   recorded_payments?: Prisma.PaymentUncheckedUpdateManyWithoutRecorded_by_adminNestedInput
+  cancellation_requests?: Prisma.ClassCancellationRequestUncheckedUpdateManyWithoutProfileNestedInput
   sessions?: Prisma.UserSessionUncheckedUpdateManyWithoutProfileNestedInput
 }
 
@@ -4774,6 +4863,7 @@ export type ProfileCreateWithoutUser_badgesInput = {
   member_tickets?: Prisma.MemberTicketCreateNestedManyWithoutProfileInput
   payments?: Prisma.PaymentCreateNestedManyWithoutProfileInput
   recorded_payments?: Prisma.PaymentCreateNestedManyWithoutRecorded_by_adminInput
+  cancellation_requests?: Prisma.ClassCancellationRequestCreateNestedManyWithoutProfileInput
   sessions?: Prisma.UserSessionCreateNestedManyWithoutProfileInput
 }
 
@@ -4821,6 +4911,7 @@ export type ProfileUncheckedCreateWithoutUser_badgesInput = {
   member_tickets?: Prisma.MemberTicketUncheckedCreateNestedManyWithoutProfileInput
   payments?: Prisma.PaymentUncheckedCreateNestedManyWithoutProfileInput
   recorded_payments?: Prisma.PaymentUncheckedCreateNestedManyWithoutRecorded_by_adminInput
+  cancellation_requests?: Prisma.ClassCancellationRequestUncheckedCreateNestedManyWithoutProfileInput
   sessions?: Prisma.UserSessionUncheckedCreateNestedManyWithoutProfileInput
 }
 
@@ -4884,6 +4975,7 @@ export type ProfileUpdateWithoutUser_badgesInput = {
   member_tickets?: Prisma.MemberTicketUpdateManyWithoutProfileNestedInput
   payments?: Prisma.PaymentUpdateManyWithoutProfileNestedInput
   recorded_payments?: Prisma.PaymentUpdateManyWithoutRecorded_by_adminNestedInput
+  cancellation_requests?: Prisma.ClassCancellationRequestUpdateManyWithoutProfileNestedInput
   sessions?: Prisma.UserSessionUpdateManyWithoutProfileNestedInput
 }
 
@@ -4931,6 +5023,7 @@ export type ProfileUncheckedUpdateWithoutUser_badgesInput = {
   member_tickets?: Prisma.MemberTicketUncheckedUpdateManyWithoutProfileNestedInput
   payments?: Prisma.PaymentUncheckedUpdateManyWithoutProfileNestedInput
   recorded_payments?: Prisma.PaymentUncheckedUpdateManyWithoutRecorded_by_adminNestedInput
+  cancellation_requests?: Prisma.ClassCancellationRequestUncheckedUpdateManyWithoutProfileNestedInput
   sessions?: Prisma.UserSessionUncheckedUpdateManyWithoutProfileNestedInput
 }
 
@@ -4978,6 +5071,7 @@ export type ProfileCreateWithoutWaiversInput = {
   member_tickets?: Prisma.MemberTicketCreateNestedManyWithoutProfileInput
   payments?: Prisma.PaymentCreateNestedManyWithoutProfileInput
   recorded_payments?: Prisma.PaymentCreateNestedManyWithoutRecorded_by_adminInput
+  cancellation_requests?: Prisma.ClassCancellationRequestCreateNestedManyWithoutProfileInput
   sessions?: Prisma.UserSessionCreateNestedManyWithoutProfileInput
 }
 
@@ -5025,6 +5119,7 @@ export type ProfileUncheckedCreateWithoutWaiversInput = {
   member_tickets?: Prisma.MemberTicketUncheckedCreateNestedManyWithoutProfileInput
   payments?: Prisma.PaymentUncheckedCreateNestedManyWithoutProfileInput
   recorded_payments?: Prisma.PaymentUncheckedCreateNestedManyWithoutRecorded_by_adminInput
+  cancellation_requests?: Prisma.ClassCancellationRequestUncheckedCreateNestedManyWithoutProfileInput
   sessions?: Prisma.UserSessionUncheckedCreateNestedManyWithoutProfileInput
 }
 
@@ -5088,6 +5183,7 @@ export type ProfileUpdateWithoutWaiversInput = {
   member_tickets?: Prisma.MemberTicketUpdateManyWithoutProfileNestedInput
   payments?: Prisma.PaymentUpdateManyWithoutProfileNestedInput
   recorded_payments?: Prisma.PaymentUpdateManyWithoutRecorded_by_adminNestedInput
+  cancellation_requests?: Prisma.ClassCancellationRequestUpdateManyWithoutProfileNestedInput
   sessions?: Prisma.UserSessionUpdateManyWithoutProfileNestedInput
 }
 
@@ -5135,6 +5231,7 @@ export type ProfileUncheckedUpdateWithoutWaiversInput = {
   member_tickets?: Prisma.MemberTicketUncheckedUpdateManyWithoutProfileNestedInput
   payments?: Prisma.PaymentUncheckedUpdateManyWithoutProfileNestedInput
   recorded_payments?: Prisma.PaymentUncheckedUpdateManyWithoutRecorded_by_adminNestedInput
+  cancellation_requests?: Prisma.ClassCancellationRequestUncheckedUpdateManyWithoutProfileNestedInput
   sessions?: Prisma.UserSessionUncheckedUpdateManyWithoutProfileNestedInput
 }
 
@@ -5182,6 +5279,7 @@ export type ProfileCreateWithoutCrm_messagesInput = {
   member_tickets?: Prisma.MemberTicketCreateNestedManyWithoutProfileInput
   payments?: Prisma.PaymentCreateNestedManyWithoutProfileInput
   recorded_payments?: Prisma.PaymentCreateNestedManyWithoutRecorded_by_adminInput
+  cancellation_requests?: Prisma.ClassCancellationRequestCreateNestedManyWithoutProfileInput
   sessions?: Prisma.UserSessionCreateNestedManyWithoutProfileInput
 }
 
@@ -5229,6 +5327,7 @@ export type ProfileUncheckedCreateWithoutCrm_messagesInput = {
   member_tickets?: Prisma.MemberTicketUncheckedCreateNestedManyWithoutProfileInput
   payments?: Prisma.PaymentUncheckedCreateNestedManyWithoutProfileInput
   recorded_payments?: Prisma.PaymentUncheckedCreateNestedManyWithoutRecorded_by_adminInput
+  cancellation_requests?: Prisma.ClassCancellationRequestUncheckedCreateNestedManyWithoutProfileInput
   sessions?: Prisma.UserSessionUncheckedCreateNestedManyWithoutProfileInput
 }
 
@@ -5292,6 +5391,7 @@ export type ProfileUpdateWithoutCrm_messagesInput = {
   member_tickets?: Prisma.MemberTicketUpdateManyWithoutProfileNestedInput
   payments?: Prisma.PaymentUpdateManyWithoutProfileNestedInput
   recorded_payments?: Prisma.PaymentUpdateManyWithoutRecorded_by_adminNestedInput
+  cancellation_requests?: Prisma.ClassCancellationRequestUpdateManyWithoutProfileNestedInput
   sessions?: Prisma.UserSessionUpdateManyWithoutProfileNestedInput
 }
 
@@ -5339,6 +5439,7 @@ export type ProfileUncheckedUpdateWithoutCrm_messagesInput = {
   member_tickets?: Prisma.MemberTicketUncheckedUpdateManyWithoutProfileNestedInput
   payments?: Prisma.PaymentUncheckedUpdateManyWithoutProfileNestedInput
   recorded_payments?: Prisma.PaymentUncheckedUpdateManyWithoutRecorded_by_adminNestedInput
+  cancellation_requests?: Prisma.ClassCancellationRequestUncheckedUpdateManyWithoutProfileNestedInput
   sessions?: Prisma.UserSessionUncheckedUpdateManyWithoutProfileNestedInput
 }
 
@@ -5386,6 +5487,7 @@ export type ProfileCreateWithoutActivity_sessionsInput = {
   member_tickets?: Prisma.MemberTicketCreateNestedManyWithoutProfileInput
   payments?: Prisma.PaymentCreateNestedManyWithoutProfileInput
   recorded_payments?: Prisma.PaymentCreateNestedManyWithoutRecorded_by_adminInput
+  cancellation_requests?: Prisma.ClassCancellationRequestCreateNestedManyWithoutProfileInput
   sessions?: Prisma.UserSessionCreateNestedManyWithoutProfileInput
 }
 
@@ -5433,6 +5535,7 @@ export type ProfileUncheckedCreateWithoutActivity_sessionsInput = {
   member_tickets?: Prisma.MemberTicketUncheckedCreateNestedManyWithoutProfileInput
   payments?: Prisma.PaymentUncheckedCreateNestedManyWithoutProfileInput
   recorded_payments?: Prisma.PaymentUncheckedCreateNestedManyWithoutRecorded_by_adminInput
+  cancellation_requests?: Prisma.ClassCancellationRequestUncheckedCreateNestedManyWithoutProfileInput
   sessions?: Prisma.UserSessionUncheckedCreateNestedManyWithoutProfileInput
 }
 
@@ -5496,6 +5599,7 @@ export type ProfileUpdateWithoutActivity_sessionsInput = {
   member_tickets?: Prisma.MemberTicketUpdateManyWithoutProfileNestedInput
   payments?: Prisma.PaymentUpdateManyWithoutProfileNestedInput
   recorded_payments?: Prisma.PaymentUpdateManyWithoutRecorded_by_adminNestedInput
+  cancellation_requests?: Prisma.ClassCancellationRequestUpdateManyWithoutProfileNestedInput
   sessions?: Prisma.UserSessionUpdateManyWithoutProfileNestedInput
 }
 
@@ -5543,6 +5647,7 @@ export type ProfileUncheckedUpdateWithoutActivity_sessionsInput = {
   member_tickets?: Prisma.MemberTicketUncheckedUpdateManyWithoutProfileNestedInput
   payments?: Prisma.PaymentUncheckedUpdateManyWithoutProfileNestedInput
   recorded_payments?: Prisma.PaymentUncheckedUpdateManyWithoutRecorded_by_adminNestedInput
+  cancellation_requests?: Prisma.ClassCancellationRequestUncheckedUpdateManyWithoutProfileNestedInput
   sessions?: Prisma.UserSessionUncheckedUpdateManyWithoutProfileNestedInput
 }
 
@@ -5590,6 +5695,7 @@ export type ProfileCreateWithoutActivity_eventsInput = {
   member_tickets?: Prisma.MemberTicketCreateNestedManyWithoutProfileInput
   payments?: Prisma.PaymentCreateNestedManyWithoutProfileInput
   recorded_payments?: Prisma.PaymentCreateNestedManyWithoutRecorded_by_adminInput
+  cancellation_requests?: Prisma.ClassCancellationRequestCreateNestedManyWithoutProfileInput
   sessions?: Prisma.UserSessionCreateNestedManyWithoutProfileInput
 }
 
@@ -5637,6 +5743,7 @@ export type ProfileUncheckedCreateWithoutActivity_eventsInput = {
   member_tickets?: Prisma.MemberTicketUncheckedCreateNestedManyWithoutProfileInput
   payments?: Prisma.PaymentUncheckedCreateNestedManyWithoutProfileInput
   recorded_payments?: Prisma.PaymentUncheckedCreateNestedManyWithoutRecorded_by_adminInput
+  cancellation_requests?: Prisma.ClassCancellationRequestUncheckedCreateNestedManyWithoutProfileInput
   sessions?: Prisma.UserSessionUncheckedCreateNestedManyWithoutProfileInput
 }
 
@@ -5700,6 +5807,7 @@ export type ProfileUpdateWithoutActivity_eventsInput = {
   member_tickets?: Prisma.MemberTicketUpdateManyWithoutProfileNestedInput
   payments?: Prisma.PaymentUpdateManyWithoutProfileNestedInput
   recorded_payments?: Prisma.PaymentUpdateManyWithoutRecorded_by_adminNestedInput
+  cancellation_requests?: Prisma.ClassCancellationRequestUpdateManyWithoutProfileNestedInput
   sessions?: Prisma.UserSessionUpdateManyWithoutProfileNestedInput
 }
 
@@ -5747,6 +5855,7 @@ export type ProfileUncheckedUpdateWithoutActivity_eventsInput = {
   member_tickets?: Prisma.MemberTicketUncheckedUpdateManyWithoutProfileNestedInput
   payments?: Prisma.PaymentUncheckedUpdateManyWithoutProfileNestedInput
   recorded_payments?: Prisma.PaymentUncheckedUpdateManyWithoutRecorded_by_adminNestedInput
+  cancellation_requests?: Prisma.ClassCancellationRequestUncheckedUpdateManyWithoutProfileNestedInput
   sessions?: Prisma.UserSessionUncheckedUpdateManyWithoutProfileNestedInput
 }
 
@@ -5794,6 +5903,7 @@ export type ProfileCreateWithoutMember_ticketsInput = {
   razorpay_orders?: Prisma.RazorpayOrderCreateNestedManyWithoutProfileInput
   payments?: Prisma.PaymentCreateNestedManyWithoutProfileInput
   recorded_payments?: Prisma.PaymentCreateNestedManyWithoutRecorded_by_adminInput
+  cancellation_requests?: Prisma.ClassCancellationRequestCreateNestedManyWithoutProfileInput
   sessions?: Prisma.UserSessionCreateNestedManyWithoutProfileInput
 }
 
@@ -5841,6 +5951,7 @@ export type ProfileUncheckedCreateWithoutMember_ticketsInput = {
   razorpay_orders?: Prisma.RazorpayOrderUncheckedCreateNestedManyWithoutProfileInput
   payments?: Prisma.PaymentUncheckedCreateNestedManyWithoutProfileInput
   recorded_payments?: Prisma.PaymentUncheckedCreateNestedManyWithoutRecorded_by_adminInput
+  cancellation_requests?: Prisma.ClassCancellationRequestUncheckedCreateNestedManyWithoutProfileInput
   sessions?: Prisma.UserSessionUncheckedCreateNestedManyWithoutProfileInput
 }
 
@@ -5904,6 +6015,7 @@ export type ProfileUpdateWithoutMember_ticketsInput = {
   razorpay_orders?: Prisma.RazorpayOrderUpdateManyWithoutProfileNestedInput
   payments?: Prisma.PaymentUpdateManyWithoutProfileNestedInput
   recorded_payments?: Prisma.PaymentUpdateManyWithoutRecorded_by_adminNestedInput
+  cancellation_requests?: Prisma.ClassCancellationRequestUpdateManyWithoutProfileNestedInput
   sessions?: Prisma.UserSessionUpdateManyWithoutProfileNestedInput
 }
 
@@ -5949,6 +6061,215 @@ export type ProfileUncheckedUpdateWithoutMember_ticketsInput = {
   retail_orders?: Prisma.RetailOrderUncheckedUpdateManyWithoutProfileNestedInput
   coupon_redemptions?: Prisma.CouponRedemptionUncheckedUpdateManyWithoutProfileNestedInput
   razorpay_orders?: Prisma.RazorpayOrderUncheckedUpdateManyWithoutProfileNestedInput
+  payments?: Prisma.PaymentUncheckedUpdateManyWithoutProfileNestedInput
+  recorded_payments?: Prisma.PaymentUncheckedUpdateManyWithoutRecorded_by_adminNestedInput
+  cancellation_requests?: Prisma.ClassCancellationRequestUncheckedUpdateManyWithoutProfileNestedInput
+  sessions?: Prisma.UserSessionUncheckedUpdateManyWithoutProfileNestedInput
+}
+
+export type ProfileCreateWithoutCancellation_requestsInput = {
+  id?: string
+  email: string
+  full_name?: string | null
+  phone?: string | null
+  whatsapp_phone?: string | null
+  avatar_url?: string | null
+  avatar_file_id?: string | null
+  movement_streak?: number
+  pass_type?: string | null
+  hashedPassword?: string | null
+  role?: string
+  is_system?: boolean
+  dob?: Date | string | null
+  gender?: string | null
+  onboarding_completed?: boolean
+  questionnaire?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  terms_accepted_at?: Date | string | null
+  start_date?: Date | string | null
+  created_at?: Date | string
+  updated_at?: Date | string
+  instructor_account?: Prisma.InstructorCreateNestedOneWithoutProfileInput
+  partner_memberships?: Prisma.PartnerMemberCreateNestedManyWithoutProfileInput
+  bookings?: Prisma.BookingCreateNestedManyWithoutProfileInput
+  sent_invites?: Prisma.BookingCreateNestedManyWithoutInvited_byInput
+  friendships_a?: Prisma.FriendshipCreateNestedManyWithoutUser_aInput
+  friendships_b?: Prisma.FriendshipCreateNestedManyWithoutUser_bInput
+  cafe_orders?: Prisma.CafeOrderCreateNestedManyWithoutProfileInput
+  meal_subscriptions?: Prisma.MealSubscriptionCreateNestedManyWithoutProfileInput
+  user_badges?: Prisma.UserBadgeCreateNestedManyWithoutProfileInput
+  user_packages?: Prisma.UserPackageCreateNestedManyWithoutProfileInput
+  user_stats?: Prisma.UserStatsCreateNestedOneWithoutProfileInput
+  user_streaks?: Prisma.UserStreakCreateNestedOneWithoutProfileInput
+  waivers?: Prisma.WaiverCreateNestedManyWithoutProfileInput
+  crm_messages?: Prisma.CrmMessageCreateNestedManyWithoutProfileInput
+  activity_sessions?: Prisma.UserActivitySessionCreateNestedManyWithoutProfileInput
+  activity_events?: Prisma.UserActivityEventCreateNestedManyWithoutProfileInput
+  activity_actions?: Prisma.ActivityLogCreateNestedManyWithoutActorInput
+  activity_targets?: Prisma.ActivityLogCreateNestedManyWithoutTargetInput
+  retail_orders?: Prisma.RetailOrderCreateNestedManyWithoutProfileInput
+  coupon_redemptions?: Prisma.CouponRedemptionCreateNestedManyWithoutProfileInput
+  razorpay_orders?: Prisma.RazorpayOrderCreateNestedManyWithoutProfileInput
+  member_tickets?: Prisma.MemberTicketCreateNestedManyWithoutProfileInput
+  payments?: Prisma.PaymentCreateNestedManyWithoutProfileInput
+  recorded_payments?: Prisma.PaymentCreateNestedManyWithoutRecorded_by_adminInput
+  sessions?: Prisma.UserSessionCreateNestedManyWithoutProfileInput
+}
+
+export type ProfileUncheckedCreateWithoutCancellation_requestsInput = {
+  id?: string
+  email: string
+  full_name?: string | null
+  phone?: string | null
+  whatsapp_phone?: string | null
+  avatar_url?: string | null
+  avatar_file_id?: string | null
+  movement_streak?: number
+  pass_type?: string | null
+  hashedPassword?: string | null
+  role?: string
+  is_system?: boolean
+  dob?: Date | string | null
+  gender?: string | null
+  onboarding_completed?: boolean
+  questionnaire?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  terms_accepted_at?: Date | string | null
+  start_date?: Date | string | null
+  created_at?: Date | string
+  updated_at?: Date | string
+  instructor_account?: Prisma.InstructorUncheckedCreateNestedOneWithoutProfileInput
+  partner_memberships?: Prisma.PartnerMemberUncheckedCreateNestedManyWithoutProfileInput
+  bookings?: Prisma.BookingUncheckedCreateNestedManyWithoutProfileInput
+  sent_invites?: Prisma.BookingUncheckedCreateNestedManyWithoutInvited_byInput
+  friendships_a?: Prisma.FriendshipUncheckedCreateNestedManyWithoutUser_aInput
+  friendships_b?: Prisma.FriendshipUncheckedCreateNestedManyWithoutUser_bInput
+  cafe_orders?: Prisma.CafeOrderUncheckedCreateNestedManyWithoutProfileInput
+  meal_subscriptions?: Prisma.MealSubscriptionUncheckedCreateNestedManyWithoutProfileInput
+  user_badges?: Prisma.UserBadgeUncheckedCreateNestedManyWithoutProfileInput
+  user_packages?: Prisma.UserPackageUncheckedCreateNestedManyWithoutProfileInput
+  user_stats?: Prisma.UserStatsUncheckedCreateNestedOneWithoutProfileInput
+  user_streaks?: Prisma.UserStreakUncheckedCreateNestedOneWithoutProfileInput
+  waivers?: Prisma.WaiverUncheckedCreateNestedManyWithoutProfileInput
+  crm_messages?: Prisma.CrmMessageUncheckedCreateNestedManyWithoutProfileInput
+  activity_sessions?: Prisma.UserActivitySessionUncheckedCreateNestedManyWithoutProfileInput
+  activity_events?: Prisma.UserActivityEventUncheckedCreateNestedManyWithoutProfileInput
+  activity_actions?: Prisma.ActivityLogUncheckedCreateNestedManyWithoutActorInput
+  activity_targets?: Prisma.ActivityLogUncheckedCreateNestedManyWithoutTargetInput
+  retail_orders?: Prisma.RetailOrderUncheckedCreateNestedManyWithoutProfileInput
+  coupon_redemptions?: Prisma.CouponRedemptionUncheckedCreateNestedManyWithoutProfileInput
+  razorpay_orders?: Prisma.RazorpayOrderUncheckedCreateNestedManyWithoutProfileInput
+  member_tickets?: Prisma.MemberTicketUncheckedCreateNestedManyWithoutProfileInput
+  payments?: Prisma.PaymentUncheckedCreateNestedManyWithoutProfileInput
+  recorded_payments?: Prisma.PaymentUncheckedCreateNestedManyWithoutRecorded_by_adminInput
+  sessions?: Prisma.UserSessionUncheckedCreateNestedManyWithoutProfileInput
+}
+
+export type ProfileCreateOrConnectWithoutCancellation_requestsInput = {
+  where: Prisma.ProfileWhereUniqueInput
+  create: Prisma.XOR<Prisma.ProfileCreateWithoutCancellation_requestsInput, Prisma.ProfileUncheckedCreateWithoutCancellation_requestsInput>
+}
+
+export type ProfileUpsertWithoutCancellation_requestsInput = {
+  update: Prisma.XOR<Prisma.ProfileUpdateWithoutCancellation_requestsInput, Prisma.ProfileUncheckedUpdateWithoutCancellation_requestsInput>
+  create: Prisma.XOR<Prisma.ProfileCreateWithoutCancellation_requestsInput, Prisma.ProfileUncheckedCreateWithoutCancellation_requestsInput>
+  where?: Prisma.ProfileWhereInput
+}
+
+export type ProfileUpdateToOneWithWhereWithoutCancellation_requestsInput = {
+  where?: Prisma.ProfileWhereInput
+  data: Prisma.XOR<Prisma.ProfileUpdateWithoutCancellation_requestsInput, Prisma.ProfileUncheckedUpdateWithoutCancellation_requestsInput>
+}
+
+export type ProfileUpdateWithoutCancellation_requestsInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  email?: Prisma.StringFieldUpdateOperationsInput | string
+  full_name?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  phone?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  whatsapp_phone?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  avatar_url?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  avatar_file_id?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  movement_streak?: Prisma.IntFieldUpdateOperationsInput | number
+  pass_type?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  hashedPassword?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  role?: Prisma.StringFieldUpdateOperationsInput | string
+  is_system?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  dob?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  gender?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  onboarding_completed?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  questionnaire?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  terms_accepted_at?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  start_date?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  created_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updated_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  instructor_account?: Prisma.InstructorUpdateOneWithoutProfileNestedInput
+  partner_memberships?: Prisma.PartnerMemberUpdateManyWithoutProfileNestedInput
+  bookings?: Prisma.BookingUpdateManyWithoutProfileNestedInput
+  sent_invites?: Prisma.BookingUpdateManyWithoutInvited_byNestedInput
+  friendships_a?: Prisma.FriendshipUpdateManyWithoutUser_aNestedInput
+  friendships_b?: Prisma.FriendshipUpdateManyWithoutUser_bNestedInput
+  cafe_orders?: Prisma.CafeOrderUpdateManyWithoutProfileNestedInput
+  meal_subscriptions?: Prisma.MealSubscriptionUpdateManyWithoutProfileNestedInput
+  user_badges?: Prisma.UserBadgeUpdateManyWithoutProfileNestedInput
+  user_packages?: Prisma.UserPackageUpdateManyWithoutProfileNestedInput
+  user_stats?: Prisma.UserStatsUpdateOneWithoutProfileNestedInput
+  user_streaks?: Prisma.UserStreakUpdateOneWithoutProfileNestedInput
+  waivers?: Prisma.WaiverUpdateManyWithoutProfileNestedInput
+  crm_messages?: Prisma.CrmMessageUpdateManyWithoutProfileNestedInput
+  activity_sessions?: Prisma.UserActivitySessionUpdateManyWithoutProfileNestedInput
+  activity_events?: Prisma.UserActivityEventUpdateManyWithoutProfileNestedInput
+  activity_actions?: Prisma.ActivityLogUpdateManyWithoutActorNestedInput
+  activity_targets?: Prisma.ActivityLogUpdateManyWithoutTargetNestedInput
+  retail_orders?: Prisma.RetailOrderUpdateManyWithoutProfileNestedInput
+  coupon_redemptions?: Prisma.CouponRedemptionUpdateManyWithoutProfileNestedInput
+  razorpay_orders?: Prisma.RazorpayOrderUpdateManyWithoutProfileNestedInput
+  member_tickets?: Prisma.MemberTicketUpdateManyWithoutProfileNestedInput
+  payments?: Prisma.PaymentUpdateManyWithoutProfileNestedInput
+  recorded_payments?: Prisma.PaymentUpdateManyWithoutRecorded_by_adminNestedInput
+  sessions?: Prisma.UserSessionUpdateManyWithoutProfileNestedInput
+}
+
+export type ProfileUncheckedUpdateWithoutCancellation_requestsInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  email?: Prisma.StringFieldUpdateOperationsInput | string
+  full_name?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  phone?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  whatsapp_phone?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  avatar_url?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  avatar_file_id?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  movement_streak?: Prisma.IntFieldUpdateOperationsInput | number
+  pass_type?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  hashedPassword?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  role?: Prisma.StringFieldUpdateOperationsInput | string
+  is_system?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  dob?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  gender?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  onboarding_completed?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  questionnaire?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  terms_accepted_at?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  start_date?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  created_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updated_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  instructor_account?: Prisma.InstructorUncheckedUpdateOneWithoutProfileNestedInput
+  partner_memberships?: Prisma.PartnerMemberUncheckedUpdateManyWithoutProfileNestedInput
+  bookings?: Prisma.BookingUncheckedUpdateManyWithoutProfileNestedInput
+  sent_invites?: Prisma.BookingUncheckedUpdateManyWithoutInvited_byNestedInput
+  friendships_a?: Prisma.FriendshipUncheckedUpdateManyWithoutUser_aNestedInput
+  friendships_b?: Prisma.FriendshipUncheckedUpdateManyWithoutUser_bNestedInput
+  cafe_orders?: Prisma.CafeOrderUncheckedUpdateManyWithoutProfileNestedInput
+  meal_subscriptions?: Prisma.MealSubscriptionUncheckedUpdateManyWithoutProfileNestedInput
+  user_badges?: Prisma.UserBadgeUncheckedUpdateManyWithoutProfileNestedInput
+  user_packages?: Prisma.UserPackageUncheckedUpdateManyWithoutProfileNestedInput
+  user_stats?: Prisma.UserStatsUncheckedUpdateOneWithoutProfileNestedInput
+  user_streaks?: Prisma.UserStreakUncheckedUpdateOneWithoutProfileNestedInput
+  waivers?: Prisma.WaiverUncheckedUpdateManyWithoutProfileNestedInput
+  crm_messages?: Prisma.CrmMessageUncheckedUpdateManyWithoutProfileNestedInput
+  activity_sessions?: Prisma.UserActivitySessionUncheckedUpdateManyWithoutProfileNestedInput
+  activity_events?: Prisma.UserActivityEventUncheckedUpdateManyWithoutProfileNestedInput
+  activity_actions?: Prisma.ActivityLogUncheckedUpdateManyWithoutActorNestedInput
+  activity_targets?: Prisma.ActivityLogUncheckedUpdateManyWithoutTargetNestedInput
+  retail_orders?: Prisma.RetailOrderUncheckedUpdateManyWithoutProfileNestedInput
+  coupon_redemptions?: Prisma.CouponRedemptionUncheckedUpdateManyWithoutProfileNestedInput
+  razorpay_orders?: Prisma.RazorpayOrderUncheckedUpdateManyWithoutProfileNestedInput
+  member_tickets?: Prisma.MemberTicketUncheckedUpdateManyWithoutProfileNestedInput
   payments?: Prisma.PaymentUncheckedUpdateManyWithoutProfileNestedInput
   recorded_payments?: Prisma.PaymentUncheckedUpdateManyWithoutRecorded_by_adminNestedInput
   sessions?: Prisma.UserSessionUncheckedUpdateManyWithoutProfileNestedInput
@@ -5998,6 +6319,7 @@ export type ProfileCreateWithoutActivity_actionsInput = {
   member_tickets?: Prisma.MemberTicketCreateNestedManyWithoutProfileInput
   payments?: Prisma.PaymentCreateNestedManyWithoutProfileInput
   recorded_payments?: Prisma.PaymentCreateNestedManyWithoutRecorded_by_adminInput
+  cancellation_requests?: Prisma.ClassCancellationRequestCreateNestedManyWithoutProfileInput
   sessions?: Prisma.UserSessionCreateNestedManyWithoutProfileInput
 }
 
@@ -6045,6 +6367,7 @@ export type ProfileUncheckedCreateWithoutActivity_actionsInput = {
   member_tickets?: Prisma.MemberTicketUncheckedCreateNestedManyWithoutProfileInput
   payments?: Prisma.PaymentUncheckedCreateNestedManyWithoutProfileInput
   recorded_payments?: Prisma.PaymentUncheckedCreateNestedManyWithoutRecorded_by_adminInput
+  cancellation_requests?: Prisma.ClassCancellationRequestUncheckedCreateNestedManyWithoutProfileInput
   sessions?: Prisma.UserSessionUncheckedCreateNestedManyWithoutProfileInput
 }
 
@@ -6097,6 +6420,7 @@ export type ProfileCreateWithoutActivity_targetsInput = {
   member_tickets?: Prisma.MemberTicketCreateNestedManyWithoutProfileInput
   payments?: Prisma.PaymentCreateNestedManyWithoutProfileInput
   recorded_payments?: Prisma.PaymentCreateNestedManyWithoutRecorded_by_adminInput
+  cancellation_requests?: Prisma.ClassCancellationRequestCreateNestedManyWithoutProfileInput
   sessions?: Prisma.UserSessionCreateNestedManyWithoutProfileInput
 }
 
@@ -6144,6 +6468,7 @@ export type ProfileUncheckedCreateWithoutActivity_targetsInput = {
   member_tickets?: Prisma.MemberTicketUncheckedCreateNestedManyWithoutProfileInput
   payments?: Prisma.PaymentUncheckedCreateNestedManyWithoutProfileInput
   recorded_payments?: Prisma.PaymentUncheckedCreateNestedManyWithoutRecorded_by_adminInput
+  cancellation_requests?: Prisma.ClassCancellationRequestUncheckedCreateNestedManyWithoutProfileInput
   sessions?: Prisma.UserSessionUncheckedCreateNestedManyWithoutProfileInput
 }
 
@@ -6207,6 +6532,7 @@ export type ProfileUpdateWithoutActivity_actionsInput = {
   member_tickets?: Prisma.MemberTicketUpdateManyWithoutProfileNestedInput
   payments?: Prisma.PaymentUpdateManyWithoutProfileNestedInput
   recorded_payments?: Prisma.PaymentUpdateManyWithoutRecorded_by_adminNestedInput
+  cancellation_requests?: Prisma.ClassCancellationRequestUpdateManyWithoutProfileNestedInput
   sessions?: Prisma.UserSessionUpdateManyWithoutProfileNestedInput
 }
 
@@ -6254,6 +6580,7 @@ export type ProfileUncheckedUpdateWithoutActivity_actionsInput = {
   member_tickets?: Prisma.MemberTicketUncheckedUpdateManyWithoutProfileNestedInput
   payments?: Prisma.PaymentUncheckedUpdateManyWithoutProfileNestedInput
   recorded_payments?: Prisma.PaymentUncheckedUpdateManyWithoutRecorded_by_adminNestedInput
+  cancellation_requests?: Prisma.ClassCancellationRequestUncheckedUpdateManyWithoutProfileNestedInput
   sessions?: Prisma.UserSessionUncheckedUpdateManyWithoutProfileNestedInput
 }
 
@@ -6312,6 +6639,7 @@ export type ProfileUpdateWithoutActivity_targetsInput = {
   member_tickets?: Prisma.MemberTicketUpdateManyWithoutProfileNestedInput
   payments?: Prisma.PaymentUpdateManyWithoutProfileNestedInput
   recorded_payments?: Prisma.PaymentUpdateManyWithoutRecorded_by_adminNestedInput
+  cancellation_requests?: Prisma.ClassCancellationRequestUpdateManyWithoutProfileNestedInput
   sessions?: Prisma.UserSessionUpdateManyWithoutProfileNestedInput
 }
 
@@ -6359,6 +6687,7 @@ export type ProfileUncheckedUpdateWithoutActivity_targetsInput = {
   member_tickets?: Prisma.MemberTicketUncheckedUpdateManyWithoutProfileNestedInput
   payments?: Prisma.PaymentUncheckedUpdateManyWithoutProfileNestedInput
   recorded_payments?: Prisma.PaymentUncheckedUpdateManyWithoutRecorded_by_adminNestedInput
+  cancellation_requests?: Prisma.ClassCancellationRequestUncheckedUpdateManyWithoutProfileNestedInput
   sessions?: Prisma.UserSessionUncheckedUpdateManyWithoutProfileNestedInput
 }
 
@@ -6389,6 +6718,7 @@ export type ProfileCountOutputType = {
   member_tickets: number
   payments: number
   recorded_payments: number
+  cancellation_requests: number
   sessions: number
 }
 
@@ -6414,6 +6744,7 @@ export type ProfileCountOutputTypeSelect<ExtArgs extends runtime.Types.Extension
   member_tickets?: boolean | ProfileCountOutputTypeCountMember_ticketsArgs
   payments?: boolean | ProfileCountOutputTypeCountPaymentsArgs
   recorded_payments?: boolean | ProfileCountOutputTypeCountRecorded_paymentsArgs
+  cancellation_requests?: boolean | ProfileCountOutputTypeCountCancellation_requestsArgs
   sessions?: boolean | ProfileCountOutputTypeCountSessionsArgs
 }
 
@@ -6577,6 +6908,13 @@ export type ProfileCountOutputTypeCountRecorded_paymentsArgs<ExtArgs extends run
 /**
  * ProfileCountOutputType without action
  */
+export type ProfileCountOutputTypeCountCancellation_requestsArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  where?: Prisma.ClassCancellationRequestWhereInput
+}
+
+/**
+ * ProfileCountOutputType without action
+ */
 export type ProfileCountOutputTypeCountSessionsArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   where?: Prisma.UserSessionWhereInput
 }
@@ -6627,6 +6965,7 @@ export type ProfileSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs 
   member_tickets?: boolean | Prisma.Profile$member_ticketsArgs<ExtArgs>
   payments?: boolean | Prisma.Profile$paymentsArgs<ExtArgs>
   recorded_payments?: boolean | Prisma.Profile$recorded_paymentsArgs<ExtArgs>
+  cancellation_requests?: boolean | Prisma.Profile$cancellation_requestsArgs<ExtArgs>
   sessions?: boolean | Prisma.Profile$sessionsArgs<ExtArgs>
   _count?: boolean | Prisma.ProfileCountOutputTypeDefaultArgs<ExtArgs>
 }, ExtArgs["result"]["profile"]>
@@ -6726,6 +7065,7 @@ export type ProfileInclude<ExtArgs extends runtime.Types.Extensions.InternalArgs
   member_tickets?: boolean | Prisma.Profile$member_ticketsArgs<ExtArgs>
   payments?: boolean | Prisma.Profile$paymentsArgs<ExtArgs>
   recorded_payments?: boolean | Prisma.Profile$recorded_paymentsArgs<ExtArgs>
+  cancellation_requests?: boolean | Prisma.Profile$cancellation_requestsArgs<ExtArgs>
   sessions?: boolean | Prisma.Profile$sessionsArgs<ExtArgs>
   _count?: boolean | Prisma.ProfileCountOutputTypeDefaultArgs<ExtArgs>
 }
@@ -6759,6 +7099,7 @@ export type $ProfilePayload<ExtArgs extends runtime.Types.Extensions.InternalArg
     member_tickets: Prisma.$MemberTicketPayload<ExtArgs>[]
     payments: Prisma.$PaymentPayload<ExtArgs>[]
     recorded_payments: Prisma.$PaymentPayload<ExtArgs>[]
+    cancellation_requests: Prisma.$ClassCancellationRequestPayload<ExtArgs>[]
     sessions: Prisma.$UserSessionPayload<ExtArgs>[]
   }
   scalars: runtime.Types.Extensions.GetPayloadResult<{
@@ -7200,6 +7541,7 @@ export interface Prisma__ProfileClient<T, Null = never, ExtArgs extends runtime.
   member_tickets<T extends Prisma.Profile$member_ticketsArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.Profile$member_ticketsArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$MemberTicketPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
   payments<T extends Prisma.Profile$paymentsArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.Profile$paymentsArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$PaymentPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
   recorded_payments<T extends Prisma.Profile$recorded_paymentsArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.Profile$recorded_paymentsArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$PaymentPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
+  cancellation_requests<T extends Prisma.Profile$cancellation_requestsArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.Profile$cancellation_requestsArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$ClassCancellationRequestPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
   sessions<T extends Prisma.Profile$sessionsArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.Profile$sessionsArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$UserSessionPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
   /**
    * Attaches callbacks for the resolution and/or rejection of the Promise.
@@ -8201,6 +8543,30 @@ export type Profile$recorded_paymentsArgs<ExtArgs extends runtime.Types.Extensio
   take?: number
   skip?: number
   distinct?: Prisma.PaymentScalarFieldEnum | Prisma.PaymentScalarFieldEnum[]
+}
+
+/**
+ * Profile.cancellation_requests
+ */
+export type Profile$cancellation_requestsArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  /**
+   * Select specific fields to fetch from the ClassCancellationRequest
+   */
+  select?: Prisma.ClassCancellationRequestSelect<ExtArgs> | null
+  /**
+   * Omit specific fields from the ClassCancellationRequest
+   */
+  omit?: Prisma.ClassCancellationRequestOmit<ExtArgs> | null
+  /**
+   * Choose, which related nodes to fetch as well
+   */
+  include?: Prisma.ClassCancellationRequestInclude<ExtArgs> | null
+  where?: Prisma.ClassCancellationRequestWhereInput
+  orderBy?: Prisma.ClassCancellationRequestOrderByWithRelationInput | Prisma.ClassCancellationRequestOrderByWithRelationInput[]
+  cursor?: Prisma.ClassCancellationRequestWhereUniqueInput
+  take?: number
+  skip?: number
+  distinct?: Prisma.ClassCancellationRequestScalarFieldEnum | Prisma.ClassCancellationRequestScalarFieldEnum[]
 }
 
 /**

@@ -52,6 +52,8 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { ListAvatar } from "@/components/admin/ListAvatar";
+import { Checkbox } from "@/components/ui/checkbox";
+import { Textarea } from "@/components/ui/textarea";
 import { toast } from "sonner";
 
 export const getServerSideProps = requireSessionSSP({ roles: ["admin"] });
@@ -952,6 +954,10 @@ function ManagePassDialog({
   const [proofUrl, setProofUrl] = useState("");
   const [proofUploading, setProofUploading] = useState(false);
   const [submitting, setSubmitting] = useState(false);
+  const [isComp, setIsComp] = useState(false);
+  const [grantNote, setGrantNote] = useState("");
+  const [expiry, setExpiry] = useState("");
+  const [defaultValidityDays, setDefaultValidityDays] = useState(30);
 
   // Reset when (re)opening so a stale selection never carries over between members.
   useEffect(() => {
@@ -965,8 +971,31 @@ function ManagePassDialog({
       setAmount("");
       setReference("");
       setProofUrl("");
+      setIsComp(false);
+      setGrantNote("");
     }
   }, [open, member]);
+
+  // Pull the global default validity (fallback when a pass has no own duration).
+  useEffect(() => {
+    if (!open) return;
+    fetch("/api/admin/studio-settings", { credentials: "include" })
+      .then((r) => (r.ok ? r.json() : null))
+      .then((d) => {
+        const v = d?.settings?.default_package_validity_days;
+        if (typeof v === "number" && v > 0) setDefaultValidityDays(v);
+      })
+      .catch(() => {});
+  }, [open]);
+
+  // Default the editable expiry from the selected duration (studio days) or the
+  // global default validity. Admin can override the date afterwards.
+  useEffect(() => {
+    const base = new Date();
+    if (passType === "studio_pass" && days) base.setDate(base.getDate() + days);
+    else base.setDate(base.getDate() + defaultValidityDays);
+    setExpiry(base.toISOString().slice(0, 10));
+  }, [passType, days, defaultValidityDays, open]);
 
   const studioBlocksClass = member.passCategory === "studio_pass" && member.activePackageId !== null;
 
@@ -1013,23 +1042,47 @@ function ManagePassDialog({
   }
 
   async function applyPassConfig() {
-    if (passType === "class_pass" && credits !== null) {
-      const delta = member.activePackageId ? credits - member.credits : credits;
-      await patch({
-        profile_id: member.id,
-        user_package_id: member.activePackageId ?? undefined,
-        credits_delta: delta,
-        pass_type: "class_pass",
-      });
-    } else if (passType === "studio_pass" && days !== null) {
-      const expiry = new Date();
-      expiry.setDate(expiry.getDate() + days);
-      await patch({
-        profile_id: member.id,
-        user_package_id: member.activePackageId ?? undefined,
-        expiration_date: expiry.toISOString().slice(0, 10),
-        pass_type: "studio_pass",
-      });
+    const body: Record<string, unknown> = {
+      profile_id: member.id,
+      pass_type: passType,
+      is_comp: isComp,
+      grant_note: grantNote.trim() || undefined,
+      expiration_date: expiry || undefined,
+    };
+    // A comp grant always creates a fresh package; a paid grant may top up the
+    // member's existing active pass.
+    if (!isComp && member.activePackageId) body.user_package_id = member.activePackageId;
+    if (passType === "class_pass" && credits !== null) body.class_count = credits;
+    await patch(body);
+  }
+
+  async function persistStartDate() {
+    if (startDate && startDate !== (member.startDate ? member.startDate.slice(0, 10) : "")) {
+      await patch({ profile_id: member.id, start_date: startDate });
+    }
+  }
+
+  // Comp path — no payment recorded; a grant note is required.
+  async function grantComp() {
+    if (passType === "class_pass" && credits === null) {
+      toast.error("Select number of classes first");
+      return;
+    }
+    if (!grantNote.trim()) {
+      toast.error("A grant note is required for a comp pass");
+      return;
+    }
+    setSubmitting(true);
+    try {
+      await persistStartDate();
+      await applyPassConfig();
+      toast.success(`Comp pass granted to ${member.name}`);
+      onOpenChange(false);
+      await onDone();
+    } catch (e) {
+      toast.error(e instanceof Error ? e.message : "Could not grant comp pass");
+    } finally {
+      setSubmitting(false);
     }
   }
 
@@ -1041,6 +1094,10 @@ function ManagePassDialog({
     const rupeeVal = Number(amount);
     if (!Number.isFinite(rupeeVal) || rupeeVal <= 0) {
       toast.error("Enter a valid amount in INR");
+      return;
+    }
+    if (!proofUrl) {
+      toast.error("Upload proof of payment before assigning the pass");
       return;
     }
     setSubmitting(true);
@@ -1055,17 +1112,15 @@ function ManagePassDialog({
           method,
           amount_paise: Math.round(rupeeVal * 100),
           reference: reference || undefined,
-          proof_url: proofUrl || undefined,
+          proof_url: proofUrl,
         }),
       });
       if (!res.ok) {
         const err = await res.json().catch(() => ({}));
         throw new Error((err as { error?: string }).error ?? "Failed to record payment");
       }
-      if (startDate && startDate !== (member.startDate ? member.startDate.slice(0, 10) : "")) {
-        await patch({ profile_id: member.id, start_date: startDate });
-      }
-      const hasPassSelection = (passType === "class_pass" && credits !== null) || (passType === "studio_pass" && days !== null);
+      await persistStartDate();
+      const hasPassSelection = (passType === "class_pass" && credits !== null) || passType === "studio_pass";
       if (hasPassSelection) await applyPassConfig();
       toast.success(`Payment recorded for ${member.name}`);
       onOpenChange(false);
@@ -1169,9 +1224,47 @@ function ManagePassDialog({
             )}
 
             <div className="border-t border-sage/10 pt-4">
+              <Label className="font-body text-charcoal/80 mb-2 block">Pass expiry</Label>
+              <DatePicker value={expiry} onChange={setExpiry} className="h-11" />
+              <p className="font-body text-xs text-charcoal/50 mt-1">
+                Defaulted from the pass validity{passType === "class_pass" ? ` (${defaultValidityDays} days)` : ""}. Editable.
+              </p>
+            </div>
+
+            <div className="border-t border-sage/10 pt-4">
+              <label className="flex items-start gap-3 cursor-pointer">
+                <Checkbox
+                  checked={isComp}
+                  onCheckedChange={(v) => setIsComp(v === true)}
+                  className="mt-0.5"
+                />
+                <span>
+                  <span className="font-body text-charcoal/90 text-sm block">Comp pass (no payment)</span>
+                  <span className="font-body text-charcoal/50 text-xs block">
+                    Grants the pass for free. A grant note is required; no payment is recorded.
+                  </span>
+                </span>
+              </label>
+              {isComp && (
+                <div className="mt-3">
+                  <Label className="font-body text-charcoal/70 text-sm mb-1 block">Grant note (required)</Label>
+                  <Textarea
+                    value={grantNote}
+                    onChange={(e) => setGrantNote(e.target.value)}
+                    placeholder="Reason for the comp grant…"
+                    className="border-charcoal/20 focus:border-sage font-body"
+                    rows={3}
+                  />
+                </div>
+              )}
+            </div>
+
+            <div className="border-t border-sage/10 pt-4">
               <Label className="font-body text-charcoal/80 mb-2 block">Member start date</Label>
               <DatePicker value={startDate} onChange={setStartDate} className="h-11" />
-              <p className="font-body text-xs text-charcoal/50 mt-1">Saved together with payment at the next step.</p>
+              <p className="font-body text-xs text-charcoal/50 mt-1">
+                {isComp ? "Saved together with the comp grant." : "Saved together with payment at the next step."}
+              </p>
             </div>
           </div>
         )}
@@ -1231,7 +1324,7 @@ function ManagePassDialog({
             </div>
 
             <div>
-              <Label className="font-body text-charcoal/70 text-sm mb-1 block">Proof of payment (optional)</Label>
+              <Label className="font-body text-charcoal/70 text-sm mb-1 block">Proof of payment (required)</Label>
               <Input
                 type="file"
                 accept="image/*"
@@ -1258,7 +1351,13 @@ function ManagePassDialog({
               <Button variant="outline" onClick={() => onOpenChange(false)} className="border-charcoal/20 text-charcoal hover:bg-charcoal/5 font-body">
                 Cancel
               </Button>
-              <Button onClick={goToPayment} variant="sage">Continue</Button>
+              {isComp ? (
+                <Button onClick={() => void grantComp()} disabled={submitting} variant="sage">
+                  {submitting ? "Granting…" : "Grant comp pass"}
+                </Button>
+              ) : (
+                <Button onClick={goToPayment} variant="sage">Continue</Button>
+              )}
             </>
           ) : (
             <>

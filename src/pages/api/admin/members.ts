@@ -5,6 +5,7 @@ import { getStudioServerSession } from "@/lib/getStudioServerSession";
 import { getDynamicStats, getDynamicStatsForUsers } from "@/lib/attendanceStats";
 import { logActivity } from "@/lib/activityLog";
 import { HISTORY_STATUSES } from "@/lib/bookingStatus";
+import { getStudioSettings } from "@/lib/studioSettings";
 
 // Member Management lists real members only — never staff/partner/instructor logins.
 function isNonMemberRole(role?: string | null): boolean {
@@ -108,9 +109,16 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   }
 
   if (req.method === "PATCH") {
-    const { profile_id, user_package_id, credits_delta, expiration_date, pass_type, start_date, action, profile_fields } = req.body ?? {};
+    const { profile_id, user_package_id, class_count, expiration_date, pass_type, start_date, action, profile_fields, is_comp, grant_note } = req.body ?? {};
     if (!profile_id || typeof profile_id !== "string") {
       return res.status(400).json({ error: "profile_id required" });
+    }
+
+    const compGrant = is_comp === true;
+    const grantNote = typeof grant_note === "string" && grant_note.trim() ? grant_note.trim() : null;
+    const hasClassCount = typeof class_count === "number" && class_count > 0;
+    if (compGrant && !grantNote) {
+      return res.status(400).json({ error: "A grant note is required for a comp pass" });
     }
 
     const profile = await prisma.profile.findFirst({
@@ -139,7 +147,9 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     }
 
     let pkgId: string | undefined = typeof user_package_id === "string" ? user_package_id : undefined;
-    if (!pkgId) {
+    // A comp grant always creates a fresh UserPackage (origin=comp) — never reuse
+    // an existing pass row, so its purchase origin/credits are left intact.
+    if (!pkgId && !compGrant) {
       const latest = await prisma.userPackage.findFirst({
         where: { user_id: profile_id, is_active: true },
         orderBy: { purchase_date: "desc" },
@@ -177,11 +187,13 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       return res.json({ ok: true, paused: false, daysPaused: 0 });
     }
 
-    // Auto-create a UserPackage when admin is assigning a new pass to a member with no active package.
-    // Picks a PackageType matching the intended pass_type so the auto-created row has sensible defaults.
+    // Auto-create a UserPackage when admin is assigning a new pass to a member with no
+    // active package (or for any comp grant). Picks a PackageType matching the intended
+    // pass_type so the auto-created row has sensible defaults.
     const needsAutoCreate = !pkgId && (
-      (typeof credits_delta === "number" && credits_delta > 0) ||
-      (expiration_date && typeof expiration_date === "string")
+      hasClassCount ||
+      (expiration_date && typeof expiration_date === "string") ||
+      compGrant
     );
     if (needsAutoCreate) {
       const desiredType = pass_type === "studio_pass" ? "studio_pass" : "class_pass";
@@ -190,38 +202,47 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         (await prisma.packageType.findFirst({ orderBy: { created_at: "asc" } }));
       if (!pt) return res.status(400).json({ error: "No PackageType available to auto-create package" });
 
-      const fallbackExpiry = new Date();
-      fallbackExpiry.setDate(fallbackExpiry.getDate() + 30);
-      const expiryForCreate = expiration_date && typeof expiration_date === "string"
-        ? new Date(expiration_date)
-        : fallbackExpiry;
+      // Expiry: admin override → package's own validity (duration_months) →
+      // global default_package_validity_days fallback.
+      let expiryForCreate: Date;
+      if (expiration_date && typeof expiration_date === "string") {
+        expiryForCreate = new Date(expiration_date);
+      } else if (pt.duration_months && pt.duration_months > 0) {
+        expiryForCreate = new Date();
+        expiryForCreate.setMonth(expiryForCreate.getMonth() + pt.duration_months);
+      } else {
+        const settings = await getStudioSettings();
+        expiryForCreate = new Date();
+        expiryForCreate.setDate(expiryForCreate.getDate() + settings.default_package_validity_days);
+      }
+      if (Number.isNaN(expiryForCreate.getTime())) return res.status(400).json({ error: "Invalid expiration date" });
 
       const created = await prisma.userPackage.create({
         data: {
           user_id: profile_id,
           package_type_id: pt.id,
-          credits_remaining: typeof credits_delta === "number" && credits_delta > 0 ? credits_delta : null,
+          credits_remaining: hasClassCount ? class_count : null,
           expiration_date: expiryForCreate,
           is_active: true,
           pass_type: desiredType,
+          is_comp: compGrant,
+          grant_note: grantNote,
+          origin: compGrant ? "comp" : "admin",
         },
       });
       pkgId = created.id;
-      await logActivity({ req, action: "admin.package_assigned", targetProfileId: profile_id, metadata: { package_name: pt.name } });
+      await logActivity({ req, action: "admin.package_assigned", targetProfileId: profile_id, metadata: { package_name: pt.name, is_comp: compGrant } });
     }
 
-    if (typeof credits_delta === "number" && credits_delta !== 0) {
-      if (!pkgId) return res.status(400).json({ error: "No active package to adjust credits" });
+    // Set (not increment) the class balance when editing an existing pass.
+    if (hasClassCount && !needsAutoCreate) {
+      if (!pkgId) return res.status(400).json({ error: "No active package to set classes" });
       const pkg = await prisma.userPackage.findUnique({ where: { id: pkgId } });
       if (!pkg || pkg.user_id !== profile_id) return res.status(400).json({ error: "Invalid package" });
-      // Auto-created package above already has the target credits; skip re-applying delta.
-      if (!needsAutoCreate) {
-        const next = (pkg.credits_remaining ?? 0) + credits_delta;
-        await prisma.userPackage.update({
-          where: { id: pkgId },
-          data: { credits_remaining: Math.max(0, next) },
-        });
-      }
+      await prisma.userPackage.update({
+        where: { id: pkgId },
+        data: { credits_remaining: class_count },
+      });
     }
 
     if (expiration_date && typeof expiration_date === "string") {

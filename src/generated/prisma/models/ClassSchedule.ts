@@ -317,6 +317,7 @@ export type ClassScheduleWhereInput = {
   actual_instructor?: Prisma.XOR<Prisma.InstructorNullableScalarRelationFilter, Prisma.InstructorWhereInput> | null
   bookings?: Prisma.BookingListRelationFilter
   qr_codes?: Prisma.QrCodeListRelationFilter
+  cancellation_requests?: Prisma.ClassCancellationRequestListRelationFilter
 }
 
 export type ClassScheduleOrderByWithRelationInput = {
@@ -341,6 +342,7 @@ export type ClassScheduleOrderByWithRelationInput = {
   actual_instructor?: Prisma.InstructorOrderByWithRelationInput
   bookings?: Prisma.BookingOrderByRelationAggregateInput
   qr_codes?: Prisma.QrCodeOrderByRelationAggregateInput
+  cancellation_requests?: Prisma.ClassCancellationRequestOrderByRelationAggregateInput
 }
 
 export type ClassScheduleWhereUniqueInput = Prisma.AtLeast<{
@@ -369,6 +371,7 @@ export type ClassScheduleWhereUniqueInput = Prisma.AtLeast<{
   actual_instructor?: Prisma.XOR<Prisma.InstructorNullableScalarRelationFilter, Prisma.InstructorWhereInput> | null
   bookings?: Prisma.BookingListRelationFilter
   qr_codes?: Prisma.QrCodeListRelationFilter
+  cancellation_requests?: Prisma.ClassCancellationRequestListRelationFilter
 }, "id" | "class_schedules_slot_unique">
 
 export type ClassScheduleOrderByWithAggregationInput = {
@@ -436,6 +439,7 @@ export type ClassScheduleCreateInput = {
   actual_instructor?: Prisma.InstructorCreateNestedOneWithoutActual_class_schedulesInput
   bookings?: Prisma.BookingCreateNestedManyWithoutClass_scheduleInput
   qr_codes?: Prisma.QrCodeCreateNestedManyWithoutClass_scheduleInput
+  cancellation_requests?: Prisma.ClassCancellationRequestCreateNestedManyWithoutClass_scheduleInput
 }
 
 export type ClassScheduleUncheckedCreateInput = {
@@ -457,6 +461,7 @@ export type ClassScheduleUncheckedCreateInput = {
   updated_at?: Date | string
   bookings?: Prisma.BookingUncheckedCreateNestedManyWithoutClass_scheduleInput
   qr_codes?: Prisma.QrCodeUncheckedCreateNestedManyWithoutClass_scheduleInput
+  cancellation_requests?: Prisma.ClassCancellationRequestUncheckedCreateNestedManyWithoutClass_scheduleInput
 }
 
 export type ClassScheduleUpdateInput = {
@@ -478,6 +483,7 @@ export type ClassScheduleUpdateInput = {
   actual_instructor?: Prisma.InstructorUpdateOneWithoutActual_class_schedulesNestedInput
   bookings?: Prisma.BookingUpdateManyWithoutClass_scheduleNestedInput
   qr_codes?: Prisma.QrCodeUpdateManyWithoutClass_scheduleNestedInput
+  cancellation_requests?: Prisma.ClassCancellationRequestUpdateManyWithoutClass_scheduleNestedInput
 }
 
 export type ClassScheduleUncheckedUpdateInput = {
@@ -499,6 +505,7 @@ export type ClassScheduleUncheckedUpdateInput = {
   updated_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   bookings?: Prisma.BookingUncheckedUpdateManyWithoutClass_scheduleNestedInput
   qr_codes?: Prisma.QrCodeUncheckedUpdateManyWithoutClass_scheduleNestedInput
+  cancellation_requests?: Prisma.ClassCancellationRequestUncheckedUpdateManyWithoutClass_scheduleNestedInput
 }
 
 export type ClassScheduleCreateManyInput = {
@@ -796,6 +803,20 @@ export type ClassScheduleUpdateOneWithoutBookingsNestedInput = {
   update?: Prisma.XOR<Prisma.XOR<Prisma.ClassScheduleUpdateToOneWithWhereWithoutBookingsInput, Prisma.ClassScheduleUpdateWithoutBookingsInput>, Prisma.ClassScheduleUncheckedUpdateWithoutBookingsInput>
 }
 
+export type ClassScheduleCreateNestedOneWithoutCancellation_requestsInput = {
+  create?: Prisma.XOR<Prisma.ClassScheduleCreateWithoutCancellation_requestsInput, Prisma.ClassScheduleUncheckedCreateWithoutCancellation_requestsInput>
+  connectOrCreate?: Prisma.ClassScheduleCreateOrConnectWithoutCancellation_requestsInput
+  connect?: Prisma.ClassScheduleWhereUniqueInput
+}
+
+export type ClassScheduleUpdateOneRequiredWithoutCancellation_requestsNestedInput = {
+  create?: Prisma.XOR<Prisma.ClassScheduleCreateWithoutCancellation_requestsInput, Prisma.ClassScheduleUncheckedCreateWithoutCancellation_requestsInput>
+  connectOrCreate?: Prisma.ClassScheduleCreateOrConnectWithoutCancellation_requestsInput
+  upsert?: Prisma.ClassScheduleUpsertWithoutCancellation_requestsInput
+  connect?: Prisma.ClassScheduleWhereUniqueInput
+  update?: Prisma.XOR<Prisma.XOR<Prisma.ClassScheduleUpdateToOneWithWhereWithoutCancellation_requestsInput, Prisma.ClassScheduleUpdateWithoutCancellation_requestsInput>, Prisma.ClassScheduleUncheckedUpdateWithoutCancellation_requestsInput>
+}
+
 export type ClassScheduleCreateNestedOneWithoutQr_codesInput = {
   create?: Prisma.XOR<Prisma.ClassScheduleCreateWithoutQr_codesInput, Prisma.ClassScheduleUncheckedCreateWithoutQr_codesInput>
   connectOrCreate?: Prisma.ClassScheduleCreateOrConnectWithoutQr_codesInput
@@ -828,6 +849,7 @@ export type ClassScheduleCreateWithoutInstructorInput = {
   actual_instructor?: Prisma.InstructorCreateNestedOneWithoutActual_class_schedulesInput
   bookings?: Prisma.BookingCreateNestedManyWithoutClass_scheduleInput
   qr_codes?: Prisma.QrCodeCreateNestedManyWithoutClass_scheduleInput
+  cancellation_requests?: Prisma.ClassCancellationRequestCreateNestedManyWithoutClass_scheduleInput
 }
 
 export type ClassScheduleUncheckedCreateWithoutInstructorInput = {
@@ -848,6 +870,7 @@ export type ClassScheduleUncheckedCreateWithoutInstructorInput = {
   updated_at?: Date | string
   bookings?: Prisma.BookingUncheckedCreateNestedManyWithoutClass_scheduleInput
   qr_codes?: Prisma.QrCodeUncheckedCreateNestedManyWithoutClass_scheduleInput
+  cancellation_requests?: Prisma.ClassCancellationRequestUncheckedCreateNestedManyWithoutClass_scheduleInput
 }
 
 export type ClassScheduleCreateOrConnectWithoutInstructorInput = {
@@ -878,6 +901,7 @@ export type ClassScheduleCreateWithoutActual_instructorInput = {
   instructor?: Prisma.InstructorCreateNestedOneWithoutClass_schedulesInput
   bookings?: Prisma.BookingCreateNestedManyWithoutClass_scheduleInput
   qr_codes?: Prisma.QrCodeCreateNestedManyWithoutClass_scheduleInput
+  cancellation_requests?: Prisma.ClassCancellationRequestCreateNestedManyWithoutClass_scheduleInput
 }
 
 export type ClassScheduleUncheckedCreateWithoutActual_instructorInput = {
@@ -898,6 +922,7 @@ export type ClassScheduleUncheckedCreateWithoutActual_instructorInput = {
   updated_at?: Date | string
   bookings?: Prisma.BookingUncheckedCreateNestedManyWithoutClass_scheduleInput
   qr_codes?: Prisma.QrCodeUncheckedCreateNestedManyWithoutClass_scheduleInput
+  cancellation_requests?: Prisma.ClassCancellationRequestUncheckedCreateNestedManyWithoutClass_scheduleInput
 }
 
 export type ClassScheduleCreateOrConnectWithoutActual_instructorInput = {
@@ -982,6 +1007,7 @@ export type ClassScheduleCreateWithoutClass_modelInput = {
   actual_instructor?: Prisma.InstructorCreateNestedOneWithoutActual_class_schedulesInput
   bookings?: Prisma.BookingCreateNestedManyWithoutClass_scheduleInput
   qr_codes?: Prisma.QrCodeCreateNestedManyWithoutClass_scheduleInput
+  cancellation_requests?: Prisma.ClassCancellationRequestCreateNestedManyWithoutClass_scheduleInput
 }
 
 export type ClassScheduleUncheckedCreateWithoutClass_modelInput = {
@@ -1002,6 +1028,7 @@ export type ClassScheduleUncheckedCreateWithoutClass_modelInput = {
   updated_at?: Date | string
   bookings?: Prisma.BookingUncheckedCreateNestedManyWithoutClass_scheduleInput
   qr_codes?: Prisma.QrCodeUncheckedCreateNestedManyWithoutClass_scheduleInput
+  cancellation_requests?: Prisma.ClassCancellationRequestUncheckedCreateNestedManyWithoutClass_scheduleInput
 }
 
 export type ClassScheduleCreateOrConnectWithoutClass_modelInput = {
@@ -1048,6 +1075,7 @@ export type ClassScheduleCreateWithoutBookingsInput = {
   instructor?: Prisma.InstructorCreateNestedOneWithoutClass_schedulesInput
   actual_instructor?: Prisma.InstructorCreateNestedOneWithoutActual_class_schedulesInput
   qr_codes?: Prisma.QrCodeCreateNestedManyWithoutClass_scheduleInput
+  cancellation_requests?: Prisma.ClassCancellationRequestCreateNestedManyWithoutClass_scheduleInput
 }
 
 export type ClassScheduleUncheckedCreateWithoutBookingsInput = {
@@ -1068,6 +1096,7 @@ export type ClassScheduleUncheckedCreateWithoutBookingsInput = {
   created_at?: Date | string
   updated_at?: Date | string
   qr_codes?: Prisma.QrCodeUncheckedCreateNestedManyWithoutClass_scheduleInput
+  cancellation_requests?: Prisma.ClassCancellationRequestUncheckedCreateNestedManyWithoutClass_scheduleInput
 }
 
 export type ClassScheduleCreateOrConnectWithoutBookingsInput = {
@@ -1104,6 +1133,7 @@ export type ClassScheduleUpdateWithoutBookingsInput = {
   instructor?: Prisma.InstructorUpdateOneWithoutClass_schedulesNestedInput
   actual_instructor?: Prisma.InstructorUpdateOneWithoutActual_class_schedulesNestedInput
   qr_codes?: Prisma.QrCodeUpdateManyWithoutClass_scheduleNestedInput
+  cancellation_requests?: Prisma.ClassCancellationRequestUpdateManyWithoutClass_scheduleNestedInput
 }
 
 export type ClassScheduleUncheckedUpdateWithoutBookingsInput = {
@@ -1123,6 +1153,107 @@ export type ClassScheduleUncheckedUpdateWithoutBookingsInput = {
   roster_sent_at?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   created_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updated_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  qr_codes?: Prisma.QrCodeUncheckedUpdateManyWithoutClass_scheduleNestedInput
+  cancellation_requests?: Prisma.ClassCancellationRequestUncheckedUpdateManyWithoutClass_scheduleNestedInput
+}
+
+export type ClassScheduleCreateWithoutCancellation_requestsInput = {
+  id?: string
+  start_time: Date | string
+  end_time: Date | string
+  capacity?: number | null
+  available_spots: number
+  current_bookings?: number
+  status?: $Enums.ClassScheduleStatus
+  instructor_check_in_time?: Date | string | null
+  instructor_check_in_outcome?: string | null
+  class_notes?: string | null
+  roster_sent_at?: Date | string | null
+  created_at?: Date | string
+  updated_at?: Date | string
+  class_model?: Prisma.ClassModelCreateNestedOneWithoutClass_schedulesInput
+  instructor?: Prisma.InstructorCreateNestedOneWithoutClass_schedulesInput
+  actual_instructor?: Prisma.InstructorCreateNestedOneWithoutActual_class_schedulesInput
+  bookings?: Prisma.BookingCreateNestedManyWithoutClass_scheduleInput
+  qr_codes?: Prisma.QrCodeCreateNestedManyWithoutClass_scheduleInput
+}
+
+export type ClassScheduleUncheckedCreateWithoutCancellation_requestsInput = {
+  id?: string
+  class_id: string
+  instructor_id?: string | null
+  actual_instructor_id?: string | null
+  start_time: Date | string
+  end_time: Date | string
+  capacity?: number | null
+  available_spots: number
+  current_bookings?: number
+  status?: $Enums.ClassScheduleStatus
+  instructor_check_in_time?: Date | string | null
+  instructor_check_in_outcome?: string | null
+  class_notes?: string | null
+  roster_sent_at?: Date | string | null
+  created_at?: Date | string
+  updated_at?: Date | string
+  bookings?: Prisma.BookingUncheckedCreateNestedManyWithoutClass_scheduleInput
+  qr_codes?: Prisma.QrCodeUncheckedCreateNestedManyWithoutClass_scheduleInput
+}
+
+export type ClassScheduleCreateOrConnectWithoutCancellation_requestsInput = {
+  where: Prisma.ClassScheduleWhereUniqueInput
+  create: Prisma.XOR<Prisma.ClassScheduleCreateWithoutCancellation_requestsInput, Prisma.ClassScheduleUncheckedCreateWithoutCancellation_requestsInput>
+}
+
+export type ClassScheduleUpsertWithoutCancellation_requestsInput = {
+  update: Prisma.XOR<Prisma.ClassScheduleUpdateWithoutCancellation_requestsInput, Prisma.ClassScheduleUncheckedUpdateWithoutCancellation_requestsInput>
+  create: Prisma.XOR<Prisma.ClassScheduleCreateWithoutCancellation_requestsInput, Prisma.ClassScheduleUncheckedCreateWithoutCancellation_requestsInput>
+  where?: Prisma.ClassScheduleWhereInput
+}
+
+export type ClassScheduleUpdateToOneWithWhereWithoutCancellation_requestsInput = {
+  where?: Prisma.ClassScheduleWhereInput
+  data: Prisma.XOR<Prisma.ClassScheduleUpdateWithoutCancellation_requestsInput, Prisma.ClassScheduleUncheckedUpdateWithoutCancellation_requestsInput>
+}
+
+export type ClassScheduleUpdateWithoutCancellation_requestsInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  start_time?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  end_time?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  capacity?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  available_spots?: Prisma.IntFieldUpdateOperationsInput | number
+  current_bookings?: Prisma.IntFieldUpdateOperationsInput | number
+  status?: Prisma.EnumClassScheduleStatusFieldUpdateOperationsInput | $Enums.ClassScheduleStatus
+  instructor_check_in_time?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  instructor_check_in_outcome?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  class_notes?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  roster_sent_at?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  created_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updated_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  class_model?: Prisma.ClassModelUpdateOneWithoutClass_schedulesNestedInput
+  instructor?: Prisma.InstructorUpdateOneWithoutClass_schedulesNestedInput
+  actual_instructor?: Prisma.InstructorUpdateOneWithoutActual_class_schedulesNestedInput
+  bookings?: Prisma.BookingUpdateManyWithoutClass_scheduleNestedInput
+  qr_codes?: Prisma.QrCodeUpdateManyWithoutClass_scheduleNestedInput
+}
+
+export type ClassScheduleUncheckedUpdateWithoutCancellation_requestsInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  class_id?: Prisma.StringFieldUpdateOperationsInput | string
+  instructor_id?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  actual_instructor_id?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  start_time?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  end_time?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  capacity?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  available_spots?: Prisma.IntFieldUpdateOperationsInput | number
+  current_bookings?: Prisma.IntFieldUpdateOperationsInput | number
+  status?: Prisma.EnumClassScheduleStatusFieldUpdateOperationsInput | $Enums.ClassScheduleStatus
+  instructor_check_in_time?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  instructor_check_in_outcome?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  class_notes?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  roster_sent_at?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  created_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updated_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  bookings?: Prisma.BookingUncheckedUpdateManyWithoutClass_scheduleNestedInput
   qr_codes?: Prisma.QrCodeUncheckedUpdateManyWithoutClass_scheduleNestedInput
 }
 
@@ -1144,6 +1275,7 @@ export type ClassScheduleCreateWithoutQr_codesInput = {
   instructor?: Prisma.InstructorCreateNestedOneWithoutClass_schedulesInput
   actual_instructor?: Prisma.InstructorCreateNestedOneWithoutActual_class_schedulesInput
   bookings?: Prisma.BookingCreateNestedManyWithoutClass_scheduleInput
+  cancellation_requests?: Prisma.ClassCancellationRequestCreateNestedManyWithoutClass_scheduleInput
 }
 
 export type ClassScheduleUncheckedCreateWithoutQr_codesInput = {
@@ -1164,6 +1296,7 @@ export type ClassScheduleUncheckedCreateWithoutQr_codesInput = {
   created_at?: Date | string
   updated_at?: Date | string
   bookings?: Prisma.BookingUncheckedCreateNestedManyWithoutClass_scheduleInput
+  cancellation_requests?: Prisma.ClassCancellationRequestUncheckedCreateNestedManyWithoutClass_scheduleInput
 }
 
 export type ClassScheduleCreateOrConnectWithoutQr_codesInput = {
@@ -1200,6 +1333,7 @@ export type ClassScheduleUpdateWithoutQr_codesInput = {
   instructor?: Prisma.InstructorUpdateOneWithoutClass_schedulesNestedInput
   actual_instructor?: Prisma.InstructorUpdateOneWithoutActual_class_schedulesNestedInput
   bookings?: Prisma.BookingUpdateManyWithoutClass_scheduleNestedInput
+  cancellation_requests?: Prisma.ClassCancellationRequestUpdateManyWithoutClass_scheduleNestedInput
 }
 
 export type ClassScheduleUncheckedUpdateWithoutQr_codesInput = {
@@ -1220,6 +1354,7 @@ export type ClassScheduleUncheckedUpdateWithoutQr_codesInput = {
   created_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updated_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   bookings?: Prisma.BookingUncheckedUpdateManyWithoutClass_scheduleNestedInput
+  cancellation_requests?: Prisma.ClassCancellationRequestUncheckedUpdateManyWithoutClass_scheduleNestedInput
 }
 
 export type ClassScheduleCreateManyInstructorInput = {
@@ -1276,6 +1411,7 @@ export type ClassScheduleUpdateWithoutInstructorInput = {
   actual_instructor?: Prisma.InstructorUpdateOneWithoutActual_class_schedulesNestedInput
   bookings?: Prisma.BookingUpdateManyWithoutClass_scheduleNestedInput
   qr_codes?: Prisma.QrCodeUpdateManyWithoutClass_scheduleNestedInput
+  cancellation_requests?: Prisma.ClassCancellationRequestUpdateManyWithoutClass_scheduleNestedInput
 }
 
 export type ClassScheduleUncheckedUpdateWithoutInstructorInput = {
@@ -1296,6 +1432,7 @@ export type ClassScheduleUncheckedUpdateWithoutInstructorInput = {
   updated_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   bookings?: Prisma.BookingUncheckedUpdateManyWithoutClass_scheduleNestedInput
   qr_codes?: Prisma.QrCodeUncheckedUpdateManyWithoutClass_scheduleNestedInput
+  cancellation_requests?: Prisma.ClassCancellationRequestUncheckedUpdateManyWithoutClass_scheduleNestedInput
 }
 
 export type ClassScheduleUncheckedUpdateManyWithoutInstructorInput = {
@@ -1334,6 +1471,7 @@ export type ClassScheduleUpdateWithoutActual_instructorInput = {
   instructor?: Prisma.InstructorUpdateOneWithoutClass_schedulesNestedInput
   bookings?: Prisma.BookingUpdateManyWithoutClass_scheduleNestedInput
   qr_codes?: Prisma.QrCodeUpdateManyWithoutClass_scheduleNestedInput
+  cancellation_requests?: Prisma.ClassCancellationRequestUpdateManyWithoutClass_scheduleNestedInput
 }
 
 export type ClassScheduleUncheckedUpdateWithoutActual_instructorInput = {
@@ -1354,6 +1492,7 @@ export type ClassScheduleUncheckedUpdateWithoutActual_instructorInput = {
   updated_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   bookings?: Prisma.BookingUncheckedUpdateManyWithoutClass_scheduleNestedInput
   qr_codes?: Prisma.QrCodeUncheckedUpdateManyWithoutClass_scheduleNestedInput
+  cancellation_requests?: Prisma.ClassCancellationRequestUncheckedUpdateManyWithoutClass_scheduleNestedInput
 }
 
 export type ClassScheduleUncheckedUpdateManyWithoutActual_instructorInput = {
@@ -1410,6 +1549,7 @@ export type ClassScheduleUpdateWithoutClass_modelInput = {
   actual_instructor?: Prisma.InstructorUpdateOneWithoutActual_class_schedulesNestedInput
   bookings?: Prisma.BookingUpdateManyWithoutClass_scheduleNestedInput
   qr_codes?: Prisma.QrCodeUpdateManyWithoutClass_scheduleNestedInput
+  cancellation_requests?: Prisma.ClassCancellationRequestUpdateManyWithoutClass_scheduleNestedInput
 }
 
 export type ClassScheduleUncheckedUpdateWithoutClass_modelInput = {
@@ -1430,6 +1570,7 @@ export type ClassScheduleUncheckedUpdateWithoutClass_modelInput = {
   updated_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   bookings?: Prisma.BookingUncheckedUpdateManyWithoutClass_scheduleNestedInput
   qr_codes?: Prisma.QrCodeUncheckedUpdateManyWithoutClass_scheduleNestedInput
+  cancellation_requests?: Prisma.ClassCancellationRequestUncheckedUpdateManyWithoutClass_scheduleNestedInput
 }
 
 export type ClassScheduleUncheckedUpdateManyWithoutClass_modelInput = {
@@ -1458,11 +1599,13 @@ export type ClassScheduleUncheckedUpdateManyWithoutClass_modelInput = {
 export type ClassScheduleCountOutputType = {
   bookings: number
   qr_codes: number
+  cancellation_requests: number
 }
 
 export type ClassScheduleCountOutputTypeSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   bookings?: boolean | ClassScheduleCountOutputTypeCountBookingsArgs
   qr_codes?: boolean | ClassScheduleCountOutputTypeCountQr_codesArgs
+  cancellation_requests?: boolean | ClassScheduleCountOutputTypeCountCancellation_requestsArgs
 }
 
 /**
@@ -1489,6 +1632,13 @@ export type ClassScheduleCountOutputTypeCountQr_codesArgs<ExtArgs extends runtim
   where?: Prisma.QrCodeWhereInput
 }
 
+/**
+ * ClassScheduleCountOutputType without action
+ */
+export type ClassScheduleCountOutputTypeCountCancellation_requestsArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  where?: Prisma.ClassCancellationRequestWhereInput
+}
+
 
 export type ClassScheduleSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetSelect<{
   id?: boolean
@@ -1512,6 +1662,7 @@ export type ClassScheduleSelect<ExtArgs extends runtime.Types.Extensions.Interna
   actual_instructor?: boolean | Prisma.ClassSchedule$actual_instructorArgs<ExtArgs>
   bookings?: boolean | Prisma.ClassSchedule$bookingsArgs<ExtArgs>
   qr_codes?: boolean | Prisma.ClassSchedule$qr_codesArgs<ExtArgs>
+  cancellation_requests?: boolean | Prisma.ClassSchedule$cancellation_requestsArgs<ExtArgs>
   _count?: boolean | Prisma.ClassScheduleCountOutputTypeDefaultArgs<ExtArgs>
 }, ExtArgs["result"]["classSchedule"]>
 
@@ -1585,6 +1736,7 @@ export type ClassScheduleInclude<ExtArgs extends runtime.Types.Extensions.Intern
   actual_instructor?: boolean | Prisma.ClassSchedule$actual_instructorArgs<ExtArgs>
   bookings?: boolean | Prisma.ClassSchedule$bookingsArgs<ExtArgs>
   qr_codes?: boolean | Prisma.ClassSchedule$qr_codesArgs<ExtArgs>
+  cancellation_requests?: boolean | Prisma.ClassSchedule$cancellation_requestsArgs<ExtArgs>
   _count?: boolean | Prisma.ClassScheduleCountOutputTypeDefaultArgs<ExtArgs>
 }
 export type ClassScheduleIncludeCreateManyAndReturn<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
@@ -1606,6 +1758,7 @@ export type $ClassSchedulePayload<ExtArgs extends runtime.Types.Extensions.Inter
     actual_instructor: Prisma.$InstructorPayload<ExtArgs> | null
     bookings: Prisma.$BookingPayload<ExtArgs>[]
     qr_codes: Prisma.$QrCodePayload<ExtArgs>[]
+    cancellation_requests: Prisma.$ClassCancellationRequestPayload<ExtArgs>[]
   }
   scalars: runtime.Types.Extensions.GetPayloadResult<{
     id: string
@@ -2038,6 +2191,7 @@ export interface Prisma__ClassScheduleClient<T, Null = never, ExtArgs extends ru
   actual_instructor<T extends Prisma.ClassSchedule$actual_instructorArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.ClassSchedule$actual_instructorArgs<ExtArgs>>): Prisma.Prisma__InstructorClient<runtime.Types.Result.GetResult<Prisma.$InstructorPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | null, null, ExtArgs, GlobalOmitOptions>
   bookings<T extends Prisma.ClassSchedule$bookingsArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.ClassSchedule$bookingsArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$BookingPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
   qr_codes<T extends Prisma.ClassSchedule$qr_codesArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.ClassSchedule$qr_codesArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$QrCodePayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
+  cancellation_requests<T extends Prisma.ClassSchedule$cancellation_requestsArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.ClassSchedule$cancellation_requestsArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$ClassCancellationRequestPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
   /**
    * Attaches callbacks for the resolution and/or rejection of the Promise.
    * @param onfulfilled The callback to execute when the Promise is resolved.
@@ -2586,6 +2740,30 @@ export type ClassSchedule$qr_codesArgs<ExtArgs extends runtime.Types.Extensions.
   take?: number
   skip?: number
   distinct?: Prisma.QrCodeScalarFieldEnum | Prisma.QrCodeScalarFieldEnum[]
+}
+
+/**
+ * ClassSchedule.cancellation_requests
+ */
+export type ClassSchedule$cancellation_requestsArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  /**
+   * Select specific fields to fetch from the ClassCancellationRequest
+   */
+  select?: Prisma.ClassCancellationRequestSelect<ExtArgs> | null
+  /**
+   * Omit specific fields from the ClassCancellationRequest
+   */
+  omit?: Prisma.ClassCancellationRequestOmit<ExtArgs> | null
+  /**
+   * Choose, which related nodes to fetch as well
+   */
+  include?: Prisma.ClassCancellationRequestInclude<ExtArgs> | null
+  where?: Prisma.ClassCancellationRequestWhereInput
+  orderBy?: Prisma.ClassCancellationRequestOrderByWithRelationInput | Prisma.ClassCancellationRequestOrderByWithRelationInput[]
+  cursor?: Prisma.ClassCancellationRequestWhereUniqueInput
+  take?: number
+  skip?: number
+  distinct?: Prisma.ClassCancellationRequestScalarFieldEnum | Prisma.ClassCancellationRequestScalarFieldEnum[]
 }
 
 /**

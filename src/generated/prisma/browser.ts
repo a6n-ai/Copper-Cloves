@@ -235,6 +235,16 @@ export type InstructorPayoutAdjustment = Prisma.InstructorPayoutAdjustmentModel
  */
 export type PayoutSettings = Prisma.PayoutSettingsModel
 /**
+ * Model StudioSettings
+ * Studio-wide singleton settings (mirrors PayoutSettings). One row, id "default".
+ */
+export type StudioSettings = Prisma.StudioSettingsModel
+/**
+ * Model ClassCancellationRequest
+ * Late-cancel (after cutoff) requests. Admin approves/denies in admin UI.
+ */
+export type ClassCancellationRequest = Prisma.ClassCancellationRequestModel
+/**
  * Model QrCode
  * One stored QR per (schedule, kind). Image lives in S3 via `file`; `token` is the
  * signed HMAC encoded in that image (verified statelessly at scan time).

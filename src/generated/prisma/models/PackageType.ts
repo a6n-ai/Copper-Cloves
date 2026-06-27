@@ -30,12 +30,14 @@ export type PackageTypeAvgAggregateOutputType = {
   class_count: number | null
   duration_months: number | null
   price: runtime.Decimal | null
+  display_order: number | null
 }
 
 export type PackageTypeSumAggregateOutputType = {
   class_count: number | null
   duration_months: number | null
   price: runtime.Decimal | null
+  display_order: number | null
 }
 
 export type PackageTypeMinAggregateOutputType = {
@@ -48,6 +50,10 @@ export type PackageTypeMinAggregateOutputType = {
   includes_physique_57: boolean | null
   is_unlimited: boolean | null
   description: string | null
+  featured: boolean | null
+  badge: string | null
+  display_order: number | null
+  is_published: boolean | null
   created_at: Date | null
   updated_at: Date | null
 }
@@ -62,6 +68,10 @@ export type PackageTypeMaxAggregateOutputType = {
   includes_physique_57: boolean | null
   is_unlimited: boolean | null
   description: string | null
+  featured: boolean | null
+  badge: string | null
+  display_order: number | null
+  is_published: boolean | null
   created_at: Date | null
   updated_at: Date | null
 }
@@ -76,6 +86,11 @@ export type PackageTypeCountAggregateOutputType = {
   includes_physique_57: number
   is_unlimited: number
   description: number
+  benefits: number
+  featured: number
+  badge: number
+  display_order: number
+  is_published: number
   created_at: number
   updated_at: number
   _all: number
@@ -86,12 +101,14 @@ export type PackageTypeAvgAggregateInputType = {
   class_count?: true
   duration_months?: true
   price?: true
+  display_order?: true
 }
 
 export type PackageTypeSumAggregateInputType = {
   class_count?: true
   duration_months?: true
   price?: true
+  display_order?: true
 }
 
 export type PackageTypeMinAggregateInputType = {
@@ -104,6 +121,10 @@ export type PackageTypeMinAggregateInputType = {
   includes_physique_57?: true
   is_unlimited?: true
   description?: true
+  featured?: true
+  badge?: true
+  display_order?: true
+  is_published?: true
   created_at?: true
   updated_at?: true
 }
@@ -118,6 +139,10 @@ export type PackageTypeMaxAggregateInputType = {
   includes_physique_57?: true
   is_unlimited?: true
   description?: true
+  featured?: true
+  badge?: true
+  display_order?: true
+  is_published?: true
   created_at?: true
   updated_at?: true
 }
@@ -132,6 +157,11 @@ export type PackageTypeCountAggregateInputType = {
   includes_physique_57?: true
   is_unlimited?: true
   description?: true
+  benefits?: true
+  featured?: true
+  badge?: true
+  display_order?: true
+  is_published?: true
   created_at?: true
   updated_at?: true
   _all?: true
@@ -233,6 +263,11 @@ export type PackageTypeGroupByOutputType = {
   includes_physique_57: boolean
   is_unlimited: boolean
   description: string | null
+  benefits: string[]
+  featured: boolean
+  badge: string | null
+  display_order: number
+  is_published: boolean
   created_at: Date
   updated_at: Date
   _count: PackageTypeCountAggregateOutputType | null
@@ -270,6 +305,11 @@ export type PackageTypeWhereInput = {
   includes_physique_57?: Prisma.BoolFilter<"PackageType"> | boolean
   is_unlimited?: Prisma.BoolFilter<"PackageType"> | boolean
   description?: Prisma.StringNullableFilter<"PackageType"> | string | null
+  benefits?: Prisma.StringNullableListFilter<"PackageType">
+  featured?: Prisma.BoolFilter<"PackageType"> | boolean
+  badge?: Prisma.StringNullableFilter<"PackageType"> | string | null
+  display_order?: Prisma.IntFilter<"PackageType"> | number
+  is_published?: Prisma.BoolFilter<"PackageType"> | boolean
   created_at?: Prisma.DateTimeFilter<"PackageType"> | Date | string
   updated_at?: Prisma.DateTimeFilter<"PackageType"> | Date | string
   user_packages?: Prisma.UserPackageListRelationFilter
@@ -285,6 +325,11 @@ export type PackageTypeOrderByWithRelationInput = {
   includes_physique_57?: Prisma.SortOrder
   is_unlimited?: Prisma.SortOrder
   description?: Prisma.SortOrderInput | Prisma.SortOrder
+  benefits?: Prisma.SortOrder
+  featured?: Prisma.SortOrder
+  badge?: Prisma.SortOrderInput | Prisma.SortOrder
+  display_order?: Prisma.SortOrder
+  is_published?: Prisma.SortOrder
   created_at?: Prisma.SortOrder
   updated_at?: Prisma.SortOrder
   user_packages?: Prisma.UserPackageOrderByRelationAggregateInput
@@ -303,6 +348,11 @@ export type PackageTypeWhereUniqueInput = Prisma.AtLeast<{
   includes_physique_57?: Prisma.BoolFilter<"PackageType"> | boolean
   is_unlimited?: Prisma.BoolFilter<"PackageType"> | boolean
   description?: Prisma.StringNullableFilter<"PackageType"> | string | null
+  benefits?: Prisma.StringNullableListFilter<"PackageType">
+  featured?: Prisma.BoolFilter<"PackageType"> | boolean
+  badge?: Prisma.StringNullableFilter<"PackageType"> | string | null
+  display_order?: Prisma.IntFilter<"PackageType"> | number
+  is_published?: Prisma.BoolFilter<"PackageType"> | boolean
   created_at?: Prisma.DateTimeFilter<"PackageType"> | Date | string
   updated_at?: Prisma.DateTimeFilter<"PackageType"> | Date | string
   user_packages?: Prisma.UserPackageListRelationFilter
@@ -318,6 +368,11 @@ export type PackageTypeOrderByWithAggregationInput = {
   includes_physique_57?: Prisma.SortOrder
   is_unlimited?: Prisma.SortOrder
   description?: Prisma.SortOrderInput | Prisma.SortOrder
+  benefits?: Prisma.SortOrder
+  featured?: Prisma.SortOrder
+  badge?: Prisma.SortOrderInput | Prisma.SortOrder
+  display_order?: Prisma.SortOrder
+  is_published?: Prisma.SortOrder
   created_at?: Prisma.SortOrder
   updated_at?: Prisma.SortOrder
   _count?: Prisma.PackageTypeCountOrderByAggregateInput
@@ -340,6 +395,11 @@ export type PackageTypeScalarWhereWithAggregatesInput = {
   includes_physique_57?: Prisma.BoolWithAggregatesFilter<"PackageType"> | boolean
   is_unlimited?: Prisma.BoolWithAggregatesFilter<"PackageType"> | boolean
   description?: Prisma.StringNullableWithAggregatesFilter<"PackageType"> | string | null
+  benefits?: Prisma.StringNullableListFilter<"PackageType">
+  featured?: Prisma.BoolWithAggregatesFilter<"PackageType"> | boolean
+  badge?: Prisma.StringNullableWithAggregatesFilter<"PackageType"> | string | null
+  display_order?: Prisma.IntWithAggregatesFilter<"PackageType"> | number
+  is_published?: Prisma.BoolWithAggregatesFilter<"PackageType"> | boolean
   created_at?: Prisma.DateTimeWithAggregatesFilter<"PackageType"> | Date | string
   updated_at?: Prisma.DateTimeWithAggregatesFilter<"PackageType"> | Date | string
 }
@@ -354,6 +414,11 @@ export type PackageTypeCreateInput = {
   includes_physique_57?: boolean
   is_unlimited?: boolean
   description?: string | null
+  benefits?: Prisma.PackageTypeCreatebenefitsInput | string[]
+  featured?: boolean
+  badge?: string | null
+  display_order?: number
+  is_published?: boolean
   created_at?: Date | string
   updated_at?: Date | string
   user_packages?: Prisma.UserPackageCreateNestedManyWithoutPackage_typeInput
@@ -369,6 +434,11 @@ export type PackageTypeUncheckedCreateInput = {
   includes_physique_57?: boolean
   is_unlimited?: boolean
   description?: string | null
+  benefits?: Prisma.PackageTypeCreatebenefitsInput | string[]
+  featured?: boolean
+  badge?: string | null
+  display_order?: number
+  is_published?: boolean
   created_at?: Date | string
   updated_at?: Date | string
   user_packages?: Prisma.UserPackageUncheckedCreateNestedManyWithoutPackage_typeInput
@@ -384,6 +454,11 @@ export type PackageTypeUpdateInput = {
   includes_physique_57?: Prisma.BoolFieldUpdateOperationsInput | boolean
   is_unlimited?: Prisma.BoolFieldUpdateOperationsInput | boolean
   description?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  benefits?: Prisma.PackageTypeUpdatebenefitsInput | string[]
+  featured?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  badge?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  display_order?: Prisma.IntFieldUpdateOperationsInput | number
+  is_published?: Prisma.BoolFieldUpdateOperationsInput | boolean
   created_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updated_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   user_packages?: Prisma.UserPackageUpdateManyWithoutPackage_typeNestedInput
@@ -399,6 +474,11 @@ export type PackageTypeUncheckedUpdateInput = {
   includes_physique_57?: Prisma.BoolFieldUpdateOperationsInput | boolean
   is_unlimited?: Prisma.BoolFieldUpdateOperationsInput | boolean
   description?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  benefits?: Prisma.PackageTypeUpdatebenefitsInput | string[]
+  featured?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  badge?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  display_order?: Prisma.IntFieldUpdateOperationsInput | number
+  is_published?: Prisma.BoolFieldUpdateOperationsInput | boolean
   created_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updated_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   user_packages?: Prisma.UserPackageUncheckedUpdateManyWithoutPackage_typeNestedInput
@@ -414,6 +494,11 @@ export type PackageTypeCreateManyInput = {
   includes_physique_57?: boolean
   is_unlimited?: boolean
   description?: string | null
+  benefits?: Prisma.PackageTypeCreatebenefitsInput | string[]
+  featured?: boolean
+  badge?: string | null
+  display_order?: number
+  is_published?: boolean
   created_at?: Date | string
   updated_at?: Date | string
 }
@@ -428,6 +513,11 @@ export type PackageTypeUpdateManyMutationInput = {
   includes_physique_57?: Prisma.BoolFieldUpdateOperationsInput | boolean
   is_unlimited?: Prisma.BoolFieldUpdateOperationsInput | boolean
   description?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  benefits?: Prisma.PackageTypeUpdatebenefitsInput | string[]
+  featured?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  badge?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  display_order?: Prisma.IntFieldUpdateOperationsInput | number
+  is_published?: Prisma.BoolFieldUpdateOperationsInput | boolean
   created_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updated_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
 }
@@ -442,6 +532,11 @@ export type PackageTypeUncheckedUpdateManyInput = {
   includes_physique_57?: Prisma.BoolFieldUpdateOperationsInput | boolean
   is_unlimited?: Prisma.BoolFieldUpdateOperationsInput | boolean
   description?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  benefits?: Prisma.PackageTypeUpdatebenefitsInput | string[]
+  featured?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  badge?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  display_order?: Prisma.IntFieldUpdateOperationsInput | number
+  is_published?: Prisma.BoolFieldUpdateOperationsInput | boolean
   created_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updated_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
 }
@@ -456,6 +551,11 @@ export type PackageTypeCountOrderByAggregateInput = {
   includes_physique_57?: Prisma.SortOrder
   is_unlimited?: Prisma.SortOrder
   description?: Prisma.SortOrder
+  benefits?: Prisma.SortOrder
+  featured?: Prisma.SortOrder
+  badge?: Prisma.SortOrder
+  display_order?: Prisma.SortOrder
+  is_published?: Prisma.SortOrder
   created_at?: Prisma.SortOrder
   updated_at?: Prisma.SortOrder
 }
@@ -464,6 +564,7 @@ export type PackageTypeAvgOrderByAggregateInput = {
   class_count?: Prisma.SortOrder
   duration_months?: Prisma.SortOrder
   price?: Prisma.SortOrder
+  display_order?: Prisma.SortOrder
 }
 
 export type PackageTypeMaxOrderByAggregateInput = {
@@ -476,6 +577,10 @@ export type PackageTypeMaxOrderByAggregateInput = {
   includes_physique_57?: Prisma.SortOrder
   is_unlimited?: Prisma.SortOrder
   description?: Prisma.SortOrder
+  featured?: Prisma.SortOrder
+  badge?: Prisma.SortOrder
+  display_order?: Prisma.SortOrder
+  is_published?: Prisma.SortOrder
   created_at?: Prisma.SortOrder
   updated_at?: Prisma.SortOrder
 }
@@ -490,6 +595,10 @@ export type PackageTypeMinOrderByAggregateInput = {
   includes_physique_57?: Prisma.SortOrder
   is_unlimited?: Prisma.SortOrder
   description?: Prisma.SortOrder
+  featured?: Prisma.SortOrder
+  badge?: Prisma.SortOrder
+  display_order?: Prisma.SortOrder
+  is_published?: Prisma.SortOrder
   created_at?: Prisma.SortOrder
   updated_at?: Prisma.SortOrder
 }
@@ -498,11 +607,21 @@ export type PackageTypeSumOrderByAggregateInput = {
   class_count?: Prisma.SortOrder
   duration_months?: Prisma.SortOrder
   price?: Prisma.SortOrder
+  display_order?: Prisma.SortOrder
 }
 
 export type PackageTypeScalarRelationFilter = {
   is?: Prisma.PackageTypeWhereInput
   isNot?: Prisma.PackageTypeWhereInput
+}
+
+export type PackageTypeCreatebenefitsInput = {
+  set: string[]
+}
+
+export type PackageTypeUpdatebenefitsInput = {
+  set?: string[]
+  push?: string | string[]
 }
 
 export type PackageTypeCreateNestedOneWithoutUser_packagesInput = {
@@ -529,6 +648,11 @@ export type PackageTypeCreateWithoutUser_packagesInput = {
   includes_physique_57?: boolean
   is_unlimited?: boolean
   description?: string | null
+  benefits?: Prisma.PackageTypeCreatebenefitsInput | string[]
+  featured?: boolean
+  badge?: string | null
+  display_order?: number
+  is_published?: boolean
   created_at?: Date | string
   updated_at?: Date | string
 }
@@ -543,6 +667,11 @@ export type PackageTypeUncheckedCreateWithoutUser_packagesInput = {
   includes_physique_57?: boolean
   is_unlimited?: boolean
   description?: string | null
+  benefits?: Prisma.PackageTypeCreatebenefitsInput | string[]
+  featured?: boolean
+  badge?: string | null
+  display_order?: number
+  is_published?: boolean
   created_at?: Date | string
   updated_at?: Date | string
 }
@@ -573,6 +702,11 @@ export type PackageTypeUpdateWithoutUser_packagesInput = {
   includes_physique_57?: Prisma.BoolFieldUpdateOperationsInput | boolean
   is_unlimited?: Prisma.BoolFieldUpdateOperationsInput | boolean
   description?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  benefits?: Prisma.PackageTypeUpdatebenefitsInput | string[]
+  featured?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  badge?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  display_order?: Prisma.IntFieldUpdateOperationsInput | number
+  is_published?: Prisma.BoolFieldUpdateOperationsInput | boolean
   created_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updated_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
 }
@@ -587,6 +721,11 @@ export type PackageTypeUncheckedUpdateWithoutUser_packagesInput = {
   includes_physique_57?: Prisma.BoolFieldUpdateOperationsInput | boolean
   is_unlimited?: Prisma.BoolFieldUpdateOperationsInput | boolean
   description?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  benefits?: Prisma.PackageTypeUpdatebenefitsInput | string[]
+  featured?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  badge?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  display_order?: Prisma.IntFieldUpdateOperationsInput | number
+  is_published?: Prisma.BoolFieldUpdateOperationsInput | boolean
   created_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updated_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
 }
@@ -632,6 +771,11 @@ export type PackageTypeSelect<ExtArgs extends runtime.Types.Extensions.InternalA
   includes_physique_57?: boolean
   is_unlimited?: boolean
   description?: boolean
+  benefits?: boolean
+  featured?: boolean
+  badge?: boolean
+  display_order?: boolean
+  is_published?: boolean
   created_at?: boolean
   updated_at?: boolean
   user_packages?: boolean | Prisma.PackageType$user_packagesArgs<ExtArgs>
@@ -648,6 +792,11 @@ export type PackageTypeSelectCreateManyAndReturn<ExtArgs extends runtime.Types.E
   includes_physique_57?: boolean
   is_unlimited?: boolean
   description?: boolean
+  benefits?: boolean
+  featured?: boolean
+  badge?: boolean
+  display_order?: boolean
+  is_published?: boolean
   created_at?: boolean
   updated_at?: boolean
 }, ExtArgs["result"]["packageType"]>
@@ -662,6 +811,11 @@ export type PackageTypeSelectUpdateManyAndReturn<ExtArgs extends runtime.Types.E
   includes_physique_57?: boolean
   is_unlimited?: boolean
   description?: boolean
+  benefits?: boolean
+  featured?: boolean
+  badge?: boolean
+  display_order?: boolean
+  is_published?: boolean
   created_at?: boolean
   updated_at?: boolean
 }, ExtArgs["result"]["packageType"]>
@@ -676,11 +830,16 @@ export type PackageTypeSelectScalar = {
   includes_physique_57?: boolean
   is_unlimited?: boolean
   description?: boolean
+  benefits?: boolean
+  featured?: boolean
+  badge?: boolean
+  display_order?: boolean
+  is_published?: boolean
   created_at?: boolean
   updated_at?: boolean
 }
 
-export type PackageTypeOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "name" | "type" | "class_count" | "duration_months" | "price" | "includes_physique_57" | "is_unlimited" | "description" | "created_at" | "updated_at", ExtArgs["result"]["packageType"]>
+export type PackageTypeOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "name" | "type" | "class_count" | "duration_months" | "price" | "includes_physique_57" | "is_unlimited" | "description" | "benefits" | "featured" | "badge" | "display_order" | "is_published" | "created_at" | "updated_at", ExtArgs["result"]["packageType"]>
 export type PackageTypeInclude<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   user_packages?: boolean | Prisma.PackageType$user_packagesArgs<ExtArgs>
   _count?: boolean | Prisma.PackageTypeCountOutputTypeDefaultArgs<ExtArgs>
@@ -703,6 +862,26 @@ export type $PackageTypePayload<ExtArgs extends runtime.Types.Extensions.Interna
     includes_physique_57: boolean
     is_unlimited: boolean
     description: string | null
+    /**
+     * Marketing bullet list shown on the portal package card.
+     */
+    benefits: string[]
+    /**
+     * "Most Popular" highlight on the portal pricing carousel.
+     */
+    featured: boolean
+    /**
+     * Optional badge label, e.g. "Most Popular".
+     */
+    badge: string | null
+    /**
+     * Portal ordering (ascending).
+     */
+    display_order: number
+    /**
+     * Admin can hide a package without deleting it.
+     */
+    is_published: boolean
     created_at: Date
     updated_at: Date
   }, ExtArgs["result"]["packageType"]>
@@ -1138,6 +1317,11 @@ export interface PackageTypeFieldRefs {
   readonly includes_physique_57: Prisma.FieldRef<"PackageType", 'Boolean'>
   readonly is_unlimited: Prisma.FieldRef<"PackageType", 'Boolean'>
   readonly description: Prisma.FieldRef<"PackageType", 'String'>
+  readonly benefits: Prisma.FieldRef<"PackageType", 'String[]'>
+  readonly featured: Prisma.FieldRef<"PackageType", 'Boolean'>
+  readonly badge: Prisma.FieldRef<"PackageType", 'String'>
+  readonly display_order: Prisma.FieldRef<"PackageType", 'Int'>
+  readonly is_published: Prisma.FieldRef<"PackageType", 'Boolean'>
   readonly created_at: Prisma.FieldRef<"PackageType", 'DateTime'>
   readonly updated_at: Prisma.FieldRef<"PackageType", 'DateTime'>
 }

@@ -9,7 +9,7 @@ import { AdminPageHeader } from "@/components/admin/AdminPageHeader";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { BarChart3, Receipt, ScanSearch, ScrollText, Tag } from "lucide-react";
+import { BarChart3, Receipt, ScanSearch, ScrollText } from "lucide-react";
 import { exportFinanceReport, useAdminFinanceData } from "@/hooks/useAdminFinanceData";
 
 function SectionLoadingSkeleton() {
@@ -42,17 +42,11 @@ const FinanceLedgerSection = dynamic(
   () => import("@/components/admin/dashboard-tabs/FinanceLedgerSection").then((m) => m.FinanceLedgerSection),
   { ssr: false, loading: () => <SectionLoadingSkeleton /> },
 );
-const CatalogPricesSection = dynamic(
-  () => import("@/components/admin/dashboard-tabs/CatalogPricesSection").then((m) => m.CatalogPricesSection),
-  { ssr: false, loading: () => <SectionLoadingSkeleton /> },
-);
-
 const FINANCE_TABS = [
   { v: "overview", l: "Overview", I: BarChart3 },
   { v: "transactions", l: "Transactions", I: Receipt },
   { v: "ledger", l: "Ledger", I: ScrollText },
   { v: "reconcile", l: "Reconcile", I: ScanSearch },
-  { v: "catalog", l: "Catalog", I: Tag },
 ];
 
 export default function AdminFinances() {
@@ -125,10 +119,6 @@ export default function AdminFinances() {
 
               <TabsContent value="reconcile" className="space-y-6">
                 <ReconcileSection />
-              </TabsContent>
-
-              <TabsContent value="catalog" className="space-y-6">
-                <CatalogPricesSection />
               </TabsContent>
             </Tabs>
           </div>

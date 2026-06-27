@@ -92,6 +92,8 @@ export const ModelName = {
   File: 'File',
   InstructorPayoutAdjustment: 'InstructorPayoutAdjustment',
   PayoutSettings: 'PayoutSettings',
+  StudioSettings: 'StudioSettings',
+  ClassCancellationRequest: 'ClassCancellationRequest',
   QrCode: 'QrCode',
   ActivityLog: 'ActivityLog'
 } as const
@@ -336,6 +338,11 @@ export const PackageTypeScalarFieldEnum = {
   includes_physique_57: 'includes_physique_57',
   is_unlimited: 'is_unlimited',
   description: 'description',
+  benefits: 'benefits',
+  featured: 'featured',
+  badge: 'badge',
+  display_order: 'display_order',
+  is_published: 'is_published',
   created_at: 'created_at',
   updated_at: 'updated_at'
 } as const
@@ -358,6 +365,9 @@ export const UserPackageScalarFieldEnum = {
   pass_type: 'pass_type',
   coupon_id: 'coupon_id',
   purchase_discount_inr: 'purchase_discount_inr',
+  is_comp: 'is_comp',
+  grant_note: 'grant_note',
+  origin: 'origin',
   created_at: 'created_at',
   updated_at: 'updated_at'
 } as const
@@ -859,6 +869,33 @@ export const PayoutSettingsScalarFieldEnum = {
 } as const
 
 export type PayoutSettingsScalarFieldEnum = (typeof PayoutSettingsScalarFieldEnum)[keyof typeof PayoutSettingsScalarFieldEnum]
+
+
+export const StudioSettingsScalarFieldEnum = {
+  id: 'id',
+  cancellation_cutoff_hours: 'cancellation_cutoff_hours',
+  default_package_validity_days: 'default_package_validity_days',
+  cancelled_pass_validity_days: 'cancelled_pass_validity_days',
+  created_at: 'created_at',
+  updated_at: 'updated_at'
+} as const
+
+export type StudioSettingsScalarFieldEnum = (typeof StudioSettingsScalarFieldEnum)[keyof typeof StudioSettingsScalarFieldEnum]
+
+
+export const ClassCancellationRequestScalarFieldEnum = {
+  id: 'id',
+  booking_id: 'booking_id',
+  user_id: 'user_id',
+  class_schedule_id: 'class_schedule_id',
+  status: 'status',
+  reason: 'reason',
+  decided_by: 'decided_by',
+  decided_at: 'decided_at',
+  created_at: 'created_at'
+} as const
+
+export type ClassCancellationRequestScalarFieldEnum = (typeof ClassCancellationRequestScalarFieldEnum)[keyof typeof ClassCancellationRequestScalarFieldEnum]
 
 
 export const QrCodeScalarFieldEnum = {

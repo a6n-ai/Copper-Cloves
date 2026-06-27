@@ -425,6 +425,8 @@ export const ModelName = {
   File: 'File',
   InstructorPayoutAdjustment: 'InstructorPayoutAdjustment',
   PayoutSettings: 'PayoutSettings',
+  StudioSettings: 'StudioSettings',
+  ClassCancellationRequest: 'ClassCancellationRequest',
   QrCode: 'QrCode',
   ActivityLog: 'ActivityLog'
 } as const
@@ -442,7 +444,7 @@ export type TypeMap<ExtArgs extends runtime.Types.Extensions.InternalArgs = runt
     omit: GlobalOmitOptions
   }
   meta: {
-    modelProps: "profile" | "userSession" | "coupon" | "couponRedemption" | "retailProduct" | "retailOrder" | "instructor" | "classModel" | "partner" | "partnerMember" | "classSchedule" | "packageType" | "userPackage" | "booking" | "razorpayOrder" | "razorpayPayment" | "razorpayWebhookLog" | "paymentReconcile" | "friendship" | "payment" | "cafeItem" | "cafeOrder" | "mealSubscription" | "mealSubscriptionInquiry" | "rentalInquiry" | "signupLead" | "userStats" | "userStreak" | "badgeTemplate" | "userBadge" | "waiver" | "crmTemplate" | "crmMessage" | "crmTrigger" | "userActivitySession" | "userActivityEvent" | "memberTicket" | "passwordResetToken" | "file" | "instructorPayoutAdjustment" | "payoutSettings" | "qrCode" | "activityLog"
+    modelProps: "profile" | "userSession" | "coupon" | "couponRedemption" | "retailProduct" | "retailOrder" | "instructor" | "classModel" | "partner" | "partnerMember" | "classSchedule" | "packageType" | "userPackage" | "booking" | "razorpayOrder" | "razorpayPayment" | "razorpayWebhookLog" | "paymentReconcile" | "friendship" | "payment" | "cafeItem" | "cafeOrder" | "mealSubscription" | "mealSubscriptionInquiry" | "rentalInquiry" | "signupLead" | "userStats" | "userStreak" | "badgeTemplate" | "userBadge" | "waiver" | "crmTemplate" | "crmMessage" | "crmTrigger" | "userActivitySession" | "userActivityEvent" | "memberTicket" | "passwordResetToken" | "file" | "instructorPayoutAdjustment" | "payoutSettings" | "studioSettings" | "classCancellationRequest" | "qrCode" | "activityLog"
     txIsolationLevel: TransactionIsolationLevel
   }
   model: {
@@ -3480,6 +3482,154 @@ export type TypeMap<ExtArgs extends runtime.Types.Extensions.InternalArgs = runt
         }
       }
     }
+    StudioSettings: {
+      payload: Prisma.$StudioSettingsPayload<ExtArgs>
+      fields: Prisma.StudioSettingsFieldRefs
+      operations: {
+        findUnique: {
+          args: Prisma.StudioSettingsFindUniqueArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$StudioSettingsPayload> | null
+        }
+        findUniqueOrThrow: {
+          args: Prisma.StudioSettingsFindUniqueOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$StudioSettingsPayload>
+        }
+        findFirst: {
+          args: Prisma.StudioSettingsFindFirstArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$StudioSettingsPayload> | null
+        }
+        findFirstOrThrow: {
+          args: Prisma.StudioSettingsFindFirstOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$StudioSettingsPayload>
+        }
+        findMany: {
+          args: Prisma.StudioSettingsFindManyArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$StudioSettingsPayload>[]
+        }
+        create: {
+          args: Prisma.StudioSettingsCreateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$StudioSettingsPayload>
+        }
+        createMany: {
+          args: Prisma.StudioSettingsCreateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        createManyAndReturn: {
+          args: Prisma.StudioSettingsCreateManyAndReturnArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$StudioSettingsPayload>[]
+        }
+        delete: {
+          args: Prisma.StudioSettingsDeleteArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$StudioSettingsPayload>
+        }
+        update: {
+          args: Prisma.StudioSettingsUpdateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$StudioSettingsPayload>
+        }
+        deleteMany: {
+          args: Prisma.StudioSettingsDeleteManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateMany: {
+          args: Prisma.StudioSettingsUpdateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateManyAndReturn: {
+          args: Prisma.StudioSettingsUpdateManyAndReturnArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$StudioSettingsPayload>[]
+        }
+        upsert: {
+          args: Prisma.StudioSettingsUpsertArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$StudioSettingsPayload>
+        }
+        aggregate: {
+          args: Prisma.StudioSettingsAggregateArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.AggregateStudioSettings>
+        }
+        groupBy: {
+          args: Prisma.StudioSettingsGroupByArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.StudioSettingsGroupByOutputType>[]
+        }
+        count: {
+          args: Prisma.StudioSettingsCountArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.StudioSettingsCountAggregateOutputType> | number
+        }
+      }
+    }
+    ClassCancellationRequest: {
+      payload: Prisma.$ClassCancellationRequestPayload<ExtArgs>
+      fields: Prisma.ClassCancellationRequestFieldRefs
+      operations: {
+        findUnique: {
+          args: Prisma.ClassCancellationRequestFindUniqueArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ClassCancellationRequestPayload> | null
+        }
+        findUniqueOrThrow: {
+          args: Prisma.ClassCancellationRequestFindUniqueOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ClassCancellationRequestPayload>
+        }
+        findFirst: {
+          args: Prisma.ClassCancellationRequestFindFirstArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ClassCancellationRequestPayload> | null
+        }
+        findFirstOrThrow: {
+          args: Prisma.ClassCancellationRequestFindFirstOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ClassCancellationRequestPayload>
+        }
+        findMany: {
+          args: Prisma.ClassCancellationRequestFindManyArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ClassCancellationRequestPayload>[]
+        }
+        create: {
+          args: Prisma.ClassCancellationRequestCreateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ClassCancellationRequestPayload>
+        }
+        createMany: {
+          args: Prisma.ClassCancellationRequestCreateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        createManyAndReturn: {
+          args: Prisma.ClassCancellationRequestCreateManyAndReturnArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ClassCancellationRequestPayload>[]
+        }
+        delete: {
+          args: Prisma.ClassCancellationRequestDeleteArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ClassCancellationRequestPayload>
+        }
+        update: {
+          args: Prisma.ClassCancellationRequestUpdateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ClassCancellationRequestPayload>
+        }
+        deleteMany: {
+          args: Prisma.ClassCancellationRequestDeleteManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateMany: {
+          args: Prisma.ClassCancellationRequestUpdateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateManyAndReturn: {
+          args: Prisma.ClassCancellationRequestUpdateManyAndReturnArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ClassCancellationRequestPayload>[]
+        }
+        upsert: {
+          args: Prisma.ClassCancellationRequestUpsertArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ClassCancellationRequestPayload>
+        }
+        aggregate: {
+          args: Prisma.ClassCancellationRequestAggregateArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.AggregateClassCancellationRequest>
+        }
+        groupBy: {
+          args: Prisma.ClassCancellationRequestGroupByArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.ClassCancellationRequestGroupByOutputType>[]
+        }
+        count: {
+          args: Prisma.ClassCancellationRequestCountArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.ClassCancellationRequestCountAggregateOutputType> | number
+        }
+      }
+    }
     QrCode: {
       payload: Prisma.$QrCodePayload<ExtArgs>
       fields: Prisma.QrCodeFieldRefs
@@ -3891,6 +4041,11 @@ export const PackageTypeScalarFieldEnum = {
   includes_physique_57: 'includes_physique_57',
   is_unlimited: 'is_unlimited',
   description: 'description',
+  benefits: 'benefits',
+  featured: 'featured',
+  badge: 'badge',
+  display_order: 'display_order',
+  is_published: 'is_published',
   created_at: 'created_at',
   updated_at: 'updated_at'
 } as const
@@ -3913,6 +4068,9 @@ export const UserPackageScalarFieldEnum = {
   pass_type: 'pass_type',
   coupon_id: 'coupon_id',
   purchase_discount_inr: 'purchase_discount_inr',
+  is_comp: 'is_comp',
+  grant_note: 'grant_note',
+  origin: 'origin',
   created_at: 'created_at',
   updated_at: 'updated_at'
 } as const
@@ -4416,6 +4574,33 @@ export const PayoutSettingsScalarFieldEnum = {
 export type PayoutSettingsScalarFieldEnum = (typeof PayoutSettingsScalarFieldEnum)[keyof typeof PayoutSettingsScalarFieldEnum]
 
 
+export const StudioSettingsScalarFieldEnum = {
+  id: 'id',
+  cancellation_cutoff_hours: 'cancellation_cutoff_hours',
+  default_package_validity_days: 'default_package_validity_days',
+  cancelled_pass_validity_days: 'cancelled_pass_validity_days',
+  created_at: 'created_at',
+  updated_at: 'updated_at'
+} as const
+
+export type StudioSettingsScalarFieldEnum = (typeof StudioSettingsScalarFieldEnum)[keyof typeof StudioSettingsScalarFieldEnum]
+
+
+export const ClassCancellationRequestScalarFieldEnum = {
+  id: 'id',
+  booking_id: 'booking_id',
+  user_id: 'user_id',
+  class_schedule_id: 'class_schedule_id',
+  status: 'status',
+  reason: 'reason',
+  decided_by: 'decided_by',
+  decided_at: 'decided_at',
+  created_at: 'created_at'
+} as const
+
+export type ClassCancellationRequestScalarFieldEnum = (typeof ClassCancellationRequestScalarFieldEnum)[keyof typeof ClassCancellationRequestScalarFieldEnum]
+
+
 export const QrCodeScalarFieldEnum = {
   id: 'id',
   class_schedule_id: 'class_schedule_id',
@@ -4831,6 +5016,8 @@ export type GlobalOmitConfig = {
   file?: Prisma.FileOmit
   instructorPayoutAdjustment?: Prisma.InstructorPayoutAdjustmentOmit
   payoutSettings?: Prisma.PayoutSettingsOmit
+  studioSettings?: Prisma.StudioSettingsOmit
+  classCancellationRequest?: Prisma.ClassCancellationRequestOmit
   qrCode?: Prisma.QrCodeOmit
   activityLog?: Prisma.ActivityLogOmit
 }

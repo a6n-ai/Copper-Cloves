@@ -18,11 +18,27 @@ export interface CatalogPackage {
   benefits: string[];
   featured?: boolean;
   badge?: string;
+  displayOrder?: number;
+  isPublished?: boolean; // defaults to true when unset
 }
 
 const BASE_BENEFITS = ["Access Any Class", "Flexible Scheduling", "Shower Facilities"];
 
 export const PACKAGE_CATALOG: CatalogPackage[] = [
+  {
+    // Comp/refund primitive: granted on comp + class-cancellation refunds.
+    // Runtime validity comes from StudioSettings at grant time, not its own duration.
+    name: "1 Class Pass",
+    category: "class",
+    priceInr: 0,
+    durationMonths: 1,
+    validity: "Set at grant",
+    classCount: 1,
+    isUnlimited: false,
+    benefits: ["Access Any Class"],
+    displayOrder: 0,
+    isPublished: false,
+  },
   {
     name: "1 Day Class Pass",
     category: "class",

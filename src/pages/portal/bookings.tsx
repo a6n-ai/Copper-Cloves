@@ -19,6 +19,8 @@ import {
   ResponsiveDialogTitle,
 } from "@/components/responsive/ResponsiveDialog";
 import { Alert, AlertDescription } from "@/components/ui/alert";
+import { Textarea } from "@/components/ui/textarea";
+import { Label } from "@/components/ui/label";
 import { MobilePagination } from "@/components/responsive/MobilePagination";
 import { Pill } from "@/components/ui/pill";
 import { bookingStatusPill, attendanceOutcomePill } from "@/lib/pillMaps";
@@ -230,6 +232,7 @@ export default function MyBookingsPage() {
   const [selectedBooking, setSelectedBooking] = useState<Booking | null>(null);
   const [canceling, setCanceling] = useState(false);
   const [canRefund, setCanRefund] = useState(false);
+  const [cancelReason, setCancelReason] = useState("");
   const [currentPage, setCurrentPage] = useState(1);
   const PAGE_SIZE = 8;
 
@@ -262,31 +265,89 @@ export default function MyBookingsPage() {
 
   function handleCancelClick(booking: Booking) {
     setSelectedBooking(booking);
+    setCancelReason("");
 
     const classTime = new Date(effectiveClassTime(booking));
     const now = new Date();
     const hoursDiff = (classTime.getTime() - now.getTime()) / (1000 * 60 * 60);
-    
+
+    // Client-side hint only (default 6h cutoff). The server is authoritative: a
+    // self-cancel after the configured cutoff falls back to a request, and a
+    // request before the cutoff falls back to a self-cancel.
     setCanRefund(hoursDiff > 6);
     setShowCancelDialog(true);
   }
 
+  // Self-serve cancel (before cutoff). Returns "ok" | "needs_request" | "error".
+  async function trySelfCancel(bookingId: string): Promise<"ok" | "needs_request" | "error"> {
+    const res = await fetch("/api/bookings", {
+      method: "PATCH",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ id: bookingId, status: "cancelled" }),
+    });
+    if (res.ok) return "ok";
+    const data = await res.json().catch(() => ({}));
+    if (res.status === 409 && data?.code === "CUTOFF_PASSED") return "needs_request";
+    return "error";
+  }
+
+  // Late-cancel request (after cutoff). Returns "ok" | "can_self_cancel" | "error".
+  async function tryCancelRequest(bookingId: string, reason: string): Promise<"ok" | "can_self_cancel" | "error"> {
+    const res = await fetch(`/api/bookings/${bookingId}/cancel-request`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ reason: reason.trim() || undefined }),
+    });
+    if (res.ok) return "ok";
+    const data = await res.json().catch(() => ({}));
+    if (res.status === 409 && data?.code === "USE_SELF_CANCEL") return "can_self_cancel";
+    return "error";
+  }
+
   async function handleConfirmCancel() {
     if (!selectedBooking) return;
+    const bookingId = selectedBooking.id;
     try {
       setCanceling(true);
-      const res = await fetch("/api/bookings", {
-        method: "PATCH",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ id: selectedBooking.id, status: "cancelled" }),
-      });
-      if (!res.ok) throw new Error("Cancel failed");
-      setBookings(prev => prev.filter(b => b.id !== selectedBooking.id));
+
+      if (canRefund) {
+        const r = await trySelfCancel(bookingId);
+        if (r === "ok") {
+          setBookings((prev) => prev.filter((b) => b.id !== bookingId));
+          toast({ title: "Booking cancelled", description: "A refund pass has been added to your account." });
+        } else if (r === "needs_request") {
+          const rr = await tryCancelRequest(bookingId, cancelReason);
+          if (rr === "ok") {
+            toast({ title: "Request submitted", description: "The studio will review your cancellation request." });
+          } else {
+            throw new Error("request failed");
+          }
+        } else {
+          throw new Error("cancel failed");
+        }
+      } else {
+        const rr = await tryCancelRequest(bookingId, cancelReason);
+        if (rr === "ok") {
+          toast({ title: "Request submitted", description: "The studio will review your cancellation request." });
+        } else if (rr === "can_self_cancel") {
+          const r = await trySelfCancel(bookingId);
+          if (r === "ok") {
+            setBookings((prev) => prev.filter((b) => b.id !== bookingId));
+            toast({ title: "Booking cancelled", description: "A refund pass has been added to your account." });
+          } else {
+            throw new Error("cancel failed");
+          }
+        } else {
+          throw new Error("request failed");
+        }
+      }
+
       setShowCancelDialog(false);
       setSelectedBooking(null);
+      setCancelReason("");
     } catch (error) {
       console.error("Error canceling booking:", error);
-      toast({ title: "Could not cancel", description: "Failed to cancel booking. Please try again.", variant: "error" });
+      toast({ title: "Could not cancel", description: "Something went wrong. Please try again.", variant: "error" });
     } finally {
       setCanceling(false);
     }
@@ -460,17 +521,32 @@ export default function MyBookingsPage() {
             <AlertDescription className="font-body text-sm text-charcoal ml-2">
               {canRefund ? (
                 <>
-                  <strong>Cancellation with refund:</strong> You are canceling more than 6 hours before the class. 
-                  Your class will be refunded to your account.
+                  <strong>Cancellation with refund:</strong> You are canceling before the cutoff.
+                  A <strong>1 Class Pass</strong> refund will be added to your account.
                 </>
               ) : (
                 <>
-                  <strong>No refund policy:</strong> You are canceling within 6 hours of the class start time. 
-                  The class will be canceled, but <strong>your class will NOT be reimbursed</strong>.
+                  <strong>Past the cancellation cutoff:</strong> You can no longer cancel this class directly.
+                  Submit a request below and the studio will review it.
                 </>
               )}
             </AlertDescription>
           </Alert>
+
+          {!canRefund && (
+            <div className="grid gap-1.5 pt-1">
+              <Label htmlFor="cancel-reason" className="font-body text-sm text-charcoal/70">
+                Reason for late cancellation
+              </Label>
+              <Textarea
+                id="cancel-reason"
+                rows={3}
+                value={cancelReason}
+                onChange={(e) => setCancelReason(e.target.value)}
+                placeholder="Let the studio know why you need to cancel…"
+              />
+            </div>
+          )}
 
           {selectedBooking && (
             <div className="py-4 space-y-2 border-t border-b border-sage/10">
@@ -487,7 +563,7 @@ export default function MyBookingsPage() {
               <div className="flex justify-between">
                 <span className="font-body text-sm text-charcoal/60">Refund Status</span>
                 <span className={`font-body font-medium ${canRefund ? "text-sage" : "text-terracotta"}`}>
-                  {canRefund ? "Refundable" : "Non-refundable"}
+                  {canRefund ? "Refund pass" : "Needs review"}
                 </span>
               </div>
             </div>
@@ -507,7 +583,7 @@ export default function MyBookingsPage() {
               disabled={canceling}
               variant="terracotta"
             >
-              {canceling ? "Canceling..." : "Confirm Cancellation"}
+              {canceling ? "Submitting..." : canRefund ? "Confirm Cancellation" : "Submit Request"}
             </Button>
           </ResponsiveDialogFooter>
         </ResponsiveDialogContent>

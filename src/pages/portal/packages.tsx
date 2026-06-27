@@ -37,7 +37,7 @@ import {
   savePendingRazorpayCheckout,
 } from "@/lib/pendingRazorpayCheckout";
 import { cn } from "@/lib/utils";
-import { PACKAGE_CATALOG, formatInr } from "@/lib/packageCatalog";
+import { formatInr } from "@/lib/packageCatalog";
 import { ResponsiveCards } from "@/components/responsive/ResponsiveTable";
 import { MobilePagination } from "@/components/responsive/MobilePagination";
 
@@ -77,16 +77,37 @@ function packageState(p: PurchaseRecord): { key: string; label: string } {
   return { key: "inactive", label: "Inactive" };
 }
 
-// Derived from the shared canonical catalog so the page and the DB never drift.
-const premiumPackages: Package[] = PACKAGE_CATALOG.map((p) => ({
-  name: p.name,
-  price: formatInr(p.priceInr),
-  classes: p.isUnlimited ? "Unlimited" : p.classCount ?? 0,
-  validity: p.validity,
-  benefits: p.benefits,
-  featured: p.featured,
-  badge: p.badge,
-}));
+/** Raw published PackageType row as returned by GET /api/packages. */
+interface DbPackage {
+  id: string;
+  name: string;
+  price: number | string;
+  class_count?: number | null;
+  duration_months?: number | null;
+  is_unlimited?: boolean;
+  benefits?: string[] | null;
+  featured?: boolean;
+  badge?: string | null;
+}
+
+/** Human validity label derived from the package duration (no label column exists). */
+function validityLabel(durationMonths?: number | null): string {
+  if (!durationMonths || durationMonths <= 0) return "—";
+  return durationMonths === 1 ? "1 month" : `${durationMonths} months`;
+}
+
+/** Map a DB PackageType row to the card-render shape. */
+function toPackage(p: DbPackage): Package {
+  return {
+    name: p.name,
+    price: formatInr(Number(p.price) || 0),
+    classes: p.is_unlimited ? "Unlimited" : p.class_count ?? 0,
+    validity: validityLabel(p.duration_months),
+    benefits: Array.isArray(p.benefits) ? p.benefits : [],
+    featured: p.featured,
+    badge: p.badge ?? undefined,
+  };
+}
 
 const HISTORY_PAGE_SIZE = 6;
 
@@ -216,6 +237,8 @@ export default function PackagesPage() {
   const [purchaseHistory, setPurchaseHistory] = useState<PurchaseRecord[]>([]);
   const [loadingHistory, setLoadingHistory] = useState(true);
   const [historyPage, setHistoryPage] = useState(1);
+  const [premiumPackages, setPremiumPackages] = useState<Package[]>([]);
+  const [loadingPackages, setLoadingPackages] = useState(true);
 
   const [formData, setFormData] = useState({
     fullName: "",
@@ -252,11 +275,32 @@ export default function PackagesPage() {
     if (status === "authenticated") {
       loadProfileAndHistory();
     }
-    if (selected && typeof selected === "string") {
-      const pkg = premiumPackages.find(p => p.name === selected);
-      if (pkg) setSelectedCategory(pkg.classes === "Unlimited" ? "studio" : "class");
-    }
-  }, [router, selected, status]);
+  }, [router, status]);
+
+  // Packages come from the DB (GET /api/packages → published only). The code
+  // catalog is seed data only; the portal never renders it directly.
+  useEffect(() => {
+    let cancelled = false;
+    (async () => {
+      try {
+        const res = await fetch("/api/packages");
+        const rows: DbPackage[] = res.ok ? await res.json() : [];
+        if (!cancelled) setPremiumPackages(Array.isArray(rows) ? rows.map(toPackage) : []);
+      } catch (err) {
+        console.error("Error loading packages:", err);
+      } finally {
+        if (!cancelled) setLoadingPackages(false);
+      }
+    })();
+    return () => { cancelled = true; };
+  }, []);
+
+  // Honor ?selected=<name> once packages have loaded.
+  useEffect(() => {
+    if (!selected || typeof selected !== "string" || premiumPackages.length === 0) return;
+    const pkg = premiumPackages.find((p) => p.name === selected);
+    if (pkg) setSelectedCategory(pkg.classes === "Unlimited" ? "studio" : "class");
+  }, [selected, premiumPackages]);
 
   async function loadProfileAndHistory() {
     try {
@@ -683,16 +727,32 @@ export default function PackagesPage() {
         </div>
 
         {/* Pricing tier cards — pricing-02 layout */}
-        <div className="flex flex-col gap-5 md:flex-row md:items-stretch md:gap-6">
-          {currentPackages.map((pkg, index) => (
-            <PackageTierCard
-              key={pkg.name}
-              pkg={pkg}
-              isRecommended={index === recommendedIndex}
-              onChoose={handleChoosePlan}
-            />
-          ))}
-        </div>
+        {loadingPackages ? (
+          <div className="flex flex-col gap-5 md:flex-row md:items-stretch md:gap-6">
+            {Array.from({ length: 3 }, (_, i) => `pkg-skeleton-${i}`).map((key) => (
+              <Skeleton key={key} className="h-80 flex-1 rounded-2xl" />
+            ))}
+          </div>
+        ) : currentPackages.length === 0 ? (
+          <div className="text-center py-16 px-6 rounded-2xl bg-white-warm border border-sage/10">
+            <CreditCard className="mx-auto mb-4 text-charcoal/20" size={48} />
+            <h3 className="font-display text-xl text-charcoal mb-1">No packages available</h3>
+            <p className="font-body text-sm text-charcoal/60">
+              Please check back soon or contact the studio.
+            </p>
+          </div>
+        ) : (
+          <div className="flex flex-col gap-5 md:flex-row md:items-stretch md:gap-6">
+            {currentPackages.map((pkg, index) => (
+              <PackageTierCard
+                key={pkg.name}
+                pkg={pkg}
+                isRecommended={index === recommendedIndex}
+                onChoose={handleChoosePlan}
+              />
+            ))}
+          </div>
+        )}
       </div>
 
       {/* Purchase History Section */}
