@@ -28,8 +28,36 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       where,
       orderBy: { created_at: "desc" },
       take: 200,
+      include: {
+        booking: {
+          select: {
+            class_name: true,
+            class_time: true,
+            class_schedule: {
+              select: {
+                start_time: true,
+                class_model: { select: { name: true } },
+                instructor: { select: { name: true } },
+              },
+            },
+          },
+        },
+        user_package: { select: { package_type: { select: { name: true } } } },
+      },
     });
-    return res.json(rows);
+    // Flatten class context onto each payment so reconciliation reads name/
+    // instructor/time directly instead of matching against a booking id.
+    const enriched = rows.map((p) => {
+      const sched = p.booking?.class_schedule;
+      return {
+        ...p,
+        class_name: p.booking?.class_name ?? sched?.class_model?.name ?? null,
+        instructor_name: sched?.instructor?.name ?? null,
+        class_time: p.booking?.class_time ?? sched?.start_time ?? null,
+        package_name: p.user_package?.package_type?.name ?? null,
+      };
+    });
+    return res.json(enriched);
   }
 
   if (req.method === "POST") {

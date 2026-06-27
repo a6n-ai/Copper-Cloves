@@ -22,6 +22,8 @@ export interface LedgerEntry {
   razorpayPaymentId: string | null;
   bookingId: string | null;
   userPackageId: string | null;
+  /** For class bookings: "Class · Instructor · time" so reconciliation needs no id match. */
+  classInfo: string | null;
 }
 
 export interface FinanceLedgerResult {
@@ -34,7 +36,29 @@ const ledgerInclude = {
   profile: { select: { full_name: true, email: true, is_system: true } },
   instructor: { select: { name: true } },
   recorded_by_admin: { select: { full_name: true, email: true } },
+  booking: {
+    select: {
+      class_name: true,
+      class_time: true,
+      class_schedule: {
+        select: {
+          start_time: true,
+          class_model: { select: { name: true } },
+          instructor: { select: { name: true } },
+        },
+      },
+    },
+  },
 } as const;
+
+function classInfoFor(r: LedgerRow): string | null {
+  if (!r.booking_id || !r.booking) return null;
+  const sched = r.booking.class_schedule;
+  const name = r.booking.class_name ?? sched?.class_model?.name ?? "Class";
+  const instructor = sched?.instructor?.name ?? null;
+  const when = r.booking.class_time ?? sched?.start_time?.toISOString() ?? null;
+  return [name, instructor, when].filter(Boolean).join(" · ");
+}
 
 type LedgerRow = Awaited<ReturnType<typeof fetchRows>>[number];
 
@@ -88,6 +112,7 @@ function toEntry(r: LedgerRow): LedgerEntry {
     razorpayPaymentId: r.razorpay_payment_id,
     bookingId: r.booking_id,
     userPackageId: r.user_package_id,
+    classInfo: classInfoFor(r),
   };
 }
 

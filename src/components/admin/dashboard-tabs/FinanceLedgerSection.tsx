@@ -187,7 +187,7 @@ function FinanceLedgerSectionImpl() {
       if (party !== "all" && e.party !== party) return false;
       if (method !== "all" && methodLabel(e.method) !== method) return false;
       if (q) {
-        const hay = `${e.party} ${e.category} ${methodLabel(e.method)} ${e.reference ?? ""} ${e.id}`.toLowerCase();
+        const hay = `${e.party} ${e.category} ${e.classInfo ?? ""} ${methodLabel(e.method)} ${e.reference ?? ""} ${e.id}`.toLowerCase();
         if (!hay.includes(q)) return false;
       }
       return true;
@@ -386,7 +386,12 @@ function FinanceLedgerSectionImpl() {
                     return (
                       <TableRow key={e.id}>
                         <TableCell className="whitespace-nowrap font-body">{fmtDate(e.occurredAtISO)}</TableCell>
-                        <TableCell className="font-body">{e.party}</TableCell>
+                        <TableCell className="font-body">
+                          {e.party}
+                          {e.classInfo && (
+                            <span className="block text-xs text-charcoal/55">{e.classInfo}</span>
+                          )}
+                        </TableCell>
                         <TableCell><Pill tone="neutral">{e.category}</Pill></TableCell>
                         <TableCell>
                           {mp ? <Pill tone={mp.tone} brand={mp.brand}>{mp.label}</Pill> : <span className="text-charcoal/40">—</span>}
