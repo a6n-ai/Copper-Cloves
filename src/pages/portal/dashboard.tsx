@@ -16,6 +16,7 @@ import { ActivityTimeline, type ActivityItem } from "@/components/dashboard/Acti
 import { UpcomingScheduleCard, type ScheduleEntry } from "@/components/dashboard/UpcomingScheduleCard";
 import { OrderHistoryTable } from "@/components/dashboard/OrderHistoryTable";
 import { MedalJourney } from "@/components/dashboard/MedalJourney";
+import { PassCard } from "@/components/dashboard/PassCard";
 import dynamic from "next/dynamic";
 import { MemberDashboardSkeleton, MemberMobileDashboardSkeleton } from "@/components/dashboard/skeletons";
 import { AnimatedIcon } from "@/components/dashboard/AnimatedIcon";
@@ -63,6 +64,7 @@ import {
   Flame,
   Clock,
   AlertCircle,
+  CreditCard,
 } from "lucide-react";
 import { CheckInScanButton } from "@/components/checkin/CheckInScanButton";
 import { FriendsCard } from "@/components/portal/FriendsCard";
@@ -193,6 +195,39 @@ interface DashboardBooking {
   } | null;
 }
 
+interface ActivePass {
+  id: string;
+  name: string;
+  isUnlimited: boolean;
+  classesRemaining: number | null;
+  expiry: string | null;
+  durationMonths: number | null;
+  status: string;
+}
+
+/** Approximate validity span in months (purchase → expiry); drives the PassCard tier ramp. */
+function monthsBetween(start?: string | null, end?: string | null): number | null {
+  if (!start || !end) return null;
+  const s = new Date(start).getTime();
+  const e = new Date(end).getTime();
+  if (Number.isNaN(s) || Number.isNaN(e) || e <= s) return null;
+  return Math.max(1, Math.round((e - s) / (1000 * 60 * 60 * 24 * 30)));
+}
+
+/** Pass status for memberStatusPill: paused | expired | expiring | active. */
+function derivePassStatus(isActive: boolean, isPaused: boolean, expiry?: string | null): string {
+  if (isPaused) return "paused";
+  if (!isActive) return "expired";
+  if (expiry) {
+    const ms = new Date(expiry).getTime() - Date.now();
+    if (!Number.isNaN(ms)) {
+      if (ms <= 0) return "expired";
+      if (ms <= 14 * 86400000) return "expiring";
+    }
+  }
+  return "active";
+}
+
 export default function Dashboard() {
   const router = useRouter();
   const isMobile = useIsMobile();
@@ -214,6 +249,7 @@ export default function Dashboard() {
     isUnlimited: boolean;
     classCount: number | null;
   } | null>(null);
+  const [activePasses, setActivePasses] = useState<ActivePass[]>([]);
   const [upcomingBookings, setUpcomingBookings] = useState<DashboardBooking[]>([]);
   const [recentActivities, setRecentActivities] = useState<ActivityItem[]>([]);
   const [lastCafeOrder, setLastCafeOrder] = useState<string | null>(null);
@@ -339,9 +375,25 @@ export default function Dashboard() {
           });
           setCreditsRemaining(packageType.is_unlimited ? 999 : activePackage.credits_remaining || 0);
         }
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        setActivePasses(packages.map((p: any) => {
+          const pt = p.package_type ?? {};
+          const exp = p.expiration_date ? String(p.expiration_date) : null;
+          const isActive = !!p.is_active && (exp ? new Date(exp).getTime() > now.getTime() : true);
+          return {
+            id: String(p.id),
+            name: pt.name || "Package",
+            isUnlimited: !!pt.is_unlimited,
+            classesRemaining: typeof p.credits_remaining === "number" ? p.credits_remaining : null,
+            expiry: exp,
+            durationMonths: monthsBetween(p.purchase_date ? String(p.purchase_date) : null, exp),
+            status: derivePassStatus(isActive, !!p.is_paused, exp),
+          };
+        }));
       } else {
         setPackageDetails(null);
         setCreditsRemaining(0);
+        setActivePasses([]);
       }
 
       const upcoming = bookings
@@ -683,6 +735,35 @@ export default function Dashboard() {
                 </div>
               </CardContent>
             </Card>
+
+            {/* Your Passes — credit-card-styled active packages */}
+            {activePasses.length > 0 && (
+              <div className="mb-6">
+                <div className="mb-4 flex items-center gap-2.5">
+                  <span className="flex h-9 w-9 items-center justify-center rounded-full bg-sage/10">
+                    <AnimatedIcon icon={CreditCard} size={18} className="text-sage" />
+                  </span>
+                  <div>
+                    <h2 className="font-display text-lg text-charcoal">Your Passes</h2>
+                    <p className="font-body text-xs text-charcoal/55">Active packages on your account</p>
+                  </div>
+                </div>
+                <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-3">
+                  {activePasses.map((pass) => (
+                    <PassCard
+                      key={pass.id}
+                      name={pass.name}
+                      isUnlimited={pass.isUnlimited}
+                      classesRemaining={pass.classesRemaining}
+                      expiry={pass.expiry}
+                      durationMonths={pass.durationMonths}
+                      status={pass.status}
+                      className="w-full"
+                    />
+                  ))}
+                </div>
+              </div>
+            )}
 
             {/* Bento: Path-to-Mastery medal stepper + metric squares (Apple-Fitness style) */}
             <div className="grid grid-cols-2 gap-4 lg:grid-cols-4 lg:auto-rows-[176px]">

@@ -11,6 +11,7 @@ import { razorpayKeyMode, razorpayKeysMismatch } from "@/lib/razorpayClientHints
 import { persistRazorpayOrderOnCreate } from "@/lib/razorpayPersistence";
 import { getRazorpay, razorpayConfigured } from "@/lib/razorpayServer";
 import { createPendingBooking } from "@/lib/createPendingBooking";
+import { excludeUnlimitedSeatsFromSnapshot, resolvePayableSeats } from "@/lib/groupBilling";
 import prisma from "@/lib/prisma";
 import { validateAndComputeCoupon, toFiniteNumber, passCategoryForPackageType, type CouponContext } from "@/lib/couponHelpers";
 import { requestLogger } from "@/lib/logger";
@@ -123,7 +124,7 @@ async function planPackageOrder(userId: string, raw: Record<string, unknown>): P
   return { ok: true, plan: { amount_inr, orderNotes, dbNotes: { ...orderNotes } } };
 }
 
-function planBookingOrder(userId: string, raw: Record<string, unknown>): PlanResult {
+async function planBookingOrder(userId: string, raw: Record<string, unknown>): Promise<PlanResult> {
   const pendingBody = parsePendingBookingBody(raw.pending_checkout ?? raw);
   if (!pendingBody) {
     return { ok: false, status: 400, error: "Invalid booking checkout payload" };
@@ -132,7 +133,29 @@ function planBookingOrder(userId: string, raw: Record<string, unknown>): PlanRes
   if (!financeSnap || !snapshotTotalsConsistent(financeSnap)) {
     return { ok: false, status: 400, error: "Invalid finance snapshot" };
   }
-  const amount_paise = expectedBookingCheckoutPaise(financeSnap.totalInr);
+
+  // Group billing (spec Part B): added members who hold an active unlimited pass
+  // are covered by their own pass — exclude their seats from the booker's bill.
+  // resolvePayableSeats is the single source shared with the booking-row side so
+  // the charged amount and the held seats can't drift. Booker exclusion is already
+  // handled client-side, so only unlimited *added members* reduce the price here.
+  const { unlimitedFreeMemberIds } = await resolvePayableSeats(
+    userId,
+    pendingBody.added_member_profile_ids ?? [],
+    pendingBody.extra_guest_count,
+  );
+  const adjustedSnap = excludeUnlimitedSeatsFromSnapshot(
+    financeSnap,
+    unlimitedFreeMemberIds.length,
+  );
+  pendingBody.finance_snapshot = adjustedSnap;
+
+  const amount_paise = expectedBookingCheckoutPaise(adjustedSnap.totalInr);
+  if (amount_paise <= 0) {
+    // Whole group is pass-covered — nothing to charge online. Fall back to the
+    // free-booking path (POST /api/bookings) instead of a ₹0 gateway order.
+    return { ok: false, status: 400, error: "No payment due for this booking." };
+  }
   return {
     ok: true,
     plan: {
@@ -164,7 +187,7 @@ function planGenericOrder(userId: string, raw: Record<string, unknown>): PlanRes
 
 async function planOrder(userId: string, raw: Record<string, unknown>): Promise<PlanResult> {
   if (raw.purpose === PURPOSE_PACKAGE) return planPackageOrder(userId, raw);
-  if (raw.purpose === PURPOSE_BOOKING || raw.pending_checkout != null) return planBookingOrder(userId, raw);
+  if (raw.purpose === PURPOSE_BOOKING || raw.pending_checkout != null) return await planBookingOrder(userId, raw);
   return planGenericOrder(userId, raw);
 }
 
