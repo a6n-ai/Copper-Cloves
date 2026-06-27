@@ -624,6 +624,7 @@ export default function Dashboard() {
             currentStreak={currentStreak}
             packageDetails={packageDetails}
             creditsRemaining={creditsRemaining}
+            activePasses={activePasses}
             dailyIntention={dailyIntention}
             isEditingIntention={isEditingIntention}
             onIntentionChange={setDailyIntention}
@@ -800,9 +801,10 @@ export default function Dashboard() {
             </Card>
           </motion.div>
 
-          {/* PASSES — credit-card-styled active packages */}
-          {activePasses.length > 0 && (
-            <motion.div variants={SECTION_ITEM}>
+          {/* TOP ROW — Passes + Path to Mastery as the two lead cards (symmetric) */}
+          <motion.div variants={SECTION_ITEM} className="grid grid-cols-1 gap-5 lg:grid-cols-2 lg:gap-8">
+            {/* Your Passes */}
+            <div className="flex flex-col">
               <div className="mb-4 flex items-center gap-2.5">
                 <span className="flex h-9 w-9 items-center justify-center rounded-full bg-sage/10">
                   <AnimatedIcon icon={CreditCard} size={18} className="text-sage" />
@@ -812,22 +814,42 @@ export default function Dashboard() {
                   <p className="font-body text-xs text-charcoal/55">Active packages on your account</p>
                 </div>
               </div>
-              <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-3">
-                {activePasses.map((pass) => (
-                  <PassCard
-                    key={pass.id}
-                    name={pass.name}
-                    isUnlimited={pass.isUnlimited}
-                    classesRemaining={pass.classesRemaining}
-                    expiry={pass.expiry}
-                    durationMonths={pass.durationMonths}
-                    status={pass.status}
-                    className="w-full"
-                  />
-                ))}
-              </div>
-            </motion.div>
-          )}
+              {activePasses.length > 0 ? (
+                <div className="grid flex-1 grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-1">
+                  {activePasses.map((pass) => (
+                    <PassCard
+                      key={pass.id}
+                      name={pass.name}
+                      isUnlimited={pass.isUnlimited}
+                      classesRemaining={pass.classesRemaining}
+                      expiry={pass.expiry}
+                      durationMonths={pass.durationMonths}
+                      status={pass.status}
+                      className="w-full"
+                    />
+                  ))}
+                </div>
+              ) : (
+                <button
+                  type="button"
+                  onClick={() => router.push("/portal/packages")}
+                  className="flex min-h-[180px] flex-1 flex-col items-center justify-center gap-2 rounded-2xl border border-dashed border-sage/30 bg-white-warm p-6 text-center transition-colors duration-200 hover:border-sage/50 hover:bg-sage/5"
+                >
+                  <Package className="h-7 w-7 text-sage/60" />
+                  <span className="font-display text-lg text-charcoal">No active pass</span>
+                  <span className="font-body text-sm text-charcoal/55">Buy a package to start booking</span>
+                </button>
+              )}
+            </div>
+
+            {/* Path to Mastery */}
+            <MedalJourney
+              className="h-full"
+              milestones={activeMilestones}
+              classesCompleted={userClassesCompleted}
+              earnedCustom={userBadges.filter((b: { badge_type?: string }) => b.badge_type === "custom")}
+            />
+          </motion.div>
 
           {/* STATS — attendance + streak metrics */}
           <motion.div variants={SECTION_ITEM} className="grid grid-cols-2 gap-4 lg:grid-cols-4">
@@ -847,20 +869,8 @@ export default function Dashboard() {
                 vsTone={vitalityVsPrev.tone}
               />
             </div>
-            <div className="lg:col-span-1">
+            <div className="lg:col-span-1 flex flex-col gap-5 lg:gap-8">
               <UpcomingScheduleCard entries={upcomingEntries} />
-            </div>
-          </motion.div>
-
-          {/* BADGES — Path to Mastery medals + friends */}
-          <motion.div variants={SECTION_ITEM} className="grid grid-cols-1 lg:grid-cols-3 gap-5 lg:gap-8">
-            <MedalJourney
-              className="lg:col-span-2"
-              milestones={activeMilestones}
-              classesCompleted={userClassesCompleted}
-              earnedCustom={userBadges.filter((b: { badge_type?: string }) => b.badge_type === "custom")}
-            />
-            <div className="lg:col-span-1">
               <FriendsCard />
             </div>
           </motion.div>

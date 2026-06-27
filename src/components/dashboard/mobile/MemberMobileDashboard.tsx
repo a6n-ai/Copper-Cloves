@@ -18,6 +18,7 @@ import { Input } from "@/components/ui/input";
 import { AnimatedIcon } from "@/components/dashboard/AnimatedIcon";
 import { StatCardRow, type StatCardProps } from "@/components/dashboard/StatCard";
 import { MedalJourney, type JourneyTier, type JourneyCustomBadge } from "@/components/dashboard/MedalJourney";
+import { PassCard } from "@/components/dashboard/PassCard";
 import { UpcomingScheduleCard, type ScheduleEntry } from "@/components/dashboard/UpcomingScheduleCard";
 // recharts only loads when the member taps open the vitality dialog.
 const VitalityAreaChart = dynamic(
@@ -46,6 +47,15 @@ export interface MemberMobileDashboardProps {
   currentStreak: number;
   packageDetails: { name: string; isUnlimited: boolean; classCount: number | null } | null;
   creditsRemaining: number;
+  activePasses: {
+    id: string;
+    name: string;
+    isUnlimited: boolean;
+    classesRemaining: number | null;
+    expiry: string | null;
+    durationMonths: number | null;
+    status: string;
+  }[];
 
   dailyIntention: string;
   isEditingIntention: boolean;
@@ -78,6 +88,7 @@ export function MemberMobileDashboard({
   currentStreak,
   packageDetails,
   creditsRemaining: _creditsRemaining,
+  activePasses,
   dailyIntention,
   isEditingIntention,
   onIntentionChange,
@@ -206,6 +217,37 @@ export function MemberMobileDashboard({
         </Button>
       )}
 
+      {/* Your passes — lead card */}
+      {activePasses.length > 0 && (
+        <section>
+          <h2 className="mb-2 px-1 font-body text-xs uppercase tracking-wide text-charcoal/45">Your passes</h2>
+          <div className="space-y-3">
+            {activePasses.map((p) => (
+              <PassCard
+                key={p.id}
+                name={p.name}
+                isUnlimited={p.isUnlimited}
+                classesRemaining={p.classesRemaining}
+                expiry={p.expiry}
+                durationMonths={p.durationMonths}
+                status={p.status}
+                className="w-full"
+              />
+            ))}
+          </div>
+        </section>
+      )}
+
+      {/* Your journey — badges (lead card, paired with passes) */}
+      <section>
+        <h2 className="mb-2 px-1 font-body text-xs uppercase tracking-wide text-charcoal/45">Your journey</h2>
+        <MedalJourney
+          milestones={milestones}
+          classesCompleted={userClassesCompleted}
+          earnedCustom={userBadges.filter((b: { badge_type?: string }) => b.badge_type === "custom")}
+        />
+      </section>
+
       {/* Quick Book — 4 icon tiles */}
       <section>
         <h2 className="mb-2 px-1 font-body text-xs uppercase tracking-wide text-charcoal/45">Quick book</h2>
@@ -226,16 +268,6 @@ export function MemberMobileDashboard({
 
       {/* Stat mini-grid */}
       <StatCardRow items={statItems} />
-
-      {/* Your journey */}
-      <section>
-        <h2 className="mb-2 px-1 font-body text-xs uppercase tracking-wide text-charcoal/45">Your journey</h2>
-        <MedalJourney
-          milestones={milestones}
-          classesCompleted={userClassesCompleted}
-          earnedCustom={userBadges.filter((b: { badge_type?: string }) => b.badge_type === "custom")}
-        />
-      </section>
 
       {/* Upcoming classes */}
       {upcomingEntries.length > 0 && (
