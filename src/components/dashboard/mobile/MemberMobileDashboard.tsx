@@ -19,6 +19,7 @@ import { AnimatedIcon } from "@/components/dashboard/AnimatedIcon";
 import { StatCardRow, type StatCardProps } from "@/components/dashboard/StatCard";
 import { MedalJourney, type JourneyTier, type JourneyCustomBadge } from "@/components/dashboard/MedalJourney";
 import { PassCard } from "@/components/dashboard/PassCard";
+import { Card, CardContent } from "@/components/ui/card";
 import { UpcomingScheduleCard, type ScheduleEntry } from "@/components/dashboard/UpcomingScheduleCard";
 // recharts only loads when the member taps open the vitality dialog.
 const VitalityAreaChart = dynamic(
@@ -219,23 +220,25 @@ export function MemberMobileDashboard({
 
       {/* Your passes — lead card */}
       {activePasses.length > 0 && (
-        <section>
-          <h2 className="mb-2 px-1 font-body text-xs uppercase tracking-wide text-charcoal/45">Your passes</h2>
-          <div className="space-y-3">
-            {activePasses.map((p) => (
-              <PassCard
-                key={p.id}
-                name={p.name}
-                isUnlimited={p.isUnlimited}
-                classesRemaining={p.classesRemaining}
-                expiry={p.expiry}
-                durationMonths={p.durationMonths}
-                status={p.status}
-                className="w-full"
-              />
-            ))}
-          </div>
-        </section>
+        <Card className="border-[#e5e4dc] bg-white-warm shadow-none">
+          <CardContent className="p-4">
+            <h2 className="mb-3 px-0.5 font-body text-xs uppercase tracking-wide text-charcoal/45">Your passes</h2>
+            <div className="space-y-3">
+              {activePasses.map((p) => (
+                <PassCard
+                  key={p.id}
+                  name={p.name}
+                  isUnlimited={p.isUnlimited}
+                  classesRemaining={p.classesRemaining}
+                  expiry={p.expiry}
+                  durationMonths={p.durationMonths}
+                  status={p.status}
+                  className="w-full"
+                />
+              ))}
+            </div>
+          </CardContent>
+        </Card>
       )}
 
       {/* Your journey — badges (lead card, paired with passes) */}

@@ -804,43 +804,45 @@ export default function Dashboard() {
           {/* TOP ROW — Passes + Path to Mastery as the two lead cards (symmetric) */}
           <motion.div variants={SECTION_ITEM} className="grid grid-cols-1 gap-5 lg:grid-cols-2 lg:gap-8">
             {/* Your Passes */}
-            <div className="flex flex-col">
-              <div className="mb-4 flex items-center gap-2.5">
-                <span className="flex h-9 w-9 items-center justify-center rounded-full bg-sage/10">
-                  <AnimatedIcon icon={CreditCard} size={18} className="text-sage" />
-                </span>
-                <div>
-                  <h2 className="font-display text-lg text-charcoal">Your Passes</h2>
-                  <p className="font-body text-xs text-charcoal/55">Active packages on your account</p>
+            <Card className="border-[#e5e4dc] bg-white-warm shadow-none transition-shadow hover:shadow-[0_4px_24px_rgba(51,51,51,0.08)]">
+              <CardContent className="flex h-full flex-col p-5 sm:p-6">
+                <div className="mb-4 flex items-center gap-2.5">
+                  <span className="flex h-9 w-9 items-center justify-center rounded-full bg-sage/10">
+                    <AnimatedIcon icon={CreditCard} size={18} className="text-sage" />
+                  </span>
+                  <div>
+                    <h2 className="font-display text-lg text-charcoal">Your Passes</h2>
+                    <p className="font-body text-xs text-charcoal/55">Active packages on your account</p>
+                  </div>
                 </div>
-              </div>
-              {activePasses.length > 0 ? (
-                <div className="grid flex-1 grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-1">
-                  {activePasses.map((pass) => (
-                    <PassCard
-                      key={pass.id}
-                      name={pass.name}
-                      isUnlimited={pass.isUnlimited}
-                      classesRemaining={pass.classesRemaining}
-                      expiry={pass.expiry}
-                      durationMonths={pass.durationMonths}
-                      status={pass.status}
-                      className="w-full"
-                    />
-                  ))}
-                </div>
-              ) : (
-                <button
-                  type="button"
-                  onClick={() => router.push("/portal/packages")}
-                  className="flex min-h-[180px] flex-1 flex-col items-center justify-center gap-2 rounded-2xl border border-dashed border-sage/30 bg-white-warm p-6 text-center transition-colors duration-200 hover:border-sage/50 hover:bg-sage/5"
-                >
-                  <Package className="h-7 w-7 text-sage/60" />
-                  <span className="font-display text-lg text-charcoal">No active pass</span>
-                  <span className="font-body text-sm text-charcoal/55">Buy a package to start booking</span>
-                </button>
-              )}
-            </div>
+                {activePasses.length > 0 ? (
+                  <div className="grid flex-1 grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-1">
+                    {activePasses.map((pass) => (
+                      <PassCard
+                        key={pass.id}
+                        name={pass.name}
+                        isUnlimited={pass.isUnlimited}
+                        classesRemaining={pass.classesRemaining}
+                        expiry={pass.expiry}
+                        durationMonths={pass.durationMonths}
+                        status={pass.status}
+                        className="w-full"
+                      />
+                    ))}
+                  </div>
+                ) : (
+                  <button
+                    type="button"
+                    onClick={() => router.push("/portal/packages")}
+                    className="flex min-h-[180px] flex-1 flex-col items-center justify-center gap-2 rounded-2xl border border-dashed border-sage/30 bg-white-warm p-6 text-center transition-colors duration-200 hover:border-sage/50 hover:bg-sage/5"
+                  >
+                    <Package className="h-7 w-7 text-sage/60" />
+                    <span className="font-display text-lg text-charcoal">No active pass</span>
+                    <span className="font-body text-sm text-charcoal/55">Buy a package to start booking</span>
+                  </button>
+                )}
+              </CardContent>
+            </Card>
 
             {/* Path to Mastery */}
             <MedalJourney
