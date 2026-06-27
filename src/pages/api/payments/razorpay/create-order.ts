@@ -290,7 +290,12 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       currency: "INR",
       receipt,
       notes: orderNotes,
-    });
+      // Auto-capture on authorization — Razorpay debits the customer the moment
+      // the payment is authorized, so a closed tab / missed webhook can't leave
+      // funds stuck in `authorized` (which auto-refunds after ~5 days). Our
+      // captureAuthorizedPayment + reconcile remain idempotent backstops.
+      payment_capture: 1,
+    } as Parameters<typeof razorpay.orders.create>[0]);
 
     try {
       await persistRazorpayOrderOnCreate({
