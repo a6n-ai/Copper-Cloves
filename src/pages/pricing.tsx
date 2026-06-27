@@ -4,7 +4,8 @@ import { Droplets, CalendarCheck, Coffee, Users } from "lucide-react";
 import { SEO } from "@/components/SEO";
 import { Footer } from "@/components/Footer";
 import { PricingCard } from "@/components/pricing/PricingCard";
-import { studioPassPlans, classPassPlans, type PricingPlan } from "@/lib/pricingPlans";
+import { type PricingPlan } from "@/lib/pricingPlans";
+import { usePublicPackages } from "@/hooks/usePublicPackages";
 
 const INCLUDED = [
   {
@@ -49,6 +50,8 @@ export default function PricingPage() {
   const router = useRouter();
   const { data: session } = useSession();
 
+  const { studioPlans, classPlans } = usePublicPackages();
+
   const handleSelect = (plan: PricingPlan) => {
     const base = session ? "/portal/packages" : "/portal/login?redirect=/portal/packages";
     router.push(`${base}${session ? "?" : "&"}selected=${encodeURIComponent(plan.name)}`);
@@ -83,7 +86,7 @@ export default function PricingPage() {
         eyebrow="Unlimited"
         title="Studio Pass"
         blurb="Unlimited classes for the length of your membership. The more you commit, the more you save, and the more perks come with it."
-        plans={studioPassPlans}
+        plans={studioPlans}
         onSelect={handleSelect}
         background="bg-cream"
       />
@@ -94,7 +97,7 @@ export default function PricingPage() {
         eyebrow="Pay as you go"
         title="Class Pass"
         blurb="Buy a bundle of classes and use them at your own pace. Perfect for trying the studio or fitting movement around a full calendar."
-        plans={classPassPlans}
+        plans={classPlans}
         onSelect={handleSelect}
         background="bg-[#f4f3ec]"
         align="right"

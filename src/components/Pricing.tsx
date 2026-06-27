@@ -6,7 +6,8 @@ import { useSession } from "next-auth/react";
 import { NavPrevButton, NavNextButton } from "@/components/ui/quick-actions";
 import { PricingCard } from "@/components/pricing/PricingCard";
 import { SectionHeading } from "@/components/SectionHeading";
-import { studioPassPlans, classPassPlans, type PricingPlan } from "@/lib/pricingPlans";
+import { type PricingPlan } from "@/lib/pricingPlans";
+import { usePublicPackages } from "@/hooks/usePublicPackages";
 import { useCarouselScroll } from "@/hooks/useCarouselScroll";
 
 export function Pricing() {
@@ -22,7 +23,8 @@ export function Pricing() {
 
   const scroll = (direction: "left" | "right") => scrollBy(direction, 350);
 
-  const currentPlans = selectedTier === "class" ? classPassPlans : studioPassPlans;
+  const { studioPlans, classPlans } = usePublicPackages();
+  const currentPlans = selectedTier === "class" ? classPlans : studioPlans;
 
   useEffect(() => {
     measure();
