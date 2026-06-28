@@ -15,6 +15,7 @@ import { getStudioServerSession } from "@/lib/getStudioServerSession";
 import { getRazorpay, razorpayConfigured } from "@/lib/razorpayServer";
 import { reconcileRazorpayPaymentFromWebhook } from "@/lib/razorpayPersistence";
 import { requestLogger } from "@/lib/logger";
+import { refundOutcomeFor } from "@/lib/classCancellation";
 
 type RazorpayOrderPaymentsClient = {
   orders: { fetchPayments: (id: string) => Promise<{ items?: unknown[] }> };
@@ -41,6 +42,21 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       hold_expires_at: true,
       created_at: true,
       finance_snapshot: true,
+      cancellation_date: true,
+      cancellation_reason: true,
+      cancelled_by: true,
+      refund_status: true,
+      refund_amount_paise: true,
+      invited_by_user_id: true,
+      user_package_id: true,
+      checked_in: true,
+      class_schedule_id: true,
+      invited_by: { select: { full_name: true } },
+      user_package: { select: { package_type: { select: { is_unlimited: true, name: true } } } },
+      cancellation_requests: {
+        select: { kind: true, status: true, reason: true, refund_type: true, refund_amount_paise: true, created_at: true, decided_at: true },
+        orderBy: { created_at: "desc" },
+      },
       class_schedule: {
         select: {
           id: true,
@@ -85,6 +101,71 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         }
       }
     }
+    const isUnlimited = booking.user_package?.package_type?.is_unlimited ?? false;
+    const seatRefund = refundOutcomeFor({
+      user_package_id: booking.user_package_id, checked_in: booking.checked_in, is_unlimited: isUnlimited,
+    });
+
+    // Per-person refund line ("what was refunded to whom") for cancelled bookings.
+    const memberRefundText = (r: {
+      refund_status?: string | null; refund_amount_paise?: number | null;
+      user_package_id?: string | null; checked_in?: boolean | null; is_unlimited?: boolean | null;
+    }): string => {
+      switch (r.refund_status) {
+        case "auto_pass":
+        case "approved_pass": return "1 Class Pass";
+        case "approved_amount": return `₹${Math.round((r.refund_amount_paise ?? 0) / 100).toLocaleString("en-IN")}`;
+        case "requested": return "refund requested";
+        case "denied": return "no refund (denied)";
+        default: {
+          const o = refundOutcomeFor({ user_package_id: r.user_package_id, checked_in: r.checked_in, is_unlimited: r.is_unlimited });
+          return o === "class_pass" ? "eligible — not yet refunded" : o === "none_unlimited" ? "no refund (unlimited)" : "no refund";
+        }
+      }
+    };
+
+    // Group members (booker's invited rows) + a unified "refunds" roster.
+    let group: { name: string; status: string; refund: string }[] = [];
+    if (booking.invited_by_user_id === null && booking.class_schedule_id) {
+      const rows = await prisma.booking.findMany({
+        where: { invited_by_user_id: booking.user_id, class_schedule_id: booking.class_schedule_id },
+        select: {
+          status: true, refund_status: true, refund_amount_paise: true, user_package_id: true, checked_in: true,
+          profile: { select: { full_name: true, email: true } },
+          user_package: { select: { package_type: { select: { is_unlimited: true } } } },
+        },
+      });
+      group = rows.map((r) => ({
+        name: r.profile?.full_name?.trim() || r.profile?.email?.split("@")[0] || "Member",
+        status: r.status,
+        refund: memberRefundText({
+          refund_status: r.refund_status, refund_amount_paise: r.refund_amount_paise,
+          user_package_id: r.user_package_id, checked_in: r.checked_in,
+          is_unlimited: r.user_package?.package_type?.is_unlimited ?? false,
+        }),
+      }));
+    }
+
+    // Who-got-what: this member first, then each group member they brought.
+    const refundRoster = [
+      {
+        name: "You", isYou: true,
+        refund: memberRefundText({
+          refund_status: booking.refund_status, refund_amount_paise: booking.refund_amount_paise,
+          user_package_id: booking.user_package_id, checked_in: booking.checked_in, is_unlimited: isUnlimited,
+        }),
+      },
+      ...group.map((g) => ({ name: g.name, isYou: false, refund: g.refund })),
+    ];
+    const refundRequest = booking.cancellation_requests.find((r) => r.kind === "refund") ?? null;
+    // A manual refund request is only offered when this seat would have earned a
+    // refund, none was auto-given, and the booking is cancelled.
+    const canRequestRefund =
+      booking.status === "cancelled" &&
+      (booking.refund_status ?? "none") === "none" &&
+      seatRefund === "class_pass" &&
+      !refundRequest;
+
     return res.json({
       id: booking.id,
       status: booking.status,
@@ -96,11 +177,53 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       financeSnapshot: booking.finance_snapshot ?? null,
       razorpayOrderId: orderId,
       paymentNote,
+      bookedAt: booking.created_at?.toISOString() ?? null,
+      cancellationDate: booking.cancellation_date?.toISOString() ?? null,
+      cancellationReason: booking.cancellation_reason ?? null,
+      cancelledBy: booking.cancelled_by ?? null,
+      refundStatus: booking.refund_status ?? "none",
+      refundAmountPaise: booking.refund_amount_paise ?? null,
+      refundPassName: booking.user_package?.package_type?.name ?? null,
+      seatRefund,
+      invitedByName: booking.invited_by?.full_name ?? null,
+      group,
+      refundRoster,
+      refundRequest,
+      canRequestRefund,
     });
   }
 
   if (req.method === "POST") {
     const action = (req.body as { action?: string })?.action;
+
+    // Member-initiated refund request on an already-cancelled booking — only when
+    // it was eligible for a refund yet none was auto-given (no double refund).
+    if (action === "request_refund") {
+      if (booking.status !== "cancelled") {
+        return res.status(409).json({ error: "Only a cancelled booking can request a refund" });
+      }
+      if ((booking.refund_status ?? "none") !== "none") {
+        return res.status(409).json({ error: "A refund has already been processed for this booking" });
+      }
+      const isUnlimited = booking.user_package?.package_type?.is_unlimited ?? false;
+      if (refundOutcomeFor({ user_package_id: booking.user_package_id, checked_in: booking.checked_in, is_unlimited: isUnlimited }) !== "class_pass") {
+        return res.status(409).json({ error: "This booking isn't eligible for a refund" });
+      }
+      if (booking.cancellation_requests.some((r) => r.kind === "refund" && r.status === "open")) {
+        return res.status(409).json({ error: "A refund request is already pending" });
+      }
+      if (!booking.class_schedule_id) return res.status(400).json({ error: "This booking is not linked to a class" });
+      const reason = typeof (req.body as { reason?: unknown }).reason === "string" ? (req.body as { reason: string }).reason : null;
+      const request = await prisma.classCancellationRequest.create({
+        data: {
+          booking_id: booking.id, user_id: booking.user_id, class_schedule_id: booking.class_schedule_id,
+          status: "open", kind: "refund", reason,
+        },
+      });
+      await prisma.booking.update({ where: { id: booking.id }, data: { refund_status: "requested" } });
+      return res.status(201).json({ request });
+    }
+
     if (action !== "reconcile") return res.status(400).json({ error: "Unknown action" });
 
     if (booking.status === "confirmed") {

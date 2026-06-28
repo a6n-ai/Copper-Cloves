@@ -11,7 +11,7 @@
 import type { NextApiRequest, NextApiResponse } from "next";
 import prisma from "@/lib/prisma";
 import { getStudioServerSession } from "@/lib/getStudioServerSession";
-import { cancelBookingWithRefund } from "@/lib/classCancellation";
+import { cancelBookingWithRefund, grantCancellationPass } from "@/lib/classCancellation";
 
 const STATUSES = ["open", "approved", "denied"] as const;
 type CancellationStatus = (typeof STATUSES)[number];
@@ -47,10 +47,12 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   }
 
   if (req.method === "PATCH") {
-    const { id, action, reason } = (req.body ?? {}) as {
+    const { id, action, reason, refund_type, refund_amount_paise } = (req.body ?? {}) as {
       id?: string;
       action?: string;
       reason?: string;
+      refund_type?: string;
+      refund_amount_paise?: number;
     };
     if (!id || typeof id !== "string") return res.status(400).json({ error: "id required" });
     if (action !== "approve" && action !== "deny") {
@@ -64,13 +66,38 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     }
 
     const newStatus: CancellationStatus = action === "approve" ? "approved" : "denied";
+    const isRefundReq = existing.kind === "refund";
+    let decidedRefundType: string | null = null;
+    let decidedAmount: number | null = null;
 
-    if (action === "approve") {
-      // Cancel + refund-as-pass. Phase 6 owns the body of this helper.
+    if (action === "approve" && isRefundReq) {
+      // Refund request on an ALREADY-cancelled booking: admin grants either a
+      // class pass or records a money refund. Booking is not re-cancelled.
+      const rtype = refund_type === "amount" ? "amount" : "class_pass";
+      decidedRefundType = rtype;
+      if (rtype === "class_pass") {
+        const granted = await prisma.$transaction((tx) => grantCancellationPass(tx, existing.user_id, 1));
+        await prisma.booking.update({
+          where: { id: existing.booking_id },
+          data: { refund_status: "approved_pass", refund_user_package_id: granted.grantedUserPackageIds[0] ?? null },
+        });
+      } else {
+        const amt = Number(refund_amount_paise);
+        decidedAmount = Number.isFinite(amt) && amt > 0 ? Math.round(amt) : null;
+        await prisma.booking.update({
+          where: { id: existing.booking_id },
+          data: { refund_status: "approved_amount", refund_amount_paise: decidedAmount },
+        });
+      }
+    } else if (action === "approve") {
+      // Late-cancel request: cancel the booking + auto refund-as-pass.
       await cancelBookingWithRefund(existing.booking_id, {
         cancelledBy: adminId ?? undefined,
         reason: reason ?? existing.reason ?? undefined,
       });
+    } else if (isRefundReq) {
+      // Denied refund request — mark the booking so it's not re-requestable as pending.
+      await prisma.booking.update({ where: { id: existing.booking_id }, data: { refund_status: "denied" } });
     }
 
     const updated = await prisma.classCancellationRequest.update({
@@ -80,6 +107,8 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         decided_by: adminId,
         decided_at: new Date(),
         ...(reason !== undefined ? { reason } : {}),
+        ...(decidedRefundType ? { refund_type: decidedRefundType } : {}),
+        ...(decidedAmount != null ? { refund_amount_paise: decidedAmount } : {}),
       },
     });
     return res.json({ request: updated });

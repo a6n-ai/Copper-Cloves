@@ -20,8 +20,18 @@ export type ClassCancellationRequestModel = runtime.Types.Result.DefaultSelectio
 
 export type AggregateClassCancellationRequest = {
   _count: ClassCancellationRequestCountAggregateOutputType | null
+  _avg: ClassCancellationRequestAvgAggregateOutputType | null
+  _sum: ClassCancellationRequestSumAggregateOutputType | null
   _min: ClassCancellationRequestMinAggregateOutputType | null
   _max: ClassCancellationRequestMaxAggregateOutputType | null
+}
+
+export type ClassCancellationRequestAvgAggregateOutputType = {
+  refund_amount_paise: number | null
+}
+
+export type ClassCancellationRequestSumAggregateOutputType = {
+  refund_amount_paise: number | null
 }
 
 export type ClassCancellationRequestMinAggregateOutputType = {
@@ -30,7 +40,10 @@ export type ClassCancellationRequestMinAggregateOutputType = {
   user_id: string | null
   class_schedule_id: string | null
   status: string | null
+  kind: string | null
   reason: string | null
+  refund_type: string | null
+  refund_amount_paise: number | null
   decided_by: string | null
   decided_at: Date | null
   created_at: Date | null
@@ -42,7 +55,10 @@ export type ClassCancellationRequestMaxAggregateOutputType = {
   user_id: string | null
   class_schedule_id: string | null
   status: string | null
+  kind: string | null
   reason: string | null
+  refund_type: string | null
+  refund_amount_paise: number | null
   decided_by: string | null
   decided_at: Date | null
   created_at: Date | null
@@ -54,7 +70,10 @@ export type ClassCancellationRequestCountAggregateOutputType = {
   user_id: number
   class_schedule_id: number
   status: number
+  kind: number
   reason: number
+  refund_type: number
+  refund_amount_paise: number
   decided_by: number
   decided_at: number
   created_at: number
@@ -62,13 +81,24 @@ export type ClassCancellationRequestCountAggregateOutputType = {
 }
 
 
+export type ClassCancellationRequestAvgAggregateInputType = {
+  refund_amount_paise?: true
+}
+
+export type ClassCancellationRequestSumAggregateInputType = {
+  refund_amount_paise?: true
+}
+
 export type ClassCancellationRequestMinAggregateInputType = {
   id?: true
   booking_id?: true
   user_id?: true
   class_schedule_id?: true
   status?: true
+  kind?: true
   reason?: true
+  refund_type?: true
+  refund_amount_paise?: true
   decided_by?: true
   decided_at?: true
   created_at?: true
@@ -80,7 +110,10 @@ export type ClassCancellationRequestMaxAggregateInputType = {
   user_id?: true
   class_schedule_id?: true
   status?: true
+  kind?: true
   reason?: true
+  refund_type?: true
+  refund_amount_paise?: true
   decided_by?: true
   decided_at?: true
   created_at?: true
@@ -92,7 +125,10 @@ export type ClassCancellationRequestCountAggregateInputType = {
   user_id?: true
   class_schedule_id?: true
   status?: true
+  kind?: true
   reason?: true
+  refund_type?: true
+  refund_amount_paise?: true
   decided_by?: true
   decided_at?: true
   created_at?: true
@@ -137,6 +173,18 @@ export type ClassCancellationRequestAggregateArgs<ExtArgs extends runtime.Types.
   /**
    * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
    * 
+   * Select which fields to average
+  **/
+  _avg?: ClassCancellationRequestAvgAggregateInputType
+  /**
+   * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+   * 
+   * Select which fields to sum
+  **/
+  _sum?: ClassCancellationRequestSumAggregateInputType
+  /**
+   * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+   * 
    * Select which fields to find the minimum value
   **/
   _min?: ClassCancellationRequestMinAggregateInputType
@@ -167,6 +215,8 @@ export type ClassCancellationRequestGroupByArgs<ExtArgs extends runtime.Types.Ex
   take?: number
   skip?: number
   _count?: ClassCancellationRequestCountAggregateInputType | true
+  _avg?: ClassCancellationRequestAvgAggregateInputType
+  _sum?: ClassCancellationRequestSumAggregateInputType
   _min?: ClassCancellationRequestMinAggregateInputType
   _max?: ClassCancellationRequestMaxAggregateInputType
 }
@@ -177,11 +227,16 @@ export type ClassCancellationRequestGroupByOutputType = {
   user_id: string
   class_schedule_id: string
   status: string
+  kind: string
   reason: string | null
+  refund_type: string | null
+  refund_amount_paise: number | null
   decided_by: string | null
   decided_at: Date | null
   created_at: Date
   _count: ClassCancellationRequestCountAggregateOutputType | null
+  _avg: ClassCancellationRequestAvgAggregateOutputType | null
+  _sum: ClassCancellationRequestSumAggregateOutputType | null
   _min: ClassCancellationRequestMinAggregateOutputType | null
   _max: ClassCancellationRequestMaxAggregateOutputType | null
 }
@@ -210,7 +265,10 @@ export type ClassCancellationRequestWhereInput = {
   user_id?: Prisma.StringFilter<"ClassCancellationRequest"> | string
   class_schedule_id?: Prisma.StringFilter<"ClassCancellationRequest"> | string
   status?: Prisma.StringFilter<"ClassCancellationRequest"> | string
+  kind?: Prisma.StringFilter<"ClassCancellationRequest"> | string
   reason?: Prisma.StringNullableFilter<"ClassCancellationRequest"> | string | null
+  refund_type?: Prisma.StringNullableFilter<"ClassCancellationRequest"> | string | null
+  refund_amount_paise?: Prisma.IntNullableFilter<"ClassCancellationRequest"> | number | null
   decided_by?: Prisma.StringNullableFilter<"ClassCancellationRequest"> | string | null
   decided_at?: Prisma.DateTimeNullableFilter<"ClassCancellationRequest"> | Date | string | null
   created_at?: Prisma.DateTimeFilter<"ClassCancellationRequest"> | Date | string
@@ -225,7 +283,10 @@ export type ClassCancellationRequestOrderByWithRelationInput = {
   user_id?: Prisma.SortOrder
   class_schedule_id?: Prisma.SortOrder
   status?: Prisma.SortOrder
+  kind?: Prisma.SortOrder
   reason?: Prisma.SortOrderInput | Prisma.SortOrder
+  refund_type?: Prisma.SortOrderInput | Prisma.SortOrder
+  refund_amount_paise?: Prisma.SortOrderInput | Prisma.SortOrder
   decided_by?: Prisma.SortOrderInput | Prisma.SortOrder
   decided_at?: Prisma.SortOrderInput | Prisma.SortOrder
   created_at?: Prisma.SortOrder
@@ -243,7 +304,10 @@ export type ClassCancellationRequestWhereUniqueInput = Prisma.AtLeast<{
   user_id?: Prisma.StringFilter<"ClassCancellationRequest"> | string
   class_schedule_id?: Prisma.StringFilter<"ClassCancellationRequest"> | string
   status?: Prisma.StringFilter<"ClassCancellationRequest"> | string
+  kind?: Prisma.StringFilter<"ClassCancellationRequest"> | string
   reason?: Prisma.StringNullableFilter<"ClassCancellationRequest"> | string | null
+  refund_type?: Prisma.StringNullableFilter<"ClassCancellationRequest"> | string | null
+  refund_amount_paise?: Prisma.IntNullableFilter<"ClassCancellationRequest"> | number | null
   decided_by?: Prisma.StringNullableFilter<"ClassCancellationRequest"> | string | null
   decided_at?: Prisma.DateTimeNullableFilter<"ClassCancellationRequest"> | Date | string | null
   created_at?: Prisma.DateTimeFilter<"ClassCancellationRequest"> | Date | string
@@ -258,13 +322,18 @@ export type ClassCancellationRequestOrderByWithAggregationInput = {
   user_id?: Prisma.SortOrder
   class_schedule_id?: Prisma.SortOrder
   status?: Prisma.SortOrder
+  kind?: Prisma.SortOrder
   reason?: Prisma.SortOrderInput | Prisma.SortOrder
+  refund_type?: Prisma.SortOrderInput | Prisma.SortOrder
+  refund_amount_paise?: Prisma.SortOrderInput | Prisma.SortOrder
   decided_by?: Prisma.SortOrderInput | Prisma.SortOrder
   decided_at?: Prisma.SortOrderInput | Prisma.SortOrder
   created_at?: Prisma.SortOrder
   _count?: Prisma.ClassCancellationRequestCountOrderByAggregateInput
+  _avg?: Prisma.ClassCancellationRequestAvgOrderByAggregateInput
   _max?: Prisma.ClassCancellationRequestMaxOrderByAggregateInput
   _min?: Prisma.ClassCancellationRequestMinOrderByAggregateInput
+  _sum?: Prisma.ClassCancellationRequestSumOrderByAggregateInput
 }
 
 export type ClassCancellationRequestScalarWhereWithAggregatesInput = {
@@ -276,7 +345,10 @@ export type ClassCancellationRequestScalarWhereWithAggregatesInput = {
   user_id?: Prisma.StringWithAggregatesFilter<"ClassCancellationRequest"> | string
   class_schedule_id?: Prisma.StringWithAggregatesFilter<"ClassCancellationRequest"> | string
   status?: Prisma.StringWithAggregatesFilter<"ClassCancellationRequest"> | string
+  kind?: Prisma.StringWithAggregatesFilter<"ClassCancellationRequest"> | string
   reason?: Prisma.StringNullableWithAggregatesFilter<"ClassCancellationRequest"> | string | null
+  refund_type?: Prisma.StringNullableWithAggregatesFilter<"ClassCancellationRequest"> | string | null
+  refund_amount_paise?: Prisma.IntNullableWithAggregatesFilter<"ClassCancellationRequest"> | number | null
   decided_by?: Prisma.StringNullableWithAggregatesFilter<"ClassCancellationRequest"> | string | null
   decided_at?: Prisma.DateTimeNullableWithAggregatesFilter<"ClassCancellationRequest"> | Date | string | null
   created_at?: Prisma.DateTimeWithAggregatesFilter<"ClassCancellationRequest"> | Date | string
@@ -285,7 +357,10 @@ export type ClassCancellationRequestScalarWhereWithAggregatesInput = {
 export type ClassCancellationRequestCreateInput = {
   id?: string
   status?: string
+  kind?: string
   reason?: string | null
+  refund_type?: string | null
+  refund_amount_paise?: number | null
   decided_by?: string | null
   decided_at?: Date | string | null
   created_at?: Date | string
@@ -300,7 +375,10 @@ export type ClassCancellationRequestUncheckedCreateInput = {
   user_id: string
   class_schedule_id: string
   status?: string
+  kind?: string
   reason?: string | null
+  refund_type?: string | null
+  refund_amount_paise?: number | null
   decided_by?: string | null
   decided_at?: Date | string | null
   created_at?: Date | string
@@ -309,7 +387,10 @@ export type ClassCancellationRequestUncheckedCreateInput = {
 export type ClassCancellationRequestUpdateInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   status?: Prisma.StringFieldUpdateOperationsInput | string
+  kind?: Prisma.StringFieldUpdateOperationsInput | string
   reason?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  refund_type?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  refund_amount_paise?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   decided_by?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   decided_at?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   created_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -324,7 +405,10 @@ export type ClassCancellationRequestUncheckedUpdateInput = {
   user_id?: Prisma.StringFieldUpdateOperationsInput | string
   class_schedule_id?: Prisma.StringFieldUpdateOperationsInput | string
   status?: Prisma.StringFieldUpdateOperationsInput | string
+  kind?: Prisma.StringFieldUpdateOperationsInput | string
   reason?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  refund_type?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  refund_amount_paise?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   decided_by?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   decided_at?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   created_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -336,7 +420,10 @@ export type ClassCancellationRequestCreateManyInput = {
   user_id: string
   class_schedule_id: string
   status?: string
+  kind?: string
   reason?: string | null
+  refund_type?: string | null
+  refund_amount_paise?: number | null
   decided_by?: string | null
   decided_at?: Date | string | null
   created_at?: Date | string
@@ -345,7 +432,10 @@ export type ClassCancellationRequestCreateManyInput = {
 export type ClassCancellationRequestUpdateManyMutationInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   status?: Prisma.StringFieldUpdateOperationsInput | string
+  kind?: Prisma.StringFieldUpdateOperationsInput | string
   reason?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  refund_type?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  refund_amount_paise?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   decided_by?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   decided_at?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   created_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -357,7 +447,10 @@ export type ClassCancellationRequestUncheckedUpdateManyInput = {
   user_id?: Prisma.StringFieldUpdateOperationsInput | string
   class_schedule_id?: Prisma.StringFieldUpdateOperationsInput | string
   status?: Prisma.StringFieldUpdateOperationsInput | string
+  kind?: Prisma.StringFieldUpdateOperationsInput | string
   reason?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  refund_type?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  refund_amount_paise?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   decided_by?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   decided_at?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   created_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -379,10 +472,17 @@ export type ClassCancellationRequestCountOrderByAggregateInput = {
   user_id?: Prisma.SortOrder
   class_schedule_id?: Prisma.SortOrder
   status?: Prisma.SortOrder
+  kind?: Prisma.SortOrder
   reason?: Prisma.SortOrder
+  refund_type?: Prisma.SortOrder
+  refund_amount_paise?: Prisma.SortOrder
   decided_by?: Prisma.SortOrder
   decided_at?: Prisma.SortOrder
   created_at?: Prisma.SortOrder
+}
+
+export type ClassCancellationRequestAvgOrderByAggregateInput = {
+  refund_amount_paise?: Prisma.SortOrder
 }
 
 export type ClassCancellationRequestMaxOrderByAggregateInput = {
@@ -391,7 +491,10 @@ export type ClassCancellationRequestMaxOrderByAggregateInput = {
   user_id?: Prisma.SortOrder
   class_schedule_id?: Prisma.SortOrder
   status?: Prisma.SortOrder
+  kind?: Prisma.SortOrder
   reason?: Prisma.SortOrder
+  refund_type?: Prisma.SortOrder
+  refund_amount_paise?: Prisma.SortOrder
   decided_by?: Prisma.SortOrder
   decided_at?: Prisma.SortOrder
   created_at?: Prisma.SortOrder
@@ -403,10 +506,17 @@ export type ClassCancellationRequestMinOrderByAggregateInput = {
   user_id?: Prisma.SortOrder
   class_schedule_id?: Prisma.SortOrder
   status?: Prisma.SortOrder
+  kind?: Prisma.SortOrder
   reason?: Prisma.SortOrder
+  refund_type?: Prisma.SortOrder
+  refund_amount_paise?: Prisma.SortOrder
   decided_by?: Prisma.SortOrder
   decided_at?: Prisma.SortOrder
   created_at?: Prisma.SortOrder
+}
+
+export type ClassCancellationRequestSumOrderByAggregateInput = {
+  refund_amount_paise?: Prisma.SortOrder
 }
 
 export type ClassCancellationRequestCreateNestedManyWithoutProfileInput = {
@@ -538,7 +648,10 @@ export type ClassCancellationRequestUncheckedUpdateManyWithoutBookingNestedInput
 export type ClassCancellationRequestCreateWithoutProfileInput = {
   id?: string
   status?: string
+  kind?: string
   reason?: string | null
+  refund_type?: string | null
+  refund_amount_paise?: number | null
   decided_by?: string | null
   decided_at?: Date | string | null
   created_at?: Date | string
@@ -551,7 +664,10 @@ export type ClassCancellationRequestUncheckedCreateWithoutProfileInput = {
   booking_id: string
   class_schedule_id: string
   status?: string
+  kind?: string
   reason?: string | null
+  refund_type?: string | null
+  refund_amount_paise?: number | null
   decided_by?: string | null
   decided_at?: Date | string | null
   created_at?: Date | string
@@ -592,7 +708,10 @@ export type ClassCancellationRequestScalarWhereInput = {
   user_id?: Prisma.StringFilter<"ClassCancellationRequest"> | string
   class_schedule_id?: Prisma.StringFilter<"ClassCancellationRequest"> | string
   status?: Prisma.StringFilter<"ClassCancellationRequest"> | string
+  kind?: Prisma.StringFilter<"ClassCancellationRequest"> | string
   reason?: Prisma.StringNullableFilter<"ClassCancellationRequest"> | string | null
+  refund_type?: Prisma.StringNullableFilter<"ClassCancellationRequest"> | string | null
+  refund_amount_paise?: Prisma.IntNullableFilter<"ClassCancellationRequest"> | number | null
   decided_by?: Prisma.StringNullableFilter<"ClassCancellationRequest"> | string | null
   decided_at?: Prisma.DateTimeNullableFilter<"ClassCancellationRequest"> | Date | string | null
   created_at?: Prisma.DateTimeFilter<"ClassCancellationRequest"> | Date | string
@@ -601,7 +720,10 @@ export type ClassCancellationRequestScalarWhereInput = {
 export type ClassCancellationRequestCreateWithoutClass_scheduleInput = {
   id?: string
   status?: string
+  kind?: string
   reason?: string | null
+  refund_type?: string | null
+  refund_amount_paise?: number | null
   decided_by?: string | null
   decided_at?: Date | string | null
   created_at?: Date | string
@@ -614,7 +736,10 @@ export type ClassCancellationRequestUncheckedCreateWithoutClass_scheduleInput = 
   booking_id: string
   user_id: string
   status?: string
+  kind?: string
   reason?: string | null
+  refund_type?: string | null
+  refund_amount_paise?: number | null
   decided_by?: string | null
   decided_at?: Date | string | null
   created_at?: Date | string
@@ -649,7 +774,10 @@ export type ClassCancellationRequestUpdateManyWithWhereWithoutClass_scheduleInpu
 export type ClassCancellationRequestCreateWithoutBookingInput = {
   id?: string
   status?: string
+  kind?: string
   reason?: string | null
+  refund_type?: string | null
+  refund_amount_paise?: number | null
   decided_by?: string | null
   decided_at?: Date | string | null
   created_at?: Date | string
@@ -662,7 +790,10 @@ export type ClassCancellationRequestUncheckedCreateWithoutBookingInput = {
   user_id: string
   class_schedule_id: string
   status?: string
+  kind?: string
   reason?: string | null
+  refund_type?: string | null
+  refund_amount_paise?: number | null
   decided_by?: string | null
   decided_at?: Date | string | null
   created_at?: Date | string
@@ -699,7 +830,10 @@ export type ClassCancellationRequestCreateManyProfileInput = {
   booking_id: string
   class_schedule_id: string
   status?: string
+  kind?: string
   reason?: string | null
+  refund_type?: string | null
+  refund_amount_paise?: number | null
   decided_by?: string | null
   decided_at?: Date | string | null
   created_at?: Date | string
@@ -708,7 +842,10 @@ export type ClassCancellationRequestCreateManyProfileInput = {
 export type ClassCancellationRequestUpdateWithoutProfileInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   status?: Prisma.StringFieldUpdateOperationsInput | string
+  kind?: Prisma.StringFieldUpdateOperationsInput | string
   reason?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  refund_type?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  refund_amount_paise?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   decided_by?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   decided_at?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   created_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -721,7 +858,10 @@ export type ClassCancellationRequestUncheckedUpdateWithoutProfileInput = {
   booking_id?: Prisma.StringFieldUpdateOperationsInput | string
   class_schedule_id?: Prisma.StringFieldUpdateOperationsInput | string
   status?: Prisma.StringFieldUpdateOperationsInput | string
+  kind?: Prisma.StringFieldUpdateOperationsInput | string
   reason?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  refund_type?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  refund_amount_paise?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   decided_by?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   decided_at?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   created_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -732,7 +872,10 @@ export type ClassCancellationRequestUncheckedUpdateManyWithoutProfileInput = {
   booking_id?: Prisma.StringFieldUpdateOperationsInput | string
   class_schedule_id?: Prisma.StringFieldUpdateOperationsInput | string
   status?: Prisma.StringFieldUpdateOperationsInput | string
+  kind?: Prisma.StringFieldUpdateOperationsInput | string
   reason?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  refund_type?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  refund_amount_paise?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   decided_by?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   decided_at?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   created_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -743,7 +886,10 @@ export type ClassCancellationRequestCreateManyClass_scheduleInput = {
   booking_id: string
   user_id: string
   status?: string
+  kind?: string
   reason?: string | null
+  refund_type?: string | null
+  refund_amount_paise?: number | null
   decided_by?: string | null
   decided_at?: Date | string | null
   created_at?: Date | string
@@ -752,7 +898,10 @@ export type ClassCancellationRequestCreateManyClass_scheduleInput = {
 export type ClassCancellationRequestUpdateWithoutClass_scheduleInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   status?: Prisma.StringFieldUpdateOperationsInput | string
+  kind?: Prisma.StringFieldUpdateOperationsInput | string
   reason?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  refund_type?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  refund_amount_paise?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   decided_by?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   decided_at?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   created_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -765,7 +914,10 @@ export type ClassCancellationRequestUncheckedUpdateWithoutClass_scheduleInput = 
   booking_id?: Prisma.StringFieldUpdateOperationsInput | string
   user_id?: Prisma.StringFieldUpdateOperationsInput | string
   status?: Prisma.StringFieldUpdateOperationsInput | string
+  kind?: Prisma.StringFieldUpdateOperationsInput | string
   reason?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  refund_type?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  refund_amount_paise?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   decided_by?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   decided_at?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   created_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -776,7 +928,10 @@ export type ClassCancellationRequestUncheckedUpdateManyWithoutClass_scheduleInpu
   booking_id?: Prisma.StringFieldUpdateOperationsInput | string
   user_id?: Prisma.StringFieldUpdateOperationsInput | string
   status?: Prisma.StringFieldUpdateOperationsInput | string
+  kind?: Prisma.StringFieldUpdateOperationsInput | string
   reason?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  refund_type?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  refund_amount_paise?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   decided_by?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   decided_at?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   created_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -787,7 +942,10 @@ export type ClassCancellationRequestCreateManyBookingInput = {
   user_id: string
   class_schedule_id: string
   status?: string
+  kind?: string
   reason?: string | null
+  refund_type?: string | null
+  refund_amount_paise?: number | null
   decided_by?: string | null
   decided_at?: Date | string | null
   created_at?: Date | string
@@ -796,7 +954,10 @@ export type ClassCancellationRequestCreateManyBookingInput = {
 export type ClassCancellationRequestUpdateWithoutBookingInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   status?: Prisma.StringFieldUpdateOperationsInput | string
+  kind?: Prisma.StringFieldUpdateOperationsInput | string
   reason?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  refund_type?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  refund_amount_paise?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   decided_by?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   decided_at?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   created_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -809,7 +970,10 @@ export type ClassCancellationRequestUncheckedUpdateWithoutBookingInput = {
   user_id?: Prisma.StringFieldUpdateOperationsInput | string
   class_schedule_id?: Prisma.StringFieldUpdateOperationsInput | string
   status?: Prisma.StringFieldUpdateOperationsInput | string
+  kind?: Prisma.StringFieldUpdateOperationsInput | string
   reason?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  refund_type?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  refund_amount_paise?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   decided_by?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   decided_at?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   created_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -820,7 +984,10 @@ export type ClassCancellationRequestUncheckedUpdateManyWithoutBookingInput = {
   user_id?: Prisma.StringFieldUpdateOperationsInput | string
   class_schedule_id?: Prisma.StringFieldUpdateOperationsInput | string
   status?: Prisma.StringFieldUpdateOperationsInput | string
+  kind?: Prisma.StringFieldUpdateOperationsInput | string
   reason?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  refund_type?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  refund_amount_paise?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   decided_by?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   decided_at?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   created_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -834,7 +1001,10 @@ export type ClassCancellationRequestSelect<ExtArgs extends runtime.Types.Extensi
   user_id?: boolean
   class_schedule_id?: boolean
   status?: boolean
+  kind?: boolean
   reason?: boolean
+  refund_type?: boolean
+  refund_amount_paise?: boolean
   decided_by?: boolean
   decided_at?: boolean
   created_at?: boolean
@@ -849,7 +1019,10 @@ export type ClassCancellationRequestSelectCreateManyAndReturn<ExtArgs extends ru
   user_id?: boolean
   class_schedule_id?: boolean
   status?: boolean
+  kind?: boolean
   reason?: boolean
+  refund_type?: boolean
+  refund_amount_paise?: boolean
   decided_by?: boolean
   decided_at?: boolean
   created_at?: boolean
@@ -864,7 +1037,10 @@ export type ClassCancellationRequestSelectUpdateManyAndReturn<ExtArgs extends ru
   user_id?: boolean
   class_schedule_id?: boolean
   status?: boolean
+  kind?: boolean
   reason?: boolean
+  refund_type?: boolean
+  refund_amount_paise?: boolean
   decided_by?: boolean
   decided_at?: boolean
   created_at?: boolean
@@ -879,13 +1055,16 @@ export type ClassCancellationRequestSelectScalar = {
   user_id?: boolean
   class_schedule_id?: boolean
   status?: boolean
+  kind?: boolean
   reason?: boolean
+  refund_type?: boolean
+  refund_amount_paise?: boolean
   decided_by?: boolean
   decided_at?: boolean
   created_at?: boolean
 }
 
-export type ClassCancellationRequestOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "booking_id" | "user_id" | "class_schedule_id" | "status" | "reason" | "decided_by" | "decided_at" | "created_at", ExtArgs["result"]["classCancellationRequest"]>
+export type ClassCancellationRequestOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "booking_id" | "user_id" | "class_schedule_id" | "status" | "kind" | "reason" | "refund_type" | "refund_amount_paise" | "decided_by" | "decided_at" | "created_at", ExtArgs["result"]["classCancellationRequest"]>
 export type ClassCancellationRequestInclude<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   booking?: boolean | Prisma.BookingDefaultArgs<ExtArgs>
   profile?: boolean | Prisma.ProfileDefaultArgs<ExtArgs>
@@ -918,7 +1097,19 @@ export type $ClassCancellationRequestPayload<ExtArgs extends runtime.Types.Exten
      * "open" | "approved" | "denied"
      */
     status: string
+    /**
+     * "late_cancel" (after-cutoff cancel approval) | "refund" (member refund request on an already-cancelled booking).
+     */
+    kind: string
     reason: string | null
+    /**
+     * Admin's refund decision for kind="refund": "amount" (money) | "class_pass".
+     */
+    refund_type: string | null
+    /**
+     * Approved money refund in paise (refund_type="amount").
+     */
+    refund_amount_paise: number | null
     decided_by: string | null
     decided_at: Date | null
     created_at: Date
@@ -1353,7 +1544,10 @@ export interface ClassCancellationRequestFieldRefs {
   readonly user_id: Prisma.FieldRef<"ClassCancellationRequest", 'String'>
   readonly class_schedule_id: Prisma.FieldRef<"ClassCancellationRequest", 'String'>
   readonly status: Prisma.FieldRef<"ClassCancellationRequest", 'String'>
+  readonly kind: Prisma.FieldRef<"ClassCancellationRequest", 'String'>
   readonly reason: Prisma.FieldRef<"ClassCancellationRequest", 'String'>
+  readonly refund_type: Prisma.FieldRef<"ClassCancellationRequest", 'String'>
+  readonly refund_amount_paise: Prisma.FieldRef<"ClassCancellationRequest", 'Int'>
   readonly decided_by: Prisma.FieldRef<"ClassCancellationRequest", 'String'>
   readonly decided_at: Prisma.FieldRef<"ClassCancellationRequest", 'DateTime'>
   readonly created_at: Prisma.FieldRef<"ClassCancellationRequest", 'DateTime'>

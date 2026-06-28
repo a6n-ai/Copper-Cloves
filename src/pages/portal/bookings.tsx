@@ -27,6 +27,19 @@ import { bookingStatusPill, attendanceOutcomePill } from "@/lib/pillMaps";
 
 import { canCheckInNow, checkInWindowBounds } from "@/lib/bookingAttendance";
 
+type RefundOutcome = "class_pass" | "none_unlimited" | "none_no_pass";
+interface CancelPreview {
+  scope: "self" | "group";
+  seats: number;
+  affected: { name: string; isYou: boolean; refund: RefundOutcome }[];
+}
+
+function refundOutcomeText(o: RefundOutcome): string {
+  if (o === "class_pass") return "1 Class Pass";
+  if (o === "none_unlimited") return "no refund (unlimited)";
+  return "no refund";
+}
+
 interface Booking {
   id: string;
   class_name: string;
@@ -258,6 +271,7 @@ export default function MyBookingsPage() {
   const [canceling, setCanceling] = useState(false);
   const [canRefund, setCanRefund] = useState(false);
   const [cancelReason, setCancelReason] = useState("");
+  const [cancelPreview, setCancelPreview] = useState<CancelPreview | null>(null);
   const [currentPage, setCurrentPage] = useState(1);
   const [filter, setFilter] = useState<"all" | "upcoming" | "past">("all");
   const [sortAsc, setSortAsc] = useState(false);
@@ -307,15 +321,21 @@ export default function MyBookingsPage() {
     // self-cancel after the configured cutoff falls back to a request, and a
     // request before the cutoff falls back to a self-cancel.
     setCanRefund(hoursDiff > 6);
+    // Dry-run: who gets cancelled + what refund each person receives.
+    setCancelPreview(null);
+    fetch(`/api/bookings/${booking.id}/cancel-preview`)
+      .then((r) => (r.ok ? r.json() : null))
+      .then((d: CancelPreview | null) => setCancelPreview(d))
+      .catch(() => {});
     setShowCancelDialog(true);
   }
 
   // Self-serve cancel (before cutoff). Returns "ok" | "needs_request" | "error".
-  async function trySelfCancel(bookingId: string): Promise<"ok" | "needs_request" | "error"> {
+  async function trySelfCancel(bookingId: string, reason?: string): Promise<"ok" | "needs_request" | "error"> {
     const res = await fetch("/api/bookings", {
       method: "PATCH",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ id: bookingId, status: "cancelled" }),
+      body: JSON.stringify({ id: bookingId, status: "cancelled", reason: reason?.trim() || undefined }),
     });
     if (res.ok) return "ok";
     const data = await res.json().catch(() => ({}));
@@ -343,7 +363,7 @@ export default function MyBookingsPage() {
       setCanceling(true);
 
       if (canRefund) {
-        const r = await trySelfCancel(bookingId);
+        const r = await trySelfCancel(bookingId, cancelReason);
         if (r === "ok") {
           setBookings((prev) => prev.filter((b) => b.id !== bookingId));
           toast({ title: "Booking cancelled", description: "A refund pass has been added to your account." });
@@ -362,7 +382,7 @@ export default function MyBookingsPage() {
         if (rr === "ok") {
           toast({ title: "Request submitted", description: "The studio will review your cancellation request." });
         } else if (rr === "can_self_cancel") {
-          const r = await trySelfCancel(bookingId);
+          const r = await trySelfCancel(bookingId, cancelReason);
           if (r === "ok") {
             setBookings((prev) => prev.filter((b) => b.id !== bookingId));
             toast({ title: "Booking cancelled", description: "A refund pass has been added to your account." });
@@ -616,6 +636,26 @@ export default function MyBookingsPage() {
               )}
             </AlertDescription>
           </Alert>
+
+          {cancelPreview && (
+            <div className="rounded-lg border border-sage/20 bg-sage/[0.04] p-3">
+              <p className="font-body text-xs font-medium text-charcoal/70 mb-1.5">
+                {cancelPreview.scope === "group"
+                  ? `This cancels ${cancelPreview.seats} seat${cancelPreview.seats > 1 ? "s" : ""} — you and your group:`
+                  : "This cancels your seat only:"}
+              </p>
+              <ul className="space-y-1">
+                {cancelPreview.affected.map((a, i) => (
+                  <li key={`${a.name}-${i}`} className="flex items-center justify-between font-body text-sm">
+                    <span className="text-charcoal">{a.isYou ? "You" : a.name}</span>
+                    <span className={a.refund === "class_pass" ? "font-medium text-sage" : "text-charcoal/50"}>
+                      {refundOutcomeText(a.refund)}
+                    </span>
+                  </li>
+                ))}
+              </ul>
+            </div>
+          )}
 
           {!canRefund && (
             <div className="grid gap-1.5 pt-1">

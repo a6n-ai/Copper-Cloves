@@ -37,6 +37,24 @@ export interface GrantCancellationPassResult {
  * True when a cancelled seat consumed a class credit and is owed a refund pass:
  * belongs to a Profile, was paid with a non-unlimited pass, and was not attended.
  */
+export type RefundOutcome = "class_pass" | "none_unlimited" | "none_no_pass";
+
+/**
+ * What a seat would receive if cancelled now — drives the cancel-dialog preview
+ * AND the actual grant, so the two can't drift. Unlimited holders consume
+ * nothing; a non-unlimited seat with an attached pass (not yet attended) earns a
+ * `1 Class Pass`; anything else gets nothing.
+ */
+export function refundOutcomeFor(row: {
+  user_package_id?: string | null;
+  checked_in?: boolean | null;
+  is_unlimited?: boolean | null;
+}): RefundOutcome {
+  if (row.is_unlimited) return "none_unlimited";
+  if (row.user_package_id && !row.checked_in) return "class_pass";
+  return "none_no_pass";
+}
+
 export function ownSeatRefundEligible(row: {
   user_id?: string | null;
   user_package_id?: string | null;
@@ -100,6 +118,7 @@ export async function grantCancellationPass(
 export async function grantRefundForBookingRow(
   tx: TxClient,
   row: {
+    id?: string | null;
     user_id?: string | null;
     user_package_id?: string | null;
     checked_in?: boolean | null;
@@ -116,6 +135,14 @@ export async function grantRefundForBookingRow(
   if (anonGuests > 0 && row.user_id) {
     const r = await grantCancellationPass(tx, row.user_id, anonGuests);
     granted.push(...r.grantedUserPackageIds);
+  }
+  // Stamp the cancelled booking so the member portal can show "Refunded:
+  // 1 Class Pass" and gate the manual refund-request button (no double refund).
+  if (granted.length > 0 && row.id) {
+    await tx.booking.update({
+      where: { id: row.id },
+      data: { refund_status: "auto_pass", refund_user_package_id: granted[0] },
+    });
   }
   return granted;
 }
@@ -172,6 +199,7 @@ export async function cancelBookingWithRefund(
     // The booker (invited_by_user_id === null) drags their whole group along; an
     // invited row cancels only itself.
     let groupRows: Array<{
+      id: string;
       user_id: string;
       user_package_id: string | null;
       checked_in: boolean;
@@ -192,7 +220,12 @@ export async function cancelBookingWithRefund(
 
     await tx.booking.update({
       where: { id: existing.id },
-      data: { status: STATUS_CANCELLED, cancellation_date: cancelledAt },
+      data: {
+        status: STATUS_CANCELLED,
+        cancellation_date: cancelledAt,
+        cancelled_by: _options.byAdmin ? "admin" : "member",
+        cancellation_reason: _options.reason ?? null,
+      },
     });
 
     if (groupRows.length > 0 && existing.class_schedule_id) {
@@ -202,7 +235,12 @@ export async function cancelBookingWithRefund(
           class_schedule_id: existing.class_schedule_id,
           status: { in: [...OCCUPYING_STATUSES] },
         },
-        data: { status: STATUS_CANCELLED, cancellation_date: cancelledAt },
+        data: {
+          status: STATUS_CANCELLED,
+          cancellation_date: cancelledAt,
+          cancelled_by: _options.byAdmin ? "admin" : "member",
+          cancellation_reason: _options.reason ?? null,
+        },
       });
     }
 
@@ -213,6 +251,7 @@ export async function cancelBookingWithRefund(
     // Refund the booker's own row.
     granted.push(
       ...(await grantRefundForBookingRow(tx, {
+        id: existing.id,
         user_id: existing.user_id,
         user_package_id: existing.user_package_id,
         checked_in: existing.checked_in,
@@ -225,6 +264,7 @@ export async function cancelBookingWithRefund(
     for (const row of groupRows) {
       granted.push(
         ...(await grantRefundForBookingRow(tx, {
+          id: row.id,
           user_id: row.user_id,
           user_package_id: row.user_package_id,
           checked_in: row.checked_in,

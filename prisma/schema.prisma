@@ -409,6 +409,16 @@ model Booking {
   /// Idempotency guard for the ~30m "complete your payment" recovery email.
   recovery_email_sent_at DateTime?
   cancellation_date DateTime?
+  /// Free-text reason captured at cancel time (late-cancel request reason, admin note, or member input).
+  cancellation_reason String?
+  /// Who triggered the cancel: "member" | "admin" | "system".
+  cancelled_by      String?
+  /// Per-booking refund state: "none" | "auto_pass" | "requested" | "approved_pass" | "approved_amount" | "denied".
+  refund_status     String?   @default("none")
+  /// The granted refund UserPackage (auto-grant on cancel, or admin-approved class-pass refund).
+  refund_user_package_id String?
+  /// Approved money refund amount in paise (when an admin refunds as money rather than a pass).
+  refund_amount_paise Int?
   class_name        String?
   class_time        String?
   /// Snapshot of the booked person's email (booker or guest) for quick lookup/audit.
@@ -1138,7 +1148,13 @@ model ClassCancellationRequest {
   class_schedule_id String
   /// "open" | "approved" | "denied"
   status            String    @default("open")
+  /// "late_cancel" (after-cutoff cancel approval) | "refund" (member refund request on an already-cancelled booking).
+  kind              String    @default("late_cancel")
   reason            String?
+  /// Admin's refund decision for kind="refund": "amount" (money) | "class_pass".
+  refund_type       String?
+  /// Approved money refund in paise (refund_type="amount").
+  refund_amount_paise Int?
   decided_by        String?
   decided_at        DateTime?
   created_at        DateTime  @default(now())

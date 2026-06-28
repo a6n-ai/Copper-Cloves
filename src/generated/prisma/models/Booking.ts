@@ -27,10 +27,12 @@ export type AggregateBooking = {
 }
 
 export type BookingAvgAggregateOutputType = {
+  refund_amount_paise: number | null
   extra_guest_count: number | null
 }
 
 export type BookingSumAggregateOutputType = {
+  refund_amount_paise: number | null
   extra_guest_count: number | null
 }
 
@@ -47,6 +49,11 @@ export type BookingMinAggregateOutputType = {
   hold_expires_at: Date | null
   recovery_email_sent_at: Date | null
   cancellation_date: Date | null
+  cancellation_reason: string | null
+  cancelled_by: string | null
+  refund_status: string | null
+  refund_user_package_id: string | null
+  refund_amount_paise: number | null
   class_name: string | null
   class_time: string | null
   email: string | null
@@ -71,6 +78,11 @@ export type BookingMaxAggregateOutputType = {
   hold_expires_at: Date | null
   recovery_email_sent_at: Date | null
   cancellation_date: Date | null
+  cancellation_reason: string | null
+  cancelled_by: string | null
+  refund_status: string | null
+  refund_user_package_id: string | null
+  refund_amount_paise: number | null
   class_name: string | null
   class_time: string | null
   email: string | null
@@ -95,6 +107,11 @@ export type BookingCountAggregateOutputType = {
   hold_expires_at: number
   recovery_email_sent_at: number
   cancellation_date: number
+  cancellation_reason: number
+  cancelled_by: number
+  refund_status: number
+  refund_user_package_id: number
+  refund_amount_paise: number
   class_name: number
   class_time: number
   email: number
@@ -111,10 +128,12 @@ export type BookingCountAggregateOutputType = {
 
 
 export type BookingAvgAggregateInputType = {
+  refund_amount_paise?: true
   extra_guest_count?: true
 }
 
 export type BookingSumAggregateInputType = {
+  refund_amount_paise?: true
   extra_guest_count?: true
 }
 
@@ -131,6 +150,11 @@ export type BookingMinAggregateInputType = {
   hold_expires_at?: true
   recovery_email_sent_at?: true
   cancellation_date?: true
+  cancellation_reason?: true
+  cancelled_by?: true
+  refund_status?: true
+  refund_user_package_id?: true
+  refund_amount_paise?: true
   class_name?: true
   class_time?: true
   email?: true
@@ -155,6 +179,11 @@ export type BookingMaxAggregateInputType = {
   hold_expires_at?: true
   recovery_email_sent_at?: true
   cancellation_date?: true
+  cancellation_reason?: true
+  cancelled_by?: true
+  refund_status?: true
+  refund_user_package_id?: true
+  refund_amount_paise?: true
   class_name?: true
   class_time?: true
   email?: true
@@ -179,6 +208,11 @@ export type BookingCountAggregateInputType = {
   hold_expires_at?: true
   recovery_email_sent_at?: true
   cancellation_date?: true
+  cancellation_reason?: true
+  cancelled_by?: true
+  refund_status?: true
+  refund_user_package_id?: true
+  refund_amount_paise?: true
   class_name?: true
   class_time?: true
   email?: true
@@ -292,6 +326,11 @@ export type BookingGroupByOutputType = {
   hold_expires_at: Date | null
   recovery_email_sent_at: Date | null
   cancellation_date: Date | null
+  cancellation_reason: string | null
+  cancelled_by: string | null
+  refund_status: string | null
+  refund_user_package_id: string | null
+  refund_amount_paise: number | null
   class_name: string | null
   class_time: string | null
   email: string | null
@@ -341,6 +380,11 @@ export type BookingWhereInput = {
   hold_expires_at?: Prisma.DateTimeNullableFilter<"Booking"> | Date | string | null
   recovery_email_sent_at?: Prisma.DateTimeNullableFilter<"Booking"> | Date | string | null
   cancellation_date?: Prisma.DateTimeNullableFilter<"Booking"> | Date | string | null
+  cancellation_reason?: Prisma.StringNullableFilter<"Booking"> | string | null
+  cancelled_by?: Prisma.StringNullableFilter<"Booking"> | string | null
+  refund_status?: Prisma.StringNullableFilter<"Booking"> | string | null
+  refund_user_package_id?: Prisma.StringNullableFilter<"Booking"> | string | null
+  refund_amount_paise?: Prisma.IntNullableFilter<"Booking"> | number | null
   class_name?: Prisma.StringNullableFilter<"Booking"> | string | null
   class_time?: Prisma.StringNullableFilter<"Booking"> | string | null
   email?: Prisma.StringNullableFilter<"Booking"> | string | null
@@ -376,6 +420,11 @@ export type BookingOrderByWithRelationInput = {
   hold_expires_at?: Prisma.SortOrderInput | Prisma.SortOrder
   recovery_email_sent_at?: Prisma.SortOrderInput | Prisma.SortOrder
   cancellation_date?: Prisma.SortOrderInput | Prisma.SortOrder
+  cancellation_reason?: Prisma.SortOrderInput | Prisma.SortOrder
+  cancelled_by?: Prisma.SortOrderInput | Prisma.SortOrder
+  refund_status?: Prisma.SortOrderInput | Prisma.SortOrder
+  refund_user_package_id?: Prisma.SortOrderInput | Prisma.SortOrder
+  refund_amount_paise?: Prisma.SortOrderInput | Prisma.SortOrder
   class_name?: Prisma.SortOrderInput | Prisma.SortOrder
   class_time?: Prisma.SortOrderInput | Prisma.SortOrder
   email?: Prisma.SortOrderInput | Prisma.SortOrder
@@ -414,6 +463,11 @@ export type BookingWhereUniqueInput = Prisma.AtLeast<{
   hold_expires_at?: Prisma.DateTimeNullableFilter<"Booking"> | Date | string | null
   recovery_email_sent_at?: Prisma.DateTimeNullableFilter<"Booking"> | Date | string | null
   cancellation_date?: Prisma.DateTimeNullableFilter<"Booking"> | Date | string | null
+  cancellation_reason?: Prisma.StringNullableFilter<"Booking"> | string | null
+  cancelled_by?: Prisma.StringNullableFilter<"Booking"> | string | null
+  refund_status?: Prisma.StringNullableFilter<"Booking"> | string | null
+  refund_user_package_id?: Prisma.StringNullableFilter<"Booking"> | string | null
+  refund_amount_paise?: Prisma.IntNullableFilter<"Booking"> | number | null
   class_name?: Prisma.StringNullableFilter<"Booking"> | string | null
   class_time?: Prisma.StringNullableFilter<"Booking"> | string | null
   email?: Prisma.StringNullableFilter<"Booking"> | string | null
@@ -449,6 +503,11 @@ export type BookingOrderByWithAggregationInput = {
   hold_expires_at?: Prisma.SortOrderInput | Prisma.SortOrder
   recovery_email_sent_at?: Prisma.SortOrderInput | Prisma.SortOrder
   cancellation_date?: Prisma.SortOrderInput | Prisma.SortOrder
+  cancellation_reason?: Prisma.SortOrderInput | Prisma.SortOrder
+  cancelled_by?: Prisma.SortOrderInput | Prisma.SortOrder
+  refund_status?: Prisma.SortOrderInput | Prisma.SortOrder
+  refund_user_package_id?: Prisma.SortOrderInput | Prisma.SortOrder
+  refund_amount_paise?: Prisma.SortOrderInput | Prisma.SortOrder
   class_name?: Prisma.SortOrderInput | Prisma.SortOrder
   class_time?: Prisma.SortOrderInput | Prisma.SortOrder
   email?: Prisma.SortOrderInput | Prisma.SortOrder
@@ -483,6 +542,11 @@ export type BookingScalarWhereWithAggregatesInput = {
   hold_expires_at?: Prisma.DateTimeNullableWithAggregatesFilter<"Booking"> | Date | string | null
   recovery_email_sent_at?: Prisma.DateTimeNullableWithAggregatesFilter<"Booking"> | Date | string | null
   cancellation_date?: Prisma.DateTimeNullableWithAggregatesFilter<"Booking"> | Date | string | null
+  cancellation_reason?: Prisma.StringNullableWithAggregatesFilter<"Booking"> | string | null
+  cancelled_by?: Prisma.StringNullableWithAggregatesFilter<"Booking"> | string | null
+  refund_status?: Prisma.StringNullableWithAggregatesFilter<"Booking"> | string | null
+  refund_user_package_id?: Prisma.StringNullableWithAggregatesFilter<"Booking"> | string | null
+  refund_amount_paise?: Prisma.IntNullableWithAggregatesFilter<"Booking"> | number | null
   class_name?: Prisma.StringNullableWithAggregatesFilter<"Booking"> | string | null
   class_time?: Prisma.StringNullableWithAggregatesFilter<"Booking"> | string | null
   email?: Prisma.StringNullableWithAggregatesFilter<"Booking"> | string | null
@@ -506,6 +570,11 @@ export type BookingCreateInput = {
   hold_expires_at?: Date | string | null
   recovery_email_sent_at?: Date | string | null
   cancellation_date?: Date | string | null
+  cancellation_reason?: string | null
+  cancelled_by?: string | null
+  refund_status?: string | null
+  refund_user_package_id?: string | null
+  refund_amount_paise?: number | null
   class_name?: string | null
   class_time?: string | null
   email?: string | null
@@ -540,6 +609,11 @@ export type BookingUncheckedCreateInput = {
   hold_expires_at?: Date | string | null
   recovery_email_sent_at?: Date | string | null
   cancellation_date?: Date | string | null
+  cancellation_reason?: string | null
+  cancelled_by?: string | null
+  refund_status?: string | null
+  refund_user_package_id?: string | null
+  refund_amount_paise?: number | null
   class_name?: string | null
   class_time?: string | null
   email?: string | null
@@ -568,6 +642,11 @@ export type BookingUpdateInput = {
   hold_expires_at?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   recovery_email_sent_at?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   cancellation_date?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  cancellation_reason?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  cancelled_by?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  refund_status?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  refund_user_package_id?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  refund_amount_paise?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   class_name?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   class_time?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   email?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -602,6 +681,11 @@ export type BookingUncheckedUpdateInput = {
   hold_expires_at?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   recovery_email_sent_at?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   cancellation_date?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  cancellation_reason?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  cancelled_by?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  refund_status?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  refund_user_package_id?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  refund_amount_paise?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   class_name?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   class_time?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   email?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -633,6 +717,11 @@ export type BookingCreateManyInput = {
   hold_expires_at?: Date | string | null
   recovery_email_sent_at?: Date | string | null
   cancellation_date?: Date | string | null
+  cancellation_reason?: string | null
+  cancelled_by?: string | null
+  refund_status?: string | null
+  refund_user_package_id?: string | null
+  refund_amount_paise?: number | null
   class_name?: string | null
   class_time?: string | null
   email?: string | null
@@ -656,6 +745,11 @@ export type BookingUpdateManyMutationInput = {
   hold_expires_at?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   recovery_email_sent_at?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   cancellation_date?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  cancellation_reason?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  cancelled_by?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  refund_status?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  refund_user_package_id?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  refund_amount_paise?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   class_name?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   class_time?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   email?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -681,6 +775,11 @@ export type BookingUncheckedUpdateManyInput = {
   hold_expires_at?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   recovery_email_sent_at?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   cancellation_date?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  cancellation_reason?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  cancelled_by?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  refund_status?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  refund_user_package_id?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  refund_amount_paise?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   class_name?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   class_time?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   email?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -722,6 +821,11 @@ export type BookingCountOrderByAggregateInput = {
   hold_expires_at?: Prisma.SortOrder
   recovery_email_sent_at?: Prisma.SortOrder
   cancellation_date?: Prisma.SortOrder
+  cancellation_reason?: Prisma.SortOrder
+  cancelled_by?: Prisma.SortOrder
+  refund_status?: Prisma.SortOrder
+  refund_user_package_id?: Prisma.SortOrder
+  refund_amount_paise?: Prisma.SortOrder
   class_name?: Prisma.SortOrder
   class_time?: Prisma.SortOrder
   email?: Prisma.SortOrder
@@ -736,6 +840,7 @@ export type BookingCountOrderByAggregateInput = {
 }
 
 export type BookingAvgOrderByAggregateInput = {
+  refund_amount_paise?: Prisma.SortOrder
   extra_guest_count?: Prisma.SortOrder
 }
 
@@ -752,6 +857,11 @@ export type BookingMaxOrderByAggregateInput = {
   hold_expires_at?: Prisma.SortOrder
   recovery_email_sent_at?: Prisma.SortOrder
   cancellation_date?: Prisma.SortOrder
+  cancellation_reason?: Prisma.SortOrder
+  cancelled_by?: Prisma.SortOrder
+  refund_status?: Prisma.SortOrder
+  refund_user_package_id?: Prisma.SortOrder
+  refund_amount_paise?: Prisma.SortOrder
   class_name?: Prisma.SortOrder
   class_time?: Prisma.SortOrder
   email?: Prisma.SortOrder
@@ -776,6 +886,11 @@ export type BookingMinOrderByAggregateInput = {
   hold_expires_at?: Prisma.SortOrder
   recovery_email_sent_at?: Prisma.SortOrder
   cancellation_date?: Prisma.SortOrder
+  cancellation_reason?: Prisma.SortOrder
+  cancelled_by?: Prisma.SortOrder
+  refund_status?: Prisma.SortOrder
+  refund_user_package_id?: Prisma.SortOrder
+  refund_amount_paise?: Prisma.SortOrder
   class_name?: Prisma.SortOrder
   class_time?: Prisma.SortOrder
   email?: Prisma.SortOrder
@@ -788,6 +903,7 @@ export type BookingMinOrderByAggregateInput = {
 }
 
 export type BookingSumOrderByAggregateInput = {
+  refund_amount_paise?: Prisma.SortOrder
   extra_guest_count?: Prisma.SortOrder
 }
 
@@ -1052,6 +1168,11 @@ export type BookingCreateWithoutProfileInput = {
   hold_expires_at?: Date | string | null
   recovery_email_sent_at?: Date | string | null
   cancellation_date?: Date | string | null
+  cancellation_reason?: string | null
+  cancelled_by?: string | null
+  refund_status?: string | null
+  refund_user_package_id?: string | null
+  refund_amount_paise?: number | null
   class_name?: string | null
   class_time?: string | null
   email?: string | null
@@ -1084,6 +1205,11 @@ export type BookingUncheckedCreateWithoutProfileInput = {
   hold_expires_at?: Date | string | null
   recovery_email_sent_at?: Date | string | null
   cancellation_date?: Date | string | null
+  cancellation_reason?: string | null
+  cancelled_by?: string | null
+  refund_status?: string | null
+  refund_user_package_id?: string | null
+  refund_amount_paise?: number | null
   class_name?: string | null
   class_time?: string | null
   email?: string | null
@@ -1122,6 +1248,11 @@ export type BookingCreateWithoutInvited_byInput = {
   hold_expires_at?: Date | string | null
   recovery_email_sent_at?: Date | string | null
   cancellation_date?: Date | string | null
+  cancellation_reason?: string | null
+  cancelled_by?: string | null
+  refund_status?: string | null
+  refund_user_package_id?: string | null
+  refund_amount_paise?: number | null
   class_name?: string | null
   class_time?: string | null
   email?: string | null
@@ -1155,6 +1286,11 @@ export type BookingUncheckedCreateWithoutInvited_byInput = {
   hold_expires_at?: Date | string | null
   recovery_email_sent_at?: Date | string | null
   cancellation_date?: Date | string | null
+  cancellation_reason?: string | null
+  cancelled_by?: string | null
+  refund_status?: string | null
+  refund_user_package_id?: string | null
+  refund_amount_paise?: number | null
   class_name?: string | null
   class_time?: string | null
   email?: string | null
@@ -1214,6 +1350,11 @@ export type BookingScalarWhereInput = {
   hold_expires_at?: Prisma.DateTimeNullableFilter<"Booking"> | Date | string | null
   recovery_email_sent_at?: Prisma.DateTimeNullableFilter<"Booking"> | Date | string | null
   cancellation_date?: Prisma.DateTimeNullableFilter<"Booking"> | Date | string | null
+  cancellation_reason?: Prisma.StringNullableFilter<"Booking"> | string | null
+  cancelled_by?: Prisma.StringNullableFilter<"Booking"> | string | null
+  refund_status?: Prisma.StringNullableFilter<"Booking"> | string | null
+  refund_user_package_id?: Prisma.StringNullableFilter<"Booking"> | string | null
+  refund_amount_paise?: Prisma.IntNullableFilter<"Booking"> | number | null
   class_name?: Prisma.StringNullableFilter<"Booking"> | string | null
   class_time?: Prisma.StringNullableFilter<"Booking"> | string | null
   email?: Prisma.StringNullableFilter<"Booking"> | string | null
@@ -1253,6 +1394,11 @@ export type BookingCreateWithoutCoupon_redemptionsInput = {
   hold_expires_at?: Date | string | null
   recovery_email_sent_at?: Date | string | null
   cancellation_date?: Date | string | null
+  cancellation_reason?: string | null
+  cancelled_by?: string | null
+  refund_status?: string | null
+  refund_user_package_id?: string | null
+  refund_amount_paise?: number | null
   class_name?: string | null
   class_time?: string | null
   email?: string | null
@@ -1286,6 +1432,11 @@ export type BookingUncheckedCreateWithoutCoupon_redemptionsInput = {
   hold_expires_at?: Date | string | null
   recovery_email_sent_at?: Date | string | null
   cancellation_date?: Date | string | null
+  cancellation_reason?: string | null
+  cancelled_by?: string | null
+  refund_status?: string | null
+  refund_user_package_id?: string | null
+  refund_amount_paise?: number | null
   class_name?: string | null
   class_time?: string | null
   email?: string | null
@@ -1329,6 +1480,11 @@ export type BookingUpdateWithoutCoupon_redemptionsInput = {
   hold_expires_at?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   recovery_email_sent_at?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   cancellation_date?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  cancellation_reason?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  cancelled_by?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  refund_status?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  refund_user_package_id?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  refund_amount_paise?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   class_name?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   class_time?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   email?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -1362,6 +1518,11 @@ export type BookingUncheckedUpdateWithoutCoupon_redemptionsInput = {
   hold_expires_at?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   recovery_email_sent_at?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   cancellation_date?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  cancellation_reason?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  cancelled_by?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  refund_status?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  refund_user_package_id?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  refund_amount_paise?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   class_name?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   class_time?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   email?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -1389,6 +1550,11 @@ export type BookingCreateWithoutClass_scheduleInput = {
   hold_expires_at?: Date | string | null
   recovery_email_sent_at?: Date | string | null
   cancellation_date?: Date | string | null
+  cancellation_reason?: string | null
+  cancelled_by?: string | null
+  refund_status?: string | null
+  refund_user_package_id?: string | null
+  refund_amount_paise?: number | null
   class_name?: string | null
   class_time?: string | null
   email?: string | null
@@ -1421,6 +1587,11 @@ export type BookingUncheckedCreateWithoutClass_scheduleInput = {
   hold_expires_at?: Date | string | null
   recovery_email_sent_at?: Date | string | null
   cancellation_date?: Date | string | null
+  cancellation_reason?: string | null
+  cancelled_by?: string | null
+  refund_status?: string | null
+  refund_user_package_id?: string | null
+  refund_amount_paise?: number | null
   class_name?: string | null
   class_time?: string | null
   email?: string | null
@@ -1475,6 +1646,11 @@ export type BookingCreateWithoutUser_packageInput = {
   hold_expires_at?: Date | string | null
   recovery_email_sent_at?: Date | string | null
   cancellation_date?: Date | string | null
+  cancellation_reason?: string | null
+  cancelled_by?: string | null
+  refund_status?: string | null
+  refund_user_package_id?: string | null
+  refund_amount_paise?: number | null
   class_name?: string | null
   class_time?: string | null
   email?: string | null
@@ -1507,6 +1683,11 @@ export type BookingUncheckedCreateWithoutUser_packageInput = {
   hold_expires_at?: Date | string | null
   recovery_email_sent_at?: Date | string | null
   cancellation_date?: Date | string | null
+  cancellation_reason?: string | null
+  cancelled_by?: string | null
+  refund_status?: string | null
+  refund_user_package_id?: string | null
+  refund_amount_paise?: number | null
   class_name?: string | null
   class_time?: string | null
   email?: string | null
@@ -1561,6 +1742,11 @@ export type BookingCreateWithoutRazorpay_orderInput = {
   hold_expires_at?: Date | string | null
   recovery_email_sent_at?: Date | string | null
   cancellation_date?: Date | string | null
+  cancellation_reason?: string | null
+  cancelled_by?: string | null
+  refund_status?: string | null
+  refund_user_package_id?: string | null
+  refund_amount_paise?: number | null
   class_name?: string | null
   class_time?: string | null
   email?: string | null
@@ -1594,6 +1780,11 @@ export type BookingUncheckedCreateWithoutRazorpay_orderInput = {
   hold_expires_at?: Date | string | null
   recovery_email_sent_at?: Date | string | null
   cancellation_date?: Date | string | null
+  cancellation_reason?: string | null
+  cancelled_by?: string | null
+  refund_status?: string | null
+  refund_user_package_id?: string | null
+  refund_amount_paise?: number | null
   class_name?: string | null
   class_time?: string | null
   email?: string | null
@@ -1637,6 +1828,11 @@ export type BookingUpdateWithoutRazorpay_orderInput = {
   hold_expires_at?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   recovery_email_sent_at?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   cancellation_date?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  cancellation_reason?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  cancelled_by?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  refund_status?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  refund_user_package_id?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  refund_amount_paise?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   class_name?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   class_time?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   email?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -1670,6 +1866,11 @@ export type BookingUncheckedUpdateWithoutRazorpay_orderInput = {
   hold_expires_at?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   recovery_email_sent_at?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   cancellation_date?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  cancellation_reason?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  cancelled_by?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  refund_status?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  refund_user_package_id?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  refund_amount_paise?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   class_name?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   class_time?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   email?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -1697,6 +1898,11 @@ export type BookingCreateWithoutPaymentsInput = {
   hold_expires_at?: Date | string | null
   recovery_email_sent_at?: Date | string | null
   cancellation_date?: Date | string | null
+  cancellation_reason?: string | null
+  cancelled_by?: string | null
+  refund_status?: string | null
+  refund_user_package_id?: string | null
+  refund_amount_paise?: number | null
   class_name?: string | null
   class_time?: string | null
   email?: string | null
@@ -1730,6 +1936,11 @@ export type BookingUncheckedCreateWithoutPaymentsInput = {
   hold_expires_at?: Date | string | null
   recovery_email_sent_at?: Date | string | null
   cancellation_date?: Date | string | null
+  cancellation_reason?: string | null
+  cancelled_by?: string | null
+  refund_status?: string | null
+  refund_user_package_id?: string | null
+  refund_amount_paise?: number | null
   class_name?: string | null
   class_time?: string | null
   email?: string | null
@@ -1773,6 +1984,11 @@ export type BookingUpdateWithoutPaymentsInput = {
   hold_expires_at?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   recovery_email_sent_at?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   cancellation_date?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  cancellation_reason?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  cancelled_by?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  refund_status?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  refund_user_package_id?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  refund_amount_paise?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   class_name?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   class_time?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   email?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -1806,6 +2022,11 @@ export type BookingUncheckedUpdateWithoutPaymentsInput = {
   hold_expires_at?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   recovery_email_sent_at?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   cancellation_date?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  cancellation_reason?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  cancelled_by?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  refund_status?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  refund_user_package_id?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  refund_amount_paise?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   class_name?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   class_time?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   email?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -1833,6 +2054,11 @@ export type BookingCreateWithoutCafe_ordersInput = {
   hold_expires_at?: Date | string | null
   recovery_email_sent_at?: Date | string | null
   cancellation_date?: Date | string | null
+  cancellation_reason?: string | null
+  cancelled_by?: string | null
+  refund_status?: string | null
+  refund_user_package_id?: string | null
+  refund_amount_paise?: number | null
   class_name?: string | null
   class_time?: string | null
   email?: string | null
@@ -1866,6 +2092,11 @@ export type BookingUncheckedCreateWithoutCafe_ordersInput = {
   hold_expires_at?: Date | string | null
   recovery_email_sent_at?: Date | string | null
   cancellation_date?: Date | string | null
+  cancellation_reason?: string | null
+  cancelled_by?: string | null
+  refund_status?: string | null
+  refund_user_package_id?: string | null
+  refund_amount_paise?: number | null
   class_name?: string | null
   class_time?: string | null
   email?: string | null
@@ -1909,6 +2140,11 @@ export type BookingUpdateWithoutCafe_ordersInput = {
   hold_expires_at?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   recovery_email_sent_at?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   cancellation_date?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  cancellation_reason?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  cancelled_by?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  refund_status?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  refund_user_package_id?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  refund_amount_paise?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   class_name?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   class_time?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   email?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -1942,6 +2178,11 @@ export type BookingUncheckedUpdateWithoutCafe_ordersInput = {
   hold_expires_at?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   recovery_email_sent_at?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   cancellation_date?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  cancellation_reason?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  cancelled_by?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  refund_status?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  refund_user_package_id?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  refund_amount_paise?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   class_name?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   class_time?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   email?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -1969,6 +2210,11 @@ export type BookingCreateWithoutCancellation_requestsInput = {
   hold_expires_at?: Date | string | null
   recovery_email_sent_at?: Date | string | null
   cancellation_date?: Date | string | null
+  cancellation_reason?: string | null
+  cancelled_by?: string | null
+  refund_status?: string | null
+  refund_user_package_id?: string | null
+  refund_amount_paise?: number | null
   class_name?: string | null
   class_time?: string | null
   email?: string | null
@@ -2002,6 +2248,11 @@ export type BookingUncheckedCreateWithoutCancellation_requestsInput = {
   hold_expires_at?: Date | string | null
   recovery_email_sent_at?: Date | string | null
   cancellation_date?: Date | string | null
+  cancellation_reason?: string | null
+  cancelled_by?: string | null
+  refund_status?: string | null
+  refund_user_package_id?: string | null
+  refund_amount_paise?: number | null
   class_name?: string | null
   class_time?: string | null
   email?: string | null
@@ -2045,6 +2296,11 @@ export type BookingUpdateWithoutCancellation_requestsInput = {
   hold_expires_at?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   recovery_email_sent_at?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   cancellation_date?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  cancellation_reason?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  cancelled_by?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  refund_status?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  refund_user_package_id?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  refund_amount_paise?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   class_name?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   class_time?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   email?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -2078,6 +2334,11 @@ export type BookingUncheckedUpdateWithoutCancellation_requestsInput = {
   hold_expires_at?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   recovery_email_sent_at?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   cancellation_date?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  cancellation_reason?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  cancelled_by?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  refund_status?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  refund_user_package_id?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  refund_amount_paise?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   class_name?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   class_time?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   email?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -2107,6 +2368,11 @@ export type BookingCreateManyProfileInput = {
   hold_expires_at?: Date | string | null
   recovery_email_sent_at?: Date | string | null
   cancellation_date?: Date | string | null
+  cancellation_reason?: string | null
+  cancelled_by?: string | null
+  refund_status?: string | null
+  refund_user_package_id?: string | null
+  refund_amount_paise?: number | null
   class_name?: string | null
   class_time?: string | null
   email?: string | null
@@ -2133,6 +2399,11 @@ export type BookingCreateManyInvited_byInput = {
   hold_expires_at?: Date | string | null
   recovery_email_sent_at?: Date | string | null
   cancellation_date?: Date | string | null
+  cancellation_reason?: string | null
+  cancelled_by?: string | null
+  refund_status?: string | null
+  refund_user_package_id?: string | null
+  refund_amount_paise?: number | null
   class_name?: string | null
   class_time?: string | null
   email?: string | null
@@ -2155,6 +2426,11 @@ export type BookingUpdateWithoutProfileInput = {
   hold_expires_at?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   recovery_email_sent_at?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   cancellation_date?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  cancellation_reason?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  cancelled_by?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  refund_status?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  refund_user_package_id?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  refund_amount_paise?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   class_name?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   class_time?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   email?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -2187,6 +2463,11 @@ export type BookingUncheckedUpdateWithoutProfileInput = {
   hold_expires_at?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   recovery_email_sent_at?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   cancellation_date?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  cancellation_reason?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  cancelled_by?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  refund_status?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  refund_user_package_id?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  refund_amount_paise?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   class_name?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   class_time?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   email?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -2217,6 +2498,11 @@ export type BookingUncheckedUpdateManyWithoutProfileInput = {
   hold_expires_at?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   recovery_email_sent_at?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   cancellation_date?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  cancellation_reason?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  cancelled_by?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  refund_status?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  refund_user_package_id?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  refund_amount_paise?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   class_name?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   class_time?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   email?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -2240,6 +2526,11 @@ export type BookingUpdateWithoutInvited_byInput = {
   hold_expires_at?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   recovery_email_sent_at?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   cancellation_date?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  cancellation_reason?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  cancelled_by?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  refund_status?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  refund_user_package_id?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  refund_amount_paise?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   class_name?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   class_time?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   email?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -2273,6 +2564,11 @@ export type BookingUncheckedUpdateWithoutInvited_byInput = {
   hold_expires_at?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   recovery_email_sent_at?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   cancellation_date?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  cancellation_reason?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  cancelled_by?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  refund_status?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  refund_user_package_id?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  refund_amount_paise?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   class_name?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   class_time?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   email?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -2303,6 +2599,11 @@ export type BookingUncheckedUpdateManyWithoutInvited_byInput = {
   hold_expires_at?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   recovery_email_sent_at?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   cancellation_date?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  cancellation_reason?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  cancelled_by?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  refund_status?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  refund_user_package_id?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  refund_amount_paise?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   class_name?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   class_time?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   email?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -2327,6 +2628,11 @@ export type BookingCreateManyClass_scheduleInput = {
   hold_expires_at?: Date | string | null
   recovery_email_sent_at?: Date | string | null
   cancellation_date?: Date | string | null
+  cancellation_reason?: string | null
+  cancelled_by?: string | null
+  refund_status?: string | null
+  refund_user_package_id?: string | null
+  refund_amount_paise?: number | null
   class_name?: string | null
   class_time?: string | null
   email?: string | null
@@ -2350,6 +2656,11 @@ export type BookingUpdateWithoutClass_scheduleInput = {
   hold_expires_at?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   recovery_email_sent_at?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   cancellation_date?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  cancellation_reason?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  cancelled_by?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  refund_status?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  refund_user_package_id?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  refund_amount_paise?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   class_name?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   class_time?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   email?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -2382,6 +2693,11 @@ export type BookingUncheckedUpdateWithoutClass_scheduleInput = {
   hold_expires_at?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   recovery_email_sent_at?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   cancellation_date?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  cancellation_reason?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  cancelled_by?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  refund_status?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  refund_user_package_id?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  refund_amount_paise?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   class_name?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   class_time?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   email?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -2412,6 +2728,11 @@ export type BookingUncheckedUpdateManyWithoutClass_scheduleInput = {
   hold_expires_at?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   recovery_email_sent_at?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   cancellation_date?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  cancellation_reason?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  cancelled_by?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  refund_status?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  refund_user_package_id?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  refund_amount_paise?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   class_name?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   class_time?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   email?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -2437,6 +2758,11 @@ export type BookingCreateManyUser_packageInput = {
   hold_expires_at?: Date | string | null
   recovery_email_sent_at?: Date | string | null
   cancellation_date?: Date | string | null
+  cancellation_reason?: string | null
+  cancelled_by?: string | null
+  refund_status?: string | null
+  refund_user_package_id?: string | null
+  refund_amount_paise?: number | null
   class_name?: string | null
   class_time?: string | null
   email?: string | null
@@ -2460,6 +2786,11 @@ export type BookingUpdateWithoutUser_packageInput = {
   hold_expires_at?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   recovery_email_sent_at?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   cancellation_date?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  cancellation_reason?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  cancelled_by?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  refund_status?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  refund_user_package_id?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  refund_amount_paise?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   class_name?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   class_time?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   email?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -2492,6 +2823,11 @@ export type BookingUncheckedUpdateWithoutUser_packageInput = {
   hold_expires_at?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   recovery_email_sent_at?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   cancellation_date?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  cancellation_reason?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  cancelled_by?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  refund_status?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  refund_user_package_id?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  refund_amount_paise?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   class_name?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   class_time?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   email?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -2522,6 +2858,11 @@ export type BookingUncheckedUpdateManyWithoutUser_packageInput = {
   hold_expires_at?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   recovery_email_sent_at?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   cancellation_date?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  cancellation_reason?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  cancelled_by?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  refund_status?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  refund_user_package_id?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  refund_amount_paise?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   class_name?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   class_time?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   email?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -2606,6 +2947,11 @@ export type BookingSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs 
   hold_expires_at?: boolean
   recovery_email_sent_at?: boolean
   cancellation_date?: boolean
+  cancellation_reason?: boolean
+  cancelled_by?: boolean
+  refund_status?: boolean
+  refund_user_package_id?: boolean
+  refund_amount_paise?: boolean
   class_name?: boolean
   class_time?: boolean
   email?: boolean
@@ -2642,6 +2988,11 @@ export type BookingSelectCreateManyAndReturn<ExtArgs extends runtime.Types.Exten
   hold_expires_at?: boolean
   recovery_email_sent_at?: boolean
   cancellation_date?: boolean
+  cancellation_reason?: boolean
+  cancelled_by?: boolean
+  refund_status?: boolean
+  refund_user_package_id?: boolean
+  refund_amount_paise?: boolean
   class_name?: boolean
   class_time?: boolean
   email?: boolean
@@ -2672,6 +3023,11 @@ export type BookingSelectUpdateManyAndReturn<ExtArgs extends runtime.Types.Exten
   hold_expires_at?: boolean
   recovery_email_sent_at?: boolean
   cancellation_date?: boolean
+  cancellation_reason?: boolean
+  cancelled_by?: boolean
+  refund_status?: boolean
+  refund_user_package_id?: boolean
+  refund_amount_paise?: boolean
   class_name?: boolean
   class_time?: boolean
   email?: boolean
@@ -2702,6 +3058,11 @@ export type BookingSelectScalar = {
   hold_expires_at?: boolean
   recovery_email_sent_at?: boolean
   cancellation_date?: boolean
+  cancellation_reason?: boolean
+  cancelled_by?: boolean
+  refund_status?: boolean
+  refund_user_package_id?: boolean
+  refund_amount_paise?: boolean
   class_name?: boolean
   class_time?: boolean
   email?: boolean
@@ -2715,7 +3076,7 @@ export type BookingSelectScalar = {
   invited_by_user_id?: boolean
 }
 
-export type BookingOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "user_id" | "class_schedule_id" | "user_package_id" | "status" | "confirmation_status" | "booking_date" | "created_at" | "updated_at" | "hold_expires_at" | "recovery_email_sent_at" | "cancellation_date" | "class_name" | "class_time" | "email" | "checked_in" | "check_in_time" | "check_in_outcome" | "reminder_sent_at" | "extra_guest_count" | "guest_attendees" | "finance_snapshot" | "invited_by_user_id", ExtArgs["result"]["booking"]>
+export type BookingOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "user_id" | "class_schedule_id" | "user_package_id" | "status" | "confirmation_status" | "booking_date" | "created_at" | "updated_at" | "hold_expires_at" | "recovery_email_sent_at" | "cancellation_date" | "cancellation_reason" | "cancelled_by" | "refund_status" | "refund_user_package_id" | "refund_amount_paise" | "class_name" | "class_time" | "email" | "checked_in" | "check_in_time" | "check_in_outcome" | "reminder_sent_at" | "extra_guest_count" | "guest_attendees" | "finance_snapshot" | "invited_by_user_id", ExtArgs["result"]["booking"]>
 export type BookingInclude<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   invited_by?: boolean | Prisma.Booking$invited_byArgs<ExtArgs>
   profile?: boolean | Prisma.ProfileDefaultArgs<ExtArgs>
@@ -2776,6 +3137,26 @@ export type $BookingPayload<ExtArgs extends runtime.Types.Extensions.InternalArg
      */
     recovery_email_sent_at: Date | null
     cancellation_date: Date | null
+    /**
+     * Free-text reason captured at cancel time (late-cancel request reason, admin note, or member input).
+     */
+    cancellation_reason: string | null
+    /**
+     * Who triggered the cancel: "member" | "admin" | "system".
+     */
+    cancelled_by: string | null
+    /**
+     * Per-booking refund state: "none" | "auto_pass" | "requested" | "approved_pass" | "approved_amount" | "denied".
+     */
+    refund_status: string | null
+    /**
+     * The granted refund UserPackage (auto-grant on cancel, or admin-approved class-pass refund).
+     */
+    refund_user_package_id: string | null
+    /**
+     * Approved money refund amount in paise (when an admin refunds as money rather than a pass).
+     */
+    refund_amount_paise: number | null
     class_name: string | null
     class_time: string | null
     /**
@@ -3252,6 +3633,11 @@ export interface BookingFieldRefs {
   readonly hold_expires_at: Prisma.FieldRef<"Booking", 'DateTime'>
   readonly recovery_email_sent_at: Prisma.FieldRef<"Booking", 'DateTime'>
   readonly cancellation_date: Prisma.FieldRef<"Booking", 'DateTime'>
+  readonly cancellation_reason: Prisma.FieldRef<"Booking", 'String'>
+  readonly cancelled_by: Prisma.FieldRef<"Booking", 'String'>
+  readonly refund_status: Prisma.FieldRef<"Booking", 'String'>
+  readonly refund_user_package_id: Prisma.FieldRef<"Booking", 'String'>
+  readonly refund_amount_paise: Prisma.FieldRef<"Booking", 'Int'>
   readonly class_name: Prisma.FieldRef<"Booking", 'String'>
   readonly class_time: Prisma.FieldRef<"Booking", 'String'>
   readonly email: Prisma.FieldRef<"Booking", 'String'>

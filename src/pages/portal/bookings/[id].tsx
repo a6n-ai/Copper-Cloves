@@ -9,6 +9,7 @@ import { ArrowLeft, Calendar, Clock, Loader2 } from "lucide-react";
 import { getStudioServerSession } from "@/lib/getStudioServerSession";
 import { PageHeader } from "@/components/dashboard/PageHeader";
 import { Button } from "@/components/ui/button";
+import { Textarea } from "@/components/ui/textarea";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Pill } from "@/components/ui/pill";
 import { bookingStatusPill, classStatusPill } from "@/lib/pillMaps";
@@ -46,6 +47,35 @@ interface BookingDetail {
   financeSnapshot: unknown;
   razorpayOrderId: string | null;
   paymentNote: string | null;
+  bookedAt: string | null;
+  cancellationDate: string | null;
+  cancellationReason: string | null;
+  cancelledBy: string | null;
+  refundStatus: string;
+  refundAmountPaise: number | null;
+  refundPassName: string | null;
+  seatRefund: "class_pass" | "none_unlimited" | "none_no_pass";
+  invitedByName: string | null;
+  group: { name: string; status: string; refund: string }[];
+  refundRoster: { name: string; isYou: boolean; refund: string }[];
+  refundRequest: { kind: string; status: string; refund_type: string | null; refund_amount_paise: number | null } | null;
+  canRequestRefund: boolean;
+}
+
+function refundStatusText(d: BookingDetail): string {
+  switch (d.refundStatus) {
+    case "auto_pass": return `Refunded — 1 Class Pass added${d.refundPassName ? "" : ""}`;
+    case "requested": return "Refund requested — under studio review";
+    case "approved_pass": return "Refund approved — 1 Class Pass added";
+    case "approved_amount": return `Refund approved — ₹${Math.round((d.refundAmountPaise ?? 0) / 100).toLocaleString("en-IN")}`;
+    case "denied": return "Refund request denied";
+    default:
+      return d.seatRefund === "none_unlimited"
+        ? "No refund — unlimited pass (no class consumed)"
+        : d.seatRefund === "none_no_pass"
+          ? "No refund due"
+          : "Not refunded";
+  }
 }
 
 const STATUS_LABEL: Record<string, string> = {
@@ -61,6 +91,25 @@ function statusLabel(status: string): string {
 
 function classStatusLabel(status: string): string {
   return status.charAt(0).toUpperCase() + status.slice(1).replace(/_/g, " ");
+}
+
+function TimelineRow({ label, when, note, tone = "muted" }: {
+  label: string;
+  when: string | null;
+  note?: string | null;
+  tone?: "muted" | "sage" | "danger";
+}) {
+  const dot = tone === "sage" ? "bg-sage" : tone === "danger" ? "bg-[#cf5b48]" : "bg-charcoal/30";
+  return (
+    <li className="flex gap-3">
+      <span className={`mt-1.5 h-2 w-2 shrink-0 rounded-full ${dot}`} />
+      <div className="min-w-0">
+        <p className="font-body text-sm font-medium text-charcoal">{label}</p>
+        {when && <p className="font-body text-xs text-charcoal/50">{format(new Date(when), "MMM d, yyyy · h:mm a")}</p>}
+        {note && <p className="font-body text-sm text-charcoal/70">{note}</p>}
+      </div>
+    </li>
+  );
 }
 
 function DetailSkeleton() {
@@ -87,6 +136,31 @@ export default function BookingDetailPage() {
   const [notFound, setNotFound] = useState(false);
   const [reconciling, setReconciling] = useState(false);
   const [reconcileMessage, setReconcileMessage] = useState<string | null>(null);
+  const [requestingRefund, setRequestingRefund] = useState(false);
+  const [refundReason, setRefundReason] = useState("");
+
+  async function handleRequestRefund() {
+    if (!booking) return;
+    setRequestingRefund(true);
+    try {
+      const res = await fetch(`/api/bookings/${booking.id}`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ action: "request_refund", reason: refundReason.trim() || undefined }),
+      });
+      const data = (await res.json().catch(() => ({}))) as { error?: string };
+      if (!res.ok) {
+        toast({ title: "Couldn't request refund", description: typeof data?.error === "string" ? data.error : "Please try again.", variant: "error" });
+        return;
+      }
+      setBooking((prev) => (prev ? { ...prev, refundStatus: "requested", canRequestRefund: false } : prev));
+      toast({ title: "Refund requested", description: "The studio will review and respond.", variant: "success" });
+    } catch {
+      toast({ title: "Couldn't request refund", description: "Please try again.", variant: "error" });
+    } finally {
+      setRequestingRefund(false);
+    }
+  }
 
   useEffect(() => {
     if (!router.isReady || !id) return;
@@ -295,6 +369,72 @@ export default function BookingDetailPage() {
                 <p className="font-body text-sm text-charcoal/70">
                   Your seat is confirmed. See you in class!
                 </p>
+              </div>
+            )}
+
+            {booking.status === "cancelled" && (
+              <div className="mt-6 border-t border-sage/10 pt-6 space-y-5">
+                <h3 className="font-display text-lg text-charcoal">Cancellation</h3>
+
+                <ol className="space-y-3">
+                  {booking.bookedAt && <TimelineRow label="Booked" when={booking.bookedAt} tone="muted" />}
+                  <TimelineRow
+                    label={booking.cancelledBy ? `Cancelled by ${booking.cancelledBy}` : "Cancelled"}
+                    when={booking.cancellationDate}
+                    note={booking.cancellationReason}
+                    tone="danger"
+                  />
+                  <li className="flex gap-3">
+                    <span className={`mt-1.5 h-2 w-2 shrink-0 rounded-full ${booking.refundStatus === "auto_pass" || booking.refundStatus.startsWith("approved") ? "bg-sage" : "bg-charcoal/30"}`} />
+                    <div className="min-w-0 flex-1">
+                      <p className="font-body text-sm font-medium text-charcoal">Refund</p>
+                      <p className="font-body text-sm text-charcoal/70">{refundStatusText(booking)}</p>
+                      {/* Who got what — booker + each group member. */}
+                      <ul className="mt-1.5 space-y-1">
+                        {booking.refundRoster.map((r, i) => (
+                          <li key={`${r.name}-${i}`} className="flex items-center justify-between font-body text-sm">
+                            <span className="text-charcoal/70">{r.isYou ? "You" : r.name}</span>
+                            <span className={r.refund === "1 Class Pass" || r.refund.startsWith("₹") ? "font-medium text-sage" : "text-charcoal/50"}>
+                              {r.refund}
+                            </span>
+                          </li>
+                        ))}
+                      </ul>
+                    </div>
+                  </li>
+                </ol>
+
+                {booking.group.length > 0 && (
+                  <div>
+                    <p className="font-body text-xs font-medium text-charcoal/60 mb-1.5">Group you brought</p>
+                    <ul className="space-y-1">
+                      {booking.group.map((g, i) => (
+                        <li key={`${g.name}-${i}`} className="flex items-center justify-between font-body text-sm">
+                          <span className="text-charcoal">{g.name}</span>
+                          <Pill {...bookingStatusPill(g.status)}>{statusLabel(g.status)}</Pill>
+                        </li>
+                      ))}
+                    </ul>
+                  </div>
+                )}
+
+                {booking.canRequestRefund && (
+                  <div className="rounded-lg border border-sage/20 bg-sage/[0.04] p-4 space-y-3">
+                    <p className="font-body text-sm text-charcoal/70">
+                      No refund was issued for this cancellation. You can request one — the studio decides
+                      whether to refund as money or a class pass.
+                    </p>
+                    <Textarea
+                      value={refundReason}
+                      onChange={(e) => setRefundReason(e.target.value)}
+                      rows={2}
+                      placeholder="Reason for your refund request (optional)…"
+                    />
+                    <Button onClick={() => void handleRequestRefund()} disabled={requestingRefund} variant="sage" className="h-11">
+                      {requestingRefund ? "Submitting…" : "Request refund"}
+                    </Button>
+                  </div>
+                )}
               </div>
             )}
           </div>

@@ -518,6 +518,7 @@ async function reconcileScheduleSeatsAfterCancel(tx: TxClient, schedId: string) 
 }
 
 type CancelRefundRow = {
+  id?: string;
   user_id: string;
   user_package_id: string | null;
   checked_in: boolean;
@@ -537,6 +538,7 @@ async function refundCancelledSeatsAsPass(
   if (!wasActiveSeat) return;
   for (const row of rows) {
     await grantRefundForBookingRow(tx, {
+      id: row.id,
       user_id: row.user_id,
       user_package_id: row.user_package_id,
       checked_in: row.checked_in,
@@ -602,10 +604,11 @@ async function handlePatch(
   userId: string,
   log: BookingsLog,
 ) {
-  const { id, status, checked_in } = req.body as {
+  const { id, status, checked_in, reason } = req.body as {
     id?: string;
     status?: string;
     checked_in?: boolean;
+    reason?: string;
   };
 
   if (!id || typeof id !== "string") {
@@ -648,7 +651,11 @@ async function handlePatch(
 
   const data: Record<string, unknown> = {};
   if (status) data.status = status;
-  if (status === STATUS_CANCELLED) data.cancellation_date = new Date();
+  if (status === STATUS_CANCELLED) {
+    data.cancellation_date = new Date();
+    data.cancelled_by = "member";
+    if (typeof reason === "string" && reason.trim()) data.cancellation_reason = reason.trim();
+  }
 
   if (checked_in === true) {
     if (existing.checked_in) {
@@ -677,6 +684,7 @@ async function handlePatch(
     const refundRows: CancelRefundRow[] = [];
     if (status === STATUS_CANCELLED) {
       refundRows.push({
+        id: existing.id,
         user_id: existing.user_id,
         user_package_id: existing.user_package_id,
         checked_in: existing.checked_in,
@@ -698,6 +706,7 @@ async function handlePatch(
           status: { in: [...OCCUPYING_STATUSES] },
         },
         select: {
+          id: true,
           user_id: true,
           user_package_id: true,
           checked_in: true,
@@ -713,7 +722,12 @@ async function handlePatch(
           class_schedule_id: existing.class_schedule_id,
           status: { in: [...OCCUPYING_STATUSES] },
         },
-        data: { status: STATUS_CANCELLED, cancellation_date: new Date() },
+        data: {
+          status: STATUS_CANCELLED,
+          cancellation_date: new Date(),
+          cancelled_by: "member",
+          ...(typeof reason === "string" && reason.trim() ? { cancellation_reason: reason.trim() } : {}),
+        },
       });
     }
 

@@ -12,7 +12,10 @@ import { Pill } from "@/components/ui/pill";
 type CancellationRequestRow = {
   id: string;
   status: string;
+  kind: string;
   reason: string | null;
+  refund_type: string | null;
+  refund_amount_paise: number | null;
   created_at: string;
   decided_at: string | null;
   profile: { id: string; full_name: string | null; email: string } | null;
@@ -64,8 +67,12 @@ export default function CancellationsTab() {
   }, [load, statusFilter]);
 
   const decide = useCallback(
-    async (id: string, action: "approve" | "deny") => {
-      if (action === "approve" && !window.confirm("Approve this cancellation? The booking will be cancelled and refund passes granted.")) {
+    async (
+      id: string,
+      action: "approve" | "deny",
+      opts?: { refund_type?: "amount" | "class_pass"; refund_amount_paise?: number },
+    ) => {
+      if (action === "approve" && !opts && !window.confirm("Approve this cancellation? The booking will be cancelled and refund passes granted.")) {
         return;
       }
       setActingId(id);
@@ -73,7 +80,7 @@ export default function CancellationsTab() {
         const r = await fetch("/api/admin/class-cancellation-requests", {
           method: "PATCH",
           headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ id, action }),
+          body: JSON.stringify({ id, action, ...opts }),
         });
         if (!r.ok) {
           const e = await r.json().catch(() => ({}));
@@ -89,13 +96,28 @@ export default function CancellationsTab() {
     [load, statusFilter],
   );
 
+  const approveRefundMoney = useCallback(
+    async (id: string) => {
+      const inr = window.prompt("Refund amount in ₹:");
+      if (inr == null) return;
+      const amt = Number(inr);
+      if (!Number.isFinite(amt) || amt <= 0) {
+        toast.error("Enter a valid amount in ₹.");
+        return;
+      }
+      await decide(id, "approve", { refund_type: "amount", refund_amount_paise: Math.round(amt * 100) });
+    },
+    [decide],
+  );
+
   return (
     <Card className="border-sage/20 bg-white-warm">
       <CardHeader className="flex flex-row items-start justify-between gap-3">
         <div>
-          <CardTitle className="font-display text-2xl text-charcoal">Late-Cancel Requests</CardTitle>
+          <CardTitle className="font-display text-2xl text-charcoal">Cancellation & Refund Requests</CardTitle>
           <CardDescription className="font-body text-charcoal/60">
-            Requests filed after the cancellation cutoff. Approving cancels the booking and grants a 1 Class Pass refund.
+            Late-cancel requests (approve → cancel + 1 Class Pass refund) and member refund requests on
+            already-cancelled classes (choose a class pass or a ₹ refund).
           </CardDescription>
         </div>
         <Select value={statusFilter} onValueChange={(v) => setStatusFilter(v as (typeof REQUEST_STATUS_FILTERS)[number])}>
@@ -126,10 +148,11 @@ export default function CancellationsTab() {
                   <TableRow>
                     <TableHead>Member</TableHead>
                     <TableHead>Class</TableHead>
+                    <TableHead className="w-[110px]">Type</TableHead>
                     <TableHead className="w-[170px]">Class time</TableHead>
                     <TableHead>Reason</TableHead>
                     <TableHead className="w-[120px]">Status</TableHead>
-                    <TableHead className="w-[140px] text-right">Actions</TableHead>
+                    <TableHead className="w-[200px] text-right">Actions</TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
@@ -146,6 +169,13 @@ export default function CancellationsTab() {
                           )}
                         </TableCell>
                         <TableCell className="font-body text-sm text-charcoal/70">{className}</TableCell>
+                        <TableCell>
+                          {req.kind === "refund" ? (
+                            <Pill tone="warning" size="sm">Refund</Pill>
+                          ) : (
+                            <Pill tone="neutral" size="sm">Late cancel</Pill>
+                          )}
+                        </TableCell>
                         <TableCell className="font-body text-xs text-charcoal/60">{fmtDateTime(classTime)}</TableCell>
                         <TableCell className="max-w-[220px] font-body text-xs text-charcoal/60">
                           {req.reason?.trim() || "—"}
@@ -162,29 +192,27 @@ export default function CancellationsTab() {
                         <TableCell className="text-right">
                           {req.status === "open" ? (
                             <div className="flex items-center justify-end gap-1">
-                              <Button
-                                type="button"
-                                variant="sage"
-                                size="sm"
-                                disabled={actingId === req.id}
-                                onClick={() => decide(req.id, "approve")}
-                                className="gap-1"
-                              >
-                                {actingId === req.id ? (
-                                  <Loader2 className="h-3.5 w-3.5 animate-spin" />
-                                ) : (
-                                  <Check className="h-3.5 w-3.5" />
-                                )}
-                                Approve
-                              </Button>
-                              <Button
-                                type="button"
-                                variant="ghost"
-                                size="sm"
-                                disabled={actingId === req.id}
-                                onClick={() => decide(req.id, "deny")}
-                                className="gap-1"
-                              >
+                              {req.kind === "refund" ? (
+                                <>
+                                  <Button type="button" variant="sage" size="sm" disabled={actingId === req.id}
+                                    onClick={() => decide(req.id, "approve", { refund_type: "class_pass" })} className="gap-1">
+                                    {actingId === req.id ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <Check className="h-3.5 w-3.5" />}
+                                    Pass
+                                  </Button>
+                                  <Button type="button" variant="outline" size="sm" disabled={actingId === req.id}
+                                    onClick={() => approveRefundMoney(req.id)} className="gap-1 border-sage/30 text-sage">
+                                    ₹ Refund
+                                  </Button>
+                                </>
+                              ) : (
+                                <Button type="button" variant="sage" size="sm" disabled={actingId === req.id}
+                                  onClick={() => decide(req.id, "approve")} className="gap-1">
+                                  {actingId === req.id ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <Check className="h-3.5 w-3.5" />}
+                                  Approve
+                                </Button>
+                              )}
+                              <Button type="button" variant="ghost" size="sm" disabled={actingId === req.id}
+                                onClick={() => decide(req.id, "deny")} className="gap-1">
                                 <X className="h-3.5 w-3.5" /> Deny
                               </Button>
                             </div>
