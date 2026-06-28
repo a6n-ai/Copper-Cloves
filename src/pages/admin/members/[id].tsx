@@ -58,13 +58,15 @@ import {
   usePassPaymentState,
   PassConfigSection,
   PaymentSection,
-  passConfigSelected,
   validateConfig,
   validatePayment,
   applyPassConfig,
   persistStartDate,
   recordPayment,
   passSummary,
+  priceBreakdown,
+  formatINR,
+  selectedPackageOf,
   type PassMemberContext,
 } from "@/components/admin/managePass";
 import { toast } from "sonner";
@@ -994,29 +996,32 @@ function ManagePassDialog({
     startDate: member.startDate,
   };
   const s = usePassPaymentState(ctx);
-  const [step, setStep] = useState<"config" | "payment">("config");
+  const [step, setStep] = useState<"form" | "confirm">("form");
   const [submitting, setSubmitting] = useState(false);
 
   useEffect(() => {
     if (open) {
-      setStep("config");
+      setStep("form");
       s.reset();
       s.loadDefaults();
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [open]);
 
-  function goToPayment() {
-    const err = validateConfig(s);
+  const { finalPaise, isFree } = priceBreakdown(s);
+  const formValid = !validateConfig(s) && !validatePayment(s);
+
+  function goToConfirm() {
+    const err = validateConfig(s) ?? validatePayment(s);
     if (err) {
       toast.error(err);
       return;
     }
-    setStep("payment");
+    setStep("confirm");
   }
 
-  async function grantComp() {
-    const err = validateConfig(s);
+  async function commit() {
+    const err = validateConfig(s) ?? validatePayment(s);
     if (err) {
       toast.error(err);
       return;
@@ -1024,94 +1029,107 @@ function ManagePassDialog({
     setSubmitting(true);
     try {
       await persistStartDate(member.id, s, member.startDate);
-      await applyPassConfig(member.id, s, member.activePackageId);
-      toast.success(`Comp pass granted to ${member.name}`);
+      if (!isFree) await recordPayment(member.id, s, member.activePackageId);
+      await applyPassConfig(member.id, s);
+      toast.success(isFree ? `Free pass assigned to ${member.name}` : `Pass assigned · ${formatINR(finalPaise)} recorded`);
       onOpenChange(false);
       await onDone();
     } catch (e) {
-      toast.error(e instanceof Error ? e.message : "Could not grant comp pass");
+      toast.error(e instanceof Error ? e.message : "Could not assign pass");
     } finally {
       setSubmitting(false);
     }
   }
 
-  async function submit() {
-    const err = validatePayment(s);
-    if (err) {
-      toast.error(err);
-      return;
-    }
-    setSubmitting(true);
-    try {
-      await recordPayment(member.id, s, member.activePackageId);
-      await persistStartDate(member.id, s, member.startDate);
-      if (passConfigSelected(s)) await applyPassConfig(member.id, s, member.activePackageId);
-      toast.success(`Payment recorded for ${member.name}`);
-      onOpenChange(false);
-      await onDone();
-    } catch (e) {
-      toast.error(e instanceof Error ? e.message : "Could not record payment");
-    } finally {
-      setSubmitting(false);
-    }
-  }
+  const pkg = selectedPackageOf(s);
 
   return (
     <ResponsiveDialog open={open} onOpenChange={onOpenChange}>
-      <ResponsiveDialogContent className="sm:max-w-[480px] bg-white-warm border-sage/20">
+      <ResponsiveDialogContent className="sm:max-w-[520px] bg-white-warm border-sage/20">
         <ResponsiveDialogHeader>
-          <ResponsiveDialogTitle className="font-display text-2xl text-charcoal">Manage {member.name}</ResponsiveDialogTitle>
+          <ResponsiveDialogTitle className="font-display text-2xl text-charcoal">
+            {step === "form" ? `Assign pass · ${member.name}` : "Review & confirm"}
+          </ResponsiveDialogTitle>
           <ResponsiveDialogDescription className="font-body text-charcoal/60">
-            {step === "config" ? "Step 1 of 2 — pass configuration" : "Step 2 of 2 — payment"}
+            {step === "form" ? "Pick a package, apply any discount, attach proof." : "Check the details, then confirm."}
           </ResponsiveDialogDescription>
         </ResponsiveDialogHeader>
 
-        <div className="flex items-center gap-2 px-1">
-          <div className="h-1.5 flex-1 rounded-full bg-sage" />
-          <div className={`h-1.5 flex-1 rounded-full ${step === "payment" ? "bg-sage" : "bg-sage/20"}`} />
-        </div>
-
-        <div className="py-4">
-          {step === "config" ? (
-            <PassConfigSection state={s} currentCredits={member.credits} />
-          ) : (
-            <div className="space-y-4">
-              <div className="rounded-xl border border-sage/20 bg-sage/5 p-3">
-                <div className="font-body text-xs uppercase tracking-wide text-charcoal/60 mb-1">Selected pass</div>
-                <div className="font-display text-lg text-charcoal">{passSummary(s)}</div>
-              </div>
+        <div className="max-h-[60vh] overflow-y-auto py-2 pr-1">
+          {step === "form" ? (
+            <div className="space-y-6">
+              <PassConfigSection state={s} currentCredits={member.credits} />
               <PaymentSection state={s} />
+            </div>
+          ) : (
+            <div className="space-y-2 font-body text-sm">
+              <ConfirmRow label="Member" value={member.name} />
+              <ConfirmRow label="Package" value={passSummary(s)} />
+              <ConfirmRow label="Expiry" value={s.expiry || "—"} />
+              <ConfirmRow label="Start date" value={s.startDate || "—"} />
+              {pkg && <ConfirmRow label="Package price" value={formatINR(Math.round(pkg.price * 100))} />}
+              {isFree ? (
+                <>
+                  <ConfirmRow label="Amount" value="Free (no payment)" />
+                  {s.grantNote.trim() && <ConfirmRow label="Reason" value={s.grantNote.trim()} />}
+                </>
+              ) : (
+                <>
+                  <ConfirmRow label="Discount" value={s.discountValue ? `${s.discountValue}${s.discountUnit === "pct" ? "%" : " ₹"}` : "—"} />
+                  <ConfirmRow label="Amount payable" value={formatINR(finalPaise)} strong />
+                  <ConfirmRow label="Method" value={s.method || "—"} />
+                  <div className="flex items-center justify-between border-b border-sage/10 py-2">
+                    <span className="text-charcoal/55">Proof</span>
+                    {s.proofUrl ? (
+                      <a href={s.proofUrl} target="_blank" rel="noreferrer" className="text-sage underline">view image</a>
+                    ) : (
+                      <span className="text-terracotta">missing</span>
+                    )}
+                  </div>
+                </>
+              )}
             </div>
           )}
         </div>
 
         <ResponsiveDialogFooter className="gap-2 sm:gap-2">
-          {step === "config" ? (
+          {step === "form" ? (
             <>
+              {pkg && (
+                <div className="mr-auto flex flex-col justify-center font-body leading-tight">
+                  <span className="text-[11px] uppercase tracking-wide text-charcoal/45">Payable</span>
+                  <span className="font-display text-lg text-charcoal tabular-nums">{isFree ? "Free" : formatINR(finalPaise)}</span>
+                </div>
+              )}
               <Button variant="outline" onClick={() => onOpenChange(false)} className="border-charcoal/20 text-charcoal hover:bg-charcoal/5 font-body">
                 Cancel
               </Button>
-              {s.isComp ? (
-                <Button onClick={() => void grantComp()} disabled={submitting} variant="sage">
-                  {submitting ? "Granting…" : "Grant comp pass"}
-                </Button>
-              ) : (
-                <Button onClick={goToPayment} variant="sage">Continue</Button>
-              )}
+              <Button onClick={goToConfirm} disabled={!formValid || s.proofUploading} variant="sage">
+                Review →
+              </Button>
             </>
           ) : (
             <>
-              <Button variant="outline" onClick={() => setStep("config")} className="border-charcoal/20 text-charcoal hover:bg-charcoal/5 font-body">
+              <Button variant="outline" onClick={() => setStep("form")} className="border-charcoal/20 text-charcoal hover:bg-charcoal/5 font-body">
                 Back
               </Button>
-              <Button onClick={() => void submit()} disabled={s.proofUploading || submitting} variant="sage">
-                {submitting ? "Processing…" : "Record payment & apply pass"}
+              <Button onClick={() => void commit()} disabled={submitting} variant="sage">
+                {submitting ? "Assigning…" : "Confirm & assign"}
               </Button>
             </>
           )}
         </ResponsiveDialogFooter>
       </ResponsiveDialogContent>
     </ResponsiveDialog>
+  );
+}
+
+function ConfirmRow({ label, value, strong }: { label: string; value: string; strong?: boolean }) {
+  return (
+    <div className="flex items-center justify-between border-b border-sage/10 py-2">
+      <span className="text-charcoal/55">{label}</span>
+      <span className={strong ? "font-display text-base text-charcoal tabular-nums" : "text-charcoal"}>{value}</span>
+    </div>
   );
 }
 

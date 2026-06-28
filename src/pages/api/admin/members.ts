@@ -109,7 +109,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   }
 
   if (req.method === "PATCH") {
-    const { profile_id, user_package_id, class_count, expiration_date, pass_type, start_date, action, profile_fields, is_comp, grant_note } = req.body ?? {};
+    const { profile_id, user_package_id, package_type_id, class_count, expiration_date, pass_type, start_date, action, profile_fields, is_comp, grant_note } = req.body ?? {};
     if (!profile_id || typeof profile_id !== "string") {
       return res.status(400).json({ error: "profile_id required" });
     }
@@ -117,9 +117,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     const compGrant = is_comp === true;
     const grantNote = typeof grant_note === "string" && grant_note.trim() ? grant_note.trim() : null;
     const hasClassCount = typeof class_count === "number" && class_count > 0;
-    if (compGrant && !grantNote) {
-      return res.status(400).json({ error: "A grant note is required for a comp pass" });
-    }
+    const chosenPackageTypeId = typeof package_type_id === "string" && package_type_id ? package_type_id : null;
 
     const profile = await prisma.profile.findFirst({
       where: { id: profile_id },
@@ -191,25 +189,30 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     // active package (or for any comp grant). Picks a PackageType matching the intended
     // pass_type so the auto-created row has sensible defaults.
     const needsAutoCreate = !pkgId && (
+      chosenPackageTypeId !== null ||
       hasClassCount ||
       (expiration_date && typeof expiration_date === "string") ||
       compGrant
     );
     if (needsAutoCreate) {
       const desiredType = pass_type === "studio_pass" ? "studio_pass" : "class_pass";
+      // Bind the EXACT package the admin chose (so price/validity are authoritative);
+      // fall back to first-of-type only when no id was passed (legacy callers).
       const pt =
+        (chosenPackageTypeId ? await prisma.packageType.findUnique({ where: { id: chosenPackageTypeId } }) : null) ??
         (await prisma.packageType.findFirst({ where: { type: desiredType }, orderBy: { created_at: "asc" } })) ??
         (await prisma.packageType.findFirst({ orderBy: { created_at: "asc" } }));
       if (!pt) return res.status(400).json({ error: "No PackageType available to auto-create package" });
 
-      // Expiry: admin override → package's own validity (duration_months) →
-      // global default_package_validity_days fallback.
+      // Expiry: a fixed-duration (studio/month) package always derives its own
+      // expiry — the admin can't override it. A class pass takes the admin
+      // override, else the global default validity.
       let expiryForCreate: Date;
-      if (expiration_date && typeof expiration_date === "string") {
-        expiryForCreate = new Date(expiration_date);
-      } else if (pt.duration_months && pt.duration_months > 0) {
+      if (pt.duration_months && pt.duration_months > 0) {
         expiryForCreate = new Date();
         expiryForCreate.setMonth(expiryForCreate.getMonth() + pt.duration_months);
+      } else if (expiration_date && typeof expiration_date === "string") {
+        expiryForCreate = new Date(expiration_date);
       } else {
         const settings = await getStudioSettings();
         expiryForCreate = new Date();

@@ -23,6 +23,7 @@ import { apiError } from "@/lib/apiError";
  */
 
 type PassInput = {
+  package_type_id?: string;
   pass_type?: string;
   class_count?: number;
   expiration_date?: string;
@@ -77,9 +78,6 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     if (passType === "class_pass" && !hasClassCount) {
       return res.status(400).json({ error: "Select number of classes first" });
     }
-    if (isComp && !grantNote) {
-      return res.status(400).json({ error: "A grant note is required for a comp pass" });
-    }
   }
   if (recordPaymentRow) {
     if (!RECORDABLE_METHODS.includes(payment.method as PaymentMethod)) {
@@ -105,24 +103,29 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     let expiry: Date | null = null;
     let creditsRemaining: number | null = null;
     if (assignPass) {
+      const chosenId = typeof pass.package_type_id === "string" && pass.package_type_id ? pass.package_type_id : null;
       const pt =
+        (chosenId ? await prisma.packageType.findUnique({ where: { id: chosenId } }) : null) ??
         (await prisma.packageType.findFirst({ where: { type: passType }, orderBy: { created_at: "asc" } })) ??
         (await prisma.packageType.findFirst({ orderBy: { created_at: "asc" } }));
       if (!pt) return res.status(400).json({ error: "No PackageType available to assign a pass." });
       pkgTypeId = pt.id;
 
-      if (pass.expiration_date) {
-        expiry = new Date(pass.expiration_date);
-      } else if (pt.duration_months && pt.duration_months > 0) {
+      // Fixed-duration packages derive their own expiry (no override); class
+      // passes take the admin override, else the global default validity.
+      if (pt.duration_months && pt.duration_months > 0) {
         expiry = new Date();
         expiry.setMonth(expiry.getMonth() + pt.duration_months);
+      } else if (pass.expiration_date) {
+        expiry = new Date(pass.expiration_date);
       } else {
         const settings = await getStudioSettings();
         expiry = new Date();
         expiry.setDate(expiry.getDate() + settings.default_package_validity_days);
       }
       if (Number.isNaN(expiry.getTime())) return res.status(400).json({ error: "Invalid expiration date" });
-      creditsRemaining = passType === "class_pass" ? Math.floor(pass.class_count as number) : null;
+      creditsRemaining =
+        passType === "class_pass" ? Math.floor(Number(pass.class_count ?? pt.class_count ?? 0)) || null : null;
     }
 
     let startDate: Date | null = null;

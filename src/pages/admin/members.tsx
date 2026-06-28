@@ -454,12 +454,10 @@ export default function AdminMembers() {
         setAddError(cfgErr);
         return;
       }
-      if (!pass.isComp) {
-        const payErr = validatePayment(pass);
-        if (payErr) {
-          setAddError(payErr);
-          return;
-        }
+      const payErr = validatePayment(pass);
+      if (payErr) {
+        setAddError(payErr);
+        return;
       }
     }
     setAddSubmitting(true);
@@ -704,11 +702,9 @@ export default function AdminMembers() {
             {assignPass && (
               <div className="space-y-5 rounded-xl border border-sage/15 p-4">
                 <PassConfigSection state={pass} />
-                {!pass.isComp && (
-                  <div className="border-t border-sage/10 pt-4">
-                    <PaymentSection state={pass} />
-                  </div>
-                )}
+                <div className="border-t border-sage/10 pt-4">
+                  <PaymentSection state={pass} />
+                </div>
               </div>
             )}
 
