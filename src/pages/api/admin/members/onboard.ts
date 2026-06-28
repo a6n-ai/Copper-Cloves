@@ -1,0 +1,220 @@
+import type { NextApiRequest, NextApiResponse } from "next";
+import bcrypt from "bcryptjs";
+import { Prisma, PaymentMethod, PaymentStatus } from "@/generated/prisma/client";
+import prisma from "@/lib/prisma";
+import { getStudioServerSession } from "@/lib/getStudioServerSession";
+import { getStudioSettings } from "@/lib/studioSettings";
+import { RECORDABLE_METHODS } from "@/lib/payments";
+import { sendHtmlEmail } from "@/lib/notifications/sendEmail";
+import { welcomeEmail } from "@/lib/notifications/emailTemplates";
+import { logActivity } from "@/lib/activityLog";
+import logger from "@/lib/logger";
+import { apiError } from "@/lib/apiError";
+
+/**
+ * Atomic member onboarding: create the account and (optionally) assign a pass +
+ * record its payment in a SINGLE transaction. If any step fails the whole thing
+ * rolls back, so an admin can never end up with an orphaned account that has no
+ * pass / a payment with no pass (the two-call hazard of known-issue #9).
+ *
+ * Used only by the Members "Add Member" flow. Existing-member edits keep using
+ * PATCH /api/admin/members + POST /api/admin/payments. The request body mirrors
+ * the shared `managePass` engine so the UI stays a single source of truth.
+ */
+
+type PassInput = {
+  pass_type?: string;
+  class_count?: number;
+  expiration_date?: string;
+  is_comp?: boolean;
+  grant_note?: string;
+  start_date?: string;
+};
+type PaymentInput = {
+  method?: string;
+  amount_paise?: number;
+  reference?: string;
+  proof_url?: string;
+};
+
+export default async function handler(req: NextApiRequest, res: NextApiResponse) {
+  const session = await getStudioServerSession(req, res);
+  if (!session?.user) return res.status(401).json({ error: "Unauthorized" });
+  const role = (session.user as { role?: string }).role;
+  if (role !== "admin") return res.status(403).json({ error: "Forbidden" });
+  const adminId = (session.user as { id?: string }).id ?? null;
+
+  if (req.method !== "POST") return res.status(405).end();
+
+  const body = req.body ?? {};
+  const email = typeof body.email === "string" ? body.email.trim().toLowerCase() : "";
+  const password = typeof body.password === "string" ? body.password : "";
+  const full_name = typeof body.full_name === "string" ? body.full_name.trim() : "";
+  const phone = body.phone == null || body.phone === "" ? null : String(body.phone).trim() || null;
+  const assignPass = body.assign_pass === true;
+  const pass = (body.pass ?? {}) as PassInput;
+  const payment = (body.payment ?? {}) as PaymentInput;
+
+  /* — account validation — */
+  if (!email || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+    return res.status(400).json({ error: "Valid email is required." });
+  }
+  if (!password || password.length < 8) {
+    return res.status(400).json({ error: "Password must be at least 8 characters." });
+  }
+  if (password.length > 72) {
+    return res.status(400).json({ error: "Password is too long (max 72 characters)." });
+  }
+
+  /* — pass + payment validation (mirrors the shared engine's validators) — */
+  const isComp = assignPass && pass.is_comp === true;
+  const passType: "class_pass" | "studio_pass" = pass.pass_type === "studio_pass" ? "studio_pass" : "class_pass";
+  const recordPaymentRow = assignPass && !isComp;
+  const grantNote = typeof pass.grant_note === "string" ? pass.grant_note.trim() : "";
+
+  if (assignPass) {
+    const hasClassCount = typeof pass.class_count === "number" && pass.class_count > 0;
+    if (passType === "class_pass" && !hasClassCount) {
+      return res.status(400).json({ error: "Select number of classes first" });
+    }
+    if (isComp && !grantNote) {
+      return res.status(400).json({ error: "A grant note is required for a comp pass" });
+    }
+  }
+  if (recordPaymentRow) {
+    if (!RECORDABLE_METHODS.includes(payment.method as PaymentMethod)) {
+      return res.status(400).json({ error: "Select a payment method" });
+    }
+    const amt = Number(payment.amount_paise);
+    if (!Number.isFinite(amt) || amt <= 0) {
+      return res.status(400).json({ error: "Enter a valid amount in INR" });
+    }
+    if (!payment.proof_url) {
+      return res.status(400).json({ error: "Proof of payment is required" });
+    }
+  }
+
+  const existing = await prisma.profile.findFirst({ where: { email, role: "user" } });
+  if (existing) return res.status(409).json({ error: "An account with this email already exists." });
+
+  try {
+    const hashedPassword = await bcrypt.hash(password, 12);
+
+    // Resolve the PackageType + expiry (reads) before opening the transaction.
+    let pkgTypeId: string | null = null;
+    let expiry: Date | null = null;
+    let creditsRemaining: number | null = null;
+    if (assignPass) {
+      const pt =
+        (await prisma.packageType.findFirst({ where: { type: passType }, orderBy: { created_at: "asc" } })) ??
+        (await prisma.packageType.findFirst({ orderBy: { created_at: "asc" } }));
+      if (!pt) return res.status(400).json({ error: "No PackageType available to assign a pass." });
+      pkgTypeId = pt.id;
+
+      if (pass.expiration_date) {
+        expiry = new Date(pass.expiration_date);
+      } else if (pt.duration_months && pt.duration_months > 0) {
+        expiry = new Date();
+        expiry.setMonth(expiry.getMonth() + pt.duration_months);
+      } else {
+        const settings = await getStudioSettings();
+        expiry = new Date();
+        expiry.setDate(expiry.getDate() + settings.default_package_validity_days);
+      }
+      if (Number.isNaN(expiry.getTime())) return res.status(400).json({ error: "Invalid expiration date" });
+      creditsRemaining = passType === "class_pass" ? Math.floor(pass.class_count as number) : null;
+    }
+
+    let startDate: Date | null = null;
+    if (assignPass && pass.start_date) {
+      startDate = new Date(pass.start_date);
+      if (Number.isNaN(startDate.getTime())) return res.status(400).json({ error: "Invalid start date" });
+    }
+
+    // All writes in one transaction — account + pass + payment commit together or
+    // not at all.
+    const created = await prisma.$transaction(async (tx) => {
+      const profile = await tx.profile.create({
+        data: {
+          email,
+          full_name: full_name || null,
+          phone,
+          hashedPassword,
+          role: "user",
+          ...(assignPass ? { pass_type: passType } : {}),
+          ...(startDate ? { start_date: startDate } : {}),
+        },
+      });
+
+      let userPackageId: string | null = null;
+      if (assignPass && pkgTypeId && expiry) {
+        const up = await tx.userPackage.create({
+          data: {
+            user_id: profile.id,
+            package_type_id: pkgTypeId,
+            credits_remaining: creditsRemaining,
+            expiration_date: expiry,
+            is_active: true,
+            pass_type: passType,
+            is_comp: isComp,
+            grant_note: isComp ? grantNote : null,
+            origin: isComp ? "comp" : "admin",
+          },
+        });
+        userPackageId = up.id;
+      }
+
+      if (recordPaymentRow) {
+        await tx.payment.create({
+          data: {
+            direction: "credit",
+            user_id: profile.id,
+            user_package_id: userPackageId,
+            method: payment.method as PaymentMethod,
+            status: PaymentStatus.succeeded,
+            amount_paise: Math.round(Number(payment.amount_paise)),
+            currency: "INR",
+            reference: typeof payment.reference === "string" && payment.reference.trim() ? payment.reference.trim() : null,
+            proof_url: typeof payment.proof_url === "string" ? payment.proof_url : null,
+            recorded_by: adminId,
+          },
+        });
+      }
+
+      return profile;
+    });
+
+    /* — post-commit side effects (must not roll back a created account) — */
+    await logActivity({
+      req,
+      action: "auth.signup",
+      actor: { id: created.id, role: created.role, name: created.full_name },
+    });
+    if (assignPass) {
+      await logActivity({
+        req,
+        action: "admin.package_assigned",
+        targetProfileId: created.id,
+        metadata: { pass_type: passType, is_comp: isComp },
+      });
+    }
+
+    const portalUrl = process.env.NEXTAUTH_URL?.replace(/\/$/, "") ?? "";
+    await sendHtmlEmail({
+      to: email,
+      subject: "welcome to The Studio by Copper + Cloves",
+      html: welcomeEmail({ memberName: full_name || email, portalUrl }),
+    })
+      .then((result) => {
+        if (!result.ok) logger.error({ result }, "[members/onboard] welcome email failed");
+      })
+      .catch((err) => logger.error({ err }, "[members/onboard] welcome email threw"));
+
+    return res.status(201).json({ id: created.id, email: created.email, passAssigned: assignPass });
+  } catch (e) {
+    if (e instanceof Prisma.PrismaClientKnownRequestError && e.code === "P2002") {
+      return res.status(409).json({ error: "An account with this email already exists." });
+    }
+    return apiError(res, e, "[admin/members/onboard]", 500, "Could not create member.");
+  }
+}

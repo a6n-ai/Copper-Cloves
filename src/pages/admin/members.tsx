@@ -38,14 +38,10 @@ import {
   usePassPaymentState,
   PassConfigSection,
   PaymentSection,
-  passConfigSelected,
   validateConfig,
   validatePayment,
-  applyPassConfig,
-  persistStartDate,
-  recordPayment,
+  onboardMember,
 } from "@/components/admin/managePass";
-import { toast } from "sonner";
 
 interface Member {
   id: string;
@@ -468,45 +464,13 @@ export default function AdminMembers() {
     }
     setAddSubmitting(true);
     try {
-      const res = await fetch("/api/auth/signup", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          email,
-          password: addPassword,
-          full_name: addName.trim() || undefined,
-          phone: addPhone.trim() || undefined,
-        }),
-      });
-      const body = await res.json().catch(() => ({}));
-      if (!res.ok) {
-        setAddError((body as { error?: string }).error ?? `Signup failed (HTTP ${res.status}).`);
-        return;
-      }
-      const newId = (body as { id?: string }).id ?? null;
-
-      // Optional pass assignment routes through the SAME shared engine the
-      // member-detail "Manage pass" dialog uses, so the two flows can't drift.
-      if (assignPass && newId) {
-        try {
-          if (pass.isComp) {
-            await persistStartDate(newId, pass, null);
-            await applyPassConfig(newId, pass, null);
-          } else {
-            await recordPayment(newId, pass, null);
-            await persistStartDate(newId, pass, null);
-            if (passConfigSelected(pass)) await applyPassConfig(newId, pass, null);
-          }
-        } catch (passErr) {
-          setAddOpen(false);
-          await loadMembers();
-          toast.error(
-            `Member created, but pass assignment failed: ${passErr instanceof Error ? passErr.message : "unknown error"}. Finish from their profile.`,
-          );
-          return;
-        }
-      }
-
+      // Single transactional call: account + pass + payment commit together or
+      // not at all — no orphaned account on a mid-sequence failure.
+      await onboardMember(
+        { email, password: addPassword, full_name: addName, phone: addPhone },
+        pass,
+        assignPass,
+      );
       setAddOpen(false);
       setSuccessMessage(assignPass ? `Member ${email} created with pass` : `Member ${email} created`);
       await loadMembers();

@@ -220,6 +220,62 @@ export async function recordPayment(profileId: string, s: PassPaymentState, exis
   }
 }
 
+/* ──────────────────────────  Atomic onboarding (Add Member)  ────────────────────────── */
+
+export interface OnboardAccount {
+  email: string;
+  password: string;
+  full_name?: string;
+  phone?: string;
+}
+
+/**
+ * Create a member and (optionally) assign a pass + record payment in ONE
+ * transactional call. Either everything lands or nothing does — no orphan
+ * account. Builds its body from the same shared state the detail-page Manage
+ * dialog uses, so the two surfaces stay identical.
+ */
+export async function onboardMember(
+  account: OnboardAccount,
+  s: PassPaymentState,
+  assignPass: boolean,
+): Promise<{ id: string }> {
+  const body: Record<string, unknown> = {
+    email: account.email,
+    password: account.password,
+    full_name: account.full_name?.trim() || undefined,
+    phone: account.phone?.trim() || undefined,
+    assign_pass: assignPass,
+  };
+  if (assignPass) {
+    body.pass = {
+      pass_type: s.passType,
+      class_count: s.passType === "class_pass" && s.credits !== null ? s.credits : undefined,
+      expiration_date: s.expiry || undefined,
+      is_comp: s.isComp,
+      grant_note: s.isComp ? s.grantNote.trim() : undefined,
+      start_date: s.startDate || undefined,
+    };
+    if (!s.isComp) {
+      body.payment = {
+        method: s.method,
+        amount_paise: Math.round(Number(s.amount) * 100),
+        reference: s.reference || undefined,
+        proof_url: s.proofUrl,
+      };
+    }
+  }
+  const res = await fetch("/api/admin/members/onboard", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    credentials: "include",
+    body: JSON.stringify(body),
+  });
+  const json = await res.json().catch(() => ({}));
+  if (!res.ok) throw new Error((json as { error?: string }).error ?? `Failed to create member (HTTP ${res.status})`);
+  return { id: String((json as { id?: string }).id ?? "") };
+}
+
 /* ──────────────────────────  Pass summary string  ────────────────────────── */
 
 export function passSummary(s: PassPaymentState): string {
