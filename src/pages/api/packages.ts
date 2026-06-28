@@ -33,20 +33,15 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   const admin = isAdmin(session);
 
   if (req.method === "GET") {
-    if (admin) {
-      // Admin catalog: everything, never cached.
-      const packages = await prisma.packageType.findMany({
-        orderBy: [{ display_order: "asc" }, { price: "asc" }],
-      });
-      res.setHeader("Cache-Control", "private, no-store");
-      return res.json(packages);
-    }
-    // Public/member list: published only, cacheable.
+    // Admins see the full catalog (for management), EXCEPT when ?published=1 is
+    // passed — the assign-pass picker wants only live/new packages, never the
+    // hidden legacy/comp rows.
+    const publishedOnly = !admin || req.query.published === "1" || req.query.published === "true";
     const packages = await prisma.packageType.findMany({
-      where: { is_published: true },
+      where: publishedOnly ? { is_published: true } : {},
       orderBy: [{ display_order: "asc" }, { price: "asc" }],
     });
-    res.setHeader("Cache-Control", "public, s-maxage=300, stale-while-revalidate=600");
+    res.setHeader("Cache-Control", admin ? "private, no-store" : "public, s-maxage=300, stale-while-revalidate=600");
     return res.json(packages);
   }
 

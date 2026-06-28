@@ -112,7 +112,9 @@ export function usePassPaymentState(member?: PassMemberContext) {
       .catch(() => {});
 
     setPackagesLoading(true);
-    fetch("/api/packages", { credentials: "include" })
+    // published=1 → only live/new packages, never the hidden legacy/comp rows
+    // (an admin session would otherwise receive the full catalog).
+    fetch("/api/packages?published=1", { credentials: "include" })
       .then((r) => (r.ok ? r.json() : []))
       .then((rows: unknown) => {
         const list = Array.isArray(rows) ? rows : [];
@@ -377,9 +379,41 @@ export function PassConfigSection({
 }) {
   const selected = selectedPackageOf(s);
   const expiryLocked = isFixedDurationPackage(selected);
+  const [typeTab, setTypeTab] = useState<PassType>(
+    s.studioBlocksClass ? "studio_pass" : selected?.type === "studio_pass" ? "studio_pass" : "class_pass",
+  );
+  const visiblePackages = s.packages.filter((p) => p.type === typeTab);
 
   return (
     <div className="space-y-6">
+      {/* Pass type tabs */}
+      <div className="grid grid-cols-2 gap-1 rounded-xl border border-sage/20 bg-sage/5 p-1">
+        {(["class_pass", "studio_pass"] as const).map((t) => {
+          const blocked = t === "class_pass" && s.studioBlocksClass;
+          return (
+            <button
+              key={t}
+              type="button"
+              disabled={blocked}
+              onClick={() => {
+                setTypeTab(t);
+                if (selectedPackageOf(s)?.type !== t) s.setSelectedPackageId(null);
+              }}
+              className={[
+                "rounded-lg py-2 text-sm font-body font-medium transition-colors duration-200",
+                blocked
+                  ? "cursor-not-allowed text-charcoal/30"
+                  : typeTab === t
+                    ? "bg-sage text-cream shadow-xs cursor-pointer"
+                    : "text-charcoal/70 hover:text-charcoal cursor-pointer",
+              ].join(" ")}
+            >
+              {t === "class_pass" ? "Class pass" : "Studio pass"}
+            </button>
+          );
+        })}
+      </div>
+
       {/* Package picker */}
       <div>
         <Label className="font-body text-charcoal/80 mb-2.5 block text-sm">
@@ -392,11 +426,11 @@ export function PassConfigSection({
           <div className="flex h-20 items-center justify-center rounded-xl border border-sage/15 bg-sage/[0.03]">
             <Loader2 className="h-4 w-4 animate-spin text-sage" />
           </div>
-        ) : s.packages.length === 0 ? (
-          <p className="font-body text-sm text-charcoal/50">No published packages. Add one in the catalog first.</p>
+        ) : visiblePackages.length === 0 ? (
+          <p className="font-body text-sm text-charcoal/50">No published {typeTab === "class_pass" ? "class" : "studio"} packages.</p>
         ) : (
           <div className="grid grid-cols-1 gap-2 sm:grid-cols-2">
-            {s.packages.map((pkg) => {
+            {visiblePackages.map((pkg) => {
               const active = s.selectedPackageId === pkg.id;
               const blocked = pkg.type === "class_pass" && s.studioBlocksClass;
               const qty =
