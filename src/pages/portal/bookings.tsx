@@ -37,6 +37,7 @@ interface Booking {
   checked_in: boolean;
   check_in_outcome: string | null;
   invited_by_name?: string | null;
+  cancel_cutoff_hours?: number | null;
   guests?: { name: string; status: string; checked_in: boolean }[];
   class_schedule?: {
     start_time: string;
@@ -166,6 +167,21 @@ const BookingCard = memo(function BookingCard({
           {afterCheckInWindow && (
             <p className="font-body text-xs text-charcoal/55">Check-in closed for this class.</p>
           )}
+          {!booking.invited_by_name &&
+            (booking.status === "confirmed" || booking.status === "payment_pending") &&
+            booking.cancel_cutoff_hours != null &&
+            (() => {
+              const cutoffMs = new Date(startIso).getTime() - (booking.cancel_cutoff_hours ?? 0) * 3600_000;
+              return Date.now() < cutoffMs ? (
+                <p className="font-body text-xs text-sage">
+                  Free cancellation (refund pass) until {formatTime(new Date(cutoffMs).toISOString())}.
+                </p>
+              ) : (
+                <p className="font-body text-xs text-terracotta">
+                  Past the cancellation cutoff — cancelling now needs studio approval.
+                </p>
+              );
+            })()}
           <div className="flex gap-2">
             {canCheck && (
               <Button onClick={() => onCheckIn(booking)} size="sm" variant="sage" className="flex-1 sm:flex-none h-11 px-4 sm:px-6">Check in</Button>

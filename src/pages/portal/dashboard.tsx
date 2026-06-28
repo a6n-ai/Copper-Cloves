@@ -238,6 +238,8 @@ interface DashboardBooking {
   class_time?: string;
   confirmation_status?: string;
   checked_in?: boolean;
+  invited_by_user_id?: string | null;
+  cancel_cutoff_hours?: number | null;
   class_schedule?: {
     start_time?: string;
     instructor?: { name?: string } | null;
@@ -556,11 +558,21 @@ export default function Dashboard() {
     () =>
       upcomingBookings.slice(0, 3).map((booking) => {
         const isScheduled = !!booking.class_schedule;
+        const startISO = isScheduled ? booking.class_schedule?.start_time : booking.class_time;
+        const cutoffH = booking.cancel_cutoff_hours;
+        // Self-cancel is only the booker's to make (invited rows ride along the booker).
+        const cancellable =
+          !booking.invited_by_user_id &&
+          (booking.status === "confirmed" || booking.status === "payment_pending");
+        const cancelByISO =
+          cancellable && startISO && cutoffH != null
+            ? new Date(new Date(startISO).getTime() - cutoffH * 3600_000).toISOString()
+            : undefined;
         return {
           id: booking.id,
           title: isScheduled ? booking.class_schedule?.class_model?.name : booking.class_name || "Class",
           subtitle: isScheduled ? booking.class_schedule?.instructor?.name : "Instructor TBD",
-          whenISO: isScheduled ? booking.class_schedule?.start_time : booking.class_time,
+          whenISO: startISO,
           imageUrl: isScheduled ? booking.class_schedule?.class_model?.image_url || undefined : undefined,
           status:
             booking.status === "payment_pending" || booking.confirmation_status === "pending"
@@ -570,9 +582,13 @@ export default function Dashboard() {
             setSelectedBookingForCheckIn(booking);
             setShowCheckIn(true);
           },
+          cancelByISO,
+          // The full self-cancel / late-request dialog lives on the bookings page;
+          // ponytail: deep-link there instead of duplicating ~80 lines of flow.
+          onCancel: cancellable ? () => void router.push("/portal/bookings") : undefined,
         };
       }),
-    [upcomingBookings],
+    [upcomingBookings, router],
   );
 
   const orderRows = useMemo(

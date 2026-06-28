@@ -14,6 +14,10 @@ export interface ScheduleEntry {
   imageUrl?: string;
   status?: "pending" | "confirmed";
   onClick?: () => void;
+  /** ISO deadline for free (refund-pass) self-cancel; past it, cancel needs studio approval. */
+  cancelByISO?: string;
+  /** When set, a Cancel action is shown on the row. */
+  onCancel?: () => void;
 }
 
 export interface UpcomingScheduleCardProps {
@@ -39,7 +43,13 @@ export function UpcomingScheduleCard({
   // Precompute the formatted when-label per entry so a parent rerender doesn't
   // re-parse Date + invoke 2× toLocale* per row.
   const rows = useMemo(
-    () => entries.map((entry) => ({ entry, when: formatWhen(entry.whenISO) })),
+    () =>
+      entries.map((entry) => ({
+        entry,
+        when: formatWhen(entry.whenISO),
+        cancelBy: formatWhen(entry.cancelByISO),
+        cancelOpen: entry.cancelByISO ? Date.now() < new Date(entry.cancelByISO).getTime() : false,
+      })),
     [entries],
   );
 
@@ -57,33 +67,51 @@ export function UpcomingScheduleCard({
           <p className="text-sm italic text-muted-foreground">No upcoming classes</p>
         ) : (
           <div className="space-y-2">
-            {rows.map(({ entry, when }) => {
+            {rows.map(({ entry, when, cancelBy, cancelOpen }) => {
               return (
-                <button
+                <div
                   key={entry.id}
-                  onClick={entry.onClick}
-                  className="flex w-full items-center gap-3 rounded-lg p-2 text-left transition-colors hover:bg-muted"
+                  className="flex w-full items-center gap-3 rounded-lg p-2 transition-colors hover:bg-muted"
                 >
-                  <Image
-                    src={entry.imageUrl || cdnUrl("/placeholder.jpg")}
-                    alt={entry.title}
-                    width={56}
-                    height={56}
-                    unoptimized
-                    className="h-14 w-14 rounded-lg object-cover"
-                  />
-                  <div className="min-w-0 flex-1">
-                    <p className="truncate font-display text-base text-card-foreground">{entry.title}</p>
-                    {entry.subtitle ? (
-                      <p className="truncate text-xs text-muted-foreground">{entry.subtitle}</p>
-                    ) : null}
-                    {entry.status === "pending" ? (
-                      <Pill tone="warning" className="mt-1">Pending confirmation</Pill>
-                    ) : null}
-                    {when ? <p className="mt-1 text-xs font-semibold text-primary">{when}</p> : null}
-                  </div>
-                  <ChevronRight className="h-5 w-5 text-muted-foreground/40" />
-                </button>
+                  <button
+                    onClick={entry.onClick}
+                    className="flex min-w-0 flex-1 items-center gap-3 text-left"
+                  >
+                    <Image
+                      src={entry.imageUrl || cdnUrl("/placeholder.jpg")}
+                      alt={entry.title}
+                      width={56}
+                      height={56}
+                      unoptimized
+                      className="h-14 w-14 rounded-lg object-cover"
+                    />
+                    <div className="min-w-0 flex-1">
+                      <p className="truncate font-display text-base text-card-foreground">{entry.title}</p>
+                      {entry.subtitle ? (
+                        <p className="truncate text-xs text-muted-foreground">{entry.subtitle}</p>
+                      ) : null}
+                      {entry.status === "pending" ? (
+                        <Pill tone="warning" className="mt-1">Pending confirmation</Pill>
+                      ) : null}
+                      {when ? <p className="mt-1 text-xs font-semibold text-primary">{when}</p> : null}
+                      {cancelBy ? (
+                        <p className="mt-0.5 text-xs text-muted-foreground">
+                          {cancelOpen ? `Cancel free until ${cancelBy}` : "Cancellation cutoff passed"}
+                        </p>
+                      ) : null}
+                    </div>
+                  </button>
+                  {entry.onCancel ? (
+                    <button
+                      onClick={entry.onCancel}
+                      className="shrink-0 rounded-md border border-terracotta/30 px-3 py-1.5 text-xs font-medium text-terracotta transition-colors hover:bg-terracotta/5"
+                    >
+                      Cancel
+                    </button>
+                  ) : (
+                    <ChevronRight className="h-5 w-5 text-muted-foreground/40" />
+                  )}
+                </div>
               );
             })}
           </div>

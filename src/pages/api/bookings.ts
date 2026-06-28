@@ -114,9 +114,15 @@ async function handleGet(req: NextApiRequest, res: NextApiResponse, userId: stri
     }
   }
 
+  // Cancellation cutoff (hours before class) so the client can render the
+  // "cancel by" deadline + gate the self-cancel button. One read, same value
+  // for every row — both the bookings page and the dashboard consume it.
+  const { cancellation_cutoff_hours } = await getStudioSettings();
+
   const mapped = bookings.map((b) => ({
     ...b,
     invited_by_name: b.invited_by?.full_name ?? null,
+    cancel_cutoff_hours: cancellation_cutoff_hours,
     // Only the booker's own row (not an invited row) carries the guest list.
     guests: !b.invited_by_user_id && b.class_schedule_id ? guestsBySchedule.get(b.class_schedule_id) ?? [] : [],
   }));

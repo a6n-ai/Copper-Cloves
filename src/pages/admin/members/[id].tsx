@@ -383,6 +383,27 @@ export default function MemberDetailPage() {
     }
   }
 
+  /* — admin direct cancel of a booking (cancels + grants refund pass) — */
+  async function cancelBooking(bookingId: string) {
+    if (!window.confirm("Cancel this booking? The seat is released and a 1 Class Pass refund is granted (unlimited members excepted).")) return;
+    setSavingBookingId(bookingId);
+    try {
+      const res = await fetch("/api/admin/bookings/cancel", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        credentials: "include",
+        body: JSON.stringify({ bookingId }),
+      });
+      if (!res.ok) throw new Error();
+      toast.success("Booking cancelled and refund pass granted.");
+      await load();
+    } catch {
+      toast.error("Could not cancel booking");
+    } finally {
+      setSavingBookingId(null);
+    }
+  }
+
   /* — pause / resume active pass — */
   async function togglePause(next: boolean) {
     if (!member) return;
@@ -445,6 +466,7 @@ export default function MemberDetailPage() {
                   noShowCount={noShowCount}
                   savingBookingId={savingBookingId}
                   onApplyOutcome={applyOutcome}
+                  onCancelBooking={cancelBooking}
                   onTogglePause={togglePause}
                   onReload={load}
                 />
@@ -464,6 +486,7 @@ function MemberBody({
   noShowCount,
   savingBookingId,
   onApplyOutcome,
+  onCancelBooking,
   onTogglePause,
   onReload,
 }: {
@@ -471,6 +494,7 @@ function MemberBody({
   noShowCount: number;
   savingBookingId: string | null;
   onApplyOutcome: (id: string, o: "on_time" | "late" | "no_show" | "not_checked_in") => void;
+  onCancelBooking: (id: string) => void;
   onTogglePause: (next: boolean) => void;
   onReload: () => Promise<void>;
 }) {
@@ -597,6 +621,17 @@ function MemberBody({
                                 <SelectItem value="not_checked_in">Not checked in</SelectItem>
                               </SelectContent>
                             </Select>
+                            {(row.lifecycle === "confirmed" || row.lifecycle === "payment_pending") && !row.checkedIn && (
+                              <Button
+                                variant="outline"
+                                size="sm"
+                                disabled={savingBookingId === row.id}
+                                onClick={() => onCancelBooking(row.id)}
+                                className="h-8 border-terracotta/30 text-terracotta hover:bg-terracotta/5 hover:text-terracotta! font-body text-xs"
+                              >
+                                Cancel
+                              </Button>
+                            )}
                           </div>
                         </TableCell>
                       </TableRow>
