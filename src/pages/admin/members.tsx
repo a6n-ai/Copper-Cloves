@@ -33,6 +33,19 @@ import {
   ResponsiveDialogTitle,
   ResponsiveDialogFooter,
 } from "@/components/responsive/ResponsiveDialog";
+import { Checkbox } from "@/components/ui/checkbox";
+import {
+  usePassPaymentState,
+  PassConfigSection,
+  PaymentSection,
+  passConfigSelected,
+  validateConfig,
+  validatePayment,
+  applyPassConfig,
+  persistStartDate,
+  recordPayment,
+} from "@/components/admin/managePass";
+import { toast } from "sonner";
 
 interface Member {
   id: string;
@@ -200,6 +213,8 @@ export default function AdminMembers() {
   const [addPassword, setAddPassword] = useState("");
   const [addError, setAddError] = useState<string | null>(null);
   const [addSubmitting, setAddSubmitting] = useState(false);
+  const [assignPass, setAssignPass] = useState(false);
+  const pass = usePassPaymentState();
 
   const { data: session, status } = useSession();
 
@@ -426,6 +441,83 @@ export default function AdminMembers() {
     accountLabel: accountLabelFor(m.accountFilter),
   }));
 
+  async function handleAddSubmit() {
+    setAddError(null);
+    const email = addEmail.trim();
+    if (!email || !addPassword) {
+      setAddError("Email and password are required.");
+      return;
+    }
+    if (addPassword.length < 8) {
+      setAddError("Password must be at least 8 characters.");
+      return;
+    }
+    if (assignPass) {
+      const cfgErr = validateConfig(pass);
+      if (cfgErr) {
+        setAddError(cfgErr);
+        return;
+      }
+      if (!pass.isComp) {
+        const payErr = validatePayment(pass);
+        if (payErr) {
+          setAddError(payErr);
+          return;
+        }
+      }
+    }
+    setAddSubmitting(true);
+    try {
+      const res = await fetch("/api/auth/signup", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          email,
+          password: addPassword,
+          full_name: addName.trim() || undefined,
+          phone: addPhone.trim() || undefined,
+        }),
+      });
+      const body = await res.json().catch(() => ({}));
+      if (!res.ok) {
+        setAddError((body as { error?: string }).error ?? `Signup failed (HTTP ${res.status}).`);
+        return;
+      }
+      const newId = (body as { id?: string }).id ?? null;
+
+      // Optional pass assignment routes through the SAME shared engine the
+      // member-detail "Manage pass" dialog uses, so the two flows can't drift.
+      if (assignPass && newId) {
+        try {
+          if (pass.isComp) {
+            await persistStartDate(newId, pass, null);
+            await applyPassConfig(newId, pass, null);
+          } else {
+            await recordPayment(newId, pass, null);
+            await persistStartDate(newId, pass, null);
+            if (passConfigSelected(pass)) await applyPassConfig(newId, pass, null);
+          }
+        } catch (passErr) {
+          setAddOpen(false);
+          await loadMembers();
+          toast.error(
+            `Member created, but pass assignment failed: ${passErr instanceof Error ? passErr.message : "unknown error"}. Finish from their profile.`,
+          );
+          return;
+        }
+      }
+
+      setAddOpen(false);
+      setSuccessMessage(assignPass ? `Member ${email} created with pass` : `Member ${email} created`);
+      await loadMembers();
+      setTimeout(() => setSuccessMessage(""), 3000);
+    } catch (err) {
+      setAddError(err instanceof Error ? err.message : "Could not create member.");
+    } finally {
+      setAddSubmitting(false);
+    }
+  }
+
   if (loading) {
     return (
       <div className="min-h-screen bg-linear-to-br from-cream via-cream to-sage/10">
@@ -507,6 +599,9 @@ export default function AdminMembers() {
                       setAddPhone("");
                       setAddPassword("");
                       setAddError(null);
+                      setAssignPass(false);
+                      pass.reset();
+                      pass.loadDefaults();
                       setAddOpen(true);
                     }}
                     variant="sage"
@@ -576,55 +671,84 @@ export default function AdminMembers() {
 
       {/* Add Member Dialog */}
       <ResponsiveDialog open={addOpen} onOpenChange={setAddOpen}>
-        <ResponsiveDialogContent className="sm:max-w-[440px] bg-white-warm border-sage/20">
+        <ResponsiveDialogContent className="sm:max-w-[480px] bg-white-warm border-sage/20">
           <ResponsiveDialogHeader>
             <ResponsiveDialogTitle className="font-display text-2xl text-charcoal">Add Member</ResponsiveDialogTitle>
             <ResponsiveDialogDescription className="font-body text-charcoal/60">
-              Create a new member account. They can sign in with the email + password.
+              Create a member account, and optionally assign a pass right away.
             </ResponsiveDialogDescription>
           </ResponsiveDialogHeader>
-          <div className="space-y-3 py-2">
-            <div>
-              <Label className="font-body text-charcoal/80 mb-1.5 block text-sm">Full name</Label>
-              <Input
-                value={addName}
-                onChange={(e) => setAddName(e.target.value)}
-                placeholder="Jane Doe"
-                className="border-sage/20 focus:border-sage font-body"
-              />
+          <div className="max-h-[60vh] space-y-4 overflow-y-auto py-2 pr-1">
+            {/* Account */}
+            <div className="space-y-3">
+              <div>
+                <Label className="font-body text-charcoal/80 mb-1.5 block text-sm">Full name</Label>
+                <Input
+                  value={addName}
+                  onChange={(e) => setAddName(e.target.value)}
+                  placeholder="Jane Doe"
+                  className="border-sage/20 focus:border-sage font-body"
+                />
+              </div>
+              <div>
+                <Label className="font-body text-charcoal/80 mb-1.5 block text-sm">Email</Label>
+                <Input
+                  type="email"
+                  value={addEmail}
+                  onChange={(e) => setAddEmail(e.target.value)}
+                  placeholder="jane@example.com"
+                  className="border-sage/20 focus:border-sage font-body"
+                />
+              </div>
+              <div className="grid grid-cols-2 gap-3">
+                <div>
+                  <Label className="font-body text-charcoal/80 mb-1.5 block text-sm">Phone</Label>
+                  <Input
+                    value={addPhone}
+                    onChange={(e) => setAddPhone(e.target.value)}
+                    placeholder="+91 98765 …"
+                    className="border-sage/20 focus:border-sage font-body"
+                  />
+                </div>
+                <div>
+                  <Label className="font-body text-charcoal/80 mb-1.5 block text-sm">Temp password</Label>
+                  <Input
+                    type="text"
+                    value={addPassword}
+                    onChange={(e) => setAddPassword(e.target.value)}
+                    placeholder="8+ chars"
+                    className="border-sage/20 focus:border-sage font-body"
+                  />
+                </div>
+              </div>
             </div>
-            <div>
-              <Label className="font-body text-charcoal/80 mb-1.5 block text-sm">Email</Label>
-              <Input
-                type="email"
-                value={addEmail}
-                onChange={(e) => setAddEmail(e.target.value)}
-                placeholder="jane@example.com"
-                className="border-sage/20 focus:border-sage font-body"
-              />
+
+            {/* Assign-pass toggle */}
+            <div className="rounded-xl border border-sage/15 bg-sage/[0.03] p-4">
+              <label className="flex items-start gap-3 cursor-pointer">
+                <Checkbox checked={assignPass} onCheckedChange={(v) => setAssignPass(v === true)} className="mt-0.5" />
+                <span>
+                  <span className="font-body text-charcoal/90 text-sm block">Assign a pass now</span>
+                  <span className="font-body text-charcoal/50 text-xs block mt-0.5">
+                    Configure a class or studio pass and record payment at sign-up. Otherwise the account is created on its own.
+                  </span>
+                </span>
+              </label>
             </div>
-            <div>
-              <Label className="font-body text-charcoal/80 mb-1.5 block text-sm">Phone</Label>
-              <Input
-                value={addPhone}
-                onChange={(e) => setAddPhone(e.target.value)}
-                placeholder="+91 9876543210"
-                className="border-sage/20 focus:border-sage font-body"
-              />
-            </div>
-            <div>
-              <Label className="font-body text-charcoal/80 mb-1.5 block text-sm">Temporary password</Label>
-              <Input
-                type="text"
-                value={addPassword}
-                onChange={(e) => setAddPassword(e.target.value)}
-                placeholder="At least 8 characters"
-                className="border-sage/20 focus:border-sage font-body"
-              />
-            </div>
-            {addError && (
-              <p className="text-sm font-body text-terracotta">{addError}</p>
+
+            {/* Pass + payment — shared engine, identical to the member-detail Manage dialog */}
+            {assignPass && (
+              <div className="space-y-5 rounded-xl border border-sage/15 p-4">
+                <PassConfigSection state={pass} />
+                {!pass.isComp && (
+                  <div className="border-t border-sage/10 pt-4">
+                    <PaymentSection state={pass} />
+                  </div>
+                )}
+              </div>
             )}
+
+            {addError && <p className="text-sm font-body text-terracotta">{addError}</p>}
           </div>
           <ResponsiveDialogFooter>
             <Button
@@ -636,47 +760,11 @@ export default function AdminMembers() {
               Cancel
             </Button>
             <Button
-              onClick={async () => {
-                setAddError(null);
-                if (!addEmail || !addPassword) {
-                  setAddError("Email and password are required.");
-                  return;
-                }
-                if (addPassword.length < 8) {
-                  setAddError("Password must be at least 8 characters.");
-                  return;
-                }
-                setAddSubmitting(true);
-                try {
-                  const res = await fetch("/api/auth/signup", {
-                    method: "POST",
-                    headers: { "Content-Type": "application/json" },
-                    body: JSON.stringify({
-                      email: addEmail.trim(),
-                      password: addPassword,
-                      full_name: addName.trim() || undefined,
-                      phone: addPhone.trim() || undefined,
-                    }),
-                  });
-                  const body = await res.json().catch(() => ({}));
-                  if (!res.ok) {
-                    setAddError((body as { error?: string }).error ?? `Signup failed (HTTP ${res.status}).`);
-                    return;
-                  }
-                  setAddOpen(false);
-                  setSuccessMessage(`Member ${addEmail} created`);
-                  await loadMembers();
-                  setTimeout(() => setSuccessMessage(""), 3000);
-                } catch (err) {
-                  setAddError(err instanceof Error ? err.message : "Could not create member.");
-                } finally {
-                  setAddSubmitting(false);
-                }
-              }}
-              disabled={addSubmitting}
+              onClick={() => void handleAddSubmit()}
+              disabled={addSubmitting || pass.proofUploading}
               variant="sage"
             >
-              {addSubmitting ? "Adding…" : "Add Member"}
+              {addSubmitting ? "Adding…" : assignPass ? "Add member & assign pass" : "Add Member"}
             </Button>
           </ResponsiveDialogFooter>
         </ResponsiveDialogContent>

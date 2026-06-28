@@ -2153,7 +2153,7 @@ export default function AdminDashboard() {
                   variant="outline"
                   onClick={() => {
                     const pid = String(selectedMemberProfile.profileId ?? selectedMemberProfile.id ?? "");
-                    if (pid) void router.push(`/admin/control?editUser=${encodeURIComponent(pid)}`);
+                    if (pid) void router.push(`/admin/members/${encodeURIComponent(pid)}`);
                   }}
                   className="border-sage/30 text-charcoal hover:bg-sage/5 font-body h-12 hover:text-charcoal!"
                 >

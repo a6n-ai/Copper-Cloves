@@ -9,7 +9,6 @@ import {
   CreditCard,
   Trophy,
   Flame,
-  CalendarClock,
   UserX,
   ArrowLeft,
   ReceiptText,
@@ -19,13 +18,15 @@ import {
   Pencil,
   User as UserIcon,
   Banknote,
+  Coffee,
+  Ticket,
+  Sparkles,
 } from "lucide-react";
 import { requireSessionSSP } from "@/lib/requireSessionSSP";
 import { passCategoryForPackageType } from "@/lib/couponHelpers";
 import { SEO } from "@/components/SEO";
 import { PageHeader } from "@/components/dashboard/PageHeader";
 import { PassCard } from "@/components/dashboard/PassCard";
-import { MetricCard } from "@/components/admin/MetricCard";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Pill } from "@/components/ui/pill";
@@ -53,8 +54,19 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { ListAvatar } from "@/components/admin/ListAvatar";
-import { Checkbox } from "@/components/ui/checkbox";
-import { Textarea } from "@/components/ui/textarea";
+import {
+  usePassPaymentState,
+  PassConfigSection,
+  PaymentSection,
+  passConfigSelected,
+  validateConfig,
+  validatePayment,
+  applyPassConfig,
+  persistStartDate,
+  recordPayment,
+  passSummary,
+  type PassMemberContext,
+} from "@/components/admin/managePass";
 import { toast } from "sonner";
 
 export const getServerSideProps = requireSessionSSP({ roles: ["admin"] });
@@ -144,16 +156,6 @@ interface MemberDetail {
 }
 
 /* ──────────────────────────  Helpers  ────────────────────────── */
-
-const PAYMENT_METHODS = [
-  { v: "razorpay_online", l: "Razorpay (Online)" },
-  { v: "pine_lab_card", l: "Pine Lab Card" },
-  { v: "pine_lab_upi", l: "Pine Lab UPI" },
-  { v: "direct_upi", l: "Direct UPI" },
-  { v: "razorpay_completed", l: "Razorpay Completed" },
-  { v: "cash", l: "Cash" },
-] as const;
-
 
 function rupees(paise: number): string {
   return `₹${(paise / 100).toLocaleString("en-IN", { minimumFractionDigits: 0, maximumFractionDigits: 2 })}`;
@@ -300,6 +302,12 @@ function mapDetail(data: Record<string, unknown>): MemberDetail {
     payments,
     tickets,
   };
+}
+
+function passLabelFor(cat: PassCategory): string {
+  if (cat === "studio_pass") return "Studio pass";
+  if (cat === "class_pass") return "Class pass";
+  return "No active pass";
 }
 
 /* ──────────────────────────  Page  ────────────────────────── */
@@ -468,32 +476,25 @@ function MemberBody({
 }) {
   const [manageOpen, setManageOpen] = useState(false);
   const [editOpen, setEditOpen] = useState(false);
-
-  let passLabel: string;
-  if (member.passCategory === "studio_pass") passLabel = "Studio pass";
-  else if (member.passCategory === "class_pass") passLabel = "Class pass";
-  else passLabel = "No active pass";
+  const passLabel = passLabelFor(member.passCategory);
 
   return (
     <>
-      {/* Hero */}
-      <div className="relative overflow-hidden rounded-2xl border border-sage/20 bg-linear-to-br from-sage/8 via-[#fafaf8] to-cream/30 shadow-xs">
-        <div className="relative grid grid-cols-1 gap-6 p-6 md:grid-cols-[auto_1fr_auto] md:items-center">
-          <div className="shrink-0">
-            <ListAvatar name={member.name} src={member.avatarUrl} size="lg" />
-          </div>
+      {/* Identity band */}
+      <section className="overflow-hidden rounded-2xl border border-sage/20 bg-linear-to-br from-sage/[0.08] via-[#fafaf8] to-cream/40 shadow-xs">
+        <div className="grid grid-cols-1 gap-6 p-6 md:grid-cols-[auto_1fr_auto] md:items-center">
+          <ListAvatar name={member.name} src={member.avatarUrl} size="lg" />
           <div className="min-w-0">
-            <p className="font-body text-[11px] uppercase tracking-[0.18em] text-charcoal/50">{passLabel}</p>
-            <h2 className="font-display text-3xl text-charcoal truncate mt-0.5">{member.name}</h2>
-            <div className="mt-3 flex flex-wrap items-center gap-3 font-body text-xs text-charcoal/65">
+            <h2 className="font-display text-3xl text-charcoal truncate">{member.name}</h2>
+            <div className="mt-2.5 flex flex-wrap items-center gap-x-4 gap-y-1.5 font-body text-xs text-charcoal/65">
               {member.email && (
-                <a href={`mailto:${member.email}`} className="inline-flex items-center gap-1.5 hover:text-sage">
+                <a href={`mailto:${member.email}`} className="inline-flex items-center gap-1.5 transition-colors hover:text-sage">
                   <Mail className="h-3.5 w-3.5" />
                   {member.email}
                 </a>
               )}
               {member.phone && (
-                <a href={`tel:${member.phone}`} className="inline-flex items-center gap-1.5 hover:text-sage">
+                <a href={`tel:${member.phone}`} className="inline-flex items-center gap-1.5 transition-colors hover:text-sage">
                   <Phone className="h-3.5 w-3.5" />
                   {member.phone}
                 </a>
@@ -504,296 +505,302 @@ function MemberBody({
                   {member.whatsappPhone}
                 </span>
               )}
-              <span className="inline-flex items-center gap-1.5">
-                <Calendar className="h-3.5 w-3.5" />
-                Member since {fmtDate(member.createdAt)}
-              </span>
             </div>
           </div>
           <div className="flex flex-col gap-2 md:items-end">
-            <Button variant="sage" onClick={() => setManageOpen(true)} className="font-body">
+            <Button variant="sage" onClick={() => setManageOpen(true)} className="font-body w-full md:w-auto">
               <CreditCard className="h-4 w-4 mr-1.5" />
               Manage pass / payment
             </Button>
-            <Button
-              variant="outline"
-              onClick={() => setEditOpen(true)}
-              className="font-body border-sage/30 text-sage hover:bg-sage hover:text-cream"
-            >
-              <Pencil className="h-4 w-4 mr-1.5" />
-              Edit profile
-            </Button>
-            {member.activePackageId && (
+            <div className="flex gap-2">
               <Button
                 variant="outline"
-                onClick={() => onTogglePause(!member.activePaused)}
-                className="font-body border-sage/30 text-sage hover:bg-sage hover:text-cream"
+                onClick={() => setEditOpen(true)}
+                className="font-body flex-1 border-sage/30 text-sage hover:bg-sage hover:text-cream"
               >
-                {member.activePaused ? <Play className="h-4 w-4 mr-1.5" /> : <Pause className="h-4 w-4 mr-1.5" />}
-                {member.activePaused ? "Resume pass" : "Pause pass"}
+                <Pencil className="h-4 w-4 mr-1.5" />
+                Edit
               </Button>
-            )}
+              {member.activePackageId && (
+                <Button
+                  variant="outline"
+                  onClick={() => onTogglePause(!member.activePaused)}
+                  className="font-body flex-1 border-sage/30 text-sage hover:bg-sage hover:text-cream"
+                >
+                  {member.activePaused ? <Play className="h-4 w-4 mr-1.5" /> : <Pause className="h-4 w-4 mr-1.5" />}
+                  {member.activePaused ? "Resume" : "Pause"}
+                </Button>
+              )}
+            </div>
           </div>
         </div>
-      </div>
 
-      {/* Stats */}
-      <div className="grid grid-cols-2 md:grid-cols-3 xl:grid-cols-5 gap-4">
-        <MetricCard label="Classes" value={member.stats.totalClasses} icon={Trophy} tone="sage" hint="Total attended" />
-        <MetricCard label="Streak" value={member.stats.currentStreak} icon={Flame} tone="clay" hint={`Best ${member.stats.longestStreak}`} />
-        <MetricCard label="Credits" value={member.unlimited ? "∞" : member.credits} icon={CreditCard} tone="sage" hint="On active pass" />
-        <MetricCard label="Expiry" value={member.expiry ? fmtDate(member.expiry) : "—"} icon={CalendarClock} tone="charcoal" hint="Active pass" />
-        <MetricCard label="No-shows" value={noShowCount} icon={UserX} tone="clay" hint="Recent bookings" />
-      </div>
+        {/* Stat bar — engagement at a glance */}
+        <div className="grid grid-cols-2 divide-x divide-sage/10 border-t border-sage/10 sm:grid-cols-4">
+          <StatCell icon={Trophy} label="Classes" value={member.stats.totalClasses} />
+          <StatCell icon={Flame} label="Streak" value={member.stats.currentStreak} hint={`best ${member.stats.longestStreak}`} />
+          <StatCell icon={UserX} label="No-shows" value={noShowCount} tone={noShowCount > 0 ? "clay" : "sage"} />
+          <StatCell icon={Calendar} label="Member since" value={fmtDate(member.createdAt)} small />
+        </div>
+      </section>
 
-      {/* About + Current pass */}
-      <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
-        <Card className="rounded-2xl shadow-xs">
-          <CardHeader>
-            <CardTitle className="font-display text-lg text-charcoal flex items-center gap-2">
-              <UserIcon className="h-4 w-4 text-sage" /> Profile
-            </CardTitle>
-          </CardHeader>
-          <CardContent className="space-y-2">
-            <InfoLine icon={Cake} label="Date of birth" value={member.dob ? fmtDate(member.dob) : null} />
-            <InfoLine icon={UserIcon} label="Gender" value={member.gender} />
-            <InfoLine icon={Calendar} label="Start date" value={member.startDate ? fmtDate(member.startDate) : null} />
-            <InfoLine icon={MessageCircle} label="WhatsApp" value={member.whatsappPhone} />
-          </CardContent>
-        </Card>
-        <Card className="rounded-2xl shadow-xs">
-          <CardHeader>
-            <CardTitle className="font-display text-lg text-charcoal flex items-center gap-2">
-              <CreditCard className="h-4 w-4 text-sage" /> Current pass
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            {member.activePackageId ? (
-              <div className="space-y-1.5">
-                <div className="flex items-center gap-2">
-                  <span className="font-display text-2xl text-charcoal">{passLabel}</span>
-                  {member.activePaused && (
-                    <Pill tone="warning" className="font-body">Paused</Pill>
-                  )}
-                </div>
-                <p className="font-body text-sm text-charcoal/70">
-                  {member.unlimited ? "Unlimited classes" : `${member.credits} classes remaining`}
-                  {member.expiry ? ` · expires ${fmtDate(member.expiry)}` : ""}
-                </p>
-              </div>
+      {/* Two-column workspace */}
+      <div className="grid grid-cols-1 gap-6 lg:grid-cols-3">
+        {/* Main column */}
+        <div className="space-y-6 lg:col-span-2">
+          <SectionCard title="Class history" icon={Calendar} count={member.bookings.length}>
+            {member.bookings.length === 0 ? (
+              <EmptyNote text="No class history yet." />
             ) : (
-              <p className="font-body text-sm text-charcoal/40 italic">No active pass. Use Manage to assign one.</p>
-            )}
-          </CardContent>
-        </Card>
-      </div>
-
-      {/* Class history + Packages */}
-      <div className="grid grid-cols-1 gap-4 lg:grid-cols-2">
-        <SectionCard title="Class history" icon={Calendar} count={member.bookings.length}>
-          {member.bookings.length === 0 ? (
-            <EmptyNote text="No class history yet." />
-          ) : (
-            <ResponsiveTable>
-              <Table>
-                <TableHeader>
-                  <TableRow>
-                    <TableHead>Class</TableHead>
-                    <TableHead>When</TableHead>
-                    <TableHead>Status</TableHead>
-                    <TableHead className="text-right">Check-in</TableHead>
-                  </TableRow>
-                </TableHeader>
-                <TableBody>
-                  {member.bookings.map((row) => (
-                    <TableRow key={row.id}>
-                      <TableCell className="font-body text-charcoal">{row.name}</TableCell>
-                      <TableCell className="font-body text-charcoal/60">{fmtDateTime(row.when)}</TableCell>
-                      <TableCell>
-                        <div className="flex flex-wrap items-center gap-1.5">
-                          <Pill {...bookingStatusPill(row.lifecycle)}>{bookingStatusPill(row.lifecycle).label}</Pill>
-                          {(row.lifecycle === "payment_pending" || row.lifecycle === "expired") && (
-                            <Pill {...bookingPaymentPill(row.lifecycle)}>{bookingPaymentPill(row.lifecycle).label}</Pill>
-                          )}
-                        </div>
-                      </TableCell>
-                      <TableCell className="text-right">
-                        <div className="flex items-center justify-end gap-2">
-                          {savingBookingId === row.id && <Spinner className="size-3" />}
-                          <Select
-                            value={
-                              row.checkedIn
-                                ? row.checkInOutcome === "late" ? "late" : "on_time"
-                                : row.checkInOutcome === "no_show" ? "no_show" : "not_checked_in"
-                            }
-                            onValueChange={(v) => onApplyOutcome(row.id, v as "on_time" | "late" | "no_show" | "not_checked_in")}
-                            disabled={savingBookingId === row.id}
-                          >
-                            <SelectTrigger className="h-8 w-[150px] border-sage/20 font-body text-xs">
-                              <SelectValue />
-                            </SelectTrigger>
-                            <SelectContent>
-                              <SelectItem value="on_time">On time</SelectItem>
-                              <SelectItem value="late">Late</SelectItem>
-                              <SelectItem value="no_show">No-show</SelectItem>
-                              <SelectItem value="not_checked_in">Not checked in</SelectItem>
-                            </SelectContent>
-                          </Select>
-                        </div>
-                      </TableCell>
+              <ResponsiveTable>
+                <Table>
+                  <TableHeader>
+                    <TableRow>
+                      <TableHead>Class</TableHead>
+                      <TableHead>When</TableHead>
+                      <TableHead>Status</TableHead>
+                      <TableHead className="text-right">Check-in</TableHead>
                     </TableRow>
+                  </TableHeader>
+                  <TableBody>
+                    {member.bookings.map((row) => (
+                      <TableRow key={row.id}>
+                        <TableCell className="font-body text-charcoal">{row.name}</TableCell>
+                        <TableCell className="font-body text-charcoal/60 whitespace-nowrap">{fmtDateTime(row.when)}</TableCell>
+                        <TableCell>
+                          <div className="flex flex-wrap items-center gap-1.5">
+                            <Pill {...bookingStatusPill(row.lifecycle)}>{bookingStatusPill(row.lifecycle).label}</Pill>
+                            {(row.lifecycle === "payment_pending" || row.lifecycle === "expired") && (
+                              <Pill {...bookingPaymentPill(row.lifecycle)}>{bookingPaymentPill(row.lifecycle).label}</Pill>
+                            )}
+                          </div>
+                        </TableCell>
+                        <TableCell className="text-right">
+                          <div className="flex items-center justify-end gap-2">
+                            {savingBookingId === row.id && <Spinner className="size-3" />}
+                            <Select
+                              value={
+                                row.checkedIn
+                                  ? row.checkInOutcome === "late" ? "late" : "on_time"
+                                  : row.checkInOutcome === "no_show" ? "no_show" : "not_checked_in"
+                              }
+                              onValueChange={(v) => onApplyOutcome(row.id, v as "on_time" | "late" | "no_show" | "not_checked_in")}
+                              disabled={savingBookingId === row.id}
+                            >
+                              <SelectTrigger className="h-8 w-[150px] border-sage/20 font-body text-xs">
+                                <SelectValue />
+                              </SelectTrigger>
+                              <SelectContent>
+                                <SelectItem value="on_time">On time</SelectItem>
+                                <SelectItem value="late">Late</SelectItem>
+                                <SelectItem value="no_show">No-show</SelectItem>
+                                <SelectItem value="not_checked_in">Not checked in</SelectItem>
+                              </SelectContent>
+                            </Select>
+                          </div>
+                        </TableCell>
+                      </TableRow>
+                    ))}
+                  </TableBody>
+                </Table>
+              </ResponsiveTable>
+            )}
+          </SectionCard>
+
+          <SectionCard title="Payments" icon={ReceiptText} count={member.payments.length}>
+            {member.payments.length === 0 ? (
+              <EmptyNote text="No payments recorded." />
+            ) : (
+              <ResponsiveTable>
+                <Table>
+                  <TableHeader>
+                    <TableRow>
+                      <TableHead>Method</TableHead>
+                      <TableHead className="text-right">Amount</TableHead>
+                      <TableHead>Date</TableHead>
+                      <TableHead>Recorded by</TableHead>
+                      <TableHead className="text-right">Proof</TableHead>
+                    </TableRow>
+                  </TableHeader>
+                  <TableBody>
+                    {member.payments.map((p) => {
+                      const pm = paymentMethodPill(p.method);
+                      return (
+                        <TableRow key={p.id}>
+                          <TableCell>
+                            <Pill
+                              tone={pm.tone}
+                              brand={pm.brand}
+                              icon={pm.label === "Cash" ? <Banknote className="h-3 w-3" /> : undefined}
+                              className="font-body"
+                            >
+                              {pm.label}
+                            </Pill>
+                            {p.reference && <div className="font-body text-xs text-charcoal/50 mt-1">{p.reference}</div>}
+                          </TableCell>
+                          <TableCell className="text-right font-body text-charcoal tabular-nums whitespace-nowrap">{rupees(p.amountPaise)}</TableCell>
+                          <TableCell className="font-body text-charcoal/60 whitespace-nowrap">{fmtDate(p.createdAt)}</TableCell>
+                          <TableCell className="font-body text-charcoal/60">{p.recordedBy ?? "—"}</TableCell>
+                          <TableCell className="text-right">
+                            {p.proofUrl ? (
+                              <a href={p.proofUrl} target="_blank" rel="noreferrer" className="font-body text-xs text-sage underline">view</a>
+                            ) : (
+                              <span className="font-body text-xs text-charcoal/30">—</span>
+                            )}
+                          </TableCell>
+                        </TableRow>
+                      );
+                    })}
+                  </TableBody>
+                </Table>
+              </ResponsiveTable>
+            )}
+          </SectionCard>
+
+          <SectionCard title="Packages" icon={CreditCard} count={member.packages.length}>
+            {member.packages.length === 0 ? (
+              <EmptyNote text="No packages purchased." />
+            ) : (
+              <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+                {member.packages.map((p) => {
+                  let pkgStatus: "active" | "expired" | "paused";
+                  if (p.isPaused) pkgStatus = "paused";
+                  else if (p.isActive) pkgStatus = "active";
+                  else pkgStatus = "expired";
+                  return (
+                    <PassCard
+                      key={p.id}
+                      name={p.name}
+                      isUnlimited={p.isUnlimited}
+                      classesRemaining={p.creditsRemaining}
+                      expiry={p.expiresAt}
+                      durationMonths={p.durationMonths}
+                      status={pkgStatus}
+                      className="w-full"
+                    />
+                  );
+                })}
+              </div>
+            )}
+          </SectionCard>
+
+          <div className="grid grid-cols-1 gap-6 sm:grid-cols-2">
+            <SectionCard title="Café orders" icon={Coffee} count={member.food.length}>
+              {member.food.length === 0 ? (
+                <EmptyNote text="No café orders." />
+              ) : (
+                <ul className="divide-y divide-sage/10">
+                  {member.food.map((o) => (
+                    <li key={o.id} className="flex items-center justify-between gap-3 py-3">
+                      <div className="min-w-0">
+                        <div className="font-body font-medium text-charcoal truncate">
+                          {o.item} <span className="text-charcoal/50 font-normal">× {o.quantity}</span>
+                        </div>
+                        <div className="font-body text-xs text-charcoal/50">{fmtDate(o.orderedAt)}</div>
+                      </div>
+                      <Pill tone="neutral" className="font-body capitalize">{o.status}</Pill>
+                    </li>
                   ))}
-                </TableBody>
-              </Table>
-            </ResponsiveTable>
-          )}
-        </SectionCard>
+                </ul>
+              )}
+            </SectionCard>
 
-        <SectionCard title="Packages" icon={CreditCard} count={member.packages.length}>
-          {member.packages.length === 0 ? (
-            <EmptyNote text="No packages purchased." />
-          ) : (
-            <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
-              {member.packages.map((p) => {
-                let status: "active" | "expired" | "paused";
-                if (p.isPaused) status = "paused";
-                else if (p.isActive) status = "active";
-                else status = "expired";
-                return (
-                  <PassCard
-                    key={p.id}
-                    name={p.name}
-                    isUnlimited={p.isUnlimited}
-                    classesRemaining={p.creditsRemaining}
-                    expiry={p.expiresAt}
-                    durationMonths={p.durationMonths}
-                    status={status}
-                    className="w-full"
-                  />
-                );
-              })}
-            </div>
-          )}
-        </SectionCard>
-      </div>
+            <SectionCard title="Badges" icon={Sparkles} count={member.badges.length}>
+              {member.badges.length === 0 ? (
+                <EmptyNote text="No badges earned yet." />
+              ) : (
+                <ul className="divide-y divide-sage/10">
+                  {member.badges.map((b) => (
+                    <li key={b.id} className="flex items-center gap-3 py-3">
+                      <span className="text-2xl leading-none">{b.icon || "🏆"}</span>
+                      <div className="min-w-0">
+                        <div className="font-body font-medium text-charcoal truncate">{b.name}</div>
+                        {b.description && <div className="font-body text-xs text-charcoal/50 truncate">{b.description}</div>}
+                        {b.earnedAt && <div className="font-body text-xs text-charcoal/40">Earned {fmtDate(b.earnedAt)}</div>}
+                      </div>
+                    </li>
+                  ))}
+                </ul>
+              )}
+            </SectionCard>
+          </div>
+        </div>
 
-      {/* Payments */}
-      <SectionCard title="Payments" icon={ReceiptText} count={member.payments.length}>
-        {member.payments.length === 0 ? (
-          <EmptyNote text="No payments recorded." />
-        ) : (
-          <ResponsiveTable>
-            <Table>
-              <TableHeader>
-                <TableRow>
-                  <TableHead>Method</TableHead>
-                  <TableHead className="text-right">Amount</TableHead>
-                  <TableHead>Date</TableHead>
-                  <TableHead>Recorded by</TableHead>
-                  <TableHead className="text-right">Proof</TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {member.payments.map((p) => (
-                  <TableRow key={p.id}>
-                    <TableCell>
-                      {(() => {
-                        const pm = paymentMethodPill(p.method);
-                        return (
-                          <Pill
-                            tone={pm.tone}
-                            brand={pm.brand}
-                            icon={pm.label === "Cash" ? <Banknote className="h-3 w-3" /> : undefined}
-                            className="font-body"
-                          >
-                            {pm.label}
-                          </Pill>
-                        );
-                      })()}
-                      {p.reference && <div className="font-body text-xs text-charcoal/50 mt-1">{p.reference}</div>}
-                    </TableCell>
-                    <TableCell className="text-right font-body text-charcoal tabular-nums">{rupees(p.amountPaise)}</TableCell>
-                    <TableCell className="font-body text-charcoal/60">{fmtDate(p.createdAt)}</TableCell>
-                    <TableCell className="font-body text-charcoal/60">{p.recordedBy ?? "—"}</TableCell>
-                    <TableCell className="text-right">
-                      {p.proofUrl ? (
-                        <a href={p.proofUrl} target="_blank" rel="noreferrer" className="font-body text-xs text-sage underline">view</a>
-                      ) : (
-                        <span className="font-body text-xs text-charcoal/30">—</span>
-                      )}
-                    </TableCell>
-                  </TableRow>
-                ))}
-              </TableBody>
-            </Table>
-          </ResponsiveTable>
-        )}
-      </SectionCard>
-
-      {/* Café + Badges */}
-      <div className="grid grid-cols-1 gap-4 lg:grid-cols-2">
-        <SectionCard title="Café orders" icon={ReceiptText} count={member.food.length}>
-          {member.food.length === 0 ? (
-            <EmptyNote text="No café orders." />
-          ) : (
-            <ul className="divide-y divide-sage/10">
-              {member.food.map((o) => (
-                <li key={o.id} className="flex items-center justify-between gap-3 py-3">
-                  <div className="min-w-0">
-                    <div className="font-body font-medium text-charcoal truncate">
-                      {o.item} <span className="text-charcoal/50 font-normal">× {o.quantity}</span>
-                    </div>
-                    <div className="font-body text-xs text-charcoal/50">{fmtDate(o.orderedAt)}</div>
+        {/* Rail */}
+        <aside className="space-y-6">
+          {/* Current pass — single source of truth */}
+          <Card className="rounded-2xl shadow-xs">
+            <CardHeader className="pb-3">
+              <CardTitle className="font-display text-lg text-charcoal flex items-center gap-2">
+                <CreditCard className="h-4 w-4 text-sage" /> Current pass
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              {member.activePackageId ? (
+                <div className="space-y-3">
+                  <div className="flex items-center gap-2">
+                    <span className="font-display text-2xl text-charcoal">{passLabel}</span>
+                    {member.activePaused && <Pill tone="warning" className="font-body">Paused</Pill>}
                   </div>
-                  <Pill tone="neutral" className="font-body capitalize">{o.status}</Pill>
-                </li>
-              ))}
-            </ul>
-          )}
-        </SectionCard>
-
-        <SectionCard title="Badges" icon={Trophy} count={member.badges.length}>
-          {member.badges.length === 0 ? (
-            <EmptyNote text="No badges earned yet." />
-          ) : (
-            <ul className="divide-y divide-sage/10">
-              {member.badges.map((b) => (
-                <li key={b.id} className="flex items-center gap-3 py-3">
-                  <span className="text-2xl leading-none">{b.icon || "🏆"}</span>
-                  <div className="min-w-0">
-                    <div className="font-body font-medium text-charcoal truncate">{b.name}</div>
-                    {b.description && <div className="font-body text-xs text-charcoal/50 truncate">{b.description}</div>}
-                    {b.earnedAt && <div className="font-body text-xs text-charcoal/40">Earned {fmtDate(b.earnedAt)}</div>}
-                  </div>
-                </li>
-              ))}
-            </ul>
-          )}
-        </SectionCard>
-      </div>
-
-      {/* Support tickets */}
-      <SectionCard title="Support tickets" icon={MessageCircle} count={member.tickets.length}>
-        {member.tickets.length === 0 ? (
-          <EmptyNote text="No support tickets." />
-        ) : (
-          <ul className="divide-y divide-sage/10">
-            {member.tickets.map((t) => (
-              <li key={t.id} className="flex items-start justify-between gap-3 py-3">
-                <div className="min-w-0">
-                  <div className="font-body font-medium text-charcoal capitalize">{t.type.replace(/_/g, " ")}</div>
-                  {t.reason && <div className="font-body text-xs text-charcoal/60 truncate">{t.reason}</div>}
-                  <div className="font-body text-xs text-charcoal/40">
-                    {fmtDate(t.createdAt)}
-                    {t.pauseFrom ? ` · pause ${fmtDate(t.pauseFrom)}→${fmtDate(t.pauseTo)}` : ""}
-                  </div>
+                  <dl className="space-y-0 divide-y divide-sage/10 text-sm">
+                    <RailRow label="Remaining" value={member.unlimited ? "Unlimited" : `${member.credits} classes`} />
+                    <RailRow label="Expires" value={member.expiry ? fmtDate(member.expiry) : "—"} />
+                  </dl>
                 </div>
-                <TicketStatusBadge status={t.status} />
-              </li>
-            ))}
-          </ul>
-        )}
-      </SectionCard>
+              ) : (
+                <div className="space-y-3">
+                  <p className="font-body text-sm text-charcoal/45 italic">No active pass.</p>
+                  <Button variant="sage" onClick={() => setManageOpen(true)} className="font-body w-full">
+                    <CreditCard className="h-4 w-4 mr-1.5" /> Assign a pass
+                  </Button>
+                </div>
+              )}
+            </CardContent>
+          </Card>
+
+          {/* Profile details */}
+          <Card className="rounded-2xl shadow-xs">
+            <CardHeader className="pb-3">
+              <CardTitle className="font-display text-lg text-charcoal flex items-center gap-2">
+                <UserIcon className="h-4 w-4 text-sage" /> Profile
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              <dl className="space-y-0 divide-y divide-sage/10 text-sm">
+                <RailRow icon={Cake} label="Date of birth" value={member.dob ? fmtDate(member.dob) : null} />
+                <RailRow icon={UserIcon} label="Gender" value={member.gender} capitalize />
+                <RailRow icon={Calendar} label="Start date" value={member.startDate ? fmtDate(member.startDate) : null} />
+                <RailRow icon={MessageCircle} label="WhatsApp" value={member.whatsappPhone} />
+              </dl>
+            </CardContent>
+          </Card>
+
+          {/* Support tickets */}
+          <SectionCard title="Support tickets" icon={Ticket} count={member.tickets.length}>
+            {member.tickets.length === 0 ? (
+              <EmptyNote text="No support tickets." />
+            ) : (
+              <ul className="divide-y divide-sage/10">
+                {member.tickets.map((t) => (
+                  <li key={t.id} className="flex items-start justify-between gap-3 py-3">
+                    <div className="min-w-0">
+                      <div className="font-body font-medium text-charcoal capitalize">{t.type.replace(/_/g, " ")}</div>
+                      {t.reason && <div className="font-body text-xs text-charcoal/60 truncate">{t.reason}</div>}
+                      <div className="font-body text-xs text-charcoal/40">
+                        {fmtDate(t.createdAt)}
+                        {t.pauseFrom ? ` · pause ${fmtDate(t.pauseFrom)}→${fmtDate(t.pauseTo)}` : ""}
+                      </div>
+                    </div>
+                    <Pill tone={ticketStatusPill(t.status).tone} className="font-body capitalize shrink-0">
+                      {t.status.replace(/_/g, " ")}
+                    </Pill>
+                  </li>
+                ))}
+              </ul>
+            )}
+          </SectionCard>
+        </aside>
+      </div>
 
       <ManagePassDialog member={member} open={manageOpen} onOpenChange={setManageOpen} onDone={onReload} />
       <EditProfileDialog member={member} open={editOpen} onOpenChange={setEditOpen} onDone={onReload} />
@@ -927,7 +934,7 @@ function EditProfileDialog({
   );
 }
 
-/* ──────────────────────────  Manage dialog (pass config → payment)  ────────────────────────── */
+/* ──────────────────────────  Manage pass dialog (shared engine)  ────────────────────────── */
 
 function ManagePassDialog({
   member,
@@ -940,141 +947,46 @@ function ManagePassDialog({
   onOpenChange: (o: boolean) => void;
   onDone: () => Promise<void>;
 }) {
+  const ctx: PassMemberContext = {
+    id: member.id,
+    name: member.name,
+    passCategory: member.passCategory === "none" ? "none" : member.passCategory,
+    activePackageId: member.activePackageId,
+    credits: member.credits,
+    startDate: member.startDate,
+  };
+  const s = usePassPaymentState(ctx);
   const [step, setStep] = useState<"config" | "payment">("config");
-  const [passType, setPassType] = useState<"class_pass" | "studio_pass">(
-    member.passCategory === "studio_pass" ? "studio_pass" : "class_pass",
-  );
-  const [credits, setCredits] = useState<number | null>(null);
-  const [days, setDays] = useState<number | null>(null);
-  const [startDate, setStartDate] = useState(member.startDate ? member.startDate.slice(0, 10) : "");
-  const [method, setMethod] = useState("");
-  const [amount, setAmount] = useState("");
-  const [reference, setReference] = useState("");
-  const [proofUrl, setProofUrl] = useState("");
-  const [proofUploading, setProofUploading] = useState(false);
   const [submitting, setSubmitting] = useState(false);
-  const [isComp, setIsComp] = useState(false);
-  const [grantNote, setGrantNote] = useState("");
-  const [expiry, setExpiry] = useState("");
-  const [defaultValidityDays, setDefaultValidityDays] = useState(30);
 
-  // Reset when (re)opening so a stale selection never carries over between members.
   useEffect(() => {
     if (open) {
       setStep("config");
-      setPassType(member.passCategory === "studio_pass" ? "studio_pass" : "class_pass");
-      setCredits(null);
-      setDays(null);
-      setStartDate(member.startDate ? member.startDate.slice(0, 10) : "");
-      setMethod("");
-      setAmount("");
-      setReference("");
-      setProofUrl("");
-      setIsComp(false);
-      setGrantNote("");
+      s.reset();
+      s.loadDefaults();
     }
-  }, [open, member]);
-
-  // Pull the global default validity (fallback when a pass has no own duration).
-  useEffect(() => {
-    if (!open) return;
-    fetch("/api/admin/studio-settings", { credentials: "include" })
-      .then((r) => (r.ok ? r.json() : null))
-      .then((d) => {
-        const v = d?.settings?.default_package_validity_days;
-        if (typeof v === "number" && v > 0) setDefaultValidityDays(v);
-      })
-      .catch(() => {});
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [open]);
 
-  // Default the editable expiry from the selected duration (studio days) or the
-  // global default validity. Admin can override the date afterwards.
-  useEffect(() => {
-    const base = new Date();
-    if (passType === "studio_pass" && days) base.setDate(base.getDate() + days);
-    else base.setDate(base.getDate() + defaultValidityDays);
-    setExpiry(base.toISOString().slice(0, 10));
-  }, [passType, days, defaultValidityDays, open]);
-
-  const studioBlocksClass = member.passCategory === "studio_pass" && member.activePackageId !== null;
-
-  async function patch(body: Record<string, unknown>) {
-    const res = await fetch("/api/admin/members", {
-      method: "PATCH",
-      headers: { "Content-Type": "application/json" },
-      credentials: "include",
-      body: JSON.stringify(body),
-    });
-    if (!res.ok) {
-      const err = await res.json().catch(() => ({}));
-      throw new Error((err as { error?: string }).error ?? "Update failed");
-    }
-  }
-
-  async function uploadProof(file: File) {
-    setProofUploading(true);
-    try {
-      const fd = new FormData();
-      fd.append("file", file);
-      fd.append("purpose", "payment_proof");
-      const res = await fetch("/api/upload", { method: "POST", credentials: "include", body: fd });
-      const json = await res.json().catch(() => ({}));
-      if (!res.ok || !json.url) throw new Error(json.error ?? "Upload failed");
-      setProofUrl(json.url);
-    } catch (e) {
-      toast.error(e instanceof Error ? e.message : "Upload failed");
-    } finally {
-      setProofUploading(false);
-    }
-  }
-
   function goToPayment() {
-    if (passType === "class_pass" && credits === null) {
-      toast.error("Select number of classes first");
-      return;
-    }
-    if (passType === "studio_pass" && days === null) {
-      toast.error("Select number of days first");
+    const err = validateConfig(s);
+    if (err) {
+      toast.error(err);
       return;
     }
     setStep("payment");
   }
 
-  async function applyPassConfig() {
-    const body: Record<string, unknown> = {
-      profile_id: member.id,
-      pass_type: passType,
-      is_comp: isComp,
-      grant_note: grantNote.trim() || undefined,
-      expiration_date: expiry || undefined,
-    };
-    // A comp grant always creates a fresh package; a paid grant may top up the
-    // member's existing active pass.
-    if (!isComp && member.activePackageId) body.user_package_id = member.activePackageId;
-    if (passType === "class_pass" && credits !== null) body.class_count = credits;
-    await patch(body);
-  }
-
-  async function persistStartDate() {
-    if (startDate && startDate !== (member.startDate ? member.startDate.slice(0, 10) : "")) {
-      await patch({ profile_id: member.id, start_date: startDate });
-    }
-  }
-
-  // Comp path — no payment recorded; a grant note is required.
   async function grantComp() {
-    if (passType === "class_pass" && credits === null) {
-      toast.error("Select number of classes first");
-      return;
-    }
-    if (!grantNote.trim()) {
-      toast.error("A grant note is required for a comp pass");
+    const err = validateConfig(s);
+    if (err) {
+      toast.error(err);
       return;
     }
     setSubmitting(true);
     try {
-      await persistStartDate();
-      await applyPassConfig();
+      await persistStartDate(member.id, s, member.startDate);
+      await applyPassConfig(member.id, s, member.activePackageId);
       toast.success(`Comp pass granted to ${member.name}`);
       onOpenChange(false);
       await onDone();
@@ -1086,41 +998,16 @@ function ManagePassDialog({
   }
 
   async function submit() {
-    if (!method) {
-      toast.error("Select a payment method");
-      return;
-    }
-    const rupeeVal = Number(amount);
-    if (!Number.isFinite(rupeeVal) || rupeeVal <= 0) {
-      toast.error("Enter a valid amount in INR");
-      return;
-    }
-    if (!proofUrl) {
-      toast.error("Upload proof of payment before assigning the pass");
+    const err = validatePayment(s);
+    if (err) {
+      toast.error(err);
       return;
     }
     setSubmitting(true);
     try {
-      const res = await fetch("/api/admin/payments", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        credentials: "include",
-        body: JSON.stringify({
-          user_id: member.id,
-          user_package_id: member.activePackageId ?? undefined,
-          method,
-          amount_paise: Math.round(rupeeVal * 100),
-          reference: reference || undefined,
-          proof_url: proofUrl,
-        }),
-      });
-      if (!res.ok) {
-        const err = await res.json().catch(() => ({}));
-        throw new Error((err as { error?: string }).error ?? "Failed to record payment");
-      }
-      await persistStartDate();
-      const hasPassSelection = (passType === "class_pass" && credits !== null) || passType === "studio_pass";
-      if (hasPassSelection) await applyPassConfig();
+      await recordPayment(member.id, s, member.activePackageId);
+      await persistStartDate(member.id, s, member.startDate);
+      if (passConfigSelected(s)) await applyPassConfig(member.id, s, member.activePackageId);
       toast.success(`Payment recorded for ${member.name}`);
       onOpenChange(false);
       await onDone();
@@ -1146,203 +1033,19 @@ function ManagePassDialog({
           <div className={`h-1.5 flex-1 rounded-full ${step === "payment" ? "bg-sage" : "bg-sage/20"}`} />
         </div>
 
-        {step === "config" && (
-          <div className="space-y-6 py-4">
-            <div>
-              <Label className="font-body text-charcoal/80 mb-3 block">Pass type</Label>
-              <div className="flex gap-2">
-                {(["class_pass", "studio_pass"] as const).map((pt) => {
-                  const blocked = pt === "class_pass" && studioBlocksClass;
-                  return (
-                    <button
-                      key={pt}
-                      type="button"
-                      disabled={blocked}
-                      onClick={() => { setPassType(pt); setCredits(null); setDays(null); }}
-                      className={`flex-1 py-2.5 rounded-full text-sm font-body font-medium border transition-colors ${
-                        blocked
-                          ? "bg-charcoal/5 text-charcoal/35 border-charcoal/10 cursor-not-allowed"
-                          : passType === pt
-                            ? "bg-sage text-cream border-sage"
-                            : "bg-white-warm text-charcoal/70 border-charcoal/20 hover:border-sage/40"
-                      }`}
-                    >
-                      {pt === "class_pass" ? "Class pass" : "Studio pass"}
-                    </button>
-                  );
-                })}
+        <div className="py-4">
+          {step === "config" ? (
+            <PassConfigSection state={s} currentCredits={member.credits} />
+          ) : (
+            <div className="space-y-4">
+              <div className="rounded-xl border border-sage/20 bg-sage/5 p-3">
+                <div className="font-body text-xs uppercase tracking-wide text-charcoal/60 mb-1">Selected pass</div>
+                <div className="font-display text-lg text-charcoal">{passSummary(s)}</div>
               </div>
-              {studioBlocksClass && (
-                <p className="font-body text-xs text-charcoal/50 mt-2">
-                  Studio pass is unlimited — a class pass can&apos;t be added until it expires.
-                </p>
-              )}
+              <PaymentSection state={s} />
             </div>
-
-            {passType === "class_pass" && (
-              <div>
-                <Label className="font-body text-charcoal/80 mb-3 block">
-                  Classes remaining
-                  <span className="ml-2 text-charcoal/40 font-normal">(currently {member.credits})</span>
-                </Label>
-                <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
-                  {[1, 4, 8, 12].map((n) => (
-                    <button
-                      key={n}
-                      type="button"
-                      onClick={() => setCredits(n)}
-                      className={`h-14 rounded-xl text-base font-display border transition-colors flex items-center justify-center ${
-                        credits === n ? "bg-sage text-cream border-sage" : "bg-sage/5 text-charcoal border-sage/20 hover:bg-sage/10"
-                      }`}
-                    >
-                      {n}
-                    </button>
-                  ))}
-                </div>
-              </div>
-            )}
-
-            {passType === "studio_pass" && (
-              <div>
-                <Label className="font-body text-charcoal/80 mb-3 block">Days remaining (from today)</Label>
-                <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
-                  {[30, 90, 180, 365].map((d) => (
-                    <button
-                      key={d}
-                      type="button"
-                      onClick={() => setDays(d)}
-                      className={`h-14 rounded-xl text-base font-display border transition-colors flex items-center justify-center ${
-                        days === d ? "bg-sage text-cream border-sage" : "bg-sage/5 text-charcoal border-sage/20 hover:bg-sage/10"
-                      }`}
-                    >
-                      {d}d
-                    </button>
-                  ))}
-                </div>
-              </div>
-            )}
-
-            <div className="border-t border-sage/10 pt-4">
-              <Label className="font-body text-charcoal/80 mb-2 block">Pass expiry</Label>
-              <DatePicker value={expiry} onChange={setExpiry} className="h-11" />
-              <p className="font-body text-xs text-charcoal/50 mt-1">
-                Defaulted from the pass validity{passType === "class_pass" ? ` (${defaultValidityDays} days)` : ""}. Editable.
-              </p>
-            </div>
-
-            <div className="border-t border-sage/10 pt-4">
-              <label className="flex items-start gap-3 cursor-pointer">
-                <Checkbox
-                  checked={isComp}
-                  onCheckedChange={(v) => setIsComp(v === true)}
-                  className="mt-0.5"
-                />
-                <span>
-                  <span className="font-body text-charcoal/90 text-sm block">Comp pass (no payment)</span>
-                  <span className="font-body text-charcoal/50 text-xs block">
-                    Grants the pass for free. A grant note is required; no payment is recorded.
-                  </span>
-                </span>
-              </label>
-              {isComp && (
-                <div className="mt-3">
-                  <Label className="font-body text-charcoal/70 text-sm mb-1 block">Grant note (required)</Label>
-                  <Textarea
-                    value={grantNote}
-                    onChange={(e) => setGrantNote(e.target.value)}
-                    placeholder="Reason for the comp grant…"
-                    className="border-charcoal/20 focus:border-sage font-body"
-                    rows={3}
-                  />
-                </div>
-              )}
-            </div>
-
-            <div className="border-t border-sage/10 pt-4">
-              <Label className="font-body text-charcoal/80 mb-2 block">Member start date</Label>
-              <DatePicker value={startDate} onChange={setStartDate} className="h-11" />
-              <p className="font-body text-xs text-charcoal/50 mt-1">
-                {isComp ? "Saved together with the comp grant." : "Saved together with payment at the next step."}
-              </p>
-            </div>
-          </div>
-        )}
-
-        {step === "payment" && (
-          <div className="space-y-4 py-4">
-            {((passType === "class_pass" && credits !== null) || (passType === "studio_pass" && days !== null)) && (
-              <div className="rounded-xl bg-sage/5 border border-sage/20 p-3">
-                <div className="font-body text-xs text-charcoal/60 uppercase tracking-wide mb-1">Selected pass</div>
-                <div className="font-display text-lg text-charcoal">
-                  {passType === "class_pass" ? `Class pass — ${credits} classes` : `Studio pass — ${days} days`}
-                </div>
-              </div>
-            )}
-
-            <div>
-              <Label className="font-body text-charcoal/70 text-sm mb-2 block">Payment method</Label>
-              <div className="grid grid-cols-2 gap-2">
-                {PAYMENT_METHODS.map((m) => (
-                  <button
-                    key={m.v}
-                    type="button"
-                    onClick={() => setMethod(m.v)}
-                    className={`h-11 rounded-lg text-sm font-body border transition-colors flex items-center justify-center px-2 ${
-                      method === m.v ? "bg-sage text-cream border-sage" : "bg-sage/5 text-charcoal border-sage/20 hover:bg-sage/10"
-                    }`}
-                  >
-                    {m.l}
-                  </button>
-                ))}
-              </div>
-            </div>
-
-            <div className="grid grid-cols-2 gap-2">
-              <div>
-                <Label className="font-body text-charcoal/70 text-sm mb-1 block">Amount (₹)</Label>
-                <Input
-                  type="number"
-                  min="0"
-                  step="1"
-                  value={amount}
-                  onChange={(e) => setAmount(e.target.value)}
-                  className="h-11 border-charcoal/20 focus:border-sage font-body"
-                  placeholder="e.g. 6015"
-                />
-              </div>
-              <div>
-                <Label className="font-body text-charcoal/70 text-sm mb-1 block">Reference (opt.)</Label>
-                <Input
-                  type="text"
-                  value={reference}
-                  onChange={(e) => setReference(e.target.value)}
-                  className="h-11 border-charcoal/20 focus:border-sage font-body"
-                  placeholder="txn id / slip #"
-                />
-              </div>
-            </div>
-
-            <div>
-              <Label className="font-body text-charcoal/70 text-sm mb-1 block">Proof of payment (required)</Label>
-              <Input
-                type="file"
-                accept="image/*"
-                disabled={proofUploading}
-                onChange={(e) => {
-                  const f = e.target.files?.[0];
-                  if (f) void uploadProof(f);
-                }}
-                className="h-11 border-charcoal/20 focus:border-sage font-body file:mr-3 file:py-1 file:px-3 file:rounded file:border-0 file:bg-sage/10 file:text-sage"
-              />
-              {proofUploading && <p className="font-body text-xs text-charcoal/50 mt-1">Uploading…</p>}
-              {proofUrl && !proofUploading && (
-                <p className="font-body text-xs text-sage mt-1">
-                  Proof uploaded ✓ <a href={proofUrl} target="_blank" rel="noreferrer" className="underline">view</a>
-                </p>
-              )}
-            </div>
-          </div>
-        )}
+          )}
+        </div>
 
         <ResponsiveDialogFooter className="gap-2 sm:gap-2">
           {step === "config" ? (
@@ -1350,7 +1053,7 @@ function ManagePassDialog({
               <Button variant="outline" onClick={() => onOpenChange(false)} className="border-charcoal/20 text-charcoal hover:bg-charcoal/5 font-body">
                 Cancel
               </Button>
-              {isComp ? (
+              {s.isComp ? (
                 <Button onClick={() => void grantComp()} disabled={submitting} variant="sage">
                   {submitting ? "Granting…" : "Grant comp pass"}
                 </Button>
@@ -1363,7 +1066,7 @@ function ManagePassDialog({
               <Button variant="outline" onClick={() => setStep("config")} className="border-charcoal/20 text-charcoal hover:bg-charcoal/5 font-body">
                 Back
               </Button>
-              <Button onClick={() => void submit()} disabled={proofUploading || submitting} variant="sage">
+              <Button onClick={() => void submit()} disabled={s.proofUploading || submitting} variant="sage">
                 {submitting ? "Processing…" : "Record payment & apply pass"}
               </Button>
             </>
@@ -1375,6 +1078,35 @@ function ManagePassDialog({
 }
 
 /* ──────────────────────────  Small components  ────────────────────────── */
+
+function StatCell({
+  icon: Icon,
+  label,
+  value,
+  hint,
+  tone = "sage",
+  small,
+}: {
+  icon: React.ComponentType<{ className?: string }>;
+  label: string;
+  value: string | number;
+  hint?: string;
+  tone?: "sage" | "clay";
+  small?: boolean;
+}) {
+  return (
+    <div className="px-5 py-4">
+      <div className="flex items-center gap-1.5 font-body text-[11px] uppercase tracking-[0.12em] text-charcoal/45">
+        <Icon className={`h-3.5 w-3.5 ${tone === "clay" ? "text-terracotta" : "text-sage"}`} />
+        {label}
+      </div>
+      <div className={`mt-1 font-display text-charcoal ${small ? "text-base" : "text-2xl"} ${tone === "clay" && typeof value === "number" && value > 0 ? "text-terracotta" : ""}`}>
+        {value}
+      </div>
+      {hint && <div className="font-body text-[11px] text-charcoal/40">{hint}</div>}
+    </div>
+  );
+}
 
 function SectionCard({
   title,
@@ -1389,7 +1121,7 @@ function SectionCard({
 }) {
   return (
     <Card className="rounded-2xl shadow-xs">
-      <CardHeader>
+      <CardHeader className="pb-3">
         <CardTitle className="font-display text-lg text-charcoal flex items-center gap-2">
           <Icon className="h-4 w-4 text-sage" />
           {title}
@@ -1401,27 +1133,34 @@ function SectionCard({
   );
 }
 
-function InfoLine({ icon: Icon, label, value }: { icon: React.ComponentType<{ className?: string }>; label: string; value: string | null }) {
+function RailRow({
+  icon: Icon,
+  label,
+  value,
+  capitalize,
+}: {
+  icon?: React.ComponentType<{ className?: string }>;
+  label: string;
+  value: string | null;
+  capitalize?: boolean;
+}) {
   return (
-    <div className="flex items-center gap-3 font-body text-sm">
-      <Icon className="h-4 w-4 text-sage shrink-0" />
-      <span className="text-charcoal/55 w-28 shrink-0">{label}</span>
-      {value ? <span className="text-charcoal/80 truncate capitalize">{value}</span> : <span className="text-charcoal/40 italic">—</span>}
+    <div className="flex items-center justify-between gap-3 py-2.5 font-body text-sm">
+      <span className="flex items-center gap-2 text-charcoal/55">
+        {Icon && <Icon className="h-3.5 w-3.5 text-sage shrink-0" />}
+        {label}
+      </span>
+      {value ? (
+        <span className={`text-charcoal/85 text-right truncate ${capitalize ? "capitalize" : ""}`}>{value}</span>
+      ) : (
+        <span className="text-charcoal/35 italic">—</span>
+      )}
     </div>
   );
 }
 
 function EmptyNote({ text }: { text: string }) {
   return <p className="font-body text-sm text-charcoal/40 italic py-4">{text}</p>;
-}
-
-function TicketStatusBadge({ status }: { status: string }) {
-  const tp = ticketStatusPill(status);
-  return (
-    <Pill tone={tp.tone} className="font-body capitalize shrink-0">
-      {status.replace(/_/g, " ")}
-    </Pill>
-  );
 }
 
 function DetailSkeleton() {
@@ -1431,33 +1170,43 @@ function DetailSkeleton() {
         <div className="grid grid-cols-1 gap-6 md:grid-cols-[auto_1fr_auto] md:items-center">
           <Skeleton className="size-24 rounded-full bg-sage/10" />
           <div className="space-y-2 min-w-0">
-            <Skeleton className="h-3 w-32 bg-sage/10" />
             <Skeleton className="h-8 w-56 bg-sage/15" />
             <Skeleton className="h-4 w-64 bg-sage/10" />
           </div>
           <Skeleton className="h-9 w-40 bg-sage/10" />
         </div>
+        <div className="mt-6 grid grid-cols-2 sm:grid-cols-4 gap-4 border-t border-sage/10 pt-4">
+          {["s1", "s2", "s3", "s4"].map((s) => (
+            <div key={s} className="space-y-2">
+              <Skeleton className="h-3 w-16 bg-sage/10" />
+              <Skeleton className="h-6 w-10 bg-sage/15" />
+            </div>
+          ))}
+        </div>
       </div>
-      <div className="grid grid-cols-2 md:grid-cols-3 xl:grid-cols-5 gap-4">
-        {["s1", "s2", "s3", "s4", "s5"].map((s) => (
-          <Card key={s} className="border-sage/20 bg-white-warm">
-            <CardContent className="p-4 space-y-3">
-              <Skeleton className="h-3 w-20 bg-sage/10" />
-              <Skeleton className="h-7 w-12 bg-sage/15" />
-            </CardContent>
-          </Card>
-        ))}
-      </div>
-      <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
-        {["c1", "c2", "c3", "c4"].map((s) => (
-          <Card key={s} className="rounded-2xl shadow-xs">
-            <CardHeader><Skeleton className="h-5 w-32 bg-sage/10" /></CardHeader>
-            <CardContent className="space-y-2">
-              <Skeleton className="h-4 w-full bg-sage/10" />
-              <Skeleton className="h-4 w-5/6 bg-sage/10" />
-            </CardContent>
-          </Card>
-        ))}
+      <div className="grid grid-cols-1 gap-6 lg:grid-cols-3">
+        <div className="space-y-6 lg:col-span-2">
+          {["c1", "c2"].map((s) => (
+            <Card key={s} className="rounded-2xl shadow-xs">
+              <CardHeader><Skeleton className="h-5 w-32 bg-sage/10" /></CardHeader>
+              <CardContent className="space-y-2">
+                <Skeleton className="h-4 w-full bg-sage/10" />
+                <Skeleton className="h-4 w-5/6 bg-sage/10" />
+              </CardContent>
+            </Card>
+          ))}
+        </div>
+        <div className="space-y-6">
+          {["r1", "r2"].map((s) => (
+            <Card key={s} className="rounded-2xl shadow-xs">
+              <CardHeader><Skeleton className="h-5 w-28 bg-sage/10" /></CardHeader>
+              <CardContent className="space-y-2">
+                <Skeleton className="h-4 w-full bg-sage/10" />
+                <Skeleton className="h-4 w-2/3 bg-sage/10" />
+              </CardContent>
+            </Card>
+          ))}
+        </div>
       </div>
     </>
   );

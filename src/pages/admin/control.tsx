@@ -18,12 +18,11 @@ import { AdminPageHeader } from "@/components/admin/AdminPageHeader";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 import { EditButton, DeleteButton } from "@/components/ui/quick-actions";
-import { MemberTable, type MemberTableMember } from "@/components/admin/MemberTable";
 import { Pill } from "@/components/ui/pill";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Select, SelectContent, SelectGroup, SelectItem, SelectLabel, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Input } from "@/components/ui/input";
-import { DatePicker, FilterBar, FilterSearch, FilterSelect } from "@/components/filters";
+import { FilterBar, FilterSearch } from "@/components/filters";
 import { Textarea } from "@/components/ui/textarea";
 import {
   ResponsiveDialog,
@@ -42,15 +41,12 @@ import {
   Clock,
   Save,
   CheckCircle2,
-  CreditCard,
   BarChart3,
   Trash2,
   ChevronUp,
   ChevronDown,
   ArrowUpDown,
   Layers,
-  Award,
-  ListFilter,
   Power,
   PowerOff,
   Package,
@@ -71,7 +67,6 @@ const ControlAnalyticsPanel = dynamic(
 import { Pagination, usePagination } from "@/components/Pagination";
 
 import { cdnUrl } from "@/lib/cdnUrl";
-import { passCategoryForPackageType } from "@/lib/couponHelpers";
 import { toast } from "sonner";
 import PackageCatalogTab from "@/components/admin/control-tabs/PackageCatalogTab";
 import StudioSettingsTab from "@/components/admin/control-tabs/StudioSettingsTab";
@@ -83,7 +78,6 @@ const CONTROL_NAV: { label: string; items: { value: string; label: string; icon:
   {
     label: "Members",
     items: [
-      { value: "users", label: "Members", icon: Users },
       { value: "pauses", label: "Pause Requests", icon: Clock },
       { value: "cancellations", label: "Cancellations", icon: CalendarX2 },
     ],
@@ -230,27 +224,6 @@ function ControlPanelShellSkeleton() {
 
 type SortDir = "asc" | "desc";
 
-/** A member row after `fetchUsers` post-processing (profile + derived pass fields). */
-interface ProcessedUser {
-  id: string;
-  full_name?: string | null;
-  email?: string;
-  phone?: string | null;
-  avatar_url?: string | null;
-  name: string;
-  pass_type?: string | null;
-  passType: "none" | "class_pass" | "studio_pass";
-  classesRemaining: number | string;
-  daysRemaining: number;
-  expiry: string;
-  isPaused: boolean;
-  pauseStartDate?: string | null;
-  userPackageId: string | null;
-  start_date?: string | null;
-  user_packages?: unknown;
-  [key: string]: unknown;
-}
-
 /** A class catalog row from `/api/admin/classes`. */
 interface ClassRow {
   id: string;
@@ -329,19 +302,14 @@ function sortArrow(active: boolean, dir: SortDir) {
   return dir === "asc" ? <ChevronUp className="h-3 w-3" /> : <ChevronDown className="h-3 w-3" />;
 }
 
-const isUserExpired = (u: { expiry?: string | null }) =>
-  u.expiry === "N/A" || (u.expiry && new Date(u.expiry).getTime() < Date.now());
-const isUserActive = (u: { expiry?: string | null; passType?: string }) =>
-  u.passType !== "none" && !isUserExpired(u);
-
 const thBtn = "inline-flex items-center gap-1 hover:text-charcoal transition-colors";
 
 export default function ControlPanel() {
   const router = useRouter();
   const [loading, setLoading] = useState(true);
   const [activeTab, setActiveTab] = useTabQuery(
-    ["users", "pauses", "classes", "instructors", "analytics", "packages", "coupons", "studio", "cancellations"],
-    "users",
+    ["pauses", "classes", "instructors", "analytics", "packages", "coupons", "studio", "cancellations"],
+    "classes",
   );
 
   // Sync activeTab with ?tab= query so sidebar links can deep-link into a tab.
@@ -352,27 +320,18 @@ export default function ControlPanel() {
   }, [router.query.tab]);
 
   // Dialog states
-  const [showAddUserDialog, setShowAddUserDialog] = useState(false);
-  const [showEditUserDialog, setShowEditUserDialog] = useState(false);
   const [showAddClassDialog, setShowAddClassDialog] = useState(false);
   const [showClassDetailsDialog, setShowClassDetailsDialog] = useState(false);
   const [showAddInstructorDialog, setShowAddInstructorDialog] = useState(false);
   const [showEditInstructorDialog, setShowEditInstructorDialog] = useState(false);
 
   // Selected items
-  const [selectedUser, setSelectedUser] = useState<ProcessedUser | null>(null);
   const [selectedClass, setSelectedClass] = useState<ClassRow | null>(null);
   const [selectedInstructorData, _setSelectedInstructorData] = useState<InstructorRow | null>(null);
 
   // Classes state
   const [classes, setClasses] = useState<ClassRow[]>([]);
   const [loadingClasses, setLoadingClasses] = useState(true);
-
-  // Users state
-  const [users, setUsers] = useState<ProcessedUser[]>([]);
-  const [userSearch, setUserSearch] = useState("");
-  const [userFilter, setUserFilter] = useState("all");
-  const [loadingUsers, setLoadingUsers] = useState(true);
 
   // Instructors roster — shared SWR key (one cached copy across admin pages).
   const { data: instructorsData, mutate: mutateInstructors } = useInstructors<InstructorRow[]>();
@@ -387,21 +346,6 @@ export default function ControlPanel() {
 
 
   const [uploadingImage, setUploadingImage] = useState(false);
-  const [newUserForm, setNewUserForm] = useState({
-    full_name: "",
-    email: "",
-    phone: "",
-    password: "",
-    pass_type: "class_pass" as "studio_pass" | "class_pass",
-    class_or_days_count: "4",
-    start_date: new Date().toISOString().slice(0, 10),
-  });
-  const [editPassType, setEditPassType] = useState<"class_pass" | "studio_pass">("class_pass");
-  const [editClassCredits, setEditClassCredits] = useState<string>("");
-  const [editDays, setEditDays] = useState<string>("");
-  const [editStartDate, setEditStartDate] = useState<string>("");
-  const [editEndDate, setEditEndDate] = useState<string>("");
-  const [creatingUser, setCreatingUser] = useState(false);
   const [imagePreview, setImagePreview] = useState<string>("");
   const [classImagePreview, setClassImagePreview] = useState<string>("");
 
@@ -414,7 +358,6 @@ export default function ControlPanel() {
     if (status === "authenticated" && userRole !== "admin") { router.push("/admin/login"); return; }
     if (status === "authenticated") {
       fetchClasses();
-      fetchUsers();
       void fetchPauseTickets();
       setLoading(false);
     }
@@ -469,111 +412,6 @@ export default function ControlPanel() {
     }
   }
 
-  const fetchUsers = async () => {
-    setLoadingUsers(true);
-    try {
-      const res = await fetch("/api/admin/members", { credentials: "same-origin" });
-      if (!res.ok) {
-        console.error("Fetch users failed:", res.status);
-        setUsers([]);
-        return;
-      }
-      const raw: unknown = await res.json();
-      const profiles = Array.isArray(raw)
-        ? raw
-        : Array.isArray((raw as { members?: unknown })?.members)
-        ? (raw as { members: unknown[] }).members
-        : [];
-      const now = new Date();
-
-      const processedUsers = profiles.map(
-        (profile: {
-          id: string;
-          full_name?: string | null;
-          email?: string;
-          phone?: string | null;
-          pass_type?: string | null;
-          user_packages?: Array<{
-            id: string;
-            is_active: boolean;
-            is_paused?: boolean;
-            pause_start_date?: string | null;
-            pass_type?: string | null;
-            credits_remaining?: number | null;
-            expiration_date: string;
-            purchase_date?: string;
-            created_at?: string;
-            package_type?: { is_unlimited?: boolean; name?: string; type?: string };
-          }>;
-        }) => {
-          const pkgs = profile.user_packages ?? [];
-          const byRecency = (
-            a: (typeof pkgs)[0],
-            b: (typeof pkgs)[0]
-          ) =>
-            new Date(b.purchase_date ?? b.created_at ?? 0).getTime() -
-            new Date(a.purchase_date ?? a.created_at ?? 0).getTime();
-
-          const activePkgs = pkgs.filter(
-            (p) =>
-              p.is_active &&
-              new Date(p.expiration_date).getTime() > now.getTime()
-          );
-          activePkgs.sort(byRecency);
-          const sortedAll = [...pkgs].sort(byRecency);
-          const mostRecentPackage = activePkgs[0] ?? sortedAll[0];
-
-          const pt = mostRecentPackage?.package_type;
-          const passType: "none" | "class_pass" | "studio_pass" = mostRecentPackage
-            ? passCategoryForPackageType(pt ?? {})
-            : "none";
-          const isUnlimited = passType === "studio_pass";
-
-          const exp = mostRecentPackage?.expiration_date
-            ? new Date(mostRecentPackage.expiration_date)
-            : null;
-          const daysRemaining =
-            exp && !Number.isNaN(exp.getTime())
-              ? Math.max(
-                  0,
-                  Math.ceil((exp.getTime() - now.getTime()) / 86400000)
-                )
-              : 0;
-
-          const creditsVal = mostRecentPackage?.credits_remaining ?? 0;
-          const classesRemaining =
-            passType === "studio_pass" || isUnlimited ? "Unlimited" : creditsVal;
-
-          return {
-            ...profile,
-            name: profile.full_name || profile.email || "Member",
-            pass_type:
-              profile.pass_type ||
-              mostRecentPackage?.package_type?.name ||
-              null,
-            passType,
-            classesRemaining,
-            daysRemaining,
-            expiry:
-              exp && !Number.isNaN(exp.getTime())
-                ? exp.toISOString()
-                : "N/A",
-            isPaused: Boolean(mostRecentPackage?.is_paused),
-            pauseStartDate: mostRecentPackage?.pause_start_date ?? null,
-            userPackageId: mostRecentPackage?.id ?? null,
-            phone: profile.phone ?? "—",
-          };
-        }
-      );
-      setUsers(processedUsers);
-    } catch (error) {
-      console.error("Fetch users error:", error);
-      setUsers([]);
-    } finally {
-      setLoadingUsers(false);
-    }
-  }
-
   const uploadImage = async (
     file: File,
     purpose: "instructor_photo" | "class_image",
@@ -605,161 +443,6 @@ export default function ControlPanel() {
       setUploadingImage(false);
     }
   };
-
-  async function handleAdminCreateUser() {
-    if (!newUserForm.email.trim() || !newUserForm.password) {
-      toast.error("Email and password are required.");
-      return;
-    }
-    setCreatingUser(true);
-    try {
-      const res = await fetch("/api/admin/users", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        credentials: "same-origin",
-        body: JSON.stringify({
-          full_name: newUserForm.full_name.trim(),
-          email: newUserForm.email.trim(),
-          phone: newUserForm.phone.trim() || null,
-          password: newUserForm.password,
-          pass_type: newUserForm.pass_type,
-          class_or_days_count: newUserForm.class_or_days_count
-            ? Number(newUserForm.class_or_days_count)
-            : undefined,
-          start_date: newUserForm.start_date || null,
-        }),
-      });
-      const data = await res.json().catch(() => ({}));
-      if (!res.ok) {
-        toast.error(typeof data.error === "string" ? data.error : "Could not create user");
-        return;
-      }
-      toast.success("User created successfully.");
-      setShowAddUserDialog(false);
-      setNewUserForm({
-        full_name: "",
-        email: "",
-        phone: "",
-        password: "",
-        pass_type: "class_pass",
-        class_or_days_count: "4",
-        start_date: new Date().toISOString().slice(0, 10),
-      });
-      fetchUsers();
-    } finally {
-      setCreatingUser(false);
-    }
-  }
-
-  const openEditUser = (user: ProcessedUser) => {
-    setSelectedUser(user);
-    const pt = user.passType === "studio_pass" ? "studio_pass" : "class_pass";
-    setEditPassType(pt);
-    setEditClassCredits(pt === "class_pass" && typeof user.classesRemaining === "number" ? String(user.classesRemaining) : "");
-    setEditDays(pt === "studio_pass" && typeof user.daysRemaining === "number" ? String(user.daysRemaining) : "");
-    setEditStartDate(user.start_date ? new Date(user.start_date).toISOString().slice(0, 10) : "");
-    setEditEndDate(user.expiry && user.expiry !== "N/A" ? new Date(user.expiry).toISOString().slice(0, 10) : "");
-    setShowEditUserDialog(true);
-  };
-
-  async function handlePauseToggle() {
-    if (!selectedUser?.userPackageId) {
-      toast.error("This member has no package to pause.");
-      return;
-    }
-    const action = selectedUser.isPaused ? "resume" : "pause";
-    try {
-      const res = await fetch("/api/admin/members", {
-        method: "PATCH",
-        headers: { "Content-Type": "application/json" },
-        credentials: "same-origin",
-        body: JSON.stringify({ profile_id: selectedUser.id, user_package_id: selectedUser.userPackageId, action }),
-      });
-      if (!res.ok) throw new Error();
-      setShowEditUserDialog(false);
-      fetchUsers();
-    } catch {
-      toast.error("Could not update pause state");
-    }
-  }
-
-  // Deep link from the admin dashboard ("Manage Packages"): /admin/control?editUser=<profileId>
-  // opens the User Management edit dialog for that member, then strips the param.
-  useEffect(() => {
-    const editId = router.query.editUser;
-    if (!editId || typeof editId !== "string" || users.length === 0) return;
-    const target = users.find((u) => String(u.id) === editId);
-    if (!target) return;
-    setActiveTab("users");
-    openEditUser(target);
-    const { editUser: _omit, ...rest } = router.query;
-    void router.replace({ pathname: router.pathname, query: rest }, undefined, { shallow: true });
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [router.query.editUser, users]);
-
-  async function handleEditUserSave() {
-    if (!selectedUser) return;
-    try {
-      const patchBase = { profile_id: selectedUser.id };
-
-      if (editPassType === "class_pass" && editClassCredits) {
-        const current = typeof selectedUser.classesRemaining === "number" ? selectedUser.classesRemaining : 0;
-        await fetch("/api/admin/members", {
-          method: "PATCH",
-          headers: { "Content-Type": "application/json" },
-          credentials: "same-origin",
-          body: JSON.stringify({
-            ...patchBase,
-            credits_delta: Number(editClassCredits) - current,
-            pass_type: "class_pass",
-            ...(editEndDate ? { expiration_date: editEndDate } : {}),
-          }),
-        });
-      } else if (editPassType === "studio_pass" && (editDays || editEndDate)) {
-        let expiryStr = editEndDate;
-        if (!expiryStr && editDays) {
-          const expiry = new Date();
-          expiry.setDate(expiry.getDate() + Number(editDays));
-          expiryStr = expiry.toISOString().slice(0, 10);
-        }
-        await fetch("/api/admin/members", {
-          method: "PATCH",
-          headers: { "Content-Type": "application/json" },
-          credentials: "same-origin",
-          body: JSON.stringify({ ...patchBase, expiration_date: expiryStr, pass_type: "studio_pass" }),
-        });
-      }
-
-      if (editStartDate) {
-        await fetch("/api/admin/members", {
-          method: "PATCH",
-          headers: { "Content-Type": "application/json" },
-          credentials: "same-origin",
-          body: JSON.stringify({ ...patchBase, start_date: editStartDate }),
-        });
-      }
-
-      setShowEditUserDialog(false);
-      fetchUsers();
-    } catch (e) {
-      toast.error(e instanceof Error ? e.message : "Could not save changes");
-    }
-  }
-
-  async function handleDeleteUser(userId: string, userName: string) {
-    if (!confirm(`Delete "${userName}" permanently? This cannot be undone.`)) return;
-    try {
-      const res = await fetch(`/api/admin/users?id=${encodeURIComponent(userId)}`, {
-        method: "DELETE",
-        credentials: "same-origin",
-      });
-      const data = await res.json();
-      if (!res.ok) throw new Error(data.error ?? "Delete failed");
-      fetchUsers();
-    } catch (e) {
-      toast.error(e instanceof Error ? e.message : "Could not delete user");
-    }
-  }
 
   async function handleCreateClass(e: React.FormEvent) {
     e.preventDefault();
@@ -1037,49 +720,7 @@ export default function ControlPanel() {
   // ---- Tab search + sort ----
   const [classSearch, setClassSearch] = useState("");
 
-  const userSort = useSort<"name" | "pass" | "remaining" | "start" | "end" | "status">();
   const classSort = useSort<"name" | "category" | "duration" | "capacity">();
-
-  const filteredUsers = useMemo(() => {
-    let list = users.filter((u) => {
-      const q = userSearch.trim().toLowerCase();
-      if (q && ![u.name, u.email, u.phone].some((f) => String(f ?? "").toLowerCase().includes(q)))
-        return false;
-      if (userFilter === "studio_pass") return u.passType === "studio_pass";
-      if (userFilter === "class_pass") return u.passType === "class_pass";
-      if (userFilter === "active") return isUserActive(u);
-      if (userFilter === "inactive") return !isUserActive(u);
-      return true;
-    });
-    if (userSort.key) {
-      const dir = userSort.dir === "asc" ? 1 : -1;
-      list = [...list].sort((a, b) => {
-        switch (userSort.key) {
-          case "name":
-            return String(a.name).localeCompare(String(b.name)) * dir;
-          case "pass":
-            return String(a.passType ?? "").localeCompare(String(b.passType ?? "")) * dir;
-          case "remaining":
-            return ((Number(a.classesRemaining ?? 0)) - (Number(b.classesRemaining ?? 0))) * dir;
-          case "start": {
-            const av = a.startDate ? new Date(a.startDate as string).getTime() : 0;
-            const bv = b.startDate ? new Date(b.startDate as string).getTime() : 0;
-            return (av - bv) * dir;
-          }
-          case "end": {
-            const av = a.expiry && a.expiry !== "N/A" ? new Date(a.expiry).getTime() : 0;
-            const bv = b.expiry && b.expiry !== "N/A" ? new Date(b.expiry).getTime() : 0;
-            return (av - bv) * dir;
-          }
-          case "status":
-            return (Number(isUserActive(a)) - Number(isUserActive(b))) * dir;
-          default:
-            return 0;
-        }
-      });
-    }
-    return list;
-  }, [users, userSearch, userFilter, userSort.key, userSort.dir]);
 
   const filteredClasses = useMemo(() => {
     let list = classes;
@@ -1111,16 +752,6 @@ export default function ControlPanel() {
   }, [classes, classSearch, classSort.key, classSort.dir]);
 
   // ---- Stat summaries ----
-  const userStats = useMemo(() => {
-    const active = users.filter(isUserActive).length;
-    return {
-      total: users.length,
-      active,
-      studio: users.filter((u) => u.passType === "studio_pass").length,
-      classPass: users.filter((u) => u.passType === "class_pass").length,
-    };
-  }, [users]);
-
   const classStats = useMemo(() => {
     const cats = new Set(classes.map((c) => c.category).filter(Boolean));
     const durations = classes.map((c) => Number(c.duration) || 0).filter((d) => d > 0);
@@ -1131,43 +762,7 @@ export default function ControlPanel() {
     return { total: classes.length, categories: cats.size, avgDur, capacity };
   }, [classes]);
 
-  const usersPg = usePagination(filteredUsers, 10, `${userSearch}|${userFilter}|${userSort.key}|${userSort.dir}`);
   const classesPg = usePagination(filteredClasses, 10, `${classSearch}|${classSort.key}|${classSort.dir}`);
-
-  // Map paged users → MemberTable rows; carry the original user object on `_raw`
-  // so renderActions can call the existing edit/delete handlers unchanged.
-  const memberRows: (MemberTableMember & { _raw: ProcessedUser })[] = usersPg.pageItems.map((user) => {
-    const passCategory: "studio_pass" | "class_pass" | "none" =
-      user.passType === "studio_pass" ? "studio_pass" : user.passType === "class_pass" ? "class_pass" : "none";
-    const status: "active" | "expired" | undefined =
-      passCategory === "none" ? undefined : isUserActive(user) ? "active" : "expired";
-    return {
-      id: user.id,
-      name: user.name || user.full_name || user.email,
-      email: user.email,
-      phone: user.phone,
-      avatarUrl: user.avatar_url ?? null,
-      passLabel: user.pass_type ?? undefined,
-      passCategory,
-      unlimited: passCategory === "studio_pass",
-      credits: typeof user.classesRemaining === "number" ? user.classesRemaining : null,
-      status,
-      _raw: user,
-    };
-  });
-
-  function renderMemberActions(m: MemberTableMember & { _raw: ProcessedUser }) {
-    const user = m._raw;
-    return (
-      <div className="flex gap-2 justify-end">
-        <EditButton onClick={() => openEditUser(user)} label="Edit user" />
-        <DeleteButton
-          onClick={() => handleDeleteUser(user.id, user.name || user.full_name || user.email)}
-          label="Delete user"
-        />
-      </div>
-    );
-  }
 
   if (loading) {
     return (
@@ -1257,94 +852,6 @@ export default function ControlPanel() {
 
                 {/* Content column */}
                 <div className="min-w-0 space-y-6">
-
-              {/* USER MANAGEMENT TAB */}
-              <TabsContent value="users" className="space-y-6">
-                {/* Stats */}
-                <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-                  <MetricCard label="Total Members" value={userStats.total} icon={Users} tone="sage" />
-                  <MetricCard label="Active" value={userStats.active} icon={CheckCircle2} tone="sage" hint="Holding a valid pass" />
-                  <MetricCard label="Studio Pass" value={userStats.studio} icon={Award} tone="terracotta" />
-                  <MetricCard label="Class Pass" value={userStats.classPass} icon={CreditCard} tone="charcoal" />
-                </div>
-
-                <Card className="border-sage/20 bg-white-warm">
-                  <CardHeader className="space-y-4">
-                    <div className="flex flex-wrap items-start justify-between gap-3">
-                      <div>
-                        <CardTitle className="font-display text-2xl text-charcoal">
-                          User Management <span className="font-body text-base text-charcoal/40">({filteredUsers.length})</span>
-                        </CardTitle>
-                        <CardDescription className="font-body text-charcoal/60">
-                          Add, edit, or remove members from the system
-                        </CardDescription>
-                      </div>
-                      <Button
-                        onClick={() => setShowAddUserDialog(true)}
-                        variant="sage"
-                        className="h-9 shrink-0"
-                      >
-                        <Plus className="h-4 w-4 mr-1.5" />
-                        Add User
-                      </Button>
-                    </div>
-
-                    <FilterBar
-                      reset={(userSearch || userFilter !== "all") ? () => { setUserSearch(""); setUserFilter("all"); } : undefined}
-                    >
-                      <FilterSearch
-                        value={userSearch}
-                        onChange={setUserSearch}
-                        placeholder="Search name, email, phone…"
-                        aria-label="Search users"
-                      />
-                      <FilterSelect
-                        value={userFilter}
-                        onChange={setUserFilter}
-                        icon={ListFilter}
-                        className="w-full sm:w-44"
-                        options={[
-                          { value: "all", label: "All members" },
-                          { value: "studio_pass", label: "Studio pass" },
-                          { value: "class_pass", label: "Class pass" },
-                          { value: "active", label: "Active" },
-                          { value: "inactive", label: "Inactive" },
-                        ]}
-                      />
-                    </FilterBar>
-                  </CardHeader>
-                  <CardContent>
-                    {loadingUsers ? (
-                      <UserListSkeleton rows={6} />
-                    ) : filteredUsers.length === 0 ? (
-                      <div className="text-center py-12">
-                        <Users className="h-12 w-12 text-charcoal/20 mx-auto mb-3" />
-                        <p className="font-body text-charcoal/40">
-                          {users.length === 0 ? "No users yet. Add a user to get started." : "No users match your search."}
-                        </p>
-                      </div>
-                    ) : (
-                      <>
-                        <div className="rounded-xl border border-sage/15 bg-white-warm overflow-hidden">
-                          <MemberTable
-                            members={memberRows}
-                            columns={["member", "pass", "status"]}
-                            sort={{
-                              sortKey: userSort.key,
-                              sortDir: userSort.dir,
-                              onToggle: (key) => userSort.toggle(key as "name" | "pass" | "status"),
-                              sortableKeys: ["name", "pass", "status"],
-                            }}
-                            onRowClick={(m) => openEditUser(m._raw)}
-                            renderActions={renderMemberActions}
-                          />
-                        </div>
-                        <Pagination page={usersPg.page} total={usersPg.total} onChange={usersPg.setPage} />
-                      </>
-                    )}
-                  </CardContent>
-                </Card>
-              </TabsContent>
 
               {/* PAUSE REQUESTS TAB */}
               <TabsContent value="pauses" className="space-y-6">
@@ -1696,278 +1203,6 @@ export default function ControlPanel() {
       </div>
 
       {/* Dialogs - same as in dashboard */}
-      {/* Add User Dialog */}
-      <ResponsiveDialog open={showAddUserDialog} onOpenChange={setShowAddUserDialog}>
-        <ResponsiveDialogContent className="max-w-2xl bg-white-warm border-sage/20">
-          <ResponsiveDialogHeader>
-            <ResponsiveDialogTitle className="font-display text-2xl text-charcoal">Add New User</ResponsiveDialogTitle>
-            <ResponsiveDialogDescription className="font-body text-charcoal/60">
-              Create a new member account with password and package (class count or studio days).
-            </ResponsiveDialogDescription>
-          </ResponsiveDialogHeader>
-          <div className="grid grid-cols-2 gap-4 py-4">
-            <div className="space-y-2">
-              <Label className="font-body text-charcoal">Full Name</Label>
-              <Input
-                value={newUserForm.full_name}
-                onChange={(e) => setNewUserForm((s) => ({ ...s, full_name: e.target.value }))}
-                placeholder="John Doe"
-                className="border-sage/20 focus:ring-sage placeholder:text-charcoal/40"
-              />
-            </div>
-            <div className="space-y-2">
-              <Label className="font-body text-charcoal">Email</Label>
-              <Input
-                type="email"
-                value={newUserForm.email}
-                onChange={(e) => setNewUserForm((s) => ({ ...s, email: e.target.value }))}
-                placeholder="john@email.com"
-                className="border-sage/20 focus:ring-sage placeholder:text-charcoal/40"
-              />
-            </div>
-            <div className="space-y-2">
-              <Label className="font-body text-charcoal">Password</Label>
-              <Input
-                type="password"
-                value={newUserForm.password}
-                onChange={(e) => setNewUserForm((s) => ({ ...s, password: e.target.value }))}
-                placeholder="Min. 8 characters"
-                className="border-sage/20 focus:ring-sage placeholder:text-charcoal/40"
-              />
-            </div>
-            <div className="space-y-2">
-              <Label className="font-body text-charcoal">Phone Number</Label>
-              <Input
-                value={newUserForm.phone}
-                onChange={(e) => setNewUserForm((s) => ({ ...s, phone: e.target.value }))}
-                placeholder="+00 00000 00000"
-                className="border-sage/20 focus:ring-sage placeholder:text-charcoal/40"
-              />
-            </div>
-            <div className="space-y-2">
-              <Label className="font-body text-charcoal">Pass Type</Label>
-              <Select
-                value={newUserForm.pass_type}
-                onValueChange={(v) => {
-                  const pt = v as "studio_pass" | "class_pass";
-                  setNewUserForm((s) => ({ ...s, pass_type: pt, class_or_days_count: pt === "class_pass" ? "4" : "30" }));
-                }}
-              >
-                <SelectTrigger className="border-sage/20">
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="class_pass">Class Pass</SelectItem>
-                  <SelectItem value="studio_pass">Studio Pass</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
-            <div className="space-y-2">
-              <Label className="font-body text-charcoal">
-                {newUserForm.pass_type === "class_pass" ? "Classes Remaining" : "Days Remaining"}
-              </Label>
-              <Select
-                value={newUserForm.class_or_days_count}
-                onValueChange={(v) => setNewUserForm((s) => ({ ...s, class_or_days_count: v }))}
-              >
-                <SelectTrigger className="border-sage/20">
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  {newUserForm.pass_type === "class_pass"
-                    ? [1, 4, 8, 12].map((n) => (
-                        <SelectItem key={n} value={String(n)}>
-                          {n} {n === 1 ? "Class" : "Classes"}
-                        </SelectItem>
-                      ))
-                    : [30, 90, 180, 365].map((d) => (
-                        <SelectItem key={d} value={String(d)}>
-                          {d} Days
-                        </SelectItem>
-                      ))}
-                </SelectContent>
-              </Select>
-            </div>
-            <div className="space-y-2">
-              <Label className="font-body text-charcoal">Start Date</Label>
-              <DatePicker
-                value={newUserForm.start_date}
-                onChange={(v) => setNewUserForm((s) => ({ ...s, start_date: v }))}
-              />
-            </div>
-
-          </div>
-          <ResponsiveDialogFooter>
-            <Button variant="outline" onClick={() => setShowAddUserDialog(false)} className="border-sage/20 font-body">
-              Cancel
-            </Button>
-            <Button
-              variant="sage"
-              disabled={creatingUser}
-              onClick={() => void handleAdminCreateUser()}
-            >
-              <Save className="h-4 w-4 mr-2" />
-              {creatingUser ? "Creating…" : "Create User"}
-            </Button>
-          </ResponsiveDialogFooter>
-        </ResponsiveDialogContent>
-      </ResponsiveDialog>
-
-      {/* Edit User Dialog */}
-      <ResponsiveDialog open={showEditUserDialog} onOpenChange={setShowEditUserDialog}>
-        <ResponsiveDialogContent className="max-w-2xl bg-white-warm border-sage/20">
-          <ResponsiveDialogHeader>
-            <ResponsiveDialogTitle className="font-display text-2xl text-charcoal">Edit User</ResponsiveDialogTitle>
-            <ResponsiveDialogDescription className="font-body text-charcoal/60">
-              Update member information, package, or classes
-            </ResponsiveDialogDescription>
-          </ResponsiveDialogHeader>
-          {selectedUser && (
-            <div className="grid grid-cols-2 gap-4 py-4">
-              {/* Current pass status */}
-              <div className="col-span-2 rounded-xl border border-sage/15 bg-sage/5 p-4">
-                <div className="flex flex-wrap items-center justify-between gap-2">
-                  <div className="flex items-center gap-2">
-                    <span className="font-body text-xs uppercase tracking-wide text-charcoal/50">Current Pass</span>
-                    <Pill tone="success" appearance="solid">
-                      {selectedUser.passType === "studio_pass" ? "Studio Pass" : selectedUser.passType === "class_pass" ? "Class Pass" : "No Pass"}
-                    </Pill>
-                    {(() => {
-                      const expired = selectedUser.expiry === "N/A" || (selectedUser.expiry && new Date(selectedUser.expiry).getTime() < Date.now());
-                      const label = selectedUser.isPaused ? "Paused" : selectedUser.passType === "none" ? "None" : expired ? "Expired" : "Active";
-                      const tone: "success" | "warning" | "danger" = selectedUser.isPaused
-                        ? "warning"
-                        : label === "Active"
-                          ? "success"
-                          : "danger";
-                      return <Pill tone={tone} className="font-body">{label}</Pill>;
-                    })()}
-                  </div>
-                  {selectedUser.userPackageId && (
-                    <Button
-                      type="button"
-                      variant="outline"
-                      size="sm"
-                      onClick={() => void handlePauseToggle()}
-                      className="border-sage/30 text-charcoal hover:bg-sage/10 font-body h-8 hover:text-charcoal!"
-                    >
-                      {selectedUser.isPaused ? "Resume pass" : "Pause pass"}
-                    </Button>
-                  )}
-                </div>
-                <p className="mt-2 font-body text-sm text-charcoal/70">
-                  {selectedUser.passType === "studio_pass"
-                    ? `${selectedUser.daysRemaining} day${selectedUser.daysRemaining === 1 ? "" : "s"} remaining`
-                    : selectedUser.passType === "class_pass"
-                      ? `${selectedUser.classesRemaining} class${selectedUser.classesRemaining === 1 ? "" : "es"} remaining`
-                      : "No active pass"}
-                  {selectedUser.expiry && selectedUser.expiry !== "N/A"
-                    ? ` · expires ${new Date(selectedUser.expiry).toLocaleDateString("en-IN", { day: "2-digit", month: "short", year: "numeric" })}`
-                    : ""}
-                  {selectedUser.isPaused ? " · paused (resume to extend expiry by paused days)" : ""}
-                </p>
-              </div>
-
-              <div className="space-y-2">
-                <Label className="font-body text-charcoal">Full Name</Label>
-                <Input defaultValue={selectedUser.name} disabled className="border-sage/20 bg-sage/5 text-charcoal/60" />
-              </div>
-              <div className="space-y-2">
-                <Label className="font-body text-charcoal">Email</Label>
-                <Input defaultValue={selectedUser.email} disabled className="border-sage/20 bg-sage/5 text-charcoal/60" />
-              </div>
-              <div className="space-y-2">
-                <Label className="font-body text-charcoal">Pass Type</Label>
-                <Select
-                  value={editPassType}
-                  onValueChange={(v) => {
-                    const pt = v as "class_pass" | "studio_pass";
-                    setEditPassType(pt);
-                    setEditClassCredits("");
-                    setEditDays("");
-                  }}
-                >
-                  <SelectTrigger className="border-sage/20">
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="class_pass">Class Pass</SelectItem>
-                    <SelectItem value="studio_pass">Studio Pass</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
-              {editPassType === "class_pass" ? (
-                <div className="space-y-2">
-                  <Label className="font-body text-charcoal">Classes Remaining</Label>
-                  <div className="flex items-center gap-2">
-                    <Button
-                      type="button"
-                      variant="outline"
-                      className="h-10 w-10 p-0 border-sage/20 text-lg leading-none"
-                      onClick={() => setEditClassCredits(String(Math.max(0, (Number(editClassCredits) || 0) - 1)))}
-                    >
-                      −
-                    </Button>
-                    <Input
-                      type="number"
-                      min={0}
-                      value={editClassCredits}
-                      onChange={(e) => setEditClassCredits(e.target.value)}
-                      className="border-sage/20 focus:ring-sage text-center w-24"
-                    />
-                    <Button
-                      type="button"
-                      variant="outline"
-                      className="h-10 w-10 p-0 border-sage/20 text-lg leading-none"
-                      onClick={() => setEditClassCredits(String((Number(editClassCredits) || 0) + 1))}
-                    >
-                      +
-                    </Button>
-                  </div>
-                </div>
-              ) : (
-                <div className="space-y-2">
-                  <Label className="font-body text-charcoal">Days Remaining (from today)</Label>
-                  <Input
-                    type="number"
-                    min={0}
-                    value={editDays}
-                    onChange={(e) => {
-                      const v = e.target.value;
-                      setEditDays(v);
-                      const n = Number(v);
-                      if (v !== "" && Number.isFinite(n)) {
-                        const d = new Date();
-                        d.setDate(d.getDate() + n);
-                        setEditEndDate(d.toISOString().slice(0, 10));
-                      }
-                    }}
-                    placeholder="e.g. 30"
-                    className="border-sage/20 focus:ring-sage"
-                  />
-                </div>
-              )}
-              <div className="space-y-2">
-                <Label className="font-body text-charcoal">Start Date</Label>
-                <DatePicker value={editStartDate} onChange={setEditStartDate} />
-              </div>
-              <div className="space-y-2">
-                <Label className="font-body text-charcoal">End Date</Label>
-                <DatePicker value={editEndDate} onChange={setEditEndDate} />
-              </div>
-            </div>
-          )}
-          <ResponsiveDialogFooter>
-            <Button variant="outline" onClick={() => setShowEditUserDialog(false)} className="border-sage/20 font-body">
-              Cancel
-            </Button>
-            <Button variant="sage" onClick={() => void handleEditUserSave()}>
-              <Save className="h-4 w-4 mr-2" />
-              Save Changes
-            </Button>
-          </ResponsiveDialogFooter>
-        </ResponsiveDialogContent>
-      </ResponsiveDialog>
 
       {/* Add Class Dialog */}
       <ResponsiveDialog open={showAddClassDialog} onOpenChange={setShowAddClassDialog}>

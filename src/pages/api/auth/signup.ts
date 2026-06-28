@@ -206,7 +206,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       })
       .catch((err) => logger.error({ err }, "[signup] welcome email threw"));
 
-    return res.status(201).json({ message: "Account created successfully." });
+    return res.status(201).json({ message: "Account created successfully.", id: createdProfile.id });
   } catch (e: unknown) {
     return respondWithSignupError(res, e);
   }
