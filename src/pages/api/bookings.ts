@@ -621,10 +621,10 @@ async function handlePatch(
   });
   if (!existing) return res.status(404).json({ error: "Booking not found" });
 
-  // Invited bookings can only be cancelled by the person who created the invite, not the invitee.
-  if (status === STATUS_CANCELLED && existing.invited_by_user_id !== null) {
-    return res.status(403).json({ error: "Invited bookings can only be cancelled by the person who added you" });
-  }
+  // An invited (group) member may cancel their OWN seat — it cancels just their
+  // row (the group cascade below is gated to the booker, invited_by_user_id ===
+  // null). ponytail: invitee gets no refund pass (they hold no own pass; the
+  // booker paid) — refund-to-booker on invitee cancel is a future refinement.
 
   // Cancellation cutoff (spec §9): self-cancel is only allowed up to
   // cancellation_cutoff_hours before class start. After the cutoff the member

@@ -9,7 +9,7 @@ import { useRouter } from "next/router";
 import { useSession } from "next-auth/react";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
-import { Calendar, Clock, AlertCircle, X } from "lucide-react";
+import { Calendar, Clock, AlertCircle, X, ArrowDownUp, ChevronRight } from "lucide-react";
 import {
   ResponsiveDialog,
   ResponsiveDialogContent,
@@ -81,21 +81,21 @@ const BookingCard = memo(function BookingCard({
   formatTime,
   formatDate,
 }: BookingCardProps) {
+  // A live, seat-holding booking can be cancelled by its owner — booker OR
+  // invited guest (the API cancels just the invitee's own row). "pending" is a
+  // real occupying status (legacy/partner-confirm), not a dead one.
+  const cancellable =
+    !isPast && ["confirmed", "payment_pending", "pending"].includes(booking.status);
   return (
     <div className="bg-white-warm rounded-xl border border-sage/10 p-4 sm:p-6 hover:shadow-[0_4px_24px_rgba(51,51,51,0.08)] transition-all duration-300">
       <div className="flex items-start justify-between gap-3 mb-2 sm:mb-3">
         <div className="flex-1 min-w-0">
-          <h3 className="font-display text-lg sm:text-2xl text-charcoal truncate">{booking.class_name}</h3>
+          <Link href={`/portal/bookings/${booking.id}`} className="group inline-flex items-center gap-1.5 max-w-full">
+            <h3 className="font-display text-lg sm:text-2xl text-charcoal truncate group-hover:text-sage transition-colors">{booking.class_name}</h3>
+            <ChevronRight size={18} className="shrink-0 text-charcoal/30 group-hover:text-sage transition-colors" />
+          </Link>
           <div className="flex flex-wrap gap-1.5 mt-1 sm:mt-1.5">
-            <Pill {...bookingStatusPill(booking.status)}>
-              {booking.status === "confirmed"
-                ? "Confirmed"
-                : booking.status === "payment_pending"
-                  ? "Payment pending"
-                  : booking.status === "expired"
-                    ? "Expired"
-                    : "Pending"}
-            </Pill>
+            <Pill {...bookingStatusPill(booking.status)}>{bookingStatusPill(booking.status).label}</Pill>
             {booking.confirmation_status === "pending" && booking.status !== "cancelled" && (
               <Pill tone="warning">Awaiting confirmation</Pill>
             )}
@@ -167,8 +167,7 @@ const BookingCard = memo(function BookingCard({
           {afterCheckInWindow && (
             <p className="font-body text-xs text-charcoal/55">Check-in closed for this class.</p>
           )}
-          {!booking.invited_by_name &&
-            (booking.status === "confirmed" || booking.status === "payment_pending") &&
+          {cancellable &&
             booking.cancel_cutoff_hours != null &&
             (() => {
               const cutoffMs = new Date(startIso).getTime() - (booking.cancel_cutoff_hours ?? 0) * 3600_000;
@@ -186,12 +185,22 @@ const BookingCard = memo(function BookingCard({
             {canCheck && (
               <Button onClick={() => onCheckIn(booking)} size="sm" variant="sage" className="flex-1 sm:flex-none h-11 px-4 sm:px-6">Check in</Button>
             )}
-            {!booking.invited_by_name && (booking.status === "confirmed" || booking.status === "payment_pending") && (
+            {cancellable && (
               <Button onClick={() => onCancel(booking)} size="sm" variant="outline" className="flex-1 sm:flex-none border-terracotta/30 text-terracotta hover:bg-terracotta/5 h-11 px-4 sm:px-6 hover:text-terracotta!">
                 <X size={16} className="mr-1.5" />Cancel
               </Button>
             )}
           </div>
+        </div>
+      )}
+      {(booking.status === "cancelled" || (isPast && !booking.checked_in && booking.check_in_outcome !== "on_time" && booking.check_in_outcome !== "late")) && (
+        <div className="mt-3">
+          <Link
+            href="/portal/book"
+            className="inline-flex h-9 items-center gap-1.5 rounded-md border border-sage/30 px-4 font-body text-sm font-medium text-sage transition-colors hover:bg-sage hover:text-cream"
+          >
+            Rebook a class
+          </Link>
         </div>
       )}
     </div>
@@ -250,7 +259,14 @@ export default function MyBookingsPage() {
   const [canRefund, setCanRefund] = useState(false);
   const [cancelReason, setCancelReason] = useState("");
   const [currentPage, setCurrentPage] = useState(1);
+  const [filter, setFilter] = useState<"all" | "upcoming" | "past">("all");
+  const [sortAsc, setSortAsc] = useState(false);
   const PAGE_SIZE = 8;
+
+  // Reset to page 1 whenever the filter or sort order changes.
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [filter, sortAsc]);
 
   useEffect(() => {
     if (status === "unauthenticated") { router.push("/portal/login"); return; }
@@ -419,18 +435,35 @@ export default function MyBookingsPage() {
     }
   }
 
-  // Newest class first. Precompute startMs once per booking to avoid building a
-  // new Date in every compare. Memoize so unrelated state changes don't re-sort.
-  const sortedBookings = useMemo(() => {
-    return bookings
-      .map((b) => ({ b, ms: new Date(effectiveClassTime(b)).getTime() }))
-      .sort((a, b) => b.ms - a.ms)
-      .map(({ b }) => b);
+  // Filter + sort + paginate. A booking is "upcoming" only if its class is still
+  // in the future AND it's not cancelled/expired; everything else is "past".
+  const counts = useMemo(() => {
+    const now = Date.now();
+    let up = 0;
+    for (const b of bookings) {
+      const ms = new Date(effectiveClassTime(b)).getTime();
+      if (ms > now && b.status !== "cancelled" && b.status !== "expired") up++;
+    }
+    return { all: bookings.length, upcoming: up, past: bookings.length - up };
   }, [bookings]);
-  const totalPages = Math.ceil(sortedBookings.length / PAGE_SIZE);
+
+  const filteredSorted = useMemo(() => {
+    const now = Date.now();
+    const rows = bookings.map((b) => ({ b, ms: new Date(effectiveClassTime(b)).getTime() }));
+    const filtered = rows.filter(({ b, ms }) => {
+      const isUpcoming = ms > now && b.status !== "cancelled" && b.status !== "expired";
+      if (filter === "upcoming") return isUpcoming;
+      if (filter === "past") return !isUpcoming;
+      return true;
+    });
+    filtered.sort((a, b) => (sortAsc ? a.ms - b.ms : b.ms - a.ms));
+    return filtered.map((x) => x.b);
+  }, [bookings, filter, sortAsc]);
+
+  const totalPages = Math.ceil(filteredSorted.length / PAGE_SIZE);
   const paginatedBookings = useMemo(
-    () => sortedBookings.slice((currentPage - 1) * PAGE_SIZE, currentPage * PAGE_SIZE),
-    [sortedBookings, currentPage],
+    () => filteredSorted.slice((currentPage - 1) * PAGE_SIZE, currentPage * PAGE_SIZE),
+    [filteredSorted, currentPage],
   );
 
   if (isLoading) {
@@ -474,6 +507,40 @@ export default function MyBookingsPage() {
           </div>
         ) : (
           <>
+            {/* Filter + sort controls */}
+            <div className="mb-4 flex flex-wrap items-center justify-between gap-3">
+              <div className="inline-flex rounded-lg border border-sage/20 bg-white-warm p-1">
+                {([
+                  { key: "all", label: "All", n: counts.all },
+                  { key: "upcoming", label: "Upcoming", n: counts.upcoming },
+                  { key: "past", label: "Past", n: counts.past },
+                ] as const).map((t) => (
+                  <button
+                    key={t.key}
+                    type="button"
+                    onClick={() => setFilter(t.key)}
+                    className={[
+                      "rounded-md px-3 py-1.5 font-body text-sm font-medium transition-colors duration-200 cursor-pointer",
+                      filter === t.key ? "bg-sage text-cream" : "text-charcoal/65 hover:text-charcoal",
+                    ].join(" ")}
+                  >
+                    {t.label} <span className="tabular-nums opacity-70">{t.n}</span>
+                  </button>
+                ))}
+              </div>
+              <button
+                type="button"
+                onClick={() => setSortAsc((v) => !v)}
+                className="inline-flex h-9 items-center gap-1.5 rounded-lg border border-sage/20 bg-white-warm px-3 font-body text-sm text-charcoal/70 transition-colors duration-200 hover:bg-sage/5 cursor-pointer"
+              >
+                <ArrowDownUp size={14} />
+                {sortAsc ? "Soonest first" : "Latest first"}
+              </button>
+            </div>
+
+            {paginatedBookings.length === 0 ? (
+              <p className="py-12 text-center font-body text-charcoal/55">No {filter === "all" ? "" : filter} bookings.</p>
+            ) : (
             <div className="space-y-3 sm:space-y-4">
               {paginatedBookings.map((booking) => {
                 const startIso = effectiveClassTime(booking);
@@ -507,6 +574,7 @@ export default function MyBookingsPage() {
                 );
               })}
             </div>
+            )}
             {totalPages > 1 && (
               <MobilePagination
                 currentPage={currentPage}

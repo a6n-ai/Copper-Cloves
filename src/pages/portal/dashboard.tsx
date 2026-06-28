@@ -429,8 +429,15 @@ export default function Dashboard() {
           });
           setCreditsRemaining(packageType.is_unlimited ? 999 : activePackage.credits_remaining || 0);
         }
+        // Only surface genuinely-active passes — an expired/deactivated pass is
+        // not "active" and shouldn't sit in the member's pass carousel.
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        setActivePasses(packages.map((p: any) => {
+        const livePasses = packages.filter((p: any) => {
+          const expMs = p.expiration_date ? new Date(p.expiration_date).getTime() : null;
+          return !!p.is_active && (expMs == null || expMs > now.getTime());
+        });
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        setActivePasses(livePasses.map((p: any) => {
           const pt = p.package_type ?? {};
           const exp = p.expiration_date ? String(p.expiration_date) : null;
           const isActive = !!p.is_active && (exp ? new Date(exp).getTime() > now.getTime() : true);
@@ -560,10 +567,9 @@ export default function Dashboard() {
         const isScheduled = !!booking.class_schedule;
         const startISO = isScheduled ? booking.class_schedule?.start_time : booking.class_time;
         const cutoffH = booking.cancel_cutoff_hours;
-        // Self-cancel is only the booker's to make (invited rows ride along the booker).
-        const cancellable =
-          !booking.invited_by_user_id &&
-          (booking.status === "confirmed" || booking.status === "payment_pending");
+        // Any live seat-holder (booker or invited guest) can self-cancel; "pending"
+        // is a real occupying status. The API cancels just the invitee's own row.
+        const cancellable = ["confirmed", "payment_pending", "pending"].includes(booking.status ?? "");
         const cancelByISO =
           cancellable && startISO && cutoffH != null
             ? new Date(new Date(startISO).getTime() - cutoffH * 3600_000).toISOString()
