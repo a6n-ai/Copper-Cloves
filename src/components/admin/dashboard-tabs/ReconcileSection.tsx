@@ -17,6 +17,7 @@ import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
 import { MetricCard } from "@/components/admin/MetricCard";
+import { CronHealthStrip } from "@/components/admin/CronHealthStrip";
 import { Pagination, usePagination } from "@/components/Pagination";
 import { Pill, type PillProps } from "@/components/ui/pill";
 import { FilterBar, FilterSearch, FilterSelect, FilterDateRange, FilterPills } from "@/components/filters";
@@ -1374,6 +1375,7 @@ function ReconcileSectionImpl() {
 
   return (
     <div className="space-y-6">
+      <CronHealthStrip />
       {/* Summary — always visible; values are 0 until a correlation runs. */}
       <div className="grid grid-cols-2 md:grid-cols-4 gap-3 sm:gap-4">
         <MetricCard label="Razorpay captured" value={capturedInr} prefix="₹" icon={Landmark} tone="sage" />

@@ -69,6 +69,7 @@ export const ModelName = {
   RazorpayPayment: 'RazorpayPayment',
   RazorpayWebhookLog: 'RazorpayWebhookLog',
   PaymentReconcile: 'PaymentReconcile',
+  CronRun: 'CronRun',
   Friendship: 'Friendship',
   Payment: 'Payment',
   CafeItem: 'CafeItem',
@@ -472,6 +473,20 @@ export const PaymentReconcileScalarFieldEnum = {
 } as const
 
 export type PaymentReconcileScalarFieldEnum = (typeof PaymentReconcileScalarFieldEnum)[keyof typeof PaymentReconcileScalarFieldEnum]
+
+
+export const CronRunScalarFieldEnum = {
+  id: 'id',
+  job: 'job',
+  status: 'status',
+  started_at: 'started_at',
+  finished_at: 'finished_at',
+  duration_ms: 'duration_ms',
+  result: 'result',
+  error: 'error'
+} as const
+
+export type CronRunScalarFieldEnum = (typeof CronRunScalarFieldEnum)[keyof typeof CronRunScalarFieldEnum]
 
 
 export const FriendshipScalarFieldEnum = {

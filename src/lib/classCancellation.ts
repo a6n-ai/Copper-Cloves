@@ -247,6 +247,11 @@ export async function cancelBookingWithRefund(
     )
     .catch(() => {});
 
+  // Reconcile-on-cancel: surface any online payment on the now-cancelled booking as a
+  // refund/void candidate for admin review (mirrors the self-serve path in api/bookings.ts).
+  const { flagPaidCancelledOrphans } = await import("@/lib/razorpayPersistence");
+  await flagPaidCancelledOrphans({ bookingId: existing.id }).catch(() => {});
+
   return { bookingId, cancelled: true, refund: { grantedUserPackageIds } };
 }
 

@@ -10,6 +10,7 @@
 import type { NextApiRequest, NextApiResponse } from "next";
 import { authorizeCron } from "@/lib/cronAuth";
 import { sendDueClassReminders, sendDueInstructorRosters } from "@/lib/notifications/scheduledClassEmails";
+import { withCronRun } from "@/lib/cronRun";
 import { requestLogger } from "@/lib/logger";
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
@@ -20,10 +21,13 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
   const startedAt = Date.now();
   try {
-    const [reminders, rosters] = await Promise.all([
-      sendDueClassReminders(),
-      sendDueInstructorRosters(),
-    ]);
+    const { reminders, rosters } = await withCronRun("class-emails", async () => {
+      const [rem, ros] = await Promise.all([
+        sendDueClassReminders(),
+        sendDueInstructorRosters(),
+      ]);
+      return { reminders: rem, rosters: ros };
+    });
     const durationMs = Date.now() - startedAt;
     log.info({ reminders, rosters, durationMs }, "class-emails cron complete");
     return res.json({ ok: true, reminders, rosters, durationMs });

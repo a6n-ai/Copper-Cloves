@@ -12,6 +12,7 @@ import prisma from "@/lib/prisma";
 import { authorizeCron } from "@/lib/cronAuth";
 import { reconcileNoShowsGlobally } from "@/lib/bookingReconcile";
 import { advanceCompletedSchedules } from "@/lib/scheduleLifecycle";
+import { withCronRun } from "@/lib/cronRun";
 import { requestLogger } from "@/lib/logger";
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
@@ -22,23 +23,14 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
   const startedAt = Date.now();
   try {
-    await reconcileNoShowsGlobally(prisma);
-    const lifecycle = await advanceCompletedSchedules(prisma);
-    const durationMs = Date.now() - startedAt;
-    log.info(
-      {
-        durationMs,
-        schedulesCompleted: lifecycle.completed,
-        schedulesAbandoned: lifecycle.abandoned,
-      },
-      "no-show reconcile complete"
-    );
-    return res.json({
-      ok: true,
-      durationMs,
-      schedulesCompleted: lifecycle.completed,
-      schedulesAbandoned: lifecycle.abandoned,
+    const lifecycle = await withCronRun("reconcile-no-shows", async () => {
+      await reconcileNoShowsGlobally(prisma);
+      const lc = await advanceCompletedSchedules(prisma);
+      return { schedulesCompleted: lc.completed, schedulesAbandoned: lc.abandoned };
     });
+    const durationMs = Date.now() - startedAt;
+    log.info({ durationMs, ...lifecycle }, "no-show reconcile complete");
+    return res.json({ ok: true, durationMs, ...lifecycle });
   } catch (e) {
     log.error({ err: e, durationMs: Date.now() - startedAt }, "cron reconcile failed");
     return res.status(500).json({ error: "Reconcile failed" });

@@ -45,6 +45,7 @@ interface BookingDetail {
   holdExpiresAt: string | null;
   financeSnapshot: unknown;
   razorpayOrderId: string | null;
+  paymentNote: string | null;
 }
 
 const STATUS_LABEL: Record<string, string> = {
@@ -213,6 +214,12 @@ export default function BookingDetailPage() {
                 </Pill>
               )}
             </div>
+
+            {booking.paymentNote && (
+              <p className="mt-3 rounded-md bg-terracotta/10 px-3 py-2 font-body text-sm text-terracotta">
+                {booking.paymentNote}
+              </p>
+            )}
 
             <div className="mt-5 space-y-2 border-t border-sage/10 pt-5">
               {classTimeIso ? (

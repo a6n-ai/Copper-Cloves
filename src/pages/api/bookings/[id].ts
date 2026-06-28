@@ -60,6 +60,31 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   }
 
   if (req.method === "GET") {
+    // Surface a plain-language payment state so a cancelled/unpaid booking visibly says so
+    // (the booking-status pill alone can't tell "cancelled but money taken" from "cancelled
+    // cleanly"). Reads the gateway payment + any admin refund flag on the linked order.
+    let paymentNote: string | null = null;
+    const orderId = booking.razorpay_order?.razorpay_order_id ?? null;
+    if (orderId) {
+      const pay = await prisma.razorpayPayment.findFirst({
+        where: { razorpay_order_id: orderId },
+        orderBy: { created_at: "desc" },
+        select: { status: true, razorpay_payment_id: true },
+      });
+      if (pay) {
+        const rec = await prisma.paymentReconcile.findUnique({
+          where: { razorpay_payment_id: pay.razorpay_payment_id },
+          select: { status: true },
+        });
+        if (rec?.status === "needs_refund") {
+          paymentNote = "Payment received but the booking was cancelled — refund is under review.";
+        } else if (pay.status === "authorized") {
+          paymentNote = "Payment was authorized but not completed.";
+        } else if (pay.status !== "captured" && booking.status !== "confirmed") {
+          paymentNote = "Payment not completed.";
+        }
+      }
+    }
     return res.json({
       id: booking.id,
       status: booking.status,
@@ -69,7 +94,8 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       classStatus: booking.class_schedule?.status ?? null,
       holdExpiresAt: booking.hold_expires_at?.toISOString() ?? null,
       financeSnapshot: booking.finance_snapshot ?? null,
-      razorpayOrderId: booking.razorpay_order?.razorpay_order_id ?? null,
+      razorpayOrderId: orderId,
+      paymentNote,
     });
   }
 

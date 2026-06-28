@@ -116,6 +116,14 @@ export type RazorpayWebhookLog = Prisma.RazorpayWebhookLogModel
  */
 export type PaymentReconcile = Prisma.PaymentReconcileModel
 /**
+ * Model CronRun
+ * Durable per-run record for the `/api/cron/*` jobs. A green GitHub Actions tick only
+ * proves the endpoint returned HTTP 200 — it says nothing about what the job DID. This
+ * table captures the actual outcome (counts / error) so admins can answer "did it run AND
+ * do its job". Written `running` at start, updated `ok|failed` at end by `withCronRun`.
+ */
+export type CronRun = Prisma.CronRunModel
+/**
  * Model Friendship
  * 
  */

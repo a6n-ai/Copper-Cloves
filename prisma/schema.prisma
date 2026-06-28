@@ -539,6 +539,29 @@ model PaymentReconcile {
   @@map("payment_reconciles")
 }
 
+/// Durable per-run record for the `/api/cron/*` jobs. A green GitHub Actions tick only
+/// proves the endpoint returned HTTP 200 — it says nothing about what the job DID. This
+/// table captures the actual outcome (counts / error) so admins can answer "did it run AND
+/// do its job". Written `running` at start, updated `ok|failed` at end by `withCronRun`.
+model CronRun {
+  id          String    @id @default(uuid())
+  /// Logical job name, e.g. `reconcile-razorpay`, `class-emails`.
+  job         String
+  /// running → ok | failed
+  status      String    @default("running")
+  started_at  DateTime  @default(now())
+  finished_at DateTime?
+  duration_ms Int?
+  /// Job-specific result summary (the reconcile counts, emails sent, etc.).
+  result      Json?
+  /// Error text on the failed path.
+  error       String?
+
+  @@index([job, started_at])
+  @@index([status])
+  @@map("cron_runs")
+}
+
 model Friendship {
   id            String   @id @default(uuid())
   // Canonical unordered pair: always user_a_id < user_b_id (string compare).

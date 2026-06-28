@@ -516,8 +516,11 @@ export type StuckOrderReconcileResult = {
   stillUnpaid: number;
   /** Paid orders whose fulfillment never completed (booking stuck payment_pending), healed in the second sweep. */
   healedPaid: number;
+  /** Paid orders whose booking was CANCELLED before fulfillment — money taken, nothing delivered.
+   *  Cannot auto-heal (re-confirming + capturing would double-charge), so flagged for admin refund. */
+  flaggedOrphans: number;
   errors: number;
-  details: Array<{ orderId: string; outcome: "fulfilled" | "persisted_only" | "unpaid" | "healed_paid" | "error" }>;
+  details: Array<{ orderId: string; outcome: "fulfilled" | "persisted_only" | "unpaid" | "healed_paid" | "flagged_orphan" | "error" }>;
 };
 
 /**
@@ -540,6 +543,7 @@ export async function reconcileStuckRazorpayOrders(opts?: {
     persistedOnly: 0,
     stillUnpaid: 0,
     healedPaid: 0,
+    flaggedOrphans: 0,
     errors: 0,
     details: [],
   };
@@ -660,9 +664,91 @@ export async function reconcileStuckRazorpayOrders(opts?: {
     }
   }
 
+  // ── Third sweep: PAID orders whose booking was CANCELLED before fulfillment ──
+  // The pending booking can be released (hold expiry / admin cancel) BEFORE the order
+  // is fulfilled. Money was taken (or held) but nothing delivered. We CANNOT auto-heal
+  // (re-confirming + capturing would double-charge a member who has since re-booked), so
+  // flag for an admin refund/void decision. Body extracted to flagPaidCancelledOrphans so
+  // the manual flag pass + the cancel-time hook reuse identical logic.
+  const orphan = await flagPaidCancelledOrphans({ limit });
+  result.flaggedOrphans += orphan.flagged;
+  result.scanned += orphan.flagged;
+  for (const id of orphan.orderIds) result.details.push({ orderId: id, outcome: "flagged_orphan" });
+  result.errors += orphan.errors;
+
   log.info(
-    { scanned: result.scanned, fulfilled: result.fulfilled, persistedOnly: result.persistedOnly, stillUnpaid: result.stillUnpaid, healedPaid: result.healedPaid, errors: result.errors },
+    { scanned: result.scanned, fulfilled: result.fulfilled, persistedOnly: result.persistedOnly, stillUnpaid: result.stillUnpaid, healedPaid: result.healedPaid, flaggedOrphans: result.flaggedOrphans, errors: result.errors },
     "reconcileStuckRazorpayOrders complete",
   );
   return result;
+}
+
+/**
+ * Flag every PAID Razorpay order whose linked booking is `cancelled` and still has real
+ * money on the gateway (captured or authorized) as `needs_refund` for admin review.
+ * Pure DB — never calls Razorpay, never moves money, never auto-captures (that would
+ * double-charge a member who re-booked). Idempotent: skips orders that already carry a
+ * PaymentReconcile row so an admin's resolution is never clobbered.
+ *
+ * Shared by: the reconcile cron (3rd sweep), the manual flag pass, and the cancel-time hook.
+ * Pass `orderId` to flag a single order (used at cancel time); omit for the full sweep.
+ */
+export async function flagPaidCancelledOrphans(opts?: {
+  limit?: number;
+  orderId?: string;
+  bookingId?: string;
+}): Promise<{ flagged: number; errors: number; orderIds: string[] }> {
+  const { upsertReconcileStatus } = await import("@/lib/reconcileStatus");
+  const out = { flagged: 0, errors: 0, orderIds: [] as string[] };
+
+  const orders = await prisma.razorpayOrder.findMany({
+    where: {
+      status: "paid",
+      user_package_id: null,
+      booking: { is: { status: "cancelled" } },
+      ...(opts?.orderId ? { razorpay_order_id: opts.orderId } : {}),
+      ...(opts?.bookingId ? { booking_id: opts.bookingId } : {}),
+    },
+    orderBy: { created_at: "asc" },
+    take: opts?.limit ?? 200,
+  });
+
+  for (const order of orders) {
+    const notes =
+      order.notes != null && typeof order.notes === "object"
+        ? (order.notes as Record<string, unknown>)
+        : null;
+    if (!notes || !("purpose" in notes)) continue; // skip Payment-Page/external orders
+
+    const pays = await prisma.razorpayPayment.findMany({
+      where: { razorpay_order_id: order.razorpay_order_id },
+      select: { razorpay_payment_id: true, status: true, amount_paise: true },
+    });
+    const pay =
+      pays.find((p) => p.status === "captured") ?? pays.find((p) => p.status === "authorized");
+    if (!pay) continue; // no money on the gateway → genuine abandonment, nothing to refund
+
+    const existing = await prisma.paymentReconcile.findUnique({
+      where: { razorpay_payment_id: pay.razorpay_payment_id },
+      select: { id: true },
+    });
+    if (existing) continue;
+
+    try {
+      await upsertReconcileStatus({
+        razorpayPaymentId: pay.razorpay_payment_id,
+        status: "needs_refund",
+        razorpayOrderId: order.razorpay_order_id,
+        amountPaise: pay.amount_paise,
+        note: `Auto-flagged: order paid (${pay.status}) but booking cancelled — refund/void candidate.`,
+      });
+      out.flagged += 1;
+      out.orderIds.push(order.razorpay_order_id);
+    } catch (e) {
+      out.errors += 1;
+      log.error({ err: e, razorpayOrderId: order.razorpay_order_id }, "orphan flag failed");
+    }
+  }
+
+  return out;
 }

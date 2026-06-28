@@ -10,7 +10,7 @@ import {
   checkInOutcomeFromTimes,
 } from "@/lib/bookingAttendance";
 import { reconcileNoShowsGlobally } from "@/lib/bookingReconcile";
-import { linkRazorpayOrderToBookingTx } from "@/lib/razorpayPersistence";
+import { linkRazorpayOrderToBookingTx, flagPaidCancelledOrphans } from "@/lib/razorpayPersistence";
 import {
   expectedBookingCheckoutPaise,
   parseFinanceSnapshot,
@@ -733,6 +733,13 @@ async function handlePatch(
       )
       .catch((e) => log.error({ err: e }, "CRM class_booking_cancelled failed"));
     await logActivity({ req, action: "booking.cancelled", entity: { type: "booking", id: booking.id }, metadata: { class_name: booking.class_name ?? undefined } });
+    // Reconcile-on-cancel: if this booking was paid online (captured/authorized) the cancel
+    // releases the seat but the refund-as-pass path does NOT apply (online seats carry no
+    // user_package_id). Surface the order as a refund/void candidate so an admin handles the
+    // money. Never auto-refunds/captures. Best-effort — must not fail the cancel.
+    await flagPaidCancelledOrphans({ bookingId: booking.id }).catch((e) =>
+      log.error({ err: e, bookingId: booking.id }, "cancel-time orphan flag failed"),
+    );
   }
 
   if (checked_in === true && booking.checked_in) {

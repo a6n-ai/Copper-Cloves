@@ -17,6 +17,7 @@
 import type { NextApiRequest, NextApiResponse } from "next";
 import { authorizeCron } from "@/lib/cronAuth";
 import { reconcileStuckRazorpayOrders } from "@/lib/razorpayPersistence";
+import { withCronRun } from "@/lib/cronRun";
 import { requestLogger } from "@/lib/logger";
 
 function clampInt(raw: unknown, def: number, min: number, max: number): number {
@@ -36,12 +37,17 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
   const startedAt = Date.now();
   try {
-    const result = await reconcileStuckRazorpayOrders({ lookbackHours, limit });
+    const result = await withCronRun("reconcile-razorpay", async () => {
+      const r = await reconcileStuckRazorpayOrders({ lookbackHours, limit });
+      // Strip the verbose per-order details before persisting the run summary.
+      const { details: _details, ...summary } = r;
+      return summary;
+    });
     const durationMs = Date.now() - startedAt;
-    log.info({ durationMs, ...result, details: undefined }, "razorpay reconcile complete");
+    log.info({ durationMs, ...result }, "razorpay reconcile complete");
     // Greppable one-line heal summary per run.
     log.info(
-      `[razorpay-reconcile] scanned=${result.scanned} fulfilled=${result.fulfilled} healedPaid=${result.healedPaid} persistedOnly=${result.persistedOnly} stillUnpaid=${result.stillUnpaid} errors=${result.errors} (${durationMs}ms)`,
+      `[razorpay-reconcile] scanned=${result.scanned} fulfilled=${result.fulfilled} healedPaid=${result.healedPaid} flaggedOrphans=${result.flaggedOrphans} persistedOnly=${result.persistedOnly} stillUnpaid=${result.stillUnpaid} errors=${result.errors} (${durationMs}ms)`,
     );
     return res.json({ ok: true, durationMs, lookbackHours, limit, ...result });
   } catch (e) {

@@ -6,6 +6,7 @@
 import type { NextApiRequest, NextApiResponse } from "next";
 import { authorizeCron } from "@/lib/cronAuth";
 import { processPendingBookingLifecycle } from "@/lib/processPendingBookingLifecycle";
+import { withCronRun } from "@/lib/cronRun";
 import { requestLogger } from "@/lib/logger";
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
@@ -16,7 +17,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
   const startedAt = Date.now();
   try {
-    const result = await processPendingBookingLifecycle();
+    const result = await withCronRun("lifecycle-bookings", () => processPendingBookingLifecycle());
     return res.json({ ok: true, durationMs: Date.now() - startedAt, ...result });
   } catch (e) {
     log.error({ err: e }, "lifecycle-bookings cron failed");

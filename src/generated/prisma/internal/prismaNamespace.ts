@@ -402,6 +402,7 @@ export const ModelName = {
   RazorpayPayment: 'RazorpayPayment',
   RazorpayWebhookLog: 'RazorpayWebhookLog',
   PaymentReconcile: 'PaymentReconcile',
+  CronRun: 'CronRun',
   Friendship: 'Friendship',
   Payment: 'Payment',
   CafeItem: 'CafeItem',
@@ -444,7 +445,7 @@ export type TypeMap<ExtArgs extends runtime.Types.Extensions.InternalArgs = runt
     omit: GlobalOmitOptions
   }
   meta: {
-    modelProps: "profile" | "userSession" | "coupon" | "couponRedemption" | "retailProduct" | "retailOrder" | "instructor" | "classModel" | "partner" | "partnerMember" | "classSchedule" | "packageType" | "userPackage" | "booking" | "razorpayOrder" | "razorpayPayment" | "razorpayWebhookLog" | "paymentReconcile" | "friendship" | "payment" | "cafeItem" | "cafeOrder" | "mealSubscription" | "mealSubscriptionInquiry" | "rentalInquiry" | "signupLead" | "userStats" | "userStreak" | "badgeTemplate" | "userBadge" | "waiver" | "crmTemplate" | "crmMessage" | "crmTrigger" | "userActivitySession" | "userActivityEvent" | "memberTicket" | "passwordResetToken" | "file" | "instructorPayoutAdjustment" | "payoutSettings" | "studioSettings" | "classCancellationRequest" | "qrCode" | "activityLog"
+    modelProps: "profile" | "userSession" | "coupon" | "couponRedemption" | "retailProduct" | "retailOrder" | "instructor" | "classModel" | "partner" | "partnerMember" | "classSchedule" | "packageType" | "userPackage" | "booking" | "razorpayOrder" | "razorpayPayment" | "razorpayWebhookLog" | "paymentReconcile" | "cronRun" | "friendship" | "payment" | "cafeItem" | "cafeOrder" | "mealSubscription" | "mealSubscriptionInquiry" | "rentalInquiry" | "signupLead" | "userStats" | "userStreak" | "badgeTemplate" | "userBadge" | "waiver" | "crmTemplate" | "crmMessage" | "crmTrigger" | "userActivitySession" | "userActivityEvent" | "memberTicket" | "passwordResetToken" | "file" | "instructorPayoutAdjustment" | "payoutSettings" | "studioSettings" | "classCancellationRequest" | "qrCode" | "activityLog"
     txIsolationLevel: TransactionIsolationLevel
   }
   model: {
@@ -1777,6 +1778,80 @@ export type TypeMap<ExtArgs extends runtime.Types.Extensions.InternalArgs = runt
         count: {
           args: Prisma.PaymentReconcileCountArgs<ExtArgs>
           result: runtime.Types.Utils.Optional<Prisma.PaymentReconcileCountAggregateOutputType> | number
+        }
+      }
+    }
+    CronRun: {
+      payload: Prisma.$CronRunPayload<ExtArgs>
+      fields: Prisma.CronRunFieldRefs
+      operations: {
+        findUnique: {
+          args: Prisma.CronRunFindUniqueArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$CronRunPayload> | null
+        }
+        findUniqueOrThrow: {
+          args: Prisma.CronRunFindUniqueOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$CronRunPayload>
+        }
+        findFirst: {
+          args: Prisma.CronRunFindFirstArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$CronRunPayload> | null
+        }
+        findFirstOrThrow: {
+          args: Prisma.CronRunFindFirstOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$CronRunPayload>
+        }
+        findMany: {
+          args: Prisma.CronRunFindManyArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$CronRunPayload>[]
+        }
+        create: {
+          args: Prisma.CronRunCreateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$CronRunPayload>
+        }
+        createMany: {
+          args: Prisma.CronRunCreateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        createManyAndReturn: {
+          args: Prisma.CronRunCreateManyAndReturnArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$CronRunPayload>[]
+        }
+        delete: {
+          args: Prisma.CronRunDeleteArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$CronRunPayload>
+        }
+        update: {
+          args: Prisma.CronRunUpdateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$CronRunPayload>
+        }
+        deleteMany: {
+          args: Prisma.CronRunDeleteManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateMany: {
+          args: Prisma.CronRunUpdateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateManyAndReturn: {
+          args: Prisma.CronRunUpdateManyAndReturnArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$CronRunPayload>[]
+        }
+        upsert: {
+          args: Prisma.CronRunUpsertArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$CronRunPayload>
+        }
+        aggregate: {
+          args: Prisma.CronRunAggregateArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.AggregateCronRun>
+        }
+        groupBy: {
+          args: Prisma.CronRunGroupByArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.CronRunGroupByOutputType>[]
+        }
+        count: {
+          args: Prisma.CronRunCountArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.CronRunCountAggregateOutputType> | number
         }
       }
     }
@@ -4177,6 +4252,20 @@ export const PaymentReconcileScalarFieldEnum = {
 export type PaymentReconcileScalarFieldEnum = (typeof PaymentReconcileScalarFieldEnum)[keyof typeof PaymentReconcileScalarFieldEnum]
 
 
+export const CronRunScalarFieldEnum = {
+  id: 'id',
+  job: 'job',
+  status: 'status',
+  started_at: 'started_at',
+  finished_at: 'finished_at',
+  duration_ms: 'duration_ms',
+  result: 'result',
+  error: 'error'
+} as const
+
+export type CronRunScalarFieldEnum = (typeof CronRunScalarFieldEnum)[keyof typeof CronRunScalarFieldEnum]
+
+
 export const FriendshipScalarFieldEnum = {
   id: 'id',
   user_a_id: 'user_a_id',
@@ -4993,6 +5082,7 @@ export type GlobalOmitConfig = {
   razorpayPayment?: Prisma.RazorpayPaymentOmit
   razorpayWebhookLog?: Prisma.RazorpayWebhookLogOmit
   paymentReconcile?: Prisma.PaymentReconcileOmit
+  cronRun?: Prisma.CronRunOmit
   friendship?: Prisma.FriendshipOmit
   payment?: Prisma.PaymentOmit
   cafeItem?: Prisma.CafeItemOmit
