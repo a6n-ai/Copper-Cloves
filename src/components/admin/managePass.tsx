@@ -204,7 +204,9 @@ export function priceBreakdown(s: PassPaymentState): PriceBreakdown {
       ? Math.round((originalPaise * Math.min(validD, 100)) / 100)
       : Math.min(originalPaise, Math.round(validD * 100));
   const finalPaise = Math.max(0, originalPaise - discountPaise);
-  return { originalPaise, discountPaise, finalPaise, isFree: finalPaise <= 0 };
+  // Only a priced package that's been fully discounted is "free" — with nothing
+  // selected (originalPaise 0) the Free/Comp method shouldn't look pre-picked.
+  return { originalPaise, discountPaise, finalPaise, isFree: originalPaise > 0 && finalPaise <= 0 };
 }
 
 export function formatINR(paise: number): string {
@@ -444,7 +446,7 @@ export function PassConfigSection({
                   disabled={blocked}
                   onClick={() => s.setSelectedPackageId(pkg.id)}
                   className={[
-                    "relative flex flex-col items-start gap-0.5 rounded-xl border p-3 text-left transition-colors duration-200",
+                    "relative flex flex-col items-start gap-0.5 rounded-lg border p-2.5 text-left transition-colors duration-200",
                     blocked
                       ? "cursor-not-allowed border-charcoal/10 bg-charcoal/5 opacity-50"
                       : active
@@ -452,10 +454,12 @@ export function PassConfigSection({
                         : "border-sage/20 bg-sage/[0.03] hover:bg-sage/[0.07] cursor-pointer",
                   ].join(" ")}
                 >
-                  {active && <Check className="absolute right-2.5 top-2.5 h-4 w-4 text-sage" />}
-                  <span className="font-display text-base text-charcoal pr-5">{pkg.name}</span>
-                  <span className="font-body text-xs text-charcoal/55">{qty}</span>
-                  <span className="font-body text-sm font-semibold text-charcoal tabular-nums mt-0.5">{formatINR(Math.round(pkg.price * 100))}</span>
+                  {active && <Check className="absolute right-2 top-2 h-3.5 w-3.5 text-sage" />}
+                  <span className="font-display text-sm leading-tight text-charcoal pr-5">{pkg.name}</span>
+                  <div className="flex items-baseline gap-2">
+                    <span className="font-body text-sm font-semibold text-charcoal tabular-nums">{formatINR(Math.round(pkg.price * 100))}</span>
+                    <span className="font-body text-[11px] text-charcoal/50">{qty}</span>
+                  </div>
                 </button>
               );
             })}
@@ -550,6 +554,54 @@ export function PaymentSection({ state: s }: { state: PassPaymentState }) {
         </div>
       )}
 
+      {/* Payment method — always visible; "Free / Comp" is a method that zeroes the amount. */}
+      <div>
+        <Label className="font-body text-charcoal/70 text-sm mb-2 block">Payment method</Label>
+        <div className="grid grid-cols-2 gap-2 sm:grid-cols-3">
+          {PAYMENT_METHODS.map((m) => {
+            const active = !isFree && s.method === m.v;
+            const isCash = m.v === "cash";
+            return (
+              <button
+                key={m.v}
+                type="button"
+                onClick={() => {
+                  s.setMethod(m.v);
+                  // Picking a real method un-frees a 100%/full discount.
+                  if (isFree) s.setDiscountValue("");
+                }}
+                className={[
+                  "flex h-10 items-center justify-center gap-1.5 rounded-lg border px-2 text-xs font-body transition-colors duration-200 cursor-pointer",
+                  active
+                    ? "border-sage bg-sage text-cream"
+                    : "border-sage/20 bg-sage/5 text-charcoal hover:bg-sage/10",
+                ].join(" ")}
+              >
+                {isCash && <Banknote className="h-3.5 w-3.5" />}
+                {m.l}
+              </button>
+            );
+          })}
+          {/* Free / Comp → sets 100% discount, amount becomes ₹0, no proof. */}
+          <button
+            type="button"
+            onClick={() => {
+              s.setDiscountUnit("pct");
+              s.setDiscountValue("100");
+              s.setMethod("");
+            }}
+            className={[
+              "flex h-11 items-center justify-center gap-1.5 rounded-lg border px-2 text-xs font-body transition-colors duration-200 cursor-pointer",
+              isFree
+                ? "border-terracotta bg-terracotta text-cream"
+                : "border-terracotta/30 bg-terracotta/5 text-terracotta hover:bg-terracotta/10",
+            ].join(" ")}
+          >
+            <Gift className="h-3.5 w-3.5" /> Free / Comp
+          </button>
+        </div>
+      </div>
+
       {isFree ? (
         /* Free grant — no payment, no proof. */
         <div className="rounded-xl border border-terracotta/30 bg-terracotta/5 p-4">
@@ -566,33 +618,6 @@ export function PaymentSection({ state: s }: { state: PassPaymentState }) {
         </div>
       ) : (
         <>
-          {/* Payment method */}
-          <div>
-            <Label className="font-body text-charcoal/70 text-sm mb-2 block">Payment method</Label>
-            <div className="grid grid-cols-2 gap-2 sm:grid-cols-3">
-              {PAYMENT_METHODS.map((m) => {
-                const active = s.method === m.v;
-                const isCash = m.v === "cash";
-                return (
-                  <button
-                    key={m.v}
-                    type="button"
-                    onClick={() => s.setMethod(m.v)}
-                    className={[
-                      "flex h-11 items-center justify-center gap-1.5 rounded-lg border px-2 text-xs font-body transition-colors duration-200 cursor-pointer",
-                      active
-                        ? "border-sage bg-sage text-cream"
-                        : "border-sage/20 bg-sage/5 text-charcoal hover:bg-sage/10",
-                    ].join(" ")}
-                  >
-                    {isCash && <Banknote className="h-3.5 w-3.5" />}
-                    {m.l}
-                  </button>
-                );
-              })}
-            </div>
-          </div>
-
           {/* Reference + proof */}
           <div>
             <Label className="font-body text-charcoal/70 text-sm mb-1 block">Reference (opt.)</Label>
