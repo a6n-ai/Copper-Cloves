@@ -1258,6 +1258,10 @@ export default function BookClass() {
 
       const classTimeISO = selectedClass?.startTimeIso ?? null;
       const userPackageIdForBooking = usingClassPassCredit ? packageToUse?.id ?? null : null;
+      // Coupon context the server re-validates against (mirrors the Apply handler).
+      const couponContext =
+        owedTotals.classTotal <= 0 ? "food" : userPackage.type === "studio_pass" ? "studio_pass" : "class_pass";
+      const couponCode = appliedCoupon?.code ?? null;
       const cafeLines = foodItems
         .filter((item) => item.quantity > 0)
         .map((item) => ({ id: item.id, quantity: item.quantity }));
@@ -1298,6 +1302,8 @@ export default function BookClass() {
               added_member_profile_ids: addedMemberProfileIds,
               finance_snapshot: financeSnapshotPayload,
               cafe_items: cafeLines,
+              coupon_code: couponCode,
+              coupon_context: couponCode ? couponContext : null,
             },
           },
           pendingBase: {
@@ -1310,6 +1316,8 @@ export default function BookClass() {
             added_member_profile_ids: addedMemberProfileIds,
             finance_snapshot: financeSnapshotPayload,
             cafe_items: cafeLines,
+            coupon_code: couponCode,
+            coupon_context: couponCode ? couponContext : null,
           },
           checkoutDescription: selectedClass?.name ? `Class — ${selectedClass.name}` : "Studio booking",
           prefill: { email: userEmail || undefined, name: userName || undefined },

@@ -88,6 +88,12 @@ export function parsePendingBookingPayload(
     added_member_profile_ids,
     finance_snapshot,
     cafe_items,
+    coupon_code:
+      typeof o.coupon_code === "string" && o.coupon_code.trim() ? o.coupon_code.trim() : null,
+    coupon_context:
+      typeof o.coupon_context === "string" && o.coupon_context.trim()
+        ? o.coupon_context.trim()
+        : null,
     savedAt: Date.now(),
   };
 }

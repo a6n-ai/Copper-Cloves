@@ -138,6 +138,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
           await incrementCouponAndRecordRedemption(tx, coupon, discountInr, couponContext, {
             userId,
             guestEmail: null,
+            userPackageId: created.id,
           });
         }
 

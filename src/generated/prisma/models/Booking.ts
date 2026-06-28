@@ -360,6 +360,7 @@ export type BookingWhereInput = {
   razorpay_order?: Prisma.XOR<Prisma.RazorpayOrderNullableScalarRelationFilter, Prisma.RazorpayOrderWhereInput> | null
   payments?: Prisma.PaymentListRelationFilter
   cancellation_requests?: Prisma.ClassCancellationRequestListRelationFilter
+  coupon_redemptions?: Prisma.CouponRedemptionListRelationFilter
 }
 
 export type BookingOrderByWithRelationInput = {
@@ -394,6 +395,7 @@ export type BookingOrderByWithRelationInput = {
   razorpay_order?: Prisma.RazorpayOrderOrderByWithRelationInput
   payments?: Prisma.PaymentOrderByRelationAggregateInput
   cancellation_requests?: Prisma.ClassCancellationRequestOrderByRelationAggregateInput
+  coupon_redemptions?: Prisma.CouponRedemptionOrderByRelationAggregateInput
 }
 
 export type BookingWhereUniqueInput = Prisma.AtLeast<{
@@ -431,6 +433,7 @@ export type BookingWhereUniqueInput = Prisma.AtLeast<{
   razorpay_order?: Prisma.XOR<Prisma.RazorpayOrderNullableScalarRelationFilter, Prisma.RazorpayOrderWhereInput> | null
   payments?: Prisma.PaymentListRelationFilter
   cancellation_requests?: Prisma.ClassCancellationRequestListRelationFilter
+  coupon_redemptions?: Prisma.CouponRedemptionListRelationFilter
 }, "id">
 
 export type BookingOrderByWithAggregationInput = {
@@ -521,6 +524,7 @@ export type BookingCreateInput = {
   razorpay_order?: Prisma.RazorpayOrderCreateNestedOneWithoutBookingInput
   payments?: Prisma.PaymentCreateNestedManyWithoutBookingInput
   cancellation_requests?: Prisma.ClassCancellationRequestCreateNestedManyWithoutBookingInput
+  coupon_redemptions?: Prisma.CouponRedemptionCreateNestedManyWithoutBookingInput
 }
 
 export type BookingUncheckedCreateInput = {
@@ -551,6 +555,7 @@ export type BookingUncheckedCreateInput = {
   razorpay_order?: Prisma.RazorpayOrderUncheckedCreateNestedOneWithoutBookingInput
   payments?: Prisma.PaymentUncheckedCreateNestedManyWithoutBookingInput
   cancellation_requests?: Prisma.ClassCancellationRequestUncheckedCreateNestedManyWithoutBookingInput
+  coupon_redemptions?: Prisma.CouponRedemptionUncheckedCreateNestedManyWithoutBookingInput
 }
 
 export type BookingUpdateInput = {
@@ -581,6 +586,7 @@ export type BookingUpdateInput = {
   razorpay_order?: Prisma.RazorpayOrderUpdateOneWithoutBookingNestedInput
   payments?: Prisma.PaymentUpdateManyWithoutBookingNestedInput
   cancellation_requests?: Prisma.ClassCancellationRequestUpdateManyWithoutBookingNestedInput
+  coupon_redemptions?: Prisma.CouponRedemptionUpdateManyWithoutBookingNestedInput
 }
 
 export type BookingUncheckedUpdateInput = {
@@ -611,6 +617,7 @@ export type BookingUncheckedUpdateInput = {
   razorpay_order?: Prisma.RazorpayOrderUncheckedUpdateOneWithoutBookingNestedInput
   payments?: Prisma.PaymentUncheckedUpdateManyWithoutBookingNestedInput
   cancellation_requests?: Prisma.ClassCancellationRequestUncheckedUpdateManyWithoutBookingNestedInput
+  coupon_redemptions?: Prisma.CouponRedemptionUncheckedUpdateManyWithoutBookingNestedInput
 }
 
 export type BookingCreateManyInput = {
@@ -697,6 +704,11 @@ export type BookingOrderByRelationAggregateInput = {
   _count?: Prisma.SortOrder
 }
 
+export type BookingNullableScalarRelationFilter = {
+  is?: Prisma.BookingWhereInput | null
+  isNot?: Prisma.BookingWhereInput | null
+}
+
 export type BookingCountOrderByAggregateInput = {
   id?: Prisma.SortOrder
   user_id?: Prisma.SortOrder
@@ -777,11 +789,6 @@ export type BookingMinOrderByAggregateInput = {
 
 export type BookingSumOrderByAggregateInput = {
   extra_guest_count?: Prisma.SortOrder
-}
-
-export type BookingNullableScalarRelationFilter = {
-  is?: Prisma.BookingWhereInput | null
-  isNot?: Prisma.BookingWhereInput | null
 }
 
 export type BookingScalarRelationFilter = {
@@ -871,6 +878,22 @@ export type BookingUncheckedUpdateManyWithoutInvited_byNestedInput = {
   update?: Prisma.BookingUpdateWithWhereUniqueWithoutInvited_byInput | Prisma.BookingUpdateWithWhereUniqueWithoutInvited_byInput[]
   updateMany?: Prisma.BookingUpdateManyWithWhereWithoutInvited_byInput | Prisma.BookingUpdateManyWithWhereWithoutInvited_byInput[]
   deleteMany?: Prisma.BookingScalarWhereInput | Prisma.BookingScalarWhereInput[]
+}
+
+export type BookingCreateNestedOneWithoutCoupon_redemptionsInput = {
+  create?: Prisma.XOR<Prisma.BookingCreateWithoutCoupon_redemptionsInput, Prisma.BookingUncheckedCreateWithoutCoupon_redemptionsInput>
+  connectOrCreate?: Prisma.BookingCreateOrConnectWithoutCoupon_redemptionsInput
+  connect?: Prisma.BookingWhereUniqueInput
+}
+
+export type BookingUpdateOneWithoutCoupon_redemptionsNestedInput = {
+  create?: Prisma.XOR<Prisma.BookingCreateWithoutCoupon_redemptionsInput, Prisma.BookingUncheckedCreateWithoutCoupon_redemptionsInput>
+  connectOrCreate?: Prisma.BookingCreateOrConnectWithoutCoupon_redemptionsInput
+  upsert?: Prisma.BookingUpsertWithoutCoupon_redemptionsInput
+  disconnect?: Prisma.BookingWhereInput | boolean
+  delete?: Prisma.BookingWhereInput | boolean
+  connect?: Prisma.BookingWhereUniqueInput
+  update?: Prisma.XOR<Prisma.XOR<Prisma.BookingUpdateToOneWithWhereWithoutCoupon_redemptionsInput, Prisma.BookingUpdateWithoutCoupon_redemptionsInput>, Prisma.BookingUncheckedUpdateWithoutCoupon_redemptionsInput>
 }
 
 export type BookingCreateNestedManyWithoutClass_scheduleInput = {
@@ -1046,6 +1069,7 @@ export type BookingCreateWithoutProfileInput = {
   razorpay_order?: Prisma.RazorpayOrderCreateNestedOneWithoutBookingInput
   payments?: Prisma.PaymentCreateNestedManyWithoutBookingInput
   cancellation_requests?: Prisma.ClassCancellationRequestCreateNestedManyWithoutBookingInput
+  coupon_redemptions?: Prisma.CouponRedemptionCreateNestedManyWithoutBookingInput
 }
 
 export type BookingUncheckedCreateWithoutProfileInput = {
@@ -1075,6 +1099,7 @@ export type BookingUncheckedCreateWithoutProfileInput = {
   razorpay_order?: Prisma.RazorpayOrderUncheckedCreateNestedOneWithoutBookingInput
   payments?: Prisma.PaymentUncheckedCreateNestedManyWithoutBookingInput
   cancellation_requests?: Prisma.ClassCancellationRequestUncheckedCreateNestedManyWithoutBookingInput
+  coupon_redemptions?: Prisma.CouponRedemptionUncheckedCreateNestedManyWithoutBookingInput
 }
 
 export type BookingCreateOrConnectWithoutProfileInput = {
@@ -1114,6 +1139,7 @@ export type BookingCreateWithoutInvited_byInput = {
   razorpay_order?: Prisma.RazorpayOrderCreateNestedOneWithoutBookingInput
   payments?: Prisma.PaymentCreateNestedManyWithoutBookingInput
   cancellation_requests?: Prisma.ClassCancellationRequestCreateNestedManyWithoutBookingInput
+  coupon_redemptions?: Prisma.CouponRedemptionCreateNestedManyWithoutBookingInput
 }
 
 export type BookingUncheckedCreateWithoutInvited_byInput = {
@@ -1143,6 +1169,7 @@ export type BookingUncheckedCreateWithoutInvited_byInput = {
   razorpay_order?: Prisma.RazorpayOrderUncheckedCreateNestedOneWithoutBookingInput
   payments?: Prisma.PaymentUncheckedCreateNestedManyWithoutBookingInput
   cancellation_requests?: Prisma.ClassCancellationRequestUncheckedCreateNestedManyWithoutBookingInput
+  coupon_redemptions?: Prisma.CouponRedemptionUncheckedCreateNestedManyWithoutBookingInput
 }
 
 export type BookingCreateOrConnectWithoutInvited_byInput = {
@@ -1216,6 +1243,142 @@ export type BookingUpdateManyWithWhereWithoutInvited_byInput = {
   data: Prisma.XOR<Prisma.BookingUpdateManyMutationInput, Prisma.BookingUncheckedUpdateManyWithoutInvited_byInput>
 }
 
+export type BookingCreateWithoutCoupon_redemptionsInput = {
+  id?: string
+  status?: string
+  confirmation_status?: string | null
+  booking_date?: Date | string
+  created_at?: Date | string
+  updated_at?: Date | string
+  hold_expires_at?: Date | string | null
+  recovery_email_sent_at?: Date | string | null
+  cancellation_date?: Date | string | null
+  class_name?: string | null
+  class_time?: string | null
+  email?: string | null
+  checked_in?: boolean
+  check_in_time?: Date | string | null
+  check_in_outcome?: string | null
+  reminder_sent_at?: Date | string | null
+  extra_guest_count?: number
+  guest_attendees?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  finance_snapshot?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  invited_by?: Prisma.ProfileCreateNestedOneWithoutSent_invitesInput
+  profile: Prisma.ProfileCreateNestedOneWithoutBookingsInput
+  class_schedule?: Prisma.ClassScheduleCreateNestedOneWithoutBookingsInput
+  user_package?: Prisma.UserPackageCreateNestedOneWithoutBookingsInput
+  cafe_orders?: Prisma.CafeOrderCreateNestedManyWithoutBookingInput
+  razorpay_order?: Prisma.RazorpayOrderCreateNestedOneWithoutBookingInput
+  payments?: Prisma.PaymentCreateNestedManyWithoutBookingInput
+  cancellation_requests?: Prisma.ClassCancellationRequestCreateNestedManyWithoutBookingInput
+}
+
+export type BookingUncheckedCreateWithoutCoupon_redemptionsInput = {
+  id?: string
+  user_id: string
+  class_schedule_id?: string | null
+  user_package_id?: string | null
+  status?: string
+  confirmation_status?: string | null
+  booking_date?: Date | string
+  created_at?: Date | string
+  updated_at?: Date | string
+  hold_expires_at?: Date | string | null
+  recovery_email_sent_at?: Date | string | null
+  cancellation_date?: Date | string | null
+  class_name?: string | null
+  class_time?: string | null
+  email?: string | null
+  checked_in?: boolean
+  check_in_time?: Date | string | null
+  check_in_outcome?: string | null
+  reminder_sent_at?: Date | string | null
+  extra_guest_count?: number
+  guest_attendees?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  finance_snapshot?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  invited_by_user_id?: string | null
+  cafe_orders?: Prisma.CafeOrderUncheckedCreateNestedManyWithoutBookingInput
+  razorpay_order?: Prisma.RazorpayOrderUncheckedCreateNestedOneWithoutBookingInput
+  payments?: Prisma.PaymentUncheckedCreateNestedManyWithoutBookingInput
+  cancellation_requests?: Prisma.ClassCancellationRequestUncheckedCreateNestedManyWithoutBookingInput
+}
+
+export type BookingCreateOrConnectWithoutCoupon_redemptionsInput = {
+  where: Prisma.BookingWhereUniqueInput
+  create: Prisma.XOR<Prisma.BookingCreateWithoutCoupon_redemptionsInput, Prisma.BookingUncheckedCreateWithoutCoupon_redemptionsInput>
+}
+
+export type BookingUpsertWithoutCoupon_redemptionsInput = {
+  update: Prisma.XOR<Prisma.BookingUpdateWithoutCoupon_redemptionsInput, Prisma.BookingUncheckedUpdateWithoutCoupon_redemptionsInput>
+  create: Prisma.XOR<Prisma.BookingCreateWithoutCoupon_redemptionsInput, Prisma.BookingUncheckedCreateWithoutCoupon_redemptionsInput>
+  where?: Prisma.BookingWhereInput
+}
+
+export type BookingUpdateToOneWithWhereWithoutCoupon_redemptionsInput = {
+  where?: Prisma.BookingWhereInput
+  data: Prisma.XOR<Prisma.BookingUpdateWithoutCoupon_redemptionsInput, Prisma.BookingUncheckedUpdateWithoutCoupon_redemptionsInput>
+}
+
+export type BookingUpdateWithoutCoupon_redemptionsInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  status?: Prisma.StringFieldUpdateOperationsInput | string
+  confirmation_status?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  booking_date?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  created_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updated_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  hold_expires_at?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  recovery_email_sent_at?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  cancellation_date?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  class_name?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  class_time?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  email?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  checked_in?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  check_in_time?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  check_in_outcome?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  reminder_sent_at?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  extra_guest_count?: Prisma.IntFieldUpdateOperationsInput | number
+  guest_attendees?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  finance_snapshot?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  invited_by?: Prisma.ProfileUpdateOneWithoutSent_invitesNestedInput
+  profile?: Prisma.ProfileUpdateOneRequiredWithoutBookingsNestedInput
+  class_schedule?: Prisma.ClassScheduleUpdateOneWithoutBookingsNestedInput
+  user_package?: Prisma.UserPackageUpdateOneWithoutBookingsNestedInput
+  cafe_orders?: Prisma.CafeOrderUpdateManyWithoutBookingNestedInput
+  razorpay_order?: Prisma.RazorpayOrderUpdateOneWithoutBookingNestedInput
+  payments?: Prisma.PaymentUpdateManyWithoutBookingNestedInput
+  cancellation_requests?: Prisma.ClassCancellationRequestUpdateManyWithoutBookingNestedInput
+}
+
+export type BookingUncheckedUpdateWithoutCoupon_redemptionsInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  user_id?: Prisma.StringFieldUpdateOperationsInput | string
+  class_schedule_id?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  user_package_id?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  status?: Prisma.StringFieldUpdateOperationsInput | string
+  confirmation_status?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  booking_date?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  created_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updated_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  hold_expires_at?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  recovery_email_sent_at?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  cancellation_date?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  class_name?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  class_time?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  email?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  checked_in?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  check_in_time?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  check_in_outcome?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  reminder_sent_at?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  extra_guest_count?: Prisma.IntFieldUpdateOperationsInput | number
+  guest_attendees?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  finance_snapshot?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  invited_by_user_id?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  cafe_orders?: Prisma.CafeOrderUncheckedUpdateManyWithoutBookingNestedInput
+  razorpay_order?: Prisma.RazorpayOrderUncheckedUpdateOneWithoutBookingNestedInput
+  payments?: Prisma.PaymentUncheckedUpdateManyWithoutBookingNestedInput
+  cancellation_requests?: Prisma.ClassCancellationRequestUncheckedUpdateManyWithoutBookingNestedInput
+}
+
 export type BookingCreateWithoutClass_scheduleInput = {
   id?: string
   status?: string
@@ -1243,6 +1406,7 @@ export type BookingCreateWithoutClass_scheduleInput = {
   razorpay_order?: Prisma.RazorpayOrderCreateNestedOneWithoutBookingInput
   payments?: Prisma.PaymentCreateNestedManyWithoutBookingInput
   cancellation_requests?: Prisma.ClassCancellationRequestCreateNestedManyWithoutBookingInput
+  coupon_redemptions?: Prisma.CouponRedemptionCreateNestedManyWithoutBookingInput
 }
 
 export type BookingUncheckedCreateWithoutClass_scheduleInput = {
@@ -1272,6 +1436,7 @@ export type BookingUncheckedCreateWithoutClass_scheduleInput = {
   razorpay_order?: Prisma.RazorpayOrderUncheckedCreateNestedOneWithoutBookingInput
   payments?: Prisma.PaymentUncheckedCreateNestedManyWithoutBookingInput
   cancellation_requests?: Prisma.ClassCancellationRequestUncheckedCreateNestedManyWithoutBookingInput
+  coupon_redemptions?: Prisma.CouponRedemptionUncheckedCreateNestedManyWithoutBookingInput
 }
 
 export type BookingCreateOrConnectWithoutClass_scheduleInput = {
@@ -1327,6 +1492,7 @@ export type BookingCreateWithoutUser_packageInput = {
   razorpay_order?: Prisma.RazorpayOrderCreateNestedOneWithoutBookingInput
   payments?: Prisma.PaymentCreateNestedManyWithoutBookingInput
   cancellation_requests?: Prisma.ClassCancellationRequestCreateNestedManyWithoutBookingInput
+  coupon_redemptions?: Prisma.CouponRedemptionCreateNestedManyWithoutBookingInput
 }
 
 export type BookingUncheckedCreateWithoutUser_packageInput = {
@@ -1356,6 +1522,7 @@ export type BookingUncheckedCreateWithoutUser_packageInput = {
   razorpay_order?: Prisma.RazorpayOrderUncheckedCreateNestedOneWithoutBookingInput
   payments?: Prisma.PaymentUncheckedCreateNestedManyWithoutBookingInput
   cancellation_requests?: Prisma.ClassCancellationRequestUncheckedCreateNestedManyWithoutBookingInput
+  coupon_redemptions?: Prisma.CouponRedemptionUncheckedCreateNestedManyWithoutBookingInput
 }
 
 export type BookingCreateOrConnectWithoutUser_packageInput = {
@@ -1411,6 +1578,7 @@ export type BookingCreateWithoutRazorpay_orderInput = {
   cafe_orders?: Prisma.CafeOrderCreateNestedManyWithoutBookingInput
   payments?: Prisma.PaymentCreateNestedManyWithoutBookingInput
   cancellation_requests?: Prisma.ClassCancellationRequestCreateNestedManyWithoutBookingInput
+  coupon_redemptions?: Prisma.CouponRedemptionCreateNestedManyWithoutBookingInput
 }
 
 export type BookingUncheckedCreateWithoutRazorpay_orderInput = {
@@ -1440,6 +1608,7 @@ export type BookingUncheckedCreateWithoutRazorpay_orderInput = {
   cafe_orders?: Prisma.CafeOrderUncheckedCreateNestedManyWithoutBookingInput
   payments?: Prisma.PaymentUncheckedCreateNestedManyWithoutBookingInput
   cancellation_requests?: Prisma.ClassCancellationRequestUncheckedCreateNestedManyWithoutBookingInput
+  coupon_redemptions?: Prisma.CouponRedemptionUncheckedCreateNestedManyWithoutBookingInput
 }
 
 export type BookingCreateOrConnectWithoutRazorpay_orderInput = {
@@ -1485,6 +1654,7 @@ export type BookingUpdateWithoutRazorpay_orderInput = {
   cafe_orders?: Prisma.CafeOrderUpdateManyWithoutBookingNestedInput
   payments?: Prisma.PaymentUpdateManyWithoutBookingNestedInput
   cancellation_requests?: Prisma.ClassCancellationRequestUpdateManyWithoutBookingNestedInput
+  coupon_redemptions?: Prisma.CouponRedemptionUpdateManyWithoutBookingNestedInput
 }
 
 export type BookingUncheckedUpdateWithoutRazorpay_orderInput = {
@@ -1514,6 +1684,7 @@ export type BookingUncheckedUpdateWithoutRazorpay_orderInput = {
   cafe_orders?: Prisma.CafeOrderUncheckedUpdateManyWithoutBookingNestedInput
   payments?: Prisma.PaymentUncheckedUpdateManyWithoutBookingNestedInput
   cancellation_requests?: Prisma.ClassCancellationRequestUncheckedUpdateManyWithoutBookingNestedInput
+  coupon_redemptions?: Prisma.CouponRedemptionUncheckedUpdateManyWithoutBookingNestedInput
 }
 
 export type BookingCreateWithoutPaymentsInput = {
@@ -1543,6 +1714,7 @@ export type BookingCreateWithoutPaymentsInput = {
   cafe_orders?: Prisma.CafeOrderCreateNestedManyWithoutBookingInput
   razorpay_order?: Prisma.RazorpayOrderCreateNestedOneWithoutBookingInput
   cancellation_requests?: Prisma.ClassCancellationRequestCreateNestedManyWithoutBookingInput
+  coupon_redemptions?: Prisma.CouponRedemptionCreateNestedManyWithoutBookingInput
 }
 
 export type BookingUncheckedCreateWithoutPaymentsInput = {
@@ -1572,6 +1744,7 @@ export type BookingUncheckedCreateWithoutPaymentsInput = {
   cafe_orders?: Prisma.CafeOrderUncheckedCreateNestedManyWithoutBookingInput
   razorpay_order?: Prisma.RazorpayOrderUncheckedCreateNestedOneWithoutBookingInput
   cancellation_requests?: Prisma.ClassCancellationRequestUncheckedCreateNestedManyWithoutBookingInput
+  coupon_redemptions?: Prisma.CouponRedemptionUncheckedCreateNestedManyWithoutBookingInput
 }
 
 export type BookingCreateOrConnectWithoutPaymentsInput = {
@@ -1617,6 +1790,7 @@ export type BookingUpdateWithoutPaymentsInput = {
   cafe_orders?: Prisma.CafeOrderUpdateManyWithoutBookingNestedInput
   razorpay_order?: Prisma.RazorpayOrderUpdateOneWithoutBookingNestedInput
   cancellation_requests?: Prisma.ClassCancellationRequestUpdateManyWithoutBookingNestedInput
+  coupon_redemptions?: Prisma.CouponRedemptionUpdateManyWithoutBookingNestedInput
 }
 
 export type BookingUncheckedUpdateWithoutPaymentsInput = {
@@ -1646,6 +1820,7 @@ export type BookingUncheckedUpdateWithoutPaymentsInput = {
   cafe_orders?: Prisma.CafeOrderUncheckedUpdateManyWithoutBookingNestedInput
   razorpay_order?: Prisma.RazorpayOrderUncheckedUpdateOneWithoutBookingNestedInput
   cancellation_requests?: Prisma.ClassCancellationRequestUncheckedUpdateManyWithoutBookingNestedInput
+  coupon_redemptions?: Prisma.CouponRedemptionUncheckedUpdateManyWithoutBookingNestedInput
 }
 
 export type BookingCreateWithoutCafe_ordersInput = {
@@ -1675,6 +1850,7 @@ export type BookingCreateWithoutCafe_ordersInput = {
   razorpay_order?: Prisma.RazorpayOrderCreateNestedOneWithoutBookingInput
   payments?: Prisma.PaymentCreateNestedManyWithoutBookingInput
   cancellation_requests?: Prisma.ClassCancellationRequestCreateNestedManyWithoutBookingInput
+  coupon_redemptions?: Prisma.CouponRedemptionCreateNestedManyWithoutBookingInput
 }
 
 export type BookingUncheckedCreateWithoutCafe_ordersInput = {
@@ -1704,6 +1880,7 @@ export type BookingUncheckedCreateWithoutCafe_ordersInput = {
   razorpay_order?: Prisma.RazorpayOrderUncheckedCreateNestedOneWithoutBookingInput
   payments?: Prisma.PaymentUncheckedCreateNestedManyWithoutBookingInput
   cancellation_requests?: Prisma.ClassCancellationRequestUncheckedCreateNestedManyWithoutBookingInput
+  coupon_redemptions?: Prisma.CouponRedemptionUncheckedCreateNestedManyWithoutBookingInput
 }
 
 export type BookingCreateOrConnectWithoutCafe_ordersInput = {
@@ -1749,6 +1926,7 @@ export type BookingUpdateWithoutCafe_ordersInput = {
   razorpay_order?: Prisma.RazorpayOrderUpdateOneWithoutBookingNestedInput
   payments?: Prisma.PaymentUpdateManyWithoutBookingNestedInput
   cancellation_requests?: Prisma.ClassCancellationRequestUpdateManyWithoutBookingNestedInput
+  coupon_redemptions?: Prisma.CouponRedemptionUpdateManyWithoutBookingNestedInput
 }
 
 export type BookingUncheckedUpdateWithoutCafe_ordersInput = {
@@ -1778,6 +1956,7 @@ export type BookingUncheckedUpdateWithoutCafe_ordersInput = {
   razorpay_order?: Prisma.RazorpayOrderUncheckedUpdateOneWithoutBookingNestedInput
   payments?: Prisma.PaymentUncheckedUpdateManyWithoutBookingNestedInput
   cancellation_requests?: Prisma.ClassCancellationRequestUncheckedUpdateManyWithoutBookingNestedInput
+  coupon_redemptions?: Prisma.CouponRedemptionUncheckedUpdateManyWithoutBookingNestedInput
 }
 
 export type BookingCreateWithoutCancellation_requestsInput = {
@@ -1807,6 +1986,7 @@ export type BookingCreateWithoutCancellation_requestsInput = {
   cafe_orders?: Prisma.CafeOrderCreateNestedManyWithoutBookingInput
   razorpay_order?: Prisma.RazorpayOrderCreateNestedOneWithoutBookingInput
   payments?: Prisma.PaymentCreateNestedManyWithoutBookingInput
+  coupon_redemptions?: Prisma.CouponRedemptionCreateNestedManyWithoutBookingInput
 }
 
 export type BookingUncheckedCreateWithoutCancellation_requestsInput = {
@@ -1836,6 +2016,7 @@ export type BookingUncheckedCreateWithoutCancellation_requestsInput = {
   cafe_orders?: Prisma.CafeOrderUncheckedCreateNestedManyWithoutBookingInput
   razorpay_order?: Prisma.RazorpayOrderUncheckedCreateNestedOneWithoutBookingInput
   payments?: Prisma.PaymentUncheckedCreateNestedManyWithoutBookingInput
+  coupon_redemptions?: Prisma.CouponRedemptionUncheckedCreateNestedManyWithoutBookingInput
 }
 
 export type BookingCreateOrConnectWithoutCancellation_requestsInput = {
@@ -1881,6 +2062,7 @@ export type BookingUpdateWithoutCancellation_requestsInput = {
   cafe_orders?: Prisma.CafeOrderUpdateManyWithoutBookingNestedInput
   razorpay_order?: Prisma.RazorpayOrderUpdateOneWithoutBookingNestedInput
   payments?: Prisma.PaymentUpdateManyWithoutBookingNestedInput
+  coupon_redemptions?: Prisma.CouponRedemptionUpdateManyWithoutBookingNestedInput
 }
 
 export type BookingUncheckedUpdateWithoutCancellation_requestsInput = {
@@ -1910,6 +2092,7 @@ export type BookingUncheckedUpdateWithoutCancellation_requestsInput = {
   cafe_orders?: Prisma.CafeOrderUncheckedUpdateManyWithoutBookingNestedInput
   razorpay_order?: Prisma.RazorpayOrderUncheckedUpdateOneWithoutBookingNestedInput
   payments?: Prisma.PaymentUncheckedUpdateManyWithoutBookingNestedInput
+  coupon_redemptions?: Prisma.CouponRedemptionUncheckedUpdateManyWithoutBookingNestedInput
 }
 
 export type BookingCreateManyProfileInput = {
@@ -1989,6 +2172,7 @@ export type BookingUpdateWithoutProfileInput = {
   razorpay_order?: Prisma.RazorpayOrderUpdateOneWithoutBookingNestedInput
   payments?: Prisma.PaymentUpdateManyWithoutBookingNestedInput
   cancellation_requests?: Prisma.ClassCancellationRequestUpdateManyWithoutBookingNestedInput
+  coupon_redemptions?: Prisma.CouponRedemptionUpdateManyWithoutBookingNestedInput
 }
 
 export type BookingUncheckedUpdateWithoutProfileInput = {
@@ -2018,6 +2202,7 @@ export type BookingUncheckedUpdateWithoutProfileInput = {
   razorpay_order?: Prisma.RazorpayOrderUncheckedUpdateOneWithoutBookingNestedInput
   payments?: Prisma.PaymentUncheckedUpdateManyWithoutBookingNestedInput
   cancellation_requests?: Prisma.ClassCancellationRequestUncheckedUpdateManyWithoutBookingNestedInput
+  coupon_redemptions?: Prisma.CouponRedemptionUncheckedUpdateManyWithoutBookingNestedInput
 }
 
 export type BookingUncheckedUpdateManyWithoutProfileInput = {
@@ -2072,6 +2257,7 @@ export type BookingUpdateWithoutInvited_byInput = {
   razorpay_order?: Prisma.RazorpayOrderUpdateOneWithoutBookingNestedInput
   payments?: Prisma.PaymentUpdateManyWithoutBookingNestedInput
   cancellation_requests?: Prisma.ClassCancellationRequestUpdateManyWithoutBookingNestedInput
+  coupon_redemptions?: Prisma.CouponRedemptionUpdateManyWithoutBookingNestedInput
 }
 
 export type BookingUncheckedUpdateWithoutInvited_byInput = {
@@ -2101,6 +2287,7 @@ export type BookingUncheckedUpdateWithoutInvited_byInput = {
   razorpay_order?: Prisma.RazorpayOrderUncheckedUpdateOneWithoutBookingNestedInput
   payments?: Prisma.PaymentUncheckedUpdateManyWithoutBookingNestedInput
   cancellation_requests?: Prisma.ClassCancellationRequestUncheckedUpdateManyWithoutBookingNestedInput
+  coupon_redemptions?: Prisma.CouponRedemptionUncheckedUpdateManyWithoutBookingNestedInput
 }
 
 export type BookingUncheckedUpdateManyWithoutInvited_byInput = {
@@ -2180,6 +2367,7 @@ export type BookingUpdateWithoutClass_scheduleInput = {
   razorpay_order?: Prisma.RazorpayOrderUpdateOneWithoutBookingNestedInput
   payments?: Prisma.PaymentUpdateManyWithoutBookingNestedInput
   cancellation_requests?: Prisma.ClassCancellationRequestUpdateManyWithoutBookingNestedInput
+  coupon_redemptions?: Prisma.CouponRedemptionUpdateManyWithoutBookingNestedInput
 }
 
 export type BookingUncheckedUpdateWithoutClass_scheduleInput = {
@@ -2209,6 +2397,7 @@ export type BookingUncheckedUpdateWithoutClass_scheduleInput = {
   razorpay_order?: Prisma.RazorpayOrderUncheckedUpdateOneWithoutBookingNestedInput
   payments?: Prisma.PaymentUncheckedUpdateManyWithoutBookingNestedInput
   cancellation_requests?: Prisma.ClassCancellationRequestUncheckedUpdateManyWithoutBookingNestedInput
+  coupon_redemptions?: Prisma.CouponRedemptionUncheckedUpdateManyWithoutBookingNestedInput
 }
 
 export type BookingUncheckedUpdateManyWithoutClass_scheduleInput = {
@@ -2288,6 +2477,7 @@ export type BookingUpdateWithoutUser_packageInput = {
   razorpay_order?: Prisma.RazorpayOrderUpdateOneWithoutBookingNestedInput
   payments?: Prisma.PaymentUpdateManyWithoutBookingNestedInput
   cancellation_requests?: Prisma.ClassCancellationRequestUpdateManyWithoutBookingNestedInput
+  coupon_redemptions?: Prisma.CouponRedemptionUpdateManyWithoutBookingNestedInput
 }
 
 export type BookingUncheckedUpdateWithoutUser_packageInput = {
@@ -2317,6 +2507,7 @@ export type BookingUncheckedUpdateWithoutUser_packageInput = {
   razorpay_order?: Prisma.RazorpayOrderUncheckedUpdateOneWithoutBookingNestedInput
   payments?: Prisma.PaymentUncheckedUpdateManyWithoutBookingNestedInput
   cancellation_requests?: Prisma.ClassCancellationRequestUncheckedUpdateManyWithoutBookingNestedInput
+  coupon_redemptions?: Prisma.CouponRedemptionUncheckedUpdateManyWithoutBookingNestedInput
 }
 
 export type BookingUncheckedUpdateManyWithoutUser_packageInput = {
@@ -2353,12 +2544,14 @@ export type BookingCountOutputType = {
   cafe_orders: number
   payments: number
   cancellation_requests: number
+  coupon_redemptions: number
 }
 
 export type BookingCountOutputTypeSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   cafe_orders?: boolean | BookingCountOutputTypeCountCafe_ordersArgs
   payments?: boolean | BookingCountOutputTypeCountPaymentsArgs
   cancellation_requests?: boolean | BookingCountOutputTypeCountCancellation_requestsArgs
+  coupon_redemptions?: boolean | BookingCountOutputTypeCountCoupon_redemptionsArgs
 }
 
 /**
@@ -2390,6 +2583,13 @@ export type BookingCountOutputTypeCountPaymentsArgs<ExtArgs extends runtime.Type
  */
 export type BookingCountOutputTypeCountCancellation_requestsArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   where?: Prisma.ClassCancellationRequestWhereInput
+}
+
+/**
+ * BookingCountOutputType without action
+ */
+export type BookingCountOutputTypeCountCoupon_redemptionsArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  where?: Prisma.CouponRedemptionWhereInput
 }
 
 
@@ -2425,6 +2625,7 @@ export type BookingSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs 
   razorpay_order?: boolean | Prisma.Booking$razorpay_orderArgs<ExtArgs>
   payments?: boolean | Prisma.Booking$paymentsArgs<ExtArgs>
   cancellation_requests?: boolean | Prisma.Booking$cancellation_requestsArgs<ExtArgs>
+  coupon_redemptions?: boolean | Prisma.Booking$coupon_redemptionsArgs<ExtArgs>
   _count?: boolean | Prisma.BookingCountOutputTypeDefaultArgs<ExtArgs>
 }, ExtArgs["result"]["booking"]>
 
@@ -2524,6 +2725,7 @@ export type BookingInclude<ExtArgs extends runtime.Types.Extensions.InternalArgs
   razorpay_order?: boolean | Prisma.Booking$razorpay_orderArgs<ExtArgs>
   payments?: boolean | Prisma.Booking$paymentsArgs<ExtArgs>
   cancellation_requests?: boolean | Prisma.Booking$cancellation_requestsArgs<ExtArgs>
+  coupon_redemptions?: boolean | Prisma.Booking$coupon_redemptionsArgs<ExtArgs>
   _count?: boolean | Prisma.BookingCountOutputTypeDefaultArgs<ExtArgs>
 }
 export type BookingIncludeCreateManyAndReturn<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
@@ -2550,6 +2752,7 @@ export type $BookingPayload<ExtArgs extends runtime.Types.Extensions.InternalArg
     razorpay_order: Prisma.$RazorpayOrderPayload<ExtArgs> | null
     payments: Prisma.$PaymentPayload<ExtArgs>[]
     cancellation_requests: Prisma.$ClassCancellationRequestPayload<ExtArgs>[]
+    coupon_redemptions: Prisma.$CouponRedemptionPayload<ExtArgs>[]
   }
   scalars: runtime.Types.Extensions.GetPayloadResult<{
     id: string
@@ -3007,6 +3210,7 @@ export interface Prisma__BookingClient<T, Null = never, ExtArgs extends runtime.
   razorpay_order<T extends Prisma.Booking$razorpay_orderArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.Booking$razorpay_orderArgs<ExtArgs>>): Prisma.Prisma__RazorpayOrderClient<runtime.Types.Result.GetResult<Prisma.$RazorpayOrderPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | null, null, ExtArgs, GlobalOmitOptions>
   payments<T extends Prisma.Booking$paymentsArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.Booking$paymentsArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$PaymentPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
   cancellation_requests<T extends Prisma.Booking$cancellation_requestsArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.Booking$cancellation_requestsArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$ClassCancellationRequestPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
+  coupon_redemptions<T extends Prisma.Booking$coupon_redemptionsArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.Booking$coupon_redemptionsArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$CouponRedemptionPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
   /**
    * Attaches callbacks for the resolution and/or rejection of the Promise.
    * @param onfulfilled The callback to execute when the Promise is resolved.
@@ -3605,6 +3809,30 @@ export type Booking$cancellation_requestsArgs<ExtArgs extends runtime.Types.Exte
   take?: number
   skip?: number
   distinct?: Prisma.ClassCancellationRequestScalarFieldEnum | Prisma.ClassCancellationRequestScalarFieldEnum[]
+}
+
+/**
+ * Booking.coupon_redemptions
+ */
+export type Booking$coupon_redemptionsArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  /**
+   * Select specific fields to fetch from the CouponRedemption
+   */
+  select?: Prisma.CouponRedemptionSelect<ExtArgs> | null
+  /**
+   * Omit specific fields from the CouponRedemption
+   */
+  omit?: Prisma.CouponRedemptionOmit<ExtArgs> | null
+  /**
+   * Choose, which related nodes to fetch as well
+   */
+  include?: Prisma.CouponRedemptionInclude<ExtArgs> | null
+  where?: Prisma.CouponRedemptionWhereInput
+  orderBy?: Prisma.CouponRedemptionOrderByWithRelationInput | Prisma.CouponRedemptionOrderByWithRelationInput[]
+  cursor?: Prisma.CouponRedemptionWhereUniqueInput
+  take?: number
+  skip?: number
+  distinct?: Prisma.CouponRedemptionScalarFieldEnum | Prisma.CouponRedemptionScalarFieldEnum[]
 }
 
 /**

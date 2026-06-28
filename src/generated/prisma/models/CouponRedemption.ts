@@ -41,6 +41,8 @@ export type CouponRedemptionMinAggregateOutputType = {
   guest_email: string | null
   context: string | null
   discount_amount: runtime.Decimal | null
+  booking_id: string | null
+  user_package_id: string | null
   created_at: Date | null
   updated_at: Date | null
 }
@@ -52,6 +54,8 @@ export type CouponRedemptionMaxAggregateOutputType = {
   guest_email: string | null
   context: string | null
   discount_amount: runtime.Decimal | null
+  booking_id: string | null
+  user_package_id: string | null
   created_at: Date | null
   updated_at: Date | null
 }
@@ -63,6 +67,8 @@ export type CouponRedemptionCountAggregateOutputType = {
   guest_email: number
   context: number
   discount_amount: number
+  booking_id: number
+  user_package_id: number
   created_at: number
   updated_at: number
   _all: number
@@ -84,6 +90,8 @@ export type CouponRedemptionMinAggregateInputType = {
   guest_email?: true
   context?: true
   discount_amount?: true
+  booking_id?: true
+  user_package_id?: true
   created_at?: true
   updated_at?: true
 }
@@ -95,6 +103,8 @@ export type CouponRedemptionMaxAggregateInputType = {
   guest_email?: true
   context?: true
   discount_amount?: true
+  booking_id?: true
+  user_package_id?: true
   created_at?: true
   updated_at?: true
 }
@@ -106,6 +116,8 @@ export type CouponRedemptionCountAggregateInputType = {
   guest_email?: true
   context?: true
   discount_amount?: true
+  booking_id?: true
+  user_package_id?: true
   created_at?: true
   updated_at?: true
   _all?: true
@@ -204,6 +216,8 @@ export type CouponRedemptionGroupByOutputType = {
   guest_email: string | null
   context: string
   discount_amount: runtime.Decimal
+  booking_id: string | null
+  user_package_id: string | null
   created_at: Date
   updated_at: Date
   _count: CouponRedemptionCountAggregateOutputType | null
@@ -238,10 +252,14 @@ export type CouponRedemptionWhereInput = {
   guest_email?: Prisma.StringNullableFilter<"CouponRedemption"> | string | null
   context?: Prisma.StringFilter<"CouponRedemption"> | string
   discount_amount?: Prisma.DecimalFilter<"CouponRedemption"> | runtime.Decimal | runtime.DecimalJsLike | number | string
+  booking_id?: Prisma.StringNullableFilter<"CouponRedemption"> | string | null
+  user_package_id?: Prisma.StringNullableFilter<"CouponRedemption"> | string | null
   created_at?: Prisma.DateTimeFilter<"CouponRedemption"> | Date | string
   updated_at?: Prisma.DateTimeFilter<"CouponRedemption"> | Date | string
   coupon?: Prisma.XOR<Prisma.CouponScalarRelationFilter, Prisma.CouponWhereInput>
   profile?: Prisma.XOR<Prisma.ProfileNullableScalarRelationFilter, Prisma.ProfileWhereInput> | null
+  booking?: Prisma.XOR<Prisma.BookingNullableScalarRelationFilter, Prisma.BookingWhereInput> | null
+  user_package?: Prisma.XOR<Prisma.UserPackageNullableScalarRelationFilter, Prisma.UserPackageWhereInput> | null
 }
 
 export type CouponRedemptionOrderByWithRelationInput = {
@@ -251,10 +269,14 @@ export type CouponRedemptionOrderByWithRelationInput = {
   guest_email?: Prisma.SortOrderInput | Prisma.SortOrder
   context?: Prisma.SortOrder
   discount_amount?: Prisma.SortOrder
+  booking_id?: Prisma.SortOrderInput | Prisma.SortOrder
+  user_package_id?: Prisma.SortOrderInput | Prisma.SortOrder
   created_at?: Prisma.SortOrder
   updated_at?: Prisma.SortOrder
   coupon?: Prisma.CouponOrderByWithRelationInput
   profile?: Prisma.ProfileOrderByWithRelationInput
+  booking?: Prisma.BookingOrderByWithRelationInput
+  user_package?: Prisma.UserPackageOrderByWithRelationInput
 }
 
 export type CouponRedemptionWhereUniqueInput = Prisma.AtLeast<{
@@ -267,10 +289,14 @@ export type CouponRedemptionWhereUniqueInput = Prisma.AtLeast<{
   guest_email?: Prisma.StringNullableFilter<"CouponRedemption"> | string | null
   context?: Prisma.StringFilter<"CouponRedemption"> | string
   discount_amount?: Prisma.DecimalFilter<"CouponRedemption"> | runtime.Decimal | runtime.DecimalJsLike | number | string
+  booking_id?: Prisma.StringNullableFilter<"CouponRedemption"> | string | null
+  user_package_id?: Prisma.StringNullableFilter<"CouponRedemption"> | string | null
   created_at?: Prisma.DateTimeFilter<"CouponRedemption"> | Date | string
   updated_at?: Prisma.DateTimeFilter<"CouponRedemption"> | Date | string
   coupon?: Prisma.XOR<Prisma.CouponScalarRelationFilter, Prisma.CouponWhereInput>
   profile?: Prisma.XOR<Prisma.ProfileNullableScalarRelationFilter, Prisma.ProfileWhereInput> | null
+  booking?: Prisma.XOR<Prisma.BookingNullableScalarRelationFilter, Prisma.BookingWhereInput> | null
+  user_package?: Prisma.XOR<Prisma.UserPackageNullableScalarRelationFilter, Prisma.UserPackageWhereInput> | null
 }, "id">
 
 export type CouponRedemptionOrderByWithAggregationInput = {
@@ -280,6 +306,8 @@ export type CouponRedemptionOrderByWithAggregationInput = {
   guest_email?: Prisma.SortOrderInput | Prisma.SortOrder
   context?: Prisma.SortOrder
   discount_amount?: Prisma.SortOrder
+  booking_id?: Prisma.SortOrderInput | Prisma.SortOrder
+  user_package_id?: Prisma.SortOrderInput | Prisma.SortOrder
   created_at?: Prisma.SortOrder
   updated_at?: Prisma.SortOrder
   _count?: Prisma.CouponRedemptionCountOrderByAggregateInput
@@ -299,6 +327,8 @@ export type CouponRedemptionScalarWhereWithAggregatesInput = {
   guest_email?: Prisma.StringNullableWithAggregatesFilter<"CouponRedemption"> | string | null
   context?: Prisma.StringWithAggregatesFilter<"CouponRedemption"> | string
   discount_amount?: Prisma.DecimalWithAggregatesFilter<"CouponRedemption"> | runtime.Decimal | runtime.DecimalJsLike | number | string
+  booking_id?: Prisma.StringNullableWithAggregatesFilter<"CouponRedemption"> | string | null
+  user_package_id?: Prisma.StringNullableWithAggregatesFilter<"CouponRedemption"> | string | null
   created_at?: Prisma.DateTimeWithAggregatesFilter<"CouponRedemption"> | Date | string
   updated_at?: Prisma.DateTimeWithAggregatesFilter<"CouponRedemption"> | Date | string
 }
@@ -312,6 +342,8 @@ export type CouponRedemptionCreateInput = {
   updated_at?: Date | string
   coupon: Prisma.CouponCreateNestedOneWithoutRedemptionsInput
   profile?: Prisma.ProfileCreateNestedOneWithoutCoupon_redemptionsInput
+  booking?: Prisma.BookingCreateNestedOneWithoutCoupon_redemptionsInput
+  user_package?: Prisma.UserPackageCreateNestedOneWithoutCoupon_redemptionsInput
 }
 
 export type CouponRedemptionUncheckedCreateInput = {
@@ -321,6 +353,8 @@ export type CouponRedemptionUncheckedCreateInput = {
   guest_email?: string | null
   context: string
   discount_amount: runtime.Decimal | runtime.DecimalJsLike | number | string
+  booking_id?: string | null
+  user_package_id?: string | null
   created_at?: Date | string
   updated_at?: Date | string
 }
@@ -334,6 +368,8 @@ export type CouponRedemptionUpdateInput = {
   updated_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   coupon?: Prisma.CouponUpdateOneRequiredWithoutRedemptionsNestedInput
   profile?: Prisma.ProfileUpdateOneWithoutCoupon_redemptionsNestedInput
+  booking?: Prisma.BookingUpdateOneWithoutCoupon_redemptionsNestedInput
+  user_package?: Prisma.UserPackageUpdateOneWithoutCoupon_redemptionsNestedInput
 }
 
 export type CouponRedemptionUncheckedUpdateInput = {
@@ -343,6 +379,8 @@ export type CouponRedemptionUncheckedUpdateInput = {
   guest_email?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   context?: Prisma.StringFieldUpdateOperationsInput | string
   discount_amount?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
+  booking_id?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  user_package_id?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   created_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updated_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
 }
@@ -354,6 +392,8 @@ export type CouponRedemptionCreateManyInput = {
   guest_email?: string | null
   context: string
   discount_amount: runtime.Decimal | runtime.DecimalJsLike | number | string
+  booking_id?: string | null
+  user_package_id?: string | null
   created_at?: Date | string
   updated_at?: Date | string
 }
@@ -374,6 +414,8 @@ export type CouponRedemptionUncheckedUpdateManyInput = {
   guest_email?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   context?: Prisma.StringFieldUpdateOperationsInput | string
   discount_amount?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
+  booking_id?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  user_package_id?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   created_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updated_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
 }
@@ -395,6 +437,8 @@ export type CouponRedemptionCountOrderByAggregateInput = {
   guest_email?: Prisma.SortOrder
   context?: Prisma.SortOrder
   discount_amount?: Prisma.SortOrder
+  booking_id?: Prisma.SortOrder
+  user_package_id?: Prisma.SortOrder
   created_at?: Prisma.SortOrder
   updated_at?: Prisma.SortOrder
 }
@@ -410,6 +454,8 @@ export type CouponRedemptionMaxOrderByAggregateInput = {
   guest_email?: Prisma.SortOrder
   context?: Prisma.SortOrder
   discount_amount?: Prisma.SortOrder
+  booking_id?: Prisma.SortOrder
+  user_package_id?: Prisma.SortOrder
   created_at?: Prisma.SortOrder
   updated_at?: Prisma.SortOrder
 }
@@ -421,6 +467,8 @@ export type CouponRedemptionMinOrderByAggregateInput = {
   guest_email?: Prisma.SortOrder
   context?: Prisma.SortOrder
   discount_amount?: Prisma.SortOrder
+  booking_id?: Prisma.SortOrder
+  user_package_id?: Prisma.SortOrder
   created_at?: Prisma.SortOrder
   updated_at?: Prisma.SortOrder
 }
@@ -513,6 +561,90 @@ export type CouponRedemptionUncheckedUpdateManyWithoutCouponNestedInput = {
   deleteMany?: Prisma.CouponRedemptionScalarWhereInput | Prisma.CouponRedemptionScalarWhereInput[]
 }
 
+export type CouponRedemptionCreateNestedManyWithoutUser_packageInput = {
+  create?: Prisma.XOR<Prisma.CouponRedemptionCreateWithoutUser_packageInput, Prisma.CouponRedemptionUncheckedCreateWithoutUser_packageInput> | Prisma.CouponRedemptionCreateWithoutUser_packageInput[] | Prisma.CouponRedemptionUncheckedCreateWithoutUser_packageInput[]
+  connectOrCreate?: Prisma.CouponRedemptionCreateOrConnectWithoutUser_packageInput | Prisma.CouponRedemptionCreateOrConnectWithoutUser_packageInput[]
+  createMany?: Prisma.CouponRedemptionCreateManyUser_packageInputEnvelope
+  connect?: Prisma.CouponRedemptionWhereUniqueInput | Prisma.CouponRedemptionWhereUniqueInput[]
+}
+
+export type CouponRedemptionUncheckedCreateNestedManyWithoutUser_packageInput = {
+  create?: Prisma.XOR<Prisma.CouponRedemptionCreateWithoutUser_packageInput, Prisma.CouponRedemptionUncheckedCreateWithoutUser_packageInput> | Prisma.CouponRedemptionCreateWithoutUser_packageInput[] | Prisma.CouponRedemptionUncheckedCreateWithoutUser_packageInput[]
+  connectOrCreate?: Prisma.CouponRedemptionCreateOrConnectWithoutUser_packageInput | Prisma.CouponRedemptionCreateOrConnectWithoutUser_packageInput[]
+  createMany?: Prisma.CouponRedemptionCreateManyUser_packageInputEnvelope
+  connect?: Prisma.CouponRedemptionWhereUniqueInput | Prisma.CouponRedemptionWhereUniqueInput[]
+}
+
+export type CouponRedemptionUpdateManyWithoutUser_packageNestedInput = {
+  create?: Prisma.XOR<Prisma.CouponRedemptionCreateWithoutUser_packageInput, Prisma.CouponRedemptionUncheckedCreateWithoutUser_packageInput> | Prisma.CouponRedemptionCreateWithoutUser_packageInput[] | Prisma.CouponRedemptionUncheckedCreateWithoutUser_packageInput[]
+  connectOrCreate?: Prisma.CouponRedemptionCreateOrConnectWithoutUser_packageInput | Prisma.CouponRedemptionCreateOrConnectWithoutUser_packageInput[]
+  upsert?: Prisma.CouponRedemptionUpsertWithWhereUniqueWithoutUser_packageInput | Prisma.CouponRedemptionUpsertWithWhereUniqueWithoutUser_packageInput[]
+  createMany?: Prisma.CouponRedemptionCreateManyUser_packageInputEnvelope
+  set?: Prisma.CouponRedemptionWhereUniqueInput | Prisma.CouponRedemptionWhereUniqueInput[]
+  disconnect?: Prisma.CouponRedemptionWhereUniqueInput | Prisma.CouponRedemptionWhereUniqueInput[]
+  delete?: Prisma.CouponRedemptionWhereUniqueInput | Prisma.CouponRedemptionWhereUniqueInput[]
+  connect?: Prisma.CouponRedemptionWhereUniqueInput | Prisma.CouponRedemptionWhereUniqueInput[]
+  update?: Prisma.CouponRedemptionUpdateWithWhereUniqueWithoutUser_packageInput | Prisma.CouponRedemptionUpdateWithWhereUniqueWithoutUser_packageInput[]
+  updateMany?: Prisma.CouponRedemptionUpdateManyWithWhereWithoutUser_packageInput | Prisma.CouponRedemptionUpdateManyWithWhereWithoutUser_packageInput[]
+  deleteMany?: Prisma.CouponRedemptionScalarWhereInput | Prisma.CouponRedemptionScalarWhereInput[]
+}
+
+export type CouponRedemptionUncheckedUpdateManyWithoutUser_packageNestedInput = {
+  create?: Prisma.XOR<Prisma.CouponRedemptionCreateWithoutUser_packageInput, Prisma.CouponRedemptionUncheckedCreateWithoutUser_packageInput> | Prisma.CouponRedemptionCreateWithoutUser_packageInput[] | Prisma.CouponRedemptionUncheckedCreateWithoutUser_packageInput[]
+  connectOrCreate?: Prisma.CouponRedemptionCreateOrConnectWithoutUser_packageInput | Prisma.CouponRedemptionCreateOrConnectWithoutUser_packageInput[]
+  upsert?: Prisma.CouponRedemptionUpsertWithWhereUniqueWithoutUser_packageInput | Prisma.CouponRedemptionUpsertWithWhereUniqueWithoutUser_packageInput[]
+  createMany?: Prisma.CouponRedemptionCreateManyUser_packageInputEnvelope
+  set?: Prisma.CouponRedemptionWhereUniqueInput | Prisma.CouponRedemptionWhereUniqueInput[]
+  disconnect?: Prisma.CouponRedemptionWhereUniqueInput | Prisma.CouponRedemptionWhereUniqueInput[]
+  delete?: Prisma.CouponRedemptionWhereUniqueInput | Prisma.CouponRedemptionWhereUniqueInput[]
+  connect?: Prisma.CouponRedemptionWhereUniqueInput | Prisma.CouponRedemptionWhereUniqueInput[]
+  update?: Prisma.CouponRedemptionUpdateWithWhereUniqueWithoutUser_packageInput | Prisma.CouponRedemptionUpdateWithWhereUniqueWithoutUser_packageInput[]
+  updateMany?: Prisma.CouponRedemptionUpdateManyWithWhereWithoutUser_packageInput | Prisma.CouponRedemptionUpdateManyWithWhereWithoutUser_packageInput[]
+  deleteMany?: Prisma.CouponRedemptionScalarWhereInput | Prisma.CouponRedemptionScalarWhereInput[]
+}
+
+export type CouponRedemptionCreateNestedManyWithoutBookingInput = {
+  create?: Prisma.XOR<Prisma.CouponRedemptionCreateWithoutBookingInput, Prisma.CouponRedemptionUncheckedCreateWithoutBookingInput> | Prisma.CouponRedemptionCreateWithoutBookingInput[] | Prisma.CouponRedemptionUncheckedCreateWithoutBookingInput[]
+  connectOrCreate?: Prisma.CouponRedemptionCreateOrConnectWithoutBookingInput | Prisma.CouponRedemptionCreateOrConnectWithoutBookingInput[]
+  createMany?: Prisma.CouponRedemptionCreateManyBookingInputEnvelope
+  connect?: Prisma.CouponRedemptionWhereUniqueInput | Prisma.CouponRedemptionWhereUniqueInput[]
+}
+
+export type CouponRedemptionUncheckedCreateNestedManyWithoutBookingInput = {
+  create?: Prisma.XOR<Prisma.CouponRedemptionCreateWithoutBookingInput, Prisma.CouponRedemptionUncheckedCreateWithoutBookingInput> | Prisma.CouponRedemptionCreateWithoutBookingInput[] | Prisma.CouponRedemptionUncheckedCreateWithoutBookingInput[]
+  connectOrCreate?: Prisma.CouponRedemptionCreateOrConnectWithoutBookingInput | Prisma.CouponRedemptionCreateOrConnectWithoutBookingInput[]
+  createMany?: Prisma.CouponRedemptionCreateManyBookingInputEnvelope
+  connect?: Prisma.CouponRedemptionWhereUniqueInput | Prisma.CouponRedemptionWhereUniqueInput[]
+}
+
+export type CouponRedemptionUpdateManyWithoutBookingNestedInput = {
+  create?: Prisma.XOR<Prisma.CouponRedemptionCreateWithoutBookingInput, Prisma.CouponRedemptionUncheckedCreateWithoutBookingInput> | Prisma.CouponRedemptionCreateWithoutBookingInput[] | Prisma.CouponRedemptionUncheckedCreateWithoutBookingInput[]
+  connectOrCreate?: Prisma.CouponRedemptionCreateOrConnectWithoutBookingInput | Prisma.CouponRedemptionCreateOrConnectWithoutBookingInput[]
+  upsert?: Prisma.CouponRedemptionUpsertWithWhereUniqueWithoutBookingInput | Prisma.CouponRedemptionUpsertWithWhereUniqueWithoutBookingInput[]
+  createMany?: Prisma.CouponRedemptionCreateManyBookingInputEnvelope
+  set?: Prisma.CouponRedemptionWhereUniqueInput | Prisma.CouponRedemptionWhereUniqueInput[]
+  disconnect?: Prisma.CouponRedemptionWhereUniqueInput | Prisma.CouponRedemptionWhereUniqueInput[]
+  delete?: Prisma.CouponRedemptionWhereUniqueInput | Prisma.CouponRedemptionWhereUniqueInput[]
+  connect?: Prisma.CouponRedemptionWhereUniqueInput | Prisma.CouponRedemptionWhereUniqueInput[]
+  update?: Prisma.CouponRedemptionUpdateWithWhereUniqueWithoutBookingInput | Prisma.CouponRedemptionUpdateWithWhereUniqueWithoutBookingInput[]
+  updateMany?: Prisma.CouponRedemptionUpdateManyWithWhereWithoutBookingInput | Prisma.CouponRedemptionUpdateManyWithWhereWithoutBookingInput[]
+  deleteMany?: Prisma.CouponRedemptionScalarWhereInput | Prisma.CouponRedemptionScalarWhereInput[]
+}
+
+export type CouponRedemptionUncheckedUpdateManyWithoutBookingNestedInput = {
+  create?: Prisma.XOR<Prisma.CouponRedemptionCreateWithoutBookingInput, Prisma.CouponRedemptionUncheckedCreateWithoutBookingInput> | Prisma.CouponRedemptionCreateWithoutBookingInput[] | Prisma.CouponRedemptionUncheckedCreateWithoutBookingInput[]
+  connectOrCreate?: Prisma.CouponRedemptionCreateOrConnectWithoutBookingInput | Prisma.CouponRedemptionCreateOrConnectWithoutBookingInput[]
+  upsert?: Prisma.CouponRedemptionUpsertWithWhereUniqueWithoutBookingInput | Prisma.CouponRedemptionUpsertWithWhereUniqueWithoutBookingInput[]
+  createMany?: Prisma.CouponRedemptionCreateManyBookingInputEnvelope
+  set?: Prisma.CouponRedemptionWhereUniqueInput | Prisma.CouponRedemptionWhereUniqueInput[]
+  disconnect?: Prisma.CouponRedemptionWhereUniqueInput | Prisma.CouponRedemptionWhereUniqueInput[]
+  delete?: Prisma.CouponRedemptionWhereUniqueInput | Prisma.CouponRedemptionWhereUniqueInput[]
+  connect?: Prisma.CouponRedemptionWhereUniqueInput | Prisma.CouponRedemptionWhereUniqueInput[]
+  update?: Prisma.CouponRedemptionUpdateWithWhereUniqueWithoutBookingInput | Prisma.CouponRedemptionUpdateWithWhereUniqueWithoutBookingInput[]
+  updateMany?: Prisma.CouponRedemptionUpdateManyWithWhereWithoutBookingInput | Prisma.CouponRedemptionUpdateManyWithWhereWithoutBookingInput[]
+  deleteMany?: Prisma.CouponRedemptionScalarWhereInput | Prisma.CouponRedemptionScalarWhereInput[]
+}
+
 export type CouponRedemptionCreateWithoutProfileInput = {
   id?: string
   guest_email?: string | null
@@ -521,6 +653,8 @@ export type CouponRedemptionCreateWithoutProfileInput = {
   created_at?: Date | string
   updated_at?: Date | string
   coupon: Prisma.CouponCreateNestedOneWithoutRedemptionsInput
+  booking?: Prisma.BookingCreateNestedOneWithoutCoupon_redemptionsInput
+  user_package?: Prisma.UserPackageCreateNestedOneWithoutCoupon_redemptionsInput
 }
 
 export type CouponRedemptionUncheckedCreateWithoutProfileInput = {
@@ -529,6 +663,8 @@ export type CouponRedemptionUncheckedCreateWithoutProfileInput = {
   guest_email?: string | null
   context: string
   discount_amount: runtime.Decimal | runtime.DecimalJsLike | number | string
+  booking_id?: string | null
+  user_package_id?: string | null
   created_at?: Date | string
   updated_at?: Date | string
 }
@@ -569,6 +705,8 @@ export type CouponRedemptionScalarWhereInput = {
   guest_email?: Prisma.StringNullableFilter<"CouponRedemption"> | string | null
   context?: Prisma.StringFilter<"CouponRedemption"> | string
   discount_amount?: Prisma.DecimalFilter<"CouponRedemption"> | runtime.Decimal | runtime.DecimalJsLike | number | string
+  booking_id?: Prisma.StringNullableFilter<"CouponRedemption"> | string | null
+  user_package_id?: Prisma.StringNullableFilter<"CouponRedemption"> | string | null
   created_at?: Prisma.DateTimeFilter<"CouponRedemption"> | Date | string
   updated_at?: Prisma.DateTimeFilter<"CouponRedemption"> | Date | string
 }
@@ -581,6 +719,8 @@ export type CouponRedemptionCreateWithoutCouponInput = {
   created_at?: Date | string
   updated_at?: Date | string
   profile?: Prisma.ProfileCreateNestedOneWithoutCoupon_redemptionsInput
+  booking?: Prisma.BookingCreateNestedOneWithoutCoupon_redemptionsInput
+  user_package?: Prisma.UserPackageCreateNestedOneWithoutCoupon_redemptionsInput
 }
 
 export type CouponRedemptionUncheckedCreateWithoutCouponInput = {
@@ -589,6 +729,8 @@ export type CouponRedemptionUncheckedCreateWithoutCouponInput = {
   guest_email?: string | null
   context: string
   discount_amount: runtime.Decimal | runtime.DecimalJsLike | number | string
+  booking_id?: string | null
+  user_package_id?: string | null
   created_at?: Date | string
   updated_at?: Date | string
 }
@@ -619,12 +761,114 @@ export type CouponRedemptionUpdateManyWithWhereWithoutCouponInput = {
   data: Prisma.XOR<Prisma.CouponRedemptionUpdateManyMutationInput, Prisma.CouponRedemptionUncheckedUpdateManyWithoutCouponInput>
 }
 
+export type CouponRedemptionCreateWithoutUser_packageInput = {
+  id?: string
+  guest_email?: string | null
+  context: string
+  discount_amount: runtime.Decimal | runtime.DecimalJsLike | number | string
+  created_at?: Date | string
+  updated_at?: Date | string
+  coupon: Prisma.CouponCreateNestedOneWithoutRedemptionsInput
+  profile?: Prisma.ProfileCreateNestedOneWithoutCoupon_redemptionsInput
+  booking?: Prisma.BookingCreateNestedOneWithoutCoupon_redemptionsInput
+}
+
+export type CouponRedemptionUncheckedCreateWithoutUser_packageInput = {
+  id?: string
+  coupon_id: string
+  user_id?: string | null
+  guest_email?: string | null
+  context: string
+  discount_amount: runtime.Decimal | runtime.DecimalJsLike | number | string
+  booking_id?: string | null
+  created_at?: Date | string
+  updated_at?: Date | string
+}
+
+export type CouponRedemptionCreateOrConnectWithoutUser_packageInput = {
+  where: Prisma.CouponRedemptionWhereUniqueInput
+  create: Prisma.XOR<Prisma.CouponRedemptionCreateWithoutUser_packageInput, Prisma.CouponRedemptionUncheckedCreateWithoutUser_packageInput>
+}
+
+export type CouponRedemptionCreateManyUser_packageInputEnvelope = {
+  data: Prisma.CouponRedemptionCreateManyUser_packageInput | Prisma.CouponRedemptionCreateManyUser_packageInput[]
+  skipDuplicates?: boolean
+}
+
+export type CouponRedemptionUpsertWithWhereUniqueWithoutUser_packageInput = {
+  where: Prisma.CouponRedemptionWhereUniqueInput
+  update: Prisma.XOR<Prisma.CouponRedemptionUpdateWithoutUser_packageInput, Prisma.CouponRedemptionUncheckedUpdateWithoutUser_packageInput>
+  create: Prisma.XOR<Prisma.CouponRedemptionCreateWithoutUser_packageInput, Prisma.CouponRedemptionUncheckedCreateWithoutUser_packageInput>
+}
+
+export type CouponRedemptionUpdateWithWhereUniqueWithoutUser_packageInput = {
+  where: Prisma.CouponRedemptionWhereUniqueInput
+  data: Prisma.XOR<Prisma.CouponRedemptionUpdateWithoutUser_packageInput, Prisma.CouponRedemptionUncheckedUpdateWithoutUser_packageInput>
+}
+
+export type CouponRedemptionUpdateManyWithWhereWithoutUser_packageInput = {
+  where: Prisma.CouponRedemptionScalarWhereInput
+  data: Prisma.XOR<Prisma.CouponRedemptionUpdateManyMutationInput, Prisma.CouponRedemptionUncheckedUpdateManyWithoutUser_packageInput>
+}
+
+export type CouponRedemptionCreateWithoutBookingInput = {
+  id?: string
+  guest_email?: string | null
+  context: string
+  discount_amount: runtime.Decimal | runtime.DecimalJsLike | number | string
+  created_at?: Date | string
+  updated_at?: Date | string
+  coupon: Prisma.CouponCreateNestedOneWithoutRedemptionsInput
+  profile?: Prisma.ProfileCreateNestedOneWithoutCoupon_redemptionsInput
+  user_package?: Prisma.UserPackageCreateNestedOneWithoutCoupon_redemptionsInput
+}
+
+export type CouponRedemptionUncheckedCreateWithoutBookingInput = {
+  id?: string
+  coupon_id: string
+  user_id?: string | null
+  guest_email?: string | null
+  context: string
+  discount_amount: runtime.Decimal | runtime.DecimalJsLike | number | string
+  user_package_id?: string | null
+  created_at?: Date | string
+  updated_at?: Date | string
+}
+
+export type CouponRedemptionCreateOrConnectWithoutBookingInput = {
+  where: Prisma.CouponRedemptionWhereUniqueInput
+  create: Prisma.XOR<Prisma.CouponRedemptionCreateWithoutBookingInput, Prisma.CouponRedemptionUncheckedCreateWithoutBookingInput>
+}
+
+export type CouponRedemptionCreateManyBookingInputEnvelope = {
+  data: Prisma.CouponRedemptionCreateManyBookingInput | Prisma.CouponRedemptionCreateManyBookingInput[]
+  skipDuplicates?: boolean
+}
+
+export type CouponRedemptionUpsertWithWhereUniqueWithoutBookingInput = {
+  where: Prisma.CouponRedemptionWhereUniqueInput
+  update: Prisma.XOR<Prisma.CouponRedemptionUpdateWithoutBookingInput, Prisma.CouponRedemptionUncheckedUpdateWithoutBookingInput>
+  create: Prisma.XOR<Prisma.CouponRedemptionCreateWithoutBookingInput, Prisma.CouponRedemptionUncheckedCreateWithoutBookingInput>
+}
+
+export type CouponRedemptionUpdateWithWhereUniqueWithoutBookingInput = {
+  where: Prisma.CouponRedemptionWhereUniqueInput
+  data: Prisma.XOR<Prisma.CouponRedemptionUpdateWithoutBookingInput, Prisma.CouponRedemptionUncheckedUpdateWithoutBookingInput>
+}
+
+export type CouponRedemptionUpdateManyWithWhereWithoutBookingInput = {
+  where: Prisma.CouponRedemptionScalarWhereInput
+  data: Prisma.XOR<Prisma.CouponRedemptionUpdateManyMutationInput, Prisma.CouponRedemptionUncheckedUpdateManyWithoutBookingInput>
+}
+
 export type CouponRedemptionCreateManyProfileInput = {
   id?: string
   coupon_id: string
   guest_email?: string | null
   context: string
   discount_amount: runtime.Decimal | runtime.DecimalJsLike | number | string
+  booking_id?: string | null
+  user_package_id?: string | null
   created_at?: Date | string
   updated_at?: Date | string
 }
@@ -637,6 +881,8 @@ export type CouponRedemptionUpdateWithoutProfileInput = {
   created_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updated_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   coupon?: Prisma.CouponUpdateOneRequiredWithoutRedemptionsNestedInput
+  booking?: Prisma.BookingUpdateOneWithoutCoupon_redemptionsNestedInput
+  user_package?: Prisma.UserPackageUpdateOneWithoutCoupon_redemptionsNestedInput
 }
 
 export type CouponRedemptionUncheckedUpdateWithoutProfileInput = {
@@ -645,6 +891,8 @@ export type CouponRedemptionUncheckedUpdateWithoutProfileInput = {
   guest_email?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   context?: Prisma.StringFieldUpdateOperationsInput | string
   discount_amount?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
+  booking_id?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  user_package_id?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   created_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updated_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
 }
@@ -655,6 +903,8 @@ export type CouponRedemptionUncheckedUpdateManyWithoutProfileInput = {
   guest_email?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   context?: Prisma.StringFieldUpdateOperationsInput | string
   discount_amount?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
+  booking_id?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  user_package_id?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   created_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updated_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
 }
@@ -665,6 +915,8 @@ export type CouponRedemptionCreateManyCouponInput = {
   guest_email?: string | null
   context: string
   discount_amount: runtime.Decimal | runtime.DecimalJsLike | number | string
+  booking_id?: string | null
+  user_package_id?: string | null
   created_at?: Date | string
   updated_at?: Date | string
 }
@@ -677,6 +929,8 @@ export type CouponRedemptionUpdateWithoutCouponInput = {
   created_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updated_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   profile?: Prisma.ProfileUpdateOneWithoutCoupon_redemptionsNestedInput
+  booking?: Prisma.BookingUpdateOneWithoutCoupon_redemptionsNestedInput
+  user_package?: Prisma.UserPackageUpdateOneWithoutCoupon_redemptionsNestedInput
 }
 
 export type CouponRedemptionUncheckedUpdateWithoutCouponInput = {
@@ -685,6 +939,8 @@ export type CouponRedemptionUncheckedUpdateWithoutCouponInput = {
   guest_email?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   context?: Prisma.StringFieldUpdateOperationsInput | string
   discount_amount?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
+  booking_id?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  user_package_id?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   created_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updated_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
 }
@@ -695,6 +951,104 @@ export type CouponRedemptionUncheckedUpdateManyWithoutCouponInput = {
   guest_email?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   context?: Prisma.StringFieldUpdateOperationsInput | string
   discount_amount?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
+  booking_id?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  user_package_id?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  created_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updated_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+}
+
+export type CouponRedemptionCreateManyUser_packageInput = {
+  id?: string
+  coupon_id: string
+  user_id?: string | null
+  guest_email?: string | null
+  context: string
+  discount_amount: runtime.Decimal | runtime.DecimalJsLike | number | string
+  booking_id?: string | null
+  created_at?: Date | string
+  updated_at?: Date | string
+}
+
+export type CouponRedemptionUpdateWithoutUser_packageInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  guest_email?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  context?: Prisma.StringFieldUpdateOperationsInput | string
+  discount_amount?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
+  created_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updated_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  coupon?: Prisma.CouponUpdateOneRequiredWithoutRedemptionsNestedInput
+  profile?: Prisma.ProfileUpdateOneWithoutCoupon_redemptionsNestedInput
+  booking?: Prisma.BookingUpdateOneWithoutCoupon_redemptionsNestedInput
+}
+
+export type CouponRedemptionUncheckedUpdateWithoutUser_packageInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  coupon_id?: Prisma.StringFieldUpdateOperationsInput | string
+  user_id?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  guest_email?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  context?: Prisma.StringFieldUpdateOperationsInput | string
+  discount_amount?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
+  booking_id?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  created_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updated_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+}
+
+export type CouponRedemptionUncheckedUpdateManyWithoutUser_packageInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  coupon_id?: Prisma.StringFieldUpdateOperationsInput | string
+  user_id?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  guest_email?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  context?: Prisma.StringFieldUpdateOperationsInput | string
+  discount_amount?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
+  booking_id?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  created_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updated_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+}
+
+export type CouponRedemptionCreateManyBookingInput = {
+  id?: string
+  coupon_id: string
+  user_id?: string | null
+  guest_email?: string | null
+  context: string
+  discount_amount: runtime.Decimal | runtime.DecimalJsLike | number | string
+  user_package_id?: string | null
+  created_at?: Date | string
+  updated_at?: Date | string
+}
+
+export type CouponRedemptionUpdateWithoutBookingInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  guest_email?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  context?: Prisma.StringFieldUpdateOperationsInput | string
+  discount_amount?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
+  created_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updated_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  coupon?: Prisma.CouponUpdateOneRequiredWithoutRedemptionsNestedInput
+  profile?: Prisma.ProfileUpdateOneWithoutCoupon_redemptionsNestedInput
+  user_package?: Prisma.UserPackageUpdateOneWithoutCoupon_redemptionsNestedInput
+}
+
+export type CouponRedemptionUncheckedUpdateWithoutBookingInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  coupon_id?: Prisma.StringFieldUpdateOperationsInput | string
+  user_id?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  guest_email?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  context?: Prisma.StringFieldUpdateOperationsInput | string
+  discount_amount?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
+  user_package_id?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  created_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updated_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+}
+
+export type CouponRedemptionUncheckedUpdateManyWithoutBookingInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  coupon_id?: Prisma.StringFieldUpdateOperationsInput | string
+  user_id?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  guest_email?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  context?: Prisma.StringFieldUpdateOperationsInput | string
+  discount_amount?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
+  user_package_id?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   created_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updated_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
 }
@@ -708,10 +1062,14 @@ export type CouponRedemptionSelect<ExtArgs extends runtime.Types.Extensions.Inte
   guest_email?: boolean
   context?: boolean
   discount_amount?: boolean
+  booking_id?: boolean
+  user_package_id?: boolean
   created_at?: boolean
   updated_at?: boolean
   coupon?: boolean | Prisma.CouponDefaultArgs<ExtArgs>
   profile?: boolean | Prisma.CouponRedemption$profileArgs<ExtArgs>
+  booking?: boolean | Prisma.CouponRedemption$bookingArgs<ExtArgs>
+  user_package?: boolean | Prisma.CouponRedemption$user_packageArgs<ExtArgs>
 }, ExtArgs["result"]["couponRedemption"]>
 
 export type CouponRedemptionSelectCreateManyAndReturn<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetSelect<{
@@ -721,10 +1079,14 @@ export type CouponRedemptionSelectCreateManyAndReturn<ExtArgs extends runtime.Ty
   guest_email?: boolean
   context?: boolean
   discount_amount?: boolean
+  booking_id?: boolean
+  user_package_id?: boolean
   created_at?: boolean
   updated_at?: boolean
   coupon?: boolean | Prisma.CouponDefaultArgs<ExtArgs>
   profile?: boolean | Prisma.CouponRedemption$profileArgs<ExtArgs>
+  booking?: boolean | Prisma.CouponRedemption$bookingArgs<ExtArgs>
+  user_package?: boolean | Prisma.CouponRedemption$user_packageArgs<ExtArgs>
 }, ExtArgs["result"]["couponRedemption"]>
 
 export type CouponRedemptionSelectUpdateManyAndReturn<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetSelect<{
@@ -734,10 +1096,14 @@ export type CouponRedemptionSelectUpdateManyAndReturn<ExtArgs extends runtime.Ty
   guest_email?: boolean
   context?: boolean
   discount_amount?: boolean
+  booking_id?: boolean
+  user_package_id?: boolean
   created_at?: boolean
   updated_at?: boolean
   coupon?: boolean | Prisma.CouponDefaultArgs<ExtArgs>
   profile?: boolean | Prisma.CouponRedemption$profileArgs<ExtArgs>
+  booking?: boolean | Prisma.CouponRedemption$bookingArgs<ExtArgs>
+  user_package?: boolean | Prisma.CouponRedemption$user_packageArgs<ExtArgs>
 }, ExtArgs["result"]["couponRedemption"]>
 
 export type CouponRedemptionSelectScalar = {
@@ -747,22 +1113,30 @@ export type CouponRedemptionSelectScalar = {
   guest_email?: boolean
   context?: boolean
   discount_amount?: boolean
+  booking_id?: boolean
+  user_package_id?: boolean
   created_at?: boolean
   updated_at?: boolean
 }
 
-export type CouponRedemptionOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "coupon_id" | "user_id" | "guest_email" | "context" | "discount_amount" | "created_at" | "updated_at", ExtArgs["result"]["couponRedemption"]>
+export type CouponRedemptionOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "coupon_id" | "user_id" | "guest_email" | "context" | "discount_amount" | "booking_id" | "user_package_id" | "created_at" | "updated_at", ExtArgs["result"]["couponRedemption"]>
 export type CouponRedemptionInclude<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   coupon?: boolean | Prisma.CouponDefaultArgs<ExtArgs>
   profile?: boolean | Prisma.CouponRedemption$profileArgs<ExtArgs>
+  booking?: boolean | Prisma.CouponRedemption$bookingArgs<ExtArgs>
+  user_package?: boolean | Prisma.CouponRedemption$user_packageArgs<ExtArgs>
 }
 export type CouponRedemptionIncludeCreateManyAndReturn<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   coupon?: boolean | Prisma.CouponDefaultArgs<ExtArgs>
   profile?: boolean | Prisma.CouponRedemption$profileArgs<ExtArgs>
+  booking?: boolean | Prisma.CouponRedemption$bookingArgs<ExtArgs>
+  user_package?: boolean | Prisma.CouponRedemption$user_packageArgs<ExtArgs>
 }
 export type CouponRedemptionIncludeUpdateManyAndReturn<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   coupon?: boolean | Prisma.CouponDefaultArgs<ExtArgs>
   profile?: boolean | Prisma.CouponRedemption$profileArgs<ExtArgs>
+  booking?: boolean | Prisma.CouponRedemption$bookingArgs<ExtArgs>
+  user_package?: boolean | Prisma.CouponRedemption$user_packageArgs<ExtArgs>
 }
 
 export type $CouponRedemptionPayload<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
@@ -770,6 +1144,8 @@ export type $CouponRedemptionPayload<ExtArgs extends runtime.Types.Extensions.In
   objects: {
     coupon: Prisma.$CouponPayload<ExtArgs>
     profile: Prisma.$ProfilePayload<ExtArgs> | null
+    booking: Prisma.$BookingPayload<ExtArgs> | null
+    user_package: Prisma.$UserPackagePayload<ExtArgs> | null
   }
   scalars: runtime.Types.Extensions.GetPayloadResult<{
     id: string
@@ -778,6 +1154,15 @@ export type $CouponRedemptionPayload<ExtArgs extends runtime.Types.Extensions.In
     guest_email: string | null
     context: string
     discount_amount: runtime.Decimal
+    /**
+     * Set for class-booking redemptions. Doubles as the refund-on-cancel key and the
+     * fulfillment idempotency guard (one redemption per booking).
+     */
+    booking_id: string | null
+    /**
+     * Set for package-purchase redemptions, so a future package-cancel can reverse it.
+     */
+    user_package_id: string | null
     created_at: Date
     updated_at: Date
   }, ExtArgs["result"]["couponRedemption"]>
@@ -1176,6 +1561,8 @@ export interface Prisma__CouponRedemptionClient<T, Null = never, ExtArgs extends
   readonly [Symbol.toStringTag]: "PrismaPromise"
   coupon<T extends Prisma.CouponDefaultArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.CouponDefaultArgs<ExtArgs>>): Prisma.Prisma__CouponClient<runtime.Types.Result.GetResult<Prisma.$CouponPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | Null, Null, ExtArgs, GlobalOmitOptions>
   profile<T extends Prisma.CouponRedemption$profileArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.CouponRedemption$profileArgs<ExtArgs>>): Prisma.Prisma__ProfileClient<runtime.Types.Result.GetResult<Prisma.$ProfilePayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | null, null, ExtArgs, GlobalOmitOptions>
+  booking<T extends Prisma.CouponRedemption$bookingArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.CouponRedemption$bookingArgs<ExtArgs>>): Prisma.Prisma__BookingClient<runtime.Types.Result.GetResult<Prisma.$BookingPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | null, null, ExtArgs, GlobalOmitOptions>
+  user_package<T extends Prisma.CouponRedemption$user_packageArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.CouponRedemption$user_packageArgs<ExtArgs>>): Prisma.Prisma__UserPackageClient<runtime.Types.Result.GetResult<Prisma.$UserPackagePayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | null, null, ExtArgs, GlobalOmitOptions>
   /**
    * Attaches callbacks for the resolution and/or rejection of the Promise.
    * @param onfulfilled The callback to execute when the Promise is resolved.
@@ -1211,6 +1598,8 @@ export interface CouponRedemptionFieldRefs {
   readonly guest_email: Prisma.FieldRef<"CouponRedemption", 'String'>
   readonly context: Prisma.FieldRef<"CouponRedemption", 'String'>
   readonly discount_amount: Prisma.FieldRef<"CouponRedemption", 'Decimal'>
+  readonly booking_id: Prisma.FieldRef<"CouponRedemption", 'String'>
+  readonly user_package_id: Prisma.FieldRef<"CouponRedemption", 'String'>
   readonly created_at: Prisma.FieldRef<"CouponRedemption", 'DateTime'>
   readonly updated_at: Prisma.FieldRef<"CouponRedemption", 'DateTime'>
 }
@@ -1630,6 +2019,44 @@ export type CouponRedemption$profileArgs<ExtArgs extends runtime.Types.Extension
    */
   include?: Prisma.ProfileInclude<ExtArgs> | null
   where?: Prisma.ProfileWhereInput
+}
+
+/**
+ * CouponRedemption.booking
+ */
+export type CouponRedemption$bookingArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  /**
+   * Select specific fields to fetch from the Booking
+   */
+  select?: Prisma.BookingSelect<ExtArgs> | null
+  /**
+   * Omit specific fields from the Booking
+   */
+  omit?: Prisma.BookingOmit<ExtArgs> | null
+  /**
+   * Choose, which related nodes to fetch as well
+   */
+  include?: Prisma.BookingInclude<ExtArgs> | null
+  where?: Prisma.BookingWhereInput
+}
+
+/**
+ * CouponRedemption.user_package
+ */
+export type CouponRedemption$user_packageArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  /**
+   * Select specific fields to fetch from the UserPackage
+   */
+  select?: Prisma.UserPackageSelect<ExtArgs> | null
+  /**
+   * Omit specific fields from the UserPackage
+   */
+  omit?: Prisma.UserPackageOmit<ExtArgs> | null
+  /**
+   * Choose, which related nodes to fetch as well
+   */
+  include?: Prisma.UserPackageInclude<ExtArgs> | null
+  where?: Prisma.UserPackageWhereInput
 }
 
 /**

@@ -113,15 +113,24 @@ model CouponRedemption {
   guest_email     String?
   context         String
   discount_amount Decimal  @db.Decimal(10, 2)
+  /// Set for class-booking redemptions. Doubles as the refund-on-cancel key and the
+  /// fulfillment idempotency guard (one redemption per booking).
+  booking_id      String?
+  /// Set for package-purchase redemptions, so a future package-cancel can reverse it.
+  user_package_id String?
   created_at      DateTime @default(now())
   updated_at      DateTime @default(now()) @updatedAt
 
-  coupon  Coupon   @relation(fields: [coupon_id], references: [id], onDelete: Cascade)
-  profile Profile? @relation(fields: [user_id], references: [id], onDelete: SetNull)
+  coupon       Coupon       @relation(fields: [coupon_id], references: [id], onDelete: Cascade)
+  profile      Profile?     @relation(fields: [user_id], references: [id], onDelete: SetNull)
+  booking      Booking?     @relation(fields: [booking_id], references: [id], onDelete: SetNull)
+  user_package UserPackage? @relation(fields: [user_package_id], references: [id], onDelete: SetNull)
 
   @@index([coupon_id])
   @@index([user_id])
   @@index([guest_email])
+  @@index([booking_id])
+  @@index([user_package_id])
   @@map("coupon_redemptions")
 }
 
@@ -370,6 +379,7 @@ model UserPackage {
   razorpay_order   RazorpayOrder?
   payments         Payment[]
   member_tickets   MemberTicket[]
+  coupon_redemptions CouponRedemption[]
 
   @@index([user_id])
   @@index([package_type_id])
@@ -422,6 +432,7 @@ model Booking {
   razorpay_order RazorpayOrder?
   payments       Payment[]
   cancellation_requests ClassCancellationRequest[]
+  coupon_redemptions CouponRedemption[]
 
   @@index([user_id])
   @@index([class_schedule_id])

@@ -7,6 +7,7 @@ import { logActivity } from "@/lib/activityLog";
 import { sendClassRescheduledEmails } from "@/lib/notifications/sendBookingEmail";
 import { OCCUPYING_STATUSES } from "@/lib/bookingStatus";
 import { HIDDEN_SCHEDULE_STATUSES, LOCKED_SCHEDULE_STATUSES } from "@/lib/scheduleStatus";
+import { reconcileScheduleSeats } from "@/lib/seatCounts";
 
 const VALID_STATUS = new Set<string>(Object.values(ClassScheduleStatus));
 const LOCKED_STATUSES = new Set<string>(LOCKED_SCHEDULE_STATUSES);
@@ -303,6 +304,14 @@ async function handlePut(req: NextApiRequest, res: NextApiResponse) {
     where: { id: String(id) },
     data: data as Prisma.ClassScheduleUpdateInput,
   });
+
+  // Editing capacity must re-derive available_spots/current_bookings from live bookings —
+  // otherwise the new capacity shows old remaining spots (the "capacity not working" bug).
+  if (data.capacity !== undefined) {
+    await reconcileScheduleSeats(schedule.id).catch((e) =>
+      console.error("[class-schedules PUT] seat recount failed", e),
+    );
+  }
 
   // Did the time actually move? Compare against the pre-update values.
   const startChanged =

@@ -16,6 +16,10 @@ export type PendingBookingCheckout = {
   added_member_profile_ids: string[];
   finance_snapshot: FinanceSnapshotV1;
   cafe_items: { id: string; quantity: number }[];
+  /** Coupon applied to this booking; re-validated + recorded server-side at fulfillment. */
+  coupon_code?: string | null;
+  /** Coupon context the client matched against (`food` | `class_pass` | `studio_pass`). */
+  coupon_context?: string | null;
   savedAt: number;
 };
 

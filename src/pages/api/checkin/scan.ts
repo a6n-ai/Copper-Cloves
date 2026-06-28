@@ -6,6 +6,7 @@ import { getInstructorSession } from "@/lib/instructorAuth";
 import { getStudioServerSession } from "@/lib/getStudioServerSession";
 import { checkInOutcomeFromTimes } from "@/lib/bookingAttendance";
 import { OCCUPYING_STATUSES } from "@/lib/bookingStatus";
+import { reconcileScheduleSeats } from "@/lib/seatCounts";
 import { requestLogger } from "@/lib/logger";
 
 type ScanLog = ReturnType<typeof requestLogger>;
@@ -79,11 +80,9 @@ async function commitWalkIn(args: {
   userId: string;
   schedule: ScanSchedule;
   now: Date;
-  cap: number;
-  seatsTaken: number;
   usePackageId: string | null;
 }) {
-  const { userId, schedule, now, cap, seatsTaken, usePackageId } = args;
+  const { userId, schedule, now, usePackageId } = args;
   await prisma.$transaction(async (tx) => {
     if (usePackageId) {
       const upd = await tx.userPackage.updateMany({
@@ -104,13 +103,9 @@ async function commitWalkIn(args: {
         check_in_outcome: checkInOutcomeFromTimes(schedule.start_time, now),
       },
     });
-    if (cap > 0) {
-      const occupied = seatsTaken + 1;
-      await tx.classSchedule.update({
-        where: { id: schedule.id },
-        data: { current_bookings: occupied, available_spots: Math.max(0, cap - occupied) },
-      });
-    }
+    // Recompute from live rows (the just-created booking included) so counters stay
+    // consistent with every other surface — never an optimistic seatsTaken+1.
+    await reconcileScheduleSeats(schedule.id, tx);
   });
 }
 
@@ -165,7 +160,7 @@ async function handleMemberScan(
     return res.status(400).json({ error: "Class is full" });
   }
 
-  await commitWalkIn({ userId, schedule, now, cap, seatsTaken, usePackageId: pass.usePackageId });
+  await commitWalkIn({ userId, schedule, now, usePackageId: pass.usePackageId });
 
   log.info({ userId, scheduleId: schedule.id, usedPackageId: pass.usePackageId }, "walk-in checked in");
   return res.json({ ok: true, kind: KIND_MEMBER, status: "walk_in_checked_in" });

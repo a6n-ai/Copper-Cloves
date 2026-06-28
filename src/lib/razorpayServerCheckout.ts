@@ -353,6 +353,43 @@ async function confirmPreCreatedBookingFlow(args: {
   return result;
 }
 
+/**
+ * Record the coupon redemption for a confirmed booking. Idempotent (one redemption
+ * per booking_id) and strictly best-effort: the booking is already paid + confirmed,
+ * so a since-exhausted coupon or any error is logged, never thrown.
+ */
+async function recordBookingCouponRedemption(
+  userId: string,
+  bookingId: string,
+  pending: PendingBookingCheckout,
+): Promise<void> {
+  const code = pending.coupon_code;
+  const ctx = pending.coupon_context;
+  if (!code) return;
+  if (ctx !== "food" && ctx !== "class_pass" && ctx !== "studio_pass") return;
+  const snap = parseFinanceSnapshot(pending.finance_snapshot);
+  if (!snap) return;
+  const subtotal = snap.classFeeInr + Math.max(0, snap.foodFeeInr - snap.foodDiscountInr);
+  try {
+    await prisma.$transaction(async (tx) => {
+      const existing = await tx.couponRedemption.count({ where: { booking_id: bookingId } });
+      if (existing > 0) return; // fulfillment ran before (webhook + reconcile) — don't double-count
+      const v = await validateAndComputeCoupon(tx, code, ctx, subtotal, { userId, guestEmail: null });
+      if ("error" in v) {
+        logger.warn({ bookingId, reason: v.error }, "[coupon] booking redemption skipped — coupon no longer valid");
+        return;
+      }
+      await incrementCouponAndRecordRedemption(tx, v.coupon, v.discountInr, ctx, {
+        userId,
+        guestEmail: null,
+        bookingId,
+      });
+    });
+  } catch (e) {
+    logger.error({ err: e, bookingId }, "[coupon] booking redemption record failed (best-effort)");
+  }
+}
+
 export async function finishBookingCheckoutOnServer(
   userId: string,
   pending: PendingBookingCheckout,
@@ -406,6 +443,7 @@ export async function finishBookingCheckoutOnServer(
       pending,
       financeSnap,
     });
+    await recordBookingCouponRedemption(userId, result.bookingId, pending);
     return { bookingId: result.bookingId };
   }
 
@@ -496,6 +534,7 @@ export async function finishBookingCheckoutOnServer(
   });
   await fulfillAddedMembersAndReconcileSeats({ pending, userId });
 
+  await recordBookingCouponRedemption(userId, booking.id, pending);
   return { bookingId: booking.id };
 }
 
@@ -601,6 +640,7 @@ export async function finishPackageCheckoutOnServer(
       await incrementCouponAndRecordRedemption(tx, coupon, discountInr, couponContext, {
         userId,
         guestEmail: null,
+        userPackageId: created.id,
       });
     }
 

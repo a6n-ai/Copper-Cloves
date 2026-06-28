@@ -221,7 +221,13 @@ export function TodayClassesCarousel({
                     <Users className="h-3 w-3" />
                     {cls.enrolled} / {cls.capacity}
                   </span>
-                  <span className={cn("tabular-nums", full ? "text-terracotta font-medium" : "text-sage")}>
+                  <span
+                    className={cn(
+                      "tabular-nums font-medium",
+                      // Full class = good (green); near-empty = needs attention (red).
+                      pct >= 80 ? "text-sage" : pct <= 40 ? "text-[#cf5b48]" : "text-terracotta",
+                    )}
+                  >
                     {full ? "Full" : `${pct}%`}
                   </span>
                 </div>
@@ -229,7 +235,7 @@ export function TodayClassesCarousel({
                   <div
                     className={cn(
                       "h-full rounded-full transition-all duration-500",
-                      full ? "bg-terracotta" : "bg-sage",
+                      pct >= 80 ? "bg-sage" : pct <= 40 ? "bg-[#cf5b48]" : "bg-terracotta",
                     )}
                     style={{ width: `${pct}%` }}
                   />

@@ -58,16 +58,18 @@ interface Props {
   pageSize?: number;
 }
 
+// Fill signals demand: a full class is good (green), a near-empty one needs
+// attention (red). Thresholds: full ≥80%, low ≤40%, mid in between (neutral).
 function occupancyColor(pct: number): string {
-  if (pct >= 90) return "bg-[#a05e38]";
-  if (pct >= 70) return "bg-terracotta";
-  return "bg-sage";
+  if (pct >= 80) return "bg-sage";
+  if (pct <= 40) return "bg-[#cf5b48]";
+  return "bg-terracotta";
 }
 
 function occupancyTone(pct: number): PillTone {
-  if (pct >= 90) return "warning";
-  if (pct >= 70) return "warning";
-  return "success";
+  if (pct >= 80) return "success";
+  if (pct <= 40) return "danger";
+  return "warning";
 }
 
 type SortKey = "time" | "name" | "instructor" | "capacity" | "fill" | "status";

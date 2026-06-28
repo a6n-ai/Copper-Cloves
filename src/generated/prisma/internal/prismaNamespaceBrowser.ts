@@ -181,6 +181,8 @@ export const CouponRedemptionScalarFieldEnum = {
   guest_email: 'guest_email',
   context: 'context',
   discount_amount: 'discount_amount',
+  booking_id: 'booking_id',
+  user_package_id: 'user_package_id',
   created_at: 'created_at',
   updated_at: 'updated_at'
 } as const

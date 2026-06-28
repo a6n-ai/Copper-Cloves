@@ -45,6 +45,7 @@
     "instructor:set-password": "tsx scripts/set-instructor-password.ts",
     "scheduler": "tsx scripts/scheduler.ts",
     "test:payout": "tsx scripts/test-payoutCalc.ts",
+    "test:coupon": "tsx scripts/test-couponRelease.ts",
     "db:catalog:dry": "tsx scripts/migrate-package-catalog.ts",
     "db:catalog:apply": "tsx scripts/migrate-package-catalog.ts --apply",
     "db:members:dry": "tsx scripts/migrate-member-packages.ts",

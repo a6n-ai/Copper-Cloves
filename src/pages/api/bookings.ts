@@ -22,6 +22,7 @@ import { upsertFriendship } from "@/lib/friendship";
 import { logActivity } from "@/lib/activityLog";
 import { getStudioSettings } from "@/lib/studioSettings";
 import { grantRefundForBookingRow } from "@/lib/classCancellation";
+import { releaseCouponRedemption } from "@/lib/couponHelpers";
 
 type BookingsLog = ReturnType<typeof requestLogger>;
 type TxClient = Parameters<Parameters<typeof prisma.$transaction>[0]>[0];
@@ -716,6 +717,9 @@ async function handlePatch(
 
     if (status === STATUS_CANCELLED) {
       await refundCancelledSeatsAsPass(tx, refundRows, wasActiveSeat);
+      // Reverse any coupon used on this booking so its redemption count + per-user
+      // limit free up. Only the booker's row carries the coupon; group rows have none.
+      await releaseCouponRedemption(tx, { bookingId: id });
     }
 
     return updated;

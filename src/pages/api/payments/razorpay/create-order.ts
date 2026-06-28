@@ -2,6 +2,7 @@ import type { NextApiRequest, NextApiResponse } from "next";
 import crypto from "node:crypto";
 import { getStudioServerSession } from "@/lib/getStudioServerSession";
 import {
+  BOOKING_CHECKOUT_TAX_RATE,
   expectedBookingCheckoutPaise,
   parseFinanceSnapshot,
   snapshotTotalsConsistent,
@@ -148,6 +149,33 @@ async function planBookingOrder(userId: string, raw: Record<string, unknown>): P
     financeSnap,
     unlimitedFreeMemberIds.length,
   );
+
+  // Coupon is client-trusted today only as a hint. Re-derive the discount server-side
+  // from the real coupon so a forged `couponDiscountInr` can't reduce the charge, and
+  // reject an invalid/exhausted code. The recomputed values overwrite the snapshot so
+  // the stored finance row and the charged amount agree with the gateway.
+  if (pendingBody.coupon_code) {
+    const subtotal = adjustedSnap.classFeeInr + Math.max(0, adjustedSnap.foodFeeInr - adjustedSnap.foodDiscountInr);
+    const ctx = resolveBookingCouponContext(pendingBody.coupon_context, adjustedSnap.classFeeInr);
+    if (!ctx) return { ok: false, status: 400, error: "Invalid coupon context" };
+    const v = await validateAndComputeCoupon(prisma, pendingBody.coupon_code, ctx, subtotal, {
+      userId,
+      guestEmail: null,
+    });
+    if ("error" in v) return { ok: false, status: 400, error: v.error };
+    const total = Math.round(Math.max(0, subtotal - v.discountInr) * 100) / 100;
+    adjustedSnap.couponDiscountInr = v.discountInr;
+    adjustedSnap.totalInr = total;
+    adjustedSnap.taxInr = Math.round((total * BOOKING_CHECKOUT_TAX_RATE / (1 + BOOKING_CHECKOUT_TAX_RATE)) * 100) / 100;
+  } else {
+    // No code → no discount. Don't trust a stray couponDiscountInr.
+    if (adjustedSnap.couponDiscountInr > 0) {
+      const total = Math.round(Math.max(0, adjustedSnap.classFeeInr + Math.max(0, adjustedSnap.foodFeeInr - adjustedSnap.foodDiscountInr)) * 100) / 100;
+      adjustedSnap.couponDiscountInr = 0;
+      adjustedSnap.totalInr = total;
+      adjustedSnap.taxInr = Math.round((total * BOOKING_CHECKOUT_TAX_RATE / (1 + BOOKING_CHECKOUT_TAX_RATE)) * 100) / 100;
+    }
+  }
   pendingBody.finance_snapshot = adjustedSnap;
 
   const amount_paise = expectedBookingCheckoutPaise(adjustedSnap.totalInr);
@@ -164,6 +192,17 @@ async function planBookingOrder(userId: string, raw: Record<string, unknown>): P
       dbNotes: { user_id: userId, purpose: PURPOSE_BOOKING, pending_checkout: pendingBody },
     },
   };
+}
+
+/** Booking coupon context: food-only bookings use `food`; otherwise honor the client's
+ *  class/studio pass hint. The coupon's own `applies_to` guard still rejects a mismatch. */
+function resolveBookingCouponContext(
+  hint: string | null | undefined,
+  classFeeInr: number,
+): CouponContext | null {
+  if (classFeeInr <= 0) return "food";
+  if (hint === "studio_pass" || hint === "class_pass" || hint === "food") return hint;
+  return null;
 }
 
 function planGenericOrder(userId: string, raw: Record<string, unknown>): PlanResult {

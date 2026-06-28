@@ -15,7 +15,12 @@ type DbClient = {
     findUnique: (args: unknown) => Promise<Coupon | null>;
     updateMany: (args: unknown) => Promise<{ count: number }>;
   };
-  couponRedemption: { count: (args: unknown) => Promise<number>; create: (args: unknown) => Promise<unknown> };
+  couponRedemption: {
+    count: (args: unknown) => Promise<number>;
+    create: (args: unknown) => Promise<unknown>;
+    findMany: (args: unknown) => Promise<{ id: string; coupon_id: string }[]>;
+    deleteMany: (args: unknown) => Promise<{ count: number }>;
+  };
 };
 
 /**
@@ -168,7 +173,14 @@ export async function incrementCouponAndRecordRedemption(
   coupon: Coupon,
   discountInr: number,
   context: CouponContext,
-  opts: { userId: string | null; guestEmail: string | null }
+  opts: {
+    userId: string | null;
+    guestEmail: string | null;
+    /** Link the redemption to a booking — refund-on-cancel key + idempotency guard. */
+    bookingId?: string | null;
+    /** Link the redemption to a purchased package — for a future package-cancel reversal. */
+    userPackageId?: string | null;
+  }
 ): Promise<void> {
   const updated = await db.coupon.updateMany({
     where: {
@@ -196,6 +208,43 @@ export async function incrementCouponAndRecordRedemption(
       guest_email: opts.guestEmail?.trim() ? opts.guestEmail.trim().toLowerCase() : null,
       context,
       discount_amount: discountInr,
+      booking_id: opts.bookingId ?? null,
+      user_package_id: opts.userPackageId ?? null,
     },
   });
+}
+
+/**
+ * Reverse coupon redemptions tied to a cancelled booking or package: delete the
+ * redemption rows and decrement each affected coupon's `redemption_count` (floored
+ * at 0). Idempotent — a second call finds no rows and is a no-op. Returns the number
+ * of redemptions released.
+ */
+export async function releaseCouponRedemption(
+  db: DbClient,
+  target: { bookingId?: string | null; userPackageId?: string | null }
+): Promise<number> {
+  const where =
+    target.bookingId != null
+      ? { booking_id: target.bookingId }
+      : target.userPackageId != null
+        ? { user_package_id: target.userPackageId }
+        : null;
+  if (!where) return 0;
+
+  const rows = await db.couponRedemption.findMany({ where });
+  if (rows.length === 0) return 0;
+
+  // Decrement each coupon by how many of its redemptions we're releasing.
+  const perCoupon = new Map<string, number>();
+  for (const r of rows) perCoupon.set(r.coupon_id, (perCoupon.get(r.coupon_id) ?? 0) + 1);
+  for (const [couponId, n] of perCoupon) {
+    await db.coupon.updateMany({
+      where: { id: couponId, redemption_count: { gte: n } },
+      data: { redemption_count: { decrement: n } },
+    });
+  }
+
+  await db.couponRedemption.deleteMany({ where });
+  return rows.length;
 }

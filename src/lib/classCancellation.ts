@@ -15,6 +15,7 @@
  */
 import prisma from "@/lib/prisma";
 import { OCCUPYING_STATUSES } from "@/lib/bookingStatus";
+import { reconcileScheduleSeats } from "@/lib/seatCounts";
 import { getStudioSettings } from "@/lib/studioSettings";
 import { CrmTriggerType } from "@/lib/crmTriggerTypes";
 import { buildBookingCrmVariables, dispatchCrmEmailTriggers } from "@/lib/notifications/crmTemplatedDispatch";
@@ -206,7 +207,7 @@ export async function cancelBookingWithRefund(
     }
 
     if (existing.class_schedule_id) {
-      await reconcileScheduleSeatsAfterCancel(tx, existing.class_schedule_id);
+      await reconcileScheduleSeats(existing.class_schedule_id, tx);
     }
 
     // Refund the booker's own row.
@@ -255,25 +256,3 @@ export async function cancelBookingWithRefund(
   return { bookingId, cancelled: true, refund: { grantedUserPackageIds } };
 }
 
-/** Recompute a schedule's seat counters after a cancel (mirrors api/bookings.ts). */
-async function reconcileScheduleSeatsAfterCancel(tx: TxClient, schedId: string) {
-  const schedule = await tx.classSchedule.findUnique({
-    where: { id: schedId },
-    include: { class_model: { select: { max_capacity: true } } },
-  });
-  if (!schedule) return;
-  const cap = schedule.capacity ?? schedule.class_model?.max_capacity ?? 0;
-  if (cap <= 0) return;
-  const remaining = await tx.booking.findMany({
-    where: { class_schedule_id: schedId, status: { in: [...OCCUPYING_STATUSES] } },
-    select: { extra_guest_count: true },
-  });
-  const occupiedSeats = remaining.reduce(
-    (sum, row) => sum + 1 + Math.max(0, row.extra_guest_count ?? 0),
-    0,
-  );
-  await tx.classSchedule.update({
-    where: { id: schedId },
-    data: { current_bookings: occupiedSeats, available_spots: Math.max(0, cap - occupiedSeats) },
-  });
-}
