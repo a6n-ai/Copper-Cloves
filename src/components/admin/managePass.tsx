@@ -235,21 +235,30 @@ export function validatePayment(s: PassPaymentState): string | null {
 
 /* ──────────────────────────  API helpers  ────────────────────────── */
 
-async function patchMember(body: Record<string, unknown>) {
+async function patchMember(body: Record<string, unknown>): Promise<Record<string, unknown>> {
   const res = await fetch("/api/admin/members", {
     method: "PATCH",
     headers: { "Content-Type": "application/json" },
     credentials: "include",
     body: JSON.stringify(body),
   });
+  const json = (await res.json().catch(() => ({}))) as Record<string, unknown>;
   if (!res.ok) {
-    const err = await res.json().catch(() => ({}));
-    throw new Error((err as { error?: string }).error ?? "Update failed");
+    throw new Error((json as { error?: string }).error ?? "Update failed");
   }
+  return json;
 }
 
-/** Create the pass for the chosen catalog package. Free grant ⇒ is_comp. */
-export async function applyPassConfig(profileId: string, s: PassPaymentState) {
+/**
+ * Create the pass for the chosen catalog package. Free grant ⇒ is_comp.
+ * Pass `forceNewPackage` to force a brand-new UserPackage row (never mutate an
+ * existing active pass) and read its id from the returned `createdUserPackageId`.
+ */
+export async function applyPassConfig(
+  profileId: string,
+  s: PassPaymentState,
+  opts?: { forceNewPackage?: boolean },
+): Promise<{ createdUserPackageId: string | null }> {
   const pkg = selectedPackageOf(s);
   if (!pkg) throw new Error("No package selected");
   const isFree = priceBreakdown(s).isFree;
@@ -262,7 +271,10 @@ export async function applyPassConfig(profileId: string, s: PassPaymentState) {
     expiration_date: s.expiry || undefined,
   };
   if (pkg.type === "class_pass" && pkg.class_count != null) body.class_count = pkg.class_count;
-  await patchMember(body);
+  if (opts?.forceNewPackage) body.force_new_package = true;
+  const res = await patchMember(body);
+  const id = (res as { created_user_package_id?: unknown }).created_user_package_id;
+  return { createdUserPackageId: typeof id === "string" ? id : null };
 }
 
 export async function persistStartDate(profileId: string, s: PassPaymentState, originalStartDate: string | null) {

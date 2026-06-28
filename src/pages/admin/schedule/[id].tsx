@@ -2,6 +2,7 @@ import { useCallback, useEffect, useMemo, useState } from "react";
 import { useRouter } from "next/router";
 import { UserPlus, UserMinus, CheckCircle2, User as UserIcon, Users } from "lucide-react";
 import { MetricCard } from "@/components/admin/MetricCard";
+import { AddWalkInDialog } from "@/components/admin/AddWalkInDialog";
 import { SEO as Seo } from "@/components/SEO";
 import { Skeleton } from "@/components/ui/skeleton";
 import { PageHeader } from "@/components/dashboard/PageHeader";
@@ -345,6 +346,8 @@ export default function AdminClassPage() {
     }
   }
 
+  const [walkInOpen, setWalkInOpen] = useState(false);
+
   const [statusEditOpen, setStatusEditOpen] = useState(false);
   const [statusDraft, setStatusDraft] = useState<string>("available");
   const [statusSaving, setStatusSaving] = useState(false);
@@ -483,6 +486,14 @@ export default function AdminClassPage() {
     roster?.status === "completed" ||
     roster?.status === "abandoned" ||
     (!!roster && new Date(roster.endTime).getTime() < Date.now());
+  // Past/completed classes let a walk-in be recorded over capacity (real attendee
+  // after the fact). The roster itself stays editable even when locked.
+  const isPastClass =
+    !!roster &&
+    (new Date(roster.endTime).getTime() < Date.now() ||
+      roster.status === "completed" ||
+      roster.status === "abandoned");
+  const atCapacity = !!roster && roster.capacity != null && enrolled >= roster.capacity;
 
   return (
     <>
@@ -712,8 +723,17 @@ export default function AdminClassPage() {
 
                 {/* Roster */}
                 <Card className="rounded-2xl shadow-xs">
-                  <CardHeader>
+                  <CardHeader className="flex flex-row items-center justify-between gap-2 flex-wrap">
                     <CardTitle className="font-display text-xl text-charcoal">Roster ({roster.bookings.length})</CardTitle>
+                    <Button
+                      type="button"
+                      size="sm"
+                      variant="sage"
+                      onClick={() => setWalkInOpen(true)}
+                      className="font-body"
+                    >
+                      <UserPlus className="h-4 w-4" /> Add walk-in
+                    </Button>
                   </CardHeader>
                   <CardContent className="space-y-4">
                     <div className="relative">
@@ -980,6 +1000,19 @@ export default function AdminClassPage() {
           </DialogFooter>
         </DialogContent>
       </Dialog>
+      )}
+
+      {walkInOpen && roster && (
+        <AddWalkInDialog
+          open={walkInOpen}
+          onOpenChange={setWalkInOpen}
+          scheduleId={roster.scheduleId}
+          className={roster.className}
+          classStartTime={roster.startTime}
+          allowOverCapacity={isPastClass}
+          capacityNote={atCapacity && isPastClass ? "Class is full — this walk-in will be recorded over capacity." : undefined}
+          onAdded={loadRoster}
+        />
       )}
     </>
   );

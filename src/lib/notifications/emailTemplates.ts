@@ -408,6 +408,9 @@ export interface CancellationEmailOpts {
   creditsReturned: boolean;
   creditsCount?: number;
   portalUrl?: string;
+  /** Raw HTML injected after the credit banner — the {{Refund_Roster}} card for
+   *  the CRM template scaffold (see scripts/dump-email-templates.ts). */
+  refundRosterHtml?: string;
 }
 
 export function cancellationEmail(opts: CancellationEmailOpts): string {
@@ -441,6 +444,7 @@ export function cancellationEmail(opts: CancellationEmailOpts): string {
             <p style="font-family:Georgia,serif;font-size:14px;color:#9A3412;margin:0">This cancellation was made within 6 hours of class start and the credit cannot be transferred.</p>
           </div>`
       }
+      ${opts.refundRosterHtml ?? ""}
 
       <div style="background:#fff;border:1px solid ${BORDER};border-radius:12px;padding:24px;margin-bottom:16px">
         <p style="font-family:Georgia,serif;font-size:16px;font-weight:700;color:${SAGE};margin:0 0 20px;text-align:center">cancelled class</p>
@@ -560,6 +564,50 @@ export function welcomeEmail(opts: WelcomeEmailOpts): string {
       ${locationCard()}
       ${facilitiesCard()}
       ${afterClassCard()}
+      ${needHelpCard()}
+
+      <div style="text-align:center;padding:24px 0">
+        <p style="font-family:Georgia,serif;font-size:18px;font-weight:400;color:${CHARCOAL};margin:0 0 4px">see you on the mat!</p>
+        <p style="font-family:Georgia,serif;font-size:14px;color:${SAGE};margin:0">The Studio Team</p>
+      </div>
+
+    </div>
+    ${footer()}
+  `);
+}
+
+// ── Template 6b: Admin-created member — welcome + set-password ───────────────
+
+export interface WelcomeSetPasswordEmailOpts {
+  memberName: string;
+  setPasswordUrl: string;
+  portalUrl?: string;
+}
+
+export function welcomeSetPasswordEmail(opts: WelcomeSetPasswordEmailOpts): string {
+  return emailWrapper(`
+    ${logoHeader("welcome to the Studio")}
+    <div style="padding:32px 32px 0">
+
+      <div style="text-align:center;margin-bottom:28px">
+        <h1 style="font-family:Georgia,serif;font-size:28px;font-weight:400;color:${CHARCOAL};margin:0">welcome, ${h(opts.memberName)}!</h1>
+      </div>
+
+      <div style="border-left:3px solid ${SAGE};padding-left:20px;margin-bottom:28px">
+        <p style="font-family:Georgia,serif;font-size:15px;color:${CHARCOAL};margin:0;line-height:1.7">
+          The Studio team has created an account for you at The Studio by Copper + Cloves. Set your password to sign in, view your bookings and packages, and book your next class.
+        </p>
+      </div>
+
+      <div style="text-align:center;margin-bottom:16px">
+        <a href="${h(opts.setPasswordUrl)}" style="display:inline-block;background:${SAGE};color:#fff;padding:14px 40px;border-radius:999px;text-decoration:none;font-family:Georgia,serif;font-size:15px;font-weight:600">set your password</a>
+      </div>
+
+      <p style="font-family:Georgia,serif;font-size:13px;color:${MUTED};margin:0 0 28px;text-align:center;line-height:1.6">
+        This link expires in 7 days. If it lapses, use “forgot password” on the sign-in page to request a new one.
+      </p>
+
+      ${locationCard()}
       ${needHelpCard()}
 
       <div style="text-align:center;padding:24px 0">

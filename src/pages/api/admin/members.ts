@@ -1,4 +1,6 @@
 import type { NextApiRequest, NextApiResponse } from "next";
+import crypto from "crypto";
+import bcrypt from "bcryptjs";
 import prisma from "@/lib/prisma";
 import { isStudioAdminProfileRole } from "@/lib/isStudioAdminProfile";
 import { getStudioServerSession } from "@/lib/getStudioServerSession";
@@ -6,6 +8,12 @@ import { getDynamicStats, getDynamicStatsForUsers } from "@/lib/attendanceStats"
 import { logActivity } from "@/lib/activityLog";
 import { HISTORY_STATUSES } from "@/lib/bookingStatus";
 import { getStudioSettings } from "@/lib/studioSettings";
+import { normalizeLoginEmail } from "@/lib/loginEmail";
+import { sendHtmlEmail } from "@/lib/notifications/sendEmail";
+import { welcomeSetPasswordEmail } from "@/lib/notifications/emailTemplates";
+import logger from "@/lib/logger";
+
+const WELCOME_TOKEN_TTL_MS = 7 * 24 * 60 * 60 * 1000; // 7 days
 
 // Member Management lists real members only — never staff/partner/instructor logins.
 function isNonMemberRole(role?: string | null): boolean {
@@ -108,13 +116,88 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     return res.json({ members: withStats, checkInsThisMonth });
   }
 
+  // Create a real member (role "user"): random password + welcome email carrying
+  // a set-password link (reuses the password-reset token mechanism). Powers the
+  // walk-in registration wizard's "create new member" step.
+  if (req.method === "POST") {
+    const body = req.body ?? {};
+    const email = typeof body.email === "string" ? normalizeLoginEmail(body.email) : "";
+    const full_name = typeof body.full_name === "string" ? body.full_name.trim() : "";
+    const phone = body.phone == null || body.phone === "" ? null : String(body.phone).trim() || null;
+
+    if (!email || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+      return res.status(400).json({ error: "Valid email is required." });
+    }
+    if (!full_name) return res.status(400).json({ error: "Name is required." });
+
+    const existing = await prisma.profile.findFirst({ where: { email, role: "user" } });
+    if (existing) return res.status(409).json({ error: "A member with this email already exists." });
+
+    // Member never knows this password — they set their own via the welcome link.
+    const randomPassword = crypto.randomBytes(24).toString("hex");
+    const hashedPassword = await bcrypt.hash(randomPassword, 12);
+    const token = crypto.randomBytes(32).toString("hex");
+
+    // Profile + welcome token land together or neither does — no orphan account
+    // with no way to set a password.
+    let created;
+    try {
+      created = await prisma.$transaction(async (tx) => {
+        const profile = await tx.profile.create({
+          data: { email, full_name, phone, hashedPassword, role: "user" },
+        });
+        await tx.passwordResetToken.create({
+          data: { email, role: "user", token, expires_at: new Date(Date.now() + WELCOME_TOKEN_TTL_MS) },
+        });
+        return profile;
+      });
+    } catch (e) {
+      // Lost the read-then-write race against @@unique([email, role]).
+      if ((e as { code?: string }).code === "P2002") {
+        return res.status(409).json({ error: "A member with this email already exists." });
+      }
+      logger.error({ err: e }, "[admin/members POST] member create failed");
+      return res.status(500).json({ error: "Could not create member." });
+    }
+
+    logActivity({
+      req,
+      action: "auth.signup",
+      actor: { id: created.id, role: created.role, name: created.full_name },
+    }).catch((err) => logger.error({ err }, "[admin/members POST] activity log threw"));
+
+    // Security-sensitive set-password link must come from a trusted origin only —
+    // never the client-controlled Host header. If NEXTAUTH_URL is unset, the
+    // account still exists; we just skip the welcome email.
+    const baseUrl = (process.env.NEXTAUTH_URL ?? "").replace(/\/$/, "");
+    if (!baseUrl) {
+      logger.warn("[admin/members POST] NEXTAUTH_URL unset — welcome email skipped (no set-password link sent)");
+    } else {
+      const setPasswordUrl = `${baseUrl}/portal/reset-password?token=${token}`;
+      sendHtmlEmail({
+        to: email,
+        subject: "welcome to The Studio by Copper + Cloves — set your password",
+        html: welcomeSetPasswordEmail({ memberName: full_name, setPasswordUrl, portalUrl: baseUrl }),
+      })
+        .then((result) => {
+          if (!result.ok) logger.error({ result }, "[admin/members POST] welcome email failed");
+        })
+        .catch((err) => logger.error({ err }, "[admin/members POST] welcome email threw"));
+    }
+
+    return res.status(201).json({ id: created.id, email: created.email, full_name: created.full_name });
+  }
+
   if (req.method === "PATCH") {
-    const { profile_id, user_package_id, package_type_id, class_count, expiration_date, pass_type, start_date, action, profile_fields, is_comp, grant_note } = req.body ?? {};
+    const { profile_id, user_package_id, package_type_id, class_count, expiration_date, pass_type, start_date, action, profile_fields, is_comp, grant_note, force_new_package } = req.body ?? {};
     if (!profile_id || typeof profile_id !== "string") {
       return res.status(400).json({ error: "profile_id required" });
     }
 
     const compGrant = is_comp === true;
+    // Assigning a NEW paid pass must never reuse/overwrite an existing active
+    // package — force the auto-create path so a brand-new UserPackage is created.
+    const forceNewPackage = force_new_package === true;
     const grantNote = typeof grant_note === "string" && grant_note.trim() ? grant_note.trim() : null;
     const hasClassCount = typeof class_count === "number" && class_count > 0;
     const chosenPackageTypeId = typeof package_type_id === "string" && package_type_id ? package_type_id : null;
@@ -145,9 +228,11 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     }
 
     let pkgId: string | undefined = typeof user_package_id === "string" ? user_package_id : undefined;
-    // A comp grant always creates a fresh UserPackage (origin=comp) — never reuse
-    // an existing pass row, so its purchase origin/credits are left intact.
-    if (!pkgId && !compGrant) {
+    let createdUserPackageId: string | null = null;
+    // A comp grant (and an explicit force_new_package assign) always creates a
+    // fresh UserPackage — never reuse an existing pass row, so its credits/origin
+    // are left intact.
+    if (!pkgId && !compGrant && !forceNewPackage) {
       const latest = await prisma.userPackage.findFirst({
         where: { user_id: profile_id, is_active: true },
         orderBy: { purchase_date: "desc" },
@@ -192,7 +277,8 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       chosenPackageTypeId !== null ||
       hasClassCount ||
       (expiration_date && typeof expiration_date === "string") ||
-      compGrant
+      compGrant ||
+      forceNewPackage
     );
     if (needsAutoCreate) {
       const desiredType = pass_type === "studio_pass" ? "studio_pass" : "class_pass";
@@ -234,6 +320,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         },
       });
       pkgId = created.id;
+      createdUserPackageId = created.id;
       await logActivity({ req, action: "admin.package_assigned", targetProfileId: profile_id, metadata: { package_name: pt.name, is_comp: compGrant } });
     }
 
@@ -316,7 +403,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       }
     }
 
-    return res.json({ ok: true });
+    return res.json({ ok: true, created_user_package_id: createdUserPackageId });
   }
 
   res.status(405).end();

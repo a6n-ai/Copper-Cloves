@@ -87,6 +87,7 @@ const MemberSearch = dynamic(
 
 // Tax rate (adjust as needed)
 const TAX_RATE = 0.05; // 5% tax
+const POST_END_GRACE_MS = 10 * 60 * 1000;
 
 interface FoodItem {
   id: string;
@@ -825,15 +826,12 @@ export default function BookClass() {
   const paginatedClasses = filteredClasses.slice(startIndex, startIndex + classesPerPage);
 
   useEffect(() => {
-    if (status === "unauthenticated") {
-      router.push("/portal/login?redirect=/portal/book");
-      return;
-    }
+    // SSR (requireSessionSSP) already gates this route — unauthenticated visitors
+    // never reach the client. No client-side redirect to the legacy /portal/login.
     if (status === "authenticated") {
       setIsAuthenticated(true);
       checkAuthAndLoadData();
     }
-  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [status]);
 
   // Guards the one-shot auto-advance below so it can't fight a manual day pick.
@@ -908,6 +906,7 @@ export default function BookClass() {
         .map((schedule: {
           id: string;
           start_time: string;
+          end_time?: string | null;
           status?: string;
           capacity?: number | null;
           available_spots?: number | null;
@@ -923,6 +922,8 @@ export default function BookClass() {
           instructor?: { name?: string; image_url?: string | null };
         }) => {
           const startMs = new Date(schedule.start_time).getTime();
+          const durationMs = (schedule.class_model?.duration || 60) * 60 * 1000;
+          const endMs = schedule.end_time ? new Date(schedule.end_time).getTime() : startMs + durationMs;
           const cap = schedule.capacity ?? schedule.class_model?.max_capacity ?? 15;
           return {
             id: schedule.id,
@@ -944,7 +945,7 @@ export default function BookClass() {
                 ? schedule.start_time
                 : new Date(schedule.start_time).toISOString(),
             startTimeMs: startMs,
-            isBookable: startMs > nowMs,
+            isBookable: endMs + POST_END_GRACE_MS > nowMs,
           };
         })
         .sort((a, b) => a.startTimeMs - b.startTimeMs);

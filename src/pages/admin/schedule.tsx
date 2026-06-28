@@ -1010,12 +1010,14 @@ export default function AdminSchedule() {
                     mode="single"
                     selected={selectedDate}
                     onSelect={(d) => d && setSelectedDate(d)}
+                    month={selectedDate}
+                    onMonthChange={(m) => setSelectedDate((d) => new Date(m.getFullYear(), m.getMonth(), Math.min(d.getDate(), new Date(m.getFullYear(), m.getMonth() + 1, 0).getDate())))}
                     showOutsideDays
                     modifiers={{ hasClass: datesWithClasses }}
                     modifiersClassNames={{
                       hasClass: "relative after:content-[''] after:absolute after:bottom-1 after:left-1/2 after:-translate-x-1/2 after:h-1 after:w-1 after:rounded-full after:bg-sage",
                     }}
-                    classNames={{ root: "w-full", months: "w-full", month: "w-full" }}
+                    classNames={{ root: "w-full", months: "relative w-full", month: "w-full" }}
                     className="w-full p-0 [--cell-size:--spacing(9)]"
                   />
                 </CardContent>
@@ -1067,6 +1069,8 @@ export default function AdminSchedule() {
                                 setDatePickerOpen(false);
                               }
                             }}
+                            month={selectedDate}
+                            onMonthChange={(m) => setSelectedDate((d) => new Date(m.getFullYear(), m.getMonth(), Math.min(d.getDate(), new Date(m.getFullYear(), m.getMonth() + 1, 0).getDate())))}
                             showOutsideDays
                             modifiers={{ hasClass: datesWithClasses }}
                             modifiersClassNames={{
