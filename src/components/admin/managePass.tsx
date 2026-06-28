@@ -3,7 +3,7 @@ import { DatePicker } from "@/components/filters";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
-import { Banknote, Check, Gift, Loader2, Upload } from "lucide-react";
+import { Banknote, Check, CheckCircle2, CreditCard, Gift, Globe, IndianRupee, Loader2, Smartphone, Upload } from "lucide-react";
 import { paymentMethodPill } from "@/lib/pillMaps";
 import { toast } from "sonner";
 
@@ -21,12 +21,12 @@ import { toast } from "sonner";
  * ──────────────────────────────────────────────────────────────────────── */
 
 export const PAYMENT_METHODS = [
-  { v: "razorpay_online", l: "Razorpay (Online)" },
-  { v: "pine_lab_card", l: "Pine Lab Card" },
-  { v: "pine_lab_upi", l: "Pine Lab UPI" },
-  { v: "direct_upi", l: "Direct UPI" },
-  { v: "razorpay_completed", l: "Razorpay Completed" },
-  { v: "cash", l: "Cash" },
+  { v: "razorpay_online", l: "Razorpay (Online)", short: "Razorpay", icon: Globe },
+  { v: "pine_lab_card", l: "Pine Lab Card", short: "Pine Card", icon: CreditCard },
+  { v: "pine_lab_upi", l: "Pine Lab UPI", short: "Pine UPI", icon: Smartphone },
+  { v: "direct_upi", l: "Direct UPI", short: "UPI", icon: IndianRupee },
+  { v: "razorpay_completed", l: "Razorpay Completed", short: "RZP ✓", icon: CheckCircle2 },
+  { v: "cash", l: "Cash", short: "Cash", icon: Banknote },
 ] as const;
 
 export type PassType = "class_pass" | "studio_pass";
@@ -503,17 +503,20 @@ export function PaymentSection({ state: s }: { state: PassPaymentState }) {
 
   return (
     <div className="space-y-4">
-      {/* Discount */}
+      {/* Discount — locked at 100% while Free/Comp is selected. */}
       <div>
-        <Label className="font-body text-charcoal/70 text-sm mb-2 block">Discount (optional)</Label>
+        <Label className="font-body text-charcoal/70 text-sm mb-2 block">
+          Discount (optional){isFree && <span className="ml-1.5 font-normal text-charcoal/40">· 100% (free)</span>}
+        </Label>
         <div className="flex gap-2">
           <Input
             type="number"
             min="0"
             step="1"
-            value={s.discountValue}
+            disabled={isFree}
+            value={isFree ? "100" : s.discountValue}
             onChange={(e) => s.setDiscountValue(e.target.value)}
-            className="h-11 border-charcoal/20 focus:border-sage font-body tabular-nums"
+            className="h-11 border-charcoal/20 focus:border-sage font-body tabular-nums disabled:opacity-60"
             placeholder="0"
           />
           <div className="grid grid-cols-2 gap-1 rounded-md border border-sage/20 bg-sage/5 p-1 shrink-0">
@@ -521,9 +524,11 @@ export function PaymentSection({ state: s }: { state: PassPaymentState }) {
               <button
                 key={u}
                 type="button"
+                disabled={isFree}
                 onClick={() => s.setDiscountUnit(u)}
                 className={[
-                  "rounded px-3 text-sm font-body font-medium transition-colors duration-200 cursor-pointer",
+                  "rounded px-3 text-sm font-body font-medium transition-colors duration-200",
+                  isFree ? "cursor-not-allowed opacity-50" : "cursor-pointer",
                   s.discountUnit === u ? "bg-sage text-cream" : "text-charcoal/70 hover:text-charcoal",
                 ].join(" ")}
               >
@@ -554,50 +559,53 @@ export function PaymentSection({ state: s }: { state: PassPaymentState }) {
         </div>
       )}
 
-      {/* Payment method — always visible; "Free / Comp" is a method that zeroes the amount. */}
+      {/* Payment method — compact icon tiles (4-up). "Free / Comp" is a method that zeroes the amount. */}
       <div>
         <Label className="font-body text-charcoal/70 text-sm mb-2 block">Payment method</Label>
-        <div className="grid grid-cols-2 gap-2 sm:grid-cols-3">
+        <div className="grid grid-cols-4 gap-1.5">
           {PAYMENT_METHODS.map((m) => {
             const active = !isFree && s.method === m.v;
-            const isCash = m.v === "cash";
+            const Icon = m.icon;
             return (
               <button
                 key={m.v}
                 type="button"
+                title={m.l}
                 onClick={() => {
                   s.setMethod(m.v);
                   // Picking a real method un-frees a 100%/full discount.
                   if (isFree) s.setDiscountValue("");
                 }}
                 className={[
-                  "flex h-10 items-center justify-center gap-1.5 rounded-lg border px-2 text-xs font-body transition-colors duration-200 cursor-pointer",
+                  "flex h-12 flex-col items-center justify-center gap-1 rounded-lg border px-1 text-[10px] font-body leading-none transition-colors duration-200 cursor-pointer",
                   active
                     ? "border-sage bg-sage text-cream"
-                    : "border-sage/20 bg-sage/5 text-charcoal hover:bg-sage/10",
+                    : "border-sage/20 bg-sage/5 text-charcoal/70 hover:bg-sage/10 hover:text-charcoal",
                 ].join(" ")}
               >
-                {isCash && <Banknote className="h-3.5 w-3.5" />}
-                {m.l}
+                <Icon className="h-4 w-4 shrink-0" />
+                <span className="max-w-full truncate">{m.short}</span>
               </button>
             );
           })}
           {/* Free / Comp → sets 100% discount, amount becomes ₹0, no proof. */}
           <button
             type="button"
+            title="Free / Comp — no payment recorded"
             onClick={() => {
               s.setDiscountUnit("pct");
               s.setDiscountValue("100");
               s.setMethod("");
             }}
             className={[
-              "flex h-11 items-center justify-center gap-1.5 rounded-lg border px-2 text-xs font-body transition-colors duration-200 cursor-pointer",
+              "flex h-12 flex-col items-center justify-center gap-1 rounded-lg border px-1 text-[10px] font-body leading-none transition-colors duration-200 cursor-pointer",
               isFree
                 ? "border-terracotta bg-terracotta text-cream"
                 : "border-terracotta/30 bg-terracotta/5 text-terracotta hover:bg-terracotta/10",
             ].join(" ")}
           >
-            <Gift className="h-3.5 w-3.5" /> Free / Comp
+            <Gift className="h-4 w-4 shrink-0" />
+            <span className="max-w-full truncate">Free</span>
           </button>
         </div>
       </div>

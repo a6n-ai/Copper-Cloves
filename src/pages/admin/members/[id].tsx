@@ -1055,7 +1055,7 @@ function ManagePassDialog({
           </ResponsiveDialogDescription>
         </ResponsiveDialogHeader>
 
-        <div className="max-h-[60vh] overflow-y-auto py-2 pr-1">
+        <div className="max-h-[60vh] overflow-y-auto px-1 py-2">
           {step === "form" ? (
             <div className="space-y-6">
               <PassConfigSection state={s} currentCredits={member.credits} />
