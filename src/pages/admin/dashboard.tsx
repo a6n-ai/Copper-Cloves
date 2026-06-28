@@ -37,7 +37,6 @@ import {
   Mail,
   Upload,
   Save,
-  Tag,
   ChefHat,
   Building2,
   UserPlus,
@@ -106,10 +105,6 @@ const MealWaitlistTab = dynamic(
 );
 const RentalInquiriesTab = dynamic(
   () => import("@/components/admin/dashboard-tabs/RentalInquiriesTab").then((m) => m.RentalInquiriesTab),
-  { ssr: false, loading: () => <ListTabLoadingSkeleton /> },
-);
-const PricingTab = dynamic(
-  () => import("@/components/admin/dashboard-tabs/PricingTab").then((m) => m.PricingTab),
   { ssr: false, loading: () => <ListTabLoadingSkeleton /> },
 );
 const InstructorsTab = dynamic(
@@ -267,7 +262,6 @@ interface SelectedMemberProfile {
 const ADMIN_TABS = [
   { v: "overview", l: "Overview", I: BarChart3 },
   { v: "finance", l: "Finance", I: DollarSign },
-  { v: "pricing", l: "Pricing", I: Tag },
   { v: "meal-waitlist", l: "Meal waitlist", I: ChefHat },
   { v: "rental-inquiries", l: "Rentals", I: Building2 },
   { v: "members", l: "Members", I: Users },
@@ -279,7 +273,7 @@ export default function AdminDashboard() {
   const router = useRouter();
   const [loading, setLoading] = useState(true);
   const [activeTab, setActiveTab] = useTabQuery(
-    ["overview", "finance", "pricing", "meal-waitlist", "rental-inquiries", "members", "instructors", "classes"],
+    ["overview", "finance", "meal-waitlist", "rental-inquiries", "members", "instructors", "classes"],
     "overview"
   );
   const [dateRange, setDateRange] = useState("month");
@@ -322,36 +316,6 @@ export default function AdminDashboard() {
   const [dashAddingMemberId, setDashAddingMemberId] = useState<string | null>(null);
 
   // Transaction filter states
-
-  const [coupons, setCoupons] = useState<
-    {
-      id: string;
-      code: string;
-      applies_to: string;
-      discount_type: string;
-      discount_value: unknown;
-      is_active: boolean;
-      max_redemptions: number | null;
-      redemption_count: number;
-      max_uses_per_user: number | null;
-      starts_at: Date | string | null;
-      ends_at: Date | string | null;
-    }[]
-  >([]);
-  const [couponsLoading, setCouponsLoading] = useState(false);
-  const [couponSaving, setCouponSaving] = useState(false);
-  const [editingCouponId, setEditingCouponId] = useState<string | null>(null);
-  const [couponDraft, setCouponDraft] = useState({
-    code: "",
-    applies_to: "food",
-    discount_type: "percent",
-    discount_value: "10",
-    is_active: true,
-    max_redemptions: "",
-    max_uses_per_user: "1",
-    starts_at: "",
-    ends_at: "",
-  });
 
   const [mealInquiries, setMealInquiries] = useState<
     {
@@ -661,32 +625,6 @@ export default function AdminDashboard() {
   useEffect(() => {
     if (status !== "authenticated") return;
     const role = (session?.user as { role?: string })?.role;
-    if (role !== "admin" || activeTab !== "pricing") return;
-    let cancelled = false;
-    setCouponsLoading(true);
-    void (async () => {
-      try {
-        const r = await fetch("/api/admin/coupons");
-        if (cancelled) return;
-        if (!r.ok) {
-          setCoupons([]);
-          return;
-        }
-        const d = await r.json();
-        if (!cancelled) setCoupons(Array.isArray(d) ? d : []);
-      } finally {
-        if (!cancelled) setCouponsLoading(false);
-      }
-    })();
-    return () => {
-      cancelled = true;
-    };
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [status, userRole, activeTab]);
-
-  useEffect(() => {
-    if (status !== "authenticated") return;
-    const role = (session?.user as { role?: string })?.role;
     if (role !== "admin" || activeTab !== "meal-waitlist") return;
     let cancelled = false;
     setMealInquiriesLoading(true);
@@ -771,94 +709,6 @@ export default function AdminDashboard() {
         })
         .catch(() => {});
     }
-  }, []);
-
-  const EMPTY_COUPON_DRAFT = {
-    code: "",
-    applies_to: "food",
-    discount_type: "percent",
-    discount_value: "10",
-    is_active: true,
-    max_redemptions: "",
-    max_uses_per_user: "1",
-    starts_at: "",
-    ends_at: "",
-  };
-  const saveCouponFromDraft = useCallback(async () => {
-    setCouponSaving(true);
-    try {
-      const body = {
-        code: couponDraft.code,
-        applies_to: couponDraft.applies_to,
-        discount_type: couponDraft.discount_type,
-        discount_value: Number(couponDraft.discount_value),
-        is_active: couponDraft.is_active,
-        max_redemptions: couponDraft.max_redemptions.trim() === "" ? null : couponDraft.max_redemptions,
-        max_uses_per_user: couponDraft.max_uses_per_user.trim() === "" ? null : couponDraft.max_uses_per_user,
-        starts_at: couponDraft.starts_at.trim() === "" ? null : couponDraft.starts_at,
-        ends_at: couponDraft.ends_at.trim() === "" ? null : couponDraft.ends_at,
-      };
-      const res = editingCouponId
-        ? await fetch("/api/admin/coupons", {
-            method: "PATCH",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ id: editingCouponId, ...body }),
-          })
-        : await fetch("/api/admin/coupons", {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify(body),
-          });
-      if (!res.ok) {
-        const err = await res.json().catch(() => ({}));
-        toast.error(typeof err?.error === "string" ? err.error : "Could not save coupon");
-        return;
-      }
-      setEditingCouponId(null);
-      setCouponDraft(EMPTY_COUPON_DRAFT);
-      const listRes = await fetch("/api/admin/coupons");
-      if (listRes.ok) {
-        const d = await listRes.json();
-        setCoupons(Array.isArray(d) ? d : []);
-      }
-    } finally {
-      setCouponSaving(false);
-    }
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [couponDraft, editingCouponId]);
-
-  const deleteCouponById = useCallback(async (id: string) => {
-    if (!confirm("Delete this coupon?")) return;
-    const res = await fetch(`/api/admin/coupons?id=${encodeURIComponent(id)}`, { method: "DELETE" });
-    if (!res.ok) {
-      toast.error("Could not delete coupon");
-      return;
-    }
-    setCoupons((prev) => prev.filter((c) => c.id !== id));
-    setEditingCouponId((prev) => (prev === id ? null : prev));
-    setCouponDraft((prev) => (editingCouponId === id ? EMPTY_COUPON_DRAFT : prev));
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [editingCouponId]);
-
-  const startEditCoupon = useCallback((c: (typeof coupons)[0]) => {
-    setEditingCouponId(c.id);
-    setCouponDraft({
-      code: c.code,
-      applies_to: c.applies_to,
-      discount_type: c.discount_type,
-      discount_value: String(c.discount_value),
-      is_active: c.is_active,
-      max_redemptions: c.max_redemptions == null ? "" : String(c.max_redemptions),
-      max_uses_per_user: c.max_uses_per_user == null ? "" : String(c.max_uses_per_user),
-      starts_at: c.starts_at ? new Date(c.starts_at).toISOString().slice(0, 16) : "",
-      ends_at: c.ends_at ? new Date(c.ends_at).toISOString().slice(0, 16) : "",
-    });
-  }, []);
-
-  const cancelCouponEdit = useCallback(() => {
-    setEditingCouponId(null);
-    setCouponDraft(EMPTY_COUPON_DRAFT);
-  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   const updateMealInquiryStatus = useCallback(async (id: string, status: string) => {
@@ -1265,23 +1115,6 @@ export default function AdminDashboard() {
               <TabsContent value="finance" className="space-y-6">
                 <FinanceTabConnected />
               </TabsContent>
-
-              {/* PRICING & COUPONS */}
-              <TabsContent value="pricing" className="space-y-6">
-                <PricingTab
-                  coupons={coupons}
-                  loading={couponsLoading}
-                  saving={couponSaving}
-                  editingId={editingCouponId}
-                  draft={couponDraft}
-                  onDraftChange={setCouponDraft}
-                  onSave={saveCouponFromDraft}
-                  onCancelEdit={cancelCouponEdit}
-                  onEdit={startEditCoupon}
-                  onDelete={deleteCouponById}
-                />
-              </TabsContent>
-
 
               {/* MEAL SUBSCRIPTION WAITLIST */}
               <TabsContent value="meal-waitlist" className="space-y-6">

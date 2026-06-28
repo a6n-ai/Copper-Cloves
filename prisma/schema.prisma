@@ -89,6 +89,10 @@ model Coupon {
   applies_to        String
   discount_type     String
   discount_value    Decimal   @db.Decimal(10, 2)
+  /// Cap the rupee discount this coupon can apply (e.g. 50% off, max ₹500). Null = no cap. Applies to percent and fixed.
+  max_discount_inr  Decimal?  @db.Decimal(10, 2)
+  /// Minimum order subtotal (INR) required for the coupon to apply. Null = no minimum.
+  min_order_inr     Decimal?  @db.Decimal(10, 2)
   is_active         Boolean   @default(true)
   max_redemptions   Int?
   redemption_count  Int       @default(0)

@@ -1,0 +1,206 @@
+import { useCallback, useEffect, useState } from "react";
+import { Loader2, CalendarX, Check, X } from "lucide-react";
+import { toast } from "sonner";
+
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
+import { ResponsiveTable } from "@/components/responsive/ResponsiveTable";
+import { Button } from "@/components/ui/button";
+import { Pill } from "@/components/ui/pill";
+
+type CancellationRequestRow = {
+  id: string;
+  status: string;
+  reason: string | null;
+  created_at: string;
+  decided_at: string | null;
+  profile: { id: string; full_name: string | null; email: string } | null;
+  booking: { id: string; class_name: string | null; class_time: string | null; status: string } | null;
+  class_schedule: {
+    id: string;
+    start_time: string | null;
+    class_model: { name: string | null } | null;
+  } | null;
+};
+
+const REQUEST_STATUS_FILTERS = ["open", "approved", "denied", "all"] as const;
+
+function fmtDateTime(v: string | null | undefined): string {
+  if (!v) return "—";
+  const d = new Date(v);
+  if (Number.isNaN(d.getTime())) return "—";
+  return d.toLocaleString("en-IN", { dateStyle: "medium", timeStyle: "short" });
+}
+
+export default function CancellationsTab() {
+  const [rows, setRows] = useState<CancellationRequestRow[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [statusFilter, setStatusFilter] = useState<(typeof REQUEST_STATUS_FILTERS)[number]>("open");
+  const [actingId, setActingId] = useState<string | null>(null);
+
+  const load = useCallback(async (filter: (typeof REQUEST_STATUS_FILTERS)[number]) => {
+    const qs = filter === "all" ? "" : `?status=${filter}`;
+    const r = await fetch(`/api/admin/class-cancellation-requests${qs}`, {
+      headers: { "Cache-Control": "no-store" },
+    });
+    if (!r.ok) {
+      toast.error("Could not load cancellation requests.");
+      return;
+    }
+    const d = await r.json();
+    setRows(Array.isArray(d.requests) ? d.requests : []);
+  }, []);
+
+  useEffect(() => {
+    void (async () => {
+      setLoading(true);
+      try {
+        await load(statusFilter);
+      } finally {
+        setLoading(false);
+      }
+    })();
+  }, [load, statusFilter]);
+
+  const decide = useCallback(
+    async (id: string, action: "approve" | "deny") => {
+      if (action === "approve" && !window.confirm("Approve this cancellation? The booking will be cancelled and refund passes granted.")) {
+        return;
+      }
+      setActingId(id);
+      try {
+        const r = await fetch("/api/admin/class-cancellation-requests", {
+          method: "PATCH",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ id, action }),
+        });
+        if (!r.ok) {
+          const e = await r.json().catch(() => ({}));
+          toast.error(e.error ?? "Could not update request.");
+          return;
+        }
+        toast.success(action === "approve" ? "Cancellation approved." : "Request denied.");
+        await load(statusFilter);
+      } finally {
+        setActingId(null);
+      }
+    },
+    [load, statusFilter],
+  );
+
+  return (
+    <Card className="border-sage/20 bg-white-warm">
+      <CardHeader className="flex flex-row items-start justify-between gap-3">
+        <div>
+          <CardTitle className="font-display text-2xl text-charcoal">Late-Cancel Requests</CardTitle>
+          <CardDescription className="font-body text-charcoal/60">
+            Requests filed after the cancellation cutoff. Approving cancels the booking and grants a 1 Class Pass refund.
+          </CardDescription>
+        </div>
+        <Select value={statusFilter} onValueChange={(v) => setStatusFilter(v as (typeof REQUEST_STATUS_FILTERS)[number])}>
+          <SelectTrigger className="w-[150px] shrink-0 border-sage/20 font-body">
+            <SelectValue />
+          </SelectTrigger>
+          <SelectContent>
+            {REQUEST_STATUS_FILTERS.map((s) => (
+              <SelectItem key={s} value={s} className="font-body capitalize">
+                {s}
+              </SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
+      </CardHeader>
+      <CardContent>
+        {loading ? (
+          <div className="py-12 text-center font-body text-sm text-charcoal/40">Loading requests…</div>
+        ) : rows.length === 0 ? (
+          <div className="py-12 text-center font-body text-sm text-charcoal/40">
+            <CalendarX className="mx-auto mb-3 h-10 w-10 text-charcoal/20" /> No {statusFilter === "all" ? "" : statusFilter} requests.
+          </div>
+        ) : (
+          <div className="overflow-hidden rounded-xl border border-sage/15 bg-white-warm">
+            <ResponsiveTable>
+              <Table>
+                <TableHeader>
+                  <TableRow>
+                    <TableHead>Member</TableHead>
+                    <TableHead>Class</TableHead>
+                    <TableHead className="w-[170px]">Class time</TableHead>
+                    <TableHead>Reason</TableHead>
+                    <TableHead className="w-[120px]">Status</TableHead>
+                    <TableHead className="w-[140px] text-right">Actions</TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  {rows.map((req) => {
+                    const className =
+                      req.class_schedule?.class_model?.name ?? req.booking?.class_name ?? "Class";
+                    const classTime = req.class_schedule?.start_time ?? req.booking?.class_time ?? null;
+                    return (
+                      <TableRow key={req.id}>
+                        <TableCell className="font-body text-sm text-charcoal">
+                          <div className="font-medium">{req.profile?.full_name ?? req.profile?.email ?? "Member"}</div>
+                          {req.profile?.email && (
+                            <div className="font-body text-xs text-charcoal/50">{req.profile.email}</div>
+                          )}
+                        </TableCell>
+                        <TableCell className="font-body text-sm text-charcoal/70">{className}</TableCell>
+                        <TableCell className="font-body text-xs text-charcoal/60">{fmtDateTime(classTime)}</TableCell>
+                        <TableCell className="max-w-[220px] font-body text-xs text-charcoal/60">
+                          {req.reason?.trim() || "—"}
+                        </TableCell>
+                        <TableCell>
+                          {req.status === "open" ? (
+                            <Pill tone="warning" size="sm">Open</Pill>
+                          ) : req.status === "approved" ? (
+                            <Pill tone="success" size="sm">Approved</Pill>
+                          ) : (
+                            <Pill tone="danger" size="sm">Denied</Pill>
+                          )}
+                        </TableCell>
+                        <TableCell className="text-right">
+                          {req.status === "open" ? (
+                            <div className="flex items-center justify-end gap-1">
+                              <Button
+                                type="button"
+                                variant="sage"
+                                size="sm"
+                                disabled={actingId === req.id}
+                                onClick={() => decide(req.id, "approve")}
+                                className="gap-1"
+                              >
+                                {actingId === req.id ? (
+                                  <Loader2 className="h-3.5 w-3.5 animate-spin" />
+                                ) : (
+                                  <Check className="h-3.5 w-3.5" />
+                                )}
+                                Approve
+                              </Button>
+                              <Button
+                                type="button"
+                                variant="ghost"
+                                size="sm"
+                                disabled={actingId === req.id}
+                                onClick={() => decide(req.id, "deny")}
+                                className="gap-1"
+                              >
+                                <X className="h-3.5 w-3.5" /> Deny
+                              </Button>
+                            </div>
+                          ) : (
+                            <span className="font-body text-xs text-charcoal/40">{fmtDateTime(req.decided_at)}</span>
+                          )}
+                        </TableCell>
+                      </TableRow>
+                    );
+                  })}
+                </TableBody>
+              </Table>
+            </ResponsiveTable>
+          </div>
+        )}
+      </CardContent>
+    </Card>
+  );
+}

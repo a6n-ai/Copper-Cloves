@@ -89,9 +89,8 @@ export const PORTAL_CONFIGS: Record<PortalKind, PortalConfig> = {
       {
         label: "System",
         items: [
-          { href: "/admin/settings", label: "Settings", icon: Settings },
           { href: "/admin/activity", label: "Activity Log", icon: ScrollText },
-          { href: "/admin/control", label: "Control", icon: SlidersHorizontal },
+          { href: "/admin/control", label: "Control Panel", icon: SlidersHorizontal },
           { href: "/account", label: "Profile", icon: User },
         ],
       },

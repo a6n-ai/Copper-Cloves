@@ -28,6 +28,8 @@ export type AggregateCoupon = {
 
 export type CouponAvgAggregateOutputType = {
   discount_value: runtime.Decimal | null
+  max_discount_inr: runtime.Decimal | null
+  min_order_inr: runtime.Decimal | null
   max_redemptions: number | null
   redemption_count: number | null
   max_uses_per_user: number | null
@@ -35,6 +37,8 @@ export type CouponAvgAggregateOutputType = {
 
 export type CouponSumAggregateOutputType = {
   discount_value: runtime.Decimal | null
+  max_discount_inr: runtime.Decimal | null
+  min_order_inr: runtime.Decimal | null
   max_redemptions: number | null
   redemption_count: number | null
   max_uses_per_user: number | null
@@ -46,6 +50,8 @@ export type CouponMinAggregateOutputType = {
   applies_to: string | null
   discount_type: string | null
   discount_value: runtime.Decimal | null
+  max_discount_inr: runtime.Decimal | null
+  min_order_inr: runtime.Decimal | null
   is_active: boolean | null
   max_redemptions: number | null
   redemption_count: number | null
@@ -62,6 +68,8 @@ export type CouponMaxAggregateOutputType = {
   applies_to: string | null
   discount_type: string | null
   discount_value: runtime.Decimal | null
+  max_discount_inr: runtime.Decimal | null
+  min_order_inr: runtime.Decimal | null
   is_active: boolean | null
   max_redemptions: number | null
   redemption_count: number | null
@@ -78,6 +86,8 @@ export type CouponCountAggregateOutputType = {
   applies_to: number
   discount_type: number
   discount_value: number
+  max_discount_inr: number
+  min_order_inr: number
   is_active: number
   max_redemptions: number
   redemption_count: number
@@ -92,6 +102,8 @@ export type CouponCountAggregateOutputType = {
 
 export type CouponAvgAggregateInputType = {
   discount_value?: true
+  max_discount_inr?: true
+  min_order_inr?: true
   max_redemptions?: true
   redemption_count?: true
   max_uses_per_user?: true
@@ -99,6 +111,8 @@ export type CouponAvgAggregateInputType = {
 
 export type CouponSumAggregateInputType = {
   discount_value?: true
+  max_discount_inr?: true
+  min_order_inr?: true
   max_redemptions?: true
   redemption_count?: true
   max_uses_per_user?: true
@@ -110,6 +124,8 @@ export type CouponMinAggregateInputType = {
   applies_to?: true
   discount_type?: true
   discount_value?: true
+  max_discount_inr?: true
+  min_order_inr?: true
   is_active?: true
   max_redemptions?: true
   redemption_count?: true
@@ -126,6 +142,8 @@ export type CouponMaxAggregateInputType = {
   applies_to?: true
   discount_type?: true
   discount_value?: true
+  max_discount_inr?: true
+  min_order_inr?: true
   is_active?: true
   max_redemptions?: true
   redemption_count?: true
@@ -142,6 +160,8 @@ export type CouponCountAggregateInputType = {
   applies_to?: true
   discount_type?: true
   discount_value?: true
+  max_discount_inr?: true
+  min_order_inr?: true
   is_active?: true
   max_redemptions?: true
   redemption_count?: true
@@ -245,6 +265,8 @@ export type CouponGroupByOutputType = {
   applies_to: string
   discount_type: string
   discount_value: runtime.Decimal
+  max_discount_inr: runtime.Decimal | null
+  min_order_inr: runtime.Decimal | null
   is_active: boolean
   max_redemptions: number | null
   redemption_count: number
@@ -284,6 +306,8 @@ export type CouponWhereInput = {
   applies_to?: Prisma.StringFilter<"Coupon"> | string
   discount_type?: Prisma.StringFilter<"Coupon"> | string
   discount_value?: Prisma.DecimalFilter<"Coupon"> | runtime.Decimal | runtime.DecimalJsLike | number | string
+  max_discount_inr?: Prisma.DecimalNullableFilter<"Coupon"> | runtime.Decimal | runtime.DecimalJsLike | number | string | null
+  min_order_inr?: Prisma.DecimalNullableFilter<"Coupon"> | runtime.Decimal | runtime.DecimalJsLike | number | string | null
   is_active?: Prisma.BoolFilter<"Coupon"> | boolean
   max_redemptions?: Prisma.IntNullableFilter<"Coupon"> | number | null
   redemption_count?: Prisma.IntFilter<"Coupon"> | number
@@ -304,6 +328,8 @@ export type CouponOrderByWithRelationInput = {
   applies_to?: Prisma.SortOrder
   discount_type?: Prisma.SortOrder
   discount_value?: Prisma.SortOrder
+  max_discount_inr?: Prisma.SortOrderInput | Prisma.SortOrder
+  min_order_inr?: Prisma.SortOrderInput | Prisma.SortOrder
   is_active?: Prisma.SortOrder
   max_redemptions?: Prisma.SortOrderInput | Prisma.SortOrder
   redemption_count?: Prisma.SortOrder
@@ -327,6 +353,8 @@ export type CouponWhereUniqueInput = Prisma.AtLeast<{
   applies_to?: Prisma.StringFilter<"Coupon"> | string
   discount_type?: Prisma.StringFilter<"Coupon"> | string
   discount_value?: Prisma.DecimalFilter<"Coupon"> | runtime.Decimal | runtime.DecimalJsLike | number | string
+  max_discount_inr?: Prisma.DecimalNullableFilter<"Coupon"> | runtime.Decimal | runtime.DecimalJsLike | number | string | null
+  min_order_inr?: Prisma.DecimalNullableFilter<"Coupon"> | runtime.Decimal | runtime.DecimalJsLike | number | string | null
   is_active?: Prisma.BoolFilter<"Coupon"> | boolean
   max_redemptions?: Prisma.IntNullableFilter<"Coupon"> | number | null
   redemption_count?: Prisma.IntFilter<"Coupon"> | number
@@ -347,6 +375,8 @@ export type CouponOrderByWithAggregationInput = {
   applies_to?: Prisma.SortOrder
   discount_type?: Prisma.SortOrder
   discount_value?: Prisma.SortOrder
+  max_discount_inr?: Prisma.SortOrderInput | Prisma.SortOrder
+  min_order_inr?: Prisma.SortOrderInput | Prisma.SortOrder
   is_active?: Prisma.SortOrder
   max_redemptions?: Prisma.SortOrderInput | Prisma.SortOrder
   redemption_count?: Prisma.SortOrder
@@ -371,6 +401,8 @@ export type CouponScalarWhereWithAggregatesInput = {
   applies_to?: Prisma.StringWithAggregatesFilter<"Coupon"> | string
   discount_type?: Prisma.StringWithAggregatesFilter<"Coupon"> | string
   discount_value?: Prisma.DecimalWithAggregatesFilter<"Coupon"> | runtime.Decimal | runtime.DecimalJsLike | number | string
+  max_discount_inr?: Prisma.DecimalNullableWithAggregatesFilter<"Coupon"> | runtime.Decimal | runtime.DecimalJsLike | number | string | null
+  min_order_inr?: Prisma.DecimalNullableWithAggregatesFilter<"Coupon"> | runtime.Decimal | runtime.DecimalJsLike | number | string | null
   is_active?: Prisma.BoolWithAggregatesFilter<"Coupon"> | boolean
   max_redemptions?: Prisma.IntNullableWithAggregatesFilter<"Coupon"> | number | null
   redemption_count?: Prisma.IntWithAggregatesFilter<"Coupon"> | number
@@ -387,6 +419,8 @@ export type CouponCreateInput = {
   applies_to: string
   discount_type: string
   discount_value: runtime.Decimal | runtime.DecimalJsLike | number | string
+  max_discount_inr?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
+  min_order_inr?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
   is_active?: boolean
   max_redemptions?: number | null
   redemption_count?: number
@@ -407,6 +441,8 @@ export type CouponUncheckedCreateInput = {
   applies_to: string
   discount_type: string
   discount_value: runtime.Decimal | runtime.DecimalJsLike | number | string
+  max_discount_inr?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
+  min_order_inr?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
   is_active?: boolean
   max_redemptions?: number | null
   redemption_count?: number
@@ -427,6 +463,8 @@ export type CouponUpdateInput = {
   applies_to?: Prisma.StringFieldUpdateOperationsInput | string
   discount_type?: Prisma.StringFieldUpdateOperationsInput | string
   discount_value?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
+  max_discount_inr?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
+  min_order_inr?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
   is_active?: Prisma.BoolFieldUpdateOperationsInput | boolean
   max_redemptions?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   redemption_count?: Prisma.IntFieldUpdateOperationsInput | number
@@ -447,6 +485,8 @@ export type CouponUncheckedUpdateInput = {
   applies_to?: Prisma.StringFieldUpdateOperationsInput | string
   discount_type?: Prisma.StringFieldUpdateOperationsInput | string
   discount_value?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
+  max_discount_inr?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
+  min_order_inr?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
   is_active?: Prisma.BoolFieldUpdateOperationsInput | boolean
   max_redemptions?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   redemption_count?: Prisma.IntFieldUpdateOperationsInput | number
@@ -467,6 +507,8 @@ export type CouponCreateManyInput = {
   applies_to: string
   discount_type: string
   discount_value: runtime.Decimal | runtime.DecimalJsLike | number | string
+  max_discount_inr?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
+  min_order_inr?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
   is_active?: boolean
   max_redemptions?: number | null
   redemption_count?: number
@@ -483,6 +525,8 @@ export type CouponUpdateManyMutationInput = {
   applies_to?: Prisma.StringFieldUpdateOperationsInput | string
   discount_type?: Prisma.StringFieldUpdateOperationsInput | string
   discount_value?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
+  max_discount_inr?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
+  min_order_inr?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
   is_active?: Prisma.BoolFieldUpdateOperationsInput | boolean
   max_redemptions?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   redemption_count?: Prisma.IntFieldUpdateOperationsInput | number
@@ -499,6 +543,8 @@ export type CouponUncheckedUpdateManyInput = {
   applies_to?: Prisma.StringFieldUpdateOperationsInput | string
   discount_type?: Prisma.StringFieldUpdateOperationsInput | string
   discount_value?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
+  max_discount_inr?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
+  min_order_inr?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
   is_active?: Prisma.BoolFieldUpdateOperationsInput | boolean
   max_redemptions?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   redemption_count?: Prisma.IntFieldUpdateOperationsInput | number
@@ -515,6 +561,8 @@ export type CouponCountOrderByAggregateInput = {
   applies_to?: Prisma.SortOrder
   discount_type?: Prisma.SortOrder
   discount_value?: Prisma.SortOrder
+  max_discount_inr?: Prisma.SortOrder
+  min_order_inr?: Prisma.SortOrder
   is_active?: Prisma.SortOrder
   max_redemptions?: Prisma.SortOrder
   redemption_count?: Prisma.SortOrder
@@ -527,6 +575,8 @@ export type CouponCountOrderByAggregateInput = {
 
 export type CouponAvgOrderByAggregateInput = {
   discount_value?: Prisma.SortOrder
+  max_discount_inr?: Prisma.SortOrder
+  min_order_inr?: Prisma.SortOrder
   max_redemptions?: Prisma.SortOrder
   redemption_count?: Prisma.SortOrder
   max_uses_per_user?: Prisma.SortOrder
@@ -538,6 +588,8 @@ export type CouponMaxOrderByAggregateInput = {
   applies_to?: Prisma.SortOrder
   discount_type?: Prisma.SortOrder
   discount_value?: Prisma.SortOrder
+  max_discount_inr?: Prisma.SortOrder
+  min_order_inr?: Prisma.SortOrder
   is_active?: Prisma.SortOrder
   max_redemptions?: Prisma.SortOrder
   redemption_count?: Prisma.SortOrder
@@ -554,6 +606,8 @@ export type CouponMinOrderByAggregateInput = {
   applies_to?: Prisma.SortOrder
   discount_type?: Prisma.SortOrder
   discount_value?: Prisma.SortOrder
+  max_discount_inr?: Prisma.SortOrder
+  min_order_inr?: Prisma.SortOrder
   is_active?: Prisma.SortOrder
   max_redemptions?: Prisma.SortOrder
   redemption_count?: Prisma.SortOrder
@@ -566,6 +620,8 @@ export type CouponMinOrderByAggregateInput = {
 
 export type CouponSumOrderByAggregateInput = {
   discount_value?: Prisma.SortOrder
+  max_discount_inr?: Prisma.SortOrder
+  min_order_inr?: Prisma.SortOrder
   max_redemptions?: Prisma.SortOrder
   redemption_count?: Prisma.SortOrder
   max_uses_per_user?: Prisma.SortOrder
@@ -583,6 +639,14 @@ export type CouponNullableScalarRelationFilter = {
 
 export type DecimalFieldUpdateOperationsInput = {
   set?: runtime.Decimal | runtime.DecimalJsLike | number | string
+  increment?: runtime.Decimal | runtime.DecimalJsLike | number | string
+  decrement?: runtime.Decimal | runtime.DecimalJsLike | number | string
+  multiply?: runtime.Decimal | runtime.DecimalJsLike | number | string
+  divide?: runtime.Decimal | runtime.DecimalJsLike | number | string
+}
+
+export type NullableDecimalFieldUpdateOperationsInput = {
+  set?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
   increment?: runtime.Decimal | runtime.DecimalJsLike | number | string
   decrement?: runtime.Decimal | runtime.DecimalJsLike | number | string
   multiply?: runtime.Decimal | runtime.DecimalJsLike | number | string
@@ -665,6 +729,8 @@ export type CouponCreateWithoutRedemptionsInput = {
   applies_to: string
   discount_type: string
   discount_value: runtime.Decimal | runtime.DecimalJsLike | number | string
+  max_discount_inr?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
+  min_order_inr?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
   is_active?: boolean
   max_redemptions?: number | null
   redemption_count?: number
@@ -684,6 +750,8 @@ export type CouponUncheckedCreateWithoutRedemptionsInput = {
   applies_to: string
   discount_type: string
   discount_value: runtime.Decimal | runtime.DecimalJsLike | number | string
+  max_discount_inr?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
+  min_order_inr?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
   is_active?: boolean
   max_redemptions?: number | null
   redemption_count?: number
@@ -719,6 +787,8 @@ export type CouponUpdateWithoutRedemptionsInput = {
   applies_to?: Prisma.StringFieldUpdateOperationsInput | string
   discount_type?: Prisma.StringFieldUpdateOperationsInput | string
   discount_value?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
+  max_discount_inr?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
+  min_order_inr?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
   is_active?: Prisma.BoolFieldUpdateOperationsInput | boolean
   max_redemptions?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   redemption_count?: Prisma.IntFieldUpdateOperationsInput | number
@@ -738,6 +808,8 @@ export type CouponUncheckedUpdateWithoutRedemptionsInput = {
   applies_to?: Prisma.StringFieldUpdateOperationsInput | string
   discount_type?: Prisma.StringFieldUpdateOperationsInput | string
   discount_value?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
+  max_discount_inr?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
+  min_order_inr?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
   is_active?: Prisma.BoolFieldUpdateOperationsInput | boolean
   max_redemptions?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   redemption_count?: Prisma.IntFieldUpdateOperationsInput | number
@@ -757,6 +829,8 @@ export type CouponCreateWithoutRetail_ordersInput = {
   applies_to: string
   discount_type: string
   discount_value: runtime.Decimal | runtime.DecimalJsLike | number | string
+  max_discount_inr?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
+  min_order_inr?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
   is_active?: boolean
   max_redemptions?: number | null
   redemption_count?: number
@@ -776,6 +850,8 @@ export type CouponUncheckedCreateWithoutRetail_ordersInput = {
   applies_to: string
   discount_type: string
   discount_value: runtime.Decimal | runtime.DecimalJsLike | number | string
+  max_discount_inr?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
+  min_order_inr?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
   is_active?: boolean
   max_redemptions?: number | null
   redemption_count?: number
@@ -811,6 +887,8 @@ export type CouponUpdateWithoutRetail_ordersInput = {
   applies_to?: Prisma.StringFieldUpdateOperationsInput | string
   discount_type?: Prisma.StringFieldUpdateOperationsInput | string
   discount_value?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
+  max_discount_inr?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
+  min_order_inr?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
   is_active?: Prisma.BoolFieldUpdateOperationsInput | boolean
   max_redemptions?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   redemption_count?: Prisma.IntFieldUpdateOperationsInput | number
@@ -830,6 +908,8 @@ export type CouponUncheckedUpdateWithoutRetail_ordersInput = {
   applies_to?: Prisma.StringFieldUpdateOperationsInput | string
   discount_type?: Prisma.StringFieldUpdateOperationsInput | string
   discount_value?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
+  max_discount_inr?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
+  min_order_inr?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
   is_active?: Prisma.BoolFieldUpdateOperationsInput | boolean
   max_redemptions?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   redemption_count?: Prisma.IntFieldUpdateOperationsInput | number
@@ -849,6 +929,8 @@ export type CouponCreateWithoutUser_packagesInput = {
   applies_to: string
   discount_type: string
   discount_value: runtime.Decimal | runtime.DecimalJsLike | number | string
+  max_discount_inr?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
+  min_order_inr?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
   is_active?: boolean
   max_redemptions?: number | null
   redemption_count?: number
@@ -868,6 +950,8 @@ export type CouponUncheckedCreateWithoutUser_packagesInput = {
   applies_to: string
   discount_type: string
   discount_value: runtime.Decimal | runtime.DecimalJsLike | number | string
+  max_discount_inr?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
+  min_order_inr?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
   is_active?: boolean
   max_redemptions?: number | null
   redemption_count?: number
@@ -903,6 +987,8 @@ export type CouponUpdateWithoutUser_packagesInput = {
   applies_to?: Prisma.StringFieldUpdateOperationsInput | string
   discount_type?: Prisma.StringFieldUpdateOperationsInput | string
   discount_value?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
+  max_discount_inr?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
+  min_order_inr?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
   is_active?: Prisma.BoolFieldUpdateOperationsInput | boolean
   max_redemptions?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   redemption_count?: Prisma.IntFieldUpdateOperationsInput | number
@@ -922,6 +1008,8 @@ export type CouponUncheckedUpdateWithoutUser_packagesInput = {
   applies_to?: Prisma.StringFieldUpdateOperationsInput | string
   discount_type?: Prisma.StringFieldUpdateOperationsInput | string
   discount_value?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
+  max_discount_inr?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
+  min_order_inr?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
   is_active?: Prisma.BoolFieldUpdateOperationsInput | boolean
   max_redemptions?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   redemption_count?: Prisma.IntFieldUpdateOperationsInput | number
@@ -941,6 +1029,8 @@ export type CouponCreateWithoutCafe_ordersInput = {
   applies_to: string
   discount_type: string
   discount_value: runtime.Decimal | runtime.DecimalJsLike | number | string
+  max_discount_inr?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
+  min_order_inr?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
   is_active?: boolean
   max_redemptions?: number | null
   redemption_count?: number
@@ -960,6 +1050,8 @@ export type CouponUncheckedCreateWithoutCafe_ordersInput = {
   applies_to: string
   discount_type: string
   discount_value: runtime.Decimal | runtime.DecimalJsLike | number | string
+  max_discount_inr?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
+  min_order_inr?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
   is_active?: boolean
   max_redemptions?: number | null
   redemption_count?: number
@@ -995,6 +1087,8 @@ export type CouponUpdateWithoutCafe_ordersInput = {
   applies_to?: Prisma.StringFieldUpdateOperationsInput | string
   discount_type?: Prisma.StringFieldUpdateOperationsInput | string
   discount_value?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
+  max_discount_inr?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
+  min_order_inr?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
   is_active?: Prisma.BoolFieldUpdateOperationsInput | boolean
   max_redemptions?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   redemption_count?: Prisma.IntFieldUpdateOperationsInput | number
@@ -1014,6 +1108,8 @@ export type CouponUncheckedUpdateWithoutCafe_ordersInput = {
   applies_to?: Prisma.StringFieldUpdateOperationsInput | string
   discount_type?: Prisma.StringFieldUpdateOperationsInput | string
   discount_value?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
+  max_discount_inr?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
+  min_order_inr?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
   is_active?: Prisma.BoolFieldUpdateOperationsInput | boolean
   max_redemptions?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   redemption_count?: Prisma.IntFieldUpdateOperationsInput | number
@@ -1091,6 +1187,8 @@ export type CouponSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs =
   applies_to?: boolean
   discount_type?: boolean
   discount_value?: boolean
+  max_discount_inr?: boolean
+  min_order_inr?: boolean
   is_active?: boolean
   max_redemptions?: boolean
   redemption_count?: boolean
@@ -1112,6 +1210,8 @@ export type CouponSelectCreateManyAndReturn<ExtArgs extends runtime.Types.Extens
   applies_to?: boolean
   discount_type?: boolean
   discount_value?: boolean
+  max_discount_inr?: boolean
+  min_order_inr?: boolean
   is_active?: boolean
   max_redemptions?: boolean
   redemption_count?: boolean
@@ -1128,6 +1228,8 @@ export type CouponSelectUpdateManyAndReturn<ExtArgs extends runtime.Types.Extens
   applies_to?: boolean
   discount_type?: boolean
   discount_value?: boolean
+  max_discount_inr?: boolean
+  min_order_inr?: boolean
   is_active?: boolean
   max_redemptions?: boolean
   redemption_count?: boolean
@@ -1144,6 +1246,8 @@ export type CouponSelectScalar = {
   applies_to?: boolean
   discount_type?: boolean
   discount_value?: boolean
+  max_discount_inr?: boolean
+  min_order_inr?: boolean
   is_active?: boolean
   max_redemptions?: boolean
   redemption_count?: boolean
@@ -1154,7 +1258,7 @@ export type CouponSelectScalar = {
   updated_at?: boolean
 }
 
-export type CouponOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "code" | "applies_to" | "discount_type" | "discount_value" | "is_active" | "max_redemptions" | "redemption_count" | "max_uses_per_user" | "starts_at" | "ends_at" | "created_at" | "updated_at", ExtArgs["result"]["coupon"]>
+export type CouponOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "code" | "applies_to" | "discount_type" | "discount_value" | "max_discount_inr" | "min_order_inr" | "is_active" | "max_redemptions" | "redemption_count" | "max_uses_per_user" | "starts_at" | "ends_at" | "created_at" | "updated_at", ExtArgs["result"]["coupon"]>
 export type CouponInclude<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   redemptions?: boolean | Prisma.Coupon$redemptionsArgs<ExtArgs>
   cafe_orders?: boolean | Prisma.Coupon$cafe_ordersArgs<ExtArgs>
@@ -1179,6 +1283,14 @@ export type $CouponPayload<ExtArgs extends runtime.Types.Extensions.InternalArgs
     applies_to: string
     discount_type: string
     discount_value: runtime.Decimal
+    /**
+     * Cap the rupee discount this coupon can apply (e.g. 50% off, max ₹500). Null = no cap. Applies to percent and fixed.
+     */
+    max_discount_inr: runtime.Decimal | null
+    /**
+     * Minimum order subtotal (INR) required for the coupon to apply. Null = no minimum.
+     */
+    min_order_inr: runtime.Decimal | null
     is_active: boolean
     max_redemptions: number | null
     redemption_count: number
@@ -1619,6 +1731,8 @@ export interface CouponFieldRefs {
   readonly applies_to: Prisma.FieldRef<"Coupon", 'String'>
   readonly discount_type: Prisma.FieldRef<"Coupon", 'String'>
   readonly discount_value: Prisma.FieldRef<"Coupon", 'Decimal'>
+  readonly max_discount_inr: Prisma.FieldRef<"Coupon", 'Decimal'>
+  readonly min_order_inr: Prisma.FieldRef<"Coupon", 'Decimal'>
   readonly is_active: Prisma.FieldRef<"Coupon", 'Boolean'>
   readonly max_redemptions: Prisma.FieldRef<"Coupon", 'Int'>
   readonly redemption_count: Prisma.FieldRef<"Coupon", 'Int'>

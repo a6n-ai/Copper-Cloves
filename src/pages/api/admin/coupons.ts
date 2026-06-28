@@ -46,6 +46,21 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       return res.status(400).json({ error: "Percent cannot exceed 100" });
     }
 
+    const maxDiscountInr =
+      body.max_discount_inr === "" || body.max_discount_inr == null
+        ? null
+        : Math.max(0, Number(body.max_discount_inr));
+    if (maxDiscountInr != null && !Number.isFinite(maxDiscountInr)) {
+      return res.status(400).json({ error: "Invalid max_discount_inr" });
+    }
+    const minOrderInr =
+      body.min_order_inr === "" || body.min_order_inr == null
+        ? null
+        : Math.max(0, Number(body.min_order_inr));
+    if (minOrderInr != null && !Number.isFinite(minOrderInr)) {
+      return res.status(400).json({ error: "Invalid min_order_inr" });
+    }
+
     const maxRedemptions =
       body.max_redemptions === "" || body.max_redemptions == null
         ? null
@@ -74,6 +89,8 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
           discount_type: discountType,
           discount_value: discountValue,
           is_active: Boolean(body.is_active ?? true),
+          max_discount_inr: maxDiscountInr,
+          min_order_inr: minOrderInr,
           max_redemptions: maxRedemptions,
           max_uses_per_user: maxUsesPerUser,
           starts_at: startsAt,
@@ -113,6 +130,24 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       data.discount_value = dv;
     }
     if (body.is_active != null) data.is_active = Boolean(body.is_active);
+    if (body.max_discount_inr !== undefined) {
+      if (body.max_discount_inr === "" || body.max_discount_inr == null) {
+        data.max_discount_inr = null;
+      } else {
+        const v = Math.max(0, Number(body.max_discount_inr));
+        if (!Number.isFinite(v)) return res.status(400).json({ error: "Invalid max_discount_inr" });
+        data.max_discount_inr = v;
+      }
+    }
+    if (body.min_order_inr !== undefined) {
+      if (body.min_order_inr === "" || body.min_order_inr == null) {
+        data.min_order_inr = null;
+      } else {
+        const v = Math.max(0, Number(body.min_order_inr));
+        if (!Number.isFinite(v)) return res.status(400).json({ error: "Invalid min_order_inr" });
+        data.min_order_inr = v;
+      }
+    }
     if (body.max_redemptions !== undefined) {
       data.max_redemptions =
         body.max_redemptions === "" || body.max_redemptions == null

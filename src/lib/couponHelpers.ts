@@ -157,9 +157,17 @@ export async function validateAndComputeCoupon(
     return { error: "This coupon has reached its usage limit" };
   }
 
+  const minOrder = toFiniteNumber(coupon.min_order_inr);
+  if (Number.isFinite(minOrder) && minOrder > 0 && subtotalInr < minOrder) {
+    return { error: `This coupon needs a minimum order of ₹${Math.round(minOrder)}` };
+  }
+
   const dtype = normalizeDiscountType(coupon.discount_type);
   if (!dtype) return { error: "This coupon has an invalid discount type" };
-  const discountInr = computeDiscountInr(subtotalInr, dtype, coupon.discount_value);
+  let discountInr = computeDiscountInr(subtotalInr, dtype, coupon.discount_value);
+  // Cap the rupee discount if the coupon sets a ceiling (applies to percent and fixed).
+  const cap = toFiniteNumber(coupon.max_discount_inr);
+  if (Number.isFinite(cap) && cap >= 0) discountInr = Math.min(discountInr, cap);
   if (discountInr <= 0) return { error: "This coupon does not reduce this order" };
 
   const perUserError = await checkCouponPerUserLimit(db, coupon, opts);

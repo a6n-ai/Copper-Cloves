@@ -21,6 +21,8 @@ export interface Coupon {
   discount_type: string;
   discount_value: unknown;
   is_active: boolean;
+  max_discount_inr: unknown;
+  min_order_inr: unknown;
   max_redemptions: number | null;
   redemption_count: number;
   max_uses_per_user: number | null;
@@ -34,6 +36,8 @@ export interface CouponDraft {
   discount_type: string;
   discount_value: string;
   is_active: boolean;
+  max_discount_inr: string;
+  min_order_inr: string;
   max_redemptions: string;
   max_uses_per_user: string;
   starts_at: string;
@@ -170,6 +174,32 @@ function PricingTabImpl({
               </div>
               <div className="grid grid-cols-2 gap-3">
                 <div>
+                  <Label className="font-body text-charcoal">
+                    Max discount ₹ {draft.discount_type === "percent" ? "(cap)" : "(optional)"}
+                  </Label>
+                  <Input
+                    type="number"
+                    min={0}
+                    placeholder="No cap"
+                    value={draft.max_discount_inr}
+                    onChange={(e) => onDraftChange({ ...draft, max_discount_inr: e.target.value })}
+                    className="border-sage/20 mt-1"
+                  />
+                </div>
+                <div>
+                  <Label className="font-body text-charcoal">Min order ₹ (optional)</Label>
+                  <Input
+                    type="number"
+                    min={0}
+                    placeholder="No minimum"
+                    value={draft.min_order_inr}
+                    onChange={(e) => onDraftChange({ ...draft, min_order_inr: e.target.value })}
+                    className="border-sage/20 mt-1"
+                  />
+                </div>
+              </div>
+              <div className="grid grid-cols-2 gap-3">
+                <div>
                   <Label className="font-body text-charcoal">Max uses (total)</Label>
                   <Input
                     placeholder="Unlimited"
@@ -237,8 +267,15 @@ function PricingTabImpl({
             <div className="rounded-xl bg-white-warm border border-sage/10 p-4">
               <p className="font-body text-sm text-charcoal/70 leading-relaxed">
                 Fixed amount never exceeds cart or package subtotal. Percent is capped at 100%.
-                Café and boutique prices are taken from the database at checkout so codes cannot be abused with
-                fake totals. Package coupons match studio vs class pass automatically.
+                <span className="block mt-2">
+                  <strong className="text-charcoal">Max discount</strong> caps the rupees taken off (e.g. 50% off,
+                  max ₹500). <strong className="text-charcoal">Min order</strong> requires a subtotal threshold before
+                  the code applies. Both optional.
+                </span>
+                <span className="block mt-2">
+                  Café and boutique prices are taken from the database at checkout so codes cannot be abused with
+                  fake totals. Package coupons match studio vs class pass automatically. One coupon per order.
+                </span>
               </p>
             </div>
           </div>
@@ -273,6 +310,13 @@ function PricingTabImpl({
                           </TableCell>
                           <TableCell className="font-body text-sm text-charcoal">
                             {c.discount_type === "percent" ? `${c.discount_value}%` : `₹${c.discount_value}`}
+                            {(c.max_discount_inr != null || c.min_order_inr != null) && (
+                              <span className="block text-xs text-charcoal/45">
+                                {c.max_discount_inr != null ? `max ₹${c.max_discount_inr}` : ""}
+                                {c.max_discount_inr != null && c.min_order_inr != null ? " · " : ""}
+                                {c.min_order_inr != null ? `min order ₹${c.min_order_inr}` : ""}
+                              </span>
+                            )}
                           </TableCell>
                           <TableCell className="font-body text-sm text-charcoal/80 tabular-nums">
                             {c.redemption_count}

@@ -3938,6 +3938,8 @@ export const CouponScalarFieldEnum = {
   applies_to: 'applies_to',
   discount_type: 'discount_type',
   discount_value: 'discount_value',
+  max_discount_inr: 'max_discount_inr',
+  min_order_inr: 'min_order_inr',
   is_active: 'is_active',
   max_redemptions: 'max_redemptions',
   redemption_count: 'redemption_count',

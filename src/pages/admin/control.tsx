@@ -21,7 +21,7 @@ import { EditButton, DeleteButton } from "@/components/ui/quick-actions";
 import { MemberTable, type MemberTableMember } from "@/components/admin/MemberTable";
 import { Pill } from "@/components/ui/pill";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Select, SelectContent, SelectGroup, SelectItem, SelectLabel, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Input } from "@/components/ui/input";
 import { DatePicker, FilterBar, FilterSearch, FilterSelect } from "@/components/filters";
 import { Textarea } from "@/components/ui/textarea";
@@ -53,6 +53,10 @@ import {
   ListFilter,
   Power,
   PowerOff,
+  Package,
+  Ticket,
+  Settings2,
+  CalendarX2,
 } from "lucide-react";
 import { SEO } from "@/components/SEO";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -69,6 +73,41 @@ import { Pagination, usePagination } from "@/components/Pagination";
 import { cdnUrl } from "@/lib/cdnUrl";
 import { passCategoryForPackageType } from "@/lib/couponHelpers";
 import { toast } from "sonner";
+import PackageCatalogTab from "@/components/admin/control-tabs/PackageCatalogTab";
+import StudioSettingsTab from "@/components/admin/control-tabs/StudioSettingsTab";
+import CancellationsTab from "@/components/admin/control-tabs/CancellationsTab";
+import CouponsTab from "@/components/admin/control-tabs/CouponsTab";
+
+/** Control Panel section nav — grouped vertical rail (desktop) / grouped select (mobile). */
+const CONTROL_NAV: { label: string; items: { value: string; label: string; icon: typeof Users }[] }[] = [
+  {
+    label: "Members",
+    items: [
+      { value: "users", label: "Members", icon: Users },
+      { value: "pauses", label: "Pause Requests", icon: Clock },
+      { value: "cancellations", label: "Cancellations", icon: CalendarX2 },
+    ],
+  },
+  {
+    label: "Classes",
+    items: [{ value: "classes", label: "Classes", icon: Calendar }],
+  },
+  {
+    label: "Catalog",
+    items: [
+      { value: "packages", label: "Packages", icon: Package },
+      { value: "coupons", label: "Coupons", icon: Ticket },
+    ],
+  },
+  {
+    label: "Studio",
+    items: [{ value: "studio", label: "Studio Settings", icon: Settings2 }],
+  },
+  {
+    label: "Insights",
+    items: [{ value: "analytics", label: "Analytics", icon: BarChart3 }],
+  },
+];
 
 /** Member list cards — mirrors the avatar + name/contact + pass badge + dates + actions row. */
 function UserListSkeleton({ rows = 6 }: { rows?: number }) {
@@ -300,7 +339,10 @@ const thBtn = "inline-flex items-center gap-1 hover:text-charcoal transition-col
 export default function ControlPanel() {
   const router = useRouter();
   const [loading, setLoading] = useState(true);
-  const [activeTab, setActiveTab] = useTabQuery(["users", "pauses", "classes", "instructors", "analytics"], "users");
+  const [activeTab, setActiveTab] = useTabQuery(
+    ["users", "pauses", "classes", "instructors", "analytics", "packages", "coupons", "studio", "cancellations"],
+    "users",
+  );
 
   // Sync activeTab with ?tab= query so sidebar links can deep-link into a tab.
   useEffect(() => {
@@ -1151,34 +1193,70 @@ export default function ControlPanel() {
           <div className="max-w-7xl mx-auto p-6 lg:p-8 space-y-8">
             <AdminPageHeader
               title="Control Panel"
-              subtitle="Manage users, classes, and instructors."
+              subtitle="Members, classes, catalog, coupons, and studio settings."
             />
 
             {/* Tabs */}
-            <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">
-              <TabsList className="bg-white-warm border border-sage/20 p-1">
-                <TabsTrigger value="users" className="data-[state=active]:bg-sage data-[state=active]:text-cream font-body">
-                  <Users className="h-4 w-4 mr-2" />
-                  User Management
-                </TabsTrigger>
-                <TabsTrigger value="pauses" className="data-[state=active]:bg-sage data-[state=active]:text-cream font-body">
-                  <Clock className="h-4 w-4 mr-2" />
-                  Pause Requests
-                  {pauseTickets.filter((t) => t.status === "open").length > 0 && (
-                    <Pill tone="warning" size="sm" className="ml-2">
-                      {pauseTickets.filter((t) => t.status === "open").length}
-                    </Pill>
-                  )}
-                </TabsTrigger>
-                <TabsTrigger value="classes" className="data-[state=active]:bg-sage data-[state=active]:text-cream font-body">
-                  <Calendar className="h-4 w-4 mr-2" />
-                  Class Management
-                </TabsTrigger>
-                <TabsTrigger value="analytics" className="data-[state=active]:bg-sage data-[state=active]:text-cream font-body">
-                  <BarChart3 className="h-4 w-4 mr-2" />
-                  Analytics
-                </TabsTrigger>
-              </TabsList>
+            <Tabs value={activeTab} onValueChange={setActiveTab}>
+              <div className="lg:grid lg:grid-cols-[224px_minmax(0,1fr)] lg:gap-8">
+                {/* Section nav */}
+                <aside className="mb-6 lg:mb-0 lg:sticky lg:top-6 lg:self-start">
+                  {/* Phone / tablet: grouped select */}
+                  <div className="lg:hidden">
+                    <Select value={activeTab} onValueChange={setActiveTab}>
+                      <SelectTrigger className="w-full bg-white-warm border-sage/20 font-body" aria-label="Control Panel section">
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {CONTROL_NAV.map((group) => (
+                          <SelectGroup key={group.label}>
+                            <SelectLabel className="font-body text-xs uppercase tracking-wider text-charcoal/40">
+                              {group.label}
+                            </SelectLabel>
+                            {group.items.map((it) => (
+                              <SelectItem key={it.value} value={it.value} className="font-body">
+                                {it.label}
+                              </SelectItem>
+                            ))}
+                          </SelectGroup>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
+                  {/* Desktop: grouped vertical rail */}
+                  <TabsList className="hidden lg:flex lg:flex-col h-auto w-full items-stretch gap-0.5 bg-transparent p-0">
+                    {CONTROL_NAV.map((group) => (
+                      <div key={group.label} className="mb-3 w-full">
+                        <p className="px-3 pb-1 font-body text-[11px] font-semibold uppercase tracking-wider text-charcoal/40">
+                          {group.label}
+                        </p>
+                        {group.items.map((it) => {
+                          const Icon = it.icon;
+                          const openPauses =
+                            it.value === "pauses" ? pauseTickets.filter((t) => t.status === "open").length : 0;
+                          return (
+                            <TabsTrigger
+                              key={it.value}
+                              value={it.value}
+                              className="w-full cursor-pointer justify-start gap-2.5 rounded-lg px-3 py-2 font-body text-charcoal/70 transition-colors duration-200 hover:bg-sage/10 data-[state=active]:bg-sage data-[state=active]:text-cream data-[state=active]:shadow-sm"
+                            >
+                              <Icon className="h-4 w-4 shrink-0" />
+                              <span className="flex-1 text-left">{it.label}</span>
+                              {openPauses > 0 && (
+                                <Pill tone="warning" size="sm">
+                                  {openPauses}
+                                </Pill>
+                              )}
+                            </TabsTrigger>
+                          );
+                        })}
+                      </div>
+                    ))}
+                  </TabsList>
+                </aside>
+
+                {/* Content column */}
+                <div className="min-w-0 space-y-6">
 
               {/* USER MANAGEMENT TAB */}
               <TabsContent value="users" className="space-y-6">
@@ -1589,6 +1667,28 @@ export default function ControlPanel() {
               <TabsContent value="analytics" className="space-y-6">
                 <ControlAnalyticsPanel />
               </TabsContent>
+
+              {/* PACKAGES TAB (moved from Settings) */}
+              <TabsContent value="packages" className="space-y-6">
+                <PackageCatalogTab />
+              </TabsContent>
+
+              {/* COUPONS TAB (moved from Dashboard) */}
+              <TabsContent value="coupons" className="space-y-6">
+                <CouponsTab />
+              </TabsContent>
+
+              {/* STUDIO SETTINGS TAB (moved from Settings) */}
+              <TabsContent value="studio" className="space-y-6">
+                <StudioSettingsTab />
+              </TabsContent>
+
+              {/* CANCELLATIONS TAB (moved from Settings) */}
+              <TabsContent value="cancellations" className="space-y-6">
+                <CancellationsTab />
+              </TabsContent>
+                </div>
+              </div>
             </Tabs>
 
           </div>
