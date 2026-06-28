@@ -532,10 +532,6 @@ function MemberBody({
             </div>
           </div>
           <div className="flex flex-col gap-2 md:items-end">
-            <Button variant="sage" onClick={() => setManageOpen(true)} className="font-body w-full md:w-auto">
-              <CreditCard className="h-4 w-4 mr-1.5" />
-              Manage pass / payment
-            </Button>
             <div className="flex gap-2">
               <Button
                 variant="outline"
@@ -781,6 +777,13 @@ function MemberBody({
                     <RailRow label="Remaining" value={member.unlimited ? "Unlimited" : `${member.credits} classes`} />
                     <RailRow label="Expires" value={member.expiry ? fmtDate(member.expiry) : "—"} />
                   </dl>
+                  <Button
+                    variant="outline"
+                    onClick={() => setManageOpen(true)}
+                    className="font-body w-full border-sage/30 text-sage hover:bg-sage hover:text-cream"
+                  >
+                    <CreditCard className="h-4 w-4 mr-1.5" /> Manage / record payment
+                  </Button>
                 </div>
               ) : (
                 <div className="space-y-3">
