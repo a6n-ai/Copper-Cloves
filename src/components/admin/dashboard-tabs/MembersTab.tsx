@@ -313,7 +313,7 @@ function MembersTabImpl({
         </Card>
       </div>
 
-      <Card className="border-sage/20 bg-sage/5">
+      <Card className="border-sage/20 bg-white-warm">
         <CardHeader>
           <div className="flex items-center justify-between">
             <div>
@@ -327,7 +327,7 @@ function MembersTabImpl({
           </div>
         </CardHeader>
         <CardContent>
-          <div className="flex flex-wrap items-center gap-6 p-6 rounded-xl bg-white-warm border border-sage/20">
+          <div className="flex flex-wrap items-center gap-6">
             <div className="h-20 w-20 rounded-full bg-sage/10 flex items-center justify-center">
               <Star className="h-10 w-10 text-sage" />
             </div>
@@ -344,13 +344,13 @@ function MembersTabImpl({
                 </div>
               </div>
             </div>
-            <Button variant="sage">View Profile</Button>
+            <Button variant="sage" className="transition-transform active:scale-[0.96]">View Profile</Button>
           </div>
         </CardContent>
       </Card>
 
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-        <Card className="border-terracotta/20 bg-terracotta/5">
+        <Card className="border-sage/20 bg-white-warm">
           <CardHeader className="pb-3">
             <div className="flex items-center justify-between">
               <CardTitle className="font-body text-sm text-charcoal/60 font-medium">Expiring in 7 Days</CardTitle>
@@ -358,12 +358,12 @@ function MembersTabImpl({
             </div>
           </CardHeader>
           <CardContent>
-            <div className="font-body font-semibold tabular-nums text-5xl text-charcoal mb-3">{memberStats.expiring7Days}</div>
-            <Button variant="outline" size="sm" className="w-full border-terracotta/20 text-terracotta hover:bg-terracotta/10 font-body hover:text-terracotta!">Add to CRM</Button>
+            <div className="font-display tabular-nums text-5xl text-charcoal leading-none mb-3">{memberStats.expiring7Days}</div>
+            <Button variant="outline" size="sm" className="w-full border-terracotta/20 text-terracotta font-body transition-[transform,background-color,color] hover:bg-terracotta/10 hover:text-terracotta! active:scale-[0.96]">Add to CRM</Button>
           </CardContent>
         </Card>
 
-        <Card className="border-terracotta/20 bg-terracotta/5">
+        <Card className="border-sage/20 bg-white-warm">
           <CardHeader className="pb-3">
             <div className="flex items-center justify-between">
               <CardTitle className="font-body text-sm text-charcoal/60 font-medium">Expiring in 15 Days</CardTitle>
@@ -371,8 +371,8 @@ function MembersTabImpl({
             </div>
           </CardHeader>
           <CardContent>
-            <div className="font-body font-semibold tabular-nums text-5xl text-charcoal mb-3">{memberStats.expiring15Days}</div>
-            <Button variant="outline" size="sm" className="w-full border-terracotta/20 text-terracotta hover:bg-terracotta/10 font-body hover:text-terracotta!">Add to CRM</Button>
+            <div className="font-display tabular-nums text-5xl text-charcoal leading-none mb-3">{memberStats.expiring15Days}</div>
+            <Button variant="outline" size="sm" className="w-full border-terracotta/20 text-terracotta font-body transition-[transform,background-color,color] hover:bg-terracotta/10 hover:text-terracotta! active:scale-[0.96]">Add to CRM</Button>
           </CardContent>
         </Card>
 
@@ -380,12 +380,12 @@ function MembersTabImpl({
           <CardHeader className="pb-3">
             <div className="flex items-center justify-between">
               <CardTitle className="font-body text-sm text-charcoal/60 font-medium">Expiring in 30 Days</CardTitle>
-              <Calendar className="h-5 w-5 text-sage" />
+              <Calendar className="h-5 w-5 text-terracotta" />
             </div>
           </CardHeader>
           <CardContent>
-            <div className="font-body font-semibold tabular-nums text-5xl text-charcoal mb-3">{memberStats.expiring30Days}</div>
-            <Button variant="outline" size="sm" className="w-full border-sage/20 text-sage hover:bg-sage/5 font-body hover:text-sage!">View List</Button>
+            <div className="font-display tabular-nums text-5xl text-charcoal leading-none mb-3">{memberStats.expiring30Days}</div>
+            <Button variant="outline" size="sm" className="w-full border-terracotta/20 text-terracotta font-body transition-[transform,background-color,color] hover:bg-terracotta/10 hover:text-terracotta! active:scale-[0.96]">View List</Button>
           </CardContent>
         </Card>
       </div>

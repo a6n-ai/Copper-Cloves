@@ -1,6 +1,11 @@
 import { memo, useCallback, useMemo, useState } from "react";
 import {
   AlertTriangle,
+  ArrowDown,
+  ArrowUp,
+  ArrowUpDown,
+  CalendarClock,
+  CheckCircle2,
   ChevronLeft,
   ChevronRight,
   Coffee,
@@ -17,6 +22,8 @@ import { DatePicker } from "@/components/filters";
 import { Skeleton } from "@/components/ui/skeleton";
 import { MetricCard } from "@/components/admin/MetricCard";
 import { Pill } from "@/components/ui/pill";
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
+import { ResponsiveTable } from "@/components/responsive/ResponsiveTable";
 import { TodayClassesCarousel } from "@/components/admin/TodayClassesCarousel";
 import { Pagination } from "@/components/Pagination";
 import { cn } from "@/lib/utils";
@@ -80,6 +87,38 @@ interface Props {
   onOpenCafe: () => void;
 }
 
+type ExpiringSortCol = "name" | "package" | "expires";
+function SortHead({
+  label,
+  col,
+  sortKey,
+  sortDir,
+  onSort,
+  className,
+}: {
+  label: string;
+  col: ExpiringSortCol;
+  sortKey: ExpiringSortCol | null;
+  sortDir: "asc" | "desc";
+  onSort: (c: ExpiringSortCol) => void;
+  className?: string;
+}) {
+  const active = sortKey === col;
+  const Icon = active ? (sortDir === "asc" ? ArrowUp : ArrowDown) : ArrowUpDown;
+  return (
+    <TableHead className={className}>
+      <button
+        type="button"
+        onClick={() => onSort(col)}
+        className="inline-flex items-center gap-1 rounded font-body transition-colors hover:text-charcoal focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sage focus-visible:ring-offset-1"
+      >
+        {label}
+        <Icon className={cn("h-3.5 w-3.5", active ? "text-sage" : "text-charcoal/30")} />
+      </button>
+    </TableHead>
+  );
+}
+
 function OverviewTabImpl({
   overviewStats,
   overviewMeta,
@@ -120,6 +159,40 @@ function OverviewTabImpl({
     toast.success(`"The Ritual Renewal" template queued for ${count} members via WhatsApp/Email!`);
     setSelectedMembers(new Set());
   }, [selectedMembers]);
+
+  // Expiring table sort. Default (null) keeps the API order (soonest-first).
+  const [sortKey, setSortKey] = useState<"name" | "package" | "expires" | null>(null);
+  const [sortDir, setSortDir] = useState<"asc" | "desc">("asc");
+  const toggleSort = useCallback(
+    (key: "name" | "package" | "expires") => {
+      setSortDir((d) => (sortKey === key ? (d === "asc" ? "desc" : "asc") : "asc"));
+      setSortKey(key);
+      expiringPg.setPage(1);
+    },
+    [sortKey, expiringPg],
+  );
+
+  const sortedExpiring = useMemo(() => {
+    if (!sortKey) return expiringMembers;
+    const dir = sortDir === "asc" ? 1 : -1;
+    return [...expiringMembers].sort((a, b) => {
+      let cmp = 0;
+      if (sortKey === "name") cmp = a.name.localeCompare(b.name);
+      else if (sortKey === "package") cmp = a.package.localeCompare(b.package);
+      else {
+        const da = parseInt(a.expires, 10);
+        const db = parseInt(b.expires, 10);
+        cmp = (Number.isNaN(da) ? 9999 : da) - (Number.isNaN(db) ? 9999 : db);
+      }
+      return cmp * dir;
+    });
+  }, [expiringMembers, sortKey, sortDir]);
+
+  // When unsorted, defer to the parent's paginated slice; when sorted, page the
+  // sorted copy locally (same 10/page as usePagination's default).
+  const expiringPageItems = sortKey
+    ? sortedExpiring.slice((expiringPg.page - 1) * 10, expiringPg.page * 10)
+    : expiringPg.pageItems;
 
   // Rebuilding this 10-key shape per render forced TodayClassesCarousel to re-diff
   // every card on any parent state change (e.g. checkbox toggles).
@@ -187,7 +260,7 @@ function OverviewTabImpl({
         <MetricCard label="Pending Waivers" value={overviewStats.pendingWaivers} icon={AlertTriangle} tone="clay" loading={!overviewLoaded} />
       </div>
 
-      <Card className="border-sage/20 bg-white-warm overflow-x-hidden overflow-y-visible w-full min-w-0 max-w-full">
+      <Card className="border-sage/20 bg-white-warm w-full min-w-0 max-w-full">
         <CardHeader>
           <div className="flex flex-wrap items-start justify-between gap-3">
             <div className="min-w-0">
@@ -239,7 +312,7 @@ function OverviewTabImpl({
             </div>
           </div>
         </CardHeader>
-        <CardContent className="min-w-0 max-w-full overflow-x-hidden overflow-y-visible">
+        <CardContent className="min-w-0 max-w-full">
           <div
             className={cn(
               "transition-opacity duration-200",
@@ -297,105 +370,153 @@ function OverviewTabImpl({
 
       <Card className="border-terracotta/20 bg-terracotta/5">
         <CardHeader>
-          <div className="flex items-center justify-between">
+          <div className="flex flex-wrap items-center justify-between gap-3">
             <div>
               <CardTitle className="font-body font-semibold text-2xl text-charcoal flex items-center gap-2">
                 <AlertTriangle className="h-6 w-6 text-terracotta" />
                 Members Expiring Soon
               </CardTitle>
               <CardDescription className="font-body text-charcoal/60 mt-1">
-                {expiringMembers.length} memberships expiring in the next 14 days
+                <span className="tabular-nums">{expiringMembers.length}</span>{" "}
+                {expiringMembers.length === 1 ? "membership" : "memberships"} expiring in the next 14 days
               </CardDescription>
             </div>
-            <Button onClick={onOpenCRM} variant="sage">Open CRM</Button>
+            <Button
+              onClick={onOpenCRM}
+              variant="sage"
+              className="transition-transform active:scale-[0.96]"
+            >
+              Open CRM
+            </Button>
           </div>
         </CardHeader>
         <CardContent>
-          {selectedMembers.size > 0 && (
-            <div className="mb-4 p-4 rounded-xl bg-sage/10 border border-sage/30 flex items-center justify-between">
-              <p className="font-body text-sm text-charcoal">
-                {selectedMembers.size} member{selectedMembers.size > 1 ? "s" : ""} selected
+          {expiringMembers.length === 0 ? (
+            <div className="flex flex-col items-center justify-center gap-2 rounded-xl border border-sage/20 bg-sage/5 px-6 py-12 text-center">
+              <CheckCircle2 className="h-10 w-10 text-sage" />
+              <p className="font-body font-semibold text-charcoal text-balance">No memberships expiring</p>
+              <p className="font-body text-sm text-charcoal/55 text-pretty max-w-xs">
+                Nothing lapses in the next 14 days — retention is looking healthy.
               </p>
-              <div className="flex gap-2">
-                <Button onClick={handleBulkNudge} size="sm" variant="sage">
-                  <Zap size={14} className="mr-1" />
-                  Nudge All ({selectedMembers.size})
-                </Button>
-                <Button
-                  onClick={() => setSelectedMembers(new Set())}
-                  size="sm"
-                  variant="outline"
-                  className="border-sage/30 text-charcoal hover:bg-sage/5 hover:text-charcoal!"
-                >
-                  Clear
-                </Button>
-              </div>
             </div>
-          )}
-
-          <div className="mb-3 flex items-center gap-2 pb-2 border-b border-sage/10">
-            <input
-              type="checkbox"
-              checked={selectedMembers.size === expiringMembers.length && expiringMembers.length > 0}
-              onChange={handleSelectAll}
-              className="w-4 h-4 accent-sage cursor-pointer"
-            />
-            <span className="font-body text-xs text-charcoal/60">Select all</span>
-          </div>
-
-          <div className="space-y-3">
-            {expiringPg.pageItems.map((member) => (
-              <div
-                key={member.id}
-                className="rounded-xl border border-terracotta/20 bg-white-warm p-4 hover:shadow-md transition-all duration-600"
-              >
-                <div className="flex items-start gap-3">
-                  <input
-                    type="checkbox"
-                    checked={selectedMembers.has(member.id)}
-                    onChange={() => handleToggleMember(member.id)}
-                    className="mt-1 w-4 h-4 shrink-0 accent-sage cursor-pointer"
-                    onClick={(e) => e.stopPropagation()}
-                  />
-                  <div className="flex-1 min-w-0">
-                    <div className="flex items-start justify-between gap-2">
-                      <p className="font-body font-medium text-charcoal truncate">{member.name}</p>
-                      <Pill tone="warning" size="md" className="shrink-0">
-                        Expires in {member.expires}
-                      </Pill>
-                    </div>
-                    <p className="font-body text-sm text-charcoal/55 truncate">{member.email}</p>
-                    <p className="font-body text-xs text-charcoal/45 mt-0.5">
-                      {member.package} Package · {member.credits} credits left
-                    </p>
+          ) : (
+            <>
+              {selectedMembers.size > 0 && (
+                <div className="mb-4 flex items-center justify-between rounded-xl border border-sage/30 bg-sage/10 p-3">
+                  <p className="font-body text-sm text-charcoal">
+                    <span className="tabular-nums">{selectedMembers.size}</span> member{selectedMembers.size > 1 ? "s" : ""} selected
+                  </p>
+                  <div className="flex gap-2">
+                    <Button
+                      onClick={handleBulkNudge}
+                      size="sm"
+                      variant="sage"
+                      className="transition-transform active:scale-[0.96]"
+                    >
+                      <Zap size={14} className="mr-1" />
+                      Nudge All (<span className="tabular-nums">{selectedMembers.size}</span>)
+                    </Button>
+                    <Button
+                      onClick={() => setSelectedMembers(new Set())}
+                      size="sm"
+                      variant="outline"
+                      className="border-sage/30 text-charcoal transition-transform hover:bg-sage/5 hover:text-charcoal! active:scale-[0.96]"
+                    >
+                      Clear
+                    </Button>
                   </div>
                 </div>
-                <div className="mt-3 flex gap-2 pl-7">
-                  <Button
-                    onClick={() => onViewProfile(member as unknown as Record<string, unknown>)}
-                    variant="outline"
-                    size="sm"
-                    className="flex-1 sm:flex-none border-sage/30 text-sage hover:bg-sage/5 font-body hover:text-sage!"
-                  >
-                    <Eye size={14} className="mr-1" />
-                    View
-                  </Button>
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    className="flex-1 sm:flex-none border-terracotta/20 text-terracotta hover:bg-terracotta/10 font-body transition-all hover:text-terracotta!"
-                    onClick={() => {
-                      toast.success(`"The Ritual Renewal" CRM template instantly queued for ${member.name} via WhatsApp/Email!`);
-                    }}
-                  >
-                    <Zap size={14} className="mr-1" />
-                    Nudge
-                  </Button>
-                </div>
+              )}
+
+              <div className="overflow-hidden rounded-xl border border-sage/15 bg-white-warm">
+                <ResponsiveTable>
+                  <Table>
+                    <TableHeader>
+                      <TableRow>
+                        <TableHead className="w-10">
+                          <label className="-m-2 flex h-10 w-10 cursor-pointer items-center justify-center p-2">
+                            <input
+                              type="checkbox"
+                              checked={selectedMembers.size === expiringMembers.length && expiringMembers.length > 0}
+                              onChange={handleSelectAll}
+                              className="h-4 w-4 cursor-pointer accent-sage"
+                              aria-label="Select all expiring members"
+                            />
+                          </label>
+                        </TableHead>
+                        <SortHead label="Member" col="name" sortKey={sortKey} sortDir={sortDir} onSort={toggleSort} />
+                        <SortHead label="Package" col="package" sortKey={sortKey} sortDir={sortDir} onSort={toggleSort} className="hidden sm:table-cell" />
+                        <SortHead label="Expires" col="expires" sortKey={sortKey} sortDir={sortDir} onSort={toggleSort} />
+                        <TableHead className="text-right">Actions</TableHead>
+                      </TableRow>
+                    </TableHeader>
+                    <TableBody>
+                      {expiringPageItems.map((member) => {
+                        const days = parseInt(member.expires, 10);
+                        const d = Number.isNaN(days) ? 99 : days;
+                        const tier = d <= 3 ? "danger" : d <= 7 ? "warning" : "info";
+                        const countdown = d <= 0 ? "Today" : d === 1 ? "Tomorrow" : `${d} days`;
+                        return (
+                          <TableRow key={member.id} className="transition-colors hover:bg-sage/[0.04]">
+                            <TableCell>
+                              <label
+                                className="-m-2 flex h-10 w-10 cursor-pointer items-center justify-center p-2"
+                                onClick={(e) => e.stopPropagation()}
+                              >
+                                <input
+                                  type="checkbox"
+                                  checked={selectedMembers.has(member.id)}
+                                  onChange={() => handleToggleMember(member.id)}
+                                  className="h-4 w-4 cursor-pointer accent-sage"
+                                  aria-label={`Select ${member.name}`}
+                                />
+                              </label>
+                            </TableCell>
+                            <TableCell className="min-w-0">
+                              <div className="truncate font-body font-medium text-charcoal">{member.name}</div>
+                              <div className="truncate font-body text-xs text-charcoal/50">{member.email}</div>
+                              <div className="truncate font-body text-xs text-charcoal/45 sm:hidden">{member.package}</div>
+                            </TableCell>
+                            <TableCell className="hidden font-body text-sm text-charcoal/60 sm:table-cell">{member.package}</TableCell>
+                            <TableCell>
+                              <Pill tone={tier} size="sm" icon={<CalendarClock className="h-3 w-3" />}>
+                                <span className="tabular-nums">{countdown}</span>
+                              </Pill>
+                            </TableCell>
+                            <TableCell>
+                              <div className="flex items-center justify-end gap-1.5">
+                                <Button
+                                  onClick={() => onViewProfile(member as unknown as Record<string, unknown>)}
+                                  variant="outline"
+                                  size="sm"
+                                  className="border-sage/30 font-body text-sage transition-[transform,background-color,color] hover:bg-sage/5 hover:text-sage! active:scale-[0.96]"
+                                >
+                                  <Eye size={14} className="sm:mr-1" />
+                                  <span className="hidden sm:inline">View</span>
+                                </Button>
+                                <Button
+                                  variant="outline"
+                                  size="sm"
+                                  className="border-terracotta/20 font-body text-terracotta transition-[transform,background-color,color] hover:bg-terracotta/10 hover:text-terracotta! active:scale-[0.96]"
+                                  onClick={() => {
+                                    toast.success(`"The Ritual Renewal" CRM template instantly queued for ${member.name} via WhatsApp/Email!`);
+                                  }}
+                                >
+                                  <Zap size={14} className="sm:mr-1" />
+                                  <span className="hidden sm:inline">Nudge</span>
+                                </Button>
+                              </div>
+                            </TableCell>
+                          </TableRow>
+                        );
+                      })}
+                    </TableBody>
+                  </Table>
+                </ResponsiveTable>
               </div>
-            ))}
-          </div>
-          <Pagination page={expiringPg.page} total={expiringPg.total} onChange={expiringPg.setPage} />
+              <Pagination page={expiringPg.page} total={expiringPg.total} onChange={expiringPg.setPage} />
+            </>
+          )}
         </CardContent>
       </Card>
     </>

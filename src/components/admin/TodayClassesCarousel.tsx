@@ -1,5 +1,4 @@
 import { useEffect, useMemo, useRef, useState } from "react";
-import { useReducedMotion } from "framer-motion";
 import { Users, Clock, Repeat, ChevronLeft, ChevronRight, Power, PowerOff, CalendarX } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { AnimatedIcon } from "@/components/dashboard/AnimatedIcon";
@@ -8,7 +7,7 @@ import { Pill } from "@/components/ui/pill";
 import { EmptyState } from "@/components/ui/empty-state";
 import { ManageButton, DeleteButton } from "@/components/ui/quick-actions";
 import { cn } from "@/lib/utils";
-import { ShineBorder } from "@/components/ui/shine-border";
+import { classFillTier, FILL_TEXT, FILL_BAR } from "@/lib/classFill";
 import { classStatusPill } from "@/lib/pillMaps";
 
 export type CarouselClassStatus =
@@ -50,19 +49,22 @@ interface TodayClassesCarouselProps {
 
 const TERMINAL_STATUSES = new Set(["completed", "abandoned", "live", "started"]);
 
-// Whole-card tint by status. Falls back to PALETTE rotation for available.
+// Muted whole-card tint for terminal / inactive classes only. Active classes are
+// coloured by capacity instead (FILL_CARD) — green when filling, normal otherwise.
+// No rings (they clipped at the scroll edge); the card body carries the signal.
 const CARD_TONE: Record<string, string> = {
-  live: "border-terracotta/30 bg-terracotta/10 shadow-[0_8px_24px_-12px_rgba(193,120,86,0.45)] ring-1 ring-terracotta/30 hover:shadow-[0_16px_40px_-16px_rgba(193,120,86,0.55)]",
-  started: "border-terracotta/30 bg-terracotta/10 shadow-[0_8px_24px_-12px_rgba(193,120,86,0.45)] ring-1 ring-terracotta/30 hover:shadow-[0_16px_40px_-16px_rgba(193,120,86,0.55)]",
-  completed: "border-charcoal/15 bg-charcoal/[0.04] opacity-80 hover:opacity-100 hover:shadow-[0_12px_32px_-16px_rgba(0,0,0,0.2)]",
-  cancelled: "border-terracotta/30 bg-linear-to-br from-terracotta/15 via-card to-terracotta/5 ring-1 ring-terracotta/20 hover:shadow-[0_12px_32px_-16px_rgba(192,86,64,0.35)]",
-  abandoned: "border-terracotta/30 bg-linear-to-br from-terracotta/15 via-card to-terracotta/5 ring-1 ring-terracotta/20 hover:shadow-[0_12px_32px_-16px_rgba(192,86,64,0.35)]",
+  completed: "border-charcoal/15 bg-charcoal/[0.04] opacity-80 hover:opacity-100",
+  cancelled: "border-charcoal/12 bg-charcoal/[0.04] opacity-75",
+  abandoned: "border-charcoal/12 bg-charcoal/[0.04] opacity-75",
   inactive: "border-charcoal/10 bg-charcoal/[0.03] opacity-70 hover:opacity-90",
 };
 
-// Single tint for all "available" cards — consistent strip, more color than plain white.
-const AVAILABLE_TONE =
-  "border-sage/30 bg-linear-to-br from-sage/15 via-card to-cream/40 hover:shadow-[0_12px_32px_-16px_rgba(143,151,121,0.45)] hover:border-sage/50";
+// Position / status differentiation (whole-card wash, no outline).
+// Ongoing now = solid terracotta fill, no border (the card body IS the colour).
+// Imminent next class = sage tint; the rest stay normal.
+const ONGOING_TONE = "border-transparent bg-terracotta/[0.18]";
+const UPNEXT_TONE = "border-sage/45 bg-sage/[0.12]";
+const NORMAL_TONE = "border-border bg-white-warm";
 
 function parseTimeToMinutes(t: string): number {
   // Accepts "07:00", "7:00 AM", "10:30 PM" — best-effort.
@@ -86,7 +88,6 @@ export function TodayClassesCarousel({
   isToday = true,
 }: Readonly<TodayClassesCarouselProps>) {
   const scrollRef = useRef<HTMLDivElement>(null);
-  const reduceMotion = useReducedMotion();
   // Re-evaluate "next class" every minute so the highlight tracks the wall clock
   // even if the dashboard stays open.
   const [tick, setTick] = useState(0);
@@ -143,15 +144,19 @@ export function TodayClassesCarousel({
     <div className="relative w-full min-w-0 max-w-full" style={{ containerType: "inline-size" }}>
       <div
         ref={scrollRef}
-        className="flex gap-4 w-full min-w-0 max-w-full overflow-x-auto overscroll-x-contain snap-x snap-mandatory scrollbar-hide py-2 px-1"
+        className="flex gap-4 w-full min-w-0 max-w-full overflow-x-auto overscroll-x-contain snap-x snap-mandatory scrollbar-hide py-6 px-4"
       >
         {items.map((cls, idx) => {
           const tone = classStatusPill(cls.status ?? "available").tone;
-          const explicitTone = cls.status ? CARD_TONE[cls.status] : undefined;
-          const cardTone = explicitTone ?? AVAILABLE_TONE;
           const pct = cls.capacity > 0 ? Math.min(100, Math.round((cls.enrolled / cls.capacity) * 100)) : 0;
+          const fillTier = classFillTier(cls.enrolled, cls.capacity);
           const full = cls.enrolled >= cls.capacity && cls.capacity > 0;
           const isNext = idx === nextIndex;
+          const isOngoing = cls.status === "live" || cls.status === "started";
+          // Card colour differentiates position/status (terminal muted → ongoing →
+          // up next → normal). Capacity fill is shown by the bar, not the card.
+          const mutedTone = cls.status ? CARD_TONE[cls.status] : undefined;
+          const cardTone = mutedTone ?? (isOngoing ? ONGOING_TONE : isNext ? UPNEXT_TONE : NORMAL_TONE);
           const cardInner = (
             <div
               key={cls.id}
@@ -167,8 +172,8 @@ export function TodayClassesCarousel({
               }}
               className={cn(
                 "group relative shrink-0 w-[85vw] max-w-[340px] sm:w-[340px] snap-start rounded-2xl border p-5 cursor-pointer",
-                "transition-all duration-300 ease-out transform-gpu",
-                "hover:-translate-y-1",
+                "transition-[transform,box-shadow,border-color,background-color,opacity] duration-300 ease-out transform-gpu",
+                "hover:-translate-y-1 hover:shadow-[0_8px_24px_-12px_rgba(51,51,51,0.14)]",
                 "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sage focus-visible:ring-offset-1",
                 cardTone,
               )}
@@ -221,22 +226,13 @@ export function TodayClassesCarousel({
                     <Users className="h-3 w-3" />
                     {cls.enrolled} / {cls.capacity}
                   </span>
-                  <span
-                    className={cn(
-                      "tabular-nums font-medium",
-                      // Full class = good (green); near-empty = needs attention (red).
-                      pct >= 80 ? "text-sage" : pct <= 40 ? "text-destructive" : "text-terracotta",
-                    )}
-                  >
+                  <span className={cn("tabular-nums font-medium", FILL_TEXT[fillTier])}>
                     {full ? "Full" : `${pct}%`}
                   </span>
                 </div>
                 <div className="h-1.5 w-full rounded-full bg-sage/10 overflow-hidden">
                   <div
-                    className={cn(
-                      "h-full rounded-full transition-all duration-500",
-                      pct >= 80 ? "bg-sage" : pct <= 40 ? "bg-destructive" : "bg-terracotta",
-                    )}
+                    className={cn("h-full rounded-full transition-[width] duration-500", FILL_BAR[fillTier])}
                     style={{ width: `${pct}%` }}
                   />
                 </div>
@@ -295,18 +291,6 @@ export function TodayClassesCarousel({
               )}
             </div>
           );
-          if (isNext && !reduceMotion) {
-            return (
-              <ShineBorder
-                key={cls.id}
-                borderWidth={2}
-                duration={4}
-                className="shrink-0 snap-start"
-              >
-                {cardInner}
-              </ShineBorder>
-            );
-          }
           return cardInner;
         })}
       </div>
