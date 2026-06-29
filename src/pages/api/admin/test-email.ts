@@ -11,6 +11,10 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   const to = typeof req.body?.to === "string" ? req.body.to.trim() : "";
   if (!to) return res.status(400).json({ error: "to is required" });
 
+  // Optional rendered-preview overrides (CRM Email Settings "Send test").
+  const subjectOverride = typeof req.body?.subject === "string" ? req.body.subject.trim() : "";
+  const htmlOverride = typeof req.body?.html === "string" ? req.body.html.trim() : "";
+
   const config = {
     EMAIL_USER: process.env.EMAIL_USER ? "set" : "MISSING",
     EMAIL_PASS: process.env.EMAIL_PASS ? "set" : "MISSING",
@@ -23,8 +27,10 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
   const result = await sendHtmlEmail({
     to,
-    subject: "Test email — The Studio",
-    html: "<p>This is a test email from The Studio by Copper + Cloves. If you receive this, email is working correctly.</p>",
+    subject: subjectOverride || "Test email — The Studio",
+    html:
+      htmlOverride ||
+      "<p>This is a test email from The Studio by Copper + Cloves. If you receive this, email is working correctly.</p>",
   });
 
   return res.status(200).json({ result, config });

@@ -11,9 +11,9 @@
     </div>
   
     <div style="padding:32px 32px 0">
-      <p style="font-family:Georgia,serif;font-size:17px;color:#2C2C2C;margin:0 0 12px">hi {{memberName}},</p>
+      <p style="font-family:Georgia,serif;font-size:17px;color:#2C2C2C;margin:0 0 12px">hi {{Member_Name}},</p>
       <p style="font-family:Georgia,serif;font-size:15px;color:#2C2C2C;margin:0 0 8px;line-height:1.6">
-        You're all set for <strong>{{className}}</strong> with {{instructorName}} on <strong>{{dateStr}}</strong> at <strong>{{startTime}}</strong>.
+        You're all set for <strong>{{Class_Name}}</strong> with {{Instructor_Name}} on <strong>{{Class_Date}}</strong> at <strong>{{Start_Time}}</strong>.
       </p>
       <p style="font-family:Georgia,serif;font-size:15px;color:#888888;margin:0 0 28px;line-height:1.6">
         Thank you for reserving a class at Copper + Cloves — we can't wait to welcome you.
@@ -22,10 +22,10 @@
       <div style="background:#fff;border:1px solid #E8E4DC;border-radius:12px;padding:24px;margin-bottom:16px">
         <p style="font-family:Georgia,serif;font-size:16px;font-weight:700;color:#7C9070;margin:0 0 20px;text-align:center">payment receipt</p>
         <table style="width:100%;border-collapse:collapse">
-          <tr><td style="font-family:Georgia,serif;font-size:14px;color:#888888;padding:10px 0;border-bottom:1px solid #E8E4DC">transaction id:</td><td style="font-family:Georgia,serif;font-size:14px;color:#2C2C2C;padding:10px 0;border-bottom:1px solid #E8E4DC;text-align:right;font-family:monospace">{{transactionId}}</td></tr>
-          <tr><td style="font-family:Georgia,serif;font-size:14px;color:#888888;padding:10px 0;border-bottom:1px solid #E8E4DC">payment date:</td><td style="font-family:Georgia,serif;font-size:14px;color:#2C2C2C;padding:10px 0;border-bottom:1px solid #E8E4DC;text-align:right">{{paymentDate}}</td></tr>
+          <tr><td style="font-family:Georgia,serif;font-size:14px;color:#888888;padding:10px 0;border-bottom:1px solid #E8E4DC">transaction id:</td><td style="font-family:Georgia,serif;font-size:14px;color:#2C2C2C;padding:10px 0;border-bottom:1px solid #E8E4DC;text-align:right;font-family:monospace">{{Transaction_Id}}</td></tr>
+          <tr><td style="font-family:Georgia,serif;font-size:14px;color:#888888;padding:10px 0;border-bottom:1px solid #E8E4DC">payment date:</td><td style="font-family:Georgia,serif;font-size:14px;color:#2C2C2C;padding:10px 0;border-bottom:1px solid #E8E4DC;text-align:right">{{Payment_Date}}</td></tr>
           <tr><td style="font-family:Georgia,serif;font-size:14px;color:#888888;padding:10px 0;border-bottom:1px solid #E8E4DC">service:</td><td style="font-family:Georgia,serif;font-size:14px;color:#2C2C2C;padding:10px 0;border-bottom:1px solid #E8E4DC;text-align:right">Individual Class Purchase</td></tr>
-          <tr><td style="font-family:Georgia,serif;font-size:15px;font-weight:600;color:#888888;padding:14px 0">amount paid:</td><td style="font-family:Georgia,serif;font-size:18px;font-weight:700;color:#7C9070;padding:14px 0;text-align:right">{{amountPaid}}</td></tr>
+          <tr><td style="font-family:Georgia,serif;font-size:15px;font-weight:600;color:#888888;padding:14px 0">amount paid:</td><td style="font-family:Georgia,serif;font-size:18px;font-weight:700;color:#7C9070;padding:14px 0;text-align:right">{{Amount_Paid}}</td></tr>
         </table>
       </div>
 
@@ -47,10 +47,10 @@
       <div style="background:#fff;border:1px solid #E8E4DC;border-radius:12px;padding:24px;margin-bottom:16px">
         <p style="font-family:Georgia,serif;font-size:16px;font-weight:700;color:#7C9070;margin:0 0 20px;text-align:center">your class</p>
         <table style="width:100%;border-collapse:collapse">
-          <tr><td style="font-family:Georgia,serif;font-size:14px;color:#888888;padding:10px 0;border-bottom:1px solid #E8E4DC">class:</td><td style="font-family:Georgia,serif;font-size:14px;color:#2C2C2C;padding:10px 0;border-bottom:1px solid #E8E4DC;text-align:right"><strong>{{className}}</strong></td></tr>
-          <tr><td style="font-family:Georgia,serif;font-size:14px;color:#888888;padding:10px 0;border-bottom:1px solid #E8E4DC">instructor:</td><td style="font-family:Georgia,serif;font-size:14px;color:#2C2C2C;padding:10px 0;border-bottom:1px solid #E8E4DC;text-align:right">{{instructorName}}</td></tr>
-          <tr><td style="font-family:Georgia,serif;font-size:14px;color:#888888;padding:10px 0;border-bottom:1px solid #E8E4DC">date:</td><td style="font-family:Georgia,serif;font-size:14px;color:#2C2C2C;padding:10px 0;border-bottom:1px solid #E8E4DC;text-align:right">{{dateStr}}</td></tr>
-          <tr><td style="font-family:Georgia,serif;font-size:14px;color:#888888;padding:10px 0">time:</td><td style="font-family:Georgia,serif;font-size:14px;color:#2C2C2C;padding:10px 0;text-align:right">{{startTime}} – {{endTime}}</td></tr>
+          <tr><td style="font-family:Georgia,serif;font-size:14px;color:#888888;padding:10px 0;border-bottom:1px solid #E8E4DC">class:</td><td style="font-family:Georgia,serif;font-size:14px;color:#2C2C2C;padding:10px 0;border-bottom:1px solid #E8E4DC;text-align:right"><strong>{{Class_Name}}</strong></td></tr>
+          <tr><td style="font-family:Georgia,serif;font-size:14px;color:#888888;padding:10px 0;border-bottom:1px solid #E8E4DC">instructor:</td><td style="font-family:Georgia,serif;font-size:14px;color:#2C2C2C;padding:10px 0;border-bottom:1px solid #E8E4DC;text-align:right">{{Instructor_Name}}</td></tr>
+          <tr><td style="font-family:Georgia,serif;font-size:14px;color:#888888;padding:10px 0;border-bottom:1px solid #E8E4DC">date:</td><td style="font-family:Georgia,serif;font-size:14px;color:#2C2C2C;padding:10px 0;border-bottom:1px solid #E8E4DC;text-align:right">{{Class_Date}}</td></tr>
+          <tr><td style="font-family:Georgia,serif;font-size:14px;color:#888888;padding:10px 0">time:</td><td style="font-family:Georgia,serif;font-size:14px;color:#2C2C2C;padding:10px 0;text-align:right">{{Start_Time}} – {{End_Time}}</td></tr>
         </table>
         
     <div style="border-left:3px solid #7C9070;padding-left:16px;margin:16px 0">
@@ -69,7 +69,7 @@
 
       
     <div style="text-align:center;padding:20px 0">
-      <a href="{{portalUrl}}/portal/book" style="font-family:Georgia,serif;font-size:13px;color:#888888;letter-spacing:0.05em">browse classes</a>
+      <a href="{{Studio_Link}}/portal/book" style="font-family:Georgia,serif;font-size:13px;color:#888888;letter-spacing:0.05em">browse classes</a>
     </div>
   
       

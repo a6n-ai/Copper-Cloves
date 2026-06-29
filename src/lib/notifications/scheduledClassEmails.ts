@@ -1,17 +1,8 @@
 import prisma from "@/lib/prisma";
-import type { EmailSendResult } from "@/lib/notifications/sendEmail";
-import { sendHtmlEmail } from "@/lib/notifications/sendEmail";
-import { interpolateCrmTemplate } from "@/lib/notifications/crmTemplatedDispatch";
+import { sendStudioEmail } from "@/lib/notifications/email";
 import { CrmTriggerType } from "@/lib/crmTriggerTypes";
 import { ROSTER_STATUSES } from "@/lib/bookingStatus";
 import { HIDDEN_SCHEDULE_STATUSES } from "@/lib/scheduleStatus";
-
-function mapResult(result: EmailSendResult): { status: string; err: string | null } {
-  if (result.ok) return { status: "sent", err: null };
-  if ("skipped" in result && result.skipped) return { status: "skipped", err: result.reason };
-  if ("error" in result) return { status: "failed", err: result.error.slice(0, 500) };
-  return { status: "failed", err: "unknown" };
-}
 
 const TZ = "Asia/Kolkata";
 const HOUR_MS = 60 * 60 * 1000;
@@ -107,31 +98,15 @@ export async function sendDueClassReminders(): Promise<{ sent: number; skipped: 
       Studio_Link: siteBase(),
     };
 
-    const subject = interpolateCrmTemplate(template.subject?.trim() || "Your class is coming up — {{Class_Name}}", vars);
-    const html = interpolateCrmTemplate(template.message_body, vars);
-
-    const result = await sendHtmlEmail({
-      to: email,
-      subject,
-      html,
-      context: { type: "class_reminder", targetProfileId: b.user_id, entity: { type: "booking", id: b.id } },
+    // Route through the unified service: it renders the active CRM body (the same
+    // `class_reminder` template the gate above checked) or the code fallback,
+    // validates the palette, sends, and writes the email audit row.
+    await sendStudioEmail("class_reminder", {
+      userId: b.user_id,
+      data: vars,
     });
-    const { status, err } = mapResult(result);
     await prisma.booking.update({ where: { id: b.id }, data: { reminder_sent_at: new Date() } });
-    await prisma.crmMessage.create({
-      data: {
-        user_id: b.user_id,
-        template_id: template.id,
-        channel: "email",
-        subject,
-        message_body: `Class reminder: ${vars.Class_Name} @ ${vars.Start_Time}`,
-        status,
-        sent_at: status === "sent" ? new Date() : null,
-        error_message: err,
-      },
-    });
-    if (status === "sent") sent++;
-    else skipped++;
+    sent++;
   }
   return { sent, skipped };
 }
@@ -268,31 +243,14 @@ export async function sendDueInstructorRosters(): Promise<{ sent: number; skippe
       Dashboard_Link: dashboardLink,
     };
 
-    const subject = interpolateCrmTemplate(template.subject?.trim() || "Your class roster — {{Class_Name}}", vars);
-    const html = interpolateCrmTemplate(template.message_body, vars);
-
-    const result = await sendHtmlEmail({
+    // Route through the unified service (renders the active `instructor_roster`
+    // CRM body or the code fallback, validates, sends, audits).
+    await sendStudioEmail("instructor_roster", {
       to: instructorEmail,
-      subject,
-      html,
-      context: { type: "instructor_roster", entity: { type: "class_schedule", id: sch.id } },
+      data: vars,
     });
-    const { status, err } = mapResult(result);
     await prisma.classSchedule.update({ where: { id: sch.id }, data: { roster_sent_at: new Date() } });
-    await prisma.crmMessage.create({
-      data: {
-        user_id: null,
-        template_id: template.id,
-        channel: "email",
-        subject,
-        message_body: `Instructor roster: ${vars.Class_Name} @ ${vars.Start_Time} → ${instructorEmail} (${headcount} students)`,
-        status,
-        sent_at: status === "sent" ? new Date() : null,
-        error_message: err,
-      },
-    });
-    if (status === "sent") sent++;
-    else skipped++;
+    sent++;
   }
   return { sent, skipped };
 }

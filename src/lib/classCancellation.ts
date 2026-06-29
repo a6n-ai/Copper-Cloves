@@ -17,8 +17,7 @@ import prisma from "@/lib/prisma";
 import { OCCUPYING_STATUSES } from "@/lib/bookingStatus";
 import { reconcileScheduleSeats } from "@/lib/seatCounts";
 import { getStudioSettings } from "@/lib/studioSettings";
-import { CrmTriggerType } from "@/lib/crmTriggerTypes";
-import { buildBookingCrmVariables, dispatchCrmEmailTriggers } from "@/lib/notifications/crmTemplatedDispatch";
+import { sendStudioEmail } from "@/lib/notifications/email";
 
 type TxClient = Parameters<Parameters<typeof prisma.$transaction>[0]>[0];
 
@@ -89,23 +88,23 @@ export async function grantCancellationPass(
   const { cancelled_pass_validity_days } = await getStudioSettings();
   const expiration = new Date(Date.now() + cancelled_pass_validity_days * DAY_MS);
 
-  for (let i = 0; i < count; i++) {
-    const up = await tx.userPackage.create({
-      data: {
-        user_id: profileId,
-        package_type_id: pt.id,
-        credits_remaining: 1,
-        credits_total: 1,
-        expiration_date: expiration,
-        is_active: true,
-        pass_type: pt.type,
-        is_comp: false,
-        grant_note: "Class cancellation refund",
-        origin: "cancellation",
-      },
-    });
-    grantedUserPackageIds.push(up.id);
-  }
+  // Single batched insert instead of N round-trips inside the open transaction.
+  const created = await tx.userPackage.createManyAndReturn({
+    data: Array.from({ length: count }, () => ({
+      user_id: profileId,
+      package_type_id: pt.id,
+      credits_remaining: 1,
+      credits_total: 1,
+      expiration_date: expiration,
+      is_active: true,
+      pass_type: pt.type,
+      is_comp: false,
+      grant_note: "Class cancellation refund",
+      origin: "cancellation",
+    })),
+    select: { id: true },
+  });
+  grantedUserPackageIds.push(...created.map((u) => u.id));
 
   return { grantedUserPackageIds };
 }
@@ -145,6 +144,181 @@ export async function grantRefundForBookingRow(
     });
   }
   return granted;
+}
+
+/**
+ * Distinct user_ids that should receive the cancellation/refund email for a
+ * group booking, deduped:
+ *  - The BOOKER (invited_by === null) cancelling drags the whole group → notify
+ *    the booker AND every group member.
+ *  - A GROUP MEMBER cancelling their own row → notify that member AND the booker.
+ * The canceller is always included. Anonymous extra guests (no user_id) are not
+ * representable here and are simply absent from `groupMemberIds`.
+ */
+export function cancellationRecipientIds(
+  cancellerId: string,
+  invitedByUserId: string | null,
+  groupMemberIds: string[],
+): string[] {
+  const ids = new Set<string>([cancellerId]);
+  if (invitedByUserId === null) {
+    for (const id of groupMemberIds) if (id) ids.add(id);
+  } else if (invitedByUserId) {
+    ids.add(invitedByUserId);
+  }
+  return [...ids];
+}
+
+/** Human label for "what this seat got back" — drives the email refund roster. */
+export function refundLabel(row: {
+  refund_status?: string | null;
+  refund_amount_paise?: number | null;
+  user_package_id?: string | null;
+  checked_in?: boolean | null;
+  is_unlimited?: boolean | null;
+}): string {
+  switch (row.refund_status) {
+    case "auto_pass":
+    case "approved_pass":
+      return "1 Class Pass";
+    case "approved_amount":
+      return `₹${Math.round((row.refund_amount_paise ?? 0) / 100).toLocaleString("en-IN")}`;
+    case "requested":
+      return "refund requested";
+    case "denied":
+      return "no refund";
+    default: {
+      const o = refundOutcomeFor({
+        user_package_id: row.user_package_id,
+        checked_in: row.checked_in,
+        is_unlimited: row.is_unlimited,
+      });
+      return o === "class_pass"
+        ? "1 Class Pass"
+        : o === "none_unlimited"
+        ? "no refund (unlimited)"
+        : "no refund";
+    }
+  }
+}
+
+const NOTIFY_ROW_SELECT = {
+  user_id: true,
+  refund_status: true,
+  refund_amount_paise: true,
+  user_package_id: true,
+  checked_in: true,
+  user_package: { select: { package_type: { select: { is_unlimited: true } } } },
+  profile: { select: { full_name: true, email: true } },
+} as const;
+
+function displayName(p: { full_name?: string | null; email?: string | null } | null | undefined): string {
+  return p?.full_name?.trim() || p?.email?.split("@")[0] || "Member";
+}
+
+function escapeHtml(s: string): string {
+  return s.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;");
+}
+
+/** The `{{Refund_Roster}}` HTML card ("who got what") for the cancellation email,
+ *  or "" when it's a solo (non-group) booking. */
+function buildRefundRosterHtml(rows: { name: string; detail: string }[]): string {
+  if (rows.length < 1) return "";
+  const tr = rows
+    .map((r, i) => {
+      const bb = i < rows.length - 1 ? "border-bottom:1px solid #E8E4DC" : "";
+      return `<tr><td style="font-family:Georgia,serif;font-size:14px;color:#2C2C2C;padding:10px 0;${bb}">${escapeHtml(r.name)}</td><td style="font-family:Georgia,serif;font-size:14px;color:#888888;padding:10px 0;text-align:right;${bb}">${escapeHtml(r.detail)}</td></tr>`;
+    })
+    .join("");
+  return `<div style="background:#fff;border:1px solid #E8E4DC;border-radius:12px;padding:24px;margin-bottom:16px"><p style="font-family:Georgia,serif;font-size:16px;font-weight:700;color:#7C9070;margin:0 0 20px;text-align:center">refund summary</p><table style="width:100%;border-collapse:collapse">${tr}</table></div>`;
+}
+
+/**
+ * Email every distinct affected member of a (possibly group) booking that it was
+ * cancelled — via the admin-editable CRM template (ClassBookingCancelled),
+ * supplying the class details plus a `{{Refund_Roster}}` "who got what" card.
+ * One email per person, never two. Booker-cancel notifies the whole group; an
+ * invited member's cancel notifies that member + the booker. Best-effort.
+ */
+export async function notifyGroupCancellation(opts: {
+  bookingId: string;
+  cancellerId: string;
+  invitedByUserId: string | null;
+  groupMemberIds: string[];
+}): Promise<void> {
+  try {
+    const cancelled = await prisma.booking.findUnique({
+      where: { id: opts.bookingId },
+      select: { class_schedule_id: true },
+    });
+
+    // Seats actually cancelled in this action drive the roster: booker-cancel →
+    // booker + group; an invited member's cancel → just that member.
+    const affectedUserIds =
+      opts.invitedByUserId === null
+        ? [opts.cancellerId, ...opts.groupMemberIds]
+        : [opts.cancellerId];
+
+    const rows =
+      cancelled?.class_schedule_id && affectedUserIds.length
+        ? await prisma.booking.findMany({
+            where: {
+              class_schedule_id: cancelled.class_schedule_id,
+              user_id: { in: affectedUserIds },
+              status: STATUS_CANCELLED,
+            },
+            select: NOTIFY_ROW_SELECT,
+          })
+        : [];
+
+    const isGroup =
+      (opts.invitedByUserId === null && opts.groupMemberIds.length > 0) ||
+      opts.invitedByUserId !== null;
+    const rosterHtml = isGroup
+      ? buildRefundRosterHtml(
+          rows.map((r) => ({
+            name: displayName(r.profile),
+            detail: refundLabel({
+              refund_status: r.refund_status,
+              refund_amount_paise: r.refund_amount_paise,
+              user_package_id: r.user_package_id,
+              checked_in: r.checked_in,
+              is_unlimited: r.user_package?.package_type?.is_unlimited ?? false,
+            }),
+          })),
+        )
+      : "";
+
+    const recipients = cancellationRecipientIds(
+      opts.cancellerId,
+      opts.invitedByUserId,
+      opts.groupMemberIds,
+    );
+    // Per-recipient template choice: someone whose own cancelled seat earned a
+    // pass gets the "credit returned" copy; everyone else (no refund, or the
+    // booker observing a member's cancel — no own cancelled row) gets the
+    // "no credit" copy. Recipients are already distinct.
+    const rowByUser = new Map(rows.map((r) => [r.user_id, r]));
+    for (const userId of recipients) {
+      const row = rowByUser.get(userId);
+      const gotPass =
+        !!row &&
+        refundLabel({
+          refund_status: row.refund_status,
+          refund_amount_paise: row.refund_amount_paise,
+          user_package_id: row.user_package_id,
+          checked_in: row.checked_in,
+          is_unlimited: row.user_package?.package_type?.is_unlimited ?? false,
+        }) === "1 Class Pass";
+      const kind = gotPass ? "booking_cancelled" : "booking_cancelled_no_credit";
+      await sendStudioEmail(kind, {
+        userId,
+        data: { bookingId: opts.bookingId, refundRosterHtml: rosterHtml, creditsCount: "1" },
+      }).catch(() => {});
+    }
+  } catch {
+    // swallow — a notification failure must never affect the cancel result
+  }
 }
 
 export interface CancelBookingWithRefundOptions {
@@ -192,6 +366,10 @@ export async function cancelBookingWithRefund(
     return { bookingId, cancelled: false, refund: { grantedUserPackageIds: [] } };
   }
 
+  // Lifted out of the tx so the post-commit email fan-out can address each
+  // cascaded group member (the booker drags their whole group along).
+  let groupMemberUserIds: string[] = [];
+
   const grantedUserPackageIds = await prisma.$transaction(async (tx) => {
     const granted: string[] = [];
     const cancelledAt = new Date();
@@ -216,6 +394,7 @@ export async function cancelBookingWithRefund(
         },
         select: REFUND_ROW_SELECT,
       });
+      groupMemberUserIds = groupRows.map((r) => r.user_id);
     }
 
     await tx.booking.update({
@@ -277,16 +456,15 @@ export async function cancelBookingWithRefund(
     return granted;
   });
 
-  // Best-effort cancellation email (outside the tx so a CRM failure can't roll back).
-  await buildBookingCrmVariables(existing.id)
-    .then((variables) =>
-      dispatchCrmEmailTriggers({
-        triggerType: CrmTriggerType.ClassBookingCancelled,
-        userId: existing.user_id,
-        variables,
-      }),
-    )
-    .catch(() => {});
+  // Best-effort cancellation email (outside the tx so a CRM failure can't roll
+  // back). Group-aware: booker cancel notifies the whole group; an invited
+  // member's cancel notifies that member + the booker. One email per person.
+  await notifyGroupCancellation({
+    bookingId: existing.id,
+    cancellerId: existing.user_id,
+    invitedByUserId: existing.invited_by_user_id,
+    groupMemberIds: groupMemberUserIds,
+  });
 
   // Reconcile-on-cancel: surface any online payment on the now-cancelled booking as a
   // refund/void candidate for admin review (mirrors the self-serve path in api/bookings.ts).

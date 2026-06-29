@@ -2,8 +2,7 @@ import type { NextApiRequest, NextApiResponse } from "next";
 import prisma from "@/lib/prisma";
 import { getStudioServerSession } from "@/lib/getStudioServerSession";
 import { sendBookingConfirmationEmail } from "@/lib/notifications/sendBookingEmail";
-import { buildBookingCrmVariables, dispatchCrmEmailTriggers } from "@/lib/notifications/crmTemplatedDispatch";
-import { CrmTriggerType } from "@/lib/crmTriggerTypes";
+import { sendStudioEmail } from "@/lib/notifications/email";
 import logger from "@/lib/logger";
 import { logActivity } from "@/lib/activityLog";
 import { OCCUPYING_STATUSES } from "@/lib/bookingStatus";
@@ -57,15 +56,6 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       data: { confirmation_status: CONFIRMATION_CONFIRMED },
     });
     await sendBookingConfirmationEmail(booking.id).catch((e) => logger.error({ err: e }, "[partner confirm email]"));
-    await buildBookingCrmVariables(booking.id)
-      .then((variables) =>
-        dispatchCrmEmailTriggers({
-          triggerType: CrmTriggerType.ClassBookingConfirmed,
-          userId: booking.user_id,
-          variables,
-        }),
-      )
-      .catch((e) => logger.error({ err: e }, "[partner confirm CRM]"));
     await logActivity({ req, action: "partner.booking_confirmed", entity: { type: "booking", id: booking.id } });
     return res.json({ ok: true, status: CONFIRMATION_CONFIRMED });
   }
@@ -112,15 +102,10 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     }
   });
 
-  await buildBookingCrmVariables(booking.id)
-    .then((variables) =>
-      dispatchCrmEmailTriggers({
-        triggerType: CrmTriggerType.ClassBookingCancelled,
-        userId: booking.user_id,
-        variables,
-      }),
-    )
-    .catch((e) => logger.error({ err: e }, "[partner reject CRM]"));
+  await sendStudioEmail("booking_cancelled", {
+    userId: booking.user_id,
+    data: { bookingId: booking.id, creditsCount: "1" },
+  }).catch((e) => logger.error({ err: e }, "[partner reject CRM]"));
   await logActivity({ req, action: "partner.booking_rejected", entity: { type: "booking", id: booking.id } });
   return res.json({ ok: true, status: "rejected" });
 }

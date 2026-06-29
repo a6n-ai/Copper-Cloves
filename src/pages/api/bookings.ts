@@ -1,8 +1,6 @@
 import type { NextApiRequest, NextApiResponse } from "next";
-import { CrmTriggerType } from "@/lib/crmTriggerTypes";
 import prisma from "@/lib/prisma";
 import { OCCUPYING_STATUSES, ROSTER_STATUSES, HISTORY_STATUSES, occupiesSeat } from "@/lib/bookingStatus";
-import { buildBookingCrmVariables, dispatchCrmEmailTriggers } from "@/lib/notifications/crmTemplatedDispatch";
 import { sendBookingConfirmationEmail } from "@/lib/notifications/sendBookingEmail";
 import { getStudioServerSession } from "@/lib/getStudioServerSession";
 import {
@@ -21,7 +19,7 @@ import { requestLogger } from "@/lib/logger";
 import { upsertFriendship } from "@/lib/friendship";
 import { logActivity } from "@/lib/activityLog";
 import { getStudioSettings } from "@/lib/studioSettings";
-import { grantRefundForBookingRow } from "@/lib/classCancellation";
+import { grantRefundForBookingRow, notifyGroupCancellation } from "@/lib/classCancellation";
 import { releaseCouponRedemption } from "@/lib/couponHelpers";
 
 type BookingsLog = ReturnType<typeof requestLogger>;
@@ -60,7 +58,12 @@ async function handleGet(req: NextApiRequest, res: NextApiResponse, userId: stri
     where,
     include: {
       class_schedule: {
-        include: { class_model: true, instructor: true },
+        include: {
+          class_model: true,
+          // Explicit select — `instructor: true` leaked payout columns
+          // (studio_payout_cut_percent, rate_*_paise) to the member client.
+          instructor: { select: { id: true, name: true, image_url: true } },
+        },
       },
       user_package: { include: { package_type: true } },
       invited_by: { select: { full_name: true } },
@@ -676,6 +679,10 @@ async function handlePatch(
     data.check_in_outcome = checkInOutcomeFromTimes(classStart, now);
   }
 
+  // Lifted out of the tx so the post-commit cancellation email can address each
+  // cascaded group member.
+  let groupMemberUserIds: string[] = [];
+
   const booking = await prisma.$transaction(async (tx) => {
     const updated = await tx.booking.update({ where: { id }, data });
 
@@ -715,6 +722,7 @@ async function handlePatch(
         },
       });
       refundRows.push(...groupRows);
+      groupMemberUserIds = groupRows.map((r) => r.user_id);
 
       await tx.booking.updateMany({
         where: {
@@ -747,15 +755,14 @@ async function handlePatch(
 
   if (status === STATUS_CANCELLED) {
     // Awaited so the cancellation email/CRM actually sends on serverless.
-    await buildBookingCrmVariables(booking.id)
-      .then((variables) =>
-        dispatchCrmEmailTriggers({
-          triggerType: CrmTriggerType.ClassBookingCancelled,
-          userId,
-          variables,
-        })
-      )
-      .catch((e) => log.error({ err: e }, "CRM class_booking_cancelled failed"));
+    // Group-aware: booker cancel emails the whole group; an invited member's
+    // cancel emails that member + the booker. One email per person, no dupes.
+    await notifyGroupCancellation({
+      bookingId: booking.id,
+      cancellerId: userId,
+      invitedByUserId: existing.invited_by_user_id,
+      groupMemberIds: groupMemberUserIds,
+    }).catch((e) => log.error({ err: e }, "CRM class_booking_cancelled failed"));
     await logActivity({ req, action: "booking.cancelled", entity: { type: "booking", id: booking.id }, metadata: { class_name: booking.class_name ?? undefined } });
     // Reconcile-on-cancel: if this booking was paid online (captured/authorized) the cancel
     // releases the seat but the refund-as-pass path does NOT apply (online seats carry no

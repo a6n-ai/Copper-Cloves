@@ -1,6 +1,5 @@
 import prisma from "@/lib/prisma";
-import { sendHtmlEmail } from "@/lib/notifications/sendEmail";
-import { bookingConfirmationEmail, classRescheduledEmail } from "@/lib/notifications/emailTemplates";
+import { sendStudioEmail } from "@/lib/notifications/email";
 import { OCCUPYING_STATUSES } from "@/lib/bookingStatus";
 import logger from "@/lib/logger";
 
@@ -15,39 +14,14 @@ function formatTime(d: Date): string {
 export async function sendBookingConfirmationEmail(bookingId: string): Promise<void> {
   const booking = await prisma.booking.findUnique({
     where: { id: bookingId },
-    include: {
-      profile: { select: { full_name: true, email: true } },
-      class_schedule: {
-        include: {
-          class_model: { select: { name: true } },
-          instructor: { select: { name: true } },
-        },
-      },
-    },
+    select: { id: true, user_id: true },
   });
+  if (!booking?.user_id) return;
 
-  if (!booking?.profile?.email) return;
-
-  const sch = booking.class_schedule;
-  const className = booking.class_name?.trim() || sch?.class_model?.name || "Class";
-  const instructorName = sch?.instructor?.name || "";
-  const dateStr = sch ? formatDate(sch.start_time) : "";
-  const startTime = sch ? formatTime(sch.start_time) : "";
-  const endTime = sch ? formatTime(sch.end_time) : "";
-  const memberName = booking.profile.full_name?.trim() || booking.profile.email.split("@")[0] || "there";
-  const portalUrl = (process.env.NEXTAUTH_URL ?? "").replace(/\/$/, "") + "/portal/dashboard";
-
-  const html = bookingConfirmationEmail({ memberName, className, instructorName, dateStr, startTime, endTime, portalUrl });
-
-  const result = await sendHtmlEmail({
-    to: booking.profile.email,
-    subject: `You're booked for ${className}`,
-    html,
-    context: { type: "booking_confirmation", targetProfileId: booking.user_id, entity: { type: "booking", id: booking.id } },
-  });
-  if (!result.ok && !("skipped" in result && result.skipped)) {
-    logger.error({ err: (result as { error?: string }).error }, "[sendBookingEmail] failed");
-  }
+  await sendStudioEmail("booking_confirmed", {
+    userId: booking.user_id,
+    data: { bookingId: booking.id },
+  }).catch((e) => logger.error({ err: e, bookingId }, "[sendBookingEmail] failed"));
 }
 
 /**
@@ -81,22 +55,20 @@ export async function sendClassRescheduledEmails(
     const email = b.profile?.email?.trim();
     if (!email) continue;
     const memberName = b.profile?.full_name?.trim() || email.split("@")[0] || "there";
-    const html = classRescheduledEmail({
-      memberName,
-      className,
-      instructorName,
-      oldDateStr: formatDate(oldStart),
-      oldStartTime: formatTime(oldStart),
-      newDateStr: formatDate(sch.start_time),
-      newStartTime: formatTime(sch.start_time),
-      newEndTime: formatTime(sch.end_time),
-      portalUrl: portalUrl ? `${portalUrl}/portal/dashboard` : undefined,
-    });
-    await sendHtmlEmail({
+    await sendStudioEmail("class_rescheduled", {
+      userId: b.user_id,
       to: email,
-      subject: `Class time updated — ${className}`,
-      html,
-      context: { type: "class_rescheduled", targetProfileId: b.user_id, entity: { type: "booking", id: b.id } },
+      data: {
+        Member_Name: memberName,
+        Class_Name: className,
+        Instructor_Name: instructorName,
+        Old_Class_Date: formatDate(oldStart),
+        Old_Start_Time: formatTime(oldStart),
+        New_Class_Date: formatDate(sch.start_time),
+        New_Start_Time: formatTime(sch.start_time),
+        New_End_Time: formatTime(sch.end_time),
+        Studio_Link: portalUrl ? `${portalUrl}/portal/dashboard` : "",
+      },
     }).catch((e) => logger.error({ err: e, bookingId: b.id }, "[sendClassRescheduledEmails] failed"));
   }
 
@@ -104,22 +76,19 @@ export async function sendClassRescheduledEmails(
   // a class moved further out would otherwise leave the instructor uninformed.
   const instructorEmail = sch.instructor?.email?.trim();
   if (instructorEmail) {
-    const html = classRescheduledEmail({
-      memberName: instructorName,
-      className,
-      instructorName,
-      oldDateStr: formatDate(oldStart),
-      oldStartTime: formatTime(oldStart),
-      newDateStr: formatDate(sch.start_time),
-      newStartTime: formatTime(sch.start_time),
-      newEndTime: formatTime(sch.end_time),
-      portalUrl: portalUrl ? `${portalUrl}/instructor/dashboard` : undefined,
-    });
-    await sendHtmlEmail({
+    await sendStudioEmail("class_rescheduled", {
       to: instructorEmail,
-      subject: `Class time updated — ${className}`,
-      html,
-      context: { type: "class_rescheduled_instructor", entity: { type: "class_schedule", id: scheduleId } },
+      data: {
+        Member_Name: instructorName,
+        Class_Name: className,
+        Instructor_Name: instructorName,
+        Old_Class_Date: formatDate(oldStart),
+        Old_Start_Time: formatTime(oldStart),
+        New_Class_Date: formatDate(sch.start_time),
+        New_Start_Time: formatTime(sch.start_time),
+        New_End_Time: formatTime(sch.end_time),
+        Studio_Link: portalUrl ? `${portalUrl}/instructor/dashboard` : "",
+      },
     }).catch((e) => logger.error({ err: e, scheduleId }, "[sendClassRescheduledEmails instructor] failed"));
   }
 }

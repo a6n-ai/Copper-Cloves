@@ -3,8 +3,7 @@ import bcrypt from "bcryptjs";
 import prisma from "@/lib/prisma";
 import { dedupeInstructorRows } from "@/lib/instructorIdentity";
 import { getStudioServerSession } from "@/lib/getStudioServerSession";
-import { sendHtmlEmail } from "@/lib/notifications/sendEmail";
-import { instructorWelcomeEmail } from "@/lib/notifications/emailTemplates";
+import { sendStudioEmail } from "@/lib/notifications/email";
 import logger from "@/lib/logger";
 
 function rateOverride(v: unknown): number | null | undefined {
@@ -96,15 +95,14 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
           process.env.NEXT_PUBLIC_SITE_URL?.trim() ||
           "https://www.thestudiobycopperandcloves.in";
         const loginUrl = `${baseUrl.replace(/\/$/, "")}/login`;
-        await sendHtmlEmail({
+        await sendStudioEmail("instructor_welcome", {
           to: email,
-          subject: "Your instructor login — The Studio",
-          html: instructorWelcomeEmail({
-            instructorName: instructor.name ?? "Instructor",
-            email,
-            tempPassword,
-            loginUrl,
-          }),
+          data: {
+            Instructor_Name: instructor.name ?? "Instructor",
+            Email: email,
+            Temp_Password: tempPassword,
+            Login_Link: loginUrl,
+          },
         });
       } catch (e) {
         logger.warn({ err: e }, "[instructors] welcome email failed");

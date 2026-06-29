@@ -17,9 +17,9 @@
         <h2 style="font-family:Georgia,serif;font-size:22px;font-weight:400;color:#2C2C2C;margin:0">your booking has been cancelled</h2>
       </div>
 
-      <p style="font-family:Georgia,serif;font-size:17px;color:#2C2C2C;margin:0 0 12px">hi {{memberName}},</p>
+      <p style="font-family:Georgia,serif;font-size:17px;color:#2C2C2C;margin:0 0 12px">hi {{Member_Name}},</p>
       <p style="font-family:Georgia,serif;font-size:15px;color:#2C2C2C;margin:0 0 24px;line-height:1.6">
-        Your booking for <strong>{{className}}</strong> with {{instructorName}} on <strong>{{dateStr}}</strong> at <strong>{{startTime}}</strong> has been successfully cancelled.
+        Your booking for <strong>{{Class_Name}}</strong> with {{Instructor_Name}} on <strong>{{Class_Date}}</strong> at <strong>{{Class_Time}}</strong> has been successfully cancelled.
       </p>
 
       <div style="background:#FFF7ED;border:1px solid #FED7AA;border-radius:12px;padding:20px;margin-bottom:20px;text-align:center">
@@ -27,19 +27,21 @@
             <p style="font-family:Georgia,serif;font-size:14px;color:#9A3412;margin:0">This cancellation was made within 12 hours of class start and the credit cannot be transferred.</p>
           </div>
 
+      {{Refund_Roster}}
+
       <div style="background:#fff;border:1px solid #E8E4DC;border-radius:12px;padding:24px;margin-bottom:16px">
         <p style="font-family:Georgia,serif;font-size:16px;font-weight:700;color:#7C9070;margin:0 0 20px;text-align:center">cancelled class</p>
         <table style="width:100%;border-collapse:collapse">
-          <tr><td style="font-family:Georgia,serif;font-size:14px;color:#888888;padding:10px 0;border-bottom:1px solid #E8E4DC">class:</td><td style="font-family:Georgia,serif;font-size:14px;color:#2C2C2C;padding:10px 0;border-bottom:1px solid #E8E4DC;text-align:right">{{className}}</td></tr>
-          <tr><td style="font-family:Georgia,serif;font-size:14px;color:#888888;padding:10px 0;border-bottom:1px solid #E8E4DC">instructor:</td><td style="font-family:Georgia,serif;font-size:14px;color:#2C2C2C;padding:10px 0;border-bottom:1px solid #E8E4DC;text-align:right">{{instructorName}}</td></tr>
-          <tr><td style="font-family:Georgia,serif;font-size:14px;color:#888888;padding:10px 0;border-bottom:1px solid #E8E4DC">date:</td><td style="font-family:Georgia,serif;font-size:14px;color:#2C2C2C;padding:10px 0;border-bottom:1px solid #E8E4DC;text-align:right">{{dateStr}}</td></tr>
-          <tr><td style="font-family:Georgia,serif;font-size:14px;color:#888888;padding:10px 0">time:</td><td style="font-family:Georgia,serif;font-size:14px;color:#2C2C2C;padding:10px 0;text-align:right">{{startTime}}</td></tr>
+          <tr><td style="font-family:Georgia,serif;font-size:14px;color:#888888;padding:10px 0;border-bottom:1px solid #E8E4DC">class:</td><td style="font-family:Georgia,serif;font-size:14px;color:#2C2C2C;padding:10px 0;border-bottom:1px solid #E8E4DC;text-align:right">{{Class_Name}}</td></tr>
+          <tr><td style="font-family:Georgia,serif;font-size:14px;color:#888888;padding:10px 0;border-bottom:1px solid #E8E4DC">instructor:</td><td style="font-family:Georgia,serif;font-size:14px;color:#2C2C2C;padding:10px 0;border-bottom:1px solid #E8E4DC;text-align:right">{{Instructor_Name}}</td></tr>
+          <tr><td style="font-family:Georgia,serif;font-size:14px;color:#888888;padding:10px 0;border-bottom:1px solid #E8E4DC">date:</td><td style="font-family:Georgia,serif;font-size:14px;color:#2C2C2C;padding:10px 0;border-bottom:1px solid #E8E4DC;text-align:right">{{Class_Date}}</td></tr>
+          <tr><td style="font-family:Georgia,serif;font-size:14px;color:#888888;padding:10px 0">time:</td><td style="font-family:Georgia,serif;font-size:14px;color:#2C2C2C;padding:10px 0;text-align:right">{{Class_Time}}</td></tr>
         </table>
       </div>
 
       <div style="text-align:center;margin-bottom:24px">
         <p style="font-family:Georgia,serif;font-size:14px;color:#888888;margin:0 0 14px">ready to book another class?</p>
-        <a href="{{portalUrl}}/portal/book" style="display:inline-block;background:#7C9070;color:#fff;padding:13px 36px;border-radius:999px;text-decoration:none;font-family:Georgia,serif;font-size:14px">browse classes</a>
+        <a href="{{Studio_Link}}/portal/book" style="display:inline-block;background:#7C9070;color:#fff;padding:13px 36px;border-radius:999px;text-decoration:none;font-family:Georgia,serif;font-size:14px">browse classes</a>
       </div>
 
       
