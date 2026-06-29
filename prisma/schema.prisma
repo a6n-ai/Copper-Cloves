@@ -97,6 +97,8 @@ model Coupon {
   max_redemptions   Int?
   redemption_count  Int       @default(0)
   max_uses_per_user Int?
+  /// When true, this coupon may combine with an active package offer (stacks on the offer price). When false, best-of-the-two applies.
+  stackable         Boolean   @default(false)
   starts_at         DateTime?
   ends_at           DateTime?
   created_at        DateTime  @default(now())
@@ -344,6 +346,14 @@ model PackageType {
   display_order       Int      @default(0)
   /// Admin can hide a package without deleting it.
   is_published        Boolean  @default(true)
+  /// Special-offer price (INR). Null = no offer. Charged when the offer window is active and below `price`.
+  offer_price         Decimal? @db.Decimal(10, 2)
+  /// Offer ribbon label shown publicly, e.g. "Festive Sale".
+  offer_label         String?
+  /// Offer activates at/after this time. Null = active immediately.
+  offer_starts_at     DateTime?
+  /// Offer expires after this time. Null = no expiry.
+  offer_ends_at       DateTime?
   created_at          DateTime @default(now())
   updated_at          DateTime @default(now()) @updatedAt
 

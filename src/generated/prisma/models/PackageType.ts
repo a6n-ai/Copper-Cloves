@@ -31,6 +31,7 @@ export type PackageTypeAvgAggregateOutputType = {
   duration_months: number | null
   price: runtime.Decimal | null
   display_order: number | null
+  offer_price: runtime.Decimal | null
 }
 
 export type PackageTypeSumAggregateOutputType = {
@@ -38,6 +39,7 @@ export type PackageTypeSumAggregateOutputType = {
   duration_months: number | null
   price: runtime.Decimal | null
   display_order: number | null
+  offer_price: runtime.Decimal | null
 }
 
 export type PackageTypeMinAggregateOutputType = {
@@ -54,6 +56,10 @@ export type PackageTypeMinAggregateOutputType = {
   badge: string | null
   display_order: number | null
   is_published: boolean | null
+  offer_price: runtime.Decimal | null
+  offer_label: string | null
+  offer_starts_at: Date | null
+  offer_ends_at: Date | null
   created_at: Date | null
   updated_at: Date | null
 }
@@ -72,6 +78,10 @@ export type PackageTypeMaxAggregateOutputType = {
   badge: string | null
   display_order: number | null
   is_published: boolean | null
+  offer_price: runtime.Decimal | null
+  offer_label: string | null
+  offer_starts_at: Date | null
+  offer_ends_at: Date | null
   created_at: Date | null
   updated_at: Date | null
 }
@@ -91,6 +101,10 @@ export type PackageTypeCountAggregateOutputType = {
   badge: number
   display_order: number
   is_published: number
+  offer_price: number
+  offer_label: number
+  offer_starts_at: number
+  offer_ends_at: number
   created_at: number
   updated_at: number
   _all: number
@@ -102,6 +116,7 @@ export type PackageTypeAvgAggregateInputType = {
   duration_months?: true
   price?: true
   display_order?: true
+  offer_price?: true
 }
 
 export type PackageTypeSumAggregateInputType = {
@@ -109,6 +124,7 @@ export type PackageTypeSumAggregateInputType = {
   duration_months?: true
   price?: true
   display_order?: true
+  offer_price?: true
 }
 
 export type PackageTypeMinAggregateInputType = {
@@ -125,6 +141,10 @@ export type PackageTypeMinAggregateInputType = {
   badge?: true
   display_order?: true
   is_published?: true
+  offer_price?: true
+  offer_label?: true
+  offer_starts_at?: true
+  offer_ends_at?: true
   created_at?: true
   updated_at?: true
 }
@@ -143,6 +163,10 @@ export type PackageTypeMaxAggregateInputType = {
   badge?: true
   display_order?: true
   is_published?: true
+  offer_price?: true
+  offer_label?: true
+  offer_starts_at?: true
+  offer_ends_at?: true
   created_at?: true
   updated_at?: true
 }
@@ -162,6 +186,10 @@ export type PackageTypeCountAggregateInputType = {
   badge?: true
   display_order?: true
   is_published?: true
+  offer_price?: true
+  offer_label?: true
+  offer_starts_at?: true
+  offer_ends_at?: true
   created_at?: true
   updated_at?: true
   _all?: true
@@ -268,6 +296,10 @@ export type PackageTypeGroupByOutputType = {
   badge: string | null
   display_order: number
   is_published: boolean
+  offer_price: runtime.Decimal | null
+  offer_label: string | null
+  offer_starts_at: Date | null
+  offer_ends_at: Date | null
   created_at: Date
   updated_at: Date
   _count: PackageTypeCountAggregateOutputType | null
@@ -310,6 +342,10 @@ export type PackageTypeWhereInput = {
   badge?: Prisma.StringNullableFilter<"PackageType"> | string | null
   display_order?: Prisma.IntFilter<"PackageType"> | number
   is_published?: Prisma.BoolFilter<"PackageType"> | boolean
+  offer_price?: Prisma.DecimalNullableFilter<"PackageType"> | runtime.Decimal | runtime.DecimalJsLike | number | string | null
+  offer_label?: Prisma.StringNullableFilter<"PackageType"> | string | null
+  offer_starts_at?: Prisma.DateTimeNullableFilter<"PackageType"> | Date | string | null
+  offer_ends_at?: Prisma.DateTimeNullableFilter<"PackageType"> | Date | string | null
   created_at?: Prisma.DateTimeFilter<"PackageType"> | Date | string
   updated_at?: Prisma.DateTimeFilter<"PackageType"> | Date | string
   user_packages?: Prisma.UserPackageListRelationFilter
@@ -330,6 +366,10 @@ export type PackageTypeOrderByWithRelationInput = {
   badge?: Prisma.SortOrderInput | Prisma.SortOrder
   display_order?: Prisma.SortOrder
   is_published?: Prisma.SortOrder
+  offer_price?: Prisma.SortOrderInput | Prisma.SortOrder
+  offer_label?: Prisma.SortOrderInput | Prisma.SortOrder
+  offer_starts_at?: Prisma.SortOrderInput | Prisma.SortOrder
+  offer_ends_at?: Prisma.SortOrderInput | Prisma.SortOrder
   created_at?: Prisma.SortOrder
   updated_at?: Prisma.SortOrder
   user_packages?: Prisma.UserPackageOrderByRelationAggregateInput
@@ -353,6 +393,10 @@ export type PackageTypeWhereUniqueInput = Prisma.AtLeast<{
   badge?: Prisma.StringNullableFilter<"PackageType"> | string | null
   display_order?: Prisma.IntFilter<"PackageType"> | number
   is_published?: Prisma.BoolFilter<"PackageType"> | boolean
+  offer_price?: Prisma.DecimalNullableFilter<"PackageType"> | runtime.Decimal | runtime.DecimalJsLike | number | string | null
+  offer_label?: Prisma.StringNullableFilter<"PackageType"> | string | null
+  offer_starts_at?: Prisma.DateTimeNullableFilter<"PackageType"> | Date | string | null
+  offer_ends_at?: Prisma.DateTimeNullableFilter<"PackageType"> | Date | string | null
   created_at?: Prisma.DateTimeFilter<"PackageType"> | Date | string
   updated_at?: Prisma.DateTimeFilter<"PackageType"> | Date | string
   user_packages?: Prisma.UserPackageListRelationFilter
@@ -373,6 +417,10 @@ export type PackageTypeOrderByWithAggregationInput = {
   badge?: Prisma.SortOrderInput | Prisma.SortOrder
   display_order?: Prisma.SortOrder
   is_published?: Prisma.SortOrder
+  offer_price?: Prisma.SortOrderInput | Prisma.SortOrder
+  offer_label?: Prisma.SortOrderInput | Prisma.SortOrder
+  offer_starts_at?: Prisma.SortOrderInput | Prisma.SortOrder
+  offer_ends_at?: Prisma.SortOrderInput | Prisma.SortOrder
   created_at?: Prisma.SortOrder
   updated_at?: Prisma.SortOrder
   _count?: Prisma.PackageTypeCountOrderByAggregateInput
@@ -400,6 +448,10 @@ export type PackageTypeScalarWhereWithAggregatesInput = {
   badge?: Prisma.StringNullableWithAggregatesFilter<"PackageType"> | string | null
   display_order?: Prisma.IntWithAggregatesFilter<"PackageType"> | number
   is_published?: Prisma.BoolWithAggregatesFilter<"PackageType"> | boolean
+  offer_price?: Prisma.DecimalNullableWithAggregatesFilter<"PackageType"> | runtime.Decimal | runtime.DecimalJsLike | number | string | null
+  offer_label?: Prisma.StringNullableWithAggregatesFilter<"PackageType"> | string | null
+  offer_starts_at?: Prisma.DateTimeNullableWithAggregatesFilter<"PackageType"> | Date | string | null
+  offer_ends_at?: Prisma.DateTimeNullableWithAggregatesFilter<"PackageType"> | Date | string | null
   created_at?: Prisma.DateTimeWithAggregatesFilter<"PackageType"> | Date | string
   updated_at?: Prisma.DateTimeWithAggregatesFilter<"PackageType"> | Date | string
 }
@@ -419,6 +471,10 @@ export type PackageTypeCreateInput = {
   badge?: string | null
   display_order?: number
   is_published?: boolean
+  offer_price?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
+  offer_label?: string | null
+  offer_starts_at?: Date | string | null
+  offer_ends_at?: Date | string | null
   created_at?: Date | string
   updated_at?: Date | string
   user_packages?: Prisma.UserPackageCreateNestedManyWithoutPackage_typeInput
@@ -439,6 +495,10 @@ export type PackageTypeUncheckedCreateInput = {
   badge?: string | null
   display_order?: number
   is_published?: boolean
+  offer_price?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
+  offer_label?: string | null
+  offer_starts_at?: Date | string | null
+  offer_ends_at?: Date | string | null
   created_at?: Date | string
   updated_at?: Date | string
   user_packages?: Prisma.UserPackageUncheckedCreateNestedManyWithoutPackage_typeInput
@@ -459,6 +519,10 @@ export type PackageTypeUpdateInput = {
   badge?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   display_order?: Prisma.IntFieldUpdateOperationsInput | number
   is_published?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  offer_price?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
+  offer_label?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  offer_starts_at?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  offer_ends_at?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   created_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updated_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   user_packages?: Prisma.UserPackageUpdateManyWithoutPackage_typeNestedInput
@@ -479,6 +543,10 @@ export type PackageTypeUncheckedUpdateInput = {
   badge?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   display_order?: Prisma.IntFieldUpdateOperationsInput | number
   is_published?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  offer_price?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
+  offer_label?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  offer_starts_at?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  offer_ends_at?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   created_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updated_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   user_packages?: Prisma.UserPackageUncheckedUpdateManyWithoutPackage_typeNestedInput
@@ -499,6 +567,10 @@ export type PackageTypeCreateManyInput = {
   badge?: string | null
   display_order?: number
   is_published?: boolean
+  offer_price?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
+  offer_label?: string | null
+  offer_starts_at?: Date | string | null
+  offer_ends_at?: Date | string | null
   created_at?: Date | string
   updated_at?: Date | string
 }
@@ -518,6 +590,10 @@ export type PackageTypeUpdateManyMutationInput = {
   badge?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   display_order?: Prisma.IntFieldUpdateOperationsInput | number
   is_published?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  offer_price?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
+  offer_label?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  offer_starts_at?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  offer_ends_at?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   created_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updated_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
 }
@@ -537,6 +613,10 @@ export type PackageTypeUncheckedUpdateManyInput = {
   badge?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   display_order?: Prisma.IntFieldUpdateOperationsInput | number
   is_published?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  offer_price?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
+  offer_label?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  offer_starts_at?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  offer_ends_at?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   created_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updated_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
 }
@@ -556,6 +636,10 @@ export type PackageTypeCountOrderByAggregateInput = {
   badge?: Prisma.SortOrder
   display_order?: Prisma.SortOrder
   is_published?: Prisma.SortOrder
+  offer_price?: Prisma.SortOrder
+  offer_label?: Prisma.SortOrder
+  offer_starts_at?: Prisma.SortOrder
+  offer_ends_at?: Prisma.SortOrder
   created_at?: Prisma.SortOrder
   updated_at?: Prisma.SortOrder
 }
@@ -565,6 +649,7 @@ export type PackageTypeAvgOrderByAggregateInput = {
   duration_months?: Prisma.SortOrder
   price?: Prisma.SortOrder
   display_order?: Prisma.SortOrder
+  offer_price?: Prisma.SortOrder
 }
 
 export type PackageTypeMaxOrderByAggregateInput = {
@@ -581,6 +666,10 @@ export type PackageTypeMaxOrderByAggregateInput = {
   badge?: Prisma.SortOrder
   display_order?: Prisma.SortOrder
   is_published?: Prisma.SortOrder
+  offer_price?: Prisma.SortOrder
+  offer_label?: Prisma.SortOrder
+  offer_starts_at?: Prisma.SortOrder
+  offer_ends_at?: Prisma.SortOrder
   created_at?: Prisma.SortOrder
   updated_at?: Prisma.SortOrder
 }
@@ -599,6 +688,10 @@ export type PackageTypeMinOrderByAggregateInput = {
   badge?: Prisma.SortOrder
   display_order?: Prisma.SortOrder
   is_published?: Prisma.SortOrder
+  offer_price?: Prisma.SortOrder
+  offer_label?: Prisma.SortOrder
+  offer_starts_at?: Prisma.SortOrder
+  offer_ends_at?: Prisma.SortOrder
   created_at?: Prisma.SortOrder
   updated_at?: Prisma.SortOrder
 }
@@ -608,6 +701,7 @@ export type PackageTypeSumOrderByAggregateInput = {
   duration_months?: Prisma.SortOrder
   price?: Prisma.SortOrder
   display_order?: Prisma.SortOrder
+  offer_price?: Prisma.SortOrder
 }
 
 export type PackageTypeScalarRelationFilter = {
@@ -653,6 +747,10 @@ export type PackageTypeCreateWithoutUser_packagesInput = {
   badge?: string | null
   display_order?: number
   is_published?: boolean
+  offer_price?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
+  offer_label?: string | null
+  offer_starts_at?: Date | string | null
+  offer_ends_at?: Date | string | null
   created_at?: Date | string
   updated_at?: Date | string
 }
@@ -672,6 +770,10 @@ export type PackageTypeUncheckedCreateWithoutUser_packagesInput = {
   badge?: string | null
   display_order?: number
   is_published?: boolean
+  offer_price?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
+  offer_label?: string | null
+  offer_starts_at?: Date | string | null
+  offer_ends_at?: Date | string | null
   created_at?: Date | string
   updated_at?: Date | string
 }
@@ -707,6 +809,10 @@ export type PackageTypeUpdateWithoutUser_packagesInput = {
   badge?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   display_order?: Prisma.IntFieldUpdateOperationsInput | number
   is_published?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  offer_price?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
+  offer_label?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  offer_starts_at?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  offer_ends_at?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   created_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updated_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
 }
@@ -726,6 +832,10 @@ export type PackageTypeUncheckedUpdateWithoutUser_packagesInput = {
   badge?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   display_order?: Prisma.IntFieldUpdateOperationsInput | number
   is_published?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  offer_price?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
+  offer_label?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  offer_starts_at?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  offer_ends_at?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   created_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updated_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
 }
@@ -776,6 +886,10 @@ export type PackageTypeSelect<ExtArgs extends runtime.Types.Extensions.InternalA
   badge?: boolean
   display_order?: boolean
   is_published?: boolean
+  offer_price?: boolean
+  offer_label?: boolean
+  offer_starts_at?: boolean
+  offer_ends_at?: boolean
   created_at?: boolean
   updated_at?: boolean
   user_packages?: boolean | Prisma.PackageType$user_packagesArgs<ExtArgs>
@@ -797,6 +911,10 @@ export type PackageTypeSelectCreateManyAndReturn<ExtArgs extends runtime.Types.E
   badge?: boolean
   display_order?: boolean
   is_published?: boolean
+  offer_price?: boolean
+  offer_label?: boolean
+  offer_starts_at?: boolean
+  offer_ends_at?: boolean
   created_at?: boolean
   updated_at?: boolean
 }, ExtArgs["result"]["packageType"]>
@@ -816,6 +934,10 @@ export type PackageTypeSelectUpdateManyAndReturn<ExtArgs extends runtime.Types.E
   badge?: boolean
   display_order?: boolean
   is_published?: boolean
+  offer_price?: boolean
+  offer_label?: boolean
+  offer_starts_at?: boolean
+  offer_ends_at?: boolean
   created_at?: boolean
   updated_at?: boolean
 }, ExtArgs["result"]["packageType"]>
@@ -835,11 +957,15 @@ export type PackageTypeSelectScalar = {
   badge?: boolean
   display_order?: boolean
   is_published?: boolean
+  offer_price?: boolean
+  offer_label?: boolean
+  offer_starts_at?: boolean
+  offer_ends_at?: boolean
   created_at?: boolean
   updated_at?: boolean
 }
 
-export type PackageTypeOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "name" | "type" | "class_count" | "duration_months" | "price" | "includes_physique_57" | "is_unlimited" | "description" | "benefits" | "featured" | "badge" | "display_order" | "is_published" | "created_at" | "updated_at", ExtArgs["result"]["packageType"]>
+export type PackageTypeOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "name" | "type" | "class_count" | "duration_months" | "price" | "includes_physique_57" | "is_unlimited" | "description" | "benefits" | "featured" | "badge" | "display_order" | "is_published" | "offer_price" | "offer_label" | "offer_starts_at" | "offer_ends_at" | "created_at" | "updated_at", ExtArgs["result"]["packageType"]>
 export type PackageTypeInclude<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   user_packages?: boolean | Prisma.PackageType$user_packagesArgs<ExtArgs>
   _count?: boolean | Prisma.PackageTypeCountOutputTypeDefaultArgs<ExtArgs>
@@ -882,6 +1008,22 @@ export type $PackageTypePayload<ExtArgs extends runtime.Types.Extensions.Interna
      * Admin can hide a package without deleting it.
      */
     is_published: boolean
+    /**
+     * Special-offer price (INR). Null = no offer. Charged when the offer window is active and below `price`.
+     */
+    offer_price: runtime.Decimal | null
+    /**
+     * Offer ribbon label shown publicly, e.g. "Festive Sale".
+     */
+    offer_label: string | null
+    /**
+     * Offer activates at/after this time. Null = active immediately.
+     */
+    offer_starts_at: Date | null
+    /**
+     * Offer expires after this time. Null = no expiry.
+     */
+    offer_ends_at: Date | null
     created_at: Date
     updated_at: Date
   }, ExtArgs["result"]["packageType"]>
@@ -1322,6 +1464,10 @@ export interface PackageTypeFieldRefs {
   readonly badge: Prisma.FieldRef<"PackageType", 'String'>
   readonly display_order: Prisma.FieldRef<"PackageType", 'Int'>
   readonly is_published: Prisma.FieldRef<"PackageType", 'Boolean'>
+  readonly offer_price: Prisma.FieldRef<"PackageType", 'Decimal'>
+  readonly offer_label: Prisma.FieldRef<"PackageType", 'String'>
+  readonly offer_starts_at: Prisma.FieldRef<"PackageType", 'DateTime'>
+  readonly offer_ends_at: Prisma.FieldRef<"PackageType", 'DateTime'>
   readonly created_at: Prisma.FieldRef<"PackageType", 'DateTime'>
   readonly updated_at: Prisma.FieldRef<"PackageType", 'DateTime'>
 }

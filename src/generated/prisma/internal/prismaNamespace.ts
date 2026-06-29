@@ -3944,6 +3944,7 @@ export const CouponScalarFieldEnum = {
   max_redemptions: 'max_redemptions',
   redemption_count: 'redemption_count',
   max_uses_per_user: 'max_uses_per_user',
+  stackable: 'stackable',
   starts_at: 'starts_at',
   ends_at: 'ends_at',
   created_at: 'created_at',
@@ -4125,6 +4126,10 @@ export const PackageTypeScalarFieldEnum = {
   badge: 'badge',
   display_order: 'display_order',
   is_published: 'is_published',
+  offer_price: 'offer_price',
+  offer_label: 'offer_label',
+  offer_starts_at: 'offer_starts_at',
+  offer_ends_at: 'offer_ends_at',
   created_at: 'created_at',
   updated_at: 'updated_at'
 } as const

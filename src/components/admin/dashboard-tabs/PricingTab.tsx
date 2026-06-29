@@ -21,6 +21,7 @@ export interface Coupon {
   discount_type: string;
   discount_value: unknown;
   is_active: boolean;
+  stackable: boolean;
   max_discount_inr: unknown;
   min_order_inr: unknown;
   max_redemptions: number | null;
@@ -36,6 +37,7 @@ export interface CouponDraft {
   discount_type: string;
   discount_value: string;
   is_active: boolean;
+  stackable: boolean;
   max_discount_inr: string;
   min_order_inr: string;
   max_redemptions: string;
@@ -247,6 +249,17 @@ function PricingTabImpl({
                 <Label htmlFor="coupon-active" className="font-body text-charcoal cursor-pointer">
                   Active
                 </Label>
+              </div>
+              <div className="flex items-center justify-between rounded-lg border border-sage/15 px-3 py-2.5">
+                <div>
+                  <Label htmlFor="coupon-stackable" className="cursor-pointer font-body text-charcoal">Stackable with offers</Label>
+                  <p className="font-body text-xs text-charcoal/50">If off, the best of offer vs coupon applies — never both.</p>
+                </div>
+                <Switch
+                  id="coupon-stackable"
+                  checked={draft.stackable}
+                  onCheckedChange={(c) => onDraftChange({ ...draft, stackable: c })}
+                />
               </div>
               <div className="flex flex-wrap gap-2 pt-2">
                 <Button type="button" onClick={onSave} disabled={saving} variant="sage">

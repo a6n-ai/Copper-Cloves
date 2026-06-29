@@ -5,10 +5,13 @@
  * these shapes. `benefits` is the admin-editable bullet description shown publicly.
  */
 import { formatInr } from "@/lib/packageCatalog";
+import { effectivePackagePrice } from "@/lib/packageOffer";
 
 export interface PricingPlan {
   name: string;
   price: string;
+  originalPrice?: string;
+  offerLabel?: string;
   classes: number | string;
   validity: string;
   benefits: string[];
@@ -28,6 +31,10 @@ export interface PublicPackageRow {
   badge?: string | null;
   display_order?: number | null;
   is_published?: boolean;
+  offer_price?: number | string | null;
+  offer_label?: string | null;
+  offer_starts_at?: string | null;
+  offer_ends_at?: string | null;
 }
 
 /** Human validity label from a package duration (no day-granular column exists). */
@@ -38,9 +45,21 @@ export function validityLabel(durationMonths?: number | null): string {
 
 /** Map a DB package row to the public pricing-card shape. */
 export function toPricingPlan(p: PublicPackageRow): PricingPlan {
+  const eff = effectivePackagePrice(
+    {
+      price: p.price,
+      offer_price: p.offer_price ?? null,
+      offer_label: p.offer_label,
+      offer_starts_at: p.offer_starts_at,
+      offer_ends_at: p.offer_ends_at,
+    },
+    new Date(),
+  );
   return {
     name: p.name,
-    price: formatInr(Number(p.price) || 0),
+    price: formatInr(eff.payableInr),
+    originalPrice: eff.isOffer ? formatInr(eff.originalInr) : undefined,
+    offerLabel: eff.isOffer ? eff.label ?? undefined : undefined,
     classes: p.is_unlimited ? "Unlimited" : p.class_count ?? 0,
     validity: validityLabel(p.duration_months),
     benefits: Array.isArray(p.benefits) ? p.benefits : [],

@@ -20,6 +20,7 @@ import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
 import { Button } from "@/components/ui/button";
 import { Pill } from "@/components/ui/pill";
+import { offerState } from "@/lib/packageOffer";
 
 type PackageRow = {
   id: string;
@@ -36,6 +37,10 @@ type PackageRow = {
   display_order: number;
   is_published: boolean;
   description: string | null;
+  offer_price: number | null;
+  offer_label: string | null;
+  offer_starts_at: string | null;
+  offer_ends_at: string | null;
 };
 
 type PackageForm = {
@@ -52,6 +57,10 @@ type PackageForm = {
   display_order: string;
   is_published: boolean;
   description: string;
+  offer_price: string;
+  offer_label: string;
+  offer_starts_at: string;
+  offer_ends_at: string;
 };
 
 const EMPTY_FORM: PackageForm = {
@@ -68,7 +77,24 @@ const EMPTY_FORM: PackageForm = {
   display_order: "0",
   is_published: true,
   description: "",
+  offer_price: "",
+  offer_label: "",
+  offer_starts_at: "",
+  offer_ends_at: "",
 };
+
+/**
+ * Stored UTC ISO → `YYYY-MM-DDTHH:mm` in the admin's LOCAL wall-clock, for a
+ * `datetime-local` input. submit() parses the input back as local time, so this
+ * keeps the round-trip stable (a `.toISOString().slice(0,16)` here would show UTC
+ * and silently shift the saved instant by the admin's offset on every save).
+ */
+function toDatetimeLocal(iso: string | null): string {
+  if (!iso) return "";
+  const d = new Date(iso);
+  if (Number.isNaN(d.getTime())) return "";
+  return new Date(d.getTime() - d.getTimezoneOffset() * 60000).toISOString().slice(0, 16);
+}
 
 function rowToForm(p: PackageRow): PackageForm {
   return {
@@ -85,6 +111,10 @@ function rowToForm(p: PackageRow): PackageForm {
     display_order: String(p.display_order ?? 0),
     is_published: p.is_published !== false,
     description: p.description ?? "",
+    offer_price: p.offer_price == null ? "" : String(p.offer_price),
+    offer_label: p.offer_label ?? "",
+    offer_starts_at: toDatetimeLocal(p.offer_starts_at),
+    offer_ends_at: toDatetimeLocal(p.offer_ends_at),
   };
 }
 
@@ -105,7 +135,7 @@ export default function PackageCatalogTab() {
     }
     const d = await r.json();
     const list: PackageRow[] = Array.isArray(d) ? d : (d.packages ?? d.packageTypes ?? []);
-    setRows(list.map((p) => ({ ...p, price: Number(p.price), benefits: p.benefits ?? [] })));
+    setRows(list.map((p) => ({ ...p, price: Number(p.price), offer_price: p.offer_price == null ? null : Number(p.offer_price), benefits: p.benefits ?? [] })));
   }, []);
 
   useEffect(() => {
@@ -145,6 +175,15 @@ export default function PackageCatalogTab() {
       toast.error("Enter a valid price.");
       return;
     }
+    const offerPriceNum = form.offer_price.trim() === "" ? null : Number(form.offer_price);
+    if (offerPriceNum != null && (!Number.isFinite(offerPriceNum) || offerPriceNum <= 0 || offerPriceNum >= price)) {
+      toast.error("Offer price must be greater than 0 and less than the regular price.");
+      return;
+    }
+    if (form.offer_starts_at && form.offer_ends_at && new Date(form.offer_starts_at) >= new Date(form.offer_ends_at)) {
+      toast.error("Offer start must be before offer end.");
+      return;
+    }
     const benefits = form.benefitsText
       .split("\n")
       .map((s) => s.trim())
@@ -164,6 +203,10 @@ export default function PackageCatalogTab() {
       display_order: Number(form.display_order) || 0,
       is_published: form.is_published,
       description: form.description.trim() || null,
+      offer_price: offerPriceNum,
+      offer_label: form.offer_label.trim() || null,
+      offer_starts_at: form.offer_starts_at ? new Date(form.offer_starts_at).toISOString() : null,
+      offer_ends_at: form.offer_ends_at ? new Date(form.offer_ends_at).toISOString() : null,
     };
 
     setSaving(true);
@@ -264,7 +307,16 @@ export default function PackageCatalogTab() {
                         {p.duration_months ? `${p.duration_months} mo` : "—"}
                       </TableCell>
                       <TableCell className="text-right font-body text-sm text-charcoal">
-                        {p.price.toLocaleString("en-IN")}
+                        {offerState(p, new Date()) === "active" ? (
+                          <div className="flex flex-col items-end">
+                            <span className="text-charcoal/40 line-through">{p.price.toLocaleString("en-IN")}</span>
+                            <span className="font-semibold text-terracotta">
+                              {p.offer_price?.toLocaleString("en-IN") ?? "—"}
+                            </span>
+                          </div>
+                        ) : (
+                          p.price.toLocaleString("en-IN")
+                        )}
                       </TableCell>
                       <TableCell>
                         {p.is_published ? (
@@ -405,6 +457,70 @@ export default function PackageCatalogTab() {
                 value={form.description}
                 onChange={(e) => patch("description", e.target.value)}
               />
+            </div>
+
+            <div className="rounded-lg border border-terracotta/25 bg-terracotta/[0.04] p-3">
+              <div className="mb-3 flex items-center justify-between">
+                <Label className="font-body text-sm font-semibold text-charcoal">Special offer</Label>
+                {(() => {
+                  const st = offerState(
+                    {
+                      price: Number(form.price) || 0,
+                      offer_price: form.offer_price === "" ? null : Number(form.offer_price),
+                      offer_starts_at: form.offer_starts_at || null,
+                      offer_ends_at: form.offer_ends_at || null,
+                    },
+                    new Date(),
+                  );
+                  const tone = st === "active" ? "success" : st === "scheduled" ? "info" : st === "expired" ? "danger" : "neutral";
+                  return (
+                    <Pill tone={tone} size="sm" noIcon>
+                      {st === "none" ? "No offer" : st[0].toUpperCase() + st.slice(1)}
+                    </Pill>
+                  );
+                })()}
+              </div>
+              <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+                <div className="grid gap-1.5">
+                  <Label htmlFor="pkg-offer-price">Offer price (₹)</Label>
+                  <Input
+                    id="pkg-offer-price"
+                    type="number"
+                    min="0"
+                    inputMode="decimal"
+                    value={form.offer_price}
+                    onChange={(e) => patch("offer_price", e.target.value)}
+                    placeholder="Leave blank for no offer"
+                  />
+                </div>
+                <div className="grid gap-1.5">
+                  <Label htmlFor="pkg-offer-label">Offer label</Label>
+                  <Input
+                    id="pkg-offer-label"
+                    value={form.offer_label}
+                    onChange={(e) => patch("offer_label", e.target.value)}
+                    placeholder="e.g. Festive Sale"
+                  />
+                </div>
+                <div className="grid gap-1.5">
+                  <Label htmlFor="pkg-offer-start">Starts (optional)</Label>
+                  <Input
+                    id="pkg-offer-start"
+                    type="datetime-local"
+                    value={form.offer_starts_at}
+                    onChange={(e) => patch("offer_starts_at", e.target.value)}
+                  />
+                </div>
+                <div className="grid gap-1.5">
+                  <Label htmlFor="pkg-offer-end">Ends (optional)</Label>
+                  <Input
+                    id="pkg-offer-end"
+                    type="datetime-local"
+                    value={form.offer_ends_at}
+                    onChange={(e) => patch("offer_ends_at", e.target.value)}
+                  />
+                </div>
+              </div>
             </div>
 
             <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">

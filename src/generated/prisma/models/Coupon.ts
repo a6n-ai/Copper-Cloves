@@ -56,6 +56,7 @@ export type CouponMinAggregateOutputType = {
   max_redemptions: number | null
   redemption_count: number | null
   max_uses_per_user: number | null
+  stackable: boolean | null
   starts_at: Date | null
   ends_at: Date | null
   created_at: Date | null
@@ -74,6 +75,7 @@ export type CouponMaxAggregateOutputType = {
   max_redemptions: number | null
   redemption_count: number | null
   max_uses_per_user: number | null
+  stackable: boolean | null
   starts_at: Date | null
   ends_at: Date | null
   created_at: Date | null
@@ -92,6 +94,7 @@ export type CouponCountAggregateOutputType = {
   max_redemptions: number
   redemption_count: number
   max_uses_per_user: number
+  stackable: number
   starts_at: number
   ends_at: number
   created_at: number
@@ -130,6 +133,7 @@ export type CouponMinAggregateInputType = {
   max_redemptions?: true
   redemption_count?: true
   max_uses_per_user?: true
+  stackable?: true
   starts_at?: true
   ends_at?: true
   created_at?: true
@@ -148,6 +152,7 @@ export type CouponMaxAggregateInputType = {
   max_redemptions?: true
   redemption_count?: true
   max_uses_per_user?: true
+  stackable?: true
   starts_at?: true
   ends_at?: true
   created_at?: true
@@ -166,6 +171,7 @@ export type CouponCountAggregateInputType = {
   max_redemptions?: true
   redemption_count?: true
   max_uses_per_user?: true
+  stackable?: true
   starts_at?: true
   ends_at?: true
   created_at?: true
@@ -271,6 +277,7 @@ export type CouponGroupByOutputType = {
   max_redemptions: number | null
   redemption_count: number
   max_uses_per_user: number | null
+  stackable: boolean
   starts_at: Date | null
   ends_at: Date | null
   created_at: Date
@@ -312,6 +319,7 @@ export type CouponWhereInput = {
   max_redemptions?: Prisma.IntNullableFilter<"Coupon"> | number | null
   redemption_count?: Prisma.IntFilter<"Coupon"> | number
   max_uses_per_user?: Prisma.IntNullableFilter<"Coupon"> | number | null
+  stackable?: Prisma.BoolFilter<"Coupon"> | boolean
   starts_at?: Prisma.DateTimeNullableFilter<"Coupon"> | Date | string | null
   ends_at?: Prisma.DateTimeNullableFilter<"Coupon"> | Date | string | null
   created_at?: Prisma.DateTimeFilter<"Coupon"> | Date | string
@@ -334,6 +342,7 @@ export type CouponOrderByWithRelationInput = {
   max_redemptions?: Prisma.SortOrderInput | Prisma.SortOrder
   redemption_count?: Prisma.SortOrder
   max_uses_per_user?: Prisma.SortOrderInput | Prisma.SortOrder
+  stackable?: Prisma.SortOrder
   starts_at?: Prisma.SortOrderInput | Prisma.SortOrder
   ends_at?: Prisma.SortOrderInput | Prisma.SortOrder
   created_at?: Prisma.SortOrder
@@ -359,6 +368,7 @@ export type CouponWhereUniqueInput = Prisma.AtLeast<{
   max_redemptions?: Prisma.IntNullableFilter<"Coupon"> | number | null
   redemption_count?: Prisma.IntFilter<"Coupon"> | number
   max_uses_per_user?: Prisma.IntNullableFilter<"Coupon"> | number | null
+  stackable?: Prisma.BoolFilter<"Coupon"> | boolean
   starts_at?: Prisma.DateTimeNullableFilter<"Coupon"> | Date | string | null
   ends_at?: Prisma.DateTimeNullableFilter<"Coupon"> | Date | string | null
   created_at?: Prisma.DateTimeFilter<"Coupon"> | Date | string
@@ -381,6 +391,7 @@ export type CouponOrderByWithAggregationInput = {
   max_redemptions?: Prisma.SortOrderInput | Prisma.SortOrder
   redemption_count?: Prisma.SortOrder
   max_uses_per_user?: Prisma.SortOrderInput | Prisma.SortOrder
+  stackable?: Prisma.SortOrder
   starts_at?: Prisma.SortOrderInput | Prisma.SortOrder
   ends_at?: Prisma.SortOrderInput | Prisma.SortOrder
   created_at?: Prisma.SortOrder
@@ -407,6 +418,7 @@ export type CouponScalarWhereWithAggregatesInput = {
   max_redemptions?: Prisma.IntNullableWithAggregatesFilter<"Coupon"> | number | null
   redemption_count?: Prisma.IntWithAggregatesFilter<"Coupon"> | number
   max_uses_per_user?: Prisma.IntNullableWithAggregatesFilter<"Coupon"> | number | null
+  stackable?: Prisma.BoolWithAggregatesFilter<"Coupon"> | boolean
   starts_at?: Prisma.DateTimeNullableWithAggregatesFilter<"Coupon"> | Date | string | null
   ends_at?: Prisma.DateTimeNullableWithAggregatesFilter<"Coupon"> | Date | string | null
   created_at?: Prisma.DateTimeWithAggregatesFilter<"Coupon"> | Date | string
@@ -425,6 +437,7 @@ export type CouponCreateInput = {
   max_redemptions?: number | null
   redemption_count?: number
   max_uses_per_user?: number | null
+  stackable?: boolean
   starts_at?: Date | string | null
   ends_at?: Date | string | null
   created_at?: Date | string
@@ -447,6 +460,7 @@ export type CouponUncheckedCreateInput = {
   max_redemptions?: number | null
   redemption_count?: number
   max_uses_per_user?: number | null
+  stackable?: boolean
   starts_at?: Date | string | null
   ends_at?: Date | string | null
   created_at?: Date | string
@@ -469,6 +483,7 @@ export type CouponUpdateInput = {
   max_redemptions?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   redemption_count?: Prisma.IntFieldUpdateOperationsInput | number
   max_uses_per_user?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  stackable?: Prisma.BoolFieldUpdateOperationsInput | boolean
   starts_at?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   ends_at?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   created_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -491,6 +506,7 @@ export type CouponUncheckedUpdateInput = {
   max_redemptions?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   redemption_count?: Prisma.IntFieldUpdateOperationsInput | number
   max_uses_per_user?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  stackable?: Prisma.BoolFieldUpdateOperationsInput | boolean
   starts_at?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   ends_at?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   created_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -513,6 +529,7 @@ export type CouponCreateManyInput = {
   max_redemptions?: number | null
   redemption_count?: number
   max_uses_per_user?: number | null
+  stackable?: boolean
   starts_at?: Date | string | null
   ends_at?: Date | string | null
   created_at?: Date | string
@@ -531,6 +548,7 @@ export type CouponUpdateManyMutationInput = {
   max_redemptions?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   redemption_count?: Prisma.IntFieldUpdateOperationsInput | number
   max_uses_per_user?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  stackable?: Prisma.BoolFieldUpdateOperationsInput | boolean
   starts_at?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   ends_at?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   created_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -549,6 +567,7 @@ export type CouponUncheckedUpdateManyInput = {
   max_redemptions?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   redemption_count?: Prisma.IntFieldUpdateOperationsInput | number
   max_uses_per_user?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  stackable?: Prisma.BoolFieldUpdateOperationsInput | boolean
   starts_at?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   ends_at?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   created_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -567,6 +586,7 @@ export type CouponCountOrderByAggregateInput = {
   max_redemptions?: Prisma.SortOrder
   redemption_count?: Prisma.SortOrder
   max_uses_per_user?: Prisma.SortOrder
+  stackable?: Prisma.SortOrder
   starts_at?: Prisma.SortOrder
   ends_at?: Prisma.SortOrder
   created_at?: Prisma.SortOrder
@@ -594,6 +614,7 @@ export type CouponMaxOrderByAggregateInput = {
   max_redemptions?: Prisma.SortOrder
   redemption_count?: Prisma.SortOrder
   max_uses_per_user?: Prisma.SortOrder
+  stackable?: Prisma.SortOrder
   starts_at?: Prisma.SortOrder
   ends_at?: Prisma.SortOrder
   created_at?: Prisma.SortOrder
@@ -612,6 +633,7 @@ export type CouponMinOrderByAggregateInput = {
   max_redemptions?: Prisma.SortOrder
   redemption_count?: Prisma.SortOrder
   max_uses_per_user?: Prisma.SortOrder
+  stackable?: Prisma.SortOrder
   starts_at?: Prisma.SortOrder
   ends_at?: Prisma.SortOrder
   created_at?: Prisma.SortOrder
@@ -735,6 +757,7 @@ export type CouponCreateWithoutRedemptionsInput = {
   max_redemptions?: number | null
   redemption_count?: number
   max_uses_per_user?: number | null
+  stackable?: boolean
   starts_at?: Date | string | null
   ends_at?: Date | string | null
   created_at?: Date | string
@@ -756,6 +779,7 @@ export type CouponUncheckedCreateWithoutRedemptionsInput = {
   max_redemptions?: number | null
   redemption_count?: number
   max_uses_per_user?: number | null
+  stackable?: boolean
   starts_at?: Date | string | null
   ends_at?: Date | string | null
   created_at?: Date | string
@@ -793,6 +817,7 @@ export type CouponUpdateWithoutRedemptionsInput = {
   max_redemptions?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   redemption_count?: Prisma.IntFieldUpdateOperationsInput | number
   max_uses_per_user?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  stackable?: Prisma.BoolFieldUpdateOperationsInput | boolean
   starts_at?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   ends_at?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   created_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -814,6 +839,7 @@ export type CouponUncheckedUpdateWithoutRedemptionsInput = {
   max_redemptions?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   redemption_count?: Prisma.IntFieldUpdateOperationsInput | number
   max_uses_per_user?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  stackable?: Prisma.BoolFieldUpdateOperationsInput | boolean
   starts_at?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   ends_at?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   created_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -835,6 +861,7 @@ export type CouponCreateWithoutRetail_ordersInput = {
   max_redemptions?: number | null
   redemption_count?: number
   max_uses_per_user?: number | null
+  stackable?: boolean
   starts_at?: Date | string | null
   ends_at?: Date | string | null
   created_at?: Date | string
@@ -856,6 +883,7 @@ export type CouponUncheckedCreateWithoutRetail_ordersInput = {
   max_redemptions?: number | null
   redemption_count?: number
   max_uses_per_user?: number | null
+  stackable?: boolean
   starts_at?: Date | string | null
   ends_at?: Date | string | null
   created_at?: Date | string
@@ -893,6 +921,7 @@ export type CouponUpdateWithoutRetail_ordersInput = {
   max_redemptions?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   redemption_count?: Prisma.IntFieldUpdateOperationsInput | number
   max_uses_per_user?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  stackable?: Prisma.BoolFieldUpdateOperationsInput | boolean
   starts_at?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   ends_at?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   created_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -914,6 +943,7 @@ export type CouponUncheckedUpdateWithoutRetail_ordersInput = {
   max_redemptions?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   redemption_count?: Prisma.IntFieldUpdateOperationsInput | number
   max_uses_per_user?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  stackable?: Prisma.BoolFieldUpdateOperationsInput | boolean
   starts_at?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   ends_at?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   created_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -935,6 +965,7 @@ export type CouponCreateWithoutUser_packagesInput = {
   max_redemptions?: number | null
   redemption_count?: number
   max_uses_per_user?: number | null
+  stackable?: boolean
   starts_at?: Date | string | null
   ends_at?: Date | string | null
   created_at?: Date | string
@@ -956,6 +987,7 @@ export type CouponUncheckedCreateWithoutUser_packagesInput = {
   max_redemptions?: number | null
   redemption_count?: number
   max_uses_per_user?: number | null
+  stackable?: boolean
   starts_at?: Date | string | null
   ends_at?: Date | string | null
   created_at?: Date | string
@@ -993,6 +1025,7 @@ export type CouponUpdateWithoutUser_packagesInput = {
   max_redemptions?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   redemption_count?: Prisma.IntFieldUpdateOperationsInput | number
   max_uses_per_user?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  stackable?: Prisma.BoolFieldUpdateOperationsInput | boolean
   starts_at?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   ends_at?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   created_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -1014,6 +1047,7 @@ export type CouponUncheckedUpdateWithoutUser_packagesInput = {
   max_redemptions?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   redemption_count?: Prisma.IntFieldUpdateOperationsInput | number
   max_uses_per_user?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  stackable?: Prisma.BoolFieldUpdateOperationsInput | boolean
   starts_at?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   ends_at?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   created_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -1035,6 +1069,7 @@ export type CouponCreateWithoutCafe_ordersInput = {
   max_redemptions?: number | null
   redemption_count?: number
   max_uses_per_user?: number | null
+  stackable?: boolean
   starts_at?: Date | string | null
   ends_at?: Date | string | null
   created_at?: Date | string
@@ -1056,6 +1091,7 @@ export type CouponUncheckedCreateWithoutCafe_ordersInput = {
   max_redemptions?: number | null
   redemption_count?: number
   max_uses_per_user?: number | null
+  stackable?: boolean
   starts_at?: Date | string | null
   ends_at?: Date | string | null
   created_at?: Date | string
@@ -1093,6 +1129,7 @@ export type CouponUpdateWithoutCafe_ordersInput = {
   max_redemptions?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   redemption_count?: Prisma.IntFieldUpdateOperationsInput | number
   max_uses_per_user?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  stackable?: Prisma.BoolFieldUpdateOperationsInput | boolean
   starts_at?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   ends_at?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   created_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -1114,6 +1151,7 @@ export type CouponUncheckedUpdateWithoutCafe_ordersInput = {
   max_redemptions?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   redemption_count?: Prisma.IntFieldUpdateOperationsInput | number
   max_uses_per_user?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  stackable?: Prisma.BoolFieldUpdateOperationsInput | boolean
   starts_at?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   ends_at?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   created_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -1193,6 +1231,7 @@ export type CouponSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs =
   max_redemptions?: boolean
   redemption_count?: boolean
   max_uses_per_user?: boolean
+  stackable?: boolean
   starts_at?: boolean
   ends_at?: boolean
   created_at?: boolean
@@ -1216,6 +1255,7 @@ export type CouponSelectCreateManyAndReturn<ExtArgs extends runtime.Types.Extens
   max_redemptions?: boolean
   redemption_count?: boolean
   max_uses_per_user?: boolean
+  stackable?: boolean
   starts_at?: boolean
   ends_at?: boolean
   created_at?: boolean
@@ -1234,6 +1274,7 @@ export type CouponSelectUpdateManyAndReturn<ExtArgs extends runtime.Types.Extens
   max_redemptions?: boolean
   redemption_count?: boolean
   max_uses_per_user?: boolean
+  stackable?: boolean
   starts_at?: boolean
   ends_at?: boolean
   created_at?: boolean
@@ -1252,13 +1293,14 @@ export type CouponSelectScalar = {
   max_redemptions?: boolean
   redemption_count?: boolean
   max_uses_per_user?: boolean
+  stackable?: boolean
   starts_at?: boolean
   ends_at?: boolean
   created_at?: boolean
   updated_at?: boolean
 }
 
-export type CouponOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "code" | "applies_to" | "discount_type" | "discount_value" | "max_discount_inr" | "min_order_inr" | "is_active" | "max_redemptions" | "redemption_count" | "max_uses_per_user" | "starts_at" | "ends_at" | "created_at" | "updated_at", ExtArgs["result"]["coupon"]>
+export type CouponOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "code" | "applies_to" | "discount_type" | "discount_value" | "max_discount_inr" | "min_order_inr" | "is_active" | "max_redemptions" | "redemption_count" | "max_uses_per_user" | "stackable" | "starts_at" | "ends_at" | "created_at" | "updated_at", ExtArgs["result"]["coupon"]>
 export type CouponInclude<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   redemptions?: boolean | Prisma.Coupon$redemptionsArgs<ExtArgs>
   cafe_orders?: boolean | Prisma.Coupon$cafe_ordersArgs<ExtArgs>
@@ -1295,6 +1337,10 @@ export type $CouponPayload<ExtArgs extends runtime.Types.Extensions.InternalArgs
     max_redemptions: number | null
     redemption_count: number
     max_uses_per_user: number | null
+    /**
+     * When true, this coupon may combine with an active package offer (stacks on the offer price). When false, best-of-the-two applies.
+     */
+    stackable: boolean
     starts_at: Date | null
     ends_at: Date | null
     created_at: Date
@@ -1737,6 +1783,7 @@ export interface CouponFieldRefs {
   readonly max_redemptions: Prisma.FieldRef<"Coupon", 'Int'>
   readonly redemption_count: Prisma.FieldRef<"Coupon", 'Int'>
   readonly max_uses_per_user: Prisma.FieldRef<"Coupon", 'Int'>
+  readonly stackable: Prisma.FieldRef<"Coupon", 'Boolean'>
   readonly starts_at: Prisma.FieldRef<"Coupon", 'DateTime'>
   readonly ends_at: Prisma.FieldRef<"Coupon", 'DateTime'>
   readonly created_at: Prisma.FieldRef<"Coupon", 'DateTime'>
