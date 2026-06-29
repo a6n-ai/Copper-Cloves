@@ -52,7 +52,23 @@ export function PricingCard({
       </p>
 
       <div className="mt-6">
-        <div className="font-display text-4xl">{plan.price}</div>
+        {plan.offerLabel && (
+          <div className="mb-2">
+            <span className={`inline-block rounded-md px-2.5 py-1 font-body text-xs font-semibold ${
+              featured ? "bg-cream/20 text-cream" : "bg-terracotta/12 text-terracotta"
+            }`}>
+              {plan.offerLabel}
+            </span>
+          </div>
+        )}
+        <div className="flex items-baseline gap-2">
+          {plan.originalPrice && (
+            <span className={`font-body text-xl line-through ${featured ? "text-cream/55" : "text-charcoal/40"}`}>
+              {plan.originalPrice}
+            </span>
+          )}
+          <span className="font-display text-4xl">{plan.price}</span>
+        </div>
         <div className={`mt-1 font-body text-sm ${featured ? "text-cream/75" : "text-charcoal/50"}`}>
           Valid for {plan.validity}
         </div>

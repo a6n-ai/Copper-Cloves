@@ -38,12 +38,15 @@ import {
 } from "@/lib/pendingRazorpayCheckout";
 import { cn } from "@/lib/utils";
 import { formatInr } from "@/lib/packageCatalog";
+import { effectivePackagePrice } from "@/lib/packageOffer";
 import { ResponsiveCards } from "@/components/responsive/ResponsiveTable";
 import { MobilePagination } from "@/components/responsive/MobilePagination";
 
 interface Package {
   name: string;
   price: string;
+  originalPrice?: string;
+  offerLabel?: string;
   classes: number | string;
   validity: string;
   benefits: string[];
@@ -89,6 +92,10 @@ interface DbPackage {
   featured?: boolean;
   badge?: string | null;
   is_published?: boolean;
+  offer_price?: number | string | null;
+  offer_label?: string | null;
+  offer_starts_at?: string | null;
+  offer_ends_at?: string | null;
 }
 
 /** Human validity label derived from the package duration (no label column exists). */
@@ -99,9 +106,21 @@ function validityLabel(durationMonths?: number | null): string {
 
 /** Map a DB PackageType row to the card-render shape. */
 function toPackage(p: DbPackage): Package {
+  const eff = effectivePackagePrice(
+    {
+      price: p.price,
+      offer_price: p.offer_price ?? null,
+      offer_label: p.offer_label,
+      offer_starts_at: p.offer_starts_at,
+      offer_ends_at: p.offer_ends_at,
+    },
+    new Date(),
+  );
   return {
     name: p.name,
-    price: formatInr(Number(p.price) || 0),
+    price: formatInr(eff.payableInr),
+    originalPrice: eff.isOffer ? formatInr(eff.originalInr) : undefined,
+    offerLabel: eff.isOffer ? eff.label ?? undefined : undefined,
     classes: p.is_unlimited ? "Unlimited" : p.class_count ?? 0,
     validity: validityLabel(p.duration_months),
     benefits: Array.isArray(p.benefits) ? p.benefits : [],
@@ -195,8 +214,18 @@ function PackageTierCard({
 
         <CardContent className="flex flex-col flex-1 gap-4 sm:gap-6 p-0">
           {/* Big price */}
-          <div className="flex items-baseline gap-1.5">
-            <span className="font-body text-3xl sm:text-4xl font-semibold tabular-nums text-charcoal">{pkg.price}</span>
+          <div className="flex flex-col">
+            {pkg.offerLabel && (
+              <span className="mb-1 inline-block w-fit rounded-md bg-terracotta/12 px-2 py-0.5 font-body text-xs font-semibold text-terracotta">
+                {pkg.offerLabel}
+              </span>
+            )}
+            <div className="flex items-baseline gap-2">
+              {pkg.originalPrice && (
+                <span className="font-body text-lg line-through text-charcoal/40 tabular-nums">{pkg.originalPrice}</span>
+              )}
+              <span className="font-body text-3xl sm:text-4xl font-semibold tabular-nums text-charcoal">{pkg.price}</span>
+            </div>
           </div>
 
           <Separator className="bg-sage/10" />
