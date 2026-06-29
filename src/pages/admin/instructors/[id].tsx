@@ -23,12 +23,12 @@ import { Textarea } from "@/components/ui/textarea";
 import { Switch } from "@/components/ui/switch";
 import { Skeleton } from "@/components/ui/skeleton";
 import {
-  Dialog,
-  DialogContent,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
-} from "@/components/ui/dialog";
+  ResponsiveDialog,
+  ResponsiveDialogContent,
+  ResponsiveDialogFooter,
+  ResponsiveDialogHeader,
+  ResponsiveDialogTitle,
+} from "@/components/responsive/ResponsiveDialog";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { EditButton, DeleteButton } from "@/components/ui/quick-actions";
 import { toast } from "sonner";
@@ -418,11 +418,11 @@ export default function InstructorProfilePage() {
       </div>
 
       {/* Edit dialog */}
-      <Dialog open={editOpen} onOpenChange={setEditOpen}>
-        <DialogContent className="sm:max-w-2xl max-h-[85vh] overflow-y-auto">
-          <DialogHeader>
-            <DialogTitle className="font-body font-semibold text-charcoal">Edit instructor</DialogTitle>
-          </DialogHeader>
+      <ResponsiveDialog open={editOpen} onOpenChange={setEditOpen}>
+        <ResponsiveDialogContent className="sm:max-w-2xl">
+          <ResponsiveDialogHeader>
+            <ResponsiveDialogTitle className="font-body font-semibold text-charcoal">Edit instructor</ResponsiveDialogTitle>
+          </ResponsiveDialogHeader>
           {form && (
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 py-2">
               <Field label="Name" value={form.name} onChange={(v) => setForm({ ...form, name: v })} />
@@ -442,14 +442,14 @@ export default function InstructorProfilePage() {
               <Field label="WhatsApp" value={form.social_whatsapp} onChange={(v) => setForm({ ...form, social_whatsapp: v })} />
             </div>
           )}
-          <DialogFooter>
+          <ResponsiveDialogFooter>
             <Button variant="outline" onClick={() => setEditOpen(false)} disabled={saving} className="font-body">Cancel</Button>
             <Button onClick={save} disabled={saving} variant="sage">
               {saving ? "Saving…" : "Save changes"}
             </Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
+          </ResponsiveDialogFooter>
+        </ResponsiveDialogContent>
+      </ResponsiveDialog>
     </>
   );
 }

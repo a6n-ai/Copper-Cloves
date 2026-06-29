@@ -19,6 +19,7 @@ import { MetricCard } from "@/components/admin/MetricCard";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Table, TableBody, TableCell, TableRow } from "@/components/ui/table";
 import { ResponsiveTable } from "@/components/responsive/ResponsiveTable";
+import { EmptyState } from "@/components/ui/empty-state";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -325,12 +326,12 @@ export default function AdminInstructorsPage() {
                     onRowClick={(i) => router.push(`/admin/instructors/${i.id}`)}
                     renderActions={renderRowActions}
                     emptyState={
-                      <div className="flex flex-col items-center gap-3 py-2">
-                        <GraduationCap className="h-10 w-10 text-charcoal/25" />
-                        <p className="font-body text-sm text-charcoal/55">
-                          {f.values.search ? "No instructors match your search." : "No instructors yet — add your first one."}
-                        </p>
-                      </div>
+                      <EmptyState
+                        icon={GraduationCap}
+                        title={f.values.search ? "No instructors match your search." : "No instructors yet"}
+                        description={f.values.search ? undefined : "Add your first instructor to get started."}
+                        className="py-2"
+                      />
                     }
                     caption="Instructor roster"
                   />

@@ -22,6 +22,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Button } from "@/components/ui/button";
 import { Pill } from "@/components/ui/pill";
 import { passTypePill } from "@/lib/pillMaps";
+import { chartColors } from "@/lib/chartColors";
 import { Progress } from "@/components/ui/progress";
 import {
   ChartContainer,
@@ -233,7 +234,7 @@ function MembersTabImpl({
             <CardDescription className="font-body text-charcoal/60">New member signups over time</CardDescription>
           </CardHeader>
           <CardContent>
-            <ChartContainer config={{ growth: { label: "New members", color: "#8F9779" } }} className="h-[240px] w-full">
+            <ChartContainer config={{ growth: { label: "New members", color: chartColors.sage } }} className="h-[240px] w-full">
               <BarChart data={memberStats.memberGrowth} margin={{ top: 8, right: 12, left: 0, bottom: 0 }}>
                 <CartesianGrid vertical={false} strokeDasharray="3 3" stroke="#E5E5E0" />
                 <XAxis dataKey="month" tickLine={false} axisLine={false} tick={{ fontSize: 11, fill: "#6B6B6B" }} />
@@ -251,11 +252,11 @@ function MembersTabImpl({
             <CardDescription className="font-body text-charcoal/60">Active vs inactive members</CardDescription>
           </CardHeader>
           <CardContent>
-            <ChartContainer config={{ Active: { label: "Active", color: "#8F9779" }, Inactive: { label: "Inactive", color: "#D1D5DB" } }} className="mx-auto aspect-square max-h-[200px]">
+            <ChartContainer config={{ Active: { label: "Active", color: chartColors.sage }, Inactive: { label: "Inactive", color: "#D1D5DB" } }} className="mx-auto aspect-square max-h-[200px]">
               <RechartsPieChart>
                 <ChartTooltip content={<ChartTooltipContent hideLabel />} />
-                <Pie data={activeInactivePieData.data} dataKey="value" nameKey="name" innerRadius={55} outerRadius={80} strokeWidth={2} stroke="#FFFFFF">
-                  <Cell fill="#8F9779" />
+                <Pie data={activeInactivePieData.data} dataKey="value" nameKey="name" innerRadius={55} outerRadius={80} strokeWidth={2} stroke={chartColors.cream}>
+                  <Cell fill={chartColors.sage} />
                   <Cell fill="#D1D5DB" />
                   <RechartsLabel
                     position="center"
@@ -265,7 +266,7 @@ function MembersTabImpl({
                       const cy = viewBox.cy ?? 0;
                       return (
                         <text x={cx} y={cy} textAnchor="middle" dominantBaseline="middle">
-                          <tspan x={cx} y={cy - 4} fill="#333333" fontSize="22" fontWeight="600">{activeInactivePieData.activePct}%</tspan>
+                          <tspan x={cx} y={cy - 4} fill={chartColors.charcoal} fontSize="22" fontWeight="600">{activeInactivePieData.activePct}%</tspan>
                           <tspan x={cx} y={cy + 16} fill="#6B6B6B" fontSize="10">Active</tspan>
                         </text>
                       );
@@ -299,7 +300,7 @@ function MembersTabImpl({
             <CardDescription className="font-body text-charcoal/60">Members by current streak length (days)</CardDescription>
           </CardHeader>
           <CardContent>
-            <ChartContainer config={{ count: { label: "Members", color: "#8F9779" } }} className="h-[220px] w-full">
+            <ChartContainer config={{ count: { label: "Members", color: chartColors.sage } }} className="h-[220px] w-full">
               <BarChart data={memberStats.streakDistribution} layout="vertical" margin={{ top: 8, right: 24, left: 16, bottom: 0 }}>
                 <CartesianGrid horizontal={false} strokeDasharray="3 3" stroke="#E5E5E0" />
                 <XAxis type="number" tickLine={false} axisLine={false} tick={{ fontSize: 11, fill: "#6B6B6B" }} />

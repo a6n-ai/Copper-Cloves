@@ -20,6 +20,7 @@ import { Pill } from "@/components/ui/pill";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { SortableHeader } from "@/components/admin/sortable-table";
 import { ResponsiveTable } from "@/components/responsive/ResponsiveTable";
+import { EmptyState } from "@/components/ui/empty-state";
 import { Pagination, usePagination } from "@/components/Pagination";
 import { MetricCard } from "@/components/admin/MetricCard";
 import { toast } from "sonner";
@@ -613,21 +614,15 @@ export default function AdminBadgesPage() {
                 )}
 
                 {filteredPtm.length === 0 ? (
-                  <div className="text-center py-12">
-                    <Award className="h-12 w-12 text-charcoal/20 mx-auto mb-3" />
-                    <p className="font-body text-charcoal/40">
-                      {ptmSearch ? "No milestones match your search" : "No milestones yet"}
-                    </p>
-                    {ptmSearch && (
-                      <Button
-                        onClick={() => setPtmSearch("")}
-                        variant="outline"
-                        className="mt-4 border-sage/20 text-sage hover:bg-sage/10 font-body hover:text-sage!"
-                      >
+                  <EmptyState
+                    icon={Award}
+                    title={ptmSearch ? "No milestones match your search" : "No milestones yet"}
+                    action={ptmSearch ? (
+                      <Button onClick={() => setPtmSearch("")} variant="outline" className="font-body">
                         Clear search
                       </Button>
-                    )}
-                  </div>
+                    ) : undefined}
+                  />
                 ) : (
                   <>
                     <ResponsiveTable>
@@ -754,9 +749,12 @@ export default function AdminBadgesPage() {
                 )}
 
                 {customTemplates.length === 0 && !showCreateCustom && (
-                  <p className="font-body text-sm text-charcoal/50 text-center py-6">
-                    No custom badges yet. Create one to get started.
-                  </p>
+                  <EmptyState
+                    icon={Award}
+                    title="No custom badges yet"
+                    description="Create one to get started."
+                    className="py-6"
+                  />
                 )}
 
                 {customTemplates.map((template) => (

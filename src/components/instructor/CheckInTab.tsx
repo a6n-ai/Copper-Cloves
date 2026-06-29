@@ -1,6 +1,8 @@
 import { memo, useMemo } from "react";
 import { format, isToday } from "date-fns";
 import { Button } from "@/components/ui/button";
+import { Card } from "@/components/ui/card";
+import { EmptyState } from "@/components/ui/empty-state";
 import { Spinner } from "@/components/ui/spinner";
 import { Pill } from "@/components/ui/pill";
 import {
@@ -89,7 +91,7 @@ const BookingRowItem = memo(function BookingRowItem({
           variant="terracotta"
           onClick={() => onRemindPayment(b.id)}
           disabled={busyRemind}
-          className="rounded-full px-3 shrink-0 h-9"
+          className="px-3 shrink-0 h-9"
         >
           {busyRemind ? (
             <Spinner className="size-4" />
@@ -106,7 +108,7 @@ const BookingRowItem = memo(function BookingRowItem({
           variant="sage"
           onClick={() => onCheckIn(b.id)}
           disabled={busyCheckIn}
-          className="rounded-full px-3 shrink-0 h-9"
+          className="px-3 shrink-0 h-9"
         >
           {busyCheckIn ? (
             <Spinner className="size-4" />
@@ -173,11 +175,13 @@ function CheckInTabImpl({
 
   if (todayClasses.length === 0) {
     return (
-      <div className="bg-white-warm rounded-2xl border border-sage/10 p-10 text-center">
-        <AlertCircle className="h-10 w-10 text-sage/30 mx-auto mb-3" />
-        <p className="font-body font-semibold text-lg text-charcoal">No classes today</p>
-        <p className="font-body text-sm text-charcoal/50 mt-1">Check-in is only available for today&apos;s classes.</p>
-      </div>
+      <Card>
+        <EmptyState
+          icon={AlertCircle}
+          title="No classes today"
+          description="Check-in is only available for today's classes."
+        />
+      </Card>
     );
   }
 
@@ -203,7 +207,7 @@ function CheckInTabImpl({
       )}
 
       {selectedClass ? (
-        <div className="bg-white-warm rounded-2xl border border-sage/10 overflow-hidden">
+        <Card className="overflow-hidden">
           {/* Class header */}
           <div className="px-5 py-4 border-b border-sage/10 flex items-center justify-between">
             <div>
@@ -231,7 +235,6 @@ function CheckInTabImpl({
                   size="sm"
                   onClick={() => onInstructorCheckIn(selectedClass.id)}
                   disabled={instructorCheckingIn[selectedClass.id]}
-                  className="rounded-full"
                 >
                   {instructorCheckingIn[selectedClass.id] ? <Spinner className="size-4" /> : "I'm Here"}
                 </Button>
@@ -240,7 +243,6 @@ function CheckInTabImpl({
                 onClick={onRefresh}
                 variant="sage-outline"
                 size="icon-sm"
-                className="rounded-full"
                 title="Refresh"
                 aria-label="Refresh"
               >
@@ -251,10 +253,11 @@ function CheckInTabImpl({
 
           {/* Booking list */}
           {selectedClass.bookings.length === 0 ? (
-            <div className="p-10 text-center">
-              <Users className="h-8 w-8 text-sage/20 mx-auto mb-2" />
-              <p className="font-body text-sm text-charcoal/50">No one has booked this class yet</p>
-            </div>
+            <EmptyState
+              icon={Users}
+              title="No bookings yet"
+              description="No one has booked this class yet."
+            />
           ) : (
             <ul className="divide-y divide-sage/10">
               {selectedClass.bookings.map((b) => (
@@ -270,7 +273,7 @@ function CheckInTabImpl({
               ))}
             </ul>
           )}
-        </div>
+        </Card>
       ) : null}
 
       <Button

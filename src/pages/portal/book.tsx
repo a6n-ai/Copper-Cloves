@@ -1963,28 +1963,28 @@ export default function BookClass() {
                           return `Class (${1 + addedMembers.length} × ₹945)`;
                         })()}
                       </span>
-                      <span className="text-charcoal">₹{totals.classTotal}</span>
+                      <span className="text-charcoal tabular-nums">₹{totals.classTotal}</span>
                     </div>
                   )}
 
                   {totals.foodTotal > 0 && (
                     <div className="flex justify-between font-body text-sm">
                       <span className="text-charcoal/70">Food</span>
-                      <span className="text-charcoal">₹{totals.foodTotal}</span>
+                      <span className="text-charcoal tabular-nums">₹{totals.foodTotal}</span>
                     </div>
                   )}
 
                   {totals.discount > 0 && (
                     <div className="flex justify-between font-body text-sm">
                       <span className="text-sage">Discount</span>
-                      <span className="text-sage">-₹{totals.discount.toFixed(0)}</span>
+                      <span className="text-sage tabular-nums">-₹{totals.discount.toFixed(0)}</span>
                     </div>
                   )}
 
                   {totals.couponDiscount > 0 && (
                     <div className="flex justify-between font-body text-sm">
                       <span className="text-sage">Coupon ({appliedCoupon?.code})</span>
-                      <span className="text-sage">-₹{totals.couponDiscount.toFixed(0)}</span>
+                      <span className="text-sage tabular-nums">-₹{totals.couponDiscount.toFixed(0)}</span>
                     </div>
                   )}
 

@@ -364,8 +364,8 @@ export default function PartnerClasses() {
                             {b.confirmationStatus === "pending" ? (
                               <>
                                 <Pill {...bookingStatusPill("pending")} className="font-body whitespace-nowrap">Pending</Pill>
-                                <Button size="sm" variant="sage" disabled={actioningId === b.id} onClick={() => actionBooking(c.id, b.id, "confirm")} className="h-7 px-3 text-xs rounded-full">Confirm</Button>
-                                <Button size="sm" variant="ghost" disabled={actioningId === b.id} onClick={() => actionBooking(c.id, b.id, "reject")} className="text-charcoal/70 hover:bg-charcoal/5 hover:text-charcoal h-7 px-3 text-xs rounded-full font-body">Reject</Button>
+                                <Button size="sm" variant="sage" disabled={actioningId === b.id} onClick={() => actionBooking(c.id, b.id, "confirm")} className="h-7 px-3 text-xs">Confirm</Button>
+                                <Button size="sm" variant="ghost" disabled={actioningId === b.id} onClick={() => actionBooking(c.id, b.id, "reject")} className="h-7 px-3 text-xs">Reject</Button>
                               </>
                             ) : b.checkedIn ? (
                               <Pill tone="success" className="font-body whitespace-nowrap" icon={<CheckCircle2 className="h-3.5 w-3.5" />}>Checked in</Pill>

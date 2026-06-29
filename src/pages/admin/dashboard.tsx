@@ -12,6 +12,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Pill } from "@/components/ui/pill";
+import { EmptyState } from "@/components/ui/empty-state";
 import { attendanceOutcomePill } from "@/lib/pillMaps";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import {
@@ -1715,13 +1716,13 @@ export default function AdminDashboard() {
                 <div className="grid grid-cols-2 gap-4 mb-4">
                   <div>
                     <div className="font-body text-xs text-charcoal/50 mb-1">Check-ins</div>
-                    <div className="font-body font-semibold text-2xl text-charcoal">
+                    <div className="font-body font-semibold tabular-nums text-2xl text-charcoal">
                       {selectedInstructorData.checkIns}
                     </div>
                   </div>
                   <div>
                     <div className="font-body text-xs text-charcoal/50 mb-1">Rate per Check-in</div>
-                    <div className="font-body font-semibold text-2xl text-charcoal">
+                    <div className="font-body font-semibold tabular-nums text-2xl text-charcoal">
                       ₹{selectedInstructorData.rate}
                     </div>
                   </div>
@@ -1732,7 +1733,7 @@ export default function AdminDashboard() {
                     <div className="font-body font-medium text-charcoal">
                       Total Payout:
                     </div>
-                    <div className="font-body font-semibold text-4xl text-sage">
+                    <div className="font-body font-semibold tabular-nums text-4xl text-sage">
                       ₹{selectedInstructorData.total.toLocaleString()}
                     </div>
                   </div>
@@ -1962,7 +1963,7 @@ export default function AdminDashboard() {
               <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
                 <Card className="border border-border bg-white-warm shadow-none ring-0">
                   <CardContent className="p-4 text-center">
-                    <p className="font-body font-semibold text-3xl text-sage mb-1">
+                    <p className="font-body font-semibold tabular-nums text-3xl text-sage mb-1">
                       {selectedMemberProfile.totalClasses}
                     </p>
                     <p className="font-body text-xs text-charcoal/60">Total Classes</p>
@@ -1970,7 +1971,7 @@ export default function AdminDashboard() {
                 </Card>
                 <Card className="border border-border bg-white-warm shadow-none ring-0">
                   <CardContent className="p-4 text-center">
-                    <p className="font-body font-semibold text-3xl text-charcoal mb-1">
+                    <p className="font-body font-semibold tabular-nums text-3xl text-charcoal mb-1">
                       {selectedMemberProfile.weeklyStreak}
                     </p>
                     <p className="font-body text-xs text-charcoal/60">Week Streak</p>
@@ -1978,7 +1979,7 @@ export default function AdminDashboard() {
                 </Card>
                 <Card className="border border-border bg-white-warm shadow-none ring-0">
                   <CardContent className="p-4 text-center">
-                    <p className="font-body font-semibold text-3xl text-charcoal mb-1">
+                    <p className="font-body font-semibold tabular-nums text-3xl text-charcoal mb-1">
                       {selectedMemberProfile.credits}
                     </p>
                     <p className="font-body text-xs text-charcoal/60">
@@ -2027,7 +2028,7 @@ export default function AdminDashboard() {
                 <CardContent className="p-6">
                   <div className="flex flex-wrap gap-2">
                     {selectedMemberProfile.badges.length === 0 ? (
-                      <p className="font-body text-sm text-charcoal/50">No badges yet</p>
+                      <EmptyState icon={Trophy} title="No badges yet" className="w-full py-6" />
                     ) : (
                       selectedMemberProfile.badges.map((badge: string, idx: number) => (
                         <Pill key={idx} tone="success" icon={<Trophy size={12} />}>
@@ -2067,7 +2068,7 @@ export default function AdminDashboard() {
                 </CardHeader>
                 <CardContent className="p-6 space-y-3">
                   {selectedMemberProfile.upcomingBookings.length === 0 ? (
-                    <p className="font-body text-sm text-charcoal/50">No upcoming bookings</p>
+                    <EmptyState icon={Calendar} title="No upcoming bookings" className="py-6" />
                   ) : (
                     selectedMemberProfile.upcomingBookings.map((booking: MemberBooking, idx: number) => (
                       <div key={idx} className="flex items-center justify-between p-3 rounded-lg bg-cream/30">
@@ -2097,7 +2098,7 @@ export default function AdminDashboard() {
                 </CardHeader>
                 <CardContent className="p-6 space-y-3 max-h-80 overflow-y-auto">
                   {(selectedMemberProfile.attendanceHistory?.length ?? 0) === 0 ? (
-                    <p className="font-body text-sm text-charcoal/50">No past classes yet</p>
+                    <EmptyState icon={Calendar} title="No past classes yet" className="py-6" />
                   ) : (
                     selectedMemberProfile.attendanceHistory.map((a: { class: string; date: string; outcome: string }, idx: number) => {
                       const meta = attendanceOutcomePill(a.outcome);
@@ -2126,7 +2127,7 @@ export default function AdminDashboard() {
                 </CardHeader>
                 <CardContent className="p-6 space-y-3">
                   {selectedMemberProfile.orderHistory.length === 0 ? (
-                    <p className="font-body text-sm text-charcoal/50">No café orders yet</p>
+                    <EmptyState icon={ChefHat} title="No café orders yet" className="py-6" />
                   ) : (
                     selectedMemberProfile.orderHistory.map((order: MemberOrder, idx: number) => (
                       <div key={idx} className="flex items-center justify-between p-3 rounded-lg bg-cream/30">
@@ -2136,7 +2137,7 @@ export default function AdminDashboard() {
                             {new Date(order.date).toLocaleDateString("en-US", { month: "short", day: "numeric" })}
                           </p>
                         </div>
-                        <p className="font-body font-semibold text-lg text-sage">₹{order.amount}</p>
+                        <p className="font-body font-semibold tabular-nums text-lg text-sage">₹{order.amount}</p>
                       </div>
                     ))
                   )}

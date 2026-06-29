@@ -9,6 +9,7 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { Pill, type PillProps } from "@/components/ui/pill";
+import { EmptyState } from "@/components/ui/empty-state";
 import { ResponsiveTable } from "@/components/responsive/ResponsiveTable";
 
 export interface OrderRow {
@@ -128,12 +129,13 @@ export function OrderHistoryTable({ rows }: OrderHistoryTableProps) {
         <TableBody className="divide-y divide-border">
           {viewRows.length === 0 ? (
             <TableRow>
-              <TableCell colSpan={5} className="py-10 text-center">
-                <CreditCard className="mx-auto mb-3 text-muted-foreground/30" size={32} />
-                <p className="text-sm font-medium text-card-foreground">No orders yet</p>
-                <p className="mt-1 text-xs text-muted-foreground">
-                  Your café and boutique orders will appear here.
-                </p>
+              <TableCell colSpan={5} className="py-10">
+                <EmptyState
+                  icon={CreditCard}
+                  title="No orders yet"
+                  description="Your café and boutique orders will appear here."
+                  className="py-0"
+                />
               </TableCell>
             </TableRow>
           ) : (

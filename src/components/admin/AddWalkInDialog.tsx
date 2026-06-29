@@ -1,12 +1,12 @@
 import { useState } from "react";
 import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
-} from "@/components/ui/dialog";
+  ResponsiveDialog,
+  ResponsiveDialogContent,
+  ResponsiveDialogDescription,
+  ResponsiveDialogFooter,
+  ResponsiveDialogHeader,
+  ResponsiveDialogTitle,
+} from "@/components/responsive/ResponsiveDialog";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -287,18 +287,18 @@ export function AddWalkInDialog({
   const targetPkg = existingPkgs.find((p) => p.id === packageId) ?? null;
 
   return (
-    <Dialog open={open} onOpenChange={handleOpenChange}>
-      <DialogContent className="max-w-lg max-h-[90vh] overflow-y-auto bg-white-warm">
-        <DialogHeader>
-          <DialogTitle className="font-body font-semibold text-2xl text-charcoal">
+    <ResponsiveDialog open={open} onOpenChange={handleOpenChange}>
+      <ResponsiveDialogContent className="max-w-lg bg-white-warm">
+        <ResponsiveDialogHeader>
+          <ResponsiveDialogTitle className="font-body font-semibold text-2xl text-charcoal">
             Add walk-in · step {step} of 3
-          </DialogTitle>
-          <DialogDescription className="font-body text-charcoal/60">
+          </ResponsiveDialogTitle>
+          <ResponsiveDialogDescription className="font-body text-charcoal/60">
             {step === 1 && "Find an existing member or create a new one."}
             {step === 2 && "Deduct from an active package or assign a new one."}
             {step === 3 && `Confirm the walk-in for ${className}.`}
-          </DialogDescription>
-        </DialogHeader>
+          </ResponsiveDialogDescription>
+        </ResponsiveDialogHeader>
 
         {/* ── Step 1 ── */}
         {step === 1 && (
@@ -508,7 +508,7 @@ export function AddWalkInDialog({
           </div>
         )}
 
-        <DialogFooter className="gap-2 sm:gap-2">
+        <ResponsiveDialogFooter className="gap-2 sm:gap-2">
           {step > 1 && (
             <Button
               variant="outline"
@@ -531,8 +531,8 @@ export function AddWalkInDialog({
               {submitting ? "Adding…" : "Add walk-in"}
             </Button>
           )}
-        </DialogFooter>
-      </DialogContent>
-    </Dialog>
+        </ResponsiveDialogFooter>
+      </ResponsiveDialogContent>
+    </ResponsiveDialog>
   );
 }

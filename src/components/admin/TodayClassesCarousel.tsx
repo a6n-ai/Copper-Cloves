@@ -1,10 +1,11 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import { useReducedMotion } from "framer-motion";
-import { Users, Clock, Repeat, ChevronLeft, ChevronRight, Power, PowerOff } from "lucide-react";
+import { Users, Clock, Repeat, ChevronLeft, ChevronRight, Power, PowerOff, CalendarX } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { AnimatedIcon } from "@/components/dashboard/AnimatedIcon";
 import { ListAvatar } from "@/components/admin/ListAvatar";
 import { Pill } from "@/components/ui/pill";
+import { EmptyState } from "@/components/ui/empty-state";
 import { ManageButton, DeleteButton } from "@/components/ui/quick-actions";
 import { cn } from "@/lib/utils";
 import { ShineBorder } from "@/components/ui/shine-border";
@@ -132,8 +133,8 @@ export function TodayClassesCarousel({
 
   if (items.length === 0) {
     return (
-      <div className="flex items-center justify-center py-12 rounded-xl border border-dashed border-sage/20 bg-sage/5">
-        <p className="font-body text-sm text-charcoal/50">{emptyText}</p>
+      <div className="rounded-xl border border-dashed border-sage/20 bg-sage/5">
+        <EmptyState icon={CalendarX} title={emptyText} />
       </div>
     );
   }
@@ -259,20 +260,15 @@ export function TodayClassesCarousel({
                     return (
                       <Button
                         type="button"
-                        variant="outline"
-                        size="sm"
+                        variant={isActive ? "terracotta" : "sage-outline"}
+                        size="icon-sm"
                         onClick={(e) => {
                           e.stopPropagation();
                           onStatusChange(cls, next);
                         }}
                         aria-label={isActive ? "Set inactive (hide from members)" : "Reactivate class"}
                         title={isActive ? "Set inactive (hide from members)" : "Reactivate class"}
-                        className={cn(
-                          "font-body h-8 w-8 p-0 transition-all hover:scale-110 active:scale-95",
-                          isActive
-                            ? "border-terracotta/40 text-terracotta bg-white-warm hover:bg-terracotta! hover:text-cream! hover:border-terracotta!"
-                            : "border-sage/60 text-sage bg-white-warm hover:bg-sage! hover:text-cream! hover:border-sage!",
-                        )}
+                        className="font-body"
                       >
                         <AnimatedIcon icon={isActive ? PowerOff : Power} size={14} animateOnMount={false} hover="wiggle" />
                       </Button>

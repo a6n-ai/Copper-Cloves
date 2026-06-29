@@ -1156,7 +1156,7 @@ function StatCell({
         <Icon className={`h-3.5 w-3.5 ${tone === "clay" ? "text-terracotta" : "text-sage"}`} />
         {label}
       </div>
-      <div className={`mt-1 font-body font-semibold text-charcoal ${small ? "text-base" : "text-2xl"} ${tone === "clay" && typeof value === "number" && value > 0 ? "text-terracotta" : ""}`}>
+      <div className={`mt-1 font-body font-semibold tabular-nums text-charcoal ${small ? "text-base" : "text-2xl"} ${tone === "clay" && typeof value === "number" && value > 0 ? "text-terracotta" : ""}`}>
         {value}
       </div>
       {hint && <div className="font-body text-[11px] text-charcoal/40">{hint}</div>}

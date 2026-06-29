@@ -511,37 +511,23 @@ export default function AdminProducts() {
 
               {/* Tabs */}
               <div className="mb-6">
-                <div className="inline-flex items-center gap-2 p-1 rounded-full bg-white-warm border border-sage/10">
-                  <button
-                    onClick={() => setActiveTab("products")}
-                    className={`px-6 py-2 rounded-full font-body text-sm transition-all duration-300 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sage focus-visible:ring-offset-1 ${
-                      activeTab === "products"
-                        ? "bg-sage text-cream shadow-sm"
-                        : "text-charcoal/60 hover:text-charcoal"
-                    }`}
-                  >
-                    Products ({totalProducts})
-                  </button>
-                  <button
-                    onClick={() => setActiveTab("orders")}
-                    className={`px-6 py-2 rounded-full font-body text-sm transition-all duration-300 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sage focus-visible:ring-offset-1 ${
-                      activeTab === "orders"
-                        ? "bg-sage text-cream shadow-sm"
-                        : "text-charcoal/60 hover:text-charcoal"
-                    }`}
-                  >
-                    Orders ({orders.length})
-                  </button>
-                  <button
-                    onClick={() => setActiveTab("categories")}
-                    className={`px-6 py-2 rounded-full font-body text-sm transition-all duration-300 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sage focus-visible:ring-offset-1 ${
-                      activeTab === "categories"
-                        ? "bg-sage text-cream shadow-sm"
-                        : "text-charcoal/60 hover:text-charcoal"
-                    }`}
-                  >
-                    Categories ({categoryRows.length})
-                  </button>
+                <div className="inline-flex items-center gap-1 p-1 rounded-lg bg-white-warm border border-sage/10">
+                  {([
+                    { key: "products", label: `Products (${totalProducts})` },
+                    { key: "orders", label: `Orders (${orders.length})` },
+                    { key: "categories", label: `Categories (${categoryRows.length})` },
+                  ] as const).map((t) => (
+                    <Button
+                      key={t.key}
+                      type="button"
+                      size="sm"
+                      variant={activeTab === t.key ? "sage" : "ghost"}
+                      onClick={() => setActiveTab(t.key)}
+                      className="tabular-nums"
+                    >
+                      {t.label}
+                    </Button>
+                  ))}
                 </div>
               </div>
 

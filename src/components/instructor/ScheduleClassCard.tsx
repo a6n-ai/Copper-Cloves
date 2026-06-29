@@ -1,6 +1,7 @@
 import { memo } from "react";
 import { format } from "date-fns";
 import { Button } from "@/components/ui/button";
+import { Card } from "@/components/ui/card";
 import { Spinner } from "@/components/ui/spinner";
 import { Pill } from "@/components/ui/pill";
 import { classStatusPill } from "@/lib/pillMaps";
@@ -38,7 +39,7 @@ function ScheduleClassCardImpl({
   const checkedInCount = cls.bookings.filter((b) => b.checkedIn).length;
   const winStatus = instructorCheckInWindowStatus(cls.startTime);
   return (
-    <div className="bg-white-warm rounded-2xl border border-sage/10 p-4 sm:p-5 hover:border-sage/30 transition-colors">
+    <Card className="p-4 sm:p-5 hover:border-sage/30 transition-colors">
       <div className="flex items-start justify-between gap-3">
         <div className="flex-1 min-w-0">
           <div className="flex items-center gap-2 flex-wrap">
@@ -94,7 +95,7 @@ function ScheduleClassCardImpl({
               size="sm"
               onClick={() => onInstructorCheckIn(cls.id)}
               disabled={busy}
-              className="rounded-full min-w-[80px]"
+              className="min-w-[80px]"
             >
               {busy ? <Spinner className="size-4" /> : "I'm Here"}
             </Button>
@@ -146,7 +147,7 @@ function ScheduleClassCardImpl({
           </div>
         </div>
       )}
-    </div>
+    </Card>
   );
 }
 

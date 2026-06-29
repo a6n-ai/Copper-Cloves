@@ -3,6 +3,7 @@ import Image from "next/image";
 import { CalendarDays, ChevronRight } from "lucide-react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Pill } from "@/components/ui/pill";
+import { EmptyState } from "@/components/ui/empty-state";
 import { AnimatedIcon } from "@/components/dashboard/AnimatedIcon";
 import { cdnUrl } from "@/lib/cdnUrl";
 
@@ -64,7 +65,12 @@ export function UpcomingScheduleCard({
       </CardHeader>
       <CardContent>
         {entries.length === 0 ? (
-          <p className="text-sm italic text-muted-foreground">No upcoming classes</p>
+          <EmptyState
+            icon={CalendarDays}
+            title="No upcoming classes"
+            description="Booked classes will show up here."
+            className="py-8"
+          />
         ) : (
           <div className="space-y-2">
             {rows.map(({ entry, when, cancelBy, cancelOpen }) => {

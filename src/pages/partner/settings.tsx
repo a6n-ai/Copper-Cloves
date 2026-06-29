@@ -8,6 +8,7 @@ import { getStudioServerSession } from "@/lib/getStudioServerSession";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
 import { Spinner } from "@/components/ui/spinner";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -156,29 +157,29 @@ export default function PartnerSettings() {
                 )}
                 <div className="flex-1 space-y-1.5">
                   <Label className="font-body text-sm text-charcoal">Logo / icon URL</Label>
-                  <Input value={profile.logo_url ?? ""} onChange={(e) => setProfile({ ...profile, logo_url: e.target.value })} placeholder="https://…/logo.png" className="border-sage/20" />
+                  <Input value={profile.logo_url ?? ""} onChange={(e) => setProfile({ ...profile, logo_url: e.target.value })} placeholder="https://…/logo.png" />
                 </div>
               </div>
 
               <div className="space-y-1.5">
                 <Label className="font-body text-sm text-charcoal">Partner name</Label>
-                <Input value={profile.name} onChange={(e) => setProfile({ ...profile, name: e.target.value })} className="border-sage/20" />
+                <Input value={profile.name} onChange={(e) => setProfile({ ...profile, name: e.target.value })} />
               </div>
 
               <div className="grid sm:grid-cols-2 gap-4">
                 <div className="space-y-1.5">
                   <Label className="font-body text-sm text-charcoal">Login email</Label>
-                  <Input type="email" value={profile.email ?? ""} onChange={(e) => setProfile({ ...profile, email: e.target.value })} placeholder="you@partner.com" className="border-sage/20" />
+                  <Input type="email" value={profile.email ?? ""} onChange={(e) => setProfile({ ...profile, email: e.target.value })} placeholder="you@partner.com" />
                 </div>
                 <div className="space-y-1.5">
                   <Label className="font-body text-sm text-charcoal">Phone</Label>
-                  <Input value={profile.phone ?? ""} onChange={(e) => setProfile({ ...profile, phone: e.target.value })} placeholder="+91 …" className="border-sage/20" />
+                  <Input value={profile.phone ?? ""} onChange={(e) => setProfile({ ...profile, phone: e.target.value })} placeholder="+91 …" />
                 </div>
               </div>
 
               <div className="space-y-1.5">
                 <Label className="font-body text-sm text-charcoal">Description</Label>
-                <Input value={profile.description ?? ""} onChange={(e) => setProfile({ ...profile, description: e.target.value })} placeholder="Short description of your brand" className="border-sage/20" />
+                <Textarea value={profile.description ?? ""} onChange={(e) => setProfile({ ...profile, description: e.target.value })} placeholder="Short description of your brand" rows={3} />
               </div>
 
               <div className="flex items-center gap-3 pt-2">

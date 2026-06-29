@@ -4,6 +4,8 @@ import { PageHeader } from "@/components/dashboard/PageHeader";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Card, CardContent } from "@/components/ui/card";
 import { Pill } from "@/components/ui/pill";
+import { waiverPill } from "@/lib/pillMaps";
+import { EmptyState } from "@/components/ui/empty-state";
 import {
   Table,
   TableBody,
@@ -94,9 +96,11 @@ export default function PartnerMembersPage() {
           {loading ? (
             <PartnerMembersSkeleton />
           ) : rows.length === 0 ? (
-            <div className="flex items-center justify-center gap-2 py-16 font-body text-sm text-charcoal/40">
-              <UserX className="h-4 w-4" /> No members have attended a session yet.
-            </div>
+            <EmptyState
+              icon={UserX}
+              title="No members yet"
+              description="No members have attended a session yet."
+            />
           ) : (
             <ResponsiveTable>
               <Table>
@@ -128,13 +132,10 @@ export default function PartnerMembersPage() {
                           : "—"}
                       </TableCell>
                       <TableCell className="text-right">
-                        <Pill
-                          tone={m.hasWaiver ? "success" : "warning"}
-
-                          className="font-body"
-                        >
-                          {m.hasWaiver ? "Signed ✓" : "Not signed"}
-                        </Pill>
+                        {(() => {
+                          const { label, ...pill } = waiverPill(m.hasWaiver);
+                          return <Pill {...pill} className="font-body whitespace-nowrap">{label}</Pill>;
+                        })()}
                       </TableCell>
                     </TableRow>
                   ))}

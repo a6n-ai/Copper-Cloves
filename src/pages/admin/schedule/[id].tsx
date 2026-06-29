@@ -17,12 +17,12 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Pill } from "@/components/ui/pill";
 import {
-  Dialog,
-  DialogContent,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
-} from "@/components/ui/dialog";
+  ResponsiveDialog,
+  ResponsiveDialogContent,
+  ResponsiveDialogFooter,
+  ResponsiveDialogHeader,
+  ResponsiveDialogTitle,
+} from "@/components/responsive/ResponsiveDialog";
 import { toast } from "sonner";
 import {
   Select,
@@ -874,11 +874,11 @@ export default function AdminClassPage() {
           Radix unmounts Content when closed but the surrounding render path
           still pays for the dozens of Select/Input expressions otherwise. */}
       {editOpen && (
-      <Dialog open={editOpen} onOpenChange={setEditOpen}>
-        <DialogContent className="max-w-lg max-h-[90vh] overflow-y-auto bg-white-warm">
-          <DialogHeader>
-            <DialogTitle className="font-body font-semibold text-2xl text-charcoal">Edit class</DialogTitle>
-          </DialogHeader>
+      <ResponsiveDialog open={editOpen} onOpenChange={setEditOpen}>
+        <ResponsiveDialogContent className="max-w-lg bg-white-warm">
+          <ResponsiveDialogHeader>
+            <ResponsiveDialogTitle className="font-body font-semibold text-2xl text-charcoal">Edit class</ResponsiveDialogTitle>
+          </ResponsiveDialogHeader>
           <div className="space-y-4">
             <div className="space-y-1.5">
               <Label className="font-body text-sm">Class type</Label>
@@ -940,23 +940,23 @@ export default function AdminClassPage() {
               <Textarea value={form.classNotes} onChange={(e) => setForm((f) => ({ ...f, classNotes: e.target.value }))} rows={3} />
             </div>
           </div>
-          <DialogFooter>
+          <ResponsiveDialogFooter>
             <Button variant="outline" onClick={() => setEditOpen(false)} className="font-body">Cancel</Button>
             <Button onClick={saveEdit} disabled={saving} variant="sage">
               {saving ? "Saving…" : "Save changes"}
             </Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
+          </ResponsiveDialogFooter>
+        </ResponsiveDialogContent>
+      </ResponsiveDialog>
       )}
 
       {/* Status edit dialog — gated identically. */}
       {statusEditOpen && (
-      <Dialog open={statusEditOpen} onOpenChange={setStatusEditOpen}>
-        <DialogContent className="sm:max-w-md">
-          <DialogHeader>
-            <DialogTitle className="font-body font-semibold text-charcoal">Change class status</DialogTitle>
-          </DialogHeader>
+      <ResponsiveDialog open={statusEditOpen} onOpenChange={setStatusEditOpen}>
+        <ResponsiveDialogContent className="sm:max-w-md">
+          <ResponsiveDialogHeader>
+            <ResponsiveDialogTitle className="font-body font-semibold text-charcoal">Change class status</ResponsiveDialogTitle>
+          </ResponsiveDialogHeader>
           <div className="space-y-3 py-2">
             <div className="grid grid-cols-1 gap-2">
               {([
@@ -992,14 +992,14 @@ export default function AdminClassPage() {
               })}
             </div>
           </div>
-          <DialogFooter>
+          <ResponsiveDialogFooter>
             <Button variant="outline" onClick={() => setStatusEditOpen(false)} disabled={statusSaving} className="font-body">Cancel</Button>
             <Button onClick={saveStatus} disabled={statusSaving} variant="sage">
               {statusSaving ? "Saving…" : "Save status"}
             </Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
+          </ResponsiveDialogFooter>
+        </ResponsiveDialogContent>
+      </ResponsiveDialog>
       )}
 
       {walkInOpen && roster && (

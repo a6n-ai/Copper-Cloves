@@ -30,6 +30,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Pill, type PillProps } from "@/components/ui/pill";
 import { financeKindPill } from "@/lib/pillMaps";
+import { chartColors } from "@/lib/chartColors";
 import { Label } from "@/components/ui/label";
 import {
   ResponsiveDialog,
@@ -93,9 +94,9 @@ function summarizeRevenueBySource(txns: DashboardTxn[]): {
     if (food && food !== "—" && food.includes("food")) cafeCount += 1;
   }
   const slices = [
-    { key: "package", label: "Package purchases", amount: pkg, color: "#8f9779" },
-    { key: "class", label: "Class checkouts", amount: cls, color: "#c17856" },
-    { key: "other", label: "Other revenue", amount: other, color: "#a8a296" },
+    { key: "package", label: "Package purchases", amount: pkg, color: chartColors.sage },
+    { key: "class", label: "Class checkouts", amount: cls, color: chartColors.terracotta },
+    { key: "other", label: "Other revenue", amount: other, color: chartColors.sand },
   ]
     .filter((s) => s.amount > 0)
     .sort((a, b) => b.amount - a.amount);
@@ -453,9 +454,9 @@ function FinanceOverviewSectionImpl({
               </div>
               <ChartContainer
                 config={{
-                  revenue: { label: "Revenue", color: "#8F9779" },
-                  expenses: { label: "Expenses", color: "#C17856" },
-                  profit: { label: "Profit", color: "#6B8E73" },
+                  revenue: { label: "Revenue", color: chartColors.sage },
+                  expenses: { label: "Expenses", color: chartColors.terracotta },
+                  profit: { label: "Profit", color: chartColors.slateBlue },
                 }}
                 className="h-[280px] w-full"
               >

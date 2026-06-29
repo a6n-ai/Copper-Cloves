@@ -2,6 +2,7 @@ import type { ReactNode } from "react";
 import type { LucideIcon } from "lucide-react";
 import { Calendar } from "lucide-react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { EmptyState } from "@/components/ui/empty-state";
 import { AnimatedIcon } from "@/components/dashboard/AnimatedIcon";
 
 export interface ActivityItem {
@@ -49,11 +50,12 @@ export function ActivityTimeline({
             })}
           </ul>
         ) : (
-          <div className="py-8 text-center">
-            <Calendar className="mx-auto mb-3 text-muted-foreground/30" size={40} />
-            <p className="text-sm text-muted-foreground">No recent activity yet</p>
-            {emptyCta ? <div className="mt-4">{emptyCta}</div> : null}
-          </div>
+          <EmptyState
+            icon={Calendar}
+            title="No recent activity yet"
+            action={emptyCta}
+            className="py-8"
+          />
         )}
       </CardContent>
     </Card>

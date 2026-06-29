@@ -28,6 +28,7 @@ import Image from "next/image";
 import Link from "next/link";
 import { useSession } from "next-auth/react";
 import { Input } from "@/components/ui/input";
+import { Textarea } from "@/components/ui/textarea";
 import { CloseButton, QtyMinusButton, QtyPlusButton } from "@/components/ui/quick-actions";
 import { FilterSearch, FilterSelect } from "@/components/filters";
 import type { SelectOption } from "@/components/filters";
@@ -497,7 +498,7 @@ export default function Shop({ initialProducts }: Readonly<ShopProps>) {
                             <h4 className="font-display text-lg text-charcoal mb-1">
                               {item.name}
                             </h4>
-                            <p className="font-body text-sm text-charcoal/60 mb-3">
+                            <p className="font-body text-sm text-charcoal/60 mb-3 tabular-nums">
                               ₹{item.price}
                             </p>
                             
@@ -536,7 +537,7 @@ export default function Shop({ initialProducts }: Readonly<ShopProps>) {
                   <div className="sticky bottom-0 bg-white-warm border-t border-sage/10 p-6">
                     <div className="flex items-center justify-between mb-6">
                       <span className="font-display text-xl text-charcoal">Subtotal</span>
-                      <span className="font-display text-3xl text-sage">₹{cart.subtotal}</span>
+                      <span className="font-display text-3xl text-sage tabular-nums">₹{cart.subtotal}</span>
                     </div>
                     
                     <Button
@@ -569,10 +570,9 @@ export default function Shop({ initialProducts }: Readonly<ShopProps>) {
                 <div className="space-y-4">
                   <div>
                     <label htmlFor="shop-customer-name" className="font-body text-sm text-charcoal/70 mb-2 block">Full Name</label>
-                    <input
+                    <Input
                       id="shop-customer-name"
                       type="text"
-                      className="w-full px-4 py-3 rounded-xl border border-sage/20 focus:border-sage focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sage focus-visible:ring-offset-1 font-body"
                       placeholder="Enter your name"
                       value={customerName}
                       onChange={(e) => setCustomerName(e.target.value)}
@@ -581,10 +581,9 @@ export default function Shop({ initialProducts }: Readonly<ShopProps>) {
                   
                   <div>
                     <label htmlFor="shop-customer-email" className="font-body text-sm text-charcoal/70 mb-2 block">Email</label>
-                    <input
+                    <Input
                       id="shop-customer-email"
                       type="email"
-                      className="w-full px-4 py-3 rounded-xl border border-sage/20 focus:border-sage focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sage focus-visible:ring-offset-1 font-body"
                       placeholder="your@email.com"
                       value={customerEmail}
                       onChange={(e) => setCustomerEmail(e.target.value)}
@@ -593,10 +592,9 @@ export default function Shop({ initialProducts }: Readonly<ShopProps>) {
                   
                   <div>
                     <label htmlFor="shop-customer-phone" className="font-body text-sm text-charcoal/70 mb-2 block">Phone</label>
-                    <input
+                    <Input
                       id="shop-customer-phone"
                       type="tel"
-                      className="w-full px-4 py-3 rounded-xl border border-sage/20 focus:border-sage focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sage focus-visible:ring-offset-1 font-body"
                       placeholder="Phone number"
                       value={customerPhone}
                       onChange={(e) => setCustomerPhone(e.target.value)}
@@ -605,9 +603,9 @@ export default function Shop({ initialProducts }: Readonly<ShopProps>) {
                   
                   <div>
                     <label htmlFor="shop-shipping-address" className="font-body text-sm text-charcoal/70 mb-2 block">Address</label>
-                    <textarea
+                    <Textarea
                       id="shop-shipping-address"
-                      className="w-full px-4 py-3 rounded-xl border border-sage/20 focus:border-sage focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sage focus-visible:ring-offset-1 font-body resize-none"
+                      className="resize-none"
                       rows={3}
                       placeholder="Delivery address"
                       value={shippingAddress}
@@ -690,21 +688,21 @@ export default function Shop({ initialProducts }: Readonly<ShopProps>) {
                 <div className="p-4 rounded-xl bg-cream/50 mb-6">
                   <div className="flex justify-between font-body text-sm mb-2">
                     <span className="text-charcoal/70">Subtotal</span>
-                    <span className="text-charcoal">₹{cart.subtotal}</span>
+                    <span className="text-charcoal tabular-nums">₹{cart.subtotal}</span>
                   </div>
                   {couponDiscount !== null && couponDiscount !== undefined && couponDiscount > 0 && (
                     <div className="flex justify-between font-body text-sm mb-2 text-sage">
                       <span>Discount</span>
-                      <span>−₹{couponDiscount}</span>
+                      <span className="tabular-nums">−₹{couponDiscount}</span>
                     </div>
                   )}
                   <div className="flex justify-between font-body text-sm mb-2">
                     <span className="text-charcoal/70">Delivery</span>
-                    <span className="text-charcoal">₹{deliveryFee}</span>
+                    <span className="text-charcoal tabular-nums">₹{deliveryFee}</span>
                   </div>
                   <div className="pt-2 border-t border-sage/20 flex justify-between">
-                    <span className="font-display text-lg text-charcoal">Total</span>
-                    <span className="font-display text-2xl text-sage">₹{shopOrderTotal}</span>
+                    <span className="font-body text-lg font-semibold text-charcoal">Total</span>
+                    <span className="font-body text-2xl font-semibold text-sage tabular-nums">₹{shopOrderTotal}</span>
                   </div>
                 </div>
 

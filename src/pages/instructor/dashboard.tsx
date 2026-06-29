@@ -15,6 +15,9 @@ import { PageHeader } from "@/components/dashboard/PageHeader";
 import { InstructorCheckinBeacon } from "@/components/checkin/InstructorCheckinBeacon";
 import { ScheduleClassCard } from "@/components/instructor/ScheduleClassCard";
 import { type ClassRow, dayLabel } from "@/components/instructor/shared";
+import { MetricCard } from "@/components/admin/MetricCard";
+import { Card, CardContent } from "@/components/ui/card";
+import { EmptyState } from "@/components/ui/empty-state";
 import { toast } from "sonner";
 import { Users, Dumbbell, Calendar, UserCheck } from "lucide-react";
 
@@ -214,21 +217,9 @@ export default function InstructorDashboard() {
 
         {/* Stats row */}
         <div className="grid grid-cols-1 gap-2 sm:grid-cols-3 sm:gap-3 mb-6">
-          {[
-            { icon: Calendar, label: "This Week", value: classes.length },
-            { icon: Users, label: "Total Enrolled", value: totalEnrolled },
-            { icon: UserCheck, label: "Checked In Today", value: totalCheckedIn },
-          ].map(({ icon: Icon, label, value }) => (
-            <div key={label} className="bg-white-warm rounded-2xl border border-sage/10 p-3 sm:p-4 flex flex-col items-start gap-1.5 sm:flex-row sm:items-center sm:gap-3">
-              <div className="h-9 w-9 rounded-xl bg-sage/10 flex items-center justify-center shrink-0">
-                <Icon className="h-4 w-4 text-sage" />
-              </div>
-              <div>
-                <p className="font-body font-semibold tabular-nums text-xl sm:text-2xl text-charcoal leading-none">{value}</p>
-                <p className="font-body text-[11px] sm:text-xs text-charcoal/50 mt-0.5 leading-tight">{label}</p>
-              </div>
-            </div>
-          ))}
+          <MetricCard label="This Week" value={classes.length} icon={Calendar} tone="sage" />
+          <MetricCard label="Total Enrolled" value={totalEnrolled} icon={Users} tone="sage" />
+          <MetricCard label="Checked In Today" value={totalCheckedIn} icon={UserCheck} tone="sage" />
         </div>
 
         {/* Tabs */}
@@ -251,11 +242,15 @@ export default function InstructorDashboard() {
           {/* === MY SCHEDULE === */}
           <TabsContent value="today">
             {classes.length === 0 ? (
-              <div className="bg-white-warm rounded-2xl border border-sage/10 p-10 text-center">
-                <Dumbbell className="h-10 w-10 text-sage/30 mx-auto mb-3" />
-                <p className="font-body font-semibold text-lg text-charcoal">No upcoming classes this week</p>
-                <p className="font-body text-sm text-charcoal/50 mt-1">Check back when your schedule is updated.</p>
-              </div>
+              <Card>
+                <CardContent className="p-0">
+                  <EmptyState
+                    icon={Dumbbell}
+                    title="No upcoming classes this week"
+                    description="Check back when your schedule is updated."
+                  />
+                </CardContent>
+              </Card>
             ) : (
               <div className="space-y-5">
                 {/* Group by day — memoized above */}

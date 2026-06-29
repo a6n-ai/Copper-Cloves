@@ -12,6 +12,7 @@ import { useRouter } from "next/router";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { ResponsiveTable } from "@/components/responsive/ResponsiveTable";
+import { EmptyState } from "@/components/ui/empty-state";
 import { MetricCard } from "@/components/admin/MetricCard";
 import { ListAvatar } from "@/components/admin/ListAvatar";
 import { AdminPageHeader } from "@/components/admin/AdminPageHeader";
@@ -1057,12 +1058,11 @@ export default function ControlPanel() {
                     {loadingClasses ? (
                       <ClassGridSkeleton count={4} />
                     ) : filteredClasses.length === 0 ? (
-                      <div className="text-center py-12">
-                        <Calendar className="h-12 w-12 text-charcoal/20 mx-auto mb-3" />
-                        <p className="font-body text-charcoal/40">
-                          {classes.length === 0 ? "No classes yet. Create one to get started." : "No classes match your search."}
-                        </p>
-                      </div>
+                      <EmptyState
+                        icon={Calendar}
+                        title={classes.length === 0 ? "No classes yet" : "No classes match your search."}
+                        description={classes.length === 0 ? "Create one to get started." : undefined}
+                      />
                     ) : (
                       <>
                         <ResponsiveTable>
