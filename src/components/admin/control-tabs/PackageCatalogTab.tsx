@@ -83,6 +83,19 @@ const EMPTY_FORM: PackageForm = {
   offer_ends_at: "",
 };
 
+/**
+ * Stored UTC ISO → `YYYY-MM-DDTHH:mm` in the admin's LOCAL wall-clock, for a
+ * `datetime-local` input. submit() parses the input back as local time, so this
+ * keeps the round-trip stable (a `.toISOString().slice(0,16)` here would show UTC
+ * and silently shift the saved instant by the admin's offset on every save).
+ */
+function toDatetimeLocal(iso: string | null): string {
+  if (!iso) return "";
+  const d = new Date(iso);
+  if (Number.isNaN(d.getTime())) return "";
+  return new Date(d.getTime() - d.getTimezoneOffset() * 60000).toISOString().slice(0, 16);
+}
+
 function rowToForm(p: PackageRow): PackageForm {
   return {
     name: p.name ?? "",
@@ -100,8 +113,8 @@ function rowToForm(p: PackageRow): PackageForm {
     description: p.description ?? "",
     offer_price: p.offer_price == null ? "" : String(p.offer_price),
     offer_label: p.offer_label ?? "",
-    offer_starts_at: p.offer_starts_at ? new Date(p.offer_starts_at).toISOString().slice(0, 16) : "",
-    offer_ends_at: p.offer_ends_at ? new Date(p.offer_ends_at).toISOString().slice(0, 16) : "",
+    offer_starts_at: toDatetimeLocal(p.offer_starts_at),
+    offer_ends_at: toDatetimeLocal(p.offer_ends_at),
   };
 }
 
@@ -298,7 +311,7 @@ export default function PackageCatalogTab() {
                           <div className="flex flex-col items-end">
                             <span className="text-charcoal/40 line-through">{p.price.toLocaleString("en-IN")}</span>
                             <span className="font-semibold text-terracotta">
-                              {(p.offer_price ?? 0).toLocaleString("en-IN")}
+                              {p.offer_price?.toLocaleString("en-IN") ?? "—"}
                             </span>
                           </div>
                         ) : (
