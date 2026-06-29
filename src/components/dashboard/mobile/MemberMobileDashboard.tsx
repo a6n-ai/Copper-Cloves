@@ -133,7 +133,7 @@ export function MemberMobileDashboard({
     <div className="space-y-5 px-4 py-5">
       {/* Hero */}
       <section className="rounded-3xl border border-sage/20 bg-linear-to-br from-sage to-sage/80 p-5 text-cream">
-        <h1 className="font-display text-2xl leading-tight">
+        <h1 className="font-body font-semibold text-2xl leading-tight">
           Welcome home, {userName || "Member"}
         </h1>
         <p className="mt-1 flex flex-wrap items-center gap-x-2 gap-y-0.5 font-body text-sm text-cream/85">

@@ -680,7 +680,7 @@ export default function Dashboard() {
             <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4 lg:gap-6">
               {/* Welcome Header */}
               <div>
-                <h1 className="font-display text-2xl md:text-4xl text-charcoal mb-1 leading-tight">
+                <h1 className="font-body font-semibold text-2xl md:text-4xl text-charcoal mb-1 leading-tight">
                   Welcome Home, {userName || "Member"}
                 </h1>
                 <p className="font-body text-sm text-charcoal/60">
