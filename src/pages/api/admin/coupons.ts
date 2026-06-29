@@ -89,6 +89,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
           discount_type: discountType,
           discount_value: discountValue,
           is_active: Boolean(body.is_active ?? true),
+          stackable: Boolean(body.stackable),
           max_discount_inr: maxDiscountInr,
           min_order_inr: minOrderInr,
           max_redemptions: maxRedemptions,
@@ -130,6 +131,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       data.discount_value = dv;
     }
     if (body.is_active != null) data.is_active = Boolean(body.is_active);
+    if (body.stackable !== undefined) data.stackable = Boolean(body.stackable);
     if (body.max_discount_inr !== undefined) {
       if (body.max_discount_inr === "" || body.max_discount_inr == null) {
         data.max_discount_inr = null;
