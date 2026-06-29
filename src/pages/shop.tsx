@@ -5,6 +5,9 @@ import type { LucideIcon } from "lucide-react";
 import { SEO as Seo } from "@/components/SEO";
 import { Footer } from "@/components/Footer";
 import { Button } from "@/components/ui/button";
+import { Card, CardContent } from "@/components/ui/card";
+import { Label } from "@/components/ui/label";
+import { EmptyState } from "@/components/ui/empty-state";
 import {
   Drawer,
   DrawerContent,
@@ -14,9 +17,10 @@ import {
 import { Pill } from "@/components/ui/pill";
 import {
   ShoppingCart,
-  X,
+  ArrowLeft,
   ArrowRight,
   Leaf,
+  Loader2,
   Sparkles,
   Coffee,
   Heart,
@@ -29,7 +33,12 @@ import Link from "next/link";
 import { useSession } from "next-auth/react";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
-import { CloseButton, QtyMinusButton, QtyPlusButton } from "@/components/ui/quick-actions";
+import {
+  CloseButton,
+  DeleteButton,
+  QtyMinusButton,
+  QtyPlusButton,
+} from "@/components/ui/quick-actions";
 import { FilterSearch, FilterSelect } from "@/components/filters";
 import type { SelectOption } from "@/components/filters";
 
@@ -46,6 +55,11 @@ interface RetailProduct {
 }
 
 const PLACEHOLDER_IMAGE = cdnUrl("/boutique-candle.jpg");
+
+/** Rupee money treatment — grouped digits, always rendered tabular-nums in JSX. */
+function inr(value: number) {
+  return `₹${Number(value || 0).toLocaleString("en-IN")}`;
+}
 
 function formatCategoryLabel(raw: string) {
   return raw
@@ -326,12 +340,12 @@ export default function Shop({ initialProducts }: Readonly<ShopProps>) {
                 type="button"
                 variant="sage"
                 onClick={() => setShowCart(true)}
-                className="relative rounded-md px-6"
+                className="relative px-6"
               >
-                <ShoppingCart size={18} />
+                <ShoppingCart />
                 Cart
                 {cart.itemCount > 0 && (
-                  <span className="absolute -top-2 -right-2 w-6 h-6 bg-terracotta text-cream text-xs font-bold rounded-full flex items-center justify-center">
+                  <span className="absolute -top-2 -right-2 flex size-6 items-center justify-center rounded-full bg-terracotta text-xs font-semibold tabular-nums text-cream">
                     {cart.itemCount}
                   </span>
                 )}
@@ -346,9 +360,17 @@ export default function Shop({ initialProducts }: Readonly<ShopProps>) {
         <div className="max-w-7xl mx-auto">
           <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
             {catalogLoading ? (
-              <p className="font-body text-charcoal/60 py-16 md:col-span-2 lg:col-span-3 text-center">
-                Loading catalogue…
-              </p>
+              Array.from({ length: 6 }).map((_, i) => (
+                <Card key={i} className="overflow-hidden" aria-hidden="true">
+                  <div className="h-80 bg-sand motion-safe:animate-pulse" />
+                  <CardContent className="space-y-3 p-6 pt-6">
+                    <div className="h-3 w-20 rounded bg-sand motion-safe:animate-pulse" />
+                    <div className="h-6 w-3/4 rounded bg-sand motion-safe:animate-pulse" />
+                    <div className="h-4 w-full rounded bg-sand motion-safe:animate-pulse" />
+                    <div className="h-8 w-24 rounded bg-sand motion-safe:animate-pulse" />
+                  </CardContent>
+                </Card>
+              ))
             ) : (
             filteredProducts.map((product) => (
               <Link key={product.id} href={`/shop/${product.id}`}>
@@ -420,24 +442,24 @@ export default function Shop({ initialProducts }: Readonly<ShopProps>) {
 
           {/* No Results */}
           {!catalogLoading && filteredProducts.length === 0 && (
-            <div className="text-center py-20">
-              <Search className="mx-auto mb-4 text-charcoal/20" size={64} />
-              <h3 className="font-display text-2xl text-charcoal mb-2">No products found</h3>
-              <p className="font-body text-charcoal/60 mb-6">
-                Try adjusting your search or filters
-              </p>
-              <Button
-                type="button"
-                variant="sage"
-                onClick={() => {
-                  setSearchQuery("");
-                  setSelectedCategory("all");
-                }}
-                className="rounded-md px-6"
-              >
-                Clear Filters
-              </Button>
-            </div>
+            <EmptyState
+              className="py-20"
+              icon={Search}
+              title="No products found"
+              description="Try adjusting your search or filters to see more of the boutique."
+              action={
+                <Button
+                  type="button"
+                  variant="sage"
+                  onClick={() => {
+                    setSearchQuery("");
+                    setSelectedCategory("all");
+                  }}
+                >
+                  Clear filters
+                </Button>
+              }
+            />
           )}
         </div>
       </section>
@@ -448,7 +470,7 @@ export default function Shop({ initialProducts }: Readonly<ShopProps>) {
         open={showCart}
         onOpenChange={(o) => { if (!o) setShowCart(false); }}
       >
-        <DrawerContent direction="right" className="max-w-md overflow-y-auto">
+        <DrawerContent direction="right" className="w-full max-w-md overflow-y-auto">
             <DrawerTitle className="sr-only">Your Cart</DrawerTitle>
             <DrawerDescription className="sr-only">
               Shopping cart and checkout
@@ -456,98 +478,95 @@ export default function Shop({ initialProducts }: Readonly<ShopProps>) {
             {checkoutStep === "cart" && (
               <>
                 {/* Header */}
-                <div className="sticky top-0 bg-white-warm border-b border-sage/10 p-6 z-10">
-                  <div className="flex items-center justify-between mb-2">
-                    <h2 className="font-display text-3xl text-charcoal">Your Cart</h2>
+                <div className="sticky top-0 z-10 border-b border-border bg-white-warm p-6">
+                  <div className="mb-1 flex items-center justify-between">
+                    <h2 className="font-body text-xl font-semibold text-charcoal">Your Cart</h2>
                     <CloseButton onClick={() => setShowCart(false)} />
                   </div>
-                  <p className="font-body text-sm text-charcoal/60">
+                  <p className="font-body text-sm tabular-nums text-muted-foreground">
                     {cart.itemCount} {cart.itemCount === 1 ? "item" : "items"}
                   </p>
                 </div>
 
                 {/* Cart Items */}
-                <div className="p-6 space-y-4">
+                <div className="space-y-3 p-6">
                   {cart.items.length === 0 ? (
-                    <div className="text-center py-12">
-                      <ShoppingCart className="mx-auto mb-4 text-charcoal/20" size={48} />
-                      <p className="font-body text-charcoal/60">Your cart is empty</p>
-                    </div>
+                    <EmptyState
+                      icon={ShoppingCart}
+                      title="Your cart is empty"
+                      description="Browse the boutique and add a few rituals to get started."
+                      action={
+                        <Button variant="sage" onClick={() => setShowCart(false)}>
+                          Browse products
+                        </Button>
+                      }
+                    />
                   ) : (
-                    <>
-                      {cart.items.map((item) => (
-                        <div
-                          key={item.id}
-                          className="flex gap-4 p-4 rounded-2xl bg-cream/30 border border-sage/10"
-                        >
-                          {item.image ? (
-                            <div className="relative w-20 h-20 rounded-xl overflow-hidden shrink-0">
-                              <Image
-                                src={item.image}
-                                alt={item.name}
-                                fill
-                                className="object-cover"
-                                sizes="80px"
-                              />
-                            </div>
-                          ) : (
-                            <div className="w-20 h-20 rounded-xl bg-linear-to-br from-sage/20 via-cream/50 to-terracotta/20 shrink-0" />
-                          )}
-                          
-                          <div className="flex-1">
-                            <h4 className="font-display text-lg text-charcoal mb-1">
-                              {item.name}
-                            </h4>
-                            <p className="font-body text-sm text-charcoal/60 mb-3 tabular-nums">
-                              ₹{item.price}
-                            </p>
-                            
-                            <div className="flex items-center gap-3">
-                              <QtyMinusButton
-                                onClick={() => cart.updateQuantity(item.id, item.quantity - 1)}
-                                className="rounded-full bg-white-warm border border-sage/20 text-charcoal"
-                              />
-                              <span className="font-body text-sm text-charcoal w-8 text-center">
-                                {item.quantity}
-                              </span>
-                              <QtyPlusButton
-                                onClick={() => cart.updateQuantity(item.id, item.quantity + 1)}
-                                className="rounded-full bg-white-warm border border-sage/20 text-charcoal"
-                              />
+                    cart.items.map((item) => (
+                      <Card key={item.id} className="flex gap-4 p-4">
+                        {item.image ? (
+                          <div className="relative size-20 shrink-0 overflow-hidden rounded-lg">
+                            <Image
+                              src={item.image}
+                              alt={item.name}
+                              fill
+                              className="object-cover"
+                              sizes="80px"
+                            />
+                          </div>
+                        ) : (
+                          <div className="size-20 shrink-0 rounded-lg bg-sand" />
+                        )}
 
-                              <Button
-                                type="button"
-                                variant="terracotta-ghost"
-                                size="icon-sm"
-                                onClick={() => cart.removeItem(item.id)}
-                                className="ml-auto"
-                              >
-                                <X size={18} />
-                              </Button>
-                            </div>
+                        <div className="min-w-0 flex-1">
+                          <h3 className="mb-1 truncate font-body font-medium text-charcoal">
+                            {item.name}
+                          </h3>
+                          <p className="mb-3 font-body text-sm tabular-nums text-muted-foreground">
+                            {inr(item.price)}
+                          </p>
+
+                          <div className="flex items-center gap-3">
+                            <QtyMinusButton
+                              onClick={() => cart.updateQuantity(item.id, item.quantity - 1)}
+                            />
+                            <span className="w-8 text-center font-body text-sm tabular-nums text-charcoal">
+                              {item.quantity}
+                            </span>
+                            <QtyPlusButton
+                              onClick={() => cart.updateQuantity(item.id, item.quantity + 1)}
+                            />
+                            <DeleteButton
+                              skipConfirm
+                              onClick={() => cart.removeItem(item.id)}
+                              label="Remove item"
+                              className="ml-auto"
+                            />
                           </div>
                         </div>
-                      ))}
-                    </>
+                      </Card>
+                    ))
                   )}
                 </div>
 
                 {/* Footer */}
                 {cart.items.length > 0 && (
-                  <div className="sticky bottom-0 bg-white-warm border-t border-sage/10 p-6">
-                    <div className="flex items-center justify-between mb-6">
-                      <span className="font-display text-xl text-charcoal">Subtotal</span>
-                      <span className="font-display text-3xl text-sage tabular-nums">₹{cart.subtotal}</span>
+                  <div className="sticky bottom-0 border-t border-border bg-white-warm p-6">
+                    <div className="mb-6 flex items-center justify-between">
+                      <span className="font-body text-base font-medium text-charcoal">Subtotal</span>
+                      <span className="font-body text-2xl font-semibold tabular-nums text-sage">
+                        {inr(cart.subtotal)}
+                      </span>
                     </div>
-                    
+
                     <Button
                       variant="sage"
                       size="lg"
                       onClick={() => setCheckoutStep("details")}
-                      className="w-full rounded-md"
+                      className="w-full"
                     >
                       Proceed to Checkout
-                      <ArrowRight className="ml-2" size={18} />
+                      <ArrowRight />
                     </Button>
                   </div>
                 )}
@@ -560,16 +579,17 @@ export default function Shop({ initialProducts }: Readonly<ShopProps>) {
                   variant="ghost"
                   size="sm"
                   onClick={() => setCheckoutStep("cart")}
-                  className="-ml-2 mb-6 gap-2 text-charcoal/60 hover:text-sage"
+                  className="-ml-2 mb-6 text-muted-foreground hover:text-sage"
                 >
-                  ← Back to Cart
+                  <ArrowLeft />
+                  Back to Cart
                 </Button>
-                
-                <h2 className="font-display text-3xl text-charcoal mb-6">Delivery Details</h2>
-                
+
+                <h2 className="mb-6 font-body text-xl font-semibold text-charcoal">Delivery Details</h2>
+
                 <div className="space-y-4">
-                  <div>
-                    <label htmlFor="shop-customer-name" className="font-body text-sm text-charcoal/70 mb-2 block">Full Name</label>
+                  <div className="space-y-2">
+                    <Label htmlFor="shop-customer-name">Full Name</Label>
                     <Input
                       id="shop-customer-name"
                       type="text"
@@ -578,9 +598,9 @@ export default function Shop({ initialProducts }: Readonly<ShopProps>) {
                       onChange={(e) => setCustomerName(e.target.value)}
                     />
                   </div>
-                  
-                  <div>
-                    <label htmlFor="shop-customer-email" className="font-body text-sm text-charcoal/70 mb-2 block">Email</label>
+
+                  <div className="space-y-2">
+                    <Label htmlFor="shop-customer-email">Email</Label>
                     <Input
                       id="shop-customer-email"
                       type="email"
@@ -589,9 +609,9 @@ export default function Shop({ initialProducts }: Readonly<ShopProps>) {
                       onChange={(e) => setCustomerEmail(e.target.value)}
                     />
                   </div>
-                  
-                  <div>
-                    <label htmlFor="shop-customer-phone" className="font-body text-sm text-charcoal/70 mb-2 block">Phone</label>
+
+                  <div className="space-y-2">
+                    <Label htmlFor="shop-customer-phone">Phone</Label>
                     <Input
                       id="shop-customer-phone"
                       type="tel"
@@ -600,9 +620,9 @@ export default function Shop({ initialProducts }: Readonly<ShopProps>) {
                       onChange={(e) => setCustomerPhone(e.target.value)}
                     />
                   </div>
-                  
-                  <div>
-                    <label htmlFor="shop-shipping-address" className="font-body text-sm text-charcoal/70 mb-2 block">Address</label>
+
+                  <div className="space-y-2">
+                    <Label htmlFor="shop-shipping-address">Address</Label>
                     <Textarea
                       id="shop-shipping-address"
                       className="resize-none"
@@ -613,101 +633,119 @@ export default function Shop({ initialProducts }: Readonly<ShopProps>) {
                     />
                   </div>
                 </div>
-                
+
                 <Button
                   variant="sage"
                   size="lg"
                   onClick={() => setCheckoutStep("payment")}
-                  className="w-full mt-6 rounded-md"
+                  className="mt-6 w-full"
                 >
                   Continue to Payment
-                  <ArrowRight className="ml-2" size={18} />
+                  <ArrowRight />
                 </Button>
               </div>
             )}
 
             {checkoutStep === "payment" && (
-              <div className="p-6">
+              <div className="space-y-4 p-6">
                 <Button
                   variant="ghost"
                   size="sm"
                   onClick={() => setCheckoutStep("details")}
-                  className="-ml-2 mb-6 gap-2 text-charcoal/60 hover:text-sage"
+                  className="-ml-2 text-muted-foreground hover:text-sage"
                 >
-                  ← Back
+                  <ArrowLeft />
+                  Back
                 </Button>
-                
-                <h2 className="font-display text-3xl text-charcoal mb-6">Payment</h2>
-                
-                <div className="space-y-4 mb-6">
-                  <div className="p-4 rounded-xl border-2 border-sage bg-sage/5">
-                    <div className="flex items-center gap-3">
-                      <div className="w-5 h-5 rounded-full border-2 border-sage bg-sage flex items-center justify-center">
-                        <div className="w-2 h-2 rounded-full bg-white-warm" />
-                      </div>
-                      <span className="font-body text-charcoal">Pay Online (UPI/Cards)</span>
-                    </div>
-                  </div>
-                  
-                  <div className="p-4 rounded-xl border border-sage/20">
-                    <div className="flex items-center gap-3">
-                      <div className="w-5 h-5 rounded-full border-2 border-charcoal/20" />
-                      <span className="font-body text-charcoal/60">Cash on Delivery</span>
-                    </div>
-                  </div>
-                </div>
-                
-                <div className="p-4 rounded-xl bg-cream/50 mb-4 space-y-3">
-                  <label htmlFor="shop-promo-code" className="font-body text-sm text-charcoal/70 block">Promo code</label>
-                  <div className="flex gap-2 flex-col sm:flex-row">
-                    <Input
-                      id="shop-promo-code"
-                      className="font-mono uppercase border-sage/20"
-                      placeholder="Code"
-                      value={couponCode}
-                      onChange={(e) => {
-                        setCouponCode(e.target.value.toUpperCase());
-                        setCouponDiscount(null);
-                        setCouponError(null);
-                      }}
-                    />
-                    <Button
-                      type="button"
-                      variant="sage-outline"
-                      className="shrink-0"
-                      onClick={() => void validateShopCoupon()}
-                    >
-                      Apply
-                    </Button>
-                  </div>
-                  {couponError && (
-                    <p className="text-sm text-destructive font-body">{couponError}</p>
-                  )}
+
+                <h2 className="font-body text-xl font-semibold text-charcoal">Payment</h2>
+
+                {/* Payment method */}
+                <div className="space-y-3">
+                  <Card className="border-sage bg-sage/5">
+                    <CardContent className="flex items-center gap-3 p-4">
+                      <span className="flex size-5 items-center justify-center rounded-full border-2 border-sage bg-sage">
+                        <span className="size-2 rounded-full bg-white-warm" />
+                      </span>
+                      <span className="font-body text-sm font-medium text-charcoal">
+                        Pay Online (UPI / Cards)
+                      </span>
+                    </CardContent>
+                  </Card>
+
+                  <Card>
+                    <CardContent className="flex items-center gap-3 p-4">
+                      <span className="size-5 rounded-full border-2 border-input" />
+                      <span className="font-body text-sm text-muted-foreground">Cash on Delivery</span>
+                      <Pill tone="neutral" className="ml-auto">Coming soon</Pill>
+                    </CardContent>
+                  </Card>
                 </div>
 
-                <div className="p-4 rounded-xl bg-cream/50 mb-6">
-                  <div className="flex justify-between font-body text-sm mb-2">
-                    <span className="text-charcoal/70">Subtotal</span>
-                    <span className="text-charcoal tabular-nums">₹{cart.subtotal}</span>
-                  </div>
-                  {couponDiscount !== null && couponDiscount !== undefined && couponDiscount > 0 && (
-                    <div className="flex justify-between font-body text-sm mb-2 text-sage">
-                      <span>Discount</span>
-                      <span className="tabular-nums">−₹{couponDiscount}</span>
+                {/* Promo code */}
+                <Card>
+                  <CardContent className="space-y-3 p-4">
+                    <Label htmlFor="shop-promo-code">Promo code</Label>
+                    <div className="flex flex-col gap-2 sm:flex-row">
+                      <Input
+                        id="shop-promo-code"
+                        className="font-mono uppercase"
+                        placeholder="Code"
+                        value={couponCode}
+                        onChange={(e) => {
+                          setCouponCode(e.target.value.toUpperCase());
+                          setCouponDiscount(null);
+                          setCouponError(null);
+                        }}
+                      />
+                      <Button
+                        type="button"
+                        variant="sage-outline"
+                        className="shrink-0"
+                        onClick={() => void validateShopCoupon()}
+                      >
+                        Apply
+                      </Button>
                     </div>
-                  )}
-                  <div className="flex justify-between font-body text-sm mb-2">
-                    <span className="text-charcoal/70">Delivery</span>
-                    <span className="text-charcoal tabular-nums">₹{deliveryFee}</span>
-                  </div>
-                  <div className="pt-2 border-t border-sage/20 flex justify-between">
-                    <span className="font-body text-lg font-semibold text-charcoal">Total</span>
-                    <span className="font-body text-2xl font-semibold text-sage tabular-nums">₹{shopOrderTotal}</span>
-                  </div>
-                </div>
+                    {couponError && (
+                      <p className="font-body text-sm text-destructive">{couponError}</p>
+                    )}
+                    {couponDiscount !== null && couponDiscount !== undefined && couponDiscount > 0 && (
+                      <p className="font-body text-sm text-sage">
+                        Coupon applied — you save {inr(couponDiscount)}.
+                      </p>
+                    )}
+                  </CardContent>
+                </Card>
+
+                {/* Order summary */}
+                <Card>
+                  <CardContent className="p-4">
+                    <div className="mb-2 flex justify-between font-body text-sm">
+                      <span className="text-muted-foreground">Subtotal</span>
+                      <span className="tabular-nums text-charcoal">{inr(cart.subtotal)}</span>
+                    </div>
+                    {couponDiscount !== null && couponDiscount !== undefined && couponDiscount > 0 && (
+                      <div className="mb-2 flex justify-between font-body text-sm text-sage">
+                        <span>Discount</span>
+                        <span className="tabular-nums">−{inr(couponDiscount)}</span>
+                      </div>
+                    )}
+                    <div className="mb-2 flex justify-between font-body text-sm">
+                      <span className="text-muted-foreground">Delivery</span>
+                      <span className="tabular-nums text-charcoal">{inr(deliveryFee)}</span>
+                    </div>
+                    <div className="flex justify-between border-t border-border pt-2">
+                      <span className="font-body text-base font-semibold text-charcoal">Total</span>
+                      <span className="font-body text-2xl font-semibold tabular-nums text-sage">
+                        {inr(shopOrderTotal)}
+                      </span>
+                    </div>
+                  </CardContent>
+                </Card>
 
                 {checkoutError && (
-                  <p className="text-sm text-destructive font-body mb-4">{checkoutError}</p>
+                  <p className="font-body text-sm text-destructive">{checkoutError}</p>
                 )}
 
                 <Button
@@ -715,27 +753,36 @@ export default function Shop({ initialProducts }: Readonly<ShopProps>) {
                   size="lg"
                   onClick={() => void completeRetailOrder()}
                   disabled={checkoutLoading}
-                  className="w-full rounded-md"
+                  className="w-full"
                 >
-                  {checkoutLoading ? "Processing…" : "Complete Order"}
-                  <Check className="ml-2" size={18} />
+                  {checkoutLoading ? (
+                    <>
+                      <Loader2 className="motion-safe:animate-spin" />
+                      Processing…
+                    </>
+                  ) : (
+                    <>
+                      Complete Order
+                      <Check />
+                    </>
+                  )}
                 </Button>
               </div>
             )}
 
             {checkoutStep === "success" && (
-              <div className="p-6 flex flex-col items-center justify-center h-full">
-                <div className="w-20 h-20 rounded-full bg-sage/10 flex items-center justify-center mb-6">
+              <div className="flex h-full flex-col items-center justify-center p-6">
+                <div className="mb-6 flex size-20 items-center justify-center rounded-full bg-sage/10">
                   <Check className="text-sage" size={40} />
                 </div>
-                <h2 className="font-display text-3xl text-charcoal mb-3 text-center">
+                <h2 className="mb-3 text-center font-body text-xl font-semibold text-charcoal">
                   Order Placed!
                 </h2>
-                <p className="font-body text-charcoal/70 text-center mb-6">
+                <p className="mb-6 text-center font-body text-muted-foreground">
                   Thank you for your purchase. We'll send you a confirmation email shortly.
                 </p>
                 <Link href="/">
-                  <Button variant="sage" className="rounded-md px-8">
+                  <Button variant="sage" className="px-8">
                     Back to Home
                   </Button>
                 </Link>

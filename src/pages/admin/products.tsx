@@ -7,16 +7,40 @@ export const getServerSideProps = requireSessionSSP({ roles: ["admin"] });
 import { SEO } from "@/components/SEO";
 import { AdminPageHeader } from "@/components/admin/AdminPageHeader";
 import { Button } from "@/components/ui/button";
+import { Card, CardContent } from "@/components/ui/card";
+import { MetricCard } from "@/components/admin/MetricCard";
+import { EmptyState } from "@/components/ui/empty-state";
+import { Skeleton } from "@/components/ui/skeleton";
+import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import {
-  Drawer,
-  DrawerContent,
-  DrawerTitle,
-  DrawerDescription,
-} from "@/components/ui/drawer";
-import { EditButton, DeleteButton } from "@/components/ui/quick-actions";
+  ResponsiveDialog,
+  ResponsiveDialogContent,
+  ResponsiveDialogHeader,
+  ResponsiveDialogFooter,
+  ResponsiveDialogTitle,
+  ResponsiveDialogDescription,
+} from "@/components/responsive/ResponsiveDialog";
+import { EditButton, DeleteButton, NavPrevButton, NavNextButton } from "@/components/ui/quick-actions";
 import { Pill } from "@/components/ui/pill";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
+import { Label } from "@/components/ui/label";
+import { Checkbox } from "@/components/ui/checkbox";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table";
 import { FilterBar, FilterSearch, FilterSelect, useFilterState } from "@/components/filters";
 import {
   Package,
@@ -29,8 +53,6 @@ import {
   ShoppingCart,
   DollarSign,
   Eye,
-  ChevronLeft,
-  ChevronRight
 } from "lucide-react";
 
 import { cdnUrl } from "@/lib/cdnUrl";
@@ -110,6 +132,14 @@ const DEFAULT_CATEGORY_PRESETS: CategoryRow[] = [
   { id: "athleisure", name: "Athleisure" },
 ];
 
+const ORDER_STATUS_OPTIONS: { value: Order["status"]; label: string }[] = [
+  { value: "pending", label: "Pending" },
+  { value: "processing", label: "Processing" },
+  { value: "shipped", label: "Shipped" },
+  { value: "delivered", label: "Delivered" },
+  { value: "cancelled", label: "Cancelled" },
+];
+
 export default function AdminProducts() {
   const router = useRouter();
   const { data: session, status } = useSession();
@@ -117,6 +147,7 @@ export default function AdminProducts() {
   const [products, setProducts] = useState<Product[]>([]);
   const [orders, setOrders] = useState<Order[]>([]);
   const [categories, setCategories] = useState<CategoryRow[]>(DEFAULT_CATEGORY_PRESETS);
+  const [loading, setLoading] = useState(true);
   const f = useFilterState(
     { search: "", category: "all", stock: "all", featured: "all" },
     { urlSync: true }
@@ -171,16 +202,20 @@ export default function AdminProducts() {
   );
 
   const loadRetail = useCallback(async () => {
-    const [prRes, ordRes] = await Promise.all([
-      fetch("/api/admin/retail-products?all=true"),
-      fetch("/api/admin/retail-orders"),
-    ]);
-    if (prRes.ok) {
-      const rows: RetailProductApi[] = await prRes.json();
-      setProducts(rows.map(apiToProduct));
-    }
-    if (ordRes.ok) {
-      setOrders(await ordRes.json());
+    try {
+      const [prRes, ordRes] = await Promise.all([
+        fetch("/api/admin/retail-products?all=true"),
+        fetch("/api/admin/retail-orders"),
+      ]);
+      if (prRes.ok) {
+        const rows: RetailProductApi[] = await prRes.json();
+        setProducts(rows.map(apiToProduct));
+      }
+      if (ordRes.ok) {
+        setOrders(await ordRes.json());
+      }
+    } finally {
+      setLoading(false);
     }
   }, []);
 
@@ -450,149 +485,164 @@ export default function AdminProducts() {
   return (
     <>
       <SEO title="Boutique Management - Admin" />
-      
-      <div className="flex min-h-screen bg-linear-to-br from-cream via-card to-sage/5">
-        
+
+      <div className="min-h-screen bg-linear-to-br from-cream via-card to-sage/5">
         <main className="min-h-screen">
-          <div className="max-w-7xl mx-auto p-6 lg:p-8 space-y-8">
+          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 lg:py-8 space-y-8">
             <AdminPageHeader
               title="Boutique Management"
               subtitle="Manage products and track orders"
               actions={
-                <Button
-                  onClick={() => setShowProductForm(true)}
-                  variant="sage"
-                >
-                  <Plus size={20} className="mr-2" />
+                <Button onClick={() => setShowProductForm(true)} variant="sage">
+                  <Plus className="mr-2" />
                   Add Product
                 </Button>
               }
             />
 
-            <div className="p-6 lg:p-8">
-              {/* Stats Grid */}
-              <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
-                <div className="p-6 rounded-2xl bg-white-warm border border-sage/10 hover:border-sage/30 transition-all duration-300">
-                  <div className="flex items-center justify-between mb-2">
-                    <Package className="text-sage/60" size={24} />
-                    <TrendingUp className="text-sage" size={20} />
-                  </div>
-                  <p className="font-body font-semibold tabular-nums text-3xl text-charcoal mb-1">{totalProducts}</p>
-                  <p className="font-body text-sm text-charcoal/60">Total Products</p>
-                </div>
+            {/* Stats Grid */}
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6">
+              <MetricCard
+                label="Total Products"
+                value={totalProducts}
+                icon={Package}
+                tone="sage"
+                loading={loading}
+              />
+              <MetricCard
+                label="Total Revenue"
+                value={totalRevenue}
+                prefix="₹"
+                icon={DollarSign}
+                tone="sage"
+                loading={loading}
+              />
+              <MetricCard
+                label="Pending Orders"
+                value={pendingOrders}
+                icon={ShoppingCart}
+                tone="terracotta"
+                loading={loading}
+              />
+              <MetricCard
+                label="Avg Order Value"
+                value={avgOrderValue}
+                prefix="₹"
+                decimals={0}
+                icon={TrendingUp}
+                tone="sage"
+                loading={loading}
+              />
+            </div>
 
-                <div className="p-6 rounded-2xl bg-white-warm border border-sage/10 hover:border-sage/30 transition-all duration-300">
-                  <div className="flex items-center justify-between mb-2">
-                    <DollarSign className="text-sage/60" size={24} />
-                    <TrendingUp className="text-sage" size={20} />
-                  </div>
-                  <p className="font-body font-semibold tabular-nums text-3xl text-charcoal mb-1">₹{totalRevenue.toLocaleString()}</p>
-                  <p className="font-body text-sm text-charcoal/60">Total Revenue</p>
-                </div>
-
-                <div className="p-6 rounded-2xl bg-white-warm border border-sage/10 hover:border-sage/30 transition-all duration-300">
-                  <div className="flex items-center justify-between mb-2">
-                    <ShoppingCart className="text-sage/60" size={24} />
-                    <TrendingUp className="text-terracotta" size={20} />
-                  </div>
-                  <p className="font-body font-semibold tabular-nums text-3xl text-charcoal mb-1">{pendingOrders}</p>
-                  <p className="font-body text-sm text-charcoal/60">Pending Orders</p>
-                </div>
-
-                <div className="p-6 rounded-2xl bg-white-warm border border-sage/10 hover:border-sage/30 transition-all duration-300">
-                  <div className="flex items-center justify-between mb-2">
-                    <TrendingUp className="text-sage/60" size={24} />
-                    <TrendingUp className="text-sage" size={20} />
-                  </div>
-                  <p className="font-body font-semibold tabular-nums text-3xl text-charcoal mb-1">₹{avgOrderValue.toFixed(0)}</p>
-                  <p className="font-body text-sm text-charcoal/60">Avg Order Value</p>
-                </div>
-              </div>
-
-              {/* Tabs */}
-              <div className="mb-6">
-                <div className="inline-flex items-center gap-1 p-1 rounded-lg bg-white-warm border border-sage/10">
-                  {([
-                    { key: "products", label: `Products (${totalProducts})` },
-                    { key: "orders", label: `Orders (${orders.length})` },
-                    { key: "categories", label: `Categories (${categoryRows.length})` },
-                  ] as const).map((t) => (
-                    <Button
-                      key={t.key}
-                      type="button"
-                      size="sm"
-                      variant={activeTab === t.key ? "sage" : "ghost"}
-                      onClick={() => setActiveTab(t.key)}
-                      className="tabular-nums"
-                    >
-                      {t.label}
-                    </Button>
-                  ))}
-                </div>
-              </div>
+            {/* Tabs */}
+            <Tabs
+              value={activeTab}
+              onValueChange={(v) => setActiveTab(v as typeof activeTab)}
+              className="space-y-6"
+            >
+              <TabsList className="h-auto flex-wrap">
+                <TabsTrigger value="products" className="tabular-nums">
+                  Products ({totalProducts})
+                </TabsTrigger>
+                <TabsTrigger value="orders" className="tabular-nums">
+                  Orders ({orders.length})
+                </TabsTrigger>
+                <TabsTrigger value="categories" className="tabular-nums">
+                  Categories ({categoryRows.length})
+                </TabsTrigger>
+              </TabsList>
 
               {/* Products Tab */}
-              {activeTab === "products" && (
-                <div className="space-y-6">
-                  {/* Search + filters */}
-                  <FilterBar reset={f.isActive ? f.reset : undefined} className="mb-4">
-                    <FilterSearch
-                      value={f.values.search}
-                      onChange={(v) => { f.set("search", v); setProductPage(1); }}
-                      placeholder="Search products..."
-                      aria-label="Search products"
-                    />
-                    <FilterSelect
-                      ariaLabel="Category"
-                      value={f.values.category}
-                      onChange={(v) => { f.set("category", v); setProductPage(1); }}
-                      placeholder="All categories"
-                      options={categoryOptions}
-                    />
-                    <FilterSelect
-                      ariaLabel="Stock"
-                      value={f.values.stock}
-                      onChange={(v) => { f.set("stock", v); setProductPage(1); }}
-                      placeholder="All stock"
-                      options={[
-                        { value: "all", label: "All stock" },
-                        { value: "in", label: "In stock" },
-                        { value: "out", label: "Out of stock" },
-                      ]}
-                    />
-                    <FilterSelect
-                      ariaLabel="Featured"
-                      placeholder="Featured"
-                      value={f.values.featured}
-                      onChange={(v) => { f.set("featured", v); setProductPage(1); }}
-                      options={[
-                        { value: "all", label: "All products" },
-                        { value: "featured", label: "Featured only" },
-                      ]}
-                    />
-                  </FilterBar>
+              <TabsContent value="products" className="space-y-6">
+                {/* Search + filters */}
+                <FilterBar reset={f.isActive ? f.reset : undefined}>
+                  <FilterSearch
+                    value={f.values.search}
+                    onChange={(v) => { f.set("search", v); setProductPage(1); }}
+                    placeholder="Search products..."
+                    aria-label="Search products"
+                  />
+                  <FilterSelect
+                    ariaLabel="Category"
+                    value={f.values.category}
+                    onChange={(v) => { f.set("category", v); setProductPage(1); }}
+                    placeholder="All categories"
+                    options={categoryOptions}
+                  />
+                  <FilterSelect
+                    ariaLabel="Stock"
+                    value={f.values.stock}
+                    onChange={(v) => { f.set("stock", v); setProductPage(1); }}
+                    placeholder="All stock"
+                    options={[
+                      { value: "all", label: "All stock" },
+                      { value: "in", label: "In stock" },
+                      { value: "out", label: "Out of stock" },
+                    ]}
+                  />
+                  <FilterSelect
+                    ariaLabel="Featured"
+                    placeholder="Featured"
+                    value={f.values.featured}
+                    onChange={(v) => { f.set("featured", v); setProductPage(1); }}
+                    options={[
+                      { value: "all", label: "All products" },
+                      { value: "featured", label: "Featured only" },
+                    ]}
+                  />
+                </FilterBar>
 
-                  {/* Products Table */}
-                  <div className="rounded-2xl bg-white-warm border border-sage/10 overflow-hidden">
+                {/* Products Table */}
+                <Card className="overflow-hidden">
+                  {loading ? (
+                    <div className="space-y-3 p-6">
+                      {Array.from({ length: 6 }).map((_, i) => (
+                        <Skeleton key={i} className="h-12 w-full bg-sage/10" />
+                      ))}
+                    </div>
+                  ) : filteredProducts.length === 0 ? (
+                    <EmptyState
+                      icon={Package}
+                      title="No products found"
+                      description={
+                        f.isActive
+                          ? "No products match your current filters. Try adjusting your search."
+                          : "Add your first boutique product to get started."
+                      }
+                      action={
+                        f.isActive ? (
+                          <Button variant="sage-outline" onClick={f.reset}>
+                            Clear filters
+                          </Button>
+                        ) : (
+                          <Button variant="sage" onClick={() => setShowProductForm(true)}>
+                            <Plus className="mr-2" />
+                            Add Product
+                          </Button>
+                        )
+                      }
+                    />
+                  ) : (
                     <ResponsiveTable>
-                      <table className="w-full">
-                        <thead>
-                          <tr className="border-b border-sage/10 bg-sage/5">
-                            <th className="text-left p-4 font-body text-sm font-semibold text-charcoal">Product</th>
-                            <th className="text-left p-4 font-body text-sm font-semibold text-charcoal">Category</th>
-                            <th className="text-left p-4 font-body text-sm font-semibold text-charcoal">Price</th>
-                            <th className="text-left p-4 font-body text-sm font-semibold text-charcoal">Stock</th>
-                            <th className="text-left p-4 font-body text-sm font-semibold text-charcoal">Sales</th>
-                            <th className="text-left p-4 font-body text-sm font-semibold text-charcoal">Status</th>
-                            <th className="text-right p-4 font-body text-sm font-semibold text-charcoal">Actions</th>
-                          </tr>
-                        </thead>
-                        <tbody>
+                      <Table>
+                        <TableHeader>
+                          <TableRow className="bg-sage/5">
+                            <TableHead>Product</TableHead>
+                            <TableHead>Category</TableHead>
+                            <TableHead className="text-right">Price</TableHead>
+                            <TableHead className="text-right">Stock</TableHead>
+                            <TableHead className="text-right">Sales</TableHead>
+                            <TableHead>Status</TableHead>
+                            <TableHead className="text-right">Actions</TableHead>
+                          </TableRow>
+                        </TableHeader>
+                        <TableBody>
                           {paginatedProducts.map((product) => (
-                            <tr key={product.id} className="border-b border-sage/10 hover:bg-sage/5 transition-colors">
-                              <td className="p-4">
+                            <TableRow key={product.id}>
+                              <TableCell>
                                 <div className="flex items-center gap-3">
-                                  <div className="w-12 h-12 rounded-lg bg-linear-to-br from-sage/20 via-cream/50 to-terracotta/20 shrink-0" />
+                                  <div className="w-10 h-10 rounded-lg bg-linear-to-br from-sage/20 via-cream/50 to-terracotta/20 shrink-0" />
                                   <div>
                                     <p className="font-body text-sm font-medium text-charcoal">{product.name}</p>
                                     {product.featured && (
@@ -600,508 +650,478 @@ export default function AdminProducts() {
                                     )}
                                   </div>
                                 </div>
-                              </td>
-                              <td className="p-4">
-                                <p className="font-body text-sm text-charcoal/70 capitalize">
-                                  {categoryById.get(product.category) ??
-                                    prettifyCatId(product.category)}
-                                </p>
-                              </td>
-                              <td className="p-4">
-                                <p className="font-body text-sm font-medium text-charcoal">₹{product.price}</p>
-                              </td>
-                              <td className="p-4">
-                                <p className={`font-body text-sm ${product.stock < 10 ? 'text-terracotta font-semibold' : 'text-charcoal/70'}`}>
-                                  {product.stock} units
-                                </p>
-                              </td>
-                              <td className="p-4">
-                                <p className="font-body text-sm text-charcoal/70">{product.sales} sold</p>
-                              </td>
-                              <td className="p-4">
+                              </TableCell>
+                              <TableCell>
+                                <span className="font-body text-sm text-muted-foreground capitalize">
+                                  {categoryById.get(product.category) ?? prettifyCatId(product.category)}
+                                </span>
+                              </TableCell>
+                              <TableCell className="text-right font-body text-sm font-medium text-charcoal tabular-nums">
+                                ₹{product.price.toLocaleString()}
+                              </TableCell>
+                              <TableCell
+                                className={`text-right font-body text-sm tabular-nums ${product.stock < 10 ? "text-terracotta font-semibold" : "text-muted-foreground"}`}
+                              >
+                                {product.stock}
+                              </TableCell>
+                              <TableCell className="text-right font-body text-sm text-muted-foreground tabular-nums">
+                                {product.sales}
+                              </TableCell>
+                              <TableCell>
                                 {product.inStock ? (
                                   <Pill tone="success">In Stock</Pill>
                                 ) : (
                                   <Pill tone="neutral">Out of Stock</Pill>
                                 )}
-                              </td>
-                              <td className="p-4">
+                              </TableCell>
+                              <TableCell>
                                 <div className="flex items-center justify-end gap-2">
                                   <EditButton onClick={() => handleEditProduct(product)} />
                                   <DeleteButton onClick={() => handleDeleteProduct(product.id)} />
                                 </div>
-                              </td>
-                            </tr>
+                              </TableCell>
+                            </TableRow>
                           ))}
-                        </tbody>
-                      </table>
+                        </TableBody>
+                      </Table>
                     </ResponsiveTable>
+                  )}
 
-                    {/* Pagination */}
-                    {totalProductPages > 1 && (
-                      <div className="flex items-center justify-center gap-2 p-4 border-t border-sage/10">
-                        <button
-                          onClick={() => setProductPage(Math.max(1, productPage - 1))}
-                          disabled={productPage === 1}
-                          className="p-2 rounded-lg hover:bg-sage/10 disabled:opacity-30 disabled:cursor-not-allowed transition-colors"
-                        >
-                          <ChevronLeft size={20} />
-                        </button>
-                        <span className="font-body text-sm text-charcoal/70 px-4">
-                          Page {productPage} of {totalProductPages}
-                        </span>
-                        <button
-                          onClick={() => setProductPage(Math.min(totalProductPages, productPage + 1))}
-                          disabled={productPage === totalProductPages}
-                          className="p-2 rounded-lg hover:bg-sage/10 disabled:opacity-30 disabled:cursor-not-allowed transition-colors"
-                        >
-                          <ChevronRight size={20} />
-                        </button>
-                      </div>
-                    )}
-                  </div>
-                </div>
-              )}
+                  {/* Pagination */}
+                  {!loading && totalProductPages > 1 && (
+                    <div className="flex items-center justify-center gap-3 p-4 border-t border-border">
+                      <NavPrevButton
+                        onClick={() => setProductPage(Math.max(1, productPage - 1))}
+                        disabled={productPage === 1}
+                      />
+                      <span className="font-body text-sm text-muted-foreground tabular-nums px-2">
+                        Page {productPage} of {totalProductPages}
+                      </span>
+                      <NavNextButton
+                        onClick={() => setProductPage(Math.min(totalProductPages, productPage + 1))}
+                        disabled={productPage === totalProductPages}
+                      />
+                    </div>
+                  )}
+                </Card>
+              </TabsContent>
 
               {/* Categories Tab */}
-              {activeTab === "categories" && (
-                <div className="space-y-6">
-                  {/* Add Category Button */}
-                  <div className="flex justify-between items-center">
-                    <p className="font-body text-sm text-charcoal/60">
-                      Manage product categories used across your boutique
-                    </p>
-                    <Button
-                      onClick={() => setShowCategoryForm(true)}
-                      variant="sage"
-                    >
-                      <Plus size={20} className="mr-2" />
-                      Add Category
-                    </Button>
-                  </div>
+              <TabsContent value="categories" className="space-y-6">
+                {/* Add Category Button */}
+                <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+                  <p className="font-body text-sm text-muted-foreground">
+                    Manage product categories used across your boutique
+                  </p>
+                  <Button onClick={() => setShowCategoryForm(true)} variant="sage">
+                    <Plus className="mr-2" />
+                    Add Category
+                  </Button>
+                </div>
 
-                  {/* Categories Grid */}
-                  <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
+                {categoryRows.length === 0 ? (
+                  <Card>
+                    <EmptyState
+                      icon={Package}
+                      title="No categories yet"
+                      description="Create your first product category to organize your boutique."
+                      action={
+                        <Button variant="sage" onClick={() => setShowCategoryForm(true)}>
+                          <Plus className="mr-2" />
+                          Add Category
+                        </Button>
+                      }
+                    />
+                  </Card>
+                ) : (
+                  <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6">
                     {categoryRows.map((category) => {
-                      const productCount = products.filter(p => p.category === category.id).length;
-                      
-                      return (
-                        <div
-                          key={category.id}
-                          className="p-6 rounded-2xl bg-white-warm border border-sage/10 hover:border-sage/30 transition-all duration-300 group"
-                        >
-                          <div className="flex items-start justify-between mb-4">
-                            <div className="flex-1">
-                              <h3 className="font-body font-semibold text-2xl text-charcoal mb-2">
-                                {category.name}
-                              </h3>
-                              <p className="font-body text-sm text-charcoal/60">
-                                {productCount} product{productCount !== 1 ? 's' : ''}
-                              </p>
-                            </div>
-                            <div className="w-12 h-12 rounded-full bg-linear-to-br from-sage/20 via-cream/50 to-terracotta/20 flex items-center justify-center">
-                              <Package size={24} className="text-sage" />
-                            </div>
-                          </div>
+                      const productCount = products.filter((p) => p.category === category.id).length;
 
-                          <div className="flex items-center gap-2 pt-4 border-t border-sage/10">
-                            <Button
-                              type="button"
-                              variant="sage-outline"
-                              size="sm"
-                              onClick={() => handleEditCategory(category)}
-                              className="flex-1 font-body"
-                            >
-                              <Edit size={16} />
-                              Edit
-                            </Button>
-                            <Button
-                              type="button"
-                              variant="destructive"
-                              size="sm"
-                              onClick={() => handleDeleteCategory(category.id)}
-                              disabled={productCount > 0}
-                              className="flex-1 font-body"
-                            >
-                              <Trash2 size={16} />
-                              Delete
-                            </Button>
-                          </div>
-                        </div>
+                      return (
+                        <Card key={category.id} className="transition-shadow hover:shadow-md">
+                          <CardContent className="p-5">
+                            <div className="flex items-start justify-between mb-4">
+                              <div className="flex-1 min-w-0">
+                                <h3 className="font-body font-semibold text-lg text-charcoal truncate">
+                                  {category.name}
+                                </h3>
+                                <p className="font-body text-sm text-muted-foreground tabular-nums">
+                                  {productCount} product{productCount !== 1 ? "s" : ""}
+                                </p>
+                              </div>
+                              <div className="w-10 h-10 rounded-lg bg-sage/10 flex items-center justify-center shrink-0">
+                                <Package className="size-5 text-sage" aria-hidden="true" />
+                              </div>
+                            </div>
+
+                            <div className="flex items-center gap-2 pt-4 border-t border-border">
+                              <Button
+                                type="button"
+                                variant="sage-outline"
+                                size="sm"
+                                onClick={() => handleEditCategory(category)}
+                                className="flex-1"
+                              >
+                                <Edit />
+                                Edit
+                              </Button>
+                              <Button
+                                type="button"
+                                variant="destructive"
+                                size="sm"
+                                onClick={() => handleDeleteCategory(category.id)}
+                                disabled={productCount > 0}
+                                className="flex-1"
+                              >
+                                <Trash2 />
+                                Delete
+                              </Button>
+                            </div>
+                          </CardContent>
+                        </Card>
                       );
                     })}
                   </div>
-
-                  {/* Empty State */}
-                  {categoryRows.length === 0 && (
-                    <div className="text-center py-20 px-6 rounded-2xl bg-white-warm border border-sage/10">
-                      <Package className="mx-auto mb-4 text-charcoal/20" size={64} />
-                      <h3 className="font-body font-semibold text-2xl text-charcoal mb-2">No categories yet</h3>
-                      <p className="font-body text-charcoal/60 mb-6">
-                        Create your first product category to organize your boutique
-                      </p>
-                      <Button
-                        onClick={() => setShowCategoryForm(true)}
-                        variant="sage"
-                      >
-                        <Plus size={20} className="mr-2" />
-                        Add Category
-                      </Button>
-                    </div>
-                  )}
-                </div>
-              )}
+                )}
+              </TabsContent>
 
               {/* Orders Tab */}
-              {activeTab === "orders" && (
-                <div className="space-y-6">
-                  {paginatedOrders.map((order) => (
-                    <div
-                      key={order.id}
-                      className="p-6 rounded-2xl bg-white-warm border border-sage/10 hover:border-sage/30 transition-all duration-300"
-                    >
-                      {/* Order Header */}
-                      <div className="flex items-start justify-between mb-4 pb-4 border-b border-sage/10">
-                        <div>
-                          <div className="flex items-center gap-3 mb-2">
-                            <h3 className="font-body font-semibold text-xl text-charcoal">{order.id}</h3>
-                            <Pill tone={getStatusPillTone(order.status)}>
-                              {order.status.charAt(0).toUpperCase() + order.status.slice(1)}
-                            </Pill>
+              <TabsContent value="orders" className="space-y-6">
+                {loading ? (
+                  <div className="space-y-4">
+                    {Array.from({ length: 3 }).map((_, i) => (
+                      <Skeleton key={i} className="h-40 w-full rounded-xl bg-sage/10" />
+                    ))}
+                  </div>
+                ) : orders.length === 0 ? (
+                  <Card>
+                    <EmptyState
+                      icon={ShoppingCart}
+                      title="No orders yet"
+                      description="Boutique orders placed by members will appear here."
+                    />
+                  </Card>
+                ) : (
+                  <>
+                    {paginatedOrders.map((order) => (
+                      <Card key={order.id} className="transition-shadow hover:shadow-md">
+                        <CardContent className="p-6">
+                          {/* Order Header */}
+                          <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-3 mb-4 pb-4 border-b border-border">
+                            <div>
+                              <div className="flex items-center gap-3 mb-2">
+                                <h3 className="font-body font-semibold text-base text-charcoal">{order.id}</h3>
+                                <Pill tone={getStatusPillTone(order.status)}>
+                                  {order.status.charAt(0).toUpperCase() + order.status.slice(1)}
+                                </Pill>
+                              </div>
+                              <p className="font-body text-sm text-muted-foreground mb-1">
+                                {order.customerName} • {order.customerEmail}
+                              </p>
+                              <p className="font-body text-xs text-muted-foreground">
+                                {new Date(order.orderDate).toLocaleDateString("en-US", {
+                                  month: "long",
+                                  day: "numeric",
+                                  year: "numeric",
+                                })}
+                              </p>
+                            </div>
+                            <div className="sm:text-right">
+                              <p className="font-body font-semibold tabular-nums text-2xl text-sage mb-1">
+                                ₹{order.total.toLocaleString()}
+                              </p>
+                              <p className="font-body text-xs text-muted-foreground">
+                                {order.paymentMethod === "online" ? "Paid Online" : "Pay at Studio"}
+                              </p>
+                            </div>
                           </div>
-                          <p className="font-body text-sm text-charcoal/60 mb-1">
-                            {order.customerName} • {order.customerEmail}
-                          </p>
-                          <p className="font-body text-xs text-charcoal/50">
-                            {new Date(order.orderDate).toLocaleDateString('en-US', { 
-                              month: 'long', 
-                              day: 'numeric', 
-                              year: 'numeric' 
-                            })}
-                          </p>
-                        </div>
-                        <div className="text-right">
-                          <p className="font-body font-semibold tabular-nums text-2xl text-sage mb-1">₹{order.total}</p>
-                          <p className="font-body text-xs text-charcoal/60">
-                            {order.paymentMethod === "online" ? "Paid Online" : "Pay at Studio"}
-                          </p>
-                        </div>
-                      </div>
 
-                      {/* Order Items */}
-                      <div className="space-y-2 mb-4">
-                        {order.items.map((item, index) => (
-                          <div key={index} className="flex items-center justify-between text-sm">
-                            <span className="font-body text-charcoal/70">
-                              {item.productName} × {item.quantity}
-                            </span>
-                            <span className="font-body text-charcoal">₹{item.price * item.quantity}</span>
+                          {/* Order Items */}
+                          <div className="space-y-2 mb-4">
+                            {order.items.map((item, index) => (
+                              <div key={index} className="flex items-center justify-between text-sm">
+                                <span className="font-body text-muted-foreground">
+                                  {item.productName} × {item.quantity}
+                                </span>
+                                <span className="font-body text-charcoal tabular-nums">
+                                  ₹{(item.price * item.quantity).toLocaleString()}
+                                </span>
+                              </div>
+                            ))}
                           </div>
-                        ))}
-                      </div>
 
-                      {/* Shipping Address */}
-                      <div className="p-3 rounded-lg bg-sage/5 mb-4">
-                        <p className="font-body text-xs text-charcoal/60 mb-1">Shipping Address:</p>
-                        <p className="font-body text-sm text-charcoal">{order.shippingAddress}</p>
-                      </div>
+                          {/* Shipping Address */}
+                          <div className="p-3 rounded-lg bg-sage/5 mb-4">
+                            <p className="font-body text-xs text-muted-foreground mb-1">Shipping Address</p>
+                            <p className="font-body text-sm text-charcoal">{order.shippingAddress}</p>
+                          </div>
 
-                      {/* Status Update */}
-                      <div className="flex items-center gap-3">
-                        <p className="font-body text-sm text-charcoal/60">Update Status:</p>
-                        <select
-                          value={order.status}
-                          onChange={(e) => handleUpdateOrderStatus(order.id, e.target.value as Order["status"])}
-                          className="px-3 py-2 rounded-lg border border-sage/20 font-body text-sm text-charcoal focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sage"
-                        >
-                          <option value="pending">Pending</option>
-                          <option value="processing">Processing</option>
-                          <option value="shipped">Shipped</option>
-                          <option value="delivered">Delivered</option>
-                          <option value="cancelled">Cancelled</option>
-                        </select>
-                        <Button
-                          size="sm"
-                          variant="outline"
-                          className="ml-auto border-sage/30 text-sage hover:bg-sage/10 hover:text-sage!"
-                        >
-                          <Eye size={16} className="mr-2" />
-                          View Details
-                        </Button>
-                      </div>
-                    </div>
-                  ))}
+                          {/* Status Update */}
+                          <div className="flex flex-col sm:flex-row sm:items-center gap-3">
+                            <Label className="font-body text-sm text-muted-foreground shrink-0">
+                              Update status
+                            </Label>
+                            <Select
+                              value={order.status}
+                              activityLabel="Order status"
+                              onValueChange={(v) => handleUpdateOrderStatus(order.id, v as Order["status"])}
+                            >
+                              <SelectTrigger className="w-full sm:w-44" aria-label="Update order status">
+                                <SelectValue />
+                              </SelectTrigger>
+                              <SelectContent>
+                                {ORDER_STATUS_OPTIONS.map((opt) => (
+                                  <SelectItem key={opt.value} value={opt.value}>
+                                    {opt.label}
+                                  </SelectItem>
+                                ))}
+                              </SelectContent>
+                            </Select>
+                            <Button size="sm" variant="ghost" className="sm:ml-auto">
+                              <Eye className="mr-2" />
+                              View Details
+                            </Button>
+                          </div>
+                        </CardContent>
+                      </Card>
+                    ))}
 
-                  {/* Pagination */}
-                  {totalOrderPages > 1 && (
-                    <div className="flex items-center justify-center gap-2 p-4">
-                      <button
-                        onClick={() => setOrderPage(Math.max(1, orderPage - 1))}
-                        disabled={orderPage === 1}
-                        className="p-2 rounded-lg hover:bg-sage/10 disabled:opacity-30 disabled:cursor-not-allowed transition-colors"
-                      >
-                        <ChevronLeft size={20} />
-                      </button>
-                      <span className="font-body text-sm text-charcoal/70 px-4">
-                        Page {orderPage} of {totalOrderPages}
-                      </span>
-                      <button
-                        onClick={() => setOrderPage(Math.min(totalOrderPages, orderPage + 1))}
-                        disabled={orderPage === totalOrderPages}
-                        className="p-2 rounded-lg hover:bg-sage/10 disabled:opacity-30 disabled:cursor-not-allowed transition-colors"
-                      >
-                        <ChevronRight size={20} />
-                      </button>
-                    </div>
-                  )}
-                </div>
-              )}
-            </div>
+                    {/* Pagination */}
+                    {totalOrderPages > 1 && (
+                      <div className="flex items-center justify-center gap-3 p-4">
+                        <NavPrevButton
+                          onClick={() => setOrderPage(Math.max(1, orderPage - 1))}
+                          disabled={orderPage === 1}
+                        />
+                        <span className="font-body text-sm text-muted-foreground tabular-nums px-2">
+                          Page {orderPage} of {totalOrderPages}
+                        </span>
+                        <NavNextButton
+                          onClick={() => setOrderPage(Math.min(totalOrderPages, orderPage + 1))}
+                          disabled={orderPage === totalOrderPages}
+                        />
+                      </div>
+                    )}
+                  </>
+                )}
+              </TabsContent>
+            </Tabs>
           </div>
         </main>
 
         {/* Add/Edit Product Modal */}
-        <Drawer
-          direction="right"
+        <ResponsiveDialog
           open={showProductForm}
           onOpenChange={(o) => { if (!o) resetForm(); }}
         >
-          <DrawerContent direction="right" className="max-w-2xl">
-              <div className="shrink-0 border-b border-sage/10 bg-white-warm p-6">
-                <div className="flex items-center justify-between">
-                  <div>
-                    <DrawerTitle className="font-body font-semibold text-3xl text-charcoal">
-                      {editingProduct ? "Edit Product" : "Add New Product"}
-                    </DrawerTitle>
-                    <DrawerDescription className="font-body text-sm text-charcoal/60">
-                      {editingProduct ? "Update product details" : "Create a new boutique product"}
-                    </DrawerDescription>
-                  </div>
-                  <button
-                    onClick={resetForm}
-                    className="w-10 h-10 rounded-full hover:bg-sage/10 flex items-center justify-center transition-colors"
-                  >
-                    <X size={24} />
-                  </button>
+          <ResponsiveDialogContent className="max-w-2xl">
+            <ResponsiveDialogHeader>
+              <ResponsiveDialogTitle className="font-body font-semibold text-charcoal">
+                {editingProduct ? "Edit Product" : "Add New Product"}
+              </ResponsiveDialogTitle>
+              <ResponsiveDialogDescription>
+                {editingProduct ? "Update product details" : "Create a new boutique product"}
+              </ResponsiveDialogDescription>
+            </ResponsiveDialogHeader>
+
+            <div className="space-y-6">
+              <div className="space-y-2">
+                <Label htmlFor="product-name">Product Name *</Label>
+                <Input
+                  id="product-name"
+                  value={formData.name}
+                  onChange={(e) => setFormData({ ...formData, name: e.target.value })}
+                  placeholder="e.g. Sanctuary Candle"
+                />
+              </div>
+
+              <div className="space-y-2">
+                <Label htmlFor="product-category">Category *</Label>
+                <Select
+                  value={formData.category}
+                  activityLabel="Product category"
+                  onValueChange={(v) => setFormData({ ...formData, category: v })}
+                >
+                  <SelectTrigger id="product-category" className="w-full" aria-label="Category">
+                    <SelectValue placeholder="Select a category" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {categoryRows.map((cat) => (
+                      <SelectItem key={cat.id} value={cat.id}>{cat.name}</SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+
+              <div className="grid grid-cols-2 gap-4">
+                <div className="space-y-2">
+                  <Label htmlFor="product-price">Price (₹) *</Label>
+                  <Input
+                    id="product-price"
+                    type="number"
+                    value={formData.price}
+                    onChange={(e) => setFormData({ ...formData, price: e.target.value })}
+                    placeholder="850"
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="product-stock">Stock *</Label>
+                  <Input
+                    id="product-stock"
+                    type="number"
+                    value={formData.stock}
+                    onChange={(e) => setFormData({ ...formData, stock: e.target.value })}
+                    placeholder="45"
+                  />
                 </div>
               </div>
 
-              <div className="flex-1 overflow-y-auto p-6 space-y-6">
-                <div>
-                  <label className="font-body text-sm text-charcoal/70 mb-2 block">Product Name *</label>
-                  <Input
-                    value={formData.name}
-                    onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-                    placeholder="e.g. Sanctuary Candle"
-                    className="border-sage/20 focus:border-sage"
-                  />
-                </div>
+              <div className="space-y-2">
+                <Label htmlFor="product-description">Description *</Label>
+                <Textarea
+                  id="product-description"
+                  value={formData.description}
+                  onChange={(e) => setFormData({ ...formData, description: e.target.value })}
+                  placeholder="Hand-poured soy candle with calming lavender & eucalyptus"
+                  rows={3}
+                  className="resize-none"
+                />
+              </div>
 
-                <div>
-                  <label className="font-body text-sm text-charcoal/70 mb-2 block">Category *</label>
-                  <select
-                    value={formData.category}
-                    onChange={(e) => setFormData({ ...formData, category: e.target.value })}
-                    className="w-full px-4 py-2 rounded-lg border border-sage/20 font-body text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sage"
-                  >
-                    {categoryRows.map((cat) => (
-                      <option key={cat.id} value={cat.id}>{cat.name}</option>
-                    ))}
-                  </select>
-                </div>
-
-                <div className="grid grid-cols-2 gap-4">
-                  <div>
-                    <label className="font-body text-sm text-charcoal/70 mb-2 block">Price (₹) *</label>
-                    <Input
-                      type="number"
-                      value={formData.price}
-                      onChange={(e) => setFormData({ ...formData, price: e.target.value })}
-                      placeholder="850"
-                      className="border-sage/20 focus:border-sage"
-                    />
-                  </div>
-                  <div>
-                    <label className="font-body text-sm text-charcoal/70 mb-2 block">Stock *</label>
-                    <Input
-                      type="number"
-                      value={formData.stock}
-                      onChange={(e) => setFormData({ ...formData, stock: e.target.value })}
-                      placeholder="45"
-                      className="border-sage/20 focus:border-sage"
-                    />
-                  </div>
-                </div>
-
-                <div>
-                  <label className="font-body text-sm text-charcoal/70 mb-2 block">Description *</label>
-                  <Textarea
-                    value={formData.description}
-                    onChange={(e) => setFormData({ ...formData, description: e.target.value })}
-                    placeholder="Hand-poured soy candle with calming lavender & eucalyptus"
-                    rows={3}
-                    className="border-sage/20 focus:border-sage resize-none"
-                  />
-                </div>
-
-                {/* Product Images Section */}
-                <div className="border-t border-sage/10 pt-6">
-                  <label className="font-body text-sm font-semibold text-charcoal mb-2 block">
-                    Product Images
-                  </label>
-                  <p className="font-body text-xs text-charcoal/50 mb-4">
-                    Add up to 4 images. Use image URLs from /public folder (e.g., /food/image.jpg)
-                  </p>
-                  <div className="space-y-3">
-                    {formData.images.map((image, index) => (
-                      <div key={index} className="flex items-center gap-3">
-                        <span className="font-body text-sm text-charcoal/60 font-medium min-w-[80px]">
-                          Image {index + 1}{index === 0 && " *"}:
-                        </span>
-                        <Input
-                          value={image}
-                          onChange={(e) => {
+              {/* Product Images Section */}
+              <div className="border-t border-border pt-6">
+                <Label className="font-semibold text-charcoal">Product Images</Label>
+                <p className="font-body text-xs text-muted-foreground mt-1 mb-4">
+                  Add up to 4 images. Use image URLs from /public folder (e.g., /food/image.jpg)
+                </p>
+                <div className="space-y-3">
+                  {formData.images.map((image, index) => (
+                    <div key={index} className="flex items-center gap-3">
+                      <span className="font-body text-sm text-muted-foreground font-medium min-w-20">
+                        Image {index + 1}{index === 0 && " *"}
+                      </span>
+                      <Input
+                        value={image}
+                        onChange={(e) => {
+                          const newImages = [...formData.images];
+                          newImages[index] = e.target.value;
+                          setFormData({ ...formData, images: newImages });
+                        }}
+                        placeholder={`/food/product-${index + 1}.jpg`}
+                        className="flex-1"
+                      />
+                      {image && (
+                        <Button
+                          type="button"
+                          variant="ghost"
+                          size="icon-sm"
+                          aria-label="Remove image"
+                          onClick={() => {
                             const newImages = [...formData.images];
-                            newImages[index] = e.target.value;
+                            newImages[index] = "";
                             setFormData({ ...formData, images: newImages });
                           }}
-                          placeholder={`/food/product-${index + 1}.jpg`}
-                          className="border-sage/20 focus:border-sage flex-1"
-                        />
-                        {image && (
-                          <Button
-                            type="button"
-                            variant="ghost"
-                            size="icon-sm"
-                            aria-label="Remove image"
-                            onClick={() => {
-                              const newImages = [...formData.images];
-                              newImages[index] = "";
-                              setFormData({ ...formData, images: newImages });
-                            }}
-                          >
-                            <X size={16} />
-                          </Button>
-                        )}
-                      </div>
-                    ))}
-                  </div>
-                  <div className="mt-3 p-3 rounded-lg bg-sage/5 border border-sage/10">
-                    <p className="font-body text-xs text-charcoal/60">
-                      💡 <strong>Tip:</strong> First image will be used as the main product image on the shop page. You can use images from the /food/ directory.
-                    </p>
-                  </div>
+                        >
+                          <X />
+                        </Button>
+                      )}
+                    </div>
+                  ))}
                 </div>
-
-                <div className="flex items-center gap-2 pt-4">
-                  <input
-                    type="checkbox"
-                    id="featured"
-                    checked={formData.featured}
-                    onChange={(e) => setFormData({ ...formData, featured: e.target.checked })}
-                    className="w-4 h-4 rounded border-sage/20 text-sage focus:ring-sage"
-                  />
-                  <label htmlFor="featured" className="font-body text-sm text-charcoal/70">
-                    Mark as Featured Product
-                  </label>
+                <div className="mt-3 p-3 rounded-lg bg-sage/5 border border-sage/10">
+                  <p className="font-body text-xs text-muted-foreground">
+                    <strong className="text-charcoal">Tip:</strong> The first image is used as the main product
+                    image on the shop page. You can use images from the /food/ directory.
+                  </p>
                 </div>
               </div>
 
-              <div className="shrink-0 border-t border-sage/10 bg-white-warm p-6">
-                <div className="flex gap-3">
-                  <Button
-                    onClick={resetForm}
-                    variant="outline"
-                    className="flex-1 border-sage/30 text-charcoal hover:bg-sage/10 hover:text-charcoal"
-                  >
-                    Cancel
-                  </Button>
-                  <Button
-                    onClick={editingProduct ? handleUpdateProduct : handleAddProduct}
-                    variant="sage"
-                    className="flex-1"
-                  >
-                    <Check size={18} className="mr-2" />
-                    {editingProduct ? "Update Product" : "Add Product"}
-                  </Button>
-                </div>
+              <div className="flex items-center gap-2 pt-2">
+                <Checkbox
+                  id="featured"
+                  checked={formData.featured}
+                  onCheckedChange={(c) => setFormData({ ...formData, featured: c === true })}
+                />
+                <Label htmlFor="featured" className="font-body text-sm text-muted-foreground">
+                  Mark as Featured Product
+                </Label>
               </div>
-          </DrawerContent>
-        </Drawer>
+            </div>
 
-        {/* Add/Edit Category Drawer */}
-        <Drawer
-          direction="right"
+            <ResponsiveDialogFooter>
+              <Button onClick={resetForm} variant="outline" className="flex-1">
+                Cancel
+              </Button>
+              <Button
+                onClick={editingProduct ? handleUpdateProduct : handleAddProduct}
+                variant="sage"
+                className="flex-1"
+              >
+                <Check className="mr-2" />
+                {editingProduct ? "Update Product" : "Add Product"}
+              </Button>
+            </ResponsiveDialogFooter>
+          </ResponsiveDialogContent>
+        </ResponsiveDialog>
+
+        {/* Add/Edit Category Modal */}
+        <ResponsiveDialog
           open={showCategoryForm}
           onOpenChange={(o) => { if (!o) resetCategoryForm(); }}
         >
-          <DrawerContent direction="right" className="max-w-lg">
-              <div className="shrink-0 border-b border-sage/10 bg-white-warm p-6">
-                <div className="flex items-center justify-between">
-                  <div>
-                    <DrawerTitle className="font-body font-semibold text-3xl text-charcoal">
-                      {editingCategory ? "Edit Category" : "Add New Category"}
-                    </DrawerTitle>
-                    <DrawerDescription className="font-body text-sm text-charcoal/60">
-                      {editingCategory ? "Update category details" : "Create a new product category"}
-                    </DrawerDescription>
-                  </div>
-                  <button
-                    onClick={resetCategoryForm}
-                    className="w-10 h-10 rounded-full hover:bg-sage/10 flex items-center justify-center transition-colors"
-                  >
-                    <X size={24} />
-                  </button>
-                </div>
+          <ResponsiveDialogContent className="max-w-lg">
+            <ResponsiveDialogHeader>
+              <ResponsiveDialogTitle className="font-body font-semibold text-charcoal">
+                {editingCategory ? "Edit Category" : "Add New Category"}
+              </ResponsiveDialogTitle>
+              <ResponsiveDialogDescription>
+                {editingCategory ? "Update category details" : "Create a new product category"}
+              </ResponsiveDialogDescription>
+            </ResponsiveDialogHeader>
+
+            <div className="space-y-6">
+              <div className="space-y-2">
+                <Label htmlFor="category-name">Category Name *</Label>
+                <Input
+                  id="category-name"
+                  value={categoryFormData.name}
+                  onChange={(e) => setCategoryFormData({ ...categoryFormData, name: e.target.value })}
+                  placeholder="e.g. Aromatherapy, Wellness, Personal Care"
+                />
+                <p className="font-body text-xs text-muted-foreground">
+                  Choose a clear, descriptive name for your product category
+                </p>
               </div>
 
-              <div className="flex-1 overflow-y-auto p-6 space-y-6">
-                <div>
-                  <label className="font-body text-sm text-charcoal/70 mb-2 block">Category Name *</label>
-                  <Input
-                    value={categoryFormData.name}
-                    onChange={(e) => setCategoryFormData({ ...categoryFormData, name: e.target.value })}
-                    placeholder="e.g. Aromatherapy, Wellness, Personal Care"
-                    className="border-sage/20 focus:border-sage"
-                  />
-                  <p className="font-body text-xs text-charcoal/50 mt-2">
-                    Choose a clear, descriptive name for your product category
+              {editingCategory && (
+                <div className="p-4 rounded-lg bg-sage/5 border border-sage/10 space-y-1">
+                  <p className="font-body text-xs text-muted-foreground">
+                    <strong className="text-charcoal">Category ID:</strong> {editingCategory.id}
+                  </p>
+                  <p className="font-body text-xs text-muted-foreground tabular-nums">
+                    <strong className="text-charcoal">Products:</strong>{" "}
+                    {products.filter((p) => p.category === editingCategory.id).length}
                   </p>
                 </div>
+              )}
+            </div>
 
-                {editingCategory && (
-                  <div className="p-4 rounded-lg bg-sage/5 border border-sage/10">
-                    <p className="font-body text-xs text-charcoal/60">
-                      <strong>Category ID:</strong> {editingCategory.id}
-                    </p>
-                    <p className="font-body text-xs text-charcoal/60 mt-1">
-                      <strong>Products:</strong> {products.filter(p => p.category === editingCategory.id).length}
-                    </p>
-                  </div>
-                )}
-              </div>
-
-              <div className="shrink-0 border-t border-sage/10 bg-white-warm p-6">
-                <div className="flex gap-3">
-                  <Button
-                    onClick={resetCategoryForm}
-                    variant="outline"
-                    className="flex-1 border-sage/30 text-charcoal hover:bg-sage/10 hover:text-charcoal"
-                  >
-                    Cancel
-                  </Button>
-                  <Button
-                    onClick={editingCategory ? handleUpdateCategory : handleAddCategory}
-                    variant="sage"
-                    className="flex-1"
-                  >
-                    <Check size={18} className="mr-2" />
-                    {editingCategory ? "Update Category" : "Add Category"}
-                  </Button>
-                </div>
-              </div>
-          </DrawerContent>
-        </Drawer>
+            <ResponsiveDialogFooter>
+              <Button onClick={resetCategoryForm} variant="outline" className="flex-1">
+                Cancel
+              </Button>
+              <Button
+                onClick={editingCategory ? handleUpdateCategory : handleAddCategory}
+                variant="sage"
+                className="flex-1"
+              >
+                <Check className="mr-2" />
+                {editingCategory ? "Update Category" : "Add Category"}
+              </Button>
+            </ResponsiveDialogFooter>
+          </ResponsiveDialogContent>
+        </ResponsiveDialog>
       </div>
     </>
   );

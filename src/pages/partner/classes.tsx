@@ -11,8 +11,29 @@ import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { MetricCard } from "@/components/admin/MetricCard";
 import { Skeleton } from "@/components/ui/skeleton";
-import { Calendar, Users, CheckCircle2, Clock, UserX, Hourglass, TrendingUp } from "lucide-react";
+import { EmptyState } from "@/components/ui/empty-state";
+import { ResponsiveTable } from "@/components/responsive/ResponsiveTable";
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table";
+import {
+  Calendar,
+  CalendarX,
+  Users,
+  CheckCircle2,
+  Clock,
+  UserX,
+  Hourglass,
+  TrendingUp,
+  AlertCircle,
+} from "lucide-react";
 import { NavPrevButton, NavNextButton } from "@/components/ui/quick-actions";
+import { cn } from "@/lib/utils";
 import { toast } from "sonner";
 
 function PartnerClassesSkeleton() {
@@ -36,10 +57,10 @@ function PartnerClassesSkeleton() {
             {/* Capacity progress bar */}
             <Skeleton className="h-2 w-full rounded-full mb-4" />
 
-            {/* Booking rows */}
-            <ul className="divide-y divide-sage/10">
+            {/* Roster rows */}
+            <div className="space-y-2">
               {Array.from({ length: 3 }).map((__, bi) => (
-                <li key={bi} className="flex items-center justify-between gap-3 py-2">
+                <div key={bi} className="flex items-center justify-between gap-3 py-2">
                   <div className="flex items-center gap-3 min-w-0">
                     <Skeleton className="h-8 w-8 rounded-full shrink-0" />
                     <div className="min-w-0 space-y-1.5">
@@ -51,9 +72,9 @@ function PartnerClassesSkeleton() {
                     <Skeleton className="h-6 w-20 rounded-full" />
                     <Skeleton className="h-6 w-24 rounded-full" />
                   </div>
-                </li>
+                </div>
               ))}
-            </ul>
+            </div>
           </CardContent>
         </Card>
       ))}
@@ -92,6 +113,7 @@ interface ClassRow {
 }
 
 const DAY_SHORT = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
+const WEEKDAY_HEADS = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"];
 const MONTHS = ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"];
 
 function dayKey(d: Date) { return `${d.getFullYear()}-${d.getMonth()}-${d.getDate()}`; }
@@ -212,9 +234,10 @@ export default function PartnerClasses() {
   const selDate = gridDays.find((d) => dayKey(d) === selectedDay) ?? null;
 
   return (
-    <main className="max-w-5xl mx-auto p-4 lg:p-6 space-y-5">
+    <main className="max-w-5xl mx-auto px-4 py-4 sm:px-6 lg:px-8 lg:py-6 space-y-5">
       <PageHeader title="Classes" subtitle="Your weekly roster and bookings" />
-      {/* Period metrics — admin classes style */}
+
+      {/* Period metrics */}
       <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
         <MetricCard label="Classes" value={periodStats.count} icon={Calendar} tone="sage" hint="In this view" />
         <MetricCard label="Avg utilization" value={periodStats.avgUtil} suffix="%" icon={TrendingUp} tone="sage" />
@@ -222,63 +245,104 @@ export default function PartnerClasses() {
         <MetricCard label="Pending" value={periodStats.pending} icon={Hourglass} tone="clay" />
       </div>
 
-      <div className="flex flex-wrap items-center justify-between gap-3">
-        <div className="flex items-center gap-2">
-          <NavPrevButton onClick={() => shift(-1)} />
-          <div className="font-body font-semibold tabular-nums text-2xl text-charcoal min-w-0 sm:min-w-[180px] text-center flex items-center justify-center gap-2 truncate">
-            <Calendar className="h-5 w-5 text-sage" /> {periodLabel}
+      {/* Calendar — tokenized, Button/Card primitives */}
+      <Card className="border-sage/15 bg-white-warm">
+        <CardContent className="p-4 sm:p-5 space-y-4">
+          <div className="flex flex-wrap items-center justify-between gap-3">
+            <div className="flex items-center gap-2">
+              <NavPrevButton label="Previous period" onClick={() => shift(-1)} />
+              <div className="flex min-w-0 items-center justify-center gap-2 text-center sm:min-w-[180px]">
+                <Calendar className="h-5 w-5 shrink-0 text-sage" aria-hidden="true" />
+                <span className="truncate font-body text-xl font-semibold tabular-nums text-charcoal">{periodLabel}</span>
+              </div>
+              <NavNextButton label="Next period" onClick={() => shift(1)} />
+              <Button variant="sage-outline" size="sm" onClick={goToday}>Today</Button>
+            </div>
+            <div className="inline-flex items-center gap-1 rounded-full border border-sage/15 bg-cream/60 p-1">
+              {(["week", "month"] as const).map((m) => (
+                <Button
+                  key={m}
+                  type="button"
+                  size="sm"
+                  variant={viewMode === m ? "sage" : "ghost"}
+                  aria-pressed={viewMode === m}
+                  onClick={() => setViewMode(m)}
+                  className={cn(
+                    "h-8 rounded-full px-4 capitalize focus-visible:ring-sage/40",
+                    viewMode !== m && "text-charcoal/60 hover:bg-sage/10 hover:text-sage",
+                  )}
+                >
+                  {m}
+                </Button>
+              ))}
+            </div>
           </div>
-          <NavNextButton onClick={() => shift(1)} />
-          <Button variant="sage-outline" size="sm" onClick={goToday}>Today</Button>
-        </div>
-        <div className="flex items-center gap-1 rounded-full bg-cream/60 p-1 border border-sage/15">
-          {(["week", "month"] as const).map((m) => (
-            <button key={m} type="button" onClick={() => setViewMode(m)} className={`px-4 h-8 rounded-full font-body text-sm capitalize transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sage focus-visible:ring-offset-1 ${viewMode === m ? "bg-sage text-cream" : "text-charcoal/60 hover:text-charcoal"}`}>{m}</button>
-          ))}
-        </div>
-      </div>
 
-      {viewMode === "week" && (
-        <div className="flex gap-2 overflow-x-auto snap-x [-webkit-overflow-scrolling:touch] pb-2 md:grid md:grid-cols-7 md:overflow-visible md:pb-0">
-          {gridDays.map((d) => {
-            const k = dayKey(d);
-            const count = (byDay.get(k) ?? []).length;
-            const active = k === selectedDay;
-            return (
-              <button key={k} type="button" onClick={() => setSelectedDay(k)} className={`flex flex-col items-center py-2 rounded-xl border transition-colors min-w-[3.25rem] snap-start shrink-0 md:min-w-0 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sage focus-visible:ring-offset-1 ${active ? "bg-sage text-cream border-sage" : "bg-card/70 border-sage/15 text-charcoal hover:bg-sage/5"}`}>
-                <span className="font-body text-[10px] uppercase tracking-wide opacity-80">{DAY_SHORT[d.getDay()]}</span>
-                <span className="font-body font-semibold tabular-nums text-lg leading-tight">{d.getDate()}</span>
-                <span className={`font-body text-[10px] ${active ? "text-cream/80" : k === todayKey ? "text-sage" : "text-charcoal/50"}`}>{k === todayKey ? "Today" : count ? `${count} cls` : "—"}</span>
-              </button>
-            );
-          })}
-        </div>
-      )}
+          {viewMode === "week" && (
+            <div className="flex gap-2 overflow-x-auto snap-x [-webkit-overflow-scrolling:touch] pb-2 md:grid md:grid-cols-7 md:overflow-visible md:pb-0">
+              {gridDays.map((d) => {
+                const k = dayKey(d);
+                const count = (byDay.get(k) ?? []).length;
+                const active = k === selectedDay;
+                const isToday = k === todayKey;
+                return (
+                  <Button
+                    key={k}
+                    type="button"
+                    variant={active ? "sage" : "sage-outline"}
+                    aria-pressed={active}
+                    aria-label={`${DAY_SHORT[d.getDay()]} ${d.getDate()} — ${count} ${count === 1 ? "class" : "classes"}`}
+                    onClick={() => setSelectedDay(k)}
+                    className="h-auto min-w-[3.25rem] shrink-0 snap-start flex-col gap-0.5 py-2 md:min-w-0"
+                  >
+                    <span className={cn("text-[10px] font-semibold uppercase tracking-wide", active ? "text-cream/80" : "text-muted-foreground")}>{DAY_SHORT[d.getDay()]}</span>
+                    <span className={cn("text-lg font-semibold leading-tight tabular-nums", active ? "text-cream" : "text-charcoal")}>{d.getDate()}</span>
+                    <span className={cn("text-[10px] tabular-nums", active ? "text-cream/80" : isToday ? "text-sage" : "text-muted-foreground")}>{isToday ? "Today" : count ? `${count} cls` : "—"}</span>
+                  </Button>
+                );
+              })}
+            </div>
+          )}
 
-      {viewMode === "month" && (
-        <div>
-          <div className="grid grid-cols-7 gap-1 mb-1">
-            {["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"].map((d) => (
-              <div key={d} className="text-center font-body text-[10px] uppercase tracking-wide text-charcoal/50 py-1">{d}</div>
-            ))}
-          </div>
-          <div className="grid grid-cols-7 gap-1">
-            {gridDays.map((d) => {
-              const k = dayKey(d);
-              const count = (byDay.get(k) ?? []).length;
-              const inMonth = d.getMonth() === anchor.getMonth();
-              const active = k === selectedDay;
-              return (
-                <button key={k} type="button" onClick={() => setSelectedDay(k)} className={`aspect-square sm:aspect-auto sm:h-16 flex flex-col items-center justify-center rounded-lg border text-sm transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sage focus-visible:ring-offset-1 ${active ? "bg-sage text-cream border-sage" : inMonth ? "bg-card/70 border-sage/15 text-charcoal hover:bg-sage/5" : "bg-transparent border-transparent text-charcoal/30"}`}>
-                  <span className={`font-body font-semibold tabular-nums ${k === todayKey && !active ? "text-sage" : ""}`}>{d.getDate()}</span>
-                  {count > 0 && <span className={`font-body text-[9px] mt-0.5 ${active ? "text-cream/80" : "text-sage"}`}>{count} cls</span>}
-                </button>
-              );
-            })}
-          </div>
-        </div>
-      )}
+          {viewMode === "month" && (
+            <div>
+              <div className="mb-1 grid grid-cols-7 gap-1">
+                {WEEKDAY_HEADS.map((d) => (
+                  <div key={d} className="py-1 text-center font-body text-[10px] font-semibold uppercase tracking-wide text-muted-foreground">{d}</div>
+                ))}
+              </div>
+              <div className="grid grid-cols-7 gap-1">
+                {gridDays.map((d) => {
+                  const k = dayKey(d);
+                  const count = (byDay.get(k) ?? []).length;
+                  const inMonth = d.getMonth() === anchor.getMonth();
+                  const active = k === selectedDay;
+                  const isToday = k === todayKey;
+                  return (
+                    <Button
+                      key={k}
+                      type="button"
+                      variant={active ? "sage" : inMonth ? "sage-outline" : "ghost"}
+                      aria-pressed={active}
+                      aria-label={`${d.toLocaleDateString("en-IN", { day: "numeric", month: "long" })} — ${count} ${count === 1 ? "class" : "classes"}`}
+                      onClick={() => setSelectedDay(k)}
+                      className={cn(
+                        "aspect-square h-auto flex-col gap-0.5 p-0 sm:aspect-auto sm:h-16",
+                        !inMonth && !active && "border-transparent focus-visible:ring-sage/40 hover:bg-muted",
+                      )}
+                    >
+                      <span className={cn("text-sm font-semibold tabular-nums", active ? "text-cream" : !inMonth ? "text-muted-foreground/50" : isToday ? "text-sage" : "text-charcoal")}>{d.getDate()}</span>
+                      {count > 0 && <span className={cn("text-[9px] tabular-nums", active ? "text-cream/80" : "text-sage")}>{count} cls</span>}
+                    </Button>
+                  );
+                })}
+              </div>
+            </div>
+          )}
+        </CardContent>
+      </Card>
 
+      {/* Selected-day rosters */}
       <div>
         <h2 className="font-body font-semibold text-lg text-charcoal mb-3">
           {selDate ? selDate.toLocaleDateString("en-IN", { weekday: "long", day: "numeric", month: "long" }) : "Select a day"}
@@ -287,99 +351,140 @@ export default function PartnerClasses() {
         {loading ? (
           <PartnerClassesSkeleton />
         ) : error ? (
-          <Card className="border-terracotta/30 bg-terracotta/5"><CardContent className="p-4 font-body text-charcoal">{error}</CardContent></Card>
+          <Card className="border-destructive/30 bg-destructive/5">
+            <CardContent className="flex items-center justify-center gap-2 p-8 text-center">
+              <AlertCircle className="size-5 shrink-0 text-destructive" aria-hidden="true" />
+              <span className="font-body text-sm text-destructive">{error}</span>
+            </CardContent>
+          </Card>
         ) : activeClasses.length === 0 ? (
-          <Card className="border-sage/15 bg-card/80"><CardContent className="p-8 text-center font-body text-charcoal/50">No classes scheduled this day.</CardContent></Card>
+          <Card className="border-sage/15 bg-card/80">
+            <CardContent className="p-0">
+              <EmptyState
+                icon={CalendarX}
+                title="No classes scheduled"
+                description="Nothing on the calendar for this day. Pick another date above."
+              />
+            </CardContent>
+          </Card>
         ) : (
           <div className="space-y-4">
-            {activeClasses.map((c) => (
-              <Card key={c.id} className="border-sage/15 bg-white-warm">
-                <CardContent className="p-5">
-                  <div className="flex flex-wrap items-start justify-between gap-3 mb-4">
-                    <div>
-                      <h3 className="font-body font-semibold text-xl text-charcoal">{c.className}</h3>
-                      <div className="flex items-center gap-3 mt-1 font-body text-sm text-charcoal/60">
-                        <span className="flex items-center gap-1"><Clock className="h-3.5 w-3.5" /> {fmtTime(c.startTime)} – {fmtTime(c.endTime)}</span>
-                        <span>· {c.instructorName}</span>
+            {activeClasses.map((c) => {
+              const fillPct = Math.min(100, c.capacity > 0 ? (c.signups / c.capacity) * 100 : 0);
+              return (
+                <Card key={c.id} className="border-sage/15 bg-white-warm">
+                  <CardContent className="p-5">
+                    <div className="flex flex-wrap items-start justify-between gap-3 mb-4">
+                      <div>
+                        <h3 className="font-body font-semibold text-xl text-charcoal">{c.className}</h3>
+                        <div className="flex flex-wrap items-center gap-x-3 gap-y-1 mt-1 font-body text-sm text-muted-foreground">
+                          <span className="flex items-center gap-1"><Clock className="h-3.5 w-3.5" aria-hidden="true" /> <span className="tabular-nums">{fmtTime(c.startTime)} – {fmtTime(c.endTime)}</span></span>
+                          <span>· {c.instructorName}</span>
+                        </div>
+                      </div>
+                      <div className="flex items-center gap-2">
+                        <Pill tone="success" className="font-body tabular-nums" icon={<Users className="h-3.5 w-3.5" />}>{c.signups}/{c.capacity} signed up</Pill>
+                        <Pill tone="neutral" className="font-body tabular-nums">{c.openSpots} open</Pill>
                       </div>
                     </div>
-                    <div className="flex items-center gap-2">
-                      <Pill tone="success" className="font-body" icon={<Users className="h-3.5 w-3.5" />}>{c.signups}/{c.capacity} signed up</Pill>
-                      <Pill tone="neutral" className="font-body">{c.openSpots} open</Pill>
+
+                    <div className="h-2 rounded-full bg-sage/10 overflow-hidden mb-4" role="progressbar" aria-valuenow={Math.round(fillPct)} aria-valuemin={0} aria-valuemax={100} aria-label="Capacity filled">
+                      <div className="h-full bg-sage rounded-full" style={{ width: `${fillPct}%` }} />
                     </div>
-                  </div>
 
-                  <div className="h-2 rounded-full bg-sage/10 overflow-hidden mb-4">
-                    <div className="h-full bg-sage rounded-full" style={{ width: `${Math.min(100, c.capacity > 0 ? (c.signups / c.capacity) * 100 : 0)}%` }} />
-                  </div>
-
-                  {c.bookings.length === 0 ? (
-                    <div className="flex items-center gap-2 font-body text-sm text-charcoal/40"><UserX className="h-4 w-4" /> No one has signed up yet.</div>
-                  ) : (
-                    <ul className="divide-y divide-sage/10">
-                      {c.bookings.map((b) => (
-                        <li key={b.id} className="flex items-center justify-between gap-3 py-2">
-                          <div className="flex items-center gap-3 min-w-0">
-                            <Avatar className="h-8 w-8">
-                              {b.avatarUrl && <AvatarImage src={b.avatarUrl} alt={b.memberName} />}
-                              <AvatarFallback className="bg-sage/10 text-sage text-xs">{initials(b.memberName)}</AvatarFallback>
-                            </Avatar>
-                            <div className="min-w-0">
-                              {(() => {
-                                // Derive grouping from ids using the co-present rows — no duplicated names.
-                                const bookerName = b.invitedByUserId
-                                  ? c.bookings.find((x) => x.userId === b.invitedByUserId)?.memberName ?? null
-                                  : null;
-                                const broughtNames = b.invitedByUserId
-                                  ? []
-                                  : c.bookings.filter((x) => x.invitedByUserId === b.userId).map((x) => x.memberName);
-                                return (
-                                  <>
-                                    <div className="font-body text-sm font-medium text-charcoal truncate">
-                                      {b.memberName}
-                                      {b.extraGuests > 0 && <span className="text-charcoal/50 font-normal"> +{b.extraGuests} guest{b.extraGuests > 1 ? "s" : ""}</span>}
-                                      {broughtNames.length > 0 && (
-                                        <span className="text-charcoal/50 font-normal"> · brought {broughtNames.join(", ")}</span>
+                    {c.bookings.length === 0 ? (
+                      <EmptyState
+                        icon={UserX}
+                        title="No sign-ups yet"
+                        description="Bookings for this class will appear here."
+                        className="py-8"
+                      />
+                    ) : (
+                      <ResponsiveTable>
+                        <Table>
+                          <TableHeader>
+                            <TableRow>
+                              <TableHead>Member</TableHead>
+                              <TableHead>Waiver</TableHead>
+                              <TableHead>Status</TableHead>
+                              <TableHead className="text-right">Action</TableHead>
+                            </TableRow>
+                          </TableHeader>
+                          <TableBody>
+                            {c.bookings.map((b) => {
+                              // Derive grouping from ids using the co-present rows — no duplicated names.
+                              const bookerName = b.invitedByUserId
+                                ? c.bookings.find((x) => x.userId === b.invitedByUserId)?.memberName ?? null
+                                : null;
+                              const broughtNames = b.invitedByUserId
+                                ? []
+                                : c.bookings.filter((x) => x.invitedByUserId === b.userId).map((x) => x.memberName);
+                              const waiver = waiverPill(b.hasWaiver);
+                              const { label: waiverLabel, ...waiverRest } = waiver;
+                              const isPending = b.confirmationStatus === "pending";
+                              return (
+                                <TableRow key={b.id}>
+                                  <TableCell>
+                                    <div className="flex items-center gap-3 min-w-0">
+                                      <Avatar className="h-8 w-8 shrink-0">
+                                        {b.avatarUrl && <AvatarImage src={b.avatarUrl} alt={b.memberName} />}
+                                        <AvatarFallback className="bg-sage/10 text-sage text-xs">{initials(b.memberName)}</AvatarFallback>
+                                      </Avatar>
+                                      <div className="min-w-0">
+                                        <div className="font-body text-sm font-medium text-charcoal truncate">
+                                          {b.memberName}
+                                          {b.extraGuests > 0 && <span className="text-muted-foreground font-normal"> +{b.extraGuests} guest{b.extraGuests > 1 ? "s" : ""}</span>}
+                                          {broughtNames.length > 0 && (
+                                            <span className="text-muted-foreground font-normal"> · brought {broughtNames.join(", ")}</span>
+                                          )}
+                                        </div>
+                                        <div className="font-body text-xs text-muted-foreground truncate">
+                                          {bookerName ? `Guest of ${bookerName} · ` : ""}
+                                          {b.email}
+                                          {b.phone ? ` · ${b.phone}` : ""}
+                                        </div>
+                                      </div>
+                                    </div>
+                                  </TableCell>
+                                  <TableCell>
+                                    <Pill {...waiverRest} className="font-body whitespace-nowrap">{waiverLabel}</Pill>
+                                  </TableCell>
+                                  <TableCell>
+                                    <div className="flex flex-wrap items-center gap-2">
+                                      {b.status === "payment_pending" && (() => {
+                                        const { label, ...pill } = bookingPaymentPill(b.status);
+                                        return <Pill {...pill} className="font-body whitespace-nowrap">{label}</Pill>;
+                                      })()}
+                                      {isPending ? (
+                                        <Pill {...bookingStatusPill("pending")} className="font-body whitespace-nowrap">Pending</Pill>
+                                      ) : b.checkedIn ? (
+                                        <Pill tone="success" className="font-body whitespace-nowrap" icon={<CheckCircle2 className="h-3.5 w-3.5" />}>Checked in</Pill>
+                                      ) : (
+                                        <Pill tone="neutral" className="font-body whitespace-nowrap">Not checked in</Pill>
                                       )}
                                     </div>
-                                    <div className="font-body text-xs text-charcoal/50 truncate">
-                                      {bookerName ? `Guest of ${bookerName} · ` : ""}
-                                      {b.email}
-                                      {b.phone ? ` · ${b.phone}` : ""}
-                                    </div>
-                                  </>
-                                );
-                              })()}
-                            </div>
-                          </div>
-                          <div className="flex items-center gap-2 shrink-0">
-                            {b.status === "payment_pending" && (() => {
-                              const { label, ...pill } = bookingPaymentPill(b.status)
-                              return <Pill {...pill} className="font-body whitespace-nowrap">{label}</Pill>
-                            })()}
-                            {(() => {
-                              const { label, ...pill } = waiverPill(b.hasWaiver)
-                              return <Pill {...pill} className="font-body whitespace-nowrap">{label}</Pill>
-                            })()}
-                            {b.confirmationStatus === "pending" ? (
-                              <>
-                                <Pill {...bookingStatusPill("pending")} className="font-body whitespace-nowrap">Pending</Pill>
-                                <Button size="sm" variant="sage" disabled={actioningId === b.id} onClick={() => actionBooking(c.id, b.id, "confirm")} className="h-7 px-3 text-xs">Confirm</Button>
-                                <Button size="sm" variant="ghost" disabled={actioningId === b.id} onClick={() => actionBooking(c.id, b.id, "reject")} className="h-7 px-3 text-xs">Reject</Button>
-                              </>
-                            ) : b.checkedIn ? (
-                              <Pill tone="success" className="font-body whitespace-nowrap" icon={<CheckCircle2 className="h-3.5 w-3.5" />}>Checked in</Pill>
-                            ) : (
-                              <Pill tone="neutral" className="font-body whitespace-nowrap">Not checked in</Pill>
-                            )}
-                          </div>
-                        </li>
-                      ))}
-                    </ul>
-                  )}
-                </CardContent>
-              </Card>
-            ))}
+                                  </TableCell>
+                                  <TableCell className="text-right">
+                                    {isPending ? (
+                                      <div className="flex items-center justify-end gap-2">
+                                        <Button size="sm" variant="sage" disabled={actioningId === b.id} onClick={() => actionBooking(c.id, b.id, "confirm")} className="h-7 px-3 text-xs">Confirm</Button>
+                                        <Button size="sm" variant="ghost" disabled={actioningId === b.id} onClick={() => actionBooking(c.id, b.id, "reject")} className="h-7 px-3 text-xs">Reject</Button>
+                                      </div>
+                                    ) : (
+                                      <span className="text-muted-foreground/50">—</span>
+                                    )}
+                                  </TableCell>
+                                </TableRow>
+                              );
+                            })}
+                          </TableBody>
+                        </Table>
+                      </ResponsiveTable>
+                    )}
+                  </CardContent>
+                </Card>
+              );
+            })}
           </div>
         )}
       </div>

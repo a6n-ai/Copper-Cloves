@@ -1051,9 +1051,9 @@ export default function AdminSchedule() {
                       <Popover open={datePickerOpen} onOpenChange={setDatePickerOpen}>
                         <PopoverTrigger asChild>
                           <Button
-                            variant="outline"
-                            size="sm"
-                            className="xl:hidden border-sage/40 text-sage hover:bg-sage hover:text-cream hover:border-sage h-9 w-9 p-0 transition-colors"
+                            variant="sage-outline"
+                            size="icon"
+                            className="xl:hidden"
                             aria-label="Pick date"
                           >
                             <CalendarIcon className="h-4 w-4" />
@@ -1082,9 +1082,8 @@ export default function AdminSchedule() {
                         </PopoverContent>
                       </Popover>
                       <Button
-                        variant="outline"
-                        size="sm"
-                        className="border-sage/40 text-sage hover:bg-sage hover:text-cream hover:border-sage h-9 w-9 p-0 transition-colors"
+                        variant="sage-outline"
+                        size="icon"
                         onClick={() => {
                           const d = new Date(selectedDate);
                           d.setDate(d.getDate() - 1);
@@ -1100,13 +1099,7 @@ export default function AdminSchedule() {
                         const isToday = selectedDateIso === todayIso;
                         return (
                           <Button
-                            variant="outline"
-                            size="sm"
-                            className={
-                              isToday
-                                ? "bg-sage text-cream border-sage hover:bg-sage/90 h-9 font-body transition-colors"
-                                : "border-sage/40 text-sage hover:bg-sage hover:text-cream hover:border-sage h-9 font-body transition-colors"
-                            }
+                            variant={isToday ? "sage" : "sage-outline"}
                             onClick={() => setSelectedDate(new Date())}
                             disabled={isToday}
                           >
@@ -1115,9 +1108,8 @@ export default function AdminSchedule() {
                         );
                       })()}
                       <Button
-                        variant="outline"
-                        size="sm"
-                        className="border-sage/40 text-sage hover:bg-sage hover:text-cream hover:border-sage h-9 w-9 p-0 transition-colors"
+                        variant="sage-outline"
+                        size="icon"
                         onClick={() => {
                           const d = new Date(selectedDate);
                           d.setDate(d.getDate() + 1);
@@ -1129,11 +1121,9 @@ export default function AdminSchedule() {
                       </Button>
                       <Button
                         onClick={handleAddClass}
-                        size="sm"
                         variant="sage"
-                        className="h-9"
                       >
-                        <Plus className="h-4 w-4 mr-1" />
+                        <Plus className="h-4 w-4" />
                         Schedule Class
                       </Button>
                     </div>
@@ -1438,21 +1428,18 @@ export default function AdminSchedule() {
                               {(["on_time", "late", "absent"] as const).map(v => {
                                 const labels = { on_time: "On Time", late: "Late", absent: "Absent" };
                                 const active = field.value === v;
+                                const activeVariant = v === "absent" ? "destructive" : v === "late" ? "terracotta" : "sage";
                                 return (
-                                  <button
+                                  <Button
                                     key={v}
                                     type="button"
+                                    variant={active ? activeVariant : "outline"}
                                     onClick={() => field.onChange(active ? undefined : v)}
-                                    className={`flex-1 h-10 rounded-lg border font-body text-sm font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sage focus-visible:ring-offset-1 ${
-                                      v === "absent"
-                                        ? active ? "bg-destructive border-destructive text-cream" : "border-charcoal/20 text-charcoal/60 hover:bg-destructive/10"
-                                        : v === "late"
-                                          ? active ? "bg-terracotta border-terracotta text-cream" : "border-charcoal/20 text-charcoal/60 hover:bg-terracotta/10"
-                                          : active ? "bg-sage border-sage text-cream" : "border-charcoal/20 text-charcoal/60 hover:bg-sage/10"
-                                    }`}
+                                    aria-pressed={active}
+                                    className="flex-1 h-10 rounded-lg"
                                   >
                                     {labels[v]}
-                                  </button>
+                                  </Button>
                                 );
                               })}
                             </div>
@@ -1533,19 +1520,17 @@ export default function AdminSchedule() {
                             ] as const).map(opt => {
                               const active = field.value === opt.v;
                               return (
-                                <button
+                                <Button
                                   key={opt.v}
                                   type="button"
+                                  variant={active ? "sage" : "outline"}
+                                  size="lg"
                                   onClick={() => field.onChange(opt.v)}
-                                  className={cn(
-                                    "h-11 rounded-lg border font-body text-sm font-medium transition-colors",
-                                    active
-                                      ? "bg-sage border-sage text-cream"
-                                      : "border-charcoal/20 text-charcoal/70 hover:bg-sage/10",
-                                  )}
+                                  aria-pressed={active}
+                                  className="w-full rounded-lg"
                                 >
                                   {opt.label}
-                                </button>
+                                </Button>
                               );
                             })}
                           </div>
@@ -1626,24 +1611,22 @@ export default function AdminSchedule() {
                                 {labels.map((lbl, i) => {
                                   const active = set.has(i);
                                   return (
-                                    <button
+                                    <Button
                                       key={lbl}
                                       type="button"
+                                      variant={active ? "sage" : "outline"}
+                                      size="sm"
                                       onClick={() => {
                                         const next = new Set(set);
                                         if (next.has(i)) next.delete(i);
                                         else next.add(i);
                                         field.onChange(Array.from(next).sort());
                                       }}
-                                      className={cn(
-                                        "h-10 rounded-md border font-body text-xs font-medium transition-colors",
-                                        active
-                                          ? "bg-sage border-sage text-cream"
-                                          : "border-charcoal/20 text-charcoal/60 hover:bg-sage/10",
-                                      )}
+                                      aria-pressed={active}
+                                      className="h-10 w-full px-0 rounded-md"
                                     >
                                       {lbl}
-                                    </button>
+                                    </Button>
                                   );
                                 })}
                               </div>
@@ -1671,7 +1654,7 @@ export default function AdminSchedule() {
                         }
                         return (
                           <p className="font-body text-xs text-sage">
-                            Will create <strong>{n}</strong> class{n === 1 ? "" : "es"} in this date range.
+                            Will create <strong className="tabular-nums">{n}</strong> class{n === 1 ? "" : "es"} in this date range.
                           </p>
                         );
                       })()}
@@ -1694,8 +1677,8 @@ export default function AdminSchedule() {
                             />
                             <Button
                               type="button"
-                              variant="outline"
-                              className="h-11 border-sage/40 text-sage hover:bg-sage hover:text-cream"
+                              variant="sage-outline"
+                              size="lg"
                               onClick={() => {
                                 if (!ISO_DATE_RE.test(multiDateInput)) return;
                                 const next = Array.from(new Set([...(field.value ?? []), multiDateInput])).sort();
@@ -1803,7 +1786,7 @@ export default function AdminSchedule() {
                 {rosterData.classNotes && (
                   <p className="text-xs text-charcoal/50 italic">{rosterData.classNotes}</p>
                 )}
-                <p className="text-sage font-medium">
+                <p className="text-sage font-medium tabular-nums">
                   {rosterData.bookings.filter(b => b.checkedIn).length}/{rosterData.bookings.length} checked in
                   {rosterData.capacity ? ` · ${rosterData.capacity} capacity` : ""}
                 </p>
@@ -1860,12 +1843,12 @@ export default function AdminSchedule() {
                           onClick={() => void handleAdminCheckIn(b.id)}
                           disabled={checkingInMap[b.id]}
                           variant="sage"
-                          className="rounded-full px-3 h-8 text-xs shrink-0"
+                          className="shrink-0"
                         >
                           {checkingInMap[b.id] ? (
                             <Spinner className="size-3.5" />
                           ) : (
-                            <><UserCheck className="h-3.5 w-3.5 mr-1" />Check In</>
+                            <><UserCheck className="h-3.5 w-3.5" />Check In</>
                           )}
                         </Button>
                       )}
@@ -1884,22 +1867,20 @@ export default function AdminSchedule() {
                 {(["on_time", "late", "absent"] as const).map(v => {
                   const labels = { on_time: "On Time", late: "Late", absent: "Absent" };
                   const active = rosterData.instructorCheckInOutcome === v;
+                  const activeVariant = v === "absent" ? "destructive" : v === "late" ? "terracotta" : "sage";
                   return (
-                    <button
+                    <Button
                       key={v}
                       type="button"
+                      variant={active ? activeVariant : "outline"}
+                      size="sm"
                       onClick={() => void handleSaveInstructorOutcome(v)}
                       disabled={savingInstructorOutcome}
-                      className={`flex-1 h-9 rounded-lg border font-body text-xs font-medium transition-colors disabled:opacity-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sage focus-visible:ring-offset-1 ${
-                        v === "absent"
-                          ? active ? "bg-destructive border-destructive text-cream" : "border-charcoal/20 text-charcoal/60 hover:bg-destructive/10"
-                          : v === "late"
-                            ? active ? "bg-terracotta border-terracotta text-cream" : "border-charcoal/20 text-charcoal/60 hover:bg-terracotta/10"
-                            : active ? "bg-sage border-sage text-cream" : "border-charcoal/20 text-charcoal/60 hover:bg-sage/10"
-                      }`}
+                      aria-pressed={active}
+                      className="flex-1 h-9 rounded-lg"
                     >
                       {labels[v]}
-                    </button>
+                    </Button>
                   );
                 })}
               </div>

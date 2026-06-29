@@ -4,7 +4,14 @@ import { isValidPhoneNumber } from "react-phone-number-input";
 import { Input } from "@/components/ui/input";
 import { PhoneInput, type PhoneValue } from "@/components/ui/phone-input";
 import { Button } from "@/components/ui/button";
-import { X, UserPlus } from "lucide-react";
+import { Pill } from "@/components/ui/pill";
+import {
+  Command,
+  CommandInput,
+  CommandList,
+  CommandItem,
+} from "@/components/ui/command";
+import { X, UserPlus, Users } from "lucide-react";
 import { cdnUrl } from "@/lib/cdnUrl";
 import { suggestEmailCorrection } from "@/lib/emailTypo";
 
@@ -45,7 +52,7 @@ function samePhone(a?: string | null, b?: string | null): boolean {
   return da === db || da.slice(-10) === db.slice(-10);
 }
 
-function Avatar({ name, avatarUrl }: { name: string; avatarUrl: string | null }) {
+function Avatar({ name, avatarUrl, size = 28 }: { name: string; avatarUrl: string | null; size?: number }) {
   const initials = name
     .split(" ")
     .map((w) => w[0])
@@ -53,15 +60,17 @@ function Avatar({ name, avatarUrl }: { name: string; avatarUrl: string | null })
     .slice(0, 2)
     .toUpperCase();
 
+  const dim = size === 28 ? "size-7" : "size-9";
+
   if (avatarUrl) {
     return (
       <Image
         src={cdnUrl(avatarUrl)}
         alt={name}
-        width={28}
-        height={28}
+        width={size}
+        height={size}
         unoptimized
-        className="w-7 h-7 rounded-full object-cover"
+        className={`${dim} shrink-0 rounded-full object-cover`}
         onError={(e) => {
           (e.target as HTMLImageElement).style.display = "none";
         }}
@@ -69,7 +78,7 @@ function Avatar({ name, avatarUrl }: { name: string; avatarUrl: string | null })
     );
   }
   return (
-    <div className="w-7 h-7 rounded-full bg-sage text-cream flex items-center justify-center text-xs font-semibold">
+    <div className={`${dim} flex shrink-0 items-center justify-center rounded-full bg-sage text-xs font-semibold text-cream`}>
       {initials}
     </div>
   );
@@ -80,6 +89,8 @@ export function MemberSearch({ value, onChange, maxMembers = 5, currentEmail, cu
   const selfPhone = currentPhone?.trim() ?? "";
   const [query, setQuery] = useState("");
   const [results, setResults] = useState<SearchResult[]>([]);
+  const [searching, setSearching] = useState(false);
+  const [searchError, setSearchError] = useState(false);
   const [showDropdown, setShowDropdown] = useState(false);
   const [showInviteForm, setShowInviteForm] = useState(false);
   const [inviteEmail, setInviteEmail] = useState("");
@@ -109,11 +120,17 @@ export function MemberSearch({ value, onChange, maxMembers = 5, currentEmail, cu
   const search = useCallback((q: string) => {
     if (q.length < 2) {
       setResults([]);
+      setSearching(false);
+      setSearchError(false);
       return;
     }
+    setSearching(true);
+    setSearchError(false);
     fetch(`/api/members/search?q=${encodeURIComponent(q)}`)
       .then((r) => r.json())
-      .then((data: SearchResult[]) => setResults(Array.isArray(data) ? data : []));
+      .then((data: SearchResult[]) => setResults(Array.isArray(data) ? data : []))
+      .catch(() => { setResults([]); setSearchError(true); })
+      .finally(() => setSearching(false));
   }, []);
 
   useEffect(() => {
@@ -240,121 +257,154 @@ export function MemberSearch({ value, onChange, maxMembers = 5, currentEmail, cu
     setShowInviteForm(false);
   }
 
+  function openInviteFromQuery() {
+    const q = query.trim();
+    setInviteError(null);
+    // Route the typed query into the right field: an email into email, a
+    // phone-like string into phone, otherwise name.
+    if (EMAIL_RE.test(q) || q.includes("@")) {
+      setInviteEmail(q);
+    } else if (PHONE_RE.test(q)) {
+      setInvitePhone(q as PhoneValue);
+    } else {
+      setInviteName(q);
+    }
+    setShowInviteForm(true);
+    setShowDropdown(false);
+    setQuery("");
+  }
+
   const atMax = value.length >= maxMembers;
 
   return (
     <div className="space-y-3">
       {value.length > 0 && (
-        <div className="flex flex-wrap gap-2">
+        <ul className="space-y-1.5">
           {value.map((m, idx) => (
-            <div
+            <li
               key={idx}
-              className="flex items-center gap-1.5 bg-sand rounded-lg px-2.5 py-1.5 text-sm text-charcoal"
+              className="flex items-center gap-2.5 rounded-lg border border-border bg-card px-3 py-2"
             >
-              <span className="font-medium">{m.name}</span>
-              <button
+              <Avatar name={m.name} avatarUrl={null} />
+              <div className="min-w-0 flex-1">
+                <p className="truncate text-sm font-medium text-charcoal">{m.name}</p>
+                <p className="truncate text-xs text-muted-foreground">{m.email}</p>
+              </div>
+              <Button
                 type="button"
+                variant="ghost"
+                size="icon-sm"
                 onClick={() => removeMember(idx)}
-                className="text-charcoal/40 hover:text-charcoal ml-0.5 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sage focus-visible:ring-offset-1"
                 aria-label={`Remove ${m.name}`}
               >
-                <X size={12} />
-              </button>
-            </div>
+                <X />
+              </Button>
+            </li>
           ))}
-        </div>
+        </ul>
       )}
 
       {!atMax && (
         <>
           {query.length < 2 && friends.length > 0 && (
-            <div className="mb-2">
-              <p className="text-xs text-muted-foreground font-medium mb-1.5">Your friends</p>
+            <div>
+              <p className="mb-1.5 flex items-center gap-1.5 text-xs font-medium text-muted-foreground">
+                <Users className="size-3.5" aria-hidden />
+                Your friends
+              </p>
               <div className="flex flex-wrap gap-1.5">
                 {friends
                   .filter((f) => !isAlreadyAdded(f.id, f.email))
                   .slice(0, 8)
                   .map((f) => (
-                    <button
+                    <Button
                       key={f.id}
                       type="button"
+                      variant="outline"
+                      size="sm"
+                      className="h-auto gap-1.5 rounded-full py-1 pl-1 pr-3"
                       onClick={() => addExistingMember({ profile_id: f.id, name: f.name, email: f.email, phone: f.phone })}
-                      className="flex items-center gap-1.5 bg-sand/60 hover:bg-sand rounded-lg px-2.5 py-1 text-sm text-charcoal transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sage focus-visible:ring-offset-1"
                     >
                       <Avatar name={f.name} avatarUrl={f.avatar_url} />
                       <span>{f.name}</span>
-                    </button>
+                    </Button>
                   ))}
               </div>
             </div>
           )}
-          <div ref={containerRef} className="relative">
-          <Input
-            placeholder="Search members by name, email or mobile…"
-            value={query}
-            onChange={(e) => {
-              setQuery(e.target.value);
-              setShowDropdown(true);
-              setShowInviteForm(false);
-            }}
-            onFocus={() => query.length >= 2 && setShowDropdown(true)}
-          />
 
-          {showDropdown && query.length >= 2 && (
-            <div className="absolute z-50 top-full left-0 right-0 mt-1 bg-white-warm border border-border rounded-lg shadow-md overflow-hidden">
-              {results.length === 0 && (
-                <button
-                  type="button"
-                  className="w-full flex items-center gap-2 px-3 py-2.5 text-sm text-sage hover:bg-sand/50 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sage focus-visible:ring-offset-1"
-                  onClick={() => {
-                    const q = query.trim();
-                    setInviteError(null);
-                    // Route the typed query into the right field: an email into
-                    // email, a phone-like string into phone, otherwise name.
-                    if (EMAIL_RE.test(q) || q.includes("@")) {
-                      setInviteEmail(q);
-                    } else if (PHONE_RE.test(q)) {
-                      setInvitePhone(q as PhoneValue);
-                    } else {
-                      setInviteName(q);
-                    }
-                    setShowInviteForm(true);
-                    setShowDropdown(false);
-                    setQuery("");
-                  }}
-                >
-                  <UserPlus size={14} />
-                  <span>Invite &ldquo;{query}&rdquo;</span>
-                </button>
+          <div ref={containerRef} className="relative">
+            <Command
+              shouldFilter={false}
+              className="overflow-visible rounded-lg border border-input bg-card focus-within:border-sage focus-within:ring-2 focus-within:ring-sage"
+            >
+              <CommandInput
+                value={query}
+                onValueChange={(v) => {
+                  setQuery(v);
+                  setShowDropdown(true);
+                  setShowInviteForm(false);
+                }}
+                onFocus={() => query.length >= 2 && setShowDropdown(true)}
+                placeholder="Search members by name, email or mobile…"
+              />
+
+              {showDropdown && query.length >= 2 && (
+                <CommandList className="max-h-64 py-1">
+                  {searching && results.length === 0 && (
+                    <p className="px-3 py-3 text-sm text-muted-foreground">Searching…</p>
+                  )}
+
+                  {!searching && searchError && (
+                    <p className="px-3 py-3 text-sm text-destructive">
+                      Couldn&apos;t search right now. You can still invite by email below.
+                    </p>
+                  )}
+
+                  {!searching && results.length === 0 && (
+                    <CommandItem
+                      value={`invite-${query}`}
+                      onSelect={openInviteFromQuery}
+                      className="gap-2 text-sage data-[selected=true]:text-sage"
+                    >
+                      <UserPlus className="size-4" aria-hidden />
+                      <span>Invite &ldquo;{query}&rdquo;</span>
+                    </CommandItem>
+                  )}
+
+                  {results.map((r) => {
+                    const added = isAlreadyAdded(r.id, r.email);
+                    return (
+                      <CommandItem
+                        key={r.id}
+                        value={r.id}
+                        disabled={added}
+                        onSelect={() =>
+                          addExistingMember({ profile_id: r.id, name: r.name, email: r.email, phone: r.phone })
+                        }
+                        className="gap-2.5"
+                      >
+                        <Avatar name={r.name} avatarUrl={r.avatar_url} />
+                        <div className="min-w-0 flex-1 text-left">
+                          <div className="truncate text-sm font-medium text-charcoal">{r.name}</div>
+                          <div className="truncate text-xs text-muted-foreground">
+                            {r.email}{r.phone ? ` · ${r.phone}` : ""}
+                          </div>
+                        </div>
+                        {added && <Pill tone="success" size="sm">Added</Pill>}
+                      </CommandItem>
+                    );
+                  })}
+                </CommandList>
               )}
-              {results.map((r) => (
-                <button
-                  key={r.id}
-                  type="button"
-                  disabled={isAlreadyAdded(r.id, r.email)}
-                  className="w-full flex items-center gap-2.5 px-3 py-2 text-sm hover:bg-sand/50 transition-colors disabled:opacity-40 disabled:cursor-not-allowed focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sage focus-visible:ring-offset-1"
-                  onClick={() =>
-                    addExistingMember({ profile_id: r.id, name: r.name, email: r.email, phone: r.phone })
-                  }
-                >
-                  <Avatar name={r.name} avatarUrl={r.avatar_url} />
-                  <div className="text-left min-w-0">
-                    <div className="font-medium text-charcoal truncate">{r.name}</div>
-                    <div className="text-xs text-muted-foreground truncate">
-                      {r.email}{r.phone ? ` · ${r.phone}` : ""}
-                    </div>
-                  </div>
-                </button>
-              ))}
-            </div>
-          )}
+            </Command>
           </div>
         </>
       )}
 
       {showInviteForm && (
-        <div className="border border-border rounded-lg p-3 space-y-2 bg-sand/30">
-          <p className="text-xs text-muted-foreground font-medium">Add new person</p>
+        <div className="space-y-2 rounded-lg border border-border bg-sand/30 p-3">
+          <p className="text-xs font-semibold text-charcoal">Add a new person</p>
           <p className="text-xs text-muted-foreground">
             No match found. We&apos;ll create their account from their email.
           </p>
@@ -372,13 +422,14 @@ export function MemberSearch({ value, onChange, maxMembers = 5, currentEmail, cu
           {emailSuggestion && (
             <p className="text-xs text-muted-foreground">
               Did you mean{" "}
-              <button
+              <Button
                 type="button"
-                className="font-medium text-sage underline underline-offset-2 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sage focus-visible:ring-offset-1"
+                variant="link"
+                className="h-auto p-0 text-xs font-medium text-sage underline underline-offset-2"
                 onClick={() => { setInviteEmail(emailSuggestion); setEmailSuggestion(null); }}
               >
                 {emailSuggestion}
-              </button>
+              </Button>
               ? Or tap Add again to keep what you typed.
             </p>
           )}
@@ -420,8 +471,8 @@ export function MemberSearch({ value, onChange, maxMembers = 5, currentEmail, cu
       )}
 
       {pendingPhoneMember && (
-        <div className="border border-border rounded-lg p-3 space-y-2 bg-sand/30">
-          <p className="text-xs text-muted-foreground font-medium">Add phone for {pendingPhoneMember.name}</p>
+        <div className="space-y-2 rounded-lg border border-border bg-sand/30 p-3">
+          <p className="text-xs font-semibold text-charcoal">Add phone for {pendingPhoneMember.name}</p>
           <p className="text-xs text-muted-foreground">
             We need a mobile number for every attendee. {pendingPhoneMember.email}
           </p>
@@ -460,7 +511,7 @@ export function MemberSearch({ value, onChange, maxMembers = 5, currentEmail, cu
       )}
 
       {atMax && (
-        <p className="text-xs text-muted-foreground">
+        <p className="text-xs text-muted-foreground tabular-nums">
           Maximum {maxMembers} additional members per booking.
         </p>
       )}
