@@ -56,7 +56,7 @@ export function UpcomingScheduleCard({
   return (
     <Card className="rounded-2xl shadow-none border-[#e5e4dc] transition-shadow hover:shadow-[0_4px_24px_rgba(51,51,51,0.08)]">
       <CardHeader>
-        <CardTitle className="flex items-center gap-2 font-display text-xl text-card-foreground">
+        <CardTitle className="flex items-center gap-2 font-body font-semibold text-xl text-card-foreground">
           <AnimatedIcon icon={CalendarDays} size={20} className="text-primary" />
           {title}
         </CardTitle>
@@ -75,7 +75,7 @@ export function UpcomingScheduleCard({
                 >
                   <button
                     onClick={entry.onClick}
-                    className="flex min-w-0 flex-1 items-center gap-3 text-left"
+                    className="flex min-w-0 flex-1 items-center gap-3 rounded-lg text-left focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sage focus-visible:ring-offset-1"
                   >
                     <Image
                       src={entry.imageUrl || cdnUrl("/placeholder.jpg")}
@@ -86,7 +86,7 @@ export function UpcomingScheduleCard({
                       className="h-14 w-14 rounded-lg object-cover"
                     />
                     <div className="min-w-0 flex-1">
-                      <p className="truncate font-display text-base text-card-foreground">{entry.title}</p>
+                      <p className="truncate font-body font-semibold text-base text-card-foreground">{entry.title}</p>
                       {entry.subtitle ? (
                         <p className="truncate text-xs text-muted-foreground">{entry.subtitle}</p>
                       ) : null}
@@ -104,7 +104,7 @@ export function UpcomingScheduleCard({
                   {entry.onCancel ? (
                     <button
                       onClick={entry.onCancel}
-                      className="shrink-0 rounded-md border border-terracotta/30 px-3 py-1.5 text-xs font-medium text-terracotta transition-colors hover:bg-terracotta/5"
+                      className="shrink-0 rounded-md border border-terracotta/30 px-3 py-1.5 text-xs font-medium text-terracotta transition-colors hover:bg-terracotta/5 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sage focus-visible:ring-offset-1"
                     >
                       Cancel
                     </button>

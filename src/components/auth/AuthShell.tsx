@@ -1,6 +1,6 @@
 import type { ReactNode } from "react";
 import Link from "next/link";
-import { motion } from "framer-motion";
+import { motion, useReducedMotion } from "framer-motion";
 import { AuthLeavesBackground } from "@/components/AuthLeavesBackground";
 import { WeatherWidget } from "@/components/WeatherWidget";
 import { quirkyWeatherLine } from "@/lib/weatherCopy";
@@ -22,6 +22,7 @@ export function AuthShell({
   palette: MeshPalette;
   children: ReactNode;
 }) {
+  const reduce = useReducedMotion();
   return (
     <div className="relative min-h-screen flex items-center justify-center overflow-hidden bg-cream p-4 py-10 sm:p-6">
       <AuthLeavesBackground palette={palette} />
@@ -35,9 +36,9 @@ export function AuthShell({
       {/* Centered card */}
       <motion.div
         className="relative z-10 w-full max-w-md"
-        initial={{ opacity: 0, y: 16 }}
+        initial={reduce ? { opacity: 0 } : { opacity: 0, y: 16 }}
         animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.5, ease: "easeOut" }}
+        transition={{ duration: reduce ? 0 : 0.5, ease: "easeOut" }}
       >
         {weather && (
           <p className="mb-6 text-center font-body text-sm sm:text-base font-medium text-charcoal/85 leading-relaxed [text-shadow:0_1px_10px_rgba(255,255,255,0.85)]">
@@ -45,7 +46,7 @@ export function AuthShell({
           </p>
         )}
 
-        <div className="relative isolate overflow-hidden rounded-3xl border border-[#e5e4dc] bg-white-warm shadow-[0_8px_48px_-8px_rgba(51,51,51,0.14)] p-8 sm:p-10">
+        <div className="relative isolate overflow-hidden rounded-3xl border border-[#e5e4dc] bg-white-warm shadow-[0_4px_24px_rgba(51,51,51,0.08)] p-8 sm:p-10">
           {/* Brand header — shared across modes */}
           <div>
             <p className="mb-4 text-center font-body text-[10px] tracking-[0.4em] uppercase text-terracotta/80">

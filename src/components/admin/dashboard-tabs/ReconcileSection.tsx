@@ -459,7 +459,7 @@ function ImportDialog({ row, onClose, onImported }: { row: ReconRow; onClose: ()
                   value={memberQuery}
                   onChange={(e) => { setMemberQuery(e.target.value); setSelectedMember(null); }}
                   placeholder="e.g. Priya or priya@example.com"
-                  className="border-sage/20 bg-white font-body"
+                  className="border-sage/20 bg-white-warm font-body"
                 />
               </div>
               {memberResults.length > 0 && !selectedMember && (
@@ -536,7 +536,7 @@ function ImportDialog({ row, onClose, onImported }: { row: ReconRow; onClose: ()
                     value={scheduleQuery}
                     onChange={(e) => { setScheduleQuery(e.target.value); setSelectedSchedule(null); }}
                     placeholder="Filter by class name or date…"
-                    className="border-sage/20 bg-white font-body"
+                    className="border-sage/20 bg-white-warm font-body"
                   />
                   {!schedulesLoaded && schedules.length === 0 && (
                     <p className="font-body text-xs text-charcoal/40">Loading schedules…</p>
@@ -760,7 +760,7 @@ function DetailDialog({
                   onChange={(e) => setNote(e.target.value)}
                   placeholder="Reason, e.g. refunded outside the app, duplicate charge…"
                   rows={2}
-                  className="border-sage/20 bg-white font-body text-sm resize-none"
+                  className="border-sage/20 bg-white-warm font-body text-sm resize-none"
                 />
               </div>
               <div className="space-y-1.5">
@@ -927,7 +927,7 @@ function FulfillDialog({
                   value={memberQuery}
                   onChange={(e) => { setMemberQuery(e.target.value); setSelectedMember(null); }}
                   placeholder="e.g. Michael or michael@example.com"
-                  className="border-sage/20 bg-white font-body"
+                  className="border-sage/20 bg-white-warm font-body"
                 />
               </div>
               {memberResults.length > 0 && !selectedMember && (
@@ -985,7 +985,7 @@ function FulfillDialog({
                 <div className="space-y-2">
                   <Label className="font-body text-xs text-charcoal/60">Search class (past 90 days or upcoming)</Label>
                   <Input value={scheduleQuery} onChange={(e) => { setScheduleQuery(e.target.value); setSelectedSchedule(null); }}
-                    placeholder="Filter by class name or date…" className="border-sage/20 bg-white font-body" />
+                    placeholder="Filter by class name or date…" className="border-sage/20 bg-white-warm font-body" />
                   {!schedulesLoaded && <p className="font-body text-xs text-charcoal/40">Loading schedules…</p>}
                   {schedulesLoaded && schedules.length === 0 && <p className="font-body text-xs text-charcoal/40">No classes found.</p>}
                   {filteredSchedules.length > 0 && !selectedSchedule && (
@@ -1136,7 +1136,7 @@ function LookupCard() {
                   onChange={(e) => setQuery(e.target.value)}
                   onKeyDown={(e) => { if (e.key === "Enter") handleSearch(); }}
                   placeholder="pay_… or order_…"
-                  className="h-10 w-64 border-sage/20 bg-white font-mono text-sm"
+                  className="h-10 w-64 border-sage/20 bg-white-warm font-mono text-sm"
                 />
               </div>
               <Button type="button" variant="sage" className="h-10" onClick={handleSearch} disabled={state.status === "loading"}>

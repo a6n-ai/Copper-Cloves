@@ -3,6 +3,7 @@ import { ArrowRight, ChevronLeft, ChevronRight } from "lucide-react";
 import Link from "next/link";
 import Image from "next/image";
 import { Button } from "@/components/ui/button";
+import { Pill } from "@/components/ui/pill";
 
 import { cdnUrl } from "@/lib/cdnUrl";
 import { SectionHeading } from "@/components/SectionHeading";
@@ -119,9 +120,9 @@ export function Boutique() {
                       />
                       <div className="absolute inset-0 bg-linear-to-t from-charcoal/40 via-transparent to-transparent opacity-0 group-hover/card:opacity-100 transition-opacity duration-500" />
                       <div className="absolute top-4 right-4">
-                        <span className="bg-white-warm px-3 py-1 rounded-full text-xs font-body text-charcoal/70 border border-sage/20">
+                        <Pill tone="neutral" noIcon className="bg-white-warm">
                           {product.category}
-                        </span>
+                        </Pill>
                       </div>
                     </div>
 

@@ -30,7 +30,7 @@ export function StatRowSkeleton({ count = 4 }: { count?: number }) {
 /** Generic card with a header and a body block (chart, panel). */
 export function CardBlockSkeleton({ bodyClassName }: { bodyClassName?: string }) {
   return (
-    <Card className="rounded-2xl shadow-xs">
+    <Card className="rounded-2xl shadow-none border-[#e5e4dc]">
       <CardHeader>
         <div className="flex items-center gap-3">
           <Skeleton className="h-12 w-12 rounded-full" />
@@ -50,7 +50,7 @@ export function CardBlockSkeleton({ bodyClassName }: { bodyClassName?: string })
 /** List of rows (activity feed, schedule). */
 export function ListSkeleton({ rows = 4 }: { rows?: number }) {
   return (
-    <Card className="rounded-2xl shadow-xs">
+    <Card className="rounded-2xl shadow-none border-[#e5e4dc]">
       <CardHeader>
         <Skeleton className="h-5 w-32" />
         <Skeleton className="mt-2 h-3 w-44" />
@@ -73,7 +73,7 @@ export function ListSkeleton({ rows = 4 }: { rows?: number }) {
 /** Tabular placeholder. */
 export function TableSkeleton({ rows = 5 }: { rows?: number }) {
   return (
-    <Card className="rounded-2xl shadow-xs">
+    <Card className="rounded-2xl shadow-none border-[#e5e4dc]">
       <CardHeader>
         <Skeleton className="h-5 w-40" />
       </CardHeader>

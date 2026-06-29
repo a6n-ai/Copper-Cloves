@@ -118,7 +118,7 @@ function MetricCardImpl({
       />
       <CardContent className="relative p-4 sm:p-5 flex flex-col h-full">
         <div className="flex items-start justify-between gap-3">
-          <span className="font-body text-xs uppercase tracking-wide text-charcoal/50 leading-snug min-w-0 line-clamp-2 min-h-[2.25rem] transition-colors duration-300 group-hover:text-charcoal/80">
+          <span className="font-body text-xs uppercase tracking-wide text-muted-text leading-snug min-w-0 line-clamp-2 min-h-[2.25rem] transition-colors duration-300 group-hover:text-charcoal/80">
             {label}
           </span>
           <div

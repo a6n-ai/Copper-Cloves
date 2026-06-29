@@ -84,8 +84,8 @@ function CountrySelect({ disabled, value: selected, options, onChange }: Country
           <ChevronsUpDown className="h-3 w-3 opacity-50 shrink-0" />
         </Button>
       </PopoverTrigger>
-      <PopoverContent className="w-72 p-0 bg-white shadow-md border border-sage/20" align="start">
-        <Command className="bg-white">
+      <PopoverContent className="w-72 p-0 bg-white-warm shadow-md border border-sage/20" align="start">
+        <Command className="bg-white-warm">
           <CommandInput placeholder="Search country..." className="h-9" />
           <CommandEmpty>No country found.</CommandEmpty>
           <CommandList>

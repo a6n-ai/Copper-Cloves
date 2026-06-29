@@ -150,15 +150,22 @@ function createPrismaClient() {
   const poolUrl = poolConnectionString(connectionString, useSsl);
 
   if (!globalForPrisma.pgPool) {
+    // Serverless (Vercel/Amplify Lambda) caches this global pool per warm
+    // instance. Warm-forever connections (idleTimeoutMillis: 0, max: 10) ×
+    // many instances exhausts RDS max_connections — a hard outage, not a
+    // slowdown. There, keep the pool tiny and let idle connections drain.
+    // On a long-lived host (PM2) keep them warm: RDS over remote/NAT'd TCP
+    // drops idle sockets and re-dialing hits a flaky connect path.
+    const isServerless = !!(
+      process.env.VERCEL ||
+      process.env.AWS_LAMBDA_FUNCTION_NAME ||
+      process.env.AWS_EXECUTION_ENV
+    );
     globalForPrisma.pgPool = new Pool({
       connectionString: poolUrl,
-      max: 10,
+      max: isServerless ? 3 : 10,
       connectionTimeoutMillis: 15_000,
-      // Keep established connections warm. RDS over a remote/NAT'd network drops
-      // idle TCP, and re-dialing lands on a flaky connect path. TCP keepalive
-      // holds good connections open; idleTimeoutMillis: 0 stops the pool from
-      // proactively closing them after the (default 10s) idle window.
-      idleTimeoutMillis: 0,
+      idleTimeoutMillis: isServerless ? 10_000 : 0,
       keepAlive: true,
       keepAliveInitialDelayMillis: 10_000,
       ...(useSsl ? { ssl: { rejectUnauthorized: false } } : {}),

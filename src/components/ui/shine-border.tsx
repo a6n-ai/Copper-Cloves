@@ -38,7 +38,7 @@ export function ShineBorder({
           style={{ background: gradient, animationDuration: `${duration}s` }}
         />
       </div>
-      <div className={cn("relative bg-white", rounded)}>{children}</div>
+      <div className={cn("relative bg-white-warm", rounded)}>{children}</div>
     </div>
   );
 }

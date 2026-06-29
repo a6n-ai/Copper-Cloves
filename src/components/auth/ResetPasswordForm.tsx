@@ -7,6 +7,7 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
 import { Button } from "@/components/ui/button";
 import { PasswordInput } from "@/components/ui/password-input";
+import { FormAlert } from "@/components/ui/form-alert";
 import { Label } from "@/components/ui/label";
 import { Spinner } from "@/components/ui/spinner";
 import { CheckCircle2, Leaf } from "lucide-react";
@@ -122,9 +123,11 @@ export function ResetPasswordForm({ token }: { token: string | undefined }) {
             placeholder="••••••••"
             className="border-sage/25 bg-cream focus:ring-sage placeholder:text-charcoal/40 h-12 rounded-xl"
             autoFocus
+            aria-invalid={errors.password ? true : undefined}
+            aria-describedby={errors.password ? "reset-password-error" : undefined}
           />
           {errors.password && (
-            <p className="text-xs text-[#a05e38] font-body mt-1">{errors.password.message}</p>
+            <p id="reset-password-error" className="text-xs text-pill-danger-fg font-body mt-1">{errors.password.message}</p>
           )}
         </div>
 
@@ -138,15 +141,17 @@ export function ResetPasswordForm({ token }: { token: string | undefined }) {
             autoComplete="new-password"
             placeholder="••••••••"
             className="border-sage/25 bg-cream focus:ring-sage placeholder:text-charcoal/40 h-12 rounded-xl"
+            aria-invalid={errors.confirmPassword ? true : undefined}
+            aria-describedby={errors.confirmPassword ? "reset-confirm-error" : undefined}
           />
           {errors.confirmPassword && (
-            <p className="text-xs text-[#a05e38] font-body mt-1">{errors.confirmPassword.message}</p>
+            <p id="reset-confirm-error" className="text-xs text-pill-danger-fg font-body mt-1">{errors.confirmPassword.message}</p>
           )}
         </div>
 
         {apiError && (
-          <div className="bg-[#a05e38]/10 border border-[#a05e38]/25 rounded-lg px-4 py-3 text-sm text-[#a05e38] font-body">
-            {apiError}
+          <div aria-live="polite">
+            <FormAlert message={apiError} variant="error" />
           </div>
         )}
 

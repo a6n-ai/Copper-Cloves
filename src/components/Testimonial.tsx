@@ -1,4 +1,6 @@
 import { useState, useEffect } from "react";
+import { Pause, Play } from "lucide-react";
+import { useReducedMotion } from "framer-motion";
 
 const testimonials = [
   {
@@ -41,10 +43,28 @@ function getInitials(author: string): string {
 }
 
 export function Testimonial() {
+  const reduce = useReducedMotion();
   const [currentIndex, setCurrentIndex] = useState(0);
   const [isAnimating, setIsAnimating] = useState(false);
+  const [paused, setPaused] = useState(false);
+
+  // Reduced-motion: switch instantly, no cross-fade. Otherwise fade out, swap,
+  // fade back in.
+  const goTo = (next: number) => {
+    if (reduce) {
+      setCurrentIndex(next);
+      return;
+    }
+    setIsAnimating(true);
+    setTimeout(() => {
+      setCurrentIndex(next);
+      setIsAnimating(false);
+    }, 500);
+  };
 
   useEffect(() => {
+    // Honor prefers-reduced-motion and the manual pause control: no auto-rotate.
+    if (reduce || paused) return;
     const interval = setInterval(() => {
       setIsAnimating(true);
       setTimeout(() => {
@@ -54,7 +74,7 @@ export function Testimonial() {
     }, 6000); // Change testimonial every 6 seconds
 
     return () => clearInterval(interval);
-  }, []);
+  }, [reduce, paused]);
 
   const currentTestimonial = testimonials[currentIndex];
 
@@ -72,7 +92,12 @@ export function Testimonial() {
         </div>
 
         {/* Testimonial Content with Fade Animation */}
-        <div className={`transition-opacity duration-500 ${isAnimating ? 'opacity-0' : 'opacity-100'}`}>
+        <div
+          aria-live="polite"
+          className={`transition-opacity duration-500 motion-reduce:transition-none ${
+            isAnimating ? "opacity-0" : "opacity-100"
+          }`}
+        >
           <blockquote className="font-display text-2xl md:text-3xl leading-relaxed mb-8 text-center">
             "{currentTestimonial.text}"
           </blockquote>
@@ -88,32 +113,39 @@ export function Testimonial() {
           </div>
         </div>
 
-        {/* Pagination Dots */}
-        <div className="flex justify-center gap-1 mt-12">
-          {testimonials.map((testimonial, index) => (
+        {/* Pause control + Pagination Dots */}
+        <div className="mt-12 flex items-center justify-center gap-4">
+          {!reduce && (
             <button
-              key={testimonial.author}
               type="button"
-              onClick={() => {
-                setIsAnimating(true);
-                setTimeout(() => {
-                  setCurrentIndex(index);
-                  setIsAnimating(false);
-                }, 500);
-              }}
-              className="group grid min-h-6 min-w-6 place-items-center"
-              aria-label={`Go to testimonial ${index + 1}`}
-              aria-current={index === currentIndex}
+              onClick={() => setPaused((p) => !p)}
+              aria-label={paused ? "Play testimonials" : "Pause testimonials"}
+              aria-pressed={paused}
+              className="grid h-9 w-9 place-items-center rounded-full border border-cream/30 text-cream/80 transition-colors duration-200 hover:bg-white-warm/10 hover:text-cream focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-cream focus-visible:ring-offset-2 focus-visible:ring-offset-sage"
             >
-              <span
-                className={`block transition-all duration-300 rounded-full ${
-                  index === currentIndex
-                    ? 'w-8 h-2 bg-white-warm'
-                    : 'w-2 h-2 bg-white-warm/40 group-hover:bg-white-warm/60'
-                }`}
-              />
+              {paused ? <Play size={16} /> : <Pause size={16} />}
             </button>
-          ))}
+          )}
+          <div className="flex justify-center gap-1">
+            {testimonials.map((testimonial, index) => (
+              <button
+                key={testimonial.author}
+                type="button"
+                onClick={() => goTo(index)}
+                className="group grid min-h-6 min-w-6 place-items-center"
+                aria-label={`Go to testimonial ${index + 1}`}
+                aria-current={index === currentIndex}
+              >
+                <span
+                  className={`block transition-all duration-300 rounded-full motion-reduce:transition-none ${
+                    index === currentIndex
+                      ? "w-8 h-2 bg-white-warm"
+                      : "w-2 h-2 bg-white-warm/40 group-hover:bg-white-warm/60"
+                  }`}
+                />
+              </button>
+            ))}
+          </div>
         </div>
       </div>
     </section>

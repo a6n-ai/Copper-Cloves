@@ -1,7 +1,7 @@
 "use client";
 
 import { memo } from "react";
-import { motion, type TargetAndTransition } from "framer-motion";
+import { motion, useReducedMotion, type TargetAndTransition } from "framer-motion";
 import type { LucideIcon } from "lucide-react";
 
 export interface AnimatedIconProps {
@@ -38,12 +38,14 @@ function AnimatedIconImpl({
   animateOnMount = true,
   hover = "pop",
 }: AnimatedIconProps) {
+  const prefersReducedMotion = useReducedMotion();
+  const shouldAnimateMount = animateOnMount && !prefersReducedMotion;
   return (
     <motion.span
       className="inline-flex items-center justify-center align-middle leading-none"
-      initial={animateOnMount ? INITIAL_MOUNT : false}
-      animate={animateOnMount ? ANIMATE_MOUNT : undefined}
-      whileHover={HOVER[hover]}
+      initial={shouldAnimateMount ? INITIAL_MOUNT : false}
+      animate={shouldAnimateMount ? ANIMATE_MOUNT : undefined}
+      whileHover={prefersReducedMotion ? undefined : HOVER[hover]}
       transition={SPRING_TRANSITION}
     >
       <Icon size={size} className={className} />

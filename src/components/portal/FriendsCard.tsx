@@ -41,7 +41,7 @@ export function FriendsCard() {
   return (
     <Card className="border-[#e5e4dc] bg-[#fafaf8]">
       <CardHeader>
-        <CardTitle className="font-display text-xl text-[#333333]">Friends</CardTitle>
+        <CardTitle className="font-body text-xl text-[#333333]">Friends</CardTitle>
       </CardHeader>
       <CardContent className="space-y-5">
         {requests.incoming.length > 0 && (

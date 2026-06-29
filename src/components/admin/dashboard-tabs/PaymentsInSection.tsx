@@ -338,13 +338,13 @@ function PaymentsInSectionImpl() {
                   placeholder="0"
                   value={editForm.amount}
                   onChange={(e) => setEditForm((f) => ({ ...f, amount: e.target.value }))}
-                  className="border-sage/20 bg-white"
+                  className="border-sage/20 bg-white-warm"
                 />
               </div>
               <div className="space-y-1.5">
                 <Label className="font-body text-xs text-charcoal/60">Method</Label>
                 <Select value={editForm.method} onValueChange={(v) => setEditForm((f) => ({ ...f, method: v }))}>
-                  <SelectTrigger className="border-sage/20 bg-white"><SelectValue /></SelectTrigger>
+                  <SelectTrigger className="border-sage/20 bg-white-warm"><SelectValue /></SelectTrigger>
                   <SelectContent>
                     {EDIT_METHOD_OPTIONS.map((m) => (
                       <SelectItem key={m.value} value={m.value}>{m.label}</SelectItem>
@@ -360,7 +360,7 @@ function PaymentsInSectionImpl() {
                 placeholder="Txn id, slip number, etc."
                 value={editForm.reference}
                 onChange={(e) => setEditForm((f) => ({ ...f, reference: e.target.value }))}
-                className="border-sage/20 bg-white"
+                className="border-sage/20 bg-white-warm"
               />
             </div>
 
@@ -370,7 +370,7 @@ function PaymentsInSectionImpl() {
                 rows={2}
                 value={editForm.notes}
                 onChange={(e) => setEditForm((f) => ({ ...f, notes: e.target.value }))}
-                className="border-sage/20 bg-white resize-none"
+                className="border-sage/20 bg-white-warm resize-none"
               />
             </div>
           </div>

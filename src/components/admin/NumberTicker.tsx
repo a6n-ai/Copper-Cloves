@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
+import { useReducedMotion } from "framer-motion";
 
 type NumberTickerProps = {
   end: number;
@@ -21,6 +22,7 @@ export function NumberTicker({
   suffix = "",
   className,
 }: Readonly<NumberTickerProps>) {
+  const reduceMotion = useReducedMotion();
   const [value, setValue] = useState(start);
   const startTimeRef = useRef<number | null>(null);
   const fromRef = useRef(start);
@@ -29,6 +31,12 @@ export function NumberTicker({
   const currentRef = useRef(start);
 
   useEffect(() => {
+    // Reduced motion: skip the count-up and jump straight to the final value.
+    if (reduceMotion) {
+      currentRef.current = end;
+      setValue(end);
+      return;
+    }
     let frame: number;
     fromRef.current = currentRef.current;
     startTimeRef.current = null;
@@ -45,7 +53,7 @@ export function NumberTicker({
     };
     frame = requestAnimationFrame(animate);
     return () => cancelAnimationFrame(frame);
-  }, [end, duration]);
+  }, [end, duration, reduceMotion]);
 
   const formatted = value.toLocaleString("en-IN", {
     minimumFractionDigits: decimals,

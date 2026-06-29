@@ -1,11 +1,14 @@
 import { useState, useEffect } from "react";
-import { ArrowRight } from "lucide-react";
+import { ArrowRight, RefreshCw } from "lucide-react";
 import Link from "next/link";
 import { useRouter } from "next/router";
 import { useSession } from "next-auth/react";
+import { useSWRConfig } from "swr";
 import { NavPrevButton, NavNextButton } from "@/components/ui/quick-actions";
 import { PricingCard } from "@/components/pricing/PricingCard";
 import { SectionHeading } from "@/components/SectionHeading";
+import { Button } from "@/components/ui/button";
+import { Skeleton } from "@/components/ui/skeleton";
 import { type PricingPlan } from "@/lib/pricingPlans";
 import { usePublicPackages } from "@/hooks/usePublicPackages";
 import { useCarouselScroll } from "@/hooks/useCarouselScroll";
@@ -17,13 +20,15 @@ export function Pricing() {
   const { ref: scrollContainerRef, scrollBy, measure, progress } = useCarouselScroll();
 
   const handleSelect = (plan: PricingPlan) => {
-    const base = session ? "/portal/packages" : "/portal/login?redirect=/portal/packages";
+    const base = session ? "/portal/packages" : "/login?redirect=/portal/packages";
     router.push(`${base}${session ? "?" : "&"}selected=${encodeURIComponent(plan.name)}`);
   };
 
   const scroll = (direction: "left" | "right") => scrollBy(direction, 350);
 
-  const { studioPlans, classPlans } = usePublicPackages();
+  const { studioPlans, classPlans, isLoading } = usePublicPackages();
+  const { mutate } = useSWRConfig();
+  const retry = () => mutate("/api/packages");
   const currentPlans = selectedTier === "class" ? classPlans : studioPlans;
 
   useEffect(() => {
@@ -86,11 +91,23 @@ export function Pricing() {
           ref={scrollContainerRef}
           className="scrollbar-hide mt-8 flex snap-x snap-mandatory gap-6 overflow-x-auto pb-4 lg:grid lg:grid-cols-4 lg:gap-8 lg:overflow-visible lg:pb-0"
         >
-          {currentPlans.map((plan, i) => (
-            <div key={plan.name} className="w-80 shrink-0 snap-center lg:w-auto">
-              <PricingCard plan={plan} onSelect={handleSelect} index={i} />
+          {isLoading ? (
+            ["a", "b", "c", "d"].map((k) => (
+              <div key={k} className="w-80 shrink-0 snap-center lg:w-auto">
+                <PricingCardSkeleton />
+              </div>
+            ))
+          ) : currentPlans.length === 0 ? (
+            <div className="w-full lg:col-span-4">
+              <PricingLoadError onRetry={retry} />
             </div>
-          ))}
+          ) : (
+            currentPlans.map((plan, i) => (
+              <div key={plan.name} className="w-80 shrink-0 snap-center lg:w-auto">
+                <PricingCard plan={plan} onSelect={handleSelect} index={i} />
+              </div>
+            ))
+          )}
         </div>
 
         <div className="mt-10 flex flex-col items-center gap-4">
@@ -113,5 +130,38 @@ export function Pricing() {
       <style jsx>{`
       `}</style>
     </section>
+  );
+}
+
+/** Tall placeholder mirroring a PricingCard while packages load. */
+function PricingCardSkeleton() {
+  return (
+    <div className="flex h-full flex-col rounded-3xl border border-[#e5e4dc] bg-white-warm p-8">
+      <Skeleton className="h-7 w-2/3" />
+      <Skeleton className="mt-2 h-4 w-1/2" />
+      <Skeleton className="mt-6 h-10 w-1/2" />
+      <Skeleton className="mt-2 h-4 w-1/3" />
+      <div className="mt-7 flex-1 space-y-3.5">
+        <Skeleton className="h-4 w-full" />
+        <Skeleton className="h-4 w-5/6" />
+        <Skeleton className="h-4 w-4/6" />
+      </div>
+      <Skeleton className="mt-8 h-10 w-full rounded-md" />
+    </div>
+  );
+}
+
+/** Warm fallback shown when packages fail to load (or none returned). */
+function PricingLoadError({ onRetry }: Readonly<{ onRetry: () => void }>) {
+  return (
+    <div className="rounded-3xl border border-[#e5e4dc] bg-white-warm p-10 text-center">
+      <p className="font-display text-2xl text-charcoal">We couldn&rsquo;t load the passes.</p>
+      <p className="mt-2 font-body text-sm text-charcoal/70">
+        Something went wrong fetching pricing. Please try again.
+      </p>
+      <Button onClick={onRetry} variant="sage" className="mt-6 rounded-md">
+        <RefreshCw size={16} /> Try again
+      </Button>
+    </div>
   );
 }

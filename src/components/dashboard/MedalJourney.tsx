@@ -113,8 +113,8 @@ export function MedalJourney({
     <div className="flex h-full flex-col">
       <div className="mb-3 flex items-center gap-2">
         <Trophy className="size-4 text-sage" />
-        <h2 className="font-display text-lg text-charcoal">Path to Mastery</h2>
-        <span className="ml-auto font-body text-xs tabular-nums text-charcoal/45">
+        <h2 className="font-body text-lg text-charcoal">Path to Mastery</h2>
+        <span className="ml-auto font-body text-xs tabular-nums text-muted-text">
           {Math.min(index, items.length - 1) + 1} / {items.length}
         </span>
       </div>
@@ -159,7 +159,7 @@ export function MedalJourney({
         <p className="relative mt-3 font-display text-xl text-charcoal">{active.name}</p>
         <p className="relative mt-0.5 font-body text-sm text-charcoal/60">{active.status}</p>
         {active.earned ? (
-          <p className="relative mt-0.5 font-body text-[11px] text-charcoal/40">Tap the medal to flip</p>
+          <p className="relative mt-0.5 font-body text-[11px] text-muted-text">Tap the medal to flip</p>
         ) : null}
       </div>
 
@@ -174,14 +174,14 @@ export function MedalJourney({
           <ChevronLeft className="size-4" />
         </button>
 
-        <div className="flex items-center gap-1.5">
+        <div className="flex flex-wrap items-center justify-center gap-0.5">
           {items.map((it, i) => (
             <button
               key={it.key}
               type="button"
               aria-label={`Show ${it.name}`}
               onClick={() => setIndex(i)}
-              className="relative flex size-6 items-center justify-center focus:outline-none"
+              className="relative flex size-11 items-center justify-center rounded-full focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sage focus-visible:ring-offset-1"
             >
               <span
                 className={cn(

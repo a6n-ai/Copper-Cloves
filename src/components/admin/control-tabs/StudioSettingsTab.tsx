@@ -6,6 +6,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
+import EmailHealthCheck from "@/components/admin/EmailHealthCheck";
 
 type StudioForm = {
   cancellation_cutoff_hours: string;
@@ -82,6 +83,7 @@ export default function StudioSettingsTab() {
   }, [form, load]);
 
   return (
+    <div className="space-y-6">
     <Card className="border-sage/20 bg-white-warm">
       <CardHeader>
         <CardTitle className="font-display text-2xl text-charcoal">Studio Settings</CardTitle>
@@ -149,5 +151,8 @@ export default function StudioSettingsTab() {
         )}
       </CardContent>
     </Card>
+
+    <EmailHealthCheck />
+    </div>
   );
 }

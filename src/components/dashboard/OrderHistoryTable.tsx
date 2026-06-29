@@ -84,7 +84,7 @@ const OrderRowView = memo(function OrderRowView({
           {methodLabel}
         </span>
       </TableCell>
-      <TableCell className="whitespace-nowrap text-right font-display text-base text-primary">
+      <TableCell className="whitespace-nowrap text-right font-body font-semibold tabular-nums text-base text-primary">
         ₹{amount}
       </TableCell>
     </TableRow>
@@ -126,9 +126,19 @@ export function OrderHistoryTable({ rows }: OrderHistoryTableProps) {
           </TableRow>
         </TableHeader>
         <TableBody className="divide-y divide-border">
-          {viewRows.map((row) => (
-            <OrderRowView key={row.id} {...row} />
-          ))}
+          {viewRows.length === 0 ? (
+            <TableRow>
+              <TableCell colSpan={5} className="py-10 text-center">
+                <CreditCard className="mx-auto mb-3 text-muted-foreground/30" size={32} />
+                <p className="text-sm font-medium text-card-foreground">No orders yet</p>
+                <p className="mt-1 text-xs text-muted-foreground">
+                  Your café and boutique orders will appear here.
+                </p>
+              </TableCell>
+            </TableRow>
+          ) : (
+            viewRows.map((row) => <OrderRowView key={row.id} {...row} />)
+          )}
         </TableBody>
       </Table>
     </ResponsiveTable>

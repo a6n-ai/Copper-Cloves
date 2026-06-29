@@ -14,6 +14,7 @@ import { ScheduleClassRow } from "@/components/classes/ScheduleClassRow";
 import type { GetStaticProps } from "next";
 import prisma from "@/lib/prisma";
 import { cdnUrl } from "@/lib/cdnUrl";
+import Image from "next/image";
 import { useRouter } from "next/router";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { useSession } from "next-auth/react";
@@ -301,7 +302,7 @@ export default function ClassesPage({ initialClasses }: ClassesPageProps) {
       void router.prefetch("/portal/book");
       void router.prefetch("/portal/packages");
     } else if (authStatus === "unauthenticated") {
-      void router.prefetch("/portal/login?redirect=/portal/book");
+      void router.prefetch("/login?redirect=/portal/book");
     }
   }, [authStatus, router]);
 
@@ -311,7 +312,7 @@ export default function ClassesPage({ initialClasses }: ClassesPageProps) {
 
   function handleViewPackages() {
     if (authStatus !== "authenticated") {
-      router.push("/portal/login?redirect=/portal/packages");
+      router.push("/login?redirect=/portal/packages");
       return;
     }
     router.push("/portal/packages");
@@ -320,13 +321,13 @@ export default function ClassesPage({ initialClasses }: ClassesPageProps) {
   async function handleBookClass() {
     try {
       if (authStatus !== "authenticated") {
-        router.push("/portal/login?redirect=/portal/book");
+        router.push("/login?redirect=/portal/book");
         return;
       }
       router.push("/portal/book");
     } catch (err) {
       console.error("Auth check error:", err);
-      router.push("/portal/login?redirect=/portal/book");
+      router.push("/login?redirect=/portal/book");
     }
   }
 
@@ -394,11 +395,14 @@ export default function ClassesPage({ initialClasses }: ClassesPageProps) {
             </p>
           </div>
           <div className="relative h-64 overflow-hidden rounded-2xl shadow-[0_8px_48px_rgba(51,51,51,0.14)] lg:h-80">
-            {/* eslint-disable-next-line @next/next/no-img-element */}
-            <img
+            <Image
               src={cdnUrl("/warriorrythm.jpg")}
               alt="A class in session at The Studio by Copper and Cloves"
-              className="h-full w-full object-cover"
+              fill
+              priority
+              sizes="(max-width: 1024px) 100vw, 40vw"
+              className="object-cover"
+              quality={90}
             />
           </div>
         </div>

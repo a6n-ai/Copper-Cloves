@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useRef, useState } from "react";
+import { useReducedMotion } from "framer-motion";
 import { Users, Clock, Repeat, ChevronLeft, ChevronRight, Power, PowerOff } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { AnimatedIcon } from "@/components/dashboard/AnimatedIcon";
@@ -7,6 +8,7 @@ import { Pill } from "@/components/ui/pill";
 import { ManageButton, DeleteButton } from "@/components/ui/quick-actions";
 import { cn } from "@/lib/utils";
 import { ShineBorder } from "@/components/ui/shine-border";
+import { classStatusPill } from "@/lib/pillMaps";
 
 export type CarouselClassStatus =
   | "available"
@@ -47,16 +49,6 @@ interface TodayClassesCarouselProps {
 
 const TERMINAL_STATUSES = new Set(["completed", "abandoned", "live", "started"]);
 
-const STATUS_TONE: Record<string, "success" | "warning" | "danger" | "info" | "neutral"> = {
-  available: "success",
-  started: "warning",
-  live: "warning",
-  completed: "neutral",
-  cancelled: "warning",
-  inactive: "neutral",
-  abandoned: "warning",
-};
-
 // Whole-card tint by status. Falls back to PALETTE rotation for available.
 const CARD_TONE: Record<string, string> = {
   live: "border-terracotta/30 bg-terracotta/10 shadow-[0_8px_24px_-12px_rgba(193,120,86,0.45)] ring-1 ring-terracotta/30 hover:shadow-[0_16px_40px_-16px_rgba(193,120,86,0.55)]",
@@ -93,6 +85,7 @@ export function TodayClassesCarousel({
   isToday = true,
 }: Readonly<TodayClassesCarouselProps>) {
   const scrollRef = useRef<HTMLDivElement>(null);
+  const reduceMotion = useReducedMotion();
   // Re-evaluate "next class" every minute so the highlight tracks the wall clock
   // even if the dashboard stays open.
   const [tick, setTick] = useState(0);
@@ -152,7 +145,7 @@ export function TodayClassesCarousel({
         className="flex gap-4 w-full min-w-0 max-w-full overflow-x-auto overscroll-x-contain snap-x snap-mandatory scrollbar-hide py-2 px-1"
       >
         {items.map((cls, idx) => {
-          const tone = STATUS_TONE[cls.status ?? "available"] ?? STATUS_TONE.available;
+          const tone = classStatusPill(cls.status ?? "available").tone;
           const explicitTone = cls.status ? CARD_TONE[cls.status] : undefined;
           const cardTone = explicitTone ?? AVAILABLE_TONE;
           const pct = cls.capacity > 0 ? Math.min(100, Math.round((cls.enrolled / cls.capacity) * 100)) : 0;
@@ -172,9 +165,10 @@ export function TodayClassesCarousel({
                 }
               }}
               className={cn(
-                "group relative shrink-0 w-[340px] snap-start rounded-2xl border p-5 cursor-pointer",
+                "group relative shrink-0 w-[85vw] max-w-[340px] sm:w-[340px] snap-start rounded-2xl border p-5 cursor-pointer",
                 "transition-all duration-300 ease-out transform-gpu",
                 "hover:-translate-y-1",
+                "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sage focus-visible:ring-offset-1",
                 cardTone,
               )}
             >
@@ -189,10 +183,15 @@ export function TodayClassesCarousel({
                   </div>
                 </div>
                 {isNext && (
-                  <div className="inline-flex items-center gap-1.5 rounded-full bg-accent/15 text-accent border border-accent/30 px-2.5 py-0.5 font-body text-[10px] uppercase tracking-[0.12em] whitespace-nowrap">
-                    <span className="size-1.5 rounded-full bg-accent animate-pulse" />
-                    <span>Up next</span>
-                  </div>
+                  <Pill
+                    tone="warning"
+                    pulse
+                    size="sm"
+                    icon={<span className="size-1.5 rounded-full bg-pill-warning-dot" />}
+                    className="font-body text-[10px] uppercase tracking-[0.12em]"
+                  >
+                    Up next
+                  </Pill>
                 )}
               </div>
 
@@ -300,7 +299,7 @@ export function TodayClassesCarousel({
               )}
             </div>
           );
-          if (isNext) {
+          if (isNext && !reduceMotion) {
             return (
               <ShineBorder
                 key={cls.id}
@@ -323,7 +322,7 @@ export function TodayClassesCarousel({
               type="button"
               onClick={() => scroll("left")}
               aria-label="Scroll left"
-              className="inline-flex h-9 w-9 items-center justify-center rounded-full text-sage hover:bg-sage/10 transition-colors"
+              className="inline-flex h-9 w-9 items-center justify-center rounded-full text-sage hover:bg-sage/10 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sage focus-visible:ring-offset-1"
             >
               <ChevronLeft className="h-4 w-4" />
             </button>
@@ -334,7 +333,7 @@ export function TodayClassesCarousel({
               type="button"
               onClick={() => scroll("right")}
               aria-label="Scroll right"
-              className="inline-flex h-9 w-9 items-center justify-center rounded-full text-sage hover:bg-sage/10 transition-colors"
+              className="inline-flex h-9 w-9 items-center justify-center rounded-full text-sage hover:bg-sage/10 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sage focus-visible:ring-offset-1"
             >
               <ChevronRight className="h-4 w-4" />
             </button>

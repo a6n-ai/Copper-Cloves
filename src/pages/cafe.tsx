@@ -146,23 +146,20 @@ export default function CafePage() {
               clipPath: "polygon(0 0, 50% 0, 50% 100%, 0 100%)"
             }}
           >
-            {heroMedia.map((media, index) => (
-              <div
-                key={`left-${media.src}`}
-                className="absolute inset-0 transition-opacity duration-[2000ms]"
-                style={{
-                  opacity: index === heroMediaIndex ? 1 : 0,
-                  zIndex: index === heroMediaIndex ? 1 : 0
-                }}
-              >
-                {media.type === "video" ? (
+            {heroMedia.map((media, index) => {
+              const isVisible = index === heroMediaIndex;
+
+              let leftEl = null;
+              if (isVisible && media.type === "video") {
+                leftEl = (
                   <video
                     autoPlay
                     loop
                     muted
                     playsInline
+                    preload="none"
                     className="w-full h-full animate-subtle-float"
-                    style={{ 
+                    style={{
                       objectFit: 'cover',
                       objectPosition: 'center center',
                       filter: 'contrast(1.1) saturate(1.15)'
@@ -170,7 +167,9 @@ export default function CafePage() {
                   >
                     <source src={media.src} type="video/mp4" />
                   </video>
-                ) : (
+                );
+              } else if (isVisible && media.type === "image") {
+                leftEl = (
                   <Image
                     src={media.src}
                     alt=""
@@ -178,16 +177,29 @@ export default function CafePage() {
                     fill
                     sizes="100vw"
                     className="animate-subtle-float"
-                    style={{ 
+                    style={{
                       objectFit: 'cover',
                       objectPosition: 'center center',
                       filter: 'contrast(1.1) saturate(1.15)'
                     }}
                     quality={95}
                   />
-                )}
-              </div>
-            ))}
+                );
+              }
+
+              return (
+                <div
+                  key={`left-${media.src}`}
+                  className="absolute inset-0 transition-opacity duration-[2000ms]"
+                  style={{
+                    opacity: isVisible ? 1 : 0,
+                    zIndex: isVisible ? 1 : 0
+                  }}
+                >
+                  {leftEl}
+                </div>
+              );
+            })}
           </div>
 
           {/* Right Media - Vertical Split (50%) */}
@@ -210,6 +222,7 @@ export default function CafePage() {
                     loop
                     muted
                     playsInline
+                    preload="none"
                     className="w-full h-full animate-subtle-float-reverse"
                     style={{
                       objectFit: 'cover',
@@ -477,7 +490,7 @@ export default function CafePage() {
                 <div
                   key={category.title}
                   style={{ animationDelay: `${i * 90}ms` }}
-                  className="group relative flex min-h-[26rem] flex-col justify-end overflow-hidden rounded-2xl border border-border bg-charcoal shadow-none transition-all duration-500 fade-in-0 slide-in-from-bottom-4 fill-mode-both animate-in hover:-translate-y-1 hover:shadow-[0_12px_32px_rgba(51,51,51,0.16)]"
+                  className="group relative flex min-h-[26rem] flex-col justify-end overflow-hidden rounded-2xl border border-border bg-charcoal shadow-none transition-all duration-500 fade-in-0 slide-in-from-bottom-4 fill-mode-both animate-in motion-reduce:animate-none hover:-translate-y-1 hover:shadow-[0_12px_32px_rgba(51,51,51,0.16)]"
                 >
                   <Image
                     src={category.image}

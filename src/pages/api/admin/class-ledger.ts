@@ -1,7 +1,7 @@
 import type { NextApiRequest, NextApiResponse } from "next";
 import prisma from "@/lib/prisma";
 import { getStudioServerSession } from "@/lib/getStudioServerSession";
-import { manualCreditExistsForPackage } from "@/lib/payments";
+import { manualCreditPackageIds } from "@/lib/payments";
 import { ROSTER_STATUSES } from "@/lib/bookingStatus";
 
 function dt(d: Date) {
@@ -59,24 +59,23 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     adminName: "System",
   }));
 
-  const addedRows: Row[] = await Promise.all(
-    packages.map(async (up) => {
-      const amount = up.credits_total ?? up.package_type.class_count ?? 0;
-      return {
-        id: `pkg-${up.id}`,
-        memberId: up.user_id,
-        memberName: up.profile.full_name || up.profile.email || "Member",
-        type: "added" as const,
-        amount: Math.max(amount, 0),
-        reason: `Package grant — ${up.package_type.name}`,
-        date: dt(up.purchase_date),
-        adminName: "System",
-        userPackageId: up.id,
-        packageTypePriceInr: Number(up.package_type.price),
-        movedToMoneyIn: await manualCreditExistsForPackage(up.id),
-      };
-    }),
-  );
+  const manualCreditIds = await manualCreditPackageIds(packages.map((up) => up.id));
+  const addedRows: Row[] = packages.map((up) => {
+    const amount = up.credits_total ?? up.package_type.class_count ?? 0;
+    return {
+      id: `pkg-${up.id}`,
+      memberId: up.user_id,
+      memberName: up.profile.full_name || up.profile.email || "Member",
+      type: "added" as const,
+      amount: Math.max(amount, 0),
+      reason: `Package grant — ${up.package_type.name}`,
+      date: dt(up.purchase_date),
+      adminName: "System",
+      userPackageId: up.id,
+      packageTypePriceInr: Number(up.package_type.price),
+      movedToMoneyIn: manualCreditIds.has(up.id),
+    };
+  });
 
   const expiredRows: Row[] = packages
     .filter((up) => up.expiration_date < new Date() && !up.is_active)

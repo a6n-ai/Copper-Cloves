@@ -480,20 +480,20 @@ function InstructorPayoutsPanelImpl() {
             <div className="grid grid-cols-2 gap-3">
               <div className="space-y-1.5">
                 <Label className="font-body text-xs text-charcoal/60">Extra payable units</Label>
-                <Input type="number" value={editForm.extra_payable_units} onChange={(e) => setEditForm((f) => ({ ...f, extra_payable_units: e.target.value }))} className="border-sage/20 bg-white" />
+                <Input type="number" value={editForm.extra_payable_units} onChange={(e) => setEditForm((f) => ({ ...f, extra_payable_units: e.target.value }))} className="border-sage/20 bg-white-warm" />
               </div>
               <div className="space-y-1.5">
                 <Label className="font-body text-xs text-charcoal/60">Extra classes</Label>
-                <Input type="number" value={editForm.extra_classes} onChange={(e) => setEditForm((f) => ({ ...f, extra_classes: e.target.value }))} className="border-sage/20 bg-white" />
+                <Input type="number" value={editForm.extra_classes} onChange={(e) => setEditForm((f) => ({ ...f, extra_classes: e.target.value }))} className="border-sage/20 bg-white-warm" />
               </div>
             </div>
             <div className="space-y-1.5">
               <Label className="font-body text-xs text-charcoal/60">Override payout (₹) — leave blank to use computed</Label>
-              <Input type="number" placeholder={editRow ? String(Math.round(editRow.total)) : ""} value={editForm.override_payout} onChange={(e) => setEditForm((f) => ({ ...f, override_payout: e.target.value }))} className="border-sage/20 bg-white" />
+              <Input type="number" placeholder={editRow ? String(Math.round(editRow.total)) : ""} value={editForm.override_payout} onChange={(e) => setEditForm((f) => ({ ...f, override_payout: e.target.value }))} className="border-sage/20 bg-white-warm" />
             </div>
             <div className="space-y-1.5">
               <Label className="font-body text-xs text-charcoal/60">Notes</Label>
-              <Input value={editForm.notes} onChange={(e) => setEditForm((f) => ({ ...f, notes: e.target.value }))} className="border-sage/20 bg-white" />
+              <Input value={editForm.notes} onChange={(e) => setEditForm((f) => ({ ...f, notes: e.target.value }))} className="border-sage/20 bg-white-warm" />
             </div>
           </div>
           <ResponsiveDialogFooter>

@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { motion, AnimatePresence } from "framer-motion";
+import { AnimatePresence, m, useReducedMotion } from "framer-motion";
 import { useAuthWeather } from "@/hooks/useAuthWeather";
 import { AuthShell } from "@/components/auth/AuthShell";
 import { SignInForm } from "@/components/auth/SignInForm";
@@ -16,6 +16,7 @@ type Mode = "signin" | "signup";
 export function AuthExperience({ initialMode }: { initialMode: Mode }) {
   const { palette, weather } = useAuthWeather();
   const [mode, setMode] = useState<Mode>(initialMode);
+  const reduce = useReducedMotion();
 
   function switchTo(next: Mode) {
     setMode(next);
@@ -27,19 +28,19 @@ export function AuthExperience({ initialMode }: { initialMode: Mode }) {
   return (
     <AuthShell weather={weather} palette={palette}>
       <AnimatePresence mode="wait" initial={false}>
-        <motion.div
+        <m.div
           key={mode}
-          initial={{ opacity: 0, x: 14 }}
+          initial={reduce ? { opacity: 0 } : { opacity: 0, x: 14 }}
           animate={{ opacity: 1, x: 0 }}
-          exit={{ opacity: 0, x: -14 }}
-          transition={{ duration: 0.24, ease: "easeOut" }}
+          exit={reduce ? { opacity: 0 } : { opacity: 0, x: -14 }}
+          transition={{ duration: reduce ? 0 : 0.24, ease: "easeOut" }}
         >
           {mode === "signin" ? (
             <SignInForm onSwitchToSignup={() => switchTo("signup")} />
           ) : (
             <SignUpForm onSwitchToSignin={() => switchTo("signin")} />
           )}
-        </motion.div>
+        </m.div>
       </AnimatePresence>
     </AuthShell>
   );

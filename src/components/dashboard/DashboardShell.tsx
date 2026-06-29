@@ -128,7 +128,7 @@ export function DashboardShell({ config, user, children }: DashboardShellProps) 
         <SidebarContent>
           {config.sections.map((section) => (
             <SidebarGroup key={section.label}>
-              <SidebarGroupLabel className="text-xs font-medium uppercase tracking-wider text-charcoal/40">
+              <SidebarGroupLabel className="text-xs font-medium uppercase tracking-wider text-muted-text">
                 {section.label}
               </SidebarGroupLabel>
               <SidebarGroupContent>
@@ -202,7 +202,7 @@ export function DashboardShell({ config, user, children }: DashboardShellProps) 
               <button
                 type="button"
                 aria-label="Notifications"
-                className="relative rounded-full p-2 hover:bg-sage/10 transition-colors before:absolute before:top-1 before:left-1/2 before:z-10 before:w-2 before:h-2 before:rounded-full before:bg-terracotta"
+                className="relative rounded-full p-2 hover:bg-sage/10 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sage focus-visible:ring-offset-1"
               >
                 <BellRing className="size-4 text-charcoal" />
               </button>

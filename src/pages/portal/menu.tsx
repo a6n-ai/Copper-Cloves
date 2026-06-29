@@ -49,7 +49,12 @@ export default function MenuPage() {
   // Cafe menu — SWR-shared with portal/book + admin/cafe (same URL key,
   // deduped within 15s). Eliminates a duplicate fetch when navigating
   // between /portal/menu and /portal/book.
-  const { data: rawMenu, isLoading: menuLoading } = useStudioSWR<unknown[]>(
+  const {
+    data: rawMenu,
+    isLoading: menuLoading,
+    error: menuError,
+    mutate: mutateMenu,
+  } = useStudioSWR<unknown[]>(
     status === "authenticated" ? "/api/cafe/items?available=true" : null,
   );
   const menuItems = useMemo<CafeMenuItem[]>(() => {
@@ -156,6 +161,19 @@ export default function MenuPage() {
 
         {menuLoading ? (
           <MenuGridSkeleton count={6} />
+        ) : menuError ? (
+          <div className="rounded-2xl border border-border bg-white-warm py-16 text-center">
+            <p className="font-body text-charcoal/70">
+              We couldn&apos;t load the menu. Please check your connection and try again.
+            </p>
+            <Button
+              variant="sage-outline"
+              className="mt-4 rounded-md focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sage focus-visible:ring-offset-1"
+              onClick={() => mutateMenu()}
+            >
+              Retry
+            </Button>
+          </div>
         ) : (
           <>
             <CategoryFilter

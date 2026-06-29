@@ -106,6 +106,7 @@ export function SortableHeader<K extends string>({
         onClick={() => onToggle(sortKey)}
         className={cn(
           "inline-flex items-center gap-1 uppercase transition-colors hover:text-charcoal",
+          "rounded-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sage focus-visible:ring-offset-1",
           align === "right" && "ml-auto",
           isActive && "text-charcoal",
         )}

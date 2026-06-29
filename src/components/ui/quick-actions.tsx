@@ -82,7 +82,7 @@ export const EditButton = React.forwardRef<HTMLButtonElement, RowActionProps>(
       title={label ?? "Edit"}
       className={cn(
         ROW_ACTION_BASE,
-        "border-sage/40 text-sage bg-white hover:bg-sage! hover:text-white! hover:border-sage!",
+        "border-sage/40 text-sage bg-white-warm hover:bg-sage! hover:text-white-warm! hover:border-sage!",
         className,
       )}
       {...props}
@@ -105,7 +105,7 @@ export const ManageButton = React.forwardRef<HTMLButtonElement, RowActionProps>(
       title={label ?? "Manage"}
       className={cn(
         ROW_ACTION_BASE,
-        "border-sage/40 text-sage bg-white hover:bg-sage! hover:text-white! hover:border-sage!",
+        "border-sage/40 text-sage bg-white-warm hover:bg-sage! hover:text-white-warm! hover:border-sage!",
         className,
       )}
       {...props}
@@ -142,7 +142,7 @@ export const DeleteButton = React.forwardRef<HTMLButtonElement, DeleteButtonProp
         title={label ?? "Delete"}
         className={cn(
           ROW_ACTION_BASE,
-          "border-terracotta/40 text-terracotta bg-white hover:bg-terracotta! hover:text-white! hover:border-terracotta!",
+          "border-terracotta/40 text-terracotta bg-white-warm hover:bg-terracotta! hover:text-white-warm! hover:border-terracotta!",
           className,
         )}
         {...(skipConfirm ? { onClick } : {})}

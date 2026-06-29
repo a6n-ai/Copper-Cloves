@@ -1,9 +1,12 @@
 import { useRouter } from "next/router";
 import { useSession } from "next-auth/react";
-import { Droplets, CalendarCheck, Coffee, Users } from "lucide-react";
+import { useSWRConfig } from "swr";
+import { Droplets, CalendarCheck, Coffee, Users, RefreshCw } from "lucide-react";
 import { SEO } from "@/components/SEO";
 import { Footer } from "@/components/Footer";
 import { PricingCard } from "@/components/pricing/PricingCard";
+import { Button } from "@/components/ui/button";
+import { Skeleton } from "@/components/ui/skeleton";
 import { type PricingPlan } from "@/lib/pricingPlans";
 import { usePublicPackages } from "@/hooks/usePublicPackages";
 
@@ -50,10 +53,12 @@ export default function PricingPage() {
   const router = useRouter();
   const { data: session } = useSession();
 
-  const { studioPlans, classPlans } = usePublicPackages();
+  const { studioPlans, classPlans, isLoading } = usePublicPackages();
+  const { mutate } = useSWRConfig();
+  const retry = () => mutate("/api/packages");
 
   const handleSelect = (plan: PricingPlan) => {
-    const base = session ? "/portal/packages" : "/portal/login?redirect=/portal/packages";
+    const base = session ? "/portal/packages" : "/login?redirect=/portal/packages";
     router.push(`${base}${session ? "?" : "&"}selected=${encodeURIComponent(plan.name)}`);
   };
 
@@ -89,6 +94,8 @@ export default function PricingPage() {
         plans={studioPlans}
         onSelect={handleSelect}
         background="bg-cream"
+        isLoading={isLoading}
+        onRetry={retry}
       />
 
       {/* Class passes */}
@@ -101,6 +108,8 @@ export default function PricingPage() {
         onSelect={handleSelect}
         background="bg-[#f4f3ec]"
         align="right"
+        isLoading={isLoading}
+        onRetry={retry}
       />
 
       {/* What every pass includes — editorial bento, echoes the homepage rooms section */}
@@ -160,6 +169,8 @@ function PlanSection({
   onSelect,
   background,
   align = "left",
+  isLoading,
+  onRetry,
 }: {
   id: string;
   eyebrow: string;
@@ -169,7 +180,31 @@ function PlanSection({
   onSelect: (plan: PricingPlan) => void;
   background: string;
   align?: "left" | "right";
+  isLoading: boolean;
+  onRetry: () => void;
 }) {
+  const gridClass = "grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-4 lg:gap-8";
+  let body;
+  if (isLoading) {
+    body = (
+      <div className={gridClass}>
+        {["a", "b", "c", "d"].map((k) => (
+          <PricingCardSkeleton key={k} />
+        ))}
+      </div>
+    );
+  } else if (plans.length === 0) {
+    body = <PricingLoadError onRetry={onRetry} />;
+  } else {
+    body = (
+      <div className={gridClass}>
+        {plans.map((plan, i) => (
+          <PricingCard key={plan.name} plan={plan} onSelect={onSelect} index={i} />
+        ))}
+      </div>
+    );
+  }
+
   return (
     <section id={id} className={`${background} py-16 md:py-20`}>
       <div className="mx-auto max-w-7xl px-6 lg:px-8">
@@ -183,12 +218,41 @@ function PlanSection({
           <p className="mt-4 font-body text-lg leading-relaxed text-charcoal/70">{blurb}</p>
         </div>
 
-        <div className="mt-12 grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-4 lg:gap-8">
-          {plans.map((plan, i) => (
-            <PricingCard key={plan.name} plan={plan} onSelect={onSelect} index={i} />
-          ))}
-        </div>
+        <div className="mt-12">{body}</div>
       </div>
     </section>
+  );
+}
+
+/** Tall placeholder mirroring a PricingCard while packages load. */
+function PricingCardSkeleton() {
+  return (
+    <div className="flex h-full flex-col rounded-3xl border border-[#e5e4dc] bg-white-warm p-8">
+      <Skeleton className="h-7 w-2/3" />
+      <Skeleton className="mt-2 h-4 w-1/2" />
+      <Skeleton className="mt-6 h-10 w-1/2" />
+      <Skeleton className="mt-2 h-4 w-1/3" />
+      <div className="mt-7 flex-1 space-y-3.5">
+        <Skeleton className="h-4 w-full" />
+        <Skeleton className="h-4 w-5/6" />
+        <Skeleton className="h-4 w-4/6" />
+      </div>
+      <Skeleton className="mt-8 h-10 w-full rounded-md" />
+    </div>
+  );
+}
+
+/** Warm fallback shown when packages fail to load (or none returned). */
+function PricingLoadError({ onRetry }: Readonly<{ onRetry: () => void }>) {
+  return (
+    <div className="rounded-3xl border border-[#e5e4dc] bg-white-warm p-10 text-center">
+      <p className="font-display text-2xl text-charcoal">We couldn&rsquo;t load the passes.</p>
+      <p className="mt-2 font-body text-sm text-charcoal/70">
+        Something went wrong fetching pricing. Please try again.
+      </p>
+      <Button onClick={onRetry} variant="sage" className="mt-6 rounded-md">
+        <RefreshCw size={16} /> Try again
+      </Button>
+    </div>
   );
 }

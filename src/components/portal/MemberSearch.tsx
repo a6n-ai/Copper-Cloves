@@ -301,7 +301,7 @@ export function MemberSearch({ value, onChange, maxMembers = 5, currentEmail, cu
           />
 
           {showDropdown && query.length >= 2 && (
-            <div className="absolute z-50 top-full left-0 right-0 mt-1 bg-white border border-[#e5e4dc] rounded-lg shadow-md overflow-hidden">
+            <div className="absolute z-50 top-full left-0 right-0 mt-1 bg-white-warm border border-[#e5e4dc] rounded-lg shadow-md overflow-hidden">
               {results.length === 0 && (
                 <button
                   type="button"

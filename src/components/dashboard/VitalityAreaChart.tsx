@@ -51,7 +51,7 @@ export function VitalityAreaChart({
             <AnimatedIcon icon={Trophy} size={24} className="text-primary" />
           </div>
           <div>
-            <CardTitle className="font-display text-2xl text-card-foreground md:text-3xl">
+            <CardTitle className="font-body font-semibold text-2xl text-card-foreground md:text-3xl">
               Movement Vitality
             </CardTitle>
             <CardDescription>Your activity rhythm over the last 30 days</CardDescription>
@@ -91,7 +91,7 @@ export function VitalityAreaChart({
           </AreaChart>
         </ChartContainer>
 
-        <div className="mt-8 grid grid-cols-3 gap-2 md:gap-4 border-t pt-6">
+        <div className="mt-8 grid grid-cols-2 sm:grid-cols-3 gap-2 md:gap-4 border-t pt-6">
           <Stat value={totalMinutes} label="Total Minutes" />
           <Stat value={avgPerDay} label="Avg per Day" />
           <Stat

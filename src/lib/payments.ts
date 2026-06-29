@@ -233,6 +233,29 @@ export async function manualCreditExistsForPackage(userPackageId: string): Promi
 }
 
 /**
+ * Batched form of `manualCreditExistsForPackage` — one query for many packages.
+ * Returns the set of UserPackage ids that have a manual (non-Razorpay) credit.
+ */
+export async function manualCreditPackageIds(
+  userPackageIds: string[],
+): Promise<Set<string>> {
+  if (userPackageIds.length === 0) return new Set();
+  const rows = await prisma.payment.findMany({
+    where: {
+      user_package_id: { in: userPackageIds },
+      direction: "credit",
+      OR: [{ method: null }, { method: { notIn: RAZORPAY_METHODS } }],
+    },
+    select: { user_package_id: true },
+  });
+  return new Set(
+    rows
+      .map((r) => r.user_package_id)
+      .filter((id): id is string => !!id),
+  );
+}
+
+/**
  * List manual (non-Razorpay) money-in credits, newest first. "Manual" = any
  * credit row whose method is null OR not a Razorpay method. Drives the
  * Manual Entries → Money In tab.

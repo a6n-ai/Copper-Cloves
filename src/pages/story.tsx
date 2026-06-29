@@ -1,5 +1,5 @@
 import Image from "next/image";
-import { motion, useReducedMotion } from "framer-motion";
+import { m, useReducedMotion } from "framer-motion";
 import { Sprout, UtensilsCrossed, Users } from "lucide-react";
 import { SEO as Seo } from "@/components/SEO";
 import { Footer } from "@/components/Footer";
@@ -119,7 +119,7 @@ export default function StoryPage() {
 
           <div className="mt-10 grid grid-cols-1 gap-5 lg:grid-cols-12">
             {VALUES.map(({ icon: Icon, title, description, span, card, iconColor, numColor, wide }, i) => (
-              <motion.div
+              <m.div
                 key={title}
                 initial={reduce ? false : { opacity: 0, y: 18 }}
                 whileInView={reduce ? undefined : { opacity: 1, y: 0 }}
@@ -147,7 +147,7 @@ export default function StoryPage() {
                 >
                   {description}
                 </p>
-              </motion.div>
+              </m.div>
             ))}
           </div>
 
@@ -241,7 +241,7 @@ export default function StoryPage() {
 
             <ol className="grid grid-cols-1 gap-9 sm:grid-cols-4 sm:gap-6">
               {JOURNEY.map((item, i) => (
-                <motion.li
+                <m.li
                   key={item.year}
                   className="group relative pl-9 sm:pl-0"
                   initial={reduce ? false : { opacity: 0, y: 18 }}
@@ -256,7 +256,7 @@ export default function StoryPage() {
                     {item.year}
                   </p>
                   <p className="mt-2 font-body leading-relaxed text-charcoal/80">{item.text}</p>
-                </motion.li>
+                </m.li>
               ))}
             </ol>
           </div>

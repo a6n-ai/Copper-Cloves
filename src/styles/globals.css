@@ -274,7 +274,7 @@
     @apply bg-background text-foreground;
   }
   :root {
-    --sidebar-background: 0 0% 98%;
+    --sidebar-background: 40 33% 98%;
     --sidebar-foreground: 240 5.3% 26.1%;
     --sidebar-primary: 240 5.9% 10%;
     --sidebar-primary-foreground: 0 0% 98%;
@@ -377,6 +377,25 @@ body > #__next {
     animation-iteration-count: 1 !important;
     transition-duration: 0.01ms !important;
     scroll-behavior: auto !important;
+  }
+}
+
+/* Accessibility: explicitly neutralize the looping utility animations
+   (Tailwind's animate-pulse / animate-spin) for reduced-motion users, and
+   hard-cap transition/animation durations. Belt-and-suspenders on top of the
+   global reset above so spinners and skeleton pulses fully stop. */
+@media (prefers-reduced-motion: reduce) {
+  .animate-pulse,
+  .animate-spin,
+  .animate-ping,
+  .animate-bounce {
+    animation: none !important;
+  }
+  *,
+  *::before,
+  *::after {
+    transition-duration: 0.01ms !important;
+    animation-duration: 0.01ms !important;
   }
 }
 

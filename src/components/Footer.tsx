@@ -42,7 +42,7 @@ const LINK_COLUMNS = [
       { href: "/story", label: "Our Story" },
       { href: "/instructors", label: "Our Instructors" },
       { href: "/meal-subscription", label: "Meal Plans" },
-      { href: "/portal/login", label: "Member Portal" },
+      { href: "/login", label: "Member Portal" },
     ],
   },
 ] as const;
@@ -134,7 +134,7 @@ export function Footer({ cta }: Readonly<FooterProps>) {
                   size="lg"
                   className="bg-sand text-charcoal shadow-none hover:bg-[#dcd8cc] focus-visible:ring-sage focus-visible:ring-offset-white-warm"
                 >
-                  <Link href="/portal/book">Book a Visit</Link>
+                  <Link href="/classes">Book a Visit</Link>
                 </Button>
               </div>
             </div>

@@ -154,7 +154,7 @@ export function SignUpForm({ onSwitchToSignin }: { onSwitchToSignin: () => void 
         <h2 className="font-display text-2xl text-charcoal mb-3">Account Created Successfully!</h2>
         <p className="font-body text-charcoal/60 mb-6">{"You'll be redirected to sign in shortly."}</p>
         <div className="h-2 bg-sage/10 rounded-full overflow-hidden">
-          <div className="h-full bg-sage rounded-full animate-[progress_2s_ease-in-out]" />
+          <div className="h-full w-full bg-sage rounded-full animate-[progress_2s_ease-in-out] motion-reduce:animate-none" />
         </div>
         <style jsx>{`
           @keyframes progress {
@@ -210,7 +210,7 @@ export function SignUpForm({ onSwitchToSignin }: { onSwitchToSignin: () => void 
                   className={inputCls}
                 />
                 {errors.fullName && (
-                  <p className="text-xs text-[#a05e38] font-body mt-1">{errors.fullName.message}</p>
+                  <p className="text-xs text-pill-danger-fg font-body mt-1">{errors.fullName.message}</p>
                 )}
               </div>
 
@@ -224,9 +224,11 @@ export function SignUpForm({ onSwitchToSignin }: { onSwitchToSignin: () => void 
                   id="email"
                   placeholder="you@example.com"
                   className="border-sage/25 bg-cream placeholder:text-charcoal/40 h-11 rounded-xl"
+                  aria-invalid={errors.email ? true : undefined}
+                  aria-describedby={errors.email ? "signup-email-error" : undefined}
                 />
                 {errors.email && (
-                  <p className="text-xs text-[#a05e38] font-body mt-1">{errors.email.message}</p>
+                  <p id="signup-email-error" className="text-xs text-pill-danger-fg font-body mt-1">{errors.email.message}</p>
                 )}
               </div>
 
@@ -248,7 +250,7 @@ export function SignUpForm({ onSwitchToSignin }: { onSwitchToSignin: () => void 
                   )}
                 />
                 {errors.phone && (
-                  <p className="text-xs text-[#a05e38] font-body mt-1">{errors.phone.message}</p>
+                  <p className="text-xs text-pill-danger-fg font-body mt-1">{errors.phone.message}</p>
                 )}
               </div>
 
@@ -288,7 +290,7 @@ export function SignUpForm({ onSwitchToSignin }: { onSwitchToSignin: () => void 
                   <button
                     type="button"
                     onClick={handleGeneratePassword}
-                    className="font-body text-[11px] text-sage hover:underline inline-flex items-center gap-1"
+                    className="rounded font-body text-[11px] text-sage hover:underline inline-flex items-center gap-1 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sage"
                   >
                     <Sparkles className="h-3 w-3" /> Suggest strong
                   </button>
@@ -304,9 +306,11 @@ export function SignUpForm({ onSwitchToSignin }: { onSwitchToSignin: () => void 
                   autoComplete="new-password"
                   placeholder="••••••••"
                   className={inputCls}
+                  aria-invalid={errors.password ? true : undefined}
+                  aria-describedby={errors.password ? "signup-password-error" : undefined}
                 />
                 {errors.password ? (
-                  <p className="text-xs text-[#a05e38] font-body mt-1">{errors.password.message}</p>
+                  <p id="signup-password-error" className="text-xs text-pill-danger-fg font-body mt-1">{errors.password.message}</p>
                 ) : generated ? (
                   <p className="text-xs text-charcoal/70 font-body mt-1">
                     Suggested: <span className="font-medium text-charcoal">{generated}</span> — save it somewhere safe.
@@ -327,9 +331,11 @@ export function SignUpForm({ onSwitchToSignin }: { onSwitchToSignin: () => void 
                   autoComplete="new-password"
                   placeholder="••••••••"
                   className={inputCls}
+                  aria-invalid={errors.confirmPassword ? true : undefined}
+                  aria-describedby={errors.confirmPassword ? "signup-confirm-error" : undefined}
                 />
                 {errors.confirmPassword && (
-                  <p className="text-xs text-[#a05e38] font-body mt-1">{errors.confirmPassword.message}</p>
+                  <p id="signup-confirm-error" className="text-xs text-pill-danger-fg font-body mt-1">{errors.confirmPassword.message}</p>
                 )}
               </div>
 
@@ -340,7 +346,7 @@ export function SignUpForm({ onSwitchToSignin }: { onSwitchToSignin: () => void 
                   <button
                     type="button"
                     onClick={() => setWaiverExpanded(v => !v)}
-                    className="w-full flex items-center justify-between px-4 py-3 bg-sage/5 hover:bg-sage/10 transition-colors text-left"
+                    className="w-full flex items-center justify-between px-4 py-3 bg-sage/5 hover:bg-sage/10 transition-colors text-left focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sage focus-visible:ring-offset-1"
                   >
                     <span className="font-body text-sm font-medium text-charcoal/80">
                       Liability Waiver — key points
@@ -396,7 +402,7 @@ export function SignUpForm({ onSwitchToSignin }: { onSwitchToSignin: () => void 
                     </label>
                   </div>
                   {errors.acceptAll && (
-                    <p className="text-xs text-[#a05e38] font-body ml-7">{errors.acceptAll.message}</p>
+                    <p className="text-xs text-pill-danger-fg font-body ml-7">{errors.acceptAll.message}</p>
                   )}
                 </div>
               </div>

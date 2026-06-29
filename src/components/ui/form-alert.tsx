@@ -11,11 +11,13 @@ const icons: Record<FormAlertVariant, React.ElementType> = {
   success: CheckCircle2,
 };
 
+// Warm pill tokens (terracotta/sage/warm-red), never Tailwind amber/green/red —
+// keeps alerts in sync with <Pill> and the design system, dark mode included.
 const styles: Record<FormAlertVariant, string> = {
-  error: "border-red-300 bg-red-50 text-red-800 [&>svg]:text-red-600",
-  warning: "border-amber-300 bg-amber-50 text-amber-800 [&>svg]:text-amber-600",
-  info: "border-sage/40 bg-sage/5 text-charcoal [&>svg]:text-sage",
-  success: "border-green-300 bg-green-50 text-green-800 [&>svg]:text-green-600",
+  error: "border-pill-danger-dot/40 bg-pill-danger-bg text-pill-danger-fg [&>svg]:text-pill-danger-dot",
+  warning: "border-pill-warning-dot/40 bg-pill-warning-bg text-pill-warning-fg [&>svg]:text-pill-warning-dot",
+  info: "border-pill-info-dot/40 bg-pill-info-bg text-pill-info-fg [&>svg]:text-pill-info-dot",
+  success: "border-pill-success-dot/40 bg-pill-success-bg text-pill-success-fg [&>svg]:text-pill-success-dot",
 };
 
 type FormAlertProps = {

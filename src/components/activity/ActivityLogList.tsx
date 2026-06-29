@@ -117,7 +117,7 @@ function SortHead({
 function DetailRow({ label, value }: { label: string; value: React.ReactNode }) {
   if (value === null || value === undefined || value === "") return null;
   return (
-    <div className="grid grid-cols-3 gap-3 py-2 border-b border-sage/10 last:border-0">
+    <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 py-2 border-b border-sage/10 last:border-0">
       <dt className="font-body text-xs uppercase tracking-wide text-charcoal/50">{label}</dt>
       <dd className="col-span-2 font-body text-sm text-charcoal break-words">{value}</dd>
     </div>

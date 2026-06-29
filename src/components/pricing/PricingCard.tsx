@@ -1,4 +1,4 @@
-import { motion, useReducedMotion } from "framer-motion";
+import { m, useReducedMotion } from "framer-motion";
 import { Check } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { planClassesLabel, type PricingPlan } from "@/lib/pricingPlans";
@@ -23,7 +23,7 @@ export function PricingCard({
   const featured = Boolean(plan.featured);
 
   return (
-    <motion.div
+    <m.div
       initial={reduce ? false : { opacity: 0, y: 18 }}
       whileInView={reduce ? undefined : { opacity: 1, y: 0 }}
       viewport={{ once: true, margin: "-60px" }}
@@ -88,6 +88,6 @@ export function PricingCard({
       >
         Select package
       </Button>
-    </motion.div>
+    </m.div>
   );
 }

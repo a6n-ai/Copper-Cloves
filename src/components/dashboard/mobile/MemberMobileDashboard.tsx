@@ -132,7 +132,7 @@ export function MemberMobileDashboard({
   return (
     <div className="space-y-5 px-4 py-5">
       {/* Hero */}
-      <section className="rounded-3xl bg-linear-to-br from-sage to-sage/80 p-5 text-cream shadow-lg">
+      <section className="rounded-3xl border border-sage/20 bg-linear-to-br from-sage to-sage/80 p-5 text-cream">
         <h1 className="font-display text-2xl leading-tight">
           Welcome home, {userName || "Member"}
         </h1>
@@ -187,17 +187,17 @@ export function MemberMobileDashboard({
         <button
           type="button"
           onClick={nextClass.onClick}
-          className="flex w-full items-center gap-3 rounded-2xl bg-terracotta p-4 text-left text-cream shadow-md active:scale-[0.98] transition-transform"
+          className="flex w-full items-center gap-3 rounded-2xl border border-terracotta/30 bg-terracotta/10 p-4 text-left active:scale-[0.98] transition-transform focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sage focus-visible:ring-offset-1"
         >
-          <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full bg-[#fafaf8]/20">
+          <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full bg-terracotta/15 text-terracotta">
             <Calendar size={20} />
           </span>
           <span className="min-w-0 flex-1">
-            <span className="block font-body text-xs uppercase tracking-wide text-cream/75">
+            <span className="block font-body text-xs uppercase tracking-wide text-terracotta">
               Next class · tap to check in
             </span>
-            <span className="block truncate font-display text-base leading-tight">{nextClass.title}</span>
-            <span className="block font-body text-xs text-cream/85">
+            <span className="block truncate font-body text-base leading-tight text-charcoal">{nextClass.title}</span>
+            <span className="block font-body text-xs text-muted-text">
               {nextClass.whenISO
                 ? new Date(nextClass.whenISO).toLocaleString("en-US", {
                     weekday: "short",
@@ -207,12 +207,13 @@ export function MemberMobileDashboard({
                 : ""}
             </span>
           </span>
-          <ChevronRight size={20} className="shrink-0 text-cream/80" />
+          <ChevronRight size={20} className="shrink-0 text-terracotta/60" />
         </button>
       ) : (
         <Button
           onClick={() => router.push("/portal/book")}
-          className="w-full bg-terracotta py-6 text-cream hover:bg-terracotta/90 font-body"
+          variant="outline"
+          className="w-full border-terracotta/30 bg-terracotta/10 py-6 text-terracotta hover:bg-terracotta/15 font-body"
         >
           Book your next class
         </Button>
@@ -254,7 +255,7 @@ export function MemberMobileDashboard({
       {/* Quick Book — 4 icon tiles */}
       <section>
         <h2 className="mb-2 px-1 font-body text-xs uppercase tracking-wide text-charcoal/45">Quick book</h2>
-        <div className="grid grid-cols-4 gap-2">
+        <div className="grid grid-cols-2 min-[360px]:grid-cols-4 gap-2">
           {quickBookTiles.map(({ icon: Icon, label, action }) => (
             <button
               key={label}

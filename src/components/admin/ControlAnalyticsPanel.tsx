@@ -437,7 +437,7 @@ export function ControlAnalyticsPanel() {
                   {d.members.leaderboard.map((member, idx) => (
                     <div key={`${member.name}-${member.streak}`} className="flex items-center gap-3">
                       <div className="shrink-0 w-8 h-8 rounded-full bg-sage/10 flex items-center justify-center">
-                        <span className="font-display text-sm text-sage">#{idx + 1}</span>
+                        <span className="font-body text-sm text-sage">#{idx + 1}</span>
                       </div>
                       <div className="flex-1 min-w-0">
                         <div className="font-body text-sm text-charcoal truncate mb-1">{member.name}</div>

@@ -46,7 +46,7 @@ export function ListAvatar({
         {usableSrc ? <AvatarImage src={usableSrc} alt={name} /> : null}
         <AvatarFallback
           className={cn(
-            "font-display font-medium",
+            "font-body font-medium",
             fallbackClassName ?? "bg-sage/10 text-sage",
           )}
         >

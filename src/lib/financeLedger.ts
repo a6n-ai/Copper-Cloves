@@ -128,15 +128,24 @@ export async function getFinanceLedger(
     opts.from || opts.to ? { gte: opts.from, lt: opts.to } : undefined;
   const where = createdWindow ? { created_at: createdWindow } : {};
 
-  const rows = await fetchRows(where, limit + 1);
+  // Totals must cover the WHOLE window, not just the returned page — otherwise a
+  // truncated result silently understates credit/debit/net. Aggregate in SQL.
+  const [rows, grouped] = await Promise.all([
+    fetchRows(where, limit + 1),
+    prisma.payment.groupBy({
+      by: ["direction"],
+      where,
+      _sum: { amount_paise: true },
+    }),
+  ]);
   const truncated = rows.length > limit;
   const used = truncated ? rows.slice(0, limit) : rows;
 
   let creditPaise = 0;
   let debitPaise = 0;
-  for (const r of used) {
-    if (r.direction === "credit") creditPaise += r.amount_paise;
-    else debitPaise += r.amount_paise;
+  for (const g of grouped) {
+    if (g.direction === "credit") creditPaise = g._sum.amount_paise ?? 0;
+    else if (g.direction === "debit") debitPaise = g._sum.amount_paise ?? 0;
   }
 
   return {

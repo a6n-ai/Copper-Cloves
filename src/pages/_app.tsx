@@ -199,6 +199,12 @@ function ActivityTrackingSubscriber() {
 export default function App({ Component, pageProps: { session, ...pageProps } }: AppProps) {
   const router = useRouter();
 
+  // Public marketing pages have no authed session to keep warm — anonymous
+  // visitors would otherwise fire /api/auth/session on every focus + every
+  // 4-min tick for nothing. Disable both there; authed portal routes keep the
+  // fresh-against-JWT behavior below.
+  const isPublicRoute = isPublicSite(router.pathname);
+
   useEffect(() => {
     const handleRouteChange = (url: string) => {
       analytics.pageview(url);
@@ -222,8 +228,8 @@ export default function App({ Component, pageProps: { session, ...pageProps } }:
       //    (e.g. after waking the laptop), so the next admin click can't 401.
       //  - `refetchWhenOffline: false`: don't burn cycles when the network is
       //    down — we'll re-validate the moment it returns.
-      refetchInterval={4 * 60}
-      refetchOnWindowFocus
+      refetchInterval={isPublicRoute ? 0 : 4 * 60}
+      refetchOnWindowFocus={!isPublicRoute}
       refetchWhenOffline={false}
     >
       <Head>

@@ -349,7 +349,7 @@ function ExpensesSectionImpl() {
               <div className="space-y-1.5">
                 <Label className="font-body text-xs text-charcoal/60">Category</Label>
                 <Select value={form.category} onValueChange={(v) => setForm((f) => ({ ...f, category: v as ExpenseCategoryValue }))}>
-                  <SelectTrigger className="border-sage/20 bg-white"><SelectValue /></SelectTrigger>
+                  <SelectTrigger className="border-sage/20 bg-white-warm"><SelectValue /></SelectTrigger>
                   <SelectContent>
                     {EXPENSE_CATEGORIES.map((c) => (
                       <SelectItem key={c} value={c}>{EXPENSE_CATEGORY_LABELS[c]}</SelectItem>
@@ -366,7 +366,7 @@ function ExpensesSectionImpl() {
                   placeholder="0"
                   value={form.amount}
                   onChange={(e) => setForm((f) => ({ ...f, amount: e.target.value }))}
-                  className="border-sage/20 bg-white"
+                  className="border-sage/20 bg-white-warm"
                 />
               </div>
             </div>
@@ -382,7 +382,7 @@ function ExpensesSectionImpl() {
               <div className="space-y-1.5">
                 <Label className="font-body text-xs text-charcoal/60">Method</Label>
                 <Select value={form.method} onValueChange={(v) => setForm((f) => ({ ...f, method: v }))}>
-                  <SelectTrigger className="border-sage/20 bg-white"><SelectValue /></SelectTrigger>
+                  <SelectTrigger className="border-sage/20 bg-white-warm"><SelectValue /></SelectTrigger>
                   <SelectContent>
                     <SelectItem value="none">Not specified</SelectItem>
                     {METHOD_OPTIONS.map((m) => (
@@ -399,7 +399,7 @@ function ExpensesSectionImpl() {
                 placeholder="e.g. Landlord, café guest name, supplier"
                 value={form.payee}
                 onChange={(e) => setForm((f) => ({ ...f, payee: e.target.value }))}
-                className="border-sage/20 bg-white"
+                className="border-sage/20 bg-white-warm"
               />
             </div>
 
@@ -409,7 +409,7 @@ function ExpensesSectionImpl() {
                 placeholder="What was this for?"
                 value={form.description}
                 onChange={(e) => setForm((f) => ({ ...f, description: e.target.value }))}
-                className="border-sage/20 bg-white"
+                className="border-sage/20 bg-white-warm"
               />
             </div>
 
@@ -419,7 +419,7 @@ function ExpensesSectionImpl() {
                 rows={2}
                 value={form.notes}
                 onChange={(e) => setForm((f) => ({ ...f, notes: e.target.value }))}
-                className="border-sage/20 bg-white resize-none"
+                className="border-sage/20 bg-white-warm resize-none"
               />
             </div>
           </div>

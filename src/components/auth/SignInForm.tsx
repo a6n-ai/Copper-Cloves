@@ -6,6 +6,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Checkbox } from "@/components/ui/checkbox";
 import { PasswordInput } from "@/components/ui/password-input";
+import { FormAlert } from "@/components/ui/form-alert";
 import { LayoutDashboard, Calendar, Users, ShieldCheck, Leaf, ChefHat, type LucideIcon } from "lucide-react";
 import { Spinner } from "@/components/ui/spinner";
 
@@ -161,6 +162,8 @@ export function SignInForm({ onSwitchToSignup }: { onSwitchToSignup: () => void 
             className="border-sage/25 bg-cream focus:ring-sage placeholder:text-charcoal/40 h-12 rounded-xl"
             required
             autoFocus
+            aria-invalid={error ? true : undefined}
+            aria-describedby={error ? "signin-error" : undefined}
           />
         </div>
 
@@ -184,7 +187,7 @@ export function SignInForm({ onSwitchToSignup }: { onSwitchToSignup: () => void 
                       type="button"
                       disabled={loading}
                       onClick={() => { setRole(r); setError(null); }}
-                      className="w-full flex items-center gap-3 rounded-xl border border-sage/20 bg-white-warm px-4 py-3 text-left transition-colors hover:border-sage hover:bg-sage/5 disabled:opacity-60"
+                      className="w-full flex items-center gap-3 rounded-xl border border-sage/20 bg-white-warm px-4 py-3 text-left transition-colors hover:border-sage hover:bg-sage/5 disabled:opacity-60 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sage focus-visible:ring-offset-1"
                     >
                       <div className="h-9 w-9 rounded-full bg-sage/10 flex items-center justify-center text-sage shrink-0">
                         <p.icon className="h-4 w-4" />
@@ -217,7 +220,7 @@ export function SignInForm({ onSwitchToSignup }: { onSwitchToSignup: () => void 
                   <button
                     type="button"
                     onClick={() => { setRole(null); setPassword(""); setError(null); }}
-                    className="font-body text-xs text-sage hover:underline"
+                    className="rounded font-body text-xs text-sage hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sage"
                   >
                     ← Choose a different portal ({PORTALS[role].label})
                   </button>
@@ -233,6 +236,8 @@ export function SignInForm({ onSwitchToSignup }: { onSwitchToSignup: () => void 
                     className="border-sage/25 bg-cream focus:ring-sage placeholder:text-charcoal/40 h-12 rounded-xl"
                     required
                     autoFocus
+                    aria-invalid={error ? true : undefined}
+                    aria-describedby={error ? "signin-error" : undefined}
                   />
                 </div>
                 <div className="flex items-center justify-between">
@@ -261,7 +266,9 @@ export function SignInForm({ onSwitchToSignup }: { onSwitchToSignup: () => void 
         </AnimatePresence>
 
         {error && (
-          <div className="bg-[#a05e38]/10 border border-[#a05e38]/25 rounded-lg px-4 py-3 text-sm text-[#a05e38] font-body">{error}</div>
+          <div id="signin-error" aria-live="polite">
+            <FormAlert message={error} variant="error" />
+          </div>
         )}
 
         {/* Hide the primary button while the picker is the active choice */}

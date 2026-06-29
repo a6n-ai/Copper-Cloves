@@ -114,9 +114,11 @@ export function ClassCatalog() {
           style={{ scrollbarWidth: "none", msOverflowStyle: "none", WebkitOverflowScrolling: "touch" }}
         >
           {classes.map((classItem, index) => (
-            <div
+            <Link
               key={classItem.id || index}
-              className="group/card relative h-80 w-[82vw] shrink-0 cursor-pointer snap-start overflow-hidden rounded-2xl sm:w-80 md:h-96 md:w-96"
+              href="/classes"
+              aria-label={`${classItem.name} — view the class schedule`}
+              className="group/card relative block h-80 w-[82vw] shrink-0 snap-start overflow-hidden rounded-2xl focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sage focus-visible:ring-offset-2 focus-visible:ring-offset-cream sm:w-80 md:h-96 md:w-96"
             >
               <Image
                 src={classItem.image}
@@ -129,15 +131,26 @@ export function ClassCatalog() {
                 className="object-cover transition-transform duration-500 ease-out group-hover/card:scale-105"
               />
 
-              {/* Default state: gradient + class name */}
-              <div className="absolute inset-0 flex items-end bg-linear-to-t from-charcoal/80 via-charcoal/40 to-transparent p-6 transition-opacity duration-500 ease-out group-hover/card:opacity-0">
+              {/* Default state: gradient + name. Duration/benefit are visible by
+                  default on touch (<md); on md+ they fade out so the centered
+                  hover overlay can take over. */}
+              <div className="absolute inset-0 flex flex-col items-start justify-end bg-linear-to-t from-charcoal/80 via-charcoal/40 to-transparent p-6 transition-opacity duration-500 ease-out md:group-hover/card:opacity-0">
                 <h3 className="font-display text-2xl leading-tight text-cream drop-shadow-lg md:text-3xl">
                   {classItem.name}
                 </h3>
+                <div className="mt-2 flex items-center gap-2 text-cream/90 md:hidden">
+                  <Clock size={16} />
+                  <span className="font-body text-sm">{classItem.duration}</span>
+                </div>
+                {classItem.benefit && (
+                  <p className="mt-1 font-body text-sm leading-relaxed text-cream/90 md:hidden">
+                    {classItem.benefit}
+                  </p>
+                )}
               </div>
 
-              {/* Hover state: details */}
-              <div className="absolute inset-0 flex flex-col items-center justify-center bg-charcoal/70 p-8 text-center opacity-0 transition-opacity duration-500 ease-out group-hover/card:opacity-100">
+              {/* Hover state (md+ pointer devices only): centered details */}
+              <div className="absolute inset-0 hidden flex-col items-center justify-center bg-charcoal/70 p-8 text-center opacity-0 transition-opacity duration-500 ease-out group-hover/card:opacity-100 md:flex">
                 <h3 className="mb-3 font-display text-2xl text-cream drop-shadow-lg md:text-3xl">
                   {classItem.name}
                 </h3>
@@ -149,7 +162,7 @@ export function ClassCatalog() {
                   {classItem.benefit}
                 </p>
               </div>
-            </div>
+            </Link>
           ))}
         </div>
       </div>
