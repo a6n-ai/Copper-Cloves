@@ -15,6 +15,7 @@ import { createPendingBooking } from "@/lib/createPendingBooking";
 import { excludeUnlimitedSeatsFromSnapshot, resolvePayableSeats } from "@/lib/groupBilling";
 import prisma from "@/lib/prisma";
 import { validateAndComputeCoupon, toFiniteNumber, passCategoryForPackageType, type CouponContext } from "@/lib/couponHelpers";
+import { effectivePackagePrice, pickPackageCharge } from "@/lib/packageOffer";
 import { requestLogger } from "@/lib/logger";
 
 /**
@@ -83,27 +84,39 @@ async function planPackageOrder(userId: string, raw: Record<string, unknown>): P
   const pass = passCategoryForPackageType(packageType);
   const couponContext: CouponContext = pass;
 
-  const subtotal = toFiniteNumber(packageType.price);
-  if (!Number.isFinite(subtotal) || subtotal <= 0) {
+  const now = new Date();
+  const eff = effectivePackagePrice(packageType, now);
+  const originalInr = eff.originalInr;
+  if (!Number.isFinite(originalInr) || originalInr <= 0) {
     return { ok: false, status: 400, error: "Invalid package price" };
   }
+  const offerPayableInr = eff.isOffer ? eff.payableInr : null;
 
-  let discountInr = 0;
-  if (raw.coupon_code != null && String(raw.coupon_code).trim()) {
-    const v = await validateAndComputeCoupon(
-      prisma,
-      String(raw.coupon_code),
-      couponContext,
-      subtotal,
-      { userId, guestEmail: null },
-    );
-    if ("error" in v) {
-      return { ok: false, status: 400, error: v.error };
+  const couponCode = raw.coupon_code != null && String(raw.coupon_code).trim() ? String(raw.coupon_code).trim() : null;
+  let couponInput: { stackable: boolean; discountOnOriginalInr: number; discountOnOfferInr: number } | null = null;
+
+  if (couponCode) {
+    // Validity, limits, min-order and cap are authoritative against the original price.
+    const vOrig = await validateAndComputeCoupon(prisma, couponCode, couponContext, originalInr, { userId, guestEmail: null });
+    if ("error" in vOrig) {
+      return { ok: false, status: 400, error: vOrig.error };
     }
-    discountInr = v.discountInr;
+    let discountOnOfferInr = 0;
+    if (offerPayableInr != null && vOrig.coupon.stackable) {
+      // Stacking: recompute the discount against the (lower) offer price. If the offer
+      // price falls below the coupon's min-order, the coupon simply contributes nothing.
+      const vOffer = await validateAndComputeCoupon(prisma, couponCode, couponContext, offerPayableInr, { userId, guestEmail: null });
+      discountOnOfferInr = "error" in vOffer ? 0 : vOffer.discountInr;
+    }
+    couponInput = {
+      stackable: vOrig.coupon.stackable,
+      discountOnOriginalInr: vOrig.discountInr,
+      discountOnOfferInr,
+    };
   }
 
-  const payableInr = Math.max(0, subtotal - discountInr);
+  const resolved = pickPackageCharge({ originalInr, offerPayableInr, coupon: couponInput });
+  const payableInr = resolved.chargeInr;
   if (payableInr <= 0) {
     return {
       ok: false,
@@ -118,9 +131,14 @@ async function planPackageOrder(userId: string, raw: Record<string, unknown>): P
     purpose: PURPOSE_PACKAGE,
     package_type_id: packageTypeId,
     pass_type: pass,
+    original_price_inr: String(Math.round(originalInr)),
+    offer_applied: resolved.offerApplied ? "1" : "0",
   };
-  if (raw.coupon_code != null && String(raw.coupon_code).trim()) {
-    orderNotes.coupon_code = String(raw.coupon_code).trim();
+  if (resolved.offerApplied && offerPayableInr != null) {
+    orderNotes.offer_price_inr = String(Math.round(offerPayableInr));
+  }
+  if (couponCode && resolved.couponApplied) {
+    orderNotes.coupon_code = couponCode;
   }
   return { ok: true, plan: { amount_inr, orderNotes, dbNotes: { ...orderNotes } } };
 }
