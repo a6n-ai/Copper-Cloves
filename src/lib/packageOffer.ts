@@ -51,7 +51,7 @@ export type OfferDisplayState = "none" | "scheduled" | "active" | "expired";
 export function offerState(pkg: OfferFields, now: Date): OfferDisplayState {
   const offer = toFiniteNumber(pkg.offer_price);
   const original = toFiniteNumber(pkg.price);
-  if (!Number.isFinite(offer) || offer <= 0 || offer >= original) return "none";
+  if (!Number.isFinite(offer) || !Number.isFinite(original) || offer <= 0 || offer >= original) return "none";
   const starts = toDate(pkg.offer_starts_at);
   const ends = toDate(pkg.offer_ends_at);
   if (starts && now < starts) return "scheduled";
@@ -91,7 +91,8 @@ export function pickPackageCharge(input: PackageChargeInput): {
     return { chargeInr: charge, offerApplied: true, couponApplied: coupon.discountOnOfferInr > 0 };
   }
 
-  // best-of: lower of (offer price) vs (coupon applied to original)
+  // best-of: lower of (offer price) vs (coupon applied to original). Tie → offer wins
+  // (coupon left unapplied), so a coupon is only marked used when it strictly beats the offer.
   const couponOnOriginal = Math.max(0, originalInr - coupon.discountOnOriginalInr);
   if (couponOnOriginal < offerPayableInr!) {
     return { chargeInr: couponOnOriginal, offerApplied: false, couponApplied: true };
