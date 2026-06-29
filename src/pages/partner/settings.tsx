@@ -134,7 +134,7 @@ export default function PartnerSettings() {
     content = (
         <Card className="border-sage/20 bg-white-warm">
           <CardHeader>
-            <CardTitle className="font-display text-xl text-charcoal">Partner profile</CardTitle>
+            <CardTitle className="font-body font-semibold text-xl text-charcoal">Partner profile</CardTitle>
             <CardDescription className="font-body text-charcoal/60">Your brand details shown across the studio.</CardDescription>
           </CardHeader>
           <CardContent>
@@ -150,7 +150,7 @@ export default function PartnerSettings() {
                     unoptimized
                   />
                 ) : (
-                  <div className="h-16 w-16 rounded-full bg-sage/10 flex items-center justify-center font-display text-sage text-lg">
+                  <div className="h-16 w-16 rounded-full bg-sage/10 flex items-center justify-center font-body font-semibold text-sage text-lg">
                     {profile.name.slice(0, 2).toUpperCase()}
                   </div>
                 )}

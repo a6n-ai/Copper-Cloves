@@ -16,7 +16,7 @@ interface InsightsPayload {
 const CATEGORY_BAR: Record<string, string> = {
   auth: "bg-sage",
   member: "bg-terracotta",
-  admin: "bg-[#a05e38]",
+  admin: "bg-terracotta/70",
   instructor: "bg-charcoal/55",
   partner: "bg-sage/50",
   system: "bg-charcoal/30",

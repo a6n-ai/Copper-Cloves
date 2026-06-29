@@ -94,7 +94,7 @@ function ExpenseOverviewSectionImpl() {
           <CardHeader>
             <div className="flex items-start justify-between gap-2">
               <div>
-                <CardTitle className="font-display text-xl text-charcoal">Where the money goes</CardTitle>
+                <CardTitle className="font-body font-semibold text-xl text-charcoal">Where the money goes</CardTitle>
                 <CardDescription className="font-body text-charcoal/60">By category, all recorded expenses</CardDescription>
               </div>
               <PieChart className="h-5 w-5 text-sage/40 shrink-0" />
@@ -132,7 +132,7 @@ function ExpenseOverviewSectionImpl() {
 
         <Card className="border-sage/20 bg-white-warm">
           <CardHeader>
-            <CardTitle className="font-display text-xl text-charcoal">Monthly expenses</CardTitle>
+            <CardTitle className="font-body font-semibold text-xl text-charcoal">Monthly expenses</CardTitle>
             <CardDescription className="font-body text-charcoal/60">Total recorded per month, last 6 months</CardDescription>
           </CardHeader>
           <CardContent>

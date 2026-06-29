@@ -227,7 +227,7 @@ export default function ProductDetail({ product, catalog }: ProductDetailProps) 
       />
 
 
-      <main className="min-h-screen bg-linear-to-br from-cream via-[#fafaf8] to-sage/5 pt-24 pb-16">
+      <main className="min-h-screen bg-linear-to-br from-cream via-white-warm to-sage/5 pt-24 pb-16">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <Link href="/shop">
             <Button

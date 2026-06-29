@@ -62,7 +62,7 @@ interface Props {
 // attention (red). Thresholds: full ≥80%, low ≤40%, mid in between (neutral).
 function occupancyColor(pct: number): string {
   if (pct >= 80) return "bg-sage";
-  if (pct <= 40) return "bg-[#cf5b48]";
+  if (pct <= 40) return "bg-destructive";
   return "bg-terracotta";
 }
 

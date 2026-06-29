@@ -219,7 +219,7 @@ export default function InstructorProfilePage() {
             ) : (
               <>
                 {/* Hero card */}
-                <div className="relative overflow-hidden rounded-2xl border border-sage/20 bg-linear-to-br from-sage/8 via-[#fafaf8] to-cream/30 shadow-xs">
+                <div className="relative overflow-hidden rounded-2xl border border-sage/20 bg-linear-to-br from-sage/8 via-card to-cream/30 shadow-xs">
                   <div className="relative grid grid-cols-1 gap-6 p-6 md:grid-cols-[auto_1fr_auto] md:items-center">
                     <div className="relative shrink-0">
                       {instructor.image_url ? (
@@ -231,7 +231,7 @@ export default function InstructorProfilePage() {
                           className="size-24 rounded-full object-cover ring-4 ring-cream shadow-md"
                         />
                       ) : (
-                        <div className="size-24 rounded-full bg-linear-to-br from-sage to-sage/70 text-cream font-display text-3xl flex items-center justify-center ring-4 ring-cream shadow-md">
+                        <div className="size-24 rounded-full bg-linear-to-br from-sage to-sage/70 text-cream font-body font-semibold text-3xl flex items-center justify-center ring-4 ring-cream shadow-md">
                           {(instructor.name ?? "I").slice(0, 1).toUpperCase()}
                         </div>
                       )}
@@ -244,7 +244,7 @@ export default function InstructorProfilePage() {
                       <p className="font-body text-[11px] uppercase tracking-[0.18em] text-charcoal/50">
                         {instructor.is_active ? "Active instructor" : "Archived"}
                       </p>
-                      <h2 className="font-display text-3xl text-charcoal truncate mt-0.5">{instructor.name}</h2>
+                      <h2 className="font-body font-semibold text-3xl text-charcoal truncate mt-0.5">{instructor.name}</h2>
                       {instructor.title && (
                         <p className="font-body text-sm text-charcoal/65 mt-1">{instructor.title}</p>
                       )}
@@ -299,7 +299,7 @@ export default function InstructorProfilePage() {
                     <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
                       <Card className="rounded-2xl shadow-xs">
                         <CardHeader>
-                          <CardTitle className="font-display text-lg text-charcoal flex items-center gap-2">
+                          <CardTitle className="font-body font-semibold text-lg text-charcoal flex items-center gap-2">
                             <UserIcon className="h-4 w-4 text-sage" />
                             About
                           </CardTitle>
@@ -312,7 +312,7 @@ export default function InstructorProfilePage() {
                       </Card>
                       <Card className="rounded-2xl shadow-xs">
                         <CardHeader>
-                          <CardTitle className="font-display text-lg text-charcoal flex items-center gap-2">
+                          <CardTitle className="font-body font-semibold text-lg text-charcoal flex items-center gap-2">
                             <Sparkles className="h-4 w-4 text-sage" />
                             Teaching philosophy
                           </CardTitle>
@@ -329,7 +329,7 @@ export default function InstructorProfilePage() {
                     <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
                       <Card className="rounded-2xl shadow-xs">
                         <CardHeader>
-                          <CardTitle className="font-display text-lg text-charcoal flex items-center gap-2">
+                          <CardTitle className="font-body font-semibold text-lg text-charcoal flex items-center gap-2">
                             <Sparkles className="h-4 w-4 text-sage" />
                             Specialties
                           </CardTitle>
@@ -350,7 +350,7 @@ export default function InstructorProfilePage() {
                       </Card>
                       <Card className="rounded-2xl shadow-xs">
                         <CardHeader>
-                          <CardTitle className="font-display text-lg text-charcoal flex items-center gap-2">
+                          <CardTitle className="font-body font-semibold text-lg text-charcoal flex items-center gap-2">
                             <Award className="h-4 w-4 text-sage" />
                             Certifications
                           </CardTitle>
@@ -376,7 +376,7 @@ export default function InstructorProfilePage() {
                     <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
                       <Card className="rounded-2xl shadow-xs">
                         <CardHeader>
-                          <CardTitle className="font-display text-lg text-charcoal">Social</CardTitle>
+                          <CardTitle className="font-body font-semibold text-lg text-charcoal">Social</CardTitle>
                         </CardHeader>
                         <CardContent className="space-y-2">
                           <SocialLine icon={LinkedinIcon} label="LinkedIn" value={instructor.social_linkedin} />
@@ -387,12 +387,12 @@ export default function InstructorProfilePage() {
                       </Card>
                       <Card className="rounded-2xl shadow-xs">
                         <CardHeader>
-                          <CardTitle className="font-display text-lg text-charcoal">Payout split</CardTitle>
+                          <CardTitle className="font-body font-semibold text-lg text-charcoal">Payout split</CardTitle>
                         </CardHeader>
                         <CardContent>
                           {instructor.studio_payout_cut_percent != null ? (
                             <div className="space-y-1">
-                              <p className="font-display text-2xl text-charcoal tabular-nums">
+                              <p className="font-body font-semibold text-2xl text-charcoal tabular-nums">
                                 {Number(instructor.studio_payout_cut_percent).toFixed(2)}% <span className="font-body text-sm text-charcoal/55">studio cut</span>
                               </p>
                               <p className="font-body text-xs text-charcoal/55">
@@ -421,7 +421,7 @@ export default function InstructorProfilePage() {
       <Dialog open={editOpen} onOpenChange={setEditOpen}>
         <DialogContent className="sm:max-w-2xl max-h-[85vh] overflow-y-auto">
           <DialogHeader>
-            <DialogTitle className="font-display text-charcoal">Edit instructor</DialogTitle>
+            <DialogTitle className="font-body font-semibold text-charcoal">Edit instructor</DialogTitle>
           </DialogHeader>
           {form && (
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 py-2">
@@ -514,7 +514,7 @@ function ImageField({ label, value, onChange, ownerId, name, className }: {
         {value ? (
           <Image src={value} alt={name || "Instructor"} width={64} height={64} className="size-16 rounded-full object-cover ring-2 ring-sage/20 shrink-0" />
         ) : (
-          <div className="size-16 rounded-full bg-sage/10 text-sage font-display text-xl flex items-center justify-center ring-2 ring-sage/20 shrink-0">
+          <div className="size-16 rounded-full bg-sage/10 text-sage font-body font-semibold text-xl flex items-center justify-center ring-2 ring-sage/20 shrink-0">
             {(name || "I").slice(0, 1).toUpperCase()}
           </div>
         )}

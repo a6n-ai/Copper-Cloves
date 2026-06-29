@@ -42,7 +42,7 @@ function ScheduleClassCardImpl({
       <div className="flex items-start justify-between gap-3">
         <div className="flex-1 min-w-0">
           <div className="flex items-center gap-2 flex-wrap">
-            <h2 className="font-display text-base sm:text-lg text-charcoal">{cls.className}</h2>
+            <h2 className="font-body font-semibold text-base sm:text-lg text-charcoal">{cls.className}</h2>
             <Pill {...classStatusPill(statusInfo.status)} size="sm" className="font-body">
               {statusInfo.label}
             </Pill>

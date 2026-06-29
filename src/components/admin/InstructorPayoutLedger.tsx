@@ -168,7 +168,7 @@ function AnalyticsCard({
   pill?: React.ReactNode;
 }) {
   return (
-    <div className="rounded-lg border border-[#e5e4dc] bg-white-warm p-3 space-y-0.5">
+    <div className="rounded-lg border border-border bg-white-warm p-3 space-y-0.5">
       <p className="font-body text-xs text-charcoal/50">{label}</p>
       <p className="font-body text-lg font-semibold text-charcoal tabular-nums leading-tight">{value}</p>
       {sub && <p className="font-body text-xs text-charcoal/50">{sub}</p>}
@@ -431,7 +431,7 @@ export function InstructorPayoutLedger({ instructorId }: { instructorId: string 
       {/* Controls row */}
       <div className="flex flex-wrap items-center gap-3">
         <Select value={win} onValueChange={(v) => setWin(v as Win)}>
-          <SelectTrigger className="w-40 border-[#e5e4dc] font-body text-sm">
+          <SelectTrigger className="w-40 border-border font-body text-sm">
             <SelectValue />
           </SelectTrigger>
           <SelectContent>
@@ -485,7 +485,7 @@ export function InstructorPayoutLedger({ instructorId }: { instructorId: string 
           </div>
 
           {/* Grouped + expandable class table */}
-          <div className="rounded-xl border border-[#e5e4dc] bg-white-warm overflow-hidden">
+          <div className="rounded-xl border border-border bg-white-warm overflow-hidden">
             <ResponsiveTable>
               <Table>
                 <TableHeader>
@@ -622,9 +622,9 @@ export function InstructorPayoutLedger({ instructorId }: { instructorId: string 
           </div>
 
           {/* Rate-card footer block */}
-          <div className="rounded-xl border border-[#e5e4dc] bg-white-warm overflow-hidden">
-            <div className="px-5 py-3 border-b border-[#e5e4dc]">
-              <h3 className="font-display text-base text-charcoal">Rate card &amp; payout</h3>
+          <div className="rounded-xl border border-border bg-white-warm overflow-hidden">
+            <div className="px-5 py-3 border-b border-border">
+              <h3 className="font-body font-semibold text-base text-charcoal">Rate card &amp; payout</h3>
             </div>
             <div className="p-5 space-y-5">
               {/* Rate-card table */}
@@ -675,7 +675,7 @@ export function InstructorPayoutLedger({ instructorId }: { instructorId: string 
               </ResponsiveTable>
 
               {/* Summary lines */}
-              <div className="rounded-lg border border-[#e5e4dc] bg-cream/30 px-4 py-2 divide-y divide-[#e5e4dc]">
+              <div className="rounded-lg border border-border bg-cream/30 px-4 py-2 divide-y divide-border">
                 <Metric label="Average net rate" value={r(data.footer.averageNetPaise)} />
 
                 {/* Blended rate editable row */}
@@ -691,7 +691,7 @@ export function InstructorPayoutLedger({ instructorId }: { instructorId: string 
                       onChange={(e) => setBlendedInput(e.target.value)}
                       placeholder={r(data.footer.autoBlendedRatePaise)}
                       disabled={isPaid || saving}
-                      className="w-36 border-[#e5e4dc] font-body text-sm h-8"
+                      className="w-36 border-border font-body text-sm h-8"
                     />
                     <Button
                       type="button"
@@ -721,8 +721,8 @@ export function InstructorPayoutLedger({ instructorId }: { instructorId: string 
                   value={String(data.footer.payableUnits)}
                 />
                 <div className="flex items-center justify-between py-2">
-                  <span className="font-display text-lg text-charcoal">Total</span>
-                  <span className="font-display text-2xl text-charcoal tabular-nums">
+                  <span className="font-body font-semibold text-lg text-charcoal">Total</span>
+                  <span className="font-body font-semibold text-2xl text-charcoal tabular-nums">
                     {r(data.footer.totalPaise)}
                   </span>
                 </div>
@@ -731,13 +731,13 @@ export function InstructorPayoutLedger({ instructorId }: { instructorId: string 
           </div>
 
           {/* Per-instructor rate overrides */}
-          <div className="rounded-xl border border-[#e5e4dc] bg-white-warm overflow-hidden">
+          <div className="rounded-xl border border-border bg-white-warm overflow-hidden">
             <button
               type="button"
-              className="w-full flex items-center justify-between px-5 py-3 border-b border-[#e5e4dc] hover:bg-cream/40 transition-colors"
+              className="w-full flex items-center justify-between px-5 py-3 border-b border-border hover:bg-cream/40 transition-colors"
               onClick={() => setRatesOpen((o) => !o)}
             >
-              <h3 className="font-display text-base text-charcoal">
+              <h3 className="font-body font-semibold text-base text-charcoal">
                 Per-instructor rate overrides
                 <span className="ml-2 font-body text-xs text-charcoal/45 font-normal">— blank = studio default</span>
               </h3>
@@ -768,7 +768,7 @@ export function InstructorPayoutLedger({ instructorId }: { instructorId: string 
                         value={rates[key]}
                         onChange={(e) => setRates((prev) => ({ ...prev, [key]: e.target.value }))}
                         disabled={saving}
-                        className="border-[#e5e4dc] font-body text-sm h-9"
+                        className="border-border font-body text-sm h-9"
                       />
                     </div>
                   ))}

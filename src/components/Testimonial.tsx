@@ -132,7 +132,7 @@ export function Testimonial() {
                 key={testimonial.author}
                 type="button"
                 onClick={() => goTo(index)}
-                className="group grid min-h-6 min-w-6 place-items-center"
+                className="group grid min-h-6 min-w-6 place-items-center rounded-full focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-cream focus-visible:ring-offset-2 focus-visible:ring-offset-sage"
                 aria-label={`Go to testimonial ${index + 1}`}
                 aria-current={index === currentIndex}
               >

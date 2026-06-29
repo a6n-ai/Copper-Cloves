@@ -143,7 +143,7 @@ export function TemplateEditor({ template, saving, onSave, onDelete, onDuplicate
       {/* Header */}
       <div className="flex flex-wrap items-start justify-between gap-3">
         <div className="min-w-0 space-y-1">
-          <h3 className="font-display text-2xl text-charcoal" style={{ textWrap: "balance" }}>
+          <h3 className="font-body font-semibold text-2xl text-charcoal" style={{ textWrap: "balance" }}>
             {template.id ? "Edit template" : "New template"}
           </h3>
           {template.is_system && template.template_key ? (

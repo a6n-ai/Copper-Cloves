@@ -72,10 +72,10 @@ export default function SetPasswordPage() {
 
   if (!token || tokenError) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-[#f5f2ea] px-4">
+      <div className="min-h-screen flex items-center justify-center bg-cream px-4">
         <div className="max-w-sm w-full text-center">
-          <h1 className="font-serif text-2xl text-[#333333] mb-3">Link invalid or expired</h1>
-          <p className="text-sm text-[#6b6b6b] mb-6">
+          <h1 className="font-body font-semibold text-2xl text-charcoal mb-3">Link invalid or expired</h1>
+          <p className="text-sm text-muted-foreground mb-6">
             {tokenError ?? "No token provided."}
           </p>
           <Button variant="outline" onClick={() => router.push("/login")}>Go to sign in</Button>
@@ -86,24 +86,24 @@ export default function SetPasswordPage() {
 
   if (!email) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-[#f5f2ea]">
-        <p className="text-sm text-[#6b6b6b]">Validating…</p>
+      <div className="min-h-screen flex items-center justify-center bg-cream">
+        <p className="text-sm text-muted-foreground">Validating…</p>
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-[#f5f2ea] px-4">
+    <div className="min-h-screen flex items-center justify-center bg-cream px-4">
       <div className="max-w-sm w-full">
-        <h1 className="font-serif text-2xl text-[#333333] mb-1">Set your password</h1>
-        <p className="text-sm text-[#6b6b6b] mb-6">For {email}</p>
+        <h1 className="font-body font-semibold text-2xl text-charcoal mb-1">Set your password</h1>
+        <p className="text-sm text-muted-foreground mb-6">For {email}</p>
         <form onSubmit={handleSubmit} className="space-y-4">
           <div>
-            <Label htmlFor="email-display" className="text-xs text-[#6b6b6b]">Email</Label>
-            <Input id="email-display" value={email} readOnly className="bg-[#e8e4d9]/40 cursor-default" />
+            <Label htmlFor="email-display" className="text-xs text-muted-foreground">Email</Label>
+            <Input id="email-display" value={email} readOnly className="bg-sand/40 cursor-default" />
           </div>
           <div>
-            <Label htmlFor="password" className="text-xs text-[#6b6b6b]">New password</Label>
+            <Label htmlFor="password" className="text-xs text-muted-foreground">New password</Label>
             <Input
               id="password"
               type="password"
@@ -115,7 +115,7 @@ export default function SetPasswordPage() {
             />
           </div>
           <div>
-            <Label htmlFor="confirm" className="text-xs text-[#6b6b6b]">Confirm password</Label>
+            <Label htmlFor="confirm" className="text-xs text-muted-foreground">Confirm password</Label>
             <Input
               id="confirm"
               type="password"
@@ -125,13 +125,13 @@ export default function SetPasswordPage() {
               required
             />
           </div>
-          <Button type="submit" className="w-full bg-[#8f9779] text-white hover:bg-[#7a8b6c]" disabled={submitting}>
+          <Button type="submit" variant="sage" className="w-full" disabled={submitting}>
             {submitting ? "Setting password…" : "Set password"}
           </Button>
         </form>
-        <p className="text-xs text-[#6b6b6b] text-center mt-4">
+        <p className="text-xs text-muted-foreground text-center mt-4">
           Already have a password?{" "}
-          <Link href="/login" className="text-[#8f9779] underline">Sign in</Link>
+          <Link href="/login" className="text-sage underline">Sign in</Link>
         </p>
       </div>
     </div>

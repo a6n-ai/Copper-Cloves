@@ -143,7 +143,7 @@ export default function KitchenDashboard() {
       <Card className="rounded-2xl border-sage/15">
         <CardContent className="flex flex-col items-center gap-3 py-16 text-center">
           <CheckCircle2 className="h-10 w-10 text-sage/50" />
-          <p className="font-display text-lg text-charcoal">All caught up</p>
+          <p className="font-body font-semibold text-lg text-charcoal">All caught up</p>
           <p className="font-body text-sm text-charcoal/55">No open orders right now.</p>
         </CardContent>
       </Card>
@@ -158,7 +158,7 @@ export default function KitchenDashboard() {
               <CardContent className="p-5 space-y-3">
                 <div className="flex items-start justify-between gap-2">
                   <div className="min-w-0">
-                    <p className="font-display text-lg text-charcoal truncate">
+                    <p className="font-body font-semibold text-lg text-charcoal truncate">
                       {o.cafe_item?.name ?? "Item"}{" "}
                       {o.quantity > 1 ? <span className="text-charcoal/50">×{o.quantity}</span> : null}
                     </p>

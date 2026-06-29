@@ -211,7 +211,7 @@ export default function PackageCatalogTab() {
     <Card className="border-sage/20 bg-white-warm">
       <CardHeader className="flex flex-row items-start justify-between gap-3">
         <div>
-          <CardTitle className="font-display text-2xl text-charcoal">Package Catalog</CardTitle>
+          <CardTitle className="font-body font-semibold text-2xl text-charcoal">Package Catalog</CardTitle>
           <CardDescription className="font-body text-charcoal/60">
             Packages members can buy and admins can grant. The portal renders published packages from here.
           </CardDescription>
@@ -310,7 +310,7 @@ export default function PackageCatalogTab() {
       <ResponsiveDialog open={dialogOpen} onOpenChange={setDialogOpen}>
         <ResponsiveDialogContent className="sm:max-w-xl">
           <ResponsiveDialogHeader>
-            <ResponsiveDialogTitle className="font-display text-charcoal">
+            <ResponsiveDialogTitle className="font-body font-semibold text-charcoal">
               {editingId ? "Edit Package" : "New Package"}
             </ResponsiveDialogTitle>
             <ResponsiveDialogDescription className="font-body text-charcoal/60">

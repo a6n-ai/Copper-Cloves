@@ -54,7 +54,7 @@ export function UpcomingScheduleCard({
   );
 
   return (
-    <Card className="rounded-2xl shadow-none border-[#e5e4dc] transition-shadow hover:shadow-[0_4px_24px_rgba(51,51,51,0.08)]">
+    <Card className="rounded-2xl shadow-none border-border transition-shadow hover:shadow-[0_4px_24px_rgba(51,51,51,0.08)]">
       <CardHeader>
         <CardTitle className="flex items-center gap-2 font-body font-semibold text-xl text-card-foreground">
           <AnimatedIcon icon={CalendarDays} size={20} className="text-primary" />

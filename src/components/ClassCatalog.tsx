@@ -40,8 +40,8 @@ function ClassCatalogSkeleton({ count = 3 }: Readonly<{ count?: number }>) {
         >
           <Skeleton className="absolute inset-0 h-full w-full rounded-2xl" />
           <div className="absolute inset-x-0 bottom-0 space-y-2 p-6">
-            <Skeleton className="h-8 w-3/4 bg-[#fafaf8]/30" />
-            <Skeleton className="h-4 w-1/2 bg-[#fafaf8]/20" />
+            <Skeleton className="h-8 w-3/4 bg-white-warm/30" />
+            <Skeleton className="h-4 w-1/2 bg-white-warm/20" />
           </div>
         </div>
       ))}

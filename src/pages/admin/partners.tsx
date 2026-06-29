@@ -130,9 +130,9 @@ export default function AdminPartners() {
         <AdminPageHeader title="Partners" subtitle="External brands renting the studio to run their own classes" />
 
         {/* Create partner */}
-        <Card className="border-sage/20 bg-[#fafaf8]/95">
+        <Card className="border-sage/20 bg-card/95">
           <CardHeader>
-            <CardTitle className="font-display text-xl text-charcoal flex items-center gap-2">
+            <CardTitle className="font-body font-semibold text-xl text-charcoal flex items-center gap-2">
               <Plus className="h-5 w-5 text-sage" /> Add partner
             </CardTitle>
           </CardHeader>
@@ -154,7 +154,7 @@ export default function AdminPartners() {
                 <Label className="font-body text-sm text-charcoal">Manager password</Label>
                 <Input value={managerPassword} onChange={(e) => setManagerPassword(e.target.value)} placeholder="min 6 characters" required className="border-sage/20" />
               </div>
-              {error && <div className="sm:col-span-2 text-sm text-[#a05e38] font-body">{error}</div>}
+              {error && <div className="sm:col-span-2 text-sm text-destructive font-body">{error}</div>}
               <div className="sm:col-span-2">
                 <Button type="submit" disabled={busy} variant="sage">
                   {busy ? <Spinner className="size-4" /> : "Create partner + login"}
@@ -166,15 +166,15 @@ export default function AdminPartners() {
 
         {/* Partner list */}
         {partners.length === 0 ? (
-          <Card className="border-sage/15 bg-[#fafaf8]/80"><CardContent className="p-8 text-center font-body text-charcoal/50">No partners yet.</CardContent></Card>
+          <Card className="border-sage/15 bg-card/80"><CardContent className="p-8 text-center font-body text-charcoal/50">No partners yet.</CardContent></Card>
         ) : (
           partners.map((p) => {
             const unassigned = allClasses.filter((c) => !p.classes.some((pc) => pc.id === c.id));
             return (
-              <Card key={p.id} className="border-sage/20 bg-[#fafaf8]/95">
+              <Card key={p.id} className="border-sage/20 bg-card/95">
                 <CardHeader>
                   <div className="flex items-center justify-between gap-3 flex-wrap">
-                    <CardTitle className="font-display text-xl text-charcoal flex items-center gap-2">
+                    <CardTitle className="font-body font-semibold text-xl text-charcoal flex items-center gap-2">
                       <Building2 className="h-5 w-5 text-sage" /> {p.name}
                       <span className="font-body text-xs text-charcoal/40">/{p.slug}</span>
                     </CardTitle>

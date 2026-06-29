@@ -1043,7 +1043,7 @@ export default function AdminDashboard() {
           <div className="max-w-7xl mx-auto p-6 lg:p-8 space-y-8">
             <div className="flex items-center justify-between flex-wrap gap-3">
               <div>
-                <h1 className="font-display text-3xl md:text-4xl text-charcoal leading-tight">Dashboard</h1>
+                <h1 className="font-body font-semibold text-3xl md:text-4xl text-charcoal leading-tight">Dashboard</h1>
                 <p className="font-body text-charcoal/60">Welcome back, {(session?.user?.name?.trim().split(" ")[0]) || "Admin"}. Here&apos;s what&apos;s happening today.</p>
               </div>
               <Select value={dateRange} onValueChange={setDateRange}>
@@ -1172,7 +1172,7 @@ export default function AdminDashboard() {
       <ResponsiveDialog open={showAddUserDialog} onOpenChange={setShowAddUserDialog}>
         <ResponsiveDialogContent className="max-w-2xl bg-white-warm border-sage/20">
           <ResponsiveDialogHeader>
-            <ResponsiveDialogTitle className="font-display text-2xl text-charcoal">Add New User</ResponsiveDialogTitle>
+            <ResponsiveDialogTitle className="font-body font-semibold text-2xl text-charcoal">Add New User</ResponsiveDialogTitle>
             <ResponsiveDialogDescription className="font-body text-charcoal/60">
               Create a new member account with package and credits
             </ResponsiveDialogDescription>
@@ -1231,7 +1231,7 @@ export default function AdminDashboard() {
       <ResponsiveDialog open={showEditUserDialog} onOpenChange={setShowEditUserDialog}>
         <ResponsiveDialogContent className="max-w-2xl bg-white-warm border-sage/20">
           <ResponsiveDialogHeader>
-            <ResponsiveDialogTitle className="font-display text-2xl text-charcoal">Edit User</ResponsiveDialogTitle>
+            <ResponsiveDialogTitle className="font-body font-semibold text-2xl text-charcoal">Edit User</ResponsiveDialogTitle>
             <ResponsiveDialogDescription className="font-body text-charcoal/60">
               Update member information, package, or classes
             </ResponsiveDialogDescription>
@@ -1293,7 +1293,7 @@ export default function AdminDashboard() {
       <ResponsiveDialog open={showAddClassDialog} onOpenChange={setShowAddClassDialog}>
         <ResponsiveDialogContent className="max-w-2xl bg-white-warm border-sage/20">
           <ResponsiveDialogHeader>
-            <ResponsiveDialogTitle className="font-display text-2xl text-charcoal">Create New Class</ResponsiveDialogTitle>
+            <ResponsiveDialogTitle className="font-body font-semibold text-2xl text-charcoal">Create New Class</ResponsiveDialogTitle>
             <ResponsiveDialogDescription className="font-body text-charcoal/60">
               Schedule a one-time or recurring class
             </ResponsiveDialogDescription>
@@ -1374,7 +1374,7 @@ export default function AdminDashboard() {
       >
         <AlertDialogContent>
           <AlertDialogHeader>
-            <AlertDialogTitle className="font-display">
+            <AlertDialogTitle className="font-body font-semibold">
               {pendingStatusChange?.newStatus === "available"
                 ? "Reactivate this class?"
                 : pendingStatusChange?.newStatus === "inactive"
@@ -1441,7 +1441,7 @@ export default function AdminDashboard() {
           <ResponsiveDialogHeader>
             <div className="flex items-start justify-between gap-3">
               <div className="min-w-0">
-                <ResponsiveDialogTitle className="font-display text-2xl text-charcoal">
+                <ResponsiveDialogTitle className="font-body font-semibold text-2xl text-charcoal">
                   {selectedClass?.name} - Class Details
                 </ResponsiveDialogTitle>
                 <ResponsiveDialogDescription className="font-body text-charcoal/60">
@@ -1500,7 +1500,7 @@ export default function AdminDashboard() {
                     className="h-10 w-10 rounded-full object-cover border border-sage/20"
                   />
                 ) : (
-                  <div className="h-10 w-10 rounded-full bg-sage/10 flex items-center justify-center font-display text-sage text-sm">
+                  <div className="h-10 w-10 rounded-full bg-sage/10 flex items-center justify-center font-body font-semibold text-sage text-sm">
                     {(selectedClass.instructor ?? "I").slice(0, 1).toUpperCase()}
                   </div>
                 )}
@@ -1697,7 +1697,7 @@ export default function AdminDashboard() {
       <ResponsiveDialog open={showPayoutDialog} onOpenChange={setShowPayoutDialog}>
         <ResponsiveDialogContent className="max-w-lg bg-white-warm border-sage/20">
           <ResponsiveDialogHeader>
-            <ResponsiveDialogTitle className="font-display text-2xl text-charcoal">Process Payment</ResponsiveDialogTitle>
+            <ResponsiveDialogTitle className="font-body font-semibold text-2xl text-charcoal">Process Payment</ResponsiveDialogTitle>
             <ResponsiveDialogDescription className="font-body text-charcoal/60">
               Confirm instructor payout details
             </ResponsiveDialogDescription>
@@ -1715,13 +1715,13 @@ export default function AdminDashboard() {
                 <div className="grid grid-cols-2 gap-4 mb-4">
                   <div>
                     <div className="font-body text-xs text-charcoal/50 mb-1">Check-ins</div>
-                    <div className="font-display text-2xl text-charcoal">
+                    <div className="font-body font-semibold text-2xl text-charcoal">
                       {selectedInstructorData.checkIns}
                     </div>
                   </div>
                   <div>
                     <div className="font-body text-xs text-charcoal/50 mb-1">Rate per Check-in</div>
-                    <div className="font-display text-2xl text-charcoal">
+                    <div className="font-body font-semibold text-2xl text-charcoal">
                       ₹{selectedInstructorData.rate}
                     </div>
                   </div>
@@ -1732,7 +1732,7 @@ export default function AdminDashboard() {
                     <div className="font-body font-medium text-charcoal">
                       Total Payout:
                     </div>
-                    <div className="font-display text-4xl text-sage">
+                    <div className="font-body font-semibold text-4xl text-sage">
                       ₹{selectedInstructorData.total.toLocaleString()}
                     </div>
                   </div>
@@ -1780,7 +1780,7 @@ export default function AdminDashboard() {
       <ResponsiveDialog open={showAddInstructorDialog} onOpenChange={(open) => { setShowAddInstructorDialog(open); if (!open) instructorForm.reset(); }}>
         <ResponsiveDialogContent className="max-w-2xl bg-white-warm border-sage/20">
           <ResponsiveDialogHeader>
-            <ResponsiveDialogTitle className="font-display text-2xl text-charcoal">Add New Instructor</ResponsiveDialogTitle>
+            <ResponsiveDialogTitle className="font-body font-semibold text-2xl text-charcoal">Add New Instructor</ResponsiveDialogTitle>
             <ResponsiveDialogDescription className="font-body text-charcoal/60">
               Create instructor profile and set payment percentage
             </ResponsiveDialogDescription>
@@ -1861,7 +1861,7 @@ export default function AdminDashboard() {
       <ResponsiveDialog open={showEditInstructorDialog} onOpenChange={setShowEditInstructorDialog}>
         <ResponsiveDialogContent className="max-w-2xl bg-white-warm border-sage/20">
           <ResponsiveDialogHeader>
-            <ResponsiveDialogTitle className="font-display text-2xl text-charcoal">Edit Instructor</ResponsiveDialogTitle>
+            <ResponsiveDialogTitle className="font-body font-semibold text-2xl text-charcoal">Edit Instructor</ResponsiveDialogTitle>
             <ResponsiveDialogDescription className="font-body text-charcoal/60">
               Update instructor profile and payment settings
             </ResponsiveDialogDescription>
@@ -1946,7 +1946,7 @@ export default function AdminDashboard() {
             <div className="sticky top-0 bg-white-warm border-b border-sage/10 p-6 z-10">
               <div className="flex items-center justify-between">
                 <div>
-                  <DrawerTitle className="font-display text-3xl text-charcoal mb-1">
+                  <DrawerTitle className="font-body font-semibold text-3xl text-charcoal mb-1">
                     {selectedMemberProfile.name}
                   </DrawerTitle>
                   <DrawerDescription className="font-body text-sm text-charcoal/60">
@@ -1962,7 +1962,7 @@ export default function AdminDashboard() {
               <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
                 <Card className="border border-border bg-white-warm shadow-none ring-0">
                   <CardContent className="p-4 text-center">
-                    <p className="font-display text-3xl text-sage mb-1">
+                    <p className="font-body font-semibold text-3xl text-sage mb-1">
                       {selectedMemberProfile.totalClasses}
                     </p>
                     <p className="font-body text-xs text-charcoal/60">Total Classes</p>
@@ -1970,7 +1970,7 @@ export default function AdminDashboard() {
                 </Card>
                 <Card className="border border-border bg-white-warm shadow-none ring-0">
                   <CardContent className="p-4 text-center">
-                    <p className="font-display text-3xl text-charcoal mb-1">
+                    <p className="font-body font-semibold text-3xl text-charcoal mb-1">
                       {selectedMemberProfile.weeklyStreak}
                     </p>
                     <p className="font-body text-xs text-charcoal/60">Week Streak</p>
@@ -1978,7 +1978,7 @@ export default function AdminDashboard() {
                 </Card>
                 <Card className="border border-border bg-white-warm shadow-none ring-0">
                   <CardContent className="p-4 text-center">
-                    <p className="font-display text-3xl text-charcoal mb-1">
+                    <p className="font-body font-semibold text-3xl text-charcoal mb-1">
                       {selectedMemberProfile.credits}
                     </p>
                     <p className="font-body text-xs text-charcoal/60">
@@ -1991,7 +1991,7 @@ export default function AdminDashboard() {
               {/* Membership Info */}
               <Card className="border border-border bg-white-warm shadow-none ring-0">
                 <CardHeader className="border-b border-sage/10">
-                  <CardTitle className="font-display text-xl text-charcoal">Membership Details</CardTitle>
+                  <CardTitle className="font-body font-semibold text-xl text-charcoal">Membership Details</CardTitle>
                 </CardHeader>
                 <CardContent className="p-6 space-y-3">
                   <div className="flex justify-between">
@@ -2022,7 +2022,7 @@ export default function AdminDashboard() {
               {/* Achievements */}
               <Card className="border border-border bg-white-warm shadow-none ring-0">
                 <CardHeader className="border-b border-sage/10">
-                  <CardTitle className="font-display text-xl text-charcoal">Achievements</CardTitle>
+                  <CardTitle className="font-body font-semibold text-xl text-charcoal">Achievements</CardTitle>
                 </CardHeader>
                 <CardContent className="p-6">
                   <div className="flex flex-wrap gap-2">
@@ -2042,7 +2042,7 @@ export default function AdminDashboard() {
               {/* Recent Activity */}
               <Card className="border border-border bg-white-warm shadow-none ring-0">
                 <CardHeader className="border-b border-sage/10">
-                  <CardTitle className="font-display text-xl text-charcoal">Recent Activity</CardTitle>
+                  <CardTitle className="font-body font-semibold text-xl text-charcoal">Recent Activity</CardTitle>
                 </CardHeader>
                 <CardContent className="p-6 space-y-3">
                   <div className="flex items-center gap-3 p-3 rounded-lg bg-cream/30">
@@ -2063,7 +2063,7 @@ export default function AdminDashboard() {
               {/* Upcoming Bookings */}
               <Card className="border border-border bg-white-warm shadow-none ring-0">
                 <CardHeader className="border-b border-sage/10">
-                  <CardTitle className="font-display text-xl text-charcoal">Upcoming Bookings</CardTitle>
+                  <CardTitle className="font-body font-semibold text-xl text-charcoal">Upcoming Bookings</CardTitle>
                 </CardHeader>
                 <CardContent className="p-6 space-y-3">
                   {selectedMemberProfile.upcomingBookings.length === 0 ? (
@@ -2090,7 +2090,7 @@ export default function AdminDashboard() {
               {/* Attendance History */}
               <Card className="border border-border bg-white-warm shadow-none ring-0">
                 <CardHeader className="border-b border-sage/10">
-                  <CardTitle className="font-display text-xl text-charcoal">Attendance History</CardTitle>
+                  <CardTitle className="font-body font-semibold text-xl text-charcoal">Attendance History</CardTitle>
                   <CardDescription className="font-body text-charcoal/60">
                     {(selectedMemberProfile.attendanceHistory?.length ?? 0)} past class{(selectedMemberProfile.attendanceHistory?.length ?? 0) !== 1 ? "es" : ""}
                   </CardDescription>
@@ -2122,7 +2122,7 @@ export default function AdminDashboard() {
               {/* Order History */}
               <Card className="border border-border bg-white-warm shadow-none ring-0">
                 <CardHeader className="border-b border-sage/10">
-                  <CardTitle className="font-display text-xl text-charcoal">Café Orders</CardTitle>
+                  <CardTitle className="font-body font-semibold text-xl text-charcoal">Café Orders</CardTitle>
                 </CardHeader>
                 <CardContent className="p-6 space-y-3">
                   {selectedMemberProfile.orderHistory.length === 0 ? (
@@ -2136,7 +2136,7 @@ export default function AdminDashboard() {
                             {new Date(order.date).toLocaleDateString("en-US", { month: "short", day: "numeric" })}
                           </p>
                         </div>
-                        <p className="font-display text-lg text-sage">₹{order.amount}</p>
+                        <p className="font-body font-semibold text-lg text-sage">₹{order.amount}</p>
                       </div>
                     ))
                   )}

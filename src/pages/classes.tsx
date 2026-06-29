@@ -64,7 +64,7 @@ interface DaySchedule {
 /** Mirrors the class catalog Card: tall image with a badge, title, two-line copy, info row, benefit chips, button. */
 function ClassCardSkeleton() {
   return (
-    <Card className="border-0 bg-white-warm shadow-lg overflow-hidden">
+    <Card className="border bg-white-warm shadow-sm overflow-hidden">
       <div className="relative h-64 overflow-hidden bg-sage/5">
         <Skeleton className="h-full w-full rounded-none" />
         <Skeleton className="absolute top-4 right-4 h-6 w-20 rounded-full" />
@@ -104,7 +104,7 @@ function ClassesGridSkeleton({ count = 6 }: { count?: number }) {
 function ScheduleDaySkeleton() {
   return (
     <div className="p-6">
-      <div className="mb-4 pb-3 border-b border-[#e5e4dc]">
+      <div className="mb-4 pb-3 border-b border-border">
         <Skeleton className="h-6 w-28 mb-2" />
         <Skeleton className="h-3.5 w-16" />
       </div>
@@ -451,9 +451,9 @@ export default function ClassesPage({ initialClasses }: ClassesPageProps) {
 
             {/* Schedule Tab Content */}
             <TabsContent value="schedule" className="mt-8">
-              <div className="bg-white-warm rounded-2xl shadow-[0_4px_24px_rgba(51,51,51,0.08)] border border-[#e5e4dc] overflow-hidden">
+              <div className="bg-white-warm rounded-2xl shadow-[0_4px_24px_rgba(51,51,51,0.08)] border border-border overflow-hidden">
                 {/* Schedule Header */}
-                <div className="bg-cream p-6 border-b border-[#e5e4dc]">
+                <div className="bg-cream p-6 border-b border-border">
                   <h2 className="font-display text-3xl text-charcoal text-center mb-2">
                     Weekly Schedule
                   </h2>
@@ -463,7 +463,7 @@ export default function ClassesPage({ initialClasses }: ClassesPageProps) {
                 </div>
 
                 {/* Week/Month Navigation */}
-                <div className="bg-cream/30 border-b border-[#e5e4dc] p-4">
+                <div className="bg-cream/30 border-b border-border p-4">
                   <div className="flex flex-wrap items-center justify-center gap-4">
                     <Button
                       variant="sage-outline"
@@ -544,7 +544,7 @@ export default function ClassesPage({ initialClasses }: ClassesPageProps) {
                 ) : (
                   <>
                     {/* Day filter chips */}
-                    <div className="p-4 border-b border-[#e5e4dc]">
+                    <div className="p-4 border-b border-border">
                       <ScheduleDayFilter
                         days={dayOptions}
                         value={selectedDay}
@@ -555,10 +555,10 @@ export default function ClassesPage({ initialClasses }: ClassesPageProps) {
 
                     {/* All-week grid or single-day panel */}
                     {selectedDay === "all" ? (
-                      <div className="grid divide-y divide-[#e5e4dc] md:grid-cols-2 md:divide-y-0 md:[&>*:nth-child(odd)]:border-r md:[&>*]:border-[#e5e4dc]">
+                      <div className="grid divide-y divide-border md:grid-cols-2 md:divide-y-0 md:[&>*:nth-child(odd)]:border-r md:[&>*]:border-border">
                         {scheduleData.map((daySchedule, index) => (
                           <div key={index} className="p-4 sm:p-6">
-                            <div className="mb-4 flex items-end justify-between gap-3 border-b border-[#e5e4dc] pb-3">
+                            <div className="mb-4 flex items-end justify-between gap-3 border-b border-border pb-3">
                               <div>
                                 <h3 className="font-display text-xl capitalize text-charcoal">{daySchedule.day}</h3>
                                 <p className="font-body text-sm text-charcoal/50">{daySchedule.date}</p>
@@ -595,7 +595,7 @@ export default function ClassesPage({ initialClasses }: ClassesPageProps) {
                         if (!day) return null;
                         return (
                           <div className="p-4 sm:p-6">
-                            <div className="mb-5 flex items-end justify-between gap-3 border-b border-[#e5e4dc] pb-4">
+                            <div className="mb-5 flex items-end justify-between gap-3 border-b border-border pb-4">
                               <div>
                                 <h3 className="font-display text-3xl capitalize text-charcoal">{day.day}</h3>
                                 <p className="font-body text-sm text-charcoal/50">{day.date}</p>

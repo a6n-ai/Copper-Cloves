@@ -191,7 +191,7 @@ function OverviewTabImpl({
         <CardHeader>
           <div className="flex flex-wrap items-start justify-between gap-3">
             <div className="min-w-0">
-              <CardTitle className="font-display text-2xl text-charcoal">{dateTitle}</CardTitle>
+              <CardTitle className="font-body font-semibold text-2xl text-charcoal">{dateTitle}</CardTitle>
               <CardDescription className="font-body text-charcoal/60">
                 {todayClassesDetail.length > 0
                   ? "Tap a class to see who checked in. Check-in opens for members 15 minutes before start."
@@ -299,7 +299,7 @@ function OverviewTabImpl({
         <CardHeader>
           <div className="flex items-center justify-between">
             <div>
-              <CardTitle className="font-display text-2xl text-charcoal flex items-center gap-2">
+              <CardTitle className="font-body font-semibold text-2xl text-charcoal flex items-center gap-2">
                 <AlertTriangle className="h-6 w-6 text-terracotta" />
                 Members Expiring Soon
               </CardTitle>

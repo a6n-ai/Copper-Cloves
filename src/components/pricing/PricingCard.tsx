@@ -31,7 +31,7 @@ export function PricingCard({
       className={`relative flex h-full flex-col rounded-3xl border p-8 transition-[transform,box-shadow,border-color] duration-300 ease-out hover:-translate-y-1.5 motion-reduce:transform-none ${
         featured
           ? "border-sage bg-sage text-cream shadow-[0_8px_28px_-8px_rgba(143,151,121,0.55)] hover:shadow-[0_14px_36px_-10px_rgba(143,151,121,0.65)]"
-          : "border-[#e5e4dc] bg-white-warm text-charcoal hover:border-[#c8c6be] hover:shadow-[0_8px_28px_-8px_rgba(51,51,51,0.18)]"
+          : "border-border bg-white-warm text-charcoal hover:border-[#c8c6be] hover:shadow-[0_8px_28px_-8px_rgba(51,51,51,0.18)]"
       }`}
     >
       {plan.badge && (

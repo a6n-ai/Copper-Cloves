@@ -95,7 +95,7 @@ export default function PartnerDashboard() {
 
           <Card className="border-sage/20 bg-white-warm">
             <CardHeader>
-              <CardTitle className="font-display text-xl text-charcoal">Today&apos;s classes</CardTitle>
+              <CardTitle className="font-body font-semibold text-xl text-charcoal">Today&apos;s classes</CardTitle>
               <CardDescription className="font-body text-charcoal/60">Your sessions scheduled for today</CardDescription>
             </CardHeader>
             <CardContent>

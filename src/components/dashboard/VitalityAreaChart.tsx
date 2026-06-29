@@ -44,7 +44,7 @@ export function VitalityAreaChart({
   );
 
   return (
-    <Card className="h-full rounded-2xl shadow-none border-[#e5e4dc] transition-shadow hover:shadow-[0_4px_24px_rgba(51,51,51,0.08)]">
+    <Card className="h-full rounded-2xl shadow-none border-border transition-shadow hover:shadow-[0_4px_24px_rgba(51,51,51,0.08)]">
       <CardHeader className="border-b">
         <div className="flex items-center gap-3">
           <div className="flex h-12 w-12 items-center justify-center rounded-full bg-primary/10">
@@ -119,7 +119,7 @@ function Stat({
 }) {
   return (
     <div className="text-center">
-      <p className={cn("mb-1 font-display text-2xl text-card-foreground md:text-3xl lg:text-4xl break-all", className)}>
+      <p className={cn("mb-1 font-body font-semibold text-2xl text-card-foreground md:text-3xl lg:text-4xl break-all tabular-nums", className)}>
         {value}
       </p>
       <p className="text-xs text-muted-foreground">{label}</p>

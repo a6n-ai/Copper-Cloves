@@ -30,7 +30,7 @@ import { useIsMobile } from "@/hooks/use-mobile";
 // is a CSS-only pulse and respects prefers-reduced-motion via the global guard.
 function FriendsCardSkeleton() {
   return (
-    <div className="rounded-xl border border-[#e5e4dc] bg-white-warm p-6 space-y-4">
+    <div className="rounded-xl border border-border bg-white-warm p-6 space-y-4">
       <div className="h-6 w-24 rounded-md bg-sage/10 animate-pulse" />
       <div className="space-y-3">
         {Array.from({ length: 3 }).map((_, i) => (
@@ -47,7 +47,7 @@ function OrderHistorySkeleton() {
   return (
     <div className="space-y-3">
       {Array.from({ length: 4 }).map((_, i) => (
-        <div key={i} className="h-16 rounded-xl border border-[#e5e4dc] bg-white-warm animate-pulse" />
+        <div key={i} className="h-16 rounded-xl border border-border bg-white-warm animate-pulse" />
       ))}
     </div>
   );
@@ -138,9 +138,9 @@ const MILESTONES = [
     classes: 75,
     icon: Sun,
     description: "Movement meets mindfulness",
-    color: "text-[#a05e38]",
-    bgColor: "bg-[#a05e38]/10",
-    borderColor: "border-[#a05e38]/25"
+    color: "text-terracotta",
+    bgColor: "bg-terracotta/10",
+    borderColor: "border-terracotta/25"
   },
   {
     id: "immortal",
@@ -148,9 +148,9 @@ const MILESTONES = [
     classes: 150,
     icon: Crown,
     description: "Legendary status achieved",
-    color: "text-[#7a4327]",
-    bgColor: "bg-linear-to-br from-[#a05e38]/12 to-terracotta/10",
-    borderColor: "border-[#a05e38]/30"
+    color: "text-terracotta",
+    bgColor: "bg-linear-to-br from-terracotta/12 to-terracotta/10",
+    borderColor: "border-terracotta/30"
   }
 ];
 
@@ -701,7 +701,7 @@ export default function Dashboard() {
                   <AnimatedIcon icon={Target} size={20} className="text-sage" />
                 </div>
                 <div className="flex-1">
-                  <h3 className="font-display text-lg text-charcoal mb-2">Today's Intention</h3>
+                  <h3 className="font-body font-semibold text-lg text-charcoal mb-2">Today's Intention</h3>
                   {isEditingIntention ? (
                     <div className="flex gap-2">
                       <Input
@@ -738,7 +738,7 @@ export default function Dashboard() {
 
           {/* QUICK BOOK — primary booking actions */}
           <motion.div variants={SECTION_ITEM}>
-            <Card className="rounded-2xl border-[#e5e4dc] bg-white-warm shadow-none">
+            <Card className="rounded-2xl border-border bg-white-warm shadow-none">
               <CardContent className="p-5">
                 <div className="mb-4 flex items-center justify-between gap-3">
                   <div className="flex items-center gap-2.5">
@@ -746,27 +746,27 @@ export default function Dashboard() {
                       <AnimatedIcon icon={Zap} size={18} className="text-sage" />
                     </span>
                     <div>
-                      <h2 className="font-display text-lg text-charcoal">Quick Book</h2>
+                      <h2 className="font-body font-semibold text-lg text-charcoal">Quick Book</h2>
                       <p className="font-body text-xs text-charcoal/55">Fast access to your favourites</p>
                     </div>
                   </div>
                   <button
                     type="button"
                     onClick={() => void router.push("/account#reset-password")}
-                    className="hidden items-center gap-1.5 font-body text-xs text-charcoal/55 transition-colors hover:text-sage lg:inline-flex"
+                    className="hidden items-center gap-1.5 font-body text-xs text-charcoal/55 transition-colors hover:text-sage lg:inline-flex focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sage focus-visible:ring-offset-1"
                   >
                     <Lock className="h-3.5 w-3.5" /> Reset password
                   </button>
                 </div>
 
                 {/* Mobile icon grid — 4 tiles, no scroll, no Scan (bottom-nav FAB handles it) */}
-                <div className="grid grid-cols-4 gap-2 sm:hidden">
+                <div className="grid grid-cols-2 min-[360px]:grid-cols-4 gap-2 sm:hidden">
                   {mobileQuickActions.map(({ icon: Icon, label, action }) => (
                     <button
                       key={label}
                       type="button"
                       onClick={action}
-                      className="flex min-h-16 flex-col items-center justify-center gap-1.5 rounded-lg border border-sage/15 bg-white-warm px-1 py-2 transition-transform active:scale-[0.96]"
+                      className="flex min-h-16 flex-col items-center justify-center gap-1.5 rounded-lg border border-sage/15 bg-white-warm px-1 py-2 transition-transform active:scale-[0.96] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sage focus-visible:ring-offset-1"
                     >
                       <AnimatedIcon icon={Icon} size={20} className="text-sage" />
                       <span className="text-center font-body text-[10px] leading-tight text-charcoal/70">{label}</span>
@@ -779,7 +779,7 @@ export default function Dashboard() {
                   <button
                     type="button"
                     onClick={() => void router.push("/portal/book")}
-                    className="group flex items-center gap-3 rounded-xl bg-sage px-4 py-3.5 text-left text-cream transition-[transform,background-color] duration-200 hover:-translate-y-0.5 hover:bg-[#7A8B7C] focus:outline-none focus-visible:ring-2 focus-visible:ring-sage focus-visible:ring-offset-2"
+                    className="group flex items-center gap-3 rounded-xl bg-sage px-4 py-3.5 text-left text-cream transition-[transform,background-color] duration-200 hover:-translate-y-0.5 hover:bg-sage/90 focus:outline-none focus-visible:ring-2 focus-visible:ring-sage focus-visible:ring-offset-2"
                   >
                     <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-cream/20">
                       <Calendar className="h-5 w-5" />
@@ -794,7 +794,7 @@ export default function Dashboard() {
                   <button
                     type="button"
                     onClick={() => router.push("/portal/packages")}
-                    className="group flex items-center gap-3 rounded-xl border border-[#e5e4dc] bg-white-warm px-4 py-3.5 text-left transition-[border-color,box-shadow,transform] duration-200 hover:-translate-y-0.5 hover:border-[#c8c6be] hover:shadow-[0_4px_24px_rgba(51,51,51,0.08)] focus:outline-none focus-visible:ring-2 focus-visible:ring-sage"
+                    className="group flex items-center gap-3 rounded-xl border border-border bg-white-warm px-4 py-3.5 text-left transition-[border-color,box-shadow,transform] duration-200 hover:-translate-y-0.5 hover:border-[#c8c6be] hover:shadow-[0_4px_24px_rgba(51,51,51,0.08)] focus:outline-none focus-visible:ring-2 focus-visible:ring-sage"
                   >
                     <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-sage/10 text-sage">
                       <Package className="h-4 w-4" />
@@ -805,7 +805,7 @@ export default function Dashboard() {
                   <button
                     type="button"
                     onClick={() => setShowOrderHistory(true)}
-                    className="group flex items-center gap-3 rounded-xl border border-[#e5e4dc] bg-white-warm px-4 py-3.5 text-left transition-[border-color,box-shadow,transform] duration-200 hover:-translate-y-0.5 hover:border-[#c8c6be] hover:shadow-[0_4px_24px_rgba(51,51,51,0.08)] focus:outline-none focus-visible:ring-2 focus-visible:ring-sage"
+                    className="group flex items-center gap-3 rounded-xl border border-border bg-white-warm px-4 py-3.5 text-left transition-[border-color,box-shadow,transform] duration-200 hover:-translate-y-0.5 hover:border-[#c8c6be] hover:shadow-[0_4px_24px_rgba(51,51,51,0.08)] focus:outline-none focus-visible:ring-2 focus-visible:ring-sage"
                   >
                     <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-sage/10 text-sage">
                       <History className="h-4 w-4" />
@@ -816,7 +816,7 @@ export default function Dashboard() {
                   <CheckInScanButton
                     label="Scan check-in"
                     variant="outline"
-                    className="h-auto justify-start gap-3 rounded-xl border-[#e5e4dc] bg-white-warm px-4 py-3.5 font-body text-sm font-medium text-charcoal transition-[border-color,box-shadow,transform] duration-200 hover:-translate-y-0.5 hover:border-[#c8c6be] hover:bg-white-warm hover:text-charcoal hover:shadow-[0_4px_24px_rgba(51,51,51,0.08)]"
+                    className="h-auto justify-start gap-3 rounded-xl border-border bg-white-warm px-4 py-3.5 font-body text-sm font-medium text-charcoal transition-[border-color,box-shadow,transform] duration-200 hover:-translate-y-0.5 hover:border-[#c8c6be] hover:bg-white-warm hover:text-charcoal hover:shadow-[0_4px_24px_rgba(51,51,51,0.08)]"
                   />
                 </div>
               </CardContent>
@@ -826,14 +826,14 @@ export default function Dashboard() {
           {/* TOP ROW — Passes + Path to Mastery as the two lead cards (symmetric) */}
           <motion.div variants={SECTION_ITEM} className="grid grid-cols-1 gap-5 lg:grid-cols-2 lg:gap-8">
             {/* Your Passes */}
-            <Card className="border-[#e5e4dc] bg-white-warm shadow-none transition-shadow hover:shadow-[0_4px_24px_rgba(51,51,51,0.08)]">
+            <Card className="border-border bg-white-warm shadow-none transition-shadow hover:shadow-[0_4px_24px_rgba(51,51,51,0.08)]">
               <CardContent className="flex h-full flex-col p-5 sm:p-6">
                 <div className="mb-4 flex items-center gap-2.5">
                   <span className="flex h-9 w-9 items-center justify-center rounded-full bg-sage/10">
                     <AnimatedIcon icon={CreditCard} size={18} className="text-sage" />
                   </span>
                   <div>
-                    <h2 className="font-display text-lg text-charcoal">Your Passes</h2>
+                    <h2 className="font-body font-semibold text-lg text-charcoal">Your Passes</h2>
                     <p className="font-body text-xs text-charcoal/55">Active packages on your account</p>
                   </div>
                 </div>
@@ -856,10 +856,10 @@ export default function Dashboard() {
                   <button
                     type="button"
                     onClick={() => router.push("/portal/packages")}
-                    className="flex min-h-[180px] flex-1 flex-col items-center justify-center gap-2 rounded-2xl border border-dashed border-sage/30 bg-white-warm p-6 text-center transition-colors duration-200 hover:border-sage/50 hover:bg-sage/5"
+                    className="flex min-h-[180px] flex-1 flex-col items-center justify-center gap-2 rounded-2xl border border-dashed border-sage/30 bg-white-warm p-6 text-center transition-colors duration-200 hover:border-sage/50 hover:bg-sage/5 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sage focus-visible:ring-offset-1"
                   >
                     <Package className="h-7 w-7 text-sage/60" />
-                    <span className="font-display text-lg text-charcoal">No active pass</span>
+                    <span className="font-body font-semibold text-lg text-charcoal">No active pass</span>
                     <span className="font-body text-sm text-charcoal/55">Buy a package to start booking</span>
                   </button>
                 )}
@@ -917,14 +917,14 @@ export default function Dashboard() {
             />
 
             {/* Nourish Quick-Order Café Widget */}
-            <Card className="border-[#e5e4dc] bg-white-warm shadow-none transition-shadow hover:shadow-[0_4px_24px_rgba(51,51,51,0.08)]">
+            <Card className="border-border bg-white-warm shadow-none transition-shadow hover:shadow-[0_4px_24px_rgba(51,51,51,0.08)]">
               <CardContent className="p-5 sm:p-8">
                 <div className="flex items-start gap-4 mb-6">
                   <div className="w-14 h-14 rounded-full bg-sage/10 flex items-center justify-center shrink-0">
                     <AnimatedIcon icon={Coffee} size={28} className="text-sage" />
                   </div>
                   <div className="flex-1">
-                    <h3 className="font-display text-2xl text-charcoal mb-2">Nourish</h3>
+                    <h3 className="font-body font-semibold text-2xl text-charcoal mb-2">Nourish</h3>
                     <p className="font-body text-sm text-charcoal/70">
                       Refuel after your movement session
                     </p>
@@ -934,9 +934,9 @@ export default function Dashboard() {
                 <div className="space-y-3">
                   {lastCafeOrder ? (
                     <>
-                      <div className="p-4 rounded-xl bg-[#fafaf8]/60 border border-sage/10">
+                      <div className="p-4 rounded-xl bg-card/60 border border-sage/10">
                         <p className="font-body text-sm text-charcoal/70 mb-2">Last Order</p>
-                        <p className="font-display text-lg text-charcoal">{lastCafeOrder}</p>
+                        <p className="font-body font-semibold text-lg text-charcoal">{lastCafeOrder}</p>
                       </div>
                       
                       <Button
@@ -948,7 +948,7 @@ export default function Dashboard() {
                       </Button>
                     </>
                   ) : (
-                    <div className="p-4 rounded-xl bg-[#fafaf8]/60 border border-sage/10">
+                    <div className="p-4 rounded-xl bg-card/60 border border-sage/10">
                       <p className="font-body text-sm text-charcoal/70 mb-2">No orders yet</p>
                       <p className="font-body text-xs text-charcoal/60">
                         Try our nourishing café items after your next class
@@ -986,7 +986,7 @@ export default function Dashboard() {
                     <AnimatedIcon icon={Coffee} size={24} className="text-sage" />
                   </div>
                   <div>
-                    <DrawerTitle className="font-display text-3xl text-charcoal">Order History</DrawerTitle>
+                    <DrawerTitle className="font-body font-semibold text-3xl text-charcoal">Order History</DrawerTitle>
                     <DrawerDescription className="font-body text-sm text-charcoal/60">Your Nourish café orders</DrawerDescription>
                   </div>
                 </div>
@@ -1040,7 +1040,7 @@ export default function Dashboard() {
         <div className="fixed inset-0 bg-charcoal/40 flex items-center justify-center p-4 z-50">
           <div className="bg-white-warm rounded-lg shadow-[0_8px_48px_rgba(51,51,51,0.14)] max-w-md w-full p-6">
             <div className="flex justify-between items-start mb-4">
-              <h3 className="font-display text-2xl text-charcoal">Check-In</h3>
+              <h3 className="font-body font-semibold text-2xl text-charcoal">Check-In</h3>
               <CloseButton
                 onClick={() => {
                   setShowCheckIn(false);
@@ -1076,7 +1076,7 @@ export default function Dashboard() {
                       unoptimized
                       className="w-full h-48 object-cover rounded-lg mb-4"
                     />
-                    <h4 className="font-display text-xl text-charcoal mb-2">
+                    <h4 className="font-body font-semibold text-xl text-charcoal mb-2">
                       {className}
                     </h4>
                     <p className="font-body text-sm text-charcoal/60 mb-1">

@@ -58,7 +58,7 @@ export function Pricing() {
                 role="tab"
                 aria-selected={selectedTier === tier}
                 onClick={() => setSelectedTier(tier)}
-                className={`rounded-md px-8 py-2.5 font-body text-sm transition-colors duration-300 ${
+                className={`rounded-md px-8 py-2.5 font-body text-sm transition-colors duration-300 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sage focus-visible:ring-offset-1 ${
                   selectedTier === tier
                     ? "bg-sage text-cream shadow-sm"
                     : "text-charcoal hover:text-sage"
@@ -136,7 +136,7 @@ export function Pricing() {
 /** Tall placeholder mirroring a PricingCard while packages load. */
 function PricingCardSkeleton() {
   return (
-    <div className="flex h-full flex-col rounded-3xl border border-[#e5e4dc] bg-white-warm p-8">
+    <div className="flex h-full flex-col rounded-3xl border border-border bg-white-warm p-8">
       <Skeleton className="h-7 w-2/3" />
       <Skeleton className="mt-2 h-4 w-1/2" />
       <Skeleton className="mt-6 h-10 w-1/2" />
@@ -154,7 +154,7 @@ function PricingCardSkeleton() {
 /** Warm fallback shown when packages fail to load (or none returned). */
 function PricingLoadError({ onRetry }: Readonly<{ onRetry: () => void }>) {
   return (
-    <div className="rounded-3xl border border-[#e5e4dc] bg-white-warm p-10 text-center">
+    <div className="rounded-3xl border border-border bg-white-warm p-10 text-center">
       <p className="font-display text-2xl text-charcoal">We couldn&rsquo;t load the passes.</p>
       <p className="mt-2 font-body text-sm text-charcoal/70">
         Something went wrong fetching pricing. Please try again.

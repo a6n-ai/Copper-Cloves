@@ -48,7 +48,7 @@ export default function AdminActivityPage() {
           <Card className="border-sage/20 bg-white-warm">
             <CardHeader className="space-y-4">
               <div className="space-y-1">
-                <CardTitle className="font-display text-2xl text-charcoal">Activity</CardTitle>
+                <CardTitle className="font-body font-semibold text-2xl text-charcoal">Activity</CardTitle>
                 <CardDescription className="font-body text-charcoal/60">
                   Searchable log of every recorded action
                 </CardDescription>

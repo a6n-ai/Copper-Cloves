@@ -224,7 +224,7 @@ export default function InstructorDashboard() {
                 <Icon className="h-4 w-4 text-sage" />
               </div>
               <div>
-                <p className="font-display text-xl sm:text-2xl text-charcoal leading-none">{value}</p>
+                <p className="font-body font-semibold tabular-nums text-xl sm:text-2xl text-charcoal leading-none">{value}</p>
                 <p className="font-body text-[11px] sm:text-xs text-charcoal/50 mt-0.5 leading-tight">{label}</p>
               </div>
             </div>
@@ -253,7 +253,7 @@ export default function InstructorDashboard() {
             {classes.length === 0 ? (
               <div className="bg-white-warm rounded-2xl border border-sage/10 p-10 text-center">
                 <Dumbbell className="h-10 w-10 text-sage/30 mx-auto mb-3" />
-                <p className="font-display text-lg text-charcoal">No upcoming classes this week</p>
+                <p className="font-body font-semibold text-lg text-charcoal">No upcoming classes this week</p>
                 <p className="font-body text-sm text-charcoal/50 mt-1">Check back when your schedule is updated.</p>
               </div>
             ) : (

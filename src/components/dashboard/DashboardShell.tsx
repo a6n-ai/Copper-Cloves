@@ -210,7 +210,7 @@ export function DashboardShell({ config, user, children }: DashboardShellProps) 
                 <DropdownMenuTrigger asChild>
                   <button
                     type="button"
-                    className="rounded-full cursor-pointer focus:outline-hidden focus:ring-2 focus:ring-sage/40"
+                    className="rounded-full cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sage/40"
                     aria-label="Profile"
                   >
                     <Avatar className="size-8 rounded-full ring-2 ring-sage/30">

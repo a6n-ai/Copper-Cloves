@@ -417,7 +417,7 @@ function FinanceOverviewSectionImpl({
         <CardHeader>
           <div className="flex flex-wrap items-start justify-between gap-3">
             <div>
-              <CardTitle className="font-display text-xl text-charcoal">Revenue, expenses &amp; profit</CardTitle>
+              <CardTitle className="font-body font-semibold text-xl text-charcoal">Revenue, expenses &amp; profit</CardTitle>
               <CardDescription className="font-body text-charcoal/60">Last 6 months, from recorded payments and instructor payouts</CardDescription>
             </div>
             {trend ? (
@@ -438,15 +438,15 @@ function FinanceOverviewSectionImpl({
               <div className="mb-5 grid grid-cols-2 sm:grid-cols-3 gap-3">
                 <div className="rounded-xl border border-sage/15 bg-sage/5 px-4 py-3">
                   <div className="font-body text-xs uppercase tracking-wide text-charcoal/50">This month</div>
-                  <div className="font-display text-2xl text-charcoal tabular-nums">{compactInr(trend.current.revenue)}</div>
+                  <div className="font-body font-semibold text-2xl text-charcoal tabular-nums">{compactInr(trend.current.revenue)}</div>
                 </div>
                 <div className="rounded-xl border border-charcoal/10 bg-white-warm px-4 py-3">
                   <div className="font-body text-xs uppercase tracking-wide text-charcoal/50">This month profit</div>
-                  <div className={`font-display text-2xl tabular-nums ${trend.current.profit >= 0 ? "text-sage" : "text-terracotta"}`}>{compactInr(trend.current.profit)}</div>
+                  <div className={`font-body font-semibold text-2xl tabular-nums ${trend.current.profit >= 0 ? "text-sage" : "text-terracotta"}`}>{compactInr(trend.current.profit)}</div>
                 </div>
                 <div className="col-span-2 sm:col-span-1 rounded-xl border border-charcoal/10 bg-white-warm px-4 py-3">
                   <div className="font-body text-xs uppercase tracking-wide text-charcoal/50 flex items-center gap-1"><Trophy className="h-3.5 w-3.5 text-sage" /> Best month</div>
-                  <div className="font-display text-2xl text-charcoal tabular-nums">
+                  <div className="font-body font-semibold text-2xl text-charcoal tabular-nums">
                     {compactInr(trend.best.revenue)} <span className="font-body text-sm text-charcoal/50">{trend.best.month}</span>
                   </div>
                 </div>
@@ -490,7 +490,7 @@ function FinanceOverviewSectionImpl({
           <CardHeader>
             <div className="flex items-start justify-between gap-2">
               <div>
-                <CardTitle className="font-display text-xl text-charcoal">Where revenue comes from</CardTitle>
+                <CardTitle className="font-body font-semibold text-xl text-charcoal">Where revenue comes from</CardTitle>
                 <CardDescription className="font-body text-charcoal/60">
                   Across {revenueTxnCount} transaction{revenueTxnCount === 1 ? "" : "s"} in view
                 </CardDescription>
@@ -536,7 +536,7 @@ function FinanceOverviewSectionImpl({
           <CardHeader>
             <div className="flex items-start justify-between gap-2">
               <div>
-                <CardTitle className="font-display text-xl text-charcoal">How members pay</CardTitle>
+                <CardTitle className="font-body font-semibold text-xl text-charcoal">How members pay</CardTitle>
                 <CardDescription className="font-body text-charcoal/60">Online vs in-studio, by amount collected</CardDescription>
               </div>
               <Banknote className="h-5 w-5 text-sage/40 shrink-0" />
@@ -556,14 +556,14 @@ function FinanceOverviewSectionImpl({
                     <div className="flex items-center gap-1 font-body text-xs uppercase tracking-wide text-charcoal/50">
                       <Smartphone className="h-3.5 w-3.5 text-sage" /> Online
                     </div>
-                    <div className="font-display text-xl text-charcoal tabular-nums">{compactInr(methods.online)}</div>
+                    <div className="font-body font-semibold text-xl text-charcoal tabular-nums">{compactInr(methods.online)}</div>
                     <div className="font-body text-xs text-charcoal/50">{((methods.online / methods.total) * 100).toFixed(0)}% · Razorpay</div>
                   </div>
                   <div className="rounded-xl border border-terracotta/15 bg-terracotta/5 px-4 py-3">
                     <div className="flex items-center gap-1 font-body text-xs uppercase tracking-wide text-charcoal/50">
                       <Banknote className="h-3.5 w-3.5 text-terracotta" /> In-studio
                     </div>
-                    <div className="font-display text-xl text-charcoal tabular-nums">{compactInr(methods.offline)}</div>
+                    <div className="font-body font-semibold text-xl text-charcoal tabular-nums">{compactInr(methods.offline)}</div>
                     <div className="font-body text-xs text-charcoal/50">{((methods.offline / methods.total) * 100).toFixed(0)}% · cash / card / UPI</div>
                   </div>
                 </div>
@@ -578,7 +578,7 @@ function FinanceOverviewSectionImpl({
         <CardHeader>
           <div className="flex items-center justify-between">
             <div>
-              <CardTitle className="font-display text-2xl text-charcoal">Generate Reports</CardTitle>
+              <CardTitle className="font-body font-semibold text-2xl text-charcoal">Generate Reports</CardTitle>
               <CardDescription className="font-body text-charcoal/60 mt-1">
                 Download financial reports for any time period
               </CardDescription>
@@ -971,7 +971,7 @@ function FinanceTransactionsSectionImpl({
         <CardHeader>
           <div className="flex items-center justify-between mb-4">
             <div>
-              <CardTitle className="font-display text-2xl text-charcoal">Recent Transactions</CardTitle>
+              <CardTitle className="font-body font-semibold text-2xl text-charcoal">Recent Transactions</CardTitle>
               <CardDescription className="font-body text-charcoal/60">All financial activities tracked</CardDescription>
             </div>
             <div className="flex items-center gap-2">
@@ -1060,7 +1060,7 @@ function FinanceTransactionsSectionImpl({
         </CardHeader>
         <CardContent>
           {financeLedgerTransactions.some((t) => t.isFinanceDemo) ? (
-            <p className="mb-4 rounded-lg border border-terracotta/20 bg-terracotta/10 px-3 py-2 font-body text-sm text-[#a05e38]">
+            <p className="mb-4 rounded-lg border border-terracotta/20 bg-terracotta/10 px-3 py-2 font-body text-sm text-destructive">
               Rows marked <strong>Sample</strong> are preview data so you can see Finance-1 layout
               (+N guests, food labels, detail dialog). Real payments appear without that badge.
             </p>
@@ -1116,7 +1116,7 @@ function FinanceTransactionsSectionImpl({
       >
         <ResponsiveDialogContent className="max-h-[85vh] overflow-y-auto border-sage/20 bg-white-warm sm:max-w-lg">
           <ResponsiveDialogHeader>
-            <ResponsiveDialogTitle className="font-display text-charcoal">Finance-1 — transaction detail</ResponsiveDialogTitle>
+            <ResponsiveDialogTitle className="font-body font-semibold text-charcoal">Finance-1 — transaction detail</ResponsiveDialogTitle>
             <ResponsiveDialogDescription className="font-body text-charcoal/70">
               Full breakdown (Razorpay, package vs café amounts, and attendees). Shown only when you open this dialog.
             </ResponsiveDialogDescription>
@@ -1129,7 +1129,7 @@ function FinanceTransactionsSectionImpl({
       <ResponsiveDialog open={editTxn !== null} onOpenChange={(o) => { if (!o) setEditTxn(null); }}>
         <ResponsiveDialogContent className="border-sage/20 bg-white-warm sm:max-w-md">
           <ResponsiveDialogHeader>
-            <ResponsiveDialogTitle className="font-display text-charcoal">Edit payment</ResponsiveDialogTitle>
+            <ResponsiveDialogTitle className="font-body font-semibold text-charcoal">Edit payment</ResponsiveDialogTitle>
             <ResponsiveDialogDescription className="font-body text-charcoal/70">
               {editTxn ? `Manual money-in from ${editTxn.memberFull ?? editTxn.member ?? "member"}` : ""}
             </ResponsiveDialogDescription>
@@ -1265,10 +1265,10 @@ const FinanceRowView = memo(function FinanceRowView({
       onClick={handleClick}
     >
       <TableCell>
-        <div className={`p-2 rounded-lg w-fit ${txn.type === "revenue" ? "bg-sage/10" : "bg-[#a05e38]/10"}`}>
+        <div className={`p-2 rounded-lg w-fit ${txn.type === "revenue" ? "bg-sage/10" : "bg-destructive/10"}`}>
           {txn.type === "revenue"
             ? <TrendingUp className="h-4 w-4 text-sage" />
-            : <TrendingDown className="h-4 w-4 text-[#a05e38]" />}
+            : <TrendingDown className="h-4 w-4 text-destructive" />}
         </div>
       </TableCell>
       <TableCell>
@@ -1307,7 +1307,7 @@ const FinanceRowView = memo(function FinanceRowView({
         </Pill>
       </TableCell>
       <TableCell className="text-right">
-        <span className={`font-body font-semibold text-base tabular-nums ${txn.type === "revenue" ? "text-sage" : "text-[#a05e38]"}`}>
+        <span className={`font-body font-semibold text-base tabular-nums ${txn.type === "revenue" ? "text-sage" : "text-destructive"}`}>
           {formatTxnAmountRupee(txn.amount, txn.type)}
         </span>
       </TableCell>

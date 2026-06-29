@@ -106,7 +106,7 @@ export default function StoryPage() {
       </section>
 
       {/* What you'll find — tinted 3-up cards (echoes the homepage rooms section) */}
-      <section className="bg-linear-to-br from-cream via-[#fafaf8] to-sage/5 py-16 md:py-20">
+      <section className="bg-linear-to-br from-cream via-white-warm to-sage/5 py-16 md:py-20">
         <div className="mx-auto max-w-7xl px-6 lg:px-8">
           <div className="max-w-2xl">
             <p className="font-body text-xs font-semibold uppercase tracking-[0.18em] text-terracotta">
@@ -160,7 +160,7 @@ export default function StoryPage() {
 
       {/* Stats — one dividered unit */}
       <section className="bg-cream py-12">
-        <div className="mx-auto flex max-w-4xl flex-wrap justify-center divide-y divide-[#e5e4dc] px-6 sm:divide-x sm:divide-y-0 lg:px-8">
+        <div className="mx-auto flex max-w-4xl flex-wrap justify-center divide-y divide-border px-6 sm:divide-x sm:divide-y-0 lg:px-8">
           {STATS.map((stat) => (
             <div key={stat.label} className="w-1/2 px-6 py-4 text-center sm:w-auto sm:px-10">
               <p className="font-display text-4xl text-charcoal md:text-5xl">{stat.value}</p>
@@ -173,7 +173,7 @@ export default function StoryPage() {
       </section>
 
       {/* Founder */}
-      <section className="bg-[#f4f3ec] py-16 md:py-20">
+      <section className="bg-muted py-16 md:py-20">
         <div className="mx-auto max-w-7xl px-6 lg:px-8">
           <div className="grid items-start gap-12 lg:grid-cols-[0.85fr_1.15fr]">
             <div className="group relative overflow-hidden rounded-3xl shadow-[0_8px_48px_-8px_rgba(51,51,51,0.14)]">
@@ -264,7 +264,7 @@ export default function StoryPage() {
       </section>
 
       {/* Member voice */}
-      <section className="bg-[#f4f3ec] py-16 md:py-20">
+      <section className="bg-muted py-16 md:py-20">
         <div className="mx-auto max-w-3xl px-6 text-center lg:px-8">
           <blockquote className="font-display text-3xl italic leading-snug text-charcoal/85 md:text-4xl">
             &ldquo;It&rsquo;s not just a gym, it&rsquo;s a community. The vibe is always calm, and I

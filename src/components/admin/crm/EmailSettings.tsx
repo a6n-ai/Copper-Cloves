@@ -170,7 +170,7 @@ export function EmailSettings({ onChanged }: EmailSettingsProps) {
         ) : (
           <div className="flex flex-col items-center justify-center py-24 text-center">
             <Mail className="mb-4 text-sage/40" size={56} aria-hidden />
-            <h3 className="mb-1 font-display text-2xl text-charcoal">Pick a template to edit</h3>
+            <h3 className="mb-1 font-body font-semibold text-2xl text-charcoal">Pick a template to edit</h3>
             <p className="font-body text-sm text-charcoal/60">
               Choose a template on the left, or create a new one.
             </p>

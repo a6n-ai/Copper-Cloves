@@ -188,7 +188,7 @@ function PaymentsInSectionImpl() {
       <Card className="border-sage/20 bg-white-warm">
         <CardHeader>
           <div>
-            <CardTitle className="font-display text-2xl text-charcoal">Money In</CardTitle>
+            <CardTitle className="font-body font-semibold text-2xl text-charcoal">Money In</CardTitle>
             <CardDescription className="font-body text-charcoal/60">
               Offline / non-Razorpay member payments (cash, Pine Lab, direct UPI). Gateway payments live under Finances → Transactions.
             </CardDescription>
@@ -278,7 +278,7 @@ function PaymentsInSectionImpl() {
                               )}
                             </TableCell>
                             <TableCell className="text-right">
-                              <span className="font-display text-base tabular-nums text-sage">+{rupeesFromPaise(p.amountPaise)}</span>
+                              <span className="font-body font-semibold text-base tabular-nums text-sage">+{rupeesFromPaise(p.amountPaise)}</span>
                             </TableCell>
                             <TableCell className="text-right">
                               <div className="flex items-center justify-end gap-1">
@@ -296,7 +296,7 @@ function PaymentsInSectionImpl() {
                                   type="button"
                                   variant="ghost"
                                   size="sm"
-                                  className="h-8 w-8 p-0 text-charcoal/40 hover:text-[#a05e38] hover:bg-[#a05e38]/10"
+                                  className="h-8 w-8 p-0 text-charcoal/40 hover:text-destructive hover:bg-destructive/10"
                                   disabled={deletingId === p.id}
                                   onClick={() => removePayment(p.id)}
                                   aria-label="Delete payment"
@@ -321,7 +321,7 @@ function PaymentsInSectionImpl() {
       <ResponsiveDialog open={editRow !== null} onOpenChange={(o) => { if (!o) setEditRow(null); }}>
         <ResponsiveDialogContent className="border-sage/20 bg-white-warm sm:max-w-md">
           <ResponsiveDialogHeader>
-            <ResponsiveDialogTitle className="font-display text-charcoal">Edit payment</ResponsiveDialogTitle>
+            <ResponsiveDialogTitle className="font-body font-semibold text-charcoal">Edit payment</ResponsiveDialogTitle>
             <ResponsiveDialogDescription className="font-body text-charcoal/60">
               {editRow ? `Manual money-in from ${editRow.member}` : ""}
             </ResponsiveDialogDescription>

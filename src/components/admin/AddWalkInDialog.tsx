@@ -290,7 +290,7 @@ export function AddWalkInDialog({
     <Dialog open={open} onOpenChange={handleOpenChange}>
       <DialogContent className="max-w-lg max-h-[90vh] overflow-y-auto bg-white-warm">
         <DialogHeader>
-          <DialogTitle className="font-display text-2xl text-charcoal">
+          <DialogTitle className="font-body font-semibold text-2xl text-charcoal">
             Add walk-in · step {step} of 3
           </DialogTitle>
           <DialogDescription className="font-body text-charcoal/60">

@@ -216,6 +216,35 @@ export function crmTriggerPill(eventType: string): PillSpec {
   }
 }
 
+// Activity-log category -> pill + label. Replaces the per-file CATEGORY_TONE /
+// CATEGORY_BAR maps in ActivityLogList + ActivityInsights. Tones are semantic
+// (warm — no amber/yellow): money/success-flow events lead with sage, mutating
+// admin/member actions are terracotta-warning, destructive ones danger, neutral
+// for system/observational categories. Label is the category, title-cased.
+export function activityCategoryPill(category: string): PillSpecLabel {
+  const c = (category ?? "").toLowerCase()
+  const label = c ? capitalize(c) : "—"
+  switch (c) {
+    case "auth":
+    case "payment":
+    case "booking":
+      return { tone: "success", label }
+    case "member":
+    case "profile":
+    case "admin":
+      return { tone: "warning", label }
+    case "error":
+    case "security":
+      return { tone: "danger", label }
+    case "instructor":
+    case "partner":
+    case "system":
+      return { tone: "neutral", label }
+    default:
+      return { tone: "neutral", label }
+  }
+}
+
 // Payment method (PaymentMethod enum) -> pill + label
 export function paymentMethodPill(method: string): PillSpec & { label: string } {
   switch (method) {

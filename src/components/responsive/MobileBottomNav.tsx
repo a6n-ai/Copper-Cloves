@@ -57,7 +57,7 @@ export function MobileBottomNav({ config }: { config: PortalConfig }) {
   const renderSlot = (slot: Slot, key: string) => {
     const cls = (active: boolean) =>
       cn(
-        "flex min-h-14 flex-1 flex-col items-center justify-center gap-0.5 text-[10px] font-body transition-colors",
+        "flex min-h-14 flex-1 flex-col items-center justify-center gap-0.5 text-[10px] font-body transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sage focus-visible:ring-inset",
         active ? "text-terracotta" : "text-charcoal/55 hover:text-charcoal",
       );
     if (slot.type === "more") {
@@ -95,7 +95,7 @@ export function MobileBottomNav({ config }: { config: PortalConfig }) {
                 type="button"
                 onClick={() => setScanOpen(true)}
                 aria-label="Scan to check in"
-                className="absolute -top-5 flex h-16 w-16 flex-col items-center justify-center gap-0.5 rounded-full border-4 border-cream bg-terracotta text-cream shadow-lg shadow-terracotta/30 transition-transform active:scale-95"
+                className="absolute -top-5 flex h-16 w-16 flex-col items-center justify-center gap-0.5 rounded-full border-4 border-cream bg-terracotta text-cream shadow-md shadow-terracotta/30 transition-transform active:scale-95 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sage focus-visible:ring-offset-1"
               >
                 <QrCode className="h-6 w-6" />
                 <span className="text-[9px] font-body leading-none">Check in</span>
@@ -111,7 +111,7 @@ export function MobileBottomNav({ config }: { config: PortalConfig }) {
       <Sheet open={moreOpen} onOpenChange={setMoreOpen}>
         <SheetContent side="bottom" className="max-h-[80dvh] overflow-y-auto rounded-t-2xl">
           <SheetHeader>
-            <SheetTitle className="font-display text-charcoal">Menu</SheetTitle>
+            <SheetTitle className="font-body font-semibold text-charcoal">Menu</SheetTitle>
           </SheetHeader>
           <div className="mt-2 space-y-5 pb-[env(safe-area-inset-bottom)]">
             {config.sections.map((section) => (

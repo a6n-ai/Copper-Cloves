@@ -517,7 +517,7 @@ export default function AdminBadgesPage() {
   if (status === "loading" || loading) {
     return (
       <div className="flex items-center justify-center min-h-screen bg-linear-to-br from-cream via-cream to-sage/5">
-        <div className="text-sage font-display text-2xl animate-pulse">Loading badges...</div>
+        <div className="text-sage font-body font-semibold text-2xl animate-pulse">Loading badges...</div>
       </div>
     );
   }
@@ -541,7 +541,7 @@ export default function AdminBadgesPage() {
           </div>
 
           {/* Tabs */}
-          <div className="flex gap-1 bg-[#fafaf8]/60 p-1 rounded-xl shadow-xs border border-sage/10 w-fit mb-8">
+          <div className="flex gap-1 bg-card/60 p-1 rounded-xl shadow-xs border border-sage/10 w-fit mb-8">
             {(["ptm", "custom"] as Tab[]).map((t) => (
               <button
                 key={t}
@@ -563,7 +563,7 @@ export default function AdminBadgesPage() {
               <CardHeader className="space-y-4">
                 <div className="flex flex-wrap items-start justify-between gap-3">
                   <div>
-                    <CardTitle className="font-display text-2xl text-charcoal">
+                    <CardTitle className="font-body font-semibold text-2xl text-charcoal">
                       Path to Mastery <span className="font-body text-base text-charcoal/40">({filteredPtm.length})</span>
                     </CardTitle>
                     <CardDescription className="font-body text-charcoal/60">
@@ -598,7 +598,7 @@ export default function AdminBadgesPage() {
                 {/* New milestone form */}
                 {showAddPtm && (
                   <div className="mb-4">
-                    <h3 className="font-display text-lg text-charcoal mb-1">New Milestone</h3>
+                    <h3 className="font-body font-semibold text-lg text-charcoal mb-1">New Milestone</h3>
                     {renderBadgeForm(
                       ptmForm,
                       setPtmForm,
@@ -730,7 +730,7 @@ export default function AdminBadgesPage() {
               {/* Left: template list + create form */}
               <div className="space-y-4">
                 <div className="flex items-center justify-between">
-                  <h2 className="font-display text-xl text-charcoal">Custom Badges</h2>
+                  <h2 className="font-body font-semibold text-xl text-charcoal">Custom Badges</h2>
                   <Button
                     size="sm"
                     onClick={() => setShowCreateCustom(!showCreateCustom)}
@@ -744,7 +744,7 @@ export default function AdminBadgesPage() {
                 {showCreateCustom && (
                   <Card className="border-0 bg-white-warm shadow-xs">
                     <CardContent className="p-5">
-                      <h3 className="font-display text-lg text-charcoal mb-2">New Custom Badge</h3>
+                      <h3 className="font-body font-semibold text-lg text-charcoal mb-2">New Custom Badge</h3>
                       {renderBadgeForm(customForm, setCustomForm, createCustom, () => {
                         setShowCreateCustom(false);
                         setCustomForm(emptyForm());
@@ -825,7 +825,7 @@ export default function AdminBadgesPage() {
                 {/* Member of the Month */}
                 <Card className="border-0 bg-sage/5 shadow-xs mt-6">
                   <CardHeader className="pb-2">
-                    <CardTitle className="font-display text-lg text-charcoal flex items-center gap-2">
+                    <CardTitle className="font-body font-semibold text-lg text-charcoal flex items-center gap-2">
                       <Star size={18} className="text-terracotta" />
                       Member of the Month
                     </CardTitle>
@@ -864,7 +864,7 @@ export default function AdminBadgesPage() {
                 {selectedCustomTemplate ? (
                   <Card className="border-0 bg-white-warm shadow-xs sticky top-24">
                     <CardHeader className="pb-2">
-                      <CardTitle className="font-display text-lg text-charcoal flex items-center gap-3">
+                      <CardTitle className="font-body font-semibold text-lg text-charcoal flex items-center gap-3">
                         <span className="text-2xl">{selectedCustomTemplate.icon}</span>
                         Allocate: {selectedCustomTemplate.name}
                       </CardTitle>

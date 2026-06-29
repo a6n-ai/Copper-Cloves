@@ -107,7 +107,7 @@ function PricingTabImpl({
       </div>
       <Card className="border-sage/20 bg-white-warm">
         <CardHeader>
-          <CardTitle className="font-display text-2xl text-charcoal">Coupons & discounts</CardTitle>
+          <CardTitle className="font-body font-semibold text-2xl text-charcoal">Coupons & discounts</CardTitle>
           <CardDescription className="font-body text-charcoal/60">
             Create codes for Food (café), Ecommerce (boutique), Class pass, or Studio pass. Members enter a code at checkout.
           </CardDescription>
@@ -332,7 +332,7 @@ function PricingTabImpl({
                               <Button type="button" size="sm" variant="sage-outline" className="h-8" onClick={() => onEdit(c)}>
                                 Edit
                               </Button>
-                              <Button type="button" size="sm" variant="outline" className="border-[#a05e38]/25 text-[#a05e38] hover:bg-[#a05e38]/10 font-body h-8" onClick={() => onDelete(c.id)}>
+                              <Button type="button" size="sm" variant="destructive" className="font-body h-8" onClick={() => onDelete(c.id)}>
                                 Delete
                               </Button>
                             </div>

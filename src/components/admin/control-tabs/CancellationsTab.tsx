@@ -114,7 +114,7 @@ export default function CancellationsTab() {
     <Card className="border-sage/20 bg-white-warm">
       <CardHeader className="flex flex-row items-start justify-between gap-3">
         <div>
-          <CardTitle className="font-display text-2xl text-charcoal">Cancellation & Refund Requests</CardTitle>
+          <CardTitle className="font-body font-semibold text-2xl text-charcoal">Cancellation & Refund Requests</CardTitle>
           <CardDescription className="font-body text-charcoal/60">
             Late-cancel requests (approve → cancel + 1 Class Pass refund) and member refund requests on
             already-cancelled classes (choose a class pass or a ₹ refund).

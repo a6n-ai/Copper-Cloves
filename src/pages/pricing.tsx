@@ -106,14 +106,14 @@ export default function PricingPage() {
         blurb="Buy a bundle of classes and use them at your own pace. Perfect for trying the studio or fitting movement around a full calendar."
         plans={classPlans}
         onSelect={handleSelect}
-        background="bg-[#f4f3ec]"
+        background="bg-muted"
         align="right"
         isLoading={isLoading}
         onRetry={retry}
       />
 
       {/* What every pass includes — editorial bento, echoes the homepage rooms section */}
-      <section className="bg-linear-to-br from-cream via-[#fafaf8] to-sage/5 py-16 md:py-20">
+      <section className="bg-linear-to-br from-cream via-white-warm to-sage/5 py-16 md:py-20">
         <div className="mx-auto max-w-7xl px-6 lg:px-8">
           <div className="max-w-2xl">
             <p className="font-body text-xs font-semibold uppercase tracking-[0.18em] text-terracotta">
@@ -227,7 +227,7 @@ function PlanSection({
 /** Tall placeholder mirroring a PricingCard while packages load. */
 function PricingCardSkeleton() {
   return (
-    <div className="flex h-full flex-col rounded-3xl border border-[#e5e4dc] bg-white-warm p-8">
+    <div className="flex h-full flex-col rounded-3xl border border-border bg-white-warm p-8">
       <Skeleton className="h-7 w-2/3" />
       <Skeleton className="mt-2 h-4 w-1/2" />
       <Skeleton className="mt-6 h-10 w-1/2" />
@@ -245,7 +245,7 @@ function PricingCardSkeleton() {
 /** Warm fallback shown when packages fail to load (or none returned). */
 function PricingLoadError({ onRetry }: Readonly<{ onRetry: () => void }>) {
   return (
-    <div className="rounded-3xl border border-[#e5e4dc] bg-white-warm p-10 text-center">
+    <div className="rounded-3xl border border-border bg-white-warm p-10 text-center">
       <p className="font-display text-2xl text-charcoal">We couldn&rsquo;t load the passes.</p>
       <p className="mt-2 font-body text-sm text-charcoal/70">
         Something went wrong fetching pricing. Please try again.

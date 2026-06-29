@@ -507,11 +507,11 @@ function MemberBody({
   return (
     <>
       {/* Identity band */}
-      <section className="overflow-hidden rounded-2xl border border-sage/20 bg-linear-to-br from-sage/[0.08] via-[#fafaf8] to-cream/40 shadow-xs">
+      <section className="overflow-hidden rounded-2xl border border-sage/20 bg-linear-to-br from-sage/[0.08] via-card to-cream/40 shadow-xs">
         <div className="grid grid-cols-1 gap-6 p-6 md:grid-cols-[auto_1fr_auto] md:items-center">
           <ListAvatar name={member.name} src={member.avatarUrl} size="lg" />
           <div className="min-w-0">
-            <h2 className="font-display text-3xl text-charcoal truncate">{member.name}</h2>
+            <h2 className="font-body font-semibold text-3xl text-charcoal truncate">{member.name}</h2>
             <div className="mt-2.5 flex flex-wrap items-center gap-x-4 gap-y-1.5 font-body text-xs text-charcoal/65">
               {member.email && (
                 <a href={`mailto:${member.email}`} className="inline-flex items-center gap-1.5 transition-colors hover:text-sage">
@@ -764,7 +764,7 @@ function MemberBody({
           {/* Current pass — single source of truth */}
           <Card className="rounded-2xl shadow-xs">
             <CardHeader className="pb-3">
-              <CardTitle className="font-display text-lg text-charcoal flex items-center gap-2">
+              <CardTitle className="font-body font-semibold text-lg text-charcoal flex items-center gap-2">
                 <CreditCard className="h-4 w-4 text-sage" /> Current pass
               </CardTitle>
             </CardHeader>
@@ -772,7 +772,7 @@ function MemberBody({
               {member.activePackageId ? (
                 <div className="space-y-3">
                   <div className="flex items-center gap-2">
-                    <span className="font-display text-2xl text-charcoal">{passLabel}</span>
+                    <span className="font-body font-semibold text-2xl text-charcoal">{passLabel}</span>
                     {member.activePaused && <Pill tone="warning" className="font-body">Paused</Pill>}
                   </div>
                   <dl className="space-y-0 divide-y divide-sage/10 text-sm">
@@ -801,7 +801,7 @@ function MemberBody({
           {/* Profile details */}
           <Card className="rounded-2xl shadow-xs">
             <CardHeader className="pb-3">
-              <CardTitle className="font-display text-lg text-charcoal flex items-center gap-2">
+              <CardTitle className="font-body font-semibold text-lg text-charcoal flex items-center gap-2">
                 <UserIcon className="h-4 w-4 text-sage" /> Profile
               </CardTitle>
             </CardHeader>
@@ -918,7 +918,7 @@ function EditProfileDialog({
     <ResponsiveDialog open={open} onOpenChange={onOpenChange}>
       <ResponsiveDialogContent className="sm:max-w-[440px] bg-white-warm border-sage/20">
         <ResponsiveDialogHeader>
-          <ResponsiveDialogTitle className="font-display text-2xl text-charcoal">Edit profile</ResponsiveDialogTitle>
+          <ResponsiveDialogTitle className="font-body font-semibold text-2xl text-charcoal">Edit profile</ResponsiveDialogTitle>
           <ResponsiveDialogDescription className="font-body text-charcoal/60">
             Update {member.name}&apos;s contact details. Email and login are unchanged.
           </ResponsiveDialogDescription>
@@ -1047,7 +1047,7 @@ function ManagePassDialog({
     <ResponsiveDialog open={open} onOpenChange={onOpenChange}>
       <ResponsiveDialogContent className="sm:max-w-[520px] bg-white-warm border-sage/20">
         <ResponsiveDialogHeader>
-          <ResponsiveDialogTitle className="font-display text-2xl text-charcoal">
+          <ResponsiveDialogTitle className="font-body font-semibold text-2xl text-charcoal">
             {step === "form" ? `Assign pass · ${member.name}` : "Review & confirm"}
           </ResponsiveDialogTitle>
           <ResponsiveDialogDescription className="font-body text-charcoal/60">
@@ -1098,7 +1098,7 @@ function ManagePassDialog({
               {pkg && (
                 <div className="mr-auto flex flex-col justify-center font-body leading-tight">
                   <span className="text-[11px] uppercase tracking-wide text-charcoal/45">Payable</span>
-                  <span className="font-display text-lg text-charcoal tabular-nums">{isFree ? "Free" : formatINR(finalPaise)}</span>
+                  <span className="font-body font-semibold text-lg text-charcoal tabular-nums">{isFree ? "Free" : formatINR(finalPaise)}</span>
                 </div>
               )}
               <Button variant="outline" onClick={() => onOpenChange(false)} className="border-charcoal/20 text-charcoal hover:bg-charcoal/5 font-body">
@@ -1128,7 +1128,7 @@ function ConfirmRow({ label, value, strong }: { label: string; value: string; st
   return (
     <div className="flex items-center justify-between border-b border-sage/10 py-2">
       <span className="text-charcoal/55">{label}</span>
-      <span className={strong ? "font-display text-base text-charcoal tabular-nums" : "text-charcoal"}>{value}</span>
+      <span className={strong ? "font-body font-semibold text-base text-charcoal tabular-nums" : "text-charcoal"}>{value}</span>
     </div>
   );
 }
@@ -1156,7 +1156,7 @@ function StatCell({
         <Icon className={`h-3.5 w-3.5 ${tone === "clay" ? "text-terracotta" : "text-sage"}`} />
         {label}
       </div>
-      <div className={`mt-1 font-display text-charcoal ${small ? "text-base" : "text-2xl"} ${tone === "clay" && typeof value === "number" && value > 0 ? "text-terracotta" : ""}`}>
+      <div className={`mt-1 font-body font-semibold text-charcoal ${small ? "text-base" : "text-2xl"} ${tone === "clay" && typeof value === "number" && value > 0 ? "text-terracotta" : ""}`}>
         {value}
       </div>
       {hint && <div className="font-body text-[11px] text-charcoal/40">{hint}</div>}
@@ -1178,7 +1178,7 @@ function SectionCard({
   return (
     <Card className="rounded-2xl shadow-xs">
       <CardHeader className="pb-3">
-        <CardTitle className="font-display text-lg text-charcoal flex items-center gap-2">
+        <CardTitle className="font-body font-semibold text-lg text-charcoal flex items-center gap-2">
           <Icon className="h-4 w-4 text-sage" />
           {title}
           <span className="font-body text-sm text-charcoal/40">({count})</span>

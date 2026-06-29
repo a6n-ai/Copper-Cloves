@@ -34,7 +34,7 @@ function TemplateRow({
       }`}
     >
       <div className="flex items-start justify-between gap-3">
-        <h4 className="min-w-0 flex-1 truncate font-display text-base text-charcoal" style={{ textWrap: "balance" }}>
+        <h4 className="min-w-0 flex-1 truncate font-body font-semibold text-base text-charcoal" style={{ textWrap: "balance" }}>
           {t.name}
         </h4>
         <div className="flex shrink-0 items-center gap-1.5">
@@ -81,7 +81,7 @@ function TemplateListBase({ templates, selectedId, onSelect, onCreate }: Templat
   return (
     <div className="flex flex-col gap-5">
       <div className="flex items-center justify-between">
-        <h3 className="font-display text-xl text-charcoal">Email templates</h3>
+        <h3 className="font-body font-semibold text-xl text-charcoal">Email templates</h3>
         <Button onClick={onCreate} variant="sage" size="sm" className="shrink-0">
           <Plus size={16} className="mr-1.5" aria-hidden />
           New

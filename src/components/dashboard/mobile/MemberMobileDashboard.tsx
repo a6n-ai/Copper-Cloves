@@ -156,13 +156,13 @@ export function MemberMobileDashboard({
               <Input
                 value={dailyIntention}
                 onChange={(e) => onIntentionChange(e.target.value)}
-                className="h-9 flex-1 border-cream/30 bg-[#fafaf8]/90 text-charcoal font-body text-sm"
+                className="h-9 flex-1 border-cream/30 bg-card/90 text-charcoal font-body text-sm"
                 placeholder="Set your focus for today..."
               />
               <Button
                 size="sm"
                 onClick={() => onToggleEditIntention(false)}
-                className="bg-white-warm text-sage hover:bg-[#fafaf8]/90 font-body"
+                className="bg-white-warm text-sage hover:bg-card/90 font-body"
               >
                 Save
               </Button>
@@ -173,7 +173,7 @@ export function MemberMobileDashboard({
               <button
                 type="button"
                 onClick={() => onToggleEditIntention(true)}
-                className="shrink-0 font-body text-xs text-cream/80 underline-offset-2 hover:underline"
+                className="shrink-0 font-body text-xs text-cream/80 underline-offset-2 hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sage focus-visible:ring-offset-1"
               >
                 Edit
               </button>
@@ -221,7 +221,7 @@ export function MemberMobileDashboard({
 
       {/* Your passes — lead card */}
       {activePasses.length > 0 && (
-        <Card className="border-[#e5e4dc] bg-white-warm shadow-none">
+        <Card className="border-border bg-white-warm shadow-none">
           <CardContent className="p-4">
             <h2 className="mb-3 px-0.5 font-body text-xs uppercase tracking-wide text-charcoal/45">Your passes</h2>
             <div className="space-y-3">
@@ -261,7 +261,7 @@ export function MemberMobileDashboard({
               key={label}
               type="button"
               onClick={action}
-              className="flex min-h-16 flex-col items-center justify-center gap-1.5 rounded-lg border border-sage/15 bg-white-warm px-1 py-2 active:scale-[0.96] transition-transform"
+              className="flex min-h-16 flex-col items-center justify-center gap-1.5 rounded-lg border border-sage/15 bg-white-warm px-1 py-2 active:scale-[0.96] transition-transform focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sage focus-visible:ring-offset-1"
             >
               <AnimatedIcon icon={Icon} size={20} className="text-sage" />
               <span className="text-center text-[10px] font-body leading-tight text-charcoal/70">{label}</span>

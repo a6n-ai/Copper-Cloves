@@ -175,7 +175,7 @@ function TriggersTab(props: TriggersTabProps) {
       <Card className="border-sage/20 bg-white-warm">
         <CardContent className="flex flex-col items-center justify-center py-20">
           <Zap className="text-sage/40 mb-4" size={64} />
-          <h3 className="font-display text-2xl text-charcoal mb-2">No Triggers Set</h3>
+          <h3 className="font-body font-semibold text-2xl text-charcoal mb-2">No Triggers Set</h3>
           <p className="font-body text-charcoal/60 mb-6">Create automated triggers to engage members at the right moment</p>
           <Button onClick={onCreate} variant="sage">
             <Plus size={20} className="mr-2" />
@@ -191,7 +191,7 @@ function TriggersTab(props: TriggersTabProps) {
       <CardHeader className="space-y-4">
         <div className="flex flex-wrap items-start justify-between gap-3">
           <div className="space-y-1">
-            <CardTitle className="font-display text-2xl text-charcoal">Automation Triggers</CardTitle>
+            <CardTitle className="font-body font-semibold text-2xl text-charcoal">Automation Triggers</CardTitle>
             <CardDescription className="font-body text-charcoal/60">
               {total} of {triggers.length} {triggers.length === 1 ? "trigger" : "triggers"}
               {filtersDirty ? " match your filters" : " — fired automatically on member events"}
@@ -247,7 +247,7 @@ function TriggersTab(props: TriggersTabProps) {
 
               <div className="min-w-0 flex-1">
                 <div className="flex flex-wrap items-center gap-2">
-                  <h3 className="font-display text-lg text-charcoal truncate">{trigger.name}</h3>
+                  <h3 className="font-body font-semibold text-lg text-charcoal truncate">{trigger.name}</h3>
                   {!trigger.is_active && (
                     <Pill tone="neutral">Paused</Pill>
                   )}
@@ -503,7 +503,7 @@ export default function CRMPage() {
               <CardHeader className="space-y-4">
                 <div className="flex flex-wrap items-start justify-between gap-3">
                   <div className="space-y-1">
-                    <CardTitle className="font-display text-2xl text-charcoal">Message Log</CardTitle>
+                    <CardTitle className="font-body font-semibold text-2xl text-charcoal">Message Log</CardTitle>
                     <CardDescription className="font-body text-charcoal/60">
                       Every message sent or scheduled to members
                     </CardDescription>
@@ -553,7 +553,7 @@ export default function CRMPage() {
             </Card>
 
             <div className="space-y-3">
-              <h2 className="font-display text-xl text-charcoal">Message analytics</h2>
+              <h2 className="font-body font-semibold text-xl text-charcoal">Message analytics</h2>
               <CrmAnalytics refreshKey={crmRefresh} />
             </div>
             </TabsContent>
@@ -587,7 +587,7 @@ export default function CRMPage() {
       >
         <ResponsiveDialogContent className="max-w-lg max-h-[90vh] overflow-y-auto">
           <ResponsiveDialogHeader>
-            <ResponsiveDialogTitle className="font-display text-2xl text-charcoal">
+            <ResponsiveDialogTitle className="font-body font-semibold text-2xl text-charcoal">
               {editingTrigger ? "Edit Automation Trigger" : "Create Automation Trigger"}
             </ResponsiveDialogTitle>
             <ResponsiveDialogDescription className="font-body text-charcoal/60">

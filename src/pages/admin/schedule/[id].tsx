@@ -135,7 +135,7 @@ function ClassDetailSkeleton() {
       </div>
 
       {/* Instructor hero card */}
-      <div className="relative overflow-hidden rounded-2xl border border-sage/15 bg-linear-to-br from-sage/8 via-[#fafaf8] to-cream/30 shadow-xs">
+      <div className="relative overflow-hidden rounded-2xl border border-sage/15 bg-linear-to-br from-sage/8 via-card to-cream/30 shadow-xs">
         <div className="grid grid-cols-1 gap-6 p-6 md:grid-cols-[1fr_auto_1fr] md:items-center relative">
           <div className="flex items-center gap-5">
             <Skeleton className="size-16 rounded-full bg-sage/15" />
@@ -564,7 +564,7 @@ export default function AdminClassPage() {
                   const taught = roster.actualInstructor ?? roster.instructor;
                   const initial = (taught ?? "I").slice(0, 1).toUpperCase();
                   return (
-                    <div className="relative overflow-hidden rounded-2xl border border-sage/20 bg-linear-to-br from-sage/8 via-[#fafaf8] to-cream/30 shadow-xs">
+                    <div className="relative overflow-hidden rounded-2xl border border-sage/20 bg-linear-to-br from-sage/8 via-card to-cream/30 shadow-xs">
                       <div className="relative grid grid-cols-1 gap-6 p-6 md:grid-cols-[1fr_auto_1fr] md:items-center">
                         {/* Instructor identity — clickable to profile */}
                         {(() => {
@@ -572,7 +572,7 @@ export default function AdminClassPage() {
                           const inner = (
                             <>
                               <div className="relative shrink-0">
-                                <div className="size-16 rounded-full bg-linear-to-br from-sage to-sage/70 text-cream font-display text-2xl flex items-center justify-center ring-4 ring-cream shadow-md">
+                                <div className="size-16 rounded-full bg-linear-to-br from-sage to-sage/70 text-cream font-body font-semibold text-2xl flex items-center justify-center ring-4 ring-cream shadow-md">
                                   {initial}
                                 </div>
                                 <div className="absolute -bottom-1 -right-1 size-6 rounded-full bg-white-warm shadow-sm flex items-center justify-center">
@@ -581,7 +581,7 @@ export default function AdminClassPage() {
                               </div>
                               <div className="min-w-0">
                                 <p className="font-body text-[11px] uppercase tracking-[0.18em] text-charcoal/50">Teaching today</p>
-                                <p className="font-display text-2xl text-charcoal truncate mt-0.5 group-hover:text-sage transition-colors">{taught}</p>
+                                <p className="font-body font-semibold text-2xl text-charcoal truncate mt-0.5 group-hover:text-sage transition-colors">{taught}</p>
                                 {isSub ? (
                                   <p className="font-body text-xs text-terracotta mt-1 inline-flex items-center gap-1.5">
                                     <span className="size-1.5 rounded-full bg-terracotta" />
@@ -669,7 +669,7 @@ export default function AdminClassPage() {
                 {isLocked && !qr?.instructorQrUrl && !qr?.memberQrUrl ? (
                   <Card className="rounded-2xl shadow-xs">
                     <CardContent className="p-6 text-center">
-                      <p className="font-display text-lg text-charcoal/70">
+                      <p className="font-body font-semibold text-lg text-charcoal/70">
                         Check-in is closed
                       </p>
                       <p className="text-sm text-muted-foreground mt-1">
@@ -680,7 +680,7 @@ export default function AdminClassPage() {
                 ) : (
                 <Card className="rounded-2xl shadow-xs">
                   <CardHeader className="flex flex-row items-center justify-between gap-2 flex-wrap">
-                    <CardTitle className="font-display text-xl text-charcoal">Check-in QR codes</CardTitle>
+                    <CardTitle className="font-body font-semibold text-xl text-charcoal">Check-in QR codes</CardTitle>
                     {!isLocked && !qr?.historical && (
                       <Button
                         type="button"
@@ -724,7 +724,7 @@ export default function AdminClassPage() {
                 {/* Roster */}
                 <Card className="rounded-2xl shadow-xs">
                   <CardHeader className="flex flex-row items-center justify-between gap-2 flex-wrap">
-                    <CardTitle className="font-display text-xl text-charcoal">Roster ({roster.bookings.length})</CardTitle>
+                    <CardTitle className="font-body font-semibold text-xl text-charcoal">Roster ({roster.bookings.length})</CardTitle>
                     <Button
                       type="button"
                       size="sm"
@@ -747,7 +747,7 @@ export default function AdminClassPage() {
                         />
                       </div>
                       {results.length > 0 ? (
-                        <div className="absolute z-10 mt-1 w-full rounded-lg border border-sage/20 bg-white-warm shadow-lg">
+                        <div className="absolute z-10 mt-1 w-full rounded-lg border border-sage/20 bg-white-warm shadow-md">
                           {results.map((m) => (
                             <button
                               key={m.id}
@@ -877,7 +877,7 @@ export default function AdminClassPage() {
       <Dialog open={editOpen} onOpenChange={setEditOpen}>
         <DialogContent className="max-w-lg max-h-[90vh] overflow-y-auto bg-white-warm">
           <DialogHeader>
-            <DialogTitle className="font-display text-2xl text-charcoal">Edit class</DialogTitle>
+            <DialogTitle className="font-body font-semibold text-2xl text-charcoal">Edit class</DialogTitle>
           </DialogHeader>
           <div className="space-y-4">
             <div className="space-y-1.5">
@@ -955,7 +955,7 @@ export default function AdminClassPage() {
       <Dialog open={statusEditOpen} onOpenChange={setStatusEditOpen}>
         <DialogContent className="sm:max-w-md">
           <DialogHeader>
-            <DialogTitle className="font-display text-charcoal">Change class status</DialogTitle>
+            <DialogTitle className="font-body font-semibold text-charcoal">Change class status</DialogTitle>
           </DialogHeader>
           <div className="space-y-3 py-2">
             <div className="grid grid-cols-1 gap-2">
@@ -979,7 +979,7 @@ export default function AdminClassPage() {
                   >
                     <span className={cn(
                       "inline-flex items-center justify-center size-5 rounded-full border-2 shrink-0 transition-colors",
-                      selected ? "bg-[#fafaf8]/95 border-cream/95" : "bg-white-warm border-current/40",
+                      selected ? "bg-card/95 border-cream/95" : "bg-white-warm border-current/40",
                     )}>
                       {selected && <span className="size-2 rounded-full bg-current opacity-80" style={{ color: "var(--color-sage)" }} />}
                     </span>

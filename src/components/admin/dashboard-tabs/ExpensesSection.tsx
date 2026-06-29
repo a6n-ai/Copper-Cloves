@@ -202,7 +202,7 @@ function ExpensesSectionImpl() {
         <CardHeader>
           <div className="flex flex-wrap items-center justify-between gap-3">
             <div>
-              <CardTitle className="font-display text-2xl text-charcoal">Money Out</CardTitle>
+              <CardTitle className="font-body font-semibold text-2xl text-charcoal">Money Out</CardTitle>
               <CardDescription className="font-body text-charcoal/60">Payouts, café meals, rent, and other costs</CardDescription>
             </div>
             <Button type="button" variant="sage" onClick={() => setAddOpen(true)}>
@@ -305,14 +305,14 @@ function ExpensesSectionImpl() {
                               )}
                             </TableCell>
                             <TableCell className="text-right">
-                              <span className="font-display text-base tabular-nums text-[#a05e38]">−{rupeesFromPaise(e.amountPaise)}</span>
+                              <span className="font-body font-semibold text-base tabular-nums text-destructive">−{rupeesFromPaise(e.amountPaise)}</span>
                             </TableCell>
                             <TableCell className="text-right">
                               <Button
                                 type="button"
                                 variant="ghost"
                                 size="sm"
-                                className="h-8 w-8 p-0 text-charcoal/40 hover:text-[#a05e38] hover:bg-[#a05e38]/10"
+                                className="h-8 w-8 p-0 text-charcoal/40 hover:text-destructive hover:bg-destructive/10"
                                 disabled={deletingId === e.id}
                                 onClick={() => removeExpense(e.id)}
                                 aria-label="Delete expense"
@@ -338,7 +338,7 @@ function ExpensesSectionImpl() {
       <ResponsiveDialog open={addOpen} onOpenChange={(o) => { setAddOpen(o); if (!o) setForm(EMPTY_FORM); }}>
         <ResponsiveDialogContent className="border-sage/20 bg-white-warm sm:max-w-md">
           <ResponsiveDialogHeader>
-            <ResponsiveDialogTitle className="font-display text-charcoal">Add expense</ResponsiveDialogTitle>
+            <ResponsiveDialogTitle className="font-body font-semibold text-charcoal">Add expense</ResponsiveDialogTitle>
             <ResponsiveDialogDescription className="font-body text-charcoal/60">
               Record a cost paid offline (café meal, rent, supplies, a manual payout, etc.)
             </ResponsiveDialogDescription>

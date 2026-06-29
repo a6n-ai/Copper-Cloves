@@ -175,7 +175,7 @@ function CheckInTabImpl({
     return (
       <div className="bg-white-warm rounded-2xl border border-sage/10 p-10 text-center">
         <AlertCircle className="h-10 w-10 text-sage/30 mx-auto mb-3" />
-        <p className="font-display text-lg text-charcoal">No classes today</p>
+        <p className="font-body font-semibold text-lg text-charcoal">No classes today</p>
         <p className="font-body text-sm text-charcoal/50 mt-1">Check-in is only available for today&apos;s classes.</p>
       </div>
     );
@@ -190,7 +190,7 @@ function CheckInTabImpl({
             <button
               key={cls.id}
               onClick={() => onSelectClass(cls.id)}
-              className={`font-body text-sm px-4 py-2 rounded-full border transition-colors ${
+              className={`font-body text-sm px-4 py-2 rounded-full border transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sage focus-visible:ring-offset-1 ${
                 selectedClassId === cls.id
                   ? "bg-sage text-cream border-sage"
                   : "bg-white-warm text-charcoal border-sage/20 hover:border-sage/40"
@@ -207,7 +207,7 @@ function CheckInTabImpl({
           {/* Class header */}
           <div className="px-5 py-4 border-b border-sage/10 flex items-center justify-between">
             <div>
-              <h2 className="font-display text-xl text-charcoal">{selectedClass.className}</h2>
+              <h2 className="font-body font-semibold text-xl text-charcoal">{selectedClass.className}</h2>
               <p className="font-body text-sm text-charcoal/60 mt-0.5">
                 {format(new Date(selectedClass.startTime), "h:mm a")} –{" "}
                 {format(new Date(selectedClass.endTime), "h:mm a")}
@@ -273,13 +273,15 @@ function CheckInTabImpl({
         </div>
       ) : null}
 
-      <button
+      <Button
+        variant="ghost"
+        size="sm"
         onClick={onBack}
-        className="flex items-center gap-1.5 font-body text-sm text-charcoal/50 hover:text-charcoal transition-colors"
+        className="gap-1.5 text-charcoal/50 hover:text-charcoal"
       >
         <ArrowLeft className="h-4 w-4" />
         Back to overview
-      </button>
+      </Button>
     </div>
   );
 }

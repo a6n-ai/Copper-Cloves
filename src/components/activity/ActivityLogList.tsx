@@ -3,7 +3,8 @@ import { Pill, type PillProps } from "@/components/ui/pill";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { ResponsiveTable } from "@/components/responsive/ResponsiveTable";
 import { Pagination } from "@/components/Pagination";
-import { ArrowDown, ArrowUp, ChevronsUpDown } from "lucide-react";
+import { ArrowDown, ArrowUp, ChevronsUpDown, ListX } from "lucide-react";
+import { EmptyState } from "@/components/ui/empty-state";
 
 type SortField = "summary" | "category" | "actor_name" | "created_at";
 type SortDir = "asc" | "desc";
@@ -104,7 +105,7 @@ function SortHead({
       <button
         type="button"
         onClick={() => onSort(field)}
-        className={`inline-flex items-center gap-1.5 transition-colors hover:text-charcoal ${active ? "text-charcoal" : ""}`}
+        className={`inline-flex items-center gap-1.5 rounded transition-colors hover:text-charcoal focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sage focus-visible:ring-offset-1 ${active ? "text-charcoal" : ""}`}
       >
         {label}
         <Icon className={`h-3.5 w-3.5 ${active ? "text-sage" : "text-charcoal/30"}`} />
@@ -141,7 +142,7 @@ function ActivityDetailDialog({
         {item ? (
           <>
             <ResponsiveDialogHeader>
-              <ResponsiveDialogTitle className="font-display text-xl text-charcoal flex items-center gap-2">
+              <ResponsiveDialogTitle className="font-body font-semibold text-xl text-charcoal flex items-center gap-2">
                 {item.summary}
                 <Pill tone={categoryTone(item.category)}>
                   {item.category}
@@ -262,7 +263,7 @@ export function ActivityLogList({
   };
 
   if (loaded && items.length === 0) {
-    return <p className="font-body text-sm text-charcoal/50 py-6 text-center">{emptyLabel}</p>;
+    return <EmptyState icon={ListX} title={emptyLabel} />;
   }
 
   return (

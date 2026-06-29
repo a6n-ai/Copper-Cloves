@@ -289,7 +289,7 @@ export function PassCard({
         <div className="relative flex items-start justify-between">
           <ChipGlyph accent={v.accent} />
           <span
-            className="font-display text-sm leading-none tracking-wide"
+            className="font-body font-semibold text-sm leading-none tracking-wide"
             style={{ color: v.ink }}
           >
             The Studio
@@ -311,7 +311,7 @@ export function PassCard({
 
         {/* Classes remaining */}
         <div className="relative mt-3 flex items-baseline gap-2">
-          <span className="font-display text-3xl leading-none" style={{ color: v.ink }}>
+          <span className="font-body font-semibold text-3xl leading-none tabular-nums" style={{ color: v.ink }}>
             {classesValue}
           </span>
           <span className="font-body text-xs" style={{ color: v.inkMuted }}>

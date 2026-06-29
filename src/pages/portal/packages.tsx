@@ -115,7 +115,7 @@ const HISTORY_PAGE_SIZE = 6;
 /** Mirrors a purchase-history row skeleton. */
 function PurchaseHistoryRowSkeleton() {
   return (
-    <div className="p-4 rounded-xl bg-[#fafaf8]/80 border border-sage/10">
+    <div className="p-4 rounded-xl bg-card/80 border border-sage/10">
       <div className="flex items-start justify-between gap-3 mb-3">
         <div className="flex-1">
           <Skeleton className="h-5 w-40 mb-2" />
@@ -179,7 +179,7 @@ function PackageTierCard({
       >
         <CardHeader className="p-0">
           <div className="flex items-center justify-between gap-2 mb-2">
-            <CardTitle className="font-display text-xl text-charcoal">
+            <CardTitle className="font-body font-semibold text-xl text-charcoal">
               {pkg.name}
             </CardTitle>
             {isRecommended && (
@@ -697,7 +697,7 @@ export default function PackagesPage() {
   );
 
   return (
-    <div className="min-h-screen bg-linear-to-b from-cream via-[#fafaf8] to-cream">
+    <div className="min-h-screen bg-linear-to-b from-cream via-card to-cream">
       <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 pt-8 pb-12">
         {/* Header */}
         <div className="mb-6">
@@ -712,7 +712,7 @@ export default function PackagesPage() {
           <div className="inline-flex bg-white-warm rounded-full p-1.5 border border-sage/10 w-full max-w-xs sm:w-auto">
             <button
               onClick={() => setSelectedCategory("class")}
-              className={`flex-1 sm:flex-none px-5 py-2.5 rounded-full font-body text-sm font-medium transition-all duration-300 ${
+              className={`flex-1 sm:flex-none px-5 py-2.5 rounded-full font-body text-sm font-medium transition-all duration-300 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sage focus-visible:ring-offset-1 ${
                 selectedCategory === "class"
                   ? "bg-sage text-cream"
                   : "text-charcoal/70 hover:text-charcoal"
@@ -722,7 +722,7 @@ export default function PackagesPage() {
             </button>
             <button
               onClick={() => setSelectedCategory("studio")}
-              className={`flex-1 sm:flex-none px-5 py-2.5 rounded-full font-body text-sm font-medium transition-all duration-300 ${
+              className={`flex-1 sm:flex-none px-5 py-2.5 rounded-full font-body text-sm font-medium transition-all duration-300 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sage focus-visible:ring-offset-1 ${
                 selectedCategory === "studio"
                   ? "bg-sage text-cream"
                   : "text-charcoal/70 hover:text-charcoal"
@@ -743,7 +743,7 @@ export default function PackagesPage() {
         ) : currentPackages.length === 0 ? (
           <div className="text-center py-16 px-6 rounded-2xl bg-white-warm border border-sage/10">
             <CreditCard className="mx-auto mb-4 text-charcoal/20" size={48} />
-            <h3 className="font-display text-xl text-charcoal mb-1">No packages available</h3>
+            <h3 className="font-body font-semibold text-xl text-charcoal mb-1">No packages available</h3>
             <p className="font-body text-sm text-charcoal/60">
               Please check back soon or contact the studio.
             </p>
@@ -765,7 +765,7 @@ export default function PackagesPage() {
       {/* Purchase History Section */}
       <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-10 mt-4 border-t border-sage/10">
         <div className="mb-6">
-          <h2 className="font-display text-2xl text-charcoal mb-1">Purchase History</h2>
+          <h2 className="font-body font-semibold text-2xl text-charcoal mb-1">Purchase History</h2>
           <p className="font-body text-sm text-charcoal/60">
             Your past package purchases and transactions
           </p>
@@ -775,7 +775,7 @@ export default function PackagesPage() {
         {!loadingHistory && purchaseHistory.length === 0 && (
           <div className="text-center py-16 px-6 rounded-2xl bg-white-warm border border-sage/10">
             <CreditCard className="mx-auto mb-4 text-charcoal/20" size={48} />
-            <h3 className="font-display text-xl text-charcoal mb-1">No purchases yet</h3>
+            <h3 className="font-body font-semibold text-xl text-charcoal mb-1">No purchases yet</h3>
             <p className="font-body text-sm text-charcoal/60">
               Your purchase history will appear here once you buy a package
             </p>
@@ -795,7 +795,7 @@ export default function PackagesPage() {
                   >
                     <div className="flex items-start justify-between gap-3 mb-3">
                       <div className="flex-1 min-w-0">
-                        <h3 className="font-display text-base text-charcoal truncate">
+                        <h3 className="font-body font-semibold text-base text-charcoal truncate">
                           {packageType?.name || "Unknown Package"}
                         </h3>
                         <Pill {...memberStatusPill(cardStatusKey)} className="mt-1">
@@ -861,7 +861,7 @@ export default function PackagesPage() {
                       >
                         <div className="flex items-center gap-4">
                           <div className="flex-1 min-w-0">
-                            <h3 className="font-display text-base text-charcoal">
+                            <h3 className="font-body font-semibold text-base text-charcoal">
                               {packageType?.name || "Unknown Package"}
                             </h3>
                             <Pill {...memberStatusPill(rowStatusKey)} className="mt-1">
@@ -923,7 +923,7 @@ export default function PackagesPage() {
               <div className="w-14 h-14 rounded-full bg-sage/20 flex items-center justify-center mx-auto mb-3">
                 <Check className="text-sage" size={28} />
               </div>
-              <h2 className="font-display text-2xl text-charcoal mb-2">Purchase Successful!</h2>
+              <h2 className="font-body font-semibold text-2xl text-charcoal mb-2">Purchase Successful!</h2>
               <p className="font-body text-sm text-charcoal/70 mb-4">
                 Your {selectedPackage.name} has been activated. Redirecting to your dashboard...
               </p>
@@ -944,7 +944,7 @@ export default function PackagesPage() {
               <div className="sticky top-0 z-20 bg-white-warm pt-2 sm:pt-4 px-4 sm:px-5 pb-3 border-b border-sage/10">
                 <div className="flex items-center justify-between">
                   <div>
-                    <h2 className="font-display text-lg sm:text-2xl text-charcoal leading-tight">Complete Your Purchase</h2>
+                    <h2 className="font-body font-semibold text-lg sm:text-2xl text-charcoal leading-tight">Complete Your Purchase</h2>
                     <p className="font-body text-xs text-charcoal/60 mt-0.5">{selectedPackage?.name}</p>
                   </div>
                   <CloseButton
@@ -1000,7 +1000,7 @@ export default function PackagesPage() {
                   </Button>
                 </div>
                 {couponError && (
-                  <p className="text-xs text-[#a05e38] font-body mt-1">{couponError}</p>
+                  <p className="text-xs text-destructive font-body mt-1">{couponError}</p>
                 )}
               </div>
 

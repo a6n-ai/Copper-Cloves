@@ -121,7 +121,7 @@ export function PayoutRateSettingsPanel() {
     <div className="space-y-6">
       <Card className="rounded-2xl">
         <CardHeader>
-          <CardTitle className="font-display text-lg">Payout Rate Settings</CardTitle>
+          <CardTitle className="font-body font-semibold text-lg">Payout Rate Settings</CardTitle>
           <CardDescription>Studio-wide rate card, GST, default studio cut, and how attendance is counted.</CardDescription>
         </CardHeader>
         <CardContent className="grid grid-cols-2 sm:grid-cols-3 gap-4">
@@ -150,7 +150,7 @@ export function PayoutRateSettingsPanel() {
 
       <Card className="rounded-2xl">
         <CardHeader>
-          <CardTitle className="font-display text-lg">How payout is calculated</CardTitle>
+          <CardTitle className="font-body font-semibold text-lg">How payout is calculated</CardTitle>
         </CardHeader>
         <CardContent className="space-y-3 text-sm text-charcoal/80">
           <p><b>Formula:</b> payout = payable units × blended rate. Blended = average over the four tiers of:
@@ -167,7 +167,7 @@ export function PayoutRateSettingsPanel() {
 
       <Card className="rounded-2xl">
         <CardHeader>
-          <CardTitle className="font-display text-lg">Worked example (live)</CardTitle>
+          <CardTitle className="font-body font-semibold text-lg">Worked example (live)</CardTitle>
           <CardDescription>Sample data, recalculated with the settings above. Basis: <b>{BASIS_LABEL[form.basis]}</b>.</CardDescription>
         </CardHeader>
         <CardContent className="space-y-4">

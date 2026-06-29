@@ -174,8 +174,8 @@ function PaymentDetailPanel({
       )}
 
       {detailError && !detailLoading && (
-        <div className="rounded-xl border border-[#cf5b48]/30 bg-[#cf5b48]/5 px-4 py-3">
-          <p className="font-body text-sm text-[#cf5b48]">{detailError}</p>
+        <div className="rounded-xl border border-destructive/30 bg-destructive/5 px-4 py-3">
+          <p className="font-body text-sm text-destructive">{detailError}</p>
           <p className="font-body text-xs text-charcoal/50 mt-1">Showing cached data from last reconcile run.</p>
         </div>
       )}
@@ -184,7 +184,7 @@ function PaymentDetailPanel({
         <div className="rounded-xl border border-sage/15 bg-sand/40 p-4 space-y-2.5">
           <div className="flex justify-between items-center">
             <span className="font-body text-xs text-charcoal/50 uppercase tracking-wide">Amount</span>
-            <span className="font-display text-xl tabular-nums text-charcoal">
+            <span className="font-body font-semibold text-xl tabular-nums text-charcoal">
               {inr(rzpDetail?.amount ?? row.amountPaise)}
             </span>
           </div>
@@ -229,7 +229,7 @@ function PaymentDetailPanel({
           {(rzpDetail?.amount_refunded ?? 0) > 0 && (
             <div className="flex justify-between items-center">
               <span className="font-body text-xs text-charcoal/50 uppercase tracking-wide">Refunded</span>
-              <span className="font-body text-sm text-[#a05e38]">−{inr(rzpDetail?.amount_refunded)}</span>
+              <span className="font-body text-sm text-destructive">−{inr(rzpDetail?.amount_refunded)}</span>
             </div>
           )}
 
@@ -423,7 +423,7 @@ function ImportDialog({ row, onClose, onImported }: { row: ReconRow; onClose: ()
     <ResponsiveDialog open onOpenChange={(o) => { if (!o) onClose(); }}>
       <ResponsiveDialogContent className="max-w-lg">
         <ResponsiveDialogHeader>
-          <ResponsiveDialogTitle className="font-display text-xl text-charcoal">
+          <ResponsiveDialogTitle className="font-body font-semibold text-xl text-charcoal">
             Import payment
           </ResponsiveDialogTitle>
           <ResponsiveDialogDescription className="font-body text-charcoal/60">
@@ -506,7 +506,7 @@ function ImportDialog({ row, onClose, onImported }: { row: ReconRow; onClose: ()
             <div className="space-y-4">
               <div className="space-y-2">
                 <Label className="font-body text-xs text-charcoal/60">What is this payment for?</Label>
-                <div className="grid grid-cols-3 gap-2">
+                <div className="grid grid-cols-1 sm:grid-cols-3 gap-2">
                   {(["none", "booking", "package"] as const).map((opt) => {
                     const icons = { none: <Check className="h-4 w-4" />, booking: <BookOpen className="h-4 w-4" />, package: <Package className="h-4 w-4" /> };
                     const labels = { none: "Just record", booking: "Book a class", package: "Assign package" };
@@ -732,7 +732,7 @@ function DetailDialog({
     <ResponsiveDialog open onOpenChange={(o) => { if (!o) onClose(); }}>
       <ResponsiveDialogContent className="max-w-lg">
         <ResponsiveDialogHeader>
-          <ResponsiveDialogTitle className="font-display text-xl text-charcoal">Payment detail</ResponsiveDialogTitle>
+          <ResponsiveDialogTitle className="font-body font-semibold text-xl text-charcoal">Payment detail</ResponsiveDialogTitle>
           <ResponsiveDialogDescription className="font-body text-charcoal/60">
             <span className="font-mono text-xs">{row.paymentId}</span>
           </ResponsiveDialogDescription>
@@ -765,7 +765,7 @@ function DetailDialog({
               </div>
               <div className="space-y-1.5">
                 <Label className="font-body text-xs text-charcoal/60">Mark this payment as</Label>
-                <div className="grid grid-cols-3 gap-2">
+                <div className="grid grid-cols-1 sm:grid-cols-3 gap-2">
                   {(["in_progress", "dropped", "needs_refund"] as const).map((s) => (
                     <Button
                       key={s}
@@ -905,7 +905,7 @@ function FulfillDialog({
     <ResponsiveDialog open onOpenChange={(o) => { if (!o) onClose(); }}>
       <ResponsiveDialogContent className="max-w-lg">
         <ResponsiveDialogHeader>
-          <ResponsiveDialogTitle className="font-display text-xl text-charcoal">Fulfill payment</ResponsiveDialogTitle>
+          <ResponsiveDialogTitle className="font-body font-semibold text-xl text-charcoal">Fulfill payment</ResponsiveDialogTitle>
           <ResponsiveDialogDescription className="font-body text-charcoal/60">
             Step {step === 2 ? 1 : 2} of 2 — {step === 2 ? "Find member" : "What for?"}
           </ResponsiveDialogDescription>
@@ -1123,7 +1123,7 @@ function LookupCard() {
         <CardHeader>
           <div className="flex flex-wrap items-end justify-between gap-4">
             <div>
-              <CardTitle className="font-display text-2xl text-charcoal">Lookup by ID</CardTitle>
+              <CardTitle className="font-body font-semibold text-2xl text-charcoal">Lookup by ID</CardTitle>
               <CardDescription className="font-body text-charcoal/60">
                 Find a specific payment or order — enter a <span className="font-mono text-xs">pay_*</span> or <span className="font-mono text-xs">order_*</span> ID
               </CardDescription>
@@ -1149,8 +1149,8 @@ function LookupCard() {
 
         {state.status === "error" && (
           <CardContent>
-            <div className="rounded-xl border border-[#cf5b48]/30 bg-[#cf5b48]/5 px-4 py-3">
-              <p className="font-body text-sm text-[#cf5b48]">{state.message}</p>
+            <div className="rounded-xl border border-destructive/30 bg-destructive/5 px-4 py-3">
+              <p className="font-body text-sm text-destructive">{state.message}</p>
             </div>
           </CardContent>
         )}
@@ -1200,7 +1200,7 @@ function LookupCard() {
                             {new Date(p.createdAt * 1000).toLocaleString("en-IN", { day: "numeric", month: "short", hour: "numeric", minute: "2-digit" })}
                           </TableCell>
                           <TableCell className="font-body text-sm text-charcoal/70">{p.method ?? "—"}</TableCell>
-                          <TableCell className="text-right font-display text-base tabular-nums text-charcoal">{inr(p.amountPaise)}</TableCell>
+                          <TableCell className="text-right font-body font-semibold text-base tabular-nums text-charcoal">{inr(p.amountPaise)}</TableCell>
                           <TableCell>
                             {!alreadyImported && !alreadyFulfilled && dbState === "missing" && (
                               <Button type="button" size="sm" variant="outline"
@@ -1398,7 +1398,7 @@ function ReconcileSectionImpl() {
         <CardHeader>
           <div className="mb-4 flex items-start justify-between gap-4">
             <div>
-              <CardTitle className="font-display text-2xl text-charcoal">Razorpay reconciliation</CardTitle>
+              <CardTitle className="font-body font-semibold text-2xl text-charcoal">Razorpay reconciliation</CardTitle>
               <CardDescription className="font-body text-charcoal/60">
                 Pull every Razorpay payment for a date range and match it against what the website recorded
               </CardDescription>
@@ -1490,7 +1490,7 @@ function ReconcileSectionImpl() {
                         return (
                           <TableRow
                             key={r.paymentId}
-                            className={`cursor-pointer hover:bg-sage/5 ${meta.bad ? "bg-[#b3402c]/[0.03]" : ""}`}
+                            className={`cursor-pointer hover:bg-sage/5 ${meta.bad ? "bg-destructive/[0.03]" : ""}`}
                             onClick={() => setDetailRow(r)}
                           >
                             <TableCell>
@@ -1520,9 +1520,9 @@ function ReconcileSectionImpl() {
                               <div className="font-body text-xs text-charcoal/45">Site: {r.websiteStatus ?? "—"}</div>
                             </TableCell>
                             <TableCell className="text-right">
-                              <span className="font-display text-base tabular-nums text-charcoal">{inr(r.amountPaise)}</span>
+                              <span className="font-body font-semibold text-base tabular-nums text-charcoal">{inr(r.amountPaise)}</span>
                               {r.amountRefundedPaise > 0 ? (
-                                <div className="font-body text-xs text-[#a05e38]">−{inr(r.amountRefundedPaise)} refunded</div>
+                                <div className="font-body text-xs text-destructive">−{inr(r.amountRefundedPaise)} refunded</div>
                               ) : null}
                             </TableCell>
                             <TableCell>
@@ -1619,7 +1619,7 @@ function ReconcileSectionImpl() {
                                   <div className="font-mono text-xs text-charcoal">{r.paymentId}</div>
                                   {r.orderId && <div className="font-mono text-xs text-charcoal/35">{r.orderId}</div>}
                                 </TableCell>
-                                <TableCell className="text-right font-display text-base tabular-nums text-charcoal">
+                                <TableCell className="text-right font-body font-semibold text-base tabular-nums text-charcoal">
                                   {r.amountPaise != null ? inr(r.amountPaise) : "—"}
                                 </TableCell>
                                 <TableCell>

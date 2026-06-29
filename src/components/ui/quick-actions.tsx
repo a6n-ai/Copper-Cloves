@@ -165,7 +165,7 @@ export const DeleteButton = React.forwardRef<HTMLButtonElement, DeleteButtonProp
         </AlertDialogTrigger>
         <AlertDialogContent onClick={(e) => e.stopPropagation()}>
           <AlertDialogHeader>
-            <AlertDialogTitle className="font-display">
+            <AlertDialogTitle className="font-body font-semibold">
               {confirmTitle ?? "Delete this item?"}
             </AlertDialogTitle>
             <AlertDialogDescription className="font-body">
@@ -175,7 +175,7 @@ export const DeleteButton = React.forwardRef<HTMLButtonElement, DeleteButtonProp
           <AlertDialogFooter>
             <AlertDialogCancel>Cancel</AlertDialogCancel>
             <AlertDialogAction
-              className="bg-terracotta text-white hover:bg-terracotta/90"
+              asChild
               onClick={(e) => {
                 // Fire the user-supplied handler. React synthetic events from
                 // AlertDialogAction don't carry the original row context, but
@@ -183,7 +183,7 @@ export const DeleteButton = React.forwardRef<HTMLButtonElement, DeleteButtonProp
                 onClick?.(e as unknown as React.MouseEvent<HTMLButtonElement>);
               }}
             >
-              {confirmActionLabel ?? "Delete"}
+              <Button variant="destructive">{confirmActionLabel ?? "Delete"}</Button>
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>

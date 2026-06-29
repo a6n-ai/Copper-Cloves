@@ -206,7 +206,7 @@ export default function OnboardingPage() {
       <div className="min-h-screen bg-linear-to-br from-cream via-cream to-sage/10 flex items-center justify-center p-4">
         <div className="text-center animate-in zoom-in duration-500">
           <CheckCircle2 className="h-20 w-20 text-sage mx-auto mb-6" />
-          <h2 className="font-display text-3xl text-charcoal mb-2">{"You're all set!"}</h2>
+          <h2 className="font-body font-semibold text-3xl text-charcoal mb-2">{"You're all set!"}</h2>
           <p className="font-body text-charcoal/60">Taking you to your dashboard…</p>
         </div>
       </div>
@@ -261,7 +261,7 @@ export default function OnboardingPage() {
 
           <Card className="border-sage/20 bg-white-warm shadow-[0_4px_24px_rgba(51,51,51,0.08)]">
             <CardHeader className="pb-4">
-              <CardTitle className="font-display text-2xl text-charcoal">
+              <CardTitle className="font-body font-semibold text-2xl text-charcoal">
                 {step === 0 && "Tell us about yourself"}
                 {step === 1 && "Your fitness goals"}
                 {step === 2 && "Health & wellbeing"}
@@ -317,7 +317,7 @@ export default function OnboardingPage() {
                                 key={g}
                                 type="button"
                                 onClick={() => field.onChange(g)}
-                                className={`py-3 px-4 rounded-md border text-sm font-body capitalize transition-all ${
+                                className={`py-3 px-4 rounded-md border text-sm font-body capitalize transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sage focus-visible:ring-offset-1 ${
                                   field.value === g
                                     ? "bg-charcoal text-cream border-charcoal"
                                     : "border-sage/20 text-charcoal/70 hover:border-sage/50"

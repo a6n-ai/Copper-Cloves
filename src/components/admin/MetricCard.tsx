@@ -41,10 +41,10 @@ const tones = {
   },
   // Deep terracotta ("clay") — on-brand warm accent.
   clay: {
-    chip: "bg-[#a05e38]/10 text-[#a05e38] group-hover:bg-[#a05e38]/20 group-hover:text-[#a05e38]",
-    ring: "ring-[#a05e38]/15 group-hover:ring-[#a05e38]/40",
+    chip: "bg-terracotta/10 text-terracotta group-hover:bg-terracotta/20 group-hover:text-terracotta",
+    ring: "ring-terracotta/15 group-hover:ring-terracotta/40",
     glow: "group-hover:shadow-[0_10px_30px_-12px_rgba(160,94,56,0.45)]",
-    border: "group-hover:border-[#a05e38]/40",
+    border: "group-hover:border-terracotta/40",
   },
   charcoal: {
     chip: "bg-charcoal/10 text-charcoal/70 group-hover:bg-charcoal/20 group-hover:text-charcoal",

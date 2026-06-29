@@ -15,7 +15,7 @@ export default function TermsPage() {
       />
 
 
-      <div className="min-h-screen bg-linear-to-b from-cream via-[#fafaf8] to-cream">
+      <div className="min-h-screen bg-linear-to-b from-cream via-white-warm to-cream">
         <section className="relative pt-28 pb-12 px-6 lg:px-8">
           <div className="max-w-3xl mx-auto">
             <Button asChild variant="sage-outline" className="mb-8">

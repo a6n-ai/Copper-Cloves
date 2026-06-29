@@ -69,7 +69,7 @@ function Avatar({ name, avatarUrl }: { name: string; avatarUrl: string | null })
     );
   }
   return (
-    <div className="w-7 h-7 rounded-full bg-[#8f9779] text-white flex items-center justify-center text-xs font-semibold">
+    <div className="w-7 h-7 rounded-full bg-sage text-cream flex items-center justify-center text-xs font-semibold">
       {initials}
     </div>
   );
@@ -249,13 +249,13 @@ export function MemberSearch({ value, onChange, maxMembers = 5, currentEmail, cu
           {value.map((m, idx) => (
             <div
               key={idx}
-              className="flex items-center gap-1.5 bg-[#e8e4d9] rounded-lg px-2.5 py-1.5 text-sm text-[#333333]"
+              className="flex items-center gap-1.5 bg-sand rounded-lg px-2.5 py-1.5 text-sm text-charcoal"
             >
               <span className="font-medium">{m.name}</span>
               <button
                 type="button"
                 onClick={() => removeMember(idx)}
-                className="text-[#333333]/40 hover:text-[#333333] ml-0.5"
+                className="text-charcoal/40 hover:text-charcoal ml-0.5 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sage focus-visible:ring-offset-1"
                 aria-label={`Remove ${m.name}`}
               >
                 <X size={12} />
@@ -269,7 +269,7 @@ export function MemberSearch({ value, onChange, maxMembers = 5, currentEmail, cu
         <>
           {query.length < 2 && friends.length > 0 && (
             <div className="mb-2">
-              <p className="text-xs text-[#6b6b6b] font-medium mb-1.5">Your friends</p>
+              <p className="text-xs text-muted-foreground font-medium mb-1.5">Your friends</p>
               <div className="flex flex-wrap gap-1.5">
                 {friends
                   .filter((f) => !isAlreadyAdded(f.id, f.email))
@@ -279,7 +279,7 @@ export function MemberSearch({ value, onChange, maxMembers = 5, currentEmail, cu
                       key={f.id}
                       type="button"
                       onClick={() => addExistingMember({ profile_id: f.id, name: f.name, email: f.email, phone: f.phone })}
-                      className="flex items-center gap-1.5 bg-[#e8e4d9]/60 hover:bg-[#e8e4d9] rounded-lg px-2.5 py-1 text-sm text-[#333333] transition-colors"
+                      className="flex items-center gap-1.5 bg-sand/60 hover:bg-sand rounded-lg px-2.5 py-1 text-sm text-charcoal transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sage focus-visible:ring-offset-1"
                     >
                       <Avatar name={f.name} avatarUrl={f.avatar_url} />
                       <span>{f.name}</span>
@@ -301,11 +301,11 @@ export function MemberSearch({ value, onChange, maxMembers = 5, currentEmail, cu
           />
 
           {showDropdown && query.length >= 2 && (
-            <div className="absolute z-50 top-full left-0 right-0 mt-1 bg-white-warm border border-[#e5e4dc] rounded-lg shadow-md overflow-hidden">
+            <div className="absolute z-50 top-full left-0 right-0 mt-1 bg-white-warm border border-border rounded-lg shadow-md overflow-hidden">
               {results.length === 0 && (
                 <button
                   type="button"
-                  className="w-full flex items-center gap-2 px-3 py-2.5 text-sm text-[#8f9779] hover:bg-[#e8e4d9]/50 transition-colors"
+                  className="w-full flex items-center gap-2 px-3 py-2.5 text-sm text-sage hover:bg-sand/50 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sage focus-visible:ring-offset-1"
                   onClick={() => {
                     const q = query.trim();
                     setInviteError(null);
@@ -332,15 +332,15 @@ export function MemberSearch({ value, onChange, maxMembers = 5, currentEmail, cu
                   key={r.id}
                   type="button"
                   disabled={isAlreadyAdded(r.id, r.email)}
-                  className="w-full flex items-center gap-2.5 px-3 py-2 text-sm hover:bg-[#e8e4d9]/50 transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
+                  className="w-full flex items-center gap-2.5 px-3 py-2 text-sm hover:bg-sand/50 transition-colors disabled:opacity-40 disabled:cursor-not-allowed focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sage focus-visible:ring-offset-1"
                   onClick={() =>
                     addExistingMember({ profile_id: r.id, name: r.name, email: r.email, phone: r.phone })
                   }
                 >
                   <Avatar name={r.name} avatarUrl={r.avatar_url} />
                   <div className="text-left min-w-0">
-                    <div className="font-medium text-[#333333] truncate">{r.name}</div>
-                    <div className="text-xs text-[#6b6b6b] truncate">
+                    <div className="font-medium text-charcoal truncate">{r.name}</div>
+                    <div className="text-xs text-muted-foreground truncate">
                       {r.email}{r.phone ? ` · ${r.phone}` : ""}
                     </div>
                   </div>
@@ -353,9 +353,9 @@ export function MemberSearch({ value, onChange, maxMembers = 5, currentEmail, cu
       )}
 
       {showInviteForm && (
-        <div className="border border-[#e5e4dc] rounded-lg p-3 space-y-2 bg-[#e8e4d9]/30">
-          <p className="text-xs text-[#6b6b6b] font-medium">Add new person</p>
-          <p className="text-xs text-[#6b6b6b]">
+        <div className="border border-border rounded-lg p-3 space-y-2 bg-sand/30">
+          <p className="text-xs text-muted-foreground font-medium">Add new person</p>
+          <p className="text-xs text-muted-foreground">
             No match found. We&apos;ll create their account from their email.
           </p>
           <Input
@@ -370,11 +370,11 @@ export function MemberSearch({ value, onChange, maxMembers = 5, currentEmail, cu
             onChange={(e) => { setInviteEmail(e.target.value); setInviteError(null); setEmailSuggestion(null); }}
           />
           {emailSuggestion && (
-            <p className="text-xs text-[#6b6b6b]">
+            <p className="text-xs text-muted-foreground">
               Did you mean{" "}
               <button
                 type="button"
-                className="font-medium text-[#8f9779] underline underline-offset-2"
+                className="font-medium text-sage underline underline-offset-2 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sage focus-visible:ring-offset-1"
                 onClick={() => { setInviteEmail(emailSuggestion); setEmailSuggestion(null); }}
               >
                 {emailSuggestion}
@@ -388,13 +388,13 @@ export function MemberSearch({ value, onChange, maxMembers = 5, currentEmail, cu
             onChange={(v) => { setInvitePhone(v); setInviteError(null); }}
           />
           {inviteError && (
-            <p className="text-xs text-[#cf5b48]">{inviteError}</p>
+            <p className="text-xs text-destructive">{inviteError}</p>
           )}
           <div className="flex gap-2">
             <Button
               type="button"
               size="sm"
-              className="bg-[#8f9779] text-white hover:bg-[#7a8b6c]"
+              variant="sage"
               onClick={handleInviteSubmit}
               disabled={!inviteEmail.trim() || !inviteName.trim() || !(invitePhone ?? "").trim()}
             >
@@ -420,9 +420,9 @@ export function MemberSearch({ value, onChange, maxMembers = 5, currentEmail, cu
       )}
 
       {pendingPhoneMember && (
-        <div className="border border-[#e5e4dc] rounded-lg p-3 space-y-2 bg-[#e8e4d9]/30">
-          <p className="text-xs text-[#6b6b6b] font-medium">Add phone for {pendingPhoneMember.name}</p>
-          <p className="text-xs text-[#6b6b6b]">
+        <div className="border border-border rounded-lg p-3 space-y-2 bg-sand/30">
+          <p className="text-xs text-muted-foreground font-medium">Add phone for {pendingPhoneMember.name}</p>
+          <p className="text-xs text-muted-foreground">
             We need a mobile number for every attendee. {pendingPhoneMember.email}
           </p>
           <PhoneInput
@@ -431,13 +431,13 @@ export function MemberSearch({ value, onChange, maxMembers = 5, currentEmail, cu
             onChange={(v) => { setPhoneDraft(v); setPhoneError(null); }}
           />
           {phoneError && (
-            <p className="text-xs text-[#cf5b48]">{phoneError}</p>
+            <p className="text-xs text-destructive">{phoneError}</p>
           )}
           <div className="flex gap-2">
             <Button
               type="button"
               size="sm"
-              className="bg-[#8f9779] text-white hover:bg-[#7a8b6c]"
+              variant="sage"
               onClick={handlePendingPhoneSubmit}
               disabled={!(phoneDraft ?? "").trim()}
             >
@@ -460,7 +460,7 @@ export function MemberSearch({ value, onChange, maxMembers = 5, currentEmail, cu
       )}
 
       {atMax && (
-        <p className="text-xs text-[#6b6b6b]">
+        <p className="text-xs text-muted-foreground">
           Maximum {maxMembers} additional members per booking.
         </p>
       )}

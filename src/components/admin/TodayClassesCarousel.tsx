@@ -54,14 +54,14 @@ const CARD_TONE: Record<string, string> = {
   live: "border-terracotta/30 bg-terracotta/10 shadow-[0_8px_24px_-12px_rgba(193,120,86,0.45)] ring-1 ring-terracotta/30 hover:shadow-[0_16px_40px_-16px_rgba(193,120,86,0.55)]",
   started: "border-terracotta/30 bg-terracotta/10 shadow-[0_8px_24px_-12px_rgba(193,120,86,0.45)] ring-1 ring-terracotta/30 hover:shadow-[0_16px_40px_-16px_rgba(193,120,86,0.55)]",
   completed: "border-charcoal/15 bg-charcoal/[0.04] opacity-80 hover:opacity-100 hover:shadow-[0_12px_32px_-16px_rgba(0,0,0,0.2)]",
-  cancelled: "border-terracotta/30 bg-linear-to-br from-terracotta/15 via-[#fafaf8] to-terracotta/5 ring-1 ring-terracotta/20 hover:shadow-[0_12px_32px_-16px_rgba(192,86,64,0.35)]",
-  abandoned: "border-terracotta/30 bg-linear-to-br from-terracotta/15 via-[#fafaf8] to-terracotta/5 ring-1 ring-terracotta/20 hover:shadow-[0_12px_32px_-16px_rgba(192,86,64,0.35)]",
+  cancelled: "border-terracotta/30 bg-linear-to-br from-terracotta/15 via-card to-terracotta/5 ring-1 ring-terracotta/20 hover:shadow-[0_12px_32px_-16px_rgba(192,86,64,0.35)]",
+  abandoned: "border-terracotta/30 bg-linear-to-br from-terracotta/15 via-card to-terracotta/5 ring-1 ring-terracotta/20 hover:shadow-[0_12px_32px_-16px_rgba(192,86,64,0.35)]",
   inactive: "border-charcoal/10 bg-charcoal/[0.03] opacity-70 hover:opacity-90",
 };
 
 // Single tint for all "available" cards — consistent strip, more color than plain white.
 const AVAILABLE_TONE =
-  "border-sage/30 bg-linear-to-br from-sage/15 via-[#fafaf8] to-cream/40 hover:shadow-[0_12px_32px_-16px_rgba(143,151,121,0.45)] hover:border-sage/50";
+  "border-sage/30 bg-linear-to-br from-sage/15 via-card to-cream/40 hover:shadow-[0_12px_32px_-16px_rgba(143,151,121,0.45)] hover:border-sage/50";
 
 function parseTimeToMinutes(t: string): number {
   // Accepts "07:00", "7:00 AM", "10:30 PM" — best-effort.
@@ -174,7 +174,7 @@ export function TodayClassesCarousel({
             >
               <div className="flex items-start justify-between gap-3">
                 <div className="min-w-0">
-                  <div className="flex items-center gap-2 font-display text-2xl text-charcoal leading-none tabular-nums">
+                  <div className="flex items-center gap-2 font-body font-semibold text-2xl text-charcoal leading-none tabular-nums">
                     <Clock className="h-4 w-4 text-sage shrink-0" />
                     {cls.time}
                   </div>
@@ -224,7 +224,7 @@ export function TodayClassesCarousel({
                     className={cn(
                       "tabular-nums font-medium",
                       // Full class = good (green); near-empty = needs attention (red).
-                      pct >= 80 ? "text-sage" : pct <= 40 ? "text-[#cf5b48]" : "text-terracotta",
+                      pct >= 80 ? "text-sage" : pct <= 40 ? "text-destructive" : "text-terracotta",
                     )}
                   >
                     {full ? "Full" : `${pct}%`}
@@ -234,7 +234,7 @@ export function TodayClassesCarousel({
                   <div
                     className={cn(
                       "h-full rounded-full transition-all duration-500",
-                      pct >= 80 ? "bg-sage" : pct <= 40 ? "bg-[#cf5b48]" : "bg-terracotta",
+                      pct >= 80 ? "bg-sage" : pct <= 40 ? "bg-destructive" : "bg-terracotta",
                     )}
                     style={{ width: `${pct}%` }}
                   />
@@ -317,7 +317,7 @@ export function TodayClassesCarousel({
 
       {items.length > 1 && (
         <div className="mt-5 flex justify-center">
-          <div className="inline-flex items-center gap-1 bg-[#fafaf8]/80 border border-sage/20 p-1 rounded-full shadow-xs">
+          <div className="inline-flex items-center gap-1 bg-card/80 border border-sage/20 p-1 rounded-full shadow-xs">
             <button
               type="button"
               onClick={() => scroll("left")}

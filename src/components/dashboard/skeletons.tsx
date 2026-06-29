@@ -30,7 +30,7 @@ export function StatRowSkeleton({ count = 4 }: { count?: number }) {
 /** Generic card with a header and a body block (chart, panel). */
 export function CardBlockSkeleton({ bodyClassName }: { bodyClassName?: string }) {
   return (
-    <Card className="rounded-2xl shadow-none border-[#e5e4dc]">
+    <Card className="rounded-2xl shadow-none border-border">
       <CardHeader>
         <div className="flex items-center gap-3">
           <Skeleton className="h-12 w-12 rounded-full" />
@@ -50,7 +50,7 @@ export function CardBlockSkeleton({ bodyClassName }: { bodyClassName?: string })
 /** List of rows (activity feed, schedule). */
 export function ListSkeleton({ rows = 4 }: { rows?: number }) {
   return (
-    <Card className="rounded-2xl shadow-none border-[#e5e4dc]">
+    <Card className="rounded-2xl shadow-none border-border">
       <CardHeader>
         <Skeleton className="h-5 w-32" />
         <Skeleton className="mt-2 h-3 w-44" />
@@ -73,7 +73,7 @@ export function ListSkeleton({ rows = 4 }: { rows?: number }) {
 /** Tabular placeholder. */
 export function TableSkeleton({ rows = 5 }: { rows?: number }) {
   return (
-    <Card className="rounded-2xl shadow-none border-[#e5e4dc]">
+    <Card className="rounded-2xl shadow-none border-border">
       <CardHeader>
         <Skeleton className="h-5 w-40" />
       </CardHeader>
@@ -140,7 +140,7 @@ export function MemberMobileDashboardSkeleton() {
         {/* Next-class CTA */}
         <Skeleton className="h-[72px] w-full rounded-2xl" />
         {/* Quick book — 4 tiles */}
-        <div className="grid grid-cols-4 gap-2">
+        <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
           {Array.from({ length: 4 }).map((_, i) => (
             <Skeleton key={i} className="h-16 rounded-xl" />
           ))}

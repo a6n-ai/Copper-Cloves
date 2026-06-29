@@ -253,7 +253,7 @@ export default function Shop({ initialProducts }: Readonly<ShopProps>) {
       
       {/* Hero Section */}
       <section className="relative pt-32 pb-16 px-6 lg:px-8 overflow-hidden">
-        <div className="absolute inset-0 bg-linear-to-br from-cream via-[#fafaf8] to-sage/5 -z-10" />
+        <div className="absolute inset-0 bg-linear-to-br from-cream via-white-warm to-sage/5 -z-10" />
 
         <div className="max-w-7xl mx-auto text-center">
           <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-sage/10 border border-sage/20 mb-6">
@@ -555,12 +555,14 @@ export default function Shop({ initialProducts }: Readonly<ShopProps>) {
 
             {checkoutStep === "details" && (
               <div className="p-6">
-                <button
+                <Button
+                  variant="ghost"
+                  size="sm"
                   onClick={() => setCheckoutStep("cart")}
-                  className="flex items-center gap-2 text-charcoal/60 hover:text-sage transition-colors mb-6"
+                  className="-ml-2 mb-6 gap-2 text-charcoal/60 hover:text-sage"
                 >
                   ← Back to Cart
-                </button>
+                </Button>
                 
                 <h2 className="font-display text-3xl text-charcoal mb-6">Delivery Details</h2>
                 
@@ -570,7 +572,7 @@ export default function Shop({ initialProducts }: Readonly<ShopProps>) {
                     <input
                       id="shop-customer-name"
                       type="text"
-                      className="w-full px-4 py-3 rounded-xl border border-sage/20 focus:border-sage focus:outline-hidden font-body"
+                      className="w-full px-4 py-3 rounded-xl border border-sage/20 focus:border-sage focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sage focus-visible:ring-offset-1 font-body"
                       placeholder="Enter your name"
                       value={customerName}
                       onChange={(e) => setCustomerName(e.target.value)}
@@ -582,7 +584,7 @@ export default function Shop({ initialProducts }: Readonly<ShopProps>) {
                     <input
                       id="shop-customer-email"
                       type="email"
-                      className="w-full px-4 py-3 rounded-xl border border-sage/20 focus:border-sage focus:outline-hidden font-body"
+                      className="w-full px-4 py-3 rounded-xl border border-sage/20 focus:border-sage focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sage focus-visible:ring-offset-1 font-body"
                       placeholder="your@email.com"
                       value={customerEmail}
                       onChange={(e) => setCustomerEmail(e.target.value)}
@@ -594,7 +596,7 @@ export default function Shop({ initialProducts }: Readonly<ShopProps>) {
                     <input
                       id="shop-customer-phone"
                       type="tel"
-                      className="w-full px-4 py-3 rounded-xl border border-sage/20 focus:border-sage focus:outline-hidden font-body"
+                      className="w-full px-4 py-3 rounded-xl border border-sage/20 focus:border-sage focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sage focus-visible:ring-offset-1 font-body"
                       placeholder="Phone number"
                       value={customerPhone}
                       onChange={(e) => setCustomerPhone(e.target.value)}
@@ -605,7 +607,7 @@ export default function Shop({ initialProducts }: Readonly<ShopProps>) {
                     <label htmlFor="shop-shipping-address" className="font-body text-sm text-charcoal/70 mb-2 block">Address</label>
                     <textarea
                       id="shop-shipping-address"
-                      className="w-full px-4 py-3 rounded-xl border border-sage/20 focus:border-sage focus:outline-hidden font-body resize-none"
+                      className="w-full px-4 py-3 rounded-xl border border-sage/20 focus:border-sage focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sage focus-visible:ring-offset-1 font-body resize-none"
                       rows={3}
                       placeholder="Delivery address"
                       value={shippingAddress}
@@ -628,12 +630,14 @@ export default function Shop({ initialProducts }: Readonly<ShopProps>) {
 
             {checkoutStep === "payment" && (
               <div className="p-6">
-                <button
+                <Button
+                  variant="ghost"
+                  size="sm"
                   onClick={() => setCheckoutStep("details")}
-                  className="flex items-center gap-2 text-charcoal/60 hover:text-sage transition-colors mb-6"
+                  className="-ml-2 mb-6 gap-2 text-charcoal/60 hover:text-sage"
                 >
                   ← Back
-                </button>
+                </Button>
                 
                 <h2 className="font-display text-3xl text-charcoal mb-6">Payment</h2>
                 
@@ -679,7 +683,7 @@ export default function Shop({ initialProducts }: Readonly<ShopProps>) {
                     </Button>
                   </div>
                   {couponError && (
-                    <p className="text-sm text-[#a05e38] font-body">{couponError}</p>
+                    <p className="text-sm text-destructive font-body">{couponError}</p>
                   )}
                 </div>
 
@@ -705,7 +709,7 @@ export default function Shop({ initialProducts }: Readonly<ShopProps>) {
                 </div>
 
                 {checkoutError && (
-                  <p className="text-sm text-[#a05e38] font-body mb-4">{checkoutError}</p>
+                  <p className="text-sm text-destructive font-body mb-4">{checkoutError}</p>
                 )}
 
                 <Button

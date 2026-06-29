@@ -99,7 +99,7 @@ function TimelineRow({ label, when, note, tone = "muted" }: {
   note?: string | null;
   tone?: "muted" | "sage" | "danger";
 }) {
-  const dot = tone === "sage" ? "bg-sage" : tone === "danger" ? "bg-[#cf5b48]" : "bg-charcoal/30";
+  const dot = tone === "sage" ? "bg-sage" : tone === "danger" ? "bg-destructive" : "bg-charcoal/30";
   return (
     <li className="flex gap-3">
       <span className={`mt-1.5 h-2 w-2 shrink-0 rounded-full ${dot}`} />
@@ -266,7 +266,7 @@ export default function BookingDetailPage() {
             <div className="w-20 h-20 bg-sage/10 rounded-full flex items-center justify-center mx-auto mb-6">
               <Calendar className="text-sage" size={40} />
             </div>
-            <h3 className="font-display text-2xl text-charcoal mb-3">Booking not found</h3>
+            <h3 className="font-body font-semibold text-2xl text-charcoal mb-3">Booking not found</h3>
             <p className="font-body text-charcoal/60 mb-6">
               We couldn't find this booking. It may have been removed, or it isn't yours.
             </p>
@@ -276,7 +276,7 @@ export default function BookingDetailPage() {
           </div>
         ) : (
           <div className="bg-white-warm rounded-xl border border-sage/10 p-5 sm:p-7">
-            <h2 className="font-display text-2xl sm:text-3xl text-charcoal">
+            <h2 className="font-body font-semibold text-2xl sm:text-3xl text-charcoal">
               {booking.className ?? "Class"}
             </h2>
 
@@ -325,7 +325,7 @@ export default function BookingDetailPage() {
             {showRecovery && (
               <div className="mt-6 border-t border-sage/10 pt-6 space-y-4">
                 <div>
-                  <h3 className="font-display text-lg text-charcoal">Payment pending</h3>
+                  <h3 className="font-body font-semibold text-lg text-charcoal">Payment pending</h3>
                   <p className="font-body text-sm text-charcoal/60 mt-1">
                     This booking isn't confirmed yet. If you've already paid, recover it below — otherwise
                     complete your payment to secure the seat.
@@ -374,7 +374,7 @@ export default function BookingDetailPage() {
 
             {booking.status === "cancelled" && (
               <div className="mt-6 border-t border-sage/10 pt-6 space-y-5">
-                <h3 className="font-display text-lg text-charcoal">Cancellation</h3>
+                <h3 className="font-body font-semibold text-lg text-charcoal">Cancellation</h3>
 
                 <ol className="space-y-3">
                   {booking.bookedAt && <TimelineRow label="Booked" when={booking.bookedAt} tone="muted" />}

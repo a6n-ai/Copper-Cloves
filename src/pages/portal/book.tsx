@@ -338,7 +338,7 @@ function InstructorAvatar({ name, imageUrl, className = "" }: Readonly<{ name: s
       {imageUrl ? (
         <Image src={imageUrl} alt={name} fill sizes="64px" className="object-cover" />
       ) : (
-        <span aria-hidden="true" className="flex h-full w-full items-center justify-center font-display text-sm text-white-warm">
+        <span aria-hidden="true" className="flex h-full w-full items-center justify-center font-body font-semibold text-sm text-white-warm">
           {initial}
         </span>
       )}
@@ -411,7 +411,7 @@ const BookClassCard = memo(function BookClassCard({ cls, onSelect, onOpenDetails
   const dimmed = !status.canBook;
   return (
     <div
-      className="group relative flex w-full cursor-pointer flex-col overflow-hidden rounded-2xl border border-[#e5e4dc] bg-white-warm transition-[border-color,box-shadow,transform] duration-[250ms] ease-out hover:-translate-y-0.5 hover:border-[#c8c6be] hover:shadow-[0_4px_24px_rgba(51,51,51,0.08)] focus-within:ring-2 focus-within:ring-sage"
+      className="group relative flex w-full cursor-pointer flex-col overflow-hidden rounded-2xl border border-border bg-white-warm transition-[border-color,box-shadow,transform] duration-[250ms] ease-out hover:-translate-y-0.5 hover:border-[#c8c6be] hover:shadow-[0_4px_24px_rgba(51,51,51,0.08)] focus-within:ring-2 focus-within:ring-sage"
     >
       {/* Whole-card click target for opening details — keyboard accessible. Sits
           below the interactive Book button (which stops propagation + higher z). */}
@@ -432,11 +432,11 @@ const BookClassCard = memo(function BookClassCard({ cls, onSelect, onOpenDetails
         {/* Past / full → warm tonal scrim (not a grayscale filter — keeps the palette warm). */}
         {dimmed && <div className="pointer-events-none absolute inset-0 bg-cream/40" aria-hidden="true" />}
         {/* Solid white-warm panels over the photo — per the design system, no glass/blur over images. */}
-        <span className="absolute left-3 top-3 flex flex-col items-center rounded-xl border border-[#e5e4dc] bg-white-warm px-2.5 py-1 text-center shadow-sm">
+        <span className="absolute left-3 top-3 flex flex-col items-center rounded-xl border border-border bg-white-warm px-2.5 py-1 text-center shadow-sm">
           <span className="font-body text-[10px] font-semibold uppercase leading-none tracking-[0.08em] text-terracotta">{weekday}</span>
-          <span className="font-display text-lg leading-tight text-charcoal">{dayNum}</span>
+          <span className="font-body font-semibold text-lg leading-tight text-charcoal tabular-nums">{dayNum}</span>
         </span>
-        <span className="absolute right-3 top-3 inline-flex items-center rounded-full border border-[#e5e4dc] bg-white-warm px-2.5 py-1 font-body text-xs font-medium text-sage shadow-sm">
+        <span className="absolute right-3 top-3 inline-flex items-center rounded-full border border-border bg-white-warm px-2.5 py-1 font-body text-xs font-medium text-sage shadow-sm">
           {cls.category}
         </span>
         <div
@@ -448,7 +448,7 @@ const BookClassCard = memo(function BookClassCard({ cls, onSelect, onOpenDetails
             <InstructorAvatar name={cls.instructor} imageUrl={cls.instructorImageUrl} className="size-9" />
             <span className="truncate font-body text-sm font-medium text-white-warm">{cls.instructor}</span>
           </span>
-          <span className="inline-flex shrink-0 items-center gap-1 rounded-full border border-[#e5e4dc] bg-white-warm px-2.5 py-1 font-body text-xs font-medium text-charcoal">
+          <span className="inline-flex shrink-0 items-center gap-1 rounded-full border border-border bg-white-warm px-2.5 py-1 font-body text-xs font-medium text-charcoal">
             <Clock className="size-3 text-sage" />
             {cls.time}
           </span>
@@ -461,7 +461,7 @@ const BookClassCard = memo(function BookClassCard({ cls, onSelect, onOpenDetails
           aria-label={`View details for ${cls.name}, ${weekday} ${dayNum} at ${cls.time}`}
           className="self-start rounded-sm text-left focus:outline-none focus-visible:ring-2 focus-visible:ring-sage"
         >
-          <h3 className="font-display text-2xl leading-tight text-charcoal transition-colors group-hover:text-sage">{cls.name}</h3>
+          <h3 className="font-body font-semibold text-2xl leading-tight text-charcoal transition-colors group-hover:text-sage">{cls.name}</h3>
         </button>
         <div className="mt-2 flex flex-wrap items-center gap-x-4 gap-y-1 font-body text-xs text-charcoal/55">
           <span className="inline-flex items-center gap-1.5">
@@ -516,14 +516,14 @@ function BookClassDetailDialog({
                 <Image src={cls.image} alt={cls.name} fill sizes="(max-width: 768px) 100vw, 50vw" className="object-cover" />
               ) : (
                 <div className={`h-full w-full ${classFallbackGradient}`} aria-hidden="true">
-                  <span className="font-display text-5xl text-white-warm/55">{classInitials(cls.name)}</span>
+                  <span className="font-body font-semibold text-5xl text-white-warm/55">{classInitials(cls.name)}</span>
                 </div>
               )}
               <Pill size="sm" className="absolute left-4 top-4 border-0 bg-white-warm/90 text-sage">{cls.category}</Pill>
             </div>
             <div className="space-y-4 p-5 sm:p-6">
               <ResponsiveDialogHeader className="space-y-1 text-left">
-                <ResponsiveDialogTitle className="font-display text-3xl text-charcoal">{cls.name}</ResponsiveDialogTitle>
+                <ResponsiveDialogTitle className="font-body font-semibold text-3xl text-charcoal">{cls.name}</ResponsiveDialogTitle>
                 <ResponsiveDialogDescription className="flex flex-wrap items-center gap-x-3 gap-y-1 font-body text-sm text-charcoal/55">
                   <span className="inline-flex items-center gap-1.5"><Clock className="size-4" />{cls.time} · {cls.duration}</span>
                   <span className="inline-flex items-center gap-1.5"><Users className="size-4" />up to {cls.capacity ?? cls.maxCapacity ?? 15} spots</span>
@@ -597,7 +597,7 @@ const FoodRow = memo(function FoodRow({ item, onAdjust }: FoodRowProps) {
         />
         <div className="flex-1">
           <div className="flex flex-wrap items-center gap-2 mb-1">
-            <h4 className="font-display text-lg text-charcoal">{item.name}</h4>
+            <h4 className="font-body font-semibold text-lg text-charcoal">{item.name}</h4>
             <Pill tone="neutral" className="text-[10px]">
               {formatCafeCategory(item.category)}
             </Pill>
@@ -632,7 +632,7 @@ const FoodRow = memo(function FoodRow({ item, onAdjust }: FoodRowProps) {
 
 function BookClassCardSkeleton() {
   return (
-    <div className="flex flex-col overflow-hidden rounded-2xl border border-[#e5e4dc] bg-white-warm">
+    <div className="flex flex-col overflow-hidden rounded-2xl border border-border bg-white-warm">
       <div className="relative h-52 w-full overflow-hidden sm:h-56">
         <Skeleton className="h-full w-full rounded-none" />
         <Skeleton className="absolute left-3 top-3 h-11 w-11 rounded-xl" />
@@ -1449,12 +1449,12 @@ export default function BookClass() {
                   <button
                     key={day.toISOString()}
                     onClick={() => setSelectedDayIndex(isSelected ? null : i)}
-                    className={`flex flex-col items-center py-2 px-0.5 rounded-xl transition-all min-w-0 text-[11px] sm:text-sm ${buttonStateClass}`}
+                    className={`flex flex-col items-center py-2 px-0.5 rounded-xl transition-all min-w-0 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sage focus-visible:ring-offset-1 text-[11px] sm:text-sm ${buttonStateClass}`}
                   >
                     <span className="text-[10px] font-body uppercase tracking-wide leading-none mb-1">
                       {dayNames[i]}
                     </span>
-                    <span className={`text-base font-display leading-none ${dateTextClass}`}>
+                    <span className={`text-base font-body font-semibold leading-none tabular-nums ${dateTextClass}`}>
                       {day.getDate()}
                     </span>
                   </button>
@@ -1481,7 +1481,7 @@ export default function BookClass() {
               onClick={() => setDateSort(d => (d === "asc" ? "desc" : "asc"))}
               title={dateSort === "asc" ? "Date: soonest first" : "Date: latest first"}
               aria-label={dateSort === "asc" ? "Sort by date, soonest first. Click to reverse." : "Sort by date, latest first. Click to reverse."}
-              className="shrink-0 inline-flex items-center gap-1.5 px-4 py-2 rounded-full text-sm font-body border border-sage/30 text-charcoal hover:border-sage hover:bg-sage/5 transition-all"
+              className="shrink-0 inline-flex items-center gap-1.5 px-4 py-2 rounded-full text-sm font-body border border-sage/30 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sage focus-visible:ring-offset-1 text-charcoal hover:border-sage hover:bg-sage/5 transition-all"
             >
               <ArrowDownUp className="w-3.5 h-3.5 text-sage" />
               Date
@@ -1519,7 +1519,7 @@ export default function BookClass() {
             <Card className="border-sage/20 bg-white-warm">
               <CardContent className="flex flex-col items-center justify-center py-16 text-center">
                 <Calendar className="w-16 h-16 text-sage/40 mb-4" />
-                <h3 className="font-display text-2xl text-charcoal mb-2">No Classes Available</h3>
+                <h3 className="font-body font-semibold text-2xl text-charcoal mb-2">No Classes Available</h3>
                 <p className="font-body text-charcoal/60 mb-6">Try adjusting your filters or check back soon.</p>
                 <Button
                   onClick={() => { f.reset(); setSelectedDayIndex(null); }}
@@ -1544,7 +1544,7 @@ export default function BookClass() {
           {/* Panel Header */}
           <div className="sticky top-0 z-10 px-4 sm:px-6 py-4 flex items-center justify-between border-b border-sage/10 bg-white-warm">
             <div>
-              <h2 className="font-display text-xl sm:text-3xl text-charcoal mb-0.5">
+              <h2 className="font-body font-semibold text-xl sm:text-3xl text-charcoal mb-0.5">
                 {bookingStep === 1 && "Who's Coming?"}
                 {bookingStep === 2 && "Class Management"}
                 {bookingStep === 3 && "Add Nourishment"}
@@ -1571,7 +1571,7 @@ export default function BookClass() {
             {bookingStep === 1 && (
               <div className="space-y-6">
                 <div>
-                  <h3 className="font-display text-xl text-charcoal mb-2">Primary Attendee</h3>
+                  <h3 className="font-body font-semibold text-xl text-charcoal mb-2">Primary Attendee</h3>
                   <div className="p-4 rounded-xl bg-sage/5 border border-sage/20">
                     <p className="font-body text-charcoal font-medium">{userName}</p>
                     <p className="font-body text-sm text-charcoal/60">{userEmail}</p>
@@ -1580,7 +1580,7 @@ export default function BookClass() {
 
                 {/* Add Studio Members */}
                 <div className="mt-2">
-                  <h3 className="font-display text-lg text-charcoal mb-2">Add People</h3>
+                  <h3 className="font-body font-semibold text-lg text-charcoal mb-2">Add People</h3>
                   <p className="font-body text-sm text-charcoal/60 mb-3">
                     Search for studio members or add someone new. You&apos;ll pay for their class.
                   </p>
@@ -1604,7 +1604,7 @@ export default function BookClass() {
                       <p className="font-body text-sm text-charcoal/60 uppercase tracking-wide mb-1">
                         Your Package
                       </p>
-                      <p className="font-display text-2xl text-charcoal">
+                      <p className="font-body font-semibold text-2xl text-charcoal">
                         {userPackage.name}
                       </p>
                     </div>
@@ -1670,7 +1670,7 @@ export default function BookClass() {
                     <>
                       <button
                         type="button"
-                        className={`w-full text-left p-5 rounded-xl border-2 cursor-pointer transition-all ${
+                        className={`w-full text-left p-5 rounded-xl border-2 cursor-pointer transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sage focus-visible:ring-offset-1 ${
                           useCredits
                             ? "border-sage bg-sage/5"
                             : "border-sage/20 bg-white-warm hover:border-sage/40"
@@ -1710,7 +1710,7 @@ export default function BookClass() {
 
                       <button
                         type="button"
-                        className={`w-full text-left p-5 rounded-xl border-2 cursor-pointer transition-all ${
+                        className={`w-full text-left p-5 rounded-xl border-2 cursor-pointer transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sage focus-visible:ring-offset-1 ${
                           !useCredits
                             ? "border-sage bg-sage/5"
                             : "border-sage/20 bg-white-warm hover:border-sage/40"
@@ -1782,7 +1782,7 @@ export default function BookClass() {
                       <div className="w-10 h-10 rounded-full bg-sage/20 flex items-center justify-center">
                         <AlertCircle className="text-sage" size={20} />
                       </div>
-                      <h3 className="font-display text-lg text-charcoal">Class Coverage</h3>
+                      <h3 className="font-body font-semibold text-lg text-charcoal">Class Coverage</h3>
                     </div>
                     <p className="font-body text-sm text-charcoal/70 mb-3">
                       Your unlimited package covers <strong>1 person</strong> (you).
@@ -1806,7 +1806,7 @@ export default function BookClass() {
             {bookingStep === 3 && (
               <div className="space-y-6">
                 <div>
-                  <h3 className="font-display text-2xl text-charcoal mb-2">
+                  <h3 className="font-body font-semibold text-2xl text-charcoal mb-2">
                     Add Nourishment
                   </h3>
                   <p className="font-body text-charcoal/60 mb-6">
@@ -1831,7 +1831,7 @@ export default function BookClass() {
                     </p>
                   ) : null}
                   {!loadingFoodItems && foodItemsLoadError ? (
-                    <p className="font-body text-sm text-[#a05e38] bg-[#a05e38]/10 border border-[#a05e38]/25 rounded-lg p-3">
+                    <p className="font-body text-sm text-destructive bg-destructive/10 border border-destructive/25 rounded-lg p-3">
                       {foodItemsLoadError}
                     </p>
                   ) : null}
@@ -1868,7 +1868,7 @@ export default function BookClass() {
                   <div className="flex items-start justify-between gap-3">
                     <div className="min-w-0">
                       <p className="font-body text-xs text-charcoal/60 uppercase tracking-wide mb-0.5">Class</p>
-                      <p className="font-display text-base sm:text-xl text-charcoal leading-tight">{selectedClass?.name}</p>
+                      <p className="font-body font-semibold text-base sm:text-xl text-charcoal leading-tight">{selectedClass?.name}</p>
                       <p className="font-body text-xs sm:text-sm text-charcoal/60">{selectedClass?.time} • {selectedClass?.instructor}</p>
                     </div>
                     <div className="text-right shrink-0">
@@ -1896,7 +1896,7 @@ export default function BookClass() {
                         </span>
                         <button
                           onClick={() => { setAppliedCoupon(null); setCouponCode(""); setCouponError(null); }}
-                          className="font-body text-xs text-charcoal/50 hover:text-terracotta underline underline-offset-2 transition-colors"
+                          className="font-body text-xs text-charcoal/50 hover:text-terracotta underline underline-offset-2 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sage focus-visible:ring-offset-1"
                         >
                           Remove
                         </button>
@@ -1908,7 +1908,7 @@ export default function BookClass() {
                           value={couponCode}
                           onChange={(e) => { setCouponCode(e.target.value.toUpperCase()); setCouponError(null); }}
                           placeholder="Enter code"
-                          className="flex-1 font-body text-sm px-3 py-2 rounded-lg border border-sage/30 focus:outline-hidden focus:ring-1 focus:ring-sage bg-white-warm text-charcoal placeholder:text-charcoal/30 uppercase"
+                          className="flex-1 font-body text-sm px-3 py-2 rounded-lg border border-sage/30 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sage focus-visible:ring-offset-1 bg-white-warm text-charcoal placeholder:text-charcoal/30 uppercase"
                         />
                         <Button
                           disabled={!couponCode.trim() || couponLoading}
@@ -1952,7 +1952,7 @@ export default function BookClass() {
 
                 {/* Payment Breakdown */}
                 <div className="p-3 sm:p-6 rounded-xl bg-white-warm border border-sage/10 space-y-2 sm:space-y-3">
-                  <h4 className="font-display text-base sm:text-lg text-charcoal">Payment Breakdown</h4>
+                  <h4 className="font-body font-semibold text-base sm:text-lg text-charcoal">Payment Breakdown</h4>
 
                   {totals.classTotal > 0 && (
                     <div className="flex justify-between font-body text-sm">
@@ -1988,9 +1988,9 @@ export default function BookClass() {
                     </div>
                   )}
 
-                  <div className="pt-2 border-t border-sage/10 flex justify-between font-display text-xl">
+                  <div className="pt-2 border-t border-sage/10 flex justify-between font-body font-semibold text-xl">
                     <span className="text-charcoal">Total</span>
-                    <span className="text-sage">₹{totals.finalTotal.toFixed(0)}</span>
+                    <span className="text-sage tabular-nums">₹{totals.finalTotal.toFixed(0)}</span>
                   </div>
 
                   {totals.taxIncluded > 0 && (
@@ -2117,7 +2117,7 @@ export default function BookClass() {
       >
         <AlertDialogContent className="border-sage/20 bg-white-warm font-body">
           <AlertDialogHeader>
-            <AlertDialogTitle className="font-display text-charcoal">
+            <AlertDialogTitle className="font-body font-semibold text-charcoal">
               {paymentRecovery?.variant === "failed" ? "Payment didn’t go through" : "Payment cancelled"}
             </AlertDialogTitle>
             <AlertDialogDescription className="text-charcoal/70 space-y-2">

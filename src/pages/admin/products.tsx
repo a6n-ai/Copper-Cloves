@@ -451,7 +451,7 @@ export default function AdminProducts() {
     <>
       <SEO title="Boutique Management - Admin" />
       
-      <div className="flex min-h-screen bg-linear-to-br from-cream via-[#fafaf8] to-sage/5">
+      <div className="flex min-h-screen bg-linear-to-br from-cream via-card to-sage/5">
         
         <main className="min-h-screen">
           <div className="max-w-7xl mx-auto p-6 lg:p-8 space-y-8">
@@ -477,7 +477,7 @@ export default function AdminProducts() {
                     <Package className="text-sage/60" size={24} />
                     <TrendingUp className="text-sage" size={20} />
                   </div>
-                  <p className="font-display text-3xl text-charcoal mb-1">{totalProducts}</p>
+                  <p className="font-body font-semibold tabular-nums text-3xl text-charcoal mb-1">{totalProducts}</p>
                   <p className="font-body text-sm text-charcoal/60">Total Products</p>
                 </div>
 
@@ -486,7 +486,7 @@ export default function AdminProducts() {
                     <DollarSign className="text-sage/60" size={24} />
                     <TrendingUp className="text-sage" size={20} />
                   </div>
-                  <p className="font-display text-3xl text-charcoal mb-1">₹{totalRevenue.toLocaleString()}</p>
+                  <p className="font-body font-semibold tabular-nums text-3xl text-charcoal mb-1">₹{totalRevenue.toLocaleString()}</p>
                   <p className="font-body text-sm text-charcoal/60">Total Revenue</p>
                 </div>
 
@@ -495,7 +495,7 @@ export default function AdminProducts() {
                     <ShoppingCart className="text-sage/60" size={24} />
                     <TrendingUp className="text-terracotta" size={20} />
                   </div>
-                  <p className="font-display text-3xl text-charcoal mb-1">{pendingOrders}</p>
+                  <p className="font-body font-semibold tabular-nums text-3xl text-charcoal mb-1">{pendingOrders}</p>
                   <p className="font-body text-sm text-charcoal/60">Pending Orders</p>
                 </div>
 
@@ -504,7 +504,7 @@ export default function AdminProducts() {
                     <TrendingUp className="text-sage/60" size={24} />
                     <TrendingUp className="text-sage" size={20} />
                   </div>
-                  <p className="font-display text-3xl text-charcoal mb-1">₹{avgOrderValue.toFixed(0)}</p>
+                  <p className="font-body font-semibold tabular-nums text-3xl text-charcoal mb-1">₹{avgOrderValue.toFixed(0)}</p>
                   <p className="font-body text-sm text-charcoal/60">Avg Order Value</p>
                 </div>
               </div>
@@ -514,9 +514,9 @@ export default function AdminProducts() {
                 <div className="inline-flex items-center gap-2 p-1 rounded-full bg-white-warm border border-sage/10">
                   <button
                     onClick={() => setActiveTab("products")}
-                    className={`px-6 py-2 rounded-full font-body text-sm transition-all duration-300 ${
+                    className={`px-6 py-2 rounded-full font-body text-sm transition-all duration-300 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sage focus-visible:ring-offset-1 ${
                       activeTab === "products"
-                        ? "bg-sage text-cream shadow-lg"
+                        ? "bg-sage text-cream shadow-sm"
                         : "text-charcoal/60 hover:text-charcoal"
                     }`}
                   >
@@ -524,9 +524,9 @@ export default function AdminProducts() {
                   </button>
                   <button
                     onClick={() => setActiveTab("orders")}
-                    className={`px-6 py-2 rounded-full font-body text-sm transition-all duration-300 ${
+                    className={`px-6 py-2 rounded-full font-body text-sm transition-all duration-300 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sage focus-visible:ring-offset-1 ${
                       activeTab === "orders"
-                        ? "bg-sage text-cream shadow-lg"
+                        ? "bg-sage text-cream shadow-sm"
                         : "text-charcoal/60 hover:text-charcoal"
                     }`}
                   >
@@ -534,9 +534,9 @@ export default function AdminProducts() {
                   </button>
                   <button
                     onClick={() => setActiveTab("categories")}
-                    className={`px-6 py-2 rounded-full font-body text-sm transition-all duration-300 ${
+                    className={`px-6 py-2 rounded-full font-body text-sm transition-all duration-300 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sage focus-visible:ring-offset-1 ${
                       activeTab === "categories"
-                        ? "bg-sage text-cream shadow-lg"
+                        ? "bg-sage text-cream shadow-sm"
                         : "text-charcoal/60 hover:text-charcoal"
                     }`}
                   >
@@ -706,7 +706,7 @@ export default function AdminProducts() {
                         >
                           <div className="flex items-start justify-between mb-4">
                             <div className="flex-1">
-                              <h3 className="font-display text-2xl text-charcoal mb-2">
+                              <h3 className="font-body font-semibold text-2xl text-charcoal mb-2">
                                 {category.name}
                               </h3>
                               <p className="font-body text-sm text-charcoal/60">
@@ -719,21 +719,27 @@ export default function AdminProducts() {
                           </div>
 
                           <div className="flex items-center gap-2 pt-4 border-t border-sage/10">
-                            <button
+                            <Button
+                              type="button"
+                              variant="sage-outline"
+                              size="sm"
                               onClick={() => handleEditCategory(category)}
-                              className="flex-1 px-4 py-2 rounded-lg bg-sage/10 hover:bg-sage/20 text-sage font-body text-sm transition-colors flex items-center justify-center gap-2"
+                              className="flex-1 font-body"
                             >
                               <Edit size={16} />
                               Edit
-                            </button>
-                            <button
+                            </Button>
+                            <Button
+                              type="button"
+                              variant="destructive"
+                              size="sm"
                               onClick={() => handleDeleteCategory(category.id)}
                               disabled={productCount > 0}
-                              className="flex-1 px-4 py-2 rounded-lg bg-[#a05e38]/10 hover:bg-[#a05e38]/20 text-[#a05e38] font-body text-sm transition-colors flex items-center justify-center gap-2 disabled:opacity-30 disabled:cursor-not-allowed"
+                              className="flex-1 font-body"
                             >
                               <Trash2 size={16} />
                               Delete
-                            </button>
+                            </Button>
                           </div>
                         </div>
                       );
@@ -744,7 +750,7 @@ export default function AdminProducts() {
                   {categoryRows.length === 0 && (
                     <div className="text-center py-20 px-6 rounded-2xl bg-white-warm border border-sage/10">
                       <Package className="mx-auto mb-4 text-charcoal/20" size={64} />
-                      <h3 className="font-display text-2xl text-charcoal mb-2">No categories yet</h3>
+                      <h3 className="font-body font-semibold text-2xl text-charcoal mb-2">No categories yet</h3>
                       <p className="font-body text-charcoal/60 mb-6">
                         Create your first product category to organize your boutique
                       </p>
@@ -772,7 +778,7 @@ export default function AdminProducts() {
                       <div className="flex items-start justify-between mb-4 pb-4 border-b border-sage/10">
                         <div>
                           <div className="flex items-center gap-3 mb-2">
-                            <h3 className="font-display text-xl text-charcoal">{order.id}</h3>
+                            <h3 className="font-body font-semibold text-xl text-charcoal">{order.id}</h3>
                             <Pill tone={getStatusPillTone(order.status)}>
                               {order.status.charAt(0).toUpperCase() + order.status.slice(1)}
                             </Pill>
@@ -789,7 +795,7 @@ export default function AdminProducts() {
                           </p>
                         </div>
                         <div className="text-right">
-                          <p className="font-display text-2xl text-sage mb-1">₹{order.total}</p>
+                          <p className="font-body font-semibold tabular-nums text-2xl text-sage mb-1">₹{order.total}</p>
                           <p className="font-body text-xs text-charcoal/60">
                             {order.paymentMethod === "online" ? "Paid Online" : "Pay at Studio"}
                           </p>
@@ -820,7 +826,7 @@ export default function AdminProducts() {
                         <select
                           value={order.status}
                           onChange={(e) => handleUpdateOrderStatus(order.id, e.target.value as Order["status"])}
-                          className="px-3 py-2 rounded-lg border border-sage/20 font-body text-sm text-charcoal focus:outline-hidden focus:ring-2 focus:ring-sage/30"
+                          className="px-3 py-2 rounded-lg border border-sage/20 font-body text-sm text-charcoal focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sage"
                         >
                           <option value="pending">Pending</option>
                           <option value="processing">Processing</option>
@@ -878,7 +884,7 @@ export default function AdminProducts() {
               <div className="shrink-0 border-b border-sage/10 bg-white-warm p-6">
                 <div className="flex items-center justify-between">
                   <div>
-                    <DrawerTitle className="font-display text-3xl text-charcoal">
+                    <DrawerTitle className="font-body font-semibold text-3xl text-charcoal">
                       {editingProduct ? "Edit Product" : "Add New Product"}
                     </DrawerTitle>
                     <DrawerDescription className="font-body text-sm text-charcoal/60">
@@ -910,7 +916,7 @@ export default function AdminProducts() {
                   <select
                     value={formData.category}
                     onChange={(e) => setFormData({ ...formData, category: e.target.value })}
-                    className="w-full px-4 py-2 rounded-lg border border-sage/20 font-body text-sm focus:outline-hidden focus:ring-2 focus:ring-sage/30"
+                    className="w-full px-4 py-2 rounded-lg border border-sage/20 font-body text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sage"
                   >
                     {categoryRows.map((cat) => (
                       <option key={cat.id} value={cat.id}>{cat.name}</option>
@@ -977,17 +983,19 @@ export default function AdminProducts() {
                           className="border-sage/20 focus:border-sage flex-1"
                         />
                         {image && (
-                          <button
+                          <Button
                             type="button"
+                            variant="ghost"
+                            size="icon-sm"
+                            aria-label="Remove image"
                             onClick={() => {
                               const newImages = [...formData.images];
                               newImages[index] = "";
                               setFormData({ ...formData, images: newImages });
                             }}
-                            className="p-2 rounded-lg hover:bg-[#a05e38]/10 text-[#a05e38] transition-colors"
                           >
                             <X size={16} />
-                          </button>
+                          </Button>
                         )}
                       </div>
                     ))}
@@ -1045,7 +1053,7 @@ export default function AdminProducts() {
               <div className="shrink-0 border-b border-sage/10 bg-white-warm p-6">
                 <div className="flex items-center justify-between">
                   <div>
-                    <DrawerTitle className="font-display text-3xl text-charcoal">
+                    <DrawerTitle className="font-body font-semibold text-3xl text-charcoal">
                       {editingCategory ? "Edit Category" : "Add New Category"}
                     </DrawerTitle>
                     <DrawerDescription className="font-body text-sm text-charcoal/60">

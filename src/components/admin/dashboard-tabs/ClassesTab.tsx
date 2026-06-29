@@ -67,7 +67,7 @@ function classUtilStyle(util: number): { tone: "success" | "warning"; barColor: 
       status: "Steady",
     };
   }
-  return { tone: "warning", barColor: "bg-[#a05e38]", status: "Low" };
+  return { tone: "warning", barColor: "bg-destructive", status: "Low" };
 }
 
 function ClassesTabImpl({ classPerformance, disciplineSplit, peakHours, classesLoaded }: Readonly<Props>) {
@@ -138,7 +138,7 @@ function ClassesTabImpl({ classPerformance, disciplineSplit, peakHours, classesL
 
       <Card className="border-sage/20 bg-white-warm">
         <CardHeader>
-          <CardTitle className="font-display text-2xl text-charcoal">Class Performance</CardTitle>
+          <CardTitle className="font-body font-semibold text-2xl text-charcoal">Class Performance</CardTitle>
           <CardDescription className="font-body text-charcoal/60">Utilization and bookings per class type</CardDescription>
         </CardHeader>
         <CardContent>
@@ -192,7 +192,7 @@ function ClassesTabImpl({ classPerformance, disciplineSplit, peakHours, classesL
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         <Card className="border-sage/20 bg-white-warm">
           <CardHeader>
-            <CardTitle className="font-display text-xl text-charcoal">Discipline Split</CardTitle>
+            <CardTitle className="font-body font-semibold text-xl text-charcoal">Discipline Split</CardTitle>
             <CardDescription className="font-body text-charcoal/60">Bookings by category</CardDescription>
           </CardHeader>
           <CardContent>
@@ -229,7 +229,7 @@ function ClassesTabImpl({ classPerformance, disciplineSplit, peakHours, classesL
 
         <Card className="border-sage/20 bg-white-warm lg:col-span-2">
           <CardHeader>
-            <CardTitle className="font-display text-xl text-charcoal">Utilization Leaderboard</CardTitle>
+            <CardTitle className="font-body font-semibold text-xl text-charcoal">Utilization Leaderboard</CardTitle>
             <CardDescription className="font-body text-charcoal/60">Top 10 classes by capacity fill</CardDescription>
           </CardHeader>
           <CardContent>
@@ -252,7 +252,7 @@ function ClassesTabImpl({ classPerformance, disciplineSplit, peakHours, classesL
 
       <Card className="border-sage/20 bg-white-warm">
         <CardHeader>
-          <CardTitle className="font-display text-xl text-charcoal">Peak Hours Heatmap</CardTitle>
+          <CardTitle className="font-body font-semibold text-xl text-charcoal">Peak Hours Heatmap</CardTitle>
           <CardDescription className="font-body text-charcoal/60">
             Bookings by time slot × day of week · last 30 days
           </CardDescription>
@@ -305,10 +305,10 @@ function ClassesTabImpl({ classPerformance, disciplineSplit, peakHours, classesL
       </Card>
 
       {stats.underperforming.length > 0 && (
-        <Card className="border-[#a05e38]/25 bg-[#a05e38]/10">
+        <Card className="border-destructive/25 bg-destructive/10">
           <CardHeader>
-            <CardTitle className="font-display text-xl text-charcoal flex items-center gap-2">
-              <AlertTriangle className="h-5 w-5 text-[#a05e38]" />
+            <CardTitle className="font-body font-semibold text-xl text-charcoal flex items-center gap-2">
+              <AlertTriangle className="h-5 w-5 text-destructive" />
               Needs Attention
             </CardTitle>
             <CardDescription className="font-body text-charcoal/60">
@@ -318,7 +318,7 @@ function ClassesTabImpl({ classPerformance, disciplineSplit, peakHours, classesL
           <CardContent>
             <div className="flex flex-wrap gap-2">
               {stats.underperforming.map((cls) => (
-                <div key={cls.name} className="flex items-center gap-2 rounded-full bg-white-warm border border-[#a05e38]/25 px-3 py-1.5">
+                <div key={cls.name} className="flex items-center gap-2 rounded-full bg-white-warm border border-destructive/25 px-3 py-1.5">
                   <span className="font-body text-sm text-charcoal">{cls.name}</span>
                   <Pill tone="warning" className="font-body">
                     {cls.utilization}%

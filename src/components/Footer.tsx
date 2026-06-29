@@ -108,7 +108,7 @@ export function Footer({ cta }: Readonly<FooterProps>) {
           initial="hidden"
           animate={cardInView ? "show" : "hidden"}
           transition={{ delay: reduce ? 0 : 0.08 }}
-          className="relative mt-5 rounded-2xl border border-[#e5e4dc] bg-white-warm px-6 py-10 sm:px-10 sm:py-12"
+          className="relative mt-5 rounded-2xl border border-border bg-white-warm px-6 py-10 sm:px-10 sm:py-12"
         >
           {/* Visit Our Studio band — desktop only (mobile uses the linked
               address + the CTA's "Get Directions" instead) */}
@@ -117,7 +117,7 @@ export function Footer({ cta }: Readonly<FooterProps>) {
               <h2 className="font-display text-2xl text-charcoal md:text-3xl">
                 Visit Our Studio
               </h2>
-              <p className="mt-3 max-w-md font-body text-sm leading-relaxed text-[#6b6b6b]">
+              <p className="mt-3 max-w-md font-body text-sm leading-relaxed text-muted-foreground">
                 Located in the heart of Indiranagar, our sun-drenched studio
                 awaits. Drop by for a tour, grab a coffee, or join us for a
                 class.
@@ -140,7 +140,7 @@ export function Footer({ cta }: Readonly<FooterProps>) {
             </div>
 
             {/* Map */}
-            <div className="group overflow-hidden rounded-xl border border-[#e5e4dc] transition-shadow duration-300 hover:shadow-[0_4px_24px_rgba(51,51,51,0.08)]">
+            <div className="group overflow-hidden rounded-xl border border-border transition-shadow duration-300 hover:shadow-[0_4px_24px_rgba(51,51,51,0.08)]">
               <iframe
                 src="https://maps.google.com/maps?ll=12.963915,77.638424&z=15&t=m&hl=en&gl=IN&mapclient=embed&output=embed&cid=8196377345979611458"
                 className="h-50 w-full border-0 grayscale-[0.3] transition-all duration-500 group-hover:grayscale-0 md:h-55"
@@ -153,7 +153,7 @@ export function Footer({ cta }: Readonly<FooterProps>) {
           </div>
 
           {/* Divider (matches the desktop-only band above) */}
-          <div className="my-10 hidden border-t border-[#e5e4dc] md:block" />
+          <div className="my-10 hidden border-t border-border md:block" />
 
           {/* Link + contact grid */}
           <div className="grid grid-cols-2 gap-x-8 gap-y-10 md:grid-cols-12">
@@ -168,7 +168,7 @@ export function Footer({ cta }: Readonly<FooterProps>) {
                   className="h-20 w-auto"
                 />
               </Link>
-              <p className="mt-5 max-w-xs font-body text-sm leading-relaxed text-[#6b6b6b]">
+              <p className="mt-5 max-w-xs font-body text-sm leading-relaxed text-muted-foreground">
                 A space to move your body, refuel with nourishing food, and find
                 your community.
               </p>
@@ -182,7 +182,7 @@ export function Footer({ cta }: Readonly<FooterProps>) {
                     aria-label={label}
                     whileHover={reduce ? undefined : { y: -2 }}
                     whileTap={{ scale: 0.94 }}
-                    className="flex h-10 w-10 items-center justify-center rounded-full border border-[#e5e4dc] text-charcoal/70 transition-colors duration-200 hover:border-sage hover:bg-sage hover:text-white-warm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sage focus-visible:ring-offset-2 focus-visible:ring-offset-white-warm"
+                    className="flex h-10 w-10 items-center justify-center rounded-full border border-border text-charcoal/70 transition-colors duration-200 hover:border-sage hover:bg-sage hover:text-white-warm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sage focus-visible:ring-offset-2 focus-visible:ring-offset-white-warm"
                   >
                     <Icon size={17} />
                   </m.a>
@@ -193,7 +193,7 @@ export function Footer({ cta }: Readonly<FooterProps>) {
             {/* Link columns */}
             {LINK_COLUMNS.map((col) => (
               <div key={col.heading} className="md:col-span-2">
-                <h3 className="mb-4 font-body text-xs font-semibold uppercase tracking-[0.08em] text-[#6b6b6b]">
+                <h3 className="mb-4 font-body text-xs font-semibold uppercase tracking-[0.08em] text-muted-foreground">
                   {col.heading}
                 </h3>
                 <ul className="space-y-3">
@@ -201,7 +201,7 @@ export function Footer({ cta }: Readonly<FooterProps>) {
                     <li key={label}>
                       <Link
                         href={href}
-                        className="footer-link inline-block font-body text-sm text-charcoal/80 transition-colors duration-200 hover:text-charcoal focus-visible:text-charcoal focus-visible:outline-none"
+                        className="footer-link inline-block font-body text-sm text-charcoal/80 transition-colors duration-200 hover:text-charcoal focus-visible:text-charcoal focus-visible:underline focus-visible:outline-none"
                       >
                         {label}
                       </Link>
@@ -213,7 +213,7 @@ export function Footer({ cta }: Readonly<FooterProps>) {
 
             {/* Contact */}
             <div className="col-span-2 md:col-span-4">
-              <h3 className="mb-4 font-body text-xs font-semibold uppercase tracking-[0.08em] text-[#6b6b6b]">
+              <h3 className="mb-4 font-body text-xs font-semibold uppercase tracking-[0.08em] text-muted-foreground">
                 Get in Touch
               </h3>
               <ul className="space-y-3.5">
@@ -252,21 +252,21 @@ export function Footer({ cta }: Readonly<FooterProps>) {
           </div>
 
           {/* Bottom row */}
-          <div className="mt-10 flex flex-col items-center justify-between gap-4 border-t border-[#e5e4dc] pt-6 sm:flex-row">
-            <p className="text-center font-body text-sm text-[#6b6b6b] sm:text-left">
+          <div className="mt-10 flex flex-col items-center justify-between gap-4 border-t border-border pt-6 sm:flex-row">
+            <p className="text-center font-body text-sm text-muted-foreground sm:text-left">
               © {currentYear} The Studio by Copper + Cloves. All rights
               reserved.
             </p>
             <div className="flex items-center gap-6">
               <Link
                 href="/policy"
-                className="footer-link inline-block font-body text-sm text-[#6b6b6b] transition-colors duration-200 hover:text-charcoal focus-visible:text-charcoal focus-visible:outline-none"
+                className="footer-link inline-block font-body text-sm text-muted-foreground transition-colors duration-200 hover:text-charcoal focus-visible:text-charcoal focus-visible:outline-none"
               >
                 Privacy Policy
               </Link>
               <Link
                 href="/terms"
-                className="footer-link inline-block font-body text-sm text-[#6b6b6b] transition-colors duration-200 hover:text-charcoal focus-visible:text-charcoal focus-visible:outline-none"
+                className="footer-link inline-block font-body text-sm text-muted-foreground transition-colors duration-200 hover:text-charcoal focus-visible:text-charcoal focus-visible:outline-none"
               >
                 Terms of Service
               </Link>

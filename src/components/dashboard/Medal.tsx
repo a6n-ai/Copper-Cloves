@@ -215,7 +215,7 @@ function FlipCard({ diameter, faceBg, flipLabel, face }: Readonly<FlipCardProps>
           style={{ transform: "rotateY(180deg)", backfaceVisibility: "hidden", background: faceBg, clipPath: HEX_CLIP }}
         >
           <span
-            className="font-display leading-tight text-charcoal"
+            className="font-body font-semibold leading-tight text-charcoal"
             style={{ fontSize: Math.max(10, Math.round(diameter * 0.15)), textShadow: "0 1px 1px rgba(255,255,255,0.5)" }}
           >
             {flipLabel}

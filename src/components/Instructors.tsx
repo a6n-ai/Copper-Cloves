@@ -19,7 +19,7 @@ function InstructorsSkeleton({ count = 3 }: Readonly<{ count?: number }>) {
   return (
     <div className="flex gap-6 overflow-hidden pb-2">
       {keys.map((key) => (
-        <div key={key} className="w-70 shrink-0 overflow-hidden rounded-2xl border border-[#e5e4dc] bg-white-warm">
+        <div key={key} className="w-70 shrink-0 overflow-hidden rounded-2xl border border-border bg-white-warm">
           <Skeleton className="aspect-4/5 w-full rounded-none" />
           <div className="p-5">
             <Skeleton className="mb-2 h-7 w-3/4" />
@@ -58,7 +58,7 @@ export function Instructors() {
     carouselBody = <InstructorsSkeleton count={3} />;
   } else if (instructors.length === 0) {
     carouselBody = (
-      <div className="rounded-2xl border border-[#e5e4dc] bg-white-warm py-16 text-center">
+      <div className="rounded-2xl border border-border bg-white-warm py-16 text-center">
         <p className="font-body text-charcoal/60">No instructors found.</p>
       </div>
     );

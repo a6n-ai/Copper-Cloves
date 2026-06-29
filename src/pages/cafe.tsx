@@ -309,7 +309,7 @@ export default function CafePage() {
                 asChild
                 size="lg"
                 variant="outline"
-                className="w-full sm:w-auto border-2 border-cream/40 hover:bg-[#fafaf8]/10 text-cream hover:text-cream"
+                className="w-full sm:w-auto border-2 border-cream/40 hover:bg-white-warm/10 text-cream hover:text-cream"
               >
                 <a
                   href="https://www.google.com/maps/search/?api=1&query=The+Studio+by+Copper+and+Cloves"
@@ -376,7 +376,7 @@ export default function CafePage() {
       {/* Open Invitation Section - Public Welcome (co-working pitch + features) */}
       <section className="relative py-14 md:py-20 px-6 lg:px-8 overflow-hidden">
         {/* Decorative Background */}
-        <div className="absolute inset-0 bg-linear-to-br from-sage/5 via-cream to-[#fafaf8] -z-10" />
+        <div className="absolute inset-0 bg-linear-to-br from-sage/5 via-cream to-white-warm -z-10" />
         
         <div className="max-w-7xl mx-auto">
           <div className="grid items-stretch gap-10 lg:grid-cols-2 lg:gap-14">

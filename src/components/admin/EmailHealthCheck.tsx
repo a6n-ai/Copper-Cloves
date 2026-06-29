@@ -52,7 +52,7 @@ export default function EmailHealthCheck() {
   return (
     <Card className="border-sage/20 bg-white-warm transition-shadow hover:shadow-[0_4px_24px_rgba(51,51,51,0.08)]">
       <CardHeader>
-        <CardTitle className="flex items-center gap-2 font-display text-2xl text-charcoal">
+        <CardTitle className="flex items-center gap-2 font-body font-semibold text-2xl text-charcoal">
           <Mail size={20} className="text-terracotta" aria-hidden />
           Email health check
         </CardTitle>

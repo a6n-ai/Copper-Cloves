@@ -229,7 +229,7 @@ function MembersTabImpl({
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         <Card className="border-sage/20 bg-white-warm">
           <CardHeader>
-            <CardTitle className="font-display text-xl text-charcoal">Member Growth</CardTitle>
+            <CardTitle className="font-body font-semibold text-xl text-charcoal">Member Growth</CardTitle>
             <CardDescription className="font-body text-charcoal/60">New member signups over time</CardDescription>
           </CardHeader>
           <CardContent>
@@ -247,7 +247,7 @@ function MembersTabImpl({
 
         <Card className="border-sage/20 bg-white-warm">
           <CardHeader>
-            <CardTitle className="font-display text-xl text-charcoal">Member Activity Status</CardTitle>
+            <CardTitle className="font-body font-semibold text-xl text-charcoal">Member Activity Status</CardTitle>
             <CardDescription className="font-body text-charcoal/60">Active vs inactive members</CardDescription>
           </CardHeader>
           <CardContent>
@@ -295,7 +295,7 @@ function MembersTabImpl({
 
         <Card className="border-sage/20 bg-white-warm lg:col-span-2">
           <CardHeader>
-            <CardTitle className="font-display text-xl text-charcoal">Streak Distribution</CardTitle>
+            <CardTitle className="font-body font-semibold text-xl text-charcoal">Streak Distribution</CardTitle>
             <CardDescription className="font-body text-charcoal/60">Members by current streak length (days)</CardDescription>
           </CardHeader>
           <CardContent>
@@ -316,7 +316,7 @@ function MembersTabImpl({
         <CardHeader>
           <div className="flex items-center justify-between">
             <div>
-              <CardTitle className="font-display text-2xl text-charcoal flex items-center gap-2">
+              <CardTitle className="font-body font-semibold text-2xl text-charcoal flex items-center gap-2">
                 <Trophy className="h-6 w-6 text-terracotta" />
                 Member of the Month
               </CardTitle>
@@ -331,7 +331,7 @@ function MembersTabImpl({
               <Star className="h-10 w-10 text-sage" />
             </div>
             <div className="flex-1 min-w-[180px]">
-              <div className="font-display text-3xl text-charcoal mb-2">{memberStats.memberOfMonth.name}</div>
+              <div className="font-body font-semibold text-3xl text-charcoal mb-2">{memberStats.memberOfMonth.name}</div>
               <div className="flex flex-wrap items-center gap-x-6 gap-y-2 text-charcoal/60">
                 <div className="flex items-center gap-2">
                   <Calendar className="h-4 w-4" />
@@ -357,7 +357,7 @@ function MembersTabImpl({
             </div>
           </CardHeader>
           <CardContent>
-            <div className="font-display text-5xl text-charcoal mb-3">{memberStats.expiring7Days}</div>
+            <div className="font-body font-semibold tabular-nums text-5xl text-charcoal mb-3">{memberStats.expiring7Days}</div>
             <Button variant="outline" size="sm" className="w-full border-terracotta/20 text-terracotta hover:bg-terracotta/10 font-body hover:text-terracotta!">Add to CRM</Button>
           </CardContent>
         </Card>
@@ -370,7 +370,7 @@ function MembersTabImpl({
             </div>
           </CardHeader>
           <CardContent>
-            <div className="font-display text-5xl text-charcoal mb-3">{memberStats.expiring15Days}</div>
+            <div className="font-body font-semibold tabular-nums text-5xl text-charcoal mb-3">{memberStats.expiring15Days}</div>
             <Button variant="outline" size="sm" className="w-full border-terracotta/20 text-terracotta hover:bg-terracotta/10 font-body hover:text-terracotta!">Add to CRM</Button>
           </CardContent>
         </Card>
@@ -383,7 +383,7 @@ function MembersTabImpl({
             </div>
           </CardHeader>
           <CardContent>
-            <div className="font-display text-5xl text-charcoal mb-3">{memberStats.expiring30Days}</div>
+            <div className="font-body font-semibold tabular-nums text-5xl text-charcoal mb-3">{memberStats.expiring30Days}</div>
             <Button variant="outline" size="sm" className="w-full border-sage/20 text-sage hover:bg-sage/5 font-body hover:text-sage!">View List</Button>
           </CardContent>
         </Card>
@@ -391,7 +391,7 @@ function MembersTabImpl({
 
       <Card className="border-sage/20 bg-white-warm">
         <CardHeader>
-          <CardTitle className="font-display text-2xl text-charcoal">Active Members by Pass Type</CardTitle>
+          <CardTitle className="font-body font-semibold text-2xl text-charcoal">Active Members by Pass Type</CardTitle>
           <CardDescription className="font-body text-charcoal/60">Distribution across membership tiers</CardDescription>
         </CardHeader>
         <CardContent>
@@ -441,7 +441,7 @@ function MembersTabImpl({
         <CardHeader>
           <div className="flex items-center justify-between">
             <div>
-              <CardTitle className="font-display text-2xl text-charcoal">Member Performance</CardTitle>
+              <CardTitle className="font-body font-semibold text-2xl text-charcoal">Member Performance</CardTitle>
               <CardDescription className="font-body text-charcoal/60">Detailed check-in and attendance stats</CardDescription>
             </div>
             <Select value={selectedMember} onValueChange={onSelectMember}>
@@ -524,7 +524,7 @@ function MembersTabImpl({
                         <TableCell className="font-body text-base text-sage tabular-nums">{m.streak as number}</TableCell>
                         <TableCell className="font-body text-base text-charcoal tabular-nums">{m.onTime as number}</TableCell>
                         <TableCell className="font-body text-base text-terracotta tabular-nums">{m.late as number}</TableCell>
-                        <TableCell className="font-body text-base text-[#cf5b48] tabular-nums">{m.noShow as number}</TableCell>
+                        <TableCell className="font-body text-base text-destructive tabular-nums">{m.noShow as number}</TableCell>
                         <TableCell className="text-right">
                           <Button variant="sage-outline" size="sm" onClick={() => onViewProfile(m)} className="h-8">View</Button>
                         </TableCell>

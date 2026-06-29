@@ -101,7 +101,7 @@ function barFillClasses(status: string) {
   if (status === "full" || status === "high") return "bg-sage";
   if (status === "good") return "bg-sage/70";
   if (status === "moderate") return "bg-terracotta";
-  return "bg-[#a05e38]";
+  return "bg-destructive";
 }
 
 // Signed percentage label ("+12% Growth") or em-dash when the pct is null.
@@ -145,7 +145,7 @@ export function ControlAnalyticsPanel() {
 
   if (loading) {
     return (
-      <div className="rounded-xl border border-sage/20 bg-[#fafaf8]/80 p-12 text-center font-body text-charcoal/60">
+      <div className="rounded-xl border border-sage/20 bg-card/80 p-12 text-center font-body text-charcoal/60">
         Loading analytics…
       </div>
     );
@@ -158,21 +158,21 @@ export function ControlAnalyticsPanel() {
   return (
     <div className="space-y-6">
       <div>
-        <h2 className="font-display text-3xl text-charcoal mb-2">Analytics & Visualization</h2>
+        <h2 className="font-body font-semibold text-3xl text-charcoal mb-2">Analytics & Visualization</h2>
         <p className="font-body text-charcoal/60">
           Metrics from live database aggregates (six rolling calendar months unless noted).
         </p>
       </div>
 
       <div>
-        <h3 className="font-display text-2xl text-charcoal mb-4 flex items-center gap-2">
+        <h3 className="font-body font-semibold text-2xl text-charcoal mb-4 flex items-center gap-2">
           <BarChart3 className="h-6 w-6 text-sage" />
           Financial Analytics
         </h3>
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
           <Card className="border-sage/20 bg-white-warm">
             <CardHeader>
-              <CardTitle className="font-display text-xl text-charcoal flex items-center gap-2">
+              <CardTitle className="font-body font-semibold text-xl text-charcoal flex items-center gap-2">
                 <TrendingUp className="h-5 w-5 text-sage" />
                 Revenue Trend
               </CardTitle>
@@ -213,7 +213,7 @@ export function ControlAnalyticsPanel() {
 
           <Card className="border-sage/20 bg-white-warm">
             <CardHeader>
-              <CardTitle className="font-display text-xl text-charcoal flex items-center gap-2">
+              <CardTitle className="font-body font-semibold text-xl text-charcoal flex items-center gap-2">
                 <PieChart className="h-5 w-5 text-sage" />
                 Revenue Sources
               </CardTitle>
@@ -235,7 +235,7 @@ export function ControlAnalyticsPanel() {
               </div>
               <div className="mt-6 p-4 bg-cream/30 rounded-lg">
                 <div className="font-body text-sm text-charcoal/60 mb-1">Total package revenue (6 mo)</div>
-                <div className="font-display text-3xl text-charcoal">
+                <div className="font-body font-semibold text-3xl text-charcoal">
                   ₹{d.financial.totalRevenuePackages.toLocaleString("en-IN")}
                 </div>
               </div>
@@ -244,7 +244,7 @@ export function ControlAnalyticsPanel() {
 
           <Card className="border-sage/20 bg-white-warm lg:col-span-2">
             <CardHeader>
-              <CardTitle className="font-display text-xl text-charcoal flex items-center gap-2">
+              <CardTitle className="font-body font-semibold text-xl text-charcoal flex items-center gap-2">
                 <BarChart3 className="h-5 w-5 text-sage" />
                 Profit / Loss Comparison
               </CardTitle>
@@ -272,9 +272,9 @@ export function ControlAnalyticsPanel() {
                             style={{ flexGrow: Math.max(data.revenue, 0.1), flexBasis: 0 }}
                           />
                         </div>
-                        <div className="flex-1 bg-[#a05e38]/10 rounded overflow-hidden flex min-h-[8px]">
+                        <div className="flex-1 bg-destructive/10 rounded overflow-hidden flex min-h-[8px]">
                           <div
-                            className="bg-[#a05e38] h-full rounded-l transition-all min-w-[2px]"
+                            className="bg-destructive h-full rounded-l transition-all min-w-[2px]"
                             style={{ flexGrow: Math.max(data.expense, 0.1), flexBasis: 0 }}
                           />
                         </div>
@@ -289,7 +289,7 @@ export function ControlAnalyticsPanel() {
                   <span className="font-body text-sm text-charcoal/60">Revenue ₹k</span>
                 </div>
                 <div className="flex items-center gap-2">
-                  <div className="w-4 h-4 bg-[#a05e38] rounded" />
+                  <div className="w-4 h-4 bg-destructive rounded" />
                   <span className="font-body text-sm text-charcoal/60">Est. payouts ₹k</span>
                 </div>
               </div>
@@ -299,14 +299,14 @@ export function ControlAnalyticsPanel() {
       </div>
 
       <div>
-        <h3 className="font-display text-2xl text-charcoal mb-4 flex items-center gap-2">
+        <h3 className="font-body font-semibold text-2xl text-charcoal mb-4 flex items-center gap-2">
           <Users className="h-6 w-6 text-sage" />
           Member Analytics
         </h3>
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
           <Card className="border-sage/20 bg-white-warm">
             <CardHeader>
-              <CardTitle className="font-display text-xl text-charcoal flex items-center gap-2">
+              <CardTitle className="font-body font-semibold text-xl text-charcoal flex items-center gap-2">
                 <TrendingUp className="h-5 w-5 text-sage" />
                 Member Growth
               </CardTitle>
@@ -347,7 +347,7 @@ export function ControlAnalyticsPanel() {
 
           <Card className="border-sage/20 bg-white-warm">
             <CardHeader>
-              <CardTitle className="font-display text-xl text-charcoal flex items-center gap-2">
+              <CardTitle className="font-body font-semibold text-xl text-charcoal flex items-center gap-2">
                 <PieChart className="h-5 w-5 text-sage" />
                 Pass Distribution
               </CardTitle>
@@ -375,14 +375,14 @@ export function ControlAnalyticsPanel() {
               </div>
               <div className="mt-6 p-4 bg-cream/30 rounded-lg">
                 <div className="font-body text-sm text-charcoal/60 mb-1">Active package holders</div>
-                <div className="font-display text-3xl text-charcoal">{d.members.totalPassHolders}</div>
+                <div className="font-body font-semibold tabular-nums text-3xl text-charcoal">{d.members.totalPassHolders}</div>
               </div>
             </CardContent>
           </Card>
 
           <Card className="border-sage/20 bg-white-warm">
             <CardHeader>
-              <CardTitle className="font-display text-xl text-charcoal flex items-center gap-2">
+              <CardTitle className="font-body font-semibold text-xl text-charcoal flex items-center gap-2">
                 <CheckCircle2 className="h-5 w-5 text-sage" />
                 Activity (30-day)
               </CardTitle>
@@ -412,11 +412,11 @@ export function ControlAnalyticsPanel() {
               <div className="mt-6 grid grid-cols-2 gap-3">
                 <div className="p-3 bg-sage/5 rounded-lg border border-sage/20">
                   <div className="font-body text-xs text-charcoal/60 mb-1">Active rate</div>
-                  <div className="font-display text-2xl text-sage">{d.members.activeRatePct}%</div>
+                  <div className="font-body font-semibold tabular-nums text-2xl text-sage">{d.members.activeRatePct}%</div>
                 </div>
                 <div className="p-3 bg-terracotta/10 rounded-lg border border-terracotta/20">
                   <div className="font-body text-xs text-charcoal/60 mb-1">Quiet members</div>
-                  <div className="font-display text-2xl text-terracotta">{d.members.atRiskCount}</div>
+                  <div className="font-body font-semibold tabular-nums text-2xl text-terracotta">{d.members.atRiskCount}</div>
                 </div>
               </div>
             </CardContent>
@@ -424,7 +424,7 @@ export function ControlAnalyticsPanel() {
 
           <Card className="border-sage/20 bg-white-warm">
             <CardHeader>
-              <CardTitle className="font-display text-xl text-charcoal flex items-center gap-2">
+              <CardTitle className="font-body font-semibold text-xl text-charcoal flex items-center gap-2">
                 🔥 Streak leaders
               </CardTitle>
               <CardDescription>Current streak</CardDescription>
@@ -459,11 +459,11 @@ export function ControlAnalyticsPanel() {
       </div>
 
       <div>
-        <h3 className="font-display text-2xl text-charcoal mb-4">Instructors (this month)</h3>
+        <h3 className="font-body font-semibold text-2xl text-charcoal mb-4">Instructors (this month)</h3>
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
           <Card className="border-sage/20 bg-white-warm lg:col-span-2">
             <CardHeader>
-              <CardTitle className="font-display text-xl text-charcoal flex items-center gap-2">
+              <CardTitle className="font-body font-semibold text-xl text-charcoal flex items-center gap-2">
                 <BarChart3 className="h-5 w-5 text-sage" />
                 Check-ins
               </CardTitle>
@@ -494,7 +494,7 @@ export function ControlAnalyticsPanel() {
 
           <Card className="border-sage/20 bg-white-warm">
             <CardHeader>
-              <CardTitle className="font-display text-xl text-charcoal flex items-center gap-2">
+              <CardTitle className="font-body font-semibold text-xl text-charcoal flex items-center gap-2">
                 <DollarSign className="h-5 w-5 text-sage" />
                 Top earners (est.)
               </CardTitle>
@@ -512,7 +512,7 @@ export function ControlAnalyticsPanel() {
                           {inst.sharePct}%
                         </Pill>
                       </div>
-                      <div className="font-display text-2xl text-sage">
+                      <div className="font-body font-semibold text-2xl text-sage">
                         ₹{inst.earnings.toLocaleString("en-IN")}
                       </div>
                     </div>
@@ -524,7 +524,7 @@ export function ControlAnalyticsPanel() {
 
           <Card className="border-sage/20 bg-white-warm">
             <CardHeader>
-              <CardTitle className="font-display text-xl text-charcoal flex items-center gap-2">
+              <CardTitle className="font-body font-semibold text-xl text-charcoal flex items-center gap-2">
                 <Calendar className="h-5 w-5 text-sage" />
                 Scheduled slots
               </CardTitle>
@@ -556,14 +556,14 @@ export function ControlAnalyticsPanel() {
       </div>
 
       <div>
-        <h3 className="font-display text-2xl text-charcoal mb-4 flex items-center gap-2">
+        <h3 className="font-body font-semibold text-2xl text-charcoal mb-4 flex items-center gap-2">
           <Calendar className="h-6 w-6 text-sage" />
           Classes (this month)
         </h3>
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
           <Card className="border-sage/20 bg-white-warm lg:col-span-2">
             <CardHeader>
-              <CardTitle className="font-display text-xl text-charcoal flex items-center gap-2">
+              <CardTitle className="font-body font-semibold text-xl text-charcoal flex items-center gap-2">
                 <TrendingUp className="h-5 w-5 text-sage" />
                 Bookings by class type
               </CardTitle>
@@ -594,7 +594,7 @@ export function ControlAnalyticsPanel() {
 
           <Card className="border-sage/20 bg-white-warm">
             <CardHeader>
-              <CardTitle className="font-display text-xl text-charcoal flex items-center gap-2">
+              <CardTitle className="font-body font-semibold text-xl text-charcoal flex items-center gap-2">
                 <BarChart3 className="h-5 w-5 text-sage" />
                 Utilization estimate
               </CardTitle>
@@ -625,7 +625,7 @@ export function ControlAnalyticsPanel() {
 
           <Card className="border-sage/20 bg-white-warm">
             <CardHeader>
-              <CardTitle className="font-display text-xl text-charcoal flex items-center gap-2">
+              <CardTitle className="font-body font-semibold text-xl text-charcoal flex items-center gap-2">
                 <Clock className="h-5 w-5 text-sage" />
                 Peak booking hours
               </CardTitle>
@@ -657,7 +657,7 @@ export function ControlAnalyticsPanel() {
       </div>
 
       <div>
-        <h3 className="font-display text-2xl text-charcoal mb-4">🎯 KPIs</h3>
+        <h3 className="font-body font-semibold text-2xl text-charcoal mb-4">🎯 KPIs</h3>
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
           <Card className="border-sage/20 bg-white-warm">
             <CardContent className="p-6">
@@ -665,7 +665,7 @@ export function ControlAnalyticsPanel() {
                 <div className="font-body text-sm text-charcoal/60">Revenue / member (prev month)</div>
                 <TrendingUp className="h-4 w-4 text-sage" />
               </div>
-              <div className="font-display text-3xl text-charcoal mb-1">₹{d.kpis.revenuePerMember}</div>
+              <div className="font-body font-semibold tabular-nums text-3xl text-charcoal mb-1">₹{d.kpis.revenuePerMember}</div>
               <Pill tone="success">
                 {revPerMemberLabel}
               </Pill>
@@ -678,7 +678,7 @@ export function ControlAnalyticsPanel() {
                 <div className="font-body text-sm text-charcoal/60">Utilization (30d)</div>
                 <BarChart3 className="h-4 w-4 text-sage" />
               </div>
-              <div className="font-display text-3xl text-charcoal mb-1">{d.kpis.classUtilization}%</div>
+              <div className="font-body font-semibold tabular-nums text-3xl text-charcoal mb-1">{d.kpis.classUtilization}%</div>
               <Pill tone="success">estimate</Pill>
             </CardContent>
           </Card>
@@ -689,7 +689,7 @@ export function ControlAnalyticsPanel() {
                 <div className="font-body text-sm text-charcoal/60">Surveys</div>
                 <CheckCircle2 className="h-4 w-4 text-sage" />
               </div>
-              <div className="font-display text-3xl text-charcoal mb-1">—</div>
+              <div className="font-body font-semibold text-3xl text-charcoal mb-1">—</div>
               <Pill tone="success">not in app</Pill>
             </CardContent>
           </Card>
@@ -700,7 +700,7 @@ export function ControlAnalyticsPanel() {
                 <div className="font-body text-sm text-charcoal/60">Café overlap 30d</div>
                 <Coffee className="h-4 w-4 text-sage" />
               </div>
-              <div className="font-display text-3xl text-charcoal mb-1">{d.kpis.cafeAttachPct}%</div>
+              <div className="font-body font-semibold tabular-nums text-3xl text-charcoal mb-1">{d.kpis.cafeAttachPct}%</div>
               <Pill tone="success">unique buyers vs active members</Pill>
             </CardContent>
           </Card>

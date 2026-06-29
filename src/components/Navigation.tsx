@@ -76,15 +76,15 @@ function navShellClass(isOverlay: boolean, scrolled: boolean) {
     isOverlay && [
       "fixed top-0 left-0 right-0 z-50",
       scrolled
-        ? "bg-[#fafaf8]/90 backdrop-blur-md border-b border-charcoal/10 shadow-xs"
+        ? "bg-white-warm/90 backdrop-blur-md border-b border-charcoal/10 shadow-xs"
         // Solid on mobile (transparent reads as "no navbar"); transparent over the hero on md+.
-        : "bg-[#fafaf8]/90 backdrop-blur-md border-b border-charcoal/10 shadow-xs md:border-transparent md:bg-transparent md:shadow-none md:backdrop-blur-none",
+        : "bg-white-warm/90 backdrop-blur-md border-b border-charcoal/10 shadow-xs md:border-transparent md:bg-transparent md:shadow-none md:backdrop-blur-none",
     ],
     !isOverlay && [
       "sticky top-0 z-50 border-b",
       scrolled
-        ? "bg-[#fafaf8]/92 backdrop-blur-md border-charcoal/10 shadow-xs"
-        : "bg-[#fafaf8]/85 backdrop-blur-xl border-sage/10",
+        ? "bg-white-warm/92 backdrop-blur-md border-charcoal/10 shadow-xs"
+        : "bg-white-warm/85 backdrop-blur-xl border-sage/10",
     ],
   );
 }

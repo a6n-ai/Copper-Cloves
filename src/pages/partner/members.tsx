@@ -117,7 +117,7 @@ export default function PartnerMembersPage() {
                         <div className="truncate">{m.email}</div>
                         {m.phone ? <div className="text-charcoal/50">{m.phone}</div> : null}
                       </TableCell>
-                      <TableCell className="text-center font-display text-lg text-charcoal">{m.sessions}</TableCell>
+                      <TableCell className="text-center font-body font-semibold tabular-nums text-lg text-charcoal">{m.sessions}</TableCell>
                       <TableCell className="font-body text-sm text-charcoal/60 whitespace-nowrap">
                         {m.lastSession
                           ? new Date(m.lastSession).toLocaleDateString("en-US", {

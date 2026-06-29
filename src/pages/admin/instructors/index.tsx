@@ -253,7 +253,7 @@ export default function AdminInstructorsPage() {
               <CardHeader className="space-y-4">
                 <div className="flex flex-wrap items-start justify-between gap-3">
                   <div>
-                    <CardTitle className="font-display text-2xl text-charcoal">
+                    <CardTitle className="font-body font-semibold text-2xl text-charcoal">
                       Instructors <span className="font-body text-base text-charcoal/40">({filtered.length})</span>
                     </CardTitle>
                     <CardDescription className="font-body text-charcoal/60">
@@ -346,7 +346,7 @@ export default function AdminInstructorsPage() {
       <ResponsiveDialog open={addOpen} onOpenChange={setAddOpen}>
         <ResponsiveDialogContent className="sm:max-w-md bg-white-warm border-sage/20">
           <ResponsiveDialogHeader>
-            <ResponsiveDialogTitle className="font-display text-charcoal">Add instructor</ResponsiveDialogTitle>
+            <ResponsiveDialogTitle className="font-body font-semibold text-charcoal">Add instructor</ResponsiveDialogTitle>
           </ResponsiveDialogHeader>
           <div className="space-y-3 py-2">
             <div className="space-y-1.5">

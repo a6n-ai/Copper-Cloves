@@ -467,7 +467,7 @@ export function PassConfigSection({
                   ].join(" ")}
                 >
                   {active && <Check className="absolute right-2 top-2 h-3.5 w-3.5 text-sage" />}
-                  <span className="font-display text-sm leading-tight text-charcoal pr-5">{pkg.name}</span>
+                  <span className="font-body font-semibold text-sm leading-tight text-charcoal pr-5">{pkg.name}</span>
                   <div className="flex items-baseline gap-2">
                     <span className="font-body text-sm font-semibold text-charcoal tabular-nums">{formatINR(Math.round(pkg.price * 100))}</span>
                     <span className="font-body text-[11px] text-charcoal/50">{qty}</span>
@@ -574,7 +574,7 @@ export function PaymentSection({ state: s }: { state: PassPaymentState }) {
       {/* Payment method — compact icon tiles (4-up). "Free / Comp" is a method that zeroes the amount. */}
       <div>
         <Label className="font-body text-charcoal/70 text-sm mb-2 block">Payment method</Label>
-        <div className="grid grid-cols-4 gap-1.5">
+        <div className="grid grid-cols-2 sm:grid-cols-4 gap-1.5">
           {PAYMENT_METHODS.map((m) => {
             const active = !isFree && s.method === m.v;
             const Icon = m.icon;

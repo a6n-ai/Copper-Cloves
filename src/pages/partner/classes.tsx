@@ -225,7 +225,7 @@ export default function PartnerClasses() {
       <div className="flex flex-wrap items-center justify-between gap-3">
         <div className="flex items-center gap-2">
           <NavPrevButton onClick={() => shift(-1)} />
-          <div className="font-display text-2xl text-charcoal min-w-0 sm:min-w-[180px] text-center flex items-center justify-center gap-2 truncate">
+          <div className="font-body font-semibold tabular-nums text-2xl text-charcoal min-w-0 sm:min-w-[180px] text-center flex items-center justify-center gap-2 truncate">
             <Calendar className="h-5 w-5 text-sage" /> {periodLabel}
           </div>
           <NavNextButton onClick={() => shift(1)} />
@@ -233,7 +233,7 @@ export default function PartnerClasses() {
         </div>
         <div className="flex items-center gap-1 rounded-full bg-cream/60 p-1 border border-sage/15">
           {(["week", "month"] as const).map((m) => (
-            <button key={m} type="button" onClick={() => setViewMode(m)} className={`px-4 h-8 rounded-full font-body text-sm capitalize transition-colors ${viewMode === m ? "bg-sage text-cream" : "text-charcoal/60 hover:text-charcoal"}`}>{m}</button>
+            <button key={m} type="button" onClick={() => setViewMode(m)} className={`px-4 h-8 rounded-full font-body text-sm capitalize transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sage focus-visible:ring-offset-1 ${viewMode === m ? "bg-sage text-cream" : "text-charcoal/60 hover:text-charcoal"}`}>{m}</button>
           ))}
         </div>
       </div>
@@ -245,9 +245,9 @@ export default function PartnerClasses() {
             const count = (byDay.get(k) ?? []).length;
             const active = k === selectedDay;
             return (
-              <button key={k} type="button" onClick={() => setSelectedDay(k)} className={`flex flex-col items-center py-2 rounded-xl border transition-colors min-w-[3.25rem] snap-start shrink-0 md:min-w-0 ${active ? "bg-sage text-cream border-sage" : "bg-[#fafaf8]/70 border-sage/15 text-charcoal hover:bg-sage/5"}`}>
+              <button key={k} type="button" onClick={() => setSelectedDay(k)} className={`flex flex-col items-center py-2 rounded-xl border transition-colors min-w-[3.25rem] snap-start shrink-0 md:min-w-0 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sage focus-visible:ring-offset-1 ${active ? "bg-sage text-cream border-sage" : "bg-card/70 border-sage/15 text-charcoal hover:bg-sage/5"}`}>
                 <span className="font-body text-[10px] uppercase tracking-wide opacity-80">{DAY_SHORT[d.getDay()]}</span>
-                <span className="font-display text-lg leading-tight">{d.getDate()}</span>
+                <span className="font-body font-semibold tabular-nums text-lg leading-tight">{d.getDate()}</span>
                 <span className={`font-body text-[10px] ${active ? "text-cream/80" : k === todayKey ? "text-sage" : "text-charcoal/50"}`}>{k === todayKey ? "Today" : count ? `${count} cls` : "—"}</span>
               </button>
             );
@@ -269,8 +269,8 @@ export default function PartnerClasses() {
               const inMonth = d.getMonth() === anchor.getMonth();
               const active = k === selectedDay;
               return (
-                <button key={k} type="button" onClick={() => setSelectedDay(k)} className={`aspect-square sm:aspect-auto sm:h-16 flex flex-col items-center justify-center rounded-lg border text-sm transition-colors ${active ? "bg-sage text-cream border-sage" : inMonth ? "bg-[#fafaf8]/70 border-sage/15 text-charcoal hover:bg-sage/5" : "bg-transparent border-transparent text-charcoal/30"}`}>
-                  <span className={`font-display ${k === todayKey && !active ? "text-sage font-semibold" : ""}`}>{d.getDate()}</span>
+                <button key={k} type="button" onClick={() => setSelectedDay(k)} className={`aspect-square sm:aspect-auto sm:h-16 flex flex-col items-center justify-center rounded-lg border text-sm transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sage focus-visible:ring-offset-1 ${active ? "bg-sage text-cream border-sage" : inMonth ? "bg-card/70 border-sage/15 text-charcoal hover:bg-sage/5" : "bg-transparent border-transparent text-charcoal/30"}`}>
+                  <span className={`font-body font-semibold tabular-nums ${k === todayKey && !active ? "text-sage" : ""}`}>{d.getDate()}</span>
                   {count > 0 && <span className={`font-body text-[9px] mt-0.5 ${active ? "text-cream/80" : "text-sage"}`}>{count} cls</span>}
                 </button>
               );
@@ -280,7 +280,7 @@ export default function PartnerClasses() {
       )}
 
       <div>
-        <h2 className="font-display text-lg text-charcoal mb-3">
+        <h2 className="font-body font-semibold text-lg text-charcoal mb-3">
           {selDate ? selDate.toLocaleDateString("en-IN", { weekday: "long", day: "numeric", month: "long" }) : "Select a day"}
         </h2>
 
@@ -289,7 +289,7 @@ export default function PartnerClasses() {
         ) : error ? (
           <Card className="border-terracotta/30 bg-terracotta/5"><CardContent className="p-4 font-body text-charcoal">{error}</CardContent></Card>
         ) : activeClasses.length === 0 ? (
-          <Card className="border-sage/15 bg-[#fafaf8]/80"><CardContent className="p-8 text-center font-body text-charcoal/50">No classes scheduled this day.</CardContent></Card>
+          <Card className="border-sage/15 bg-card/80"><CardContent className="p-8 text-center font-body text-charcoal/50">No classes scheduled this day.</CardContent></Card>
         ) : (
           <div className="space-y-4">
             {activeClasses.map((c) => (
@@ -297,7 +297,7 @@ export default function PartnerClasses() {
                 <CardContent className="p-5">
                   <div className="flex flex-wrap items-start justify-between gap-3 mb-4">
                     <div>
-                      <h3 className="font-display text-xl text-charcoal">{c.className}</h3>
+                      <h3 className="font-body font-semibold text-xl text-charcoal">{c.className}</h3>
                       <div className="flex items-center gap-3 mt-1 font-body text-sm text-charcoal/60">
                         <span className="flex items-center gap-1"><Clock className="h-3.5 w-3.5" /> {fmtTime(c.startTime)} – {fmtTime(c.endTime)}</span>
                         <span>· {c.instructorName}</span>

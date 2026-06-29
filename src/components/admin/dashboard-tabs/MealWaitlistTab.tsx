@@ -76,7 +76,7 @@ function MealWaitlistTabImpl({ inquiries, loading, onUpdateStatus }: Props) {
       </div>
       <Card className="border-sage/20 bg-white-warm">
         <CardHeader>
-          <CardTitle className="font-display text-2xl text-charcoal">Meal subscription waitlist</CardTitle>
+          <CardTitle className="font-body font-semibold text-2xl text-charcoal">Meal subscription waitlist</CardTitle>
           <CardDescription className="font-body text-charcoal/60">
             Submissions from the &ldquo;Join the Waitlist&rdquo; form on the meal subscription page. Newest first.
           </CardDescription>

@@ -87,7 +87,7 @@ export function PublicMobileNav() {
 
   const tabCls = (active: boolean) =>
     cn(
-      "flex min-h-14 flex-1 flex-col items-center justify-center gap-0.5 text-[10px] font-body transition-colors",
+      "flex min-h-14 flex-1 flex-col items-center justify-center gap-0.5 text-[10px] font-body transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-sage",
       active ? "text-terracotta" : "text-charcoal/55 hover:text-charcoal",
     );
 
@@ -115,7 +115,7 @@ export function PublicMobileNav() {
         href={l.href}
         onClick={() => setMoreOpen(false)}
         className={cn(
-          "flex min-h-12 items-center gap-3 rounded-xl px-3 font-body text-sm transition-colors",
+          "flex min-h-12 items-center gap-3 rounded-xl px-3 font-body text-sm transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-sage",
           isActive(l.href) ? "bg-terracotta/10 text-terracotta" : inactiveClass,
         )}
       >
@@ -144,7 +144,7 @@ export function PublicMobileNav() {
               href={bookHref}
               tabIndex={show ? 0 : -1}
               aria-label="Book a class"
-              className="absolute -top-5 flex h-16 w-16 flex-col items-center justify-center gap-0.5 rounded-full border-4 border-cream bg-terracotta text-cream shadow-lg shadow-terracotta/30 transition-transform active:scale-95 motion-reduce:transition-none"
+              className="absolute -top-5 flex h-16 w-16 flex-col items-center justify-center gap-0.5 rounded-full border-4 border-cream bg-terracotta text-cream shadow-md shadow-terracotta/30 transition-transform active:scale-95 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sage focus-visible:ring-offset-2 focus-visible:ring-offset-cream motion-reduce:transition-none"
             >
               <Ticket className="h-6 w-6" />
               <span className="text-[9px] font-body leading-none">Book</span>

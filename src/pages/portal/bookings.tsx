@@ -104,7 +104,7 @@ const BookingCard = memo(function BookingCard({
       <div className="flex items-start justify-between gap-3 mb-2 sm:mb-3">
         <div className="flex-1 min-w-0">
           <Link href={`/portal/bookings/${booking.id}`} className="group inline-flex items-center gap-1.5 max-w-full">
-            <h3 className="font-display text-lg sm:text-2xl text-charcoal truncate group-hover:text-sage transition-colors">{booking.class_name}</h3>
+            <h3 className="font-body font-semibold text-lg sm:text-2xl text-charcoal truncate group-hover:text-sage transition-colors">{booking.class_name}</h3>
             <ChevronRight size={18} className="shrink-0 text-charcoal/30 group-hover:text-sage transition-colors" />
           </Link>
           <div className="flex flex-wrap gap-1.5 mt-1 sm:mt-1.5">
@@ -514,7 +514,7 @@ export default function MyBookingsPage() {
             <div className="w-20 h-20 bg-sage/10 rounded-full flex items-center justify-center mx-auto mb-6">
               <Calendar className="text-sage" size={40} />
             </div>
-            <h3 className="font-display text-2xl text-charcoal mb-3">No Bookings Yet</h3>
+            <h3 className="font-body font-semibold text-2xl text-charcoal mb-3">No Bookings Yet</h3>
             <p className="font-body text-charcoal/60 mb-6">
               You haven't booked any classes. Start your wellness journey today!
             </p>
@@ -540,7 +540,7 @@ export default function MyBookingsPage() {
                     type="button"
                     onClick={() => setFilter(t.key)}
                     className={[
-                      "rounded-md px-3 py-1.5 font-body text-sm font-medium transition-colors duration-200 cursor-pointer",
+                      "rounded-md px-3 py-1.5 font-body text-sm font-medium transition-colors duration-200 cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sage focus-visible:ring-offset-1",
                       filter === t.key ? "bg-sage text-cream" : "text-charcoal/65 hover:text-charcoal",
                     ].join(" ")}
                   >
@@ -551,7 +551,7 @@ export default function MyBookingsPage() {
               <button
                 type="button"
                 onClick={() => setSortAsc((v) => !v)}
-                className="inline-flex h-9 items-center gap-1.5 rounded-lg border border-sage/20 bg-white-warm px-3 font-body text-sm text-charcoal/70 transition-colors duration-200 hover:bg-sage/5 cursor-pointer"
+                className="inline-flex h-9 items-center gap-1.5 rounded-lg border border-sage/20 bg-white-warm px-3 font-body text-sm text-charcoal/70 transition-colors duration-200 hover:bg-sage/5 cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sage focus-visible:ring-offset-1"
               >
                 <ArrowDownUp size={14} />
                 {sortAsc ? "Soonest first" : "Latest first"}
@@ -611,7 +611,7 @@ export default function MyBookingsPage() {
       <ResponsiveDialog open={showCancelDialog} onOpenChange={setShowCancelDialog}>
         <ResponsiveDialogContent className="sm:max-w-md bg-white-warm">
           <ResponsiveDialogHeader>
-            <ResponsiveDialogTitle className="font-display text-2xl text-charcoal">
+            <ResponsiveDialogTitle className="font-body font-semibold text-2xl text-charcoal">
               Cancel Booking
             </ResponsiveDialogTitle>
             <ResponsiveDialogDescription className="font-body text-charcoal/70">

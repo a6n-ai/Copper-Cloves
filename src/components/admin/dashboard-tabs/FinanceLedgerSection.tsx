@@ -258,7 +258,7 @@ function FinanceLedgerSectionImpl() {
         <CardHeader>
           <div className="mb-4 flex items-start justify-between gap-4">
             <div>
-              <CardTitle className="font-display text-2xl text-charcoal">Ledger</CardTitle>
+              <CardTitle className="font-body font-semibold text-2xl text-charcoal">Ledger</CardTitle>
               <CardDescription className="font-body text-charcoal/60">
                 Every transaction — payments, expenses, payouts, refunds — in one place
               </CardDescription>

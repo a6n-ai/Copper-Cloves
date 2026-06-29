@@ -547,7 +547,7 @@ export default function AdminMembers() {
               <CardHeader className="space-y-4">
                 <div className="flex flex-wrap items-start justify-between gap-3">
                   <div>
-                    <CardTitle className="font-display text-2xl text-charcoal">
+                    <CardTitle className="font-body font-semibold text-2xl text-charcoal">
                       Members <span className="font-body text-base text-charcoal/40">({filteredMembers.length})</span>
                     </CardTitle>
                     <CardDescription className="font-body text-charcoal/60">
@@ -635,7 +635,7 @@ export default function AdminMembers() {
       <ResponsiveDialog open={addOpen} onOpenChange={setAddOpen}>
         <ResponsiveDialogContent className="sm:max-w-[480px] bg-white-warm border-sage/20">
           <ResponsiveDialogHeader>
-            <ResponsiveDialogTitle className="font-display text-2xl text-charcoal">Add Member</ResponsiveDialogTitle>
+            <ResponsiveDialogTitle className="font-body font-semibold text-2xl text-charcoal">Add Member</ResponsiveDialogTitle>
             <ResponsiveDialogDescription className="font-body text-charcoal/60">
               Create a member account, and optionally assign a pass right away.
             </ResponsiveDialogDescription>

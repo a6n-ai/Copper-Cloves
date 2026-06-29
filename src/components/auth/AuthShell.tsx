@@ -46,7 +46,7 @@ export function AuthShell({
           </p>
         )}
 
-        <div className="relative isolate overflow-hidden rounded-3xl border border-[#e5e4dc] bg-white-warm shadow-[0_4px_24px_rgba(51,51,51,0.08)] p-8 sm:p-10">
+        <div className="relative isolate overflow-hidden rounded-3xl border border-border bg-white-warm shadow-[0_4px_24px_rgba(51,51,51,0.08)] p-8 sm:p-10">
           {/* Brand header — shared across modes */}
           <div>
             <p className="mb-4 text-center font-body text-[10px] tracking-[0.4em] uppercase text-terracotta/80">

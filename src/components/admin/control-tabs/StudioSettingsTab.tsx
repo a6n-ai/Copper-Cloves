@@ -86,7 +86,7 @@ export default function StudioSettingsTab() {
     <div className="space-y-6">
     <Card className="border-sage/20 bg-white-warm">
       <CardHeader>
-        <CardTitle className="font-display text-2xl text-charcoal">Studio Settings</CardTitle>
+        <CardTitle className="font-body font-semibold text-2xl text-charcoal">Studio Settings</CardTitle>
         <CardDescription className="font-body text-charcoal/60">
           Cancellation cutoff and package validity defaults used across booking and grant flows.
         </CardDescription>

@@ -38,7 +38,7 @@ export function Founder() {
             </p>
           </div>
 
-          <dl className="mt-8 grid grid-cols-2 gap-4 border-y border-[#e5e4dc] py-6 sm:grid-cols-4">
+          <dl className="mt-8 grid grid-cols-2 gap-4 border-y border-border py-6 sm:grid-cols-4">
             {stats.map((stat) => (
               <div key={stat.label} className="flex flex-col-reverse">
                 <dt className="mt-1 font-body text-[11px] uppercase tracking-widest text-charcoal/55">

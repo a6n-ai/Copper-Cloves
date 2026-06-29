@@ -156,7 +156,7 @@ export function MedalJourney({
           shimmer={active.earned}
           flipLabel={active.earned ? active.name : undefined}
         />
-        <p className="relative mt-3 font-display text-xl text-charcoal">{active.name}</p>
+        <p className="relative mt-3 font-body font-semibold text-xl text-charcoal">{active.name}</p>
         <p className="relative mt-0.5 font-body text-sm text-charcoal/60">{active.status}</p>
         {active.earned ? (
           <p className="relative mt-0.5 font-body text-[11px] text-muted-text">Tap the medal to flip</p>
@@ -169,7 +169,7 @@ export function MedalJourney({
           type="button"
           onClick={() => go(-1)}
           aria-label="Previous medal"
-          className="flex size-10 items-center justify-center rounded-full border border-[#e5e4dc] text-charcoal/70 transition-[background-color,transform] duration-200 hover:bg-[#f4f3ec] active:scale-[0.96] focus:outline-none focus-visible:ring-2 focus-visible:ring-sage"
+          className="flex size-10 items-center justify-center rounded-full border border-border text-charcoal/70 transition-[background-color,transform] duration-200 hover:bg-[#f4f3ec] active:scale-[0.96] focus:outline-none focus-visible:ring-2 focus-visible:ring-sage"
         >
           <ChevronLeft className="size-4" />
         </button>
@@ -197,7 +197,7 @@ export function MedalJourney({
           type="button"
           onClick={() => go(1)}
           aria-label="Next medal"
-          className="flex size-10 items-center justify-center rounded-full border border-[#e5e4dc] text-charcoal/70 transition-[background-color,transform] duration-200 hover:bg-[#f4f3ec] active:scale-[0.96] focus:outline-none focus-visible:ring-2 focus-visible:ring-sage"
+          className="flex size-10 items-center justify-center rounded-full border border-border text-charcoal/70 transition-[background-color,transform] duration-200 hover:bg-[#f4f3ec] active:scale-[0.96] focus:outline-none focus-visible:ring-2 focus-visible:ring-sage"
         >
           <ChevronRight className="size-4" />
         </button>
@@ -208,7 +208,7 @@ export function MedalJourney({
   if (bare) return <div className={className}>{body}</div>;
 
   return (
-    <Card className={cn("overflow-hidden rounded-2xl border-[#e5e4dc] bg-white-warm shadow-none", className)}>
+    <Card className={cn("overflow-hidden rounded-2xl border-border bg-white-warm shadow-none", className)}>
       <CardContent className="flex h-full flex-col p-5 sm:p-6">{body}</CardContent>
     </Card>
   );

@@ -195,7 +195,7 @@ function ControlPanelShellSkeleton() {
         <Skeleton className="h-4 w-80 max-w-full bg-sage/10" />
       </div>
       {/* Tab bar */}
-      <div className="flex gap-1 rounded-lg border border-sage/20 bg-[#fafaf8]/80 p-1 w-fit max-w-full overflow-hidden">
+      <div className="flex gap-1 rounded-lg border border-sage/20 bg-card/80 p-1 w-fit max-w-full overflow-hidden">
         {Array.from({ length: 5 }).map((_, i) => (
           <Skeleton key={i} className="h-9 w-32 rounded-md bg-sage/10" />
         ))}
@@ -302,7 +302,7 @@ function sortArrow(active: boolean, dir: SortDir) {
   return dir === "asc" ? <ChevronUp className="h-3 w-3" /> : <ChevronDown className="h-3 w-3" />;
 }
 
-const thBtn = "inline-flex items-center gap-1 hover:text-charcoal transition-colors";
+const thBtn = "inline-flex items-center gap-1 hover:text-charcoal transition-colors rounded-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sage focus-visible:ring-offset-1";
 
 export default function ControlPanel() {
   const router = useRouter();
@@ -865,7 +865,7 @@ export default function ControlPanel() {
                 <Card className="border-sage/20 bg-white-warm">
                   <CardHeader className="flex flex-row items-center justify-between gap-4 flex-wrap">
                     <div>
-                      <CardTitle className="font-display text-xl">Pause Subscription Requests</CardTitle>
+                      <CardTitle className="font-body font-semibold text-xl">Pause Subscription Requests</CardTitle>
                       <CardDescription>Approving freezes the pass shown on each request and extends its expiry by the pause duration.</CardDescription>
                     </div>
                     <Select value={pauseStatusFilter} onValueChange={(v) => setPauseStatusFilter(v as typeof pauseStatusFilter)}>
@@ -1028,7 +1028,7 @@ export default function ControlPanel() {
                   <CardHeader className="space-y-4">
                     <div className="flex flex-wrap items-start justify-between gap-3">
                       <div>
-                        <CardTitle className="font-display text-2xl text-charcoal">
+                        <CardTitle className="font-body font-semibold text-2xl text-charcoal">
                           Class Management <span className="font-body text-base text-charcoal/40">({filteredClasses.length})</span>
                         </CardTitle>
                         <CardDescription className="font-body text-charcoal/60">
@@ -1208,7 +1208,7 @@ export default function ControlPanel() {
       <ResponsiveDialog open={showAddClassDialog} onOpenChange={setShowAddClassDialog}>
         <ResponsiveDialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto bg-white-warm border-sage/20">
           <ResponsiveDialogHeader>
-            <ResponsiveDialogTitle className="font-display text-2xl text-charcoal">Create New Class</ResponsiveDialogTitle>
+            <ResponsiveDialogTitle className="font-body font-semibold text-2xl text-charcoal">Create New Class</ResponsiveDialogTitle>
             <ResponsiveDialogDescription className="font-body text-charcoal/60">
               Define a new class type (scheduling happens in Schedule tab)
             </ResponsiveDialogDescription>
@@ -1331,7 +1331,7 @@ export default function ControlPanel() {
       <ResponsiveDialog open={showClassDetailsDialog} onOpenChange={setShowClassDetailsDialog}>
         <ResponsiveDialogContent className="max-w-3xl max-h-[90vh] overflow-y-auto bg-white-warm border-sage/20">
           <ResponsiveDialogHeader>
-            <ResponsiveDialogTitle className="font-display text-2xl text-charcoal">
+            <ResponsiveDialogTitle className="font-body font-semibold text-2xl text-charcoal">
               {selectedClass?.name}
             </ResponsiveDialogTitle>
             <ResponsiveDialogDescription className="font-body text-charcoal/60">
@@ -1449,9 +1449,9 @@ export default function ControlPanel() {
               <ResponsiveDialogFooter className="sticky bottom-0 bg-white-warm pt-4 border-t border-sage/10 flex-col sm:flex-row gap-2">
                 <Button
                   type="button"
-                  variant="outline"
+                  variant="destructive"
                   onClick={() => handleDeleteClass(selectedClass.id, selectedClass.name)}
-                  className="border-[#a05e38]/25 text-[#a05e38] hover:bg-[#a05e38]/10 font-body sm:mr-auto"
+                  className="font-body sm:mr-auto"
                 >
                   <Trash2 className="h-4 w-4 mr-2" />
                   Delete Class
@@ -1475,7 +1475,7 @@ export default function ControlPanel() {
       <ResponsiveDialog open={showAddInstructorDialog} onOpenChange={setShowAddInstructorDialog}>
         <ResponsiveDialogContent className="max-w-3xl max-h-[90vh] overflow-y-auto bg-white-warm">
           <ResponsiveDialogHeader>
-            <ResponsiveDialogTitle className="font-display text-2xl text-charcoal">Add New Instructor</ResponsiveDialogTitle>
+            <ResponsiveDialogTitle className="font-body font-semibold text-2xl text-charcoal">Add New Instructor</ResponsiveDialogTitle>
             <ResponsiveDialogDescription className="font-body text-charcoal/60">
               Create complete instructor profile with all details
             </ResponsiveDialogDescription>
@@ -1484,7 +1484,7 @@ export default function ControlPanel() {
             <div className="grid grid-cols-2 gap-4 py-4">
               {/* Basic Information */}
               <div className="col-span-2">
-                <h3 className="font-display text-lg text-charcoal mb-3">Basic Information</h3>
+                <h3 className="font-body font-semibold text-lg text-charcoal mb-3">Basic Information</h3>
               </div>
               
               <div className="col-span-2 space-y-2">
@@ -1559,7 +1559,7 @@ export default function ControlPanel() {
 
               {/* Expertise */}
               <div className="col-span-2 mt-4">
-                <h3 className="font-display text-lg text-charcoal mb-3">Expertise & Credentials</h3>
+                <h3 className="font-body font-semibold text-lg text-charcoal mb-3">Expertise & Credentials</h3>
               </div>
               
               <div className="col-span-2 space-y-2">
@@ -1574,7 +1574,7 @@ export default function ControlPanel() {
 
               {/* Bio */}
               <div className="col-span-2 mt-4">
-                <h3 className="font-display text-lg text-charcoal mb-3">Biography</h3>
+                <h3 className="font-body font-semibold text-lg text-charcoal mb-3">Biography</h3>
               </div>
               
               <div className="col-span-2 space-y-2">
@@ -1603,7 +1603,7 @@ export default function ControlPanel() {
 
               {/* Social Media */}
               <div className="col-span-2 mt-4">
-                <h3 className="font-display text-lg text-charcoal mb-3">Social Media (Optional)</h3>
+                <h3 className="font-body font-semibold text-lg text-charcoal mb-3">Social Media (Optional)</h3>
               </div>
               
               <div className="space-y-2">
@@ -1643,7 +1643,7 @@ export default function ControlPanel() {
       <ResponsiveDialog open={showEditInstructorDialog} onOpenChange={setShowEditInstructorDialog}>
         <ResponsiveDialogContent className="max-w-3xl max-h-[90vh] overflow-y-auto bg-white-warm">
           <ResponsiveDialogHeader>
-            <ResponsiveDialogTitle className="font-display text-2xl text-charcoal">Edit Instructor</ResponsiveDialogTitle>
+            <ResponsiveDialogTitle className="font-body font-semibold text-2xl text-charcoal">Edit Instructor</ResponsiveDialogTitle>
             <ResponsiveDialogDescription className="font-body text-charcoal/60">
               Update instructor profile and details
             </ResponsiveDialogDescription>
@@ -1653,7 +1653,7 @@ export default function ControlPanel() {
               <div className="grid grid-cols-2 gap-4 py-4">
                 {/* Basic Information */}
                 <div className="col-span-2">
-                  <h3 className="font-display text-lg text-charcoal mb-3">Basic Information</h3>
+                  <h3 className="font-body font-semibold text-lg text-charcoal mb-3">Basic Information</h3>
                 </div>
                 
                 <div className="col-span-2 space-y-2">
@@ -1738,7 +1738,7 @@ export default function ControlPanel() {
 
                 {/* Expertise */}
                 <div className="col-span-2 mt-4">
-                  <h3 className="font-display text-lg text-charcoal mb-3">Expertise & Credentials</h3>
+                  <h3 className="font-body font-semibold text-lg text-charcoal mb-3">Expertise & Credentials</h3>
                 </div>
                 
                 <div className="col-span-2 space-y-2">
@@ -1753,7 +1753,7 @@ export default function ControlPanel() {
 
                 {/* Bio */}
                 <div className="col-span-2 mt-4">
-                  <h3 className="font-display text-lg text-charcoal mb-3">Biography</h3>
+                  <h3 className="font-body font-semibold text-lg text-charcoal mb-3">Biography</h3>
                 </div>
                 
                 <div className="col-span-2 space-y-2">
@@ -1782,7 +1782,7 @@ export default function ControlPanel() {
 
                 {/* Social Media */}
                 <div className="col-span-2 mt-4">
-                  <h3 className="font-display text-lg text-charcoal mb-3">Social Media (Optional)</h3>
+                  <h3 className="font-body font-semibold text-lg text-charcoal mb-3">Social Media (Optional)</h3>
                 </div>
                 
                 <div className="space-y-2">

@@ -234,7 +234,7 @@ function ScheduleLoadingSkeleton() {
 
       {/* 2-column: calendar + day list */}
       <div className="grid lg:grid-cols-[280px_1fr] gap-6 items-stretch">
-        <Card className="border-sage/20 bg-[#fafaf8]/95 flex flex-col">
+        <Card className="border-sage/20 bg-card/95 flex flex-col">
           <CardHeader className="pb-2 space-y-2">
             <Skeleton className="h-5 w-24 bg-sage/10" />
             <Skeleton className="h-3 w-40 bg-sage/10" />
@@ -255,7 +255,7 @@ function ScheduleLoadingSkeleton() {
           </CardContent>
         </Card>
 
-        <Card className="border-sage/20 bg-[#fafaf8]/95">
+        <Card className="border-sage/20 bg-card/95">
           <CardHeader className="pb-3">
             <div className="flex flex-wrap items-center justify-between gap-3">
               <div className="space-y-2">
@@ -973,9 +973,9 @@ export default function AdminSchedule() {
             />
 
             {loadError && (
-              <Alert variant="default" className="border-terracotta/30 bg-terracotta/10 text-[#a05e38]">
+              <Alert variant="default" className="border-terracotta/30 bg-terracotta/10 text-destructive">
                 <AlertCircle className="h-4 w-4 text-terracotta" />
-                <AlertDescription className="font-body text-[#a05e38]">{loadError}</AlertDescription>
+                <AlertDescription className="font-body text-destructive">{loadError}</AlertDescription>
               </Alert>
             )}
             {successMessage && (
@@ -997,9 +997,9 @@ export default function AdminSchedule() {
                 table has room; below xl it collapses into the date-picker popover in
                 the day header so the schedule table gets the full width. */}
             <div className="grid xl:grid-cols-[280px_1fr] gap-6 items-stretch">
-              <Card className="border-sage/20 bg-[#fafaf8]/95 hidden xl:flex flex-col">
+              <Card className="border-sage/20 bg-card/95 hidden xl:flex flex-col">
                 <CardHeader className="pb-2">
-                  <CardTitle className="font-display text-lg text-charcoal">Calendar</CardTitle>
+                  <CardTitle className="font-body font-semibold text-lg text-charcoal">Calendar</CardTitle>
                   <CardDescription className="font-body text-xs text-charcoal/60">
                     <span className="inline-block w-1.5 h-1.5 rounded-full bg-sage mr-1.5 align-middle" />
                     Dots mark days with scheduled classes
@@ -1023,11 +1023,11 @@ export default function AdminSchedule() {
                 </CardContent>
               </Card>
 
-              <Card className="border-sage/20 bg-[#fafaf8]/95">
+              <Card className="border-sage/20 bg-card/95">
                 <CardHeader className="pb-3">
                   <div className="flex flex-wrap items-center justify-between gap-3">
                     <div>
-                      <CardTitle className="font-display text-2xl text-charcoal">
+                      <CardTitle className="font-body font-semibold text-2xl text-charcoal">
                         {selectedDate.toLocaleDateString("en-US", { weekday: "long", month: "long", day: "numeric" })}
                       </CardTitle>
                       <CardDescription className="font-body text-charcoal/60">
@@ -1220,7 +1220,7 @@ export default function AdminSchedule() {
       <ResponsiveDialog open={dialogOpen} onOpenChange={setDialogOpen}>
         <ResponsiveDialogContent className="max-w-2xl bg-white-warm">
           <ResponsiveDialogHeader>
-            <ResponsiveDialogTitle className="font-display text-3xl text-charcoal">
+            <ResponsiveDialogTitle className="font-body font-semibold text-3xl text-charcoal">
               {editingClass ? "Edit Class" : "Schedule Class"}
             </ResponsiveDialogTitle>
             <ResponsiveDialogDescription className="font-body text-charcoal/60">
@@ -1235,7 +1235,7 @@ export default function AdminSchedule() {
               className="py-4 space-y-0"
             >
               {usingPlaceholderCatalog && (
-                <div className="rounded-lg border border-terracotta/20 bg-terracotta/10 px-4 py-3 font-body text-sm text-[#a05e38] mb-4">
+                <div className="rounded-lg border border-terracotta/20 bg-terracotta/10 px-4 py-3 font-body text-sm text-terracotta mb-4">
                   <strong className="font-medium">Sample list:</strong> no class types or instructors in the database yet. Add them in Admin → Settings, then schedule live sessions.
                 </div>
               )}
@@ -1443,9 +1443,9 @@ export default function AdminSchedule() {
                                     key={v}
                                     type="button"
                                     onClick={() => field.onChange(active ? undefined : v)}
-                                    className={`flex-1 h-10 rounded-lg border font-body text-sm font-medium transition-colors ${
+                                    className={`flex-1 h-10 rounded-lg border font-body text-sm font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sage focus-visible:ring-offset-1 ${
                                       v === "absent"
-                                        ? active ? "bg-[#a05e38] border-[#a05e38] text-cream" : "border-charcoal/20 text-charcoal/60 hover:bg-[#a05e38]/10"
+                                        ? active ? "bg-destructive border-destructive text-cream" : "border-charcoal/20 text-charcoal/60 hover:bg-destructive/10"
                                         : v === "late"
                                           ? active ? "bg-terracotta border-terracotta text-cream" : "border-charcoal/20 text-charcoal/60 hover:bg-terracotta/10"
                                           : active ? "bg-sage border-sage text-cream" : "border-charcoal/20 text-charcoal/60 hover:bg-sage/10"
@@ -1525,7 +1525,7 @@ export default function AdminSchedule() {
                       render={({ field }) => (
                         <FormItem>
                           <FormLabel className="font-body text-charcoal/80">How often?</FormLabel>
-                          <div className="grid grid-cols-3 gap-2">
+                          <div className="grid grid-cols-1 sm:grid-cols-3 gap-2">
                             {([
                               { v: "single", label: "Single date" },
                               { v: "weekly", label: "Weekly" },
@@ -1765,7 +1765,7 @@ export default function AdminSchedule() {
         <ResponsiveDialogContent className="max-w-lg w-full bg-white-warm flex flex-col p-0 max-h-[85vh] overflow-hidden">
           {/* Header */}
           <div className="px-6 pt-6 pb-4 border-b border-sage/10 shrink-0">
-            <ResponsiveDialogTitle className="font-display text-2xl text-charcoal">
+            <ResponsiveDialogTitle className="font-body font-semibold text-2xl text-charcoal">
               {rosterData ? rosterData.className : "Class Roster"}
             </ResponsiveDialogTitle>
             {rosterData && (
@@ -1890,9 +1890,9 @@ export default function AdminSchedule() {
                       type="button"
                       onClick={() => void handleSaveInstructorOutcome(v)}
                       disabled={savingInstructorOutcome}
-                      className={`flex-1 h-9 rounded-lg border font-body text-xs font-medium transition-colors disabled:opacity-50 ${
+                      className={`flex-1 h-9 rounded-lg border font-body text-xs font-medium transition-colors disabled:opacity-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sage focus-visible:ring-offset-1 ${
                         v === "absent"
-                          ? active ? "bg-[#a05e38] border-[#a05e38] text-cream" : "border-charcoal/20 text-charcoal/60 hover:bg-[#a05e38]/10"
+                          ? active ? "bg-destructive border-destructive text-cream" : "border-charcoal/20 text-charcoal/60 hover:bg-destructive/10"
                           : v === "late"
                             ? active ? "bg-terracotta border-terracotta text-cream" : "border-charcoal/20 text-charcoal/60 hover:bg-terracotta/10"
                             : active ? "bg-sage border-sage text-cream" : "border-charcoal/20 text-charcoal/60 hover:bg-sage/10"

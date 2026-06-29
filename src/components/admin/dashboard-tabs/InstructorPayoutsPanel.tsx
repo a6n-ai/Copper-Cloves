@@ -284,7 +284,7 @@ function InstructorPayoutsPanelImpl() {
         <CardHeader className="space-y-4">
           <div className="flex flex-wrap items-start justify-between gap-3">
             <div>
-              <CardTitle className="font-display text-2xl text-charcoal">
+              <CardTitle className="font-body font-semibold text-2xl text-charcoal">
                 Instructor Payouts <span className="font-body text-base text-charcoal/40">({filtered.length})</span>
               </CardTitle>
               <CardDescription className="font-body text-charcoal/60">
@@ -363,17 +363,17 @@ function InstructorPayoutsPanelImpl() {
                           </TableCell>
                           <TableCell>
                             <span className="font-body text-sm text-charcoal/80 tabular-nums">{r.classes}</span>
-                            {r.extraClasses ? <span className="ml-1 font-body text-xs text-[#a05e38]">({r.extraClasses > 0 ? "+" : ""}{r.extraClasses})</span> : null}
+                            {r.extraClasses ? <span className="ml-1 font-body text-xs text-terracotta">({r.extraClasses > 0 ? "+" : ""}{r.extraClasses})</span> : null}
                           </TableCell>
                           <TableCell className="font-body text-sm text-charcoal/70 tabular-nums">{r.checkIns}</TableCell>
                           <TableCell>
                             <span className="font-body text-sm text-charcoal/80 tabular-nums">{r.payableUnits}</span>
-                            {r.extraPayableUnits ? <span className="ml-1 font-body text-xs text-[#a05e38]">({r.extraPayableUnits > 0 ? "+" : ""}{r.extraPayableUnits})</span> : null}
+                            {r.extraPayableUnits ? <span className="ml-1 font-body text-xs text-terracotta">({r.extraPayableUnits > 0 ? "+" : ""}{r.extraPayableUnits})</span> : null}
                           </TableCell>
                           <TableCell className="font-body text-sm text-charcoal/60 tabular-nums">{r.percentage}%</TableCell>
                           <TableCell className="text-right">
-                            <span className="font-display text-base tabular-nums text-charcoal">{rupees(r.total)}</span>
-                            {r.overrideTotal != null ? <span className="ml-1 font-body text-[10px] uppercase tracking-wide text-[#a05e38]">ovr</span> : null}
+                            <span className="font-body font-semibold text-base tabular-nums text-charcoal">{rupees(r.total)}</span>
+                            {r.overrideTotal != null ? <span className="ml-1 font-body text-[10px] uppercase tracking-wide text-terracotta">ovr</span> : null}
                           </TableCell>
                           <TableCell>
                             {r.status === "paid" ? <Pill tone="success" dot>Paid</Pill> : <Pill tone="warning" dot>Pending</Pill>}
@@ -395,7 +395,7 @@ function InstructorPayoutsPanelImpl() {
                                   type="button"
                                   variant="outline"
                                   size="sm"
-                                  className="h-8 w-8 p-0 border-terracotta/30 text-[#a05e38] hover:bg-terracotta/10 hover:text-[#a05e38]!"
+                                  className="h-8 w-8 p-0 border-terracotta/30 text-terracotta hover:bg-terracotta/10 hover:text-terracotta!"
                                   onClick={(e) => { e.stopPropagation(); setConfirmRecord(true); setConfirm({ row: r, paid: true }); }}
                                   title="Add to money out"
                                   aria-label="Add to money out"
@@ -424,7 +424,7 @@ function InstructorPayoutsPanelImpl() {
       <ResponsiveDialog open={confirm != null} onOpenChange={(o) => { if (!o) setConfirm(null); }}>
         <ResponsiveDialogContent className="bg-white-warm border-sage/20 sm:max-w-md">
           <ResponsiveDialogHeader>
-            <ResponsiveDialogTitle className="font-display text-charcoal">
+            <ResponsiveDialogTitle className="font-body font-semibold text-charcoal">
               {confirm?.paid ? "Mark payout paid?" : "Mark payout unpaid?"}
             </ResponsiveDialogTitle>
             <ResponsiveDialogDescription className="font-body text-charcoal/70">
@@ -471,7 +471,7 @@ function InstructorPayoutsPanelImpl() {
       <ResponsiveDialog open={editRow != null} onOpenChange={(o) => { if (!o) setEditRow(null); }}>
         <ResponsiveDialogContent className="bg-white-warm border-sage/20 sm:max-w-md">
           <ResponsiveDialogHeader>
-            <ResponsiveDialogTitle className="font-display text-charcoal">Adjust payout — {editRow?.name}</ResponsiveDialogTitle>
+            <ResponsiveDialogTitle className="font-body font-semibold text-charcoal">Adjust payout — {editRow?.name}</ResponsiveDialogTitle>
             <ResponsiveDialogDescription className="font-body text-charcoal/60">
               Add extra units/classes, or set a manual override that replaces the computed payout.
             </ResponsiveDialogDescription>

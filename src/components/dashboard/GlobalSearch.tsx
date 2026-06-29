@@ -121,7 +121,7 @@ export function GlobalSearch({ config }: { config: PortalConfig }) {
       {/* Inline search bar — always visible in the top bar */}
       <div
         className={cn(
-          "flex items-center gap-2 rounded-full border bg-[#fafaf8] px-3.5 py-2 transition-colors",
+          "flex items-center gap-2 rounded-full border bg-card px-3.5 py-2 transition-colors",
           focused ? "border-sage/60 ring-2 ring-sage/25" : "border-sage/20 hover:border-sage/40"
         )}
       >

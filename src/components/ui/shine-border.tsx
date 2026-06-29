@@ -34,7 +34,7 @@ export function ShineBorder({
     >
       <div className={cn("absolute inset-0 overflow-hidden", rounded)}>
         <div
-          className="absolute -inset-full blur-sm animate-spin"
+          className="absolute -inset-full blur-sm motion-safe:animate-spin motion-reduce:animate-none"
           style={{ background: gradient, animationDuration: `${duration}s` }}
         />
       </div>

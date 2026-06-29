@@ -781,7 +781,7 @@ export default function AdminCafe() {
                       {t.v === "orders" && pendingCount > 0 && (
                         <span
                           className={`rounded-full px-1.5 text-xs ${
-                            active ? "bg-[#fafaf8]/20 text-cream" : "bg-terracotta text-cream"
+                            active ? "bg-card/20 text-cream" : "bg-terracotta text-cream"
                           }`}
                         >
                           {pendingCount}
@@ -803,7 +803,7 @@ export default function AdminCafe() {
               <Card className="border border-border bg-white-warm shadow-none ring-0">
                 <CardHeader className="border-b border-sage/10">
                   <div>
-                    <CardTitle className="font-display text-2xl text-charcoal">Menu Categories</CardTitle>
+                    <CardTitle className="font-body font-semibold text-2xl text-charcoal">Menu Categories</CardTitle>
                     <p className="font-body text-sm text-charcoal/60 mt-1">Manage food categories</p>
                   </div>
                 </CardHeader>
@@ -815,7 +815,7 @@ export default function AdminCafe() {
                         className="p-4 rounded-xl bg-cream/30 border border-sage/10 flex items-center justify-between"
                       >
                         <div>
-                          <p className="font-display text-lg text-charcoal">{cat.label}</p>
+                          <p className="font-body font-semibold text-lg text-charcoal">{cat.label}</p>
                           <p className="font-body text-xs text-charcoal/50">ID: {cat.id}</p>
                         </div>
                         <div className="flex gap-2">
@@ -836,7 +836,7 @@ export default function AdminCafe() {
                   <Card className="border border-border bg-white-warm shadow-none ring-0">
                     <CardContent className="flex flex-col items-center justify-center py-20">
                       <ImageIcon className="text-sage/40 mb-4" size={64} />
-                      <h3 className="font-display text-2xl text-charcoal mb-2">No Menu Items Yet</h3>
+                      <h3 className="font-body font-semibold text-2xl text-charcoal mb-2">No Menu Items Yet</h3>
                       <p className="font-body text-charcoal/60 mb-6">Start building your café menu by adding items</p>
                       <div className="flex gap-4">
                         <Button
@@ -1018,7 +1018,7 @@ export default function AdminCafe() {
                       <Card className="border border-border bg-white-warm shadow-none ring-0">
                         <CardContent className="flex flex-col items-center justify-center py-20">
                           <ImageIcon className="text-sage/40 mb-4" size={64} />
-                          <h3 className="font-display text-2xl text-charcoal mb-2">No Active Orders</h3>
+                          <h3 className="font-body font-semibold text-2xl text-charcoal mb-2">No Active Orders</h3>
                           <p className="font-body text-charcoal/60">New food orders will appear here</p>
                         </CardContent>
                       </Card>
@@ -1026,7 +1026,7 @@ export default function AdminCafe() {
                       <Card className="border border-border bg-white-warm shadow-none ring-0">
                         <CardContent className="flex flex-col items-center justify-center py-16">
                           <ImageIcon className="text-sage/40 mb-4" size={56} />
-                          <h3 className="font-display text-xl text-charcoal mb-1 capitalize">No {orderStatusFilter} orders</h3>
+                          <h3 className="font-body font-semibold text-xl text-charcoal mb-1 capitalize">No {orderStatusFilter} orders</h3>
                           <p className="font-body text-charcoal/60">Try a different filter</p>
                         </CardContent>
                       </Card>
@@ -1046,7 +1046,7 @@ export default function AdminCafe() {
                           // Urgency palette — colour + blink pace shift with how long the order has waited.
                           const palette =
                             alertLevel.level === "red"
-                              ? { text: "text-[#a05e38]", border: "border-[#a05e38]", glow: "rgba(160,94,56,0.9)", dur: "0.8s" }
+                              ? { text: "text-destructive", border: "border-destructive", glow: "rgba(160,94,56,0.9)", dur: "0.8s" }
                               : alertLevel.level === "orange"
                               ? { text: "text-terracotta", border: "border-terracotta", glow: "rgba(193,120,86,0.8)", dur: "1.3s" }
                               : alertLevel.level === "yellow"
@@ -1100,7 +1100,7 @@ export default function AdminCafe() {
                                       )}
                                     </div>
                                     <div className="min-w-0">
-                                      <h3 className="font-display text-2xl leading-snug text-charcoal">{cafeItem?.name}</h3>
+                                      <h3 className="font-body font-semibold text-2xl leading-snug text-charcoal">{cafeItem?.name}</h3>
                                       <p className="mt-1 font-body text-sm text-charcoal/60">
                                         Qty {order.quantity}
                                         <span className="mx-1.5 text-charcoal/30">·</span>
@@ -1190,8 +1190,8 @@ export default function AdminCafe() {
                                   {order.status !== "completed" && order.status !== "cancelled" && (
                                     <Button
                                       onClick={() => updateOrderStatus(order.id, "cancelled")}
-                                      variant="outline"
-                                      className="w-full border-[#a05e38]/60 text-[#a05e38] hover:bg-[#a05e38]/10 hover:text-[#a05e38] font-body sm:ml-auto sm:w-auto"
+                                      variant="destructive"
+                                      className="w-full font-body sm:ml-auto sm:w-auto"
                                     >
                                       Cancel
                                     </Button>
@@ -1219,7 +1219,7 @@ export default function AdminCafe() {
                       <Card className="border border-border bg-white-warm shadow-none ring-0">
                         <CardContent className="flex flex-col items-center justify-center py-20">
                           <ImageIcon className="text-sage/40 mb-4" size={64} />
-                          <h3 className="font-display text-2xl text-charcoal mb-2">No Order History</h3>
+                          <h3 className="font-body font-semibold text-2xl text-charcoal mb-2">No Order History</h3>
                           <p className="font-body text-charcoal/60">Completed orders will appear here</p>
                         </CardContent>
                       </Card>
@@ -1256,7 +1256,7 @@ export default function AdminCafe() {
 
                                 <div className="flex min-w-0 flex-1 items-start justify-between gap-3">
                                   <div className="min-w-0">
-                                    <h3 className="truncate font-display text-lg leading-snug text-charcoal">
+                                    <h3 className="truncate font-body font-semibold text-lg leading-snug text-charcoal">
                                       {cafeItem?.name}
                                     </h3>
                                     <p className="mt-0.5 font-body text-sm text-charcoal/60">
@@ -1323,7 +1323,7 @@ export default function AdminCafe() {
         >
           <DrawerContent direction="right" className="max-w-2xl">
             <div className="flex shrink-0 items-center justify-between border-b border-sage/10 p-6">
-              <DrawerTitle className="font-display text-3xl text-charcoal">
+              <DrawerTitle className="font-body font-semibold text-3xl text-charcoal">
                 {editingItem ? "Edit Menu Item" : "Add Menu Item"}
               </DrawerTitle>
               <CloseButton onClick={handleCancel} className="rounded-full" />
@@ -1437,7 +1437,7 @@ export default function AdminCafe() {
                       ) : null}
                     </div>
                     {imageUploadError ? (
-                      <p className="text-sm text-[#a05e38] font-body">{imageUploadError}</p>
+                      <p className="text-sm text-destructive font-body">{imageUploadError}</p>
                     ) : null}
                     <p className="text-xs text-charcoal/50 font-body">
                       Pick a photo from your device. JPEG, PNG, WebP, or GIF up to 10&nbsp;MB. Files are stored in{" "}
@@ -1498,7 +1498,7 @@ export default function AdminCafe() {
         >
           <DrawerContent direction="right" className="max-w-xl">
             <div className="flex shrink-0 items-center justify-between border-b border-sage/10 p-6">
-              <DrawerTitle className="font-display text-3xl text-charcoal">
+              <DrawerTitle className="font-body font-semibold text-3xl text-charcoal">
                 {editingCategory ? "Edit Category" : "Add New Category"}
               </DrawerTitle>
               <CloseButton onClick={handleCancelCategory} className="rounded-full" />
@@ -1555,13 +1555,13 @@ export default function AdminCafe() {
 
       {/* Image Crop Modal */}
       {cropSrc && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/70">
-          <div className="bg-white-warm rounded-2xl shadow-2xl w-full max-w-lg mx-4 overflow-hidden">
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-charcoal/70">
+          <div className="bg-white-warm rounded-2xl shadow-md w-full max-w-lg mx-4 overflow-hidden">
             <div className="flex items-center justify-between px-6 py-4 border-b border-sage/20">
-              <h3 className="font-display text-lg text-charcoal">Adjust image</h3>
+              <h3 className="font-body font-semibold text-lg text-charcoal">Adjust image</h3>
               <CloseButton onClick={handleCropCancel} />
             </div>
-            <div className="relative bg-black" style={{ height: 360 }}>
+            <div className="relative bg-charcoal" style={{ height: 360 }}>
               <Cropper
                 image={cropSrc}
                 crop={crop}

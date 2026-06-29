@@ -395,7 +395,7 @@ export function SignUpForm({ onSwitchToSignin }: { onSwitchToSignin: () => void 
                       <button
                         type="button"
                         onClick={() => setWaiverExpanded(true)}
-                        className="text-sage underline underline-offset-2 hover:text-sage/80"
+                        className="rounded text-sage underline underline-offset-2 hover:text-sage/80 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sage focus-visible:ring-offset-1"
                       >
                         Liability Waiver
                       </button>

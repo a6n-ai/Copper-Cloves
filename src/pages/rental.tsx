@@ -201,7 +201,7 @@ export default function RentalPage() {
           </div>
 
           {/* Stat strip */}
-          <div className="mx-auto mt-12 flex max-w-7xl flex-wrap justify-center divide-y divide-[#e5e4dc] border-y border-[#e5e4dc] sm:divide-x sm:divide-y-0">
+          <div className="mx-auto mt-12 flex max-w-7xl flex-wrap justify-center divide-y divide-border border-y border-border sm:divide-x sm:divide-y-0">
             {STATS.map((stat) => (
               <div key={stat.label} className="w-1/2 px-6 py-5 text-center sm:w-auto sm:flex-1 sm:px-10">
                 <p className="font-display text-2xl text-charcoal md:text-3xl">{stat.value}</p>
@@ -248,7 +248,7 @@ export default function RentalPage() {
         </section>
 
         {/* What's included — editorial list (left intro / right feature rows) */}
-        <section className="bg-[#f4f3ec] px-6 py-16 md:py-20 lg:px-8">
+        <section className="bg-muted px-6 py-16 md:py-20 lg:px-8">
           <div className="mx-auto grid max-w-7xl gap-12 lg:grid-cols-[0.9fr_1.1fr] lg:gap-16">
             <div className="lg:sticky lg:top-24 lg:self-start">
               <p className="font-body text-xs font-semibold uppercase tracking-[0.18em] text-terracotta">
@@ -276,7 +276,7 @@ export default function RentalPage() {
               </div>
             </div>
 
-            <ul className="divide-y divide-[#e5e4dc] border-y border-[#e5e4dc]">
+            <ul className="divide-y divide-border border-y border-border">
               {INCLUDED.map(({ icon: Icon, title, description }) => (
                 <li key={title} className="flex gap-5 py-7 first:pt-0 last:pb-0">
                   <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full bg-sage/10">
@@ -359,7 +359,7 @@ export default function RentalPage() {
               ) : (
                 <form
                   onSubmit={handleSubmit}
-                  className="rounded-3xl border border-[#e5e4dc] bg-white-warm p-6 sm:p-8 md:p-10"
+                  className="rounded-3xl border border-border bg-white-warm p-6 sm:p-8 md:p-10"
                 >
                   <div className="grid gap-6 sm:grid-cols-2">
                     <Field label="Full name" required>
