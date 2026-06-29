@@ -18,6 +18,18 @@ function dayStart(d: Date): Date {
   return new Date(d.getFullYear(), d.getMonth(), d.getDate());
 }
 
+// ponytail: a current streak decays to 0 after a 1-day gap, so a 90-day lookback
+// holds every live streak — bounding the batch/leaderboard scans here keeps them
+// off the full bookings table. Ceiling: longest_streak computed off a windowed
+// scan truncates at 90 consecutive days (no consumer reads it from those paths).
+// Raise STREAK_LOOKBACK_DAYS if a member ever sustains a 90+ day streak.
+const STREAK_LOOKBACK_DAYS = 90;
+function streakWindowStart(): Date {
+  const d = dayStart(new Date());
+  d.setDate(d.getDate() - STREAK_LOOKBACK_DAYS);
+  return d;
+}
+
 // Total = every checked-in booking. Streaks = consecutive calendar days with a
 // check-in, computed from check_in_time (rows without it count toward the total
 // but not the streak — mirrors the previous backfill behaviour). The current
@@ -83,20 +95,44 @@ export async function getDynamicStatsForUsers(
   const result = new Map<string, DynamicStats>();
   if (userIds.length === 0) return result;
 
-  const rows = await prisma.booking.findMany({
-    where: { user_id: { in: userIds }, checked_in: true },
-    select: { user_id: true, check_in_time: true },
-  });
+  // Total + last-visit come from a DB aggregate (all-time, correct, no row load);
+  // streaks need the per-day sequence but only the recent window can hold a live
+  // one — so the heavy scan is bounded while totals stay exact.
+  const [totals, recent] = await Promise.all([
+    prisma.booking.groupBy({
+      by: ["user_id"],
+      where: { user_id: { in: userIds }, checked_in: true },
+      _count: { _all: true },
+      _max: { check_in_time: true },
+    }),
+    prisma.booking.findMany({
+      where: {
+        user_id: { in: userIds },
+        checked_in: true,
+        check_in_time: { gte: streakWindowStart() },
+      },
+      select: { user_id: true, check_in_time: true },
+    }),
+  ]);
 
-  const byUser = new Map<string, { check_in_time: Date | null }[]>();
-  for (const r of rows) {
-    const arr = byUser.get(r.user_id) ?? [];
+  const aggByUser = new Map(
+    totals.map((t) => [t.user_id, { total: t._count._all, last: t._max.check_in_time }]),
+  );
+  const recentByUser = new Map<string, { check_in_time: Date | null }[]>();
+  for (const r of recent) {
+    const arr = recentByUser.get(r.user_id) ?? [];
     arr.push({ check_in_time: r.check_in_time });
-    byUser.set(r.user_id, arr);
+    recentByUser.set(r.user_id, arr);
   }
 
   for (const id of userIds) {
-    result.set(id, computeStats(byUser.get(id) ?? []));
+    const streaks = computeStats(recentByUser.get(id) ?? []);
+    const agg = aggByUser.get(id);
+    result.set(id, {
+      ...streaks,
+      total_classes_attended: agg?.total ?? 0,
+      last_class_date: agg?.last ?? null,
+    });
   }
   return result;
 }
@@ -112,9 +148,13 @@ export async function getTopStreaks(
   return all.slice(0, limit);
 }
 
+// Streak-only consumers (leaderboard, distribution) — bounded to the live-streak
+// window so this never loads the entire bookings table. total_classes_attended /
+// last_class_date on the returned stats are window-scoped here; do NOT read them
+// off this path (use getDynamicStats/getDynamicStatsForUsers for accurate totals).
 async function computeAllUserStats(): Promise<{ user_id: string; stats: DynamicStats }[]> {
   const rows = await prisma.booking.findMany({
-    where: { checked_in: true },
+    where: { checked_in: true, check_in_time: { gte: streakWindowStart() } },
     select: { user_id: true, check_in_time: true },
   });
 

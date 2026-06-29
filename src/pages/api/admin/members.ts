@@ -9,11 +9,13 @@ import { logActivity } from "@/lib/activityLog";
 import { HISTORY_STATUSES } from "@/lib/bookingStatus";
 import { getStudioSettings } from "@/lib/studioSettings";
 import { normalizeLoginEmail } from "@/lib/loginEmail";
+import { passCategoryForPackageType } from "@/lib/couponHelpers";
 import { sendHtmlEmail } from "@/lib/notifications/sendEmail";
 import { welcomeSetPasswordEmail } from "@/lib/notifications/emailTemplates";
 import logger from "@/lib/logger";
 
 const WELCOME_TOKEN_TTL_MS = 7 * 24 * 60 * 60 * 1000; // 7 days
+const DEFAULT_PAGE_SIZE = 10;
 
 // Member Management lists real members only — never staff/partner/instructor logins.
 function isNonMemberRole(role?: string | null): boolean {
@@ -21,13 +23,72 @@ function isNonMemberRole(role?: string | null): boolean {
   return isStudioAdminProfileRole(role) || r === "partner" || r === "instructor";
 }
 
-const memberInclude = {
+// Lean field set for the list — no hashedPassword/questionnaire/dob/gender, only
+// what the table + filters/sort need. Detail uses memberDetailInclude separately.
+const memberListSelect = {
+  id: true,
+  full_name: true,
+  email: true,
+  phone: true,
+  avatar_url: true,
+  role: true,
+  start_date: true,
   user_packages: {
-    include: { package_type: true },
+    select: {
+      id: true,
+      is_active: true,
+      expiration_date: true,
+      credits_remaining: true,
+      package_type: { select: { id: true, name: true, type: true, is_unlimited: true } },
+    },
     orderBy: { purchase_date: "desc" as const },
     take: 8,
   },
 } as const;
+
+// --- list row shape + server-side derivation (mirrors the old client mapping so
+// filter/sort/pagination can run in SQL-adjacent server code instead of the browser) ---
+type MemberRow = {
+  id: string;
+  userPackageId: string | null;
+  name: string;
+  email: string;
+  phone: string;
+  avatarUrl: string | null;
+  package: string;
+  credits: number;
+  unlimited: boolean;
+  expiryDate: string;
+  totalClasses: number;
+  lastVisit: string;
+  lastVisitTs: number | null;
+  status: "active" | "expiring" | "expired";
+  passCategory: "studio_pass" | "class_pass" | "none";
+  accountFilter: "active" | "inactive" | "grace";
+  startDate: string | null;
+};
+
+function formatRelativeDay(date: Date | null, now: number): string {
+  if (!date) return "—";
+  const t = date.getTime();
+  if (Number.isNaN(t)) return "—";
+  const diff = (now - t) / 86_400_000;
+  if (diff >= 0 && diff < 1) return "Today";
+  if (diff >= 1 && diff < 2) return "Yesterday";
+  if (diff < 0) return "Soon";
+  return `${Math.floor(diff)} days ago`;
+}
+
+function deriveMemberStatus(expiry: Date, credits: number, unlimited: boolean, now: number): MemberRow["status"] {
+  if (expiry.getTime() < now) return "expired";
+  const days = (expiry.getTime() - now) / 86_400_000;
+  if (days <= 14 || (!unlimited && credits <= 2)) return "expiring";
+  return "active";
+}
+
+const STATUS_RANK = { active: 0, expiring: 1, expired: 2 } as const;
+const PASS_RANK = { studio_pass: 0, class_pass: 1, none: 2 } as const;
+const ACCOUNT_RANK = { active: 0, grace: 1, inactive: 2 } as const;
 
 const memberDetailInclude = {
   user_badges: { orderBy: { earned_at: "desc" as const }, take: 50 },
@@ -77,6 +138,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     if (id) {
       const profile = await prisma.profile.findFirst({
         where: { id },
+        omit: { hashedPassword: true, questionnaire: true },
         include: memberDetailInclude,
       });
       if (!profile || isNonMemberRole(profile.role)) {
@@ -90,11 +152,22 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     monthStart.setDate(1);
     monthStart.setHours(0, 0, 0, 0);
 
+    // Server-side search / filter / sort / pagination params.
+    const qp = req.query;
+    const str = (v: unknown) => (typeof v === "string" ? v.trim() : "");
+    const search = str(qp.search).toLowerCase();
+    const pkg = str(qp.pkg) || "all"; // all | studio | class | none
+    const account = str(qp.account) || "all"; // all | active | inactive
+    const sort = str(qp.sort); // "" | name | pass | account | classes | lastVisit | status
+    const dir = str(qp.dir) === "asc" ? 1 : -1;
+    const page = Math.max(1, parseInt(str(qp.page) || "1", 10) || 1);
+    const pageSize = Math.min(100, Math.max(1, parseInt(str(qp.pageSize) || String(DEFAULT_PAGE_SIZE), 10) || DEFAULT_PAGE_SIZE));
+
     // The month check-in count is independent of the member list, so fetch
     // both in one round trip instead of as a trailing serial query.
     const [rows, checkInsThisMonth] = await Promise.all([
       prisma.profile.findMany({
-        include: memberInclude,
+        select: memberListSelect,
         orderBy: { created_at: "desc" },
       }),
       prisma.booking.count({
@@ -102,18 +175,101 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       }),
     ]);
     // Exclude staff/partner/instructor logins — only real members.
-    const members = rows.filter((p) => !isNonMemberRole(p.role));
-    const statsByUser = await getDynamicStatsForUsers(members.map((m) => m.id));
-    const withStats = members.map((m) => {
-      const stats = statsByUser.get(m.id) ?? null;
+    const memberProfiles = rows.filter((p) => !isNonMemberRole(p.role));
+    const statsByUser = await getDynamicStatsForUsers(memberProfiles.map((m) => m.id));
+
+    const now = Date.now();
+    const fourteenAgo = now - 14 * 86_400_000;
+    // Derive the same row shape the client used to build, but server-side so we can
+    // filter/sort/paginate over the full population before slicing one page.
+    const enriched: MemberRow[] = memberProfiles.map((p) => {
+      const pkgs = p.user_packages ?? [];
+      const activePkg = pkgs.find((up) => up.is_active && new Date(up.expiration_date).getTime() > now);
+      const lastPkg = pkgs[0];
+      const current = activePkg ?? lastPkg;
+      const expiryRaw = current?.expiration_date ? new Date(current.expiration_date) : new Date();
+
+      const holdingPackage = Boolean(activePkg);
+      const lastExp = lastPkg ? new Date(lastPkg.expiration_date).getTime() : null;
+      let accountFilter: MemberRow["accountFilter"] = "grace";
+      if (holdingPackage) accountFilter = "active";
+      else if (!lastExp || lastExp < fourteenAgo) accountFilter = "inactive";
+
+      let passCategory: MemberRow["passCategory"] = "none";
+      if (current?.package_type) passCategory = passCategoryForPackageType(current.package_type);
+
+      const unlimited = Boolean(current?.package_type?.is_unlimited || passCategory === "studio_pass");
+      const credits = current?.credits_remaining ?? 0;
+      const stats = statsByUser.get(p.id) ?? null;
+      const lastClass = stats?.last_class_date ? new Date(stats.last_class_date) : null;
+
       return {
-        ...m,
-        user_stats: stats,
-        _count: { bookings: stats?.total_classes_attended ?? 0 },
+        id: p.id,
+        userPackageId: activePkg?.id ?? lastPkg?.id ?? null,
+        name: p.full_name || p.email || "Member",
+        email: p.email,
+        phone: p.phone || "—",
+        avatarUrl: p.avatar_url ?? null,
+        package: activePkg?.package_type?.name ?? lastPkg?.package_type?.name ?? "No active package",
+        credits,
+        unlimited,
+        expiryDate: expiryRaw.toISOString().slice(0, 10),
+        totalClasses: stats?.total_classes_attended ?? 0,
+        lastVisit: formatRelativeDay(lastClass, now),
+        lastVisitTs: lastClass ? lastClass.getTime() : null,
+        status: deriveMemberStatus(expiryRaw, credits, unlimited, now),
+        passCategory,
+        accountFilter,
+        startDate: p.start_date ? new Date(p.start_date).toISOString().slice(0, 10) : null,
       };
     });
 
-    return res.json({ members: withStats, checkInsThisMonth });
+    // Stat cards count the full population, not the current filter.
+    const counts = {
+      totalMembers: enriched.length,
+      activeMembers: enriched.filter((m) => m.accountFilter === "active").length,
+      expiringMembers: enriched.filter((m) => m.status === "expiring").length,
+      inactiveLong: enriched.filter((m) => m.accountFilter === "inactive").length,
+      studioPass: enriched.filter((m) => m.passCategory === "studio_pass").length,
+      classPass: enriched.filter((m) => m.passCategory === "class_pass").length,
+    };
+
+    let filtered = enriched.filter((m) => {
+      if (
+        search &&
+        !m.name.toLowerCase().includes(search) &&
+        !m.email.toLowerCase().includes(search) &&
+        !m.phone.toLowerCase().includes(search)
+      )
+        return false;
+      if (pkg === "studio" && m.passCategory !== "studio_pass") return false;
+      if (pkg === "class" && m.passCategory !== "class_pass") return false;
+      if (pkg === "none" && m.passCategory !== "none") return false;
+      if (account === "active" && m.accountFilter !== "active") return false;
+      if (account === "inactive" && m.accountFilter !== "inactive") return false;
+      return true;
+    });
+
+    if (sort) {
+      filtered = [...filtered].sort((a, b) => {
+        let cmp = 0;
+        switch (sort) {
+          case "name": cmp = a.name.localeCompare(b.name); break;
+          case "pass": cmp = PASS_RANK[a.passCategory] - PASS_RANK[b.passCategory]; break;
+          case "account": cmp = ACCOUNT_RANK[a.accountFilter] - ACCOUNT_RANK[b.accountFilter]; break;
+          case "classes": cmp = a.totalClasses - b.totalClasses; break;
+          case "lastVisit": cmp = (a.lastVisitTs ?? -Infinity) - (b.lastVisitTs ?? -Infinity); break;
+          case "status": cmp = STATUS_RANK[a.status] - STATUS_RANK[b.status]; break;
+        }
+        return cmp * dir;
+      });
+    }
+
+    const total = filtered.length;
+    const start = (page - 1) * pageSize;
+    const pageItems = filtered.slice(start, start + pageSize);
+
+    return res.json({ members: pageItems, total, counts, checkInsThisMonth, page, pageSize });
   }
 
   // Create a real member (role "user"): random password + welcome email carrying

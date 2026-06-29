@@ -1,7 +1,6 @@
-import { useState, useEffect, useMemo } from "react";
+import { useState, useEffect } from "react";
 import { useRouter } from "next/router";
 import { requireSessionSSP } from "@/lib/requireSessionSSP";
-import { passCategoryForPackageType } from "@/lib/couponHelpers";
 
 export const getServerSideProps = requireSessionSSP({ roles: ["admin"] });
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -23,7 +22,7 @@ import {
 } from "lucide-react";
 import { SEO } from "@/components/SEO";
 import { Skeleton } from "@/components/ui/skeleton";
-import { Pagination, usePagination } from "@/components/Pagination";
+import { Pagination } from "@/components/Pagination";
 import { useSession } from "next-auth/react";
 import {
   ResponsiveDialog,
@@ -65,28 +64,26 @@ interface Member {
   startDate: string | null;
 }
 
-function formatRelativeDay(date: Date | string | null | undefined): string {
-  if (!date) return "—";
-  const d = typeof date === "string" ? new Date(date) : date;
-  if (Number.isNaN(d.getTime())) return "—";
-  const diff = (Date.now() - d.getTime()) / 86400000;
-  if (diff >= 0 && diff < 1) return "Today";
-  if (diff >= 1 && diff < 2) return "Yesterday";
-  if (diff < 0) return "Soon";
-  return `${Math.floor(diff)} days ago`;
-}
+// Member-row derivation (status/passCategory/lastVisit/etc.) now runs server-side
+// in /api/admin/members so filter/sort/pagination happen over the full population
+// before one page is sent. The server returns rows already in the Member shape.
 
-function deriveMemberStatus(
-  expiry: Date,
-  credits: number,
-  unlimited: boolean
-): Member["status"] {
-  const now = new Date();
-  if (expiry < now) return "expired";
-  const days = (expiry.getTime() - now.getTime()) / 86400000;
-  if (days <= 14 || (!unlimited && credits <= 2)) return "expiring";
-  return "active";
-}
+type MemberCounts = {
+  totalMembers: number;
+  activeMembers: number;
+  expiringMembers: number;
+  inactiveLong: number;
+  studioPass: number;
+  classPass: number;
+};
+const EMPTY_COUNTS: MemberCounts = {
+  totalMembers: 0,
+  activeMembers: 0,
+  expiringMembers: 0,
+  inactiveLong: 0,
+  studioPass: 0,
+  classPass: 0,
+};
 
 function MembersLoadingSkeleton() {
   return (
@@ -195,6 +192,9 @@ export default function AdminMembers() {
     { urlSync: true },
   );
   const [members, setMembers] = useState<Member[]>([]);
+  const [total, setTotal] = useState(0);
+  const [counts, setCounts] = useState<MemberCounts>(EMPTY_COUNTS);
+  const [page, setPage] = useState(1);
   const [checkInsThisMonth, setCheckInsThisMonth] = useState(0);
   const [sortKey, setSortKey] = useState<"name" | "pass" | "account" | "classes" | "lastVisit" | "status" | null>(null);
   const [sortDir, setSortDir] = useState<"asc" | "desc">("desc");
@@ -225,69 +225,41 @@ export default function AdminMembers() {
       router.push("/login");
       return;
     }
-    if (status === "authenticated") {
-      setLoading(true);
-      void loadMembers().finally(() => setLoading(false));
-    }
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [status, userRole]);
 
-  const filteredMembers = useMemo(() => {
-    const qRaw = f.values.search.trim();
-    const q = qRaw.toLowerCase();
-    const filtered = members.filter((member) => {
-      const matchesSearch =
-        q === "" ||
-        member.name.toLowerCase().includes(q) ||
-        (member.email ?? "").toLowerCase().includes(q) ||
-        (member.phone ?? "").toLowerCase().includes(qRaw);
-      if (!matchesSearch) return false;
-      if (f.values.pkg === "studio" && member.passCategory !== "studio_pass") return false;
-      if (f.values.pkg === "class" && member.passCategory !== "class_pass") return false;
-      if (f.values.pkg === "none" && member.passCategory !== "none") return false;
-      if (f.values.account === "active" && member.accountFilter !== "active") return false;
-      if (f.values.account === "inactive" && member.accountFilter !== "inactive") return false;
-      return true;
-    });
+  // Reset to the first page whenever the filter/sort criteria change.
+  useEffect(() => {
+    setPage(1);
+  }, [f.values.search, f.values.pkg, f.values.account, sortKey, sortDir]);
 
-    if (sortKey) {
-      const dir = sortDir === "asc" ? 1 : -1;
-      const statusRank = { active: 0, expiring: 1, expired: 2 } as const;
-      const passRank = { studio_pass: 0, class_pass: 1, none: 2 } as const;
-      const accountRank = { active: 0, grace: 1, inactive: 2 } as const;
-      filtered.sort((a, b) => {
-        let cmp = 0;
-        switch (sortKey) {
-          case "name":
-            cmp = a.name.localeCompare(b.name);
-            break;
-          case "pass":
-            cmp = passRank[a.passCategory] - passRank[b.passCategory];
-            break;
-          case "account":
-            cmp = accountRank[a.accountFilter] - accountRank[b.accountFilter];
-            break;
-          case "classes":
-            cmp = a.totalClasses - b.totalClasses;
-            break;
-          case "lastVisit":
-            cmp = (a.lastVisitTs ?? -Infinity) - (b.lastVisitTs ?? -Infinity);
-            break;
-          case "status":
-            cmp = statusRank[a.status] - statusRank[b.status];
-            break;
-        }
-        return cmp * dir;
-      });
-    }
-
-    return filtered;
-  }, [f.values.search, f.values.pkg, f.values.account, members, sortKey, sortDir]);
+  // Server-driven list: refetch (debounced) on any page/filter/sort change. The
+  // debounce coalesces rapid search keystrokes and the page-reset above into one
+  // request. Owns the loading flag for the initial paint.
+  useEffect(() => {
+    if (status !== "authenticated" || userRole !== "admin") return;
+    const t = setTimeout(() => {
+      void loadMembers().finally(() => setLoading(false));
+    }, 250);
+    return () => clearTimeout(t);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [status, userRole, page, f.values.search, f.values.pkg, f.values.account, sortKey, sortDir]);
 
   const loadMembers = async () => {
     setLoadError(null);
     try {
-      const res = await fetch("/api/admin/members", { credentials: "include" });
+      const params = new URLSearchParams({
+        page: String(page),
+        pageSize: "10",
+        search: f.values.search,
+        pkg: f.values.pkg,
+        account: f.values.account,
+      });
+      if (sortKey) {
+        params.set("sort", sortKey);
+        params.set("dir", sortDir);
+      }
+      const res = await fetch(`/api/admin/members?${params.toString()}`, { credentials: "include" });
       if (!res.ok) {
         const errBody = await res.json().catch(() => ({}));
         const msg =
@@ -298,109 +270,28 @@ export default function AdminMembers() {
         setMembers([]);
         return;
       }
-      const raw: unknown = await res.json();
-      const payload = raw as { members?: unknown; checkInsThisMonth?: number };
-      const list = Array.isArray(payload?.members)
-        ? payload.members
-        : Array.isArray(raw)
-        ? raw
-        : null;
-      if (!list) {
+      const payload = (await res.json()) as {
+        members?: Member[];
+        total?: number;
+        counts?: MemberCounts;
+        checkInsThisMonth?: number;
+      };
+      if (!Array.isArray(payload.members)) {
         setLoadError("Members list response was invalid.");
         setMembers([]);
         return;
       }
-      setCheckInsThisMonth(
-        typeof payload?.checkInsThisMonth === "number" ? payload.checkInsThisMonth : 0,
-      );
-      const profiles = list as Array<{
-        id: string;
-        full_name: string | null;
-        email: string;
-        phone: string | null;
-        avatar_url: string | null;
-        pass_type: string | null;
-        start_date: string | null;
-        user_packages: Array<{
-          id: string;
-          is_active: boolean;
-          pass_type: string | null;
-          credits_remaining: number | null;
-          expiration_date: string;
-          package_type: { name: string; is_unlimited: boolean; type: string };
-        }>;
-        user_stats: {
-          total_classes_attended?: number;
-          last_class_date?: string | null;
-        } | null;
-        _count?: { bookings?: number };
-      }>;
-
-      const now = new Date();
-      const fourteenAgo = new Date(now);
-      fourteenAgo.setDate(fourteenAgo.getDate() - 14);
-
-      const mapped: Member[] = profiles.map((p) => {
-        const pkgs = p.user_packages ?? [];
-        const activePkg = pkgs.find((up) => up.is_active && new Date(up.expiration_date) > now);
-        const lastPkg = pkgs[0];
-        const pkg = activePkg ?? lastPkg;
-        const expiryRaw = pkg?.expiration_date ? new Date(pkg.expiration_date) : new Date();
-        const expiryDate = expiryRaw.toISOString().slice(0, 10);
-
-        const holdingPackage = Boolean(activePkg);
-        const lastExp = lastPkg ? new Date(lastPkg.expiration_date) : null;
-        let accountFilter: Member["accountFilter"] = "grace";
-        if (holdingPackage) accountFilter = "active";
-        else if (!lastExp || lastExp.getTime() < fourteenAgo.getTime()) accountFilter = "inactive";
-
-        let passCategory: Member["passCategory"] = "none";
-        if (pkg) {
-          passCategory = passCategoryForPackageType(pkg.package_type);
-        }
-
-        const unlimited = Boolean(pkg?.package_type?.is_unlimited || passCategory === "studio_pass");
-        const credits = pkg?.credits_remaining ?? 0;
-        const stats = p.user_stats;
-
-        return {
-          id: p.id,
-          userPackageId: activePkg?.id ?? lastPkg?.id ?? null,
-          name: p.full_name || p.email || "Member",
-          email: p.email,
-          phone: p.phone || "—",
-          avatarUrl: p.avatar_url ?? null,
-          package: activePkg?.package_type?.name ?? lastPkg?.package_type?.name ?? "No active package",
-          credits,
-          unlimited,
-          expiryDate,
-          // Prefer real check-in count from bookings; fall back to user_stats if relation count missing.
-          totalClasses: p._count?.bookings ?? stats?.total_classes_attended ?? 0,
-          lastVisit: formatRelativeDay(stats?.last_class_date ?? null),
-          lastVisitTs: stats?.last_class_date ? new Date(stats.last_class_date).getTime() : null,
-          status: deriveMemberStatus(expiryRaw, credits, unlimited),
-          passCategory,
-          accountFilter,
-          startDate: p.start_date ? new Date(p.start_date).toISOString().slice(0, 10) : null,
-        };
-      });
-
-      setMembers(mapped);
+      setMembers(payload.members);
+      setTotal(typeof payload.total === "number" ? payload.total : payload.members.length);
+      setCounts(payload.counts ?? EMPTY_COUNTS);
+      setCheckInsThisMonth(typeof payload.checkInsThisMonth === "number" ? payload.checkInsThisMonth : 0);
     } catch {
       setLoadError("Could not load members. Check your connection and try again.");
       setMembers([]);
     }
   };
 
-  const stats = {
-    totalMembers: members.length,
-    activeMembers: members.filter((m) => m.accountFilter === "active").length,
-    expiringMembers: members.filter((m) => m.status === "expiring").length,
-    inactiveLong: members.filter((m) => m.accountFilter === "inactive").length,
-    studioPass: members.filter((m) => m.passCategory === "studio_pass").length,
-    classPass: members.filter((m) => m.passCategory === "class_pass").length,
-    checkInsThisMonth,
-  };
+  const stats = { ...counts, checkInsThisMonth };
 
   type MemberSortKey = "name" | "pass" | "account" | "classes" | "lastVisit" | "status";
   const toggleSort = (key: MemberSortKey) => {
@@ -412,16 +303,10 @@ export default function AdminMembers() {
     }
   };
 
-  const membersPg = usePagination(
-    filteredMembers,
-    10,
-    `${f.values.search}|${f.values.pkg}|${f.values.account}|${sortKey}|${sortDir}`,
-  );
-
   const accountLabelFor = (f: Member["accountFilter"]) =>
     f === "active" ? "Active" : f === "inactive" ? "Inactive" : "Lapsed";
 
-  const tableMembers: MemberTableMember[] = membersPg.pageItems.map((m) => ({
+  const tableMembers: MemberTableMember[] = members.map((m) => ({
     id: m.id,
     name: m.name,
     email: m.email,
@@ -548,7 +433,7 @@ export default function AdminMembers() {
                 <div className="flex flex-wrap items-start justify-between gap-3">
                   <div>
                     <CardTitle className="font-body font-semibold text-2xl text-charcoal">
-                      Members <span className="font-body text-base text-charcoal/40">({filteredMembers.length})</span>
+                      Members <span className="font-body text-base text-charcoal/40">({total})</span>
                     </CardTitle>
                     <CardDescription className="font-body text-charcoal/60">
                       Click a member to view their full profile and manage their pass
@@ -620,9 +505,10 @@ export default function AdminMembers() {
                   />
                 </div>
                 <Pagination
-                  page={membersPg.page}
-                  total={membersPg.total}
-                  onChange={membersPg.setPage}
+                  page={page}
+                  total={total}
+                  pageSize={10}
+                  onChange={setPage}
                 />
               </CardContent>
             </Card>
