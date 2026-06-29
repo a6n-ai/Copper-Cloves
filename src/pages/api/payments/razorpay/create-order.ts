@@ -14,7 +14,7 @@ import { getRazorpay, razorpayConfigured } from "@/lib/razorpayServer";
 import { createPendingBooking } from "@/lib/createPendingBooking";
 import { excludeUnlimitedSeatsFromSnapshot, resolvePayableSeats } from "@/lib/groupBilling";
 import prisma from "@/lib/prisma";
-import { validateAndComputeCoupon, toFiniteNumber, passCategoryForPackageType, type CouponContext } from "@/lib/couponHelpers";
+import { validateAndComputeCoupon, passCategoryForPackageType, type CouponContext } from "@/lib/couponHelpers";
 import { effectivePackagePrice, pickPackageCharge } from "@/lib/packageOffer";
 import { requestLogger } from "@/lib/logger";
 
