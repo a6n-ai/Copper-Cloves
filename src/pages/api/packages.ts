@@ -24,6 +24,22 @@ function buildPackageData(body: Record<string, unknown>, create: boolean): Prism
   if (body.display_order !== undefined) data.display_order = Number(body.display_order);
   if (body.is_published !== undefined) data.is_published = Boolean(body.is_published);
   if (body.description !== undefined) data.description = body.description === null || body.description === "" ? null : String(body.description);
+  if (body.offer_price !== undefined) {
+    data.offer_price =
+      body.offer_price === null || body.offer_price === "" ? null : Number(body.offer_price);
+  }
+  if (body.offer_label !== undefined) {
+    data.offer_label =
+      body.offer_label === null || String(body.offer_label).trim() === "" ? null : String(body.offer_label).trim();
+  }
+  if (body.offer_starts_at !== undefined) {
+    data.offer_starts_at =
+      body.offer_starts_at === null || body.offer_starts_at === "" ? null : new Date(String(body.offer_starts_at));
+  }
+  if (body.offer_ends_at !== undefined) {
+    data.offer_ends_at =
+      body.offer_ends_at === null || body.offer_ends_at === "" ? null : new Date(String(body.offer_ends_at));
+  }
 
   return data;
 }
