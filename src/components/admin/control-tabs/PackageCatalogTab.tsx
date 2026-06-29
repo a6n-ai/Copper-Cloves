@@ -47,7 +47,6 @@ type PackageForm = {
   name: string;
   type: string;
   price: string;
-  is_unlimited: boolean;
   class_count: string;
   duration_months: string;
   includes_physique_57: boolean;
@@ -67,7 +66,6 @@ const EMPTY_FORM: PackageForm = {
   name: "",
   type: "class_pass",
   price: "",
-  is_unlimited: false,
   class_count: "",
   duration_months: "",
   includes_physique_57: false,
@@ -101,7 +99,6 @@ function rowToForm(p: PackageRow): PackageForm {
     name: p.name ?? "",
     type: p.type ?? "class_pass",
     price: String(p.price ?? ""),
-    is_unlimited: !!p.is_unlimited,
     class_count: p.class_count == null ? "" : String(p.class_count),
     duration_months: p.duration_months == null ? "" : String(p.duration_months),
     includes_physique_57: !!p.includes_physique_57,
@@ -189,12 +186,14 @@ export default function PackageCatalogTab() {
       .map((s) => s.trim())
       .filter(Boolean);
 
+    // Studio pass is always unlimited (no counter); class pass carries the count.
+    const isUnlimited = form.type === "studio_pass";
     const payload: Record<string, unknown> = {
       name: form.name.trim(),
       type: form.type.trim() || "class_pass",
       price,
-      is_unlimited: form.is_unlimited,
-      class_count: form.is_unlimited || form.class_count === "" ? null : Number(form.class_count),
+      is_unlimited: isUnlimited,
+      class_count: isUnlimited || form.class_count === "" ? null : Number(form.class_count),
       duration_months: form.duration_months === "" ? null : Number(form.duration_months),
       includes_physique_57: form.includes_physique_57,
       benefits,
@@ -249,6 +248,8 @@ export default function PackageCatalogTab() {
     },
     [load],
   );
+
+  const isUnlimited = form.type === "studio_pass";
 
   return (
     <Card className="border-sage/20 bg-white-warm">
@@ -402,14 +403,6 @@ export default function PackageCatalogTab() {
               </div>
             </div>
 
-            <div className="flex items-center justify-between rounded-lg border border-sage/15 px-3 py-2.5">
-              <div>
-                <Label htmlFor="pkg-unlimited" className="cursor-pointer">Unlimited classes</Label>
-                <p className="font-body text-xs text-charcoal/50">Studio pass — no class counter.</p>
-              </div>
-              <Switch id="pkg-unlimited" checked={form.is_unlimited} onCheckedChange={(c) => patch("is_unlimited", c)} />
-            </div>
-
             <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
               <div className="grid gap-1.5">
                 <Label htmlFor="pkg-classes">Class count</Label>
@@ -418,10 +411,10 @@ export default function PackageCatalogTab() {
                   type="number"
                   min="0"
                   inputMode="numeric"
-                  disabled={form.is_unlimited}
-                  value={form.class_count}
+                  disabled={isUnlimited}
+                  value={isUnlimited ? "" : form.class_count}
                   onChange={(e) => patch("class_count", e.target.value)}
-                  placeholder={form.is_unlimited ? "Unlimited" : "e.g. 12"}
+                  placeholder={isUnlimited ? "Unlimited (studio pass)" : "e.g. 12"}
                 />
               </div>
               <div className="grid gap-1.5">
