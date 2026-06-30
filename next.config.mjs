@@ -116,6 +116,30 @@ const nextConfig = {
     ];
   },
   async headers() {
+    // Per-user / role-scoped endpoints that must NEVER be shared-cached. A CDN
+    // keying only on path would otherwise serve one user's identity/data (and,
+    // for /api/auth, their session cookie) to another — the account-takeover
+    // bleed. The public, cacheable routes (packages/classes/retail-products/
+    // cafe items) are deliberately NOT listed here; they set their own
+    // `public` Cache-Control at runtime. Each prefix is matched both bare and
+    // with sub-paths.
+    const noStore = { key: "Cache-Control", value: "no-store, max-age=0, must-revalidate" };
+    const varyCookie = { key: "Vary", value: "Cookie" };
+    const privatePrefixes = [
+      "/api/auth",
+      "/api/user",
+      "/api/admin",
+      "/api/instructor",
+      "/api/partner",
+      "/api/bookings",
+      "/api/user-packages",
+      "/api/user-stats",
+    ];
+    const privateHeaderRules = privatePrefixes.flatMap((p) => [
+      { source: p, headers: [noStore, varyCookie] },
+      { source: `${p}/:path*`, headers: [noStore, varyCookie] },
+    ]);
+
     return [
       {
         source: "/:path*",
@@ -126,6 +150,7 @@ const nextConfig = {
           { key: "Permissions-Policy", value: "camera=(), microphone=(), geolocation=()" },
         ],
       },
+      ...privateHeaderRules,
     ];
   },
 };

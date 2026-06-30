@@ -93,14 +93,15 @@ export async function isRequestSessionValid(req: ReqLike): Promise<boolean> {
   // Ensure the sid belongs to the correct profile (prevents sid guessing across accounts).
   if (row.profile_id !== profileId) return false;
 
-  // Self-heal: UA varies behind some proxies / browser updates. JWT + sid + DB
-  // row all agree, so accept once and rebind the fingerprint to the new UA.
+  // A session is bound to the device fingerprint captured at login. A mismatch
+  // means this cookie is being presented from a different device than the one it
+  // was issued to — i.e. a replayed/leaked session token. REJECT it (force
+  // re-login) instead of rebinding to whoever presents it. The previous
+  // behaviour self-healed and accepted, which let a leaked cookie (e.g. a
+  // CDN-cached session response served to another user) take over the account.
+  // Trade-off: a genuine UA change (browser auto-update) costs one re-login.
   if (row.fingerprint !== fp) {
-    await prisma.userSession.update({
-      where: { id: row.id },
-      data: { fingerprint: fp, user_agent: ua, ip, last_seen_at: new Date() },
-    }).catch(() => {});
-    return true;
+    return false;
   }
 
   const idleMs = Date.now() - row.last_seen_at.getTime();
