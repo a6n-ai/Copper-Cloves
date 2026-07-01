@@ -171,10 +171,12 @@ const isUnlimitedPkg = (p: BookablePkg) => !!p.package_type?.is_unlimited;
 /**
  * Pick the pass to deduct a class from. A member can hold several active passes at
  * once (e.g. multiple 1-Class passes); picking the first blindly can land on a
- * 0-credit pass and wrongly block booking. Deduct from the OLDEST usable pass
- * (earliest purchase, use-it-before-it-expires). Unlimited passes need no
- * deduction. Falls back to any active pass so display still works.
+ * 0-credit pass and wrongly block booking. Deduct from the pass EXPIRING SOONEST
+ * (spend it before it lapses). Unlimited passes need no deduction. Falls back to
+ * any active pass so display still works.
  */
+const expiresAt = (p: BookablePkg) => new Date(p.expiration_date).getTime();
+
 function pickBookablePackage(packages: unknown): BookablePkg | null {
   const active = activePackagesOf(packages);
   if (active.length === 0) return null;
@@ -182,9 +184,7 @@ function pickBookablePackage(packages: unknown): BookablePkg | null {
     (p) => isUnlimitedPkg(p) || (p.credits_remaining ?? 0) >= 1,
   );
   const pool = usable.length > 0 ? usable : active;
-  const ord = (p: BookablePkg) =>
-    new Date(p.purchase_date ?? p.expiration_date).getTime();
-  return pool.slice().sort((a, b) => ord(a) - ord(b))[0];
+  return pool.slice().sort((a, b) => expiresAt(a) - expiresAt(b))[0];
 }
 
 /** Total class credits across all active passes; null if any active pass is unlimited. */
@@ -1029,12 +1029,11 @@ export default function BookClass() {
       if (pkg) {
         const packageType = pkg.package_type;
         const totalClasses = totalActiveClasses(packages);
-        // Active class passes with classes left, oldest-first (spend order).
-        const ord = (p: BookablePkg) => new Date(p.purchase_date ?? p.expiration_date).getTime();
+        // Active class passes with classes left, expiring-first (spend order).
         setActiveClassPasses(
           activePackagesOf(packages)
             .filter((p) => !isUnlimitedPkg(p) && (p.credits_remaining ?? 0) >= 1)
-            .sort((a, b) => ord(a) - ord(b))
+            .sort((a, b) => expiresAt(a) - expiresAt(b))
             .map((p) => ({
               id: p.id,
               name: p.package_type?.name || "Class Pass",
@@ -1688,7 +1687,7 @@ export default function BookClass() {
                   {userPackage.type === "class_pass" && activeClassPasses.length > 1 && (
                     <div className="pt-4 border-t border-sage/20 space-y-1.5">
                       <p className="font-body text-sm text-charcoal/60 uppercase tracking-wide mb-1">
-                        Active passes (used oldest-first)
+                        Active passes (expiring pass used first)
                       </p>
                       {activeClassPasses.map((p, i) => (
                         <div key={p.id ?? i} className="flex items-center justify-between font-body text-sm">

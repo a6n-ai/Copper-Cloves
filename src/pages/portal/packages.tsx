@@ -5,7 +5,7 @@ import { useRouter } from "next/router";
 import { requireSessionSSP } from "@/lib/requireSessionSSP";
 
 export const getServerSideProps = requireSessionSSP();
-import { Check, CreditCard, Download, Flame } from "lucide-react";
+import { CalendarClock, Check, CreditCard, Download, Flame, Infinity as InfinityIcon, Plus, X } from "lucide-react";
 import { Spinner } from "@/components/ui/spinner";
 import { Skeleton } from "@/components/ui/skeleton";
 import { FormAlert } from "@/components/ui/form-alert";
@@ -269,6 +269,8 @@ export default function PackagesPage() {
   const [historyPage, setHistoryPage] = useState(1);
   const [premiumPackages, setPremiumPackages] = useState<Package[]>([]);
   const [loadingPackages, setLoadingPackages] = useState(true);
+  // Catalog is revealed on demand — members land on their own passes first.
+  const [showCatalog, setShowCatalog] = useState(false);
 
   const [formData, setFormData] = useState({
     fullName: "",
@@ -332,7 +334,10 @@ export default function PackagesPage() {
   useEffect(() => {
     if (!selected || typeof selected !== "string" || premiumPackages.length === 0) return;
     const pkg = premiumPackages.find((p) => p.name === selected);
-    if (pkg) setSelectedCategory(pkg.classes === "Unlimited" ? "studio" : "class");
+    if (pkg) {
+      setSelectedCategory(pkg.classes === "Unlimited" ? "studio" : "class");
+      setShowCatalog(true);
+    }
   }, [selected, premiumPackages]);
 
   async function loadProfileAndHistory() {
@@ -719,6 +724,20 @@ export default function PackagesPage() {
     return Math.floor((currentPackages.length - 1) / 2);
   }, [currentPackages]);
 
+  // Member's live passes — active (not expired/paused-out) — expiring soonest first,
+  // matching the order the booking flow spends them.
+  const activePasses = useMemo(
+    () =>
+      purchaseHistory
+        .filter((p) => packageState(p).key === "active")
+        .sort((a, b) => new Date(a.expires_at).getTime() - new Date(b.expires_at).getTime()),
+    [purchaseHistory],
+  );
+  // Show the catalog by default only when there's nothing active to show.
+  useEffect(() => {
+    if (!loadingHistory && activePasses.length === 0) setShowCatalog(true);
+  }, [loadingHistory, activePasses.length]);
+
   const totalHistoryPages = Math.max(1, Math.ceil(purchaseHistory.length / HISTORY_PAGE_SIZE));
   const pagedHistory = useMemo(
     () => purchaseHistory.slice((historyPage - 1) * HISTORY_PAGE_SIZE, historyPage * HISTORY_PAGE_SIZE),
@@ -731,63 +750,191 @@ export default function PackagesPage() {
         {/* Header */}
         <div className="mb-6">
           <PageHeader
-            title="Choose Your Package"
-            subtitle="Select the perfect package for your wellness journey"
+            title="Your Packages"
+            subtitle="Your active passes — and everything you can add"
           />
         </div>
 
-        {/* Tab Switcher */}
-        <div className="flex justify-center mb-10">
-          <div className="inline-flex bg-white-warm rounded-full p-1.5 border border-sage/10 w-full max-w-xs sm:w-auto">
-            <button
-              onClick={() => setSelectedCategory("class")}
-              className={`flex-1 sm:flex-none px-5 py-2.5 rounded-full font-body text-sm font-medium transition-all duration-300 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sage focus-visible:ring-offset-1 ${
-                selectedCategory === "class"
-                  ? "bg-sage text-cream"
-                  : "text-charcoal/70 hover:text-charcoal"
-              }`}
-            >
-              Class Pass
-            </button>
-            <button
-              onClick={() => setSelectedCategory("studio")}
-              className={`flex-1 sm:flex-none px-5 py-2.5 rounded-full font-body text-sm font-medium transition-all duration-300 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sage focus-visible:ring-offset-1 ${
-                selectedCategory === "studio"
-                  ? "bg-sage text-cream"
-                  : "text-charcoal/70 hover:text-charcoal"
-              }`}
-            >
-              Studio Pass
-            </button>
+        {/* My active passes */}
+        <section className="mb-10">
+          <div className="mb-4 flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
+            <div>
+              <h2 className="font-body font-semibold text-2xl text-charcoal">Active passes</h2>
+              <p className="font-body text-sm text-charcoal/60">
+                {activePasses.length > 0
+                  ? "Classes are used from the pass expiring soonest."
+                  : "You don't have an active pass yet."}
+              </p>
+            </div>
+            {!showCatalog && (
+              <Button
+                variant="sage"
+                size="lg"
+                className="w-full cursor-pointer sm:w-auto"
+                onClick={() => {
+                  setShowCatalog(true);
+                  requestAnimationFrame(() =>
+                    document.getElementById("catalog")?.scrollIntoView({ behavior: "smooth", block: "start" }),
+                  );
+                }}
+              >
+                <Plus size={18} className="mr-1.5" />
+                Buy a package
+              </Button>
+            )}
           </div>
-        </div>
 
-        {/* Pricing tier cards — pricing-02 layout */}
-        {loadingPackages ? (
-          <div className="flex flex-col gap-5 md:flex-row md:items-stretch md:gap-6">
-            {Array.from({ length: 3 }, (_, i) => `pkg-skeleton-${i}`).map((key) => (
-              <Skeleton key={key} className="h-80 flex-1 rounded-2xl" />
-            ))}
-          </div>
-        ) : currentPackages.length === 0 ? (
-          <div className="text-center py-16 px-6 rounded-2xl bg-white-warm border border-sage/10">
-            <CreditCard className="mx-auto mb-4 text-charcoal/20" size={48} />
-            <h3 className="font-body font-semibold text-xl text-charcoal mb-1">No packages available</h3>
-            <p className="font-body text-sm text-charcoal/60">
-              Please check back soon or contact the studio.
-            </p>
-          </div>
-        ) : (
-          <div className="flex flex-col gap-5 md:flex-row md:items-stretch md:gap-6">
-            {currentPackages.map((pkg, index) => (
-              <PackageTierCard
-                key={pkg.name}
-                pkg={pkg}
-                isRecommended={index === recommendedIndex}
-                onChoose={handleChoosePlan}
-              />
-            ))}
-          </div>
+          {loadingHistory ? (
+            <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
+              {Array.from({ length: 2 }, (_, i) => `active-skeleton-${i}`).map((key) => (
+                <Skeleton key={key} className="h-40 rounded-2xl" />
+              ))}
+            </div>
+          ) : activePasses.length === 0 ? (
+            <div className="rounded-2xl border border-sage/10 bg-white-warm px-6 py-12 text-center">
+              <CreditCard className="mx-auto mb-3 text-charcoal/20" size={40} />
+              <h3 className="mb-1 font-body text-lg font-semibold text-charcoal">No active passes</h3>
+              <p className="font-body text-sm text-charcoal/60">
+                Pick a package below to start booking classes.
+              </p>
+            </div>
+          ) : (
+            <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
+              {activePasses.map((pass, index) => {
+                const pt = pass.package_types;
+                const unlimited = !!pt?.is_unlimited;
+                const total = pt?.class_count ?? 0;
+                const left = pass.remaining_credits ?? 0;
+                const daysLeft = Math.max(
+                  0,
+                  Math.ceil((new Date(pass.expires_at).getTime() - Date.now()) / 86400000),
+                );
+                const expiringSoon = daysLeft <= 7;
+                const soonest = index === 0;
+                return (
+                  <div
+                    key={pass.id}
+                    className={`relative rounded-2xl border bg-white-warm p-5 transition-all duration-200 hover:-translate-y-0.5 hover:shadow-[0_4px_24px_rgba(51,51,51,0.08)] ${
+                      soonest ? "border-sage/40" : "border-sage/15"
+                    }`}
+                  >
+                    {soonest && activePasses.length > 1 && (
+                      <Pill tone="success" className="absolute right-4 top-4">Used next</Pill>
+                    )}
+                    <h3 className="truncate pr-20 font-body text-lg font-semibold text-charcoal">
+                      {pt?.name || "Package"}
+                    </h3>
+                    <div className="mt-4 flex items-end gap-2">
+                      {unlimited ? (
+                        <span className="inline-flex items-center gap-1.5 text-sage">
+                          <InfinityIcon size={28} />
+                          <span className="font-body text-lg font-semibold">Unlimited</span>
+                        </span>
+                      ) : (
+                        <>
+                          <span className="font-body text-4xl font-semibold leading-none tabular-nums text-sage">
+                            {left}
+                          </span>
+                          <span className="mb-1 font-body text-sm text-charcoal/50">
+                            of {total} classes left
+                          </span>
+                        </>
+                      )}
+                    </div>
+                    <div className="mt-4 flex flex-wrap items-center gap-x-1.5 gap-y-0.5 font-body text-sm text-charcoal/60">
+                      <CalendarClock size={15} className={expiringSoon ? "text-terracotta" : "text-charcoal/40"} />
+                      <span className={expiringSoon ? "font-medium text-terracotta" : ""}>
+                        {daysLeft === 0 ? "Expires today" : `${daysLeft} day${daysLeft === 1 ? "" : "s"} left`}
+                      </span>
+                      <span className="text-charcoal/30">·</span>
+                      <span>
+                        {new Date(pass.expires_at).toLocaleDateString("en-IN", {
+                          day: "numeric", month: "short", year: "numeric",
+                        })}
+                      </span>
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          )}
+        </section>
+
+        {/* Buy catalog — revealed on demand */}
+        {showCatalog && (
+          <section id="catalog" className="scroll-mt-24">
+            <div className="mb-6 flex items-start justify-between gap-3">
+              <div>
+                <h2 className="font-body text-2xl font-semibold text-charcoal">Buy a package</h2>
+                <p className="font-body text-sm text-charcoal/60">Choose a pass that fits your rhythm.</p>
+              </div>
+              {activePasses.length > 0 && (
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  aria-label="Hide packages"
+                  className="cursor-pointer text-charcoal/50 hover:text-charcoal"
+                  onClick={() => setShowCatalog(false)}
+                >
+                  <X size={18} />
+                </Button>
+              )}
+            </div>
+
+            {/* Tab Switcher */}
+            <div className="mb-8 flex justify-center">
+              <div className="inline-flex w-full max-w-xs rounded-full border border-sage/10 bg-white-warm p-1.5 sm:w-auto">
+                <button
+                  onClick={() => setSelectedCategory("class")}
+                  className={`flex-1 rounded-full px-5 py-2.5 font-body text-sm font-medium transition-all duration-300 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sage focus-visible:ring-offset-1 sm:flex-none ${
+                    selectedCategory === "class"
+                      ? "bg-sage text-cream"
+                      : "text-charcoal/70 hover:text-charcoal"
+                  }`}
+                >
+                  Class Pass
+                </button>
+                <button
+                  onClick={() => setSelectedCategory("studio")}
+                  className={`flex-1 rounded-full px-5 py-2.5 font-body text-sm font-medium transition-all duration-300 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sage focus-visible:ring-offset-1 sm:flex-none ${
+                    selectedCategory === "studio"
+                      ? "bg-sage text-cream"
+                      : "text-charcoal/70 hover:text-charcoal"
+                  }`}
+                >
+                  Studio Pass
+                </button>
+              </div>
+            </div>
+
+            {/* Pricing tier cards — pricing-02 layout */}
+            {loadingPackages ? (
+              <div className="flex flex-col gap-5 md:flex-row md:items-stretch md:gap-6">
+                {Array.from({ length: 3 }, (_, i) => `pkg-skeleton-${i}`).map((key) => (
+                  <Skeleton key={key} className="h-80 flex-1 rounded-2xl" />
+                ))}
+              </div>
+            ) : currentPackages.length === 0 ? (
+              <div className="rounded-2xl border border-sage/10 bg-white-warm px-6 py-16 text-center">
+                <CreditCard className="mx-auto mb-4 text-charcoal/20" size={48} />
+                <h3 className="mb-1 font-body text-xl font-semibold text-charcoal">No packages available</h3>
+                <p className="font-body text-sm text-charcoal/60">
+                  Please check back soon or contact the studio.
+                </p>
+              </div>
+            ) : (
+              <div className="flex flex-col gap-5 md:flex-row md:items-stretch md:gap-6">
+                {currentPackages.map((pkg, index) => (
+                  <PackageTierCard
+                    key={pkg.name}
+                    pkg={pkg}
+                    isRecommended={index === recommendedIndex}
+                    onChoose={handleChoosePlan}
+                  />
+                ))}
+              </div>
+            )}
+          </section>
         )}
       </div>
 

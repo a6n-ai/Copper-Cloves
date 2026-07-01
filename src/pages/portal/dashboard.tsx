@@ -417,33 +417,38 @@ export default function Dashboard() {
 
       const now = new Date();
       if (packages.length > 0) {
-        const activePackage = packages.find(
-          (p: { expiration_date: string }) => new Date(p.expiration_date) > now
-        ) || packages[0];
-        const packageType = activePackage.package_type;
-        // Aggregate class credits across ALL active passes (a member can stack
-        // several); unlimited on any active pass means no counter.
+        // Show the pass EXPIRING SOONEST that's still usable — same pass the
+        // booking flow spends from — so the headline count matches what's deducted.
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
         const activeNow = packages.filter((p: any) => new Date(p.expiration_date) > now);
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        const anyUnlimited = activeNow.some((p: any) => p.package_type?.is_unlimited);
+        const byExpiry = [...activeNow].sort((a: any, b: any) => new Date(a.expiration_date).getTime() - new Date(b.expiration_date).getTime());
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        const totalClasses = activeNow.reduce((s: number, p: any) => s + Math.max(0, p.credits_remaining || 0), 0);
+        const activePackage = byExpiry.find((p: any) => p.package_type?.is_unlimited || (p.credits_remaining || 0) >= 1) || byExpiry[0] || packages[0];
+        const packageType = activePackage.package_type;
         if (packageType) {
+          const unlimited = packageType.is_unlimited || false;
           setPackageDetails({
             name: packageType.name || "Package",
-            isUnlimited: anyUnlimited,
-            classCount: anyUnlimited ? null : totalClasses,
+            isUnlimited: unlimited,
+            classCount: unlimited ? null : activePackage.credits_remaining,
           });
-          setCreditsRemaining(anyUnlimited ? 999 : totalClasses);
+          setCreditsRemaining(unlimited ? 999 : activePackage.credits_remaining || 0);
         }
         // Only surface genuinely-active passes — an expired/deactivated pass is
         // not "active" and shouldn't sit in the member's pass carousel.
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        const livePasses = packages.filter((p: any) => {
-          const expMs = p.expiration_date ? new Date(p.expiration_date).getTime() : null;
-          return !!p.is_active && (expMs == null || expMs > now.getTime());
-        });
+        const livePasses = packages
+          .filter((p: any) => {
+            const expMs = p.expiration_date ? new Date(p.expiration_date).getTime() : null;
+            return !!p.is_active && (expMs == null || expMs > now.getTime());
+          })
+          // Expiring soonest first — the dashboard shows only the top 2, and these
+          // are the passes the booking flow spends first.
+          .sort(
+            (a: any, b: any) =>
+              new Date(a.expiration_date ?? 0).getTime() - new Date(b.expiration_date ?? 0).getTime(),
+          );
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
         setActivePasses(livePasses.map((p: any) => {
           const pt = p.package_type ?? {};
@@ -846,20 +851,31 @@ export default function Dashboard() {
                   </div>
                 </div>
                 {activePasses.length > 0 ? (
-                  <div className="grid flex-1 grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-1">
-                    {activePasses.map((pass) => (
-                      <PassCard
-                        key={pass.id}
-                        name={pass.name}
-                        isUnlimited={pass.isUnlimited}
-                        classesRemaining={pass.classesRemaining}
-                        expiry={pass.expiry}
-                        durationMonths={pass.durationMonths}
-                        status={pass.status}
-                        className="w-full"
-                      />
-                    ))}
-                  </div>
+                  <>
+                    <div className="grid flex-1 grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-1">
+                      {activePasses.slice(0, 2).map((pass) => (
+                        <PassCard
+                          key={pass.id}
+                          name={pass.name}
+                          isUnlimited={pass.isUnlimited}
+                          classesRemaining={pass.classesRemaining}
+                          expiry={pass.expiry}
+                          durationMonths={pass.durationMonths}
+                          status={pass.status}
+                          className="w-full"
+                        />
+                      ))}
+                    </div>
+                    {activePasses.length > 2 && (
+                      <button
+                        type="button"
+                        onClick={() => router.push("/portal/packages")}
+                        className="mt-4 w-full rounded-lg border border-sage/20 py-2.5 font-body text-sm font-medium text-sage transition-colors duration-200 hover:bg-sage/5 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sage focus-visible:ring-offset-1"
+                      >
+                        See all {activePasses.length} passes
+                      </button>
+                    )}
+                  </>
                 ) : (
                   <button
                     type="button"

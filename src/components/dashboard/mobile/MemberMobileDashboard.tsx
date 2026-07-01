@@ -225,7 +225,7 @@ export function MemberMobileDashboard({
           <CardContent className="p-4">
             <h2 className="mb-3 px-0.5 font-body text-xs uppercase tracking-wide text-charcoal/45">Your passes</h2>
             <div className="space-y-3">
-              {activePasses.map((p) => (
+              {activePasses.slice(0, 2).map((p) => (
                 <PassCard
                   key={p.id}
                   name={p.name}
@@ -238,6 +238,15 @@ export function MemberMobileDashboard({
                 />
               ))}
             </div>
+            {activePasses.length > 2 && (
+              <button
+                type="button"
+                onClick={() => router.push("/portal/packages")}
+                className="mt-3 w-full rounded-lg border border-sage/20 py-2.5 font-body text-sm font-medium text-sage transition-colors duration-200 hover:bg-sage/5 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sage focus-visible:ring-offset-1"
+              >
+                See all {activePasses.length} passes
+              </button>
+            )}
           </CardContent>
         </Card>
       )}
