@@ -48,33 +48,44 @@ const PTM_DEFAULTS = [
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
   const session = await getStudioServerSession(req, res);
-  if (!ensureAdmin(session, res)) return;
+  // GET is readable by any authenticated user — path_to_mastery templates are the
+  // member's own milestone track (rendered on their dashboard). Non-admins get the
+  // PTM track only (no custom-badge catalog, no cold-start seed write). Mutations
+  // stay admin-only (guarded below). Previously ensureAdmin gated GET too, so every
+  // member dashboard 403'd here and SWR retried the failed call repeatedly.
+  if (!session?.user?.id) return res.status(401).json({ error: "Unauthorized" });
+  const isAdmin = session.user.role === "admin";
 
   if (req.method === "GET") {
-    // PTM + custom templates are independent reads — fetch in one round trip.
-    const [ptmInitial, customTemplates] = await Promise.all([
-      prisma.badgeTemplate.findMany({
-        where: { badge_type: "path_to_mastery" },
-        orderBy: { sort_order: "asc" },
-      }),
-      prisma.badgeTemplate.findMany({
-        where: { badge_type: "custom" },
-        orderBy: { created_at: "desc" },
-      }),
-    ]);
-    let ptmTemplates = ptmInitial;
+    let ptmTemplates = await prisma.badgeTemplate.findMany({
+      where: { badge_type: "path_to_mastery" },
+      orderBy: { sort_order: "asc" },
+    });
 
-    // Auto-seed defaults if none exist (cold start only).
+    // Auto-seed defaults if none exist (cold start only) — admin reads trigger the
+    // write; member reads just fall back to the in-memory defaults, never writing.
     if (ptmTemplates.length === 0) {
-      await prisma.badgeTemplate.createMany({ data: PTM_DEFAULTS });
-      ptmTemplates = await prisma.badgeTemplate.findMany({
-        where: { badge_type: "path_to_mastery" },
-        orderBy: { sort_order: "asc" },
-      });
+      if (isAdmin) {
+        await prisma.badgeTemplate.createMany({ data: PTM_DEFAULTS });
+        ptmTemplates = await prisma.badgeTemplate.findMany({
+          where: { badge_type: "path_to_mastery" },
+          orderBy: { sort_order: "asc" },
+        });
+      } else {
+        return res.json({ path_to_mastery: PTM_DEFAULTS });
+      }
     }
 
+    if (!isAdmin) return res.json({ path_to_mastery: ptmTemplates });
+
+    const customTemplates = await prisma.badgeTemplate.findMany({
+      where: { badge_type: "custom" },
+      orderBy: { created_at: "desc" },
+    });
     return res.json({ path_to_mastery: ptmTemplates, custom: customTemplates });
   }
+
+  if (!ensureAdmin(session, res)) return;
 
   if (req.method === "POST") {
     const { name, description, badge_type, icon, color, threshold_classes, sort_order } =

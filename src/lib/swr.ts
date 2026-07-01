@@ -8,7 +8,9 @@ export async function jsonFetcher<T = unknown>(url: string): Promise<T> {
   const res = await fetch(url);
   if (!res.ok) {
     const body = await res.text().catch(() => "");
-    throw new Error(body || `Request failed: ${res.status}`);
+    const err = new Error(body || `Request failed: ${res.status}`) as Error & { status?: number };
+    err.status = res.status;
+    throw err;
   }
   return (await res.json()) as T;
 }
@@ -31,6 +33,12 @@ export function useStudioSWR<T = unknown>(
     revalidateOnFocus: true,
     revalidateIfStale: true,
     keepPreviousData: true,
+    // Don't retry-storm client errors (401/403/404) — a mis-scoped or forbidden
+    // key would otherwise refetch ~5× per mount with backoff. Server (5xx) and
+    // network errors still retry, capped.
+    errorRetryCount: 3,
+    shouldRetryOnError: (err: Error & { status?: number }) =>
+      !(typeof err?.status === "number" && err.status >= 400 && err.status < 500),
     ...config,
   });
 }

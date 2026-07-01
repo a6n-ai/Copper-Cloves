@@ -7,7 +7,6 @@ import {
   canCheckInNow,
   checkInOutcomeFromTimes,
 } from "@/lib/bookingAttendance";
-import { reconcileNoShowsGlobally } from "@/lib/bookingReconcile";
 import { linkRazorpayOrderToBookingTx, flagPaidCancelledOrphans } from "@/lib/razorpayPersistence";
 import {
   expectedBookingCheckoutPaise,
@@ -32,7 +31,9 @@ const BADGE_TYPE_PTM = "path_to_mastery" as const;
 
 async function handleGet(req: NextApiRequest, res: NextApiResponse, userId: string) {
   const { status, limit, days } = req.query;
-  await reconcileNoShowsGlobally(prisma);
+  // No-show reconciliation is a system-wide scan + serial writes — it must NOT run
+  // on the request path (it made every dashboard/bookings load O(all-unresolved-
+  // bookings)). Owned by the cron `/api/cron/reconcile-no-shows` (known-issue #8).
   const where: Record<string, unknown> = { user_id: userId };
   if (status) {
     const s = String(status);

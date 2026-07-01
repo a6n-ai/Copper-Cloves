@@ -384,15 +384,17 @@ export default function Dashboard() {
     try {
       // Profile loads via the shared SWR key (see hook below) — deduped across
       // the member portal — so it's no longer fetched here.
-      // The `?limit=500` history set is a superset of the active/upcoming set
-      // (all statuses), so we derive "upcoming" from it instead of issuing a
-      // separate `?status=active` request — one fewer round-trip on mount.
+      // One bounded fetch drives three things: recent activity (last 15), upcoming
+      // (future rows), and Movement Vitality (a 60-day checked-in window). `?days=120`
+      // bounds the payload by booking_date — 60d for vitality + a 60d buffer for
+      // classes booked ahead — instead of pulling up to 500 unordered rows (heavy
+      // for power users, and `take` without orderBy could even miss recent ones).
       const [statsRes, packagesRes, cafeOrdersRes, historyBookingsRes] =
         await Promise.all([
           fetch("/api/user-stats"),
           fetch("/api/user-packages?active=true"),
           fetch("/api/cafe/orders"),
-          fetch("/api/bookings?limit=500"),
+          fetch("/api/bookings?days=120"),
         ]);
 
       const stats = statsRes.ok ? await statsRes.json() : null;
