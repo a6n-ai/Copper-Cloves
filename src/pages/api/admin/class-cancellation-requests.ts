@@ -11,7 +11,7 @@
 import type { NextApiRequest, NextApiResponse } from "next";
 import prisma from "@/lib/prisma";
 import { getStudioServerSession } from "@/lib/getStudioServerSession";
-import { cancelBookingWithRefund, grantCancellationPass } from "@/lib/classCancellation";
+import { cancelBookingWithRefund, refundOwnerClassCredit } from "@/lib/classCancellation";
 
 const STATUSES = ["open", "approved", "denied"] as const;
 type CancellationStatus = (typeof STATUSES)[number];
@@ -76,10 +76,18 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       const rtype = refund_type === "amount" ? "amount" : "class_pass";
       decidedRefundType = rtype;
       if (rtype === "class_pass") {
-        const granted = await prisma.$transaction((tx) => grantCancellationPass(tx, existing.user_id, 1));
+        // Same behavior as auto-cancel: restore the credit to the original pass
+        // when live, else grant a fresh 1 Class Pass (fallback inside the helper).
+        const bk = await prisma.booking.findUnique({
+          where: { id: existing.booking_id },
+          select: { user_package_id: true },
+        });
+        const passId = await prisma.$transaction((tx) =>
+          refundOwnerClassCredit(tx, existing.user_id, bk?.user_package_id ?? null, existing.booking_id),
+        );
         await prisma.booking.update({
           where: { id: existing.booking_id },
-          data: { refund_status: "approved_pass", refund_user_package_id: granted.grantedUserPackageIds[0] ?? null },
+          data: { refund_status: "approved_pass", refund_user_package_id: passId },
         });
       } else {
         const amt = Number(refund_amount_paise);

@@ -72,9 +72,13 @@ interface PurchaseRecord {
   package_types?: PurchasePackageType;
 }
 
-/** Package state derived from is_active/is_paused/expiry (no `status` column exists). */
+/** Package state derived from is_active/is_paused/expiry/credits (no `status` column exists). */
 function packageState(p: PurchaseRecord): { key: string; label: string } {
   if (new Date(p.expires_at) < new Date()) return { key: "expired", label: "Expired" };
+  // A class pass with no classes left is used up — not a live pass, even before
+  // its expiry date. Unlimited passes never deplete.
+  if (!p.package_types?.is_unlimited && (p.remaining_credits ?? 0) <= 0)
+    return { key: "depleted", label: "Used up" };
   if (p.is_paused) return { key: "paused", label: "Paused" };
   if (p.is_active) return { key: "active", label: "Active" };
   return { key: "inactive", label: "Inactive" };

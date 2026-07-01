@@ -110,6 +110,68 @@ export async function grantCancellationPass(
 }
 
 /**
+ * Refund the owner's cancelled class credit.
+ *
+ * Preferred: restore the credit to the ORIGINAL pass when it's still live (active,
+ * not expired) — one pass grows back instead of the wallet fragmenting into many
+ * standalone 1-Class passes. Validity is extended by the "days lost": the forward
+ * window the member had reserved for that class (class start − now). Admin can
+ * further adjust a pass's expiry via `PATCH /api/admin/members`.
+ *
+ * Fallback: if the original pass is gone/expired/unlimited-N-A, grant a fresh
+ * `1 Class Pass` (origin=cancellation) — the legacy behavior.
+ *
+ * @returns the UserPackage id the credit landed on (original or new).
+ */
+export async function refundOwnerClassCredit(
+  tx: TxClient,
+  ownerId: string,
+  originalPackageId: string | null,
+  bookingId: string | null | undefined,
+): Promise<string | null> {
+  if (originalPackageId) {
+    const pass = await tx.userPackage.findUnique({
+      where: { id: originalPackageId },
+      include: { package_type: { select: { is_unlimited: true } } },
+    });
+    const now = Date.now();
+    const live =
+      pass &&
+      pass.user_id === ownerId &&
+      pass.is_active &&
+      !pass.package_type?.is_unlimited &&
+      pass.expiration_date.getTime() > now;
+    if (live) {
+      // "Days lost" = whole days between now and the class the member gave up.
+      // ponytail: reserved-forward-window rule; tune here if policy changes.
+      let daysLost = 0;
+      if (bookingId) {
+        const bk = await tx.booking.findUnique({
+          where: { id: bookingId },
+          select: { class_time: true, class_schedule: { select: { start_time: true } } },
+        });
+        const startRaw = bk?.class_schedule?.start_time ?? bk?.class_time ?? null;
+        if (startRaw) {
+          daysLost = Math.max(0, Math.ceil((new Date(startRaw).getTime() - now) / DAY_MS));
+        }
+      }
+      const newExpiry = new Date(pass.expiration_date.getTime() + daysLost * DAY_MS);
+      await tx.userPackage.update({
+        where: { id: pass.id },
+        data: {
+          credits_remaining: { increment: 1 },
+          expiration_date: newExpiry,
+          is_active: true,
+        },
+      });
+      return pass.id;
+    }
+  }
+  const r = await grantCancellationPass(tx, ownerId, 1);
+  return r.grantedUserPackageIds[0] ?? null;
+}
+
+/**
  * Grant refund passes for a single cancelled booking row: one to the owner if the
  * seat consumed a class, plus one per anonymous extra guest (to the owner/booker).
  * Shared by the self-serve path and the admin approval path.
@@ -127,8 +189,13 @@ export async function grantRefundForBookingRow(
 ): Promise<string[]> {
   const granted: string[] = [];
   if (ownSeatRefundEligible(row)) {
-    const r = await grantCancellationPass(tx, row.user_id as string, 1);
-    granted.push(...r.grantedUserPackageIds);
+    const passId = await refundOwnerClassCredit(
+      tx,
+      row.user_id as string,
+      row.user_package_id ?? null,
+      row.id,
+    );
+    if (passId) granted.push(passId);
   }
   const anonGuests = Math.max(0, row.extra_guest_count ?? 0);
   if (anonGuests > 0 && row.user_id) {

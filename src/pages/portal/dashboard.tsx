@@ -445,7 +445,10 @@ export default function Dashboard() {
         const livePasses = packages
           .filter((p: any) => {
             const expMs = p.expiration_date ? new Date(p.expiration_date).getTime() : null;
-            return !!p.is_active && (expMs == null || expMs > now.getTime());
+            const notExpired = expMs == null || expMs > now.getTime();
+            // Used-up class passes (0 credits) are not live; unlimited never deplete.
+            const hasCredit = !!p.package_type?.is_unlimited || (p.credits_remaining || 0) > 0;
+            return !!p.is_active && notExpired && hasCredit;
           })
           // Expiring soonest first — the dashboard shows only the top 2, and these
           // are the passes the booking flow spends first.
