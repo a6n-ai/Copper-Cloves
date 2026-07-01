@@ -148,19 +148,57 @@ function assertClassPassUsable(
   if ((pkg.credits_remaining ?? 0) < 1) throw new Error("You don't have any classes remaining.");
 }
 
-/** Fetch the member's active packages and return the first non-expired one (or null). */
+type BookablePkg = {
+  id?: string;
+  is_active: boolean;
+  expiration_date: string;
+  purchase_date?: string | null;
+  credits_remaining?: number | null;
+  package_type?: { name?: string | null; type?: string | null; is_unlimited?: boolean | null } | null;
+};
+
+/** Active (is_active + not expired) packages from a raw /api/user-packages list. */
+function activePackagesOf(packages: unknown): BookablePkg[] {
+  if (!Array.isArray(packages)) return [];
+  const now = Date.now();
+  return (packages as BookablePkg[]).filter(
+    (p) => p.is_active && new Date(p.expiration_date).getTime() > now,
+  );
+}
+
+const isUnlimitedPkg = (p: BookablePkg) => !!p.package_type?.is_unlimited;
+
+/**
+ * Pick the pass to deduct a class from. A member can hold several active passes at
+ * once (e.g. multiple 1-Class passes); picking the first blindly can land on a
+ * 0-credit pass and wrongly block booking. Deduct from the OLDEST usable pass
+ * (earliest purchase, use-it-before-it-expires). Unlimited passes need no
+ * deduction. Falls back to any active pass so display still works.
+ */
+function pickBookablePackage(packages: unknown): BookablePkg | null {
+  const active = activePackagesOf(packages);
+  if (active.length === 0) return null;
+  const usable = active.filter(
+    (p) => isUnlimitedPkg(p) || (p.credits_remaining ?? 0) >= 1,
+  );
+  const pool = usable.length > 0 ? usable : active;
+  const ord = (p: BookablePkg) =>
+    new Date(p.purchase_date ?? p.expiration_date).getTime();
+  return pool.slice().sort((a, b) => ord(a) - ord(b))[0];
+}
+
+/** Total class credits across all active passes; null if any active pass is unlimited. */
+function totalActiveClasses(packages: unknown): number | null {
+  const active = activePackagesOf(packages);
+  if (active.some(isUnlimitedPkg)) return null;
+  return active.reduce((sum, p) => sum + Math.max(0, p.credits_remaining ?? 0), 0);
+}
+
+/** Fetch the member's active packages and return the best pass to book against (or null). */
 async function fetchActivePackage(): Promise<{ id?: string; credits_remaining?: number | null } | null> {
   const res = await fetch("/api/user-packages?active=true", { credentials: "include" });
   const packages = res.ok ? await res.json() : [];
-  const now = new Date();
-  return (
-    (Array.isArray(packages)
-      ? packages.find(
-          (p: { expiration_date: string; is_active: boolean }) =>
-            p.is_active && new Date(p.expiration_date) > now,
-        )
-      : null) || null
-  );
+  return pickBookablePackage(packages);
 }
 
 /** Save a free (no-payment-owed) booking and any café add-ons; returns the booking id. */
@@ -756,7 +794,12 @@ export default function BookClass() {
     classesRemaining: null,
     isUnlimited: false
   });
-  
+  // Per-pass breakdown for members holding several active class passes, sorted
+  // oldest-first (the order they're spent). Empty for unlimited / no-pass members.
+  const [activeClassPasses, setActiveClassPasses] = useState<
+    { id?: string; name: string; classesRemaining: number; expiry: string | null }[]
+  >([]);
+
   // Credits & payment
   const [useCredits, setUseCredits] = useState(true);
 
@@ -981,22 +1024,34 @@ export default function BookClass() {
         setFeaturedPackage({ id: studioPass3m.id, name: studioPass3m.name, price: Number(studioPass3m.price), duration_months: studioPass3m.duration_months ?? null });
       }
 
-      const now = new Date();
-      const activePackages = packages.filter(
-        (p: { expiration_date: string; is_active: boolean }) =>
-          p.is_active && new Date(p.expiration_date) > now
-      );
+      const pkg = pickBookablePackage(packages);
 
-      if (activePackages.length > 0) {
-        const pkg = activePackages[0];
+      if (pkg) {
         const packageType = pkg.package_type;
+        const totalClasses = totalActiveClasses(packages);
+        // Active class passes with classes left, oldest-first (spend order).
+        const ord = (p: BookablePkg) => new Date(p.purchase_date ?? p.expiration_date).getTime();
+        setActiveClassPasses(
+          activePackagesOf(packages)
+            .filter((p) => !isUnlimitedPkg(p) && (p.credits_remaining ?? 0) >= 1)
+            .sort((a, b) => ord(a) - ord(b))
+            .map((p) => ({
+              id: p.id,
+              name: p.package_type?.name || "Class Pass",
+              classesRemaining: p.credits_remaining ?? 0,
+              expiry: p.expiration_date ?? null,
+            })),
+        );
         setUserPackage({
           type: packageType ? passCategoryForPackageType(packageType) : "class_pass",
           name: packageType?.name || "Package",
-          classesRemaining: packageType?.is_unlimited ? null : pkg.credits_remaining,
+          // Aggregate across all active passes so the member sees their true total;
+          // deduction still comes off the oldest pass (pickBookablePackage).
+          classesRemaining: totalClasses,
           isUnlimited: packageType?.is_unlimited || false,
         });
       } else {
+        setActiveClassPasses([]);
         setUserPackage({ type: null, name: "No Active Package", classesRemaining: 0, isUnlimited: false });
       }
 
@@ -1629,6 +1684,27 @@ export default function BookClass() {
                       </div>
                     )}
                   </div>
+
+                  {userPackage.type === "class_pass" && activeClassPasses.length > 1 && (
+                    <div className="pt-4 border-t border-sage/20 space-y-1.5">
+                      <p className="font-body text-sm text-charcoal/60 uppercase tracking-wide mb-1">
+                        Active passes (used oldest-first)
+                      </p>
+                      {activeClassPasses.map((p, i) => (
+                        <div key={p.id ?? i} className="flex items-center justify-between font-body text-sm">
+                          <span className="text-charcoal">
+                            {p.name}
+                            {p.expiry && (
+                              <span className="text-charcoal/50">
+                                {" "}· exp {new Date(p.expiry).toLocaleDateString("en-IN", { day: "numeric", month: "short" })}
+                              </span>
+                            )}
+                          </span>
+                          <span className="tabular-nums text-sage font-semibold">{p.classesRemaining} left</span>
+                        </div>
+                      ))}
+                    </div>
+                  )}
 
                   {userPackage.isUnlimited && (
                     <div className="pt-4 border-t border-sage/20">

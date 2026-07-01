@@ -123,7 +123,7 @@ export function MemberMobileDashboard({
   const creditsLabel = packageDetails
     ? packageDetails.isUnlimited
       ? packageDetails.name
-      : `${packageDetails.classCount ?? 0} credits left`
+      : `${packageDetails.classCount ?? 0} classes left`
     : "No active package";
 
   const peekTitle =

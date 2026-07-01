@@ -962,11 +962,15 @@ export default function AdminDashboard() {
 
         // Active pass summary: studio/unlimited → infinite credits; class pass → credits left. Both show expiry.
         const pkgs = Array.isArray(snap?.user_packages) ? (snap.user_packages as Record<string, unknown>[]) : [];
-        const activePkg = pkgs.find((p) => p.is_active) ?? pkgs[0];
+        const activePkgs = pkgs.filter((p) => p.is_active);
+        const activePkg = activePkgs[0] ?? pkgs[0];
         const pt = activePkg?.package_type as { name?: string; is_unlimited?: boolean; type?: string } | undefined;
-        const isUnlimited = activePkg ? passCategoryForPackageType(pt ?? {}) === "studio_pass" : false;
-        const creditsLeft = Number(activePkg?.credits_remaining ?? 0);
-        const creditsDisplay = activePkg ? (isUnlimited ? "∞" : String(creditsLeft)) : "—";
+        // Aggregate across all active passes: any unlimited → ∞, else sum credits.
+        const isUnlimited = activePkgs.some(
+          (p) => passCategoryForPackageType((p.package_type as { is_unlimited?: boolean; type?: string }) ?? {}) === "studio_pass",
+        );
+        const creditsLeft = activePkgs.reduce((s, p) => s + Math.max(0, Number(p.credits_remaining ?? 0)), 0);
+        const creditsDisplay = activePkgs.length === 0 && !activePkg ? "—" : isUnlimited ? "∞" : String(creditsLeft);
         const packageName = pt?.name || (member.package as string) || "—";
         const passExpiryISO = (activePkg?.expiration_date as string | undefined) ?? null;
 

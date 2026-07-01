@@ -421,13 +421,21 @@ export default function Dashboard() {
           (p: { expiration_date: string }) => new Date(p.expiration_date) > now
         ) || packages[0];
         const packageType = activePackage.package_type;
+        // Aggregate class credits across ALL active passes (a member can stack
+        // several); unlimited on any active pass means no counter.
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        const activeNow = packages.filter((p: any) => new Date(p.expiration_date) > now);
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        const anyUnlimited = activeNow.some((p: any) => p.package_type?.is_unlimited);
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        const totalClasses = activeNow.reduce((s: number, p: any) => s + Math.max(0, p.credits_remaining || 0), 0);
         if (packageType) {
           setPackageDetails({
             name: packageType.name || "Package",
-            isUnlimited: packageType.is_unlimited || false,
-            classCount: activePackage.credits_remaining,
+            isUnlimited: anyUnlimited,
+            classCount: anyUnlimited ? null : totalClasses,
           });
-          setCreditsRemaining(packageType.is_unlimited ? 999 : activePackage.credits_remaining || 0);
+          setCreditsRemaining(anyUnlimited ? 999 : totalClasses);
         }
         // Only surface genuinely-active passes — an expired/deactivated pass is
         // not "active" and shouldn't sit in the member's pass carousel.
