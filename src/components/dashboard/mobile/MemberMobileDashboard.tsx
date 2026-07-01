@@ -123,7 +123,7 @@ export function MemberMobileDashboard({
   const creditsLabel = packageDetails
     ? packageDetails.isUnlimited
       ? packageDetails.name
-      : `${packageDetails.classCount ?? 0} classes left`
+      : `${packageDetails.classCount ?? 0} classes left${activePasses.length > 1 ? ` · ${activePasses.length} passes` : ""}`
     : "No active package";
 
   const peekTitle =
@@ -223,7 +223,15 @@ export function MemberMobileDashboard({
       {activePasses.length > 0 && (
         <Card className="border-border bg-white-warm shadow-none">
           <CardContent className="p-4">
-            <h2 className="mb-3 px-0.5 font-body text-xs uppercase tracking-wide text-charcoal/45">Your passes</h2>
+            <div className="mb-3 flex items-baseline justify-between px-0.5">
+              <h2 className="font-body text-xs uppercase tracking-wide text-charcoal/45">Your passes</h2>
+              <span className="font-body text-xs text-charcoal/55">
+                {activePasses.some((p) => p.isUnlimited)
+                  ? "Unlimited"
+                  : `${activePasses.reduce((s, p) => s + (p.classesRemaining ?? 0), 0)} classes left`}
+                {activePasses.length > 1 ? ` · ${activePasses.length} passes` : ""}
+              </span>
+            </div>
             <div className="space-y-3">
               {activePasses.slice(0, 2).map((p) => (
                 <PassCard

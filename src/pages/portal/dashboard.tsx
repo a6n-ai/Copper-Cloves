@@ -417,23 +417,27 @@ export default function Dashboard() {
 
       const now = new Date();
       if (packages.length > 0) {
-        // Show the pass EXPIRING SOONEST that's still usable — same pass the
-        // booking flow spends from — so the headline count matches what's deducted.
+        // Headline reflects the member's TRUE total across every active pass (a
+        // member can stack several). Any unlimited pass → no counter. The name
+        // shown is the pass expiring soonest (the one booking spends first).
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
         const activeNow = packages.filter((p: any) => new Date(p.expiration_date) > now);
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        const anyUnlimited = activeNow.some((p: any) => p.package_type?.is_unlimited);
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        const totalClasses = activeNow.reduce((s: number, p: any) => s + Math.max(0, p.credits_remaining || 0), 0);
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
         const byExpiry = [...activeNow].sort((a: any, b: any) => new Date(a.expiration_date).getTime() - new Date(b.expiration_date).getTime());
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        const activePackage = byExpiry.find((p: any) => p.package_type?.is_unlimited || (p.credits_remaining || 0) >= 1) || byExpiry[0] || packages[0];
-        const packageType = activePackage.package_type;
+        const nameSource = byExpiry.find((p: any) => p.package_type?.is_unlimited || (p.credits_remaining || 0) >= 1) || byExpiry[0] || packages[0];
+        const packageType = nameSource?.package_type;
         if (packageType) {
-          const unlimited = packageType.is_unlimited || false;
           setPackageDetails({
             name: packageType.name || "Package",
-            isUnlimited: unlimited,
-            classCount: unlimited ? null : activePackage.credits_remaining,
+            isUnlimited: anyUnlimited,
+            classCount: anyUnlimited ? null : totalClasses,
           });
-          setCreditsRemaining(unlimited ? 999 : activePackage.credits_remaining || 0);
+          setCreditsRemaining(anyUnlimited ? 999 : totalClasses);
         }
         // Only surface genuinely-active passes — an expired/deactivated pass is
         // not "active" and shouldn't sit in the member's pass carousel.
@@ -639,13 +643,16 @@ export default function Dashboard() {
     return isMobile ? <MemberMobileDashboardSkeleton /> : <MemberDashboardSkeleton />;
   }
 
+  const passCount = activePasses.length;
+  const passCountLabel = passCount > 1 ? ` across ${passCount} passes` : "";
+
   let packageSummary: string;
   if (!packageDetails) {
     packageSummary = "No active package";
   } else if (packageDetails.isUnlimited) {
-    packageSummary = packageDetails.name;
+    packageSummary = passCount > 1 ? `Unlimited + ${passCount - 1} more pass${passCount - 1 === 1 ? "" : "es"}` : "Unlimited classes";
   } else {
-    packageSummary = `${packageDetails.classCount || 0} classes remaining`;
+    packageSummary = `${packageDetails.classCount || 0} classes remaining${passCountLabel}`;
   }
 
   return (
@@ -841,14 +848,30 @@ export default function Dashboard() {
             {/* Your Passes */}
             <Card className="border-border bg-white-warm shadow-none transition-shadow hover:shadow-[0_4px_24px_rgba(51,51,51,0.08)]">
               <CardContent className="flex h-full flex-col p-5 sm:p-6">
-                <div className="mb-4 flex items-center gap-2.5">
-                  <span className="flex h-9 w-9 items-center justify-center rounded-full bg-sage/10">
-                    <AnimatedIcon icon={CreditCard} size={18} className="text-sage" />
-                  </span>
-                  <div>
-                    <h2 className="font-body font-semibold text-lg text-charcoal">Your Passes</h2>
-                    <p className="font-body text-xs text-charcoal/55">Active packages on your account</p>
+                <div className="mb-4 flex items-center justify-between gap-2.5">
+                  <div className="flex items-center gap-2.5">
+                    <span className="flex h-9 w-9 items-center justify-center rounded-full bg-sage/10">
+                      <AnimatedIcon icon={CreditCard} size={18} className="text-sage" />
+                    </span>
+                    <div>
+                      <h2 className="font-body font-semibold text-lg text-charcoal">Your Passes</h2>
+                      <p className="font-body text-xs text-charcoal/55">
+                        {passCount === 0
+                          ? "No active packages"
+                          : `${passCount} active pass${passCount === 1 ? "" : "es"}`}
+                      </p>
+                    </div>
                   </div>
+                  {packageDetails && (
+                    <div className="text-right">
+                      <p className="font-body text-2xl font-semibold leading-none tabular-nums text-sage">
+                        {packageDetails.isUnlimited ? "∞" : packageDetails.classCount ?? 0}
+                      </p>
+                      <p className="font-body text-[11px] text-charcoal/50">
+                        {packageDetails.isUnlimited ? "unlimited" : "classes left"}
+                      </p>
+                    </div>
+                  )}
                 </div>
                 {activePasses.length > 0 ? (
                   <>
