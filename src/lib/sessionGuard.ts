@@ -75,20 +75,18 @@ export async function isRequestSessionValid(req: ReqLike): Promise<boolean> {
 
   const headers = (req as { headers?: Headers }).headers ?? {};
   const fp = computeFingerprint(headers);
-  const ua = headerVal(headers, "user-agent").slice(0, 512) || null;
-  const ip = clientIp(headers);
 
   const row = await prisma.userSession.findUnique({ where: { session_id: sid } });
 
-  // Self-heal: JWT is signed by us and carries sid+profileId, but the row was
-  // wiped (DB reset, fresh env, manual cleanup). Re-bind rather than locking out.
-  if (!row) {
-    const now = new Date();
-    await prisma.userSession.create({
-      data: { profile_id: profileId, session_id: sid, fingerprint: fp, user_agent: ua, ip, created_at: now, last_seen_at: now },
-    }).catch(() => {});
-    return true;
-  }
+  // No session row for this sid => the session was ended: explicit logout
+  // (endSession), idle-expiry, or an admin/security revocation deleted it. A
+  // still-valid JWT must NOT resurrect it, or logout and revocation wouldn't
+  // actually stick until the 2-day token lifetime elapsed (and a leaked cookie
+  // for a revoked session would keep working). Reject → force re-login. Every
+  // legitimate login creates a row via startSession, so a missing row always
+  // means "was killed", never "never existed". (After a NEXTAUTH_SECRET rotation
+  // the JWT is invalid anyway and never reaches this check.)
+  if (!row) return false;
 
   // Ensure the sid belongs to the correct profile (prevents sid guessing across accounts).
   if (row.profile_id !== profileId) return false;
