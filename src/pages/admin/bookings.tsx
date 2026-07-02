@@ -25,6 +25,11 @@ const OrphanPaymentsSection = dynamic(
   { ssr: false, loading: () => <SectionLoadingSkeleton /> },
 );
 
+const AdminBookingsBrowser = dynamic(
+  () => import("@/components/admin/AdminBookingsBrowser").then((m) => m.AdminBookingsBrowser),
+  { ssr: false, loading: () => <SectionLoadingSkeleton /> },
+);
+
 export default function AdminBookings() {
   return (
     <>
@@ -40,7 +45,12 @@ export default function AdminBookings() {
 
             <OrphanPaymentsSection />
 
-            <p className="text-sm text-muted-text">Full bookings browser coming here next.</p>
+            <AdminPageHeader
+              title="All bookings"
+              subtitle="Browse every booking, filter by status or class date, and check refund state"
+            />
+
+            <AdminBookingsBrowser />
           </div>
         </main>
       </div>

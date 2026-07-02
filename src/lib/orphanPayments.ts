@@ -70,6 +70,22 @@ export async function findOrphanPaymentForBooking(args: {
 }
 
 /**
+ * Pure guard: a Razorpay payment entity is usable for a heal/link ONLY if it's
+ * genuinely captured AND carries no refund of any kind. Never guess — any
+ * refund signal (partial or full, amount or status) rejects the entity.
+ */
+export function isCaptureUsable(entity: {
+  status?: string | null;
+  amount_refunded?: number | null;
+  refund_status?: string | null;
+}): boolean {
+  if (entity.status !== "captured") return false;
+  if (entity.amount_refunded) return false;
+  if (entity.refund_status) return false;
+  return true;
+}
+
+/**
  * Verify a captured Payment row is genuinely captured at Razorpay (not just
  * HMAC-verified locally). Falls back to trusting the row (already-verified)
  * if Razorpay isn't configured or the fetch fails — logged as a warning.
@@ -85,10 +101,7 @@ export async function verifyRazorpayCaptured(razorpayPaymentId: string | null): 
       amount_refunded?: number | null;
       refund_status?: string | null;
     };
-    if (payment.status !== "captured") return false;
-    if (payment.amount_refunded) return false;
-    if (payment.refund_status) return false;
-    return true;
+    return isCaptureUsable(payment);
   } catch (err) {
     log.warn({ err, razorpayPaymentId }, "orphan heal: Razorpay verify fetch failed, trusting persisted payment");
     return true;
