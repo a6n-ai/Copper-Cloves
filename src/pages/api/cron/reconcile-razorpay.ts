@@ -18,6 +18,7 @@ import type { NextApiRequest, NextApiResponse } from "next";
 import { authorizeCron } from "@/lib/cronAuth";
 import { reconcileStuckRazorpayOrders } from "@/lib/razorpayPersistence";
 import { sweepOrphanHeal } from "@/lib/orphanPayments";
+import { sweepRefundStatus } from "@/lib/razorpayRefundSync";
 import { withCronRun } from "@/lib/cronRun";
 import { requestLogger } from "@/lib/logger";
 
@@ -43,13 +44,14 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       // Strip the verbose per-order details before persisting the run summary.
       const { details: _details, ...summary } = r;
       const orphanSweep = await sweepOrphanHeal({ limit });
-      return { ...summary, orphanSweep };
+      const refundSweep = await sweepRefundStatus({ limit });
+      return { ...summary, orphanSweep, refundSweep };
     });
     const durationMs = Date.now() - startedAt;
     log.info({ durationMs, ...result }, "razorpay reconcile complete");
     // Greppable one-line heal summary per run.
     log.info(
-      `[razorpay-reconcile] scanned=${result.scanned} fulfilled=${result.fulfilled} healedPaid=${result.healedPaid} flaggedOrphans=${result.flaggedOrphans} persistedOnly=${result.persistedOnly} stillUnpaid=${result.stillUnpaid} errors=${result.errors} orphanScanned=${result.orphanSweep.scanned} orphanHealed=${result.orphanSweep.healed} orphanAmbiguous=${result.orphanSweep.ambiguous} orphanErrors=${result.orphanSweep.errors} (${durationMs}ms)`,
+      `[razorpay-reconcile] scanned=${result.scanned} fulfilled=${result.fulfilled} healedPaid=${result.healedPaid} flaggedOrphans=${result.flaggedOrphans} persistedOnly=${result.persistedOnly} stillUnpaid=${result.stillUnpaid} errors=${result.errors} orphanScanned=${result.orphanSweep.scanned} orphanHealed=${result.orphanSweep.healed} orphanAmbiguous=${result.orphanSweep.ambiguous} orphanErrors=${result.orphanSweep.errors} refundScanned=${result.refundSweep.scanned} refundFlipped=${result.refundSweep.refunded} refundErrors=${result.refundSweep.errors} (${durationMs}ms)`,
     );
     return res.json({ ok: true, durationMs, lookbackHours, limit, ...result });
   } catch (e) {

@@ -2,6 +2,7 @@ import type { NextApiRequest, NextApiResponse } from "next";
 import crypto from "node:crypto";
 import prisma from "@/lib/prisma";
 import { reconcileRazorpayPaymentFromWebhook } from "@/lib/razorpayPersistence";
+import { applyRazorpayRefundFromWebhook } from "@/lib/razorpayRefundSync";
 import { requestLogger } from "@/lib/logger";
 
 /**
@@ -144,7 +145,12 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
   log.info({ event: body.event, eventId }, "razorpay webhook received");
   try {
-    await reconcileRazorpayPaymentFromWebhook(body);
+    const isRefundEvent = typeof body.event === "string" && (body.event.startsWith("refund.") || body.event === "payment.refunded");
+    if (isRefundEvent) {
+      await applyRazorpayRefundFromWebhook(body);
+    } else {
+      await reconcileRazorpayPaymentFromWebhook(body);
+    }
     log.info({ event: body.event, eventId }, "razorpay webhook reconciled");
     if (logRowId) {
       await prisma.razorpayWebhookLog

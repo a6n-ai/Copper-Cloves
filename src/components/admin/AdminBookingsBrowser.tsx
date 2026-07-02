@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from "react";
-import { Loader2, RefreshCw, ScanSearch } from "lucide-react";
+import { Loader2, RefreshCw, ScanSearch, RotateCcw } from "lucide-react";
 import { toast } from "sonner";
 import type { DateRange } from "react-day-picker";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -172,6 +172,7 @@ export function AdminBookingsBrowser() {
   const [reconcilingId, setReconcilingId] = useState<string | null>(null);
   const [refundCheckRow, setRefundCheckRow] = useState<AdminBookingRow | null>(null);
   const [refetchKey, setRefetchKey] = useState(0);
+  const [syncingRefunds, setSyncingRefunds] = useState(false);
 
   // Reset to page 1 whenever a filter changes.
   useEffect(() => { setPage(1); }, [status, q, range]);
@@ -234,6 +235,28 @@ export function AdminBookingsBrowser() {
     }
   }
 
+  async function handleSyncRefunds() {
+    setSyncingRefunds(true);
+    try {
+      const res = await fetch("/api/admin/finance/sync-refunds", { method: "POST" });
+      const d = await res.json();
+      if (!res.ok) {
+        toast.error(d.error ?? "Refund sync failed.");
+        return;
+      }
+      if (d.refunded > 0) {
+        toast.success(`Synced ${d.refunded} refund${d.refunded === 1 ? "" : "s"} from Razorpay.`);
+      } else {
+        toast.info(`Checked ${d.scanned} payment${d.scanned === 1 ? "" : "s"} — no new refunds found.`);
+      }
+      refetch();
+    } catch {
+      toast.error("Could not reach the server.");
+    } finally {
+      setSyncingRefunds(false);
+    }
+  }
+
   return (
     <>
       <Card className="border-sage/20 bg-white-warm">
@@ -251,6 +274,21 @@ export function AdminBookingsBrowser() {
             <Button type="button" variant="outline" size="sm" className="border-sage/25 text-charcoal/70 hover:bg-sage/5" onClick={refetch}>
               <RefreshCw className="h-3.5 w-3.5 mr-1.5" />
               Refresh
+            </Button>
+            <Button
+              type="button"
+              variant="outline"
+              size="sm"
+              className="border-sage/25 text-charcoal/70 hover:bg-sage/5"
+              onClick={handleSyncRefunds}
+              disabled={syncingRefunds}
+            >
+              {syncingRefunds ? (
+                <Loader2 className="h-3.5 w-3.5 mr-1.5 animate-spin" />
+              ) : (
+                <RotateCcw className="h-3.5 w-3.5 mr-1.5" />
+              )}
+              Sync refunds from Razorpay
             </Button>
           </FilterBar>
 
