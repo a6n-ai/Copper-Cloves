@@ -20,6 +20,8 @@ export type OrphanActionBody =
   | { action: "link"; paymentId: string; bookingId: string; note?: string }
   | { action: "mark_refunded"; paymentId: string; note?: string };
 
+class ConcurrentChangeError extends Error {}
+
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
   const session = await getStudioServerSession(req, res);
   if (!ensureAdmin(session, res)) return;
@@ -62,23 +64,26 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       return res.status(409).json({ error: "Amount mismatch between payment and booking's order — refusing to link." });
     }
 
-    const linked = await prisma.$transaction(async (tx) => {
-      const linkResult = await tx.payment.updateMany({
-        where: { id: paymentId, booking_id: null },
-        data: { booking_id: bookingId },
+    try {
+      await prisma.$transaction(async (tx) => {
+        const linkResult = await tx.payment.updateMany({
+          where: { id: paymentId, booking_id: null },
+          data: { booking_id: bookingId },
+        });
+        if (linkResult.count === 0) throw new ConcurrentChangeError();
+
+        const confirmResult = await tx.booking.updateMany({
+          where: { id: bookingId, status: { in: [BOOKING_STATUS.payment_pending, BOOKING_STATUS.expired] } },
+          data: { status: BOOKING_STATUS.confirmed, hold_expires_at: null },
+        });
+        if (confirmResult.count === 0) throw new ConcurrentChangeError();
       });
-      if (linkResult.count === 0) return false;
-
-      const confirmResult = await tx.booking.updateMany({
-        where: { id: bookingId, status: { in: [BOOKING_STATUS.payment_pending, BOOKING_STATUS.expired] } },
-        data: { status: BOOKING_STATUS.confirmed, hold_expires_at: null },
-      });
-      if (confirmResult.count === 0) return false;
-
-      return true;
-    });
-
-    if (!linked) return res.status(409).json({ error: "Payment or booking changed concurrently — please refresh and retry." });
+    } catch (err) {
+      if (err instanceof ConcurrentChangeError) {
+        return res.status(409).json({ error: "Payment or booking changed concurrently — please refresh and retry." });
+      }
+      throw err;
+    }
 
     if (booking.class_schedule_id) {
       await reconcileScheduleSeats(booking.class_schedule_id).catch(() => {});
@@ -101,11 +106,14 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
     const payment = await prisma.payment.findUnique({
       where: { id: paymentId },
-      select: { id: true, user_id: true, status: true, direction: true, notes: true },
+      select: { id: true, user_id: true, status: true, direction: true, notes: true, booking_id: true, user_package_id: true },
     });
     if (!payment) return res.status(404).json({ error: "Payment not found." });
     if (payment.status !== "succeeded" || payment.direction !== "credit") {
       return res.status(409).json({ error: "Only a succeeded credit payment can be marked refunded here." });
+    }
+    if (payment.booking_id || payment.user_package_id) {
+      return res.status(409).json({ error: "This payment is already linked to a booking or package — cannot mark refunded as an orphan." });
     }
 
     const trimmedNote = note?.trim();
