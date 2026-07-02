@@ -65,6 +65,14 @@ const nextConfig = {
       "@radix-ui/react-icons",
     ],
   },
+  // The invoice PDF route reads the bundled brand fonts from `public/fonts` at
+  // runtime via `path.join(process.cwd(), "public/fonts", …)`. Files under
+  // `public/` are CDN-served and are NOT auto-traced into the SSR/serverless
+  // function, so on Vercel/Lambda they'd be missing and every invoice download
+  // would 500. Force them into the function's file trace.
+  outputFileTracingIncludes: {
+    "/api/bookings/[id]/invoice": ["./public/fonts/**"],
+  },
   // Stable build id per deploy → matches NEXT_PUBLIC_BUILD_ID above so client
   // and server agree on which bundle is current.
   generateBuildId: async () =>
