@@ -77,6 +77,7 @@
     "@radix-ui/react-tabs": "^1.1.13",
     "@radix-ui/react-toggle": "^1.1.10",
     "@radix-ui/react-tooltip": "^1.2.8",
+    "@react-pdf/renderer": "^4.5.1",
     "@types/formidable": "^3.5.1",
     "@types/pg": "^8.20.0",
     "@yudiel/react-qr-scanner": "^2.6.0",

@@ -411,6 +411,8 @@ model Booking {
   status            String    @default("confirmed")
   /// Physique 57 instructor sign-off: `pending` until the 57 instructor confirms, then `confirmed`. Null = not a 57 class (no sign-off needed).
   confirmation_status String?
+  /// Assigned once on first invoice download; reused thereafter. Unique per booking.
+  invoice_number      String?  @unique
   booking_date      DateTime  @default(now())
   created_at        DateTime  @default(now())
   updated_at        DateTime  @default(now()) @updatedAt
@@ -1144,6 +1146,16 @@ model StudioSettings {
   default_package_validity_days Int      @default(30)
   /// Validity (days) of the 1 Class Pass granted on a cancelled class.
   cancelled_pass_validity_days  Int      @default(7)
+  /// Invoice / legal business identity (editable in admin control panel).
+  business_name        String?
+  business_address     String?
+  business_gstin       String?
+  business_email       String?
+  business_phone       String?
+  business_logo_url    String?
+  invoice_prefix       String  @default("INV")
+  next_invoice_seq     Int     @default(1)
+  invoice_footer_note  String?
   created_at                    DateTime @default(now())
   updated_at                    DateTime @default(now()) @updatedAt
 
