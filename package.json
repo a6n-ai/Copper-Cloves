@@ -45,6 +45,7 @@
     "instructor:set-password": "tsx scripts/set-instructor-password.ts",
     "scheduler": "tsx scripts/scheduler.ts",
     "test:payout": "tsx scripts/test-payoutCalc.ts",
+    "test:invoice": "tsx scripts/test-invoice.ts",
     "test:coupon": "tsx scripts/test-couponRelease.ts",
     "test:cancel-emails": "tsx scripts/test-cancellation-recipients.ts",
     "test:email": "tsx scripts/test-email-service.ts",
