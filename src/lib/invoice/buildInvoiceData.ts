@@ -6,7 +6,7 @@ export class InvoiceNotPayableError extends Error {}
 
 type SnapshotTotals = { classFeeInr: number; foodFeeInr: number; taxInr: number } | null;
 
-/** Rupee amounts tolerate ±1 paise rounding when reconciling to the payment total. */
+/** Rupee amounts tolerate ±2 paise rounding when reconciling to the payment total. */
 function readSnapshot(snap: unknown): SnapshotTotals {
   if (!snap || typeof snap !== "object") return null;
   const s = snap as Record<string, unknown>;
@@ -57,7 +57,15 @@ async function ensureInvoiceNumber(bookingId: string): Promise<string> {
       select: { next_invoice_seq: true, invoice_prefix: true },
     });
     const formatted = `${s.invoice_prefix}-${String(s.next_invoice_seq).padStart(6, "0")}`;
-    await tx.booking.update({ where: { id: bookingId }, data: { invoice_number: formatted } });
+    const res = await tx.booking.updateMany({
+      where: { id: bookingId, invoice_number: null },
+      data: { invoice_number: formatted },
+    });
+    if (res.count === 0) {
+      // Another concurrent txn already assigned a number; return the persisted value, not ours.
+      const winner = await tx.booking.findUnique({ where: { id: bookingId }, select: { invoice_number: true } });
+      return winner!.invoice_number!;
+    }
     return formatted;
   });
 }
