@@ -22,8 +22,15 @@ import {
   Ticket,
   Sparkles,
 } from "lucide-react";
+import { motion } from "framer-motion";
 import { requireSessionSSP } from "@/lib/requireSessionSSP";
 import { passCategoryForPackageType } from "@/lib/couponHelpers";
+import {
+  passIsActive,
+  derivePassStatus,
+  byExpirySoonestFirst,
+  type PassStatus,
+} from "@/lib/passStatus";
 import { SEO } from "@/components/SEO";
 import { PageHeader } from "@/components/dashboard/PageHeader";
 import { PassCard } from "@/components/dashboard/PassCard";
@@ -88,6 +95,7 @@ interface PackageRow {
   isPaused: boolean;
   passType: string | null;
   durationMonths: number | null;
+  status: PassStatus;
 }
 interface BookingRow {
   id: string;
@@ -182,18 +190,32 @@ function mapDetail(data: Record<string, unknown>): MemberDetail {
   const packages: PackageRow[] = pkgsRaw.map((p) => {
     const pt = (p.package_type ?? null) as { name?: string; is_unlimited?: boolean; duration_months?: number | null } | null;
     const exp = p.expiration_date ? String(p.expiration_date) : null;
+    const isUnlimited = !!pt?.is_unlimited;
+    const creditsRemaining = typeof p.credits_remaining === "number" ? p.credits_remaining : null;
+    const isPaused = !!p.is_paused;
+    // Live = enabled AND not expired AND still has credit (unlimited never depletes) —
+    // matches the member portal; a used-up 0-credit pass is no longer "active".
+    const isActive = passIsActive({ isEnabled: !!p.is_active, isUnlimited, creditsRemaining, expiry: exp, now });
     return {
       id: String(p.id),
       name: pt?.name ?? "Package",
       purchasedAt: p.purchase_date ? String(p.purchase_date) : null,
       expiresAt: exp,
-      creditsRemaining: typeof p.credits_remaining === "number" ? p.credits_remaining : null,
-      isActive: !!p.is_active && (exp ? new Date(exp).getTime() > now : true),
-      isUnlimited: !!pt?.is_unlimited,
-      isPaused: !!p.is_paused,
+      creditsRemaining,
+      isActive,
+      isUnlimited,
+      isPaused,
       passType: p.pass_type ? String(p.pass_type) : null,
       durationMonths: typeof pt?.duration_months === "number" ? pt.duration_months : null,
+      status: derivePassStatus(isActive, isPaused, exp, now),
     };
+  });
+  // Active passes expiring-soonest first (booking-spend order); expired/used-up
+  // after, newest purchase first. The soonest-expiring active pass is "current".
+  packages.sort((a, b) => {
+    if (a.isActive !== b.isActive) return a.isActive ? -1 : 1;
+    if (a.isActive) return byExpirySoonestFirst({ expiry: a.expiresAt }, { expiry: b.expiresAt });
+    return new Date(b.purchasedAt ?? 0).getTime() - new Date(a.purchasedAt ?? 0).getTime();
   });
   const activePkg = packages.find((p) => p.isActive) ?? packages[0] ?? null;
 
@@ -693,28 +715,64 @@ function MemberBody({
           <SectionCard title="Packages" icon={CreditCard} count={member.packages.length}>
             {member.packages.length === 0 ? (
               <EmptyNote text="No packages purchased." />
-            ) : (
-              <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
-                {member.packages.map((p) => {
-                  let pkgStatus: "active" | "expired" | "paused";
-                  if (p.isPaused) pkgStatus = "paused";
-                  else if (p.isActive) pkgStatus = "active";
-                  else pkgStatus = "expired";
-                  return (
-                    <PassCard
-                      key={p.id}
-                      name={p.name}
-                      isUnlimited={p.isUnlimited}
-                      classesRemaining={p.creditsRemaining}
-                      expiry={p.expiresAt}
-                      durationMonths={p.durationMonths}
-                      status={pkgStatus}
-                      className="w-full"
-                    />
-                  );
-                })}
-              </div>
-            )}
+            ) : (() => {
+              const active = member.packages.filter((p) => p.isActive);
+              const inactive = member.packages.filter((p) => !p.isActive);
+              const anyUnlimited = active.some((p) => p.isUnlimited);
+              const totalRemaining = active.reduce((s, p) => s + Math.max(0, p.creditsRemaining ?? 0), 0);
+              const card = (p: PackageRow, i: number, dim: boolean) => (
+                <motion.div
+                  key={p.id}
+                  initial={{ opacity: 0, y: 8 }}
+                  animate={{ opacity: dim ? 0.6 : 1, y: 0 }}
+                  transition={{ duration: 0.3, ease: [0.2, 0.8, 0.2, 1], delay: Math.min(i, 6) * 0.06 }}
+                >
+                  <PassCard
+                    name={p.name}
+                    isUnlimited={p.isUnlimited}
+                    classesRemaining={p.creditsRemaining}
+                    expiry={p.expiresAt}
+                    durationMonths={p.durationMonths}
+                    status={p.status}
+                    className="w-full"
+                  />
+                </motion.div>
+              );
+              return (
+                <div className="space-y-5">
+                  {/* Aggregate summary — true total across every active pass, like the member portal. */}
+                  <div className="flex flex-wrap items-baseline gap-x-2 gap-y-1 rounded-lg bg-muted/40 px-4 py-3">
+                    <span className="font-body text-2xl font-semibold tabular-nums text-charcoal">
+                      {anyUnlimited ? "∞" : totalRemaining}
+                    </span>
+                    <span className="font-body text-sm text-charcoal/55">
+                      {anyUnlimited ? "unlimited classes" : "classes remaining"}
+                    </span>
+                    <span className="ml-auto font-body text-xs text-charcoal/45">
+                      {active.length} active · {inactive.length} expired/used
+                    </span>
+                  </div>
+
+                  {active.length > 0 && (
+                    <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+                      {active.map((p, i) => card(p, i, false))}
+                    </div>
+                  )}
+
+                  {inactive.length > 0 && (
+                    <details className="group">
+                      <summary className="flex cursor-pointer items-center gap-1.5 font-body text-sm text-charcoal/55 transition-colors hover:text-charcoal">
+                        <span className="transition-transform group-open:rotate-90">›</span>
+                        Expired / used-up ({inactive.length})
+                      </summary>
+                      <div className="mt-4 grid grid-cols-1 gap-4 sm:grid-cols-2">
+                        {inactive.map((p, i) => card(p, i, true))}
+                      </div>
+                    </details>
+                  )}
+                </div>
+              );
+            })()}
           </SectionCard>
 
           <div className="grid grid-cols-1 gap-6 sm:grid-cols-2">
