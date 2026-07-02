@@ -7,6 +7,7 @@ import { reconcileScheduleSeats } from "@/lib/seatCounts";
 import { sendPendingRecoveryEmail } from "@/lib/notifications/sendPendingRecoveryEmail";
 import { logActivity } from "@/lib/activityLog";
 import { logger } from "@/lib/logger";
+import { healBookingFromOrphan } from "@/lib/orphanPayments";
 
 const log = logger.child({ module: "pendingBookingLifecycle" });
 
@@ -46,7 +47,7 @@ export async function processPendingBookingLifecycle(opts?: { limit?: number }):
       class_schedule_id: true,
       hold_expires_at: true,
       recovery_email_sent_at: true,
-      razorpay_order: { select: { razorpay_order_id: true } },
+      razorpay_order: { select: { razorpay_order_id: true, amount_paise: true } },
     },
     orderBy: { created_at: "asc" },
     take: limit,
@@ -83,6 +84,14 @@ export async function processPendingBookingLifecycle(opts?: { limit?: number }):
           });
           result.confirmed += 1;
         } else {
+          // No capture on the booking's own linked order — before giving up,
+          // check whether the member's payment landed against a different
+          // order (checkout retry/duplicate-tab race) and heal from that.
+          const heal = await healBookingFromOrphan(b.id);
+          if (heal.healed) {
+            result.confirmed += 1;
+            continue;
+          }
           const upd = await prisma.booking.updateMany({
             where: { id: b.id, status: BOOKING_STATUS.payment_pending },
             data: { status: BOOKING_STATUS.expired, hold_expires_at: null },
