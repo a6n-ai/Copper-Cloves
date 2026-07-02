@@ -17,6 +17,8 @@ import {
 import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Checkbox } from "@/components/ui/checkbox";
+import { Switch } from "@/components/ui/switch";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { AdminPageHeader } from "@/components/admin/AdminPageHeader";
 import { Pill } from "@/components/ui/pill";
@@ -266,11 +268,9 @@ function TriggersTab(props: TriggersTabProps) {
 
               <div className="flex items-center gap-3 shrink-0">
                 <label className="flex items-center gap-2 cursor-pointer">
-                  <input
-                    type="checkbox"
+                  <Switch
                     checked={trigger.is_active}
-                    onChange={() => onToggle(trigger.id, trigger.is_active)}
-                    className="w-5 h-5 accent-sage"
+                    onCheckedChange={() => onToggle(trigger.id, trigger.is_active)}
                   />
                   <span className="font-body text-sm text-charcoal hidden sm:inline">Active</span>
                 </label>
@@ -608,50 +608,53 @@ export default function CRMPage() {
 
             <div>
               <label className="font-body text-sm text-charcoal/70 mb-2 block">Trigger Type</label>
-              <select
+              <Select
                 value={triggerForm.trigger_type}
-                onChange={(e) => setTriggerForm({ ...triggerForm, trigger_type: e.target.value })}
-                className="w-full p-3 rounded-lg border border-sage/30 font-body"
+                onValueChange={(v) => setTriggerForm({ ...triggerForm, trigger_type: v })}
               >
-                {triggerTypes.map(type => (
-                  <option key={type.id} value={type.id}>{type.label}</option>
-                ))}
-              </select>
+                <SelectTrigger className="w-full border-sage/30 font-body">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  {triggerTypes.map(type => (
+                    <SelectItem key={type.id} value={type.id} className="font-body">{type.label}</SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
             </div>
 
             <div>
               <label className="font-body text-sm text-charcoal/70 mb-2 block">Template</label>
-              <select
-                value={triggerForm.template_id}
-                onChange={(e) => setTriggerForm({ ...triggerForm, template_id: e.target.value })}
-                className="w-full p-3 rounded-lg border border-sage/30 font-body"
+              <Select
+                value={triggerForm.template_id || undefined}
+                onValueChange={(v) => setTriggerForm({ ...triggerForm, template_id: v })}
               >
-                <option value="">Select a template</option>
-                {templates.map(template => (
-                  <option key={template.id} value={template.id}>{template.name}</option>
-                ))}
-              </select>
+                <SelectTrigger className="w-full border-sage/30 font-body">
+                  <SelectValue placeholder="Select a template" />
+                </SelectTrigger>
+                <SelectContent>
+                  {templates.map(template => (
+                    <SelectItem key={template.id} value={template.id} className="font-body">{template.name}</SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
             </div>
 
             <div>
               <label className="font-body text-sm text-charcoal/70 mb-3 block">Channels</label>
               <div className="flex gap-4">
                 <label className="flex items-center gap-2 cursor-pointer">
-                  <input
-                    type="checkbox"
+                  <Checkbox
                     checked={triggerForm.channel_email}
-                    onChange={(e) => setTriggerForm({ ...triggerForm, channel_email: e.target.checked })}
-                    className="w-5 h-5 accent-sage"
+                    onCheckedChange={(c) => setTriggerForm({ ...triggerForm, channel_email: c === true })}
                   />
                   <Mail size={16} className="text-terracotta" />
                   <span className="font-body text-sm text-charcoal">Email</span>
                 </label>
                 <label className="flex items-center gap-2 cursor-pointer">
-                  <input
-                    type="checkbox"
+                  <Checkbox
                     checked={triggerForm.channel_whatsapp}
-                    onChange={(e) => setTriggerForm({ ...triggerForm, channel_whatsapp: e.target.checked })}
-                    className="w-5 h-5 accent-sage"
+                    onCheckedChange={(c) => setTriggerForm({ ...triggerForm, channel_whatsapp: c === true })}
                   />
                   <MessageCircle size={16} className="text-sage" />
                   <span className="font-body text-sm text-charcoal">WhatsApp</span>

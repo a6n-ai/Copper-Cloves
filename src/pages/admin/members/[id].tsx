@@ -345,6 +345,7 @@ export default function MemberDetailPage() {
   const [loading, setLoading] = useState(true);
   const [notFound, setNotFound] = useState(false);
   const [savingBookingId, setSavingBookingId] = useState<string | null>(null);
+  const [cancelTargetId, setCancelTargetId] = useState<string | null>(null);
 
   const load = useCallback(async () => {
     if (!id) return;
@@ -408,8 +409,14 @@ export default function MemberDetailPage() {
   }
 
   /* — admin direct cancel of a booking (cancels + grants refund pass) — */
-  async function cancelBooking(bookingId: string) {
-    if (!window.confirm("Cancel this booking? The seat is released and a 1 Class Pass refund is granted (unlimited members excepted).")) return;
+  function cancelBooking(bookingId: string) {
+    setCancelTargetId(bookingId);
+  }
+
+  async function confirmCancelBooking() {
+    const bookingId = cancelTargetId;
+    if (!bookingId) return;
+    setCancelTargetId(null);
     setSavingBookingId(bookingId);
     try {
       const res = await fetch("/api/admin/bookings/cancel", {
@@ -499,6 +506,25 @@ export default function MemberDetailPage() {
           </div>
         </main>
       </div>
+
+      <ResponsiveDialog open={cancelTargetId !== null} onOpenChange={(o) => { if (!o) setCancelTargetId(null); }}>
+        <ResponsiveDialogContent className="sm:max-w-[440px] bg-white-warm border-sage/20">
+          <ResponsiveDialogHeader>
+            <ResponsiveDialogTitle className="font-body font-semibold text-2xl text-charcoal">Cancel this booking?</ResponsiveDialogTitle>
+            <ResponsiveDialogDescription className="font-body text-charcoal/60">
+              The seat is released and a 1 Class Pass refund is granted (unlimited members excepted). This cannot be undone.
+            </ResponsiveDialogDescription>
+          </ResponsiveDialogHeader>
+          <ResponsiveDialogFooter>
+            <Button variant="outline" onClick={() => setCancelTargetId(null)} className="border-charcoal/20 text-charcoal hover:bg-charcoal/5 font-body">
+              Keep booking
+            </Button>
+            <Button variant="destructive" onClick={() => void confirmCancelBooking()} className="font-body">
+              Cancel &amp; refund
+            </Button>
+          </ResponsiveDialogFooter>
+        </ResponsiveDialogContent>
+      </ResponsiveDialog>
     </>
   );
 }

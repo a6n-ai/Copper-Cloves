@@ -1,4 +1,5 @@
 import { useState, useEffect, useMemo, useCallback } from "react";
+import Image from "next/image";
 import { useRouter } from "next/router";
 import { useSession } from "next-auth/react";
 import { requireSessionSSP } from "@/lib/requireSessionSSP";
@@ -52,7 +53,6 @@ import {
   TrendingUp,
   ShoppingCart,
   DollarSign,
-  Eye,
 } from "lucide-react";
 
 import { cdnUrl } from "@/lib/cdnUrl";
@@ -108,7 +108,7 @@ function apiToProduct(r: RetailProductApi): Product {
     inStock: r.stock > 0 && r.is_active,
     featured: r.featured,
     description: r.description ?? "",
-    image: r.image_url || cdnUrl("/placeholder.jpg"),
+    image: r.image_url ?? "",
     sales: r.sales_count ?? 0,
   };
 }
@@ -642,7 +642,18 @@ export default function AdminProducts() {
                             <TableRow key={product.id}>
                               <TableCell>
                                 <div className="flex items-center gap-3">
-                                  <div className="w-10 h-10 rounded-lg bg-linear-to-br from-sage/20 via-cream/50 to-terracotta/20 shrink-0" />
+                                  {product.image ? (
+                                    <Image
+                                      src={product.image}
+                                      alt={product.name}
+                                      width={80}
+                                      height={80}
+                                      className="w-10 h-10 rounded-lg object-cover shrink-0"
+                                      unoptimized
+                                    />
+                                  ) : (
+                                    <div className="w-10 h-10 rounded-lg bg-linear-to-br from-sage/20 via-cream/50 to-terracotta/20 shrink-0" />
+                                  )}
                                   <div>
                                     <p className="font-body text-sm font-medium text-charcoal">{product.name}</p>
                                     {product.featured && (
@@ -878,10 +889,6 @@ export default function AdminProducts() {
                                 ))}
                               </SelectContent>
                             </Select>
-                            <Button size="sm" variant="ghost" className="sm:ml-auto">
-                              <Eye className="mr-2" />
-                              View Details
-                            </Button>
                           </div>
                         </CardContent>
                       </Card>

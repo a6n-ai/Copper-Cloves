@@ -287,7 +287,7 @@ export default function Shop({ initialProducts }: Readonly<ShopProps>) {
       </section>
 
       {/* Filters & Cart Button */}
-      <section className="sticky top-0 z-40 bg-white-warm border-b border-sage/10 shadow-xs">
+      <section className="sticky top-[68px] md:top-[72px] z-40 bg-white-warm border-b border-sage/10 shadow-xs">
         <div className="max-w-7xl mx-auto px-6 lg:px-8 py-4">
           {/* Search Bar */}
           <div className="mb-4 max-w-md">

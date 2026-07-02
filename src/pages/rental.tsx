@@ -363,13 +363,13 @@ export default function RentalPage() {
                 >
                   <div className="grid gap-6 sm:grid-cols-2">
                     <Field label="Full name" required>
-                      <Input name="name" value={formData.name} onChange={handleChange} required placeholder="Your name" />
+                      <Input name="name" autoComplete="name" value={formData.name} onChange={handleChange} required placeholder="Your name" />
                     </Field>
                     <Field label="Email" required>
-                      <Input type="email" name="email" value={formData.email} onChange={handleChange} required placeholder="you@email.com" />
+                      <Input type="email" name="email" autoComplete="email" value={formData.email} onChange={handleChange} required placeholder="you@email.com" />
                     </Field>
                     <Field label="Phone" required>
-                      <Input type="tel" name="phone" value={formData.phone} onChange={handleChange} required placeholder="+91 98765 43210" />
+                      <Input type="tel" name="phone" autoComplete="tel" value={formData.phone} onChange={handleChange} required placeholder="+91 98765 43210" />
                     </Field>
                     <Field label="Event type">
                       <Select value={formData.eventType} onValueChange={(v) => setField("eventType", v)}>

@@ -1,10 +1,6 @@
 import { Fragment, useCallback, useState, useEffect, useRef } from "react";
 import dynamic from "next/dynamic";
 import { useTabQuery } from "@/hooks/useTabQuery";
-import { useForm } from "react-hook-form";
-import { zodResolver } from "@hookform/resolvers/zod";
-import { z } from "zod";
-import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 import { useRouter } from "next/router";
 import { ListAvatar } from "@/components/admin/ListAvatar";
 import { AdminDashboardSkeleton } from "@/components/dashboard/skeletons";
@@ -31,13 +27,7 @@ import {
   Award,
   Target,
   BarChart3,
-  Zap,
   Trophy,
-  Plus,
-  Edit,
-  Mail,
-  Upload,
-  Save,
   ChefHat,
   Building2,
   UserPlus,
@@ -46,7 +36,6 @@ import {
 import { SEO } from "@/components/SEO";
 import { Spinner } from "@/components/ui/spinner";
 import { Input } from "@/components/ui/input";
-import { Textarea } from "@/components/ui/textarea";
 import {
   ResponsiveDialog,
   ResponsiveDialogContent,
@@ -55,7 +44,6 @@ import {
   ResponsiveDialogHeader,
   ResponsiveDialogTitle,
 } from "@/components/responsive/ResponsiveDialog";
-import { Label } from "@/components/ui/label";
 import { CloseButton } from "@/components/ui/quick-actions";
 import { useSession } from "next-auth/react";
 import { requireSessionSSP } from "@/lib/requireSessionSSP";
@@ -66,7 +54,6 @@ import { requireSessionSSP } from "@/lib/requireSessionSSP";
 export const getServerSideProps = requireSessionSSP({ roles: ["admin"] });
 import { passCategoryForPackageType } from "@/lib/couponHelpers";
 import { usePagination } from "@/components/Pagination";
-import { refreshInstructors } from "@/hooks/useInstructors";
 import { toast } from "sonner";
 import { ClassCheckinQr } from "@/components/checkin/ClassCheckinQr";
 import { ClassCountdownPill } from "@/components/checkin/ClassCountdownPill";
@@ -142,15 +129,6 @@ import {
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
 
-const instructorSchema = z.object({
-  name: z.string().min(1, "Name is required"),
-  email: z.string().email("Invalid email").or(z.literal("")),
-  phone: z.string().optional(),
-  studio_payout_cut_percent: z.string().optional(),
-  specialties: z.string().optional(),
-  philosophy: z.string().optional(),
-});
-
 interface ClassAttendee {
   id: string;
   bookingId?: string;
@@ -190,29 +168,6 @@ interface TodayClassDetail {
 interface DashboardInstructorRow {
   id: string;
   name: string;
-  [key: string]: unknown;
-}
-
-interface SelectedUser {
-  name?: string;
-  email?: string;
-  phone?: string;
-  package?: string;
-  credits?: number | string;
-  expiry?: string;
-  [key: string]: unknown;
-}
-
-interface SelectedInstructorData {
-  name?: string;
-  email?: string;
-  phone?: string;
-  specialties?: string[];
-  philosophy?: string;
-  checkIns?: number;
-  rate?: number | string;
-  total?: number | string;
-  paymentPercentage?: number | string;
   [key: string]: unknown;
 }
 
@@ -283,9 +238,6 @@ export default function AdminDashboard() {
   const [showMemberProfile, setShowMemberProfile] = useState(false);
   const [selectedMemberProfile, setSelectedMemberProfile] = useState<SelectedMemberProfile | null>(null);
 
-  const [showAddUserDialog, setShowAddUserDialog] = useState(false);
-  const [showEditUserDialog, setShowEditUserDialog] = useState(false);
-  const [showAddClassDialog, setShowAddClassDialog] = useState(false);
   const [showClassDetailsDialog, setShowClassDetailsDialog] = useState(false);
   const [pendingStatusChange, setPendingStatusChange] = useState<{ id: string; name: string; time: string; currentStatus?: string; newStatus: string } | null>(null);
   const [statusChangeBusy, setStatusChangeBusy] = useState(false);
@@ -297,19 +249,9 @@ export default function AdminDashboard() {
     historical?: boolean;
   } | null>(null);
   const [selectedClassQrLoading, setSelectedClassQrLoading] = useState(false);
-  const [showPayoutDialog, setShowPayoutDialog] = useState(false);
-  const [showAddInstructorDialog, setShowAddInstructorDialog] = useState(false);
-  const [showEditInstructorDialog, setShowEditInstructorDialog] = useState(false);
-  const [selectedUser, _setSelectedUser] = useState<SelectedUser | null>(null);
   const [selectedClass, setSelectedClass] = useState<SelectedClassDetail | null>(null);
   const [rosterCheckingIn, setRosterCheckingIn] = useState<Record<string, boolean>>({});
   const [instructorCheckingIn, setInstructorCheckingIn] = useState(false);
-  const [selectedInstructorData, _setSelectedInstructorData] = useState<SelectedInstructorData | null>(null);
-  const instructorForm = useForm<z.infer<typeof instructorSchema>>({
-    resolver: zodResolver(instructorSchema),
-    defaultValues: { name: "", email: "", phone: "", studio_payout_cut_percent: "", specialties: "", philosophy: "" },
-  });
-  const [savingInstructor, setSavingInstructor] = useState(false);
 
   const [dashMemberQuery, setDashMemberQuery] = useState("");
   const [dashMemberResults, setDashMemberResults] = useState<{ id: string; full_name: string | null; email: string }[]>([]);
@@ -724,37 +666,6 @@ export default function AdminDashboard() {
       prev.map((r) => (r.id === id ? { ...r, status: String(updated.status ?? status) } : r))
     );
   }, []);
-
-  async function handleCreateInstructor(data: z.infer<typeof instructorSchema>) {
-    setSavingInstructor(true);
-    try {
-      const body: Record<string, unknown> = { name: data.name };
-      if (data.email) body.email = data.email;
-      if (data.phone?.trim()) body.phone = data.phone.trim();
-      if (data.studio_payout_cut_percent?.trim())
-        body.studio_payout_cut_percent = parseFloat(data.studio_payout_cut_percent);
-      if (data.specialties?.trim())
-        body.specialties = data.specialties.split(",").map((s) => s.trim()).filter(Boolean);
-      if (data.philosophy?.trim()) body.philosophy = data.philosophy.trim();
-      const res = await fetch("/api/admin/instructors", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(body),
-      });
-      if (!res.ok) throw new Error("Failed to create instructor");
-      setShowAddInstructorDialog(false);
-      instructorForm.reset();
-      const updated = await fetch("/api/admin/instructors");
-      if (updated.ok) setDashboardInstructors(await updated.json());
-      // Revalidate the shared roster cache so other admin pages pick up the
-      // newly-created instructor without their own refetch.
-      void refreshInstructors();
-    } catch {
-      toast.error("Failed to save instructor.");
-    } finally {
-      setSavingInstructor(false);
-    }
-  }
 
   async function applyRosterOutcome(
     attendee: { id: string; bookingId?: string; checkInTime?: string | null },
@@ -1173,205 +1084,6 @@ export default function AdminDashboard() {
         </main>
       </div>
 
-      {/* Add User Dialog */}
-      <ResponsiveDialog open={showAddUserDialog} onOpenChange={setShowAddUserDialog}>
-        <ResponsiveDialogContent className="max-w-2xl bg-white-warm border-sage/20">
-          <ResponsiveDialogHeader>
-            <ResponsiveDialogTitle className="font-body font-semibold text-2xl text-charcoal">Add New User</ResponsiveDialogTitle>
-            <ResponsiveDialogDescription className="font-body text-charcoal/60">
-              Create a new member account with package and credits
-            </ResponsiveDialogDescription>
-          </ResponsiveDialogHeader>
-          <div className="grid grid-cols-2 gap-4 py-4">
-            <div className="space-y-2">
-              <Label htmlFor="name" className="font-body text-charcoal">Full Name</Label>
-              <Input id="name" placeholder="John Doe" className="border-sage/20 focus:ring-sage placeholder:text-charcoal/40" />
-            </div>
-            <div className="space-y-2">
-              <Label htmlFor="email" className="font-body text-charcoal">Email</Label>
-              <Input id="email" type="email" placeholder="john@email.com" className="border-sage/20 focus:ring-sage placeholder:text-charcoal/40" />
-            </div>
-            <div className="space-y-2">
-              <Label htmlFor="phone" className="font-body text-charcoal">Phone Number</Label>
-              <Input id="phone" placeholder="+91 98765 43210" className="border-sage/20 focus:ring-sage placeholder:text-charcoal/40" />
-            </div>
-            <div className="space-y-2">
-              <Label htmlFor="package" className="font-body text-charcoal">Package Type</Label>
-              <Select defaultValue="premium">
-                <SelectTrigger className="border-sage/20">
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="premium">Premium Pass</SelectItem>
-                  <SelectItem value="specialty">Aerial Specialty Pass</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
-            <div className="space-y-2">
-              <Label htmlFor="credits" className="font-body text-charcoal">Initial Classes</Label>
-              <Input id="credits" type="number" placeholder="12" className="border-sage/20 focus:ring-sage placeholder:text-charcoal/40" />
-            </div>
-            <div className="space-y-2">
-              <Label htmlFor="expiry" className="font-body text-charcoal">Expiry Date</Label>
-              <Input id="expiry" type="date" className="border-sage/20 focus:ring-sage" />
-            </div>
-            <div className="col-span-2 space-y-2">
-              <Label htmlFor="address" className="font-body text-charcoal">Address (Optional)</Label>
-              <Textarea id="address" placeholder="Enter full address..." className="border-sage/20 focus:ring-sage placeholder:text-charcoal/40" />
-            </div>
-          </div>
-          <ResponsiveDialogFooter>
-            <Button variant="outline" onClick={() => setShowAddUserDialog(false)} className="border-sage/20 font-body">
-              Cancel
-            </Button>
-            <Button variant="sage">
-              <Save className="h-4 w-4 mr-2" />
-              Create User
-            </Button>
-          </ResponsiveDialogFooter>
-        </ResponsiveDialogContent>
-      </ResponsiveDialog>
-
-      {/* Edit User Dialog */}
-      <ResponsiveDialog open={showEditUserDialog} onOpenChange={setShowEditUserDialog}>
-        <ResponsiveDialogContent className="max-w-2xl bg-white-warm border-sage/20">
-          <ResponsiveDialogHeader>
-            <ResponsiveDialogTitle className="font-body font-semibold text-2xl text-charcoal">Edit User</ResponsiveDialogTitle>
-            <ResponsiveDialogDescription className="font-body text-charcoal/60">
-              Update member information, package, or classes
-            </ResponsiveDialogDescription>
-          </ResponsiveDialogHeader>
-          {selectedUser && (
-            <div className="grid grid-cols-2 gap-4 py-4">
-              <div className="space-y-2">
-                <Label htmlFor="edit-name" className="font-body text-charcoal">Full Name</Label>
-                <Input id="edit-name" defaultValue={selectedUser.name} className="border-sage/20 focus:ring-sage" />
-              </div>
-              <div className="space-y-2">
-                <Label htmlFor="edit-email" className="font-body text-charcoal">Email</Label>
-                <Input id="edit-email" type="email" defaultValue={selectedUser.email} className="border-sage/20 focus:ring-sage" />
-              </div>
-              <div className="space-y-2">
-                <Label htmlFor="edit-phone" className="font-body text-charcoal">Phone Number</Label>
-                <Input id="edit-phone" defaultValue={selectedUser.phone} className="border-sage/20 focus:ring-sage" />
-              </div>
-              <div className="space-y-2">
-                <Label htmlFor="edit-package" className="font-body text-charcoal">Package Type</Label>
-                <Select defaultValue={selectedUser.package.toLowerCase()}>
-                  <SelectTrigger className="border-sage/20">
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="premium">Premium Pass</SelectItem>
-                    <SelectItem value="specialty">Aerial Specialty Pass</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
-              <div className="space-y-2">
-                <Label htmlFor="edit-credits" className="font-body text-charcoal">Classes</Label>
-                <div className="flex gap-2">
-                  <Input id="edit-credits" type="number" defaultValue={selectedUser.credits} className="border-sage/20 focus:ring-sage" />
-                  <Button variant="sage-outline" size="sm">
-                    <Plus className="h-4 w-4" />
-                  </Button>
-                </div>
-              </div>
-              <div className="space-y-2">
-                <Label htmlFor="edit-expiry" className="font-body text-charcoal">Expiry Date</Label>
-                <Input id="edit-expiry" type="date" defaultValue={selectedUser.expiry} className="border-sage/20 focus:ring-sage" />
-              </div>
-            </div>
-          )}
-          <ResponsiveDialogFooter>
-            <Button variant="outline" onClick={() => setShowEditUserDialog(false)} className="border-sage/20 font-body">
-              Cancel
-            </Button>
-            <Button variant="sage">
-              <Save className="h-4 w-4 mr-2" />
-              Save Changes
-            </Button>
-          </ResponsiveDialogFooter>
-        </ResponsiveDialogContent>
-      </ResponsiveDialog>
-
-      {/* Add Class Dialog */}
-      <ResponsiveDialog open={showAddClassDialog} onOpenChange={setShowAddClassDialog}>
-        <ResponsiveDialogContent className="max-w-2xl bg-white-warm border-sage/20">
-          <ResponsiveDialogHeader>
-            <ResponsiveDialogTitle className="font-body font-semibold text-2xl text-charcoal">Create New Class</ResponsiveDialogTitle>
-            <ResponsiveDialogDescription className="font-body text-charcoal/60">
-              Schedule a one-time or recurring class
-            </ResponsiveDialogDescription>
-          </ResponsiveDialogHeader>
-          <div className="grid grid-cols-2 gap-4 py-4">
-            <div className="space-y-2">
-              <Label htmlFor="class-name" className="font-body text-charcoal">Class Name</Label>
-              <Select>
-                <SelectTrigger className="border-sage/20">
-                  <SelectValue placeholder="Select class type" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="muay-thai">Muay Thai Circuit</SelectItem>
-                  <SelectItem value="aerial-yoga">Aerial Yoga</SelectItem>
-                  <SelectItem value="warrior-rhythm">Warrior Rhythm</SelectItem>
-                  <SelectItem value="warrior-strength">Warrior Strength</SelectItem>
-                  <SelectItem value="hatha-yoga">Hatha Yoga</SelectItem>
-                  <SelectItem value="mat-pilates">Mat Pilates</SelectItem>
-                  <SelectItem value="animal-flow">Animal Flow</SelectItem>
-                  <SelectItem value="barre-57">Barre 57</SelectItem>
-                  <SelectItem value="physique-57">Physique 57</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
-            <div className="space-y-2">
-              <Label htmlFor="instructor" className="font-body text-charcoal">Instructor</Label>
-              <Select>
-                <SelectTrigger className="border-sage/20">
-                  <SelectValue placeholder="Select instructor" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="vivek">Vivek</SelectItem>
-                  <SelectItem value="usha">Usha</SelectItem>
-                  <SelectItem value="akshata">Akshata</SelectItem>
-                  <SelectItem value="prachi">Prachi</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
-            <div className="space-y-2">
-              <Label htmlFor="class-date" className="font-body text-charcoal">Date</Label>
-              <Input id="class-date" type="date" className="border-sage/20 focus:ring-sage" />
-            </div>
-            <div className="space-y-2">
-              <Label htmlFor="class-time" className="font-body text-charcoal">Time</Label>
-              <Input id="class-time" type="time" className="border-sage/20 focus:ring-sage" />
-            </div>
-            <div className="space-y-2">
-              <Label htmlFor="capacity" className="font-body text-charcoal">Capacity</Label>
-              <Input id="capacity" type="number" placeholder="12" className="border-sage/20 focus:ring-sage placeholder:text-charcoal/40" />
-            </div>
-            <div className="space-y-2">
-              <Label htmlFor="duration" className="font-body text-charcoal">Duration (minutes)</Label>
-              <Input id="duration" type="number" placeholder="60" className="border-sage/20 focus:ring-sage placeholder:text-charcoal/40" />
-            </div>
-            <div className="col-span-2 space-y-2">
-              <div className="flex items-center space-x-2">
-                <input type="checkbox" id="recurring" className="rounded border-sage/20 text-sage focus:ring-sage" />
-                <Label htmlFor="recurring" className="font-body text-charcoal">Make this a recurring class</Label>
-              </div>
-            </div>
-          </div>
-          <ResponsiveDialogFooter>
-            <Button variant="outline" onClick={() => setShowAddClassDialog(false)} className="border-sage/20 font-body">
-              Cancel
-            </Button>
-            <Button variant="sage">
-              <Save className="h-4 w-4 mr-2" />
-              Create Class
-            </Button>
-          </ResponsiveDialogFooter>
-        </ResponsiveDialogContent>
-      </ResponsiveDialog>
-
       {/* Confirm class status change */}
       <AlertDialog
         open={!!pendingStatusChange}
@@ -1441,6 +1153,7 @@ export default function AdminDashboard() {
       </AlertDialog>
 
       {/* Class Details Dialog */}
+      {showClassDetailsDialog && (
       <ResponsiveDialog open={showClassDetailsDialog} onOpenChange={(open) => { setShowClassDetailsDialog(open); if (!open) { setRosterCheckingIn({}); setDashMemberQuery(""); setDashMemberResults([]); } }}>
         <ResponsiveDialogContent className="max-w-3xl bg-white-warm border-sage/20">
           <ResponsiveDialogHeader>
@@ -1497,18 +1210,12 @@ export default function AdminDashboard() {
 
               {/* Instructor check-in */}
               <div className="rounded-xl border border-sage/15 bg-cream/20 p-4 flex items-center gap-3">
-                {selectedClass.instructorAvatarUrl ? (
-                  /* eslint-disable-next-line @next/next/no-img-element */
-                  <img
-                    src={selectedClass.instructorAvatarUrl}
-                    alt={selectedClass.instructor}
-                    className="h-10 w-10 rounded-full object-cover border border-sage/20"
-                  />
-                ) : (
-                  <div className="h-10 w-10 rounded-full bg-sage/10 flex items-center justify-center font-body font-semibold text-sage text-sm">
-                    {(selectedClass.instructor ?? "I").slice(0, 1).toUpperCase()}
-                  </div>
-                )}
+                <ListAvatar
+                  name={selectedClass.instructor || "Instructor"}
+                  src={selectedClass.instructorAvatarUrl}
+                  size="sm"
+                  ringClassName="ring-sage/20"
+                />
                 <div className="min-w-0 flex-1">
                   <p className="font-body text-xs uppercase tracking-wider text-charcoal/45">Instructor</p>
                   <p className="font-body font-medium text-charcoal truncate">{selectedClass.instructor}</p>
@@ -1644,6 +1351,7 @@ export default function AdminDashboard() {
                 </div>
                 <div className="relative">
                   <Input
+                    aria-label="Search members by name or email"
                     placeholder="Search by name or email…"
                     value={dashMemberQuery}
                     onChange={e => searchDashMembers(e.target.value)}
@@ -1697,247 +1405,7 @@ export default function AdminDashboard() {
           </ResponsiveDialogFooter>
         </ResponsiveDialogContent>
       </ResponsiveDialog>
-
-      {/* Payout Dialog */}
-      <ResponsiveDialog open={showPayoutDialog} onOpenChange={setShowPayoutDialog}>
-        <ResponsiveDialogContent className="max-w-lg bg-white-warm border-sage/20">
-          <ResponsiveDialogHeader>
-            <ResponsiveDialogTitle className="font-body font-semibold text-2xl text-charcoal">Process Payment</ResponsiveDialogTitle>
-            <ResponsiveDialogDescription className="font-body text-charcoal/60">
-              Confirm instructor payout details
-            </ResponsiveDialogDescription>
-          </ResponsiveDialogHeader>
-          {selectedInstructorData && (
-            <div className="space-y-4 py-4">
-              <div className="p-4 rounded-lg bg-sage/5 border border-sage/20">
-                <div className="font-body font-medium text-charcoal mb-2">
-                  {selectedInstructorData.name}
-                </div>
-                <div className="font-body text-sm text-charcoal/60 mb-4">
-                  {selectedInstructorData.specialties}
-                </div>
-                
-                <div className="grid grid-cols-2 gap-4 mb-4">
-                  <div>
-                    <div className="font-body text-xs text-charcoal/50 mb-1">Check-ins</div>
-                    <div className="font-body font-semibold tabular-nums text-2xl text-charcoal">
-                      {selectedInstructorData.checkIns}
-                    </div>
-                  </div>
-                  <div>
-                    <div className="font-body text-xs text-charcoal/50 mb-1">Rate per Check-in</div>
-                    <div className="font-body font-semibold tabular-nums text-2xl text-charcoal">
-                      ₹{selectedInstructorData.rate}
-                    </div>
-                  </div>
-                </div>
-
-                <div className="pt-4 border-t border-sage/20">
-                  <div className="flex items-center justify-between">
-                    <div className="font-body font-medium text-charcoal">
-                      Total Payout:
-                    </div>
-                    <div className="font-body font-semibold tabular-nums text-4xl text-sage">
-                      ₹{selectedInstructorData.total.toLocaleString()}
-                    </div>
-                  </div>
-                </div>
-              </div>
-
-              <div className="space-y-2">
-                <Label htmlFor="payment-method" className="font-body text-charcoal">Payment Method</Label>
-                <Select defaultValue="transfer">
-                  <SelectTrigger className="border-sage/20">
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="transfer">Bank Transfer</SelectItem>
-                    <SelectItem value="upi">UPI</SelectItem>
-                    <SelectItem value="cash">Cash</SelectItem>
-                    <SelectItem value="cheque">Cheque</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
-
-              <div className="space-y-2">
-                <Label htmlFor="payment-notes" className="font-body text-charcoal">Notes (Optional)</Label>
-                <Textarea 
-                  id="payment-notes" 
-                  placeholder="Add any payment notes..."
-                  className="border-sage/20 focus:ring-sage"
-                />
-              </div>
-            </div>
-          )}
-          <ResponsiveDialogFooter>
-            <Button variant="outline" onClick={() => setShowPayoutDialog(false)} className="border-sage/20 font-body">
-              Cancel
-            </Button>
-            <Button variant="sage">
-              <DollarSign className="h-4 w-4 mr-2" />
-              Confirm Payment
-            </Button>
-          </ResponsiveDialogFooter>
-        </ResponsiveDialogContent>
-      </ResponsiveDialog>
-
-      {/* Add Instructor Dialog */}
-      <ResponsiveDialog open={showAddInstructorDialog} onOpenChange={(open) => { setShowAddInstructorDialog(open); if (!open) instructorForm.reset(); }}>
-        <ResponsiveDialogContent className="max-w-2xl bg-white-warm border-sage/20">
-          <ResponsiveDialogHeader>
-            <ResponsiveDialogTitle className="font-body font-semibold text-2xl text-charcoal">Add New Instructor</ResponsiveDialogTitle>
-            <ResponsiveDialogDescription className="font-body text-charcoal/60">
-              Create instructor profile and set payment percentage
-            </ResponsiveDialogDescription>
-          </ResponsiveDialogHeader>
-          <Form {...instructorForm}>
-            <form id="add-instructor-form" onSubmit={instructorForm.handleSubmit(handleCreateInstructor)}>
-              <div className="grid grid-cols-2 gap-4 py-4">
-                <FormField control={instructorForm.control} name="name" render={({ field }) => (
-                  <FormItem>
-                    <FormLabel className="font-body text-charcoal">Full Name</FormLabel>
-                    <FormControl>
-                      <Input placeholder="Instructor name" className="border-sage/20 focus:ring-sage placeholder:text-charcoal/40" {...field} />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )} />
-                <FormField control={instructorForm.control} name="email" render={({ field }) => (
-                  <FormItem>
-                    <FormLabel className="font-body text-charcoal">Email</FormLabel>
-                    <FormControl>
-                      <Input type="email" placeholder="instructor@email.com" className="border-sage/20 focus:ring-sage placeholder:text-charcoal/40" {...field} />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )} />
-                <FormField control={instructorForm.control} name="phone" render={({ field }) => (
-                  <FormItem>
-                    <FormLabel className="font-body text-charcoal">Phone Number</FormLabel>
-                    <FormControl>
-                      <Input placeholder="+91 98765 43210" className="border-sage/20 focus:ring-sage placeholder:text-charcoal/40" {...field} />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )} />
-                <FormField control={instructorForm.control} name="studio_payout_cut_percent" render={({ field }) => (
-                  <FormItem>
-                    <FormLabel className="font-body text-charcoal">Payment Share (%)</FormLabel>
-                    <FormControl>
-                      <Input type="number" placeholder="60" className="border-sage/20 focus:ring-sage placeholder:text-charcoal/40" {...field} />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )} />
-                <FormField control={instructorForm.control} name="specialties" render={({ field }) => (
-                  <FormItem className="col-span-2">
-                    <FormLabel className="font-body text-charcoal">Specialties (comma-separated)</FormLabel>
-                    <FormControl>
-                      <Input placeholder="Muay Thai, Warrior Strength" className="border-sage/20 focus:ring-sage placeholder:text-charcoal/40" {...field} />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )} />
-                <FormField control={instructorForm.control} name="philosophy" render={({ field }) => (
-                  <FormItem className="col-span-2">
-                    <FormLabel className="font-body text-charcoal">Philosophy/Bio</FormLabel>
-                    <FormControl>
-                      <Textarea placeholder="Instructor's teaching philosophy and approach..." className="border-sage/20 focus:ring-sage" rows={3} {...field} />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )} />
-              </div>
-            </form>
-          </Form>
-          <ResponsiveDialogFooter>
-            <Button variant="outline" onClick={() => setShowAddInstructorDialog(false)} className="border-sage/20 font-body">
-              Cancel
-            </Button>
-            <Button type="submit" form="add-instructor-form" disabled={savingInstructor} variant="sage">
-              <Save className="h-4 w-4 mr-2" />
-              {savingInstructor ? "Saving…" : "Create Instructor"}
-            </Button>
-          </ResponsiveDialogFooter>
-        </ResponsiveDialogContent>
-      </ResponsiveDialog>
-
-      {/* Edit Instructor Dialog */}
-      <ResponsiveDialog open={showEditInstructorDialog} onOpenChange={setShowEditInstructorDialog}>
-        <ResponsiveDialogContent className="max-w-2xl bg-white-warm border-sage/20">
-          <ResponsiveDialogHeader>
-            <ResponsiveDialogTitle className="font-body font-semibold text-2xl text-charcoal">Edit Instructor</ResponsiveDialogTitle>
-            <ResponsiveDialogDescription className="font-body text-charcoal/60">
-              Update instructor profile and payment settings
-            </ResponsiveDialogDescription>
-          </ResponsiveDialogHeader>
-          {selectedInstructorData && (
-            <div className="grid grid-cols-2 gap-4 py-4">
-              <div className="space-y-2">
-                <Label htmlFor="edit-instructor-name" className="font-body text-charcoal">Full Name</Label>
-                <Input id="edit-instructor-name" defaultValue={selectedInstructorData.name} className="border-sage/20 focus:ring-sage" />
-              </div>
-              <div className="space-y-2">
-                <Label htmlFor="edit-instructor-email" className="font-body text-charcoal">Email</Label>
-                <Input id="edit-instructor-email" type="email" defaultValue={selectedInstructorData.email} className="border-sage/20 focus:ring-sage" />
-              </div>
-              <div className="space-y-2">
-                <Label htmlFor="edit-instructor-phone" className="font-body text-charcoal">Phone Number</Label>
-                <Input id="edit-instructor-phone" defaultValue={selectedInstructorData.phone} className="border-sage/20 focus:ring-sage" />
-              </div>
-              <div className="space-y-2">
-                <Label htmlFor="edit-payment-percentage" className="font-body text-charcoal">Payment Share (%)</Label>
-                <Input id="edit-payment-percentage" type="number" defaultValue={selectedInstructorData.paymentPercentage} className="border-sage/20 focus:ring-sage" />
-              </div>
-              <div className="col-span-2 space-y-2">
-                <Label htmlFor="edit-specialties" className="font-body text-charcoal">Specialties (comma-separated)</Label>
-                <Input id="edit-specialties" defaultValue={selectedInstructorData.specialties.join(", ")} className="border-sage/20 focus:ring-sage" />
-              </div>
-              <div className="col-span-2 space-y-2">
-                <Label htmlFor="edit-philosophy" className="font-body text-charcoal">Philosophy/Bio</Label>
-                <Textarea 
-                  id="edit-philosophy" 
-                  defaultValue={selectedInstructorData.philosophy}
-                  className="border-sage/20 focus:ring-sage"
-                  rows={3}
-                />
-              </div>
-              <div className="col-span-2 space-y-2">
-                <Label htmlFor="edit-photo-upload" className="font-body text-charcoal">Update Profile Photo</Label>
-                <div className="flex items-center gap-3">
-                  <Input id="edit-photo-upload" type="file" accept="image/*" className="border-sage/20 focus:ring-sage" />
-                  <Button variant="sage-outline">
-                    <Upload className="h-4 w-4 mr-2" />
-                    Upload
-                  </Button>
-                </div>
-              </div>
-              <div className="col-span-2">
-                <div className="flex items-center space-x-2">
-                  <input 
-                    type="checkbox" 
-                    id="update-landing" 
-                    defaultChecked
-                    className="rounded border-sage/20 text-sage focus:ring-sage" 
-                  />
-                  <Label htmlFor="update-landing" className="font-body text-charcoal">
-                    Sync changes to landing page instructor section
-                  </Label>
-                </div>
-              </div>
-            </div>
-          )}
-          <ResponsiveDialogFooter>
-            <Button variant="outline" onClick={() => setShowEditInstructorDialog(false)} className="border-sage/20 font-body">
-              Cancel
-            </Button>
-            <Button variant="sage">
-              <Save className="h-4 w-4 mr-2" />
-              Save Changes
-            </Button>
-          </ResponsiveDialogFooter>
-        </ResponsiveDialogContent>
-      </ResponsiveDialog>
+      )}
 
       {/* Member Profile Modal */}
       <Drawer
@@ -2149,29 +1617,17 @@ export default function AdminDashboard() {
               </Card>
 
               {/* Quick Actions */}
-              <div className="grid grid-cols-2 gap-4 pt-4">
-                <Button variant="sage" className="h-12">
-                  <Zap size={16} className="mr-2" />
-                  Send Nudge
-                </Button>
+              <div className="pt-4">
                 <Button
-                  variant="outline"
+                  variant="sage"
                   onClick={() => {
                     const pid = String(selectedMemberProfile.profileId ?? selectedMemberProfile.id ?? "");
                     if (pid) void router.push(`/admin/members/${encodeURIComponent(pid)}`);
                   }}
-                  className="border-sage/30 text-charcoal hover:bg-sage/5 font-body h-12 hover:text-charcoal!"
+                  className="w-full h-12"
                 >
                   <CreditCard size={16} className="mr-2" />
                   Manage Packages
-                </Button>
-                <Button variant="sage-outline" className="h-12">
-                  <Mail size={16} className="mr-2" />
-                  Send Email
-                </Button>
-                <Button variant="sage-outline" className="h-12">
-                  <Edit size={16} className="mr-2" />
-                  Edit Profile
                 </Button>
               </div>
             </div>

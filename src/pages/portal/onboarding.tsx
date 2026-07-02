@@ -207,7 +207,7 @@ export default function OnboardingPage() {
         <div className="text-center animate-in zoom-in duration-500">
           <CheckCircle2 className="h-20 w-20 text-sage mx-auto mb-6" />
           <h2 className="font-body font-semibold text-3xl text-charcoal mb-2">{"You're all set!"}</h2>
-          <p className="font-body text-charcoal/60">Taking you to your dashboard…</p>
+          <p className="font-body text-charcoal/70">Taking you to your dashboard…</p>
         </div>
       </div>
     );
@@ -266,7 +266,7 @@ export default function OnboardingPage() {
                 {step === 1 && "Your fitness goals"}
                 {step === 2 && "Health & wellbeing"}
               </CardTitle>
-              <CardDescription className="font-body text-charcoal/60">
+              <CardDescription className="font-body text-charcoal/75">
                 {step === 0 && "This helps us personalise your studio experience."}
                 {step === 1 && "What are you working towards? Pick all that apply."}
                 {step === 2 && "Helps your instructors keep you safe. All info is private."}
@@ -364,7 +364,7 @@ export default function OnboardingPage() {
                         {isFemale ? "Short-term health considerations" : "Current health conditions"}
                         <span className="text-terracotta ml-0.5">*</span>
                       </Label>
-                      <p className="text-xs text-charcoal/50 font-body">Select all that apply</p>
+                      <p className="text-xs text-charcoal/70 font-body">Select all that apply</p>
                       <Controller
                         name="healthIssuesShort"
                         control={control}
@@ -384,7 +384,7 @@ export default function OnboardingPage() {
                     {isFemale ? (
                       <div className="space-y-2">
                         <Label className="font-body text-charcoal font-medium">Long-term health conditions</Label>
-                        <p className="text-xs text-charcoal/50 font-body">Select all that apply</p>
+                        <p className="text-xs text-charcoal/70 font-body">Select all that apply</p>
                         <Controller
                           name="healthIssuesLong"
                           control={control}
@@ -402,7 +402,7 @@ export default function OnboardingPage() {
                         <Label htmlFor="injuries" className="font-body text-charcoal font-medium">
                           Current or recent injuries
                         </Label>
-                        <p className="text-xs text-charcoal/50 font-body">Leave blank if none</p>
+                        <p className="text-xs text-charcoal/70 font-body">Leave blank if none</p>
                         <Controller
                           name="injuries"
                           control={control}
@@ -467,7 +467,7 @@ export default function OnboardingPage() {
             </CardContent>
           </Card>
 
-          <p className="text-center text-xs text-charcoal/40 font-body mt-6">
+          <p className="text-center text-xs text-charcoal/70 font-body mt-6">
             All health information is kept strictly private and only shared with your instructors.
           </p>
         </div>

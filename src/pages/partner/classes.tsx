@@ -12,7 +12,7 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { MetricCard } from "@/components/admin/MetricCard";
 import { Skeleton } from "@/components/ui/skeleton";
 import { EmptyState } from "@/components/ui/empty-state";
-import { ResponsiveTable } from "@/components/responsive/ResponsiveTable";
+import { ResponsiveTable, ResponsiveCards } from "@/components/responsive/ResponsiveTable";
 import {
   Table,
   TableBody,
@@ -35,6 +35,7 @@ import {
 import { NavPrevButton, NavNextButton } from "@/components/ui/quick-actions";
 import { cn } from "@/lib/utils";
 import { toast } from "sonner";
+import { useStudioSWR } from "@/lib/swr";
 
 function PartnerClassesSkeleton() {
   return (
@@ -123,9 +124,6 @@ function initials(name: string) { return name.split(" ").map((p) => p[0]).slice(
 
 export default function PartnerClasses() {
   const router = useRouter();
-  const [classes, setClasses] = useState<ClassRow[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
   const [actioningId, setActioningId] = useState<string | null>(null);
 
   const [viewMode, setViewMode] = useState<"week" | "month">("week");
@@ -150,29 +148,22 @@ export default function PartnerClasses() {
     return { rangeStart: start, rangeEnd: end, gridDays: gd, periodLabel: label };
   }, [viewMode, anchor]);
 
-  const rangeKey = `${rangeStart.getTime()}-${rangeEnd.getTime()}`;
+  // Same URL shape the dashboard fetches — for the current week both hooks share
+  // one SWR cache entry (dedupe / keepPreviousData).
+  const swrKey = `/api/partner/classes?from=${encodeURIComponent(rangeStart.toISOString())}&to=${encodeURIComponent(rangeEnd.toISOString())}`;
+  const { data: classesData, error: swrError, isLoading, mutate } = useStudioSWR<ClassRow[]>(swrKey);
+  const classes = useMemo(() => classesData ?? [], [classesData]);
+  const loading = isLoading;
 
   useEffect(() => {
-    let cancelled = false;
-    setLoading(true);
-    (async () => {
-      try {
-        const res = await fetch(`/api/partner/classes?from=${encodeURIComponent(rangeStart.toISOString())}&to=${encodeURIComponent(rangeEnd.toISOString())}`);
-        if (res.status === 401) { router.replace("/partner/login"); return; }
-        if (!res.ok) throw new Error();
-        const data = await res.json();
-        if (!cancelled) { setClasses(data); setError(null); }
-      } catch {
-        if (!cancelled) setError("Could not load classes. Please try again.");
-      } finally {
-        if (!cancelled) setLoading(false);
-      }
-    })();
-    return () => { cancelled = true; };
-  // rangeKey already encodes start+end timestamps — including the Date objects
-  // would refire this effect on every render (new Date refs each pass).
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [rangeKey]);
+    if ((swrError as (Error & { status?: number }) | undefined)?.status === 401) {
+      router.replace("/partner/login");
+    }
+  }, [swrError, router]);
+
+  const loadError = swrError && (swrError as Error & { status?: number }).status !== 401
+    ? "Could not load classes. Please try again."
+    : null;
 
   async function actionBooking(classId: string, bookingId: string, action: "confirm" | "reject") {
     setActioningId(bookingId);
@@ -184,16 +175,18 @@ export default function PartnerClasses() {
       });
       if (res.status === 401) { router.replace("/partner/login"); return; }
       if (!res.ok) throw new Error();
-      setClasses((prev) =>
-        prev.map((c) => {
-          if (c.id !== classId) return c;
-          if (action === "confirm") {
-            return { ...c, bookings: c.bookings.map((b) => (b.id === bookingId ? { ...b, confirmationStatus: "confirmed" } : b)) };
-          }
-          const removed = c.bookings.find((b) => b.id === bookingId);
-          const freed = removed ? 1 + (removed.extraGuests ?? 0) : 1;
-          return { ...c, bookings: c.bookings.filter((b) => b.id !== bookingId), signups: Math.max(0, c.signups - freed), openSpots: c.openSpots + freed };
-        }),
+      await mutate(
+        (prev) =>
+          (prev ?? []).map((c) => {
+            if (c.id !== classId) return c;
+            if (action === "confirm") {
+              return { ...c, bookings: c.bookings.map((b) => (b.id === bookingId ? { ...b, confirmationStatus: "confirmed" } : b)) };
+            }
+            const removed = c.bookings.find((b) => b.id === bookingId);
+            const freed = removed ? 1 + (removed.extraGuests ?? 0) : 1;
+            return { ...c, bookings: c.bookings.filter((b) => b.id !== bookingId), signups: Math.max(0, c.signups - freed), openSpots: c.openSpots + freed };
+          }),
+        { revalidate: false },
       );
     } catch {
       toast.error("Could not update the booking. Please try again.");
@@ -350,11 +343,11 @@ export default function PartnerClasses() {
 
         {loading ? (
           <PartnerClassesSkeleton />
-        ) : error ? (
+        ) : loadError ? (
           <Card className="border-destructive/30 bg-destructive/5">
             <CardContent className="flex items-center justify-center gap-2 p-8 text-center">
               <AlertCircle className="size-5 shrink-0 text-destructive" aria-hidden="true" />
-              <span className="font-body text-sm text-destructive">{error}</span>
+              <span className="font-body text-sm text-destructive">{loadError}</span>
             </CardContent>
           </Card>
         ) : activeClasses.length === 0 ? (
@@ -400,6 +393,64 @@ export default function PartnerClasses() {
                         className="py-8"
                       />
                     ) : (
+                      <ResponsiveCards
+                        data={c.bookings}
+                        renderCard={(b) => {
+                          const bookerName = b.invitedByUserId
+                            ? c.bookings.find((x) => x.userId === b.invitedByUserId)?.memberName ?? null
+                            : null;
+                          const broughtNames = b.invitedByUserId
+                            ? []
+                            : c.bookings.filter((x) => x.invitedByUserId === b.userId).map((x) => x.memberName);
+                          const waiver = waiverPill(b.hasWaiver);
+                          const { label: waiverLabel, ...waiverRest } = waiver;
+                          const isPending = b.confirmationStatus === "pending";
+                          return (
+                            <div key={b.id} className="rounded-lg border border-sage/15 bg-white-warm p-4">
+                              <div className="flex items-start gap-3">
+                                <Avatar className="h-9 w-9 shrink-0">
+                                  {b.avatarUrl && <AvatarImage src={b.avatarUrl} alt={b.memberName} />}
+                                  <AvatarFallback className="bg-sage/10 text-sage text-xs">{initials(b.memberName)}</AvatarFallback>
+                                </Avatar>
+                                <div className="min-w-0 flex-1">
+                                  <div className="font-body text-sm font-medium text-charcoal">
+                                    {b.memberName}
+                                    {b.extraGuests > 0 && <span className="text-muted-foreground font-normal"> +{b.extraGuests} guest{b.extraGuests > 1 ? "s" : ""}</span>}
+                                    {broughtNames.length > 0 && (
+                                      <span className="text-muted-foreground font-normal"> · brought {broughtNames.join(", ")}</span>
+                                    )}
+                                  </div>
+                                  <div className="font-body text-xs text-muted-foreground break-words">
+                                    {bookerName ? `Guest of ${bookerName} · ` : ""}
+                                    {b.email}
+                                    {b.phone ? ` · ${b.phone}` : ""}
+                                  </div>
+                                </div>
+                              </div>
+                              <div className="mt-3 flex flex-wrap items-center gap-2">
+                                <Pill {...waiverRest} className="font-body whitespace-nowrap">{waiverLabel}</Pill>
+                                {b.status === "payment_pending" && (() => {
+                                  const { label, ...pill } = bookingPaymentPill(b.status);
+                                  return <Pill {...pill} className="font-body whitespace-nowrap">{label}</Pill>;
+                                })()}
+                                {isPending ? (
+                                  <Pill {...bookingStatusPill("pending")} className="font-body whitespace-nowrap">Pending</Pill>
+                                ) : b.checkedIn ? (
+                                  <Pill tone="success" className="font-body whitespace-nowrap" icon={<CheckCircle2 className="h-3.5 w-3.5" />}>Checked in</Pill>
+                                ) : (
+                                  <Pill tone="neutral" className="font-body whitespace-nowrap">Not checked in</Pill>
+                                )}
+                              </div>
+                              {isPending && (
+                                <div className="mt-3 grid grid-cols-2 gap-2">
+                                  <Button size="sm" variant="sage" disabled={actioningId === b.id} onClick={() => actionBooking(c.id, b.id, "confirm")} className="w-full">Confirm</Button>
+                                  <Button size="sm" variant="ghost" disabled={actioningId === b.id} onClick={() => actionBooking(c.id, b.id, "reject")} className="w-full border border-sage/20">Reject</Button>
+                                </div>
+                              )}
+                            </div>
+                          );
+                        }}
+                        renderTable={() => (
                       <ResponsiveTable>
                         <Table>
                           <TableHeader>
@@ -480,6 +531,8 @@ export default function PartnerClasses() {
                           </TableBody>
                         </Table>
                       </ResponsiveTable>
+                        )}
+                      />
                     )}
                   </CardContent>
                 </Card>

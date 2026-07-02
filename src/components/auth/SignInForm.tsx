@@ -140,7 +140,7 @@ export function SignInForm({ onSwitchToSignup }: { onSwitchToSignup: () => void 
         <span className="h-px w-10 bg-linear-to-l from-transparent to-terracotta/40" />
       </div>
 
-      <p className="font-body text-sm text-charcoal/60 mb-8 text-center">
+      <p className="font-body text-sm text-charcoal/80 mb-8 text-center">
         {!emailChecked
           ? "Enter your email to continue"
           : needPick
@@ -213,6 +213,11 @@ export function SignInForm({ onSwitchToSignup }: { onSwitchToSignup: () => void 
               animate={{ height: "auto", opacity: 1 }}
               exit={{ height: 0, opacity: 0 }}
               transition={{ duration: 0.25, ease: "easeOut" }}
+              onAnimationComplete={() => {
+                // Focus after the height animation settles so the mobile keyboard
+                // doesn't pop mid-animation (autoFocus fired during the transition).
+                document.getElementById("password")?.focus();
+              }}
               className="overflow-hidden -mx-1 px-1"
             >
               <div className="space-y-5 pt-0.5">
@@ -235,7 +240,6 @@ export function SignInForm({ onSwitchToSignup }: { onSwitchToSignup: () => void 
                     placeholder="••••••••"
                     className="border-sage/25 bg-cream focus:ring-sage placeholder:text-charcoal/40 h-12 rounded-xl"
                     required
-                    autoFocus
                     aria-invalid={error ? true : undefined}
                     aria-describedby={error ? "signin-error" : undefined}
                   />
@@ -281,7 +285,7 @@ export function SignInForm({ onSwitchToSignup }: { onSwitchToSignup: () => void 
         )}
       </form>
 
-      <p className="mt-8 font-body text-sm text-charcoal/60 text-center">
+      <p className="mt-8 font-body text-sm text-charcoal/80 text-center">
         New to The Studio?{" "}
         <Button type="button" variant="link" onClick={onSwitchToSignup} className="text-sage h-auto p-0 font-medium">
           Create account

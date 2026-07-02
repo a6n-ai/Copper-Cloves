@@ -37,7 +37,7 @@ export default function CheckinDeepLink() {
 
   return (
     <div className="flex min-h-screen items-center justify-center bg-cream p-6">
-      <p className="text-center font-display text-2xl text-charcoal">{msg}</p>
+      <p role="status" aria-live="polite" className="text-center font-display text-2xl text-charcoal">{msg}</p>
     </div>
   );
 }

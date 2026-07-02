@@ -15,7 +15,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     logger.error({ err: e }, "[dashboard/member-stats]");
     return res.status(200).json({
       memberStats: {
-        memberOfMonth: { name: "—", classes: 0, streak: 0 },
+        memberOfMonth: { id: null, name: "—", classes: 0, streak: 0 },
         topClass: { name: "—", bookings: 0 },
         weeklyStreak: { average: 0, top: 0 },
         onTimeCheckIns: 0, lateCheckIns: 0, checkInSample: 0,

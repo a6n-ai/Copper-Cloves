@@ -386,7 +386,7 @@ function computeExpiryBuckets(now: Date, expBucketRows: { expiration_date: Date 
 }
 
 async function resolveMemberOfMonth(db: Db, topBooker: { user_id: string; c: bigint } | undefined) {
-  const fallback = { name: "—", classes: 0, streak: 0 };
+  const fallback = { id: null as string | null, name: "—", classes: 0, streak: 0 };
   if (!topBooker?.user_id) return fallback;
   const [profile, streak] = await Promise.all([
     db.profile.findUnique({
@@ -397,6 +397,7 @@ async function resolveMemberOfMonth(db: Db, topBooker: { user_id: string; c: big
   ]);
   if (!profile) return fallback;
   return {
+    id: topBooker.user_id,
     name: profile.full_name || profile.email || "Member",
     classes: Number(topBooker.c) || 0,
     streak: streak.current_streak,

@@ -30,7 +30,7 @@ export function AuthShell({
       {/* Top bar: weather + back home */}
       <div className="absolute inset-x-0 top-0 z-10 flex items-center justify-between p-5 sm:p-6">
         <WeatherWidget weather={weather} />
-        <Link href="/" className="font-body text-sm text-charcoal/60 hover:text-sage transition-colors">← Home</Link>
+        <Link href="/" className="font-body text-sm text-charcoal/70 hover:text-sage transition-colors">← Home</Link>
       </div>
 
       {/* Centered card */}
@@ -56,7 +56,7 @@ export function AuthShell({
               <span className="font-display text-2xl text-charcoal italic tracking-tight">
                 the<span className="font-normal not-italic uppercase tracking-[0.15em]">STUDIO</span>
               </span>
-              <p className="font-body text-[10px] tracking-[0.35em] uppercase text-charcoal/45 mt-1">by Copper + Cloves</p>
+              <p className="font-body text-[10px] tracking-[0.35em] uppercase text-charcoal/70 mt-1">by Copper + Cloves</p>
             </div>
           </div>
 

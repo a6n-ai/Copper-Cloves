@@ -129,9 +129,21 @@ export function AuthLeavesBackground({
       if (reduced) drawStatic();
     };
     window.addEventListener("resize", onResize);
+
+    const onVisibility = () => {
+      if (reduced) return;
+      if (document.hidden) {
+        cancelAnimationFrame(raf);
+        raf = 0;
+      } else if (!raf) {
+        raf = requestAnimationFrame(frame);
+      }
+    };
+    document.addEventListener("visibilitychange", onVisibility);
     return () => {
       cancelAnimationFrame(raf);
       window.removeEventListener("resize", onResize);
+      document.removeEventListener("visibilitychange", onVisibility);
     };
   }, [palette]);
 

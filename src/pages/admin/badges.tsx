@@ -17,6 +17,8 @@ import { EditButton, DeleteButton } from "@/components/ui/quick-actions";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Pill } from "@/components/ui/pill";
+import { Skeleton } from "@/components/ui/skeleton";
+import { useStudioSWR } from "@/lib/swr";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { SortableHeader } from "@/components/admin/sortable-table";
 import { ResponsiveTable } from "@/components/responsive/ResponsiveTable";
@@ -73,6 +75,12 @@ interface MemberSearchResult {
   email: string;
 }
 
+interface MemberStatsResponse {
+  memberStats?: {
+    memberOfMonth?: { id: string | null; name: string; classes: number; streak: number };
+  };
+}
+
 interface EditFormState {
   name: string;
   description: string;
@@ -93,6 +101,81 @@ const emptyForm = (): EditFormState => ({
   threshold_classes: "",
   sort_order: "0",
 });
+
+function BadgesLoadingSkeleton() {
+  return (
+    <>
+      {/* Stats grid */}
+      <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+        {Array.from({ length: 4 }).map((_, i) => (
+          <Card key={i} className="border-sage/20 bg-white-warm">
+            <CardContent className="p-4 space-y-3">
+              <div className="flex items-center justify-between">
+                <Skeleton className="h-3 w-20" />
+                <Skeleton className="h-8 w-8 rounded-lg" />
+              </div>
+              <Skeleton className="h-7 w-12" />
+            </CardContent>
+          </Card>
+        ))}
+      </div>
+
+      {/* Tabs */}
+      <Skeleton className="h-10 w-64 rounded-xl" />
+
+      {/* Table card */}
+      <Card className="border-sage/20 bg-white-warm">
+        <CardHeader className="space-y-4">
+          <div className="flex flex-wrap items-start justify-between gap-3">
+            <div className="space-y-2">
+              <Skeleton className="h-7 w-48" />
+              <Skeleton className="h-4 w-64" />
+            </div>
+            <div className="flex items-center gap-2 w-full sm:w-auto">
+              <Skeleton className="h-9 flex-1 sm:w-64 rounded-md" />
+              <Skeleton className="h-9 w-36 shrink-0 rounded-md" />
+            </div>
+          </div>
+        </CardHeader>
+        <CardContent>
+          <div className="rounded-xl border border-sage/15 bg-white-warm overflow-hidden">
+            <div className="flex items-center gap-4 bg-sage/5 px-5 py-3 border-b border-sage/10">
+              <Skeleton className="h-3 flex-1" />
+              <Skeleton className="hidden md:block h-3 w-[150px]" />
+              <Skeleton className="hidden md:block h-3 w-[130px]" />
+              <Skeleton className="hidden md:block h-3 w-[110px]" />
+              <Skeleton className="h-3 w-[80px]" />
+            </div>
+            {Array.from({ length: 6 }).map((_, i) => (
+              <div
+                key={i}
+                className="flex items-center gap-4 px-5 py-4 border-b border-sage/10 last:border-b-0"
+              >
+                <div className="flex flex-1 items-center gap-3 min-w-0">
+                  <Skeleton className="h-11 w-11 shrink-0 rounded-xl" />
+                  <div className="min-w-0 space-y-1.5">
+                    <Skeleton className="h-4 w-32" />
+                    <Skeleton className="h-3 w-40" />
+                  </div>
+                </div>
+                <Skeleton className="hidden md:block h-6 w-[120px] rounded-full" />
+                <div className="hidden md:flex w-[130px] items-center gap-2">
+                  <Skeleton className="h-4 w-4 rounded-full" />
+                  <Skeleton className="h-3 w-16" />
+                </div>
+                <Skeleton className="hidden md:block h-6 w-16 rounded-full" />
+                <div className="flex gap-2 w-[80px] justify-end">
+                  <Skeleton className="h-8 w-8 rounded-md" />
+                  <Skeleton className="h-8 w-8 rounded-md" />
+                </div>
+              </div>
+            ))}
+          </div>
+        </CardContent>
+      </Card>
+    </>
+  );
+}
 
 export default function AdminBadgesPage() {
   const router = useRouter();
@@ -126,9 +209,16 @@ export default function AdminBadgesPage() {
   const [searchLoading, setSearchLoading] = useState(false);
   const searchTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
 
-  // Member of the Month
-  const [momName, setMomName] = useState<string | null>(null);
-  const [momUserId, setMomUserId] = useState<string | null>(null);
+  // Member of the Month — deferred until the custom tab is actually shown.
+  // member-stats returns the id directly, so no chained members-search lookup.
+  const { data: memberStatsData } = useStudioSWR<MemberStatsResponse>(
+    status === "authenticated" && tab === "custom"
+      ? "/api/admin/dashboard/member-stats"
+      : null,
+  );
+  const mom = memberStatsData?.memberStats?.memberOfMonth;
+  const momName = mom?.name && mom.name !== "—" ? mom.name : null;
+  const momUserId = mom?.id ?? null;
   const [momAwarding, setMomAwarding] = useState(false);
   const [momMsg, setMomMsg] = useState<string | null>(null);
 
@@ -155,34 +245,11 @@ export default function AdminBadgesPage() {
     }
   }, []);
 
-  const fetchDashboardExtras = useCallback(async () => {
-    try {
-      const res = await fetch("/api/admin/dashboard/member-stats");
-      if (!res.ok) return;
-      const data = await res.json();
-      const mom = data.memberStats?.memberOfMonth;
-      if (mom?.name && mom.name !== "—") {
-        setMomName(mom.name);
-        // Try to find the user id via search
-        const sq = await fetch(
-          `/api/admin/members-search?q=${encodeURIComponent(mom.name)}`
-        );
-        if (sq.ok) {
-          const sdata: MemberSearchResult[] = await sq.json();
-          if (sdata.length > 0) setMomUserId(sdata[0].id);
-        }
-      }
-    } catch {
-      // ignore
-    }
-  }, []);
-
   useEffect(() => {
     if (status === "authenticated") {
       fetchTemplates();
-      fetchDashboardExtras();
     }
-  }, [status, fetchTemplates, fetchDashboardExtras]);
+  }, [status, fetchTemplates]);
 
   const fetchAllocations = useCallback(async (templateId: string) => {
     const res = await fetch(`/api/admin/badge-allocations?template_id=${templateId}`);
@@ -467,7 +534,9 @@ export default function AdminBadgesPage() {
             {COLOR_PRESETS.map((p) => (
               <button
                 key={p.hex}
+                type="button"
                 title={p.label}
+                aria-label={`Set colour to ${p.label} (${p.hex})`}
                 onClick={() => setForm((f) => ({ ...f, color: p.hex }))}
                 className="w-6 h-6 rounded-full border-2 border-cream shadow-sm transition-transform hover:scale-110"
                 style={{ backgroundColor: p.hex, outline: form.color === p.hex ? `2px solid ${p.hex}` : "none" }}
@@ -517,8 +586,16 @@ export default function AdminBadgesPage() {
 
   if (status === "loading" || loading) {
     return (
-      <div className="flex items-center justify-center min-h-screen bg-linear-to-br from-cream via-cream to-sage/5">
-        <div className="text-sage font-body font-semibold text-2xl animate-pulse">Loading badges...</div>
+      <div className="min-h-screen bg-linear-to-br from-cream via-cream to-sage/5">
+        <main className="min-h-screen">
+          <div className="max-w-6xl mx-auto p-6 lg:p-8 space-y-6">
+            <AdminPageHeader
+              title="Badge Management"
+              subtitle="Configure milestone tiers and custom recognition badges"
+            />
+            <BadgesLoadingSkeleton />
+          </div>
+        </main>
       </div>
     );
   }

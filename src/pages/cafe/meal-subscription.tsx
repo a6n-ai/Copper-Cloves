@@ -106,7 +106,7 @@ export default function MealSubscriptionPage() {
             {heroImages.map((image, index) => (
               <div
                 key={image}
-                className="absolute inset-0 transition-opacity duration-2000"
+                className="absolute inset-0 transition-opacity duration-[2000ms]"
                 style={{
                   opacity: index === currentImageIndex ? 1 : 0,
                   zIndex: index === currentImageIndex ? 1 : 0
@@ -177,8 +177,8 @@ export default function MealSubscriptionPage() {
                 onClick={() => setCurrentImageIndex(index)}
                 className={`w-3 h-3 rounded-full transition-all duration-300 ${
                   index === currentImageIndex 
-                    ? 'bg-white-warm w-8' 
-                    : 'bg-[#fafaf8]/40 hover:bg-[#fafaf8]/60'
+                    ? 'bg-white-warm w-8'
+                    : 'bg-white-warm/40 hover:bg-white-warm/60'
                 }`}
                 aria-label={`View image ${index + 1}`}
               />
@@ -269,58 +269,81 @@ export default function MealSubscriptionPage() {
               </p>
             </div>
 
-            {/* Benefits Grid */}
-            <div className="grid md:grid-cols-2 gap-8">
-              {[
-                {
-                  icon: <Leaf />,
-                  title: "100% Plant-Based",
-                  description: "Whole-food, nutrient-dense meals crafted without animal products, dairy, or refined sugars."
-                },
-                {
-                  icon: <ChefHat />,
-                  title: "Chef-Prepared Daily",
-                  description: "Fresh meals made from scratch every morning—never frozen, never reheated, always vibrant."
-                },
-                {
-                  icon: <Calendar />,
-                  title: "Rotating Menu",
-                  description: "Seasonal variety means you'll never eat the same meal twice in a row. Always fresh, always exciting."
-                },
-                {
-                  icon: <Heart />,
-                  title: "Macro-Balanced",
-                  description: "Each meal is designed to support your energy, recovery, and overall wellness goals."
-                },
-                {
-                  icon: <Sparkles />,
-                  title: "Locally Sourced",
-                  description: "We partner with local farms and suppliers to bring you the freshest seasonal ingredients."
-                },
-                {
-                  icon: <Check />,
-                  title: "Flexible & Convenient",
-                  description: "Pickup at the café or opt for delivery. Pause, skip, or adjust your subscription anytime."
-                }
-              ].map((benefit) => (
-                <Card key={benefit.title} className="border-2 border-sage/30 hover:border-sage transition-all duration-300 hover:shadow-xl bg-white-warm">
-                  <CardContent className="p-8">
-                    <div className="flex items-start gap-4">
-                      <div className="w-14 h-14 rounded-full bg-sage/20 flex items-center justify-center shrink-0">
-                        <div className="text-sage">{benefit.icon}</div>
-                      </div>
-                      <div>
-                        <h3 className="font-display text-2xl text-charcoal font-semibold mb-3">
-                          {benefit.title}
-                        </h3>
-                        <p className="font-body text-charcoal/70 leading-relaxed">
-                          {benefit.description}
-                        </p>
-                      </div>
-                    </div>
-                  </CardContent>
-                </Card>
-              ))}
+            {/* Benefits — editorial bento: sage lead, supporting trio, terracotta closing band */}
+            <div className="grid grid-cols-1 md:grid-cols-6 gap-5">
+              {/* Lead feature */}
+              <article className="md:col-span-4 rounded-2xl border border-[#e5e4dc] bg-linear-to-br from-sage/10 to-white-warm p-8 md:p-10 transition-[box-shadow,border-color] duration-300 hover:border-[#c8c6be] hover:shadow-[0_4px_24px_rgba(51,51,51,0.08)]">
+                <div className="w-14 h-14 rounded-full bg-sage/20 flex items-center justify-center mb-6">
+                  <Leaf className="text-sage" size={30} />
+                </div>
+                <h3 className="font-display text-3xl md:text-4xl text-charcoal font-semibold mb-4">
+                  100% Plant-Based
+                </h3>
+                <p className="font-body text-lg text-charcoal/70 leading-relaxed max-w-md">
+                  Whole-food, nutrient-dense meals crafted without animal products, dairy, or refined sugars.
+                </p>
+              </article>
+
+              {/* Companion */}
+              <article className="md:col-span-2 rounded-2xl border border-[#e5e4dc] bg-white-warm p-8 transition-[box-shadow,border-color] duration-300 hover:border-[#c8c6be] hover:shadow-[0_4px_24px_rgba(51,51,51,0.08)]">
+                <div className="w-12 h-12 rounded-full bg-sage/15 flex items-center justify-center mb-5">
+                  <ChefHat className="text-sage" size={24} />
+                </div>
+                <h3 className="font-display text-2xl text-charcoal font-semibold mb-3">
+                  Chef-Prepared Daily
+                </h3>
+                <p className="font-body text-charcoal/70 leading-relaxed">
+                  Fresh meals made from scratch every morning—never frozen, never reheated, always vibrant.
+                </p>
+              </article>
+
+              {/* Supporting trio — inline icon + title, distinct from the stacked features */}
+              <article className="md:col-span-2 rounded-2xl border border-[#e5e4dc] bg-white-warm p-7 transition-[box-shadow,border-color] duration-300 hover:border-[#c8c6be] hover:shadow-[0_4px_24px_rgba(51,51,51,0.08)]">
+                <div className="flex items-center gap-3 mb-3">
+                  <Calendar className="text-sage shrink-0" size={22} />
+                  <h3 className="font-display text-xl text-charcoal font-semibold">Rotating Menu</h3>
+                </div>
+                <p className="font-body text-charcoal/70 leading-relaxed">
+                  Seasonal variety means you'll never eat the same meal twice in a row. Always fresh, always exciting.
+                </p>
+              </article>
+
+              <article className="md:col-span-2 rounded-2xl border border-[#e5e4dc] bg-white-warm p-7 transition-[box-shadow,border-color] duration-300 hover:border-[#c8c6be] hover:shadow-[0_4px_24px_rgba(51,51,51,0.08)]">
+                <div className="flex items-center gap-3 mb-3">
+                  <Heart className="text-sage shrink-0" size={22} />
+                  <h3 className="font-display text-xl text-charcoal font-semibold">Macro-Balanced</h3>
+                </div>
+                <p className="font-body text-charcoal/70 leading-relaxed">
+                  Each meal is designed to support your energy, recovery, and overall wellness goals.
+                </p>
+              </article>
+
+              <article className="md:col-span-2 rounded-2xl border border-[#e5e4dc] bg-white-warm p-7 transition-[box-shadow,border-color] duration-300 hover:border-[#c8c6be] hover:shadow-[0_4px_24px_rgba(51,51,51,0.08)]">
+                <div className="flex items-center gap-3 mb-3">
+                  <Sparkles className="text-sage shrink-0" size={22} />
+                  <h3 className="font-display text-xl text-charcoal font-semibold">Locally Sourced</h3>
+                </div>
+                <p className="font-body text-charcoal/70 leading-relaxed">
+                  We partner with local farms and suppliers to bring you the freshest seasonal ingredients.
+                </p>
+              </article>
+
+              {/* Closing band — terracotta warmth accent (café/food context) */}
+              <article className="md:col-span-6 rounded-2xl border border-[#e5e4dc] bg-white-warm p-8 md:p-10 transition-[box-shadow,border-color] duration-300 hover:border-[#c8c6be] hover:shadow-[0_4px_24px_rgba(51,51,51,0.08)]">
+                <div className="flex flex-col sm:flex-row sm:items-center gap-6">
+                  <div className="w-14 h-14 rounded-full bg-terracotta/15 flex items-center justify-center shrink-0">
+                    <Check className="text-terracotta" size={28} />
+                  </div>
+                  <div className="max-w-2xl">
+                    <h3 className="font-display text-2xl md:text-3xl text-charcoal font-semibold mb-2">
+                      Flexible &amp; Convenient
+                    </h3>
+                    <p className="font-body text-lg text-charcoal/70 leading-relaxed">
+                      Pickup at the café or opt for delivery. Pause, skip, or adjust your subscription anytime.
+                    </p>
+                  </div>
+                </div>
+              </article>
             </div>
           </div>
         </section>
@@ -339,7 +362,7 @@ export default function MealSubscriptionPage() {
                 </div>
 
                 <div className="space-y-8">
-                  <Card className="border-2 border-sage/20 bg-linear-to-br from-sage/5 to-[#fafaf8]">
+                  <Card className="border-2 border-sage/20 bg-linear-to-br from-sage/5 to-white-warm">
                     <CardContent className="p-10">
                       <h3 className="font-display text-3xl text-charcoal font-semibold mb-4">
                         Because clean eating shouldn't be hard.
@@ -353,7 +376,7 @@ export default function MealSubscriptionPage() {
                     </CardContent>
                   </Card>
 
-                  <Card className="border-2 border-sage/20 bg-linear-to-br from-sage/5 to-[#fafaf8]">
+                  <Card className="border-2 border-sage/20 bg-linear-to-br from-sage/5 to-white-warm">
                     <CardContent className="p-10">
                       <h3 className="font-display text-3xl text-charcoal font-semibold mb-4">
                         For the ones who train hard and deserve better fuel.
@@ -379,7 +402,7 @@ export default function MealSubscriptionPage() {
                   </div>
 
                   {/* Contact Form */}
-                  <Card className="border-2 border-sage/30 shadow-2xl bg-white-warm">
+                  <Card className="border-2 border-sage/30 bg-white-warm transition-shadow hover:shadow-[0_4px_24px_rgba(51,51,51,0.08)]">
                     <CardContent className="p-8 md:p-12">
                       {!isSuccess ? (
                         <form onSubmit={handleSubmit} className="space-y-6">
@@ -394,6 +417,7 @@ export default function MealSubscriptionPage() {
                               name="fullName"
                               type="text"
                               required
+                              autoComplete="name"
                               value={formData.fullName}
                               onChange={handleChange}
                               placeholder="Enter your full name"
@@ -412,6 +436,7 @@ export default function MealSubscriptionPage() {
                               name="email"
                               type="email"
                               required
+                              autoComplete="email"
                               value={formData.email}
                               onChange={handleChange}
                               placeholder="your@email.com"
@@ -430,6 +455,7 @@ export default function MealSubscriptionPage() {
                               name="phone"
                               type="tel"
                               required
+                              autoComplete="tel"
                               value={formData.phone}
                               onChange={handleChange}
                               placeholder="+91 xxxxx xxxxx"

@@ -48,7 +48,8 @@ export default function SetPasswordPage() {
         } else {
           setEmail(data.email);
         }
-      });
+      })
+      .catch(() => setTokenError("Couldn't validate your link. Please try again."));
   }, [token, router]);
 
   async function handleSubmit(e: React.FormEvent) {

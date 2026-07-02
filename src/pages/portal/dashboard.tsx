@@ -734,6 +734,7 @@ export default function Dashboard() {
                         onChange={(e) => setDailyIntention(e.target.value)}
                         className="flex-1 border-charcoal/20 focus:border-sage font-body text-sm"
                         placeholder="Set your focus for today..."
+                        aria-label="Today's intention"
                       />
                       <Button
                         onClick={() => setIsEditingIntention(false)}
@@ -1125,7 +1126,7 @@ export default function Dashboard() {
                       alt={className}
                       width={640}
                       height={384}
-                      unoptimized
+                      sizes="(max-width: 640px) 100vw, 640px"
                       className="w-full h-48 object-cover rounded-lg mb-4"
                     />
                     <h4 className="font-body font-semibold text-xl text-charcoal mb-2">

@@ -154,7 +154,7 @@ export default function KitchenDashboard() {
         {active.map((o) => {
           const step = NEXT_STATUS[o.status];
           return (
-            <Card key={o.id} className="rounded-2xl border-sage/15 hover:shadow-md transition-shadow">
+            <Card key={o.id} className="rounded-2xl border-sage/15 hover:shadow-[0_4px_24px_rgba(51,51,51,0.08)] transition-shadow">
               <CardContent className="p-5 space-y-3">
                 <div className="flex items-start justify-between gap-2">
                   <div className="min-w-0">

@@ -166,6 +166,27 @@ export function memberStatusPill(status: string): PillSpec {
   }
 }
 
+// Member package derived-state (active|paused|expired|depleted|inactive) -> pill.
+// Not a stored column — derived from is_active/is_paused/expiry/credits. Unlike
+// memberStatusPill this understands `depleted` (used-up pass) as danger.
+export function packageStatePill(stateKey: string): PillSpec {
+  switch (stateKey) {
+    case "active":
+      return { tone: "success" }
+    case "paused":
+    case "in_review":
+    case "expiring":
+      return { tone: "warning" }
+    case "expired":
+    case "depleted":
+    case "cancelled":
+    case "inactive":
+      return { tone: "danger" }
+    default:
+      return { tone: "neutral" }
+  }
+}
+
 // Pass type / tier -> pill (tiered by value)
 export function passTypePill(type: string): PillSpec & { label?: string } {
   const t = type.toLowerCase()

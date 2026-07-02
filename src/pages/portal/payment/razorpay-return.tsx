@@ -153,7 +153,7 @@ export default function RazorpayReturnPage() {
     <>
       <Seo title="Payment — The Studio" description="Completing your payment" />
       <div className="min-h-screen bg-linear-to-br from-cream via-cream to-sage/5 flex items-center justify-center px-4">
-        <div className="max-w-md w-full rounded-xl border border-sage/20 bg-card/95 p-8 text-center shadow-md">
+        <div className="max-w-md w-full rounded-xl border border-sage/20 bg-white-warm p-8 text-center transition-shadow hover:shadow-[0_4px_24px_rgba(51,51,51,0.08)]">
           {status === "working" && (
             <>
               <Spinner className="size-10 text-sage mx-auto mb-4" />

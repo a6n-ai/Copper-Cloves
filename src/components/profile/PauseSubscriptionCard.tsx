@@ -8,6 +8,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { useToast } from "@/hooks/use-toast";
 import { Spinner } from "@/components/ui/spinner";
+import { Skeleton } from "@/components/ui/skeleton";
 import { CheckCircle2, PauseCircle, Paperclip, Calendar as CalendarIcon, Ticket } from "lucide-react";
 import { Calendar } from "@/components/ui/calendar";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
@@ -172,7 +173,25 @@ export function PauseSubscriptionCard() {
         </CardDescription>
       </CardHeader>
       <CardContent className="p-6">
-        {noActivePasses ? (
+        {packagesLoading ? (
+          <div className="space-y-4">
+            <div className="space-y-1.5">
+              <Skeleton className="h-4 w-24" />
+              <div className="space-y-2">
+                <Skeleton className="h-11 w-full" />
+                <Skeleton className="h-11 w-full" />
+              </div>
+            </div>
+            <div className="space-y-1.5">
+              <Skeleton className="h-4 w-24" />
+              <Skeleton className="h-11 w-full" />
+            </div>
+            <div className="space-y-1.5">
+              <Skeleton className="h-4 w-40" />
+              <Skeleton className="h-24 w-full" />
+            </div>
+          </div>
+        ) : noActivePasses ? (
           <Alert className="border-sage/30 bg-sage/5">
             <CheckCircle2 className="h-5 w-5 text-sage" />
             <AlertDescription className="font-body text-charcoal ml-2">

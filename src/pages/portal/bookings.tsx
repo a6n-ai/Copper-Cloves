@@ -222,28 +222,28 @@ const BookingCard = memo(function BookingCard({
 
 function BookingRowSkeleton() {
   return (
-    <div className="bg-white-warm rounded-xl border border-sage/10 p-6">
-      <div className="flex items-center justify-between gap-6">
-        <div className="flex-1">
-          <div className="flex items-center gap-3 mb-2">
-            <Skeleton className="h-7 w-44" />
-            <Skeleton className="h-6 w-20 rounded-full" />
+    <div className="bg-white-warm rounded-xl border border-sage/10 p-4 sm:p-6">
+      <div className="flex items-start justify-between gap-3 mb-2 sm:mb-3">
+        <div className="flex-1 min-w-0">
+          <Skeleton className="h-7 sm:h-8 w-40 sm:w-56" />
+          <div className="flex flex-wrap gap-1.5 mt-1 sm:mt-1.5">
+            <Skeleton className="h-5 w-20 rounded-md" />
+            <Skeleton className="h-5 w-24 rounded-md" />
           </div>
-          <Skeleton className="h-4 w-24 mb-2" />
-          <Skeleton className="h-3.5 w-40" />
         </div>
-        <div className="hidden md:block space-y-2">
-          <Skeleton className="h-3.5 w-16" />
-          <Skeleton className="h-4 w-24" />
+        <div className="shrink-0 text-right space-y-1">
+          <Skeleton className="h-3.5 w-14 ml-auto" />
+          <Skeleton className="h-4 w-16 ml-auto" />
         </div>
-        <div className="hidden lg:block space-y-2">
-          <Skeleton className="h-3.5 w-14" />
-          <Skeleton className="h-4 w-16" />
-        </div>
-        <div className="shrink-0 flex flex-col gap-2 items-end">
-          <Skeleton className="h-10 w-28 rounded-md" />
-          <Skeleton className="h-10 w-28 rounded-md" />
-        </div>
+      </div>
+      <div className="flex flex-wrap gap-x-4 gap-y-1 mb-3">
+        <Skeleton className="h-4 w-20" />
+        <Skeleton className="h-4 w-28" />
+        <Skeleton className="hidden sm:block h-4 w-24" />
+      </div>
+      <div className="flex gap-2">
+        <Skeleton className="h-11 w-full sm:w-28 rounded-md" />
+        <Skeleton className="h-11 w-full sm:w-28 rounded-md" />
       </div>
     </div>
   );
@@ -283,7 +283,7 @@ export default function MyBookingsPage() {
   }, [filter, sortAsc]);
 
   useEffect(() => {
-    if (status === "unauthenticated") { router.push("/portal/login"); return; }
+    if (status === "unauthenticated") { router.push("/login"); return; }
     if (status === "authenticated") {
       setIsAuthenticated(true);
       fetchBookings().finally(() => setIsLoading(false));

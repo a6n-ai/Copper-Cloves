@@ -9,7 +9,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Pill } from "@/components/ui/pill";
+import { Switch } from "@/components/ui/switch";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Building2, Plus, X } from "lucide-react";
 import { Spinner, PageLoader } from "@/components/ui/spinner";
@@ -49,7 +49,7 @@ export default function AdminPartners() {
         fetch("/api/admin/classes", { credentials: "include" }),
       ]);
       if (pRes.status === 403 || pRes.status === 401) {
-        router.replace("/portal/login");
+        router.replace("/login");
         return;
       }
       if (pRes.ok) setPartners(await pRes.json());
@@ -69,7 +69,7 @@ export default function AdminPartners() {
   }, [router]);
 
   useEffect(() => {
-    if (status === "unauthenticated") { router.replace("/portal/login"); return; }
+    if (status === "unauthenticated") { router.replace("/login"); return; }
     if (status === "authenticated") void load();
   }, [status, load, router]);
 
@@ -178,14 +178,18 @@ export default function AdminPartners() {
                       <Building2 className="h-5 w-5 text-sage" /> {p.name}
                       <span className="font-body text-xs text-charcoal/40">/{p.slug}</span>
                     </CardTitle>
-                    <Pill
-                      tone={p.is_active ? "success" : "neutral"}
-
-                      className="cursor-pointer font-body"
-                      onClick={() => patch({ id: p.id, is_active: !p.is_active })}
-                    >
-                      {p.is_active ? "Active" : "Inactive"}
-                    </Pill>
+                    <label className="flex items-center gap-2 cursor-pointer">
+                      <Switch
+                        checked={p.is_active}
+                        disabled={busy}
+                        onCheckedChange={(checked) => patch({ id: p.id, is_active: checked })}
+                        activityLabel="partner_active_toggle"
+                        className="focus-visible:ring-sage data-[state=checked]:bg-sage"
+                      />
+                      <span className="font-body text-sm text-charcoal/70 select-none">
+                        {p.is_active ? "Active" : "Inactive"}
+                      </span>
+                    </label>
                   </div>
                 </CardHeader>
                 <CardContent className="space-y-4">
@@ -204,7 +208,7 @@ export default function AdminPartners() {
                     </div>
                     {unassigned.length > 0 && (
                       <Select onValueChange={(classId) => patch({ id: p.id, action: "assign_class", classId })}>
-                        <SelectTrigger className="h-9 w-72 border-sage/20 font-body text-sm"><SelectValue placeholder="Assign a class…" /></SelectTrigger>
+                        <SelectTrigger className="h-9 w-full sm:w-72 border-sage/20 font-body text-sm"><SelectValue placeholder="Assign a class…" /></SelectTrigger>
                         <SelectContent>
                           {unassigned.map((c) => <SelectItem key={c.id} value={c.id}>{c.name}</SelectItem>)}
                         </SelectContent>

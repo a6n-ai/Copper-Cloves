@@ -118,7 +118,7 @@ export default function PartnerMembersPage() {
                     <TableRow key={m.id}>
                       <TableCell className="font-body text-charcoal">{m.name}</TableCell>
                       <TableCell className="font-body text-sm text-charcoal/70">
-                        <div className="truncate">{m.email}</div>
+                        <div className="truncate max-w-[180px] sm:max-w-none">{m.email}</div>
                         {m.phone ? <div className="text-charcoal/50">{m.phone}</div> : null}
                       </TableCell>
                       <TableCell className="text-center font-body font-semibold tabular-nums text-lg text-charcoal">{m.sessions}</TableCell>

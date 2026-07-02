@@ -14,7 +14,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Pill } from "@/components/ui/pill";
-import { memberStatusPill } from "@/lib/pillMaps";
+import { packageStatePill } from "@/lib/pillMaps";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
 import { CloseButton } from "@/components/ui/quick-actions";
@@ -43,6 +43,9 @@ import { ResponsiveCards } from "@/components/responsive/ResponsiveTable";
 import { MobilePagination } from "@/components/responsive/MobilePagination";
 
 interface Package {
+  // Canonical PackageType id (from GET /api/packages). Carried through so the
+  // coupon + purchase steps read it locally instead of refetching the catalog.
+  id: string;
   name: string;
   price: string;
   originalPrice?: string;
@@ -121,6 +124,7 @@ function toPackage(p: DbPackage): Package {
     new Date(),
   );
   return {
+    id: p.id,
     name: p.name,
     price: formatInr(eff.payableInr),
     originalPrice: eff.isOffer ? formatInr(eff.originalInr) : undefined,
@@ -307,7 +311,7 @@ export default function PackagesPage() {
   >(null);
 
   useEffect(() => {
-    if (status === "unauthenticated") { router.push("/portal/login"); return; }
+    if (status === "unauthenticated") { router.push("/login"); return; }
     if (status === "authenticated") {
       loadProfileAndHistory();
     }
@@ -375,6 +379,13 @@ export default function PackagesPage() {
   const generateInvoicePDF = async (purchase: PurchaseRecord) => {
     const packageType = purchase.package_types;
     const state = packageState(purchase);
+    const statusBadgeClass = {
+      success: "status-active",
+      warning: "status-paused",
+      danger: "status-expired",
+      info: "status-active",
+      neutral: "status-expired",
+    }[packageStatePill(state.key).tone ?? "neutral"];
 
     const invoiceHTML = `
       <!DOCTYPE html>
@@ -398,6 +409,7 @@ export default function PackagesPage() {
           .footer { margin-top: 60px; text-align: center; font-size: 12px; color: #999; padding-top: 20px; border-top: 1px solid #eee; }
           .status-badge { display: inline-block; padding: 5px 15px; border-radius: 20px; font-size: 12px; font-weight: 600; }
           .status-active { background: #d4edda; color: #155724; }
+          .status-paused { background: #f3e2d6; color: #8a4b2f; }
           .status-expired { background: #f8d7da; color: #721c24; }
           table { width: 100%; border-collapse: collapse; margin: 20px 0; }
           th, td { padding: 12px; text-align: left; border-bottom: 1px solid #eee; }
@@ -424,7 +436,7 @@ export default function PackagesPage() {
           <div class="detail-row">
             <span class="detail-label">Status:</span>
             <span class="detail-value">
-              <span class="status-badge ${state.key === 'active' ? 'status-active' : 'status-expired'}">
+              <span class="status-badge ${statusBadgeClass}">
                 ${state.label.toUpperCase()}
               </span>
             </span>
@@ -519,17 +531,7 @@ export default function PackagesPage() {
     const subtotal = packageSubtotalInr(pkg);
     if (subtotal <= 0) return;
     const ctx = pkg.classes === "Unlimited" ? "studio_pass" : "class_pass";
-    let packageTypeId: string | undefined;
-    try {
-      const pkgsRes = await fetch("/api/packages");
-      const pkgs = pkgsRes.ok ? await pkgsRes.json() : [];
-      const match = Array.isArray(pkgs)
-        ? pkgs.find((p: { id?: string; name?: string }) => p.name === pkg.name)
-        : null;
-      if (match?.id) packageTypeId = match.id;
-    } catch {
-      /* fall back to client-derived context */
-    }
+    const packageTypeId = pkg.id || undefined;
     const r = await fetch("/api/coupons/validate", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
@@ -544,8 +546,8 @@ export default function PackagesPage() {
     setCouponDiscount(Number(d.discountInr) || 0);
   }
 
-  const handlePurchase = async (e: React.SyntheticEvent<HTMLFormElement>) => {
-    e.preventDefault();
+  const handlePurchase = async (e?: React.SyntheticEvent<HTMLFormElement>) => {
+    e?.preventDefault();
     setError(null);
     if (!formData.fullName || !formData.email || !formData.phone) {
       setError("Please fill in all required fields");
@@ -558,14 +560,12 @@ export default function PackagesPage() {
     setIsProcessing(true);
     const razorpayOrderIdForPackage: string | null = null;
     try {
-      // Lookup-only: packages must exist in the canonical catalog. Never create
-      // a PackageType from the member purchase flow — that is what historically
-      // spawned duplicate/legacy types.
-      const allPkgsRes = await fetch("/api/packages");
-      const allPkgs = allPkgsRes.ok ? await allPkgsRes.json() : [];
-      const packageType = allPkgs.find((p: { name: string }) => p.name === selectedPackage.name);
+      // Package id is carried on the card (from the catalog load), so no refetch
+      // needed. The server (create-order / user-packages) still validates the id
+      // against the canonical catalog — the member flow never creates a type.
+      const packageType = { id: selectedPackage.id };
 
-      if (!packageType) throw new Error("This package isn't available right now. Please contact the studio.");
+      if (!packageType.id) throw new Error("This package isn't available right now. Please contact the studio.");
 
       const subtotal = packageSubtotalInr(selectedPackage);
       const discount = couponDiscount ?? 0;
@@ -978,7 +978,7 @@ export default function PackagesPage() {
                         <h3 className="font-body font-semibold text-base text-charcoal truncate">
                           {packageType?.name || "Unknown Package"}
                         </h3>
-                        <Pill {...memberStatusPill(cardStatusKey)} className="mt-1">
+                        <Pill {...packageStatePill(cardStatusKey)} className="mt-1">
                           {cardStatusLabel}
                         </Pill>
                       </div>
@@ -1044,7 +1044,7 @@ export default function PackagesPage() {
                             <h3 className="font-body font-semibold text-base text-charcoal">
                               {packageType?.name || "Unknown Package"}
                             </h3>
-                            <Pill {...memberStatusPill(rowStatusKey)} className="mt-1">
+                            <Pill {...packageStatePill(rowStatusKey)} className="mt-1">
                               {rowStatusLabel}
                             </Pill>
                           </div>
@@ -1161,6 +1161,7 @@ export default function PackagesPage() {
                 <div className="mt-2 flex gap-2">
                   <Input
                     className="h-8 border-sage/20 font-mono uppercase text-sm flex-1"
+                    aria-label="Promo code"
                     placeholder="Promo code"
                     value={couponCode}
                     onChange={(e) => {
@@ -1306,6 +1307,7 @@ export default function PackagesPage() {
               className="bg-sage hover:bg-sage/90"
               onClick={() => {
                 setPaymentRecovery(null);
+                void handlePurchase();
               }}
             >
               Try again

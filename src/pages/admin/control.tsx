@@ -1205,6 +1205,7 @@ export default function ControlPanel() {
       {/* Dialogs - same as in dashboard */}
 
       {/* Add Class Dialog */}
+      {showAddClassDialog && (
       <ResponsiveDialog open={showAddClassDialog} onOpenChange={setShowAddClassDialog}>
         <ResponsiveDialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto bg-white-warm border-sage/20">
           <ResponsiveDialogHeader>
@@ -1214,7 +1215,7 @@ export default function ControlPanel() {
             </ResponsiveDialogDescription>
           </ResponsiveDialogHeader>
           <form onSubmit={handleCreateClass}>
-            <div className="grid grid-cols-2 gap-4 py-4">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 py-4">
               <div className="space-y-2">
                 <Label htmlFor="class-name" className="font-body text-charcoal">Class Name</Label>
                 <Input id="class-name" name="class-name" placeholder="e.g., Muay Thai Circuit" className="border-sage/20 focus:ring-sage placeholder:text-charcoal/40" required />
@@ -1326,8 +1327,10 @@ export default function ControlPanel() {
           </form>
         </ResponsiveDialogContent>
       </ResponsiveDialog>
+      )}
 
       {/* Class Details Dialog */}
+      {showClassDetailsDialog && (
       <ResponsiveDialog open={showClassDetailsDialog} onOpenChange={setShowClassDetailsDialog}>
         <ResponsiveDialogContent className="max-w-3xl max-h-[90vh] overflow-y-auto bg-white-warm border-sage/20">
           <ResponsiveDialogHeader>
@@ -1341,7 +1344,7 @@ export default function ControlPanel() {
           {selectedClass && (
             <form onSubmit={handleUpdateClass}>
               <div className="space-y-4 py-4">
-                <div className="grid grid-cols-2 gap-4">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                   <div className="space-y-2">
                     <Label htmlFor="edit-class-name" className="font-body text-charcoal">Class Name</Label>
                     <Input 
@@ -1470,8 +1473,10 @@ export default function ControlPanel() {
           )}
         </ResponsiveDialogContent>
       </ResponsiveDialog>
+      )}
 
       {/* Add Instructor Dialog */}
+      {showAddInstructorDialog && (
       <ResponsiveDialog open={showAddInstructorDialog} onOpenChange={setShowAddInstructorDialog}>
         <ResponsiveDialogContent className="max-w-3xl max-h-[90vh] overflow-y-auto bg-white-warm">
           <ResponsiveDialogHeader>
@@ -1481,7 +1486,7 @@ export default function ControlPanel() {
             </ResponsiveDialogDescription>
           </ResponsiveDialogHeader>
           <form onSubmit={handleCreateInstructor}>
-            <div className="grid grid-cols-2 gap-4 py-4">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 py-4">
               {/* Basic Information */}
               <div className="col-span-2">
                 <h3 className="font-body font-semibold text-lg text-charcoal mb-3">Basic Information</h3>
@@ -1638,8 +1643,10 @@ export default function ControlPanel() {
           </form>
         </ResponsiveDialogContent>
       </ResponsiveDialog>
+      )}
 
       {/* Edit Instructor Dialog */}
+      {showEditInstructorDialog && (
       <ResponsiveDialog open={showEditInstructorDialog} onOpenChange={setShowEditInstructorDialog}>
         <ResponsiveDialogContent className="max-w-3xl max-h-[90vh] overflow-y-auto bg-white-warm">
           <ResponsiveDialogHeader>
@@ -1650,7 +1657,7 @@ export default function ControlPanel() {
           </ResponsiveDialogHeader>
           {selectedInstructorData && (
             <form onSubmit={handleUpdateInstructor}>
-              <div className="grid grid-cols-2 gap-4 py-4">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 py-4">
                 {/* Basic Information */}
                 <div className="col-span-2">
                   <h3 className="font-body font-semibold text-lg text-charcoal mb-3">Basic Information</h3>
@@ -1818,6 +1825,7 @@ export default function ControlPanel() {
           )}
         </ResponsiveDialogContent>
       </ResponsiveDialog>
+      )}
     </>
   );
 }

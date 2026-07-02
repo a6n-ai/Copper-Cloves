@@ -353,7 +353,12 @@ export default function AdminSchedule() {
   const scheduleViewYear = selectedDate.getFullYear();
   const [dbClasses, setDbClasses] = useState<DbClass[]>([]);
   const [dbInstructors, setDbInstructors] = useState<DbInstructor[]>([]);
-  const [loadError, setLoadError] = useState<string | null>(null);
+  // Split so a catalog-fetch failure and a schedule-fetch failure are tracked
+  // independently — refetching the schedule on a month change no longer clobbers
+  // a catalog error and vice-versa. Surfaced together (space-joined) as before.
+  const [catalogError, setCatalogError] = useState<string | null>(null);
+  const [scheduleError, setScheduleError] = useState<string | null>(null);
+  const loadError = [catalogError, scheduleError].filter(Boolean).join(" ") || null;
 
   // Roster sheet state
   const [rosterScheduleId, setRosterScheduleId] = useState<string | null>(null);
@@ -463,6 +468,8 @@ export default function AdminSchedule() {
   // Scalar role — avoids session-object identity churn refiring the loader.
   const userRole = (session?.user as { role?: string })?.role;
 
+  // Catalog + instructor roster don't vary by month — fetch them once per auth
+  // state, not on every calendar page turn.
   useEffect(() => {
     if (status === "loading") return;
     if (status === "unauthenticated") {
@@ -478,12 +485,29 @@ export default function AdminSchedule() {
     let cancelled = false;
     (async () => {
       try {
-        setLoadError(null);
-        // Run independent fetches concurrently (was sequential).
-        const [catErr, schedErr] = await Promise.all([loadDbData(), loadSchedule()]);
-        const combined = [catErr, schedErr].filter(Boolean).join(" ");
+        const catErr = await loadDbData();
+        if (!cancelled) setCatalogError(catErr);
+      } catch {
+        if (!cancelled) router.push("/admin/login");
+      }
+    })();
+
+    return () => {
+      cancelled = true;
+    };
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [status, userRole]);
+
+  // Schedule is month-scoped — refetch it (and only it) when the viewed month changes.
+  useEffect(() => {
+    if (status !== "authenticated" || userRole !== "admin") return;
+
+    let cancelled = false;
+    (async () => {
+      try {
+        const schedErr = await loadSchedule();
         if (!cancelled) {
-          setLoadError(combined || null);
+          setScheduleError(schedErr);
           setLoading(false);
         }
       } catch {
@@ -779,7 +803,7 @@ export default function AdminSchedule() {
 
       setDialogOpen(false);
       const schedErr = await loadSchedule();
-      if (schedErr) setLoadError(schedErr);
+      if (schedErr) setScheduleError(schedErr);
       setTimeout(() => setSuccessMessage(""), 3000);
     } catch (err: unknown) {
       console.error("Error saving class:", err);
@@ -796,7 +820,7 @@ export default function AdminSchedule() {
       if (!res.ok) throw new Error(await extractApiError(res, `Delete failed (HTTP ${res.status})`));
       setSuccessMessage("Class removed from schedule");
       const schedErr = await loadSchedule();
-      if (schedErr) setLoadError(schedErr);
+      if (schedErr) setScheduleError(schedErr);
       setTimeout(() => setSuccessMessage(""), 3000);
     } catch (err) {
       console.error("Error deleting class:", err);
@@ -824,7 +848,7 @@ export default function AdminSchedule() {
       toast.success(next === "inactive" ? "Class set to inactive" : "Class reactivated");
       setStatusToggleTarget(null);
       const schedErr = await loadSchedule();
-      if (schedErr) setLoadError(schedErr);
+      if (schedErr) setScheduleError(schedErr);
     } catch (err) {
       console.error("Error toggling status:", err);
       toast.error(`Could not change status: ${(err as Error)?.message ?? "Unknown error"}`);

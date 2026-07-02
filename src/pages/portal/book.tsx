@@ -45,6 +45,9 @@ import {
   ArrowDownUp,
   ArrowUp,
   ArrowDown,
+  AlertTriangle,
+  Check,
+  Star,
 } from "lucide-react";
 import { NavPrevButton, NavNextButton, QtyMinusButton, QtyPlusButton } from "@/components/ui/quick-actions";
 import { FilterSelect, useFilterState } from "@/components/filters";
@@ -358,6 +361,26 @@ export interface Class {
   /** False when start time is in the past (still listed for the weekly grid). */
   isBookable?: boolean;
 }
+
+/** Raw class-schedule row as returned by GET /api/class-schedules. */
+type RawSchedule = {
+  id: string;
+  start_time: string;
+  end_time?: string | null;
+  status?: string;
+  capacity?: number | null;
+  available_spots?: number | null;
+  class_model?: {
+    name?: string;
+    duration?: number;
+    category?: string;
+    image_url?: string;
+    description?: string | null;
+    benefits?: string[];
+    max_capacity?: number;
+  };
+  instructor?: { name?: string; image_url?: string | null };
+};
 
 /** Mirrors a bookable class Card: image, title, 3-icon info row, full-width button. */
 /**
@@ -828,12 +851,6 @@ export default function BookClass() {
   const [selectedDayIndex, setSelectedDayIndex] = useState<number | null>(() => mondayWeekIndex(new Date()));
   const classesPerPage = 6;
 
-  const [weekSummary, setWeekSummary] = useState("");
-
-  // Classes from database
-  const [allClasses, setAllClasses] = useState<Class[]>([]);
-  const [loadingClasses, setLoadingClasses] = useState(true);
-
   const weekMonday = useMemo(() => {
     const base = startOfMondayWeekLocal(new Date());
     const d = new Date(base);
@@ -849,6 +866,75 @@ export default function BookClass() {
       return d;
     }),
   [weekMonday]);
+
+  const weekSummary = useMemo(() => {
+    const weekEnd = endOfSundayWeekLocal(weekMonday);
+    return `${weekMonday.toLocaleDateString("en-US", { weekday: "short", month: "short", day: "numeric" })} – ${weekEnd.toLocaleDateString("en-US", { weekday: "short", month: "short", day: "numeric", year: "numeric" })}`;
+  }, [weekMonday]);
+
+  // Class schedules for the visible week via SWR — keyed on the week range so
+  // revisiting a week is served from cache instead of re-hitting the network.
+  // keepPreviousData (from useStudioSWR) means `isLoading` is true only for an
+  // uncached week, letting us scope the skeleton to just the card grid.
+  const classesKey = useMemo(() => {
+    if (status !== "authenticated") return null;
+    const weekEnd = endOfSundayWeekLocal(weekMonday);
+    const params = new URLSearchParams({
+      fromMs: String(weekMonday.getTime()),
+      toMs: String(weekEnd.getTime()),
+      visibleOnly: "1",
+    });
+    return `/api/class-schedules?${params}`;
+  }, [status, weekMonday]);
+
+  const { data: rawSchedules, isLoading: loadingClasses } =
+    useStudioSWR<RawSchedule[]>(classesKey);
+
+  const allClasses = useMemo<Class[]>(() => {
+    if (!Array.isArray(rawSchedules)) return [];
+    const weekStart = weekMonday;
+    const weekEnd = endOfSundayWeekLocal(weekMonday);
+    const nowMs = Date.now();
+    return rawSchedules
+      .filter((s) => {
+        const t = new Date(s.start_time).getTime();
+        return (
+          t >= weekStart.getTime() &&
+          t <= weekEnd.getTime() &&
+          s.status !== "cancelled" &&
+          s.status !== "inactive"
+        );
+      })
+      .map((schedule) => {
+        const startMs = new Date(schedule.start_time).getTime();
+        const durationMs = (schedule.class_model?.duration || 60) * 60 * 1000;
+        const endMs = schedule.end_time ? new Date(schedule.end_time).getTime() : startMs + durationMs;
+        const cap = schedule.capacity ?? schedule.class_model?.max_capacity ?? 15;
+        return {
+          id: schedule.id,
+          name: schedule.class_model?.name || "Unknown Class",
+          time: new Date(schedule.start_time).toLocaleTimeString("en-US", { hour: "2-digit", minute: "2-digit", hour12: true, timeZone: "Asia/Kolkata" }),
+          instructor: schedule.instructor?.name || "Instructor",
+          instructorImageUrl: schedule.instructor?.image_url ?? null,
+          duration: `${schedule.class_model?.duration || 60} min`,
+          category: schedule.class_model?.category || "General",
+          description: schedule.class_model?.description ?? "",
+          benefits: schedule.class_model?.benefits ?? [],
+          maxCapacity: schedule.class_model?.max_capacity ?? 15,
+          capacity: cap,
+          spotsLeft: typeof schedule.available_spots === "number" ? schedule.available_spots : undefined,
+          status: schedule.status,
+          image: schedule.class_model?.image_url || cdnUrl("/placeholder.jpg"),
+          startTimeIso:
+            typeof schedule.start_time === "string"
+              ? schedule.start_time
+              : new Date(schedule.start_time).toISOString(),
+          startTimeMs: startMs,
+          isBookable: endMs + POST_END_GRACE_MS > nowMs,
+        };
+      })
+      .sort((a, b) => a.startTimeMs - b.startTimeMs);
+  }, [rawSchedules, weekMonday]);
 
   const uniqueClassNames = useMemo(() => {
     const names = new Set(allClasses.map(c => c.name));
@@ -886,7 +972,6 @@ export default function BookClass() {
       setSelectedDayIndex(weekOffset === 0 ? mondayWeekIndex(new Date()) : null);
       f.reset();
       didAutoAdvanceDay.current = false;
-      fetchClasses(weekOffset);
     }
     // Intentionally keyed on status/weekOffset only. `f` is a fresh object each render, so depending
     // on it would re-run every render; f.reset is a stable useCallback that only needs to fire here.
@@ -913,94 +998,6 @@ export default function BookClass() {
       }
     }
   }, [status, weekOffset, loadingClasses, allClasses, weekDays]);
-
-  async function fetchClasses(offset = 0) {
-    try {
-      setLoadingClasses(true);
-      const base = startOfMondayWeekLocal(new Date());
-      const weekStart = new Date(base);
-      weekStart.setDate(weekStart.getDate() + offset * 7);
-      weekStart.setHours(0, 0, 0, 0);
-      const weekEnd = endOfSundayWeekLocal(weekStart);
-      setWeekSummary(
-        `${weekStart.toLocaleDateString("en-US", { weekday: "short", month: "short", day: "numeric" })} – ${weekEnd.toLocaleDateString("en-US", { weekday: "short", month: "short", day: "numeric", year: "numeric" })}`
-      );
-
-      const params = new URLSearchParams({
-        fromMs: String(weekStart.getTime()),
-        toMs: String(weekEnd.getTime()),
-        visibleOnly: "1",
-      });
-      const res = await fetch(`/api/class-schedules?${params}`, { credentials: "omit" });
-      const raw = res.ok ? await res.json() : [];
-
-      const nowMs = Date.now();
-
-      const transformedClasses: Class[] = raw
-        .filter((s: { start_time: string; status?: string }) => {
-          const t = new Date(s.start_time).getTime();
-          return (
-            t >= weekStart.getTime() &&
-            t <= weekEnd.getTime() &&
-            s.status !== "cancelled" &&
-            s.status !== "inactive"
-          );
-        })
-        .map((schedule: {
-          id: string;
-          start_time: string;
-          end_time?: string | null;
-          status?: string;
-          capacity?: number | null;
-          available_spots?: number | null;
-          class_model?: {
-            name?: string;
-            duration?: number;
-            category?: string;
-            image_url?: string;
-            description?: string | null;
-            benefits?: string[];
-            max_capacity?: number;
-          };
-          instructor?: { name?: string; image_url?: string | null };
-        }) => {
-          const startMs = new Date(schedule.start_time).getTime();
-          const durationMs = (schedule.class_model?.duration || 60) * 60 * 1000;
-          const endMs = schedule.end_time ? new Date(schedule.end_time).getTime() : startMs + durationMs;
-          const cap = schedule.capacity ?? schedule.class_model?.max_capacity ?? 15;
-          return {
-            id: schedule.id,
-            name: schedule.class_model?.name || "Unknown Class",
-            time: new Date(schedule.start_time).toLocaleTimeString("en-US", { hour: "2-digit", minute: "2-digit", hour12: true, timeZone: "Asia/Kolkata" }),
-            instructor: schedule.instructor?.name || "Instructor",
-            instructorImageUrl: schedule.instructor?.image_url ?? null,
-            duration: `${schedule.class_model?.duration || 60} min`,
-            category: schedule.class_model?.category || "General",
-            description: schedule.class_model?.description ?? "",
-            benefits: schedule.class_model?.benefits ?? [],
-            maxCapacity: schedule.class_model?.max_capacity ?? 15,
-            capacity: cap,
-            spotsLeft: typeof schedule.available_spots === "number" ? schedule.available_spots : undefined,
-            status: schedule.status,
-            image: schedule.class_model?.image_url || cdnUrl("/placeholder.jpg"),
-            startTimeIso:
-              typeof schedule.start_time === "string"
-                ? schedule.start_time
-                : new Date(schedule.start_time).toISOString(),
-            startTimeMs: startMs,
-            isBookable: endMs + POST_END_GRACE_MS > nowMs,
-          };
-        })
-        .sort((a, b) => a.startTimeMs - b.startTimeMs);
-
-      setAllClasses(transformedClasses);
-    } catch (error) {
-      console.error("Error fetching classes:", error);
-      setAllClasses([]);
-    } finally {
-      setLoadingClasses(false);
-    }
-  }
 
   async function checkAuthAndLoadData() {
     try {
@@ -1420,7 +1417,7 @@ export default function BookClass() {
     }
   }
 
-  if (isLoading || loadingClasses) {
+  if (isLoading) {
     return (
       <div className="min-h-screen bg-linear-to-br from-cream via-cream to-sage/5">
         <main className="pt-8 pb-12 min-h-screen">
@@ -1439,7 +1436,9 @@ export default function BookClass() {
   // `totals` defined above as a useMemo over the same inputs.
 
   let bookSubtitle: string;
-  if (filteredClasses.length > 0) {
+  if (loadingClasses) {
+    bookSubtitle = "Loading classes…";
+  } else if (filteredClasses.length > 0) {
     const classWord = filteredClasses.length !== 1 ? "classes" : "class";
     bookSubtitle = `${filteredClasses.length} ${classWord} found`;
   } else {
@@ -1502,7 +1501,12 @@ export default function BookClass() {
                 return (
                   <button
                     key={day.toISOString()}
-                    onClick={() => setSelectedDayIndex(isSelected ? null : i)}
+                    disabled={isPast}
+                    aria-disabled={isPast}
+                    onClick={() => {
+                      if (isPast) return;
+                      setSelectedDayIndex(isSelected ? null : i);
+                    }}
                     className={`flex flex-col items-center py-2 px-0.5 rounded-xl transition-all min-w-0 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sage focus-visible:ring-offset-1 text-[11px] sm:text-sm ${buttonStateClass}`}
                   >
                     <span className="text-[10px] font-body uppercase tracking-wide leading-none mb-1">
@@ -1543,21 +1547,47 @@ export default function BookClass() {
             </button>
           </div>
 
-          {/* Class Cards Grid */}
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 items-start gap-6 mb-8">
-            {paginatedClasses.map((cls) => (
-              <BookClassCard key={cls.id} cls={cls} onSelect={handleSelectClass} onOpenDetails={setDetailClass} />
-            ))}
-          </div>
+          {/* Class Cards Grid — only the grid region swaps to a skeleton while a
+              week's classes load; the header, week-nav and filters above stay
+              mounted so scroll position and week navigation are preserved. */}
+          {loadingClasses ? (
+            <BookClassGridSkeleton count={6} />
+          ) : (
+            <>
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 items-start gap-6 mb-8">
+                {paginatedClasses.map((cls) => (
+                  <BookClassCard key={cls.id} cls={cls} onSelect={handleSelectClass} onOpenDetails={setDetailClass} />
+                ))}
+              </div>
 
-          {/* Pagination — windowed numbers + range label (same as admin) */}
-          <Pagination
-            page={currentPage}
-            total={filteredClasses.length}
-            pageSize={classesPerPage}
-            onChange={setCurrentPage}
-            alwaysShow
-          />
+              {/* Pagination — windowed numbers + range label (same as admin) */}
+              <Pagination
+                page={currentPage}
+                total={filteredClasses.length}
+                pageSize={classesPerPage}
+                onChange={setCurrentPage}
+                alwaysShow
+              />
+
+              {/* Empty State */}
+              {paginatedClasses.length === 0 && (
+                <Card className="border-sage/20 bg-white-warm">
+                  <CardContent className="flex flex-col items-center justify-center py-16 text-center">
+                    <Calendar className="w-16 h-16 text-sage/40 mb-4" />
+                    <h3 className="font-body font-semibold text-2xl text-charcoal mb-2">No Classes Available</h3>
+                    <p className="font-body text-charcoal/60 mb-6">Try adjusting your filters or check back soon.</p>
+                    <Button
+                      onClick={() => { f.reset(); setSelectedDayIndex(null); }}
+                      variant="outline"
+                      className="border-sage text-sage hover:bg-sage hover:text-cream transition-all duration-500"
+                    >
+                      Clear Filters
+                    </Button>
+                  </CardContent>
+                </Card>
+              )}
+            </>
+          )}
 
           <BookClassDetailDialog
             cls={detailClass}
@@ -1567,30 +1597,12 @@ export default function BookClass() {
               handleSelectClass(c);
             }}
           />
-
-          {/* Empty State */}
-          {paginatedClasses.length === 0 && (
-            <Card className="border-sage/20 bg-white-warm">
-              <CardContent className="flex flex-col items-center justify-center py-16 text-center">
-                <Calendar className="w-16 h-16 text-sage/40 mb-4" />
-                <h3 className="font-body font-semibold text-2xl text-charcoal mb-2">No Classes Available</h3>
-                <p className="font-body text-charcoal/60 mb-6">Try adjusting your filters or check back soon.</p>
-                <Button
-                  onClick={() => { f.reset(); setSelectedDayIndex(null); }}
-                  variant="outline"
-                  className="border-sage text-sage hover:bg-sage hover:text-cream transition-all duration-600"
-                >
-                  Clear Filters
-                </Button>
-              </CardContent>
-            </Card>
-          )}
         </div>
       </main>
 
       {/* Booking Panel - Multi-Step Flow */}
       <div 
-        className={`fixed inset-y-0 right-0 w-full max-w-2xl bg-white-warm shadow-[0_8px_48px_rgba(51,51,51,0.14)] transform transition-all duration-600 ease-in-out z-50 overflow-y-auto ${
+        className={`fixed inset-y-0 right-0 w-full max-w-2xl bg-white-warm shadow-[0_8px_48px_rgba(51,51,51,0.14)] transform transition-all duration-500 ease-in-out z-50 overflow-y-auto ${
           showBookingPanel ? 'translate-x-0' : 'translate-x-full'
         }`}
       >
@@ -1713,8 +1725,9 @@ export default function BookClass() {
                       <p className="font-body text-charcoal">
                         {userPackage.name}
                       </p>
-                      <p className="font-body text-xs text-sage mt-2">
-                        ✓ {((UNLIMITED_DISCOUNTS[userPackage.name] || 0) * 100).toFixed(0)}% discount on café items
+                      <p className="font-body text-xs text-sage mt-2 inline-flex items-center gap-1">
+                        <Check className="w-3.5 h-3.5 shrink-0" />
+                        {((UNLIMITED_DISCOUNTS[userPackage.name] || 0) * 100).toFixed(0)}% discount on café items
                       </p>
                     </div>
                   )}
@@ -1768,8 +1781,9 @@ export default function BookClass() {
 
                                 if (classesAvailable < 1) {
                                   return (
-                                    <span className="text-terracotta">
-                                      ⚠️ No classes remaining. Pay ₹{(1 + addedMembers.length) * 945} for all attendees.
+                                    <span className="text-terracotta inline-flex items-center gap-1">
+                                      <AlertTriangle className="w-3.5 h-3.5 shrink-0" />
+                                      No classes remaining. Pay ₹{(1 + addedMembers.length) * 945} for all attendees.
                                     </span>
                                   );
                                 } else if (addedMembers.length > 0) {
@@ -1815,7 +1829,7 @@ export default function BookClass() {
                     <div className="p-5 rounded-xl border-2 border-sage/40 bg-sage/5">
                       <div className="flex items-start gap-3 mb-3">
                         <div className="w-5 h-5 rounded-full border-2 border-sage bg-sage/20 mt-0.5 flex items-center justify-center shrink-0">
-                          <span className="text-sage text-[10px] font-bold">★</span>
+                          <Star className="w-3 h-3 text-sage fill-sage" />
                         </div>
                         <div className="flex-1">
                           <p className="font-body text-charcoal font-medium mb-0.5">
@@ -1887,13 +1901,15 @@ export default function BookClass() {
                   <p className="font-body text-charcoal/60 mb-6">
                     Select meals for after your class. Perfect for refueling!
                     {userPackage.type === "class_pass" && (
-                      <span className="block text-sage mt-1">
-                        ✓ Get 5% off on all café items
+                      <span className="flex items-center gap-1 text-sage mt-1">
+                        <Check className="w-3.5 h-3.5 shrink-0" />
+                        Get 5% off on all café items
                       </span>
                     )}
                     {userPackage.isUnlimited && UNLIMITED_DISCOUNTS[userPackage.name] && (
-                      <span className="block text-sage mt-1 font-bold">
-                        ✓ Your {userPackage.name} includes {((UNLIMITED_DISCOUNTS[userPackage.name] || 0) * 100).toFixed(0)}% off on café items
+                      <span className="flex items-center gap-1 text-sage mt-1 font-bold">
+                        <Check className="w-3.5 h-3.5 shrink-0" />
+                        Your {userPackage.name} includes {((UNLIMITED_DISCOUNTS[userPackage.name] || 0) * 100).toFixed(0)}% off on café items
                       </span>
                     )}
                   </p>
@@ -1966,8 +1982,9 @@ export default function BookClass() {
                     <p className="font-body text-sm font-medium text-charcoal mb-2">Have a coupon code?</p>
                     {appliedCoupon ? (
                       <div className="flex items-center justify-between">
-                        <span className="font-body text-sm text-sage font-medium">
-                          ✓ {appliedCoupon.code} — -₹{appliedCoupon.discountInr.toFixed(0)} off
+                        <span className="font-body text-sm text-sage font-medium inline-flex items-center gap-1">
+                          <Check className="w-3.5 h-3.5 shrink-0" />
+                          {appliedCoupon.code} — -₹{appliedCoupon.discountInr.toFixed(0)} off
                         </span>
                         <button
                           onClick={() => { setAppliedCoupon(null); setCouponCode(""); setCouponError(null); }}
@@ -1982,6 +1999,7 @@ export default function BookClass() {
                           type="text"
                           value={couponCode}
                           onChange={(e) => { setCouponCode(e.target.value.toUpperCase()); setCouponError(null); }}
+                          aria-label="Coupon code"
                           placeholder="Enter code"
                           className="flex-1 font-body text-sm px-3 py-2 rounded-lg border border-sage/30 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sage focus-visible:ring-offset-1 bg-white-warm text-charcoal placeholder:text-charcoal/30 uppercase"
                         />
@@ -2166,7 +2184,7 @@ export default function BookClass() {
               variant="ghost" 
               onClick={() => setShowBookingPanel(false)} 
               disabled={isSubmittingBooking}
-              className="w-full text-charcoal/50 hover:text-charcoal font-body text-sm transition-all duration-600 hover:bg-sage/5 mt-2"
+              className="w-full text-charcoal/50 hover:text-charcoal font-body text-sm transition-all duration-500 hover:bg-sage/5 mt-2"
             >
               Cancel
             </Button>
@@ -2179,7 +2197,7 @@ export default function BookClass() {
         <button
           type="button"
           aria-label="Close booking panel"
-          className="fixed inset-0 bg-charcoal/40 z-40 transition-opacity duration-600 animate-in fade-in"
+          className="fixed inset-0 bg-charcoal/40 z-40 transition-opacity duration-500 animate-in fade-in"
           onClick={() => setShowBookingPanel(false)}
         />
       )}
