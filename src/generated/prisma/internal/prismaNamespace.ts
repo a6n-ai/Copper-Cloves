@@ -4169,6 +4169,7 @@ export const BookingScalarFieldEnum = {
   user_package_id: 'user_package_id',
   status: 'status',
   confirmation_status: 'confirmation_status',
+  invoice_number: 'invoice_number',
   booking_date: 'booking_date',
   created_at: 'created_at',
   updated_at: 'updated_at',
@@ -4682,6 +4683,15 @@ export const StudioSettingsScalarFieldEnum = {
   cancellation_cutoff_hours: 'cancellation_cutoff_hours',
   default_package_validity_days: 'default_package_validity_days',
   cancelled_pass_validity_days: 'cancelled_pass_validity_days',
+  business_name: 'business_name',
+  business_address: 'business_address',
+  business_gstin: 'business_gstin',
+  business_email: 'business_email',
+  business_phone: 'business_phone',
+  business_logo_url: 'business_logo_url',
+  invoice_prefix: 'invoice_prefix',
+  next_invoice_seq: 'next_invoice_seq',
+  invoice_footer_note: 'invoice_footer_note',
   created_at: 'created_at',
   updated_at: 'updated_at'
 } as const

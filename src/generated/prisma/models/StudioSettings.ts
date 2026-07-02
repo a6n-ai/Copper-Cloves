@@ -30,12 +30,14 @@ export type StudioSettingsAvgAggregateOutputType = {
   cancellation_cutoff_hours: number | null
   default_package_validity_days: number | null
   cancelled_pass_validity_days: number | null
+  next_invoice_seq: number | null
 }
 
 export type StudioSettingsSumAggregateOutputType = {
   cancellation_cutoff_hours: number | null
   default_package_validity_days: number | null
   cancelled_pass_validity_days: number | null
+  next_invoice_seq: number | null
 }
 
 export type StudioSettingsMinAggregateOutputType = {
@@ -43,6 +45,15 @@ export type StudioSettingsMinAggregateOutputType = {
   cancellation_cutoff_hours: number | null
   default_package_validity_days: number | null
   cancelled_pass_validity_days: number | null
+  business_name: string | null
+  business_address: string | null
+  business_gstin: string | null
+  business_email: string | null
+  business_phone: string | null
+  business_logo_url: string | null
+  invoice_prefix: string | null
+  next_invoice_seq: number | null
+  invoice_footer_note: string | null
   created_at: Date | null
   updated_at: Date | null
 }
@@ -52,6 +63,15 @@ export type StudioSettingsMaxAggregateOutputType = {
   cancellation_cutoff_hours: number | null
   default_package_validity_days: number | null
   cancelled_pass_validity_days: number | null
+  business_name: string | null
+  business_address: string | null
+  business_gstin: string | null
+  business_email: string | null
+  business_phone: string | null
+  business_logo_url: string | null
+  invoice_prefix: string | null
+  next_invoice_seq: number | null
+  invoice_footer_note: string | null
   created_at: Date | null
   updated_at: Date | null
 }
@@ -61,6 +81,15 @@ export type StudioSettingsCountAggregateOutputType = {
   cancellation_cutoff_hours: number
   default_package_validity_days: number
   cancelled_pass_validity_days: number
+  business_name: number
+  business_address: number
+  business_gstin: number
+  business_email: number
+  business_phone: number
+  business_logo_url: number
+  invoice_prefix: number
+  next_invoice_seq: number
+  invoice_footer_note: number
   created_at: number
   updated_at: number
   _all: number
@@ -71,12 +100,14 @@ export type StudioSettingsAvgAggregateInputType = {
   cancellation_cutoff_hours?: true
   default_package_validity_days?: true
   cancelled_pass_validity_days?: true
+  next_invoice_seq?: true
 }
 
 export type StudioSettingsSumAggregateInputType = {
   cancellation_cutoff_hours?: true
   default_package_validity_days?: true
   cancelled_pass_validity_days?: true
+  next_invoice_seq?: true
 }
 
 export type StudioSettingsMinAggregateInputType = {
@@ -84,6 +115,15 @@ export type StudioSettingsMinAggregateInputType = {
   cancellation_cutoff_hours?: true
   default_package_validity_days?: true
   cancelled_pass_validity_days?: true
+  business_name?: true
+  business_address?: true
+  business_gstin?: true
+  business_email?: true
+  business_phone?: true
+  business_logo_url?: true
+  invoice_prefix?: true
+  next_invoice_seq?: true
+  invoice_footer_note?: true
   created_at?: true
   updated_at?: true
 }
@@ -93,6 +133,15 @@ export type StudioSettingsMaxAggregateInputType = {
   cancellation_cutoff_hours?: true
   default_package_validity_days?: true
   cancelled_pass_validity_days?: true
+  business_name?: true
+  business_address?: true
+  business_gstin?: true
+  business_email?: true
+  business_phone?: true
+  business_logo_url?: true
+  invoice_prefix?: true
+  next_invoice_seq?: true
+  invoice_footer_note?: true
   created_at?: true
   updated_at?: true
 }
@@ -102,6 +151,15 @@ export type StudioSettingsCountAggregateInputType = {
   cancellation_cutoff_hours?: true
   default_package_validity_days?: true
   cancelled_pass_validity_days?: true
+  business_name?: true
+  business_address?: true
+  business_gstin?: true
+  business_email?: true
+  business_phone?: true
+  business_logo_url?: true
+  invoice_prefix?: true
+  next_invoice_seq?: true
+  invoice_footer_note?: true
   created_at?: true
   updated_at?: true
   _all?: true
@@ -198,6 +256,15 @@ export type StudioSettingsGroupByOutputType = {
   cancellation_cutoff_hours: number
   default_package_validity_days: number
   cancelled_pass_validity_days: number
+  business_name: string | null
+  business_address: string | null
+  business_gstin: string | null
+  business_email: string | null
+  business_phone: string | null
+  business_logo_url: string | null
+  invoice_prefix: string
+  next_invoice_seq: number
+  invoice_footer_note: string | null
   created_at: Date
   updated_at: Date
   _count: StudioSettingsCountAggregateOutputType | null
@@ -230,6 +297,15 @@ export type StudioSettingsWhereInput = {
   cancellation_cutoff_hours?: Prisma.IntFilter<"StudioSettings"> | number
   default_package_validity_days?: Prisma.IntFilter<"StudioSettings"> | number
   cancelled_pass_validity_days?: Prisma.IntFilter<"StudioSettings"> | number
+  business_name?: Prisma.StringNullableFilter<"StudioSettings"> | string | null
+  business_address?: Prisma.StringNullableFilter<"StudioSettings"> | string | null
+  business_gstin?: Prisma.StringNullableFilter<"StudioSettings"> | string | null
+  business_email?: Prisma.StringNullableFilter<"StudioSettings"> | string | null
+  business_phone?: Prisma.StringNullableFilter<"StudioSettings"> | string | null
+  business_logo_url?: Prisma.StringNullableFilter<"StudioSettings"> | string | null
+  invoice_prefix?: Prisma.StringFilter<"StudioSettings"> | string
+  next_invoice_seq?: Prisma.IntFilter<"StudioSettings"> | number
+  invoice_footer_note?: Prisma.StringNullableFilter<"StudioSettings"> | string | null
   created_at?: Prisma.DateTimeFilter<"StudioSettings"> | Date | string
   updated_at?: Prisma.DateTimeFilter<"StudioSettings"> | Date | string
 }
@@ -239,6 +315,15 @@ export type StudioSettingsOrderByWithRelationInput = {
   cancellation_cutoff_hours?: Prisma.SortOrder
   default_package_validity_days?: Prisma.SortOrder
   cancelled_pass_validity_days?: Prisma.SortOrder
+  business_name?: Prisma.SortOrderInput | Prisma.SortOrder
+  business_address?: Prisma.SortOrderInput | Prisma.SortOrder
+  business_gstin?: Prisma.SortOrderInput | Prisma.SortOrder
+  business_email?: Prisma.SortOrderInput | Prisma.SortOrder
+  business_phone?: Prisma.SortOrderInput | Prisma.SortOrder
+  business_logo_url?: Prisma.SortOrderInput | Prisma.SortOrder
+  invoice_prefix?: Prisma.SortOrder
+  next_invoice_seq?: Prisma.SortOrder
+  invoice_footer_note?: Prisma.SortOrderInput | Prisma.SortOrder
   created_at?: Prisma.SortOrder
   updated_at?: Prisma.SortOrder
 }
@@ -251,6 +336,15 @@ export type StudioSettingsWhereUniqueInput = Prisma.AtLeast<{
   cancellation_cutoff_hours?: Prisma.IntFilter<"StudioSettings"> | number
   default_package_validity_days?: Prisma.IntFilter<"StudioSettings"> | number
   cancelled_pass_validity_days?: Prisma.IntFilter<"StudioSettings"> | number
+  business_name?: Prisma.StringNullableFilter<"StudioSettings"> | string | null
+  business_address?: Prisma.StringNullableFilter<"StudioSettings"> | string | null
+  business_gstin?: Prisma.StringNullableFilter<"StudioSettings"> | string | null
+  business_email?: Prisma.StringNullableFilter<"StudioSettings"> | string | null
+  business_phone?: Prisma.StringNullableFilter<"StudioSettings"> | string | null
+  business_logo_url?: Prisma.StringNullableFilter<"StudioSettings"> | string | null
+  invoice_prefix?: Prisma.StringFilter<"StudioSettings"> | string
+  next_invoice_seq?: Prisma.IntFilter<"StudioSettings"> | number
+  invoice_footer_note?: Prisma.StringNullableFilter<"StudioSettings"> | string | null
   created_at?: Prisma.DateTimeFilter<"StudioSettings"> | Date | string
   updated_at?: Prisma.DateTimeFilter<"StudioSettings"> | Date | string
 }, "id">
@@ -260,6 +354,15 @@ export type StudioSettingsOrderByWithAggregationInput = {
   cancellation_cutoff_hours?: Prisma.SortOrder
   default_package_validity_days?: Prisma.SortOrder
   cancelled_pass_validity_days?: Prisma.SortOrder
+  business_name?: Prisma.SortOrderInput | Prisma.SortOrder
+  business_address?: Prisma.SortOrderInput | Prisma.SortOrder
+  business_gstin?: Prisma.SortOrderInput | Prisma.SortOrder
+  business_email?: Prisma.SortOrderInput | Prisma.SortOrder
+  business_phone?: Prisma.SortOrderInput | Prisma.SortOrder
+  business_logo_url?: Prisma.SortOrderInput | Prisma.SortOrder
+  invoice_prefix?: Prisma.SortOrder
+  next_invoice_seq?: Prisma.SortOrder
+  invoice_footer_note?: Prisma.SortOrderInput | Prisma.SortOrder
   created_at?: Prisma.SortOrder
   updated_at?: Prisma.SortOrder
   _count?: Prisma.StudioSettingsCountOrderByAggregateInput
@@ -277,6 +380,15 @@ export type StudioSettingsScalarWhereWithAggregatesInput = {
   cancellation_cutoff_hours?: Prisma.IntWithAggregatesFilter<"StudioSettings"> | number
   default_package_validity_days?: Prisma.IntWithAggregatesFilter<"StudioSettings"> | number
   cancelled_pass_validity_days?: Prisma.IntWithAggregatesFilter<"StudioSettings"> | number
+  business_name?: Prisma.StringNullableWithAggregatesFilter<"StudioSettings"> | string | null
+  business_address?: Prisma.StringNullableWithAggregatesFilter<"StudioSettings"> | string | null
+  business_gstin?: Prisma.StringNullableWithAggregatesFilter<"StudioSettings"> | string | null
+  business_email?: Prisma.StringNullableWithAggregatesFilter<"StudioSettings"> | string | null
+  business_phone?: Prisma.StringNullableWithAggregatesFilter<"StudioSettings"> | string | null
+  business_logo_url?: Prisma.StringNullableWithAggregatesFilter<"StudioSettings"> | string | null
+  invoice_prefix?: Prisma.StringWithAggregatesFilter<"StudioSettings"> | string
+  next_invoice_seq?: Prisma.IntWithAggregatesFilter<"StudioSettings"> | number
+  invoice_footer_note?: Prisma.StringNullableWithAggregatesFilter<"StudioSettings"> | string | null
   created_at?: Prisma.DateTimeWithAggregatesFilter<"StudioSettings"> | Date | string
   updated_at?: Prisma.DateTimeWithAggregatesFilter<"StudioSettings"> | Date | string
 }
@@ -286,6 +398,15 @@ export type StudioSettingsCreateInput = {
   cancellation_cutoff_hours?: number
   default_package_validity_days?: number
   cancelled_pass_validity_days?: number
+  business_name?: string | null
+  business_address?: string | null
+  business_gstin?: string | null
+  business_email?: string | null
+  business_phone?: string | null
+  business_logo_url?: string | null
+  invoice_prefix?: string
+  next_invoice_seq?: number
+  invoice_footer_note?: string | null
   created_at?: Date | string
   updated_at?: Date | string
 }
@@ -295,6 +416,15 @@ export type StudioSettingsUncheckedCreateInput = {
   cancellation_cutoff_hours?: number
   default_package_validity_days?: number
   cancelled_pass_validity_days?: number
+  business_name?: string | null
+  business_address?: string | null
+  business_gstin?: string | null
+  business_email?: string | null
+  business_phone?: string | null
+  business_logo_url?: string | null
+  invoice_prefix?: string
+  next_invoice_seq?: number
+  invoice_footer_note?: string | null
   created_at?: Date | string
   updated_at?: Date | string
 }
@@ -304,6 +434,15 @@ export type StudioSettingsUpdateInput = {
   cancellation_cutoff_hours?: Prisma.IntFieldUpdateOperationsInput | number
   default_package_validity_days?: Prisma.IntFieldUpdateOperationsInput | number
   cancelled_pass_validity_days?: Prisma.IntFieldUpdateOperationsInput | number
+  business_name?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  business_address?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  business_gstin?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  business_email?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  business_phone?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  business_logo_url?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  invoice_prefix?: Prisma.StringFieldUpdateOperationsInput | string
+  next_invoice_seq?: Prisma.IntFieldUpdateOperationsInput | number
+  invoice_footer_note?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   created_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updated_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
 }
@@ -313,6 +452,15 @@ export type StudioSettingsUncheckedUpdateInput = {
   cancellation_cutoff_hours?: Prisma.IntFieldUpdateOperationsInput | number
   default_package_validity_days?: Prisma.IntFieldUpdateOperationsInput | number
   cancelled_pass_validity_days?: Prisma.IntFieldUpdateOperationsInput | number
+  business_name?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  business_address?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  business_gstin?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  business_email?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  business_phone?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  business_logo_url?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  invoice_prefix?: Prisma.StringFieldUpdateOperationsInput | string
+  next_invoice_seq?: Prisma.IntFieldUpdateOperationsInput | number
+  invoice_footer_note?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   created_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updated_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
 }
@@ -322,6 +470,15 @@ export type StudioSettingsCreateManyInput = {
   cancellation_cutoff_hours?: number
   default_package_validity_days?: number
   cancelled_pass_validity_days?: number
+  business_name?: string | null
+  business_address?: string | null
+  business_gstin?: string | null
+  business_email?: string | null
+  business_phone?: string | null
+  business_logo_url?: string | null
+  invoice_prefix?: string
+  next_invoice_seq?: number
+  invoice_footer_note?: string | null
   created_at?: Date | string
   updated_at?: Date | string
 }
@@ -331,6 +488,15 @@ export type StudioSettingsUpdateManyMutationInput = {
   cancellation_cutoff_hours?: Prisma.IntFieldUpdateOperationsInput | number
   default_package_validity_days?: Prisma.IntFieldUpdateOperationsInput | number
   cancelled_pass_validity_days?: Prisma.IntFieldUpdateOperationsInput | number
+  business_name?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  business_address?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  business_gstin?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  business_email?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  business_phone?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  business_logo_url?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  invoice_prefix?: Prisma.StringFieldUpdateOperationsInput | string
+  next_invoice_seq?: Prisma.IntFieldUpdateOperationsInput | number
+  invoice_footer_note?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   created_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updated_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
 }
@@ -340,6 +506,15 @@ export type StudioSettingsUncheckedUpdateManyInput = {
   cancellation_cutoff_hours?: Prisma.IntFieldUpdateOperationsInput | number
   default_package_validity_days?: Prisma.IntFieldUpdateOperationsInput | number
   cancelled_pass_validity_days?: Prisma.IntFieldUpdateOperationsInput | number
+  business_name?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  business_address?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  business_gstin?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  business_email?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  business_phone?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  business_logo_url?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  invoice_prefix?: Prisma.StringFieldUpdateOperationsInput | string
+  next_invoice_seq?: Prisma.IntFieldUpdateOperationsInput | number
+  invoice_footer_note?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   created_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updated_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
 }
@@ -349,6 +524,15 @@ export type StudioSettingsCountOrderByAggregateInput = {
   cancellation_cutoff_hours?: Prisma.SortOrder
   default_package_validity_days?: Prisma.SortOrder
   cancelled_pass_validity_days?: Prisma.SortOrder
+  business_name?: Prisma.SortOrder
+  business_address?: Prisma.SortOrder
+  business_gstin?: Prisma.SortOrder
+  business_email?: Prisma.SortOrder
+  business_phone?: Prisma.SortOrder
+  business_logo_url?: Prisma.SortOrder
+  invoice_prefix?: Prisma.SortOrder
+  next_invoice_seq?: Prisma.SortOrder
+  invoice_footer_note?: Prisma.SortOrder
   created_at?: Prisma.SortOrder
   updated_at?: Prisma.SortOrder
 }
@@ -357,6 +541,7 @@ export type StudioSettingsAvgOrderByAggregateInput = {
   cancellation_cutoff_hours?: Prisma.SortOrder
   default_package_validity_days?: Prisma.SortOrder
   cancelled_pass_validity_days?: Prisma.SortOrder
+  next_invoice_seq?: Prisma.SortOrder
 }
 
 export type StudioSettingsMaxOrderByAggregateInput = {
@@ -364,6 +549,15 @@ export type StudioSettingsMaxOrderByAggregateInput = {
   cancellation_cutoff_hours?: Prisma.SortOrder
   default_package_validity_days?: Prisma.SortOrder
   cancelled_pass_validity_days?: Prisma.SortOrder
+  business_name?: Prisma.SortOrder
+  business_address?: Prisma.SortOrder
+  business_gstin?: Prisma.SortOrder
+  business_email?: Prisma.SortOrder
+  business_phone?: Prisma.SortOrder
+  business_logo_url?: Prisma.SortOrder
+  invoice_prefix?: Prisma.SortOrder
+  next_invoice_seq?: Prisma.SortOrder
+  invoice_footer_note?: Prisma.SortOrder
   created_at?: Prisma.SortOrder
   updated_at?: Prisma.SortOrder
 }
@@ -373,6 +567,15 @@ export type StudioSettingsMinOrderByAggregateInput = {
   cancellation_cutoff_hours?: Prisma.SortOrder
   default_package_validity_days?: Prisma.SortOrder
   cancelled_pass_validity_days?: Prisma.SortOrder
+  business_name?: Prisma.SortOrder
+  business_address?: Prisma.SortOrder
+  business_gstin?: Prisma.SortOrder
+  business_email?: Prisma.SortOrder
+  business_phone?: Prisma.SortOrder
+  business_logo_url?: Prisma.SortOrder
+  invoice_prefix?: Prisma.SortOrder
+  next_invoice_seq?: Prisma.SortOrder
+  invoice_footer_note?: Prisma.SortOrder
   created_at?: Prisma.SortOrder
   updated_at?: Prisma.SortOrder
 }
@@ -381,6 +584,7 @@ export type StudioSettingsSumOrderByAggregateInput = {
   cancellation_cutoff_hours?: Prisma.SortOrder
   default_package_validity_days?: Prisma.SortOrder
   cancelled_pass_validity_days?: Prisma.SortOrder
+  next_invoice_seq?: Prisma.SortOrder
 }
 
 
@@ -390,6 +594,15 @@ export type StudioSettingsSelect<ExtArgs extends runtime.Types.Extensions.Intern
   cancellation_cutoff_hours?: boolean
   default_package_validity_days?: boolean
   cancelled_pass_validity_days?: boolean
+  business_name?: boolean
+  business_address?: boolean
+  business_gstin?: boolean
+  business_email?: boolean
+  business_phone?: boolean
+  business_logo_url?: boolean
+  invoice_prefix?: boolean
+  next_invoice_seq?: boolean
+  invoice_footer_note?: boolean
   created_at?: boolean
   updated_at?: boolean
 }, ExtArgs["result"]["studioSettings"]>
@@ -399,6 +612,15 @@ export type StudioSettingsSelectCreateManyAndReturn<ExtArgs extends runtime.Type
   cancellation_cutoff_hours?: boolean
   default_package_validity_days?: boolean
   cancelled_pass_validity_days?: boolean
+  business_name?: boolean
+  business_address?: boolean
+  business_gstin?: boolean
+  business_email?: boolean
+  business_phone?: boolean
+  business_logo_url?: boolean
+  invoice_prefix?: boolean
+  next_invoice_seq?: boolean
+  invoice_footer_note?: boolean
   created_at?: boolean
   updated_at?: boolean
 }, ExtArgs["result"]["studioSettings"]>
@@ -408,6 +630,15 @@ export type StudioSettingsSelectUpdateManyAndReturn<ExtArgs extends runtime.Type
   cancellation_cutoff_hours?: boolean
   default_package_validity_days?: boolean
   cancelled_pass_validity_days?: boolean
+  business_name?: boolean
+  business_address?: boolean
+  business_gstin?: boolean
+  business_email?: boolean
+  business_phone?: boolean
+  business_logo_url?: boolean
+  invoice_prefix?: boolean
+  next_invoice_seq?: boolean
+  invoice_footer_note?: boolean
   created_at?: boolean
   updated_at?: boolean
 }, ExtArgs["result"]["studioSettings"]>
@@ -417,11 +648,20 @@ export type StudioSettingsSelectScalar = {
   cancellation_cutoff_hours?: boolean
   default_package_validity_days?: boolean
   cancelled_pass_validity_days?: boolean
+  business_name?: boolean
+  business_address?: boolean
+  business_gstin?: boolean
+  business_email?: boolean
+  business_phone?: boolean
+  business_logo_url?: boolean
+  invoice_prefix?: boolean
+  next_invoice_seq?: boolean
+  invoice_footer_note?: boolean
   created_at?: boolean
   updated_at?: boolean
 }
 
-export type StudioSettingsOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "cancellation_cutoff_hours" | "default_package_validity_days" | "cancelled_pass_validity_days" | "created_at" | "updated_at", ExtArgs["result"]["studioSettings"]>
+export type StudioSettingsOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "cancellation_cutoff_hours" | "default_package_validity_days" | "cancelled_pass_validity_days" | "business_name" | "business_address" | "business_gstin" | "business_email" | "business_phone" | "business_logo_url" | "invoice_prefix" | "next_invoice_seq" | "invoice_footer_note" | "created_at" | "updated_at", ExtArgs["result"]["studioSettings"]>
 
 export type $StudioSettingsPayload<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   name: "StudioSettings"
@@ -440,6 +680,18 @@ export type $StudioSettingsPayload<ExtArgs extends runtime.Types.Extensions.Inte
      * Validity (days) of the 1 Class Pass granted on a cancelled class.
      */
     cancelled_pass_validity_days: number
+    /**
+     * Invoice / legal business identity (editable in admin control panel).
+     */
+    business_name: string | null
+    business_address: string | null
+    business_gstin: string | null
+    business_email: string | null
+    business_phone: string | null
+    business_logo_url: string | null
+    invoice_prefix: string
+    next_invoice_seq: number
+    invoice_footer_note: string | null
     created_at: Date
     updated_at: Date
   }, ExtArgs["result"]["studioSettings"]>
@@ -869,6 +1121,15 @@ export interface StudioSettingsFieldRefs {
   readonly cancellation_cutoff_hours: Prisma.FieldRef<"StudioSettings", 'Int'>
   readonly default_package_validity_days: Prisma.FieldRef<"StudioSettings", 'Int'>
   readonly cancelled_pass_validity_days: Prisma.FieldRef<"StudioSettings", 'Int'>
+  readonly business_name: Prisma.FieldRef<"StudioSettings", 'String'>
+  readonly business_address: Prisma.FieldRef<"StudioSettings", 'String'>
+  readonly business_gstin: Prisma.FieldRef<"StudioSettings", 'String'>
+  readonly business_email: Prisma.FieldRef<"StudioSettings", 'String'>
+  readonly business_phone: Prisma.FieldRef<"StudioSettings", 'String'>
+  readonly business_logo_url: Prisma.FieldRef<"StudioSettings", 'String'>
+  readonly invoice_prefix: Prisma.FieldRef<"StudioSettings", 'String'>
+  readonly next_invoice_seq: Prisma.FieldRef<"StudioSettings", 'Int'>
+  readonly invoice_footer_note: Prisma.FieldRef<"StudioSettings", 'String'>
   readonly created_at: Prisma.FieldRef<"StudioSettings", 'DateTime'>
   readonly updated_at: Prisma.FieldRef<"StudioSettings", 'DateTime'>
 }
