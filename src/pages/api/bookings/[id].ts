@@ -16,6 +16,7 @@ import { getRazorpay, razorpayConfigured } from "@/lib/razorpayServer";
 import { reconcileRazorpayPaymentFromWebhook } from "@/lib/razorpayPersistence";
 import { requestLogger } from "@/lib/logger";
 import { refundOutcomeFor } from "@/lib/classCancellation";
+import { isInvoiceable } from "@/lib/invoice/isInvoiceable";
 
 type RazorpayOrderPaymentsClient = {
   orders: { fetchPayments: (id: string) => Promise<{ items?: unknown[] }> };
@@ -67,6 +68,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         },
       },
       razorpay_order: { select: { razorpay_order_id: true, status: true } },
+      payments: { select: { status: true, direction: true } },
     },
   });
 
@@ -190,6 +192,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       refundRoster,
       refundRequest,
       canRequestRefund,
+      invoiceAvailable: isInvoiceable(booking.payments),
     });
   }
 

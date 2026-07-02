@@ -145,7 +145,18 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         return res.status(404).json({ error: "Member not found" });
       }
       const stats = await getDynamicStats(profile.id);
-      return res.json({ ...profile, user_stats: stats });
+      // Payments aren't nested per-booking in this include, so match by booking_id
+      // to flag which class-history rows have a completed payment behind them.
+      const paidBookingIds = new Set(
+        (profile.payments ?? [])
+          .filter((p) => p.status === "succeeded" && p.direction === "credit" && p.booking_id)
+          .map((p) => p.booking_id as string),
+      );
+      const bookingsWithInvoice = profile.bookings.map((b) => ({
+        ...b,
+        invoiceAvailable: paidBookingIds.has(b.id),
+      }));
+      return res.json({ ...profile, bookings: bookingsWithInvoice, user_stats: stats });
     }
 
     const monthStart = new Date();

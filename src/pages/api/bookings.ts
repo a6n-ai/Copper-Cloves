@@ -1,6 +1,7 @@
 import type { NextApiRequest, NextApiResponse } from "next";
 import prisma from "@/lib/prisma";
 import { OCCUPYING_STATUSES, ROSTER_STATUSES, HISTORY_STATUSES, occupiesSeat } from "@/lib/bookingStatus";
+import { isInvoiceable } from "@/lib/invoice/isInvoiceable";
 import { sendBookingConfirmationEmail } from "@/lib/notifications/sendBookingEmail";
 import { getStudioServerSession } from "@/lib/getStudioServerSession";
 import {
@@ -68,6 +69,7 @@ async function handleGet(req: NextApiRequest, res: NextApiResponse, userId: stri
       },
       user_package: { include: { package_type: true } },
       invited_by: { select: { full_name: true } },
+      payments: { select: { status: true, direction: true } },
     },
     ...(limit ? { take: Number(limit) } : {}),
   });
@@ -129,6 +131,7 @@ async function handleGet(req: NextApiRequest, res: NextApiResponse, userId: stri
     cancel_cutoff_hours: cancellation_cutoff_hours,
     // Only the booker's own row (not an invited row) carries the guest list.
     guests: !b.invited_by_user_id && b.class_schedule_id ? guestsBySchedule.get(b.class_schedule_id) ?? [] : [],
+    invoiceAvailable: isInvoiceable(b.payments),
   }));
   return res.json(mapped);
 }
