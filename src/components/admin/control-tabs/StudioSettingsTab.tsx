@@ -12,7 +12,21 @@ type StudioForm = {
   cancellation_cutoff_hours: string;
   default_package_validity_days: string;
   cancelled_pass_validity_days: string;
+  business_name: string;
+  business_address: string;
+  business_gstin: string;
+  business_email: string;
+  business_phone: string;
+  business_logo_url: string;
+  invoice_prefix: string;
+  invoice_footer_note: string;
 };
+
+const INT_KEYS = [
+  "cancellation_cutoff_hours",
+  "default_package_validity_days",
+  "cancelled_pass_validity_days",
+] as const;
 
 export default function StudioSettingsTab() {
   const [form, setForm] = useState<StudioForm | null>(null);
@@ -31,6 +45,14 @@ export default function StudioSettingsTab() {
       cancellation_cutoff_hours: String(s.cancellation_cutoff_hours ?? ""),
       default_package_validity_days: String(s.default_package_validity_days ?? ""),
       cancelled_pass_validity_days: String(s.cancelled_pass_validity_days ?? ""),
+      business_name: String(s.business_name ?? ""),
+      business_address: String(s.business_address ?? ""),
+      business_gstin: String(s.business_gstin ?? ""),
+      business_email: String(s.business_email ?? ""),
+      business_phone: String(s.business_phone ?? ""),
+      business_logo_url: String(s.business_logo_url ?? ""),
+      invoice_prefix: String(s.invoice_prefix ?? ""),
+      invoice_footer_note: String(s.invoice_footer_note ?? ""),
     });
   }, []);
 
@@ -51,9 +73,8 @@ export default function StudioSettingsTab() {
 
   const save = useCallback(async () => {
     if (!form) return;
-    const entries = Object.entries(form) as [keyof StudioForm, string][];
-    for (const [k, v] of entries) {
-      const n = Number(v);
+    for (const k of INT_KEYS) {
+      const n = Number(form[k]);
       if (!Number.isInteger(n) || n <= 0) {
         toast.error(`${k.replace(/_/g, " ")} must be a positive integer.`);
         return;
@@ -68,6 +89,14 @@ export default function StudioSettingsTab() {
           cancellation_cutoff_hours: Number(form.cancellation_cutoff_hours),
           default_package_validity_days: Number(form.default_package_validity_days),
           cancelled_pass_validity_days: Number(form.cancelled_pass_validity_days),
+          business_name: form.business_name,
+          business_address: form.business_address,
+          business_gstin: form.business_gstin,
+          business_email: form.business_email,
+          business_phone: form.business_phone,
+          business_logo_url: form.business_logo_url,
+          invoice_prefix: form.invoice_prefix,
+          invoice_footer_note: form.invoice_footer_note,
         }),
       });
       if (!r.ok) {
@@ -139,6 +168,105 @@ export default function StudioSettingsTab() {
               <p className="font-body text-xs text-charcoal/50">
                 Validity of the 1 Class Pass granted when a class is cancelled.
               </p>
+            </div>
+
+            <div>
+              <Button type="button" variant="sage" onClick={save} disabled={saving} className="gap-1.5">
+                {saving && <Loader2 className="h-4 w-4 animate-spin" />}
+                Save Settings
+              </Button>
+            </div>
+          </div>
+        )}
+      </CardContent>
+    </Card>
+
+    <Card className="border-sage/20 bg-white-warm">
+      <CardHeader>
+        <CardTitle className="font-body font-semibold text-2xl text-charcoal">Business / Invoice details</CardTitle>
+        <CardDescription className="font-body text-charcoal/60">
+          Shown on generated booking invoices. Leave a field blank to omit it.
+        </CardDescription>
+      </CardHeader>
+      <CardContent>
+        {loading || !form ? (
+          <div className="py-12 text-center font-body text-sm text-charcoal/40">Loading settings…</div>
+        ) : (
+          <div className="grid max-w-xl gap-5">
+            <div className="grid gap-1.5">
+              <Label htmlFor="set-business-name">Business name</Label>
+              <Input
+                id="set-business-name"
+                value={form.business_name}
+                onChange={(e) => patch("business_name", e.target.value)}
+              />
+            </div>
+
+            <div className="grid gap-1.5">
+              <Label htmlFor="set-business-address">Business address</Label>
+              <textarea
+                id="set-business-address"
+                className="min-h-20 rounded-lg border border-warm-border bg-white-warm px-3 py-2 font-body text-sm text-charcoal focus:border-sage focus:outline-none focus:ring-2 focus:ring-sage/30"
+                value={form.business_address}
+                onChange={(e) => patch("business_address", e.target.value)}
+              />
+            </div>
+
+            <div className="grid gap-1.5">
+              <Label htmlFor="set-business-gstin">GSTIN</Label>
+              <Input
+                id="set-business-gstin"
+                value={form.business_gstin}
+                onChange={(e) => patch("business_gstin", e.target.value)}
+              />
+            </div>
+
+            <div className="grid gap-1.5">
+              <Label htmlFor="set-business-email">Business email</Label>
+              <Input
+                id="set-business-email"
+                type="email"
+                value={form.business_email}
+                onChange={(e) => patch("business_email", e.target.value)}
+              />
+            </div>
+
+            <div className="grid gap-1.5">
+              <Label htmlFor="set-business-phone">Business phone</Label>
+              <Input
+                id="set-business-phone"
+                value={form.business_phone}
+                onChange={(e) => patch("business_phone", e.target.value)}
+              />
+            </div>
+
+            <div className="grid gap-1.5">
+              <Label htmlFor="set-business-logo-url">Logo URL</Label>
+              <Input
+                id="set-business-logo-url"
+                value={form.business_logo_url}
+                onChange={(e) => patch("business_logo_url", e.target.value)}
+              />
+            </div>
+
+            <div className="grid gap-1.5">
+              <Label htmlFor="set-invoice-prefix">Invoice prefix</Label>
+              <Input
+                id="set-invoice-prefix"
+                value={form.invoice_prefix}
+                onChange={(e) => patch("invoice_prefix", e.target.value)}
+              />
+              <p className="font-body text-xs text-charcoal/50">Example: INV → INV-000123.</p>
+            </div>
+
+            <div className="grid gap-1.5">
+              <Label htmlFor="set-invoice-footer-note">Invoice footer note</Label>
+              <textarea
+                id="set-invoice-footer-note"
+                className="min-h-20 rounded-lg border border-warm-border bg-white-warm px-3 py-2 font-body text-sm text-charcoal focus:border-sage focus:outline-none focus:ring-2 focus:ring-sage/30"
+                value={form.invoice_footer_note}
+                onChange={(e) => patch("invoice_footer_note", e.target.value)}
+              />
             </div>
 
             <div>

@@ -17,10 +17,21 @@ function posInt(v: unknown): number | null {
   return n;
 }
 
-const FIELDS = [
+const INT_FIELDS = [
   "cancellation_cutoff_hours",
   "default_package_validity_days",
   "cancelled_pass_validity_days",
+] as const;
+
+const STR_FIELDS = [
+  "business_name",
+  "business_address",
+  "business_gstin",
+  "business_email",
+  "business_phone",
+  "business_logo_url",
+  "invoice_prefix",
+  "invoice_footer_note",
 ] as const;
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
@@ -35,12 +46,25 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
   if (req.method === "PUT") {
     const body = (req.body ?? {}) as Record<string, unknown>;
-    const data: Record<string, number> = {};
-    for (const field of FIELDS) {
+    const data: Record<string, unknown> = {};
+    for (const field of INT_FIELDS) {
       if (body[field] === undefined) continue;
       const val = posInt(body[field]);
       if (val === null) return res.status(400).json({ error: `${field} must be a positive integer` });
       data[field] = val;
+    }
+
+    for (const field of STR_FIELDS) {
+      if (body[field] === undefined) continue;
+      const v = body[field];
+      if (v !== null && typeof v !== "string") return res.status(400).json({ error: `${field} must be a string` });
+      // Empty string clears the field.
+      (data as Record<string, unknown>)[field] = v === "" ? null : v;
+    }
+    if (body.next_invoice_seq !== undefined) {
+      const seq = posInt(body.next_invoice_seq);
+      if (seq === null) return res.status(400).json({ error: "next_invoice_seq must be a positive integer" });
+      (data as Record<string, unknown>)["next_invoice_seq"] = seq;
     }
 
     const settings = await prisma.studioSettings.upsert({
