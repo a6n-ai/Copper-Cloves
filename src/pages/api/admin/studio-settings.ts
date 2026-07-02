@@ -30,7 +30,6 @@ const STR_FIELDS = [
   "business_email",
   "business_phone",
   "business_logo_url",
-  "invoice_prefix",
   "invoice_footer_note",
 ] as const;
 
@@ -61,6 +60,17 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       // Empty string clears the field.
       (data as Record<string, unknown>)[field] = v === "" ? null : v;
     }
+    // invoice_prefix is a non-nullable schema column (@default("INV")); unlike the
+    // other STR_FIELDS, an empty/whitespace submit must fall back to the default
+    // instead of coercing to null (which would trip a Prisma null-constraint 500).
+    if (body.invoice_prefix !== undefined) {
+      if (body.invoice_prefix !== null && typeof body.invoice_prefix !== "string") {
+        return res.status(400).json({ error: "invoice_prefix must be a string" });
+      }
+      const raw = typeof body.invoice_prefix === "string" ? body.invoice_prefix.trim() : "";
+      data.invoice_prefix = raw === "" ? "INV" : raw;
+    }
+
     if (body.next_invoice_seq !== undefined) {
       const seq = posInt(body.next_invoice_seq);
       if (seq === null) return res.status(400).json({ error: "next_invoice_seq must be a positive integer" });
