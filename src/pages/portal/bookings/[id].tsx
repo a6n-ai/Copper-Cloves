@@ -4,7 +4,7 @@ import { useEffect, useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/router";
 import { format } from "date-fns";
-import { ArrowLeft, Calendar, Clock, Loader2 } from "lucide-react";
+import { ArrowLeft, Calendar, Clock, Loader2, ReceiptText } from "lucide-react";
 
 import { getStudioServerSession } from "@/lib/getStudioServerSession";
 import { PageHeader } from "@/components/dashboard/PageHeader";
@@ -60,6 +60,7 @@ interface BookingDetail {
   refundRoster: { name: string; isYou: boolean; refund: string }[];
   refundRequest: { kind: string; status: string; refund_type: string | null; refund_amount_paise: number | null } | null;
   canRequestRefund: boolean;
+  invoiceAvailable?: boolean;
 }
 
 function refundStatusText(d: BookingDetail): string {
@@ -293,6 +294,15 @@ export default function BookingDetailPage() {
               <p className="mt-3 rounded-md bg-terracotta/10 px-3 py-2 font-body text-sm text-terracotta">
                 {booking.paymentNote}
               </p>
+            )}
+
+            {booking.invoiceAvailable && (
+              <a
+                href={`/api/bookings/${id}/invoice`}
+                className="mt-3 inline-flex items-center gap-1.5 rounded-md border border-sage/30 px-3 py-2 font-body text-sm text-sage transition-colors hover:bg-sage hover:text-cream active:scale-[0.96]"
+              >
+                <ReceiptText className="h-4 w-4" /> Download invoice
+              </a>
             )}
 
             <div className="mt-5 space-y-2 border-t border-sage/10 pt-5">
