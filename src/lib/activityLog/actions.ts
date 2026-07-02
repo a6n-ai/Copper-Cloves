@@ -45,6 +45,7 @@ export const ACTIVITY_ACTIONS: Record<string, ActionDef> = {
   "booking.no_show": { category: "system", buildSummary: (m) => `No-show marked for ${str(m.class_name, "a class")}` },
   "booking.expired": { category: "system", buildSummary: (m) => `Unpaid hold released for ${str(m.class_name, "a class")}` },
   "booking.payment_reconciled": { category: "system", buildSummary: (m) => `Payment reconciled for ${str(m.class_name, "a class")}` },
+  "booking.healed_from_orphan": { category: "system", buildSummary: (m) => `Healed orphan payment for ${str(m.class_name, "a class")}${changeStr(m)}` },
   "booking.guest_added": { category: "member", buildSummary: (m) => `Guest added to ${str(m.class_name, "a class")}` },
   "package.purchased": { category: "member", buildSummary: (m) => `Purchased ${str(m.package_name, "a package")}` },
   "profile.updated": { category: "member", buildSummary: () => "Updated profile" },

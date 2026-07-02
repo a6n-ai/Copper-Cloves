@@ -13,7 +13,7 @@ import prisma from "@/lib/prisma";
 import { getStudioServerSession } from "@/lib/getStudioServerSession";
 import { ensureAdmin } from "@/lib/requireAdmin";
 import { BOOKING_STATUS } from "@/lib/bookingStatus";
-import { reconcileScheduleSeats } from "@/lib/seatCounts";
+import { reconcileConfirmedBookingSideEffects } from "@/lib/seatCounts";
 import { logActivity } from "@/lib/activityLog";
 
 export type OrphanActionBody =
@@ -85,9 +85,9 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       throw err;
     }
 
-    if (booking.class_schedule_id) {
-      await reconcileScheduleSeats(booking.class_schedule_id).catch(() => {});
-    }
+    // Fulfills any group added-members (payment_pending → confirmed) alongside the
+    // booker row, then recounts seats — mirrors the online confirm path.
+    await reconcileConfirmedBookingSideEffects(bookingId, booking.user_id).catch(() => {});
 
     await logActivity({
       actor: { id: admin.id, role: admin.role, name: admin.name },

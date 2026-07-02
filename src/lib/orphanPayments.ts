@@ -18,7 +18,7 @@ import prisma from "@/lib/prisma";
 import { logger } from "@/lib/logger";
 import { getRazorpay, razorpayConfigured } from "@/lib/razorpayServer";
 import { BOOKING_STATUS } from "@/lib/bookingStatus";
-import { reconcileScheduleSeats } from "@/lib/seatCounts";
+import { reconcileConfirmedBookingSideEffects } from "@/lib/seatCounts";
 import { logActivity } from "@/lib/activityLog";
 
 const log = logger.child({ module: "orphanPayments" });
@@ -80,8 +80,15 @@ export async function verifyRazorpayCaptured(razorpayPaymentId: string | null): 
     return true;
   }
   try {
-    const payment = (await getRazorpay().payments.fetch(razorpayPaymentId)) as { status?: string | null };
-    return payment.status === "captured";
+    const payment = (await getRazorpay().payments.fetch(razorpayPaymentId)) as {
+      status?: string | null;
+      amount_refunded?: number | null;
+      refund_status?: string | null;
+    };
+    if (payment.status !== "captured") return false;
+    if (payment.amount_refunded) return false;
+    if (payment.refund_status) return false;
+    return true;
   } catch (err) {
     log.warn({ err, razorpayPaymentId }, "orphan heal: Razorpay verify fetch failed, trusting persisted payment");
     return true;
@@ -148,11 +155,9 @@ export async function healBookingFromOrphan(bookingId: string): Promise<HealResu
     throw err;
   }
 
-  if (booking.class_schedule_id) {
-    await reconcileScheduleSeats(booking.class_schedule_id).catch((err) => {
-      log.error({ err, bookingId }, "orphan heal: reconcileScheduleSeats failed");
-    });
-  }
+  // Fulfills any group added-members (payment_pending → confirmed) alongside the
+  // booker row, then recounts seats — mirrors the online confirm path.
+  await reconcileConfirmedBookingSideEffects(bookingId, booking.user_id);
 
   await logActivity({
     actor: { role: "system", name: "System" },
