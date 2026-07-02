@@ -23,6 +23,9 @@ import { logActivity } from "@/lib/activityLog";
 
 const log = logger.child({ module: "orphanPayments" });
 
+/** Sentinel thrown inside the heal transaction to force rollback on a lost race (never surfaced). */
+class ConcurrentHealError extends Error {}
+
 /** Small buffer before booking creation to tolerate clock skew / near-simultaneous capture. */
 const LOOKBACK_BUFFER_MS = 10 * 60 * 1000;
 
@@ -126,23 +129,24 @@ export async function healBookingFromOrphan(bookingId: string): Promise<HealResu
   const captured = await verifyRazorpayCaptured(orphan.razorpay_payment_id);
   if (!captured) return { healed: false, reason: "not_captured_in_razorpay" };
 
-  const healed = await prisma.$transaction(async (tx) => {
-    const linkResult = await tx.payment.updateMany({
-      where: { id: orphan.id, booking_id: null },
-      data: { booking_id: bookingId },
+  try {
+    await prisma.$transaction(async (tx) => {
+      const linkResult = await tx.payment.updateMany({
+        where: { id: orphan.id, booking_id: null },
+        data: { booking_id: bookingId },
+      });
+      if (linkResult.count === 0) throw new ConcurrentHealError();
+
+      const confirmResult = await tx.booking.updateMany({
+        where: { id: bookingId, status: { in: [BOOKING_STATUS.payment_pending, BOOKING_STATUS.expired] } },
+        data: { status: BOOKING_STATUS.confirmed, hold_expires_at: null },
+      });
+      if (confirmResult.count === 0) throw new ConcurrentHealError();
     });
-    if (linkResult.count === 0) return false;
-
-    const confirmResult = await tx.booking.updateMany({
-      where: { id: bookingId, status: { in: [BOOKING_STATUS.payment_pending, BOOKING_STATUS.expired] } },
-      data: { status: BOOKING_STATUS.confirmed, hold_expires_at: null },
-    });
-    if (confirmResult.count === 0) return false;
-
-    return true;
-  });
-
-  if (!healed) return { healed: false, reason: "concurrent_update" };
+  } catch (err) {
+    if (err instanceof ConcurrentHealError) return { healed: false, reason: "concurrent_update" };
+    throw err;
+  }
 
   if (booking.class_schedule_id) {
     await reconcileScheduleSeats(booking.class_schedule_id).catch((err) => {
