@@ -9,7 +9,7 @@ import { useRouter } from "next/router";
 import { useSession } from "next-auth/react";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
-import { Calendar, Clock, AlertCircle, X, ArrowDownUp, ChevronRight } from "lucide-react";
+import { Calendar, Clock, AlertCircle, X, ArrowDownUp, ChevronRight, ReceiptText } from "lucide-react";
 import {
   ResponsiveDialog,
   ResponsiveDialogContent,
@@ -51,6 +51,7 @@ interface Booking {
   check_in_outcome: string | null;
   invited_by_name?: string | null;
   cancel_cutoff_hours?: number | null;
+  invoiceAvailable?: boolean;
   guests?: { name: string; status: string; checked_in: boolean }[];
   class_schedule?: {
     start_time: string;
@@ -171,6 +172,14 @@ const BookingCard = memo(function BookingCard({
         >
           {booking.status === "payment_pending" ? "Complete payment / I've already paid" : "Payment expired — review"} →
         </Link>
+      )}
+      {booking.invoiceAvailable && (
+        <a
+          href={`/api/bookings/${booking.id}/invoice`}
+          className="inline-flex items-center gap-1 mb-3 font-body text-sm font-medium text-sage hover:underline"
+        >
+          <ReceiptText size={14} /> Download invoice
+        </a>
       )}
       {!isPast && (
         <div className="flex flex-col gap-2">

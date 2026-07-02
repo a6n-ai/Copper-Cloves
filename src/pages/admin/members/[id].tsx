@@ -105,6 +105,7 @@ interface BookingRow {
   lifecycle: string;
   checkedIn: boolean;
   checkInOutcome: string | null;
+  invoiceAvailable: boolean;
 }
 interface FoodRow {
   id: string;
@@ -241,7 +242,7 @@ function mapDetail(data: Record<string, unknown>): MemberDetail {
       else if (when != null && when < now) status = "missed";
       else status = "upcoming";
       const lifecycle = b.status ? String(b.status) : "confirmed";
-      return { id: String(b.id), name, when, status, lifecycle, checkedIn, checkInOutcome: outcome };
+      return { id: String(b.id), name, when, status, lifecycle, checkedIn, checkInOutcome: outcome, invoiceAvailable: !!b.invoiceAvailable };
     })
     .sort((a, b) => (b.when ?? 0) - (a.when ?? 0));
 
@@ -642,6 +643,14 @@ function MemberBody({
                             <Pill {...bookingStatusPill(row.lifecycle)}>{bookingStatusPill(row.lifecycle).label}</Pill>
                             {(row.lifecycle === "payment_pending" || row.lifecycle === "expired") && (
                               <Pill {...bookingPaymentPill(row.lifecycle)}>{bookingPaymentPill(row.lifecycle).label}</Pill>
+                            )}
+                            {row.invoiceAvailable && (
+                              <a
+                                href={`/api/bookings/${row.id}/invoice`}
+                                className="inline-flex items-center gap-1 font-body text-xs text-sage transition-colors hover:text-terracotta active:scale-[0.96]"
+                              >
+                                <ReceiptText className="h-3.5 w-3.5" /> Invoice
+                              </a>
                             )}
                           </div>
                         </TableCell>
