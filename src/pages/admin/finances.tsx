@@ -9,7 +9,7 @@ import { AdminPageHeader } from "@/components/admin/AdminPageHeader";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { BarChart3, Receipt, ScanSearch, ScrollText } from "lucide-react";
+import { AlertTriangle, BarChart3, Receipt, ScanSearch, ScrollText } from "lucide-react";
 import { exportFinanceReport, useAdminFinanceData } from "@/hooks/useAdminFinanceData";
 
 function SectionLoadingSkeleton() {
@@ -42,11 +42,16 @@ const FinanceLedgerSection = dynamic(
   () => import("@/components/admin/dashboard-tabs/FinanceLedgerSection").then((m) => m.FinanceLedgerSection),
   { ssr: false, loading: () => <SectionLoadingSkeleton /> },
 );
+const OrphanPaymentsSection = dynamic(
+  () => import("@/components/admin/dashboard-tabs/OrphanPaymentsSection").then((m) => m.OrphanPaymentsSection),
+  { ssr: false, loading: () => <SectionLoadingSkeleton /> },
+);
 const FINANCE_TABS = [
   { v: "overview", l: "Overview", I: BarChart3 },
   { v: "transactions", l: "Transactions", I: Receipt },
   { v: "ledger", l: "Ledger", I: ScrollText },
   { v: "reconcile", l: "Reconcile", I: ScanSearch },
+  { v: "review", l: "To Review", I: AlertTriangle },
 ];
 
 export default function AdminFinances() {
@@ -119,6 +124,10 @@ export default function AdminFinances() {
 
               <TabsContent value="reconcile" className="space-y-6">
                 <ReconcileSection />
+              </TabsContent>
+
+              <TabsContent value="review" className="space-y-6">
+                <OrphanPaymentsSection />
               </TabsContent>
             </Tabs>
           </div>
