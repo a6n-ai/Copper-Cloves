@@ -1,13 +1,23 @@
 import { cn } from "@/lib/utils";
 
-/** Default: horizontal-scroll wrapper with edge fade. */
+/**
+ * Default: horizontal-scroll wrapper with a subtle both-edge fade on phones.
+ * The fade is a `mask-image` on the scroll container (fades the content itself
+ * to transparent) — NOT a coloured overlay. A colour overlay (the old
+ * `from-card` gradient) picks up the theme's card token and reads as a dirty
+ * black smear in dark mode / over coloured cells; a mask is theme-agnostic.
+ * Disabled at md+ where tables fit without scrolling. `-webkit-mask-image` is
+ * required for iOS Safari, the main place this shows.
+ */
+const EDGE_FADE =
+  "[mask-image:linear-gradient(to_right,transparent,#000_16px,#000_calc(100%-16px),transparent)] " +
+  "[-webkit-mask-image:linear-gradient(to_right,transparent,#000_16px,#000_calc(100%-16px),transparent)] " +
+  "md:[mask-image:none] md:[-webkit-mask-image:none]";
+
 export function ResponsiveTable({ className, children }: { className?: string; children: React.ReactNode }) {
   return (
-    <div className="relative">
-      <div className={cn("w-full overflow-x-auto [-webkit-overflow-scrolling:touch]", className)}>
-        {children}
-      </div>
-      <div className="pointer-events-none absolute inset-y-0 right-0 w-6 bg-gradient-to-l from-card/90 to-transparent md:hidden" />
+    <div className={cn("w-full overflow-x-auto [-webkit-overflow-scrolling:touch]", EDGE_FADE, className)}>
+      {children}
     </div>
   );
 }
