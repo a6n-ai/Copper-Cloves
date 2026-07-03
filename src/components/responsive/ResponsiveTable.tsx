@@ -100,6 +100,21 @@ function elementChildren(el: React.ReactElement | null, type: React.ElementType)
   );
 }
 
+/**
+ * True when a cell/head is hidden at the phone breakpoint (base `hidden`, e.g.
+ * `hidden sm:table-cell`). Such columns are desktop-only — skip them in the card
+ * view (their data is usually inlined into another cell for mobile). A prefixed
+ * `sm:hidden` / `md:hidden` is visible at base, so it is kept.
+ */
+function isMobileHidden(className?: unknown): boolean {
+  return typeof className === "string" && className.split(/\s+/).includes("hidden");
+}
+
+/** A trailing column that holds row actions rather than data (footer, not a field). */
+function isActionsLabel(label: string): boolean {
+  return label === "" || /^actions?$/i.test(label);
+}
+
 function renderStackCards(tableEl: React.ReactElement): React.ReactNode {
   const sections = React.Children.toArray((tableEl.props as { children?: React.ReactNode }).children);
   const header = sections.find(
@@ -111,11 +126,13 @@ function renderStackCards(tableEl: React.ReactElement): React.ReactNode {
   if (!bodyEl) return null;
 
   const headRow = elementChildren(header ?? null, TableRow)[0] ?? null;
-  const labels = headRow
-    ? React.Children.toArray((headRow.props as { children?: React.ReactNode }).children)
-        .filter(React.isValidElement)
-        .map(nodeText)
+  const heads = headRow
+    ? React.Children.toArray((headRow.props as { children?: React.ReactNode }).children).filter(
+        React.isValidElement,
+      )
     : [];
+  const labels = heads.map(nodeText);
+  const headHidden = heads.map((h) => isMobileHidden((h.props as { className?: unknown }).className));
 
   const rows = elementChildren(bodyEl, TableRow);
   if (rows.length === 0) return null;
@@ -141,19 +158,29 @@ function renderStackCards(tableEl: React.ReactElement): React.ReactNode {
           );
         }
 
-        // First cell = card title (identity column, no label). A trailing
-        // label-less cell (sr-only "Actions") = footer. Everything between with a
-        // label = a label/value row.
-        const fields = cells.map((cell, i) => ({
-          label: (labels[i] ?? "").trim(),
-          value: (cell.props as { children?: React.ReactNode }).children,
-        }));
-        const title = fields[0];
-        const actions =
-          fields.length > 1 && fields[fields.length - 1].label === "" ? fields[fields.length - 1] : null;
-        const detailFields = fields
-          .slice(1, actions ? fields.length - 1 : fields.length)
-          .filter((f) => f.label !== "");
+        // Drop desktop-only columns (base `hidden`), then classify the rest:
+        //  - leading unlabelled cells = controls (checkbox / drag handle) → sit by the title
+        //  - first labelled cell = card title (label dropped, rendered prominent)
+        //  - trailing actions cell(s) = footer
+        //  - everything else = a field row (label/value, or value-only when unlabelled — never dropped)
+        const fields = cells
+          .map((cell, i) => ({
+            label: (labels[i] ?? "").trim(),
+            value: (cell.props as { children?: React.ReactNode }).children,
+            hidden: headHidden[i] || isMobileHidden((cell.props as { className?: unknown }).className),
+          }))
+          .filter((f) => !f.hidden);
+        if (fields.length === 0) return null;
+
+        const controls: typeof fields = [];
+        let i = 0;
+        while (i < fields.length && fields[i].label === "") controls.push(fields[i++]);
+        // Title: first labelled cell; if the row has no labels at all, the first control becomes the title.
+        const title = i < fields.length ? fields[i++] : controls.shift();
+        const actions: typeof fields = [];
+        let end = fields.length;
+        while (end > i && isActionsLabel(fields[end - 1].label)) actions.unshift(fields[--end]);
+        const detailFields = fields.slice(i, end);
 
         const clickable = typeof rowProps.onClick === "function";
         return (
@@ -165,25 +192,42 @@ function renderStackCards(tableEl: React.ReactElement): React.ReactNode {
               clickable && "cursor-pointer active:bg-muted/60",
             )}
           >
-            {title && <div className="min-w-0">{title.value}</div>}
+            {(controls.length > 0 || title) && (
+              <div className="flex items-start gap-3">
+                {controls.length > 0 && (
+                  <div className="flex shrink-0 items-center gap-2 pt-0.5">
+                    {controls.map((c, ci) => (
+                      <React.Fragment key={ci}>{c.value}</React.Fragment>
+                    ))}
+                  </div>
+                )}
+                {title && <div className="min-w-0 flex-1">{title.value}</div>}
+              </div>
+            )}
             {detailFields.length > 0 && (
               <dl className="mt-3 space-y-2 border-t border-border/60 pt-3">
-                {detailFields.map((f, i) => (
-                  <div key={i} className="flex items-start justify-between gap-3">
-                    <dt className="shrink-0 text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">
-                      {f.label}
-                    </dt>
-                    <dd className="min-w-0 text-right text-sm text-foreground">{f.value}</dd>
+                {detailFields.map((f, di) => (
+                  <div key={di} className="flex items-start justify-between gap-3">
+                    {f.label && (
+                      <dt className="shrink-0 text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">
+                        {f.label}
+                      </dt>
+                    )}
+                    <dd className={cn("min-w-0 text-right text-sm text-foreground", !f.label && "ml-auto")}>
+                      {f.value}
+                    </dd>
                   </div>
                 ))}
               </dl>
             )}
-            {actions && (
+            {actions.length > 0 && (
               <div
                 className="mt-3 flex justify-end border-t border-border/60 pt-3"
                 onClick={(e) => e.stopPropagation()}
               >
-                {actions.value}
+                {actions.map((a, ai) => (
+                  <React.Fragment key={ai}>{a.value}</React.Fragment>
+                ))}
               </div>
             )}
           </div>
