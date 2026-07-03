@@ -307,7 +307,7 @@ export function AdminBookingsBrowser() {
                 <p className="font-body text-sm">No bookings match these filters.</p>
               </div>
             ) : (
-              <ResponsiveTable>
+              <ResponsiveTable stack>
                 <Table>
                   <TableHeader>
                     <TableRow>

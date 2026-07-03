@@ -702,7 +702,7 @@ export default function AdminBadgesPage() {
                   />
                 ) : (
                   <>
-                    <ResponsiveTable>
+                    <ResponsiveTable stack>
                       <div className="rounded-xl border border-sage/15 bg-white-warm overflow-hidden">
                         <Table>
                           <TableHeader>

@@ -274,7 +274,7 @@ export function OrphanPaymentsSection() {
 
           {(loading || rows.length > 0) && (
             <div className="rounded-xl border border-sage/15 bg-white-warm overflow-hidden">
-              <ResponsiveTable>
+              <ResponsiveTable stack>
                 <Table>
                   <TableHeader>
                     <TableRow>

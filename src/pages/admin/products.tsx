@@ -624,7 +624,7 @@ export default function AdminProducts() {
                       }
                     />
                   ) : (
-                    <ResponsiveTable>
+                    <ResponsiveTable stack>
                       <Table>
                         <TableHeader>
                           <TableRow className="bg-sage/5">

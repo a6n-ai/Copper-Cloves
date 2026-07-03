@@ -451,7 +451,7 @@ export default function PartnerClasses() {
                           );
                         }}
                         renderTable={() => (
-                      <ResponsiveTable>
+                      <ResponsiveTable stack>
                         <Table>
                           <TableHeader>
                             <TableRow>

@@ -115,7 +115,7 @@ export function OrderHistoryTable({ rows }: OrderHistoryTableProps) {
   );
 
   return (
-    <ResponsiveTable>
+    <ResponsiveTable stack>
       <Table>
         <TableHeader>
           <TableRow>

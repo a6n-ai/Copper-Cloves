@@ -112,7 +112,7 @@ function MealWaitlistTabImpl({ inquiries, loading, onUpdateStatus }: Props) {
             </div>
           ) : (
             <div className="rounded-xl border border-sage/15 bg-white-warm overflow-hidden">
-              <ResponsiveTable>
+              <ResponsiveTable stack>
                 <Table>
                   <TableHeader>
                     <TableRow>

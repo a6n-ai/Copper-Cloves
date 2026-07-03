@@ -290,7 +290,7 @@ export default function AdminInstructorsPage() {
 
               <CardContent>
                 {loading ? (
-                  <ResponsiveTable>
+                  <ResponsiveTable stack>
                     <Table>
                       <TableBody>
                         {["s1", "s2", "s3", "s4", "s5"].map((sk) => (

@@ -208,7 +208,7 @@ export function DayScheduleList({
   return (
     <div className="space-y-3 min-w-0">
       <div className="rounded-xl border border-sage/15 bg-white-warm overflow-hidden">
-        <ResponsiveTable>
+        <ResponsiveTable stack>
         <Table className="w-full table-fixed min-w-[560px]">
           <TableHeader>
             <TableRow>

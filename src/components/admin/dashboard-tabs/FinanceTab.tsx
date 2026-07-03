@@ -1067,7 +1067,7 @@ function FinanceTransactionsSectionImpl({
             </p>
           ) : null}
           <div className="rounded-xl border border-sage/15 bg-white-warm overflow-hidden">
-            <ResponsiveTable>
+            <ResponsiveTable stack>
               <Table>
                 <TableHeader>
                   <TableRow>

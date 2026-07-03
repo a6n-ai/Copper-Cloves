@@ -429,7 +429,7 @@ function OverviewTabImpl({
               )}
 
               <div className="overflow-hidden rounded-xl border border-sage/15 bg-white-warm">
-                <ResponsiveTable>
+                <ResponsiveTable stack>
                   <Table>
                     <TableHeader>
                       <TableRow>

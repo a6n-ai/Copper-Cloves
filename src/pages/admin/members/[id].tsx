@@ -623,7 +623,7 @@ function MemberBody({
             {member.bookings.length === 0 ? (
               <EmptyNote text="No class history yet." />
             ) : (
-              <ResponsiveTable>
+              <ResponsiveTable stack>
                 <Table>
                   <TableHeader>
                     <TableRow>
@@ -701,7 +701,7 @@ function MemberBody({
             {member.payments.length === 0 ? (
               <EmptyNote text="No payments recorded." />
             ) : (
-              <ResponsiveTable>
+              <ResponsiveTable stack>
                 <Table>
                   <TableHeader>
                     <TableRow>

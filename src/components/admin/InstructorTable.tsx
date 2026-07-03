@@ -8,6 +8,7 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { ResponsiveTable } from "@/components/responsive/ResponsiveTable";
+import { MobileSortControl } from "@/components/responsive/MobileSortControl";
 import { ListAvatar } from "@/components/admin/ListAvatar";
 import { SortableHeader } from "@/components/admin/sortable-table";
 import { Pill } from "@/components/ui/pill";
@@ -134,9 +135,25 @@ export function InstructorTable<
   caption,
 }: InstructorTableProps<T>) {
   const colSpan = columns.length + (renderActions ? 1 : 0);
+  const sortOptions =
+    sort?.sortableKeys?.length
+      ? columns
+          .filter((key) => sort.sortableKeys?.includes(key) && COLUMN_REGISTRY[key].sortKey)
+          .map((key) => ({ value: COLUMN_REGISTRY[key].sortKey as string, label: COLUMN_REGISTRY[key].header }))
+      : [];
 
   return (
-    <ResponsiveTable>
+    <>
+      {sort && sortOptions.length > 0 && (
+        <MobileSortControl
+          className="mb-3"
+          options={sortOptions}
+          activeKey={sort.sortKey}
+          dir={sort.sortDir}
+          onToggle={sort.onToggle}
+        />
+      )}
+    <ResponsiveTable stack>
       <Table>
         {caption ? <caption className="sr-only">{caption}</caption> : null}
         <TableHeader>
@@ -205,6 +222,7 @@ export function InstructorTable<
         </TableBody>
       </Table>
     </ResponsiveTable>
+    </>
   );
 }
 

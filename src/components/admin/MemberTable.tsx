@@ -9,6 +9,7 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { ResponsiveTable } from "@/components/responsive/ResponsiveTable";
+import { MobileSortControl } from "@/components/responsive/MobileSortControl";
 import { ListAvatar } from "@/components/admin/ListAvatar";
 import { SortableHeader } from "@/components/admin/sortable-table";
 import { Pill } from "@/components/ui/pill";
@@ -202,9 +203,26 @@ export function MemberTable<T extends MemberTableMember = MemberTableMember>({
   caption,
 }: MemberTableProps<T>) {
   const colSpan = columns.length + (renderActions ? 1 : 0);
+  const sortOptions =
+    sort?.sortableKeys?.length
+      ? columns
+          .map((key) => COLUMN_REGISTRY[key])
+          .filter((def) => def.sortKey && sort.sortableKeys?.includes(def.sortKey))
+          .map((def) => ({ value: def.sortKey as string, label: def.header }))
+      : [];
 
   return (
-    <ResponsiveTable>
+    <>
+      {sort && sortOptions.length > 0 && (
+        <MobileSortControl
+          className="mb-3"
+          options={sortOptions}
+          activeKey={sort.sortKey}
+          dir={sort.sortDir}
+          onToggle={sort.onToggle}
+        />
+      )}
+    <ResponsiveTable stack>
       <Table>
         {caption ? <caption className="sr-only">{caption}</caption> : null}
         <TableHeader>
@@ -276,6 +294,7 @@ export function MemberTable<T extends MemberTableMember = MemberTableMember>({
         </TableBody>
       </Table>
     </ResponsiveTable>
+    </>
   );
 }
 

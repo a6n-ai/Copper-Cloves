@@ -18,7 +18,7 @@ import { ResponsiveTable } from "@/components/responsive/ResponsiveTable";
 
 function PartnerMembersSkeleton() {
   return (
-    <ResponsiveTable>
+    <ResponsiveTable stack>
       <Table>
         <TableHeader>
           <TableRow>
@@ -102,7 +102,7 @@ export default function PartnerMembersPage() {
               description="No members have attended a session yet."
             />
           ) : (
-            <ResponsiveTable>
+            <ResponsiveTable stack>
               <Table>
                 <TableHeader>
                   <TableRow>

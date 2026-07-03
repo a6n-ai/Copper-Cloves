@@ -1158,7 +1158,7 @@ function LookupCard() {
         {state.status === "done" && primaryPayment && (
           <CardContent>
             <div className="rounded-xl border border-sage/15 bg-white-warm overflow-hidden">
-              <ResponsiveTable>
+              <ResponsiveTable stack>
                 <Table>
                   <TableHeader>
                     <TableRow>
@@ -1470,7 +1470,7 @@ function ReconcileSectionImpl() {
           <Card className="border-sage/20 bg-white-warm">
             <CardContent className="pt-6">
               <div className="rounded-xl border border-sage/15 bg-white-warm overflow-hidden">
-                <ResponsiveTable>
+                <ResponsiveTable stack>
                   <Table>
                     <TableHeader>
                       <TableRow>
@@ -1590,7 +1590,7 @@ function ReconcileSectionImpl() {
               ) : (
                 <>
                   <div className="rounded-xl border border-sage/15 bg-white-warm overflow-hidden">
-                    <ResponsiveTable>
+                    <ResponsiveTable stack>
                       <Table>
                         <TableHeader>
                           <TableRow>
