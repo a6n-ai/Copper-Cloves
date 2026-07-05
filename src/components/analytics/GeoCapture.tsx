@@ -1,5 +1,6 @@
 import { useEffect } from "react";
 import { useSession } from "next-auth/react";
+import { toast } from "sonner";
 
 // Fire-and-forget: once per authenticated browser session, ask for GPS and POST
 // it to attach coordinates to this login's UserSession row. Renders nothing.
@@ -12,6 +13,9 @@ export function GeoCapture() {
     if (typeof navigator === "undefined" || !navigator.geolocation) return;
     if (sessionStorage.getItem("geo-captured") === "1") return;
     sessionStorage.setItem("geo-captured", "1"); // mark upfront so we don't re-prompt on re-render
+
+    // Context for the native browser permission prompt that fires on the next line.
+    toast.info("Location is needed to make sure check-in is done at the studio");
 
     navigator.geolocation.getCurrentPosition(
       (pos) => {
