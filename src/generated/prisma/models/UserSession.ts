@@ -23,8 +23,22 @@ export type UserSessionModel = runtime.Types.Result.DefaultSelection<Prisma.$Use
 
 export type AggregateUserSession = {
   _count: UserSessionCountAggregateOutputType | null
+  _avg: UserSessionAvgAggregateOutputType | null
+  _sum: UserSessionSumAggregateOutputType | null
   _min: UserSessionMinAggregateOutputType | null
   _max: UserSessionMaxAggregateOutputType | null
+}
+
+export type UserSessionAvgAggregateOutputType = {
+  latitude: number | null
+  longitude: number | null
+  accuracy: number | null
+}
+
+export type UserSessionSumAggregateOutputType = {
+  latitude: number | null
+  longitude: number | null
+  accuracy: number | null
 }
 
 export type UserSessionMinAggregateOutputType = {
@@ -34,6 +48,10 @@ export type UserSessionMinAggregateOutputType = {
   fingerprint: string | null
   ip: string | null
   user_agent: string | null
+  latitude: number | null
+  longitude: number | null
+  accuracy: number | null
+  geo_captured_at: Date | null
   created_at: Date | null
   last_seen_at: Date | null
 }
@@ -45,6 +63,10 @@ export type UserSessionMaxAggregateOutputType = {
   fingerprint: string | null
   ip: string | null
   user_agent: string | null
+  latitude: number | null
+  longitude: number | null
+  accuracy: number | null
+  geo_captured_at: Date | null
   created_at: Date | null
   last_seen_at: Date | null
 }
@@ -56,11 +78,27 @@ export type UserSessionCountAggregateOutputType = {
   fingerprint: number
   ip: number
   user_agent: number
+  latitude: number
+  longitude: number
+  accuracy: number
+  geo_captured_at: number
   created_at: number
   last_seen_at: number
   _all: number
 }
 
+
+export type UserSessionAvgAggregateInputType = {
+  latitude?: true
+  longitude?: true
+  accuracy?: true
+}
+
+export type UserSessionSumAggregateInputType = {
+  latitude?: true
+  longitude?: true
+  accuracy?: true
+}
 
 export type UserSessionMinAggregateInputType = {
   id?: true
@@ -69,6 +107,10 @@ export type UserSessionMinAggregateInputType = {
   fingerprint?: true
   ip?: true
   user_agent?: true
+  latitude?: true
+  longitude?: true
+  accuracy?: true
+  geo_captured_at?: true
   created_at?: true
   last_seen_at?: true
 }
@@ -80,6 +122,10 @@ export type UserSessionMaxAggregateInputType = {
   fingerprint?: true
   ip?: true
   user_agent?: true
+  latitude?: true
+  longitude?: true
+  accuracy?: true
+  geo_captured_at?: true
   created_at?: true
   last_seen_at?: true
 }
@@ -91,6 +137,10 @@ export type UserSessionCountAggregateInputType = {
   fingerprint?: true
   ip?: true
   user_agent?: true
+  latitude?: true
+  longitude?: true
+  accuracy?: true
+  geo_captured_at?: true
   created_at?: true
   last_seen_at?: true
   _all?: true
@@ -134,6 +184,18 @@ export type UserSessionAggregateArgs<ExtArgs extends runtime.Types.Extensions.In
   /**
    * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
    * 
+   * Select which fields to average
+  **/
+  _avg?: UserSessionAvgAggregateInputType
+  /**
+   * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+   * 
+   * Select which fields to sum
+  **/
+  _sum?: UserSessionSumAggregateInputType
+  /**
+   * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+   * 
    * Select which fields to find the minimum value
   **/
   _min?: UserSessionMinAggregateInputType
@@ -164,6 +226,8 @@ export type UserSessionGroupByArgs<ExtArgs extends runtime.Types.Extensions.Inte
   take?: number
   skip?: number
   _count?: UserSessionCountAggregateInputType | true
+  _avg?: UserSessionAvgAggregateInputType
+  _sum?: UserSessionSumAggregateInputType
   _min?: UserSessionMinAggregateInputType
   _max?: UserSessionMaxAggregateInputType
 }
@@ -175,9 +239,15 @@ export type UserSessionGroupByOutputType = {
   fingerprint: string
   ip: string | null
   user_agent: string | null
+  latitude: number | null
+  longitude: number | null
+  accuracy: number | null
+  geo_captured_at: Date | null
   created_at: Date
   last_seen_at: Date
   _count: UserSessionCountAggregateOutputType | null
+  _avg: UserSessionAvgAggregateOutputType | null
+  _sum: UserSessionSumAggregateOutputType | null
   _min: UserSessionMinAggregateOutputType | null
   _max: UserSessionMaxAggregateOutputType | null
 }
@@ -207,6 +277,10 @@ export type UserSessionWhereInput = {
   fingerprint?: Prisma.StringFilter<"UserSession"> | string
   ip?: Prisma.StringNullableFilter<"UserSession"> | string | null
   user_agent?: Prisma.StringNullableFilter<"UserSession"> | string | null
+  latitude?: Prisma.FloatNullableFilter<"UserSession"> | number | null
+  longitude?: Prisma.FloatNullableFilter<"UserSession"> | number | null
+  accuracy?: Prisma.FloatNullableFilter<"UserSession"> | number | null
+  geo_captured_at?: Prisma.DateTimeNullableFilter<"UserSession"> | Date | string | null
   created_at?: Prisma.DateTimeFilter<"UserSession"> | Date | string
   last_seen_at?: Prisma.DateTimeFilter<"UserSession"> | Date | string
   profile?: Prisma.XOR<Prisma.ProfileScalarRelationFilter, Prisma.ProfileWhereInput>
@@ -219,6 +293,10 @@ export type UserSessionOrderByWithRelationInput = {
   fingerprint?: Prisma.SortOrder
   ip?: Prisma.SortOrderInput | Prisma.SortOrder
   user_agent?: Prisma.SortOrderInput | Prisma.SortOrder
+  latitude?: Prisma.SortOrderInput | Prisma.SortOrder
+  longitude?: Prisma.SortOrderInput | Prisma.SortOrder
+  accuracy?: Prisma.SortOrderInput | Prisma.SortOrder
+  geo_captured_at?: Prisma.SortOrderInput | Prisma.SortOrder
   created_at?: Prisma.SortOrder
   last_seen_at?: Prisma.SortOrder
   profile?: Prisma.ProfileOrderByWithRelationInput
@@ -234,6 +312,10 @@ export type UserSessionWhereUniqueInput = Prisma.AtLeast<{
   fingerprint?: Prisma.StringFilter<"UserSession"> | string
   ip?: Prisma.StringNullableFilter<"UserSession"> | string | null
   user_agent?: Prisma.StringNullableFilter<"UserSession"> | string | null
+  latitude?: Prisma.FloatNullableFilter<"UserSession"> | number | null
+  longitude?: Prisma.FloatNullableFilter<"UserSession"> | number | null
+  accuracy?: Prisma.FloatNullableFilter<"UserSession"> | number | null
+  geo_captured_at?: Prisma.DateTimeNullableFilter<"UserSession"> | Date | string | null
   created_at?: Prisma.DateTimeFilter<"UserSession"> | Date | string
   last_seen_at?: Prisma.DateTimeFilter<"UserSession"> | Date | string
   profile?: Prisma.XOR<Prisma.ProfileScalarRelationFilter, Prisma.ProfileWhereInput>
@@ -246,11 +328,17 @@ export type UserSessionOrderByWithAggregationInput = {
   fingerprint?: Prisma.SortOrder
   ip?: Prisma.SortOrderInput | Prisma.SortOrder
   user_agent?: Prisma.SortOrderInput | Prisma.SortOrder
+  latitude?: Prisma.SortOrderInput | Prisma.SortOrder
+  longitude?: Prisma.SortOrderInput | Prisma.SortOrder
+  accuracy?: Prisma.SortOrderInput | Prisma.SortOrder
+  geo_captured_at?: Prisma.SortOrderInput | Prisma.SortOrder
   created_at?: Prisma.SortOrder
   last_seen_at?: Prisma.SortOrder
   _count?: Prisma.UserSessionCountOrderByAggregateInput
+  _avg?: Prisma.UserSessionAvgOrderByAggregateInput
   _max?: Prisma.UserSessionMaxOrderByAggregateInput
   _min?: Prisma.UserSessionMinOrderByAggregateInput
+  _sum?: Prisma.UserSessionSumOrderByAggregateInput
 }
 
 export type UserSessionScalarWhereWithAggregatesInput = {
@@ -263,6 +351,10 @@ export type UserSessionScalarWhereWithAggregatesInput = {
   fingerprint?: Prisma.StringWithAggregatesFilter<"UserSession"> | string
   ip?: Prisma.StringNullableWithAggregatesFilter<"UserSession"> | string | null
   user_agent?: Prisma.StringNullableWithAggregatesFilter<"UserSession"> | string | null
+  latitude?: Prisma.FloatNullableWithAggregatesFilter<"UserSession"> | number | null
+  longitude?: Prisma.FloatNullableWithAggregatesFilter<"UserSession"> | number | null
+  accuracy?: Prisma.FloatNullableWithAggregatesFilter<"UserSession"> | number | null
+  geo_captured_at?: Prisma.DateTimeNullableWithAggregatesFilter<"UserSession"> | Date | string | null
   created_at?: Prisma.DateTimeWithAggregatesFilter<"UserSession"> | Date | string
   last_seen_at?: Prisma.DateTimeWithAggregatesFilter<"UserSession"> | Date | string
 }
@@ -273,6 +365,10 @@ export type UserSessionCreateInput = {
   fingerprint: string
   ip?: string | null
   user_agent?: string | null
+  latitude?: number | null
+  longitude?: number | null
+  accuracy?: number | null
+  geo_captured_at?: Date | string | null
   created_at?: Date | string
   last_seen_at?: Date | string
   profile: Prisma.ProfileCreateNestedOneWithoutSessionsInput
@@ -285,6 +381,10 @@ export type UserSessionUncheckedCreateInput = {
   fingerprint: string
   ip?: string | null
   user_agent?: string | null
+  latitude?: number | null
+  longitude?: number | null
+  accuracy?: number | null
+  geo_captured_at?: Date | string | null
   created_at?: Date | string
   last_seen_at?: Date | string
 }
@@ -295,6 +395,10 @@ export type UserSessionUpdateInput = {
   fingerprint?: Prisma.StringFieldUpdateOperationsInput | string
   ip?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   user_agent?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  latitude?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
+  longitude?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
+  accuracy?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
+  geo_captured_at?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   created_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   last_seen_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   profile?: Prisma.ProfileUpdateOneRequiredWithoutSessionsNestedInput
@@ -307,6 +411,10 @@ export type UserSessionUncheckedUpdateInput = {
   fingerprint?: Prisma.StringFieldUpdateOperationsInput | string
   ip?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   user_agent?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  latitude?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
+  longitude?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
+  accuracy?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
+  geo_captured_at?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   created_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   last_seen_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
 }
@@ -318,6 +426,10 @@ export type UserSessionCreateManyInput = {
   fingerprint: string
   ip?: string | null
   user_agent?: string | null
+  latitude?: number | null
+  longitude?: number | null
+  accuracy?: number | null
+  geo_captured_at?: Date | string | null
   created_at?: Date | string
   last_seen_at?: Date | string
 }
@@ -328,6 +440,10 @@ export type UserSessionUpdateManyMutationInput = {
   fingerprint?: Prisma.StringFieldUpdateOperationsInput | string
   ip?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   user_agent?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  latitude?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
+  longitude?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
+  accuracy?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
+  geo_captured_at?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   created_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   last_seen_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
 }
@@ -339,6 +455,10 @@ export type UserSessionUncheckedUpdateManyInput = {
   fingerprint?: Prisma.StringFieldUpdateOperationsInput | string
   ip?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   user_agent?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  latitude?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
+  longitude?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
+  accuracy?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
+  geo_captured_at?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   created_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   last_seen_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
 }
@@ -360,8 +480,18 @@ export type UserSessionCountOrderByAggregateInput = {
   fingerprint?: Prisma.SortOrder
   ip?: Prisma.SortOrder
   user_agent?: Prisma.SortOrder
+  latitude?: Prisma.SortOrder
+  longitude?: Prisma.SortOrder
+  accuracy?: Prisma.SortOrder
+  geo_captured_at?: Prisma.SortOrder
   created_at?: Prisma.SortOrder
   last_seen_at?: Prisma.SortOrder
+}
+
+export type UserSessionAvgOrderByAggregateInput = {
+  latitude?: Prisma.SortOrder
+  longitude?: Prisma.SortOrder
+  accuracy?: Prisma.SortOrder
 }
 
 export type UserSessionMaxOrderByAggregateInput = {
@@ -371,6 +501,10 @@ export type UserSessionMaxOrderByAggregateInput = {
   fingerprint?: Prisma.SortOrder
   ip?: Prisma.SortOrder
   user_agent?: Prisma.SortOrder
+  latitude?: Prisma.SortOrder
+  longitude?: Prisma.SortOrder
+  accuracy?: Prisma.SortOrder
+  geo_captured_at?: Prisma.SortOrder
   created_at?: Prisma.SortOrder
   last_seen_at?: Prisma.SortOrder
 }
@@ -382,8 +516,18 @@ export type UserSessionMinOrderByAggregateInput = {
   fingerprint?: Prisma.SortOrder
   ip?: Prisma.SortOrder
   user_agent?: Prisma.SortOrder
+  latitude?: Prisma.SortOrder
+  longitude?: Prisma.SortOrder
+  accuracy?: Prisma.SortOrder
+  geo_captured_at?: Prisma.SortOrder
   created_at?: Prisma.SortOrder
   last_seen_at?: Prisma.SortOrder
+}
+
+export type UserSessionSumOrderByAggregateInput = {
+  latitude?: Prisma.SortOrder
+  longitude?: Prisma.SortOrder
+  accuracy?: Prisma.SortOrder
 }
 
 export type UserSessionCreateNestedManyWithoutProfileInput = {
@@ -428,12 +572,24 @@ export type UserSessionUncheckedUpdateManyWithoutProfileNestedInput = {
   deleteMany?: Prisma.UserSessionScalarWhereInput | Prisma.UserSessionScalarWhereInput[]
 }
 
+export type NullableFloatFieldUpdateOperationsInput = {
+  set?: number | null
+  increment?: number
+  decrement?: number
+  multiply?: number
+  divide?: number
+}
+
 export type UserSessionCreateWithoutProfileInput = {
   id?: string
   session_id: string
   fingerprint: string
   ip?: string | null
   user_agent?: string | null
+  latitude?: number | null
+  longitude?: number | null
+  accuracy?: number | null
+  geo_captured_at?: Date | string | null
   created_at?: Date | string
   last_seen_at?: Date | string
 }
@@ -444,6 +600,10 @@ export type UserSessionUncheckedCreateWithoutProfileInput = {
   fingerprint: string
   ip?: string | null
   user_agent?: string | null
+  latitude?: number | null
+  longitude?: number | null
+  accuracy?: number | null
+  geo_captured_at?: Date | string | null
   created_at?: Date | string
   last_seen_at?: Date | string
 }
@@ -484,6 +644,10 @@ export type UserSessionScalarWhereInput = {
   fingerprint?: Prisma.StringFilter<"UserSession"> | string
   ip?: Prisma.StringNullableFilter<"UserSession"> | string | null
   user_agent?: Prisma.StringNullableFilter<"UserSession"> | string | null
+  latitude?: Prisma.FloatNullableFilter<"UserSession"> | number | null
+  longitude?: Prisma.FloatNullableFilter<"UserSession"> | number | null
+  accuracy?: Prisma.FloatNullableFilter<"UserSession"> | number | null
+  geo_captured_at?: Prisma.DateTimeNullableFilter<"UserSession"> | Date | string | null
   created_at?: Prisma.DateTimeFilter<"UserSession"> | Date | string
   last_seen_at?: Prisma.DateTimeFilter<"UserSession"> | Date | string
 }
@@ -494,6 +658,10 @@ export type UserSessionCreateManyProfileInput = {
   fingerprint: string
   ip?: string | null
   user_agent?: string | null
+  latitude?: number | null
+  longitude?: number | null
+  accuracy?: number | null
+  geo_captured_at?: Date | string | null
   created_at?: Date | string
   last_seen_at?: Date | string
 }
@@ -504,6 +672,10 @@ export type UserSessionUpdateWithoutProfileInput = {
   fingerprint?: Prisma.StringFieldUpdateOperationsInput | string
   ip?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   user_agent?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  latitude?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
+  longitude?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
+  accuracy?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
+  geo_captured_at?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   created_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   last_seen_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
 }
@@ -514,6 +686,10 @@ export type UserSessionUncheckedUpdateWithoutProfileInput = {
   fingerprint?: Prisma.StringFieldUpdateOperationsInput | string
   ip?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   user_agent?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  latitude?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
+  longitude?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
+  accuracy?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
+  geo_captured_at?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   created_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   last_seen_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
 }
@@ -524,6 +700,10 @@ export type UserSessionUncheckedUpdateManyWithoutProfileInput = {
   fingerprint?: Prisma.StringFieldUpdateOperationsInput | string
   ip?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   user_agent?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  latitude?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
+  longitude?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
+  accuracy?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
+  geo_captured_at?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   created_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   last_seen_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
 }
@@ -537,6 +717,10 @@ export type UserSessionSelect<ExtArgs extends runtime.Types.Extensions.InternalA
   fingerprint?: boolean
   ip?: boolean
   user_agent?: boolean
+  latitude?: boolean
+  longitude?: boolean
+  accuracy?: boolean
+  geo_captured_at?: boolean
   created_at?: boolean
   last_seen_at?: boolean
   profile?: boolean | Prisma.ProfileDefaultArgs<ExtArgs>
@@ -549,6 +733,10 @@ export type UserSessionSelectCreateManyAndReturn<ExtArgs extends runtime.Types.E
   fingerprint?: boolean
   ip?: boolean
   user_agent?: boolean
+  latitude?: boolean
+  longitude?: boolean
+  accuracy?: boolean
+  geo_captured_at?: boolean
   created_at?: boolean
   last_seen_at?: boolean
   profile?: boolean | Prisma.ProfileDefaultArgs<ExtArgs>
@@ -561,6 +749,10 @@ export type UserSessionSelectUpdateManyAndReturn<ExtArgs extends runtime.Types.E
   fingerprint?: boolean
   ip?: boolean
   user_agent?: boolean
+  latitude?: boolean
+  longitude?: boolean
+  accuracy?: boolean
+  geo_captured_at?: boolean
   created_at?: boolean
   last_seen_at?: boolean
   profile?: boolean | Prisma.ProfileDefaultArgs<ExtArgs>
@@ -573,11 +765,15 @@ export type UserSessionSelectScalar = {
   fingerprint?: boolean
   ip?: boolean
   user_agent?: boolean
+  latitude?: boolean
+  longitude?: boolean
+  accuracy?: boolean
+  geo_captured_at?: boolean
   created_at?: boolean
   last_seen_at?: boolean
 }
 
-export type UserSessionOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "profile_id" | "session_id" | "fingerprint" | "ip" | "user_agent" | "created_at" | "last_seen_at", ExtArgs["result"]["userSession"]>
+export type UserSessionOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "profile_id" | "session_id" | "fingerprint" | "ip" | "user_agent" | "latitude" | "longitude" | "accuracy" | "geo_captured_at" | "created_at" | "last_seen_at", ExtArgs["result"]["userSession"]>
 export type UserSessionInclude<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   profile?: boolean | Prisma.ProfileDefaultArgs<ExtArgs>
 }
@@ -600,6 +796,10 @@ export type $UserSessionPayload<ExtArgs extends runtime.Types.Extensions.Interna
     fingerprint: string
     ip: string | null
     user_agent: string | null
+    latitude: number | null
+    longitude: number | null
+    accuracy: number | null
+    geo_captured_at: Date | null
     created_at: Date
     last_seen_at: Date
   }, ExtArgs["result"]["userSession"]>
@@ -1032,6 +1232,10 @@ export interface UserSessionFieldRefs {
   readonly fingerprint: Prisma.FieldRef<"UserSession", 'String'>
   readonly ip: Prisma.FieldRef<"UserSession", 'String'>
   readonly user_agent: Prisma.FieldRef<"UserSession", 'String'>
+  readonly latitude: Prisma.FieldRef<"UserSession", 'Float'>
+  readonly longitude: Prisma.FieldRef<"UserSession", 'Float'>
+  readonly accuracy: Prisma.FieldRef<"UserSession", 'Float'>
+  readonly geo_captured_at: Prisma.FieldRef<"UserSession", 'DateTime'>
   readonly created_at: Prisma.FieldRef<"UserSession", 'DateTime'>
   readonly last_seen_at: Prisma.FieldRef<"UserSession", 'DateTime'>
 }

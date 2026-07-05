@@ -40,6 +40,7 @@ const DashboardShell = dynamic(
 );
 import { PORTAL_CONFIGS, type PortalKind } from "@/components/dashboard/dashboardNav";
 import { BuildVersionWatcher } from "@/components/BuildVersionWatcher";
+import { GeoCapture } from "@/components/analytics/GeoCapture";
 import { Navigation } from "@/components/Navigation";
 import { PublicMobileNav } from "@/components/PublicMobileNav";
 import { PageTransition } from "@/components/transitions/PageTransition";
@@ -266,6 +267,7 @@ export default function App({ Component, pageProps: { session, ...pageProps } }:
 
       <div className={`${playfair.variable} ${montserrat.variable}`}>
         <BuildVersionWatcher />
+        <GeoCapture />
         <ActivityTrackingSubscriber />
         <OnboardingGate />
         <RouteProgress />
