@@ -148,6 +148,10 @@ export const UserSessionScalarFieldEnum = {
   fingerprint: 'fingerprint',
   ip: 'ip',
   user_agent: 'user_agent',
+  latitude: 'latitude',
+  longitude: 'longitude',
+  accuracy: 'accuracy',
+  geo_captured_at: 'geo_captured_at',
   created_at: 'created_at',
   last_seen_at: 'last_seen_at'
 } as const
