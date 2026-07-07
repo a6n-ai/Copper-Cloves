@@ -41,7 +41,7 @@ const DashboardShell = dynamic(
 import { PORTAL_CONFIGS, type PortalKind } from "@/components/dashboard/dashboardNav";
 import { BuildVersionWatcher } from "@/components/BuildVersionWatcher";
 import { GeoCapture } from "@/components/analytics/GeoCapture";
-import { Navigation } from "@/components/Navigation";
+import { GlassNavigation } from "@/components/GlassNavigation";
 import { PublicMobileNav } from "@/components/PublicMobileNav";
 import { PageTransition } from "@/components/transitions/PageTransition";
 import { RouteProgress } from "@/components/transitions/RouteProgress";
@@ -164,7 +164,7 @@ function PublicChrome({ children }: Readonly<{ children: React.ReactNode }>) {
   // crossfade gap reveals the site's cream — not the white document background.
   return (
     <div className={`min-h-screen bg-cream${variant ? " pb-[76px] md:pb-0" : ""}`}>
-      {variant && <Navigation variant={variant} />}
+      {variant && <GlassNavigation variant={variant} />}
       <PageTransition>{children}</PageTransition>
       {variant && <PublicMobileNav />}
     </div>

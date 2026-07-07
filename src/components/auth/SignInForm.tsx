@@ -129,18 +129,18 @@ export function SignInForm({ onSwitchToSignup }: { onSwitchToSignup: () => void 
 
   return (
     <>
-      <h1 className="font-display text-4xl sm:text-5xl text-charcoal leading-[1.05] text-center">
+      <h1 className="font-display text-3xl sm:text-5xl text-charcoal leading-[1.05] text-center">
         Welcome <span className="italic text-sage">back</span>
       </h1>
 
       {/* delicate leaf divider */}
-      <div className="my-5 flex items-center justify-center gap-3" aria-hidden>
+      <div className="my-4 flex items-center justify-center gap-3 sm:my-5" aria-hidden>
         <span className="h-px w-10 bg-linear-to-r from-transparent to-terracotta/40" />
         <Leaf className="h-3.5 w-3.5 text-terracotta/70" />
         <span className="h-px w-10 bg-linear-to-l from-transparent to-terracotta/40" />
       </div>
 
-      <p className="font-body text-sm text-charcoal/80 mb-8 text-center">
+      <p className="font-body text-sm text-charcoal/80 mb-6 text-center sm:mb-8">
         {!emailChecked
           ? "Enter your email to continue"
           : needPick
@@ -277,7 +277,7 @@ export function SignInForm({ onSwitchToSignup }: { onSwitchToSignup: () => void 
 
         {/* Hide the primary button while the picker is the active choice */}
         {!needPick && (
-          <Button type="submit" variant="sage" size="lg" disabled={loading} className="w-full rounded-full text-sm uppercase tracking-[0.15em]">
+          <Button type="submit" variant="sage" size="lg" disabled={loading} className="w-full rounded-md text-sm uppercase tracking-[0.15em]">
             {loading
               ? <><Spinner className="mr-2 size-4" />{role ? "Signing in…" : "Checking…"}</>
               : role ? "Sign In" : "Continue"}
@@ -285,7 +285,7 @@ export function SignInForm({ onSwitchToSignup }: { onSwitchToSignup: () => void 
         )}
       </form>
 
-      <p className="mt-8 font-body text-sm text-charcoal/80 text-center">
+      <p className="mt-6 font-body text-sm text-charcoal/80 text-center sm:mt-8">
         New to The Studio?{" "}
         <Button type="button" variant="link" onClick={onSwitchToSignup} className="text-sage h-auto p-0 font-medium">
           Create account

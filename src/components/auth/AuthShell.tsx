@@ -1,7 +1,7 @@
 import type { ReactNode } from "react";
 import Link from "next/link";
 import { motion, useReducedMotion } from "framer-motion";
-import { AuthLeavesBackground } from "@/components/AuthLeavesBackground";
+import { AuthGrainientBackground } from "@/components/AuthGrainientBackground";
 import { WeatherWidget } from "@/components/WeatherWidget";
 import { quirkyWeatherLine } from "@/lib/weatherCopy";
 import type { MeshPalette } from "@/lib/weatherPalette";
@@ -24,8 +24,8 @@ export function AuthShell({
 }) {
   const reduce = useReducedMotion();
   return (
-    <div className="relative min-h-screen flex items-center justify-center overflow-hidden bg-cream p-4 py-10 sm:p-6">
-      <AuthLeavesBackground palette={palette} />
+    <div className="relative flex min-h-dvh flex-col items-center justify-center overflow-y-auto bg-cream p-4 py-16 sm:p-6 sm:py-10">
+      <AuthGrainientBackground palette={palette} />
 
       {/* Top bar: weather + back home */}
       <div className="absolute inset-x-0 top-0 z-10 flex items-center justify-between p-5 sm:p-6">
@@ -41,23 +41,25 @@ export function AuthShell({
         transition={{ duration: reduce ? 0 : 0.5, ease: "easeOut" }}
       >
         {weather && (
-          <p className="mb-6 text-center font-body text-sm sm:text-base font-medium text-charcoal/85 leading-relaxed [text-shadow:0_1px_10px_rgba(255,255,255,0.85)]">
+          <p className="mb-4 text-center font-body text-sm sm:mb-6 sm:text-base font-medium text-charcoal/85 leading-relaxed [text-shadow:0_1px_10px_rgba(255,255,255,0.85)]">
             {quirkyWeatherLine(weather.condition, weather.tempC, weather.city)}
           </p>
         )}
 
-        <div className="relative isolate overflow-hidden rounded-3xl border border-border bg-white-warm shadow-[0_4px_24px_rgba(51,51,51,0.08)] p-8 sm:p-10">
-          {/* Brand header — shared across modes */}
-          <div>
-            <p className="mb-4 text-center font-body text-[10px] tracking-[0.4em] uppercase text-terracotta/80">
+        <div className="relative isolate overflow-hidden rounded-3xl border border-white/50 bg-white-warm/60 backdrop-blur-2xl backdrop-saturate-150 shadow-[0_8px_40px_rgba(51,51,51,0.12)] p-6 sm:p-10">
+          {/* Brand header — logo inverted to black (PNG is white-on-transparent), no panel */}
+          <div className="mb-5 text-center">
+            <p className="mb-4 font-body text-[10px] tracking-[0.4em] uppercase text-terracotta/80">
               Vegan · Wellness · Café
             </p>
-            <div className="mb-5 text-center">
-              <span className="font-display text-2xl text-charcoal italic tracking-tight">
-                the<span className="font-normal not-italic uppercase tracking-[0.15em]">STUDIO</span>
-              </span>
-              <p className="font-body text-[10px] tracking-[0.35em] uppercase text-charcoal/70 mt-1">by Copper + Cloves</p>
-            </div>
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img
+              src="/logo-white.png"
+              alt="The Studio"
+              className="mx-auto h-auto w-44 sm:w-48"
+              style={{ filter: "brightness(0)" }}
+            />
+            <p className="mt-2 font-body text-[10px] tracking-[0.35em] uppercase text-charcoal/70">by Copper + Cloves</p>
           </div>
 
           {children}
@@ -66,7 +68,7 @@ export function AuthShell({
         {/* Quote below the card */}
         {weather?.quote && (
           <motion.div
-            className="mx-auto mt-6 max-w-sm px-2 text-center [text-shadow:0_1px_8px_rgba(255,255,255,0.75)]"
+            className="mx-auto mt-5 max-w-sm px-2 text-center [text-shadow:0_1px_8px_rgba(255,255,255,0.75)] sm:mt-6"
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             transition={{ duration: 0.8, delay: 0.25 }}

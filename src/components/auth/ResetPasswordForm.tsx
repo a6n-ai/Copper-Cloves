@@ -159,7 +159,7 @@ export function ResetPasswordForm({ token }: { token: string | undefined }) {
           type="submit"
           disabled={isSubmitting || !token}
           variant="sage"
-          className="w-full h-12 rounded-full text-sm uppercase tracking-[0.15em]"
+          className="w-full h-12 rounded-md text-sm uppercase tracking-[0.15em]"
         >
           {isSubmitting ? (
             <><Spinner className="mr-2 size-4" />Saving…</>

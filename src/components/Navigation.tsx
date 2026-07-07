@@ -143,18 +143,17 @@ export function Navigation({ variant = "default" }: Readonly<NavigationProps>) {
             className="block select-none outline-hidden focus-visible:ring-2 focus-visible:ring-sage/40 focus-visible:rounded-sm"
           >
             <Image
-              src={cdnUrl("/the_studio_by_C_C_og.png")}
+              src={cdnUrl("/logo2.png")}
               alt="The STUDIO"
-              width={320}
-              height={84}
+              width={314}
+              height={182}
               className={cn(
-                "h-12 w-auto max-w-[min(85vw,300px)] object-contain object-left transition-[filter] duration-300 md:h-14",
-                // Black lockup: keep dark on the light/blurred bar, invert to
-                // light (with a soft shadow) when the bar is transparent over the hero.
-                // Dark on the solid bar (incl. mobile overlay); white only over the
+                "h-12 w-auto object-contain object-left transition-[filter] duration-300 md:h-14",
+                // logo2 is white-on-transparent: black on the solid bar (incl.
+                // mobile overlay); keep white (with a soft shadow) only over the
                 // transparent hero on md+.
                 onHero
-                  ? "brightness-0 md:invert md:drop-shadow-[0_1px_8px_rgba(0,0,0,0.35)]"
+                  ? "brightness-0 md:brightness-100 md:drop-shadow-[0_1px_8px_rgba(0,0,0,0.35)]"
                   : "brightness-0",
               )}
               priority={isOverlay}

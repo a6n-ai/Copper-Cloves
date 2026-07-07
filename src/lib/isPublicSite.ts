@@ -17,7 +17,7 @@ import type { NavigationVariant } from "@/components/Navigation";
 export const PUBLIC_NAV_ROUTES: Record<string, NavigationVariant> = {
   "/": "overlay",
   "/classes": "default",
-  "/cafe": "default",
+  "/cafe": "overlay",
   "/shop": "default",
   "/shop/[id]": "default",
   "/rental": "default",

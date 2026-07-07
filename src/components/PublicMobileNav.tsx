@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/router";
 import { useSession } from "next-auth/react";
+import { motion } from "framer-motion";
 import {
   Home,
   CalendarDays,
@@ -18,6 +19,7 @@ import {
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Sheet, SheetContent, SheetHeader, SheetTitle } from "@/components/ui/sheet";
+import GlassSurface from "@/components/GlassSurface";
 
 type Tab = { href: string; label: string; icon: LucideIcon };
 
@@ -37,12 +39,23 @@ const MORE_LEGAL: Tab[] = [
   { href: "/terms", label: "Terms", icon: FileText },
 ];
 
+// Apple-style shared-element selection: one pill in the DOM (rendered under the
+// active tab), framer springs it between tabs via layoutId.
+const PILL = (
+  <motion.span
+    layoutId="pubNavPill"
+    transition={{ type: "spring", stiffness: 420, damping: 34 }}
+    className="absolute inset-x-1.5 inset-y-1.5 -z-0 rounded-xl bg-terracotta/15"
+    aria-hidden="true"
+  />
+);
+
 /**
- * App-style bottom tab bar for the public marketing site (`md:hidden`), built
- * to mirror the dashboard's MobileBottomNav: side tabs flanking a raised center
- * "Book" FAB (the public analogue of the dashboard check-in FAB), plus a "More"
- * bottom sheet for overflow. Reveal-on-scroll: hidden over the hero, slides up
- * past ~60% of the first viewport. Mounted once in PublicChrome (_app.tsx).
+ * App-style floating glass bottom bar for the public site (`md:hidden`).
+ * reactbits GlassSurface shell + framer sliding selection pill + a raised center
+ * "Book" FAB (kept OUTSIDE the glass — GlassSurface clips overflow) + a "More"
+ * bottom-sheet drawer for overflow. Reveal-on-scroll past ~60% of the first
+ * viewport. Mounted once in PublicChrome (_app.tsx).
  */
 export function PublicMobileNav() {
   const router = useRouter();
@@ -87,16 +100,20 @@ export function PublicMobileNav() {
 
   const tabCls = (active: boolean) =>
     cn(
-      "flex min-h-14 flex-1 flex-col items-center justify-center gap-0.5 text-[10px] font-body transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-sage",
+      "relative flex flex-1 flex-col items-center justify-center gap-0.5 py-1.5 text-[10px] font-body font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-sage",
       active ? "text-terracotta" : "text-charcoal/55 hover:text-charcoal",
     );
 
   const renderTab = (tab: Tab) => {
+    const active = isActive(tab.href);
     const Icon = tab.icon;
     return (
-      <Link key={tab.href} href={tab.href} tabIndex={show ? 0 : -1} className={tabCls(isActive(tab.href))}>
-        <Icon className="h-5 w-5" />
-        <span className="max-w-full truncate px-0.5">{tab.label}</span>
+      <Link key={tab.href} href={tab.href} tabIndex={show ? 0 : -1} className={tabCls(active)}>
+        {active && PILL}
+        <span className="relative z-10 flex flex-col items-center gap-0.5">
+          <Icon className="h-5 w-5" />
+          <span className="max-w-full truncate px-0.5">{tab.label}</span>
+        </span>
       </Link>
     );
   };
@@ -130,35 +147,40 @@ export function PublicMobileNav() {
       <nav
         aria-hidden={!show}
         className={cn(
-          "fixed inset-x-0 bottom-0 z-40 border-t border-sage/15 bg-white-warm md:hidden",
+          "fixed inset-x-3 z-40 md:hidden",
           "transition-transform duration-300 ease-out motion-reduce:transition-none",
-          show ? "translate-y-0" : "pointer-events-none translate-y-[150%]",
+          show ? "translate-y-0" : "pointer-events-none translate-y-[180%]",
         )}
-        style={{ paddingBottom: "env(safe-area-inset-bottom)" }}
+        style={{ bottom: "calc(env(safe-area-inset-bottom) + 12px)" }}
       >
-        <div className="flex items-stretch">
-          <div className="flex flex-1 items-stretch">{TABS_LEFT.map(renderTab)}</div>
-
-          <div className="relative flex w-20 shrink-0 justify-center">
-            <Link
-              href={bookHref}
-              tabIndex={show ? 0 : -1}
-              aria-label="Book a class"
-              className="absolute -top-5 flex h-16 w-16 flex-col items-center justify-center gap-0.5 rounded-full border-4 border-cream bg-terracotta text-cream shadow-md shadow-terracotta/30 transition-transform active:scale-95 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sage focus-visible:ring-offset-2 focus-visible:ring-offset-cream motion-reduce:transition-none"
-            >
-              <Ticket className="h-6 w-6" />
-              <span className="text-[9px] font-body leading-none">Book</span>
-            </Link>
+        <GlassSurface width="100%" height={62} borderRadius={20} backgroundOpacity={0.12} className="w-full">
+          <div className="flex w-full items-stretch">
+            <div className="flex flex-1 items-stretch">{TABS_LEFT.map(renderTab)}</div>
+            {/* spacer clears the raised FAB */}
+            <div className="w-20 shrink-0" aria-hidden="true" />
+            <div className="flex flex-1 items-stretch">
+              {TABS_RIGHT.map(renderTab)}
+              <button type="button" onClick={() => setMoreOpen(true)} tabIndex={show ? 0 : -1} className={tabCls(moreActive)}>
+                {moreActive && PILL}
+                <span className="relative z-10 flex flex-col items-center gap-0.5">
+                  <Menu className="h-5 w-5" />
+                  More
+                </span>
+              </button>
+            </div>
           </div>
+        </GlassSurface>
 
-          <div className="flex flex-1 items-stretch">
-            {TABS_RIGHT.map(renderTab)}
-            <button type="button" onClick={() => setMoreOpen(true)} tabIndex={show ? 0 : -1} className={tabCls(moreActive)}>
-              <Menu className="h-5 w-5" />
-              More
-            </button>
-          </div>
-        </div>
+        {/* Raised center FAB — sibling of the glass shell so it isn't clipped. */}
+        <Link
+          href={bookHref}
+          tabIndex={show ? 0 : -1}
+          aria-label="Book a class"
+          className="absolute -top-6 left-1/2 flex h-16 w-16 -translate-x-1/2 flex-col items-center justify-center gap-0.5 rounded-full border-4 border-cream bg-terracotta text-cream shadow-md shadow-terracotta/30 transition-transform active:scale-95 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sage focus-visible:ring-offset-2 focus-visible:ring-offset-cream motion-reduce:transition-none"
+        >
+          <Ticket className="h-6 w-6" />
+          <span className="text-[9px] font-body leading-none">Book</span>
+        </Link>
       </nav>
 
       <Sheet open={moreOpen} onOpenChange={setMoreOpen}>

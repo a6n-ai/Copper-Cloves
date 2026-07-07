@@ -258,7 +258,7 @@ export function SignUpForm({ onSwitchToSignin }: { onSwitchToSignin: () => void 
                 type="submit"
                 variant="sage"
                 size="lg"
-                className="w-full rounded-full text-sm uppercase tracking-[0.15em] mt-2"
+                className="w-full rounded-md text-sm uppercase tracking-[0.15em] mt-2"
               >
                 Continue
               </Button>
@@ -412,7 +412,7 @@ export function SignUpForm({ onSwitchToSignin }: { onSwitchToSignin: () => void 
                 variant="sage"
                 size="lg"
                 disabled={isSubmitting}
-                className="w-full rounded-full text-sm uppercase tracking-[0.15em] mt-2"
+                className="w-full rounded-md text-sm uppercase tracking-[0.15em] mt-2"
               >
                 {isSubmitting ? (
                   <>
